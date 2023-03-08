@@ -7,7 +7,7 @@ use super::{EntityDataItem, EntityDataValue, OptionalUnsignedInt, Pose, Rotation
 use azalea_block::BlockState;
 use azalea_chat::FormattedText;
 use azalea_core::{BlockPos, Direction, Particle, Slot};
-use azalea_ecs::{bundle::Bundle, component::Component};
+use bevy_ecs::{bundle::Bundle, component::Component};
 use derive_more::{Deref, DerefMut};
 use thiserror::Error;
 use uuid::Uuid;
@@ -79,7 +79,7 @@ pub struct CanDuplicate(pub bool);
 pub struct Allay;
 impl Allay {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -160,7 +160,7 @@ pub struct Waiting(pub bool);
 pub struct AreaEffectCloud;
 impl AreaEffectCloud {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -245,7 +245,7 @@ pub struct RightLegPose(pub Rotations);
 pub struct ArmorStand;
 impl ArmorStand {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -356,7 +356,7 @@ pub struct ArrowEffectColor(pub i32);
 pub struct Arrow;
 impl Arrow {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -431,7 +431,7 @@ pub struct AxolotlFromBucket(pub bool);
 pub struct Axolotl;
 impl Axolotl {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -520,7 +520,7 @@ pub struct Resting(pub bool);
 pub struct Bat;
 impl Bat {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -596,7 +596,7 @@ pub struct BeeRemainingAngerTime(pub i32);
 pub struct Bee;
 impl Bee {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -687,7 +687,7 @@ pub struct Charged(pub bool);
 pub struct Blaze;
 impl Blaze {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -775,7 +775,7 @@ pub struct BubbleTime(pub i32);
 pub struct Boat;
 impl Boat {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -871,7 +871,7 @@ pub struct LastPoseChangeTick(pub i64);
 pub struct Camel;
 impl Camel {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -990,7 +990,7 @@ pub struct CatCollarColor(pub i32);
 pub struct Cat;
 impl Cat {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -1090,7 +1090,7 @@ pub struct Climbing(pub bool);
 pub struct CaveSpider;
 impl CaveSpider {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -1162,7 +1162,7 @@ impl Default for CaveSpiderMetadataBundle {
 pub struct ChestBoat;
 impl ChestBoat {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -1229,7 +1229,7 @@ pub struct CustomDisplay(pub bool);
 pub struct ChestMinecart;
 impl ChestMinecart {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -1283,7 +1283,7 @@ impl Default for ChestMinecartMetadataBundle {
 pub struct Chicken;
 impl Chicken {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -1357,7 +1357,7 @@ pub struct CodFromBucket(pub bool);
 pub struct Cod;
 impl Cod {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -1431,7 +1431,7 @@ pub struct LastOutput(pub FormattedText);
 pub struct CommandBlockMinecart;
 impl CommandBlockMinecart {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -1495,7 +1495,7 @@ impl Default for CommandBlockMinecartMetadataBundle {
 pub struct Cow;
 impl Cow {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -1573,7 +1573,7 @@ pub struct IsIgnited(pub bool);
 pub struct Creeper;
 impl Creeper {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -1662,7 +1662,7 @@ pub struct MoistnessLevel(pub i32);
 pub struct Dolphin;
 impl Dolphin {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -1756,7 +1756,7 @@ pub struct DonkeyChest(pub bool);
 pub struct Donkey;
 impl Donkey {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -1856,7 +1856,7 @@ impl Default for DonkeyMetadataBundle {
 pub struct DragonFireball;
 impl DragonFireball {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -1907,7 +1907,7 @@ pub struct DrownedConversion(pub bool);
 pub struct Drowned;
 impl Drowned {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -1983,7 +1983,7 @@ pub struct EggItemStack(pub Slot);
 pub struct Egg;
 impl Egg {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -2037,7 +2037,7 @@ pub struct AttackTarget(pub i32);
 pub struct ElderGuardian;
 impl ElderGuardian {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -2114,7 +2114,7 @@ pub struct ShowBottom(pub bool);
 pub struct EndCrystal;
 impl EndCrystal {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -2171,7 +2171,7 @@ pub struct Phase(pub i32);
 pub struct EnderDragon;
 impl EnderDragon {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -2240,7 +2240,7 @@ pub struct EnderPearlItemStack(pub Slot);
 pub struct EnderPearl;
 impl EnderPearl {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -2296,7 +2296,7 @@ pub struct StaredAt(pub bool);
 pub struct Enderman;
 impl Enderman {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -2379,7 +2379,7 @@ impl Default for EndermanMetadataBundle {
 pub struct Endermite;
 impl Endermite {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -2451,7 +2451,7 @@ pub struct EvokerSpellCasting(pub u8);
 pub struct Evoker;
 impl Evoker {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -2529,7 +2529,7 @@ impl Default for EvokerMetadataBundle {
 pub struct EvokerFangs;
 impl EvokerFangs {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -2576,7 +2576,7 @@ pub struct ExperienceBottleItemStack(pub Slot);
 pub struct ExperienceBottle;
 impl ExperienceBottle {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -2626,7 +2626,7 @@ impl Default for ExperienceBottleMetadataBundle {
 pub struct ExperienceOrb;
 impl ExperienceOrb {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -2673,7 +2673,7 @@ pub struct EyeOfEnderItemStack(pub Slot);
 pub struct EyeOfEnder;
 impl EyeOfEnder {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -2725,7 +2725,7 @@ pub struct StartPos(pub BlockPos);
 pub struct FallingBlock;
 impl FallingBlock {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -2777,7 +2777,7 @@ pub struct FireballItemStack(pub Slot);
 pub struct Fireball;
 impl Fireball {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -2833,7 +2833,7 @@ pub struct ShotAtAngle(pub bool);
 pub struct FireworkRocket;
 impl FireworkRocket {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -2897,7 +2897,7 @@ pub struct Biting(pub bool);
 pub struct FishingBobber;
 impl FishingBobber {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -2970,7 +2970,7 @@ pub struct TrustedId1(pub Option<Uuid>);
 pub struct Fox;
 impl Fox {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -3082,7 +3082,7 @@ pub struct TongueTarget(pub OptionalUnsignedInt);
 pub struct Frog;
 impl Frog {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -3166,7 +3166,7 @@ pub struct Fuel(pub bool);
 pub struct FurnaceMinecart;
 impl FurnaceMinecart {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -3227,7 +3227,7 @@ pub struct IsCharging(pub bool);
 pub struct Ghast;
 impl Ghast {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -3294,7 +3294,7 @@ impl Default for GhastMetadataBundle {
 pub struct Giant;
 impl Giant {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -3366,7 +3366,7 @@ pub struct Rotation(pub i32);
 pub struct GlowItemFrame;
 impl GlowItemFrame {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -3418,7 +3418,7 @@ pub struct DarkTicksRemaining(pub i32);
 pub struct GlowSquid;
 impl GlowSquid {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -3497,7 +3497,7 @@ pub struct HasRightHorn(pub bool);
 pub struct Goat;
 impl Goat {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -3584,7 +3584,7 @@ impl Default for GoatMetadataBundle {
 pub struct Guardian;
 impl Guardian {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -3664,7 +3664,7 @@ pub struct HoglinImmuneToZombification(pub bool);
 pub struct Hoglin;
 impl Hoglin {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -3741,7 +3741,7 @@ impl Default for HoglinMetadataBundle {
 pub struct HopperMinecart;
 impl HopperMinecart {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -3809,7 +3809,7 @@ pub struct HorseTypeVariant(pub i32);
 pub struct Horse;
 impl Horse {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -3909,7 +3909,7 @@ impl Default for HorseMetadataBundle {
 pub struct Husk;
 impl Husk {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -3987,7 +3987,7 @@ pub struct IllusionerSpellCasting(pub u8);
 pub struct Illusioner;
 impl Illusioner {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -4067,7 +4067,7 @@ pub struct PlayerCreated(pub bool);
 pub struct IronGolem;
 impl IronGolem {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -4140,7 +4140,7 @@ pub struct ItemItem(pub Slot);
 pub struct Item;
 impl Item {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -4190,7 +4190,7 @@ impl Default for ItemMetadataBundle {
 pub struct ItemFrame;
 impl ItemFrame {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -4245,7 +4245,7 @@ impl Default for ItemFrameMetadataBundle {
 pub struct LeashKnot;
 impl LeashKnot {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -4290,7 +4290,7 @@ impl Default for LeashKnotMetadataBundle {
 pub struct LightningBolt;
 impl LightningBolt {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -4355,7 +4355,7 @@ pub struct LlamaVariant(pub i32);
 pub struct Llama;
 impl Llama {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -4470,7 +4470,7 @@ impl Default for LlamaMetadataBundle {
 pub struct LlamaSpit;
 impl LlamaSpit {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -4517,7 +4517,7 @@ pub struct SlimeSize(pub i32);
 pub struct MagmaCube;
 impl MagmaCube {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -4583,7 +4583,7 @@ impl Default for MagmaCubeMetadataBundle {
 pub struct Marker;
 impl Marker {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -4628,7 +4628,7 @@ impl Default for MarkerMetadataBundle {
 pub struct Minecart;
 impl Minecart {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -4684,7 +4684,7 @@ pub struct MooshroomKind(pub String);
 pub struct Mooshroom;
 impl Mooshroom {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -4778,7 +4778,7 @@ pub struct MuleChest(pub bool);
 pub struct Mule;
 impl Mule {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -4880,7 +4880,7 @@ pub struct Trusting(pub bool);
 pub struct Ocelot;
 impl Ocelot {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -4959,7 +4959,7 @@ pub struct PaintingVariant(pub azalea_registry::PaintingVariant);
 pub struct Painting;
 impl Painting {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -5027,7 +5027,7 @@ pub struct PandaFlags(pub u8);
 pub struct Panda;
 impl Panda {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -5141,7 +5141,7 @@ pub struct ParrotVariant(pub i32);
 pub struct Parrot;
 impl Parrot {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -5226,7 +5226,7 @@ pub struct PhantomSize(pub i32);
 pub struct Phantom;
 impl Phantom {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -5297,7 +5297,7 @@ pub struct PigBoostTime(pub i32);
 pub struct Pig;
 impl Pig {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -5387,7 +5387,7 @@ pub struct IsDancing(pub bool);
 pub struct Piglin;
 impl Piglin {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -5477,7 +5477,7 @@ pub struct PiglinBruteImmuneToZombification(pub bool);
 pub struct PiglinBrute;
 impl PiglinBrute {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -5554,7 +5554,7 @@ pub struct PillagerIsChargingCrossbow(pub bool);
 pub struct Pillager;
 impl Pillager {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -5644,7 +5644,7 @@ pub struct ShoulderRight(pub azalea_nbt::Tag);
 pub struct Player;
 impl Player {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -5732,7 +5732,7 @@ pub struct PolarBearStanding(pub bool);
 pub struct PolarBear;
 impl PolarBear {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -5811,7 +5811,7 @@ pub struct PotionItemStack(pub Slot);
 pub struct Potion;
 impl Potion {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -5865,7 +5865,7 @@ pub struct PuffState(pub i32);
 pub struct Pufferfish;
 impl Pufferfish {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -5942,7 +5942,7 @@ pub struct RabbitKind(pub i32);
 pub struct Rabbit;
 impl Rabbit {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -6021,7 +6021,7 @@ pub struct RavagerIsCelebrating(pub bool);
 pub struct Ravager;
 impl Ravager {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -6096,7 +6096,7 @@ pub struct SalmonFromBucket(pub bool);
 pub struct Salmon;
 impl Salmon {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -6168,7 +6168,7 @@ pub struct Sheared(pub bool);
 pub struct Sheep;
 impl Sheep {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -6252,7 +6252,7 @@ pub struct ShulkerColor(pub u8);
 pub struct Shulker;
 impl Shulker {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -6332,7 +6332,7 @@ impl Default for ShulkerMetadataBundle {
 pub struct ShulkerBullet;
 impl ShulkerBullet {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -6377,7 +6377,7 @@ impl Default for ShulkerBulletMetadataBundle {
 pub struct Silverfish;
 impl Silverfish {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -6447,7 +6447,7 @@ pub struct StrayConversion(pub bool);
 pub struct Skeleton;
 impl Skeleton {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -6532,7 +6532,7 @@ pub struct SkeletonHorseOwnerUuid(pub Option<Uuid>);
 pub struct SkeletonHorse;
 impl SkeletonHorse {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -6627,7 +6627,7 @@ impl Default for SkeletonHorseMetadataBundle {
 pub struct Slime;
 impl Slime {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -6696,7 +6696,7 @@ pub struct SmallFireballItemStack(pub Slot);
 pub struct SmallFireball;
 impl SmallFireball {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -6748,7 +6748,7 @@ pub struct HasPumpkin(pub bool);
 pub struct SnowGolem;
 impl SnowGolem {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -6821,7 +6821,7 @@ pub struct SnowballItemStack(pub Slot);
 pub struct Snowball;
 impl Snowball {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -6871,7 +6871,7 @@ impl Default for SnowballMetadataBundle {
 pub struct SpawnerMinecart;
 impl SpawnerMinecart {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -6933,7 +6933,7 @@ pub struct SpectralArrowPierceLevel(pub u8);
 pub struct SpectralArrow;
 impl SpectralArrow {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -6995,7 +6995,7 @@ impl Default for SpectralArrowMetadataBundle {
 pub struct Spider;
 impl Spider {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -7069,7 +7069,7 @@ impl Default for SpiderMetadataBundle {
 pub struct Squid;
 impl Squid {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -7134,7 +7134,7 @@ impl Default for SquidMetadataBundle {
 pub struct Stray;
 impl Stray {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -7208,7 +7208,7 @@ pub struct StriderSaddle(pub bool);
 pub struct Strider;
 impl Strider {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -7297,7 +7297,7 @@ pub struct TadpoleFromBucket(pub bool);
 pub struct Tadpole;
 impl Tadpole {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -7369,7 +7369,7 @@ pub struct Fuse(pub i32);
 pub struct Tnt;
 impl Tnt {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -7419,7 +7419,7 @@ impl Default for TntMetadataBundle {
 pub struct TntMinecart;
 impl TntMinecart {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -7473,7 +7473,7 @@ impl Default for TntMinecartMetadataBundle {
 pub struct TraderLlama;
 impl TraderLlama {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -7570,7 +7570,7 @@ pub struct Foil(pub bool);
 pub struct Trident;
 impl Trident {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -7646,7 +7646,7 @@ pub struct TropicalFishTypeVariant(pub i32);
 pub struct TropicalFish;
 impl TropicalFish {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -7733,7 +7733,7 @@ pub struct Travelling(pub bool);
 pub struct Turtle;
 impl Turtle {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -7837,7 +7837,7 @@ pub struct VexFlags(pub u8);
 pub struct Vex;
 impl Vex {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -7914,7 +7914,7 @@ pub struct VillagerVillagerData(pub VillagerData);
 pub struct Villager;
 impl Villager {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -7999,7 +7999,7 @@ pub struct VindicatorIsCelebrating(pub bool);
 pub struct Vindicator;
 impl Vindicator {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -8074,7 +8074,7 @@ pub struct WanderingTraderUnhappyCounter(pub i32);
 pub struct WanderingTrader;
 impl WanderingTrader {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -8150,7 +8150,7 @@ pub struct ClientAngerLevel(pub i32);
 pub struct Warden;
 impl Warden {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -8227,7 +8227,7 @@ pub struct WitchUsingItem(pub bool);
 pub struct Witch;
 impl Witch {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -8313,7 +8313,7 @@ pub struct Inv(pub i32);
 pub struct Wither;
 impl Wither {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -8401,7 +8401,7 @@ impl Default for WitherMetadataBundle {
 pub struct WitherSkeleton;
 impl WitherSkeleton {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -8471,7 +8471,7 @@ pub struct Dangerous(pub bool);
 pub struct WitherSkull;
 impl WitherSkull {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -8527,7 +8527,7 @@ pub struct WolfRemainingAngerTime(pub i32);
 pub struct Wolf;
 impl Wolf {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -8622,7 +8622,7 @@ pub struct ZoglinBaby(pub bool);
 pub struct Zoglin;
 impl Zoglin {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -8695,7 +8695,7 @@ impl Default for ZoglinMetadataBundle {
 pub struct Zombie;
 impl Zombie {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -8790,7 +8790,7 @@ pub struct ZombieHorseOwnerUuid(pub Option<Uuid>);
 pub struct ZombieHorse;
 impl ZombieHorse {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -8889,7 +8889,7 @@ pub struct ZombieVillagerVillagerData(pub VillagerData);
 pub struct ZombieVillager;
 impl ZombieVillager {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -8977,7 +8977,7 @@ impl Default for ZombieVillagerMetadataBundle {
 pub struct ZombifiedPiglin;
 impl ZombifiedPiglin {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -9051,7 +9051,7 @@ impl Default for ZombifiedPiglinMetadataBundle {
 pub struct AbstractAgeable;
 impl AbstractAgeable {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -9121,7 +9121,7 @@ impl Default for AbstractAgeableMetadataBundle {
 pub struct AbstractAnimal;
 impl AbstractAnimal {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -9190,7 +9190,7 @@ impl Default for AbstractAnimalMetadataBundle {
 pub struct AbstractCreature;
 impl AbstractCreature {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -9252,7 +9252,7 @@ impl Default for AbstractCreatureMetadataBundle {
 pub struct AbstractEntity;
 impl AbstractEntity {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -9337,7 +9337,7 @@ impl Default for AbstractEntityMetadataBundle {
 pub struct AbstractInsentient;
 impl AbstractInsentient {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -9405,7 +9405,7 @@ impl Default for AbstractInsentientMetadataBundle {
 pub struct AbstractLiving;
 impl AbstractLiving {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -9489,7 +9489,7 @@ impl Default for AbstractLivingMetadataBundle {
 pub struct AbstractMinecart;
 impl AbstractMinecart {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -9564,7 +9564,7 @@ impl Default for AbstractMinecartMetadataBundle {
 pub struct AbstractMonster;
 impl AbstractMonster {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -9629,7 +9629,7 @@ impl Default for AbstractMonsterMetadataBundle {
 pub struct AbstractTameable;
 impl AbstractTameable {
     pub fn apply_metadata(
-        entity: &mut azalea_ecs::system::EntityCommands,
+        entity: &mut bevy_ecs::system::EntityCommands,
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
@@ -9712,7 +9712,7 @@ impl Default for AbstractTameableMetadataBundle {
 }
 
 pub fn apply_metadata(
-    entity: &mut azalea_ecs::system::EntityCommands,
+    entity: &mut bevy_ecs::system::EntityCommands,
     entity_kind: azalea_registry::EntityKind,
     items: Vec<EntityDataItem>,
 ) -> Result<(), UpdateMetadataError> {
@@ -10317,7 +10317,7 @@ pub fn apply_metadata(
 }
 
 pub fn apply_default_metadata(
-    entity: &mut azalea_ecs::system::EntityCommands,
+    entity: &mut bevy_ecs::system::EntityCommands,
     kind: azalea_registry::EntityKind,
 ) {
     match kind {

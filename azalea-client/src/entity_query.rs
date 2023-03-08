@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
-use azalea_ecs::{
+use bevy_ecs::{
     component::Component,
-    ecs::Ecs,
     entity::Entity,
     query::{ROQueryItem, ReadOnlyWorldQuery, WorldQuery},
+    world::World,
 };
 use parking_lot::Mutex;
 
@@ -22,7 +22,7 @@ impl Client {
     ///     .is_some();
     /// # }
     /// ```
-    pub fn query<'w, Q: WorldQuery>(&self, ecs: &'w mut Ecs) -> <Q as WorldQuery>::Item<'w> {
+    pub fn query<'w, Q: WorldQuery>(&self, ecs: &'w mut World) -> <Q as WorldQuery>::Item<'w> {
         ecs.query::<Q>()
             .get_mut(ecs, self.entity)
             .expect("Our client is missing a required component.")
@@ -38,7 +38,7 @@ impl Client {
     /// Note that this will very likely change in the future.
     /// ```
     /// use azalea_client::{Client, GameProfileComponent};
-    /// use azalea_ecs::query::With;
+    /// use bevy_ecs::query::With;
     /// use azalea_world::entity::{Position, metadata::Player};
     ///
     /// # fn example(mut bot: Client, sender_name: String) {
@@ -74,7 +74,7 @@ impl Client {
 }
 
 pub trait EntityPredicate<Q: ReadOnlyWorldQuery, Filter: ReadOnlyWorldQuery> {
-    fn find(&self, ecs_lock: Arc<Mutex<Ecs>>) -> Option<Entity>;
+    fn find(&self, ecs_lock: Arc<Mutex<World>>) -> Option<Entity>;
 }
 impl<F, Q, Filter> EntityPredicate<(Q,), Filter> for F
 where
@@ -82,7 +82,7 @@ where
     Q: ReadOnlyWorldQuery,
     Filter: ReadOnlyWorldQuery,
 {
-    fn find(&self, ecs_lock: Arc<Mutex<Ecs>>) -> Option<Entity> {
+    fn find(&self, ecs_lock: Arc<Mutex<World>>) -> Option<Entity> {
         let mut ecs = ecs_lock.lock();
         let mut query = ecs.query_filtered::<(Entity, Q), Filter>();
         let entity = query.iter(&ecs).find(|(_, q)| (self)(q)).map(|(e, _)| e);
