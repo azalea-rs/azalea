@@ -38,19 +38,18 @@ impl std::hash::Hash for MinecraftEntityId {
     }
 }
 impl nohash_hasher::IsEnabled for MinecraftEntityId {}
-pub fn set_rotation(physics: &mut Physics, y_rot: f32, x_rot: f32) {
-    physics.y_rot = y_rot % 360.0;
-    physics.x_rot = x_rot.clamp(-90.0, 90.0) % 360.0;
-    // TODO: minecraft also sets yRotO and xRotO to xRot and yRot ... but
-    // idk what they're used for so
-}
 
-pub fn move_relative(physics: &mut Physics, speed: f32, acceleration: &Vec3) {
-    let input_vector = input_vector(physics, speed, acceleration);
+pub fn move_relative(
+    physics: &mut Physics,
+    direction: &LookDirection,
+    speed: f32,
+    acceleration: &Vec3,
+) {
+    let input_vector = input_vector(direction, speed, acceleration);
     physics.delta += input_vector;
 }
 
-pub fn input_vector(physics: &mut Physics, speed: f32, acceleration: &Vec3) -> Vec3 {
+pub fn input_vector(direction: &LookDirection, speed: f32, acceleration: &Vec3) -> Vec3 {
     let distance = acceleration.length_squared();
     if distance < 1.0E-7 {
         return Vec3::default();
@@ -61,12 +60,26 @@ pub fn input_vector(physics: &mut Physics, speed: f32, acceleration: &Vec3) -> V
         *acceleration
     }
     .scale(speed as f64);
-    let y_rot = f32::sin(physics.y_rot * 0.017453292f32);
-    let x_rot = f32::cos(physics.y_rot * 0.017453292f32);
+    let y_rot = f32::sin(direction.y_rot * 0.017453292f32);
+    let x_rot = f32::cos(direction.y_rot * 0.017453292f32);
     Vec3 {
         x: acceleration.x * (x_rot as f64) - acceleration.z * (y_rot as f64),
         y: acceleration.y,
         z: acceleration.z * (x_rot as f64) + acceleration.x * (y_rot as f64),
+    }
+}
+
+pub fn view_vector(look_direction: &LookDirection) -> Vec3 {
+    let y_rot = look_direction.y_rot * 0.017453292;
+    let x_rot = -look_direction.x_rot * 0.017453292;
+    let x_rot_cos = f32::cos(x_rot);
+    let x_rot_sin = f32::sin(x_rot);
+    let y_rot_cos = f32::cos(y_rot);
+    let y_rot_sin = f32::sin(y_rot);
+    Vec3 {
+        x: (x_rot_sin * y_rot_cos) as f64,
+        y: (-y_rot_sin) as f64,
+        z: (x_rot_cos * y_rot_cos) as f64,
     }
 }
 
@@ -149,7 +162,7 @@ impl From<&Position> for BlockPos {
     }
 }
 
-/// The last position of the entity that was sent to the network.
+/// The last position of the entity that was sent over the network.
 #[derive(Component, Clone, Copy, Debug, Default, PartialEq, Deref, DerefMut)]
 pub struct LastSentPosition(Vec3);
 impl From<LastSentPosition> for ChunkPos {
@@ -182,8 +195,15 @@ pub struct WorldName(pub ResourceLocation);
 ///
 /// If this is true, the entity will try to jump every tick. (It's equivalent to
 /// the space key being held in vanilla.)
-#[derive(Debug, Component, Deref, DerefMut)]
+#[derive(Debug, Component, Clone, Deref, DerefMut)]
 pub struct Jumping(bool);
+
+/// A component that contains the direction an entity is looking.
+#[derive(Debug, Component, Clone, Default)]
+pub struct LookDirection {
+    pub x_rot: f32,
+    pub y_rot: f32,
+}
 
 /// The physics data relating to the entity, such as position, velocity, and
 /// bounding box.
@@ -197,12 +217,6 @@ pub struct Physics {
     pub yya: f32,
     /// Z acceleration.
     pub zza: f32,
-
-    pub x_rot: f32,
-    pub y_rot: f32,
-
-    pub x_rot_last: f32,
-    pub y_rot_last: f32,
 
     pub on_ground: bool,
     pub last_on_ground: bool,
@@ -237,10 +251,18 @@ pub fn add_dead(mut commands: Commands, query: Query<(Entity, &Health), Changed<
     }
 }
 
+/// A component that contains the offset of the entity's eyes from the entity
+/// coordinates.
+///
+/// This is used to calculate the camera position for players, when spectating
+/// an entity, and when raytracing from the entity.
+#[derive(Component, Clone, Copy, Debug, PartialEq, Deref, DerefMut)]
+pub struct EyeHeight(f32);
+
 /// A component NewType for [`azalea_registry::EntityKind`].
 ///
 /// Most of the time, you should be using `azalea_registry::EntityKind`
-/// instead.
+/// directly instead.
 #[derive(Component, Clone, Copy, Debug, PartialEq, Deref)]
 pub struct EntityKind(azalea_registry::EntityKind);
 
@@ -254,6 +276,8 @@ pub struct EntityBundle {
     pub position: Position,
     pub last_sent_position: LastSentPosition,
     pub physics: Physics,
+    pub direction: LookDirection,
+    pub eye_height: EyeHeight,
     pub attributes: Attributes,
     pub jumping: Jumping,
 }
@@ -265,11 +289,12 @@ impl EntityBundle {
         kind: azalea_registry::EntityKind,
         world_name: ResourceLocation,
     ) -> Self {
-        // TODO: get correct entity dimensions by having them codegened somewhere
+        // TODO: get correct entity dimensions by having them codegen'd somewhere
         let dimensions = EntityDimensions {
             width: 0.6,
             height: 1.8,
         };
+        let eye_height = dimensions.height * 0.85;
 
         Self {
             kind: EntityKind(kind),
@@ -284,12 +309,6 @@ impl EntityBundle {
                 yya: 0.,
                 zza: 0.,
 
-                x_rot: 0.,
-                y_rot: 0.,
-
-                y_rot_last: 0.,
-                x_rot_last: 0.,
-
                 on_ground: false,
                 last_on_ground: false,
 
@@ -299,6 +318,8 @@ impl EntityBundle {
 
                 has_impulse: false,
             },
+            eye_height: EyeHeight(eye_height),
+            direction: LookDirection::default(),
 
             attributes: Attributes {
                 // TODO: do the correct defaults for everything, some

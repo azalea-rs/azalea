@@ -14,6 +14,7 @@ azalea-chat = { path = "../azalea-chat", version = "^0.6.0" }
 azalea-nbt = { path = "../azalea-nbt", version = "^0.6.0" }
 azalea-registry = { path = "../azalea-registry", version = "^0.6.0" }
 bevy_ecs = { version = "0.10.0", default-features = false, optional = true }
+num-traits = "0.2.15"
 uuid = "^1.1.2"
 
 [features]

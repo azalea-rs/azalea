@@ -1,8 +1,9 @@
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 use std::io::{Cursor, Write};
 
-#[derive(Hash, Copy, Clone, Debug, Default)]
-pub enum GameType {
+/// A Minecraft gamemode, like survival or creative.
+#[derive(Hash, Copy, Clone, Debug, Default, Eq, PartialEq)]
+pub enum GameMode {
     #[default]
     Survival,
     Creative,
@@ -10,30 +11,30 @@ pub enum GameType {
     Spectator,
 }
 
-impl GameType {
+impl GameMode {
     pub fn to_id(&self) -> u8 {
         match self {
-            GameType::Survival => 0,
-            GameType::Creative => 1,
-            GameType::Adventure => 2,
-            GameType::Spectator => 3,
+            GameMode::Survival => 0,
+            GameMode::Creative => 1,
+            GameMode::Adventure => 2,
+            GameMode::Spectator => 3,
         }
     }
 
     /// Get the id of the game type, but return -1 if the game type is invalid.
-    pub fn to_optional_id<T: Into<Option<GameType>>>(game_type: T) -> i8 {
+    pub fn to_optional_id<T: Into<Option<GameMode>>>(game_type: T) -> i8 {
         match game_type.into() {
             Some(game_type) => game_type.to_id() as i8,
             None => -1,
         }
     }
 
-    pub fn from_id(id: u8) -> Option<GameType> {
+    pub fn from_id(id: u8) -> Option<GameMode> {
         Some(match id {
-            0 => GameType::Survival,
-            1 => GameType::Creative,
-            2 => GameType::Adventure,
-            3 => GameType::Spectator,
+            0 => GameMode::Survival,
+            1 => GameMode::Creative,
+            2 => GameMode::Adventure,
+            3 => GameMode::Spectator,
             _ => return None,
         })
     }
@@ -42,7 +43,7 @@ impl GameType {
         Some(
             match id {
                 -1 => None,
-                id => Some(GameType::from_id(id as u8)?),
+                id => Some(GameMode::from_id(id as u8)?),
             }
             .into(),
         )
@@ -52,10 +53,10 @@ impl GameType {
         // TODO: these should be translated
         // TranslatableComponent("selectWorld.gameMode." + string2)
         match self {
-            GameType::Survival => "Survival",
-            GameType::Creative => "Creative",
-            GameType::Adventure => "Adventure",
-            GameType::Spectator => "Spectator",
+            GameMode::Survival => "Survival",
+            GameMode::Creative => "Creative",
+            GameMode::Adventure => "Adventure",
+            GameMode::Spectator => "Spectator",
         }
     }
 
@@ -63,32 +64,32 @@ impl GameType {
         // TODO: These should be translated TranslatableComponent("gameMode." +
         // string2);
         match self {
-            GameType::Survival => "Survival Mode",
-            GameType::Creative => "Creative Mode",
-            GameType::Adventure => "Adventure Mode",
-            GameType::Spectator => "Spectator Mode",
+            GameMode::Survival => "Survival Mode",
+            GameMode::Creative => "Creative Mode",
+            GameMode::Adventure => "Adventure Mode",
+            GameMode::Spectator => "Spectator Mode",
         }
     }
 
-    pub fn from_name(name: &str) -> GameType {
+    pub fn from_name(name: &str) -> GameMode {
         match name {
-            "survival" => GameType::Survival,
-            "creative" => GameType::Creative,
-            "adventure" => GameType::Adventure,
-            "spectator" => GameType::Spectator,
+            "survival" => GameMode::Survival,
+            "creative" => GameMode::Creative,
+            "adventure" => GameMode::Adventure,
+            "spectator" => GameMode::Spectator,
             _ => panic!("Unknown game type name: {name}"),
         }
     }
 }
 
-impl McBufReadable for GameType {
+impl McBufReadable for GameMode {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let id = u8::read_from(buf)?;
-        GameType::from_id(id).ok_or(BufReadError::UnexpectedEnumVariant { id: id as i32 })
+        GameMode::from_id(id).ok_or(BufReadError::UnexpectedEnumVariant { id: id as i32 })
     }
 }
 
-impl McBufWritable for GameType {
+impl McBufWritable for GameMode {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         u8::write_into(&self.to_id(), buf)
     }
@@ -97,15 +98,15 @@ impl McBufWritable for GameType {
 /// Rust doesn't let us `impl McBufReadable for Option<GameType>` so we have to
 /// make a new type :(
 #[derive(Hash, Copy, Clone, Debug)]
-pub struct OptionalGameType(pub Option<GameType>);
+pub struct OptionalGameType(pub Option<GameMode>);
 
-impl From<Option<GameType>> for OptionalGameType {
-    fn from(game_type: Option<GameType>) -> Self {
+impl From<Option<GameMode>> for OptionalGameType {
+    fn from(game_type: Option<GameMode>) -> Self {
         OptionalGameType(game_type)
     }
 }
 
-impl From<OptionalGameType> for Option<GameType> {
+impl From<OptionalGameType> for Option<GameMode> {
     fn from(optional_game_type: OptionalGameType) -> Self {
         optional_game_type.0
     }
@@ -114,12 +115,12 @@ impl From<OptionalGameType> for Option<GameType> {
 impl McBufReadable for OptionalGameType {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let id = i8::read_from(buf)?;
-        GameType::from_optional_id(id).ok_or(BufReadError::UnexpectedEnumVariant { id: id as i32 })
+        GameMode::from_optional_id(id).ok_or(BufReadError::UnexpectedEnumVariant { id: id as i32 })
     }
 }
 
 impl McBufWritable for OptionalGameType {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        GameType::to_optional_id(*self).write_into(buf)
+        GameMode::to_optional_id(*self).write_into(buf)
     }
 }

@@ -39,6 +39,8 @@ pub use aabb::*;
 mod block_hit_result;
 pub use block_hit_result::*;
 
+// some random math things used in minecraft are defined down here
+
 // TODO: make this generic
 pub fn binary_search(mut min: i32, max: i32, predicate: &dyn Fn(i32) -> bool) -> i32 {
     let mut diff = max - min;
@@ -67,6 +69,10 @@ pub fn gcd(mut a: u32, mut b: u32) -> u32 {
         a = t;
     }
     a
+}
+
+pub fn lerp<T: num_traits::Float>(amount: T, a: T, b: T) -> T {
+    a + amount * (b - a)
 }
 
 #[cfg(test)]

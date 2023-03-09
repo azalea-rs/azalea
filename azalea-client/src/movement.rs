@@ -16,6 +16,7 @@ use azalea_world::{
 };
 use bevy_app::{App, CoreSchedule, IntoSystemAppConfigs, Plugin};
 use bevy_ecs::{
+    component::Component,
     entity::Entity,
     event::EventReader,
     query::With,
@@ -84,16 +85,24 @@ impl Client {
         **jumping_ref
     }
 
-    /// Sets your rotation. `y_rot` is yaw (looking to the side), `x_rot` is
-    /// pitch (looking up and down). You can get these numbers from the vanilla
-    /// f3 screen.
+    /// Sets the direction the client is looking. `y_rot` is yaw (looking to the
+    /// side), `x_rot` is pitch (looking up and down). You can get these
+    /// numbers from the vanilla f3 screen.
     /// `y_rot` goes from -180 to 180, and `x_rot` goes from -90 to 90.
-    pub fn set_rotation(&mut self, y_rot: f32, x_rot: f32) {
+    pub fn set_direction(&mut self, y_rot: f32, x_rot: f32) {
         let mut ecs = self.ecs.lock();
-        let mut physics = self.query::<&mut entity::Physics>(&mut ecs);
+        let mut look_direction = self.query::<&mut entity::LookDirection>(&mut ecs);
 
-        entity::set_rotation(&mut physics, y_rot, x_rot);
+        (look_direction.y_rot, look_direction.x_rot) = (y_rot, x_rot);
     }
+}
+
+/// A component that contains the look direction that was last sent over the
+/// network.
+#[derive(Debug, Component, Clone, Default)]
+pub struct LastSentLookDirection {
+    pub x_rot: f32,
+    pub y_rot: f32,
 }
 
 #[allow(clippy::type_complexity)]
@@ -106,6 +115,8 @@ pub(crate) fn send_position(
             &entity::Position,
             &mut entity::LastSentPosition,
             &mut entity::Physics,
+            &entity::LookDirection,
+            &mut LastSentLookDirection,
             &entity::metadata::Sprinting,
         ),
         &LocalPlayerInLoadedChunk,
@@ -118,6 +129,8 @@ pub(crate) fn send_position(
         position,
         mut last_sent_position,
         mut physics,
+        direction,
+        mut last_direction,
         sprinting,
     ) in query.iter_mut()
     {
@@ -130,8 +143,8 @@ pub(crate) fn send_position(
             let x_delta = position.x - last_sent_position.x;
             let y_delta = position.y - last_sent_position.y;
             let z_delta = position.z - last_sent_position.z;
-            let y_rot_delta = (physics.y_rot - physics.y_rot_last) as f64;
-            let x_rot_delta = (physics.x_rot - physics.x_rot_last) as f64;
+            let y_rot_delta = (direction.y_rot - last_direction.y_rot) as f64;
+            let x_rot_delta = (direction.x_rot - last_direction.x_rot) as f64;
 
             physics_state.position_remainder += 1;
 
@@ -140,19 +153,19 @@ pub(crate) fn send_position(
             let sending_position = ((x_delta.powi(2) + y_delta.powi(2) + z_delta.powi(2))
                 > 2.0e-4f64.powi(2))
                 || physics_state.position_remainder >= 20;
-            let sending_rotation = y_rot_delta != 0.0 || x_rot_delta != 0.0;
+            let sending_direction = y_rot_delta != 0.0 || x_rot_delta != 0.0;
 
             // if self.is_passenger() {
             //   TODO: posrot packet for being a passenger
             // }
-            let packet = if sending_position && sending_rotation {
+            let packet = if sending_position && sending_direction {
                 Some(
                     ServerboundMovePlayerPosRotPacket {
                         x: position.x,
                         y: position.y,
                         z: position.z,
-                        x_rot: physics.x_rot,
-                        y_rot: physics.y_rot,
+                        x_rot: direction.x_rot,
+                        y_rot: direction.y_rot,
                         on_ground: physics.on_ground,
                     }
                     .get(),
@@ -167,11 +180,11 @@ pub(crate) fn send_position(
                     }
                     .get(),
                 )
-            } else if sending_rotation {
+            } else if sending_direction {
                 Some(
                     ServerboundMovePlayerRotPacket {
-                        x_rot: physics.x_rot,
-                        y_rot: physics.y_rot,
+                        x_rot: direction.x_rot,
+                        y_rot: direction.y_rot,
                         on_ground: physics.on_ground,
                     }
                     .get(),
@@ -191,9 +204,9 @@ pub(crate) fn send_position(
                 **last_sent_position = **position;
                 physics_state.position_remainder = 0;
             }
-            if sending_rotation {
-                physics.y_rot_last = physics.y_rot;
-                physics.x_rot_last = physics.x_rot;
+            if sending_direction {
+                last_direction.y_rot = direction.y_rot;
+                last_direction.x_rot = direction.x_rot;
             }
 
             physics.last_on_ground = physics.on_ground;

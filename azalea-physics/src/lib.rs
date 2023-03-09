@@ -1,14 +1,15 @@
 #![doc = include_str!("../README.md")]
 #![feature(trait_alias)]
 
+pub mod clip;
 pub mod collision;
 
 use azalea_block::{Block, BlockState};
 use azalea_core::{BlockPos, Vec3};
 use azalea_world::{
     entity::{
-        metadata::Sprinting, move_relative, Attributes, Jumping, Local, Physics, Position,
-        WorldName,
+        metadata::Sprinting, move_relative, Attributes, Jumping, Local, LookDirection, Physics,
+        Position, WorldName,
     },
     Instance, WorldContainer,
 };
@@ -43,10 +44,19 @@ impl Plugin for PhysicsPlugin {
 /// Move the entity with the given acceleration while handling friction,
 /// gravity, collisions, and some other stuff.
 fn travel(
-    mut query: Query<(&mut Physics, &mut Position, &Attributes, &WorldName), With<Local>>,
+    mut query: Query<
+        (
+            &mut Physics,
+            &mut LookDirection,
+            &mut Position,
+            &Attributes,
+            &WorldName,
+        ),
+        With<Local>,
+    >,
     world_container: Res<WorldContainer>,
 ) {
-    for (mut physics, mut position, attributes, world_name) in &mut query {
+    for (mut physics, direction, mut position, attributes, world_name) in &mut query {
         let world_lock = world_container
             .get(world_name)
             .expect("All entities should be in a valid world");
@@ -85,6 +95,7 @@ fn travel(
             block_friction,
             &world,
             &mut physics,
+            &direction,
             &mut position,
             attributes,
         );
@@ -158,12 +169,20 @@ pub fn ai_step(
 pub struct ForceJumpEvent(pub Entity);
 
 pub fn force_jump_listener(
-    mut query: Query<(&mut Physics, &Position, &Sprinting, &WorldName)>,
+    mut query: Query<(
+        &mut Physics,
+        &Position,
+        &LookDirection,
+        &Sprinting,
+        &WorldName,
+    )>,
     world_container: Res<WorldContainer>,
     mut events: EventReader<ForceJumpEvent>,
 ) {
     for event in events.iter() {
-        if let Ok((mut physics, position, sprinting, world_name)) = query.get_mut(event.0) {
+        if let Ok((mut physics, position, direction, sprinting, world_name)) =
+            query.get_mut(event.0)
+        {
             let world_lock = world_container
                 .get(world_name)
                 .expect("All entities should be in a valid world");
@@ -178,7 +197,7 @@ pub fn force_jump_listener(
             };
             if **sprinting {
                 // sprint jumping gives some extra velocity
-                let y_rot = physics.y_rot * 0.017453292;
+                let y_rot = direction.y_rot * 0.017453292;
                 physics.delta += Vec3 {
                     x: (-f32::sin(y_rot) * 0.2) as f64,
                     y: 0.,
@@ -204,11 +223,13 @@ fn handle_relative_friction_and_calculate_movement(
     block_friction: f32,
     world: &Instance,
     physics: &mut Physics,
+    direction: &LookDirection,
     position: &mut Position,
     attributes: &Attributes,
 ) -> Vec3 {
     move_relative(
         physics,
+        direction,
         get_friction_influenced_speed(physics, attributes, block_friction),
         &Vec3 {
             x: physics.xxa as f64,

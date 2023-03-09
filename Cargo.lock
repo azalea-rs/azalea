@@ -316,6 +316,7 @@ dependencies = [
  "azalea-nbt",
  "azalea-registry",
  "bevy_ecs",
+ "num-traits",
  "uuid",
 ]
 

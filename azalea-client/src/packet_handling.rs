@@ -1,6 +1,6 @@
 use std::{collections::HashSet, io::Cursor, sync::Arc};
 
-use azalea_core::{ChunkPos, ResourceLocation, Vec3};
+use azalea_core::{ChunkPos, GameMode, ResourceLocation, Vec3};
 use azalea_protocol::{
     connect::{ReadConnection, WriteConnection},
     packets::game::{
@@ -16,7 +16,7 @@ use azalea_protocol::{
 use azalea_world::{
     entity::{
         metadata::{apply_metadata, Health, PlayerMetadataBundle},
-        set_rotation, Dead, EntityBundle, EntityKind, EntityUpdateSet, LastSentPosition,
+        Dead, EntityBundle, EntityKind, EntityUpdateSet, LastSentPosition, LookDirection,
         MinecraftEntityId, Physics, PlayerBundle, Position, WorldName,
     },
     entity::{LoadedBy, RelativeEntityUpdate},
@@ -40,7 +40,7 @@ use crate::{
     client::TabList,
     disconnect::DisconnectEvent,
     inventory::{ClientSideCloseContainerEvent, InventoryComponent},
-    local_player::{GameProfileComponent, LocalPlayer},
+    local_player::{GameProfileComponent, LocalGameMode, LocalPlayer},
     ClientInformation, PlayerInfo,
 };
 
@@ -362,12 +362,13 @@ fn process_packet_events(ecs: &mut World) {
                     Query<(
                         &mut LocalPlayer,
                         &mut Physics,
+                        &mut LookDirection,
                         &mut Position,
                         &mut LastSentPosition,
                     )>,
                 > = SystemState::new(ecs);
                 let mut query = system_state.get_mut(ecs);
-                let Ok(( local_player, mut physics, mut position, mut last_sent_position)) =
+                let Ok((local_player, mut physics, mut direction, mut position, mut last_sent_position)) =
                         query.get_mut(player_entity) else {
                             continue;
                         };
@@ -403,10 +404,10 @@ fn process_packet_events(ecs: &mut World) {
                 let mut y_rot = p.y_rot;
                 let mut x_rot = p.x_rot;
                 if p.relative_arguments.x_rot {
-                    x_rot += physics.x_rot;
+                    x_rot += direction.x_rot;
                 }
                 if p.relative_arguments.y_rot {
-                    y_rot += physics.y_rot;
+                    y_rot += direction.y_rot;
                 }
 
                 physics.delta = Vec3 {
@@ -417,7 +418,7 @@ fn process_packet_events(ecs: &mut World) {
                 // we call a function instead of setting the fields ourself since the
                 // function makes sure the rotations stay in their
                 // ranges
-                set_rotation(&mut physics, y_rot, x_rot);
+                (direction.y_rot, direction.x_rot) = (y_rot, x_rot);
                 // TODO: minecraft sets "xo", "yo", and "zo" here but idk what that means
                 // so investigate that ig
                 let new_pos = Vec3 {
@@ -866,7 +867,22 @@ fn process_packet_events(ecs: &mut World) {
                 }
             }
             ClientboundGamePacket::GameEvent(p) => {
+                use azalea_protocol::packets::game::clientbound_game_event_packet::EventType;
+
                 debug!("Got game event packet {:?}", p);
+
+                match p.event {
+                    EventType::ChangeGameMode => {
+                        let mut system_state: SystemState<Query<&mut LocalGameMode>> =
+                            SystemState::new(ecs);
+                        let mut query = system_state.get_mut(ecs);
+                        let mut local_game_mode = query.get_mut(player_entity).unwrap();
+                        if let Some(new_game_mode) = GameMode::from_id(p.param as u8) {
+                            local_game_mode.current = new_game_mode;
+                        }
+                    }
+                    _ => {}
+                }
             }
             ClientboundGamePacket::LevelParticles(p) => {
                 debug!("Got level particles packet {:?}", p);

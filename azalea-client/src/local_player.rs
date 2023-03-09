@@ -1,7 +1,7 @@
 use std::{io, sync::Arc};
 
 use azalea_auth::game_profile::GameProfile;
-use azalea_core::ChunkPos;
+use azalea_core::{ChunkPos, GameMode};
 use azalea_protocol::packets::game::ServerboundGamePacket;
 use azalea_world::{
     entity::{self, Dead},
@@ -74,8 +74,15 @@ pub struct GameProfileComponent(pub GameProfile);
 
 /// Marks a [`LocalPlayer`] that's in a loaded chunk. This is updated at the
 /// beginning of every tick.
-#[derive(Component)]
+#[derive(Component, Clone, Debug, Copy)]
 pub struct LocalPlayerInLoadedChunk;
+
+/// The gamemode of a local player. For a non-local player, you can look up the
+/// player in the [`TabList`].
+#[derive(Component, Clone, Debug, Copy)]
+pub struct LocalGameMode {
+    pub current: GameMode,
+}
 
 impl LocalPlayer {
     /// Create a new `LocalPlayer`.

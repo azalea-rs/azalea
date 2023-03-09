@@ -8,7 +8,7 @@ use crate::{
         death_event, handle_send_packet_event, update_in_loaded_chunk, GameProfileComponent,
         LocalPlayer, PhysicsState, SendPacketEvent,
     },
-    movement::PlayerMovePlugin,
+    movement::{LastSentLookDirection, PlayerMovePlugin},
     packet_handling::{self, PacketHandlerPlugin, PacketReceiver},
     player::retroactively_add_game_profile_component,
     task_pool::TaskPoolPlugin,
@@ -100,7 +100,16 @@ pub struct Client {
 pub struct ClientInformation(ServerboundClientInformationPacket);
 
 /// A component that contains a map of player UUIDs to their information in the
-/// tab list
+/// tab list.
+///
+/// ```
+/// # fn example(client: &azalea_client::Client) {
+/// let tab_list = client.component::<TabList>();
+/// println!("Online players:");
+/// for (uuid, player_info) in tab_list {
+///     println!("- {} ({}ms)", player_info.profile.name, player_info.latency);
+/// }
+/// # }
 #[derive(Component, Clone, Debug, Deref, DerefMut, Default)]
 pub struct TabList(HashMap<Uuid, PlayerInfo>);
 
@@ -253,6 +262,7 @@ impl Client {
             client_information: ClientInformation::default(),
             tab_list: TabList::default(),
             current_sequence_number: CurrentSequenceNumber::default(),
+            last_sent_direction: LastSentLookDirection::default(),
             _local: Local,
         });
 
@@ -496,6 +506,7 @@ pub struct JoinedClientBundle {
     pub client_information: ClientInformation,
     pub tab_list: TabList,
     pub current_sequence_number: CurrentSequenceNumber,
+    pub last_sent_direction: LastSentLookDirection,
     pub _local: Local,
 }
 

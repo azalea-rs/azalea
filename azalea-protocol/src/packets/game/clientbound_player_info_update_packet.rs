@@ -3,7 +3,7 @@ use azalea_buf::{
     BufReadError, McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable,
 };
 use azalea_chat::FormattedText;
-use azalea_core::{FixedBitSet, GameType};
+use azalea_core::{FixedBitSet, GameMode};
 use azalea_protocol_macros::ClientboundGamePacket;
 use std::{
     collections::HashMap,
@@ -24,7 +24,7 @@ pub struct PlayerInfoEntry {
     pub profile: GameProfile,
     pub listed: bool,
     pub latency: i32,
-    pub game_mode: GameType,
+    pub game_mode: GameMode,
     pub display_name: Option<FormattedText>,
     pub chat_session: Option<RemoteChatSessionData>,
 }
@@ -40,7 +40,7 @@ pub struct InitializeChatAction {
 }
 #[derive(Clone, Debug, McBuf)]
 pub struct UpdateGameModeAction {
-    pub game_mode: GameType,
+    pub game_mode: GameMode,
 }
 #[derive(Clone, Debug, McBuf)]
 pub struct UpdateListedAction {

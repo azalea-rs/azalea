@@ -1,21 +1,22 @@
-use azalea_core::{BlockPos, Direction};
+use azalea_core::{BlockPos, Direction, GameMode};
 use azalea_protocol::packets::game::{
     serverbound_interact_packet::InteractionHand,
     serverbound_use_item_on_packet::{BlockHitResult, ServerboundUseItemOnPacket},
 };
+use azalea_world::entity::{view_vector, EyeHeight, LookDirection, Position};
 use bevy_app::{App, Plugin};
 use bevy_ecs::{component::Component, entity::Entity, event::EventReader, system::Query};
 use derive_more::{Deref, DerefMut};
 use log::warn;
 
-use crate::{Client, LocalPlayer};
+use crate::{local_player::LocalGameMode, Client, LocalPlayer, PlayerInfo};
 
 /// A plugin that allows clients to interact with blocks in the world.
 pub struct InteractPlugin;
 impl Plugin for InteractPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<BlockInteractEvent>()
-            .add_system(handle_block_interact_event);
+            .add_systems((handle_block_interact_event, update_hit_result_component));
     }
 }
 
@@ -44,9 +45,13 @@ pub struct BlockInteractEvent {
     pub position: BlockPos,
 }
 
-/// The number of changes this client has made to blocks.
+/// A component that contains the number of changes this client has made to
+/// blocks.
 #[derive(Component, Copy, Clone, Debug, Default, Deref, DerefMut)]
 pub struct CurrentSequenceNumber(u32);
+
+#[derive(Component, Clone, Debug, Deref, DerefMut)]
+pub struct HitResultComponent(BlockHitResult);
 
 fn handle_block_interact_event(
     mut events: EventReader<BlockInteractEvent>,
@@ -78,5 +83,25 @@ fn handle_block_interact_event(
             }
             .get(),
         )
+    }
+}
+
+fn update_hit_result_component(
+    mut query: Query<(
+        &mut HitResultComponent,
+        &LocalGameMode,
+        &Position,
+        &EyeHeight,
+        &LookDirection,
+    )>,
+) {
+    for (hit_result, game_mode, position, eye_height, look_direction) in &mut query {
+        let pick_range = if game_mode.current == GameMode::Creative {
+            6.
+        } else {
+            4.5
+        };
+        let view_vector = view_vector(look_direction);
+        let end_position = **position + view_vector * pick_range;
     }
 }

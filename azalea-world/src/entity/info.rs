@@ -29,7 +29,7 @@ use std::{
 };
 use uuid::Uuid;
 
-use super::Local;
+use super::{Local, LookDirection};
 
 /// A Bevy [`SystemSet`] for various types of entity updates.
 #[derive(SystemSet, Debug, Hash, Eq, PartialEq, Clone)]
@@ -75,6 +75,7 @@ impl Plugin for EntityPlugin {
             debug_detect_updates_received_on_local_entities,
             add_dead,
             update_bounding_box,
+            clamp_look_direction,
         ))
         .init_resource::<EntityInfos>();
     }
@@ -319,6 +320,13 @@ fn remove_despawned_entities_from_indexes(
         commands.entity(entity).despawn();
         debug!("Despawned entity {entity:?} because it was not loaded by anything.");
         return;
+    }
+}
+
+fn clamp_look_direction(mut query: Query<&mut LookDirection>) {
+    for mut look_direction in &mut query {
+        look_direction.y_rot = look_direction.y_rot % 360.0;
+        look_direction.x_rot = look_direction.x_rot.clamp(-90.0, 90.0) % 360.0;
     }
 }
 
