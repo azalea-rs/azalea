@@ -760,7 +760,7 @@ impl Default for BlazeMetadataBundle {
 }
 
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct BlockDisplayInterpolationStartTicks(pub i64);
+pub struct BlockDisplayInterpolationStartDeltaTicks(pub i32);
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct BlockDisplayInterpolationDuration(pub i32);
 #[derive(Component, Deref, DerefMut, Clone)]
@@ -799,7 +799,9 @@ impl BlockDisplay {
         match d.index {
             0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
-                entity.insert(BlockDisplayInterpolationStartTicks(d.value.into_long()?));
+                entity.insert(BlockDisplayInterpolationStartDeltaTicks(
+                    d.value.into_int()?,
+                ));
             }
             9 => {
                 entity.insert(BlockDisplayInterpolationDuration(d.value.into_int()?));
@@ -853,7 +855,7 @@ impl BlockDisplay {
 pub struct BlockDisplayMetadataBundle {
     _marker: BlockDisplay,
     parent: AbstractEntityMetadataBundle,
-    block_display_interpolation_start_ticks: BlockDisplayInterpolationStartTicks,
+    block_display_interpolation_start_delta_ticks: BlockDisplayInterpolationStartDeltaTicks,
     block_display_interpolation_duration: BlockDisplayInterpolationDuration,
     block_display_translation: BlockDisplayTranslation,
     block_display_scale: BlockDisplayScale,
@@ -890,7 +892,9 @@ impl Default for BlockDisplayMetadataBundle {
                 pose: Pose::default(),
                 ticks_frozen: TicksFrozen(0),
             },
-            block_display_interpolation_start_ticks: BlockDisplayInterpolationStartTicks(-1000),
+            block_display_interpolation_start_delta_ticks: BlockDisplayInterpolationStartDeltaTicks(
+                0,
+            ),
             block_display_interpolation_duration: BlockDisplayInterpolationDuration(0),
             block_display_translation: BlockDisplayTranslation(Vec3 {
                 x: 0.0,
@@ -4404,7 +4408,7 @@ impl Default for ItemMetadataBundle {
 }
 
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct ItemDisplayInterpolationStartTicks(pub i64);
+pub struct ItemDisplayInterpolationStartDeltaTicks(pub i32);
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct ItemDisplayInterpolationDuration(pub i32);
 #[derive(Component, Deref, DerefMut, Clone)]
@@ -4445,7 +4449,7 @@ impl ItemDisplay {
         match d.index {
             0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
-                entity.insert(ItemDisplayInterpolationStartTicks(d.value.into_long()?));
+                entity.insert(ItemDisplayInterpolationStartDeltaTicks(d.value.into_int()?));
             }
             9 => {
                 entity.insert(ItemDisplayInterpolationDuration(d.value.into_int()?));
@@ -4502,7 +4506,7 @@ impl ItemDisplay {
 pub struct ItemDisplayMetadataBundle {
     _marker: ItemDisplay,
     parent: AbstractEntityMetadataBundle,
-    item_display_interpolation_start_ticks: ItemDisplayInterpolationStartTicks,
+    item_display_interpolation_start_delta_ticks: ItemDisplayInterpolationStartDeltaTicks,
     item_display_interpolation_duration: ItemDisplayInterpolationDuration,
     item_display_translation: ItemDisplayTranslation,
     item_display_scale: ItemDisplayScale,
@@ -4540,7 +4544,9 @@ impl Default for ItemDisplayMetadataBundle {
                 pose: Pose::default(),
                 ticks_frozen: TicksFrozen(0),
             },
-            item_display_interpolation_start_ticks: ItemDisplayInterpolationStartTicks(-1000),
+            item_display_interpolation_start_delta_ticks: ItemDisplayInterpolationStartDeltaTicks(
+                0,
+            ),
             item_display_interpolation_duration: ItemDisplayInterpolationDuration(0),
             item_display_translation: ItemDisplayTranslation(Vec3 {
                 x: 0.0,
@@ -7823,7 +7829,7 @@ impl Default for TadpoleMetadataBundle {
 }
 
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct TextDisplayInterpolationStartTicks(pub i64);
+pub struct TextDisplayInterpolationStartDeltaTicks(pub i32);
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct TextDisplayInterpolationDuration(pub i32);
 #[derive(Component, Deref, DerefMut, Clone)]
@@ -7870,7 +7876,7 @@ impl TextDisplay {
         match d.index {
             0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
-                entity.insert(TextDisplayInterpolationStartTicks(d.value.into_long()?));
+                entity.insert(TextDisplayInterpolationStartDeltaTicks(d.value.into_int()?));
             }
             9 => {
                 entity.insert(TextDisplayInterpolationDuration(d.value.into_int()?));
@@ -7936,7 +7942,7 @@ impl TextDisplay {
 pub struct TextDisplayMetadataBundle {
     _marker: TextDisplay,
     parent: AbstractEntityMetadataBundle,
-    text_display_interpolation_start_ticks: TextDisplayInterpolationStartTicks,
+    text_display_interpolation_start_delta_ticks: TextDisplayInterpolationStartDeltaTicks,
     text_display_interpolation_duration: TextDisplayInterpolationDuration,
     text_display_translation: TextDisplayTranslation,
     text_display_scale: TextDisplayScale,
@@ -7977,7 +7983,9 @@ impl Default for TextDisplayMetadataBundle {
                 pose: Pose::default(),
                 ticks_frozen: TicksFrozen(0),
             },
-            text_display_interpolation_start_ticks: TextDisplayInterpolationStartTicks(-1000),
+            text_display_interpolation_start_delta_ticks: TextDisplayInterpolationStartDeltaTicks(
+                0,
+            ),
             text_display_interpolation_duration: TextDisplayInterpolationDuration(0),
             text_display_translation: TextDisplayTranslation(Vec3 {
                 x: 0.0,
