@@ -7,11 +7,9 @@ A fast NBT serializer and deserializer.
 ```
 use ahash::AHashMap;
 use azalea_nbt::Tag;
-use std::{io::{Cursor, Read}, fs::File};
+use std::io::Cursor;
 
-let mut file = File::open("tests/hello_world.nbt").unwrap();
-let mut buf = vec![];
-file.read_to_end(&mut buf).unwrap();
+let buf = include_bytes!("../tests/hello_world.nbt");
 let tag = Tag::read(&mut Cursor::new(&buf[..])).unwrap();
 assert_eq!(
     tag,
