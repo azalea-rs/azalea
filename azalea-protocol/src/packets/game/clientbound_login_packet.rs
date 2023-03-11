@@ -1,8 +1,3 @@
-//! The first packet sent by the server to the client after login.
-//!
-//! This packet contains information about the state of the player, the
-//! world, and the registry.
-
 use self::registry::RegistryHolder;
 use azalea_buf::McBuf;
 use azalea_core::{GameType, GlobalPos, OptionalGameType, ResourceLocation};
@@ -113,7 +108,7 @@ pub mod registry {
     #[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
     pub struct RegistryType<T> {
         #[serde(rename = "type")]
-        pub type_: ResourceLocation,
+        pub kind: ResourceLocation,
         pub value: Vec<TypeValue<T>>,
     }
 
@@ -222,7 +217,7 @@ pub mod registry {
         /// Vanilla minecraft only uses one type, "minecraft:uniform".
         Complex {
             #[serde(rename = "type")]
-            type_: ResourceLocation,
+            kind: ResourceLocation,
             value: MonsterSpawnLightLevelValues,
         },
     }
@@ -429,15 +424,15 @@ mod tests {
         let registry = RegistryHolder {
             root: RegistryRoot {
                 chat_type: RegistryType::<ChatTypeElement> {
-                    type_: ResourceLocation::new("minecraft:chat_type").unwrap(),
+                    kind: ResourceLocation::new("minecraft:chat_type").unwrap(),
                     value: Vec::new(),
                 },
                 dimension_type: RegistryType::<DimensionTypeElement> {
-                    type_: ResourceLocation::new("minecraft:dimension_type").unwrap(),
+                    kind: ResourceLocation::new("minecraft:dimension_type").unwrap(),
                     value: Vec::new(),
                 },
                 world_type: RegistryType::<WorldTypeElement> {
-                    type_: ResourceLocation::new("minecraft:worldgen/biome").unwrap(),
+                    kind: ResourceLocation::new("minecraft:worldgen/biome").unwrap(),
                     value: Vec::new(),
                 },
             },
