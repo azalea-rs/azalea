@@ -1,9 +1,11 @@
 use ahash::AHashMap;
+
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 /// An NBT value.
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
-#[serde(untagged)]
+#[derive(Clone, Debug, PartialEq, Default)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(untagged))]
 pub enum Tag {
     #[default]
     End, // 0
