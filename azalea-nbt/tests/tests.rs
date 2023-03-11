@@ -1,16 +1,11 @@
 use ahash::AHashMap;
 use azalea_nbt::Tag;
-use std::{
-    fs::File,
-    io::{Cursor, Read},
-};
+use std::io::Cursor;
 
 #[test]
 fn test_decode_hello_world() {
     // read hello_world.nbt
-    let mut file = File::open("tests/hello_world.nbt").unwrap();
-    let mut buf = vec![];
-    file.read_to_end(&mut buf).unwrap();
+    let buf = include_bytes!("hello_world.nbt").to_vec();
     let tag = Tag::read(&mut Cursor::new(&buf[..])).unwrap();
     assert_eq!(
         tag,
@@ -26,9 +21,7 @@ fn test_decode_hello_world() {
 
 #[test]
 fn test_roundtrip_hello_world() {
-    let mut file = File::open("tests/hello_world.nbt").unwrap();
-    let mut original = Vec::new();
-    file.read_to_end(&mut original).unwrap();
+    let original = include_bytes!("hello_world.nbt").to_vec();
 
     let mut original_stream = Cursor::new(&original[..]);
     let tag = Tag::read(&mut original_stream).unwrap();
@@ -43,9 +36,7 @@ fn test_roundtrip_hello_world() {
 #[test]
 fn test_bigtest() {
     // read bigtest.nbt
-    let mut file = File::open("tests/bigtest.nbt").unwrap();
-    let mut original = Vec::new();
-    file.read_to_end(&mut original).unwrap();
+    let original = include_bytes!("bigtest.nbt").to_vec();
 
     let mut original_stream = Cursor::new(original);
     let original_tag = Tag::read_gzip(&mut original_stream).unwrap();
@@ -81,9 +72,7 @@ fn test_stringtest() {
             Tag::String("😁".to_string()),
         ])
     )]));
-    let mut file = std::fs::File::open("tests/stringtest.nbt").unwrap();
-    let mut original = Vec::new();
-    file.read_to_end(&mut original).unwrap();
+    let original = include_bytes!("stringtest.nbt").to_vec();
 
     let mut original_stream = Cursor::new(original);
     let original_tag = Tag::read_gzip(&mut original_stream).unwrap();
@@ -93,9 +82,7 @@ fn test_stringtest() {
 
 #[test]
 fn test_complex_player() {
-    let mut file = File::open("tests/complex_player.dat").unwrap();
-    let mut original = Vec::new();
-    file.read_to_end(&mut original).unwrap();
+    let original = include_bytes!("complex_player.dat").to_vec();
 
     let mut original_stream = Cursor::new(original);
     let original_tag = Tag::read_gzip(&mut original_stream).unwrap();
@@ -110,9 +97,7 @@ fn test_complex_player() {
 
 #[test]
 fn test_simple_player() {
-    let mut file = File::open("tests/simple_player.dat").unwrap();
-    let mut original = Vec::new();
-    file.read_to_end(&mut original).unwrap();
+    let original = include_bytes!("simple_player.dat").to_vec();
 
     let mut original_stream = Cursor::new(original);
     let original_tag = Tag::read_gzip(&mut original_stream).unwrap();

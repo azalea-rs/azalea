@@ -4,7 +4,7 @@ use crate::{
     },
     iterators::ChunkIterator,
     palette::Palette,
-    ChunkStorage, PartialChunkStorage, WorldContainer,
+    ChunkStorage, InstanceContainer, PartialChunkStorage,
 };
 use azalea_block::{BlockState, BlockStates};
 use azalea_core::{BlockPos, ChunkPos};
@@ -21,24 +21,24 @@ use std::{
     fmt::Debug,
 };
 
-/// PartialWorlds are usually owned by clients, and hold strong references to
-/// chunks and entities in [`World`]s.
+/// PartialInstances are usually owned by clients, and hold strong references to
+/// chunks and entities in [`Instance`]s.
 ///
 /// Basically, they hold the chunks and entities that are within render
 /// distance but can still access chunks and entities owned by other
-/// `PartialWorld`s that have the same `World`.
+/// `PartialInstance`s that have the same `Instance`.
 ///
-/// This is primarily useful for having multiple clients in the same world.
-pub struct PartialWorld {
+/// This is primarily useful for having multiple clients in the same Instance.
+pub struct PartialInstance {
     pub chunks: PartialChunkStorage,
     /// Some metadata about entities, like what entities are in certain chunks.
     /// This does not contain the entity data itself, that's in the ECS.
     pub entity_infos: PartialEntityInfos,
 }
 
-impl PartialWorld {
+impl PartialInstance {
     pub fn new(chunk_radius: u32, owner_entity: Option<Entity>) -> Self {
-        PartialWorld {
+        PartialInstance {
             chunks: PartialChunkStorage::new(chunk_radius),
             entity_infos: PartialEntityInfos::new(owner_entity),
         }
@@ -59,7 +59,7 @@ pub fn deduplicate_entities(
         (Changed<MinecraftEntityId>, Without<Local>),
     >,
     mut loaded_by_query: Query<&mut LoadedBy>,
-    world_container: Res<WorldContainer>,
+    world_container: Res<InstanceContainer>,
 ) {
     // if this entity already exists, remove it
     for (new_entity, id, world_name) in query.iter_mut() {
@@ -104,7 +104,7 @@ pub fn deduplicate_local_entities(
         (Entity, &MinecraftEntityId, &WorldName),
         (Changed<MinecraftEntityId>, With<Local>),
     >,
-    world_container: Res<WorldContainer>,
+    world_container: Res<InstanceContainer>,
 ) {
     // if this entity already exists, remove the old one
     for (new_entity, id, world_name) in query.iter_mut() {
@@ -262,7 +262,7 @@ impl Instance {
     }
 }
 
-impl Debug for PartialWorld {
+impl Debug for PartialInstance {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("World")
             .field("chunk_storage", &self.chunks)
@@ -271,8 +271,8 @@ impl Debug for PartialWorld {
     }
 }
 
-impl Default for PartialWorld {
-    /// Creates a completely self-contained `PartialWorld`. This is only for
+impl Default for PartialInstance {
+    /// Creates a completely self-contained `PartialInstance`. This is only for
     /// testing and shouldn't be used in actual code!
     fn default() -> Self {
         let chunk_storage = PartialChunkStorage::default();
@@ -290,7 +290,7 @@ pub fn update_entity_by_id_index(
         (Entity, &MinecraftEntityId, &WorldName, Option<&Local>),
         Changed<MinecraftEntityId>,
     >,
-    world_container: Res<WorldContainer>,
+    world_container: Res<InstanceContainer>,
 ) {
     for (entity, id, world_name, local) in query.iter_mut() {
         let world_lock = world_container.get(world_name).unwrap();

@@ -40,7 +40,7 @@ use azalea_protocol::{
 };
 use azalea_world::{
     entity::{EntityPlugin, EntityUpdateSet, Local, WorldName},
-    Instance, PartialWorld, WorldContainer,
+    Instance, InstanceContainer, PartialInstance,
 };
 use bevy_app::{App, CoreSchedule, Plugin, PluginGroup, PluginGroupBuilder};
 use bevy_ecs::{
@@ -77,13 +77,13 @@ pub struct Client {
     /// and skin data.
     ///
     /// This is immutable; the server cannot change it. To get the username and
-    /// skin the server chose for you, get your player from
-    /// [`Self::players`].
+    /// skin the server chose for you, get your player from the [`TabList`]
+    /// component.
     pub profile: GameProfile,
     /// The entity for this client in the ECS.
     pub entity: Entity,
     /// The world that this client is in.
-    pub world: Arc<RwLock<PartialWorld>>,
+    pub world: Arc<RwLock<PartialInstance>>,
 
     /// The entity component system. You probably don't need to access this
     /// directly. Note that if you're using a shared world (i.e. a swarm), this
@@ -96,8 +96,7 @@ pub struct Client {
 
 /// A component that contains some of the "settings" for this client that are
 /// sent to the server, such as render distance.
-#[derive(Component, Clone, Debug, Deref, DerefMut, Default, Eq, PartialEq)]
-pub struct ClientInformation(ServerboundClientInformationPacket);
+pub type ClientInformation = ServerboundClientInformationPacket;
 
 /// A component that contains a map of player UUIDs to their information in the
 /// tab list.
@@ -148,7 +147,7 @@ impl Client {
             profile,
             // default our id to 0, it'll be set later
             entity,
-            world: Arc::new(RwLock::new(PartialWorld::default())),
+            world: Arc::new(RwLock::new(PartialInstance::default())),
 
             ecs,
 
@@ -438,14 +437,14 @@ impl Client {
 
     /// Get a reference to our (potentially shared) world.
     ///
-    /// This gets the [`World`] from our world container. If it's a normal
+    /// This gets the [`Instance`] from our world container. If it's a normal
     /// client, then it'll be the same as the world the client has loaded.
     /// If the client using a shared world, then the shared world will be a
     /// superset of the client's world.
     pub fn world(&self) -> Arc<RwLock<Instance>> {
         let world_name = self.component::<WorldName>();
         let ecs = self.ecs.lock();
-        let world_container = ecs.resource::<WorldContainer>();
+        let world_container = ecs.resource::<InstanceContainer>();
         world_container.get(&world_name).unwrap()
     }
 
@@ -478,7 +477,7 @@ impl Client {
         {
             let mut ecs = self.ecs.lock();
             let mut client_information_mut = self.query::<&mut ClientInformation>(&mut ecs);
-            **client_information_mut = client_information.clone();
+            *client_information_mut = client_information.clone();
         }
 
         if self.logged_in() {
@@ -531,7 +530,7 @@ impl Plugin for AzaleaPlugin {
         app.add_event::<SendPacketEvent>()
             .add_system(handle_send_packet_event);
 
-        app.init_resource::<WorldContainer>();
+        app.init_resource::<InstanceContainer>();
     }
 }
 

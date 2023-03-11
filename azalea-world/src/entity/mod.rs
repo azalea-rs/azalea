@@ -264,7 +264,7 @@ pub struct EyeHeight(f32);
 /// Most of the time, you should be using `azalea_registry::EntityKind`
 /// directly instead.
 #[derive(Component, Clone, Copy, Debug, PartialEq, Deref)]
-pub struct EntityKind(azalea_registry::EntityKind);
+pub struct EntityKind(pub azalea_registry::EntityKind);
 
 /// A bundle of components that every entity has. This doesn't contain metadata,
 /// that has to be added separately.

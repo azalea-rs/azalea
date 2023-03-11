@@ -28,7 +28,9 @@ mod player;
 pub mod task_pool;
 
 pub use account::Account;
-pub use client::{init_ecs_app, start_ecs, Client, ClientInformation, JoinError};
+pub use client::{
+    init_ecs_app, start_ecs, Client, ClientInformation, JoinError, JoinedClientBundle, TabList,
+};
 pub use events::Event;
 pub use local_player::{GameProfileComponent, LocalPlayer};
 pub use movement::{SprintDirection, StartSprintEvent, StartWalkEvent, WalkDirection};
