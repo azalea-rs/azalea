@@ -10,10 +10,10 @@ use std::{
 
 use crate::{ChunkStorage, Instance};
 
-/// A container of [`World`]s. Worlds are stored as a Weak pointer here, so
-/// if no clients are using a world it will be forgotten.
+/// A container of [`Instance`]s (aka worlds). Instances are stored as a Weak
+/// pointer here, so if no clients are using an instance it will be forgotten.
 #[derive(Default, Resource)]
-pub struct WorldContainer {
+pub struct InstanceContainer {
     // We just refer to the chunks here and don't include entities because there's not that many
     // cases where we'd want to get every entity in the world (just getting the entities in chunks
     // should work fine).
@@ -29,9 +29,9 @@ pub struct WorldContainer {
     pub worlds: HashMap<ResourceLocation, Weak<RwLock<Instance>>>,
 }
 
-impl WorldContainer {
+impl InstanceContainer {
     pub fn new() -> Self {
-        WorldContainer {
+        InstanceContainer {
             worlds: HashMap::new(),
         }
     }

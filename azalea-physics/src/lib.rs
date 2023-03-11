@@ -10,7 +10,7 @@ use azalea_world::{
         metadata::Sprinting, move_relative, Attributes, Jumping, Local, Physics, Position,
         WorldName,
     },
-    Instance, WorldContainer,
+    Instance, InstanceContainer,
 };
 use bevy_app::{App, CoreSchedule, IntoSystemAppConfigs, Plugin};
 use bevy_ecs::{
@@ -44,7 +44,7 @@ impl Plugin for PhysicsPlugin {
 /// gravity, collisions, and some other stuff.
 fn travel(
     mut query: Query<(&mut Physics, &mut Position, &Attributes, &WorldName), With<Local>>,
-    world_container: Res<WorldContainer>,
+    world_container: Res<InstanceContainer>,
 ) {
     for (mut physics, mut position, attributes, world_name) in &mut query {
         let world_lock = world_container
@@ -159,7 +159,7 @@ pub struct ForceJumpEvent(pub Entity);
 
 pub fn force_jump_listener(
     mut query: Query<(&mut Physics, &Position, &Sprinting, &WorldName)>,
-    world_container: Res<WorldContainer>,
+    world_container: Res<InstanceContainer>,
     mut events: EventReader<ForceJumpEvent>,
 ) {
     for event in events.iter() {
@@ -306,7 +306,7 @@ mod tests {
     use azalea_core::{ChunkPos, ResourceLocation};
     use azalea_world::{
         entity::{EntityBundle, EntityPlugin, MinecraftEntityId},
-        Chunk, PartialWorld,
+        Chunk, PartialInstance,
     };
     use bevy_app::App;
     use bevy_time::fixed_timestep::FixedTime;
@@ -318,14 +318,14 @@ mod tests {
         app.add_plugin(PhysicsPlugin)
             .add_plugin(EntityPlugin)
             .insert_resource(FixedTime::new(Duration::from_millis(50)))
-            .init_resource::<WorldContainer>();
+            .init_resource::<InstanceContainer>();
         app
     }
 
     #[test]
     fn test_gravity() {
         let mut app = make_test_app();
-        let _world_lock = app.world.resource_mut::<WorldContainer>().insert(
+        let _world_lock = app.world.resource_mut::<InstanceContainer>().insert(
             ResourceLocation::new("minecraft:overworld").unwrap(),
             384,
             -64,
@@ -377,12 +377,12 @@ mod tests {
     #[test]
     fn test_collision() {
         let mut app = make_test_app();
-        let world_lock = app.world.resource_mut::<WorldContainer>().insert(
+        let world_lock = app.world.resource_mut::<InstanceContainer>().insert(
             ResourceLocation::new("minecraft:overworld").unwrap(),
             384,
             -64,
         );
-        let mut partial_world = PartialWorld::default();
+        let mut partial_world = PartialInstance::default();
 
         partial_world.chunks.set(
             &ChunkPos { x: 0, z: 0 },
@@ -436,12 +436,12 @@ mod tests {
     #[test]
     fn test_slab_collision() {
         let mut app = make_test_app();
-        let world_lock = app.world.resource_mut::<WorldContainer>().insert(
+        let world_lock = app.world.resource_mut::<InstanceContainer>().insert(
             ResourceLocation::new("minecraft:overworld").unwrap(),
             384,
             -64,
         );
-        let mut partial_world = PartialWorld::default();
+        let mut partial_world = PartialInstance::default();
 
         partial_world.chunks.set(
             &ChunkPos { x: 0, z: 0 },
@@ -490,12 +490,12 @@ mod tests {
     #[test]
     fn test_top_slab_collision() {
         let mut app = make_test_app();
-        let world_lock = app.world.resource_mut::<WorldContainer>().insert(
+        let world_lock = app.world.resource_mut::<InstanceContainer>().insert(
             ResourceLocation::new("minecraft:overworld").unwrap(),
             384,
             -64,
         );
-        let mut partial_world = PartialWorld::default();
+        let mut partial_world = PartialInstance::default();
 
         partial_world.chunks.set(
             &ChunkPos { x: 0, z: 0 },
@@ -543,12 +543,12 @@ mod tests {
     #[test]
     fn test_weird_wall_collision() {
         let mut app = make_test_app();
-        let world_lock = app.world.resource_mut::<WorldContainer>().insert(
+        let world_lock = app.world.resource_mut::<InstanceContainer>().insert(
             ResourceLocation::new("minecraft:overworld").unwrap(),
             384,
             -64,
         );
-        let mut partial_world = PartialWorld::default();
+        let mut partial_world = PartialInstance::default();
 
         partial_world.chunks.set(
             &ChunkPos { x: 0, z: 0 },
@@ -601,12 +601,12 @@ mod tests {
     #[test]
     fn test_negative_coordinates_weird_wall_collision() {
         let mut app = make_test_app();
-        let world_lock = app.world.resource_mut::<WorldContainer>().insert(
+        let world_lock = app.world.resource_mut::<InstanceContainer>().insert(
             ResourceLocation::new("minecraft:overworld").unwrap(),
             384,
             -64,
         );
-        let mut partial_world = PartialWorld::default();
+        let mut partial_world = PartialInstance::default();
 
         partial_world.chunks.set(
             &ChunkPos { x: -1, z: -1 },

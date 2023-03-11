@@ -20,7 +20,7 @@ use azalea_world::{
         MinecraftEntityId, Physics, PlayerBundle, Position, WorldName,
     },
     entity::{LoadedBy, RelativeEntityUpdate},
-    PartialWorld, WorldContainer,
+    InstanceContainer, PartialInstance,
 };
 use bevy_app::{App, CoreSet, Plugin};
 use bevy_ecs::{
@@ -192,7 +192,7 @@ fn process_packet_events(ecs: &mut World) {
                         &GameProfileComponent,
                         &ClientInformation,
                     )>,
-                    ResMut<WorldContainer>,
+                    ResMut<InstanceContainer>,
                 )> = SystemState::new(ecs);
                 let (mut commands, mut query, mut world_container) = system_state.get_mut(ecs);
                 let (mut local_player, world_name, game_profile, client_information) =
@@ -231,7 +231,7 @@ fn process_packet_events(ecs: &mut World) {
                     // (when we add chunks or entities those will be in the
                     // world_container)
 
-                    *local_player.partial_world.write() = PartialWorld::new(
+                    *local_player.partial_instance.write() = PartialInstance::new(
                         client_information.view_distance.into(),
                         // this argument makes it so other clients don't update this
                         // player entity
@@ -260,8 +260,7 @@ fn process_packet_events(ecs: &mut World) {
                     "Sending client information because login: {:?}",
                     client_information
                 );
-                let client_information: ClientInformation = client_information.clone();
-                local_player.write_packet((*client_information).clone().get());
+                local_player.write_packet(client_information.clone().get());
 
                 // brand
                 local_player.write_packet(
@@ -478,7 +477,7 @@ fn process_packet_events(ecs: &mut World) {
                 let mut system_state: SystemState<Query<&mut LocalPlayer>> = SystemState::new(ecs);
                 let mut query = system_state.get_mut(ecs);
                 let local_player = query.get_mut(player_entity).unwrap();
-                let mut partial_world = local_player.partial_world.write();
+                let mut partial_world = local_player.partial_instance.write();
 
                 partial_world.chunks.view_center = ChunkPos::new(p.x, p.z);
             }
@@ -497,14 +496,14 @@ fn process_packet_events(ecs: &mut World) {
                 // by this client.
                 let shared_chunk = local_player.world.read().chunks.get(&pos);
                 let this_client_has_chunk = local_player
-                    .partial_world
+                    .partial_instance
                     .read()
                     .chunks
                     .limited_get(&pos)
                     .is_some();
 
                 let mut world = local_player.world.write();
-                let mut partial_world = local_player.partial_world.write();
+                let mut partial_world = local_player.partial_instance.write();
 
                 if !this_client_has_chunk {
                     if let Some(shared_chunk) = shared_chunk {
@@ -673,7 +672,7 @@ fn process_packet_events(ecs: &mut World) {
                 if let Some(entity) = entity {
                     let new_position = p.position;
                     commands.entity(entity).add(RelativeEntityUpdate {
-                        partial_world: local_player.partial_world.clone(),
+                        partial_world: local_player.partial_instance.clone(),
                         update: Box::new(move |entity| {
                             let mut position = entity.get_mut::<Position>().unwrap();
                             **position = new_position;
@@ -704,7 +703,7 @@ fn process_packet_events(ecs: &mut World) {
                 if let Some(entity) = entity {
                     let delta = p.delta.clone();
                     commands.entity(entity).add(RelativeEntityUpdate {
-                        partial_world: local_player.partial_world.clone(),
+                        partial_world: local_player.partial_instance.clone(),
                         update: Box::new(move |entity_mut| {
                             let mut position = entity_mut.get_mut::<Position>().unwrap();
                             **position = position.with_delta(&delta);
@@ -732,7 +731,7 @@ fn process_packet_events(ecs: &mut World) {
                 if let Some(entity) = entity {
                     let delta = p.delta.clone();
                     commands.entity(entity).add(RelativeEntityUpdate {
-                        partial_world: local_player.partial_world.clone(),
+                        partial_world: local_player.partial_instance.clone(),
                         update: Box::new(move |entity_mut| {
                             let mut position = entity_mut.get_mut::<Position>().unwrap();
                             **position = position.with_delta(&delta);

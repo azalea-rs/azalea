@@ -1,8 +1,9 @@
 use azalea_buf::{McBuf, McBufReadable, McBufWritable};
 use azalea_core::FixedBitSet;
 use azalea_protocol_macros::ServerboundGamePacket;
+use bevy_ecs::component::Component;
 
-#[derive(Clone, Debug, McBuf, ServerboundGamePacket, PartialEq, Eq)]
+#[derive(Clone, Debug, McBuf, ServerboundGamePacket, PartialEq, Eq, Component)]
 pub struct ServerboundClientInformationPacket {
     /// The locale of the client.
     pub language: String,

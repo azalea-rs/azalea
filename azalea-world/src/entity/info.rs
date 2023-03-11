@@ -6,7 +6,7 @@ use crate::{
     entity::{
         self, add_dead, update_bounding_box, EntityUuid, MinecraftEntityId, Position, WorldName,
     },
-    update_entity_by_id_index, update_uuid_index, PartialWorld, WorldContainer,
+    update_entity_by_id_index, update_uuid_index, InstanceContainer, PartialInstance,
 };
 use azalea_core::ChunkPos;
 use bevy_app::{App, CoreSet, Plugin};
@@ -134,9 +134,9 @@ impl PartialEntityInfos {
     }
 }
 
-/// A [`Command`] that applies a "relative update" to an entity, which means
-/// this update won't be run multiple times by different clients in the same
-/// world.
+/// An [`EntityCommand`] that applies a "relative update" to an entity, which
+/// means this update won't be run multiple times by different clients in the
+/// same world.
 ///
 /// This is used to avoid a bug where when there's multiple clients in the same
 /// world and an entity sends a relative move packet to all clients, its
@@ -146,7 +146,7 @@ impl PartialEntityInfos {
 /// other clients within render distance will get too. You usually don't need
 /// this when the change isn't relative either.
 pub struct RelativeEntityUpdate {
-    pub partial_world: Arc<RwLock<PartialWorld>>,
+    pub partial_world: Arc<RwLock<PartialInstance>>,
     // a function that takes the entity and updates it
     pub update: Box<dyn FnOnce(&mut EntityMut) + Send + Sync>,
 }
@@ -218,7 +218,7 @@ fn update_entity_chunk_positions(
         ),
         Changed<entity::Position>,
     >,
-    world_container: Res<WorldContainer>,
+    world_container: Res<InstanceContainer>,
 ) {
     for (entity, pos, last_pos, world_name) in query.iter_mut() {
         let world_lock = world_container.get(world_name).unwrap();
@@ -285,7 +285,7 @@ fn debug_detect_updates_received_on_local_entities(
 fn remove_despawned_entities_from_indexes(
     mut commands: Commands,
     mut entity_infos: ResMut<EntityInfos>,
-    world_container: Res<WorldContainer>,
+    world_container: Res<InstanceContainer>,
     query: Query<(Entity, &EntityUuid, &Position, &WorldName, &LoadedBy), Changed<LoadedBy>>,
 ) {
     for (entity, uuid, position, world_name, loaded_by) in &query {

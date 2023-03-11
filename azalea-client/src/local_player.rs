@@ -5,7 +5,7 @@ use azalea_core::ChunkPos;
 use azalea_protocol::packets::game::ServerboundGamePacket;
 use azalea_world::{
     entity::{self, Dead},
-    Instance, PartialWorld,
+    Instance, PartialInstance,
 };
 use bevy_ecs::{
     component::Component, entity::Entity, event::EventReader, query::Added, system::Query,
@@ -33,11 +33,12 @@ use crate::{
 pub struct LocalPlayer {
     packet_writer: mpsc::UnboundedSender<ServerboundGamePacket>,
 
-    /// The partial world is the world this client currently has loaded. It has
-    /// a limited render distance.
-    pub partial_world: Arc<RwLock<PartialWorld>>,
-    /// The world is the combined [`PartialWorld`]s of all clients in the same
-    /// world. (Only relevant if you're using a shared world, i.e. a swarm)
+    /// The partial instance is the world this client currently has loaded. It
+    /// has a limited render distance.
+    pub partial_instance: Arc<RwLock<PartialInstance>>,
+    /// The world is the combined [`PartialInstance`]s of all clients in the
+    /// same world. (Only relevant if you're using a shared world, i.e. a
+    /// swarm)
     pub world: Arc<RwLock<Instance>>,
 
     /// A task that reads packets from the server. The client is disconnected
@@ -92,7 +93,7 @@ impl LocalPlayer {
             packet_writer,
 
             world,
-            partial_world: Arc::new(RwLock::new(PartialWorld::new(
+            partial_instance: Arc::new(RwLock::new(PartialInstance::new(
                 client_information.view_distance.into(),
                 Some(entity),
             ))),
