@@ -8,3 +8,15 @@ pub struct BlockHitResult {
     pub miss: bool,
     pub inside: bool,
 }
+
+impl BlockHitResult {
+    pub fn miss(location: Vec3, direction: Direction, block_pos: BlockPos) -> Self {
+        Self {
+            location,
+            direction,
+            block_pos,
+            miss: true,
+            inside: false,
+        }
+    }
+}

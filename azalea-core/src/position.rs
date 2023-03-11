@@ -36,6 +36,10 @@ macro_rules! vec3_impl {
                     z: self.z,
                 }
             }
+
+            pub fn dot(&self, other: Self) -> $type {
+                self.x * other.x + self.y * other.y + self.z * other.z
+            }
         }
 
         impl Add for &$name {

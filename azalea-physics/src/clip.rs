@@ -1,11 +1,52 @@
-use azalea_core::{lerp, BlockPos, Vec3, EPSILON};
+use azalea_core::{lerp, BlockHitResult, BlockPos, Direction, Vec3, EPSILON};
+use azalea_world::ChunkStorage;
+
+pub struct ClipContext {
+    pub from: Vec3,
+    pub to: Vec3,
+    pub block: BlockClipContext,
+    pub fluid: FluidClipContext,
+    pub collision_context: CollisionContext,
+}
+
+pub struct BlockClipContext {
+    pub shape_getter
+}
+pub struct FluidClipContext {}
+pub struct CollisionContext {}
+
+pub fn clip(chunk_storage: &mut ChunkStorage, context: ClipContext) -> BlockHitResult {
+    traverse_blocks(
+        context.from,
+        context.to,
+        context,
+        |context, block_pos| {
+            let block_state = chunk_storage.get_block_state(block_pos);
+            // TODO: add fluid stuff to this (see getFluidState in vanilla source)
+            let block_shape = context.block_shape(block_state, chunk_storage, block_pos);
+            let block_hit_result =
+                chunk_storage.clip_with_interaction_override(context.from, context.to, block_pos);
+            // let block_distance =
+
+            None
+        },
+        |context| {
+            let vec = context.from - context.to;
+            BlockHitResult::miss(
+                context.to,
+                Direction::nearest(vec),
+                BlockPos::from(context.to),
+            )
+        },
+    )
+}
 
 pub fn traverse_blocks<C, T>(
     from: Vec3,
     to: Vec3,
     context: C,
-    get_hit_result: fn(&C, &BlockPos) -> Option<T>,
-    get_miss_result: fn(&C) -> T,
+    get_hit_result: impl Fn(&C, &BlockPos) -> Option<T>,
+    get_miss_result: impl Fn(&C) -> T,
 ) -> T {
     if from == to {
         return get_miss_result(&context);
