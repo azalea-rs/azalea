@@ -9,7 +9,7 @@ use crate::ecs::{
 };
 use azalea_core::Vec3;
 use azalea_physics::{force_jump_listener, PhysicsSet};
-use azalea_world::entity::LookDirection;
+use azalea_world::entity::{clamp_look_direction, LookDirection};
 use azalea_world::entity::{metadata::Player, Jumping, Local, Position};
 use std::f64::consts::PI;
 
@@ -23,7 +23,9 @@ impl Plugin for BotPlugin {
             .add_event::<JumpEvent>()
             .add_systems((
                 insert_bot,
-                look_at_listener.before(force_jump_listener),
+                look_at_listener
+                    .before(force_jump_listener)
+                    .before(clamp_look_direction),
                 jump_listener,
                 stop_jumping
                     .in_schedule(CoreSchedule::FixedUpdate)

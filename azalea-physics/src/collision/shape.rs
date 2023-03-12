@@ -394,10 +394,12 @@ impl VoxelShape {
 
     pub fn clip(&self, from: &Vec3, to: &Vec3, block_pos: &BlockPos) -> Option<BlockHitResult> {
         if self.is_empty() {
+            println!("empty");
             return None;
         }
         let vector = to - from;
         if vector.length_sqr() < EPSILON {
+            println!("short {}", vector.length_sqr());
             return None;
         }
         let right_after_start = from + &(vector * 0.0001);
@@ -415,6 +417,7 @@ impl VoxelShape {
                 miss: false,
             })
         } else {
+            println!("clip iterable {}", vector.length_sqr());
             AABB::clip_iterable(&self.to_aabbs(), &from, &to, &block_pos)
         }
     }

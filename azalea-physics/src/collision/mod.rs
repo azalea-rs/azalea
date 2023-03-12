@@ -216,7 +216,11 @@ fn collide_with_shapes(
     if y_movement != 0. {
         y_movement = Shapes::collide(&Axis::Y, &entity_box, collision_boxes, y_movement);
         if y_movement != 0. {
-            entity_box = entity_box.move_relative(0., y_movement, 0.);
+            entity_box = entity_box.move_relative(&Vec3 {
+                x: 0.,
+                y: y_movement,
+                z: 0.,
+            });
         }
     }
 
@@ -227,14 +231,22 @@ fn collide_with_shapes(
     if more_z_movement && z_movement != 0. {
         z_movement = Shapes::collide(&Axis::Z, &entity_box, collision_boxes, z_movement);
         if z_movement != 0. {
-            entity_box = entity_box.move_relative(0., 0., z_movement);
+            entity_box = entity_box.move_relative(&Vec3 {
+                x: 0.,
+                y: 0.,
+                z: z_movement,
+            });
         }
     }
 
     if x_movement != 0. {
         x_movement = Shapes::collide(&Axis::X, &entity_box, collision_boxes, x_movement);
         if x_movement != 0. {
-            entity_box = entity_box.move_relative(x_movement, 0., 0.);
+            entity_box = entity_box.move_relative(&Vec3 {
+                x: x_movement,
+                y: 0.,
+                z: 0.,
+            });
         }
     }
 

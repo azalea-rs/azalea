@@ -4,11 +4,15 @@ use azalea_auth::game_profile::GameProfile;
 use azalea_core::{ChunkPos, GameMode};
 use azalea_protocol::packets::game::ServerboundGamePacket;
 use azalea_world::{
-    entity::{self, Dead},
-    Instance, PartialInstance,
+    entity::{self, Dead, WorldName},
+    Instance, InstanceContainer, PartialInstance,
 };
 use bevy_ecs::{
-    component::Component, entity::Entity, event::EventReader, query::Added, system::Query,
+    component::Component,
+    entity::Entity,
+    event::EventReader,
+    query::Added,
+    system::{Query, Res},
 };
 use derive_more::{Deref, DerefMut};
 use parking_lot::RwLock;
@@ -83,6 +87,7 @@ pub struct LocalPlayerInLoadedChunk;
 #[derive(Component, Clone, Debug, Copy)]
 pub struct LocalGameMode {
     pub current: GameMode,
+    pub previous: Option<GameMode>,
 }
 
 impl LocalPlayer {
@@ -129,16 +134,15 @@ impl Drop for LocalPlayer {
 /// Update the [`LocalPlayerInLoadedChunk`] component for all [`LocalPlayer`]s.
 pub fn update_in_loaded_chunk(
     mut commands: bevy_ecs::system::Commands,
-    query: Query<(Entity, &LocalPlayer, &entity::Position)>,
+    query: Query<(Entity, &WorldName, &entity::Position)>,
+    instance_container: Res<InstanceContainer>,
 ) {
     for (entity, local_player, position) in &query {
         let player_chunk_pos = ChunkPos::from(position);
-        let in_loaded_chunk = local_player
-            .world
-            .read()
-            .chunks
-            .get(&player_chunk_pos)
-            .is_some();
+        let instance_lock = instance_container
+            .get(&local_player)
+            .expect("local player should always be in an instance");
+        let in_loaded_chunk = instance_lock.read().chunks.get(&player_chunk_pos).is_some();
         if in_loaded_chunk {
             commands.entity(entity).insert(LocalPlayerInLoadedChunk);
         } else {

@@ -5,6 +5,7 @@
 use azalea::ecs::query::With;
 use azalea::entity::metadata::Player;
 use azalea::entity::Position;
+use azalea::interact::HitResultComponent;
 use azalea::inventory::InventoryComponent;
 use azalea::pathfinder::BlockPosGoal;
 use azalea::{prelude::*, swarm::prelude::*, BlockPos, GameProfileComponent, WalkDirection};
@@ -47,7 +48,7 @@ async fn main() -> anyhow::Result<()> {
     let mut accounts = Vec::new();
     let mut states = Vec::new();
 
-    for i in 0..5 {
+    for i in 0..1 {
         accounts.push(Account::offline(&format!("bot{i}")));
         states.push(State::default());
     }
@@ -164,6 +165,10 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                         } else {
                             bot.chat("no diamond block found");
                         }
+                    }
+                    "hitresult" => {
+                        let hit_result = bot.get_component::<HitResultComponent>();
+                        bot.chat(&format!("hit_result: {hit_result:?}",));
                     }
                     _ => {}
                 }

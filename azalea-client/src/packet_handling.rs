@@ -251,9 +251,14 @@ fn process_packet_events(ecs: &mut World) {
                         metadata: PlayerMetadataBundle::default(),
                     };
                     // insert our components into the ecs :)
-                    commands
-                        .entity(player_entity)
-                        .insert((MinecraftEntityId(p.player_id), player_bundle));
+                    commands.entity(player_entity).insert((
+                        MinecraftEntityId(p.player_id),
+                        LocalGameMode {
+                            current: p.game_type,
+                            previous: p.previous_game_type.into(),
+                        },
+                        player_bundle,
+                    ));
                 }
 
                 // send the client information that we have set

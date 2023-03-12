@@ -5,7 +5,7 @@ use azalea_protocol::packets::game::{
     serverbound_use_item_on_packet::{BlockHit, ServerboundUseItemOnPacket},
 };
 use azalea_world::{
-    entity::{view_vector, EyeHeight, LookDirection, Position, WorldName},
+    entity::{clamp_look_direction, view_vector, EyeHeight, LookDirection, Position, WorldName},
     InstanceContainer,
 };
 use bevy_app::{App, Plugin};
@@ -13,19 +13,28 @@ use bevy_ecs::{
     component::Component,
     entity::Entity,
     event::EventReader,
-    system::{Query, Res},
+    schedule::{IntoSystemConfig, IntoSystemConfigs},
+    system::{Commands, Query, Res},
 };
 use derive_more::{Deref, DerefMut};
 use log::warn;
 
-use crate::{local_player::LocalGameMode, Client, LocalPlayer};
+use crate::{
+    local_player::{handle_send_packet_event, LocalGameMode},
+    Client, LocalPlayer,
+};
 
 /// A plugin that allows clients to interact with blocks in the world.
 pub struct InteractPlugin;
 impl Plugin for InteractPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<BlockInteractEvent>()
-            .add_systems((handle_block_interact_event, update_hit_result_component));
+        app.add_event::<BlockInteractEvent>().add_systems(
+            (
+                handle_block_interact_event,
+                update_hit_result_component.after(clamp_look_direction),
+            )
+                .before(handle_send_packet_event),
+        );
     }
 }
 
@@ -96,8 +105,10 @@ fn handle_block_interact_event(
 }
 
 fn update_hit_result_component(
+    mut commands: Commands,
     mut query: Query<(
-        &mut HitResultComponent,
+        Entity,
+        Option<&mut HitResultComponent>,
         &LocalGameMode,
         &Position,
         &EyeHeight,
@@ -106,7 +117,7 @@ fn update_hit_result_component(
     )>,
     instance_container: Res<InstanceContainer>,
 ) {
-    for (mut hit_result_ref, game_mode, position, eye_height, look_direction, world_name) in
+    for (entity, hit_result_ref, game_mode, position, eye_height, look_direction, world_name) in
         &mut query
     {
         let pick_range = if game_mode.current == GameMode::Creative {
@@ -121,6 +132,10 @@ fn update_hit_result_component(
             z: position.z,
         };
         let end_position = eye_position + view_vector * pick_range;
+        println!(
+            "eye_position: {:?}, end_position: {:?}",
+            eye_position, end_position
+        );
         let instance_lock = instance_container
             .get(world_name)
             .expect("entities must always be in a valid world");
@@ -134,6 +149,12 @@ fn update_hit_result_component(
                 fluid_pick_type: FluidPickType::None,
             },
         );
-        **hit_result_ref = hit_result;
+        if let Some(mut hit_result_ref) = hit_result_ref {
+            **hit_result_ref = hit_result;
+        } else {
+            commands
+                .entity(entity)
+                .insert(HitResultComponent(hit_result));
+        }
     }
 }

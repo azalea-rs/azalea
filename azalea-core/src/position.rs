@@ -152,6 +152,15 @@ impl BlockPos {
         }
     }
 
+    /// Convert the block position into a Vec3 without centering it.
+    pub fn to_vec3(&self) -> Vec3 {
+        Vec3 {
+            x: self.x as f64,
+            y: self.y as f64,
+            z: self.z as f64,
+        }
+    }
+
     /// Get the distance of this vector from the origin by doing `x + y + z`.
     pub fn length_manhattan(&self) -> u32 {
         (self.x.abs() + self.y.abs() + self.z.abs()) as u32

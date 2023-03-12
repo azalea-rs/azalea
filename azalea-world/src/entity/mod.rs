@@ -23,7 +23,8 @@ pub use data::*;
 use derive_more::{Deref, DerefMut};
 pub use dimensions::{update_bounding_box, EntityDimensions};
 pub use info::{
-    EntityInfos, EntityPlugin, EntityUpdateSet, LoadedBy, PartialEntityInfos, RelativeEntityUpdate,
+    clamp_look_direction, EntityInfos, EntityPlugin, EntityUpdateSet, LoadedBy, PartialEntityInfos,
+    RelativeEntityUpdate,
 };
 use std::fmt::Debug;
 use uuid::Uuid;
@@ -70,16 +71,16 @@ pub fn input_vector(direction: &LookDirection, speed: f32, acceleration: &Vec3) 
 }
 
 pub fn view_vector(look_direction: &LookDirection) -> Vec3 {
-    let y_rot = look_direction.y_rot * 0.017453292;
-    let x_rot = -look_direction.x_rot * 0.017453292;
-    let x_rot_cos = f32::cos(x_rot);
-    let x_rot_sin = f32::sin(x_rot);
+    let x_rot = look_direction.x_rot * 0.017453292;
+    let y_rot = -look_direction.y_rot * 0.017453292;
     let y_rot_cos = f32::cos(y_rot);
     let y_rot_sin = f32::sin(y_rot);
+    let x_rot_cos = f32::cos(x_rot);
+    let x_rot_sin = f32::sin(x_rot);
     Vec3 {
-        x: (x_rot_sin * y_rot_cos) as f64,
-        y: (-y_rot_sin) as f64,
-        z: (x_rot_cos * y_rot_cos) as f64,
+        x: (y_rot_sin * x_rot_cos) as f64,
+        y: (-x_rot_sin) as f64,
+        z: (y_rot_cos * x_rot_cos) as f64,
     }
 }
 

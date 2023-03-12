@@ -2,7 +2,7 @@ use azalea_buf::McBuf;
 
 use crate::Vec3;
 
-#[derive(Clone, Copy, Debug, McBuf, Default)]
+#[derive(Clone, Copy, Debug, McBuf, Default, Eq, PartialEq)]
 pub enum Direction {
     #[default]
     Down = 0,

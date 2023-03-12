@@ -8,8 +8,8 @@ use azalea_block::{Block, BlockState};
 use azalea_core::{BlockPos, Vec3};
 use azalea_world::{
     entity::{
-        metadata::Sprinting, move_relative, Attributes, Jumping, Local, LookDirection, Physics,
-        Position, WorldName,
+        clamp_look_direction, metadata::Sprinting, move_relative, Attributes, Jumping, Local,
+        LookDirection, Physics, Position, WorldName,
     },
     Instance, InstanceContainer,
 };
@@ -31,7 +31,11 @@ pub struct PhysicsPlugin;
 impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<ForceJumpEvent>()
-            .add_system(force_jump_listener.before(azalea_world::entity::update_bounding_box))
+            .add_system(
+                force_jump_listener
+                    .before(azalea_world::entity::update_bounding_box)
+                    .after(clamp_look_direction),
+            )
             .add_systems(
                 (ai_step, travel)
                     .chain()

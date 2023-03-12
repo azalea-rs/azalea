@@ -68,6 +68,7 @@ pub fn clip(chunk_storage: &ChunkStorage, context: ClipContext) -> BlockHitResul
                 block_shape,
                 &block_state,
             );
+            println!("block_pos: {block_pos:?} block_hit_result: {block_hit_result:?}");
             // let block_distance = if let Some(block_hit_result) = block_hit_result {
             //     context.from.distance_to_sqr(&block_hit_result.location)
             // } else {
@@ -126,7 +127,7 @@ fn clip_with_interaction_override(
         }
         Some(block_hit_result)
     } else {
-        None
+        block_hit_result
     }
 }
 
@@ -190,19 +191,19 @@ pub fn traverse_blocks<C, T>(
             * if vec_sign.x > 0. {
                 1. - right_before_start.x.fract()
             } else {
-                right_before_start.x.fract()
+                right_before_start.x.fract().abs()
             },
         y: percentage_step.y
             * if vec_sign.y > 0. {
                 1. - right_before_start.y.fract()
             } else {
-                right_before_start.y.fract()
+                right_before_start.y.fract().abs()
             },
         z: percentage_step.z
             * if vec_sign.z > 0. {
                 1. - right_before_start.z.fract()
             } else {
-                right_before_start.z.fract()
+                right_before_start.z.fract().abs()
             },
     };
 

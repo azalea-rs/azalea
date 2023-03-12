@@ -2,7 +2,7 @@ use crate::{
     chat::ChatPlugin,
     disconnect::{DisconnectEvent, DisconnectPlugin},
     events::{Event, EventPlugin, LocalPlayerEvents},
-    interact::CurrentSequenceNumber,
+    interact::{CurrentSequenceNumber, InteractPlugin},
     inventory::{InventoryComponent, InventoryPlugin},
     local_player::{
         death_event, handle_send_packet_event, update_in_loaded_chunk, GameProfileComponent,
@@ -435,6 +435,11 @@ impl Client {
         self.query::<&T>(&mut self.ecs.lock()).clone()
     }
 
+    /// Get a component from this client, or `None` if it doesn't exist.
+    pub fn get_component<T: Component + Clone>(&self) -> Option<T> {
+        self.query::<Option<&T>>(&mut self.ecs.lock()).cloned()
+    }
+
     /// Get a reference to our (potentially shared) world.
     ///
     /// This gets the [`Instance`] from our world container. If it's a normal
@@ -515,11 +520,7 @@ impl Plugin for AzaleaPlugin {
         // Minecraft ticks happen every 50ms
         app.insert_resource(FixedTime::new(Duration::from_millis(50)));
 
-        app.add_system(
-            update_in_loaded_chunk
-                .after(PhysicsSet)
-                .after(handle_send_packet_event),
-        );
+        app.add_system(update_in_loaded_chunk.after(PhysicsSet));
 
         // fire the Death event when the player dies.
         app.add_system(death_event);
@@ -635,5 +636,6 @@ impl PluginGroup for DefaultPlugins {
             .add(ChatPlugin)
             .add(DisconnectPlugin)
             .add(PlayerMovePlugin)
+            .add(InteractPlugin)
     }
 }
