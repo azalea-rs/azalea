@@ -1,15 +1,24 @@
-use azalea_core::{BlockPos, Direction, GameMode};
+use azalea_core::{BlockHitResult, BlockPos, Direction, GameMode, Vec3};
+use azalea_physics::clip::{BlockShapeType, ClipContext, FluidPickType};
 use azalea_protocol::packets::game::{
     serverbound_interact_packet::InteractionHand,
-    serverbound_use_item_on_packet::{BlockHitResult, ServerboundUseItemOnPacket},
+    serverbound_use_item_on_packet::{BlockHit, ServerboundUseItemOnPacket},
 };
-use azalea_world::entity::{view_vector, EyeHeight, LookDirection, Position};
+use azalea_world::{
+    entity::{view_vector, EyeHeight, LookDirection, Position, WorldName},
+    InstanceContainer,
+};
 use bevy_app::{App, Plugin};
-use bevy_ecs::{component::Component, entity::Entity, event::EventReader, system::Query};
+use bevy_ecs::{
+    component::Component,
+    entity::Entity,
+    event::EventReader,
+    system::{Query, Res},
+};
 use derive_more::{Deref, DerefMut};
 use log::warn;
 
-use crate::{local_player::LocalGameMode, Client, LocalPlayer, PlayerInfo};
+use crate::{local_player::LocalGameMode, Client, LocalPlayer};
 
 /// A plugin that allows clients to interact with blocks in the world.
 pub struct InteractPlugin;
@@ -73,7 +82,7 @@ fn handle_block_interact_event(
         local_player.write_packet(
             ServerboundUseItemOnPacket {
                 hand: InteractionHand::MainHand,
-                block_hit: BlockHitResult {
+                block_hit: BlockHit {
                     block_pos: event.position,
                     direction: Direction::Up,
                     location: event.position.center(),
@@ -93,15 +102,38 @@ fn update_hit_result_component(
         &Position,
         &EyeHeight,
         &LookDirection,
+        &WorldName,
     )>,
+    instance_container: Res<InstanceContainer>,
 ) {
-    for (hit_result, game_mode, position, eye_height, look_direction) in &mut query {
+    for (mut hit_result_ref, game_mode, position, eye_height, look_direction, world_name) in
+        &mut query
+    {
         let pick_range = if game_mode.current == GameMode::Creative {
             6.
         } else {
             4.5
         };
         let view_vector = view_vector(look_direction);
-        let end_position = **position + view_vector * pick_range;
+        let eye_position = Vec3 {
+            x: position.x,
+            y: position.y + **eye_height as f64,
+            z: position.z,
+        };
+        let end_position = eye_position + view_vector * pick_range;
+        let instance_lock = instance_container
+            .get(world_name)
+            .expect("entities must always be in a valid world");
+        let instance = instance_lock.read();
+        let hit_result = azalea_physics::clip::clip(
+            &instance.chunks,
+            ClipContext {
+                from: eye_position,
+                to: end_position,
+                block_shape_type: BlockShapeType::Outline,
+                fluid_pick_type: FluidPickType::None,
+            },
+        );
+        **hit_result_ref = hit_result;
     }
 }

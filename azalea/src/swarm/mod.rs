@@ -37,7 +37,7 @@ pub struct Swarm {
     // bot_datas: Arc<Mutex<Vec<(Client, S)>>>,
     resolved_address: SocketAddr,
     address: ServerAddress,
-    pub world_container: Arc<RwLock<InstanceContainer>>,
+    pub instance_container: Arc<RwLock<InstanceContainer>>,
 
     bots_tx: mpsc::UnboundedSender<(Option<Event>, Client)>,
     swarm_tx: mpsc::UnboundedSender<SwarmEvent>,
@@ -248,7 +248,7 @@ where
         // resolve the address
         let resolved_address = resolver::resolve_address(&address).await?;
 
-        let world_container = Arc::new(RwLock::new(InstanceContainer::default()));
+        let instance_container = Arc::new(RwLock::new(InstanceContainer::default()));
 
         // we can't modify the swarm plugins after this
         let (bots_tx, mut bots_rx) = mpsc::unbounded_channel();
@@ -263,7 +263,7 @@ where
 
             resolved_address,
             address,
-            world_container,
+            instance_container,
 
             bots_tx,
 

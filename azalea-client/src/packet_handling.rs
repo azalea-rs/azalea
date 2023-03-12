@@ -195,7 +195,7 @@ fn process_packet_events(ecs: &mut World) {
                     )>,
                     ResMut<InstanceContainer>,
                 )> = SystemState::new(ecs);
-                let (mut commands, mut query, mut world_container) = system_state.get_mut(ecs);
+                let (mut commands, mut query, mut instance_container) = system_state.get_mut(ecs);
                 let (mut local_player, world_name, game_profile, client_information) =
                     query.get_mut(player_entity).unwrap();
 
@@ -221,16 +221,16 @@ fn process_packet_events(ecs: &mut World) {
                             .entity(player_entity)
                             .insert(WorldName(new_world_name.clone()));
                     }
-                    // add this world to the world_container (or don't if it's already
+                    // add this world to the instance_container (or don't if it's already
                     // there)
-                    let weak_world = world_container.insert(
+                    let weak_world = instance_container.insert(
                         new_world_name.clone(),
                         dimension.height,
                         dimension.min_y,
                     );
                     // set the partial_world to an empty world
                     // (when we add chunks or entities those will be in the
-                    // world_container)
+                    // instance_container)
 
                     *local_player.partial_instance.write() = PartialInstance::new(
                         client_information.view_distance.into(),

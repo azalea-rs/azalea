@@ -444,8 +444,8 @@ impl Client {
     pub fn world(&self) -> Arc<RwLock<Instance>> {
         let world_name = self.component::<WorldName>();
         let ecs = self.ecs.lock();
-        let world_container = ecs.resource::<InstanceContainer>();
-        world_container.get(&world_name).unwrap()
+        let instance_container = ecs.resource::<InstanceContainer>();
+        instance_container.get(&world_name).unwrap()
     }
 
     /// Returns whether we have a received the login packet yet.

@@ -59,11 +59,11 @@ pub fn deduplicate_entities(
         (Changed<MinecraftEntityId>, Without<Local>),
     >,
     mut loaded_by_query: Query<&mut LoadedBy>,
-    world_container: Res<InstanceContainer>,
+    instance_container: Res<InstanceContainer>,
 ) {
     // if this entity already exists, remove it
     for (new_entity, id, world_name) in query.iter_mut() {
-        if let Some(world_lock) = world_container.get(world_name) {
+        if let Some(world_lock) = instance_container.get(world_name) {
             let world = world_lock.write();
             if let Some(old_entity) = world.entity_by_id.get(id) {
                 if old_entity == &new_entity {
@@ -104,11 +104,11 @@ pub fn deduplicate_local_entities(
         (Entity, &MinecraftEntityId, &WorldName),
         (Changed<MinecraftEntityId>, With<Local>),
     >,
-    world_container: Res<InstanceContainer>,
+    instance_container: Res<InstanceContainer>,
 ) {
     // if this entity already exists, remove the old one
     for (new_entity, id, world_name) in query.iter_mut() {
-        if let Some(world_lock) = world_container.get(world_name) {
+        if let Some(world_lock) = instance_container.get(world_name) {
             let world = world_lock.write();
             if let Some(old_entity) = world.entity_by_id.get(id) {
                 if old_entity == &new_entity {
@@ -154,11 +154,11 @@ pub fn update_uuid_index(
 //     mut commands: Commands,
 //     partial_entity_infos: &mut PartialEntityInfos,
 //     chunk: &ChunkPos,
-//     world_container: &WorldContainer,
+//     instance_container: &WorldContainer,
 //     world_name: &WorldName,
 //     mut query: Query<(&MinecraftEntityId, &mut ReferenceCount)>,
 // ) {
-//     let world_lock = world_container.get(world_name).unwrap();
+//     let world_lock = instance_container.get(world_name).unwrap();
 //     let world = world_lock.read();
 
 //     if let Some(entities) = world.entities_by_chunk.get(chunk).cloned() {
@@ -290,10 +290,10 @@ pub fn update_entity_by_id_index(
         (Entity, &MinecraftEntityId, &WorldName, Option<&Local>),
         Changed<MinecraftEntityId>,
     >,
-    world_container: Res<InstanceContainer>,
+    instance_container: Res<InstanceContainer>,
 ) {
     for (entity, id, world_name, local) in query.iter_mut() {
-        let world_lock = world_container.get(world_name).unwrap();
+        let world_lock = instance_container.get(world_name).unwrap();
         let mut world = world_lock.write();
         if local.is_none() {
             if let Some(old_entity) = world.entity_by_id.get(id) {

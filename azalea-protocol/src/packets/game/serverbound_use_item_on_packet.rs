@@ -7,13 +7,13 @@ use std::io::{Cursor, Write};
 #[derive(Clone, Debug, McBuf, ServerboundGamePacket)]
 pub struct ServerboundUseItemOnPacket {
     pub hand: InteractionHand,
-    pub block_hit: BlockHitResult,
+    pub block_hit: BlockHit,
     #[var]
     pub sequence: u32,
 }
 
 #[derive(Clone, Debug)]
-pub struct BlockHitResult {
+pub struct BlockHit {
     /// The block that we clicked.
     pub block_pos: BlockPos,
     /// The face of the block that was clicked.
@@ -26,7 +26,7 @@ pub struct BlockHitResult {
     pub inside: bool,
 }
 
-impl McBufWritable for BlockHitResult {
+impl McBufWritable for BlockHit {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         self.block_pos.write_into(buf)?;
         self.direction.write_into(buf)?;
@@ -47,7 +47,7 @@ impl McBufWritable for BlockHitResult {
     }
 }
 
-impl McBufReadable for BlockHitResult {
+impl McBufReadable for BlockHit {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let block_pos = BlockPos::read_from(buf)?;
         let direction = Direction::read_from(buf)?;

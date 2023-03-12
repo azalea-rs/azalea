@@ -219,10 +219,10 @@ fn update_entity_chunk_positions(
         ),
         Changed<entity::Position>,
     >,
-    world_container: Res<InstanceContainer>,
+    instance_container: Res<InstanceContainer>,
 ) {
     for (entity, pos, last_pos, world_name) in query.iter_mut() {
-        let world_lock = world_container.get(world_name).unwrap();
+        let world_lock = instance_container.get(world_name).unwrap();
         let mut world = world_lock.write();
 
         let old_chunk = ChunkPos::from(*last_pos);
@@ -286,11 +286,11 @@ fn debug_detect_updates_received_on_local_entities(
 fn remove_despawned_entities_from_indexes(
     mut commands: Commands,
     mut entity_infos: ResMut<EntityInfos>,
-    world_container: Res<InstanceContainer>,
+    instance_container: Res<InstanceContainer>,
     query: Query<(Entity, &EntityUuid, &Position, &WorldName, &LoadedBy), Changed<LoadedBy>>,
 ) {
     for (entity, uuid, position, world_name, loaded_by) in &query {
-        let world_lock = world_container.get(world_name).unwrap();
+        let world_lock = instance_container.get(world_name).unwrap();
         let mut world = world_lock.write();
 
         // if the entity has no references left, despawn it

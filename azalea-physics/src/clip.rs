@@ -10,9 +10,9 @@ use crate::collision::{BlockWithShape, VoxelShape};
 pub struct ClipContext {
     pub from: Vec3,
     pub to: Vec3,
-    pub block: BlockShapeGetter,
-    pub fluid: CanPickFluid,
-    pub collision_context: EntityCollisionContext,
+    pub block_shape_type: BlockShapeType,
+    pub fluid_pick_type: FluidPickType,
+    // pub collision_context: EntityCollisionContext,
 }
 impl ClipContext {
     // minecraft passes in the world and blockpos here... but it doesn't actually
@@ -20,24 +20,24 @@ impl ClipContext {
     pub fn block_shape(&self, block_state: BlockState) -> &VoxelShape {
         // TODO: implement the other shape getters
         // (see the ClipContext.Block class in the vanilla source)
-        match self.block {
-            BlockShapeGetter::Collider => block_state.shape(),
-            BlockShapeGetter::Outline => block_state.shape(),
-            BlockShapeGetter::Visual => block_state.shape(),
-            BlockShapeGetter::FallDamageResetting => block_state.shape(),
+        match self.block_shape_type {
+            BlockShapeType::Collider => block_state.shape(),
+            BlockShapeType::Outline => block_state.shape(),
+            BlockShapeType::Visual => block_state.shape(),
+            BlockShapeType::FallDamageResetting => block_state.shape(),
         }
     }
 }
 
 #[derive(Debug, Copy, Clone)]
-pub enum BlockShapeGetter {
+pub enum BlockShapeType {
     Collider,
     Outline,
     Visual,
     FallDamageResetting,
 }
 #[derive(Debug, Copy, Clone)]
-pub enum CanPickFluid {
+pub enum FluidPickType {
     None,
     SourceOnly,
     Any,
@@ -52,7 +52,7 @@ pub struct EntityCollisionContext {
     pub entity: Entity,
 }
 
-pub fn clip(chunk_storage: &mut ChunkStorage, context: ClipContext) -> BlockHitResult {
+pub fn clip(chunk_storage: &ChunkStorage, context: ClipContext) -> BlockHitResult {
     traverse_blocks(
         context.from,
         context.to,
@@ -108,7 +108,7 @@ fn clip_with_interaction_override(
     block_state: &BlockState,
 ) -> Option<BlockHitResult> {
     let block_hit_result = block_shape.clip(from, to, block_pos);
-    if let Some(mut block_hit_result) = block_hit_result {
+    if let Some(block_hit_result) = block_hit_result {
         // TODO: minecraft calls .getInteractionShape here
         // are there even any blocks that have a physics shape different from the
         // interaction shape???

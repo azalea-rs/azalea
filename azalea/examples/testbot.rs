@@ -202,7 +202,7 @@ async fn swarm_handle(
         SwarmEvent::Chat(m) => {
             println!("swarm chat message: {}", m.message().to_ansi());
             if m.message().to_string() == "<py5> world" {
-                for (name, world) in &swarm.world_container.read().worlds {
+                for (name, world) in &swarm.instance_container.read().worlds {
                     println!("world name: {name}");
                     if let Some(w) = world.upgrade() {
                         for chunk_pos in w.read().chunks.chunks.values() {

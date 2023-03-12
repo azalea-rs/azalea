@@ -54,10 +54,10 @@ fn travel(
         ),
         With<Local>,
     >,
-    world_container: Res<InstanceContainer>,
+    instance_container: Res<InstanceContainer>,
 ) {
     for (mut physics, direction, mut position, attributes, world_name) in &mut query {
-        let world_lock = world_container
+        let world_lock = instance_container
             .get(world_name)
             .expect("All entities should be in a valid world");
         let world = world_lock.read();
@@ -176,14 +176,14 @@ pub fn force_jump_listener(
         &Sprinting,
         &WorldName,
     )>,
-    world_container: Res<InstanceContainer>,
+    instance_container: Res<InstanceContainer>,
     mut events: EventReader<ForceJumpEvent>,
 ) {
     for event in events.iter() {
         if let Ok((mut physics, position, direction, sprinting, world_name)) =
             query.get_mut(event.0)
         {
-            let world_lock = world_container
+            let world_lock = instance_container
                 .get(world_name)
                 .expect("All entities should be in a valid world");
             let world = world_lock.read();
