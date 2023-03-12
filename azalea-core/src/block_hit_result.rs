@@ -19,4 +19,11 @@ impl BlockHitResult {
             inside: false,
         }
     }
+
+    pub fn with_direction(&self, direction: Direction) -> Self {
+        Self { direction, ..*self }
+    }
+    pub fn with_position(&self, block_pos: BlockPos) -> Self {
+        Self { block_pos, ..*self }
+    }
 }

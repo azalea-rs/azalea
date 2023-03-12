@@ -1,5 +1,6 @@
-use crate::{BlockPos, Slot};
+use crate::BlockPos;
 use azalea_buf::McBuf;
+use azalea_inventory::ItemSlot;
 
 #[cfg_attr(feature = "bevy_ecs", derive(bevy_ecs::component::Component))]
 #[derive(Debug, Clone, McBuf, Default)]
@@ -139,7 +140,7 @@ pub struct DustColorTransitionParticle {
 
 #[derive(Debug, Clone, McBuf)]
 pub struct ItemParticle {
-    pub item: Slot,
+    pub item: ItemSlot,
 }
 
 #[derive(Debug, Clone, McBuf)]

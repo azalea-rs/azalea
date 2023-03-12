@@ -319,6 +319,7 @@ version = "0.6.0"
 dependencies = [
  "azalea-buf",
  "azalea-chat",
+ "azalea-inventory",
  "azalea-nbt",
  "azalea-registry",
  "bevy_ecs",
@@ -346,8 +347,10 @@ dependencies = [
 name = "azalea-inventory"
 version = "0.1.0"
 dependencies = [
- "azalea-core",
+ "azalea-buf",
  "azalea-inventory-macros",
+ "azalea-nbt",
+ "azalea-registry",
 ]
 
 [[package]]
@@ -389,6 +392,7 @@ version = "0.6.0"
 dependencies = [
  "azalea-block",
  "azalea-core",
+ "azalea-inventory",
  "azalea-registry",
  "azalea-world",
  "bevy_app",
@@ -413,6 +417,7 @@ dependencies = [
  "azalea-chat",
  "azalea-core",
  "azalea-crypto",
+ "azalea-inventory",
  "azalea-nbt",
  "azalea-protocol-macros",
  "azalea-registry",
@@ -471,6 +476,7 @@ dependencies = [
  "azalea-buf",
  "azalea-chat",
  "azalea-core",
+ "azalea-inventory",
  "azalea-nbt",
  "azalea-registry",
  "bevy_app",

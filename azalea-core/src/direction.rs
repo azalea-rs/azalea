@@ -48,6 +48,17 @@ impl Direction {
             Direction::East => Vec3::new(1.0, 0.0, 0.0),
         }
     }
+
+    pub fn opposite(self) -> Direction {
+        match self {
+            Direction::Down => Direction::Up,
+            Direction::Up => Direction::Down,
+            Direction::North => Direction::South,
+            Direction::South => Direction::North,
+            Direction::West => Direction::East,
+            Direction::East => Direction::West,
+        }
+    }
 }
 
 // TODO: make azalea_block use this instead of FacingCardinal

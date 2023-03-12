@@ -1,19 +1,56 @@
+use azalea_block::BlockState;
 use azalea_core::{lerp, BlockHitResult, BlockPos, Direction, Vec3, EPSILON};
+use azalea_inventory::ItemSlot;
 use azalea_world::ChunkStorage;
+use bevy_ecs::entity::Entity;
 
+use crate::collision::{BlockWithShape, VoxelShape};
+
+#[derive(Debug, Clone)]
 pub struct ClipContext {
     pub from: Vec3,
     pub to: Vec3,
-    pub block: BlockClipContext,
-    pub fluid: FluidClipContext,
-    pub collision_context: CollisionContext,
+    pub block: BlockShapeGetter,
+    pub fluid: CanPickFluid,
+    pub collision_context: EntityCollisionContext,
+}
+impl ClipContext {
+    // minecraft passes in the world and blockpos here... but it doesn't actually
+    // seem necessary?
+    pub fn block_shape(&self, block_state: BlockState) -> &VoxelShape {
+        // TODO: implement the other shape getters
+        // (see the ClipContext.Block class in the vanilla source)
+        match self.block {
+            BlockShapeGetter::Collider => block_state.shape(),
+            BlockShapeGetter::Outline => block_state.shape(),
+            BlockShapeGetter::Visual => block_state.shape(),
+            BlockShapeGetter::FallDamageResetting => block_state.shape(),
+        }
+    }
 }
 
-pub struct BlockClipContext {
-    pub shape_getter
+#[derive(Debug, Copy, Clone)]
+pub enum BlockShapeGetter {
+    Collider,
+    Outline,
+    Visual,
+    FallDamageResetting,
 }
-pub struct FluidClipContext {}
-pub struct CollisionContext {}
+#[derive(Debug, Copy, Clone)]
+pub enum CanPickFluid {
+    None,
+    SourceOnly,
+    Any,
+    Water,
+}
+#[derive(Debug, Clone)]
+pub struct EntityCollisionContext {
+    pub descending: bool,
+    pub entity_bottom: f64,
+    pub held_item: ItemSlot,
+    // pub can_stand_on_fluid: Box<dyn Fn(&FluidState) -> bool>,
+    pub entity: Entity,
+}
 
 pub fn clip(chunk_storage: &mut ChunkStorage, context: ClipContext) -> BlockHitResult {
     traverse_blocks(
@@ -21,14 +58,23 @@ pub fn clip(chunk_storage: &mut ChunkStorage, context: ClipContext) -> BlockHitR
         context.to,
         context,
         |context, block_pos| {
-            let block_state = chunk_storage.get_block_state(block_pos);
+            let block_state = chunk_storage.get_block_state(block_pos).unwrap_or_default();
             // TODO: add fluid stuff to this (see getFluidState in vanilla source)
-            let block_shape = context.block_shape(block_state, chunk_storage, block_pos);
-            let block_hit_result =
-                chunk_storage.clip_with_interaction_override(context.from, context.to, block_pos);
-            // let block_distance =
+            let block_shape = context.block_shape(block_state);
+            let block_hit_result = clip_with_interaction_override(
+                &context.from,
+                &context.to,
+                block_pos,
+                block_shape,
+                &block_state,
+            );
+            // let block_distance = if let Some(block_hit_result) = block_hit_result {
+            //     context.from.distance_to_sqr(&block_hit_result.location)
+            // } else {
+            //     f64::MAX
+            // };
 
-            None
+            block_hit_result
         },
         |context| {
             let vec = context.from - context.to;
@@ -39,6 +85,49 @@ pub fn clip(chunk_storage: &mut ChunkStorage, context: ClipContext) -> BlockHitR
             )
         },
     )
+}
+
+// default BlockHitResult clipWithInteractionOverride(Vec3 world, Vec3 from,
+// BlockPos to, VoxelShape shape,     BlockState block) {
+//  BlockHitResult blockHitResult = shape.clip(world, from, to);
+//  if (blockHitResult != null) {
+//     BlockHitResult var7 = block.getInteractionShape(this, to).clip(world,
+// from, to);     if (var7 != null
+//           && var7.getLocation().subtract(world).lengthSqr() <
+// blockHitResult.getLocation().subtract(world).lengthSqr()) {        return
+// blockHitResult.withDirection(var7.getDirection());     }
+//  }
+
+//  return blockHitResult;
+// }
+fn clip_with_interaction_override(
+    from: &Vec3,
+    to: &Vec3,
+    block_pos: &BlockPos,
+    block_shape: &VoxelShape,
+    block_state: &BlockState,
+) -> Option<BlockHitResult> {
+    let block_hit_result = block_shape.clip(from, to, block_pos);
+    if let Some(mut block_hit_result) = block_hit_result {
+        // TODO: minecraft calls .getInteractionShape here
+        // are there even any blocks that have a physics shape different from the
+        // interaction shape???
+        // (if not then you can delete this comment)
+        // (if there are then you have to implement BlockState::interaction_shape, lol
+        // have fun)
+        let interaction_shape = block_state.shape();
+        let interaction_hit_result = interaction_shape.clip(from, to, block_pos);
+        if let Some(interaction_hit_result) = interaction_hit_result {
+            if interaction_hit_result.location.distance_to_sqr(from)
+                < block_hit_result.location.distance_to_sqr(from)
+            {
+                return Some(block_hit_result.with_direction(interaction_hit_result.direction));
+            }
+        }
+        Some(block_hit_result)
+    } else {
+        None
+    }
 }
 
 pub fn traverse_blocks<C, T>(

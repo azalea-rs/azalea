@@ -1,9 +1,11 @@
 use super::mergers::IndexMerger;
 use crate::collision::{BitSetDiscreteVoxelShape, DiscreteVoxelShape, AABB};
-use azalea_core::{binary_search, Axis, AxisCycle, EPSILON};
+use azalea_core::{
+    binary_search, Axis, AxisCycle, BlockHitResult, BlockPos, Direction, Vec3, EPSILON,
+};
 use std::{cmp, num::NonZeroU32};
 
-pub struct Shapes {}
+pub struct Shapes;
 
 pub fn block_shape() -> VoxelShape {
     let mut shape = BitSetDiscreteVoxelShape::new(1, 1, 1);
@@ -390,6 +392,33 @@ impl VoxelShape {
         }
     }
 
+    pub fn clip(&self, from: &Vec3, to: &Vec3, block_pos: &BlockPos) -> Option<BlockHitResult> {
+        if self.is_empty() {
+            return None;
+        }
+        let vector = to - from;
+        if vector.length_sqr() < EPSILON {
+            return None;
+        }
+        let right_after_start = from + &(vector * 0.0001);
+
+        if self.shape().is_full_wide(
+            self.find_index(Axis::X, right_after_start.x - block_pos.x as f64),
+            self.find_index(Axis::Y, right_after_start.y - block_pos.y as f64),
+            self.find_index(Axis::Z, right_after_start.z - block_pos.z as f64),
+        ) {
+            Some(BlockHitResult {
+                block_pos: *block_pos,
+                direction: Direction::nearest(vector).opposite(),
+                location: right_after_start,
+                inside: true,
+                miss: false,
+            })
+        } else {
+            AABB::clip_iterable(&self.to_aabbs(), &from, &to, &block_pos)
+        }
+    }
+
     pub fn collide(&self, axis: &Axis, entity_box: &AABB, movement: f64) -> f64 {
         self.collide_x(AxisCycle::between(*axis, Axis::X), entity_box, movement)
     }
@@ -531,18 +560,33 @@ impl VoxelShape {
         let y_coords = self.get_coords(Axis::Y);
         let z_coords = self.get_coords(Axis::Z);
         self.shape().for_all_boxes(
-            |var4x, var5, var6, var7, var8, var9| {
+            |min_x, min_y, min_z, max_x, max_y, max_z| {
                 consumer(
-                    x_coords[var4x as usize],
-                    y_coords[var5 as usize],
-                    z_coords[var6 as usize],
-                    x_coords[var7 as usize],
-                    y_coords[var8 as usize],
-                    z_coords[var9 as usize],
+                    x_coords[min_x as usize],
+                    y_coords[min_y as usize],
+                    z_coords[min_z as usize],
+                    x_coords[max_x as usize],
+                    y_coords[max_y as usize],
+                    z_coords[max_z as usize],
                 );
             },
             true,
         );
+    }
+
+    pub fn to_aabbs(&self) -> Vec<AABB> {
+        let mut aabbs = Vec::new();
+        self.for_all_boxes(|min_x, min_y, min_z, max_x, max_y, max_z| {
+            aabbs.push(AABB {
+                min_x,
+                min_y,
+                min_z,
+                max_x,
+                max_y,
+                max_z,
+            });
+        });
+        aabbs
     }
 }
 

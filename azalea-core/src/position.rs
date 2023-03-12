@@ -18,6 +18,12 @@ macro_rules! vec3_impl {
                 self.x * self.x + self.y * self.y + self.z * self.z
             }
 
+            /// Get the squared distance from this position to another position.
+            /// Equivalent to `(self - other).length_sqr()`.
+            pub fn distance_to_sqr(&self, other: &Self) -> $type {
+                (self - other).length_sqr()
+            }
+
             /// Return a new instance of this position with the y coordinate
             /// decreased by the given number.
             pub fn down(&self, y: $type) -> Self {

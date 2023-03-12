@@ -227,12 +227,11 @@ impl AABB {
     pub fn clip(&self, min: &Vec3, max: &Vec3) -> Option<Vec3> {
         let mut t = 1.0;
         let delta = max - min;
-        let _dir = self.get_direction(self, min, &mut t, None, &delta)?;
+        let _dir = Self::get_direction(self, min, &mut t, None, &delta)?;
         Some(min + &(delta * t))
     }
 
     pub fn clip_iterable(
-        &self,
         boxes: &Vec<AABB>,
         from: &Vec3,
         to: &Vec3,
@@ -243,7 +242,7 @@ impl AABB {
         let delta = to - from;
 
         for aabb in boxes {
-            dir = self.get_direction(aabb, from, &mut t, dir, &delta);
+            dir = Self::get_direction(aabb, from, &mut t, dir, &delta);
         }
         let dir = dir?;
         Some(BlockHitResult {
@@ -256,7 +255,6 @@ impl AABB {
     }
 
     fn get_direction(
-        &self,
         aabb: &AABB,
         from: &Vec3,
         t: &mut f64,
@@ -264,7 +262,7 @@ impl AABB {
         delta: &Vec3,
     ) -> Option<Direction> {
         if delta.x > EPSILON {
-            return self.clip_point(ClipPointOpts {
+            return Self::clip_point(ClipPointOpts {
                 t,
                 approach_dir: dir,
                 delta,
@@ -277,7 +275,7 @@ impl AABB {
                 start: from,
             });
         } else if delta.x < -EPSILON {
-            return self.clip_point(ClipPointOpts {
+            return Self::clip_point(ClipPointOpts {
                 t,
                 approach_dir: dir,
                 delta,
@@ -292,7 +290,7 @@ impl AABB {
         }
 
         if delta.y > EPSILON {
-            return self.clip_point(ClipPointOpts {
+            return Self::clip_point(ClipPointOpts {
                 t,
                 approach_dir: dir,
                 delta: &Vec3 {
@@ -313,7 +311,7 @@ impl AABB {
                 },
             });
         } else if delta.y < -EPSILON {
-            return self.clip_point(ClipPointOpts {
+            return Self::clip_point(ClipPointOpts {
                 t,
                 approach_dir: dir,
                 delta: &Vec3 {
@@ -336,7 +334,7 @@ impl AABB {
         }
 
         if delta.z > EPSILON {
-            return self.clip_point(ClipPointOpts {
+            return Self::clip_point(ClipPointOpts {
                 t,
                 approach_dir: dir,
                 delta: &Vec3 {
@@ -357,7 +355,7 @@ impl AABB {
                 },
             });
         } else if delta.z < -EPSILON {
-            return self.clip_point(ClipPointOpts {
+            return Self::clip_point(ClipPointOpts {
                 t,
                 approach_dir: dir,
                 delta: &Vec3 {
@@ -382,7 +380,7 @@ impl AABB {
         dir
     }
 
-    fn clip_point(&self, opts: ClipPointOpts) -> Option<Direction> {
+    fn clip_point(opts: ClipPointOpts) -> Option<Direction> {
         let t_x = (opts.begin - opts.start.x) / opts.delta.x;
         let t_y = (opts.start.y + t_x) / opts.delta.y;
         let t_z = (opts.start.z + t_x) / opts.delta.z;

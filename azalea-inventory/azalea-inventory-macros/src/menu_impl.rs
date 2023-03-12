@@ -40,10 +40,10 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
         }
 
         impl Menu {
-            /// Get a mutable reference to the [`Slot`] at the given protocol index. If
+            /// Get a mutable reference to the [`ItemSlot`] at the given protocol index. If
             /// you're trying to get an item in a menu normally, you should just
-            /// `match` it and index the `[Slot]` you get
-            pub fn slot_mut(&mut self, i: usize) -> Option<&mut Slot> {
+            /// `match` it and index the [`ItemSlot`] you get
+            pub fn slot_mut(&mut self, i: usize) -> Option<&mut ItemSlot> {
                 Some(match self {
                     #slot_mut_match_variants
                 })

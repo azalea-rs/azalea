@@ -17,7 +17,7 @@ def generate_entity_metadata(burger_entity_data: dict, mappings: Mappings):
         {'name': 'String', 'type': 'String'},
         {'name': 'FormattedText', 'type': 'FormattedText'},
         {'name': 'OptionalFormattedText', 'type': 'Option<FormattedText>'},
-        {'name': 'ItemStack', 'type': 'Slot'},
+        {'name': 'ItemStack', 'type': 'ItemSlot'},
         {'name': 'Boolean', 'type': 'bool'},
         {'name': 'Rotations', 'type': 'Rotations'},
         {'name': 'BlockPos', 'type': 'BlockPos'},
@@ -45,7 +45,8 @@ def generate_entity_metadata(burger_entity_data: dict, mappings: Mappings):
 use super::{EntityDataItem, EntityDataValue, OptionalUnsignedInt, Pose, Rotations, VillagerData};
 use azalea_block::BlockState;
 use azalea_chat::FormattedText;
-use azalea_core::{BlockPos, Direction, Particle, Slot};
+use azalea_core::{BlockPos, Direction, Particle};
+use azalea_inventory::ItemSlot;
 use bevy_ecs::{bundle::Bundle, component::Component};
 use derive_more::{Deref, DerefMut};
 use thiserror::Error;
@@ -365,7 +366,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
                         elif type_name == 'OptionalUnsignedInt':
                             default = f'OptionalUnsignedInt(Some({default}))' if default != 'Empty' else 'OptionalUnsignedInt(None)'
                         elif type_name == 'ItemStack':
-                            default = f'Slot::Present({default})' if default != 'Empty' else 'Slot::Empty'
+                            default = f'ItemSlot::Present({default})' if default != 'Empty' else 'ItemSlot::Empty'
                         elif type_name == 'BlockState':
                             default = f'{default}' if default != 'Empty' else 'BlockState::AIR'
                         elif type_name == 'OptionalFormattedText':

@@ -12,9 +12,6 @@ pub use resource_location::*;
 mod game_type;
 pub use game_type::*;
 
-mod slot;
-pub use slot::*;
-
 mod position;
 pub use position::*;
 

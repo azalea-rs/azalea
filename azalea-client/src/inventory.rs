@@ -1,5 +1,4 @@
-use azalea_core::Slot;
-use azalea_inventory::Menu;
+use azalea_inventory::{ItemSlot, Menu};
 use bevy_app::{App, Plugin};
 use bevy_ecs::{component::Component, entity::Entity, event::EventReader, system::Query};
 
@@ -31,7 +30,7 @@ pub struct InventoryComponent {
     pub container_menu: Option<azalea_inventory::Menu>,
     /// The item that is currently held by the cursor. `Slot::Empty` if nothing
     /// is currently being held.
-    pub carried: Slot,
+    pub carried: ItemSlot,
     /// An identifier used by the server to track client inventory desyncs.
     pub state_id: u32,
     // minecraft also has these fields, but i don't need they're necessary?:
@@ -65,7 +64,7 @@ impl Default for InventoryComponent {
             inventory_menu: Menu::Player(azalea_inventory::Player::default()),
             id: 0,
             container_menu: None,
-            carried: Slot::Empty,
+            carried: ItemSlot::Empty,
             state_id: 0,
         }
     }
