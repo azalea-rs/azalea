@@ -182,8 +182,9 @@ pub mod registry {
     }
 
     /// Dimension attributes.
+    #[cfg(feature = "strict_registry")]
     #[derive(Debug, Clone, Serialize, Deserialize)]
-    #[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
+    #[serde(deny_unknown_fields)]
     pub struct DimensionTypeElement {
         pub ambient_light: f32,
         #[serde(with = "Convert")]
@@ -213,6 +214,14 @@ pub mod registry {
         pub respawn_anchor_works: bool,
         #[serde(with = "Convert")]
         pub ultrawarm: bool,
+    }
+
+    /// Dimension attributes.
+    #[cfg(not(feature = "strict_registry"))]
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct DimensionTypeElement {
+        pub height: u32,
+        pub min_y: i32,
     }
 
     /// The light level at which monsters can spawn.
