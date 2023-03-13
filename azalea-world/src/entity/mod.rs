@@ -269,6 +269,26 @@ pub fn add_dead(mut commands: Commands, query: Query<(Entity, &Health), Changed<
 /// an entity, and when raytracing from the entity.
 #[derive(Component, Clone, Copy, Debug, PartialEq, Deref, DerefMut)]
 pub struct EyeHeight(f32);
+impl From<EyeHeight> for f32 {
+    fn from(value: EyeHeight) -> Self {
+        value.0
+    }
+}
+impl From<EyeHeight> for f64 {
+    fn from(value: EyeHeight) -> Self {
+        value.0 as f64
+    }
+}
+impl From<&EyeHeight> for f32 {
+    fn from(value: &EyeHeight) -> Self {
+        value.0
+    }
+}
+impl From<&EyeHeight> for f64 {
+    fn from(value: &EyeHeight) -> Self {
+        value.0 as f64
+    }
+}
 
 /// A component NewType for [`azalea_registry::EntityKind`].
 ///

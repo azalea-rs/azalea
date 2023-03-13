@@ -4,7 +4,7 @@
 
 use azalea::ecs::query::With;
 use azalea::entity::metadata::Player;
-use azalea::entity::Position;
+use azalea::entity::{EyeHeight, Position};
 use azalea::interact::HitResultComponent;
 use azalea::inventory::InventoryComponent;
 use azalea::pathfinder::BlockPosGoal;
@@ -124,10 +124,11 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                         bot.goto(BlockPosGoal::from(target_pos));
                     }
                     "look" => {
-                        let entity_pos = bot.entity_component::<Position>(entity);
-                        let target_pos: BlockPos = entity_pos.into();
-                        println!("target_pos: {target_pos:?}");
-                        bot.look_at(target_pos.center());
+                        let entity_pos = bot
+                            .entity_component::<Position>(entity)
+                            .up(bot.entity_component::<EyeHeight>(entity).into());
+                        println!("entity_pos: {entity_pos:?}");
+                        bot.look_at(entity_pos);
                     }
                     "jump" => {
                         bot.set_jumping(true);
@@ -165,6 +166,19 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                         } else {
                             bot.chat("no diamond block found");
                         }
+                    }
+                    "lever" => {
+                        let target_pos = bot
+                            .world()
+                            .read()
+                            .find_block(bot.position(), &azalea_registry::Block::Lever.into());
+                        let Some(target_pos) = target_pos else {
+                            bot.chat("no lever found");
+                            return Ok(())
+                        };
+                        bot.goto(BlockPosGoal::from(target_pos));
+                        bot.look_at(target_pos.center());
+                        bot.block_interact(target_pos);
                     }
                     "hitresult" => {
                         let hit_result = bot.get_component::<HitResultComponent>();

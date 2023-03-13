@@ -9,7 +9,7 @@ use crate::ecs::{
 };
 use azalea_core::Vec3;
 use azalea_physics::{force_jump_listener, PhysicsSet};
-use azalea_world::entity::{clamp_look_direction, LookDirection};
+use azalea_world::entity::{clamp_look_direction, EyeHeight, LookDirection};
 use azalea_world::entity::{metadata::Player, Jumping, Local, Position};
 use std::f64::consts::PI;
 
@@ -102,11 +102,12 @@ pub struct LookAtEvent {
 }
 fn look_at_listener(
     mut events: EventReader<LookAtEvent>,
-    mut query: Query<(&Position, &mut LookDirection)>,
+    mut query: Query<(&Position, &EyeHeight, &mut LookDirection)>,
 ) {
     for event in events.iter() {
-        if let Ok((position, mut look_direction)) = query.get_mut(event.entity) {
-            let (y_rot, x_rot) = direction_looking_at(position, &event.position);
+        if let Ok((position, eye_height, mut look_direction)) = query.get_mut(event.entity) {
+            let (y_rot, x_rot) =
+                direction_looking_at(&position.up(eye_height.into()), &event.position);
             (look_direction.y_rot, look_direction.x_rot) = (y_rot, x_rot);
         }
     }

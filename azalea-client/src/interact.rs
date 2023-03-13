@@ -68,15 +68,20 @@ pub struct BlockInteractEvent {
 #[derive(Component, Copy, Clone, Debug, Default, Deref, DerefMut)]
 pub struct CurrentSequenceNumber(u32);
 
+/// A component that contains the block that the player is currently looking at.
 #[derive(Component, Clone, Debug, Deref, DerefMut)]
 pub struct HitResultComponent(BlockHitResult);
 
 fn handle_block_interact_event(
     mut events: EventReader<BlockInteractEvent>,
-    mut query: Query<(&LocalPlayer, &mut CurrentSequenceNumber)>,
+    mut query: Query<(
+        &LocalPlayer,
+        &mut CurrentSequenceNumber,
+        &HitResultComponent,
+    )>,
 ) {
     for event in events.iter() {
-        let Ok((local_player, mut sequence_number)) = query.get_mut(event.entity) else {
+        let Ok((local_player, mut sequence_number, hit_result)) = query.get_mut(event.entity) else {
             warn!("Sent BlockInteractEvent for entity that isn't LocalPlayer");
             continue;
         };
@@ -88,15 +93,31 @@ fn handle_block_interact_event(
         // minecraft also does the interaction client-side (so it looks like clicking a
         // button is instant) but we don't really need that
 
+        // the block_hit data will depend on whether we're looking at the block and
+        // whether we can reach it
+
+        let block_hit = if hit_result.block_pos == event.position {
+            // we're looking at the block :)
+            BlockHit {
+                block_pos: hit_result.block_pos,
+                direction: hit_result.direction,
+                location: hit_result.location,
+                inside: hit_result.inside,
+            }
+        } else {
+            // we're not looking at the block, so make up some numbers
+            BlockHit {
+                block_pos: event.position,
+                direction: Direction::Up,
+                location: event.position.center(),
+                inside: false,
+            }
+        };
+
         local_player.write_packet(
             ServerboundUseItemOnPacket {
                 hand: InteractionHand::MainHand,
-                block_hit: BlockHit {
-                    block_pos: event.position,
-                    direction: Direction::Up,
-                    location: event.position.center(),
-                    inside: false,
-                },
+                block_hit,
                 sequence: sequence_number.0,
             }
             .get(),
@@ -148,6 +169,11 @@ fn update_hit_result_component(
     }
 }
 
+/// Get the block that a player would be looking at if their eyes were at the
+/// given direction and position.
+///
+/// If you need to get the block the player is looking at right now, use
+/// [`HitResultComponent`].
 pub fn pick(
     look_direction: &LookDirection,
     eye_position: &Vec3,
