@@ -14,13 +14,13 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
         len_match_variants.extend(generate_match_variant_for_len(menu));
 
         // this part is only used to generate `Player::is_hotbar_slot`
-        if menu.name.to_string() == "Player" {
+        if menu.name == "Player" {
             let mut i = 0;
             for field in &menu.fields {
                 let field_name = &field.name;
                 let start = i;
                 i += field.length;
-                if field_name.to_string() == "inventory" {
+                if field_name == "inventory" {
                     hotbar_slot_start = start;
                     // it only adds 8 here since it's inclusive (there's 9
                     // total hotbar slots)
@@ -35,7 +35,7 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
         impl Player {
             /// Returns whether the given protocol index is in the player's hotbar.
             pub fn is_hotbar_slot(i: usize) -> bool {
-                i >= #hotbar_slot_start && i <= #hotbar_slot_end
+                (#hotbar_slot_start..=#hotbar_slot_end).contains(&i)
             }
         }
 
@@ -49,6 +49,7 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
                 })
             }
 
+            #[allow(clippy::len_without_is_empty)]
             pub fn len(&self) -> usize {
                 match self {
                     #len_match_variants
@@ -126,7 +127,7 @@ fn generate_matcher(menu: &Menu, match_arms: &TokenStream, needs_fields: bool) -
         quote! { .. }
     };
 
-    let matcher = if menu.name.to_string() == "Player" {
+    let matcher = if menu.name == "Player" {
         quote! { (Player { #menu_field_names }) }
     } else {
         quote! { { #menu_field_names } }

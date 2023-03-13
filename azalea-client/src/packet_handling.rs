@@ -325,6 +325,7 @@ fn process_packet_events(ecs: &mut World) {
                 // TODO: reply with teleport confirm
                 debug!("Got player position packet {:?}", p);
 
+                #[allow(clippy::type_complexity)]
                 let mut system_state: SystemState<
                     Query<(
                         &mut LocalPlayer,
@@ -838,6 +839,7 @@ fn process_packet_events(ecs: &mut World) {
 
                 debug!("Got game event packet {:?}", p);
 
+                #[allow(clippy::single_match)]
                 match p.event {
                     EventType::ChangeGameMode => {
                         let mut system_state: SystemState<Query<&mut LocalGameMode>> =

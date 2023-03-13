@@ -9,7 +9,7 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
     let mut variants = quote! {};
     let mut player_fields = None;
     for menu in &input.menus {
-        if menu.name.to_string() == "Player" {
+        if menu.name == "Player" {
             player_fields = Some(generate_fields(&menu.fields, true));
         } else {
             variants.extend(generate_variant_for_menu(menu));

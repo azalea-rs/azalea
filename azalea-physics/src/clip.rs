@@ -61,20 +61,18 @@ pub fn clip(chunk_storage: &ChunkStorage, context: ClipContext) -> BlockHitResul
             let block_state = chunk_storage.get_block_state(block_pos).unwrap_or_default();
             // TODO: add fluid stuff to this (see getFluidState in vanilla source)
             let block_shape = context.block_shape(block_state);
-            let block_hit_result = clip_with_interaction_override(
+            clip_with_interaction_override(
                 &context.from,
                 &context.to,
                 block_pos,
                 block_shape,
                 &block_state,
-            );
-            // let block_distance = if let Some(block_hit_result) = block_hit_result {
-            //     context.from.distance_to_sqr(&block_hit_result.location)
-            // } else {
+            )
+            // let block_distance = if let Some(block_hit_result) =
+            // block_hit_result {     context.from.distance_to_sqr(&
+            // block_hit_result.location) } else {
             //     f64::MAX
             // };
-
-            block_hit_result
         },
         |context| {
             let vec = context.from - context.to;

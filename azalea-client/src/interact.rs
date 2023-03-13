@@ -104,6 +104,7 @@ fn handle_block_interact_event(
     }
 }
 
+#[allow(clippy::type_complexity)]
 fn update_hit_result_component(
     mut commands: Commands,
     mut query: Query<(
@@ -125,25 +126,17 @@ fn update_hit_result_component(
         } else {
             4.5
         };
-        let view_vector = view_vector(look_direction);
         let eye_position = Vec3 {
             x: position.x,
             y: position.y + **eye_height as f64,
             z: position.z,
         };
-        let end_position = eye_position + view_vector * pick_range;
-        let instance_lock = instance_container
-            .get(world_name)
-            .expect("entities must always be in a valid world");
-        let instance = instance_lock.read();
-        let hit_result = azalea_physics::clip::clip(
-            &instance.chunks,
-            ClipContext {
-                from: eye_position,
-                to: end_position,
-                block_shape_type: BlockShapeType::Outline,
-                fluid_pick_type: FluidPickType::None,
-            },
+        let hit_result = pick(
+            look_direction,
+            &eye_position,
+            world_name,
+            &instance_container,
+            pick_range,
         );
         if let Some(mut hit_result_ref) = hit_result_ref {
             **hit_result_ref = hit_result;
@@ -153,4 +146,28 @@ fn update_hit_result_component(
                 .insert(HitResultComponent(hit_result));
         }
     }
+}
+
+pub fn pick(
+    look_direction: &LookDirection,
+    eye_position: &Vec3,
+    world_name: &WorldName,
+    instance_container: &InstanceContainer,
+    pick_range: f64,
+) -> BlockHitResult {
+    let view_vector = view_vector(look_direction);
+    let end_position = eye_position + &(view_vector * pick_range);
+    let instance_lock = instance_container
+        .get(world_name)
+        .expect("entities must always be in a valid world");
+    let instance = instance_lock.read();
+    azalea_physics::clip::clip(
+        &instance.chunks,
+        ClipContext {
+            from: *eye_position,
+            to: end_position,
+            block_shape_type: BlockShapeType::Outline,
+            fluid_pick_type: FluidPickType::None,
+        },
+    )
 }

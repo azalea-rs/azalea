@@ -325,7 +325,7 @@ fn remove_despawned_entities_from_indexes(
 
 pub fn clamp_look_direction(mut query: Query<&mut LookDirection>) {
     for mut look_direction in &mut query {
-        look_direction.y_rot = look_direction.y_rot % 360.0;
+        look_direction.y_rot %= 360.0;
         look_direction.x_rot = look_direction.x_rot.clamp(-90.0, 90.0) % 360.0;
     }
 }

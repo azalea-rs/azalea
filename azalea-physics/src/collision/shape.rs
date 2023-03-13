@@ -415,7 +415,7 @@ impl VoxelShape {
                 miss: false,
             })
         } else {
-            AABB::clip_iterable(&self.to_aabbs(), &from, &to, &block_pos)
+            AABB::clip_iterable(&self.to_aabbs(), from, to, block_pos)
         }
     }
 

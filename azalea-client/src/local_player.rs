@@ -140,7 +140,7 @@ pub fn update_in_loaded_chunk(
     for (entity, local_player, position) in &query {
         let player_chunk_pos = ChunkPos::from(position);
         let instance_lock = instance_container
-            .get(&local_player)
+            .get(local_player)
             .expect("local player should always be in an instance");
         let in_loaded_chunk = instance_lock.read().chunks.get(&player_chunk_pos).is_some();
         if in_loaded_chunk {
