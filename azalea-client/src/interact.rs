@@ -132,10 +132,6 @@ fn update_hit_result_component(
             z: position.z,
         };
         let end_position = eye_position + view_vector * pick_range;
-        println!(
-            "eye_position: {:?}, end_position: {:?}",
-            eye_position, end_position
-        );
         let instance_lock = instance_container
             .get(world_name)
             .expect("entities must always be in a valid world");

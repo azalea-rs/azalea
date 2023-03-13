@@ -243,14 +243,13 @@ impl AABB {
 
         for aabb in boxes {
             dir = Self::get_direction(
-                &aabb.move_relative(&pos.to_vec3()),
+                &aabb.move_relative(&pos.to_vec3_floored()),
                 from,
                 &mut t,
                 dir,
                 &delta,
             );
         }
-        println!("dir: {dir:?} delta: {delta:?}");
         let dir = dir?;
         Some(BlockHitResult {
             location: from + &(delta * t),
@@ -388,17 +387,17 @@ impl AABB {
     }
 
     fn clip_point(opts: ClipPointOpts) -> Option<Direction> {
-        let t_x = (opts.min_x - opts.start.x) / opts.delta.x;
-        let t_y = (opts.start.y + t_x) * opts.delta.y;
-        let t_z = (opts.start.z + t_x) * opts.delta.z;
-        if 0.0 < t_x
-            && t_x < *opts.t
-            && opts.min_x - EPSILON < t_y
-            && t_y < opts.max_x + EPSILON
-            && opts.min_z - EPSILON < t_z
-            && t_z < opts.max_z + EPSILON
+        let d = (opts.begin - opts.start.x) / opts.delta.x;
+        let e = opts.start.y + d * opts.delta.y;
+        let f = opts.start.z + d * opts.delta.z;
+        if 0.0 < d
+            && d < *opts.t
+            && opts.min_x - EPSILON < e
+            && e < opts.max_x + EPSILON
+            && opts.min_z - EPSILON < f
+            && f < opts.max_z + EPSILON
         {
-            *opts.t = t_x;
+            *opts.t = d;
             Some(opts.result_dir)
         } else {
             opts.approach_dir
@@ -457,7 +456,7 @@ mod tests {
                     max_y: 1.,
                     max_z: 1.,
                 }],
-                &Vec3::new(0., 0., 0.),
+                &Vec3::new(-1., -1., -1.),
                 &Vec3::new(1., 1., 1.),
                 &BlockPos::new(0, 0, 0),
             ),

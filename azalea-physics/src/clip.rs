@@ -68,7 +68,6 @@ pub fn clip(chunk_storage: &ChunkStorage, context: ClipContext) -> BlockHitResul
                 block_shape,
                 &block_state,
             );
-            println!("block_pos: {block_pos:?} block_hit_result: {block_hit_result:?}");
             // let block_distance = if let Some(block_hit_result) = block_hit_result {
             //     context.from.distance_to_sqr(&block_hit_result.location)
             // } else {

@@ -153,7 +153,7 @@ impl BlockPos {
     }
 
     /// Convert the block position into a Vec3 without centering it.
-    pub fn to_vec3(&self) -> Vec3 {
+    pub fn to_vec3_floored(&self) -> Vec3 {
         Vec3 {
             x: self.x as f64,
             y: self.y as f64,
