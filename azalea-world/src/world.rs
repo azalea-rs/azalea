@@ -195,6 +195,12 @@ impl Instance {
     ///
     /// Note that this is sorted by `x+y+z` and not `x^2+y^2+z^2`, for
     /// optimization purposes.
+    ///
+    /// ```
+    /// # fn example(client: &azalea_client::Client) {
+    /// client.find_block(client.position(), &azalea_registry::Block::Chest.into());
+    /// # }
+    /// ```
     pub fn find_block(
         &self,
         nearest_to: impl Into<BlockPos>,

@@ -17,6 +17,7 @@ use crate::{
 
 use azalea_auth::{game_profile::GameProfile, sessionserver::ClientSessionServerError};
 use azalea_chat::FormattedText;
+use azalea_core::Vec3;
 use azalea_physics::{PhysicsPlugin, PhysicsSet};
 use azalea_protocol::{
     connect::{Connection, ConnectionError},
@@ -39,7 +40,7 @@ use azalea_protocol::{
     resolver, ServerAddress,
 };
 use azalea_world::{
-    entity::{EntityPlugin, EntityUpdateSet, Local, WorldName},
+    entity::{EntityPlugin, EntityUpdateSet, Local, Position, WorldName},
     Instance, InstanceContainer, PartialInstance,
 };
 use bevy_app::{App, CoreSchedule, Plugin, PluginGroup, PluginGroupBuilder};
@@ -494,6 +495,15 @@ impl Client {
         }
 
         Ok(())
+    }
+}
+
+impl Client {
+    /// Get the position of this client.
+    ///
+    /// This is a shortcut for `Vec3::from(&bot.component::<Position>())`.
+    pub fn position(&self) -> Vec3 {
+        Vec3::from(&self.component::<Position>())
     }
 }
 

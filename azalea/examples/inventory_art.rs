@@ -1,7 +1,7 @@
 //! Take wool from a chest and put one random piece of wool in every inventory
 //! slot
 
-use azalea::prelude::*;
+use azalea::{entity::Position, prelude::*};
 use parking_lot::Mutex;
 use std::sync::Arc;
 
@@ -10,18 +10,14 @@ async fn main() {
     let account = Account::offline("bot");
     // or let bot = Account::microsoft("email").await;
 
-    azalea::start(azalea::Options {
-        account,
-        address: "localhost",
-        state: State::default(),
-        plugins: plugins![],
-        handle,
-    })
-    .await
-    .unwrap();
+    ClientBuilder::new()
+        .set_handler(handle)
+        .start(account, "localhost")
+        .await
+        .unwrap();
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Component)]
 struct State {
     pub started: Arc<Mutex<bool>>,
 }
@@ -43,12 +39,16 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
                 *state.started.lock() = true;
             }
 
-            let chest_block = bot.world().find_one_block(|b| b.id == "minecraft:chest");
-            bot.goto(chest_block);
-            let chest = bot
-                .open_container(&bot.world().find_one_block(|b| b.id == "minecraft:chest"))
-                .await
-                .unwrap();
+            let chest_block = bot
+                .world()
+                .read()
+                .find_block(bot.position(), &azalea::Block::Chest.into());
+            let Some(chest_block) = chest_block else {
+                bot.chat("No chest found");
+                return Ok(());
+            };
+            bot.goto(chest_block.into());
+            let chest = bot.open_container(&chest_block).await.unwrap();
             bot.take_amount_from_container(&chest, 5, |i| i.id == "#minecraft:planks")
                 .await;
             chest.close().await;
@@ -69,7 +69,7 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
 
             bot.hold(&pickaxe);
             loop {
-                if let Err(e) = bot.dig(bot.entity().feet_pos().down(1)).await {
+                if let Err(e) = bot.dig(bot.position().down(1.).into()).await {
                     println!("{:?}", e);
                     break;
                 }

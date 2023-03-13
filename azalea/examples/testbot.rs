@@ -114,7 +114,7 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                         bot.chat(&format!("You're at {pos:?}",));
                     }
                     "whereareyou" => {
-                        let pos = bot.component::<Position>();
+                        let pos = bot.position();
                         bot.chat(&format!("I'm at {pos:?}",));
                     }
                     "goto" => {
@@ -149,14 +149,14 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                     }
                     "findblock" => {
                         let target_pos = bot.world().read().find_block(
-                            bot.component::<Position>(),
+                            bot.position(),
                             &azalea_registry::Block::DiamondBlock.into(),
                         );
                         bot.chat(&format!("target_pos: {target_pos:?}",));
                     }
                     "gotoblock" => {
                         let target_pos = bot.world().read().find_block(
-                            bot.component::<Position>(),
+                            bot.position(),
                             &azalea_registry::Block::DiamondBlock.into(),
                         );
                         if let Some(target_pos) = target_pos {

@@ -142,6 +142,11 @@ impl Debug for EntityUuid {
 /// automatically.
 #[derive(Component, Clone, Copy, Debug, Default, PartialEq, Deref, DerefMut)]
 pub struct Position(Vec3);
+impl From<&Position> for Vec3 {
+    fn from(value: &Position) -> Self {
+        value.0
+    }
+}
 impl From<Position> for ChunkPos {
     fn from(value: Position) -> Self {
         ChunkPos::from(&value.0)
@@ -166,6 +171,11 @@ impl From<&Position> for BlockPos {
 /// The last position of the entity that was sent over the network.
 #[derive(Component, Clone, Copy, Debug, Default, PartialEq, Deref, DerefMut)]
 pub struct LastSentPosition(Vec3);
+impl From<&LastSentPosition> for Vec3 {
+    fn from(value: &LastSentPosition) -> Self {
+        value.0
+    }
+}
 impl From<LastSentPosition> for ChunkPos {
     fn from(value: LastSentPosition) -> Self {
         ChunkPos::from(&value.0)
