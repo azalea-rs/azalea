@@ -151,11 +151,11 @@ mod tests {
     use super::*;
     use azalea_block::BlockState;
     use azalea_core::ChunkPos;
-    use azalea_world::{Chunk, ChunkStorage, PartialWorld};
+    use azalea_world::{Chunk, ChunkStorage, PartialInstance};
 
     #[test]
     fn test_is_passable() {
-        let mut partial_world = PartialWorld::default();
+        let mut partial_world = PartialInstance::default();
         let mut chunk_storage = ChunkStorage::default();
 
         partial_world.chunks.set(
@@ -181,7 +181,7 @@ mod tests {
 
     #[test]
     fn test_is_solid() {
-        let mut partial_world = PartialWorld::default();
+        let mut partial_world = PartialInstance::default();
         let mut chunk_storage = ChunkStorage::default();
         partial_world.chunks.set(
             &ChunkPos { x: 0, z: 0 },
@@ -206,7 +206,7 @@ mod tests {
 
     #[test]
     fn test_is_standable() {
-        let mut partial_world = PartialWorld::default();
+        let mut partial_world = PartialInstance::default();
         let mut chunk_storage = ChunkStorage::default();
         partial_world.chunks.set(
             &ChunkPos { x: 0, z: 0 },

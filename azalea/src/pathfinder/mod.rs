@@ -20,7 +20,7 @@ use azalea_world::entity::metadata::Player;
 use azalea_world::entity::Local;
 use azalea_world::{
     entity::{Physics, Position, WorldName},
-    WorldContainer,
+    InstanceContainer,
 };
 use bevy_tasks::{AsyncComputeTaskPool, Task};
 use futures_lite::future;
@@ -93,7 +93,7 @@ fn goto_listener(
     mut commands: Commands,
     mut events: EventReader<GotoEvent>,
     mut query: Query<(&Position, &WorldName)>,
-    world_container: Res<WorldContainer>,
+    world_container: Res<InstanceContainer>,
 ) {
     let thread_pool = AsyncComputeTaskPool::get();
 

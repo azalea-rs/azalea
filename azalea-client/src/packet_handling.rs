@@ -20,7 +20,7 @@ use azalea_world::{
         MinecraftEntityId, Physics, PlayerBundle, Position, WorldName,
     },
     entity::{LoadedBy, RelativeEntityUpdate},
-    PartialWorld, WorldContainer,
+    InstanceContainer, PartialInstance,
 };
 use bevy_app::{App, CoreSet, Plugin};
 use bevy_ecs::{
@@ -37,6 +37,7 @@ use tokio::sync::mpsc;
 
 use crate::{
     chat::{ChatPacket, ChatReceivedEvent},
+    client::TabList,
     disconnect::DisconnectEvent,
     local_player::{GameProfileComponent, LocalPlayer},
     ClientInformation, PlayerInfo,
@@ -189,66 +190,26 @@ fn process_packet_events(ecs: &mut World) {
                         &mut LocalPlayer,
                         Option<&mut WorldName>,
                         &GameProfileComponent,
+                        &ClientInformation,
                     )>,
-                    ResMut<WorldContainer>,
+                    ResMut<InstanceContainer>,
                 )> = SystemState::new(ecs);
                 let (mut commands, mut query, mut world_container) = system_state.get_mut(ecs);
-                let (mut local_player, world_name, game_profile) =
+                let (mut local_player, world_name, game_profile, client_information) =
                     query.get_mut(player_entity).unwrap();
 
                 {
-                    // TODO: have registry_holder be a struct because this sucks rn
-                    // best way would be to add serde support to azalea-nbt
-
-                    let registry_holder = p
+                    let dimension = &p
                         .registry_holder
-                        .as_compound()
-                        .expect("Registry holder is not a compound")
-                        .get("")
-                        .expect("No \"\" tag")
-                        .as_compound()
-                        .expect("\"\" tag is not a compound");
-                    let dimension_types = registry_holder
-                        .get("minecraft:dimension_type")
-                        .expect("No dimension_type tag")
-                        .as_compound()
-                        .expect("dimension_type is not a compound")
-                        .get("value")
-                        .expect("No dimension_type value")
-                        .as_list()
-                        .expect("dimension_type value is not a list");
-                    let dimension_type = dimension_types
+                        .root
+                        .dimension_type
+                        .value
                         .iter()
-                        .find(|t| {
-                            t.as_compound()
-                                .expect("dimension_type value is not a compound")
-                                .get("name")
-                                .expect("No name tag")
-                                .as_string()
-                                .expect("name is not a string")
-                                == p.dimension_type.to_string()
-                        })
+                        .find(|t| t.name == p.dimension_type)
                         .unwrap_or_else(|| {
                             panic!("No dimension_type with name {}", p.dimension_type)
                         })
-                        .as_compound()
-                        .unwrap()
-                        .get("element")
-                        .expect("No element tag")
-                        .as_compound()
-                        .expect("element is not a compound");
-                    let height = (*dimension_type
-                        .get("height")
-                        .expect("No height tag")
-                        .as_int()
-                        .expect("height tag is not an int"))
-                    .try_into()
-                    .expect("height is not a u32");
-                    let min_y = *dimension_type
-                        .get("min_y")
-                        .expect("No min_y tag")
-                        .as_int()
-                        .expect("min_y tag is not an int");
+                        .element;
 
                     let new_world_name = p.dimension.clone();
 
@@ -261,13 +222,17 @@ fn process_packet_events(ecs: &mut World) {
                     }
                     // add this world to the world_container (or don't if it's already
                     // there)
-                    let weak_world = world_container.insert(new_world_name.clone(), height, min_y);
+                    let weak_world = world_container.insert(
+                        new_world_name.clone(),
+                        dimension.height,
+                        dimension.min_y,
+                    );
                     // set the partial_world to an empty world
                     // (when we add chunks or entities those will be in the
                     // world_container)
 
-                    *local_player.partial_world.write() = PartialWorld::new(
-                        local_player.client_information.view_distance.into(),
+                    *local_player.partial_instance.write() = PartialInstance::new(
+                        client_information.view_distance.into(),
                         // this argument makes it so other clients don't update this
                         // player entity
                         // in a shared world
@@ -291,13 +256,11 @@ fn process_packet_events(ecs: &mut World) {
                 }
 
                 // send the client information that we have set
-                let client_information_packet: ClientInformation =
-                    local_player.client_information.clone();
                 log::debug!(
                     "Sending client information because login: {:?}",
-                    client_information_packet
+                    client_information
                 );
-                local_player.write_packet(client_information_packet.get());
+                local_player.write_packet(client_information.clone().get());
 
                 // brand
                 local_player.write_packet(
@@ -444,13 +407,13 @@ fn process_packet_events(ecs: &mut World) {
                 debug!("Got player info packet {:?}", p);
 
                 let mut system_state: SystemState<(
-                    Query<&mut LocalPlayer>,
+                    Query<&mut TabList>,
                     EventWriter<AddPlayerEvent>,
                     EventWriter<UpdatePlayerEvent>,
                 )> = SystemState::new(ecs);
                 let (mut query, mut add_player_events, mut update_player_events) =
                     system_state.get_mut(ecs);
-                let mut local_player = query.get_mut(player_entity).unwrap();
+                let mut tab_list = query.get_mut(player_entity).unwrap();
 
                 for updated_info in &p.entries {
                     // add the new player maybe
@@ -462,16 +425,12 @@ fn process_packet_events(ecs: &mut World) {
                             latency: updated_info.latency,
                             display_name: updated_info.display_name.clone(),
                         };
-                        local_player
-                            .players
-                            .insert(updated_info.profile.uuid, info.clone());
+                        tab_list.insert(updated_info.profile.uuid, info.clone());
                         add_player_events.send(AddPlayerEvent {
                             entity: player_entity,
                             info: info.clone(),
                         });
-                    } else if let Some(info) =
-                        local_player.players.get_mut(&updated_info.profile.uuid)
-                    {
+                    } else if let Some(info) = tab_list.get_mut(&updated_info.profile.uuid) {
                         // `else if` because the block for add_player above
                         // already sets all the fields
                         if p.actions.update_game_mode {
@@ -497,14 +456,14 @@ fn process_packet_events(ecs: &mut World) {
             }
             ClientboundGamePacket::PlayerInfoRemove(p) => {
                 let mut system_state: SystemState<(
-                    Query<&mut LocalPlayer>,
+                    Query<&mut TabList>,
                     EventWriter<RemovePlayerEvent>,
                 )> = SystemState::new(ecs);
                 let (mut query, mut remove_player_events) = system_state.get_mut(ecs);
-                let mut local_player = query.get_mut(player_entity).unwrap();
+                let mut tab_list = query.get_mut(player_entity).unwrap();
 
                 for uuid in &p.profile_ids {
-                    if let Some(info) = local_player.players.remove(uuid) {
+                    if let Some(info) = tab_list.remove(uuid) {
                         remove_player_events.send(RemovePlayerEvent {
                             entity: player_entity,
                             info,
@@ -518,7 +477,7 @@ fn process_packet_events(ecs: &mut World) {
                 let mut system_state: SystemState<Query<&mut LocalPlayer>> = SystemState::new(ecs);
                 let mut query = system_state.get_mut(ecs);
                 let local_player = query.get_mut(player_entity).unwrap();
-                let mut partial_world = local_player.partial_world.write();
+                let mut partial_world = local_player.partial_instance.write();
 
                 partial_world.chunks.view_center = ChunkPos::new(p.x, p.z);
             }
@@ -541,14 +500,14 @@ fn process_packet_events(ecs: &mut World) {
                 // by this client.
                 let shared_chunk = local_player.world.read().chunks.get(&pos);
                 let this_client_has_chunk = local_player
-                    .partial_world
+                    .partial_instance
                     .read()
                     .chunks
                     .limited_get(&pos)
                     .is_some();
 
                 let mut world = local_player.world.write();
-                let mut partial_world = local_player.partial_world.write();
+                let mut partial_world = local_player.partial_instance.write();
 
                 if !this_client_has_chunk {
                     if let Some(shared_chunk) = shared_chunk {
@@ -643,10 +602,10 @@ fn process_packet_events(ecs: &mut World) {
                 #[allow(clippy::type_complexity)]
                 let mut system_state: SystemState<(
                     Commands,
-                    Query<(&mut LocalPlayer, Option<&WorldName>)>,
+                    Query<(&TabList, Option<&WorldName>)>,
                 )> = SystemState::new(ecs);
                 let (mut commands, mut query) = system_state.get_mut(ecs);
-                let (local_player, world_name) = query.get_mut(player_entity).unwrap();
+                let (tab_list, world_name) = query.get_mut(player_entity).unwrap();
 
                 if let Some(WorldName(world_name)) = world_name {
                     let bundle = p.as_player_bundle(world_name.clone());
@@ -656,7 +615,7 @@ fn process_packet_events(ecs: &mut World) {
                         bundle,
                     ));
 
-                    if let Some(player_info) = local_player.players.get(&p.uuid) {
+                    if let Some(player_info) = tab_list.get(&p.uuid) {
                         spawned.insert(GameProfileComponent(player_info.profile.clone()));
                     }
                 } else {
@@ -714,7 +673,7 @@ fn process_packet_events(ecs: &mut World) {
                 if let Some(entity) = entity {
                     let new_position = p.position;
                     commands.entity(entity).add(RelativeEntityUpdate {
-                        partial_world: local_player.partial_world.clone(),
+                        partial_world: local_player.partial_instance.clone(),
                         update: Box::new(move |entity| {
                             let mut position = entity.get_mut::<Position>().unwrap();
                             **position = new_position;
@@ -745,7 +704,7 @@ fn process_packet_events(ecs: &mut World) {
                 if let Some(entity) = entity {
                     let delta = p.delta.clone();
                     commands.entity(entity).add(RelativeEntityUpdate {
-                        partial_world: local_player.partial_world.clone(),
+                        partial_world: local_player.partial_instance.clone(),
                         update: Box::new(move |entity_mut| {
                             let mut position = entity_mut.get_mut::<Position>().unwrap();
                             **position = position.with_delta(&delta);
@@ -773,7 +732,7 @@ fn process_packet_events(ecs: &mut World) {
                 if let Some(entity) = entity {
                     let delta = p.delta.clone();
                     commands.entity(entity).add(RelativeEntityUpdate {
-                        partial_world: local_player.partial_world.clone(),
+                        partial_world: local_player.partial_instance.clone(),
                         update: Box::new(move |entity_mut| {
                             let mut position = entity_mut.get_mut::<Position>().unwrap();
                             **position = position.with_delta(&delta);

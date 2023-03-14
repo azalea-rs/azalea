@@ -73,7 +73,7 @@ impl Iterator for BlockIterator {
         let x = self.pos.x * self.right;
         let y = self.pos.y * ((self.apothem as i32) - self.left);
         let z = self.pos.z * ((self.apothem as i32) - (i32::abs(x) + i32::abs(y)));
-        Some(BlockPos { x: x, y, z } + self.start)
+        Some(BlockPos { x, y, z } + self.start)
     }
 }
 

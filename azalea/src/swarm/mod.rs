@@ -11,7 +11,7 @@ use azalea_protocol::{
     resolver::{self, ResolverError},
     ServerAddress,
 };
-use azalea_world::WorldContainer;
+use azalea_world::InstanceContainer;
 use bevy_app::{App, Plugin, PluginGroup, PluginGroupBuilder};
 use bevy_ecs::{component::Component, entity::Entity, system::Resource, world::World};
 use futures::future::join_all;
@@ -24,7 +24,7 @@ use tokio::sync::mpsc;
 /// A swarm is a way to conveniently control many bots at once, while also
 /// being able to control bots at an individual level when desired.
 ///
-/// Swarms are created from [`azalea::swarm::SwarmBuilder`].
+/// Swarms are created from [`SwarmBuilder`].
 ///
 /// The `S` type parameter is the type of the state for individual bots.
 /// It's used to make the [`Swarm::add`] function work.
@@ -37,7 +37,7 @@ pub struct Swarm {
     // bot_datas: Arc<Mutex<Vec<(Client, S)>>>,
     resolved_address: SocketAddr,
     address: ServerAddress,
-    pub world_container: Arc<RwLock<WorldContainer>>,
+    pub world_container: Arc<RwLock<InstanceContainer>>,
 
     bots_tx: mpsc::UnboundedSender<(Option<Event>, Client)>,
     swarm_tx: mpsc::UnboundedSender<SwarmEvent>,
@@ -248,7 +248,7 @@ where
         // resolve the address
         let resolved_address = resolver::resolve_address(&address).await?;
 
-        let world_container = Arc::new(RwLock::new(WorldContainer::default()));
+        let world_container = Arc::new(RwLock::new(InstanceContainer::default()));
 
         // we can't modify the swarm plugins after this
         let (bots_tx, mut bots_rx) = mpsc::unbounded_channel();

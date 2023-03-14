@@ -38,7 +38,7 @@ use azalea_protocol::{
 };
 use azalea_world::{
     entity::{EntityPlugin, EntityUpdateSet, Local, WorldName},
-    Instance, PartialWorld, WorldContainer,
+    Instance, InstanceContainer, PartialInstance,
 };
 use bevy_app::{App, CoreSchedule, Plugin, PluginGroup, PluginGroupBuilder};
 use bevy_ecs::{
@@ -51,14 +51,13 @@ use bevy_ecs::{
 };
 use bevy_log::LogPlugin;
 use bevy_time::{prelude::FixedTime, TimePlugin};
+use derive_more::{Deref, DerefMut};
 use log::{debug, error};
 use parking_lot::{Mutex, RwLock};
 use std::{collections::HashMap, fmt::Debug, io, net::SocketAddr, sync::Arc, time::Duration};
 use thiserror::Error;
 use tokio::{sync::mpsc, time};
 use uuid::Uuid;
-
-pub type ClientInformation = ServerboundClientInformationPacket;
 
 /// `Client` has the things that a user interacting with the library will want.
 /// Things that a player in the world will want to know are in [`LocalPlayer`].
@@ -76,13 +75,13 @@ pub struct Client {
     /// and skin data.
     ///
     /// This is immutable; the server cannot change it. To get the username and
-    /// skin the server chose for you, get your player from
-    /// [`Self::players`].
+    /// skin the server chose for you, get your player from the [`TabList`]
+    /// component.
     pub profile: GameProfile,
     /// The entity for this client in the ECS.
     pub entity: Entity,
     /// The world that this client is in.
-    pub world: Arc<RwLock<PartialWorld>>,
+    pub world: Arc<RwLock<PartialInstance>>,
 
     /// The entity component system. You probably don't need to access this
     /// directly. Note that if you're using a shared world (i.e. a swarm), this
@@ -92,6 +91,15 @@ pub struct Client {
     /// Use this to force the client to run the schedule outside of a tick.
     pub run_schedule_sender: mpsc::UnboundedSender<()>,
 }
+
+/// A component that contains some of the "settings" for this client that are
+/// sent to the server, such as render distance.
+pub type ClientInformation = ServerboundClientInformationPacket;
+
+/// A component that contains a map of player UUIDs to their information in the
+/// tab list
+#[derive(Component, Clone, Debug, Deref, DerefMut, Default)]
+pub struct TabList(HashMap<Uuid, PlayerInfo>);
 
 /// An error that happened while joining the server.
 #[derive(Error, Debug)]
@@ -128,7 +136,7 @@ impl Client {
             profile,
             // default our id to 0, it'll be set later
             entity,
-            world: Arc::new(RwLock::new(PartialWorld::default())),
+            world: Arc::new(RwLock::new(PartialInstance::default())),
 
             ecs,
 
@@ -238,6 +246,8 @@ impl Client {
             game_profile: GameProfileComponent(game_profile),
             physics_state: PhysicsState::default(),
             local_player_events: LocalPlayerEvents(tx),
+            client_information: ClientInformation::default(),
+            tab_list: TabList::default(),
             _local: Local,
         });
 
@@ -413,14 +423,14 @@ impl Client {
 
     /// Get a reference to our (potentially shared) world.
     ///
-    /// This gets the [`World`] from our world container. If it's a normal
+    /// This gets the [`Instance`] from our world container. If it's a normal
     /// client, then it'll be the same as the world the client has loaded.
     /// If the client using a shared world, then the shared world will be a
     /// superset of the client's world.
     pub fn world(&self) -> Arc<RwLock<Instance>> {
         let world_name = self.component::<WorldName>();
         let ecs = self.ecs.lock();
-        let world_container = ecs.resource::<WorldContainer>();
+        let world_container = ecs.resource::<InstanceContainer>();
         world_container.get(&world_name).unwrap()
     }
 
@@ -451,31 +461,20 @@ impl Client {
         client_information: ServerboundClientInformationPacket,
     ) -> Result<(), std::io::Error> {
         {
-            self.local_player_mut(&mut self.ecs.lock())
-                .client_information = client_information;
+            let mut ecs = self.ecs.lock();
+            let mut client_information_mut = self.query::<&mut ClientInformation>(&mut ecs);
+            *client_information_mut = client_information.clone();
         }
 
         if self.logged_in() {
-            let client_information_packet = self
-                .local_player(&mut self.ecs.lock())
-                .client_information
-                .clone()
-                .get();
             log::debug!(
                 "Sending client information (already logged in): {:?}",
-                client_information_packet
+                client_information
             );
-            self.write_packet(client_information_packet);
+            self.write_packet(client_information.get());
         }
 
         Ok(())
-    }
-
-    /// Get a HashMap of all the players in the tab list.
-    ///
-    /// Internally, this fetches the `players` field in [`LocalPlayer`].
-    pub fn players(&mut self) -> HashMap<Uuid, PlayerInfo> {
-        self.local_player(&mut self.ecs.lock()).players.clone()
     }
 }
 
@@ -488,6 +487,8 @@ pub struct JoinedClientBundle {
     pub game_profile: GameProfileComponent,
     pub physics_state: PhysicsState,
     pub local_player_events: LocalPlayerEvents,
+    pub client_information: ClientInformation,
+    pub tab_list: TabList,
     pub _local: Local,
 }
 
@@ -512,7 +513,7 @@ impl Plugin for AzaleaPlugin {
         app.add_event::<SendPacketEvent>()
             .add_system(handle_send_packet_event);
 
-        app.init_resource::<WorldContainer>();
+        app.init_resource::<InstanceContainer>();
     }
 }
 

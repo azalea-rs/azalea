@@ -18,8 +18,8 @@ reqwest = { version = "0.11.12", default-features = false, features = [
     "json",
     "rustls-tls",
 ] }
-serde = { version = "1.0.145", features = ["derive"] }
-serde_json = "1.0.86"
+serde = { version = "1.0.152", features = ["derive"] }
+serde_json = "1.0.93"
 thiserror = "1.0.37"
 tokio = { version = "1.24.2", features = ["fs"] }
 uuid = { version = "^1.1.2", features = ["serde"] }
