@@ -45,5 +45,11 @@ Also it's named Azalea because it sounds like a cool word and this is a cool lib
 
 ## Stretch goals
 
-- Server implementation. (if you're interested in making this then please contact me, I'd love for it to be a thing. [@mat:matdoes.dev](https://matrix.to/#/@mat:matdoes.dev) / mat#1592)
-- Having branches for several popular Minecraft versions.
+- Server implementation.
+
+## Branches
+
+There are several branches in the Azalea repository that target older Minecraft versions. It is not guaranteed that they will be up-to-date with the latest version of Azalea. If you'd like to update them or add more, please open a PR.
+
+- [1.19.3](https://github.com/mat-1/azalea/tree/1.19.3)
+- [1.19.2](https://github.com/mat-1/azalea/tree/1.19.2)
