@@ -62,6 +62,10 @@ pub mod registry {
         type Error = serde_json::Error;
 
         fn try_from(value: Tag) -> Result<Self, Self::Error> {
+            // write it to a file
+            let mut file = std::fs::File::create("registry.json").unwrap();
+            serde_json::to_writer_pretty(&mut file, &value).unwrap();
+
             serde_json::from_value(serde_json::to_value(value)?)
         }
     }
@@ -95,12 +99,18 @@ pub mod registry {
     #[derive(Debug, Clone, Serialize, Deserialize)]
     #[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
     pub struct RegistryRoot {
+        #[serde(rename = "minecraft:trim_material")]
+        pub trim_material: RegistryType<TrimMaterialElement>,
         #[serde(rename = "minecraft:chat_type")]
         pub chat_type: RegistryType<ChatTypeElement>,
         #[serde(rename = "minecraft:dimension_type")]
         pub dimension_type: RegistryType<DimensionTypeElement>,
         #[serde(rename = "minecraft:worldgen/biome")]
         pub world_type: RegistryType<WorldTypeElement>,
+        #[serde(rename = "minecraft:trim_pattern")]
+        pub trim_pattern: RegistryType<TrimPatternElement>,
+        #[serde(rename = "minecraft:damage_type")]
+        pub damage_type: RegistryType<DamageTypeElement>,
     }
 
     /// A collection of values for a certain type of registry data.
@@ -119,6 +129,18 @@ pub mod registry {
         pub id: u32,
         pub name: ResourceLocation,
         pub element: T,
+    }
+
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    #[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
+    pub struct TrimMaterialElement {
+        pub asset_name: String,
+        pub ingredient: ResourceLocation,
+        pub item_model_index: f32,
+        pub override_armor_materials: HashMap<String, String>,
+        #[serde(default)]
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub description: Option<String>,
     }
 
     /// Data about a kind of chat message
@@ -238,12 +260,13 @@ pub mod registry {
     #[derive(Debug, Clone, Serialize, Deserialize)]
     #[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
     pub struct WorldTypeElement {
+        #[serde(with = "Convert")]
+        pub has_precipitation: bool,
         pub temperature: f32,
         #[serde(default)]
         #[serde(skip_serializing_if = "Option::is_none")]
         pub temperature_modifier: Option<String>,
         pub downfall: f32,
-        pub precipitation: BiomePrecipitation,
         pub effects: BiomeEffects,
     }
 
@@ -288,7 +311,7 @@ pub mod registry {
         pub additions_sound: Option<AdditionsSound>,
         #[serde(default)]
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub ambient_sound: Option<SoundId>,
+        pub ambient_sound: Option<ResourceLocation>,
         #[serde(default)]
         #[serde(skip_serializing_if = "Option::is_none")]
         pub particle: Option<BiomeParticle>,
@@ -304,7 +327,7 @@ pub mod registry {
         pub replace_current_music: bool,
         pub max_delay: u32,
         pub min_delay: u32,
-        pub sound: SoundId,
+        pub sound: ResourceLocation,
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -313,21 +336,14 @@ pub mod registry {
         pub tick_delay: u32,
         pub block_search_extent: u32,
         pub offset: f32,
-        pub sound: SoundId,
+        pub sound: ResourceLocation,
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     #[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
     pub struct AdditionsSound {
         pub tick_chance: f32,
-        pub sound: SoundId,
-    }
-
-    /// The ID of a sound.
-    #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-    #[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
-    pub struct SoundId {
-        pub sound_id: ResourceLocation,
+        pub sound: ResourceLocation,
     }
 
     /// Biome particles.
@@ -338,6 +354,27 @@ pub mod registry {
     pub struct BiomeParticle {
         pub probability: f32,
         pub options: HashMap<String, String>,
+    }
+
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    #[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
+    pub struct TrimPatternElement {
+        #[serde(flatten)]
+        pub pattern: HashMap<String, String>,
+    }
+
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    #[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
+    pub struct DamageTypeElement {
+        pub message_id: String,
+        pub scaling: String,
+        pub exhaustion: f32,
+        #[serde(default)]
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub effects: Option<String>,
+        #[serde(default)]
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub death_message_type: Option<String>,
     }
 
     // Using a trait because you can't implement methods for
@@ -413,8 +450,8 @@ pub mod registry {
 #[cfg(test)]
 mod tests {
     use super::registry::{
-        ChatTypeElement, DimensionTypeElement, RegistryHolder, RegistryRoot, RegistryType,
-        WorldTypeElement,
+        ChatTypeElement, DamageTypeElement, DimensionTypeElement, RegistryHolder, RegistryRoot,
+        RegistryType, TrimMaterialElement, TrimPatternElement, WorldTypeElement,
     };
     use azalea_core::ResourceLocation;
     use azalea_nbt::Tag;
@@ -423,6 +460,10 @@ mod tests {
     fn test_convert() {
         let registry = RegistryHolder {
             root: RegistryRoot {
+                trim_material: RegistryType::<TrimMaterialElement> {
+                    kind: ResourceLocation::new("minecraft:trim_material").unwrap(),
+                    value: Vec::new(),
+                },
                 chat_type: RegistryType::<ChatTypeElement> {
                     kind: ResourceLocation::new("minecraft:chat_type").unwrap(),
                     value: Vec::new(),
@@ -433,6 +474,14 @@ mod tests {
                 },
                 world_type: RegistryType::<WorldTypeElement> {
                     kind: ResourceLocation::new("minecraft:worldgen/biome").unwrap(),
+                    value: Vec::new(),
+                },
+                trim_pattern: RegistryType::<TrimPatternElement> {
+                    kind: ResourceLocation::new("minecraft:trim_pattern").unwrap(),
+                    value: Vec::new(),
+                },
+                damage_type: RegistryType::<DamageTypeElement> {
+                    kind: ResourceLocation::new("minecraft:damage_type").unwrap(),
                     value: Vec::new(),
                 },
             },
