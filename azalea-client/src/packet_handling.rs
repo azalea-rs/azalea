@@ -481,6 +481,10 @@ fn process_packet_events(ecs: &mut World) {
 
                 partial_world.chunks.view_center = ChunkPos::new(p.x, p.z);
             }
+            ClientboundGamePacket::ChunksBiomes(_) => {}
+            ClientboundGamePacket::LightUpdate(_p) => {
+                // debug!("Got light update packet {:?}", p);
+            }
             ClientboundGamePacket::LevelChunkWithLight(p) => {
                 debug!("Got chunk with light packet {} {}", p.x, p.z);
                 let pos = ChunkPos::new(p.x, p.z);
@@ -527,9 +531,6 @@ fn process_packet_events(ecs: &mut World) {
                 ) {
                     error!("Couldn't set chunk data: {}", e);
                 }
-            }
-            ClientboundGamePacket::LightUpdate(_p) => {
-                // debug!("Got light update packet {:?}", p);
             }
             ClientboundGamePacket::AddEntity(p) => {
                 debug!("Got add entity packet {:?}", p);
@@ -908,6 +909,7 @@ fn process_packet_events(ecs: &mut World) {
 
                 system_state.apply(ecs);
             }
+
             ClientboundGamePacket::SelectAdvancementsTab(_) => {}
             ClientboundGamePacket::SetActionBarText(_) => {}
             ClientboundGamePacket::SetBorderCenter(_) => {}
@@ -933,6 +935,9 @@ fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::DisguisedChat(_) => {}
             ClientboundGamePacket::UpdateEnabledFeatures(_) => {}
             ClientboundGamePacket::ContainerClose(_) => {}
+            ClientboundGamePacket::Bundle(_) => {}
+            ClientboundGamePacket::DamageEvent(_) => {}
+            ClientboundGamePacket::HurtAnimation(_) => {}
         }
     }
 }

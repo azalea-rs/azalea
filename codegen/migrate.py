@@ -6,6 +6,7 @@ import lib.code.version
 import lib.code.blocks
 import lib.code.packet
 import lib.code.shapes
+import lib.code.entity
 import lib.code.utils
 import lib.download
 import lib.extract
@@ -133,6 +134,10 @@ lib.code.language.write_language(language)
 print('Generating registries...')
 registries = lib.extract.get_registries_report(new_version_id)
 lib.code.registry.generate_registries(registries)
+
+print('Generating entity metadata...')
+burger_entities_data = new_burger_data[0]['entities']
+lib.code.entity.generate_entity_metadata(burger_entities_data, new_mappings)
 
 print('Finishing touches, setting version in README and formatting code...')
 lib.code.version.set_version_id(new_version_id)

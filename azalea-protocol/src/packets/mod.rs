@@ -10,7 +10,7 @@ use std::io::{Cursor, Write};
 // TODO: rename the packet files to just like clientbound_add_entity instead of
 // clientbound_add_entity_packet
 
-pub const PROTOCOL_VERSION: u32 = 761;
+pub const PROTOCOL_VERSION: u32 = 762;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ConnectionProtocol {

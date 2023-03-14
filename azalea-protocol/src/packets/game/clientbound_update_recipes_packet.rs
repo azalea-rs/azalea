@@ -3,7 +3,10 @@ use azalea_buf::{
 };
 use azalea_core::{ResourceLocation, Slot};
 use azalea_protocol_macros::ClientboundGamePacket;
+use azalea_registry::RecipeSerializer;
+
 use std::io::{Cursor, Write};
+use std::str::FromStr;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundUpdateRecipesPacket {
@@ -33,6 +36,7 @@ pub struct ShapedRecipe {
     pub category: CraftingBookCategory,
     pub ingredients: Vec<Ingredient>,
     pub result: Slot,
+    pub show_notification: bool,
 }
 
 #[derive(Clone, Debug, Copy, McBuf)]
@@ -68,6 +72,7 @@ impl McBufReadable for ShapedRecipe {
             ingredients.push(Ingredient::read_from(buf)?);
         }
         let result = Slot::read_from(buf)?;
+        let show_notification = bool::read_from(buf)?;
 
         Ok(ShapedRecipe {
             width,
@@ -76,6 +81,7 @@ impl McBufReadable for ShapedRecipe {
             category,
             ingredients,
             result,
+            show_notification,
         })
     }
 }
@@ -109,9 +115,24 @@ pub struct SimpleRecipe {
 }
 
 #[derive(Clone, Debug, McBuf)]
+pub struct SmithingTransformRecipe {
+    pub template: Ingredient,
+    pub base: Ingredient,
+    pub addition: Ingredient,
+    pub result: Slot,
+}
+
+#[derive(Clone, Debug, McBuf)]
+pub struct SmithingTrimRecipe {
+    pub template: Ingredient,
+    pub base: Ingredient,
+    pub addition: Ingredient,
+}
+
+#[derive(Clone, Debug, McBuf)]
 pub enum RecipeData {
-    CraftingShapeless(ShapelessRecipe),
     CraftingShaped(ShapedRecipe),
+    CraftingShapeless(ShapelessRecipe),
     CraftingSpecialArmorDye(SimpleRecipe),
     CraftingSpecialBookCloning(SimpleRecipe),
     CraftingSpecialMapCloning(SimpleRecipe),
@@ -122,7 +143,6 @@ pub enum RecipeData {
     CraftingSpecialRepairItem(SimpleRecipe),
     CraftingSpecialTippedArrow(SimpleRecipe),
     CraftingSpecialBannerDuplicate(SimpleRecipe),
-    CraftingSpecialBannerAddPattern(SimpleRecipe),
     CraftingSpecialShieldDecoration(SimpleRecipe),
     CraftingSpecialShulkerBoxColoring(SimpleRecipe),
     CraftingSpecialSuspiciousStew(SimpleRecipe),
@@ -132,6 +152,9 @@ pub enum RecipeData {
     CampfireCooking(CookingRecipe),
     Stonecutting(StoneCutterRecipe),
     Smithing(SmithingRecipe),
+    SmithingTransform(SmithingTransformRecipe),
+    SmithingTrim(SmithingTrimRecipe),
+    CraftingDecoratedPot(SimpleRecipe),
 }
 
 #[derive(Clone, Debug, McBuf)]
@@ -141,48 +164,55 @@ pub struct Ingredient {
 
 impl McBufWritable for Recipe {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        let resource_location = match &self.data {
-            RecipeData::CraftingShapeless(_) => "minecraft:crafting_shapeless",
-            RecipeData::CraftingShaped(_) => "minecraft:crafting_shaped",
-            RecipeData::CraftingSpecialArmorDye(_) => "minecraft:crafting_special_armordye",
-            RecipeData::CraftingSpecialBookCloning(_) => "minecraft:crafting_special_bookcloning",
-            RecipeData::CraftingSpecialMapCloning(_) => "minecraft:crafting_special_mapcloning",
-            RecipeData::CraftingSpecialMapExtending(_) => "minecraft:crafting_special_mapextending",
+        let recipe_serializer = match &self.data {
+            RecipeData::CraftingShapeless(_) => RecipeSerializer::CraftingShapeless,
+            RecipeData::CraftingShaped(_) => RecipeSerializer::CraftingShaped,
+            RecipeData::CraftingSpecialArmorDye(_) => RecipeSerializer::CraftingSpecialArmordye,
+            RecipeData::CraftingSpecialBookCloning(_) => {
+                RecipeSerializer::CraftingSpecialBookcloning
+            }
+            RecipeData::CraftingSpecialMapCloning(_) => RecipeSerializer::CraftingSpecialMapcloning,
+            RecipeData::CraftingSpecialMapExtending(_) => {
+                RecipeSerializer::CraftingSpecialMapextending
+            }
             RecipeData::CraftingSpecialFireworkRocket(_) => {
-                "minecraft:crafting_special_firework_rocket"
+                RecipeSerializer::CraftingSpecialFireworkRocket
             }
             RecipeData::CraftingSpecialFireworkStar(_) => {
-                "minecraft:crafting_special_firework_star"
+                RecipeSerializer::CraftingSpecialFireworkStar
             }
 
             RecipeData::CraftingSpecialFireworkStarFade(_) => {
-                "minecraft:crafting_special_firework_star_fade"
+                RecipeSerializer::CraftingSpecialFireworkStarFade
             }
-            RecipeData::CraftingSpecialRepairItem(_) => "minecraft:crafting_special_repairitem",
-            RecipeData::CraftingSpecialTippedArrow(_) => "minecraft:crafting_special_tippedarrow",
+            RecipeData::CraftingSpecialRepairItem(_) => RecipeSerializer::CraftingSpecialRepairitem,
+            RecipeData::CraftingSpecialTippedArrow(_) => {
+                RecipeSerializer::CraftingSpecialTippedarrow
+            }
             RecipeData::CraftingSpecialBannerDuplicate(_) => {
-                "minecraft:crafting_special_bannerduplicate"
-            }
-            RecipeData::CraftingSpecialBannerAddPattern(_) => {
-                "minecraft:crafting_special_banneraddpattern"
+                RecipeSerializer::CraftingSpecialBannerduplicate
             }
             RecipeData::CraftingSpecialShieldDecoration(_) => {
-                "minecraft:crafting_special_shielddecoration"
+                RecipeSerializer::CraftingSpecialShielddecoration
             }
             RecipeData::CraftingSpecialShulkerBoxColoring(_) => {
-                "minecraft:crafting_special_shulkerboxcoloring"
+                RecipeSerializer::CraftingSpecialShulkerboxcoloring
             }
             RecipeData::CraftingSpecialSuspiciousStew(_) => {
-                "minecraft:crafting_special_suspiciousstew"
+                RecipeSerializer::CraftingSpecialSuspiciousstew
             }
-            RecipeData::Smelting(_) => "minecraft:smelting",
-            RecipeData::Blasting(_) => "minecraft:blasting",
-            RecipeData::Smoking(_) => "minecraft:smoking",
-            RecipeData::CampfireCooking(_) => "minecraft:campfire_cooking",
-            RecipeData::Stonecutting(_) => "minecraft:stonecutting",
-            RecipeData::Smithing(_) => "minecraft:smithing",
+            RecipeData::Smelting(_) => RecipeSerializer::Smelting,
+            RecipeData::Blasting(_) => RecipeSerializer::Blasting,
+            RecipeData::Smoking(_) => RecipeSerializer::Smoking,
+            RecipeData::CampfireCooking(_) => RecipeSerializer::CampfireCooking,
+            RecipeData::Stonecutting(_) => RecipeSerializer::Stonecutting,
+            RecipeData::Smithing(_) => RecipeSerializer::Smithing,
+            RecipeData::SmithingTransform(_) => RecipeSerializer::SmithingTransform,
+            RecipeData::SmithingTrim(_) => RecipeSerializer::SmithingTrim,
+            RecipeData::CraftingDecoratedPot(_) => RecipeSerializer::CraftingDecoratedPot,
         };
-        ResourceLocation::new(resource_location).write_into(buf)?;
+        let resource_location = ResourceLocation::new(&recipe_serializer.to_string());
+        resource_location.write_into(buf)?;
         self.identifier.write_into(buf)?;
         self.data.write_without_id(buf)?;
         Ok(())
@@ -191,74 +221,79 @@ impl McBufWritable for Recipe {
 
 impl McBufReadable for Recipe {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let recipe_type = ResourceLocation::read_from(buf)?;
+        let recipe_serializer_name = ResourceLocation::read_from(buf)?;
+        let Ok(recipe_serializer) =
+            RecipeSerializer::from_str(&recipe_serializer_name.to_string()) else {
+                return Err(BufReadError::UnexpectedStringEnumVariant { id: recipe_serializer_name.to_string() });
+            };
         let identifier = ResourceLocation::read_from(buf)?;
 
         // rust doesn't let us match ResourceLocation so we have to do a big
         // if-else chain :(
-        let data = match recipe_type.to_string().as_str() {
-            "minecraft:crafting_shapeless" => {
-                RecipeData::CraftingShapeless(ShapelessRecipe::read_from(buf)?)
-            }
-            "minecraft:crafting_shaped" => {
+        let data = match recipe_serializer {
+            RecipeSerializer::CraftingShaped => {
                 RecipeData::CraftingShaped(ShapedRecipe::read_from(buf)?)
             }
-            "minecraft:crafting_special_armordye" => {
+            RecipeSerializer::CraftingShapeless => {
+                RecipeData::CraftingShapeless(ShapelessRecipe::read_from(buf)?)
+            }
+            RecipeSerializer::CraftingSpecialArmordye => {
                 RecipeData::CraftingSpecialArmorDye(SimpleRecipe::read_from(buf)?)
             }
-            "minecraft:crafting_special_bookcloning" => {
+            RecipeSerializer::CraftingSpecialBookcloning => {
                 RecipeData::CraftingSpecialBookCloning(SimpleRecipe::read_from(buf)?)
             }
-            "minecraft:crafting_special_mapcloning" => {
+            RecipeSerializer::CraftingSpecialMapcloning => {
                 RecipeData::CraftingSpecialMapCloning(SimpleRecipe::read_from(buf)?)
             }
-            "minecraft:crafting_special_mapextending" => {
+            RecipeSerializer::CraftingSpecialMapextending => {
                 RecipeData::CraftingSpecialMapExtending(SimpleRecipe::read_from(buf)?)
             }
-            "minecraft:crafting_special_firework_rocket" => {
+            RecipeSerializer::CraftingSpecialFireworkRocket => {
                 RecipeData::CraftingSpecialFireworkRocket(SimpleRecipe::read_from(buf)?)
             }
-            "minecraft:crafting_special_firework_star" => {
+            RecipeSerializer::CraftingSpecialFireworkStar => {
                 RecipeData::CraftingSpecialFireworkStar(SimpleRecipe::read_from(buf)?)
             }
-            "minecraft:crafting_special_firework_star_fade" => {
+            RecipeSerializer::CraftingSpecialFireworkStarFade => {
                 RecipeData::CraftingSpecialFireworkStarFade(SimpleRecipe::read_from(buf)?)
             }
-            "minecraft:crafting_special_repairitem" => {
+            RecipeSerializer::CraftingSpecialRepairitem => {
                 RecipeData::CraftingSpecialRepairItem(SimpleRecipe::read_from(buf)?)
             }
-            "minecraft:crafting_special_tippedarrow" => {
+            RecipeSerializer::CraftingSpecialTippedarrow => {
                 RecipeData::CraftingSpecialTippedArrow(SimpleRecipe::read_from(buf)?)
             }
-            "minecraft:crafting_special_bannerduplicate" => {
+            RecipeSerializer::CraftingSpecialBannerduplicate => {
                 RecipeData::CraftingSpecialBannerDuplicate(SimpleRecipe::read_from(buf)?)
             }
-            "minecraft:crafting_special_banneraddpattern" => {
-                RecipeData::CraftingSpecialBannerAddPattern(SimpleRecipe::read_from(buf)?)
-            }
-            "minecraft:crafting_special_shielddecoration" => {
+            RecipeSerializer::CraftingSpecialShielddecoration => {
                 RecipeData::CraftingSpecialShieldDecoration(SimpleRecipe::read_from(buf)?)
             }
-            "minecraft:crafting_special_shulkerboxcoloring" => {
+            RecipeSerializer::CraftingSpecialShulkerboxcoloring => {
                 RecipeData::CraftingSpecialShulkerBoxColoring(SimpleRecipe::read_from(buf)?)
             }
-            "minecraft:crafting_special_suspiciousstew" => {
+            RecipeSerializer::CraftingSpecialSuspiciousstew => {
                 RecipeData::CraftingSpecialSuspiciousStew(SimpleRecipe::read_from(buf)?)
             }
-            "minecraft:smelting" => RecipeData::Smelting(CookingRecipe::read_from(buf)?),
-            "minecraft:blasting" => RecipeData::Blasting(CookingRecipe::read_from(buf)?),
-            "minecraft:smoking" => RecipeData::Smoking(CookingRecipe::read_from(buf)?),
-            "minecraft:campfire_cooking" => {
+            RecipeSerializer::Smelting => RecipeData::Smelting(CookingRecipe::read_from(buf)?),
+            RecipeSerializer::Blasting => RecipeData::Blasting(CookingRecipe::read_from(buf)?),
+            RecipeSerializer::Smoking => RecipeData::Smoking(CookingRecipe::read_from(buf)?),
+            RecipeSerializer::CampfireCooking => {
                 RecipeData::CampfireCooking(CookingRecipe::read_from(buf)?)
             }
-            "minecraft:stonecutting" => {
+            RecipeSerializer::Stonecutting => {
                 RecipeData::Stonecutting(StoneCutterRecipe::read_from(buf)?)
             }
-            "minecraft:smithing" => RecipeData::Smithing(SmithingRecipe::read_from(buf)?),
-            _ => {
-                return Err(BufReadError::UnexpectedStringEnumVariant {
-                    id: recipe_type.to_string(),
-                });
+            RecipeSerializer::Smithing => RecipeData::Smithing(SmithingRecipe::read_from(buf)?),
+            RecipeSerializer::SmithingTransform => {
+                RecipeData::SmithingTransform(SmithingTransformRecipe::read_from(buf)?)
+            }
+            RecipeSerializer::SmithingTrim => {
+                RecipeData::SmithingTrim(SmithingTrimRecipe::read_from(buf)?)
+            }
+            RecipeSerializer::CraftingDecoratedPot => {
+                RecipeData::CraftingDecoratedPot(SimpleRecipe::read_from(buf)?)
             }
         };
 

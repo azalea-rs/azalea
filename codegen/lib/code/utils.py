@@ -97,8 +97,12 @@ def burger_type_to_rust_type(burger_type, field_name: Optional[str] = None, inst
 
                 print('hm', enum_name)
             else:
-                enum_name = mappings.get_field_type(
-                    obfuscated_class_name, enum_field)
+                try:
+                    enum_name = mappings.get_field_type(
+                        obfuscated_class_name, enum_field)
+                except:
+                    enum_name = mappings.get_class(obfuscated_class_name)
+                    print(f'failed getting {obfuscated_class_name}.{enum_field} but continuing with {enum_name} anyways')
             print('enum_name', enum_name)
             enum_obfuscated_name = mappings.get_class_from_deobfuscated_name(
                 enum_name)
