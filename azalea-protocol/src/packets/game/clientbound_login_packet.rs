@@ -62,10 +62,6 @@ pub mod registry {
         type Error = serde_json::Error;
 
         fn try_from(value: Tag) -> Result<Self, Self::Error> {
-            // write it to a file
-            let mut file = std::fs::File::create("registry.json").unwrap();
-            serde_json::to_writer_pretty(&mut file, &value).unwrap();
-
             serde_json::from_value(serde_json::to_value(value)?)
         }
     }
