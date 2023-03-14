@@ -3,25 +3,19 @@
 
 use std::sync::Arc;
 
-use azalea_ecs::{
-    app::{App, Plugin},
-    component::Component,
-    event::EventReader,
-    query::{Added, Changed},
-    system::Query,
-    AppTickExt,
-};
 use azalea_protocol::packets::game::{
     clientbound_player_combat_kill_packet::ClientboundPlayerCombatKillPacket, ClientboundGamePacket,
 };
 use azalea_world::entity::MinecraftEntityId;
+use bevy_app::{App, CoreSchedule, IntoSystemAppConfig, Plugin};
+use bevy_ecs::{component::Component, event::EventReader, query::Added, system::Query};
 use derive_more::{Deref, DerefMut};
 use tokio::sync::mpsc;
 
 use crate::{
     chat::{ChatPacket, ChatReceivedEvent},
     packet_handling::{
-        AddPlayerEvent, DeathEvent, KeepAliveEvent, PacketReceiver, RemovePlayerEvent,
+        AddPlayerEvent, DeathEvent, KeepAliveEvent, PacketEvent, RemovePlayerEvent,
         UpdatePlayerEvent,
     },
     PlayerInfo,
@@ -62,6 +56,23 @@ pub enum Event {
     Chat(ChatPacket),
     /// Happens 20 times per second, but only when the world is loaded.
     Tick,
+    /// We received a packet from the server.
+    ///
+    /// ```
+    /// # use azalea_client::Event;
+    /// # use azalea_protocol::packets::game::ClientboundGamePacket;
+    /// # async fn example(event: Event) {
+    /// # match event {
+    /// Event::Packet(packet) => match *packet {
+    ///     ClientboundGamePacket::Login(_) => {
+    ///         println!("login packet");
+    ///     }
+    ///     _ => {}
+    /// },
+    /// # _ => {}
+    /// # }
+    /// # }
+    /// ```
     Packet(Arc<ClientboundGamePacket>),
     /// A player joined the game (or more specifically, was added to the tab
     /// list).
@@ -98,7 +109,7 @@ impl Plugin for EventPlugin {
             .add_system(remove_player_listener)
             .add_system(death_listener)
             .add_system(keepalive_listener)
-            .add_tick_system(tick_listener);
+            .add_system(tick_listener.in_schedule(CoreSchedule::FixedUpdate));
     }
 }
 
@@ -133,13 +144,14 @@ fn tick_listener(query: Query<&LocalPlayerEvents>) {
     }
 }
 
-fn packet_listener(query: Query<(&LocalPlayerEvents, &PacketReceiver), Changed<PacketReceiver>>) {
-    for (local_player_events, packet_receiver) in &query {
-        for packet in packet_receiver.packets.lock().iter() {
-            local_player_events
-                .send(Event::Packet(packet.clone().into()))
-                .unwrap();
-        }
+fn packet_listener(query: Query<&LocalPlayerEvents>, mut events: EventReader<PacketEvent>) {
+    for event in events.iter() {
+        let local_player_events = query
+            .get(event.entity)
+            .expect("Non-localplayer entities shouldn't be able to receive add player events");
+        local_player_events
+            .send(Event::Packet(Arc::new(event.packet.clone())))
+            .unwrap();
     }
 }
 

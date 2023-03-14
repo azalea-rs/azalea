@@ -596,7 +596,7 @@ mod tests {
             node_type: NodeType::Argument {
                 name: "position".to_string(),
                 parser: BrigadierParser::Vec3,
-                suggestions_type: Some(ResourceLocation::new("minecraft:test_suggestion").unwrap()),
+                suggestions_type: Some(ResourceLocation::new("minecraft:test_suggestion")),
             },
         };
         let mut buf = Vec::new();

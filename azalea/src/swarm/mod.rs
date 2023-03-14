@@ -6,19 +6,14 @@ pub mod prelude;
 
 use crate::{bot::DefaultBotPlugins, HandleFn};
 use azalea_client::{chat::ChatPacket, init_ecs_app, start_ecs, Account, Client, Event, JoinError};
-use azalea_ecs::{
-    app::{App, Plugin, PluginGroup, PluginGroupBuilder},
-    component::Component,
-    ecs::Ecs,
-    entity::Entity,
-    system::Resource,
-};
 use azalea_protocol::{
     connect::ConnectionError,
     resolver::{self, ResolverError},
     ServerAddress,
 };
-use azalea_world::WorldContainer;
+use azalea_world::InstanceContainer;
+use bevy_app::{App, Plugin, PluginGroup, PluginGroupBuilder};
+use bevy_ecs::{component::Component, entity::Entity, system::Resource, world::World};
 use futures::future::join_all;
 use log::error;
 use parking_lot::{Mutex, RwLock};
@@ -29,20 +24,20 @@ use tokio::sync::mpsc;
 /// A swarm is a way to conveniently control many bots at once, while also
 /// being able to control bots at an individual level when desired.
 ///
-/// Swarms are created from [`azalea::swarm::SwarmBuilder`].
+/// Swarms are created from [`SwarmBuilder`].
 ///
 /// The `S` type parameter is the type of the state for individual bots.
 /// It's used to make the [`Swarm::add`] function work.
 #[derive(Clone, Resource)]
 pub struct Swarm {
-    pub ecs_lock: Arc<Mutex<Ecs>>,
+    pub ecs_lock: Arc<Mutex<World>>,
 
     bots: Arc<Mutex<HashMap<Entity, Client>>>,
 
     // bot_datas: Arc<Mutex<Vec<(Client, S)>>>,
     resolved_address: SocketAddr,
     address: ServerAddress,
-    pub world_container: Arc<RwLock<WorldContainer>>,
+    pub world_container: Arc<RwLock<InstanceContainer>>,
 
     bots_tx: mpsc::UnboundedSender<(Option<Event>, Client)>,
     swarm_tx: mpsc::UnboundedSender<SwarmEvent>,
@@ -199,6 +194,12 @@ where
         self.swarm_handler = Some(handler);
         self
     }
+    /// Set the swarm state instead of initializing defaults.
+    #[must_use]
+    pub fn set_swarm_state(mut self, swarm_state: SS) -> Self {
+        self.swarm_state = swarm_state;
+        self
+    }
 
     /// Add a plugin to the swarm.
     #[must_use]
@@ -247,7 +248,7 @@ where
         // resolve the address
         let resolved_address = resolver::resolve_address(&address).await?;
 
-        let world_container = Arc::new(RwLock::new(WorldContainer::default()));
+        let world_container = Arc::new(RwLock::new(InstanceContainer::default()));
 
         // we can't modify the swarm plugins after this
         let (bots_tx, mut bots_rx) = mpsc::unbounded_channel();

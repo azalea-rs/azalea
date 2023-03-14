@@ -1,14 +1,13 @@
 //! Disconnect a client from the server.
 
-use azalea_ecs::{
-    app::{App, CoreStage, Plugin},
+use bevy_app::{App, CoreSet, Plugin};
+use bevy_ecs::{
     component::Component,
     entity::Entity,
     event::{EventReader, EventWriter},
     query::Changed,
-    schedule::IntoSystemDescriptor,
+    schedule::IntoSystemConfigs,
     system::{Commands, Query},
-    AppTickExt,
 };
 use derive_more::Deref;
 
@@ -17,12 +16,15 @@ use crate::{client::JoinedClientBundle, LocalPlayer};
 pub struct DisconnectPlugin;
 impl Plugin for DisconnectPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<DisconnectEvent>()
-            .add_system_to_stage(CoreStage::PostUpdate, handle_disconnect)
-            .add_tick_system(
-                update_read_packets_task_running_component.before(disconnect_on_read_packets_ended),
+        app.add_event::<DisconnectEvent>().add_systems(
+            (
+                update_read_packets_task_running_component,
+                disconnect_on_read_packets_ended,
+                remove_components_from_disconnected_players,
             )
-            .add_tick_system(disconnect_on_read_packets_ended);
+                .in_base_set(CoreSet::PostUpdate)
+                .chain(),
+        );
     }
 }
 
@@ -33,7 +35,10 @@ pub struct DisconnectEvent {
 
 /// System that removes the [`JoinedClientBundle`] from the entity when it
 /// receives a [`DisconnectEvent`].
-pub fn handle_disconnect(mut commands: Commands, mut events: EventReader<DisconnectEvent>) {
+pub fn remove_components_from_disconnected_players(
+    mut commands: Commands,
+    mut events: EventReader<DisconnectEvent>,
+) {
     for DisconnectEvent { entity } in events.iter() {
         commands.entity(*entity).remove::<JoinedClientBundle>();
     }

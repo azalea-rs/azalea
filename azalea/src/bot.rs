@@ -1,14 +1,14 @@
-use azalea_core::Vec3;
-use azalea_ecs::{
-    app::{App, Plugin, PluginGroup, PluginGroupBuilder},
+use crate::app::{App, CoreSchedule, IntoSystemAppConfig, Plugin, PluginGroup, PluginGroupBuilder};
+use crate::ecs::{
     component::Component,
     entity::Entity,
     event::EventReader,
     query::{With, Without},
-    schedule::IntoSystemDescriptor,
+    schedule::IntoSystemConfig,
     system::{Commands, Query},
-    AppTickExt,
 };
+use azalea_core::Vec3;
+use azalea_physics::{force_jump_listener, PhysicsSet};
 use azalea_world::entity::{metadata::Player, set_rotation, Jumping, Local, Physics, Position};
 use std::f64::consts::PI;
 
@@ -20,10 +20,14 @@ impl Plugin for BotPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<LookAtEvent>()
             .add_event::<JumpEvent>()
-            .add_system(insert_bot.before("deduplicate_entities"))
-            .add_system(look_at_listener)
-            .add_system(jump_listener.label("jump_listener").before("ai_step"))
-            .add_tick_system(stop_jumping.after("ai_step"));
+            .add_systems((
+                insert_bot,
+                look_at_listener.before(force_jump_listener),
+                jump_listener,
+                stop_jumping
+                    .in_schedule(CoreSchedule::FixedUpdate)
+                    .after(PhysicsSet),
+            ));
     }
 }
 

@@ -9,6 +9,7 @@ use azalea::pathfinder::BlockPosGoal;
 use azalea::{prelude::*, swarm::prelude::*, BlockPos, GameProfileComponent, WalkDirection};
 use azalea::{Account, Client, Event};
 use azalea_protocol::packets::game::serverbound_client_command_packet::ServerboundClientCommandPacket;
+use azalea_protocol::packets::game::ClientboundGamePacket;
 use std::time::Duration;
 
 #[derive(Default, Clone, Component)]
@@ -19,13 +20,10 @@ struct SwarmState {}
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    env_logger::init();
-
     {
         use parking_lot::deadlock;
         use std::thread;
         use std::time::Duration;
-
         // Create a background thread which checks for deadlocks every 10s
         thread::spawn(move || loop {
             thread::sleep(Duration::from_secs(10));
@@ -48,7 +46,7 @@ async fn main() -> anyhow::Result<()> {
     let mut accounts = Vec::new();
     let mut states = Vec::new();
 
-    for i in 0..1 {
+    for i in 0..5 {
         accounts.push(Account::offline(&format!("bot{i}")));
         states.push(State::default());
     }
@@ -142,6 +140,25 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                     "lag" => {
                         std::thread::sleep(Duration::from_millis(1000));
                     }
+                    "findblock" => {
+                        let target_pos = bot.world().read().find_block(
+                            bot.component::<Position>(),
+                            &azalea_registry::Block::DiamondBlock.into(),
+                        );
+                        bot.chat(&format!("target_pos: {target_pos:?}",));
+                    }
+                    "gotoblock" => {
+                        let target_pos = bot.world().read().find_block(
+                            bot.component::<Position>(),
+                            &azalea_registry::Block::DiamondBlock.into(),
+                        );
+                        if let Some(target_pos) = target_pos {
+                            // +1 to stand on top of the block
+                            bot.goto(BlockPosGoal::from(target_pos.up(1)));
+                        } else {
+                            bot.chat("no diamond block found");
+                        }
+                    }
                     _ => {}
                 }
             }
@@ -151,6 +168,12 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                 action: azalea_protocol::packets::game::serverbound_client_command_packet::Action::PerformRespawn,
             }.get());
         }
+        Event::Packet(packet) => match *packet {
+            ClientboundGamePacket::Login(_) => {
+                println!("login packet");
+            }
+            _ => {}
+        },
         _ => {}
     }
 
@@ -166,7 +189,9 @@ async fn swarm_handle(
         SwarmEvent::Disconnect(account) => {
             println!("bot got kicked! {}", account.username);
             tokio::time::sleep(Duration::from_secs(5)).await;
-            swarm.add(account, State::default()).await?;
+            swarm
+                .add_with_exponential_backoff(account, State::default())
+                .await;
         }
         SwarmEvent::Chat(m) => {
             println!("swarm chat message: {}", m.message().to_ansi());

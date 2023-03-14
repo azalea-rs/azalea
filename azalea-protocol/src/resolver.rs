@@ -50,6 +50,15 @@ pub async fn resolve_address(address: &ServerAddress) -> Result<SocketAddr, Reso
             port: redirect_srv.port(),
         };
 
+        if redirect_address.host == address.host {
+            let lookup_ip_result = resolver.lookup_ip(redirect_address.host).await;
+            let lookup_ip = lookup_ip_result.map_err(|_| ResolverError::NoIp)?;
+            return Ok(SocketAddr::new(
+                lookup_ip.iter().next().unwrap(),
+                redirect_address.port,
+            ))
+        }
+
         // debug!("redirecting to {:?}", redirect_address);
 
         return resolve_address(&redirect_address).await;

@@ -79,10 +79,7 @@ impl Display for ServerAddress {
 
 #[cfg(test)]
 mod tests {
-    use std::{
-        io::Cursor,
-        time::{SystemTime, UNIX_EPOCH},
-    };
+    use std::io::Cursor;
 
     use crate::{
         packets::{

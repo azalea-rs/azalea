@@ -2,17 +2,17 @@
 
 use azalea_chat::FormattedText;
 use azalea_crypto::MessageSignature;
-use azalea_ecs::{
-    app::{App, Plugin},
-    entity::Entity,
-    event::{EventReader, EventWriter},
-    schedule::IntoSystemDescriptor,
-};
 use azalea_protocol::packets::game::{
     clientbound_player_chat_packet::{ClientboundPlayerChatPacket, LastSeenMessagesUpdate},
     clientbound_system_chat_packet::ClientboundSystemChatPacket,
     serverbound_chat_command_packet::ServerboundChatCommandPacket,
     serverbound_chat_packet::ServerboundChatPacket,
+};
+use bevy_app::{App, Plugin};
+use bevy_ecs::{
+    entity::Entity,
+    event::{EventReader, EventWriter},
+    schedule::{IntoSystemConfig, IntoSystemConfigs},
 };
 use std::{
     sync::Arc,
@@ -20,7 +20,10 @@ use std::{
 };
 use uuid::Uuid;
 
-use crate::{client::Client, local_player::SendPacketEvent};
+use crate::{
+    client::Client,
+    local_player::{handle_send_packet_event, SendPacketEvent},
+};
 
 /// A chat packet, either a system message or a chat message.
 #[derive(Debug, Clone, PartialEq)]
@@ -147,6 +150,7 @@ impl Client {
             entity: self.entity,
             content: content.to_string(),
         });
+        self.run_schedule_sender.send(()).unwrap();
     }
 }
 
@@ -156,15 +160,12 @@ impl Plugin for ChatPlugin {
         app.add_event::<SendChatEvent>()
             .add_event::<SendChatKindEvent>()
             .add_event::<ChatReceivedEvent>()
-            .add_system(
-                handle_send_chat_event
-                    .label("handle_send_chat_event")
-                    .after("packet"),
-            )
-            .add_system(
-                handle_send_chat_kind_event
-                    .label("handle_send_chat_kind_event")
-                    .after("handle_send_chat_event"),
+            .add_systems(
+                (
+                    handle_send_chat_event,
+                    handle_send_chat_kind_event.after(handle_send_packet_event),
+                )
+                    .chain(),
             );
     }
 }
@@ -233,9 +234,15 @@ fn handle_send_chat_kind_event(
     mut send_packet_events: EventWriter<SendPacketEvent>,
 ) {
     for event in events.iter() {
+        let content = event
+            .content
+            .chars()
+            .filter(|c| !matches!(c, '\x00'..='\x1F' | '\x7F' | '§'))
+            .take(256)
+            .collect::<String>();
         let packet = match event.kind {
             ChatPacketKind::Message => ServerboundChatPacket {
-                message: event.content.to_string(),
+                message: content,
                 timestamp: SystemTime::now()
                     .duration_since(UNIX_EPOCH)
                     .expect("Time shouldn't be before epoch")
@@ -251,7 +258,7 @@ fn handle_send_chat_kind_event(
             ChatPacketKind::Command => {
                 // TODO: chat signing
                 ServerboundChatCommandPacket {
-                    command: event.content.to_string(),
+                    command: content,
                     timestamp: SystemTime::now()
                         .duration_since(UNIX_EPOCH)
                         .expect("Time shouldn't be before epoch")

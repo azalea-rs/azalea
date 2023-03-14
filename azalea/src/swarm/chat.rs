@@ -13,14 +13,14 @@
 // in Swarm that's set to the smallest index of all the bots, and we remove all
 // messages from the queue that are before that index.
 
-use azalea_client::chat::{ChatPacket, ChatReceivedEvent};
-use azalea_ecs::{
-    app::{App, Plugin},
+use crate::ecs::{
     component::Component,
     event::{EventReader, EventWriter},
-    schedule::IntoSystemDescriptor,
+    schedule::IntoSystemConfigs,
     system::{Commands, Query, Res, ResMut, Resource},
 };
+use azalea_client::chat::{ChatPacket, ChatReceivedEvent};
+use bevy_app::{App, Plugin};
 use std::collections::VecDeque;
 
 use super::{Swarm, SwarmEvent};
@@ -30,8 +30,7 @@ pub struct SwarmChatPlugin;
 impl Plugin for SwarmChatPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<NewChatMessageEvent>()
-            .add_system(chat_listener.label("chat_listener"))
-            .add_system(update_min_index_and_shrink_queue.after("chat_listener"))
+            .add_systems((chat_listener, update_min_index_and_shrink_queue).chain())
             .insert_resource(GlobalChatState {
                 chat_queue: VecDeque::new(),
                 chat_min_index: 0,
@@ -151,7 +150,7 @@ fn update_min_index_and_shrink_queue(
 
 #[cfg(test)]
 mod tests {
-    use azalea_ecs::{ecs::Ecs, event::Events, system::SystemState};
+    use bevy_ecs::{event::Events, prelude::World, system::SystemState};
 
     use super::*;
 
@@ -161,8 +160,7 @@ mod tests {
         // event mangement in drain_events
         app.init_resource::<Events<ChatReceivedEvent>>()
             .init_resource::<Events<NewChatMessageEvent>>()
-            .add_system(chat_listener.label("chat_listener"))
-            .add_system(update_min_index_and_shrink_queue.after("chat_listener"))
+            .add_systems((chat_listener, update_min_index_and_shrink_queue).chain())
             .insert_resource(GlobalChatState {
                 chat_queue: VecDeque::new(),
                 chat_min_index: 0,
@@ -170,7 +168,7 @@ mod tests {
         app
     }
 
-    fn drain_events(ecs: &mut Ecs) -> Vec<ChatPacket> {
+    fn drain_events(ecs: &mut World) -> Vec<ChatPacket> {
         let mut system_state: SystemState<ResMut<Events<NewChatMessageEvent>>> =
             SystemState::new(ecs);
         let mut events = system_state.get_mut(ecs);
