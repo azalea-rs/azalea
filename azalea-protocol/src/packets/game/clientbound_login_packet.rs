@@ -95,18 +95,43 @@ pub mod registry {
     #[derive(Debug, Clone, Serialize, Deserialize)]
     #[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
     pub struct RegistryRoot {
+        #[cfg(feature = "strict_registry")]
         #[serde(rename = "minecraft:trim_material")]
         pub trim_material: RegistryType<TrimMaterialElement>,
+        #[cfg(not(feature = "strict_registry"))]
+        #[serde(rename = "minecraft:trim_material")]
+        pub trim_material: Tag,
+
+        #[cfg(feature = "strict_registry")]
         #[serde(rename = "minecraft:chat_type")]
         pub chat_type: RegistryType<ChatTypeElement>,
+        #[cfg(not(feature = "strict_registry"))]
+        #[serde(rename = "minecraft:chat_type")]
+        pub chat_type: Tag,
+
         #[serde(rename = "minecraft:dimension_type")]
         pub dimension_type: RegistryType<DimensionTypeElement>,
+
+        #[cfg(feature = "strict_registry")]
         #[serde(rename = "minecraft:worldgen/biome")]
         pub world_type: RegistryType<WorldTypeElement>,
+        #[cfg(not(feature = "strict_registry"))]
+        #[serde(rename = "minecraft:worldgen/biome")]
+        pub world_type: Tag,
+
+        #[cfg(feature = "strict_registry")]
         #[serde(rename = "minecraft:trim_pattern")]
         pub trim_pattern: RegistryType<TrimPatternElement>,
+        #[cfg(not(feature = "strict_registry"))]
+        #[serde(rename = "minecraft:trim_pattern")]
+        pub trim_pattern: Tag,
+
+        #[cfg(feature = "strict_registry")]
         #[serde(rename = "minecraft:damage_type")]
         pub damage_type: RegistryType<DamageTypeElement>,
+        #[cfg(not(feature = "strict_registry"))]
+        #[serde(rename = "minecraft:damage_type")]
+        pub damage_type: Tag,
     }
 
     /// A collection of values for a certain type of registry data.
@@ -188,8 +213,9 @@ pub mod registry {
     }
 
     /// Dimension attributes.
+    #[cfg(feature = "strict_registry")]
     #[derive(Debug, Clone, Serialize, Deserialize)]
-    #[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
+    #[serde(deny_unknown_fields)]
     pub struct DimensionTypeElement {
         pub ambient_light: f32,
         #[serde(with = "Convert")]
@@ -219,6 +245,14 @@ pub mod registry {
         pub respawn_anchor_works: bool,
         #[serde(with = "Convert")]
         pub ultrawarm: bool,
+    }
+
+    /// Dimension attributes.
+    #[cfg(not(feature = "strict_registry"))]
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct DimensionTypeElement {
+        pub height: u32,
+        pub min_y: i32,
     }
 
     /// The light level at which monsters can spawn.
@@ -445,41 +479,25 @@ pub mod registry {
 
 #[cfg(test)]
 mod tests {
-    use super::registry::{
-        ChatTypeElement, DamageTypeElement, DimensionTypeElement, RegistryHolder, RegistryRoot,
-        RegistryType, TrimMaterialElement, TrimPatternElement, WorldTypeElement,
-    };
+    use super::registry::{DimensionTypeElement, RegistryHolder, RegistryRoot, RegistryType};
     use azalea_core::ResourceLocation;
     use azalea_nbt::Tag;
 
     #[test]
     fn test_convert() {
+        // Do NOT use Tag::End, they should be Tag::Compound.
+        // This is just for testing.
         let registry = RegistryHolder {
             root: RegistryRoot {
-                trim_material: RegistryType::<TrimMaterialElement> {
-                    kind: ResourceLocation::new("minecraft:trim_material").unwrap(),
-                    value: Vec::new(),
-                },
-                chat_type: RegistryType::<ChatTypeElement> {
-                    kind: ResourceLocation::new("minecraft:chat_type").unwrap(),
-                    value: Vec::new(),
-                },
+                trim_material: Tag::End,
+                chat_type: Tag::End,
                 dimension_type: RegistryType::<DimensionTypeElement> {
                     kind: ResourceLocation::new("minecraft:dimension_type").unwrap(),
                     value: Vec::new(),
                 },
-                world_type: RegistryType::<WorldTypeElement> {
-                    kind: ResourceLocation::new("minecraft:worldgen/biome").unwrap(),
-                    value: Vec::new(),
-                },
-                trim_pattern: RegistryType::<TrimPatternElement> {
-                    kind: ResourceLocation::new("minecraft:trim_pattern").unwrap(),
-                    value: Vec::new(),
-                },
-                damage_type: RegistryType::<DamageTypeElement> {
-                    kind: ResourceLocation::new("minecraft:damage_type").unwrap(),
-                    value: Vec::new(),
-                },
+                world_type: Tag::End,
+                trim_pattern: Tag::End,
+                damage_type: Tag::End,
             },
         };
 
@@ -492,14 +510,6 @@ mod tests {
             .as_compound()
             .unwrap();
 
-        let chat = root
-            .get("minecraft:chat_type")
-            .unwrap()
-            .as_compound()
-            .unwrap();
-        let chat_type = chat.get("type").unwrap().as_string().unwrap();
-        assert!(chat_type == "minecraft:chat_type");
-
         let dimension = root
             .get("minecraft:dimension_type")
             .unwrap()
@@ -507,13 +517,5 @@ mod tests {
             .unwrap();
         let dimension_type = dimension.get("type").unwrap().as_string().unwrap();
         assert!(dimension_type == "minecraft:dimension_type");
-
-        let world = root
-            .get("minecraft:worldgen/biome")
-            .unwrap()
-            .as_compound()
-            .unwrap();
-        let world_type = world.get("type").unwrap().as_string().unwrap();
-        assert!(world_type == "minecraft:worldgen/biome");
     }
 }
