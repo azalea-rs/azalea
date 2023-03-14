@@ -4310,6 +4310,7 @@
   "mco.configure.world.subscription.month": "month",
   "mco.configure.world.subscription.months": "months",
   "mco.configure.world.subscription.recurring.daysleft": "Renewed automatically in",
+  "mco.configure.world.subscription.recurring.info": "Changes made to your Realms subscription such as stacking time or turning off recurring billing will not be reflected until your next bill date.",
   "mco.configure.world.subscription.start": "Start date",
   "mco.configure.world.subscription.timeleft": "Time left",
   "mco.configure.world.subscription.title": "Your subscription",
