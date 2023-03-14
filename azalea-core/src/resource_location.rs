@@ -6,9 +6,6 @@ use std::io::{Cursor, Write};
 #[cfg(feature = "serde")]
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 
-// TODO: make a `resourcelocation!("minecraft:overworld")` macro that checks if
-// it's correct at compile-time.
-
 #[derive(Hash, Clone, PartialEq, Eq)]
 pub struct ResourceLocation {
     pub namespace: String,
@@ -19,7 +16,7 @@ static DEFAULT_NAMESPACE: &str = "minecraft";
 // static REALMS_NAMESPACE: &str = "realms";
 
 impl ResourceLocation {
-    pub fn new(resource_string: &str) -> Result<ResourceLocation, BufReadError> {
+    pub fn new(resource_string: &str) -> ResourceLocation {
         let sep_byte_position_option = resource_string.chars().position(|c| c == ':');
         let (namespace, path) = if let Some(sep_byte_position) = sep_byte_position_option {
             if sep_byte_position == 0 {
@@ -33,10 +30,10 @@ impl ResourceLocation {
         } else {
             (DEFAULT_NAMESPACE, resource_string)
         };
-        Ok(ResourceLocation {
+        ResourceLocation {
             namespace: namespace.to_string(),
             path: path.to_string(),
-        })
+        }
     }
 }
 
@@ -54,7 +51,7 @@ impl std::fmt::Debug for ResourceLocation {
 impl McBufReadable for ResourceLocation {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let location_string = String::read_from(buf)?;
-        ResourceLocation::new(&location_string)
+        Ok(ResourceLocation::new(&location_string))
     }
 }
 impl McBufWritable for ResourceLocation {
@@ -81,10 +78,7 @@ impl<'de> Deserialize<'de> for ResourceLocation {
     {
         let s = String::deserialize(deserializer)?;
         if s.contains(':') {
-            match ResourceLocation::new(&s) {
-                Ok(r) => Ok(r),
-                Err(e) => Err(de::Error::custom(e)),
-            }
+            Ok(ResourceLocation::new(&s))
         } else {
             Err(de::Error::invalid_value(
                 de::Unexpected::Str(&s),
@@ -100,25 +94,25 @@ mod tests {
 
     #[test]
     fn basic_resource_location() {
-        let r = ResourceLocation::new("abcdef:ghijkl").unwrap();
+        let r = ResourceLocation::new("abcdef:ghijkl");
         assert_eq!(r.namespace, "abcdef");
         assert_eq!(r.path, "ghijkl");
     }
     #[test]
     fn no_namespace() {
-        let r = ResourceLocation::new("azalea").unwrap();
+        let r = ResourceLocation::new("azalea");
         assert_eq!(r.namespace, "minecraft");
         assert_eq!(r.path, "azalea");
     }
     #[test]
     fn colon_start() {
-        let r = ResourceLocation::new(":azalea").unwrap();
+        let r = ResourceLocation::new(":azalea");
         assert_eq!(r.namespace, "minecraft");
         assert_eq!(r.path, "azalea");
     }
     #[test]
     fn colon_end() {
-        let r = ResourceLocation::new("azalea:").unwrap();
+        let r = ResourceLocation::new("azalea:");
         assert_eq!(r.namespace, "azalea");
         assert_eq!(r.path, "");
     }
@@ -127,7 +121,6 @@ mod tests {
     fn mcbuf_resource_location() {
         let mut buf = Vec::new();
         ResourceLocation::new("minecraft:dirt")
-            .unwrap()
             .write_into(&mut buf)
             .unwrap();
 
@@ -135,7 +128,7 @@ mod tests {
 
         assert_eq!(
             ResourceLocation::read_from(&mut buf).unwrap(),
-            ResourceLocation::new("minecraft:dirt").unwrap()
+            ResourceLocation::new("minecraft:dirt")
         );
     }
 }

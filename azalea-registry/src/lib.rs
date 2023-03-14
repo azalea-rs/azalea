@@ -5,9 +5,10 @@
 // auto-generated (so you can add doc comments to the registry enums if you
 // want)
 
+use std::io::{Cursor, Write};
+
 use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
 use azalea_registry_macros::registry;
-use std::io::{Cursor, Write};
 
 pub trait Registry
 where

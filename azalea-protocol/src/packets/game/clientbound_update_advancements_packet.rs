@@ -125,7 +125,7 @@ mod tests {
         let packet = ClientboundUpdateAdvancementsPacket {
             reset: true,
             added: [(
-                ResourceLocation::new("minecraft:test").unwrap(),
+                ResourceLocation::new("minecraft:test"),
                 Advancement {
                     parent_id: None,
                     display: Some(DisplayInfo {
@@ -145,11 +145,11 @@ mod tests {
             )]
             .into_iter()
             .collect(),
-            removed: vec![ResourceLocation::new("minecraft:test2").unwrap()],
+            removed: vec![ResourceLocation::new("minecraft:test2")],
             progress: [(
-                ResourceLocation::new("minecraft:test3").unwrap(),
+                ResourceLocation::new("minecraft:test3"),
                 [(
-                    ResourceLocation::new("minecraft:test4").unwrap(),
+                    ResourceLocation::new("minecraft:test4"),
                     CriterionProgress {
                         date: Some(123456789),
                     },
@@ -171,12 +171,12 @@ mod tests {
 
         let advancement = packet
             .added
-            .get(&ResourceLocation::new("minecraft:test").unwrap())
+            .get(&ResourceLocation::new("minecraft:test"))
             .unwrap()
             .clone();
         let read_advancement = read_packet
             .added
-            .get(&ResourceLocation::new("minecraft:test").unwrap())
+            .get(&ResourceLocation::new("minecraft:test"))
             .unwrap()
             .clone();
         assert_eq!(advancement.parent_id, read_advancement.parent_id);

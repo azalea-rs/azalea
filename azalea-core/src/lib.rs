@@ -1,5 +1,6 @@
 #![doc = include_str!("../README.md")]
 #![feature(int_roundings)]
+#![feature(const_for)]
 #![allow(incomplete_features)]
 #![feature(generic_const_exprs)]
 

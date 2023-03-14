@@ -351,7 +351,7 @@ mod tests {
     fn test_gravity() {
         let mut app = make_test_app();
         let _world_lock = app.world.resource_mut::<InstanceContainer>().insert(
-            ResourceLocation::new("minecraft:overworld").unwrap(),
+            ResourceLocation::new("minecraft:overworld"),
             384,
             -64,
         );
@@ -367,7 +367,7 @@ mod tests {
                         z: 0.,
                     },
                     azalea_registry::EntityKind::Zombie,
-                    ResourceLocation::new("minecraft:overworld").unwrap(),
+                    ResourceLocation::new("minecraft:overworld"),
                 ),
                 MinecraftEntityId(0),
                 Local,
@@ -403,7 +403,7 @@ mod tests {
     fn test_collision() {
         let mut app = make_test_app();
         let world_lock = app.world.resource_mut::<InstanceContainer>().insert(
-            ResourceLocation::new("minecraft:overworld").unwrap(),
+            ResourceLocation::new("minecraft:overworld"),
             384,
             -64,
         );
@@ -425,7 +425,7 @@ mod tests {
                         z: 0.5,
                     },
                     azalea_registry::EntityKind::Player,
-                    ResourceLocation::new("minecraft:overworld").unwrap(),
+                    ResourceLocation::new("minecraft:overworld"),
                 ),
                 MinecraftEntityId(0),
                 Local,
@@ -462,7 +462,7 @@ mod tests {
     fn test_slab_collision() {
         let mut app = make_test_app();
         let world_lock = app.world.resource_mut::<InstanceContainer>().insert(
-            ResourceLocation::new("minecraft:overworld").unwrap(),
+            ResourceLocation::new("minecraft:overworld"),
             384,
             -64,
         );
@@ -484,7 +484,7 @@ mod tests {
                         z: 0.5,
                     },
                     azalea_registry::EntityKind::Player,
-                    ResourceLocation::new("minecraft:overworld").unwrap(),
+                    ResourceLocation::new("minecraft:overworld"),
                 ),
                 MinecraftEntityId(0),
                 Local,
@@ -516,7 +516,7 @@ mod tests {
     fn test_top_slab_collision() {
         let mut app = make_test_app();
         let world_lock = app.world.resource_mut::<InstanceContainer>().insert(
-            ResourceLocation::new("minecraft:overworld").unwrap(),
+            ResourceLocation::new("minecraft:overworld"),
             384,
             -64,
         );
@@ -538,7 +538,7 @@ mod tests {
                         z: 0.5,
                     },
                     azalea_registry::EntityKind::Player,
-                    ResourceLocation::new("minecraft:overworld").unwrap(),
+                    ResourceLocation::new("minecraft:overworld"),
                 ),
                 MinecraftEntityId(0),
                 Local,
@@ -569,7 +569,7 @@ mod tests {
     fn test_weird_wall_collision() {
         let mut app = make_test_app();
         let world_lock = app.world.resource_mut::<InstanceContainer>().insert(
-            ResourceLocation::new("minecraft:overworld").unwrap(),
+            ResourceLocation::new("minecraft:overworld"),
             384,
             -64,
         );
@@ -591,7 +591,7 @@ mod tests {
                         z: 0.5,
                     },
                     azalea_registry::EntityKind::Player,
-                    ResourceLocation::new("minecraft:overworld").unwrap(),
+                    ResourceLocation::new("minecraft:overworld"),
                 ),
                 MinecraftEntityId(0),
                 Local,
@@ -627,7 +627,7 @@ mod tests {
     fn test_negative_coordinates_weird_wall_collision() {
         let mut app = make_test_app();
         let world_lock = app.world.resource_mut::<InstanceContainer>().insert(
-            ResourceLocation::new("minecraft:overworld").unwrap(),
+            ResourceLocation::new("minecraft:overworld"),
             384,
             -64,
         );
@@ -649,7 +649,7 @@ mod tests {
                         z: -7.5,
                     },
                     azalea_registry::EntityKind::Player,
-                    ResourceLocation::new("minecraft:overworld").unwrap(),
+                    ResourceLocation::new("minecraft:overworld"),
                 ),
                 MinecraftEntityId(0),
                 Local,

@@ -183,9 +183,7 @@ impl McBufWritable for Recipe {
             RecipeData::Stonecutting(_) => "minecraft:stonecutting",
             RecipeData::Smithing(_) => "minecraft:smithing",
         };
-        ResourceLocation::new(resource_location)
-            .unwrap()
-            .write_into(buf)?;
+        ResourceLocation::new(resource_location).write_into(buf)?;
         self.identifier.write_into(buf)?;
         self.data.write_without_id(buf)?;
         Ok(())
