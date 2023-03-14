@@ -1,14 +1,7 @@
-use azalea_buf::McBuf;
-use azalea_core::ChunkPos;
 use azalea_protocol_macros::ClientboundGamePacket;
+use azalea_buf::McBuf;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundChunksBiomesPacket {
-    pub chunk_biome_data: Vec<ChunkBiomeData>,
-}
-
-#[derive(Clone, Debug, McBuf)]
-pub struct ChunkBiomeData {
-    pub pos: ChunkPos,
-    pub buffer: Vec<u8>,
+pub chunk_biome_data: todo!(),
 }

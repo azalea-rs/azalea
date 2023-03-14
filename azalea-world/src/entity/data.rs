@@ -1,10 +1,11 @@
 //! Define some types needed for entity metadata.
 
+use azalea_block::BlockState;
 use azalea_buf::{
     BufReadError, McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable,
 };
 use azalea_chat::FormattedText;
-use azalea_core::{BlockPos, Direction, GlobalPos, Particle, Slot, Vec3};
+use azalea_core::{BlockPos, Direction, GlobalPos, Particle, Slot};
 use bevy_ecs::component::Component;
 use derive_more::Deref;
 use enum_as_inner::EnumAsInner;
@@ -49,8 +50,6 @@ impl McBufWritable for EntityMetadataItems {
     }
 }
 
-// Note: This enum is partially generated and parsed by
-// codegen/lib/code/entity.py
 #[derive(Clone, Debug, EnumAsInner, McBuf)]
 pub enum EntityDataValue {
     Byte(u8),
@@ -67,9 +66,9 @@ pub enum EntityDataValue {
     OptionalBlockPos(Option<BlockPos>),
     Direction(Direction),
     OptionalUuid(Option<Uuid>),
-    BlockState(azalea_block::BlockState),
-    /// If this is air, that means it's absent,
-    OptionalBlockState(azalea_block::BlockState),
+    // 0 for absent (implies air); otherwise, a block state ID as per the global palette
+    // this is a varint
+    BlockState(BlockState),
     CompoundTag(azalea_nbt::Tag),
     Particle(Particle),
     VillagerData(VillagerData),
@@ -80,21 +79,10 @@ pub enum EntityDataValue {
     FrogVariant(azalea_registry::FrogVariant),
     OptionalGlobalPos(Option<GlobalPos>),
     PaintingVariant(azalea_registry::PaintingVariant),
-    SnifferState(SnifferState),
-    Vector3(Vec3),
-    Quaternion(Quaternion),
 }
 
 #[derive(Clone, Debug)]
 pub struct OptionalUnsignedInt(pub Option<u32>);
-
-#[derive(Clone, Debug, McBuf)]
-pub struct Quaternion {
-    pub x: f32,
-    pub y: f32,
-    pub z: f32,
-    pub w: f32,
-}
 
 impl McBufReadable for OptionalUnsignedInt {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
@@ -171,16 +159,4 @@ impl TryFrom<EntityMetadataItems> for Vec<EntityDataValue> {
 
         Ok(data)
     }
-}
-
-#[derive(Debug, Copy, Clone, McBuf, Default)]
-pub enum SnifferState {
-    #[default]
-    Idling,
-    FeelingHappy,
-    Scenting,
-    Sniffing,
-    Searching,
-    Digging,
-    Rising,
 }

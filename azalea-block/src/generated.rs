@@ -25,10 +25,6 @@ make_block_states! {
             _0,
             _1,
         },
-        "stage" => CherrySaplingStage {
-            _0,
-            _1,
-        },
         "stage" => DarkOakSaplingStage {
             _0,
             _1,
@@ -82,12 +78,6 @@ make_block_states! {
             _14,
             _15,
         },
-        "dusted" => SuspiciousSandDusted {
-            _0,
-            _1,
-            _2,
-            _3,
-        },
         "axis" => Axis {
             X,
             Y,
@@ -131,15 +121,6 @@ make_block_states! {
             _7,
         },
         "distance" => AcaciaLeavesDistance {
-            _1,
-            _2,
-            _3,
-            _4,
-            _5,
-            _6,
-            _7,
-        },
-        "distance" => CherryLeavesDistance {
             _1,
             _2,
             _3,
@@ -452,24 +433,6 @@ make_block_states! {
             _14,
             _15,
         },
-        "rotation" => CherrySignRotation {
-            _0,
-            _1,
-            _2,
-            _3,
-            _4,
-            _5,
-            _6,
-            _7,
-            _8,
-            _9,
-            _10,
-            _11,
-            _12,
-            _13,
-            _14,
-            _15,
-        },
         "rotation" => JungleSignRotation {
             _0,
             _1,
@@ -615,24 +578,6 @@ make_block_states! {
             _15,
         },
         "rotation" => AcaciaHangingSignRotation {
-            _0,
-            _1,
-            _2,
-            _3,
-            _4,
-            _5,
-            _6,
-            _7,
-            _8,
-            _9,
-            _10,
-            _11,
-            _12,
-            _13,
-            _14,
-            _15,
-        },
-        "rotation" => CherryHangingSignRotation {
             _0,
             _1,
             _2,
@@ -1434,11 +1379,6 @@ make_block_states! {
             _4,
             _5,
         },
-        "age" => TorchflowerCropAge {
-            _0,
-            _1,
-            _2,
-        },
         "age" => BeetrootsAge {
             _0,
             _1,
@@ -1869,12 +1809,6 @@ make_block_states! {
             _25,
         },
         "berries" => bool,
-        "flower_amount" => PinkPetalsAmount {
-            _1,
-            _2,
-            _3,
-            _4,
-        },
         "tilt" => Tilt {
             None,
             Unstable,
@@ -1910,7 +1844,6 @@ make_block_states! {
         birch_planks => BlockBehavior::default(), {},
         jungle_planks => BlockBehavior::default(), {},
         acacia_planks => BlockBehavior::default(), {},
-        cherry_planks => BlockBehavior::default(), {},
         dark_oak_planks => BlockBehavior::default(), {},
         mangrove_planks => BlockBehavior::default(), {},
         bamboo_planks => BlockBehavior::default(), {},
@@ -1930,9 +1863,6 @@ make_block_states! {
         acacia_sapling => BlockBehavior::default(), {
             stage: AcaciaSaplingStage::_0,
         },
-        cherry_sapling => BlockBehavior::default(), {
-            stage: CherrySaplingStage::_0,
-        },
         dark_oak_sapling => BlockBehavior::default(), {
             stage: DarkOakSaplingStage::_0,
         },
@@ -1950,9 +1880,6 @@ make_block_states! {
             level: LavaLevel::_0,
         },
         sand => BlockBehavior::default(), {},
-        suspicious_sand => BlockBehavior::default(), {
-            dusted: SuspiciousSandDusted::_0,
-        },
         red_sand => BlockBehavior::default(), {},
         gravel => BlockBehavior::default(), {},
         gold_ore => BlockBehavior::default(), {},
@@ -1975,9 +1902,6 @@ make_block_states! {
             axis: Axis::Y,
         },
         acacia_log => BlockBehavior::default(), {
-            axis: Axis::Y,
-        },
-        cherry_log => BlockBehavior::default(), {
             axis: Axis::Y,
         },
         dark_oak_log => BlockBehavior::default(), {
@@ -2007,9 +1931,6 @@ make_block_states! {
         stripped_acacia_log => BlockBehavior::default(), {
             axis: Axis::Y,
         },
-        stripped_cherry_log => BlockBehavior::default(), {
-            axis: Axis::Y,
-        },
         stripped_dark_oak_log => BlockBehavior::default(), {
             axis: Axis::Y,
         },
@@ -2037,9 +1958,6 @@ make_block_states! {
         acacia_wood => BlockBehavior::default(), {
             axis: Axis::Y,
         },
-        cherry_wood => BlockBehavior::default(), {
-            axis: Axis::Y,
-        },
         dark_oak_wood => BlockBehavior::default(), {
             axis: Axis::Y,
         },
@@ -2059,9 +1977,6 @@ make_block_states! {
             axis: Axis::Y,
         },
         stripped_acacia_wood => BlockBehavior::default(), {
-            axis: Axis::Y,
-        },
-        stripped_cherry_wood => BlockBehavior::default(), {
             axis: Axis::Y,
         },
         stripped_dark_oak_wood => BlockBehavior::default(), {
@@ -2092,11 +2007,6 @@ make_block_states! {
         },
         acacia_leaves => BlockBehavior::default(), {
             distance: AcaciaLeavesDistance::_7,
-            persistent: false,
-            waterlogged: false,
-        },
-        cherry_leaves => BlockBehavior::default(), {
-            distance: CherryLeavesDistance::_7,
             persistent: false,
             waterlogged: false,
         },
@@ -2270,7 +2180,6 @@ make_block_states! {
             facing: FacingCubic::North,
         },
         dandelion => BlockBehavior::default(), {},
-        torchflower => BlockBehavior::default(), {},
         poppy => BlockBehavior::default(), {},
         blue_orchid => BlockBehavior::default(), {},
         allium => BlockBehavior::default(), {},
@@ -2365,10 +2274,6 @@ make_block_states! {
             rotation: AcaciaSignRotation::_0,
             waterlogged: false,
         },
-        cherry_sign => BlockBehavior::default(), {
-            rotation: CherrySignRotation::_0,
-            waterlogged: false,
-        },
         jungle_sign => BlockBehavior::default(), {
             rotation: JungleSignRotation::_0,
             waterlogged: false,
@@ -2422,10 +2327,6 @@ make_block_states! {
             facing: FacingCardinal::North,
             waterlogged: false,
         },
-        cherry_wall_sign => BlockBehavior::default(), {
-            facing: FacingCardinal::North,
-            waterlogged: false,
-        },
         jungle_wall_sign => BlockBehavior::default(), {
             facing: FacingCardinal::North,
             waterlogged: false,
@@ -2460,11 +2361,6 @@ make_block_states! {
         acacia_hanging_sign => BlockBehavior::default(), {
             attached: false,
             rotation: AcaciaHangingSignRotation::_0,
-            waterlogged: false,
-        },
-        cherry_hanging_sign => BlockBehavior::default(), {
-            attached: false,
-            rotation: CherryHangingSignRotation::_0,
             waterlogged: false,
         },
         jungle_hanging_sign => BlockBehavior::default(), {
@@ -2510,10 +2406,6 @@ make_block_states! {
             waterlogged: false,
         },
         acacia_wall_hanging_sign => BlockBehavior::default(), {
-            facing: FacingCardinal::North,
-            waterlogged: false,
-        },
-        cherry_wall_hanging_sign => BlockBehavior::default(), {
             facing: FacingCardinal::North,
             waterlogged: false,
         },
@@ -2569,9 +2461,6 @@ make_block_states! {
             powered: false,
         },
         acacia_pressure_plate => BlockBehavior::default(), {
-            powered: false,
-        },
-        cherry_pressure_plate => BlockBehavior::default(), {
             powered: false,
         },
         dark_oak_pressure_plate => BlockBehavior::default(), {
@@ -2701,13 +2590,6 @@ make_block_states! {
             waterlogged: false,
         },
         acacia_trapdoor => BlockBehavior::default(), {
-            facing: FacingCardinal::North,
-            half: TopBottom::Bottom,
-            open: false,
-            powered: false,
-            waterlogged: false,
-        },
-        cherry_trapdoor => BlockBehavior::default(), {
             facing: FacingCardinal::North,
             half: TopBottom::Bottom,
             open: false,
@@ -2958,13 +2840,11 @@ make_block_states! {
             west: WestWall::None,
         },
         flower_pot => BlockBehavior::default(), {},
-        potted_torchflower => BlockBehavior::default(), {},
         potted_oak_sapling => BlockBehavior::default(), {},
         potted_spruce_sapling => BlockBehavior::default(), {},
         potted_birch_sapling => BlockBehavior::default(), {},
         potted_jungle_sapling => BlockBehavior::default(), {},
         potted_acacia_sapling => BlockBehavior::default(), {},
-        potted_cherry_sapling => BlockBehavior::default(), {},
         potted_dark_oak_sapling => BlockBehavior::default(), {},
         potted_mangrove_propagule => BlockBehavior::default(), {},
         potted_fern => BlockBehavior::default(), {},
@@ -3012,11 +2892,6 @@ make_block_states! {
             powered: false,
         },
         acacia_button => BlockBehavior::default(), {
-            face: Face::Wall,
-            facing: FacingCardinal::North,
-            powered: false,
-        },
-        cherry_button => BlockBehavior::default(), {
             face: Face::Wall,
             facing: FacingCardinal::North,
             powered: false,
@@ -3267,12 +3142,6 @@ make_block_states! {
             shape: StairShape::Straight,
             waterlogged: false,
         },
-        cherry_stairs => BlockBehavior::default(), {
-            facing: FacingCardinal::North,
-            half: TopBottom::Bottom,
-            shape: StairShape::Straight,
-            waterlogged: false,
-        },
         dark_oak_stairs => BlockBehavior::default(), {
             facing: FacingCardinal::North,
             half: TopBottom::Bottom,
@@ -3509,10 +3378,6 @@ make_block_states! {
             kind: Type::Bottom,
             waterlogged: false,
         },
-        cherry_slab => BlockBehavior::default(), {
-            kind: Type::Bottom,
-            waterlogged: false,
-        },
         dark_oak_slab => BlockBehavior::default(), {
             kind: Type::Bottom,
             waterlogged: false,
@@ -3613,12 +3478,6 @@ make_block_states! {
             open: false,
             powered: false,
         },
-        cherry_fence_gate => BlockBehavior::default(), {
-            facing: FacingCardinal::North,
-            in_wall: false,
-            open: false,
-            powered: false,
-        },
         dark_oak_fence_gate => BlockBehavior::default(), {
             facing: FacingCardinal::North,
             in_wall: false,
@@ -3659,13 +3518,6 @@ make_block_states! {
             west: false,
         },
         acacia_fence => BlockBehavior::default(), {
-            east: false,
-            north: false,
-            south: false,
-            waterlogged: false,
-            west: false,
-        },
-        cherry_fence => BlockBehavior::default(), {
             east: false,
             north: false,
             south: false,
@@ -3721,13 +3573,6 @@ make_block_states! {
             open: false,
             powered: false,
         },
-        cherry_door => BlockBehavior::default(), {
-            facing: FacingCardinal::North,
-            half: Half::Lower,
-            hinge: Hinge::Left,
-            open: false,
-            powered: false,
-        },
         dark_oak_door => BlockBehavior::default(), {
             facing: FacingCardinal::North,
             half: Half::Lower,
@@ -3774,9 +3619,6 @@ make_block_states! {
             waterlogged: false,
         },
         end_stone_bricks => BlockBehavior::default(), {},
-        torchflower_crop => BlockBehavior::default(), {
-            age: TorchflowerCropAge::_0,
-        },
         beetroots => BlockBehavior::default(), {
             age: BeetrootsAge::_0,
         },
@@ -4931,10 +4773,6 @@ make_block_states! {
         azalea => BlockBehavior::default(), {},
         flowering_azalea => BlockBehavior::default(), {},
         moss_carpet => BlockBehavior::default(), {},
-        pink_petals => BlockBehavior::default(), {
-            facing: FacingCardinal::North,
-            flower_amount: PinkPetalsAmount::_1,
-        },
         moss_block => BlockBehavior::default(), {},
         big_dripleaf => BlockBehavior::default(), {
             facing: FacingCardinal::North,
@@ -5057,9 +4895,5 @@ make_block_states! {
         },
         frogspawn => BlockBehavior::default(), {},
         reinforced_deepslate => BlockBehavior::default(), {},
-        decorated_pot => BlockBehavior::default(), {
-            facing: FacingCardinal::North,
-            waterlogged: false,
-        },
     }
 }

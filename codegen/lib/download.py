@@ -177,11 +177,7 @@ def clear_version_cache():
         if os.path.exists(get_dir_location(f'downloads/{file}')):
             os.remove(get_dir_location(f'downloads/{file}'))
 
-    burger_path = get_dir_location("downloads/Burger")
-    if os.path.exists(burger_path):
-        os.system(
-            f'cd {burger_path} && git pull')
-    pixlyzer_path = get_dir_location('downloads/pixlyzer')
-    if os.path.exists(pixlyzer_path):
-        os.system(
-            f'cd {pixlyzer_path} && git pull')
+    os.system(
+        f'cd {get_dir_location("downloads/Burger")} && git pull')
+    os.system(
+        f'cd {get_dir_location("downloads/pixlyzer")} && git pull')

@@ -56,7 +56,7 @@ pub async fn resolve_address(address: &ServerAddress) -> Result<SocketAddr, Reso
             return Ok(SocketAddr::new(
                 lookup_ip.iter().next().unwrap(),
                 redirect_address.port,
-            ));
+            ))
         }
 
         // debug!("redirecting to {:?}", redirect_address);

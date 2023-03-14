@@ -117,7 +117,7 @@ def get_pixlyzer_data(version_id: str, category: str):
 
     # TODO: right now this False is hard-coded, it should retry with this
     # enabled if # initially getting the data fails
-    if True or (os.path.exists(target_dir) and not os.path.exists(f'{target_dir}/{category}.min.json')):
+    if False or (os.path.exists(target_dir) and not os.path.exists(f'{target_dir}/{category}.min.json')):
         print('Downloading', category, 'from pixlyzer-data.')
         data = requests.get(f'https://gitlab.com/Bixilon/pixlyzer-data/-/raw/master/version/{version_id}/{category}.min.json?inline=false').text
         try:
@@ -219,8 +219,6 @@ def get_pixlyzer_data(version_id: str, category: str):
         pom_xml = open(f'{pixlyzer_dir}/pom.xml', 'r').read()
         pom_xml = re.sub(
             '<dependencies>.*?</dependencies>', f'<dependencies>{pom_xml_dependencies}</dependencies>', pom_xml, flags=re.DOTALL)
-        pom_xml = re.sub(
-            '<minecraft\.version>.*?</minecraft\.version>', f'<minecraft.version>{version_id}</minecraft.version>', pom_xml, flags=re.DOTALL)
         open(f'{pixlyzer_dir}/pom.xml', 'w').write(pom_xml)
 
         # compile

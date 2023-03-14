@@ -150,7 +150,7 @@ impl BlockPos {
 
 /// Chunk coordinates are used to represent where a chunk is in the world. You
 /// can convert the x and z to block coordinates by multiplying them by 16.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, McBuf)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 pub struct ChunkPos {
     pub x: i32,
     pub z: i32,

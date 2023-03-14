@@ -36,6 +36,10 @@ pub struct ClientboundStatusResponsePacket {
     pub version: Version,
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "previewsChat")]
+    pub previews_chat: Option<bool>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "enforcesSecureChat")]
     pub enforces_secure_chat: Option<bool>,
 }

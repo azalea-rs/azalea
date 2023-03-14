@@ -404,10 +404,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             &to_pascal_case(&block.name.to_string()),
             proc_macro2::Span::call_site(),
         );
-        let block_struct_name = Ident::new(
-            &block_name_pascal_case.to_string(),
-            proc_macro2::Span::call_site(),
-        );
+        let block_struct_name = Ident::new(&block_name_pascal_case.to_string(), proc_macro2::Span::call_site());
 
         let mut from_block_to_state_match_inner = quote! {};
 
