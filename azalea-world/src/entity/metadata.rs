@@ -3,10 +3,12 @@
 // This file is generated from codegen/lib/code/entity.py.
 // Don't change it manually!
 
-use super::{EntityDataItem, EntityDataValue, OptionalUnsignedInt, Pose, Rotations, VillagerData};
-use azalea_block::BlockState;
+use super::{
+    EntityDataItem, EntityDataValue, OptionalUnsignedInt, Pose, Quaternion, Rotations,
+    SnifferState, VillagerData,
+};
 use azalea_chat::FormattedText;
-use azalea_core::{BlockPos, Direction, Particle};
+use azalea_core::{BlockPos, Direction, Particle, Vec3};
 use azalea_inventory::ItemSlot;
 use bevy_ecs::{bundle::Bundle, component::Component};
 use derive_more::{Deref, DerefMut};
@@ -759,6 +761,180 @@ impl Default for BlazeMetadataBundle {
 }
 
 #[derive(Component, Deref, DerefMut, Clone)]
+pub struct BlockDisplayInterpolationStartDeltaTicks(pub i32);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct BlockDisplayInterpolationDuration(pub i32);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct BlockDisplayTranslation(pub Vec3);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct BlockDisplayScale(pub Vec3);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct BlockDisplayLeftRotation(pub Quaternion);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct BlockDisplayRightRotation(pub Quaternion);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct BlockDisplayBillboardRenderConstraints(pub u8);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct BlockDisplayBrightnessOverride(pub i32);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct BlockDisplayViewRange(pub f32);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct BlockDisplayShadowRadius(pub f32);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct BlockDisplayShadowStrength(pub f32);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct BlockDisplayWidth(pub f32);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct BlockDisplayHeight(pub f32);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct BlockDisplayGlowColorOverride(pub i32);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct BlockState(pub azalea_block::BlockState);
+#[derive(Component)]
+pub struct BlockDisplay;
+impl BlockDisplay {
+    pub fn apply_metadata(
+        entity: &mut bevy_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
+            8 => {
+                entity.insert(BlockDisplayInterpolationStartDeltaTicks(
+                    d.value.into_int()?,
+                ));
+            }
+            9 => {
+                entity.insert(BlockDisplayInterpolationDuration(d.value.into_int()?));
+            }
+            10 => {
+                entity.insert(BlockDisplayTranslation(d.value.into_vector3()?));
+            }
+            11 => {
+                entity.insert(BlockDisplayScale(d.value.into_vector3()?));
+            }
+            12 => {
+                entity.insert(BlockDisplayLeftRotation(d.value.into_quaternion()?));
+            }
+            13 => {
+                entity.insert(BlockDisplayRightRotation(d.value.into_quaternion()?));
+            }
+            14 => {
+                entity.insert(BlockDisplayBillboardRenderConstraints(d.value.into_byte()?));
+            }
+            15 => {
+                entity.insert(BlockDisplayBrightnessOverride(d.value.into_int()?));
+            }
+            16 => {
+                entity.insert(BlockDisplayViewRange(d.value.into_float()?));
+            }
+            17 => {
+                entity.insert(BlockDisplayShadowRadius(d.value.into_float()?));
+            }
+            18 => {
+                entity.insert(BlockDisplayShadowStrength(d.value.into_float()?));
+            }
+            19 => {
+                entity.insert(BlockDisplayWidth(d.value.into_float()?));
+            }
+            20 => {
+                entity.insert(BlockDisplayHeight(d.value.into_float()?));
+            }
+            21 => {
+                entity.insert(BlockDisplayGlowColorOverride(d.value.into_int()?));
+            }
+            22 => {
+                entity.insert(BlockState(d.value.into_block_state()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct BlockDisplayMetadataBundle {
+    _marker: BlockDisplay,
+    parent: AbstractEntityMetadataBundle,
+    block_display_interpolation_start_delta_ticks: BlockDisplayInterpolationStartDeltaTicks,
+    block_display_interpolation_duration: BlockDisplayInterpolationDuration,
+    block_display_translation: BlockDisplayTranslation,
+    block_display_scale: BlockDisplayScale,
+    block_display_left_rotation: BlockDisplayLeftRotation,
+    block_display_right_rotation: BlockDisplayRightRotation,
+    block_display_billboard_render_constraints: BlockDisplayBillboardRenderConstraints,
+    block_display_brightness_override: BlockDisplayBrightnessOverride,
+    block_display_view_range: BlockDisplayViewRange,
+    block_display_shadow_radius: BlockDisplayShadowRadius,
+    block_display_shadow_strength: BlockDisplayShadowStrength,
+    block_display_width: BlockDisplayWidth,
+    block_display_height: BlockDisplayHeight,
+    block_display_glow_color_override: BlockDisplayGlowColorOverride,
+    block_state: BlockState,
+}
+impl Default for BlockDisplayMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: BlockDisplay,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
+            block_display_interpolation_start_delta_ticks: BlockDisplayInterpolationStartDeltaTicks(
+                0,
+            ),
+            block_display_interpolation_duration: BlockDisplayInterpolationDuration(0),
+            block_display_translation: BlockDisplayTranslation(Vec3 {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            }),
+            block_display_scale: BlockDisplayScale(Vec3 {
+                x: 1.0,
+                y: 1.0,
+                z: 1.0,
+            }),
+            block_display_left_rotation: BlockDisplayLeftRotation(Quaternion {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+                w: 1.0,
+            }),
+            block_display_right_rotation: BlockDisplayRightRotation(Quaternion {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+                w: 1.0,
+            }),
+            block_display_billboard_render_constraints: BlockDisplayBillboardRenderConstraints(
+                Default::default(),
+            ),
+            block_display_brightness_override: BlockDisplayBrightnessOverride(-1),
+            block_display_view_range: BlockDisplayViewRange(1.0),
+            block_display_shadow_radius: BlockDisplayShadowRadius(0.0),
+            block_display_shadow_strength: BlockDisplayShadowStrength(1.0),
+            block_display_width: BlockDisplayWidth(0.0),
+            block_display_height: BlockDisplayHeight(0.0),
+            block_display_glow_color_override: BlockDisplayGlowColorOverride(-1),
+            block_state: BlockState(Default::default()),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut, Clone)]
 pub struct BoatHurt(pub i32);
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct BoatHurtdir(pub i32);
@@ -863,8 +1039,6 @@ pub struct CamelBred(pub bool);
 #[derive(Component, Deref, DerefMut, Clone, Copy)]
 pub struct CamelSaddled(pub bool);
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct CamelOwnerUuid(pub Option<Uuid>);
-#[derive(Component, Deref, DerefMut, Clone)]
 pub struct Dash(pub bool);
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct LastPoseChangeTick(pub i64);
@@ -886,12 +1060,9 @@ impl Camel {
                 entity.insert(CamelSaddled(bitfield & 0x4 != 0));
             }
             18 => {
-                entity.insert(CamelOwnerUuid(d.value.into_optional_uuid()?));
-            }
-            19 => {
                 entity.insert(Dash(d.value.into_boolean()?));
             }
-            20 => {
+            19 => {
                 entity.insert(LastPoseChangeTick(d.value.into_long()?));
             }
             _ => {}
@@ -909,7 +1080,6 @@ pub struct CamelMetadataBundle {
     camel_standing: CamelStanding,
     camel_bred: CamelBred,
     camel_saddled: CamelSaddled,
-    camel_owner_uuid: CamelOwnerUuid,
     dash: Dash,
     last_pose_change_tick: LastPoseChangeTick,
 }
@@ -966,9 +1136,8 @@ impl Default for CamelMetadataBundle {
             camel_standing: CamelStanding(false),
             camel_bred: CamelBred(false),
             camel_saddled: CamelSaddled(false),
-            camel_owner_uuid: CamelOwnerUuid(None),
             dash: Dash(false),
-            last_pose_change_tick: LastPoseChangeTick(-52),
+            last_pose_change_tick: LastPoseChangeTick(0),
         }
     }
 }
@@ -1750,8 +1919,6 @@ pub struct DonkeyBred(pub bool);
 #[derive(Component, Deref, DerefMut, Clone, Copy)]
 pub struct DonkeySaddled(pub bool);
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct DonkeyOwnerUuid(pub Option<Uuid>);
-#[derive(Component, Deref, DerefMut, Clone)]
 pub struct DonkeyChest(pub bool);
 #[derive(Component)]
 pub struct Donkey;
@@ -1771,9 +1938,6 @@ impl Donkey {
                 entity.insert(DonkeySaddled(bitfield & 0x4 != 0));
             }
             18 => {
-                entity.insert(DonkeyOwnerUuid(d.value.into_optional_uuid()?));
-            }
-            19 => {
                 entity.insert(DonkeyChest(d.value.into_boolean()?));
             }
             _ => {}
@@ -1791,7 +1955,6 @@ pub struct DonkeyMetadataBundle {
     donkey_standing: DonkeyStanding,
     donkey_bred: DonkeyBred,
     donkey_saddled: DonkeySaddled,
-    donkey_owner_uuid: DonkeyOwnerUuid,
     donkey_chest: DonkeyChest,
 }
 impl Default for DonkeyMetadataBundle {
@@ -1847,7 +2010,6 @@ impl Default for DonkeyMetadataBundle {
             donkey_standing: DonkeyStanding(false),
             donkey_bred: DonkeyBred(false),
             donkey_saddled: DonkeySaddled(false),
-            donkey_owner_uuid: DonkeyOwnerUuid(None),
             donkey_chest: DonkeyChest(false),
         }
     }
@@ -2288,7 +2450,7 @@ impl Default for EnderPearlMetadataBundle {
 }
 
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct CarryState(pub BlockState);
+pub struct CarryState(pub azalea_block::BlockState);
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct Creepy(pub bool);
 #[derive(Component, Deref, DerefMut, Clone)]
@@ -2303,7 +2465,7 @@ impl Enderman {
         match d.index {
             0..=15 => AbstractMonster::apply_metadata(entity, d)?,
             16 => {
-                entity.insert(CarryState(d.value.into_block_state()?));
+                entity.insert(CarryState(d.value.into_optional_block_state()?));
             }
             17 => {
                 entity.insert(Creepy(d.value.into_boolean()?));
@@ -2369,7 +2531,7 @@ impl Default for EndermanMetadataBundle {
                     },
                 },
             },
-            carry_state: CarryState(BlockState::AIR),
+            carry_state: CarryState(azalea_block::BlockState::AIR),
             creepy: Creepy(false),
             stared_at: StaredAt(false),
         }
@@ -3803,8 +3965,6 @@ pub struct HorseBred(pub bool);
 #[derive(Component, Deref, DerefMut, Clone, Copy)]
 pub struct HorseSaddled(pub bool);
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct HorseOwnerUuid(pub Option<Uuid>);
-#[derive(Component, Deref, DerefMut, Clone)]
 pub struct HorseTypeVariant(pub i32);
 #[derive(Component)]
 pub struct Horse;
@@ -3824,9 +3984,6 @@ impl Horse {
                 entity.insert(HorseSaddled(bitfield & 0x4 != 0));
             }
             18 => {
-                entity.insert(HorseOwnerUuid(d.value.into_optional_uuid()?));
-            }
-            19 => {
                 entity.insert(HorseTypeVariant(d.value.into_int()?));
             }
             _ => {}
@@ -3844,7 +4001,6 @@ pub struct HorseMetadataBundle {
     horse_standing: HorseStanding,
     horse_bred: HorseBred,
     horse_saddled: HorseSaddled,
-    horse_owner_uuid: HorseOwnerUuid,
     horse_type_variant: HorseTypeVariant,
 }
 impl Default for HorseMetadataBundle {
@@ -3900,7 +4056,6 @@ impl Default for HorseMetadataBundle {
             horse_standing: HorseStanding(false),
             horse_bred: HorseBred(false),
             horse_saddled: HorseSaddled(false),
-            horse_owner_uuid: HorseOwnerUuid(None),
             horse_type_variant: HorseTypeVariant(0),
         }
     }
@@ -4062,6 +4217,72 @@ impl Default for IllusionerMetadataBundle {
     }
 }
 
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct InteractionWidth(pub f32);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct InteractionHeight(pub f32);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct Response(pub bool);
+#[derive(Component)]
+pub struct Interaction;
+impl Interaction {
+    pub fn apply_metadata(
+        entity: &mut bevy_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
+            8 => {
+                entity.insert(InteractionWidth(d.value.into_float()?));
+            }
+            9 => {
+                entity.insert(InteractionHeight(d.value.into_float()?));
+            }
+            10 => {
+                entity.insert(Response(d.value.into_boolean()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct InteractionMetadataBundle {
+    _marker: Interaction,
+    parent: AbstractEntityMetadataBundle,
+    interaction_width: InteractionWidth,
+    interaction_height: InteractionHeight,
+    response: Response,
+}
+impl Default for InteractionMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Interaction,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
+            interaction_width: InteractionWidth(1.0),
+            interaction_height: InteractionHeight(1.0),
+            response: Response(false),
+        }
+    }
+}
+
 #[derive(Component, Deref, DerefMut, Clone, Copy)]
 pub struct PlayerCreated(pub bool);
 #[derive(Component)]
@@ -4183,6 +4404,185 @@ impl Default for ItemMetadataBundle {
                 ticks_frozen: TicksFrozen(0),
             },
             item_item: ItemItem(ItemSlot::Empty),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct ItemDisplayInterpolationStartDeltaTicks(pub i32);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct ItemDisplayInterpolationDuration(pub i32);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct ItemDisplayTranslation(pub Vec3);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct ItemDisplayScale(pub Vec3);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct ItemDisplayLeftRotation(pub Quaternion);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct ItemDisplayRightRotation(pub Quaternion);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct ItemDisplayBillboardRenderConstraints(pub u8);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct ItemDisplayBrightnessOverride(pub i32);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct ItemDisplayViewRange(pub f32);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct ItemDisplayShadowRadius(pub f32);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct ItemDisplayShadowStrength(pub f32);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct ItemDisplayWidth(pub f32);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct ItemDisplayHeight(pub f32);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct ItemDisplayGlowColorOverride(pub i32);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct ItemDisplayItemStack(pub ItemSlot);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct ItemDisplayItemDisplay(pub u8);
+#[derive(Component)]
+pub struct ItemDisplay;
+impl ItemDisplay {
+    pub fn apply_metadata(
+        entity: &mut bevy_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
+            8 => {
+                entity.insert(ItemDisplayInterpolationStartDeltaTicks(d.value.into_int()?));
+            }
+            9 => {
+                entity.insert(ItemDisplayInterpolationDuration(d.value.into_int()?));
+            }
+            10 => {
+                entity.insert(ItemDisplayTranslation(d.value.into_vector3()?));
+            }
+            11 => {
+                entity.insert(ItemDisplayScale(d.value.into_vector3()?));
+            }
+            12 => {
+                entity.insert(ItemDisplayLeftRotation(d.value.into_quaternion()?));
+            }
+            13 => {
+                entity.insert(ItemDisplayRightRotation(d.value.into_quaternion()?));
+            }
+            14 => {
+                entity.insert(ItemDisplayBillboardRenderConstraints(d.value.into_byte()?));
+            }
+            15 => {
+                entity.insert(ItemDisplayBrightnessOverride(d.value.into_int()?));
+            }
+            16 => {
+                entity.insert(ItemDisplayViewRange(d.value.into_float()?));
+            }
+            17 => {
+                entity.insert(ItemDisplayShadowRadius(d.value.into_float()?));
+            }
+            18 => {
+                entity.insert(ItemDisplayShadowStrength(d.value.into_float()?));
+            }
+            19 => {
+                entity.insert(ItemDisplayWidth(d.value.into_float()?));
+            }
+            20 => {
+                entity.insert(ItemDisplayHeight(d.value.into_float()?));
+            }
+            21 => {
+                entity.insert(ItemDisplayGlowColorOverride(d.value.into_int()?));
+            }
+            22 => {
+                entity.insert(ItemDisplayItemStack(d.value.into_item_stack()?));
+            }
+            23 => {
+                entity.insert(ItemDisplayItemDisplay(d.value.into_byte()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct ItemDisplayMetadataBundle {
+    _marker: ItemDisplay,
+    parent: AbstractEntityMetadataBundle,
+    item_display_interpolation_start_delta_ticks: ItemDisplayInterpolationStartDeltaTicks,
+    item_display_interpolation_duration: ItemDisplayInterpolationDuration,
+    item_display_translation: ItemDisplayTranslation,
+    item_display_scale: ItemDisplayScale,
+    item_display_left_rotation: ItemDisplayLeftRotation,
+    item_display_right_rotation: ItemDisplayRightRotation,
+    item_display_billboard_render_constraints: ItemDisplayBillboardRenderConstraints,
+    item_display_brightness_override: ItemDisplayBrightnessOverride,
+    item_display_view_range: ItemDisplayViewRange,
+    item_display_shadow_radius: ItemDisplayShadowRadius,
+    item_display_shadow_strength: ItemDisplayShadowStrength,
+    item_display_width: ItemDisplayWidth,
+    item_display_height: ItemDisplayHeight,
+    item_display_glow_color_override: ItemDisplayGlowColorOverride,
+    item_display_item_stack: ItemDisplayItemStack,
+    item_display_item_display: ItemDisplayItemDisplay,
+}
+impl Default for ItemDisplayMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: ItemDisplay,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
+            item_display_interpolation_start_delta_ticks: ItemDisplayInterpolationStartDeltaTicks(
+                0,
+            ),
+            item_display_interpolation_duration: ItemDisplayInterpolationDuration(0),
+            item_display_translation: ItemDisplayTranslation(Vec3 {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            }),
+            item_display_scale: ItemDisplayScale(Vec3 {
+                x: 1.0,
+                y: 1.0,
+                z: 1.0,
+            }),
+            item_display_left_rotation: ItemDisplayLeftRotation(Quaternion {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+                w: 1.0,
+            }),
+            item_display_right_rotation: ItemDisplayRightRotation(Quaternion {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+                w: 1.0,
+            }),
+            item_display_billboard_render_constraints: ItemDisplayBillboardRenderConstraints(
+                Default::default(),
+            ),
+            item_display_brightness_override: ItemDisplayBrightnessOverride(-1),
+            item_display_view_range: ItemDisplayViewRange(1.0),
+            item_display_shadow_radius: ItemDisplayShadowRadius(0.0),
+            item_display_shadow_strength: ItemDisplayShadowStrength(1.0),
+            item_display_width: ItemDisplayWidth(0.0),
+            item_display_height: ItemDisplayHeight(0.0),
+            item_display_glow_color_override: ItemDisplayGlowColorOverride(-1),
+            item_display_item_stack: ItemDisplayItemStack(ItemSlot::Empty),
+            item_display_item_display: ItemDisplayItemDisplay(Default::default()),
         }
     }
 }
@@ -4343,8 +4743,6 @@ pub struct LlamaBred(pub bool);
 #[derive(Component, Deref, DerefMut, Clone, Copy)]
 pub struct LlamaSaddled(pub bool);
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct LlamaOwnerUuid(pub Option<Uuid>);
-#[derive(Component, Deref, DerefMut, Clone)]
 pub struct LlamaChest(pub bool);
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct Strength(pub i32);
@@ -4370,18 +4768,15 @@ impl Llama {
                 entity.insert(LlamaSaddled(bitfield & 0x4 != 0));
             }
             18 => {
-                entity.insert(LlamaOwnerUuid(d.value.into_optional_uuid()?));
-            }
-            19 => {
                 entity.insert(LlamaChest(d.value.into_boolean()?));
             }
-            20 => {
+            19 => {
                 entity.insert(Strength(d.value.into_int()?));
             }
-            21 => {
+            20 => {
                 entity.insert(Swag(d.value.into_int()?));
             }
-            22 => {
+            21 => {
                 entity.insert(LlamaVariant(d.value.into_int()?));
             }
             _ => {}
@@ -4399,7 +4794,6 @@ pub struct LlamaMetadataBundle {
     llama_standing: LlamaStanding,
     llama_bred: LlamaBred,
     llama_saddled: LlamaSaddled,
-    llama_owner_uuid: LlamaOwnerUuid,
     llama_chest: LlamaChest,
     strength: Strength,
     swag: Swag,
@@ -4458,7 +4852,6 @@ impl Default for LlamaMetadataBundle {
             llama_standing: LlamaStanding(false),
             llama_bred: LlamaBred(false),
             llama_saddled: LlamaSaddled(false),
-            llama_owner_uuid: LlamaOwnerUuid(None),
             llama_chest: LlamaChest(false),
             strength: Strength(0),
             swag: Swag(-1),
@@ -4772,8 +5165,6 @@ pub struct MuleBred(pub bool);
 #[derive(Component, Deref, DerefMut, Clone, Copy)]
 pub struct MuleSaddled(pub bool);
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct MuleOwnerUuid(pub Option<Uuid>);
-#[derive(Component, Deref, DerefMut, Clone)]
 pub struct MuleChest(pub bool);
 #[derive(Component)]
 pub struct Mule;
@@ -4793,9 +5184,6 @@ impl Mule {
                 entity.insert(MuleSaddled(bitfield & 0x4 != 0));
             }
             18 => {
-                entity.insert(MuleOwnerUuid(d.value.into_optional_uuid()?));
-            }
-            19 => {
                 entity.insert(MuleChest(d.value.into_boolean()?));
             }
             _ => {}
@@ -4813,7 +5201,6 @@ pub struct MuleMetadataBundle {
     mule_standing: MuleStanding,
     mule_bred: MuleBred,
     mule_saddled: MuleSaddled,
-    mule_owner_uuid: MuleOwnerUuid,
     mule_chest: MuleChest,
 }
 impl Default for MuleMetadataBundle {
@@ -4869,7 +5256,6 @@ impl Default for MuleMetadataBundle {
             mule_standing: MuleStanding(false),
             mule_bred: MuleBred(false),
             mule_saddled: MuleSaddled(false),
-            mule_owner_uuid: MuleOwnerUuid(None),
             mule_chest: MuleChest(false),
         }
     }
@@ -6527,8 +6913,6 @@ pub struct SkeletonHorseStanding(pub bool);
 pub struct SkeletonHorseBred(pub bool);
 #[derive(Component, Deref, DerefMut, Clone, Copy)]
 pub struct SkeletonHorseSaddled(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
-pub struct SkeletonHorseOwnerUuid(pub Option<Uuid>);
 #[derive(Component)]
 pub struct SkeletonHorse;
 impl SkeletonHorse {
@@ -6546,9 +6930,6 @@ impl SkeletonHorse {
                 entity.insert(SkeletonHorseBred(bitfield & 0x8 != 0));
                 entity.insert(SkeletonHorseSaddled(bitfield & 0x4 != 0));
             }
-            18 => {
-                entity.insert(SkeletonHorseOwnerUuid(d.value.into_optional_uuid()?));
-            }
             _ => {}
         }
         Ok(())
@@ -6564,7 +6945,6 @@ pub struct SkeletonHorseMetadataBundle {
     skeleton_horse_standing: SkeletonHorseStanding,
     skeleton_horse_bred: SkeletonHorseBred,
     skeleton_horse_saddled: SkeletonHorseSaddled,
-    skeleton_horse_owner_uuid: SkeletonHorseOwnerUuid,
 }
 impl Default for SkeletonHorseMetadataBundle {
     fn default() -> Self {
@@ -6619,7 +6999,6 @@ impl Default for SkeletonHorseMetadataBundle {
             skeleton_horse_standing: SkeletonHorseStanding(false),
             skeleton_horse_bred: SkeletonHorseBred(false),
             skeleton_horse_saddled: SkeletonHorseSaddled(false),
-            skeleton_horse_owner_uuid: SkeletonHorseOwnerUuid(None),
         }
     }
 }
@@ -6739,6 +7118,92 @@ impl Default for SmallFireballMetadataBundle {
                 ticks_frozen: TicksFrozen(0),
             },
             small_fireball_item_stack: SmallFireballItemStack(ItemSlot::Empty),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct State(pub SnifferState);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct DropSeedAtTick(pub i32);
+#[derive(Component)]
+pub struct Sniffer;
+impl Sniffer {
+    pub fn apply_metadata(
+        entity: &mut bevy_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
+            17 => {
+                entity.insert(State(d.value.into_sniffer_state()?));
+            }
+            18 => {
+                entity.insert(DropSeedAtTick(d.value.into_int()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct SnifferMetadataBundle {
+    _marker: Sniffer,
+    parent: AbstractAnimalMetadataBundle,
+    state: State,
+    drop_seed_at_tick: DropSeedAtTick,
+}
+impl Default for SnifferMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Sniffer,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
+            state: State(Default::default()),
+            drop_seed_at_tick: DropSeedAtTick(Default::default()),
         }
     }
 }
@@ -7365,6 +7830,206 @@ impl Default for TadpoleMetadataBundle {
 }
 
 #[derive(Component, Deref, DerefMut, Clone)]
+pub struct TextDisplayInterpolationStartDeltaTicks(pub i32);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct TextDisplayInterpolationDuration(pub i32);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct TextDisplayTranslation(pub Vec3);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct TextDisplayScale(pub Vec3);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct TextDisplayLeftRotation(pub Quaternion);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct TextDisplayRightRotation(pub Quaternion);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct TextDisplayBillboardRenderConstraints(pub u8);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct TextDisplayBrightnessOverride(pub i32);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct TextDisplayViewRange(pub f32);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct TextDisplayShadowRadius(pub f32);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct TextDisplayShadowStrength(pub f32);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct TextDisplayWidth(pub f32);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct TextDisplayHeight(pub f32);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct TextDisplayGlowColorOverride(pub i32);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct Text(pub FormattedText);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct LineWidth(pub i32);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct BackgroundColor(pub i32);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct TextOpacity(pub u8);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct StyleFlags(pub u8);
+#[derive(Component)]
+pub struct TextDisplay;
+impl TextDisplay {
+    pub fn apply_metadata(
+        entity: &mut bevy_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
+            8 => {
+                entity.insert(TextDisplayInterpolationStartDeltaTicks(d.value.into_int()?));
+            }
+            9 => {
+                entity.insert(TextDisplayInterpolationDuration(d.value.into_int()?));
+            }
+            10 => {
+                entity.insert(TextDisplayTranslation(d.value.into_vector3()?));
+            }
+            11 => {
+                entity.insert(TextDisplayScale(d.value.into_vector3()?));
+            }
+            12 => {
+                entity.insert(TextDisplayLeftRotation(d.value.into_quaternion()?));
+            }
+            13 => {
+                entity.insert(TextDisplayRightRotation(d.value.into_quaternion()?));
+            }
+            14 => {
+                entity.insert(TextDisplayBillboardRenderConstraints(d.value.into_byte()?));
+            }
+            15 => {
+                entity.insert(TextDisplayBrightnessOverride(d.value.into_int()?));
+            }
+            16 => {
+                entity.insert(TextDisplayViewRange(d.value.into_float()?));
+            }
+            17 => {
+                entity.insert(TextDisplayShadowRadius(d.value.into_float()?));
+            }
+            18 => {
+                entity.insert(TextDisplayShadowStrength(d.value.into_float()?));
+            }
+            19 => {
+                entity.insert(TextDisplayWidth(d.value.into_float()?));
+            }
+            20 => {
+                entity.insert(TextDisplayHeight(d.value.into_float()?));
+            }
+            21 => {
+                entity.insert(TextDisplayGlowColorOverride(d.value.into_int()?));
+            }
+            22 => {
+                entity.insert(Text(d.value.into_formatted_text()?));
+            }
+            23 => {
+                entity.insert(LineWidth(d.value.into_int()?));
+            }
+            24 => {
+                entity.insert(BackgroundColor(d.value.into_int()?));
+            }
+            25 => {
+                entity.insert(TextOpacity(d.value.into_byte()?));
+            }
+            26 => {
+                entity.insert(StyleFlags(d.value.into_byte()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct TextDisplayMetadataBundle {
+    _marker: TextDisplay,
+    parent: AbstractEntityMetadataBundle,
+    text_display_interpolation_start_delta_ticks: TextDisplayInterpolationStartDeltaTicks,
+    text_display_interpolation_duration: TextDisplayInterpolationDuration,
+    text_display_translation: TextDisplayTranslation,
+    text_display_scale: TextDisplayScale,
+    text_display_left_rotation: TextDisplayLeftRotation,
+    text_display_right_rotation: TextDisplayRightRotation,
+    text_display_billboard_render_constraints: TextDisplayBillboardRenderConstraints,
+    text_display_brightness_override: TextDisplayBrightnessOverride,
+    text_display_view_range: TextDisplayViewRange,
+    text_display_shadow_radius: TextDisplayShadowRadius,
+    text_display_shadow_strength: TextDisplayShadowStrength,
+    text_display_width: TextDisplayWidth,
+    text_display_height: TextDisplayHeight,
+    text_display_glow_color_override: TextDisplayGlowColorOverride,
+    text: Text,
+    line_width: LineWidth,
+    background_color: BackgroundColor,
+    text_opacity: TextOpacity,
+    style_flags: StyleFlags,
+}
+impl Default for TextDisplayMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: TextDisplay,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
+            text_display_interpolation_start_delta_ticks: TextDisplayInterpolationStartDeltaTicks(
+                0,
+            ),
+            text_display_interpolation_duration: TextDisplayInterpolationDuration(0),
+            text_display_translation: TextDisplayTranslation(Vec3 {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            }),
+            text_display_scale: TextDisplayScale(Vec3 {
+                x: 1.0,
+                y: 1.0,
+                z: 1.0,
+            }),
+            text_display_left_rotation: TextDisplayLeftRotation(Quaternion {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+                w: 1.0,
+            }),
+            text_display_right_rotation: TextDisplayRightRotation(Quaternion {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+                w: 1.0,
+            }),
+            text_display_billboard_render_constraints: TextDisplayBillboardRenderConstraints(
+                Default::default(),
+            ),
+            text_display_brightness_override: TextDisplayBrightnessOverride(-1),
+            text_display_view_range: TextDisplayViewRange(1.0),
+            text_display_shadow_radius: TextDisplayShadowRadius(0.0),
+            text_display_shadow_strength: TextDisplayShadowStrength(1.0),
+            text_display_width: TextDisplayWidth(0.0),
+            text_display_height: TextDisplayHeight(0.0),
+            text_display_glow_color_override: TextDisplayGlowColorOverride(-1),
+            text: Text(Default::default()),
+            line_width: LineWidth(200),
+            background_color: BackgroundColor(1073741824),
+            text_opacity: TextOpacity(127),
+            style_flags: StyleFlags(0),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut, Clone)]
 pub struct Fuse(pub i32);
 #[derive(Component)]
 pub struct Tnt;
@@ -7478,7 +8143,7 @@ impl TraderLlama {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=22 => Llama::apply_metadata(entity, d)?,
+            0..=21 => Llama::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -7545,7 +8210,6 @@ impl Default for TraderLlamaMetadataBundle {
                 llama_standing: LlamaStanding(false),
                 llama_bred: LlamaBred(false),
                 llama_saddled: LlamaSaddled(false),
-                llama_owner_uuid: LlamaOwnerUuid(None),
                 llama_chest: LlamaChest(false),
                 strength: Strength(0),
                 swag: Swag(-1),
@@ -8785,8 +9449,6 @@ pub struct ZombieHorseStanding(pub bool);
 pub struct ZombieHorseBred(pub bool);
 #[derive(Component, Deref, DerefMut, Clone, Copy)]
 pub struct ZombieHorseSaddled(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
-pub struct ZombieHorseOwnerUuid(pub Option<Uuid>);
 #[derive(Component)]
 pub struct ZombieHorse;
 impl ZombieHorse {
@@ -8804,9 +9466,6 @@ impl ZombieHorse {
                 entity.insert(ZombieHorseBred(bitfield & 0x8 != 0));
                 entity.insert(ZombieHorseSaddled(bitfield & 0x4 != 0));
             }
-            18 => {
-                entity.insert(ZombieHorseOwnerUuid(d.value.into_optional_uuid()?));
-            }
             _ => {}
         }
         Ok(())
@@ -8822,7 +9481,6 @@ pub struct ZombieHorseMetadataBundle {
     zombie_horse_standing: ZombieHorseStanding,
     zombie_horse_bred: ZombieHorseBred,
     zombie_horse_saddled: ZombieHorseSaddled,
-    zombie_horse_owner_uuid: ZombieHorseOwnerUuid,
 }
 impl Default for ZombieHorseMetadataBundle {
     fn default() -> Self {
@@ -8877,7 +9535,6 @@ impl Default for ZombieHorseMetadataBundle {
             zombie_horse_standing: ZombieHorseStanding(false),
             zombie_horse_bred: ZombieHorseBred(false),
             zombie_horse_saddled: ZombieHorseSaddled(false),
-            zombie_horse_owner_uuid: ZombieHorseOwnerUuid(None),
         }
     }
 }
@@ -9758,6 +10415,11 @@ pub fn apply_metadata(
                 Blaze::apply_metadata(entity, d)?;
             }
         }
+        azalea_registry::EntityKind::BlockDisplay => {
+            for d in items {
+                BlockDisplay::apply_metadata(entity, d)?;
+            }
+        }
         azalea_registry::EntityKind::Boat => {
             for d in items {
                 Boat::apply_metadata(entity, d)?;
@@ -9983,6 +10645,11 @@ pub fn apply_metadata(
                 Illusioner::apply_metadata(entity, d)?;
             }
         }
+        azalea_registry::EntityKind::Interaction => {
+            for d in items {
+                Interaction::apply_metadata(entity, d)?;
+            }
+        }
         azalea_registry::EntityKind::IronGolem => {
             for d in items {
                 IronGolem::apply_metadata(entity, d)?;
@@ -9991,6 +10658,11 @@ pub fn apply_metadata(
         azalea_registry::EntityKind::Item => {
             for d in items {
                 Item::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::ItemDisplay => {
+            for d in items {
+                ItemDisplay::apply_metadata(entity, d)?;
             }
         }
         azalea_registry::EntityKind::ItemFrame => {
@@ -10163,6 +10835,11 @@ pub fn apply_metadata(
                 SmallFireball::apply_metadata(entity, d)?;
             }
         }
+        azalea_registry::EntityKind::Sniffer => {
+            for d in items {
+                Sniffer::apply_metadata(entity, d)?;
+            }
+        }
         azalea_registry::EntityKind::SnowGolem => {
             for d in items {
                 SnowGolem::apply_metadata(entity, d)?;
@@ -10206,6 +10883,11 @@ pub fn apply_metadata(
         azalea_registry::EntityKind::Tadpole => {
             for d in items {
                 Tadpole::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::TextDisplay => {
+            for d in items {
+                TextDisplay::apply_metadata(entity, d)?;
             }
         }
         azalea_registry::EntityKind::Tnt => {
@@ -10346,6 +11028,9 @@ pub fn apply_default_metadata(
         azalea_registry::EntityKind::Blaze => {
             entity.insert(BlazeMetadataBundle::default());
         }
+        azalea_registry::EntityKind::BlockDisplay => {
+            entity.insert(BlockDisplayMetadataBundle::default());
+        }
         azalea_registry::EntityKind::Boat => {
             entity.insert(BoatMetadataBundle::default());
         }
@@ -10481,11 +11166,17 @@ pub fn apply_default_metadata(
         azalea_registry::EntityKind::Illusioner => {
             entity.insert(IllusionerMetadataBundle::default());
         }
+        azalea_registry::EntityKind::Interaction => {
+            entity.insert(InteractionMetadataBundle::default());
+        }
         azalea_registry::EntityKind::IronGolem => {
             entity.insert(IronGolemMetadataBundle::default());
         }
         azalea_registry::EntityKind::Item => {
             entity.insert(ItemMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::ItemDisplay => {
+            entity.insert(ItemDisplayMetadataBundle::default());
         }
         azalea_registry::EntityKind::ItemFrame => {
             entity.insert(ItemFrameMetadataBundle::default());
@@ -10589,6 +11280,9 @@ pub fn apply_default_metadata(
         azalea_registry::EntityKind::SmallFireball => {
             entity.insert(SmallFireballMetadataBundle::default());
         }
+        azalea_registry::EntityKind::Sniffer => {
+            entity.insert(SnifferMetadataBundle::default());
+        }
         azalea_registry::EntityKind::SnowGolem => {
             entity.insert(SnowGolemMetadataBundle::default());
         }
@@ -10615,6 +11309,9 @@ pub fn apply_default_metadata(
         }
         azalea_registry::EntityKind::Tadpole => {
             entity.insert(TadpoleMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::TextDisplay => {
+            entity.insert(TextDisplayMetadataBundle::default());
         }
         azalea_registry::EntityKind::Tnt => {
             entity.insert(TntMetadataBundle::default());

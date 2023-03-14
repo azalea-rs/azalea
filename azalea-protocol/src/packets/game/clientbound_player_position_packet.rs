@@ -1,8 +1,8 @@
-use azalea_buf::{BufReadError, McBuf};
-use azalea_buf::{McBufReadable, McBufWritable};
+use std::io::{Cursor, Write};
+
+use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
 use azalea_core::FixedBitSet;
 use azalea_protocol_macros::ClientboundGamePacket;
-use std::io::{Cursor, Write};
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundPlayerPositionPacket {
@@ -11,16 +11,13 @@ pub struct ClientboundPlayerPositionPacket {
     pub z: f64,
     pub y_rot: f32,
     pub x_rot: f32,
-    pub relative_arguments: RelativeArguments,
-    /// Client should confirm this packet with Teleport Confirm containing the
-    /// same Teleport ID.
+    pub relative_arguments: RelativeMovements,
     #[var]
     pub id: u32,
-    pub dismount_vehicle: bool,
 }
 
 #[derive(Debug, Clone)]
-pub struct RelativeArguments {
+pub struct RelativeMovements {
     pub x: bool,
     pub y: bool,
     pub z: bool,
@@ -28,10 +25,10 @@ pub struct RelativeArguments {
     pub x_rot: bool,
 }
 
-impl McBufReadable for RelativeArguments {
+impl McBufReadable for RelativeMovements {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let set = FixedBitSet::<5>::read_from(buf)?;
-        Ok(RelativeArguments {
+        Ok(RelativeMovements {
             x: set.index(0),
             y: set.index(1),
             z: set.index(2),
@@ -41,7 +38,7 @@ impl McBufReadable for RelativeArguments {
     }
 }
 
-impl McBufWritable for RelativeArguments {
+impl McBufWritable for RelativeMovements {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         let mut set = FixedBitSet::<5>::new();
         if self.x {

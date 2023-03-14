@@ -1,13 +1,10 @@
-use azalea_buf::BufReadError;
-use azalea_buf::McBuf;
-use azalea_buf::McBufVarReadable;
-use azalea_buf::{McBufReadable, McBufVarWritable, McBufWritable};
-use azalea_core::FixedBitSet;
-use azalea_core::ResourceLocation;
+use azalea_buf::{
+    BufReadError, McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable,
+};
+use azalea_core::{FixedBitSet, ResourceLocation};
 use azalea_protocol_macros::ClientboundGamePacket;
 use log::warn;
-use std::io::Cursor;
-use std::io::Write;
+use std::io::{Cursor, Write};
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundCommandsPacket {
@@ -137,13 +134,14 @@ pub enum BrigadierParser {
     FloatRange,
     Dimension,
     GameMode,
-    Time,
+    Time { min: i32 },
     ResourceOrTag { registry_key: ResourceLocation },
     ResourceOrTagKey { registry_key: ResourceLocation },
     Resource { registry_key: ResourceLocation },
     ResourceKey { registry_key: ResourceLocation },
     TemplateMirror,
     TemplateRotation,
+    Heightmap,
     Uuid,
 }
 

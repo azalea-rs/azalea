@@ -68,6 +68,13 @@ class Mappings:
         return self.fields.get(obfuscated_class_name, {}).get(obfuscated_field_name)
 
     def get_class(self, obfuscated_class_name):
+        if '<' in obfuscated_class_name:
+            first_part, args = obfuscated_class_name.split('<')
+            args = args.rstrip('>').strip(';').split(';')
+            print(args)
+            assert len(args) == 1
+            arg = self.get_class(args[0][1:])
+            return f'{first_part}<{arg}>'
         return self.classes[obfuscated_class_name]
 
     def get_method(self, obfuscated_class_name, obfuscated_method_name, obfuscated_signature):

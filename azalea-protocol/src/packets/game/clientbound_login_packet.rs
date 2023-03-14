@@ -96,9 +96,15 @@ pub mod registry {
     #[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
     pub struct RegistryRoot {
         #[cfg(feature = "strict_registry")]
+        #[serde(rename = "minecraft:trim_material")]
+        pub trim_material: RegistryType<TrimMaterialElement>,
+        #[cfg(not(feature = "strict_registry"))]
+        #[serde(rename = "minecraft:trim_material")]
+        pub trim_material: Tag,
+
+        #[cfg(feature = "strict_registry")]
         #[serde(rename = "minecraft:chat_type")]
         pub chat_type: RegistryType<ChatTypeElement>,
-
         #[cfg(not(feature = "strict_registry"))]
         #[serde(rename = "minecraft:chat_type")]
         pub chat_type: Tag,
@@ -109,10 +115,23 @@ pub mod registry {
         #[cfg(feature = "strict_registry")]
         #[serde(rename = "minecraft:worldgen/biome")]
         pub world_type: RegistryType<WorldTypeElement>,
-
         #[cfg(not(feature = "strict_registry"))]
         #[serde(rename = "minecraft:worldgen/biome")]
         pub world_type: Tag,
+
+        #[cfg(feature = "strict_registry")]
+        #[serde(rename = "minecraft:trim_pattern")]
+        pub trim_pattern: RegistryType<TrimPatternElement>,
+        #[cfg(not(feature = "strict_registry"))]
+        #[serde(rename = "minecraft:trim_pattern")]
+        pub trim_pattern: Tag,
+
+        #[cfg(feature = "strict_registry")]
+        #[serde(rename = "minecraft:damage_type")]
+        pub damage_type: RegistryType<DamageTypeElement>,
+        #[cfg(not(feature = "strict_registry"))]
+        #[serde(rename = "minecraft:damage_type")]
+        pub damage_type: Tag,
     }
 
     /// A collection of values for a certain type of registry data.
@@ -131,6 +150,18 @@ pub mod registry {
         pub id: u32,
         pub name: ResourceLocation,
         pub element: T,
+    }
+
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    #[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
+    pub struct TrimMaterialElement {
+        pub asset_name: String,
+        pub ingredient: ResourceLocation,
+        pub item_model_index: f32,
+        pub override_armor_materials: HashMap<String, String>,
+        #[serde(default)]
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub description: Option<String>,
     }
 
     /// Data about a kind of chat message
@@ -259,12 +290,13 @@ pub mod registry {
     #[derive(Debug, Clone, Serialize, Deserialize)]
     #[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
     pub struct WorldTypeElement {
+        #[serde(with = "Convert")]
+        pub has_precipitation: bool,
         pub temperature: f32,
         #[serde(default)]
         #[serde(skip_serializing_if = "Option::is_none")]
         pub temperature_modifier: Option<String>,
         pub downfall: f32,
-        pub precipitation: BiomePrecipitation,
         pub effects: BiomeEffects,
     }
 
@@ -309,7 +341,7 @@ pub mod registry {
         pub additions_sound: Option<AdditionsSound>,
         #[serde(default)]
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub ambient_sound: Option<SoundId>,
+        pub ambient_sound: Option<ResourceLocation>,
         #[serde(default)]
         #[serde(skip_serializing_if = "Option::is_none")]
         pub particle: Option<BiomeParticle>,
@@ -325,7 +357,7 @@ pub mod registry {
         pub replace_current_music: bool,
         pub max_delay: u32,
         pub min_delay: u32,
-        pub sound: SoundId,
+        pub sound: azalea_registry::SoundEvent,
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -334,21 +366,14 @@ pub mod registry {
         pub tick_delay: u32,
         pub block_search_extent: u32,
         pub offset: f32,
-        pub sound: SoundId,
+        pub sound: azalea_registry::SoundEvent,
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     #[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
     pub struct AdditionsSound {
         pub tick_chance: f32,
-        pub sound: SoundId,
-    }
-
-    /// The ID of a sound.
-    #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-    #[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
-    pub struct SoundId {
-        pub sound_id: azalea_registry::SoundEvent,
+        pub sound: azalea_registry::SoundEvent,
     }
 
     /// Biome particles.
@@ -359,6 +384,27 @@ pub mod registry {
     pub struct BiomeParticle {
         pub probability: f32,
         pub options: HashMap<String, String>,
+    }
+
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    #[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
+    pub struct TrimPatternElement {
+        #[serde(flatten)]
+        pub pattern: HashMap<String, String>,
+    }
+
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    #[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
+    pub struct DamageTypeElement {
+        pub message_id: String,
+        pub scaling: String,
+        pub exhaustion: f32,
+        #[serde(default)]
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub effects: Option<String>,
+        #[serde(default)]
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub death_message_type: Option<String>,
     }
 
     // Using a trait because you can't implement methods for
@@ -443,12 +489,15 @@ mod tests {
         // This is just for testing.
         let registry = RegistryHolder {
             root: RegistryRoot {
+                trim_material: Tag::End,
                 chat_type: Tag::End,
                 dimension_type: RegistryType::<DimensionTypeElement> {
                     kind: ResourceLocation::new("minecraft:dimension_type"),
                     value: Vec::new(),
                 },
                 world_type: Tag::End,
+                trim_pattern: Tag::End,
+                damage_type: Tag::End,
             },
         };
 
