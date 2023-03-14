@@ -6,7 +6,8 @@ use azalea::ecs::query::With;
 use azalea::entity::metadata::Player;
 use azalea::entity::{EyeHeight, Position};
 use azalea::interact::HitResultComponent;
-use azalea::inventory::InventoryComponent;
+use azalea::inventory::ItemSlot;
+use azalea::inventory_plugin::InventoryComponent;
 use azalea::pathfinder::BlockPosGoal;
 use azalea::{prelude::*, swarm::prelude::*, BlockPos, GameProfileComponent, WalkDirection};
 use azalea::{Account, Client, Event};
@@ -149,17 +150,17 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                         println!("inventory: {:?}", inventory.menu());
                     }
                     "findblock" => {
-                        let target_pos = bot.world().read().find_block(
-                            bot.position(),
-                            &azalea_registry::Block::DiamondBlock.into(),
-                        );
+                        let target_pos = bot
+                            .world()
+                            .read()
+                            .find_block(bot.position(), &azalea::Block::DiamondBlock.into());
                         bot.chat(&format!("target_pos: {target_pos:?}",));
                     }
                     "gotoblock" => {
-                        let target_pos = bot.world().read().find_block(
-                            bot.position(),
-                            &azalea_registry::Block::DiamondBlock.into(),
-                        );
+                        let target_pos = bot
+                            .world()
+                            .read()
+                            .find_block(bot.position(), &azalea::Block::DiamondBlock.into());
                         if let Some(target_pos) = target_pos {
                             // +1 to stand on top of the block
                             bot.goto(BlockPosGoal::from(target_pos.up(1)));
@@ -171,7 +172,7 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                         let target_pos = bot
                             .world()
                             .read()
-                            .find_block(bot.position(), &azalea_registry::Block::Lever.into());
+                            .find_block(bot.position(), &azalea::Block::Lever.into());
                         let Some(target_pos) = target_pos else {
                             bot.chat("no lever found");
                             return Ok(())
@@ -183,6 +184,27 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                     "hitresult" => {
                         let hit_result = bot.get_component::<HitResultComponent>();
                         bot.chat(&format!("hit_result: {hit_result:?}",));
+                    }
+                    "chest" => {
+                        let target_pos = bot
+                            .world()
+                            .read()
+                            .find_block(bot.position(), &azalea::Block::Chest.into());
+                        let Some(target_pos) = target_pos else {
+                            bot.chat("no chest found");
+                            return Ok(())
+                        };
+                        bot.look_at(target_pos.center());
+                        let container = bot.open_container(target_pos).await;
+                        if let Some(container) = container {
+                            for item in container.contents() {
+                                if let ItemSlot::Present(item) = item {
+                                    println!("item: {:?}", item);
+                                }
+                            }
+                        } else {
+                            println!("no container found");
+                        }
                     }
                     _ => {}
                 }

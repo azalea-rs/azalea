@@ -10,6 +10,7 @@ use app::{App, Plugin, PluginGroup};
 pub use azalea_block as blocks;
 pub use azalea_client::*;
 pub use azalea_core::{BlockPos, Vec3};
+pub use azalea_inventory as inventory;
 pub use azalea_protocol as protocol;
 pub use azalea_registry::{Block, EntityKind};
 pub use azalea_world::{entity, Instance};

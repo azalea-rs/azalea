@@ -27,6 +27,21 @@ impl<const N: usize> Default for SlotList<N> {
     }
 }
 
+impl Menu {
+    /// Get the [`Player`] from this [`Menu`].
+    ///
+    /// # Panics
+    ///
+    /// Will panic if the menu isn't `Menu::Player`.
+    pub fn as_player(&self) -> &Player {
+        if let Menu::Player(player) = &self {
+            player
+        } else {
+            unreachable!("Called `Menu::as_player` on a menu that wasn't `Player`.")
+        }
+    }
+}
+
 // the player inventory part is always the last 36 slots (except in the Player
 // menu), so we don't have to explicitly specify it
 
@@ -141,19 +156,4 @@ declare_menus! {
         input: 1,
         result: 1,
     },
-}
-
-impl Menu {
-    /// Get the [`Player`] from this [`Menu`].
-    ///
-    /// # Panics
-    ///
-    /// Will panic if the menu isn't `Menu::Player`.
-    pub fn as_player(&self) -> &Player {
-        if let Menu::Player(player) = &self {
-            player
-        } else {
-            unreachable!("Called `Menu::as_player` on a menu that wasn't `Player`.")
-        }
-    }
 }

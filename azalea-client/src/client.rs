@@ -3,7 +3,7 @@ use crate::{
     disconnect::{DisconnectEvent, DisconnectPlugin},
     events::{Event, EventPlugin, LocalPlayerEvents},
     interact::{CurrentSequenceNumber, InteractPlugin},
-    inventory::{InventoryComponent, InventoryPlugin},
+    inventory_plugin::{InventoryComponent, InventoryPlugin},
     local_player::{
         death_event, handle_send_packet_event, update_in_loaded_chunk, GameProfileComponent,
         LocalPlayer, PhysicsState, SendPacketEvent,
@@ -50,6 +50,7 @@ use bevy_ecs::{
     entity::Entity,
     schedule::IntoSystemConfig,
     schedule::{LogLevel, ScheduleBuildSettings, ScheduleLabel},
+    system::{ResMut, Resource},
     world::World,
 };
 use bevy_log::LogPlugin;
@@ -59,7 +60,10 @@ use log::{debug, error};
 use parking_lot::{Mutex, RwLock};
 use std::{collections::HashMap, fmt::Debug, io, net::SocketAddr, sync::Arc, time::Duration};
 use thiserror::Error;
-use tokio::{sync::mpsc, time};
+use tokio::{
+    sync::{broadcast, mpsc},
+    time,
+};
 use uuid::Uuid;
 
 /// `Client` has the things that a user interacting with the library will want.
@@ -627,6 +631,36 @@ pub async fn tick_run_schedule_loop(run_schedule_sender: mpsc::UnboundedSender<(
     }
 }
 
+/// A resource that contains a [`broadcast::Sender`] that will be sent every
+/// time the ECS schedule is run.
+///
+/// This is useful for running code every schedule from async user code.
+///
+/// ```no_run
+/// let mut receiver = {
+///     let ecs = client.ecs.lock();
+///     let schedule_broadcast = ecs.resource::<RanScheduleBroadcast>();
+///     schedule_broadcast.subscribe()
+/// };
+/// while receiver.recv().await.is_ok() {
+///     // do something
+/// }
+/// ```
+#[derive(Resource, Deref)]
+pub struct RanScheduleBroadcast(broadcast::Sender<()>);
+
+fn send_ran_schedule_event(ran_schedule_broadcast: ResMut<RanScheduleBroadcast>) {
+    let _ = ran_schedule_broadcast.0.send(());
+}
+/// A plugin that makes the [`RanScheduleBroadcast`] resource available.
+pub struct RanSchedulePlugin;
+impl Plugin for RanSchedulePlugin {
+    fn build(&self, app: &mut App) {
+        app.insert_resource(RanScheduleBroadcast(broadcast::channel(1).0))
+            .add_system(send_ran_schedule_event);
+    }
+}
+
 /// This plugin group will add all the default plugins necessary for Azalea to
 /// work.
 pub struct DefaultPlugins;
@@ -647,5 +681,6 @@ impl PluginGroup for DefaultPlugins {
             .add(DisconnectPlugin)
             .add(PlayerMovePlugin)
             .add(InteractPlugin)
+            .add(RanSchedulePlugin)
     }
 }

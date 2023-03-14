@@ -30,10 +30,11 @@ impl Plugin for InteractPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<BlockInteractEvent>().add_systems(
             (
-                handle_block_interact_event,
                 update_hit_result_component.after(clamp_look_direction),
+                handle_block_interact_event,
             )
-                .before(handle_send_packet_event),
+                .before(handle_send_packet_event)
+                .chain(),
         );
     }
 }

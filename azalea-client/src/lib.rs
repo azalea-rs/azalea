@@ -19,7 +19,7 @@ mod entity_query;
 mod events;
 mod get_mc_dir;
 pub mod interact;
-pub mod inventory;
+pub mod inventory_plugin;
 mod local_player;
 mod movement;
 pub mod packet_handling;

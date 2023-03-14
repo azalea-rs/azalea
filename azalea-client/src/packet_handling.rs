@@ -39,7 +39,7 @@ use crate::{
     chat::{ChatPacket, ChatReceivedEvent},
     client::TabList,
     disconnect::DisconnectEvent,
-    inventory::{ClientSideCloseContainerEvent, InventoryComponent},
+    inventory_plugin::{ClientSideCloseContainerEvent, InventoryComponent, MenuOpenedEvent},
     local_player::{GameProfileComponent, LocalGameMode, LocalPlayer},
     ClientInformation, PlayerInfo,
 };
@@ -971,7 +971,17 @@ fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::MerchantOffers(_) => {}
             ClientboundGamePacket::MoveVehicle(_) => {}
             ClientboundGamePacket::OpenBook(_) => {}
-            ClientboundGamePacket::OpenScreen(_) => {}
+            ClientboundGamePacket::OpenScreen(p) => {
+                let mut system_state: SystemState<EventWriter<MenuOpenedEvent>> =
+                    SystemState::new(ecs);
+                let mut menu_opened_events = system_state.get_mut(ecs);
+                menu_opened_events.send(MenuOpenedEvent {
+                    entity: player_entity,
+                    window_id: p.container_id,
+                    menu_type: p.menu_type,
+                    title: p.title,
+                })
+            }
             ClientboundGamePacket::OpenSignEditor(_) => {}
             ClientboundGamePacket::Ping(_) => {}
             ClientboundGamePacket::PlaceGhostRecipe(_) => {}

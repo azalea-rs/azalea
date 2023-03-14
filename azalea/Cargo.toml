@@ -18,6 +18,7 @@ azalea-block = { version = "0.6.0", path = "../azalea-block" }
 azalea-chat = { version = "0.6.0", path = "../azalea-chat" }
 azalea-client = { version = "0.6.0", path = "../azalea-client" }
 azalea-core = { version = "0.6.0", path = "../azalea-core" }
+azalea-inventory = { version = "0.1.0", path = "../azalea-inventory" }
 azalea-physics = { version = "0.6.0", path = "../azalea-physics" }
 azalea-protocol = { version = "0.6.0", path = "../azalea-protocol" }
 azalea-registry = { version = "0.6.0", path = "../azalea-registry" }

@@ -10,6 +10,15 @@ pub enum ItemSlot {
     Present(ItemSlotData),
 }
 
+impl ItemSlot {
+    pub fn is_empty(&self) -> bool {
+        matches!(self, ItemSlot::Empty)
+    }
+    pub fn is_present(&self) -> bool {
+        matches!(self, ItemSlot::Present(_))
+    }
+}
+
 /// An item in an inventory, with a count and NBT. Usually you want [`ItemSlot`]
 /// or [`azalea_registry::Item`] instead.
 #[derive(Debug, Clone, McBuf)]

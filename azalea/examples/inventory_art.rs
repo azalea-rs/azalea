@@ -48,7 +48,10 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
                 return Ok(());
             };
             bot.goto(chest_block.into());
-            let chest = bot.open_container(&chest_block).await.unwrap();
+            let Some(chest) = bot.open_container(&chest_block).await else {
+                println!("Couldn't open chest");
+                return Ok(());
+            };
             bot.take_amount_from_container(&chest, 5, |i| i.id == "#minecraft:planks")
                 .await;
             chest.close().await;

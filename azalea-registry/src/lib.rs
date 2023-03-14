@@ -3010,7 +3010,7 @@ enum MemoryModuleKind {
 }
 
 registry! {
-enum Menu {
+enum MenuKind {
     Generic9x1 => "minecraft:generic_9x1",
     Generic9x2 => "minecraft:generic_9x2",
     Generic9x3 => "minecraft:generic_9x3",
