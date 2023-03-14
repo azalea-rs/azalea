@@ -43,7 +43,7 @@ use azalea_world::{
     entity::{EntityPlugin, EntityUpdateSet, Local, Position, WorldName},
     Instance, InstanceContainer, PartialInstance,
 };
-use bevy_app::{App, CoreSchedule, Plugin, PluginGroup, PluginGroupBuilder};
+use bevy_app::{App, CoreSchedule, IntoSystemAppConfig, Plugin, PluginGroup, PluginGroupBuilder};
 use bevy_ecs::{
     bundle::Bundle,
     component::Component,
@@ -632,32 +632,32 @@ pub async fn tick_run_schedule_loop(run_schedule_sender: mpsc::UnboundedSender<(
 }
 
 /// A resource that contains a [`broadcast::Sender`] that will be sent every
-/// time the ECS schedule is run.
+/// Minecraft tick.
 ///
 /// This is useful for running code every schedule from async user code.
 ///
 /// ```no_run
 /// let mut receiver = {
 ///     let ecs = client.ecs.lock();
-///     let schedule_broadcast = ecs.resource::<RanScheduleBroadcast>();
-///     schedule_broadcast.subscribe()
+///     let tick_broadcast = ecs.resource::<TickBroadcast>();
+///     tick_broadcast.subscribe()
 /// };
 /// while receiver.recv().await.is_ok() {
 ///     // do something
 /// }
 /// ```
 #[derive(Resource, Deref)]
-pub struct RanScheduleBroadcast(broadcast::Sender<()>);
+pub struct TickBroadcast(broadcast::Sender<()>);
 
-fn send_ran_schedule_event(ran_schedule_broadcast: ResMut<RanScheduleBroadcast>) {
-    let _ = ran_schedule_broadcast.0.send(());
+fn send_tick_broadcast(tick_broadcast: ResMut<TickBroadcast>) {
+    let _ = tick_broadcast.0.send(());
 }
 /// A plugin that makes the [`RanScheduleBroadcast`] resource available.
-pub struct RanSchedulePlugin;
-impl Plugin for RanSchedulePlugin {
+pub struct TickBroadcastPlugin;
+impl Plugin for TickBroadcastPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(RanScheduleBroadcast(broadcast::channel(1).0))
-            .add_system(send_ran_schedule_event);
+        app.insert_resource(TickBroadcast(broadcast::channel(1).0))
+            .add_system(send_tick_broadcast.in_schedule(CoreSchedule::FixedUpdate));
     }
 }
 
@@ -681,6 +681,6 @@ impl PluginGroup for DefaultPlugins {
             .add(DisconnectPlugin)
             .add(PlayerMovePlugin)
             .add(InteractPlugin)
-            .add(RanSchedulePlugin)
+            .add(TickBroadcastPlugin)
     }
 }

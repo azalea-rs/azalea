@@ -7,7 +7,6 @@ use azalea::entity::metadata::Player;
 use azalea::entity::{EyeHeight, Position};
 use azalea::interact::HitResultComponent;
 use azalea::inventory::ItemSlot;
-use azalea::inventory_plugin::InventoryComponent;
 use azalea::pathfinder::BlockPosGoal;
 use azalea::{prelude::*, swarm::prelude::*, BlockPos, GameProfileComponent, WalkDirection};
 use azalea::{Account, Client, Event};
@@ -145,9 +144,7 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                         std::thread::sleep(Duration::from_millis(1000));
                     }
                     "inventory" => {
-                        let mut ecs = bot.ecs.lock();
-                        let inventory = bot.query::<&InventoryComponent>(&mut ecs);
-                        println!("inventory: {:?}", inventory.menu());
+                        println!("inventory: {:?}", bot.menu());
                     }
                     "findblock" => {
                         let target_pos = bot
@@ -196,11 +193,16 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                         };
                         bot.look_at(target_pos.center());
                         let container = bot.open_container(target_pos).await;
+                        println!("container: {:?}", container);
                         if let Some(container) = container {
-                            for item in container.contents() {
-                                if let ItemSlot::Present(item) = item {
-                                    println!("item: {:?}", item);
+                            if let Some(contents) = container.contents() {
+                                for item in contents {
+                                    if let ItemSlot::Present(item) = item {
+                                        println!("item: {:?}", item);
+                                    }
                                 }
+                            } else {
+                                println!("container was immediately closed");
                             }
                         } else {
                             println!("no container found");
