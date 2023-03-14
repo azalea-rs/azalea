@@ -136,11 +136,15 @@ pub fn registry(input: TokenStream) -> TokenStream {
 
     // Display that uses registry ids
     let mut display_items = quote! {};
+    let mut from_str_items = quote! {};
     for item in &input.items {
         let name = &item.name;
         let id = &item.id;
         display_items.extend(quote! {
             Self::#name => write!(f, #id),
+        });
+        from_str_items.extend(quote! {
+            #id => Ok(Self::#name),
         });
     }
     generated.extend(quote! {
@@ -151,7 +155,40 @@ pub fn registry(input: TokenStream) -> TokenStream {
                 }
             }
         }
+        impl std::str::FromStr for #name {
+            type Err = String;
+
+            fn from_str(s: &str) -> Result<Self, Self::Err> {
+                match s {
+                    #from_str_items
+                    _ => Err(format!("{s:?} is not a valid {name}", s = s, name = stringify!(#name))),
+                }
+            }
+        }
     });
+
+    #[cfg(feature = "serde")]
+    {
+        generated.extend(quote! {
+            impl serde::Serialize for #name {
+                fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+                where
+                    S: serde::Serializer,
+                {
+                    serializer.serialize_str(&self.to_string())
+                }
+            }
+            impl<'de> serde::Deserialize<'de> for #name {
+                fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+                where
+                    D: serde::Deserializer<'de>,
+                {
+                    let s = String::deserialize(deserializer)?;
+                    s.parse().map_err(serde::de::Error::custom)
+                }
+            }
+        });
+    }
 
     generated.into()
 }

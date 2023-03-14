@@ -348,7 +348,7 @@ pub mod registry {
     #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
     #[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
     pub struct SoundId {
-        pub sound_id: ResourceLocation,
+        pub sound_id: azalea_registry::SoundEvent,
     }
 
     /// Biome particles.
@@ -445,7 +445,7 @@ mod tests {
             root: RegistryRoot {
                 chat_type: Tag::End,
                 dimension_type: RegistryType::<DimensionTypeElement> {
-                    kind: ResourceLocation::new("minecraft:dimension_type").unwrap(),
+                    kind: ResourceLocation::new("minecraft:dimension_type"),
                     value: Vec::new(),
                 },
                 world_type: Tag::End,
