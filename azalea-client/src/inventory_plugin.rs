@@ -26,14 +26,10 @@ impl Plugin for InventoryPlugin {
             .add_systems(
                 (
                     handle_menu_opened_event,
+                    handle_container_close_event.before(handle_send_packet_event),
                     handle_client_side_close_container_event,
                 )
                     .chain(),
-            )
-            .add_system(
-                handle_container_close_event
-                    .before(handle_send_packet_event)
-                    .before(handle_client_side_close_container_event),
             );
     }
 }
