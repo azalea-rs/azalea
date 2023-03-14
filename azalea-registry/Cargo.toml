@@ -9,6 +9,11 @@ version = "0.6.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-azalea-buf = {path = "../azalea-buf", version = "^0.6.0" }
-azalea-registry-macros = {path = "./azalea-registry-macros", version = "^0.6.0" }
+azalea-buf = { path = "../azalea-buf", version = "^0.6.0" }
+azalea-registry-macros = { path = "./azalea-registry-macros", version = "^0.6.0" }
 enum-as-inner = "0.5.1"
+serde = { version = "1.0.155", optional = true }
+
+[features]
+serde = ["dep:serde", "azalea-registry-macros/serde"]
+default = ["serde"]

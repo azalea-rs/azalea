@@ -265,7 +265,7 @@ fn process_packet_events(ecs: &mut World) {
                 // brand
                 local_player.write_packet(
                     ServerboundCustomPayloadPacket {
-                        identifier: ResourceLocation::new("brand").unwrap(),
+                        identifier: ResourceLocation::new("brand"),
                         // they don't have to know :)
                         data: "vanilla".into(),
                     }

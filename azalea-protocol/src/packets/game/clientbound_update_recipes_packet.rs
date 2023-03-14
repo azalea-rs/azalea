@@ -211,7 +211,7 @@ impl McBufWritable for Recipe {
             RecipeData::SmithingTrim(_) => RecipeSerializer::SmithingTrim,
             RecipeData::CraftingDecoratedPot(_) => RecipeSerializer::CraftingDecoratedPot,
         };
-        let resource_location = ResourceLocation::new(&recipe_serializer.to_string()).unwrap();
+        let resource_location = ResourceLocation::new(&recipe_serializer.to_string());
         resource_location.write_into(buf)?;
         self.identifier.write_into(buf)?;
         self.data.write_without_id(buf)?;

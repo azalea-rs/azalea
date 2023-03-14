@@ -357,7 +357,7 @@ pub mod registry {
         pub replace_current_music: bool,
         pub max_delay: u32,
         pub min_delay: u32,
-        pub sound: ResourceLocation,
+        pub sound: azalea_registry::SoundEvent,
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -366,14 +366,14 @@ pub mod registry {
         pub tick_delay: u32,
         pub block_search_extent: u32,
         pub offset: f32,
-        pub sound: ResourceLocation,
+        pub sound: azalea_registry::SoundEvent,
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     #[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
     pub struct AdditionsSound {
         pub tick_chance: f32,
-        pub sound: ResourceLocation,
+        pub sound: azalea_registry::SoundEvent,
     }
 
     /// Biome particles.
@@ -492,7 +492,7 @@ mod tests {
                 trim_material: Tag::End,
                 chat_type: Tag::End,
                 dimension_type: RegistryType::<DimensionTypeElement> {
-                    kind: ResourceLocation::new("minecraft:dimension_type").unwrap(),
+                    kind: ResourceLocation::new("minecraft:dimension_type"),
                     value: Vec::new(),
                 },
                 world_type: Tag::End,
