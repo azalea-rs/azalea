@@ -198,7 +198,7 @@ impl Instance {
     ///
     /// ```
     /// # fn example(client: &azalea_client::Client) {
-    /// client.find_block(client.position(), &azalea_registry::Block::Chest.into());
+    /// client.world().read().find_block(client.position(), &azalea_registry::Block::Chest.into());
     /// # }
     /// ```
     pub fn find_block(

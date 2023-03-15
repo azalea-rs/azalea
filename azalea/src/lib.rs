@@ -1,7 +1,10 @@
 #![doc = include_str!("../README.md")]
 #![feature(async_closure)]
+#![allow(incomplete_features)]
+#![feature(async_fn_in_trait)]
 
 mod bot;
+mod container;
 pub mod pathfinder;
 pub mod prelude;
 pub mod swarm;

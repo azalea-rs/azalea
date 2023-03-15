@@ -1,7 +1,5 @@
-use std::fmt::{Debug, Formatter};
 
 use azalea_chat::FormattedText;
-use azalea_core::BlockPos;
 use azalea_inventory::{ItemSlot, Menu};
 use azalea_protocol::packets::game::serverbound_container_close_packet::ServerboundContainerClosePacket;
 use azalea_registry::MenuKind;
@@ -12,10 +10,10 @@ use bevy_ecs::{
     event::EventReader,
     prelude::EventWriter,
     schedule::{IntoSystemConfig, IntoSystemConfigs},
-    system::{Commands, Query},
+    system::{Query},
 };
 
-use crate::{client::TickBroadcast, local_player::handle_send_packet_event, Client, LocalPlayer};
+use crate::{local_player::handle_send_packet_event, Client, LocalPlayer};
 
 pub struct InventoryPlugin;
 impl Plugin for InventoryPlugin {
@@ -34,107 +32,13 @@ impl Plugin for InventoryPlugin {
     }
 }
 
-#[derive(Component, Debug)]
-pub struct WaitingForInventoryOpen;
-
 impl Client {
-    /// Open a container in the world, like a chest.
-    ///
-    /// ```
-    /// # async fn example(mut bot: azalea_client::Client) {
-    /// let target_pos = bot
-    ///     .world()
-    ///     .read()
-    ///     .find_block(bot.position(), &azalea_registry::Block::Chest.into());
-    /// let Some(target_pos) = target_pos else {
-    ///     bot.chat("no chest found");
-    ///     return;
-    /// };
-    /// let container = bot.open_container(target_pos).await;
-    /// # }
-    /// ```
-    pub async fn open_container(&mut self, pos: BlockPos) -> Option<ContainerHandle> {
-        self.ecs
-            .lock()
-            .entity_mut(self.entity)
-            .insert(WaitingForInventoryOpen);
-        self.block_interact(pos);
-
-        let mut receiver = {
-            let ecs = self.ecs.lock();
-            let tick_broadcast = ecs.resource::<TickBroadcast>();
-            tick_broadcast.subscribe()
-        };
-        while receiver.recv().await.is_ok() {
-            let ecs = self.ecs.lock();
-            if ecs.get::<WaitingForInventoryOpen>(self.entity).is_none() {
-                break;
-            }
-        }
-
-        let ecs = self.ecs.lock();
-        let inventory = ecs
-            .get::<InventoryComponent>(self.entity)
-            .expect("no inventory");
-        if inventory.id == 0 {
-            None
-        } else {
-            Some(ContainerHandle {
-                id: inventory.id,
-                client: self.clone(),
-            })
-        }
-    }
-
     /// Return the menu that is currently open. If no menu is open, this will
     /// have the player's inventory.
     pub fn menu(&self) -> Menu {
         let mut ecs = self.ecs.lock();
         let inventory = self.query::<&InventoryComponent>(&mut ecs);
         inventory.menu().clone()
-    }
-}
-
-/// A handle to the open container. The container will be closed once this is
-/// dropped.
-pub struct ContainerHandle {
-    pub id: i8,
-    client: Client,
-}
-impl Drop for ContainerHandle {
-    fn drop(&mut self) {
-        self.client.ecs.lock().send_event(CloseContainerEvent {
-            entity: self.client.entity,
-            id: self.id,
-        });
-    }
-}
-impl Debug for ContainerHandle {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("ContainerHandle")
-            .field("id", &self.id)
-            .finish()
-    }
-}
-impl ContainerHandle {
-    /// Returns the menu of the container. If the container is closed, this
-    /// will return `None`.
-    pub fn menu(&self) -> Option<Menu> {
-        let ecs = self.client.ecs.lock();
-        let inventory = ecs
-            .get::<InventoryComponent>(self.client.entity)
-            .expect("no inventory");
-        if inventory.id == self.id {
-            Some(inventory.container_menu.clone().unwrap())
-        } else {
-            None
-        }
-    }
-
-    /// Returns the item slots in the container. If the container is closed,
-    /// this will return `None`.
-    pub fn contents(&self) -> Option<Vec<ItemSlot>> {
-        self.menu().map(|menu| menu.contents())
     }
 }
 
@@ -207,15 +111,10 @@ pub struct MenuOpenedEvent {
     pub title: FormattedText,
 }
 fn handle_menu_opened_event(
-    mut commands: Commands,
     mut events: EventReader<MenuOpenedEvent>,
     mut query: Query<&mut InventoryComponent>,
 ) {
     for event in events.iter() {
-        commands
-            .entity(event.entity)
-            .remove::<WaitingForInventoryOpen>();
-
         let mut inventory = query.get_mut(event.entity).unwrap();
         inventory.id = event.window_id as i8;
         inventory.container_menu = Some(Menu::from_kind(event.menu_type));
