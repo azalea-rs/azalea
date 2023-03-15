@@ -107,10 +107,11 @@ pub type ClientInformation = ServerboundClientInformationPacket;
 /// tab list.
 ///
 /// ```
+/// # use azalea_client::TabList;
 /// # fn example(client: &azalea_client::Client) {
 /// let tab_list = client.component::<TabList>();
 /// println!("Online players:");
-/// for (uuid, player_info) in tab_list {
+/// for (uuid, player_info) in tab_list.iter() {
 ///     println!("- {} ({}ms)", player_info.profile.name, player_info.latency);
 /// }
 /// # }
@@ -636,7 +637,9 @@ pub async fn tick_run_schedule_loop(run_schedule_sender: mpsc::UnboundedSender<(
 ///
 /// This is useful for running code every schedule from async user code.
 ///
-/// ```no_run
+/// ```
+/// use azalea_client::TickBroadcast;
+/// # async fn example(client: azalea_client::Client) {
 /// let mut receiver = {
 ///     let ecs = client.ecs.lock();
 ///     let tick_broadcast = ecs.resource::<TickBroadcast>();
@@ -645,6 +648,7 @@ pub async fn tick_run_schedule_loop(run_schedule_sender: mpsc::UnboundedSender<(
 /// while receiver.recv().await.is_ok() {
 ///     // do something
 /// }
+/// # }
 /// ```
 #[derive(Resource, Deref)]
 pub struct TickBroadcast(broadcast::Sender<()>);

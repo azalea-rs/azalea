@@ -38,6 +38,21 @@ impl Plugin for InventoryPlugin {
 pub struct WaitingForInventoryOpen;
 
 impl Client {
+    /// Open a container in the world, like a chest.
+    ///
+    /// ```
+    /// # async fn example(mut bot: azalea_client::Client) {
+    /// let target_pos = bot
+    ///     .world()
+    ///     .read()
+    ///     .find_block(bot.position(), &azalea_registry::Block::Chest.into());
+    /// let Some(target_pos) = target_pos else {
+    ///     bot.chat("no chest found");
+    ///     return;
+    /// };
+    /// let container = bot.open_container(target_pos).await;
+    /// # }
+    /// ```
     pub async fn open_container(&mut self, pos: BlockPos) -> Option<ContainerHandle> {
         self.ecs
             .lock()

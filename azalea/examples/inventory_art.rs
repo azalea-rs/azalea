@@ -1,7 +1,6 @@
-//! Take wool from a chest and put one random piece of wool in every inventory
-//! slot
+//! Take the items in a container and put one of each in a checkerboard pattern
 
-use azalea::{entity::Position, prelude::*};
+use azalea::{pathfinder::BlockPosGoal, prelude::*};
 use parking_lot::Mutex;
 use std::sync::Arc;
 
@@ -22,10 +21,10 @@ struct State {
     pub started: Arc<Mutex<bool>>,
 }
 
-async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
+async fn handle(mut bot: Client, event: Event, state: State) -> anyhow::Result<()> {
     match event {
         Event::Chat(m) => {
-            if m.username() == Some(bot.profile.name) {
+            if m.username() == Some(bot.profile.name.clone()) {
                 return Ok(());
             };
             if m.content() != "go" {
@@ -47,36 +46,13 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
                 bot.chat("No chest found");
                 return Ok(());
             };
-            bot.goto(chest_block.into());
-            let Some(chest) = bot.open_container(&chest_block).await else {
+            bot.goto(BlockPosGoal::from(chest_block));
+            let Some(chest) = bot.open_container(chest_block).await else {
                 println!("Couldn't open chest");
                 return Ok(());
             };
-            bot.take_amount_from_container(&chest, 5, |i| i.id == "#minecraft:planks")
-                .await;
-            chest.close().await;
 
-            let crafting_table = bot
-                .open_crafting_table(
-                    &bot.world
-                        .find_one_block(|b| b.id == "minecraft:crafting_table"),
-                )
-                .await
-                .unwrap();
-            bot.craft(&crafting_table, &bot.recipe_for("minecraft:sticks"))
-                .await?;
-            let pickaxe = bot
-                .craft(&crafting_table, &bot.recipe_for("minecraft:wooden_pickaxe"))
-                .await?;
-            crafting_table.close().await;
-
-            bot.hold(&pickaxe);
-            loop {
-                if let Err(e) = bot.dig(bot.position().down(1.).into()).await {
-                    println!("{:?}", e);
-                    break;
-                }
-            }
+            // move everything into our inventory first
         }
         _ => {}
     }
