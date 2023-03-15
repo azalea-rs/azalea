@@ -22,8 +22,8 @@ def generate_registries(registries: dict):
             # change _type to _kind because that's Rustier (and because _type
             # is a reserved keyword)
             registry_name = registry_name[:-5] + '_kind'
-        elif registry_name == 'menu':
-            registry_name = 'menu_kind'
+        elif registry_name in {'menu'}:
+            registry_name += '_kind'
 
         registry_struct_name = to_camel_case(registry_name)
 

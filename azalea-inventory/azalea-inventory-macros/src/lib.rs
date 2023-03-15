@@ -33,6 +33,7 @@ pub fn declare_menus(input: TokenStream) -> TokenStream {
     let menu_impl = menu_impl::generate(&input);
 
     quote! {
+        /// A menu, which is a fixed collection of slots.
         #menu_enum
 
         #menu_impl

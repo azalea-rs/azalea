@@ -6,6 +6,7 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
     let mut slot_mut_match_variants = quote! {};
     let mut len_match_variants = quote! {};
     let mut kind_match_variants = quote! {};
+    let mut slots_match_variants = quote! {};
     let mut contents_match_variants = quote! {};
 
     let mut hotbar_slot_start = 0;
@@ -15,6 +16,7 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
         slot_mut_match_variants.extend(generate_match_variant_for_slot_mut(menu));
         len_match_variants.extend(generate_match_variant_for_len(menu));
         kind_match_variants.extend(generate_match_variant_for_kind(menu));
+        slots_match_variants.extend(generate_match_variant_for_slots(menu));
         contents_match_variants.extend(generate_match_variant_for_contents(menu));
 
         // this part is only used to generate `Player::is_hotbar_slot`
@@ -53,8 +55,9 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
                 })
             }
 
+            /// Returns the number of slots in the menu.
             #[allow(clippy::len_without_is_empty)]
-            pub fn len(&self) -> usize {
+            pub const fn len(&self) -> usize {
                 match self {
                     #len_match_variants
                 }
@@ -66,7 +69,20 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
                 }
             }
 
+            /// Return the contents of the menu, including the player's inventory.
+            ///
+            /// The indexes in this will match up with [`Menu::slot_mut`]
+            ///
+            /// If you don't want to include the player's inventory, use [`Menu::contents`] instead.
+            pub fn slots(&self) -> Vec<ItemSlot> {
+                match self {
+                    #slots_match_variants
+                }
+            }
+
             /// Return the contents of the menu, not including the player's inventory.
+            ///
+            /// If you want to include the player's inventory, use [`Menu::slots`] instead.
             pub fn contents(&self) -> Vec<ItemSlot> {
                 match self {
                     #contents_match_variants
@@ -153,19 +169,31 @@ pub fn generate_match_variant_for_kind(menu: &Menu) -> TokenStream {
     }
 }
 
-pub fn generate_match_variant_for_contents(menu: &Menu) -> TokenStream {
-    // Menu::Generic9x3(m) => {
-    //     let mut contents = Vec::new();
-    //     contents.extend(player.m.iter().copied());
-    //     ...
-    //     contents
-    // },
-    // Menu::Generic9x3(m) => {
-    //     let mut contents = Vec::new();
-    //     contents.extend(m.contents.iter().copied());
-    //     contents
-    // },
+pub fn generate_match_variant_for_slots(menu: &Menu) -> TokenStream {
+    let mut instructions = quote! {};
+    let mut length = 0;
+    for field in &menu.fields {
+        let field_name = &field.name;
+        instructions.extend(if field.length == 1 {
+            quote! { items.push(#field_name.clone()); }
+        } else {
+            quote! { items.extend(#field_name.iter().cloned()); }
+        });
+        length += field.length;
+    }
 
+    generate_matcher(
+        menu,
+        &quote! {
+            let mut items = Vec::with_capacity(#length);
+            #instructions
+            items
+        },
+        true,
+    )
+}
+
+pub fn generate_match_variant_for_contents(menu: &Menu) -> TokenStream {
     let mut instructions = quote! {};
     let mut length = 0;
     for field in &menu.fields {

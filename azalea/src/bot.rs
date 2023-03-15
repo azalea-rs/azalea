@@ -1,4 +1,5 @@
 use crate::app::{App, CoreSchedule, IntoSystemAppConfig, Plugin, PluginGroup, PluginGroupBuilder};
+use crate::container::ContainerPlugin;
 use crate::ecs::{
     component::Component,
     entity::Entity,
@@ -133,5 +134,6 @@ impl PluginGroup for DefaultBotPlugins {
         PluginGroupBuilder::start::<Self>()
             .add(BotPlugin)
             .add(PathfinderPlugin)
+            .add(ContainerPlugin)
     }
 }

@@ -39,7 +39,7 @@ use crate::{
     chat::{ChatPacket, ChatReceivedEvent},
     client::TabList,
     disconnect::DisconnectEvent,
-    inventory_plugin::{ClientSideCloseContainerEvent, InventoryComponent, MenuOpenedEvent},
+    inventory::{ClientSideCloseContainerEvent, InventoryComponent, MenuOpenedEvent},
     local_player::{GameProfileComponent, LocalGameMode, LocalPlayer},
     ClientInformation, PlayerInfo,
 };
@@ -892,7 +892,7 @@ fn process_packet_events(ecs: &mut World) {
                             *slot_mut = slot.clone();
                         }
                     }
-                } else if inventory.id == p.container_id {
+                } else if inventory.id == p.container_id as u8 {
                     let menu = inventory.menu_mut();
                     for (i, slot) in p.items.iter().enumerate() {
                         if let Some(slot_mut) = menu.slot_mut(i) {
@@ -942,7 +942,7 @@ fn process_packet_events(ecs: &mut World) {
                         if let Some(slot) = inventory.inventory_menu.slot_mut(p.slot.into()) {
                             *slot = p.item_stack.clone();
                         }
-                    } else if p.container_id == inventory.id
+                    } else if p.container_id == (inventory.id as i8)
                         && (p.container_id != 0 || !is_creative_mode_and_inventory_closed)
                     {
                         // var2.containerMenu.setItem(var4, var1.getStateId(), var3);

@@ -1,3 +1,6 @@
+#![doc = include_str!("../README.md")]
+
+pub mod operations;
 mod slot;
 
 use std::ops::{Deref, DerefMut};
@@ -8,6 +11,8 @@ pub use slot::{ItemSlot, ItemSlotData};
 // TODO: remove this here and in azalea-inventory-macros when rust makes
 // Default be implemented for all array sizes (since right now it's only up to
 // 32)
+
+/// A fixed-size list of [`ItemSlot`]s.
 #[derive(Debug, Clone)]
 pub struct SlotList<const N: usize>([ItemSlot; N]);
 impl<const N: usize> Deref for SlotList<N> {
@@ -53,6 +58,7 @@ impl Menu {
 
 // Generate a `struct Player`, `enum Menu`, and `impl Menu`.
 // a "player" field gets implicitly added with the player inventory
+
 declare_menus! {
     Player {
         craft_result: 1,

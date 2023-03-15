@@ -3,7 +3,7 @@ use azalea_nbt::Tag;
 use std::io::{Cursor, Write};
 
 /// Either an item in an inventory or nothing.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub enum ItemSlot {
     #[default]
     Empty,
@@ -21,9 +21,9 @@ impl ItemSlot {
 
 /// An item in an inventory, with a count and NBT. Usually you want [`ItemSlot`]
 /// or [`azalea_registry::Item`] instead.
-#[derive(Debug, Clone, McBuf)]
+#[derive(Debug, Clone, McBuf, PartialEq)]
 pub struct ItemSlotData {
-    pub id: azalea_registry::Item,
+    pub kind: azalea_registry::Item,
     pub count: u8,
     pub nbt: Tag,
 }
