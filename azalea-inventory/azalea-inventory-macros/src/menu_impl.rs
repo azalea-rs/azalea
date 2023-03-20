@@ -4,6 +4,7 @@ use quote::quote;
 
 pub fn generate(input: &DeclareMenus) -> TokenStream {
     let mut slot_mut_match_variants = quote! {};
+    let mut slot_match_variants = quote! {};
     let mut len_match_variants = quote! {};
     let mut kind_match_variants = quote! {};
     let mut slots_match_variants = quote! {};
@@ -13,7 +14,8 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
     let mut hotbar_slot_end = 0;
 
     for menu in &input.menus {
-        slot_mut_match_variants.extend(generate_match_variant_for_slot_mut(menu));
+        slot_mut_match_variants.extend(generate_match_variant_for_slot_mut(menu, true));
+        slot_match_variants.extend(generate_match_variant_for_slot_mut(menu, false));
         len_match_variants.extend(generate_match_variant_for_len(menu));
         kind_match_variants.extend(generate_match_variant_for_kind(menu));
         slots_match_variants.extend(generate_match_variant_for_slots(menu));
@@ -46,12 +48,38 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
         }
 
         impl Menu {
-            /// Get a mutable reference to the [`ItemSlot`] at the given protocol index. If
-            /// you're trying to get an item in a menu normally, you should just
-            /// `match` it and index the [`ItemSlot`] you get
+            /// Get a mutable reference to the [`ItemSlot`] at the given protocol index.
+            ///
+            /// If you're trying to get an item in a menu without caring about
+            /// protocol indexes, you should just `match` it and index the
+            /// [`ItemSlot`] you get.
+            ///
+            /// Use [`Menu::slot`] if you don't need a mutable reference to the slot.
+            ///
+            /// # Errors
+            ///
+            /// Returns `None` if the index is out of bounds.
+            #[inline]
             pub fn slot_mut(&mut self, i: usize) -> Option<&mut ItemSlot> {
                 Some(match self {
                     #slot_mut_match_variants
+                })
+            }
+
+            /// Get a reference to the [`ItemSlot`] at the given protocol index.
+            ///
+            /// If you're trying to get an item in a menu without caring about
+            /// protocol indexes, you should just `match` it and index the
+            /// [`ItemSlot`] you get.
+            ///
+            /// Use [`Menu::slot_mut`] if you need a mutable reference to the slot.
+            ///
+            /// # Errors
+            ///
+            /// Returns `None` if the index is out of bounds.
+            pub fn slot(&self, i: usize) -> Option<&ItemSlot> {
+                Some(match self {
+                    #slot_match_variants
                 })
             }
 
@@ -107,7 +135,7 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
 ///         _ => return None,
 ///     }
 /// } // ...
-pub fn generate_match_variant_for_slot_mut(menu: &Menu) -> TokenStream {
+pub fn generate_match_variant_for_slot_mut(menu: &Menu, mutable: bool) -> TokenStream {
     let mut match_arms = quote! {};
     let mut i = 0;
     for field in &menu.fields {
@@ -118,9 +146,17 @@ pub fn generate_match_variant_for_slot_mut(menu: &Menu) -> TokenStream {
         match_arms.extend(if start == end {
             quote! { #start => #field_name, }
         } else if start == 0 {
-            quote! { #start..=#end => &mut #field_name[i], }
+            if mutable {
+                quote! { #start..=#end => &mut #field_name[i], }
+            } else {
+                quote! { #start..=#end => &#field_name[i], }
+            }
         } else {
-            quote! { #start..=#end => &mut #field_name[i - #start], }
+            if mutable {
+                quote! { #start..=#end => &mut #field_name[i - #start], }
+            } else {
+                quote! { #start..=#end => &#field_name[i - #start], }
+            }
         });
     }
 

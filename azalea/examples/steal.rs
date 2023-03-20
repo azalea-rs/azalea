@@ -1,6 +1,6 @@
 //! Steal all the diamonds from all the nearby chests.
 
-use azalea::{pathfinder::BlockPosGoal, prelude::*, BlockPos};
+use azalea::{prelude::*, BlockPos};
 use azalea_inventory::operations::QuickMoveClick;
 use azalea_inventory::ItemSlot;
 use parking_lot::Mutex;

@@ -17,6 +17,13 @@ impl ItemSlot {
     pub fn is_present(&self) -> bool {
         matches!(self, ItemSlot::Present(_))
     }
+
+    pub fn count(&self) -> u8 {
+        match self {
+            ItemSlot::Empty => 0,
+            ItemSlot::Present(i) => i.count,
+        }
+    }
 }
 
 /// An item in an inventory, with a count and NBT. Usually you want [`ItemSlot`]

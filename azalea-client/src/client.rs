@@ -23,6 +23,7 @@ use azalea_protocol::{
     connect::{Connection, ConnectionError},
     packets::{
         game::{
+            clientbound_player_abilities_packet::ClientboundPlayerAbilitiesPacket,
             serverbound_client_information_packet::ServerboundClientInformationPacket,
             ClientboundGamePacket, ServerboundGamePacket,
         },
@@ -100,8 +101,37 @@ pub struct Client {
 }
 
 /// A component that contains some of the "settings" for this client that are
-/// sent to the server, such as render distance.
+/// sent to the server, such as render distance. This is only present on local
+/// players.
 pub type ClientInformation = ServerboundClientInformationPacket;
+
+/// A component that contains the abilities the player has, like flying
+/// or instantly breaking blocks. This is only present on local players.
+#[derive(Clone, Debug, Component, Default)]
+pub struct PlayerAbilities {
+    pub invulnerable: bool,
+    pub flying: bool,
+    pub can_fly: bool,
+    /// Whether the player can instantly break blocks and can duplicate blocks
+    /// in their inventory.
+    pub instant_break: bool,
+
+    pub flying_speed: f32,
+    /// Used for the fov
+    pub walking_speed: f32,
+}
+impl From<ClientboundPlayerAbilitiesPacket> for PlayerAbilities {
+    fn from(packet: ClientboundPlayerAbilitiesPacket) -> Self {
+        Self {
+            invulnerable: packet.flags.invulnerable,
+            flying: packet.flags.flying,
+            can_fly: packet.flags.can_fly,
+            instant_break: packet.flags.instant_break,
+            flying_speed: packet.flying_speed,
+            walking_speed: packet.walking_speed,
+        }
+    }
+}
 
 /// A component that contains a map of player UUIDs to their information in the
 /// tab list.
@@ -268,6 +298,7 @@ impl Client {
             tab_list: TabList::default(),
             current_sequence_number: CurrentSequenceNumber::default(),
             last_sent_direction: LastSentLookDirection::default(),
+            abilities: PlayerAbilities::default(),
             _local: Local,
         });
 
@@ -526,6 +557,7 @@ pub struct JoinedClientBundle {
     pub tab_list: TabList,
     pub current_sequence_number: CurrentSequenceNumber,
     pub last_sent_direction: LastSentLookDirection,
+    pub abilities: PlayerAbilities,
     pub _local: Local,
 }
 

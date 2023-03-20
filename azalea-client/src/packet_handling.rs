@@ -37,7 +37,7 @@ use tokio::sync::mpsc;
 
 use crate::{
     chat::{ChatPacket, ChatReceivedEvent},
-    client::TabList,
+    client::{PlayerAbilities, TabList},
     disconnect::DisconnectEvent,
     inventory::{ClientSideCloseContainerEvent, InventoryComponent, MenuOpenedEvent},
     local_player::{GameProfileComponent, LocalGameMode, LocalPlayer},
@@ -294,6 +294,12 @@ fn process_packet_events(ecs: &mut World) {
             }
             ClientboundGamePacket::PlayerAbilities(p) => {
                 debug!("Got player abilities packet {:?}", p);
+                let mut system_state: SystemState<Query<&mut PlayerAbilities>> =
+                    SystemState::new(ecs);
+                let mut query = system_state.get_mut(ecs);
+                let mut player_abilities = query.get_mut(player_entity).unwrap();
+
+                *player_abilities = PlayerAbilities::from(p);
             }
             ClientboundGamePacket::SetCarriedItem(p) => {
                 debug!("Got set carried item packet {:?}", p);

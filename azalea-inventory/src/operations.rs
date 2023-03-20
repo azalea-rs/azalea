@@ -77,30 +77,45 @@ impl From<ThrowClick> for ClickOperation {
         ClickOperation::Throw(click)
     }
 }
-#[derive(Debug, Clone)]
-pub enum QuickCraftClick {
-    /// Starting left mouse drag
-    StartLeft,
-    /// Starting right mouse drag
-    StartRight,
-    /// Starting middle mouse drag, only defined for creative players in
-    /// non-player inventories.
-    StartMiddle,
-    /// Add slot for left-mouse drag
-    AddLeft { slot: u16 },
-    /// Add slot for right-mouse drag
-    AddRight { slot: u16 },
-    /// Add slot for middle-mouse drag, only defined for creative
-    /// players in
-    AddMiddle { slot: u16 },
-    /// Ending left mouse drag
-    EndLeft,
-    /// Ending right mouse drag
-    EndRight,
-    /// Ending middle mouse drag, only defined for creative players in
-    /// non-player inventories.
-    EndMiddle,
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub struct QuickCraftClick {
+    pub kind: QuickCraftKind,
+    pub status: QuickCraftStatus,
 }
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub enum QuickCraftKind {
+    Left,
+    Right,
+    Middle,
+}
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub enum QuickCraftStatusKind {
+    /// Starting drag
+    Start,
+    /// Add slot
+    Add,
+    /// Ending drag
+    End,
+}
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub enum QuickCraftStatus {
+    /// Starting drag
+    Start,
+    /// Add slot
+    Add { slot: u16 },
+    /// Ending drag
+    End,
+}
+impl From<QuickCraftStatus> for QuickCraftStatusKind {
+    fn from(status: QuickCraftStatus) -> Self {
+        match status {
+            QuickCraftStatus::Start => QuickCraftStatusKind::Start,
+            QuickCraftStatus::Add { .. } => QuickCraftStatusKind::Add,
+            QuickCraftStatus::End => QuickCraftStatusKind::End,
+        }
+    }
+}
+
 /// Double click
 #[derive(Debug, Clone)]
 pub struct PickupAllClick {
@@ -109,13 +124,6 @@ pub struct PickupAllClick {
 impl From<PickupAllClick> for ClickOperation {
     fn from(click: PickupAllClick) -> Self {
         ClickOperation::PickupAll(click)
-    }
-}
-
-impl Menu {
-    /// Modify the inventory as if the given operation was performed on it.
-    pub fn click(&mut self, operation: &ClickOperation) {
-        // TODO
     }
 }
 
@@ -144,16 +152,10 @@ impl ClickOperation {
                 ThrowClick::Single { slot } => Some(*slot),
                 ThrowClick::All { slot } => Some(*slot),
             },
-            ClickOperation::QuickCraft(quick_craft) => match quick_craft {
-                QuickCraftClick::StartLeft => None,
-                QuickCraftClick::StartRight => None,
-                QuickCraftClick::StartMiddle => None,
-                QuickCraftClick::AddLeft { slot } => Some(*slot),
-                QuickCraftClick::AddRight { slot } => Some(*slot),
-                QuickCraftClick::AddMiddle { slot } => Some(*slot),
-                QuickCraftClick::EndLeft => None,
-                QuickCraftClick::EndRight => None,
-                QuickCraftClick::EndMiddle => None,
+            ClickOperation::QuickCraft(quick_craft) => match quick_craft.status {
+                QuickCraftStatus::Start => None,
+                QuickCraftStatus::Add { slot } => Some(slot),
+                QuickCraftStatus::End => None,
             },
             ClickOperation::PickupAll(pickup_all) => Some(pickup_all.slot),
         }
@@ -181,15 +183,42 @@ impl ClickOperation {
                 ThrowClick::All { .. } => 1,
             },
             ClickOperation::QuickCraft(quick_craft) => match quick_craft {
-                QuickCraftClick::StartLeft => 0,
-                QuickCraftClick::StartRight => 4,
-                QuickCraftClick::StartMiddle => 8,
-                QuickCraftClick::AddLeft { .. } => 1,
-                QuickCraftClick::AddRight { .. } => 5,
-                QuickCraftClick::AddMiddle { .. } => 9,
-                QuickCraftClick::EndLeft => 2,
-                QuickCraftClick::EndRight => 6,
-                QuickCraftClick::EndMiddle => 10,
+                QuickCraftClick {
+                    kind: QuickCraftKind::Left,
+                    status: QuickCraftStatus::Start,
+                } => 0,
+                QuickCraftClick {
+                    kind: QuickCraftKind::Right,
+                    status: QuickCraftStatus::Start,
+                } => 4,
+                QuickCraftClick {
+                    kind: QuickCraftKind::Middle,
+                    status: QuickCraftStatus::Start,
+                } => 8,
+                QuickCraftClick {
+                    kind: QuickCraftKind::Left,
+                    status: QuickCraftStatus::Add { .. },
+                } => 1,
+                QuickCraftClick {
+                    kind: QuickCraftKind::Right,
+                    status: QuickCraftStatus::Add { .. },
+                } => 5,
+                QuickCraftClick {
+                    kind: QuickCraftKind::Middle,
+                    status: QuickCraftStatus::Add { .. },
+                } => 9,
+                QuickCraftClick {
+                    kind: QuickCraftKind::Left,
+                    status: QuickCraftStatus::End,
+                } => 2,
+                QuickCraftClick {
+                    kind: QuickCraftKind::Right,
+                    status: QuickCraftStatus::End,
+                } => 6,
+                QuickCraftClick {
+                    kind: QuickCraftKind::Middle,
+                    status: QuickCraftStatus::End,
+                } => 10,
             },
             ClickOperation::PickupAll(_) => 0,
         }

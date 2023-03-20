@@ -1,7 +1,7 @@
 use std::fmt::Formatter;
 
 use azalea_client::{
-    inventory::{CloseContainerEvent, ContainerClickEvent, InventoryComponent, MenuOpenedEvent},
+    inventory::{CloseContainerEvent, ContainerClickEvent, InventoryComponent},
     packet_handling::PacketEvent,
     Client, TickBroadcast,
 };
