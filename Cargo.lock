@@ -254,7 +254,6 @@ dependencies = [
  "log",
  "serde_json",
  "thiserror",
- "tokio",
  "uuid",
 ]
 
@@ -308,7 +307,6 @@ dependencies = [
  "regex",
  "thiserror",
  "tokio",
- "typemap_rev",
  "uuid",
 ]
 
@@ -317,7 +315,6 @@ name = "azalea-core"
 version = "0.6.0"
 dependencies = [
  "azalea-buf",
- "azalea-chat",
  "azalea-nbt",
  "bevy_ecs",
  "serde",
@@ -358,8 +355,6 @@ dependencies = [
  "criterion",
  "flate2",
  "log",
- "num-derive",
- "num-traits",
  "serde",
 ]
 
@@ -431,7 +426,6 @@ version = "0.6.0"
 dependencies = [
  "azalea-buf",
  "azalea-registry-macros",
- "enum-as-inner",
  "serde",
 ]
 
@@ -1605,17 +1599,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "num-derive"
-version = "0.3.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "876a53fff98e03a936a674b29568b0e605f06b29372c2489ff4de23f1949743d"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
 name = "num-integer"
 version = "0.1.45"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2463,12 +2446,6 @@ name = "try-lock"
 version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3528ecfd12c466c6f163363caf2d02a71161dd5e1cc6ae7b34207ea2d42d81ed"
-
-[[package]]
-name = "typemap_rev"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "74b08b0c1257381af16a5c3605254d529d3e7e109f3c62befc5d168968192998"
 
 [[package]]
 name = "typenum"
