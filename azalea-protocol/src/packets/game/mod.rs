@@ -12,6 +12,7 @@ pub mod clientbound_boss_event_packet;
 pub mod clientbound_bundle_packet;
 pub mod clientbound_change_difficulty_packet;
 pub mod clientbound_chunks_biomes_packet;
+pub mod clientbound_clear_titles_packet;
 pub mod clientbound_command_suggestions_packet;
 pub mod clientbound_commands_packet;
 pub mod clientbound_container_close_packet;
@@ -232,6 +233,7 @@ declare_state_packets!(
         0x0b: clientbound_boss_event_packet::ClientboundBossEventPacket,
         0x0c: clientbound_change_difficulty_packet::ClientboundChangeDifficultyPacket,
         0x0d: clientbound_chunks_biomes_packet::ClientboundChunksBiomesPacket,
+        0x0e: clientbound_clear_titles_packet::ClientboundClearTitlesPacket,
         0x0f: clientbound_command_suggestions_packet::ClientboundCommandSuggestionsPacket,
         0x10: clientbound_commands_packet::ClientboundCommandsPacket,
         0x11: clientbound_container_close_packet::ClientboundContainerClosePacket,
