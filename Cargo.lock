@@ -354,6 +354,7 @@ dependencies = [
  "byteorder",
  "compact_str",
  "criterion",
+ "enum-as-inner",
  "flate2",
  "log",
  "serde",
