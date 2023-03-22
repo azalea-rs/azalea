@@ -1,9 +1,9 @@
+use crate::tag::NbtCompound;
+use crate::tag::NbtList;
 use crate::Error;
 use crate::Tag;
-use ahash::AHashMap;
 use azalea_buf::McBufWritable;
 use byteorder::{WriteBytesExt, BE};
-use compact_str::CompactString;
 use flate2::write::{GzEncoder, ZlibEncoder};
 use std::io::Write;
 
@@ -16,11 +16,7 @@ fn write_string(writer: &mut dyn Write, string: &str) -> Result<(), Error> {
 }
 
 #[inline]
-fn write_compound(
-    writer: &mut dyn Write,
-    value: &AHashMap<CompactString, Tag>,
-    end_tag: bool,
-) -> Result<(), Error> {
+fn write_compound(writer: &mut dyn Write, value: &NbtCompound, end_tag: bool) -> Result<(), Error> {
     for (key, tag) in value {
         match tag {
             Tag::End => {}
@@ -57,7 +53,7 @@ fn write_compound(
             Tag::ByteArray(value) => {
                 writer.write_u8(7)?;
                 write_string(writer, key)?;
-                write_bytearray(writer, value)?;
+                write_byte_array(writer, value)?;
             }
             Tag::String(value) => {
                 writer.write_u8(8)?;
@@ -77,12 +73,12 @@ fn write_compound(
             Tag::IntArray(value) => {
                 writer.write_u8(11)?;
                 write_string(writer, key)?;
-                write_intarray(writer, value)?;
+                write_int_array(writer, value)?;
             }
             Tag::LongArray(value) => {
                 writer.write_u8(12)?;
                 write_string(writer, key)?;
-                write_longarray(writer, value)?;
+                write_long_array(writer, value)?;
             }
         }
     }
@@ -93,45 +89,91 @@ fn write_compound(
 }
 
 #[inline]
-fn write_list(writer: &mut dyn Write, value: &[Tag]) -> Result<(), Error> {
-    // we just get the type from the first item, or default the type to END
-    if value.is_empty() {
-        writer.write_all(&[0; 5])?;
-    } else {
-        let first_tag = &value[0];
-        writer.write_u8(first_tag.id())?;
-        writer.write_i32::<BE>(value.len() as i32)?;
-        match first_tag {
-            Tag::Int(_) => {
-                for tag in value {
-                    writer.write_i32::<BE>(
-                        *tag.as_int().expect("List of Int should only contains Int"),
-                    )?;
-                }
+fn write_list(writer: &mut dyn Write, value: &NbtList) -> Result<(), Error> {
+    match value {
+        NbtList::Empty => writer.write_all(&[0; 5])?,
+        NbtList::Byte(l) => {
+            writer.write_u8(1)?;
+            writer.write_i32::<BE>(l.len() as i32)?;
+            for v in l {
+                writer.write_i8(*v)?;
             }
-            Tag::String(_) => {
-                for tag in value {
-                    write_string(
-                        writer,
-                        tag.as_string()
-                            .expect("List of String should only contain String"),
-                    )?;
-                }
+        }
+        NbtList::Short(l) => {
+            writer.write_u8(2)?;
+            writer.write_i32::<BE>(l.len() as i32)?;
+            for v in l {
+                writer.write_i16::<BE>(*v)?;
             }
-            Tag::Compound(_) => {
-                for tag in value {
-                    write_compound(
-                        writer,
-                        tag.as_compound()
-                            .expect("List of Compound should only contain Compound"),
-                        true,
-                    )?;
-                }
+        }
+        NbtList::Int(l) => {
+            writer.write_u8(3)?;
+            writer.write_i32::<BE>(l.len() as i32)?;
+            for v in l {
+                writer.write_i32::<BE>(*v)?;
             }
-            _ => {
-                for tag in value {
-                    tag.write_without_end(writer)?;
-                }
+        }
+        NbtList::Long(l) => {
+            writer.write_u8(4)?;
+            writer.write_i32::<BE>(l.len() as i32)?;
+            for v in l {
+                writer.write_i64::<BE>(*v)?;
+            }
+        }
+        NbtList::Float(l) => {
+            writer.write_u8(5)?;
+            writer.write_i32::<BE>(l.len() as i32)?;
+            for v in l {
+                writer.write_f32::<BE>(*v)?;
+            }
+        }
+        NbtList::Double(l) => {
+            writer.write_u8(6)?;
+            writer.write_i32::<BE>(l.len() as i32)?;
+            for v in l {
+                writer.write_f64::<BE>(*v)?;
+            }
+        }
+        NbtList::ByteArray(l) => {
+            writer.write_u8(7)?;
+            writer.write_i32::<BE>(l.len() as i32)?;
+            for v in l {
+                write_byte_array(writer, v)?;
+            }
+        }
+        NbtList::String(l) => {
+            writer.write_u8(8)?;
+            writer.write_i32::<BE>(l.len() as i32)?;
+            for v in l {
+                write_string(writer, v)?;
+            }
+        }
+        NbtList::List(l) => {
+            writer.write_u8(9)?;
+            writer.write_i32::<BE>(l.len() as i32)?;
+            for v in l {
+                write_list(writer, v)?;
+            }
+        }
+        NbtList::Compound(l) => {
+            writer.write_u8(10)?;
+            writer.write_i32::<BE>(l.len() as i32)?;
+            for v in l {
+                write_compound(writer, v, true)?;
+            }
+        }
+        NbtList::IntArray(l) => {
+            writer.write_u8(11)?;
+            writer.write_i32::<BE>(l.len() as i32)?;
+            for v in l {
+                write_int_array(writer, v)?;
+            }
+        }
+        NbtList::LongArray(l) => {
+            writer.write_u8(12)?;
+            writer.write_i32::<BE>(l.len() as i32)?;
+            for v in l {
+                write_long_array(writer, v)?;
             }
         }
     }
@@ -140,14 +182,14 @@ fn write_list(writer: &mut dyn Write, value: &[Tag]) -> Result<(), Error> {
 }
 
 #[inline]
-fn write_bytearray(writer: &mut dyn Write, value: &Vec<u8>) -> Result<(), Error> {
+fn write_byte_array(writer: &mut dyn Write, value: &Vec<u8>) -> Result<(), Error> {
     writer.write_u32::<BE>(value.len() as u32)?;
     writer.write_all(value)?;
     Ok(())
 }
 
 #[inline]
-fn write_intarray(writer: &mut dyn Write, value: &Vec<i32>) -> Result<(), Error> {
+fn write_int_array(writer: &mut dyn Write, value: &Vec<i32>) -> Result<(), Error> {
     writer.write_u32::<BE>(value.len() as u32)?;
     for &int in value {
         writer.write_i32::<BE>(int)?;
@@ -156,7 +198,7 @@ fn write_intarray(writer: &mut dyn Write, value: &Vec<i32>) -> Result<(), Error>
 }
 
 #[inline]
-fn write_longarray(writer: &mut dyn Write, value: &Vec<i64>) -> Result<(), Error> {
+fn write_long_array(writer: &mut dyn Write, value: &Vec<i64>) -> Result<(), Error> {
     writer.write_u32::<BE>(value.len() as u32)?;
     for &long in value {
         writer.write_i64::<BE>(long)?;
@@ -179,12 +221,12 @@ impl Tag {
             Tag::Long(value) => writer.write_i64::<BE>(*value)?,
             Tag::Float(value) => writer.write_f32::<BE>(*value)?,
             Tag::Double(value) => writer.write_f64::<BE>(*value)?,
-            Tag::ByteArray(value) => write_bytearray(writer, value)?,
+            Tag::ByteArray(value) => write_byte_array(writer, value)?,
             Tag::String(value) => write_string(writer, value)?,
             Tag::List(value) => write_list(writer, value)?,
             Tag::Compound(value) => write_compound(writer, value, true)?,
-            Tag::IntArray(value) => write_intarray(writer, value)?,
-            Tag::LongArray(value) => write_longarray(writer, value)?,
+            Tag::IntArray(value) => write_int_array(writer, value)?,
+            Tag::LongArray(value) => write_long_array(writer, value)?,
         }
 
         Ok(())

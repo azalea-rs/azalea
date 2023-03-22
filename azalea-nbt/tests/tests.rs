@@ -1,5 +1,5 @@
 use ahash::AHashMap;
-use azalea_nbt::Tag;
+use azalea_nbt::{NbtList, Tag};
 use std::io::Cursor;
 
 #[test]
@@ -53,24 +53,24 @@ fn test_bigtest() {
 fn test_stringtest() {
     let correct_tag = Tag::Compound(AHashMap::from_iter(vec![(
         "😃".into(),
-        Tag::List(vec![
-            Tag::String("asdfkghasfjgihsdfogjsndfg".into()),
-            Tag::String("jnabsfdgihsabguiqwrntgretqwejirhbiqw".into()),
-            Tag::String("asd".into()),
-            Tag::String("wqierjgt7wqy8u4rtbwreithwretiwerutbwenryq8uwervqwer9iuqwbrgyuqrbtwierotugqewrtqwropethert".into()),
-            Tag::String("asdf".into()),
-            Tag::String("alsdkjiqwoe".into()),
-            Tag::String("lmqi9hyqd".into()),
-            Tag::String("qwertyuiop".into()),
-            Tag::String("asdfghjkl".into()),
-            Tag::String("zxcvbnm".into()),
-            Tag::String("                               ".into()),
-            Tag::String("words words words words words words".into()),
-            Tag::String("aaaaaaaaaaaaaaaaaaaa".into()),
-            Tag::String("♥".into()),
-            Tag::String("a\nb\n\n\nc\r\rd".into()),
-            Tag::String("😁".into()),
-        ])
+        Tag::List(NbtList::String(vec![
+            "asdfkghasfjgihsdfogjsndfg".into(),
+            "jnabsfdgihsabguiqwrntgretqwejirhbiqw".into(),
+            "asd".into(),
+            "wqierjgt7wqy8u4rtbwreithwretiwerutbwenryq8uwervqwer9iuqwbrgyuqrbtwierotugqewrtqwropethert".into(),
+            "asdf".into(),
+            "alsdkjiqwoe".into(),
+            "lmqi9hyqd".into(),
+            "qwertyuiop".into(),
+            "asdfghjkl".into(),
+            "zxcvbnm".into(),
+            "                               ".into(),
+            "words words words words words words".into(),
+            "aaaaaaaaaaaaaaaaaaaa".into(),
+            "♥".into(),
+            "a\nb\n\n\nc\r\rd".into(),
+            "😁".into(),
+        ]))
     )]));
     let original = include_bytes!("stringtest.nbt").to_vec();
 
