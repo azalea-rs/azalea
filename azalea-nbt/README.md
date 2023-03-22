@@ -14,10 +14,10 @@ let tag = Tag::read(&mut Cursor::new(&buf[..])).unwrap();
 assert_eq!(
     tag,
     Tag::Compound(AHashMap::from_iter(vec![(
-        "hello world".to_string(),
+        "hello world".into(),
         Tag::Compound(AHashMap::from_iter(vec![(
-            "name".to_string(),
-            Tag::String("Bananrama".to_string()),
+            "name".into(),
+            Tag::String("Bananrama".into()),
         )]))
     )]))
 );

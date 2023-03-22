@@ -1,5 +1,6 @@
 use ahash::AHashMap;
 
+use compact_str::CompactString;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -17,9 +18,9 @@ pub enum Tag {
     Float(f32) = 5,
     Double(f64) = 6,
     ByteArray(Vec<u8>) = 7,
-    String(String) = 8,
+    String(CompactString) = 8,
     List(Vec<Tag>) = 9,
-    Compound(AHashMap<String, Tag>) = 10,
+    Compound(AHashMap<CompactString, Tag>) = 10,
     IntArray(Vec<i32>) = 11,
     LongArray(Vec<i64>) = 12,
 }
@@ -107,7 +108,7 @@ impl Tag {
 
     /// If the type is a compound, return the `AHashMap<String, Tag>`.
     #[inline]
-    pub fn as_compound(&self) -> Option<&AHashMap<String, Tag>> {
+    pub fn as_compound(&self) -> Option<&AHashMap<CompactString, Tag>> {
         if let Tag::Compound(v) = self {
             Some(v)
         } else {

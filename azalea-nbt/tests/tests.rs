@@ -10,10 +10,10 @@ fn test_decode_hello_world() {
     assert_eq!(
         tag,
         Tag::Compound(AHashMap::from_iter(vec![(
-            "hello world".to_string(),
+            "hello world".into(),
             Tag::Compound(AHashMap::from_iter(vec![(
-                "name".to_string(),
-                Tag::String("Bananrama".to_string()),
+                "name".into(),
+                Tag::String("Bananrama".into()),
             )]))
         )]))
     );
@@ -52,24 +52,24 @@ fn test_bigtest() {
 #[test]
 fn test_stringtest() {
     let correct_tag = Tag::Compound(AHashMap::from_iter(vec![(
-        "😃".to_string(),
+        "😃".into(),
         Tag::List(vec![
-            Tag::String("asdfkghasfjgihsdfogjsndfg".to_string()),
-            Tag::String("jnabsfdgihsabguiqwrntgretqwejirhbiqw".to_string()),
-            Tag::String("asd".to_string()),
-            Tag::String("wqierjgt7wqy8u4rtbwreithwretiwerutbwenryq8uwervqwer9iuqwbrgyuqrbtwierotugqewrtqwropethert".to_string()),
-            Tag::String("asdf".to_string()),
-            Tag::String("alsdkjiqwoe".to_string()),
-            Tag::String("lmqi9hyqd".to_string()),
-            Tag::String("qwertyuiop".to_string()),
-            Tag::String("asdfghjkl".to_string()),
-            Tag::String("zxcvbnm".to_string()),
-            Tag::String("                               ".to_string()),
-            Tag::String("words words words words words words".to_string()),
-            Tag::String("aaaaaaaaaaaaaaaaaaaa".to_string()),
-            Tag::String("♥".to_string()),
-            Tag::String("a\nb\n\n\nc\r\rd".to_string()),
-            Tag::String("😁".to_string()),
+            Tag::String("asdfkghasfjgihsdfogjsndfg".into()),
+            Tag::String("jnabsfdgihsabguiqwrntgretqwejirhbiqw".into()),
+            Tag::String("asd".into()),
+            Tag::String("wqierjgt7wqy8u4rtbwreithwretiwerutbwenryq8uwervqwer9iuqwbrgyuqrbtwierotugqewrtqwropethert".into()),
+            Tag::String("asdf".into()),
+            Tag::String("alsdkjiqwoe".into()),
+            Tag::String("lmqi9hyqd".into()),
+            Tag::String("qwertyuiop".into()),
+            Tag::String("asdfghjkl".into()),
+            Tag::String("zxcvbnm".into()),
+            Tag::String("                               ".into()),
+            Tag::String("words words words words words words".into()),
+            Tag::String("aaaaaaaaaaaaaaaaaaaa".into()),
+            Tag::String("♥".into()),
+            Tag::String("a\nb\n\n\nc\r\rd".into()),
+            Tag::String("😁".into()),
         ])
     )]));
     let original = include_bytes!("stringtest.nbt").to_vec();

@@ -20,10 +20,10 @@ mod tests {
     fn mcbuf_nbt() {
         let mut buf = Vec::new();
         let tag = Tag::Compound(AHashMap::from_iter(vec![(
-            "hello world".to_string(),
+            "hello world".into(),
             Tag::Compound(AHashMap::from_iter(vec![(
-                "name".to_string(),
-                Tag::String("Bananrama".to_string()),
+                "name".into(),
+                Tag::String("Bananrama".into()),
             )])),
         )]));
         tag.write_into(&mut buf).unwrap();
@@ -34,10 +34,10 @@ mod tests {
         assert_eq!(
             result,
             Tag::Compound(AHashMap::from_iter(vec![(
-                "hello world".to_string(),
+                "hello world".into(),
                 Tag::Compound(AHashMap::from_iter(vec![(
-                    "name".to_string(),
-                    Tag::String("Bananrama".to_string()),
+                    "name".into(),
+                    Tag::String("Bananrama".into()),
                 )])),
             )]))
         );

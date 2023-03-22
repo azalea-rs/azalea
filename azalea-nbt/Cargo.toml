@@ -12,6 +12,7 @@ repository = "https://github.com/mat-1/azalea/tree/main/azalea-nbt"
 ahash = { version = "^0.8.3" }
 azalea-buf = { path = "../azalea-buf", version = "^0.6.0" }
 byteorder = "^1.4.3"
+compact_str = { version = "0.7.0", features = ["serde"] }
 flate2 = "^1.0.25"
 log = "0.4.17"
 serde = { version = "1.0.152", features = ["derive"], optional = true }

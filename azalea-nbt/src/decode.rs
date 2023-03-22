@@ -3,6 +3,7 @@ use crate::Tag;
 use ahash::AHashMap;
 use azalea_buf::{BufReadError, McBufReadable};
 use byteorder::{ReadBytesExt, BE};
+use compact_str::CompactString;
 use flate2::read::{GzDecoder, ZlibDecoder};
 use log::warn;
 use std::io::Cursor;
@@ -20,17 +21,17 @@ fn read_bytes<'a>(buf: &'a mut Cursor<&[u8]>, length: usize) -> Result<&'a [u8],
 }
 
 #[inline]
-fn read_string(stream: &mut Cursor<&[u8]>) -> Result<String, Error> {
+fn read_string(stream: &mut Cursor<&[u8]>) -> Result<CompactString, Error> {
     let length = stream.read_u16::<BE>()? as usize;
 
     let buf = read_bytes(stream, length)?;
 
     Ok(if let Ok(string) = std::str::from_utf8(buf) {
-        string.to_string()
+        string.into()
     } else {
         let lossy_string = String::from_utf8_lossy(buf).into_owned();
         warn!("Error decoding utf8 (bytes: {buf:?}, lossy: \"{lossy_string})\"");
-        lossy_string
+        lossy_string.into()
     })
 }
 

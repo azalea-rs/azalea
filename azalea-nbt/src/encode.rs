@@ -3,6 +3,7 @@ use crate::Tag;
 use ahash::AHashMap;
 use azalea_buf::McBufWritable;
 use byteorder::{WriteBytesExt, BE};
+use compact_str::CompactString;
 use flate2::write::{GzEncoder, ZlibEncoder};
 use std::io::Write;
 
@@ -17,7 +18,7 @@ fn write_string(writer: &mut dyn Write, string: &str) -> Result<(), Error> {
 #[inline]
 fn write_compound(
     writer: &mut dyn Write,
-    value: &AHashMap<String, Tag>,
+    value: &AHashMap<CompactString, Tag>,
     end_tag: bool,
 ) -> Result<(), Error> {
     for (key, tag) in value {
