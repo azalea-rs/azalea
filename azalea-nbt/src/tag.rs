@@ -93,7 +93,7 @@ impl NbtList {
 }
 
 // thanks to Moulberry/Graphite for the idea to use a vec and binary search
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct NbtCompound {
     sorted: bool,
     inner: Vec<(NbtString, Tag)>,
