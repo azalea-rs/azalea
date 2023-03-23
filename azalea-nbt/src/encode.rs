@@ -5,13 +5,13 @@ use flate2::write::{GzEncoder, ZlibEncoder};
 use std::io::Write;
 
 #[inline(always)]
-fn write_string(writer: &mut dyn Write, string: &str) {
+fn write_string(writer: &mut impl Write, string: &str) {
     writer.write_u16::<BE>(string.len() as u16).unwrap();
     writer.write_all(string.as_bytes()).unwrap();
 }
 
 #[inline]
-fn write_compound(writer: &mut dyn Write, value: &NbtCompound, end_tag: bool) {
+fn write_compound(writer: &mut impl Write, value: &NbtCompound, end_tag: bool) {
     for (key, tag) in value.iter() {
         match tag {
             Nbt::End => {}
@@ -83,7 +83,7 @@ fn write_compound(writer: &mut dyn Write, value: &NbtCompound, end_tag: bool) {
 }
 
 #[inline]
-fn write_list(writer: &mut dyn Write, value: &NbtList) {
+fn write_list(writer: &mut impl Write, value: &NbtList) {
     match value {
         NbtList::Empty => writer.write_all(&[0; 5]).unwrap(),
         NbtList::Byte(l) => {
@@ -91,42 +91,43 @@ fn write_list(writer: &mut dyn Write, value: &NbtList) {
             writer.write_i32::<BE>(l.len() as i32).unwrap();
             let l = l.as_slice();
             writer
+                // convert [i8] into [u8]
                 .write_all(unsafe { std::slice::from_raw_parts(l.as_ptr() as *const u8, l.len()) })
                 .unwrap();
         }
         NbtList::Short(l) => {
             writer.write_u8(SHORT_ID).unwrap();
             writer.write_i32::<BE>(l.len() as i32).unwrap();
-            for v in l {
-                writer.write_i16::<BE>(*v).unwrap();
+            for &v in l {
+                writer.write_i16::<BE>(v).unwrap();
             }
         }
         NbtList::Int(l) => {
             writer.write_u8(INT_ID).unwrap();
             writer.write_i32::<BE>(l.len() as i32).unwrap();
-            for v in l {
-                writer.write_i32::<BE>(*v).unwrap();
+            for &v in l {
+                writer.write_i32::<BE>(v).unwrap();
             }
         }
         NbtList::Long(l) => {
             writer.write_u8(LONG_ID).unwrap();
             writer.write_i32::<BE>(l.len() as i32).unwrap();
-            for v in l {
-                writer.write_i64::<BE>(*v).unwrap();
+            for &v in l {
+                writer.write_i64::<BE>(v).unwrap();
             }
         }
         NbtList::Float(l) => {
             writer.write_u8(FLOAT_ID).unwrap();
             writer.write_i32::<BE>(l.len() as i32).unwrap();
-            for v in l {
-                writer.write_f32::<BE>(*v).unwrap();
+            for &v in l {
+                writer.write_f32::<BE>(v).unwrap();
             }
         }
         NbtList::Double(l) => {
             writer.write_u8(DOUBLE_ID).unwrap();
             writer.write_i32::<BE>(l.len() as i32).unwrap();
-            for v in l {
-                writer.write_f64::<BE>(*v).unwrap();
+            for &v in l {
+                writer.write_f64::<BE>(v).unwrap();
             }
         }
         NbtList::ByteArray(l) => {
@@ -175,13 +176,13 @@ fn write_list(writer: &mut dyn Write, value: &NbtList) {
 }
 
 #[inline]
-fn write_byte_array(writer: &mut dyn Write, value: &Vec<u8>) {
+fn write_byte_array(writer: &mut impl Write, value: &Vec<u8>) {
     writer.write_u32::<BE>(value.len() as u32).unwrap();
     writer.write_all(value).unwrap();
 }
 
 #[inline]
-fn write_int_array(writer: &mut dyn Write, value: &Vec<i32>) {
+fn write_int_array(writer: &mut impl Write, value: &Vec<i32>) {
     writer.write_u32::<BE>(value.len() as u32).unwrap();
     for &int in value {
         writer.write_i32::<BE>(int).unwrap();
@@ -189,7 +190,7 @@ fn write_int_array(writer: &mut dyn Write, value: &Vec<i32>) {
 }
 
 #[inline]
-fn write_long_array(writer: &mut dyn Write, value: &Vec<i64>) {
+fn write_long_array(writer: &mut impl Write, value: &Vec<i64>) {
     writer.write_u32::<BE>(value.len() as u32).unwrap();
     for &long in value {
         writer.write_i64::<BE>(long).unwrap();
@@ -197,29 +198,6 @@ fn write_long_array(writer: &mut dyn Write, value: &Vec<i64>) {
 }
 
 impl Nbt {
-    /// Write the tag as unnamed, uncompressed NBT data. If you're writing a
-    /// compound tag and the length of the NBT is already known, use
-    /// [`Nbt::write`] to avoid the `End` tag (this is used when writing NBT to
-    /// a file).
-    #[inline]
-    pub fn write_without_end(&self, writer: &mut dyn Write) {
-        match self {
-            Nbt::End => {}
-            Nbt::Byte(value) => writer.write_i8(*value).unwrap(),
-            Nbt::Short(value) => writer.write_i16::<BE>(*value).unwrap(),
-            Nbt::Int(value) => writer.write_i32::<BE>(*value).unwrap(),
-            Nbt::Long(value) => writer.write_i64::<BE>(*value).unwrap(),
-            Nbt::Float(value) => writer.write_f32::<BE>(*value).unwrap(),
-            Nbt::Double(value) => writer.write_f64::<BE>(*value).unwrap(),
-            Nbt::ByteArray(value) => write_byte_array(writer, value),
-            Nbt::String(value) => write_string(writer, value),
-            Nbt::List(value) => write_list(writer, value),
-            Nbt::Compound(value) => write_compound(writer, value, true),
-            Nbt::IntArray(value) => write_int_array(writer, value),
-            Nbt::LongArray(value) => write_long_array(writer, value),
-        }
-    }
-
     /// Write the compound tag as NBT data.
     ///
     /// # Panics

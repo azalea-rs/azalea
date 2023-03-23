@@ -38,3 +38,7 @@ debug = true
 [[bench]]
 harness = false
 name = "nbt"
+
+[[bench]]
+harness = false
+name = "compare"

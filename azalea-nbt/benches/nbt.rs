@@ -3,7 +3,7 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughpu
 use flate2::read::GzDecoder;
 use std::{
     fs::File,
-    io::{self, Cursor, Read},
+    io::{Cursor, Read},
 };
 
 fn bench_file(filename: &str, c: &mut Criterion) {
