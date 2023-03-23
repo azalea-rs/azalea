@@ -1,7 +1,5 @@
-use crate::tag::NbtCompound;
-use crate::tag::NbtList;
+use crate::tag::*;
 use crate::Error;
-use crate::Tag;
 use azalea_buf::McBufWritable;
 use byteorder::{WriteBytesExt, BE};
 use flate2::write::{GzEncoder, ZlibEncoder};
@@ -21,62 +19,62 @@ fn write_compound(writer: &mut dyn Write, value: &NbtCompound, end_tag: bool) ->
         match tag {
             Tag::End => {}
             Tag::Byte(value) => {
-                writer.write_u8(1)?;
+                writer.write_u8(BYTE_ID)?;
                 write_string(writer, key)?;
                 writer.write_i8(*value)?;
             }
             Tag::Short(value) => {
-                writer.write_u8(2)?;
+                writer.write_u8(SHORT_ID)?;
                 write_string(writer, key)?;
                 writer.write_i16::<BE>(*value)?;
             }
             Tag::Int(value) => {
-                writer.write_u8(3)?;
+                writer.write_u8(INT_ID)?;
                 write_string(writer, key)?;
                 writer.write_i32::<BE>(*value)?;
             }
             Tag::Long(value) => {
-                writer.write_u8(4)?;
+                writer.write_u8(LONG_ID)?;
                 write_string(writer, key)?;
                 writer.write_i64::<BE>(*value)?;
             }
             Tag::Float(value) => {
-                writer.write_u8(5)?;
+                writer.write_u8(FLOAT_ID)?;
                 write_string(writer, key)?;
                 writer.write_f32::<BE>(*value)?;
             }
             Tag::Double(value) => {
-                writer.write_u8(6)?;
+                writer.write_u8(DOUBLE_ID)?;
                 write_string(writer, key)?;
                 writer.write_f64::<BE>(*value)?;
             }
             Tag::ByteArray(value) => {
-                writer.write_u8(7)?;
+                writer.write_u8(BYTE_ARRAY_ID)?;
                 write_string(writer, key)?;
                 write_byte_array(writer, value)?;
             }
             Tag::String(value) => {
-                writer.write_u8(8)?;
+                writer.write_u8(STRING_ID)?;
                 write_string(writer, key)?;
                 write_string(writer, value)?;
             }
             Tag::List(value) => {
-                writer.write_u8(9)?;
+                writer.write_u8(LIST_ID)?;
                 write_string(writer, key)?;
                 write_list(writer, value)?;
             }
             Tag::Compound(value) => {
-                writer.write_u8(10)?;
+                writer.write_u8(COMPOUND_ID)?;
                 write_string(writer, key)?;
                 write_compound(writer, value, true)?;
             }
             Tag::IntArray(value) => {
-                writer.write_u8(11)?;
+                writer.write_u8(INT_ARRAY_ID)?;
                 write_string(writer, key)?;
                 write_int_array(writer, value)?;
             }
             Tag::LongArray(value) => {
-                writer.write_u8(12)?;
+                writer.write_u8(LONG_ARRAY_ID)?;
                 write_string(writer, key)?;
                 write_long_array(writer, value)?;
             }
@@ -93,84 +91,84 @@ fn write_list(writer: &mut dyn Write, value: &NbtList) -> Result<(), Error> {
     match value {
         NbtList::Empty => writer.write_all(&[0; 5])?,
         NbtList::Byte(l) => {
-            writer.write_u8(1)?;
+            writer.write_u8(BYTE_ID)?;
             writer.write_i32::<BE>(l.len() as i32)?;
             for v in l {
                 writer.write_i8(*v)?;
             }
         }
         NbtList::Short(l) => {
-            writer.write_u8(2)?;
+            writer.write_u8(SHORT_ID)?;
             writer.write_i32::<BE>(l.len() as i32)?;
             for v in l {
                 writer.write_i16::<BE>(*v)?;
             }
         }
         NbtList::Int(l) => {
-            writer.write_u8(3)?;
+            writer.write_u8(INT_ID)?;
             writer.write_i32::<BE>(l.len() as i32)?;
             for v in l {
                 writer.write_i32::<BE>(*v)?;
             }
         }
         NbtList::Long(l) => {
-            writer.write_u8(4)?;
+            writer.write_u8(LONG_ID)?;
             writer.write_i32::<BE>(l.len() as i32)?;
             for v in l {
                 writer.write_i64::<BE>(*v)?;
             }
         }
         NbtList::Float(l) => {
-            writer.write_u8(5)?;
+            writer.write_u8(FLOAT_ID)?;
             writer.write_i32::<BE>(l.len() as i32)?;
             for v in l {
                 writer.write_f32::<BE>(*v)?;
             }
         }
         NbtList::Double(l) => {
-            writer.write_u8(6)?;
+            writer.write_u8(DOUBLE_ID)?;
             writer.write_i32::<BE>(l.len() as i32)?;
             for v in l {
                 writer.write_f64::<BE>(*v)?;
             }
         }
         NbtList::ByteArray(l) => {
-            writer.write_u8(7)?;
+            writer.write_u8(BYTE_ARRAY_ID)?;
             writer.write_i32::<BE>(l.len() as i32)?;
             for v in l {
                 write_byte_array(writer, v)?;
             }
         }
         NbtList::String(l) => {
-            writer.write_u8(8)?;
+            writer.write_u8(STRING_ID)?;
             writer.write_i32::<BE>(l.len() as i32)?;
             for v in l {
                 write_string(writer, v)?;
             }
         }
         NbtList::List(l) => {
-            writer.write_u8(9)?;
+            writer.write_u8(LIST_ID)?;
             writer.write_i32::<BE>(l.len() as i32)?;
             for v in l {
                 write_list(writer, v)?;
             }
         }
         NbtList::Compound(l) => {
-            writer.write_u8(10)?;
+            writer.write_u8(COMPOUND_ID)?;
             writer.write_i32::<BE>(l.len() as i32)?;
             for v in l {
                 write_compound(writer, v, true)?;
             }
         }
         NbtList::IntArray(l) => {
-            writer.write_u8(11)?;
+            writer.write_u8(INT_ARRAY_ID)?;
             writer.write_i32::<BE>(l.len() as i32)?;
             for v in l {
                 write_int_array(writer, v)?;
             }
         }
         NbtList::LongArray(l) => {
-            writer.write_u8(12)?;
+            writer.write_u8(LONG_ARRAY_ID)?;
             writer.write_i32::<BE>(l.len() as i32)?;
             for v in l {
                 write_long_array(writer, v)?;

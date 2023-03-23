@@ -356,8 +356,12 @@ dependencies = [
  "criterion",
  "enum-as-inner",
  "flate2",
+ "graphite_binary",
+ "hematite-nbt",
  "log",
+ "quartz_nbt",
  "serde",
+ "valence_nbt",
 ]
 
 [[package]]
@@ -749,6 +753,12 @@ name = "cc"
 version = "1.0.79"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "50d30906286121d95be3d479533b458f87493b30a4b5f79a607db8f5d11aa91f"
+
+[[package]]
+name = "cesu8"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6d43a04d8753f35258c91f8ec639f792891f748a1edbd759cf1dcea3382ad83c"
 
 [[package]]
 name = "cfb8"
@@ -1253,6 +1263,31 @@ dependencies = [
 ]
 
 [[package]]
+name = "graphite_binary"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1dc8b44c673c50a2b3e6ec6652b8c8d26532254a3a182cc43b76d1b6e4cd1572"
+dependencies = [
+ "anyhow",
+ "bytes",
+ "cesu8",
+ "graphite_binary_macros",
+ "thiserror",
+]
+
+[[package]]
+name = "graphite_binary_macros"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "30667bf8d368a37fa37f4165d90ee84362e360d83d85924898c41cfe3d097521"
+dependencies = [
+ "anyhow",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "h2"
 version = "0.3.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1292,6 +1327,18 @@ name = "heck"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "95505c38b4572b2d910cecb0281560f54b440a19336cbbcb27bf6ce6adc6f5a8"
+
+[[package]]
+name = "hematite-nbt"
+version = "0.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "670d0784ee67cfb57393dc1837867d2951f9a59ca7db99a653499c854f745739"
+dependencies = [
+ "byteorder",
+ "cesu8",
+ "flate2",
+ "serde",
+]
 
 [[package]]
 name = "hermit-abi"
@@ -1819,6 +1866,30 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1d0e1ae9e836cc3beddd63db0df682593d7e2d3d891ae8c9083d2113e1744224"
 dependencies = [
  "unicode-ident",
+]
+
+[[package]]
+name = "quartz_nbt"
+version = "0.2.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "348031720b71761481d77969dcb3c89ab06f04132ee1503aca1bd9313eef5e67"
+dependencies = [
+ "anyhow",
+ "byteorder",
+ "cesu8",
+ "flate2",
+ "quartz_nbt_macros",
+]
+
+[[package]]
+name = "quartz_nbt_macros"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "289baa0c8a4d1f840d2de528a7f8c29e0e9af48b3018172b3edad4f716e8daed"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
@@ -2539,6 +2610,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "valence_nbt"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e84a1c10f1ee96e41060faa28ccf5937588a132e492502fbfd248381f19884b2"
+dependencies = [
+ "byteorder",
+ "cesu8",
+ "zerocopy",
+]
+
+[[package]]
 name = "valuable"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2791,4 +2873,25 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "80d0f4e272c85def139476380b12f9ac60926689dd2e01d4923222f40580869d"
 dependencies = [
  "winapi",
+]
+
+[[package]]
+name = "zerocopy"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "332f188cc1bcf1fe1064b8c58d150f497e697f49774aa846f2dc949d9a25f236"
+dependencies = [
+ "byteorder",
+ "zerocopy-derive",
+]
+
+[[package]]
+name = "zerocopy-derive"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6505e6815af7de1746a08f69c69606bb45695a17149517680f3b2149713b19a3"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]

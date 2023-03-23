@@ -1,18 +1,11 @@
-use crate::tag::NbtByteArray;
-use crate::tag::NbtCompound;
-use crate::tag::NbtIntArray;
-use crate::tag::NbtList;
-use crate::tag::NbtLongArray;
-use crate::tag::NbtString;
+use crate::tag::*;
 use crate::Error;
-use crate::Tag;
 use ahash::AHashMap;
 use azalea_buf::{BufReadError, McBufReadable};
 use byteorder::{ReadBytesExt, BE};
 use flate2::read::{GzDecoder, ZlibDecoder};
 use log::warn;
-use std::io::Cursor;
-use std::io::{BufRead, Read};
+use std::io::{BufRead, Cursor, Read};
 
 #[inline]
 fn read_bytes<'a>(buf: &'a mut Cursor<&[u8]>, length: usize) -> Result<&'a [u8], Error> {
@@ -70,11 +63,11 @@ fn read_list(stream: &mut Cursor<&[u8]>) -> Result<NbtList, Error> {
     let type_id = stream.read_u8()?;
     let length = stream.read_u32::<BE>()?;
     let list = match type_id {
-        0 => NbtList::Empty,
-        1 => NbtList::Byte(vec_u8_into_i8(
+        END_ID => NbtList::Empty,
+        BYTE_ID => NbtList::Byte(vec_u8_into_i8(
             read_bytes(stream, length as usize)?.to_vec(),
         )),
-        2 => NbtList::Short({
+        SHORT_ID => NbtList::Short({
             if ((length * 2) as usize) > (stream.get_ref().len() - stream.position() as usize) {
                 return Err(Error::UnexpectedEof);
             }
@@ -82,7 +75,7 @@ fn read_list(stream: &mut Cursor<&[u8]>) -> Result<NbtList, Error> {
                 .map(|_| stream.read_i16::<BE>())
                 .collect::<Result<Vec<_>, _>>()?
         }),
-        3 => NbtList::Int({
+        INT_ID => NbtList::Int({
             if ((length * 4) as usize) > (stream.get_ref().len() - stream.position() as usize) {
                 return Err(Error::UnexpectedEof);
             }
@@ -90,7 +83,7 @@ fn read_list(stream: &mut Cursor<&[u8]>) -> Result<NbtList, Error> {
                 .map(|_| stream.read_i32::<BE>())
                 .collect::<Result<Vec<_>, _>>()?
         }),
-        4 => NbtList::Long({
+        LONG_ID => NbtList::Long({
             if ((length * 8) as usize) > (stream.get_ref().len() - stream.position() as usize) {
                 return Err(Error::UnexpectedEof);
             }
@@ -98,7 +91,7 @@ fn read_list(stream: &mut Cursor<&[u8]>) -> Result<NbtList, Error> {
                 .map(|_| stream.read_i64::<BE>())
                 .collect::<Result<Vec<_>, _>>()?
         }),
-        5 => NbtList::Float({
+        FLOAT_ID => NbtList::Float({
             if ((length * 4) as usize) > (stream.get_ref().len() - stream.position() as usize) {
                 return Err(Error::UnexpectedEof);
             }
@@ -106,7 +99,7 @@ fn read_list(stream: &mut Cursor<&[u8]>) -> Result<NbtList, Error> {
                 .map(|_| stream.read_f32::<BE>())
                 .collect::<Result<Vec<_>, _>>()?
         }),
-        6 => NbtList::Double({
+        DOUBLE_ID => NbtList::Double({
             if ((length * 8) as usize) > (stream.get_ref().len() - stream.position() as usize) {
                 return Err(Error::UnexpectedEof);
             }
@@ -114,7 +107,7 @@ fn read_list(stream: &mut Cursor<&[u8]>) -> Result<NbtList, Error> {
                 .map(|_| stream.read_f64::<BE>())
                 .collect::<Result<Vec<_>, _>>()?
         }),
-        7 => NbtList::ByteArray({
+        BYTE_ARRAY_ID => NbtList::ByteArray({
             if ((length * 4) as usize) > (stream.get_ref().len() - stream.position() as usize) {
                 return Err(Error::UnexpectedEof);
             }
@@ -122,7 +115,7 @@ fn read_list(stream: &mut Cursor<&[u8]>) -> Result<NbtList, Error> {
                 .map(|_| read_byte_array(stream))
                 .collect::<Result<Vec<_>, _>>()?
         }),
-        8 => NbtList::String({
+        STRING_ID => NbtList::String({
             if ((length * 4) as usize) > (stream.get_ref().len() - stream.position() as usize) {
                 return Err(Error::UnexpectedEof);
             }
@@ -130,7 +123,7 @@ fn read_list(stream: &mut Cursor<&[u8]>) -> Result<NbtList, Error> {
                 .map(|_| read_string(stream))
                 .collect::<Result<Vec<_>, _>>()?
         }),
-        9 => NbtList::List({
+        LIST_ID => NbtList::List({
             if ((length * 4) as usize) > (stream.get_ref().len() - stream.position() as usize) {
                 return Err(Error::UnexpectedEof);
             }
@@ -138,7 +131,7 @@ fn read_list(stream: &mut Cursor<&[u8]>) -> Result<NbtList, Error> {
                 .map(|_| read_list(stream))
                 .collect::<Result<Vec<_>, _>>()?
         }),
-        10 => NbtList::Compound({
+        COMPOUND_ID => NbtList::Compound({
             if ((length * 4) as usize) > (stream.get_ref().len() - stream.position() as usize) {
                 return Err(Error::UnexpectedEof);
             }
@@ -146,7 +139,7 @@ fn read_list(stream: &mut Cursor<&[u8]>) -> Result<NbtList, Error> {
                 .map(|_| read_compound(stream))
                 .collect::<Result<Vec<_>, _>>()?
         }),
-        11 => NbtList::IntArray({
+        INT_ARRAY_ID => NbtList::IntArray({
             if ((length * 4) as usize) > (stream.get_ref().len() - stream.position() as usize) {
                 return Err(Error::UnexpectedEof);
             }
@@ -154,7 +147,7 @@ fn read_list(stream: &mut Cursor<&[u8]>) -> Result<NbtList, Error> {
                 .map(|_| read_int_array(stream))
                 .collect::<Result<Vec<_>, _>>()?
         }),
-        12 => NbtList::LongArray({
+        LONG_ARRAY_ID => NbtList::LongArray({
             if ((length * 4) as usize) > (stream.get_ref().len() - stream.position() as usize) {
                 return Err(Error::UnexpectedEof);
             }
@@ -217,28 +210,28 @@ impl Tag {
         Ok(match id {
             // Signifies the end of a TAG_Compound. It is only ever used inside
             // a TAG_Compound, and is not named despite being in a TAG_Compound
-            0 => Tag::End,
+            END_ID => Tag::End,
             // A single signed byte
-            1 => Tag::Byte(stream.read_i8()?),
+            BYTE_ID => Tag::Byte(stream.read_i8()?),
             // A single signed, big endian 16 bit integer
-            2 => Tag::Short(stream.read_i16::<BE>()?),
+            SHORT_ID => Tag::Short(stream.read_i16::<BE>()?),
             // A single signed, big endian 32 bit integer
-            3 => Tag::Int(stream.read_i32::<BE>()?),
+            INT_ID => Tag::Int(stream.read_i32::<BE>()?),
             // A single signed, big endian 64 bit integer
-            4 => Tag::Long(stream.read_i64::<BE>()?),
+            LONG_ID => Tag::Long(stream.read_i64::<BE>()?),
             // A single, big endian IEEE-754 single-precision floating point
             // number (NaN possible)
-            5 => Tag::Float(stream.read_f32::<BE>()?),
+            FLOAT_ID => Tag::Float(stream.read_f32::<BE>()?),
             // A single, big endian IEEE-754 double-precision floating point
             // number (NaN possible)
-            6 => Tag::Double(stream.read_f64::<BE>()?),
+            DOUBLE_ID => Tag::Double(stream.read_f64::<BE>()?),
             // A length-prefixed array of signed bytes. The prefix is a signed
             // integer (thus 4 bytes)
-            7 => Tag::ByteArray(read_byte_array(stream)?),
+            BYTE_ARRAY_ID => Tag::ByteArray(read_byte_array(stream)?),
             // A length-prefixed modified UTF-8 string. The prefix is an
             // unsigned short (thus 2 bytes) signifying the length of the
             // string in bytes
-            8 => Tag::String(read_string(stream)?),
+            STRING_ID => Tag::String(read_string(stream)?),
             // A list of nameless tags, all of the same type. The list is
             // prefixed with the Type ID of the items it contains (thus 1
             // byte), and the length of the list as a signed integer (a further
@@ -247,16 +240,16 @@ impl Tag {
             // notchian implementation uses TAG_End in that situation, but
             // another reference implementation by Mojang uses 1 instead;
             // parsers should accept any type if the length is <= 0).
-            9 => Tag::List(read_list(stream)?),
+            LIST_ID => Tag::List(read_list(stream)?),
             // Effectively a list of a named tags. Order is not guaranteed.
-            10 => Tag::Compound(read_compound(stream)?),
+            COMPOUND_ID => Tag::Compound(read_compound(stream)?),
             // A length-prefixed array of signed integers. The prefix is a
             // signed integer (thus 4 bytes) and indicates the number of 4 byte
             // integers.
-            11 => Tag::IntArray(read_int_array(stream)?),
+            INT_ARRAY_ID => Tag::IntArray(read_int_array(stream)?),
             // A length-prefixed array of signed longs. The prefix is a signed
             // integer (thus 4 bytes) and indicates the number of 8 byte longs.
-            12 => Tag::LongArray(read_long_array(stream)?),
+            LONG_ARRAY_ID => Tag::LongArray(read_long_array(stream)?),
             _ => return Err(Error::InvalidTagType(id)),
         })
     }
