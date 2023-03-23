@@ -170,8 +170,9 @@ fn read_compound(stream: &mut Cursor<&[u8]>) -> Result<NbtCompound, Error> {
         }
         let name = read_string(stream)?;
         let tag = Nbt::read_known(stream, tag_id)?;
-        map.insert(name, tag);
+        map.insert_unsorted(name, tag);
     }
+    map.sort();
     Ok(map)
 }
 
@@ -265,7 +266,7 @@ impl Nbt {
         let name = read_string(stream)?;
         let tag = Nbt::read_known(stream, tag_id)?;
         let mut map = NbtCompound::with_capacity(1);
-        map.insert(name, tag);
+        map.insert_unsorted(name, tag);
 
         Ok(Nbt::Compound(map))
     }

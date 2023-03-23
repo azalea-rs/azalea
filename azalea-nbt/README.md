@@ -31,3 +31,5 @@ assert_eq!(
 At the time of writing, Azalea NBT is the fastest NBT decoder (approximately twice as fast as Graphite NBT, the second fastest) and on-par with the fastest NBT encoders (sometimes the fastest, depending on the data).
 
 You can run the benchmarks to compare against other NBT libraries with `cargo bench --bench compare` and the normal benchmarks with `cargo bench --bench nbt`.
+
+Note: For best performance, use `RUSTFLAGS='-C target-cpu=native'`.

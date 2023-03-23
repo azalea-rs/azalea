@@ -93,16 +93,14 @@ impl NbtList {
 }
 
 // thanks to Moulberry/Graphite for the idea to use a vec and binary search
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct NbtCompound {
-    sorted: bool,
     inner: Vec<(NbtString, Nbt)>,
 }
 impl NbtCompound {
     #[inline]
     pub fn with_capacity(capacity: usize) -> Self {
         Self {
-            sorted: false,
             inner: Vec::with_capacity(capacity),
         }
     }
@@ -117,11 +115,23 @@ impl NbtCompound {
     /// If you previously used [`Self::insert_unsorted`] without [`Self::sort`],
     /// this function may return incorrect results.
     #[inline]
-    pub fn get(&mut self, key: &NbtString) -> Option<&Nbt> {
-        if !self.sorted {
-            self.sort()
+    pub fn get(&self, key: &str) -> Option<&Nbt> {
+        if self.is_worth_sorting() {
+            let key = NbtString::from(key);
+            self.binary_search(&key).ok().map(|i| &self.inner[i].1)
+        } else {
+            for (k, v) in &self.inner {
+                if &key == k {
+                    return Some(v);
+                }
+            }
+            None
         }
-        self.binary_search(key).ok().map(|i| &self.inner[i].1)
+    }
+
+    #[inline]
+    pub fn insert_unsorted(&mut self, key: NbtString, value: Nbt) {
+        self.inner.push((key, value));
     }
 
     /// Insert an item into the compound, returning the previous value if it
@@ -133,17 +143,25 @@ impl NbtCompound {
     #[inline]
     pub fn insert(&mut self, key: NbtString, value: Nbt) {
         self.inner.push((key, value));
+        self.sort()
     }
 
     #[inline]
     pub fn sort(&mut self) {
-        self.sorted = true;
+        if !self.is_worth_sorting() {
+            return;
+        }
         self.inner.sort_unstable_by(|(a, _), (b, _)| a.cmp(b));
     }
 
     #[inline]
     pub fn iter(&self) -> std::slice::Iter<'_, (CompactString, Nbt)> {
         self.inner.iter()
+    }
+
+    #[inline]
+    fn is_worth_sorting(&self) -> bool {
+        self.inner.len() > 128
     }
 }
 #[cfg(feature = "serde")]
@@ -163,7 +181,6 @@ impl<'de> Deserialize<'de> for NbtCompound {
         let map = <BTreeMap<NbtString, Nbt> as Deserialize>::deserialize(deserializer)?;
         Ok(Self {
             inner: map.into_iter().collect(),
-            sorted: false,
         })
     }
 }
@@ -171,43 +188,6 @@ impl<'de> Deserialize<'de> for NbtCompound {
 impl FromIterator<(NbtString, Nbt)> for NbtCompound {
     fn from_iter<T: IntoIterator<Item = (NbtString, Nbt)>>(iter: T) -> Self {
         let inner = iter.into_iter().collect::<Vec<_>>();
-        Self {
-            inner,
-            sorted: false,
-        }
-    }
-}
-
-impl PartialEq for NbtCompound {
-    /// Compare two NBT compounds for equality, ignoring the order of the keys.
-    /// Note that this will execute fastest if the keys are already sorted with
-    /// [`Self::sort`].
-    fn eq(&self, other: &Self) -> bool {
-        if self.inner.len() != other.inner.len() {
-            return false;
-        }
-        if self.inner == other.inner {
-            return true;
-        }
-        if !self.sorted && !other.sorted {
-            // neither are sorted, so sort both
-            let mut a = self.clone();
-            let mut b = other.clone();
-            a.sort();
-            b.sort();
-            a == b
-        } else if !self.sorted {
-            // only self is sorted, so sort self
-            let mut a = self.clone();
-            a.sort();
-            a == *other
-        } else if !other.sorted {
-            // only other is sorted, so sort other
-            let mut b = other.clone();
-            b.sort();
-            *self == b
-        } else {
-            self.inner == other.inner
-        }
+        Self { inner }
     }
 }

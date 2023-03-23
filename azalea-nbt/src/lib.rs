@@ -1,4 +1,5 @@
 #![doc = include_str!("../README.md")]
+#![feature(min_specialization)]
 
 mod decode;
 mod encode;
@@ -6,7 +7,7 @@ mod error;
 mod tag;
 
 pub use error::Error;
-pub use tag::{NbtCompound, NbtList, Nbt};
+pub use tag::{Nbt, NbtCompound, NbtList};
 
 #[cfg(test)]
 mod tests {
