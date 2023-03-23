@@ -26,12 +26,12 @@ fn bench_file(filename: &str, c: &mut Criterion) {
 
     group.throughput(Throughput::Bytes(decoded_src.len() as u64));
 
-    group.bench_function("Decode", |b| {
-        b.iter(|| {
-            black_box(Tag::read(&mut decoded_src_stream).unwrap());
-            decoded_src_stream.set_position(0);
-        })
-    });
+    // group.bench_function("Decode", |b| {
+    //     b.iter(|| {
+    //         black_box(Tag::read(&mut decoded_src_stream).unwrap());
+    //         decoded_src_stream.set_position(0);
+    //     })
+    // });
 
     group.bench_function("Encode", |b| {
         b.iter(|| {
@@ -42,12 +42,12 @@ fn bench_file(filename: &str, c: &mut Criterion) {
 }
 
 fn bench(c: &mut Criterion) {
-    bench_file("tests/bigtest.nbt", c);
-    bench_file("tests/simple_player.dat", c);
+    // bench_file("tests/bigtest.nbt", c);
+    // bench_file("tests/simple_player.dat", c);
     bench_file("tests/complex_player.dat", c);
-    bench_file("tests/level.dat", c);
-    bench_file("tests/stringtest.nbt", c);
-    bench_file("tests/inttest.nbt", c);
+    // bench_file("tests/level.dat", c);
+    // bench_file("tests/stringtest.nbt", c);
+    // bench_file("tests/inttest.nbt", c);
 }
 
 criterion_group!(benches, bench);
