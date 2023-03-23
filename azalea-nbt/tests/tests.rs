@@ -27,7 +27,7 @@ fn test_roundtrip_hello_world() {
 
     // write hello_world.nbt
     let mut result = Vec::new();
-    tag.write(&mut result).unwrap();
+    tag.write(&mut result);
 
     assert_eq!(result, original);
 }
@@ -41,7 +41,7 @@ fn test_bigtest() {
     let original_tag = Tag::read_gzip(&mut original_stream).unwrap();
 
     let mut result = Vec::new();
-    original_tag.write(&mut result).unwrap();
+    original_tag.write(&mut result);
 
     let decoded_tag = Tag::read(&mut Cursor::new(&result)).unwrap();
 
@@ -87,7 +87,7 @@ fn test_complex_player() {
     let original_tag = Tag::read_gzip(&mut original_stream).unwrap();
 
     let mut result = Vec::new();
-    original_tag.write(&mut result).unwrap();
+    original_tag.write(&mut result);
 
     let decoded_tag = Tag::read(&mut Cursor::new(&result)).unwrap();
 
@@ -102,7 +102,7 @@ fn test_simple_player() {
     let original_tag = Tag::read_gzip(&mut original_stream).unwrap();
 
     let mut result = Vec::new();
-    original_tag.write(&mut result).unwrap();
+    original_tag.write(&mut result);
 
     let decoded_tag = Tag::read(&mut Cursor::new(&result)).unwrap();
 

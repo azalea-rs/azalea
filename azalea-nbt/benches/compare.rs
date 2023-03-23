@@ -38,13 +38,13 @@ pub fn bench_read_file(filename: &str, c: &mut Criterion) {
         })
     });
 
-    group.bench_function("valence_parse", |b| {
-        b.iter(|| {
-            let input = black_box(input);
-            let nbt = valence_nbt::from_binary_slice(&mut &input[..]).unwrap();
-            black_box(nbt);
-        })
-    });
+    // group.bench_function("valence_parse", |b| {
+    //     b.iter(|| {
+    //         let input = black_box(input);
+    //         let nbt = valence_nbt::from_binary_slice(&mut &input[..]).unwrap();
+    //         black_box(nbt);
+    //     })
+    // });
 
     // // writing
 
@@ -53,7 +53,7 @@ pub fn bench_read_file(filename: &str, c: &mut Criterion) {
         b.iter(|| {
             let nbt = black_box(&nbt);
             let mut written = Vec::new();
-            nbt.write(&mut written).unwrap();
+            nbt.write(&mut written);
             black_box(written);
         })
     });
@@ -67,15 +67,15 @@ pub fn bench_read_file(filename: &str, c: &mut Criterion) {
         })
     });
 
-    let nbt = valence_nbt::from_binary_slice(&mut &input[..]).unwrap();
-    group.bench_function("valence_write", |b| {
-        b.iter(|| {
-            let nbt = black_box(&nbt);
-            let mut written = Vec::new();
-            valence_nbt::to_binary_writer(&mut written, &nbt.0, &nbt.1).unwrap();
-            black_box(written);
-        })
-    });
+    // let nbt = valence_nbt::from_binary_slice(&mut &input[..]).unwrap();
+    // group.bench_function("valence_write", |b| {
+    //     b.iter(|| {
+    //         let nbt = black_box(&nbt);
+    //         let mut written = Vec::new();
+    //         valence_nbt::to_binary_writer(&mut written, &nbt.0,
+    // &nbt.1).unwrap();         black_box(written);
+    //     })
+    // });
 }
 
 fn bench(c: &mut Criterion) {

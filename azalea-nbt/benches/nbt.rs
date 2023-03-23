@@ -35,19 +35,19 @@ fn bench_file(filename: &str, c: &mut Criterion) {
 
     group.bench_function("Encode", |b| {
         b.iter(|| {
-            nbt.write(&mut black_box(Vec::new())).unwrap();
+            nbt.write(&mut black_box(Vec::new()));
         })
     });
     group.finish();
 }
 
 fn bench(c: &mut Criterion) {
-    // bench_file("tests/bigtest.nbt", c);
-    // bench_file("tests/simple_player.dat", c);
+    bench_file("tests/bigtest.nbt", c);
+    bench_file("tests/simple_player.dat", c);
     bench_file("tests/complex_player.dat", c);
-    // bench_file("tests/level.dat", c);
-    // bench_file("tests/stringtest.nbt", c);
-    // bench_file("tests/inttest.nbt", c);
+    bench_file("tests/level.dat", c);
+    bench_file("tests/stringtest.nbt", c);
+    bench_file("tests/inttest.nbt", c);
 }
 
 criterion_group!(benches, bench);

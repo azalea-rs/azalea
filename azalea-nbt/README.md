@@ -2,8 +2,6 @@
 
 A fast NBT serializer and deserializer.
 
-Note: Running your code with `RUSTFLAGS="-C target-cpu=native"` will result in significant performance improvements.
-
 # Examples
 
 ```
