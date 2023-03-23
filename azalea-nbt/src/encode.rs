@@ -14,63 +14,63 @@ fn write_string(writer: &mut dyn Write, string: &str) {
 fn write_compound(writer: &mut dyn Write, value: &NbtCompound, end_tag: bool) {
     for (key, tag) in value.iter() {
         match tag {
-            Tag::End => {}
-            Tag::Byte(value) => {
+            Nbt::End => {}
+            Nbt::Byte(value) => {
                 writer.write_u8(BYTE_ID).unwrap();
                 write_string(writer, key);
                 writer.write_i8(*value).unwrap();
             }
-            Tag::Short(value) => {
+            Nbt::Short(value) => {
                 writer.write_u8(SHORT_ID).unwrap();
                 write_string(writer, key);
                 writer.write_i16::<BE>(*value).unwrap();
             }
-            Tag::Int(value) => {
+            Nbt::Int(value) => {
                 writer.write_u8(INT_ID).unwrap();
                 write_string(writer, key);
                 writer.write_i32::<BE>(*value).unwrap();
             }
-            Tag::Long(value) => {
+            Nbt::Long(value) => {
                 writer.write_u8(LONG_ID).unwrap();
                 write_string(writer, key);
                 writer.write_i64::<BE>(*value).unwrap();
             }
-            Tag::Float(value) => {
+            Nbt::Float(value) => {
                 writer.write_u8(FLOAT_ID).unwrap();
                 write_string(writer, key);
                 writer.write_f32::<BE>(*value).unwrap();
             }
-            Tag::Double(value) => {
+            Nbt::Double(value) => {
                 writer.write_u8(DOUBLE_ID).unwrap();
                 write_string(writer, key);
                 writer.write_f64::<BE>(*value).unwrap();
             }
-            Tag::ByteArray(value) => {
+            Nbt::ByteArray(value) => {
                 writer.write_u8(BYTE_ARRAY_ID).unwrap();
                 write_string(writer, key);
                 write_byte_array(writer, value);
             }
-            Tag::String(value) => {
+            Nbt::String(value) => {
                 writer.write_u8(STRING_ID).unwrap();
                 write_string(writer, key);
                 write_string(writer, value);
             }
-            Tag::List(value) => {
+            Nbt::List(value) => {
                 writer.write_u8(LIST_ID).unwrap();
                 write_string(writer, key);
                 write_list(writer, value);
             }
-            Tag::Compound(value) => {
+            Nbt::Compound(value) => {
                 writer.write_u8(COMPOUND_ID).unwrap();
                 write_string(writer, key);
                 write_compound(writer, value, true);
             }
-            Tag::IntArray(value) => {
+            Nbt::IntArray(value) => {
                 writer.write_u8(INT_ARRAY_ID).unwrap();
                 write_string(writer, key);
                 write_int_array(writer, value);
             }
-            Tag::LongArray(value) => {
+            Nbt::LongArray(value) => {
                 writer.write_u8(LONG_ARRAY_ID).unwrap();
                 write_string(writer, key);
                 write_long_array(writer, value);
@@ -196,27 +196,27 @@ fn write_long_array(writer: &mut dyn Write, value: &Vec<i64>) {
     }
 }
 
-impl Tag {
+impl Nbt {
     /// Write the tag as unnamed, uncompressed NBT data. If you're writing a
     /// compound tag and the length of the NBT is already known, use
-    /// [`Tag::write`] to avoid the `End` tag (this is used when writing NBT to
+    /// [`Nbt::write`] to avoid the `End` tag (this is used when writing NBT to
     /// a file).
     #[inline]
     pub fn write_without_end(&self, writer: &mut dyn Write) {
         match self {
-            Tag::End => {}
-            Tag::Byte(value) => writer.write_i8(*value).unwrap(),
-            Tag::Short(value) => writer.write_i16::<BE>(*value).unwrap(),
-            Tag::Int(value) => writer.write_i32::<BE>(*value).unwrap(),
-            Tag::Long(value) => writer.write_i64::<BE>(*value).unwrap(),
-            Tag::Float(value) => writer.write_f32::<BE>(*value).unwrap(),
-            Tag::Double(value) => writer.write_f64::<BE>(*value).unwrap(),
-            Tag::ByteArray(value) => write_byte_array(writer, value),
-            Tag::String(value) => write_string(writer, value),
-            Tag::List(value) => write_list(writer, value),
-            Tag::Compound(value) => write_compound(writer, value, true),
-            Tag::IntArray(value) => write_int_array(writer, value),
-            Tag::LongArray(value) => write_long_array(writer, value),
+            Nbt::End => {}
+            Nbt::Byte(value) => writer.write_i8(*value).unwrap(),
+            Nbt::Short(value) => writer.write_i16::<BE>(*value).unwrap(),
+            Nbt::Int(value) => writer.write_i32::<BE>(*value).unwrap(),
+            Nbt::Long(value) => writer.write_i64::<BE>(*value).unwrap(),
+            Nbt::Float(value) => writer.write_f32::<BE>(*value).unwrap(),
+            Nbt::Double(value) => writer.write_f64::<BE>(*value).unwrap(),
+            Nbt::ByteArray(value) => write_byte_array(writer, value),
+            Nbt::String(value) => write_string(writer, value),
+            Nbt::List(value) => write_list(writer, value),
+            Nbt::Compound(value) => write_compound(writer, value, true),
+            Nbt::IntArray(value) => write_int_array(writer, value),
+            Nbt::LongArray(value) => write_long_array(writer, value),
         }
     }
 
@@ -227,10 +227,10 @@ impl Tag {
     /// Will panic if the tag is not a Compound or End tag.
     pub fn write(&self, writer: &mut impl Write) {
         match self {
-            Tag::Compound(value) => {
+            Nbt::Compound(value) => {
                 write_compound(writer, value, false);
             }
-            Tag::End => {
+            Nbt::End => {
                 END_ID.write_into(writer).unwrap();
             }
             _ => panic!("Not a compound tag"),
@@ -258,7 +258,7 @@ impl Tag {
     }
 }
 
-impl McBufWritable for Tag {
+impl McBufWritable for Nbt {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         self.write(buf);
         Ok(())

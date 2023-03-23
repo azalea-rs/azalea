@@ -1,18 +1,18 @@
-use azalea_nbt::{NbtCompound, NbtList, Tag};
+use azalea_nbt::{NbtCompound, NbtList, Nbt};
 use std::io::Cursor;
 
 #[test]
 fn test_decode_hello_world() {
     // read hello_world.nbt
     let buf = include_bytes!("hello_world.nbt").to_vec();
-    let tag = Tag::read(&mut Cursor::new(&buf[..])).unwrap();
+    let tag = Nbt::read(&mut Cursor::new(&buf[..])).unwrap();
     assert_eq!(
         tag,
-        Tag::Compound(NbtCompound::from_iter(vec![(
+        Nbt::Compound(NbtCompound::from_iter(vec![(
             "hello world".into(),
-            Tag::Compound(NbtCompound::from_iter(vec![(
+            Nbt::Compound(NbtCompound::from_iter(vec![(
                 "name".into(),
-                Tag::String("Bananrama".into()),
+                Nbt::String("Bananrama".into()),
             )]))
         )]))
     );
@@ -23,7 +23,7 @@ fn test_roundtrip_hello_world() {
     let original = include_bytes!("hello_world.nbt").to_vec();
 
     let mut original_stream = Cursor::new(&original[..]);
-    let tag = Tag::read(&mut original_stream).unwrap();
+    let tag = Nbt::read(&mut original_stream).unwrap();
 
     // write hello_world.nbt
     let mut result = Vec::new();
@@ -38,21 +38,21 @@ fn test_bigtest() {
     let original = include_bytes!("bigtest.nbt").to_vec();
 
     let mut original_stream = Cursor::new(original);
-    let original_tag = Tag::read_gzip(&mut original_stream).unwrap();
+    let original_tag = Nbt::read_gzip(&mut original_stream).unwrap();
 
     let mut result = Vec::new();
     original_tag.write(&mut result);
 
-    let decoded_tag = Tag::read(&mut Cursor::new(&result)).unwrap();
+    let decoded_tag = Nbt::read(&mut Cursor::new(&result)).unwrap();
 
     assert_eq!(decoded_tag, original_tag);
 }
 
 #[test]
 fn test_stringtest() {
-    let correct_tag = Tag::Compound(NbtCompound::from_iter(vec![(
+    let correct_tag = Nbt::Compound(NbtCompound::from_iter(vec![(
         "😃".into(),
-        Tag::List(NbtList::String(vec![
+        Nbt::List(NbtList::String(vec![
             "asdfkghasfjgihsdfogjsndfg".into(),
             "jnabsfdgihsabguiqwrntgretqwejirhbiqw".into(),
             "asd".into(),
@@ -74,7 +74,7 @@ fn test_stringtest() {
     let original = include_bytes!("stringtest.nbt").to_vec();
 
     let mut original_stream = Cursor::new(original);
-    let original_tag = Tag::read_gzip(&mut original_stream).unwrap();
+    let original_tag = Nbt::read_gzip(&mut original_stream).unwrap();
 
     assert_eq!(original_tag, correct_tag);
 }
@@ -84,12 +84,12 @@ fn test_complex_player() {
     let original = include_bytes!("complex_player.dat").to_vec();
 
     let mut original_stream = Cursor::new(original);
-    let original_tag = Tag::read_gzip(&mut original_stream).unwrap();
+    let original_tag = Nbt::read_gzip(&mut original_stream).unwrap();
 
     let mut result = Vec::new();
     original_tag.write(&mut result);
 
-    let decoded_tag = Tag::read(&mut Cursor::new(&result)).unwrap();
+    let decoded_tag = Nbt::read(&mut Cursor::new(&result)).unwrap();
 
     assert_eq!(decoded_tag, original_tag);
 }
@@ -99,12 +99,12 @@ fn test_simple_player() {
     let original = include_bytes!("simple_player.dat").to_vec();
 
     let mut original_stream = Cursor::new(original);
-    let original_tag = Tag::read_gzip(&mut original_stream).unwrap();
+    let original_tag = Nbt::read_gzip(&mut original_stream).unwrap();
 
     let mut result = Vec::new();
     original_tag.write(&mut result);
 
-    let decoded_tag = Tag::read(&mut Cursor::new(&result)).unwrap();
+    let decoded_tag = Nbt::read(&mut Cursor::new(&result)).unwrap();
 
     assert_eq!(decoded_tag, original_tag);
 }

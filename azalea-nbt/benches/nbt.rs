@@ -1,4 +1,4 @@
-use azalea_nbt::Tag;
+use azalea_nbt::Nbt;
 use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughput};
 use flate2::read::GzDecoder;
 use std::{
@@ -19,7 +19,7 @@ fn bench_file(filename: &str, c: &mut Criterion) {
 
     let mut decoded_src_stream = Cursor::new(&decoded_src[..]);
 
-    let nbt = Tag::read(&mut decoded_src_stream).unwrap();
+    let nbt = Nbt::read(&mut decoded_src_stream).unwrap();
     decoded_src_stream.set_position(0);
 
     let mut group = c.benchmark_group(filename);
@@ -28,7 +28,7 @@ fn bench_file(filename: &str, c: &mut Criterion) {
 
     group.bench_function("Decode", |b| {
         b.iter(|| {
-            black_box(Tag::read(&mut decoded_src_stream).unwrap());
+            black_box(Nbt::read(&mut decoded_src_stream).unwrap());
             decoded_src_stream.set_position(0);
         })
     });

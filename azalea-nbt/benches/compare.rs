@@ -25,7 +25,7 @@ pub fn bench_read_file(filename: &str, c: &mut Criterion) {
     group.bench_function("azalea_parse", |b| {
         b.iter(|| {
             let input = black_box(input);
-            let nbt = azalea_nbt::Tag::read(&mut Cursor::new(&input)).unwrap();
+            let nbt = azalea_nbt::Nbt::read(&mut Cursor::new(&input)).unwrap();
             black_box(nbt);
         })
     });
@@ -48,7 +48,7 @@ pub fn bench_read_file(filename: &str, c: &mut Criterion) {
 
     // // writing
 
-    let nbt = azalea_nbt::Tag::read_from(&mut Cursor::new(input)).unwrap();
+    let nbt = azalea_nbt::Nbt::read_from(&mut Cursor::new(input)).unwrap();
     group.bench_function("azalea_write", |b| {
         b.iter(|| {
             let nbt = black_box(&nbt);

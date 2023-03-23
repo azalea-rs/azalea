@@ -32,7 +32,7 @@ pub const LONG_ARRAY_ID: u8 = 12;
 #[derive(Clone, Debug, PartialEq, Default, EnumAsInner)]
 #[repr(u8)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(untagged))]
-pub enum Tag {
+pub enum Nbt {
     #[default]
     End = END_ID,
     Byte(NbtByte) = BYTE_ID,
@@ -69,7 +69,7 @@ pub enum NbtList {
     LongArray(Vec<NbtLongArray>) = LONG_ARRAY_ID,
 }
 
-impl Tag {
+impl Nbt {
     /// Get the numerical ID of the tag type.
     #[inline]
     pub fn id(&self) -> u8 {
@@ -96,7 +96,7 @@ impl NbtList {
 #[derive(Debug, Clone, Default)]
 pub struct NbtCompound {
     sorted: bool,
-    inner: Vec<(NbtString, Tag)>,
+    inner: Vec<(NbtString, Nbt)>,
 }
 impl NbtCompound {
     #[inline]
@@ -117,7 +117,7 @@ impl NbtCompound {
     /// If you previously used [`Self::insert_unsorted`] without [`Self::sort`],
     /// this function may return incorrect results.
     #[inline]
-    pub fn get(&mut self, key: &NbtString) -> Option<&Tag> {
+    pub fn get(&mut self, key: &NbtString) -> Option<&Nbt> {
         if !self.sorted {
             self.sort()
         }
@@ -131,7 +131,7 @@ impl NbtCompound {
     /// [`Self::insert_unsorted`] and then [`Self::sort`] after everything is
     /// inserted.
     #[inline]
-    pub fn insert(&mut self, key: NbtString, value: Tag) {
+    pub fn insert(&mut self, key: NbtString, value: Nbt) {
         self.inner.push((key, value));
     }
 
@@ -142,7 +142,7 @@ impl NbtCompound {
     }
 
     #[inline]
-    pub fn iter(&self) -> std::slice::Iter<'_, (CompactString, Tag)> {
+    pub fn iter(&self) -> std::slice::Iter<'_, (CompactString, Nbt)> {
         self.inner.iter()
     }
 }
@@ -160,7 +160,7 @@ impl Serialize for NbtCompound {
 impl<'de> Deserialize<'de> for NbtCompound {
     fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         use std::collections::BTreeMap;
-        let map = <BTreeMap<NbtString, Tag> as Deserialize>::deserialize(deserializer)?;
+        let map = <BTreeMap<NbtString, Nbt> as Deserialize>::deserialize(deserializer)?;
         Ok(Self {
             inner: map.into_iter().collect(),
             sorted: false,
@@ -168,8 +168,8 @@ impl<'de> Deserialize<'de> for NbtCompound {
     }
 }
 
-impl FromIterator<(NbtString, Tag)> for NbtCompound {
-    fn from_iter<T: IntoIterator<Item = (NbtString, Tag)>>(iter: T) -> Self {
+impl FromIterator<(NbtString, Nbt)> for NbtCompound {
+    fn from_iter<T: IntoIterator<Item = (NbtString, Nbt)>>(iter: T) -> Self {
         let inner = iter.into_iter().collect::<Vec<_>>();
         Self {
             inner,

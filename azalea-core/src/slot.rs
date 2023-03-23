@@ -1,7 +1,7 @@
 // TODO: have an azalea-inventory or azalea-container crate and put this there
 
 use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
-use azalea_nbt::Tag;
+use azalea_nbt::Nbt;
 use std::io::{Cursor, Write};
 
 #[derive(Debug, Clone, Default)]
@@ -16,7 +16,7 @@ pub struct SlotData {
     #[var]
     pub id: u32,
     pub count: u8,
-    pub nbt: Tag,
+    pub nbt: Nbt,
 }
 
 impl McBufReadable for Slot {
