@@ -21,9 +21,8 @@ serde = { version = "1.0.152", features = ["derive"], optional = true }
 [dev-dependencies]
 criterion = { version = "^0.4.0", features = ["html_reports"] }
 graphite_binary = "0.1.0"
-quartz_nbt = "0.2.6"
-hematite-nbt = "0.5.2"
 valence_nbt = "0.4.0"
+fastnbt = "2.4.3"
 
 [features]
 default = []
