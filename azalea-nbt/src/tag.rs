@@ -1,9 +1,7 @@
-use ahash::AHashMap;
-
 use compact_str::CompactString;
 use enum_as_inner::EnumAsInner;
 #[cfg(feature = "serde")]
-use serde::{Deserialize, Serialize};
+use serde::{ser::SerializeMap, Deserialize, Serialize};
 
 pub type NbtByte = i8;
 pub type NbtShort = i16;
@@ -13,7 +11,6 @@ pub type NbtFloat = f32;
 pub type NbtDouble = f64;
 pub type NbtByteArray = Vec<u8>;
 pub type NbtString = CompactString;
-pub type NbtCompound = AHashMap<CompactString, Tag>;
 pub type NbtIntArray = Vec<i32>;
 pub type NbtLongArray = Vec<i64>;
 
@@ -92,5 +89,73 @@ impl NbtList {
         // discriminant as its first field, so we can read the discriminant
         // without offsetting the pointer.
         unsafe { *<*const _>::from(self).cast::<u8>() }
+    }
+}
+
+// thanks to Moulberry/Graphite for the idea to use a vec and binary search
+#[derive(Debug, Clone, PartialEq)]
+pub struct NbtCompound {
+    inner: Vec<(NbtString, Tag)>,
+}
+impl NbtCompound {
+    #[inline]
+    pub fn with_capacity(capacity: usize) -> Self {
+        Self {
+            inner: Vec::with_capacity(capacity),
+        }
+    }
+
+    #[inline]
+    fn binary_search(&self, key: &NbtString) -> Result<usize, usize> {
+        self.inner.binary_search_by(|(k, _)| k.cmp(key))
+    }
+
+    #[inline]
+    pub fn get(&self, key: &NbtString) -> Option<&Tag> {
+        self.binary_search(key).ok().map(|i| &self.inner[i].1)
+    }
+
+    #[inline]
+    pub fn insert(&mut self, key: NbtString, value: Tag) -> Option<Tag> {
+        match self.binary_search(&key) {
+            Ok(i) => Some(std::mem::replace(&mut self.inner[i].1, value)),
+            Err(i) => {
+                self.inner.insert(i, (key, value));
+                None
+            }
+        }
+    }
+
+    #[inline]
+    pub fn inner(&self) -> &Vec<(NbtString, Tag)> {
+        &self.inner
+    }
+}
+#[cfg(feature = "serde")]
+impl Serialize for NbtCompound {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        let mut map = serializer.serialize_map(Some(self.inner.len()))?;
+        for (key, value) in &self.inner {
+            map.serialize_entry(key, value)?;
+        }
+        map.end()
+    }
+}
+#[cfg(feature = "serde")]
+impl<'de> Deserialize<'de> for NbtCompound {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        use std::collections::BTreeMap;
+        let map = <BTreeMap<NbtString, Tag> as Deserialize>::deserialize(deserializer)?;
+        Ok(Self {
+            inner: map.into_iter().collect(),
+        })
+    }
+}
+
+impl FromIterator<(NbtString, Tag)> for NbtCompound {
+    fn from_iter<T: IntoIterator<Item = (NbtString, Tag)>>(iter: T) -> Self {
+        let mut inner = iter.into_iter().collect::<Vec<_>>();
+        inner.sort_unstable_by_key(|(k, _)| k.clone());
+        Self { inner }
     }
 }

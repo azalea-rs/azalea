@@ -1,6 +1,5 @@
 use crate::tag::*;
 use crate::Error;
-use ahash::AHashMap;
 use azalea_buf::{BufReadError, McBufReadable};
 use byteorder::{ReadBytesExt, BE};
 use flate2::read::{GzDecoder, ZlibDecoder};
@@ -265,7 +264,7 @@ impl Tag {
         }
         let name = read_string(stream)?;
         let tag = Tag::read_known(stream, tag_id)?;
-        let mut map = AHashMap::with_capacity(1);
+        let mut map = NbtCompound::with_capacity(1);
         map.insert(name, tag);
 
         Ok(Tag::Compound(map))

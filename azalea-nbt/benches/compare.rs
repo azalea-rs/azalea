@@ -48,40 +48,40 @@ pub fn bench_read_file(filename: &str, c: &mut Criterion) {
 
     // // writing
 
-    // let nbt = azalea_nbt::Tag::read_from(&mut Cursor::new(input)).unwrap();
-    // group.bench_function("azalea_write", |b| {
-    //     b.iter(|| {
-    //         let nbt = black_box(&nbt);
-    //         let mut written = Vec::new();
-    //         nbt.write(&mut written).unwrap();
-    //         black_box(written);
-    //     })
-    // });
+    let nbt = azalea_nbt::Tag::read_from(&mut Cursor::new(input)).unwrap();
+    group.bench_function("azalea_write", |b| {
+        b.iter(|| {
+            let nbt = black_box(&nbt);
+            let mut written = Vec::new();
+            nbt.write(&mut written).unwrap();
+            black_box(written);
+        })
+    });
 
-    // let nbt = graphite_binary::nbt::decode::read(&mut &input[..]).unwrap();
-    // group.bench_function("graphite_write", |b| {
-    //     b.iter(|| {
-    //         let nbt = black_box(&nbt);
-    //         let written = graphite_binary::nbt::encode::write(nbt);
-    //         black_box(written);
-    //     })
-    // });
+    let nbt = graphite_binary::nbt::decode::read(&mut &input[..]).unwrap();
+    group.bench_function("graphite_write", |b| {
+        b.iter(|| {
+            let nbt = black_box(&nbt);
+            let written = graphite_binary::nbt::encode::write(nbt);
+            black_box(written);
+        })
+    });
 
-    // let nbt = valence_nbt::from_binary_slice(&mut &input[..]).unwrap();
-    // group.bench_function("valence_write", |b| {
-    //     b.iter(|| {
-    //         let nbt = black_box(&nbt);
-    //         let mut written = Vec::new();
-    //         valence_nbt::to_binary_writer(&mut written, &nbt.0,
-    // &nbt.1).unwrap();         black_box(written);
-    //     })
-    // });
+    let nbt = valence_nbt::from_binary_slice(&mut &input[..]).unwrap();
+    group.bench_function("valence_write", |b| {
+        b.iter(|| {
+            let nbt = black_box(&nbt);
+            let mut written = Vec::new();
+            valence_nbt::to_binary_writer(&mut written, &nbt.0, &nbt.1).unwrap();
+            black_box(written);
+        })
+    });
 }
 
 fn bench(c: &mut Criterion) {
     bench_read_file("tests/bigtest.nbt", c);
     // bench_read_file("tests/simple_player.dat", c);
-    // bench_read_file("tests/complex_player.dat", c);
+    bench_read_file("tests/complex_player.dat", c);
     // bench_read_file("tests/level.dat", c);
     // bench_read_file("tests/stringtest.nbt", c);
     // bench_read_file("tests/inttest.nbt", c);

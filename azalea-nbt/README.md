@@ -7,17 +7,16 @@ Note: Running your code with `RUSTFLAGS="-C target-cpu=native"` will result in s
 # Examples
 
 ```
-use ahash::AHashMap;
-use azalea_nbt::Tag;
+use azalea_nbt::{Tag, NbtCompound};
 use std::io::Cursor;
 
 let buf = include_bytes!("../tests/hello_world.nbt");
 let tag = Tag::read(&mut Cursor::new(&buf[..])).unwrap();
 assert_eq!(
     tag,
-    Tag::Compound(AHashMap::from_iter(vec![(
+    Tag::Compound(NbtCompound::from_iter(vec![(
         "hello world".into(),
-        Tag::Compound(AHashMap::from_iter(vec![(
+        Tag::Compound(NbtCompound::from_iter(vec![(
             "name".into(),
             Tag::String("Bananrama".into()),
         )]))

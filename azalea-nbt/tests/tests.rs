@@ -1,5 +1,4 @@
-use ahash::AHashMap;
-use azalea_nbt::{NbtList, Tag};
+use azalea_nbt::{NbtCompound, NbtList, Tag};
 use std::io::Cursor;
 
 #[test]
@@ -9,9 +8,9 @@ fn test_decode_hello_world() {
     let tag = Tag::read(&mut Cursor::new(&buf[..])).unwrap();
     assert_eq!(
         tag,
-        Tag::Compound(AHashMap::from_iter(vec![(
+        Tag::Compound(NbtCompound::from_iter(vec![(
             "hello world".into(),
-            Tag::Compound(AHashMap::from_iter(vec![(
+            Tag::Compound(NbtCompound::from_iter(vec![(
                 "name".into(),
                 Tag::String("Bananrama".into()),
             )]))
@@ -51,7 +50,7 @@ fn test_bigtest() {
 
 #[test]
 fn test_stringtest() {
-    let correct_tag = Tag::Compound(AHashMap::from_iter(vec![(
+    let correct_tag = Tag::Compound(NbtCompound::from_iter(vec![(
         "😃".into(),
         Tag::List(NbtList::String(vec![
             "asdfkghasfjgihsdfogjsndfg".into(),

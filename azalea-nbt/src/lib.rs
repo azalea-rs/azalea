@@ -6,23 +6,23 @@ mod error;
 mod tag;
 
 pub use error::Error;
-pub use tag::NbtList;
-pub use tag::Tag;
+pub use tag::{NbtCompound, NbtList, Tag};
 
 #[cfg(test)]
 mod tests {
     use std::io::Cursor;
 
+    use crate::tag::NbtCompound;
+
     use super::*;
-    use ahash::AHashMap;
     use azalea_buf::{McBufReadable, McBufWritable};
 
     #[test]
     fn mcbuf_nbt() {
         let mut buf = Vec::new();
-        let tag = Tag::Compound(AHashMap::from_iter(vec![(
+        let tag = Tag::Compound(NbtCompound::from_iter(vec![(
             "hello world".into(),
-            Tag::Compound(AHashMap::from_iter(vec![(
+            Tag::Compound(NbtCompound::from_iter(vec![(
                 "name".into(),
                 Tag::String("Bananrama".into()),
             )])),
@@ -34,9 +34,9 @@ mod tests {
         let result = Tag::read_from(&mut buf).unwrap();
         assert_eq!(
             result,
-            Tag::Compound(AHashMap::from_iter(vec![(
+            Tag::Compound(NbtCompound::from_iter(vec![(
                 "hello world".into(),
-                Tag::Compound(AHashMap::from_iter(vec![(
+                Tag::Compound(NbtCompound::from_iter(vec![(
                     "name".into(),
                     Tag::String("Bananrama".into()),
                 )])),

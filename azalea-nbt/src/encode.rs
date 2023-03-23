@@ -15,7 +15,7 @@ fn write_string(writer: &mut dyn Write, string: &str) -> Result<(), Error> {
 
 #[inline]
 fn write_compound(writer: &mut dyn Write, value: &NbtCompound, end_tag: bool) -> Result<(), Error> {
-    for (key, tag) in value {
+    for (key, tag) in value.inner() {
         match tag {
             Tag::End => {}
             Tag::Byte(value) => {

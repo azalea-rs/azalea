@@ -26,16 +26,16 @@ fn bench_file(filename: &str, c: &mut Criterion) {
 
     group.throughput(Throughput::Bytes(decoded_src.len() as u64));
 
-    // group.bench_function("Decode", |b| {
-    //     b.iter(|| {
-    //         black_box(Tag::read(&mut decoded_src_stream).unwrap());
-    //         decoded_src_stream.set_position(0);
-    //     })
-    // });
+    group.bench_function("Decode", |b| {
+        b.iter(|| {
+            black_box(Tag::read(&mut decoded_src_stream).unwrap());
+            decoded_src_stream.set_position(0);
+        })
+    });
 
     group.bench_function("Encode", |b| {
         b.iter(|| {
-            nbt.write(&mut io::sink()).unwrap();
+            nbt.write(&mut black_box(Vec::new())).unwrap();
         })
     });
     group.finish();

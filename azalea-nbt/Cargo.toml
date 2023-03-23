@@ -9,7 +9,6 @@ repository = "https://github.com/mat-1/azalea/tree/main/azalea-nbt"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-ahash = { version = "^0.8.3" }
 azalea-buf = { path = "../azalea-buf", version = "^0.6.0" }
 byteorder = "^1.4.3"
 compact_str = { version = "0.7.0", features = ["serde"] }
@@ -26,7 +25,7 @@ fastnbt = "2.4.3"
 
 [features]
 default = []
-serde = ["dep:serde", "ahash/serde"]
+serde = ["dep:serde"]
 
 [profile.release]
 lto = true
