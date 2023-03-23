@@ -161,7 +161,7 @@ impl NbtCompound {
 
     #[inline]
     fn is_worth_sorting(&self) -> bool {
-        self.inner.len() > 128
+        self.inner.len() >= 128
     }
 }
 #[cfg(feature = "serde")]
