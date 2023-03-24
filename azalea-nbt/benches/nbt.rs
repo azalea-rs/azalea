@@ -29,33 +29,33 @@ fn bench_file(filename: &str, c: &mut Criterion) {
 
     group.throughput(Throughput::Bytes(decoded_src.len() as u64));
 
-    // group.bench_function("Decode", |b| {
-    //     b.iter(|| {
-    //         black_box(Nbt::read(&mut decoded_src_stream).unwrap());
-    //         decoded_src_stream.set_position(0);
-    //     })
-    // });
-
-    // group.bench_function("Encode", |b| {
-    //     b.iter(|| {
-    //         nbt.write(&mut black_box(Vec::new()));
-    //     })
-    // });
-
-    group.bench_function("Get", |b| {
+    group.bench_function("Decode", |b| {
         b.iter(|| {
-            let level = nbt
-                .as_compound()
-                .unwrap()
-                .get("Level")
-                .unwrap()
-                .as_compound()
-                .unwrap();
-            for (k, _) in level.iter() {
-                black_box(level.get(black_box(k)));
-            }
+            black_box(Nbt::read(&mut decoded_src_stream).unwrap());
+            decoded_src_stream.set_position(0);
         })
     });
+
+    group.bench_function("Encode", |b| {
+        b.iter(|| {
+            nbt.write(&mut black_box(Vec::new()));
+        })
+    });
+
+    // group.bench_function("Get", |b| {
+    //     b.iter(|| {
+    //         let level = nbt
+    //             .as_compound()
+    //             .unwrap()
+    //             .get("Level")
+    //             .unwrap()
+    //             .as_compound()
+    //             .unwrap();
+    //         for (k, _) in level.iter() {
+    //             black_box(level.get(black_box(k)));
+    //         }
+    //     })
+    // });
     group.finish();
 }
 
