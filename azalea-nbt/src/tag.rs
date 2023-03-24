@@ -48,6 +48,17 @@ pub enum Nbt {
     IntArray(NbtIntArray) = INT_ARRAY_ID,
     LongArray(NbtLongArray) = LONG_ARRAY_ID,
 }
+impl Nbt {
+    /// Get the numerical ID of the tag type.
+    #[inline]
+    pub fn id(&self) -> u8 {
+        // SAFETY: Because `Self` is marked `repr(u8)`, its layout is a `repr(C)`
+        // `union` between `repr(C)` structs, each of which has the `u8`
+        // discriminant as its first field, so we can read the discriminant
+        // without offsetting the pointer.
+        unsafe { *<*const _>::from(self).cast::<u8>() }
+    }
+}
 
 /// An NBT value.
 #[derive(Clone, Debug, PartialEq)]
@@ -69,7 +80,7 @@ pub enum NbtList {
     LongArray(Vec<NbtLongArray>) = LONG_ARRAY_ID,
 }
 
-impl Nbt {
+impl NbtList {
     /// Get the numerical ID of the tag type.
     #[inline]
     pub fn id(&self) -> u8 {
@@ -80,15 +91,64 @@ impl Nbt {
         unsafe { *<*const _>::from(self).cast::<u8>() }
     }
 }
-impl NbtList {
-    /// Get the numerical ID of the tag type.
-    #[inline]
-    pub fn id(&self) -> u8 {
-        // SAFETY: Because `Self` is marked `repr(u8)`, its layout is a `repr(C)`
-        // `union` between `repr(C)` structs, each of which has the `u8`
-        // discriminant as its first field, so we can read the discriminant
-        // without offsetting the pointer.
-        unsafe { *<*const _>::from(self).cast::<u8>() }
+impl From<Vec<NbtByte>> for NbtList {
+    fn from(v: Vec<NbtByte>) -> Self {
+        Self::Byte(v)
+    }
+}
+impl From<Vec<NbtShort>> for NbtList {
+    fn from(v: Vec<NbtShort>) -> Self {
+        Self::Short(v)
+    }
+}
+impl From<Vec<NbtInt>> for NbtList {
+    fn from(v: Vec<NbtInt>) -> Self {
+        Self::Int(v)
+    }
+}
+impl From<Vec<NbtLong>> for NbtList {
+    fn from(v: Vec<NbtLong>) -> Self {
+        Self::Long(v)
+    }
+}
+impl From<Vec<NbtFloat>> for NbtList {
+    fn from(v: Vec<NbtFloat>) -> Self {
+        Self::Float(v)
+    }
+}
+impl From<Vec<NbtDouble>> for NbtList {
+    fn from(v: Vec<NbtDouble>) -> Self {
+        Self::Double(v)
+    }
+}
+impl From<Vec<NbtByteArray>> for NbtList {
+    fn from(v: Vec<NbtByteArray>) -> Self {
+        Self::ByteArray(v)
+    }
+}
+impl From<Vec<NbtString>> for NbtList {
+    fn from(v: Vec<NbtString>) -> Self {
+        Self::String(v)
+    }
+}
+impl From<Vec<NbtList>> for NbtList {
+    fn from(v: Vec<NbtList>) -> Self {
+        Self::List(v)
+    }
+}
+impl From<Vec<NbtCompound>> for NbtList {
+    fn from(v: Vec<NbtCompound>) -> Self {
+        Self::Compound(v)
+    }
+}
+impl From<Vec<NbtIntArray>> for NbtList {
+    fn from(v: Vec<NbtIntArray>) -> Self {
+        Self::IntArray(v)
+    }
+}
+impl From<Vec<NbtLongArray>> for NbtList {
+    fn from(v: Vec<NbtLongArray>) -> Self {
+        Self::LongArray(v)
     }
 }
 
@@ -161,7 +221,9 @@ impl NbtCompound {
 
     #[inline]
     fn is_worth_sorting(&self) -> bool {
-        self.inner.len() > 128
+        // i don't actually know when binary search starts being better, but it's at
+        // least more than 12
+        self.inner.len() >= 32
     }
 }
 #[cfg(feature = "serde")]
@@ -188,6 +250,12 @@ impl<'de> Deserialize<'de> for NbtCompound {
 impl FromIterator<(NbtString, Nbt)> for NbtCompound {
     fn from_iter<T: IntoIterator<Item = (NbtString, Nbt)>>(iter: T) -> Self {
         let inner = iter.into_iter().collect::<Vec<_>>();
+        Self { inner }
+    }
+}
+
+impl From<Vec<(NbtString, Nbt)>> for NbtCompound {
+    fn from(inner: Vec<(NbtString, Nbt)>) -> Self {
         Self { inner }
     }
 }

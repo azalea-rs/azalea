@@ -1,4 +1,4 @@
-use azalea_nbt::{NbtCompound, NbtList, Nbt};
+use azalea_nbt::{Nbt, NbtCompound, NbtList};
 use std::io::Cursor;
 
 #[test]
@@ -100,6 +100,36 @@ fn test_simple_player() {
 
     let mut original_stream = Cursor::new(original);
     let original_tag = Nbt::read_gzip(&mut original_stream).unwrap();
+
+    let mut result = Vec::new();
+    original_tag.write(&mut result);
+
+    let decoded_tag = Nbt::read(&mut Cursor::new(&result)).unwrap();
+
+    assert_eq!(decoded_tag, original_tag);
+}
+
+// #[test]
+// fn test_inttest() {
+//     let original = include_bytes!("inttest.nbt").to_vec();
+
+//     let mut original_stream = Cursor::new(original);
+//     let original_tag = Nbt::read_gzip(&mut original_stream).unwrap();
+
+//     let mut result = Vec::new();
+//     original_tag.write(&mut result);
+
+//     let decoded_tag = Nbt::read(&mut Cursor::new(&result)).unwrap();
+
+//     assert_eq!(decoded_tag, original_tag);
+// }
+
+#[test]
+fn test_inttest1023() {
+    let original = include_bytes!("inttest1023.nbt").to_vec();
+
+    let mut original_stream = Cursor::new(original.as_slice());
+    let original_tag = Nbt::read(&mut original_stream).unwrap();
 
     let mut result = Vec::new();
     original_tag.write(&mut result);

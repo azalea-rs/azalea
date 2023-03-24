@@ -79,7 +79,7 @@ pub fn bench_read_file(filename: &str, c: &mut Criterion) {
 }
 
 fn bench(c: &mut Criterion) {
-    bench_read_file("tests/bigtest.nbt", c);
+    // bench_read_file("tests/bigtest.nbt", c);
     // bench_read_file("tests/simple_player.dat", c);
     // bench_read_file("tests/complex_player.dat", c);
     // bench_read_file("tests/level.dat", c);
