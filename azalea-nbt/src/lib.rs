@@ -1,4 +1,5 @@
 #![doc = include_str!("../README.md")]
+#![feature(min_specialization)]
 
 mod decode;
 mod encode;
@@ -6,7 +7,7 @@ mod error;
 mod tag;
 
 pub use error::Error;
-pub use tag::{NbtCompound, NbtList, Tag};
+pub use tag::{Nbt, NbtCompound, NbtList};
 
 #[cfg(test)]
 mod tests {
@@ -20,25 +21,25 @@ mod tests {
     #[test]
     fn mcbuf_nbt() {
         let mut buf = Vec::new();
-        let tag = Tag::Compound(NbtCompound::from_iter(vec![(
+        let tag = Nbt::Compound(NbtCompound::from_iter(vec![(
             "hello world".into(),
-            Tag::Compound(NbtCompound::from_iter(vec![(
+            Nbt::Compound(NbtCompound::from_iter(vec![(
                 "name".into(),
-                Tag::String("Bananrama".into()),
+                Nbt::String("Bananrama".into()),
             )])),
         )]));
         tag.write_into(&mut buf).unwrap();
 
         let mut buf = Cursor::new(&buf[..]);
 
-        let result = Tag::read_from(&mut buf).unwrap();
+        let result = Nbt::read_from(&mut buf).unwrap();
         assert_eq!(
             result,
-            Tag::Compound(NbtCompound::from_iter(vec![(
+            Nbt::Compound(NbtCompound::from_iter(vec![(
                 "hello world".into(),
-                Tag::Compound(NbtCompound::from_iter(vec![(
+                Nbt::Compound(NbtCompound::from_iter(vec![(
                     "name".into(),
-                    Tag::String("Bananrama".into()),
+                    Nbt::String("Bananrama".into()),
                 )])),
             )]))
         );

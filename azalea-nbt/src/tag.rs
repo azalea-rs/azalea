@@ -32,7 +32,7 @@ pub const LONG_ARRAY_ID: u8 = 12;
 #[derive(Clone, Debug, PartialEq, Default, EnumAsInner)]
 #[repr(u8)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(untagged))]
-pub enum Tag {
+pub enum Nbt {
     #[default]
     End = END_ID,
     Byte(NbtByte) = BYTE_ID,
@@ -47,6 +47,17 @@ pub enum Tag {
     Compound(NbtCompound) = COMPOUND_ID,
     IntArray(NbtIntArray) = INT_ARRAY_ID,
     LongArray(NbtLongArray) = LONG_ARRAY_ID,
+}
+impl Nbt {
+    /// Get the numerical ID of the tag type.
+    #[inline]
+    pub fn id(&self) -> u8 {
+        // SAFETY: Because `Self` is marked `repr(u8)`, its layout is a `repr(C)`
+        // `union` between `repr(C)` structs, each of which has the `u8`
+        // discriminant as its first field, so we can read the discriminant
+        // without offsetting the pointer.
+        unsafe { *<*const _>::from(self).cast::<u8>() }
+    }
 }
 
 /// An NBT value.
@@ -69,17 +80,6 @@ pub enum NbtList {
     LongArray(Vec<NbtLongArray>) = LONG_ARRAY_ID,
 }
 
-impl Tag {
-    /// Get the numerical ID of the tag type.
-    #[inline]
-    pub fn id(&self) -> u8 {
-        // SAFETY: Because `Self` is marked `repr(u8)`, its layout is a `repr(C)`
-        // `union` between `repr(C)` structs, each of which has the `u8`
-        // discriminant as its first field, so we can read the discriminant
-        // without offsetting the pointer.
-        unsafe { *<*const _>::from(self).cast::<u8>() }
-    }
-}
 impl NbtList {
     /// Get the numerical ID of the tag type.
     #[inline]
@@ -91,18 +91,76 @@ impl NbtList {
         unsafe { *<*const _>::from(self).cast::<u8>() }
     }
 }
+impl From<Vec<NbtByte>> for NbtList {
+    fn from(v: Vec<NbtByte>) -> Self {
+        Self::Byte(v)
+    }
+}
+impl From<Vec<NbtShort>> for NbtList {
+    fn from(v: Vec<NbtShort>) -> Self {
+        Self::Short(v)
+    }
+}
+impl From<Vec<NbtInt>> for NbtList {
+    fn from(v: Vec<NbtInt>) -> Self {
+        Self::Int(v)
+    }
+}
+impl From<Vec<NbtLong>> for NbtList {
+    fn from(v: Vec<NbtLong>) -> Self {
+        Self::Long(v)
+    }
+}
+impl From<Vec<NbtFloat>> for NbtList {
+    fn from(v: Vec<NbtFloat>) -> Self {
+        Self::Float(v)
+    }
+}
+impl From<Vec<NbtDouble>> for NbtList {
+    fn from(v: Vec<NbtDouble>) -> Self {
+        Self::Double(v)
+    }
+}
+impl From<Vec<NbtByteArray>> for NbtList {
+    fn from(v: Vec<NbtByteArray>) -> Self {
+        Self::ByteArray(v)
+    }
+}
+impl From<Vec<NbtString>> for NbtList {
+    fn from(v: Vec<NbtString>) -> Self {
+        Self::String(v)
+    }
+}
+impl From<Vec<NbtList>> for NbtList {
+    fn from(v: Vec<NbtList>) -> Self {
+        Self::List(v)
+    }
+}
+impl From<Vec<NbtCompound>> for NbtList {
+    fn from(v: Vec<NbtCompound>) -> Self {
+        Self::Compound(v)
+    }
+}
+impl From<Vec<NbtIntArray>> for NbtList {
+    fn from(v: Vec<NbtIntArray>) -> Self {
+        Self::IntArray(v)
+    }
+}
+impl From<Vec<NbtLongArray>> for NbtList {
+    fn from(v: Vec<NbtLongArray>) -> Self {
+        Self::LongArray(v)
+    }
+}
 
 // thanks to Moulberry/Graphite for the idea to use a vec and binary search
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct NbtCompound {
-    sorted: bool,
-    inner: Vec<(NbtString, Tag)>,
+    inner: Vec<(NbtString, Nbt)>,
 }
 impl NbtCompound {
     #[inline]
     pub fn with_capacity(capacity: usize) -> Self {
         Self {
-            sorted: false,
             inner: Vec::with_capacity(capacity),
         }
     }
@@ -117,11 +175,23 @@ impl NbtCompound {
     /// If you previously used [`Self::insert_unsorted`] without [`Self::sort`],
     /// this function may return incorrect results.
     #[inline]
-    pub fn get(&mut self, key: &NbtString) -> Option<&Tag> {
-        if !self.sorted {
-            self.sort()
+    pub fn get(&self, key: &str) -> Option<&Nbt> {
+        if self.is_worth_sorting() {
+            let key = NbtString::from(key);
+            self.binary_search(&key).ok().map(|i| &self.inner[i].1)
+        } else {
+            for (k, v) in &self.inner {
+                if &key == k {
+                    return Some(v);
+                }
+            }
+            None
         }
-        self.binary_search(key).ok().map(|i| &self.inner[i].1)
+    }
+
+    #[inline]
+    pub fn insert_unsorted(&mut self, key: NbtString, value: Nbt) {
+        self.inner.push((key, value));
     }
 
     /// Insert an item into the compound, returning the previous value if it
@@ -131,19 +201,29 @@ impl NbtCompound {
     /// [`Self::insert_unsorted`] and then [`Self::sort`] after everything is
     /// inserted.
     #[inline]
-    pub fn insert(&mut self, key: NbtString, value: Tag) {
+    pub fn insert(&mut self, key: NbtString, value: Nbt) {
         self.inner.push((key, value));
+        self.sort()
     }
 
     #[inline]
     pub fn sort(&mut self) {
-        self.sorted = true;
+        if !self.is_worth_sorting() {
+            return;
+        }
         self.inner.sort_unstable_by(|(a, _), (b, _)| a.cmp(b));
     }
 
     #[inline]
-    pub fn iter(&self) -> std::slice::Iter<'_, (CompactString, Tag)> {
+    pub fn iter(&self) -> std::slice::Iter<'_, (CompactString, Nbt)> {
         self.inner.iter()
+    }
+
+    #[inline]
+    fn is_worth_sorting(&self) -> bool {
+        // i don't actually know when binary search starts being better, but it's at
+        // least more than 12
+        self.inner.len() >= 32
     }
 }
 #[cfg(feature = "serde")]
@@ -160,54 +240,22 @@ impl Serialize for NbtCompound {
 impl<'de> Deserialize<'de> for NbtCompound {
     fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         use std::collections::BTreeMap;
-        let map = <BTreeMap<NbtString, Tag> as Deserialize>::deserialize(deserializer)?;
+        let map = <BTreeMap<NbtString, Nbt> as Deserialize>::deserialize(deserializer)?;
         Ok(Self {
             inner: map.into_iter().collect(),
-            sorted: false,
         })
     }
 }
 
-impl FromIterator<(NbtString, Tag)> for NbtCompound {
-    fn from_iter<T: IntoIterator<Item = (NbtString, Tag)>>(iter: T) -> Self {
+impl FromIterator<(NbtString, Nbt)> for NbtCompound {
+    fn from_iter<T: IntoIterator<Item = (NbtString, Nbt)>>(iter: T) -> Self {
         let inner = iter.into_iter().collect::<Vec<_>>();
-        Self {
-            inner,
-            sorted: false,
-        }
+        Self { inner }
     }
 }
 
-impl PartialEq for NbtCompound {
-    /// Compare two NBT compounds for equality, ignoring the order of the keys.
-    /// Note that this will execute fastest if the keys are already sorted with
-    /// [`Self::sort`].
-    fn eq(&self, other: &Self) -> bool {
-        if self.inner.len() != other.inner.len() {
-            return false;
-        }
-        if self.inner == other.inner {
-            return true;
-        }
-        if !self.sorted && !other.sorted {
-            // neither are sorted, so sort both
-            let mut a = self.clone();
-            let mut b = other.clone();
-            a.sort();
-            b.sort();
-            a == b
-        } else if !self.sorted {
-            // only self is sorted, so sort self
-            let mut a = self.clone();
-            a.sort();
-            a == *other
-        } else if !other.sorted {
-            // only other is sorted, so sort other
-            let mut b = other.clone();
-            b.sort();
-            *self == b
-        } else {
-            self.inner == other.inner
-        }
+impl From<Vec<(NbtString, Nbt)>> for NbtCompound {
+    fn from(inner: Vec<(NbtString, Nbt)>) -> Self {
+        Self { inner }
     }
 }
