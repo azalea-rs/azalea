@@ -23,7 +23,7 @@ pub struct Recipe {
 #[derive(Clone, Debug, McBuf)]
 pub struct ShapelessRecipe {
     /// Used to group similar recipes together in the recipe book.
-    /// Tag is present in recipe JSON
+    /// Nbt is present in recipe JSON
     pub group: String,
     pub category: CraftingBookCategory,
     pub ingredients: Vec<Ingredient>,

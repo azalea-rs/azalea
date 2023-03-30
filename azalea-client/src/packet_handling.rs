@@ -1048,6 +1048,7 @@ fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::SetSubtitleText(_) => {}
             ClientboundGamePacket::SetTitleText(_) => {}
             ClientboundGamePacket::SetTitlesAnimation(_) => {}
+            ClientboundGamePacket::ClearTitles(_) => {}
             ClientboundGamePacket::SoundEntity(_) => {}
             ClientboundGamePacket::StopSound(_) => {}
             ClientboundGamePacket::TabList(_) => {}

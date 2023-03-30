@@ -11,7 +11,6 @@ version = "0.6.0"
 [dependencies]
 azalea-buf = { path = "../azalea-buf", version = "^0.6.0" }
 azalea-registry-macros = { path = "./azalea-registry-macros", version = "^0.6.0" }
-enum-as-inner = "0.5.1"
 serde = { version = "1.0.155", optional = true }
 
 [features]

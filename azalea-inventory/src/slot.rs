@@ -1,5 +1,5 @@
 use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
-use azalea_nbt::Tag;
+use azalea_nbt::Nbt;
 use std::io::{Cursor, Write};
 
 /// Either an item in an inventory or nothing.
@@ -32,7 +32,7 @@ impl ItemSlot {
 pub struct ItemSlotData {
     pub kind: azalea_registry::Item,
     pub count: u8,
-    pub nbt: Tag,
+    pub nbt: Nbt,
 }
 
 impl McBufReadable for ItemSlot {

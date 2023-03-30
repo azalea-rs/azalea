@@ -1,210 +1,237 @@
-use crate::Error;
-use crate::Tag;
-use ahash::AHashMap;
+use crate::tag::*;
 use azalea_buf::McBufWritable;
 use byteorder::{WriteBytesExt, BE};
 use flate2::write::{GzEncoder, ZlibEncoder};
+use packed_simd_2::{i32x16, i32x2, i32x4, i32x8, i64x2, i64x4, i64x8};
 use std::io::Write;
 
 #[inline]
-fn write_string(writer: &mut dyn Write, string: &str) -> Result<(), Error> {
-    writer.write_u16::<BE>(string.len() as u16)?;
-    writer.write_all(string.as_bytes())?;
-
-    Ok(())
+fn write_string(writer: &mut impl Write, string: &NbtString) {
+    writer.write_u16::<BE>(string.len() as u16).unwrap();
+    writer.write_all(string.as_bytes()).unwrap();
 }
 
 #[inline]
-fn write_compound(
-    writer: &mut dyn Write,
-    value: &AHashMap<String, Tag>,
-    end_tag: bool,
-) -> Result<(), Error> {
-    for (key, tag) in value {
+fn write_compound(writer: &mut impl Write, value: &NbtCompound, end_tag: bool) {
+    for (key, tag) in value.iter() {
+        writer.write_u8(tag.id()).unwrap();
+        write_string(writer, key);
         match tag {
-            Tag::End => {}
-            Tag::Byte(value) => {
-                writer.write_u8(1)?;
-                write_string(writer, key)?;
-                writer.write_i8(*value)?;
+            Nbt::End => {}
+            Nbt::Byte(value) => {
+                writer.write_i8(*value).unwrap();
             }
-            Tag::Short(value) => {
-                writer.write_u8(2)?;
-                write_string(writer, key)?;
-                writer.write_i16::<BE>(*value)?;
+            Nbt::Short(value) => {
+                writer.write_i16::<BE>(*value).unwrap();
             }
-            Tag::Int(value) => {
-                writer.write_u8(3)?;
-                write_string(writer, key)?;
-                writer.write_i32::<BE>(*value)?;
+            Nbt::Int(value) => {
+                writer.write_i32::<BE>(*value).unwrap();
             }
-            Tag::Long(value) => {
-                writer.write_u8(4)?;
-                write_string(writer, key)?;
-                writer.write_i64::<BE>(*value)?;
+            Nbt::Long(value) => {
+                writer.write_i64::<BE>(*value).unwrap();
             }
-            Tag::Float(value) => {
-                writer.write_u8(5)?;
-                write_string(writer, key)?;
-                writer.write_f32::<BE>(*value)?;
+            Nbt::Float(value) => {
+                writer.write_f32::<BE>(*value).unwrap();
             }
-            Tag::Double(value) => {
-                writer.write_u8(6)?;
-                write_string(writer, key)?;
-                writer.write_f64::<BE>(*value)?;
+            Nbt::Double(value) => {
+                writer.write_f64::<BE>(*value).unwrap();
             }
-            Tag::ByteArray(value) => {
-                writer.write_u8(7)?;
-                write_string(writer, key)?;
-                write_bytearray(writer, value)?;
+            Nbt::ByteArray(value) => {
+                write_byte_array(writer, value);
             }
-            Tag::String(value) => {
-                writer.write_u8(8)?;
-                write_string(writer, key)?;
-                write_string(writer, value)?;
+            Nbt::String(value) => {
+                write_string(writer, value);
             }
-            Tag::List(value) => {
-                writer.write_u8(9)?;
-                write_string(writer, key)?;
-                write_list(writer, value)?;
+            Nbt::List(value) => {
+                write_list(writer, value);
             }
-            Tag::Compound(value) => {
-                writer.write_u8(10)?;
-                write_string(writer, key)?;
-                write_compound(writer, value, true)?;
+            Nbt::Compound(value) => {
+                write_compound(writer, value, true);
             }
-            Tag::IntArray(value) => {
-                writer.write_u8(11)?;
-                write_string(writer, key)?;
-                write_intarray(writer, value)?;
+            Nbt::IntArray(value) => {
+                write_int_array(writer, value);
             }
-            Tag::LongArray(value) => {
-                writer.write_u8(12)?;
-                write_string(writer, key)?;
-                write_longarray(writer, value)?;
+            Nbt::LongArray(value) => {
+                write_long_array(writer, value);
             }
         }
     }
     if end_tag {
-        writer.write_u8(Tag::End.id())?;
+        writer.write_u8(END_ID).unwrap();
     }
-    Ok(())
 }
 
 #[inline]
-fn write_list(writer: &mut dyn Write, value: &[Tag]) -> Result<(), Error> {
-    // we just get the type from the first item, or default the type to END
-    if value.is_empty() {
-        writer.write_all(&[0; 5])?;
-    } else {
-        let first_tag = &value[0];
-        writer.write_u8(first_tag.id())?;
-        writer.write_i32::<BE>(value.len() as i32)?;
-        match first_tag {
-            Tag::Int(_) => {
-                for tag in value {
-                    writer.write_i32::<BE>(
-                        *tag.as_int().expect("List of Int should only contains Int"),
-                    )?;
-                }
+fn write_list(writer: &mut impl Write, value: &NbtList) {
+    writer.write_u8(value.id()).unwrap();
+    match value {
+        NbtList::Empty => writer.write_all(&[0; 4]).unwrap(),
+        NbtList::Byte(l) => {
+            writer.write_i32::<BE>(l.len() as i32).unwrap();
+            let l = l.as_slice();
+            writer
+                // convert [i8] into [u8]
+                .write_all(unsafe { std::slice::from_raw_parts(l.as_ptr() as *const u8, l.len()) })
+                .unwrap();
+        }
+        NbtList::Short(l) => {
+            writer.write_i32::<BE>(l.len() as i32).unwrap();
+            for &v in l {
+                writer.write_i16::<BE>(v).unwrap();
             }
-            Tag::String(_) => {
-                for tag in value {
-                    write_string(
-                        writer,
-                        tag.as_string()
-                            .expect("List of String should only contain String"),
-                    )?;
-                }
+        }
+        NbtList::Int(l) => write_int_array(writer, l),
+        NbtList::Long(l) => write_long_array(writer, l),
+        NbtList::Float(l) => {
+            writer.write_i32::<BE>(l.len() as i32).unwrap();
+            for &v in l {
+                writer.write_f32::<BE>(v).unwrap();
             }
-            Tag::Compound(_) => {
-                for tag in value {
-                    write_compound(
-                        writer,
-                        tag.as_compound()
-                            .expect("List of Compound should only contain Compound"),
-                        true,
-                    )?;
-                }
+        }
+        NbtList::Double(l) => {
+            writer.write_i32::<BE>(l.len() as i32).unwrap();
+            for &v in l {
+                writer.write_f64::<BE>(v).unwrap();
             }
-            _ => {
-                for tag in value {
-                    tag.write_without_end(writer)?;
-                }
+        }
+        NbtList::ByteArray(l) => {
+            writer.write_i32::<BE>(l.len() as i32).unwrap();
+            for v in l {
+                write_byte_array(writer, v);
+            }
+        }
+        NbtList::String(l) => {
+            writer.write_i32::<BE>(l.len() as i32).unwrap();
+            for v in l {
+                write_string(writer, v);
+            }
+        }
+        NbtList::List(l) => {
+            writer.write_i32::<BE>(l.len() as i32).unwrap();
+            for v in l {
+                write_list(writer, v);
+            }
+        }
+        NbtList::Compound(l) => {
+            writer.write_i32::<BE>(l.len() as i32).unwrap();
+            for v in l {
+                write_compound(writer, v, true);
+            }
+        }
+        NbtList::IntArray(l) => {
+            writer.write_i32::<BE>(l.len() as i32).unwrap();
+            for v in l {
+                write_int_array(writer, v);
+            }
+        }
+        NbtList::LongArray(l) => {
+            writer.write_i32::<BE>(l.len() as i32).unwrap();
+            for v in l {
+                write_long_array(writer, v);
             }
         }
     }
-
-    Ok(())
 }
 
 #[inline]
-fn write_bytearray(writer: &mut dyn Write, value: &Vec<u8>) -> Result<(), Error> {
-    writer.write_u32::<BE>(value.len() as u32)?;
-    writer.write_all(value)?;
-    Ok(())
+fn write_byte_array(writer: &mut impl Write, value: &[u8]) {
+    writer.write_u32::<BE>(value.len() as u32).unwrap();
+    writer.write_all(value).unwrap();
 }
 
 #[inline]
-fn write_intarray(writer: &mut dyn Write, value: &Vec<i32>) -> Result<(), Error> {
-    writer.write_u32::<BE>(value.len() as u32)?;
-    for &int in value {
-        writer.write_i32::<BE>(int)?;
+fn write_int_array(writer: &mut impl Write, l: &[i32]) {
+    writer.write_i32::<BE>(l.len() as i32).unwrap();
+    // flip the bits to big endian with simd
+    let mut position = 0;
+    // x16
+    while l.len() - position >= 16 {
+        let l = unsafe { i32x16::from_slice_unaligned_unchecked(&l[position..]) };
+        l.to_be();
+        let l = unsafe { std::mem::transmute::<i32x16, [u8; 64]>(l) };
+        writer.write_all(&l).unwrap();
+        position += 16;
     }
-    Ok(())
+    // x8
+    if l.len() - position >= 8 {
+        let l = unsafe { i32x8::from_slice_unaligned_unchecked(&l[position..]) };
+        l.to_be();
+        let l = unsafe { std::mem::transmute::<i32x8, [u8; 32]>(l) };
+        writer.write_all(&l).unwrap();
+        position += 8;
+    }
+    // x4
+    if l.len() - position >= 4 {
+        let l = unsafe { i32x4::from_slice_unaligned_unchecked(&l[position..]) };
+        l.to_be();
+        let l = unsafe { std::mem::transmute::<i32x4, [u8; 16]>(l) };
+        writer.write_all(&l).unwrap();
+        position += 4;
+    }
+    // x2
+    if l.len() - position >= 2 {
+        let l = unsafe { i32x2::from_slice_unaligned_unchecked(&l[position..]) };
+        l.to_be();
+        let l = unsafe { std::mem::transmute::<i32x2, [u8; 8]>(l) };
+        writer.write_all(&l).unwrap();
+        position += 2;
+    }
+    // x1 ... just a normal write_i32
+    if l.len() - position >= 1 {
+        writer.write_i32::<BE>(l[position]).unwrap();
+    }
 }
 
 #[inline]
-fn write_longarray(writer: &mut dyn Write, value: &Vec<i64>) -> Result<(), Error> {
-    writer.write_u32::<BE>(value.len() as u32)?;
-    for &long in value {
-        writer.write_i64::<BE>(long)?;
+fn write_long_array(writer: &mut impl Write, l: &[i64]) {
+    writer.write_i32::<BE>(l.len() as i32).unwrap();
+    // flip the bits to big endian with simd
+    let mut position = 0;
+    // x16
+    while l.len() - position >= 8 {
+        let l = unsafe { i64x8::from_slice_unaligned_unchecked(&l[position..]) };
+        l.to_be();
+        let l = unsafe { std::mem::transmute::<i64x8, [u8; 64]>(l) };
+        writer.write_all(&l).unwrap();
+        position += 8;
     }
-    Ok(())
+    // x4
+    if l.len() - position >= 4 {
+        let l = unsafe { i64x4::from_slice_unaligned_unchecked(&l[position..]) };
+        l.to_be();
+        let l = unsafe { std::mem::transmute::<i64x4, [u8; 32]>(l) };
+        writer.write_all(&l).unwrap();
+        position += 4;
+    }
+    // x2
+    if l.len() - position >= 2 {
+        let l = unsafe { i64x2::from_slice_unaligned_unchecked(&l[position..]) };
+        l.to_be();
+        let l = unsafe { std::mem::transmute::<i64x2, [u8; 16]>(l) };
+        writer.write_all(&l).unwrap();
+        position += 2;
+    }
+    // x1 ... just a normal write_i32
+    if l.len() - position >= 1 {
+        writer.write_i64::<BE>(l[position]).unwrap();
+    }
 }
 
-impl Tag {
-    /// Write the tag as unnamed, uncompressed NBT data. If you're writing a
-    /// compound tag and the length of the NBT is already known, use
-    /// [`Tag::write`] to avoid the `End` tag (this is used when writing NBT to
-    /// a file).
-    #[inline]
-    pub fn write_without_end(&self, writer: &mut dyn Write) -> Result<(), Error> {
-        match self {
-            Tag::End => {}
-            Tag::Byte(value) => writer.write_i8(*value)?,
-            Tag::Short(value) => writer.write_i16::<BE>(*value)?,
-            Tag::Int(value) => writer.write_i32::<BE>(*value)?,
-            Tag::Long(value) => writer.write_i64::<BE>(*value)?,
-            Tag::Float(value) => writer.write_f32::<BE>(*value)?,
-            Tag::Double(value) => writer.write_f64::<BE>(*value)?,
-            Tag::ByteArray(value) => write_bytearray(writer, value)?,
-            Tag::String(value) => write_string(writer, value)?,
-            Tag::List(value) => write_list(writer, value)?,
-            Tag::Compound(value) => write_compound(writer, value, true)?,
-            Tag::IntArray(value) => write_intarray(writer, value)?,
-            Tag::LongArray(value) => write_longarray(writer, value)?,
-        }
-
-        Ok(())
-    }
-
+impl Nbt {
     /// Write the compound tag as NBT data.
     ///
-    /// # Errors
+    /// # Panics
     ///
-    /// Returns an `Err` if it's not a Compound or End tag.
-    pub fn write(&self, writer: &mut impl Write) -> Result<(), Error> {
+    /// Will panic if the tag is not a Compound or End tag.
+    pub fn write(&self, writer: &mut impl Write) {
         match self {
-            Tag::Compound(value) => {
-                write_compound(writer, value, false)?;
-                Ok(())
+            Nbt::Compound(value) => {
+                write_compound(writer, value, false);
             }
-            Tag::End => {
-                0u8.write_into(writer)?;
-                Ok(())
+            Nbt::End => {
+                END_ID.write_into(writer).unwrap();
             }
-            _ => Err(Error::InvalidTag),
+            _ => panic!("Not a compound tag"),
         }
     }
 
@@ -213,7 +240,7 @@ impl Tag {
     /// # Errors
     ///
     /// Returns an `Err` if it's not a Compound or End tag.
-    pub fn write_zlib(&self, writer: &mut impl Write) -> Result<(), Error> {
+    pub fn write_zlib(&self, writer: &mut impl Write) {
         let mut encoder = ZlibEncoder::new(writer, flate2::Compression::default());
         self.write(&mut encoder)
     }
@@ -223,15 +250,15 @@ impl Tag {
     /// # Errors
     ///
     /// Returns an `Err` if it's not a Compound or End tag.
-    pub fn write_gzip(&self, writer: &mut impl Write) -> Result<(), Error> {
+    pub fn write_gzip(&self, writer: &mut impl Write) {
         let mut encoder = GzEncoder::new(writer, flate2::Compression::default());
         self.write(&mut encoder)
     }
 }
 
-impl McBufWritable for Tag {
+impl McBufWritable for Nbt {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        self.write(buf)
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))
+        self.write(buf);
+        Ok(())
     }
 }

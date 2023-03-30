@@ -6024,9 +6024,9 @@ pub struct PlayerModeCustomisation(pub u8);
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct PlayerMainHand(pub u8);
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct ShoulderLeft(pub azalea_nbt::Tag);
+pub struct ShoulderLeft(pub azalea_nbt::Nbt);
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct ShoulderRight(pub azalea_nbt::Tag);
+pub struct ShoulderRight(pub azalea_nbt::Nbt);
 #[derive(Component)]
 pub struct Player;
 impl Player {
@@ -6107,8 +6107,8 @@ impl Default for PlayerMetadataBundle {
             score: Score(0),
             player_mode_customisation: PlayerModeCustomisation(0),
             player_main_hand: PlayerMainHand(1),
-            shoulder_left: ShoulderLeft(azalea_nbt::Tag::Compound(Default::default())),
-            shoulder_right: ShoulderRight(azalea_nbt::Tag::Compound(Default::default())),
+            shoulder_left: ShoulderLeft(azalea_nbt::Nbt::Compound(Default::default())),
+            shoulder_right: ShoulderRight(azalea_nbt::Nbt::Compound(Default::default())),
         }
     }
 }

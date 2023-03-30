@@ -42,7 +42,7 @@ pub mod registry {
 
     use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
     use azalea_core::ResourceLocation;
-    use azalea_nbt::Tag;
+    use azalea_nbt::Nbt;
     use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
     use std::{collections::HashMap, io::Cursor};
 
@@ -58,32 +58,32 @@ pub mod registry {
         pub root: RegistryRoot,
     }
 
-    impl TryFrom<Tag> for RegistryHolder {
+    impl TryFrom<Nbt> for RegistryHolder {
         type Error = serde_json::Error;
 
-        fn try_from(value: Tag) -> Result<Self, Self::Error> {
+        fn try_from(value: Nbt) -> Result<Self, Self::Error> {
             serde_json::from_value(serde_json::to_value(value)?)
         }
     }
 
-    impl TryInto<Tag> for RegistryHolder {
+    impl TryInto<Nbt> for RegistryHolder {
         type Error = serde_json::Error;
 
-        fn try_into(self) -> Result<Tag, Self::Error> {
+        fn try_into(self) -> Result<Nbt, Self::Error> {
             serde_json::from_value(serde_json::to_value(self)?)
         }
     }
 
     impl McBufReadable for RegistryHolder {
         fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-            RegistryHolder::try_from(Tag::read_from(buf)?)
+            RegistryHolder::try_from(Nbt::read_from(buf)?)
                 .map_err(|e| BufReadError::Deserialization { source: e })
         }
     }
 
     impl McBufWritable for RegistryHolder {
         fn write_into(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
-            TryInto::<Tag>::try_into(self.clone())?.write_into(buf)
+            TryInto::<Nbt>::try_into(self.clone())?.write_into(buf)
         }
     }
 
@@ -100,14 +100,14 @@ pub mod registry {
         pub trim_material: RegistryType<TrimMaterialElement>,
         #[cfg(not(feature = "strict_registry"))]
         #[serde(rename = "minecraft:trim_material")]
-        pub trim_material: Tag,
+        pub trim_material: Nbt,
 
         #[cfg(feature = "strict_registry")]
         #[serde(rename = "minecraft:chat_type")]
         pub chat_type: RegistryType<ChatTypeElement>,
         #[cfg(not(feature = "strict_registry"))]
         #[serde(rename = "minecraft:chat_type")]
-        pub chat_type: Tag,
+        pub chat_type: Nbt,
 
         #[serde(rename = "minecraft:dimension_type")]
         pub dimension_type: RegistryType<DimensionTypeElement>,
@@ -117,21 +117,21 @@ pub mod registry {
         pub world_type: RegistryType<WorldTypeElement>,
         #[cfg(not(feature = "strict_registry"))]
         #[serde(rename = "minecraft:worldgen/biome")]
-        pub world_type: Tag,
+        pub world_type: Nbt,
 
         #[cfg(feature = "strict_registry")]
         #[serde(rename = "minecraft:trim_pattern")]
         pub trim_pattern: RegistryType<TrimPatternElement>,
         #[cfg(not(feature = "strict_registry"))]
         #[serde(rename = "minecraft:trim_pattern")]
-        pub trim_pattern: Tag,
+        pub trim_pattern: Nbt,
 
         #[cfg(feature = "strict_registry")]
         #[serde(rename = "minecraft:damage_type")]
         pub damage_type: RegistryType<DamageTypeElement>,
         #[cfg(not(feature = "strict_registry"))]
         #[serde(rename = "minecraft:damage_type")]
-        pub damage_type: Tag,
+        pub damage_type: Nbt,
     }
 
     /// A collection of values for a certain type of registry data.
@@ -481,27 +481,27 @@ pub mod registry {
 mod tests {
     use super::registry::{DimensionTypeElement, RegistryHolder, RegistryRoot, RegistryType};
     use azalea_core::ResourceLocation;
-    use azalea_nbt::Tag;
+    use azalea_nbt::Nbt;
 
     #[test]
     fn test_convert() {
-        // Do NOT use Tag::End, they should be Tag::Compound.
+        // Do NOT use Nbt::End, they should be Nbt::Compound.
         // This is just for testing.
         let registry = RegistryHolder {
             root: RegistryRoot {
-                trim_material: Tag::End,
-                chat_type: Tag::End,
+                trim_material: Nbt::End,
+                chat_type: Nbt::End,
                 dimension_type: RegistryType::<DimensionTypeElement> {
                     kind: ResourceLocation::new("minecraft:dimension_type"),
                     value: Vec::new(),
                 },
-                world_type: Tag::End,
-                trim_pattern: Tag::End,
-                damage_type: Tag::End,
+                world_type: Nbt::End,
+                trim_pattern: Nbt::End,
+                damage_type: Nbt::End,
             },
         };
 
-        let tag: Tag = registry.try_into().unwrap();
+        let tag: Nbt = registry.try_into().unwrap();
         let root = tag
             .as_compound()
             .unwrap()
