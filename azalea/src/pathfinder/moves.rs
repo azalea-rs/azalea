@@ -24,7 +24,7 @@ fn is_passable(pos: &BlockPos, world: &Instance) -> bool {
     is_block_passable(pos, world) && is_block_passable(&pos.up(1), world)
 }
 
-/// Whether we can stand in this position. Checks if the block below is solid,	
+/// Whether we can stand in this position. Checks if the block below is solid,
 /// and that the two blocks above that are passable.
 fn is_standable(pos: &BlockPos, world: &Instance) -> bool {
     is_block_solid(&pos.down(1), world) && is_passable(pos, world)
