@@ -164,7 +164,7 @@ impl InventoryComponent {
                             // minecraft also checks slot.may_place(carried) and
                             // menu.can_drag_to(slot)
                             // but they always return true so they're not relevant for us
-                            if Self::can_item_quick_replace(slot_item, carried, true)
+                            if can_item_quick_replace(slot_item, &self.carried, true)
                                 && (self.quick_craft_kind == QuickCraftKind::Right
                                     || carried.count as usize > self.quick_craft_slots.len())
                             {
@@ -205,21 +205,49 @@ impl InventoryComponent {
                             let mut item_stack: &ItemSlot;
 
                             loop {
-                                loop {
-                                    loop {
-                                        loop {
-                                            let Some(next_slot) = quick_craft_slots_iter.next() else {
+                                let Some(next_slot) = quick_craft_slots_iter.next() else {
                                                 carried.count = carried_count;
                                                 self.carried = ItemSlot::Present(carried.clone());
                                                 return self.reset_quick_craft();
                                             };
 
-                                            slot = self.menu().slot(*next_slot as usize).unwrap();
-                                            item_stack = &self.carried;
-                                        }
-                                    }
+                                slot = self.menu().slot(*next_slot as usize).unwrap();
+                                item_stack = &self.carried;
+
+                                if slot.is_present()
+                                    && can_item_quick_replace(slot, item_stack, true)
+                                    // this always returns true in most cases
+                                    // && slot.may_place(item_stack)
+                                    && (
+                                        self.quick_craft_kind == QuickCraftKind::Middle
+                                        || item_stack.count() >= self.quick_craft_slots.len() as u8
+                                    )
+                                {
+                                    break;
                                 }
                             }
+
+                            // if self.can_drag_to(slot) {
+                            // ItemStack newCarried = var16.copy();
+                            let new_carried = carried.clone();
+                            let slot_item_count = slot.count();
+                            get_quick_craft_slot_count(
+                                self.quick_craft_slots,
+                                self.quick_craft_type,
+                                newCarried,
+                                slot_item_count,
+                            );
+                            let max_stack_size = Math.min(
+                                newCarried.getMaxStackSize(),
+                                slot.getMaxStackSize(newCarried),
+                            );
+                            if new_carried.count > max_stack_size {
+                                new_carried.count = max_stack_size;
+                            }
+
+                            carried_count -= newCarried.getCount() - slotItemCount;
+                            slot.setByPlayer(newCarried);
+                            // }
                         }
                     }
                 }
@@ -237,26 +265,55 @@ impl InventoryComponent {
         self.quick_craft_status = QuickCraftStatusKind::Start;
         self.quick_craft_slots.clear();
     }
+}
 
-    fn can_item_quick_replace(
-        target_slot: &ItemSlot,
-        item: &ItemSlotData,
-        ignore_item_count: bool,
-    ) -> bool {
-        let ItemSlot::Present(target_slot) = target_slot else {
+fn can_item_quick_replace(
+    target_slot: &ItemSlot,
+    item: &ItemSlot,
+    ignore_item_count: bool,
+) -> bool {
+    let ItemSlot::Present(target_slot) = target_slot else {
             return false;
         };
-        if item != target_slot {
+    let ItemSlot::Present(item) = item else {
+        // i *think* this is what vanilla does
+        // not 100% sure lol probably doesn't matter though
             return false;
-        }
-        let count = target_slot.count as u16
-            + if ignore_item_count {
-                0
-            } else {
-                item.count as u16
-            };
-        count <= item.kind.max_stack_size() as u16
+        };
+
+    if item != target_slot {
+        return false;
     }
+    let count = target_slot.count as u16
+        + if ignore_item_count {
+            0
+        } else {
+            item.count as u16
+        };
+    count <= item.kind.max_stack_size() as u16
+}
+
+// public static void getQuickCraftSlotCount(Set<Slot> quickCraftSlots, int
+// quickCraftType, ItemStack itemStack,     int var3) {
+//  switch (quickCraftType) {
+//     case 0:
+//        itemStack.setCount(Mth.floor((float) itemStack.getCount() / (float)
+// quickCraftSlots.size()));        break;
+//     case 1:
+//        itemStack.setCount(1);
+//        break;
+//     case 2:
+//        itemStack.setCount(itemStack.getItem().getMaxStackSize());
+//  }
+
+//  itemStack.grow(var3);
+// }
+fn get_quick_craft_slot_count(
+    quick_craft_slots: &Set<ItemSlot>,
+    quick_craft_type: QuickCraftKind,
+    item: &ItemSlotData,
+    slot_item_count: u32,
+) {
 }
 
 impl Default for InventoryComponent {
