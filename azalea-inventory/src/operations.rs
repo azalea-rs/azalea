@@ -15,13 +15,15 @@ pub enum ClickOperation {
 
 #[derive(Debug, Clone)]
 pub enum PickupClick {
-    /// Left mouse click
-    Left { slot: u16 },
-    /// Right mouse click
-    Right { slot: u16 },
-    /// Drop cursor stack
+    /// Left mouse click. Note that in the protocol, None is represented as
+    /// -999.
+    Left { slot: Option<u16> },
+    /// Right mouse click. Note that in the protocol, None is represented as
+    /// -999.
+    Right { slot: Option<u16> },
+    /// Drop cursor stack.
     LeftOutside,
-    /// Drop cursor single item
+    /// Drop cursor single item.
     RightOutside,
 }
 impl From<PickupClick> for ClickOperation {
@@ -29,6 +31,7 @@ impl From<PickupClick> for ClickOperation {
         ClickOperation::Pickup(click)
     }
 }
+
 /// Shift click
 #[derive(Debug, Clone)]
 pub enum QuickMoveClick {
@@ -134,8 +137,8 @@ impl ClickOperation {
     pub fn slot_num(&self) -> Option<u16> {
         match self {
             ClickOperation::Pickup(pickup) => match pickup {
-                PickupClick::Left { slot } => Some(*slot),
-                PickupClick::Right { slot } => Some(*slot),
+                PickupClick::Left { slot } => *slot,
+                PickupClick::Right { slot } => *slot,
                 PickupClick::LeftOutside => None,
                 PickupClick::RightOutside => None,
             },

@@ -85,7 +85,7 @@ pub struct InventoryComponent {
 
     pub quick_craft_status: QuickCraftStatusKind,
     pub quick_craft_kind: QuickCraftKind,
-    pub quick_craft_slots: HashSet<u16>,
+    pub quick_craft_slots: HashSet<i16>,
     // minecraft also has these fields, but i don't
     // think they're necessary?:
     // private final NonNullList<ItemStack>
@@ -126,138 +126,189 @@ impl InventoryComponent {
         operation: &ClickOperation,
         player_abilities: &PlayerAbilities,
     ) {
-        match operation {
-            ClickOperation::QuickCraft(quick_craft) => {
-                let last_quick_craft_status_tmp = self.quick_craft_status.clone();
-                self.quick_craft_status = last_quick_craft_status_tmp.clone();
-                let last_quick_craft_status = last_quick_craft_status_tmp.into();
+        if let ClickOperation::QuickCraft(quick_craft) = operation {
+            let last_quick_craft_status_tmp = self.quick_craft_status.clone();
+            self.quick_craft_status = last_quick_craft_status_tmp.clone();
+            let last_quick_craft_status = last_quick_craft_status_tmp.into();
 
-                // no carried item, reset
-                if self.carried.is_empty() {
-                    return self.reset_quick_craft();
-                }
-                // if we were starting or ending, or now we aren't ending and the status
-                // changed, reset
-                if (last_quick_craft_status == QuickCraftStatusKind::Start
-                    || last_quick_craft_status == QuickCraftStatusKind::End
-                    || self.quick_craft_status != QuickCraftStatusKind::End)
-                    && (self.quick_craft_status != last_quick_craft_status)
+            // no carried item, reset
+            if self.carried.is_empty() {
+                return self.reset_quick_craft();
+            }
+            // if we were starting or ending, or now we aren't ending and the status
+            // changed, reset
+            if (last_quick_craft_status == QuickCraftStatusKind::Start
+                || last_quick_craft_status == QuickCraftStatusKind::End
+                || self.quick_craft_status != QuickCraftStatusKind::End)
+                && (self.quick_craft_status != last_quick_craft_status)
+            {
+                return self.reset_quick_craft();
+            }
+            if self.quick_craft_status == QuickCraftStatusKind::Start {
+                self.quick_craft_kind = quick_craft.kind.clone();
+                if self.quick_craft_kind == QuickCraftKind::Middle && player_abilities.instant_break
                 {
-                    return self.reset_quick_craft();
+                    self.quick_craft_status = QuickCraftStatusKind::Add;
+                    self.quick_craft_slots.clear();
+                } else {
+                    self.reset_quick_craft();
                 }
-                if self.quick_craft_status == QuickCraftStatusKind::Start {
-                    self.quick_craft_kind = quick_craft.kind.clone();
-                    if self.quick_craft_kind == QuickCraftKind::Middle
-                        && player_abilities.instant_break
-                    {
-                        self.quick_craft_status = QuickCraftStatusKind::Add;
-                        self.quick_craft_slots.clear();
-                    } else {
-                        self.reset_quick_craft();
-                    }
-                    return;
-                }
-                if let QuickCraftStatus::Add { slot } = quick_craft.status {
-                    let slot_item = self.menu().slot(slot as usize);
-                    if let Some(slot_item) = slot_item {
-                        if let ItemSlot::Present(carried) = &self.carried {
-                            // minecraft also checks slot.may_place(carried) and
-                            // menu.can_drag_to(slot)
-                            // but they always return true so they're not relevant for us
-                            if can_item_quick_replace(slot_item, &self.carried, true)
-                                && (self.quick_craft_kind == QuickCraftKind::Right
-                                    || carried.count as usize > self.quick_craft_slots.len())
-                            {
-                                self.quick_craft_slots.insert(slot);
-                            }
+                return;
+            }
+            if let QuickCraftStatus::Add { slot } = quick_craft.status {
+                let slot_item = self.menu().slot(slot as usize);
+                if let Some(slot_item) = slot_item {
+                    if let ItemSlot::Present(carried) = &self.carried {
+                        // minecraft also checks slot.may_place(carried) and
+                        // menu.can_drag_to(slot)
+                        // but they always return true so they're not relevant for us
+                        if can_item_quick_replace(slot_item, &self.carried, true)
+                            && (self.quick_craft_kind == QuickCraftKind::Right
+                                || carried.count as usize > self.quick_craft_slots.len())
+                        {
+                            self.quick_craft_slots.insert(slot);
                         }
                     }
-                    return;
                 }
-                if self.quick_craft_status == QuickCraftStatusKind::End {
-                    if !self.quick_craft_slots.is_empty() {
-                        if self.quick_craft_slots.len() == 1 {
-                            let slot = *self.quick_craft_slots.iter().next().unwrap();
-                            self.reset_quick_craft();
-                            self.simulate_click(
-                                &match self.quick_craft_kind {
-                                    QuickCraftKind::Left => PickupClick::Left { slot }.into(),
-                                    QuickCraftKind::Right => PickupClick::Left { slot }.into(),
-                                    QuickCraftKind::Middle => {
-                                        // idk just do nothing i guess
-                                        return;
-                                    }
-                                },
-                                player_abilities,
-                            );
-                            return;
-                        }
+                return;
+            }
+            if self.quick_craft_status == QuickCraftStatusKind::End {
+                if !self.quick_craft_slots.is_empty() {
+                    if self.quick_craft_slots.len() == 1 {
+                        // if we only clicked one slot, then turn this
+                        // QuickCraftClick into a PickupClick
+                        let slot = *self.quick_craft_slots.iter().next().unwrap();
+                        let slot = if slot == -999 {
+                            None
+                        } else {
+                            Some(slot as u16)
+                        };
 
-                        let ItemSlot::Present(mut carried) = self.carried.clone() else {
+                        self.reset_quick_craft();
+                        self.simulate_click(
+                            &match self.quick_craft_kind {
+                                QuickCraftKind::Left => PickupClick::Left { slot }.into(),
+                                QuickCraftKind::Right => PickupClick::Left { slot }.into(),
+                                QuickCraftKind::Middle => {
+                                    // idk just do nothing i guess
+                                    return;
+                                }
+                            },
+                            player_abilities,
+                        );
+                        return;
+                    }
+
+                    let ItemSlot::Present(mut carried) = self.carried.clone() else {
                             // this should never happen
                             return self.reset_quick_craft();
                         };
-                        let mut carried_count = carried.count;
-                        let mut quick_craft_slots_iter = self.quick_craft_slots.iter();
+                    let mut carried_count = carried.count;
+                    let mut quick_craft_slots_iter = self.quick_craft_slots.iter();
+
+                    loop {
+                        let mut slot: &ItemSlot;
+                        let mut slot_index: u16;
+                        let mut item_stack: &ItemSlot;
 
                         loop {
-                            let mut slot: &ItemSlot;
-                            let mut item_stack: &ItemSlot;
+                            let Some(&next_slot) = quick_craft_slots_iter.next() else {
+                                    carried.count = carried_count;
+                                    self.carried = ItemSlot::Present(carried.clone());
+                                    return self.reset_quick_craft();
+                                };
 
-                            loop {
-                                let Some(next_slot) = quick_craft_slots_iter.next() else {
-                                                carried.count = carried_count;
-                                                self.carried = ItemSlot::Present(carried.clone());
-                                                return self.reset_quick_craft();
-                                            };
+                            slot = self.menu().slot(next_slot as usize).unwrap();
+                            slot_index = next_slot;
+                            item_stack = &self.carried;
 
-                                slot = self.menu().slot(*next_slot as usize).unwrap();
-                                item_stack = &self.carried;
-
-                                if slot.is_present()
+                            if slot.is_present()
                                     && can_item_quick_replace(slot, item_stack, true)
                                     // this always returns true in most cases
                                     // && slot.may_place(item_stack)
                                     && (
                                         self.quick_craft_kind == QuickCraftKind::Middle
-                                        || item_stack.count() >= self.quick_craft_slots.len() as u8
+                                        || item_stack.count() >= self.quick_craft_slots.len() as i32
                                     )
-                                {
-                                    break;
-                                }
+                            {
+                                break;
                             }
-
-                            // if self.can_drag_to(slot) {
-                            // ItemStack newCarried = var16.copy();
-                            let new_carried = carried.clone();
-                            let slot_item_count = slot.count();
-                            get_quick_craft_slot_count(
-                                self.quick_craft_slots,
-                                self.quick_craft_type,
-                                newCarried,
-                                slot_item_count,
-                            );
-                            let max_stack_size = Math.min(
-                                newCarried.getMaxStackSize(),
-                                slot.getMaxStackSize(newCarried),
-                            );
-                            if new_carried.count > max_stack_size {
-                                new_carried.count = max_stack_size;
-                            }
-
-                            carried_count -= newCarried.getCount() - slotItemCount;
-                            slot.setByPlayer(newCarried);
-                            // }
                         }
+
+                        // get the ItemSlotData for the slot
+                        let ItemSlot::Present(slot) = slot else {
+                                unreachable!("the loop above requires the slot to be present to break")
+                            };
+
+                        // if self.can_drag_to(slot) {
+                        let mut new_carried = carried.clone();
+                        let slot_item_count = slot.count;
+                        get_quick_craft_slot_count(
+                            &self.quick_craft_slots,
+                            &self.quick_craft_kind,
+                            &mut new_carried,
+                            slot_item_count,
+                        );
+                        let max_stack_size = i32::min(
+                            new_carried.kind.max_stack_size(),
+                            i32::min(
+                                new_carried.kind.max_stack_size(),
+                                slot.kind.max_stack_size(),
+                            ),
+                        );
+                        if new_carried.count > max_stack_size as i32 {
+                            new_carried.count = max_stack_size as i32;
+                        }
+
+                        carried_count -= new_carried.count - slot_item_count;
+                        // we have to inline self.menu_mut() here to avoid the borrow checker
+                        // complaining
+                        let menu = if let Some(menu) = &mut self.container_menu {
+                            menu
+                        } else {
+                            &mut self.inventory_menu
+                        };
+                        *menu.slot_mut(slot_index as usize).unwrap() =
+                            ItemSlot::Present(new_carried);
+                        // }
                     }
                 }
+            } else {
+                return self.reset_quick_craft();
             }
-            ClickOperation::Pickup(_) => todo!(),
+        }
+        // the quick craft status should always be in start if we're not in quick craft
+        // mode
+        if self.quick_craft_status != QuickCraftStatusKind::Start {
+            return self.reset_quick_craft();
+        }
+
+        match operation {
+            // left clicking outside inventory
+            ClickOperation::Pickup(PickupClick::Left { slot: None }) => {
+                if self.carried.is_present() {
+                    // vanilla has `player.drop`s but they're only used
+                    // server-side
+                    // they're included as comments here in case you want to adapt this for a server
+                    // implementation
+
+                    // player.drop(self.carried, true);
+                    self.carried = ItemSlot::Empty;
+                }
+            }
+            ClickOperation::Pickup(PickupClick::Right { slot: None }) => {
+                if self.carried.is_present() {
+                    let _item = self.carried.split(1);
+                    // player.drop(item, true);
+                }
+            }
             ClickOperation::QuickMove(_) => todo!(),
             ClickOperation::Swap(_) => todo!(),
             ClickOperation::Clone(_) => todo!(),
             ClickOperation::Throw(_) => todo!(),
+            ClickOperation::QuickCraft(_) => todo!(),
             ClickOperation::PickupAll(_) => todo!(),
+            _ => {}
         }
     }
 
@@ -309,11 +360,17 @@ fn can_item_quick_replace(
 //  itemStack.grow(var3);
 // }
 fn get_quick_craft_slot_count(
-    quick_craft_slots: &Set<ItemSlot>,
-    quick_craft_type: QuickCraftKind,
-    item: &ItemSlotData,
-    slot_item_count: u32,
+    quick_craft_slots: &HashSet<u16>,
+    quick_craft_kind: &QuickCraftKind,
+    item: &mut ItemSlotData,
+    slot_item_count: i32,
 ) {
+    item.count = match quick_craft_kind {
+        QuickCraftKind::Left => item.count / quick_craft_slots.len() as i32,
+        QuickCraftKind::Right => 1,
+        QuickCraftKind::Middle => item.kind.max_stack_size(),
+    };
+    item.count += slot_item_count;
 }
 
 impl Default for InventoryComponent {

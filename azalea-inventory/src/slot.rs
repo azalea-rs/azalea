@@ -18,10 +18,27 @@ impl ItemSlot {
         matches!(self, ItemSlot::Present(_))
     }
 
-    pub fn count(&self) -> u8 {
+    pub fn count(&self) -> i32 {
         match self {
             ItemSlot::Empty => 0,
             ItemSlot::Present(i) => i.count,
+        }
+    }
+
+    /// Remove `count` items from this slot, returning the removed items.
+    pub fn split(&mut self, count: u32) -> ItemSlot {
+        if count == 0 {
+            return ItemSlot::Empty;
+        }
+        match self {
+            ItemSlot::Empty => ItemSlot::Empty,
+            ItemSlot::Present(i) => {
+                let returning = i.split(count);
+                if i.count == 0 {
+                    *self = ItemSlot::Empty;
+                }
+                ItemSlot::Present(returning)
+            }
         }
     }
 }
@@ -31,8 +48,22 @@ impl ItemSlot {
 #[derive(Debug, Clone, McBuf, PartialEq)]
 pub struct ItemSlotData {
     pub kind: azalea_registry::Item,
-    pub count: u8,
+    /// The amount of the item in this slot.
+    ///
+    /// The count can be zero or negative, but this is rare.
+    pub count: i32,
     pub nbt: Nbt,
+}
+
+impl ItemSlotData {
+    /// Remove `count` items from this slot, returning the removed items.
+    pub fn split(&mut self, count: u32) -> ItemSlotData {
+        let returning_count = i32::min(count as i32, self.count);
+        let mut returning = self.clone();
+        returning.count = returning_count;
+        self.count -= returning_count;
+        returning
+    }
 }
 
 impl McBufReadable for ItemSlot {
