@@ -104,7 +104,7 @@ pub enum QuickCraftStatusKind {
 pub enum QuickCraftStatus {
     /// Starting drag
     Start,
-    /// Add slot
+    /// Add a slot.
     Add { slot: u16 },
     /// Ending drag
     End,
@@ -250,3 +250,5 @@ pub enum ClickType {
     QuickCraft = 5,
     PickupAll = 6,
 }
+
+// pub fn shift_click

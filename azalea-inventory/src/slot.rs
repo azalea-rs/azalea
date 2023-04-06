@@ -18,7 +18,11 @@ impl ItemSlot {
         matches!(self, ItemSlot::Present(_))
     }
 
-    pub fn count(&self) -> i32 {
+    /// Return the amount of the item in the slot, or 0 if the slot is empty.
+    ///
+    /// Note that it's possible for the count to be zero or negative when the
+    /// slot is present.
+    pub fn count(&self) -> i8 {
         match self {
             ItemSlot::Empty => 0,
             ItemSlot::Present(i) => i.count,
@@ -26,7 +30,7 @@ impl ItemSlot {
     }
 
     /// Remove `count` items from this slot, returning the removed items.
-    pub fn split(&mut self, count: u32) -> ItemSlot {
+    pub fn split(&mut self, count: u8) -> ItemSlot {
         if count == 0 {
             return ItemSlot::Empty;
         }
@@ -51,14 +55,14 @@ pub struct ItemSlotData {
     /// The amount of the item in this slot.
     ///
     /// The count can be zero or negative, but this is rare.
-    pub count: i32,
+    pub count: i8,
     pub nbt: Nbt,
 }
 
 impl ItemSlotData {
     /// Remove `count` items from this slot, returning the removed items.
-    pub fn split(&mut self, count: u32) -> ItemSlotData {
-        let returning_count = i32::min(count as i32, self.count);
+    pub fn split(&mut self, count: u8) -> ItemSlotData {
+        let returning_count = i8::min(count as i8, self.count);
         let mut returning = self.clone();
         returning.count = returning_count;
         self.count -= returning_count;

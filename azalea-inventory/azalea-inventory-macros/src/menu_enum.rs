@@ -23,6 +23,7 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
             #player_fields
         }
 
+        /// A menu, which is a fixed collection of slots.
         #[derive(Clone, Debug)]
         pub enum Menu {
             Player(Player),

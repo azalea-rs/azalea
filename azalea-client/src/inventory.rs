@@ -7,7 +7,7 @@ use azalea_inventory::{
     item::MaxStackSizeExt,
     operations::{
         ClickOperation, PickupClick, QuickCraftClick, QuickCraftKind, QuickCraftStatus,
-        QuickCraftStatusKind,
+        QuickCraftStatusKind, QuickMoveClick,
     },
 };
 use azalea_protocol::packets::game::{
@@ -85,7 +85,9 @@ pub struct InventoryComponent {
 
     pub quick_craft_status: QuickCraftStatusKind,
     pub quick_craft_kind: QuickCraftKind,
-    pub quick_craft_slots: HashSet<i16>,
+    /// A set of the indexes of the slots that have been right clicked in
+    /// this "quick craft".
+    pub quick_craft_slots: HashSet<u16>,
     // minecraft also has these fields, but i don't
     // think they're necessary?:
     // private final NonNullList<ItemStack>
@@ -178,17 +180,15 @@ impl InventoryComponent {
                         // if we only clicked one slot, then turn this
                         // QuickCraftClick into a PickupClick
                         let slot = *self.quick_craft_slots.iter().next().unwrap();
-                        let slot = if slot == -999 {
-                            None
-                        } else {
-                            Some(slot as u16)
-                        };
-
                         self.reset_quick_craft();
                         self.simulate_click(
                             &match self.quick_craft_kind {
-                                QuickCraftKind::Left => PickupClick::Left { slot }.into(),
-                                QuickCraftKind::Right => PickupClick::Left { slot }.into(),
+                                QuickCraftKind::Left => {
+                                    PickupClick::Left { slot: Some(slot) }.into()
+                                }
+                                QuickCraftKind::Right => {
+                                    PickupClick::Left { slot: Some(slot) }.into()
+                                }
                                 QuickCraftKind::Middle => {
                                     // idk just do nothing i guess
                                     return;
@@ -228,7 +228,7 @@ impl InventoryComponent {
                                     // && slot.may_place(item_stack)
                                     && (
                                         self.quick_craft_kind == QuickCraftKind::Middle
-                                        || item_stack.count() >= self.quick_craft_slots.len() as i32
+                                        || item_stack.count() as i32 >= self.quick_craft_slots.len() as i32
                                     )
                             {
                                 break;
@@ -249,15 +249,15 @@ impl InventoryComponent {
                             &mut new_carried,
                             slot_item_count,
                         );
-                        let max_stack_size = i32::min(
+                        let max_stack_size = i8::min(
                             new_carried.kind.max_stack_size(),
-                            i32::min(
+                            i8::min(
                                 new_carried.kind.max_stack_size(),
                                 slot.kind.max_stack_size(),
                             ),
                         );
-                        if new_carried.count > max_stack_size as i32 {
-                            new_carried.count = max_stack_size as i32;
+                        if new_carried.count > max_stack_size {
+                            new_carried.count = max_stack_size;
                         }
 
                         carried_count -= new_carried.count - slot_item_count;
@@ -302,7 +302,11 @@ impl InventoryComponent {
                     // player.drop(item, true);
                 }
             }
-            ClickOperation::QuickMove(_) => todo!(),
+            ClickOperation::QuickMove(
+                QuickMoveClick::Left { slot } | QuickMoveClick::Right { slot },
+            ) => {
+                self.menu
+            }
             ClickOperation::Swap(_) => todo!(),
             ClickOperation::Clone(_) => todo!(),
             ClickOperation::Throw(_) => todo!(),
@@ -363,10 +367,10 @@ fn get_quick_craft_slot_count(
     quick_craft_slots: &HashSet<u16>,
     quick_craft_kind: &QuickCraftKind,
     item: &mut ItemSlotData,
-    slot_item_count: i32,
+    slot_item_count: i8,
 ) {
     item.count = match quick_craft_kind {
-        QuickCraftKind::Left => item.count / quick_craft_slots.len() as i32,
+        QuickCraftKind::Left => item.count / quick_craft_slots.len() as i8,
         QuickCraftKind::Right => 1,
         QuickCraftKind::Middle => item.kind.max_stack_size(),
     };
