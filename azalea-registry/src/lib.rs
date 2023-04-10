@@ -2995,6 +2995,7 @@ enum LootFunctionKind {
     SetBannerPattern => "minecraft:set_banner_pattern",
     SetPotion => "minecraft:set_potion",
     SetInstrument => "minecraft:set_instrument",
+    Reference => "minecraft:reference",
 }
 }
 
@@ -3510,6 +3511,7 @@ enum SensorKind {
     FrogAttackables => "minecraft:frog_attackables",
     IsInWater => "minecraft:is_in_water",
     WardenEntitySensor => "minecraft:warden_entity_sensor",
+    SnifferTemptations => "minecraft:sniffer_temptations",
 }
 }
 
@@ -4746,8 +4748,8 @@ enum SoundEvent {
     EntitySnifferDigging => "minecraft:entity.sniffer.digging",
     EntitySnifferDiggingStop => "minecraft:entity.sniffer.digging_stop",
     EntitySnifferHappy => "minecraft:entity.sniffer.happy",
-    EntitySnifferEggCrack => "minecraft:entity.sniffer.egg_crack",
-    EntitySnifferEggHatch => "minecraft:entity.sniffer.egg_hatch",
+    BlockSnifferEggCrack => "minecraft:block.sniffer.egg_crack",
+    BlockSnifferEggHatch => "minecraft:block.sniffer.egg_hatch",
     EntitySnowballThrow => "minecraft:entity.snowball.throw",
     BlockSnowBreak => "minecraft:block.snow.break",
     BlockSnowFall => "minecraft:block.snow.fall",
