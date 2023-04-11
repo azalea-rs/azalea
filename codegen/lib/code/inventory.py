@@ -5,7 +5,7 @@ from typing import Any, Optional
 import os
 import re
 
-# The directoey where declare_menus! {} is done
+# The directory where declare_menus! {} is done
 inventory_menus_dir = get_dir_location(f'../azalea-inventory/src/lib.rs')
 
 

@@ -302,17 +302,39 @@ impl InventoryComponent {
                     // player.drop(item, true);
                 }
             }
+            ClickOperation::Pickup(
+                PickupClick::Left { slot: Some(slot) } | PickupClick::Right { slot: Some(slot) },
+            ) => {
+                let Some(slot_item) = self.menu().slot(*slot as usize) else {
+                    return;
+                };
+                let carried = &self.carried;
+                // vanilla does a check called tryItemClickBehaviourOverride
+                // here
+                // i don't understand it so i didn't implement it
+                match slot_item {
+                    ItemSlot::Empty => if carried.is_present() {},
+                    ItemSlot::Present(_) => todo!(),
+                }
+            }
             ClickOperation::QuickMove(
                 QuickMoveClick::Left { slot } | QuickMoveClick::Right { slot },
             ) => {
-                self.menu
+                // in vanilla it also tests if QuickMove has a slot index of -999
+                // but i don't think that's ever possible so it's not covered here
+                loop {
+                    let new_slot_item = self.menu_mut().quick_move_stack(*slot as usize);
+                    let slot_item = self.menu().slot(*slot as usize).unwrap();
+                    if new_slot_item.is_empty() || slot_item != &new_slot_item {
+                        break;
+                    }
+                }
             }
             ClickOperation::Swap(_) => todo!(),
             ClickOperation::Clone(_) => todo!(),
             ClickOperation::Throw(_) => todo!(),
             ClickOperation::QuickCraft(_) => todo!(),
             ClickOperation::PickupAll(_) => todo!(),
-            _ => {}
         }
     }
 

@@ -1,6 +1,10 @@
-use crate::parse_macro::{DeclareMenus, Menu};
+use crate::{
+    parse_macro::{DeclareMenus, Menu},
+    utils::to_pascal_case,
+};
 use proc_macro2::TokenStream;
 use quote::quote;
+use syn::Ident;
 
 pub fn generate(input: &DeclareMenus) -> TokenStream {
     let mut slot_mut_match_variants = quote! {};
@@ -9,6 +13,7 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
     let mut kind_match_variants = quote! {};
     let mut slots_match_variants = quote! {};
     let mut contents_match_variants = quote! {};
+    let mut location_match_variants = quote! {};
 
     let mut hotbar_slot_start = 0;
     let mut hotbar_slot_end = 0;
@@ -20,6 +25,7 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
         kind_match_variants.extend(generate_match_variant_for_kind(menu));
         slots_match_variants.extend(generate_match_variant_for_slots(menu));
         contents_match_variants.extend(generate_match_variant_for_contents(menu));
+        location_match_variants.extend(generate_match_variant_for_location(menu));
 
         // this part is only used to generate `Player::is_hotbar_slot`
         if menu.name == "Player" {
@@ -116,6 +122,12 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
                     #contents_match_variants
                 }
             }
+
+            pub fn location_for_slot(&self, i: usize) -> Option<MenuLocation> {
+                Some(match self {
+                    #location_match_variants
+                })
+            }
         }
     }
 }
@@ -184,12 +196,12 @@ pub fn generate_match_variant_for_len(menu: &Menu) -> TokenStream {
 }
 
 pub fn generate_match_variant_for_kind(menu: &Menu) -> TokenStream {
-    // azalea_registry::MenuKind::Player => Menu::Player(Player::default()),
     // azalea_registry::MenuKind::Generic9x3 => Menu::Generic9x3 { contents:
     // Default::default(), player: Default::default() },
 
     let menu_name = &menu.name;
     let menu_field_names = if menu.name == "Player" {
+        // player isn't in MenuKind
         return quote! {};
     } else {
         let mut menu_field_names = quote! {};
@@ -256,7 +268,40 @@ pub fn generate_match_variant_for_contents(menu: &Menu) -> TokenStream {
     )
 }
 
-fn generate_matcher(menu: &Menu, match_arms: &TokenStream, needs_fields: bool) -> TokenStream {
+pub fn generate_match_variant_for_location(menu: &Menu) -> TokenStream {
+    let mut match_arms = quote! {};
+    let mut i = 0;
+
+    let menu_name = Ident::new(&to_pascal_case(&menu.name.to_string()), menu.name.span());
+    let menu_enum_name = Ident::new(&format!("{menu_name}MenuLocation"), menu_name.span());
+
+    for field in &menu.fields {
+        let field_name = Ident::new(&to_pascal_case(&field.name.to_string()), field.name.span());
+        let start = i;
+        i += field.length;
+        let end = i - 1;
+        match_arms.extend(if start == end {
+            quote! { #start => #menu_enum_name::#field_name, }
+        } else if start == 0 {
+            quote! { #start..=#end => #menu_enum_name::#field_name, }
+        } else {
+            quote! { #start..=#end => #menu_enum_name::#field_name, }
+        });
+    }
+
+    generate_matcher(
+        menu,
+        &quote! {
+            MenuLocation::#menu_name(match i {
+                #match_arms
+                _ => return None
+            })
+        },
+        false,
+    )
+}
+
+pub fn generate_matcher(menu: &Menu, match_arms: &TokenStream, needs_fields: bool) -> TokenStream {
     let menu_name = &menu.name;
     let menu_field_names = if needs_fields {
         let mut menu_field_names = quote! {};

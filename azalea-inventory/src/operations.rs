@@ -1,6 +1,6 @@
 use azalea_buf::McBuf;
 
-use crate::Menu;
+use crate::{ItemSlot, ItemSlotData, Menu, MenuLocation, Player, PlayerMenuLocation};
 
 #[derive(Debug, Clone)]
 pub enum ClickOperation {
@@ -251,4 +251,96 @@ pub enum ClickType {
     PickupAll = 6,
 }
 
-// pub fn shift_click
+impl Menu {
+    /// Shift-click a slot in this menu.
+    pub fn quick_move_stack(&mut self, slot_index: usize) -> ItemSlot {
+        let slot = self.slot(slot_index as usize);
+        let Some(ItemSlot::Present(slot)) = slot else {
+            return ItemSlot::Empty;
+        };
+
+        let original_slot_item = slot;
+
+        let slot_location = self
+            .location_for_slot(slot_index)
+            .expect("we just checked to make sure the slot is Some above, so this shouldn't be able to error");
+        match slot_location {
+            MenuLocation::Player(l) => {
+                let Menu::Player(menu) = self else {
+                    unreachable!()
+                };
+                match l {
+                    PlayerMenuLocation::CraftResult => {
+                        move_item_stack_to(slot, menu.craft_result, true)
+                    }
+                    PlayerMenuLocation::Craft => todo!(),
+                    PlayerMenuLocation::Armor => todo!(),
+                    PlayerMenuLocation::Inventory => todo!(),
+                    PlayerMenuLocation::Offhand => todo!(),
+                }
+            }
+            MenuLocation::Generic9x1(_) => todo!(),
+            MenuLocation::Generic9x2(_) => todo!(),
+            MenuLocation::Generic9x3(_) => todo!(),
+            MenuLocation::Generic9x4(_) => todo!(),
+            MenuLocation::Generic9x5(_) => todo!(),
+            MenuLocation::Generic9x6(_) => todo!(),
+            MenuLocation::Generic3x3(_) => todo!(),
+            MenuLocation::Anvil(_) => todo!(),
+            MenuLocation::Beacon(_) => todo!(),
+            MenuLocation::BlastFurnace(_) => todo!(),
+            MenuLocation::BrewingStand(_) => todo!(),
+            MenuLocation::Crafting(_) => todo!(),
+            MenuLocation::Enchantment(_) => todo!(),
+            MenuLocation::Furnace(_) => todo!(),
+            MenuLocation::Grindstone(_) => todo!(),
+            MenuLocation::Hopper(_) => todo!(),
+            MenuLocation::Lectern(_) => todo!(),
+            MenuLocation::Loom(_) => todo!(),
+            MenuLocation::Merchant(_) => todo!(),
+            MenuLocation::ShulkerBox(_) => todo!(),
+            MenuLocation::LegacySmithing(_) => todo!(),
+            MenuLocation::Smithing(_) => todo!(),
+            MenuLocation::Smoker(_) => todo!(),
+            MenuLocation::CartographyTable(_) => todo!(),
+            MenuLocation::Stonecutter(_) => todo!(),
+        }
+
+        ItemSlot::Empty
+    }
+
+    /// Whether the given item could be placed in this menu.
+    ///
+    /// TODO: right now this always returns true
+    pub fn may_place(&self, target_slot_index: usize, item: &ItemSlot) -> bool {
+        true
+    }
+
+    fn move_item_to_slots(
+        &self,
+        item: &mut ItemSlotData,
+        target_slots: &mut [ItemSlot],
+        reverse: bool,
+    ) {
+        //
+    }
+
+    fn move_item_to_slot(&self, item_slot: &mut ItemSlot, target_slot: &mut ItemSlot) {
+        let ItemSlot::Present(item) = item_slot else {
+            return;
+        };
+        match target_slot {
+            ItemSlot::Empty => {
+                // the target slot is empty, so we can just move the item there
+                if self.may_place(item) {
+                    if item.count > 64 {
+                        *target_slot = ItemSlot::Present(item.split(64));
+                    } else {
+                        *target_slot = ItemSlot::Present(item.split(item.count));
+                    }
+                }
+            }
+            ItemSlot::Present(_) => todo!(),
+        }
+    }
+}

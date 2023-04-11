@@ -11,11 +11,22 @@ pub enum ItemSlot {
 }
 
 impl ItemSlot {
+    /// Check if the slot is ItemSlot::Empty, if the count is <= 0, or if the
+    /// item is air.
+    ///
+    /// This is the opposite of [`ItemSlot::is_present`].
     pub fn is_empty(&self) -> bool {
-        matches!(self, ItemSlot::Empty)
+        match self {
+            ItemSlot::Empty => true,
+            ItemSlot::Present(item) => item.is_empty(),
+        }
     }
+    /// Check if the slot is not ItemSlot::Empty, if the count is > 0, and if
+    /// the item is not air.
+    ///
+    /// This is the opposite of [`ItemSlot::is_empty`].
     pub fn is_present(&self) -> bool {
-        matches!(self, ItemSlot::Present(_))
+        !self.is_empty()
     }
 
     /// Return the amount of the item in the slot, or 0 if the slot is empty.
@@ -31,14 +42,14 @@ impl ItemSlot {
 
     /// Remove `count` items from this slot, returning the removed items.
     pub fn split(&mut self, count: u8) -> ItemSlot {
-        if count == 0 {
+        if count <= 0 {
             return ItemSlot::Empty;
         }
         match self {
             ItemSlot::Empty => ItemSlot::Empty,
             ItemSlot::Present(i) => {
                 let returning = i.split(count);
-                if i.count == 0 {
+                if i.is_empty() {
                     *self = ItemSlot::Empty;
                 }
                 ItemSlot::Present(returning)
@@ -67,6 +78,11 @@ impl ItemSlotData {
         returning.count = returning_count;
         self.count -= returning_count;
         returning
+    }
+
+    /// Check if the count of the item is <= 0 or if the item is air.
+    pub fn is_empty(&self) -> bool {
+        self.count <= 0 || self.kind == azalea_registry::Item::Air
     }
 }
 

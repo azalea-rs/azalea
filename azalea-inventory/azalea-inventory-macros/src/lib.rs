@@ -1,6 +1,8 @@
+mod location_enum;
 mod menu_enum;
 mod menu_impl;
 mod parse_macro;
+mod utils;
 
 use parse_macro::{DeclareMenus, Field};
 use proc_macro::TokenStream;
@@ -31,11 +33,13 @@ pub fn declare_menus(input: TokenStream) -> TokenStream {
 
     let menu_enum = menu_enum::generate(&input);
     let menu_impl = menu_impl::generate(&input);
+    let location_enum = location_enum::generate(&input);
 
     quote! {
         #menu_enum
-
         #menu_impl
+
+        #location_enum
     }
     .into()
 }
