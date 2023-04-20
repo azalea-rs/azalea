@@ -22,6 +22,7 @@ azalea-physics = { version = "0.6.0", path = "../azalea-physics" }
 azalea-protocol = { version = "0.6.0", path = "../azalea-protocol" }
 azalea-registry = { version = "0.6.0", path = "../azalea-registry" }
 azalea-world = { version = "0.6.0", path = "../azalea-world" }
+azalea-auth = { version = "0.6.0", path = "../azalea-auth" }
 bevy_app = "0.10.0"
 bevy_ecs = "0.10.0"
 bevy_tasks = "0.10.0"

@@ -515,7 +515,7 @@ mod tests {
             .unwrap()
             .as_compound()
             .unwrap();
-        let dimension_type = dimension.get("type").unwrap().as_string().unwrap();
+        let dimension_type = dimension.get("type").unwrap().as_string().unwrap().as_str();
         assert!(dimension_type == "minecraft:dimension_type");
     }
 }
