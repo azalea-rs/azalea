@@ -55,7 +55,7 @@ impl TranslatableComponent {
         let mut built_text = String::new();
         let mut components = Vec::new();
 
-        while i < template.len() {
+        while i < template.chars().count() {
             if template.chars().nth(i).unwrap() == '%' {
                 let Some(char_after) = template.chars().nth(i + 1) else {
                     built_text.push(template.chars().nth(i).unwrap());
