@@ -56,6 +56,24 @@ impl ItemSlot {
             }
         }
     }
+
+    /// Get the `kind` of the item in this slot, or
+    /// [`azalea_registry::Item::Air`]
+    pub fn kind(&self) -> azalea_registry::Item {
+        match self {
+            ItemSlot::Empty => azalea_registry::Item::Air,
+            ItemSlot::Present(i) => i.kind,
+        }
+    }
+
+    /// Update whether this slot is empty, based on the count.
+    pub fn update_empty(&mut self) {
+        if let ItemSlot::Present(i) = self {
+            if i.is_empty() {
+                *self = ItemSlot::Empty;
+            }
+        }
+    }
 }
 
 /// An item in an inventory, with a count and NBT. Usually you want [`ItemSlot`]
@@ -83,6 +101,30 @@ impl ItemSlotData {
     /// Check if the count of the item is <= 0 or if the item is air.
     pub fn is_empty(&self) -> bool {
         self.count <= 0 || self.kind == azalea_registry::Item::Air
+    }
+
+    /// Whether this item is the same as another item, ignoring the count.
+    ///
+    /// ```
+    /// # use azalea_inventory::ItemSlotData;
+    /// # use azalea_registry::Item;
+    /// let mut a = ItemSlotData {
+    ///    kind: Item::Stone,
+    ///    count: 1,
+    ///    nbt: Default::default(),
+    /// };
+    /// let mut b = ItemSlotData {
+    ///   kind: Item::Stone,
+    ///   count: 2,
+    ///   nbt: Default::default(),
+    /// };
+    /// assert!(a.is_same_item(&b));
+    ///
+    /// b.kind = Item::Dirt;
+    /// assert!(!a.is_same_item(&b));
+    /// ```
+    pub fn is_same_item_and_nbt(&self, other: &ItemSlotData) -> bool {
+        self.kind == other.kind && self.nbt == other.nbt
     }
 }
 

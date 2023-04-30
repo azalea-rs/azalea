@@ -22,3 +22,33 @@ pub fn to_pascal_case(s: &str) -> String {
     }
     result
 }
+
+pub fn to_snake_case(s: &str) -> String {
+    let mut result = String::new();
+    let mut prev_was_uppercase = true;
+    for c in s.chars() {
+        if c.is_ascii_uppercase() {
+            if !prev_was_uppercase {
+                result.push('_');
+            }
+            result.push(c.to_ascii_lowercase());
+            prev_was_uppercase = true;
+        } else {
+            result.push(c);
+            prev_was_uppercase = false;
+        }
+    }
+    result
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_snake_case() {
+        assert_eq!(to_snake_case("HelloWorld"), "hello_world");
+        assert_eq!(to_snake_case("helloWorld"), "hello_world");
+        assert_eq!(to_snake_case("hello_world"), "hello_world");
+    }
+}

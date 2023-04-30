@@ -1,6 +1,6 @@
 use crate::{
     parse_macro::{DeclareMenus, Menu},
-    utils::to_pascal_case,
+    utils::{to_pascal_case, to_snake_case},
 };
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -14,9 +14,15 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
     let mut slots_match_variants = quote! {};
     let mut contents_match_variants = quote! {};
     let mut location_match_variants = quote! {};
+    let mut player_slots_range_match_variants = quote! {};
 
-    let mut hotbar_slot_start = 0;
-    let mut hotbar_slot_end = 0;
+    let mut player_consts = quote! {};
+    let mut menu_consts = quote! {};
+
+    let mut hotbar_slots_start = 0;
+    let mut hotbar_slots_end = 0;
+    let mut inventory_without_hotbar_slots_start = 0;
+    let mut inventory_without_hotbar_slots_end = 0;
 
     for menu in &input.menus {
         slot_mut_match_variants.extend(generate_match_variant_for_slot_mut(menu, true));
@@ -26,6 +32,8 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
         slots_match_variants.extend(generate_match_variant_for_slots(menu));
         contents_match_variants.extend(generate_match_variant_for_contents(menu));
         location_match_variants.extend(generate_match_variant_for_location(menu));
+        player_slots_range_match_variants
+            .extend(generate_match_variant_for_player_slots_range(menu));
 
         // this part is only used to generate `Player::is_hotbar_slot`
         if menu.name == "Player" {
@@ -34,26 +42,58 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
                 let field_name = &field.name;
                 let start = i;
                 i += field.length;
+                let end = i - 1;
+
                 if field_name == "inventory" {
-                    hotbar_slot_start = start;
-                    // it only adds 8 here since it's inclusive (there's 9
-                    // total hotbar slots)
-                    hotbar_slot_end = start + 8;
+                    // it only subtracts 8 here since it's inclusive (there's 9 total hotbar slots)
+                    hotbar_slots_start = end - 8;
+                    hotbar_slots_end = end;
+
+                    inventory_without_hotbar_slots_start = start;
+                    inventory_without_hotbar_slots_end = end - 9;
+                }
+
+                if start == end {
+                    let const_name = Ident::new(
+                        &format!("{}_SLOT", field_name.to_string().to_uppercase()),
+                        field_name.span(),
+                    );
+                    player_consts.extend(quote! {
+                        pub const #const_name: usize = #start;
+                    });
+                } else {
+                    let const_name = Ident::new(
+                        &format!("{}_SLOTS", field_name.to_string().to_uppercase()),
+                        field_name.span(),
+                    );
+                    player_consts.extend(quote! {
+                        pub const #const_name: RangeInclusive<usize> = #start..=#end;
+                    });
                 }
             }
+        } else {
+            menu_consts.extend(generate_menu_consts(menu));
         }
     }
 
-    assert!(hotbar_slot_start != 0 && hotbar_slot_end != 0);
+    assert!(hotbar_slots_start != 0 && hotbar_slots_end != 0);
     quote! {
         impl Player {
+            pub const HOTBAR_SLOTS: RangeInclusive<usize> = #hotbar_slots_start..=#hotbar_slots_end;
+            pub const INVENTORY_WITHOUT_HOTBAR_SLOTS: RangeInclusive<usize> = #inventory_without_hotbar_slots_start..=#inventory_without_hotbar_slots_end;
+            #player_consts
+
             /// Returns whether the given protocol index is in the player's hotbar.
+            ///
+            /// Equivalent to `Player::HOTBAR_SLOTS.contains(&i)`.
             pub fn is_hotbar_slot(i: usize) -> bool {
-                (#hotbar_slot_start..=#hotbar_slot_end).contains(&i)
+                Self::HOTBAR_SLOTS.contains(&i)
             }
         }
 
         impl Menu {
+            #menu_consts
+
             /// Get a mutable reference to the [`ItemSlot`] at the given protocol index.
             ///
             /// If you're trying to get an item in a menu without caring about
@@ -105,7 +145,7 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
 
             /// Return the contents of the menu, including the player's inventory.
             ///
-            /// The indexes in this will match up with [`Menu::slot_mut`]
+            /// The indexes in this will match up with [`Menu::slot_mut`].
             ///
             /// If you don't want to include the player's inventory, use [`Menu::contents`] instead.
             pub fn slots(&self) -> Vec<ItemSlot> {
@@ -127,6 +167,31 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
                 Some(match self {
                     #location_match_variants
                 })
+            }
+
+            /// Get the range of slot indexes that contain the player's inventory. This may be different for each menu.
+            pub fn player_slots_range(&self) -> RangeInclusive<usize> {
+                match self {
+                    #player_slots_range_match_variants
+                }
+            }
+
+            /// Get the range of slot indexes that contain the player's hotbar. This may be different for each menu.
+            pub fn hotbar_slots_range(&self) -> RangeInclusive<usize> {
+                // hotbar is always last 9 slots in the player's inventory
+                ((*self.player_slots_range().end() - 8)..=*self.player_slots_range().end())
+            }
+
+            /// Get the range of slot indexes that contain the player's inventory, not including the hotbar. This may be different for each menu.
+            pub fn player_slots_without_hotbar_range(&self) -> RangeInclusive<usize> {
+                (*self.player_slots_range().start()..=*self.player_slots_range().end() - 9)
+            }
+
+            /// Returns whether the given index would be in the player's hotbar.
+            ///
+            /// Equivalent to `self.hotbar_slots_range().contains(&i)`.
+            pub fn is_hotbar_slot(&self, i: usize) -> bool {
+                self.hotbar_slots_range().contains(&i)
             }
         }
     }
@@ -299,6 +364,66 @@ pub fn generate_match_variant_for_location(menu: &Menu) -> TokenStream {
         },
         false,
     )
+}
+
+pub fn generate_match_variant_for_player_slots_range(menu: &Menu) -> TokenStream {
+    // Menu::Player(Player { .. }) => Player::INVENTORY_SLOTS_RANGE,,
+    // Menu::Generic9x3 { .. } => Menu::GENERIC9X3_SLOTS_RANGE,
+    // ..
+
+    match menu.name.to_string().as_str() {
+        "Player" => {
+            quote! {
+                Menu::Player(Player { .. }) => Player::INVENTORY_SLOTS,
+            }
+        }
+        _ => {
+            let menu_name = &menu.name;
+            let menu_slots_range_name = Ident::new(
+                &format!(
+                    "{}_PLAYER_SLOTS",
+                    to_snake_case(&menu.name.to_string()).to_uppercase()
+                ),
+                menu.name.span(),
+            );
+            quote! {
+                Menu::#menu_name { .. } => Menu::#menu_slots_range_name,
+            }
+        }
+    }
+}
+
+fn generate_menu_consts(menu: &Menu) -> TokenStream {
+    let mut menu_consts = quote! {};
+
+    let mut i = 0;
+
+    for field in &menu.fields {
+        let field_name_start = format!(
+            "{}_{}",
+            to_snake_case(&menu.name.to_string()).to_uppercase(),
+            to_snake_case(&field.name.to_string()).to_uppercase()
+        );
+        let field_index_start = i;
+        i += field.length;
+        let field_index_end = i - 1;
+
+        if field.length == 1 {
+            let field_name = Ident::new(
+                format!("{}_SLOT", field_name_start).as_str(),
+                field.name.span(),
+            );
+            menu_consts.extend(quote! { pub const #field_name: usize = #field_index_start; });
+        } else {
+            let field_name = Ident::new(
+                format!("{}_SLOTS", field_name_start).as_str(),
+                field.name.span(),
+            );
+            menu_consts.extend(quote! { pub const #field_name: RangeInclusive<usize> = #field_index_start..=#field_index_end; });
+        }
+    }
+
+    menu_consts
 }
 
 pub fn generate_matcher(menu: &Menu, match_arms: &TokenStream, needs_fields: bool) -> TokenStream {

@@ -27,6 +27,7 @@ impl Parse for Field {
 /// }
 /// ```
 pub struct Menu {
+    /// The menu name, e.g. `Player`
     pub name: Ident,
     pub fields: Vec<Field>,
 }

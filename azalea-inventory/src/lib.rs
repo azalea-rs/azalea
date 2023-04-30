@@ -4,7 +4,7 @@ pub mod item;
 pub mod operations;
 mod slot;
 
-use std::ops::{Deref, DerefMut};
+use std::ops::{Deref, DerefMut, RangeInclusive};
 
 use azalea_inventory_macros::declare_menus;
 pub use slot::{ItemSlot, ItemSlotData};

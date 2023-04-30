@@ -200,9 +200,10 @@ impl InventoryComponent {
                     }
 
                     let ItemSlot::Present(mut carried) = self.carried.clone() else {
-                            // this should never happen
-                            return self.reset_quick_craft();
-                        };
+                        // this should never happen
+                        return self.reset_quick_craft();
+                    };
+
                     let mut carried_count = carried.count;
                     let mut quick_craft_slots_iter = self.quick_craft_slots.iter();
 
