@@ -41,12 +41,12 @@ pub struct Account {
     /// [`Account`]. This is used to for automatic reauthentication when we get
     /// "Invalid Session" errors. If you don't need that feature (like in
     /// offline mode), then you can set this to `AuthOpts::default()`.
-    pub auth_opts: AuthOpts,
+    pub account_opts: AccountOpts,
 }
 
 /// The parameters that were passed for creating the associated [`Account`].
 #[derive(Clone, Debug)]
-pub enum AuthOpts {
+pub enum AccountOpts {
     Offline { username: String },
     // this is an enum so legacy Mojang auth can be added in the future
     Microsoft { email: String },
@@ -61,7 +61,7 @@ impl Account {
             username: username.to_string(),
             access_token: None,
             uuid: None,
-            auth_opts: AuthOpts::Offline {
+            account_opts: AccountOpts::Offline {
                 username: username.to_string(),
             },
         }
@@ -90,7 +90,7 @@ impl Account {
             username: auth_result.profile.name,
             access_token: Some(Arc::new(Mutex::new(auth_result.access_token))),
             uuid: Some(auth_result.profile.id),
-            auth_opts: AuthOpts::Microsoft {
+            account_opts: AccountOpts::Microsoft {
                 email: email.to_string(),
             },
         })
@@ -102,10 +102,10 @@ impl Account {
     /// by default if you used the constructor functions). Note that if the
     /// Account is offline-mode, this function won't do anything.
     pub async fn refresh(&self) -> Result<(), azalea_auth::AuthError> {
-        match &self.auth_opts {
+        match &self.account_opts {
             // offline mode doesn't need to refresh so just don't do anything lol
-            AuthOpts::Offline { .. } => Ok(()),
-            AuthOpts::Microsoft { email } => {
+            AccountOpts::Offline { .. } => Ok(()),
+            AccountOpts::Microsoft { email } => {
                 let new_account = Account::microsoft(email).await?;
                 let access_token = self
                     .access_token

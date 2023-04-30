@@ -2,7 +2,7 @@ use crate::tag::*;
 use azalea_buf::McBufWritable;
 use byteorder::{WriteBytesExt, BE};
 use flate2::write::{GzEncoder, ZlibEncoder};
-use packed_simd_2::{i32x16, i32x2, i32x4, i32x8, i64x2, i64x4, i64x8};
+// use packed_simd_2::{i32x16, i32x2, i32x4, i32x8, i64x2, i64x4, i64x8};
 use std::io::Write;
 
 #[inline]
@@ -140,81 +140,102 @@ fn write_byte_array(writer: &mut impl Write, value: &[u8]) {
 }
 
 #[inline]
-fn write_int_array(writer: &mut impl Write, l: &[i32]) {
-    writer.write_i32::<BE>(l.len() as i32).unwrap();
-    // flip the bits to big endian with simd
-    let mut position = 0;
-    // x16
-    while l.len() - position >= 16 {
-        let l = unsafe { i32x16::from_slice_unaligned_unchecked(&l[position..]) };
-        l.to_be();
-        let l = unsafe { std::mem::transmute::<i32x16, [u8; 64]>(l) };
-        writer.write_all(&l).unwrap();
-        position += 16;
+fn write_int_array(writer: &mut impl Write, array: &[i32]) {
+    writer.write_i32::<BE>(array.len() as i32).unwrap();
+
+    for &item in array {
+        writer.write_i32::<BE>(item).unwrap();
     }
-    // x8
-    if l.len() - position >= 8 {
-        let l = unsafe { i32x8::from_slice_unaligned_unchecked(&l[position..]) };
-        l.to_be();
-        let l = unsafe { std::mem::transmute::<i32x8, [u8; 32]>(l) };
-        writer.write_all(&l).unwrap();
-        position += 8;
-    }
-    // x4
-    if l.len() - position >= 4 {
-        let l = unsafe { i32x4::from_slice_unaligned_unchecked(&l[position..]) };
-        l.to_be();
-        let l = unsafe { std::mem::transmute::<i32x4, [u8; 16]>(l) };
-        writer.write_all(&l).unwrap();
-        position += 4;
-    }
-    // x2
-    if l.len() - position >= 2 {
-        let l = unsafe { i32x2::from_slice_unaligned_unchecked(&l[position..]) };
-        l.to_be();
-        let l = unsafe { std::mem::transmute::<i32x2, [u8; 8]>(l) };
-        writer.write_all(&l).unwrap();
-        position += 2;
-    }
-    // x1 ... just a normal write_i32
-    if l.len() - position >= 1 {
-        writer.write_i32::<BE>(l[position]).unwrap();
-    }
+
+    // (disabled for now since i realized packed_simd to_be does not work as
+    // expected) // flip the bits to big endian with simd
+    // let mut position = 0;
+    // // x16
+    // while array.len() - position >= 16 {
+    //     let l = unsafe {
+    // i32x16::from_slice_unaligned_unchecked(&array[position..]) };     let
+    // l = l.to_be();     let l = unsafe { std::mem::transmute::<i32x16,
+    // [u8; 64]>(l) };     writer.write_all(&l).unwrap();
+    //     position += 16;
+    // }
+    // // x8
+    // if array.len() - position >= 8 {
+    //     let l = unsafe {
+    // i32x8::from_slice_unaligned_unchecked(&array[position..]) };
+    //     let l = l.to_be();
+    //     let l = unsafe { std::mem::transmute::<i32x8, [u8; 32]>(l) };
+    //     writer.write_all(&l).unwrap();
+    //     position += 8;
+    // }
+    // // x4
+    // if array.len() - position >= 4 {
+    //     let l = unsafe {
+    // i32x4::from_slice_unaligned_unchecked(&array[position..]) };
+    //     let l = l.to_be();
+    //     let l = unsafe { std::mem::transmute::<i32x4, [u8; 16]>(l) };
+    //     writer.write_all(&l).unwrap();
+    //     position += 4;
+    // }
+    // // x2
+    // if array.len() - position >= 2 {
+    //     let l = unsafe {
+    // i32x2::from_slice_unaligned_unchecked(&array[position..]) };
+    //     let l = l.to_be();
+    //     let l = l.swap_bytes();
+    //     let l = unsafe { std::mem::transmute::<i32x2, [u8; 8]>(l) };
+    //     writer.write_all(&l).unwrap();
+    //     position += 2;
+    // }
+    // // x1 ... just a normal write_i32
+    // if array.len() - position >= 1 {
+    //     writer.write_i32::<BE>(array[position]).unwrap();
+    // }
 }
 
 #[inline]
 fn write_long_array(writer: &mut impl Write, l: &[i64]) {
     writer.write_i32::<BE>(l.len() as i32).unwrap();
-    // flip the bits to big endian with simd
-    let mut position = 0;
-    // x16
-    while l.len() - position >= 8 {
-        let l = unsafe { i64x8::from_slice_unaligned_unchecked(&l[position..]) };
-        l.to_be();
-        let l = unsafe { std::mem::transmute::<i64x8, [u8; 64]>(l) };
-        writer.write_all(&l).unwrap();
-        position += 8;
+
+    for &item in l {
+        writer.write_i64::<BE>(item).unwrap();
     }
-    // x4
-    if l.len() - position >= 4 {
-        let l = unsafe { i64x4::from_slice_unaligned_unchecked(&l[position..]) };
-        l.to_be();
-        let l = unsafe { std::mem::transmute::<i64x4, [u8; 32]>(l) };
-        writer.write_all(&l).unwrap();
-        position += 4;
-    }
-    // x2
-    if l.len() - position >= 2 {
-        let l = unsafe { i64x2::from_slice_unaligned_unchecked(&l[position..]) };
-        l.to_be();
-        let l = unsafe { std::mem::transmute::<i64x2, [u8; 16]>(l) };
-        writer.write_all(&l).unwrap();
-        position += 2;
-    }
-    // x1 ... just a normal write_i32
-    if l.len() - position >= 1 {
-        writer.write_i64::<BE>(l[position]).unwrap();
-    }
+
+    // (disabled for now since i realized packed_simd to_be does not work as
+    // expected)
+
+    // // flip the bits to big endian with simd
+    // let mut position = 0;
+    // // x16
+    // while l.len() - position >= 8 {
+    //     let l = unsafe {
+    // i64x8::from_slice_unaligned_unchecked(&l[position..]) };
+    //     l.to_be();
+    //     let l = unsafe { std::mem::transmute::<i64x8, [u8; 64]>(l) };
+    //     writer.write_all(&l).unwrap();
+    //     position += 8;
+    // }
+    // // x4
+    // if l.len() - position >= 4 {
+    //     let l = unsafe {
+    // i64x4::from_slice_unaligned_unchecked(&l[position..]) };
+    //     l.to_be();
+    //     let l = unsafe { std::mem::transmute::<i64x4, [u8; 32]>(l) };
+    //     writer.write_all(&l).unwrap();
+    //     position += 4;
+    // }
+    // // x2
+    // if l.len() - position >= 2 {
+    //     let l = unsafe {
+    // i64x2::from_slice_unaligned_unchecked(&l[position..]) };
+    //     l.to_be();
+    //     let l = unsafe { std::mem::transmute::<i64x2, [u8; 16]>(l) };
+    //     writer.write_all(&l).unwrap();
+    //     position += 2;
+    // }
+    // // x1 ... just a normal write_i32
+    // if l.len() - position >= 1 {
+    //     writer.write_i64::<BE>(l[position]).unwrap();
+    // }
 }
 
 impl Nbt {
