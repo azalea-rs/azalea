@@ -12,7 +12,7 @@ version = "0.6.0"
 azalea-buf = { path = "../azalea-buf", version = "^0.6.0" }
 azalea-nbt = { path = "../azalea-nbt", version = "^0.6.0" }
 bevy_ecs = { version = "0.10.0", default-features = false, optional = true }
-serde = {version = "^1.0.152", optional = true}
+serde = { version = "^1.0", optional = true }
 uuid = "^1.1.2"
 
 [features]
