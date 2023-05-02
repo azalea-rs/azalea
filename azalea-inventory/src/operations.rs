@@ -56,13 +56,14 @@ impl From<QuickMoveClick> for ClickOperation {
         ClickOperation::QuickMove(click)
     }
 }
+
+/// Used when you press number keys or F in an inventory.
 #[derive(Debug, Clone)]
-pub enum SwapClick {
-    /// Like number keys 1-9 (but 0 indexed so actually 0-8)
-    Hotbar { slot: u16, index: u8 },
-    /// Offhand swap key F
-    Offhand { slot: u16 },
+pub struct SwapClick {
+    pub source_slot: u16,
+    pub target_slot: u8,
 }
+
 impl From<SwapClick> for ClickOperation {
     fn from(click: SwapClick) -> Self {
         ClickOperation::Swap(click)
@@ -133,7 +134,11 @@ impl From<QuickCraftStatus> for QuickCraftStatusKind {
 /// Double click
 #[derive(Debug, Clone)]
 pub struct PickupAllClick {
+    /// The slot that we're double clicking on. It should be empty or at least
+    /// not pickup-able (since the carried item is used as the filter).
     pub slot: u16,
+    /// Impossible in vanilla clients.
+    pub reversed: bool,
 }
 impl From<PickupAllClick> for ClickOperation {
     fn from(click: PickupAllClick) -> Self {
@@ -157,10 +162,7 @@ impl ClickOperation {
                 QuickMoveClick::Left { slot } => Some(*slot),
                 QuickMoveClick::Right { slot } => Some(*slot),
             },
-            ClickOperation::Swap(swap) => match swap {
-                SwapClick::Hotbar { slot, .. } => Some(*slot),
-                SwapClick::Offhand { slot } => Some(*slot),
-            },
+            ClickOperation::Swap(swap) => Some(swap.source_slot),
             ClickOperation::Clone(clone) => Some(clone.slot),
             ClickOperation::Throw(throw) => match throw {
                 ThrowClick::Single { slot } => Some(*slot),
@@ -187,10 +189,7 @@ impl ClickOperation {
                 QuickMoveClick::Left { .. } => 0,
                 QuickMoveClick::Right { .. } => 1,
             },
-            ClickOperation::Swap(swap) => match swap {
-                SwapClick::Hotbar { index, .. } => *index,
-                SwapClick::Offhand { .. } => 40,
-            },
+            ClickOperation::Swap(swap) => swap.target_slot,
             ClickOperation::Clone(_) => 2,
             ClickOperation::Throw(throw) => match throw {
                 ThrowClick::Single { .. } => 0,
@@ -269,8 +268,6 @@ impl Menu {
         let Some(slot) = slot else {
             return ItemSlot::Empty;
         };
-
-        let original_slot_item = slot;
 
         let slot_location = self
             .location_for_slot(slot_index)
@@ -611,6 +608,12 @@ impl Menu {
     ///
     /// TODO: right now this always returns true
     pub fn may_place(&self, target_slot_index: usize, item: &ItemSlotData) -> bool {
+        true
+    }
+
+    /// Whether the item in the given slot could be clicked and picked up.
+    /// TODO: right now this always returns true
+    pub fn may_pickup(&self, source_slot_index: usize) -> bool {
         true
     }
 

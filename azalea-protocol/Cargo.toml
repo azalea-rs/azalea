@@ -39,7 +39,7 @@ flate2 = "1.0.25"
 futures = "0.3.24"
 futures-util = "0.3.24"
 log = "0.4.17"
-serde = { version = "1.0.152", features = ["serde_derive"] }
+serde = { version = "^1.0", features = ["serde_derive"] }
 serde_json = "^1.0.93"
 thiserror = "1.0.37"
 tokio = { version = "^1.24.2", features = ["io-util", "net", "macros"] }

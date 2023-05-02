@@ -6,8 +6,8 @@ pub use azalea_inventory::*;
 use azalea_inventory::{
     item::MaxStackSizeExt,
     operations::{
-        ClickOperation, PickupClick, QuickCraftClick, QuickCraftKind, QuickCraftStatus,
-        QuickCraftStatusKind, QuickMoveClick,
+        ClickOperation, CloneClick, PickupAllClick, PickupClick, QuickCraftClick, QuickCraftKind,
+        QuickCraftStatus, QuickCraftStatusKind, QuickMoveClick, SwapClick, ThrowClick,
     },
 };
 use azalea_protocol::packets::game::{
@@ -331,11 +331,139 @@ impl InventoryComponent {
                     }
                 }
             }
-            ClickOperation::Swap(_) => todo!(),
-            ClickOperation::Clone(_) => todo!(),
-            ClickOperation::Throw(_) => todo!(),
-            ClickOperation::QuickCraft(_) => todo!(),
-            ClickOperation::PickupAll(_) => todo!(),
+            ClickOperation::Swap(s) => {
+                let source_slot_index = s.source_slot as usize;
+                let target_slot_index = s.target_slot as usize;
+
+                let Some(source_slot) = self.menu().slot(source_slot_index) else {
+                    return;
+                };
+                let Some(target_slot) = self.menu().slot(target_slot_index) else {
+                    return;
+                };
+                if source_slot.is_empty() && target_slot.is_empty() {
+                    return;
+                }
+
+                if target_slot.is_empty() {
+                    if self.menu().may_pickup(source_slot_index) {
+                        let source_slot = source_slot.clone();
+                        let target_slot = self.menu_mut().slot_mut(target_slot_index).unwrap();
+                        *target_slot = source_slot;
+                    }
+                } else if source_slot.is_empty() {
+                    let ItemSlot::Present(target_item) = target_slot else {
+                        unreachable!("target slot is not empty but is not present");
+                    };
+                    if self.menu().may_place(source_slot_index, target_item) {
+                        // get the target_item but mutable
+                        let source_max_stack_size = self.menu().max_stack_size(source_slot_index);
+
+                        let target_slot = self.menu_mut().slot_mut(target_slot_index).unwrap();
+                        let new_source_slot = target_slot.split(source_max_stack_size);
+                        *self.menu_mut().slot_mut(source_slot_index).unwrap() = new_source_slot;
+                    }
+                } else if self.menu().may_pickup(source_slot_index) {
+                    let ItemSlot::Present(target_item) = target_slot else {
+                        unreachable!("target slot is not empty but is not present");
+                    };
+                    if self.menu().may_place(source_slot_index, target_item) {
+                        let source_max_stack = self.menu().max_stack_size(source_slot_index);
+                        if target_slot.count() > source_max_stack as i8 {
+                            // if there's more than the max stack size in the target slot
+
+                            let target_slot = self.menu_mut().slot_mut(target_slot_index).unwrap();
+                            let new_source_slot = target_slot.split(source_max_stack);
+                            *self.menu_mut().slot_mut(source_slot_index).unwrap() = new_source_slot;
+                            // if !self.inventory_menu.add(new_source_slot) {
+                            //     player.drop(new_source_slot, true);
+                            // }
+                        } else {
+                            // normal swap
+                            let new_target_slot = source_slot.clone();
+                            let new_source_slot = target_slot.clone();
+
+                            let target_slot = self.menu_mut().slot_mut(target_slot_index).unwrap();
+                            *target_slot = new_target_slot;
+
+                            let source_slot = self.menu_mut().slot_mut(source_slot_index).unwrap();
+                            *source_slot = new_source_slot;
+                        }
+                    }
+                }
+            }
+            ClickOperation::Clone(CloneClick { slot }) => {
+                if !player_abilities.instant_break || self.carried.is_present() {
+                    return;
+                }
+                let Some(source_slot) = self.menu().slot(*slot as usize) else {
+                    return;
+                };
+                let ItemSlot::Present(source_item) = source_slot else {
+                    return;
+                };
+                let mut new_carried = source_item.clone();
+                new_carried.count = new_carried.kind.max_stack_size();
+                self.carried = ItemSlot::Present(new_carried);
+            }
+            ClickOperation::Throw(c) => {
+                if self.carried.is_present() {
+                    return;
+                }
+
+                let (ThrowClick::Single { slot: slot_index }
+                | ThrowClick::All { slot: slot_index }) = c;
+                let slot_index = *slot_index as usize;
+
+                let Some(slot) = self.menu_mut().slot_mut(slot_index) else {
+                    return;
+                };
+                let ItemSlot::Present(slot_item) = slot else {
+                    return;
+                };
+
+                let dropping_count = match c {
+                    ThrowClick::Single { slot } => 1,
+                    ThrowClick::All { slot } => slot_item.count,
+                };
+
+                let dropping = slot_item.split(dropping_count as u8);
+                // player.drop(dropping, true);
+            }
+            ClickOperation::PickupAll(PickupAllClick {
+                slot: source_slot_index,
+                reversed,
+            }) => {
+                let source_slot_index = *source_slot_index as usize;
+
+                let source_slot = self.menu().slot(source_slot_index).unwrap();
+                let target_slot = &self.carried;
+
+                if target_slot.is_empty()
+                    || (source_slot.is_present() && self.menu().may_pickup(source_slot_index))
+                {
+                    return;
+                }
+
+                let ItemSlot::Present(target_slot_item) = target_slot else {
+                    unreachable!("target slot is not empty but is not present");
+                };
+
+                for round in 0..2 {
+                    let iterator: Box<dyn Iterator<Item = usize>> = if *reversed {
+                        Box::new((0..self.menu().len()).rev())
+                    } else {
+                        Box::new(0..self.menu().len())
+                    };
+
+                    for i in iterator {
+                        if target_slot_item.count < target_slot_item.kind.max_stack_size() {
+                            let checking_slot = self.menu().slot(i).unwrap();
+                        }
+                    }
+                }
+            }
+            _ => {}
         }
     }
 
