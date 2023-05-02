@@ -437,7 +437,7 @@ impl InventoryComponent {
                 let source_slot_index = *source_slot_index as usize;
 
                 let source_slot = self.menu().slot(source_slot_index).unwrap();
-                let target_slot = &self.carried;
+                let target_slot = self.carried.clone();
 
                 if target_slot.is_empty()
                     || (source_slot.is_present() && self.menu().may_pickup(source_slot_index))
@@ -445,7 +445,7 @@ impl InventoryComponent {
                     return;
                 }
 
-                let ItemSlot::Present(target_slot_item) = target_slot else {
+                let ItemSlot::Present(target_slot_item) = &target_slot else {
                     unreachable!("target slot is not empty but is not present");
                 };
 
@@ -459,6 +459,29 @@ impl InventoryComponent {
                     for i in iterator {
                         if target_slot_item.count < target_slot_item.kind.max_stack_size() {
                             let checking_slot = self.menu().slot(i).unwrap();
+                            if let ItemSlot::Present(checking_item) = checking_slot {
+                                if can_item_quick_replace(checking_slot, &target_slot, true)
+                                    && self.menu().may_pickup(i)
+                                {
+                                    if round != 0
+                                        || checking_item.count
+                                            != checking_item.kind.max_stack_size()
+                                    {
+                                        // get the checking_slot and checking_item again but mutable
+                                        let checking_slot = self.menu_mut().slot_mut(i).unwrap();
+
+                                        let taken_item =
+                                            checking_slot.split(checking_slot.count() as u8);
+
+                                        // now extend the carried item
+                                        let target_slot = &mut self.carried;
+                                        let ItemSlot::Present(target_slot_item) = target_slot else {
+                                            unreachable!("target slot is not empty but is not present");
+                                        };
+                                        target_slot_item.count += taken_item.count();
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -487,7 +510,7 @@ fn can_item_quick_replace(
             return false;
         };
 
-    if item != target_slot {
+    if !item.is_same_item_and_nbt(target_slot) {
         return false;
     }
     let count = target_slot.count as u16
