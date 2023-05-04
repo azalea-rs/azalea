@@ -1,13 +1,12 @@
 use std::collections::{HashMap, HashSet};
 
 use azalea_chat::FormattedText;
-use azalea_core::GameMode;
 pub use azalea_inventory::*;
 use azalea_inventory::{
     item::MaxStackSizeExt,
     operations::{
-        ClickOperation, CloneClick, PickupAllClick, PickupClick, QuickCraftClick, QuickCraftKind,
-        QuickCraftStatus, QuickCraftStatusKind, QuickMoveClick, SwapClick, ThrowClick,
+        ClickOperation, CloneClick, PickupAllClick, PickupClick, QuickCraftKind, QuickCraftStatus,
+        QuickCraftStatusKind, QuickMoveClick, ThrowClick,
     },
 };
 use azalea_protocol::packets::game::{
@@ -133,7 +132,7 @@ impl InventoryComponent {
         if let ClickOperation::QuickCraft(quick_craft) = operation {
             let last_quick_craft_status_tmp = self.quick_craft_status.clone();
             self.quick_craft_status = last_quick_craft_status_tmp.clone();
-            let last_quick_craft_status = last_quick_craft_status_tmp.into();
+            let last_quick_craft_status = last_quick_craft_status_tmp;
 
             // no carried item, reset
             if self.carried.is_empty() {
@@ -217,7 +216,7 @@ impl InventoryComponent {
                         loop {
                             let Some(&next_slot) = quick_craft_slots_iter.next() else {
                                     carried.count = carried_count;
-                                    self.carried = ItemSlot::Present(carried.clone());
+                                    self.carried = ItemSlot::Present(carried);
                                     return self.reset_quick_craft();
                                 };
 
@@ -425,11 +424,11 @@ impl InventoryComponent {
                 };
 
                 let dropping_count = match c {
-                    ThrowClick::Single { slot } => 1,
-                    ThrowClick::All { slot } => slot_item.count,
+                    ThrowClick::Single { .. } => 1,
+                    ThrowClick::All { .. } => slot_item.count,
                 };
 
-                let dropping = slot_item.split(dropping_count as u8);
+                let _dropping = slot_item.split(dropping_count as u8);
                 // player.drop(dropping, true);
             }
             ClickOperation::PickupAll(PickupAllClick {
@@ -464,24 +463,22 @@ impl InventoryComponent {
                             if let ItemSlot::Present(checking_item) = checking_slot {
                                 if can_item_quick_replace(checking_slot, &target_slot, true)
                                     && self.menu().may_pickup(i)
-                                {
-                                    if round != 0
+                                    && (round != 0
                                         || checking_item.count
-                                            != checking_item.kind.max_stack_size()
-                                    {
-                                        // get the checking_slot and checking_item again but mutable
-                                        let checking_slot = self.menu_mut().slot_mut(i).unwrap();
+                                            != checking_item.kind.max_stack_size())
+                                {
+                                    // get the checking_slot and checking_item again but mutable
+                                    let checking_slot = self.menu_mut().slot_mut(i).unwrap();
 
-                                        let taken_item =
-                                            checking_slot.split(checking_slot.count() as u8);
+                                    let taken_item =
+                                        checking_slot.split(checking_slot.count() as u8);
 
-                                        // now extend the carried item
-                                        let target_slot = &mut self.carried;
-                                        let ItemSlot::Present(target_slot_item) = target_slot else {
+                                    // now extend the carried item
+                                    let target_slot = &mut self.carried;
+                                    let ItemSlot::Present(target_slot_item) = target_slot else {
                                             unreachable!("target slot is not empty but is not present");
                                         };
-                                        target_slot_item.count += taken_item.count();
-                                    }
+                                    target_slot_item.count += taken_item.count();
                                 }
                             }
                         }
@@ -615,7 +612,7 @@ fn handle_container_close_event(
 
         local_player.write_packet(
             ServerboundContainerClosePacket {
-                container_id: inventory.id as u8,
+                container_id: inventory.id,
             }
             .get(),
         );
@@ -670,8 +667,7 @@ fn handle_container_click_event(
         // see which slots changed after clicking and put them in the hashmap
         // the server uses this to check if we desynced
         let mut changed_slots: HashMap<u16, ItemSlot> = HashMap::new();
-        for slot_index in 0..menu.len() {
-            let old_slot = &old_slots[slot_index];
+        for (slot_index, old_slot) in old_slots.iter().enumerate() {
             let new_slot = &menu.slots()[slot_index];
             if old_slot != new_slot {
                 changed_slots.insert(slot_index as u16, new_slot.clone());
@@ -685,7 +681,7 @@ fn handle_container_click_event(
                 slot_num: event.operation.slot_num().map(|n| n as i16).unwrap_or(-999),
                 button_num: event.operation.button_num(),
                 click_type: event.operation.click_type(),
-                changed_slots: changed_slots,
+                changed_slots,
                 carried_item: inventory.carried.clone(),
             }
             .get(),

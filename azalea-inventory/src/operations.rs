@@ -264,8 +264,8 @@ pub enum ClickType {
 impl Menu {
     /// Shift-click a slot in this menu.
     pub fn quick_move_stack(&mut self, slot_index: usize) -> ItemSlot {
-        let slot = self.slot(slot_index as usize);
-        let Some(slot) = slot else {
+        let slot = self.slot(slot_index);
+        if slot.is_none() {
             return ItemSlot::Empty;
         };
 
@@ -607,18 +607,18 @@ impl Menu {
     /// Whether the given item could be placed in this menu.
     ///
     /// TODO: right now this always returns true
-    pub fn may_place(&self, target_slot_index: usize, item: &ItemSlotData) -> bool {
+    pub fn may_place(&self, _target_slot_index: usize, _item: &ItemSlotData) -> bool {
         true
     }
 
     /// Whether the item in the given slot could be clicked and picked up.
     /// TODO: right now this always returns true
-    pub fn may_pickup(&self, source_slot_index: usize) -> bool {
+    pub fn may_pickup(&self, _source_slot_index: usize) -> bool {
         true
     }
 
     /// Get the maximum number of items that can be placed in this slot.
-    pub fn max_stack_size(&self, target_slot_index: usize) -> u8 {
+    pub fn max_stack_size(&self, _target_slot_index: usize) -> u8 {
         64
     }
 
@@ -668,18 +668,15 @@ impl Menu {
         let target_slot = self.slot(target_slot_index).unwrap();
         if let ItemSlot::Present(target_item) = target_slot {
             // the target slot is empty, so we can just move the item there
-            if self.may_place(target_slot_index, item) {
-                if target_item.is_same_item_and_nbt(item) {
-                    let slot_item_limit = self.max_stack_size(target_slot_index);
-                    let new_target_slot_data =
-                        item.split(u8::min(slot_item_limit, item.count as u8));
+            if self.may_place(target_slot_index, item) && target_item.is_same_item_and_nbt(item) {
+                let slot_item_limit = self.max_stack_size(target_slot_index);
+                let new_target_slot_data = item.split(u8::min(slot_item_limit, item.count as u8));
 
-                    // get the target slot again but mut this time so we can update it
-                    let target_slot = self.slot_mut(target_slot_index).unwrap();
-                    *target_slot = ItemSlot::Present(new_target_slot_data);
+                // get the target slot again but mut this time so we can update it
+                let target_slot = self.slot_mut(target_slot_index).unwrap();
+                *target_slot = ItemSlot::Present(new_target_slot_data);
 
-                    item_slot.update_empty();
-                }
+                item_slot.update_empty();
             }
         }
     }

@@ -1,7 +1,4 @@
-use crate::{
-    parse_macro::{DeclareMenus, Field, Menu},
-    utils::to_pascal_case,
-};
+use crate::{parse_macro::DeclareMenus, utils::to_pascal_case};
 use proc_macro2::TokenStream;
 use quote::quote;
 use syn::Ident;

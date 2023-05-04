@@ -228,12 +228,10 @@ pub fn generate_match_variant_for_slot_mut(menu: &Menu, mutable: bool) -> TokenS
             } else {
                 quote! { #start..=#end => &#field_name[i], }
             }
+        } else if mutable {
+            quote! { #start..=#end => &mut #field_name[i - #start], }
         } else {
-            if mutable {
-                quote! { #start..=#end => &mut #field_name[i - #start], }
-            } else {
-                quote! { #start..=#end => &#field_name[i - #start], }
-            }
+            quote! { #start..=#end => &#field_name[i - #start], }
         });
     }
 
@@ -347,8 +345,6 @@ pub fn generate_match_variant_for_location(menu: &Menu) -> TokenStream {
         let end = i - 1;
         match_arms.extend(if start == end {
             quote! { #start => #menu_enum_name::#field_name, }
-        } else if start == 0 {
-            quote! { #start..=#end => #menu_enum_name::#field_name, }
         } else {
             quote! { #start..=#end => #menu_enum_name::#field_name, }
         });

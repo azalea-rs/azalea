@@ -42,9 +42,6 @@ impl ItemSlot {
 
     /// Remove `count` items from this slot, returning the removed items.
     pub fn split(&mut self, count: u8) -> ItemSlot {
-        if count <= 0 {
-            return ItemSlot::Empty;
-        }
         match self {
             ItemSlot::Empty => ItemSlot::Empty,
             ItemSlot::Present(i) => {
