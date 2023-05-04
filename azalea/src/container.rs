@@ -100,6 +100,7 @@ impl ContainerHandle {
     /// will return `None`.
     pub fn menu(&self) -> Option<Menu> {
         let ecs = self.client.ecs.lock();
+        println!("got inventorycomponent");
         let inventory = ecs
             .get::<InventoryComponent>(self.client.entity)
             .expect("no inventory");

@@ -39,7 +39,10 @@ use crate::{
     chat::{ChatPacket, ChatReceivedEvent},
     client::{PlayerAbilities, TabList},
     disconnect::DisconnectEvent,
-    inventory::{ClientSideCloseContainerEvent, InventoryComponent, MenuOpenedEvent},
+    inventory::{
+        ClientSideCloseContainerEvent, InventoryComponent, MenuOpenedEvent,
+        SetContainerContentEvent,
+    },
     local_player::{GameProfileComponent, LocalGameMode, LocalPlayer},
     ClientInformation, PlayerInfo,
 };
@@ -885,9 +888,11 @@ fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::ContainerSetContent(p) => {
                 debug!("Got container set content packet {:?}", p);
 
-                let mut system_state: SystemState<Query<&mut InventoryComponent>> =
-                    SystemState::new(ecs);
-                let mut query = system_state.get_mut(ecs);
+                let mut system_state: SystemState<(
+                    Query<&mut InventoryComponent>,
+                    EventWriter<SetContainerContentEvent>,
+                )> = SystemState::new(ecs);
+                let (mut query, mut events) = system_state.get_mut(ecs);
                 let mut inventory = query.get_mut(player_entity).unwrap();
 
                 // container id 0 is always the player's inventory
@@ -898,13 +903,12 @@ fn process_packet_events(ecs: &mut World) {
                             *slot_mut = slot.clone();
                         }
                     }
-                } else if inventory.id == p.container_id as u8 {
-                    let menu = inventory.menu_mut();
-                    for (i, slot) in p.items.iter().enumerate() {
-                        if let Some(slot_mut) = menu.slot_mut(i) {
-                            *slot_mut = slot.clone();
-                        }
-                    }
+                } else {
+                    events.send(SetContainerContentEvent {
+                        entity: player_entity,
+                        slots: p.items.clone(),
+                        container_id: p.container_id as u8,
+                    });
                 }
             }
             ClientboundGamePacket::ContainerSetData(p) => {
@@ -979,6 +983,7 @@ fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::MoveVehicle(_) => {}
             ClientboundGamePacket::OpenBook(_) => {}
             ClientboundGamePacket::OpenScreen(p) => {
+                debug!("Got open screen packet {:?}", p);
                 let mut system_state: SystemState<EventWriter<MenuOpenedEvent>> =
                     SystemState::new(ecs);
                 let mut menu_opened_events = system_state.get_mut(ecs);

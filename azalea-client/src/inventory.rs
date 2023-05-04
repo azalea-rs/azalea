@@ -35,9 +35,11 @@ impl Plugin for InventoryPlugin {
             .add_event::<MenuOpenedEvent>()
             .add_event::<CloseContainerEvent>()
             .add_event::<ContainerClickEvent>()
+            .add_event::<SetContainerContentEvent>()
             .add_systems(
                 (
                     handle_menu_opened_event,
+                    handle_set_container_content_event,
                     handle_container_click_event,
                     handle_container_close_event.before(handle_send_packet_event),
                     handle_client_side_close_container_event,
@@ -58,7 +60,7 @@ impl Client {
 }
 
 /// A component present on all local players that have an inventory.
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct InventoryComponent {
     /// A component that contains the player's inventory menu. This is
     /// guaranteed to be a `Menu::Player`.
@@ -568,6 +570,7 @@ impl Default for InventoryComponent {
 
 /// Sent from the server when a menu (like a chest or crafting table) was
 /// opened by the client.
+#[derive(Debug)]
 pub struct MenuOpenedEvent {
     pub entity: Entity,
     pub window_id: u32,
@@ -687,5 +690,36 @@ fn handle_container_click_event(
             }
             .get(),
         )
+    }
+}
+
+/// Sent from the server when the contents of a container are replaced. Usually
+/// triggered by the `ContainerSetContent` packet.
+pub struct SetContainerContentEvent {
+    pub entity: Entity,
+    pub slots: Vec<ItemSlot>,
+    pub container_id: u8,
+}
+fn handle_set_container_content_event(
+    mut events: EventReader<SetContainerContentEvent>,
+    mut query: Query<&mut InventoryComponent>,
+) {
+    for event in events.iter() {
+        let mut inventory = query.get_mut(event.entity).unwrap();
+
+        if event.container_id != inventory.id {
+            warn!(
+                "Tried to set container content with ID {}, but the current container ID is {}",
+                event.container_id, inventory.id
+            );
+            continue;
+        }
+
+        let menu = inventory.menu_mut();
+        for (i, slot) in event.slots.iter().enumerate() {
+            if let Some(slot_mut) = menu.slot_mut(i) {
+                *slot_mut = slot.clone();
+            }
+        }
     }
 }
