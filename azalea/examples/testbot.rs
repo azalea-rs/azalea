@@ -4,7 +4,9 @@
 
 use azalea::ecs::query::With;
 use azalea::entity::metadata::Player;
-use azalea::entity::Position;
+use azalea::entity::{EyeHeight, Position};
+use azalea::interact::HitResultComponent;
+use azalea::inventory::ItemSlot;
 use azalea::pathfinder::BlockPosGoal;
 use azalea::{prelude::*, swarm::prelude::*, BlockPos, GameProfileComponent, WalkDirection};
 use azalea::{Account, Client, Event};
@@ -46,7 +48,7 @@ async fn main() -> anyhow::Result<()> {
     let mut accounts = Vec::new();
     let mut states = Vec::new();
 
-    for i in 0..5 {
+    for i in 0..1 {
         accounts.push(Account::offline(&format!("bot{i}")));
         states.push(State::default());
     }
@@ -112,7 +114,7 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                         bot.chat(&format!("You're at {pos:?}",));
                     }
                     "whereareyou" => {
-                        let pos = bot.component::<Position>();
+                        let pos = bot.position();
                         bot.chat(&format!("I'm at {pos:?}",));
                     }
                     "goto" => {
@@ -122,10 +124,11 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                         bot.goto(BlockPosGoal::from(target_pos));
                     }
                     "look" => {
-                        let entity_pos = bot.entity_component::<Position>(entity);
-                        let target_pos: BlockPos = entity_pos.into();
-                        println!("target_pos: {target_pos:?}");
-                        bot.look_at(target_pos.center());
+                        let entity_pos = bot
+                            .entity_component::<Position>(entity)
+                            .up(bot.entity_component::<EyeHeight>(entity).into());
+                        println!("entity_pos: {entity_pos:?}");
+                        bot.look_at(entity_pos);
                     }
                     "jump" => {
                         bot.set_jumping(true);
@@ -140,23 +143,69 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                     "lag" => {
                         std::thread::sleep(Duration::from_millis(1000));
                     }
+                    "inventory" => {
+                        println!("inventory: {:?}", bot.menu());
+                    }
                     "findblock" => {
-                        let target_pos = bot.world().read().find_block(
-                            bot.component::<Position>(),
-                            &azalea_registry::Block::DiamondBlock.into(),
-                        );
+                        let target_pos = bot
+                            .world()
+                            .read()
+                            .find_block(bot.position(), &azalea::Block::DiamondBlock.into());
                         bot.chat(&format!("target_pos: {target_pos:?}",));
                     }
                     "gotoblock" => {
-                        let target_pos = bot.world().read().find_block(
-                            bot.component::<Position>(),
-                            &azalea_registry::Block::DiamondBlock.into(),
-                        );
+                        let target_pos = bot
+                            .world()
+                            .read()
+                            .find_block(bot.position(), &azalea::Block::DiamondBlock.into());
                         if let Some(target_pos) = target_pos {
                             // +1 to stand on top of the block
                             bot.goto(BlockPosGoal::from(target_pos.up(1)));
                         } else {
                             bot.chat("no diamond block found");
+                        }
+                    }
+                    "lever" => {
+                        let target_pos = bot
+                            .world()
+                            .read()
+                            .find_block(bot.position(), &azalea::Block::Lever.into());
+                        let Some(target_pos) = target_pos else {
+                            bot.chat("no lever found");
+                            return Ok(())
+                        };
+                        bot.goto(BlockPosGoal::from(target_pos));
+                        bot.look_at(target_pos.center());
+                        bot.block_interact(target_pos);
+                    }
+                    "hitresult" => {
+                        let hit_result = bot.get_component::<HitResultComponent>();
+                        bot.chat(&format!("hit_result: {hit_result:?}",));
+                    }
+                    "chest" => {
+                        let target_pos = bot
+                            .world()
+                            .read()
+                            .find_block(bot.position(), &azalea::Block::Chest.into());
+                        let Some(target_pos) = target_pos else {
+                            bot.chat("no chest found");
+                            return Ok(())
+                        };
+                        bot.look_at(target_pos.center());
+                        let container = bot.open_container(target_pos).await;
+                        println!("container: {:?}", container);
+                        if let Some(container) = container {
+                            if let Some(contents) = container.contents() {
+                                for item in contents {
+                                    if let ItemSlot::Present(item) = item {
+                                        println!("item: {:?}", item);
+                                    }
+                                }
+                            } else {
+                                println!("container was immediately closed");
+                            }
+                        } else {
+                            println!("no container found");
                         }
                     }
                     _ => {}
@@ -196,7 +245,7 @@ async fn swarm_handle(
         SwarmEvent::Chat(m) => {
             println!("swarm chat message: {}", m.message().to_ansi());
             if m.message().to_string() == "<py5> world" {
-                for (name, world) in &swarm.world_container.read().worlds {
+                for (name, world) in &swarm.instance_container.read().worlds {
                     println!("world name: {name}");
                     if let Some(w) = world.upgrade() {
                         for chunk_pos in w.read().chunks.chunks.values() {

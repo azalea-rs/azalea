@@ -1,7 +1,10 @@
 #![doc = include_str!("../README.md")]
 #![feature(async_closure)]
+#![allow(incomplete_features)]
+#![feature(async_fn_in_trait)]
 
 mod bot;
+mod container;
 pub mod pathfinder;
 pub mod prelude;
 pub mod swarm;
@@ -12,7 +15,7 @@ pub use azalea_block as blocks;
 pub use azalea_client::*;
 pub use azalea_core::{BlockPos, Vec3};
 pub use azalea_protocol as protocol;
-pub use azalea_registry::EntityKind;
+pub use azalea_registry::{Block, EntityKind, Item};
 pub use azalea_world::{entity, Instance};
 use bot::DefaultBotPlugins;
 use ecs::component::Component;

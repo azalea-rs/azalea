@@ -4,7 +4,8 @@ use azalea_buf::{
     BufReadError, McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable,
 };
 use azalea_chat::FormattedText;
-use azalea_core::{BlockPos, Direction, GlobalPos, Particle, Slot, Vec3};
+use azalea_core::{BlockPos, Direction, GlobalPos, Particle, Vec3};
+use azalea_inventory::ItemSlot;
 use bevy_ecs::component::Component;
 use derive_more::Deref;
 use enum_as_inner::EnumAsInner;
@@ -60,7 +61,7 @@ pub enum EntityDataValue {
     String(String),
     FormattedText(FormattedText),
     OptionalFormattedText(Option<FormattedText>),
-    ItemStack(Slot),
+    ItemStack(ItemSlot),
     Boolean(bool),
     Rotations(Rotations),
     BlockPos(BlockPos),

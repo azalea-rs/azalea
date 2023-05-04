@@ -15,6 +15,7 @@ azalea-chat = { path = "../azalea-chat", version = "^0.6.0" }
 azalea-core = { path = "../azalea-core", version = "^0.6.0", features = [
 	"bevy_ecs",
 ] }
+azalea-inventory = { version = "0.1.0", path = "../azalea-inventory" }
 azalea-nbt = { path = "../azalea-nbt", version = "^0.6.0" }
 azalea-registry = { path = "../azalea-registry", version = "^0.6.0" }
 bevy_app = "0.10.0"
@@ -30,3 +31,6 @@ uuid = "1.1.2"
 
 [profile.release]
 lto = true
+
+[dev-dependencies]
+azalea-client = { path = "../azalea-client" }

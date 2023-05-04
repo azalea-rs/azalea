@@ -22,21 +22,21 @@ pub fn bench_read_file(filename: &str, c: &mut Criterion) {
     let mut group = c.benchmark_group(filename);
     group.throughput(Throughput::Bytes(input.len() as u64));
 
-    // group.bench_function("azalea_parse", |b| {
-    //     b.iter(|| {
-    //         let input = black_box(input);
-    //         let nbt = azalea_nbt::Nbt::read(&mut Cursor::new(&input)).unwrap();
-    //         black_box(nbt);
-    //     })
-    // });
+    group.bench_function("azalea_parse", |b| {
+        b.iter(|| {
+            let input = black_box(input);
+            let nbt = azalea_nbt::Nbt::read(&mut Cursor::new(&input)).unwrap();
+            black_box(nbt);
+        })
+    });
 
-    // group.bench_function("graphite_parse", |b| {
-    //     b.iter(|| {
-    //         let input = black_box(input);
-    //         let nbt = graphite_binary::nbt::decode::read(&mut
-    // &input[..]).unwrap();         black_box(nbt);
-    //     })
-    // });
+    group.bench_function("graphite_parse", |b| {
+        b.iter(|| {
+            let input = black_box(input);
+            let nbt = graphite_binary::nbt::decode::read(&mut &input[..]).unwrap();
+            black_box(nbt);
+        })
+    });
 
     // group.bench_function("valence_parse", |b| {
     //     b.iter(|| {

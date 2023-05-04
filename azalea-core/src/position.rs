@@ -18,6 +18,12 @@ macro_rules! vec3_impl {
                 self.x * self.x + self.y * self.y + self.z * self.z
             }
 
+            /// Get the squared distance from this position to another position.
+            /// Equivalent to `(self - other).length_sqr()`.
+            pub fn distance_to_sqr(&self, other: &Self) -> $type {
+                (self - other).length_sqr()
+            }
+
             /// Return a new instance of this position with the y coordinate
             /// decreased by the given number.
             pub fn down(&self, y: $type) -> Self {
@@ -35,6 +41,10 @@ macro_rules! vec3_impl {
                     y: self.y + y,
                     z: self.z,
                 }
+            }
+
+            pub fn dot(&self, other: Self) -> $type {
+                self.x * other.x + self.y * other.y + self.z * other.z
             }
         }
 
@@ -139,6 +149,15 @@ impl BlockPos {
             x: self.x as f64 + 0.5,
             y: self.y as f64 + 0.5,
             z: self.z as f64 + 0.5,
+        }
+    }
+
+    /// Convert the block position into a Vec3 without centering it.
+    pub fn to_vec3_floored(&self) -> Vec3 {
+        Vec3 {
+            x: self.x as f64,
+            y: self.y as f64,
+            z: self.z as f64,
         }
     }
 

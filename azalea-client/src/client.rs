@@ -2,11 +2,13 @@ use crate::{
     chat::ChatPlugin,
     disconnect::{DisconnectEvent, DisconnectPlugin},
     events::{Event, EventPlugin, LocalPlayerEvents},
+    interact::{CurrentSequenceNumber, InteractPlugin},
+    inventory::{InventoryComponent, InventoryPlugin},
     local_player::{
         death_event, handle_send_packet_event, update_in_loaded_chunk, GameProfileComponent,
         LocalPlayer, PhysicsState, SendPacketEvent,
     },
-    movement::PlayerMovePlugin,
+    movement::{LastSentLookDirection, PlayerMovePlugin},
     packet_handling::{self, PacketHandlerPlugin, PacketReceiver},
     player::retroactively_add_game_profile_component,
     task_pool::TaskPoolPlugin,
@@ -15,11 +17,13 @@ use crate::{
 
 use azalea_auth::{game_profile::GameProfile, sessionserver::ClientSessionServerError};
 use azalea_chat::FormattedText;
+use azalea_core::Vec3;
 use azalea_physics::{PhysicsPlugin, PhysicsSet};
 use azalea_protocol::{
     connect::{Connection, ConnectionError},
     packets::{
         game::{
+            clientbound_player_abilities_packet::ClientboundPlayerAbilitiesPacket,
             serverbound_client_information_packet::ServerboundClientInformationPacket,
             ClientboundGamePacket, ServerboundGamePacket,
         },
@@ -37,16 +41,17 @@ use azalea_protocol::{
     resolver, ServerAddress,
 };
 use azalea_world::{
-    entity::{EntityPlugin, EntityUpdateSet, Local, WorldName},
+    entity::{EntityPlugin, EntityUpdateSet, Local, Position, WorldName},
     Instance, InstanceContainer, PartialInstance,
 };
-use bevy_app::{App, CoreSchedule, Plugin, PluginGroup, PluginGroupBuilder};
+use bevy_app::{App, CoreSchedule, IntoSystemAppConfig, Plugin, PluginGroup, PluginGroupBuilder};
 use bevy_ecs::{
     bundle::Bundle,
     component::Component,
     entity::Entity,
     schedule::IntoSystemConfig,
     schedule::{LogLevel, ScheduleBuildSettings, ScheduleLabel},
+    system::{ResMut, Resource},
     world::World,
 };
 use bevy_log::LogPlugin;
@@ -56,7 +61,10 @@ use log::{debug, error};
 use parking_lot::{Mutex, RwLock};
 use std::{collections::HashMap, fmt::Debug, io, net::SocketAddr, sync::Arc, time::Duration};
 use thiserror::Error;
-use tokio::{sync::mpsc, time};
+use tokio::{
+    sync::{broadcast, mpsc},
+    time,
+};
 use uuid::Uuid;
 
 /// `Client` has the things that a user interacting with the library will want.
@@ -93,11 +101,50 @@ pub struct Client {
 }
 
 /// A component that contains some of the "settings" for this client that are
-/// sent to the server, such as render distance.
+/// sent to the server, such as render distance. This is only present on local
+/// players.
 pub type ClientInformation = ServerboundClientInformationPacket;
 
+/// A component that contains the abilities the player has, like flying
+/// or instantly breaking blocks. This is only present on local players.
+#[derive(Clone, Debug, Component, Default)]
+pub struct PlayerAbilities {
+    pub invulnerable: bool,
+    pub flying: bool,
+    pub can_fly: bool,
+    /// Whether the player can instantly break blocks and can duplicate blocks
+    /// in their inventory.
+    pub instant_break: bool,
+
+    pub flying_speed: f32,
+    /// Used for the fov
+    pub walking_speed: f32,
+}
+impl From<ClientboundPlayerAbilitiesPacket> for PlayerAbilities {
+    fn from(packet: ClientboundPlayerAbilitiesPacket) -> Self {
+        Self {
+            invulnerable: packet.flags.invulnerable,
+            flying: packet.flags.flying,
+            can_fly: packet.flags.can_fly,
+            instant_break: packet.flags.instant_break,
+            flying_speed: packet.flying_speed,
+            walking_speed: packet.walking_speed,
+        }
+    }
+}
+
 /// A component that contains a map of player UUIDs to their information in the
-/// tab list
+/// tab list.
+///
+/// ```
+/// # use azalea_client::TabList;
+/// # fn example(client: &azalea_client::Client) {
+/// let tab_list = client.component::<TabList>();
+/// println!("Online players:");
+/// for (uuid, player_info) in tab_list.iter() {
+///     println!("- {} ({}ms)", player_info.profile.name, player_info.latency);
+/// }
+/// # }
 #[derive(Component, Clone, Debug, Deref, DerefMut, Default)]
 pub struct TabList(HashMap<Uuid, PlayerInfo>);
 
@@ -246,8 +293,12 @@ impl Client {
             game_profile: GameProfileComponent(game_profile),
             physics_state: PhysicsState::default(),
             local_player_events: LocalPlayerEvents(tx),
+            inventory: InventoryComponent::default(),
             client_information: ClientInformation::default(),
             tab_list: TabList::default(),
+            current_sequence_number: CurrentSequenceNumber::default(),
+            last_sent_direction: LastSentLookDirection::default(),
+            abilities: PlayerAbilities::default(),
             _local: Local,
         });
 
@@ -421,6 +472,11 @@ impl Client {
         self.query::<&T>(&mut self.ecs.lock()).clone()
     }
 
+    /// Get a component from this client, or `None` if it doesn't exist.
+    pub fn get_component<T: Component + Clone>(&self) -> Option<T> {
+        self.query::<Option<&T>>(&mut self.ecs.lock()).cloned()
+    }
+
     /// Get a reference to our (potentially shared) world.
     ///
     /// This gets the [`Instance`] from our world container. If it's a normal
@@ -430,8 +486,8 @@ impl Client {
     pub fn world(&self) -> Arc<RwLock<Instance>> {
         let world_name = self.component::<WorldName>();
         let ecs = self.ecs.lock();
-        let world_container = ecs.resource::<InstanceContainer>();
-        world_container.get(&world_name).unwrap()
+        let instance_container = ecs.resource::<InstanceContainer>();
+        instance_container.get(&world_name).unwrap()
     }
 
     /// Returns whether we have a received the login packet yet.
@@ -478,6 +534,15 @@ impl Client {
     }
 }
 
+impl Client {
+    /// Get the position of this client.
+    ///
+    /// This is a shortcut for `Vec3::from(&bot.component::<Position>())`.
+    pub fn position(&self) -> Vec3 {
+        Vec3::from(&self.component::<Position>())
+    }
+}
+
 /// A bundle for the components that are present on a local player that received
 /// a login packet. If you want to filter for this, just use [`Local`].
 #[derive(Bundle)]
@@ -487,8 +552,12 @@ pub struct JoinedClientBundle {
     pub game_profile: GameProfileComponent,
     pub physics_state: PhysicsState,
     pub local_player_events: LocalPlayerEvents,
+    pub inventory: InventoryComponent,
     pub client_information: ClientInformation,
     pub tab_list: TabList,
+    pub current_sequence_number: CurrentSequenceNumber,
+    pub last_sent_direction: LastSentLookDirection,
+    pub abilities: PlayerAbilities,
     pub _local: Local,
 }
 
@@ -498,11 +567,7 @@ impl Plugin for AzaleaPlugin {
         // Minecraft ticks happen every 50ms
         app.insert_resource(FixedTime::new(Duration::from_millis(50)));
 
-        app.add_system(
-            update_in_loaded_chunk
-                .after(PhysicsSet)
-                .after(handle_send_packet_event),
-        );
+        app.add_system(update_in_loaded_chunk.after(PhysicsSet));
 
         // fire the Death event when the player dies.
         app.add_system(death_event);
@@ -599,6 +664,39 @@ pub async fn tick_run_schedule_loop(run_schedule_sender: mpsc::UnboundedSender<(
     }
 }
 
+/// A resource that contains a [`broadcast::Sender`] that will be sent every
+/// Minecraft tick.
+///
+/// This is useful for running code every schedule from async user code.
+///
+/// ```
+/// use azalea_client::TickBroadcast;
+/// # async fn example(client: azalea_client::Client) {
+/// let mut receiver = {
+///     let ecs = client.ecs.lock();
+///     let tick_broadcast = ecs.resource::<TickBroadcast>();
+///     tick_broadcast.subscribe()
+/// };
+/// while receiver.recv().await.is_ok() {
+///     // do something
+/// }
+/// # }
+/// ```
+#[derive(Resource, Deref)]
+pub struct TickBroadcast(broadcast::Sender<()>);
+
+fn send_tick_broadcast(tick_broadcast: ResMut<TickBroadcast>) {
+    let _ = tick_broadcast.0.send(());
+}
+/// A plugin that makes the [`RanScheduleBroadcast`] resource available.
+pub struct TickBroadcastPlugin;
+impl Plugin for TickBroadcastPlugin {
+    fn build(&self, app: &mut App) {
+        app.insert_resource(TickBroadcast(broadcast::channel(1).0))
+            .add_system(send_tick_broadcast.in_schedule(CoreSchedule::FixedUpdate));
+    }
+}
+
 /// This plugin group will add all the default plugins necessary for Azalea to
 /// work.
 pub struct DefaultPlugins;
@@ -614,8 +712,11 @@ impl PluginGroup for DefaultPlugins {
             .add(PhysicsPlugin)
             .add(EventPlugin)
             .add(TaskPoolPlugin::default())
+            .add(InventoryPlugin)
             .add(ChatPlugin)
             .add(DisconnectPlugin)
             .add(PlayerMovePlugin)
+            .add(InteractPlugin)
+            .add(TickBroadcastPlugin)
     }
 }

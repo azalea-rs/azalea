@@ -6,6 +6,6 @@ use azalea_protocol_macros::ClientboundGamePacket;
 pub struct ClientboundOpenScreenPacket {
     #[var]
     pub container_id: u32,
-    pub menu_type: azalea_registry::Menu,
+    pub menu_type: azalea_registry::MenuKind,
     pub title: FormattedText,
 }

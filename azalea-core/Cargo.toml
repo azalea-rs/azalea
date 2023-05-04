@@ -10,8 +10,12 @@ version = "0.6.0"
 
 [dependencies]
 azalea-buf = { path = "../azalea-buf", version = "^0.6.0" }
+azalea-chat = { path = "../azalea-chat", version = "^0.6.0" }
+azalea-inventory = { version = "0.1.0", path = "../azalea-inventory" }
 azalea-nbt = { path = "../azalea-nbt", version = "^0.6.0" }
+azalea-registry = { path = "../azalea-registry", version = "^0.6.0" }
 bevy_ecs = { version = "0.10.0", default-features = false, optional = true }
+num-traits = "0.2.15"
 serde = { version = "^1.0", optional = true }
 uuid = "^1.1.2"
 

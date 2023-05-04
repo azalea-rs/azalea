@@ -1,6 +1,7 @@
 use azalea_buf::McBuf;
 use azalea_chat::FormattedText;
-use azalea_core::{ResourceLocation, Slot};
+use azalea_core::ResourceLocation;
+use azalea_inventory::ItemSlot;
 use azalea_protocol_macros::ClientboundGamePacket;
 use std::collections::HashMap;
 use std::io::Cursor;
@@ -25,7 +26,7 @@ pub struct Advancement {
 pub struct DisplayInfo {
     pub title: FormattedText,
     pub description: FormattedText,
-    pub icon: Slot,
+    pub icon: ItemSlot,
     pub frame: FrameType,
     pub show_toast: bool,
     pub hidden: bool,
@@ -130,7 +131,7 @@ mod tests {
                     display: Some(DisplayInfo {
                         title: FormattedText::from("title".to_string()),
                         description: FormattedText::from("description".to_string()),
-                        icon: Slot::Empty,
+                        icon: ItemSlot::Empty,
                         frame: FrameType::Task,
                         show_toast: true,
                         hidden: false,

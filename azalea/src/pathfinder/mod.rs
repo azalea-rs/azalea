@@ -93,7 +93,7 @@ fn goto_listener(
     mut commands: Commands,
     mut events: EventReader<GotoEvent>,
     mut query: Query<(&Position, &WorldName)>,
-    world_container: Res<InstanceContainer>,
+    instance_container: Res<InstanceContainer>,
 ) {
     let thread_pool = AsyncComputeTaskPool::get();
 
@@ -106,7 +106,7 @@ fn goto_listener(
             vertical_vel: VerticalVel::None,
         };
 
-        let world_lock = world_container
+        let world_lock = instance_container
             .get(world_name)
             .expect("Entity tried to pathfind but the entity isn't in a valid world");
         let end = event.goal.goal_node();

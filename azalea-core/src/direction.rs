@@ -1,6 +1,8 @@
 use azalea_buf::McBuf;
 
-#[derive(Clone, Copy, Debug, McBuf, Default)]
+use crate::Vec3;
+
+#[derive(Clone, Copy, Debug, McBuf, Default, Eq, PartialEq)]
 pub enum Direction {
     #[default]
     Down = 0,
@@ -9,6 +11,54 @@ pub enum Direction {
     South,
     West,
     East,
+}
+
+impl Direction {
+    pub fn nearest(vec: Vec3) -> Direction {
+        let mut best_direction = Direction::North;
+        let mut best_direction_amount = 0.0;
+
+        for dir in [
+            Direction::Down,
+            Direction::Up,
+            Direction::North,
+            Direction::South,
+            Direction::West,
+            Direction::East,
+        ]
+        .iter()
+        {
+            let amount = dir.normal().dot(vec);
+            if amount > best_direction_amount {
+                best_direction = *dir;
+                best_direction_amount = amount;
+            }
+        }
+
+        best_direction
+    }
+
+    pub fn normal(self) -> Vec3 {
+        match self {
+            Direction::Down => Vec3::new(0.0, -1.0, 0.0),
+            Direction::Up => Vec3::new(0.0, 1.0, 0.0),
+            Direction::North => Vec3::new(0.0, 0.0, -1.0),
+            Direction::South => Vec3::new(0.0, 0.0, 1.0),
+            Direction::West => Vec3::new(-1.0, 0.0, 0.0),
+            Direction::East => Vec3::new(1.0, 0.0, 0.0),
+        }
+    }
+
+    pub fn opposite(self) -> Direction {
+        match self {
+            Direction::Down => Direction::Up,
+            Direction::Up => Direction::Down,
+            Direction::North => Direction::South,
+            Direction::South => Direction::North,
+            Direction::West => Direction::East,
+            Direction::East => Direction::West,
+        }
+    }
 }
 
 // TODO: make azalea_block use this instead of FacingCardinal

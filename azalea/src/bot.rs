@@ -1,4 +1,5 @@
 use crate::app::{App, CoreSchedule, IntoSystemAppConfig, Plugin, PluginGroup, PluginGroupBuilder};
+use crate::container::ContainerPlugin;
 use crate::ecs::{
     component::Component,
     entity::Entity,
@@ -9,7 +10,8 @@ use crate::ecs::{
 };
 use azalea_core::Vec3;
 use azalea_physics::{force_jump_listener, PhysicsSet};
-use azalea_world::entity::{metadata::Player, set_rotation, Jumping, Local, Physics, Position};
+use azalea_world::entity::{clamp_look_direction, EyeHeight, LookDirection};
+use azalea_world::entity::{metadata::Player, Jumping, Local, Position};
 use std::f64::consts::PI;
 
 use crate::pathfinder::PathfinderPlugin;
@@ -22,7 +24,9 @@ impl Plugin for BotPlugin {
             .add_event::<JumpEvent>()
             .add_systems((
                 insert_bot,
-                look_at_listener.before(force_jump_listener),
+                look_at_listener
+                    .before(force_jump_listener)
+                    .before(clamp_look_direction),
                 jump_listener,
                 stop_jumping
                     .in_schedule(CoreSchedule::FixedUpdate)
@@ -99,12 +103,13 @@ pub struct LookAtEvent {
 }
 fn look_at_listener(
     mut events: EventReader<LookAtEvent>,
-    mut query: Query<(&Position, &mut Physics)>,
+    mut query: Query<(&Position, &EyeHeight, &mut LookDirection)>,
 ) {
     for event in events.iter() {
-        if let Ok((position, mut physics)) = query.get_mut(event.entity) {
-            let (y_rot, x_rot) = direction_looking_at(position, &event.position);
-            set_rotation(&mut physics, y_rot, x_rot);
+        if let Ok((position, eye_height, mut look_direction)) = query.get_mut(event.entity) {
+            let (y_rot, x_rot) =
+                direction_looking_at(&position.up(eye_height.into()), &event.position);
+            (look_direction.y_rot, look_direction.x_rot) = (y_rot, x_rot);
         }
     }
 }
@@ -129,5 +134,6 @@ impl PluginGroup for DefaultBotPlugins {
         PluginGroupBuilder::start::<Self>()
             .add(BotPlugin)
             .add(PathfinderPlugin)
+            .add(ContainerPlugin)
     }
 }

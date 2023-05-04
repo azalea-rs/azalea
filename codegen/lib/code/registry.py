@@ -16,12 +16,16 @@ def generate_registries(registries: dict):
         #     Stone => "minecraft:stone"
         # });
 
+        registry_name = registry_name.split(':')[1]
+
         if registry_name.endswith('_type'):
             # change _type to _kind because that's Rustier (and because _type
             # is a reserved keyword)
             registry_name = registry_name[:-5] + '_kind'
+        elif registry_name in {'menu'}:
+            registry_name += '_kind'
 
-        registry_struct_name = to_camel_case(registry_name.split(':')[1])
+        registry_struct_name = to_camel_case(registry_name)
 
         registry_code = []
         registry_code.append(f'enum {registry_struct_name} {{')

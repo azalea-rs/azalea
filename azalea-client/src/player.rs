@@ -1,6 +1,6 @@
 use azalea_auth::game_profile::GameProfile;
 use azalea_chat::FormattedText;
-use azalea_core::GameType;
+use azalea_core::GameMode;
 use azalea_world::entity::EntityInfos;
 use bevy_ecs::{
     event::EventReader,
@@ -18,7 +18,10 @@ pub struct PlayerInfo {
     pub profile: GameProfile,
     /// The player's UUID.
     pub uuid: Uuid,
-    pub gamemode: GameType,
+    /// The current gamemode of the player, like survival or creative.
+    pub gamemode: GameMode,
+    /// The player's latency in milliseconds. The bars in the tab screen depend
+    /// on this.
     pub latency: i32,
     /// The player's display name in the tab list, but only if it's different
     /// from the player's normal username. Use `player_info.profile.name` to get

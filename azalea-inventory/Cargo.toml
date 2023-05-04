@@ -1,0 +1,12 @@
+[package]
+edition = "2021"
+name = "azalea-inventory"
+version = "0.1.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+azalea-buf = { version = "0.6.0", path = "../azalea-buf" }
+azalea-inventory-macros = { version = "0.1.0", path = "./azalea-inventory-macros" }
+azalea-nbt = { version = "0.6.0", path = "../azalea-nbt" }
+azalea-registry = { version = "0.6.0", path = "../azalea-registry" }
