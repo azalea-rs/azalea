@@ -18,6 +18,8 @@ pub mod disconnect;
 mod entity_query;
 mod events;
 mod get_mc_dir;
+pub mod interact;
+pub mod inventory;
 mod local_player;
 mod movement;
 pub mod packet_handling;
@@ -28,6 +30,7 @@ pub mod task_pool;
 pub use account::{Account, AccountOpts};
 pub use client::{
     init_ecs_app, start_ecs, Client, ClientInformation, JoinError, JoinedClientBundle, TabList,
+    TickBroadcast,
 };
 pub use events::Event;
 pub use local_player::{GameProfileComponent, LocalPlayer};

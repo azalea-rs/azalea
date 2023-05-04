@@ -1,7 +1,8 @@
 use azalea_buf::{
     BufReadError, McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable,
 };
-use azalea_core::{ResourceLocation, Slot};
+use azalea_core::ResourceLocation;
+use azalea_inventory::ItemSlot;
 use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_registry::RecipeSerializer;
 
@@ -26,7 +27,7 @@ pub struct ShapelessRecipe {
     pub group: String,
     pub category: CraftingBookCategory,
     pub ingredients: Vec<Ingredient>,
-    pub result: Slot,
+    pub result: ItemSlot,
 }
 #[derive(Clone, Debug)]
 pub struct ShapedRecipe {
@@ -35,7 +36,7 @@ pub struct ShapedRecipe {
     pub group: String,
     pub category: CraftingBookCategory,
     pub ingredients: Vec<Ingredient>,
-    pub result: Slot,
+    pub result: ItemSlot,
     pub show_notification: bool,
 }
 
@@ -71,7 +72,7 @@ impl McBufReadable for ShapedRecipe {
         for _ in 0..width * height {
             ingredients.push(Ingredient::read_from(buf)?);
         }
-        let result = Slot::read_from(buf)?;
+        let result = ItemSlot::read_from(buf)?;
         let show_notification = bool::read_from(buf)?;
 
         Ok(ShapedRecipe {
@@ -91,7 +92,7 @@ pub struct CookingRecipe {
     pub group: String,
     pub category: CraftingBookCategory,
     pub ingredient: Ingredient,
-    pub result: Slot,
+    pub result: ItemSlot,
     pub experience: f32,
     #[var]
     pub cooking_time: u32,
@@ -100,13 +101,13 @@ pub struct CookingRecipe {
 pub struct StoneCutterRecipe {
     pub group: String,
     pub ingredient: Ingredient,
-    pub result: Slot,
+    pub result: ItemSlot,
 }
 #[derive(Clone, Debug, McBuf)]
 pub struct SmithingRecipe {
     pub base: Ingredient,
     pub addition: Ingredient,
-    pub result: Slot,
+    pub result: ItemSlot,
 }
 
 #[derive(Clone, Debug, McBuf)]
@@ -119,7 +120,7 @@ pub struct SmithingTransformRecipe {
     pub template: Ingredient,
     pub base: Ingredient,
     pub addition: Ingredient,
-    pub result: Slot,
+    pub result: ItemSlot,
 }
 
 #[derive(Clone, Debug, McBuf)]
@@ -158,7 +159,7 @@ pub enum RecipeData {
 
 #[derive(Clone, Debug, McBuf)]
 pub struct Ingredient {
-    pub allowed: Vec<Slot>,
+    pub allowed: Vec<ItemSlot>,
 }
 
 impl McBufWritable for Recipe {

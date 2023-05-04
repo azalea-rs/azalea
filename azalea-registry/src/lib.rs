@@ -5449,3 +5449,32 @@ enum CreativeModeTab {
     Inventory => "minecraft:inventory",
 }
 }
+
+registry! {
+enum MenuKind {
+    Generic9x1 => "minecraft:generic_9x1",
+    Generic9x2 => "minecraft:generic_9x2",
+    Generic9x3 => "minecraft:generic_9x3",
+    Generic9x4 => "minecraft:generic_9x4",
+    Generic9x5 => "minecraft:generic_9x5",
+    Generic9x6 => "minecraft:generic_9x6",
+    Generic3x3 => "minecraft:generic_3x3",
+    Anvil => "minecraft:anvil",
+    Beacon => "minecraft:beacon",
+    BlastFurnace => "minecraft:blast_furnace",
+    BrewingStand => "minecraft:brewing_stand",
+    Crafting => "minecraft:crafting",
+    Enchantment => "minecraft:enchantment",
+    Furnace => "minecraft:furnace",
+    Grindstone => "minecraft:grindstone",
+    Hopper => "minecraft:hopper",
+    Lectern => "minecraft:lectern",
+    Loom => "minecraft:loom",
+    Merchant => "minecraft:merchant",
+    ShulkerBox => "minecraft:shulker_box",
+    Smithing => "minecraft:smithing",
+    Smoker => "minecraft:smoker",
+    CartographyTable => "minecraft:cartography_table",
+    Stonecutter => "minecraft:stonecutter",
+}
+}

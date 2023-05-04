@@ -1,6 +1,6 @@
 use self::registry::RegistryHolder;
 use azalea_buf::McBuf;
-use azalea_core::{GameType, GlobalPos, OptionalGameType, ResourceLocation};
+use azalea_core::{GameMode, GlobalPos, OptionalGameType, ResourceLocation};
 use azalea_protocol_macros::ClientboundGamePacket;
 
 /// The first packet sent by the server to the client after login.
@@ -11,7 +11,7 @@ use azalea_protocol_macros::ClientboundGamePacket;
 pub struct ClientboundLoginPacket {
     pub player_id: u32,
     pub hardcore: bool,
-    pub game_type: GameType,
+    pub game_type: GameMode,
     pub previous_game_type: OptionalGameType,
     pub levels: Vec<ResourceLocation>,
     pub registry_holder: RegistryHolder,

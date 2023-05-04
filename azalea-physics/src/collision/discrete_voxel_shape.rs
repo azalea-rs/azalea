@@ -45,6 +45,7 @@ impl DiscreteVoxelShape {
             return false;
         }
         let (x, y, z) = (x as u32, y as u32, z as u32);
+
         (x < self.size(Axis::X) && y < self.size(Axis::Y) && z < self.size(Axis::Z))
             && (self.is_full(x, y, z))
     }

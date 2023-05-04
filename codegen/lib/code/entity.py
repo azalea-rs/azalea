@@ -12,7 +12,7 @@ DATA_RS_DIR = get_dir_location(
     '../azalea-world/src/entity/data.rs')
 
 def generate_metadata_names(burger_dataserializers: dict, mappings: Mappings):
-    serializer_names = [None] * len(burger_dataserializers)
+    serializer_names: list[Optional[str]] = [None] * len(burger_dataserializers)
     for burger_serializer in burger_dataserializers.values():
         print(burger_serializer)
 
@@ -105,7 +105,8 @@ use super::{
     SnifferState, VillagerData
 };
 use azalea_chat::FormattedText;
-use azalea_core::{BlockPos, Direction, Particle, Slot, Vec3};
+use azalea_core::{BlockPos, Direction, Particle, Vec3};
+use azalea_inventory::ItemSlot;
 use bevy_ecs::{bundle::Bundle, component::Component};
 use derive_more::{Deref, DerefMut};
 use thiserror::Error;
@@ -425,7 +426,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
                         elif type_name == 'OptionalUnsignedInt':
                             default = f'OptionalUnsignedInt(Some({default}))' if default != 'Empty' else 'OptionalUnsignedInt(None)'
                         elif type_name == 'ItemStack':
-                            default = f'Slot::Present({default})' if default != 'Empty' else 'Slot::Empty'
+                            default = f'ItemSlot::Present({default})' if default != 'Empty' else 'ItemSlot::Empty'
                         elif type_name == 'BlockState':
                             default = f'{default}' if default != 'Empty' else 'azalea_block::BlockState::AIR'
                         elif type_name == 'OptionalBlockState':

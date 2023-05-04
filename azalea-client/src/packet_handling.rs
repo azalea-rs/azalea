@@ -1,6 +1,6 @@
 use std::{collections::HashSet, io::Cursor, sync::Arc};
 
-use azalea_core::{ChunkPos, ResourceLocation, Vec3};
+use azalea_core::{ChunkPos, GameMode, ResourceLocation, Vec3};
 use azalea_protocol::{
     connect::{ReadConnection, WriteConnection},
     packets::game::{
@@ -16,7 +16,7 @@ use azalea_protocol::{
 use azalea_world::{
     entity::{
         metadata::{apply_metadata, Health, PlayerMetadataBundle},
-        set_rotation, Dead, EntityBundle, EntityKind, EntityUpdateSet, LastSentPosition,
+        Dead, EntityBundle, EntityKind, EntityUpdateSet, LastSentPosition, LookDirection,
         MinecraftEntityId, Physics, PlayerBundle, Position, WorldName,
     },
     entity::{LoadedBy, RelativeEntityUpdate},
@@ -37,9 +37,13 @@ use tokio::sync::mpsc;
 
 use crate::{
     chat::{ChatPacket, ChatReceivedEvent},
-    client::TabList,
+    client::{PlayerAbilities, TabList},
     disconnect::DisconnectEvent,
-    local_player::{GameProfileComponent, LocalPlayer},
+    inventory::{
+        ClientSideCloseContainerEvent, InventoryComponent, MenuOpenedEvent,
+        SetContainerContentEvent,
+    },
+    local_player::{GameProfileComponent, LocalGameMode, LocalPlayer},
     ClientInformation, PlayerInfo,
 };
 
@@ -194,7 +198,7 @@ fn process_packet_events(ecs: &mut World) {
                     )>,
                     ResMut<InstanceContainer>,
                 )> = SystemState::new(ecs);
-                let (mut commands, mut query, mut world_container) = system_state.get_mut(ecs);
+                let (mut commands, mut query, mut instance_container) = system_state.get_mut(ecs);
                 let (mut local_player, world_name, game_profile, client_information) =
                     query.get_mut(player_entity).unwrap();
 
@@ -220,16 +224,16 @@ fn process_packet_events(ecs: &mut World) {
                             .entity(player_entity)
                             .insert(WorldName(new_world_name.clone()));
                     }
-                    // add this world to the world_container (or don't if it's already
+                    // add this world to the instance_container (or don't if it's already
                     // there)
-                    let weak_world = world_container.insert(
+                    let weak_world = instance_container.insert(
                         new_world_name.clone(),
                         dimension.height,
                         dimension.min_y,
                     );
                     // set the partial_world to an empty world
                     // (when we add chunks or entities those will be in the
-                    // world_container)
+                    // instance_container)
 
                     *local_player.partial_instance.write() = PartialInstance::new(
                         client_information.view_distance.into(),
@@ -250,9 +254,14 @@ fn process_packet_events(ecs: &mut World) {
                         metadata: PlayerMetadataBundle::default(),
                     };
                     // insert our components into the ecs :)
-                    commands
-                        .entity(player_entity)
-                        .insert((MinecraftEntityId(p.player_id), player_bundle));
+                    commands.entity(player_entity).insert((
+                        MinecraftEntityId(p.player_id),
+                        LocalGameMode {
+                            current: p.game_type,
+                            previous: p.previous_game_type.into(),
+                        },
+                        player_bundle,
+                    ));
                 }
 
                 // send the client information that we have set
@@ -288,6 +297,12 @@ fn process_packet_events(ecs: &mut World) {
             }
             ClientboundGamePacket::PlayerAbilities(p) => {
                 debug!("Got player abilities packet {:?}", p);
+                let mut system_state: SystemState<Query<&mut PlayerAbilities>> =
+                    SystemState::new(ecs);
+                let mut query = system_state.get_mut(ecs);
+                let mut player_abilities = query.get_mut(player_entity).unwrap();
+
+                *player_abilities = PlayerAbilities::from(p);
             }
             ClientboundGamePacket::SetCarriedItem(p) => {
                 debug!("Got set carried item packet {:?}", p);
@@ -319,16 +334,18 @@ fn process_packet_events(ecs: &mut World) {
                 // TODO: reply with teleport confirm
                 debug!("Got player position packet {:?}", p);
 
+                #[allow(clippy::type_complexity)]
                 let mut system_state: SystemState<
                     Query<(
                         &mut LocalPlayer,
                         &mut Physics,
+                        &mut LookDirection,
                         &mut Position,
                         &mut LastSentPosition,
                     )>,
                 > = SystemState::new(ecs);
                 let mut query = system_state.get_mut(ecs);
-                let Ok((mut local_player, mut physics, mut position, mut last_sent_position)) =
+                let Ok((local_player, mut physics, mut direction, mut position, mut last_sent_position)) =
                         query.get_mut(player_entity) else {
                             continue;
                         };
@@ -364,10 +381,10 @@ fn process_packet_events(ecs: &mut World) {
                 let mut y_rot = p.y_rot;
                 let mut x_rot = p.x_rot;
                 if p.relative_arguments.x_rot {
-                    x_rot += physics.x_rot;
+                    x_rot += direction.x_rot;
                 }
                 if p.relative_arguments.y_rot {
-                    y_rot += physics.y_rot;
+                    y_rot += direction.y_rot;
                 }
 
                 physics.delta = Vec3 {
@@ -378,7 +395,7 @@ fn process_packet_events(ecs: &mut World) {
                 // we call a function instead of setting the fields ourself since the
                 // function makes sure the rotations stay in their
                 // ranges
-                set_rotation(&mut physics, y_rot, x_rot);
+                (direction.y_rot, direction.x_rot) = (y_rot, x_rot);
                 // TODO: minecraft sets "xo", "yo", and "zo" here but idk what that means
                 // so investigate that ig
                 let new_pos = Vec3 {
@@ -633,9 +650,6 @@ fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::SetDefaultSpawnPosition(p) => {
                 debug!("Got set default spawn position packet {:?}", p);
             }
-            ClientboundGamePacket::ContainerSetContent(p) => {
-                debug!("Got container set content packet {:?}", p);
-            }
             ClientboundGamePacket::SetHealth(p) => {
                 debug!("Got set health packet {:?}", p);
 
@@ -765,7 +779,7 @@ fn process_packet_events(ecs: &mut World) {
                     id: p.id,
                 });
 
-                let mut local_player = query.get_mut(player_entity).unwrap();
+                let local_player = query.get_mut(player_entity).unwrap();
                 local_player.write_packet(ServerboundKeepAlivePacket { id: p.id }.get());
                 debug!("Sent keep alive packet {p:?} for {player_entity:?}");
             }
@@ -831,7 +845,23 @@ fn process_packet_events(ecs: &mut World) {
                 }
             }
             ClientboundGamePacket::GameEvent(p) => {
+                use azalea_protocol::packets::game::clientbound_game_event_packet::EventType;
+
                 debug!("Got game event packet {:?}", p);
+
+                #[allow(clippy::single_match)]
+                match p.event {
+                    EventType::ChangeGameMode => {
+                        let mut system_state: SystemState<Query<&mut LocalGameMode>> =
+                            SystemState::new(ecs);
+                        let mut query = system_state.get_mut(ecs);
+                        let mut local_game_mode = query.get_mut(player_entity).unwrap();
+                        if let Some(new_game_mode) = GameMode::from_id(p.param as u8) {
+                            local_game_mode.current = new_game_mode;
+                        }
+                    }
+                    _ => {}
+                }
             }
             ClientboundGamePacket::LevelParticles(p) => {
                 debug!("Got level particles packet {:?}", p);
@@ -855,8 +885,93 @@ fn process_packet_events(ecs: &mut World) {
             }
             ClientboundGamePacket::BossEvent(_) => {}
             ClientboundGamePacket::CommandSuggestions(_) => {}
-            ClientboundGamePacket::ContainerSetData(_) => {}
-            ClientboundGamePacket::ContainerSetSlot(_) => {}
+            ClientboundGamePacket::ContainerSetContent(p) => {
+                debug!("Got container set content packet {:?}", p);
+
+                let mut system_state: SystemState<(
+                    Query<&mut InventoryComponent>,
+                    EventWriter<SetContainerContentEvent>,
+                )> = SystemState::new(ecs);
+                let (mut query, mut events) = system_state.get_mut(ecs);
+                let mut inventory = query.get_mut(player_entity).unwrap();
+
+                // container id 0 is always the player's inventory
+                if p.container_id == 0 {
+                    // this is just so it has the same type as the `else` block
+                    for (i, slot) in p.items.iter().enumerate() {
+                        if let Some(slot_mut) = inventory.inventory_menu.slot_mut(i) {
+                            *slot_mut = slot.clone();
+                        }
+                    }
+                } else {
+                    events.send(SetContainerContentEvent {
+                        entity: player_entity,
+                        slots: p.items.clone(),
+                        container_id: p.container_id as u8,
+                    });
+                }
+            }
+            ClientboundGamePacket::ContainerSetData(p) => {
+                debug!("Got container set data packet {:?}", p);
+                // let mut system_state: SystemState<Query<&mut
+                // InventoryComponent>> =
+                //     SystemState::new(ecs);
+                // let mut query = system_state.get_mut(ecs);
+                // let mut inventory =
+                // query.get_mut(player_entity).unwrap();
+
+                // TODO: handle ContainerSetData packet
+                // this is used for various things like the furnace progress
+                // bar
+                // see https://wiki.vg/Protocol#Set_Container_Property
+            }
+            ClientboundGamePacket::ContainerSetSlot(p) => {
+                debug!("Got container set slot packet {:?}", p);
+
+                let mut system_state: SystemState<Query<&mut InventoryComponent>> =
+                    SystemState::new(ecs);
+                let mut query = system_state.get_mut(ecs);
+                let mut inventory = query.get_mut(player_entity).unwrap();
+
+                if p.container_id == -1 {
+                    // -1 means carried item
+                    inventory.carried = p.item_stack.clone();
+                } else if p.container_id == -2 {
+                    if let Some(slot) = inventory.inventory_menu.slot_mut(p.slot.into()) {
+                        *slot = p.item_stack.clone();
+                    }
+                } else {
+                    let is_creative_mode_and_inventory_closed = false;
+                    // technically minecraft has slightly different behavior here if you're in
+                    // creative mode and have your inventory open
+                    if p.container_id == 0
+                        && azalea_inventory::Player::is_hotbar_slot(p.slot.into())
+                    {
+                        // minecraft also sets a "pop time" here which is used for an animation
+                        // but that's not really necessary
+                        if let Some(slot) = inventory.inventory_menu.slot_mut(p.slot.into()) {
+                            *slot = p.item_stack.clone();
+                        }
+                    } else if p.container_id == (inventory.id as i8)
+                        && (p.container_id != 0 || !is_creative_mode_and_inventory_closed)
+                    {
+                        // var2.containerMenu.setItem(var4, var1.getStateId(), var3);
+                        if let Some(slot) = inventory.menu_mut().slot_mut(p.slot.into()) {
+                            *slot = p.item_stack.clone();
+                            inventory.state_id = p.state_id;
+                        }
+                    }
+                }
+            }
+            ClientboundGamePacket::ContainerClose(_p) => {
+                // there's p.container_id but minecraft doesn't actually check it
+                let mut system_state: SystemState<EventWriter<ClientSideCloseContainerEvent>> =
+                    SystemState::new(ecs);
+                let mut client_side_close_container_events = system_state.get_mut(ecs);
+                client_side_close_container_events.send(ClientSideCloseContainerEvent {
+                    entity: player_entity,
+                })
+            }
             ClientboundGamePacket::Cooldown(_) => {}
             ClientboundGamePacket::CustomChatCompletions(_) => {}
             ClientboundGamePacket::DeleteChat(_) => {}
@@ -867,7 +982,18 @@ fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::MerchantOffers(_) => {}
             ClientboundGamePacket::MoveVehicle(_) => {}
             ClientboundGamePacket::OpenBook(_) => {}
-            ClientboundGamePacket::OpenScreen(_) => {}
+            ClientboundGamePacket::OpenScreen(p) => {
+                debug!("Got open screen packet {:?}", p);
+                let mut system_state: SystemState<EventWriter<MenuOpenedEvent>> =
+                    SystemState::new(ecs);
+                let mut menu_opened_events = system_state.get_mut(ecs);
+                menu_opened_events.send(MenuOpenedEvent {
+                    entity: player_entity,
+                    window_id: p.container_id,
+                    menu_type: p.menu_type,
+                    title: p.title,
+                })
+            }
             ClientboundGamePacket::OpenSignEditor(_) => {}
             ClientboundGamePacket::Ping(_) => {}
             ClientboundGamePacket::PlaceGhostRecipe(_) => {}
@@ -935,7 +1061,6 @@ fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::TakeItemEntity(_) => {}
             ClientboundGamePacket::DisguisedChat(_) => {}
             ClientboundGamePacket::UpdateEnabledFeatures(_) => {}
-            ClientboundGamePacket::ContainerClose(_) => {}
             ClientboundGamePacket::Bundle(_) => {}
             ClientboundGamePacket::DamageEvent(_) => {}
             ClientboundGamePacket::HurtAnimation(_) => {}

@@ -1,5 +1,6 @@
 from lib.code.packet import fix_state
 from lib.utils import PacketIdentifier, group_packets
+import lib.code.inventory
 import lib.code.language
 import lib.code.registry
 import lib.code.version
@@ -134,6 +135,7 @@ lib.code.language.write_language(language)
 print('Generating registries...')
 registries = lib.extract.get_registries_report(new_version_id)
 lib.code.registry.generate_registries(registries)
+lib.code.inventory.update_menus(registries['minecraft:menu']['entries'])
 
 print('Generating entity metadata...')
 burger_entities_data = new_burger_data[0]['entities']
