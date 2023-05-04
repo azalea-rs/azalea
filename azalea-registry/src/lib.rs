@@ -2949,7 +2949,8 @@ enum Item {
 registry! {
 enum LootConditionKind {
     Inverted => "minecraft:inverted",
-    Alternative => "minecraft:alternative",
+    AnyOf => "minecraft:any_of",
+    AllOf => "minecraft:all_of",
     RandomChance => "minecraft:random_chance",
     RandomChanceWithLooting => "minecraft:random_chance_with_looting",
     EntityProperties => "minecraft:entity_properties",
