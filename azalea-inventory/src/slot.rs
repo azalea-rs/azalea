@@ -118,10 +118,10 @@ impl ItemSlotData {
     ///   count: 2,
     ///   nbt: Default::default(),
     /// };
-    /// assert!(a.is_same_item(&b));
+    /// assert!(a.is_same_item_and_nbt(&b));
     ///
     /// b.kind = Item::Dirt;
-    /// assert!(!a.is_same_item(&b));
+    /// assert!(!a.is_same_item_and_nbt(&b));
     /// ```
     pub fn is_same_item_and_nbt(&self, other: &ItemSlotData) -> bool {
         self.kind == other.kind && self.nbt == other.nbt
