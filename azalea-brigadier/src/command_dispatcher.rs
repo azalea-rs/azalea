@@ -10,12 +10,12 @@ use std::{cell::RefCell, cmp::Ordering, collections::HashMap, marker::PhantomDat
 
 /// The root of the command tree. You need to make this to register commands.
 #[derive(Default)]
-pub struct CommandDispatcher<S> {
+pub struct CommandDispatcher<'a, S> {
     pub root: Rc<RefCell<CommandNode<S>>>,
-    _marker: PhantomData<S>,
+    _marker: PhantomData<(S, &'a ())>,
 }
 
-impl<S> CommandDispatcher<S> {
+impl<'a, S> CommandDispatcher<'a, S> {
     pub fn new() -> Self {
         Self {
             root: Rc::new(RefCell::new(CommandNode::default())),
@@ -30,21 +30,16 @@ impl<S> CommandDispatcher<S> {
     }
 
     pub fn parse(&self, command: StringReader, source: Rc<S>) -> ParseResults<S> {
-        let context = CommandContextBuilder::new(
-            Rc::new(self.clone()),
-            source,
-            self.root.clone(),
-            command.cursor(),
-        );
+        let context = CommandContextBuilder::new(self, source, self.root.clone(), command.cursor());
         self.parse_nodes(&self.root, &command, context).unwrap()
     }
 
     fn parse_nodes(
-        &self,
+        &'a self,
         node: &Rc<RefCell<CommandNode<S>>>,
         original_reader: &StringReader,
-        context_so_far: CommandContextBuilder<S>,
-    ) -> Result<ParseResults<S>, CommandSyntaxException> {
+        context_so_far: CommandContextBuilder<'a, S>,
+    ) -> Result<ParseResults<'a, S>, CommandSyntaxException> {
         let source = context_so_far.source.clone();
         let mut errors = HashMap::<Rc<CommandNode<S>>, CommandSyntaxException>::new();
         let mut potentials: Vec<ParseResults<S>> = vec![];
@@ -91,12 +86,8 @@ impl<S> CommandDispatcher<S> {
             }) {
                 reader.skip();
                 if let Some(redirect) = &child.borrow().redirect {
-                    let child_context = CommandContextBuilder::new(
-                        Rc::new(self.clone()),
-                        source,
-                        redirect.clone(),
-                        reader.cursor,
-                    );
+                    let child_context =
+                        CommandContextBuilder::new(self, source, redirect.clone(), reader.cursor);
                     let parse = self
                         .parse_nodes(redirect, &reader, child_context)
                         .expect("Parsing nodes failed");
@@ -285,14 +276,5 @@ impl<S> CommandDispatcher<S> {
             result
         })
         // Ok(if forked { successful_forks } else { result })
-    }
-}
-
-impl<S> Clone for CommandDispatcher<S> {
-    fn clone(&self) -> Self {
-        Self {
-            root: self.root.clone(),
-            _marker: PhantomData,
-        }
     }
 }

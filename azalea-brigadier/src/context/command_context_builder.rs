@@ -9,20 +9,20 @@ use crate::{
 };
 use std::{cell::RefCell, collections::HashMap, fmt::Debug, rc::Rc};
 
-pub struct CommandContextBuilder<S> {
+pub struct CommandContextBuilder<'a, S> {
     pub arguments: HashMap<String, ParsedArgument>,
     pub root: Rc<RefCell<CommandNode<S>>>,
     pub nodes: Vec<ParsedCommandNode<S>>,
-    pub dispatcher: Rc<CommandDispatcher<S>>,
+    pub dispatcher: &'a CommandDispatcher<'a, S>,
     pub source: Rc<S>,
     pub command: Command<S>,
-    pub child: Option<Rc<CommandContextBuilder<S>>>,
+    pub child: Option<Rc<CommandContextBuilder<'a, S>>>,
     pub range: StringRange,
     pub modifier: Option<Rc<RedirectModifier<S>>>,
     pub forks: bool,
 }
 
-impl<S> Clone for CommandContextBuilder<S> {
+impl<S> Clone for CommandContextBuilder<'_, S> {
     fn clone(&self) -> Self {
         Self {
             arguments: self.arguments.clone(),
@@ -39,9 +39,9 @@ impl<S> Clone for CommandContextBuilder<S> {
     }
 }
 
-impl<S> CommandContextBuilder<S> {
+impl<'a, S> CommandContextBuilder<'a, S> {
     pub fn new(
-        dispatcher: Rc<CommandDispatcher<S>>,
+        dispatcher: &'a CommandDispatcher<S>,
         source: Rc<S>,
         root_node: Rc<RefCell<CommandNode<S>>>,
         start: usize,
@@ -64,7 +64,7 @@ impl<S> CommandContextBuilder<S> {
         self.command = command.clone();
         self
     }
-    pub fn with_child(&mut self, child: Rc<CommandContextBuilder<S>>) -> &Self {
+    pub fn with_child(&mut self, child: Rc<CommandContextBuilder<'a, S>>) -> &Self {
         self.child = Some(child);
         self
     }
@@ -99,7 +99,7 @@ impl<S> CommandContextBuilder<S> {
     }
 }
 
-impl<S> Debug for CommandContextBuilder<S> {
+impl<S> Debug for CommandContextBuilder<'_, S> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("CommandContextBuilder")
             // .field("arguments", &self.arguments)
