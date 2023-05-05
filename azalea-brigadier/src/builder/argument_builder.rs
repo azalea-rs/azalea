@@ -25,19 +25,6 @@ pub struct ArgumentBuilder<S> {
     modifier: Option<Rc<RedirectModifier<S>>>,
 }
 
-impl<S> Clone for ArgumentBuilder<S> {
-    fn clone(&self) -> Self {
-        Self {
-            arguments: self.arguments.clone(),
-            command: self.command.clone(),
-            requirement: self.requirement.clone(),
-            target: self.target.clone(),
-            forks: self.forks,
-            modifier: self.modifier.clone(),
-        }
-    }
-}
-
 /// A node that isn't yet built.
 impl<S> ArgumentBuilder<S> {
     pub fn new(value: ArgumentBuilderType) -> Self {
@@ -54,37 +41,37 @@ impl<S> ArgumentBuilder<S> {
         }
     }
 
-    pub fn then(&mut self, argument: ArgumentBuilder<S>) -> Self {
+    pub fn then(self, argument: ArgumentBuilder<S>) -> Self {
         self.then_built(argument.build())
     }
 
-    pub fn then_built(&mut self, argument: CommandNode<S>) -> Self {
+    pub fn then_built(mut self, argument: CommandNode<S>) -> Self {
         self.arguments.add_child(&Rc::new(RefCell::new(argument)));
-        self.clone()
+        self
     }
 
-    pub fn executes<F>(&mut self, f: F) -> Self
+    pub fn executes<F>(mut self, f: F) -> Self
     where
         F: Fn(&CommandContext<S>) -> i32 + 'static,
     {
         self.command = Some(Rc::new(f));
-        self.clone()
+        self
     }
 
-    pub fn requires<F>(&mut self, requirement: F) -> Self
+    pub fn requires<F>(mut self, requirement: F) -> Self
     where
         F: Fn(Rc<S>) -> bool + 'static,
     {
         self.requirement = Rc::new(requirement);
-        self.clone()
+        self
     }
 
-    pub fn redirect(&mut self, target: Rc<RefCell<CommandNode<S>>>) -> Self {
+    pub fn redirect(self, target: Rc<RefCell<CommandNode<S>>>) -> Self {
         self.forward(target, None, false)
     }
 
     pub fn fork(
-        &mut self,
+        self,
         target: Rc<RefCell<CommandNode<S>>>,
         modifier: Rc<RedirectModifier<S>>,
     ) -> Self {
@@ -92,7 +79,7 @@ impl<S> ArgumentBuilder<S> {
     }
 
     pub fn forward(
-        &mut self,
+        mut self,
         target: Rc<RefCell<CommandNode<S>>>,
         modifier: Option<Rc<RedirectModifier<S>>>,
         fork: bool,
@@ -103,7 +90,7 @@ impl<S> ArgumentBuilder<S> {
         self.target = Some(target);
         self.modifier = modifier;
         self.forks = fork;
-        self.clone()
+        self
     }
 
     pub fn build(self) -> CommandNode<S> {
