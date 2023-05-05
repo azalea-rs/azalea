@@ -3,6 +3,8 @@ pub trait MaxStackSizeExt {
     ///
     /// This is a signed integer to be consistent with the `count` field of
     /// [`ItemSlotData`].
+    ///
+    /// [`ItemSlotData`]: crate::ItemSlotData
     fn max_stack_size(&self) -> i8;
 
     /// Whether this item can be stacked with other items.

@@ -26,7 +26,7 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
             name_snake_case.span(),
         );
         let enum_name = Ident::new(
-            &format!("{}MenuLocation", variant_name),
+            &format!("{variant_name}MenuLocation"),
             variant_name.span(),
         );
         menu_location_variants.extend(quote! {

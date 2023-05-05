@@ -25,8 +25,8 @@ pub trait ContainerClientExt {
 }
 
 impl ContainerClientExt for Client {
-    /// Open a container in the world, like a chest. Use [`Client::inventory`]
-    /// to open your own inventory.
+    /// Open a container in the world, like a chest. Use
+    /// [`Client::open_inventory`] to open your own inventory.
     ///
     /// ```
     /// # use azalea::prelude::*;

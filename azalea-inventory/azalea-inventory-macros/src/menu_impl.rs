@@ -406,13 +406,13 @@ fn generate_menu_consts(menu: &Menu) -> TokenStream {
 
         if field.length == 1 {
             let field_name = Ident::new(
-                format!("{}_SLOT", field_name_start).as_str(),
+                format!("{field_name_start}_SLOT").as_str(),
                 field.name.span(),
             );
             menu_consts.extend(quote! { pub const #field_name: usize = #field_index_start; });
         } else {
             let field_name = Ident::new(
-                format!("{}_SLOTS", field_name_start).as_str(),
+                format!("{field_name_start}_SLOTS").as_str(),
                 field.name.span(),
             );
             menu_consts.extend(quote! { pub const #field_name: RangeInclusive<usize> = #field_index_start..=#field_index_end; });
