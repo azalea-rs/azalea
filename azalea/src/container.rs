@@ -21,7 +21,7 @@ impl Plugin for ContainerPlugin {
 
 pub trait ContainerClientExt {
     async fn open_container(&mut self, pos: BlockPos) -> Option<ContainerHandle>;
-    fn inventory(&mut self) -> Option<ContainerHandle>;
+    fn open_inventory(&mut self) -> Option<ContainerHandle>;
 }
 
 impl ContainerClientExt for Client {
@@ -81,7 +81,7 @@ impl ContainerClientExt for Client {
     /// Note that this will send a packet to the server once it's dropped. Also,
     /// due to how it's implemented, you could call this function multiple times
     /// while another inventory handle already exists (but you shouldn't).
-    fn inventory(&mut self) -> Option<ContainerHandle> {
+    fn open_inventory(&mut self) -> Option<ContainerHandle> {
         let ecs = self.ecs.lock();
         let inventory = ecs
             .get::<InventoryComponent>(self.entity)
