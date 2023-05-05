@@ -12,6 +12,7 @@ pub mod swarm;
 use app::{App, Plugin, PluginGroup};
 pub use azalea_auth as auth;
 pub use azalea_block as blocks;
+pub use azalea_brigadier as brigadier;
 pub use azalea_client::*;
 pub use azalea_core::{BlockPos, Vec3};
 pub use azalea_protocol as protocol;

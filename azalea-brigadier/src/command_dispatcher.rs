@@ -8,6 +8,7 @@ use crate::{
 };
 use std::{cell::RefCell, cmp::Ordering, collections::HashMap, marker::PhantomData, mem, rc::Rc};
 
+/// The root of the command tree. You need to make this to register commands.
 #[derive(Default)]
 pub struct CommandDispatcher<S> {
     pub root: Rc<RefCell<CommandNode<S>>>,
