@@ -11,7 +11,6 @@ use crate::{
 use std::{cmp::Ordering, collections::HashMap, mem, rc::Rc, sync::Arc};
 
 /// The root of the command tree. You need to make this to register commands.
-#[derive(Default)]
 pub struct CommandDispatcher<S>
 where
     Self: Sync + Send,
@@ -276,5 +275,11 @@ impl<S> CommandDispatcher<S> {
             result
         })
         // Ok(if forked { successful_forks } else { result })
+    }
+}
+
+impl<S> Default for CommandDispatcher<S> {
+    fn default() -> Self {
+        Self::new()
     }
 }
