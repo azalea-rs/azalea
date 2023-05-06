@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::sync::Arc;
 
 use azalea_brigadier::{
     arguments::integer_argument_type::integer,
@@ -25,7 +25,7 @@ fn create_and_execute_command() {
 
     assert_eq!(
         subject
-            .execute("foo".into(), Rc::new(CommandSource {}))
+            .execute("foo".into(), Arc::new(CommandSource {}))
             .unwrap(),
         42
     );
@@ -38,7 +38,7 @@ fn create_and_execute_offset_command() {
 
     assert_eq!(
         subject
-            .execute(input_with_offset("/foo", 1), Rc::new(CommandSource {}))
+            .execute(input_with_offset("/foo", 1), Arc::new(CommandSource {}))
             .unwrap(),
         42
     );
@@ -52,13 +52,13 @@ fn create_and_merge_commands() {
 
     assert_eq!(
         subject
-            .execute("base foo".into(), Rc::new(CommandSource {}))
+            .execute("base foo".into(), Arc::new(CommandSource {}))
             .unwrap(),
         42
     );
     assert_eq!(
         subject
-            .execute("base bar".into(), Rc::new(CommandSource {}))
+            .execute("base bar".into(), Arc::new(CommandSource {}))
             .unwrap(),
         42
     );
@@ -70,7 +70,7 @@ fn execute_unknown_command() {
     subject.register(literal("bar"));
     subject.register(literal("baz"));
 
-    let execute_result = subject.execute("foo".into(), Rc::new(CommandSource {}));
+    let execute_result = subject.execute("foo".into(), Arc::new(CommandSource {}));
 
     let err = execute_result.err().unwrap();
     match err.type_ {
@@ -85,7 +85,7 @@ fn execute_impermissible_command() {
     let mut subject = CommandDispatcher::new();
     subject.register(literal("foo").requires(|_| false));
 
-    let execute_result = subject.execute("foo".into(), Rc::new(CommandSource {}));
+    let execute_result = subject.execute("foo".into(), Arc::new(CommandSource {}));
 
     let err = execute_result.err().unwrap();
     match err.type_ {
@@ -100,7 +100,7 @@ fn execute_empty_command() {
     let mut subject = CommandDispatcher::new();
     subject.register(literal(""));
 
-    let execute_result = subject.execute("".into(), Rc::new(CommandSource {}));
+    let execute_result = subject.execute("".into(), Arc::new(CommandSource {}));
 
     let err = execute_result.err().unwrap();
     match err.type_ {
@@ -115,7 +115,7 @@ fn execute_unknown_subcommand() {
     let mut subject = CommandDispatcher::new();
     subject.register(literal("foo").executes(|_| 42));
 
-    let execute_result = subject.execute("foo bar".into(), Rc::new(CommandSource {}));
+    let execute_result = subject.execute("foo bar".into(), Arc::new(CommandSource {}));
 
     let err = execute_result.err().unwrap();
     match err.type_ {
@@ -130,7 +130,7 @@ fn execute_incorrect_literal() {
     let mut subject = CommandDispatcher::new();
     subject.register(literal("foo").executes(|_| 42).then(literal("bar")));
 
-    let execute_result = subject.execute("foo baz".into(), Rc::new(CommandSource {}));
+    let execute_result = subject.execute("foo baz".into(), Arc::new(CommandSource {}));
 
     let err = execute_result.err().unwrap();
     match err.type_ {
@@ -150,7 +150,7 @@ fn execute_ambiguous_incorrect_argument() {
             .then(literal("baz")),
     );
 
-    let execute_result = subject.execute("foo unknown".into(), Rc::new(CommandSource {}));
+    let execute_result = subject.execute("foo unknown".into(), Arc::new(CommandSource {}));
 
     let err = execute_result.err().unwrap();
     match err.type_ {
@@ -174,7 +174,7 @@ fn execute_subcommand() {
 
     assert_eq!(
         subject
-            .execute("foo =".into(), Rc::new(CommandSource {}))
+            .execute("foo =".into(), Arc::new(CommandSource {}))
             .unwrap(),
         100
     );
@@ -185,7 +185,7 @@ fn parse_incomplete_literal() {
     let mut subject = CommandDispatcher::new();
     subject.register(literal("foo").then(literal("bar").executes(|_| 42)));
 
-    let parse = subject.parse("foo ".into(), Rc::new(CommandSource {}));
+    let parse = subject.parse("foo ".into(), Arc::new(CommandSource {}));
     assert_eq!(parse.reader.remaining(), " ");
     assert_eq!(parse.context.nodes.len(), 1);
 }
@@ -195,7 +195,7 @@ fn parse_incomplete_argument() {
     let mut subject = CommandDispatcher::new();
     subject.register(literal("foo").then(argument("bar", integer()).executes(|_| 42)));
 
-    let parse = subject.parse("foo ".into(), Rc::new(CommandSource {}));
+    let parse = subject.parse("foo ".into(), Arc::new(CommandSource {}));
     assert_eq!(parse.reader.remaining(), " ");
     assert_eq!(parse.context.nodes.len(), 1);
 }
@@ -212,7 +212,7 @@ fn execute_ambiguious_parent_subcommand() {
 
     assert_eq!(
         subject
-            .execute("test 1 2".into(), Rc::new(CommandSource {}))
+            .execute("test 1 2".into(), Arc::new(CommandSource {}))
             .unwrap(),
         100
     );
@@ -232,7 +232,7 @@ fn execute_ambiguious_parent_subcommand_via_redirect() {
 
     assert_eq!(
         subject
-            .execute("redirect 1 2".into(), Rc::new(CommandSource {}))
+            .execute("redirect 1 2".into(), Arc::new(CommandSource {}))
             .unwrap(),
         100
     );
@@ -248,7 +248,7 @@ fn execute_redirected_multiple_times() {
 
     let input = "redirected redirected actual";
 
-    let parse = subject.parse(input.into(), Rc::new(CommandSource {}));
+    let parse = subject.parse(input.into(), Arc::new(CommandSource {}));
     assert_eq!(parse.context.range.get(input), "redirected");
     assert_eq!(parse.context.nodes.len(), 1);
     assert_eq!(*parse.context.root.read(), *root.read());
@@ -287,19 +287,19 @@ fn execute_redirected_multiple_times() {
 fn execute_redirected() {
     let mut subject = CommandDispatcher::new();
 
-    let source1 = Rc::new(CommandSource {});
-    let source2 = Rc::new(CommandSource {});
+    let source1 = Arc::new(CommandSource {});
+    let source2 = Arc::new(CommandSource {});
 
-    let modifier = move |_: &CommandContext<CommandSource>| -> Result<Vec<Rc<CommandSource>>, CommandSyntaxException> {
+    let modifier = move |_: &CommandContext<CommandSource>| -> Result<Vec<Arc<CommandSource>>, CommandSyntaxException> {
             Ok(vec![source1.clone(), source2.clone()])
         };
 
     let concrete_node = subject.register(literal("actual").executes(|_| 42));
     let redirect_node =
-        subject.register(literal("redirected").fork(subject.root.clone(), Rc::new(modifier)));
+        subject.register(literal("redirected").fork(subject.root.clone(), Arc::new(modifier)));
 
     let input = "redirected actual";
-    let parse = subject.parse(input.into(), Rc::new(CommandSource {}));
+    let parse = subject.parse(input.into(), Arc::new(CommandSource {}));
     assert_eq!(parse.context.range.get(input), "redirected");
     assert_eq!(parse.context.nodes.len(), 1);
     assert_eq!(*parse.context.root.read(), *subject.root.read());
@@ -314,7 +314,7 @@ fn execute_redirected() {
     assert_eq!(*parse.context.root.read(), *subject.root.read());
     assert_eq!(parent.nodes[0].range, parent.range);
     assert_eq!(*parent.nodes[0].node.read(), *concrete_node.read());
-    assert_eq!(parent.source, Rc::new(CommandSource {}));
+    assert_eq!(parent.source, Arc::new(CommandSource {}));
 
     assert_eq!(CommandDispatcher::execute_parsed(parse).unwrap(), 2);
 }
@@ -329,7 +329,7 @@ fn execute_orphaned_subcommand() {
             .executes(|_| 42),
     );
 
-    let result = subject.execute("foo 5".into(), Rc::new(CommandSource {}));
+    let result = subject.execute("foo 5".into(), Arc::new(CommandSource {}));
     assert!(result.is_err());
     let result = result.unwrap_err();
     assert_eq!(
@@ -348,7 +348,7 @@ fn execute_invalid_other() {
 
     assert_eq!(
         subject
-            .execute("world".into(), Rc::new(CommandSource {}))
+            .execute("world".into(), Arc::new(CommandSource {}))
             .unwrap(),
         42
     );
@@ -364,7 +364,7 @@ fn parse_no_space_separator() {
             .executes(|_| 42),
     );
 
-    let result = subject.execute("foo$".into(), Rc::new(CommandSource {}));
+    let result = subject.execute("foo$".into(), Arc::new(CommandSource {}));
     assert!(result.is_err());
     let result = result.unwrap_err();
     assert_eq!(
@@ -384,7 +384,7 @@ fn execute_invalid_subcommand() {
             .executes(|_| 42),
     );
 
-    let result = subject.execute("foo bar".into(), Rc::new(CommandSource {}));
+    let result = subject.execute("foo bar".into(), Arc::new(CommandSource {}));
     assert!(result.is_err());
     let result = result.unwrap_err();
     // this fails for some reason, i blame mojang

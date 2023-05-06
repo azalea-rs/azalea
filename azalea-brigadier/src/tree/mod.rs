@@ -10,9 +10,9 @@ use crate::{
     modifier::RedirectModifier,
     string_reader::StringReader,
 };
-use std::{collections::HashMap, fmt::Debug, hash::Hash, ptr, rc::Rc, sync::Arc};
+use std::{collections::HashMap, fmt::Debug, hash::Hash, ptr, sync::Arc};
 
-pub type Command<S> = Option<Rc<dyn Fn(&CommandContext<S>) -> i32>>;
+pub type Command<S> = Option<Arc<dyn Fn(&CommandContext<S>) -> i32 + Send + Sync>>;
 
 /// An ArgumentBuilder that has been built.
 #[non_exhaustive]
@@ -24,10 +24,10 @@ pub struct CommandNode<S> {
     pub arguments: HashMap<String, Arc<RwLock<CommandNode<S>>>>,
 
     pub command: Command<S>,
-    pub requirement: Rc<dyn Fn(Rc<S>) -> bool>,
+    pub requirement: Arc<dyn Fn(Arc<S>) -> bool + Send + Sync>,
     pub redirect: Option<Arc<RwLock<CommandNode<S>>>>,
     pub forks: bool,
-    pub modifier: Option<Rc<RedirectModifier<S>>>,
+    pub modifier: Option<Arc<RedirectModifier<S>>>,
 }
 
 impl<S> Clone for CommandNode<S> {
@@ -90,7 +90,7 @@ impl<S> CommandNode<S> {
         }
     }
 
-    pub fn can_use(&self, source: Rc<S>) -> bool {
+    pub fn can_use(&self, source: Arc<S>) -> bool {
         (self.requirement)(source)
     }
 
@@ -221,7 +221,7 @@ impl<S> Default for CommandNode<S> {
             arguments: HashMap::new(),
 
             command: None,
-            requirement: Rc::new(|_| true),
+            requirement: Arc::new(|_| true),
             redirect: None,
             forks: false,
             modifier: None,
@@ -257,7 +257,7 @@ impl<S> PartialEq for CommandNode<S> {
             // idk how to do this better since we can't compare `dyn Fn`s
             if let Some(otherexecutes) = &other.command {
                 #[allow(clippy::vtable_address_comparisons)]
-                if !Rc::ptr_eq(selfexecutes, otherexecutes) {
+                if !Arc::ptr_eq(selfexecutes, otherexecutes) {
                     return false;
                 }
             } else {

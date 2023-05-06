@@ -1,6 +1,6 @@
-use std::rc::Rc;
+use std::sync::Arc;
 
 use crate::{context::CommandContext, exceptions::CommandSyntaxException};
 
 pub type RedirectModifier<S> =
-    dyn Fn(&CommandContext<S>) -> Result<Vec<Rc<S>>, CommandSyntaxException>;
+    dyn Fn(&CommandContext<S>) -> Result<Vec<Arc<S>>, CommandSyntaxException> + Send + Sync;

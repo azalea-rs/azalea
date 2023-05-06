@@ -7,7 +7,7 @@ use crate::{
 };
 
 use super::{literal_argument_builder::Literal, required_argument_builder::Argument};
-use std::{fmt::Debug, rc::Rc, sync::Arc};
+use std::{fmt::Debug, sync::Arc};
 
 #[derive(Debug, Clone)]
 pub enum ArgumentBuilderType {
@@ -20,11 +20,11 @@ pub struct ArgumentBuilder<S> {
     arguments: CommandNode<S>,
 
     command: Command<S>,
-    requirement: Rc<dyn Fn(Rc<S>) -> bool>,
+    requirement: Arc<dyn Fn(Arc<S>) -> bool + Send + Sync>,
     target: Option<Arc<RwLock<CommandNode<S>>>>,
 
     forks: bool,
-    modifier: Option<Rc<RedirectModifier<S>>>,
+    modifier: Option<Arc<RedirectModifier<S>>>,
 }
 
 /// A node that isn't yet built.
@@ -36,7 +36,7 @@ impl<S> ArgumentBuilder<S> {
                 ..Default::default()
             },
             command: None,
-            requirement: Rc::new(|_| true),
+            requirement: Arc::new(|_| true),
             forks: false,
             modifier: None,
             target: None,
@@ -54,17 +54,17 @@ impl<S> ArgumentBuilder<S> {
 
     pub fn executes<F>(mut self, f: F) -> Self
     where
-        F: Fn(&CommandContext<S>) -> i32 + 'static,
+        F: Fn(&CommandContext<S>) -> i32 + Send + Sync + 'static,
     {
-        self.command = Some(Rc::new(f));
+        self.command = Some(Arc::new(f));
         self
     }
 
     pub fn requires<F>(mut self, requirement: F) -> Self
     where
-        F: Fn(Rc<S>) -> bool + 'static,
+        F: Fn(Arc<S>) -> bool + Send + Sync + 'static,
     {
-        self.requirement = Rc::new(requirement);
+        self.requirement = Arc::new(requirement);
         self
     }
 
@@ -75,7 +75,7 @@ impl<S> ArgumentBuilder<S> {
     pub fn fork(
         self,
         target: Arc<RwLock<CommandNode<S>>>,
-        modifier: Rc<RedirectModifier<S>>,
+        modifier: Arc<RedirectModifier<S>>,
     ) -> Self {
         self.forward(target, Some(modifier), true)
     }
@@ -83,7 +83,7 @@ impl<S> ArgumentBuilder<S> {
     pub fn forward(
         mut self,
         target: Arc<RwLock<CommandNode<S>>>,
-        modifier: Option<Rc<RedirectModifier<S>>>,
+        modifier: Option<Arc<RedirectModifier<S>>>,
         fork: bool,
     ) -> Self {
         if !self.arguments.children.is_empty() {

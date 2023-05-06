@@ -13,8 +13,8 @@ use std::{cmp::Ordering, collections::HashMap, mem, rc::Rc, sync::Arc};
 /// The root of the command tree. You need to make this to register commands.
 #[derive(Default)]
 pub struct CommandDispatcher<S>
-// where
-//     Self: Sync + Send,
+where
+    Self: Sync + Send,
 {
     pub root: Arc<RwLock<CommandNode<S>>>,
 }
@@ -32,7 +32,7 @@ impl<S> CommandDispatcher<S> {
         build
     }
 
-    pub fn parse(&self, command: StringReader, source: Rc<S>) -> ParseResults<S> {
+    pub fn parse(&self, command: StringReader, source: Arc<S>) -> ParseResults<S> {
         let context = CommandContextBuilder::new(self, source, self.root.clone(), command.cursor());
         self.parse_nodes(&self.root, &command, context).unwrap()
     }
@@ -91,7 +91,7 @@ impl<S> CommandDispatcher<S> {
                     let parse = self
                         .parse_nodes(redirect, &reader, child_context)
                         .expect("Parsing nodes failed");
-                    context.with_child(Rc::new(parse.context));
+                    context.with_child(Arc::new(parse.context));
                     return Ok(ParseResults {
                         context,
                         reader: parse.reader,
@@ -144,7 +144,7 @@ impl<S> CommandDispatcher<S> {
     pub fn execute(
         &self,
         input: StringReader,
-        source: Rc<S>,
+        source: Arc<S>,
     ) -> Result<i32, CommandSyntaxException> {
         let parse = self.parse(input, source);
         Self::execute_parsed(parse)
