@@ -1,3 +1,5 @@
+use parking_lot::RwLock;
+
 use crate::{
     context::CommandContext,
     modifier::RedirectModifier,
@@ -5,7 +7,7 @@ use crate::{
 };
 
 use super::{literal_argument_builder::Literal, required_argument_builder::Argument};
-use std::{cell::RefCell, fmt::Debug, rc::Rc};
+use std::{fmt::Debug, rc::Rc, sync::Arc};
 
 #[derive(Debug, Clone)]
 pub enum ArgumentBuilderType {
@@ -19,7 +21,7 @@ pub struct ArgumentBuilder<S> {
 
     command: Command<S>,
     requirement: Rc<dyn Fn(Rc<S>) -> bool>,
-    target: Option<Rc<RefCell<CommandNode<S>>>>,
+    target: Option<Arc<RwLock<CommandNode<S>>>>,
 
     forks: bool,
     modifier: Option<Rc<RedirectModifier<S>>>,
@@ -46,7 +48,7 @@ impl<S> ArgumentBuilder<S> {
     }
 
     pub fn then_built(mut self, argument: CommandNode<S>) -> Self {
-        self.arguments.add_child(&Rc::new(RefCell::new(argument)));
+        self.arguments.add_child(&Arc::new(RwLock::new(argument)));
         self
     }
 
@@ -66,13 +68,13 @@ impl<S> ArgumentBuilder<S> {
         self
     }
 
-    pub fn redirect(self, target: Rc<RefCell<CommandNode<S>>>) -> Self {
+    pub fn redirect(self, target: Arc<RwLock<CommandNode<S>>>) -> Self {
         self.forward(target, None, false)
     }
 
     pub fn fork(
         self,
-        target: Rc<RefCell<CommandNode<S>>>,
+        target: Arc<RwLock<CommandNode<S>>>,
         modifier: Rc<RedirectModifier<S>>,
     ) -> Self {
         self.forward(target, Some(modifier), true)
@@ -80,7 +82,7 @@ impl<S> ArgumentBuilder<S> {
 
     pub fn forward(
         mut self,
-        target: Rc<RefCell<CommandNode<S>>>,
+        target: Arc<RwLock<CommandNode<S>>>,
         modifier: Option<Rc<RedirectModifier<S>>>,
         fork: bool,
     ) -> Self {

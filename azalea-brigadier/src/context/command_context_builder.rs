@@ -1,3 +1,5 @@
+use parking_lot::RwLock;
+
 use super::{
     command_context::CommandContext, parsed_command_node::ParsedCommandNode,
     string_range::StringRange, ParsedArgument,
@@ -7,13 +9,13 @@ use crate::{
     modifier::RedirectModifier,
     tree::{Command, CommandNode},
 };
-use std::{cell::RefCell, collections::HashMap, fmt::Debug, rc::Rc};
+use std::{collections::HashMap, fmt::Debug, rc::Rc, sync::Arc};
 
 pub struct CommandContextBuilder<'a, S> {
     pub arguments: HashMap<String, ParsedArgument>,
-    pub root: Rc<RefCell<CommandNode<S>>>,
+    pub root: Arc<RwLock<CommandNode<S>>>,
     pub nodes: Vec<ParsedCommandNode<S>>,
-    pub dispatcher: &'a CommandDispatcher<'a, S>,
+    pub dispatcher: &'a CommandDispatcher<S>,
     pub source: Rc<S>,
     pub command: Command<S>,
     pub child: Option<Rc<CommandContextBuilder<'a, S>>>,
@@ -28,7 +30,7 @@ impl<S> Clone for CommandContextBuilder<'_, S> {
             arguments: self.arguments.clone(),
             root: self.root.clone(),
             nodes: self.nodes.clone(),
-            dispatcher: self.dispatcher.clone(),
+            dispatcher: self.dispatcher,
             source: self.source.clone(),
             command: self.command.clone(),
             child: self.child.clone(),
@@ -43,7 +45,7 @@ impl<'a, S> CommandContextBuilder<'a, S> {
     pub fn new(
         dispatcher: &'a CommandDispatcher<S>,
         source: Rc<S>,
-        root_node: Rc<RefCell<CommandNode<S>>>,
+        root_node: Arc<RwLock<CommandNode<S>>>,
         start: usize,
     ) -> Self {
         Self {
@@ -72,14 +74,14 @@ impl<'a, S> CommandContextBuilder<'a, S> {
         self.arguments.insert(name.to_string(), argument);
         self
     }
-    pub fn with_node(&mut self, node: Rc<RefCell<CommandNode<S>>>, range: StringRange) -> &Self {
+    pub fn with_node(&mut self, node: Arc<RwLock<CommandNode<S>>>, range: StringRange) -> &Self {
         self.nodes.push(ParsedCommandNode {
             node: node.clone(),
             range: range.clone(),
         });
         self.range = StringRange::encompassing(&self.range, &range);
-        self.modifier = node.borrow().modifier.clone();
-        self.forks = node.borrow().forks;
+        self.modifier = node.read().modifier.clone();
+        self.forks = node.read().forks;
         self
     }
 

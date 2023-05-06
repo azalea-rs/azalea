@@ -17,13 +17,14 @@ use super::ArgumentBuilder;
 
 //     @Test
 //     public void testArguments() throws Exception {
-//         final RequiredArgumentBuilder<Object, ?> argument = argument("bar", integer());
+//         final RequiredArgumentBuilder<Object, ?> argument = argument("bar",
+// integer());
 
 //         builder.then(argument);
 
 //         assertThat(builder.getArguments(), hasSize(1));
-//         assertThat(builder.getArguments(), hasItem((CommandNode<Object>) argument.build()));
-//     }
+//         assertThat(builder.getArguments(), hasItem((CommandNode<Object>)
+// argument.build()));     }
 
 #[test]
 fn test_arguments() {
@@ -37,7 +38,7 @@ fn test_arguments() {
         .arguments
         .children
         .values()
-        .any(|e| *e.borrow() == *built_argument));
+        .any(|e| *e.read() == *built_argument));
 }
 
 //     @Test
@@ -61,8 +62,8 @@ fn test_arguments() {
 //         builder.then(literal("foo"));
 //     }
 
-//     private static class TestableArgumentBuilder<S> extends ArgumentBuilder<S, TestableArgumentBuilder<S>> {
-//         @Override
+//     private static class TestableArgumentBuilder<S> extends
+// ArgumentBuilder<S, TestableArgumentBuilder<S>> {         @Override
 //         protected TestableArgumentBuilder<S> getThis() {
 //             return this;
 //         }

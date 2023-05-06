@@ -1,3 +1,5 @@
+use parking_lot::RwLock;
+
 use crate::{
     builder::argument_builder::ArgumentBuilder,
     context::{CommandContext, CommandContextBuilder},
@@ -6,26 +8,27 @@ use crate::{
     string_reader::StringReader,
     tree::CommandNode,
 };
-use std::{cell::RefCell, cmp::Ordering, collections::HashMap, marker::PhantomData, mem, rc::Rc};
+use std::{cmp::Ordering, collections::HashMap, mem, rc::Rc, sync::Arc};
 
 /// The root of the command tree. You need to make this to register commands.
 #[derive(Default)]
-pub struct CommandDispatcher<'a, S> {
-    pub root: Rc<RefCell<CommandNode<S>>>,
-    _marker: PhantomData<(S, &'a ())>,
+pub struct CommandDispatcher<S>
+// where
+//     Self: Sync + Send,
+{
+    pub root: Arc<RwLock<CommandNode<S>>>,
 }
 
-impl<'a, S> CommandDispatcher<'a, S> {
+impl<S> CommandDispatcher<S> {
     pub fn new() -> Self {
         Self {
-            root: Rc::new(RefCell::new(CommandNode::default())),
-            _marker: PhantomData,
+            root: Arc::new(RwLock::new(CommandNode::default())),
         }
     }
 
-    pub fn register(&mut self, node: ArgumentBuilder<S>) -> Rc<RefCell<CommandNode<S>>> {
-        let build = Rc::new(RefCell::new(node.build()));
-        self.root.borrow_mut().add_child(&build);
+    pub fn register(&mut self, node: ArgumentBuilder<S>) -> Arc<RwLock<CommandNode<S>>> {
+        let build = Arc::new(RwLock::new(node.build()));
+        self.root.write().add_child(&build);
         build
     }
 
@@ -34,9 +37,9 @@ impl<'a, S> CommandDispatcher<'a, S> {
         self.parse_nodes(&self.root, &command, context).unwrap()
     }
 
-    fn parse_nodes(
+    fn parse_nodes<'a>(
         &'a self,
-        node: &Rc<RefCell<CommandNode<S>>>,
+        node: &Arc<RwLock<CommandNode<S>>>,
         original_reader: &StringReader,
         context_so_far: CommandContextBuilder<'a, S>,
     ) -> Result<ParseResults<'a, S>, CommandSyntaxException> {
@@ -45,21 +48,18 @@ impl<'a, S> CommandDispatcher<'a, S> {
         let mut potentials: Vec<ParseResults<S>> = vec![];
         let cursor = original_reader.cursor();
 
-        for child in node
-            .borrow()
-            .get_relevant_nodes(&mut original_reader.clone())
-        {
-            if !child.borrow().can_use(source.clone()) {
+        for child in node.read().get_relevant_nodes(&mut original_reader.clone()) {
+            if !child.read().can_use(source.clone()) {
                 continue;
             }
             let mut context = context_so_far.clone();
             let mut reader = original_reader.clone();
 
             let parse_with_context_result =
-                child.borrow().parse_with_context(&mut reader, &mut context);
+                child.read().parse_with_context(&mut reader, &mut context);
             if let Err(ex) = parse_with_context_result {
                 errors.insert(
-                    Rc::new((*child.borrow()).clone()),
+                    Rc::new((*child.read()).clone()),
                     BuiltInExceptions::DispatcherParseException {
                         message: ex.message(),
                     }
@@ -70,7 +70,7 @@ impl<'a, S> CommandDispatcher<'a, S> {
             }
             if reader.can_read() && reader.peek() != ' ' {
                 errors.insert(
-                    Rc::new((*child.borrow()).clone()),
+                    Rc::new((*child.read()).clone()),
                     BuiltInExceptions::DispatcherExpectedArgumentSeparator
                         .create_with_context(&reader),
                 );
@@ -78,14 +78,14 @@ impl<'a, S> CommandDispatcher<'a, S> {
                 continue;
             }
 
-            context.with_command(&child.borrow().command);
-            if reader.can_read_length(if child.borrow().redirect.is_none() {
+            context.with_command(&child.read().command);
+            if reader.can_read_length(if child.read().redirect.is_none() {
                 2
             } else {
                 1
             }) {
                 reader.skip();
-                if let Some(redirect) = &child.borrow().redirect {
+                if let Some(redirect) = &child.read().redirect {
                     let child_context =
                         CommandContextBuilder::new(self, source, redirect.clone(), reader.cursor);
                     let parse = self
@@ -151,30 +151,30 @@ impl<'a, S> CommandDispatcher<'a, S> {
     }
 
     pub fn add_paths(
-        node: Rc<RefCell<CommandNode<S>>>,
-        result: &mut Vec<Vec<Rc<RefCell<CommandNode<S>>>>>,
-        parents: Vec<Rc<RefCell<CommandNode<S>>>>,
+        node: Arc<RwLock<CommandNode<S>>>,
+        result: &mut Vec<Vec<Arc<RwLock<CommandNode<S>>>>>,
+        parents: Vec<Arc<RwLock<CommandNode<S>>>>,
     ) {
         let mut current = parents;
         current.push(node.clone());
         result.push(current.clone());
 
-        for child in node.borrow().children.values() {
+        for child in node.read().children.values() {
             Self::add_paths(child.clone(), result, current.clone());
         }
     }
 
     pub fn get_path(&self, target: CommandNode<S>) -> Vec<String> {
-        let rc_target = Rc::new(RefCell::new(target));
-        let mut nodes: Vec<Vec<Rc<RefCell<CommandNode<S>>>>> = Vec::new();
+        let rc_target = Arc::new(RwLock::new(target));
+        let mut nodes: Vec<Vec<Arc<RwLock<CommandNode<S>>>>> = Vec::new();
         Self::add_paths(self.root.clone(), &mut nodes, vec![]);
 
         for list in nodes {
-            if *list.last().expect("Nothing in list").borrow() == *rc_target.borrow() {
+            if *list.last().expect("Nothing in list").read() == *rc_target.read() {
                 let mut result: Vec<String> = Vec::with_capacity(list.len());
                 for node in list {
-                    if node != self.root {
-                        result.push(node.borrow().name().to_string());
+                    if !Arc::ptr_eq(&node, &self.root) {
+                        result.push(node.read().name().to_string());
                     }
                 }
                 return result;
@@ -183,10 +183,10 @@ impl<'a, S> CommandDispatcher<'a, S> {
         vec![]
     }
 
-    pub fn find_node(&self, path: &[&str]) -> Option<Rc<RefCell<CommandNode<S>>>> {
+    pub fn find_node(&self, path: &[&str]) -> Option<Arc<RwLock<CommandNode<S>>>> {
         let mut node = self.root.clone();
         for name in path {
-            if let Some(child) = node.clone().borrow().child(name) {
+            if let Some(child) = node.clone().read().child(name) {
                 node = child;
             } else {
                 return None;

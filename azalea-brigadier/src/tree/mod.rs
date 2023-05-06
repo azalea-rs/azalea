@@ -1,3 +1,5 @@
+use parking_lot::RwLock;
+
 use crate::{
     builder::{
         argument_builder::ArgumentBuilderType, literal_argument_builder::Literal,
@@ -8,7 +10,7 @@ use crate::{
     modifier::RedirectModifier,
     string_reader::StringReader,
 };
-use std::{cell::RefCell, collections::HashMap, fmt::Debug, hash::Hash, ptr, rc::Rc};
+use std::{collections::HashMap, fmt::Debug, hash::Hash, ptr, rc::Rc, sync::Arc};
 
 pub type Command<S> = Option<Rc<dyn Fn(&CommandContext<S>) -> i32>>;
 
@@ -17,13 +19,13 @@ pub type Command<S> = Option<Rc<dyn Fn(&CommandContext<S>) -> i32>>;
 pub struct CommandNode<S> {
     pub value: ArgumentBuilderType,
 
-    pub children: HashMap<String, Rc<RefCell<CommandNode<S>>>>,
-    pub literals: HashMap<String, Rc<RefCell<CommandNode<S>>>>,
-    pub arguments: HashMap<String, Rc<RefCell<CommandNode<S>>>>,
+    pub children: HashMap<String, Arc<RwLock<CommandNode<S>>>>,
+    pub literals: HashMap<String, Arc<RwLock<CommandNode<S>>>>,
+    pub arguments: HashMap<String, Arc<RwLock<CommandNode<S>>>>,
 
     pub command: Command<S>,
     pub requirement: Rc<dyn Fn(Rc<S>) -> bool>,
-    pub redirect: Option<Rc<RefCell<CommandNode<S>>>>,
+    pub redirect: Option<Arc<RwLock<CommandNode<S>>>>,
     pub forks: bool,
     pub modifier: Option<Rc<RedirectModifier<S>>>,
 }
@@ -62,7 +64,7 @@ impl<S> CommandNode<S> {
         }
     }
 
-    pub fn get_relevant_nodes(&self, input: &mut StringReader) -> Vec<Rc<RefCell<CommandNode<S>>>> {
+    pub fn get_relevant_nodes(&self, input: &mut StringReader) -> Vec<Arc<RwLock<CommandNode<S>>>> {
         let literals = &self.literals;
 
         if literals.is_empty() {
@@ -92,20 +94,20 @@ impl<S> CommandNode<S> {
         (self.requirement)(source)
     }
 
-    pub fn add_child(&mut self, node: &Rc<RefCell<CommandNode<S>>>) {
-        let child = self.children.get(node.borrow().name());
+    pub fn add_child(&mut self, node: &Arc<RwLock<CommandNode<S>>>) {
+        let child = self.children.get(node.read().name());
         if let Some(child) = child {
             // We've found something to merge onto
-            if let Some(command) = &node.borrow().command {
-                child.borrow_mut().command = Some(command.clone());
+            if let Some(command) = &node.read().command {
+                child.write().command = Some(command.clone());
             }
-            for grandchild in node.borrow().children.values() {
-                child.borrow_mut().add_child(grandchild);
+            for grandchild in node.read().children.values() {
+                child.write().add_child(grandchild);
             }
         } else {
             self.children
-                .insert(node.borrow().name().to_string(), node.clone());
-            match &node.borrow().value {
+                .insert(node.read().name().to_string(), node.clone());
+            match &node.read().value {
                 ArgumentBuilderType::Literal(literal) => {
                     self.literals.insert(literal.value.clone(), node.clone());
                 }
@@ -123,7 +125,7 @@ impl<S> CommandNode<S> {
         }
     }
 
-    pub fn child(&self, name: &str) -> Option<Rc<RefCell<CommandNode<S>>>> {
+    pub fn child(&self, name: &str) -> Option<Arc<RwLock<CommandNode<S>>>> {
         self.children.get(name).cloned()
     }
 
@@ -142,7 +144,7 @@ impl<S> CommandNode<S> {
                 };
 
                 context_builder.with_argument(&argument.name, parsed.clone());
-                context_builder.with_node(Rc::new(RefCell::new(self.clone())), parsed.range);
+                context_builder.with_node(Arc::new(RwLock::new(self.clone())), parsed.range);
 
                 Ok(())
             }
@@ -152,7 +154,7 @@ impl<S> CommandNode<S> {
 
                 if let Some(end) = end {
                     context_builder.with_node(
-                        Rc::new(RefCell::new(self.clone())),
+                        Arc::new(RwLock::new(self.clone())),
                         StringRange::between(start, end),
                     );
                     return Ok(());
@@ -232,7 +234,7 @@ impl<S> Hash for CommandNode<S> {
         // hash the children
         for (k, v) in &self.children {
             k.hash(state);
-            v.borrow().hash(state);
+            v.read().hash(state);
         }
         // i hope this works because if doesn't then that'll be a problem
         ptr::hash(&self.command, state);
@@ -241,9 +243,16 @@ impl<S> Hash for CommandNode<S> {
 
 impl<S> PartialEq for CommandNode<S> {
     fn eq(&self, other: &Self) -> bool {
-        if self.children != other.children {
+        if self.children.len() != other.children.len() {
             return false;
         }
+        for (k, v) in &self.children {
+            let other_child = other.children.get(k).unwrap();
+            if !Arc::ptr_eq(v, other_child) {
+                return false;
+            }
+        }
+
         if let Some(selfexecutes) = &self.command {
             // idk how to do this better since we can't compare `dyn Fn`s
             if let Some(otherexecutes) = &other.command {

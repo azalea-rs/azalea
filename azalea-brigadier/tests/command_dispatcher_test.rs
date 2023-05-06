@@ -251,31 +251,34 @@ fn execute_redirected_multiple_times() {
     let parse = subject.parse(input.into(), Rc::new(CommandSource {}));
     assert_eq!(parse.context.range.get(input), "redirected");
     assert_eq!(parse.context.nodes.len(), 1);
-    assert_eq!(parse.context.root, root);
+    assert_eq!(*parse.context.root.read(), *root.read());
     assert_eq!(parse.context.nodes[0].range, parse.context.range);
-    assert_eq!(parse.context.nodes[0].node, redirect_node);
+    assert_eq!(*parse.context.nodes[0].node.read(), *redirect_node.read());
 
     let child1 = parse.context.child.clone();
     assert!(child1.is_some());
     assert_eq!(child1.clone().unwrap().range.get(input), "redirected");
     assert_eq!(child1.clone().unwrap().nodes.len(), 1);
-    assert_eq!(child1.clone().unwrap().root, root);
+    assert_eq!(*child1.clone().unwrap().root.read(), *root.read());
     assert_eq!(
         child1.clone().unwrap().nodes[0].range,
         child1.clone().unwrap().range
     );
-    assert_eq!(child1.clone().unwrap().nodes[0].node, redirect_node);
+    assert_eq!(
+        *child1.clone().unwrap().nodes[0].node.read(),
+        *redirect_node.read()
+    );
 
     let child2 = child1.unwrap().child.clone();
     assert!(child2.is_some());
     assert_eq!(child2.clone().unwrap().range.get(input), "actual");
     assert_eq!(child2.clone().unwrap().nodes.len(), 1);
-    assert_eq!(child2.clone().unwrap().root, root);
+    assert_eq!(*child2.clone().unwrap().root.read(), *root.read());
     assert_eq!(
         child2.clone().unwrap().nodes[0].range,
         child2.clone().unwrap().range
     );
-    assert_eq!(child2.unwrap().nodes[0].node, concrete_node);
+    assert_eq!(*child2.unwrap().nodes[0].node.read(), *concrete_node.read());
 
     assert_eq!(CommandDispatcher::execute_parsed(parse).unwrap(), 42);
 }
@@ -299,18 +302,18 @@ fn execute_redirected() {
     let parse = subject.parse(input.into(), Rc::new(CommandSource {}));
     assert_eq!(parse.context.range.get(input), "redirected");
     assert_eq!(parse.context.nodes.len(), 1);
-    assert_eq!(parse.context.root, subject.root);
+    assert_eq!(*parse.context.root.read(), *subject.root.read());
     assert_eq!(parse.context.nodes[0].range, parse.context.range);
-    assert_eq!(parse.context.nodes[0].node, redirect_node);
+    assert_eq!(*parse.context.nodes[0].node.read(), *redirect_node.read());
 
     let parent = parse.context.child.clone();
     assert!(parent.is_some());
     let parent = parent.unwrap();
     assert_eq!(parent.range.get(input), "actual");
     assert_eq!(parent.nodes.len(), 1);
-    assert_eq!(parse.context.root, subject.root);
+    assert_eq!(*parse.context.root.read(), *subject.root.read());
     assert_eq!(parent.nodes[0].range, parent.range);
-    assert_eq!(parent.nodes[0].node, concrete_node);
+    assert_eq!(*parent.nodes[0].node.read(), *concrete_node.read());
     assert_eq!(parent.source, Rc::new(CommandSource {}));
 
     assert_eq!(CommandDispatcher::execute_parsed(parse).unwrap(), 2);
@@ -406,5 +409,5 @@ fn get_path() {
 fn find_node_doesnt_exist() {
     let subject = CommandDispatcher::<()>::new();
 
-    assert_eq!(subject.find_node(&["foo", "bar"]), None)
+    assert!(subject.find_node(&["foo", "bar"]).is_none())
 }
