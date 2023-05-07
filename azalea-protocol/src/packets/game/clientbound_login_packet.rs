@@ -253,6 +253,8 @@ pub mod registry {
     pub struct DimensionTypeElement {
         pub height: u32,
         pub min_y: i32,
+        #[serde(flatten)]
+        pub _extra: HashMap<String, Nbt>,
     }
 
     /// The light level at which monsters can spawn.
