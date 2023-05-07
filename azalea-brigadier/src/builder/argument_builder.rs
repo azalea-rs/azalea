@@ -43,15 +43,38 @@ impl<S> ArgumentBuilder<S> {
         }
     }
 
+    /// Continue building this node with a child node.
+    ///
+    /// ```
+    /// # use azalea_brigadier::prelude::*;
+    /// # let mut subject = CommandDispatcher::<()>::new();
+    /// literal("foo").then(
+    ///     literal("bar").executes(|ctx: &CommandContext<()>| 42)
+    /// )
+    /// # ;
+    /// ```
     pub fn then(self, argument: ArgumentBuilder<S>) -> Self {
         self.then_built(argument.build())
     }
 
+    /// Add an already built child node to this node.
+    ///
+    /// You should usually use [`Self::then`] instead.
     pub fn then_built(mut self, argument: CommandNode<S>) -> Self {
         self.arguments.add_child(&Arc::new(RwLock::new(argument)));
         self
     }
 
+    /// Set the command to be executed when this node is reached. If this is not
+    /// present on a node, it is not a valid command.
+    ///
+    /// ```
+    /// # use azalea_brigadier::prelude::*;
+    /// # let mut subject = CommandDispatcher::<()>::new();
+    /// # subject.register(
+    /// literal("foo").executes(|ctx: &CommandContext<()>| 42)
+    /// # );
+    /// ```
     pub fn executes<F>(mut self, f: F) -> Self
     where
         F: Fn(&CommandContext<S>) -> i32 + Send + Sync + 'static,
@@ -60,6 +83,22 @@ impl<S> ArgumentBuilder<S> {
         self
     }
 
+    /// Set the requirement for this node to be considered. If this is not
+    /// present on a node, it is considered to always pass.
+    ///
+    /// ```
+    /// # use azalea_brigadier::prelude::*;
+    /// # use std::sync::Arc;
+    /// # pub struct CommandSource {
+    /// #     pub opped: bool,
+    /// # }
+    /// # let mut subject = CommandDispatcher::<CommandSource>::new();
+    /// # subject.register(
+    /// literal("foo")
+    ///     .requires(|s: Arc<CommandSource>| s.opped)
+    ///     // ...
+    ///     # .executes(|ctx: &CommandContext<CommandSource>| 42)
+    /// # );
     pub fn requires<F>(mut self, requirement: F) -> Self
     where
         F: Fn(Arc<S>) -> bool + Send + Sync + 'static,
@@ -95,6 +134,8 @@ impl<S> ArgumentBuilder<S> {
         self
     }
 
+    /// Manually build this node into a [`CommandNode`]. You probably don't need
+    /// to do this yourself.
     pub fn build(self) -> CommandNode<S> {
         let mut result = CommandNode {
             value: self.arguments.value,

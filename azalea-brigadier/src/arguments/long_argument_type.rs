@@ -45,7 +45,7 @@ impl ArgumentType for Long {
 pub fn long() -> impl ArgumentType {
     Long::default()
 }
-pub fn get_integer<S>(context: &CommandContext<S>, name: &str) -> Option<i64> {
+pub fn get_long<S>(context: &CommandContext<S>, name: &str) -> Option<i64> {
     context
         .argument(name)
         .unwrap()

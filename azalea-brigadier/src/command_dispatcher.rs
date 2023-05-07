@@ -11,6 +11,12 @@ use crate::{
 use std::{cmp::Ordering, collections::HashMap, mem, rc::Rc, sync::Arc};
 
 /// The root of the command tree. You need to make this to register commands.
+///
+/// ```
+/// # use azalea_brigadier::prelude::*;
+/// # struct CommandSource;
+/// let mut subject = CommandDispatcher::<CommandSource>::new();
+/// ```
 pub struct CommandDispatcher<S>
 where
     Self: Sync + Send,
@@ -25,13 +31,22 @@ impl<S> CommandDispatcher<S> {
         }
     }
 
+    /// Add a new node to the root.
+    ///
+    /// ```
+    /// # use azalea_brigadier::prelude::*;
+    /// # let mut subject = CommandDispatcher::<()>::new();
+    /// subject.register(literal("foo").executes(|_| 42));
+    /// ```
     pub fn register(&mut self, node: ArgumentBuilder<S>) -> Arc<RwLock<CommandNode<S>>> {
         let build = Arc::new(RwLock::new(node.build()));
         self.root.write().add_child(&build);
         build
     }
 
-    pub fn parse(&self, command: StringReader, source: Arc<S>) -> ParseResults<S> {
+    pub fn parse(&self, command: StringReader, source: S) -> ParseResults<S> {
+        let source = Arc::new(source);
+
         let context = CommandContextBuilder::new(self, source, self.root.clone(), command.cursor());
         self.parse_nodes(&self.root, &command, context).unwrap()
     }
@@ -140,11 +155,17 @@ impl<S> CommandDispatcher<S> {
         })
     }
 
+    /// Parse and execute the command using the given input and context. The
+    /// number returned depends on the command, and may not be of significance.
+    ///
+    /// This is a shortcut for `Self::parse` and `Self::execute_parsed`.
     pub fn execute(
         &self,
-        input: StringReader,
-        source: Arc<S>,
+        input: impl Into<StringReader>,
+        source: S,
     ) -> Result<i32, CommandSyntaxException> {
+        let input = input.into();
+
         let parse = self.parse(input, source);
         Self::execute_parsed(parse)
     }
