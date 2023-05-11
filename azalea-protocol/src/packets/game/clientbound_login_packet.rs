@@ -29,6 +29,8 @@ pub struct ClientboundLoginPacket {
     pub is_debug: bool,
     pub is_flat: bool,
     pub last_death_location: Option<GlobalPos>,
+    #[var]
+    pub portal_cooldown: u32,
 }
 
 pub mod registry {
@@ -253,6 +255,8 @@ pub mod registry {
     pub struct DimensionTypeElement {
         pub height: u32,
         pub min_y: i32,
+        #[serde(flatten)]
+        pub _extra: HashMap<String, Nbt>,
     }
 
     /// The light level at which monsters can spawn.
