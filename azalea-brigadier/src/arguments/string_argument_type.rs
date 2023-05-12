@@ -44,7 +44,7 @@ pub fn string() -> impl ArgumentType {
 pub fn greedy_string() -> impl ArgumentType {
     StringArgument::GreedyPhrase
 }
-pub fn get_string<'a, S>(context: &'a CommandContext<S>, name: &str) -> Option<String> {
+pub fn get_string<S>(context: &CommandContext<S>, name: &str) -> Option<String> {
     context
         .argument(name)
         .unwrap()

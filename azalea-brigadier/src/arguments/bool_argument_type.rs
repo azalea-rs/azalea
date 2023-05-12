@@ -12,7 +12,7 @@ impl ArgumentType for bool {
     }
 }
 
-pub fn get_bool<'a, S>(context: &'a CommandContext<S>, name: &str) -> Option<bool> {
+pub fn get_bool<S>(context: &CommandContext<S>, name: &str) -> Option<bool> {
     context
         .argument(name)
         .unwrap()

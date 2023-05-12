@@ -94,7 +94,7 @@ pub struct Edge<N: Eq + Hash + Copy, W: PartialOrd + Copy> {
     pub cost: W,
 }
 
-#[derive(PartialOrd, PartialEq)]
+#[derive(PartialEq)]
 pub struct Weight<W: PartialOrd + Debug>(W);
 impl<W: PartialOrd + Debug> Ord for Weight<W> {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
@@ -104,3 +104,8 @@ impl<W: PartialOrd + Debug> Ord for Weight<W> {
     }
 }
 impl<W: PartialOrd + Debug> Eq for Weight<W> {}
+impl<W: PartialOrd + Debug> PartialOrd for Weight<W> {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.0.partial_cmp(&other.0)
+    }
+}
