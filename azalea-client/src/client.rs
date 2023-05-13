@@ -11,6 +11,7 @@ use crate::{
     movement::{LastSentLookDirection, PlayerMovePlugin},
     packet_handling::{self, PacketHandlerPlugin, PacketReceiver},
     player::retroactively_add_game_profile_component,
+    respawn::RespawnPlugin,
     task_pool::TaskPoolPlugin,
     Account, PlayerInfo,
 };
@@ -717,6 +718,7 @@ impl PluginGroup for DefaultPlugins {
             .add(DisconnectPlugin)
             .add(PlayerMovePlugin)
             .add(InteractPlugin)
+            .add(RespawnPlugin)
             .add(TickBroadcastPlugin)
     }
 }

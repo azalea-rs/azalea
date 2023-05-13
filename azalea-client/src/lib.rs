@@ -25,6 +25,7 @@ mod movement;
 pub mod packet_handling;
 pub mod ping;
 mod player;
+pub mod respawn;
 pub mod task_pool;
 
 pub use account::{Account, AccountOpts};

@@ -3,6 +3,7 @@
 #![allow(incomplete_features)]
 #![feature(async_fn_in_trait)]
 
+mod auto_respawn;
 mod bot;
 mod container;
 pub mod pathfinder;
