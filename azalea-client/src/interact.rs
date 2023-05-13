@@ -6,7 +6,7 @@ use azalea_protocol::packets::game::{
 };
 use azalea_world::{
     entity::{clamp_look_direction, view_vector, EyeHeight, LookDirection, Position, WorldName},
-    InstanceContainer,
+    Instance, InstanceContainer,
 };
 use bevy_app::{App, Plugin};
 use bevy_ecs::{
@@ -153,13 +153,13 @@ fn update_hit_result_component(
             y: position.y + **eye_height as f64,
             z: position.z,
         };
-        let hit_result = pick(
-            look_direction,
-            &eye_position,
-            world_name,
-            &instance_container,
-            pick_range,
-        );
+
+        let Some(instance_lock) = instance_container.get(world_name) else {
+            continue;
+        };
+        let instance = instance_lock.read();
+
+        let hit_result = pick(look_direction, &eye_position, &instance, pick_range);
         if let Some(mut hit_result_ref) = hit_result_ref {
             **hit_result_ref = hit_result;
         } else {
@@ -178,16 +178,11 @@ fn update_hit_result_component(
 pub fn pick(
     look_direction: &LookDirection,
     eye_position: &Vec3,
-    world_name: &WorldName,
-    instance_container: &InstanceContainer,
+    instance: &Instance,
     pick_range: f64,
 ) -> BlockHitResult {
     let view_vector = view_vector(look_direction);
     let end_position = eye_position + &(view_vector * pick_range);
-    let instance_lock = instance_container
-        .get(world_name)
-        .expect("entities must always be in a valid world");
-    let instance = instance_lock.read();
     azalea_physics::clip::clip(
         &instance.chunks,
         ClipContext {

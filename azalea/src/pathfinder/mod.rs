@@ -1,7 +1,8 @@
+mod astar;
 mod moves;
-mod mtdstarlite;
 
 use crate::bot::{JumpEvent, LookAtEvent};
+use crate::pathfinder::astar::a_star;
 use crate::{SprintDirection, WalkDirection};
 
 use crate::app::{App, CoreSchedule, IntoSystemAppConfig, Plugin};
@@ -13,6 +14,7 @@ use crate::ecs::{
     schedule::IntoSystemConfig,
     system::{Commands, Query, Res},
 };
+use astar::Edge;
 use azalea_client::{StartSprintEvent, StartWalkEvent};
 use azalea_core::{BlockPos, CardinalDirection};
 use azalea_physics::PhysicsSet;
@@ -25,8 +27,6 @@ use azalea_world::{
 use bevy_tasks::{AsyncComputeTaskPool, Task};
 use futures_lite::future;
 use log::{debug, error};
-use mtdstarlite::Edge;
-pub use mtdstarlite::MTDStarLite;
 use std::collections::VecDeque;
 use std::sync::Arc;
 
@@ -152,17 +152,22 @@ fn goto_listener(
                 edges
             };
 
-            let mut pf = MTDStarLite::new(
+            // let mut pf = MTDStarLite::new(
+            //     start,
+            //     end,
+            //     |n| goal.heuristic(n),
+            //     successors,
+            //     successors,
+            //     |n| goal.success(n),
+            // );
+
+            let start_time = std::time::Instant::now();
+            let p = a_star(
                 start,
-                end,
                 |n| goal.heuristic(n),
-                successors,
                 successors,
                 |n| goal.success(n),
             );
-
-            let start_time = std::time::Instant::now();
-            let p = pf.find_path();
             let end_time = std::time::Instant::now();
             debug!("path: {p:?}");
             debug!("time: {:?}", end_time - start_time);

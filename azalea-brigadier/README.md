@@ -4,4 +4,23 @@ A Rust port of Mojang's [Brigadier](https://github.com/Mojang/brigadier) command
 
 # Examples
 
-See the [tests](https://github.com/mat-1/azalea/tree/main/azalea-brigadier/tests).
+```rust
+use azalea_brigadier::prelude::*;
+use std::sync::Arc;
+
+#[derive(Debug, PartialEq)]
+struct CommandSource {}
+
+let mut subject = CommandDispatcher::new();
+subject.register(literal("foo").executes(|_| 42));
+
+assert_eq!(
+    subject
+        .execute("foo", Arc::new(CommandSource {}))
+        .unwrap(),
+    42
+);
+```
+
+See the [tests](https://github.com/mat-1/azalea/tree/main/azalea-brigadier/tests) for more.
+

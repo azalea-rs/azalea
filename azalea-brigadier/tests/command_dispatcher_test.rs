@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::sync::Arc;
 
 use azalea_brigadier::{
     arguments::integer_argument_type::integer,
@@ -19,26 +19,13 @@ fn input_with_offset(input: &str, offset: usize) -> StringReader {
 }
 
 #[test]
-fn create_and_execute_command() {
-    let mut subject = CommandDispatcher::new();
-    subject.register(literal("foo").executes(|_| 42));
-
-    assert_eq!(
-        subject
-            .execute("foo".into(), Rc::new(CommandSource {}))
-            .unwrap(),
-        42
-    );
-}
-
-#[test]
 fn create_and_execute_offset_command() {
     let mut subject = CommandDispatcher::new();
     subject.register(literal("foo").executes(|_| 42));
 
     assert_eq!(
         subject
-            .execute(input_with_offset("/foo", 1), Rc::new(CommandSource {}))
+            .execute(input_with_offset("/foo", 1), &CommandSource {})
             .unwrap(),
         42
     );
@@ -50,18 +37,8 @@ fn create_and_merge_commands() {
     subject.register(literal("base").then(literal("foo").executes(|_| 42)));
     subject.register(literal("base").then(literal("bar").executes(|_| 42)));
 
-    assert_eq!(
-        subject
-            .execute("base foo".into(), Rc::new(CommandSource {}))
-            .unwrap(),
-        42
-    );
-    assert_eq!(
-        subject
-            .execute("base bar".into(), Rc::new(CommandSource {}))
-            .unwrap(),
-        42
-    );
+    assert_eq!(subject.execute("base foo", &CommandSource {}).unwrap(), 42);
+    assert_eq!(subject.execute("base bar", &CommandSource {}).unwrap(), 42);
 }
 
 #[test]
@@ -70,7 +47,7 @@ fn execute_unknown_command() {
     subject.register(literal("bar"));
     subject.register(literal("baz"));
 
-    let execute_result = subject.execute("foo".into(), Rc::new(CommandSource {}));
+    let execute_result = subject.execute("foo", &CommandSource {});
 
     let err = execute_result.err().unwrap();
     match err.type_ {
@@ -85,7 +62,7 @@ fn execute_impermissible_command() {
     let mut subject = CommandDispatcher::new();
     subject.register(literal("foo").requires(|_| false));
 
-    let execute_result = subject.execute("foo".into(), Rc::new(CommandSource {}));
+    let execute_result = subject.execute("foo", &CommandSource {});
 
     let err = execute_result.err().unwrap();
     match err.type_ {
@@ -100,7 +77,7 @@ fn execute_empty_command() {
     let mut subject = CommandDispatcher::new();
     subject.register(literal(""));
 
-    let execute_result = subject.execute("".into(), Rc::new(CommandSource {}));
+    let execute_result = subject.execute("", &CommandSource {});
 
     let err = execute_result.err().unwrap();
     match err.type_ {
@@ -115,7 +92,7 @@ fn execute_unknown_subcommand() {
     let mut subject = CommandDispatcher::new();
     subject.register(literal("foo").executes(|_| 42));
 
-    let execute_result = subject.execute("foo bar".into(), Rc::new(CommandSource {}));
+    let execute_result = subject.execute("foo bar", &CommandSource {});
 
     let err = execute_result.err().unwrap();
     match err.type_ {
@@ -130,7 +107,7 @@ fn execute_incorrect_literal() {
     let mut subject = CommandDispatcher::new();
     subject.register(literal("foo").executes(|_| 42).then(literal("bar")));
 
-    let execute_result = subject.execute("foo baz".into(), Rc::new(CommandSource {}));
+    let execute_result = subject.execute("foo baz", &CommandSource {});
 
     let err = execute_result.err().unwrap();
     match err.type_ {
@@ -150,7 +127,7 @@ fn execute_ambiguous_incorrect_argument() {
             .then(literal("baz")),
     );
 
-    let execute_result = subject.execute("foo unknown".into(), Rc::new(CommandSource {}));
+    let execute_result = subject.execute("foo unknown", &CommandSource {});
 
     let err = execute_result.err().unwrap();
     match err.type_ {
@@ -172,12 +149,7 @@ fn execute_subcommand() {
             .executes(|_| 42),
     );
 
-    assert_eq!(
-        subject
-            .execute("foo =".into(), Rc::new(CommandSource {}))
-            .unwrap(),
-        100
-    );
+    assert_eq!(subject.execute("foo =", &CommandSource {}).unwrap(), 100);
 }
 
 #[test]
@@ -185,7 +157,7 @@ fn parse_incomplete_literal() {
     let mut subject = CommandDispatcher::new();
     subject.register(literal("foo").then(literal("bar").executes(|_| 42)));
 
-    let parse = subject.parse("foo ".into(), Rc::new(CommandSource {}));
+    let parse = subject.parse("foo ".into(), &CommandSource {});
     assert_eq!(parse.reader.remaining(), " ");
     assert_eq!(parse.context.nodes.len(), 1);
 }
@@ -195,7 +167,7 @@ fn parse_incomplete_argument() {
     let mut subject = CommandDispatcher::new();
     subject.register(literal("foo").then(argument("bar", integer()).executes(|_| 42)));
 
-    let parse = subject.parse("foo ".into(), Rc::new(CommandSource {}));
+    let parse = subject.parse("foo ".into(), &CommandSource {});
     assert_eq!(parse.reader.remaining(), " ");
     assert_eq!(parse.context.nodes.len(), 1);
 }
@@ -210,12 +182,7 @@ fn execute_ambiguious_parent_subcommand() {
             .then(argument("right", integer()).then(argument("sub", integer()).executes(|_| 100))),
     );
 
-    assert_eq!(
-        subject
-            .execute("test 1 2".into(), Rc::new(CommandSource {}))
-            .unwrap(),
-        100
-    );
+    assert_eq!(subject.execute("test 1 2", &CommandSource {}).unwrap(), 100);
 }
 
 #[test]
@@ -231,9 +198,7 @@ fn execute_ambiguious_parent_subcommand_via_redirect() {
     subject.register(literal("redirect").redirect(real));
 
     assert_eq!(
-        subject
-            .execute("redirect 1 2".into(), Rc::new(CommandSource {}))
-            .unwrap(),
+        subject.execute("redirect 1 2", &CommandSource {}).unwrap(),
         100
     );
 }
@@ -248,34 +213,37 @@ fn execute_redirected_multiple_times() {
 
     let input = "redirected redirected actual";
 
-    let parse = subject.parse(input.into(), Rc::new(CommandSource {}));
+    let parse = subject.parse(input.into(), &CommandSource {});
     assert_eq!(parse.context.range.get(input), "redirected");
     assert_eq!(parse.context.nodes.len(), 1);
-    assert_eq!(parse.context.root, root);
+    assert_eq!(*parse.context.root.read(), *root.read());
     assert_eq!(parse.context.nodes[0].range, parse.context.range);
-    assert_eq!(parse.context.nodes[0].node, redirect_node);
+    assert_eq!(*parse.context.nodes[0].node.read(), *redirect_node.read());
 
     let child1 = parse.context.child.clone();
     assert!(child1.is_some());
     assert_eq!(child1.clone().unwrap().range.get(input), "redirected");
     assert_eq!(child1.clone().unwrap().nodes.len(), 1);
-    assert_eq!(child1.clone().unwrap().root, root);
+    assert_eq!(*child1.clone().unwrap().root.read(), *root.read());
     assert_eq!(
         child1.clone().unwrap().nodes[0].range,
         child1.clone().unwrap().range
     );
-    assert_eq!(child1.clone().unwrap().nodes[0].node, redirect_node);
+    assert_eq!(
+        *child1.clone().unwrap().nodes[0].node.read(),
+        *redirect_node.read()
+    );
 
     let child2 = child1.unwrap().child.clone();
     assert!(child2.is_some());
     assert_eq!(child2.clone().unwrap().range.get(input), "actual");
     assert_eq!(child2.clone().unwrap().nodes.len(), 1);
-    assert_eq!(child2.clone().unwrap().root, root);
+    assert_eq!(*child2.clone().unwrap().root.read(), *root.read());
     assert_eq!(
         child2.clone().unwrap().nodes[0].range,
         child2.clone().unwrap().range
     );
-    assert_eq!(child2.unwrap().nodes[0].node, concrete_node);
+    assert_eq!(*child2.unwrap().nodes[0].node.read(), *concrete_node.read());
 
     assert_eq!(CommandDispatcher::execute_parsed(parse).unwrap(), 42);
 }
@@ -284,34 +252,34 @@ fn execute_redirected_multiple_times() {
 fn execute_redirected() {
     let mut subject = CommandDispatcher::new();
 
-    let source1 = Rc::new(CommandSource {});
-    let source2 = Rc::new(CommandSource {});
+    let source1 = Arc::new(CommandSource {});
+    let source2 = Arc::new(CommandSource {});
 
-    let modifier = move |_: &CommandContext<CommandSource>| -> Result<Vec<Rc<CommandSource>>, CommandSyntaxException> {
+    let modifier = move |_: &CommandContext<CommandSource>| -> Result<Vec<Arc<CommandSource>>, CommandSyntaxException> {
             Ok(vec![source1.clone(), source2.clone()])
         };
 
     let concrete_node = subject.register(literal("actual").executes(|_| 42));
     let redirect_node =
-        subject.register(literal("redirected").fork(subject.root.clone(), Rc::new(modifier)));
+        subject.register(literal("redirected").fork(subject.root.clone(), Arc::new(modifier)));
 
     let input = "redirected actual";
-    let parse = subject.parse(input.into(), Rc::new(CommandSource {}));
+    let parse = subject.parse(input.into(), CommandSource {});
     assert_eq!(parse.context.range.get(input), "redirected");
     assert_eq!(parse.context.nodes.len(), 1);
-    assert_eq!(parse.context.root, subject.root);
+    assert_eq!(*parse.context.root.read(), *subject.root.read());
     assert_eq!(parse.context.nodes[0].range, parse.context.range);
-    assert_eq!(parse.context.nodes[0].node, redirect_node);
+    assert_eq!(*parse.context.nodes[0].node.read(), *redirect_node.read());
 
     let parent = parse.context.child.clone();
     assert!(parent.is_some());
     let parent = parent.unwrap();
     assert_eq!(parent.range.get(input), "actual");
     assert_eq!(parent.nodes.len(), 1);
-    assert_eq!(parse.context.root, subject.root);
+    assert_eq!(*parse.context.root.read(), *subject.root.read());
     assert_eq!(parent.nodes[0].range, parent.range);
-    assert_eq!(parent.nodes[0].node, concrete_node);
-    assert_eq!(parent.source, Rc::new(CommandSource {}));
+    assert_eq!(*parent.nodes[0].node.read(), *concrete_node.read());
+    assert_eq!(*parent.source, CommandSource {});
 
     assert_eq!(CommandDispatcher::execute_parsed(parse).unwrap(), 2);
 }
@@ -326,7 +294,7 @@ fn execute_orphaned_subcommand() {
             .executes(|_| 42),
     );
 
-    let result = subject.execute("foo 5".into(), Rc::new(CommandSource {}));
+    let result = subject.execute("foo 5", &CommandSource {});
     assert!(result.is_err());
     let result = result.unwrap_err();
     assert_eq!(
@@ -343,12 +311,7 @@ fn execute_invalid_other() {
     subject.register(literal("w").executes(|_| panic!("This should not run")));
     subject.register(literal("world").executes(|_| 42));
 
-    assert_eq!(
-        subject
-            .execute("world".into(), Rc::new(CommandSource {}))
-            .unwrap(),
-        42
-    );
+    assert_eq!(subject.execute("world", &CommandSource {}).unwrap(), 42);
 }
 
 #[test]
@@ -361,7 +324,7 @@ fn parse_no_space_separator() {
             .executes(|_| 42),
     );
 
-    let result = subject.execute("foo$".into(), Rc::new(CommandSource {}));
+    let result = subject.execute("foo$", &CommandSource {});
     assert!(result.is_err());
     let result = result.unwrap_err();
     assert_eq!(
@@ -381,7 +344,7 @@ fn execute_invalid_subcommand() {
             .executes(|_| 42),
     );
 
-    let result = subject.execute("foo bar".into(), Rc::new(CommandSource {}));
+    let result = subject.execute("foo bar", &CommandSource {});
     assert!(result.is_err());
     let result = result.unwrap_err();
     // this fails for some reason, i blame mojang
@@ -406,5 +369,5 @@ fn get_path() {
 fn find_node_doesnt_exist() {
     let subject = CommandDispatcher::<()>::new();
 
-    assert_eq!(subject.find_node(&["foo", "bar"]), None)
+    assert!(subject.find_node(&["foo", "bar"]).is_none())
 }

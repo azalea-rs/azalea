@@ -1,3 +1,5 @@
+use parking_lot::RwLock;
+
 use super::{
     command_context::CommandContext, parsed_command_node::ParsedCommandNode,
     string_range::StringRange, ParsedArgument,
@@ -7,28 +9,28 @@ use crate::{
     modifier::RedirectModifier,
     tree::{Command, CommandNode},
 };
-use std::{cell::RefCell, collections::HashMap, fmt::Debug, rc::Rc};
+use std::{collections::HashMap, fmt::Debug, sync::Arc};
 
-pub struct CommandContextBuilder<S> {
+pub struct CommandContextBuilder<'a, S> {
     pub arguments: HashMap<String, ParsedArgument>,
-    pub root: Rc<RefCell<CommandNode<S>>>,
+    pub root: Arc<RwLock<CommandNode<S>>>,
     pub nodes: Vec<ParsedCommandNode<S>>,
-    pub dispatcher: Rc<CommandDispatcher<S>>,
-    pub source: Rc<S>,
+    pub dispatcher: &'a CommandDispatcher<S>,
+    pub source: Arc<S>,
     pub command: Command<S>,
-    pub child: Option<Rc<CommandContextBuilder<S>>>,
+    pub child: Option<Arc<CommandContextBuilder<'a, S>>>,
     pub range: StringRange,
-    pub modifier: Option<Rc<RedirectModifier<S>>>,
+    pub modifier: Option<Arc<RedirectModifier<S>>>,
     pub forks: bool,
 }
 
-impl<S> Clone for CommandContextBuilder<S> {
+impl<S> Clone for CommandContextBuilder<'_, S> {
     fn clone(&self) -> Self {
         Self {
             arguments: self.arguments.clone(),
             root: self.root.clone(),
             nodes: self.nodes.clone(),
-            dispatcher: self.dispatcher.clone(),
+            dispatcher: self.dispatcher,
             source: self.source.clone(),
             command: self.command.clone(),
             child: self.child.clone(),
@@ -39,11 +41,11 @@ impl<S> Clone for CommandContextBuilder<S> {
     }
 }
 
-impl<S> CommandContextBuilder<S> {
+impl<'a, S> CommandContextBuilder<'a, S> {
     pub fn new(
-        dispatcher: Rc<CommandDispatcher<S>>,
-        source: Rc<S>,
-        root_node: Rc<RefCell<CommandNode<S>>>,
+        dispatcher: &'a CommandDispatcher<S>,
+        source: Arc<S>,
+        root_node: Arc<RwLock<CommandNode<S>>>,
         start: usize,
     ) -> Self {
         Self {
@@ -64,7 +66,7 @@ impl<S> CommandContextBuilder<S> {
         self.command = command.clone();
         self
     }
-    pub fn with_child(&mut self, child: Rc<CommandContextBuilder<S>>) -> &Self {
+    pub fn with_child(&mut self, child: Arc<CommandContextBuilder<'a, S>>) -> &Self {
         self.child = Some(child);
         self
     }
@@ -72,14 +74,14 @@ impl<S> CommandContextBuilder<S> {
         self.arguments.insert(name.to_string(), argument);
         self
     }
-    pub fn with_node(&mut self, node: Rc<RefCell<CommandNode<S>>>, range: StringRange) -> &Self {
+    pub fn with_node(&mut self, node: Arc<RwLock<CommandNode<S>>>, range: StringRange) -> &Self {
         self.nodes.push(ParsedCommandNode {
             node: node.clone(),
             range: range.clone(),
         });
         self.range = StringRange::encompassing(&self.range, &range);
-        self.modifier = node.borrow().modifier.clone();
-        self.forks = node.borrow().forks;
+        self.modifier = node.read().modifier.clone();
+        self.forks = node.read().forks;
         self
     }
 
@@ -90,7 +92,7 @@ impl<S> CommandContextBuilder<S> {
             nodes: self.nodes.clone(),
             source: self.source.clone(),
             command: self.command.clone(),
-            child: self.child.clone().map(|c| Rc::new(c.build(input))),
+            child: self.child.clone().map(|c| Arc::new(c.build(input))),
             range: self.range.clone(),
             forks: self.forks,
             modifier: self.modifier.clone(),
@@ -99,7 +101,7 @@ impl<S> CommandContextBuilder<S> {
     }
 }
 
-impl<S> Debug for CommandContextBuilder<S> {
+impl<S> Debug for CommandContextBuilder<'_, S> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("CommandContextBuilder")
             // .field("arguments", &self.arguments)

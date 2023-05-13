@@ -21,10 +21,12 @@ impl Plugin for ContainerPlugin {
 
 pub trait ContainerClientExt {
     async fn open_container(&mut self, pos: BlockPos) -> Option<ContainerHandle>;
+    fn open_inventory(&mut self) -> Option<ContainerHandle>;
 }
 
 impl ContainerClientExt for Client {
-    /// Open a container in the world, like a chest.
+    /// Open a container in the world, like a chest. Use
+    /// [`Client::open_inventory`] to open your own inventory.
     ///
     /// ```
     /// # use azalea::prelude::*;
@@ -72,12 +74,36 @@ impl ContainerClientExt for Client {
             })
         }
     }
+
+    /// Open the player's inventory. This will return None if another
+    /// container is open.
+    ///
+    /// Note that this will send a packet to the server once it's dropped. Also,
+    /// due to how it's implemented, you could call this function multiple times
+    /// while another inventory handle already exists (but you shouldn't).
+    fn open_inventory(&mut self) -> Option<ContainerHandle> {
+        let ecs = self.ecs.lock();
+        let inventory = ecs
+            .get::<InventoryComponent>(self.entity)
+            .expect("no inventory");
+
+        if inventory.id == 0 {
+            Some(ContainerHandle {
+                id: 0,
+                client: self.clone(),
+            })
+        } else {
+            None
+        }
+    }
 }
 
 /// A handle to the open container. The container will be closed once this is
 /// dropped.
 pub struct ContainerHandle {
-    pub id: u8,
+    /// The id of the container. If this is 0, that means it's the player's
+    /// inventory.
+    id: u8,
     client: Client,
 }
 impl Drop for ContainerHandle {
@@ -96,6 +122,13 @@ impl Debug for ContainerHandle {
     }
 }
 impl ContainerHandle {
+    /// Get the id of the container. If this is 0, that means it's the player's
+    /// inventory. Otherwise, the number isn't really meaningful since only one
+    /// container can be open at a time.
+    pub fn id(&self) -> u8 {
+        self.id
+    }
+
     /// Returns the menu of the container. If the container is closed, this
     /// will return `None`.
     pub fn menu(&self) -> Option<Menu> {
@@ -103,8 +136,14 @@ impl ContainerHandle {
         let inventory = ecs
             .get::<InventoryComponent>(self.client.entity)
             .expect("no inventory");
+
+        // this also makes sure we can't access the inventory while a container is open
         if inventory.id == self.id {
-            Some(inventory.container_menu.clone().unwrap())
+            if self.id == 0 {
+                Some(inventory.inventory_menu.clone())
+            } else {
+                Some(inventory.container_menu.clone().unwrap())
+            }
         } else {
             None
         }

@@ -1,3 +1,5 @@
+use parking_lot::RwLock;
+
 use crate::{
     context::CommandContext,
     modifier::RedirectModifier,
@@ -5,7 +7,7 @@ use crate::{
 };
 
 use super::{literal_argument_builder::Literal, required_argument_builder::Argument};
-use std::{cell::RefCell, fmt::Debug, rc::Rc};
+use std::{fmt::Debug, sync::Arc};
 
 #[derive(Debug, Clone)]
 pub enum ArgumentBuilderType {
@@ -18,24 +20,11 @@ pub struct ArgumentBuilder<S> {
     arguments: CommandNode<S>,
 
     command: Command<S>,
-    requirement: Rc<dyn Fn(Rc<S>) -> bool>,
-    target: Option<Rc<RefCell<CommandNode<S>>>>,
+    requirement: Arc<dyn Fn(Arc<S>) -> bool + Send + Sync>,
+    target: Option<Arc<RwLock<CommandNode<S>>>>,
 
     forks: bool,
-    modifier: Option<Rc<RedirectModifier<S>>>,
-}
-
-impl<S> Clone for ArgumentBuilder<S> {
-    fn clone(&self) -> Self {
-        Self {
-            arguments: self.arguments.clone(),
-            command: self.command.clone(),
-            requirement: self.requirement.clone(),
-            target: self.target.clone(),
-            forks: self.forks,
-            modifier: self.modifier.clone(),
-        }
-    }
+    modifier: Option<Arc<RedirectModifier<S>>>,
 }
 
 /// A node that isn't yet built.
@@ -47,54 +36,93 @@ impl<S> ArgumentBuilder<S> {
                 ..Default::default()
             },
             command: None,
-            requirement: Rc::new(|_| true),
+            requirement: Arc::new(|_| true),
             forks: false,
             modifier: None,
             target: None,
         }
     }
 
-    pub fn then(&mut self, argument: ArgumentBuilder<S>) -> Self {
+    /// Continue building this node with a child node.
+    ///
+    /// ```
+    /// # use azalea_brigadier::prelude::*;
+    /// # let mut subject = CommandDispatcher::<()>::new();
+    /// literal("foo").then(
+    ///     literal("bar").executes(|ctx: &CommandContext<()>| 42)
+    /// )
+    /// # ;
+    /// ```
+    pub fn then(self, argument: ArgumentBuilder<S>) -> Self {
         self.then_built(argument.build())
     }
 
-    pub fn then_built(&mut self, argument: CommandNode<S>) -> Self {
-        self.arguments.add_child(&Rc::new(RefCell::new(argument)));
-        self.clone()
+    /// Add an already built child node to this node.
+    ///
+    /// You should usually use [`Self::then`] instead.
+    pub fn then_built(mut self, argument: CommandNode<S>) -> Self {
+        self.arguments.add_child(&Arc::new(RwLock::new(argument)));
+        self
     }
 
-    pub fn executes<F>(&mut self, f: F) -> Self
+    /// Set the command to be executed when this node is reached. If this is not
+    /// present on a node, it is not a valid command.
+    ///
+    /// ```
+    /// # use azalea_brigadier::prelude::*;
+    /// # let mut subject = CommandDispatcher::<()>::new();
+    /// # subject.register(
+    /// literal("foo").executes(|ctx: &CommandContext<()>| 42)
+    /// # );
+    /// ```
+    pub fn executes<F>(mut self, f: F) -> Self
     where
-        F: Fn(&CommandContext<S>) -> i32 + 'static,
+        F: Fn(&CommandContext<S>) -> i32 + Send + Sync + 'static,
     {
-        self.command = Some(Rc::new(f));
-        self.clone()
+        self.command = Some(Arc::new(f));
+        self
     }
 
-    pub fn requires<F>(&mut self, requirement: F) -> Self
+    /// Set the requirement for this node to be considered. If this is not
+    /// present on a node, it is considered to always pass.
+    ///
+    /// ```
+    /// # use azalea_brigadier::prelude::*;
+    /// # use std::sync::Arc;
+    /// # pub struct CommandSource {
+    /// #     pub opped: bool,
+    /// # }
+    /// # let mut subject = CommandDispatcher::<CommandSource>::new();
+    /// # subject.register(
+    /// literal("foo")
+    ///     .requires(|s: Arc<CommandSource>| s.opped)
+    ///     // ...
+    ///     # .executes(|ctx: &CommandContext<CommandSource>| 42)
+    /// # );
+    pub fn requires<F>(mut self, requirement: F) -> Self
     where
-        F: Fn(Rc<S>) -> bool + 'static,
+        F: Fn(Arc<S>) -> bool + Send + Sync + 'static,
     {
-        self.requirement = Rc::new(requirement);
-        self.clone()
+        self.requirement = Arc::new(requirement);
+        self
     }
 
-    pub fn redirect(&mut self, target: Rc<RefCell<CommandNode<S>>>) -> Self {
+    pub fn redirect(self, target: Arc<RwLock<CommandNode<S>>>) -> Self {
         self.forward(target, None, false)
     }
 
     pub fn fork(
-        &mut self,
-        target: Rc<RefCell<CommandNode<S>>>,
-        modifier: Rc<RedirectModifier<S>>,
+        self,
+        target: Arc<RwLock<CommandNode<S>>>,
+        modifier: Arc<RedirectModifier<S>>,
     ) -> Self {
         self.forward(target, Some(modifier), true)
     }
 
     pub fn forward(
-        &mut self,
-        target: Rc<RefCell<CommandNode<S>>>,
-        modifier: Option<Rc<RedirectModifier<S>>>,
+        mut self,
+        target: Arc<RwLock<CommandNode<S>>>,
+        modifier: Option<Arc<RedirectModifier<S>>>,
         fork: bool,
     ) -> Self {
         if !self.arguments.children.is_empty() {
@@ -103,9 +131,11 @@ impl<S> ArgumentBuilder<S> {
         self.target = Some(target);
         self.modifier = modifier;
         self.forks = fork;
-        self.clone()
+        self
     }
 
+    /// Manually build this node into a [`CommandNode`]. You probably don't need
+    /// to do this yourself.
     pub fn build(self) -> CommandNode<S> {
         let mut result = CommandNode {
             value: self.arguments.value,

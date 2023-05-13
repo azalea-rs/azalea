@@ -9,19 +9,19 @@ use crate::{
 use super::ArgumentType;
 
 #[derive(Default)]
-struct Integer {
-    pub minimum: Option<i32>,
-    pub maximum: Option<i32>,
+struct Double {
+    pub minimum: Option<f64>,
+    pub maximum: Option<f64>,
 }
 
-impl ArgumentType for Integer {
+impl ArgumentType for Double {
     fn parse(&self, reader: &mut StringReader) -> Result<Rc<dyn Any>, CommandSyntaxException> {
         let start = reader.cursor;
-        let result = reader.read_int()?;
+        let result = reader.read_double()?;
         if let Some(minimum) = self.minimum {
             if result < minimum {
                 reader.cursor = start;
-                return Err(BuiltInExceptions::IntegerTooSmall {
+                return Err(BuiltInExceptions::DoubleTooSmall {
                     found: result,
                     min: minimum,
                 }
@@ -31,7 +31,7 @@ impl ArgumentType for Integer {
         if let Some(maximum) = self.maximum {
             if result > maximum {
                 reader.cursor = start;
-                return Err(BuiltInExceptions::IntegerTooBig {
+                return Err(BuiltInExceptions::DoubleTooBig {
                     found: result,
                     max: maximum,
                 }
@@ -42,13 +42,13 @@ impl ArgumentType for Integer {
     }
 }
 
-pub fn integer() -> impl ArgumentType {
-    Integer::default()
+pub fn double() -> impl ArgumentType {
+    Double::default()
 }
-pub fn get_integer<S>(context: &CommandContext<S>, name: &str) -> Option<i32> {
+pub fn get_double<S>(context: &CommandContext<S>, name: &str) -> Option<f64> {
     context
         .argument(name)
         .unwrap()
-        .downcast_ref::<i32>()
+        .downcast_ref::<f64>()
         .copied()
 }

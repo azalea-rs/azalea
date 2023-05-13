@@ -166,6 +166,7 @@ dependencies = [
  "async-trait",
  "azalea-auth",
  "azalea-block",
+ "azalea-brigadier",
  "azalea-chat",
  "azalea-client",
  "azalea-core",
@@ -232,6 +233,7 @@ version = "0.6.0"
 dependencies = [
  "azalea-buf",
  "azalea-chat",
+ "parking_lot",
 ]
 
 [[package]]

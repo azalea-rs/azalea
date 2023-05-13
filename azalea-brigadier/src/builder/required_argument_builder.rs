@@ -2,17 +2,17 @@ use super::argument_builder::{ArgumentBuilder, ArgumentBuilderType};
 use crate::{
     arguments::ArgumentType, exceptions::CommandSyntaxException, string_reader::StringReader,
 };
-use std::{any::Any, fmt::Debug, rc::Rc};
+use std::{any::Any, fmt::Debug, rc::Rc, sync::Arc};
 
 /// An argument node type. The `T` type parameter is the type of the argument,
 /// which can be anything.
 #[derive(Clone)]
 pub struct Argument {
     pub name: String,
-    parser: Rc<dyn ArgumentType>,
+    parser: Arc<dyn ArgumentType + Send + Sync>,
 }
 impl Argument {
-    pub fn new(name: &str, parser: Rc<dyn ArgumentType>) -> Self {
+    pub fn new(name: &str, parser: Arc<dyn ArgumentType + Send + Sync>) -> Self {
         Self {
             name: name.to_string(),
             parser,
@@ -40,6 +40,9 @@ impl Debug for Argument {
 }
 
 /// Shortcut for creating a new argument builder node.
-pub fn argument<S>(name: &str, parser: impl ArgumentType + 'static) -> ArgumentBuilder<S> {
-    ArgumentBuilder::new(Argument::new(name, Rc::new(parser)).into())
+pub fn argument<S>(
+    name: &str,
+    parser: impl ArgumentType + Send + Sync + 'static,
+) -> ArgumentBuilder<S> {
+    ArgumentBuilder::new(Argument::new(name, Arc::new(parser)).into())
 }

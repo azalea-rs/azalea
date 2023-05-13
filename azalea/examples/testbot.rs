@@ -8,10 +8,9 @@ use azalea::entity::{EyeHeight, Position};
 use azalea::interact::HitResultComponent;
 use azalea::inventory::ItemSlot;
 use azalea::pathfinder::BlockPosGoal;
+use azalea::protocol::packets::game::ClientboundGamePacket;
 use azalea::{prelude::*, swarm::prelude::*, BlockPos, GameProfileComponent, WalkDirection};
 use azalea::{Account, Client, Event};
-use azalea_protocol::packets::game::serverbound_client_command_packet::ServerboundClientCommandPacket;
-use azalea_protocol::packets::game::ClientboundGamePacket;
 use std::time::Duration;
 
 #[derive(Default, Clone, Component)]
@@ -211,11 +210,6 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                     _ => {}
                 }
             }
-        }
-        Event::Death(_) => {
-            bot.write_packet(ServerboundClientCommandPacket {
-                action: azalea_protocol::packets::game::serverbound_client_command_packet::Action::PerformRespawn,
-            }.get());
         }
         Event::Packet(packet) => match *packet {
             ClientboundGamePacket::Login(_) => {
