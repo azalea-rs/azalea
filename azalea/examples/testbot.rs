@@ -8,7 +8,6 @@ use azalea::entity::{EyeHeight, Position};
 use azalea::interact::HitResultComponent;
 use azalea::inventory::ItemSlot;
 use azalea::pathfinder::BlockPosGoal;
-use azalea::protocol::packets::game::serverbound_client_command_packet::ServerboundClientCommandPacket;
 use azalea::protocol::packets::game::ClientboundGamePacket;
 use azalea::{prelude::*, swarm::prelude::*, BlockPos, GameProfileComponent, WalkDirection};
 use azalea::{Account, Client, Event};
