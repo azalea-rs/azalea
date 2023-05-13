@@ -9,7 +9,9 @@ use azalea_protocol::{
         serverbound_custom_payload_packet::ServerboundCustomPayloadPacket,
         serverbound_keep_alive_packet::ServerboundKeepAlivePacket,
         serverbound_move_player_pos_rot_packet::ServerboundMovePlayerPosRotPacket,
-        ClientboundGamePacket, ServerboundGamePacket,
+        serverbound_pong_packet::ServerboundPongPacket,
+        serverbound_resource_pack_packet::ServerboundResourcePackPacket, ClientboundGamePacket,
+        ServerboundGamePacket,
     },
     read::ReadPacketError,
 };
@@ -995,7 +997,15 @@ fn process_packet_events(ecs: &mut World) {
                 })
             }
             ClientboundGamePacket::OpenSignEditor(_) => {}
-            ClientboundGamePacket::Ping(_) => {}
+            ClientboundGamePacket::Ping(p) => {
+                debug!("Got ping packet {:?}", p);
+
+                let mut system_state: SystemState<Query<&mut LocalPlayer>> = SystemState::new(ecs);
+                let mut query = system_state.get_mut(ecs);
+
+                let local_player = query.get_mut(player_entity).unwrap();
+                local_player.write_packet(ServerboundPongPacket { id: p.id }.get());
+            }
             ClientboundGamePacket::PlaceGhostRecipe(_) => {}
             ClientboundGamePacket::PlayerCombatEnd(_) => {}
             ClientboundGamePacket::PlayerCombatEnter(_) => {}
@@ -1023,7 +1033,16 @@ fn process_packet_events(ecs: &mut World) {
             }
             ClientboundGamePacket::PlayerLookAt(_) => {}
             ClientboundGamePacket::RemoveMobEffect(_) => {}
-            ClientboundGamePacket::ResourcePack(_) => {}
+            ClientboundGamePacket::ResourcePack(p) => {
+                debug!("Got resource pack packet {:?}", p);
+
+                let mut system_state: SystemState<Query<&mut LocalPlayer>> = SystemState::new(ecs);
+                let mut query = system_state.get_mut(ecs);
+
+                let local_player = query.get_mut(player_entity).unwrap();
+                // always accept resource pack
+                local_player.write_packet(ServerboundResourcePackPacket { action: azalea_protocol::packets::game::serverbound_resource_pack_packet::Action::Accepted }.get());
+            }
             ClientboundGamePacket::Respawn(p) => {
                 debug!("Got respawn packet {:?}", p);
 
