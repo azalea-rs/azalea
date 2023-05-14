@@ -70,6 +70,13 @@ pub trait PathfinderClientExt {
 }
 
 impl PathfinderClientExt for azalea_client::Client {
+    /// ```no_run
+    /// # use azalea::prelude::*;
+    /// # use azalea::{BlockPos, pathfinder::BlockPosGoal};
+    /// # fn example(bot: &Client) {
+    /// bot.goto(BlockPosGoal::from(BlockPos::new(0, 70, 0)));
+    /// # }
+    /// ```
     fn goto(&self, goal: impl Goal + Send + Sync + 'static) {
         self.ecs.lock().send_event(GotoEvent {
             entity: self.entity,
