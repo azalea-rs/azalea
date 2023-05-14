@@ -70,7 +70,7 @@ pub trait PathfinderClientExt {
 }
 
 impl PathfinderClientExt for azalea_client::Client {
-    /// ```no_run
+    /// ```
     /// # use azalea::prelude::*;
     /// # use azalea::{BlockPos, pathfinder::BlockPosGoal};
     /// # fn example(bot: &Client) {

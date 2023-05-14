@@ -108,6 +108,16 @@ impl ChatPacket {
             overlay: false,
         }))
     }
+
+    /// Whether this message was sent with /msg (or aliases). It works by
+    /// checking the translation key, so it won't work on servers that use their
+    /// own whisper system.
+    pub fn is_whisper(&self) -> bool {
+        match self.message() {
+            FormattedText::Text(_) => false,
+            FormattedText::Translatable(t) => t.key == "commands.message.display.incoming",
+        }
+    }
 }
 
 impl Client {
