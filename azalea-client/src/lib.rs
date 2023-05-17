@@ -30,7 +30,7 @@ pub mod task_pool;
 
 pub use account::{Account, AccountOpts};
 pub use client::{
-    init_ecs_app, start_ecs, Client, ClientInformation, JoinError, JoinedClientBundle, TabList,
+    start_ecs, Client, ClientInformation, DefaultPlugins, JoinError, JoinedClientBundle, TabList,
     TickBroadcast,
 };
 pub use events::Event;

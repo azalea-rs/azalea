@@ -177,6 +177,7 @@ dependencies = [
  "azalea-world",
  "bevy_app",
  "bevy_ecs",
+ "bevy_log",
  "bevy_tasks",
  "derive_more",
  "futures",

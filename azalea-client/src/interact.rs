@@ -73,7 +73,7 @@ pub struct CurrentSequenceNumber(u32);
 #[derive(Component, Clone, Debug, Deref, DerefMut)]
 pub struct HitResultComponent(BlockHitResult);
 
-fn handle_block_interact_event(
+pub fn handle_block_interact_event(
     mut events: EventReader<BlockInteractEvent>,
     mut query: Query<(
         &LocalPlayer,

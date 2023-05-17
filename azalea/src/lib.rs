@@ -20,7 +20,7 @@ pub use azalea_core::{BlockPos, Vec3};
 pub use azalea_protocol as protocol;
 pub use azalea_registry::{Block, EntityKind, Item};
 pub use azalea_world::{entity, Instance};
-use bot::DefaultBotPlugins;
+pub use bot::DefaultBotPlugins;
 use ecs::component::Component;
 use futures::Future;
 use protocol::{
@@ -81,16 +81,42 @@ where
     /// Start building a client that can join the world.
     #[must_use]
     pub fn new() -> Self {
+        Self::new_without_plugins()
+            .add_plugins(DefaultPlugins)
+            .add_plugins(DefaultBotPlugins)
+    }
+
+    /// [`Self::new`] but without adding the plugins by default. This is useful
+    /// if you want to disable a default plugin.
+    ///
+    /// You **must** add [`DefaultPlugins`] and [`DefaultBotPlugins`] to this.
+    ///
+    /// ```
+    /// # use azalea::prelude::*;
+    /// use azalea::{app::PluginGroup, DefaultBotPlugins, DefaultPlugins};
+    /// use bevy_log::LogPlugin;
+    ///
+    /// let client = ClientBuilder::new_without_plugins()
+    ///     .add_plugins(DefaultPlugins.build().disable::<LogPlugin>())
+    ///     .add_plugins(DefaultBotPlugins);
+    /// # client.set_handler(handle);
+    /// # #[derive(Component, Clone, Default)]
+    /// # pub struct State;
+    /// # async fn handle(mut bot: Client, event: Event, state: State) -> anyhow::Result<()> {
+    /// #     Ok(())
+    /// # }
+    /// ```
+    #[must_use]
+    pub fn new_without_plugins() -> Self {
         Self {
             // we create the app here so plugins can add onto it.
             // the schedules won't run until [`Self::start`] is called.
-            app: init_ecs_app(),
-
+            app: App::new(),
             handler: None,
             state: S::default(),
         }
-        .add_plugins(DefaultBotPlugins)
     }
+
     /// Set the function that's called every time a bot receives an [`Event`].
     /// This is the way to handle normal per-bot events.
     ///

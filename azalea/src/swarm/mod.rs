@@ -5,7 +5,9 @@ mod events;
 pub mod prelude;
 
 use crate::{bot::DefaultBotPlugins, HandleFn};
-use azalea_client::{chat::ChatPacket, init_ecs_app, start_ecs, Account, Client, Event, JoinError};
+use azalea_client::{
+    chat::ChatPacket, start_ecs, Account, Client, DefaultPlugins, Event, JoinError,
+};
 use azalea_protocol::{
     connect::ConnectionError,
     resolver::{self, ResolverError},
@@ -83,10 +85,43 @@ where
     /// Start creating the swarm.
     #[must_use]
     pub fn new() -> Self {
+        Self::new_without_plugins()
+            .add_plugins(DefaultPlugins)
+            .add_plugins(DefaultBotPlugins)
+            .add_plugins(DefaultSwarmPlugins)
+    }
+
+    /// [`Self::new`] but without adding the plugins by default. This is useful
+    /// if you want to disable a default plugin.
+    ///
+    /// You **must** add [`DefaultPlugins`], [`DefaultBotPlugins`], and
+    /// [`DefaultSwarmPlugins`] to this.
+    ///
+    /// ```
+    /// # use azalea::{prelude::*, swarm::prelude::*};
+    /// use azalea::{app::PluginGroup, DefaultBotPlugins, DefaultPlugins, swarm::{DefaultSwarmPlugins}};
+    /// use bevy_log::LogPlugin;
+    ///
+    /// let client = SwarmBuilder::new_without_plugins()
+    ///     .add_plugins(DefaultPlugins.build().disable::<LogPlugin>())
+    ///     .add_plugins(DefaultBotPlugins)
+    ///     .add_plugins(DefaultSwarmPlugins);
+    /// # client.set_handler(handle).set_swarm_handler(swarm_handle);
+    /// # #[derive(Component, Resource, Clone, Default)]
+    /// # pub struct State;
+    /// # async fn handle(mut bot: Client, event: Event, state: State) -> anyhow::Result<()> {
+    /// #     Ok(())
+    /// # }
+    /// # async fn swarm_handle(swarm: Swarm, event: SwarmEvent, state: State) -> anyhow::Result<()> {
+    /// #     Ok(())
+    /// # }
+    /// ```
+    #[must_use]
+    pub fn new_without_plugins() -> Self {
         Self {
             // we create the app here so plugins can add onto it.
             // the schedules won't run until [`Self::start`] is called.
-            app: init_ecs_app(),
+            app: App::new(),
 
             accounts: Vec::new(),
             states: Vec::new(),
@@ -95,8 +130,6 @@ where
             swarm_handler: None,
             join_delay: None,
         }
-        .add_plugins(DefaultSwarmPlugins)
-        .add_plugins(DefaultBotPlugins)
     }
 
     /// Add a vec of [`Account`]s to the swarm.

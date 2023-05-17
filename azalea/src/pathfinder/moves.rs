@@ -15,7 +15,8 @@ fn is_block_passable(pos: &BlockPos, world: &Instance) -> bool {
 /// whether this block has a solid hitbox (i.e. we can stand on it)
 fn is_block_solid(pos: &BlockPos, world: &Instance) -> bool {
     if let Some(block) = world.chunks.get_block_state(pos) {
-        block.shape() == &collision::block_shape()
+        // block.shape() == &collision::block_shape()
+        block.shape() != &collision::empty_shape()
     } else {
         false
     }

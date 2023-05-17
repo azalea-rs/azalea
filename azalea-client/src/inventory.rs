@@ -628,7 +628,7 @@ fn handle_container_close_event(
 pub struct ClientSideCloseContainerEvent {
     pub entity: Entity,
 }
-fn handle_client_side_close_container_event(
+pub fn handle_client_side_close_container_event(
     mut events: EventReader<ClientSideCloseContainerEvent>,
     mut query: Query<&mut InventoryComponent>,
 ) {
@@ -645,7 +645,7 @@ pub struct ContainerClickEvent {
     pub window_id: u8,
     pub operation: ClickOperation,
 }
-fn handle_container_click_event(
+pub fn handle_container_click_event(
     mut events: EventReader<ContainerClickEvent>,
     mut query: Query<(&mut InventoryComponent, &LocalPlayer)>,
 ) {

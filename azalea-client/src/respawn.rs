@@ -4,7 +4,7 @@ use azalea_protocol::packets::game::serverbound_client_command_packet::{
 use bevy_app::{App, Plugin};
 use bevy_ecs::prelude::*;
 
-use crate::LocalPlayer;
+use crate::local_player::{handle_send_packet_event, SendPacketEvent};
 
 /// Tell the server that we're respawning.
 #[derive(Debug, Clone)]
@@ -17,22 +17,21 @@ pub struct RespawnPlugin;
 impl Plugin for RespawnPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<PerformRespawnEvent>()
-            .add_system(perform_respawn);
+            .add_system(perform_respawn.before(handle_send_packet_event));
     }
 }
 
 pub fn perform_respawn(
     mut events: EventReader<PerformRespawnEvent>,
-    mut query: Query<&mut LocalPlayer>,
+    mut send_packets: EventWriter<SendPacketEvent>,
 ) {
     for event in events.iter() {
-        if let Ok(local_player) = query.get_mut(event.entity) {
-            local_player.write_packet(
-                ServerboundClientCommandPacket {
-                    action: serverbound_client_command_packet::Action::PerformRespawn,
-                }
-                .get(),
-            );
-        }
+        send_packets.send(SendPacketEvent {
+            entity: event.entity,
+            packet: ServerboundClientCommandPacket {
+                action: serverbound_client_command_packet::Action::PerformRespawn,
+            }
+            .get(),
+        });
     }
 }
