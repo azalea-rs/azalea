@@ -102,11 +102,11 @@ where
     /// use azalea::{app::PluginGroup, DefaultBotPlugins, DefaultPlugins, swarm::{DefaultSwarmPlugins}};
     /// use bevy_log::LogPlugin;
     ///
-    /// let client = SwarmBuilder::new_without_plugins()
+    /// let swarm_builder = SwarmBuilder::new_without_plugins()
     ///     .add_plugins(DefaultPlugins.build().disable::<LogPlugin>())
     ///     .add_plugins(DefaultBotPlugins)
     ///     .add_plugins(DefaultSwarmPlugins);
-    /// # client.set_handler(handle).set_swarm_handler(swarm_handle);
+    /// # swarm_builder.set_handler(handle).set_swarm_handler(swarm_handle);
     /// # #[derive(Component, Resource, Clone, Default)]
     /// # pub struct State;
     /// # async fn handle(mut bot: Client, event: Event, state: State) -> anyhow::Result<()> {

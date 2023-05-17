@@ -96,10 +96,10 @@ where
     /// use azalea::{app::PluginGroup, DefaultBotPlugins, DefaultPlugins};
     /// use bevy_log::LogPlugin;
     ///
-    /// let client = ClientBuilder::new_without_plugins()
+    /// let client_builder = ClientBuilder::new_without_plugins()
     ///     .add_plugins(DefaultPlugins.build().disable::<LogPlugin>())
     ///     .add_plugins(DefaultBotPlugins);
-    /// # client.set_handler(handle);
+    /// # client_builder.set_handler(handle);
     /// # #[derive(Component, Clone, Default)]
     /// # pub struct State;
     /// # async fn handle(mut bot: Client, event: Event, state: State) -> anyhow::Result<()> {
