@@ -4,12 +4,12 @@ edition = "2021"
 license = "MIT"
 name = "azalea-world"
 repository = "https://github.com/mat-1/azalea/tree/main/azalea-world"
-version = "0.6.0"
+version = "0.7.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-azalea-block = { path = "../azalea-block", default-features = false, version = "^0.6.0" }
+azalea-block = { path = "../azalea-block", default-features = false, version = "^0.7.0" }
 azalea-buf = { path = "../azalea-buf", version = "^0.7.0" }
 azalea-chat = { path = "../azalea-chat", version = "^0.7.0" }
 azalea-core = { path = "../azalea-core", version = "^0.7.0", features = [

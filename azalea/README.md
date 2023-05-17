@@ -15,7 +15,7 @@ Then, add one of the following lines to your Cargo.toml:
 Latest bleeding-edge version:
 `azalea = { git="https://github.com/mat-1/azalea" }`\
 Latest "stable" release:
-`azalea = "0.6.0"`
+`azalea = "0.7.0"`
 
 ## Optimization
 
