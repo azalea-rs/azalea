@@ -1,6 +1,9 @@
 [package]
+description = "Representations of various inventory data structures in Minecraft."
 edition = "2021"
+license = "MIT"
 name = "azalea-inventory"
+repository = "https://github.com/mat-1/azalea/tree/main/azalea-inventory-macros"
 version = "0.6.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
