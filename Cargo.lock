@@ -239,7 +239,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-buf"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "azalea-buf-macros",
  "byteorder",
@@ -251,7 +251,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-buf-macros"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "proc-macro2",
  "quote",

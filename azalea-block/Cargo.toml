@@ -12,5 +12,5 @@ version = "0.6.0"
 
 [dependencies]
 azalea-block-macros = { path = "./azalea-block-macros", version = "^0.6.0" }
-azalea-buf = { path = "../azalea-buf", version = "^0.6.0" }
+azalea-buf = { path = "../azalea-buf", version = "^0.7.0" }
 azalea-registry = { version = "0.6.0", path = "../azalea-registry" }
