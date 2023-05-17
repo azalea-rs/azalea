@@ -10,9 +10,9 @@ version = "0.6.0"
 
 [dependencies]
 azalea-block = { path = "../azalea-block", version = "^0.6.0" }
-azalea-core = { path = "../azalea-core", version = "^0.6.0" }
-azalea-inventory = { version = "0.6.0", path = "../azalea-inventory" }
-azalea-registry = { path = "../azalea-registry", version = "^0.6.0" }
+azalea-core = { path = "../azalea-core", version = "^0.7.0" }
+azalea-inventory = { version = "0.7.0", path = "../azalea-inventory" }
+azalea-registry = { path = "../azalea-registry", version = "^0.7.0" }
 azalea-world = { path = "../azalea-world", version = "^0.6.0" }
 bevy_app = "0.10.0"
 bevy_ecs = "0.10.0"

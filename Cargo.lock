@@ -260,7 +260,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-chat"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "azalea-buf",
  "azalea-language",
@@ -305,7 +305,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-core"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "azalea-buf",
  "azalea-chat",
@@ -335,7 +335,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-inventory"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "azalea-buf",
  "azalea-inventory-macros",
@@ -345,7 +345,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-inventory-macros"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -363,7 +363,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-nbt"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "azalea-buf",
  "byteorder",
@@ -445,7 +445,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-registry"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "azalea-buf",
  "azalea-registry-macros",
@@ -454,7 +454,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-registry-macros"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "proc-macro2",
  "quote",

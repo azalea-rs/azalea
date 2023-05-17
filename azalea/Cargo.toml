@@ -15,13 +15,13 @@ pre-release-replacements = [
 anyhow = "^1.0.65"
 async-trait = "0.1.58"
 azalea-block = { version = "0.6.0", path = "../azalea-block" }
-azalea-chat = { version = "0.6.0", path = "../azalea-chat" }
+azalea-chat = { version = "0.7.0", path = "../azalea-chat" }
 azalea-client = { version = "0.6.0", path = "../azalea-client" }
-azalea-core = { version = "0.6.0", path = "../azalea-core" }
-azalea-inventory = { version = "0.6.0", path = "../azalea-inventory" }
+azalea-core = { version = "0.7.0", path = "../azalea-core" }
+azalea-inventory = { version = "0.7.0", path = "../azalea-inventory" }
 azalea-physics = { version = "0.6.0", path = "../azalea-physics" }
 azalea-protocol = { version = "0.6.0", path = "../azalea-protocol" }
-azalea-registry = { version = "0.6.0", path = "../azalea-registry" }
+azalea-registry = { version = "0.7.0", path = "../azalea-registry" }
 azalea-world = { version = "0.6.0", path = "../azalea-world" }
 azalea-auth = { version = "0.6.0", path = "../azalea-auth" }
 azalea-brigadier = { version = "0.6.0", path = "../azalea-brigadier" }
