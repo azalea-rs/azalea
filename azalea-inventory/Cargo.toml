@@ -7,6 +7,6 @@ version = "0.6.0"
 
 [dependencies]
 azalea-buf = { version = "0.7.0", path = "../azalea-buf" }
-azalea-inventory-macros = { version = "0.1.0", path = "./azalea-inventory-macros" }
+azalea-inventory-macros = { version = "0.6.0", path = "./azalea-inventory-macros" }
 azalea-nbt = { version = "0.6.0", path = "../azalea-nbt" }
 azalea-registry = { version = "0.6.0", path = "../azalea-registry" }
