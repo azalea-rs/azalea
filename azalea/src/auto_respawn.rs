@@ -1,6 +1,6 @@
 use crate::app::{App, Plugin};
 use azalea_client::packet_handling::DeathEvent;
-use azalea_client::respawn::PerformRespawnEvent;
+use azalea_client::respawn::{perform_respawn, PerformRespawnEvent};
 use bevy_ecs::prelude::*;
 
 /// A plugin that makes [`DeathEvent`]s send [`PerformRespawnEvent`]s.
@@ -8,7 +8,7 @@ use bevy_ecs::prelude::*;
 pub struct AutoRespawnPlugin;
 impl Plugin for AutoRespawnPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(auto_respawn);
+        app.add_system(auto_respawn.before(perform_respawn));
     }
 }
 
