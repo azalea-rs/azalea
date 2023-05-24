@@ -3,23 +3,23 @@ description = "Cryptography features used in Minecraft."
 edition = "2021"
 license = "MIT"
 name = "azalea-crypto"
-version = "0.6.0"
+version = "0.7.0"
 repository = "https://github.com/mat-1/azalea/tree/main/azalea-crypto"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 aes = "0.8.1"
-azalea-buf = {path = "../azalea-buf", version = "^0.6.0" }
+azalea-buf = { path = "../azalea-buf", version = "^0.7.0" }
 cfb8 = "0.8.1"
 num-bigint = "^0.4.3"
-rand = {version = "^0.8.4", features = ["getrandom"]}
+rand = { version = "^0.8.4", features = ["getrandom"] }
 rsa_public_encrypt_pkcs1 = "0.4.0"
 sha-1 = "^0.10.0"
 uuid = "^1.1.2"
 
 [dev-dependencies]
-criterion = {version = "^0.4.0", features = ["html_reports"]}
+criterion = { version = "^0.4.0", features = ["html_reports"] }
 
 [[bench]]
 harness = false

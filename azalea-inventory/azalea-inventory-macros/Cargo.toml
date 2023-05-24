@@ -1,7 +1,10 @@
 [package]
-name = "azalea-inventory-macros"
-version = "0.1.0"
+description = "Internal macros for azalea-inventory."
 edition = "2021"
+license = "MIT"
+name = "azalea-inventory-macros"
+repository = "https://github.com/mat-1/azalea/tree/main/azalea-inventory/azalea-inventory-macros"
+version = "0.7.0"
 
 [lib]
 proc-macro = true

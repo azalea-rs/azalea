@@ -4,7 +4,7 @@ edition = "2021"
 license = "MIT"
 name = "azalea"
 repository = "https://github.com/mat-1/azalea/tree/main/azalea"
-version = "0.6.0"
+version = "0.7.0"
 
 [package.metadata.release]
 pre-release-replacements = [
@@ -14,17 +14,17 @@ pre-release-replacements = [
 [dependencies]
 anyhow = "^1.0.65"
 async-trait = "0.1.58"
-azalea-block = { version = "0.6.0", path = "../azalea-block" }
-azalea-chat = { version = "0.6.0", path = "../azalea-chat" }
-azalea-client = { version = "0.6.0", path = "../azalea-client" }
-azalea-core = { version = "0.6.0", path = "../azalea-core" }
-azalea-inventory = { version = "0.1.0", path = "../azalea-inventory" }
-azalea-physics = { version = "0.6.0", path = "../azalea-physics" }
-azalea-protocol = { version = "0.6.0", path = "../azalea-protocol" }
-azalea-registry = { version = "0.6.0", path = "../azalea-registry" }
-azalea-world = { version = "0.6.0", path = "../azalea-world" }
-azalea-auth = { version = "0.6.0", path = "../azalea-auth" }
-azalea-brigadier = { version = "0.6.0", path = "../azalea-brigadier" }
+azalea-block = { version = "0.7.0", path = "../azalea-block" }
+azalea-chat = { version = "0.7.0", path = "../azalea-chat" }
+azalea-client = { version = "0.7.0", path = "../azalea-client" }
+azalea-core = { version = "0.7.0", path = "../azalea-core" }
+azalea-inventory = { version = "0.7.0", path = "../azalea-inventory" }
+azalea-physics = { version = "0.7.0", path = "../azalea-physics" }
+azalea-protocol = { version = "0.7.0", path = "../azalea-protocol" }
+azalea-registry = { version = "0.7.0", path = "../azalea-registry" }
+azalea-world = { version = "0.7.0", path = "../azalea-world" }
+azalea-auth = { version = "0.7.0", path = "../azalea-auth" }
+azalea-brigadier = { version = "0.7.0", path = "../azalea-brigadier" }
 bevy_app = "0.10.0"
 bevy_ecs = "0.10.0"
 bevy_tasks = "0.10.0"
@@ -39,3 +39,4 @@ priority-queue = "1.3.0"
 thiserror = "^1.0.37"
 tokio = "^1.24.2"
 uuid = "1.2.2"
+bevy_log = "0.10.1"

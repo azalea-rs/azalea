@@ -221,7 +221,10 @@ impl Client {
 
         // An event that causes the schedule to run. This is only used internally.
         let (run_schedule_sender, run_schedule_receiver) = mpsc::unbounded_channel();
-        let app = init_ecs_app();
+
+        let mut app = App::new();
+        app.add_plugins(DefaultPlugins);
+
         let ecs_lock = start_ecs(app, run_schedule_receiver, run_schedule_sender.clone());
 
         Self::start_client(
@@ -583,35 +586,10 @@ impl Plugin for AzaleaPlugin {
     }
 }
 
-/// Create the [`App`]. This won't actually run anything yet.
+/// Start running the ECS loop!
 ///
-/// Note that you usually only need this if you're creating a client manually,
-/// otherwise use [`Client::join`].
-///
-/// Use [`start_ecs`] to actually start running the app and then
-/// [`Client::start_client`] to add a client to the ECS and make it join a
-/// server.
-#[doc(hidden)]
-pub fn init_ecs_app() -> App {
-    // if you get an error right here that means you're doing something with locks
-    // wrong read the error to see where the issue is
-    // you might be able to just drop the lock or put it in its own scope to fix
-
-    let mut app = App::new();
-
-    app.edit_schedule(CoreSchedule::Main, |schedule| {
-        schedule.set_build_settings(ScheduleBuildSettings {
-            ambiguity_detection: LogLevel::Warn,
-            ..Default::default()
-        });
-    });
-
-    app.add_plugins(DefaultPlugins);
-    app
-}
-
-/// Start running the ECS loop! You must create your `App` from [`init_ecs_app`]
-/// first.
+/// You can create your app with `App::new()`, but don't forget to add
+/// [`DefaultPlugins`].
 #[doc(hidden)]
 pub fn start_ecs(
     mut app: App,
@@ -698,6 +676,18 @@ impl Plugin for TickBroadcastPlugin {
     }
 }
 
+pub struct AmbiguityLoggerPlugin;
+impl Plugin for AmbiguityLoggerPlugin {
+    fn build(&self, app: &mut App) {
+        app.edit_schedule(CoreSchedule::Main, |schedule| {
+            schedule.set_build_settings(ScheduleBuildSettings {
+                ambiguity_detection: LogLevel::Warn,
+                ..Default::default()
+            });
+        });
+    }
+}
+
 /// This plugin group will add all the default plugins necessary for Azalea to
 /// work.
 pub struct DefaultPlugins;
@@ -706,6 +696,7 @@ impl PluginGroup for DefaultPlugins {
     fn build(self) -> PluginGroupBuilder {
         PluginGroupBuilder::start::<Self>()
             .add(LogPlugin::default())
+            .add(AmbiguityLoggerPlugin)
             .add(TimePlugin::default())
             .add(PacketHandlerPlugin)
             .add(AzaleaPlugin)
