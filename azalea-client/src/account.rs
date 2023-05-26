@@ -3,7 +3,9 @@
 use std::sync::Arc;
 
 use crate::get_mc_dir;
+use azalea_auth::certs::{Certificates, FetchCertificatesError};
 use parking_lot::Mutex;
+use thiserror::Error;
 use uuid::Uuid;
 
 /// Something that can join Minecraft servers.
@@ -38,17 +40,22 @@ pub struct Account {
     pub uuid: Option<Uuid>,
 
     /// The parameters (i.e. email) that were passed for creating this
-    /// [`Account`]. This is used to for automatic reauthentication when we get
+    /// [`Account`]. This is used for automatic reauthentication when we get
     /// "Invalid Session" errors. If you don't need that feature (like in
     /// offline mode), then you can set this to `AuthOpts::default()`.
     pub account_opts: AccountOpts,
+
+    /// The certificates used for chat signing.
+    ///
+    /// This is set when you call [`Self::request_certs`], but you only
+    /// need to if the servers you're joining require it.
+    pub certs: Option<Certificates>,
 }
 
 /// The parameters that were passed for creating the associated [`Account`].
 #[derive(Clone, Debug)]
 pub enum AccountOpts {
     Offline { username: String },
-    // this is an enum so legacy Mojang auth can be added in the future
     Microsoft { email: String },
 }
 
@@ -64,6 +71,7 @@ impl Account {
             account_opts: AccountOpts::Offline {
                 username: username.to_string(),
             },
+            certs: None,
         }
     }
 
@@ -93,6 +101,8 @@ impl Account {
             account_opts: AccountOpts::Microsoft {
                 email: email.to_string(),
             },
+            // we don't do chat signing by default unless the user asks for it
+            certs: None,
         })
     }
 
@@ -120,5 +130,31 @@ impl Account {
                 Ok(())
             }
         }
+    }
+}
+
+#[derive(Error, Debug)]
+pub enum RequestCertError {
+    #[error("Failed to fetch certificates")]
+    FetchCertificates(#[from] FetchCertificatesError),
+    #[error("You can't request certificates for an offline account")]
+    NoAccessToken,
+}
+
+impl Account {
+    /// Request the certificates used for chat signing and set it in
+    /// [`Self::certs`].
+    pub async fn request_certs(&mut self) -> Result<(), RequestCertError> {
+        let certs = azalea_auth::certs::fetch_certificates(
+            &self
+                .access_token
+                .as_ref()
+                .ok_or(RequestCertError::NoAccessToken)?
+                .lock(),
+        )
+        .await?;
+        self.certs = Some(certs);
+
+        Ok(())
     }
 }

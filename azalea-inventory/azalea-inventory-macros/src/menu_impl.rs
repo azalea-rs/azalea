@@ -177,6 +177,10 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
             }
 
             /// Get the range of slot indexes that contain the player's hotbar. This may be different for each menu.
+            ///
+            /// ```
+            /// let hotbar_items = &inventory.slots()[inventory.hotbar_slots_range()];
+            /// ```
             pub fn hotbar_slots_range(&self) -> RangeInclusive<usize> {
                 // hotbar is always last 9 slots in the player's inventory
                 ((*self.player_slots_range().end() - 8)..=*self.player_slots_range().end())

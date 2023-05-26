@@ -82,6 +82,15 @@ impl GameMode {
     }
 }
 
+impl GameMode {
+    /// Whether the player can't interact with blocks while in this game mode.
+    ///
+    /// (Returns true if you're in adventure or spectator.)
+    pub fn is_block_placing_restricted(&self) -> bool {
+        matches!(self, GameMode::Adventure | GameMode::Spectator)
+    }
+}
+
 impl McBufReadable for GameMode {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let id = u8::read_from(buf)?;

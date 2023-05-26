@@ -2,6 +2,7 @@
 
 mod auth;
 mod cache;
+pub mod certs;
 pub mod game_profile;
 pub mod sessionserver;
 

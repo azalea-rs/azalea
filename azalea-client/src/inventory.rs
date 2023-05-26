@@ -78,6 +78,9 @@ pub struct InventoryComponent {
     pub container_menu: Option<azalea_inventory::Menu>,
     /// The item that is currently held by the cursor. `Slot::Empty` if nothing
     /// is currently being held.
+    ///
+    /// This is different from [`Self::hotbar_selected_index`], which is the
+    /// item that's selected in the hotbar.
     pub carried: ItemSlot,
     /// An identifier used by the server to track client inventory desyncs. This
     /// is sent on every container click, and it's only ever updated when the
@@ -89,12 +92,13 @@ pub struct InventoryComponent {
     /// A set of the indexes of the slots that have been right clicked in
     /// this "quick craft".
     pub quick_craft_slots: HashSet<u16>,
-    // minecraft also has these fields, but i don't
-    // think they're necessary?:
-    // private final NonNullList<ItemStack>
-    // remoteSlots;
-    // private final IntList remoteDataSlots;
-    // private ItemStack remoteCarried;
+
+    /// The index of the item in the hotbar that's currently being held by the
+    /// player. This MUST be in the range 0..9 (not including 9).
+    ///
+    /// In a vanilla client this is changed by pressing the number keys or using
+    /// the scroll wheel.
+    pub selected_hotbar_slot: u8,
 }
 impl InventoryComponent {
     /// Returns a reference to the currently active menu. If a container is open
@@ -272,7 +276,6 @@ impl InventoryComponent {
                         };
                         *menu.slot_mut(slot_index as usize).unwrap() =
                             ItemSlot::Present(new_carried);
-                        // }
                     }
                 }
             } else {
@@ -493,6 +496,13 @@ impl InventoryComponent {
         self.quick_craft_status = QuickCraftStatusKind::Start;
         self.quick_craft_slots.clear();
     }
+
+    /// Get the item in the player's hotbar that is currently being held.
+    pub fn held_item(&self) -> ItemSlot {
+        let inventory = &self.inventory_menu;
+        let hotbar_items = &inventory.slots()[inventory.hotbar_slots_range()];
+        hotbar_items[self.selected_hotbar_slot as usize].clone()
+    }
 }
 
 fn can_item_quick_replace(
@@ -521,21 +531,6 @@ fn can_item_quick_replace(
     count <= item.kind.max_stack_size() as u16
 }
 
-// public static void getQuickCraftSlotCount(Set<Slot> quickCraftSlots, int
-// quickCraftType, ItemStack itemStack,     int var3) {
-//  switch (quickCraftType) {
-//     case 0:
-//        itemStack.setCount(Mth.floor((float) itemStack.getCount() / (float)
-// quickCraftSlots.size()));        break;
-//     case 1:
-//        itemStack.setCount(1);
-//        break;
-//     case 2:
-//        itemStack.setCount(itemStack.getItem().getMaxStackSize());
-//  }
-
-//  itemStack.grow(var3);
-// }
 fn get_quick_craft_slot_count(
     quick_craft_slots: &HashSet<u16>,
     quick_craft_kind: &QuickCraftKind,
@@ -561,6 +556,7 @@ impl Default for InventoryComponent {
             quick_craft_status: QuickCraftStatusKind::Start,
             quick_craft_kind: QuickCraftKind::Middle,
             quick_craft_slots: HashSet::new(),
+            selected_hotbar_slot: 0,
         }
     }
 }

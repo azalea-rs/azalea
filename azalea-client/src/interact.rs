@@ -1,4 +1,7 @@
+use azalea_block::BlockState;
 use azalea_core::{BlockHitResult, BlockPos, Direction, GameMode, Vec3};
+use azalea_inventory::{ItemSlot, ItemSlotData};
+use azalea_nbt::NbtList;
 use azalea_physics::clip::{BlockShapeType, ClipContext, FluidPickType};
 use azalea_protocol::packets::game::{
     serverbound_interact_packet::InteractionHand,
@@ -20,6 +23,8 @@ use derive_more::{Deref, DerefMut};
 use log::warn;
 
 use crate::{
+    client::PlayerAbilities,
+    inventory::InventoryComponent,
     local_player::{handle_send_packet_event, LocalGameMode},
     Client, LocalPlayer,
 };
@@ -192,4 +197,69 @@ pub fn pick(
             fluid_pick_type: FluidPickType::None,
         },
     )
+}
+
+/// Whether we can't interact with the block, based on your gamemode. If
+/// this is false, then we can interact with the block.
+///
+/// Passing the inventory, block position, and instance is necessary for the
+/// adventure mode check.
+pub fn check_is_interaction_restricted(
+    instance: &Instance,
+    block_pos: &BlockPos,
+    game_mode: &GameMode,
+    inventory: &InventoryComponent,
+) -> bool {
+    match game_mode {
+        GameMode::Adventure => {
+            // vanilla checks for abilities.mayBuild here but servers have no
+            // way of modifying that
+
+            let held_item = inventory.held_item();
+            if let ItemSlot::Present(item) = &held_item {
+                let block = instance.chunks.get_block_state(block_pos);
+                let Some(block) = block else {
+                    // block isn't loaded so just say that it is restricted
+                    return true;
+                };
+                check_block_can_be_broken_by_item_in_adventure_mode(item, &block)
+            } else {
+                true
+            }
+        }
+        GameMode::Spectator => true,
+        _ => false,
+    }
+}
+
+/// Check if the item has the `CanDestroy` tag for the block.
+pub fn check_block_can_be_broken_by_item_in_adventure_mode(
+    item: &ItemSlotData,
+    block: &BlockState,
+) -> bool {
+    // minecraft caches the last checked block but that's kind of an unnecessary
+    // optimization and makes the code too complicated
+
+    let Some(can_destroy) = item
+        .nbt
+        .as_compound()
+        .and_then(|nbt| nbt.get("tag").and_then(|nbt| nbt.as_compound()))
+        .and_then(|nbt| nbt.get("CanDestroy").and_then(|nbt| nbt.as_list())) else {
+            // no CanDestroy tag
+            return false;
+        };
+
+    let NbtList::String(can_destroy) = can_destroy else {
+        // CanDestroy tag must be a list of strings
+        return false;
+    };
+
+    return false;
+
+    // for block_predicate in can_destroy {
+    //     // TODO
+    //     // defined in BlockPredicateArgument.java
+    // }
+
+    // true
 }
