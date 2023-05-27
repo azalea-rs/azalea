@@ -203,6 +203,7 @@ dependencies = [
  "env_logger",
  "log",
  "num-bigint",
+ "once_cell",
  "parking_lot",
  "reqwest",
  "rsa",

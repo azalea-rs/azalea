@@ -9,7 +9,7 @@ use std::sync::Arc;
 #[tokio::main]
 async fn main() {
     let account = Account::offline("bot");
-    // or let bot = Account::microsoft("email").await;
+    // or let bot = Account::microsoft("email").await.unwrap();
 
     ClientBuilder::new()
         .set_handler(handle)

@@ -82,21 +82,11 @@ pub fn sign_chat_message(opts: &SignChatMessageOptions) -> MessageSignature {
     // signatures of last seen messages
     // ... not implemented yet
 
-    // hash with sha256 and then sign with rsa
-
-    // let mut hasher = Sha256::new();
-    // hasher.update(data_to_sign.as_slice());
-    // let hash = hasher.finalize();
-
-    // println!("hash: {:?}", hash);
-
     let signing_key = rsa::pkcs1v15::SigningKey::<Sha256>::new(opts.private_key.clone());
     let mut rng = rand::thread_rng();
     let signature = signing_key
         .sign_with_rng(&mut rng, &data_to_sign)
         .to_bytes();
-
-    println!("signature: {:?}", signature);
 
     MessageSignature {
         bytes: signature

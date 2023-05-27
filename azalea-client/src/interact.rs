@@ -23,7 +23,6 @@ use derive_more::{Deref, DerefMut};
 use log::warn;
 
 use crate::{
-    client::PlayerAbilities,
     inventory::InventoryComponent,
     local_player::{handle_send_packet_event, LocalGameMode},
     Client, LocalPlayer,
@@ -235,7 +234,7 @@ pub fn check_is_interaction_restricted(
 /// Check if the item has the `CanDestroy` tag for the block.
 pub fn check_block_can_be_broken_by_item_in_adventure_mode(
     item: &ItemSlotData,
-    block: &BlockState,
+    _block: &BlockState,
 ) -> bool {
     // minecraft caches the last checked block but that's kind of an unnecessary
     // optimization and makes the code too complicated
@@ -249,7 +248,7 @@ pub fn check_block_can_be_broken_by_item_in_adventure_mode(
             return false;
         };
 
-    let NbtList::String(can_destroy) = can_destroy else {
+    let NbtList::String(_can_destroy) = can_destroy else {
         // CanDestroy tag must be a list of strings
         return false;
     };

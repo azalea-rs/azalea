@@ -55,14 +55,11 @@ pub async fn fetch_certificates(
         .unwrap();
 
     // the private key also contains the public key so it's basically a keypair
-    let key_pair = RsaPrivateKey::from_pkcs8_der(&private_key_der).unwrap();
+    let private_key = RsaPrivateKey::from_pkcs8_der(&private_key_der).unwrap();
 
     let certificates = Certificates {
-        key_pair,
-        key_pair_bytes: KeyPairBytes {
-            private_key: private_key_der,
-            public_key: public_key_der,
-        },
+        private_key,
+        public_key_der,
 
         signature_v1: base64::engine::general_purpose::STANDARD
             .decode(&res.public_key_signature)
@@ -81,23 +78,16 @@ pub async fn fetch_certificates(
 /// A chat signing certificate.
 #[derive(Clone, Debug)]
 pub struct Certificates {
-    /// The RSA private and public key.
-    pub key_pair: RsaPrivateKey,
-    /// The keypair as DER-encoded bytes.
-    pub key_pair_bytes: KeyPairBytes,
+    /// The RSA private key.
+    pub private_key: RsaPrivateKey,
+    /// The RSA public key encoded as DER.
+    pub public_key_der: Vec<u8>,
 
     pub signature_v1: Vec<u8>,
     pub signature_v2: Vec<u8>,
 
     pub expires_at: DateTime<Utc>,
     pub refresh_after: DateTime<Utc>,
-}
-
-/// A keypair as DER-encoded bytes.
-#[derive(Clone, Debug)]
-pub struct KeyPairBytes {
-    pub private_key: Vec<u8>,
-    pub public_key: Vec<u8>,
 }
 
 #[derive(Debug, Deserialize)]

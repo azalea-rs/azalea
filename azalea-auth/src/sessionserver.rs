@@ -1,5 +1,6 @@
 //! Tell Mojang you're joining a multiplayer server.
 use log::debug;
+use once_cell::sync::Lazy;
 use reqwest::StatusCode;
 use serde::Deserialize;
 use serde_json::json;
@@ -48,6 +49,8 @@ pub struct ForbiddenError {
     pub path: String,
 }
 
+static REQWEST_CLIENT: Lazy<reqwest::Client> = Lazy::new(|| reqwest::Client::new());
+
 /// Tell Mojang's servers that you are going to join a multiplayer server,
 /// which is required to join online-mode servers. The server ID is an empty
 /// string.
@@ -58,7 +61,7 @@ pub async fn join(
     uuid: &Uuid,
     server_id: &str,
 ) -> Result<(), ClientSessionServerError> {
-    let client = reqwest::Client::new();
+    let client = REQWEST_CLIENT.clone();
 
     let server_hash = azalea_crypto::hex_digest(&azalea_crypto::digest_data(
         server_id.as_bytes(),

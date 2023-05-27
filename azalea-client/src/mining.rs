@@ -28,8 +28,8 @@ pub struct StartMiningBlockEvent {
     pub position: BlockPos,
 }
 
-fn handle_start_mining_block_event(mut events: EventReader<StartMiningBlockEvent>) {
-    for event in events.iter() {
-        //
-    }
+fn handle_start_mining_block_event(mut _events: EventReader<StartMiningBlockEvent>) {
+    // for event in events.iter() {
+    //     //
+    // }
 }

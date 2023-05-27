@@ -342,7 +342,7 @@ impl Client {
         conn.write(
             ServerboundHelloPacket {
                 name: account.username.clone(),
-                profile_id: None,
+                profile_id: account.uuid,
             }
             .get(),
         )
