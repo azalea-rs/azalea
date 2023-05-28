@@ -29,7 +29,7 @@ impl TextColor {
     pub fn parse(value: String) -> Option<TextColor> {
         if value.starts_with('#') {
             let n = value.chars().skip(1).collect::<String>();
-            let n = u32::from_str_radix(&n, 16).unwrap();
+            let n = u32::from_str_radix(&n, 16).ok()?;
             return Some(TextColor::from_rgb(n));
         }
         let color_option = NAMED_COLORS.get(&value.to_ascii_uppercase());
