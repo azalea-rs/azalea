@@ -140,10 +140,13 @@ pub async fn auth(email: &str, opts: AuthOpts) -> Result<AuthResult, AuthError> 
     })
 }
 
-pub async fn auth_with_user_code(
+/// Authenticate with Microsoft, but use external link code.
+/// This allows you to grab the link code, use it somewhere else and then feed
+/// it back into the authentication code.
+pub async fn auth_with_link_code(
     email: &str,
     opts: AuthOpts,
-    device_code: DeviceCodeResponse,
+    res: DeviceCodeResponse,
 ) -> Result<AuthResult, AuthError> {
     let cached_account = if let Some(cache_file) = &opts.cache_file {
         cache::get_account_in_cache(cache_file, email).await
@@ -166,7 +169,7 @@ pub async fn auth_with_user_code(
         let mut msa = if let Some(account) = cached_account {
             account.msa
         } else {
-            get_ms_auth_token(&client, device_code).await?
+            get_ms_auth_token(&client, res).await?
         };
         if msa.is_expired() {
             log::trace!("refreshing Microsoft auth token");
@@ -315,7 +318,8 @@ pub enum GetMicrosoftAuthTokenError {
     Timeout,
 }
 
-async fn get_ms_auth_code(
+///  Allows you to grab the Microsoft Link code for logging into Minecraft
+pub async fn get_ms_link_code(
     client: &reqwest::Client,
 ) -> Result<DeviceCodeResponse, GetMicrosoftAuthTokenError> {
     Ok(client
@@ -335,7 +339,6 @@ async fn get_ms_auth_token(
     client: &reqwest::Client,
     res: DeviceCodeResponse,
 ) -> Result<ExpiringValue<AccessTokenResponse>, GetMicrosoftAuthTokenError> {
-
     let login_expires_at = Instant::now() + std::time::Duration::from_secs(res.expires_in);
 
     while Instant::now() < login_expires_at {
@@ -377,7 +380,7 @@ async fn interactive_get_ms_auth_token(
     client: &reqwest::Client,
     email: &str,
 ) -> Result<ExpiringValue<AccessTokenResponse>, GetMicrosoftAuthTokenError> {
-    let res = get_ms_auth_code(&client).await?;
+    let res = get_ms_link_code(&client).await?;
     log::trace!("Device code response: {:?}", res);
     println!(
         "Go to \x1b[1m{}\x1b[m and enter the code \x1b[1m{}\x1b[m for \x1b[1m{}\x1b[m",

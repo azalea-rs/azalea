@@ -4,6 +4,7 @@ use std::sync::Arc;
 
 use crate::get_mc_dir;
 use azalea_auth::certs::{Certificates, FetchCertificatesError};
+use azalea_auth::DeviceCodeResponse;
 use parking_lot::Mutex;
 use thiserror::Error;
 use uuid::Uuid;
@@ -106,6 +107,39 @@ impl Account {
         })
     }
 
+    /// This will create an online-mode account through `azalea-auth::get_ms_link_code` so
+    /// there can be relaying of the link code to other parts of the application.
+    /// Note that the email given is actually only used as a key for the cache,
+    /// but it's recommended to use the real email to avoid confusion.
+    pub async fn with_microsoft_code(
+        email: &str,
+        res: DeviceCodeResponse,
+    ) -> Result<Self, azalea_auth::AuthError> {
+        let minecraft_dir = get_mc_dir::minecraft_dir().unwrap_or_else(|| {
+            panic!(
+                "No {} environment variable found",
+                get_mc_dir::home_env_var()
+            )
+        });
+        let auth_result = azalea_auth::auth_with_link_code(
+            email,
+            azalea_auth::AuthOpts {
+                cache_file: Some(minecraft_dir.join("azalea-auth.json")),
+                ..Default::default()
+            },
+            res,
+        )
+        .await?;
+        Ok(Self {
+            username: auth_result.profile.name,
+            access_token: Some(Arc::new(Mutex::new(auth_result.access_token))),
+            uuid: Some(auth_result.profile.id),
+            account_opts: AccountOpts::Microsoft {
+                email: email.to_string(),
+            },
+            certs: None,
+        })
+    }
     /// Refresh the access_token for this account to be valid again.
     ///
     /// This requires the `auth_opts` field to be set correctly (which is done

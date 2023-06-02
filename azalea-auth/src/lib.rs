@@ -1,6 +1,6 @@
 #![doc = include_str!("../README.md")]
 
-pub mod auth;
+mod auth;
 mod cache;
 pub mod certs;
 pub mod game_profile;
