@@ -140,6 +140,94 @@ pub async fn auth(email: &str, opts: AuthOpts) -> Result<AuthResult, AuthError> 
     })
 }
 
+pub async fn auth_with_user_code(
+    email: &str,
+    opts: AuthOpts,
+    device_code: DeviceCodeResponse,
+) -> Result<AuthResult, AuthError> {
+    let cached_account = if let Some(cache_file) = &opts.cache_file {
+        cache::get_account_in_cache(cache_file, email).await
+    } else {
+        None
+    };
+
+    // these two MUST be set by the end, since we return them in AuthResult
+    let profile: ProfileResponse;
+    let minecraft_access_token: String;
+
+    if cached_account.is_some() && !cached_account.as_ref().unwrap().mca.is_expired() {
+        let account = cached_account.as_ref().unwrap();
+        // the minecraft auth data is cached and not expired, so we can just
+        // use that instead of doing auth all over again :)
+        profile = account.profile.clone();
+        minecraft_access_token = account.mca.data.access_token.clone();
+    } else {
+        let client = reqwest::Client::new();
+        let mut msa = if let Some(account) = cached_account {
+            account.msa
+        } else {
+            get_ms_auth_token(&client, device_code).await?
+        };
+        if msa.is_expired() {
+            log::trace!("refreshing Microsoft auth token");
+            msa = refresh_ms_auth_token(&client, &msa.data.refresh_token).await?;
+        }
+        let ms_access_token = &msa.data.access_token;
+        log::trace!("Got access token: {}", ms_access_token);
+
+        let xbl_auth = auth_with_xbox_live(&client, ms_access_token).await?;
+
+        let xsts_token = obtain_xsts_for_minecraft(
+            &client,
+            &xbl_auth
+                .get()
+                .expect("Xbox Live auth token shouldn't have expired yet")
+                .token,
+        )
+        .await?;
+
+        // Minecraft auth
+        let mca = auth_with_minecraft(&client, &xbl_auth.data.user_hash, &xsts_token).await?;
+
+        minecraft_access_token = mca
+            .get()
+            .expect("Minecraft auth shouldn't have expired yet")
+            .access_token
+            .to_string();
+
+        if opts.check_ownership {
+            let has_game = check_ownership(&client, &minecraft_access_token).await?;
+            if !has_game {
+                return Err(AuthError::DoesNotOwnGame);
+            }
+        }
+
+        profile = get_profile(&client, &minecraft_access_token).await?;
+
+        if let Some(cache_file) = opts.cache_file {
+            if let Err(e) = cache::set_account_in_cache(
+                &cache_file,
+                email,
+                CachedAccount {
+                    email: email.to_string(),
+                    mca,
+                    msa,
+                    xbl: xbl_auth,
+                    profile: profile.clone(),
+                },
+            )
+            .await
+            {
+                log::error!("{}", e);
+            }
+        }
+    }
+
+    Ok(AuthResult {
+        access_token: minecraft_access_token,
+        profile,
+    })
+}
 #[derive(Debug)]
 pub struct AuthResult {
     pub access_token: String,
@@ -227,12 +315,10 @@ pub enum GetMicrosoftAuthTokenError {
     Timeout,
 }
 
-/// Asks the user to go to a webpage and log in with Microsoft.
-async fn interactive_get_ms_auth_token(
+async fn get_ms_auth_code(
     client: &reqwest::Client,
-    email: &str,
-) -> Result<ExpiringValue<AccessTokenResponse>, GetMicrosoftAuthTokenError> {
-    let res = client
+) -> Result<DeviceCodeResponse, GetMicrosoftAuthTokenError> {
+    Ok(client
         .post("https://login.live.com/oauth20_connect.srf")
         .form(&vec![
             ("scope", "service::user.auth.xboxlive.com::MBI_SSL"),
@@ -242,7 +328,56 @@ async fn interactive_get_ms_auth_token(
         .send()
         .await?
         .json::<DeviceCodeResponse>()
-        .await?;
+        .await?)
+}
+
+async fn get_ms_auth_token(
+    client: &reqwest::Client,
+    res: DeviceCodeResponse,
+) -> Result<ExpiringValue<AccessTokenResponse>, GetMicrosoftAuthTokenError> {
+
+    let login_expires_at = Instant::now() + std::time::Duration::from_secs(res.expires_in);
+
+    while Instant::now() < login_expires_at {
+        tokio::time::sleep(std::time::Duration::from_secs(res.interval)).await;
+
+        log::trace!("Polling to check if user has logged in...");
+        if let Ok(access_token_response) = client
+            .post(format!(
+                "https://login.live.com/oauth20_token.srf?client_id={CLIENT_ID}"
+            ))
+            .form(&vec![
+                ("client_id", CLIENT_ID),
+                ("device_code", &res.device_code),
+                ("grant_type", "urn:ietf:params:oauth:grant-type:device_code"),
+            ])
+            .send()
+            .await?
+            .json::<AccessTokenResponse>()
+            .await
+        {
+            log::trace!("access_token_response: {:?}", access_token_response);
+            let expires_at = SystemTime::now()
+                + std::time::Duration::from_secs(access_token_response.expires_in);
+            return Ok(ExpiringValue {
+                data: access_token_response,
+                expires_at: expires_at
+                    .duration_since(UNIX_EPOCH)
+                    .expect("Time went backwards")
+                    .as_secs(),
+            });
+        }
+    }
+
+    Err(GetMicrosoftAuthTokenError::Timeout)
+}
+
+/// Asks the user to go to a webpage and log in with Microsoft.
+async fn interactive_get_ms_auth_token(
+    client: &reqwest::Client,
+    email: &str,
+) -> Result<ExpiringValue<AccessTokenResponse>, GetMicrosoftAuthTokenError> {
+    let res = get_ms_auth_code(&client).await?;
     log::trace!("Device code response: {:?}", res);
     println!(
         "Go to \x1b[1m{}\x1b[m and enter the code \x1b[1m{}\x1b[m for \x1b[1m{}\x1b[m",
