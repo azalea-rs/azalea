@@ -10,7 +10,6 @@ use azalea_protocol_macros::ClientboundGamePacket;
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundSectionBlocksUpdatePacket {
     pub section_pos: ChunkSectionPos,
-    pub suppress_light_updates: bool,
     pub states: Vec<BlockStateWithPosition>,
 }
 
