@@ -77,370 +77,365 @@ static SHAPE15: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.375, 0.375, 0.25, 0.625, 0.625, 1.),
     )
 });
-static SHAPE16: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.375, 0.375, 0., 0.625, 0.625, 1.));
-static SHAPE17: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE16: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 1., 0.25);
     Shapes::or(
         s,
         collision::box_shape(0.375, 0.375, 0.25, 0.625, 0.625, 1.25),
     )
 });
-static SHAPE18: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE17: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.75, 0., 0., 1., 1., 1.);
     Shapes::or(
         s,
         collision::box_shape(0., 0.375, 0.375, 0.75, 0.625, 0.625),
     )
 });
-static SHAPE19: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0., 0.375, 0.375, 1., 0.625, 0.625));
-static SHAPE20: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE18: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.75, 0., 0., 1., 1., 1.);
     Shapes::or(
         s,
         collision::box_shape(-0.25, 0.375, 0.375, 0.75, 0.625, 0.625),
     )
 });
-static SHAPE21: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE19: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0.75, 1., 1., 1.);
     Shapes::or(
         s,
         collision::box_shape(0.375, 0.375, 0., 0.625, 0.625, 0.75),
     )
 });
-static SHAPE22: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE20: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0.75, 1., 1., 1.);
     Shapes::or(
         s,
         collision::box_shape(0.375, 0.375, -0.25, 0.625, 0.625, 0.75),
     )
 });
-static SHAPE23: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE21: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.25, 1., 1.);
     Shapes::or(
         s,
         collision::box_shape(0.25, 0.375, 0.375, 1., 0.625, 0.625),
     )
 });
-static SHAPE24: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE22: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.25, 1., 1.);
     Shapes::or(
         s,
         collision::box_shape(0.25, 0.375, 0.375, 1.25, 0.625, 0.625),
     )
 });
-static SHAPE25: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE23: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.375, 0., 0.375, 0.625, 1., 0.625);
     let s = Shapes::or(s, collision::box_shape(0., 0.75, 0., 0.375, 1., 1.));
     let s = Shapes::or(s, collision::box_shape(0.375, 0.75, 0., 1., 1., 0.375));
     let s = Shapes::or(s, collision::box_shape(0.375, 0.75, 0.625, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0.625, 0.75, 0.375, 1., 1., 0.625))
 });
-static SHAPE26: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.375, 0., 0.375, 0.625, 1., 0.625));
-static SHAPE27: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE24: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.375, -0.25, 0.375, 0.625, 1., 0.625);
     let s = Shapes::or(s, collision::box_shape(0., 0.75, 0., 0.375, 1., 1.));
     let s = Shapes::or(s, collision::box_shape(0.375, 0.75, 0., 1., 1., 0.375));
     let s = Shapes::or(s, collision::box_shape(0.375, 0.75, 0.625, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0.625, 0.75, 0.375, 1., 1., 0.625))
 });
-static SHAPE28: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE25: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.25, 1.);
     Shapes::or(
         s,
         collision::box_shape(0.375, 0.25, 0.375, 0.625, 1., 0.625),
     )
 });
-static SHAPE29: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0., 1., 0.25, 1.));
-static SHAPE30: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE26: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.25, 1.);
     Shapes::or(
         s,
         collision::box_shape(0.375, 0.25, 0.375, 0.625, 1.25, 0.625),
     )
 });
-static SHAPE31: Lazy<VoxelShape> =
+static SHAPE27: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.3125, 0., 0.3125, 0.6875, 0.375, 0.6875));
-static SHAPE32: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0., 1., 0.0625, 1.));
-static SHAPE33: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE28: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0., 1., 0.0625, 1.));
+static SHAPE29: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 1., 0.5);
     Shapes::or(s, collision::box_shape(0., 0.5, 0.5, 1., 1., 1.))
 });
-static SHAPE34: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0.5, 0., 1., 1., 1.));
-static SHAPE35: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE30: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.5, 1., 1.);
     let s = Shapes::or(s, collision::box_shape(0.5, 0., 0., 1., 1., 0.5));
     Shapes::or(s, collision::box_shape(0.5, 0.5, 0.5, 1., 1., 1.))
 });
-static SHAPE36: Lazy<VoxelShape> = Lazy::new(|| {
-    let s = collision::box_shape(0., 0., 0., 0.5, 1., 1.);
-    Shapes::or(s, collision::box_shape(0.5, 0.5, 0., 1., 1., 1.))
-});
-static SHAPE37: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE31: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 1., 0.5);
     let s = Shapes::or(s, collision::box_shape(0.5, 0., 0.5, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0., 0.5, 0.5, 0.5, 1., 1.))
 });
-static SHAPE38: Lazy<VoxelShape> = Lazy::new(|| {
-    let s = collision::box_shape(0.5, 0., 0., 1., 1., 1.);
-    Shapes::or(s, collision::box_shape(0., 0.5, 0., 0.5, 1., 1.))
-});
-static SHAPE39: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE32: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.5, 1., 0.5);
     let s = Shapes::or(s, collision::box_shape(0., 0.5, 0.5, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0.5, 0.5, 0., 1., 1., 0.5))
 });
-static SHAPE40: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE33: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.5, 0., 0., 1., 1., 0.5);
     let s = Shapes::or(s, collision::box_shape(0., 0.5, 0., 0.5, 1., 1.));
     Shapes::or(s, collision::box_shape(0.5, 0.5, 0.5, 1., 1., 1.))
 });
-static SHAPE41: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE34: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.5, 1.);
     Shapes::or(s, collision::box_shape(0., 0.5, 0., 1., 1., 0.5))
 });
-static SHAPE42: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE35: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.5, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.5, 0., 0.5, 1., 1.));
     Shapes::or(s, collision::box_shape(0.5, 0.5, 0., 1., 1., 0.5))
 });
-static SHAPE43: Lazy<VoxelShape> = Lazy::new(|| {
-    let s = collision::box_shape(0., 0., 0., 1., 0.5, 1.);
-    Shapes::or(s, collision::box_shape(0., 0.5, 0., 0.5, 1., 1.))
-});
-static SHAPE44: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE36: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.5, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.5, 0., 1., 1., 0.5));
     Shapes::or(s, collision::box_shape(0.5, 0.5, 0.5, 1., 1., 1.))
 });
-static SHAPE45: Lazy<VoxelShape> = Lazy::new(|| {
-    let s = collision::box_shape(0., 0., 0., 1., 0.5, 1.);
-    Shapes::or(s, collision::box_shape(0.5, 0.5, 0., 1., 1., 1.))
-});
-static SHAPE46: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE37: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.5, 1.);
     Shapes::or(s, collision::box_shape(0., 0.5, 0., 0.5, 1., 0.5))
 });
-static SHAPE47: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE38: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.5, 1.);
     Shapes::or(s, collision::box_shape(0.5, 0.5, 0., 1., 1., 0.5))
 });
-static SHAPE48: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE39: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0.5, 1., 1., 1.);
     Shapes::or(s, collision::box_shape(0., 0.5, 0., 1., 1., 0.5))
 });
-static SHAPE49: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE40: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0.5, 1., 1., 1.);
     let s = Shapes::or(s, collision::box_shape(0.5, 0., 0., 1., 1., 0.5));
     Shapes::or(s, collision::box_shape(0., 0.5, 0., 0.5, 1., 0.5))
 });
-static SHAPE50: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE41: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.5, 1., 1.);
     let s = Shapes::or(s, collision::box_shape(0.5, 0., 0.5, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0.5, 0.5, 0., 1., 1., 0.5))
 });
-static SHAPE51: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE42: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.5, 0., 0.5, 1., 1., 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.5, 0., 0.5, 1., 1.));
     Shapes::or(s, collision::box_shape(0.5, 0.5, 0., 1., 1., 0.5))
 });
-static SHAPE52: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE43: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0.5, 0.5, 1., 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.5, 0., 1., 1., 0.5));
     Shapes::or(s, collision::box_shape(0.5, 0.5, 0.5, 1., 1., 1.))
 });
-static SHAPE53: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE44: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.5, 1.);
     Shapes::or(s, collision::box_shape(0., 0.5, 0.5, 1., 1., 1.))
 });
-static SHAPE54: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE45: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.5, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.5, 0.5, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0.5, 0.5, 0., 1., 1., 0.5))
 });
-static SHAPE55: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE46: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.5, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.5, 0., 0.5, 1., 1.));
     Shapes::or(s, collision::box_shape(0.5, 0.5, 0.5, 1., 1., 1.))
 });
-static SHAPE56: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE47: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.5, 1.);
     Shapes::or(s, collision::box_shape(0.5, 0.5, 0.5, 1., 1., 1.))
 });
-static SHAPE57: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE48: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.5, 1.);
     Shapes::or(s, collision::box_shape(0., 0.5, 0.5, 0.5, 1., 1.))
 });
-static SHAPE58: Lazy<VoxelShape> =
+static SHAPE49: Lazy<VoxelShape> = Lazy::new(|| {
+    let s = collision::box_shape(0., 0., 0., 0.5, 1., 1.);
+    Shapes::or(s, collision::box_shape(0.5, 0.5, 0., 1., 1., 1.))
+});
+static SHAPE50: Lazy<VoxelShape> = Lazy::new(|| {
+    let s = collision::box_shape(0., 0., 0., 1., 0.5, 1.);
+    Shapes::or(s, collision::box_shape(0., 0.5, 0., 0.5, 1., 1.))
+});
+static SHAPE51: Lazy<VoxelShape> = Lazy::new(|| {
+    let s = collision::box_shape(0.5, 0., 0., 1., 1., 1.);
+    Shapes::or(s, collision::box_shape(0., 0.5, 0., 0.5, 1., 1.))
+});
+static SHAPE52: Lazy<VoxelShape> = Lazy::new(|| {
+    let s = collision::box_shape(0., 0., 0., 1., 0.5, 1.);
+    Shapes::or(s, collision::box_shape(0.5, 0.5, 0., 1., 1., 1.))
+});
+static SHAPE53: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.0625, 0., 0.0625, 0.9375, 0.875, 0.9375));
-static SHAPE59: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.0625, 0., 0.0625, 0.9375, 1., 0.9375));
-static SHAPE60: Lazy<VoxelShape> =
+static SHAPE54: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.0625, 0., 0.0625, 1., 0.875, 0.9375));
-static SHAPE61: Lazy<VoxelShape> =
+static SHAPE55: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0., 0., 0.0625, 0.9375, 0.875, 0.9375));
-static SHAPE62: Lazy<VoxelShape> =
+static SHAPE56: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.0625, 0., 0., 0.9375, 0.875, 0.9375));
-static SHAPE63: Lazy<VoxelShape> =
+static SHAPE57: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.0625, 0., 0.0625, 0.9375, 0.875, 1.));
-static SHAPE64: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0., 1., 0.375, 1.));
-static SHAPE65: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0., 1., 0.625, 1.));
-static SHAPE66: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0., 1., 0.875, 1.));
-static SHAPE67: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0., 1., 0.9375, 1.));
-static SHAPE68: Lazy<VoxelShape> =
+static SHAPE58: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0., 1., 0.25, 1.));
+static SHAPE59: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0., 1., 0.375, 1.));
+static SHAPE60: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0., 1., 0.625, 1.));
+static SHAPE61: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0., 1., 0.875, 1.));
+static SHAPE62: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0., 1., 0.9375, 1.));
+static SHAPE63: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.25, 0., 0.25, 0.75, 1., 0.75));
-static SHAPE69: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0., 0.1875, 1., 1.));
-static SHAPE70: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0.8125, 1., 1., 1.));
-static SHAPE71: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0.8125, 0., 0., 1., 1., 1.));
-static SHAPE72: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0., 1., 1., 0.1875));
-static SHAPE73: Lazy<VoxelShape> =
+static SHAPE64: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0., 0.1875, 1., 1.));
+static SHAPE65: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0.8125, 1., 1., 1.));
+static SHAPE66: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0.8125, 0., 0., 1., 1., 1.));
+static SHAPE67: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0., 1., 1., 0.1875));
+static SHAPE68: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.1875, 0., 0.1875, 0.8125, 1., 0.8125));
-static SHAPE74: Lazy<VoxelShape> =
+static SHAPE69: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0., 0.875, 0.375, 1., 1., 0.625));
-static SHAPE75: Lazy<VoxelShape> =
+static SHAPE70: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.375, 0.875, 0., 0.625, 1., 1.));
-static SHAPE76: Lazy<VoxelShape> =
+static SHAPE71: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.0625, 0., 0.0625, 0.9375, 0.9375, 0.9375));
-static SHAPE77: Lazy<VoxelShape> =
+static SHAPE72: Lazy<VoxelShape> =
+    Lazy::new(|| collision::box_shape(0.0625, 0., 0.0625, 0.9375, 1., 0.9375));
+static SHAPE73: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.125, 0., 0.125, 0.875, 1., 0.875));
-static SHAPE78: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE74: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0.375, 1., 1.5, 0.625);
     let s = Shapes::or(s, collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.375));
     Shapes::or(s, collision::box_shape(0.375, 0., 0.625, 0.625, 1.5, 1.))
 });
-static SHAPE79: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE75: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.375, 0., 0., 0.625, 1.5, 1.);
     Shapes::or(s, collision::box_shape(0.625, 0., 0.375, 1., 1.5, 0.625))
 });
-static SHAPE80: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE76: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0.375, 1., 1.5, 0.625);
     Shapes::or(s, collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.375))
 });
-static SHAPE81: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE77: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.625);
     Shapes::or(s, collision::box_shape(0.625, 0., 0.375, 1., 1.5, 0.625))
 });
-static SHAPE82: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE78: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0.375, 1., 1.5, 0.625);
     Shapes::or(s, collision::box_shape(0.375, 0., 0.625, 0.625, 1.5, 1.))
 });
-static SHAPE83: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE79: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 1.);
     Shapes::or(s, collision::box_shape(0.625, 0., 0.375, 1., 1.5, 0.625))
 });
-static SHAPE84: Lazy<VoxelShape> =
+static SHAPE80: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0., 0., 0.375, 1., 1.5, 0.625));
-static SHAPE85: Lazy<VoxelShape> =
+static SHAPE81: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.375, 0., 0.375, 1., 1.5, 0.625));
-static SHAPE86: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE82: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
     let s = Shapes::or(s, collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.375));
     Shapes::or(s, collision::box_shape(0.375, 0., 0.625, 0.625, 1.5, 1.))
 });
-static SHAPE87: Lazy<VoxelShape> =
+static SHAPE83: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.375, 0., 0., 0.625, 1.5, 1.));
-static SHAPE88: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE84: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
     Shapes::or(s, collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.375))
 });
-static SHAPE89: Lazy<VoxelShape> =
+static SHAPE85: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.625));
-static SHAPE90: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE86: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
     Shapes::or(s, collision::box_shape(0.375, 0., 0.625, 0.625, 1.5, 1.))
 });
-static SHAPE91: Lazy<VoxelShape> =
+static SHAPE87: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 1.));
-static SHAPE92: Lazy<VoxelShape> =
+static SHAPE88: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625));
-static SHAPE93: Lazy<VoxelShape> =
+static SHAPE89: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 0.625));
-static SHAPE94: Lazy<VoxelShape> =
+static SHAPE90: Lazy<VoxelShape> =
+    Lazy::new(|| collision::box_shape(0.375, 0., 0.375, 0.625, 1., 0.625));
+static SHAPE91: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.0625, 0., 0.0625, 0.9375, 0.5, 0.9375));
-static SHAPE95: Lazy<VoxelShape> =
+static SHAPE92: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.1875, 0., 0.0625, 0.9375, 0.5, 0.9375));
-static SHAPE96: Lazy<VoxelShape> =
+static SHAPE93: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.3125, 0., 0.0625, 0.9375, 0.5, 0.9375));
-static SHAPE97: Lazy<VoxelShape> =
+static SHAPE94: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.4375, 0., 0.0625, 0.9375, 0.5, 0.9375));
-static SHAPE98: Lazy<VoxelShape> =
+static SHAPE95: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.5625, 0., 0.0625, 0.9375, 0.5, 0.9375));
-static SHAPE99: Lazy<VoxelShape> =
+static SHAPE96: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.6875, 0., 0.0625, 0.9375, 0.5, 0.9375));
-static SHAPE100: Lazy<VoxelShape> =
+static SHAPE97: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.8125, 0., 0.0625, 0.9375, 0.5, 0.9375));
-static SHAPE101: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0.8125, 0., 1., 1., 1.));
-static SHAPE102: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0., 1., 0.1875, 1.));
-static SHAPE103: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE98: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0.8125, 0., 1., 1., 1.));
+static SHAPE99: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0., 1., 0.1875, 1.));
+static SHAPE100: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625);
     let s = Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375));
     Shapes::or(s, collision::box_shape(0.4375, 0., 0.5625, 0.5625, 1., 1.))
 });
-static SHAPE104: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE101: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.4375, 0., 0., 0.5625, 1., 1.);
     Shapes::or(s, collision::box_shape(0.5625, 0., 0.4375, 1., 1., 0.5625))
 });
-static SHAPE105: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE102: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625);
     Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375))
 });
-static SHAPE106: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE103: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.5625);
     Shapes::or(s, collision::box_shape(0.5625, 0., 0.4375, 1., 1., 0.5625))
 });
-static SHAPE107: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE104: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625);
     Shapes::or(s, collision::box_shape(0.4375, 0., 0.5625, 0.5625, 1., 1.))
 });
-static SHAPE108: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE105: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.);
     Shapes::or(s, collision::box_shape(0.5625, 0., 0.4375, 1., 1., 0.5625))
 });
-static SHAPE109: Lazy<VoxelShape> =
+static SHAPE106: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625));
-static SHAPE110: Lazy<VoxelShape> =
+static SHAPE107: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.4375, 0., 0.4375, 1., 1., 0.5625));
-static SHAPE111: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE108: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
     let s = Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375));
     Shapes::or(s, collision::box_shape(0.4375, 0., 0.5625, 0.5625, 1., 1.))
 });
-static SHAPE112: Lazy<VoxelShape> =
+static SHAPE109: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.4375, 0., 0., 0.5625, 1., 1.));
-static SHAPE113: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE110: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
     Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375))
 });
-static SHAPE114: Lazy<VoxelShape> =
+static SHAPE111: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.5625));
-static SHAPE115: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE112: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
     Shapes::or(s, collision::box_shape(0.4375, 0., 0.5625, 0.5625, 1., 1.))
 });
-static SHAPE116: Lazy<VoxelShape> =
+static SHAPE113: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.));
-static SHAPE117: Lazy<VoxelShape> =
+static SHAPE114: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625));
-static SHAPE118: Lazy<VoxelShape> =
+static SHAPE115: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0., 0.40625, 0.40625, 1., 0.59375, 0.59375));
-static SHAPE119: Lazy<VoxelShape> =
+static SHAPE116: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.40625, 0., 0.40625, 0.59375, 1., 0.59375));
-static SHAPE120: Lazy<VoxelShape> =
+static SHAPE117: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.40625, 0.40625, 0., 0.59375, 0.59375, 1.));
-static SHAPE121: Lazy<VoxelShape> =
+static SHAPE118: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.4375, 0., 0.4375, 0.5625, 0.375, 0.5625));
-static SHAPE122: Lazy<VoxelShape> =
+static SHAPE119: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.0625, 0., 0.0625, 0.9375, 0.09375, 0.9375));
-static SHAPE123: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE120: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.0625, 0., 0.0625, 0.9375, 0.125, 0.9375);
     Shapes::or(
         s,
         collision::box_shape(0.4375, 0.125, 0.4375, 0.5625, 0.875, 0.5625),
     )
 });
-static SHAPE124: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE121: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.125, 1., 0.25);
     let s = Shapes::or(s, collision::box_shape(0., 0., 0.75, 0.125, 1., 1.));
     let s = Shapes::or(s, collision::box_shape(0.125, 0., 0., 0.25, 1., 0.125));
@@ -463,191 +458,191 @@ static SHAPE124: Lazy<VoxelShape> = Lazy::new(|| {
     let s = Shapes::or(s, collision::box_shape(0., 0.25, 0.25, 0.125, 1., 0.75));
     Shapes::or(s, collision::box_shape(0.875, 0.25, 0.25, 1., 1., 0.75))
 });
-static SHAPE125: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE122: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.8125, 1.);
     Shapes::or(s, collision::box_shape(0.25, 0.8125, 0.25, 0.75, 1., 0.75))
 });
-static SHAPE126: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0., 1., 0.8125, 1.));
-static SHAPE127: Lazy<VoxelShape> =
+static SHAPE123: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0., 1., 0.8125, 1.));
+static SHAPE124: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.375, 0.4375, 0.0625, 0.625, 0.75, 0.3125));
-static SHAPE128: Lazy<VoxelShape> =
+static SHAPE125: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.375, 0.4375, 0.6875, 0.625, 0.75, 0.9375));
-static SHAPE129: Lazy<VoxelShape> =
+static SHAPE126: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.0625, 0.4375, 0.375, 0.3125, 0.75, 0.625));
-static SHAPE130: Lazy<VoxelShape> =
+static SHAPE127: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.6875, 0.4375, 0.375, 0.9375, 0.75, 0.625));
-static SHAPE131: Lazy<VoxelShape> =
+static SHAPE128: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.3125, 0.3125, 0.0625, 0.6875, 0.75, 0.4375));
-static SHAPE132: Lazy<VoxelShape> =
+static SHAPE129: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.3125, 0.3125, 0.5625, 0.6875, 0.75, 0.9375));
-static SHAPE133: Lazy<VoxelShape> =
+static SHAPE130: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.0625, 0.3125, 0.3125, 0.4375, 0.75, 0.6875));
-static SHAPE134: Lazy<VoxelShape> =
+static SHAPE131: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.5625, 0.3125, 0.3125, 0.9375, 0.75, 0.6875));
-static SHAPE135: Lazy<VoxelShape> =
+static SHAPE132: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.25, 0.1875, 0.0625, 0.75, 0.75, 0.5625));
-static SHAPE136: Lazy<VoxelShape> =
+static SHAPE133: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.25, 0.1875, 0.4375, 0.75, 0.75, 0.9375));
-static SHAPE137: Lazy<VoxelShape> =
+static SHAPE134: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.0625, 0.1875, 0.25, 0.5625, 0.75, 0.75));
-static SHAPE138: Lazy<VoxelShape> =
+static SHAPE135: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.4375, 0.1875, 0.25, 0.9375, 0.75, 0.75));
-static SHAPE139: Lazy<VoxelShape> =
+static SHAPE136: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75));
+static SHAPE137: Lazy<VoxelShape> = Lazy::new(|| {
+    let s = collision::box_shape(0., 0., 0.3125, 0.75, 1.5, 0.6875);
+    let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
+    Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
+});
+static SHAPE138: Lazy<VoxelShape> =
+    Lazy::new(|| collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875));
+static SHAPE139: Lazy<VoxelShape> = Lazy::new(|| {
+    let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
+    Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
+});
 static SHAPE140: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0.3125, 0.75, 1.5, 0.6875);
     let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
-    Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
-});
-static SHAPE141: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875));
-static SHAPE142: Lazy<VoxelShape> = Lazy::new(|| {
-    let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
-    Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
-});
-static SHAPE143: Lazy<VoxelShape> = Lazy::new(|| {
-    let s = collision::box_shape(0., 0., 0.3125, 0.75, 1.5, 0.6875);
-    let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
     let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
     Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
 });
-static SHAPE144: Lazy<VoxelShape> =
+static SHAPE141: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.));
-static SHAPE145: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE142: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
     Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
 });
-static SHAPE146: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE143: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
     Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
 });
-static SHAPE147: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE144: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0.3125, 0.75, 1.5, 0.6875);
     let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
     let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
     Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
 });
-static SHAPE148: Lazy<VoxelShape> =
+static SHAPE145: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875));
-static SHAPE149: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE146: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
     Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125))
 });
-static SHAPE150: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE147: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
     let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
     Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
 });
-static SHAPE151: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE148: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0.3125, 0.75, 1.5, 0.6875);
     let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
     let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
     let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
     Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
 });
-static SHAPE152: Lazy<VoxelShape> =
+static SHAPE149: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.));
-static SHAPE153: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE150: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
     let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
     Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
 });
-static SHAPE154: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE151: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
     Shapes::or(s, collision::box_shape(0.75, 0., 0.3125, 1., 1.5, 0.6875))
 });
-static SHAPE155: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE152: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
     Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
 });
-static SHAPE156: Lazy<VoxelShape> =
+static SHAPE153: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875));
-static SHAPE157: Lazy<VoxelShape> =
+static SHAPE154: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875));
-static SHAPE158: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE155: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
     let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.));
     Shapes::or(s, collision::box_shape(0.75, 0., 0.3125, 1., 1.5, 0.6875))
 });
-static SHAPE159: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE156: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
     let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
     Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
 });
-static SHAPE160: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE157: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
     Shapes::or(s, collision::box_shape(0.6875, 0., 0.3125, 1., 1.5, 0.6875))
 });
-static SHAPE161: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE158: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
 });
-static SHAPE162: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE159: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
     let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
     Shapes::or(s, collision::box_shape(0.75, 0., 0.3125, 1., 1.5, 0.6875))
 });
-static SHAPE163: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE160: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
     let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
     Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
 });
-static SHAPE164: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE161: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
     Shapes::or(s, collision::box_shape(0.6875, 0., 0.3125, 1., 1.5, 0.6875))
 });
-static SHAPE165: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE162: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125))
 });
-static SHAPE166: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE163: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
     let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
     let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.));
     Shapes::or(s, collision::box_shape(0.75, 0., 0.3125, 1., 1.5, 0.6875))
 });
-static SHAPE167: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE164: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
     let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
     let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
     Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
 });
-static SHAPE168: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE165: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     Shapes::or(s, collision::box_shape(0.6875, 0., 0.3125, 1., 1.5, 0.6875))
 });
-static SHAPE169: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE166: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
     Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
 });
-static SHAPE170: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0., 1., 0.4375, 1.));
-static SHAPE171: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0., 1., 0.5625, 1.));
-static SHAPE172: Lazy<VoxelShape> =
+static SHAPE167: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0., 1., 0.4375, 1.));
+static SHAPE168: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0., 1., 0.5625, 1.));
+static SHAPE169: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.25, 0., 0.25, 0.75, 0.5, 0.75));
-static SHAPE173: Lazy<VoxelShape> =
+static SHAPE170: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.25, 0.25, 0.5, 0.75, 0.75, 1.));
-static SHAPE174: Lazy<VoxelShape> =
+static SHAPE171: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.25, 0.25, 0., 0.75, 0.75, 0.5));
-static SHAPE175: Lazy<VoxelShape> =
+static SHAPE172: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.5, 0.25, 0.25, 1., 0.75, 0.75));
-static SHAPE176: Lazy<VoxelShape> =
+static SHAPE173: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0., 0.25, 0.25, 0.5, 0.75, 0.75));
-static SHAPE177: Lazy<VoxelShape> =
+static SHAPE174: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.5, 0.8125));
-static SHAPE178: Lazy<VoxelShape> =
+static SHAPE175: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.1875, 0.25, 0.5, 0.8125, 0.75, 1.));
-static SHAPE179: Lazy<VoxelShape> =
+static SHAPE176: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.1875, 0.25, 0., 0.8125, 0.75, 0.5));
-static SHAPE180: Lazy<VoxelShape> =
+static SHAPE177: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.5, 0.25, 0.1875, 1., 0.75, 0.8125));
-static SHAPE181: Lazy<VoxelShape> =
+static SHAPE178: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0., 0.25, 0.1875, 0.5, 0.75, 0.8125));
-static SHAPE182: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE179: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.125, 0., 0.125, 0.875, 0.25, 0.875);
     let s = Shapes::or(
         s,
@@ -665,7 +660,7 @@ static SHAPE182: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.625, 0.625, 0.25, 0.8125, 1., 0.75),
     )
 });
-static SHAPE183: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE180: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.125, 0., 0.125, 0.875, 0.25, 0.875);
     let s = Shapes::or(
         s,
@@ -680,7 +675,7 @@ static SHAPE183: Lazy<VoxelShape> = Lazy::new(|| {
     let s = Shapes::or(s, collision::box_shape(0.25, 0.625, 0.625, 1., 1., 0.8125));
     Shapes::or(s, collision::box_shape(0.75, 0.625, 0.375, 1., 1., 0.625))
 });
-static SHAPE184: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE181: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.375, 0., 0.375, 0.625, 0.6875, 0.625);
     let s = Shapes::or(
         s,
@@ -707,7 +702,7 @@ static SHAPE184: Lazy<VoxelShape> = Lazy::new(|| {
     let s = Shapes::or(s, collision::box_shape(0.125, 0.6875, 0.875, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0.875, 0.6875, 0.125, 1., 1., 0.875))
 });
-static SHAPE185: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE182: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.25, 0.25, 0.25, 0.75, 0.6875, 0.75);
     let s = Shapes::or(s, collision::box_shape(0.375, 0.25, 0., 0.625, 0.5, 0.25));
     let s = Shapes::or(s, collision::box_shape(0., 0.625, 0., 0.25, 0.6875, 1.));
@@ -719,7 +714,7 @@ static SHAPE185: Lazy<VoxelShape> = Lazy::new(|| {
     let s = Shapes::or(s, collision::box_shape(0.125, 0.6875, 0.875, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0.875, 0.6875, 0.125, 1., 1., 0.875))
 });
-static SHAPE186: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE183: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.25, 0.25, 0.25, 0.75, 0.6875, 0.75);
     let s = Shapes::or(s, collision::box_shape(0.375, 0.25, 0.75, 0.625, 0.5, 1.));
     let s = Shapes::or(s, collision::box_shape(0., 0.625, 0., 0.25, 0.6875, 1.));
@@ -731,7 +726,7 @@ static SHAPE186: Lazy<VoxelShape> = Lazy::new(|| {
     let s = Shapes::or(s, collision::box_shape(0.125, 0.6875, 0.875, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0.875, 0.6875, 0.125, 1., 1., 0.875))
 });
-static SHAPE187: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE184: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0.25, 0.375, 0.75, 0.5, 0.625);
     let s = Shapes::or(
         s,
@@ -754,7 +749,7 @@ static SHAPE187: Lazy<VoxelShape> = Lazy::new(|| {
     let s = Shapes::or(s, collision::box_shape(0.125, 0.6875, 0.875, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0.875, 0.6875, 0.125, 1., 1., 0.875))
 });
-static SHAPE188: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE185: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.25, 0.25, 0.25, 0.75, 0.6875, 0.75);
     let s = Shapes::or(s, collision::box_shape(0.75, 0.25, 0.375, 1., 0.5, 0.625));
     let s = Shapes::or(s, collision::box_shape(0., 0.625, 0., 0.25, 0.6875, 1.));
@@ -766,6 +761,11 @@ static SHAPE188: Lazy<VoxelShape> = Lazy::new(|| {
     let s = Shapes::or(s, collision::box_shape(0.125, 0.6875, 0.875, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0.875, 0.6875, 0.125, 1., 1., 0.875))
 });
+static SHAPE186: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0.5, 0., 1., 1., 1.));
+static SHAPE187: Lazy<VoxelShape> =
+    Lazy::new(|| collision::box_shape(0.375, 0.375, 0., 0.625, 0.625, 1.));
+static SHAPE188: Lazy<VoxelShape> =
+    Lazy::new(|| collision::box_shape(0., 0.375, 0.375, 1., 0.625, 0.625));
 static SHAPE189: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.1875, 0., 0.1875, 0.8125, 1., 0.8125);
     let s = Shapes::or(
@@ -1351,22 +1351,28 @@ static SHAPE250: Lazy<VoxelShape> =
 static SHAPE251: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.1875, 0.1875, 0.1875, 0.8125, 0.8125, 0.8125));
 static SHAPE252: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.3125, 0.3125, 0.3125, 0.6875, 0.6875, 0.6875));
+    Lazy::new(|| collision::box_shape(0.3125, -0.0625, 0.3125, 0.6875, 0.1875, 0.6875));
 static SHAPE253: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.1875, 0., 0.1875, 0.75, 0.4375, 0.75));
+    Lazy::new(|| collision::box_shape(0.1875, -0.0625, 0.1875, 0.8125, 0.3125, 0.8125));
 static SHAPE254: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.0625, 0., 0.0625, 0.9375, 0.4375, 0.9375));
+    Lazy::new(|| collision::box_shape(0.3125, 0.3125, 0.3125, 0.6875, 0.6875, 0.6875));
 static SHAPE255: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.375, 0., 0.375, 0.625, 0.375, 0.625));
+    Lazy::new(|| collision::box_shape(0.1875, 0., 0.1875, 0.75, 0.4375, 0.75));
 static SHAPE256: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.375, 0.8125));
+    Lazy::new(|| collision::box_shape(0.0625, 0., 0.0625, 0.9375, 0.4375, 0.9375));
 static SHAPE257: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.125, 0., 0.125, 0.875, 0.375, 0.875));
+    Lazy::new(|| collision::box_shape(0.0625, 0., 0.125, 0.9375, 1., 0.875));
 static SHAPE258: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.125, 0., 0.125, 0.875, 0.4375, 0.875));
+    Lazy::new(|| collision::box_shape(0.375, 0., 0.375, 0.625, 0.375, 0.625));
 static SHAPE259: Lazy<VoxelShape> =
+    Lazy::new(|| collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.375, 0.8125));
+static SHAPE260: Lazy<VoxelShape> =
+    Lazy::new(|| collision::box_shape(0.125, 0., 0.125, 0.875, 0.375, 0.875));
+static SHAPE261: Lazy<VoxelShape> =
+    Lazy::new(|| collision::box_shape(0.125, 0., 0.125, 0.875, 0.4375, 0.875));
+static SHAPE262: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1., 0.6875));
-static SHAPE260: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE263: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.125, 1., 0.125);
     let s = Shapes::or(s, collision::box_shape(0., 0., 0.875, 0.125, 1., 1.));
     let s = Shapes::or(s, collision::box_shape(0.875, 0., 0., 1., 1., 0.125));
@@ -1375,7 +1381,7 @@ static SHAPE260: Lazy<VoxelShape> = Lazy::new(|| {
     let s = Shapes::or(s, collision::box_shape(0.125, 0.875, 0., 0.875, 1., 0.125));
     Shapes::or(s, collision::box_shape(0.125, 0.875, 0.875, 0.875, 1., 1.))
 });
-static SHAPE261: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE264: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.125, 0., 0.375, 0.25, 0.8125, 0.625);
     let s = Shapes::or(
         s,
@@ -1399,7 +1405,7 @@ static SHAPE261: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.75, 0.4375, 0.625, 0.875, 0.8125, 0.6875),
     )
 });
-static SHAPE262: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE265: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.375, 0., 0.125, 0.625, 0.8125, 0.25);
     let s = Shapes::or(
         s,
@@ -1423,7 +1429,7 @@ static SHAPE262: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.625, 0.4375, 0.75, 0.6875, 0.8125, 0.875),
     )
 });
-static SHAPE263: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE266: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.25, 0.125, 0., 0.75, 0.875, 0.75);
     let s = Shapes::or(
         s,
@@ -1442,7 +1448,7 @@ static SHAPE263: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.75, 0.375, 0.5625, 0.875, 0.625, 1.),
     )
 });
-static SHAPE264: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE267: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.25, 0.125, 0.25, 0.75, 0.875, 1.);
     let s = Shapes::or(
         s,
@@ -1461,7 +1467,7 @@ static SHAPE264: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.75, 0.375, 0., 0.875, 0.625, 0.4375),
     )
 });
-static SHAPE265: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE268: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0.125, 0.25, 0.75, 0.875, 0.75);
     let s = Shapes::or(
         s,
@@ -1480,7 +1486,7 @@ static SHAPE265: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.5625, 0.375, 0.75, 1., 0.625, 0.875),
     )
 });
-static SHAPE266: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE269: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.25, 0.125, 0.25, 1., 0.875, 0.75);
     let s = Shapes::or(
         s,
@@ -1499,7 +1505,7 @@ static SHAPE266: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0., 0.375, 0.75, 0.4375, 0.625, 0.875),
     )
 });
-static SHAPE267: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE270: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.25, 0., 0.125, 0.75, 0.75, 0.875);
     let s = Shapes::or(
         s,
@@ -1518,7 +1524,7 @@ static SHAPE267: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.75, 0.5625, 0.375, 0.875, 1., 0.625),
     )
 });
-static SHAPE268: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE271: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.125, 0., 0.25, 0.875, 0.75, 0.75);
     let s = Shapes::or(
         s,
@@ -1537,16 +1543,16 @@ static SHAPE268: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.375, 0.5625, 0.75, 0.625, 1., 0.875),
     )
 });
-static SHAPE269: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE272: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.125, 1.);
     Shapes::or(
         s,
         collision::box_shape(0.25, 0.125, 0.25, 0.75, 0.875, 0.75),
     )
 });
-static SHAPE270: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0.25, 1., 1., 0.75));
-static SHAPE271: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0.25, 0., 0., 0.75, 1., 1.));
-static SHAPE272: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE273: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0.25, 1., 1., 0.75));
+static SHAPE274: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0.25, 0., 0., 0.75, 1., 1.));
+static SHAPE275: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.25, 0.25, 0.25, 0.75, 0.375, 0.75);
     let s = Shapes::or(
         s,
@@ -1557,7 +1563,7 @@ static SHAPE272: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.4375, 0.8125, 0.4375, 0.5625, 1., 0.5625),
     )
 });
-static SHAPE273: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE276: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.25, 0.25, 0.25, 0.75, 0.375, 0.75);
     let s = Shapes::or(
         s,
@@ -1568,7 +1574,7 @@ static SHAPE273: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.4375, 0.8125, 0., 0.5625, 0.9375, 0.8125),
     )
 });
-static SHAPE274: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE277: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.25, 0.25, 0.25, 0.75, 0.375, 0.75);
     let s = Shapes::or(
         s,
@@ -1579,7 +1585,7 @@ static SHAPE274: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.4375, 0.8125, 0.1875, 0.5625, 0.9375, 1.),
     )
 });
-static SHAPE275: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE278: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.25, 0.25, 0.25, 0.75, 0.375, 0.75);
     let s = Shapes::or(
         s,
@@ -1590,7 +1596,7 @@ static SHAPE275: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0., 0.8125, 0.4375, 0.8125, 0.9375, 0.5625),
     )
 });
-static SHAPE276: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE279: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.25, 0.25, 0.25, 0.75, 0.375, 0.75);
     let s = Shapes::or(
         s,
@@ -1601,7 +1607,7 @@ static SHAPE276: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.1875, 0.8125, 0.4375, 1., 0.9375, 0.5625),
     )
 });
-static SHAPE277: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE280: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.25, 0.25, 0.25, 0.75, 0.375, 0.75);
     let s = Shapes::or(
         s,
@@ -1612,7 +1618,7 @@ static SHAPE277: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.4375, 0.8125, 0., 0.5625, 0.9375, 1.),
     )
 });
-static SHAPE278: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE281: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.25, 0.25, 0.25, 0.75, 0.375, 0.75);
     let s = Shapes::or(
         s,
@@ -1623,102 +1629,102 @@ static SHAPE278: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0., 0.8125, 0.4375, 1., 0.9375, 0.5625),
     )
 });
-static SHAPE279: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE282: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.3125, 0.0625, 0.3125, 0.6875, 0.5, 0.6875);
     Shapes::or(
         s,
         collision::box_shape(0.375, 0.5, 0.375, 0.625, 0.625, 0.625),
     )
 });
-static SHAPE280: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE283: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 0.4375, 0.6875);
     Shapes::or(
         s,
         collision::box_shape(0.375, 0.4375, 0.375, 0.625, 0.5625, 0.625),
     )
 });
-static SHAPE281: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE284: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.125, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.125, 0., 0.125, 1., 1.));
     let s = Shapes::or(s, collision::box_shape(0.125, 0.125, 0., 1., 1., 0.125));
     let s = Shapes::or(s, collision::box_shape(0.125, 0.125, 0.875, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0.875, 0.125, 0.125, 1., 1., 0.875))
 });
-static SHAPE282: Lazy<VoxelShape> =
+static SHAPE285: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.3125, 0., 0.375, 0.6875, 0.375, 0.5625));
-static SHAPE283: Lazy<VoxelShape> =
+static SHAPE286: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.3125, 0., 0.375, 0.625, 0.375, 0.6875));
-static SHAPE284: Lazy<VoxelShape> =
+static SHAPE287: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.3125, 0., 0.3125, 0.6875, 0.375, 0.625));
-static SHAPE285: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE288: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.0625, 0., 0.0625, 0.9375, 0.5, 0.9375);
     Shapes::or(
         s,
         collision::box_shape(0.4375, 0.5, 0.4375, 0.5625, 0.875, 0.5625),
     )
 });
-static SHAPE286: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.1875, 0.1875, 0.5625, 0.8125, 0.8125, 1.));
-static SHAPE287: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0., 0.1875, 0.1875, 0.4375, 0.8125, 0.8125));
-static SHAPE288: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 0.4375));
 static SHAPE289: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.5625, 0.1875, 0.1875, 1., 0.8125, 0.8125));
+    Lazy::new(|| collision::box_shape(0.1875, 0.1875, 0.5625, 0.8125, 0.8125, 1.));
 static SHAPE290: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.4375, 0.8125));
+    Lazy::new(|| collision::box_shape(0., 0.1875, 0.1875, 0.4375, 0.8125, 0.8125));
 static SHAPE291: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.1875, 0.5625, 0.1875, 0.8125, 1., 0.8125));
+    Lazy::new(|| collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 0.4375));
 static SHAPE292: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.1875, 0.1875, 0.6875, 0.8125, 0.8125, 1.));
+    Lazy::new(|| collision::box_shape(0.5625, 0.1875, 0.1875, 1., 0.8125, 0.8125));
 static SHAPE293: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0., 0.1875, 0.1875, 0.3125, 0.8125, 0.8125));
+    Lazy::new(|| collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.4375, 0.8125));
 static SHAPE294: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 0.3125));
+    Lazy::new(|| collision::box_shape(0.1875, 0.5625, 0.1875, 0.8125, 1., 0.8125));
 static SHAPE295: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.6875, 0.1875, 0.1875, 1., 0.8125, 0.8125));
+    Lazy::new(|| collision::box_shape(0.1875, 0.1875, 0.6875, 0.8125, 0.8125, 1.));
 static SHAPE296: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.3125, 0.8125));
+    Lazy::new(|| collision::box_shape(0., 0.1875, 0.1875, 0.3125, 0.8125, 0.8125));
 static SHAPE297: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.1875, 0.6875, 0.1875, 0.8125, 1., 0.8125));
+    Lazy::new(|| collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 0.3125));
 static SHAPE298: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.1875, 0.1875, 0.75, 0.8125, 0.8125, 1.));
+    Lazy::new(|| collision::box_shape(0.6875, 0.1875, 0.1875, 1., 0.8125, 0.8125));
 static SHAPE299: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0., 0.1875, 0.1875, 0.25, 0.8125, 0.8125));
+    Lazy::new(|| collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.3125, 0.8125));
 static SHAPE300: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 0.25));
+    Lazy::new(|| collision::box_shape(0.1875, 0.6875, 0.1875, 0.8125, 1., 0.8125));
 static SHAPE301: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.75, 0.1875, 0.1875, 1., 0.8125, 0.8125));
+    Lazy::new(|| collision::box_shape(0.1875, 0.1875, 0.75, 0.8125, 0.8125, 1.));
 static SHAPE302: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.25, 0.8125));
+    Lazy::new(|| collision::box_shape(0., 0.1875, 0.1875, 0.25, 0.8125, 0.8125));
 static SHAPE303: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.1875, 0.75, 0.1875, 0.8125, 1., 0.8125));
+    Lazy::new(|| collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 0.25));
 static SHAPE304: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.25, 0.25, 0.8125, 0.75, 0.75, 1.));
+    Lazy::new(|| collision::box_shape(0.75, 0.1875, 0.1875, 1., 0.8125, 0.8125));
 static SHAPE305: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0., 0.25, 0.25, 0.1875, 0.75, 0.75));
+    Lazy::new(|| collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.25, 0.8125));
 static SHAPE306: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.25, 0.25, 0., 0.75, 0.75, 0.1875));
+    Lazy::new(|| collision::box_shape(0.1875, 0.75, 0.1875, 0.8125, 1., 0.8125));
 static SHAPE307: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.8125, 0.25, 0.25, 1., 0.75, 0.75));
+    Lazy::new(|| collision::box_shape(0.25, 0.25, 0.8125, 0.75, 0.75, 1.));
 static SHAPE308: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.25, 0., 0.25, 0.75, 0.1875, 0.75));
+    Lazy::new(|| collision::box_shape(0., 0.25, 0.25, 0.1875, 0.75, 0.75));
 static SHAPE309: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.25, 0.8125, 0.25, 0.75, 1., 0.75));
+    Lazy::new(|| collision::box_shape(0.25, 0.25, 0., 0.75, 0.75, 0.1875));
 static SHAPE310: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.3125, 0., 0.3125, 0.6875, 0.6875, 0.6875));
+    Lazy::new(|| collision::box_shape(0.8125, 0.25, 0.25, 1., 0.75, 0.75));
 static SHAPE311: Lazy<VoxelShape> =
+    Lazy::new(|| collision::box_shape(0.25, 0., 0.25, 0.75, 0.1875, 0.75));
+static SHAPE312: Lazy<VoxelShape> =
+    Lazy::new(|| collision::box_shape(0.25, 0.8125, 0.25, 0.75, 1., 0.75));
+static SHAPE313: Lazy<VoxelShape> =
+    Lazy::new(|| collision::box_shape(0.3125, 0., 0.3125, 0.6875, 0.6875, 0.6875));
+static SHAPE314: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.3125, 0.3125, 0.3125, 0.6875, 1., 0.6875));
-static SHAPE312: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE315: Lazy<VoxelShape> = Lazy::new(|| {
     let s = collision::box_shape(0.375, 0., 0.375, 0.625, 1., 0.625);
     let s = Shapes::or(s, collision::box_shape(0., 0.5, 0., 0.375, 1., 1.));
     let s = Shapes::or(s, collision::box_shape(0.375, 0.5, 0., 1., 1., 0.375));
     let s = Shapes::or(s, collision::box_shape(0.375, 0.5, 0.625, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0.625, 0.5, 0.375, 1., 1., 0.625))
 });
-static SHAPE313: Lazy<VoxelShape> =
+static SHAPE316: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0., 0.6875, 0., 1., 0.9375, 1.));
-static SHAPE314: Lazy<VoxelShape> =
+static SHAPE317: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0., 0.6875, 0., 1., 0.8125, 1.));
 
 impl BlockWithShape for BlockState {
@@ -1727,42 +1733,41 @@ impl BlockWithShape for BlockState {
             0
             | 25..=78
             | 80..=111
-            | 1940..=1987
-            | 2000..=2006
-            | 2059..=2086
-            | 2351..=2868
-            | 2974..=4269
-            | 4274..=4281
-            | 4298..=4585
-            | 4658..=4677
-            | 4758..=5533
-            | 5622..=5647
-            | 5712..=5729
-            | 5734..=5768
-            | 5795..=5810
-            | 5855..=5859
-            | 5861..=5862
-            | 6809..=6994
-            | 6997..=6998
+            | 1944..=1991
+            | 2004..=2010
+            | 2063..=2090
+            | 2355..=2872
+            | 2978..=4273
+            | 4278..=4285
+            | 4302..=4589
+            | 4662..=4681
+            | 4762..=5537
+            | 5626..=5651
+            | 5716..=5733
+            | 5738..=5772
+            | 5799..=5814
+            | 5859..=5863
+            | 5865..=5866
+            | 6813..=6998
             | 7001..=7002
             | 7005..=7006
             | 7009..=7010
             | 7013..=7014
             | 7017..=7018
             | 7021..=7022
-            | 7381..=7384
-            | 7402
-            | 7517..=7660
-            | 7921
-            | 7924
-            | 8245
-            | 8248
-            | 8591..=8822
-            | 8999..=9030
-            | 9176..=9199
-            | 10222..=10253
-            | 10602..=10933
-            | 11165..=11166
+            | 7025..=7026
+            | 7385..=7388
+            | 7406
+            | 7521..=7664
+            | 7925
+            | 7928
+            | 8249
+            | 8252
+            | 8595..=8826
+            | 9003..=9034
+            | 9180..=9203
+            | 10226..=10257
+            | 10606..=10937
             | 11169..=11170
             | 11173..=11174
             | 11177..=11178
@@ -1826,478 +1831,272 @@ impl BlockWithShape for BlockState {
             | 11409..=11410
             | 11413..=11414
             | 11417..=11418
-            | 12350..=12356
+            | 11421..=11422
+            | 12354..=12355
             | 12358
-            | 12393
-            | 12604..=12630
-            | 12654..=12773
-            | 12785
-            | 12799..=12802
-            | 14007
-            | 14010
-            | 14331
-            | 14334
-            | 14655
-            | 14658
-            | 14979
-            | 14982
-            | 15303
-            | 15306
-            | 15627
-            | 15630
-            | 15951
-            | 15954
-            | 16275
-            | 16278
-            | 16599
-            | 16602
-            | 16923
-            | 16926
-            | 17247
-            | 17250
-            | 17571
-            | 17574
-            | 17895
-            | 17898
-            | 18416..=18419
-            | 18433
-            | 18435..=18436
-            | 18450
-            | 18452..=18506
-            | 18521..=18524
-            | 18717..=18718
-            | 18721..=18722
-            | 18725..=18726
-            | 18729..=18730
-            | 18733..=18734
-            | 18737..=18738
-            | 18741..=18742
-            | 18745..=18746
-            | 18749..=18750
-            | 18753..=18754
-            | 18757..=18758
-            | 18761..=18762
-            | 18765..=18766
-            | 18769..=18770
-            | 18773..=18774
-            | 18777..=18778
-            | 18941..=18988
-            | 19117..=19196
-            | 19388
-            | 19391
-            | 19808
-            | 19811
-            | 20213..=20238
-            | 20245
-            | 20248
-            | 20925
-            | 21023..=21150
-            | 21912..=21966
-            | 21970..=21985
-            | 21993..=21994
-            | 22001..=22002
-            | 22009..=22010
-            | 22017..=22044
-            | 22143
-            | 22146
-            | 22554
-            | 22557
-            | 22965
-            | 22968
-            | 23376
-            | 23379
-            | 23715 => &SHAPE0,
-            1684 | 1686 | 1689 | 1691 | 1700 | 1702 | 1705 | 1707 | 1716 | 1718 | 1721 | 1723
-            | 1732 | 1734 | 1737 | 1739 | 1748 | 1750 | 1753 | 1755 | 1764 | 1766 | 1769 | 1771
-            | 1780 | 1782 | 1785 | 1787 | 1796 | 1798 | 1801 | 1803 | 1812 | 1814 | 1817 | 1819
-            | 1828 | 1830 | 1833 | 1835 | 1844 | 1846 | 1849 | 1851 | 1860 | 1862 | 1865 | 1867
-            | 1876 | 1878 | 1881 | 1883 | 1892 | 1894 | 1897 | 1899 | 1908 | 1910 | 1913 | 1915
-            | 1924 | 1926 | 1929 | 1931 => &SHAPE3,
-            1685
-            | 1687..=1688
-            | 1690
-            | 1701
-            | 1703..=1704
-            | 1706
-            | 1717
-            | 1719..=1720
-            | 1722
-            | 1733
-            | 1735..=1736
-            | 1738
-            | 1749
-            | 1751..=1752
-            | 1754
-            | 1765
-            | 1767..=1768
-            | 1770
-            | 1781
-            | 1783..=1784
-            | 1786
-            | 1797
-            | 1799..=1800
-            | 1802
-            | 1813
-            | 1815..=1816
-            | 1818
-            | 1829
-            | 1831..=1832
-            | 1834
-            | 1845
-            | 1847..=1848
-            | 1850
-            | 1861
-            | 1863..=1864
-            | 1866
-            | 1877
-            | 1879..=1880
-            | 1882
-            | 1893
-            | 1895..=1896
-            | 1898
-            | 1909
-            | 1911..=1912
-            | 1914
-            | 1925
-            | 1927..=1928
-            | 1930 => &SHAPE4,
-            1692 | 1694 | 1697 | 1699 | 1708 | 1710 | 1713 | 1715 | 1724 | 1726 | 1729 | 1731
-            | 1740 | 1742 | 1745 | 1747 | 1756 | 1758 | 1761 | 1763 | 1772 | 1774 | 1777 | 1779
-            | 1788 | 1790 | 1793 | 1795 | 1804 | 1806 | 1809 | 1811 | 1820 | 1822 | 1825 | 1827
-            | 1836 | 1838 | 1841 | 1843 | 1852 | 1854 | 1857 | 1859 | 1868 | 1870 | 1873 | 1875
-            | 1884 | 1886 | 1889 | 1891 | 1900 | 1902 | 1905 | 1907 | 1916 | 1918 | 1921 | 1923
-            | 1932 | 1934 | 1937 | 1939 => &SHAPE5,
-            1693
-            | 1695..=1696
-            | 1698
-            | 1709
-            | 1711..=1712
-            | 1714
-            | 1725
-            | 1727..=1728
-            | 1730
-            | 1741
-            | 1743..=1744
-            | 1746
-            | 1757
-            | 1759..=1760
-            | 1762
-            | 1773
-            | 1775..=1776
-            | 1778
-            | 1789
-            | 1791..=1792
-            | 1794
-            | 1805
-            | 1807..=1808
-            | 1810
-            | 1821
-            | 1823..=1824
-            | 1826
-            | 1837
-            | 1839..=1840
-            | 1842
-            | 1853
-            | 1855..=1856
-            | 1858
-            | 1869
-            | 1871..=1872
-            | 1874
-            | 1885
-            | 1887..=1888
-            | 1890
-            | 1901
-            | 1903..=1904
-            | 1906
-            | 1917
-            | 1919..=1920
-            | 1922
-            | 1933
-            | 1935..=1936
-            | 1938 => &SHAPE6,
-            1988 | 2007 => &SHAPE9,
-            1989 | 2008 => &SHAPE10,
-            1990 | 2009 => &SHAPE11,
-            1991 | 2010 => &SHAPE12,
-            1992 | 2011 | 5774 | 7385 => &SHAPE13,
-            1993 | 2012 => &SHAPE14,
-            2019..=2020 => &SHAPE15,
-            2021..=2022 => &SHAPE17,
-            2023..=2024 => &SHAPE18,
-            2025..=2026 => &SHAPE20,
-            2027..=2028 => &SHAPE21,
-            2029..=2030 => &SHAPE22,
-            2031..=2032 => &SHAPE23,
-            2033..=2034 => &SHAPE24,
-            2035..=2036 => &SHAPE25,
-            2037..=2038 => &SHAPE27,
-            2039..=2040 => &SHAPE28,
-            2041..=2042 => &SHAPE30,
-            2870..=2871
-            | 4678..=4679
-            | 7025..=7026
-            | 7105..=7106
-            | 7185..=7186
-            | 7301..=7302
-            | 7427..=7428
-            | 7662..=7663
-            | 7742..=7743
-            | 7822..=7823
-            | 9096..=9097
-            | 9740..=9741
-            | 9820..=9821
-            | 9900..=9901
-            | 9980..=9981
-            | 10060..=10061
-            | 10140..=10141
-            | 10321..=10322
-            | 10401..=10402
-            | 10481..=10482
-            | 10937..=10938
-            | 12269..=12270
-            | 12803..=12804
-            | 12883..=12884
-            | 12963..=12964
-            | 13043..=13044
-            | 13123..=13124
-            | 13203..=13204
-            | 13283..=13284
-            | 13363..=13364
-            | 13443..=13444
-            | 13523..=13524
-            | 13603..=13604
-            | 13683..=13684
-            | 13763..=13764
-            | 13843..=13844
-            | 18781..=18782
-            | 18861..=18862
-            | 19302..=19303
-            | 19722..=19723
-            | 20127..=20128
-            | 21171..=21172
-            | 21251..=21252
-            | 21331..=21332
-            | 21411..=21412
-            | 21523..=21524
-            | 21603..=21604
-            | 21683..=21684
-            | 21763..=21764
-            | 22051..=22052
-            | 22462..=22463
-            | 22873..=22874
-            | 23284..=23285 => &SHAPE33,
-            2872..=2873
-            | 2914..=2915
-            | 4680..=4681
-            | 4722..=4723
-            | 7027..=7028
-            | 7069..=7070
-            | 7107..=7108
-            | 7149..=7150
-            | 7187..=7188
-            | 7229..=7230
-            | 7303..=7304
-            | 7345..=7346
-            | 7429..=7430
-            | 7471..=7472
-            | 7664..=7665
-            | 7706..=7707
-            | 7744..=7745
-            | 7786..=7787
-            | 7824..=7825
-            | 7866..=7867
-            | 9098..=9099
-            | 9140..=9141
-            | 9742..=9743
-            | 9784..=9785
-            | 9822..=9823
-            | 9864..=9865
-            | 9902..=9903
-            | 9944..=9945
-            | 9982..=9983
-            | 10024..=10025
-            | 10062..=10063
-            | 10104..=10105
-            | 10142..=10143
-            | 10184..=10185
-            | 10323..=10324
-            | 10365..=10366
-            | 10403..=10404
-            | 10445..=10446
-            | 10483..=10484
-            | 10525..=10526
-            | 10939..=10940
-            | 10981..=10982
-            | 12271..=12272
-            | 12313..=12314
-            | 12805..=12806
-            | 12847..=12848
-            | 12885..=12886
-            | 12927..=12928
-            | 12965..=12966
-            | 13007..=13008
-            | 13045..=13046
-            | 13087..=13088
-            | 13125..=13126
-            | 13167..=13168
-            | 13205..=13206
-            | 13247..=13248
-            | 13285..=13286
-            | 13327..=13328
-            | 13365..=13366
-            | 13407..=13408
-            | 13445..=13446
-            | 13487..=13488
-            | 13525..=13526
-            | 13567..=13568
-            | 13605..=13606
-            | 13647..=13648
-            | 13685..=13686
-            | 13727..=13728
-            | 13765..=13766
-            | 13807..=13808
-            | 13845..=13846
-            | 13887..=13888
+            | 12360
+            | 12362
+            | 12364
+            | 12366..=12371
+            | 12373
+            | 12408
+            | 12619..=12645
+            | 12672..=12791
+            | 12803
+            | 12817..=12820
+            | 14025
+            | 14028
+            | 14349
+            | 14352
+            | 14673
+            | 14676
+            | 14997
+            | 15000
+            | 15321
+            | 15324
+            | 15645
+            | 15648
+            | 15969
+            | 15972
+            | 16293
+            | 16296
+            | 16617
+            | 16620
+            | 16941
+            | 16944
+            | 17265
+            | 17268
+            | 17589
+            | 17592
+            | 17913
+            | 17916
+            | 18434..=18437
+            | 18451
+            | 18453..=18454
+            | 18468
+            | 18470..=18524
+            | 18539..=18542
+            | 18735..=18736
+            | 18739..=18740
+            | 18743..=18744
+            | 18747..=18748
+            | 18751..=18752
+            | 18755..=18756
+            | 18759..=18760
+            | 18763..=18764
+            | 18767..=18768
+            | 18771..=18772
+            | 18775..=18776
+            | 18779..=18780
             | 18783..=18784
-            | 18825..=18826
-            | 18863..=18864
-            | 18905..=18906
-            | 19304..=19305
-            | 19346..=19347
-            | 19724..=19725
-            | 19766..=19767
-            | 20129..=20130
-            | 20171..=20172
-            | 21173..=21174
-            | 21215..=21216
-            | 21253..=21254
-            | 21295..=21296
-            | 21333..=21334
-            | 21375..=21376
-            | 21413..=21414
-            | 21455..=21456
-            | 21525..=21526
-            | 21567..=21568
-            | 21605..=21606
-            | 21647..=21648
-            | 21685..=21686
-            | 21727..=21728
-            | 21765..=21766
-            | 21807..=21808
-            | 22053..=22054
-            | 22095..=22096
-            | 22464..=22465
-            | 22506..=22507
-            | 22875..=22876
-            | 22917..=22918
-            | 23286..=23287
-            | 23328..=23329 => &SHAPE35,
+            | 18787..=18788
+            | 18791..=18792
+            | 18795..=18796
+            | 18959..=19006
+            | 19135..=19214
+            | 19406
+            | 19409
+            | 19826
+            | 19829
+            | 20231..=20256
+            | 20263
+            | 20266
+            | 20943
+            | 21425..=21552
+            | 22314..=22368
+            | 22372..=22387
+            | 22395..=22396
+            | 22403..=22404
+            | 22411..=22412
+            | 22419..=22446
+            | 22545
+            | 22548
+            | 22956
+            | 22959
+            | 23367
+            | 23370
+            | 23778
+            | 23781
+            | 24117 => &SHAPE0,
+            1688 | 1690 | 1693 | 1695 | 1704 | 1706 | 1709 | 1711 | 1720 | 1722 | 1725 | 1727
+            | 1736 | 1738 | 1741 | 1743 | 1752 | 1754 | 1757 | 1759 | 1768 | 1770 | 1773 | 1775
+            | 1784 | 1786 | 1789 | 1791 | 1800 | 1802 | 1805 | 1807 | 1816 | 1818 | 1821 | 1823
+            | 1832 | 1834 | 1837 | 1839 | 1848 | 1850 | 1853 | 1855 | 1864 | 1866 | 1869 | 1871
+            | 1880 | 1882 | 1885 | 1887 | 1896 | 1898 | 1901 | 1903 | 1912 | 1914 | 1917 | 1919
+            | 1928 | 1930 | 1933 | 1935 => &SHAPE3,
+            1689
+            | 1691..=1692
+            | 1694
+            | 1705
+            | 1707..=1708
+            | 1710
+            | 1721
+            | 1723..=1724
+            | 1726
+            | 1737
+            | 1739..=1740
+            | 1742
+            | 1753
+            | 1755..=1756
+            | 1758
+            | 1769
+            | 1771..=1772
+            | 1774
+            | 1785
+            | 1787..=1788
+            | 1790
+            | 1801
+            | 1803..=1804
+            | 1806
+            | 1817
+            | 1819..=1820
+            | 1822
+            | 1833
+            | 1835..=1836
+            | 1838
+            | 1849
+            | 1851..=1852
+            | 1854
+            | 1865
+            | 1867..=1868
+            | 1870
+            | 1881
+            | 1883..=1884
+            | 1886
+            | 1897
+            | 1899..=1900
+            | 1902
+            | 1913
+            | 1915..=1916
+            | 1918
+            | 1929
+            | 1931..=1932
+            | 1934 => &SHAPE4,
+            1696 | 1698 | 1701 | 1703 | 1712 | 1714 | 1717 | 1719 | 1728 | 1730 | 1733 | 1735
+            | 1744 | 1746 | 1749 | 1751 | 1760 | 1762 | 1765 | 1767 | 1776 | 1778 | 1781 | 1783
+            | 1792 | 1794 | 1797 | 1799 | 1808 | 1810 | 1813 | 1815 | 1824 | 1826 | 1829 | 1831
+            | 1840 | 1842 | 1845 | 1847 | 1856 | 1858 | 1861 | 1863 | 1872 | 1874 | 1877 | 1879
+            | 1888 | 1890 | 1893 | 1895 | 1904 | 1906 | 1909 | 1911 | 1920 | 1922 | 1925 | 1927
+            | 1936 | 1938 | 1941 | 1943 => &SHAPE5,
+            1697
+            | 1699..=1700
+            | 1702
+            | 1713
+            | 1715..=1716
+            | 1718
+            | 1729
+            | 1731..=1732
+            | 1734
+            | 1745
+            | 1747..=1748
+            | 1750
+            | 1761
+            | 1763..=1764
+            | 1766
+            | 1777
+            | 1779..=1780
+            | 1782
+            | 1793
+            | 1795..=1796
+            | 1798
+            | 1809
+            | 1811..=1812
+            | 1814
+            | 1825
+            | 1827..=1828
+            | 1830
+            | 1841
+            | 1843..=1844
+            | 1846
+            | 1857
+            | 1859..=1860
+            | 1862
+            | 1873
+            | 1875..=1876
+            | 1878
+            | 1889
+            | 1891..=1892
+            | 1894
+            | 1905
+            | 1907..=1908
+            | 1910
+            | 1921
+            | 1923..=1924
+            | 1926
+            | 1937
+            | 1939..=1940
+            | 1942 => &SHAPE6,
+            1992 | 2011 => &SHAPE9,
+            1993 | 2012 => &SHAPE10,
+            1994 | 2013 => &SHAPE11,
+            1995 | 2014 => &SHAPE12,
+            1996 | 2015 | 5778 | 7389 => &SHAPE13,
+            1997 | 2016 => &SHAPE14,
+            2023..=2024 => &SHAPE15,
+            2025..=2026 => &SHAPE16,
+            2027..=2028 => &SHAPE17,
+            2029..=2030 => &SHAPE18,
+            2031..=2032 => &SHAPE19,
+            2033..=2034 => &SHAPE20,
+            2035..=2036 => &SHAPE21,
+            2037..=2038 => &SHAPE22,
+            2039..=2040 => &SHAPE23,
+            2041..=2042 => &SHAPE24,
+            2043..=2044 => &SHAPE25,
+            2045..=2046 => &SHAPE26,
             2874..=2875
-            | 2932..=2933
             | 4682..=4683
-            | 4740..=4741
             | 7029..=7030
-            | 7087..=7088
             | 7109..=7110
-            | 7167..=7168
             | 7189..=7190
-            | 7247..=7248
             | 7305..=7306
-            | 7363..=7364
             | 7431..=7432
-            | 7489..=7490
             | 7666..=7667
-            | 7724..=7725
             | 7746..=7747
-            | 7804..=7805
             | 7826..=7827
-            | 7884..=7885
             | 9100..=9101
-            | 9158..=9159
             | 9744..=9745
-            | 9802..=9803
             | 9824..=9825
-            | 9882..=9883
             | 9904..=9905
-            | 9962..=9963
             | 9984..=9985
-            | 10042..=10043
             | 10064..=10065
-            | 10122..=10123
             | 10144..=10145
-            | 10202..=10203
             | 10325..=10326
-            | 10383..=10384
             | 10405..=10406
-            | 10463..=10464
             | 10485..=10486
-            | 10543..=10544
             | 10941..=10942
-            | 10999..=11000
             | 12273..=12274
-            | 12331..=12332
-            | 12807..=12808
-            | 12865..=12866
-            | 12887..=12888
-            | 12945..=12946
-            | 12967..=12968
-            | 13025..=13026
-            | 13047..=13048
-            | 13105..=13106
-            | 13127..=13128
-            | 13185..=13186
-            | 13207..=13208
-            | 13265..=13266
-            | 13287..=13288
-            | 13345..=13346
-            | 13367..=13368
-            | 13425..=13426
-            | 13447..=13448
-            | 13505..=13506
-            | 13527..=13528
-            | 13585..=13586
-            | 13607..=13608
-            | 13665..=13666
-            | 13687..=13688
-            | 13745..=13746
-            | 13767..=13768
-            | 13825..=13826
-            | 13847..=13848
-            | 13905..=13906
-            | 18785..=18786
-            | 18843..=18844
-            | 18865..=18866
-            | 18923..=18924
-            | 19306..=19307
-            | 19364..=19365
-            | 19726..=19727
-            | 19784..=19785
-            | 20131..=20132
-            | 20189..=20190
-            | 21175..=21176
-            | 21233..=21234
-            | 21255..=21256
-            | 21313..=21314
-            | 21335..=21336
-            | 21393..=21394
-            | 21415..=21416
-            | 21473..=21474
-            | 21527..=21528
-            | 21585..=21586
-            | 21607..=21608
-            | 21665..=21666
-            | 21687..=21688
-            | 21745..=21746
-            | 21767..=21768
-            | 21825..=21826
-            | 22055..=22056
-            | 22113..=22114
-            | 22466..=22467
-            | 22524..=22525
-            | 22877..=22878
-            | 22935..=22936
-            | 23288..=23289
-            | 23346..=23347 => &SHAPE37,
+            | 12821..=12822
+            | 12901..=12902
+            | 12981..=12982
+            | 13061..=13062
+            | 13141..=13142
+            | 13221..=13222
+            | 13301..=13302
+            | 13381..=13382
+            | 13461..=13462
+            | 13541..=13542
+            | 13621..=13622
+            | 13701..=13702
+            | 13781..=13782
+            | 13861..=13862
+            | 18799..=18800
+            | 18879..=18880
+            | 19320..=19321
+            | 19740..=19741
+            | 20145..=20146
+            | 21573..=21574
+            | 21653..=21654
+            | 21733..=21734
+            | 21813..=21814
+            | 21925..=21926
+            | 22005..=22006
+            | 22085..=22086
+            | 22165..=22166
+            | 22453..=22454
+            | 22864..=22865
+            | 23275..=23276
+            | 23686..=23687 => &SHAPE29,
             2876..=2877
             | 2918..=2919
             | 4684..=4685
@@ -2342,68 +2141,68 @@ impl BlockWithShape for BlockState {
             | 10985..=10986
             | 12275..=12276
             | 12317..=12318
-            | 12809..=12810
-            | 12851..=12852
-            | 12889..=12890
-            | 12931..=12932
-            | 12969..=12970
-            | 13011..=13012
-            | 13049..=13050
-            | 13091..=13092
-            | 13129..=13130
-            | 13171..=13172
-            | 13209..=13210
-            | 13251..=13252
-            | 13289..=13290
-            | 13331..=13332
-            | 13369..=13370
-            | 13411..=13412
-            | 13449..=13450
-            | 13491..=13492
-            | 13529..=13530
-            | 13571..=13572
-            | 13609..=13610
-            | 13651..=13652
-            | 13689..=13690
-            | 13731..=13732
-            | 13769..=13770
-            | 13811..=13812
-            | 13849..=13850
-            | 13891..=13892
-            | 18787..=18788
-            | 18829..=18830
-            | 18867..=18868
-            | 18909..=18910
-            | 19308..=19309
-            | 19350..=19351
-            | 19728..=19729
-            | 19770..=19771
-            | 20133..=20134
-            | 20175..=20176
-            | 21177..=21178
-            | 21219..=21220
-            | 21257..=21258
-            | 21299..=21300
-            | 21337..=21338
-            | 21379..=21380
-            | 21417..=21418
-            | 21459..=21460
-            | 21529..=21530
-            | 21571..=21572
-            | 21609..=21610
-            | 21651..=21652
-            | 21689..=21690
-            | 21731..=21732
-            | 21769..=21770
-            | 21811..=21812
-            | 22057..=22058
-            | 22099..=22100
-            | 22468..=22469
-            | 22510..=22511
-            | 22879..=22880
-            | 22921..=22922
-            | 23290..=23291
-            | 23332..=23333 => &SHAPE39,
+            | 12823..=12824
+            | 12865..=12866
+            | 12903..=12904
+            | 12945..=12946
+            | 12983..=12984
+            | 13025..=13026
+            | 13063..=13064
+            | 13105..=13106
+            | 13143..=13144
+            | 13185..=13186
+            | 13223..=13224
+            | 13265..=13266
+            | 13303..=13304
+            | 13345..=13346
+            | 13383..=13384
+            | 13425..=13426
+            | 13463..=13464
+            | 13505..=13506
+            | 13543..=13544
+            | 13585..=13586
+            | 13623..=13624
+            | 13665..=13666
+            | 13703..=13704
+            | 13745..=13746
+            | 13783..=13784
+            | 13825..=13826
+            | 13863..=13864
+            | 13905..=13906
+            | 18801..=18802
+            | 18843..=18844
+            | 18881..=18882
+            | 18923..=18924
+            | 19322..=19323
+            | 19364..=19365
+            | 19742..=19743
+            | 19784..=19785
+            | 20147..=20148
+            | 20189..=20190
+            | 21575..=21576
+            | 21617..=21618
+            | 21655..=21656
+            | 21697..=21698
+            | 21735..=21736
+            | 21777..=21778
+            | 21815..=21816
+            | 21857..=21858
+            | 21927..=21928
+            | 21969..=21970
+            | 22007..=22008
+            | 22049..=22050
+            | 22087..=22088
+            | 22129..=22130
+            | 22167..=22168
+            | 22209..=22210
+            | 22455..=22456
+            | 22497..=22498
+            | 22866..=22867
+            | 22908..=22909
+            | 23277..=23278
+            | 23319..=23320
+            | 23688..=23689
+            | 23730..=23731 => &SHAPE30,
             2878..=2879
             | 2936..=2937
             | 4686..=4687
@@ -2448,333 +2247,333 @@ impl BlockWithShape for BlockState {
             | 11003..=11004
             | 12277..=12278
             | 12335..=12336
-            | 12811..=12812
-            | 12869..=12870
-            | 12891..=12892
-            | 12949..=12950
-            | 12971..=12972
-            | 13029..=13030
-            | 13051..=13052
-            | 13109..=13110
-            | 13131..=13132
-            | 13189..=13190
-            | 13211..=13212
-            | 13269..=13270
-            | 13291..=13292
-            | 13349..=13350
-            | 13371..=13372
-            | 13429..=13430
-            | 13451..=13452
-            | 13509..=13510
-            | 13531..=13532
-            | 13589..=13590
-            | 13611..=13612
-            | 13669..=13670
-            | 13691..=13692
-            | 13749..=13750
-            | 13771..=13772
-            | 13829..=13830
-            | 13851..=13852
-            | 13909..=13910
-            | 18789..=18790
-            | 18847..=18848
-            | 18869..=18870
-            | 18927..=18928
-            | 19310..=19311
-            | 19368..=19369
-            | 19730..=19731
-            | 19788..=19789
-            | 20135..=20136
-            | 20193..=20194
-            | 21179..=21180
-            | 21237..=21238
-            | 21259..=21260
-            | 21317..=21318
-            | 21339..=21340
-            | 21397..=21398
-            | 21419..=21420
-            | 21477..=21478
-            | 21531..=21532
-            | 21589..=21590
-            | 21611..=21612
-            | 21669..=21670
-            | 21691..=21692
-            | 21749..=21750
-            | 21771..=21772
-            | 21829..=21830
-            | 22059..=22060
-            | 22117..=22118
-            | 22470..=22471
-            | 22528..=22529
-            | 22881..=22882
-            | 22939..=22940
-            | 23292..=23293
-            | 23350..=23351 => &SHAPE40,
-            2880..=2881
-            | 4688..=4689
-            | 7035..=7036
-            | 7115..=7116
-            | 7195..=7196
-            | 7311..=7312
-            | 7437..=7438
-            | 7672..=7673
-            | 7752..=7753
-            | 7832..=7833
-            | 9106..=9107
-            | 9750..=9751
-            | 9830..=9831
-            | 9910..=9911
-            | 9990..=9991
-            | 10070..=10071
-            | 10150..=10151
-            | 10331..=10332
-            | 10411..=10412
-            | 10491..=10492
-            | 10947..=10948
-            | 12279..=12280
-            | 12813..=12814
-            | 12893..=12894
-            | 12973..=12974
-            | 13053..=13054
-            | 13133..=13134
-            | 13213..=13214
-            | 13293..=13294
-            | 13373..=13374
-            | 13453..=13454
-            | 13533..=13534
-            | 13613..=13614
-            | 13693..=13694
-            | 13773..=13774
-            | 13853..=13854
-            | 18791..=18792
-            | 18871..=18872
-            | 19312..=19313
-            | 19732..=19733
-            | 20137..=20138
-            | 21181..=21182
-            | 21261..=21262
-            | 21341..=21342
-            | 21421..=21422
-            | 21533..=21534
-            | 21613..=21614
-            | 21693..=21694
-            | 21773..=21774
-            | 22061..=22062
-            | 22472..=22473
-            | 22883..=22884
-            | 23294..=23295 => &SHAPE41,
-            2882..=2883
-            | 2924..=2925
-            | 4690..=4691
-            | 4732..=4733
-            | 7037..=7038
-            | 7079..=7080
-            | 7117..=7118
-            | 7159..=7160
-            | 7197..=7198
-            | 7239..=7240
-            | 7313..=7314
-            | 7355..=7356
-            | 7439..=7440
-            | 7481..=7482
-            | 7674..=7675
-            | 7716..=7717
-            | 7754..=7755
-            | 7796..=7797
-            | 7834..=7835
-            | 7876..=7877
-            | 9108..=9109
-            | 9150..=9151
-            | 9752..=9753
-            | 9794..=9795
-            | 9832..=9833
-            | 9874..=9875
-            | 9912..=9913
-            | 9954..=9955
-            | 9992..=9993
-            | 10034..=10035
-            | 10072..=10073
-            | 10114..=10115
-            | 10152..=10153
-            | 10194..=10195
-            | 10333..=10334
-            | 10375..=10376
-            | 10413..=10414
-            | 10455..=10456
-            | 10493..=10494
-            | 10535..=10536
-            | 10949..=10950
-            | 10991..=10992
-            | 12281..=12282
-            | 12323..=12324
-            | 12815..=12816
-            | 12857..=12858
-            | 12895..=12896
-            | 12937..=12938
-            | 12975..=12976
-            | 13017..=13018
-            | 13055..=13056
-            | 13097..=13098
-            | 13135..=13136
-            | 13177..=13178
-            | 13215..=13216
-            | 13257..=13258
-            | 13295..=13296
-            | 13337..=13338
-            | 13375..=13376
-            | 13417..=13418
-            | 13455..=13456
-            | 13497..=13498
-            | 13535..=13536
-            | 13577..=13578
-            | 13615..=13616
-            | 13657..=13658
-            | 13695..=13696
-            | 13737..=13738
-            | 13775..=13776
-            | 13817..=13818
-            | 13855..=13856
-            | 13897..=13898
-            | 18793..=18794
-            | 18835..=18836
-            | 18873..=18874
-            | 18915..=18916
-            | 19314..=19315
-            | 19356..=19357
-            | 19734..=19735
-            | 19776..=19777
-            | 20139..=20140
-            | 20181..=20182
-            | 21183..=21184
-            | 21225..=21226
-            | 21263..=21264
-            | 21305..=21306
-            | 21343..=21344
-            | 21385..=21386
-            | 21423..=21424
-            | 21465..=21466
-            | 21535..=21536
+            | 12825..=12826
+            | 12883..=12884
+            | 12905..=12906
+            | 12963..=12964
+            | 12985..=12986
+            | 13043..=13044
+            | 13065..=13066
+            | 13123..=13124
+            | 13145..=13146
+            | 13203..=13204
+            | 13225..=13226
+            | 13283..=13284
+            | 13305..=13306
+            | 13363..=13364
+            | 13385..=13386
+            | 13443..=13444
+            | 13465..=13466
+            | 13523..=13524
+            | 13545..=13546
+            | 13603..=13604
+            | 13625..=13626
+            | 13683..=13684
+            | 13705..=13706
+            | 13763..=13764
+            | 13785..=13786
+            | 13843..=13844
+            | 13865..=13866
+            | 13923..=13924
+            | 18803..=18804
+            | 18861..=18862
+            | 18883..=18884
+            | 18941..=18942
+            | 19324..=19325
+            | 19382..=19383
+            | 19744..=19745
+            | 19802..=19803
+            | 20149..=20150
+            | 20207..=20208
             | 21577..=21578
-            | 21615..=21616
+            | 21635..=21636
             | 21657..=21658
-            | 21695..=21696
+            | 21715..=21716
             | 21737..=21738
-            | 21775..=21776
+            | 21795..=21796
             | 21817..=21818
-            | 22063..=22064
-            | 22105..=22106
-            | 22474..=22475
-            | 22516..=22517
-            | 22885..=22886
-            | 22927..=22928
-            | 23296..=23297
-            | 23338..=23339 => &SHAPE42,
+            | 21875..=21876
+            | 21929..=21930
+            | 21987..=21988
+            | 22009..=22010
+            | 22067..=22068
+            | 22089..=22090
+            | 22147..=22148
+            | 22169..=22170
+            | 22227..=22228
+            | 22457..=22458
+            | 22515..=22516
+            | 22868..=22869
+            | 22926..=22927
+            | 23279..=23280
+            | 23337..=23338
+            | 23690..=23691
+            | 23748..=23749 => &SHAPE31,
+            2880..=2881
+            | 2922..=2923
+            | 4688..=4689
+            | 4730..=4731
+            | 7035..=7036
+            | 7077..=7078
+            | 7115..=7116
+            | 7157..=7158
+            | 7195..=7196
+            | 7237..=7238
+            | 7311..=7312
+            | 7353..=7354
+            | 7437..=7438
+            | 7479..=7480
+            | 7672..=7673
+            | 7714..=7715
+            | 7752..=7753
+            | 7794..=7795
+            | 7832..=7833
+            | 7874..=7875
+            | 9106..=9107
+            | 9148..=9149
+            | 9750..=9751
+            | 9792..=9793
+            | 9830..=9831
+            | 9872..=9873
+            | 9910..=9911
+            | 9952..=9953
+            | 9990..=9991
+            | 10032..=10033
+            | 10070..=10071
+            | 10112..=10113
+            | 10150..=10151
+            | 10192..=10193
+            | 10331..=10332
+            | 10373..=10374
+            | 10411..=10412
+            | 10453..=10454
+            | 10491..=10492
+            | 10533..=10534
+            | 10947..=10948
+            | 10989..=10990
+            | 12279..=12280
+            | 12321..=12322
+            | 12827..=12828
+            | 12869..=12870
+            | 12907..=12908
+            | 12949..=12950
+            | 12987..=12988
+            | 13029..=13030
+            | 13067..=13068
+            | 13109..=13110
+            | 13147..=13148
+            | 13189..=13190
+            | 13227..=13228
+            | 13269..=13270
+            | 13307..=13308
+            | 13349..=13350
+            | 13387..=13388
+            | 13429..=13430
+            | 13467..=13468
+            | 13509..=13510
+            | 13547..=13548
+            | 13589..=13590
+            | 13627..=13628
+            | 13669..=13670
+            | 13707..=13708
+            | 13749..=13750
+            | 13787..=13788
+            | 13829..=13830
+            | 13867..=13868
+            | 13909..=13910
+            | 18805..=18806
+            | 18847..=18848
+            | 18885..=18886
+            | 18927..=18928
+            | 19326..=19327
+            | 19368..=19369
+            | 19746..=19747
+            | 19788..=19789
+            | 20151..=20152
+            | 20193..=20194
+            | 21579..=21580
+            | 21621..=21622
+            | 21659..=21660
+            | 21701..=21702
+            | 21739..=21740
+            | 21781..=21782
+            | 21819..=21820
+            | 21861..=21862
+            | 21931..=21932
+            | 21973..=21974
+            | 22011..=22012
+            | 22053..=22054
+            | 22091..=22092
+            | 22133..=22134
+            | 22171..=22172
+            | 22213..=22214
+            | 22459..=22460
+            | 22501..=22502
+            | 22870..=22871
+            | 22912..=22913
+            | 23281..=23282
+            | 23323..=23324
+            | 23692..=23693
+            | 23734..=23735 => &SHAPE32,
+            2882..=2883
+            | 2940..=2941
+            | 4690..=4691
+            | 4748..=4749
+            | 7037..=7038
+            | 7095..=7096
+            | 7117..=7118
+            | 7175..=7176
+            | 7197..=7198
+            | 7255..=7256
+            | 7313..=7314
+            | 7371..=7372
+            | 7439..=7440
+            | 7497..=7498
+            | 7674..=7675
+            | 7732..=7733
+            | 7754..=7755
+            | 7812..=7813
+            | 7834..=7835
+            | 7892..=7893
+            | 9108..=9109
+            | 9166..=9167
+            | 9752..=9753
+            | 9810..=9811
+            | 9832..=9833
+            | 9890..=9891
+            | 9912..=9913
+            | 9970..=9971
+            | 9992..=9993
+            | 10050..=10051
+            | 10072..=10073
+            | 10130..=10131
+            | 10152..=10153
+            | 10210..=10211
+            | 10333..=10334
+            | 10391..=10392
+            | 10413..=10414
+            | 10471..=10472
+            | 10493..=10494
+            | 10551..=10552
+            | 10949..=10950
+            | 11007..=11008
+            | 12281..=12282
+            | 12339..=12340
+            | 12829..=12830
+            | 12887..=12888
+            | 12909..=12910
+            | 12967..=12968
+            | 12989..=12990
+            | 13047..=13048
+            | 13069..=13070
+            | 13127..=13128
+            | 13149..=13150
+            | 13207..=13208
+            | 13229..=13230
+            | 13287..=13288
+            | 13309..=13310
+            | 13367..=13368
+            | 13389..=13390
+            | 13447..=13448
+            | 13469..=13470
+            | 13527..=13528
+            | 13549..=13550
+            | 13607..=13608
+            | 13629..=13630
+            | 13687..=13688
+            | 13709..=13710
+            | 13767..=13768
+            | 13789..=13790
+            | 13847..=13848
+            | 13869..=13870
+            | 13927..=13928
+            | 18807..=18808
+            | 18865..=18866
+            | 18887..=18888
+            | 18945..=18946
+            | 19328..=19329
+            | 19386..=19387
+            | 19748..=19749
+            | 19806..=19807
+            | 20153..=20154
+            | 20211..=20212
+            | 21581..=21582
+            | 21639..=21640
+            | 21661..=21662
+            | 21719..=21720
+            | 21741..=21742
+            | 21799..=21800
+            | 21821..=21822
+            | 21879..=21880
+            | 21933..=21934
+            | 21991..=21992
+            | 22013..=22014
+            | 22071..=22072
+            | 22093..=22094
+            | 22151..=22152
+            | 22173..=22174
+            | 22231..=22232
+            | 22461..=22462
+            | 22519..=22520
+            | 22872..=22873
+            | 22930..=22931
+            | 23283..=23284
+            | 23341..=23342
+            | 23694..=23695
+            | 23752..=23753 => &SHAPE33,
             2884..=2885
-            | 2942..=2943
             | 4692..=4693
-            | 4750..=4751
             | 7039..=7040
-            | 7097..=7098
             | 7119..=7120
-            | 7177..=7178
             | 7199..=7200
-            | 7257..=7258
             | 7315..=7316
-            | 7373..=7374
             | 7441..=7442
-            | 7499..=7500
             | 7676..=7677
-            | 7734..=7735
             | 7756..=7757
-            | 7814..=7815
             | 7836..=7837
-            | 7894..=7895
             | 9110..=9111
-            | 9168..=9169
             | 9754..=9755
-            | 9812..=9813
             | 9834..=9835
-            | 9892..=9893
             | 9914..=9915
-            | 9972..=9973
             | 9994..=9995
-            | 10052..=10053
             | 10074..=10075
-            | 10132..=10133
             | 10154..=10155
-            | 10212..=10213
             | 10335..=10336
-            | 10393..=10394
             | 10415..=10416
-            | 10473..=10474
             | 10495..=10496
-            | 10553..=10554
             | 10951..=10952
-            | 11009..=11010
             | 12283..=12284
-            | 12341..=12342
-            | 12817..=12818
-            | 12875..=12876
-            | 12897..=12898
-            | 12955..=12956
-            | 12977..=12978
-            | 13035..=13036
-            | 13057..=13058
-            | 13115..=13116
-            | 13137..=13138
-            | 13195..=13196
-            | 13217..=13218
-            | 13275..=13276
-            | 13297..=13298
-            | 13355..=13356
-            | 13377..=13378
-            | 13435..=13436
-            | 13457..=13458
-            | 13515..=13516
-            | 13537..=13538
-            | 13595..=13596
-            | 13617..=13618
-            | 13675..=13676
-            | 13697..=13698
-            | 13755..=13756
-            | 13777..=13778
-            | 13835..=13836
-            | 13857..=13858
-            | 13915..=13916
-            | 18795..=18796
-            | 18853..=18854
-            | 18875..=18876
-            | 18933..=18934
-            | 19316..=19317
-            | 19374..=19375
-            | 19736..=19737
-            | 19794..=19795
-            | 20141..=20142
-            | 20199..=20200
-            | 21185..=21186
-            | 21243..=21244
-            | 21265..=21266
-            | 21323..=21324
-            | 21345..=21346
-            | 21403..=21404
-            | 21425..=21426
-            | 21483..=21484
-            | 21537..=21538
-            | 21595..=21596
-            | 21617..=21618
-            | 21675..=21676
-            | 21697..=21698
-            | 21755..=21756
-            | 21777..=21778
-            | 21835..=21836
-            | 22065..=22066
-            | 22123..=22124
-            | 22476..=22477
-            | 22534..=22535
-            | 22887..=22888
-            | 22945..=22946
-            | 23298..=23299
-            | 23356..=23357 => &SHAPE44,
+            | 12831..=12832
+            | 12911..=12912
+            | 12991..=12992
+            | 13071..=13072
+            | 13151..=13152
+            | 13231..=13232
+            | 13311..=13312
+            | 13391..=13392
+            | 13471..=13472
+            | 13551..=13552
+            | 13631..=13632
+            | 13711..=13712
+            | 13791..=13792
+            | 13871..=13872
+            | 18809..=18810
+            | 18889..=18890
+            | 19330..=19331
+            | 19750..=19751
+            | 20155..=20156
+            | 21583..=21584
+            | 21663..=21664
+            | 21743..=21744
+            | 21823..=21824
+            | 21935..=21936
+            | 22015..=22016
+            | 22095..=22096
+            | 22175..=22176
+            | 22463..=22464
+            | 22874..=22875
+            | 23285..=23286
+            | 23696..=23697 => &SHAPE34,
             2886..=2887
             | 2928..=2929
             | 4694..=4695
@@ -2819,68 +2618,68 @@ impl BlockWithShape for BlockState {
             | 10995..=10996
             | 12285..=12286
             | 12327..=12328
-            | 12819..=12820
-            | 12861..=12862
-            | 12899..=12900
-            | 12941..=12942
-            | 12979..=12980
-            | 13021..=13022
-            | 13059..=13060
-            | 13101..=13102
-            | 13139..=13140
-            | 13181..=13182
-            | 13219..=13220
-            | 13261..=13262
-            | 13299..=13300
-            | 13341..=13342
-            | 13379..=13380
-            | 13421..=13422
-            | 13459..=13460
-            | 13501..=13502
-            | 13539..=13540
-            | 13581..=13582
-            | 13619..=13620
-            | 13661..=13662
-            | 13699..=13700
-            | 13741..=13742
-            | 13779..=13780
-            | 13821..=13822
-            | 13859..=13860
-            | 13901..=13902
-            | 18797..=18798
-            | 18839..=18840
-            | 18877..=18878
-            | 18919..=18920
-            | 19318..=19319
-            | 19360..=19361
-            | 19738..=19739
-            | 19780..=19781
-            | 20143..=20144
-            | 20185..=20186
-            | 21187..=21188
-            | 21229..=21230
-            | 21267..=21268
-            | 21309..=21310
-            | 21347..=21348
-            | 21389..=21390
-            | 21427..=21428
-            | 21469..=21470
-            | 21539..=21540
-            | 21581..=21582
-            | 21619..=21620
-            | 21661..=21662
-            | 21699..=21700
-            | 21741..=21742
-            | 21779..=21780
-            | 21821..=21822
-            | 22067..=22068
-            | 22109..=22110
-            | 22478..=22479
-            | 22520..=22521
-            | 22889..=22890
-            | 22931..=22932
-            | 23300..=23301
-            | 23342..=23343 => &SHAPE46,
+            | 12833..=12834
+            | 12875..=12876
+            | 12913..=12914
+            | 12955..=12956
+            | 12993..=12994
+            | 13035..=13036
+            | 13073..=13074
+            | 13115..=13116
+            | 13153..=13154
+            | 13195..=13196
+            | 13233..=13234
+            | 13275..=13276
+            | 13313..=13314
+            | 13355..=13356
+            | 13393..=13394
+            | 13435..=13436
+            | 13473..=13474
+            | 13515..=13516
+            | 13553..=13554
+            | 13595..=13596
+            | 13633..=13634
+            | 13675..=13676
+            | 13713..=13714
+            | 13755..=13756
+            | 13793..=13794
+            | 13835..=13836
+            | 13873..=13874
+            | 13915..=13916
+            | 18811..=18812
+            | 18853..=18854
+            | 18891..=18892
+            | 18933..=18934
+            | 19332..=19333
+            | 19374..=19375
+            | 19752..=19753
+            | 19794..=19795
+            | 20157..=20158
+            | 20199..=20200
+            | 21585..=21586
+            | 21627..=21628
+            | 21665..=21666
+            | 21707..=21708
+            | 21745..=21746
+            | 21787..=21788
+            | 21825..=21826
+            | 21867..=21868
+            | 21937..=21938
+            | 21979..=21980
+            | 22017..=22018
+            | 22059..=22060
+            | 22097..=22098
+            | 22139..=22140
+            | 22177..=22178
+            | 22219..=22220
+            | 22465..=22466
+            | 22507..=22508
+            | 22876..=22877
+            | 22918..=22919
+            | 23287..=23288
+            | 23329..=23330
+            | 23698..=23699
+            | 23740..=23741 => &SHAPE35,
             2888..=2889
             | 2946..=2947
             | 4696..=4697
@@ -2925,333 +2724,333 @@ impl BlockWithShape for BlockState {
             | 11013..=11014
             | 12287..=12288
             | 12345..=12346
-            | 12821..=12822
-            | 12879..=12880
-            | 12901..=12902
-            | 12959..=12960
-            | 12981..=12982
-            | 13039..=13040
-            | 13061..=13062
-            | 13119..=13120
-            | 13141..=13142
-            | 13199..=13200
-            | 13221..=13222
-            | 13279..=13280
-            | 13301..=13302
-            | 13359..=13360
-            | 13381..=13382
-            | 13439..=13440
-            | 13461..=13462
-            | 13519..=13520
-            | 13541..=13542
-            | 13599..=13600
-            | 13621..=13622
-            | 13679..=13680
-            | 13701..=13702
-            | 13759..=13760
-            | 13781..=13782
-            | 13839..=13840
-            | 13861..=13862
-            | 13919..=13920
-            | 18799..=18800
-            | 18857..=18858
-            | 18879..=18880
-            | 18937..=18938
-            | 19320..=19321
-            | 19378..=19379
-            | 19740..=19741
-            | 19798..=19799
-            | 20145..=20146
-            | 20203..=20204
-            | 21189..=21190
-            | 21247..=21248
-            | 21269..=21270
-            | 21327..=21328
-            | 21349..=21350
-            | 21407..=21408
-            | 21429..=21430
-            | 21487..=21488
-            | 21541..=21542
-            | 21599..=21600
-            | 21621..=21622
-            | 21679..=21680
-            | 21701..=21702
-            | 21759..=21760
-            | 21781..=21782
-            | 21839..=21840
-            | 22069..=22070
-            | 22127..=22128
-            | 22480..=22481
-            | 22538..=22539
-            | 22891..=22892
-            | 22949..=22950
-            | 23302..=23303
-            | 23360..=23361 => &SHAPE47,
-            2890..=2891
-            | 4698..=4699
-            | 7045..=7046
-            | 7125..=7126
-            | 7205..=7206
-            | 7321..=7322
-            | 7447..=7448
-            | 7682..=7683
-            | 7762..=7763
-            | 7842..=7843
-            | 9116..=9117
-            | 9760..=9761
-            | 9840..=9841
-            | 9920..=9921
-            | 10000..=10001
-            | 10080..=10081
-            | 10160..=10161
-            | 10341..=10342
-            | 10421..=10422
-            | 10501..=10502
-            | 10957..=10958
-            | 12289..=12290
-            | 12823..=12824
-            | 12903..=12904
-            | 12983..=12984
-            | 13063..=13064
-            | 13143..=13144
-            | 13223..=13224
-            | 13303..=13304
-            | 13383..=13384
-            | 13463..=13464
-            | 13543..=13544
-            | 13623..=13624
-            | 13703..=13704
-            | 13783..=13784
-            | 13863..=13864
-            | 18801..=18802
-            | 18881..=18882
-            | 19322..=19323
-            | 19742..=19743
-            | 20147..=20148
-            | 21191..=21192
-            | 21271..=21272
-            | 21351..=21352
-            | 21431..=21432
-            | 21543..=21544
-            | 21623..=21624
-            | 21703..=21704
-            | 21783..=21784
-            | 22071..=22072
-            | 22482..=22483
-            | 22893..=22894
-            | 23304..=23305 => &SHAPE48,
-            2892..=2893
-            | 2934..=2935
-            | 4700..=4701
-            | 4742..=4743
-            | 7047..=7048
-            | 7089..=7090
-            | 7127..=7128
-            | 7169..=7170
-            | 7207..=7208
-            | 7249..=7250
-            | 7323..=7324
-            | 7365..=7366
-            | 7449..=7450
-            | 7491..=7492
-            | 7684..=7685
-            | 7726..=7727
-            | 7764..=7765
-            | 7806..=7807
-            | 7844..=7845
-            | 7886..=7887
-            | 9118..=9119
-            | 9160..=9161
-            | 9762..=9763
-            | 9804..=9805
-            | 9842..=9843
-            | 9884..=9885
-            | 9922..=9923
-            | 9964..=9965
-            | 10002..=10003
-            | 10044..=10045
-            | 10082..=10083
-            | 10124..=10125
-            | 10162..=10163
-            | 10204..=10205
-            | 10343..=10344
-            | 10385..=10386
-            | 10423..=10424
-            | 10465..=10466
-            | 10503..=10504
-            | 10545..=10546
-            | 10959..=10960
-            | 11001..=11002
-            | 12291..=12292
-            | 12333..=12334
-            | 12825..=12826
-            | 12867..=12868
-            | 12905..=12906
-            | 12947..=12948
-            | 12985..=12986
-            | 13027..=13028
-            | 13065..=13066
-            | 13107..=13108
-            | 13145..=13146
-            | 13187..=13188
-            | 13225..=13226
-            | 13267..=13268
-            | 13305..=13306
-            | 13347..=13348
-            | 13385..=13386
-            | 13427..=13428
-            | 13465..=13466
-            | 13507..=13508
-            | 13545..=13546
-            | 13587..=13588
-            | 13625..=13626
-            | 13667..=13668
-            | 13705..=13706
-            | 13747..=13748
-            | 13785..=13786
-            | 13827..=13828
-            | 13865..=13866
-            | 13907..=13908
-            | 18803..=18804
-            | 18845..=18846
-            | 18883..=18884
-            | 18925..=18926
-            | 19324..=19325
-            | 19366..=19367
-            | 19744..=19745
-            | 19786..=19787
-            | 20149..=20150
-            | 20191..=20192
-            | 21193..=21194
-            | 21235..=21236
-            | 21273..=21274
-            | 21315..=21316
-            | 21353..=21354
-            | 21395..=21396
-            | 21433..=21434
-            | 21475..=21476
-            | 21545..=21546
+            | 12835..=12836
+            | 12893..=12894
+            | 12915..=12916
+            | 12973..=12974
+            | 12995..=12996
+            | 13053..=13054
+            | 13075..=13076
+            | 13133..=13134
+            | 13155..=13156
+            | 13213..=13214
+            | 13235..=13236
+            | 13293..=13294
+            | 13315..=13316
+            | 13373..=13374
+            | 13395..=13396
+            | 13453..=13454
+            | 13475..=13476
+            | 13533..=13534
+            | 13555..=13556
+            | 13613..=13614
+            | 13635..=13636
+            | 13693..=13694
+            | 13715..=13716
+            | 13773..=13774
+            | 13795..=13796
+            | 13853..=13854
+            | 13875..=13876
+            | 13933..=13934
+            | 18813..=18814
+            | 18871..=18872
+            | 18893..=18894
+            | 18951..=18952
+            | 19334..=19335
+            | 19392..=19393
+            | 19754..=19755
+            | 19812..=19813
+            | 20159..=20160
+            | 20217..=20218
             | 21587..=21588
-            | 21625..=21626
-            | 21667..=21668
-            | 21705..=21706
-            | 21747..=21748
-            | 21785..=21786
-            | 21827..=21828
-            | 22073..=22074
-            | 22115..=22116
-            | 22484..=22485
-            | 22526..=22527
-            | 22895..=22896
-            | 22937..=22938
-            | 23306..=23307
-            | 23348..=23349 => &SHAPE49,
-            2894..=2895
-            | 2912..=2913
-            | 4702..=4703
-            | 4720..=4721
-            | 7049..=7050
-            | 7067..=7068
-            | 7129..=7130
-            | 7147..=7148
-            | 7209..=7210
-            | 7227..=7228
-            | 7325..=7326
-            | 7343..=7344
-            | 7451..=7452
-            | 7469..=7470
-            | 7686..=7687
-            | 7704..=7705
-            | 7766..=7767
-            | 7784..=7785
-            | 7846..=7847
-            | 7864..=7865
-            | 9120..=9121
-            | 9138..=9139
-            | 9764..=9765
-            | 9782..=9783
-            | 9844..=9845
-            | 9862..=9863
-            | 9924..=9925
-            | 9942..=9943
-            | 10004..=10005
-            | 10022..=10023
-            | 10084..=10085
-            | 10102..=10103
-            | 10164..=10165
-            | 10182..=10183
-            | 10345..=10346
-            | 10363..=10364
-            | 10425..=10426
-            | 10443..=10444
-            | 10505..=10506
-            | 10523..=10524
-            | 10961..=10962
-            | 10979..=10980
-            | 12293..=12294
-            | 12311..=12312
-            | 12827..=12828
-            | 12845..=12846
-            | 12907..=12908
-            | 12925..=12926
-            | 12987..=12988
-            | 13005..=13006
-            | 13067..=13068
-            | 13085..=13086
-            | 13147..=13148
-            | 13165..=13166
-            | 13227..=13228
-            | 13245..=13246
-            | 13307..=13308
-            | 13325..=13326
-            | 13387..=13388
-            | 13405..=13406
-            | 13467..=13468
-            | 13485..=13486
-            | 13547..=13548
-            | 13565..=13566
-            | 13627..=13628
-            | 13645..=13646
-            | 13707..=13708
-            | 13725..=13726
-            | 13787..=13788
-            | 13805..=13806
-            | 13867..=13868
-            | 13885..=13886
-            | 18805..=18806
-            | 18823..=18824
-            | 18885..=18886
-            | 18903..=18904
-            | 19326..=19327
-            | 19344..=19345
-            | 19746..=19747
-            | 19764..=19765
-            | 20151..=20152
-            | 20169..=20170
-            | 21195..=21196
-            | 21213..=21214
-            | 21275..=21276
-            | 21293..=21294
-            | 21355..=21356
-            | 21373..=21374
-            | 21435..=21436
-            | 21453..=21454
-            | 21547..=21548
-            | 21565..=21566
-            | 21627..=21628
             | 21645..=21646
-            | 21707..=21708
+            | 21667..=21668
             | 21725..=21726
-            | 21787..=21788
+            | 21747..=21748
             | 21805..=21806
-            | 22075..=22076
-            | 22093..=22094
-            | 22486..=22487
-            | 22504..=22505
-            | 22897..=22898
-            | 22915..=22916
-            | 23308..=23309
-            | 23326..=23327 => &SHAPE50,
+            | 21827..=21828
+            | 21885..=21886
+            | 21939..=21940
+            | 21997..=21998
+            | 22019..=22020
+            | 22077..=22078
+            | 22099..=22100
+            | 22157..=22158
+            | 22179..=22180
+            | 22237..=22238
+            | 22467..=22468
+            | 22525..=22526
+            | 22878..=22879
+            | 22936..=22937
+            | 23289..=23290
+            | 23347..=23348
+            | 23700..=23701
+            | 23758..=23759 => &SHAPE36,
+            2890..=2891
+            | 2932..=2933
+            | 4698..=4699
+            | 4740..=4741
+            | 7045..=7046
+            | 7087..=7088
+            | 7125..=7126
+            | 7167..=7168
+            | 7205..=7206
+            | 7247..=7248
+            | 7321..=7322
+            | 7363..=7364
+            | 7447..=7448
+            | 7489..=7490
+            | 7682..=7683
+            | 7724..=7725
+            | 7762..=7763
+            | 7804..=7805
+            | 7842..=7843
+            | 7884..=7885
+            | 9116..=9117
+            | 9158..=9159
+            | 9760..=9761
+            | 9802..=9803
+            | 9840..=9841
+            | 9882..=9883
+            | 9920..=9921
+            | 9962..=9963
+            | 10000..=10001
+            | 10042..=10043
+            | 10080..=10081
+            | 10122..=10123
+            | 10160..=10161
+            | 10202..=10203
+            | 10341..=10342
+            | 10383..=10384
+            | 10421..=10422
+            | 10463..=10464
+            | 10501..=10502
+            | 10543..=10544
+            | 10957..=10958
+            | 10999..=11000
+            | 12289..=12290
+            | 12331..=12332
+            | 12837..=12838
+            | 12879..=12880
+            | 12917..=12918
+            | 12959..=12960
+            | 12997..=12998
+            | 13039..=13040
+            | 13077..=13078
+            | 13119..=13120
+            | 13157..=13158
+            | 13199..=13200
+            | 13237..=13238
+            | 13279..=13280
+            | 13317..=13318
+            | 13359..=13360
+            | 13397..=13398
+            | 13439..=13440
+            | 13477..=13478
+            | 13519..=13520
+            | 13557..=13558
+            | 13599..=13600
+            | 13637..=13638
+            | 13679..=13680
+            | 13717..=13718
+            | 13759..=13760
+            | 13797..=13798
+            | 13839..=13840
+            | 13877..=13878
+            | 13919..=13920
+            | 18815..=18816
+            | 18857..=18858
+            | 18895..=18896
+            | 18937..=18938
+            | 19336..=19337
+            | 19378..=19379
+            | 19756..=19757
+            | 19798..=19799
+            | 20161..=20162
+            | 20203..=20204
+            | 21589..=21590
+            | 21631..=21632
+            | 21669..=21670
+            | 21711..=21712
+            | 21749..=21750
+            | 21791..=21792
+            | 21829..=21830
+            | 21871..=21872
+            | 21941..=21942
+            | 21983..=21984
+            | 22021..=22022
+            | 22063..=22064
+            | 22101..=22102
+            | 22143..=22144
+            | 22181..=22182
+            | 22223..=22224
+            | 22469..=22470
+            | 22511..=22512
+            | 22880..=22881
+            | 22922..=22923
+            | 23291..=23292
+            | 23333..=23334
+            | 23702..=23703
+            | 23744..=23745 => &SHAPE37,
+            2892..=2893
+            | 2950..=2951
+            | 4700..=4701
+            | 4758..=4759
+            | 7047..=7048
+            | 7105..=7106
+            | 7127..=7128
+            | 7185..=7186
+            | 7207..=7208
+            | 7265..=7266
+            | 7323..=7324
+            | 7381..=7382
+            | 7449..=7450
+            | 7507..=7508
+            | 7684..=7685
+            | 7742..=7743
+            | 7764..=7765
+            | 7822..=7823
+            | 7844..=7845
+            | 7902..=7903
+            | 9118..=9119
+            | 9176..=9177
+            | 9762..=9763
+            | 9820..=9821
+            | 9842..=9843
+            | 9900..=9901
+            | 9922..=9923
+            | 9980..=9981
+            | 10002..=10003
+            | 10060..=10061
+            | 10082..=10083
+            | 10140..=10141
+            | 10162..=10163
+            | 10220..=10221
+            | 10343..=10344
+            | 10401..=10402
+            | 10423..=10424
+            | 10481..=10482
+            | 10503..=10504
+            | 10561..=10562
+            | 10959..=10960
+            | 11017..=11018
+            | 12291..=12292
+            | 12349..=12350
+            | 12839..=12840
+            | 12897..=12898
+            | 12919..=12920
+            | 12977..=12978
+            | 12999..=13000
+            | 13057..=13058
+            | 13079..=13080
+            | 13137..=13138
+            | 13159..=13160
+            | 13217..=13218
+            | 13239..=13240
+            | 13297..=13298
+            | 13319..=13320
+            | 13377..=13378
+            | 13399..=13400
+            | 13457..=13458
+            | 13479..=13480
+            | 13537..=13538
+            | 13559..=13560
+            | 13617..=13618
+            | 13639..=13640
+            | 13697..=13698
+            | 13719..=13720
+            | 13777..=13778
+            | 13799..=13800
+            | 13857..=13858
+            | 13879..=13880
+            | 13937..=13938
+            | 18817..=18818
+            | 18875..=18876
+            | 18897..=18898
+            | 18955..=18956
+            | 19338..=19339
+            | 19396..=19397
+            | 19758..=19759
+            | 19816..=19817
+            | 20163..=20164
+            | 20221..=20222
+            | 21591..=21592
+            | 21649..=21650
+            | 21671..=21672
+            | 21729..=21730
+            | 21751..=21752
+            | 21809..=21810
+            | 21831..=21832
+            | 21889..=21890
+            | 21943..=21944
+            | 22001..=22002
+            | 22023..=22024
+            | 22081..=22082
+            | 22103..=22104
+            | 22161..=22162
+            | 22183..=22184
+            | 22241..=22242
+            | 22471..=22472
+            | 22529..=22530
+            | 22882..=22883
+            | 22940..=22941
+            | 23293..=23294
+            | 23351..=23352
+            | 23704..=23705
+            | 23762..=23763 => &SHAPE38,
+            2894..=2895
+            | 4702..=4703
+            | 7049..=7050
+            | 7129..=7130
+            | 7209..=7210
+            | 7325..=7326
+            | 7451..=7452
+            | 7686..=7687
+            | 7766..=7767
+            | 7846..=7847
+            | 9120..=9121
+            | 9764..=9765
+            | 9844..=9845
+            | 9924..=9925
+            | 10004..=10005
+            | 10084..=10085
+            | 10164..=10165
+            | 10345..=10346
+            | 10425..=10426
+            | 10505..=10506
+            | 10961..=10962
+            | 12293..=12294
+            | 12841..=12842
+            | 12921..=12922
+            | 13001..=13002
+            | 13081..=13082
+            | 13161..=13162
+            | 13241..=13242
+            | 13321..=13322
+            | 13401..=13402
+            | 13481..=13482
+            | 13561..=13562
+            | 13641..=13642
+            | 13721..=13722
+            | 13801..=13802
+            | 13881..=13882
+            | 18819..=18820
+            | 18899..=18900
+            | 19340..=19341
+            | 19760..=19761
+            | 20165..=20166
+            | 21593..=21594
+            | 21673..=21674
+            | 21753..=21754
+            | 21833..=21834
+            | 21945..=21946
+            | 22025..=22026
+            | 22105..=22106
+            | 22185..=22186
+            | 22473..=22474
+            | 22884..=22885
+            | 23295..=23296
+            | 23706..=23707 => &SHAPE39,
             2896..=2897
             | 2938..=2939
             | 4704..=4705
@@ -3296,68 +3095,68 @@ impl BlockWithShape for BlockState {
             | 11005..=11006
             | 12295..=12296
             | 12337..=12338
-            | 12829..=12830
-            | 12871..=12872
-            | 12909..=12910
-            | 12951..=12952
-            | 12989..=12990
-            | 13031..=13032
-            | 13069..=13070
-            | 13111..=13112
-            | 13149..=13150
-            | 13191..=13192
-            | 13229..=13230
-            | 13271..=13272
-            | 13309..=13310
-            | 13351..=13352
-            | 13389..=13390
-            | 13431..=13432
-            | 13469..=13470
-            | 13511..=13512
-            | 13549..=13550
-            | 13591..=13592
-            | 13629..=13630
-            | 13671..=13672
-            | 13709..=13710
-            | 13751..=13752
-            | 13789..=13790
-            | 13831..=13832
-            | 13869..=13870
-            | 13911..=13912
-            | 18807..=18808
-            | 18849..=18850
-            | 18887..=18888
-            | 18929..=18930
-            | 19328..=19329
-            | 19370..=19371
-            | 19748..=19749
-            | 19790..=19791
-            | 20153..=20154
-            | 20195..=20196
-            | 21197..=21198
-            | 21239..=21240
-            | 21277..=21278
-            | 21319..=21320
-            | 21357..=21358
-            | 21399..=21400
-            | 21437..=21438
-            | 21479..=21480
-            | 21549..=21550
-            | 21591..=21592
-            | 21629..=21630
-            | 21671..=21672
-            | 21709..=21710
-            | 21751..=21752
-            | 21789..=21790
-            | 21831..=21832
-            | 22077..=22078
-            | 22119..=22120
-            | 22488..=22489
-            | 22530..=22531
-            | 22899..=22900
-            | 22941..=22942
-            | 23310..=23311
-            | 23352..=23353 => &SHAPE51,
+            | 12843..=12844
+            | 12885..=12886
+            | 12923..=12924
+            | 12965..=12966
+            | 13003..=13004
+            | 13045..=13046
+            | 13083..=13084
+            | 13125..=13126
+            | 13163..=13164
+            | 13205..=13206
+            | 13243..=13244
+            | 13285..=13286
+            | 13323..=13324
+            | 13365..=13366
+            | 13403..=13404
+            | 13445..=13446
+            | 13483..=13484
+            | 13525..=13526
+            | 13563..=13564
+            | 13605..=13606
+            | 13643..=13644
+            | 13685..=13686
+            | 13723..=13724
+            | 13765..=13766
+            | 13803..=13804
+            | 13845..=13846
+            | 13883..=13884
+            | 13925..=13926
+            | 18821..=18822
+            | 18863..=18864
+            | 18901..=18902
+            | 18943..=18944
+            | 19342..=19343
+            | 19384..=19385
+            | 19762..=19763
+            | 19804..=19805
+            | 20167..=20168
+            | 20209..=20210
+            | 21595..=21596
+            | 21637..=21638
+            | 21675..=21676
+            | 21717..=21718
+            | 21755..=21756
+            | 21797..=21798
+            | 21835..=21836
+            | 21877..=21878
+            | 21947..=21948
+            | 21989..=21990
+            | 22027..=22028
+            | 22069..=22070
+            | 22107..=22108
+            | 22149..=22150
+            | 22187..=22188
+            | 22229..=22230
+            | 22475..=22476
+            | 22517..=22518
+            | 22886..=22887
+            | 22928..=22929
+            | 23297..=23298
+            | 23339..=23340
+            | 23708..=23709
+            | 23750..=23751 => &SHAPE40,
             2898..=2899
             | 2916..=2917
             | 4706..=4707
@@ -3402,333 +3201,333 @@ impl BlockWithShape for BlockState {
             | 10983..=10984
             | 12297..=12298
             | 12315..=12316
-            | 12831..=12832
-            | 12849..=12850
-            | 12911..=12912
-            | 12929..=12930
-            | 12991..=12992
-            | 13009..=13010
-            | 13071..=13072
-            | 13089..=13090
-            | 13151..=13152
-            | 13169..=13170
-            | 13231..=13232
-            | 13249..=13250
-            | 13311..=13312
-            | 13329..=13330
-            | 13391..=13392
-            | 13409..=13410
-            | 13471..=13472
-            | 13489..=13490
-            | 13551..=13552
-            | 13569..=13570
-            | 13631..=13632
-            | 13649..=13650
-            | 13711..=13712
-            | 13729..=13730
-            | 13791..=13792
-            | 13809..=13810
-            | 13871..=13872
-            | 13889..=13890
-            | 18809..=18810
-            | 18827..=18828
-            | 18889..=18890
-            | 18907..=18908
-            | 19330..=19331
-            | 19348..=19349
-            | 19750..=19751
-            | 19768..=19769
-            | 20155..=20156
-            | 20173..=20174
-            | 21199..=21200
-            | 21217..=21218
-            | 21279..=21280
-            | 21297..=21298
-            | 21359..=21360
-            | 21377..=21378
-            | 21439..=21440
-            | 21457..=21458
-            | 21551..=21552
-            | 21569..=21570
-            | 21631..=21632
-            | 21649..=21650
-            | 21711..=21712
-            | 21729..=21730
-            | 21791..=21792
-            | 21809..=21810
-            | 22079..=22080
-            | 22097..=22098
-            | 22490..=22491
-            | 22508..=22509
-            | 22901..=22902
-            | 22919..=22920
-            | 23312..=23313
-            | 23330..=23331 => &SHAPE52,
-            2900..=2901
-            | 4708..=4709
-            | 7055..=7056
-            | 7135..=7136
-            | 7215..=7216
-            | 7331..=7332
-            | 7457..=7458
-            | 7692..=7693
-            | 7772..=7773
-            | 7852..=7853
-            | 9126..=9127
-            | 9770..=9771
-            | 9850..=9851
-            | 9930..=9931
-            | 10010..=10011
-            | 10090..=10091
-            | 10170..=10171
-            | 10351..=10352
-            | 10431..=10432
-            | 10511..=10512
-            | 10967..=10968
-            | 12299..=12300
-            | 12833..=12834
-            | 12913..=12914
-            | 12993..=12994
-            | 13073..=13074
-            | 13153..=13154
-            | 13233..=13234
-            | 13313..=13314
-            | 13393..=13394
-            | 13473..=13474
-            | 13553..=13554
-            | 13633..=13634
-            | 13713..=13714
-            | 13793..=13794
-            | 13873..=13874
-            | 18811..=18812
-            | 18891..=18892
-            | 19332..=19333
-            | 19752..=19753
-            | 20157..=20158
-            | 21201..=21202
-            | 21281..=21282
-            | 21361..=21362
-            | 21441..=21442
-            | 21553..=21554
-            | 21633..=21634
-            | 21713..=21714
-            | 21793..=21794
-            | 22081..=22082
-            | 22492..=22493
-            | 22903..=22904
-            | 23314..=23315 => &SHAPE53,
-            2902..=2903
-            | 2944..=2945
-            | 4710..=4711
-            | 4752..=4753
-            | 7057..=7058
-            | 7099..=7100
-            | 7137..=7138
-            | 7179..=7180
-            | 7217..=7218
-            | 7259..=7260
-            | 7333..=7334
-            | 7375..=7376
-            | 7459..=7460
-            | 7501..=7502
-            | 7694..=7695
-            | 7736..=7737
-            | 7774..=7775
-            | 7816..=7817
-            | 7854..=7855
-            | 7896..=7897
-            | 9128..=9129
-            | 9170..=9171
-            | 9772..=9773
-            | 9814..=9815
-            | 9852..=9853
-            | 9894..=9895
-            | 9932..=9933
-            | 9974..=9975
-            | 10012..=10013
-            | 10054..=10055
-            | 10092..=10093
-            | 10134..=10135
-            | 10172..=10173
-            | 10214..=10215
-            | 10353..=10354
-            | 10395..=10396
-            | 10433..=10434
-            | 10475..=10476
-            | 10513..=10514
-            | 10555..=10556
-            | 10969..=10970
-            | 11011..=11012
-            | 12301..=12302
-            | 12343..=12344
-            | 12835..=12836
-            | 12877..=12878
-            | 12915..=12916
-            | 12957..=12958
-            | 12995..=12996
-            | 13037..=13038
-            | 13075..=13076
-            | 13117..=13118
-            | 13155..=13156
-            | 13197..=13198
-            | 13235..=13236
-            | 13277..=13278
-            | 13315..=13316
-            | 13357..=13358
-            | 13395..=13396
-            | 13437..=13438
-            | 13475..=13476
-            | 13517..=13518
-            | 13555..=13556
-            | 13597..=13598
-            | 13635..=13636
-            | 13677..=13678
-            | 13715..=13716
-            | 13757..=13758
-            | 13795..=13796
-            | 13837..=13838
-            | 13875..=13876
-            | 13917..=13918
-            | 18813..=18814
-            | 18855..=18856
-            | 18893..=18894
-            | 18935..=18936
-            | 19334..=19335
-            | 19376..=19377
-            | 19754..=19755
-            | 19796..=19797
-            | 20159..=20160
-            | 20201..=20202
-            | 21203..=21204
-            | 21245..=21246
-            | 21283..=21284
-            | 21325..=21326
-            | 21363..=21364
-            | 21405..=21406
-            | 21443..=21444
-            | 21485..=21486
-            | 21555..=21556
+            | 12845..=12846
+            | 12863..=12864
+            | 12925..=12926
+            | 12943..=12944
+            | 13005..=13006
+            | 13023..=13024
+            | 13085..=13086
+            | 13103..=13104
+            | 13165..=13166
+            | 13183..=13184
+            | 13245..=13246
+            | 13263..=13264
+            | 13325..=13326
+            | 13343..=13344
+            | 13405..=13406
+            | 13423..=13424
+            | 13485..=13486
+            | 13503..=13504
+            | 13565..=13566
+            | 13583..=13584
+            | 13645..=13646
+            | 13663..=13664
+            | 13725..=13726
+            | 13743..=13744
+            | 13805..=13806
+            | 13823..=13824
+            | 13885..=13886
+            | 13903..=13904
+            | 18823..=18824
+            | 18841..=18842
+            | 18903..=18904
+            | 18921..=18922
+            | 19344..=19345
+            | 19362..=19363
+            | 19764..=19765
+            | 19782..=19783
+            | 20169..=20170
+            | 20187..=20188
             | 21597..=21598
-            | 21635..=21636
+            | 21615..=21616
             | 21677..=21678
-            | 21715..=21716
+            | 21695..=21696
             | 21757..=21758
-            | 21795..=21796
+            | 21775..=21776
             | 21837..=21838
-            | 22083..=22084
-            | 22125..=22126
-            | 22494..=22495
-            | 22536..=22537
-            | 22905..=22906
-            | 22947..=22948
-            | 23316..=23317
-            | 23358..=23359 => &SHAPE54,
+            | 21855..=21856
+            | 21949..=21950
+            | 21967..=21968
+            | 22029..=22030
+            | 22047..=22048
+            | 22109..=22110
+            | 22127..=22128
+            | 22189..=22190
+            | 22207..=22208
+            | 22477..=22478
+            | 22495..=22496
+            | 22888..=22889
+            | 22906..=22907
+            | 23299..=23300
+            | 23317..=23318
+            | 23710..=23711
+            | 23728..=23729 => &SHAPE41,
+            2900..=2901
+            | 2942..=2943
+            | 4708..=4709
+            | 4750..=4751
+            | 7055..=7056
+            | 7097..=7098
+            | 7135..=7136
+            | 7177..=7178
+            | 7215..=7216
+            | 7257..=7258
+            | 7331..=7332
+            | 7373..=7374
+            | 7457..=7458
+            | 7499..=7500
+            | 7692..=7693
+            | 7734..=7735
+            | 7772..=7773
+            | 7814..=7815
+            | 7852..=7853
+            | 7894..=7895
+            | 9126..=9127
+            | 9168..=9169
+            | 9770..=9771
+            | 9812..=9813
+            | 9850..=9851
+            | 9892..=9893
+            | 9930..=9931
+            | 9972..=9973
+            | 10010..=10011
+            | 10052..=10053
+            | 10090..=10091
+            | 10132..=10133
+            | 10170..=10171
+            | 10212..=10213
+            | 10351..=10352
+            | 10393..=10394
+            | 10431..=10432
+            | 10473..=10474
+            | 10511..=10512
+            | 10553..=10554
+            | 10967..=10968
+            | 11009..=11010
+            | 12299..=12300
+            | 12341..=12342
+            | 12847..=12848
+            | 12889..=12890
+            | 12927..=12928
+            | 12969..=12970
+            | 13007..=13008
+            | 13049..=13050
+            | 13087..=13088
+            | 13129..=13130
+            | 13167..=13168
+            | 13209..=13210
+            | 13247..=13248
+            | 13289..=13290
+            | 13327..=13328
+            | 13369..=13370
+            | 13407..=13408
+            | 13449..=13450
+            | 13487..=13488
+            | 13529..=13530
+            | 13567..=13568
+            | 13609..=13610
+            | 13647..=13648
+            | 13689..=13690
+            | 13727..=13728
+            | 13769..=13770
+            | 13807..=13808
+            | 13849..=13850
+            | 13887..=13888
+            | 13929..=13930
+            | 18825..=18826
+            | 18867..=18868
+            | 18905..=18906
+            | 18947..=18948
+            | 19346..=19347
+            | 19388..=19389
+            | 19766..=19767
+            | 19808..=19809
+            | 20171..=20172
+            | 20213..=20214
+            | 21599..=21600
+            | 21641..=21642
+            | 21679..=21680
+            | 21721..=21722
+            | 21759..=21760
+            | 21801..=21802
+            | 21839..=21840
+            | 21881..=21882
+            | 21951..=21952
+            | 21993..=21994
+            | 22031..=22032
+            | 22073..=22074
+            | 22111..=22112
+            | 22153..=22154
+            | 22191..=22192
+            | 22233..=22234
+            | 22479..=22480
+            | 22521..=22522
+            | 22890..=22891
+            | 22932..=22933
+            | 23301..=23302
+            | 23343..=23344
+            | 23712..=23713
+            | 23754..=23755 => &SHAPE42,
+            2902..=2903
+            | 2920..=2921
+            | 4710..=4711
+            | 4728..=4729
+            | 7057..=7058
+            | 7075..=7076
+            | 7137..=7138
+            | 7155..=7156
+            | 7217..=7218
+            | 7235..=7236
+            | 7333..=7334
+            | 7351..=7352
+            | 7459..=7460
+            | 7477..=7478
+            | 7694..=7695
+            | 7712..=7713
+            | 7774..=7775
+            | 7792..=7793
+            | 7854..=7855
+            | 7872..=7873
+            | 9128..=9129
+            | 9146..=9147
+            | 9772..=9773
+            | 9790..=9791
+            | 9852..=9853
+            | 9870..=9871
+            | 9932..=9933
+            | 9950..=9951
+            | 10012..=10013
+            | 10030..=10031
+            | 10092..=10093
+            | 10110..=10111
+            | 10172..=10173
+            | 10190..=10191
+            | 10353..=10354
+            | 10371..=10372
+            | 10433..=10434
+            | 10451..=10452
+            | 10513..=10514
+            | 10531..=10532
+            | 10969..=10970
+            | 10987..=10988
+            | 12301..=12302
+            | 12319..=12320
+            | 12849..=12850
+            | 12867..=12868
+            | 12929..=12930
+            | 12947..=12948
+            | 13009..=13010
+            | 13027..=13028
+            | 13089..=13090
+            | 13107..=13108
+            | 13169..=13170
+            | 13187..=13188
+            | 13249..=13250
+            | 13267..=13268
+            | 13329..=13330
+            | 13347..=13348
+            | 13409..=13410
+            | 13427..=13428
+            | 13489..=13490
+            | 13507..=13508
+            | 13569..=13570
+            | 13587..=13588
+            | 13649..=13650
+            | 13667..=13668
+            | 13729..=13730
+            | 13747..=13748
+            | 13809..=13810
+            | 13827..=13828
+            | 13889..=13890
+            | 13907..=13908
+            | 18827..=18828
+            | 18845..=18846
+            | 18907..=18908
+            | 18925..=18926
+            | 19348..=19349
+            | 19366..=19367
+            | 19768..=19769
+            | 19786..=19787
+            | 20173..=20174
+            | 20191..=20192
+            | 21601..=21602
+            | 21619..=21620
+            | 21681..=21682
+            | 21699..=21700
+            | 21761..=21762
+            | 21779..=21780
+            | 21841..=21842
+            | 21859..=21860
+            | 21953..=21954
+            | 21971..=21972
+            | 22033..=22034
+            | 22051..=22052
+            | 22113..=22114
+            | 22131..=22132
+            | 22193..=22194
+            | 22211..=22212
+            | 22481..=22482
+            | 22499..=22500
+            | 22892..=22893
+            | 22910..=22911
+            | 23303..=23304
+            | 23321..=23322
+            | 23714..=23715
+            | 23732..=23733 => &SHAPE43,
             2904..=2905
-            | 2922..=2923
             | 4712..=4713
-            | 4730..=4731
             | 7059..=7060
-            | 7077..=7078
             | 7139..=7140
-            | 7157..=7158
             | 7219..=7220
-            | 7237..=7238
             | 7335..=7336
-            | 7353..=7354
             | 7461..=7462
-            | 7479..=7480
             | 7696..=7697
-            | 7714..=7715
             | 7776..=7777
-            | 7794..=7795
             | 7856..=7857
-            | 7874..=7875
             | 9130..=9131
-            | 9148..=9149
             | 9774..=9775
-            | 9792..=9793
             | 9854..=9855
-            | 9872..=9873
             | 9934..=9935
-            | 9952..=9953
             | 10014..=10015
-            | 10032..=10033
             | 10094..=10095
-            | 10112..=10113
             | 10174..=10175
-            | 10192..=10193
             | 10355..=10356
-            | 10373..=10374
             | 10435..=10436
-            | 10453..=10454
             | 10515..=10516
-            | 10533..=10534
             | 10971..=10972
-            | 10989..=10990
             | 12303..=12304
-            | 12321..=12322
-            | 12837..=12838
-            | 12855..=12856
-            | 12917..=12918
-            | 12935..=12936
-            | 12997..=12998
-            | 13015..=13016
-            | 13077..=13078
-            | 13095..=13096
-            | 13157..=13158
-            | 13175..=13176
-            | 13237..=13238
-            | 13255..=13256
-            | 13317..=13318
-            | 13335..=13336
-            | 13397..=13398
-            | 13415..=13416
-            | 13477..=13478
-            | 13495..=13496
-            | 13557..=13558
-            | 13575..=13576
-            | 13637..=13638
-            | 13655..=13656
-            | 13717..=13718
-            | 13735..=13736
-            | 13797..=13798
-            | 13815..=13816
-            | 13877..=13878
-            | 13895..=13896
-            | 18815..=18816
-            | 18833..=18834
-            | 18895..=18896
-            | 18913..=18914
-            | 19336..=19337
-            | 19354..=19355
-            | 19756..=19757
-            | 19774..=19775
-            | 20161..=20162
-            | 20179..=20180
-            | 21205..=21206
-            | 21223..=21224
-            | 21285..=21286
-            | 21303..=21304
-            | 21365..=21366
-            | 21383..=21384
-            | 21445..=21446
-            | 21463..=21464
-            | 21557..=21558
-            | 21575..=21576
-            | 21637..=21638
-            | 21655..=21656
-            | 21717..=21718
-            | 21735..=21736
-            | 21797..=21798
-            | 21815..=21816
-            | 22085..=22086
-            | 22103..=22104
-            | 22496..=22497
-            | 22514..=22515
-            | 22907..=22908
-            | 22925..=22926
-            | 23318..=23319
-            | 23336..=23337 => &SHAPE55,
+            | 12851..=12852
+            | 12931..=12932
+            | 13011..=13012
+            | 13091..=13092
+            | 13171..=13172
+            | 13251..=13252
+            | 13331..=13332
+            | 13411..=13412
+            | 13491..=13492
+            | 13571..=13572
+            | 13651..=13652
+            | 13731..=13732
+            | 13811..=13812
+            | 13891..=13892
+            | 18829..=18830
+            | 18909..=18910
+            | 19350..=19351
+            | 19770..=19771
+            | 20175..=20176
+            | 21603..=21604
+            | 21683..=21684
+            | 21763..=21764
+            | 21843..=21844
+            | 21955..=21956
+            | 22035..=22036
+            | 22115..=22116
+            | 22195..=22196
+            | 22483..=22484
+            | 22894..=22895
+            | 23305..=23306
+            | 23716..=23717 => &SHAPE44,
             2906..=2907
             | 2948..=2949
             | 4714..=4715
@@ -3773,68 +3572,68 @@ impl BlockWithShape for BlockState {
             | 11015..=11016
             | 12305..=12306
             | 12347..=12348
-            | 12839..=12840
-            | 12881..=12882
-            | 12919..=12920
-            | 12961..=12962
-            | 12999..=13000
-            | 13041..=13042
-            | 13079..=13080
-            | 13121..=13122
-            | 13159..=13160
-            | 13201..=13202
-            | 13239..=13240
-            | 13281..=13282
-            | 13319..=13320
-            | 13361..=13362
-            | 13399..=13400
-            | 13441..=13442
-            | 13479..=13480
-            | 13521..=13522
-            | 13559..=13560
-            | 13601..=13602
-            | 13639..=13640
-            | 13681..=13682
-            | 13719..=13720
-            | 13761..=13762
-            | 13799..=13800
-            | 13841..=13842
-            | 13879..=13880
-            | 13921..=13922
-            | 18817..=18818
-            | 18859..=18860
-            | 18897..=18898
-            | 18939..=18940
-            | 19338..=19339
-            | 19380..=19381
-            | 19758..=19759
-            | 19800..=19801
-            | 20163..=20164
-            | 20205..=20206
-            | 21207..=21208
-            | 21249..=21250
-            | 21287..=21288
-            | 21329..=21330
-            | 21367..=21368
-            | 21409..=21410
-            | 21447..=21448
-            | 21489..=21490
-            | 21559..=21560
-            | 21601..=21602
-            | 21639..=21640
-            | 21681..=21682
-            | 21719..=21720
-            | 21761..=21762
-            | 21799..=21800
-            | 21841..=21842
-            | 22087..=22088
-            | 22129..=22130
-            | 22498..=22499
-            | 22540..=22541
-            | 22909..=22910
-            | 22951..=22952
-            | 23320..=23321
-            | 23362..=23363 => &SHAPE56,
+            | 12853..=12854
+            | 12895..=12896
+            | 12933..=12934
+            | 12975..=12976
+            | 13013..=13014
+            | 13055..=13056
+            | 13093..=13094
+            | 13135..=13136
+            | 13173..=13174
+            | 13215..=13216
+            | 13253..=13254
+            | 13295..=13296
+            | 13333..=13334
+            | 13375..=13376
+            | 13413..=13414
+            | 13455..=13456
+            | 13493..=13494
+            | 13535..=13536
+            | 13573..=13574
+            | 13615..=13616
+            | 13653..=13654
+            | 13695..=13696
+            | 13733..=13734
+            | 13775..=13776
+            | 13813..=13814
+            | 13855..=13856
+            | 13893..=13894
+            | 13935..=13936
+            | 18831..=18832
+            | 18873..=18874
+            | 18911..=18912
+            | 18953..=18954
+            | 19352..=19353
+            | 19394..=19395
+            | 19772..=19773
+            | 19814..=19815
+            | 20177..=20178
+            | 20219..=20220
+            | 21605..=21606
+            | 21647..=21648
+            | 21685..=21686
+            | 21727..=21728
+            | 21765..=21766
+            | 21807..=21808
+            | 21845..=21846
+            | 21887..=21888
+            | 21957..=21958
+            | 21999..=22000
+            | 22037..=22038
+            | 22079..=22080
+            | 22117..=22118
+            | 22159..=22160
+            | 22197..=22198
+            | 22239..=22240
+            | 22485..=22486
+            | 22527..=22528
+            | 22896..=22897
+            | 22938..=22939
+            | 23307..=23308
+            | 23349..=23350
+            | 23718..=23719
+            | 23760..=23761 => &SHAPE45,
             2908..=2909
             | 2926..=2927
             | 4716..=4717
@@ -3879,781 +3678,982 @@ impl BlockWithShape for BlockState {
             | 10993..=10994
             | 12307..=12308
             | 12325..=12326
-            | 12841..=12842
-            | 12859..=12860
-            | 12921..=12922
-            | 12939..=12940
-            | 13001..=13002
-            | 13019..=13020
-            | 13081..=13082
-            | 13099..=13100
-            | 13161..=13162
-            | 13179..=13180
-            | 13241..=13242
-            | 13259..=13260
-            | 13321..=13322
-            | 13339..=13340
-            | 13401..=13402
-            | 13419..=13420
-            | 13481..=13482
-            | 13499..=13500
-            | 13561..=13562
-            | 13579..=13580
-            | 13641..=13642
-            | 13659..=13660
-            | 13721..=13722
-            | 13739..=13740
-            | 13801..=13802
-            | 13819..=13820
-            | 13881..=13882
-            | 13899..=13900
-            | 18819..=18820
-            | 18837..=18838
-            | 18899..=18900
-            | 18917..=18918
-            | 19340..=19341
-            | 19358..=19359
-            | 19760..=19761
-            | 19778..=19779
-            | 20165..=20166
-            | 20183..=20184
-            | 21209..=21210
-            | 21227..=21228
-            | 21289..=21290
-            | 21307..=21308
-            | 21369..=21370
-            | 21387..=21388
-            | 21449..=21450
-            | 21467..=21468
-            | 21561..=21562
-            | 21579..=21580
-            | 21641..=21642
-            | 21659..=21660
-            | 21721..=21722
-            | 21739..=21740
-            | 21801..=21802
-            | 21819..=21820
-            | 22089..=22090
-            | 22107..=22108
-            | 22500..=22501
-            | 22518..=22519
-            | 22911..=22912
-            | 22929..=22930
-            | 23322..=23323
-            | 23340..=23341 => &SHAPE57,
+            | 12855..=12856
+            | 12873..=12874
+            | 12935..=12936
+            | 12953..=12954
+            | 13015..=13016
+            | 13033..=13034
+            | 13095..=13096
+            | 13113..=13114
+            | 13175..=13176
+            | 13193..=13194
+            | 13255..=13256
+            | 13273..=13274
+            | 13335..=13336
+            | 13353..=13354
+            | 13415..=13416
+            | 13433..=13434
+            | 13495..=13496
+            | 13513..=13514
+            | 13575..=13576
+            | 13593..=13594
+            | 13655..=13656
+            | 13673..=13674
+            | 13735..=13736
+            | 13753..=13754
+            | 13815..=13816
+            | 13833..=13834
+            | 13895..=13896
+            | 13913..=13914
+            | 18833..=18834
+            | 18851..=18852
+            | 18913..=18914
+            | 18931..=18932
+            | 19354..=19355
+            | 19372..=19373
+            | 19774..=19775
+            | 19792..=19793
+            | 20179..=20180
+            | 20197..=20198
+            | 21607..=21608
+            | 21625..=21626
+            | 21687..=21688
+            | 21705..=21706
+            | 21767..=21768
+            | 21785..=21786
+            | 21847..=21848
+            | 21865..=21866
+            | 21959..=21960
+            | 21977..=21978
+            | 22039..=22040
+            | 22057..=22058
+            | 22119..=22120
+            | 22137..=22138
+            | 22199..=22200
+            | 22217..=22218
+            | 22487..=22488
+            | 22505..=22506
+            | 22898..=22899
+            | 22916..=22917
+            | 23309..=23310
+            | 23327..=23328
+            | 23720..=23721
+            | 23738..=23739 => &SHAPE46,
             2910..=2911
+            | 2952..=2953
             | 4718..=4719
+            | 4760..=4761
             | 7065..=7066
+            | 7107..=7108
             | 7145..=7146
+            | 7187..=7188
             | 7225..=7226
+            | 7267..=7268
             | 7341..=7342
+            | 7383..=7384
             | 7467..=7468
+            | 7509..=7510
             | 7702..=7703
+            | 7744..=7745
             | 7782..=7783
+            | 7824..=7825
             | 7862..=7863
+            | 7904..=7905
             | 9136..=9137
+            | 9178..=9179
             | 9780..=9781
+            | 9822..=9823
             | 9860..=9861
+            | 9902..=9903
             | 9940..=9941
+            | 9982..=9983
             | 10020..=10021
+            | 10062..=10063
             | 10100..=10101
+            | 10142..=10143
             | 10180..=10181
+            | 10222..=10223
             | 10361..=10362
+            | 10403..=10404
             | 10441..=10442
+            | 10483..=10484
             | 10521..=10522
+            | 10563..=10564
             | 10977..=10978
+            | 11019..=11020
             | 12309..=12310
-            | 12843..=12844
-            | 12923..=12924
-            | 13003..=13004
-            | 13083..=13084
-            | 13163..=13164
-            | 13243..=13244
-            | 13323..=13324
-            | 13403..=13404
-            | 13483..=13484
-            | 13563..=13564
-            | 13643..=13644
-            | 13723..=13724
-            | 13803..=13804
-            | 13883..=13884
-            | 18821..=18822
-            | 18901..=18902
-            | 19342..=19343
-            | 19762..=19763
-            | 20167..=20168
-            | 21211..=21212
-            | 21291..=21292
-            | 21371..=21372
-            | 21451..=21452
-            | 21563..=21564
+            | 12351..=12352
+            | 12857..=12858
+            | 12899..=12900
+            | 12937..=12938
+            | 12979..=12980
+            | 13017..=13018
+            | 13059..=13060
+            | 13097..=13098
+            | 13139..=13140
+            | 13177..=13178
+            | 13219..=13220
+            | 13257..=13258
+            | 13299..=13300
+            | 13337..=13338
+            | 13379..=13380
+            | 13417..=13418
+            | 13459..=13460
+            | 13497..=13498
+            | 13539..=13540
+            | 13577..=13578
+            | 13619..=13620
+            | 13657..=13658
+            | 13699..=13700
+            | 13737..=13738
+            | 13779..=13780
+            | 13817..=13818
+            | 13859..=13860
+            | 13897..=13898
+            | 13939..=13940
+            | 18835..=18836
+            | 18877..=18878
+            | 18915..=18916
+            | 18957..=18958
+            | 19356..=19357
+            | 19398..=19399
+            | 19776..=19777
+            | 19818..=19819
+            | 20181..=20182
+            | 20223..=20224
+            | 21609..=21610
+            | 21651..=21652
+            | 21689..=21690
+            | 21731..=21732
+            | 21769..=21770
+            | 21811..=21812
+            | 21849..=21850
+            | 21891..=21892
+            | 21961..=21962
+            | 22003..=22004
+            | 22041..=22042
+            | 22083..=22084
+            | 22121..=22122
+            | 22163..=22164
+            | 22201..=22202
+            | 22243..=22244
+            | 22489..=22490
+            | 22531..=22532
+            | 22900..=22901
+            | 22942..=22943
+            | 23311..=23312
+            | 23353..=23354
+            | 23722..=23723
+            | 23764..=23765 => &SHAPE47,
+            2912..=2913
+            | 2930..=2931
+            | 4720..=4721
+            | 4738..=4739
+            | 7067..=7068
+            | 7085..=7086
+            | 7147..=7148
+            | 7165..=7166
+            | 7227..=7228
+            | 7245..=7246
+            | 7343..=7344
+            | 7361..=7362
+            | 7469..=7470
+            | 7487..=7488
+            | 7704..=7705
+            | 7722..=7723
+            | 7784..=7785
+            | 7802..=7803
+            | 7864..=7865
+            | 7882..=7883
+            | 9138..=9139
+            | 9156..=9157
+            | 9782..=9783
+            | 9800..=9801
+            | 9862..=9863
+            | 9880..=9881
+            | 9942..=9943
+            | 9960..=9961
+            | 10022..=10023
+            | 10040..=10041
+            | 10102..=10103
+            | 10120..=10121
+            | 10182..=10183
+            | 10200..=10201
+            | 10363..=10364
+            | 10381..=10382
+            | 10443..=10444
+            | 10461..=10462
+            | 10523..=10524
+            | 10541..=10542
+            | 10979..=10980
+            | 10997..=10998
+            | 12311..=12312
+            | 12329..=12330
+            | 12859..=12860
+            | 12877..=12878
+            | 12939..=12940
+            | 12957..=12958
+            | 13019..=13020
+            | 13037..=13038
+            | 13099..=13100
+            | 13117..=13118
+            | 13179..=13180
+            | 13197..=13198
+            | 13259..=13260
+            | 13277..=13278
+            | 13339..=13340
+            | 13357..=13358
+            | 13419..=13420
+            | 13437..=13438
+            | 13499..=13500
+            | 13517..=13518
+            | 13579..=13580
+            | 13597..=13598
+            | 13659..=13660
+            | 13677..=13678
+            | 13739..=13740
+            | 13757..=13758
+            | 13819..=13820
+            | 13837..=13838
+            | 13899..=13900
+            | 13917..=13918
+            | 18837..=18838
+            | 18855..=18856
+            | 18917..=18918
+            | 18935..=18936
+            | 19358..=19359
+            | 19376..=19377
+            | 19778..=19779
+            | 19796..=19797
+            | 20183..=20184
+            | 20201..=20202
+            | 21611..=21612
+            | 21629..=21630
+            | 21691..=21692
+            | 21709..=21710
+            | 21771..=21772
+            | 21789..=21790
+            | 21851..=21852
+            | 21869..=21870
+            | 21963..=21964
+            | 21981..=21982
+            | 22043..=22044
+            | 22061..=22062
+            | 22123..=22124
+            | 22141..=22142
+            | 22203..=22204
+            | 22221..=22222
+            | 22491..=22492
+            | 22509..=22510
+            | 22902..=22903
+            | 22920..=22921
+            | 23313..=23314
+            | 23331..=23332
+            | 23724..=23725
+            | 23742..=23743 => &SHAPE48,
+            2914..=2915
+            | 4722..=4723
+            | 7069..=7070
+            | 7149..=7150
+            | 7229..=7230
+            | 7345..=7346
+            | 7471..=7472
+            | 7706..=7707
+            | 7786..=7787
+            | 7866..=7867
+            | 9140..=9141
+            | 9784..=9785
+            | 9864..=9865
+            | 9944..=9945
+            | 10024..=10025
+            | 10104..=10105
+            | 10184..=10185
+            | 10365..=10366
+            | 10445..=10446
+            | 10525..=10526
+            | 10981..=10982
+            | 12313..=12314
+            | 12861..=12862
+            | 12941..=12942
+            | 13021..=13022
+            | 13101..=13102
+            | 13181..=13182
+            | 13261..=13262
+            | 13341..=13342
+            | 13421..=13422
+            | 13501..=13502
+            | 13581..=13582
+            | 13661..=13662
+            | 13741..=13742
+            | 13821..=13822
+            | 13901..=13902
+            | 18839..=18840
+            | 18919..=18920
+            | 19360..=19361
+            | 19780..=19781
+            | 20185..=20186
+            | 21613..=21614
+            | 21693..=21694
+            | 21773..=21774
+            | 21853..=21854
+            | 21965..=21966
+            | 22045..=22046
+            | 22125..=22126
+            | 22205..=22206
+            | 22493..=22494
+            | 22904..=22905
+            | 23315..=23316
+            | 23726..=23727 => &SHAPE49,
+            2924..=2925
+            | 4732..=4733
+            | 7079..=7080
+            | 7159..=7160
+            | 7239..=7240
+            | 7355..=7356
+            | 7481..=7482
+            | 7716..=7717
+            | 7796..=7797
+            | 7876..=7877
+            | 9150..=9151
+            | 9794..=9795
+            | 9874..=9875
+            | 9954..=9955
+            | 10034..=10035
+            | 10114..=10115
+            | 10194..=10195
+            | 10375..=10376
+            | 10455..=10456
+            | 10535..=10536
+            | 10991..=10992
+            | 12323..=12324
+            | 12871..=12872
+            | 12951..=12952
+            | 13031..=13032
+            | 13111..=13112
+            | 13191..=13192
+            | 13271..=13272
+            | 13351..=13352
+            | 13431..=13432
+            | 13511..=13512
+            | 13591..=13592
+            | 13671..=13672
+            | 13751..=13752
+            | 13831..=13832
+            | 13911..=13912
+            | 18849..=18850
+            | 18929..=18930
+            | 19370..=19371
+            | 19790..=19791
+            | 20195..=20196
+            | 21623..=21624
+            | 21703..=21704
+            | 21783..=21784
+            | 21863..=21864
+            | 21975..=21976
+            | 22055..=22056
+            | 22135..=22136
+            | 22215..=22216
+            | 22503..=22504
+            | 22914..=22915
+            | 23325..=23326
+            | 23736..=23737 => &SHAPE50,
+            2934..=2935
+            | 4742..=4743
+            | 7089..=7090
+            | 7169..=7170
+            | 7249..=7250
+            | 7365..=7366
+            | 7491..=7492
+            | 7726..=7727
+            | 7806..=7807
+            | 7886..=7887
+            | 9160..=9161
+            | 9804..=9805
+            | 9884..=9885
+            | 9964..=9965
+            | 10044..=10045
+            | 10124..=10125
+            | 10204..=10205
+            | 10385..=10386
+            | 10465..=10466
+            | 10545..=10546
+            | 11001..=11002
+            | 12333..=12334
+            | 12881..=12882
+            | 12961..=12962
+            | 13041..=13042
+            | 13121..=13122
+            | 13201..=13202
+            | 13281..=13282
+            | 13361..=13362
+            | 13441..=13442
+            | 13521..=13522
+            | 13601..=13602
+            | 13681..=13682
+            | 13761..=13762
+            | 13841..=13842
+            | 13921..=13922
+            | 18859..=18860
+            | 18939..=18940
+            | 19380..=19381
+            | 19800..=19801
+            | 20205..=20206
+            | 21633..=21634
+            | 21713..=21714
+            | 21793..=21794
+            | 21873..=21874
+            | 21985..=21986
+            | 22065..=22066
+            | 22145..=22146
+            | 22225..=22226
+            | 22513..=22514
+            | 22924..=22925
+            | 23335..=23336
+            | 23746..=23747 => &SHAPE51,
+            2944..=2945
+            | 4752..=4753
+            | 7099..=7100
+            | 7179..=7180
+            | 7259..=7260
+            | 7375..=7376
+            | 7501..=7502
+            | 7736..=7737
+            | 7816..=7817
+            | 7896..=7897
+            | 9170..=9171
+            | 9814..=9815
+            | 9894..=9895
+            | 9974..=9975
+            | 10054..=10055
+            | 10134..=10135
+            | 10214..=10215
+            | 10395..=10396
+            | 10475..=10476
+            | 10555..=10556
+            | 11011..=11012
+            | 12343..=12344
+            | 12891..=12892
+            | 12971..=12972
+            | 13051..=13052
+            | 13131..=13132
+            | 13211..=13212
+            | 13291..=13292
+            | 13371..=13372
+            | 13451..=13452
+            | 13531..=13532
+            | 13611..=13612
+            | 13691..=13692
+            | 13771..=13772
+            | 13851..=13852
+            | 13931..=13932
+            | 18869..=18870
+            | 18949..=18950
+            | 19390..=19391
+            | 19810..=19811
+            | 20215..=20216
             | 21643..=21644
             | 21723..=21724
             | 21803..=21804
-            | 22091..=22092
-            | 22502..=22503
-            | 22913..=22914
-            | 23324..=23325 => &SHAPE36,
-            2920..=2921
-            | 4728..=4729
-            | 7075..=7076
-            | 7155..=7156
-            | 7235..=7236
-            | 7351..=7352
-            | 7477..=7478
-            | 7712..=7713
-            | 7792..=7793
-            | 7872..=7873
-            | 9146..=9147
-            | 9790..=9791
-            | 9870..=9871
-            | 9950..=9951
-            | 10030..=10031
-            | 10110..=10111
-            | 10190..=10191
-            | 10371..=10372
-            | 10451..=10452
-            | 10531..=10532
-            | 10987..=10988
-            | 12319..=12320
-            | 12853..=12854
-            | 12933..=12934
-            | 13013..=13014
-            | 13093..=13094
-            | 13173..=13174
-            | 13253..=13254
-            | 13333..=13334
-            | 13413..=13414
-            | 13493..=13494
-            | 13573..=13574
-            | 13653..=13654
-            | 13733..=13734
-            | 13813..=13814
-            | 13893..=13894
-            | 18831..=18832
-            | 18911..=18912
-            | 19352..=19353
-            | 19772..=19773
-            | 20177..=20178
-            | 21221..=21222
-            | 21301..=21302
-            | 21381..=21382
-            | 21461..=21462
-            | 21573..=21574
-            | 21653..=21654
-            | 21733..=21734
-            | 21813..=21814
-            | 22101..=22102
-            | 22512..=22513
-            | 22923..=22924
-            | 23334..=23335 => &SHAPE43,
-            2930..=2931
-            | 4738..=4739
-            | 7085..=7086
-            | 7165..=7166
-            | 7245..=7246
-            | 7361..=7362
-            | 7487..=7488
-            | 7722..=7723
-            | 7802..=7803
-            | 7882..=7883
-            | 9156..=9157
-            | 9800..=9801
-            | 9880..=9881
-            | 9960..=9961
-            | 10040..=10041
-            | 10120..=10121
-            | 10200..=10201
-            | 10381..=10382
-            | 10461..=10462
-            | 10541..=10542
-            | 10997..=10998
-            | 12329..=12330
-            | 12863..=12864
-            | 12943..=12944
-            | 13023..=13024
-            | 13103..=13104
-            | 13183..=13184
-            | 13263..=13264
-            | 13343..=13344
-            | 13423..=13424
-            | 13503..=13504
-            | 13583..=13584
-            | 13663..=13664
-            | 13743..=13744
-            | 13823..=13824
-            | 13903..=13904
-            | 18841..=18842
-            | 18921..=18922
-            | 19362..=19363
-            | 19782..=19783
-            | 20187..=20188
-            | 21231..=21232
-            | 21311..=21312
-            | 21391..=21392
-            | 21471..=21472
-            | 21583..=21584
-            | 21663..=21664
-            | 21743..=21744
-            | 21823..=21824
-            | 22111..=22112
-            | 22522..=22523
-            | 22933..=22934
-            | 23344..=23345 => &SHAPE38,
-            2940..=2941
-            | 4748..=4749
-            | 7095..=7096
-            | 7175..=7176
-            | 7255..=7256
-            | 7371..=7372
-            | 7497..=7498
-            | 7732..=7733
-            | 7812..=7813
-            | 7892..=7893
-            | 9166..=9167
-            | 9810..=9811
-            | 9890..=9891
-            | 9970..=9971
-            | 10050..=10051
-            | 10130..=10131
-            | 10210..=10211
-            | 10391..=10392
-            | 10471..=10472
-            | 10551..=10552
-            | 11007..=11008
-            | 12339..=12340
-            | 12873..=12874
-            | 12953..=12954
-            | 13033..=13034
-            | 13113..=13114
-            | 13193..=13194
-            | 13273..=13274
-            | 13353..=13354
-            | 13433..=13434
-            | 13513..=13514
-            | 13593..=13594
-            | 13673..=13674
-            | 13753..=13754
-            | 13833..=13834
-            | 13913..=13914
-            | 18851..=18852
-            | 18931..=18932
-            | 19372..=19373
-            | 19792..=19793
-            | 20197..=20198
-            | 21241..=21242
-            | 21321..=21322
-            | 21401..=21402
-            | 21481..=21482
-            | 21593..=21594
-            | 21673..=21674
-            | 21753..=21754
-            | 21833..=21834
-            | 22121..=22122
-            | 22532..=22533
-            | 22943..=22944
-            | 23354..=23355 => &SHAPE45,
-            2950..=2951
-            | 2956..=2957
-            | 2962..=2963
-            | 2968..=2969
-            | 7509..=7516
-            | 8975..=8976
-            | 8981..=8982
-            | 8987..=8988
-            | 8993..=8994 => &SHAPE58,
-            2952..=2953 | 2960..=2961 | 8977..=8978 | 8985..=8986 => &SHAPE60,
-            2954..=2955 | 2958..=2959 | 8979..=8980 | 8983..=8984 => &SHAPE61,
-            2964..=2965 | 2972..=2973 | 8989..=8990 | 8997..=8998 => &SHAPE62,
-            2966..=2967 | 2970..=2971 | 8991..=8992 | 8995..=8996 => &SHAPE63,
-            4282..=4289 | 12357 => &SHAPE67,
-            4586..=4587
-            | 4594..=4595
-            | 4606..=4607
-            | 4614..=4615
-            | 4636..=4637
+            | 21883..=21884
+            | 21995..=21996
+            | 22075..=22076
+            | 22155..=22156
+            | 22235..=22236
+            | 22523..=22524
+            | 22934..=22935
+            | 23345..=23346
+            | 23756..=23757 => &SHAPE52,
+            2954..=2955
+            | 2960..=2961
+            | 2966..=2967
+            | 2972..=2973
+            | 7513..=7520
+            | 8979..=8980
+            | 8985..=8986
+            | 8991..=8992
+            | 8997..=8998 => &SHAPE53,
+            2956..=2957 | 2964..=2965 | 8981..=8982 | 8989..=8990 => &SHAPE54,
+            2958..=2959 | 2962..=2963 | 8983..=8984 | 8987..=8988 => &SHAPE55,
+            2968..=2969 | 2976..=2977 | 8993..=8994 | 9001..=9002 => &SHAPE56,
+            2970..=2971 | 2974..=2975 | 8995..=8996 | 8999..=9000 => &SHAPE57,
+            4286..=4293 | 12372 => &SHAPE62,
+            4590..=4591
+            | 4598..=4599
+            | 4610..=4611
+            | 4618..=4619
             | 4640..=4641
             | 4644..=4645
             | 4648..=4649
-            | 4656..=4657
-            | 5648..=5649
-            | 5656..=5657
-            | 5668..=5669
-            | 5676..=5677
-            | 5698..=5699
+            | 4652..=4653
+            | 4660..=4661
+            | 5652..=5653
+            | 5660..=5661
+            | 5672..=5673
+            | 5680..=5681
             | 5702..=5703
             | 5706..=5707
             | 5710..=5711
-            | 6006..=6009
-            | 6014..=6017
-            | 6070..=6073
-            | 6078..=6081
-            | 6134..=6137
-            | 6142..=6145
-            | 6198..=6201
-            | 6206..=6209
-            | 6262..=6265
-            | 6270..=6273
-            | 6326..=6329
-            | 6334..=6337
-            | 6390..=6393
-            | 6398..=6401
-            | 6454..=6457
-            | 6462..=6465
-            | 6518..=6521
-            | 6526..=6529
-            | 10302..=10305
-            | 10310..=10313
-            | 11677..=11678
-            | 11685..=11686
-            | 11697..=11698
-            | 11705..=11706
-            | 11727..=11728
+            | 5714..=5715
+            | 6010..=6013
+            | 6018..=6021
+            | 6074..=6077
+            | 6082..=6085
+            | 6138..=6141
+            | 6146..=6149
+            | 6202..=6205
+            | 6210..=6213
+            | 6266..=6269
+            | 6274..=6277
+            | 6330..=6333
+            | 6338..=6341
+            | 6394..=6397
+            | 6402..=6405
+            | 6458..=6461
+            | 6466..=6469
+            | 6522..=6525
+            | 6530..=6533
+            | 10306..=10309
+            | 10314..=10317
+            | 11681..=11682
+            | 11689..=11690
+            | 11701..=11702
+            | 11709..=11710
             | 11731..=11732
             | 11735..=11736
-            | 11739..=11742
-            | 11749..=11750
-            | 11761..=11762
-            | 11769..=11770
-            | 11791..=11792
+            | 11739..=11740
+            | 11743..=11746
+            | 11753..=11754
+            | 11765..=11766
+            | 11773..=11774
             | 11795..=11796
             | 11799..=11800
-            | 11803..=11806
-            | 11813..=11814
-            | 11825..=11826
-            | 11833..=11834
-            | 11855..=11856
+            | 11803..=11804
+            | 11807..=11810
+            | 11817..=11818
+            | 11829..=11830
+            | 11837..=11838
             | 11859..=11860
             | 11863..=11864
-            | 11867..=11870
-            | 11877..=11878
-            | 11889..=11890
-            | 11897..=11898
-            | 11919..=11920
+            | 11867..=11868
+            | 11871..=11874
+            | 11881..=11882
+            | 11893..=11894
+            | 11901..=11902
             | 11923..=11924
             | 11927..=11928
-            | 11931..=11934
-            | 11941..=11942
-            | 11953..=11954
-            | 11961..=11962
-            | 11983..=11984
+            | 11931..=11932
+            | 11935..=11938
+            | 11945..=11946
+            | 11957..=11958
+            | 11965..=11966
             | 11987..=11988
             | 11991..=11992
-            | 11995..=11998
-            | 12005..=12006
-            | 12017..=12018
-            | 12025..=12026
-            | 12047..=12048
+            | 11995..=11996
+            | 11999..=12002
+            | 12009..=12010
+            | 12021..=12022
+            | 12029..=12030
             | 12051..=12052
             | 12055..=12056
-            | 12059..=12062
-            | 12069..=12070
-            | 12081..=12082
-            | 12089..=12090
-            | 12111..=12112
+            | 12059..=12060
+            | 12063..=12066
+            | 12073..=12074
+            | 12085..=12086
+            | 12093..=12094
             | 12115..=12116
             | 12119..=12120
-            | 12123..=12126
-            | 12133..=12134
-            | 12145..=12146
-            | 12153..=12154
-            | 12175..=12176
+            | 12123..=12124
+            | 12127..=12130
+            | 12137..=12138
+            | 12149..=12150
+            | 12157..=12158
             | 12179..=12180
             | 12183..=12184
             | 12187..=12188
-            | 18637..=18640
-            | 18645..=18648
-            | 18701..=18704
-            | 18709..=18712
-            | 18989..=18990
-            | 18997..=18998
-            | 19009..=19010
-            | 19017..=19018
-            | 19039..=19040
-            | 19043..=19044
-            | 19047..=19048
-            | 19051..=19054
+            | 12191..=12192
+            | 18655..=18658
+            | 18663..=18666
+            | 18719..=18722
+            | 18727..=18730
+            | 19007..=19008
+            | 19015..=19016
+            | 19027..=19028
+            | 19035..=19036
+            | 19057..=19058
             | 19061..=19062
-            | 19073..=19074
-            | 19081..=19082
-            | 19103..=19104
-            | 19107..=19108
-            | 19111..=19112
-            | 19115..=19116 => &SHAPE69,
-            4588..=4589
-            | 4592..=4593
+            | 19065..=19066
+            | 19069..=19072
+            | 19079..=19080
+            | 19091..=19092
+            | 19099..=19100
+            | 19121..=19122
+            | 19125..=19126
+            | 19129..=19130
+            | 19133..=19134 => &SHAPE64,
+            4592..=4593
             | 4596..=4597
             | 4600..=4601
-            | 4618..=4619
-            | 4626..=4627
-            | 4638..=4639
-            | 4646..=4647
+            | 4604..=4605
+            | 4622..=4623
+            | 4630..=4631
+            | 4642..=4643
             | 4650..=4651
-            | 5650..=5651
+            | 4654..=4655
             | 5654..=5655
             | 5658..=5659
             | 5662..=5663
-            | 5680..=5681
-            | 5688..=5689
-            | 5700..=5701
-            | 5708..=5709
-            | 5958..=5961
-            | 5966..=5969
-            | 6022..=6025
-            | 6030..=6033
-            | 6086..=6089
-            | 6094..=6097
-            | 6150..=6153
-            | 6158..=6161
-            | 6214..=6217
-            | 6222..=6225
-            | 6278..=6281
-            | 6286..=6289
-            | 6342..=6345
-            | 6350..=6353
-            | 6406..=6409
-            | 6414..=6417
-            | 6470..=6473
-            | 6478..=6481
-            | 10254..=10257
-            | 10262..=10265
-            | 11679..=11680
+            | 5666..=5667
+            | 5684..=5685
+            | 5692..=5693
+            | 5704..=5705
+            | 5712..=5713
+            | 5962..=5965
+            | 5970..=5973
+            | 6026..=6029
+            | 6034..=6037
+            | 6090..=6093
+            | 6098..=6101
+            | 6154..=6157
+            | 6162..=6165
+            | 6218..=6221
+            | 6226..=6229
+            | 6282..=6285
+            | 6290..=6293
+            | 6346..=6349
+            | 6354..=6357
+            | 6410..=6413
+            | 6418..=6421
+            | 6474..=6477
+            | 6482..=6485
+            | 10258..=10261
+            | 10266..=10269
             | 11683..=11684
             | 11687..=11688
             | 11691..=11692
-            | 11709..=11710
-            | 11717..=11718
-            | 11729..=11730
-            | 11737..=11738
-            | 11743..=11744
+            | 11695..=11696
+            | 11713..=11714
+            | 11721..=11722
+            | 11733..=11734
+            | 11741..=11742
             | 11747..=11748
             | 11751..=11752
             | 11755..=11756
-            | 11773..=11774
-            | 11781..=11782
-            | 11793..=11794
-            | 11801..=11802
-            | 11807..=11808
+            | 11759..=11760
+            | 11777..=11778
+            | 11785..=11786
+            | 11797..=11798
+            | 11805..=11806
             | 11811..=11812
             | 11815..=11816
             | 11819..=11820
-            | 11837..=11838
-            | 11845..=11846
-            | 11857..=11858
-            | 11865..=11866
-            | 11871..=11872
+            | 11823..=11824
+            | 11841..=11842
+            | 11849..=11850
+            | 11861..=11862
+            | 11869..=11870
             | 11875..=11876
             | 11879..=11880
             | 11883..=11884
-            | 11901..=11902
-            | 11909..=11910
-            | 11921..=11922
-            | 11929..=11930
-            | 11935..=11936
+            | 11887..=11888
+            | 11905..=11906
+            | 11913..=11914
+            | 11925..=11926
+            | 11933..=11934
             | 11939..=11940
             | 11943..=11944
             | 11947..=11948
-            | 11965..=11966
-            | 11973..=11974
-            | 11985..=11986
-            | 11993..=11994
-            | 11999..=12000
+            | 11951..=11952
+            | 11969..=11970
+            | 11977..=11978
+            | 11989..=11990
+            | 11997..=11998
             | 12003..=12004
             | 12007..=12008
             | 12011..=12012
-            | 12029..=12030
-            | 12037..=12038
-            | 12049..=12050
-            | 12057..=12058
-            | 12063..=12064
+            | 12015..=12016
+            | 12033..=12034
+            | 12041..=12042
+            | 12053..=12054
+            | 12061..=12062
             | 12067..=12068
             | 12071..=12072
             | 12075..=12076
-            | 12093..=12094
-            | 12101..=12102
-            | 12113..=12114
-            | 12121..=12122
-            | 12127..=12128
+            | 12079..=12080
+            | 12097..=12098
+            | 12105..=12106
+            | 12117..=12118
+            | 12125..=12126
             | 12131..=12132
             | 12135..=12136
             | 12139..=12140
-            | 12157..=12158
-            | 12165..=12166
-            | 12177..=12178
-            | 12185..=12186
-            | 18589..=18592
-            | 18597..=18600
-            | 18653..=18656
-            | 18661..=18664
-            | 18991..=18992
-            | 18995..=18996
-            | 18999..=19000
-            | 19003..=19004
+            | 12143..=12144
+            | 12161..=12162
+            | 12169..=12170
+            | 12181..=12182
+            | 12189..=12190
+            | 18607..=18610
+            | 18615..=18618
+            | 18671..=18674
+            | 18679..=18682
+            | 19009..=19010
+            | 19013..=19014
+            | 19017..=19018
             | 19021..=19022
-            | 19029..=19030
-            | 19041..=19042
-            | 19049..=19050
-            | 19055..=19056
+            | 19039..=19040
+            | 19047..=19048
             | 19059..=19060
-            | 19063..=19064
             | 19067..=19068
+            | 19073..=19074
+            | 19077..=19078
+            | 19081..=19082
             | 19085..=19086
-            | 19093..=19094
-            | 19105..=19106
-            | 19113..=19114 => &SHAPE70,
-            4590..=4591
-            | 4598..=4599
+            | 19103..=19104
+            | 19111..=19112
+            | 19123..=19124
+            | 19131..=19132 => &SHAPE65,
+            4594..=4595
             | 4602..=4603
-            | 4610..=4611
-            | 4620..=4621
+            | 4606..=4607
+            | 4614..=4615
             | 4624..=4625
             | 4628..=4629
             | 4632..=4633
-            | 4654..=4655
-            | 5652..=5653
-            | 5660..=5661
+            | 4636..=4637
+            | 4658..=4659
+            | 5656..=5657
             | 5664..=5665
-            | 5672..=5673
-            | 5682..=5683
+            | 5668..=5669
+            | 5676..=5677
             | 5686..=5687
             | 5690..=5691
             | 5694..=5695
-            | 5990..=5993
-            | 5998..=6001
-            | 6054..=6057
-            | 6062..=6065
-            | 6118..=6121
-            | 6126..=6129
-            | 6182..=6185
-            | 6190..=6193
-            | 6246..=6249
-            | 6254..=6257
-            | 6310..=6313
-            | 6318..=6321
-            | 6374..=6377
-            | 6382..=6385
-            | 6438..=6441
-            | 6446..=6449
-            | 6502..=6505
-            | 6510..=6513
-            | 10286..=10289
-            | 10294..=10297
-            | 11681..=11682
-            | 11689..=11690
+            | 5698..=5699
+            | 5994..=5997
+            | 6002..=6005
+            | 6058..=6061
+            | 6066..=6069
+            | 6122..=6125
+            | 6130..=6133
+            | 6186..=6189
+            | 6194..=6197
+            | 6250..=6253
+            | 6258..=6261
+            | 6314..=6317
+            | 6322..=6325
+            | 6378..=6381
+            | 6386..=6389
+            | 6442..=6445
+            | 6450..=6453
+            | 6506..=6509
+            | 6514..=6517
+            | 10290..=10293
+            | 10298..=10301
+            | 11685..=11686
             | 11693..=11694
-            | 11701..=11702
-            | 11711..=11712
+            | 11697..=11698
+            | 11705..=11706
             | 11715..=11716
             | 11719..=11720
             | 11723..=11724
-            | 11745..=11746
-            | 11753..=11754
+            | 11727..=11728
+            | 11749..=11750
             | 11757..=11758
-            | 11765..=11766
-            | 11775..=11776
+            | 11761..=11762
+            | 11769..=11770
             | 11779..=11780
             | 11783..=11784
             | 11787..=11788
-            | 11809..=11810
-            | 11817..=11818
+            | 11791..=11792
+            | 11813..=11814
             | 11821..=11822
-            | 11829..=11830
-            | 11839..=11840
+            | 11825..=11826
+            | 11833..=11834
             | 11843..=11844
             | 11847..=11848
             | 11851..=11852
-            | 11873..=11874
-            | 11881..=11882
+            | 11855..=11856
+            | 11877..=11878
             | 11885..=11886
-            | 11893..=11894
-            | 11903..=11904
+            | 11889..=11890
+            | 11897..=11898
             | 11907..=11908
             | 11911..=11912
             | 11915..=11916
-            | 11937..=11938
-            | 11945..=11946
+            | 11919..=11920
+            | 11941..=11942
             | 11949..=11950
-            | 11957..=11958
-            | 11967..=11968
+            | 11953..=11954
+            | 11961..=11962
             | 11971..=11972
             | 11975..=11976
             | 11979..=11980
-            | 12001..=12002
-            | 12009..=12010
+            | 11983..=11984
+            | 12005..=12006
             | 12013..=12014
-            | 12021..=12022
-            | 12031..=12032
+            | 12017..=12018
+            | 12025..=12026
             | 12035..=12036
             | 12039..=12040
             | 12043..=12044
-            | 12065..=12066
-            | 12073..=12074
+            | 12047..=12048
+            | 12069..=12070
             | 12077..=12078
-            | 12085..=12086
-            | 12095..=12096
+            | 12081..=12082
+            | 12089..=12090
             | 12099..=12100
             | 12103..=12104
             | 12107..=12108
-            | 12129..=12130
-            | 12137..=12138
+            | 12111..=12112
+            | 12133..=12134
             | 12141..=12142
-            | 12149..=12150
-            | 12159..=12160
+            | 12145..=12146
+            | 12153..=12154
             | 12163..=12164
             | 12167..=12168
             | 12171..=12172
-            | 18621..=18624
-            | 18629..=18632
-            | 18685..=18688
-            | 18693..=18696
-            | 18993..=18994
-            | 19001..=19002
-            | 19005..=19006
-            | 19013..=19014
+            | 12175..=12176
+            | 18639..=18642
+            | 18647..=18650
+            | 18703..=18706
+            | 18711..=18714
+            | 19011..=19012
+            | 19019..=19020
             | 19023..=19024
-            | 19027..=19028
             | 19031..=19032
-            | 19035..=19036
-            | 19057..=19058
-            | 19065..=19066
-            | 19069..=19070
-            | 19077..=19078
+            | 19041..=19042
+            | 19045..=19046
+            | 19049..=19050
+            | 19053..=19054
+            | 19075..=19076
+            | 19083..=19084
             | 19087..=19088
-            | 19091..=19092
             | 19095..=19096
-            | 19099..=19100 => &SHAPE71,
-            4604..=4605
-            | 4608..=4609
+            | 19105..=19106
+            | 19109..=19110
+            | 19113..=19114
+            | 19117..=19118 => &SHAPE66,
+            4608..=4609
             | 4612..=4613
             | 4616..=4617
-            | 4622..=4623
-            | 4630..=4631
+            | 4620..=4621
+            | 4626..=4627
             | 4634..=4635
-            | 4642..=4643
-            | 4652..=4653
-            | 5666..=5667
+            | 4638..=4639
+            | 4646..=4647
+            | 4656..=4657
             | 5670..=5671
             | 5674..=5675
             | 5678..=5679
-            | 5684..=5685
-            | 5692..=5693
+            | 5682..=5683
+            | 5688..=5689
             | 5696..=5697
-            | 5704..=5705
-            | 5974..=5977
-            | 5982..=5985
-            | 6038..=6041
-            | 6046..=6049
-            | 6102..=6105
-            | 6110..=6113
-            | 6166..=6169
-            | 6174..=6177
-            | 6230..=6233
-            | 6238..=6241
-            | 6294..=6297
-            | 6302..=6305
-            | 6358..=6361
-            | 6366..=6369
-            | 6422..=6425
-            | 6430..=6433
-            | 6486..=6489
-            | 6494..=6497
-            | 10270..=10273
-            | 10278..=10281
-            | 11695..=11696
+            | 5700..=5701
+            | 5708..=5709
+            | 5978..=5981
+            | 5986..=5989
+            | 6042..=6045
+            | 6050..=6053
+            | 6106..=6109
+            | 6114..=6117
+            | 6170..=6173
+            | 6178..=6181
+            | 6234..=6237
+            | 6242..=6245
+            | 6298..=6301
+            | 6306..=6309
+            | 6362..=6365
+            | 6370..=6373
+            | 6426..=6429
+            | 6434..=6437
+            | 6490..=6493
+            | 6498..=6501
+            | 10274..=10277
+            | 10282..=10285
             | 11699..=11700
             | 11703..=11704
             | 11707..=11708
-            | 11713..=11714
-            | 11721..=11722
+            | 11711..=11712
+            | 11717..=11718
             | 11725..=11726
-            | 11733..=11734
-            | 11759..=11760
+            | 11729..=11730
+            | 11737..=11738
             | 11763..=11764
             | 11767..=11768
             | 11771..=11772
-            | 11777..=11778
-            | 11785..=11786
+            | 11775..=11776
+            | 11781..=11782
             | 11789..=11790
-            | 11797..=11798
-            | 11823..=11824
+            | 11793..=11794
+            | 11801..=11802
             | 11827..=11828
             | 11831..=11832
             | 11835..=11836
-            | 11841..=11842
-            | 11849..=11850
+            | 11839..=11840
+            | 11845..=11846
             | 11853..=11854
-            | 11861..=11862
-            | 11887..=11888
+            | 11857..=11858
+            | 11865..=11866
             | 11891..=11892
             | 11895..=11896
             | 11899..=11900
-            | 11905..=11906
-            | 11913..=11914
+            | 11903..=11904
+            | 11909..=11910
             | 11917..=11918
-            | 11925..=11926
-            | 11951..=11952
+            | 11921..=11922
+            | 11929..=11930
             | 11955..=11956
             | 11959..=11960
             | 11963..=11964
-            | 11969..=11970
-            | 11977..=11978
+            | 11967..=11968
+            | 11973..=11974
             | 11981..=11982
-            | 11989..=11990
-            | 12015..=12016
+            | 11985..=11986
+            | 11993..=11994
             | 12019..=12020
             | 12023..=12024
             | 12027..=12028
-            | 12033..=12034
-            | 12041..=12042
+            | 12031..=12032
+            | 12037..=12038
             | 12045..=12046
-            | 12053..=12054
-            | 12079..=12080
+            | 12049..=12050
+            | 12057..=12058
             | 12083..=12084
             | 12087..=12088
             | 12091..=12092
-            | 12097..=12098
-            | 12105..=12106
+            | 12095..=12096
+            | 12101..=12102
             | 12109..=12110
-            | 12117..=12118
-            | 12143..=12144
+            | 12113..=12114
+            | 12121..=12122
             | 12147..=12148
             | 12151..=12152
             | 12155..=12156
-            | 12161..=12162
-            | 12169..=12170
+            | 12159..=12160
+            | 12165..=12166
             | 12173..=12174
-            | 12181..=12182
-            | 18605..=18608
-            | 18613..=18616
-            | 18669..=18672
-            | 18677..=18680
-            | 19007..=19008
-            | 19011..=19012
-            | 19015..=19016
-            | 19019..=19020
+            | 12177..=12178
+            | 12185..=12186
+            | 18623..=18626
+            | 18631..=18634
+            | 18687..=18690
+            | 18695..=18698
             | 19025..=19026
+            | 19029..=19030
             | 19033..=19034
             | 19037..=19038
-            | 19045..=19046
-            | 19071..=19072
-            | 19075..=19076
-            | 19079..=19080
-            | 19083..=19084
+            | 19043..=19044
+            | 19051..=19052
+            | 19055..=19056
+            | 19063..=19064
             | 19089..=19090
+            | 19093..=19094
             | 19097..=19098
             | 19101..=19102
-            | 19109..=19110 => &SHAPE72,
-            5534..=5537
-            | 5542..=5545
-            | 5550..=5553
-            | 5558..=5561
-            | 5566..=5569
-            | 5574..=5577
-            | 5582..=5585
-            | 5590..=5593
-            | 5598..=5601
-            | 5606..=5609
-            | 5614..=5617 => &SHAPE74,
+            | 19107..=19108
+            | 19115..=19116
+            | 19119..=19120
+            | 19127..=19128 => &SHAPE67,
             5538..=5541
             | 5546..=5549
             | 5554..=5557
@@ -4664,3092 +4664,25 @@ impl BlockWithShape for BlockState {
             | 5594..=5597
             | 5602..=5605
             | 5610..=5613
-            | 5618..=5621 => &SHAPE75,
-            5769 | 5878..=5941 | 9031..=9046 => &SHAPE7,
-            5770 => &SHAPE29,
-            5771 | 9047..=9078 => &SHAPE64,
-            5772
-            | 10563..=10564
-            | 10569..=10570
-            | 10575..=10576
-            | 11019..=11020
-            | 11025..=11026
-            | 11031..=11032
-            | 11037..=11038
-            | 11043..=11044
-            | 11049..=11050
-            | 11055..=11056
-            | 11061..=11062
-            | 11067..=11068
-            | 11073..=11074
-            | 11079..=11080
-            | 11085..=11086
-            | 11091..=11092
-            | 11097..=11098
-            | 11103..=11104
-            | 11109..=11110
-            | 11115..=11116
-            | 11121..=11122
-            | 11127..=11128
-            | 11133..=11134
-            | 11139..=11140
-            | 11145..=11146
-            | 11151..=11152
-            | 11157..=11158
-            | 13925..=13926
-            | 13931..=13932
-            | 13937..=13938
-            | 13943..=13944
-            | 13949..=13950
-            | 13955..=13956
-            | 13961..=13962
-            | 13967..=13968
-            | 13973..=13974
-            | 13979..=13980
-            | 13985..=13986
-            | 13991..=13992
-            | 13997..=13998
-            | 18511..=18512
-            | 18517..=18518
-            | 19708..=19709
-            | 19718..=19719
-            | 20209..=20210
-            | 20926..=21021
-            | 21153..=21160
-            | 21493..=21494
-            | 21499..=21500
-            | 21505..=21506
-            | 21511..=21512
-            | 21845..=21846
-            | 21851..=21852
-            | 21857..=21858
-            | 21863..=21864
-            | 22133..=22134
-            | 22544..=22545
-            | 22955..=22956
-            | 23366..=23367 => &SHAPE8,
-            5773 => &SHAPE65,
-            5775 | 5847 | 22046 => &SHAPE66,
-            5778..=5793 | 19286 => &SHAPE76,
-            5813 | 5815 | 7269 | 7271 | 11421 | 11423 | 11453 | 11455 | 11485 | 11487 | 11517
-            | 11519 | 11549 | 11551 | 11581 | 11583 | 11613 | 11615 | 11645 | 11647 | 18525
-            | 18527 | 18557 | 18559 => &SHAPE78,
-            5814 | 5816 | 7270 | 7272 | 11422 | 11424 | 11454 | 11456 | 11486 | 11488 | 11518
-            | 11520 | 11550 | 11552 | 11582 | 11584 | 11614 | 11616 | 11646 | 11648 | 18526
-            | 18528 | 18558 | 18560 => &SHAPE79,
-            5817 | 5819 | 7273 | 7275 | 11425 | 11427 | 11457 | 11459 | 11489 | 11491 | 11521
-            | 11523 | 11553 | 11555 | 11585 | 11587 | 11617 | 11619 | 11649 | 11651 | 18529
-            | 18531 | 18561 | 18563 => &SHAPE80,
-            5818 | 5820 | 7274 | 7276 | 11426 | 11428 | 11458 | 11460 | 11490 | 11492 | 11522
-            | 11524 | 11554 | 11556 | 11586 | 11588 | 11618 | 11620 | 11650 | 11652 | 18530
-            | 18532 | 18562 | 18564 => &SHAPE81,
-            5821 | 5823 | 7277 | 7279 | 11429 | 11431 | 11461 | 11463 | 11493 | 11495 | 11525
-            | 11527 | 11557 | 11559 | 11589 | 11591 | 11621 | 11623 | 11653 | 11655 | 18533
-            | 18535 | 18565 | 18567 => &SHAPE82,
-            5822 | 5824 | 7278 | 7280 | 11430 | 11432 | 11462 | 11464 | 11494 | 11496 | 11526
-            | 11528 | 11558 | 11560 | 11590 | 11592 | 11622 | 11624 | 11654 | 11656 | 18534
-            | 18536 | 18566 | 18568 => &SHAPE83,
-            5825
-            | 5827
-            | 6995..=6996
-            | 6999..=7000
-            | 7003..=7004
-            | 7007..=7008
-            | 7281
-            | 7283
-            | 11167..=11168
-            | 11171..=11172
-            | 11175..=11176
-            | 11179..=11180
-            | 11199..=11200
-            | 11203..=11204
-            | 11207..=11208
-            | 11211..=11212
-            | 11231..=11232
-            | 11235..=11236
-            | 11239..=11240
-            | 11243..=11244
-            | 11263..=11264
-            | 11267..=11268
-            | 11271..=11272
-            | 11275..=11276
-            | 11295..=11296
-            | 11299..=11300
-            | 11303..=11304
-            | 11307..=11308
-            | 11327..=11328
-            | 11331..=11332
-            | 11335..=11336
-            | 11339..=11340
-            | 11359..=11360
-            | 11363..=11364
-            | 11367..=11368
-            | 11371..=11372
-            | 11391..=11392
-            | 11395..=11396
-            | 11399..=11400
-            | 11403..=11404
-            | 11433
-            | 11435
-            | 11465
-            | 11467
-            | 11497
-            | 11499
-            | 11529
-            | 11531
-            | 11561
-            | 11563
-            | 11593
-            | 11595
-            | 11625
-            | 11627
-            | 11657
-            | 11659
-            | 18537
-            | 18539
-            | 18569
-            | 18571
-            | 18719..=18720
-            | 18723..=18724
-            | 18727..=18728
-            | 18731..=18732
-            | 18751..=18752
-            | 18755..=18756
-            | 18759..=18760
-            | 18763..=18764 => &SHAPE84,
-            5826 | 5828 | 7282 | 7284 | 11434 | 11436 | 11466 | 11468 | 11498 | 11500 | 11530
-            | 11532 | 11562 | 11564 | 11594 | 11596 | 11626 | 11628 | 11658 | 11660 | 18538
-            | 18540 | 18570 | 18572 => &SHAPE85,
-            5829 | 5831 | 7285 | 7287 | 11437 | 11439 | 11469 | 11471 | 11501 | 11503 | 11533
-            | 11535 | 11565 | 11567 | 11597 | 11599 | 11629 | 11631 | 11661 | 11663 | 18541
-            | 18543 | 18573 | 18575 => &SHAPE86,
-            5830
-            | 5832
-            | 7011..=7012
-            | 7015..=7016
-            | 7019..=7020
-            | 7023..=7024
-            | 7286
-            | 7288
-            | 11183..=11184
-            | 11187..=11188
-            | 11191..=11192
-            | 11195..=11196
-            | 11215..=11216
-            | 11219..=11220
-            | 11223..=11224
-            | 11227..=11228
-            | 11247..=11248
-            | 11251..=11252
-            | 11255..=11256
-            | 11259..=11260
-            | 11279..=11280
-            | 11283..=11284
-            | 11287..=11288
-            | 11291..=11292
-            | 11311..=11312
-            | 11315..=11316
-            | 11319..=11320
-            | 11323..=11324
-            | 11343..=11344
-            | 11347..=11348
-            | 11351..=11352
-            | 11355..=11356
-            | 11375..=11376
-            | 11379..=11380
-            | 11383..=11384
-            | 11387..=11388
-            | 11407..=11408
-            | 11411..=11412
-            | 11415..=11416
-            | 11419..=11420
-            | 11438
-            | 11440
-            | 11470
-            | 11472
-            | 11502
-            | 11504
-            | 11534
-            | 11536
-            | 11566
-            | 11568
-            | 11598
-            | 11600
-            | 11630
-            | 11632
-            | 11662
-            | 11664
-            | 18542
-            | 18544
-            | 18574
-            | 18576
-            | 18735..=18736
-            | 18739..=18740
-            | 18743..=18744
-            | 18747..=18748
-            | 18767..=18768
-            | 18771..=18772
-            | 18775..=18776
-            | 18779..=18780 => &SHAPE87,
-            5833 | 5835 | 7289 | 7291 | 11441 | 11443 | 11473 | 11475 | 11505 | 11507 | 11537
-            | 11539 | 11569 | 11571 | 11601 | 11603 | 11633 | 11635 | 11665 | 11667 | 18545
-            | 18547 | 18577 | 18579 => &SHAPE88,
-            5834 | 5836 | 7290 | 7292 | 11442 | 11444 | 11474 | 11476 | 11506 | 11508 | 11538
-            | 11540 | 11570 | 11572 | 11602 | 11604 | 11634 | 11636 | 11666 | 11668 | 18546
-            | 18548 | 18578 | 18580 => &SHAPE89,
-            5837 | 5839 | 7293 | 7295 | 11445 | 11447 | 11477 | 11479 | 11509 | 11511 | 11541
-            | 11543 | 11573 | 11575 | 11605 | 11607 | 11637 | 11639 | 11669 | 11671 | 18549
-            | 18551 | 18581 | 18583 => &SHAPE90,
-            5838 | 5840 | 7294 | 7296 | 11446 | 11448 | 11478 | 11480 | 11510 | 11512 | 11542
-            | 11544 | 11574 | 11576 | 11606 | 11608 | 11638 | 11640 | 11670 | 11672 | 18550
-            | 18552 | 18582 | 18584 => &SHAPE91,
-            5841 | 5843 | 7297 | 7299 | 11449 | 11451 | 11481 | 11483 | 11513 | 11515 | 11545
-            | 11547 | 11577 | 11579 | 11609 | 11611 | 11641 | 11643 | 11673 | 11675 | 18553
-            | 18555 | 18585 | 18587 => &SHAPE92,
-            5842 | 5844 | 7298 | 7300 | 11450 | 11452 | 11482 | 11484 | 11514 | 11516 | 11546
-            | 11548 | 11578 | 11580 | 11610 | 11612 | 11642 | 11644 | 11674 | 11676 | 18554
-            | 18556 | 18586 | 18588 => &SHAPE93,
-            5871 => &SHAPE94,
-            5872 => &SHAPE95,
-            5873 => &SHAPE96,
-            5874 => &SHAPE97,
-            5875 => &SHAPE98,
-            5876 => &SHAPE99,
-            5877 => &SHAPE100,
-            5962..=5965
-            | 5978..=5981
-            | 5994..=5997
-            | 6010..=6013
-            | 6026..=6029
-            | 6042..=6045
-            | 6058..=6061
-            | 6074..=6077
-            | 6090..=6093
-            | 6106..=6109
-            | 6122..=6125
-            | 6138..=6141
-            | 6154..=6157
-            | 6170..=6173
-            | 6186..=6189
-            | 6202..=6205
-            | 6218..=6221
-            | 6234..=6237
-            | 6250..=6253
-            | 6266..=6269
-            | 6282..=6285
-            | 6298..=6301
-            | 6314..=6317
-            | 6330..=6333
-            | 6346..=6349
-            | 6362..=6365
-            | 6378..=6381
-            | 6394..=6397
-            | 6410..=6413
-            | 6426..=6429
-            | 6442..=6445
-            | 6458..=6461
-            | 6474..=6477
-            | 6490..=6493
-            | 6506..=6509
-            | 6522..=6525
-            | 10258..=10261
-            | 10274..=10277
-            | 10290..=10293
-            | 10306..=10309
-            | 18593..=18596
-            | 18609..=18612
-            | 18625..=18628
-            | 18641..=18644
-            | 18657..=18660
-            | 18673..=18676
-            | 18689..=18692
-            | 18705..=18708 => &SHAPE101,
-            5970..=5973
-            | 5986..=5989
-            | 6002..=6005
-            | 6018..=6021
-            | 6034..=6037
-            | 6050..=6053
-            | 6066..=6069
-            | 6082..=6085
-            | 6098..=6101
-            | 6114..=6117
-            | 6130..=6133
-            | 6146..=6149
-            | 6162..=6165
-            | 6178..=6181
-            | 6194..=6197
-            | 6210..=6213
-            | 6226..=6229
-            | 6242..=6245
-            | 6258..=6261
-            | 6274..=6277
-            | 6290..=6293
-            | 6306..=6309
-            | 6322..=6325
-            | 6338..=6341
-            | 6354..=6357
-            | 6370..=6373
-            | 6386..=6389
-            | 6402..=6405
-            | 6418..=6421
-            | 6434..=6437
-            | 6450..=6453
-            | 6466..=6469
-            | 6482..=6485
-            | 6498..=6501
-            | 6514..=6517
-            | 6530..=6533
-            | 10266..=10269
-            | 10282..=10285
-            | 10298..=10301
-            | 10314..=10317
-            | 18601..=18604
-            | 18617..=18620
-            | 18633..=18636
-            | 18649..=18652
-            | 18665..=18668
-            | 18681..=18684
-            | 18697..=18700
-            | 18713..=18716 => &SHAPE102,
-            6738 | 6740 | 6776 | 6778 | 9228 | 9230 | 9260 | 9262 | 9292 | 9294 | 9324 | 9326
-            | 9356 | 9358 | 9388 | 9390 | 9420 | 9422 | 9452 | 9454 | 9484 | 9486 | 9516 | 9518
-            | 9548 | 9550 | 9580 | 9582 | 9612 | 9614 | 9644 | 9646 | 9676 | 9678 | 9708 | 9710 => {
-                &SHAPE103
-            }
-            6739 | 6741 | 6777 | 6779 | 9229 | 9231 | 9261 | 9263 | 9293 | 9295 | 9325 | 9327
-            | 9357 | 9359 | 9389 | 9391 | 9421 | 9423 | 9453 | 9455 | 9485 | 9487 | 9517 | 9519
-            | 9549 | 9551 | 9581 | 9583 | 9613 | 9615 | 9645 | 9647 | 9677 | 9679 | 9709 | 9711 => {
-                &SHAPE104
-            }
-            6742 | 6744 | 6780 | 6782 | 9232 | 9234 | 9264 | 9266 | 9296 | 9298 | 9328 | 9330
-            | 9360 | 9362 | 9392 | 9394 | 9424 | 9426 | 9456 | 9458 | 9488 | 9490 | 9520 | 9522
-            | 9552 | 9554 | 9584 | 9586 | 9616 | 9618 | 9648 | 9650 | 9680 | 9682 | 9712 | 9714 => {
-                &SHAPE105
-            }
-            6743 | 6745 | 6781 | 6783 | 9233 | 9235 | 9265 | 9267 | 9297 | 9299 | 9329 | 9331
-            | 9361 | 9363 | 9393 | 9395 | 9425 | 9427 | 9457 | 9459 | 9489 | 9491 | 9521 | 9523
-            | 9553 | 9555 | 9585 | 9587 | 9617 | 9619 | 9649 | 9651 | 9681 | 9683 | 9713 | 9715 => {
-                &SHAPE106
-            }
-            6746 | 6748 | 6784 | 6786 | 9236 | 9238 | 9268 | 9270 | 9300 | 9302 | 9332 | 9334
-            | 9364 | 9366 | 9396 | 9398 | 9428 | 9430 | 9460 | 9462 | 9492 | 9494 | 9524 | 9526
-            | 9556 | 9558 | 9588 | 9590 | 9620 | 9622 | 9652 | 9654 | 9684 | 9686 | 9716 | 9718 => {
-                &SHAPE107
-            }
-            6747 | 6749 | 6785 | 6787 | 9237 | 9239 | 9269 | 9271 | 9301 | 9303 | 9333 | 9335
-            | 9365 | 9367 | 9397 | 9399 | 9429 | 9431 | 9461 | 9463 | 9493 | 9495 | 9525 | 9527
-            | 9557 | 9559 | 9589 | 9591 | 9621 | 9623 | 9653 | 9655 | 9685 | 9687 | 9717 | 9719 => {
-                &SHAPE108
-            }
-            6750 | 6752 | 6788 | 6790 | 9240 | 9242 | 9272 | 9274 | 9304 | 9306 | 9336 | 9338
-            | 9368 | 9370 | 9400 | 9402 | 9432 | 9434 | 9464 | 9466 | 9496 | 9498 | 9528 | 9530
-            | 9560 | 9562 | 9592 | 9594 | 9624 | 9626 | 9656 | 9658 | 9688 | 9690 | 9720 | 9722 => {
-                &SHAPE109
-            }
-            6751 | 6753 | 6789 | 6791 | 9241 | 9243 | 9273 | 9275 | 9305 | 9307 | 9337 | 9339
-            | 9369 | 9371 | 9401 | 9403 | 9433 | 9435 | 9465 | 9467 | 9497 | 9499 | 9529 | 9531
-            | 9561 | 9563 | 9593 | 9595 | 9625 | 9627 | 9657 | 9659 | 9689 | 9691 | 9721 | 9723 => {
-                &SHAPE110
-            }
-            6754 | 6756 | 6792 | 6794 | 9244 | 9246 | 9276 | 9278 | 9308 | 9310 | 9340 | 9342
-            | 9372 | 9374 | 9404 | 9406 | 9436 | 9438 | 9468 | 9470 | 9500 | 9502 | 9532 | 9534
-            | 9564 | 9566 | 9596 | 9598 | 9628 | 9630 | 9660 | 9662 | 9692 | 9694 | 9724 | 9726 => {
-                &SHAPE111
-            }
-            6755 | 6757 | 6793 | 6795 | 9245 | 9247 | 9277 | 9279 | 9309 | 9311 | 9341 | 9343
-            | 9373 | 9375 | 9405 | 9407 | 9437 | 9439 | 9469 | 9471 | 9501 | 9503 | 9533 | 9535
-            | 9565 | 9567 | 9597 | 9599 | 9629 | 9631 | 9661 | 9663 | 9693 | 9695 | 9725 | 9727 => {
-                &SHAPE112
-            }
-            6758 | 6760 | 6796 | 6798 | 9248 | 9250 | 9280 | 9282 | 9312 | 9314 | 9344 | 9346
-            | 9376 | 9378 | 9408 | 9410 | 9440 | 9442 | 9472 | 9474 | 9504 | 9506 | 9536 | 9538
-            | 9568 | 9570 | 9600 | 9602 | 9632 | 9634 | 9664 | 9666 | 9696 | 9698 | 9728 | 9730 => {
-                &SHAPE113
-            }
-            6759 | 6761 | 6797 | 6799 | 9249 | 9251 | 9281 | 9283 | 9313 | 9315 | 9345 | 9347
-            | 9377 | 9379 | 9409 | 9411 | 9441 | 9443 | 9473 | 9475 | 9505 | 9507 | 9537 | 9539
-            | 9569 | 9571 | 9601 | 9603 | 9633 | 9635 | 9665 | 9667 | 9697 | 9699 | 9729 | 9731 => {
-                &SHAPE114
-            }
-            6762 | 6764 | 6800 | 6802 | 9252 | 9254 | 9284 | 9286 | 9316 | 9318 | 9348 | 9350
-            | 9380 | 9382 | 9412 | 9414 | 9444 | 9446 | 9476 | 9478 | 9508 | 9510 | 9540 | 9542
-            | 9572 | 9574 | 9604 | 9606 | 9636 | 9638 | 9668 | 9670 | 9700 | 9702 | 9732 | 9734 => {
-                &SHAPE115
-            }
-            6763 | 6765 | 6801 | 6803 | 9253 | 9255 | 9285 | 9287 | 9317 | 9319 | 9349 | 9351
-            | 9381 | 9383 | 9413 | 9415 | 9445 | 9447 | 9477 | 9479 | 9509 | 9511 | 9541 | 9543
-            | 9573 | 9575 | 9605 | 9607 | 9637 | 9639 | 9669 | 9671 | 9701 | 9703 | 9733 | 9735 => {
-                &SHAPE116
-            }
-            6766 | 6768 | 6804 | 6806 | 9256 | 9258 | 9288 | 9290 | 9320 | 9322 | 9352 | 9354
-            | 9384 | 9386 | 9416 | 9418 | 9448 | 9450 | 9480 | 9482 | 9512 | 9514 | 9544 | 9546
-            | 9576 | 9578 | 9608 | 9610 | 9640 | 9642 | 9672 | 9674 | 9704 | 9706 | 9736 | 9738 => {
-                &SHAPE117
-            }
-            6767 | 6769 | 6805 | 6807 | 9257 | 9259 | 9289 | 9291 | 9321 | 9323 | 9353 | 9355
-            | 9385 | 9387 | 9417 | 9419 | 9449 | 9451 | 9481 | 9483 | 9513 | 9515 | 9545 | 9547
-            | 9577 | 9579 | 9609 | 9611 | 9641 | 9643 | 9673 | 9675 | 9705 | 9707 | 9737 | 9739 => {
-                &SHAPE2
-            }
-            6770..=6771 => &SHAPE118,
-            6772..=6773 | 12786..=12797 => &SHAPE119,
-            6774..=6775 => &SHAPE120,
-            7267 => &SHAPE122,
-            7386..=7393 => &SHAPE123,
-            7394..=7401 => &SHAPE124,
-            7403..=7406 => &SHAPE125,
-            7407..=7410 => &SHAPE126,
-            7412 | 23717..=23724 => &SHAPE59,
-            7415 => &SHAPE127,
-            7416 => &SHAPE128,
-            7417 => &SHAPE129,
-            7418 => &SHAPE130,
-            7419 => &SHAPE131,
-            7420 => &SHAPE132,
-            7421 => &SHAPE133,
-            7422 => &SHAPE134,
-            7423 => &SHAPE135,
-            7424 => &SHAPE136,
-            7425 => &SHAPE137,
-            7426 => &SHAPE138,
-            7915 | 7918 | 8239 | 8242 | 14001 | 14004 | 14325 | 14328 | 14649 | 14652 | 14973
-            | 14976 | 15297 | 15300 | 15621 | 15624 | 15945 | 15948 | 16269 | 16272 | 16593
-            | 16596 | 16917 | 16920 | 17241 | 17244 | 17565 | 17568 | 17889 | 17892 | 19382
-            | 19385 | 19802 | 19805 | 20239 | 20242 | 22137 | 22140 | 22548 | 22551 | 22959
-            | 22962 | 23370 | 23373 => &SHAPE139,
-            7916..=7917
-            | 7919..=7920
-            | 8240..=8241
-            | 8243..=8244
-            | 14002..=14003
-            | 14005..=14006
-            | 14326..=14327
-            | 14329..=14330
-            | 14650..=14651
-            | 14653..=14654
-            | 14974..=14975
-            | 14977..=14978
-            | 15298..=15299
-            | 15301..=15302
-            | 15622..=15623
-            | 15625..=15626
-            | 15946..=15947
-            | 15949..=15950
-            | 16270..=16271
-            | 16273..=16274
-            | 16594..=16595
-            | 16597..=16598
-            | 16918..=16919
-            | 16921..=16922
-            | 17242..=17243
-            | 17245..=17246
-            | 17566..=17567
-            | 17569..=17570
-            | 17890..=17891
-            | 17893..=17894
-            | 19383..=19384
-            | 19386..=19387
-            | 19803..=19804
-            | 19806..=19807
-            | 20240..=20241
-            | 20243..=20244
-            | 22138..=22139
-            | 22141..=22142
-            | 22549..=22550
-            | 22552..=22553
-            | 22960..=22961
-            | 22963..=22964
-            | 23371..=23372
-            | 23374..=23375 => &SHAPE140,
-            7922..=7923
-            | 7925..=7926
-            | 8246..=8247
-            | 8249..=8250
-            | 14008..=14009
-            | 14011..=14012
-            | 14332..=14333
-            | 14335..=14336
-            | 14656..=14657
-            | 14659..=14660
-            | 14980..=14981
-            | 14983..=14984
-            | 15304..=15305
-            | 15307..=15308
-            | 15628..=15629
-            | 15631..=15632
-            | 15952..=15953
-            | 15955..=15956
-            | 16276..=16277
-            | 16279..=16280
-            | 16600..=16601
-            | 16603..=16604
-            | 16924..=16925
-            | 16927..=16928
-            | 17248..=17249
-            | 17251..=17252
-            | 17572..=17573
-            | 17575..=17576
-            | 17896..=17897
-            | 17899..=17900
-            | 19389..=19390
-            | 19392..=19393
-            | 19809..=19810
-            | 19812..=19813
-            | 20246..=20247
-            | 20249..=20250
-            | 22144..=22145
-            | 22147..=22148
-            | 22555..=22556
-            | 22558..=22559
-            | 22966..=22967
-            | 22969..=22970
-            | 23377..=23378
-            | 23380..=23381 => &SHAPE141,
-            7927 | 7930 | 7939 | 7942 | 8251 | 8254 | 8263 | 8266 | 14013 | 14016 | 14025
-            | 14028 | 14337 | 14340 | 14349 | 14352 | 14661 | 14664 | 14673 | 14676 | 14985
-            | 14988 | 14997 | 15000 | 15309 | 15312 | 15321 | 15324 | 15633 | 15636 | 15645
-            | 15648 | 15957 | 15960 | 15969 | 15972 | 16281 | 16284 | 16293 | 16296 | 16605
-            | 16608 | 16617 | 16620 | 16929 | 16932 | 16941 | 16944 | 17253 | 17256 | 17265
-            | 17268 | 17577 | 17580 | 17589 | 17592 | 17901 | 17904 | 17913 | 17916 | 19394
-            | 19397 | 19406 | 19409 | 19814 | 19817 | 19826 | 19829 | 20251 | 20254 | 20263
-            | 20266 | 22149 | 22152 | 22161 | 22164 | 22560 | 22563 | 22572 | 22575 | 22971
-            | 22974 | 22983 | 22986 | 23382 | 23385 | 23394 | 23397 => &SHAPE142,
-            7928..=7929
-            | 7931..=7932
-            | 7940..=7941
-            | 7943..=7944
-            | 8252..=8253
-            | 8255..=8256
-            | 8264..=8265
-            | 8267..=8268
-            | 14014..=14015
-            | 14017..=14018
-            | 14026..=14027
-            | 14029..=14030
-            | 14338..=14339
-            | 14341..=14342
-            | 14350..=14351
-            | 14353..=14354
-            | 14662..=14663
-            | 14665..=14666
-            | 14674..=14675
-            | 14677..=14678
-            | 14986..=14987
-            | 14989..=14990
-            | 14998..=14999
-            | 15001..=15002
-            | 15310..=15311
-            | 15313..=15314
-            | 15322..=15323
-            | 15325..=15326
-            | 15634..=15635
-            | 15637..=15638
-            | 15646..=15647
-            | 15649..=15650
-            | 15958..=15959
-            | 15961..=15962
-            | 15970..=15971
-            | 15973..=15974
-            | 16282..=16283
-            | 16285..=16286
-            | 16294..=16295
-            | 16297..=16298
-            | 16606..=16607
-            | 16609..=16610
-            | 16618..=16619
-            | 16621..=16622
-            | 16930..=16931
-            | 16933..=16934
-            | 16942..=16943
-            | 16945..=16946
-            | 17254..=17255
-            | 17257..=17258
-            | 17266..=17267
-            | 17269..=17270
-            | 17578..=17579
-            | 17581..=17582
-            | 17590..=17591
-            | 17593..=17594
-            | 17902..=17903
-            | 17905..=17906
-            | 17914..=17915
-            | 17917..=17918
-            | 19395..=19396
-            | 19398..=19399
-            | 19407..=19408
-            | 19410..=19411
-            | 19815..=19816
-            | 19818..=19819
-            | 19827..=19828
-            | 19830..=19831
-            | 20252..=20253
-            | 20255..=20256
-            | 20264..=20265
-            | 20267..=20268
-            | 22150..=22151
-            | 22153..=22154
-            | 22162..=22163
-            | 22165..=22166
-            | 22561..=22562
-            | 22564..=22565
-            | 22573..=22574
-            | 22576..=22577
-            | 22972..=22973
-            | 22975..=22976
-            | 22984..=22985
-            | 22987..=22988
-            | 23383..=23384
-            | 23386..=23387
-            | 23395..=23396
-            | 23398..=23399 => &SHAPE143,
-            7933 | 7936 | 7945 | 7948 | 8257 | 8260 | 8269 | 8272 | 14019 | 14022 | 14031
-            | 14034 | 14343 | 14346 | 14355 | 14358 | 14667 | 14670 | 14679 | 14682 | 14991
-            | 14994 | 15003 | 15006 | 15315 | 15318 | 15327 | 15330 | 15639 | 15642 | 15651
-            | 15654 | 15963 | 15966 | 15975 | 15978 | 16287 | 16290 | 16299 | 16302 | 16611
-            | 16614 | 16623 | 16626 | 16935 | 16938 | 16947 | 16950 | 17259 | 17262 | 17271
-            | 17274 | 17583 | 17586 | 17595 | 17598 | 17907 | 17910 | 17919 | 17922 | 19400
-            | 19403 | 19412 | 19415 | 19820 | 19823 | 19832 | 19835 | 20257 | 20260 | 20269
-            | 20272 | 22155 | 22158 | 22167 | 22170 | 22566 | 22569 | 22578 | 22581 | 22977
-            | 22980 | 22989 | 22992 | 23388 | 23391 | 23400 | 23403 => &SHAPE144,
-            7934..=7935
-            | 7937..=7938
-            | 7946..=7947
-            | 7949..=7950
-            | 8258..=8259
-            | 8261..=8262
-            | 8270..=8271
-            | 8273..=8274
-            | 14020..=14021
-            | 14023..=14024
-            | 14032..=14033
-            | 14035..=14036
-            | 14344..=14345
-            | 14347..=14348
-            | 14356..=14357
-            | 14359..=14360
-            | 14668..=14669
-            | 14671..=14672
-            | 14680..=14681
-            | 14683..=14684
-            | 14992..=14993
-            | 14995..=14996
-            | 15004..=15005
-            | 15007..=15008
-            | 15316..=15317
-            | 15319..=15320
-            | 15328..=15329
-            | 15331..=15332
-            | 15640..=15641
-            | 15643..=15644
-            | 15652..=15653
-            | 15655..=15656
-            | 15964..=15965
-            | 15967..=15968
-            | 15976..=15977
-            | 15979..=15980
-            | 16288..=16289
-            | 16291..=16292
-            | 16300..=16301
-            | 16303..=16304
-            | 16612..=16613
-            | 16615..=16616
-            | 16624..=16625
-            | 16627..=16628
-            | 16936..=16937
-            | 16939..=16940
-            | 16948..=16949
-            | 16951..=16952
-            | 17260..=17261
-            | 17263..=17264
-            | 17272..=17273
-            | 17275..=17276
-            | 17584..=17585
-            | 17587..=17588
-            | 17596..=17597
-            | 17599..=17600
-            | 17908..=17909
-            | 17911..=17912
-            | 17920..=17921
-            | 17923..=17924
-            | 19401..=19402
-            | 19404..=19405
-            | 19413..=19414
-            | 19416..=19417
-            | 19821..=19822
-            | 19824..=19825
-            | 19833..=19834
-            | 19836..=19837
-            | 20258..=20259
-            | 20261..=20262
-            | 20270..=20271
-            | 20273..=20274
-            | 22156..=22157
-            | 22159..=22160
-            | 22168..=22169
-            | 22171..=22172
-            | 22567..=22568
-            | 22570..=22571
-            | 22579..=22580
-            | 22582..=22583
-            | 22978..=22979
-            | 22981..=22982
-            | 22990..=22991
-            | 22993..=22994
-            | 23389..=23390
-            | 23392..=23393
-            | 23401..=23402
-            | 23404..=23405 => &SHAPE145,
-            7951 | 7954 | 7987 | 7990 | 8275 | 8278 | 8311 | 8314 | 14037 | 14040 | 14073
-            | 14076 | 14361 | 14364 | 14397 | 14400 | 14685 | 14688 | 14721 | 14724 | 15009
-            | 15012 | 15045 | 15048 | 15333 | 15336 | 15369 | 15372 | 15657 | 15660 | 15693
-            | 15696 | 15981 | 15984 | 16017 | 16020 | 16305 | 16308 | 16341 | 16344 | 16629
-            | 16632 | 16665 | 16668 | 16953 | 16956 | 16989 | 16992 | 17277 | 17280 | 17313
-            | 17316 | 17601 | 17604 | 17637 | 17640 | 17925 | 17928 | 17961 | 17964 | 19418
-            | 19421 | 19454 | 19457 | 19838 | 19841 | 19874 | 19877 | 20275 | 20278 | 20311
-            | 20314 | 22173 | 22176 | 22209 | 22212 | 22584 | 22587 | 22620 | 22623 | 22995
-            | 22998 | 23031 | 23034 | 23406 | 23409 | 23442 | 23445 => &SHAPE146,
-            7952..=7953
-            | 7955..=7956
-            | 7988..=7989
-            | 7991..=7992
-            | 8276..=8277
-            | 8279..=8280
-            | 8312..=8313
-            | 8315..=8316
-            | 14038..=14039
-            | 14041..=14042
-            | 14074..=14075
-            | 14077..=14078
-            | 14362..=14363
-            | 14365..=14366
-            | 14398..=14399
-            | 14401..=14402
-            | 14686..=14687
-            | 14689..=14690
-            | 14722..=14723
-            | 14725..=14726
-            | 15010..=15011
-            | 15013..=15014
-            | 15046..=15047
-            | 15049..=15050
-            | 15334..=15335
-            | 15337..=15338
-            | 15370..=15371
-            | 15373..=15374
-            | 15658..=15659
-            | 15661..=15662
-            | 15694..=15695
-            | 15697..=15698
-            | 15982..=15983
-            | 15985..=15986
-            | 16018..=16019
-            | 16021..=16022
-            | 16306..=16307
-            | 16309..=16310
-            | 16342..=16343
-            | 16345..=16346
-            | 16630..=16631
-            | 16633..=16634
-            | 16666..=16667
-            | 16669..=16670
-            | 16954..=16955
-            | 16957..=16958
-            | 16990..=16991
-            | 16993..=16994
-            | 17278..=17279
-            | 17281..=17282
-            | 17314..=17315
-            | 17317..=17318
-            | 17602..=17603
-            | 17605..=17606
-            | 17638..=17639
-            | 17641..=17642
-            | 17926..=17927
-            | 17929..=17930
-            | 17962..=17963
-            | 17965..=17966
-            | 19419..=19420
-            | 19422..=19423
-            | 19455..=19456
-            | 19458..=19459
-            | 19839..=19840
-            | 19842..=19843
-            | 19875..=19876
-            | 19878..=19879
-            | 20276..=20277
-            | 20279..=20280
-            | 20312..=20313
-            | 20315..=20316
-            | 22174..=22175
-            | 22177..=22178
-            | 22210..=22211
-            | 22213..=22214
-            | 22585..=22586
-            | 22588..=22589
-            | 22621..=22622
-            | 22624..=22625
-            | 22996..=22997
-            | 22999..=23000
-            | 23032..=23033
-            | 23035..=23036
-            | 23407..=23408
-            | 23410..=23411
-            | 23443..=23444
-            | 23446..=23447 => &SHAPE147,
-            7957 | 7960 | 7993 | 7996 | 8281 | 8284 | 8317 | 8320 | 14043 | 14046 | 14079
-            | 14082 | 14367 | 14370 | 14403 | 14406 | 14691 | 14694 | 14727 | 14730 | 15015
-            | 15018 | 15051 | 15054 | 15339 | 15342 | 15375 | 15378 | 15663 | 15666 | 15699
-            | 15702 | 15987 | 15990 | 16023 | 16026 | 16311 | 16314 | 16347 | 16350 | 16635
-            | 16638 | 16671 | 16674 | 16959 | 16962 | 16995 | 16998 | 17283 | 17286 | 17319
-            | 17322 | 17607 | 17610 | 17643 | 17646 | 17931 | 17934 | 17967 | 17970 | 19424
-            | 19427 | 19460 | 19463 | 19844 | 19847 | 19880 | 19883 | 20281 | 20284 | 20317
-            | 20320 | 22179 | 22182 | 22215 | 22218 | 22590 | 22593 | 22626 | 22629 | 23001
-            | 23004 | 23037 | 23040 | 23412 | 23415 | 23448 | 23451 => &SHAPE148,
-            7958..=7959
-            | 7961..=7962
-            | 7994..=7995
-            | 7997..=7998
-            | 8282..=8283
-            | 8285..=8286
-            | 8318..=8319
-            | 8321..=8322
-            | 14044..=14045
-            | 14047..=14048
-            | 14080..=14081
-            | 14083..=14084
-            | 14368..=14369
-            | 14371..=14372
-            | 14404..=14405
-            | 14407..=14408
-            | 14692..=14693
-            | 14695..=14696
-            | 14728..=14729
-            | 14731..=14732
-            | 15016..=15017
-            | 15019..=15020
-            | 15052..=15053
-            | 15055..=15056
-            | 15340..=15341
-            | 15343..=15344
-            | 15376..=15377
-            | 15379..=15380
-            | 15664..=15665
-            | 15667..=15668
-            | 15700..=15701
-            | 15703..=15704
-            | 15988..=15989
-            | 15991..=15992
-            | 16024..=16025
-            | 16027..=16028
-            | 16312..=16313
-            | 16315..=16316
-            | 16348..=16349
-            | 16351..=16352
-            | 16636..=16637
-            | 16639..=16640
-            | 16672..=16673
-            | 16675..=16676
-            | 16960..=16961
-            | 16963..=16964
-            | 16996..=16997
-            | 16999..=17000
-            | 17284..=17285
-            | 17287..=17288
-            | 17320..=17321
-            | 17323..=17324
-            | 17608..=17609
-            | 17611..=17612
-            | 17644..=17645
-            | 17647..=17648
-            | 17932..=17933
-            | 17935..=17936
-            | 17968..=17969
-            | 17971..=17972
-            | 19425..=19426
-            | 19428..=19429
-            | 19461..=19462
-            | 19464..=19465
-            | 19845..=19846
-            | 19848..=19849
-            | 19881..=19882
-            | 19884..=19885
-            | 20282..=20283
-            | 20285..=20286
-            | 20318..=20319
-            | 20321..=20322
-            | 22180..=22181
-            | 22183..=22184
-            | 22216..=22217
-            | 22219..=22220
-            | 22591..=22592
-            | 22594..=22595
-            | 22627..=22628
-            | 22630..=22631
-            | 23002..=23003
-            | 23005..=23006
-            | 23038..=23039
-            | 23041..=23042
-            | 23413..=23414
-            | 23416..=23417
-            | 23449..=23450
-            | 23452..=23453 => &SHAPE149,
-            7963 | 7966 | 7975 | 7978 | 7999 | 8002 | 8011 | 8014 | 8287 | 8290 | 8299 | 8302
-            | 8323 | 8326 | 8335 | 8338 | 14049 | 14052 | 14061 | 14064 | 14085 | 14088 | 14097
-            | 14100 | 14373 | 14376 | 14385 | 14388 | 14409 | 14412 | 14421 | 14424 | 14697
-            | 14700 | 14709 | 14712 | 14733 | 14736 | 14745 | 14748 | 15021 | 15024 | 15033
-            | 15036 | 15057 | 15060 | 15069 | 15072 | 15345 | 15348 | 15357 | 15360 | 15381
-            | 15384 | 15393 | 15396 | 15669 | 15672 | 15681 | 15684 | 15705 | 15708 | 15717
-            | 15720 | 15993 | 15996 | 16005 | 16008 | 16029 | 16032 | 16041 | 16044 | 16317
-            | 16320 | 16329 | 16332 | 16353 | 16356 | 16365 | 16368 | 16641 | 16644 | 16653
-            | 16656 | 16677 | 16680 | 16689 | 16692 | 16965 | 16968 | 16977 | 16980 | 17001
-            | 17004 | 17013 | 17016 | 17289 | 17292 | 17301 | 17304 | 17325 | 17328 | 17337
-            | 17340 | 17613 | 17616 | 17625 | 17628 | 17649 | 17652 | 17661 | 17664 | 17937
-            | 17940 | 17949 | 17952 | 17973 | 17976 | 17985 | 17988 | 19430 | 19433 | 19442
-            | 19445 | 19466 | 19469 | 19478 | 19481 | 19850 | 19853 | 19862 | 19865 | 19886
-            | 19889 | 19898 | 19901 | 20287 | 20290 | 20299 | 20302 | 20323 | 20326 | 20335
-            | 20338 | 22185 | 22188 | 22197 | 22200 | 22221 | 22224 | 22233 | 22236 | 22596
-            | 22599 | 22608 | 22611 | 22632 | 22635 | 22644 | 22647 | 23007 | 23010 | 23019
-            | 23022 | 23043 | 23046 | 23055 | 23058 | 23418 | 23421 | 23430 | 23433 | 23454
-            | 23457 | 23466 | 23469 => &SHAPE150,
-            7964..=7965
-            | 7967..=7968
-            | 7976..=7977
-            | 7979..=7980
-            | 8000..=8001
-            | 8003..=8004
-            | 8012..=8013
-            | 8015..=8016
-            | 8288..=8289
-            | 8291..=8292
-            | 8300..=8301
-            | 8303..=8304
-            | 8324..=8325
-            | 8327..=8328
-            | 8336..=8337
-            | 8339..=8340
-            | 14050..=14051
-            | 14053..=14054
-            | 14062..=14063
-            | 14065..=14066
-            | 14086..=14087
-            | 14089..=14090
-            | 14098..=14099
-            | 14101..=14102
-            | 14374..=14375
-            | 14377..=14378
-            | 14386..=14387
-            | 14389..=14390
-            | 14410..=14411
-            | 14413..=14414
-            | 14422..=14423
-            | 14425..=14426
-            | 14698..=14699
-            | 14701..=14702
-            | 14710..=14711
-            | 14713..=14714
-            | 14734..=14735
-            | 14737..=14738
-            | 14746..=14747
-            | 14749..=14750
-            | 15022..=15023
-            | 15025..=15026
-            | 15034..=15035
-            | 15037..=15038
-            | 15058..=15059
-            | 15061..=15062
-            | 15070..=15071
-            | 15073..=15074
-            | 15346..=15347
-            | 15349..=15350
-            | 15358..=15359
-            | 15361..=15362
-            | 15382..=15383
-            | 15385..=15386
-            | 15394..=15395
-            | 15397..=15398
-            | 15670..=15671
-            | 15673..=15674
-            | 15682..=15683
-            | 15685..=15686
-            | 15706..=15707
-            | 15709..=15710
-            | 15718..=15719
-            | 15721..=15722
-            | 15994..=15995
-            | 15997..=15998
-            | 16006..=16007
-            | 16009..=16010
-            | 16030..=16031
-            | 16033..=16034
-            | 16042..=16043
-            | 16045..=16046
-            | 16318..=16319
-            | 16321..=16322
-            | 16330..=16331
-            | 16333..=16334
-            | 16354..=16355
-            | 16357..=16358
-            | 16366..=16367
-            | 16369..=16370
-            | 16642..=16643
-            | 16645..=16646
-            | 16654..=16655
-            | 16657..=16658
-            | 16678..=16679
-            | 16681..=16682
-            | 16690..=16691
-            | 16693..=16694
-            | 16966..=16967
-            | 16969..=16970
-            | 16978..=16979
-            | 16981..=16982
-            | 17002..=17003
-            | 17005..=17006
-            | 17014..=17015
-            | 17017..=17018
-            | 17290..=17291
-            | 17293..=17294
-            | 17302..=17303
-            | 17305..=17306
-            | 17326..=17327
-            | 17329..=17330
-            | 17338..=17339
-            | 17341..=17342
-            | 17614..=17615
-            | 17617..=17618
-            | 17626..=17627
-            | 17629..=17630
-            | 17650..=17651
-            | 17653..=17654
-            | 17662..=17663
-            | 17665..=17666
-            | 17938..=17939
-            | 17941..=17942
-            | 17950..=17951
-            | 17953..=17954
-            | 17974..=17975
-            | 17977..=17978
-            | 17986..=17987
-            | 17989..=17990
-            | 19431..=19432
-            | 19434..=19435
-            | 19443..=19444
-            | 19446..=19447
-            | 19467..=19468
-            | 19470..=19471
-            | 19479..=19480
-            | 19482..=19483
-            | 19851..=19852
-            | 19854..=19855
-            | 19863..=19864
-            | 19866..=19867
-            | 19887..=19888
-            | 19890..=19891
-            | 19899..=19900
-            | 19902..=19903
-            | 20288..=20289
-            | 20291..=20292
-            | 20300..=20301
-            | 20303..=20304
-            | 20324..=20325
-            | 20327..=20328
-            | 20336..=20337
-            | 20339..=20340
-            | 22186..=22187
-            | 22189..=22190
-            | 22198..=22199
-            | 22201..=22202
-            | 22222..=22223
-            | 22225..=22226
-            | 22234..=22235
-            | 22237..=22238
-            | 22597..=22598
-            | 22600..=22601
-            | 22609..=22610
-            | 22612..=22613
-            | 22633..=22634
-            | 22636..=22637
-            | 22645..=22646
-            | 22648..=22649
-            | 23008..=23009
-            | 23011..=23012
-            | 23020..=23021
-            | 23023..=23024
-            | 23044..=23045
-            | 23047..=23048
-            | 23056..=23057
-            | 23059..=23060
-            | 23419..=23420
-            | 23422..=23423
-            | 23431..=23432
-            | 23434..=23435
-            | 23455..=23456
-            | 23458..=23459
-            | 23467..=23468
-            | 23470..=23471 => &SHAPE151,
-            7969 | 7972 | 7981 | 7984 | 8005 | 8008 | 8017 | 8020 | 8293 | 8296 | 8305 | 8308
-            | 8329 | 8332 | 8341 | 8344 | 14055 | 14058 | 14067 | 14070 | 14091 | 14094 | 14103
-            | 14106 | 14379 | 14382 | 14391 | 14394 | 14415 | 14418 | 14427 | 14430 | 14703
-            | 14706 | 14715 | 14718 | 14739 | 14742 | 14751 | 14754 | 15027 | 15030 | 15039
-            | 15042 | 15063 | 15066 | 15075 | 15078 | 15351 | 15354 | 15363 | 15366 | 15387
-            | 15390 | 15399 | 15402 | 15675 | 15678 | 15687 | 15690 | 15711 | 15714 | 15723
-            | 15726 | 15999 | 16002 | 16011 | 16014 | 16035 | 16038 | 16047 | 16050 | 16323
-            | 16326 | 16335 | 16338 | 16359 | 16362 | 16371 | 16374 | 16647 | 16650 | 16659
-            | 16662 | 16683 | 16686 | 16695 | 16698 | 16971 | 16974 | 16983 | 16986 | 17007
-            | 17010 | 17019 | 17022 | 17295 | 17298 | 17307 | 17310 | 17331 | 17334 | 17343
-            | 17346 | 17619 | 17622 | 17631 | 17634 | 17655 | 17658 | 17667 | 17670 | 17943
-            | 17946 | 17955 | 17958 | 17979 | 17982 | 17991 | 17994 | 19436 | 19439 | 19448
-            | 19451 | 19472 | 19475 | 19484 | 19487 | 19856 | 19859 | 19868 | 19871 | 19892
-            | 19895 | 19904 | 19907 | 20293 | 20296 | 20305 | 20308 | 20329 | 20332 | 20341
-            | 20344 | 22191 | 22194 | 22203 | 22206 | 22227 | 22230 | 22239 | 22242 | 22602
-            | 22605 | 22614 | 22617 | 22638 | 22641 | 22650 | 22653 | 23013 | 23016 | 23025
-            | 23028 | 23049 | 23052 | 23061 | 23064 | 23424 | 23427 | 23436 | 23439 | 23460
-            | 23463 | 23472 | 23475 => &SHAPE152,
-            7970..=7971
-            | 7973..=7974
-            | 7982..=7983
-            | 7985..=7986
-            | 8006..=8007
-            | 8009..=8010
-            | 8018..=8019
-            | 8021..=8022
-            | 8294..=8295
-            | 8297..=8298
-            | 8306..=8307
-            | 8309..=8310
-            | 8330..=8331
-            | 8333..=8334
-            | 8342..=8343
-            | 8345..=8346
-            | 14056..=14057
-            | 14059..=14060
-            | 14068..=14069
-            | 14071..=14072
-            | 14092..=14093
-            | 14095..=14096
-            | 14104..=14105
-            | 14107..=14108
-            | 14380..=14381
-            | 14383..=14384
-            | 14392..=14393
-            | 14395..=14396
-            | 14416..=14417
-            | 14419..=14420
-            | 14428..=14429
-            | 14431..=14432
-            | 14704..=14705
-            | 14707..=14708
-            | 14716..=14717
-            | 14719..=14720
-            | 14740..=14741
-            | 14743..=14744
-            | 14752..=14753
-            | 14755..=14756
-            | 15028..=15029
-            | 15031..=15032
-            | 15040..=15041
-            | 15043..=15044
-            | 15064..=15065
-            | 15067..=15068
-            | 15076..=15077
-            | 15079..=15080
-            | 15352..=15353
-            | 15355..=15356
-            | 15364..=15365
-            | 15367..=15368
-            | 15388..=15389
-            | 15391..=15392
-            | 15400..=15401
-            | 15403..=15404
-            | 15676..=15677
-            | 15679..=15680
-            | 15688..=15689
-            | 15691..=15692
-            | 15712..=15713
-            | 15715..=15716
-            | 15724..=15725
-            | 15727..=15728
-            | 16000..=16001
-            | 16003..=16004
-            | 16012..=16013
-            | 16015..=16016
-            | 16036..=16037
-            | 16039..=16040
-            | 16048..=16049
-            | 16051..=16052
-            | 16324..=16325
-            | 16327..=16328
-            | 16336..=16337
-            | 16339..=16340
-            | 16360..=16361
-            | 16363..=16364
-            | 16372..=16373
-            | 16375..=16376
-            | 16648..=16649
-            | 16651..=16652
-            | 16660..=16661
-            | 16663..=16664
-            | 16684..=16685
-            | 16687..=16688
-            | 16696..=16697
-            | 16699..=16700
-            | 16972..=16973
-            | 16975..=16976
-            | 16984..=16985
-            | 16987..=16988
-            | 17008..=17009
-            | 17011..=17012
-            | 17020..=17021
-            | 17023..=17024
-            | 17296..=17297
-            | 17299..=17300
-            | 17308..=17309
-            | 17311..=17312
-            | 17332..=17333
-            | 17335..=17336
-            | 17344..=17345
-            | 17347..=17348
-            | 17620..=17621
-            | 17623..=17624
-            | 17632..=17633
-            | 17635..=17636
-            | 17656..=17657
-            | 17659..=17660
-            | 17668..=17669
-            | 17671..=17672
-            | 17944..=17945
-            | 17947..=17948
-            | 17956..=17957
-            | 17959..=17960
-            | 17980..=17981
-            | 17983..=17984
-            | 17992..=17993
-            | 17995..=17996
-            | 19437..=19438
-            | 19440..=19441
-            | 19449..=19450
-            | 19452..=19453
-            | 19473..=19474
-            | 19476..=19477
-            | 19485..=19486
-            | 19488..=19489
-            | 19857..=19858
-            | 19860..=19861
-            | 19869..=19870
-            | 19872..=19873
-            | 19893..=19894
-            | 19896..=19897
-            | 19905..=19906
-            | 19908..=19909
-            | 20294..=20295
-            | 20297..=20298
-            | 20306..=20307
-            | 20309..=20310
-            | 20330..=20331
-            | 20333..=20334
-            | 20342..=20343
-            | 20345..=20346
-            | 22192..=22193
-            | 22195..=22196
-            | 22204..=22205
-            | 22207..=22208
-            | 22228..=22229
-            | 22231..=22232
-            | 22240..=22241
-            | 22243..=22244
-            | 22603..=22604
-            | 22606..=22607
-            | 22615..=22616
-            | 22618..=22619
-            | 22639..=22640
-            | 22642..=22643
-            | 22651..=22652
-            | 22654..=22655
-            | 23014..=23015
-            | 23017..=23018
-            | 23026..=23027
-            | 23029..=23030
-            | 23050..=23051
-            | 23053..=23054
-            | 23062..=23063
-            | 23065..=23066
-            | 23425..=23426
-            | 23428..=23429
-            | 23437..=23438
-            | 23440..=23441
-            | 23461..=23462
-            | 23464..=23465
-            | 23473..=23474
-            | 23476..=23477 => &SHAPE153,
-            8023 | 8026 | 8131 | 8134 | 8347 | 8350 | 8455 | 8458 | 14109 | 14112 | 14217
-            | 14220 | 14433 | 14436 | 14541 | 14544 | 14757 | 14760 | 14865 | 14868 | 15081
-            | 15084 | 15189 | 15192 | 15405 | 15408 | 15513 | 15516 | 15729 | 15732 | 15837
-            | 15840 | 16053 | 16056 | 16161 | 16164 | 16377 | 16380 | 16485 | 16488 | 16701
-            | 16704 | 16809 | 16812 | 17025 | 17028 | 17133 | 17136 | 17349 | 17352 | 17457
-            | 17460 | 17673 | 17676 | 17781 | 17784 | 17997 | 18000 | 18105 | 18108 | 19490
-            | 19493 | 19598 | 19601 | 19910 | 19913 | 20018 | 20021 | 20347 | 20350 | 20455
-            | 20458 | 22245 | 22248 | 22353 | 22356 | 22656 | 22659 | 22764 | 22767 | 23067
-            | 23070 | 23175 | 23178 | 23478 | 23481 | 23586 | 23589 => &SHAPE154,
-            8024..=8025
-            | 8027..=8028
-            | 8132..=8133
-            | 8135..=8136
-            | 8348..=8349
-            | 8351..=8352
-            | 8456..=8457
-            | 8459..=8460
-            | 14110..=14111
-            | 14113..=14114
-            | 14218..=14219
-            | 14221..=14222
-            | 14434..=14435
-            | 14437..=14438
-            | 14542..=14543
-            | 14545..=14546
-            | 14758..=14759
-            | 14761..=14762
-            | 14866..=14867
-            | 14869..=14870
-            | 15082..=15083
-            | 15085..=15086
-            | 15190..=15191
-            | 15193..=15194
-            | 15406..=15407
-            | 15409..=15410
-            | 15514..=15515
-            | 15517..=15518
-            | 15730..=15731
-            | 15733..=15734
-            | 15838..=15839
-            | 15841..=15842
-            | 16054..=16055
-            | 16057..=16058
-            | 16162..=16163
-            | 16165..=16166
-            | 16378..=16379
-            | 16381..=16382
-            | 16486..=16487
-            | 16489..=16490
-            | 16702..=16703
-            | 16705..=16706
-            | 16810..=16811
-            | 16813..=16814
-            | 17026..=17027
-            | 17029..=17030
-            | 17134..=17135
-            | 17137..=17138
-            | 17350..=17351
-            | 17353..=17354
-            | 17458..=17459
-            | 17461..=17462
-            | 17674..=17675
-            | 17677..=17678
-            | 17782..=17783
-            | 17785..=17786
-            | 17998..=17999
-            | 18001..=18002
-            | 18106..=18107
-            | 18109..=18110
-            | 19491..=19492
-            | 19494..=19495
-            | 19599..=19600
-            | 19602..=19603
-            | 19911..=19912
-            | 19914..=19915
-            | 20019..=20020
-            | 20022..=20023
-            | 20348..=20349
-            | 20351..=20352
-            | 20456..=20457
-            | 20459..=20460
-            | 22246..=22247
-            | 22249..=22250
-            | 22354..=22355
-            | 22357..=22358
-            | 22657..=22658
-            | 22660..=22661
-            | 22765..=22766
-            | 22768..=22769
-            | 23068..=23069
-            | 23071..=23072
-            | 23176..=23177
-            | 23179..=23180
-            | 23479..=23480
-            | 23482..=23483
-            | 23587..=23588
-            | 23590..=23591 => &SHAPE155,
-            8029 | 8032 | 8137 | 8140 | 8353 | 8356 | 8461 | 8464 | 14115 | 14118 | 14223
-            | 14226 | 14439 | 14442 | 14547 | 14550 | 14763 | 14766 | 14871 | 14874 | 15087
-            | 15090 | 15195 | 15198 | 15411 | 15414 | 15519 | 15522 | 15735 | 15738 | 15843
-            | 15846 | 16059 | 16062 | 16167 | 16170 | 16383 | 16386 | 16491 | 16494 | 16707
-            | 16710 | 16815 | 16818 | 17031 | 17034 | 17139 | 17142 | 17355 | 17358 | 17463
-            | 17466 | 17679 | 17682 | 17787 | 17790 | 18003 | 18006 | 18111 | 18114 | 19496
-            | 19499 | 19604 | 19607 | 19916 | 19919 | 20024 | 20027 | 20353 | 20356 | 20461
-            | 20464 | 22251 | 22254 | 22359 | 22362 | 22662 | 22665 | 22770 | 22773 | 23073
-            | 23076 | 23181 | 23184 | 23484 | 23487 | 23592 | 23595 => &SHAPE156,
-            8030..=8031
-            | 8033..=8034
-            | 8138..=8139
-            | 8141..=8142
-            | 8354..=8355
-            | 8357..=8358
-            | 8462..=8463
-            | 8465..=8466
-            | 14116..=14117
-            | 14119..=14120
-            | 14224..=14225
-            | 14227..=14228
-            | 14440..=14441
-            | 14443..=14444
-            | 14548..=14549
-            | 14551..=14552
-            | 14764..=14765
-            | 14767..=14768
-            | 14872..=14873
-            | 14875..=14876
-            | 15088..=15089
-            | 15091..=15092
-            | 15196..=15197
-            | 15199..=15200
-            | 15412..=15413
-            | 15415..=15416
-            | 15520..=15521
-            | 15523..=15524
-            | 15736..=15737
-            | 15739..=15740
-            | 15844..=15845
-            | 15847..=15848
-            | 16060..=16061
-            | 16063..=16064
-            | 16168..=16169
-            | 16171..=16172
-            | 16384..=16385
-            | 16387..=16388
-            | 16492..=16493
-            | 16495..=16496
-            | 16708..=16709
-            | 16711..=16712
-            | 16816..=16817
-            | 16819..=16820
-            | 17032..=17033
-            | 17035..=17036
-            | 17140..=17141
-            | 17143..=17144
-            | 17356..=17357
-            | 17359..=17360
-            | 17464..=17465
-            | 17467..=17468
-            | 17680..=17681
-            | 17683..=17684
-            | 17788..=17789
-            | 17791..=17792
-            | 18004..=18005
-            | 18007..=18008
-            | 18112..=18113
-            | 18115..=18116
-            | 19497..=19498
-            | 19500..=19501
-            | 19605..=19606
-            | 19608..=19609
-            | 19917..=19918
-            | 19920..=19921
-            | 20025..=20026
-            | 20028..=20029
-            | 20354..=20355
-            | 20357..=20358
-            | 20462..=20463
-            | 20465..=20466
-            | 22252..=22253
-            | 22255..=22256
-            | 22360..=22361
-            | 22363..=22364
-            | 22663..=22664
-            | 22666..=22667
-            | 22771..=22772
-            | 22774..=22775
-            | 23074..=23075
-            | 23077..=23078
-            | 23182..=23183
-            | 23185..=23186
-            | 23485..=23486
-            | 23488..=23489
-            | 23593..=23594
-            | 23596..=23597 => &SHAPE157,
-            8035 | 8038 | 8047 | 8050 | 8143 | 8146 | 8155 | 8158 | 8359 | 8362 | 8371 | 8374
-            | 8467 | 8470 | 8479 | 8482 | 14121 | 14124 | 14133 | 14136 | 14229 | 14232 | 14241
-            | 14244 | 14445 | 14448 | 14457 | 14460 | 14553 | 14556 | 14565 | 14568 | 14769
-            | 14772 | 14781 | 14784 | 14877 | 14880 | 14889 | 14892 | 15093 | 15096 | 15105
-            | 15108 | 15201 | 15204 | 15213 | 15216 | 15417 | 15420 | 15429 | 15432 | 15525
-            | 15528 | 15537 | 15540 | 15741 | 15744 | 15753 | 15756 | 15849 | 15852 | 15861
-            | 15864 | 16065 | 16068 | 16077 | 16080 | 16173 | 16176 | 16185 | 16188 | 16389
-            | 16392 | 16401 | 16404 | 16497 | 16500 | 16509 | 16512 | 16713 | 16716 | 16725
-            | 16728 | 16821 | 16824 | 16833 | 16836 | 17037 | 17040 | 17049 | 17052 | 17145
-            | 17148 | 17157 | 17160 | 17361 | 17364 | 17373 | 17376 | 17469 | 17472 | 17481
-            | 17484 | 17685 | 17688 | 17697 | 17700 | 17793 | 17796 | 17805 | 17808 | 18009
-            | 18012 | 18021 | 18024 | 18117 | 18120 | 18129 | 18132 | 19502 | 19505 | 19514
-            | 19517 | 19610 | 19613 | 19622 | 19625 | 19922 | 19925 | 19934 | 19937 | 20030
-            | 20033 | 20042 | 20045 | 20359 | 20362 | 20371 | 20374 | 20467 | 20470 | 20479
-            | 20482 | 22257 | 22260 | 22269 | 22272 | 22365 | 22368 | 22377 | 22380 | 22668
-            | 22671 | 22680 | 22683 | 22776 | 22779 | 22788 | 22791 | 23079 | 23082 | 23091
-            | 23094 | 23187 | 23190 | 23199 | 23202 | 23490 | 23493 | 23502 | 23505 | 23598
-            | 23601 | 23610 | 23613 => &SHAPE158,
-            8036..=8037
-            | 8039..=8040
-            | 8048..=8049
-            | 8051..=8052
-            | 8144..=8145
-            | 8147..=8148
-            | 8156..=8157
-            | 8159..=8160
-            | 8360..=8361
-            | 8363..=8364
-            | 8372..=8373
-            | 8375..=8376
-            | 8468..=8469
-            | 8471..=8472
-            | 8480..=8481
-            | 8483..=8484
-            | 14122..=14123
-            | 14125..=14126
-            | 14134..=14135
-            | 14137..=14138
-            | 14230..=14231
-            | 14233..=14234
-            | 14242..=14243
-            | 14245..=14246
-            | 14446..=14447
-            | 14449..=14450
-            | 14458..=14459
-            | 14461..=14462
-            | 14554..=14555
-            | 14557..=14558
-            | 14566..=14567
-            | 14569..=14570
-            | 14770..=14771
-            | 14773..=14774
-            | 14782..=14783
-            | 14785..=14786
-            | 14878..=14879
-            | 14881..=14882
-            | 14890..=14891
-            | 14893..=14894
-            | 15094..=15095
-            | 15097..=15098
-            | 15106..=15107
-            | 15109..=15110
-            | 15202..=15203
-            | 15205..=15206
-            | 15214..=15215
-            | 15217..=15218
-            | 15418..=15419
-            | 15421..=15422
-            | 15430..=15431
-            | 15433..=15434
-            | 15526..=15527
-            | 15529..=15530
-            | 15538..=15539
-            | 15541..=15542
-            | 15742..=15743
-            | 15745..=15746
-            | 15754..=15755
-            | 15757..=15758
-            | 15850..=15851
-            | 15853..=15854
-            | 15862..=15863
-            | 15865..=15866
-            | 16066..=16067
-            | 16069..=16070
-            | 16078..=16079
-            | 16081..=16082
-            | 16174..=16175
-            | 16177..=16178
-            | 16186..=16187
-            | 16189..=16190
-            | 16390..=16391
-            | 16393..=16394
-            | 16402..=16403
-            | 16405..=16406
-            | 16498..=16499
-            | 16501..=16502
-            | 16510..=16511
-            | 16513..=16514
-            | 16714..=16715
-            | 16717..=16718
-            | 16726..=16727
-            | 16729..=16730
-            | 16822..=16823
-            | 16825..=16826
-            | 16834..=16835
-            | 16837..=16838
-            | 17038..=17039
-            | 17041..=17042
-            | 17050..=17051
-            | 17053..=17054
-            | 17146..=17147
-            | 17149..=17150
-            | 17158..=17159
-            | 17161..=17162
-            | 17362..=17363
-            | 17365..=17366
-            | 17374..=17375
-            | 17377..=17378
-            | 17470..=17471
-            | 17473..=17474
-            | 17482..=17483
-            | 17485..=17486
-            | 17686..=17687
-            | 17689..=17690
-            | 17698..=17699
-            | 17701..=17702
-            | 17794..=17795
-            | 17797..=17798
-            | 17806..=17807
-            | 17809..=17810
-            | 18010..=18011
-            | 18013..=18014
-            | 18022..=18023
-            | 18025..=18026
-            | 18118..=18119
-            | 18121..=18122
-            | 18130..=18131
-            | 18133..=18134
-            | 19503..=19504
-            | 19506..=19507
-            | 19515..=19516
-            | 19518..=19519
-            | 19611..=19612
-            | 19614..=19615
-            | 19623..=19624
-            | 19626..=19627
-            | 19923..=19924
-            | 19926..=19927
-            | 19935..=19936
-            | 19938..=19939
-            | 20031..=20032
-            | 20034..=20035
-            | 20043..=20044
-            | 20046..=20047
-            | 20360..=20361
-            | 20363..=20364
-            | 20372..=20373
-            | 20375..=20376
-            | 20468..=20469
-            | 20471..=20472
-            | 20480..=20481
-            | 20483..=20484
-            | 22258..=22259
-            | 22261..=22262
-            | 22270..=22271
-            | 22273..=22274
-            | 22366..=22367
-            | 22369..=22370
-            | 22378..=22379
-            | 22381..=22382
-            | 22669..=22670
-            | 22672..=22673
-            | 22681..=22682
-            | 22684..=22685
-            | 22777..=22778
-            | 22780..=22781
-            | 22789..=22790
-            | 22792..=22793
-            | 23080..=23081
-            | 23083..=23084
-            | 23092..=23093
-            | 23095..=23096
-            | 23188..=23189
-            | 23191..=23192
-            | 23200..=23201
-            | 23203..=23204
-            | 23491..=23492
-            | 23494..=23495
-            | 23503..=23504
-            | 23506..=23507
-            | 23599..=23600
-            | 23602..=23603
-            | 23611..=23612
-            | 23614..=23615 => &SHAPE159,
-            8041 | 8044 | 8053 | 8056 | 8149 | 8152 | 8161 | 8164 | 8365 | 8368 | 8377 | 8380
-            | 8473 | 8476 | 8485 | 8488 | 14127 | 14130 | 14139 | 14142 | 14235 | 14238 | 14247
-            | 14250 | 14451 | 14454 | 14463 | 14466 | 14559 | 14562 | 14571 | 14574 | 14775
-            | 14778 | 14787 | 14790 | 14883 | 14886 | 14895 | 14898 | 15099 | 15102 | 15111
-            | 15114 | 15207 | 15210 | 15219 | 15222 | 15423 | 15426 | 15435 | 15438 | 15531
-            | 15534 | 15543 | 15546 | 15747 | 15750 | 15759 | 15762 | 15855 | 15858 | 15867
-            | 15870 | 16071 | 16074 | 16083 | 16086 | 16179 | 16182 | 16191 | 16194 | 16395
-            | 16398 | 16407 | 16410 | 16503 | 16506 | 16515 | 16518 | 16719 | 16722 | 16731
-            | 16734 | 16827 | 16830 | 16839 | 16842 | 17043 | 17046 | 17055 | 17058 | 17151
-            | 17154 | 17163 | 17166 | 17367 | 17370 | 17379 | 17382 | 17475 | 17478 | 17487
-            | 17490 | 17691 | 17694 | 17703 | 17706 | 17799 | 17802 | 17811 | 17814 | 18015
-            | 18018 | 18027 | 18030 | 18123 | 18126 | 18135 | 18138 | 19508 | 19511 | 19520
-            | 19523 | 19616 | 19619 | 19628 | 19631 | 19928 | 19931 | 19940 | 19943 | 20036
-            | 20039 | 20048 | 20051 | 20365 | 20368 | 20377 | 20380 | 20473 | 20476 | 20485
-            | 20488 | 22263 | 22266 | 22275 | 22278 | 22371 | 22374 | 22383 | 22386 | 22674
-            | 22677 | 22686 | 22689 | 22782 | 22785 | 22794 | 22797 | 23085 | 23088 | 23097
-            | 23100 | 23193 | 23196 | 23205 | 23208 | 23496 | 23499 | 23508 | 23511 | 23604
-            | 23607 | 23616 | 23619 => &SHAPE160,
-            8042..=8043
-            | 8045..=8046
-            | 8054..=8055
-            | 8057..=8058
-            | 8150..=8151
-            | 8153..=8154
-            | 8162..=8163
-            | 8165..=8166
-            | 8366..=8367
-            | 8369..=8370
-            | 8378..=8379
-            | 8381..=8382
-            | 8474..=8475
-            | 8477..=8478
-            | 8486..=8487
-            | 8489..=8490
-            | 14128..=14129
-            | 14131..=14132
-            | 14140..=14141
-            | 14143..=14144
-            | 14236..=14237
-            | 14239..=14240
-            | 14248..=14249
-            | 14251..=14252
-            | 14452..=14453
-            | 14455..=14456
-            | 14464..=14465
-            | 14467..=14468
-            | 14560..=14561
-            | 14563..=14564
-            | 14572..=14573
-            | 14575..=14576
-            | 14776..=14777
-            | 14779..=14780
-            | 14788..=14789
-            | 14791..=14792
-            | 14884..=14885
-            | 14887..=14888
-            | 14896..=14897
-            | 14899..=14900
-            | 15100..=15101
-            | 15103..=15104
-            | 15112..=15113
-            | 15115..=15116
-            | 15208..=15209
-            | 15211..=15212
-            | 15220..=15221
-            | 15223..=15224
-            | 15424..=15425
-            | 15427..=15428
-            | 15436..=15437
-            | 15439..=15440
-            | 15532..=15533
-            | 15535..=15536
-            | 15544..=15545
-            | 15547..=15548
-            | 15748..=15749
-            | 15751..=15752
-            | 15760..=15761
-            | 15763..=15764
-            | 15856..=15857
-            | 15859..=15860
-            | 15868..=15869
-            | 15871..=15872
-            | 16072..=16073
-            | 16075..=16076
-            | 16084..=16085
-            | 16087..=16088
-            | 16180..=16181
-            | 16183..=16184
-            | 16192..=16193
-            | 16195..=16196
-            | 16396..=16397
-            | 16399..=16400
-            | 16408..=16409
-            | 16411..=16412
-            | 16504..=16505
-            | 16507..=16508
-            | 16516..=16517
-            | 16519..=16520
-            | 16720..=16721
-            | 16723..=16724
-            | 16732..=16733
-            | 16735..=16736
-            | 16828..=16829
-            | 16831..=16832
-            | 16840..=16841
-            | 16843..=16844
-            | 17044..=17045
-            | 17047..=17048
-            | 17056..=17057
-            | 17059..=17060
-            | 17152..=17153
-            | 17155..=17156
-            | 17164..=17165
-            | 17167..=17168
-            | 17368..=17369
-            | 17371..=17372
-            | 17380..=17381
-            | 17383..=17384
-            | 17476..=17477
-            | 17479..=17480
-            | 17488..=17489
-            | 17491..=17492
-            | 17692..=17693
-            | 17695..=17696
-            | 17704..=17705
-            | 17707..=17708
-            | 17800..=17801
-            | 17803..=17804
-            | 17812..=17813
-            | 17815..=17816
-            | 18016..=18017
-            | 18019..=18020
-            | 18028..=18029
-            | 18031..=18032
-            | 18124..=18125
-            | 18127..=18128
-            | 18136..=18137
-            | 18139..=18140
-            | 19509..=19510
-            | 19512..=19513
-            | 19521..=19522
-            | 19524..=19525
-            | 19617..=19618
-            | 19620..=19621
-            | 19629..=19630
-            | 19632..=19633
-            | 19929..=19930
-            | 19932..=19933
-            | 19941..=19942
-            | 19944..=19945
-            | 20037..=20038
-            | 20040..=20041
-            | 20049..=20050
-            | 20052..=20053
-            | 20366..=20367
-            | 20369..=20370
-            | 20378..=20379
-            | 20381..=20382
-            | 20474..=20475
-            | 20477..=20478
-            | 20486..=20487
-            | 20489..=20490
-            | 22264..=22265
-            | 22267..=22268
-            | 22276..=22277
-            | 22279..=22280
-            | 22372..=22373
-            | 22375..=22376
-            | 22384..=22385
-            | 22387..=22388
-            | 22675..=22676
-            | 22678..=22679
-            | 22687..=22688
-            | 22690..=22691
-            | 22783..=22784
-            | 22786..=22787
-            | 22795..=22796
-            | 22798..=22799
-            | 23086..=23087
-            | 23089..=23090
-            | 23098..=23099
-            | 23101..=23102
-            | 23194..=23195
-            | 23197..=23198
-            | 23206..=23207
-            | 23209..=23210
-            | 23497..=23498
-            | 23500..=23501
-            | 23509..=23510
-            | 23512..=23513
-            | 23605..=23606
-            | 23608..=23609
-            | 23617..=23618
-            | 23620..=23621 => &SHAPE161,
-            8059 | 8062 | 8095 | 8098 | 8167 | 8170 | 8203 | 8206 | 8383 | 8386 | 8419 | 8422
-            | 8491 | 8494 | 8527 | 8530 | 14145 | 14148 | 14181 | 14184 | 14253 | 14256 | 14289
-            | 14292 | 14469 | 14472 | 14505 | 14508 | 14577 | 14580 | 14613 | 14616 | 14793
-            | 14796 | 14829 | 14832 | 14901 | 14904 | 14937 | 14940 | 15117 | 15120 | 15153
-            | 15156 | 15225 | 15228 | 15261 | 15264 | 15441 | 15444 | 15477 | 15480 | 15549
-            | 15552 | 15585 | 15588 | 15765 | 15768 | 15801 | 15804 | 15873 | 15876 | 15909
-            | 15912 | 16089 | 16092 | 16125 | 16128 | 16197 | 16200 | 16233 | 16236 | 16413
-            | 16416 | 16449 | 16452 | 16521 | 16524 | 16557 | 16560 | 16737 | 16740 | 16773
-            | 16776 | 16845 | 16848 | 16881 | 16884 | 17061 | 17064 | 17097 | 17100 | 17169
-            | 17172 | 17205 | 17208 | 17385 | 17388 | 17421 | 17424 | 17493 | 17496 | 17529
-            | 17532 | 17709 | 17712 | 17745 | 17748 | 17817 | 17820 | 17853 | 17856 | 18033
-            | 18036 | 18069 | 18072 | 18141 | 18144 | 18177 | 18180 | 19526 | 19529 | 19562
-            | 19565 | 19634 | 19637 | 19670 | 19673 | 19946 | 19949 | 19982 | 19985 | 20054
-            | 20057 | 20090 | 20093 | 20383 | 20386 | 20419 | 20422 | 20491 | 20494 | 20527
-            | 20530 | 22281 | 22284 | 22317 | 22320 | 22389 | 22392 | 22425 | 22428 | 22692
-            | 22695 | 22728 | 22731 | 22800 | 22803 | 22836 | 22839 | 23103 | 23106 | 23139
-            | 23142 | 23211 | 23214 | 23247 | 23250 | 23514 | 23517 | 23550 | 23553 | 23622
-            | 23625 | 23658 | 23661 => &SHAPE162,
-            8060..=8061
-            | 8063..=8064
-            | 8096..=8097
-            | 8099..=8100
-            | 8168..=8169
-            | 8171..=8172
-            | 8204..=8205
-            | 8207..=8208
-            | 8384..=8385
-            | 8387..=8388
-            | 8420..=8421
-            | 8423..=8424
-            | 8492..=8493
-            | 8495..=8496
-            | 8528..=8529
-            | 8531..=8532
-            | 14146..=14147
-            | 14149..=14150
-            | 14182..=14183
-            | 14185..=14186
-            | 14254..=14255
-            | 14257..=14258
-            | 14290..=14291
-            | 14293..=14294
-            | 14470..=14471
-            | 14473..=14474
-            | 14506..=14507
-            | 14509..=14510
-            | 14578..=14579
-            | 14581..=14582
-            | 14614..=14615
-            | 14617..=14618
-            | 14794..=14795
-            | 14797..=14798
-            | 14830..=14831
-            | 14833..=14834
-            | 14902..=14903
-            | 14905..=14906
-            | 14938..=14939
-            | 14941..=14942
-            | 15118..=15119
-            | 15121..=15122
-            | 15154..=15155
-            | 15157..=15158
-            | 15226..=15227
-            | 15229..=15230
-            | 15262..=15263
-            | 15265..=15266
-            | 15442..=15443
-            | 15445..=15446
-            | 15478..=15479
-            | 15481..=15482
-            | 15550..=15551
-            | 15553..=15554
-            | 15586..=15587
-            | 15589..=15590
-            | 15766..=15767
-            | 15769..=15770
-            | 15802..=15803
-            | 15805..=15806
-            | 15874..=15875
-            | 15877..=15878
-            | 15910..=15911
-            | 15913..=15914
-            | 16090..=16091
-            | 16093..=16094
-            | 16126..=16127
-            | 16129..=16130
-            | 16198..=16199
-            | 16201..=16202
-            | 16234..=16235
-            | 16237..=16238
-            | 16414..=16415
-            | 16417..=16418
-            | 16450..=16451
-            | 16453..=16454
-            | 16522..=16523
-            | 16525..=16526
-            | 16558..=16559
-            | 16561..=16562
-            | 16738..=16739
-            | 16741..=16742
-            | 16774..=16775
-            | 16777..=16778
-            | 16846..=16847
-            | 16849..=16850
-            | 16882..=16883
-            | 16885..=16886
-            | 17062..=17063
-            | 17065..=17066
-            | 17098..=17099
-            | 17101..=17102
-            | 17170..=17171
-            | 17173..=17174
-            | 17206..=17207
-            | 17209..=17210
-            | 17386..=17387
-            | 17389..=17390
-            | 17422..=17423
-            | 17425..=17426
-            | 17494..=17495
-            | 17497..=17498
-            | 17530..=17531
-            | 17533..=17534
-            | 17710..=17711
-            | 17713..=17714
-            | 17746..=17747
-            | 17749..=17750
-            | 17818..=17819
-            | 17821..=17822
-            | 17854..=17855
-            | 17857..=17858
-            | 18034..=18035
-            | 18037..=18038
-            | 18070..=18071
-            | 18073..=18074
-            | 18142..=18143
-            | 18145..=18146
-            | 18178..=18179
-            | 18181..=18182
-            | 19527..=19528
-            | 19530..=19531
-            | 19563..=19564
-            | 19566..=19567
-            | 19635..=19636
-            | 19638..=19639
-            | 19671..=19672
-            | 19674..=19675
-            | 19947..=19948
-            | 19950..=19951
-            | 19983..=19984
-            | 19986..=19987
-            | 20055..=20056
-            | 20058..=20059
-            | 20091..=20092
-            | 20094..=20095
-            | 20384..=20385
-            | 20387..=20388
-            | 20420..=20421
-            | 20423..=20424
-            | 20492..=20493
-            | 20495..=20496
-            | 20528..=20529
-            | 20531..=20532
-            | 22282..=22283
-            | 22285..=22286
-            | 22318..=22319
-            | 22321..=22322
-            | 22390..=22391
-            | 22393..=22394
-            | 22426..=22427
-            | 22429..=22430
-            | 22693..=22694
-            | 22696..=22697
-            | 22729..=22730
-            | 22732..=22733
-            | 22801..=22802
-            | 22804..=22805
-            | 22837..=22838
-            | 22840..=22841
-            | 23104..=23105
-            | 23107..=23108
-            | 23140..=23141
-            | 23143..=23144
-            | 23212..=23213
-            | 23215..=23216
-            | 23248..=23249
-            | 23251..=23252
-            | 23515..=23516
-            | 23518..=23519
-            | 23551..=23552
-            | 23554..=23555
-            | 23623..=23624
-            | 23626..=23627
-            | 23659..=23660
-            | 23662..=23663 => &SHAPE163,
-            8065 | 8068 | 8101 | 8104 | 8173 | 8176 | 8209 | 8212 | 8389 | 8392 | 8425 | 8428
-            | 8497 | 8500 | 8533 | 8536 | 14151 | 14154 | 14187 | 14190 | 14259 | 14262 | 14295
-            | 14298 | 14475 | 14478 | 14511 | 14514 | 14583 | 14586 | 14619 | 14622 | 14799
-            | 14802 | 14835 | 14838 | 14907 | 14910 | 14943 | 14946 | 15123 | 15126 | 15159
-            | 15162 | 15231 | 15234 | 15267 | 15270 | 15447 | 15450 | 15483 | 15486 | 15555
-            | 15558 | 15591 | 15594 | 15771 | 15774 | 15807 | 15810 | 15879 | 15882 | 15915
-            | 15918 | 16095 | 16098 | 16131 | 16134 | 16203 | 16206 | 16239 | 16242 | 16419
-            | 16422 | 16455 | 16458 | 16527 | 16530 | 16563 | 16566 | 16743 | 16746 | 16779
-            | 16782 | 16851 | 16854 | 16887 | 16890 | 17067 | 17070 | 17103 | 17106 | 17175
-            | 17178 | 17211 | 17214 | 17391 | 17394 | 17427 | 17430 | 17499 | 17502 | 17535
-            | 17538 | 17715 | 17718 | 17751 | 17754 | 17823 | 17826 | 17859 | 17862 | 18039
-            | 18042 | 18075 | 18078 | 18147 | 18150 | 18183 | 18186 | 19532 | 19535 | 19568
-            | 19571 | 19640 | 19643 | 19676 | 19679 | 19952 | 19955 | 19988 | 19991 | 20060
-            | 20063 | 20096 | 20099 | 20389 | 20392 | 20425 | 20428 | 20497 | 20500 | 20533
-            | 20536 | 22287 | 22290 | 22323 | 22326 | 22395 | 22398 | 22431 | 22434 | 22698
-            | 22701 | 22734 | 22737 | 22806 | 22809 | 22842 | 22845 | 23109 | 23112 | 23145
-            | 23148 | 23217 | 23220 | 23253 | 23256 | 23520 | 23523 | 23556 | 23559 | 23628
-            | 23631 | 23664 | 23667 => &SHAPE164,
-            8066..=8067
-            | 8069..=8070
-            | 8102..=8103
-            | 8105..=8106
-            | 8174..=8175
-            | 8177..=8178
-            | 8210..=8211
-            | 8213..=8214
-            | 8390..=8391
-            | 8393..=8394
-            | 8426..=8427
-            | 8429..=8430
-            | 8498..=8499
-            | 8501..=8502
-            | 8534..=8535
-            | 8537..=8538
-            | 14152..=14153
-            | 14155..=14156
-            | 14188..=14189
-            | 14191..=14192
-            | 14260..=14261
-            | 14263..=14264
-            | 14296..=14297
-            | 14299..=14300
-            | 14476..=14477
-            | 14479..=14480
-            | 14512..=14513
-            | 14515..=14516
-            | 14584..=14585
-            | 14587..=14588
-            | 14620..=14621
-            | 14623..=14624
-            | 14800..=14801
-            | 14803..=14804
-            | 14836..=14837
-            | 14839..=14840
-            | 14908..=14909
-            | 14911..=14912
-            | 14944..=14945
-            | 14947..=14948
-            | 15124..=15125
-            | 15127..=15128
-            | 15160..=15161
-            | 15163..=15164
-            | 15232..=15233
-            | 15235..=15236
-            | 15268..=15269
-            | 15271..=15272
-            | 15448..=15449
-            | 15451..=15452
-            | 15484..=15485
-            | 15487..=15488
-            | 15556..=15557
-            | 15559..=15560
-            | 15592..=15593
-            | 15595..=15596
-            | 15772..=15773
-            | 15775..=15776
-            | 15808..=15809
-            | 15811..=15812
-            | 15880..=15881
-            | 15883..=15884
-            | 15916..=15917
-            | 15919..=15920
-            | 16096..=16097
-            | 16099..=16100
-            | 16132..=16133
-            | 16135..=16136
-            | 16204..=16205
-            | 16207..=16208
-            | 16240..=16241
-            | 16243..=16244
-            | 16420..=16421
-            | 16423..=16424
-            | 16456..=16457
-            | 16459..=16460
-            | 16528..=16529
-            | 16531..=16532
-            | 16564..=16565
-            | 16567..=16568
-            | 16744..=16745
-            | 16747..=16748
-            | 16780..=16781
-            | 16783..=16784
-            | 16852..=16853
-            | 16855..=16856
-            | 16888..=16889
-            | 16891..=16892
-            | 17068..=17069
-            | 17071..=17072
-            | 17104..=17105
-            | 17107..=17108
-            | 17176..=17177
-            | 17179..=17180
-            | 17212..=17213
-            | 17215..=17216
-            | 17392..=17393
-            | 17395..=17396
-            | 17428..=17429
-            | 17431..=17432
-            | 17500..=17501
-            | 17503..=17504
-            | 17536..=17537
-            | 17539..=17540
-            | 17716..=17717
-            | 17719..=17720
-            | 17752..=17753
-            | 17755..=17756
-            | 17824..=17825
-            | 17827..=17828
-            | 17860..=17861
-            | 17863..=17864
-            | 18040..=18041
-            | 18043..=18044
-            | 18076..=18077
-            | 18079..=18080
-            | 18148..=18149
-            | 18151..=18152
-            | 18184..=18185
-            | 18187..=18188
-            | 19533..=19534
-            | 19536..=19537
-            | 19569..=19570
-            | 19572..=19573
-            | 19641..=19642
-            | 19644..=19645
-            | 19677..=19678
-            | 19680..=19681
-            | 19953..=19954
-            | 19956..=19957
-            | 19989..=19990
-            | 19992..=19993
-            | 20061..=20062
-            | 20064..=20065
-            | 20097..=20098
-            | 20100..=20101
-            | 20390..=20391
-            | 20393..=20394
-            | 20426..=20427
-            | 20429..=20430
-            | 20498..=20499
-            | 20501..=20502
-            | 20534..=20535
-            | 20537..=20538
-            | 22288..=22289
-            | 22291..=22292
-            | 22324..=22325
-            | 22327..=22328
-            | 22396..=22397
-            | 22399..=22400
-            | 22432..=22433
-            | 22435..=22436
-            | 22699..=22700
-            | 22702..=22703
-            | 22735..=22736
-            | 22738..=22739
-            | 22807..=22808
-            | 22810..=22811
-            | 22843..=22844
-            | 22846..=22847
-            | 23110..=23111
-            | 23113..=23114
-            | 23146..=23147
-            | 23149..=23150
-            | 23218..=23219
-            | 23221..=23222
-            | 23254..=23255
-            | 23257..=23258
-            | 23521..=23522
-            | 23524..=23525
-            | 23557..=23558
-            | 23560..=23561
-            | 23629..=23630
-            | 23632..=23633
-            | 23665..=23666
-            | 23668..=23669 => &SHAPE165,
-            8071 | 8074 | 8083 | 8086 | 8107 | 8110 | 8119 | 8122 | 8179 | 8182 | 8191 | 8194
-            | 8215 | 8218 | 8227 | 8230 | 8395 | 8398 | 8407 | 8410 | 8431 | 8434 | 8443 | 8446
-            | 8503 | 8506 | 8515 | 8518 | 8539 | 8542 | 8551 | 8554 | 14157 | 14160 | 14169
-            | 14172 | 14193 | 14196 | 14205 | 14208 | 14265 | 14268 | 14277 | 14280 | 14301
-            | 14304 | 14313 | 14316 | 14481 | 14484 | 14493 | 14496 | 14517 | 14520 | 14529
-            | 14532 | 14589 | 14592 | 14601 | 14604 | 14625 | 14628 | 14637 | 14640 | 14805
-            | 14808 | 14817 | 14820 | 14841 | 14844 | 14853 | 14856 | 14913 | 14916 | 14925
-            | 14928 | 14949 | 14952 | 14961 | 14964 | 15129 | 15132 | 15141 | 15144 | 15165
-            | 15168 | 15177 | 15180 | 15237 | 15240 | 15249 | 15252 | 15273 | 15276 | 15285
-            | 15288 | 15453 | 15456 | 15465 | 15468 | 15489 | 15492 | 15501 | 15504 | 15561
-            | 15564 | 15573 | 15576 | 15597 | 15600 | 15609 | 15612 | 15777 | 15780 | 15789
-            | 15792 | 15813 | 15816 | 15825 | 15828 | 15885 | 15888 | 15897 | 15900 | 15921
-            | 15924 | 15933 | 15936 | 16101 | 16104 | 16113 | 16116 | 16137 | 16140 | 16149
-            | 16152 | 16209 | 16212 | 16221 | 16224 | 16245 | 16248 | 16257 | 16260 | 16425
-            | 16428 | 16437 | 16440 | 16461 | 16464 | 16473 | 16476 | 16533 | 16536 | 16545
-            | 16548 | 16569 | 16572 | 16581 | 16584 | 16749 | 16752 | 16761 | 16764 | 16785
-            | 16788 | 16797 | 16800 | 16857 | 16860 | 16869 | 16872 | 16893 | 16896 | 16905
-            | 16908 | 17073 | 17076 | 17085 | 17088 | 17109 | 17112 | 17121 | 17124 | 17181
-            | 17184 | 17193 | 17196 | 17217 | 17220 | 17229 | 17232 | 17397 | 17400 | 17409
-            | 17412 | 17433 | 17436 | 17445 | 17448 | 17505 | 17508 | 17517 | 17520 | 17541
-            | 17544 | 17553 | 17556 | 17721 | 17724 | 17733 | 17736 | 17757 | 17760 | 17769
-            | 17772 | 17829 | 17832 | 17841 | 17844 | 17865 | 17868 | 17877 | 17880 | 18045
-            | 18048 | 18057 | 18060 | 18081 | 18084 | 18093 | 18096 | 18153 | 18156 | 18165
-            | 18168 | 18189 | 18192 | 18201 | 18204 | 19538 | 19541 | 19550 | 19553 | 19574
-            | 19577 | 19586 | 19589 | 19646 | 19649 | 19658 | 19661 | 19682 | 19685 | 19694
-            | 19697 | 19958 | 19961 | 19970 | 19973 | 19994 | 19997 | 20006 | 20009 | 20066
-            | 20069 | 20078 | 20081 | 20102 | 20105 | 20114 | 20117 | 20395 | 20398 | 20407
-            | 20410 | 20431 | 20434 | 20443 | 20446 | 20503 | 20506 | 20515 | 20518 | 20539
-            | 20542 | 20551 | 20554 | 22293 | 22296 | 22305 | 22308 | 22329 | 22332 | 22341
-            | 22344 | 22401 | 22404 | 22413 | 22416 | 22437 | 22440 | 22449 | 22452 | 22704
-            | 22707 | 22716 | 22719 | 22740 | 22743 | 22752 | 22755 | 22812 | 22815 | 22824
-            | 22827 | 22848 | 22851 | 22860 | 22863 | 23115 | 23118 | 23127 | 23130 | 23151
-            | 23154 | 23163 | 23166 | 23223 | 23226 | 23235 | 23238 | 23259 | 23262 | 23271
-            | 23274 | 23526 | 23529 | 23538 | 23541 | 23562 | 23565 | 23574 | 23577 | 23634
-            | 23637 | 23646 | 23649 | 23670 | 23673 | 23682 | 23685 => &SHAPE166,
-            8072..=8073
-            | 8075..=8076
-            | 8084..=8085
-            | 8087..=8088
-            | 8108..=8109
-            | 8111..=8112
-            | 8120..=8121
-            | 8123..=8124
-            | 8180..=8181
-            | 8183..=8184
-            | 8192..=8193
-            | 8195..=8196
-            | 8216..=8217
-            | 8219..=8220
-            | 8228..=8229
-            | 8231..=8232
-            | 8396..=8397
-            | 8399..=8400
-            | 8408..=8409
-            | 8411..=8412
-            | 8432..=8433
-            | 8435..=8436
-            | 8444..=8445
-            | 8447..=8448
-            | 8504..=8505
-            | 8507..=8508
-            | 8516..=8517
-            | 8519..=8520
-            | 8540..=8541
-            | 8543..=8544
-            | 8552..=8553
-            | 8555..=8556
-            | 14158..=14159
-            | 14161..=14162
-            | 14170..=14171
-            | 14173..=14174
-            | 14194..=14195
-            | 14197..=14198
-            | 14206..=14207
-            | 14209..=14210
-            | 14266..=14267
-            | 14269..=14270
-            | 14278..=14279
-            | 14281..=14282
-            | 14302..=14303
-            | 14305..=14306
-            | 14314..=14315
-            | 14317..=14318
-            | 14482..=14483
-            | 14485..=14486
-            | 14494..=14495
-            | 14497..=14498
-            | 14518..=14519
-            | 14521..=14522
-            | 14530..=14531
-            | 14533..=14534
-            | 14590..=14591
-            | 14593..=14594
-            | 14602..=14603
-            | 14605..=14606
-            | 14626..=14627
-            | 14629..=14630
-            | 14638..=14639
-            | 14641..=14642
-            | 14806..=14807
-            | 14809..=14810
-            | 14818..=14819
-            | 14821..=14822
-            | 14842..=14843
-            | 14845..=14846
-            | 14854..=14855
-            | 14857..=14858
-            | 14914..=14915
-            | 14917..=14918
-            | 14926..=14927
-            | 14929..=14930
-            | 14950..=14951
-            | 14953..=14954
-            | 14962..=14963
-            | 14965..=14966
-            | 15130..=15131
-            | 15133..=15134
-            | 15142..=15143
-            | 15145..=15146
-            | 15166..=15167
-            | 15169..=15170
-            | 15178..=15179
-            | 15181..=15182
-            | 15238..=15239
-            | 15241..=15242
-            | 15250..=15251
-            | 15253..=15254
-            | 15274..=15275
-            | 15277..=15278
-            | 15286..=15287
-            | 15289..=15290
-            | 15454..=15455
-            | 15457..=15458
-            | 15466..=15467
-            | 15469..=15470
-            | 15490..=15491
-            | 15493..=15494
-            | 15502..=15503
-            | 15505..=15506
-            | 15562..=15563
-            | 15565..=15566
-            | 15574..=15575
-            | 15577..=15578
-            | 15598..=15599
-            | 15601..=15602
-            | 15610..=15611
-            | 15613..=15614
-            | 15778..=15779
-            | 15781..=15782
-            | 15790..=15791
-            | 15793..=15794
-            | 15814..=15815
-            | 15817..=15818
-            | 15826..=15827
-            | 15829..=15830
-            | 15886..=15887
-            | 15889..=15890
-            | 15898..=15899
-            | 15901..=15902
-            | 15922..=15923
-            | 15925..=15926
-            | 15934..=15935
-            | 15937..=15938
-            | 16102..=16103
-            | 16105..=16106
-            | 16114..=16115
-            | 16117..=16118
-            | 16138..=16139
-            | 16141..=16142
-            | 16150..=16151
-            | 16153..=16154
-            | 16210..=16211
-            | 16213..=16214
-            | 16222..=16223
-            | 16225..=16226
-            | 16246..=16247
-            | 16249..=16250
-            | 16258..=16259
-            | 16261..=16262
-            | 16426..=16427
-            | 16429..=16430
-            | 16438..=16439
-            | 16441..=16442
-            | 16462..=16463
-            | 16465..=16466
-            | 16474..=16475
-            | 16477..=16478
-            | 16534..=16535
-            | 16537..=16538
-            | 16546..=16547
-            | 16549..=16550
-            | 16570..=16571
-            | 16573..=16574
-            | 16582..=16583
-            | 16585..=16586
-            | 16750..=16751
-            | 16753..=16754
-            | 16762..=16763
-            | 16765..=16766
-            | 16786..=16787
-            | 16789..=16790
-            | 16798..=16799
-            | 16801..=16802
-            | 16858..=16859
-            | 16861..=16862
-            | 16870..=16871
-            | 16873..=16874
-            | 16894..=16895
-            | 16897..=16898
-            | 16906..=16907
-            | 16909..=16910
-            | 17074..=17075
-            | 17077..=17078
-            | 17086..=17087
-            | 17089..=17090
-            | 17110..=17111
-            | 17113..=17114
-            | 17122..=17123
-            | 17125..=17126
-            | 17182..=17183
-            | 17185..=17186
-            | 17194..=17195
-            | 17197..=17198
-            | 17218..=17219
-            | 17221..=17222
-            | 17230..=17231
-            | 17233..=17234
-            | 17398..=17399
-            | 17401..=17402
-            | 17410..=17411
-            | 17413..=17414
-            | 17434..=17435
-            | 17437..=17438
-            | 17446..=17447
-            | 17449..=17450
-            | 17506..=17507
-            | 17509..=17510
-            | 17518..=17519
-            | 17521..=17522
-            | 17542..=17543
-            | 17545..=17546
-            | 17554..=17555
-            | 17557..=17558
-            | 17722..=17723
-            | 17725..=17726
-            | 17734..=17735
-            | 17737..=17738
-            | 17758..=17759
-            | 17761..=17762
-            | 17770..=17771
-            | 17773..=17774
-            | 17830..=17831
-            | 17833..=17834
-            | 17842..=17843
-            | 17845..=17846
-            | 17866..=17867
-            | 17869..=17870
-            | 17878..=17879
-            | 17881..=17882
-            | 18046..=18047
-            | 18049..=18050
-            | 18058..=18059
-            | 18061..=18062
-            | 18082..=18083
-            | 18085..=18086
-            | 18094..=18095
-            | 18097..=18098
-            | 18154..=18155
-            | 18157..=18158
-            | 18166..=18167
-            | 18169..=18170
-            | 18190..=18191
-            | 18193..=18194
-            | 18202..=18203
-            | 18205..=18206
-            | 19539..=19540
-            | 19542..=19543
-            | 19551..=19552
-            | 19554..=19555
-            | 19575..=19576
-            | 19578..=19579
-            | 19587..=19588
-            | 19590..=19591
-            | 19647..=19648
-            | 19650..=19651
-            | 19659..=19660
-            | 19662..=19663
-            | 19683..=19684
-            | 19686..=19687
-            | 19695..=19696
-            | 19698..=19699
-            | 19959..=19960
-            | 19962..=19963
-            | 19971..=19972
-            | 19974..=19975
-            | 19995..=19996
-            | 19998..=19999
-            | 20007..=20008
-            | 20010..=20011
-            | 20067..=20068
-            | 20070..=20071
-            | 20079..=20080
-            | 20082..=20083
-            | 20103..=20104
-            | 20106..=20107
-            | 20115..=20116
-            | 20118..=20119
-            | 20396..=20397
-            | 20399..=20400
-            | 20408..=20409
-            | 20411..=20412
-            | 20432..=20433
-            | 20435..=20436
-            | 20444..=20445
-            | 20447..=20448
-            | 20504..=20505
-            | 20507..=20508
-            | 20516..=20517
-            | 20519..=20520
-            | 20540..=20541
-            | 20543..=20544
-            | 20552..=20553
-            | 20555..=20556
-            | 22294..=22295
-            | 22297..=22298
-            | 22306..=22307
-            | 22309..=22310
-            | 22330..=22331
-            | 22333..=22334
-            | 22342..=22343
-            | 22345..=22346
-            | 22402..=22403
-            | 22405..=22406
-            | 22414..=22415
-            | 22417..=22418
-            | 22438..=22439
-            | 22441..=22442
-            | 22450..=22451
-            | 22453..=22454
-            | 22705..=22706
-            | 22708..=22709
-            | 22717..=22718
-            | 22720..=22721
-            | 22741..=22742
-            | 22744..=22745
-            | 22753..=22754
-            | 22756..=22757
-            | 22813..=22814
-            | 22816..=22817
-            | 22825..=22826
-            | 22828..=22829
-            | 22849..=22850
-            | 22852..=22853
-            | 22861..=22862
-            | 22864..=22865
-            | 23116..=23117
-            | 23119..=23120
-            | 23128..=23129
-            | 23131..=23132
-            | 23152..=23153
-            | 23155..=23156
-            | 23164..=23165
-            | 23167..=23168
-            | 23224..=23225
-            | 23227..=23228
-            | 23236..=23237
-            | 23239..=23240
-            | 23260..=23261
-            | 23263..=23264
-            | 23272..=23273
-            | 23275..=23276
-            | 23527..=23528
-            | 23530..=23531
-            | 23539..=23540
-            | 23542..=23543
-            | 23563..=23564
-            | 23566..=23567
-            | 23575..=23576
-            | 23578..=23579
-            | 23635..=23636
-            | 23638..=23639
-            | 23647..=23648
-            | 23650..=23651
-            | 23671..=23672
-            | 23674..=23675
-            | 23683..=23684
-            | 23686..=23687 => &SHAPE167,
-            8077 | 8080 | 8089 | 8092 | 8113 | 8116 | 8125 | 8128 | 8185 | 8188 | 8197 | 8200
-            | 8221 | 8224 | 8233 | 8236 | 8401 | 8404 | 8413 | 8416 | 8437 | 8440 | 8449 | 8452
-            | 8509 | 8512 | 8521 | 8524 | 8545 | 8548 | 8557 | 8560 | 14163 | 14166 | 14175
-            | 14178 | 14199 | 14202 | 14211 | 14214 | 14271 | 14274 | 14283 | 14286 | 14307
-            | 14310 | 14319 | 14322 | 14487 | 14490 | 14499 | 14502 | 14523 | 14526 | 14535
-            | 14538 | 14595 | 14598 | 14607 | 14610 | 14631 | 14634 | 14643 | 14646 | 14811
-            | 14814 | 14823 | 14826 | 14847 | 14850 | 14859 | 14862 | 14919 | 14922 | 14931
-            | 14934 | 14955 | 14958 | 14967 | 14970 | 15135 | 15138 | 15147 | 15150 | 15171
-            | 15174 | 15183 | 15186 | 15243 | 15246 | 15255 | 15258 | 15279 | 15282 | 15291
-            | 15294 | 15459 | 15462 | 15471 | 15474 | 15495 | 15498 | 15507 | 15510 | 15567
-            | 15570 | 15579 | 15582 | 15603 | 15606 | 15615 | 15618 | 15783 | 15786 | 15795
-            | 15798 | 15819 | 15822 | 15831 | 15834 | 15891 | 15894 | 15903 | 15906 | 15927
-            | 15930 | 15939 | 15942 | 16107 | 16110 | 16119 | 16122 | 16143 | 16146 | 16155
-            | 16158 | 16215 | 16218 | 16227 | 16230 | 16251 | 16254 | 16263 | 16266 | 16431
-            | 16434 | 16443 | 16446 | 16467 | 16470 | 16479 | 16482 | 16539 | 16542 | 16551
-            | 16554 | 16575 | 16578 | 16587 | 16590 | 16755 | 16758 | 16767 | 16770 | 16791
-            | 16794 | 16803 | 16806 | 16863 | 16866 | 16875 | 16878 | 16899 | 16902 | 16911
-            | 16914 | 17079 | 17082 | 17091 | 17094 | 17115 | 17118 | 17127 | 17130 | 17187
-            | 17190 | 17199 | 17202 | 17223 | 17226 | 17235 | 17238 | 17403 | 17406 | 17415
-            | 17418 | 17439 | 17442 | 17451 | 17454 | 17511 | 17514 | 17523 | 17526 | 17547
-            | 17550 | 17559 | 17562 | 17727 | 17730 | 17739 | 17742 | 17763 | 17766 | 17775
-            | 17778 | 17835 | 17838 | 17847 | 17850 | 17871 | 17874 | 17883 | 17886 | 18051
-            | 18054 | 18063 | 18066 | 18087 | 18090 | 18099 | 18102 | 18159 | 18162 | 18171
-            | 18174 | 18195 | 18198 | 18207 | 18210 | 19544 | 19547 | 19556 | 19559 | 19580
-            | 19583 | 19592 | 19595 | 19652 | 19655 | 19664 | 19667 | 19688 | 19691 | 19700
-            | 19703 | 19964 | 19967 | 19976 | 19979 | 20000 | 20003 | 20012 | 20015 | 20072
-            | 20075 | 20084 | 20087 | 20108 | 20111 | 20120 | 20123 | 20401 | 20404 | 20413
-            | 20416 | 20437 | 20440 | 20449 | 20452 | 20509 | 20512 | 20521 | 20524 | 20545
-            | 20548 | 20557 | 20560 | 22299 | 22302 | 22311 | 22314 | 22335 | 22338 | 22347
-            | 22350 | 22407 | 22410 | 22419 | 22422 | 22443 | 22446 | 22455 | 22458 | 22710
-            | 22713 | 22722 | 22725 | 22746 | 22749 | 22758 | 22761 | 22818 | 22821 | 22830
-            | 22833 | 22854 | 22857 | 22866 | 22869 | 23121 | 23124 | 23133 | 23136 | 23157
-            | 23160 | 23169 | 23172 | 23229 | 23232 | 23241 | 23244 | 23265 | 23268 | 23277
-            | 23280 | 23532 | 23535 | 23544 | 23547 | 23568 | 23571 | 23580 | 23583 | 23640
-            | 23643 | 23652 | 23655 | 23676 | 23679 | 23688 | 23691 => &SHAPE168,
-            8078..=8079
-            | 8081..=8082
-            | 8090..=8091
-            | 8093..=8094
-            | 8114..=8115
-            | 8117..=8118
-            | 8126..=8127
-            | 8129..=8130
-            | 8186..=8187
-            | 8189..=8190
-            | 8198..=8199
-            | 8201..=8202
-            | 8222..=8223
-            | 8225..=8226
-            | 8234..=8235
-            | 8237..=8238
-            | 8402..=8403
-            | 8405..=8406
-            | 8414..=8415
-            | 8417..=8418
-            | 8438..=8439
-            | 8441..=8442
-            | 8450..=8451
-            | 8453..=8454
-            | 8510..=8511
-            | 8513..=8514
-            | 8522..=8523
-            | 8525..=8526
-            | 8546..=8547
-            | 8549..=8550
-            | 8558..=8559
-            | 8561..=8562
-            | 14164..=14165
-            | 14167..=14168
-            | 14176..=14177
-            | 14179..=14180
-            | 14200..=14201
-            | 14203..=14204
-            | 14212..=14213
-            | 14215..=14216
-            | 14272..=14273
-            | 14275..=14276
-            | 14284..=14285
-            | 14287..=14288
-            | 14308..=14309
-            | 14311..=14312
-            | 14320..=14321
-            | 14323..=14324
-            | 14488..=14489
-            | 14491..=14492
-            | 14500..=14501
-            | 14503..=14504
-            | 14524..=14525
-            | 14527..=14528
-            | 14536..=14537
-            | 14539..=14540
-            | 14596..=14597
-            | 14599..=14600
-            | 14608..=14609
-            | 14611..=14612
-            | 14632..=14633
-            | 14635..=14636
-            | 14644..=14645
-            | 14647..=14648
-            | 14812..=14813
-            | 14815..=14816
-            | 14824..=14825
-            | 14827..=14828
-            | 14848..=14849
-            | 14851..=14852
-            | 14860..=14861
-            | 14863..=14864
-            | 14920..=14921
-            | 14923..=14924
-            | 14932..=14933
-            | 14935..=14936
-            | 14956..=14957
-            | 14959..=14960
-            | 14968..=14969
-            | 14971..=14972
-            | 15136..=15137
-            | 15139..=15140
-            | 15148..=15149
-            | 15151..=15152
-            | 15172..=15173
-            | 15175..=15176
-            | 15184..=15185
-            | 15187..=15188
-            | 15244..=15245
-            | 15247..=15248
-            | 15256..=15257
-            | 15259..=15260
-            | 15280..=15281
-            | 15283..=15284
-            | 15292..=15293
-            | 15295..=15296
-            | 15460..=15461
-            | 15463..=15464
-            | 15472..=15473
-            | 15475..=15476
-            | 15496..=15497
-            | 15499..=15500
-            | 15508..=15509
-            | 15511..=15512
-            | 15568..=15569
-            | 15571..=15572
-            | 15580..=15581
-            | 15583..=15584
-            | 15604..=15605
-            | 15607..=15608
-            | 15616..=15617
-            | 15619..=15620
-            | 15784..=15785
-            | 15787..=15788
-            | 15796..=15797
-            | 15799..=15800
-            | 15820..=15821
-            | 15823..=15824
-            | 15832..=15833
-            | 15835..=15836
-            | 15892..=15893
-            | 15895..=15896
-            | 15904..=15905
-            | 15907..=15908
-            | 15928..=15929
-            | 15931..=15932
-            | 15940..=15941
-            | 15943..=15944
-            | 16108..=16109
-            | 16111..=16112
-            | 16120..=16121
-            | 16123..=16124
-            | 16144..=16145
-            | 16147..=16148
-            | 16156..=16157
-            | 16159..=16160
-            | 16216..=16217
-            | 16219..=16220
-            | 16228..=16229
-            | 16231..=16232
-            | 16252..=16253
-            | 16255..=16256
-            | 16264..=16265
-            | 16267..=16268
-            | 16432..=16433
-            | 16435..=16436
-            | 16444..=16445
-            | 16447..=16448
-            | 16468..=16469
-            | 16471..=16472
-            | 16480..=16481
-            | 16483..=16484
-            | 16540..=16541
-            | 16543..=16544
-            | 16552..=16553
-            | 16555..=16556
-            | 16576..=16577
-            | 16579..=16580
-            | 16588..=16589
-            | 16591..=16592
-            | 16756..=16757
-            | 16759..=16760
-            | 16768..=16769
-            | 16771..=16772
-            | 16792..=16793
-            | 16795..=16796
-            | 16804..=16805
-            | 16807..=16808
-            | 16864..=16865
-            | 16867..=16868
-            | 16876..=16877
-            | 16879..=16880
-            | 16900..=16901
-            | 16903..=16904
-            | 16912..=16913
-            | 16915..=16916
-            | 17080..=17081
-            | 17083..=17084
-            | 17092..=17093
-            | 17095..=17096
-            | 17116..=17117
-            | 17119..=17120
-            | 17128..=17129
-            | 17131..=17132
-            | 17188..=17189
-            | 17191..=17192
-            | 17200..=17201
-            | 17203..=17204
-            | 17224..=17225
-            | 17227..=17228
-            | 17236..=17237
-            | 17239..=17240
-            | 17404..=17405
-            | 17407..=17408
-            | 17416..=17417
-            | 17419..=17420
-            | 17440..=17441
-            | 17443..=17444
-            | 17452..=17453
-            | 17455..=17456
-            | 17512..=17513
-            | 17515..=17516
-            | 17524..=17525
-            | 17527..=17528
-            | 17548..=17549
-            | 17551..=17552
-            | 17560..=17561
-            | 17563..=17564
-            | 17728..=17729
-            | 17731..=17732
-            | 17740..=17741
-            | 17743..=17744
-            | 17764..=17765
-            | 17767..=17768
-            | 17776..=17777
-            | 17779..=17780
-            | 17836..=17837
-            | 17839..=17840
-            | 17848..=17849
-            | 17851..=17852
-            | 17872..=17873
-            | 17875..=17876
-            | 17884..=17885
-            | 17887..=17888
-            | 18052..=18053
-            | 18055..=18056
-            | 18064..=18065
-            | 18067..=18068
-            | 18088..=18089
-            | 18091..=18092
-            | 18100..=18101
-            | 18103..=18104
-            | 18160..=18161
-            | 18163..=18164
-            | 18172..=18173
-            | 18175..=18176
-            | 18196..=18197
-            | 18199..=18200
-            | 18208..=18209
-            | 18211..=18212
-            | 19545..=19546
-            | 19548..=19549
-            | 19557..=19558
-            | 19560..=19561
-            | 19581..=19582
-            | 19584..=19585
-            | 19593..=19594
-            | 19596..=19597
-            | 19653..=19654
-            | 19656..=19657
-            | 19665..=19666
-            | 19668..=19669
-            | 19689..=19690
-            | 19692..=19693
-            | 19701..=19702
-            | 19704..=19705
-            | 19965..=19966
-            | 19968..=19969
-            | 19977..=19978
-            | 19980..=19981
-            | 20001..=20002
-            | 20004..=20005
-            | 20013..=20014
-            | 20016..=20017
-            | 20073..=20074
-            | 20076..=20077
-            | 20085..=20086
-            | 20088..=20089
-            | 20109..=20110
-            | 20112..=20113
-            | 20121..=20122
-            | 20124..=20125
-            | 20402..=20403
-            | 20405..=20406
-            | 20414..=20415
-            | 20417..=20418
-            | 20438..=20439
-            | 20441..=20442
-            | 20450..=20451
-            | 20453..=20454
-            | 20510..=20511
-            | 20513..=20514
-            | 20522..=20523
-            | 20525..=20526
-            | 20546..=20547
-            | 20549..=20550
-            | 20558..=20559
-            | 20561..=20562
-            | 22300..=22301
-            | 22303..=22304
-            | 22312..=22313
-            | 22315..=22316
-            | 22336..=22337
-            | 22339..=22340
-            | 22348..=22349
-            | 22351..=22352
-            | 22408..=22409
-            | 22411..=22412
-            | 22420..=22421
-            | 22423..=22424
-            | 22444..=22445
-            | 22447..=22448
-            | 22456..=22457
-            | 22459..=22460
-            | 22711..=22712
-            | 22714..=22715
-            | 22723..=22724
-            | 22726..=22727
-            | 22747..=22748
-            | 22750..=22751
-            | 22759..=22760
-            | 22762..=22763
-            | 22819..=22820
-            | 22822..=22823
-            | 22831..=22832
-            | 22834..=22835
-            | 22855..=22856
-            | 22858..=22859
-            | 22867..=22868
-            | 22870..=22871
-            | 23122..=23123
-            | 23125..=23126
-            | 23134..=23135
-            | 23137..=23138
-            | 23158..=23159
-            | 23161..=23162
-            | 23170..=23171
-            | 23173..=23174
-            | 23230..=23231
-            | 23233..=23234
-            | 23242..=23243
-            | 23245..=23246
-            | 23266..=23267
-            | 23269..=23270
-            | 23278..=23279
-            | 23281..=23282
-            | 23533..=23534
-            | 23536..=23537
-            | 23545..=23546
-            | 23548..=23549
-            | 23569..=23570
-            | 23572..=23573
-            | 23581..=23582
-            | 23584..=23585
-            | 23641..=23642
-            | 23644..=23645
-            | 23653..=23654
-            | 23656..=23657
-            | 23677..=23678
-            | 23680..=23681
-            | 23689..=23690
-            | 23692..=23693 => &SHAPE169,
-            8563..=8590 | 12798 | 19296..=19299 | 23704..=23705 => &SHAPE31,
-            8823..=8838 | 8843..=8858 | 8863..=8878 | 8883..=8898 | 8903..=8918 | 8923..=8938 => {
-                &SHAPE172
-            }
-            8839 | 8859 | 8879 | 8899 | 8919 | 8939 => &SHAPE173,
-            8840 | 8860 | 8880 | 8900 | 8920 | 8940 => &SHAPE174,
-            8841 | 8861 | 8881 | 8901 | 8921 | 8941 => &SHAPE175,
-            8842 | 8862 | 8882 | 8902 | 8922 | 8942 => &SHAPE176,
-            8943..=8958 => &SHAPE177,
-            8959 => &SHAPE178,
-            8960 => &SHAPE179,
-            8961 => &SHAPE180,
-            8962 => &SHAPE181,
-            8963..=8964 | 8967..=8968 | 8971..=8972 => &SHAPE182,
-            8965..=8966 | 8969..=8970 | 8973..=8974 => &SHAPE183,
-            9081 | 9086 => &SHAPE184,
-            9082 | 9087 => &SHAPE185,
-            9083 | 9088 => &SHAPE186,
-            9084 | 9089 => &SHAPE187,
-            9085 | 9090 => &SHAPE188,
-            10561..=10562
+            | 5618..=5621 => &SHAPE69,
+            5542..=5545
+            | 5550..=5553
+            | 5558..=5561
+            | 5566..=5569
+            | 5574..=5577
+            | 5582..=5585
+            | 5590..=5593
+            | 5598..=5601
+            | 5606..=5609
+            | 5614..=5617
+            | 5622..=5625 => &SHAPE70,
+            5773 | 5882..=5945 | 9035..=9050 => &SHAPE7,
+            5774 => &SHAPE58,
+            5775 | 9051..=9082 => &SHAPE59,
+            5776
             | 10567..=10568
             | 10573..=10574
-            | 11017..=11018
+            | 10579..=10580
             | 11023..=11024
             | 11029..=11030
             | 11035..=11036
@@ -7773,9 +4706,3084 @@ impl BlockWithShape for BlockState {
             | 11143..=11144
             | 11149..=11150
             | 11155..=11156
-            | 13923..=13924
-            | 13929..=13930
-            | 13935..=13936
+            | 11161..=11162
+            | 13943..=13944
+            | 13949..=13950
+            | 13955..=13956
+            | 13961..=13962
+            | 13967..=13968
+            | 13973..=13974
+            | 13979..=13980
+            | 13985..=13986
+            | 13991..=13992
+            | 13997..=13998
+            | 14003..=14004
+            | 14009..=14010
+            | 14015..=14016
+            | 18529..=18530
+            | 18535..=18536
+            | 19726..=19727
+            | 19736..=19737
+            | 20227..=20228
+            | 20944..=21423
+            | 21555..=21562
+            | 21895..=21896
+            | 21901..=21902
+            | 21907..=21908
+            | 21913..=21914
+            | 22247..=22248
+            | 22253..=22254
+            | 22259..=22260
+            | 22265..=22266
+            | 22535..=22536
+            | 22946..=22947
+            | 23357..=23358
+            | 23768..=23769 => &SHAPE8,
+            5777 => &SHAPE60,
+            5779 | 5851 | 22448 => &SHAPE61,
+            5782..=5797 | 19304 => &SHAPE71,
+            5817 | 5819 | 7273 | 7275 | 11425 | 11427 | 11457 | 11459 | 11489 | 11491 | 11521
+            | 11523 | 11553 | 11555 | 11585 | 11587 | 11617 | 11619 | 11649 | 11651 | 18543
+            | 18545 | 18575 | 18577 => &SHAPE74,
+            5818 | 5820 | 7274 | 7276 | 11426 | 11428 | 11458 | 11460 | 11490 | 11492 | 11522
+            | 11524 | 11554 | 11556 | 11586 | 11588 | 11618 | 11620 | 11650 | 11652 | 18544
+            | 18546 | 18576 | 18578 => &SHAPE75,
+            5821 | 5823 | 7277 | 7279 | 11429 | 11431 | 11461 | 11463 | 11493 | 11495 | 11525
+            | 11527 | 11557 | 11559 | 11589 | 11591 | 11621 | 11623 | 11653 | 11655 | 18547
+            | 18549 | 18579 | 18581 => &SHAPE76,
+            5822 | 5824 | 7278 | 7280 | 11430 | 11432 | 11462 | 11464 | 11494 | 11496 | 11526
+            | 11528 | 11558 | 11560 | 11590 | 11592 | 11622 | 11624 | 11654 | 11656 | 18548
+            | 18550 | 18580 | 18582 => &SHAPE77,
+            5825 | 5827 | 7281 | 7283 | 11433 | 11435 | 11465 | 11467 | 11497 | 11499 | 11529
+            | 11531 | 11561 | 11563 | 11593 | 11595 | 11625 | 11627 | 11657 | 11659 | 18551
+            | 18553 | 18583 | 18585 => &SHAPE78,
+            5826 | 5828 | 7282 | 7284 | 11434 | 11436 | 11466 | 11468 | 11498 | 11500 | 11530
+            | 11532 | 11562 | 11564 | 11594 | 11596 | 11626 | 11628 | 11658 | 11660 | 18552
+            | 18554 | 18584 | 18586 => &SHAPE79,
+            5829
+            | 5831
+            | 6999..=7000
+            | 7003..=7004
+            | 7007..=7008
+            | 7011..=7012
+            | 7285
+            | 7287
+            | 11171..=11172
+            | 11175..=11176
+            | 11179..=11180
+            | 11183..=11184
+            | 11203..=11204
+            | 11207..=11208
+            | 11211..=11212
+            | 11215..=11216
+            | 11235..=11236
+            | 11239..=11240
+            | 11243..=11244
+            | 11247..=11248
+            | 11267..=11268
+            | 11271..=11272
+            | 11275..=11276
+            | 11279..=11280
+            | 11299..=11300
+            | 11303..=11304
+            | 11307..=11308
+            | 11311..=11312
+            | 11331..=11332
+            | 11335..=11336
+            | 11339..=11340
+            | 11343..=11344
+            | 11363..=11364
+            | 11367..=11368
+            | 11371..=11372
+            | 11375..=11376
+            | 11395..=11396
+            | 11399..=11400
+            | 11403..=11404
+            | 11407..=11408
+            | 11437
+            | 11439
+            | 11469
+            | 11471
+            | 11501
+            | 11503
+            | 11533
+            | 11535
+            | 11565
+            | 11567
+            | 11597
+            | 11599
+            | 11629
+            | 11631
+            | 11661
+            | 11663
+            | 18555
+            | 18557
+            | 18587
+            | 18589
+            | 18737..=18738
+            | 18741..=18742
+            | 18745..=18746
+            | 18749..=18750
+            | 18769..=18770
+            | 18773..=18774
+            | 18777..=18778
+            | 18781..=18782 => &SHAPE80,
+            5830 | 5832 | 7286 | 7288 | 11438 | 11440 | 11470 | 11472 | 11502 | 11504 | 11534
+            | 11536 | 11566 | 11568 | 11598 | 11600 | 11630 | 11632 | 11662 | 11664 | 18556
+            | 18558 | 18588 | 18590 => &SHAPE81,
+            5833 | 5835 | 7289 | 7291 | 11441 | 11443 | 11473 | 11475 | 11505 | 11507 | 11537
+            | 11539 | 11569 | 11571 | 11601 | 11603 | 11633 | 11635 | 11665 | 11667 | 18559
+            | 18561 | 18591 | 18593 => &SHAPE82,
+            5834
+            | 5836
+            | 7015..=7016
+            | 7019..=7020
+            | 7023..=7024
+            | 7027..=7028
+            | 7290
+            | 7292
+            | 11187..=11188
+            | 11191..=11192
+            | 11195..=11196
+            | 11199..=11200
+            | 11219..=11220
+            | 11223..=11224
+            | 11227..=11228
+            | 11231..=11232
+            | 11251..=11252
+            | 11255..=11256
+            | 11259..=11260
+            | 11263..=11264
+            | 11283..=11284
+            | 11287..=11288
+            | 11291..=11292
+            | 11295..=11296
+            | 11315..=11316
+            | 11319..=11320
+            | 11323..=11324
+            | 11327..=11328
+            | 11347..=11348
+            | 11351..=11352
+            | 11355..=11356
+            | 11359..=11360
+            | 11379..=11380
+            | 11383..=11384
+            | 11387..=11388
+            | 11391..=11392
+            | 11411..=11412
+            | 11415..=11416
+            | 11419..=11420
+            | 11423..=11424
+            | 11442
+            | 11444
+            | 11474
+            | 11476
+            | 11506
+            | 11508
+            | 11538
+            | 11540
+            | 11570
+            | 11572
+            | 11602
+            | 11604
+            | 11634
+            | 11636
+            | 11666
+            | 11668
+            | 18560
+            | 18562
+            | 18592
+            | 18594
+            | 18753..=18754
+            | 18757..=18758
+            | 18761..=18762
+            | 18765..=18766
+            | 18785..=18786
+            | 18789..=18790
+            | 18793..=18794
+            | 18797..=18798 => &SHAPE83,
+            5837 | 5839 | 7293 | 7295 | 11445 | 11447 | 11477 | 11479 | 11509 | 11511 | 11541
+            | 11543 | 11573 | 11575 | 11605 | 11607 | 11637 | 11639 | 11669 | 11671 | 18563
+            | 18565 | 18595 | 18597 => &SHAPE84,
+            5838 | 5840 | 7294 | 7296 | 11446 | 11448 | 11478 | 11480 | 11510 | 11512 | 11542
+            | 11544 | 11574 | 11576 | 11606 | 11608 | 11638 | 11640 | 11670 | 11672 | 18564
+            | 18566 | 18596 | 18598 => &SHAPE85,
+            5841 | 5843 | 7297 | 7299 | 11449 | 11451 | 11481 | 11483 | 11513 | 11515 | 11545
+            | 11547 | 11577 | 11579 | 11609 | 11611 | 11641 | 11643 | 11673 | 11675 | 18567
+            | 18569 | 18599 | 18601 => &SHAPE86,
+            5842 | 5844 | 7298 | 7300 | 11450 | 11452 | 11482 | 11484 | 11514 | 11516 | 11546
+            | 11548 | 11578 | 11580 | 11610 | 11612 | 11642 | 11644 | 11674 | 11676 | 18568
+            | 18570 | 18600 | 18602 => &SHAPE87,
+            5845 | 5847 | 7301 | 7303 | 11453 | 11455 | 11485 | 11487 | 11517 | 11519 | 11549
+            | 11551 | 11581 | 11583 | 11613 | 11615 | 11645 | 11647 | 11677 | 11679 | 18571
+            | 18573 | 18603 | 18605 => &SHAPE88,
+            5846 | 5848 | 7302 | 7304 | 11454 | 11456 | 11486 | 11488 | 11518 | 11520 | 11550
+            | 11552 | 11582 | 11584 | 11614 | 11616 | 11646 | 11648 | 11678 | 11680 | 18572
+            | 18574 | 18604 | 18606 => &SHAPE89,
+            5875 => &SHAPE91,
+            5876 => &SHAPE92,
+            5877 => &SHAPE93,
+            5878 => &SHAPE94,
+            5879 => &SHAPE95,
+            5880 => &SHAPE96,
+            5881 => &SHAPE97,
+            5966..=5969
+            | 5982..=5985
+            | 5998..=6001
+            | 6014..=6017
+            | 6030..=6033
+            | 6046..=6049
+            | 6062..=6065
+            | 6078..=6081
+            | 6094..=6097
+            | 6110..=6113
+            | 6126..=6129
+            | 6142..=6145
+            | 6158..=6161
+            | 6174..=6177
+            | 6190..=6193
+            | 6206..=6209
+            | 6222..=6225
+            | 6238..=6241
+            | 6254..=6257
+            | 6270..=6273
+            | 6286..=6289
+            | 6302..=6305
+            | 6318..=6321
+            | 6334..=6337
+            | 6350..=6353
+            | 6366..=6369
+            | 6382..=6385
+            | 6398..=6401
+            | 6414..=6417
+            | 6430..=6433
+            | 6446..=6449
+            | 6462..=6465
+            | 6478..=6481
+            | 6494..=6497
+            | 6510..=6513
+            | 6526..=6529
+            | 10262..=10265
+            | 10278..=10281
+            | 10294..=10297
+            | 10310..=10313
+            | 18611..=18614
+            | 18627..=18630
+            | 18643..=18646
+            | 18659..=18662
+            | 18675..=18678
+            | 18691..=18694
+            | 18707..=18710
+            | 18723..=18726 => &SHAPE98,
+            5974..=5977
+            | 5990..=5993
+            | 6006..=6009
+            | 6022..=6025
+            | 6038..=6041
+            | 6054..=6057
+            | 6070..=6073
+            | 6086..=6089
+            | 6102..=6105
+            | 6118..=6121
+            | 6134..=6137
+            | 6150..=6153
+            | 6166..=6169
+            | 6182..=6185
+            | 6198..=6201
+            | 6214..=6217
+            | 6230..=6233
+            | 6246..=6249
+            | 6262..=6265
+            | 6278..=6281
+            | 6294..=6297
+            | 6310..=6313
+            | 6326..=6329
+            | 6342..=6345
+            | 6358..=6361
+            | 6374..=6377
+            | 6390..=6393
+            | 6406..=6409
+            | 6422..=6425
+            | 6438..=6441
+            | 6454..=6457
+            | 6470..=6473
+            | 6486..=6489
+            | 6502..=6505
+            | 6518..=6521
+            | 6534..=6537
+            | 10270..=10273
+            | 10286..=10289
+            | 10302..=10305
+            | 10318..=10321
+            | 18619..=18622
+            | 18635..=18638
+            | 18651..=18654
+            | 18667..=18670
+            | 18683..=18686
+            | 18699..=18702
+            | 18715..=18718
+            | 18731..=18734 => &SHAPE99,
+            6742 | 6744 | 6780 | 6782 | 9232 | 9234 | 9264 | 9266 | 9296 | 9298 | 9328 | 9330
+            | 9360 | 9362 | 9392 | 9394 | 9424 | 9426 | 9456 | 9458 | 9488 | 9490 | 9520 | 9522
+            | 9552 | 9554 | 9584 | 9586 | 9616 | 9618 | 9648 | 9650 | 9680 | 9682 | 9712 | 9714 => {
+                &SHAPE100
+            }
+            6743 | 6745 | 6781 | 6783 | 9233 | 9235 | 9265 | 9267 | 9297 | 9299 | 9329 | 9331
+            | 9361 | 9363 | 9393 | 9395 | 9425 | 9427 | 9457 | 9459 | 9489 | 9491 | 9521 | 9523
+            | 9553 | 9555 | 9585 | 9587 | 9617 | 9619 | 9649 | 9651 | 9681 | 9683 | 9713 | 9715 => {
+                &SHAPE101
+            }
+            6746 | 6748 | 6784 | 6786 | 9236 | 9238 | 9268 | 9270 | 9300 | 9302 | 9332 | 9334
+            | 9364 | 9366 | 9396 | 9398 | 9428 | 9430 | 9460 | 9462 | 9492 | 9494 | 9524 | 9526
+            | 9556 | 9558 | 9588 | 9590 | 9620 | 9622 | 9652 | 9654 | 9684 | 9686 | 9716 | 9718 => {
+                &SHAPE102
+            }
+            6747 | 6749 | 6785 | 6787 | 9237 | 9239 | 9269 | 9271 | 9301 | 9303 | 9333 | 9335
+            | 9365 | 9367 | 9397 | 9399 | 9429 | 9431 | 9461 | 9463 | 9493 | 9495 | 9525 | 9527
+            | 9557 | 9559 | 9589 | 9591 | 9621 | 9623 | 9653 | 9655 | 9685 | 9687 | 9717 | 9719 => {
+                &SHAPE103
+            }
+            6750 | 6752 | 6788 | 6790 | 9240 | 9242 | 9272 | 9274 | 9304 | 9306 | 9336 | 9338
+            | 9368 | 9370 | 9400 | 9402 | 9432 | 9434 | 9464 | 9466 | 9496 | 9498 | 9528 | 9530
+            | 9560 | 9562 | 9592 | 9594 | 9624 | 9626 | 9656 | 9658 | 9688 | 9690 | 9720 | 9722 => {
+                &SHAPE104
+            }
+            6751 | 6753 | 6789 | 6791 | 9241 | 9243 | 9273 | 9275 | 9305 | 9307 | 9337 | 9339
+            | 9369 | 9371 | 9401 | 9403 | 9433 | 9435 | 9465 | 9467 | 9497 | 9499 | 9529 | 9531
+            | 9561 | 9563 | 9593 | 9595 | 9625 | 9627 | 9657 | 9659 | 9689 | 9691 | 9721 | 9723 => {
+                &SHAPE105
+            }
+            6754 | 6756 | 6792 | 6794 | 9244 | 9246 | 9276 | 9278 | 9308 | 9310 | 9340 | 9342
+            | 9372 | 9374 | 9404 | 9406 | 9436 | 9438 | 9468 | 9470 | 9500 | 9502 | 9532 | 9534
+            | 9564 | 9566 | 9596 | 9598 | 9628 | 9630 | 9660 | 9662 | 9692 | 9694 | 9724 | 9726 => {
+                &SHAPE106
+            }
+            6755 | 6757 | 6793 | 6795 | 9245 | 9247 | 9277 | 9279 | 9309 | 9311 | 9341 | 9343
+            | 9373 | 9375 | 9405 | 9407 | 9437 | 9439 | 9469 | 9471 | 9501 | 9503 | 9533 | 9535
+            | 9565 | 9567 | 9597 | 9599 | 9629 | 9631 | 9661 | 9663 | 9693 | 9695 | 9725 | 9727 => {
+                &SHAPE107
+            }
+            6758 | 6760 | 6796 | 6798 | 9248 | 9250 | 9280 | 9282 | 9312 | 9314 | 9344 | 9346
+            | 9376 | 9378 | 9408 | 9410 | 9440 | 9442 | 9472 | 9474 | 9504 | 9506 | 9536 | 9538
+            | 9568 | 9570 | 9600 | 9602 | 9632 | 9634 | 9664 | 9666 | 9696 | 9698 | 9728 | 9730 => {
+                &SHAPE108
+            }
+            6759 | 6761 | 6797 | 6799 | 9249 | 9251 | 9281 | 9283 | 9313 | 9315 | 9345 | 9347
+            | 9377 | 9379 | 9409 | 9411 | 9441 | 9443 | 9473 | 9475 | 9505 | 9507 | 9537 | 9539
+            | 9569 | 9571 | 9601 | 9603 | 9633 | 9635 | 9665 | 9667 | 9697 | 9699 | 9729 | 9731 => {
+                &SHAPE109
+            }
+            6762 | 6764 | 6800 | 6802 | 9252 | 9254 | 9284 | 9286 | 9316 | 9318 | 9348 | 9350
+            | 9380 | 9382 | 9412 | 9414 | 9444 | 9446 | 9476 | 9478 | 9508 | 9510 | 9540 | 9542
+            | 9572 | 9574 | 9604 | 9606 | 9636 | 9638 | 9668 | 9670 | 9700 | 9702 | 9732 | 9734 => {
+                &SHAPE110
+            }
+            6763 | 6765 | 6801 | 6803 | 9253 | 9255 | 9285 | 9287 | 9317 | 9319 | 9349 | 9351
+            | 9381 | 9383 | 9413 | 9415 | 9445 | 9447 | 9477 | 9479 | 9509 | 9511 | 9541 | 9543
+            | 9573 | 9575 | 9605 | 9607 | 9637 | 9639 | 9669 | 9671 | 9701 | 9703 | 9733 | 9735 => {
+                &SHAPE111
+            }
+            6766 | 6768 | 6804 | 6806 | 9256 | 9258 | 9288 | 9290 | 9320 | 9322 | 9352 | 9354
+            | 9384 | 9386 | 9416 | 9418 | 9448 | 9450 | 9480 | 9482 | 9512 | 9514 | 9544 | 9546
+            | 9576 | 9578 | 9608 | 9610 | 9640 | 9642 | 9672 | 9674 | 9704 | 9706 | 9736 | 9738 => {
+                &SHAPE112
+            }
+            6767 | 6769 | 6805 | 6807 | 9257 | 9259 | 9289 | 9291 | 9321 | 9323 | 9353 | 9355
+            | 9385 | 9387 | 9417 | 9419 | 9449 | 9451 | 9481 | 9483 | 9513 | 9515 | 9545 | 9547
+            | 9577 | 9579 | 9609 | 9611 | 9641 | 9643 | 9673 | 9675 | 9705 | 9707 | 9737 | 9739 => {
+                &SHAPE113
+            }
+            6770 | 6772 | 6808 | 6810 | 9260 | 9262 | 9292 | 9294 | 9324 | 9326 | 9356 | 9358
+            | 9388 | 9390 | 9420 | 9422 | 9452 | 9454 | 9484 | 9486 | 9516 | 9518 | 9548 | 9550
+            | 9580 | 9582 | 9612 | 9614 | 9644 | 9646 | 9676 | 9678 | 9708 | 9710 | 9740 | 9742 => {
+                &SHAPE114
+            }
+            6771 | 6773 | 6809 | 6811 | 9261 | 9263 | 9293 | 9295 | 9325 | 9327 | 9357 | 9359
+            | 9389 | 9391 | 9421 | 9423 | 9453 | 9455 | 9485 | 9487 | 9517 | 9519 | 9549 | 9551
+            | 9581 | 9583 | 9613 | 9615 | 9645 | 9647 | 9677 | 9679 | 9709 | 9711 | 9741 | 9743 => {
+                &SHAPE2
+            }
+            6774..=6775 => &SHAPE115,
+            6776..=6777 | 12804..=12815 => &SHAPE116,
+            6778..=6779 => &SHAPE117,
+            7271 => &SHAPE119,
+            7390..=7397 => &SHAPE120,
+            7398..=7405 => &SHAPE121,
+            7407..=7410 => &SHAPE122,
+            7411..=7414 => &SHAPE123,
+            7416 | 24119..=24134 => &SHAPE72,
+            7419 => &SHAPE124,
+            7420 => &SHAPE125,
+            7421 => &SHAPE126,
+            7422 => &SHAPE127,
+            7423 => &SHAPE128,
+            7424 => &SHAPE129,
+            7425 => &SHAPE130,
+            7426 => &SHAPE131,
+            7427 => &SHAPE132,
+            7428 => &SHAPE133,
+            7429 => &SHAPE134,
+            7430 => &SHAPE135,
+            7919 | 7922 | 8243 | 8246 | 14019 | 14022 | 14343 | 14346 | 14667 | 14670 | 14991
+            | 14994 | 15315 | 15318 | 15639 | 15642 | 15963 | 15966 | 16287 | 16290 | 16611
+            | 16614 | 16935 | 16938 | 17259 | 17262 | 17583 | 17586 | 17907 | 17910 | 19400
+            | 19403 | 19820 | 19823 | 20257 | 20260 | 22539 | 22542 | 22950 | 22953 | 23361
+            | 23364 | 23772 | 23775 => &SHAPE136,
+            7920..=7921
+            | 7923..=7924
+            | 8244..=8245
+            | 8247..=8248
+            | 14020..=14021
+            | 14023..=14024
+            | 14344..=14345
+            | 14347..=14348
+            | 14668..=14669
+            | 14671..=14672
+            | 14992..=14993
+            | 14995..=14996
+            | 15316..=15317
+            | 15319..=15320
+            | 15640..=15641
+            | 15643..=15644
+            | 15964..=15965
+            | 15967..=15968
+            | 16288..=16289
+            | 16291..=16292
+            | 16612..=16613
+            | 16615..=16616
+            | 16936..=16937
+            | 16939..=16940
+            | 17260..=17261
+            | 17263..=17264
+            | 17584..=17585
+            | 17587..=17588
+            | 17908..=17909
+            | 17911..=17912
+            | 19401..=19402
+            | 19404..=19405
+            | 19821..=19822
+            | 19824..=19825
+            | 20258..=20259
+            | 20261..=20262
+            | 22540..=22541
+            | 22543..=22544
+            | 22951..=22952
+            | 22954..=22955
+            | 23362..=23363
+            | 23365..=23366
+            | 23773..=23774
+            | 23776..=23777 => &SHAPE137,
+            7926..=7927
+            | 7929..=7930
+            | 8250..=8251
+            | 8253..=8254
+            | 14026..=14027
+            | 14029..=14030
+            | 14350..=14351
+            | 14353..=14354
+            | 14674..=14675
+            | 14677..=14678
+            | 14998..=14999
+            | 15001..=15002
+            | 15322..=15323
+            | 15325..=15326
+            | 15646..=15647
+            | 15649..=15650
+            | 15970..=15971
+            | 15973..=15974
+            | 16294..=16295
+            | 16297..=16298
+            | 16618..=16619
+            | 16621..=16622
+            | 16942..=16943
+            | 16945..=16946
+            | 17266..=17267
+            | 17269..=17270
+            | 17590..=17591
+            | 17593..=17594
+            | 17914..=17915
+            | 17917..=17918
+            | 19407..=19408
+            | 19410..=19411
+            | 19827..=19828
+            | 19830..=19831
+            | 20264..=20265
+            | 20267..=20268
+            | 22546..=22547
+            | 22549..=22550
+            | 22957..=22958
+            | 22960..=22961
+            | 23368..=23369
+            | 23371..=23372
+            | 23779..=23780
+            | 23782..=23783 => &SHAPE138,
+            7931 | 7934 | 7943 | 7946 | 8255 | 8258 | 8267 | 8270 | 14031 | 14034 | 14043
+            | 14046 | 14355 | 14358 | 14367 | 14370 | 14679 | 14682 | 14691 | 14694 | 15003
+            | 15006 | 15015 | 15018 | 15327 | 15330 | 15339 | 15342 | 15651 | 15654 | 15663
+            | 15666 | 15975 | 15978 | 15987 | 15990 | 16299 | 16302 | 16311 | 16314 | 16623
+            | 16626 | 16635 | 16638 | 16947 | 16950 | 16959 | 16962 | 17271 | 17274 | 17283
+            | 17286 | 17595 | 17598 | 17607 | 17610 | 17919 | 17922 | 17931 | 17934 | 19412
+            | 19415 | 19424 | 19427 | 19832 | 19835 | 19844 | 19847 | 20269 | 20272 | 20281
+            | 20284 | 22551 | 22554 | 22563 | 22566 | 22962 | 22965 | 22974 | 22977 | 23373
+            | 23376 | 23385 | 23388 | 23784 | 23787 | 23796 | 23799 => &SHAPE139,
+            7932..=7933
+            | 7935..=7936
+            | 7944..=7945
+            | 7947..=7948
+            | 8256..=8257
+            | 8259..=8260
+            | 8268..=8269
+            | 8271..=8272
+            | 14032..=14033
+            | 14035..=14036
+            | 14044..=14045
+            | 14047..=14048
+            | 14356..=14357
+            | 14359..=14360
+            | 14368..=14369
+            | 14371..=14372
+            | 14680..=14681
+            | 14683..=14684
+            | 14692..=14693
+            | 14695..=14696
+            | 15004..=15005
+            | 15007..=15008
+            | 15016..=15017
+            | 15019..=15020
+            | 15328..=15329
+            | 15331..=15332
+            | 15340..=15341
+            | 15343..=15344
+            | 15652..=15653
+            | 15655..=15656
+            | 15664..=15665
+            | 15667..=15668
+            | 15976..=15977
+            | 15979..=15980
+            | 15988..=15989
+            | 15991..=15992
+            | 16300..=16301
+            | 16303..=16304
+            | 16312..=16313
+            | 16315..=16316
+            | 16624..=16625
+            | 16627..=16628
+            | 16636..=16637
+            | 16639..=16640
+            | 16948..=16949
+            | 16951..=16952
+            | 16960..=16961
+            | 16963..=16964
+            | 17272..=17273
+            | 17275..=17276
+            | 17284..=17285
+            | 17287..=17288
+            | 17596..=17597
+            | 17599..=17600
+            | 17608..=17609
+            | 17611..=17612
+            | 17920..=17921
+            | 17923..=17924
+            | 17932..=17933
+            | 17935..=17936
+            | 19413..=19414
+            | 19416..=19417
+            | 19425..=19426
+            | 19428..=19429
+            | 19833..=19834
+            | 19836..=19837
+            | 19845..=19846
+            | 19848..=19849
+            | 20270..=20271
+            | 20273..=20274
+            | 20282..=20283
+            | 20285..=20286
+            | 22552..=22553
+            | 22555..=22556
+            | 22564..=22565
+            | 22567..=22568
+            | 22963..=22964
+            | 22966..=22967
+            | 22975..=22976
+            | 22978..=22979
+            | 23374..=23375
+            | 23377..=23378
+            | 23386..=23387
+            | 23389..=23390
+            | 23785..=23786
+            | 23788..=23789
+            | 23797..=23798
+            | 23800..=23801 => &SHAPE140,
+            7937 | 7940 | 7949 | 7952 | 8261 | 8264 | 8273 | 8276 | 14037 | 14040 | 14049
+            | 14052 | 14361 | 14364 | 14373 | 14376 | 14685 | 14688 | 14697 | 14700 | 15009
+            | 15012 | 15021 | 15024 | 15333 | 15336 | 15345 | 15348 | 15657 | 15660 | 15669
+            | 15672 | 15981 | 15984 | 15993 | 15996 | 16305 | 16308 | 16317 | 16320 | 16629
+            | 16632 | 16641 | 16644 | 16953 | 16956 | 16965 | 16968 | 17277 | 17280 | 17289
+            | 17292 | 17601 | 17604 | 17613 | 17616 | 17925 | 17928 | 17937 | 17940 | 19418
+            | 19421 | 19430 | 19433 | 19838 | 19841 | 19850 | 19853 | 20275 | 20278 | 20287
+            | 20290 | 22557 | 22560 | 22569 | 22572 | 22968 | 22971 | 22980 | 22983 | 23379
+            | 23382 | 23391 | 23394 | 23790 | 23793 | 23802 | 23805 => &SHAPE141,
+            7938..=7939
+            | 7941..=7942
+            | 7950..=7951
+            | 7953..=7954
+            | 8262..=8263
+            | 8265..=8266
+            | 8274..=8275
+            | 8277..=8278
+            | 14038..=14039
+            | 14041..=14042
+            | 14050..=14051
+            | 14053..=14054
+            | 14362..=14363
+            | 14365..=14366
+            | 14374..=14375
+            | 14377..=14378
+            | 14686..=14687
+            | 14689..=14690
+            | 14698..=14699
+            | 14701..=14702
+            | 15010..=15011
+            | 15013..=15014
+            | 15022..=15023
+            | 15025..=15026
+            | 15334..=15335
+            | 15337..=15338
+            | 15346..=15347
+            | 15349..=15350
+            | 15658..=15659
+            | 15661..=15662
+            | 15670..=15671
+            | 15673..=15674
+            | 15982..=15983
+            | 15985..=15986
+            | 15994..=15995
+            | 15997..=15998
+            | 16306..=16307
+            | 16309..=16310
+            | 16318..=16319
+            | 16321..=16322
+            | 16630..=16631
+            | 16633..=16634
+            | 16642..=16643
+            | 16645..=16646
+            | 16954..=16955
+            | 16957..=16958
+            | 16966..=16967
+            | 16969..=16970
+            | 17278..=17279
+            | 17281..=17282
+            | 17290..=17291
+            | 17293..=17294
+            | 17602..=17603
+            | 17605..=17606
+            | 17614..=17615
+            | 17617..=17618
+            | 17926..=17927
+            | 17929..=17930
+            | 17938..=17939
+            | 17941..=17942
+            | 19419..=19420
+            | 19422..=19423
+            | 19431..=19432
+            | 19434..=19435
+            | 19839..=19840
+            | 19842..=19843
+            | 19851..=19852
+            | 19854..=19855
+            | 20276..=20277
+            | 20279..=20280
+            | 20288..=20289
+            | 20291..=20292
+            | 22558..=22559
+            | 22561..=22562
+            | 22570..=22571
+            | 22573..=22574
+            | 22969..=22970
+            | 22972..=22973
+            | 22981..=22982
+            | 22984..=22985
+            | 23380..=23381
+            | 23383..=23384
+            | 23392..=23393
+            | 23395..=23396
+            | 23791..=23792
+            | 23794..=23795
+            | 23803..=23804
+            | 23806..=23807 => &SHAPE142,
+            7955 | 7958 | 7991 | 7994 | 8279 | 8282 | 8315 | 8318 | 14055 | 14058 | 14091
+            | 14094 | 14379 | 14382 | 14415 | 14418 | 14703 | 14706 | 14739 | 14742 | 15027
+            | 15030 | 15063 | 15066 | 15351 | 15354 | 15387 | 15390 | 15675 | 15678 | 15711
+            | 15714 | 15999 | 16002 | 16035 | 16038 | 16323 | 16326 | 16359 | 16362 | 16647
+            | 16650 | 16683 | 16686 | 16971 | 16974 | 17007 | 17010 | 17295 | 17298 | 17331
+            | 17334 | 17619 | 17622 | 17655 | 17658 | 17943 | 17946 | 17979 | 17982 | 19436
+            | 19439 | 19472 | 19475 | 19856 | 19859 | 19892 | 19895 | 20293 | 20296 | 20329
+            | 20332 | 22575 | 22578 | 22611 | 22614 | 22986 | 22989 | 23022 | 23025 | 23397
+            | 23400 | 23433 | 23436 | 23808 | 23811 | 23844 | 23847 => &SHAPE143,
+            7956..=7957
+            | 7959..=7960
+            | 7992..=7993
+            | 7995..=7996
+            | 8280..=8281
+            | 8283..=8284
+            | 8316..=8317
+            | 8319..=8320
+            | 14056..=14057
+            | 14059..=14060
+            | 14092..=14093
+            | 14095..=14096
+            | 14380..=14381
+            | 14383..=14384
+            | 14416..=14417
+            | 14419..=14420
+            | 14704..=14705
+            | 14707..=14708
+            | 14740..=14741
+            | 14743..=14744
+            | 15028..=15029
+            | 15031..=15032
+            | 15064..=15065
+            | 15067..=15068
+            | 15352..=15353
+            | 15355..=15356
+            | 15388..=15389
+            | 15391..=15392
+            | 15676..=15677
+            | 15679..=15680
+            | 15712..=15713
+            | 15715..=15716
+            | 16000..=16001
+            | 16003..=16004
+            | 16036..=16037
+            | 16039..=16040
+            | 16324..=16325
+            | 16327..=16328
+            | 16360..=16361
+            | 16363..=16364
+            | 16648..=16649
+            | 16651..=16652
+            | 16684..=16685
+            | 16687..=16688
+            | 16972..=16973
+            | 16975..=16976
+            | 17008..=17009
+            | 17011..=17012
+            | 17296..=17297
+            | 17299..=17300
+            | 17332..=17333
+            | 17335..=17336
+            | 17620..=17621
+            | 17623..=17624
+            | 17656..=17657
+            | 17659..=17660
+            | 17944..=17945
+            | 17947..=17948
+            | 17980..=17981
+            | 17983..=17984
+            | 19437..=19438
+            | 19440..=19441
+            | 19473..=19474
+            | 19476..=19477
+            | 19857..=19858
+            | 19860..=19861
+            | 19893..=19894
+            | 19896..=19897
+            | 20294..=20295
+            | 20297..=20298
+            | 20330..=20331
+            | 20333..=20334
+            | 22576..=22577
+            | 22579..=22580
+            | 22612..=22613
+            | 22615..=22616
+            | 22987..=22988
+            | 22990..=22991
+            | 23023..=23024
+            | 23026..=23027
+            | 23398..=23399
+            | 23401..=23402
+            | 23434..=23435
+            | 23437..=23438
+            | 23809..=23810
+            | 23812..=23813
+            | 23845..=23846
+            | 23848..=23849 => &SHAPE144,
+            7961 | 7964 | 7997 | 8000 | 8285 | 8288 | 8321 | 8324 | 14061 | 14064 | 14097
+            | 14100 | 14385 | 14388 | 14421 | 14424 | 14709 | 14712 | 14745 | 14748 | 15033
+            | 15036 | 15069 | 15072 | 15357 | 15360 | 15393 | 15396 | 15681 | 15684 | 15717
+            | 15720 | 16005 | 16008 | 16041 | 16044 | 16329 | 16332 | 16365 | 16368 | 16653
+            | 16656 | 16689 | 16692 | 16977 | 16980 | 17013 | 17016 | 17301 | 17304 | 17337
+            | 17340 | 17625 | 17628 | 17661 | 17664 | 17949 | 17952 | 17985 | 17988 | 19442
+            | 19445 | 19478 | 19481 | 19862 | 19865 | 19898 | 19901 | 20299 | 20302 | 20335
+            | 20338 | 22581 | 22584 | 22617 | 22620 | 22992 | 22995 | 23028 | 23031 | 23403
+            | 23406 | 23439 | 23442 | 23814 | 23817 | 23850 | 23853 => &SHAPE145,
+            7962..=7963
+            | 7965..=7966
+            | 7998..=7999
+            | 8001..=8002
+            | 8286..=8287
+            | 8289..=8290
+            | 8322..=8323
+            | 8325..=8326
+            | 14062..=14063
+            | 14065..=14066
+            | 14098..=14099
+            | 14101..=14102
+            | 14386..=14387
+            | 14389..=14390
+            | 14422..=14423
+            | 14425..=14426
+            | 14710..=14711
+            | 14713..=14714
+            | 14746..=14747
+            | 14749..=14750
+            | 15034..=15035
+            | 15037..=15038
+            | 15070..=15071
+            | 15073..=15074
+            | 15358..=15359
+            | 15361..=15362
+            | 15394..=15395
+            | 15397..=15398
+            | 15682..=15683
+            | 15685..=15686
+            | 15718..=15719
+            | 15721..=15722
+            | 16006..=16007
+            | 16009..=16010
+            | 16042..=16043
+            | 16045..=16046
+            | 16330..=16331
+            | 16333..=16334
+            | 16366..=16367
+            | 16369..=16370
+            | 16654..=16655
+            | 16657..=16658
+            | 16690..=16691
+            | 16693..=16694
+            | 16978..=16979
+            | 16981..=16982
+            | 17014..=17015
+            | 17017..=17018
+            | 17302..=17303
+            | 17305..=17306
+            | 17338..=17339
+            | 17341..=17342
+            | 17626..=17627
+            | 17629..=17630
+            | 17662..=17663
+            | 17665..=17666
+            | 17950..=17951
+            | 17953..=17954
+            | 17986..=17987
+            | 17989..=17990
+            | 19443..=19444
+            | 19446..=19447
+            | 19479..=19480
+            | 19482..=19483
+            | 19863..=19864
+            | 19866..=19867
+            | 19899..=19900
+            | 19902..=19903
+            | 20300..=20301
+            | 20303..=20304
+            | 20336..=20337
+            | 20339..=20340
+            | 22582..=22583
+            | 22585..=22586
+            | 22618..=22619
+            | 22621..=22622
+            | 22993..=22994
+            | 22996..=22997
+            | 23029..=23030
+            | 23032..=23033
+            | 23404..=23405
+            | 23407..=23408
+            | 23440..=23441
+            | 23443..=23444
+            | 23815..=23816
+            | 23818..=23819
+            | 23851..=23852
+            | 23854..=23855 => &SHAPE146,
+            7967 | 7970 | 7979 | 7982 | 8003 | 8006 | 8015 | 8018 | 8291 | 8294 | 8303 | 8306
+            | 8327 | 8330 | 8339 | 8342 | 14067 | 14070 | 14079 | 14082 | 14103 | 14106 | 14115
+            | 14118 | 14391 | 14394 | 14403 | 14406 | 14427 | 14430 | 14439 | 14442 | 14715
+            | 14718 | 14727 | 14730 | 14751 | 14754 | 14763 | 14766 | 15039 | 15042 | 15051
+            | 15054 | 15075 | 15078 | 15087 | 15090 | 15363 | 15366 | 15375 | 15378 | 15399
+            | 15402 | 15411 | 15414 | 15687 | 15690 | 15699 | 15702 | 15723 | 15726 | 15735
+            | 15738 | 16011 | 16014 | 16023 | 16026 | 16047 | 16050 | 16059 | 16062 | 16335
+            | 16338 | 16347 | 16350 | 16371 | 16374 | 16383 | 16386 | 16659 | 16662 | 16671
+            | 16674 | 16695 | 16698 | 16707 | 16710 | 16983 | 16986 | 16995 | 16998 | 17019
+            | 17022 | 17031 | 17034 | 17307 | 17310 | 17319 | 17322 | 17343 | 17346 | 17355
+            | 17358 | 17631 | 17634 | 17643 | 17646 | 17667 | 17670 | 17679 | 17682 | 17955
+            | 17958 | 17967 | 17970 | 17991 | 17994 | 18003 | 18006 | 19448 | 19451 | 19460
+            | 19463 | 19484 | 19487 | 19496 | 19499 | 19868 | 19871 | 19880 | 19883 | 19904
+            | 19907 | 19916 | 19919 | 20305 | 20308 | 20317 | 20320 | 20341 | 20344 | 20353
+            | 20356 | 22587 | 22590 | 22599 | 22602 | 22623 | 22626 | 22635 | 22638 | 22998
+            | 23001 | 23010 | 23013 | 23034 | 23037 | 23046 | 23049 | 23409 | 23412 | 23421
+            | 23424 | 23445 | 23448 | 23457 | 23460 | 23820 | 23823 | 23832 | 23835 | 23856
+            | 23859 | 23868 | 23871 => &SHAPE147,
+            7968..=7969
+            | 7971..=7972
+            | 7980..=7981
+            | 7983..=7984
+            | 8004..=8005
+            | 8007..=8008
+            | 8016..=8017
+            | 8019..=8020
+            | 8292..=8293
+            | 8295..=8296
+            | 8304..=8305
+            | 8307..=8308
+            | 8328..=8329
+            | 8331..=8332
+            | 8340..=8341
+            | 8343..=8344
+            | 14068..=14069
+            | 14071..=14072
+            | 14080..=14081
+            | 14083..=14084
+            | 14104..=14105
+            | 14107..=14108
+            | 14116..=14117
+            | 14119..=14120
+            | 14392..=14393
+            | 14395..=14396
+            | 14404..=14405
+            | 14407..=14408
+            | 14428..=14429
+            | 14431..=14432
+            | 14440..=14441
+            | 14443..=14444
+            | 14716..=14717
+            | 14719..=14720
+            | 14728..=14729
+            | 14731..=14732
+            | 14752..=14753
+            | 14755..=14756
+            | 14764..=14765
+            | 14767..=14768
+            | 15040..=15041
+            | 15043..=15044
+            | 15052..=15053
+            | 15055..=15056
+            | 15076..=15077
+            | 15079..=15080
+            | 15088..=15089
+            | 15091..=15092
+            | 15364..=15365
+            | 15367..=15368
+            | 15376..=15377
+            | 15379..=15380
+            | 15400..=15401
+            | 15403..=15404
+            | 15412..=15413
+            | 15415..=15416
+            | 15688..=15689
+            | 15691..=15692
+            | 15700..=15701
+            | 15703..=15704
+            | 15724..=15725
+            | 15727..=15728
+            | 15736..=15737
+            | 15739..=15740
+            | 16012..=16013
+            | 16015..=16016
+            | 16024..=16025
+            | 16027..=16028
+            | 16048..=16049
+            | 16051..=16052
+            | 16060..=16061
+            | 16063..=16064
+            | 16336..=16337
+            | 16339..=16340
+            | 16348..=16349
+            | 16351..=16352
+            | 16372..=16373
+            | 16375..=16376
+            | 16384..=16385
+            | 16387..=16388
+            | 16660..=16661
+            | 16663..=16664
+            | 16672..=16673
+            | 16675..=16676
+            | 16696..=16697
+            | 16699..=16700
+            | 16708..=16709
+            | 16711..=16712
+            | 16984..=16985
+            | 16987..=16988
+            | 16996..=16997
+            | 16999..=17000
+            | 17020..=17021
+            | 17023..=17024
+            | 17032..=17033
+            | 17035..=17036
+            | 17308..=17309
+            | 17311..=17312
+            | 17320..=17321
+            | 17323..=17324
+            | 17344..=17345
+            | 17347..=17348
+            | 17356..=17357
+            | 17359..=17360
+            | 17632..=17633
+            | 17635..=17636
+            | 17644..=17645
+            | 17647..=17648
+            | 17668..=17669
+            | 17671..=17672
+            | 17680..=17681
+            | 17683..=17684
+            | 17956..=17957
+            | 17959..=17960
+            | 17968..=17969
+            | 17971..=17972
+            | 17992..=17993
+            | 17995..=17996
+            | 18004..=18005
+            | 18007..=18008
+            | 19449..=19450
+            | 19452..=19453
+            | 19461..=19462
+            | 19464..=19465
+            | 19485..=19486
+            | 19488..=19489
+            | 19497..=19498
+            | 19500..=19501
+            | 19869..=19870
+            | 19872..=19873
+            | 19881..=19882
+            | 19884..=19885
+            | 19905..=19906
+            | 19908..=19909
+            | 19917..=19918
+            | 19920..=19921
+            | 20306..=20307
+            | 20309..=20310
+            | 20318..=20319
+            | 20321..=20322
+            | 20342..=20343
+            | 20345..=20346
+            | 20354..=20355
+            | 20357..=20358
+            | 22588..=22589
+            | 22591..=22592
+            | 22600..=22601
+            | 22603..=22604
+            | 22624..=22625
+            | 22627..=22628
+            | 22636..=22637
+            | 22639..=22640
+            | 22999..=23000
+            | 23002..=23003
+            | 23011..=23012
+            | 23014..=23015
+            | 23035..=23036
+            | 23038..=23039
+            | 23047..=23048
+            | 23050..=23051
+            | 23410..=23411
+            | 23413..=23414
+            | 23422..=23423
+            | 23425..=23426
+            | 23446..=23447
+            | 23449..=23450
+            | 23458..=23459
+            | 23461..=23462
+            | 23821..=23822
+            | 23824..=23825
+            | 23833..=23834
+            | 23836..=23837
+            | 23857..=23858
+            | 23860..=23861
+            | 23869..=23870
+            | 23872..=23873 => &SHAPE148,
+            7973 | 7976 | 7985 | 7988 | 8009 | 8012 | 8021 | 8024 | 8297 | 8300 | 8309 | 8312
+            | 8333 | 8336 | 8345 | 8348 | 14073 | 14076 | 14085 | 14088 | 14109 | 14112 | 14121
+            | 14124 | 14397 | 14400 | 14409 | 14412 | 14433 | 14436 | 14445 | 14448 | 14721
+            | 14724 | 14733 | 14736 | 14757 | 14760 | 14769 | 14772 | 15045 | 15048 | 15057
+            | 15060 | 15081 | 15084 | 15093 | 15096 | 15369 | 15372 | 15381 | 15384 | 15405
+            | 15408 | 15417 | 15420 | 15693 | 15696 | 15705 | 15708 | 15729 | 15732 | 15741
+            | 15744 | 16017 | 16020 | 16029 | 16032 | 16053 | 16056 | 16065 | 16068 | 16341
+            | 16344 | 16353 | 16356 | 16377 | 16380 | 16389 | 16392 | 16665 | 16668 | 16677
+            | 16680 | 16701 | 16704 | 16713 | 16716 | 16989 | 16992 | 17001 | 17004 | 17025
+            | 17028 | 17037 | 17040 | 17313 | 17316 | 17325 | 17328 | 17349 | 17352 | 17361
+            | 17364 | 17637 | 17640 | 17649 | 17652 | 17673 | 17676 | 17685 | 17688 | 17961
+            | 17964 | 17973 | 17976 | 17997 | 18000 | 18009 | 18012 | 19454 | 19457 | 19466
+            | 19469 | 19490 | 19493 | 19502 | 19505 | 19874 | 19877 | 19886 | 19889 | 19910
+            | 19913 | 19922 | 19925 | 20311 | 20314 | 20323 | 20326 | 20347 | 20350 | 20359
+            | 20362 | 22593 | 22596 | 22605 | 22608 | 22629 | 22632 | 22641 | 22644 | 23004
+            | 23007 | 23016 | 23019 | 23040 | 23043 | 23052 | 23055 | 23415 | 23418 | 23427
+            | 23430 | 23451 | 23454 | 23463 | 23466 | 23826 | 23829 | 23838 | 23841 | 23862
+            | 23865 | 23874 | 23877 => &SHAPE149,
+            7974..=7975
+            | 7977..=7978
+            | 7986..=7987
+            | 7989..=7990
+            | 8010..=8011
+            | 8013..=8014
+            | 8022..=8023
+            | 8025..=8026
+            | 8298..=8299
+            | 8301..=8302
+            | 8310..=8311
+            | 8313..=8314
+            | 8334..=8335
+            | 8337..=8338
+            | 8346..=8347
+            | 8349..=8350
+            | 14074..=14075
+            | 14077..=14078
+            | 14086..=14087
+            | 14089..=14090
+            | 14110..=14111
+            | 14113..=14114
+            | 14122..=14123
+            | 14125..=14126
+            | 14398..=14399
+            | 14401..=14402
+            | 14410..=14411
+            | 14413..=14414
+            | 14434..=14435
+            | 14437..=14438
+            | 14446..=14447
+            | 14449..=14450
+            | 14722..=14723
+            | 14725..=14726
+            | 14734..=14735
+            | 14737..=14738
+            | 14758..=14759
+            | 14761..=14762
+            | 14770..=14771
+            | 14773..=14774
+            | 15046..=15047
+            | 15049..=15050
+            | 15058..=15059
+            | 15061..=15062
+            | 15082..=15083
+            | 15085..=15086
+            | 15094..=15095
+            | 15097..=15098
+            | 15370..=15371
+            | 15373..=15374
+            | 15382..=15383
+            | 15385..=15386
+            | 15406..=15407
+            | 15409..=15410
+            | 15418..=15419
+            | 15421..=15422
+            | 15694..=15695
+            | 15697..=15698
+            | 15706..=15707
+            | 15709..=15710
+            | 15730..=15731
+            | 15733..=15734
+            | 15742..=15743
+            | 15745..=15746
+            | 16018..=16019
+            | 16021..=16022
+            | 16030..=16031
+            | 16033..=16034
+            | 16054..=16055
+            | 16057..=16058
+            | 16066..=16067
+            | 16069..=16070
+            | 16342..=16343
+            | 16345..=16346
+            | 16354..=16355
+            | 16357..=16358
+            | 16378..=16379
+            | 16381..=16382
+            | 16390..=16391
+            | 16393..=16394
+            | 16666..=16667
+            | 16669..=16670
+            | 16678..=16679
+            | 16681..=16682
+            | 16702..=16703
+            | 16705..=16706
+            | 16714..=16715
+            | 16717..=16718
+            | 16990..=16991
+            | 16993..=16994
+            | 17002..=17003
+            | 17005..=17006
+            | 17026..=17027
+            | 17029..=17030
+            | 17038..=17039
+            | 17041..=17042
+            | 17314..=17315
+            | 17317..=17318
+            | 17326..=17327
+            | 17329..=17330
+            | 17350..=17351
+            | 17353..=17354
+            | 17362..=17363
+            | 17365..=17366
+            | 17638..=17639
+            | 17641..=17642
+            | 17650..=17651
+            | 17653..=17654
+            | 17674..=17675
+            | 17677..=17678
+            | 17686..=17687
+            | 17689..=17690
+            | 17962..=17963
+            | 17965..=17966
+            | 17974..=17975
+            | 17977..=17978
+            | 17998..=17999
+            | 18001..=18002
+            | 18010..=18011
+            | 18013..=18014
+            | 19455..=19456
+            | 19458..=19459
+            | 19467..=19468
+            | 19470..=19471
+            | 19491..=19492
+            | 19494..=19495
+            | 19503..=19504
+            | 19506..=19507
+            | 19875..=19876
+            | 19878..=19879
+            | 19887..=19888
+            | 19890..=19891
+            | 19911..=19912
+            | 19914..=19915
+            | 19923..=19924
+            | 19926..=19927
+            | 20312..=20313
+            | 20315..=20316
+            | 20324..=20325
+            | 20327..=20328
+            | 20348..=20349
+            | 20351..=20352
+            | 20360..=20361
+            | 20363..=20364
+            | 22594..=22595
+            | 22597..=22598
+            | 22606..=22607
+            | 22609..=22610
+            | 22630..=22631
+            | 22633..=22634
+            | 22642..=22643
+            | 22645..=22646
+            | 23005..=23006
+            | 23008..=23009
+            | 23017..=23018
+            | 23020..=23021
+            | 23041..=23042
+            | 23044..=23045
+            | 23053..=23054
+            | 23056..=23057
+            | 23416..=23417
+            | 23419..=23420
+            | 23428..=23429
+            | 23431..=23432
+            | 23452..=23453
+            | 23455..=23456
+            | 23464..=23465
+            | 23467..=23468
+            | 23827..=23828
+            | 23830..=23831
+            | 23839..=23840
+            | 23842..=23843
+            | 23863..=23864
+            | 23866..=23867
+            | 23875..=23876
+            | 23878..=23879 => &SHAPE150,
+            8027 | 8030 | 8135 | 8138 | 8351 | 8354 | 8459 | 8462 | 14127 | 14130 | 14235
+            | 14238 | 14451 | 14454 | 14559 | 14562 | 14775 | 14778 | 14883 | 14886 | 15099
+            | 15102 | 15207 | 15210 | 15423 | 15426 | 15531 | 15534 | 15747 | 15750 | 15855
+            | 15858 | 16071 | 16074 | 16179 | 16182 | 16395 | 16398 | 16503 | 16506 | 16719
+            | 16722 | 16827 | 16830 | 17043 | 17046 | 17151 | 17154 | 17367 | 17370 | 17475
+            | 17478 | 17691 | 17694 | 17799 | 17802 | 18015 | 18018 | 18123 | 18126 | 19508
+            | 19511 | 19616 | 19619 | 19928 | 19931 | 20036 | 20039 | 20365 | 20368 | 20473
+            | 20476 | 22647 | 22650 | 22755 | 22758 | 23058 | 23061 | 23166 | 23169 | 23469
+            | 23472 | 23577 | 23580 | 23880 | 23883 | 23988 | 23991 => &SHAPE151,
+            8028..=8029
+            | 8031..=8032
+            | 8136..=8137
+            | 8139..=8140
+            | 8352..=8353
+            | 8355..=8356
+            | 8460..=8461
+            | 8463..=8464
+            | 14128..=14129
+            | 14131..=14132
+            | 14236..=14237
+            | 14239..=14240
+            | 14452..=14453
+            | 14455..=14456
+            | 14560..=14561
+            | 14563..=14564
+            | 14776..=14777
+            | 14779..=14780
+            | 14884..=14885
+            | 14887..=14888
+            | 15100..=15101
+            | 15103..=15104
+            | 15208..=15209
+            | 15211..=15212
+            | 15424..=15425
+            | 15427..=15428
+            | 15532..=15533
+            | 15535..=15536
+            | 15748..=15749
+            | 15751..=15752
+            | 15856..=15857
+            | 15859..=15860
+            | 16072..=16073
+            | 16075..=16076
+            | 16180..=16181
+            | 16183..=16184
+            | 16396..=16397
+            | 16399..=16400
+            | 16504..=16505
+            | 16507..=16508
+            | 16720..=16721
+            | 16723..=16724
+            | 16828..=16829
+            | 16831..=16832
+            | 17044..=17045
+            | 17047..=17048
+            | 17152..=17153
+            | 17155..=17156
+            | 17368..=17369
+            | 17371..=17372
+            | 17476..=17477
+            | 17479..=17480
+            | 17692..=17693
+            | 17695..=17696
+            | 17800..=17801
+            | 17803..=17804
+            | 18016..=18017
+            | 18019..=18020
+            | 18124..=18125
+            | 18127..=18128
+            | 19509..=19510
+            | 19512..=19513
+            | 19617..=19618
+            | 19620..=19621
+            | 19929..=19930
+            | 19932..=19933
+            | 20037..=20038
+            | 20040..=20041
+            | 20366..=20367
+            | 20369..=20370
+            | 20474..=20475
+            | 20477..=20478
+            | 22648..=22649
+            | 22651..=22652
+            | 22756..=22757
+            | 22759..=22760
+            | 23059..=23060
+            | 23062..=23063
+            | 23167..=23168
+            | 23170..=23171
+            | 23470..=23471
+            | 23473..=23474
+            | 23578..=23579
+            | 23581..=23582
+            | 23881..=23882
+            | 23884..=23885
+            | 23989..=23990
+            | 23992..=23993 => &SHAPE152,
+            8033 | 8036 | 8141 | 8144 | 8357 | 8360 | 8465 | 8468 | 14133 | 14136 | 14241
+            | 14244 | 14457 | 14460 | 14565 | 14568 | 14781 | 14784 | 14889 | 14892 | 15105
+            | 15108 | 15213 | 15216 | 15429 | 15432 | 15537 | 15540 | 15753 | 15756 | 15861
+            | 15864 | 16077 | 16080 | 16185 | 16188 | 16401 | 16404 | 16509 | 16512 | 16725
+            | 16728 | 16833 | 16836 | 17049 | 17052 | 17157 | 17160 | 17373 | 17376 | 17481
+            | 17484 | 17697 | 17700 | 17805 | 17808 | 18021 | 18024 | 18129 | 18132 | 19514
+            | 19517 | 19622 | 19625 | 19934 | 19937 | 20042 | 20045 | 20371 | 20374 | 20479
+            | 20482 | 22653 | 22656 | 22761 | 22764 | 23064 | 23067 | 23172 | 23175 | 23475
+            | 23478 | 23583 | 23586 | 23886 | 23889 | 23994 | 23997 => &SHAPE153,
+            8034..=8035
+            | 8037..=8038
+            | 8142..=8143
+            | 8145..=8146
+            | 8358..=8359
+            | 8361..=8362
+            | 8466..=8467
+            | 8469..=8470
+            | 14134..=14135
+            | 14137..=14138
+            | 14242..=14243
+            | 14245..=14246
+            | 14458..=14459
+            | 14461..=14462
+            | 14566..=14567
+            | 14569..=14570
+            | 14782..=14783
+            | 14785..=14786
+            | 14890..=14891
+            | 14893..=14894
+            | 15106..=15107
+            | 15109..=15110
+            | 15214..=15215
+            | 15217..=15218
+            | 15430..=15431
+            | 15433..=15434
+            | 15538..=15539
+            | 15541..=15542
+            | 15754..=15755
+            | 15757..=15758
+            | 15862..=15863
+            | 15865..=15866
+            | 16078..=16079
+            | 16081..=16082
+            | 16186..=16187
+            | 16189..=16190
+            | 16402..=16403
+            | 16405..=16406
+            | 16510..=16511
+            | 16513..=16514
+            | 16726..=16727
+            | 16729..=16730
+            | 16834..=16835
+            | 16837..=16838
+            | 17050..=17051
+            | 17053..=17054
+            | 17158..=17159
+            | 17161..=17162
+            | 17374..=17375
+            | 17377..=17378
+            | 17482..=17483
+            | 17485..=17486
+            | 17698..=17699
+            | 17701..=17702
+            | 17806..=17807
+            | 17809..=17810
+            | 18022..=18023
+            | 18025..=18026
+            | 18130..=18131
+            | 18133..=18134
+            | 19515..=19516
+            | 19518..=19519
+            | 19623..=19624
+            | 19626..=19627
+            | 19935..=19936
+            | 19938..=19939
+            | 20043..=20044
+            | 20046..=20047
+            | 20372..=20373
+            | 20375..=20376
+            | 20480..=20481
+            | 20483..=20484
+            | 22654..=22655
+            | 22657..=22658
+            | 22762..=22763
+            | 22765..=22766
+            | 23065..=23066
+            | 23068..=23069
+            | 23173..=23174
+            | 23176..=23177
+            | 23476..=23477
+            | 23479..=23480
+            | 23584..=23585
+            | 23587..=23588
+            | 23887..=23888
+            | 23890..=23891
+            | 23995..=23996
+            | 23998..=23999 => &SHAPE154,
+            8039 | 8042 | 8051 | 8054 | 8147 | 8150 | 8159 | 8162 | 8363 | 8366 | 8375 | 8378
+            | 8471 | 8474 | 8483 | 8486 | 14139 | 14142 | 14151 | 14154 | 14247 | 14250 | 14259
+            | 14262 | 14463 | 14466 | 14475 | 14478 | 14571 | 14574 | 14583 | 14586 | 14787
+            | 14790 | 14799 | 14802 | 14895 | 14898 | 14907 | 14910 | 15111 | 15114 | 15123
+            | 15126 | 15219 | 15222 | 15231 | 15234 | 15435 | 15438 | 15447 | 15450 | 15543
+            | 15546 | 15555 | 15558 | 15759 | 15762 | 15771 | 15774 | 15867 | 15870 | 15879
+            | 15882 | 16083 | 16086 | 16095 | 16098 | 16191 | 16194 | 16203 | 16206 | 16407
+            | 16410 | 16419 | 16422 | 16515 | 16518 | 16527 | 16530 | 16731 | 16734 | 16743
+            | 16746 | 16839 | 16842 | 16851 | 16854 | 17055 | 17058 | 17067 | 17070 | 17163
+            | 17166 | 17175 | 17178 | 17379 | 17382 | 17391 | 17394 | 17487 | 17490 | 17499
+            | 17502 | 17703 | 17706 | 17715 | 17718 | 17811 | 17814 | 17823 | 17826 | 18027
+            | 18030 | 18039 | 18042 | 18135 | 18138 | 18147 | 18150 | 19520 | 19523 | 19532
+            | 19535 | 19628 | 19631 | 19640 | 19643 | 19940 | 19943 | 19952 | 19955 | 20048
+            | 20051 | 20060 | 20063 | 20377 | 20380 | 20389 | 20392 | 20485 | 20488 | 20497
+            | 20500 | 22659 | 22662 | 22671 | 22674 | 22767 | 22770 | 22779 | 22782 | 23070
+            | 23073 | 23082 | 23085 | 23178 | 23181 | 23190 | 23193 | 23481 | 23484 | 23493
+            | 23496 | 23589 | 23592 | 23601 | 23604 | 23892 | 23895 | 23904 | 23907 | 24000
+            | 24003 | 24012 | 24015 => &SHAPE155,
+            8040..=8041
+            | 8043..=8044
+            | 8052..=8053
+            | 8055..=8056
+            | 8148..=8149
+            | 8151..=8152
+            | 8160..=8161
+            | 8163..=8164
+            | 8364..=8365
+            | 8367..=8368
+            | 8376..=8377
+            | 8379..=8380
+            | 8472..=8473
+            | 8475..=8476
+            | 8484..=8485
+            | 8487..=8488
+            | 14140..=14141
+            | 14143..=14144
+            | 14152..=14153
+            | 14155..=14156
+            | 14248..=14249
+            | 14251..=14252
+            | 14260..=14261
+            | 14263..=14264
+            | 14464..=14465
+            | 14467..=14468
+            | 14476..=14477
+            | 14479..=14480
+            | 14572..=14573
+            | 14575..=14576
+            | 14584..=14585
+            | 14587..=14588
+            | 14788..=14789
+            | 14791..=14792
+            | 14800..=14801
+            | 14803..=14804
+            | 14896..=14897
+            | 14899..=14900
+            | 14908..=14909
+            | 14911..=14912
+            | 15112..=15113
+            | 15115..=15116
+            | 15124..=15125
+            | 15127..=15128
+            | 15220..=15221
+            | 15223..=15224
+            | 15232..=15233
+            | 15235..=15236
+            | 15436..=15437
+            | 15439..=15440
+            | 15448..=15449
+            | 15451..=15452
+            | 15544..=15545
+            | 15547..=15548
+            | 15556..=15557
+            | 15559..=15560
+            | 15760..=15761
+            | 15763..=15764
+            | 15772..=15773
+            | 15775..=15776
+            | 15868..=15869
+            | 15871..=15872
+            | 15880..=15881
+            | 15883..=15884
+            | 16084..=16085
+            | 16087..=16088
+            | 16096..=16097
+            | 16099..=16100
+            | 16192..=16193
+            | 16195..=16196
+            | 16204..=16205
+            | 16207..=16208
+            | 16408..=16409
+            | 16411..=16412
+            | 16420..=16421
+            | 16423..=16424
+            | 16516..=16517
+            | 16519..=16520
+            | 16528..=16529
+            | 16531..=16532
+            | 16732..=16733
+            | 16735..=16736
+            | 16744..=16745
+            | 16747..=16748
+            | 16840..=16841
+            | 16843..=16844
+            | 16852..=16853
+            | 16855..=16856
+            | 17056..=17057
+            | 17059..=17060
+            | 17068..=17069
+            | 17071..=17072
+            | 17164..=17165
+            | 17167..=17168
+            | 17176..=17177
+            | 17179..=17180
+            | 17380..=17381
+            | 17383..=17384
+            | 17392..=17393
+            | 17395..=17396
+            | 17488..=17489
+            | 17491..=17492
+            | 17500..=17501
+            | 17503..=17504
+            | 17704..=17705
+            | 17707..=17708
+            | 17716..=17717
+            | 17719..=17720
+            | 17812..=17813
+            | 17815..=17816
+            | 17824..=17825
+            | 17827..=17828
+            | 18028..=18029
+            | 18031..=18032
+            | 18040..=18041
+            | 18043..=18044
+            | 18136..=18137
+            | 18139..=18140
+            | 18148..=18149
+            | 18151..=18152
+            | 19521..=19522
+            | 19524..=19525
+            | 19533..=19534
+            | 19536..=19537
+            | 19629..=19630
+            | 19632..=19633
+            | 19641..=19642
+            | 19644..=19645
+            | 19941..=19942
+            | 19944..=19945
+            | 19953..=19954
+            | 19956..=19957
+            | 20049..=20050
+            | 20052..=20053
+            | 20061..=20062
+            | 20064..=20065
+            | 20378..=20379
+            | 20381..=20382
+            | 20390..=20391
+            | 20393..=20394
+            | 20486..=20487
+            | 20489..=20490
+            | 20498..=20499
+            | 20501..=20502
+            | 22660..=22661
+            | 22663..=22664
+            | 22672..=22673
+            | 22675..=22676
+            | 22768..=22769
+            | 22771..=22772
+            | 22780..=22781
+            | 22783..=22784
+            | 23071..=23072
+            | 23074..=23075
+            | 23083..=23084
+            | 23086..=23087
+            | 23179..=23180
+            | 23182..=23183
+            | 23191..=23192
+            | 23194..=23195
+            | 23482..=23483
+            | 23485..=23486
+            | 23494..=23495
+            | 23497..=23498
+            | 23590..=23591
+            | 23593..=23594
+            | 23602..=23603
+            | 23605..=23606
+            | 23893..=23894
+            | 23896..=23897
+            | 23905..=23906
+            | 23908..=23909
+            | 24001..=24002
+            | 24004..=24005
+            | 24013..=24014
+            | 24016..=24017 => &SHAPE156,
+            8045 | 8048 | 8057 | 8060 | 8153 | 8156 | 8165 | 8168 | 8369 | 8372 | 8381 | 8384
+            | 8477 | 8480 | 8489 | 8492 | 14145 | 14148 | 14157 | 14160 | 14253 | 14256 | 14265
+            | 14268 | 14469 | 14472 | 14481 | 14484 | 14577 | 14580 | 14589 | 14592 | 14793
+            | 14796 | 14805 | 14808 | 14901 | 14904 | 14913 | 14916 | 15117 | 15120 | 15129
+            | 15132 | 15225 | 15228 | 15237 | 15240 | 15441 | 15444 | 15453 | 15456 | 15549
+            | 15552 | 15561 | 15564 | 15765 | 15768 | 15777 | 15780 | 15873 | 15876 | 15885
+            | 15888 | 16089 | 16092 | 16101 | 16104 | 16197 | 16200 | 16209 | 16212 | 16413
+            | 16416 | 16425 | 16428 | 16521 | 16524 | 16533 | 16536 | 16737 | 16740 | 16749
+            | 16752 | 16845 | 16848 | 16857 | 16860 | 17061 | 17064 | 17073 | 17076 | 17169
+            | 17172 | 17181 | 17184 | 17385 | 17388 | 17397 | 17400 | 17493 | 17496 | 17505
+            | 17508 | 17709 | 17712 | 17721 | 17724 | 17817 | 17820 | 17829 | 17832 | 18033
+            | 18036 | 18045 | 18048 | 18141 | 18144 | 18153 | 18156 | 19526 | 19529 | 19538
+            | 19541 | 19634 | 19637 | 19646 | 19649 | 19946 | 19949 | 19958 | 19961 | 20054
+            | 20057 | 20066 | 20069 | 20383 | 20386 | 20395 | 20398 | 20491 | 20494 | 20503
+            | 20506 | 22665 | 22668 | 22677 | 22680 | 22773 | 22776 | 22785 | 22788 | 23076
+            | 23079 | 23088 | 23091 | 23184 | 23187 | 23196 | 23199 | 23487 | 23490 | 23499
+            | 23502 | 23595 | 23598 | 23607 | 23610 | 23898 | 23901 | 23910 | 23913 | 24006
+            | 24009 | 24018 | 24021 => &SHAPE157,
+            8046..=8047
+            | 8049..=8050
+            | 8058..=8059
+            | 8061..=8062
+            | 8154..=8155
+            | 8157..=8158
+            | 8166..=8167
+            | 8169..=8170
+            | 8370..=8371
+            | 8373..=8374
+            | 8382..=8383
+            | 8385..=8386
+            | 8478..=8479
+            | 8481..=8482
+            | 8490..=8491
+            | 8493..=8494
+            | 14146..=14147
+            | 14149..=14150
+            | 14158..=14159
+            | 14161..=14162
+            | 14254..=14255
+            | 14257..=14258
+            | 14266..=14267
+            | 14269..=14270
+            | 14470..=14471
+            | 14473..=14474
+            | 14482..=14483
+            | 14485..=14486
+            | 14578..=14579
+            | 14581..=14582
+            | 14590..=14591
+            | 14593..=14594
+            | 14794..=14795
+            | 14797..=14798
+            | 14806..=14807
+            | 14809..=14810
+            | 14902..=14903
+            | 14905..=14906
+            | 14914..=14915
+            | 14917..=14918
+            | 15118..=15119
+            | 15121..=15122
+            | 15130..=15131
+            | 15133..=15134
+            | 15226..=15227
+            | 15229..=15230
+            | 15238..=15239
+            | 15241..=15242
+            | 15442..=15443
+            | 15445..=15446
+            | 15454..=15455
+            | 15457..=15458
+            | 15550..=15551
+            | 15553..=15554
+            | 15562..=15563
+            | 15565..=15566
+            | 15766..=15767
+            | 15769..=15770
+            | 15778..=15779
+            | 15781..=15782
+            | 15874..=15875
+            | 15877..=15878
+            | 15886..=15887
+            | 15889..=15890
+            | 16090..=16091
+            | 16093..=16094
+            | 16102..=16103
+            | 16105..=16106
+            | 16198..=16199
+            | 16201..=16202
+            | 16210..=16211
+            | 16213..=16214
+            | 16414..=16415
+            | 16417..=16418
+            | 16426..=16427
+            | 16429..=16430
+            | 16522..=16523
+            | 16525..=16526
+            | 16534..=16535
+            | 16537..=16538
+            | 16738..=16739
+            | 16741..=16742
+            | 16750..=16751
+            | 16753..=16754
+            | 16846..=16847
+            | 16849..=16850
+            | 16858..=16859
+            | 16861..=16862
+            | 17062..=17063
+            | 17065..=17066
+            | 17074..=17075
+            | 17077..=17078
+            | 17170..=17171
+            | 17173..=17174
+            | 17182..=17183
+            | 17185..=17186
+            | 17386..=17387
+            | 17389..=17390
+            | 17398..=17399
+            | 17401..=17402
+            | 17494..=17495
+            | 17497..=17498
+            | 17506..=17507
+            | 17509..=17510
+            | 17710..=17711
+            | 17713..=17714
+            | 17722..=17723
+            | 17725..=17726
+            | 17818..=17819
+            | 17821..=17822
+            | 17830..=17831
+            | 17833..=17834
+            | 18034..=18035
+            | 18037..=18038
+            | 18046..=18047
+            | 18049..=18050
+            | 18142..=18143
+            | 18145..=18146
+            | 18154..=18155
+            | 18157..=18158
+            | 19527..=19528
+            | 19530..=19531
+            | 19539..=19540
+            | 19542..=19543
+            | 19635..=19636
+            | 19638..=19639
+            | 19647..=19648
+            | 19650..=19651
+            | 19947..=19948
+            | 19950..=19951
+            | 19959..=19960
+            | 19962..=19963
+            | 20055..=20056
+            | 20058..=20059
+            | 20067..=20068
+            | 20070..=20071
+            | 20384..=20385
+            | 20387..=20388
+            | 20396..=20397
+            | 20399..=20400
+            | 20492..=20493
+            | 20495..=20496
+            | 20504..=20505
+            | 20507..=20508
+            | 22666..=22667
+            | 22669..=22670
+            | 22678..=22679
+            | 22681..=22682
+            | 22774..=22775
+            | 22777..=22778
+            | 22786..=22787
+            | 22789..=22790
+            | 23077..=23078
+            | 23080..=23081
+            | 23089..=23090
+            | 23092..=23093
+            | 23185..=23186
+            | 23188..=23189
+            | 23197..=23198
+            | 23200..=23201
+            | 23488..=23489
+            | 23491..=23492
+            | 23500..=23501
+            | 23503..=23504
+            | 23596..=23597
+            | 23599..=23600
+            | 23608..=23609
+            | 23611..=23612
+            | 23899..=23900
+            | 23902..=23903
+            | 23911..=23912
+            | 23914..=23915
+            | 24007..=24008
+            | 24010..=24011
+            | 24019..=24020
+            | 24022..=24023 => &SHAPE158,
+            8063 | 8066 | 8099 | 8102 | 8171 | 8174 | 8207 | 8210 | 8387 | 8390 | 8423 | 8426
+            | 8495 | 8498 | 8531 | 8534 | 14163 | 14166 | 14199 | 14202 | 14271 | 14274 | 14307
+            | 14310 | 14487 | 14490 | 14523 | 14526 | 14595 | 14598 | 14631 | 14634 | 14811
+            | 14814 | 14847 | 14850 | 14919 | 14922 | 14955 | 14958 | 15135 | 15138 | 15171
+            | 15174 | 15243 | 15246 | 15279 | 15282 | 15459 | 15462 | 15495 | 15498 | 15567
+            | 15570 | 15603 | 15606 | 15783 | 15786 | 15819 | 15822 | 15891 | 15894 | 15927
+            | 15930 | 16107 | 16110 | 16143 | 16146 | 16215 | 16218 | 16251 | 16254 | 16431
+            | 16434 | 16467 | 16470 | 16539 | 16542 | 16575 | 16578 | 16755 | 16758 | 16791
+            | 16794 | 16863 | 16866 | 16899 | 16902 | 17079 | 17082 | 17115 | 17118 | 17187
+            | 17190 | 17223 | 17226 | 17403 | 17406 | 17439 | 17442 | 17511 | 17514 | 17547
+            | 17550 | 17727 | 17730 | 17763 | 17766 | 17835 | 17838 | 17871 | 17874 | 18051
+            | 18054 | 18087 | 18090 | 18159 | 18162 | 18195 | 18198 | 19544 | 19547 | 19580
+            | 19583 | 19652 | 19655 | 19688 | 19691 | 19964 | 19967 | 20000 | 20003 | 20072
+            | 20075 | 20108 | 20111 | 20401 | 20404 | 20437 | 20440 | 20509 | 20512 | 20545
+            | 20548 | 22683 | 22686 | 22719 | 22722 | 22791 | 22794 | 22827 | 22830 | 23094
+            | 23097 | 23130 | 23133 | 23202 | 23205 | 23238 | 23241 | 23505 | 23508 | 23541
+            | 23544 | 23613 | 23616 | 23649 | 23652 | 23916 | 23919 | 23952 | 23955 | 24024
+            | 24027 | 24060 | 24063 => &SHAPE159,
+            8064..=8065
+            | 8067..=8068
+            | 8100..=8101
+            | 8103..=8104
+            | 8172..=8173
+            | 8175..=8176
+            | 8208..=8209
+            | 8211..=8212
+            | 8388..=8389
+            | 8391..=8392
+            | 8424..=8425
+            | 8427..=8428
+            | 8496..=8497
+            | 8499..=8500
+            | 8532..=8533
+            | 8535..=8536
+            | 14164..=14165
+            | 14167..=14168
+            | 14200..=14201
+            | 14203..=14204
+            | 14272..=14273
+            | 14275..=14276
+            | 14308..=14309
+            | 14311..=14312
+            | 14488..=14489
+            | 14491..=14492
+            | 14524..=14525
+            | 14527..=14528
+            | 14596..=14597
+            | 14599..=14600
+            | 14632..=14633
+            | 14635..=14636
+            | 14812..=14813
+            | 14815..=14816
+            | 14848..=14849
+            | 14851..=14852
+            | 14920..=14921
+            | 14923..=14924
+            | 14956..=14957
+            | 14959..=14960
+            | 15136..=15137
+            | 15139..=15140
+            | 15172..=15173
+            | 15175..=15176
+            | 15244..=15245
+            | 15247..=15248
+            | 15280..=15281
+            | 15283..=15284
+            | 15460..=15461
+            | 15463..=15464
+            | 15496..=15497
+            | 15499..=15500
+            | 15568..=15569
+            | 15571..=15572
+            | 15604..=15605
+            | 15607..=15608
+            | 15784..=15785
+            | 15787..=15788
+            | 15820..=15821
+            | 15823..=15824
+            | 15892..=15893
+            | 15895..=15896
+            | 15928..=15929
+            | 15931..=15932
+            | 16108..=16109
+            | 16111..=16112
+            | 16144..=16145
+            | 16147..=16148
+            | 16216..=16217
+            | 16219..=16220
+            | 16252..=16253
+            | 16255..=16256
+            | 16432..=16433
+            | 16435..=16436
+            | 16468..=16469
+            | 16471..=16472
+            | 16540..=16541
+            | 16543..=16544
+            | 16576..=16577
+            | 16579..=16580
+            | 16756..=16757
+            | 16759..=16760
+            | 16792..=16793
+            | 16795..=16796
+            | 16864..=16865
+            | 16867..=16868
+            | 16900..=16901
+            | 16903..=16904
+            | 17080..=17081
+            | 17083..=17084
+            | 17116..=17117
+            | 17119..=17120
+            | 17188..=17189
+            | 17191..=17192
+            | 17224..=17225
+            | 17227..=17228
+            | 17404..=17405
+            | 17407..=17408
+            | 17440..=17441
+            | 17443..=17444
+            | 17512..=17513
+            | 17515..=17516
+            | 17548..=17549
+            | 17551..=17552
+            | 17728..=17729
+            | 17731..=17732
+            | 17764..=17765
+            | 17767..=17768
+            | 17836..=17837
+            | 17839..=17840
+            | 17872..=17873
+            | 17875..=17876
+            | 18052..=18053
+            | 18055..=18056
+            | 18088..=18089
+            | 18091..=18092
+            | 18160..=18161
+            | 18163..=18164
+            | 18196..=18197
+            | 18199..=18200
+            | 19545..=19546
+            | 19548..=19549
+            | 19581..=19582
+            | 19584..=19585
+            | 19653..=19654
+            | 19656..=19657
+            | 19689..=19690
+            | 19692..=19693
+            | 19965..=19966
+            | 19968..=19969
+            | 20001..=20002
+            | 20004..=20005
+            | 20073..=20074
+            | 20076..=20077
+            | 20109..=20110
+            | 20112..=20113
+            | 20402..=20403
+            | 20405..=20406
+            | 20438..=20439
+            | 20441..=20442
+            | 20510..=20511
+            | 20513..=20514
+            | 20546..=20547
+            | 20549..=20550
+            | 22684..=22685
+            | 22687..=22688
+            | 22720..=22721
+            | 22723..=22724
+            | 22792..=22793
+            | 22795..=22796
+            | 22828..=22829
+            | 22831..=22832
+            | 23095..=23096
+            | 23098..=23099
+            | 23131..=23132
+            | 23134..=23135
+            | 23203..=23204
+            | 23206..=23207
+            | 23239..=23240
+            | 23242..=23243
+            | 23506..=23507
+            | 23509..=23510
+            | 23542..=23543
+            | 23545..=23546
+            | 23614..=23615
+            | 23617..=23618
+            | 23650..=23651
+            | 23653..=23654
+            | 23917..=23918
+            | 23920..=23921
+            | 23953..=23954
+            | 23956..=23957
+            | 24025..=24026
+            | 24028..=24029
+            | 24061..=24062
+            | 24064..=24065 => &SHAPE160,
+            8069 | 8072 | 8105 | 8108 | 8177 | 8180 | 8213 | 8216 | 8393 | 8396 | 8429 | 8432
+            | 8501 | 8504 | 8537 | 8540 | 14169 | 14172 | 14205 | 14208 | 14277 | 14280 | 14313
+            | 14316 | 14493 | 14496 | 14529 | 14532 | 14601 | 14604 | 14637 | 14640 | 14817
+            | 14820 | 14853 | 14856 | 14925 | 14928 | 14961 | 14964 | 15141 | 15144 | 15177
+            | 15180 | 15249 | 15252 | 15285 | 15288 | 15465 | 15468 | 15501 | 15504 | 15573
+            | 15576 | 15609 | 15612 | 15789 | 15792 | 15825 | 15828 | 15897 | 15900 | 15933
+            | 15936 | 16113 | 16116 | 16149 | 16152 | 16221 | 16224 | 16257 | 16260 | 16437
+            | 16440 | 16473 | 16476 | 16545 | 16548 | 16581 | 16584 | 16761 | 16764 | 16797
+            | 16800 | 16869 | 16872 | 16905 | 16908 | 17085 | 17088 | 17121 | 17124 | 17193
+            | 17196 | 17229 | 17232 | 17409 | 17412 | 17445 | 17448 | 17517 | 17520 | 17553
+            | 17556 | 17733 | 17736 | 17769 | 17772 | 17841 | 17844 | 17877 | 17880 | 18057
+            | 18060 | 18093 | 18096 | 18165 | 18168 | 18201 | 18204 | 19550 | 19553 | 19586
+            | 19589 | 19658 | 19661 | 19694 | 19697 | 19970 | 19973 | 20006 | 20009 | 20078
+            | 20081 | 20114 | 20117 | 20407 | 20410 | 20443 | 20446 | 20515 | 20518 | 20551
+            | 20554 | 22689 | 22692 | 22725 | 22728 | 22797 | 22800 | 22833 | 22836 | 23100
+            | 23103 | 23136 | 23139 | 23208 | 23211 | 23244 | 23247 | 23511 | 23514 | 23547
+            | 23550 | 23619 | 23622 | 23655 | 23658 | 23922 | 23925 | 23958 | 23961 | 24030
+            | 24033 | 24066 | 24069 => &SHAPE161,
+            8070..=8071
+            | 8073..=8074
+            | 8106..=8107
+            | 8109..=8110
+            | 8178..=8179
+            | 8181..=8182
+            | 8214..=8215
+            | 8217..=8218
+            | 8394..=8395
+            | 8397..=8398
+            | 8430..=8431
+            | 8433..=8434
+            | 8502..=8503
+            | 8505..=8506
+            | 8538..=8539
+            | 8541..=8542
+            | 14170..=14171
+            | 14173..=14174
+            | 14206..=14207
+            | 14209..=14210
+            | 14278..=14279
+            | 14281..=14282
+            | 14314..=14315
+            | 14317..=14318
+            | 14494..=14495
+            | 14497..=14498
+            | 14530..=14531
+            | 14533..=14534
+            | 14602..=14603
+            | 14605..=14606
+            | 14638..=14639
+            | 14641..=14642
+            | 14818..=14819
+            | 14821..=14822
+            | 14854..=14855
+            | 14857..=14858
+            | 14926..=14927
+            | 14929..=14930
+            | 14962..=14963
+            | 14965..=14966
+            | 15142..=15143
+            | 15145..=15146
+            | 15178..=15179
+            | 15181..=15182
+            | 15250..=15251
+            | 15253..=15254
+            | 15286..=15287
+            | 15289..=15290
+            | 15466..=15467
+            | 15469..=15470
+            | 15502..=15503
+            | 15505..=15506
+            | 15574..=15575
+            | 15577..=15578
+            | 15610..=15611
+            | 15613..=15614
+            | 15790..=15791
+            | 15793..=15794
+            | 15826..=15827
+            | 15829..=15830
+            | 15898..=15899
+            | 15901..=15902
+            | 15934..=15935
+            | 15937..=15938
+            | 16114..=16115
+            | 16117..=16118
+            | 16150..=16151
+            | 16153..=16154
+            | 16222..=16223
+            | 16225..=16226
+            | 16258..=16259
+            | 16261..=16262
+            | 16438..=16439
+            | 16441..=16442
+            | 16474..=16475
+            | 16477..=16478
+            | 16546..=16547
+            | 16549..=16550
+            | 16582..=16583
+            | 16585..=16586
+            | 16762..=16763
+            | 16765..=16766
+            | 16798..=16799
+            | 16801..=16802
+            | 16870..=16871
+            | 16873..=16874
+            | 16906..=16907
+            | 16909..=16910
+            | 17086..=17087
+            | 17089..=17090
+            | 17122..=17123
+            | 17125..=17126
+            | 17194..=17195
+            | 17197..=17198
+            | 17230..=17231
+            | 17233..=17234
+            | 17410..=17411
+            | 17413..=17414
+            | 17446..=17447
+            | 17449..=17450
+            | 17518..=17519
+            | 17521..=17522
+            | 17554..=17555
+            | 17557..=17558
+            | 17734..=17735
+            | 17737..=17738
+            | 17770..=17771
+            | 17773..=17774
+            | 17842..=17843
+            | 17845..=17846
+            | 17878..=17879
+            | 17881..=17882
+            | 18058..=18059
+            | 18061..=18062
+            | 18094..=18095
+            | 18097..=18098
+            | 18166..=18167
+            | 18169..=18170
+            | 18202..=18203
+            | 18205..=18206
+            | 19551..=19552
+            | 19554..=19555
+            | 19587..=19588
+            | 19590..=19591
+            | 19659..=19660
+            | 19662..=19663
+            | 19695..=19696
+            | 19698..=19699
+            | 19971..=19972
+            | 19974..=19975
+            | 20007..=20008
+            | 20010..=20011
+            | 20079..=20080
+            | 20082..=20083
+            | 20115..=20116
+            | 20118..=20119
+            | 20408..=20409
+            | 20411..=20412
+            | 20444..=20445
+            | 20447..=20448
+            | 20516..=20517
+            | 20519..=20520
+            | 20552..=20553
+            | 20555..=20556
+            | 22690..=22691
+            | 22693..=22694
+            | 22726..=22727
+            | 22729..=22730
+            | 22798..=22799
+            | 22801..=22802
+            | 22834..=22835
+            | 22837..=22838
+            | 23101..=23102
+            | 23104..=23105
+            | 23137..=23138
+            | 23140..=23141
+            | 23209..=23210
+            | 23212..=23213
+            | 23245..=23246
+            | 23248..=23249
+            | 23512..=23513
+            | 23515..=23516
+            | 23548..=23549
+            | 23551..=23552
+            | 23620..=23621
+            | 23623..=23624
+            | 23656..=23657
+            | 23659..=23660
+            | 23923..=23924
+            | 23926..=23927
+            | 23959..=23960
+            | 23962..=23963
+            | 24031..=24032
+            | 24034..=24035
+            | 24067..=24068
+            | 24070..=24071 => &SHAPE162,
+            8075 | 8078 | 8087 | 8090 | 8111 | 8114 | 8123 | 8126 | 8183 | 8186 | 8195 | 8198
+            | 8219 | 8222 | 8231 | 8234 | 8399 | 8402 | 8411 | 8414 | 8435 | 8438 | 8447 | 8450
+            | 8507 | 8510 | 8519 | 8522 | 8543 | 8546 | 8555 | 8558 | 14175 | 14178 | 14187
+            | 14190 | 14211 | 14214 | 14223 | 14226 | 14283 | 14286 | 14295 | 14298 | 14319
+            | 14322 | 14331 | 14334 | 14499 | 14502 | 14511 | 14514 | 14535 | 14538 | 14547
+            | 14550 | 14607 | 14610 | 14619 | 14622 | 14643 | 14646 | 14655 | 14658 | 14823
+            | 14826 | 14835 | 14838 | 14859 | 14862 | 14871 | 14874 | 14931 | 14934 | 14943
+            | 14946 | 14967 | 14970 | 14979 | 14982 | 15147 | 15150 | 15159 | 15162 | 15183
+            | 15186 | 15195 | 15198 | 15255 | 15258 | 15267 | 15270 | 15291 | 15294 | 15303
+            | 15306 | 15471 | 15474 | 15483 | 15486 | 15507 | 15510 | 15519 | 15522 | 15579
+            | 15582 | 15591 | 15594 | 15615 | 15618 | 15627 | 15630 | 15795 | 15798 | 15807
+            | 15810 | 15831 | 15834 | 15843 | 15846 | 15903 | 15906 | 15915 | 15918 | 15939
+            | 15942 | 15951 | 15954 | 16119 | 16122 | 16131 | 16134 | 16155 | 16158 | 16167
+            | 16170 | 16227 | 16230 | 16239 | 16242 | 16263 | 16266 | 16275 | 16278 | 16443
+            | 16446 | 16455 | 16458 | 16479 | 16482 | 16491 | 16494 | 16551 | 16554 | 16563
+            | 16566 | 16587 | 16590 | 16599 | 16602 | 16767 | 16770 | 16779 | 16782 | 16803
+            | 16806 | 16815 | 16818 | 16875 | 16878 | 16887 | 16890 | 16911 | 16914 | 16923
+            | 16926 | 17091 | 17094 | 17103 | 17106 | 17127 | 17130 | 17139 | 17142 | 17199
+            | 17202 | 17211 | 17214 | 17235 | 17238 | 17247 | 17250 | 17415 | 17418 | 17427
+            | 17430 | 17451 | 17454 | 17463 | 17466 | 17523 | 17526 | 17535 | 17538 | 17559
+            | 17562 | 17571 | 17574 | 17739 | 17742 | 17751 | 17754 | 17775 | 17778 | 17787
+            | 17790 | 17847 | 17850 | 17859 | 17862 | 17883 | 17886 | 17895 | 17898 | 18063
+            | 18066 | 18075 | 18078 | 18099 | 18102 | 18111 | 18114 | 18171 | 18174 | 18183
+            | 18186 | 18207 | 18210 | 18219 | 18222 | 19556 | 19559 | 19568 | 19571 | 19592
+            | 19595 | 19604 | 19607 | 19664 | 19667 | 19676 | 19679 | 19700 | 19703 | 19712
+            | 19715 | 19976 | 19979 | 19988 | 19991 | 20012 | 20015 | 20024 | 20027 | 20084
+            | 20087 | 20096 | 20099 | 20120 | 20123 | 20132 | 20135 | 20413 | 20416 | 20425
+            | 20428 | 20449 | 20452 | 20461 | 20464 | 20521 | 20524 | 20533 | 20536 | 20557
+            | 20560 | 20569 | 20572 | 22695 | 22698 | 22707 | 22710 | 22731 | 22734 | 22743
+            | 22746 | 22803 | 22806 | 22815 | 22818 | 22839 | 22842 | 22851 | 22854 | 23106
+            | 23109 | 23118 | 23121 | 23142 | 23145 | 23154 | 23157 | 23214 | 23217 | 23226
+            | 23229 | 23250 | 23253 | 23262 | 23265 | 23517 | 23520 | 23529 | 23532 | 23553
+            | 23556 | 23565 | 23568 | 23625 | 23628 | 23637 | 23640 | 23661 | 23664 | 23673
+            | 23676 | 23928 | 23931 | 23940 | 23943 | 23964 | 23967 | 23976 | 23979 | 24036
+            | 24039 | 24048 | 24051 | 24072 | 24075 | 24084 | 24087 => &SHAPE163,
+            8076..=8077
+            | 8079..=8080
+            | 8088..=8089
+            | 8091..=8092
+            | 8112..=8113
+            | 8115..=8116
+            | 8124..=8125
+            | 8127..=8128
+            | 8184..=8185
+            | 8187..=8188
+            | 8196..=8197
+            | 8199..=8200
+            | 8220..=8221
+            | 8223..=8224
+            | 8232..=8233
+            | 8235..=8236
+            | 8400..=8401
+            | 8403..=8404
+            | 8412..=8413
+            | 8415..=8416
+            | 8436..=8437
+            | 8439..=8440
+            | 8448..=8449
+            | 8451..=8452
+            | 8508..=8509
+            | 8511..=8512
+            | 8520..=8521
+            | 8523..=8524
+            | 8544..=8545
+            | 8547..=8548
+            | 8556..=8557
+            | 8559..=8560
+            | 14176..=14177
+            | 14179..=14180
+            | 14188..=14189
+            | 14191..=14192
+            | 14212..=14213
+            | 14215..=14216
+            | 14224..=14225
+            | 14227..=14228
+            | 14284..=14285
+            | 14287..=14288
+            | 14296..=14297
+            | 14299..=14300
+            | 14320..=14321
+            | 14323..=14324
+            | 14332..=14333
+            | 14335..=14336
+            | 14500..=14501
+            | 14503..=14504
+            | 14512..=14513
+            | 14515..=14516
+            | 14536..=14537
+            | 14539..=14540
+            | 14548..=14549
+            | 14551..=14552
+            | 14608..=14609
+            | 14611..=14612
+            | 14620..=14621
+            | 14623..=14624
+            | 14644..=14645
+            | 14647..=14648
+            | 14656..=14657
+            | 14659..=14660
+            | 14824..=14825
+            | 14827..=14828
+            | 14836..=14837
+            | 14839..=14840
+            | 14860..=14861
+            | 14863..=14864
+            | 14872..=14873
+            | 14875..=14876
+            | 14932..=14933
+            | 14935..=14936
+            | 14944..=14945
+            | 14947..=14948
+            | 14968..=14969
+            | 14971..=14972
+            | 14980..=14981
+            | 14983..=14984
+            | 15148..=15149
+            | 15151..=15152
+            | 15160..=15161
+            | 15163..=15164
+            | 15184..=15185
+            | 15187..=15188
+            | 15196..=15197
+            | 15199..=15200
+            | 15256..=15257
+            | 15259..=15260
+            | 15268..=15269
+            | 15271..=15272
+            | 15292..=15293
+            | 15295..=15296
+            | 15304..=15305
+            | 15307..=15308
+            | 15472..=15473
+            | 15475..=15476
+            | 15484..=15485
+            | 15487..=15488
+            | 15508..=15509
+            | 15511..=15512
+            | 15520..=15521
+            | 15523..=15524
+            | 15580..=15581
+            | 15583..=15584
+            | 15592..=15593
+            | 15595..=15596
+            | 15616..=15617
+            | 15619..=15620
+            | 15628..=15629
+            | 15631..=15632
+            | 15796..=15797
+            | 15799..=15800
+            | 15808..=15809
+            | 15811..=15812
+            | 15832..=15833
+            | 15835..=15836
+            | 15844..=15845
+            | 15847..=15848
+            | 15904..=15905
+            | 15907..=15908
+            | 15916..=15917
+            | 15919..=15920
+            | 15940..=15941
+            | 15943..=15944
+            | 15952..=15953
+            | 15955..=15956
+            | 16120..=16121
+            | 16123..=16124
+            | 16132..=16133
+            | 16135..=16136
+            | 16156..=16157
+            | 16159..=16160
+            | 16168..=16169
+            | 16171..=16172
+            | 16228..=16229
+            | 16231..=16232
+            | 16240..=16241
+            | 16243..=16244
+            | 16264..=16265
+            | 16267..=16268
+            | 16276..=16277
+            | 16279..=16280
+            | 16444..=16445
+            | 16447..=16448
+            | 16456..=16457
+            | 16459..=16460
+            | 16480..=16481
+            | 16483..=16484
+            | 16492..=16493
+            | 16495..=16496
+            | 16552..=16553
+            | 16555..=16556
+            | 16564..=16565
+            | 16567..=16568
+            | 16588..=16589
+            | 16591..=16592
+            | 16600..=16601
+            | 16603..=16604
+            | 16768..=16769
+            | 16771..=16772
+            | 16780..=16781
+            | 16783..=16784
+            | 16804..=16805
+            | 16807..=16808
+            | 16816..=16817
+            | 16819..=16820
+            | 16876..=16877
+            | 16879..=16880
+            | 16888..=16889
+            | 16891..=16892
+            | 16912..=16913
+            | 16915..=16916
+            | 16924..=16925
+            | 16927..=16928
+            | 17092..=17093
+            | 17095..=17096
+            | 17104..=17105
+            | 17107..=17108
+            | 17128..=17129
+            | 17131..=17132
+            | 17140..=17141
+            | 17143..=17144
+            | 17200..=17201
+            | 17203..=17204
+            | 17212..=17213
+            | 17215..=17216
+            | 17236..=17237
+            | 17239..=17240
+            | 17248..=17249
+            | 17251..=17252
+            | 17416..=17417
+            | 17419..=17420
+            | 17428..=17429
+            | 17431..=17432
+            | 17452..=17453
+            | 17455..=17456
+            | 17464..=17465
+            | 17467..=17468
+            | 17524..=17525
+            | 17527..=17528
+            | 17536..=17537
+            | 17539..=17540
+            | 17560..=17561
+            | 17563..=17564
+            | 17572..=17573
+            | 17575..=17576
+            | 17740..=17741
+            | 17743..=17744
+            | 17752..=17753
+            | 17755..=17756
+            | 17776..=17777
+            | 17779..=17780
+            | 17788..=17789
+            | 17791..=17792
+            | 17848..=17849
+            | 17851..=17852
+            | 17860..=17861
+            | 17863..=17864
+            | 17884..=17885
+            | 17887..=17888
+            | 17896..=17897
+            | 17899..=17900
+            | 18064..=18065
+            | 18067..=18068
+            | 18076..=18077
+            | 18079..=18080
+            | 18100..=18101
+            | 18103..=18104
+            | 18112..=18113
+            | 18115..=18116
+            | 18172..=18173
+            | 18175..=18176
+            | 18184..=18185
+            | 18187..=18188
+            | 18208..=18209
+            | 18211..=18212
+            | 18220..=18221
+            | 18223..=18224
+            | 19557..=19558
+            | 19560..=19561
+            | 19569..=19570
+            | 19572..=19573
+            | 19593..=19594
+            | 19596..=19597
+            | 19605..=19606
+            | 19608..=19609
+            | 19665..=19666
+            | 19668..=19669
+            | 19677..=19678
+            | 19680..=19681
+            | 19701..=19702
+            | 19704..=19705
+            | 19713..=19714
+            | 19716..=19717
+            | 19977..=19978
+            | 19980..=19981
+            | 19989..=19990
+            | 19992..=19993
+            | 20013..=20014
+            | 20016..=20017
+            | 20025..=20026
+            | 20028..=20029
+            | 20085..=20086
+            | 20088..=20089
+            | 20097..=20098
+            | 20100..=20101
+            | 20121..=20122
+            | 20124..=20125
+            | 20133..=20134
+            | 20136..=20137
+            | 20414..=20415
+            | 20417..=20418
+            | 20426..=20427
+            | 20429..=20430
+            | 20450..=20451
+            | 20453..=20454
+            | 20462..=20463
+            | 20465..=20466
+            | 20522..=20523
+            | 20525..=20526
+            | 20534..=20535
+            | 20537..=20538
+            | 20558..=20559
+            | 20561..=20562
+            | 20570..=20571
+            | 20573..=20574
+            | 22696..=22697
+            | 22699..=22700
+            | 22708..=22709
+            | 22711..=22712
+            | 22732..=22733
+            | 22735..=22736
+            | 22744..=22745
+            | 22747..=22748
+            | 22804..=22805
+            | 22807..=22808
+            | 22816..=22817
+            | 22819..=22820
+            | 22840..=22841
+            | 22843..=22844
+            | 22852..=22853
+            | 22855..=22856
+            | 23107..=23108
+            | 23110..=23111
+            | 23119..=23120
+            | 23122..=23123
+            | 23143..=23144
+            | 23146..=23147
+            | 23155..=23156
+            | 23158..=23159
+            | 23215..=23216
+            | 23218..=23219
+            | 23227..=23228
+            | 23230..=23231
+            | 23251..=23252
+            | 23254..=23255
+            | 23263..=23264
+            | 23266..=23267
+            | 23518..=23519
+            | 23521..=23522
+            | 23530..=23531
+            | 23533..=23534
+            | 23554..=23555
+            | 23557..=23558
+            | 23566..=23567
+            | 23569..=23570
+            | 23626..=23627
+            | 23629..=23630
+            | 23638..=23639
+            | 23641..=23642
+            | 23662..=23663
+            | 23665..=23666
+            | 23674..=23675
+            | 23677..=23678
+            | 23929..=23930
+            | 23932..=23933
+            | 23941..=23942
+            | 23944..=23945
+            | 23965..=23966
+            | 23968..=23969
+            | 23977..=23978
+            | 23980..=23981
+            | 24037..=24038
+            | 24040..=24041
+            | 24049..=24050
+            | 24052..=24053
+            | 24073..=24074
+            | 24076..=24077
+            | 24085..=24086
+            | 24088..=24089 => &SHAPE164,
+            8081 | 8084 | 8093 | 8096 | 8117 | 8120 | 8129 | 8132 | 8189 | 8192 | 8201 | 8204
+            | 8225 | 8228 | 8237 | 8240 | 8405 | 8408 | 8417 | 8420 | 8441 | 8444 | 8453 | 8456
+            | 8513 | 8516 | 8525 | 8528 | 8549 | 8552 | 8561 | 8564 | 14181 | 14184 | 14193
+            | 14196 | 14217 | 14220 | 14229 | 14232 | 14289 | 14292 | 14301 | 14304 | 14325
+            | 14328 | 14337 | 14340 | 14505 | 14508 | 14517 | 14520 | 14541 | 14544 | 14553
+            | 14556 | 14613 | 14616 | 14625 | 14628 | 14649 | 14652 | 14661 | 14664 | 14829
+            | 14832 | 14841 | 14844 | 14865 | 14868 | 14877 | 14880 | 14937 | 14940 | 14949
+            | 14952 | 14973 | 14976 | 14985 | 14988 | 15153 | 15156 | 15165 | 15168 | 15189
+            | 15192 | 15201 | 15204 | 15261 | 15264 | 15273 | 15276 | 15297 | 15300 | 15309
+            | 15312 | 15477 | 15480 | 15489 | 15492 | 15513 | 15516 | 15525 | 15528 | 15585
+            | 15588 | 15597 | 15600 | 15621 | 15624 | 15633 | 15636 | 15801 | 15804 | 15813
+            | 15816 | 15837 | 15840 | 15849 | 15852 | 15909 | 15912 | 15921 | 15924 | 15945
+            | 15948 | 15957 | 15960 | 16125 | 16128 | 16137 | 16140 | 16161 | 16164 | 16173
+            | 16176 | 16233 | 16236 | 16245 | 16248 | 16269 | 16272 | 16281 | 16284 | 16449
+            | 16452 | 16461 | 16464 | 16485 | 16488 | 16497 | 16500 | 16557 | 16560 | 16569
+            | 16572 | 16593 | 16596 | 16605 | 16608 | 16773 | 16776 | 16785 | 16788 | 16809
+            | 16812 | 16821 | 16824 | 16881 | 16884 | 16893 | 16896 | 16917 | 16920 | 16929
+            | 16932 | 17097 | 17100 | 17109 | 17112 | 17133 | 17136 | 17145 | 17148 | 17205
+            | 17208 | 17217 | 17220 | 17241 | 17244 | 17253 | 17256 | 17421 | 17424 | 17433
+            | 17436 | 17457 | 17460 | 17469 | 17472 | 17529 | 17532 | 17541 | 17544 | 17565
+            | 17568 | 17577 | 17580 | 17745 | 17748 | 17757 | 17760 | 17781 | 17784 | 17793
+            | 17796 | 17853 | 17856 | 17865 | 17868 | 17889 | 17892 | 17901 | 17904 | 18069
+            | 18072 | 18081 | 18084 | 18105 | 18108 | 18117 | 18120 | 18177 | 18180 | 18189
+            | 18192 | 18213 | 18216 | 18225 | 18228 | 19562 | 19565 | 19574 | 19577 | 19598
+            | 19601 | 19610 | 19613 | 19670 | 19673 | 19682 | 19685 | 19706 | 19709 | 19718
+            | 19721 | 19982 | 19985 | 19994 | 19997 | 20018 | 20021 | 20030 | 20033 | 20090
+            | 20093 | 20102 | 20105 | 20126 | 20129 | 20138 | 20141 | 20419 | 20422 | 20431
+            | 20434 | 20455 | 20458 | 20467 | 20470 | 20527 | 20530 | 20539 | 20542 | 20563
+            | 20566 | 20575 | 20578 | 22701 | 22704 | 22713 | 22716 | 22737 | 22740 | 22749
+            | 22752 | 22809 | 22812 | 22821 | 22824 | 22845 | 22848 | 22857 | 22860 | 23112
+            | 23115 | 23124 | 23127 | 23148 | 23151 | 23160 | 23163 | 23220 | 23223 | 23232
+            | 23235 | 23256 | 23259 | 23268 | 23271 | 23523 | 23526 | 23535 | 23538 | 23559
+            | 23562 | 23571 | 23574 | 23631 | 23634 | 23643 | 23646 | 23667 | 23670 | 23679
+            | 23682 | 23934 | 23937 | 23946 | 23949 | 23970 | 23973 | 23982 | 23985 | 24042
+            | 24045 | 24054 | 24057 | 24078 | 24081 | 24090 | 24093 => &SHAPE165,
+            8082..=8083
+            | 8085..=8086
+            | 8094..=8095
+            | 8097..=8098
+            | 8118..=8119
+            | 8121..=8122
+            | 8130..=8131
+            | 8133..=8134
+            | 8190..=8191
+            | 8193..=8194
+            | 8202..=8203
+            | 8205..=8206
+            | 8226..=8227
+            | 8229..=8230
+            | 8238..=8239
+            | 8241..=8242
+            | 8406..=8407
+            | 8409..=8410
+            | 8418..=8419
+            | 8421..=8422
+            | 8442..=8443
+            | 8445..=8446
+            | 8454..=8455
+            | 8457..=8458
+            | 8514..=8515
+            | 8517..=8518
+            | 8526..=8527
+            | 8529..=8530
+            | 8550..=8551
+            | 8553..=8554
+            | 8562..=8563
+            | 8565..=8566
+            | 14182..=14183
+            | 14185..=14186
+            | 14194..=14195
+            | 14197..=14198
+            | 14218..=14219
+            | 14221..=14222
+            | 14230..=14231
+            | 14233..=14234
+            | 14290..=14291
+            | 14293..=14294
+            | 14302..=14303
+            | 14305..=14306
+            | 14326..=14327
+            | 14329..=14330
+            | 14338..=14339
+            | 14341..=14342
+            | 14506..=14507
+            | 14509..=14510
+            | 14518..=14519
+            | 14521..=14522
+            | 14542..=14543
+            | 14545..=14546
+            | 14554..=14555
+            | 14557..=14558
+            | 14614..=14615
+            | 14617..=14618
+            | 14626..=14627
+            | 14629..=14630
+            | 14650..=14651
+            | 14653..=14654
+            | 14662..=14663
+            | 14665..=14666
+            | 14830..=14831
+            | 14833..=14834
+            | 14842..=14843
+            | 14845..=14846
+            | 14866..=14867
+            | 14869..=14870
+            | 14878..=14879
+            | 14881..=14882
+            | 14938..=14939
+            | 14941..=14942
+            | 14950..=14951
+            | 14953..=14954
+            | 14974..=14975
+            | 14977..=14978
+            | 14986..=14987
+            | 14989..=14990
+            | 15154..=15155
+            | 15157..=15158
+            | 15166..=15167
+            | 15169..=15170
+            | 15190..=15191
+            | 15193..=15194
+            | 15202..=15203
+            | 15205..=15206
+            | 15262..=15263
+            | 15265..=15266
+            | 15274..=15275
+            | 15277..=15278
+            | 15298..=15299
+            | 15301..=15302
+            | 15310..=15311
+            | 15313..=15314
+            | 15478..=15479
+            | 15481..=15482
+            | 15490..=15491
+            | 15493..=15494
+            | 15514..=15515
+            | 15517..=15518
+            | 15526..=15527
+            | 15529..=15530
+            | 15586..=15587
+            | 15589..=15590
+            | 15598..=15599
+            | 15601..=15602
+            | 15622..=15623
+            | 15625..=15626
+            | 15634..=15635
+            | 15637..=15638
+            | 15802..=15803
+            | 15805..=15806
+            | 15814..=15815
+            | 15817..=15818
+            | 15838..=15839
+            | 15841..=15842
+            | 15850..=15851
+            | 15853..=15854
+            | 15910..=15911
+            | 15913..=15914
+            | 15922..=15923
+            | 15925..=15926
+            | 15946..=15947
+            | 15949..=15950
+            | 15958..=15959
+            | 15961..=15962
+            | 16126..=16127
+            | 16129..=16130
+            | 16138..=16139
+            | 16141..=16142
+            | 16162..=16163
+            | 16165..=16166
+            | 16174..=16175
+            | 16177..=16178
+            | 16234..=16235
+            | 16237..=16238
+            | 16246..=16247
+            | 16249..=16250
+            | 16270..=16271
+            | 16273..=16274
+            | 16282..=16283
+            | 16285..=16286
+            | 16450..=16451
+            | 16453..=16454
+            | 16462..=16463
+            | 16465..=16466
+            | 16486..=16487
+            | 16489..=16490
+            | 16498..=16499
+            | 16501..=16502
+            | 16558..=16559
+            | 16561..=16562
+            | 16570..=16571
+            | 16573..=16574
+            | 16594..=16595
+            | 16597..=16598
+            | 16606..=16607
+            | 16609..=16610
+            | 16774..=16775
+            | 16777..=16778
+            | 16786..=16787
+            | 16789..=16790
+            | 16810..=16811
+            | 16813..=16814
+            | 16822..=16823
+            | 16825..=16826
+            | 16882..=16883
+            | 16885..=16886
+            | 16894..=16895
+            | 16897..=16898
+            | 16918..=16919
+            | 16921..=16922
+            | 16930..=16931
+            | 16933..=16934
+            | 17098..=17099
+            | 17101..=17102
+            | 17110..=17111
+            | 17113..=17114
+            | 17134..=17135
+            | 17137..=17138
+            | 17146..=17147
+            | 17149..=17150
+            | 17206..=17207
+            | 17209..=17210
+            | 17218..=17219
+            | 17221..=17222
+            | 17242..=17243
+            | 17245..=17246
+            | 17254..=17255
+            | 17257..=17258
+            | 17422..=17423
+            | 17425..=17426
+            | 17434..=17435
+            | 17437..=17438
+            | 17458..=17459
+            | 17461..=17462
+            | 17470..=17471
+            | 17473..=17474
+            | 17530..=17531
+            | 17533..=17534
+            | 17542..=17543
+            | 17545..=17546
+            | 17566..=17567
+            | 17569..=17570
+            | 17578..=17579
+            | 17581..=17582
+            | 17746..=17747
+            | 17749..=17750
+            | 17758..=17759
+            | 17761..=17762
+            | 17782..=17783
+            | 17785..=17786
+            | 17794..=17795
+            | 17797..=17798
+            | 17854..=17855
+            | 17857..=17858
+            | 17866..=17867
+            | 17869..=17870
+            | 17890..=17891
+            | 17893..=17894
+            | 17902..=17903
+            | 17905..=17906
+            | 18070..=18071
+            | 18073..=18074
+            | 18082..=18083
+            | 18085..=18086
+            | 18106..=18107
+            | 18109..=18110
+            | 18118..=18119
+            | 18121..=18122
+            | 18178..=18179
+            | 18181..=18182
+            | 18190..=18191
+            | 18193..=18194
+            | 18214..=18215
+            | 18217..=18218
+            | 18226..=18227
+            | 18229..=18230
+            | 19563..=19564
+            | 19566..=19567
+            | 19575..=19576
+            | 19578..=19579
+            | 19599..=19600
+            | 19602..=19603
+            | 19611..=19612
+            | 19614..=19615
+            | 19671..=19672
+            | 19674..=19675
+            | 19683..=19684
+            | 19686..=19687
+            | 19707..=19708
+            | 19710..=19711
+            | 19719..=19720
+            | 19722..=19723
+            | 19983..=19984
+            | 19986..=19987
+            | 19995..=19996
+            | 19998..=19999
+            | 20019..=20020
+            | 20022..=20023
+            | 20031..=20032
+            | 20034..=20035
+            | 20091..=20092
+            | 20094..=20095
+            | 20103..=20104
+            | 20106..=20107
+            | 20127..=20128
+            | 20130..=20131
+            | 20139..=20140
+            | 20142..=20143
+            | 20420..=20421
+            | 20423..=20424
+            | 20432..=20433
+            | 20435..=20436
+            | 20456..=20457
+            | 20459..=20460
+            | 20468..=20469
+            | 20471..=20472
+            | 20528..=20529
+            | 20531..=20532
+            | 20540..=20541
+            | 20543..=20544
+            | 20564..=20565
+            | 20567..=20568
+            | 20576..=20577
+            | 20579..=20580
+            | 22702..=22703
+            | 22705..=22706
+            | 22714..=22715
+            | 22717..=22718
+            | 22738..=22739
+            | 22741..=22742
+            | 22750..=22751
+            | 22753..=22754
+            | 22810..=22811
+            | 22813..=22814
+            | 22822..=22823
+            | 22825..=22826
+            | 22846..=22847
+            | 22849..=22850
+            | 22858..=22859
+            | 22861..=22862
+            | 23113..=23114
+            | 23116..=23117
+            | 23125..=23126
+            | 23128..=23129
+            | 23149..=23150
+            | 23152..=23153
+            | 23161..=23162
+            | 23164..=23165
+            | 23221..=23222
+            | 23224..=23225
+            | 23233..=23234
+            | 23236..=23237
+            | 23257..=23258
+            | 23260..=23261
+            | 23269..=23270
+            | 23272..=23273
+            | 23524..=23525
+            | 23527..=23528
+            | 23536..=23537
+            | 23539..=23540
+            | 23560..=23561
+            | 23563..=23564
+            | 23572..=23573
+            | 23575..=23576
+            | 23632..=23633
+            | 23635..=23636
+            | 23644..=23645
+            | 23647..=23648
+            | 23668..=23669
+            | 23671..=23672
+            | 23680..=23681
+            | 23683..=23684
+            | 23935..=23936
+            | 23938..=23939
+            | 23947..=23948
+            | 23950..=23951
+            | 23971..=23972
+            | 23974..=23975
+            | 23983..=23984
+            | 23986..=23987
+            | 24043..=24044
+            | 24046..=24047
+            | 24055..=24056
+            | 24058..=24059
+            | 24079..=24080
+            | 24082..=24083
+            | 24091..=24092
+            | 24094..=24095 => &SHAPE166,
+            8567..=8594 | 12816 | 19314..=19317 | 24106..=24107 => &SHAPE27,
+            8827..=8842 | 8847..=8862 | 8867..=8882 | 8887..=8902 | 8907..=8922 | 8927..=8942 => {
+                &SHAPE169
+            }
+            8843 | 8863 | 8883 | 8903 | 8923 | 8943 => &SHAPE170,
+            8844 | 8864 | 8884 | 8904 | 8924 | 8944 => &SHAPE171,
+            8845 | 8865 | 8885 | 8905 | 8925 | 8945 => &SHAPE172,
+            8846 | 8866 | 8886 | 8906 | 8926 | 8946 => &SHAPE173,
+            8947..=8962 => &SHAPE174,
+            8963 => &SHAPE175,
+            8964 => &SHAPE176,
+            8965 => &SHAPE177,
+            8966 => &SHAPE178,
+            8967..=8968 | 8971..=8972 | 8975..=8976 => &SHAPE179,
+            8969..=8970 | 8973..=8974 | 8977..=8978 => &SHAPE180,
+            9085 | 9090 => &SHAPE181,
+            9086 | 9091 => &SHAPE182,
+            9087 | 9092 => &SHAPE183,
+            9088 | 9093 => &SHAPE184,
+            9089 | 9094 => &SHAPE185,
+            10565..=10566
+            | 10571..=10572
+            | 10577..=10578
+            | 11021..=11022
+            | 11027..=11028
+            | 11033..=11034
+            | 11039..=11040
+            | 11045..=11046
+            | 11051..=11052
+            | 11057..=11058
+            | 11063..=11064
+            | 11069..=11070
+            | 11075..=11076
+            | 11081..=11082
+            | 11087..=11088
+            | 11093..=11094
+            | 11099..=11100
+            | 11105..=11106
+            | 11111..=11112
+            | 11117..=11118
+            | 11123..=11124
+            | 11129..=11130
+            | 11135..=11136
+            | 11141..=11142
+            | 11147..=11148
+            | 11153..=11154
+            | 11159..=11160
             | 13941..=13942
             | 13947..=13948
             | 13953..=13954
@@ -7786,223 +7794,229 @@ impl BlockWithShape for BlockState {
             | 13983..=13984
             | 13989..=13990
             | 13995..=13996
-            | 18509..=18510
-            | 18515..=18516
-            | 19706..=19707
-            | 19716..=19717
-            | 20207..=20208
-            | 21491..=21492
-            | 21497..=21498
-            | 21503..=21504
-            | 21509..=21510
-            | 21843..=21844
-            | 21849..=21850
-            | 21855..=21856
-            | 21861..=21862
-            | 22131..=22132
-            | 22542..=22543
-            | 22953..=22954
-            | 23364..=23365 => &SHAPE34,
-            10583..=10598 | 21969 => &SHAPE32,
-            12189 | 12191 | 21867..=21870 | 21875..=21878 => &SHAPE16,
-            12190 | 12192 | 21871..=21874 | 21879..=21882 => &SHAPE19,
-            12193..=12194 | 21883..=21890 => &SHAPE26,
-            12195 => &SHAPE189,
-            12196 => &SHAPE190,
-            12197 => &SHAPE191,
-            12198 => &SHAPE192,
-            12199 => &SHAPE193,
-            12200 => &SHAPE194,
-            12201 => &SHAPE195,
-            12202 => &SHAPE196,
-            12203 => &SHAPE197,
-            12204 => &SHAPE198,
-            12205 => &SHAPE199,
-            12206 => &SHAPE200,
-            12207 => &SHAPE201,
-            12208 => &SHAPE202,
-            12209 => &SHAPE203,
-            12210 => &SHAPE204,
-            12211 => &SHAPE205,
-            12212 => &SHAPE206,
-            12213 => &SHAPE207,
-            12214 => &SHAPE208,
-            12215 => &SHAPE209,
-            12216 => &SHAPE210,
-            12217 => &SHAPE211,
-            12218 => &SHAPE212,
-            12219 => &SHAPE213,
-            12220 => &SHAPE214,
-            12221 => &SHAPE215,
-            12222 => &SHAPE216,
-            12223 => &SHAPE217,
-            12224 | 21903..=21906 => &SHAPE73,
-            12225 => &SHAPE218,
-            12226 => &SHAPE219,
-            12227 => &SHAPE220,
-            12228 => &SHAPE221,
-            12229 => &SHAPE222,
-            12230 => &SHAPE223,
-            12231 => &SHAPE224,
-            12232 => &SHAPE225,
-            12233 => &SHAPE226,
-            12234 => &SHAPE227,
-            12235 => &SHAPE228,
-            12236 => &SHAPE229,
-            12237 => &SHAPE230,
-            12238 => &SHAPE231,
-            12239 => &SHAPE232,
-            12240 => &SHAPE233,
-            12241 => &SHAPE234,
-            12242 => &SHAPE235,
-            12243 => &SHAPE236,
-            12244 => &SHAPE237,
-            12245 => &SHAPE238,
-            12246 => &SHAPE239,
-            12247 => &SHAPE240,
-            12248 => &SHAPE241,
-            12249 => &SHAPE242,
-            12250 => &SHAPE243,
-            12251 => &SHAPE244,
-            12252 => &SHAPE245,
-            12253 => &SHAPE246,
-            12254 => &SHAPE247,
-            12255 => &SHAPE248,
-            12256 => &SHAPE249,
-            12257 => &SHAPE250,
-            12258 => &SHAPE251,
-            12632..=12634 => &SHAPE253,
-            12635..=12643 => &SHAPE254,
-            12774..=12775 => &SHAPE255,
-            12776..=12777 => &SHAPE256,
-            12778..=12779 => &SHAPE257,
-            12780..=12781 => &SHAPE258,
-            12783..=12784 => &SHAPE252,
-            18213..=18244 => &SHAPE260,
-            18279..=18280 => &SHAPE261,
-            18281..=18282 => &SHAPE262,
-            18283 => &SHAPE263,
-            18284 => &SHAPE264,
-            18285 => &SHAPE265,
-            18286 => &SHAPE266,
-            18287..=18288 => &SHAPE267,
-            18289..=18290 => &SHAPE268,
-            18291..=18306 => &SHAPE269,
-            18308..=18311 => &SHAPE171,
-            18312..=18315 => &SHAPE270,
-            18316..=18319 => &SHAPE271,
-            18320..=18327 => &SHAPE272,
-            18328..=18329 => &SHAPE273,
-            18330..=18331 => &SHAPE274,
-            18332..=18333 => &SHAPE275,
-            18334..=18335 => &SHAPE276,
-            18336..=18339 => &SHAPE277,
-            18340..=18343 => &SHAPE278,
-            18344..=18345 | 18348..=18349 => &SHAPE279,
-            18346..=18347 | 18350..=18351 => &SHAPE280,
-            18352..=18415 => &SHAPE170,
-            19213..=19221 => &SHAPE281,
-            20566..=20569
-            | 20582..=20585
-            | 20598..=20601
-            | 20614..=20617
-            | 20630..=20633
-            | 20646..=20649
-            | 20662..=20665
-            | 20678..=20681
-            | 20694..=20697
-            | 20710..=20713
-            | 20726..=20729
-            | 20742..=20745
-            | 20758..=20761
-            | 20774..=20777
-            | 20790..=20793
-            | 20806..=20809
-            | 20822..=20825 => &SHAPE121,
-            20570..=20573
-            | 20586..=20589
-            | 20602..=20605
-            | 20618..=20621
-            | 20634..=20637
-            | 20650..=20653
-            | 20666..=20669
-            | 20682..=20685
-            | 20698..=20701
-            | 20714..=20717
-            | 20730..=20733
-            | 20746..=20749
-            | 20762..=20765
-            | 20778..=20781
-            | 20794..=20797
-            | 20810..=20813
-            | 20826..=20829 => &SHAPE282,
-            20574..=20577
-            | 20590..=20593
-            | 20606..=20609
-            | 20622..=20625
-            | 20638..=20641
-            | 20654..=20657
-            | 20670..=20673
-            | 20686..=20689
-            | 20702..=20705
-            | 20718..=20721
-            | 20734..=20737
-            | 20750..=20753
-            | 20766..=20769
-            | 20782..=20785
-            | 20798..=20801
-            | 20814..=20817
-            | 20830..=20833 => &SHAPE283,
-            20578..=20581
-            | 20594..=20597
-            | 20610..=20613
-            | 20626..=20629
-            | 20642..=20645
-            | 20658..=20661
-            | 20674..=20677
-            | 20690..=20693
-            | 20706..=20709
-            | 20722..=20725
-            | 20738..=20741
-            | 20754..=20757
-            | 20770..=20773
-            | 20786..=20789
-            | 20802..=20805
-            | 20818..=20821
-            | 20834..=20837 => &SHAPE284,
-            20838..=20871 => &SHAPE285,
-            20874..=20875 => &SHAPE286,
-            20876..=20877 => &SHAPE287,
-            20878..=20879 => &SHAPE288,
-            20880..=20881 => &SHAPE289,
-            20882..=20883 => &SHAPE290,
-            20884..=20885 => &SHAPE291,
-            20886..=20887 => &SHAPE292,
-            20888..=20889 => &SHAPE293,
-            20890..=20891 => &SHAPE294,
-            20892..=20893 => &SHAPE295,
-            20894..=20895 => &SHAPE296,
-            20896..=20897 => &SHAPE297,
-            20898..=20899 => &SHAPE298,
-            20900..=20901 => &SHAPE299,
-            20902..=20903 => &SHAPE300,
-            20904..=20905 => &SHAPE301,
-            20906..=20907 => &SHAPE302,
-            20908..=20909 => &SHAPE303,
-            20910..=20911 => &SHAPE304,
-            20912..=20913 => &SHAPE305,
-            20914..=20915 => &SHAPE306,
-            20916..=20917 => &SHAPE307,
-            20918..=20919 => &SHAPE308,
-            20920..=20921 => &SHAPE309,
-            21891..=21894 => &SHAPE259,
-            21895..=21896 => &SHAPE310,
-            21897..=21898 => &SHAPE311,
-            21899..=21902 => &SHAPE68,
-            21907..=21910 => &SHAPE77,
-            21967..=21968 => &SHAPE312,
-            21987..=21990 | 21995..=21998 | 22003..=22006 | 22011..=22014 => &SHAPE313,
-            21991..=21992 | 21999..=22000 | 22007..=22008 | 22015..=22016 => &SHAPE314,
+            | 14001..=14002
+            | 14007..=14008
+            | 14013..=14014
+            | 18527..=18528
+            | 18533..=18534
+            | 19724..=19725
+            | 19734..=19735
+            | 20225..=20226
+            | 21893..=21894
+            | 21899..=21900
+            | 21905..=21906
+            | 21911..=21912
+            | 22245..=22246
+            | 22251..=22252
+            | 22257..=22258
+            | 22263..=22264
+            | 22533..=22534
+            | 22944..=22945
+            | 23355..=23356
+            | 23766..=23767 => &SHAPE186,
+            10587..=10602 | 22371 => &SHAPE28,
+            12193 | 12195 | 22269..=22272 | 22277..=22280 => &SHAPE187,
+            12194 | 12196 | 22273..=22276 | 22281..=22284 => &SHAPE188,
+            12197..=12198 | 22285..=22292 => &SHAPE90,
+            12199 => &SHAPE189,
+            12200 => &SHAPE190,
+            12201 => &SHAPE191,
+            12202 => &SHAPE192,
+            12203 => &SHAPE193,
+            12204 => &SHAPE194,
+            12205 => &SHAPE195,
+            12206 => &SHAPE196,
+            12207 => &SHAPE197,
+            12208 => &SHAPE198,
+            12209 => &SHAPE199,
+            12210 => &SHAPE200,
+            12211 => &SHAPE201,
+            12212 => &SHAPE202,
+            12213 => &SHAPE203,
+            12214 => &SHAPE204,
+            12215 => &SHAPE205,
+            12216 => &SHAPE206,
+            12217 => &SHAPE207,
+            12218 => &SHAPE208,
+            12219 => &SHAPE209,
+            12220 => &SHAPE210,
+            12221 => &SHAPE211,
+            12222 => &SHAPE212,
+            12223 => &SHAPE213,
+            12224 => &SHAPE214,
+            12225 => &SHAPE215,
+            12226 => &SHAPE216,
+            12227 => &SHAPE217,
+            12228 | 22305..=22308 => &SHAPE68,
+            12229 => &SHAPE218,
+            12230 => &SHAPE219,
+            12231 => &SHAPE220,
+            12232 => &SHAPE221,
+            12233 => &SHAPE222,
+            12234 => &SHAPE223,
+            12235 => &SHAPE224,
+            12236 => &SHAPE225,
+            12237 => &SHAPE226,
+            12238 => &SHAPE227,
+            12239 => &SHAPE228,
+            12240 => &SHAPE229,
+            12241 => &SHAPE230,
+            12242 => &SHAPE231,
+            12243 => &SHAPE232,
+            12244 => &SHAPE233,
+            12245 => &SHAPE234,
+            12246 => &SHAPE235,
+            12247 => &SHAPE236,
+            12248 => &SHAPE237,
+            12249 => &SHAPE238,
+            12250 => &SHAPE239,
+            12251 => &SHAPE240,
+            12252 => &SHAPE241,
+            12253 => &SHAPE242,
+            12254 => &SHAPE243,
+            12255 => &SHAPE244,
+            12256 => &SHAPE245,
+            12257 => &SHAPE246,
+            12258 => &SHAPE247,
+            12259 => &SHAPE248,
+            12260 => &SHAPE249,
+            12261 => &SHAPE250,
+            12262 => &SHAPE251,
+            12356..=12357 => &SHAPE252,
+            12359 | 12361 | 12363 | 12365 => &SHAPE253,
+            12647..=12649 => &SHAPE255,
+            12650..=12658 => &SHAPE256,
+            12659..=12661 => &SHAPE257,
+            12792..=12793 => &SHAPE258,
+            12794..=12795 => &SHAPE259,
+            12796..=12797 => &SHAPE260,
+            12798..=12799 => &SHAPE261,
+            12801..=12802 => &SHAPE254,
+            18231..=18262 => &SHAPE263,
+            18297..=18298 => &SHAPE264,
+            18299..=18300 => &SHAPE265,
+            18301 => &SHAPE266,
+            18302 => &SHAPE267,
+            18303 => &SHAPE268,
+            18304 => &SHAPE269,
+            18305..=18306 => &SHAPE270,
+            18307..=18308 => &SHAPE271,
+            18309..=18324 => &SHAPE272,
+            18326..=18329 => &SHAPE168,
+            18330..=18333 => &SHAPE273,
+            18334..=18337 => &SHAPE274,
+            18338..=18345 => &SHAPE275,
+            18346..=18347 => &SHAPE276,
+            18348..=18349 => &SHAPE277,
+            18350..=18351 => &SHAPE278,
+            18352..=18353 => &SHAPE279,
+            18354..=18357 => &SHAPE280,
+            18358..=18361 => &SHAPE281,
+            18362..=18363 | 18366..=18367 => &SHAPE282,
+            18364..=18365 | 18368..=18369 => &SHAPE283,
+            18370..=18433 => &SHAPE167,
+            19231..=19239 => &SHAPE284,
+            20584..=20587
+            | 20600..=20603
+            | 20616..=20619
+            | 20632..=20635
+            | 20648..=20651
+            | 20664..=20667
+            | 20680..=20683
+            | 20696..=20699
+            | 20712..=20715
+            | 20728..=20731
+            | 20744..=20747
+            | 20760..=20763
+            | 20776..=20779
+            | 20792..=20795
+            | 20808..=20811
+            | 20824..=20827
+            | 20840..=20843 => &SHAPE118,
+            20588..=20591
+            | 20604..=20607
+            | 20620..=20623
+            | 20636..=20639
+            | 20652..=20655
+            | 20668..=20671
+            | 20684..=20687
+            | 20700..=20703
+            | 20716..=20719
+            | 20732..=20735
+            | 20748..=20751
+            | 20764..=20767
+            | 20780..=20783
+            | 20796..=20799
+            | 20812..=20815
+            | 20828..=20831
+            | 20844..=20847 => &SHAPE285,
+            20592..=20595
+            | 20608..=20611
+            | 20624..=20627
+            | 20640..=20643
+            | 20656..=20659
+            | 20672..=20675
+            | 20688..=20691
+            | 20704..=20707
+            | 20720..=20723
+            | 20736..=20739
+            | 20752..=20755
+            | 20768..=20771
+            | 20784..=20787
+            | 20800..=20803
+            | 20816..=20819
+            | 20832..=20835
+            | 20848..=20851 => &SHAPE286,
+            20596..=20599
+            | 20612..=20615
+            | 20628..=20631
+            | 20644..=20647
+            | 20660..=20663
+            | 20676..=20679
+            | 20692..=20695
+            | 20708..=20711
+            | 20724..=20727
+            | 20740..=20743
+            | 20756..=20759
+            | 20772..=20775
+            | 20788..=20791
+            | 20804..=20807
+            | 20820..=20823
+            | 20836..=20839
+            | 20852..=20855 => &SHAPE287,
+            20856..=20889 => &SHAPE288,
+            20892..=20893 => &SHAPE289,
+            20894..=20895 => &SHAPE290,
+            20896..=20897 => &SHAPE291,
+            20898..=20899 => &SHAPE292,
+            20900..=20901 => &SHAPE293,
+            20902..=20903 => &SHAPE294,
+            20904..=20905 => &SHAPE295,
+            20906..=20907 => &SHAPE296,
+            20908..=20909 => &SHAPE297,
+            20910..=20911 => &SHAPE298,
+            20912..=20913 => &SHAPE299,
+            20914..=20915 => &SHAPE300,
+            20916..=20917 => &SHAPE301,
+            20918..=20919 => &SHAPE302,
+            20920..=20921 => &SHAPE303,
+            20922..=20923 => &SHAPE304,
+            20924..=20925 => &SHAPE305,
+            20926..=20927 => &SHAPE306,
+            20928..=20929 => &SHAPE307,
+            20930..=20931 => &SHAPE308,
+            20932..=20933 => &SHAPE309,
+            20934..=20935 => &SHAPE310,
+            20936..=20937 => &SHAPE311,
+            20938..=20939 => &SHAPE312,
+            22293..=22296 => &SHAPE262,
+            22297..=22298 => &SHAPE313,
+            22299..=22300 => &SHAPE314,
+            22301..=22304 => &SHAPE63,
+            22309..=22312 => &SHAPE73,
+            22369..=22370 => &SHAPE315,
+            22389..=22392 | 22397..=22400 | 22405..=22408 | 22413..=22416 => &SHAPE316,
+            22393..=22394 | 22401..=22402 | 22409..=22410 | 22417..=22418 => &SHAPE317,
             _ => &SHAPE1,
         }
     }

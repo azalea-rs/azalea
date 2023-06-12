@@ -144,11 +144,6 @@ declare_menus! {
     ShulkerBox {
         contents: 27,
     },
-    LegacySmithing {
-        input: 1,
-        additional: 1,
-        result: 1,
-    },
     Smithing {
         template: 1,
         base: 1,

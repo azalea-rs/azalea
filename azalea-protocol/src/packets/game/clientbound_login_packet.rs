@@ -29,6 +29,8 @@ pub struct ClientboundLoginPacket {
     pub is_debug: bool,
     pub is_flat: bool,
     pub last_death_location: Option<GlobalPos>,
+    #[var]
+    pub portal_cooldown: u32,
 }
 
 pub mod registry {

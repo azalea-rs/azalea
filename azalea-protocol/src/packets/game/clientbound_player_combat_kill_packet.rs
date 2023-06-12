@@ -7,6 +7,5 @@ use azalea_protocol_macros::ClientboundGamePacket;
 pub struct ClientboundPlayerCombatKillPacket {
     #[var]
     pub player_id: u32,
-    pub killer_id: u32,
     pub message: FormattedText,
 }

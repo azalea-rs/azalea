@@ -4,7 +4,7 @@ from ..mappings import Mappings
 from typing import Optional
 import re
 
-BLOCKS_RS_DIR = get_dir_location('../azalea-block/src/blocks.rs')
+BLOCKS_RS_DIR = get_dir_location('../azalea-block/src/generated.rs')
 
 # Terminology:
 # - Property: A property of a block, like "direction"
