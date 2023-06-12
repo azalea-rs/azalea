@@ -13,6 +13,4 @@ pub struct ClientboundRespawnPacket {
     pub is_flat: bool,
     pub data_to_keep: u8,
     pub last_death_location: Option<GlobalPos>,
-    #[var]
-    pub portal_cooldown: u32,
 }

@@ -13,6 +13,7 @@ pub struct ClientboundLightUpdatePacket {
 
 #[derive(Clone, Debug, McBuf)]
 pub struct ClientboundLightUpdatePacketData {
+    pub trust_edges: bool,
     pub sky_y_mask: BitSet,
     pub block_y_mask: BitSet,
     pub empty_sky_y_mask: BitSet,

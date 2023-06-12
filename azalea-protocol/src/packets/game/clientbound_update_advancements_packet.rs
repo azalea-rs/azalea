@@ -16,11 +16,10 @@ pub struct ClientboundUpdateAdvancementsPacket {
 
 #[derive(Clone, Debug, McBuf)]
 pub struct Advancement {
-    pub parent_id: Option<ResourceLocation>,
-    pub display: Option<DisplayInfo>,
-    pub criteria: HashMap<ResourceLocation, Criterion>,
-    pub requirements: Vec<Vec<String>>,
-    pub sends_telemetry_event: bool,
+    parent_id: Option<ResourceLocation>,
+    display: Option<DisplayInfo>,
+    criteria: HashMap<ResourceLocation, Criterion>,
+    requirements: Vec<Vec<String>>,
 }
 
 #[derive(Clone, Debug)]
