@@ -135,7 +135,7 @@ impl Vec3 {
     /// Get the distance of this vector to the origin by doing
     /// `sqrt(x^2 + y^2 + z^2)`.
     pub fn length(&self) -> f64 {
-        self.x * self.x + self.y * self.y + self.z * self.z
+        f64::sqrt(self.x * self.x + self.y * self.y + self.z * self.z)
     }
 
     /// Get the squared distance from this position to another position.
