@@ -43,6 +43,38 @@ impl<T: Registry> McBufWritable for OptionalRegistry<T> {
     }
 }
 
+/// A registry that will either take an ID or a resource location.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum CustomRegistry<D: Registry, C: McBufReadable + McBufWritable> {
+    Direct(D),
+    Custom(C),
+}
+
+impl<D: Registry, C: McBufReadable + McBufWritable> McBufReadable for CustomRegistry<D, C> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let direct_registry = OptionalRegistry::<D>::read_from(buf)?;
+        if let Some(direct_registry) = direct_registry.0 {
+            return Ok(CustomRegistry::Direct(direct_registry));
+        }
+        Ok(CustomRegistry::Custom(C::read_from(buf)?))
+    }
+}
+impl<D: Registry, C: McBufReadable + McBufWritable> McBufWritable for CustomRegistry<D, C> {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        match self {
+            CustomRegistry::Direct(direct_registry) => {
+                // write the id + 1
+                (direct_registry.to_u32() + 1).var_write_into(buf)
+            }
+            CustomRegistry::Custom(custom_registry) => {
+                // write 0, then the custom registry
+                0u32.var_write_into(buf)?;
+                custom_registry.write_into(buf)
+            }
+        }
+    }
+}
+
 registry! {
 /// The AI code that's currently being executed for the entity.
 enum Activity {
