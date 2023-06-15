@@ -131,6 +131,20 @@ pub struct Vec3 {
 }
 vec3_impl!(Vec3, f64);
 
+impl Vec3 {
+    /// Get the distance of this vector to the origin by doing
+    /// `sqrt(x^2 + y^2 + z^2)`.
+    pub fn length(&self) -> f64 {
+        self.x * self.x + self.y * self.y + self.z * self.z
+    }
+
+    /// Get the squared distance from this position to another position.
+    /// Equivalent to `(self - other).length()`.
+    pub fn distance_to(&self, other: &Self) -> f64 {
+        (self - other).length()
+    }
+}
+
 /// The coordinates of a block in the world. For entities (if the coordinate
 /// with decimals), use [`Vec3`] instead.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]

@@ -49,7 +49,7 @@ pub struct ForbiddenError {
     pub path: String,
 }
 
-static REQWEST_CLIENT: Lazy<reqwest::Client> = Lazy::new(|| reqwest::Client::new());
+static REQWEST_CLIENT: Lazy<reqwest::Client> = Lazy::new(reqwest::Client::new);
 
 /// Tell Mojang's servers that you are going to join a multiplayer server,
 /// which is required to join online-mode servers. The server ID is an empty

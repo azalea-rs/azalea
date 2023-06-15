@@ -145,14 +145,13 @@ impl Account {
     /// Request the certificates used for chat signing and set it in
     /// [`Self::certs`].
     pub async fn request_certs(&mut self) -> Result<(), RequestCertError> {
-        let certs = azalea_auth::certs::fetch_certificates(
-            &self
-                .access_token
-                .as_ref()
-                .ok_or(RequestCertError::NoAccessToken)?
-                .lock(),
-        )
-        .await?;
+        let access_token = self
+            .access_token
+            .as_ref()
+            .ok_or(RequestCertError::NoAccessToken)?
+            .lock()
+            .clone();
+        let certs = azalea_auth::certs::fetch_certificates(&access_token).await?;
         self.certs = Some(certs);
 
         Ok(())
