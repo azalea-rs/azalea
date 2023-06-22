@@ -90,7 +90,7 @@ pub async fn auth(email: &str, opts: AuthOpts) -> Result<AuthResult, AuthError> 
         let msa_token = &msa.data.access_token;
         log::trace!("Got access token: {msa_token}");
 
-        let res = get_minecraft_token(&client, &msa_token).await?;
+        let res = get_minecraft_token(&client, msa_token).await?;
 
         if opts.check_ownership {
             let has_game = check_ownership(&client, &res.minecraft_access_token).await?;
@@ -137,10 +137,10 @@ pub async fn get_minecraft_token(
     client: &reqwest::Client,
     msa: &str,
 ) -> Result<MinecraftTokenResponse, AuthError> {
-    let xbl_auth = auth_with_xbox_live(&client, msa).await?;
+    let xbl_auth = auth_with_xbox_live(client, msa).await?;
 
     let xsts_token = obtain_xsts_for_minecraft(
-        &client,
+        client,
         &xbl_auth
             .get()
             .expect("Xbox Live auth token shouldn't have expired yet")
@@ -149,7 +149,7 @@ pub async fn get_minecraft_token(
     .await?;
 
     // Minecraft auth
-    let mca = auth_with_minecraft(&client, &xbl_auth.data.user_hash, &xsts_token).await?;
+    let mca = auth_with_minecraft(client, &xbl_auth.data.user_hash, &xsts_token).await?;
 
     let minecraft_access_token: String = mca
         .get()
@@ -347,7 +347,7 @@ pub async fn interactive_get_ms_auth_token(
     client: &reqwest::Client,
     email: &str,
 ) -> Result<ExpiringValue<AccessTokenResponse>, GetMicrosoftAuthTokenError> {
-    let res = get_ms_link_code(&client).await?;
+    let res = get_ms_link_code(client).await?;
     log::trace!("Device code response: {:?}", res);
     println!(
         "Go to \x1b[1m{}\x1b[m and enter the code \x1b[1m{}\x1b[m for \x1b[1m{}\x1b[m",

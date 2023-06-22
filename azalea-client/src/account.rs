@@ -63,7 +63,7 @@ pub enum AccountOpts {
         email: String,
     },
     MicrosoftWithAccessToken {
-        msa: azalea_auth::cache::ExpiringValue<AccessTokenResponse>,
+        msa: Arc<Mutex<azalea_auth::cache::ExpiringValue<AccessTokenResponse>>>,
     },
 }
 
@@ -148,7 +148,7 @@ impl Account {
 
         let msa_token = &msa.data.access_token;
 
-        let res = azalea_auth::get_minecraft_token(&client, &msa_token).await?;
+        let res = azalea_auth::get_minecraft_token(&client, msa_token).await?;
 
         let profile = azalea_auth::get_profile(&client, &res.minecraft_access_token).await?;
 
@@ -156,7 +156,9 @@ impl Account {
             username: profile.name,
             access_token: Some(Arc::new(Mutex::new(res.minecraft_access_token))),
             uuid: Some(profile.id),
-            account_opts: AccountOpts::MicrosoftWithAccessToken { msa },
+            account_opts: AccountOpts::MicrosoftWithAccessToken {
+                msa: Arc::new(Mutex::new(msa)),
+            },
             certs: None,
         })
     }
@@ -177,13 +179,16 @@ impl Account {
                 Ok(())
             }
             AccountOpts::MicrosoftWithAccessToken { msa } => {
-                let mut new_account = Account::with_microsoft_access_token(msa.clone()).await?;
+                let msa_value = msa.lock().clone();
+                let new_account = Account::with_microsoft_access_token(msa_value).await?;
 
                 let access_token_mutex = self.access_token.as_ref().unwrap();
                 let new_access_token = new_account.access_token.unwrap().lock().clone();
 
                 *access_token_mutex.lock() = new_access_token;
-                new_account.account_opts = new_account.account_opts;
+                let AccountOpts::MicrosoftWithAccessToken { msa: new_msa } =
+                    new_account.account_opts else { unreachable!() };
+                *msa.lock() = new_msa.lock().clone();
 
                 Ok(())
             }
