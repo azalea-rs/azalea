@@ -117,6 +117,15 @@ where
         }
     }
 
+    /// [`Self::new`] but without adding the [`LogPlugin`] by default. This is useful
+    /// if you want to set your own tracing collector.
+    #[must_use]
+    pub fn new_without_log() -> Self {
+        Self::new_without_plugins()
+            .add_plugins(DefaultPlugins.build().disable::<bevy_log::LogPlugin>())
+            .add_plugins(DefaultBotPlugins)
+    }
+
     /// Set the function that's called every time a bot receives an [`Event`].
     /// This is the way to handle normal per-bot events.
     ///
