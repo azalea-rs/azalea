@@ -79,7 +79,7 @@ pub struct InventoryComponent {
     /// The item that is currently held by the cursor. `Slot::Empty` if nothing
     /// is currently being held.
     ///
-    /// This is different from [`Self::hotbar_selected_index`], which is the
+    /// This is different from [`Self::selected_hotbar_slot`], which is the
     /// item that's selected in the hotbar.
     pub carried: ItemSlot,
     /// An identifier used by the server to track client inventory desyncs. This

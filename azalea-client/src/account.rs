@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use crate::get_mc_dir;
 use azalea_auth::certs::{Certificates, FetchCertificatesError};
-use azalea_auth::DeviceCodeResponse;
+use azalea_auth::AccessTokenResponse;
 use parking_lot::Mutex;
 use thiserror::Error;
 use uuid::Uuid;
@@ -56,8 +56,15 @@ pub struct Account {
 /// The parameters that were passed for creating the associated [`Account`].
 #[derive(Clone, Debug)]
 pub enum AccountOpts {
-    Offline { username: String },
-    Microsoft { email: String },
+    Offline {
+        username: String,
+    },
+    Microsoft {
+        email: String,
+    },
+    MicrosoftWithAccessToken {
+        msa: azalea_auth::cache::ExpiringValue<AccessTokenResponse>,
+    },
 }
 
 impl Account {
@@ -107,36 +114,49 @@ impl Account {
         })
     }
 
-    /// This will create an online-mode account through `azalea-auth::get_ms_link_code` so
-    /// there can be relaying of the link code to other parts of the application.
-    /// Note that the email given is actually only used as a key for the cache,
-    /// but it's recommended to use the real email to avoid confusion.
-    pub async fn with_microsoft_code(
-        email: &str,
-        res: DeviceCodeResponse,
+    /// This will create an online-mode account through
+    /// [`azalea_auth::get_minecraft_token`] so you can have more control over
+    /// the authentication process (like doing your own caching or
+    /// displaying the Microsoft user code to the user in a different way).
+    ///
+    /// Note that this will not refresh the token when it expires.
+    ///
+    /// ```
+    /// # use azalea_client::Account;
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let client = reqwest::Client::new();
+    ///
+    /// let res = azalea_auth::get_ms_link_code(&client).await?;
+    /// println!(
+    ///     "Go to {} and enter the code {}",
+    ///     res.verification_uri, res.user_code
+    /// );
+    /// let msa = azalea_auth::get_ms_auth_token(&client, res).await?;
+    /// Account::with_microsoft_access_token(msa).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn with_microsoft_access_token(
+        mut msa: azalea_auth::cache::ExpiringValue<AccessTokenResponse>,
     ) -> Result<Self, azalea_auth::AuthError> {
-        let minecraft_dir = get_mc_dir::minecraft_dir().unwrap_or_else(|| {
-            panic!(
-                "No {} environment variable found",
-                get_mc_dir::home_env_var()
-            )
-        });
-        let auth_result = azalea_auth::auth_with_link_code(
-            email,
-            azalea_auth::AuthOpts {
-                cache_file: Some(minecraft_dir.join("azalea-auth.json")),
-                ..Default::default()
-            },
-            res,
-        )
-        .await?;
+        let client = reqwest::Client::new();
+
+        if msa.is_expired() {
+            log::trace!("refreshing Microsoft auth token");
+            msa = azalea_auth::refresh_ms_auth_token(&client, &msa.data.refresh_token).await?;
+        }
+
+        let msa_token = &msa.data.access_token;
+
+        let res = azalea_auth::get_minecraft_token(&client, &msa_token).await?;
+
+        let profile = azalea_auth::get_profile(&client, &res.minecraft_access_token).await?;
+
         Ok(Self {
-            username: auth_result.profile.name,
-            access_token: Some(Arc::new(Mutex::new(auth_result.access_token))),
-            uuid: Some(auth_result.profile.id),
-            account_opts: AccountOpts::Microsoft {
-                email: email.to_string(),
-            },
+            username: profile.name,
+            access_token: Some(Arc::new(Mutex::new(res.minecraft_access_token))),
+            uuid: Some(profile.id),
+            account_opts: AccountOpts::MicrosoftWithAccessToken { msa },
             certs: None,
         })
     }
@@ -144,23 +164,27 @@ impl Account {
     ///
     /// This requires the `auth_opts` field to be set correctly (which is done
     /// by default if you used the constructor functions). Note that if the
-    /// Account is offline-mode, this function won't do anything.
+    /// Account is offline-mode then this function won't do anything.
     pub async fn refresh(&self) -> Result<(), azalea_auth::AuthError> {
         match &self.account_opts {
             // offline mode doesn't need to refresh so just don't do anything lol
             AccountOpts::Offline { .. } => Ok(()),
             AccountOpts::Microsoft { email } => {
                 let new_account = Account::microsoft(email).await?;
-                let access_token = self
-                    .access_token
-                    .as_ref()
-                    .expect("Access token should always be set for Microsoft accounts");
-                let new_access_token = new_account
-                    .access_token
-                    .expect("Access token should always be set for Microsoft accounts")
-                    .lock()
-                    .clone();
-                *access_token.lock() = new_access_token;
+                let access_token_mutex = self.access_token.as_ref().unwrap();
+                let new_access_token = new_account.access_token.unwrap().lock().clone();
+                *access_token_mutex.lock() = new_access_token;
+                Ok(())
+            }
+            AccountOpts::MicrosoftWithAccessToken { msa } => {
+                let mut new_account = Account::with_microsoft_access_token(msa.clone()).await?;
+
+                let access_token_mutex = self.access_token.as_ref().unwrap();
+                let new_access_token = new_account.access_token.unwrap().lock().clone();
+
+                *access_token_mutex.lock() = new_access_token;
+                new_account.account_opts = new_account.account_opts;
+
                 Ok(())
             }
         }
