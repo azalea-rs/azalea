@@ -253,7 +253,7 @@ pub fn check_block_can_be_broken_by_item_in_adventure_mode(
         return false;
     };
 
-    return false;
+    false
 
     // for block_predicate in can_destroy {
     //     // TODO

@@ -8,9 +8,9 @@ use crate::{
     EnchantmentMenuLocation, FurnaceMenuLocation, Generic3x3MenuLocation, Generic9x1MenuLocation,
     Generic9x2MenuLocation, Generic9x3MenuLocation, Generic9x4MenuLocation, Generic9x5MenuLocation,
     Generic9x6MenuLocation, GrindstoneMenuLocation, HopperMenuLocation, ItemSlot, ItemSlotData,
-    LecternMenuLocation, LegacySmithingMenuLocation, LoomMenuLocation, Menu, MenuLocation,
-    MerchantMenuLocation, Player, PlayerMenuLocation, ShulkerBoxMenuLocation, SmithingMenuLocation,
-    SmokerMenuLocation, StonecutterMenuLocation,
+    LecternMenuLocation, LoomMenuLocation, Menu, MenuLocation, MerchantMenuLocation, Player,
+    PlayerMenuLocation, ShulkerBoxMenuLocation, SmithingMenuLocation, SmokerMenuLocation,
+    StonecutterMenuLocation,
 };
 
 #[derive(Debug, Clone)]
@@ -521,17 +521,6 @@ impl Menu {
                     self.try_move_item_to_slots_or_toggle_hotbar(
                         slot_index,
                         Menu::SHULKER_BOX_CONTENTS_SLOTS,
-                    );
-                }
-                _ => {
-                    self.try_move_item_to_slots(slot_index, self.player_slots_range());
-                }
-            },
-            MenuLocation::LegacySmithing(l) => match l {
-                LegacySmithingMenuLocation::Player => {
-                    self.try_move_item_to_slots_or_toggle_hotbar(
-                        slot_index,
-                        Menu::LEGACY_SMITHING_INPUT_SLOT..=Menu::LEGACY_SMITHING_ADDITIONAL_SLOT,
                     );
                 }
                 _ => {

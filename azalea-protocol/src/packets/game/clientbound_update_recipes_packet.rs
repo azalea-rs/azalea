@@ -152,7 +152,6 @@ pub enum RecipeData {
     Smoking(CookingRecipe),
     CampfireCooking(CookingRecipe),
     Stonecutting(StoneCutterRecipe),
-    Smithing(SmithingRecipe),
     SmithingTransform(SmithingTransformRecipe),
     SmithingTrim(SmithingTrimRecipe),
     CraftingDecoratedPot(SimpleRecipe),
@@ -207,7 +206,6 @@ impl McBufWritable for Recipe {
             RecipeData::Smoking(_) => RecipeSerializer::Smoking,
             RecipeData::CampfireCooking(_) => RecipeSerializer::CampfireCooking,
             RecipeData::Stonecutting(_) => RecipeSerializer::Stonecutting,
-            RecipeData::Smithing(_) => RecipeSerializer::Smithing,
             RecipeData::SmithingTransform(_) => RecipeSerializer::SmithingTransform,
             RecipeData::SmithingTrim(_) => RecipeSerializer::SmithingTrim,
             RecipeData::CraftingDecoratedPot(_) => RecipeSerializer::CraftingDecoratedPot,
@@ -286,7 +284,6 @@ impl McBufReadable for Recipe {
             RecipeSerializer::Stonecutting => {
                 RecipeData::Stonecutting(StoneCutterRecipe::read_from(buf)?)
             }
-            RecipeSerializer::Smithing => RecipeData::Smithing(SmithingRecipe::read_from(buf)?),
             RecipeSerializer::SmithingTransform => {
                 RecipeData::SmithingTransform(SmithingTransformRecipe::read_from(buf)?)
             }

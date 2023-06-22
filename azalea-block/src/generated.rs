@@ -88,6 +88,12 @@ make_block_states! {
             _2,
             _3,
         },
+        "dusted" => SuspiciousGravelDusted {
+            _0,
+            _1,
+            _2,
+            _3,
+        },
         "axis" => Axis {
             X,
             Y,
@@ -1437,7 +1443,17 @@ make_block_states! {
         "age" => TorchflowerCropAge {
             _0,
             _1,
+        },
+        "age" => _0_1_2_3_4 {
+            _0,
+            _1,
             _2,
+            _3,
+            _4,
+        },
+        "half" => UpperLower {
+            Upper,
+            Lower,
         },
         "age" => BeetrootsAge {
             _0,
@@ -1486,6 +1502,11 @@ make_block_states! {
             _4,
         },
         "hatch" => TurtleEggHatch {
+            _0,
+            _1,
+            _2,
+        },
+        "age" => SnifferEggAge {
             _0,
             _1,
             _2,
@@ -1824,6 +1845,24 @@ make_block_states! {
             Active,
             Cooldown,
         },
+        "power" => CalibratedSculkSensorPower {
+            _0,
+            _1,
+            _2,
+            _3,
+            _4,
+            _5,
+            _6,
+            _7,
+            _8,
+            _9,
+            _10,
+            _11,
+            _12,
+            _13,
+            _14,
+            _15,
+        },
         "south" => bool,
         "west" => bool,
         "bloom" => bool,
@@ -1886,6 +1925,7 @@ make_block_states! {
             Y,
             Z,
         },
+        "cracked" => bool,
     },
     Blocks => {
         air => BlockBehavior::default(), {},
@@ -1955,6 +1995,9 @@ make_block_states! {
         },
         red_sand => BlockBehavior::default(), {},
         gravel => BlockBehavior::default(), {},
+        suspicious_gravel => BlockBehavior::default(), {
+            dusted: SuspiciousGravelDusted::_0,
+        },
         gold_ore => BlockBehavior::default(), {},
         deepslate_gold_ore => BlockBehavior::default(), {},
         iron_ore => BlockBehavior::default(), {},
@@ -3777,6 +3820,13 @@ make_block_states! {
         torchflower_crop => BlockBehavior::default(), {
             age: TorchflowerCropAge::_0,
         },
+        pitcher_crop => BlockBehavior::default(), {
+            age: _0_1_2_3_4::_0,
+            half: UpperLower::Lower,
+        },
+        pitcher_plant => BlockBehavior::default(), {
+            half: Half::Lower,
+        },
         beetroots => BlockBehavior::default(), {
             age: BeetrootsAge::_0,
         },
@@ -3943,6 +3993,9 @@ make_block_states! {
         turtle_egg => BlockBehavior::default(), {
             eggs: TurtleEggEggs::_1,
             hatch: TurtleEggHatch::_0,
+        },
+        sniffer_egg => BlockBehavior::default(), {
+            age: SnifferEggAge::_0,
         },
         dead_tube_coral_block => BlockBehavior::default(), {},
         dead_brain_coral_block => BlockBehavior::default(), {},
@@ -4793,6 +4846,12 @@ make_block_states! {
             sculk_sensor_phase: Phase::Inactive,
             waterlogged: false,
         },
+        calibrated_sculk_sensor => BlockBehavior::default(), {
+            facing: FacingCardinal::North,
+            power: CalibratedSculkSensorPower::_0,
+            sculk_sensor_phase: Phase::Inactive,
+            waterlogged: false,
+        },
         sculk => BlockBehavior::default(), {},
         sculk_vein => BlockBehavior::default(), {
             down: false,
@@ -5058,6 +5117,7 @@ make_block_states! {
         frogspawn => BlockBehavior::default(), {},
         reinforced_deepslate => BlockBehavior::default(), {},
         decorated_pot => BlockBehavior::default(), {
+            cracked: false,
             facing: FacingCardinal::North,
             waterlogged: false,
         },

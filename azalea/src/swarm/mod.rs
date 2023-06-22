@@ -392,7 +392,7 @@ pub enum SwarmEvent {
     ///
     /// You can implement an auto-reconnect by calling [`Swarm::add`]
     /// with the account from this event.
-    Disconnect(Account),
+    Disconnect(Box<Account>),
     /// At least one bot received a chat message.
     Chat(ChatPacket),
 }
@@ -520,7 +520,7 @@ impl Swarm {
             }
             cloned_bots.lock().remove(&bot.entity);
             swarm_tx
-                .send(SwarmEvent::Disconnect(owned_account))
+                .send(SwarmEvent::Disconnect(Box::new(owned_account)))
                 .unwrap();
         });
 
