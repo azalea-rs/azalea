@@ -89,6 +89,9 @@ where
     /// [`Self::new`] but without adding the plugins by default. This is useful
     /// if you want to disable a default plugin.
     ///
+    /// Note that you can also disable `LogPlugin` by disabling the `log`
+    /// feature.
+    ///
     /// You **must** add [`DefaultPlugins`] and [`DefaultBotPlugins`] to this.
     ///
     /// ```

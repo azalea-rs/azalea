@@ -40,3 +40,8 @@ thiserror = "^1.0.37"
 tokio = "^1.24.2"
 uuid = "1.2.2"
 bevy_log = "0.10.1"
+
+[features]
+default = ["log"]
+# enables bevy_log::LogPlugin by default
+log = ["azalea-client/log"]

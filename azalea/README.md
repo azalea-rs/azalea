@@ -93,7 +93,7 @@ One of the most useful tools for debugging issues is logging. The default log le
 
 If it's a crash/panic and you believe it has to do with parsing a packet, you might want to set the level to `trace` since that'll make it show the first few hundred bytes of every packet received. This may produce a lot of logs, so pipe it into a file with `&> azalea.log` (on Linux).
 
-Note: If you get a `SetLoggerError`, it's because you have multiple loggers. Azalea comes with a logger by default, see [`bevy_log`] for more information.
+Note: If you get a `SetLoggerError`, it's because you have multiple loggers. Azalea comes with a logger by default, see [`bevy_log`] for more information. You can disable the default logging plugin by disabling the `log` feature.
 
 ## Deadlocks
 
