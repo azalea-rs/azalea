@@ -58,6 +58,15 @@ impl<T> ExpiringValue<T> {
     }
 }
 
+impl<T: Clone> Clone for ExpiringValue<T> {
+    fn clone(&self) -> Self {
+        Self {
+            expires_at: self.expires_at,
+            data: self.data.clone(),
+        }
+    }
+}
+
 async fn get_entire_cache(cache_file: &Path) -> Result<Vec<CachedAccount>, CacheError> {
     let mut cache: Vec<CachedAccount> = Vec::new();
     if cache_file.exists() {

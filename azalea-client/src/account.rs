@@ -4,6 +4,7 @@ use std::sync::Arc;
 
 use crate::get_mc_dir;
 use azalea_auth::certs::{Certificates, FetchCertificatesError};
+use azalea_auth::AccessTokenResponse;
 use parking_lot::Mutex;
 use thiserror::Error;
 use uuid::Uuid;
@@ -55,8 +56,15 @@ pub struct Account {
 /// The parameters that were passed for creating the associated [`Account`].
 #[derive(Clone, Debug)]
 pub enum AccountOpts {
-    Offline { username: String },
-    Microsoft { email: String },
+    Offline {
+        username: String,
+    },
+    Microsoft {
+        email: String,
+    },
+    MicrosoftWithAccessToken {
+        msa: Arc<Mutex<azalea_auth::cache::ExpiringValue<AccessTokenResponse>>>,
+    },
 }
 
 impl Account {
@@ -106,27 +114,82 @@ impl Account {
         })
     }
 
+    /// This will create an online-mode account through
+    /// [`azalea_auth::get_minecraft_token`] so you can have more control over
+    /// the authentication process (like doing your own caching or
+    /// displaying the Microsoft user code to the user in a different way).
+    ///
+    /// Note that this will not refresh the token when it expires.
+    ///
+    /// ```
+    /// # use azalea_client::Account;
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let client = reqwest::Client::new();
+    ///
+    /// let res = azalea_auth::get_ms_link_code(&client).await?;
+    /// println!(
+    ///     "Go to {} and enter the code {}",
+    ///     res.verification_uri, res.user_code
+    /// );
+    /// let msa = azalea_auth::get_ms_auth_token(&client, res).await?;
+    /// Account::with_microsoft_access_token(msa).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn with_microsoft_access_token(
+        mut msa: azalea_auth::cache::ExpiringValue<AccessTokenResponse>,
+    ) -> Result<Self, azalea_auth::AuthError> {
+        let client = reqwest::Client::new();
+
+        if msa.is_expired() {
+            log::trace!("refreshing Microsoft auth token");
+            msa = azalea_auth::refresh_ms_auth_token(&client, &msa.data.refresh_token).await?;
+        }
+
+        let msa_token = &msa.data.access_token;
+
+        let res = azalea_auth::get_minecraft_token(&client, msa_token).await?;
+
+        let profile = azalea_auth::get_profile(&client, &res.minecraft_access_token).await?;
+
+        Ok(Self {
+            username: profile.name,
+            access_token: Some(Arc::new(Mutex::new(res.minecraft_access_token))),
+            uuid: Some(profile.id),
+            account_opts: AccountOpts::MicrosoftWithAccessToken {
+                msa: Arc::new(Mutex::new(msa)),
+            },
+            certs: None,
+        })
+    }
     /// Refresh the access_token for this account to be valid again.
     ///
     /// This requires the `auth_opts` field to be set correctly (which is done
     /// by default if you used the constructor functions). Note that if the
-    /// Account is offline-mode, this function won't do anything.
+    /// Account is offline-mode then this function won't do anything.
     pub async fn refresh(&self) -> Result<(), azalea_auth::AuthError> {
         match &self.account_opts {
             // offline mode doesn't need to refresh so just don't do anything lol
             AccountOpts::Offline { .. } => Ok(()),
             AccountOpts::Microsoft { email } => {
                 let new_account = Account::microsoft(email).await?;
-                let access_token = self
-                    .access_token
-                    .as_ref()
-                    .expect("Access token should always be set for Microsoft accounts");
-                let new_access_token = new_account
-                    .access_token
-                    .expect("Access token should always be set for Microsoft accounts")
-                    .lock()
-                    .clone();
-                *access_token.lock() = new_access_token;
+                let access_token_mutex = self.access_token.as_ref().unwrap();
+                let new_access_token = new_account.access_token.unwrap().lock().clone();
+                *access_token_mutex.lock() = new_access_token;
+                Ok(())
+            }
+            AccountOpts::MicrosoftWithAccessToken { msa } => {
+                let msa_value = msa.lock().clone();
+                let new_account = Account::with_microsoft_access_token(msa_value).await?;
+
+                let access_token_mutex = self.access_token.as_ref().unwrap();
+                let new_access_token = new_account.access_token.unwrap().lock().clone();
+
+                *access_token_mutex.lock() = new_access_token;
+                let AccountOpts::MicrosoftWithAccessToken { msa: new_msa } =
+                    new_account.account_opts else { unreachable!() };
+                *msa.lock() = new_msa.lock().clone();
+
                 Ok(())
             }
         }

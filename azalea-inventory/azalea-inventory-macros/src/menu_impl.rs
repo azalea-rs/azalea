@@ -179,6 +179,7 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
             /// Get the range of slot indexes that contain the player's hotbar. This may be different for each menu.
             ///
             /// ```
+            /// # let inventory = azalea_inventory::Menu::Player(azalea_inventory::Player::default());
             /// let hotbar_items = &inventory.slots()[inventory.hotbar_slots_range()];
             /// ```
             pub fn hotbar_slots_range(&self) -> RangeInclusive<usize> {
