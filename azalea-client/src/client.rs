@@ -55,7 +55,6 @@ use bevy_ecs::{
     system::{ResMut, Resource},
     world::World,
 };
-use bevy_log::LogPlugin;
 use bevy_time::{prelude::FixedTime, TimePlugin};
 use derive_more::{Deref, DerefMut};
 use log::{debug, error};
@@ -694,8 +693,8 @@ pub struct DefaultPlugins;
 
 impl PluginGroup for DefaultPlugins {
     fn build(self) -> PluginGroupBuilder {
-        PluginGroupBuilder::start::<Self>()
-            .add(LogPlugin::default())
+        #[allow(unused_mut)]
+        let mut group = PluginGroupBuilder::start::<Self>()
             .add(AmbiguityLoggerPlugin)
             .add(TimePlugin::default())
             .add(PacketHandlerPlugin)
@@ -710,6 +709,11 @@ impl PluginGroup for DefaultPlugins {
             .add(PlayerMovePlugin)
             .add(InteractPlugin)
             .add(RespawnPlugin)
-            .add(TickBroadcastPlugin)
+            .add(TickBroadcastPlugin);
+        #[cfg(feature = "log")]
+        {
+            group = group.add(bevy_log::LogPlugin::default());
+        }
+        group
     }
 }

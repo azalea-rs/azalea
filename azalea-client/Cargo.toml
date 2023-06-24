@@ -37,3 +37,8 @@ regex = "1.7.0"
 thiserror = "^1.0.34"
 tokio = { version = "^1.24.2", features = ["sync"] }
 uuid = "^1.1.2"
+
+[features]
+default = ["log"]
+# enables bevy_log::LogPlugin by default
+log = []

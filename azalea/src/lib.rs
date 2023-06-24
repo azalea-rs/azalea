@@ -89,6 +89,9 @@ where
     /// [`Self::new`] but without adding the plugins by default. This is useful
     /// if you want to disable a default plugin.
     ///
+    /// Note that you can also disable `LogPlugin` by disabling the `log`
+    /// feature.
+    ///
     /// You **must** add [`DefaultPlugins`] and [`DefaultBotPlugins`] to this.
     ///
     /// ```
@@ -115,15 +118,6 @@ where
             handler: None,
             state: S::default(),
         }
-    }
-
-    /// [`Self::new`] but without adding the [`LogPlugin`] by default. This is useful
-    /// if you want to set your own tracing collector.
-    #[must_use]
-    pub fn new_without_log() -> Self {
-        Self::new_without_plugins()
-            .add_plugins(DefaultPlugins.build().disable::<bevy_log::LogPlugin>())
-            .add_plugins(DefaultBotPlugins)
     }
 
     /// Set the function that's called every time a bot receives an [`Event`].
