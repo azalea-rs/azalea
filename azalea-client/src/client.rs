@@ -8,6 +8,7 @@ use crate::{
         death_event, handle_send_packet_event, update_in_loaded_chunk, GameProfileComponent,
         LocalPlayer, PhysicsState, SendPacketEvent,
     },
+    mining,
     movement::{LastSentLookDirection, PlayerMovePlugin},
     packet_handling::{self, PacketHandlerPlugin, PacketReceiver},
     player::retroactively_add_game_profile_component,
@@ -42,7 +43,7 @@ use azalea_protocol::{
     resolver, ServerAddress,
 };
 use azalea_world::{
-    entity::{EntityPlugin, EntityUpdateSet, Local, Position, WorldName},
+    entity::{EntityPlugin, EntityUpdateSet, InstanceName, Local, Position},
     Instance, InstanceContainer, PartialInstance,
 };
 use bevy_app::{App, CoreSchedule, IntoSystemAppConfig, Plugin, PluginGroup, PluginGroupBuilder};
@@ -302,6 +303,7 @@ impl Client {
             current_sequence_number: CurrentSequenceNumber::default(),
             last_sent_direction: LastSentLookDirection::default(),
             abilities: PlayerAbilities::default(),
+            mining: mining::MineBundle::default(),
             _local: Local,
         });
 
@@ -487,7 +489,7 @@ impl Client {
     /// If the client using a shared world, then the shared world will be a
     /// superset of the client's world.
     pub fn world(&self) -> Arc<RwLock<Instance>> {
-        let world_name = self.component::<WorldName>();
+        let world_name = self.component::<InstanceName>();
         let ecs = self.ecs.lock();
         let instance_container = ecs.resource::<InstanceContainer>();
         instance_container.get(&world_name).unwrap()
@@ -496,7 +498,7 @@ impl Client {
     /// Returns whether we have a received the login packet yet.
     pub fn logged_in(&self) -> bool {
         // the login packet tells us the world name
-        self.query::<Option<&WorldName>>(&mut self.ecs.lock())
+        self.query::<Option<&InstanceName>>(&mut self.ecs.lock())
             .is_some()
     }
 
@@ -561,6 +563,9 @@ pub struct JoinedClientBundle {
     pub current_sequence_number: CurrentSequenceNumber,
     pub last_sent_direction: LastSentLookDirection,
     pub abilities: PlayerAbilities,
+
+    pub mining: mining::MineBundle,
+
     pub _local: Local,
 }
 

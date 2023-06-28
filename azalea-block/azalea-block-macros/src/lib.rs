@@ -312,6 +312,9 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
     let mut from_registry_block_to_blockstate_match = quote! {};
     let mut from_registry_block_to_blockstates_match = quote! {};
 
+    // a list of block state ids that are waterlogged
+    let mut waterlogged_state_ids: Vec<u32> = Vec::new();
+
     for block in &input.block_definitions.blocks {
         let block_property_names = &block
             .properties_and_defaults
@@ -448,15 +451,23 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                     is_default = false;
                 }
 
-                let property_type = if property.is_enum {
+                let property_value = if property.is_enum {
                     quote! {properties::#property_struct_name_ident::#variant}
                 } else {
                     quote! {#variant}
                 };
 
                 from_block_to_state_combination_match_inner.extend(quote! {
-                    #property_name: #property_type,
+                    #property_name: #property_value,
                 });
+
+                // if "waterlogged" is a property and it's true for this state then add it to
+                // waterlogged_state_ids
+                if property_name == "waterlogged" {
+                    if property_value.to_string() == "true" {
+                        waterlogged_state_ids.push(state_id)
+                    }
+                }
             }
 
             from_block_to_state_match_inner.extend(quote! {
@@ -590,6 +601,8 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         block_structs.extend(block_struct);
     }
 
+    let waterlogged_state_ids_match = quote! { #(#waterlogged_state_ids)|* };
+
     let last_state_id = state_id - 1;
     let mut generated = quote! {
         impl BlockState {
@@ -597,6 +610,12 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             #[inline]
             pub fn max_state() -> u32 {
                 #last_state_id
+            }
+
+            /// Whether the given block state is waterlogged. This checks for
+            /// the `waterlogged` field, so it'll return false for water.
+            pub fn waterlogged(&self) -> bool {
+                matches!(self.id, #waterlogged_state_ids_match)
             }
         }
 

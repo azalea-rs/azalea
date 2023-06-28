@@ -21,7 +21,7 @@ use azalea_physics::PhysicsSet;
 use azalea_world::entity::metadata::Player;
 use azalea_world::entity::Local;
 use azalea_world::{
-    entity::{Physics, Position, WorldName},
+    entity::{InstanceName, Physics, Position},
     InstanceContainer,
 };
 use bevy_tasks::{AsyncComputeTaskPool, Task};
@@ -99,7 +99,7 @@ pub struct ComputePath(Task<Option<PathFoundEvent>>);
 fn goto_listener(
     mut commands: Commands,
     mut events: EventReader<GotoEvent>,
-    mut query: Query<(&Position, &WorldName)>,
+    mut query: Query<(&Position, &InstanceName)>,
     instance_container: Res<InstanceContainer>,
 ) {
     let thread_pool = AsyncComputeTaskPool::get();

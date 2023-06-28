@@ -100,6 +100,7 @@ pub struct InventoryComponent {
     /// the scroll wheel.
     pub selected_hotbar_slot: u8,
 }
+
 impl InventoryComponent {
     /// Returns a reference to the currently active menu. If a container is open
     /// it'll return [`Self::container_menu`], otherwise

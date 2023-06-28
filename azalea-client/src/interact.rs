@@ -1,3 +1,5 @@
+use std::ops::AddAssign;
+
 use azalea_block::BlockState;
 use azalea_core::{BlockHitResult, BlockPos, Direction, GameMode, Vec3};
 use azalea_inventory::{ItemSlot, ItemSlotData};
@@ -8,7 +10,7 @@ use azalea_protocol::packets::game::{
     serverbound_use_item_on_packet::{BlockHit, ServerboundUseItemOnPacket},
 };
 use azalea_world::{
-    entity::{clamp_look_direction, view_vector, EyeHeight, LookDirection, Position, WorldName},
+    entity::{clamp_look_direction, view_vector, EyeHeight, InstanceName, LookDirection, Position},
     Instance, InstanceContainer,
 };
 use bevy_app::{App, Plugin};
@@ -70,8 +72,14 @@ pub struct BlockInteractEvent {
 
 /// A component that contains the number of changes this client has made to
 /// blocks.
-#[derive(Component, Copy, Clone, Debug, Default, Deref, DerefMut)]
+#[derive(Component, Copy, Clone, Debug, Default)]
 pub struct CurrentSequenceNumber(u32);
+
+impl AddAssign<u32> for CurrentSequenceNumber {
+    fn add_assign(&mut self, rhs: u32) {
+        self.0 += rhs;
+    }
+}
 
 /// A component that contains the block that the player is currently looking at.
 #[derive(Component, Clone, Debug, Deref, DerefMut)]
@@ -93,7 +101,7 @@ pub fn handle_block_interact_event(
 
         // TODO: check to make sure we're within the world border
 
-        **sequence_number += 1;
+        *sequence_number += 1;
 
         // minecraft also does the interaction client-side (so it looks like clicking a
         // button is instant) but we don't really need that
@@ -140,7 +148,7 @@ fn update_hit_result_component(
         &Position,
         &EyeHeight,
         &LookDirection,
-        &WorldName,
+        &InstanceName,
     )>,
     instance_container: Res<InstanceContainer>,
 ) {

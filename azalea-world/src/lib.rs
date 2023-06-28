@@ -8,6 +8,7 @@ mod chunk_storage;
 mod container;
 pub mod entity;
 pub mod iterators;
+mod mining;
 pub mod palette;
 mod world;
 

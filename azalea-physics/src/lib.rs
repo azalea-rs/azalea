@@ -8,8 +8,8 @@ use azalea_block::{Block, BlockState};
 use azalea_core::{BlockPos, Vec3};
 use azalea_world::{
     entity::{
-        clamp_look_direction, metadata::Sprinting, move_relative, Attributes, Jumping, Local,
-        LookDirection, Physics, Position, WorldName,
+        clamp_look_direction, metadata::Sprinting, move_relative, Attributes, InstanceName,
+        Jumping, Local, LookDirection, Physics, Position,
     },
     Instance, InstanceContainer,
 };
@@ -54,7 +54,7 @@ fn travel(
             &mut LookDirection,
             &mut Position,
             &Attributes,
-            &WorldName,
+            &InstanceName,
         ),
         With<Local>,
     >,
@@ -178,7 +178,7 @@ pub fn force_jump_listener(
         &Position,
         &LookDirection,
         &Sprinting,
-        &WorldName,
+        &InstanceName,
     )>,
     instance_container: Res<InstanceContainer>,
     mut events: EventReader<ForceJumpEvent>,

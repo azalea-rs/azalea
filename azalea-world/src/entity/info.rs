@@ -4,7 +4,7 @@
 use crate::{
     deduplicate_entities, deduplicate_local_entities,
     entity::{
-        self, add_dead, update_bounding_box, EntityUuid, MinecraftEntityId, Position, WorldName,
+        self, add_dead, update_bounding_box, EntityUuid, InstanceName, MinecraftEntityId, Position,
     },
     update_entity_by_id_index, update_uuid_index, InstanceContainer, PartialInstance,
 };
@@ -215,7 +215,7 @@ fn update_entity_chunk_positions(
             Entity,
             &entity::Position,
             &mut entity::LastSentPosition,
-            &entity::WorldName,
+            &entity::InstanceName,
         ),
         Changed<entity::Position>,
     >,
@@ -287,7 +287,7 @@ fn remove_despawned_entities_from_indexes(
     mut commands: Commands,
     mut entity_infos: ResMut<EntityInfos>,
     instance_container: Res<InstanceContainer>,
-    query: Query<(Entity, &EntityUuid, &Position, &WorldName, &LoadedBy), Changed<LoadedBy>>,
+    query: Query<(Entity, &EntityUuid, &Position, &InstanceName, &LoadedBy), Changed<LoadedBy>>,
 ) {
     for (entity, uuid, position, world_name, loaded_by) in &query {
         let world_lock = instance_container.get(world_name).unwrap();

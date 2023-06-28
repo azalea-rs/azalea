@@ -4,7 +4,7 @@ use azalea_auth::game_profile::GameProfile;
 use azalea_core::{ChunkPos, GameMode};
 use azalea_protocol::packets::game::ServerboundGamePacket;
 use azalea_world::{
-    entity::{self, Dead, WorldName},
+    entity::{self, Dead, InstanceName},
     Instance, InstanceContainer, PartialInstance,
 };
 use bevy_ecs::{
@@ -134,7 +134,7 @@ impl Drop for LocalPlayer {
 /// Update the [`LocalPlayerInLoadedChunk`] component for all [`LocalPlayer`]s.
 pub fn update_in_loaded_chunk(
     mut commands: bevy_ecs::system::Commands,
-    query: Query<(Entity, &WorldName, &entity::Position)>,
+    query: Query<(Entity, &InstanceName, &entity::Position)>,
     instance_container: Res<InstanceContainer>,
 ) {
     for (entity, local_player, position) in &query {

@@ -1,6 +1,7 @@
 use crate::{
     entity::{
-        EntityInfos, EntityUuid, LoadedBy, Local, MinecraftEntityId, PartialEntityInfos, WorldName,
+        EntityInfos, EntityUuid, InstanceName, LoadedBy, Local, MinecraftEntityId,
+        PartialEntityInfos,
     },
     iterators::ChunkIterator,
     palette::Palette,
@@ -55,7 +56,7 @@ impl PartialInstance {
 pub fn deduplicate_entities(
     mut commands: Commands,
     mut query: Query<
-        (Entity, &MinecraftEntityId, &WorldName),
+        (Entity, &MinecraftEntityId, &InstanceName),
         (Changed<MinecraftEntityId>, Without<Local>),
     >,
     mut loaded_by_query: Query<&mut LoadedBy>,
@@ -101,7 +102,7 @@ pub fn deduplicate_entities(
 pub fn deduplicate_local_entities(
     mut commands: Commands,
     mut query: Query<
-        (Entity, &MinecraftEntityId, &WorldName),
+        (Entity, &MinecraftEntityId, &InstanceName),
         (Changed<MinecraftEntityId>, With<Local>),
     >,
     instance_container: Res<InstanceContainer>,
@@ -157,9 +158,8 @@ pub fn update_uuid_index(
 //     instance_container: &WorldContainer,
 //     world_name: &WorldName,
 //     mut query: Query<(&MinecraftEntityId, &mut ReferenceCount)>,
-// ) {
-//     let world_lock = instance_container.get(world_name).unwrap();
-//     let world = world_lock.read();
+// ) { let world_lock = instance_container.get(world_name).unwrap(); let world =
+//   world_lock.read();
 
 //     if let Some(entities) = world.entities_by_chunk.get(chunk).cloned() {
 //         for &entity in &entities {
@@ -189,6 +189,14 @@ impl Instance {
     /// Get an ECS [`Entity`] from a Minecraft entity ID.
     pub fn entity_by_id(&self, entity_id: &MinecraftEntityId) -> Option<Entity> {
         self.entity_by_id.get(entity_id).copied()
+    }
+
+    pub fn get_block_state(&self, pos: &BlockPos) -> Option<BlockState> {
+        self.chunks.get_block_state(pos)
+    }
+
+    pub fn set_block_state(&self, pos: &BlockPos, state: BlockState) -> Option<BlockState> {
+        self.chunks.set_block_state(pos, state)
     }
 
     /// Find the coordinates of a block in the world.
@@ -293,7 +301,7 @@ impl Default for PartialInstance {
 /// System to keep the entity_by_id index up-to-date.
 pub fn update_entity_by_id_index(
     mut query: Query<
-        (Entity, &MinecraftEntityId, &WorldName, Option<&Local>),
+        (Entity, &MinecraftEntityId, &InstanceName, Option<&Local>),
         Changed<MinecraftEntityId>,
     >,
     instance_container: Res<InstanceContainer>,

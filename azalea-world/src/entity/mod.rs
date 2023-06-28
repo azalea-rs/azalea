@@ -197,10 +197,11 @@ impl From<&LastSentPosition> for BlockPos {
     }
 }
 
-/// The name of the world the entity is in. If two entities share the same world
-/// name, we assume they're in the same world.
+/// The name of the [`Instance`](azalea_world::Instance) (world) the entity is
+/// in. If two entities share the same world name, we assume they're in the same
+/// instance.
 #[derive(Component, Clone, Debug, PartialEq, Deref, DerefMut)]
-pub struct WorldName(pub ResourceLocation);
+pub struct InstanceName(pub ResourceLocation);
 
 /// A component for entities that can jump.
 ///
@@ -303,7 +304,7 @@ pub struct EntityKind(pub azalea_registry::EntityKind);
 pub struct EntityBundle {
     pub kind: EntityKind,
     pub uuid: EntityUuid,
-    pub world_name: WorldName,
+    pub world_name: InstanceName,
     pub position: Position,
     pub last_sent_position: LastSentPosition,
     pub physics: Physics,
@@ -330,7 +331,7 @@ impl EntityBundle {
         Self {
             kind: EntityKind(kind),
             uuid: EntityUuid(uuid),
-            world_name: WorldName(world_name),
+            world_name: InstanceName(world_name),
             position: Position(pos),
             last_sent_position: LastSentPosition(pos),
             physics: Physics {

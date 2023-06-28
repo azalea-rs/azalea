@@ -45,18 +45,13 @@ pub struct BlockState {
 impl BlockState {
     pub const AIR: BlockState = BlockState { id: 0 };
 
-    /// Transmutes a u32 to a block state.
-    ///
-    /// # Safety
-    /// The `state_id` should be a valid block state.
-    #[inline]
-    pub unsafe fn from_u32_unchecked(state_id: u32) -> Self {
-        BlockState { id: state_id }
-    }
-
     #[inline]
     pub fn is_valid_state(state_id: u32) -> bool {
         state_id <= Self::max_state()
+    }
+
+    pub fn is_air(&self) -> bool {
+        self == &Self::AIR
     }
 }
 
@@ -66,7 +61,7 @@ impl TryFrom<u32> for BlockState {
     /// Safely converts a state id to a block state.
     fn try_from(state_id: u32) -> Result<Self, Self::Error> {
         if Self::is_valid_state(state_id) {
-            Ok(unsafe { Self::from_u32_unchecked(state_id) })
+            Ok(BlockState { id: state_id })
         } else {
             Err(())
         }
@@ -96,6 +91,11 @@ impl std::fmt::Debug for BlockState {
             Box::<dyn Block>::from(*self)
         )
     }
+}
+
+pub struct FluidState {
+    pub fluid: azalea_registry::Fluid,
+    pub height: u8,
 }
 
 #[cfg(test)]

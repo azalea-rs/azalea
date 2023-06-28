@@ -8,7 +8,7 @@ use std::{
     sync::{Arc, Weak},
 };
 
-use crate::{entity::WorldName, ChunkStorage, Instance};
+use crate::{entity::InstanceName, ChunkStorage, Instance};
 
 /// A container of [`Instance`]s (aka worlds). Instances are stored as a Weak
 /// pointer here, so if no clients are using an instance it will be forgotten.
@@ -37,7 +37,7 @@ impl InstanceContainer {
     }
 
     /// Get a world from the container.
-    pub fn get(&self, name: &WorldName) -> Option<Arc<RwLock<Instance>>> {
+    pub fn get(&self, name: &InstanceName) -> Option<Arc<RwLock<Instance>>> {
         self.worlds.get(name).and_then(|world| world.upgrade())
     }
 
