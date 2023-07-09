@@ -476,6 +476,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "azalea-tags"
+version = "0.1.0"
+
+[[package]]
 name = "azalea-world"
 version = "0.7.0"
 dependencies = [

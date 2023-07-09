@@ -18,4 +18,6 @@ pub fn get_destroy_progress(block_behavior: &BlockBehavior) -> f32 {
     let divider = 30; // 100 if wrong tool
 }
 
-fn get_destroy_speed(inventory: &InventoryComponent) {}
+fn get_destroy_speed_for_item(item_kind: azalea_registry::Item) {
+    //
+}
