@@ -17,7 +17,7 @@ fn write_named_fields(
         // if it's a string, use buf.write_string
         match field_type {
             syn::Type::Path(_) | syn::Type::Array(_) => {
-                if f.attrs.iter().any(|attr| attr.path.is_ident("var")) {
+                if f.attrs.iter().any(|attr| attr.path().is_ident("var")) {
                     quote! {
                         azalea_buf::McBufVarWritable::var_write_into(#ident_dot_field, buf)?;
                     }
@@ -133,7 +133,7 @@ pub fn create_impl_mcbufwritable(ident: &Ident, data: &Data) -> proc_macro2::Tok
                         for (i, f) in fields.unnamed.iter().enumerate() {
                             let param_ident = Ident::new(&format!("data{i}"), Span::call_site());
                             params_code.extend(quote! { #param_ident, });
-                            if f.attrs.iter().any(|attr| attr.path.is_ident("var")) {
+                            if f.attrs.iter().any(|attr| attr.path().is_ident("var")) {
                                 writers_code.extend(quote! {
                                     azalea_buf::McBufVarWritable::var_write_into(#param_ident, buf)?;
                                 });

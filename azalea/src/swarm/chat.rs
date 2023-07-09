@@ -20,7 +20,8 @@ use crate::ecs::{
     system::{Commands, Query, Res, ResMut, Resource},
 };
 use azalea_client::chat::{ChatPacket, ChatReceivedEvent};
-use bevy_app::{App, Plugin};
+use bevy_app::{App, Plugin, Update};
+use bevy_ecs::prelude::Event;
 use std::collections::VecDeque;
 
 use super::{Swarm, SwarmEvent};
@@ -30,7 +31,10 @@ pub struct SwarmChatPlugin;
 impl Plugin for SwarmChatPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<NewChatMessageEvent>()
-            .add_systems((chat_listener, update_min_index_and_shrink_queue).chain())
+            .add_systems(
+                Update,
+                (chat_listener, update_min_index_and_shrink_queue).chain(),
+            )
             .insert_resource(GlobalChatState {
                 chat_queue: VecDeque::new(),
                 chat_min_index: 0,
@@ -44,7 +48,7 @@ pub struct ClientChatState {
 }
 
 /// A chat message that no other bots have seen yet was received by a bot.
-#[derive(Debug)]
+#[derive(Event, Debug)]
 pub struct NewChatMessageEvent(ChatPacket);
 
 #[derive(Resource)]
@@ -160,7 +164,10 @@ mod tests {
         // event mangement in drain_events
         app.init_resource::<Events<ChatReceivedEvent>>()
             .init_resource::<Events<NewChatMessageEvent>>()
-            .add_systems((chat_listener, update_min_index_and_shrink_queue).chain())
+            .add_systems(
+                Update,
+                (chat_listener, update_min_index_and_shrink_queue).chain(),
+            )
             .insert_resource(GlobalChatState {
                 chat_queue: VecDeque::new(),
                 chat_min_index: 0,

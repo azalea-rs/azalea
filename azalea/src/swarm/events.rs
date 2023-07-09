@@ -1,6 +1,6 @@
 use azalea_client::LocalPlayer;
 use azalea_world::entity::MinecraftEntityId;
-use bevy_app::{App, Plugin};
+use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
 
@@ -8,12 +8,13 @@ pub struct SwarmPlugin;
 impl Plugin for SwarmPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<SwarmReadyEvent>()
-            .add_system(check_ready)
+            .add_systems(Update, check_ready)
             .init_resource::<IsSwarmReady>();
     }
 }
 
 /// All the bots from the swarm are now in the world.
+#[derive(Event)]
 pub struct SwarmReadyEvent;
 
 #[derive(Default, Resource, Deref, DerefMut)]

@@ -10,7 +10,7 @@ pub mod pathfinder;
 pub mod prelude;
 pub mod swarm;
 
-use app::{App, Plugin, PluginGroup};
+use app::{App, Plugins};
 pub use azalea_auth as auth;
 pub use azalea_block as blocks;
 pub use azalea_brigadier as brigadier;
@@ -148,16 +148,10 @@ where
         self.state = state;
         self
     }
-    /// Add a plugin to the client.
-    #[must_use]
-    pub fn add_plugin<T: Plugin>(mut self, plugin: T) -> Self {
-        self.app.add_plugin(plugin);
-        self
-    }
     /// Add a group of plugins to the client.
     #[must_use]
-    pub fn add_plugins<T: PluginGroup>(mut self, plugin_group: T) -> Self {
-        self.app.add_plugins(plugin_group);
+    pub fn add_plugins<M>(mut self, plugins: impl Plugins<M>) -> Self {
+        self.app.add_plugins(plugins);
         self
     }
 

@@ -11,18 +11,18 @@ repository = "https://github.com/mat-1/azalea/tree/main/azalea-nbt"
 [dependencies]
 azalea-buf = { path = "../azalea-buf", version = "^0.7.0" }
 byteorder = "^1.4.3"
-compact_str = { version = "0.7.0", features = ["serde"] }
-enum-as-inner = "0.5.1"
-flate2 = "^1.0.25"
-log = "0.4.17"
+compact_str = { version = "0.7.1", features = ["serde"] }
+enum-as-inner = "0.6.0"
+flate2 = "^1.0.26"
+log = "0.4.19"
 packed_simd_2 = "0.3.8"
 serde = { version = "^1.0", features = ["derive"], optional = true }
 
 [dev-dependencies]
-criterion = { version = "^0.4.0", features = ["html_reports"] }
+criterion = { version = "^0.5.1", features = ["html_reports"] }
 graphite_binary = "0.1.0"
 valence_nbt = "0.4.0"
-fastnbt = "2.4.3"
+fastnbt = "2.4.4"
 
 [features]
 default = []

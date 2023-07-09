@@ -8,14 +8,14 @@ use azalea_client::{
 use azalea_core::BlockPos;
 use azalea_inventory::{operations::ClickOperation, ItemSlot, Menu};
 use azalea_protocol::packets::game::ClientboundGamePacket;
-use bevy_app::{App, Plugin};
+use bevy_app::{App, Plugin, Update};
 use bevy_ecs::{component::Component, prelude::EventReader, system::Commands};
 use std::fmt::Debug;
 
 pub struct ContainerPlugin;
 impl Plugin for ContainerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(handle_menu_opened_event);
+        app.add_systems(Update, handle_menu_opened_event);
     }
 }
 

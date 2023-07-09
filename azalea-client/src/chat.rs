@@ -7,11 +7,12 @@ use azalea_protocol::packets::game::{
     serverbound_chat_command_packet::ServerboundChatCommandPacket,
     serverbound_chat_packet::{LastSeenMessagesUpdate, ServerboundChatPacket},
 };
-use bevy_app::{App, Plugin};
+use bevy_app::{App, Plugin, Update};
 use bevy_ecs::{
     entity::Entity,
     event::{EventReader, EventWriter},
-    schedule::{IntoSystemConfig, IntoSystemConfigs},
+    prelude::Event,
+    schedule::IntoSystemConfigs,
 };
 use std::{
     sync::Arc,
@@ -170,6 +171,7 @@ impl Plugin for ChatPlugin {
             .add_event::<SendChatKindEvent>()
             .add_event::<ChatReceivedEvent>()
             .add_systems(
+                Update,
                 (
                     handle_send_chat_event,
                     handle_send_chat_kind_event.after(handle_send_packet_event),
@@ -180,13 +182,14 @@ impl Plugin for ChatPlugin {
 }
 
 /// A client received a chat message packet.
-#[derive(Debug, Clone)]
+#[derive(Event, Debug, Clone)]
 pub struct ChatReceivedEvent {
     pub entity: Entity,
     pub packet: ChatPacket,
 }
 
 /// Send a chat message (or command, if it starts with a slash) to the server.
+#[derive(Event)]
 pub struct SendChatEvent {
     pub entity: Entity,
     pub content: String,
@@ -222,6 +225,7 @@ fn handle_send_chat_event(
 ///
 /// If you're wondering why this isn't two separate events, it's so ordering is
 /// preserved if multiple chat messages and commands are sent at the same time.
+#[derive(Event)]
 pub struct SendChatKindEvent {
     pub entity: Entity,
     pub content: String,
