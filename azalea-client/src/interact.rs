@@ -11,12 +11,13 @@ use azalea_world::{
     entity::{clamp_look_direction, view_vector, EyeHeight, LookDirection, Position, WorldName},
     Instance, InstanceContainer,
 };
-use bevy_app::{App, Plugin};
+use bevy_app::{App, Plugin, Update};
 use bevy_ecs::{
     component::Component,
     entity::Entity,
     event::EventReader,
-    schedule::{IntoSystemConfig, IntoSystemConfigs},
+    prelude::Event,
+    schedule::IntoSystemConfigs,
     system::{Commands, Query, Res},
 };
 use derive_more::{Deref, DerefMut};
@@ -33,6 +34,7 @@ pub struct InteractPlugin;
 impl Plugin for InteractPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<BlockInteractEvent>().add_systems(
+            Update,
             (
                 update_hit_result_component.after(clamp_look_direction),
                 handle_block_interact_event,
@@ -61,6 +63,7 @@ impl Client {
 /// Right click a block. The behavior of this depends on the target block,
 /// and it'll either place the block you're holding in your hand or use the
 /// block you clicked (like toggling a lever).
+#[derive(Event)]
 pub struct BlockInteractEvent {
     /// The local player entity that's opening the container.
     pub entity: Entity,

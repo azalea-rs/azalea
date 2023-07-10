@@ -13,12 +13,13 @@ use azalea_world::{
     },
     Instance, InstanceContainer,
 };
-use bevy_app::{App, CoreSchedule, IntoSystemAppConfigs, Plugin};
+use bevy_app::{App, FixedUpdate, Plugin, Update};
 use bevy_ecs::{
     entity::Entity,
     event::{EventReader, EventWriter},
+    prelude::Event,
     query::With,
-    schedule::{IntoSystemConfig, IntoSystemConfigs, SystemSet},
+    schedule::{IntoSystemConfigs, SystemSet},
     system::{Query, Res},
 };
 use collision::{move_colliding, MoverType};
@@ -31,17 +32,13 @@ pub struct PhysicsPlugin;
 impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<ForceJumpEvent>()
-            .add_system(
+            .add_systems(
+                Update,
                 force_jump_listener
                     .before(azalea_world::entity::update_bounding_box)
                     .after(clamp_look_direction),
             )
-            .add_systems(
-                (ai_step, travel)
-                    .chain()
-                    .in_set(PhysicsSet)
-                    .in_schedule(CoreSchedule::FixedUpdate),
-            );
+            .add_systems(FixedUpdate, (ai_step, travel).chain().in_set(PhysicsSet));
     }
 }
 
@@ -170,6 +167,7 @@ pub fn ai_step(
 }
 
 /// Jump even if we aren't on the ground.
+#[derive(Event)]
 pub struct ForceJumpEvent(pub Entity);
 
 pub fn force_jump_listener(
@@ -340,8 +338,7 @@ mod tests {
     /// You need an app to spawn entities in the world and do updates.
     fn make_test_app() -> App {
         let mut app = App::new();
-        app.add_plugin(PhysicsPlugin)
-            .add_plugin(EntityPlugin)
+        app.add_plugins((PhysicsPlugin, EntityPlugin))
             .insert_resource(FixedTime::new(Duration::from_millis(50)))
             .init_resource::<InstanceContainer>();
         app
@@ -378,7 +375,7 @@ mod tests {
             // y should start at 70
             assert_eq!(entity_pos.y, 70.);
         }
-        app.world.run_schedule(CoreSchedule::FixedUpdate);
+        app.world.run_schedule(FixedUpdate);
         app.update();
         {
             let entity_pos = *app.world.get::<Position>(entity).unwrap();
@@ -387,7 +384,7 @@ mod tests {
             let entity_physics = app.world.get::<Physics>(entity).unwrap().clone();
             assert!(entity_physics.delta.y < 0.);
         }
-        app.world.run_schedule(CoreSchedule::FixedUpdate);
+        app.world.run_schedule(FixedUpdate);
         app.update();
         {
             let entity_pos = *app.world.get::<Position>(entity).unwrap();
@@ -440,7 +437,7 @@ mod tests {
             block_state.is_some(),
             "Block state should exist, if this fails that means the chunk wasn't loaded and the block didn't get placed"
         );
-        app.world.run_schedule(CoreSchedule::FixedUpdate);
+        app.world.run_schedule(FixedUpdate);
         app.update();
         {
             let entity_pos = *app.world.get::<Position>(entity).unwrap();
@@ -449,7 +446,7 @@ mod tests {
             let entity_physics = app.world.get::<Physics>(entity).unwrap().clone();
             assert!(entity_physics.delta.y < 0.);
         }
-        app.world.run_schedule(CoreSchedule::FixedUpdate);
+        app.world.run_schedule(FixedUpdate);
         app.update();
         {
             let entity_pos = *app.world.get::<Position>(entity).unwrap();
@@ -505,7 +502,7 @@ mod tests {
         );
         // do a few steps so we fall on the slab
         for _ in 0..20 {
-            app.world.run_schedule(CoreSchedule::FixedUpdate);
+            app.world.run_schedule(FixedUpdate);
             app.update();
         }
         let entity_pos = app.world.get::<Position>(entity).unwrap();
@@ -558,7 +555,7 @@ mod tests {
         );
         // do a few steps so we fall on the slab
         for _ in 0..20 {
-            app.world.run_schedule(CoreSchedule::FixedUpdate);
+            app.world.run_schedule(FixedUpdate);
             app.update();
         }
         let entity_pos = app.world.get::<Position>(entity).unwrap();
@@ -615,7 +612,7 @@ mod tests {
         );
         // do a few steps so we fall on the wall
         for _ in 0..20 {
-            app.world.run_schedule(CoreSchedule::FixedUpdate);
+            app.world.run_schedule(FixedUpdate);
             app.update();
         }
 
@@ -677,7 +674,7 @@ mod tests {
         );
         // do a few steps so we fall on the wall
         for _ in 0..20 {
-            app.world.run_schedule(CoreSchedule::FixedUpdate);
+            app.world.run_schedule(FixedUpdate);
             app.update();
         }
 

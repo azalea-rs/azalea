@@ -16,7 +16,7 @@ pub struct CommandContext<S> {
     pub root_node: Arc<RwLock<CommandNode<S>>>,
     pub nodes: Vec<ParsedCommandNode<S>>,
     pub range: StringRange,
-    pub child: Option<Arc<CommandContext<S>>>,
+    pub child: Option<Rc<CommandContext<S>>>,
     pub modifier: Option<Arc<RedirectModifier<S>>>,
     pub forks: bool,
 }

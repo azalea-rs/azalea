@@ -128,7 +128,7 @@ impl IntoIterator for FormattedText {
         let mut v: Vec<FormattedText> = Vec::with_capacity(siblings.len() + 1);
         v.push(self);
         for sibling in siblings {
-            v.extend(sibling.into_iter());
+            v.extend(sibling);
         }
 
         v.into_iter()

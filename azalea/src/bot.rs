@@ -1,4 +1,4 @@
-use crate::app::{App, CoreSchedule, IntoSystemAppConfig, Plugin, PluginGroup, PluginGroupBuilder};
+use crate::app::{App, Plugin, PluginGroup, PluginGroupBuilder};
 use crate::auto_respawn::AutoRespawnPlugin;
 use crate::container::ContainerPlugin;
 use crate::ecs::{
@@ -6,13 +6,15 @@ use crate::ecs::{
     entity::Entity,
     event::EventReader,
     query::{With, Without},
-    schedule::IntoSystemConfig,
     system::{Commands, Query},
 };
 use azalea_core::Vec3;
 use azalea_physics::{force_jump_listener, PhysicsSet};
 use azalea_world::entity::{clamp_look_direction, EyeHeight, LookDirection};
 use azalea_world::entity::{metadata::Player, Jumping, Local, Position};
+use bevy_app::{FixedUpdate, Update};
+use bevy_ecs::prelude::Event;
+use bevy_ecs::schedule::IntoSystemConfigs;
 use std::f64::consts::PI;
 
 use crate::pathfinder::PathfinderPlugin;
@@ -23,16 +25,17 @@ impl Plugin for BotPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<LookAtEvent>()
             .add_event::<JumpEvent>()
-            .add_systems((
-                insert_bot,
-                look_at_listener
-                    .before(force_jump_listener)
-                    .before(clamp_look_direction),
-                jump_listener,
-                stop_jumping
-                    .in_schedule(CoreSchedule::FixedUpdate)
-                    .after(PhysicsSet),
-            ));
+            .add_systems(
+                Update,
+                (
+                    insert_bot,
+                    look_at_listener
+                        .before(force_jump_listener)
+                        .before(clamp_look_direction),
+                    jump_listener,
+                ),
+            )
+            .add_systems(FixedUpdate, stop_jumping.after(PhysicsSet));
     }
 }
 
@@ -85,6 +88,7 @@ impl BotClientExt for azalea_client::Client {
 }
 
 /// Event to jump once.
+#[derive(Event)]
 pub struct JumpEvent(pub Entity);
 
 fn jump_listener(mut query: Query<(&mut Jumping, &mut Bot)>, mut events: EventReader<JumpEvent>) {
@@ -97,6 +101,7 @@ fn jump_listener(mut query: Query<(&mut Jumping, &mut Bot)>, mut events: EventRe
 }
 
 /// Make an entity look towards a certain position in the world.
+#[derive(Event)]
 pub struct LookAtEvent {
     pub entity: Entity,
     /// The position we want the entity to be looking at.

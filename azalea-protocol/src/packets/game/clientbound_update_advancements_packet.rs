@@ -142,6 +142,7 @@ mod tests {
                     }),
                     criteria: HashMap::new(),
                     requirements: Vec::new(),
+                    sends_telemetry_event: false,
                 },
             )]
             .into_iter()

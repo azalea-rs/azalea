@@ -14,14 +14,11 @@ use azalea_world::{
     entity::{self, metadata::Sprinting, Attributes, Jumping, MinecraftEntityId},
     MoveEntityError,
 };
-use bevy_app::{App, CoreSchedule, IntoSystemAppConfigs, Plugin};
+use bevy_app::{App, FixedUpdate, Plugin, Update};
+use bevy_ecs::prelude::Event;
 use bevy_ecs::{
-    component::Component,
-    entity::Entity,
-    event::EventReader,
-    query::With,
-    schedule::{IntoSystemConfig, IntoSystemConfigs},
-    system::Query,
+    component::Component, entity::Entity, event::EventReader, query::With,
+    schedule::IntoSystemConfigs, system::Query,
 };
 use std::backtrace::Backtrace;
 use thiserror::Error;
@@ -51,17 +48,18 @@ impl Plugin for PlayerMovePlugin {
         app.add_event::<StartWalkEvent>()
             .add_event::<StartSprintEvent>()
             .add_systems(
+                Update,
                 (sprint_listener, walk_listener)
                     .chain()
                     .before(force_jump_listener),
             )
             .add_systems(
+                FixedUpdate,
                 (
                     local_player_ai_step.in_set(PhysicsSet),
                     send_position.after(update_in_loaded_chunk),
                 )
-                    .chain()
-                    .in_schedule(CoreSchedule::FixedUpdate),
+                    .chain(),
             );
     }
 }
@@ -379,6 +377,7 @@ impl Client {
 
 /// An event sent when the client starts walking. This does not get sent for
 /// non-local entities.
+#[derive(Event)]
 pub struct StartWalkEvent {
     pub entity: Entity,
     pub direction: WalkDirection,
@@ -402,6 +401,7 @@ pub fn walk_listener(
 
 /// An event sent when the client starts sprinting. This does not get sent for
 /// non-local entities.
+#[derive(Event)]
 pub struct StartSprintEvent {
     pub entity: Entity,
     pub direction: SprintDirection,

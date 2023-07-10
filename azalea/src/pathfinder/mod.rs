@@ -5,13 +5,12 @@ use crate::bot::{JumpEvent, LookAtEvent};
 use crate::pathfinder::astar::a_star;
 use crate::{SprintDirection, WalkDirection};
 
-use crate::app::{App, CoreSchedule, IntoSystemAppConfig, Plugin};
+use crate::app::{App, Plugin};
 use crate::ecs::{
     component::Component,
     entity::Entity,
     event::{EventReader, EventWriter},
     query::{With, Without},
-    schedule::IntoSystemConfig,
     system::{Commands, Query, Res},
 };
 use astar::Edge;
@@ -24,6 +23,9 @@ use azalea_world::{
     entity::{Physics, Position, WorldName},
     InstanceContainer,
 };
+use bevy_app::{FixedUpdate, Update};
+use bevy_ecs::prelude::Event;
+use bevy_ecs::schedule::IntoSystemConfigs;
 use bevy_tasks::{AsyncComputeTaskPool, Task};
 use futures_lite::future;
 use log::{debug, error};
@@ -36,17 +38,20 @@ impl Plugin for PathfinderPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<GotoEvent>()
             .add_event::<PathFoundEvent>()
-            .add_system(
-                // Adding `.in_schedule(CoreSchedule::FixedUpdate)` makes a system run every
-                // Minecraft tick (every 50 milliseconds).
-                tick_execute_path
-                    .in_schedule(CoreSchedule::FixedUpdate)
-                    .before(PhysicsSet),
+            .add_systems(
+                FixedUpdate,
+                // putting systems in the FixedUpdate schedule makes them run every Minecraft tick
+                // (every 50 milliseconds).
+                tick_execute_path.before(PhysicsSet),
             )
-            .add_system(goto_listener)
-            .add_system(add_default_pathfinder)
-            .add_system(handle_tasks.before(path_found_listener))
-            .add_system(path_found_listener);
+            .add_systems(
+                Update,
+                (
+                    goto_listener,
+                    add_default_pathfinder,
+                    (handle_tasks, path_found_listener).chain(),
+                ),
+            );
     }
 }
 
@@ -84,10 +89,12 @@ impl PathfinderClientExt for azalea_client::Client {
         });
     }
 }
+#[derive(Event)]
 pub struct GotoEvent {
     pub entity: Entity,
     pub goal: Arc<dyn Goal + Send + Sync>,
 }
+#[derive(Event)]
 pub struct PathFoundEvent {
     pub entity: Entity,
     pub path: VecDeque<Node>,

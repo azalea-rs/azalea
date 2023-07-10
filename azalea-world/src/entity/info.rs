@@ -9,12 +9,12 @@ use crate::{
     update_entity_by_id_index, update_uuid_index, InstanceContainer, PartialInstance,
 };
 use azalea_core::ChunkPos;
-use bevy_app::{App, CoreSet, Plugin};
+use bevy_app::{App, Plugin, PostUpdate, PreUpdate, Update};
 use bevy_ecs::{
     component::Component,
     entity::Entity,
     query::{Added, Changed, With, Without},
-    schedule::{IntoSystemConfig, IntoSystemConfigs, SystemSet},
+    schedule::{IntoSystemConfigs, SystemSet},
     system::{Commands, EntityCommand, Query, Res, ResMut, Resource},
     world::{EntityMut, World},
 };
@@ -51,32 +51,33 @@ impl Plugin for EntityPlugin {
         // added to indexes during update (done by this plugin)
         // modified during update
         // despawned post-update (done by this plugin)
-        app.add_system(
-            remove_despawned_entities_from_indexes
-                .in_base_set(CoreSet::PreUpdate)
-                .in_set(EntityUpdateSet::Deindex),
+        app.add_systems(
+            PreUpdate,
+            remove_despawned_entities_from_indexes.in_set(EntityUpdateSet::Deindex),
         )
         .add_systems(
-            (deduplicate_entities, deduplicate_local_entities)
-                .in_base_set(CoreSet::PostUpdate)
-                .in_set(EntityUpdateSet::Deduplicate),
+            PostUpdate,
+            (deduplicate_entities, deduplicate_local_entities).in_set(EntityUpdateSet::Deduplicate),
         )
         .add_systems(
+            Update,
             (
-                update_entity_chunk_positions,
-                update_uuid_index,
-                update_entity_by_id_index,
-            )
-                .in_set(EntityUpdateSet::Index),
+                (
+                    update_entity_chunk_positions,
+                    update_uuid_index,
+                    update_entity_by_id_index,
+                )
+                    .in_set(EntityUpdateSet::Index),
+                (
+                    add_updates_received,
+                    debug_new_entity,
+                    debug_detect_updates_received_on_local_entities,
+                    add_dead,
+                    update_bounding_box,
+                    clamp_look_direction,
+                ),
+            ),
         )
-        .add_systems((
-            add_updates_received,
-            debug_new_entity,
-            debug_detect_updates_received_on_local_entities,
-            add_dead,
-            update_bounding_box,
-            clamp_look_direction,
-        ))
         .init_resource::<EntityInfos>();
     }
 }
@@ -152,7 +153,7 @@ pub struct RelativeEntityUpdate {
     pub update: Box<dyn FnOnce(&mut EntityMut) + Send + Sync>,
 }
 impl EntityCommand for RelativeEntityUpdate {
-    fn write(self, entity: Entity, world: &mut World) {
+    fn apply(self, entity: Entity, world: &mut World) {
         let partial_entity_infos = &mut self.partial_world.write().entity_infos;
 
         let mut entity_mut = world.entity_mut(entity);

@@ -39,7 +39,7 @@ impl Parse for Menu {
         let content;
         braced!(content in input);
         let fields = content
-            .parse_terminated::<Field, Token![,]>(Field::parse)?
+            .parse_terminated(Field::parse, Token![,])?
             .into_iter()
             .collect();
 
@@ -61,7 +61,7 @@ pub struct DeclareMenus {
 impl Parse for DeclareMenus {
     fn parse(input: ParseStream) -> Result<Self> {
         let menus = input
-            .parse_terminated::<Menu, Token![,]>(Menu::parse)?
+            .parse_terminated(Menu::parse, Token![,])?
             .into_iter()
             .collect();
         Ok(Self { menus })
