@@ -105,7 +105,7 @@ impl<S> CommandDispatcher<S> {
                     let parse = self
                         .parse_nodes(redirect, &reader, child_context)
                         .expect("Parsing nodes failed");
-                    context.with_child(Arc::new(parse.context));
+                    context.with_child(Rc::new(parse.context));
                     return Ok(ParseResults {
                         context,
                         reader: parse.reader,

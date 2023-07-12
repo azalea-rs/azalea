@@ -109,7 +109,7 @@ impl Parse for PropertyType {
         } else {
             let content;
             braced!(content in input);
-            let variants = content.parse_terminated(Ident::parse)?;
+            let variants = content.parse_terminated(Ident::parse, Token![,])?;
             Ok(Self::Enum {
                 type_name: keyword,
                 variants,
@@ -172,8 +172,8 @@ impl Parse for BlockDefinition {
         let mut properties_and_defaults = Vec::new();
 
         // read the things comma-separated
-        let property_and_default_punctuated: Punctuated<PropertyWithNameAndDefault, Token![,]> =
-            content.parse_terminated(PropertyWithNameAndDefault::parse)?;
+        let property_and_default_punctuated =
+            content.parse_terminated(PropertyWithNameAndDefault::parse, Token![,])?;
 
         for property_and_default in property_and_default_punctuated {
             properties_and_defaults.push(property_and_default);
@@ -191,8 +191,8 @@ impl Parse for BlockDefinitions {
     fn parse(input: ParseStream) -> Result<Self> {
         let mut blocks = Vec::new();
 
-        let block_definitions_punctuated: Punctuated<BlockDefinition, Token![,]> =
-            input.parse_terminated(BlockDefinition::parse)?;
+        let block_definitions_punctuated =
+            input.parse_terminated(BlockDefinition::parse, Token![,])?;
         for block_definition in block_definitions_punctuated {
             blocks.push(block_definition);
         }

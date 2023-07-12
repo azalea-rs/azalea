@@ -1,10 +1,11 @@
 //! Disconnect a client from the server.
 
-use bevy_app::{App, CoreSet, Plugin};
+use bevy_app::{App, Plugin, PostUpdate};
 use bevy_ecs::{
     component::Component,
     entity::Entity,
     event::{EventReader, EventWriter},
+    prelude::Event,
     query::Changed,
     schedule::IntoSystemConfigs,
     system::{Commands, Query},
@@ -17,18 +18,19 @@ pub struct DisconnectPlugin;
 impl Plugin for DisconnectPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<DisconnectEvent>().add_systems(
+            PostUpdate,
             (
                 update_read_packets_task_running_component,
                 disconnect_on_read_packets_ended,
                 remove_components_from_disconnected_players,
             )
-                .in_base_set(CoreSet::PostUpdate)
                 .chain(),
         );
     }
 }
 
 /// An event sent when a client is getting disconnected.
+#[derive(Event)]
 pub struct DisconnectEvent {
     pub entity: Entity,
 }

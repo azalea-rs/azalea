@@ -7,7 +7,7 @@ use azalea_protocol::packets::game::{
     clientbound_player_combat_kill_packet::ClientboundPlayerCombatKillPacket, ClientboundGamePacket,
 };
 use azalea_world::entity::MinecraftEntityId;
-use bevy_app::{App, CoreSchedule, IntoSystemAppConfig, Plugin};
+use bevy_app::{App, FixedUpdate, Plugin, Update};
 use bevy_ecs::{component::Component, event::EventReader, query::Added, system::Query};
 use derive_more::{Deref, DerefMut};
 use tokio::sync::mpsc;
@@ -100,16 +100,21 @@ pub struct LocalPlayerEvents(pub mpsc::UnboundedSender<Event>);
 pub struct EventPlugin;
 impl Plugin for EventPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(chat_listener)
-            .add_system(login_listener)
-            .add_system(init_listener)
-            .add_system(packet_listener)
-            .add_system(add_player_listener)
-            .add_system(update_player_listener)
-            .add_system(remove_player_listener)
-            .add_system(death_listener)
-            .add_system(keepalive_listener)
-            .add_system(tick_listener.in_schedule(CoreSchedule::FixedUpdate));
+        app.add_systems(
+            Update,
+            (
+                chat_listener,
+                login_listener,
+                init_listener,
+                packet_listener,
+                add_player_listener,
+                update_player_listener,
+                remove_player_listener,
+                death_listener,
+                keepalive_listener,
+            ),
+        )
+        .add_systems(FixedUpdate, tick_listener);
     }
 }
 

@@ -43,8 +43,8 @@ impl Parse for Registry {
         let name = input.parse()?;
         let content;
         braced!(content in input);
-        let items: Punctuated<RegistryItem, Token![,]> =
-            content.parse_terminated(RegistryItem::parse)?;
+        let items: Punctuated<RegistryItem, _> =
+            content.parse_terminated(RegistryItem::parse, Token![,])?;
 
         Ok(Registry {
             name,

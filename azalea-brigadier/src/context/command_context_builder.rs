@@ -9,7 +9,7 @@ use crate::{
     modifier::RedirectModifier,
     tree::{Command, CommandNode},
 };
-use std::{collections::HashMap, fmt::Debug, sync::Arc};
+use std::{collections::HashMap, fmt::Debug, rc::Rc, sync::Arc};
 
 pub struct CommandContextBuilder<'a, S> {
     pub arguments: HashMap<String, ParsedArgument>,
@@ -18,7 +18,7 @@ pub struct CommandContextBuilder<'a, S> {
     pub dispatcher: &'a CommandDispatcher<S>,
     pub source: Arc<S>,
     pub command: Command<S>,
-    pub child: Option<Arc<CommandContextBuilder<'a, S>>>,
+    pub child: Option<Rc<CommandContextBuilder<'a, S>>>,
     pub range: StringRange,
     pub modifier: Option<Arc<RedirectModifier<S>>>,
     pub forks: bool,
@@ -66,7 +66,7 @@ impl<'a, S> CommandContextBuilder<'a, S> {
         self.command = command.clone();
         self
     }
-    pub fn with_child(&mut self, child: Arc<CommandContextBuilder<'a, S>>) -> &Self {
+    pub fn with_child(&mut self, child: Rc<CommandContextBuilder<'a, S>>) -> &Self {
         self.child = Some(child);
         self
     }
@@ -92,7 +92,7 @@ impl<'a, S> CommandContextBuilder<'a, S> {
             nodes: self.nodes.clone(),
             source: self.source.clone(),
             command: self.command.clone(),
-            child: self.child.clone().map(|c| Arc::new(c.build(input))),
+            child: self.child.clone().map(|c| Rc::new(c.build(input))),
             range: self.range.clone(),
             forks: self.forks,
             modifier: self.modifier.clone(),

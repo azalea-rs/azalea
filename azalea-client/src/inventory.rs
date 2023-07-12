@@ -14,13 +14,13 @@ use azalea_protocol::packets::game::{
     serverbound_container_close_packet::ServerboundContainerClosePacket,
 };
 use azalea_registry::MenuKind;
-use bevy_app::{App, Plugin};
+use bevy_app::{App, Plugin, Update};
 use bevy_ecs::{
     component::Component,
     entity::Entity,
     event::EventReader,
-    prelude::EventWriter,
-    schedule::{IntoSystemConfig, IntoSystemConfigs},
+    prelude::{Event, EventWriter},
+    schedule::IntoSystemConfigs,
     system::Query,
 };
 use log::warn;
@@ -36,6 +36,7 @@ impl Plugin for InventoryPlugin {
             .add_event::<ContainerClickEvent>()
             .add_event::<SetContainerContentEvent>()
             .add_systems(
+                Update,
                 (
                     handle_menu_opened_event,
                     handle_set_container_content_event,
@@ -564,7 +565,7 @@ impl Default for InventoryComponent {
 
 /// Sent from the server when a menu (like a chest or crafting table) was
 /// opened by the client.
-#[derive(Debug)]
+#[derive(Event, Debug)]
 pub struct MenuOpenedEvent {
     pub entity: Entity,
     pub window_id: u32,
@@ -586,6 +587,7 @@ fn handle_menu_opened_event(
 ///
 /// Note that this is also sent when the client closes its own inventory, even
 /// though there is no packet for opening its inventory.
+#[derive(Event)]
 pub struct CloseContainerEvent {
     pub entity: Entity,
     /// The ID of the container to close. 0 for the player's inventory. If this
@@ -622,6 +624,7 @@ fn handle_container_close_event(
 /// Close a container without notifying the server.
 ///
 /// Note that this also gets fired when we get a [`CloseContainerEvent`].
+#[derive(Event)]
 pub struct ClientSideCloseContainerEvent {
     pub entity: Entity,
 }
@@ -636,7 +639,7 @@ pub fn handle_client_side_close_container_event(
     }
 }
 
-#[derive(Debug)]
+#[derive(Event, Debug)]
 pub struct ContainerClickEvent {
     pub entity: Entity,
     pub window_id: u8,
@@ -688,6 +691,7 @@ pub fn handle_container_click_event(
 
 /// Sent from the server when the contents of a container are replaced. Usually
 /// triggered by the `ContainerSetContent` packet.
+#[derive(Event)]
 pub struct SetContainerContentEvent {
     pub entity: Entity,
     pub slots: Vec<ItemSlot>,

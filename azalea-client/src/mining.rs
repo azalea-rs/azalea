@@ -1,11 +1,5 @@
-use azalea_block::BlockState;
-use azalea_core::{BlockPos, Direction, GameMode};
-use azalea_inventory::ItemSlot;
-use azalea_protocol::packets::game::serverbound_player_action_packet::{
-    self, ServerboundPlayerActionPacket,
-};
-use azalea_world::{entity::InstanceName, InstanceContainer};
-use bevy_app::{App, Plugin};
+use azalea_core::BlockPos;
+use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
 
@@ -21,7 +15,7 @@ pub struct MinePlugin;
 impl Plugin for MinePlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<StartMiningBlockEvent>()
-            .add_system(handle_start_mining_block_event);
+            .add_systems(Update, handle_start_mining_block_event);
     }
 }
 
@@ -36,6 +30,7 @@ impl Client {
     }
 }
 
+#[derive(Event)]
 pub struct StartMiningBlockEvent {
     pub entity: Entity,
     pub position: BlockPos,
@@ -224,7 +219,9 @@ fn handle_finish_mining_block_event(
         //     let held_item = inventory.held_item().kind();
         // }
 
-        let Some(block) = instance.get_block_state(&event.position) else { continue };
+        let Some(block) = instance.get_block_state(&event.position) else {
+            continue;
+        };
 
         // also related to the above todo: ignore if it's a "game master block"
         // and we're not allowed to use them

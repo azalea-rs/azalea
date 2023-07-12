@@ -46,13 +46,12 @@ use azalea_world::{
     entity::{EntityPlugin, EntityUpdateSet, InstanceName, Local, Position},
     Instance, InstanceContainer, PartialInstance,
 };
-use bevy_app::{App, CoreSchedule, IntoSystemAppConfig, Plugin, PluginGroup, PluginGroupBuilder};
+use bevy_app::{App, FixedUpdate, Main, Plugin, PluginGroup, PluginGroupBuilder, Update};
 use bevy_ecs::{
     bundle::Bundle,
     component::Component,
     entity::Entity,
-    schedule::IntoSystemConfig,
-    schedule::{LogLevel, ScheduleBuildSettings, ScheduleLabel},
+    schedule::{IntoSystemConfigs, LogLevel, ScheduleBuildSettings, ScheduleLabel},
     system::{ResMut, Resource},
     world::World,
 };
@@ -573,20 +572,20 @@ pub struct AzaleaPlugin;
 impl Plugin for AzaleaPlugin {
     fn build(&self, app: &mut App) {
         // Minecraft ticks happen every 50ms
-        app.insert_resource(FixedTime::new(Duration::from_millis(50)));
-
-        app.add_system(update_in_loaded_chunk.after(PhysicsSet));
-
-        // fire the Death event when the player dies.
-        app.add_system(death_event);
-
-        // add GameProfileComponent when we get an AddPlayerEvent
-        app.add_system(retroactively_add_game_profile_component.after(EntityUpdateSet::Index));
-
-        app.add_event::<SendPacketEvent>()
-            .add_system(handle_send_packet_event);
-
-        app.init_resource::<InstanceContainer>();
+        app.insert_resource(FixedTime::new(Duration::from_millis(50)))
+            .add_systems(
+                Update,
+                (
+                    update_in_loaded_chunk.after(PhysicsSet),
+                    // fire the Death event when the player dies.
+                    death_event,
+                    // add GameProfileComponent when we get an AddPlayerEvent
+                    retroactively_add_game_profile_component.after(EntityUpdateSet::Index),
+                    handle_send_packet_event,
+                ),
+            )
+            .add_event::<SendPacketEvent>()
+            .init_resource::<InstanceContainer>();
     }
 }
 
@@ -596,19 +595,17 @@ impl Plugin for AzaleaPlugin {
 /// [`DefaultPlugins`].
 #[doc(hidden)]
 pub fn start_ecs(
-    mut app: App,
+    app: App,
     run_schedule_receiver: mpsc::UnboundedReceiver<()>,
     run_schedule_sender: mpsc::UnboundedSender<()>,
 ) -> Arc<Mutex<World>> {
-    app.setup();
-
     // all resources should have been added by now so we can take the ecs from the
     // app
     let ecs = Arc::new(Mutex::new(app.world));
 
     tokio::spawn(run_schedule_loop(
         ecs.clone(),
-        app.outer_schedule_label,
+        app.main_schedule_label,
         run_schedule_receiver,
     ));
     tokio::spawn(tick_run_schedule_loop(run_schedule_sender));
@@ -625,7 +622,7 @@ async fn run_schedule_loop(
         // whenever we get an event from run_schedule_receiver, run the schedule
         run_schedule_receiver.recv().await;
         let mut ecs = ecs.lock();
-        ecs.run_schedule_ref(&*outer_schedule_label);
+        ecs.run_schedule(&outer_schedule_label);
         ecs.clear_trackers();
     }
 }
@@ -676,14 +673,14 @@ pub struct TickBroadcastPlugin;
 impl Plugin for TickBroadcastPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(TickBroadcast(broadcast::channel(1).0))
-            .add_system(send_tick_broadcast.in_schedule(CoreSchedule::FixedUpdate));
+            .add_systems(FixedUpdate, send_tick_broadcast);
     }
 }
 
 pub struct AmbiguityLoggerPlugin;
 impl Plugin for AmbiguityLoggerPlugin {
     fn build(&self, app: &mut App) {
-        app.edit_schedule(CoreSchedule::Main, |schedule| {
+        app.edit_schedule(Main, |schedule| {
             schedule.set_build_settings(ScheduleBuildSettings {
                 ambiguity_detection: LogLevel::Warn,
                 ..Default::default()

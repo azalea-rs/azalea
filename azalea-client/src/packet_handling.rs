@@ -24,12 +24,13 @@ use azalea_world::{
     entity::{LoadedBy, RelativeEntityUpdate},
     InstanceContainer, PartialInstance,
 };
-use bevy_app::{App, CoreSet, Plugin};
+use bevy_app::{App, First, Plugin, PreUpdate};
 use bevy_ecs::{
     component::Component,
     entity::Entity,
     event::{EventReader, EventWriter, Events},
-    schedule::IntoSystemConfig,
+    prelude::Event,
+    schedule::IntoSystemConfigs,
     system::{Commands, Query, ResMut, SystemState},
     world::World,
 };
@@ -69,7 +70,7 @@ use crate::{
 ///     }
 /// }
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Event, Debug, Clone)]
 pub struct PacketEvent {
     /// The client entity that received the packet.
     pub entity: Entity,
@@ -81,10 +82,10 @@ pub struct PacketHandlerPlugin;
 
 impl Plugin for PacketHandlerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(send_packet_events.in_base_set(CoreSet::First))
-            .add_system(
+        app.add_systems(First, send_packet_events)
+            .add_systems(
+                PreUpdate,
                 process_packet_events
-                    .in_base_set(CoreSet::PreUpdate)
                     // we want to index and deindex right after
                     .before(EntityUpdateSet::Deindex),
             )
@@ -100,7 +101,7 @@ impl Plugin for PacketHandlerPlugin {
 
 /// A player joined the game (or more specifically, was added to the tab
 /// list of a local player).
-#[derive(Debug, Clone)]
+#[derive(Event, Debug, Clone)]
 pub struct AddPlayerEvent {
     /// The local player entity that received this event.
     pub entity: Entity,
@@ -108,7 +109,7 @@ pub struct AddPlayerEvent {
 }
 /// A player left the game (or maybe is still in the game and was just
 /// removed from the tab list of a local player).
-#[derive(Debug, Clone)]
+#[derive(Event, Debug, Clone)]
 pub struct RemovePlayerEvent {
     /// The local player entity that received this event.
     pub entity: Entity,
@@ -116,7 +117,7 @@ pub struct RemovePlayerEvent {
 }
 /// A player was updated in the tab list of a local player (gamemode, display
 /// name, or latency changed).
-#[derive(Debug, Clone)]
+#[derive(Event, Debug, Clone)]
 pub struct UpdatePlayerEvent {
     /// The local player entity that received this event.
     pub entity: Entity,
@@ -126,7 +127,7 @@ pub struct UpdatePlayerEvent {
 /// Event for when an entity dies. dies. If it's a local player and there's a
 /// reason in the death screen, the [`ClientboundPlayerCombatKillPacket`] will
 /// be included.
-#[derive(Debug, Clone)]
+#[derive(Event, Debug, Clone)]
 pub struct DeathEvent {
     pub entity: Entity,
     pub packet: Option<ClientboundPlayerCombatKillPacket>,
@@ -134,7 +135,7 @@ pub struct DeathEvent {
 
 /// A KeepAlive packet is sent from the server to verify that the client is
 /// still connected.
-#[derive(Debug, Clone)]
+#[derive(Event, Debug, Clone)]
 pub struct KeepAliveEvent {
     pub entity: Entity,
     /// The ID of the keepalive. This is an arbitrary number, but vanilla
@@ -143,7 +144,7 @@ pub struct KeepAliveEvent {
 }
 
 /// Something that receives packets from the server.
-#[derive(Component, Clone)]
+#[derive(Event, Component, Clone)]
 pub struct PacketReceiver {
     pub packets: Arc<Mutex<Vec<ClientboundGamePacket>>>,
     pub run_schedule_sender: mpsc::UnboundedSender<()>,

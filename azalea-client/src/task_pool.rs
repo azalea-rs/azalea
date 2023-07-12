@@ -2,11 +2,8 @@
 
 use std::marker::PhantomData;
 
-use bevy_app::{App, CoreSet, Plugin};
-use bevy_ecs::{
-    schedule::IntoSystemConfig,
-    system::{NonSend, Resource},
-};
+use bevy_app::{App, Last, Plugin};
+use bevy_ecs::system::{NonSend, Resource};
 use bevy_tasks::{
     tick_global_task_pools_on_main_thread, AsyncComputeTaskPool, ComputeTaskPool, IoTaskPool,
     TaskPoolBuilder,
@@ -27,7 +24,7 @@ impl Plugin for TaskPoolPlugin {
         self.task_pool_options.create_default_pools();
 
         #[cfg(not(target_arch = "wasm32"))]
-        app.add_system(tick_global_task_pools.in_base_set(CoreSet::Last));
+        app.add_systems(Last, tick_global_task_pools);
     }
 }
 

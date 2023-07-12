@@ -14,7 +14,7 @@ use azalea_protocol::{
     ServerAddress,
 };
 use azalea_world::InstanceContainer;
-use bevy_app::{App, Plugin, PluginGroup, PluginGroupBuilder};
+use bevy_app::{App, PluginGroup, PluginGroupBuilder, Plugins};
 use bevy_ecs::{component::Component, entity::Entity, system::Resource, world::World};
 use futures::future::join_all;
 use log::error;
@@ -234,16 +234,10 @@ where
         self
     }
 
-    /// Add a plugin to the swarm.
+    /// Add one or more plugins to this swarm.
     #[must_use]
-    pub fn add_plugin<T: Plugin>(mut self, plugin: T) -> Self {
-        self.app.add_plugin(plugin);
-        self
-    }
-    /// Add a group of plugins to the swarm.
-    #[must_use]
-    pub fn add_plugins<T: PluginGroup>(mut self, plugin_group: T) -> Self {
-        self.app.add_plugins(plugin_group);
+    pub fn add_plugins<M>(mut self, plugins: impl Plugins<M>) -> Self {
+        self.app.add_plugins(plugins);
         self
     }
 

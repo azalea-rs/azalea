@@ -13,7 +13,7 @@ fn read_named_fields(
             // if it's a string, use buf.write_string
             match field_type {
                 syn::Type::Path(_) | syn::Type::Array(_) => {
-                    if f.attrs.iter().any(|a| a.path.is_ident("var")) {
+                    if f.attrs.iter().any(|a| a.path().is_ident("var")) {
                         quote! {
                             let #field_name = azalea_buf::McBufVarReadable::var_read_from(buf)?;
                         }
@@ -98,7 +98,7 @@ pub fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::Tok
                     syn::Fields::Unnamed(fields) => {
                         let mut reader_code = quote! {};
                         for f in &fields.unnamed {
-                            if f.attrs.iter().any(|attr| attr.path.is_ident("var")) {
+                            if f.attrs.iter().any(|attr| attr.path().is_ident("var")) {
                                 reader_code.extend(quote! {
                                     Self::#variant_name(azalea_buf::McBufVarReadable::var_read_from(buf)?),
                                 });
