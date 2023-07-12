@@ -2,11 +2,9 @@ use std::{io, sync::Arc};
 
 use azalea_auth::game_profile::GameProfile;
 use azalea_core::{ChunkPos, GameMode};
+use azalea_entity::{Dead, Position};
 use azalea_protocol::packets::game::ServerboundGamePacket;
-use azalea_world::{
-    entity::{self, Dead, InstanceName},
-    Instance, InstanceContainer, PartialInstance,
-};
+use azalea_world::{Instance, InstanceContainer, InstanceName, PartialInstance};
 use bevy_ecs::{
     component::Component,
     entity::Entity,
@@ -32,7 +30,7 @@ use crate::{
 /// You can also use the [`Local`] marker component for queries if you're only
 /// checking for a local player and don't need the contents of this component.
 ///
-/// [`Local`]: azalea_world::entity::Local
+/// [`Local`]: azalea_entity::Local
 /// [`Client`]: crate::Client
 #[derive(Component)]
 pub struct LocalPlayer {
@@ -135,7 +133,7 @@ impl Drop for LocalPlayer {
 /// Update the [`LocalPlayerInLoadedChunk`] component for all [`LocalPlayer`]s.
 pub fn update_in_loaded_chunk(
     mut commands: bevy_ecs::system::Commands,
-    query: Query<(Entity, &InstanceName, &entity::Position)>,
+    query: Query<(Entity, &InstanceName, &Position)>,
     instance_container: Res<InstanceContainer>,
 ) {
     for (entity, local_player, position) in &query {

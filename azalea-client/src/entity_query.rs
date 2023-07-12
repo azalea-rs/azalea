@@ -15,7 +15,7 @@ impl Client {
     ///
     /// # Examples
     /// ```
-    /// # use azalea_world::entity::WorldName;
+    /// # use azalea_entity::WorldName;
     /// # fn example(mut client: azalea_client::Client) {
     /// let is_logged_in = client
     ///     .query::<Option<&WorldName>>(&mut client.ecs.lock())
@@ -39,7 +39,7 @@ impl Client {
     /// ```
     /// use azalea_client::{Client, GameProfileComponent};
     /// use bevy_ecs::query::With;
-    /// use azalea_world::entity::{Position, metadata::Player};
+    /// use azalea_entity::{Position, metadata::Player};
     ///
     /// # fn example(mut bot: Client, sender_name: String) {
     /// let entity = bot.entity_by::<With<Player>, (&GameProfileComponent,)>(

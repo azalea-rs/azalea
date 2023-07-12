@@ -6,13 +6,12 @@ pub mod collision;
 
 use azalea_block::{Block, BlockState};
 use azalea_core::{BlockPos, Vec3};
-use azalea_world::{
-    entity::{
-        clamp_look_direction, metadata::Sprinting, move_relative, Attributes, InstanceName,
-        Jumping, Local, LookDirection, Physics, Position,
-    },
-    Instance, InstanceContainer,
+use azalea_entity::update_bounding_box;
+use azalea_entity::{
+    clamp_look_direction, metadata::Sprinting, move_relative, Attributes, Jumping, Local,
+    LookDirection, Physics, Position,
 };
+use azalea_world::{Instance, InstanceContainer, InstanceName};
 use bevy_app::{App, FixedUpdate, Plugin, Update};
 use bevy_ecs::{
     entity::Entity,
@@ -35,7 +34,7 @@ impl Plugin for PhysicsPlugin {
             .add_systems(
                 Update,
                 force_jump_listener
-                    .before(azalea_world::entity::update_bounding_box)
+                    .before(update_bounding_box)
                     .after(clamp_look_direction),
             )
             .add_systems(FixedUpdate, (ai_step, travel).chain().in_set(PhysicsSet));
@@ -327,10 +326,8 @@ mod tests {
 
     use super::*;
     use azalea_core::{ChunkPos, ResourceLocation};
-    use azalea_world::{
-        entity::{EntityBundle, EntityPlugin, MinecraftEntityId},
-        Chunk, PartialInstance,
-    };
+    use azalea_entity::{EntityBundle, EntityPlugin};
+    use azalea_world::{Chunk, MinecraftEntityId, PartialInstance};
     use bevy_app::App;
     use bevy_time::fixed_timestep::FixedTime;
     use uuid::Uuid;

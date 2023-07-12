@@ -1929,7 +1929,7 @@ make_block_states! {
     },
     Blocks => {
         air => BlockBehavior::default(), {},
-        stone => BlockBehavior::default(), {},
+        stone => BlockBehavior::default().requires_correct_tool_for_drops(), {},
         granite => BlockBehavior::default(), {},
         polished_granite => BlockBehavior::default(), {},
         diorite => BlockBehavior::default(), {},

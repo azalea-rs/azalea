@@ -2,6 +2,7 @@ use std::ops::AddAssign;
 
 use azalea_block::BlockState;
 use azalea_core::{BlockHitResult, BlockPos, Direction, GameMode, Vec3};
+use azalea_entity::{clamp_look_direction, view_vector, EyeHeight, LookDirection, Position};
 use azalea_inventory::{ItemSlot, ItemSlotData};
 use azalea_nbt::NbtList;
 use azalea_physics::clip::{BlockShapeType, ClipContext, FluidPickType};
@@ -9,17 +10,13 @@ use azalea_protocol::packets::game::{
     serverbound_interact_packet::InteractionHand,
     serverbound_use_item_on_packet::{BlockHit, ServerboundUseItemOnPacket},
 };
-use azalea_world::{
-    entity::{clamp_look_direction, view_vector, EyeHeight, InstanceName, LookDirection, Position},
-    Instance, InstanceContainer,
-};
+use azalea_world::{Instance, InstanceContainer, InstanceName};
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::{
     component::Component,
     entity::Entity,
     event::EventReader,
     prelude::Event,
-    schedule::IntoSystemConfigs,
     system::{Commands, Query, Res},
 };
 use derive_more::{Deref, DerefMut};
@@ -97,7 +94,8 @@ pub fn handle_block_interact_event(
     )>,
 ) {
     for event in events.iter() {
-        let Ok((local_player, mut sequence_number, hit_result)) = query.get_mut(event.entity) else {
+        let Ok((local_player, mut sequence_number, hit_result)) = query.get_mut(event.entity)
+        else {
             warn!("Sent BlockInteractEvent for entity that isn't LocalPlayer");
             continue;
         };
@@ -254,10 +252,11 @@ pub fn check_block_can_be_broken_by_item_in_adventure_mode(
         .nbt
         .as_compound()
         .and_then(|nbt| nbt.get("tag").and_then(|nbt| nbt.as_compound()))
-        .and_then(|nbt| nbt.get("CanDestroy").and_then(|nbt| nbt.as_list())) else {
-            // no CanDestroy tag
-            return false;
-        };
+        .and_then(|nbt| nbt.get("CanDestroy").and_then(|nbt| nbt.as_list()))
+    else {
+        // no CanDestroy tag
+        return false;
+    };
 
     let NbtList::String(_can_destroy) = can_destroy else {
         // CanDestroy tag must be a list of strings

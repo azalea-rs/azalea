@@ -3,15 +3,18 @@
 pub mod attributes;
 mod data;
 mod dimensions;
+mod effects;
+mod enchantments;
 mod info;
 pub mod metadata;
-
-use crate::ChunkStorage;
+pub mod mining;
+mod systems;
 
 use self::{attributes::AttributeInstance, metadata::Health};
 pub use attributes::Attributes;
 use azalea_block::BlockState;
 use azalea_core::{BlockPos, ChunkPos, ResourceLocation, Vec3, AABB};
+use azalea_world::{ChunkStorage, InstanceName};
 use bevy_ecs::{
     bundle::Bundle,
     component::Component,
@@ -23,22 +26,11 @@ pub use data::*;
 use derive_more::{Deref, DerefMut};
 pub use dimensions::{update_bounding_box, EntityDimensions};
 pub use info::{
-    clamp_look_direction, EntityInfos, EntityPlugin, EntityUpdateSet, LoadedBy, PartialEntityInfos,
+    clamp_look_direction, EntityInfos, EntityPlugin, EntityUpdateSet, LoadedBy,
     RelativeEntityUpdate,
 };
-use std::fmt::Debug;
+use std::{collections::HashSet, fmt::Debug};
 use uuid::Uuid;
-
-/// An entity ID used by Minecraft. These are not guaranteed to be unique in
-/// shared worlds, that's what [`Entity`] is for.
-#[derive(Component, Copy, Clone, Debug, PartialEq, Eq, Deref, DerefMut)]
-pub struct MinecraftEntityId(pub u32);
-impl std::hash::Hash for MinecraftEntityId {
-    fn hash<H: std::hash::Hasher>(&self, hasher: &mut H) {
-        hasher.write_u32(self.0);
-    }
-}
-impl nohash_hasher::IsEnabled for MinecraftEntityId {}
 
 pub fn move_relative(
     physics: &mut Physics,
@@ -197,12 +189,6 @@ impl From<&LastSentPosition> for BlockPos {
     }
 }
 
-/// The name of the [`Instance`](azalea_world::Instance) (world) the entity is
-/// in. If two entities share the same world name, we assume they're in the same
-/// instance.
-#[derive(Component, Clone, Debug, PartialEq, Deref, DerefMut)]
-pub struct InstanceName(pub ResourceLocation);
-
 /// A component for entities that can jump.
 ///
 /// If this is true, the entity will try to jump every tick. (It's equivalent to
@@ -312,6 +298,7 @@ pub struct EntityBundle {
     pub eye_height: EyeHeight,
     pub attributes: Attributes,
     pub jumping: Jumping,
+    pub fluid_on_eyes: FluidOnEyes,
 }
 
 impl EntityBundle {
@@ -360,6 +347,7 @@ impl EntityBundle {
             },
 
             jumping: Jumping(false),
+            fluid_on_eyes: FluidOnEyes(azalea_registry::Fluid::Empty),
         }
     }
 }
@@ -375,6 +363,9 @@ pub struct PlayerBundle {
 /// be updated by other clients.
 #[derive(Component)]
 pub struct Local;
+
+#[derive(Component, Clone, Debug, PartialEq, Deref, DerefMut)]
+pub struct FluidOnEyes(azalea_registry::Fluid);
 
 // #[cfg(test)]
 // mod tests {

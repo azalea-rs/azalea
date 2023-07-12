@@ -484,7 +484,16 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         }
 
         let Some(default_state_id) = default_state_id else {
-            let defaults = properties_with_name.iter().map(|p| if let TokenTree::Ident(i) = p.default.clone().into_iter().last().unwrap() { i.to_string() } else { panic!() }).collect::<Vec<_>>();
+            let defaults = properties_with_name
+                .iter()
+                .map(|p| {
+                    if let TokenTree::Ident(i) = p.default.clone().into_iter().last().unwrap() {
+                        i.to_string()
+                    } else {
+                        panic!()
+                    }
+                })
+                .collect::<Vec<_>>();
             panic!("Couldn't get default state id for {block_name_pascal_case}, combinations={block_properties_vec:?}, defaults={defaults:?}")
         };
 
@@ -580,6 +589,9 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 }
                 fn as_block_state(&self) -> BlockState {
                     #from_block_to_state_match
+                }
+                fn as_registry_block(&self) -> azalea_registry::Block {
+                    azalea_registry::Block::#block_name_pascal_case
                 }
             }
 

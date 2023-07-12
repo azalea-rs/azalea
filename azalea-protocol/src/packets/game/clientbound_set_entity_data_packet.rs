@@ -1,6 +1,6 @@
 use azalea_buf::McBuf;
+use azalea_entity::EntityMetadataItems;
 use azalea_protocol_macros::ClientboundGamePacket;
-use azalea_world::entity::EntityMetadataItems;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundSetEntityDataPacket {

@@ -348,10 +348,16 @@ fn process_packet_events(ecs: &mut World) {
                     )>,
                 > = SystemState::new(ecs);
                 let mut query = system_state.get_mut(ecs);
-                let Ok((local_player, mut physics, mut direction, mut position, mut last_sent_position)) =
-                        query.get_mut(player_entity) else {
-                            continue;
-                        };
+                let Ok((
+                    local_player,
+                    mut physics,
+                    mut direction,
+                    mut position,
+                    mut last_sent_position,
+                )) = query.get_mut(player_entity)
+                else {
+                    continue;
+                };
 
                 let delta_movement = physics.delta;
 

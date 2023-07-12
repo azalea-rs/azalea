@@ -1,0 +1,25 @@
+[package]
+name = "azalea-entity"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+azalea-block = { version = "0.7.0", path = "../azalea-block" }
+azalea-buf = { version = "0.7.0", path = "../azalea-buf" }
+azalea-chat = { version = "0.7.0", path = "../azalea-chat" }
+azalea-core = { version = "0.7.0", path = "../azalea-core" }
+azalea-inventory = { version = "0.7.0", path = "../azalea-inventory" }
+azalea-nbt = { version = "0.7.0", path = "../azalea-nbt" }
+azalea-registry = { version = "0.7.0", path = "../azalea-registry" }
+azalea-world = { version = "0.7.0", path = "../azalea-world" }
+bevy_app = "0.11.0"
+bevy_ecs = "0.11.0"
+derive_more = "0.99.17"
+enum-as-inner = "0.6.0"
+log = "0.4.19"
+nohash-hasher = "0.2.0"
+parking_lot = "0.12.1"
+thiserror = "1.0.43"
+uuid = "1.4.0"

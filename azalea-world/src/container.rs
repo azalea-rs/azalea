@@ -1,5 +1,6 @@
 use azalea_core::ResourceLocation;
-use bevy_ecs::system::Resource;
+use bevy_ecs::{component::Component, system::Resource};
+use derive_more::{Deref, DerefMut};
 use log::error;
 use nohash_hasher::IntMap;
 use parking_lot::RwLock;
@@ -8,7 +9,7 @@ use std::{
     sync::{Arc, Weak},
 };
 
-use crate::{entity::InstanceName, ChunkStorage, Instance};
+use crate::{ChunkStorage, Instance};
 
 /// A container of [`Instance`]s (aka worlds). Instances are stored as a Weak
 /// pointer here, so if no clients are using an instance it will be forgotten.
@@ -76,3 +77,9 @@ impl InstanceContainer {
         }
     }
 }
+
+/// The name of the [`Instance`](azalea_world::Instance) (world) the entity is
+/// in. If two entities share the same world name, we assume they're in the same
+/// instance.
+#[derive(Component, Clone, Debug, PartialEq, Deref, DerefMut)]
+pub struct InstanceName(pub ResourceLocation);

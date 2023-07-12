@@ -187,7 +187,10 @@ impl Account {
 
                 *access_token_mutex.lock() = new_access_token;
                 let AccountOpts::MicrosoftWithAccessToken { msa: new_msa } =
-                    new_account.account_opts else { unreachable!() };
+                    new_account.account_opts
+                else {
+                    unreachable!()
+                };
                 *msa.lock() = new_msa.lock().clone();
 
                 Ok(())

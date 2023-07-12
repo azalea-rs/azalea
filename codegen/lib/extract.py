@@ -33,6 +33,23 @@ def get_registries_report(version_id: str):
         return json.load(f)
 
 
+def get_registry_tags(version_id: str, name: str):
+    generate_data_from_server_jar(version_id)
+    tags_directory = get_dir_location(f'downloads/generated-{version_id}/data/minecraft/tags/{name}')
+    if not os.path.exists(tags_directory):
+        return {}
+    tags = {}
+    for root, dirs, files in os.walk(tags_directory, topdown=False):
+        for name in files:
+            file = os.path.join(root, name)
+            relative_path = file.replace(tags_directory, '')[1:]
+            if not file.endswith('.json'):
+                continue
+            with open(file, 'r') as f:
+                tags[relative_path[:-5]] = json.load(f)
+    return tags
+
+
 def get_block_states_burger(version_id: str):
     burger_data = get_burger_data_for_version(version_id)
     return burger_data[0]['blocks']['block']

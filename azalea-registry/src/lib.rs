@@ -5,6 +5,8 @@
 // auto-generated (so you can add doc comments to the registry enums if you
 // want)
 
+pub mod tags;
+
 use std::io::{Cursor, Write};
 
 use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};

@@ -133,9 +133,8 @@ language = lib.extract.get_en_us_lang(new_version_id)
 lib.code.language.write_language(language)
 
 print('Generating registries...')
-registries = lib.extract.get_registries_report(new_version_id)
-lib.code.registry.generate_registries(registries)
-lib.code.inventory.update_menus(registries['minecraft:menu']['entries'])
+import genregistries
+genregistries.generate(new_version_id)
 
 print('Generating entity metadata...')
 burger_entities_data = new_burger_data[0]['entities']

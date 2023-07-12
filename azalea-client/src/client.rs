@@ -468,7 +468,7 @@ impl Client {
     /// # Examples
     ///
     /// ```
-    /// # use azalea_world::entity::WorldName;
+    /// # use azalea_entity::WorldName;
     /// # fn example(client: &azalea_client::Client) {
     /// let world_name = client.component::<WorldName>();
     /// # }

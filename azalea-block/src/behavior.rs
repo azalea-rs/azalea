@@ -3,6 +3,7 @@ pub struct BlockBehavior {
     pub friction: f32,
     pub jump_factor: f32,
     pub destroy_time: f32,
+    pub requires_correct_tool_for_drops: bool,
 }
 
 impl Default for BlockBehavior {
@@ -12,6 +13,7 @@ impl Default for BlockBehavior {
             friction: 0.6,
             jump_factor: 1.0,
             destroy_time: 0.,
+            requires_correct_tool_for_drops: false,
         }
     }
 }
@@ -34,6 +36,11 @@ impl BlockBehavior {
 
     pub fn destroy_time(mut self, destroy_time: f32) -> Self {
         self.destroy_time = destroy_time;
+        self
+    }
+
+    pub fn requires_correct_tool_for_drops(mut self) -> Self {
+        self.requires_correct_tool_for_drops = true;
         self
     }
 }

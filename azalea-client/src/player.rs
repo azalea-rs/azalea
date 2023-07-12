@@ -1,7 +1,7 @@
 use azalea_auth::game_profile::GameProfile;
 use azalea_chat::FormattedText;
 use azalea_core::GameMode;
-use azalea_world::entity::EntityInfos;
+use azalea_entity::EntityInfos;
 use bevy_ecs::{
     event::EventReader,
     system::{Commands, Res},

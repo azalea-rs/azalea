@@ -24,6 +24,9 @@ pub trait Block: Debug + Any {
     /// Convert the block to a block state. This is lossless, as the block
     /// contains all the state data.
     fn as_block_state(&self) -> BlockState;
+    /// Convert the block to an [`azalea_registry::Block`]. This is lossy, as
+    /// `azalea_registry::Block` doesn't contain any state data.
+    fn as_registry_block(&self) -> azalea_registry::Block;
 }
 impl dyn Block {
     pub fn downcast_ref<T: Block>(&self) -> Option<&T> {
@@ -93,9 +96,48 @@ impl std::fmt::Debug for BlockState {
     }
 }
 
+#[derive(Clone, Debug)]
 pub struct FluidState {
     pub fluid: azalea_registry::Fluid,
     pub height: u8,
+}
+
+impl Default for FluidState {
+    fn default() -> Self {
+        Self {
+            fluid: azalea_registry::Fluid::Empty,
+            height: 0,
+        }
+    }
+}
+
+impl From<BlockState> for FluidState {
+    fn from(state: BlockState) -> Self {
+        if state.waterlogged() {
+            Self {
+                fluid: azalea_registry::Fluid::Water,
+                height: 15,
+            }
+        } else {
+            let block = Box::<dyn Block>::from(state);
+            if let Some(water) = block.downcast_ref::<crate::blocks::Water>() {
+                Self {
+                    fluid: azalea_registry::Fluid::Water,
+                    height: water.level as u8,
+                }
+            } else if let Some(lava) = block.downcast_ref::<crate::blocks::Lava>() {
+                Self {
+                    fluid: azalea_registry::Fluid::Lava,
+                    height: lava.level as u8,
+                }
+            } else {
+                Self {
+                    fluid: azalea_registry::Fluid::Empty,
+                    height: 0,
+                }
+            }
+        }
+    }
 }
 
 #[cfg(test)]

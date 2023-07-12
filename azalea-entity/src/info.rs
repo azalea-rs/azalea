@@ -1,14 +1,8 @@
 //! Implement things relating to entity datas, like an index of uuids to
 //! entities.
 
-use crate::{
-    deduplicate_entities, deduplicate_local_entities,
-    entity::{
-        self, add_dead, update_bounding_box, EntityUuid, InstanceName, MinecraftEntityId, Position,
-    },
-    update_entity_by_id_index, update_uuid_index, InstanceContainer, PartialInstance,
-};
 use azalea_core::ChunkPos;
+use azalea_world::{InstanceContainer, InstanceName, MinecraftEntityId, PartialInstance};
 use bevy_app::{App, Plugin, PostUpdate, PreUpdate, Update};
 use bevy_ecs::{
     component::Component,
@@ -20,7 +14,6 @@ use bevy_ecs::{
 };
 use derive_more::{Deref, DerefMut};
 use log::{debug, warn};
-use nohash_hasher::IntMap;
 use parking_lot::RwLock;
 use std::{
     collections::{HashMap, HashSet},
@@ -28,6 +21,15 @@ use std::{
     sync::Arc,
 };
 use uuid::Uuid;
+
+use crate::{
+    add_dead,
+    systems::{
+        deduplicate_entities, deduplicate_local_entities, update_entity_by_id_index,
+        update_uuid_index,
+    },
+    update_bounding_box, EntityUuid, LastSentPosition, Position,
+};
 
 use super::{Local, LookDirection};
 
@@ -109,33 +111,6 @@ fn debug_new_entity(query: Query<(Entity, Option<&Local>), Added<MinecraftEntity
 //   "updates received" if not, then we simply increment our local "updates
 //   received" and do nothing else
 
-/// Keep track of certain metadatas that are only relevant for this partial
-/// world.
-#[derive(Debug, Default)]
-pub struct PartialEntityInfos {
-    // note: using MinecraftEntityId for entity ids is acceptable here since
-    // there's no chance of collisions here
-    /// The entity id of the player that owns this partial world. This will
-    /// make [`RelativeEntityUpdate`] pretend the entity doesn't exist so
-    /// it doesn't get modified from outside sources.
-    pub owner_entity: Option<Entity>,
-    /// A counter for each entity that tracks how many updates we've observed
-    /// for it.
-    ///
-    /// This is used for shared worlds (i.e. swarms), to make sure we don't
-    /// update entities twice on accident.
-    pub updates_received: IntMap<MinecraftEntityId, u32>,
-}
-
-impl PartialEntityInfos {
-    pub fn new(owner_entity: Option<Entity>) -> Self {
-        Self {
-            owner_entity,
-            updates_received: IntMap::default(),
-        }
-    }
-}
-
 /// An [`EntityCommand`] that applies a "relative update" to an entity, which
 /// means this update won't be run multiple times by different clients in the
 /// same world.
@@ -211,15 +186,7 @@ impl EntityInfos {
 
 /// Update the chunk position indexes in [`EntityInfos`].
 fn update_entity_chunk_positions(
-    mut query: Query<
-        (
-            Entity,
-            &entity::Position,
-            &mut entity::LastSentPosition,
-            &entity::InstanceName,
-        ),
-        Changed<entity::Position>,
-    >,
+    mut query: Query<(Entity, &Position, &mut LastSentPosition, &InstanceName), Changed<Position>>,
     instance_container: Res<InstanceContainer>,
 ) {
     for (entity, pos, last_pos, world_name) in query.iter_mut() {

@@ -1,4 +1,11 @@
-use azalea_core::BlockPos;
+use azalea_block::BlockState;
+use azalea_core::{BlockPos, Direction, GameMode};
+use azalea_entity::mining::get_mine_progress;
+use azalea_inventory::ItemSlot;
+use azalea_protocol::packets::game::serverbound_player_action_packet::{
+    self, ServerboundPlayerActionPacket,
+};
+use azalea_world::{InstanceContainer, InstanceName};
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
@@ -132,6 +139,7 @@ fn handle_start_mining_block_event(
 
 /// A player left clicked on a block, used for stuff like interacting with note
 /// blocks.
+#[derive(Event)]
 pub struct AttackBlockEvent {
     pub entity: Entity,
     pub position: BlockPos,
@@ -183,6 +191,7 @@ pub struct MineBlockPos(pub Option<BlockPos>);
 pub struct MineItem(pub ItemSlot);
 
 /// Sent when we completed mining a block.
+#[derive(Event)]
 pub struct FinishMiningBlockEvent {
     pub entity: Entity,
     pub position: BlockPos,
