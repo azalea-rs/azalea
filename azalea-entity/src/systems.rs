@@ -165,7 +165,7 @@ pub fn update_fluid_on_eyes(
             continue;
         };
 
-        let adjusted_eye_y = position.y - 0.1111111119389534;
+        let adjusted_eye_y = position.y + (**eye_height as f64) - 0.1111111119389534;
         let eye_block_pos = BlockPos::from(Vec3::new(position.x, adjusted_eye_y, position.z));
         let fluid_at_eye = instance
             .read()

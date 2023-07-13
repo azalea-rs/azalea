@@ -140,6 +140,24 @@ impl From<BlockState> for FluidState {
     }
 }
 
+impl From<FluidState> for BlockState {
+    fn from(state: FluidState) -> Self {
+        match state.fluid {
+            azalea_registry::Fluid::Empty => BlockState::AIR,
+            azalea_registry::Fluid::Water | azalea_registry::Fluid::FlowingWater => {
+                BlockState::from(crate::blocks::Water {
+                    level: crate::properties::WaterLevel::from(state.height as u32),
+                })
+            }
+            azalea_registry::Fluid::Lava | azalea_registry::Fluid::FlowingLava => {
+                BlockState::from(crate::blocks::Lava {
+                    level: crate::properties::LavaLevel::from(state.height as u32),
+                })
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

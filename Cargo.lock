@@ -178,6 +178,7 @@ dependencies = [
  "azalea-chat",
  "azalea-client",
  "azalea-core",
+ "azalea-entity",
  "azalea-inventory",
  "azalea-physics",
  "azalea-protocol",

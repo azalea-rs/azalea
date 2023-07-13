@@ -1,5 +1,5 @@
 use azalea_client::LocalPlayer;
-use azalea_entity::MinecraftEntityId;
+use azalea_world::MinecraftEntityId;
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};

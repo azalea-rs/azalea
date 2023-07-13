@@ -29,7 +29,7 @@ pub use info::{
     clamp_look_direction, EntityInfos, EntityPlugin, EntityUpdateSet, LoadedBy,
     RelativeEntityUpdate,
 };
-use std::{collections::HashSet, fmt::Debug};
+use std::fmt::Debug;
 use uuid::Uuid;
 
 pub fn move_relative(

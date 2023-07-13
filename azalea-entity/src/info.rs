@@ -26,7 +26,7 @@ use crate::{
     add_dead,
     systems::{
         deduplicate_entities, deduplicate_local_entities, update_entity_by_id_index,
-        update_uuid_index,
+        update_fluid_on_eyes, update_uuid_index,
     },
     update_bounding_box, EntityUuid, LastSentPosition, Position,
 };
@@ -77,6 +77,7 @@ impl Plugin for EntityPlugin {
                     add_dead,
                     update_bounding_box,
                     clamp_look_direction,
+                    update_fluid_on_eyes,
                 ),
             ),
         )

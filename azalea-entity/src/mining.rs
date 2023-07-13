@@ -5,11 +5,11 @@ use azalea_registry as registry;
 use crate::{effects, enchantments, FluidOnEyes, Physics};
 
 pub fn get_mine_progress(
-    block: &dyn Block,
+    block: &Box<dyn Block>,
     held_item: registry::Item,
     player_inventory: &azalea_inventory::Menu,
-    fluid_on_eyes: FluidOnEyes,
-    physics: Physics,
+    fluid_on_eyes: &FluidOnEyes,
+    physics: &Physics,
 ) -> f32 {
     // public float getDestroyProgress(BlockState blockState, Player player,
     // BlockGetter world, BlockPos blockPos) {     float destroySpeed =
@@ -43,7 +43,7 @@ pub fn get_mine_progress(
         / divider as f32
 }
 
-fn has_correct_tool_for_drops(block: &dyn Block, tool: registry::Item) -> bool {
+fn has_correct_tool_for_drops(block: &Box<dyn Block>, tool: registry::Item) -> bool {
     if !block.behavior().requires_correct_tool_for_drops {
         return true;
     }
@@ -87,8 +87,8 @@ fn destroy_speed(
     block: registry::Block,
     tool: registry::Item,
     player_inventory: &azalea_inventory::Menu,
-    fluid_on_eyes: FluidOnEyes,
-    physics: Physics,
+    fluid_on_eyes: &FluidOnEyes,
+    physics: &Physics,
 ) -> f32 {
     let mut base_destroy_speed = base_destroy_speed(block, tool);
 

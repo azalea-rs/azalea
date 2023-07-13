@@ -4,7 +4,7 @@
 
 /// Returns the level of the given effect, or `None` if the effect is not
 /// active. The lowest level is 0.
-pub fn get_effect(effect: azalea_registry::MobEffect) -> Option<u32> {
+pub fn get_effect(_effect: azalea_registry::MobEffect) -> Option<u32> {
     // TODO
     None
 }

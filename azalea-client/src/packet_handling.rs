@@ -1,6 +1,11 @@
 use std::{collections::HashSet, io::Cursor, sync::Arc};
 
 use azalea_core::{ChunkPos, GameMode, ResourceLocation, Vec3};
+use azalea_entity::{
+    metadata::{apply_metadata, Health, PlayerMetadataBundle},
+    Dead, EntityBundle, EntityKind, EntityUpdateSet, LastSentPosition, LoadedBy, LookDirection,
+    Physics, PlayerBundle, Position, RelativeEntityUpdate,
+};
 use azalea_protocol::{
     connect::{ReadConnection, WriteConnection},
     packets::game::{
@@ -15,15 +20,7 @@ use azalea_protocol::{
     },
     read::ReadPacketError,
 };
-use azalea_world::{
-    entity::{
-        metadata::{apply_metadata, Health, PlayerMetadataBundle},
-        Dead, EntityBundle, EntityKind, EntityUpdateSet, InstanceName, LastSentPosition,
-        LookDirection, MinecraftEntityId, Physics, PlayerBundle, Position,
-    },
-    entity::{LoadedBy, RelativeEntityUpdate},
-    InstanceContainer, PartialInstance,
-};
+use azalea_world::{InstanceContainer, InstanceName, MinecraftEntityId, PartialInstance};
 use bevy_app::{App, First, Plugin, PreUpdate};
 use bevy_ecs::{
     component::Component,

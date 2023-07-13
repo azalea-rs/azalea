@@ -20,6 +20,7 @@ use crate::{
 use azalea_auth::{game_profile::GameProfile, sessionserver::ClientSessionServerError};
 use azalea_chat::FormattedText;
 use azalea_core::Vec3;
+use azalea_entity::{EntityPlugin, EntityUpdateSet, Local, Position};
 use azalea_physics::{PhysicsPlugin, PhysicsSet};
 use azalea_protocol::{
     connect::{Connection, ConnectionError},
@@ -42,10 +43,7 @@ use azalea_protocol::{
     },
     resolver, ServerAddress,
 };
-use azalea_world::{
-    entity::{EntityPlugin, EntityUpdateSet, InstanceName, Local, Position},
-    Instance, InstanceContainer, PartialInstance,
-};
+use azalea_world::{Instance, InstanceContainer, InstanceName, PartialInstance};
 use bevy_app::{App, FixedUpdate, Main, Plugin, PluginGroup, PluginGroupBuilder, Update};
 use bevy_ecs::{
     bundle::Bundle,
@@ -132,6 +130,10 @@ impl From<ClientboundPlayerAbilitiesPacket> for PlayerAbilities {
         }
     }
 }
+
+/// Level must be 0..=4
+#[derive(Component, Clone, Default, Deref, DerefMut)]
+pub struct PermissionLevel(pub u8);
 
 /// A component that contains a map of player UUIDs to their information in the
 /// tab list.
@@ -302,6 +304,7 @@ impl Client {
             current_sequence_number: CurrentSequenceNumber::default(),
             last_sent_direction: LastSentLookDirection::default(),
             abilities: PlayerAbilities::default(),
+            permission_level: PermissionLevel::default(),
             mining: mining::MineBundle::default(),
             _local: Local,
         });
@@ -562,6 +565,7 @@ pub struct JoinedClientBundle {
     pub current_sequence_number: CurrentSequenceNumber,
     pub last_sent_direction: LastSentLookDirection,
     pub abilities: PlayerAbilities,
+    pub permission_level: PermissionLevel,
 
     pub mining: mining::MineBundle,
 

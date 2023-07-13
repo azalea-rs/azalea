@@ -3,10 +3,10 @@
 
 use std::sync::Arc;
 
-use azalea_entity::MinecraftEntityId;
 use azalea_protocol::packets::game::{
     clientbound_player_combat_kill_packet::ClientboundPlayerCombatKillPacket, ClientboundGamePacket,
 };
+use azalea_world::MinecraftEntityId;
 use bevy_app::{App, FixedUpdate, Plugin, Update};
 use bevy_ecs::{component::Component, event::EventReader, query::Added, system::Query};
 use derive_more::{Deref, DerefMut};

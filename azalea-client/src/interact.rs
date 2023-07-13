@@ -17,12 +17,14 @@ use bevy_ecs::{
     entity::Entity,
     event::EventReader,
     prelude::Event,
+    schedule::IntoSystemConfigs,
     system::{Commands, Query, Res},
 };
 use derive_more::{Deref, DerefMut};
 use log::warn;
 
 use crate::{
+    client::{PermissionLevel, PlayerAbilities},
     inventory::InventoryComponent,
     local_player::{handle_send_packet_event, LocalGameMode},
     Client, LocalPlayer,
@@ -72,7 +74,7 @@ pub struct BlockInteractEvent {
 
 /// A component that contains the number of changes this client has made to
 /// blocks.
-#[derive(Component, Copy, Clone, Debug, Default)]
+#[derive(Component, Copy, Clone, Debug, Default, Deref)]
 pub struct CurrentSequenceNumber(u32);
 
 impl AddAssign<u32> for CurrentSequenceNumber {
@@ -271,4 +273,11 @@ pub fn check_block_can_be_broken_by_item_in_adventure_mode(
     // }
 
     // true
+}
+
+pub fn can_use_game_master_blocks(
+    abilities: &PlayerAbilities,
+    permission_level: &PermissionLevel,
+) -> bool {
+    abilities.instant_break && **permission_level >= 2
 }

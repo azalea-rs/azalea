@@ -18,11 +18,9 @@ use azalea_client::{StartSprintEvent, StartWalkEvent};
 use azalea_core::{BlockPos, CardinalDirection};
 use azalea_entity::metadata::Player;
 use azalea_entity::Local;
+use azalea_entity::{Physics, Position};
 use azalea_physics::PhysicsSet;
-use azalea_world::{
-    entity::{InstanceName, Physics, Position},
-    InstanceContainer,
-};
+use azalea_world::{InstanceContainer, InstanceName};
 use bevy_app::{FixedUpdate, Update};
 use bevy_ecs::prelude::Event;
 use bevy_ecs::schedule::IntoSystemConfigs;
