@@ -8,7 +8,7 @@ use crate::{
         death_event, handle_send_packet_event, update_in_loaded_chunk, GameProfileComponent,
         LocalPlayer, PhysicsState, SendPacketEvent,
     },
-    mining,
+    mining::{self, MinePlugin},
     movement::{LastSentLookDirection, PlayerMovePlugin},
     packet_handling::{self, PacketHandlerPlugin, PacketReceiver},
     player::retroactively_add_game_profile_component,
@@ -471,9 +471,9 @@ impl Client {
     /// # Examples
     ///
     /// ```
-    /// # use azalea_entity::WorldName;
+    /// # use azalea_world::InstanceName;
     /// # fn example(client: &azalea_client::Client) {
-    /// let world_name = client.component::<WorldName>();
+    /// let world_name = client.component::<InstanceName>();
     /// # }
     pub fn component<T: Component + Clone>(&self) -> T {
         self.query::<&T>(&mut self.ecs.lock()).clone()
@@ -715,6 +715,7 @@ impl PluginGroup for DefaultPlugins {
             .add(PlayerMovePlugin)
             .add(InteractPlugin)
             .add(RespawnPlugin)
+            .add(MinePlugin)
             .add(TickBroadcastPlugin);
         #[cfg(feature = "log")]
         {

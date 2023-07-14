@@ -6,7 +6,7 @@ use azalea_protocol::packets::game::serverbound_player_action_packet::{
     self, ServerboundPlayerActionPacket,
 };
 use azalea_world::{InstanceContainer, InstanceName};
-use bevy_app::{App, Plugin, Update};
+use bevy_app::{App, FixedUpdate, Plugin, Update};
 use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
 
@@ -17,34 +17,59 @@ use crate::{
     },
     inventory::InventoryComponent,
     local_player::{LocalGameMode, SendPacketEvent},
-    Client,
+    Client, TickBroadcast,
 };
 
 /// A plugin that allows clients to break blocks in the world.
 pub struct MinePlugin;
 impl Plugin for MinePlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<StartMiningBlockEvent>().add_systems(
-            Update,
-            (
-                handle_start_mining_block_event,
-                handle_continue_mining_block_event,
-                handle_finish_mining_block_event,
-                handle_stop_mining_block_event,
-            )
-                .chain(),
-        );
+        app.add_event::<StartMiningBlockEvent>()
+            .add_event::<FinishMiningBlockEvent>()
+            .add_event::<StopMiningBlockEvent>()
+            .add_event::<MineBlockProgressEvent>()
+            .add_event::<AttackBlockEvent>()
+            .add_systems(FixedUpdate, continue_mining_block)
+            .add_systems(
+                Update,
+                (
+                    handle_start_mining_block_event,
+                    handle_finish_mining_block_event,
+                    handle_stop_mining_block_event,
+                )
+                    .chain(),
+            );
     }
+}
+
+/// Information about the block we're currently mining. This is only present if
+/// we're currently mining a block.
+#[derive(Component)]
+pub struct Mining {
+    pub pos: BlockPos,
+    pub dir: Direction,
 }
 
 impl Client {
     /// Start mining a block.
-    pub fn start_mining_block(&self, position: BlockPos, direction: Direction) {
+    pub async fn mine(&self, position: BlockPos, direction: Direction) {
         self.ecs.lock().send_event(StartMiningBlockEvent {
             entity: self.entity,
             position,
             direction,
         });
+
+        let mut receiver = {
+            let ecs = self.ecs.lock();
+            let tick_broadcast = ecs.resource::<TickBroadcast>();
+            tick_broadcast.subscribe()
+        };
+        while receiver.recv().await.is_ok() {
+            let ecs = self.ecs.lock();
+            if ecs.get::<Mining>(self.entity).is_none() {
+                break;
+            }
+        }
     }
 }
 
@@ -65,33 +90,35 @@ fn handle_start_mining_block_event(
         &InstanceName,
         &LocalGameMode,
         &InventoryComponent,
-        &mut CurrentSequenceNumber,
-        &mut MineDelay,
-        &mut IsMining,
-        &mut MineProgress,
-        &mut MineTicks,
-        &mut MineBlockPos,
-        &mut MineItem,
         &FluidOnEyes,
         &Physics,
+        &MineBlockPos,
+        Option<&Mining>,
+        &mut CurrentSequenceNumber,
+        &mut MineDelay,
+        &mut MineProgress,
+        &mut MineTicks,
+        &mut MineItem,
     )>,
     instances: Res<InstanceContainer>,
+    mut commands: Commands,
 ) {
     for event in events.iter() {
         let (
             instance_name,
             game_mode,
             inventory,
-            mut sequence_number,
-            mut mine_delay,
-            mut is_mining,
-            mut mine_progress,
-            mut mine_ticks,
-            mut current_mining_pos,
-            mut current_mining_item,
             fluid_on_eyes,
             physics,
+            current_mining_pos,
+            mining,
+            mut sequence_number,
+            mut mine_delay,
+            mut mine_progress,
+            mut mine_ticks,
+            mut current_mining_item,
         ) = query.get_mut(event.entity).unwrap();
+
         let instance_lock = instances.get(instance_name).unwrap();
         let instance = instance_lock.read();
         if check_is_interaction_restricted(
@@ -112,7 +139,7 @@ fn handle_start_mining_block_event(
                 position: event.position,
             });
             **mine_delay = 5;
-        } else if !**is_mining
+        } else if mining.is_none()
             || !is_same_mining_target(
                 event.position,
                 inventory,
@@ -120,7 +147,8 @@ fn handle_start_mining_block_event(
                 &current_mining_item,
             )
         {
-            if **is_mining {
+            println!("start mining");
+            if mining.is_some() {
                 // send a packet to stop mining since we just changed target
                 send_packet_events.send(SendPacketEvent {
                     entity: event.entity,
@@ -142,6 +170,7 @@ fn handle_start_mining_block_event(
             let block_is_solid = !target_block_state.is_air();
             if block_is_solid && **mine_progress == 0. {
                 // interact with the block (like note block left click) here
+                println!("interact with block");
                 attack_block_events.send(AttackBlockEvent {
                     entity: event.entity,
                     position: event.position,
@@ -161,14 +190,18 @@ fn handle_start_mining_block_event(
                     physics,
                 ) >= 1.
             {
+                println!("mined instantly");
                 // block was broken instantly
                 finish_mining_events.send(FinishMiningBlockEvent {
                     entity: event.entity,
                     position: event.position,
                 });
             } else {
-                **is_mining = true;
-                **current_mining_pos = Some(event.position);
+                println!("added mining component");
+                commands.entity(event.entity).insert(Mining {
+                    pos: event.position,
+                    dir: event.direction,
+                });
                 **current_mining_item = held_item;
                 **mine_progress = 0.;
                 **mine_ticks = 0.;
@@ -179,12 +212,12 @@ fn handle_start_mining_block_event(
                 })
             }
 
+            println!("startdestroyblock");
             send_packet_events.send(SendPacketEvent {
                 entity: event.entity,
                 packet: ServerboundPlayerActionPacket {
                     action: serverbound_player_action_packet::Action::StartDestroyBlock,
-                    pos: current_mining_pos
-                        .expect("IsMining is true so MineBlockPos must be present"),
+                    pos: event.position,
                     direction: event.direction,
                     sequence: **sequence_number,
                 }
@@ -225,7 +258,6 @@ fn is_same_mining_target(
 #[derive(Bundle, Default)]
 pub struct MineBundle {
     pub delay: MineDelay,
-    pub is_mining: IsMining,
     pub progress: MineProgress,
     pub ticks: MineTicks,
     pub mining_pos: MineBlockPos,
@@ -235,11 +267,6 @@ pub struct MineBundle {
 /// A component that counts down until we start mining the next block.
 #[derive(Component, Debug, Default, Deref, DerefMut)]
 pub struct MineDelay(pub u32);
-
-/// A component that stores whether the player is currently in the process of
-/// mining a block.
-#[derive(Component, Debug, Default, Deref, DerefMut)]
-pub struct IsMining(pub bool);
 
 /// A component that stores the progress of the current mining operation. This
 /// is a value between 0 and 1.
@@ -345,18 +372,15 @@ pub struct StopMiningBlockEvent {
     pub entity: Entity,
 }
 fn handle_stop_mining_block_event(
-    mut events: EventReader<FinishMiningBlockEvent>,
+    mut events: EventReader<StopMiningBlockEvent>,
     mut send_packet_events: EventWriter<SendPacketEvent>,
     mut mine_block_progress_events: EventWriter<MineBlockProgressEvent>,
-    mut query: Query<(&mut IsMining, &MineBlockPos, &mut MineProgress)>,
+    mut query: Query<(&mut Mining, &MineBlockPos, &mut MineProgress)>,
+    mut commands: Commands,
 ) {
     for event in events.iter() {
-        let (mut is_mining, mine_block_pos, mut mine_progress) =
-            query.get_mut(event.entity).unwrap();
+        let (mut _mining, mine_block_pos, mut mine_progress) = query.get_mut(event.entity).unwrap();
 
-        if !**is_mining {
-            continue;
-        }
         let mine_block_pos =
             mine_block_pos.expect("IsMining is true so MineBlockPos must be present");
         send_packet_events.send(SendPacketEvent {
@@ -369,7 +393,7 @@ fn handle_stop_mining_block_event(
             }
             .get(),
         });
-        **is_mining = false;
+        commands.entity(event.entity).remove::<Mining>();
         **mine_progress = 0.;
         mine_block_progress_events.send(MineBlockProgressEvent {
             entity: event.entity,
@@ -379,20 +403,9 @@ fn handle_stop_mining_block_event(
     }
 }
 
-/// This should be sent every tick that we're mining a block.
-#[derive(Event)]
-pub struct ContinueMiningBlockEvent {
-    pub entity: Entity,
-    pub position: BlockPos,
-    pub direction: Direction,
-}
-fn handle_continue_mining_block_event(
-    mut events: EventReader<ContinueMiningBlockEvent>,
-    mut send_packet_events: EventWriter<SendPacketEvent>,
-    mut mine_block_progress_events: EventWriter<MineBlockProgressEvent>,
-    mut finish_mining_events: EventWriter<FinishMiningBlockEvent>,
-    mut start_mining_events: EventWriter<StartMiningBlockEvent>,
+fn continue_mining_block(
     mut query: Query<(
+        Entity,
         &InstanceName,
         &LocalGameMode,
         &InventoryComponent,
@@ -404,26 +417,31 @@ fn handle_continue_mining_block_event(
         &mut MineProgress,
         &mut MineTicks,
         &mut CurrentSequenceNumber,
-        &mut IsMining,
+        &mut Mining,
     )>,
+    mut send_packet_events: EventWriter<SendPacketEvent>,
+    mut mine_block_progress_events: EventWriter<MineBlockProgressEvent>,
+    mut finish_mining_events: EventWriter<FinishMiningBlockEvent>,
+    mut start_mining_events: EventWriter<StartMiningBlockEvent>,
     instances: Res<InstanceContainer>,
+    mut commands: Commands,
 ) {
-    for event in events.iter() {
-        let (
-            instance_name,
-            game_mode,
-            inventory,
-            current_mining_pos,
-            current_mining_item,
-            fluid_on_eyes,
-            physics,
-            mut mine_delay,
-            mut mine_progress,
-            mut mine_ticks,
-            mut sequence_number,
-            mut is_mining,
-        ) = query.get_mut(event.entity).unwrap();
-
+    for (
+        entity,
+        instance_name,
+        game_mode,
+        inventory,
+        current_mining_pos,
+        current_mining_item,
+        fluid_on_eyes,
+        physics,
+        mut mine_delay,
+        mut mine_progress,
+        mut mine_ticks,
+        mut sequence_number,
+        mut mining,
+    ) in query.iter_mut()
+    {
         if **mine_delay > 0 {
             **mine_delay -= 1;
             continue;
@@ -433,34 +451,32 @@ fn handle_continue_mining_block_event(
             // TODO: worldborder check
             **mine_delay = 5;
             finish_mining_events.send(FinishMiningBlockEvent {
-                entity: event.entity,
-                position: event.position,
+                entity,
+                position: mining.pos,
             });
             *sequence_number += 1;
             send_packet_events.send(SendPacketEvent {
-                entity: event.entity,
+                entity,
                 packet: ServerboundPlayerActionPacket {
                     action: serverbound_player_action_packet::Action::StartDestroyBlock,
-                    pos: event.position,
-                    direction: event.direction,
+                    pos: mining.pos,
+                    direction: mining.dir,
                     sequence: **sequence_number,
                 }
                 .get(),
             });
         } else if is_same_mining_target(
-            event.position,
+            mining.pos,
             inventory,
             current_mining_pos,
             current_mining_item,
         ) {
             let instance_lock = instances.get(instance_name).unwrap();
             let instance = instance_lock.read();
-            let target_block_state = instance
-                .get_block_state(&event.position)
-                .unwrap_or_default();
+            let target_block_state = instance.get_block_state(&mining.pos).unwrap_or_default();
 
             if target_block_state.is_air() {
-                **is_mining = false;
+                commands.entity(entity).remove::<Mining>();
                 continue;
             }
             let block = Box::<dyn Block>::from(target_block_state);
@@ -478,18 +494,18 @@ fn handle_continue_mining_block_event(
             **mine_ticks += 1.;
 
             if **mine_progress >= 1. {
-                **is_mining = false;
+                commands.entity(entity).remove::<Mining>();
                 *sequence_number += 1;
                 finish_mining_events.send(FinishMiningBlockEvent {
-                    entity: event.entity,
-                    position: event.position,
+                    entity,
+                    position: mining.pos,
                 });
                 send_packet_events.send(SendPacketEvent {
-                    entity: event.entity,
+                    entity,
                     packet: ServerboundPlayerActionPacket {
                         action: serverbound_player_action_packet::Action::StartDestroyBlock,
-                        pos: event.position,
-                        direction: event.direction,
+                        pos: mining.pos,
+                        direction: mining.dir,
                         sequence: **sequence_number,
                     }
                     .get(),
@@ -500,15 +516,15 @@ fn handle_continue_mining_block_event(
             }
 
             mine_block_progress_events.send(MineBlockProgressEvent {
-                entity: event.entity,
-                position: event.position,
+                entity,
+                position: mining.pos,
                 destroy_stage: mine_progress.destroy_stage(),
             })
         } else {
             start_mining_events.send(StartMiningBlockEvent {
-                entity: event.entity,
-                position: event.position,
-                direction: event.direction,
+                entity,
+                position: mining.pos,
+                direction: mining.dir,
             })
         }
     }

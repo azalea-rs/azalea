@@ -11,6 +11,7 @@ use azalea::pathfinder::BlockPosGoal;
 use azalea::protocol::packets::game::ClientboundGamePacket;
 use azalea::{prelude::*, swarm::prelude::*, BlockPos, GameProfileComponent, WalkDirection};
 use azalea::{Account, Client, Event};
+use azalea_core::Direction;
 use std::time::Duration;
 
 #[derive(Default, Clone, Component)]
@@ -160,6 +161,20 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                         if let Some(target_pos) = target_pos {
                             // +1 to stand on top of the block
                             bot.goto(BlockPosGoal::from(target_pos.up(1)));
+                        } else {
+                            bot.chat("no diamond block found");
+                        }
+                    }
+                    "mineblock" => {
+                        let target_pos = bot
+                            .world()
+                            .read()
+                            .find_block(bot.position(), &azalea::Block::DiamondBlock.into());
+                        if let Some(target_pos) = target_pos {
+                            // +1 to stand on top of the block
+                            bot.chat("ok mining diamond block");
+                            bot.mine(target_pos, Direction::Down).await;
+                            bot.chat("finished mining");
                         } else {
                             bot.chat("no diamond block found");
                         }

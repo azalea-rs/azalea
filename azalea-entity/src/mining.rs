@@ -33,13 +33,13 @@ pub fn get_mine_progress(
         100
     };
 
-    destroy_speed(
+    (destroy_speed(
         block.as_registry_block(),
         held_item,
         player_inventory,
         fluid_on_eyes,
         physics,
-    ) / destroy_time
+    ) / destroy_time)
         / divider as f32
 }
 
@@ -126,6 +126,7 @@ fn destroy_speed(
         base_destroy_speed /= 5.;
     }
 
+    println!("base destroy speed: {base_destroy_speed}");
     base_destroy_speed
 }
 

@@ -115,7 +115,7 @@ pub fn update_uuid_index(
 //     partial_entity_infos: &mut PartialEntityInfos,
 //     chunk: &ChunkPos,
 //     instance_container: &WorldContainer,
-//     world_name: &WorldName,
+//     world_name: &InstanceName,
 //     mut query: Query<(&MinecraftEntityId, &mut ReferenceCount)>,
 // ) { let world_lock = instance_container.get(world_name).unwrap(); let world =
 //   world_lock.read();
