@@ -1506,7 +1506,7 @@ make_block_states! {
             _1,
             _2,
         },
-        "age" => SnifferEggAge {
+        "hatch" => SnifferEggHatch {
             _0,
             _1,
             _2,
@@ -1929,7 +1929,7 @@ make_block_states! {
     },
     Blocks => {
         air => BlockBehavior::default(), {},
-        stone => BlockBehavior::default().requires_correct_tool_for_drops(), {},
+        stone => BlockBehavior::default(), {},
         granite => BlockBehavior::default(), {},
         polished_granite => BlockBehavior::default(), {},
         diorite => BlockBehavior::default(), {},
@@ -3995,7 +3995,7 @@ make_block_states! {
             hatch: TurtleEggHatch::_0,
         },
         sniffer_egg => BlockBehavior::default(), {
-            age: SnifferEggAge::_0,
+            hatch: SnifferEggHatch::_0,
         },
         dead_tube_coral_block => BlockBehavior::default(), {},
         dead_brain_coral_block => BlockBehavior::default(), {},
