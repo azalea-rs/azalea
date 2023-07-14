@@ -413,11 +413,11 @@ fn continue_mining_block(
         &MineItem,
         &FluidOnEyes,
         &Physics,
+        &Mining,
         &mut MineDelay,
         &mut MineProgress,
         &mut MineTicks,
         &mut CurrentSequenceNumber,
-        &mut Mining,
     )>,
     mut send_packet_events: EventWriter<SendPacketEvent>,
     mut mine_block_progress_events: EventWriter<MineBlockProgressEvent>,
@@ -435,11 +435,11 @@ fn continue_mining_block(
         current_mining_item,
         fluid_on_eyes,
         physics,
+        mining,
         mut mine_delay,
         mut mine_progress,
         mut mine_ticks,
         mut sequence_number,
-        mut mining,
     ) in query.iter_mut()
     {
         if **mine_delay > 0 {

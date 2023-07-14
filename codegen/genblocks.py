@@ -20,7 +20,7 @@ ordered_blocks = lib.extract.get_ordered_blocks_burger(version_id)
 block_states_report = lib.extract.get_block_states_report(version_id)
 
 lib.code.blocks.generate_blocks(
-    block_states_burger, block_states_report, ordered_blocks, mappings)
+    block_states_burger, block_states_report, pixlyzer_block_datas, ordered_blocks, mappings)
 
 lib.code.shapes.generate_block_shapes(
     pixlyzer_block_datas, shape_datas['shapes'], shape_datas['aabbs'], block_states_report, block_states_burger, mappings)
