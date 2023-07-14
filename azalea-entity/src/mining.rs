@@ -126,7 +126,6 @@ fn destroy_speed(
         base_destroy_speed /= 5.;
     }
 
-    println!("base destroy speed: {base_destroy_speed}");
     base_destroy_speed
 }
 

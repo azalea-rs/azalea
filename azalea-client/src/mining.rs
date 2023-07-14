@@ -92,13 +92,13 @@ fn handle_start_mining_block_event(
         &InventoryComponent,
         &FluidOnEyes,
         &Physics,
-        &MineBlockPos,
         Option<&Mining>,
         &mut CurrentSequenceNumber,
         &mut MineDelay,
         &mut MineProgress,
         &mut MineTicks,
         &mut MineItem,
+        &mut MineBlockPos,
     )>,
     instances: Res<InstanceContainer>,
     mut commands: Commands,
@@ -110,13 +110,13 @@ fn handle_start_mining_block_event(
             inventory,
             fluid_on_eyes,
             physics,
-            current_mining_pos,
             mining,
             mut sequence_number,
             mut mine_delay,
             mut mine_progress,
             mut mine_ticks,
             mut current_mining_item,
+            mut current_mining_pos,
         ) = query.get_mut(event.entity).unwrap();
 
         let instance_lock = instances.get(instance_name).unwrap();
@@ -147,7 +147,6 @@ fn handle_start_mining_block_event(
                 &current_mining_item,
             )
         {
-            println!("start mining");
             if mining.is_some() {
                 // send a packet to stop mining since we just changed target
                 send_packet_events.send(SendPacketEvent {
@@ -170,7 +169,6 @@ fn handle_start_mining_block_event(
             let block_is_solid = !target_block_state.is_air();
             if block_is_solid && **mine_progress == 0. {
                 // interact with the block (like note block left click) here
-                println!("interact with block");
                 attack_block_events.send(AttackBlockEvent {
                     entity: event.entity,
                     position: event.position,
@@ -190,18 +188,17 @@ fn handle_start_mining_block_event(
                     physics,
                 ) >= 1.
             {
-                println!("mined instantly");
                 // block was broken instantly
                 finish_mining_events.send(FinishMiningBlockEvent {
                     entity: event.entity,
                     position: event.position,
                 });
             } else {
-                println!("added mining component");
                 commands.entity(event.entity).insert(Mining {
                     pos: event.position,
                     dir: event.direction,
                 });
+                **current_mining_pos = Some(event.position);
                 **current_mining_item = held_item;
                 **mine_progress = 0.;
                 **mine_ticks = 0.;
@@ -212,7 +209,6 @@ fn handle_start_mining_block_event(
                 })
             }
 
-            println!("startdestroyblock");
             send_packet_events.send(SendPacketEvent {
                 entity: event.entity,
                 packet: ServerboundPlayerActionPacket {
@@ -413,11 +409,11 @@ fn continue_mining_block(
         &MineItem,
         &FluidOnEyes,
         &Physics,
-        &Mining,
         &mut MineDelay,
         &mut MineProgress,
         &mut MineTicks,
         &mut CurrentSequenceNumber,
+        &mut Mining,
     )>,
     mut send_packet_events: EventWriter<SendPacketEvent>,
     mut mine_block_progress_events: EventWriter<MineBlockProgressEvent>,
@@ -435,11 +431,11 @@ fn continue_mining_block(
         current_mining_item,
         fluid_on_eyes,
         physics,
-        mining,
         mut mine_delay,
         mut mine_progress,
         mut mine_ticks,
         mut sequence_number,
+        mut mining,
     ) in query.iter_mut()
     {
         if **mine_delay > 0 {
@@ -503,7 +499,7 @@ fn continue_mining_block(
                 send_packet_events.send(SendPacketEvent {
                     entity,
                     packet: ServerboundPlayerActionPacket {
-                        action: serverbound_player_action_packet::Action::StartDestroyBlock,
+                        action: serverbound_player_action_packet::Action::StopDestroyBlock,
                         pos: mining.pos,
                         direction: mining.dir,
                         sequence: **sequence_number,
