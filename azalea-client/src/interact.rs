@@ -8,6 +8,7 @@ use azalea_nbt::NbtList;
 use azalea_physics::clip::{BlockShapeType, ClipContext, FluidPickType};
 use azalea_protocol::packets::game::{
     serverbound_interact_packet::InteractionHand,
+    serverbound_swing_packet::ServerboundSwingPacket,
     serverbound_use_item_on_packet::{BlockHit, ServerboundUseItemOnPacket},
 };
 use azalea_world::{Instance, InstanceContainer, InstanceName};
@@ -15,8 +16,7 @@ use bevy_app::{App, Plugin, Update};
 use bevy_ecs::{
     component::Component,
     entity::Entity,
-    event::EventReader,
-    prelude::Event,
+    event::{Event, EventReader, EventWriter},
     schedule::IntoSystemConfigs,
     system::{Commands, Query, Res},
 };
@@ -26,7 +26,7 @@ use log::warn;
 use crate::{
     client::{PermissionLevel, PlayerAbilities},
     inventory::InventoryComponent,
-    local_player::{handle_send_packet_event, LocalGameMode},
+    local_player::{handle_send_packet_event, LocalGameMode, SendPacketEvent},
     Client, LocalPlayer,
 };
 
@@ -34,15 +34,18 @@ use crate::{
 pub struct InteractPlugin;
 impl Plugin for InteractPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<BlockInteractEvent>().add_systems(
-            Update,
-            (
-                update_hit_result_component.after(clamp_look_direction),
-                handle_block_interact_event,
-            )
-                .before(handle_send_packet_event)
-                .chain(),
-        );
+        app.add_event::<BlockInteractEvent>()
+            .add_event::<SwingArmEvent>()
+            .add_systems(
+                Update,
+                (
+                    update_hit_result_component.after(clamp_look_direction),
+                    handle_block_interact_event,
+                    handle_swing_arm_event,
+                )
+                    .before(handle_send_packet_event)
+                    .chain(),
+            );
     }
 }
 
@@ -280,4 +283,25 @@ pub fn can_use_game_master_blocks(
     permission_level: &PermissionLevel,
 ) -> bool {
     abilities.instant_break && **permission_level >= 2
+}
+
+/// Swing your arm. This is purely a visual effect and won't interact with
+/// anything in the world.
+#[derive(Event)]
+pub struct SwingArmEvent {
+    pub entity: Entity,
+}
+fn handle_swing_arm_event(
+    mut events: EventReader<SwingArmEvent>,
+    mut send_packet_events: EventWriter<SendPacketEvent>,
+) {
+    for event in events.iter() {
+        send_packet_events.send(SendPacketEvent {
+            entity: event.entity,
+            packet: ServerboundSwingPacket {
+                hand: InteractionHand::MainHand,
+            }
+            .get(),
+        });
+    }
 }

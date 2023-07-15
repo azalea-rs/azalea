@@ -669,7 +669,7 @@ pub async fn tick_run_schedule_loop(run_schedule_sender: mpsc::UnboundedSender<(
 #[derive(Resource, Deref)]
 pub struct TickBroadcast(broadcast::Sender<()>);
 
-fn send_tick_broadcast(tick_broadcast: ResMut<TickBroadcast>) {
+pub fn send_tick_broadcast(tick_broadcast: ResMut<TickBroadcast>) {
     let _ = tick_broadcast.0.send(());
 }
 /// A plugin that makes the [`RanScheduleBroadcast`] resource available.

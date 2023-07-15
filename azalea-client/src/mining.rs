@@ -14,6 +14,7 @@ use crate::{
     client::{PermissionLevel, PlayerAbilities},
     interact::{
         can_use_game_master_blocks, check_is_interaction_restricted, CurrentSequenceNumber,
+        SwingArmEvent,
     },
     inventory::InventoryComponent,
     local_player::{LocalGameMode, SendPacketEvent},
@@ -52,11 +53,15 @@ pub struct Mining {
 
 impl Client {
     /// Start mining a block.
-    pub async fn mine(&self, position: BlockPos, direction: Direction) {
+    pub async fn mine(&mut self, position: BlockPos, direction: Direction) {
         self.ecs.lock().send_event(StartMiningBlockEvent {
             entity: self.entity,
             position,
             direction,
+        });
+        // vanilla sends an extra swing arm packet when we start mining
+        self.ecs.lock().send_event(SwingArmEvent {
+            entity: self.entity,
         });
 
         let mut receiver = {
@@ -409,16 +414,17 @@ fn continue_mining_block(
         &MineItem,
         &FluidOnEyes,
         &Physics,
+        &Mining,
         &mut MineDelay,
         &mut MineProgress,
         &mut MineTicks,
         &mut CurrentSequenceNumber,
-        &mut Mining,
     )>,
     mut send_packet_events: EventWriter<SendPacketEvent>,
     mut mine_block_progress_events: EventWriter<MineBlockProgressEvent>,
     mut finish_mining_events: EventWriter<FinishMiningBlockEvent>,
     mut start_mining_events: EventWriter<StartMiningBlockEvent>,
+    mut swing_arm_events: EventWriter<SwingArmEvent>,
     instances: Res<InstanceContainer>,
     mut commands: Commands,
 ) {
@@ -431,11 +437,11 @@ fn continue_mining_block(
         current_mining_item,
         fluid_on_eyes,
         physics,
+        mining,
         mut mine_delay,
         mut mine_progress,
         mut mine_ticks,
         mut sequence_number,
-        mut mining,
     ) in query.iter_mut()
     {
         if **mine_delay > 0 {
@@ -461,6 +467,7 @@ fn continue_mining_block(
                 }
                 .get(),
             });
+            swing_arm_events.send(SwingArmEvent { entity });
         } else if is_same_mining_target(
             mining.pos,
             inventory,
@@ -515,7 +522,8 @@ fn continue_mining_block(
                 entity,
                 position: mining.pos,
                 destroy_stage: mine_progress.destroy_stage(),
-            })
+            });
+            swing_arm_events.send(SwingArmEvent { entity });
         } else {
             start_mining_events.send(StartMiningBlockEvent {
                 entity,
@@ -523,5 +531,7 @@ fn continue_mining_block(
                 direction: mining.dir,
             })
         }
+
+        swing_arm_events.send(SwingArmEvent { entity });
     }
 }
