@@ -2,7 +2,9 @@ use std::ops::AddAssign;
 
 use azalea_block::BlockState;
 use azalea_core::{BlockHitResult, BlockPos, Direction, GameMode, Vec3};
-use azalea_entity::{clamp_look_direction, view_vector, EyeHeight, LookDirection, Position};
+use azalea_entity::{
+    clamp_look_direction, view_vector, Attributes, EyeHeight, Local, LookDirection, Position,
+};
 use azalea_inventory::{ItemSlot, ItemSlotData};
 use azalea_nbt::NbtList;
 use azalea_physics::clip::{BlockShapeType, ClipContext, FluidPickType};
@@ -17,6 +19,7 @@ use bevy_ecs::{
     component::Component,
     entity::Entity,
     event::{Event, EventReader, EventWriter},
+    query::{Changed, With},
     schedule::IntoSystemConfigs,
     system::{Commands, Query, Res},
 };
@@ -39,12 +42,15 @@ impl Plugin for InteractPlugin {
             .add_systems(
                 Update,
                 (
-                    update_hit_result_component.after(clamp_look_direction),
-                    handle_block_interact_event,
-                    handle_swing_arm_event,
-                )
-                    .before(handle_send_packet_event)
-                    .chain(),
+                    (
+                        update_hit_result_component.after(clamp_look_direction),
+                        handle_block_interact_event,
+                        handle_swing_arm_event,
+                    )
+                        .before(handle_send_packet_event)
+                        .chain(),
+                    update_modifiers_for_held_item,
+                ),
             );
     }
 }
@@ -303,5 +309,67 @@ fn handle_swing_arm_event(
             }
             .get(),
         });
+    }
+}
+
+fn update_modifiers_for_held_item(
+    mut query: Query<
+        (&mut Attributes, &InventoryComponent),
+        (With<Local>, Changed<InventoryComponent>),
+    >,
+) {
+    for (mut attributes, inventory) in &mut query {
+        let held_item = inventory.held_item();
+
+        use azalea_registry::Item;
+        let added_attack_speed = match held_item.kind() {
+            Item::WoodenSword => -2.4,
+            Item::WoodenShovel => -3.0,
+            Item::WoodenPickaxe => -2.8,
+            Item::WoodenAxe => -3.2,
+            Item::WoodenHoe => -3.0,
+
+            Item::StoneSword => -2.4,
+            Item::StoneShovel => -3.0,
+            Item::StonePickaxe => -2.8,
+            Item::StoneAxe => -3.2,
+            Item::StoneHoe => -2.0,
+
+            Item::GoldenSword => -2.4,
+            Item::GoldenShovel => -3.0,
+            Item::GoldenPickaxe => -2.8,
+            Item::GoldenAxe => -3.0,
+            Item::GoldenHoe => -3.0,
+
+            Item::IronSword => -2.4,
+            Item::IronShovel => -3.0,
+            Item::IronPickaxe => -2.8,
+            Item::IronAxe => -3.1,
+            Item::IronHoe => -1.0,
+
+            Item::DiamondSword => -2.4,
+            Item::DiamondShovel => -3.0,
+            Item::DiamondPickaxe => -2.8,
+            Item::DiamondAxe => -3.0,
+            Item::DiamondHoe => 0.0,
+
+            Item::NetheriteSword => -2.4,
+            Item::NetheriteShovel => -3.0,
+            Item::NetheritePickaxe => -2.8,
+            Item::NetheriteAxe => -3.0,
+            Item::NetheriteHoe => 0.0,
+
+            Item::Trident => -2.9,
+            _ => 0.,
+        };
+        attributes
+            .attack_speed
+            .remove(&azalea_entity::attributes::BASE_ATTACK_SPEED_UUID);
+        attributes
+            .attack_speed
+            .insert(azalea_entity::attributes::tool_attack_speed_modifier(
+                added_attack_speed,
+            ))
+            .unwrap();
     }
 }

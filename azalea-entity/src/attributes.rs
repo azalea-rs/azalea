@@ -93,6 +93,24 @@ pub fn sprinting_modifier() -> AttributeModifier {
     }
 }
 
+pub static BASE_ATTACK_SPEED_UUID: Uuid = uuid!("FA233E1C-4180-4865-B01B-BCCE9785ACA3");
+pub fn weapon_attack_speed_modifier(amount: f64) -> AttributeModifier {
+    AttributeModifier {
+        uuid: BASE_ATTACK_SPEED_UUID,
+        name: "Weapon modifier".to_string(),
+        amount,
+        operation: AttributeModifierOperation::Addition,
+    }
+}
+pub fn tool_attack_speed_modifier(amount: f64) -> AttributeModifier {
+    AttributeModifier {
+        uuid: BASE_ATTACK_SPEED_UUID,
+        name: "Tool modifier".to_string(),
+        amount,
+        operation: AttributeModifierOperation::Addition,
+    }
+}
+
 impl McBufReadable for AttributeModifier {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let uuid = Uuid::read_from(buf)?;

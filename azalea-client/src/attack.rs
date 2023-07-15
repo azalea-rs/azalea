@@ -45,7 +45,7 @@ impl Client {
     /// Whether the player has an attack cooldown.
     pub fn has_attack_cooldown(&self) -> bool {
         let ticks_since_last_attack = *self.component::<AttackStrengthScale>();
-        ticks_since_last_attack > 0.
+        ticks_since_last_attack < 1.0
     }
 }
 
@@ -124,7 +124,7 @@ pub fn update_attack_strength_scale(
 
 /// Returns how long it takes for the attack cooldown to reset (in ticks).
 pub fn get_attack_strength_delay(attributes: &Attributes) -> f32 {
-    (1. / attributes.attack_speed.calculate() * 20.) as f32
+    ((1. / attributes.attack_speed.calculate()) * 20.) as f32
 }
 
 pub fn get_attack_strength_scale(
