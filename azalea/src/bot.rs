@@ -99,11 +99,12 @@ impl BotClientExt for azalea_client::Client {
 
     /// ```
     /// # use azalea::prelude::*;
-    /// # async fn example(mut bot: azalea::Client) {
-    /// let mut ticks = self.get_tick_broadcaster();
+    /// # use azalea::container::WaitingForInventoryOpen;
+    /// # async fn example(bot: &mut azalea::Client) {
+    /// let mut ticks = bot.get_tick_broadcaster();
     /// while ticks.recv().await.is_ok() {
     ///     let ecs = bot.ecs.lock();
-    ///     if ecs.get::<WaitingForInventoryOpen>(self.entity).is_none() {
+    ///     if ecs.get::<WaitingForInventoryOpen>(bot.entity).is_none() {
     ///         break;
     ///     }
     /// }

@@ -6,9 +6,14 @@ use std::sync::Arc;
 use azalea_protocol::packets::game::{
     clientbound_player_combat_kill_packet::ClientboundPlayerCombatKillPacket, ClientboundGamePacket,
 };
-use azalea_world::MinecraftEntityId;
+use azalea_world::{InstanceName, MinecraftEntityId};
 use bevy_app::{App, FixedUpdate, Plugin, Update};
-use bevy_ecs::{component::Component, event::EventReader, query::Added, system::Query};
+use bevy_ecs::{
+    component::Component,
+    event::EventReader,
+    query::{Added, With},
+    system::Query,
+};
 use derive_more::{Deref, DerefMut};
 use tokio::sync::mpsc;
 
@@ -143,7 +148,8 @@ fn chat_listener(query: Query<&LocalPlayerEvents>, mut events: EventReader<ChatR
     }
 }
 
-fn tick_listener(query: Query<&LocalPlayerEvents>) {
+// only tick if we're in a world
+fn tick_listener(query: Query<&LocalPlayerEvents, With<InstanceName>>) {
     for local_player_events in &query {
         local_player_events.send(Event::Tick).unwrap();
     }

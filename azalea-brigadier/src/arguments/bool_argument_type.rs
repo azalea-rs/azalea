@@ -6,16 +6,22 @@ use crate::{
 
 use super::ArgumentType;
 
-impl ArgumentType for bool {
+#[derive(Default)]
+struct Boolean;
+
+impl ArgumentType for Boolean {
     fn parse(&self, reader: &mut StringReader) -> Result<Rc<dyn Any>, CommandSyntaxException> {
-        Ok(Rc::new(reader.read_boolean()))
+        Ok(Rc::new(reader.read_boolean()?))
     }
 }
 
+pub fn bool() -> impl ArgumentType {
+    Boolean
+}
 pub fn get_bool<S>(context: &CommandContext<S>, name: &str) -> Option<bool> {
     context
         .argument(name)
-        .unwrap()
+        .expect("argument with name not found")
         .downcast_ref::<bool>()
         .cloned()
 }

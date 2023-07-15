@@ -14,6 +14,7 @@ pub mod tree;
 pub mod prelude {
     pub use crate::{
         arguments::{
+            bool_argument_type::{bool, get_bool},
             double_argument_type::{double, get_double},
             float_argument_type::{float, get_float},
             integer_argument_type::{get_integer, integer},

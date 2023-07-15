@@ -5,7 +5,7 @@
 
 mod auto_respawn;
 mod bot;
-mod container;
+pub mod container;
 pub mod pathfinder;
 pub mod prelude;
 pub mod swarm;
@@ -20,7 +20,7 @@ pub use azalea_core::{BlockPos, Vec3};
 pub use azalea_entity as entity;
 pub use azalea_protocol as protocol;
 pub use azalea_registry::{Block, EntityKind, Item};
-pub use azalea_world::Instance;
+pub use azalea_world as world;
 pub use bot::DefaultBotPlugins;
 use ecs::component::Component;
 use futures::Future;

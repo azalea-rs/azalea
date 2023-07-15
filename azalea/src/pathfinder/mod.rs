@@ -1,4 +1,5 @@
 mod astar;
+pub mod goals;
 mod moves;
 
 use crate::bot::{JumpEvent, LookAtEvent};
@@ -75,7 +76,7 @@ pub trait PathfinderClientExt {
 impl PathfinderClientExt for azalea_client::Client {
     /// ```
     /// # use azalea::prelude::*;
-    /// # use azalea::{BlockPos, pathfinder::BlockPosGoal};
+    /// # use azalea::{BlockPos, pathfinder::goals::BlockPosGoal};
     /// # fn example(bot: &Client) {
     /// bot.goto(BlockPosGoal::from(BlockPos::new(0, 70, 0)));
     /// # }
@@ -318,32 +319,5 @@ impl Node {
                 VerticalVel::None => physics.on_ground,
                 VerticalVel::FallingLittle => physics.delta.y < -0.1,
             }
-    }
-}
-
-pub struct BlockPosGoal {
-    pub pos: BlockPos,
-}
-impl Goal for BlockPosGoal {
-    fn heuristic(&self, n: &Node) -> f32 {
-        let dx = (self.pos.x - n.pos.x) as f32;
-        let dy = (self.pos.y - n.pos.y) as f32;
-        let dz = (self.pos.z - n.pos.z) as f32;
-        dx * dx + dy * dy + dz * dz
-    }
-    fn success(&self, n: &Node) -> bool {
-        n.pos == self.pos
-    }
-    fn goal_node(&self) -> Node {
-        Node {
-            pos: self.pos,
-            vertical_vel: VerticalVel::None,
-        }
-    }
-}
-
-impl From<BlockPos> for BlockPosGoal {
-    fn from(pos: BlockPos) -> Self {
-        Self { pos }
     }
 }

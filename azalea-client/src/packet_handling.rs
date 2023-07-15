@@ -327,7 +327,7 @@ fn process_packet_events(ecs: &mut World) {
                 debug!("Got update tags packet");
             }
             ClientboundGamePacket::Disconnect(p) => {
-                debug!("Got disconnect packet {:?}", p);
+                warn!("Got disconnect packet {:?}", p);
                 let mut system_state: SystemState<EventWriter<DisconnectEvent>> =
                     SystemState::new(ecs);
                 let mut disconnect_events = system_state.get_mut(ecs);
