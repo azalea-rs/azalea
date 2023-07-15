@@ -20,7 +20,7 @@ use crate::{
 use azalea_auth::{game_profile::GameProfile, sessionserver::ClientSessionServerError};
 use azalea_chat::FormattedText;
 use azalea_core::Vec3;
-use azalea_entity::{EntityPlugin, EntityUpdateSet, Local, Position};
+use azalea_entity::{metadata::Health, EntityPlugin, EntityUpdateSet, Local, Position};
 use azalea_physics::{PhysicsPlugin, PhysicsSet};
 use azalea_protocol::{
     connect::{Connection, ConnectionError},
@@ -547,6 +547,12 @@ impl Client {
     /// This is a shortcut for `Vec3::from(&bot.component::<Position>())`.
     pub fn position(&self) -> Vec3 {
         Vec3::from(&self.component::<Position>())
+    }
+    /// Get the health of this client.
+    ///
+    /// This is a shortcut for `*bot.component::<Health>()`.
+    pub fn health(&self) -> f32 {
+        *self.component::<Health>()
     }
 }
 

@@ -170,7 +170,7 @@ impl EntityCommand for RelativeEntityUpdate {
 #[derive(Resource, Default)]
 pub struct EntityInfos {
     /// An index of entities by their UUIDs
-    pub(crate) entity_by_uuid: HashMap<Uuid, Entity>,
+    pub entity_by_uuid: HashMap<Uuid, Entity>,
 }
 
 impl EntityInfos {

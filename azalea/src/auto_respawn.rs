@@ -21,5 +21,6 @@ fn auto_respawn(
         perform_respawn_events.send(PerformRespawnEvent {
             entity: event.entity,
         });
+        println!("auto respawning");
     }
 }

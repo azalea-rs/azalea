@@ -3,8 +3,8 @@ use std::{collections::HashSet, io::Cursor, sync::Arc};
 use azalea_core::{ChunkPos, GameMode, ResourceLocation, Vec3};
 use azalea_entity::{
     metadata::{apply_metadata, Health, PlayerMetadataBundle},
-    Dead, EntityBundle, EntityKind, EntityUpdateSet, LastSentPosition, LoadedBy, LookDirection,
-    Physics, PlayerBundle, Position, RelativeEntityUpdate,
+    Dead, EntityBundle, EntityInfos, EntityKind, EntityUpdateSet, LastSentPosition, LoadedBy,
+    LookDirection, Physics, PlayerBundle, Position, RelativeEntityUpdate,
 };
 use azalea_protocol::{
     connect::{ReadConnection, WriteConnection},
@@ -21,14 +21,15 @@ use azalea_protocol::{
     read::ReadPacketError,
 };
 use azalea_world::{InstanceContainer, InstanceName, MinecraftEntityId, PartialInstance};
-use bevy_app::{App, First, Plugin, PreUpdate};
+use bevy_app::{App, First, Plugin, PreUpdate, Update};
 use bevy_ecs::{
     component::Component,
     entity::Entity,
     event::{EventReader, EventWriter, Events},
     prelude::Event,
+    query::Changed,
     schedule::IntoSystemConfigs,
-    system::{Commands, Query, ResMut, SystemState},
+    system::{Commands, Query, Res, ResMut, SystemState},
     world::World,
 };
 use log::{debug, error, trace, warn};
@@ -86,6 +87,7 @@ impl Plugin for PacketHandlerPlugin {
                     // we want to index and deindex right after
                     .before(EntityUpdateSet::Deindex),
             )
+            .add_systems(Update, death_event_on_0_health)
             .init_resource::<Events<PacketEvent>>()
             .add_event::<AddPlayerEvent>()
             .add_event::<RemovePlayerEvent>()
@@ -128,6 +130,20 @@ pub struct UpdatePlayerEvent {
 pub struct DeathEvent {
     pub entity: Entity,
     pub packet: Option<ClientboundPlayerCombatKillPacket>,
+}
+
+pub fn death_event_on_0_health(
+    query: Query<(Entity, &Health), Changed<Health>>,
+    mut death_events: EventWriter<DeathEvent>,
+) {
+    for (entity, health) in query.iter() {
+        if **health == 0. {
+            death_events.send(DeathEvent {
+                entity,
+                packet: None,
+            });
+        }
+    }
 }
 
 /// A KeepAlive packet is sent from the server to verify that the client is
@@ -558,18 +574,37 @@ fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::AddEntity(p) => {
                 debug!("Got add entity packet {:?}", p);
 
-                let mut system_state: SystemState<(Commands, Query<Option<&InstanceName>>)> =
-                    SystemState::new(ecs);
-                let (mut commands, mut query) = system_state.get_mut(ecs);
-                let world_name = query.get_mut(player_entity).unwrap();
+                let mut system_state: SystemState<(
+                    Commands,
+                    Query<Option<&InstanceName>>,
+                    ResMut<InstanceContainer>,
+                    ResMut<EntityInfos>,
+                )> = SystemState::new(ecs);
+                let (mut commands, mut query, mut instance_container, mut entity_infos) =
+                    system_state.get_mut(ecs);
+                let instance_name = query.get_mut(player_entity).unwrap();
 
-                if let Some(InstanceName(world_name)) = world_name {
-                    let bundle = p.as_entity_bundle(world_name.clone());
+                if let Some(instance_name) = instance_name {
+                    let bundle = p.as_entity_bundle((**instance_name).clone());
                     let mut entity_commands = commands.spawn((
                         MinecraftEntityId(p.id),
                         LoadedBy(HashSet::from([player_entity])),
                         bundle,
                     ));
+
+                    {
+                        // add it to the indexes immediately so if there's a packet that references
+                        // it immediately after it still works
+                        let instance = instance_container.get(instance_name).unwrap();
+                        instance
+                            .write()
+                            .entity_by_id
+                            .insert(MinecraftEntityId(p.id), entity_commands.id());
+                        entity_infos
+                            .entity_by_uuid
+                            .insert(p.uuid, entity_commands.id());
+                    }
+
                     // the bundle doesn't include the default entity metadata so we add that
                     // separately
                     p.apply_metadata(&mut entity_commands);
@@ -663,13 +698,6 @@ fn process_packet_events(ecs: &mut World) {
                     SystemState::new(ecs);
                 let (mut query, mut death_events) = system_state.get_mut(ecs);
                 let mut health = query.get_mut(player_entity).unwrap();
-
-                if p.health == 0. && **health != 0. {
-                    death_events.send(DeathEvent {
-                        entity: player_entity,
-                        packet: None,
-                    });
-                }
 
                 **health = p.health;
 
