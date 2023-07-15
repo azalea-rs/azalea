@@ -85,6 +85,7 @@ pub struct StartMiningBlockEvent {
     pub direction: Direction,
 }
 
+#[allow(clippy::too_many_arguments, clippy::type_complexity)]
 fn handle_start_mining_block_event(
     mut events: EventReader<StartMiningBlockEvent>,
     mut finish_mining_events: EventWriter<FinishMiningBlockEvent>,
@@ -186,7 +187,7 @@ fn handle_start_mining_block_event(
 
             if block_is_solid
                 && get_mine_progress(
-                    &block,
+                    block.as_ref(),
                     held_item.kind(),
                     &inventory.inventory_menu,
                     fluid_on_eyes,
@@ -404,6 +405,7 @@ fn handle_stop_mining_block_event(
     }
 }
 
+#[allow(clippy::too_many_arguments, clippy::type_complexity)]
 fn continue_mining_block(
     mut query: Query<(
         Entity,
@@ -484,7 +486,7 @@ fn continue_mining_block(
             }
             let block = Box::<dyn Block>::from(target_block_state);
             **mine_progress += get_mine_progress(
-                &block,
+                block.as_ref(),
                 current_mining_item.kind(),
                 &inventory.inventory_menu,
                 fluid_on_eyes,

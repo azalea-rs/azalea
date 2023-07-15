@@ -5,7 +5,7 @@ use azalea_registry as registry;
 use crate::{effects, enchantments, FluidOnEyes, Physics};
 
 pub fn get_mine_progress(
-    block: &Box<dyn Block>,
+    block: &dyn Block,
     held_item: registry::Item,
     player_inventory: &azalea_inventory::Menu,
     fluid_on_eyes: &FluidOnEyes,
@@ -43,7 +43,7 @@ pub fn get_mine_progress(
         / divider as f32
 }
 
-fn has_correct_tool_for_drops(block: &Box<dyn Block>, tool: registry::Item) -> bool {
+fn has_correct_tool_for_drops(block: &dyn Block, tool: registry::Item) -> bool {
     if !block.behavior().requires_correct_tool_for_drops {
         return true;
     }
@@ -62,19 +62,11 @@ fn has_correct_tool_for_drops(block: &Box<dyn Block>, tool: registry::Item) -> b
     {
         let tier = get_item_tier(tool).expect("all pickaxes and shovels should be matched");
         let tier_level = tier.level();
-        if tier_level < 3 && registry::tags::blocks::NEEDS_DIAMOND_TOOL.contains(&registry_block) {
-            false
-        } else if tier_level < 2
-            && registry::tags::blocks::NEEDS_IRON_TOOL.contains(&registry_block)
-        {
-            false
-        } else if tier_level < 1
-            && registry::tags::blocks::NEEDS_STONE_TOOL.contains(&registry_block)
-        {
-            false
-        } else {
-            true
-        }
+        !((tier_level < 3 && registry::tags::blocks::NEEDS_DIAMOND_TOOL.contains(&registry_block))
+            || (tier_level < 2
+                && registry::tags::blocks::NEEDS_IRON_TOOL.contains(&registry_block))
+            || (tier_level < 1
+                && registry::tags::blocks::NEEDS_STONE_TOOL.contains(&registry_block)))
     } else {
         false
     }
@@ -115,7 +107,7 @@ fn destroy_speed(
         base_destroy_speed *= multiplier;
     }
 
-    if registry::tags::fluids::WATER.contains(&fluid_on_eyes)
+    if registry::tags::fluids::WATER.contains(fluid_on_eyes)
         && enchantments::get_enchant_level(registry::Enchantment::AquaAffinity, player_inventory)
             == 0
     {
@@ -132,19 +124,19 @@ fn destroy_speed(
 fn base_destroy_speed(block: registry::Block, tool: registry::Item) -> f32 {
     if tool == registry::Item::Shears {
         if block == registry::Block::Cobweb || registry::tags::blocks::LEAVES.contains(&block) {
-            return 15.;
+            15.
         } else if registry::tags::blocks::WOOL.contains(&block) {
-            return 5.;
+            5.
         } else if matches!(block, registry::Block::Vine | registry::Block::GlowLichen) {
-            return 2.;
+            2.
         } else {
             1.
         }
     } else if registry::tags::items::SWORDS.contains(&tool) {
         if block == registry::Block::Cobweb {
-            return 15.;
+            15.
         } else if registry::tags::blocks::SWORD_EFFICIENT.contains(&block) {
-            return 1.5;
+            1.5
         } else {
             1.
         }

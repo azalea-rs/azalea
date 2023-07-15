@@ -463,10 +463,8 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
 
                 // if "waterlogged" is a property and it's true for this state then add it to
                 // waterlogged_state_ids
-                if property_name == "waterlogged" {
-                    if property_value.to_string() == "true" {
-                        waterlogged_state_ids.push(state_id)
-                    }
+                if property_name == "waterlogged" && property_value.to_string() == "true" {
+                    waterlogged_state_ids.push(state_id)
                 }
             }
 
