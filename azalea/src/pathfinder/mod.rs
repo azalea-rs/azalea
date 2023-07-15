@@ -157,10 +157,13 @@ fn goto_listener(
 
                 let world = world_lock.read();
                 for possible_move in &possible_moves {
-                    edges.push(Edge {
-                        target: possible_move.next_node(node),
-                        cost: possible_move.cost(&world, node),
-                    });
+                    let possible_move = possible_move.get(&world, node);
+                    if let Some(possible_move) = possible_move {
+                        edges.push(Edge {
+                            target: possible_move.node,
+                            cost: possible_move.cost,
+                        });
+                    }
                 }
                 edges
             };

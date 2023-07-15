@@ -34,89 +34,116 @@ fn is_standable(pos: &BlockPos, world: &Instance) -> bool {
     is_block_solid(&pos.down(1), world) && is_passable(pos, world)
 }
 
-const JUMP_COST: f32 = 0.5;
-const WALK_ONE_BLOCK_COST: f32 = 1.0;
+/// Get the amount of air blocks until the next solid block below this one.
+fn fall_distance(pos: &BlockPos, world: &Instance) -> u32 {
+    let mut distance = 0;
+    let mut current_pos = pos.down(1);
+    while is_block_passable(&current_pos, world) {
+        distance += 1;
+        current_pos = current_pos.down(1);
 
-pub trait Move: Send + Sync {
-    fn cost(&self, world: &Instance, node: &Node) -> f32;
-    /// Returns by how much the entity's position should be changed when this
-    /// move is executed.
-    fn offset(&self) -> BlockPos;
-    fn next_node(&self, node: &Node) -> Node {
-        Node {
-            pos: node.pos + self.offset(),
-            vertical_vel: VerticalVel::None,
+        if current_pos.y < world.chunks.min_y {
+            return u32::MAX;
         }
     }
+    distance
+}
+
+const JUMP_COST: f32 = 0.5;
+const WALK_ONE_BLOCK_COST: f32 = 1.0;
+const FALL_ONE_BLOCK_COST: f32 = 0.5;
+
+pub trait Move: Send + Sync {
+    fn get(&self, world: &Instance, node: &Node) -> Option<MoveResult>;
+}
+pub struct MoveResult {
+    pub node: Node,
+    pub cost: f32,
 }
 
 pub struct ForwardMove(pub CardinalDirection);
 impl Move for ForwardMove {
-    fn cost(&self, world: &Instance, node: &Node) -> f32 {
-        if is_standable(&(node.pos + self.offset()), world)
-            && node.vertical_vel == VerticalVel::None
-        {
-            WALK_ONE_BLOCK_COST
-        } else {
-            f32::INFINITY
+    fn get(&self, world: &Instance, node: &Node) -> Option<MoveResult> {
+        let offset = BlockPos::new(self.0.x(), 0, self.0.z());
+
+        if !is_standable(&(node.pos + offset), world) || node.vertical_vel != VerticalVel::None {
+            return None;
         }
-    }
-    fn offset(&self) -> BlockPos {
-        BlockPos::new(self.0.x(), 0, self.0.z())
+
+        let cost = WALK_ONE_BLOCK_COST;
+
+        Some(MoveResult {
+            node: Node {
+                pos: node.pos + offset,
+                vertical_vel: VerticalVel::None,
+            },
+            cost,
+        })
     }
 }
 
 pub struct AscendMove(pub CardinalDirection);
 impl Move for AscendMove {
-    fn cost(&self, world: &Instance, node: &Node) -> f32 {
-        if node.vertical_vel == VerticalVel::None
-            && is_block_passable(&node.pos.up(2), world)
-            && is_standable(&(node.pos + self.offset()), world)
+    fn get(&self, world: &Instance, node: &Node) -> Option<MoveResult> {
+        let offset = BlockPos::new(self.0.x(), 1, self.0.z());
+
+        if node.vertical_vel != VerticalVel::None
+            || !is_block_passable(&node.pos.up(2), world)
+            || !is_standable(&(node.pos + offset), world)
         {
-            WALK_ONE_BLOCK_COST + JUMP_COST
-        } else {
-            f32::INFINITY
+            return None;
         }
-    }
-    fn offset(&self) -> BlockPos {
-        BlockPos::new(self.0.x(), 1, self.0.z())
-    }
-    fn next_node(&self, node: &Node) -> Node {
-        Node {
-            pos: node.pos + self.offset(),
-            vertical_vel: VerticalVel::None,
-        }
+
+        let cost = WALK_ONE_BLOCK_COST + JUMP_COST;
+
+        Some(MoveResult {
+            node: Node {
+                pos: node.pos + offset,
+                vertical_vel: VerticalVel::None,
+            },
+            cost,
+        })
     }
 }
 pub struct DescendMove(pub CardinalDirection);
 impl Move for DescendMove {
-    fn cost(&self, world: &Instance, node: &Node) -> f32 {
+    fn get(&self, world: &Instance, node: &Node) -> Option<MoveResult> {
+        let new_horizontal_position = node.pos + BlockPos::new(self.0.x(), 0, self.0.z());
+        let fall_distance = fall_distance(&new_horizontal_position, world);
+        if fall_distance == 0 {
+            return None;
+        }
+        if fall_distance > 3 {
+            return None;
+        }
+        let new_position = new_horizontal_position.down(fall_distance as i32);
+
         // check whether 3 blocks vertically forward are passable
-        if node.vertical_vel == VerticalVel::None
-            && is_standable(&(node.pos + self.offset()), world)
-            && is_block_passable(&(node.pos + self.offset().up(2)), world)
-        {
-            WALK_ONE_BLOCK_COST
-        } else {
-            f32::INFINITY
+        if node.vertical_vel != VerticalVel::None || !is_passable(&new_horizontal_position, world) {
+            return None;
         }
-    }
-    fn offset(&self) -> BlockPos {
-        BlockPos::new(self.0.x(), -1, self.0.z())
-    }
-    fn next_node(&self, node: &Node) -> Node {
-        Node {
-            pos: node.pos + self.offset(),
-            vertical_vel: VerticalVel::None,
-        }
+
+        let cost = WALK_ONE_BLOCK_COST + FALL_ONE_BLOCK_COST * fall_distance as f32;
+
+        Some(MoveResult {
+            node: Node {
+                pos: new_position,
+                vertical_vel: VerticalVel::None,
+            },
+            cost,
+        })
     }
 }
 pub struct DiagonalMove(pub CardinalDirection);
 impl Move for DiagonalMove {
-    fn cost(&self, world: &Instance, node: &Node) -> f32 {
+    fn get(&self, world: &Instance, node: &Node) -> Option<MoveResult> {
         if node.vertical_vel != VerticalVel::None {
-            return f32::INFINITY;
+            return None;
         }
+
+        let right = self.0.right();
+        let offset = BlockPos::new(self.0.x() + right.x(), 0, self.0.z() + right.z());
+
         if !is_passable(
             &BlockPos::new(node.pos.x + self.0.x(), node.pos.y, node.pos.z + self.0.z()),
             world,
@@ -128,22 +155,20 @@ impl Move for DiagonalMove {
             ),
             world,
         ) {
-            return f32::INFINITY;
+            return None;
         }
-        if !is_standable(&(node.pos + self.offset()), world) {
-            return f32::INFINITY;
+        if !is_standable(&(node.pos + offset), world) {
+            return None;
         }
-        WALK_ONE_BLOCK_COST * 1.4
-    }
-    fn offset(&self) -> BlockPos {
-        let right = self.0.right();
-        BlockPos::new(self.0.x() + right.x(), 0, self.0.z() + right.z())
-    }
-    fn next_node(&self, node: &Node) -> Node {
-        Node {
-            pos: node.pos + self.offset(),
-            vertical_vel: VerticalVel::None,
-        }
+        let cost = WALK_ONE_BLOCK_COST * 1.4;
+
+        Some(MoveResult {
+            node: Node {
+                pos: node.pos + offset,
+                vertical_vel: VerticalVel::None,
+            },
+            cost,
+        })
     }
 }
 
