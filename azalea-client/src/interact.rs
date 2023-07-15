@@ -312,6 +312,7 @@ fn handle_swing_arm_event(
     }
 }
 
+#[allow(clippy::type_complexity)]
 fn update_modifiers_for_held_item(
     mut query: Query<
         (&mut Attributes, &InventoryComponent),

@@ -574,6 +574,7 @@ fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::AddEntity(p) => {
                 debug!("Got add entity packet {:?}", p);
 
+                #[allow(clippy::type_complexity)]
                 let mut system_state: SystemState<(
                     Commands,
                     Query<Option<&InstanceName>>,
