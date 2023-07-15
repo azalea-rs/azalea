@@ -53,7 +53,7 @@ pub struct PartialEntityInfos {
     // note: using MinecraftEntityId for entity ids is acceptable here since
     // there's no chance of collisions here
     /// The entity id of the player that owns this partial world. This will
-    /// make [`RelativeEntityUpdate`] pretend the entity doesn't exist so
+    /// make `RelativeEntityUpdate` pretend the entity doesn't exist so
     /// it doesn't get modified from outside sources.
     pub owner_entity: Option<Entity>,
     /// A counter for each entity that tracks how many updates we've observed

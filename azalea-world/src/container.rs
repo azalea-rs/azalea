@@ -78,7 +78,7 @@ impl InstanceContainer {
     }
 }
 
-/// The name of the [`Instance`](azalea_world::Instance) (world) the entity is
+/// The name of the [`Instance`](crate::Instance) (world) the entity is
 /// in. If two entities share the same world name, we assume they're in the same
 /// instance.
 #[derive(Component, Clone, Debug, PartialEq, Deref, DerefMut)]

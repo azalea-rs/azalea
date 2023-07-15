@@ -14,11 +14,10 @@ use crate::{
     client::{PermissionLevel, PlayerAbilities},
     interact::{
         can_use_game_master_blocks, check_is_interaction_restricted, CurrentSequenceNumber,
-        SwingArmEvent,
+        HitResultComponent, SwingArmEvent,
     },
     inventory::InventoryComponent,
     local_player::{LocalGameMode, SendPacketEvent},
-    Client, TickBroadcast,
 };
 
 /// A plugin that allows clients to break blocks in the world.
@@ -26,6 +25,7 @@ pub struct MinePlugin;
 impl Plugin for MinePlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<StartMiningBlockEvent>()
+            .add_event::<StartMiningBlockWithDirectionEvent>()
             .add_event::<FinishMiningBlockEvent>()
             .add_event::<StopMiningBlockEvent>()
             .add_event::<MineBlockProgressEvent>()
@@ -35,6 +35,7 @@ impl Plugin for MinePlugin {
                 Update,
                 (
                     handle_start_mining_block_event,
+                    handle_start_mining_block_with_direction_event,
                     handle_finish_mining_block_event,
                     handle_stop_mining_block_event,
                 )
@@ -51,43 +52,46 @@ pub struct Mining {
     pub dir: Direction,
 }
 
-impl Client {
-    /// Start mining a block.
-    pub async fn mine(&mut self, position: BlockPos, direction: Direction) {
-        self.ecs.lock().send_event(StartMiningBlockEvent {
-            entity: self.entity,
-            position,
-            direction,
-        });
-        // vanilla sends an extra swing arm packet when we start mining
-        self.ecs.lock().send_event(SwingArmEvent {
-            entity: self.entity,
-        });
-
-        let mut receiver = {
-            let ecs = self.ecs.lock();
-            let tick_broadcast = ecs.resource::<TickBroadcast>();
-            tick_broadcast.subscribe()
-        };
-        while receiver.recv().await.is_ok() {
-            let ecs = self.ecs.lock();
-            if ecs.get::<Mining>(self.entity).is_none() {
-                break;
-            }
-        }
-    }
-}
-
+/// Start mining the block at the given position.
+///
+/// If we're looking at the block then the correct direction will be used,
+/// otherwise it'll be [`Direction::Down`].
 #[derive(Event)]
 pub struct StartMiningBlockEvent {
     pub entity: Entity,
     pub position: BlockPos,
-    pub direction: Direction,
 }
-
-#[allow(clippy::too_many_arguments, clippy::type_complexity)]
 fn handle_start_mining_block_event(
     mut events: EventReader<StartMiningBlockEvent>,
+    mut start_mining_events: EventWriter<StartMiningBlockWithDirectionEvent>,
+    mut query: Query<&HitResultComponent>,
+) {
+    for event in events.iter() {
+        let hit_result = query.get_mut(event.entity).unwrap();
+        let direction = if hit_result.block_pos == event.position {
+            // we're looking at the block
+            hit_result.direction
+        } else {
+            // we're not looking at the block, arbitrary direction
+            Direction::Down
+        };
+        start_mining_events.send(StartMiningBlockWithDirectionEvent {
+            entity: event.entity,
+            position: event.position,
+            direction,
+        });
+    }
+}
+
+#[derive(Event)]
+pub struct StartMiningBlockWithDirectionEvent {
+    pub entity: Entity,
+    pub position: BlockPos,
+    pub direction: Direction,
+}
+#[allow(clippy::too_many_arguments, clippy::type_complexity)]
+fn handle_start_mining_block_with_direction_event(
+    mut events: EventReader<StartMiningBlockWithDirectionEvent>,
     mut finish_mining_events: EventWriter<FinishMiningBlockEvent>,
     mut send_packet_events: EventWriter<SendPacketEvent>,
     mut attack_block_events: EventWriter<AttackBlockEvent>,
@@ -425,7 +429,7 @@ fn continue_mining_block(
     mut send_packet_events: EventWriter<SendPacketEvent>,
     mut mine_block_progress_events: EventWriter<MineBlockProgressEvent>,
     mut finish_mining_events: EventWriter<FinishMiningBlockEvent>,
-    mut start_mining_events: EventWriter<StartMiningBlockEvent>,
+    mut start_mining_events: EventWriter<StartMiningBlockWithDirectionEvent>,
     mut swing_arm_events: EventWriter<SwingArmEvent>,
     instances: Res<InstanceContainer>,
     mut commands: Commands,
@@ -527,7 +531,7 @@ fn continue_mining_block(
             });
             swing_arm_events.send(SwingArmEvent { entity });
         } else {
-            start_mining_events.send(StartMiningBlockEvent {
+            start_mining_events.send(StartMiningBlockWithDirectionEvent {
                 entity,
                 position: mining.pos,
                 direction: mining.dir,
