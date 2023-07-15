@@ -13,7 +13,7 @@ BLOCKS_RS_DIR = get_dir_location('../azalea-block/src/generated.rs')
 # - Block: Has properties and states.
 
 
-def generate_blocks(blocks_burger: dict, blocks_report: dict, ordered_blocks: list[str], mappings: Mappings):
+def generate_blocks(blocks_burger: dict, blocks_report: dict, pixlyzer_block_datas: dict, ordered_blocks: list[str], mappings: Mappings):
     with open(BLOCKS_RS_DIR, 'r') as f:
         existing_code = f.read().splitlines()
 
@@ -90,6 +90,7 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, ordered_blocks: li
     for block_id in ordered_blocks:
         block_data_burger = blocks_burger[block_id]
         block_data_report = blocks_report['minecraft:' + block_id]
+        block_data_pixlyzer = pixlyzer_block_datas[f'minecraft:{block_id}']
 
         block_properties = block_data_burger.get('states', [])
         block_properties_burger = block_data_burger.get('states', [])
@@ -134,9 +135,28 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, ordered_blocks: li
         else:
             properties_code += '\n        }'
 
+        # make the block behavior
+        behavior_constructor = 'BlockBehavior::new()'
+        # requires tool
+        if block_data_pixlyzer.get('requires_tool'):
+            behavior_constructor += '.requires_correct_tool_for_drops()'
+        # strength
+        destroy_time = block_data_pixlyzer.get('hardness')
+        explosion_resistance = block_data_pixlyzer.get('explosion_resistance')
+        if destroy_time and explosion_resistance:
+            behavior_constructor += f'.strength({destroy_time}, {explosion_resistance})'
+        elif destroy_time:
+            behavior_constructor += f'.destroy_time({destroy_time})'
+        elif explosion_resistance:
+            behavior_constructor += f'.explosion_resistance({explosion_resistance})'
+        # friction
+        friction = block_data_pixlyzer.get('friction')
+        if friction != None:
+            behavior_constructor += f'.friction({friction})'
+
         # TODO: use burger to generate the blockbehavior
         new_make_block_states_macro_code.append(
-            f'        {block_id} => BlockBehavior::default(), {properties_code},')
+            f'        {block_id} => {behavior_constructor}, {properties_code},')
 
     new_make_block_states_macro_code.append('    }')
     new_make_block_states_macro_code.append('}')

@@ -1,22 +1,22 @@
+use std::ops::AddAssign;
+
 use azalea_block::BlockState;
 use azalea_core::{BlockHitResult, BlockPos, Direction, GameMode, Vec3};
+use azalea_entity::{clamp_look_direction, view_vector, EyeHeight, LookDirection, Position};
 use azalea_inventory::{ItemSlot, ItemSlotData};
 use azalea_nbt::NbtList;
 use azalea_physics::clip::{BlockShapeType, ClipContext, FluidPickType};
 use azalea_protocol::packets::game::{
     serverbound_interact_packet::InteractionHand,
+    serverbound_swing_packet::ServerboundSwingPacket,
     serverbound_use_item_on_packet::{BlockHit, ServerboundUseItemOnPacket},
 };
-use azalea_world::{
-    entity::{clamp_look_direction, view_vector, EyeHeight, LookDirection, Position, WorldName},
-    Instance, InstanceContainer,
-};
+use azalea_world::{Instance, InstanceContainer, InstanceName};
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::{
     component::Component,
     entity::Entity,
-    event::EventReader,
-    prelude::Event,
+    event::{Event, EventReader, EventWriter},
     schedule::IntoSystemConfigs,
     system::{Commands, Query, Res},
 };
@@ -24,8 +24,9 @@ use derive_more::{Deref, DerefMut};
 use log::warn;
 
 use crate::{
+    client::{PermissionLevel, PlayerAbilities},
     inventory::InventoryComponent,
-    local_player::{handle_send_packet_event, LocalGameMode},
+    local_player::{handle_send_packet_event, LocalGameMode, SendPacketEvent},
     Client, LocalPlayer,
 };
 
@@ -33,15 +34,18 @@ use crate::{
 pub struct InteractPlugin;
 impl Plugin for InteractPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<BlockInteractEvent>().add_systems(
-            Update,
-            (
-                update_hit_result_component.after(clamp_look_direction),
-                handle_block_interact_event,
-            )
-                .before(handle_send_packet_event)
-                .chain(),
-        );
+        app.add_event::<BlockInteractEvent>()
+            .add_event::<SwingArmEvent>()
+            .add_systems(
+                Update,
+                (
+                    update_hit_result_component.after(clamp_look_direction),
+                    handle_block_interact_event,
+                    handle_swing_arm_event,
+                )
+                    .before(handle_send_packet_event)
+                    .chain(),
+            );
     }
 }
 
@@ -73,8 +77,14 @@ pub struct BlockInteractEvent {
 
 /// A component that contains the number of changes this client has made to
 /// blocks.
-#[derive(Component, Copy, Clone, Debug, Default, Deref, DerefMut)]
+#[derive(Component, Copy, Clone, Debug, Default, Deref)]
 pub struct CurrentSequenceNumber(u32);
+
+impl AddAssign<u32> for CurrentSequenceNumber {
+    fn add_assign(&mut self, rhs: u32) {
+        self.0 += rhs;
+    }
+}
 
 /// A component that contains the block that the player is currently looking at.
 #[derive(Component, Clone, Debug, Deref, DerefMut)]
@@ -89,14 +99,15 @@ pub fn handle_block_interact_event(
     )>,
 ) {
     for event in events.iter() {
-        let Ok((local_player, mut sequence_number, hit_result)) = query.get_mut(event.entity) else {
+        let Ok((local_player, mut sequence_number, hit_result)) = query.get_mut(event.entity)
+        else {
             warn!("Sent BlockInteractEvent for entity that isn't LocalPlayer");
             continue;
         };
 
         // TODO: check to make sure we're within the world border
 
-        **sequence_number += 1;
+        *sequence_number += 1;
 
         // minecraft also does the interaction client-side (so it looks like clicking a
         // button is instant) but we don't really need that
@@ -143,7 +154,7 @@ fn update_hit_result_component(
         &Position,
         &EyeHeight,
         &LookDirection,
-        &WorldName,
+        &InstanceName,
     )>,
     instance_container: Res<InstanceContainer>,
 ) {
@@ -246,10 +257,11 @@ pub fn check_block_can_be_broken_by_item_in_adventure_mode(
         .nbt
         .as_compound()
         .and_then(|nbt| nbt.get("tag").and_then(|nbt| nbt.as_compound()))
-        .and_then(|nbt| nbt.get("CanDestroy").and_then(|nbt| nbt.as_list())) else {
-            // no CanDestroy tag
-            return false;
-        };
+        .and_then(|nbt| nbt.get("CanDestroy").and_then(|nbt| nbt.as_list()))
+    else {
+        // no CanDestroy tag
+        return false;
+    };
 
     let NbtList::String(_can_destroy) = can_destroy else {
         // CanDestroy tag must be a list of strings
@@ -264,4 +276,32 @@ pub fn check_block_can_be_broken_by_item_in_adventure_mode(
     // }
 
     // true
+}
+
+pub fn can_use_game_master_blocks(
+    abilities: &PlayerAbilities,
+    permission_level: &PermissionLevel,
+) -> bool {
+    abilities.instant_break && **permission_level >= 2
+}
+
+/// Swing your arm. This is purely a visual effect and won't interact with
+/// anything in the world.
+#[derive(Event)]
+pub struct SwingArmEvent {
+    pub entity: Entity,
+}
+fn handle_swing_arm_event(
+    mut events: EventReader<SwingArmEvent>,
+    mut send_packet_events: EventWriter<SendPacketEvent>,
+) {
+    for event in events.iter() {
+        send_packet_events.send(SendPacketEvent {
+            entity: event.entity,
+            packet: ServerboundSwingPacket {
+                hand: InteractionHand::MainHand,
+            }
+            .get(),
+        });
+    }
 }

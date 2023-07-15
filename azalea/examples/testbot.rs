@@ -89,7 +89,7 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                 bot.disconnect();
             }
             let Some(sender) = m.username() else {
-                return Ok(())
+                return Ok(());
             };
             // let mut ecs = bot.ecs.lock();
             // let entity = bot
@@ -164,6 +164,21 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                             bot.chat("no diamond block found");
                         }
                     }
+                    "mineblock" => {
+                        let target_pos = bot
+                            .world()
+                            .read()
+                            .find_block(bot.position(), &azalea::Block::DiamondBlock.into());
+                        if let Some(target_pos) = target_pos {
+                            // +1 to stand on top of the block
+                            bot.chat("ok mining diamond block");
+                            bot.look_at(target_pos.center());
+                            bot.mine(target_pos).await;
+                            bot.chat("finished mining");
+                        } else {
+                            bot.chat("no diamond block found");
+                        }
+                    }
                     "lever" => {
                         let target_pos = bot
                             .world()
@@ -171,7 +186,7 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                             .find_block(bot.position(), &azalea::Block::Lever.into());
                         let Some(target_pos) = target_pos else {
                             bot.chat("no lever found");
-                            return Ok(())
+                            return Ok(());
                         };
                         bot.goto(BlockPosGoal::from(target_pos));
                         bot.look_at(target_pos.center());
@@ -188,7 +203,7 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                             .find_block(bot.position(), &azalea::Block::Chest.into());
                         let Some(target_pos) = target_pos else {
                             bot.chat("no chest found");
-                            return Ok(())
+                            return Ok(());
                         };
                         bot.look_at(target_pos.center());
                         let container = bot.open_container(target_pos).await;

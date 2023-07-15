@@ -1,5 +1,5 @@
 use azalea_block::BlockState;
-use azalea_core::{lerp, BlockHitResult, BlockPos, Direction, Vec3, EPSILON};
+use azalea_core::{math::lerp, BlockHitResult, BlockPos, Direction, Vec3, EPSILON};
 use azalea_inventory::ItemSlot;
 use azalea_world::ChunkStorage;
 use bevy_ecs::entity::Entity;

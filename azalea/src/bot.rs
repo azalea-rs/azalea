@@ -9,9 +9,10 @@ use crate::ecs::{
     system::{Commands, Query},
 };
 use azalea_core::Vec3;
+use azalea_entity::{
+    clamp_look_direction, metadata::Player, EyeHeight, Jumping, Local, LookDirection, Position,
+};
 use azalea_physics::{force_jump_listener, PhysicsSet};
-use azalea_world::entity::{clamp_look_direction, EyeHeight, LookDirection};
-use azalea_world::entity::{metadata::Player, Jumping, Local, Position};
 use bevy_app::{FixedUpdate, Update};
 use bevy_ecs::prelude::Event;
 use bevy_ecs::schedule::IntoSystemConfigs;

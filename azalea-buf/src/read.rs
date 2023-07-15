@@ -96,17 +96,10 @@ fn read_utf_with_len(buf: &mut Cursor<&[u8]>, max_length: u32) -> Result<String,
 /// number of bytes read
 // pub async fn read_varint_async(
 //     reader: &mut (dyn AsyncRead + Unpin + Send),
-// ) -> Result<i32, BufReadError> {
-//     let mut buffer = [0];
-//     let mut ans = 0;
-//     for i in 0..5 {
-//         reader.read_exact(&mut buffer).await?;
-//         ans |= ((buffer[0] & 0b0111_1111) as i32) << (7 * i);
-//         if buffer[0] & 0b1000_0000 == 0 {
-//             break;
-//         }
-//     }
-//     Ok(ans)
+// ) -> Result<i32, BufReadError> { let mut buffer = [0]; let mut ans = 0; for i
+//   in 0..5 { reader.read_exact(&mut buffer).await?; ans |= ((buffer[0] &
+//   0b0111_1111) as i32) << (7 * i); if buffer[0] & 0b1000_0000 == 0 { break; }
+//   } Ok(ans)
 // }
 
 pub trait McBufReadable

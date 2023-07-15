@@ -2,6 +2,8 @@ use crate::client::Client;
 use crate::local_player::{
     update_in_loaded_chunk, LocalPlayer, LocalPlayerInLoadedChunk, PhysicsState,
 };
+use azalea_entity::{metadata::Sprinting, Attributes, Jumping};
+use azalea_entity::{LastSentPosition, LookDirection, Physics, Position};
 use azalea_physics::{force_jump_listener, PhysicsSet};
 use azalea_protocol::packets::game::serverbound_player_command_packet::ServerboundPlayerCommandPacket;
 use azalea_protocol::packets::game::{
@@ -10,10 +12,7 @@ use azalea_protocol::packets::game::{
     serverbound_move_player_rot_packet::ServerboundMovePlayerRotPacket,
     serverbound_move_player_status_only_packet::ServerboundMovePlayerStatusOnlyPacket,
 };
-use azalea_world::{
-    entity::{self, metadata::Sprinting, Attributes, Jumping, MinecraftEntityId},
-    MoveEntityError,
-};
+use azalea_world::{MinecraftEntityId, MoveEntityError};
 use bevy_app::{App, FixedUpdate, Plugin, Update};
 use bevy_ecs::prelude::Event;
 use bevy_ecs::{
@@ -89,7 +88,7 @@ impl Client {
     /// `y_rot` goes from -180 to 180, and `x_rot` goes from -90 to 90.
     pub fn set_direction(&mut self, y_rot: f32, x_rot: f32) {
         let mut ecs = self.ecs.lock();
-        let mut look_direction = self.query::<&mut entity::LookDirection>(&mut ecs);
+        let mut look_direction = self.query::<&mut LookDirection>(&mut ecs);
 
         (look_direction.y_rot, look_direction.x_rot) = (y_rot, x_rot);
     }
@@ -110,12 +109,12 @@ pub(crate) fn send_position(
             &MinecraftEntityId,
             &mut LocalPlayer,
             &mut PhysicsState,
-            &entity::Position,
-            &mut entity::LastSentPosition,
-            &mut entity::Physics,
-            &entity::LookDirection,
+            &Position,
+            &mut LastSentPosition,
+            &mut Physics,
+            &LookDirection,
             &mut LastSentLookDirection,
-            &entity::metadata::Sprinting,
+            &Sprinting,
         ),
         &LocalPlayerInLoadedChunk,
     >,
@@ -223,7 +222,7 @@ impl LocalPlayer {
     fn send_sprinting_if_needed(
         &mut self,
         id: &MinecraftEntityId,
-        sprinting: &entity::metadata::Sprinting,
+        sprinting: &Sprinting,
         physics_state: &mut PhysicsState,
     ) {
         let was_sprinting = physics_state.was_sprinting;
@@ -287,9 +286,9 @@ pub fn local_player_ai_step(
     mut query: Query<
         (
             &mut PhysicsState,
-            &mut entity::Physics,
-            &mut entity::metadata::Sprinting,
-            &mut entity::Attributes,
+            &mut Physics,
+            &mut Sprinting,
+            &mut Attributes,
         ),
         With<LocalPlayerInLoadedChunk>,
     >,
@@ -431,12 +430,12 @@ fn set_sprinting(
     if sprinting {
         attributes
             .speed
-            .insert(entity::attributes::sprinting_modifier())
+            .insert(azalea_entity::attributes::sprinting_modifier())
             .is_ok()
     } else {
         attributes
             .speed
-            .remove(&entity::attributes::sprinting_modifier().uuid)
+            .remove(&azalea_entity::attributes::sprinting_modifier().uuid)
             .is_none()
     }
 }

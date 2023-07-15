@@ -8,6 +8,7 @@ use crate::{
         death_event, handle_send_packet_event, update_in_loaded_chunk, GameProfileComponent,
         LocalPlayer, PhysicsState, SendPacketEvent,
     },
+    mining::{self, MinePlugin},
     movement::{LastSentLookDirection, PlayerMovePlugin},
     packet_handling::{self, PacketHandlerPlugin, PacketReceiver},
     player::retroactively_add_game_profile_component,
@@ -19,6 +20,7 @@ use crate::{
 use azalea_auth::{game_profile::GameProfile, sessionserver::ClientSessionServerError};
 use azalea_chat::FormattedText;
 use azalea_core::Vec3;
+use azalea_entity::{EntityPlugin, EntityUpdateSet, Local, Position};
 use azalea_physics::{PhysicsPlugin, PhysicsSet};
 use azalea_protocol::{
     connect::{Connection, ConnectionError},
@@ -41,10 +43,7 @@ use azalea_protocol::{
     },
     resolver, ServerAddress,
 };
-use azalea_world::{
-    entity::{EntityPlugin, EntityUpdateSet, Local, Position, WorldName},
-    Instance, InstanceContainer, PartialInstance,
-};
+use azalea_world::{Instance, InstanceContainer, InstanceName, PartialInstance};
 use bevy_app::{App, FixedUpdate, Main, Plugin, PluginGroup, PluginGroupBuilder, Update};
 use bevy_ecs::{
     bundle::Bundle,
@@ -131,6 +130,10 @@ impl From<ClientboundPlayerAbilitiesPacket> for PlayerAbilities {
         }
     }
 }
+
+/// Level must be 0..=4
+#[derive(Component, Clone, Default, Deref, DerefMut)]
+pub struct PermissionLevel(pub u8);
 
 /// A component that contains a map of player UUIDs to their information in the
 /// tab list.
@@ -301,6 +304,8 @@ impl Client {
             current_sequence_number: CurrentSequenceNumber::default(),
             last_sent_direction: LastSentLookDirection::default(),
             abilities: PlayerAbilities::default(),
+            permission_level: PermissionLevel::default(),
+            mining: mining::MineBundle::default(),
             _local: Local,
         });
 
@@ -466,9 +471,9 @@ impl Client {
     /// # Examples
     ///
     /// ```
-    /// # use azalea_world::entity::WorldName;
+    /// # use azalea_world::InstanceName;
     /// # fn example(client: &azalea_client::Client) {
-    /// let world_name = client.component::<WorldName>();
+    /// let world_name = client.component::<InstanceName>();
     /// # }
     pub fn component<T: Component + Clone>(&self) -> T {
         self.query::<&T>(&mut self.ecs.lock()).clone()
@@ -486,7 +491,7 @@ impl Client {
     /// If the client using a shared world, then the shared world will be a
     /// superset of the client's world.
     pub fn world(&self) -> Arc<RwLock<Instance>> {
-        let world_name = self.component::<WorldName>();
+        let world_name = self.component::<InstanceName>();
         let ecs = self.ecs.lock();
         let instance_container = ecs.resource::<InstanceContainer>();
         instance_container.get(&world_name).unwrap()
@@ -495,7 +500,7 @@ impl Client {
     /// Returns whether we have a received the login packet yet.
     pub fn logged_in(&self) -> bool {
         // the login packet tells us the world name
-        self.query::<Option<&WorldName>>(&mut self.ecs.lock())
+        self.query::<Option<&InstanceName>>(&mut self.ecs.lock())
             .is_some()
     }
 
@@ -560,6 +565,10 @@ pub struct JoinedClientBundle {
     pub current_sequence_number: CurrentSequenceNumber,
     pub last_sent_direction: LastSentLookDirection,
     pub abilities: PlayerAbilities,
+    pub permission_level: PermissionLevel,
+
+    pub mining: mining::MineBundle,
+
     pub _local: Local,
 }
 
@@ -660,7 +669,7 @@ pub async fn tick_run_schedule_loop(run_schedule_sender: mpsc::UnboundedSender<(
 #[derive(Resource, Deref)]
 pub struct TickBroadcast(broadcast::Sender<()>);
 
-fn send_tick_broadcast(tick_broadcast: ResMut<TickBroadcast>) {
+pub fn send_tick_broadcast(tick_broadcast: ResMut<TickBroadcast>) {
     let _ = tick_broadcast.0.send(());
 }
 /// A plugin that makes the [`RanScheduleBroadcast`] resource available.
@@ -706,6 +715,7 @@ impl PluginGroup for DefaultPlugins {
             .add(PlayerMovePlugin)
             .add(InteractPlugin)
             .add(RespawnPlugin)
+            .add(MinePlugin)
             .add(TickBroadcastPlugin);
         #[cfg(feature = "log")]
         {

@@ -12,25 +12,42 @@ import os
 
 
 def generate_data_from_server_jar(version_id: str):
-    if os.path.exists(get_dir_location(f'downloads/generated-{version_id}')):
+    if os.path.exists(get_dir_location(f'__cache__/generated-{version_id}')):
         return
 
     get_server_jar(version_id)
     os.system(
-        f'cd {get_dir_location(f"downloads")} && java -DbundlerMainClass=net.minecraft.data.Main -jar {get_dir_location(f"downloads/server-{version_id}.jar")} --all --output \"{get_dir_location(f"downloads/generated-{version_id}")}\"'
+        f'cd {get_dir_location(f"__cache__")} && java -DbundlerMainClass=net.minecraft.data.Main -jar {get_dir_location(f"__cache__/server-{version_id}.jar")} --all --output \"{get_dir_location(f"__cache__/generated-{version_id}")}\"'
     )
 
 
 def get_block_states_report(version_id: str):
     generate_data_from_server_jar(version_id)
-    with open(get_dir_location(f'downloads/generated-{version_id}/reports/blocks.json'), 'r') as f:
+    with open(get_dir_location(f'__cache__/generated-{version_id}/reports/blocks.json'), 'r') as f:
         return json.load(f)
 
 
 def get_registries_report(version_id: str):
     generate_data_from_server_jar(version_id)
-    with open(get_dir_location(f'downloads/generated-{version_id}/reports/registries.json'), 'r') as f:
+    with open(get_dir_location(f'__cache__/generated-{version_id}/reports/registries.json'), 'r') as f:
         return json.load(f)
+
+
+def get_registry_tags(version_id: str, name: str):
+    generate_data_from_server_jar(version_id)
+    tags_directory = get_dir_location(f'__cache__/generated-{version_id}/data/minecraft/tags/{name}')
+    if not os.path.exists(tags_directory):
+        return {}
+    tags = {}
+    for root, dirs, files in os.walk(tags_directory, topdown=False):
+        for name in files:
+            file = os.path.join(root, name)
+            relative_path = file.replace(tags_directory, '')[1:]
+            if not file.endswith('.json'):
+                continue
+            with open(file, 'r') as f:
+                tags[relative_path[:-5]] = json.load(f)
+    return tags
 
 
 def get_block_states_burger(version_id: str):
@@ -96,15 +113,15 @@ def run_python_command_and_download_deps(command):
 
 
 def get_burger_data_for_version(version_id: str):
-    if not os.path.exists(get_dir_location(f'downloads/burger-{version_id}.json')):
+    if not os.path.exists(get_dir_location(f'__cache__/burger-{version_id}.json')):
         get_burger()
         get_client_jar(version_id)
 
         print('\033[92mRunning Burger...\033[m')
         run_python_command_and_download_deps(
-            f'cd {get_dir_location("downloads/Burger")} && {determine_python_command()} munch.py {get_dir_location("downloads")}/client-{version_id}.jar --output {get_dir_location("downloads")}/burger-{version_id}.json'
+            f'cd {get_dir_location("__cache__/Burger")} && {determine_python_command()} munch.py {get_dir_location("__cache__")}/client-{version_id}.jar --output {get_dir_location("__cache__")}/burger-{version_id}.json'
         )
-    with open(get_dir_location(f'downloads/burger-{version_id}.json'), 'r') as f:
+    with open(get_dir_location(f'__cache__/burger-{version_id}.json'), 'r') as f:
         return json.load(f)
 
 
@@ -113,7 +130,7 @@ def get_pixlyzer_data(version_id: str, category: str):
     Gets data from Pixlyzer. Note that this requires Yarn to release updates first.
     '''
 
-    target_dir = get_dir_location(f'downloads/pixlyzer-{version_id}')
+    target_dir = get_dir_location(f'__cache__/pixlyzer-{version_id}')
 
     # TODO: right now this False is hard-coded, it should retry with this
     # enabled if # initially getting the data fails
@@ -249,7 +266,7 @@ def get_pixlyzer_data(version_id: str, category: str):
 
 def get_file_from_jar(version_id: str, file_dir: str):
     get_client_jar(version_id)
-    with ZipFile(get_dir_location(f'downloads/client-{version_id}.jar')) as z:
+    with ZipFile(get_dir_location(f'__cache__/client-{version_id}.jar')) as z:
         with z.open(file_dir) as f:
             return f.read()
 

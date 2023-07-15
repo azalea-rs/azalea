@@ -1,6 +1,11 @@
 use std::{collections::HashSet, io::Cursor, sync::Arc};
 
 use azalea_core::{ChunkPos, GameMode, ResourceLocation, Vec3};
+use azalea_entity::{
+    metadata::{apply_metadata, Health, PlayerMetadataBundle},
+    Dead, EntityBundle, EntityKind, EntityUpdateSet, LastSentPosition, LoadedBy, LookDirection,
+    Physics, PlayerBundle, Position, RelativeEntityUpdate,
+};
 use azalea_protocol::{
     connect::{ReadConnection, WriteConnection},
     packets::game::{
@@ -15,15 +20,7 @@ use azalea_protocol::{
     },
     read::ReadPacketError,
 };
-use azalea_world::{
-    entity::{
-        metadata::{apply_metadata, Health, PlayerMetadataBundle},
-        Dead, EntityBundle, EntityKind, EntityUpdateSet, LastSentPosition, LookDirection,
-        MinecraftEntityId, Physics, PlayerBundle, Position, WorldName,
-    },
-    entity::{LoadedBy, RelativeEntityUpdate},
-    InstanceContainer, PartialInstance,
-};
+use azalea_world::{InstanceContainer, InstanceName, MinecraftEntityId, PartialInstance};
 use bevy_app::{App, First, Plugin, PreUpdate};
 use bevy_ecs::{
     component::Component,
@@ -195,7 +192,7 @@ fn process_packet_events(ecs: &mut World) {
                     Commands,
                     Query<(
                         &mut LocalPlayer,
-                        Option<&mut WorldName>,
+                        Option<&mut InstanceName>,
                         &GameProfileComponent,
                         &ClientInformation,
                     )>,
@@ -225,7 +222,7 @@ fn process_packet_events(ecs: &mut World) {
                     } else {
                         commands
                             .entity(player_entity)
-                            .insert(WorldName(new_world_name.clone()));
+                            .insert(InstanceName(new_world_name.clone()));
                     }
                     // add this world to the instance_container (or don't if it's already
                     // there)
@@ -348,10 +345,16 @@ fn process_packet_events(ecs: &mut World) {
                     )>,
                 > = SystemState::new(ecs);
                 let mut query = system_state.get_mut(ecs);
-                let Ok((local_player, mut physics, mut direction, mut position, mut last_sent_position)) =
-                        query.get_mut(player_entity) else {
-                            continue;
-                        };
+                let Ok((
+                    local_player,
+                    mut physics,
+                    mut direction,
+                    mut position,
+                    mut last_sent_position,
+                )) = query.get_mut(player_entity)
+                else {
+                    continue;
+                };
 
                 let delta_movement = physics.delta;
 
@@ -555,12 +558,12 @@ fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::AddEntity(p) => {
                 debug!("Got add entity packet {:?}", p);
 
-                let mut system_state: SystemState<(Commands, Query<Option<&WorldName>>)> =
+                let mut system_state: SystemState<(Commands, Query<Option<&InstanceName>>)> =
                     SystemState::new(ecs);
                 let (mut commands, mut query) = system_state.get_mut(ecs);
                 let world_name = query.get_mut(player_entity).unwrap();
 
-                if let Some(WorldName(world_name)) = world_name {
+                if let Some(InstanceName(world_name)) = world_name {
                     let bundle = p.as_entity_bundle(world_name.clone());
                     let mut entity_commands = commands.spawn((
                         MinecraftEntityId(p.id),
@@ -622,12 +625,12 @@ fn process_packet_events(ecs: &mut World) {
                 #[allow(clippy::type_complexity)]
                 let mut system_state: SystemState<(
                     Commands,
-                    Query<(&TabList, Option<&WorldName>)>,
+                    Query<(&TabList, Option<&InstanceName>)>,
                 )> = SystemState::new(ecs);
                 let (mut commands, mut query) = system_state.get_mut(ecs);
                 let (tab_list, world_name) = query.get_mut(player_entity).unwrap();
 
-                if let Some(WorldName(world_name)) = world_name {
+                if let Some(InstanceName(world_name)) = world_name {
                     let bundle = p.as_player_bundle(world_name.clone());
                     let mut spawned = commands.spawn((
                         MinecraftEntityId(p.id),

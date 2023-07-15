@@ -1,5 +1,6 @@
 use azalea_core::ResourceLocation;
-use bevy_ecs::system::Resource;
+use bevy_ecs::{component::Component, system::Resource};
+use derive_more::{Deref, DerefMut};
 use log::error;
 use nohash_hasher::IntMap;
 use parking_lot::RwLock;
@@ -8,7 +9,7 @@ use std::{
     sync::{Arc, Weak},
 };
 
-use crate::{entity::WorldName, ChunkStorage, Instance};
+use crate::{ChunkStorage, Instance};
 
 /// A container of [`Instance`]s (aka worlds). Instances are stored as a Weak
 /// pointer here, so if no clients are using an instance it will be forgotten.
@@ -37,7 +38,7 @@ impl InstanceContainer {
     }
 
     /// Get a world from the container.
-    pub fn get(&self, name: &WorldName) -> Option<Arc<RwLock<Instance>>> {
+    pub fn get(&self, name: &InstanceName) -> Option<Arc<RwLock<Instance>>> {
         self.worlds.get(name).and_then(|world| world.upgrade())
     }
 
@@ -76,3 +77,9 @@ impl InstanceContainer {
         }
     }
 }
+
+/// The name of the [`Instance`](crate::Instance) (world) the entity is
+/// in. If two entities share the same world name, we assume they're in the same
+/// instance.
+#[derive(Component, Clone, Debug, PartialEq, Deref, DerefMut)]
+pub struct InstanceName(pub ResourceLocation);

@@ -24,6 +24,9 @@ pub trait Block: Debug + Any {
     /// Convert the block to a block state. This is lossless, as the block
     /// contains all the state data.
     fn as_block_state(&self) -> BlockState;
+    /// Convert the block to an [`azalea_registry::Block`]. This is lossy, as
+    /// `azalea_registry::Block` doesn't contain any state data.
+    fn as_registry_block(&self) -> azalea_registry::Block;
 }
 impl dyn Block {
     pub fn downcast_ref<T: Block>(&self) -> Option<&T> {
@@ -45,18 +48,13 @@ pub struct BlockState {
 impl BlockState {
     pub const AIR: BlockState = BlockState { id: 0 };
 
-    /// Transmutes a u32 to a block state.
-    ///
-    /// # Safety
-    /// The `state_id` should be a valid block state.
-    #[inline]
-    pub unsafe fn from_u32_unchecked(state_id: u32) -> Self {
-        BlockState { id: state_id }
-    }
-
     #[inline]
     pub fn is_valid_state(state_id: u32) -> bool {
         state_id <= Self::max_state()
+    }
+
+    pub fn is_air(&self) -> bool {
+        self == &Self::AIR
     }
 }
 
@@ -66,7 +64,7 @@ impl TryFrom<u32> for BlockState {
     /// Safely converts a state id to a block state.
     fn try_from(state_id: u32) -> Result<Self, Self::Error> {
         if Self::is_valid_state(state_id) {
-            Ok(unsafe { Self::from_u32_unchecked(state_id) })
+            Ok(BlockState { id: state_id })
         } else {
             Err(())
         }
@@ -95,6 +93,68 @@ impl std::fmt::Debug for BlockState {
             self.id,
             Box::<dyn Block>::from(*self)
         )
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct FluidState {
+    pub fluid: azalea_registry::Fluid,
+    pub height: u8,
+}
+
+impl Default for FluidState {
+    fn default() -> Self {
+        Self {
+            fluid: azalea_registry::Fluid::Empty,
+            height: 0,
+        }
+    }
+}
+
+impl From<BlockState> for FluidState {
+    fn from(state: BlockState) -> Self {
+        if state.waterlogged() {
+            Self {
+                fluid: azalea_registry::Fluid::Water,
+                height: 15,
+            }
+        } else {
+            let block = Box::<dyn Block>::from(state);
+            if let Some(water) = block.downcast_ref::<crate::blocks::Water>() {
+                Self {
+                    fluid: azalea_registry::Fluid::Water,
+                    height: water.level as u8,
+                }
+            } else if let Some(lava) = block.downcast_ref::<crate::blocks::Lava>() {
+                Self {
+                    fluid: azalea_registry::Fluid::Lava,
+                    height: lava.level as u8,
+                }
+            } else {
+                Self {
+                    fluid: azalea_registry::Fluid::Empty,
+                    height: 0,
+                }
+            }
+        }
+    }
+}
+
+impl From<FluidState> for BlockState {
+    fn from(state: FluidState) -> Self {
+        match state.fluid {
+            azalea_registry::Fluid::Empty => BlockState::AIR,
+            azalea_registry::Fluid::Water | azalea_registry::Fluid::FlowingWater => {
+                BlockState::from(crate::blocks::Water {
+                    level: crate::properties::WaterLevel::from(state.height as u32),
+                })
+            }
+            azalea_registry::Fluid::Lava | azalea_registry::Fluid::FlowingLava => {
+                BlockState::from(crate::blocks::Lava {
+                    level: crate::properties::LavaLevel::from(state.height as u32),
+                })
+            }
+        }
     }
 }
 

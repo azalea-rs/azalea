@@ -1,3 +1,5 @@
-downloads
 __pycache__
 *.tmp
+
+downloads
+__cache__

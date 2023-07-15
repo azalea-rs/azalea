@@ -221,10 +221,12 @@ impl McBufWritable for Recipe {
 impl McBufReadable for Recipe {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let recipe_serializer_name = ResourceLocation::read_from(buf)?;
-        let Ok(recipe_serializer) =
-            RecipeSerializer::from_str(&recipe_serializer_name.to_string()) else {
-                return Err(BufReadError::UnexpectedStringEnumVariant { id: recipe_serializer_name.to_string() });
-            };
+        let Ok(recipe_serializer) = RecipeSerializer::from_str(&recipe_serializer_name.to_string())
+        else {
+            return Err(BufReadError::UnexpectedStringEnumVariant {
+                id: recipe_serializer_name.to_string(),
+            });
+        };
         let identifier = ResourceLocation::read_from(buf)?;
 
         // rust doesn't let us match ResourceLocation so we have to do a big

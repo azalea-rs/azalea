@@ -38,6 +38,7 @@ regex = "1.9.1"
 thiserror = "^1.0.43"
 tokio = { version = "^1.29.1", features = ["sync"] }
 uuid = "^1.4.0"
+azalea-entity = { version = "0.1.0", path = "../azalea-entity" }
 
 [features]
 default = ["log"]

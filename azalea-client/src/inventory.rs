@@ -101,6 +101,7 @@ pub struct InventoryComponent {
     /// the scroll wheel.
     pub selected_hotbar_slot: u8,
 }
+
 impl InventoryComponent {
     /// Returns a reference to the currently active menu. If a container is open
     /// it'll return [`Self::container_menu`], otherwise
@@ -220,10 +221,10 @@ impl InventoryComponent {
 
                         loop {
                             let Some(&next_slot) = quick_craft_slots_iter.next() else {
-                                    carried.count = carried_count;
-                                    self.carried = ItemSlot::Present(carried);
-                                    return self.reset_quick_craft();
-                                };
+                                carried.count = carried_count;
+                                self.carried = ItemSlot::Present(carried);
+                                return self.reset_quick_craft();
+                            };
 
                             slot = self.menu().slot(next_slot as usize).unwrap();
                             slot_index = next_slot;
@@ -244,8 +245,8 @@ impl InventoryComponent {
 
                         // get the ItemSlotData for the slot
                         let ItemSlot::Present(slot) = slot else {
-                                unreachable!("the loop above requires the slot to be present to break")
-                            };
+                            unreachable!("the loop above requires the slot to be present to break")
+                        };
 
                         // if self.can_drag_to(slot) {
                         let mut new_carried = carried.clone();
@@ -480,8 +481,8 @@ impl InventoryComponent {
                                     // now extend the carried item
                                     let target_slot = &mut self.carried;
                                     let ItemSlot::Present(target_slot_item) = target_slot else {
-                                            unreachable!("target slot is not empty but is not present");
-                                        };
+                                        unreachable!("target slot is not empty but is not present");
+                                    };
                                     target_slot_item.count += taken_item.count();
                                 }
                             }
@@ -512,13 +513,13 @@ fn can_item_quick_replace(
     ignore_item_count: bool,
 ) -> bool {
     let ItemSlot::Present(target_slot) = target_slot else {
-            return false;
-        };
+        return false;
+    };
     let ItemSlot::Present(item) = item else {
         // i *think* this is what vanilla does
         // not 100% sure lol probably doesn't matter though
-            return false;
-        };
+        return false;
+    };
 
     if !item.is_same_item_and_nbt(target_slot) {
         return false;

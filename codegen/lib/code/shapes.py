@@ -66,7 +66,7 @@ def simplify_shapes(blocks: dict, shapes: dict, aabbs: dict):
 
 
 def generate_block_shapes_code(blocks: dict, shapes: dict, block_states_report, block_datas_burger, mappings: Mappings):
-    # look at downloads/generator-mod-*/blockCollisionShapes.json for format of blocks and shapes
+    # look at __cache__/generator-mod-*/blockCollisionShapes.json for format of blocks and shapes
 
     generated_shape_code = ''
     for (shape_id, shape) in sorted(shapes.items(), key=lambda shape: int(shape[0])):

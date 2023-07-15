@@ -6,7 +6,6 @@
 mod bit_storage;
 mod chunk_storage;
 mod container;
-pub mod entity;
 pub mod iterators;
 pub mod palette;
 mod world;

@@ -16,13 +16,11 @@ use crate::ecs::{
 use astar::Edge;
 use azalea_client::{StartSprintEvent, StartWalkEvent};
 use azalea_core::{BlockPos, CardinalDirection};
+use azalea_entity::metadata::Player;
+use azalea_entity::Local;
+use azalea_entity::{Physics, Position};
 use azalea_physics::PhysicsSet;
-use azalea_world::entity::metadata::Player;
-use azalea_world::entity::Local;
-use azalea_world::{
-    entity::{Physics, Position, WorldName},
-    InstanceContainer,
-};
+use azalea_world::{InstanceContainer, InstanceName};
 use bevy_app::{FixedUpdate, Update};
 use bevy_ecs::prelude::Event;
 use bevy_ecs::schedule::IntoSystemConfigs;
@@ -106,7 +104,7 @@ pub struct ComputePath(Task<Option<PathFoundEvent>>);
 fn goto_listener(
     mut commands: Commands,
     mut events: EventReader<GotoEvent>,
-    mut query: Query<(&Position, &WorldName)>,
+    mut query: Query<(&Position, &InstanceName)>,
     instance_container: Res<InstanceContainer>,
 ) {
     let thread_pool = AsyncComputeTaskPool::get();

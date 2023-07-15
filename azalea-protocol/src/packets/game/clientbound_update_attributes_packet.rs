@@ -1,7 +1,7 @@
 use azalea_buf::McBuf;
 use azalea_core::ResourceLocation;
+use azalea_entity::attributes::AttributeModifier;
 use azalea_protocol_macros::ClientboundGamePacket;
-use azalea_world::entity::attributes::AttributeModifier;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundUpdateAttributesPacket {

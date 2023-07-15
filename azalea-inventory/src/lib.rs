@@ -10,8 +10,8 @@ use azalea_inventory_macros::declare_menus;
 pub use slot::{ItemSlot, ItemSlotData};
 
 // TODO: remove this here and in azalea-inventory-macros when rust makes
-// Default be implemented for all array sizes (since right now it's only up to
-// 32)
+// Default be implemented for all array sizes
+// https://github.com/rust-lang/rust/issues/61415
 
 /// A fixed-size list of [`ItemSlot`]s.
 #[derive(Debug, Clone)]

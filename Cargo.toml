@@ -16,6 +16,7 @@ members = [
   "azalea-physics",
   "azalea-registry",
   "azalea-inventory",
+  "azalea-entity",
 ]
 resolver = "2"
 
