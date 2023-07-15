@@ -344,6 +344,7 @@ impl EntityBundle {
                 // TODO: do the correct defaults for everything, some
                 // entities have different defaults
                 speed: AttributeInstance::new(0.1),
+                attack_speed: AttributeInstance::new(4.0),
             },
 
             jumping: Jumping(false),

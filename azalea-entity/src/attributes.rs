@@ -13,6 +13,7 @@ use uuid::{uuid, Uuid};
 #[derive(Clone, Debug, Component)]
 pub struct Attributes {
     pub speed: AttributeInstance,
+    pub attack_speed: AttributeInstance,
 }
 
 #[derive(Clone, Debug)]

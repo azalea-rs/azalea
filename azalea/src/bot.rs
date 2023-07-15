@@ -8,7 +8,10 @@ use crate::ecs::{
     query::{With, Without},
     system::{Commands, Query},
 };
-use azalea_core::Vec3;
+use azalea_client::interact::SwingArmEvent;
+use azalea_client::mining::Mining;
+use azalea_client::TickBroadcast;
+use azalea_core::{BlockPos, Vec3};
 use azalea_entity::{
     clamp_look_direction, metadata::Player, EyeHeight, Jumping, Local, LookDirection, Position,
 };
@@ -71,6 +74,13 @@ pub trait BotClientExt {
     fn jump(&mut self);
     /// Turn the bot's head to look at the coordinate in the world.
     fn look_at(&mut self, pos: Vec3);
+    /// Get a receiver that will receive a message every tick.
+    fn get_tick_broadcaster(&self) -> tokio::sync::broadcast::Receiver<()>;
+    /// Mine a block. This won't turn the bot's head towards the block, so if
+    /// that's necessary you'll have to do that yourself with [`look_at`].
+    ///
+    /// [`look_at`]: crate::prelude::BotClientExt::look_at
+    async fn mine(&mut self, position: BlockPos);
 }
 
 impl BotClientExt for azalea_client::Client {
@@ -85,6 +95,40 @@ impl BotClientExt for azalea_client::Client {
             entity: self.entity,
             position,
         });
+    }
+
+    /// ```
+    /// # use azalea::prelude::*;
+    /// # async fn example(mut bot: azalea::Client) {
+    /// let mut ticks = self.get_tick_broadcaster();
+    /// while ticks.recv().await.is_ok() {
+    ///     let ecs = bot.ecs.lock();
+    ///     if ecs.get::<WaitingForInventoryOpen>(self.entity).is_none() {
+    ///         break;
+    ///     }
+    /// }
+    /// # }
+    /// ```
+    fn get_tick_broadcaster(&self) -> tokio::sync::broadcast::Receiver<()> {
+        let ecs = self.ecs.lock();
+        let tick_broadcast = ecs.resource::<TickBroadcast>();
+        tick_broadcast.subscribe()
+    }
+
+    async fn mine(&mut self, position: BlockPos) {
+        self.start_mining(position);
+        // vanilla sends an extra swing arm packet when we start mining
+        self.ecs.lock().send_event(SwingArmEvent {
+            entity: self.entity,
+        });
+
+        let mut receiver = self.get_tick_broadcaster();
+        while receiver.recv().await.is_ok() {
+            let ecs = self.ecs.lock();
+            if ecs.get::<Mining>(self.entity).is_none() {
+                break;
+            }
+        }
     }
 }
 

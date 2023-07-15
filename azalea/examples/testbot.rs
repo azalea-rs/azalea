@@ -261,6 +261,13 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                             bot.look_at(nearest_pos);
                             bot.attack(nearest_entity);
                             bot.chat("attacking");
+                            let mut ticks = bot.get_tick_broadcaster();
+                            while ticks.recv().await.is_ok() {
+                                if bot.has_attack_cooldown() {
+                                    break;
+                                }
+                            }
+                            bot.chat("finished attacking");
                         } else {
                             bot.chat("no entities found");
                         }

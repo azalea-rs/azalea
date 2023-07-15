@@ -307,7 +307,7 @@ impl Client {
             abilities: PlayerAbilities::default(),
             permission_level: PermissionLevel::default(),
             mining: mining::MineBundle::default(),
-            ticks_since_last_attack: attack::TicksSinceLastAttack::default(),
+            attack: attack::AttackBundle::default(),
             _local: Local,
         });
 
@@ -576,7 +576,7 @@ pub struct JoinedClientBundle {
     pub permission_level: PermissionLevel,
 
     pub mining: mining::MineBundle,
-    pub ticks_since_last_attack: attack::TicksSinceLastAttack,
+    pub attack: attack::AttackBundle,
 
     pub _local: Local,
 }
