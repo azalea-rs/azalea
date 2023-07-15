@@ -1,4 +1,5 @@
 use crate::{
+    attack::{self, AttackPlugin},
     chat::ChatPlugin,
     disconnect::{DisconnectEvent, DisconnectPlugin},
     events::{Event, EventPlugin, LocalPlayerEvents},
@@ -306,6 +307,7 @@ impl Client {
             abilities: PlayerAbilities::default(),
             permission_level: PermissionLevel::default(),
             mining: mining::MineBundle::default(),
+            ticks_since_last_attack: attack::TicksSinceLastAttack::default(),
             _local: Local,
         });
 
@@ -574,6 +576,7 @@ pub struct JoinedClientBundle {
     pub permission_level: PermissionLevel,
 
     pub mining: mining::MineBundle,
+    pub ticks_since_last_attack: attack::TicksSinceLastAttack,
 
     pub _local: Local,
 }
@@ -722,6 +725,7 @@ impl PluginGroup for DefaultPlugins {
             .add(InteractPlugin)
             .add(RespawnPlugin)
             .add(MinePlugin)
+            .add(AttackPlugin)
             .add(TickBroadcastPlugin);
         #[cfg(feature = "log")]
         {

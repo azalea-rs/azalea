@@ -67,18 +67,18 @@ fn stop_jumping(mut query: Query<(&mut Jumping, &mut Bot)>) {
 }
 
 pub trait BotClientExt {
+    /// Queue a jump for the next tick.
     fn jump(&mut self);
+    /// Turn the bot's head to look at the coordinate in the world.
     fn look_at(&mut self, pos: Vec3);
 }
 
 impl BotClientExt for azalea_client::Client {
-    /// Queue a jump for the next tick.
     fn jump(&mut self) {
         let mut ecs = self.ecs.lock();
         ecs.send_event(JumpEvent(self.entity));
     }
 
-    /// Turn the bot's head to look at the coordinate in the world.
     fn look_at(&mut self, position: Vec3) {
         let mut ecs = self.ecs.lock();
         ecs.send_event(LookAtEvent {

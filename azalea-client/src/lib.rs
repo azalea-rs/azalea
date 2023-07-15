@@ -12,6 +12,7 @@
 #![feature(type_alias_impl_trait)]
 
 mod account;
+pub mod attack;
 pub mod chat;
 mod client;
 pub mod disconnect;
