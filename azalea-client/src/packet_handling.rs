@@ -574,13 +574,14 @@ fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::AddEntity(p) => {
                 debug!("Got add entity packet {:?}", p);
 
+                #[allow(clippy::type_complexity)]
                 let mut system_state: SystemState<(
                     Commands,
                     Query<Option<&InstanceName>>,
-                    ResMut<InstanceContainer>,
+                    Res<InstanceContainer>,
                     ResMut<EntityInfos>,
                 )> = SystemState::new(ecs);
-                let (mut commands, mut query, mut instance_container, mut entity_infos) =
+                let (mut commands, mut query, instance_container, mut entity_infos) =
                     system_state.get_mut(ecs);
                 let instance_name = query.get_mut(player_entity).unwrap();
 
@@ -694,9 +695,8 @@ fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::SetHealth(p) => {
                 debug!("Got set health packet {:?}", p);
 
-                let mut system_state: SystemState<(Query<&mut Health>, EventWriter<DeathEvent>)> =
-                    SystemState::new(ecs);
-                let (mut query, mut death_events) = system_state.get_mut(ecs);
+                let mut system_state: SystemState<Query<&mut Health>> = SystemState::new(ecs);
+                let mut query = system_state.get_mut(ecs);
                 let mut health = query.get_mut(player_entity).unwrap();
 
                 **health = p.health;

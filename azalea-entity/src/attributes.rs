@@ -13,6 +13,7 @@ use uuid::{uuid, Uuid};
 #[derive(Clone, Debug, Component)]
 pub struct Attributes {
     pub speed: AttributeInstance,
+    pub attack_speed: AttributeInstance,
 }
 
 #[derive(Clone, Debug)]
@@ -89,6 +90,24 @@ pub fn sprinting_modifier() -> AttributeModifier {
         name: "Sprinting speed boost".to_string(),
         amount: 0.30000001192092896,
         operation: AttributeModifierOperation::MultiplyTotal,
+    }
+}
+
+pub static BASE_ATTACK_SPEED_UUID: Uuid = uuid!("FA233E1C-4180-4865-B01B-BCCE9785ACA3");
+pub fn weapon_attack_speed_modifier(amount: f64) -> AttributeModifier {
+    AttributeModifier {
+        uuid: BASE_ATTACK_SPEED_UUID,
+        name: "Weapon modifier".to_string(),
+        amount,
+        operation: AttributeModifierOperation::Addition,
+    }
+}
+pub fn tool_attack_speed_modifier(amount: f64) -> AttributeModifier {
+    AttributeModifier {
+        uuid: BASE_ATTACK_SPEED_UUID,
+        name: "Tool modifier".to_string(),
+        amount,
+        operation: AttributeModifierOperation::Addition,
     }
 }
 

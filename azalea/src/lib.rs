@@ -6,7 +6,6 @@
 mod auto_respawn;
 mod bot;
 mod container;
-pub mod mining;
 pub mod pathfinder;
 pub mod prelude;
 pub mod swarm;

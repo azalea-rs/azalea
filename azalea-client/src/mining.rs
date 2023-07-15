@@ -18,6 +18,7 @@ use crate::{
     },
     inventory::InventoryComponent,
     local_player::{LocalGameMode, SendPacketEvent},
+    Client,
 };
 
 /// A plugin that allows clients to break blocks in the world.
@@ -41,6 +42,15 @@ impl Plugin for MinePlugin {
                 )
                     .chain(),
             );
+    }
+}
+
+impl Client {
+    pub fn start_mining(&mut self, position: BlockPos) {
+        self.ecs.lock().send_event(StartMiningBlockEvent {
+            entity: self.entity,
+            position,
+        });
     }
 }
 

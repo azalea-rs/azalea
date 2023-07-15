@@ -3,7 +3,7 @@ use std::fmt::Formatter;
 use azalea_client::{
     inventory::{CloseContainerEvent, ContainerClickEvent, InventoryComponent},
     packet_handling::PacketEvent,
-    Client, TickBroadcast,
+    Client,
 };
 use azalea_core::BlockPos;
 use azalea_inventory::{operations::ClickOperation, ItemSlot, Menu};
@@ -11,6 +11,8 @@ use azalea_protocol::packets::game::ClientboundGamePacket;
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::{component::Component, prelude::EventReader, system::Commands};
 use std::fmt::Debug;
+
+use crate::bot::BotClientExt;
 
 pub struct ContainerPlugin;
 impl Plugin for ContainerPlugin {
@@ -49,11 +51,7 @@ impl ContainerClientExt for Client {
             .insert(WaitingForInventoryOpen);
         self.block_interact(pos);
 
-        let mut receiver = {
-            let ecs = self.ecs.lock();
-            let tick_broadcast = ecs.resource::<TickBroadcast>();
-            tick_broadcast.subscribe()
-        };
+        let mut receiver = self.get_tick_broadcaster();
         while receiver.recv().await.is_ok() {
             let ecs = self.ecs.lock();
             if ecs.get::<WaitingForInventoryOpen>(self.entity).is_none() {
