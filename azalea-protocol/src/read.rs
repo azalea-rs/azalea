@@ -8,6 +8,7 @@ use bytes::Buf;
 use bytes::BytesMut;
 use flate2::read::ZlibDecoder;
 use futures::StreamExt;
+use futures_lite::future;
 use log::{log_enabled, trace};
 use std::backtrace::Backtrace;
 use std::{
@@ -204,6 +205,8 @@ pub fn compression_decoder(
 /// same frame, so we need to store the packet data that's left to read.
 ///
 /// The current protocol state must be passed as a generic.
+///
+/// For the non-waiting version, see [`try_read_packet`].
 pub async fn read_packet<'a, P: ProtocolPacket + Debug, R>(
     stream: &'a mut R,
     buffer: &mut BytesMut,
@@ -214,12 +217,10 @@ where
     R: AsyncRead + std::marker::Unpin + std::marker::Send + std::marker::Sync,
 {
     let mut framed = FramedRead::new(stream, BytesCodec::new());
-    let mut buf = loop {
-        if let Some(buf) = frame_splitter(buffer).map_err(ReadPacketError::from)? {
+    loop {
+        if let Some(buf) = try_process_buffer::<P, R>(buffer, compression_threshold)? {
             // we got a full packet!!
-            break buf;
-        } else {
-            // no full packet yet :( keep reading
+            return Ok(buf);
         };
 
         // if we were given a cipher, decrypt the packet
@@ -234,6 +235,58 @@ where
         } else {
             return Err(Box::new(ReadPacketError::ConnectionClosed));
         };
+    }
+}
+
+/// Try to read a single packet from a stream. Returns None if we haven't
+/// received a full packet yet.
+pub fn try_read_packet<P: ProtocolPacket + Debug, R>(
+    stream: &mut R,
+    buffer: &mut BytesMut,
+    compression_threshold: Option<u32>,
+    cipher: &mut Option<Aes128CfbDec>,
+) -> Result<Option<P>, Box<ReadPacketError>>
+where
+    R: AsyncRead + std::marker::Unpin + std::marker::Send + std::marker::Sync,
+{
+    let mut framed = FramedRead::new(stream, BytesCodec::new());
+    loop {
+        if let Some(buf) = try_process_buffer::<P, R>(buffer, compression_threshold)? {
+            // we got a full packet!!
+            return Ok(Some(buf));
+        };
+
+        // if we were given a cipher, decrypt the packet
+        if let Some(message) = future::block_on(future::poll_once(framed.next())) {
+            if let Some(message) = message {
+                let mut bytes = message.map_err(ReadPacketError::from)?;
+
+                if let Some(cipher) = cipher {
+                    azalea_crypto::decrypt_packet(cipher, &mut bytes);
+                }
+
+                buffer.extend_from_slice(&bytes);
+            } else {
+                return Err(Box::new(ReadPacketError::ConnectionClosed));
+            }
+        } else {
+            return Ok(None);
+        };
+    }
+}
+
+/// Try to get a Minecraft packet from a buffer. Returns None if the packet
+/// isn't complete yet.
+pub fn try_process_buffer<P: ProtocolPacket + Debug, R>(
+    buffer: &mut BytesMut,
+    compression_threshold: Option<u32>,
+) -> Result<Option<P>, Box<ReadPacketError>>
+where
+    R: AsyncRead + std::marker::Unpin + std::marker::Send + std::marker::Sync,
+{
+    let Some(mut buf) = frame_splitter(buffer).map_err(ReadPacketError::from)? else {
+        // no full packet yet :(
+        return Ok(None);
     };
 
     if let Some(compression_threshold) = compression_threshold {
@@ -255,5 +308,5 @@ where
 
     let packet = packet_decoder(&mut Cursor::new(&buf[..]))?;
 
-    Ok(packet)
+    Ok(Some(packet))
 }

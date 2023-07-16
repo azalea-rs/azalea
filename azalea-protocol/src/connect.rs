@@ -6,7 +6,7 @@ use crate::packets::login::clientbound_hello_packet::ClientboundHelloPacket;
 use crate::packets::login::{ClientboundLoginPacket, ServerboundLoginPacket};
 use crate::packets::status::{ClientboundStatusPacket, ServerboundStatusPacket};
 use crate::packets::ProtocolPacket;
-use crate::read::{read_packet, ReadPacketError};
+use crate::read::{read_packet, try_read_packet, ReadPacketError};
 use crate::write::write_packet;
 use azalea_auth::game_profile::GameProfile;
 use azalea_auth::sessionserver::{ClientSessionServerError, ServerSessionServerError};
@@ -140,6 +140,17 @@ where
         )
         .await
     }
+
+    /// Try to read a packet from the stream, or return Ok(None) if there's no
+    /// packet.
+    pub fn try_read(&mut self) -> Result<Option<R>, Box<ReadPacketError>> {
+        try_read_packet::<R, _>(
+            &mut self.read_stream,
+            &mut self.buffer,
+            self.compression_threshold,
+            &mut self.dec_cipher,
+        )
+    }
 }
 impl<W> WriteConnection<W>
 where
@@ -181,6 +192,12 @@ where
     /// Read a packet from the other side of the connection.
     pub async fn read(&mut self) -> Result<R, Box<ReadPacketError>> {
         self.reader.read().await
+    }
+
+    /// Try to read a packet from the other side of the connection, or return
+    /// Ok(None) if there's no packet to read.
+    pub fn try_read(&mut self) -> Result<Option<R>, Box<ReadPacketError>> {
+        self.reader.try_read()
     }
 
     /// Write a packet to the other side of the connection.
