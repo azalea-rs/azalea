@@ -183,9 +183,9 @@ impl Instance {
 
 impl Debug for PartialInstance {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("World")
-            .field("chunk_storage", &self.chunks)
-            .field("entity_storage", &self.entity_infos)
+        f.debug_struct("PartialInstance")
+            .field("chunks", &self.chunks)
+            .field("entity_infos", &self.entity_infos)
             .finish()
     }
 }

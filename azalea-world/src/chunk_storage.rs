@@ -96,7 +96,7 @@ impl PartialChunkStorage {
         &self,
         pos: &BlockPos,
         state: BlockState,
-        chunk_storage: &mut ChunkStorage,
+        chunk_storage: &ChunkStorage,
     ) -> Option<BlockState> {
         if pos.y < chunk_storage.min_y
             || pos.y >= (chunk_storage.min_y + chunk_storage.height as i32)
