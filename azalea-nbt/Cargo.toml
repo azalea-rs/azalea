@@ -15,7 +15,6 @@ compact_str = { version = "0.7.1", features = ["serde"] }
 enum-as-inner = "0.6.0"
 flate2 = "^1.0.26"
 log = "0.4.19"
-packed_simd_2 = "0.3.8"
 serde = { version = "^1.0", features = ["derive"], optional = true }
 
 [dev-dependencies]
