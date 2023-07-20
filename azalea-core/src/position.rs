@@ -234,7 +234,7 @@ impl ChunkBlockPos {
 
 /// The coordinates of a block inside a chunk section. Each coordinate must be
 /// in the range [0, 15].
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct ChunkSectionBlockPos {
     pub x: u8,
     pub y: u8,
