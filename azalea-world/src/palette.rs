@@ -4,7 +4,7 @@ use std::io::{Cursor, Write};
 use crate::BitStorage;
 
 #[derive(Clone, Debug, Copy)]
-pub enum PalettedContainerType {
+pub enum PalettedContainerKind {
     Biomes,
     BlockStates,
 }
@@ -20,26 +20,26 @@ pub struct PalettedContainer {
     pub palette: Palette,
     /// Compacted list of indices pointing to entry IDs in the Palette.
     pub storage: BitStorage,
-    pub container_type: PalettedContainerType,
+    pub container_type: PalettedContainerKind,
 }
 
 impl PalettedContainer {
-    pub fn new(container_type: &'static PalettedContainerType) -> Result<Self, String> {
+    pub fn new(container_type: PalettedContainerKind) -> Self {
         let palette = Palette::SingleValue(0);
         let size = container_type.size();
         let storage = BitStorage::new(0, size, Some(vec![])).unwrap();
 
-        Ok(PalettedContainer {
+        PalettedContainer {
             bits_per_entry: 0,
             palette,
             storage,
-            container_type: *container_type,
-        })
+            container_type,
+        }
     }
 
     pub fn read_with_type(
         buf: &mut Cursor<&[u8]>,
-        container_type: &'static PalettedContainerType,
+        container_type: &'static PalettedContainerKind,
     ) -> Result<Self, BufReadError> {
         let bits_per_entry = u8::read_from(buf)?;
         let palette_type = PaletteKind::from_bits_and_type(bits_per_entry, container_type);
@@ -260,15 +260,15 @@ impl McBufWritable for Palette {
 }
 
 impl PaletteKind {
-    pub fn from_bits_and_type(bits_per_entry: u8, container_type: &PalettedContainerType) -> Self {
+    pub fn from_bits_and_type(bits_per_entry: u8, container_type: &PalettedContainerKind) -> Self {
         match container_type {
-            PalettedContainerType::BlockStates => match bits_per_entry {
+            PalettedContainerKind::BlockStates => match bits_per_entry {
                 0 => PaletteKind::SingleValue,
                 1..=4 => PaletteKind::Linear,
                 5..=8 => PaletteKind::Hashmap,
                 _ => PaletteKind::Global,
             },
-            PalettedContainerType::Biomes => match bits_per_entry {
+            PalettedContainerKind::Biomes => match bits_per_entry {
                 0 => PaletteKind::SingleValue,
                 1..=3 => PaletteKind::Linear,
                 _ => PaletteKind::Global,
@@ -306,11 +306,11 @@ impl From<&Palette> for PaletteKind {
     }
 }
 
-impl PalettedContainerType {
+impl PalettedContainerKind {
     fn size_bits(&self) -> usize {
         match self {
-            PalettedContainerType::BlockStates => 4,
-            PalettedContainerType::Biomes => 2,
+            PalettedContainerKind::BlockStates => 4,
+            PalettedContainerKind::Biomes => 2,
         }
     }
 
@@ -325,8 +325,7 @@ mod tests {
 
     #[test]
     fn test_resize_0_bits_to_1() {
-        let mut palette_container =
-            PalettedContainer::new(&PalettedContainerType::BlockStates).unwrap();
+        let mut palette_container = PalettedContainer::new(PalettedContainerKind::BlockStates);
 
         assert_eq!(palette_container.bits_per_entry, 0);
         assert_eq!(palette_container.get_at_index(0), 0);
@@ -344,8 +343,7 @@ mod tests {
 
     #[test]
     fn test_resize_0_bits_to_5() {
-        let mut palette_container =
-            PalettedContainer::new(&PalettedContainerType::BlockStates).unwrap();
+        let mut palette_container = PalettedContainer::new(PalettedContainerKind::BlockStates);
 
         palette_container.set_at_index(0, 0); // 0 bits
         assert_eq!(palette_container.bits_per_entry, 0);
@@ -380,8 +378,7 @@ mod tests {
 
     #[test]
     fn test_coords_from_index() {
-        let palette_container =
-            PalettedContainer::new(&PalettedContainerType::BlockStates).unwrap();
+        let palette_container = PalettedContainer::new(PalettedContainerKind::BlockStates);
 
         for x in 0..15 {
             for y in 0..15 {

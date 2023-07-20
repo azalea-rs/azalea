@@ -1,5 +1,5 @@
 use crate::palette::PalettedContainer;
-use crate::palette::PalettedContainerType;
+use crate::palette::PalettedContainerKind;
 use azalea_block::BlockState;
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 use azalea_core::{BlockPos, ChunkBlockPos, ChunkPos, ChunkSectionBlockPos};
@@ -57,8 +57,8 @@ impl Default for Section {
     fn default() -> Self {
         Section {
             block_count: 0,
-            states: PalettedContainer::new(&PalettedContainerType::BlockStates).unwrap(),
-            biomes: PalettedContainer::new(&PalettedContainerType::Biomes).unwrap(),
+            states: PalettedContainer::new(PalettedContainerKind::BlockStates),
+            biomes: PalettedContainer::new(PalettedContainerKind::Biomes),
         }
     }
 }
@@ -306,7 +306,7 @@ impl McBufReadable for Section {
         //     "A section has more blocks than what should be possible. This is a bug!"
         // );
 
-        let states = PalettedContainer::read_with_type(buf, &PalettedContainerType::BlockStates)?;
+        let states = PalettedContainer::read_with_type(buf, &PalettedContainerKind::BlockStates)?;
 
         for i in 0..states.storage.size() {
             if !BlockState::is_valid_state(states.storage.get(i) as u32) {
@@ -318,7 +318,7 @@ impl McBufReadable for Section {
             }
         }
 
-        let biomes = PalettedContainer::read_with_type(buf, &PalettedContainerType::Biomes)?;
+        let biomes = PalettedContainer::read_with_type(buf, &PalettedContainerKind::Biomes)?;
         Ok(Section {
             block_count,
             states,
