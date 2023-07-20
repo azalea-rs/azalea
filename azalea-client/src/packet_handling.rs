@@ -875,7 +875,7 @@ fn process_packet_events(ecs: &mut World) {
                 for state in &p.states {
                     world
                         .chunks
-                        .set_block_state(&(p.section_pos + state.pos.clone()), state.state);
+                        .set_block_state(&(p.section_pos + state.pos), state.state);
                 }
             }
             ClientboundGamePacket::GameEvent(p) => {
