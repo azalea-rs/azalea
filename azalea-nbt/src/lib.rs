@@ -7,7 +7,7 @@ mod error;
 mod tag;
 
 pub use error::Error;
-pub use tag::{Nbt, NbtCompound, NbtList};
+pub use tag::*;
 
 #[cfg(test)]
 mod tests {
