@@ -59,6 +59,10 @@ pub struct AbstractLivingUsingItem(pub bool);
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct Health(pub f32);
 #[derive(Component, Deref, DerefMut, Clone)]
+pub struct Food(pub u32);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct Saturation(pub f32);
+#[derive(Component, Deref, DerefMut, Clone)]
 pub struct AbstractLivingEffectColor(pub i32);
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct EffectAmbience(pub bool);
@@ -6064,6 +6068,8 @@ impl Player {
 pub struct PlayerMetadataBundle {
     _marker: Player,
     parent: AbstractLivingMetadataBundle,
+    food: Food,
+    saturation: Saturation,
     player_absorption: PlayerAbsorption,
     score: Score,
     player_mode_customisation: PlayerModeCustomisation,
@@ -6103,6 +6109,8 @@ impl Default for PlayerMetadataBundle {
                 stinger_count: StingerCount(0),
                 sleeping_pos: SleepingPos(None),
             },
+            food: Food(0),
+            saturation: Saturation(0.0),
             player_absorption: PlayerAbsorption(0.0),
             score: Score(0),
             player_mode_customisation: PlayerModeCustomisation(0),

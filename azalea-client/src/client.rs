@@ -21,7 +21,7 @@ use crate::{
 use azalea_auth::{game_profile::GameProfile, sessionserver::ClientSessionServerError};
 use azalea_chat::FormattedText;
 use azalea_core::Vec3;
-use azalea_entity::{metadata::Health, EntityPlugin, EntityUpdateSet, EyeHeight, Local, Position};
+use azalea_entity::{metadata::{Health, Food, Saturation}, EntityPlugin, EntityUpdateSet, EyeHeight, Local, Position};
 use azalea_physics::{PhysicsPlugin, PhysicsSet};
 use azalea_protocol::{
     connect::{Connection, ConnectionError},
@@ -564,6 +564,20 @@ impl Client {
     /// This is a shortcut for `*bot.component::<Health>()`.
     pub fn health(&self) -> f32 {
         *self.component::<Health>()
+    }
+
+    /// Get the food level of this client.
+    ///
+    /// This is a shortcut for `*bot.component::<Food>()`.
+    pub fn food(&self) -> u32 {
+        *self.component::<Food>()
+    }
+
+    /// Get the saturation level of this client.
+    ///
+    /// This is a shortcut for `*bot.component::<Saturation>()`.
+    pub fn saturation(&self) -> f32 {
+        *self.component::<Saturation>()
     }
 }
 
