@@ -19,7 +19,7 @@ pub struct InstanceContainer {
     // cases where we'd want to get every entity in the world (just getting the entities in chunks
     // should work fine).
 
-    // Entities are garbage collected (by manual reference counting in EntityInfos) so we don't
+    // Entities are garbage collected (by manual reference counting in EntityUuidIndex) so we don't
     // need to worry about them here.
 
     // If it looks like we're relying on the server giving us unique world names, that's because we

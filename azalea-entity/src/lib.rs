@@ -5,32 +5,23 @@ mod data;
 mod dimensions;
 mod effects;
 mod enchantments;
-mod info;
 pub mod metadata;
 pub mod mining;
-mod systems;
+mod plugin;
 
-use self::{attributes::AttributeInstance, metadata::Health};
+use self::attributes::AttributeInstance;
 pub use attributes::Attributes;
 use azalea_block::BlockState;
 use azalea_core::{BlockPos, ChunkPos, ResourceLocation, Vec3, AABB};
 use azalea_world::{ChunkStorage, InstanceName};
-use bevy_ecs::{
-    bundle::Bundle,
-    component::Component,
-    entity::Entity,
-    query::Changed,
-    system::{Commands, Query},
-};
+use bevy_ecs::{bundle::Bundle, component::Component};
 pub use data::*;
 use derive_more::{Deref, DerefMut};
-pub use dimensions::{update_bounding_box, EntityDimensions};
-pub use info::{
-    clamp_look_direction, EntityInfos, EntityPlugin, EntityUpdateSet, LoadedBy,
-    RelativeEntityUpdate,
-};
+pub use dimensions::EntityDimensions;
 use std::fmt::Debug;
 use uuid::Uuid;
+
+pub use crate::plugin::*;
 
 pub fn move_relative(
     physics: &mut Physics,
@@ -233,21 +224,6 @@ pub struct Physics {
 /// "Dead" means that the entity has 0 health.
 #[derive(Component, Copy, Clone, Default)]
 pub struct Dead;
-
-/// System that adds the [`Dead`] marker component if an entity's health is set
-/// to 0 (or less than 0). This will be present if an entity is doing the death
-/// animation.
-///
-/// Entities that are dead can not be revived.
-/// TODO: fact check this in-game by setting an entity's health to 0 and then
-/// not 0
-pub fn add_dead(mut commands: Commands, query: Query<(Entity, &Health), Changed<Health>>) {
-    for (entity, health) in query.iter() {
-        if **health <= 0.0 {
-            commands.entity(entity).insert(Dead);
-        }
-    }
-}
 
 /// A component that contains the offset of the entity's eyes from the entity
 /// coordinates.

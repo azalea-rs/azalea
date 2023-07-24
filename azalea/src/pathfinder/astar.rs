@@ -106,6 +106,6 @@ impl<W: PartialOrd + Debug> Ord for Weight<W> {
 impl<W: PartialOrd + Debug> Eq for Weight<W> {}
 impl<W: PartialOrd + Debug> PartialOrd for Weight<W> {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        self.0.partial_cmp(&other.0)
+        Some(self.cmp(other))
     }
 }

@@ -6,10 +6,9 @@ pub mod collision;
 
 use azalea_block::{Block, BlockState};
 use azalea_core::{BlockPos, Vec3};
-use azalea_entity::update_bounding_box;
 use azalea_entity::{
-    clamp_look_direction, metadata::Sprinting, move_relative, Attributes, Jumping, Local,
-    LookDirection, Physics, Position,
+    metadata::Sprinting, move_relative, Attributes, Jumping, Local, LookDirection, Physics,
+    Position,
 };
 use azalea_world::{Instance, InstanceContainer, InstanceName};
 use bevy_app::{App, FixedUpdate, Plugin, Update};
@@ -34,8 +33,8 @@ impl Plugin for PhysicsPlugin {
             .add_systems(
                 Update,
                 force_jump_listener
-                    .before(update_bounding_box)
-                    .after(clamp_look_direction),
+                    .before(azalea_entity::update_bounding_box)
+                    .after(azalea_entity::clamp_look_direction),
             )
             .add_systems(FixedUpdate, (ai_step, travel).chain().in_set(PhysicsSet));
     }

@@ -1,9 +1,51 @@
-use azalea_core::{BlockPos, Vec3};
-use azalea_world::{InstanceContainer, InstanceName, MinecraftEntityId};
-use bevy_ecs::prelude::*;
-use log::{debug, error, info};
+//! Stuff related to entity indexes and keeping track of entities in the world.
 
-use crate::{EntityInfos, EntityUuid, EyeHeight, FluidOnEyes, LoadedBy, Local, Position};
+use azalea_core::ChunkPos;
+use azalea_world::{InstanceContainer, InstanceName, MinecraftEntityId};
+use bevy_ecs::{
+    entity::Entity,
+    query::{Changed, With, Without},
+    system::{Commands, Query, Res, ResMut, Resource},
+};
+use log::{debug, error, info, warn};
+use std::{collections::HashMap, fmt::Debug};
+use uuid::Uuid;
+
+use crate::{EntityUuid, LastSentPosition, Local, Position};
+
+use super::LoadedBy;
+
+#[derive(Resource, Default)]
+pub struct EntityUuidIndex {
+    /// An index of entities by their UUIDs
+    entity_by_uuid: HashMap<Uuid, Entity>,
+}
+
+impl EntityUuidIndex {
+    pub fn new() -> Self {
+        Self {
+            entity_by_uuid: HashMap::default(),
+        }
+    }
+
+    pub fn get(&self, uuid: &Uuid) -> Option<Entity> {
+        self.entity_by_uuid.get(uuid).copied()
+    }
+
+    pub fn contains_key(&self, uuid: &Uuid) -> bool {
+        self.entity_by_uuid.contains_key(uuid)
+    }
+
+    pub fn insert(&mut self, uuid: Uuid, entity: Entity) {
+        self.entity_by_uuid.insert(uuid, entity);
+    }
+}
+
+impl Debug for EntityUuidIndex {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("EntityUuidIndex").finish()
+    }
+}
 
 /// Remove new entities that have the same id as an existing entity, and
 /// increase the reference counts.
@@ -89,7 +131,7 @@ pub fn deduplicate_local_entities(
 }
 
 pub fn update_uuid_index(
-    mut entity_infos: ResMut<EntityInfos>,
+    mut entity_infos: ResMut<EntityUuidIndex>,
     query: Query<(Entity, &EntityUuid, Option<&Local>), Changed<EntityUuid>>,
 ) {
     for (entity, &uuid, local) in query.iter() {
@@ -107,29 +149,6 @@ pub fn update_uuid_index(
         entity_infos.entity_by_uuid.insert(*uuid, entity);
     }
 }
-
-// /// Clear all entities in a chunk. This will not clear them from the
-// /// shared storage unless there are no other references to them.
-// pub fn clear_entities_in_chunk(
-//     mut commands: Commands,
-//     partial_entity_infos: &mut PartialEntityInfos,
-//     chunk: &ChunkPos,
-//     instance_container: &WorldContainer,
-//     world_name: &InstanceName,
-//     mut query: Query<(&MinecraftEntityId, &mut ReferenceCount)>,
-// ) { let world_lock = instance_container.get(world_name).unwrap(); let world =
-//   world_lock.read();
-
-//     if let Some(entities) = world.entities_by_chunk.get(chunk).cloned() {
-//         for &entity in &entities {
-//             let (id, mut reference_count) = query.get_mut(entity).unwrap();
-//             if partial_entity_infos.loaded_entity_ids.remove(id) {
-//                 // decrease the reference count
-//                 **reference_count -= 1;
-//             }
-//         }
-//     }
-// }
 
 /// System to keep the entity_by_id index up-to-date.
 pub fn update_entity_by_id_index(
@@ -156,26 +175,69 @@ pub fn update_entity_by_id_index(
     }
 }
 
-pub fn update_fluid_on_eyes(
-    mut query: Query<(&mut FluidOnEyes, &Position, &EyeHeight, &InstanceName)>,
+/// Update the chunk position indexes in [`EntityUuidIndex`].
+pub fn update_entity_chunk_positions(
+    mut query: Query<(Entity, &Position, &mut LastSentPosition, &InstanceName), Changed<Position>>,
     instance_container: Res<InstanceContainer>,
 ) {
-    for (mut fluid_on_eyes, position, eye_height, instance_name) in query.iter_mut() {
-        let Some(instance) = instance_container.get(instance_name) else {
-            continue;
-        };
+    for (entity, pos, last_pos, world_name) in query.iter_mut() {
+        let world_lock = instance_container.get(world_name).unwrap();
+        let mut world = world_lock.write();
 
-        let adjusted_eye_y = position.y + (**eye_height as f64) - 0.1111111119389534;
-        let eye_block_pos = BlockPos::from(Vec3::new(position.x, adjusted_eye_y, position.z));
-        let fluid_at_eye = instance
-            .read()
-            .get_fluid_state(&eye_block_pos)
-            .unwrap_or_default();
-        let fluid_cutoff_y = eye_block_pos.y as f64 + (fluid_at_eye.height as f64 / 16f64);
-        if fluid_cutoff_y > adjusted_eye_y {
-            **fluid_on_eyes = fluid_at_eye.fluid;
-        } else {
-            **fluid_on_eyes = azalea_registry::Fluid::Empty;
+        let old_chunk = ChunkPos::from(*last_pos);
+        let new_chunk = ChunkPos::from(*pos);
+
+        if old_chunk != new_chunk {
+            // move the entity from the old chunk to the new one
+            if let Some(entities) = world.entities_by_chunk.get_mut(&old_chunk) {
+                entities.remove(&entity);
+            }
+            world
+                .entities_by_chunk
+                .entry(new_chunk)
+                .or_default()
+                .insert(entity);
         }
+    }
+}
+
+/// Despawn entities that aren't being loaded by anything.
+pub fn remove_despawned_entities_from_indexes(
+    mut commands: Commands,
+    mut entity_infos: ResMut<EntityUuidIndex>,
+    instance_container: Res<InstanceContainer>,
+    query: Query<(Entity, &EntityUuid, &Position, &InstanceName, &LoadedBy), Changed<LoadedBy>>,
+) {
+    for (entity, uuid, position, world_name, loaded_by) in &query {
+        let world_lock = instance_container.get(world_name).unwrap();
+        let mut world = world_lock.write();
+
+        // if the entity has no references left, despawn it
+        if !loaded_by.is_empty() {
+            continue;
+        }
+
+        // remove the entity from the chunk index
+        let chunk = ChunkPos::from(*position);
+        if let Some(entities_in_chunk) = world.entities_by_chunk.get_mut(&chunk) {
+            if entities_in_chunk.remove(&entity) {
+                // remove the chunk if there's no entities in it anymore
+                if entities_in_chunk.is_empty() {
+                    world.entities_by_chunk.remove(&chunk);
+                }
+            } else {
+                warn!("Tried to remove entity from chunk {chunk:?} but the entity was not there.");
+            }
+        } else {
+            warn!("Tried to remove entity from chunk {chunk:?} but the chunk was not found.");
+        }
+        // remove it from the uuid index
+        if entity_infos.entity_by_uuid.remove(uuid).is_none() {
+            warn!("Tried to remove entity {entity:?} from the uuid index but it was not there.");
+        }
+        // and now remove the entity from the ecs
+        commands.entity(entity).despawn();
+        debug!("Despawned entity {entity:?} because it was not loaded by anything.");
+        return;
     }
 }

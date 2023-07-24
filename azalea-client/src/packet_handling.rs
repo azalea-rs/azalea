@@ -2,9 +2,10 @@ use std::{collections::HashSet, io::Cursor, sync::Arc};
 
 use azalea_core::{ChunkPos, GameMode, ResourceLocation, Vec3};
 use azalea_entity::{
+    indexing::EntityUuidIndex,
     metadata::{apply_metadata, Health, PlayerMetadataBundle},
-    Dead, EntityBundle, EntityInfos, EntityKind, EntityUpdateSet, LastSentPosition, LoadedBy,
-    LookDirection, Physics, PlayerBundle, Position, RelativeEntityUpdate,
+    Dead, EntityBundle, EntityKind, EntityUpdateSet, LastSentPosition, LoadedBy, LookDirection,
+    Physics, PlayerBundle, Position, RelativeEntityUpdate,
 };
 use azalea_protocol::{
     connect::{ReadConnection, WriteConnection},
@@ -579,9 +580,9 @@ fn process_packet_events(ecs: &mut World) {
                     Commands,
                     Query<Option<&InstanceName>>,
                     Res<InstanceContainer>,
-                    ResMut<EntityInfos>,
+                    ResMut<EntityUuidIndex>,
                 )> = SystemState::new(ecs);
-                let (mut commands, mut query, instance_container, mut entity_infos) =
+                let (mut commands, mut query, instance_container, mut entity_uuid_index) =
                     system_state.get_mut(ecs);
                 let instance_name = query.get_mut(player_entity).unwrap();
 
@@ -601,9 +602,7 @@ fn process_packet_events(ecs: &mut World) {
                             .write()
                             .entity_by_id
                             .insert(MinecraftEntityId(p.id), entity_commands.id());
-                        entity_infos
-                            .entity_by_uuid
-                            .insert(p.uuid, entity_commands.id());
+                        entity_uuid_index.insert(p.uuid, entity_commands.id());
                     }
 
                     // the bundle doesn't include the default entity metadata so we add that

@@ -1,7 +1,7 @@
 use azalea_auth::game_profile::GameProfile;
 use azalea_chat::FormattedText;
 use azalea_core::GameMode;
-use azalea_entity::EntityInfos;
+use azalea_entity::indexing::EntityUuidIndex;
 use bevy_ecs::{
     event::EventReader,
     system::{Commands, Res},
@@ -35,10 +35,10 @@ pub struct PlayerInfo {
 pub fn retroactively_add_game_profile_component(
     mut commands: Commands,
     mut events: EventReader<AddPlayerEvent>,
-    entity_infos: Res<EntityInfos>,
+    entity_uuid_index: Res<EntityUuidIndex>,
 ) {
     for event in events.iter() {
-        if let Some(entity) = entity_infos.get_entity_by_uuid(&event.info.uuid) {
+        if let Some(entity) = entity_uuid_index.get(&event.info.uuid) {
             commands
                 .entity(entity)
                 .insert(GameProfileComponent(event.info.profile.clone()));
