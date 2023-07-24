@@ -1,5 +1,6 @@
 use std::{collections::HashSet, io::Cursor, sync::Arc};
 
+use azalea_buf::McBufWritable;
 use azalea_core::{ChunkPos, GameMode, ResourceLocation, Vec3};
 use azalea_entity::{
     indexing::EntityUuidIndex,
@@ -289,11 +290,13 @@ fn process_packet_events(ecs: &mut World) {
                 local_player.write_packet(client_information.clone().get());
 
                 // brand
+                let mut brand_data = Vec::new();
+                "vanilla".to_string().write_into(&mut brand_data).unwrap();
                 local_player.write_packet(
                     ServerboundCustomPayloadPacket {
                         identifier: ResourceLocation::new("brand"),
                         // they don't have to know :)
-                        data: "vanilla".into(),
+                        data: brand_data.into(),
                     }
                     .get(),
                 );
