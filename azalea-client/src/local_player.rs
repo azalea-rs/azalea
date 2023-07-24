@@ -105,7 +105,9 @@ impl LocalPlayer {
 
             world,
             partial_instance: Arc::new(RwLock::new(PartialInstance::new(
-                client_information.view_distance.into(),
+                azalea_world::calculate_chunk_storage_range(
+                    client_information.view_distance.into(),
+                ),
                 Some(entity),
             ))),
 

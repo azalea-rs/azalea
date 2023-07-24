@@ -188,7 +188,7 @@ pub fn send_packet_events(
     }
 }
 
-fn process_packet_events(ecs: &mut World) {
+pub fn process_packet_events(ecs: &mut World) {
     let mut events_owned = Vec::new();
     let mut system_state: SystemState<EventReader<PacketEvent>> = SystemState::new(ecs);
     let mut events = system_state.get_mut(ecs);
@@ -254,7 +254,9 @@ fn process_packet_events(ecs: &mut World) {
                     // instance_container)
 
                     *local_player.partial_instance.write() = PartialInstance::new(
-                        client_information.view_distance.into(),
+                        azalea_world::calculate_chunk_storage_range(
+                            client_information.view_distance.into(),
+                        ),
                         // this argument makes it so other clients don't update this
                         // player entity
                         // in a shared world
@@ -282,24 +284,24 @@ fn process_packet_events(ecs: &mut World) {
                     ));
                 }
 
+                // brand
+                let mut brand_data = Vec::new();
+                // they don't have to know :)
+                "vanilla".write_into(&mut brand_data).unwrap();
+                local_player.write_packet(
+                    ServerboundCustomPayloadPacket {
+                        identifier: ResourceLocation::new("brand"),
+                        data: brand_data.into(),
+                    }
+                    .get(),
+                );
+
                 // send the client information that we have set
                 log::debug!(
                     "Sending client information because login: {:?}",
                     client_information
                 );
                 local_player.write_packet(client_information.clone().get());
-
-                // brand
-                let mut brand_data = Vec::new();
-                "vanilla".to_string().write_into(&mut brand_data).unwrap();
-                local_player.write_packet(
-                    ServerboundCustomPayloadPacket {
-                        identifier: ResourceLocation::new("brand"),
-                        // they don't have to know :)
-                        data: brand_data.into(),
-                    }
-                    .get(),
-                );
 
                 system_state.apply(ecs);
             }

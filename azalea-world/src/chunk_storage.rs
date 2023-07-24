@@ -53,6 +53,12 @@ pub struct Section {
     pub biomes: PalettedContainer,
 }
 
+/// Get the actual stored view distance for the selected view distance. For some
+/// reason Minecraft actually stores an extra 3 chunks.
+pub fn calculate_chunk_storage_range(view_distance: u32) -> u32 {
+    u32::max(view_distance, 2) + 3
+}
+
 impl Default for Section {
     fn default() -> Self {
         Section {

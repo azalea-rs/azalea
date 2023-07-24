@@ -71,8 +71,7 @@ async fn main() -> anyhow::Result<()> {
 async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<()> {
     match event {
         Event::Init => {
-            println!("bot init");
-            // bot.set_client_information(ClientInformation {
+            // bot.set_client_information(azalea_client::ClientInformation {
             //     view_distance: 2,
             //     ..Default::default()
             // })

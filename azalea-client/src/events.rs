@@ -7,11 +7,12 @@ use azalea_protocol::packets::game::{
     clientbound_player_combat_kill_packet::ClientboundPlayerCombatKillPacket, ClientboundGamePacket,
 };
 use azalea_world::{InstanceName, MinecraftEntityId};
-use bevy_app::{App, FixedUpdate, Plugin, Update};
+use bevy_app::{App, FixedUpdate, Plugin, PreUpdate, Update};
 use bevy_ecs::{
     component::Component,
     event::EventReader,
     query::{Added, With},
+    schedule::IntoSystemConfigs,
     system::Query,
 };
 use derive_more::{Deref, DerefMut};
@@ -110,7 +111,6 @@ impl Plugin for EventPlugin {
             (
                 chat_listener,
                 login_listener,
-                init_listener,
                 packet_listener,
                 add_player_listener,
                 update_player_listener,
@@ -118,6 +118,10 @@ impl Plugin for EventPlugin {
                 death_listener,
                 keepalive_listener,
             ),
+        )
+        .add_systems(
+            PreUpdate,
+            init_listener.before(crate::packet_handling::process_packet_events),
         )
         .add_systems(FixedUpdate, tick_listener);
     }
