@@ -147,7 +147,11 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
             ///
             /// The indexes in this will match up with [`Menu::slot_mut`].
             ///
-            /// If you don't want to include the player's inventory, use [`Menu::contents`] instead.
+            /// If you don't want to include the player's inventory, use [`Menu::contents`]
+            /// instead.
+            ///
+            /// If you *only* want to include the players inventory, then you can filter by only
+            /// using the slots in [`Self::player_slots_range`].
             pub fn slots(&self) -> Vec<ItemSlot> {
                 match self {
                     #slots_match_variants

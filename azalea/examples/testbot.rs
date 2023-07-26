@@ -99,7 +99,7 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
             //     .find(|e| e.name() == Some(sender));
             // let entity = bot.entity_by::<With<Player>>(|name: &Name| name == sender);
             let entity = bot.entity_by::<With<Player>, (&GameProfileComponent,)>(
-                |profile: &&GameProfileComponent| {
+                |(profile,): &(&GameProfileComponent,)| {
                     println!("entity {profile:?}");
                     profile.name == sender
                 },
