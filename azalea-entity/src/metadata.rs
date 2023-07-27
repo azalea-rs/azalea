@@ -15,6 +15,9 @@ use derive_more::{Deref, DerefMut};
 use thiserror::Error;
 use uuid::Uuid;
 
+mod metadata_extra;
+pub use metadata_extra::*;
+
 #[derive(Error, Debug)]
 pub enum UpdateMetadataError {
     #[error("Wrong type ({0:?})")]
@@ -58,10 +61,6 @@ pub struct AutoSpinAttack(pub bool);
 pub struct AbstractLivingUsingItem(pub bool);
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct Health(pub f32);
-#[derive(Component, Deref, DerefMut, Clone)]
-pub struct Food(pub u32);
-#[derive(Component, Deref, DerefMut, Clone)]
-pub struct Saturation(pub f32);
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct AbstractLivingEffectColor(pub i32);
 #[derive(Component, Deref, DerefMut, Clone)]
