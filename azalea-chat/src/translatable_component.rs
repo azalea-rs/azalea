@@ -58,7 +58,7 @@ impl TranslatableComponent {
         while i < template.chars().count() {
             if template.chars().nth(i).unwrap() == '%' {
                 let Some(char_after) = template.chars().nth(i + 1) else {
-                    built_text.push(template.chars().nth(i).unwrap());
+                    built_text.push('%');
                     break;
                 };
                 i += 1;
@@ -161,7 +161,6 @@ impl From<StringOrComponent> for TextComponent {
     }
 }
 
-// tests
 #[cfg(test)]
 mod tests {
     use super::*;

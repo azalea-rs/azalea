@@ -43,7 +43,7 @@ impl Client {
     ///
     /// # fn example(mut bot: Client, sender_name: String) {
     /// let entity = bot.entity_by::<With<Player>, (&GameProfileComponent,)>(
-    ///     |profile: &&GameProfileComponent| profile.name == sender_name,
+    ///     |(profile,): &(&GameProfileComponent,)| profile.name == sender_name,
     /// );
     /// if let Some(entity) = entity {
     ///     let position = bot.entity_component::<Position>(entity);
@@ -76,7 +76,7 @@ impl Client {
 pub trait EntityPredicate<Q: ReadOnlyWorldQuery, Filter: ReadOnlyWorldQuery> {
     fn find(&self, ecs_lock: Arc<Mutex<World>>) -> Option<Entity>;
 }
-impl<F, Q, Filter> EntityPredicate<(Q,), Filter> for F
+impl<F, Q, Filter> EntityPredicate<Q, Filter> for F
 where
     F: Fn(&ROQueryItem<Q>) -> bool,
     Q: ReadOnlyWorldQuery,
