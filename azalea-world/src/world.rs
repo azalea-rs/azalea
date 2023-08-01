@@ -187,7 +187,9 @@ impl Instance {
                         (chunk_pos.x - start_chunk.x).unsigned_abs(),
                         (chunk_pos.z - start_chunk.z).unsigned_abs(),
                     ),
-                    ((nearest_to.y - nearest_found_pos.y).unsigned_abs()).div_ceil(16),
+                    (nearest_to.y - nearest_found_pos.y)
+                        .unsigned_abs()
+                        .div_ceil(16),
                 );
                 let nearest_chunk_distance = iter.layer;
 
