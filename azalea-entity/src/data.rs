@@ -24,6 +24,12 @@ pub struct EntityDataItem {
     pub value: EntityDataValue,
 }
 
+impl EntityMetadataItems {
+    pub fn new(data: Vec<EntityDataItem>) -> Self {
+        EntityMetadataItems(data)
+    }
+}
+
 impl McBufReadable for EntityMetadataItems {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let mut metadata = Vec::new();

@@ -306,7 +306,7 @@ async fn swarm_handle(
                 for (name, world) in &swarm.instance_container.read().worlds {
                     println!("world name: {name}");
                     if let Some(w) = world.upgrade() {
-                        for chunk_pos in w.read().chunks.chunks.values() {
+                        for chunk_pos in w.read().chunks.map.values() {
                             println!("chunk: {chunk_pos:?}");
                         }
                     } else {

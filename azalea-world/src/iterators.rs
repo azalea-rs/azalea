@@ -181,7 +181,7 @@ pub struct ChunkIterator {
     pub max_distance: u32,
     pub start: ChunkPos,
     pub pos: ChunkPos,
-    pub layer: i32,
+    pub layer: u32,
     pub leg: i32,
 }
 impl ChunkIterator {
@@ -235,7 +235,7 @@ impl Iterator for ChunkIterator {
                     self.pos.x += 1;
                     self.leg = 0;
                     self.layer += 1;
-                    if self.layer == self.max_distance as i32 {
+                    if self.layer == self.max_distance {
                         return None;
                     }
                 }
