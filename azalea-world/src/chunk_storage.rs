@@ -33,7 +33,7 @@ pub struct PartialChunkStorage {
 pub struct ChunkStorage {
     pub height: u32,
     pub min_y: i32,
-    pub chunks: HashMap<ChunkPos, Weak<RwLock<Chunk>>>,
+    pub map: HashMap<ChunkPos, Weak<RwLock<Chunk>>>,
 }
 
 /// A single chunk in a world (16*?*16 blocks). This only contains the blocks
@@ -188,7 +188,7 @@ impl PartialChunkStorage {
         chunk_storage: &mut ChunkStorage,
     ) {
         if let Some(chunk) = &chunk {
-            chunk_storage.chunks.insert(*pos, Arc::downgrade(chunk));
+            chunk_storage.map.insert(*pos, Arc::downgrade(chunk));
         } else {
             // don't remove it from the shared storage, since it'll be removed
             // automatically if this was the last reference
@@ -203,12 +203,12 @@ impl ChunkStorage {
         ChunkStorage {
             height,
             min_y,
-            chunks: HashMap::new(),
+            map: HashMap::new(),
         }
     }
 
     pub fn get(&self, pos: &ChunkPos) -> Option<Arc<RwLock<Chunk>>> {
-        self.chunks.get(pos).and_then(|chunk| chunk.upgrade())
+        self.map.get(pos).and_then(|chunk| chunk.upgrade())
     }
 
     pub fn get_block_state(&self, pos: &BlockPos) -> Option<BlockState> {
