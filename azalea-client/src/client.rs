@@ -31,7 +31,7 @@ use azalea_protocol::{
             serverbound_client_information_packet::ServerboundClientInformationPacket,
             ClientboundGamePacket, ServerboundGamePacket,
         },
-        handshake::{
+        handshaking::{
             client_intention_packet::ClientIntentionPacket, ClientboundHandshakePacket,
             ServerboundHandshakePacket,
         },

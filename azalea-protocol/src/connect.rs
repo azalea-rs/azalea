@@ -1,7 +1,7 @@
 //! Connect to remote servers/clients.
 
 use crate::packets::game::{ClientboundGamePacket, ServerboundGamePacket};
-use crate::packets::handshake::{ClientboundHandshakePacket, ServerboundHandshakePacket};
+use crate::packets::handshaking::{ClientboundHandshakePacket, ServerboundHandshakePacket};
 use crate::packets::login::clientbound_hello_packet::ClientboundHelloPacket;
 use crate::packets::login::{ClientboundLoginPacket, ServerboundLoginPacket};
 use crate::packets::status::{ClientboundStatusPacket, ServerboundStatusPacket};
@@ -55,7 +55,7 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///             serverbound_hello_packet::ServerboundHelloPacket,
 ///             serverbound_key_packet::ServerboundKeyPacket
 ///         },
-///         handshake::client_intention_packet::ClientIntentionPacket
+///         handshaking::client_intention_packet::ClientIntentionPacket
 ///     }
 /// };
 ///

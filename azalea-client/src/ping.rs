@@ -3,7 +3,7 @@
 use azalea_protocol::{
     connect::{Connection, ConnectionError},
     packets::{
-        handshake::client_intention_packet::ClientIntentionPacket,
+        handshaking::client_intention_packet::ClientIntentionPacket,
         status::{
             clientbound_status_response_packet::ClientboundStatusResponsePacket,
             serverbound_status_request_packet::ServerboundStatusRequestPacket,
