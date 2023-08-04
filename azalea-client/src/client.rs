@@ -36,7 +36,7 @@ use azalea_protocol::{
             ServerboundHandshakePacket,
         },
         login::{
-            serverbound_custom_query_packet::ServerboundCustomQueryPacket,
+            serverbound_custom_query_answer_packet::ServerboundCustomQueryAnswerPacket,
             serverbound_hello_packet::ServerboundHelloPacket,
             serverbound_key_packet::ServerboundKeyPacket, ClientboundLoginPacket,
         },
@@ -347,7 +347,9 @@ impl Client {
         conn.write(
             ServerboundHelloPacket {
                 name: account.username.clone(),
-                profile_id: account.uuid,
+                // TODO: pretty sure this should generate an offline-mode uuid instead of just
+                // Uuid::default()
+                profile_id: account.uuid.unwrap_or_default(),
             }
             .get(),
         )
@@ -423,7 +425,7 @@ impl Client {
                 ClientboundLoginPacket::CustomQuery(p) => {
                     debug!("Got custom query {:?}", p);
                     conn.write(
-                        ServerboundCustomQueryPacket {
+                        ServerboundCustomQueryAnswerPacket {
                             transaction_id: p.transaction_id,
                             data: None,
                         }

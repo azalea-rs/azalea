@@ -105,7 +105,7 @@ use super::{
     SnifferState, VillagerData
 };
 use azalea_chat::FormattedText;
-use azalea_core::{BlockPos, Direction, Particle, Vec3};
+use azalea_core::{particle::Particle, BlockPos, Direction, Vec3};
 use azalea_inventory::ItemSlot;
 use bevy_ecs::{bundle::Bundle, component::Component};
 use derive_more::{Deref, DerefMut};

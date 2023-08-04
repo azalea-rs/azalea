@@ -7,9 +7,9 @@ pub struct ClientboundSetDisplayObjectivePacket {
     pub objective_name: String,
 }
 
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, Copy, McBuf)]
 pub enum DisplaySlot {
-    List,
+    List = 0,
     Sidebar,
     BelowName,
     TeamBlack,

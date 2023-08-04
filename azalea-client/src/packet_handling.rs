@@ -1115,7 +1115,6 @@ pub fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::TagQuery(_) => {}
             ClientboundGamePacket::TakeItemEntity(_) => {}
             ClientboundGamePacket::DisguisedChat(_) => {}
-            ClientboundGamePacket::UpdateEnabledFeatures(_) => {}
             ClientboundGamePacket::Bundle(_) => {}
             ClientboundGamePacket::DamageEvent(_) => {}
             ClientboundGamePacket::HurtAnimation(_) => {}
