@@ -1,11 +1,12 @@
-pub mod clientbound_custom_query_packet;
-pub mod clientbound_game_profile_packet;
-pub mod clientbound_hello_packet;
-pub mod clientbound_login_compression_packet;
-pub mod clientbound_login_disconnect_packet;
-pub mod serverbound_custom_query_packet;
+pub mod serverbound_login_acknowledged_packet;
+pub mod serverbound_custom_query_answer_packet;
 pub mod serverbound_hello_packet;
 pub mod serverbound_key_packet;
+pub mod clientbound_login_disconnect_packet;
+pub mod clientbound_hello_packet;
+pub mod clientbound_game_profile_packet;
+pub mod clientbound_login_compression_packet;
+pub mod clientbound_custom_query_packet;
 
 use azalea_protocol_macros::declare_state_packets;
 
@@ -14,7 +15,8 @@ declare_state_packets!(
     Serverbound => {
         0x00: serverbound_hello_packet::ServerboundHelloPacket,
         0x01: serverbound_key_packet::ServerboundKeyPacket,
-        0x02: serverbound_custom_query_packet::ServerboundCustomQueryPacket,
+        0x02: serverbound_custom_query_answer_packet::ServerboundCustomQueryAnswerPacket,
+        0x03: serverbound_login_acknowledged_packet::ServerboundLoginAcknowledgedPacket,
     },
     Clientbound => {
         0x00: clientbound_login_disconnect_packet::ClientboundLoginDisconnectPacket,

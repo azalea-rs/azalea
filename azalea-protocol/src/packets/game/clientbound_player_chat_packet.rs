@@ -206,4 +206,3 @@ mod tests {
             panic!("failed to read player chat packet");
         }
     }
-}

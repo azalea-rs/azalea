@@ -11,13 +11,7 @@ use azalea_protocol_macros::ClientboundGamePacket;
 pub struct ClientboundLoginPacket {
     pub player_id: u32,
     pub hardcore: bool,
-    pub game_type: GameMode,
-    pub previous_game_type: OptionalGameType,
     pub levels: Vec<ResourceLocation>,
-    pub registry_holder: RegistryHolder,
-    pub dimension_type: ResourceLocation,
-    pub dimension: ResourceLocation,
-    pub seed: i64,
     #[var]
     pub max_players: i32,
     #[var]
@@ -26,11 +20,6 @@ pub struct ClientboundLoginPacket {
     pub simulation_distance: u32,
     pub reduced_debug_info: bool,
     pub show_death_screen: bool,
-    pub is_debug: bool,
-    pub is_flat: bool,
-    pub last_death_location: Option<GlobalPos>,
-    #[var]
-    pub portal_cooldown: u32,
 }
 
 pub mod registry {

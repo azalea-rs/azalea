@@ -2,7 +2,5 @@ use azalea_buf::McBuf;
 use azalea_protocol_macros::ClientboundGamePacket;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
-pub struct ClientboundPingPacket {
-#[var]
-pub id: u32,
+pub struct ClientboundStartConfigurationPacket {
 }
