@@ -1,4 +1,4 @@
-use std::{collections::HashSet, io::Cursor, sync::Arc};
+use std::{collections::HashSet, io::Cursor, sync::Arc, time::Instant};
 
 use azalea_buf::McBufWritable;
 use azalea_core::{ChunkPos, GameMode, ResourceLocation, Vec3};
@@ -13,6 +13,7 @@ use azalea_protocol::{
     packets::game::{
         clientbound_player_combat_kill_packet::ClientboundPlayerCombatKillPacket,
         serverbound_accept_teleportation_packet::ServerboundAcceptTeleportationPacket,
+        serverbound_chunk_batch_received_packet::ServerboundChunkBatchReceivedPacket,
         serverbound_custom_payload_packet::ServerboundCustomPayloadPacket,
         serverbound_keep_alive_packet::ServerboundKeepAlivePacket,
         serverbound_move_player_pos_rot_packet::ServerboundMovePlayerPosRotPacket,
@@ -40,13 +41,14 @@ use tokio::sync::mpsc;
 
 use crate::{
     chat::{ChatPacket, ChatReceivedEvent},
+    chunk_batching,
     client::{PlayerAbilities, TabList},
     disconnect::DisconnectEvent,
     inventory::{
         ClientSideCloseContainerEvent, InventoryComponent, MenuOpenedEvent,
         SetContainerContentEvent,
     },
-    local_player::{GameProfileComponent, LocalGameMode, LocalPlayer},
+    local_player::{ChunkBatchInfo, GameProfileComponent, LocalGameMode, LocalPlayer},
     ClientInformation, PlayerInfo,
 };
 
@@ -308,6 +310,33 @@ pub fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::SetChunkCacheRadius(p) => {
                 debug!("Got set chunk cache radius packet {:?}", p);
             }
+
+            ClientboundGamePacket::ChunkBatchStart(_p) => {
+                // the packet is empty, just a marker to tell us when the batch starts and ends
+                warn!("Got chunk batch start");
+                let mut system_state: SystemState<
+                    EventWriter<chunk_batching::ChunkBatchStartEvent>,
+                > = SystemState::new(ecs);
+                let mut chunk_batch_start_events = system_state.get_mut(ecs);
+
+                chunk_batch_start_events.send(chunk_batching::ChunkBatchStartEvent {
+                    entity: player_entity,
+                });
+            }
+            ClientboundGamePacket::ChunkBatchFinished(p) => {
+                warn!("Got chunk batch finished {p:?}");
+
+                let mut system_state: SystemState<
+                    EventWriter<chunk_batching::ChunkBatchFinishedEvent>,
+                > = SystemState::new(ecs);
+                let mut chunk_batch_start_events = system_state.get_mut(ecs);
+
+                chunk_batch_start_events.send(chunk_batching::ChunkBatchFinishedEvent {
+                    entity: player_entity,
+                    batch_size: p.batch_size,
+                });
+            }
+
             ClientboundGamePacket::CustomPayload(p) => {
                 debug!("Got custom payload packet {:?}", p);
             }
@@ -1118,6 +1147,8 @@ pub fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::Bundle(_) => {}
             ClientboundGamePacket::DamageEvent(_) => {}
             ClientboundGamePacket::HurtAnimation(_) => {}
+
+            ClientboundGamePacket::StartConfiguration(_) => todo!(),
         }
     }
 }

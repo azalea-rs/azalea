@@ -1,4 +1,4 @@
-use std::{io, sync::Arc};
+use std::{io, sync::Arc, time::Instant};
 
 use azalea_auth::game_profile::GameProfile;
 use azalea_core::{ChunkPos, GameMode};

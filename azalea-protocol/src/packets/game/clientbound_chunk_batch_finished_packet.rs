@@ -3,6 +3,6 @@ use azalea_protocol_macros::ClientboundGamePacket;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundChunkBatchFinishedPacket {
-#[var]
-pub batch_size: u32,
+    #[var]
+    pub batch_size: u32,
 }

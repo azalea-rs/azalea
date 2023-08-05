@@ -14,6 +14,7 @@
 mod account;
 pub mod attack;
 pub mod chat;
+pub mod chunk_batching;
 mod client;
 pub mod disconnect;
 mod entity_query;

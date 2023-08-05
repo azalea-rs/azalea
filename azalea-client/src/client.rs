@@ -1,6 +1,7 @@
 use crate::{
     attack::{self, AttackPlugin},
     chat::ChatPlugin,
+    chunk_batching::{self, ChunkBatchInfo, ChunkBatchingPlugin},
     disconnect::{DisconnectEvent, DisconnectPlugin},
     events::{Event, EventPlugin, LocalPlayerEvents},
     interact::{CurrentSequenceNumber, InteractPlugin},
@@ -308,6 +309,7 @@ impl Client {
             permission_level: PermissionLevel::default(),
             mining: mining::MineBundle::default(),
             attack: attack::AttackBundle::default(),
+            chunk_batch_info: chunk_batching::ChunkBatchInfo::default(),
             _local: Local,
         });
 
@@ -585,6 +587,7 @@ pub struct JoinedClientBundle {
     pub last_sent_direction: LastSentLookDirection,
     pub abilities: PlayerAbilities,
     pub permission_level: PermissionLevel,
+    pub chunk_batch_info: ChunkBatchInfo,
 
     pub mining: mining::MineBundle,
     pub attack: attack::AttackBundle,
@@ -737,6 +740,7 @@ impl PluginGroup for DefaultPlugins {
             .add(RespawnPlugin)
             .add(MinePlugin)
             .add(AttackPlugin)
+            .add(ChunkBatchingPlugin)
             .add(TickBroadcastPlugin);
         #[cfg(feature = "log")]
         {
