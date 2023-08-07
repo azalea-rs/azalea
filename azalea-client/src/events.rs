@@ -20,7 +20,7 @@ use tokio::sync::mpsc;
 
 use crate::{
     chat::{ChatPacket, ChatReceivedEvent},
-    packet_handling::{
+    packet_handling::game::{
         AddPlayerEvent, DeathEvent, KeepAliveEvent, PacketEvent, RemovePlayerEvent,
         UpdatePlayerEvent,
     },
@@ -121,7 +121,7 @@ impl Plugin for EventPlugin {
         )
         .add_systems(
             PreUpdate,
-            init_listener.before(crate::packet_handling::process_packet_events),
+            init_listener.before(crate::packet_handling::game::process_packet_events),
         )
         .add_systems(FixedUpdate, tick_listener);
     }

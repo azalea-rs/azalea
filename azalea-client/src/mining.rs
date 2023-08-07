@@ -11,13 +11,12 @@ use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
 
 use crate::{
-    client::{PermissionLevel, PlayerAbilities},
     interact::{
         can_use_game_master_blocks, check_is_interaction_restricted, CurrentSequenceNumber,
         HitResultComponent, SwingArmEvent,
     },
     inventory::InventoryComponent,
-    local_player::{LocalGameMode, SendPacketEvent},
+    local_player::{LocalGameMode, PermissionLevel, PlayerAbilities, SendPacketEvent},
     Client,
 };
 

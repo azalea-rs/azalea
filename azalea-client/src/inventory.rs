@@ -25,7 +25,10 @@ use bevy_ecs::{
 };
 use log::warn;
 
-use crate::{client::PlayerAbilities, local_player::handle_send_packet_event, Client, LocalPlayer};
+use crate::{
+    local_player::{handle_send_packet_event, PlayerAbilities},
+    Client, LocalPlayer,
+};
 
 pub struct InventoryPlugin;
 impl Plugin for InventoryPlugin {

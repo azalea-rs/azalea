@@ -2,7 +2,7 @@ use std::fmt::Formatter;
 
 use azalea_client::{
     inventory::{CloseContainerEvent, ContainerClickEvent, InventoryComponent},
-    packet_handling::PacketEvent,
+    packet_handling::game::PacketEvent,
     Client,
 };
 use azalea_core::BlockPos;

@@ -16,6 +16,7 @@ pub mod attack;
 pub mod chat;
 pub mod chunk_batching;
 mod client;
+mod configuration;
 pub mod disconnect;
 mod entity_query;
 mod events;
@@ -28,15 +29,14 @@ mod movement;
 pub mod packet_handling;
 pub mod ping;
 mod player;
+mod received_registries;
 pub mod respawn;
 pub mod task_pool;
 
 pub use account::{Account, AccountOpts};
-pub use client::{
-    start_ecs, Client, ClientInformation, DefaultPlugins, JoinError, JoinedClientBundle, TabList,
-    TickBroadcast,
-};
+pub use client::{start_ecs, Client, DefaultPlugins, JoinError, JoinedClientBundle, TickBroadcast};
 pub use events::Event;
-pub use local_player::{GameProfileComponent, LocalPlayer};
+pub use local_player::{ClientInformation, GameProfileComponent, LocalPlayer, TabList};
 pub use movement::{SprintDirection, StartSprintEvent, StartWalkEvent, WalkDirection};
 pub use player::PlayerInfo;
+pub use received_registries::ReceivedRegistries;

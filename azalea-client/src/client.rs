@@ -2,27 +2,32 @@ use crate::{
     attack::{self, AttackPlugin},
     chat::ChatPlugin,
     chunk_batching::{self, ChunkBatchInfo, ChunkBatchingPlugin},
+    configuration::ConfiguringLocalPlayer,
     disconnect::{DisconnectEvent, DisconnectPlugin},
     events::{Event, EventPlugin, LocalPlayerEvents},
     interact::{CurrentSequenceNumber, InteractPlugin},
     inventory::{InventoryComponent, InventoryPlugin},
     local_player::{
         death_event, handle_send_packet_event, update_in_loaded_chunk, GameProfileComponent,
-        LocalPlayer, PhysicsState, SendPacketEvent,
+        LocalPlayer, PermissionLevel, PhysicsState, PlayerAbilities, SendPacketEvent,
     },
     mining::{self, MinePlugin},
     movement::{LastSentLookDirection, PlayerMovePlugin},
-    packet_handling::{self, PacketHandlerPlugin, PacketReceiver},
+    packet_handling::{
+        game::{self, PacketReceiver},
+        PacketHandlerPlugin,
+    },
     player::retroactively_add_game_profile_component,
     respawn::RespawnPlugin,
     task_pool::TaskPoolPlugin,
-    Account, PlayerInfo,
+    Account, ClientInformation, PlayerInfo, TabList,
 };
 
 use azalea_auth::{game_profile::GameProfile, sessionserver::ClientSessionServerError};
 use azalea_chat::FormattedText;
-use azalea_core::Vec3;
+use azalea_core::{ResourceLocation, Vec3};
 use azalea_entity::{metadata::Health, EntityPlugin, EntityUpdateSet, EyeHeight, Local, Position};
+use azalea_nbt::Nbt;
 use azalea_physics::{PhysicsPlugin, PhysicsSet};
 use azalea_protocol::{
     connect::{Connection, ConnectionError},
@@ -99,58 +104,6 @@ pub struct Client {
     /// Use this to force the client to run the schedule outside of a tick.
     pub run_schedule_sender: mpsc::UnboundedSender<()>,
 }
-
-/// A component that contains some of the "settings" for this client that are
-/// sent to the server, such as render distance. This is only present on local
-/// players.
-pub type ClientInformation = ServerboundClientInformationPacket;
-
-/// A component that contains the abilities the player has, like flying
-/// or instantly breaking blocks. This is only present on local players.
-#[derive(Clone, Debug, Component, Default)]
-pub struct PlayerAbilities {
-    pub invulnerable: bool,
-    pub flying: bool,
-    pub can_fly: bool,
-    /// Whether the player can instantly break blocks and can duplicate blocks
-    /// in their inventory.
-    pub instant_break: bool,
-
-    pub flying_speed: f32,
-    /// Used for the fov
-    pub walking_speed: f32,
-}
-impl From<ClientboundPlayerAbilitiesPacket> for PlayerAbilities {
-    fn from(packet: ClientboundPlayerAbilitiesPacket) -> Self {
-        Self {
-            invulnerable: packet.flags.invulnerable,
-            flying: packet.flags.flying,
-            can_fly: packet.flags.can_fly,
-            instant_break: packet.flags.instant_break,
-            flying_speed: packet.flying_speed,
-            walking_speed: packet.walking_speed,
-        }
-    }
-}
-
-/// Level must be 0..=4
-#[derive(Component, Clone, Default, Deref, DerefMut)]
-pub struct PermissionLevel(pub u8);
-
-/// A component that contains a map of player UUIDs to their information in the
-/// tab list.
-///
-/// ```
-/// # use azalea_client::TabList;
-/// # fn example(client: &azalea_client::Client) {
-/// let tab_list = client.component::<TabList>();
-/// println!("Online players:");
-/// for (uuid, player_info) in tab_list.iter() {
-///     println!("- {} ({}ms)", player_info.profile.name, player_info.latency);
-/// }
-/// # }
-#[derive(Component, Clone, Debug, Deref, DerefMut, Default)]
-pub struct TabList(HashMap<Uuid, PlayerInfo>);
 
 /// An error that happened while joining the server.
 #[derive(Error, Debug)]
@@ -272,7 +225,7 @@ impl Client {
         let (packet_writer_sender, packet_writer_receiver) = mpsc::unbounded_channel();
 
         // start receiving packets
-        let packet_receiver = packet_handling::PacketReceiver {
+        let packet_receiver = game::PacketReceiver {
             packets: Arc::new(Mutex::new(Vec::new())),
             run_schedule_sender: run_schedule_sender.clone(),
         };
@@ -593,6 +546,13 @@ pub struct JoinedClientBundle {
     pub attack: attack::AttackBundle,
 
     pub _local: Local,
+}
+
+/// A bundle for the components that are present on a local player that is
+/// currently in the configuration state.
+#[derive(Bundle)]
+pub struct ConfiguringClientBundle {
+    pub local_player: ConfiguringLocalPlayer,
 }
 
 pub struct AzaleaPlugin;

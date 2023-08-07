@@ -1,9 +1,13 @@
-use std::{io, sync::Arc, time::Instant};
+use std::{collections::HashMap, io, sync::Arc, time::Instant};
 
 use azalea_auth::game_profile::GameProfile;
 use azalea_core::{ChunkPos, GameMode};
 use azalea_entity::{Dead, Position};
-use azalea_protocol::packets::game::ServerboundGamePacket;
+use azalea_protocol::packets::game::{
+    clientbound_player_abilities_packet::ClientboundPlayerAbilitiesPacket,
+    serverbound_client_information_packet::ServerboundClientInformationPacket,
+    ServerboundGamePacket,
+};
 use azalea_world::{Instance, InstanceContainer, InstanceName, PartialInstance};
 use bevy_ecs::{
     component::Component,
@@ -17,10 +21,11 @@ use derive_more::{Deref, DerefMut};
 use parking_lot::RwLock;
 use thiserror::Error;
 use tokio::{sync::mpsc, task::JoinHandle};
+use uuid::Uuid;
 
 use crate::{
     events::{Event as AzaleaEvent, LocalPlayerEvents},
-    ClientInformation, WalkDirection,
+    PlayerInfo, WalkDirection,
 };
 
 /// This is a component for our local player entities that are probably in a
@@ -88,6 +93,58 @@ pub struct LocalGameMode {
     pub current: GameMode,
     pub previous: Option<GameMode>,
 }
+
+/// A component that contains some of the "settings" for this client that are
+/// sent to the server, such as render distance. This is only present on local
+/// players.
+pub type ClientInformation = ServerboundClientInformationPacket;
+
+/// A component that contains the abilities the player has, like flying
+/// or instantly breaking blocks. This is only present on local players.
+#[derive(Clone, Debug, Component, Default)]
+pub struct PlayerAbilities {
+    pub invulnerable: bool,
+    pub flying: bool,
+    pub can_fly: bool,
+    /// Whether the player can instantly break blocks and can duplicate blocks
+    /// in their inventory.
+    pub instant_break: bool,
+
+    pub flying_speed: f32,
+    /// Used for the fov
+    pub walking_speed: f32,
+}
+impl From<ClientboundPlayerAbilitiesPacket> for PlayerAbilities {
+    fn from(packet: ClientboundPlayerAbilitiesPacket) -> Self {
+        Self {
+            invulnerable: packet.flags.invulnerable,
+            flying: packet.flags.flying,
+            can_fly: packet.flags.can_fly,
+            instant_break: packet.flags.instant_break,
+            flying_speed: packet.flying_speed,
+            walking_speed: packet.walking_speed,
+        }
+    }
+}
+
+/// Level must be 0..=4
+#[derive(Component, Clone, Default, Deref, DerefMut)]
+pub struct PermissionLevel(pub u8);
+
+/// A component that contains a map of player UUIDs to their information in the
+/// tab list.
+///
+/// ```
+/// # use azalea_client::TabList;
+/// # fn example(client: &azalea_client::Client) {
+/// let tab_list = client.component::<TabList>();
+/// println!("Online players:");
+/// for (uuid, player_info) in tab_list.iter() {
+///     println!("- {} ({}ms)", player_info.profile.name, player_info.latency);
+/// }
+/// # }
+#[derive(Component, Clone, Debug, Deref, DerefMut, Default)]
+pub struct TabList(HashMap<Uuid, PlayerInfo>);
 
 impl LocalPlayer {
     /// Create a new `LocalPlayer`.

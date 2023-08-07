@@ -1,17 +1,17 @@
-pub mod serverbound_resource_pack_packet;
-pub mod serverbound_pong_packet;
-pub mod serverbound_keep_alive_packet;
-pub mod serverbound_finish_configuration_packet;
-pub mod serverbound_custom_payload_packet;
-pub mod clientbound_update_tags_packet;
-pub mod clientbound_update_enabled_features_packet;
-pub mod clientbound_resource_pack_packet;
-pub mod clientbound_registry_data_packet;
-pub mod clientbound_ping_packet;
-pub mod clientbound_keep_alive_packet;
-pub mod clientbound_finish_configuration_packet;
-pub mod clientbound_disconnect_packet;
 pub mod clientbound_custom_payload_packet;
+pub mod clientbound_disconnect_packet;
+pub mod clientbound_finish_configuration_packet;
+pub mod clientbound_keep_alive_packet;
+pub mod clientbound_ping_packet;
+pub mod clientbound_registry_data_packet;
+pub mod clientbound_resource_pack_packet;
+pub mod clientbound_update_enabled_features_packet;
+pub mod clientbound_update_tags_packet;
+pub mod serverbound_custom_payload_packet;
+pub mod serverbound_finish_configuration_packet;
+pub mod serverbound_keep_alive_packet;
+pub mod serverbound_pong_packet;
+pub mod serverbound_resource_pack_packet;
 use azalea_protocol_macros::declare_state_packets;
 
 declare_state_packets!(

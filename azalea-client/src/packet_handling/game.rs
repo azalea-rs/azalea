@@ -42,14 +42,13 @@ use tokio::sync::mpsc;
 use crate::{
     chat::{ChatPacket, ChatReceivedEvent},
     chunk_batching,
-    client::{PlayerAbilities, TabList},
     disconnect::DisconnectEvent,
     inventory::{
         ClientSideCloseContainerEvent, InventoryComponent, MenuOpenedEvent,
         SetContainerContentEvent,
     },
-    local_player::{ChunkBatchInfo, GameProfileComponent, LocalGameMode, LocalPlayer},
-    ClientInformation, PlayerInfo,
+    local_player::{GameProfileComponent, LocalGameMode, LocalPlayer, PlayerAbilities},
+    ClientInformation, PlayerInfo, ReceivedRegistries, TabList,
 };
 
 /// An event that's sent when we receive a packet.
@@ -78,28 +77,6 @@ pub struct PacketEvent {
     pub entity: Entity,
     /// The packet that was actually received.
     pub packet: ClientboundGamePacket,
-}
-
-pub struct PacketHandlerPlugin;
-
-impl Plugin for PacketHandlerPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(First, send_packet_events)
-            .add_systems(
-                PreUpdate,
-                process_packet_events
-                    // we want to index and deindex right after
-                    .before(EntityUpdateSet::Deindex),
-            )
-            .add_systems(Update, death_event_on_0_health)
-            .init_resource::<Events<PacketEvent>>()
-            .add_event::<AddPlayerEvent>()
-            .add_event::<RemovePlayerEvent>()
-            .add_event::<UpdatePlayerEvent>()
-            .add_event::<ChatReceivedEvent>()
-            .add_event::<DeathEvent>()
-            .add_event::<KeepAliveEvent>();
-    }
 }
 
 /// A player joined the game (or more specifically, was added to the tab
@@ -215,27 +192,21 @@ pub fn process_packet_events(ecs: &mut World) {
                         Option<&mut InstanceName>,
                         &GameProfileComponent,
                         &ClientInformation,
+                        &ReceivedRegistries,
                     )>,
                     ResMut<InstanceContainer>,
                 )> = SystemState::new(ecs);
                 let (mut commands, mut query, mut instance_container) = system_state.get_mut(ecs);
-                let (mut local_player, world_name, game_profile, client_information) =
-                    query.get_mut(player_entity).unwrap();
+                let (
+                    mut local_player,
+                    world_name,
+                    game_profile,
+                    client_information,
+                    received_registries,
+                ) = query.get_mut(player_entity).unwrap();
 
                 {
-                    let dimension = &p
-                        .registry_holder
-                        .root
-                        .dimension_type
-                        .value
-                        .iter()
-                        .find(|t| t.name == p.dimension_type)
-                        .unwrap_or_else(|| {
-                            panic!("No dimension_type with name {}", p.dimension_type)
-                        })
-                        .element;
-
-                    let new_world_name = p.dimension.clone();
+                    let new_world_name = p.common.dimension.clone();
 
                     if let Some(mut world_name) = world_name {
                         *world_name = world_name.clone();
@@ -244,6 +215,20 @@ pub fn process_packet_events(ecs: &mut World) {
                             .entity(player_entity)
                             .insert(InstanceName(new_world_name.clone()));
                     }
+
+                    let Some(dimension_type) = received_registries.dimension_type() else {
+                        error!("Server didn't send dimension type registry, can't log in");
+                        continue;
+                    };
+                    let dimension = &dimension_type
+                        .value
+                        .iter()
+                        .find(|t| t.name == p.common.dimension_type)
+                        .unwrap_or_else(|| {
+                            panic!("No dimension_type with name {}", p.common.dimension_type)
+                        })
+                        .element;
+
                     // add this world to the instance_container (or don't if it's already
                     // there)
                     let weak_world = instance_container.insert(
@@ -279,8 +264,8 @@ pub fn process_packet_events(ecs: &mut World) {
                     commands.entity(player_entity).insert((
                         MinecraftEntityId(p.player_id),
                         LocalGameMode {
-                            current: p.game_type,
-                            previous: p.previous_game_type.into(),
+                            current: p.common.game_type,
+                            previous: p.common.previous_game_type.into(),
                         },
                         player_bundle,
                     ));

@@ -1,4 +1,5 @@
 pub mod common;
+pub mod configuration;
 pub mod game;
 pub mod handshaking;
 pub mod login;

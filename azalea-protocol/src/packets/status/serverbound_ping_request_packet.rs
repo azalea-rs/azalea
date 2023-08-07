@@ -1,8 +1,8 @@
-use azalea_protocol_macros::ServerboundStatusPacket;
 use azalea_buf::McBuf;
+use azalea_protocol_macros::ServerboundStatusPacket;
 
 #[derive(Clone, Debug, McBuf, ServerboundStatusPacket)]
 pub struct ServerboundPingRequestPacket {
-#[var]
-pub time: u64,
+    #[var]
+    pub time: u64,
 }

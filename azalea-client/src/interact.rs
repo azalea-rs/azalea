@@ -27,9 +27,10 @@ use derive_more::{Deref, DerefMut};
 use log::warn;
 
 use crate::{
-    client::{PermissionLevel, PlayerAbilities},
     inventory::InventoryComponent,
-    local_player::{handle_send_packet_event, LocalGameMode, SendPacketEvent},
+    local_player::{
+        handle_send_packet_event, LocalGameMode, PermissionLevel, PlayerAbilities, SendPacketEvent,
+    },
     Client, LocalPlayer,
 };
 
