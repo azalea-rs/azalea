@@ -1,11 +1,17 @@
 use std::sync::Arc;
 
-use azalea_protocol::packets::configuration::ClientboundConfigurationPacket;
+use azalea_protocol::connect::{ReadConnection, WriteConnection};
+use azalea_protocol::packets::configuration::{
+    ClientboundConfigurationPacket, ServerboundConfigurationPacket,
+};
+use azalea_protocol::read::ReadPacketError;
 use bevy_ecs::prelude::*;
 use bevy_ecs::system::SystemState;
+use log::error;
 use parking_lot::Mutex;
 use tokio::sync::mpsc;
 
+use crate::configuration::ConfiguringLocalPlayer;
 use crate::ReceivedRegistries;
 
 #[derive(Event, Debug, Clone)]
@@ -18,13 +24,13 @@ pub struct ConfigurationPacketEvent {
 
 /// Something that receives packets from the server.
 #[derive(Event, Component, Clone)]
-pub struct ConfigurationPacketReceiver {
+pub struct PacketReceiver {
     pub packets: Arc<Mutex<Vec<ClientboundConfigurationPacket>>>,
     pub run_schedule_sender: mpsc::UnboundedSender<()>,
 }
 
 pub fn send_packet_events(
-    query: Query<(Entity, &ConfigurationPacketReceiver)>,
+    query: Query<(Entity, &PacketReceiver)>,
     mut packet_events: ResMut<Events<ConfigurationPacketEvent>>,
 ) {
     // we manually clear and send the events at the beginning of each update
@@ -79,12 +85,94 @@ pub fn process_packet_events(ecs: &mut World) {
 
             ClientboundConfigurationPacket::CustomPayload(_) => todo!(),
             ClientboundConfigurationPacket::Disconnect(_) => todo!(),
-            ClientboundConfigurationPacket::FinishConfiguration(_) => todo!(),
+            ClientboundConfigurationPacket::FinishConfiguration(p) => {
+                let mut system_state: SystemState<Query<&mut ConfiguringLocalPlayer>> =
+                    SystemState::new(ecs);
+                let mut query = system_state.get_mut(ecs);
+                let configuring_local_player = query.get_mut(player_entity).unwrap();
+
+                // abort the read/write packets tasks from ConfiguringLocalPlayer and then get
+                // the Connection halves
+                configuring_local_player.read_packets_task.abort();
+                configuring_local_player.write_packets_task.abort();
+
+                let local_player = crate::local_player::LocalPlayer::new(
+                    player_entity,
+                    packet_writer_sender,
+                    // default to an empty world, it'll be set correctly later when we
+                    // get the login packet
+                    Arc::new(RwLock::new(Instance::default())),
+                    read_packets_task,
+                    write_packets_task,
+                );
+
+                ecs.entity_mut(entity).insert(JoinedClientBundle {
+                    local_player,
+                    packet_receiver,
+                    game_profile: GameProfileComponent(game_profile),
+                    physics_state: PhysicsState::default(),
+                    inventory: InventoryComponent::default(),
+                    client_information: ClientInformation::default(),
+                    tab_list: TabList::default(),
+                    current_sequence_number: CurrentSequenceNumber::default(),
+                    last_sent_direction: LastSentLookDirection::default(),
+                    abilities: PlayerAbilities::default(),
+                    permission_level: PermissionLevel::default(),
+                    mining: mining::MineBundle::default(),
+                    attack: attack::AttackBundle::default(),
+                    chunk_batch_info: chunk_batching::ChunkBatchInfo::default(),
+                    _local: Local,
+                });
+            }
             ClientboundConfigurationPacket::KeepAlive(_) => todo!(),
             ClientboundConfigurationPacket::Ping(_) => todo!(),
             ClientboundConfigurationPacket::ResourcePack(_) => todo!(),
             ClientboundConfigurationPacket::UpdateEnabledFeatures(_) => todo!(),
             ClientboundConfigurationPacket::UpdateTags(_) => todo!(),
         }
+    }
+}
+
+impl PacketReceiver {
+    /// Loop that reads from the connection and adds the packets to the queue +
+    /// runs the schedule.
+    pub async fn read_task(
+        self,
+        // this is a mutex because we need to recover the ReadConnection when this task gets
+        // aborted (because we're switching to the game state)
+        read_conn: Arc<tokio::sync::Mutex<ReadConnection<ClientboundConfigurationPacket>>>,
+    ) {
+        loop {
+            match read_conn.try_lock().unwrap().read().await {
+                Ok(packet) => {
+                    self.packets.lock().push(packet);
+                    // tell the client to run all the systems
+                    self.run_schedule_sender.send(()).unwrap();
+                }
+                Err(error) => {
+                    if !matches!(*error, ReadPacketError::ConnectionClosed) {
+                        error!("Error reading packet from Client: {error:?}");
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    /// Consume the [`ServerboundGamePacket`] queue and actually write the
+    /// packets to the server. It's like this so writing packets doesn't need to
+    /// be awaited.
+    pub async fn write_task(
+        self,
+        write_conn: Arc<tokio::sync::Mutex<WriteConnection<ServerboundConfigurationPacket>>>,
+        mut write_receiver: mpsc::UnboundedReceiver<ServerboundConfigurationPacket>,
+    ) {
+        while let Some(packet) = write_receiver.recv().await {
+            if let Err(err) = write_conn.try_lock().unwrap().write(packet).await {
+                error!("Disconnecting because we couldn't write a packet: {err}.");
+                break;
+            };
+        }
+        // receiver is automatically closed when it's dropped
     }
 }

@@ -13,7 +13,7 @@ use bevy_ecs::{
     component::Component,
     entity::Entity,
     event::EventReader,
-    prelude::Event,
+    prelude::{Bundle, Event},
     query::Added,
     system::{Query, Res},
 };
@@ -25,7 +25,7 @@ use uuid::Uuid;
 
 use crate::{
     events::{Event as AzaleaEvent, LocalPlayerEvents},
-    PlayerInfo, WalkDirection,
+    PlayerInfo, ReceivedRegistries, WalkDirection,
 };
 
 /// This is a component for our local player entities that are probably in a
@@ -54,6 +54,18 @@ pub struct LocalPlayer {
     pub(crate) read_packets_task: JoinHandle<()>,
     /// A task that writes packets from the server.
     pub(crate) write_packets_task: JoinHandle<()>,
+}
+
+/// The bundle of components that's shared when we're either in the
+/// `configuration` or `game` state.
+///
+/// For the components that are only present in the `game` state, see
+/// [`JoinedClientBundle`] and for the ones in the `configuration` state, see
+/// [`ConfigurationClientBundle`].
+#[derive(Bundle)]
+pub struct LocalPlayerBundle {
+    pub received_registries: ReceivedRegistries,
+    pub local_player_events: LocalPlayerEvents,
 }
 
 /// Component for entities that can move and sprint. Usually only in

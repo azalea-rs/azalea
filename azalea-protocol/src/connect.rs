@@ -1,5 +1,8 @@
 //! Connect to remote servers/clients.
 
+use crate::packets::configuration::{
+    ClientboundConfigurationPacket, ServerboundConfigurationPacket,
+};
 use crate::packets::game::{ClientboundGamePacket, ServerboundGamePacket};
 use crate::packets::handshaking::{ClientboundHandshakePacket, ServerboundHandshakePacket};
 use crate::packets::login::clientbound_hello_packet::ClientboundHelloPacket;
@@ -23,16 +26,15 @@ use tokio::net::TcpStream;
 use uuid::Uuid;
 
 /// The read half of a connection.
-pub struct ReadConnection<R: ProtocolPacket> {
+pub struct ReadConnection {
     pub read_stream: OwnedReadHalf,
     pub buffer: BytesMut,
     pub compression_threshold: Option<u32>,
     pub dec_cipher: Option<Aes128CfbDec>,
-    _reading: PhantomData<R>,
 }
 
 /// The write half of a connection.
-pub struct WriteConnection<W: ProtocolPacket> {
+pub struct WriteConnection {
     pub write_stream: OwnedWriteHalf,
     pub compression_threshold: Option<u32>,
     pub enc_cipher: Option<Aes128CfbEnc>,
@@ -283,10 +285,12 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
         self.writer.enc_cipher = Some(enc_cipher);
     }
 
-    /// Change our state from login to game. This is the state that's used when
-    /// you're actually in the game.
+    /// Change our state from login to configuration. This is the state where
+    /// the server sends us the registries and resource pack and stuff.
     #[must_use]
-    pub fn game(self) -> Connection<ClientboundGamePacket, ServerboundGamePacket> {
+    pub fn configuration(
+        self,
+    ) -> Connection<ClientboundConfigurationPacket, ServerboundConfigurationPacket> {
         Connection::from(self)
     }
 
@@ -418,6 +422,25 @@ impl Connection<ServerboundLoginPacket, ClientboundLoginPacket> {
         ip: Option<&str>,
     ) -> Result<GameProfile, ServerSessionServerError> {
         azalea_auth::sessionserver::serverside_auth(username, public_key, private_key, ip).await
+    }
+}
+
+impl Connection<ClientboundConfigurationPacket, ServerboundConfigurationPacket> {
+    /// Change our state from configuration to game. This is the state that's
+    /// used when the client is actually in the world.
+    #[must_use]
+    pub fn game(self) -> Connection<ClientboundGamePacket, ServerboundGamePacket> {
+        Connection::from(self)
+    }
+}
+
+impl Connection<ClientboundGamePacket, ServerboundGamePacket> {
+    /// Change our state back to configuration.
+    #[must_use]
+    pub fn configuration(
+        self,
+    ) -> Connection<ClientboundConfigurationPacket, ServerboundConfigurationPacket> {
+        Connection::from(self)
     }
 }
 

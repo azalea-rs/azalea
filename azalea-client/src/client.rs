@@ -9,7 +9,8 @@ use crate::{
     inventory::{InventoryComponent, InventoryPlugin},
     local_player::{
         death_event, handle_send_packet_event, update_in_loaded_chunk, GameProfileComponent,
-        LocalPlayer, PermissionLevel, PhysicsState, PlayerAbilities, SendPacketEvent,
+        LocalPlayer, LocalPlayerBundle, PermissionLevel, PhysicsState, PlayerAbilities,
+        SendPacketEvent,
     },
     mining::{self, MinePlugin},
     movement::{LastSentLookDirection, PlayerMovePlugin},
@@ -20,7 +21,7 @@ use crate::{
     player::retroactively_add_game_profile_component,
     respawn::RespawnPlugin,
     task_pool::TaskPoolPlugin,
-    Account, ClientInformation, PlayerInfo, TabList,
+    Account, ClientInformation, PlayerInfo, ReceivedRegistries, TabList,
 };
 
 use azalea_auth::{game_profile::GameProfile, sessionserver::ClientSessionServerError};
@@ -32,6 +33,7 @@ use azalea_physics::{PhysicsPlugin, PhysicsSet};
 use azalea_protocol::{
     connect::{Connection, ConnectionError},
     packets::{
+        configuration::{ClientboundConfigurationPacket, ServerboundConfigurationPacket},
         game::{
             clientbound_player_abilities_packet::ClientboundPlayerAbilitiesPacket,
             serverbound_client_information_packet::ServerboundClientInformationPacket,
@@ -214,7 +216,7 @@ impl Client {
         let entity_mut = ecs.spawn_empty();
         let entity = entity_mut.id();
 
-        // we got the GameConnection, so the server is now connected :)
+        // we got the ConfigurationConnection, so the client is now connected :)
         let client = Client::new(
             game_profile.clone(),
             entity,
@@ -225,10 +227,15 @@ impl Client {
         let (packet_writer_sender, packet_writer_receiver) = mpsc::unbounded_channel();
 
         // start receiving packets
-        let packet_receiver = game::PacketReceiver {
+        let packet_receiver = crate::packet_handling::configuration::PacketReceiver {
             packets: Arc::new(Mutex::new(Vec::new())),
             run_schedule_sender: run_schedule_sender.clone(),
         };
+
+        let (read_conn, write_conn) = (
+            Arc::new(tokio::sync::Mutex::new(read_conn)),
+            Arc::new(tokio::sync::Mutex::new(write_conn)),
+        );
 
         let read_packets_task = tokio::spawn(packet_receiver.clone().read_task(read_conn));
         let write_packets_task = tokio::spawn(
@@ -237,34 +244,19 @@ impl Client {
                 .write_task(write_conn, packet_writer_receiver),
         );
 
-        let local_player = crate::local_player::LocalPlayer::new(
-            entity,
-            packet_writer_sender,
-            // default to an empty world, it'll be set correctly later when we
-            // get the login packet
-            Arc::new(RwLock::new(Instance::default())),
-            read_packets_task,
-            write_packets_task,
-        );
-
-        ecs.entity_mut(entity).insert(JoinedClientBundle {
-            local_player,
-            packet_receiver,
-            game_profile: GameProfileComponent(game_profile),
-            physics_state: PhysicsState::default(),
-            local_player_events: LocalPlayerEvents(tx),
-            inventory: InventoryComponent::default(),
-            client_information: ClientInformation::default(),
-            tab_list: TabList::default(),
-            current_sequence_number: CurrentSequenceNumber::default(),
-            last_sent_direction: LastSentLookDirection::default(),
-            abilities: PlayerAbilities::default(),
-            permission_level: PermissionLevel::default(),
-            mining: mining::MineBundle::default(),
-            attack: attack::AttackBundle::default(),
-            chunk_batch_info: chunk_batching::ChunkBatchInfo::default(),
-            _local: Local,
-        });
+        ecs.entity_mut(entity).insert((
+            // these stay when we switch to the game state
+            LocalPlayerBundle {
+                received_registries: ReceivedRegistries::default(),
+                local_player_events: LocalPlayerEvents(tx),
+            },
+            // this is only present while we're in the configuration state
+            ConfiguringLocalPlayer {
+                packet_writer: packet_writer_sender,
+                read_packets_task,
+                write_packets_task,
+            },
+        ));
 
         Ok((client, rx))
     }
@@ -280,7 +272,7 @@ impl Client {
         address: &ServerAddress,
     ) -> Result<
         (
-            Connection<ClientboundGamePacket, ServerboundGamePacket>,
+            Connection<ClientboundConfigurationPacket, ServerboundConfigurationPacket>,
             GameProfile,
         ),
         JoinError,
@@ -371,7 +363,7 @@ impl Client {
                 }
                 ClientboundLoginPacket::GameProfile(p) => {
                     debug!("Got profile {:?}", p.game_profile);
-                    break (conn.game(), p.game_profile);
+                    break (conn.configuration(), p.game_profile);
                 }
                 ClientboundLoginPacket::LoginDisconnect(p) => {
                     debug!("Got disconnect {:?}", p);
@@ -524,8 +516,9 @@ impl Client {
     }
 }
 
-/// A bundle for the components that are present on a local player that received
-/// a login packet. If you want to filter for this, just use [`Local`].
+/// A bundle for the components that are present on a local player that is
+/// currently in the `game` protocol state. If you want to filter for this, just
+/// use [`Local`].
 #[derive(Bundle)]
 pub struct JoinedClientBundle {
     pub local_player: LocalPlayer,

@@ -9,7 +9,7 @@ use bevy_ecs::prelude::*;
 use serde::de::DeserializeOwned;
 
 /// The registries that were sent to us during the configuration state.
-#[derive(Component)]
+#[derive(Default, Component)]
 pub struct ReceivedRegistries {
     pub registries: HashMap<ResourceLocation, Nbt>,
 }
