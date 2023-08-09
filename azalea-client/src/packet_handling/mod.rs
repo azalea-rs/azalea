@@ -29,7 +29,9 @@ impl Plugin for PacketHandlerPlugin {
                 .before(EntityUpdateSet::Deindex),
         )
         .add_systems(Update, game::death_event_on_0_health)
+        // we do this instead of add_event so we can handle the events ourselves
         .init_resource::<Events<game::PacketEvent>>()
+        .init_resource::<Events<configuration::PacketEvent>>()
         .add_event::<AddPlayerEvent>()
         .add_event::<RemovePlayerEvent>()
         .add_event::<UpdatePlayerEvent>()

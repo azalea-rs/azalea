@@ -21,7 +21,9 @@ impl Plugin for ChunkBatchingPlugin {
             )
                 .chain()
                 .before(handle_send_packet_event),
-        );
+        )
+        .add_event::<ChunkBatchStartEvent>()
+        .add_event::<ChunkBatchFinishedEvent>();
     }
 }
 

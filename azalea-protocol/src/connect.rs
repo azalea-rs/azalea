@@ -26,15 +26,16 @@ use tokio::net::TcpStream;
 use uuid::Uuid;
 
 /// The read half of a connection.
-pub struct ReadConnection {
+pub struct ReadConnection<R: ProtocolPacket> {
     pub read_stream: OwnedReadHalf,
     pub buffer: BytesMut,
     pub compression_threshold: Option<u32>,
     pub dec_cipher: Option<Aes128CfbDec>,
+    _reading: PhantomData<R>,
 }
 
 /// The write half of a connection.
-pub struct WriteConnection {
+pub struct WriteConnection<W: ProtocolPacket> {
     pub write_stream: OwnedWriteHalf,
     pub compression_threshold: Option<u32>,
     pub enc_cipher: Option<Aes128CfbEnc>,

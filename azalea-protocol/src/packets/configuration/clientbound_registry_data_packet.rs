@@ -26,11 +26,8 @@ pub mod registry {
     /// The base of the registry.
     ///
     /// This is the registry that is sent to the client upon login.
-    ///
-    /// As a tag, it is a compound tag that only contains a single compound tag.
     #[derive(Debug, Clone, Serialize, Deserialize)]
     pub struct RegistryHolder {
-        #[serde(rename = "")]
         pub registries: HashMap<ResourceLocation, Nbt>,
     }
 
@@ -38,7 +35,9 @@ pub mod registry {
         type Error = serde_json::Error;
 
         fn try_from(value: Nbt) -> Result<Self, Self::Error> {
-            serde_json::from_value(serde_json::to_value(value)?)
+            Ok(RegistryHolder {
+                registries: serde_json::from_value(serde_json::to_value(value)?)?,
+            })
         }
     }
 
@@ -46,7 +45,7 @@ pub mod registry {
         type Error = serde_json::Error;
 
         fn try_into(self) -> Result<Nbt, Self::Error> {
-            serde_json::from_value(serde_json::to_value(self)?)
+            serde_json::from_value(serde_json::to_value(self.registries)?)
         }
     }
 

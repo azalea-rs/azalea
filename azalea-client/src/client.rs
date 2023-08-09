@@ -2,22 +2,18 @@ use crate::{
     attack::{self, AttackPlugin},
     chat::ChatPlugin,
     chunk_batching::{self, ChunkBatchInfo, ChunkBatchingPlugin},
-    configuration::ConfiguringLocalPlayer,
+    configuration::ConfigurationLocalPlayer,
     disconnect::{DisconnectEvent, DisconnectPlugin},
     events::{Event, EventPlugin, LocalPlayerEvents},
     interact::{CurrentSequenceNumber, InteractPlugin},
     inventory::{InventoryComponent, InventoryPlugin},
     local_player::{
         death_event, handle_send_packet_event, update_in_loaded_chunk, GameProfileComponent,
-        LocalPlayer, LocalPlayerBundle, PermissionLevel, PhysicsState, PlayerAbilities,
-        SendPacketEvent,
+        LocalPlayer, PermissionLevel, PhysicsState, PlayerAbilities, SendPacketEvent,
     },
     mining::{self, MinePlugin},
     movement::{LastSentLookDirection, PlayerMovePlugin},
-    packet_handling::{
-        game::{self, PacketReceiver},
-        PacketHandlerPlugin,
-    },
+    packet_handling::PacketHandlerPlugin,
     player::retroactively_add_game_profile_component,
     respawn::RespawnPlugin,
     task_pool::TaskPoolPlugin,
@@ -25,6 +21,7 @@ use crate::{
 };
 
 use azalea_auth::{game_profile::GameProfile, sessionserver::ClientSessionServerError};
+use azalea_buf::McBufWritable;
 use azalea_chat::FormattedText;
 use azalea_core::{ResourceLocation, Vec3};
 use azalea_entity::{metadata::Health, EntityPlugin, EntityUpdateSet, EyeHeight, Local, Position};
@@ -46,7 +43,9 @@ use azalea_protocol::{
         login::{
             serverbound_custom_query_answer_packet::ServerboundCustomQueryAnswerPacket,
             serverbound_hello_packet::ServerboundHelloPacket,
-            serverbound_key_packet::ServerboundKeyPacket, ClientboundLoginPacket,
+            serverbound_key_packet::ServerboundKeyPacket,
+            serverbound_login_acknowledged_packet::ServerboundLoginAcknowledgedPacket,
+            ClientboundLoginPacket,
         },
         ConnectionProtocol, PROTOCOL_VERSION,
     },
@@ -205,7 +204,22 @@ impl Client {
         run_schedule_sender: mpsc::UnboundedSender<()>,
     ) -> Result<(Self, mpsc::UnboundedReceiver<Event>), JoinError> {
         let conn = Connection::new(resolved_address).await?;
-        let (conn, game_profile) = Self::handshake(conn, account, address).await?;
+        let (mut conn, game_profile) = Self::handshake(conn, account, address).await?;
+
+        {
+            // quickly send the brand here
+            let mut brand_data = Vec::new();
+            // they don't have to know :)
+            "vanilla".write_into(&mut brand_data).unwrap();
+            conn.write(
+        azalea_protocol::packets::configuration::serverbound_custom_payload_packet::ServerboundCustomPayloadPacket {
+                    identifier: ResourceLocation::new("brand"),
+                    data: brand_data.into(),
+                }
+                .get(),
+            ).await?;
+        }
+
         let (read_conn, write_conn) = conn.into_split();
 
         let (tx, rx) = mpsc::unbounded_channel();
@@ -233,15 +247,15 @@ impl Client {
         };
 
         let (read_conn, write_conn) = (
-            Arc::new(tokio::sync::Mutex::new(read_conn)),
-            Arc::new(tokio::sync::Mutex::new(write_conn)),
+            Arc::new(tokio::sync::Mutex::new(Some(read_conn))),
+            Arc::new(tokio::sync::Mutex::new(Some(write_conn))),
         );
 
-        let read_packets_task = tokio::spawn(packet_receiver.clone().read_task(read_conn));
+        let read_packets_task = tokio::spawn(packet_receiver.clone().read_task(read_conn.clone()));
         let write_packets_task = tokio::spawn(
             packet_receiver
                 .clone()
-                .write_task(write_conn, packet_writer_receiver),
+                .write_task(write_conn.clone(), packet_writer_receiver),
         );
 
         ecs.entity_mut(entity).insert((
@@ -249,12 +263,18 @@ impl Client {
             LocalPlayerBundle {
                 received_registries: ReceivedRegistries::default(),
                 local_player_events: LocalPlayerEvents(tx),
+                game_profile: GameProfileComponent(game_profile),
             },
             // this is only present while we're in the configuration state
-            ConfiguringLocalPlayer {
-                packet_writer: packet_writer_sender,
-                read_packets_task,
-                write_packets_task,
+            ConfigurationClientBundle {
+                local_player: ConfigurationLocalPlayer::new(
+                    packet_writer_sender,
+                    read_conn,
+                    write_conn,
+                    read_packets_task,
+                    write_packets_task,
+                ),
+                packet_receiver,
             },
         ));
 
@@ -362,7 +382,12 @@ impl Client {
                     conn.set_compression_threshold(p.compression_threshold);
                 }
                 ClientboundLoginPacket::GameProfile(p) => {
-                    debug!("Got profile {:?}", p.game_profile);
+                    debug!(
+                        "Got profile {:?}. handshake is finished and we're now switching to the configuration state",
+                        p.game_profile
+                    );
+                    conn.write(ServerboundLoginAcknowledgedPacket {}.get())
+                        .await?;
                     break (conn.configuration(), p.game_profile);
                 }
                 ClientboundLoginPacket::LoginDisconnect(p) => {
@@ -516,16 +541,27 @@ impl Client {
     }
 }
 
+/// The bundle of components that's shared when we're either in the
+/// `configuration` or `game` state.
+///
+/// For the components that are only present in the `game` state, see
+/// [`JoinedClientBundle`] and for the ones in the `configuration` state, see
+/// [`ConfigurationClientBundle`].
+#[derive(Bundle)]
+pub struct LocalPlayerBundle {
+    pub received_registries: ReceivedRegistries,
+    pub local_player_events: LocalPlayerEvents,
+    pub game_profile: GameProfileComponent,
+}
+
 /// A bundle for the components that are present on a local player that is
 /// currently in the `game` protocol state. If you want to filter for this, just
 /// use [`Local`].
 #[derive(Bundle)]
 pub struct JoinedClientBundle {
     pub local_player: LocalPlayer,
-    pub packet_receiver: PacketReceiver,
-    pub game_profile: GameProfileComponent,
+    pub packet_receiver: crate::packet_handling::game::PacketReceiver,
     pub physics_state: PhysicsState,
-    pub local_player_events: LocalPlayerEvents,
     pub inventory: InventoryComponent,
     pub client_information: ClientInformation,
     pub tab_list: TabList,
@@ -544,8 +580,9 @@ pub struct JoinedClientBundle {
 /// A bundle for the components that are present on a local player that is
 /// currently in the configuration state.
 #[derive(Bundle)]
-pub struct ConfiguringClientBundle {
-    pub local_player: ConfiguringLocalPlayer,
+pub struct ConfigurationClientBundle {
+    pub local_player: ConfigurationLocalPlayer,
+    pub packet_receiver: crate::packet_handling::configuration::PacketReceiver,
 }
 
 pub struct AzaleaPlugin;

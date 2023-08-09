@@ -255,6 +255,9 @@ impl Nbt {
     }
 
     /// Read the NBT data. This will return a compound tag with a single item.
+    ///
+    /// Minecraft usually uses this function when reading from files.
+    /// [`Nbt::read_any_tag`] is used when reading from the network.
     pub fn read(stream: &mut Cursor<&[u8]>) -> Result<Nbt, Error> {
         // default to compound tag
 
@@ -269,6 +272,17 @@ impl Nbt {
         map.insert_unsorted(name, tag);
 
         Ok(Nbt::Compound(map))
+    }
+
+    /// Read the NBT data. There is no guarantee that the tag will be a compound
+    /// with a single item.
+    ///
+    /// The Minecraft protocol uses this function when reading from the network.
+    /// [`Nbt::read`] is usually used when reading from files.
+    pub fn read_any_tag(stream: &mut Cursor<&[u8]>) -> Result<Nbt, Error> {
+        let tag_id = stream.read_u8().unwrap_or(0);
+        let tag = Nbt::read_known(stream, tag_id)?;
+        Ok(tag)
     }
 
     /// Read the NBT data compressed wtih zlib.
@@ -290,7 +304,7 @@ impl Nbt {
 
 impl McBufReadable for Nbt {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        Ok(Nbt::read(buf)?)
+        Ok(Nbt::read_any_tag(buf)?)
     }
 }
 impl From<Error> for BufReadError {

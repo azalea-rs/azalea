@@ -271,18 +271,6 @@ pub fn process_packet_events(ecs: &mut World) {
                     ));
                 }
 
-                // brand
-                let mut brand_data = Vec::new();
-                // they don't have to know :)
-                "vanilla".write_into(&mut brand_data).unwrap();
-                local_player.write_packet(
-                    ServerboundCustomPayloadPacket {
-                        identifier: ResourceLocation::new("brand"),
-                        data: brand_data.into(),
-                    }
-                    .get(),
-                );
-
                 // send the client information that we have set
                 log::debug!(
                     "Sending client information because login: {:?}",
@@ -1141,9 +1129,12 @@ pub fn process_packet_events(ecs: &mut World) {
 impl PacketReceiver {
     /// Loop that reads from the connection and adds the packets to the queue +
     /// runs the schedule.
-    pub async fn read_task(self, mut read_conn: ReadConnection<ClientboundGamePacket>) {
+    pub async fn read_task(
+        self,
+        read_conn: Arc<tokio::sync::Mutex<Option<ReadConnection<ClientboundGamePacket>>>>,
+    ) {
         loop {
-            match read_conn.read().await {
+            match read_conn.try_lock().unwrap().as_mut().unwrap().read().await {
                 Ok(packet) => {
                     self.packets.lock().push(packet);
                     // tell the client to run all the systems
@@ -1164,11 +1155,18 @@ impl PacketReceiver {
     /// be awaited.
     pub async fn write_task(
         self,
-        mut write_conn: WriteConnection<ServerboundGamePacket>,
+        write_conn: Arc<tokio::sync::Mutex<Option<WriteConnection<ServerboundGamePacket>>>>,
         mut write_receiver: mpsc::UnboundedReceiver<ServerboundGamePacket>,
     ) {
         while let Some(packet) = write_receiver.recv().await {
-            if let Err(err) = write_conn.write(packet).await {
+            if let Err(err) = write_conn
+                .try_lock()
+                .unwrap()
+                .as_mut()
+                .unwrap()
+                .write(packet)
+                .await
+            {
                 error!("Disconnecting because we couldn't write a packet: {err}.");
                 break;
             };

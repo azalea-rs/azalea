@@ -219,6 +219,10 @@ impl NbtCompound {
         self.inner.iter()
     }
 
+    pub fn into_iter(self) -> impl Iterator<Item = (NbtString, Nbt)> {
+        self.inner.into_iter()
+    }
+
     #[inline]
     fn is_worth_sorting(&self) -> bool {
         // i don't actually know when binary search starts being better, but it's at

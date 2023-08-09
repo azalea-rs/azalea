@@ -56,18 +56,6 @@ pub struct LocalPlayer {
     pub(crate) write_packets_task: JoinHandle<()>,
 }
 
-/// The bundle of components that's shared when we're either in the
-/// `configuration` or `game` state.
-///
-/// For the components that are only present in the `game` state, see
-/// [`JoinedClientBundle`] and for the ones in the `configuration` state, see
-/// [`ConfigurationClientBundle`].
-#[derive(Bundle)]
-pub struct LocalPlayerBundle {
-    pub received_registries: ReceivedRegistries,
-    pub local_player_events: LocalPlayerEvents,
-}
-
 /// Component for entities that can move and sprint. Usually only in
 /// [`LocalPlayer`] entities.
 #[derive(Default, Component)]
