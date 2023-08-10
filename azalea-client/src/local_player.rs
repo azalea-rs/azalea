@@ -1,4 +1,4 @@
-use std::{collections::HashMap, io, sync::Arc, time::Instant};
+use std::{collections::HashMap, io, sync::Arc};
 
 use azalea_auth::game_profile::GameProfile;
 use azalea_core::{ChunkPos, GameMode};
@@ -18,16 +18,16 @@ use bevy_ecs::{
     system::{Query, Res},
 };
 use derive_more::{Deref, DerefMut};
-use log::{debug, error};
+use log::error;
 use parking_lot::RwLock;
 use thiserror::Error;
-use tokio::{sync::mpsc, task::JoinHandle};
+use tokio::sync::mpsc;
 use uuid::Uuid;
 
 use crate::{
     events::{Event as AzaleaEvent, LocalPlayerEvents},
     raw_connection::RawConnection,
-    PlayerInfo, ReceivedRegistries, WalkDirection,
+    PlayerInfo, WalkDirection,
 };
 
 /// A component that keeps strong references to our [`PartialInstance`] and
@@ -44,7 +44,7 @@ pub struct InstanceHolder {
 }
 
 /// Component for entities that can move and sprint. Usually only in
-/// [`LocalPlayer`] entities.
+/// [`LocalEntity`]s.
 #[derive(Default, Component)]
 pub struct PhysicsState {
     /// Minecraft only sends a movement packet either after 20 ticks or if the
@@ -68,10 +68,10 @@ pub struct PhysicsState {
 #[derive(Component, Clone, Debug, Deref, DerefMut)]
 pub struct GameProfileComponent(pub GameProfile);
 
-/// Marks a [`LocalPlayer`] that's in a loaded chunk. This is updated at the
+/// Marks a [`LocalEntity`] that's in a loaded chunk. This is updated at the
 /// beginning of every tick.
 #[derive(Component, Clone, Debug, Copy)]
-pub struct LocalPlayerInLoadedChunk;
+pub struct LocalEntityInLoadedChunk;
 
 /// The gamemode of a local player. For a non-local player, you can look up the
 /// player in the [`TabList`].
@@ -134,7 +134,7 @@ pub struct PermissionLevel(pub u8);
 pub struct TabList(HashMap<Uuid, PlayerInfo>);
 
 impl InstanceHolder {
-    /// Create a new `LocalPlayer`.
+    /// Create a new `InstanceHolder`.
     pub fn new(entity: Entity, world: Arc<RwLock<Instance>>) -> Self {
         let client_information = ClientInformation::default();
 
@@ -150,7 +150,7 @@ impl InstanceHolder {
     }
 }
 
-/// Update the [`LocalPlayerInLoadedChunk`] component for all [`LocalPlayer`]s.
+/// Update the [`LocalEntityInLoadedChunk`] component for all [`LocalEntity`]s.
 pub fn update_in_loaded_chunk(
     mut commands: bevy_ecs::system::Commands,
     query: Query<(Entity, &InstanceName, &Position)>,
@@ -164,14 +164,14 @@ pub fn update_in_loaded_chunk(
 
         let in_loaded_chunk = instance_lock.read().chunks.get(&player_chunk_pos).is_some();
         if in_loaded_chunk {
-            commands.entity(entity).insert(LocalPlayerInLoadedChunk);
+            commands.entity(entity).insert(LocalEntityInLoadedChunk);
         } else {
-            commands.entity(entity).remove::<LocalPlayerInLoadedChunk>();
+            commands.entity(entity).remove::<LocalEntityInLoadedChunk>();
         }
     }
 }
 
-/// Send the "Death" event for [`LocalPlayer`]s that died with no reason.
+/// Send the "Death" event for [`LocalEntity`]s that died with no reason.
 pub fn death_event(query: Query<&LocalPlayerEvents, Added<Dead>>) {
     for local_player_events in &query {
         local_player_events.send(AzaleaEvent::Death(None)).unwrap();

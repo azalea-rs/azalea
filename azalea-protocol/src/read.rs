@@ -259,8 +259,8 @@ where
         buffer.extend_from_slice(&bytes);
     }
 }
-pub fn try_read_raw_packet<'a, R>(
-    stream: &'a mut R,
+pub fn try_read_raw_packet<R>(
+    stream: &mut R,
     buffer: &mut BytesMut,
     compression_threshold: Option<u32>,
     cipher: &mut Option<Aes128CfbDec>,

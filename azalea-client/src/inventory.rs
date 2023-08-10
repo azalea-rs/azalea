@@ -27,7 +27,7 @@ use log::warn;
 
 use crate::{
     local_player::{handle_send_packet_event, PlayerAbilities, SendPacketEvent},
-    Client, InstanceHolder,
+    Client,
 };
 
 pub struct InventoryPlugin;

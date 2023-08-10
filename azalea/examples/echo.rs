@@ -18,16 +18,13 @@ async fn main() {
 pub struct State {}
 
 async fn handle(bot: Client, event: Event, _state: State) -> anyhow::Result<()> {
-    match event {
-        Event::Chat(m) => {
-            if let (Some(sender), content) = m.split_sender_and_content() {
-                if sender == bot.profile.name {
-                    return Ok(()); // ignore our own messages
-                }
-                bot.chat(&content);
-            };
-        }
-        _ => {}
+    if let Event::Chat(m) = event {
+        if let (Some(sender), content) = m.split_sender_and_content() {
+            if sender == bot.profile.name {
+                return Ok(()); // ignore our own messages
+            }
+            bot.chat(&content);
+        };
     }
 
     Ok(())

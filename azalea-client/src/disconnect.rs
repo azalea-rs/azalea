@@ -12,7 +12,7 @@ use bevy_ecs::{
 };
 use derive_more::Deref;
 
-use crate::{client::JoinedClientBundle, raw_connection::RawConnection, InstanceHolder};
+use crate::{client::JoinedClientBundle, raw_connection::RawConnection};
 
 pub struct DisconnectPlugin;
 impl Plugin for DisconnectPlugin {

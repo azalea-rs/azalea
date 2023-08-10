@@ -8,7 +8,6 @@ use azalea::entity::{EyeHeight, Position};
 use azalea::interact::HitResultComponent;
 use azalea::inventory::ItemSlot;
 use azalea::pathfinder::goals::BlockPosGoal;
-use azalea::protocol::packets::game::ClientboundGamePacket;
 use azalea::{prelude::*, swarm::prelude::*, BlockPos, GameProfileComponent, WalkDirection};
 use azalea::{Account, Client, Event};
 use azalea_core::Vec3;
@@ -275,12 +274,6 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                 }
             }
         }
-        Event::Packet(packet) => match *packet {
-            ClientboundGamePacket::Login(_) => {
-                println!("login packet");
-            }
-            _ => {}
-        },
         _ => {}
     }
 

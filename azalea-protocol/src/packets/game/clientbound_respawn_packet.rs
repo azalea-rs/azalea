@@ -1,5 +1,4 @@
 use azalea_buf::McBuf;
-use azalea_core::{GameMode, GlobalPos, OptionalGameType, ResourceLocation};
 use azalea_protocol_macros::ClientboundGamePacket;
 
 use crate::packets::common::CommonPlayerSpawnInfo;

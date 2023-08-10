@@ -1,34 +1,26 @@
-use std::{collections::HashSet, io::Cursor, sync::Arc, time::Instant};
+use std::{collections::HashSet, io::Cursor, sync::Arc};
 
-use azalea_buf::McBufWritable;
-use azalea_core::{ChunkPos, GameMode, ResourceLocation, Vec3};
+use azalea_core::{ChunkPos, GameMode, Vec3};
 use azalea_entity::{
     indexing::EntityUuidIndex,
     metadata::{apply_metadata, Health, PlayerMetadataBundle},
-    Dead, EntityBundle, EntityKind, EntityUpdateSet, LastSentPosition, LoadedBy, LocalEntity,
-    LookDirection, Physics, PlayerBundle, Position, RelativeEntityUpdate,
+    Dead, EntityBundle, EntityKind, LastSentPosition, LoadedBy, LocalEntity, LookDirection,
+    Physics, PlayerBundle, Position, RelativeEntityUpdate,
 };
 use azalea_protocol::{
-    connect::{ReadConnection, WriteConnection},
     packets::game::{
         clientbound_player_combat_kill_packet::ClientboundPlayerCombatKillPacket,
         serverbound_accept_teleportation_packet::ServerboundAcceptTeleportationPacket,
-        serverbound_chunk_batch_received_packet::ServerboundChunkBatchReceivedPacket,
-        serverbound_custom_payload_packet::ServerboundCustomPayloadPacket,
         serverbound_keep_alive_packet::ServerboundKeepAlivePacket,
         serverbound_move_player_pos_rot_packet::ServerboundMovePlayerPosRotPacket,
         serverbound_pong_packet::ServerboundPongPacket,
         serverbound_resource_pack_packet::ServerboundResourcePackPacket, ClientboundGamePacket,
-        ServerboundGamePacket,
     },
-    read::{deserialize_packet, ReadPacketError},
+    read::deserialize_packet,
 };
 use azalea_world::{InstanceContainer, InstanceName, MinecraftEntityId, PartialInstance};
-use bevy_app::{App, First, Plugin, PreUpdate, Update};
 use bevy_ecs::{prelude::*, system::SystemState};
 use log::{debug, error, trace, warn};
-use parking_lot::Mutex;
-use tokio::sync::mpsc;
 
 use crate::{
     chat::{ChatPacket, ChatReceivedEvent},
@@ -360,7 +352,6 @@ pub fn process_packet_events(ecs: &mut World) {
                 #[allow(clippy::type_complexity)]
                 let mut system_state: SystemState<(
                     Query<(
-                        &mut InstanceHolder,
                         &mut Physics,
                         &mut LookDirection,
                         &mut Position,
@@ -369,13 +360,8 @@ pub fn process_packet_events(ecs: &mut World) {
                     EventWriter<SendPacketEvent>,
                 )> = SystemState::new(ecs);
                 let (mut query, mut send_packet_events) = system_state.get_mut(ecs);
-                let Ok((
-                    instance_holder,
-                    mut physics,
-                    mut direction,
-                    mut position,
-                    mut last_sent_position,
-                )) = query.get_mut(player_entity)
+                let Ok((mut physics, mut direction, mut position, mut last_sent_position)) =
+                    query.get_mut(player_entity)
                 else {
                     continue;
                 };

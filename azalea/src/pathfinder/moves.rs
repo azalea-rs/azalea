@@ -192,17 +192,17 @@ mod tests {
         partial_world.chunks.set_block_state(
             &BlockPos::new(0, 0, 0),
             azalea_registry::Block::Stone.into(),
-            &mut chunk_storage,
+            &chunk_storage,
         );
         partial_world.chunks.set_block_state(
             &BlockPos::new(0, 1, 0),
             BlockState::AIR,
-            &mut chunk_storage,
+            &chunk_storage,
         );
 
         let world = chunk_storage.into();
-        assert_eq!(is_block_passable(&BlockPos::new(0, 0, 0), &world), false);
-        assert_eq!(is_block_passable(&BlockPos::new(0, 1, 0), &world), true);
+        assert!(!is_block_passable(&BlockPos::new(0, 0, 0), &world));
+        assert!(is_block_passable(&BlockPos::new(0, 1, 0), &world));
     }
 
     #[test]
@@ -217,17 +217,17 @@ mod tests {
         partial_world.chunks.set_block_state(
             &BlockPos::new(0, 0, 0),
             azalea_registry::Block::Stone.into(),
-            &mut chunk_storage,
+            &chunk_storage,
         );
         partial_world.chunks.set_block_state(
             &BlockPos::new(0, 1, 0),
             BlockState::AIR,
-            &mut chunk_storage,
+            &chunk_storage,
         );
 
         let world = chunk_storage.into();
-        assert_eq!(is_block_solid(&BlockPos::new(0, 0, 0), &world), true);
-        assert_eq!(is_block_solid(&BlockPos::new(0, 1, 0), &world), false);
+        assert!(is_block_solid(&BlockPos::new(0, 0, 0), &world));
+        assert!(!is_block_solid(&BlockPos::new(0, 1, 0), &world));
     }
 
     #[test]
@@ -242,22 +242,22 @@ mod tests {
         partial_world.chunks.set_block_state(
             &BlockPos::new(0, 0, 0),
             azalea_registry::Block::Stone.into(),
-            &mut chunk_storage,
+            &chunk_storage,
         );
         partial_world.chunks.set_block_state(
             &BlockPos::new(0, 1, 0),
             BlockState::AIR,
-            &mut chunk_storage,
+            &chunk_storage,
         );
         partial_world.chunks.set_block_state(
             &BlockPos::new(0, 2, 0),
             BlockState::AIR,
-            &mut chunk_storage,
+            &chunk_storage,
         );
         partial_world.chunks.set_block_state(
             &BlockPos::new(0, 3, 0),
             BlockState::AIR,
-            &mut chunk_storage,
+            &chunk_storage,
         );
 
         let world = chunk_storage.into();

@@ -4,7 +4,7 @@
 use azalea_protocol::{
     connect::Connection,
     packets::{
-        handshake::{
+        handshaking::{
             client_intention_packet::ClientIntentionPacket, ClientboundHandshakePacket,
             ServerboundHandshakePacket,
         },
@@ -145,11 +145,7 @@ async fn handle_connection(stream: TcpStream) -> anyhow::Result<()> {
                                 "Player \'{0}\' from {1} logging in with uuid: {2}",
                                 hello.name,
                                 ip.ip(),
-                                if let Some(id) = hello.profile_id {
-                                    id.to_string()
-                                } else {
-                                    String::new()
-                                }
+                                hello.profile_id.to_string()
                             );
 
                             tokio::spawn(transfer(conn.unwrap()?, intent, hello).map(|r| {

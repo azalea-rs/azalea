@@ -16,7 +16,7 @@ pub struct ReceivedRegistries {
 
 impl ReceivedRegistries {
     fn get<T: DeserializeOwned>(&self, name: &ResourceLocation) -> Option<T> {
-        let nbt = self.registries.get(&name)?;
+        let nbt = self.registries.get(name)?;
         serde_json::from_value(serde_json::to_value(nbt).ok()?).ok()
     }
 

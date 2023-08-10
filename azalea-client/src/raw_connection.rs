@@ -166,7 +166,7 @@ impl RawConnectionWriter {
 }
 
 impl Drop for RawConnection {
-    /// Stop every active task when the `LocalPlayer` is dropped.
+    /// Stop every active task when this `RawConnection` is dropped.
     fn drop(&mut self) {
         self.read_packets_task.abort();
         self.write_packets_task.abort();

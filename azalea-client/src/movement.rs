@@ -1,8 +1,7 @@
 use crate::client::Client;
 use crate::local_player::{
-    update_in_loaded_chunk, InstanceHolder, LocalPlayerInLoadedChunk, PhysicsState, SendPacketEvent,
+    update_in_loaded_chunk, LocalEntityInLoadedChunk, PhysicsState, SendPacketEvent,
 };
-use crate::raw_connection::RawConnection;
 use azalea_entity::{metadata::Sprinting, Attributes, Jumping};
 use azalea_entity::{LastSentPosition, LookDirection, Physics, Position};
 use azalea_physics::{force_jump_listener, PhysicsSet};
@@ -111,27 +110,21 @@ pub(crate) fn send_position(
     mut query: Query<
         (
             Entity,
-            &MinecraftEntityId,
             &Position,
             &LookDirection,
-            &Sprinting,
-            &mut RawConnection,
             &mut PhysicsState,
             &mut LastSentPosition,
             &mut Physics,
             &mut LastSentLookDirection,
         ),
-        &LocalPlayerInLoadedChunk,
+        &LocalEntityInLoadedChunk,
     >,
     mut send_packet_events: EventWriter<SendPacketEvent>,
 ) {
     for (
         entity,
-        id,
         position,
         direction,
-        sprinting,
-        mut raw_connection,
         mut physics_state,
         mut last_sent_position,
         mut physics,
@@ -292,16 +285,11 @@ pub(crate) fn tick_controls(mut query: Query<&mut PhysicsState>) {
 /// automatically by the client.
 pub fn local_player_ai_step(
     mut query: Query<
-        (
-            &mut PhysicsState,
-            &mut Physics,
-            &mut Sprinting,
-            &mut Attributes,
-        ),
-        With<LocalPlayerInLoadedChunk>,
+        (&PhysicsState, &mut Physics, &mut Sprinting, &mut Attributes),
+        With<LocalEntityInLoadedChunk>,
     >,
 ) {
-    for (mut physics_state, mut physics, mut sprinting, mut attributes) in query.iter_mut() {
+    for (physics_state, mut physics, mut sprinting, mut attributes) in query.iter_mut() {
         // server ai step
         physics.xxa = physics_state.left_impulse;
         physics.zza = physics_state.forward_impulse;
@@ -319,7 +307,7 @@ pub fn local_player_ai_step(
             && (
                 // !self.is_in_water()
                 // || self.is_underwater() &&
-                has_enough_impulse_to_start_sprinting(&physics_state)
+                has_enough_impulse_to_start_sprinting(physics_state)
                     && has_enough_food_to_sprint
                     // && !self.using_item()
                     // && !self.has_effect(MobEffects.BLINDNESS)

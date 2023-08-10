@@ -51,7 +51,7 @@ pub struct RelativeEntityUpdate {
 /// This is used for making sure two clients don't do the same relative update
 /// on an entity.
 ///
-/// If an entity is local (i.e. it's a client/localplayer), this component
+/// If an entity is local (i.e. it's a client/LocalEntity), this component
 /// should NOT be present in the entity.
 #[derive(Component, Debug, Deref, DerefMut)]
 pub struct UpdatesReceived(u32);

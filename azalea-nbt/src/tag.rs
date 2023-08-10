@@ -219,10 +219,6 @@ impl NbtCompound {
         self.inner.iter()
     }
 
-    pub fn into_iter(self) -> impl Iterator<Item = (NbtString, Nbt)> {
-        self.inner.into_iter()
-    }
-
     #[inline]
     fn is_worth_sorting(&self) -> bool {
         // i don't actually know when binary search starts being better, but it's at
@@ -230,6 +226,16 @@ impl NbtCompound {
         self.inner.len() >= 32
     }
 }
+
+impl IntoIterator for NbtCompound {
+    type Item = (NbtString, Nbt);
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.inner.into_iter()
+    }
+}
+
 #[cfg(feature = "serde")]
 impl Serialize for NbtCompound {
     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {

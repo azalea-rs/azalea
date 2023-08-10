@@ -31,7 +31,7 @@ use crate::{
     local_player::{
         handle_send_packet_event, LocalGameMode, PermissionLevel, PlayerAbilities, SendPacketEvent,
     },
-    Client, InstanceHolder,
+    Client,
 };
 
 /// A plugin that allows clients to interact with blocks in the world.
@@ -104,7 +104,7 @@ pub fn handle_block_interact_event(
 ) {
     for event in events.iter() {
         let Ok((entity, mut sequence_number, hit_result)) = query.get_mut(event.entity) else {
-            warn!("Sent BlockInteractEvent for entity that isn't LocalPlayer");
+            warn!("Sent BlockInteractEvent for entity that doesn't have the required components");
             continue;
         };
 

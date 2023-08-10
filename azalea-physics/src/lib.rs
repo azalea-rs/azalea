@@ -127,7 +127,7 @@ pub fn ai_step(
         (Entity, &mut Physics, Option<&Jumping>),
         With<LocalEntity>,
         // TODO: ai_step should only run for players in loaded chunks
-        // With<LocalPlayerInLoadedChunk> maybe there should be an InLoadedChunk/InUnloadedChunk
+        // With<LocalEntityInLoadedChunk> maybe there should be an InLoadedChunk/InUnloadedChunk
         // component?
     >,
     mut force_jump_events: EventWriter<ForceJumpEvent>,
@@ -427,7 +427,7 @@ mod tests {
         let block_state = partial_world.chunks.set_block_state(
             &BlockPos { x: 0, y: 69, z: 0 },
             azalea_registry::Block::Stone.into(),
-            &mut world_lock.write().chunks,
+            &world_lock.write().chunks,
         );
         assert!(
             block_state.is_some(),
@@ -490,7 +490,7 @@ mod tests {
                 waterlogged: false,
             }
             .into(),
-            &mut world_lock.write().chunks,
+            &world_lock.write().chunks,
         );
         assert!(
             block_state.is_some(),

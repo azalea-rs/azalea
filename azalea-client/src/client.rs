@@ -1,7 +1,7 @@
 use crate::{
     attack::{self, AttackPlugin},
     chat::ChatPlugin,
-    chunk_batching::{self, ChunkBatchInfo, ChunkBatchingPlugin},
+    chunk_batching::{ChunkBatchInfo, ChunkBatchingPlugin},
     disconnect::{DisconnectEvent, DisconnectPlugin},
     events::{Event, EventPlugin, LocalPlayerEvents},
     interact::{CurrentSequenceNumber, InteractPlugin},
@@ -17,7 +17,7 @@ use crate::{
     raw_connection::RawConnection,
     respawn::RespawnPlugin,
     task_pool::TaskPoolPlugin,
-    Account, ClientInformation, PlayerInfo, ReceivedRegistries, TabList,
+    Account, ClientInformation, ReceivedRegistries, TabList,
 };
 
 use azalea_auth::{game_profile::GameProfile, sessionserver::ClientSessionServerError};
@@ -27,16 +27,14 @@ use azalea_core::{ResourceLocation, Vec3};
 use azalea_entity::{
     metadata::Health, EntityPlugin, EntityUpdateSet, EyeHeight, LocalEntity, Position,
 };
-use azalea_nbt::Nbt;
 use azalea_physics::{PhysicsPlugin, PhysicsSet};
 use azalea_protocol::{
-    connect::{Connection, ConnectionError, RawReadConnection, RawWriteConnection},
+    connect::{Connection, ConnectionError},
     packets::{
         configuration::{ClientboundConfigurationPacket, ServerboundConfigurationPacket},
         game::{
-            clientbound_player_abilities_packet::ClientboundPlayerAbilitiesPacket,
             serverbound_client_information_packet::ServerboundClientInformationPacket,
-            ClientboundGamePacket, ServerboundGamePacket,
+            ServerboundGamePacket,
         },
         handshaking::{
             client_intention_packet::ClientIntentionPacket, ClientboundHandshakePacket,
@@ -64,19 +62,17 @@ use bevy_ecs::{
     world::World,
 };
 use bevy_time::{prelude::FixedTime, TimePlugin};
-use derive_more::{Deref, DerefMut};
+use derive_more::Deref;
 use log::{debug, error};
 use parking_lot::{Mutex, RwLock};
-use std::{collections::HashMap, fmt::Debug, io, net::SocketAddr, sync::Arc, time::Duration};
+use std::{fmt::Debug, io, net::SocketAddr, sync::Arc, time::Duration};
 use thiserror::Error;
 use tokio::{
     sync::{broadcast, mpsc},
     time,
 };
-use uuid::Uuid;
 
 /// `Client` has the things that a user interacting with the library will want.
-/// Things that a player in the world will want to know are in [`LocalPlayer`].
 ///
 /// To make a new client, use either [`azalea::ClientBuilder`] or
 /// [`Client::join`].
@@ -490,7 +486,7 @@ impl Client {
     pub async fn set_client_information(
         &self,
         client_information: ServerboundClientInformationPacket,
-    ) -> Result<(), std::io::Error> {
+    ) -> Result<(), crate::raw_connection::WritePacketError> {
         {
             let mut ecs = self.ecs.lock();
             let mut client_information_mut = self.query::<&mut ClientInformation>(&mut ecs);
@@ -502,7 +498,7 @@ impl Client {
                 "Sending client information (already logged in): {:?}",
                 client_information
             );
-            self.write_packet(client_information.get());
+            self.write_packet(client_information.get())?;
         }
 
         Ok(())

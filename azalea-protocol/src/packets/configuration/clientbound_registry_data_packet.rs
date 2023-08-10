@@ -9,8 +9,8 @@ pub struct ClientboundRegistryDataPacket {
 }
 
 pub mod registry {
-    //! [ClientboundLoginPacket](super::ClientboundLoginPacket) Registry
-    //! Structures
+    //! [ClientboundRegistryDataPacket](super::ClientboundRegistryDataPacket)
+    //! Registry Structures
     //!
     //! This module contains the structures used to represent the registry
     //! sent to the client upon login. This contains a lot of information about
@@ -60,53 +60,6 @@ pub mod registry {
         fn write_into(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
             TryInto::<Nbt>::try_into(self.clone())?.write_into(buf)
         }
-    }
-
-    /// The main part of the registry.
-    ///
-    /// The only field of [`RegistryHolder`].
-    /// Contains information from the server about chat, dimensions,
-    /// and world generation.
-    #[derive(Debug, Clone, Serialize, Deserialize)]
-    #[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
-    pub struct RegistryRoot {
-        #[cfg(feature = "strict_registry")]
-        #[serde(rename = "minecraft:trim_material")]
-        pub trim_material: RegistryType<TrimMaterialElement>,
-        #[cfg(not(feature = "strict_registry"))]
-        #[serde(rename = "minecraft:trim_material")]
-        pub trim_material: Nbt,
-
-        #[cfg(feature = "strict_registry")]
-        #[serde(rename = "minecraft:chat_type")]
-        pub chat_type: RegistryType<ChatTypeElement>,
-        #[cfg(not(feature = "strict_registry"))]
-        #[serde(rename = "minecraft:chat_type")]
-        pub chat_type: Nbt,
-
-        #[serde(rename = "minecraft:dimension_type")]
-        pub dimension_type: RegistryType<DimensionTypeElement>,
-
-        #[cfg(feature = "strict_registry")]
-        #[serde(rename = "minecraft:worldgen/biome")]
-        pub world_type: RegistryType<WorldTypeElement>,
-        #[cfg(not(feature = "strict_registry"))]
-        #[serde(rename = "minecraft:worldgen/biome")]
-        pub world_type: Nbt,
-
-        #[cfg(feature = "strict_registry")]
-        #[serde(rename = "minecraft:trim_pattern")]
-        pub trim_pattern: RegistryType<TrimPatternElement>,
-        #[cfg(not(feature = "strict_registry"))]
-        #[serde(rename = "minecraft:trim_pattern")]
-        pub trim_pattern: Nbt,
-
-        #[cfg(feature = "strict_registry")]
-        #[serde(rename = "minecraft:damage_type")]
-        pub damage_type: RegistryType<DamageTypeElement>,
-        #[cfg(not(feature = "strict_registry"))]
-        #[serde(rename = "minecraft:damage_type")]
-        pub damage_type: Nbt,
     }
 
     /// A collection of values for a certain type of registry data.
@@ -452,48 +405,4 @@ pub mod registry {
             )),
         }
     }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::registry::{DimensionTypeElement, RegistryHolder, RegistryRoot, RegistryType};
-    use azalea_core::ResourceLocation;
-    use azalea_nbt::Nbt;
-
-    // #[test]
-    // fn test_convert() {
-    //     // Do NOT use Nbt::End, they should be Nbt::Compound.
-    //     // This is just for testing.
-    //     let registry = RegistryHolder {
-    //         root: RegistryRoot {
-    //             trim_material: Nbt::End,
-    //             chat_type: Nbt::End,
-    //             dimension_type: RegistryType::<DimensionTypeElement> {
-    //                 kind: ResourceLocation::new("minecraft:dimension_type"),
-    //                 value: Vec::new(),
-    //             },
-    //             world_type: Nbt::End,
-    //             trim_pattern: Nbt::End,
-    //             damage_type: Nbt::End,
-    //         },
-    //     };
-
-    //     let tag: Nbt = registry.try_into().unwrap();
-    //     let root = tag
-    //         .as_compound()
-    //         .unwrap()
-    //         .get("")
-    //         .unwrap()
-    //         .as_compound()
-    //         .unwrap();
-
-    //     let dimension = root
-    //         .get("minecraft:dimension_type")
-    //         .unwrap()
-    //         .as_compound()
-    //         .unwrap();
-    //     let dimension_type =
-    // dimension.get("type").unwrap().as_string().unwrap().as_str();
-    //     assert!(dimension_type == "minecraft:dimension_type");
-    // }
 }
