@@ -39,7 +39,7 @@ use crate::{
 
 /// An event that's sent when we receive a packet.
 /// ```
-/// # use azalea_client::packet_handling::PacketEvent;
+/// # use azalea_client::packet_handling::game::PacketEvent;
 /// # use azalea_protocol::packets::game::ClientboundGamePacket;
 /// # use bevy_ecs::event::EventReader;
 ///

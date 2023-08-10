@@ -94,7 +94,7 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///     conn.write(
 ///         ServerboundHelloPacket {
 ///             name: "bot".to_string(),
-///             profile_id: None,
+///             profile_id: uuid::Uuid::nil(),
 ///         }
 ///         .get(),
 ///     )
@@ -120,7 +120,7 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///                 conn.set_compression_threshold(p.compression_threshold);
 ///             }
 ///             ClientboundLoginPacket::GameProfile(p) => {
-///                 break (conn.game(), p.game_profile);
+///                 break (conn.configuration(), p.game_profile);
 ///             }
 ///             ClientboundLoginPacket::LoginDisconnect(p) => {
 ///                 eprintln!("login disconnect: {}", p.reason);
