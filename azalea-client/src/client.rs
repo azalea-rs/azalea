@@ -2,19 +2,19 @@ use crate::{
     attack::{self, AttackPlugin},
     chat::ChatPlugin,
     chunk_batching::{self, ChunkBatchInfo, ChunkBatchingPlugin},
-    configuration::ConfigurationLocalPlayer,
     disconnect::{DisconnectEvent, DisconnectPlugin},
     events::{Event, EventPlugin, LocalPlayerEvents},
     interact::{CurrentSequenceNumber, InteractPlugin},
     inventory::{InventoryComponent, InventoryPlugin},
     local_player::{
         death_event, handle_send_packet_event, update_in_loaded_chunk, GameProfileComponent,
-        LocalPlayer, PermissionLevel, PhysicsState, PlayerAbilities, SendPacketEvent,
+        InstanceHolder, PermissionLevel, PhysicsState, PlayerAbilities, SendPacketEvent,
     },
     mining::{self, MinePlugin},
     movement::{LastSentLookDirection, PlayerMovePlugin},
     packet_handling::PacketHandlerPlugin,
     player::retroactively_add_game_profile_component,
+    raw_connection::RawConnection,
     respawn::RespawnPlugin,
     task_pool::TaskPoolPlugin,
     Account, ClientInformation, PlayerInfo, ReceivedRegistries, TabList,
@@ -24,11 +24,13 @@ use azalea_auth::{game_profile::GameProfile, sessionserver::ClientSessionServerE
 use azalea_buf::McBufWritable;
 use azalea_chat::FormattedText;
 use azalea_core::{ResourceLocation, Vec3};
-use azalea_entity::{metadata::Health, EntityPlugin, EntityUpdateSet, EyeHeight, Local, Position};
+use azalea_entity::{
+    metadata::Health, EntityPlugin, EntityUpdateSet, EyeHeight, LocalEntity, Position,
+};
 use azalea_nbt::Nbt;
 use azalea_physics::{PhysicsPlugin, PhysicsSet};
 use azalea_protocol::{
-    connect::{Connection, ConnectionError},
+    connect::{Connection, ConnectionError, RawReadConnection, RawWriteConnection},
     packets::{
         configuration::{ClientboundConfigurationPacket, ServerboundConfigurationPacket},
         game::{
@@ -221,6 +223,7 @@ impl Client {
         }
 
         let (read_conn, write_conn) = conn.into_split();
+        let (read_conn, write_conn) = (read_conn.raw, write_conn.raw);
 
         let (tx, rx) = mpsc::unbounded_channel();
 
@@ -238,44 +241,20 @@ impl Client {
             run_schedule_sender.clone(),
         );
 
-        let (packet_writer_sender, packet_writer_receiver) = mpsc::unbounded_channel();
-
-        // start receiving packets
-        let packet_receiver = crate::packet_handling::configuration::PacketReceiver {
-            packets: Arc::new(Mutex::new(Vec::new())),
-            run_schedule_sender: run_schedule_sender.clone(),
-        };
-
-        let (read_conn, write_conn) = (
-            Arc::new(tokio::sync::Mutex::new(Some(read_conn))),
-            Arc::new(tokio::sync::Mutex::new(Some(write_conn))),
-        );
-
-        let read_packets_task = tokio::spawn(packet_receiver.clone().read_task(read_conn.clone()));
-        let write_packets_task = tokio::spawn(
-            packet_receiver
-                .clone()
-                .write_task(write_conn.clone(), packet_writer_receiver),
-        );
-
         ecs.entity_mut(entity).insert((
             // these stay when we switch to the game state
             LocalPlayerBundle {
+                raw_connection: RawConnection::new(
+                    run_schedule_sender,
+                    ConnectionProtocol::Configuration,
+                    read_conn,
+                    write_conn,
+                ),
                 received_registries: ReceivedRegistries::default(),
                 local_player_events: LocalPlayerEvents(tx),
                 game_profile: GameProfileComponent(game_profile),
             },
-            // this is only present while we're in the configuration state
-            ConfigurationClientBundle {
-                local_player: ConfigurationLocalPlayer::new(
-                    packet_writer_sender,
-                    read_conn,
-                    write_conn,
-                    read_packets_task,
-                    write_packets_task,
-                ),
-                packet_receiver,
-            },
+            InConfigurationState,
         ));
 
         Ok((client, rx))
@@ -412,9 +391,12 @@ impl Client {
     }
 
     /// Write a packet directly to the server.
-    pub fn write_packet(&self, packet: ServerboundGamePacket) {
-        self.local_player_mut(&mut self.ecs.lock())
-            .write_packet(packet);
+    pub fn write_packet(
+        &self,
+        packet: ServerboundGamePacket,
+    ) -> Result<(), crate::raw_connection::WritePacketError> {
+        self.raw_connection_mut(&mut self.ecs.lock())
+            .write_packet(&packet)
     }
 
     /// Disconnect this client from the server by ending all tasks.
@@ -427,14 +409,24 @@ impl Client {
         });
     }
 
-    pub fn local_player<'a>(&'a self, ecs: &'a mut World) -> &'a LocalPlayer {
-        self.query::<&LocalPlayer>(ecs)
+    pub fn local_player<'a>(&'a self, ecs: &'a mut World) -> &'a InstanceHolder {
+        self.query::<&InstanceHolder>(ecs)
     }
     pub fn local_player_mut<'a>(
         &'a self,
         ecs: &'a mut World,
-    ) -> bevy_ecs::world::Mut<'a, LocalPlayer> {
-        self.query::<&mut LocalPlayer>(ecs)
+    ) -> bevy_ecs::world::Mut<'a, InstanceHolder> {
+        self.query::<&mut InstanceHolder>(ecs)
+    }
+
+    pub fn raw_connection<'a>(&'a self, ecs: &'a mut World) -> &'a RawConnection {
+        self.query::<&RawConnection>(ecs)
+    }
+    pub fn raw_connection_mut<'a>(
+        &'a self,
+        ecs: &'a mut World,
+    ) -> bevy_ecs::world::Mut<'a, RawConnection> {
+        self.query::<&mut RawConnection>(ecs)
     }
 
     /// Get a component from this client. This will clone the component and
@@ -549,6 +541,7 @@ impl Client {
 /// [`ConfigurationClientBundle`].
 #[derive(Bundle)]
 pub struct LocalPlayerBundle {
+    pub raw_connection: RawConnection,
     pub received_registries: ReceivedRegistries,
     pub local_player_events: LocalPlayerEvents,
     pub game_profile: GameProfileComponent,
@@ -556,11 +549,10 @@ pub struct LocalPlayerBundle {
 
 /// A bundle for the components that are present on a local player that is
 /// currently in the `game` protocol state. If you want to filter for this, just
-/// use [`Local`].
+/// use [`LocalEntity`].
 #[derive(Bundle)]
 pub struct JoinedClientBundle {
-    pub local_player: LocalPlayer,
-    pub packet_receiver: crate::packet_handling::game::PacketReceiver,
+    pub instance_holder: InstanceHolder,
     pub physics_state: PhysicsState,
     pub inventory: InventoryComponent,
     pub client_information: ClientInformation,
@@ -574,16 +566,13 @@ pub struct JoinedClientBundle {
     pub mining: mining::MineBundle,
     pub attack: attack::AttackBundle,
 
-    pub _local: Local,
+    pub _local_entity: LocalEntity,
 }
 
-/// A bundle for the components that are present on a local player that is
-/// currently in the configuration state.
-#[derive(Bundle)]
-pub struct ConfigurationClientBundle {
-    pub local_player: ConfigurationLocalPlayer,
-    pub packet_receiver: crate::packet_handling::configuration::PacketReceiver,
-}
+/// A marker component for local players that are currently in the
+/// `configuration` state.
+#[derive(Component)]
+pub struct InConfigurationState;
 
 pub struct AzaleaPlugin;
 impl Plugin for AzaleaPlugin {

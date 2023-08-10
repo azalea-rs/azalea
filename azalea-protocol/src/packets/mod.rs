@@ -20,6 +20,7 @@ pub enum ConnectionProtocol {
     Game = 0,
     Status = 1,
     Login = 2,
+    Configuration = 3,
 }
 
 impl ConnectionProtocol {
@@ -30,6 +31,7 @@ impl ConnectionProtocol {
             0 => Some(ConnectionProtocol::Game),
             1 => Some(ConnectionProtocol::Status),
             2 => Some(ConnectionProtocol::Login),
+            3 => Some(ConnectionProtocol::Configuration),
             _ => None,
         }
     }

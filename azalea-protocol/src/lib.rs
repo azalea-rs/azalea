@@ -87,7 +87,7 @@ mod tests {
             login::{serverbound_hello_packet::ServerboundHelloPacket, ServerboundLoginPacket},
         },
         read::{compression_decoder, read_packet},
-        write::{compression_encoder, packet_encoder, write_packet},
+        write::{compression_encoder, serialize_packet, write_packet},
     };
     use bytes::BytesMut;
     use uuid::Uuid;
@@ -96,7 +96,7 @@ mod tests {
     async fn test_hello_packet() {
         let packet = ServerboundHelloPacket {
             name: "test".to_string(),
-            profile_id: Some(Uuid::nil()),
+            profile_id: Uuid::nil(),
         }
         .get();
         let mut stream = Vec::new();
@@ -120,7 +120,7 @@ mod tests {
     async fn test_double_hello_packet() {
         let packet = ServerboundHelloPacket {
             name: "test".to_string(),
-            profile_id: Some(Uuid::nil()),
+            profile_id: Uuid::nil(),
         }
         .get();
         let mut stream = Vec::new();
@@ -146,7 +146,7 @@ mod tests {
     async fn test_read_long_compressed_chat() {
         let compression_threshold = 256;
 
-        let buf = packet_encoder(
+        let buf = serialize_packet(
             &ServerboundChatPacket {
                 message: "a".repeat(256),
                 timestamp: 0,

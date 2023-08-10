@@ -3,7 +3,7 @@ use std::ops::AddAssign;
 use azalea_block::BlockState;
 use azalea_core::{BlockHitResult, BlockPos, Direction, GameMode, Vec3};
 use azalea_entity::{
-    clamp_look_direction, view_vector, Attributes, EyeHeight, Local, LookDirection, Position,
+    clamp_look_direction, view_vector, Attributes, EyeHeight, LocalEntity, LookDirection, Position,
 };
 use azalea_inventory::{ItemSlot, ItemSlotData};
 use azalea_nbt::NbtList;
@@ -31,7 +31,7 @@ use crate::{
     local_player::{
         handle_send_packet_event, LocalGameMode, PermissionLevel, PlayerAbilities, SendPacketEvent,
     },
-    Client, LocalPlayer,
+    Client, InstanceHolder,
 };
 
 /// A plugin that allows clients to interact with blocks in the world.
@@ -99,15 +99,11 @@ pub struct HitResultComponent(BlockHitResult);
 
 pub fn handle_block_interact_event(
     mut events: EventReader<BlockInteractEvent>,
-    mut query: Query<(
-        &LocalPlayer,
-        &mut CurrentSequenceNumber,
-        &HitResultComponent,
-    )>,
+    mut query: Query<(Entity, &mut CurrentSequenceNumber, &HitResultComponent)>,
+    mut send_packet_events: EventWriter<SendPacketEvent>,
 ) {
     for event in events.iter() {
-        let Ok((local_player, mut sequence_number, hit_result)) = query.get_mut(event.entity)
-        else {
+        let Ok((entity, mut sequence_number, hit_result)) = query.get_mut(event.entity) else {
             warn!("Sent BlockInteractEvent for entity that isn't LocalPlayer");
             continue;
         };
@@ -140,14 +136,15 @@ pub fn handle_block_interact_event(
             }
         };
 
-        local_player.write_packet(
-            ServerboundUseItemOnPacket {
+        send_packet_events.send(SendPacketEvent {
+            entity,
+            packet: ServerboundUseItemOnPacket {
                 hand: InteractionHand::MainHand,
                 block_hit,
                 sequence: sequence_number.0,
             }
             .get(),
-        )
+        })
     }
 }
 
@@ -317,7 +314,7 @@ fn handle_swing_arm_event(
 fn update_modifiers_for_held_item(
     mut query: Query<
         (&mut Attributes, &InventoryComponent),
-        (With<Local>, Changed<InventoryComponent>),
+        (With<LocalEntity>, Changed<InventoryComponent>),
     >,
 ) {
     for (mut attributes, inventory) in &mut query {

@@ -11,7 +11,7 @@ use log::{debug, error, info, warn};
 use std::{collections::HashMap, fmt::Debug};
 use uuid::Uuid;
 
-use crate::{EntityUuid, LastSentPosition, Local, Position};
+use crate::{EntityUuid, LastSentPosition, LocalEntity, Position};
 
 use super::LoadedBy;
 
@@ -58,7 +58,7 @@ pub fn deduplicate_entities(
     mut commands: Commands,
     mut query: Query<
         (Entity, &MinecraftEntityId, &InstanceName),
-        (Changed<MinecraftEntityId>, Without<Local>),
+        (Changed<MinecraftEntityId>, Without<LocalEntity>),
     >,
     mut loaded_by_query: Query<&mut LoadedBy>,
     instance_container: Res<InstanceContainer>,
@@ -104,7 +104,7 @@ pub fn deduplicate_local_entities(
     mut commands: Commands,
     mut query: Query<
         (Entity, &MinecraftEntityId, &InstanceName),
-        (Changed<MinecraftEntityId>, With<Local>),
+        (Changed<MinecraftEntityId>, With<LocalEntity>),
     >,
     instance_container: Res<InstanceContainer>,
 ) {
@@ -132,7 +132,7 @@ pub fn deduplicate_local_entities(
 
 pub fn update_uuid_index(
     mut entity_infos: ResMut<EntityUuidIndex>,
-    query: Query<(Entity, &EntityUuid, Option<&Local>), Changed<EntityUuid>>,
+    query: Query<(Entity, &EntityUuid, Option<&LocalEntity>), Changed<EntityUuid>>,
 ) {
     for (entity, &uuid, local) in query.iter() {
         // only add it if it doesn't already exist in
@@ -153,7 +153,12 @@ pub fn update_uuid_index(
 /// System to keep the entity_by_id index up-to-date.
 pub fn update_entity_by_id_index(
     mut query: Query<
-        (Entity, &MinecraftEntityId, &InstanceName, Option<&Local>),
+        (
+            Entity,
+            &MinecraftEntityId,
+            &InstanceName,
+            Option<&LocalEntity>,
+        ),
         Changed<MinecraftEntityId>,
     >,
     instance_container: Res<InstanceContainer>,

@@ -127,7 +127,7 @@ fn frame_splitter(buffer: &mut BytesMut) -> Result<Option<Vec<u8>>, FrameSplitte
     Ok(None)
 }
 
-fn packet_decoder<P: ProtocolPacket + Debug>(
+pub fn deserialize_packet<P: ProtocolPacket + Debug>(
     stream: &mut Cursor<&[u8]>,
 ) -> Result<P, Box<ReadPacketError>> {
     // Packet ID
@@ -216,26 +216,9 @@ pub async fn read_packet<'a, P: ProtocolPacket + Debug, R>(
 where
     R: AsyncRead + std::marker::Unpin + std::marker::Send + std::marker::Sync,
 {
-    let mut framed = FramedRead::new(stream, BytesCodec::new());
-    loop {
-        if let Some(buf) = try_process_buffer::<P, R>(buffer, compression_threshold)? {
-            // we got a full packet!!
-            return Ok(buf);
-        };
-
-        // if we were given a cipher, decrypt the packet
-        if let Some(message) = framed.next().await {
-            let mut bytes = message.map_err(ReadPacketError::from)?;
-
-            if let Some(cipher) = cipher {
-                azalea_crypto::decrypt_packet(cipher, &mut bytes);
-            }
-
-            buffer.extend_from_slice(&bytes);
-        } else {
-            return Err(Box::new(ReadPacketError::ConnectionClosed));
-        };
-    }
+    let raw_packet = read_raw_packet(stream, buffer, compression_threshold, cipher).await?;
+    let packet = deserialize_packet(&mut Cursor::new(raw_packet.as_slice()))?;
+    Ok(packet)
 }
 
 /// Try to read a single packet from a stream. Returns None if we haven't
@@ -247,40 +230,109 @@ pub fn try_read_packet<P: ProtocolPacket + Debug, R>(
     cipher: &mut Option<Aes128CfbDec>,
 ) -> Result<Option<P>, Box<ReadPacketError>>
 where
+    R: AsyncRead + Unpin + Send + Sync,
+{
+    let Some(raw_packet) = try_read_raw_packet(stream, buffer, compression_threshold, cipher)?
+    else {
+        return Ok(None);
+    };
+    let packet = deserialize_packet(&mut Cursor::new(raw_packet.as_slice()))?;
+    Ok(Some(packet))
+}
+
+pub async fn read_raw_packet<'a, R>(
+    stream: &'a mut R,
+    buffer: &mut BytesMut,
+    compression_threshold: Option<u32>,
+    cipher: &mut Option<Aes128CfbDec>,
+) -> Result<Vec<u8>, Box<ReadPacketError>>
+where
     R: AsyncRead + std::marker::Unpin + std::marker::Send + std::marker::Sync,
 {
-    let mut framed = FramedRead::new(stream, BytesCodec::new());
     loop {
-        if let Some(buf) = try_process_buffer::<P, R>(buffer, compression_threshold)? {
+        if let Some(buf) = read_raw_packet_from_buffer::<R>(buffer, compression_threshold)? {
+            // we got a full packet!!
+            return Ok(buf);
+        };
+
+        let bytes = read_and_decrypt_frame(stream, cipher).await?;
+        buffer.extend_from_slice(&bytes);
+    }
+}
+pub fn try_read_raw_packet<'a, R>(
+    stream: &'a mut R,
+    buffer: &mut BytesMut,
+    compression_threshold: Option<u32>,
+    cipher: &mut Option<Aes128CfbDec>,
+) -> Result<Option<Vec<u8>>, Box<ReadPacketError>>
+where
+    R: AsyncRead + std::marker::Unpin + std::marker::Send + std::marker::Sync,
+{
+    loop {
+        if let Some(buf) = read_raw_packet_from_buffer::<R>(buffer, compression_threshold)? {
             // we got a full packet!!
             return Ok(Some(buf));
         };
-
-        // if we were given a cipher, decrypt the packet
-        if let Some(message) = future::block_on(future::poll_once(framed.next())) {
-            if let Some(message) = message {
-                let mut bytes = message.map_err(ReadPacketError::from)?;
-
-                if let Some(cipher) = cipher {
-                    azalea_crypto::decrypt_packet(cipher, &mut bytes);
-                }
-
-                buffer.extend_from_slice(&bytes);
-            } else {
-                return Err(Box::new(ReadPacketError::ConnectionClosed));
-            }
-        } else {
+        let Some(bytes) = try_read_and_decrypt_frame(stream, cipher)? else {
+            // no data received
             return Ok(None);
         };
+        // we got some data, so add it to the buffer and try again
+        buffer.extend_from_slice(&bytes);
     }
 }
 
-/// Try to get a Minecraft packet from a buffer. Returns None if the packet
-/// isn't complete yet.
-pub fn try_process_buffer<P: ProtocolPacket + Debug, R>(
+async fn read_and_decrypt_frame<R>(
+    stream: &mut R,
+    cipher: &mut Option<Aes128CfbDec>,
+) -> Result<BytesMut, Box<ReadPacketError>>
+where
+    R: AsyncRead + Unpin + Send + Sync,
+{
+    let mut framed = FramedRead::new(stream, BytesCodec::new());
+
+    let Some(message) = framed.next().await else {
+        return Err(Box::new(ReadPacketError::ConnectionClosed));
+    };
+    let mut bytes = message.map_err(ReadPacketError::from)?;
+
+    // decrypt if necessary
+    if let Some(cipher) = cipher {
+        azalea_crypto::decrypt_packet(cipher, &mut bytes);
+    }
+
+    Ok(bytes)
+}
+fn try_read_and_decrypt_frame<R>(
+    stream: &mut R,
+    cipher: &mut Option<Aes128CfbDec>,
+) -> Result<Option<BytesMut>, Box<ReadPacketError>>
+where
+    R: AsyncRead + Unpin + Send + Sync,
+{
+    let mut framed = FramedRead::new(stream, BytesCodec::new());
+
+    let Some(message) = future::block_on(future::poll_once(framed.next())) else {
+        // nothing yet
+        return Ok(None);
+    };
+    let Some(message) = message else {
+        return Err(Box::new(ReadPacketError::ConnectionClosed));
+    };
+    let mut bytes = message.map_err(ReadPacketError::from)?;
+
+    // decrypt if necessary
+    if let Some(cipher) = cipher {
+        azalea_crypto::decrypt_packet(cipher, &mut bytes);
+    }
+
+    Ok(Some(bytes))
+}
+
+pub fn read_raw_packet_from_buffer<R>(
     buffer: &mut BytesMut,
     compression_threshold: Option<u32>,
-) -> Result<Option<P>, Box<ReadPacketError>>
+) -> Result<Option<Vec<u8>>, Box<ReadPacketError>>
 where
     R: AsyncRead + std::marker::Unpin + std::marker::Send + std::marker::Sync,
 {
@@ -306,7 +358,5 @@ where
         trace!("Reading packet with bytes: {buf_string}");
     }
 
-    let packet = packet_decoder(&mut Cursor::new(&buf[..]))?;
-
-    Ok(Some(packet))
+    Ok(Some(buf))
 }

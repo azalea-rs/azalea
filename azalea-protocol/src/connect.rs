@@ -9,14 +9,15 @@ use crate::packets::login::clientbound_hello_packet::ClientboundHelloPacket;
 use crate::packets::login::{ClientboundLoginPacket, ServerboundLoginPacket};
 use crate::packets::status::{ClientboundStatusPacket, ServerboundStatusPacket};
 use crate::packets::ProtocolPacket;
-use crate::read::{read_packet, try_read_packet, ReadPacketError};
-use crate::write::write_packet;
+use crate::read::{deserialize_packet, read_raw_packet, try_read_raw_packet, ReadPacketError};
+use crate::write::{serialize_packet, write_raw_packet};
 use azalea_auth::game_profile::GameProfile;
 use azalea_auth::sessionserver::{ClientSessionServerError, ServerSessionServerError};
 use azalea_crypto::{Aes128CfbDec, Aes128CfbEnc};
 use bytes::BytesMut;
 use log::{error, info};
 use std::fmt::Debug;
+use std::io::Cursor;
 use std::marker::PhantomData;
 use std::net::SocketAddr;
 use thiserror::Error;
@@ -25,20 +26,28 @@ use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf, ReuniteError};
 use tokio::net::TcpStream;
 use uuid::Uuid;
 
-/// The read half of a connection.
-pub struct ReadConnection<R: ProtocolPacket> {
+pub struct RawReadConnection {
     pub read_stream: OwnedReadHalf,
     pub buffer: BytesMut,
     pub compression_threshold: Option<u32>,
     pub dec_cipher: Option<Aes128CfbDec>,
+}
+
+pub struct RawWriteConnection {
+    pub write_stream: OwnedWriteHalf,
+    pub compression_threshold: Option<u32>,
+    pub enc_cipher: Option<Aes128CfbEnc>,
+}
+
+/// The read half of a connection.
+pub struct ReadConnection<R: ProtocolPacket> {
+    pub raw: RawReadConnection,
     _reading: PhantomData<R>,
 }
 
 /// The write half of a connection.
 pub struct WriteConnection<W: ProtocolPacket> {
-    pub write_stream: OwnedWriteHalf,
-    pub compression_threshold: Option<u32>,
-    pub enc_cipher: Option<Aes128CfbEnc>,
+    pub raw: RawWriteConnection,
     _writing: PhantomData<W>,
 }
 
@@ -129,13 +138,9 @@ pub struct Connection<R: ProtocolPacket, W: ProtocolPacket> {
     pub writer: WriteConnection<W>,
 }
 
-impl<R> ReadConnection<R>
-where
-    R: ProtocolPacket + Debug,
-{
-    /// Read a packet from the stream.
-    pub async fn read(&mut self) -> Result<R, Box<ReadPacketError>> {
-        read_packet::<R, _>(
+impl RawReadConnection {
+    pub async fn read(&mut self) -> Result<Vec<u8>, Box<ReadPacketError>> {
+        read_raw_packet::<_>(
             &mut self.read_stream,
             &mut self.buffer,
             self.compression_threshold,
@@ -144,10 +149,8 @@ where
         .await
     }
 
-    /// Try to read a packet from the stream, or return Ok(None) if there's no
-    /// packet.
-    pub fn try_read(&mut self) -> Result<Option<R>, Box<ReadPacketError>> {
-        try_read_packet::<R, _>(
+    pub fn try_read(&mut self) -> Result<Option<Vec<u8>>, Box<ReadPacketError>> {
+        try_read_raw_packet::<_>(
             &mut self.read_stream,
             &mut self.buffer,
             self.compression_threshold,
@@ -155,14 +158,11 @@ where
         )
     }
 }
-impl<W> WriteConnection<W>
-where
-    W: ProtocolPacket + Debug,
-{
-    /// Write a packet to the server.
-    pub async fn write(&mut self, packet: W) -> std::io::Result<()> {
-        if let Err(e) = write_packet(
-            &packet,
+
+impl RawWriteConnection {
+    pub async fn write(&mut self, packet: &[u8]) -> std::io::Result<()> {
+        if let Err(e) = write_raw_packet(
+            packet,
             &mut self.write_stream,
             self.compression_threshold,
             &mut self.enc_cipher,
@@ -184,6 +184,42 @@ where
     /// End the connection.
     pub async fn shutdown(&mut self) -> std::io::Result<()> {
         self.write_stream.shutdown().await
+    }
+}
+
+impl<R> ReadConnection<R>
+where
+    R: ProtocolPacket + Debug,
+{
+    /// Read a packet from the stream.
+    pub async fn read(&mut self) -> Result<R, Box<ReadPacketError>> {
+        let raw_packet = self.raw.read().await?;
+        deserialize_packet(&mut Cursor::new(raw_packet.as_slice()))
+    }
+
+    /// Try to read a packet from the stream, or return Ok(None) if there's no
+    /// packet.
+    pub fn try_read(&mut self) -> Result<Option<R>, Box<ReadPacketError>> {
+        let Some(raw_packet) = self.raw.try_read()? else {
+            return Ok(None);
+        };
+        Ok(Some(deserialize_packet(&mut Cursor::new(
+            raw_packet.as_slice(),
+        ))?))
+    }
+}
+impl<W> WriteConnection<W>
+where
+    W: ProtocolPacket + Debug,
+{
+    /// Write a packet to the server.
+    pub async fn write(&mut self, packet: W) -> std::io::Result<()> {
+        self.raw.write(&serialize_packet(&packet).unwrap()).await
+    }
+
+    /// End the connection.
+    pub async fn shutdown(&mut self) -> std::io::Result<()> {
+        self.raw.shutdown().await
     }
 }
 
@@ -233,16 +269,20 @@ impl Connection<ClientboundHandshakePacket, ServerboundHandshakePacket> {
 
         Ok(Connection {
             reader: ReadConnection {
-                read_stream,
-                buffer: BytesMut::new(),
-                compression_threshold: None,
-                dec_cipher: None,
+                raw: RawReadConnection {
+                    read_stream,
+                    buffer: BytesMut::new(),
+                    compression_threshold: None,
+                    dec_cipher: None,
+                },
                 _reading: PhantomData,
             },
             writer: WriteConnection {
-                write_stream,
-                compression_threshold: None,
-                enc_cipher: None,
+                raw: RawWriteConnection {
+                    write_stream,
+                    compression_threshold: None,
+                    enc_cipher: None,
+                },
                 _writing: PhantomData,
             },
         })
@@ -270,11 +310,11 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
     pub fn set_compression_threshold(&mut self, threshold: i32) {
         // if you pass a threshold of less than 0, compression is disabled
         if threshold >= 0 {
-            self.reader.compression_threshold = Some(threshold as u32);
-            self.writer.compression_threshold = Some(threshold as u32);
+            self.reader.raw.compression_threshold = Some(threshold as u32);
+            self.writer.raw.compression_threshold = Some(threshold as u32);
         } else {
-            self.reader.compression_threshold = None;
-            self.writer.compression_threshold = None;
+            self.reader.raw.compression_threshold = None;
+            self.writer.raw.compression_threshold = None;
         }
     }
 
@@ -282,8 +322,8 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
     /// the same for both reading and writing.
     pub fn set_encryption_key(&mut self, key: [u8; 16]) {
         let (enc_cipher, dec_cipher) = azalea_crypto::create_cipher(&key);
-        self.reader.dec_cipher = Some(dec_cipher);
-        self.writer.enc_cipher = Some(enc_cipher);
+        self.reader.raw.dec_cipher = Some(dec_cipher);
+        self.writer.raw.enc_cipher = Some(enc_cipher);
     }
 
     /// Change our state from login to configuration. This is the state where
@@ -389,11 +429,11 @@ impl Connection<ServerboundLoginPacket, ClientboundLoginPacket> {
     pub fn set_compression_threshold(&mut self, threshold: i32) {
         // if you pass a threshold of less than 0, compression is disabled
         if threshold >= 0 {
-            self.reader.compression_threshold = Some(threshold as u32);
-            self.writer.compression_threshold = Some(threshold as u32);
+            self.reader.raw.compression_threshold = Some(threshold as u32);
+            self.writer.raw.compression_threshold = Some(threshold as u32);
         } else {
-            self.reader.compression_threshold = None;
-            self.writer.compression_threshold = None;
+            self.reader.raw.compression_threshold = None;
+            self.writer.raw.compression_threshold = None;
         }
     }
 
@@ -401,8 +441,8 @@ impl Connection<ServerboundLoginPacket, ClientboundLoginPacket> {
     /// the same for both reading and writing.
     pub fn set_encryption_key(&mut self, key: [u8; 16]) {
         let (enc_cipher, dec_cipher) = azalea_crypto::create_cipher(&key);
-        self.reader.dec_cipher = Some(dec_cipher);
-        self.writer.enc_cipher = Some(enc_cipher);
+        self.reader.raw.dec_cipher = Some(dec_cipher);
+        self.writer.raw.enc_cipher = Some(enc_cipher);
     }
 
     /// Change our state from login to game. This is the state that's used when
@@ -462,16 +502,11 @@ where
     {
         Connection {
             reader: ReadConnection {
-                read_stream: connection.reader.read_stream,
-                buffer: connection.reader.buffer,
-                compression_threshold: connection.reader.compression_threshold,
-                dec_cipher: connection.reader.dec_cipher,
+                raw: connection.reader.raw,
                 _reading: PhantomData,
             },
             writer: WriteConnection {
-                compression_threshold: connection.writer.compression_threshold,
-                write_stream: connection.writer.write_stream,
-                enc_cipher: connection.writer.enc_cipher,
+                raw: connection.writer.raw,
                 _writing: PhantomData,
             },
         }
@@ -483,16 +518,20 @@ where
 
         Connection {
             reader: ReadConnection {
-                read_stream,
-                buffer: BytesMut::new(),
-                compression_threshold: None,
-                dec_cipher: None,
+                raw: RawReadConnection {
+                    read_stream,
+                    buffer: BytesMut::new(),
+                    compression_threshold: None,
+                    dec_cipher: None,
+                },
                 _reading: PhantomData,
             },
             writer: WriteConnection {
-                write_stream,
-                compression_threshold: None,
-                enc_cipher: None,
+                raw: RawWriteConnection {
+                    write_stream,
+                    compression_threshold: None,
+                    enc_cipher: None,
+                },
                 _writing: PhantomData,
             },
         }
@@ -500,6 +539,9 @@ where
 
     /// Convert from a `Connection` into a `TcpStream`. Useful for servers.
     pub fn unwrap(self) -> Result<TcpStream, ReuniteError> {
-        self.reader.read_stream.reunite(self.writer.write_stream)
+        self.reader
+            .raw
+            .read_stream
+            .reunite(self.writer.raw.write_stream)
     }
 }

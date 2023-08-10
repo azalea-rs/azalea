@@ -13,7 +13,7 @@ use bevy_ecs::{
     component::Component,
     entity::Entity,
     event::EventReader,
-    prelude::{Bundle, Event},
+    prelude::*,
     query::Added,
     system::{Query, Res},
 };
@@ -25,35 +25,21 @@ use uuid::Uuid;
 
 use crate::{
     events::{Event as AzaleaEvent, LocalPlayerEvents},
+    raw_connection::RawConnection,
     PlayerInfo, ReceivedRegistries, WalkDirection,
 };
 
-/// This is a component for our local player entities that are probably in a
-/// world. If you have access to a [`Client`], you probably don't need to care
-/// about this since `Client` gives you access to everything here.
-///
-/// You can also use the [`Local`] marker component for queries if you're only
-/// checking for a local player and don't need the contents of this component.
-///
-/// [`Local`]: azalea_entity::Local
-/// [`Client`]: crate::Client
+/// A component that keeps strong references to our [`PartialInstance`] and
+/// [`Instance`] for local players.
 #[derive(Component)]
-pub struct LocalPlayer {
-    packet_writer: mpsc::UnboundedSender<ServerboundGamePacket>,
-
+pub struct InstanceHolder {
     /// The partial instance is the world this client currently has loaded. It
     /// has a limited render distance.
     pub partial_instance: Arc<RwLock<PartialInstance>>,
     /// The world is the combined [`PartialInstance`]s of all clients in the
     /// same world. (Only relevant if you're using a shared world, i.e. a
     /// swarm)
-    pub world: Arc<RwLock<Instance>>,
-
-    /// A task that reads packets from the server. The client is disconnected
-    /// when this task ends.
-    pub(crate) read_packets_task: JoinHandle<()>,
-    /// A task that writes packets from the server.
-    pub(crate) write_packets_task: JoinHandle<()>,
+    pub instance: Arc<RwLock<Instance>>,
 }
 
 /// Component for entities that can move and sprint. Usually only in
@@ -146,46 +132,20 @@ pub struct PermissionLevel(pub u8);
 #[derive(Component, Clone, Debug, Deref, DerefMut, Default)]
 pub struct TabList(HashMap<Uuid, PlayerInfo>);
 
-impl LocalPlayer {
+impl InstanceHolder {
     /// Create a new `LocalPlayer`.
-    pub fn new(
-        entity: Entity,
-        packet_writer: mpsc::UnboundedSender<ServerboundGamePacket>,
-        world: Arc<RwLock<Instance>>,
-        read_packets_task: JoinHandle<()>,
-        write_packets_task: JoinHandle<()>,
-    ) -> Self {
+    pub fn new(entity: Entity, world: Arc<RwLock<Instance>>) -> Self {
         let client_information = ClientInformation::default();
 
-        LocalPlayer {
-            packet_writer,
-
-            world,
+        InstanceHolder {
+            instance: world,
             partial_instance: Arc::new(RwLock::new(PartialInstance::new(
                 azalea_world::calculate_chunk_storage_range(
                     client_information.view_distance.into(),
                 ),
                 Some(entity),
             ))),
-
-            read_packets_task,
-            write_packets_task,
         }
-    }
-
-    /// Write a packet directly to the server.
-    pub fn write_packet(&self, packet: ServerboundGamePacket) {
-        self.packet_writer
-            .send(packet)
-            .expect("write_packet shouldn't be able to be called if the connection is closed");
-    }
-}
-
-impl Drop for LocalPlayer {
-    /// Stop every active task when the `LocalPlayer` is dropped.
-    fn drop(&mut self) {
-        self.read_packets_task.abort();
-        self.write_packets_task.abort();
     }
 }
 
@@ -244,11 +204,11 @@ pub struct SendPacketEvent {
 
 pub fn handle_send_packet_event(
     mut send_packet_events: EventReader<SendPacketEvent>,
-    mut query: Query<&mut LocalPlayer>,
+    mut query: Query<&mut RawConnection>,
 ) {
     for event in send_packet_events.iter() {
-        if let Ok(local_player) = query.get_mut(event.entity) {
-            local_player.write_packet(event.packet.clone());
+        if let Ok(raw_connection) = query.get_mut(event.entity) {
+            raw_connection.write_packet(&event.packet.clone());
         }
     }
 }

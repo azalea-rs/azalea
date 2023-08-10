@@ -26,8 +26,8 @@ use bevy_ecs::{
 use log::warn;
 
 use crate::{
-    local_player::{handle_send_packet_event, PlayerAbilities},
-    Client, LocalPlayer,
+    local_player::{handle_send_packet_event, PlayerAbilities, SendPacketEvent},
+    Client, InstanceHolder,
 };
 
 pub struct InventoryPlugin;
@@ -598,12 +598,13 @@ pub struct CloseContainerEvent {
     pub id: u8,
 }
 fn handle_container_close_event(
+    query: Query<(Entity, &InventoryComponent)>,
     mut events: EventReader<CloseContainerEvent>,
     mut client_side_events: EventWriter<ClientSideCloseContainerEvent>,
-    query: Query<(&LocalPlayer, &InventoryComponent)>,
+    mut send_packet_events: EventWriter<SendPacketEvent>,
 ) {
     for event in events.iter() {
-        let (local_player, inventory) = query.get(event.entity).unwrap();
+        let (entity, inventory) = query.get(event.entity).unwrap();
         if event.id != inventory.id {
             warn!(
                 "Tried to close container with ID {}, but the current container ID is {}",
@@ -612,12 +613,13 @@ fn handle_container_close_event(
             continue;
         }
 
-        local_player.write_packet(
-            ServerboundContainerClosePacket {
+        send_packet_events.send(SendPacketEvent {
+            entity,
+            packet: ServerboundContainerClosePacket {
                 container_id: inventory.id,
             }
             .get(),
-        );
+        });
         client_side_events.send(ClientSideCloseContainerEvent {
             entity: event.entity,
         });
@@ -649,11 +651,12 @@ pub struct ContainerClickEvent {
     pub operation: ClickOperation,
 }
 pub fn handle_container_click_event(
+    mut query: Query<(Entity, &mut InventoryComponent)>,
     mut events: EventReader<ContainerClickEvent>,
-    mut query: Query<(&mut InventoryComponent, &LocalPlayer)>,
+    mut send_packet_events: EventWriter<SendPacketEvent>,
 ) {
     for event in events.iter() {
-        let (mut inventory, local_player) = query.get_mut(event.entity).unwrap();
+        let (entity, mut inventory) = query.get_mut(event.entity).unwrap();
         if inventory.id != event.window_id {
             warn!(
                 "Tried to click container with ID {}, but the current container ID is {}",
@@ -677,8 +680,9 @@ pub fn handle_container_click_event(
             }
         }
 
-        local_player.write_packet(
-            ServerboundContainerClickPacket {
+        send_packet_events.send(SendPacketEvent {
+            entity,
+            packet: ServerboundContainerClickPacket {
                 container_id: event.window_id,
                 state_id: inventory.state_id,
                 slot_num: event.operation.slot_num().map(|n| n as i16).unwrap_or(-999),
@@ -688,7 +692,7 @@ pub fn handle_container_click_event(
                 carried_item: inventory.carried.clone(),
             }
             .get(),
-        )
+        })
     }
 }
 

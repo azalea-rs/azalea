@@ -18,7 +18,7 @@ use astar::Edge;
 use azalea_client::{StartSprintEvent, StartWalkEvent};
 use azalea_core::{BlockPos, CardinalDirection};
 use azalea_entity::metadata::Player;
-use azalea_entity::Local;
+use azalea_entity::LocalEntity;
 use azalea_entity::{Physics, Position};
 use azalea_physics::PhysicsSet;
 use azalea_world::{InstanceContainer, InstanceName};
@@ -62,7 +62,7 @@ pub struct Pathfinder {
 #[allow(clippy::type_complexity)]
 fn add_default_pathfinder(
     mut commands: Commands,
-    mut query: Query<Entity, (Without<Pathfinder>, With<Local>, With<Player>)>,
+    mut query: Query<Entity, (Without<Pathfinder>, With<LocalEntity>, With<Player>)>,
 ) {
     for entity in &mut query {
         commands.entity(entity).insert(Pathfinder::default());

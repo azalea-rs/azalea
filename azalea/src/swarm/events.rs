@@ -1,4 +1,4 @@
-use azalea_client::LocalPlayer;
+use azalea_client::InstanceHolder;
 use azalea_world::MinecraftEntityId;
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
@@ -21,7 +21,7 @@ pub struct SwarmReadyEvent;
 struct IsSwarmReady(bool);
 
 fn check_ready(
-    query: Query<Option<&MinecraftEntityId>, With<LocalPlayer>>,
+    query: Query<Option<&MinecraftEntityId>, With<InstanceHolder>>,
     mut is_swarm_ready: ResMut<IsSwarmReady>,
     mut ready_events: EventWriter<SwarmReadyEvent>,
 ) {

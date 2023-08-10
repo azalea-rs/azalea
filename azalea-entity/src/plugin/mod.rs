@@ -11,7 +11,7 @@ use derive_more::{Deref, DerefMut};
 use log::debug;
 
 use crate::{
-    metadata::Health, Dead, EyeHeight, FluidOnEyes, Local, LookDirection, Physics, Position,
+    metadata::Health, Dead, EyeHeight, FluidOnEyes, LocalEntity, LookDirection, Physics, Position,
 };
 
 use indexing::EntityUuidIndex;
@@ -73,7 +73,7 @@ impl Plugin for EntityPlugin {
     }
 }
 
-fn debug_new_entity(query: Query<(Entity, Option<&Local>), Added<MinecraftEntityId>>) {
+fn debug_new_entity(query: Query<(Entity, Option<&LocalEntity>), Added<MinecraftEntityId>>) {
     for (entity, local) in query.iter() {
         if local.is_some() {
             debug!("new local entity: {:?}", entity);

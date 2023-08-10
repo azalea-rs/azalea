@@ -5,8 +5,8 @@ use azalea_core::{ChunkPos, GameMode, ResourceLocation, Vec3};
 use azalea_entity::{
     indexing::EntityUuidIndex,
     metadata::{apply_metadata, Health, PlayerMetadataBundle},
-    Dead, EntityBundle, EntityKind, EntityUpdateSet, LastSentPosition, LoadedBy, LookDirection,
-    Physics, PlayerBundle, Position, RelativeEntityUpdate,
+    Dead, EntityBundle, EntityKind, EntityUpdateSet, LastSentPosition, LoadedBy, LocalEntity,
+    LookDirection, Physics, PlayerBundle, Position, RelativeEntityUpdate,
 };
 use azalea_protocol::{
     connect::{ReadConnection, WriteConnection},
@@ -21,20 +21,11 @@ use azalea_protocol::{
         serverbound_resource_pack_packet::ServerboundResourcePackPacket, ClientboundGamePacket,
         ServerboundGamePacket,
     },
-    read::ReadPacketError,
+    read::{deserialize_packet, ReadPacketError},
 };
 use azalea_world::{InstanceContainer, InstanceName, MinecraftEntityId, PartialInstance};
 use bevy_app::{App, First, Plugin, PreUpdate, Update};
-use bevy_ecs::{
-    component::Component,
-    entity::Entity,
-    event::{EventReader, EventWriter, Events},
-    prelude::Event,
-    query::Changed,
-    schedule::IntoSystemConfigs,
-    system::{Commands, Query, Res, ResMut, SystemState},
-    world::World,
-};
+use bevy_ecs::{prelude::*, system::SystemState};
 use log::{debug, error, trace, warn};
 use parking_lot::Mutex;
 use tokio::sync::mpsc;
@@ -47,7 +38,10 @@ use crate::{
         ClientSideCloseContainerEvent, InventoryComponent, MenuOpenedEvent,
         SetContainerContentEvent,
     },
-    local_player::{GameProfileComponent, LocalGameMode, LocalPlayer, PlayerAbilities},
+    local_player::{
+        GameProfileComponent, InstanceHolder, LocalGameMode, PlayerAbilities, SendPacketEvent,
+    },
+    raw_connection::RawConnection,
     ClientInformation, PlayerInfo, ReceivedRegistries, TabList,
 };
 
@@ -137,25 +131,28 @@ pub struct KeepAliveEvent {
     pub id: u64,
 }
 
-/// Something that receives packets from the server.
-#[derive(Event, Component, Clone)]
-pub struct PacketReceiver {
-    pub packets: Arc<Mutex<Vec<ClientboundGamePacket>>>,
-    pub run_schedule_sender: mpsc::UnboundedSender<()>,
-}
-
 pub fn send_packet_events(
-    query: Query<(Entity, &PacketReceiver)>,
+    query: Query<(Entity, &RawConnection), With<LocalEntity>>,
     mut packet_events: ResMut<Events<PacketEvent>>,
 ) {
     // we manually clear and send the events at the beginning of each update
     // since otherwise it'd cause issues with events in process_packet_events
     // running twice
     packet_events.clear();
-    for (player_entity, packet_receiver) in &query {
-        let mut packets = packet_receiver.packets.lock();
+    for (player_entity, raw_connection) in &query {
+        let packets_lock = raw_connection.incoming_packet_queue();
+        let mut packets = packets_lock.lock();
         if !packets.is_empty() {
-            for packet in packets.iter() {
+            for raw_packet in packets.iter() {
+                let packet =
+                    match deserialize_packet::<ClientboundGamePacket>(&mut Cursor::new(raw_packet))
+                    {
+                        Ok(packet) => packet,
+                        Err(err) => {
+                            error!("failed to read packet: {:?}", err);
+                            continue;
+                        }
+                    };
                 packet_events.send(PacketEvent {
                     entity: player_entity,
                     packet: packet.clone(),
@@ -188,32 +185,34 @@ pub fn process_packet_events(ecs: &mut World) {
                 let mut system_state: SystemState<(
                     Commands,
                     Query<(
-                        &mut LocalPlayer,
-                        Option<&mut InstanceName>,
                         &GameProfileComponent,
                         &ClientInformation,
                         &ReceivedRegistries,
+                        Option<&mut InstanceName>,
+                        &mut InstanceHolder,
                     )>,
                     ResMut<InstanceContainer>,
+                    EventWriter<SendPacketEvent>,
                 )> = SystemState::new(ecs);
-                let (mut commands, mut query, mut instance_container) = system_state.get_mut(ecs);
+                let (mut commands, mut query, mut instance_container, mut send_packet_events) =
+                    system_state.get_mut(ecs);
                 let (
-                    mut local_player,
-                    world_name,
                     game_profile,
                     client_information,
                     received_registries,
+                    instance_name,
+                    mut instance_holder,
                 ) = query.get_mut(player_entity).unwrap();
 
                 {
-                    let new_world_name = p.common.dimension.clone();
+                    let new_instance_name = p.common.dimension.clone();
 
-                    if let Some(mut world_name) = world_name {
-                        *world_name = world_name.clone();
+                    if let Some(mut instance_name) = instance_name {
+                        *instance_name = instance_name.clone();
                     } else {
                         commands
                             .entity(player_entity)
-                            .insert(InstanceName(new_world_name.clone()));
+                            .insert(InstanceName(new_instance_name.clone()));
                     }
 
                     let Some(dimension_type) = received_registries.dimension_type() else {
@@ -231,8 +230,8 @@ pub fn process_packet_events(ecs: &mut World) {
 
                     // add this world to the instance_container (or don't if it's already
                     // there)
-                    let weak_world = instance_container.insert(
-                        new_world_name.clone(),
+                    let weak_instance = instance_container.insert(
+                        new_instance_name.clone(),
                         dimension.height,
                         dimension.min_y,
                     );
@@ -240,23 +239,22 @@ pub fn process_packet_events(ecs: &mut World) {
                     // (when we add chunks or entities those will be in the
                     // instance_container)
 
-                    *local_player.partial_instance.write() = PartialInstance::new(
+                    *instance_holder.partial_instance.write() = PartialInstance::new(
                         azalea_world::calculate_chunk_storage_range(
                             client_information.view_distance.into(),
                         ),
-                        // this argument makes it so other clients don't update this
-                        // player entity
-                        // in a shared world
+                        // this argument makes it so other clients don't update this player entity
+                        // in a shared instance
                         Some(player_entity),
                     );
-                    local_player.world = weak_world;
+                    instance_holder.instance = weak_instance;
 
                     let player_bundle = PlayerBundle {
                         entity: EntityBundle::new(
                             game_profile.uuid,
                             Vec3::default(),
                             azalea_registry::EntityKind::Player,
-                            new_world_name,
+                            new_instance_name,
                         ),
                         metadata: PlayerMetadataBundle::default(),
                     };
@@ -272,11 +270,14 @@ pub fn process_packet_events(ecs: &mut World) {
                 }
 
                 // send the client information that we have set
-                log::debug!(
+                debug!(
                     "Sending client information because login: {:?}",
                     client_information
                 );
-                local_player.write_packet(client_information.clone().get());
+                send_packet_events.send(SendPacketEvent {
+                    entity: player_entity,
+                    packet: client_information.clone().get(),
+                });
 
                 system_state.apply(ecs);
             }
@@ -359,18 +360,19 @@ pub fn process_packet_events(ecs: &mut World) {
                 debug!("Got player position packet {:?}", p);
 
                 #[allow(clippy::type_complexity)]
-                let mut system_state: SystemState<
+                let mut system_state: SystemState<(
                     Query<(
-                        &mut LocalPlayer,
+                        &mut InstanceHolder,
                         &mut Physics,
                         &mut LookDirection,
                         &mut Position,
                         &mut LastSentPosition,
                     )>,
-                > = SystemState::new(ecs);
-                let mut query = system_state.get_mut(ecs);
+                    EventWriter<SendPacketEvent>,
+                )> = SystemState::new(ecs);
+                let (mut query, mut send_packet_events) = system_state.get_mut(ecs);
                 let Ok((
-                    local_player,
+                    instance_holder,
                     mut physics,
                     mut direction,
                     mut position,
@@ -436,9 +438,13 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 **position = new_pos;
 
-                local_player.write_packet(ServerboundAcceptTeleportationPacket { id: p.id }.get());
-                local_player.write_packet(
-                    ServerboundMovePlayerPosRotPacket {
+                send_packet_events.send(SendPacketEvent {
+                    entity: player_entity,
+                    packet: ServerboundAcceptTeleportationPacket { id: p.id }.get(),
+                });
+                send_packet_events.send(SendPacketEvent {
+                    entity: player_entity,
+                    packet: ServerboundMovePlayerPosRotPacket {
                         x: new_pos.x,
                         y: new_pos.y,
                         z: new_pos.z,
@@ -448,7 +454,7 @@ pub fn process_packet_events(ecs: &mut World) {
                         on_ground: false,
                     }
                     .get(),
-                );
+                });
             }
             ClientboundGamePacket::PlayerInfoUpdate(p) => {
                 debug!("Got player info packet {:?}", p);
@@ -521,7 +527,8 @@ pub fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::SetChunkCacheCenter(p) => {
                 debug!("Got chunk cache center packet {:?}", p);
 
-                let mut system_state: SystemState<Query<&mut LocalPlayer>> = SystemState::new(ecs);
+                let mut system_state: SystemState<Query<&mut InstanceHolder>> =
+                    SystemState::new(ecs);
                 let mut query = system_state.get_mut(ecs);
                 let local_player = query.get_mut(player_entity).unwrap();
                 let mut partial_world = local_player.partial_instance.write();
@@ -536,7 +543,8 @@ pub fn process_packet_events(ecs: &mut World) {
                 debug!("Got chunk with light packet {} {}", p.x, p.z);
                 let pos = ChunkPos::new(p.x, p.z);
 
-                let mut system_state: SystemState<Query<&mut LocalPlayer>> = SystemState::new(ecs);
+                let mut system_state: SystemState<Query<&mut InstanceHolder>> =
+                    SystemState::new(ecs);
                 let mut query = system_state.get_mut(ecs);
                 let local_player = query.get_mut(player_entity).unwrap();
 
@@ -545,7 +553,7 @@ pub fn process_packet_events(ecs: &mut World) {
                 // parse it again. This is only used when we have a shared
                 // world, since we check that the chunk isn't currently owned
                 // by this client.
-                let shared_chunk = local_player.world.read().chunks.get(&pos);
+                let shared_chunk = local_player.instance.read().chunks.get(&pos);
                 let this_client_has_chunk = local_player
                     .partial_instance
                     .read()
@@ -553,7 +561,7 @@ pub fn process_packet_events(ecs: &mut World) {
                     .limited_get(&pos)
                     .is_some();
 
-                let mut world = local_player.world.write();
+                let mut world = local_player.instance.write();
                 let mut partial_world = local_player.partial_instance.write();
 
                 if !this_client_has_chunk {
@@ -626,13 +634,13 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 let mut system_state: SystemState<(
                     Commands,
-                    Query<&mut LocalPlayer>,
+                    Query<&mut InstanceHolder>,
                     Query<&EntityKind>,
                 )> = SystemState::new(ecs);
                 let (mut commands, mut query, entity_kind_query) = system_state.get_mut(ecs);
                 let local_player = query.get_mut(player_entity).unwrap();
 
-                let world = local_player.world.read();
+                let world = local_player.instance.read();
                 let entity = world.entity_by_id(&MinecraftEntityId(p.id));
                 drop(world);
 
@@ -715,12 +723,12 @@ pub fn process_packet_events(ecs: &mut World) {
                 debug!("Got set experience packet {:?}", p);
             }
             ClientboundGamePacket::TeleportEntity(p) => {
-                let mut system_state: SystemState<(Commands, Query<&mut LocalPlayer>)> =
+                let mut system_state: SystemState<(Commands, Query<&mut InstanceHolder>)> =
                     SystemState::new(ecs);
                 let (mut commands, mut query) = system_state.get_mut(ecs);
                 let local_player = query.get_mut(player_entity).unwrap();
 
-                let world = local_player.world.read();
+                let world = local_player.instance.read();
                 let entity = world.entity_by_id(&MinecraftEntityId(p.id));
                 drop(world);
 
@@ -746,12 +754,12 @@ pub fn process_packet_events(ecs: &mut World) {
                 // debug!("Got rotate head packet {:?}", p);
             }
             ClientboundGamePacket::MoveEntityPos(p) => {
-                let mut system_state: SystemState<(Commands, Query<&LocalPlayer>)> =
+                let mut system_state: SystemState<(Commands, Query<&InstanceHolder>)> =
                     SystemState::new(ecs);
                 let (mut commands, mut query) = system_state.get_mut(ecs);
                 let local_player = query.get_mut(player_entity).unwrap();
 
-                let world = local_player.world.read();
+                let world = local_player.instance.read();
                 let entity = world.entity_by_id(&MinecraftEntityId(p.entity_id));
                 drop(world);
 
@@ -774,12 +782,12 @@ pub fn process_packet_events(ecs: &mut World) {
                 system_state.apply(ecs);
             }
             ClientboundGamePacket::MoveEntityPosRot(p) => {
-                let mut system_state: SystemState<(Commands, Query<&mut LocalPlayer>)> =
+                let mut system_state: SystemState<(Commands, Query<&mut InstanceHolder>)> =
                     SystemState::new(ecs);
                 let (mut commands, mut query) = system_state.get_mut(ecs);
                 let local_player = query.get_mut(player_entity).unwrap();
 
-                let world = local_player.world.read();
+                let world = local_player.instance.read();
                 let entity = world.entity_by_id(&MinecraftEntityId(p.entity_id));
                 drop(world);
 
@@ -809,10 +817,12 @@ pub fn process_packet_events(ecs: &mut World) {
                 debug!("Got keep alive packet {p:?} for {player_entity:?}");
 
                 let mut system_state: SystemState<(
-                    Query<&mut LocalPlayer>,
+                    Query<&mut InstanceHolder>,
                     EventWriter<KeepAliveEvent>,
+                    EventWriter<SendPacketEvent>,
                 )> = SystemState::new(ecs);
-                let (mut query, mut keepalive_events) = system_state.get_mut(ecs);
+                let (mut query, mut keepalive_events, mut send_packet_events) =
+                    system_state.get_mut(ecs);
 
                 keepalive_events.send(KeepAliveEvent {
                     entity: player_entity,
@@ -820,7 +830,10 @@ pub fn process_packet_events(ecs: &mut World) {
                 });
 
                 let local_player = query.get_mut(player_entity).unwrap();
-                local_player.write_packet(ServerboundKeepAlivePacket { id: p.id }.get());
+                send_packet_events.send(SendPacketEvent {
+                    entity: player_entity,
+                    packet: ServerboundKeepAlivePacket { id: p.id }.get(),
+                });
                 debug!("Sent keep alive packet {p:?} for {player_entity:?}");
             }
             ClientboundGamePacket::RemoveEntities(p) => {
@@ -859,11 +872,12 @@ pub fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::BlockUpdate(p) => {
                 debug!("Got block update packet {:?}", p);
 
-                let mut system_state: SystemState<Query<&mut LocalPlayer>> = SystemState::new(ecs);
+                let mut system_state: SystemState<Query<&mut InstanceHolder>> =
+                    SystemState::new(ecs);
                 let mut query = system_state.get_mut(ecs);
                 let local_player = query.get_mut(player_entity).unwrap();
 
-                let world = local_player.world.write();
+                let world = local_player.instance.write();
 
                 world.chunks.set_block_state(&p.pos, p.block_state);
             }
@@ -872,11 +886,12 @@ pub fn process_packet_events(ecs: &mut World) {
             }
             ClientboundGamePacket::SectionBlocksUpdate(p) => {
                 debug!("Got section blocks update packet {:?}", p);
-                let mut system_state: SystemState<Query<&mut LocalPlayer>> = SystemState::new(ecs);
+                let mut system_state: SystemState<Query<&mut InstanceHolder>> =
+                    SystemState::new(ecs);
                 let mut query = system_state.get_mut(ecs);
                 let local_player = query.get_mut(player_entity).unwrap();
 
-                let world = local_player.world.write();
+                let world = local_player.instance.write();
 
                 for state in &p.states {
                     world
@@ -1038,11 +1053,14 @@ pub fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::Ping(p) => {
                 debug!("Got ping packet {:?}", p);
 
-                let mut system_state: SystemState<Query<&mut LocalPlayer>> = SystemState::new(ecs);
-                let mut query = system_state.get_mut(ecs);
+                let mut system_state: SystemState<EventWriter<SendPacketEvent>> =
+                    SystemState::new(ecs);
+                let mut send_packet_events = system_state.get_mut(ecs);
 
-                let local_player = query.get_mut(player_entity).unwrap();
-                local_player.write_packet(ServerboundPongPacket { id: p.id }.get());
+                send_packet_events.send(SendPacketEvent {
+                    entity: player_entity,
+                    packet: ServerboundPongPacket { id: p.id }.get(),
+                });
             }
             ClientboundGamePacket::PlaceGhostRecipe(_) => {}
             ClientboundGamePacket::PlayerCombatEnd(_) => {}
@@ -1074,12 +1092,12 @@ pub fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::ResourcePack(p) => {
                 debug!("Got resource pack packet {:?}", p);
 
-                let mut system_state: SystemState<Query<&mut LocalPlayer>> = SystemState::new(ecs);
-                let mut query = system_state.get_mut(ecs);
+                let mut system_state: SystemState<EventWriter<SendPacketEvent>> =
+                    SystemState::new(ecs);
+                let mut send_packet_events = system_state.get_mut(ecs);
 
-                let local_player = query.get_mut(player_entity).unwrap();
                 // always accept resource pack
-                local_player.write_packet(ServerboundResourcePackPacket { action: azalea_protocol::packets::game::serverbound_resource_pack_packet::Action::Accepted }.get());
+                send_packet_events.send(SendPacketEvent { entity: player_entity, packet: ServerboundResourcePackPacket { action: azalea_protocol::packets::game::serverbound_resource_pack_packet::Action::Accepted }.get() });
             }
             ClientboundGamePacket::Respawn(p) => {
                 debug!("Got respawn packet {:?}", p);
@@ -1123,54 +1141,5 @@ pub fn process_packet_events(ecs: &mut World) {
 
             ClientboundGamePacket::StartConfiguration(_) => todo!(),
         }
-    }
-}
-
-impl PacketReceiver {
-    /// Loop that reads from the connection and adds the packets to the queue +
-    /// runs the schedule.
-    pub async fn read_task(
-        self,
-        read_conn: Arc<tokio::sync::Mutex<Option<ReadConnection<ClientboundGamePacket>>>>,
-    ) {
-        loop {
-            match read_conn.try_lock().unwrap().as_mut().unwrap().read().await {
-                Ok(packet) => {
-                    self.packets.lock().push(packet);
-                    // tell the client to run all the systems
-                    self.run_schedule_sender.send(()).unwrap();
-                }
-                Err(error) => {
-                    if !matches!(*error, ReadPacketError::ConnectionClosed) {
-                        error!("Error reading packet from Client: {error:?}");
-                    }
-                    break;
-                }
-            }
-        }
-    }
-
-    /// Consume the [`ServerboundGamePacket`] queue and actually write the
-    /// packets to the server. It's like this so writing packets doesn't need to
-    /// be awaited.
-    pub async fn write_task(
-        self,
-        write_conn: Arc<tokio::sync::Mutex<Option<WriteConnection<ServerboundGamePacket>>>>,
-        mut write_receiver: mpsc::UnboundedReceiver<ServerboundGamePacket>,
-    ) {
-        while let Some(packet) = write_receiver.recv().await {
-            if let Err(err) = write_conn
-                .try_lock()
-                .unwrap()
-                .as_mut()
-                .unwrap()
-                .write(packet)
-                .await
-            {
-                error!("Disconnecting because we couldn't write a packet: {err}.");
-                break;
-            };
-        }
-        // receiver is automatically closed when it's dropped
     }
 }
