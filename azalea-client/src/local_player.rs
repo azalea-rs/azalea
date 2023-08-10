@@ -18,6 +18,7 @@ use bevy_ecs::{
     system::{Query, Res},
 };
 use derive_more::{Deref, DerefMut};
+use log::{debug, error};
 use parking_lot::RwLock;
 use thiserror::Error;
 use tokio::{sync::mpsc, task::JoinHandle};
@@ -208,7 +209,10 @@ pub fn handle_send_packet_event(
 ) {
     for event in send_packet_events.iter() {
         if let Ok(raw_connection) = query.get_mut(event.entity) {
-            raw_connection.write_packet(&event.packet.clone());
+            // debug!("Sending packet: {:?}", event.packet);
+            if let Err(e) = raw_connection.write_packet(event.packet.clone()) {
+                error!("Failed to send packet: {e}");
+            }
         }
     }
 }

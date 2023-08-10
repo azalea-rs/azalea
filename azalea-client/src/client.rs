@@ -396,7 +396,7 @@ impl Client {
         packet: ServerboundGamePacket,
     ) -> Result<(), crate::raw_connection::WritePacketError> {
         self.raw_connection_mut(&mut self.ecs.lock())
-            .write_packet(&packet)
+            .write_packet(packet)
     }
 
     /// Disconnect this client from the server by ending all tasks.

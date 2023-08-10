@@ -95,11 +95,17 @@ impl RawConnection {
             .unwrap();
     }
 
+    /// Write the packet with the given state to the server.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the packet is not valid for the current state, or if
+    /// encoding it failed somehow (like it's too big or something).
     pub fn write_packet<P: ProtocolPacket + Debug>(
         &self,
-        packet: &P,
+        packet: P,
     ) -> Result<(), WritePacketError> {
-        let raw_packet = serialize_packet(packet)?;
+        let raw_packet = serialize_packet(&packet)?;
         self.write_raw_packet(raw_packet);
         Ok(())
     }

@@ -3,6 +3,5 @@ use azalea_protocol_macros::ClientboundGamePacket;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundKeepAlivePacket {
-    #[var]
     pub id: u64,
 }

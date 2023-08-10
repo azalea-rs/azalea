@@ -2,17 +2,21 @@ use std::io::Cursor;
 use std::sync::Arc;
 
 use azalea_protocol::packets::configuration::serverbound_finish_configuration_packet::ServerboundFinishConfigurationPacket;
+use azalea_protocol::packets::configuration::serverbound_keep_alive_packet::ServerboundKeepAlivePacket;
+use azalea_protocol::packets::configuration::serverbound_pong_packet::ServerboundPongPacket;
+use azalea_protocol::packets::configuration::serverbound_resource_pack_packet::ServerboundResourcePackPacket;
 use azalea_protocol::packets::configuration::ClientboundConfigurationPacket;
 use azalea_protocol::packets::ConnectionProtocol;
 use azalea_protocol::read::deserialize_packet;
 use azalea_world::Instance;
 use bevy_ecs::prelude::*;
 use bevy_ecs::system::SystemState;
-use log::error;
+use log::{debug, error, warn};
 use parking_lot::RwLock;
 
 use crate::client::InConfigurationState;
-use crate::local_player::SendPacketEvent;
+use crate::disconnect::DisconnectEvent;
+use crate::packet_handling::game::KeepAliveEvent;
 use crate::raw_connection::RawConnection;
 use crate::ReceivedRegistries;
 
@@ -87,10 +91,20 @@ pub fn process_packet_events(ecs: &mut World) {
                 }
             }
 
-            ClientboundConfigurationPacket::CustomPayload(_) => {}
-            ClientboundConfigurationPacket::Disconnect(_) => {}
+            ClientboundConfigurationPacket::CustomPayload(p) => {
+                debug!("Got custom payload packet {p:?}");
+            }
+            ClientboundConfigurationPacket::Disconnect(p) => {
+                warn!("Got disconnect packet {p:?}");
+                let mut system_state: SystemState<EventWriter<DisconnectEvent>> =
+                    SystemState::new(ecs);
+                let mut disconnect_events = system_state.get_mut(ecs);
+                disconnect_events.send(DisconnectEvent {
+                    entity: player_entity,
+                });
+            }
             ClientboundConfigurationPacket::FinishConfiguration(p) => {
-                println!("got FinishConfiguration packet: {p:?}");
+                debug!("got FinishConfiguration packet: {p:?}");
 
                 let mut system_state: SystemState<Query<&mut RawConnection>> =
                     SystemState::new(ecs);
@@ -104,8 +118,11 @@ pub fn process_packet_events(ecs: &mut World) {
                     Arc::new(RwLock::new(Instance::default())),
                 );
 
-                raw_connection.write_packet(&ServerboundFinishConfigurationPacket {}.get());
-
+                raw_connection
+                    .write_packet(ServerboundFinishConfigurationPacket {}.get())
+                    .expect(
+                        "we should be in the right state and encoding this packet shouldn't fail",
+                    );
                 raw_connection.set_state(ConnectionProtocol::Game);
 
                 // these components are added now that we're going to be in the Game state
@@ -127,11 +144,53 @@ pub fn process_packet_events(ecs: &mut World) {
                         _local_entity: azalea_entity::LocalEntity,
                     });
             }
-            ClientboundConfigurationPacket::KeepAlive(_) => {}
-            ClientboundConfigurationPacket::Ping(_) => {}
-            ClientboundConfigurationPacket::ResourcePack(_) => {}
-            ClientboundConfigurationPacket::UpdateEnabledFeatures(_) => {}
-            ClientboundConfigurationPacket::UpdateTags(_) => {}
+            ClientboundConfigurationPacket::KeepAlive(p) => {
+                debug!("Got keep alive packet (in configuration) {p:?} for {player_entity:?}");
+
+                let mut system_state: SystemState<(
+                    Query<&RawConnection>,
+                    EventWriter<KeepAliveEvent>,
+                )> = SystemState::new(ecs);
+                let (query, mut keepalive_events) = system_state.get_mut(ecs);
+                let raw_connection = query.get(player_entity).unwrap();
+
+                keepalive_events.send(KeepAliveEvent {
+                    entity: player_entity,
+                    id: p.id,
+                });
+                raw_connection
+                    .write_packet(ServerboundKeepAlivePacket { id: p.id }.get())
+                    .unwrap();
+            }
+            ClientboundConfigurationPacket::Ping(p) => {
+                debug!("Got ping packet {p:?}");
+
+                let mut system_state: SystemState<Query<&RawConnection>> = SystemState::new(ecs);
+                let mut query = system_state.get_mut(ecs);
+                let raw_connection = query.get_mut(player_entity).unwrap();
+
+                raw_connection
+                    .write_packet(ServerboundPongPacket { id: p.id }.get())
+                    .unwrap();
+            }
+            ClientboundConfigurationPacket::ResourcePack(p) => {
+                debug!("Got resource pack packet {p:?}");
+
+                let mut system_state: SystemState<Query<&RawConnection>> = SystemState::new(ecs);
+                let mut query = system_state.get_mut(ecs);
+                let raw_connection = query.get_mut(player_entity).unwrap();
+
+                // always accept resource pack
+                raw_connection.write_packet(
+                    ServerboundResourcePackPacket { action: azalea_protocol::packets::configuration::serverbound_resource_pack_packet::Action::Accepted }.get()
+                ).unwrap();
+            }
+            ClientboundConfigurationPacket::UpdateEnabledFeatures(p) => {
+                debug!("Got update enabled features packet {p:?}");
+            }
+            ClientboundConfigurationPacket::UpdateTags(_p) => {
+                debug!("Got update tags packet");
+            }
         }
     }
 }
