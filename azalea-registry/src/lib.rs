@@ -1667,6 +1667,7 @@ enum GameEvent {
     Step => "minecraft:step",
     Swim => "minecraft:swim",
     Teleport => "minecraft:teleport",
+    Unequip => "minecraft:unequip",
     Resonate1 => "minecraft:resonate_1",
     Resonate2 => "minecraft:resonate_2",
     Resonate3 => "minecraft:resonate_3",
@@ -3031,6 +3032,7 @@ enum LootFunctionKind {
     SetPotion => "minecraft:set_potion",
     SetInstrument => "minecraft:set_instrument",
     Reference => "minecraft:reference",
+    Sequence => "minecraft:sequence",
 }
 }
 

@@ -69,7 +69,7 @@ pub fn handle_chunk_batch_finished_event(
             }
             let millis_per_chunk =
                 f64::max(0., chunk_batch_info.accumulator.get_millis_per_chunk());
-            let desired_batch_size = if millis_per_chunk == 0. {
+            let desired_chunks_per_tick = if millis_per_chunk == 0. {
                 // make it the server's problem instead
                 f32::NAN
             } else {
@@ -77,7 +77,10 @@ pub fn handle_chunk_batch_finished_event(
             };
             send_packets.send(SendPacketEvent {
                 entity: event.entity,
-                packet: ServerboundChunkBatchReceivedPacket { desired_batch_size }.get(),
+                packet: ServerboundChunkBatchReceivedPacket {
+                    desired_chunks_per_tick,
+                }
+                .get(),
             });
         }
     }

@@ -1041,6 +1041,9 @@ pub fn process_packet_events(ecs: &mut World) {
                     packet: ServerboundPongPacket { id: p.id }.get(),
                 });
             }
+            ClientboundGamePacket::PongResponse(p) => {
+                debug!("Got pong response packet {p:?}");
+            }
             ClientboundGamePacket::PlaceGhostRecipe(_) => {}
             ClientboundGamePacket::PlayerCombatEnd(_) => {}
             ClientboundGamePacket::PlayerCombatEnter(_) => {}

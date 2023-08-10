@@ -3,6 +3,5 @@ use azalea_protocol_macros::ServerboundStatusPacket;
 
 #[derive(Clone, Debug, McBuf, ServerboundStatusPacket)]
 pub struct ServerboundPingRequestPacket {
-    #[var]
     pub time: u64,
 }
