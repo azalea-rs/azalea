@@ -215,9 +215,9 @@ impl ClientBuilder<EmptyState, EmptyFuture> {
     }
 }
 
-/// An empty placeholder state for defining an empty handler.
+/// A placeholder state for defining an empty handler for the client builder.
 #[derive(Default, Component, Clone)]
-struct EmptyState;
+pub struct EmptyState;
 
 /// An empty placeholder future for defining an empty handler.
 struct EmptyFuture;
