@@ -31,10 +31,6 @@ use protocol::{
 use thiserror::Error;
 use tokio::sync::mpsc;
 
-use std::pin::Pin;
-use std::task::Context;
-use std::task::Poll;
-
 pub use bevy_app as app;
 pub use bevy_ecs as ecs;
 
@@ -208,28 +204,36 @@ where
         Self::new()
     }
 }
-impl ClientBuilder<EmptyState, EmptyFuture> {
+impl ClientBuilder<client_no_handler::EmptyState, client_no_handler::EmptyFuture> {
     #[must_use]
     pub fn no_handler(self) -> Self {
-        self.set_handler(empty_handler)
+        self.set_handler(client_no_handler::empty_handler)
     }
 }
 
-/// A placeholder state for defining an empty handler for the client builder.
-#[derive(Default, Component, Clone)]
-pub struct EmptyState;
+pub mod client_no_handler {
+    use super::*;
+    use std::pin::Pin;
+    use std::task::Context;
+    use std::task::Poll;
 
-/// An empty placeholder future for defining an empty handler.
-struct EmptyFuture;
-impl Future for EmptyFuture {
-    type Output = anyhow::Result<()>;
+    /// A placeholder state for defining an empty handler for the client
+    /// builder.
+    #[derive(Default, Component, Clone)]
+    pub struct EmptyState;
 
-    fn poll(self: Pin<&mut Self>, _: &mut Context<'_>) -> Poll<Self::Output> {
-        Poll::Ready(Ok(()))
+    /// An empty placeholder future for defining an empty handler.
+    pub struct EmptyFuture;
+    impl Future for EmptyFuture {
+        type Output = anyhow::Result<()>;
+
+        fn poll(self: Pin<&mut Self>, _: &mut Context<'_>) -> Poll<Self::Output> {
+            Poll::Ready(Ok(()))
+        }
     }
-}
 
-/// An empty handler.
-fn empty_handler(_: Client, _: Event, _: EmptyState) -> EmptyFuture {
-    EmptyFuture
+    /// An empty handler.
+    pub(super) fn empty_handler(_: Client, _: Event, _: EmptyState) -> EmptyFuture {
+        EmptyFuture
+    }
 }
