@@ -31,6 +31,10 @@ use protocol::{
 use thiserror::Error;
 use tokio::sync::mpsc;
 
+use std::pin::Pin;
+use std::task::Context;
+use std::task::Poll;
+
 pub use bevy_app as app;
 pub use bevy_ecs as ecs;
 
@@ -143,6 +147,7 @@ where
         self.handler = Some(handler);
         self
     }
+
     /// Set the client state instead of initializing defaults.
     #[must_use]
     pub fn set_state(mut self, state: S) -> Self {
@@ -202,4 +207,29 @@ where
     fn default() -> Self {
         Self::new()
     }
+}
+impl ClientBuilder<EmptyState, EmptyFuture> {
+    #[must_use]
+    pub fn no_handler(self) -> Self {
+        self.set_handler(empty_handler)
+    }
+}
+
+/// An empty placeholder state for defining an empty handler.
+#[derive(Default, Component, Clone)]
+struct EmptyState;
+
+/// An empty placeholder future for defining an empty handler.
+struct EmptyFuture;
+impl Future for EmptyFuture {
+    type Output = anyhow::Result<()>;
+
+    fn poll(self: Pin<&mut Self>, _: &mut Context<'_>) -> Poll<Self::Output> {
+        Poll::Ready(Ok(()))
+    }
+}
+
+/// An empty handler.
+fn empty_handler(_: Client, _: Event, _: EmptyState) -> EmptyFuture {
+    EmptyFuture
 }
