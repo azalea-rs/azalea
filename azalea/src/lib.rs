@@ -23,7 +23,7 @@ pub use azalea_registry::{Block, EntityKind, Item};
 pub use azalea_world as world;
 pub use bot::DefaultBotPlugins;
 use ecs::component::Component;
-use futures::Future;
+use futures::{future::BoxFuture, Future};
 use protocol::{
     resolver::{self, ResolverError},
     ServerAddress,
@@ -34,7 +34,9 @@ use tokio::sync::mpsc;
 pub use bevy_app as app;
 pub use bevy_ecs as ecs;
 
-pub type HandleFn<Fut, S> = fn(Client, azalea_client::Event, S) -> Fut;
+pub type BoxHandleFn<S> =
+    Box<dyn Fn(Client, azalea_client::Event, S) -> BoxFuture<'static, Result<(), anyhow::Error>>>;
+pub type HandleFn<S, Fut> = fn(Client, azalea_client::Event, S) -> Fut;
 
 #[derive(Error, Debug)]
 pub enum StartError {
@@ -64,24 +66,19 @@ pub enum StartError {
 /// #     Ok(())
 /// # }
 /// ```
-pub struct ClientBuilder<S, Fut>
+pub struct ClientBuilder<S>
 where
-    S: Default + Send + Sync + Clone + 'static,
-    Fut: Future<Output = Result<(), anyhow::Error>>,
+    S: Default + Send + Sync + Clone + Component + 'static,
 {
     app: App,
     /// The function that's called every time a bot receives an [`Event`].
-    handler: Option<HandleFn<Fut, S>>,
+    handler: Option<BoxHandleFn<S>>,
     state: S,
 }
-impl<S, Fut> ClientBuilder<S, Fut>
-where
-    S: Default + Send + Sync + Clone + Component + 'static,
-    Fut: Future<Output = Result<(), anyhow::Error>> + Send + 'static,
-{
+impl ClientBuilder<NoState> {
     /// Start building a client that can join the world.
     #[must_use]
-    pub fn new() -> Self {
+    pub fn new() -> ClientBuilder<NoState> {
         Self::new_without_plugins()
             .add_plugins(DefaultPlugins)
             .add_plugins(DefaultBotPlugins)
@@ -111,21 +108,20 @@ where
     /// # }
     /// ```
     #[must_use]
-    pub fn new_without_plugins() -> Self {
+    pub fn new_without_plugins() -> ClientBuilder<NoState> {
         Self {
             // we create the app here so plugins can add onto it.
             // the schedules won't run until [`Self::start`] is called.
             app: App::new(),
             handler: None,
-            state: S::default(),
+            state: NoState,
         }
     }
 
     /// Set the function that's called every time a bot receives an [`Event`].
     /// This is the way to handle normal per-bot events.
     ///
-    /// You must have exactly one client handler, calling this again will
-    /// replace the old client handler function.
+    /// Currently you can have up to one client handler.
     ///
     /// ```
     /// # use azalea::prelude::*;
@@ -139,11 +135,24 @@ where
     /// }
     /// ```
     #[must_use]
-    pub fn set_handler(mut self, handler: HandleFn<Fut, S>) -> Self {
-        self.handler = Some(handler);
-        self
+    pub fn set_handler<S, Fut>(self, handler: HandleFn<S, Fut>) -> ClientBuilder<S>
+    where
+        S: Default + Send + Sync + Clone + Component + 'static,
+        Fut: Future<Output = Result<(), anyhow::Error>> + Send + 'static,
+    {
+        ClientBuilder {
+            handler: Some(Box::new(move |bot, event, state| {
+                Box::pin(handler(bot, event, state))
+            })),
+            state: S::default(),
+            app: self.app,
+        }
     }
-
+}
+impl<S> ClientBuilder<S>
+where
+    S: Default + Send + Sync + Clone + Component + 'static,
+{
     /// Set the client state instead of initializing defaults.
     #[must_use]
     pub fn set_state(mut self, state: S) -> Self {
@@ -187,7 +196,7 @@ where
         .await?;
 
         while let Some(event) = rx.recv().await {
-            if let Some(handler) = self.handler {
+            if let Some(handler) = &self.handler {
                 tokio::spawn((handler)(bot.clone(), event.clone(), self.state.clone()));
             }
         }
@@ -195,45 +204,14 @@ where
         Ok(())
     }
 }
-impl<S, Fut> Default for ClientBuilder<S, Fut>
-where
-    S: Default + Send + Sync + Clone + Component + 'static,
-    Fut: Future<Output = Result<(), anyhow::Error>> + Send + 'static,
-{
+impl Default for ClientBuilder<NoState> {
     fn default() -> Self {
         Self::new()
     }
 }
-impl ClientBuilder<client_no_handler::EmptyState, client_no_handler::EmptyFuture> {
-    #[must_use]
-    pub fn no_handler(self) -> Self {
-        self.set_handler(client_no_handler::empty_handler)
-    }
-}
 
-pub mod client_no_handler {
-    use super::*;
-    use std::pin::Pin;
-    use std::task::Context;
-    use std::task::Poll;
-
-    /// A placeholder state for defining an empty handler for the client
-    /// builder.
-    #[derive(Default, Component, Clone)]
-    pub struct EmptyState;
-
-    /// An empty placeholder future for defining an empty handler.
-    pub struct EmptyFuture;
-    impl Future for EmptyFuture {
-        type Output = anyhow::Result<()>;
-
-        fn poll(self: Pin<&mut Self>, _: &mut Context<'_>) -> Poll<Self::Output> {
-            Poll::Ready(Ok(()))
-        }
-    }
-
-    /// An empty handler.
-    pub(super) fn empty_handler(_: Client, _: Event, _: EmptyState) -> EmptyFuture {
-        EmptyFuture
-    }
-}
+/// A marker that can be used in place of a State in [`ClientBuilder`] or
+/// [`SwarmBuilder`]. You probably don't need to use this manually since the
+/// compiler will infer it for you.
+#[derive(Component, Clone, Default)]
+pub struct NoState;
