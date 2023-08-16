@@ -377,7 +377,7 @@ mod tests {
             let entity_pos = *app.world.get::<Position>(entity).unwrap();
             // delta is applied before gravity, so the first tick only sets the delta
             assert_eq!(entity_pos.y, 70.);
-            let entity_physics = app.world.get::<Physics>(entity).unwrap().clone();
+            let entity_physics = app.world.get::<Physics>(entity).unwrap();
             assert!(entity_physics.delta.y < 0.);
         }
         app.world.run_schedule(FixedUpdate);
@@ -439,7 +439,7 @@ mod tests {
             let entity_pos = *app.world.get::<Position>(entity).unwrap();
             // delta will change, but it won't move until next tick
             assert_eq!(entity_pos.y, 70.);
-            let entity_physics = app.world.get::<Physics>(entity).unwrap().clone();
+            let entity_physics = app.world.get::<Physics>(entity).unwrap();
             assert!(entity_physics.delta.y < 0.);
         }
         app.world.run_schedule(FixedUpdate);
