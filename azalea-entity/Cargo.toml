@@ -14,12 +14,12 @@ azalea-inventory = { version = "0.7.0", path = "../azalea-inventory" }
 azalea-nbt = { version = "0.7.0", path = "../azalea-nbt" }
 azalea-registry = { version = "0.7.0", path = "../azalea-registry" }
 azalea-world = { version = "0.7.0", path = "../azalea-world" }
-bevy_app = "0.11.0"
-bevy_ecs = "0.11.0"
+bevy_app = "0.11.1"
+bevy_ecs = "0.11.1"
 derive_more = "0.99.17"
 enum-as-inner = "0.6.0"
-log = "0.4.19"
+log = "0.4.20"
 nohash-hasher = "0.2.0"
 parking_lot = "0.12.1"
-thiserror = "1.0.43"
-uuid = "1.4.0"
+thiserror = "1.0.46"
+uuid = "1.4.1"

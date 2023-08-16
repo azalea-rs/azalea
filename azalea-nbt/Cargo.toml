@@ -13,8 +13,8 @@ azalea-buf = { path = "../azalea-buf", version = "^0.7.0" }
 byteorder = "^1.4.3"
 compact_str = { version = "0.7.1", features = ["serde"] }
 enum-as-inner = "0.6.0"
-flate2 = "^1.0.26"
-log = "0.4.19"
+flate2 = "^1.0.27"
+log = "0.4.20"
 serde = { version = "^1.0", features = ["derive"], optional = true }
 
 [dev-dependencies]
