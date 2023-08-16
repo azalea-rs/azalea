@@ -165,12 +165,9 @@ where
             handler: Some(Box::new(move |bot, event, state: S| {
                 Box::pin(handler(bot, event, state))
             })),
-            app: self.app,
-            accounts: self.accounts,
             states: Vec::new(),
-            swarm_state: self.swarm_state,
-            swarm_handler: self.swarm_handler,
-            join_delay: self.join_delay,
+            app: self.app,
+            ..self
         }
     }
 }

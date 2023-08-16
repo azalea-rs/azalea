@@ -2,6 +2,7 @@
 #![feature(async_closure)]
 #![allow(incomplete_features)]
 #![feature(async_fn_in_trait)]
+#![feature(type_changing_struct_update)]
 
 mod auto_respawn;
 mod bot;
@@ -145,7 +146,7 @@ impl ClientBuilder<NoState> {
                 Box::pin(handler(bot, event, state))
             })),
             state: S::default(),
-            app: self.app,
+            ..self
         }
     }
 }
@@ -213,5 +214,7 @@ impl Default for ClientBuilder<NoState> {
 /// A marker that can be used in place of a State in [`ClientBuilder`] or
 /// [`SwarmBuilder`]. You probably don't need to use this manually since the
 /// compiler will infer it for you.
+///
+/// [`SwarmBuilder`]: swarm::SwarmBuilder
 #[derive(Component, Clone, Default)]
 pub struct NoState;
