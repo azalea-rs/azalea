@@ -376,6 +376,8 @@ pub static FLOWERS: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::MangrovePropagule,
         Item::CherryLeaves,
         Item::PinkPetals,
+        Item::ChorusFlower,
+        Item::SporeBlossom,
         Item::Dandelion,
         Item::Poppy,
         Item::BlueOrchid,
