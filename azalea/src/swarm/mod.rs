@@ -50,7 +50,7 @@ pub struct Swarm {
 /// Create a new [`Swarm`].
 pub struct SwarmBuilder<S, SS, Fut, SwarmFut>
 where
-    S: Default + Send + Sync + Clone + 'static,
+    S: Send + Sync + Clone + 'static,
     SS: Default + Send + Sync + Clone + 'static,
     Fut: Future<Output = Result<(), anyhow::Error>>,
     SwarmFut: Future<Output = Result<(), anyhow::Error>>,
@@ -79,7 +79,7 @@ impl<S, SS, Fut, SwarmFut> SwarmBuilder<S, SS, Fut, SwarmFut>
 where
     Fut: Future<Output = Result<(), anyhow::Error>> + Send + 'static,
     SwarmFut: Future<Output = Result<(), anyhow::Error>> + Send + 'static,
-    S: Default + Send + Sync + Clone + Component + 'static,
+    S: Send + Sync + Clone + Component + 'static,
     SS: Default + Send + Sync + Clone + Resource + 'static,
 {
     /// Start creating the swarm.
@@ -138,7 +138,10 @@ where
     /// clients to have different default states, add them one at a time with
     /// [`Self::add_account_with_state`].
     #[must_use]
-    pub fn add_accounts(mut self, accounts: Vec<Account>) -> Self {
+    pub fn add_accounts(mut self, accounts: Vec<Account>) -> Self
+    where
+        S: Default,
+    {
         for account in accounts {
             self = self.add_account(account);
         }
@@ -150,7 +153,10 @@ where
     /// This will make the state for this client be the default, use
     /// [`Self::add_account_with_state`] to avoid that.
     #[must_use]
-    pub fn add_account(self, account: Account) -> Self {
+    pub fn add_account(self, account: Account) -> Self
+    where
+        S: Default,
+    {
         self.add_account_with_state(account, S::default())
     }
     /// Add an account with a custom initial state. Use just

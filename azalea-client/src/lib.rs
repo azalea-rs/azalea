@@ -5,7 +5,6 @@
 //! [`azalea_protocol`]: https://docs.rs/azalea-protocol
 //! [`azalea`]: https://docs.rs/azalea
 
-#![feature(provide_any)]
 #![allow(incomplete_features)]
 #![feature(trait_upcasting)]
 #![feature(error_generic_member_access)]
