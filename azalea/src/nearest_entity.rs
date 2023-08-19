@@ -109,4 +109,73 @@ where
 
         nearest_entity
     }
+
+    /// This function get an iterator over all nearby entities to the given
+    /// position within the given maximum distance. The entities in this
+    /// iterator are not returned in any specific order.
+    ///
+    /// This function returns the Entity ID of nearby entities and their
+    /// distance away.
+    pub fn nearby_entities_to_position(
+        &'a self,
+        position: &'a Position,
+        instance_name: &'a InstanceName,
+        max_distance: f64,
+    ) -> impl Iterator<Item = (Entity, f64)> + '_ {
+        self.filtered_entities
+            .iter()
+            .filter_map(move |(target_entity, e_instance, e_pos)| {
+                if e_instance != instance_name {
+                    return None;
+                }
+
+                let distance = position.distance_to(e_pos);
+                if distance < max_distance {
+                    Some((target_entity, distance))
+                } else {
+                    None
+                }
+            })
+    }
+
+    /// This function get an iterator over all nearby entities to the given
+    /// entity within the given maximum distance. The entities in this iterator
+    /// are not returned in any specific order.
+    ///
+    /// This function returns the Entity ID of nearby entities and their
+    /// distance away.
+    pub fn nearby_entities_to_entity(
+        &'a self,
+        entity: Entity,
+        max_distance: f64,
+    ) -> impl Iterator<Item = (Entity, f64)> + '_ {
+        let position;
+        let instance_name;
+        if let Ok((pos, instance)) = self.all_entities.get(entity) {
+            position = *pos;
+            instance_name = Some(instance);
+        } else {
+            position = Position::default();
+            instance_name = None;
+        };
+
+        self.filtered_entities
+            .iter()
+            .filter_map(move |(target_entity, e_instance, e_pos)| {
+                if entity == target_entity {
+                    return None;
+                }
+
+                if Some(e_instance) != instance_name {
+                    return None;
+                }
+
+                let distance = position.distance_to(e_pos);
+                if distance < max_distance {
+                    Some((target_entity, distance))
+                } else {
+                    None
+                }
+            })
+    }
 }
