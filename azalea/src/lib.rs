@@ -7,6 +7,7 @@
 mod auto_respawn;
 mod bot;
 pub mod container;
+pub mod nearest_entity;
 pub mod pathfinder;
 pub mod prelude;
 pub mod swarm;
