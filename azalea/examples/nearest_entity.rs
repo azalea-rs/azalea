@@ -2,6 +2,7 @@ use azalea::nearest_entity::EntityFinder;
 use azalea::ClientBuilder;
 use azalea::{Bot, LookAtEvent};
 use azalea_client::Account;
+use azalea_entity::metadata::{Item, ItemItem};
 use azalea_entity::{EyeHeight, Position};
 use bevy_app::{FixedUpdate, Plugin};
 use bevy_ecs::{
@@ -16,7 +17,7 @@ async fn main() {
 
     ClientBuilder::new()
         .add_plugins(LookAtStuffPlugin)
-        .start(account, "localhost")
+        .start(account, "localhost:34071")
         .await
         .unwrap();
 }
@@ -24,7 +25,7 @@ async fn main() {
 pub struct LookAtStuffPlugin;
 impl Plugin for LookAtStuffPlugin {
     fn build(&self, app: &mut bevy_app::App) {
-        app.add_systems(FixedUpdate, look_at_everything);
+        app.add_systems(FixedUpdate, (look_at_everything, log_nearby_item_drops));
     }
 }
 
@@ -50,5 +51,23 @@ fn look_at_everything(
             entity: bot_id,
             position: look_target,
         });
+    }
+}
+
+fn log_nearby_item_drops(
+    bots: Query<Entity, With<Bot>>,
+    entities: EntityFinder<With<ItemItem>>,
+    item_drops: Query<&ItemItem>,
+) {
+    for bot_id in bots.iter() {
+        for (entity, distance) in entities.nearby_entities_to_entity(bot_id, 8.0) {
+            let item_drop = item_drops.get(entity).unwrap();
+            let kind = item_drop.kind();
+
+            println!(
+                "Bot {:?} can see an {:?} {:.1} meters away.",
+                bot_id, kind, distance
+            );
+        }
     }
 }
