@@ -165,11 +165,7 @@ where
             handler: Some(Box::new(move |bot, event, state: S| {
                 Box::pin(handler(bot, event, state))
             })),
-            states: vec![
-                S::default();
-                self.accounts.len() - self.states.len() + 1
-                    - if self.accounts.is_empty() { 1 } else { 0 }
-            ],
+            states: vec![S::default(); self.accounts.len()],
             app: self.app,
             ..self
         }
