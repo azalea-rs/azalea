@@ -64,10 +64,7 @@ fn log_nearby_item_drops(
             let item_drop = item_drops.get(entity).unwrap();
             let kind = item_drop.kind();
 
-            println!(
-                "Bot {:?} can see an {:?} {:.1} meters away.",
-                bot_id, kind, distance
-            );
+            println!("Bot {bot_id:?} can see an {kind:?} {distance:.1} meters away.");
         }
     }
 }

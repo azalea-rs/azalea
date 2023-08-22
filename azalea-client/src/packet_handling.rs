@@ -830,6 +830,33 @@ pub fn process_packet_events(ecs: &mut World) {
             }
             ClientboundGamePacket::RemoveEntities(p) => {
                 debug!("Got remove entities packet {:?}", p);
+
+                let mut system_state: SystemState<(
+                    Commands,
+                    Query<&mut InstanceName>,
+                    Res<InstanceContainer>,
+                )> = SystemState::new(ecs);
+
+                let (mut commands, mut query, instance_container) = system_state.get_mut(ecs);
+                let Ok(instance_name) = query.get_mut(player_entity) else {
+                    println!("no instance name");
+                    continue;
+                };
+
+                let Some(instance) = instance_container.get(&instance_name) else {
+                    println!("no instance");
+                    continue;
+                };
+                for &id in &p.entity_ids {
+                    if let Some(entity) =
+                        instance.write().entity_by_id.remove(&MinecraftEntityId(id))
+                    {
+                        println!("despawning entity");
+                        commands.entity(entity).despawn();
+                    }
+                }
+
+                system_state.apply(ecs);
             }
             ClientboundGamePacket::PlayerChat(p) => {
                 debug!("Got player chat packet {:?}", p);
