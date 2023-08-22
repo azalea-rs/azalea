@@ -7,7 +7,7 @@ use crate::{
     inventory::{InventoryComponent, InventoryPlugin},
     local_player::{
         death_event, handle_send_packet_event, update_in_loaded_chunk, GameProfileComponent,
-        LocalPlayer, PhysicsState, SendPacketEvent,
+        Hunger, LocalPlayer, PhysicsState, SendPacketEvent,
     },
     mining::{self, MinePlugin},
     movement::{LastSentLookDirection, PlayerMovePlugin},
@@ -21,7 +21,7 @@ use crate::{
 use azalea_auth::{game_profile::GameProfile, sessionserver::ClientSessionServerError};
 use azalea_chat::FormattedText;
 use azalea_core::Vec3;
-use azalea_entity::{metadata::{Health, Food, Saturation}, EntityPlugin, EntityUpdateSet, EyeHeight, Local, Position};
+use azalea_entity::{metadata::Health, EntityPlugin, EntityUpdateSet, EyeHeight, Local, Position};
 use azalea_physics::{PhysicsPlugin, PhysicsSet};
 use azalea_protocol::{
     connect::{Connection, ConnectionError},
@@ -566,18 +566,12 @@ impl Client {
         *self.component::<Health>()
     }
 
-    /// Get the food level of this client.
+    /// Get the hunger level of this client, which includes both food and
+    /// saturation.
     ///
-    /// This is a shortcut for `*bot.component::<Food>()`.
-    pub fn food(&self) -> u32 {
-        *self.component::<Food>()
-    }
-
-    /// Get the saturation level of this client.
-    ///
-    /// This is a shortcut for `*bot.component::<Saturation>()`.
-    pub fn saturation(&self) -> f32 {
-        *self.component::<Saturation>()
+    /// This is a shortcut for `self.component::<Hunger>().to_owned()`.
+    pub fn hunger(&self) -> Hunger {
+        self.component::<Hunger>().to_owned()
     }
 }
 

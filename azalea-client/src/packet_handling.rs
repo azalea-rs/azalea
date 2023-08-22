@@ -4,7 +4,7 @@ use azalea_buf::McBufWritable;
 use azalea_core::{ChunkPos, GameMode, ResourceLocation, Vec3};
 use azalea_entity::{
     indexing::EntityUuidIndex,
-    metadata::{apply_metadata, Health, Food, Saturation, PlayerMetadataBundle},
+    metadata::{apply_metadata, Health, PlayerMetadataBundle},
     Dead, EntityBundle, EntityKind, EntityUpdateSet, LastSentPosition, LoadedBy, LookDirection,
     Physics, PlayerBundle, Position, RelativeEntityUpdate,
 };
@@ -46,7 +46,7 @@ use crate::{
         ClientSideCloseContainerEvent, InventoryComponent, MenuOpenedEvent,
         SetContainerContentEvent,
     },
-    local_player::{GameProfileComponent, LocalGameMode, LocalPlayer},
+    local_player::{GameProfileComponent, Hunger, LocalGameMode, LocalPlayer},
     ClientInformation, PlayerInfo,
 };
 
@@ -279,6 +279,11 @@ pub fn process_packet_events(ecs: &mut World) {
                         LocalGameMode {
                             current: p.game_type,
                             previous: p.previous_game_type.into(),
+                        },
+                        // this gets overwritten later by the SetHealth packet
+                        Hunger {
+                            food: 20,
+                            saturation: 5.,
                         },
                         player_bundle,
                     ));
@@ -699,29 +704,13 @@ pub fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::SetHealth(p) => {
                 debug!("Got set health packet {:?}", p);
 
-                {
-                    let mut system_state: SystemState<Query<&mut Health>> = SystemState::new(ecs);
-                    let mut query = system_state.get_mut(ecs);
-                    let mut health = query.get_mut(player_entity).unwrap();
+                let mut system_state: SystemState<Query<(&mut Health, &mut Hunger)>> =
+                    SystemState::new(ecs);
+                let mut query = system_state.get_mut(ecs);
+                let (mut health, mut hunger) = query.get_mut(player_entity).unwrap();
 
-                    **health = p.health;
-                }
-
-                {
-                    let mut system_state: SystemState<Query<&mut Food>> = SystemState::new(ecs);
-                    let mut query = system_state.get_mut(ecs);
-                    let mut food = query.get_mut(player_entity).unwrap();
-
-                    **food = p.food;
-                }
-
-                {
-                    let mut system_state: SystemState<Query<&mut Saturation>> = SystemState::new(ecs);
-                    let mut query = system_state.get_mut(ecs);
-                    let mut saturation = query.get_mut(player_entity).unwrap();
-
-                    **saturation = p.saturation;
-                }
+                **health = p.health;
+                (hunger.food, hunger.saturation) = (p.food, p.saturation);
 
                 // the `Dead` component is added by the `update_dead` system
                 // in azalea-world and then the `dead_event` system fires

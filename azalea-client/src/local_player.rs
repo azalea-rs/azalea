@@ -89,6 +89,16 @@ pub struct LocalGameMode {
     pub previous: Option<GameMode>,
 }
 
+#[derive(Component, Clone)]
+pub struct Hunger {
+    /// The main hunger bar. Goes from 0 to 20.
+    pub food: u32,
+    /// The amount of saturation the player has. This isn't shown in normal
+    /// vanilla clients but it's a separate counter that makes it so your hunger
+    /// only starts decreasing when this is 0.
+    pub saturation: f32,
+}
+
 impl LocalPlayer {
     /// Create a new `LocalPlayer`.
     pub fn new(
