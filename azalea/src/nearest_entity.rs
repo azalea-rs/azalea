@@ -14,11 +14,11 @@ use bevy_ecs::{
 /// All functions used by this system parameter instance will respect the
 /// applied filter.
 ///
-/// ```no_run
+/// ```
 /// /// All bots near aggressive mobs will scream in chat.
 /// pub fn bots_near_aggressive_mobs(
 ///     bots: Query<Entity, With<Bot>>,
-///     entity_finder: EntityFinder<With<Aggressive>>,
+///     entity_finder: EntityFinder<With<AbstractMonster>>,
 ///     chat_events: EventWriter<SendChatEvent>,
 /// ) {
 ///     for bot_id in bots.iter() {

@@ -17,7 +17,7 @@ async fn main() {
 
     ClientBuilder::new()
         .add_plugins(LookAtStuffPlugin)
-        .start(account, "localhost:34071")
+        .start(account, "localhost")
         .await
         .unwrap();
 }
@@ -30,7 +30,7 @@ impl Plugin for LookAtStuffPlugin {
 }
 
 fn look_at_everything(
-    bots: Query<Entity, With<Bot>>,
+    bots: Query<Entity, (With<Local>, With<Player>)>,
     entities: EntityFinder,
     entity_positions: Query<(&Position, Option<&EyeHeight>)>,
     mut look_at_event: EventWriter<LookAtEvent>,
