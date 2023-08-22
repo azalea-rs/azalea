@@ -200,7 +200,7 @@ mod tests {
         // just make sure it doesn't panic
         if let Err(e) = ClientboundPlayerChatPacket::read_from(&mut Cursor::new(&data)) {
             let default_backtrace = Backtrace::capture();
-            let backtrace = std::any::request_ref::<Backtrace>(&e).unwrap_or(&default_backtrace);
+            let backtrace = std::error::request_ref::<Backtrace>(&e).unwrap_or(&default_backtrace);
             eprintln!("{e}\n{backtrace}");
 
             panic!("failed to read player chat packet");

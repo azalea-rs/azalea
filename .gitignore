@@ -3,6 +3,7 @@
 flamegraph.svg
 perf.data
 perf.data.old
+.vscode
 
 # created by azalea-auth/examples/auth, defined in the main .gitignore because
 # the example could be run from anywhere
