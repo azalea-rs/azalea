@@ -133,6 +133,16 @@ pub struct PermissionLevel(pub u8);
 #[derive(Component, Clone, Debug, Deref, DerefMut, Default)]
 pub struct TabList(HashMap<Uuid, PlayerInfo>);
 
+#[derive(Component, Clone)]
+pub struct Hunger {
+    /// The main hunger bar. Goes from 0 to 20.
+    pub food: u32,
+    /// The amount of saturation the player has. This isn't shown in normal
+    /// vanilla clients but it's a separate counter that makes it so your hunger
+    /// only starts decreasing when this is 0.
+    pub saturation: f32,
+}
+
 impl InstanceHolder {
     /// Create a new `InstanceHolder`.
     pub fn new(entity: Entity, world: Arc<RwLock<Instance>>) -> Self {

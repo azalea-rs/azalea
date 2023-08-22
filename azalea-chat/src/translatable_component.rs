@@ -133,7 +133,10 @@ impl Display for TranslatableComponent {
         for component in FormattedText::Translatable(self.clone()).into_iter() {
             let component_text = match &component {
                 FormattedText::Text(c) => c.text.to_string(),
-                FormattedText::Translatable(c) => c.read()?.to_string(),
+                FormattedText::Translatable(c) => match c.read() {
+                    Ok(c) => c.to_string(),
+                    Err(_) => c.key.to_string(),
+                },
             };
 
             f.write_str(&component_text)?;

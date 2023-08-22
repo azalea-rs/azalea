@@ -31,7 +31,8 @@ use crate::{
         SetContainerContentEvent,
     },
     local_player::{
-        GameProfileComponent, InstanceHolder, LocalGameMode, PlayerAbilities, SendPacketEvent,
+        GameProfileComponent, Hunger, InstanceHolder, LocalGameMode, PlayerAbilities,
+        SendPacketEvent,
     },
     raw_connection::RawConnection,
     ClientInformation, PlayerInfo, ReceivedRegistries, TabList,
@@ -256,6 +257,11 @@ pub fn process_packet_events(ecs: &mut World) {
                         LocalGameMode {
                             current: p.common.game_type,
                             previous: p.common.previous_game_type.into(),
+                        },
+                        // this gets overwritten later by the SetHealth packet
+                        Hunger {
+                            food: 20,
+                            saturation: 5.,
                         },
                         player_bundle,
                     ));
@@ -693,11 +699,13 @@ pub fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::SetHealth(p) => {
                 debug!("Got set health packet {p:?}");
 
-                let mut system_state: SystemState<Query<&mut Health>> = SystemState::new(ecs);
+                let mut system_state: SystemState<Query<(&mut Health, &mut Hunger)>> =
+                    SystemState::new(ecs);
                 let mut query = system_state.get_mut(ecs);
-                let mut health = query.get_mut(player_entity).unwrap();
+                let (mut health, mut hunger) = query.get_mut(player_entity).unwrap();
 
                 **health = p.health;
+                (hunger.food, hunger.saturation) = (p.food, p.saturation);
 
                 // the `Dead` component is added by the `update_dead` system
                 // in azalea-world and then the `dead_event` system fires
@@ -816,7 +824,34 @@ pub fn process_packet_events(ecs: &mut World) {
                 });
             }
             ClientboundGamePacket::RemoveEntities(p) => {
-                debug!("Got remove entities packet {p:?}");
+                debug!("Got remove entities packet {:?}", p);
+
+                let mut system_state: SystemState<(
+                    Commands,
+                    Query<&mut InstanceName>,
+                    Res<InstanceContainer>,
+                )> = SystemState::new(ecs);
+
+                let (mut commands, mut query, instance_container) = system_state.get_mut(ecs);
+                let Ok(instance_name) = query.get_mut(player_entity) else {
+                    println!("no instance name");
+                    continue;
+                };
+
+                let Some(instance) = instance_container.get(&instance_name) else {
+                    println!("no instance");
+                    continue;
+                };
+                for &id in &p.entity_ids {
+                    if let Some(entity) =
+                        instance.write().entity_by_id.remove(&MinecraftEntityId(id))
+                    {
+                        println!("despawning entity");
+                        commands.entity(entity).despawn();
+                    }
+                }
+
+                system_state.apply(ecs);
             }
             ClientboundGamePacket::PlayerChat(p) => {
                 debug!("Got player chat packet {p:?}");

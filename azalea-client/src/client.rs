@@ -8,7 +8,7 @@ use crate::{
     inventory::{InventoryComponent, InventoryPlugin},
     local_player::{
         death_event, handle_send_packet_event, update_in_loaded_chunk, GameProfileComponent,
-        InstanceHolder, PermissionLevel, PhysicsState, PlayerAbilities, SendPacketEvent,
+        Hunger, InstanceHolder, PermissionLevel, PhysicsState, PlayerAbilities, SendPacketEvent,
     },
     mining::{self, MinePlugin},
     movement::{LastSentLookDirection, PlayerMovePlugin},
@@ -526,6 +526,14 @@ impl Client {
     /// This is a shortcut for `*bot.component::<Health>()`.
     pub fn health(&self) -> f32 {
         *self.component::<Health>()
+    }
+
+    /// Get the hunger level of this client, which includes both food and
+    /// saturation.
+    ///
+    /// This is a shortcut for `self.component::<Hunger>().to_owned()`.
+    pub fn hunger(&self) -> Hunger {
+        self.component::<Hunger>().to_owned()
     }
 }
 

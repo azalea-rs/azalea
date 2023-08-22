@@ -4,7 +4,6 @@ mod chat;
 mod events;
 pub mod prelude;
 
-use crate::{bot::DefaultBotPlugins, HandleFn};
 use azalea_client::{
     chat::ChatPacket, start_ecs, Account, Client, DefaultPlugins, Event, JoinError,
 };
@@ -16,12 +15,14 @@ use azalea_protocol::{
 use azalea_world::InstanceContainer;
 use bevy_app::{App, PluginGroup, PluginGroupBuilder, Plugins};
 use bevy_ecs::{component::Component, entity::Entity, system::Resource, world::World};
-use futures::future::join_all;
+use futures::future::{join_all, BoxFuture};
 use log::error;
 use parking_lot::{Mutex, RwLock};
 use std::{collections::HashMap, future::Future, net::SocketAddr, sync::Arc, time::Duration};
 use thiserror::Error;
 use tokio::sync::mpsc;
+
+use crate::{BoxHandleFn, DefaultBotPlugins, HandleFn, NoState};
 
 /// A swarm is a way to conveniently control many bots at once, while also
 /// being able to control bots at an individual level when desired.
@@ -48,12 +49,10 @@ pub struct Swarm {
 }
 
 /// Create a new [`Swarm`].
-pub struct SwarmBuilder<S, SS, Fut, SwarmFut>
+pub struct SwarmBuilder<S, SS>
 where
-    S: Send + Sync + Clone + 'static,
-    SS: Default + Send + Sync + Clone + 'static,
-    Fut: Future<Output = Result<(), anyhow::Error>>,
-    SwarmFut: Future<Output = Result<(), anyhow::Error>>,
+    S: Send + Sync + Clone + Component + 'static,
+    SS: Default + Send + Sync + Clone + Resource + 'static,
 {
     app: App,
     /// The accounts that are going to join the server.
@@ -64,10 +63,10 @@ where
     /// The state for the overall swarm.
     swarm_state: SS,
     /// The function that's called every time a bot receives an [`Event`].
-    handler: Option<HandleFn<Fut, S>>,
+    handler: Option<BoxHandleFn<S>>,
     /// The function that's called every time the swarm receives a
     /// [`SwarmEvent`].
-    swarm_handler: Option<SwarmHandleFn<SwarmFut, SS>>,
+    swarm_handler: Option<BoxSwarmHandleFn<SS>>,
 
     /// How long we should wait between each bot joining the server. Set to
     /// None to have every bot connect at the same time. None is different than
@@ -75,16 +74,10 @@ where
     /// the previous one to be ready.
     join_delay: Option<std::time::Duration>,
 }
-impl<S, SS, Fut, SwarmFut> SwarmBuilder<S, SS, Fut, SwarmFut>
-where
-    Fut: Future<Output = Result<(), anyhow::Error>> + Send + 'static,
-    SwarmFut: Future<Output = Result<(), anyhow::Error>> + Send + 'static,
-    S: Send + Sync + Clone + Component + 'static,
-    SS: Default + Send + Sync + Clone + Resource + 'static,
-{
+impl SwarmBuilder<NoState, NoSwarmState> {
     /// Start creating the swarm.
     #[must_use]
-    pub fn new() -> Self {
+    pub fn new() -> SwarmBuilder<NoState, NoSwarmState> {
         Self::new_without_plugins()
             .add_plugins(DefaultPlugins)
             .add_plugins(DefaultBotPlugins)
@@ -117,21 +110,124 @@ where
     /// # }
     /// ```
     #[must_use]
-    pub fn new_without_plugins() -> Self {
-        Self {
+    pub fn new_without_plugins() -> SwarmBuilder<NoState, NoSwarmState> {
+        SwarmBuilder {
             // we create the app here so plugins can add onto it.
             // the schedules won't run until [`Self::start`] is called.
             app: App::new(),
-
             accounts: Vec::new(),
             states: Vec::new(),
-            swarm_state: SS::default(),
+            swarm_state: NoSwarmState,
             handler: None,
             swarm_handler: None,
             join_delay: None,
         }
     }
+}
 
+impl<SS> SwarmBuilder<NoState, SS>
+where
+    SS: Default + Send + Sync + Clone + Resource + 'static,
+{
+    /// Set the function that's called every time a bot receives an [`Event`].
+    /// This is the way to handle normal per-bot events.
+    ///
+    /// Currently you can have up to one handler.
+    ///
+    /// ```
+    /// # use azalea::{prelude::*, swarm::prelude::*};
+    /// # let swarm_builder = SwarmBuilder::new().set_swarm_handler(swarm_handle);
+    /// swarm_builder.set_handler(handle);
+    ///
+    /// #[derive(Component, Default, Clone)]
+    /// struct State {}
+    /// async fn handle(mut bot: Client, event: Event, state: State) -> anyhow::Result<()> {
+    ///     Ok(())
+    /// }
+    ///
+    /// # #[derive(Resource, Default, Clone)]
+    /// # struct SwarmState {}
+    /// # async fn swarm_handle(
+    /// #     mut swarm: Swarm,
+    /// #     event: SwarmEvent,
+    /// #     state: SwarmState,
+    /// # ) -> anyhow::Result<()> {
+    /// #     Ok(())
+    /// # }
+    /// ```
+    #[must_use]
+    pub fn set_handler<S, Fut>(self, handler: HandleFn<S, Fut>) -> SwarmBuilder<S, SS>
+    where
+        Fut: Future<Output = Result<(), anyhow::Error>> + Send + 'static,
+        S: Send + Sync + Clone + Component + Default + 'static,
+    {
+        SwarmBuilder {
+            handler: Some(Box::new(move |bot, event, state: S| {
+                Box::pin(handler(bot, event, state))
+            })),
+            states: vec![S::default(); self.accounts.len()],
+            app: self.app,
+            ..self
+        }
+    }
+}
+
+impl<S> SwarmBuilder<S, NoSwarmState>
+where
+    S: Send + Sync + Clone + Component + 'static,
+{
+    /// Set the function that's called every time the swarm receives a
+    /// [`SwarmEvent`]. This is the way to handle global swarm events.
+    ///
+    /// Currently you can have up to one swarm handler.
+    ///
+    /// ```
+    /// # use azalea::{prelude::*, swarm::prelude::*};
+    /// # let swarm_builder = SwarmBuilder::new().set_handler(handle);
+    /// swarm_builder.set_swarm_handler(swarm_handle);
+    ///
+    /// # #[derive(Component, Default, Clone)]
+    /// # struct State {}
+    ///
+    /// # async fn handle(mut bot: Client, event: Event, state: State) -> anyhow::Result<()> {
+    /// #     Ok(())
+    /// # }
+    ///
+    /// #[derive(Resource, Default, Clone)]
+    /// struct SwarmState {}
+    /// async fn swarm_handle(
+    ///     mut swarm: Swarm,
+    ///     event: SwarmEvent,
+    ///     state: SwarmState,
+    /// ) -> anyhow::Result<()> {
+    ///     Ok(())
+    /// }
+    /// ```
+    #[must_use]
+    pub fn set_swarm_handler<SS, Fut>(self, handler: SwarmHandleFn<SS, Fut>) -> SwarmBuilder<S, SS>
+    where
+        SS: Default + Send + Sync + Clone + Resource + 'static,
+        Fut: Future<Output = Result<(), anyhow::Error>> + Send + 'static,
+    {
+        SwarmBuilder {
+            handler: self.handler,
+            app: self.app,
+            accounts: self.accounts,
+            states: self.states,
+            swarm_state: SS::default(),
+            swarm_handler: Some(Box::new(move |swarm, event, state| {
+                Box::pin(handler(swarm, event, state))
+            })),
+            join_delay: self.join_delay,
+        }
+    }
+}
+
+impl<S, SS> SwarmBuilder<S, SS>
+where
+    S: Send + Sync + Clone + Component + 'static,
+    SS: Default + Send + Sync + Clone + Resource + 'static,
+{
     /// Add a vec of [`Account`]s to the swarm.
     ///
     /// Use [`Self::add_account`] to only add one account. If you want the
@@ -168,71 +264,6 @@ where
         self
     }
 
-    /// Set the function that's called every time a bot receives an [`Event`].
-    /// This is the way to handle normal per-bot events.
-    ///
-    /// You must have exactly one client handler and one swarm handler, calling
-    /// this again will replace the old client handler function.
-    ///
-    /// ```
-    /// # use azalea::{prelude::*, swarm::prelude::*};
-    /// # let swarm_builder = SwarmBuilder::new().set_swarm_handler(swarm_handle);
-    /// swarm_builder.set_handler(handle);
-    ///
-    /// #[derive(Component, Default, Clone)]
-    /// struct State {}
-    /// async fn handle(mut bot: Client, event: Event, state: State) -> anyhow::Result<()> {
-    ///     Ok(())
-    /// }
-    ///
-    /// # #[derive(Resource, Default, Clone)]
-    /// # struct SwarmState {}
-    /// # async fn swarm_handle(
-    /// #     mut swarm: Swarm,
-    /// #     event: SwarmEvent,
-    /// #     state: SwarmState,
-    /// # ) -> anyhow::Result<()> {
-    /// #     Ok(())
-    /// # }
-    /// ```
-    #[must_use]
-    pub fn set_handler(mut self, handler: HandleFn<Fut, S>) -> Self {
-        self.handler = Some(handler);
-        self
-    }
-    /// Set the function that's called every time the swarm receives a
-    /// [`SwarmEvent`]. This is the way to handle global swarm events.
-    ///
-    /// You must have exactly one client handler and one swarm handler, calling
-    /// this again will replace the old swarm handler function.
-    ///
-    /// ```
-    /// # use azalea::{prelude::*, swarm::prelude::*};
-    /// # let swarm_builder = SwarmBuilder::new().set_handler(handle);
-    /// swarm_builder.set_swarm_handler(swarm_handle);
-    ///
-    /// # #[derive(Component, Default, Clone)]
-    /// # struct State {}
-    ///
-    /// # async fn handle(mut bot: Client, event: Event, state: State) -> anyhow::Result<()> {
-    /// #     Ok(())
-    /// # }
-    ///
-    /// #[derive(Resource, Default, Clone)]
-    /// struct SwarmState {}
-    /// async fn swarm_handle(
-    ///     mut swarm: Swarm,
-    ///     event: SwarmEvent,
-    ///     state: SwarmState,
-    /// ) -> anyhow::Result<()> {
-    ///     Ok(())
-    /// }
-    /// ```
-    #[must_use]
-    pub fn set_swarm_handler(mut self, handler: SwarmHandleFn<SwarmFut, SS>) -> Self {
-        self.swarm_handler = Some(handler);
-        self
-    }
     /// Set the swarm state instead of initializing defaults.
     #[must_use]
     pub fn set_swarm_state(mut self, swarm_state: SS) -> Self {
@@ -344,7 +375,7 @@ where
         let swarm_clone = swarm.clone();
         tokio::spawn(async move {
             while let Some(event) = swarm_rx.recv().await {
-                if let Some(swarm_handler) = self.swarm_handler {
+                if let Some(swarm_handler) = &self.swarm_handler {
                     tokio::spawn((swarm_handler)(
                         swarm_clone.clone(),
                         event,
@@ -356,7 +387,7 @@ where
 
         // bot events
         while let Some((Some(event), bot)) = bots_rx.recv().await {
-            if let Some(handler) = self.handler {
+            if let Some(handler) = &self.handler {
                 let state = bot.component::<S>();
                 tokio::spawn((handler)(bot, event, state));
             }
@@ -368,13 +399,7 @@ where
     }
 }
 
-impl<S, SS, Fut, SwarmFut> Default for SwarmBuilder<S, SS, Fut, SwarmFut>
-where
-    Fut: Future<Output = Result<(), anyhow::Error>> + Send + 'static,
-    SwarmFut: Future<Output = Result<(), anyhow::Error>> + Send + 'static,
-    S: Default + Send + Sync + Clone + Component + 'static,
-    SS: Default + Send + Sync + Clone + Resource + 'static,
-{
+impl Default for SwarmBuilder<NoState, NoSwarmState> {
     fn default() -> Self {
         Self::new()
     }
@@ -397,7 +422,9 @@ pub enum SwarmEvent {
     Chat(ChatPacket),
 }
 
-pub type SwarmHandleFn<Fut, SS> = fn(Swarm, SwarmEvent, SS) -> Fut;
+pub type SwarmHandleFn<SS, Fut> = fn(Swarm, SwarmEvent, SS) -> Fut;
+pub type BoxSwarmHandleFn<SS> =
+    Box<dyn Fn(Swarm, SwarmEvent, SS) -> BoxFuture<'static, Result<(), anyhow::Error>> + Send>;
 
 #[derive(Error, Debug)]
 pub enum SwarmStartError {
@@ -598,3 +625,9 @@ impl PluginGroup for DefaultSwarmPlugins {
             .add(events::SwarmPlugin)
     }
 }
+
+/// A marker that can be used in place of a SwarmState in [`SwarmBuilder`]. You
+/// probably don't need to use this manually since the compiler will infer it
+/// for you.
+#[derive(Resource, Clone, Default)]
+pub struct NoSwarmState;

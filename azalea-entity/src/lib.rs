@@ -229,7 +229,7 @@ pub struct Dead;
 /// coordinates.
 ///
 /// This is used to calculate the camera position for players, when spectating
-/// an entity, and when raytracing from the entity.
+/// an entity, and when raycasting from the entity.
 #[derive(Component, Clone, Copy, Debug, PartialEq, Deref, DerefMut)]
 pub struct EyeHeight(f32);
 impl From<EyeHeight> for f32 {
