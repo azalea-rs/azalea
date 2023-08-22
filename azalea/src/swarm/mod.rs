@@ -159,13 +159,13 @@ where
     pub fn set_handler<S, Fut>(self, handler: HandleFn<S, Fut>) -> SwarmBuilder<S, SS>
     where
         Fut: Future<Output = Result<(), anyhow::Error>> + Send + 'static,
-        S: Send + Sync + Clone + Component + 'static,
+        S: Send + Sync + Clone + Component + Default + 'static,
     {
         SwarmBuilder {
             handler: Some(Box::new(move |bot, event, state: S| {
                 Box::pin(handler(bot, event, state))
             })),
-            states: Vec::new(),
+            states: vec![S::default(); self.accounts.len()],
             app: self.app,
             ..self
         }
