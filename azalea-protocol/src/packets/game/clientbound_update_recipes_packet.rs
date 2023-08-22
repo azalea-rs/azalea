@@ -9,18 +9,18 @@ use azalea_registry::RecipeSerializer;
 use std::io::{Cursor, Write};
 use std::str::FromStr;
 
-#[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
+#[derive(Clone, Debug, McBuf, PartialEq, ClientboundGamePacket)]
 pub struct ClientboundUpdateRecipesPacket {
     pub recipes: Vec<Recipe>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Recipe {
     pub identifier: ResourceLocation,
     pub data: RecipeData,
 }
 
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, PartialEq, McBuf)]
 pub struct ShapelessRecipe {
     /// Used to group similar recipes together in the recipe book.
     /// Nbt is present in recipe JSON
@@ -29,7 +29,7 @@ pub struct ShapelessRecipe {
     pub ingredients: Vec<Ingredient>,
     pub result: ItemSlot,
 }
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct ShapedRecipe {
     pub width: usize,
     pub height: usize,
@@ -40,7 +40,7 @@ pub struct ShapedRecipe {
     pub show_notification: bool,
 }
 
-#[derive(Clone, Debug, Copy, McBuf)]
+#[derive(Clone, Debug, Copy, PartialEq, McBuf)]
 pub enum CraftingBookCategory {
     Building = 0,
     Redstone,
@@ -54,18 +54,20 @@ impl McBufWritable for ShapedRecipe {
         (self.height as u32).var_write_into(buf)?;
         self.group.write_into(buf)?;
         self.category.write_into(buf)?;
+        debug_assert_eq!(self.width * self.height, self.ingredients.len());
         for ingredient in &self.ingredients {
             ingredient.write_into(buf)?;
         }
         self.result.write_into(buf)?;
+        self.show_notification.write_into(buf)?;
 
         Ok(())
     }
 }
 impl McBufReadable for ShapedRecipe {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let width = u32::var_read_from(buf)?.try_into().unwrap();
-        let height = u32::var_read_from(buf)?.try_into().unwrap();
+        let width = u32::var_read_from(buf)? as usize;
+        let height = u32::var_read_from(buf)? as usize;
         let group = String::read_from(buf)?;
         let category = CraftingBookCategory::read_from(buf)?;
         let mut ingredients = Vec::with_capacity(width * height);
@@ -87,7 +89,7 @@ impl McBufReadable for ShapedRecipe {
     }
 }
 
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, PartialEq, McBuf)]
 pub struct CookingRecipe {
     pub group: String,
     pub category: CraftingBookCategory,
@@ -97,25 +99,25 @@ pub struct CookingRecipe {
     #[var]
     pub cooking_time: u32,
 }
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, PartialEq, McBuf)]
 pub struct StoneCutterRecipe {
     pub group: String,
     pub ingredient: Ingredient,
     pub result: ItemSlot,
 }
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, PartialEq, McBuf)]
 pub struct SmithingRecipe {
     pub base: Ingredient,
     pub addition: Ingredient,
     pub result: ItemSlot,
 }
 
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, PartialEq, McBuf)]
 pub struct SimpleRecipe {
     pub category: CraftingBookCategory,
 }
 
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, PartialEq, McBuf)]
 pub struct SmithingTransformRecipe {
     pub template: Ingredient,
     pub base: Ingredient,
@@ -123,14 +125,14 @@ pub struct SmithingTransformRecipe {
     pub result: ItemSlot,
 }
 
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, PartialEq, McBuf)]
 pub struct SmithingTrimRecipe {
     pub template: Ingredient,
     pub base: Ingredient,
     pub addition: Ingredient,
 }
 
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, PartialEq, McBuf)]
 pub enum RecipeData {
     CraftingShaped(ShapedRecipe),
     CraftingShapeless(ShapelessRecipe),
@@ -157,7 +159,7 @@ pub enum RecipeData {
     CraftingDecoratedPot(SimpleRecipe),
 }
 
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, PartialEq, McBuf)]
 pub struct Ingredient {
     pub allowed: Vec<ItemSlot>,
 }
@@ -300,5 +302,87 @@ impl McBufReadable for Recipe {
         let recipe = Recipe { identifier, data };
 
         Ok(recipe)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_crafting_shaped() {
+        let mut buf = Vec::new();
+        let recipe = Recipe {
+            identifier: ResourceLocation::new("minecraft:crafting_shaped"),
+            data: RecipeData::CraftingShaped(ShapedRecipe {
+                width: 2,
+                height: 2,
+                group: String::new(),
+                category: CraftingBookCategory::Building,
+                ingredients: vec![
+                    Ingredient {
+                        allowed: vec![ItemSlot::Empty],
+                    },
+                    Ingredient {
+                        allowed: vec![ItemSlot::Empty],
+                    },
+                    Ingredient {
+                        allowed: vec![ItemSlot::Empty],
+                    },
+                    Ingredient {
+                        allowed: vec![ItemSlot::Empty],
+                    },
+                ],
+                result: ItemSlot::Empty,
+                show_notification: false,
+            }),
+        };
+        recipe.write_into(&mut buf).unwrap();
+        let decoded_recipe = Recipe::read_from(&mut Cursor::new(&buf[..])).unwrap();
+        assert_eq!(recipe, decoded_recipe);
+    }
+
+    #[test]
+    fn test_crafting_shapeless() {
+        let mut buf = Vec::new();
+        let recipe = Recipe {
+            identifier: ResourceLocation::new("minecraft:crafting_shapeless"),
+            data: RecipeData::CraftingShapeless(ShapelessRecipe {
+                group: String::new(),
+                category: CraftingBookCategory::Building,
+                ingredients: vec![
+                    Ingredient {
+                        allowed: vec![ItemSlot::Empty],
+                    },
+                    Ingredient {
+                        allowed: vec![ItemSlot::Empty],
+                    },
+                    Ingredient {
+                        allowed: vec![ItemSlot::Empty],
+                    },
+                    Ingredient {
+                        allowed: vec![ItemSlot::Empty],
+                    },
+                ],
+                result: ItemSlot::Empty,
+            }),
+        };
+        recipe.write_into(&mut buf).unwrap();
+        let decoded_recipe = Recipe::read_from(&mut Cursor::new(&buf[..])).unwrap();
+        assert_eq!(recipe, decoded_recipe);
+    }
+
+    #[test]
+    fn test_crafting_special_armordye() {
+        let mut buf = Vec::new();
+        let recipe = Recipe {
+            identifier: ResourceLocation::new("minecraft:crafting_special_armordye"),
+            data: RecipeData::CraftingSpecialArmorDye(SimpleRecipe {
+                category: CraftingBookCategory::Building,
+            }),
+        };
+        recipe.write_into(&mut buf).unwrap();
+        let decoded_recipe = Recipe::read_from(&mut Cursor::new(&buf[..])).unwrap();
+        assert_eq!(recipe, decoded_recipe);
     }
 }
