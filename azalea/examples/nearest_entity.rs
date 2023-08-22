@@ -2,8 +2,8 @@ use azalea::nearest_entity::EntityFinder;
 use azalea::ClientBuilder;
 use azalea::{Bot, LookAtEvent};
 use azalea_client::Account;
-use azalea_entity::metadata::{Item, ItemItem};
-use azalea_entity::{EyeHeight, Position};
+use azalea_entity::metadata::{ItemItem, Player};
+use azalea_entity::{EyeHeight, Local, Position};
 use bevy_app::{FixedUpdate, Plugin};
 use bevy_ecs::{
     prelude::{Entity, EventWriter},
