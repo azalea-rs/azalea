@@ -851,7 +851,7 @@ pub fn process_packet_events(ecs: &mut World) {
                     if let Some(entity) =
                         instance.write().entity_by_id.remove(&MinecraftEntityId(id))
                     {
-                        println!("despawning entity");
+                        //println!("despawning entity");
                         commands.entity(entity).despawn();
                     }
                 }
