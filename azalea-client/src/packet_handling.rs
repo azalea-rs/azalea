@@ -839,19 +839,17 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 let (mut commands, mut query, instance_container) = system_state.get_mut(ecs);
                 let Ok(instance_name) = query.get_mut(player_entity) else {
-                    println!("no instance name");
                     continue;
                 };
 
                 let Some(instance) = instance_container.get(&instance_name) else {
-                    println!("no instance");
                     continue;
                 };
                 for &id in &p.entity_ids {
                     if let Some(entity) =
                         instance.write().entity_by_id.remove(&MinecraftEntityId(id))
                     {
-                        println!("despawning entity");
+                        trace!("despawning entity");
                         commands.entity(entity).despawn();
                     }
                 }
