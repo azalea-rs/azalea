@@ -821,12 +821,12 @@ pub fn process_packet_events(ecs: &mut World) {
                 debug!("Got remove entities packet {:?}", p);
 
                 let mut system_state: SystemState<(
-                    Commands,
                     Query<&mut InstanceName>,
+                    Query<&mut LoadedBy>,
                     Res<InstanceContainer>,
                 )> = SystemState::new(ecs);
 
-                let (mut commands, mut query, instance_container) = system_state.get_mut(ecs);
+                let (mut query, mut entity_query, instance_container) = system_state.get_mut(ecs);
                 let Ok(instance_name) = query.get_mut(player_entity) else {
                     warn!("We don't have an InstanceName");
                     continue;
@@ -837,17 +837,18 @@ pub fn process_packet_events(ecs: &mut World) {
                     continue;
                 };
                 for &id in &p.entity_ids {
-                    if let Some(entity) =
-                        instance.write().entity_by_id.remove(&MinecraftEntityId(id))
-                    {
-                        trace!("despawning entity MinecraftEntityId({id}) aka {entity:?}");
-                        commands.entity(entity).despawn();
-                    } else {
-                        warn!("Got remove entities packet for unknown entity id {id}");
-                    }
+                    let Some(entity) = instance.read().entity_by_id(&MinecraftEntityId(id)) else {
+                        warn!("There is no entity with id {id:?}");
+                        continue;
+                    };
+                    let Ok(mut loaded_by) = entity_query.get_mut(entity) else {
+                        warn!(
+                            "tried to despawn entity {id} but it doesn't have a LoadedBy component",
+                        );
+                        continue;
+                    };
+                    loaded_by.remove(&player_entity);
                 }
-
-                system_state.apply(ecs);
             }
             ClientboundGamePacket::PlayerChat(p) => {
                 debug!("Got player chat packet {:?}", p);
