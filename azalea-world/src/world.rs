@@ -83,9 +83,7 @@ pub struct Instance {
     pub entities_by_chunk: HashMap<ChunkPos, HashSet<Entity>>,
 
     /// An index of Minecraft entity IDs to Azalea ECS entities. You should
-    /// avoid using this and instead of [`EntityIdIndex`]
-    ///
-    /// [`EntityIdIndex`]: azalea_entity::EntityIdIndex
+    /// avoid using this and instead use `azalea_entity::EntityIdIndex`
     pub entity_by_id: IntMap<MinecraftEntityId, Entity>,
 }
 

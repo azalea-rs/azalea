@@ -28,7 +28,7 @@ use bevy_ecs::query::Changed;
 use bevy_ecs::schedule::IntoSystemConfigs;
 use bevy_tasks::{AsyncComputeTaskPool, Task};
 use futures_lite::future;
-use log::{debug, error};
+use log::{debug, error, trace};
 use std::collections::VecDeque;
 use std::sync::Arc;
 
