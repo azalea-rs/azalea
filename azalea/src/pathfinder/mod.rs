@@ -251,10 +251,10 @@ fn tick_execute_path(
                 entity,
                 position: center,
             });
-            // trace!(
-            //     "tick: pathfinder {entity:?}; going to {:?}; currently at {position:?}",
-            //     target.pos
-            // );
+            trace!(
+                "tick: pathfinder {entity:?}; going to {:?}; currently at {position:?}",
+                target.pos
+            );
             sprint_events.send(StartSprintEvent {
                 entity,
                 direction: SprintDirection::Forward,
