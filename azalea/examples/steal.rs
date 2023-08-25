@@ -24,52 +24,49 @@ struct State {
 }
 
 async fn handle(mut bot: Client, event: Event, state: State) -> anyhow::Result<()> {
-    match event {
-        Event::Chat(m) => {
-            if m.username() == Some(bot.profile.name.clone()) {
-                return Ok(());
-            };
-            if m.content() != "go" {
-                return Ok(());
-            }
-            {
-                state.checked_chests.lock().clear();
-            }
+    if let Event::Chat(m) = event {
+        if m.username() == Some(bot.profile.name.clone()) {
+            return Ok(());
+        };
+        if m.content() != "go" {
+            return Ok(());
+        }
+        {
+            state.checked_chests.lock().clear();
+        }
 
-            let chest_block = bot
-                .world()
-                .read()
-                .find_block(bot.position(), &azalea::Block::Chest.into());
-            // TODO: update this when find_blocks is implemented
-            let Some(chest_block) = chest_block else {
-                bot.chat("No chest found");
-                return Ok(());
-            };
-            // bot.goto(BlockPosGoal::from(chest_block));
-            let Some(chest) = bot.open_container(chest_block).await else {
-                println!("Couldn't open chest");
-                return Ok(());
-            };
+        let chest_block = bot
+            .world()
+            .read()
+            .find_block(bot.position(), &azalea::Block::Chest.into());
+        // TODO: update this when find_blocks is implemented
+        let Some(chest_block) = chest_block else {
+            bot.chat("No chest found");
+            return Ok(());
+        };
+        // bot.goto(BlockPosGoal::from(chest_block));
+        let Some(chest) = bot.open_container(chest_block).await else {
+            println!("Couldn't open chest");
+            return Ok(());
+        };
 
-            println!("Getting contents");
-            for (index, slot) in chest
-                .contents()
-                .expect("we just opened the chest")
-                .iter()
-                .enumerate()
-            {
-                println!("Checking slot {index}: {slot:?}");
-                if let ItemSlot::Present(item) = slot {
-                    if item.kind == azalea::Item::Diamond {
-                        println!("clicking slot ^");
-                        chest.click(QuickMoveClick::Left { slot: index as u16 });
-                    }
+        println!("Getting contents");
+        for (index, slot) in chest
+            .contents()
+            .expect("we just opened the chest")
+            .iter()
+            .enumerate()
+        {
+            println!("Checking slot {index}: {slot:?}");
+            if let ItemSlot::Present(item) = slot {
+                if item.kind == azalea::Item::Diamond {
+                    println!("clicking slot ^");
+                    chest.click(QuickMoveClick::Left { slot: index as u16 });
                 }
             }
-
-            println!("Done");
         }
-        _ => {}
+
+        println!("Done");
     }
 
     Ok(())

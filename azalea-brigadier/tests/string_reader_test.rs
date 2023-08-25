@@ -3,13 +3,13 @@ use azalea_brigadier::{exceptions::BuiltInExceptions, string_reader::StringReade
 #[test]
 fn can_read() {
     let mut reader = StringReader::from("abc".to_string());
-    assert_eq!(reader.can_read(), true);
+    assert!(reader.can_read());
     reader.skip(); // 'a'
-    assert_eq!(reader.can_read(), true);
+    assert!(reader.can_read());
     reader.skip(); // 'b'
-    assert_eq!(reader.can_read(), true);
+    assert!(reader.can_read());
     reader.skip(); // 'c'
-    assert_eq!(reader.can_read(), false);
+    assert!(!reader.can_read());
 }
 
 #[test]
@@ -27,11 +27,11 @@ fn get_remaining_length() {
 #[test]
 fn can_read_length() {
     let reader = StringReader::from("abc".to_string());
-    assert_eq!(reader.can_read_length(1), true);
-    assert_eq!(reader.can_read_length(2), true);
-    assert_eq!(reader.can_read_length(3), true);
-    assert_eq!(reader.can_read_length(4), false);
-    assert_eq!(reader.can_read_length(5), false);
+    assert!(reader.can_read_length(1));
+    assert!(reader.can_read_length(2));
+    assert!(reader.can_read_length(3));
+    assert!(!reader.can_read_length(4));
+    assert!(!reader.can_read_length(5));
 }
 
 #[test]
@@ -580,7 +580,7 @@ fn expect_none() {
 #[test]
 fn read_boolean_correct() {
     let mut reader = StringReader::from("true".to_string());
-    assert_eq!(reader.read_boolean().unwrap(), true);
+    assert!(reader.read_boolean().unwrap());
     assert_eq!(reader.get_read(), "true");
 }
 

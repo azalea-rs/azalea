@@ -5,8 +5,8 @@ fn bench(c: &mut Criterion) {
     let (mut enc, dec) = create_cipher(b"0123456789abcdef");
 
     let mut packet = [0u8; 65536];
-    for i in 0..packet.len() {
-        packet[i] = i as u8;
+    for (i, item) in packet.iter_mut().enumerate() {
+        *item = i as u8;
     }
 
     c.bench_function("Encrypt 64kb", |b| {

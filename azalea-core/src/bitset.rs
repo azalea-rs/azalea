@@ -191,13 +191,13 @@ mod tests {
     #[test]
     fn test_bitset() {
         let mut bitset = BitSet::new(64);
-        assert_eq!(bitset.index(0), false);
-        assert_eq!(bitset.index(1), false);
-        assert_eq!(bitset.index(2), false);
+        assert!(!bitset.index(0));
+        assert!(!bitset.index(1));
+        assert!(!bitset.index(2));
         bitset.set(1);
-        assert_eq!(bitset.index(0), false);
-        assert_eq!(bitset.index(1), true);
-        assert_eq!(bitset.index(2), false);
+        assert!(!bitset.index(0));
+        assert!(bitset.index(1));
+        assert!(!bitset.index(2));
     }
 
     #[test]
@@ -211,11 +211,11 @@ mod tests {
 
         bitset.clear(63, 65);
 
-        assert_eq!(bitset.index(62), true);
-        assert_eq!(bitset.index(63), false);
-        assert_eq!(bitset.index(64), false);
-        assert_eq!(bitset.index(65), true);
-        assert_eq!(bitset.index(66), true);
+        assert!(bitset.index(62));
+        assert!(!bitset.index(63));
+        assert!(!bitset.index(64));
+        assert!(bitset.index(65));
+        assert!(bitset.index(66));
     }
 
     #[test]
@@ -229,10 +229,10 @@ mod tests {
 
         bitset.clear(65, 67);
 
-        assert_eq!(bitset.index(64), true);
-        assert_eq!(bitset.index(65), false);
-        assert_eq!(bitset.index(66), false);
-        assert_eq!(bitset.index(67), true);
-        assert_eq!(bitset.index(68), true);
+        assert!(bitset.index(64));
+        assert!(!bitset.index(65));
+        assert!(!bitset.index(66));
+        assert!(bitset.index(67));
+        assert!(bitset.index(68));
     }
 }

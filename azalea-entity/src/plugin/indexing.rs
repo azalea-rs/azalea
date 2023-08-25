@@ -229,6 +229,7 @@ pub fn update_entity_chunk_positions(
 }
 
 /// Despawn entities that aren't being loaded by anything.
+#[allow(clippy::type_complexity)]
 pub fn remove_despawned_entities_from_indexes(
     mut commands: Commands,
     mut entity_infos: ResMut<EntityUuidIndex>,

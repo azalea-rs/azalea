@@ -427,7 +427,7 @@ mod tests {
         let block_state = partial_world.chunks.set_block_state(
             &BlockPos { x: 0, y: 69, z: 0 },
             azalea_registry::Block::Stone.into(),
-            &mut world_lock.write().chunks,
+            &world_lock.write().chunks,
         );
         assert!(
             block_state.is_some(),
@@ -490,7 +490,7 @@ mod tests {
                 waterlogged: false,
             }
             .into(),
-            &mut world_lock.write().chunks,
+            &world_lock.write().chunks,
         );
         assert!(
             block_state.is_some(),

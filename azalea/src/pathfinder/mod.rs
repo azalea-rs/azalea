@@ -1,6 +1,7 @@
 mod astar;
 pub mod goals;
 mod moves;
+pub mod simulation;
 
 use crate::bot::{JumpEvent, LookAtEvent};
 use crate::pathfinder::astar::a_star;
@@ -22,7 +23,7 @@ use azalea_entity::Local;
 use azalea_entity::{Physics, Position};
 use azalea_physics::PhysicsSet;
 use azalea_world::{InstanceContainer, InstanceName};
-use bevy_app::{FixedUpdate, Update};
+use bevy_app::{FixedUpdate, PreUpdate, Update};
 use bevy_ecs::prelude::Event;
 use bevy_ecs::query::Changed;
 use bevy_ecs::schedule::IntoSystemConfigs;
@@ -44,11 +45,11 @@ impl Plugin for PathfinderPlugin {
                 // (every 50 milliseconds).
                 tick_execute_path.before(PhysicsSet),
             )
+            .add_systems(PreUpdate, add_default_pathfinder)
             .add_systems(
                 Update,
                 (
                     goto_listener,
-                    add_default_pathfinder,
                     (handle_tasks, path_found_listener).chain(),
                     stop_pathfinding_on_instance_change,
                 ),
@@ -340,5 +341,59 @@ impl Node {
                 VerticalVel::None => physics.on_ground,
                 VerticalVel::FallingLittle => physics.delta.y < -0.1,
             }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::Arc;
+
+    use azalea_core::{BlockPos, ChunkPos, Vec3};
+    use azalea_world::{Chunk, ChunkStorage, PartialChunkStorage};
+    use bevy_log::LogPlugin;
+
+    use super::{
+        goals::BlockPosGoal,
+        simulation::{SimulatedPlayerBundle, Simulation},
+        GotoEvent,
+    };
+
+    #[test]
+    fn test_simple_forward() {
+        let mut chunks = ChunkStorage::default();
+        let mut partial_chunks = PartialChunkStorage::default();
+        partial_chunks.set(
+            &ChunkPos { x: 0, z: 0 },
+            Some(Chunk::default()),
+            &mut chunks,
+        );
+        chunks.set_block_state(
+            &BlockPos::new(0, 70, 0),
+            azalea_registry::Block::Stone.into(),
+        );
+        chunks.set_block_state(
+            &BlockPos::new(0, 70, 1),
+            azalea_registry::Block::Stone.into(),
+        );
+        let player = SimulatedPlayerBundle::new(Vec3::new(0.5, 71., 0.5));
+        let mut simulation = Simulation::new(chunks, player);
+        simulation.app.add_plugins(LogPlugin {
+            level: bevy_log::Level::DEBUG,
+            filter: "".to_string(),
+        });
+
+        simulation.app.world.send_event(GotoEvent {
+            entity: simulation.entity,
+            goal: Arc::new(BlockPosGoal::from(BlockPos::new(0, 71, 1))),
+        });
+
+        for _ in 0..20 {
+            simulation.tick();
+        }
+
+        assert_eq!(
+            BlockPos::from(simulation.position()),
+            BlockPos::new(0, 71, 1)
+        );
     }
 }

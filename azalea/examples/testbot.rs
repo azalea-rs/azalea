@@ -284,12 +284,11 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                 _ => {}
             }
         }
-        Event::Packet(packet) => match *packet {
-            ClientboundGamePacket::Login(_) => {
+        Event::Packet(packet) => {
+            if let ClientboundGamePacket::Login(_) = *packet {
                 println!("login packet");
             }
-            _ => {}
-        },
+        }
         _ => {}
     }
 

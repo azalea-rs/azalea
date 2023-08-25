@@ -1,7 +1,5 @@
 use crate::client::Client;
-use crate::local_player::{
-    update_in_loaded_chunk, LocalPlayer, LocalPlayerInLoadedChunk, PhysicsState,
-};
+use crate::local_player::{update_in_loaded_chunk, LocalPlayer, LocalPlayerInLoadedChunk};
 use azalea_entity::{metadata::Sprinting, Attributes, Jumping};
 use azalea_entity::{LastSentPosition, LookDirection, Physics, Position};
 use azalea_physics::{force_jump_listener, PhysicsSet};
@@ -100,6 +98,23 @@ impl Client {
 pub struct LastSentLookDirection {
     pub x_rot: f32,
     pub y_rot: f32,
+}
+
+/// Component for entities that can move and sprint. Usually only in
+/// [`LocalPlayer`] entities.
+#[derive(Default, Component, Clone)]
+pub struct PhysicsState {
+    /// Minecraft only sends a movement packet either after 20 ticks or if the
+    /// player moved enough. This is that tick counter.
+    pub position_remainder: u32,
+    pub was_sprinting: bool,
+    // Whether we're going to try to start sprinting this tick. Equivalent to
+    // holding down ctrl for a tick.
+    pub trying_to_sprint: bool,
+
+    pub move_direction: WalkDirection,
+    pub forward_impulse: f32,
+    pub left_impulse: f32,
 }
 
 #[allow(clippy::type_complexity)]
