@@ -82,16 +82,14 @@ pub struct Instance {
     /// An index of all the entities we know are in the chunks of the world
     pub entities_by_chunk: HashMap<ChunkPos, HashSet<Entity>>,
 
-    /// An index of Minecraft entity IDs to Azalea ECS entities.
+    /// An index of Minecraft entity IDs to Azalea ECS entities. You should
+    /// avoid using this and instead of [`EntityIdIndex`]
+    ///
+    /// [`EntityIdIndex`]: azalea_entity::EntityIdIndex
     pub entity_by_id: IntMap<MinecraftEntityId, Entity>,
 }
 
 impl Instance {
-    /// Get an ECS [`Entity`] from a Minecraft entity ID.
-    pub fn entity_by_id(&self, entity_id: &MinecraftEntityId) -> Option<Entity> {
-        self.entity_by_id.get(entity_id).copied()
-    }
-
     pub fn get_block_state(&self, pos: &BlockPos) -> Option<BlockState> {
         self.chunks.get_block_state(pos)
     }

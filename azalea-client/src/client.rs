@@ -21,7 +21,10 @@ use crate::{
 use azalea_auth::{game_profile::GameProfile, sessionserver::ClientSessionServerError};
 use azalea_chat::FormattedText;
 use azalea_core::Vec3;
-use azalea_entity::{metadata::Health, EntityPlugin, EntityUpdateSet, EyeHeight, Local, Position};
+use azalea_entity::{
+    indexing::EntityIdIndex, metadata::Health, EntityPlugin, EntityUpdateSet, EyeHeight, Local,
+    Position,
+};
 use azalea_physics::{PhysicsPlugin, PhysicsSet};
 use azalea_protocol::{
     connect::{Connection, ConnectionError},
@@ -306,8 +309,13 @@ impl Client {
             last_sent_direction: LastSentLookDirection::default(),
             abilities: PlayerAbilities::default(),
             permission_level: PermissionLevel::default(),
+            hunger: Hunger::default(),
+
+            entity_id_index: EntityIdIndex::default(),
+
             mining: mining::MineBundle::default(),
             attack: attack::AttackBundle::default(),
+
             _local: Local,
         });
 
@@ -591,6 +599,9 @@ pub struct JoinedClientBundle {
     pub last_sent_direction: LastSentLookDirection,
     pub abilities: PlayerAbilities,
     pub permission_level: PermissionLevel,
+    pub hunger: Hunger,
+
+    pub entity_id_index: EntityIdIndex,
 
     pub mining: mining::MineBundle,
     pub attack: attack::AttackBundle,

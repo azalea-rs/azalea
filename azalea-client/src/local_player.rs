@@ -99,6 +99,15 @@ pub struct Hunger {
     pub saturation: f32,
 }
 
+impl Default for Hunger {
+    fn default() -> Self {
+        Hunger {
+            food: 20,
+            saturation: 5.,
+        }
+    }
+}
+
 impl LocalPlayer {
     /// Create a new `LocalPlayer`.
     pub fn new(
