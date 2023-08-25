@@ -33,11 +33,15 @@ impl Plugin for PhysicsPlugin {
         app.add_event::<ForceJumpEvent>()
             .add_systems(
                 Update,
-                force_jump_listener
-                    .before(azalea_entity::update_bounding_box)
-                    .after(azalea_entity::clamp_look_direction),
+                force_jump_listener.after(azalea_entity::clamp_look_direction),
             )
-            .add_systems(FixedUpdate, (ai_step, travel).chain().in_set(PhysicsSet));
+            .add_systems(
+                FixedUpdate,
+                (ai_step, travel)
+                    .chain()
+                    .in_set(PhysicsSet)
+                    .after(azalea_entity::update_bounding_box),
+            );
     }
 }
 

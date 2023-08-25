@@ -5,7 +5,7 @@ use std::collections::HashSet;
 
 use azalea_core::{BlockPos, Vec3};
 use azalea_world::{InstanceContainer, InstanceName, MinecraftEntityId};
-use bevy_app::{App, Plugin, PostUpdate, PreUpdate, Update};
+use bevy_app::{App, FixedUpdate, Plugin, PostUpdate, PreUpdate, Update};
 use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
 use log::debug;
@@ -63,12 +63,12 @@ impl Plugin for EntityPlugin {
                     relative_updates::debug_detect_updates_received_on_local_entities,
                     debug_new_entity,
                     add_dead,
-                    update_bounding_box,
                     clamp_look_direction,
                     update_fluid_on_eyes,
                 ),
             ),
         )
+        .add_systems(FixedUpdate, update_bounding_box)
         .init_resource::<EntityUuidIndex>();
     }
 }

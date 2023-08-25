@@ -405,28 +405,28 @@ mod tests {
         );
     }
 
-    // #[test]
-    // fn test_double_diagonal_with_walls() {
-    //     let mut partial_chunks = PartialChunkStorage::default();
-    //     let mut simulation = setup_simulation(
-    //         &mut partial_chunks,
-    //         BlockPos::new(0, 71, 0),
-    //         BlockPos::new(2, 71, 2),
-    //         vec![
-    //             BlockPos::new(0, 70, 0),
-    //             BlockPos::new(1, 70, 1),
-    //             BlockPos::new(2, 70, 2),
-    //             BlockPos::new(1, 72, 0),
-    //             BlockPos::new(2, 72, 1),
-    //         ],
-    //     );
-    //     for i in 0..20 {
-    //         simulation.tick();
-    //         info!("-- tick #{i} --")
-    //     }
-    //     assert_eq!(
-    //         BlockPos::from(simulation.position()),
-    //         BlockPos::new(2, 71, 2)
-    //     );
-    // }
+    #[test]
+    fn test_double_diagonal_with_walls() {
+        let mut partial_chunks = PartialChunkStorage::default();
+        let mut simulation = setup_simulation(
+            &mut partial_chunks,
+            BlockPos::new(0, 71, 0),
+            BlockPos::new(2, 71, 2),
+            vec![
+                BlockPos::new(0, 70, 0),
+                BlockPos::new(1, 70, 1),
+                BlockPos::new(2, 70, 2),
+                BlockPos::new(1, 72, 0),
+                BlockPos::new(2, 72, 1),
+            ],
+        );
+        for i in 0..30 {
+            simulation.tick();
+            info!("-- tick #{i} --")
+        }
+        assert_eq!(
+            BlockPos::from(simulation.position()),
+            BlockPos::new(2, 71, 2)
+        );
+    }
 }

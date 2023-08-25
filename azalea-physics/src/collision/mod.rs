@@ -4,6 +4,8 @@ mod mergers;
 mod shape;
 mod world_collisions;
 
+use std::ops::Add;
+
 use azalea_core::{Axis, Vec3, AABB, EPSILON};
 use azalea_world::{Instance, MoveEntityError};
 pub use blocks::BlockWithShape;
@@ -55,15 +57,86 @@ fn collide(movement: &Vec3, world: &Instance, physics: &azalea_entity::Physics) 
     // let entity_collisions = world.get_entity_collisions(self,
     // entity_bounding_box.expand_towards(movement));
     let entity_collisions = Vec::new();
-    if movement.length_sqr() == 0.0 {
+    let collided_movement = if movement.length_sqr() == 0.0 {
         *movement
     } else {
-        collide_bounding_box(movement, &entity_bounding_box, world, entity_collisions)
+        collide_bounding_box(movement, &entity_bounding_box, world, entity_collisions.clone())
+    };
+
+    let x_collision = movement.x != collided_movement.x;
+    let y_collision = movement.y != collided_movement.y;
+    let z_collision = movement.z != collided_movement.z;
+
+    let on_ground = physics.on_ground || y_collision && movement.y < 0.;
+
+    let max_up_step = 0.6;
+    if on_ground  && (x_collision || z_collision) {
+        // Vec3 var9 = collideBoundingBox(this, new Vec3(movement.x, (double)this.maxUpStep(), movement.z), var2, this.level(), var3);
+        // Vec3 var10 = collideBoundingBox(this, new Vec3(0.0, (double)this.maxUpStep(), 0.0), var2.expandTowards(movement.x, 0.0, movement.z), this.level(), var3);
+        // if (var10.y < (double)this.maxUpStep()) {
+        //    Vec3 var11 = collideBoundingBox(this, new Vec3(movement.x, 0.0, movement.z), var2.move(var10), this.level(), var3).add(var10);
+        //    if (var11.horizontalDistanceSqr() > var9.horizontalDistanceSqr()) {
+        //       var9 = var11;
+        //    }
+        // }
+
+        // if (var9.horizontalDistanceSqr() > collidedMovement.horizontalDistanceSqr()) {
+        //    return var9.add(collideBoundingBox(this, new Vec3(0.0, -var9.y + movement.y, 0.0), var2.move(var9), this.level(), var3));
+        // }
+
+
+        let mut var9 = collide_bounding_box(
+            &Vec3 {
+                x: movement.x,
+                y: max_up_step,
+                z: movement.z,
+            },
+            &entity_bounding_box,
+            world,
+            entity_collisions.clone(),
+        );
+        let var10 = collide_bounding_box(
+            &Vec3 {
+                x: 0.,
+                y: max_up_step,
+                z: 0.,
+            },
+            &entity_bounding_box.expand_towards(&Vec3::new(movement.x, 0., movement.z)),
+            world,
+            entity_collisions.clone(),
+        );
+        if var10.y < max_up_step {
+            let var11 = collide_bounding_box(
+                &Vec3 {
+                    x: movement.x,
+                    y: 0.,
+                    z: movement.z,
+                },
+                &entity_bounding_box.move_relative(&var10),
+                world,
+                entity_collisions.clone(),
+            )
+            .add(var10);
+            if var11.horizontal_distance_sqr() > var9.horizontal_distance_sqr() {
+                var9 = var11;
+            }
+        }
+
+        if var9.horizontal_distance_sqr() > collided_movement.horizontal_distance_sqr() {
+            return var9.add(collide_bounding_box(
+                &Vec3 {
+                    x: 0.,
+                    y: -var9.y + movement.y,
+                    z: 0.,
+                },
+                &entity_bounding_box.move_relative(&var9),
+                world,
+                entity_collisions.clone(),
+            ));
+        }
     }
 
-    // TODO: stepping (for stairs and stuff)
-
-    // collided_movement
+    collided_movement
 }
 
 /// Move an entity by a given delta, checking for collisions.
