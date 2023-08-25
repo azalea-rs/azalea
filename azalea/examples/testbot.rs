@@ -105,174 +105,183 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                 },
             );
             println!("sender entity: {entity:?}");
-            if let Some(entity) = entity {
-                match m.content().as_str() {
-                    "whereami" => {
-                        let pos = bot.entity_component::<Position>(entity);
-                        bot.chat(&format!("You're at {pos:?}",));
-                    }
-                    "whereareyou" => {
-                        let pos = bot.position();
-                        bot.chat(&format!("I'm at {pos:?}",));
-                    }
-                    "goto" => {
-                        let entity_pos = bot.entity_component::<Position>(entity);
-                        let target_pos: BlockPos = entity_pos.into();
-                        println!("going to {target_pos:?}");
-                        bot.goto(BlockPosGoal::from(target_pos));
-                    }
-                    "look" => {
-                        let entity_pos = bot
-                            .entity_component::<Position>(entity)
-                            .up(bot.entity_component::<EyeHeight>(entity).into());
-                        println!("entity_pos: {entity_pos:?}");
-                        bot.look_at(entity_pos);
-                    }
-                    "jump" => {
-                        bot.set_jumping(true);
-                    }
-                    "walk" => {
-                        bot.walk(WalkDirection::Forward);
-                    }
-                    "stop" => {
-                        bot.set_jumping(false);
-                        bot.walk(WalkDirection::None);
-                    }
-                    "lag" => {
-                        std::thread::sleep(Duration::from_millis(1000));
-                    }
-                    "inventory" => {
-                        println!("inventory: {:?}", bot.menu());
-                    }
-                    "findblock" => {
-                        let target_pos = bot
-                            .world()
-                            .read()
-                            .find_block(bot.position(), &azalea::Block::DiamondBlock.into());
-                        bot.chat(&format!("target_pos: {target_pos:?}",));
-                    }
-                    "gotoblock" => {
-                        let target_pos = bot
-                            .world()
-                            .read()
-                            .find_block(bot.position(), &azalea::Block::DiamondBlock.into());
-                        if let Some(target_pos) = target_pos {
-                            // +1 to stand on top of the block
-                            bot.goto(BlockPosGoal::from(target_pos.up(1)));
-                        } else {
-                            bot.chat("no diamond block found");
-                        }
-                    }
-                    "mineblock" => {
-                        let target_pos = bot
-                            .world()
-                            .read()
-                            .find_block(bot.position(), &azalea::Block::DiamondBlock.into());
-                        if let Some(target_pos) = target_pos {
-                            // +1 to stand on top of the block
-                            bot.chat("ok mining diamond block");
-                            bot.look_at(target_pos.center());
-                            bot.mine(target_pos).await;
-                            bot.chat("finished mining");
-                        } else {
-                            bot.chat("no diamond block found");
-                        }
-                    }
-                    "lever" => {
-                        let target_pos = bot
-                            .world()
-                            .read()
-                            .find_block(bot.position(), &azalea::Block::Lever.into());
-                        let Some(target_pos) = target_pos else {
-                            bot.chat("no lever found");
-                            return Ok(());
-                        };
-                        bot.goto(BlockPosGoal::from(target_pos));
-                        bot.look_at(target_pos.center());
-                        bot.block_interact(target_pos);
-                    }
-                    "hitresult" => {
-                        let hit_result = bot.get_component::<HitResultComponent>();
-                        bot.chat(&format!("hit_result: {hit_result:?}",));
-                    }
-                    "chest" => {
-                        let target_pos = bot
-                            .world()
-                            .read()
-                            .find_block(bot.position(), &azalea::Block::Chest.into());
-                        let Some(target_pos) = target_pos else {
-                            bot.chat("no chest found");
-                            return Ok(());
-                        };
-                        bot.look_at(target_pos.center());
-                        let container = bot.open_container(target_pos).await;
-                        println!("container: {:?}", container);
-                        if let Some(container) = container {
-                            if let Some(contents) = container.contents() {
-                                for item in contents {
-                                    if let ItemSlot::Present(item) = item {
-                                        println!("item: {:?}", item);
-                                    }
-                                }
-                            } else {
-                                println!("container was immediately closed");
-                            }
-                        } else {
-                            println!("no container found");
-                        }
-                    }
-                    "attack" => {
-                        let mut nearest_entity = None;
-                        let mut nearest_distance = f64::INFINITY;
-                        let mut nearest_pos = Vec3::default();
-                        let bot_position = bot.position();
-                        let bot_entity = bot.entity;
-                        let bot_instance_name = bot.component::<InstanceName>();
-                        {
-                            let mut ecs = bot.ecs.lock();
-                            let mut query = ecs.query_filtered::<(
-                                azalea::ecs::entity::Entity,
-                                &MinecraftEntityId,
-                                &Position,
-                                &InstanceName,
-                                &EyeHeight,
-                            ), With<MinecraftEntityId>>(
-                            );
-                            for (entity, &entity_id, position, instance_name, eye_height) in
-                                query.iter(&ecs)
-                            {
-                                if entity == bot_entity {
-                                    continue;
-                                }
-                                if instance_name != &bot_instance_name {
-                                    continue;
-                                }
-
-                                let distance = bot_position.distance_to(position);
-                                if distance < 4.0 && distance < nearest_distance {
-                                    nearest_entity = Some(entity_id);
-                                    nearest_distance = distance;
-                                    nearest_pos = position.up(**eye_height as f64);
-                                }
-                            }
-                        }
-                        if let Some(nearest_entity) = nearest_entity {
-                            bot.look_at(nearest_pos);
-                            bot.attack(nearest_entity);
-                            bot.chat("attacking");
-                            let mut ticks = bot.get_tick_broadcaster();
-                            while ticks.recv().await.is_ok() {
-                                if !bot.has_attack_cooldown() {
-                                    break;
-                                }
-                            }
-                            bot.chat("finished attacking");
-                        } else {
-                            bot.chat("no entities found");
-                        }
-                    }
-                    _ => {}
+            match m.content().as_str() {
+                "whereami" => {
+                    let Some(entity) = entity else {
+                        bot.chat("I can't see you");
+                        return Ok(());
+                    };
+                    let pos = bot.entity_component::<Position>(entity);
+                    bot.chat(&format!("You're at {pos:?}"));
                 }
+                "whereareyou" => {
+                    let pos = bot.position();
+                    bot.chat(&format!("I'm at {pos:?}"));
+                }
+                "goto" => {
+                    let Some(entity) = entity else {
+                        bot.chat("I can't see you");
+                        return Ok(());
+                    };
+                    let entity_pos = bot.entity_component::<Position>(entity);
+                    let target_pos: BlockPos = entity_pos.into();
+                    println!("going to {target_pos:?}");
+                    bot.goto(BlockPosGoal::from(target_pos));
+                }
+                "look" => {
+                    let Some(entity) = entity else {
+                        bot.chat("I can't see you");
+                        return Ok(());
+                    };
+                    let entity_pos = bot
+                        .entity_component::<Position>(entity)
+                        .up(bot.entity_component::<EyeHeight>(entity).into());
+                    println!("entity_pos: {entity_pos:?}");
+                    bot.look_at(entity_pos);
+                }
+                "jump" => {
+                    bot.set_jumping(true);
+                }
+                "walk" => {
+                    bot.walk(WalkDirection::Forward);
+                }
+                "stop" => {
+                    bot.set_jumping(false);
+                    bot.walk(WalkDirection::None);
+                }
+                "lag" => {
+                    std::thread::sleep(Duration::from_millis(1000));
+                }
+                "inventory" => {
+                    println!("inventory: {:?}", bot.menu());
+                }
+                "findblock" => {
+                    let target_pos = bot
+                        .world()
+                        .read()
+                        .find_block(bot.position(), &azalea::Block::DiamondBlock.into());
+                    bot.chat(&format!("target_pos: {target_pos:?}",));
+                }
+                "gotoblock" => {
+                    let target_pos = bot
+                        .world()
+                        .read()
+                        .find_block(bot.position(), &azalea::Block::DiamondBlock.into());
+                    if let Some(target_pos) = target_pos {
+                        // +1 to stand on top of the block
+                        bot.goto(BlockPosGoal::from(target_pos.up(1)));
+                    } else {
+                        bot.chat("no diamond block found");
+                    }
+                }
+                "mineblock" => {
+                    let target_pos = bot
+                        .world()
+                        .read()
+                        .find_block(bot.position(), &azalea::Block::DiamondBlock.into());
+                    if let Some(target_pos) = target_pos {
+                        // +1 to stand on top of the block
+                        bot.chat("ok mining diamond block");
+                        bot.look_at(target_pos.center());
+                        bot.mine(target_pos).await;
+                        bot.chat("finished mining");
+                    } else {
+                        bot.chat("no diamond block found");
+                    }
+                }
+                "lever" => {
+                    let target_pos = bot
+                        .world()
+                        .read()
+                        .find_block(bot.position(), &azalea::Block::Lever.into());
+                    let Some(target_pos) = target_pos else {
+                        bot.chat("no lever found");
+                        return Ok(());
+                    };
+                    bot.goto(BlockPosGoal::from(target_pos));
+                    bot.look_at(target_pos.center());
+                    bot.block_interact(target_pos);
+                }
+                "hitresult" => {
+                    let hit_result = bot.get_component::<HitResultComponent>();
+                    bot.chat(&format!("hit_result: {hit_result:?}",));
+                }
+                "chest" => {
+                    let target_pos = bot
+                        .world()
+                        .read()
+                        .find_block(bot.position(), &azalea::Block::Chest.into());
+                    let Some(target_pos) = target_pos else {
+                        bot.chat("no chest found");
+                        return Ok(());
+                    };
+                    bot.look_at(target_pos.center());
+                    let container = bot.open_container(target_pos).await;
+                    println!("container: {:?}", container);
+                    if let Some(container) = container {
+                        if let Some(contents) = container.contents() {
+                            for item in contents {
+                                if let ItemSlot::Present(item) = item {
+                                    println!("item: {:?}", item);
+                                }
+                            }
+                        } else {
+                            println!("container was immediately closed");
+                        }
+                    } else {
+                        println!("no container found");
+                    }
+                }
+                "attack" => {
+                    let mut nearest_entity = None;
+                    let mut nearest_distance = f64::INFINITY;
+                    let mut nearest_pos = Vec3::default();
+                    let bot_position = bot.position();
+                    let bot_entity = bot.entity;
+                    let bot_instance_name = bot.component::<InstanceName>();
+                    {
+                        let mut ecs = bot.ecs.lock();
+                        let mut query = ecs.query_filtered::<(
+                            azalea::ecs::entity::Entity,
+                            &MinecraftEntityId,
+                            &Position,
+                            &InstanceName,
+                            &EyeHeight,
+                        ), With<MinecraftEntityId>>();
+                        for (entity, &entity_id, position, instance_name, eye_height) in
+                            query.iter(&ecs)
+                        {
+                            if entity == bot_entity {
+                                continue;
+                            }
+                            if instance_name != &bot_instance_name {
+                                continue;
+                            }
+
+                            let distance = bot_position.distance_to(position);
+                            if distance < 4.0 && distance < nearest_distance {
+                                nearest_entity = Some(entity_id);
+                                nearest_distance = distance;
+                                nearest_pos = position.up(**eye_height as f64);
+                            }
+                        }
+                    }
+                    if let Some(nearest_entity) = nearest_entity {
+                        bot.look_at(nearest_pos);
+                        bot.attack(nearest_entity);
+                        bot.chat("attacking");
+                        let mut ticks = bot.get_tick_broadcaster();
+                        while ticks.recv().await.is_ok() {
+                            if !bot.has_attack_cooldown() {
+                                break;
+                            }
+                        }
+                        bot.chat("finished attacking");
+                    } else {
+                        bot.chat("no entities found");
+                    }
+                }
+                _ => {}
             }
         }
         Event::Packet(packet) => match *packet {
