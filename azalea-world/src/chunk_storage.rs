@@ -123,11 +123,7 @@ impl PartialChunkStorage {
     ) -> Result<(), BufReadError> {
         debug!("Replacing chunk at {:?}", pos);
         if !self.in_range(pos) {
-            trace!(
-                "Ignoring chunk since it's not in the view range: {}, {}",
-                pos.x,
-                pos.z
-            );
+            warn!("Ignoring chunk since it's not in the view range: {pos:?}");
             return Ok(());
         }
 

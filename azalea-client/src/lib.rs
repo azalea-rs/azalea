@@ -26,6 +26,7 @@ mod movement;
 pub mod packet_handling;
 pub mod ping;
 mod player;
+pub mod received_registries;
 pub mod respawn;
 pub mod task_pool;
 

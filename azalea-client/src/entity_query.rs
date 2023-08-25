@@ -71,6 +71,16 @@ impl Client {
             .expect("Entity components must be present in Client::entity)components.");
         components.clone()
     }
+
+    /// Get a component from an entity, if it exists. This is similar to
+    /// [`Self::entity_component`] but returns an `Option` instead of panicking
+    /// if the component isn't present.
+    pub fn get_entity_component<Q: Component + Clone>(&mut self, entity: Entity) -> Option<Q> {
+        let mut ecs = self.ecs.lock();
+        let mut q = ecs.query::<&Q>();
+        let components = q.get(&ecs, entity).ok();
+        components.cloned()
+    }
 }
 
 pub trait EntityPredicate<Q: ReadOnlyWorldQuery, Filter: ReadOnlyWorldQuery> {

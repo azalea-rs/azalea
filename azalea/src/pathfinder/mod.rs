@@ -24,6 +24,7 @@ use azalea_physics::PhysicsSet;
 use azalea_world::{InstanceContainer, InstanceName};
 use bevy_app::{FixedUpdate, Update};
 use bevy_ecs::prelude::Event;
+use bevy_ecs::query::Changed;
 use bevy_ecs::schedule::IntoSystemConfigs;
 use bevy_tasks::{AsyncComputeTaskPool, Task};
 use futures_lite::future;
@@ -49,6 +50,7 @@ impl Plugin for PathfinderPlugin {
                     goto_listener,
                     add_default_pathfinder,
                     (handle_tasks, path_found_listener).chain(),
+                    stop_pathfinding_on_instance_change,
                 ),
             );
     }
@@ -249,10 +251,10 @@ fn tick_execute_path(
                 entity,
                 position: center,
             });
-            debug!(
-                "tick: pathfinder {entity:?}; going to {:?}; currently at {position:?}",
-                target.pos
-            );
+            // trace!(
+            //     "tick: pathfinder {entity:?}; going to {:?}; currently at {position:?}",
+            //     target.pos
+            // );
             sprint_events.send(StartSprintEvent {
                 entity,
                 direction: SprintDirection::Forward,
@@ -276,6 +278,22 @@ fn tick_execute_path(
             } else {
                 break;
             }
+        }
+    }
+}
+
+fn stop_pathfinding_on_instance_change(
+    mut query: Query<(Entity, &mut Pathfinder), Changed<InstanceName>>,
+    mut walk_events: EventWriter<StartWalkEvent>,
+) {
+    for (entity, mut pathfinder) in &mut query {
+        if !pathfinder.path.is_empty() {
+            debug!("instance changed, clearing path");
+            pathfinder.path.clear();
+            walk_events.send(StartWalkEvent {
+                entity,
+                direction: WalkDirection::None,
+            });
         }
     }
 }

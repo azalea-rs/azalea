@@ -140,8 +140,7 @@ pub fn update_uuid_index(
         if local.is_none() {
             if let Some(old_entity) = entity_infos.entity_by_uuid.get(&uuid) {
                 debug!(
-                    "Entity with UUID {uuid:?} already existed in the world, not adding to
-        index (old ecs id: {old_entity:?} / new ecs id: {entity:?})"
+                    "Entity with UUID {uuid:?} already existed in the world, not adding to index (old ecs id: {old_entity:?} / new ecs id: {entity:?})"
                 );
                 continue;
             }
@@ -164,8 +163,7 @@ pub fn update_entity_by_id_index(
         if local.is_none() {
             if let Some(old_entity) = world.entity_by_id.get(id) {
                 debug!(
-                    "Entity with ID {id:?} already existed in the world, not adding to
-        index (old ecs id: {old_entity:?} / new ecs id: {entity:?})"
+                    "Entity with ID {id:?} already existed in the world, not adding to index (old ecs id: {old_entity:?} / new ecs id: {entity:?})"
                 );
                 continue;
             }

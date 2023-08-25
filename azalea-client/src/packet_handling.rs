@@ -47,6 +47,7 @@ use crate::{
         SetContainerContentEvent,
     },
     local_player::{GameProfileComponent, Hunger, LocalGameMode, LocalPlayer},
+    received_registries::ReceivedRegistries,
     ClientInformation, PlayerInfo,
 };
 
@@ -208,22 +209,17 @@ pub fn process_packet_events(ecs: &mut World) {
                 #[allow(clippy::type_complexity)]
                 let mut system_state: SystemState<(
                     Commands,
-                    Query<(
-                        &mut LocalPlayer,
-                        Option<&mut InstanceName>,
-                        &GameProfileComponent,
-                        &ClientInformation,
-                    )>,
+                    Query<(&mut LocalPlayer, &GameProfileComponent, &ClientInformation)>,
                     ResMut<InstanceContainer>,
                 )> = SystemState::new(ecs);
                 let (mut commands, mut query, mut instance_container) = system_state.get_mut(ecs);
-                let (mut local_player, world_name, game_profile, client_information) =
+                let (mut local_player, game_profile, client_information) =
                     query.get_mut(player_entity).unwrap();
 
                 {
-                    let dimension = &p
-                        .registry_holder
-                        .root
+                    let received_registries = ReceivedRegistries(p.registry_holder.root);
+
+                    let dimension = &received_registries
                         .dimension_type
                         .value
                         .iter()
@@ -235,13 +231,6 @@ pub fn process_packet_events(ecs: &mut World) {
 
                     let new_world_name = p.dimension.clone();
 
-                    if let Some(mut world_name) = world_name {
-                        *world_name = world_name.clone();
-                    } else {
-                        commands
-                            .entity(player_entity)
-                            .insert(InstanceName(new_world_name.clone()));
-                    }
                     // add this world to the instance_container (or don't if it's already
                     // there)
                     let weak_world = instance_container.insert(
@@ -257,8 +246,7 @@ pub fn process_packet_events(ecs: &mut World) {
                         azalea_world::calculate_chunk_storage_range(
                             client_information.view_distance.into(),
                         ),
-                        // this argument makes it so other clients don't update this
-                        // player entity
+                        // this argument makes it so other clients don't update this player entity
                         // in a shared world
                         Some(player_entity),
                     );
@@ -285,6 +273,7 @@ pub fn process_packet_events(ecs: &mut World) {
                             food: 20,
                             saturation: 5.,
                         },
+                        received_registries,
                         player_bundle,
                     ));
                 }
@@ -839,18 +828,22 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 let (mut commands, mut query, instance_container) = system_state.get_mut(ecs);
                 let Ok(instance_name) = query.get_mut(player_entity) else {
+                    warn!("We don't have an InstanceName");
                     continue;
                 };
 
                 let Some(instance) = instance_container.get(&instance_name) else {
+                    warn!("There is no instance called {instance_name:?}");
                     continue;
                 };
                 for &id in &p.entity_ids {
                     if let Some(entity) =
                         instance.write().entity_by_id.remove(&MinecraftEntityId(id))
                     {
-                        trace!("despawning entity");
+                        trace!("despawning entity MinecraftEntityId({id}) aka {entity:?}");
                         commands.entity(entity).despawn();
+                    } else {
+                        warn!("Got remove entities packet for unknown entity id {id}");
                     }
                 }
 
@@ -1114,8 +1107,72 @@ pub fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::Respawn(p) => {
                 debug!("Got respawn packet {:?}", p);
 
-                let mut system_state: SystemState<Commands> = SystemState::new(ecs);
-                let mut commands = system_state.get(ecs);
+                #[allow(clippy::type_complexity)]
+                let mut system_state: SystemState<(
+                    Commands,
+                    Query<(
+                        &mut LocalPlayer,
+                        &GameProfileComponent,
+                        &ClientInformation,
+                        &ReceivedRegistries,
+                    )>,
+                    ResMut<InstanceContainer>,
+                )> = SystemState::new(ecs);
+                let (mut commands, mut query, mut instance_container) = system_state.get_mut(ecs);
+                let (mut local_player, game_profile, client_information, received_registries) =
+                    query.get_mut(player_entity).unwrap();
+
+                {
+                    let dimension = &received_registries
+                        .dimension_type
+                        .value
+                        .iter()
+                        .find(|t| t.name == p.dimension_type)
+                        .unwrap_or_else(|| {
+                            panic!("No dimension_type with name {}", p.dimension_type)
+                        })
+                        .element;
+
+                    let new_world_name = p.dimension.clone();
+
+                    // add this world to the instance_container (or don't if it's already
+                    // there)
+                    let weak_world = instance_container.insert(
+                        new_world_name.clone(),
+                        dimension.height,
+                        dimension.min_y,
+                    );
+
+                    // set the partial_world to an empty world
+                    // (when we add chunks or entities those will be in the
+                    // instance_container)
+                    *local_player.partial_instance.write() = PartialInstance::new(
+                        azalea_world::calculate_chunk_storage_range(
+                            client_information.view_distance.into(),
+                        ),
+                        Some(player_entity),
+                    );
+                    local_player.world = weak_world;
+
+                    // this resets a bunch of our components like physics and stuff
+                    let player_bundle = PlayerBundle {
+                        entity: EntityBundle::new(
+                            game_profile.uuid,
+                            Vec3::default(),
+                            azalea_registry::EntityKind::Player,
+                            new_world_name,
+                        ),
+                        metadata: PlayerMetadataBundle::default(),
+                    };
+                    // update the local gamemode and metadata things
+                    commands.entity(player_entity).insert((
+                        LocalGameMode {
+                            current: p.game_type,
+                            previous: p.previous_game_type.into(),
+                        },
+                        player_bundle,
+                    ));
+                }
 
                 // Remove the Dead marker component from the player.
                 commands.entity(player_entity).remove::<Dead>();
