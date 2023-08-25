@@ -233,9 +233,19 @@ pub fn remove_despawned_entities_from_indexes(
     mut commands: Commands,
     mut entity_infos: ResMut<EntityUuidIndex>,
     instance_container: Res<InstanceContainer>,
-    query: Query<(Entity, &EntityUuid, &Position, &InstanceName, &LoadedBy), Changed<LoadedBy>>,
+    query: Query<
+        (
+            Entity,
+            &EntityUuid,
+            &MinecraftEntityId,
+            &Position,
+            &InstanceName,
+            &LoadedBy,
+        ),
+        Changed<LoadedBy>,
+    >,
 ) {
-    for (entity, uuid, position, world_name, loaded_by) in &query {
+    for (entity, uuid, minecraft_id, position, world_name, loaded_by) in &query {
         let Some(instance_lock) = instance_container.get(world_name) else {
             // the instance isn't even loaded by us, so we can safely delete the entity
             debug!(
@@ -276,6 +286,9 @@ pub fn remove_despawned_entities_from_indexes(
         // remove it from the uuid index
         if entity_infos.entity_by_uuid.remove(uuid).is_none() {
             warn!("Tried to remove entity {entity:?} from the uuid index but it was not there.");
+        }
+        if instance.entity_by_id.remove(minecraft_id).is_none() {
+            warn!("Tried to remove entity {entity:?} from the id index but it was not there.");
         }
         // and now remove the entity from the ecs
         commands.entity(entity).despawn();
