@@ -432,6 +432,7 @@ dependencies = [
  "bevy_app",
  "bevy_ecs",
  "bevy_time",
+ "log",
  "once_cell",
  "parking_lot",
  "uuid",

@@ -17,6 +17,7 @@ azalea-registry = { path = "../azalea-registry", version = "^0.7.0" }
 azalea-world = { path = "../azalea-world", version = "^0.7.0" }
 bevy_app = "0.11.1"
 bevy_ecs = "0.11.1"
+log = "0.4.20"
 once_cell = "1.18.0"
 parking_lot = "^0.12.1"
 

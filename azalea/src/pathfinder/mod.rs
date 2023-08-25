@@ -43,7 +43,7 @@ impl Plugin for PathfinderPlugin {
                 FixedUpdate,
                 // putting systems in the FixedUpdate schedule makes them run every Minecraft tick
                 // (every 50 milliseconds).
-                tick_execute_path.before(PhysicsSet),
+                tick_execute_path.after(PhysicsSet),
             )
             .add_systems(PreUpdate, add_default_pathfinder)
             .add_systems(
@@ -171,15 +171,6 @@ fn goto_listener(
                 edges
             };
 
-            // let mut pf = MTDStarLite::new(
-            //     start,
-            //     end,
-            //     |n| goal.heuristic(n),
-            //     successors,
-            //     successors,
-            //     |n| goal.success(n),
-            // );
-
             let start_time = std::time::Instant::now();
             let p = a_star(
                 start,
@@ -253,8 +244,9 @@ fn tick_execute_path(
                 position: center,
             });
             trace!(
-                "tick: pathfinder {entity:?}; going to {:?}; currently at {position:?}",
-                target.pos
+                "tick: pathfinder {entity:?}; going to {:?}; currently at {:?}",
+                target.pos,
+                **position
             );
             sprint_events.send(StartSprintEvent {
                 entity,
@@ -346,11 +338,12 @@ impl Node {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::Arc;
+    use std::{collections::HashSet, sync::Arc};
 
     use azalea_core::{BlockPos, ChunkPos, Vec3};
     use azalea_world::{Chunk, ChunkStorage, PartialChunkStorage};
     use bevy_log::LogPlugin;
+    use log::info;
 
     use super::{
         goals::BlockPosGoal,
@@ -358,42 +351,82 @@ mod tests {
         GotoEvent,
     };
 
-    #[test]
-    fn test_simple_forward() {
+    fn setup_simulation(
+        partial_chunks: &mut PartialChunkStorage,
+        start_pos: BlockPos,
+        end_pos: BlockPos,
+        solid_blocks: Vec<BlockPos>,
+    ) -> Simulation {
+        let mut chunk_positions = HashSet::new();
+        for block_pos in &solid_blocks {
+            chunk_positions.insert(ChunkPos::from(block_pos));
+        }
+
         let mut chunks = ChunkStorage::default();
-        let mut partial_chunks = PartialChunkStorage::default();
-        partial_chunks.set(
-            &ChunkPos { x: 0, z: 0 },
-            Some(Chunk::default()),
-            &mut chunks,
-        );
-        chunks.set_block_state(
-            &BlockPos::new(0, 70, 0),
-            azalea_registry::Block::Stone.into(),
-        );
-        chunks.set_block_state(
-            &BlockPos::new(0, 70, 1),
-            azalea_registry::Block::Stone.into(),
-        );
-        let player = SimulatedPlayerBundle::new(Vec3::new(0.5, 71., 0.5));
+        for chunk_pos in chunk_positions {
+            partial_chunks.set(&chunk_pos, Some(Chunk::default()), &mut chunks);
+        }
+        for block_pos in solid_blocks {
+            chunks.set_block_state(&block_pos, azalea_registry::Block::Stone.into());
+        }
+        let player = SimulatedPlayerBundle::new(Vec3::new(
+            start_pos.x as f64 + 0.5,
+            start_pos.y as f64,
+            start_pos.z as f64 + 0.5,
+        ));
         let mut simulation = Simulation::new(chunks, player);
         simulation.app.add_plugins(LogPlugin {
-            level: bevy_log::Level::DEBUG,
+            level: bevy_log::Level::TRACE,
             filter: "".to_string(),
         });
 
         simulation.app.world.send_event(GotoEvent {
             entity: simulation.entity,
-            goal: Arc::new(BlockPosGoal::from(BlockPos::new(0, 71, 1))),
+            goal: Arc::new(BlockPosGoal::from(end_pos)),
         });
+        simulation
+    }
 
+    #[test]
+    fn test_simple_forward() {
+        let mut partial_chunks = PartialChunkStorage::default();
+        let mut simulation = setup_simulation(
+            &mut partial_chunks,
+            BlockPos::new(0, 71, 0),
+            BlockPos::new(0, 71, 1),
+            vec![BlockPos::new(0, 70, 0), BlockPos::new(0, 70, 1)],
+        );
         for _ in 0..20 {
             simulation.tick();
         }
-
         assert_eq!(
             BlockPos::from(simulation.position()),
             BlockPos::new(0, 71, 1)
         );
     }
+
+    // #[test]
+    // fn test_double_diagonal_with_walls() {
+    //     let mut partial_chunks = PartialChunkStorage::default();
+    //     let mut simulation = setup_simulation(
+    //         &mut partial_chunks,
+    //         BlockPos::new(0, 71, 0),
+    //         BlockPos::new(2, 71, 2),
+    //         vec![
+    //             BlockPos::new(0, 70, 0),
+    //             BlockPos::new(1, 70, 1),
+    //             BlockPos::new(2, 70, 2),
+    //             BlockPos::new(1, 72, 0),
+    //             BlockPos::new(2, 72, 1),
+    //         ],
+    //     );
+    //     for i in 0..20 {
+    //         simulation.tick();
+    //         info!("-- tick #{i} --")
+    //     }
+    //     assert_eq!(
+    //         BlockPos::from(simulation.position()),
+    //         BlockPos::new(2, 71, 2)
+    //     );
+    // }
 }

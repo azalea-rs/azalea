@@ -257,6 +257,11 @@ pub struct Dead;
 /// an entity, and when raycasting from the entity.
 #[derive(Component, Clone, Copy, Debug, PartialEq, Deref, DerefMut)]
 pub struct EyeHeight(f32);
+impl EyeHeight {
+    pub fn new(height: f32) -> Self {
+        Self(height)
+    }
+}
 impl From<EyeHeight> for f32 {
     fn from(value: EyeHeight) -> Self {
         value.0

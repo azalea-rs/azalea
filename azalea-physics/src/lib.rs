@@ -21,6 +21,7 @@ use bevy_ecs::{
     system::{Query, Res},
 };
 use collision::{move_colliding, MoverType};
+use log::trace;
 
 /// A Bevy [`SystemSet`] for running physics that makes entities do things.
 #[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
@@ -227,6 +228,7 @@ fn handle_relative_friction_and_calculate_movement(
     position: &mut Position,
     attributes: &Attributes,
 ) -> Vec3 {
+    trace!("handle_relative_friction_and_calculate_movement {direction:?}");
     move_relative(
         physics,
         direction,

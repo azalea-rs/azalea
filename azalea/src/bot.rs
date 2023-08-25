@@ -19,6 +19,7 @@ use azalea_physics::{force_jump_listener, PhysicsSet};
 use bevy_app::{FixedUpdate, Update};
 use bevy_ecs::prelude::Event;
 use bevy_ecs::schedule::IntoSystemConfigs;
+use log::trace;
 use std::f64::consts::PI;
 
 use crate::pathfinder::PathfinderPlugin;
@@ -161,6 +162,11 @@ fn look_at_listener(
         if let Ok((position, eye_height, mut look_direction)) = query.get_mut(event.entity) {
             let (y_rot, x_rot) =
                 direction_looking_at(&position.up(eye_height.into()), &event.position);
+            trace!(
+                "look at {:?} (currently at {:?})",
+                event.position,
+                **position
+            );
             (look_direction.y_rot, look_direction.x_rot) = (y_rot, x_rot);
         }
     }

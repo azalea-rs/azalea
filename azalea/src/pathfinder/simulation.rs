@@ -89,6 +89,7 @@ impl Simulation {
                 azalea_entity::LookDirection::default(),
                 Sprinting(true),
                 azalea_entity::metadata::Player,
+                azalea_entity::EyeHeight::new(player.physics.dimensions.height * 0.85),
                 player,
             ))
             .id();
