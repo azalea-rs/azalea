@@ -1,11 +1,31 @@
-use super::{Node, VerticalVel};
-use azalea_core::{BlockPos, CardinalDirection};
+use crate::{JumpEvent, LookAtEvent};
+
+use super::astar;
+use azalea_client::{SprintDirection, StartSprintEvent, StartWalkEvent};
+use azalea_core::{BlockPos, CardinalDirection, Vec3};
 use azalea_physics::collision::{self, BlockWithShape};
 use azalea_world::Instance;
+use bevy_ecs::{entity::Entity, event::EventWriter};
+
+type Edge = astar::Edge<BlockPos, MoveData>;
+
+#[derive(Debug, Clone)]
+pub struct MoveData {
+    pub move_kind: DefaultMoves,
+}
 
 /// whether this block is passable
 fn is_block_passable(pos: &BlockPos, world: &Instance) -> bool {
     if let Some(block) = world.chunks.get_block_state(pos) {
+        if block.shape() != &collision::empty_shape() {
+            return false;
+        }
+        if block == azalea_registry::Block::Water.into() {
+            return false;
+        }
+        if block.waterlogged() {
+            return false;
+        }
         block.shape() == &collision::empty_shape()
     } else {
         false
@@ -15,8 +35,7 @@ fn is_block_passable(pos: &BlockPos, world: &Instance) -> bool {
 /// whether this block has a solid hitbox (i.e. we can stand on it)
 fn is_block_solid(pos: &BlockPos, world: &Instance) -> bool {
     if let Some(block) = world.chunks.get_block_state(pos) {
-        // block.shape() == &collision::block_shape()
-        block.shape() != &collision::empty_shape()
+        block.shape() == &collision::block_shape()
     } else {
         false
     }
@@ -53,62 +72,148 @@ const JUMP_COST: f32 = 0.5;
 const WALK_ONE_BLOCK_COST: f32 = 1.0;
 const FALL_ONE_BLOCK_COST: f32 = 0.5;
 
-pub trait Move: Send + Sync {
-    fn get(&self, world: &Instance, node: &Node) -> Option<MoveResult>;
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+pub enum DefaultMoves {
+    Forward(CardinalDirection),
+    Ascend(CardinalDirection),
+    Descend(CardinalDirection),
+    Diagonal(CardinalDirection),
 }
-pub struct MoveResult {
-    pub node: Node,
-    pub cost: f32,
+
+impl DefaultMoves {
+    pub fn get(self, world: &Instance, node: BlockPos) -> Option<Edge> {
+        match self {
+            DefaultMoves::Forward(dir) => ForwardMove(dir).get(world, node),
+            DefaultMoves::Ascend(dir) => AscendMove(dir).get(world, node),
+            DefaultMoves::Descend(dir) => DescendMove(dir).get(world, node),
+            DefaultMoves::Diagonal(dir) => DiagonalMove(dir).get(world, node),
+        }
+    }
+
+    pub fn execute(self, ctx: ExecuteCtx) {
+        match self {
+            DefaultMoves::Forward(_) => ForwardMove::execute(ctx),
+            DefaultMoves::Ascend(_) => AscendMove::execute(ctx),
+            DefaultMoves::Descend(_) => DescendMove::execute(ctx),
+            DefaultMoves::Diagonal(_) => DiagonalMove::execute(ctx),
+        }
+    }
+}
+
+pub trait MoveImpl: Send + Sync {
+    fn get(&self, world: &Instance, node: BlockPos) -> Option<Edge>;
+    fn execute(ctx: ExecuteCtx);
+}
+
+pub struct ExecuteCtx<'w1, 'w2, 'w3, 'w4, 'a> {
+    pub entity: Entity,
+    pub target: BlockPos,
+    pub position: Vec3,
+
+    pub look_at_events: &'a mut EventWriter<'w1, LookAtEvent>,
+    pub sprint_events: &'a mut EventWriter<'w2, StartSprintEvent>,
+    pub walk_events: &'a mut EventWriter<'w3, StartWalkEvent>,
+    pub jump_events: &'a mut EventWriter<'w4, JumpEvent>,
 }
 
 pub struct ForwardMove(pub CardinalDirection);
-impl Move for ForwardMove {
-    fn get(&self, world: &Instance, node: &Node) -> Option<MoveResult> {
+impl MoveImpl for ForwardMove {
+    fn get(&self, world: &Instance, pos: BlockPos) -> Option<Edge> {
         let offset = BlockPos::new(self.0.x(), 0, self.0.z());
 
-        if !is_standable(&(node.pos + offset), world) || node.vertical_vel != VerticalVel::None {
+        if !is_standable(&(pos + offset), world) {
             return None;
         }
 
         let cost = WALK_ONE_BLOCK_COST;
 
-        Some(MoveResult {
-            node: Node {
-                pos: node.pos + offset,
-                vertical_vel: VerticalVel::None,
+        Some(Edge {
+            movement: astar::Movement {
+                target: pos + offset,
+                data: MoveData {
+                    move_kind: DefaultMoves::Forward(self.0),
+                },
             },
             cost,
         })
     }
+
+    fn execute(
+        ExecuteCtx {
+            entity,
+            target,
+            look_at_events,
+            sprint_events,
+            ..
+        }: ExecuteCtx,
+    ) {
+        let center = target.center();
+        look_at_events.send(LookAtEvent {
+            entity,
+            position: center,
+        });
+        sprint_events.send(StartSprintEvent {
+            entity,
+            direction: SprintDirection::Forward,
+        });
+    }
 }
 
 pub struct AscendMove(pub CardinalDirection);
-impl Move for AscendMove {
-    fn get(&self, world: &Instance, node: &Node) -> Option<MoveResult> {
+impl MoveImpl for AscendMove {
+    fn get(&self, world: &Instance, pos: BlockPos) -> Option<Edge> {
         let offset = BlockPos::new(self.0.x(), 1, self.0.z());
 
-        if node.vertical_vel != VerticalVel::None
-            || !is_block_passable(&node.pos.up(2), world)
-            || !is_standable(&(node.pos + offset), world)
-        {
+        if !is_block_passable(&pos.up(2), world) || !is_standable(&(pos + offset), world) {
             return None;
         }
 
         let cost = WALK_ONE_BLOCK_COST + JUMP_COST;
 
-        Some(MoveResult {
-            node: Node {
-                pos: node.pos + offset,
-                vertical_vel: VerticalVel::None,
+        // Some(MoveResult {
+        //     node: Node {
+        //         pos: node.pos + offset,
+        //         vertical_vel: VerticalVel::None,
+        //     },
+        //     cost,
+        // })
+        Some(Edge {
+            movement: astar::Movement {
+                target: pos + offset,
+                data: MoveData {
+                    move_kind: DefaultMoves::Ascend(self.0),
+                },
             },
             cost,
         })
     }
+
+    fn execute(
+        ExecuteCtx {
+            entity,
+            target,
+            look_at_events,
+            sprint_events,
+            jump_events,
+            ..
+        }: ExecuteCtx,
+    ) {
+        let center = target.center();
+        look_at_events.send(LookAtEvent {
+            entity,
+            position: center,
+        });
+        jump_events.send(JumpEvent { entity });
+        sprint_events.send(StartSprintEvent {
+            entity,
+            direction: SprintDirection::Forward,
+        });
+    }
 }
 pub struct DescendMove(pub CardinalDirection);
-impl Move for DescendMove {
-    fn get(&self, world: &Instance, node: &Node) -> Option<MoveResult> {
-        let new_horizontal_position = node.pos + BlockPos::new(self.0.x(), 0, self.0.z());
+impl MoveImpl for DescendMove {
+    fn get(&self, world: &Instance, pos: BlockPos) -> Option<Edge> {
+        let new_horizontal_position = pos + BlockPos::new(self.0.x(), 0, self.0.z());
         let fall_distance = fall_distance(&new_horizontal_position, world);
         if fall_distance == 0 {
             return None;
@@ -119,56 +224,103 @@ impl Move for DescendMove {
         let new_position = new_horizontal_position.down(fall_distance as i32);
 
         // check whether 3 blocks vertically forward are passable
-        if node.vertical_vel != VerticalVel::None || !is_passable(&new_horizontal_position, world) {
+        if !is_passable(&new_horizontal_position, world) {
             return None;
         }
 
         let cost = WALK_ONE_BLOCK_COST + FALL_ONE_BLOCK_COST * fall_distance as f32;
 
-        Some(MoveResult {
-            node: Node {
-                pos: new_position,
-                vertical_vel: VerticalVel::None,
+        Some(Edge {
+            movement: astar::Movement {
+                target: new_position,
+                data: MoveData {
+                    move_kind: DefaultMoves::Descend(self.0),
+                },
             },
             cost,
         })
     }
+
+    fn execute(
+        ExecuteCtx {
+            entity,
+            target,
+            look_at_events,
+            sprint_events,
+            ..
+        }: ExecuteCtx,
+    ) {
+        let center = target.center();
+        look_at_events.send(LookAtEvent {
+            entity,
+            position: center,
+        });
+        sprint_events.send(StartSprintEvent {
+            entity,
+            direction: SprintDirection::Forward,
+        });
+    }
 }
 pub struct DiagonalMove(pub CardinalDirection);
-impl Move for DiagonalMove {
-    fn get(&self, world: &Instance, node: &Node) -> Option<MoveResult> {
-        if node.vertical_vel != VerticalVel::None {
-            return None;
-        }
-
+impl MoveImpl for DiagonalMove {
+    fn get(&self, world: &Instance, pos: BlockPos) -> Option<Edge> {
         let right = self.0.right();
         let offset = BlockPos::new(self.0.x() + right.x(), 0, self.0.z() + right.z());
 
         if !is_passable(
-            &BlockPos::new(node.pos.x + self.0.x(), node.pos.y, node.pos.z + self.0.z()),
+            &BlockPos::new(pos.x + self.0.x(), pos.y, pos.z + self.0.z()),
             world,
         ) && !is_passable(
             &BlockPos::new(
-                node.pos.x + self.0.right().x(),
-                node.pos.y,
-                node.pos.z + self.0.right().z(),
+                pos.x + self.0.right().x(),
+                pos.y,
+                pos.z + self.0.right().z(),
             ),
             world,
         ) {
             return None;
         }
-        if !is_standable(&(node.pos + offset), world) {
+        if !is_standable(&(pos + offset), world) {
             return None;
         }
         let cost = WALK_ONE_BLOCK_COST * 1.4;
 
-        Some(MoveResult {
-            node: Node {
-                pos: node.pos + offset,
-                vertical_vel: VerticalVel::None,
+        // Some(MoveResult {
+        //     node: Node {
+        //         pos: node.pos + offset,
+        //         vertical_vel: VerticalVel::None,
+        //     },
+        //     cost,
+        // })
+        Some(Edge {
+            movement: astar::Movement {
+                target: pos + offset,
+                data: MoveData {
+                    move_kind: DefaultMoves::Diagonal(self.0),
+                },
             },
             cost,
         })
+    }
+
+    fn execute(
+        ExecuteCtx {
+            entity,
+            target,
+            look_at_events,
+            sprint_events,
+            ..
+        }: ExecuteCtx,
+    ) {
+        let center = target.center();
+        look_at_events.send(LookAtEvent {
+            entity,
+            position: center,
+        });
+        sprint_events.send(StartSprintEvent {
+            entity,
+            direction: SprintDirection::Forward,
+        });
     }
 }
 

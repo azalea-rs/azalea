@@ -87,7 +87,9 @@ pub trait BotClientExt {
 impl BotClientExt for azalea_client::Client {
     fn jump(&mut self) {
         let mut ecs = self.ecs.lock();
-        ecs.send_event(JumpEvent(self.entity));
+        ecs.send_event(JumpEvent {
+            entity: self.entity,
+        });
     }
 
     fn look_at(&mut self, position: Vec3) {
@@ -136,14 +138,16 @@ impl BotClientExt for azalea_client::Client {
 
 /// Event to jump once.
 #[derive(Event)]
-pub struct JumpEvent(pub Entity);
+pub struct JumpEvent {
+    pub entity: Entity,
+}
 
 pub fn jump_listener(
     mut query: Query<(&mut Jumping, &mut Bot)>,
     mut events: EventReader<JumpEvent>,
 ) {
     for event in events.iter() {
-        if let Ok((mut jumping, mut bot)) = query.get_mut(event.0) {
+        if let Ok((mut jumping, mut bot)) = query.get_mut(event.entity) {
             **jumping = true;
             bot.jumping_once = true;
         }

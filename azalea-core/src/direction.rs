@@ -62,7 +62,7 @@ impl Direction {
 }
 
 // TODO: make azalea_block use this instead of FacingCardinal
-#[derive(Clone, Copy, Debug, McBuf)]
+#[derive(Clone, Copy, Debug, McBuf, PartialEq, Eq, Hash)]
 pub enum CardinalDirection {
     North,
     South,

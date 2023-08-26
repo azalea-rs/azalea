@@ -5,7 +5,8 @@ pub mod simulation;
 
 use crate::bot::{JumpEvent, LookAtEvent};
 use crate::pathfinder::astar::a_star;
-use crate::{SprintDirection, WalkDirection};
+use crate::pathfinder::moves::DefaultMoves;
+use crate::WalkDirection;
 
 use crate::app::{App, Plugin};
 use crate::ecs::{
@@ -15,7 +16,6 @@ use crate::ecs::{
     query::{With, Without},
     system::{Commands, Query, Res},
 };
-use astar::Edge;
 use azalea_client::movement::walk_listener;
 use azalea_client::{StartSprintEvent, StartWalkEvent};
 use azalea_core::{BlockPos, CardinalDirection};
@@ -33,6 +33,9 @@ use futures_lite::future;
 use log::{debug, error, trace};
 use std::collections::VecDeque;
 use std::sync::Arc;
+use std::time::Duration;
+
+use self::moves::ExecuteCtx;
 
 #[derive(Clone, Default)]
 pub struct PathfinderPlugin;
@@ -65,7 +68,7 @@ impl Plugin for PathfinderPlugin {
 /// A component that makes this entity able to pathfind.
 #[derive(Component, Default)]
 pub struct Pathfinder {
-    pub path: VecDeque<Node>,
+    pub path: VecDeque<astar::Movement<BlockPos, moves::MoveData>>,
 }
 #[allow(clippy::type_complexity)]
 fn add_default_pathfinder(
@@ -104,7 +107,7 @@ pub struct GotoEvent {
 #[derive(Event)]
 pub struct PathFoundEvent {
     pub entity: Entity,
-    pub path: VecDeque<Node>,
+    pub path: Option<VecDeque<astar::Movement<BlockPos, moves::MoveData>>>,
 }
 
 #[derive(Component)]
@@ -122,10 +125,7 @@ fn goto_listener(
         let (position, world_name) = query
             .get_mut(event.entity)
             .expect("Called goto on an entity that's not in the world");
-        let start = Node {
-            pos: BlockPos::from(position),
-            vertical_vel: VerticalVel::None,
-        };
+        let start = BlockPos::from(position);
 
         let world_lock = instance_container
             .get(world_name)
@@ -138,64 +138,60 @@ fn goto_listener(
         let task = thread_pool.spawn(async move {
             debug!("start: {start:?}, end: {end:?}");
 
-            let possible_moves: Vec<&dyn moves::Move> = vec![
-                &moves::ForwardMove(CardinalDirection::North),
-                &moves::ForwardMove(CardinalDirection::East),
-                &moves::ForwardMove(CardinalDirection::South),
-                &moves::ForwardMove(CardinalDirection::West),
+            let possible_moves: Vec<DefaultMoves> = vec![
+                DefaultMoves::Forward(CardinalDirection::North),
+                DefaultMoves::Forward(CardinalDirection::East),
+                DefaultMoves::Forward(CardinalDirection::South),
+                DefaultMoves::Forward(CardinalDirection::West),
                 //
-                &moves::AscendMove(CardinalDirection::North),
-                &moves::AscendMove(CardinalDirection::East),
-                &moves::AscendMove(CardinalDirection::South),
-                &moves::AscendMove(CardinalDirection::West),
+                DefaultMoves::Ascend(CardinalDirection::North),
+                DefaultMoves::Ascend(CardinalDirection::East),
+                DefaultMoves::Ascend(CardinalDirection::South),
+                DefaultMoves::Ascend(CardinalDirection::West),
                 //
-                &moves::DescendMove(CardinalDirection::North),
-                &moves::DescendMove(CardinalDirection::East),
-                &moves::DescendMove(CardinalDirection::South),
-                &moves::DescendMove(CardinalDirection::West),
+                DefaultMoves::Descend(CardinalDirection::North),
+                DefaultMoves::Descend(CardinalDirection::East),
+                DefaultMoves::Descend(CardinalDirection::South),
+                DefaultMoves::Descend(CardinalDirection::West),
                 //
-                &moves::DiagonalMove(CardinalDirection::North),
-                &moves::DiagonalMove(CardinalDirection::East),
-                &moves::DiagonalMove(CardinalDirection::South),
-                &moves::DiagonalMove(CardinalDirection::West),
+                DefaultMoves::Diagonal(CardinalDirection::North),
+                DefaultMoves::Diagonal(CardinalDirection::East),
+                DefaultMoves::Diagonal(CardinalDirection::South),
+                DefaultMoves::Diagonal(CardinalDirection::West),
             ];
 
-            let successors = |node: &Node| {
+            let successors = |pos: BlockPos| {
                 let mut edges = Vec::new();
 
                 let world = world_lock.read();
                 for possible_move in &possible_moves {
-                    let possible_move = possible_move.get(&world, node);
-                    if let Some(possible_move) = possible_move {
-                        edges.push(Edge {
-                            target: possible_move.node,
-                            cost: possible_move.cost,
-                        });
+                    let move_result = possible_move.get(&world, pos);
+                    if let Some(edge) = move_result {
+                        edges.push(edge);
                     }
                 }
+
                 edges
             };
 
             let start_time = std::time::Instant::now();
-            let p = a_star(
+            let astar::Path { movements, partial } = a_star(
                 start,
                 |n| goal.heuristic(n),
                 successors,
                 |n| goal.success(n),
+                Duration::from_secs(1),
             );
             let end_time = std::time::Instant::now();
-            debug!("path: {p:?}");
+            debug!("movements: {movements:?}");
+            debug!("partial: {partial:?}");
             debug!("time: {:?}", end_time - start_time);
 
-            // convert the Option<Vec<Node>> to a VecDeque<Node>
-            if let Some(p) = p {
-                let path = p.into_iter().collect::<VecDeque<_>>();
-                // commands.entity(event.entity).insert(Pathfinder { path: p });
-                Some(PathFoundEvent { entity, path })
-            } else {
-                error!("no path found");
-                None
-            }
+            let path = movements.into_iter().collect::<VecDeque<_>>();
+            Some(PathFoundEvent {
+                entity,
+                path: Some(path),
+            })
         });
 
         commands.spawn(ComputePath(task));
@@ -226,7 +222,12 @@ fn path_found_listener(mut events: EventReader<PathFoundEvent>, mut query: Query
         let mut pathfinder = query
             .get_mut(event.entity)
             .expect("Path found for an entity that doesn't have a pathfinder");
-        pathfinder.path = event.path.clone();
+        if let Some(path) = &event.path {
+            pathfinder.path = path.to_owned();
+        } else {
+            error!("No path found");
+            pathfinder.path.clear();
+        }
     }
 }
 
@@ -239,30 +240,12 @@ fn tick_execute_path(
 ) {
     for (entity, mut pathfinder, position, physics) in &mut query {
         loop {
-            let Some(target) = pathfinder.path.front() else {
+            let Some(movement) = pathfinder.path.front() else {
                 break;
             };
-            let center = target.pos.center();
-            // println!("going to {center:?} (at {pos:?})", pos = bot.entity().pos());
-            look_at_events.send(LookAtEvent {
-                entity,
-                position: center,
-            });
-            trace!(
-                "tick: pathfinder {entity:?}; going to {:?}; currently at {:?}",
-                target.pos,
-                **position
-            );
-            sprint_events.send(StartSprintEvent {
-                entity,
-                direction: SprintDirection::Forward,
-            });
-            // check if we should jump
-            if target.pos.y > position.y.floor() as i32 {
-                jump_events.send(JumpEvent(entity));
-            }
-
-            if target.is_reached(position, physics) {
+            // we check if the goal was reached *before* actually executing the movement so
+            // we don't unnecessarily execute a movement when it wasn't necessary
+            if is_goal_reached(movement.target, position, physics) {
                 // println!("reached target");
                 pathfinder.path.pop_front();
                 if pathfinder.path.is_empty() {
@@ -273,9 +256,21 @@ fn tick_execute_path(
                     });
                 }
                 // tick again, maybe we already reached the next node!
-            } else {
-                break;
+                continue;
             }
+
+            let ctx = ExecuteCtx {
+                entity,
+                target: movement.target,
+                position: **position,
+                look_at_events: &mut look_at_events,
+                sprint_events: &mut sprint_events,
+                walk_events: &mut walk_events,
+                jump_events: &mut jump_events,
+            };
+            trace!("executing move {:?}", movement.data.move_kind);
+            movement.data.move_kind.execute(ctx);
+            break;
         }
     }
 }
@@ -296,49 +291,26 @@ fn stop_pathfinding_on_instance_change(
     }
 }
 
-/// Information about our vertical velocity
-#[derive(Eq, PartialEq, Hash, Clone, Copy, Debug)]
-pub enum VerticalVel {
-    None,
-    /// No vertical velocity, but we're not on the ground
-    NoneMidair,
-    // less than 3 blocks (no fall damage)
-    FallingLittle,
-}
-
-#[derive(Eq, PartialEq, Hash, Clone, Copy, Debug)]
-pub struct Node {
-    pub pos: BlockPos,
-    pub vertical_vel: VerticalVel,
-}
-
 pub trait Goal {
-    fn heuristic(&self, n: &Node) -> f32;
-    fn success(&self, n: &Node) -> bool;
+    fn heuristic(&self, n: BlockPos) -> f32;
+    fn success(&self, n: BlockPos) -> bool;
     // TODO: this should be removed and mtdstarlite should stop depending on
     // being given a goal node
-    fn goal_node(&self) -> Node;
+    fn goal_node(&self) -> BlockPos;
 }
 
-impl Node {
-    /// Returns whether the entity is at the node and should start going to the
-    /// next node.
-    #[must_use]
-    pub fn is_reached(&self, position: &Position, physics: &Physics) -> bool {
-        // println!(
-        //     "entity.delta.y: {} {:?}=={:?}, self.vertical_vel={:?}",
-        //     entity.delta.y,
-        //     BlockPos::from(entity.pos()),
-        //     self.pos,
-        //     self.vertical_vel
-        // );
-        BlockPos::from(position) == self.pos
-            && match self.vertical_vel {
-                VerticalVel::NoneMidair => physics.delta.y > -0.1 && physics.delta.y < 0.1,
-                VerticalVel::None => physics.on_ground,
-                VerticalVel::FallingLittle => physics.delta.y < -0.1,
-            }
-    }
+/// Returns whether the entity is at the node and should start going to the
+/// next node.
+#[must_use]
+pub fn is_goal_reached(goal_pos: BlockPos, current_pos: &Position, physics: &Physics) -> bool {
+    // println!(
+    //     "entity.delta.y: {} {:?}=={:?}, self.vertical_vel={:?}",
+    //     entity.delta.y,
+    //     BlockPos::from(entity.pos()),
+    //     self.pos,
+    //     self.vertical_vel
+    // );
+    BlockPos::from(current_pos) == goal_pos && physics.on_ground
 }
 
 #[cfg(test)]
