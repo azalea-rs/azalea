@@ -90,9 +90,10 @@ pub fn deduplicate_entities(
         (Changed<MinecraftEntityId>, Without<Local>),
     >,
     mut loaded_by_query: Query<&mut LoadedBy>,
+    mut entity_id_index_query: Query<&mut EntityIdIndex>,
     instance_container: Res<InstanceContainer>,
 ) {
-    // if this entity already exists, remove it
+    // if this entity already exists, remove it and keep the old one
     for (new_entity, id, world_name) in query.iter_mut() {
         if let Some(world_lock) = instance_container.get(world_name) {
             let world = world_lock.write();
@@ -105,10 +106,18 @@ pub fn deduplicate_entities(
                 // the reference count
                 let new_loaded_by = loaded_by_query
                     .get(new_entity)
-                    .unwrap_or_else(|_| panic!(
-                        "Entities should always have the LoadedBy component ({new_entity:?} did not)"
-                    ))
+                    .expect("Entities should always have the LoadedBy component ({new_entity:?} did not)")
                     .clone();
+
+                // update the `EntityIdIndex`s of the local players that have this entity loaded
+                for local_player in new_loaded_by.iter() {
+                    let mut entity_id_index = entity_id_index_query
+                        .get_mut(*local_player)
+                        .expect("Local players should always have the EntityIdIndex component ({local_player:?} did not)");
+                    entity_id_index.insert(*id, *old_entity);
+                }
+
+
                 let old_loaded_by = loaded_by_query.get_mut(*old_entity);
                 // merge them if possible
                 if let Ok(mut old_loaded_by) = old_loaded_by {
