@@ -5,7 +5,6 @@ pub mod simulation;
 
 use crate::bot::{JumpEvent, LookAtEvent};
 use crate::pathfinder::astar::a_star;
-use crate::pathfinder::moves::DefaultMoves;
 use crate::WalkDirection;
 
 use crate::app::{App, Plugin};
@@ -18,7 +17,7 @@ use crate::ecs::{
 };
 use azalea_client::movement::walk_listener;
 use azalea_client::{StartSprintEvent, StartWalkEvent};
-use azalea_core::{BlockPos, CardinalDirection};
+use azalea_core::BlockPos;
 use azalea_entity::metadata::Player;
 use azalea_entity::Local;
 use azalea_entity::{Physics, Position};
@@ -119,6 +118,8 @@ fn goto_listener(
     mut query: Query<(&Position, &InstanceName)>,
     instance_container: Res<InstanceContainer>,
 ) {
+    let successors_fn = moves::basic::basic_move;
+
     let thread_pool = AsyncComputeTaskPool::get();
 
     for event in events.iter() {
@@ -138,40 +139,9 @@ fn goto_listener(
         let task = thread_pool.spawn(async move {
             debug!("start: {start:?}, end: {end:?}");
 
-            let possible_moves: Vec<DefaultMoves> = vec![
-                DefaultMoves::Forward(CardinalDirection::North),
-                DefaultMoves::Forward(CardinalDirection::East),
-                DefaultMoves::Forward(CardinalDirection::South),
-                DefaultMoves::Forward(CardinalDirection::West),
-                //
-                DefaultMoves::Ascend(CardinalDirection::North),
-                DefaultMoves::Ascend(CardinalDirection::East),
-                DefaultMoves::Ascend(CardinalDirection::South),
-                DefaultMoves::Ascend(CardinalDirection::West),
-                //
-                DefaultMoves::Descend(CardinalDirection::North),
-                DefaultMoves::Descend(CardinalDirection::East),
-                DefaultMoves::Descend(CardinalDirection::South),
-                DefaultMoves::Descend(CardinalDirection::West),
-                //
-                DefaultMoves::Diagonal(CardinalDirection::North),
-                DefaultMoves::Diagonal(CardinalDirection::East),
-                DefaultMoves::Diagonal(CardinalDirection::South),
-                DefaultMoves::Diagonal(CardinalDirection::West),
-            ];
-
             let successors = |pos: BlockPos| {
-                let mut edges = Vec::new();
-
                 let world = world_lock.read();
-                for possible_move in &possible_moves {
-                    let move_result = possible_move.get(&world, pos);
-                    if let Some(edge) = move_result {
-                        edges.push(edge);
-                    }
-                }
-
-                edges
+                successors_fn(&world, pos)
             };
 
             let start_time = std::time::Instant::now();
@@ -183,7 +153,6 @@ fn goto_listener(
                 Duration::from_secs(1),
             );
             let end_time = std::time::Instant::now();
-            debug!("movements: {movements:?}");
             debug!("partial: {partial:?}");
             debug!("time: {:?}", end_time - start_time);
 
@@ -268,8 +237,8 @@ fn tick_execute_path(
                 walk_events: &mut walk_events,
                 jump_events: &mut jump_events,
             };
-            trace!("executing move {:?}", movement.data.move_kind);
-            movement.data.move_kind.execute(ctx);
+            trace!("executing move");
+            (movement.data.execute)(ctx);
             break;
         }
     }

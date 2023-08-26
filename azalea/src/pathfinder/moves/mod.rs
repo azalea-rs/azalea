@@ -1,0 +1,182 @@
+pub mod basic;
+
+use crate::{JumpEvent, LookAtEvent};
+
+use super::astar;
+use azalea_client::{StartSprintEvent, StartWalkEvent};
+use azalea_core::{BlockPos, Vec3};
+use azalea_physics::collision::{self, BlockWithShape};
+use azalea_world::Instance;
+use bevy_ecs::{entity::Entity, event::EventWriter};
+
+type Edge = astar::Edge<BlockPos, MoveData>;
+
+#[derive(Clone)]
+pub struct MoveData {
+    // pub move_kind: BasicMoves,
+    pub execute: &'static (dyn Fn(ExecuteCtx) + Send + Sync),
+}
+
+/// whether this block is passable
+fn is_block_passable(pos: &BlockPos, world: &Instance) -> bool {
+    if let Some(block) = world.chunks.get_block_state(pos) {
+        if block.shape() != &collision::empty_shape() {
+            return false;
+        }
+        if block == azalea_registry::Block::Water.into() {
+            return false;
+        }
+        if block.waterlogged() {
+            return false;
+        }
+        block.shape() == &collision::empty_shape()
+    } else {
+        false
+    }
+}
+
+/// whether this block has a solid hitbox (i.e. we can stand on it)
+fn is_block_solid(pos: &BlockPos, world: &Instance) -> bool {
+    if let Some(block) = world.chunks.get_block_state(pos) {
+        block.shape() == &collision::block_shape()
+    } else {
+        false
+    }
+}
+
+/// Whether this block and the block above are passable
+fn is_passable(pos: &BlockPos, world: &Instance) -> bool {
+    is_block_passable(pos, world) && is_block_passable(&pos.up(1), world)
+}
+
+/// Whether we can stand in this position. Checks if the block below is solid,
+/// and that the two blocks above that are passable.
+
+fn is_standable(pos: &BlockPos, world: &Instance) -> bool {
+    is_block_solid(&pos.down(1), world) && is_passable(pos, world)
+}
+
+/// Get the amount of air blocks until the next solid block below this one.
+fn fall_distance(pos: &BlockPos, world: &Instance) -> u32 {
+    let mut distance = 0;
+    let mut current_pos = pos.down(1);
+    while is_block_passable(&current_pos, world) {
+        distance += 1;
+        current_pos = current_pos.down(1);
+
+        if current_pos.y < world.chunks.min_y {
+            return u32::MAX;
+        }
+    }
+    distance
+}
+
+const JUMP_COST: f32 = 0.5;
+const WALK_ONE_BLOCK_COST: f32 = 1.0;
+const FALL_ONE_BLOCK_COST: f32 = 0.5;
+
+pub struct ExecuteCtx<'w1, 'w2, 'w3, 'w4, 'a> {
+    pub entity: Entity,
+    pub target: BlockPos,
+    pub position: Vec3,
+
+    pub look_at_events: &'a mut EventWriter<'w1, LookAtEvent>,
+    pub sprint_events: &'a mut EventWriter<'w2, StartSprintEvent>,
+    pub walk_events: &'a mut EventWriter<'w3, StartWalkEvent>,
+    pub jump_events: &'a mut EventWriter<'w4, JumpEvent>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use azalea_block::BlockState;
+    use azalea_core::ChunkPos;
+    use azalea_world::{Chunk, ChunkStorage, PartialInstance};
+
+    #[test]
+    fn test_is_passable() {
+        let mut partial_world = PartialInstance::default();
+        let mut chunk_storage = ChunkStorage::default();
+
+        partial_world.chunks.set(
+            &ChunkPos { x: 0, z: 0 },
+            Some(Chunk::default()),
+            &mut chunk_storage,
+        );
+        partial_world.chunks.set_block_state(
+            &BlockPos::new(0, 0, 0),
+            azalea_registry::Block::Stone.into(),
+            &chunk_storage,
+        );
+        partial_world.chunks.set_block_state(
+            &BlockPos::new(0, 1, 0),
+            BlockState::AIR,
+            &chunk_storage,
+        );
+
+        let world = chunk_storage.into();
+        assert!(!is_block_passable(&BlockPos::new(0, 0, 0), &world));
+        assert!(is_block_passable(&BlockPos::new(0, 1, 0), &world));
+    }
+
+    #[test]
+    fn test_is_solid() {
+        let mut partial_world = PartialInstance::default();
+        let mut chunk_storage = ChunkStorage::default();
+        partial_world.chunks.set(
+            &ChunkPos { x: 0, z: 0 },
+            Some(Chunk::default()),
+            &mut chunk_storage,
+        );
+        partial_world.chunks.set_block_state(
+            &BlockPos::new(0, 0, 0),
+            azalea_registry::Block::Stone.into(),
+            &chunk_storage,
+        );
+        partial_world.chunks.set_block_state(
+            &BlockPos::new(0, 1, 0),
+            BlockState::AIR,
+            &chunk_storage,
+        );
+
+        let world = chunk_storage.into();
+        assert!(is_block_solid(&BlockPos::new(0, 0, 0), &world));
+        assert!(!is_block_solid(&BlockPos::new(0, 1, 0), &world));
+    }
+
+    #[test]
+    fn test_is_standable() {
+        let mut partial_world = PartialInstance::default();
+        let mut chunk_storage = ChunkStorage::default();
+        partial_world.chunks.set(
+            &ChunkPos { x: 0, z: 0 },
+            Some(Chunk::default()),
+            &mut chunk_storage,
+        );
+        partial_world.chunks.set_block_state(
+            &BlockPos::new(0, 0, 0),
+            azalea_registry::Block::Stone.into(),
+            &chunk_storage,
+        );
+        partial_world.chunks.set_block_state(
+            &BlockPos::new(0, 1, 0),
+            BlockState::AIR,
+            &chunk_storage,
+        );
+        partial_world.chunks.set_block_state(
+            &BlockPos::new(0, 2, 0),
+            BlockState::AIR,
+            &chunk_storage,
+        );
+        partial_world.chunks.set_block_state(
+            &BlockPos::new(0, 3, 0),
+            BlockState::AIR,
+            &chunk_storage,
+        );
+
+        let world = chunk_storage.into();
+        assert!(is_standable(&BlockPos::new(0, 1, 0), &world));
+        assert!(!is_standable(&BlockPos::new(0, 0, 0), &world));
+        assert!(!is_standable(&BlockPos::new(0, 2, 0), &world));
+    }
+}
