@@ -42,6 +42,7 @@ use crate::{
     chat::{ChatPacket, ChatReceivedEvent},
     client::{PlayerAbilities, TabList},
     disconnect::DisconnectEvent,
+    events::death_listener,
     inventory::{
         ClientSideCloseContainerEvent, InventoryComponent, MenuOpenedEvent,
         SetContainerContentEvent,
@@ -90,7 +91,7 @@ impl Plugin for PacketHandlerPlugin {
                     // we want to index and deindex right after
                     .before(EntityUpdateSet::Deindex),
             )
-            .add_systems(Update, death_event_on_0_health)
+            .add_systems(Update, death_event_on_0_health.before(death_listener))
             .init_resource::<Events<PacketEvent>>()
             .add_event::<AddPlayerEvent>()
             .add_event::<RemovePlayerEvent>()

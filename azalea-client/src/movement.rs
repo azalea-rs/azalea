@@ -1,8 +1,8 @@
 use crate::client::Client;
-use crate::local_player::{update_in_loaded_chunk, LocalPlayer, LocalPlayerInLoadedChunk};
+use crate::local_player::{LocalPlayer, LocalPlayerInLoadedChunk};
 use azalea_entity::{metadata::Sprinting, Attributes, Jumping};
 use azalea_entity::{LastSentPosition, LookDirection, Physics, Position};
-use azalea_physics::{force_jump_listener, PhysicsSet};
+use azalea_physics::{handle_force_jump, PhysicsSet};
 use azalea_protocol::packets::game::serverbound_player_command_packet::ServerboundPlayerCommandPacket;
 use azalea_protocol::packets::game::{
     serverbound_move_player_pos_packet::ServerboundMovePlayerPosPacket,
@@ -48,7 +48,7 @@ impl Plugin for PlayerMovePlugin {
                 Update,
                 (sprint_listener, walk_listener)
                     .chain()
-                    .before(force_jump_listener),
+                    .before(handle_force_jump),
             )
             .add_systems(
                 FixedUpdate,
@@ -56,7 +56,7 @@ impl Plugin for PlayerMovePlugin {
                     local_player_ai_step
                         .in_set(PhysicsSet)
                         .before(azalea_physics::ai_step),
-                    send_position.after(update_in_loaded_chunk),
+                    send_position.after(PhysicsSet),
                 )
                     .chain(),
             );
@@ -120,7 +120,7 @@ pub struct PhysicsState {
 }
 
 #[allow(clippy::type_complexity)]
-pub(crate) fn send_position(
+pub fn send_position(
     mut query: Query<
         (
             &MinecraftEntityId,

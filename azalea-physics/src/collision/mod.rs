@@ -60,7 +60,12 @@ fn collide(movement: &Vec3, world: &Instance, physics: &azalea_entity::Physics) 
     let collided_movement = if movement.length_sqr() == 0.0 {
         *movement
     } else {
-        collide_bounding_box(movement, &entity_bounding_box, world, entity_collisions.clone())
+        collide_bounding_box(
+            movement,
+            &entity_bounding_box,
+            world,
+            entity_collisions.clone(),
+        )
     };
 
     let x_collision = movement.x != collided_movement.x;
@@ -70,9 +75,8 @@ fn collide(movement: &Vec3, world: &Instance, physics: &azalea_entity::Physics) 
     let on_ground = physics.on_ground || y_collision && movement.y < 0.;
 
     let max_up_step = 0.6;
-    if on_ground  && (x_collision || z_collision) {
-        let mut hypothetical_new_position
-         = collide_bounding_box(
+    if on_ground && (x_collision || z_collision) {
+        let mut hypothetical_new_position = collide_bounding_box(
             &Vec3 {
                 x: movement.x,
                 y: max_up_step,
@@ -104,12 +108,15 @@ fn collide(movement: &Vec3, world: &Instance, physics: &azalea_entity::Physics) 
                 entity_collisions.clone(),
             )
             .add(step_up_position);
-            if var11.horizontal_distance_sqr() > hypothetical_new_position.horizontal_distance_sqr() {
+            if var11.horizontal_distance_sqr() > hypothetical_new_position.horizontal_distance_sqr()
+            {
                 hypothetical_new_position = var11;
             }
         }
 
-        if hypothetical_new_position.horizontal_distance_sqr() > collided_movement.horizontal_distance_sqr() {
+        if hypothetical_new_position.horizontal_distance_sqr()
+            > collided_movement.horizontal_distance_sqr()
+        {
             return hypothetical_new_position.add(collide_bounding_box(
                 &Vec3 {
                     x: 0.,

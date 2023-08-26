@@ -15,7 +15,7 @@ use azalea_core::{BlockPos, Vec3};
 use azalea_entity::{
     clamp_look_direction, metadata::Player, EyeHeight, Jumping, Local, LookDirection, Position,
 };
-use azalea_physics::{force_jump_listener, PhysicsSet};
+use azalea_physics::{handle_force_jump, PhysicsSet};
 use bevy_app::{FixedUpdate, Update};
 use bevy_ecs::prelude::Event;
 use bevy_ecs::schedule::IntoSystemConfigs;
@@ -35,9 +35,9 @@ impl Plugin for BotPlugin {
                 (
                     insert_bot,
                     look_at_listener
-                        .before(force_jump_listener)
+                        .before(handle_force_jump)
                         .before(clamp_look_direction),
-                    jump_listener,
+                    jump_listener.before(handle_force_jump),
                 ),
             )
             .add_systems(FixedUpdate, stop_jumping.after(PhysicsSet));
@@ -138,7 +138,10 @@ impl BotClientExt for azalea_client::Client {
 #[derive(Event)]
 pub struct JumpEvent(pub Entity);
 
-fn jump_listener(mut query: Query<(&mut Jumping, &mut Bot)>, mut events: EventReader<JumpEvent>) {
+pub fn jump_listener(
+    mut query: Query<(&mut Jumping, &mut Bot)>,
+    mut events: EventReader<JumpEvent>,
+) {
     for event in events.iter() {
         if let Ok((mut jumping, mut bot)) = query.get_mut(event.0) {
             **jumping = true;

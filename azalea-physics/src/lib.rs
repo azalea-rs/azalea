@@ -33,15 +33,11 @@ impl Plugin for PhysicsPlugin {
         app.add_event::<ForceJumpEvent>()
             .add_systems(
                 Update,
-                force_jump_listener.after(azalea_entity::clamp_look_direction),
+                handle_force_jump
+                    .after(azalea_entity::clamp_look_direction)
+                    .before(azalea_entity::update_bounding_box),
             )
-            .add_systems(
-                FixedUpdate,
-                (ai_step, travel)
-                    .chain()
-                    .in_set(PhysicsSet)
-                    .after(azalea_entity::update_bounding_box),
-            );
+            .add_systems(FixedUpdate, (ai_step, travel).chain().in_set(PhysicsSet));
     }
 }
 
@@ -173,7 +169,7 @@ pub fn ai_step(
 #[derive(Event)]
 pub struct ForceJumpEvent(pub Entity);
 
-pub fn force_jump_listener(
+pub fn handle_force_jump(
     mut query: Query<(
         &mut Physics,
         &Position,

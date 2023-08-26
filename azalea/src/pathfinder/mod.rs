@@ -16,6 +16,7 @@ use crate::ecs::{
     system::{Commands, Query, Res},
 };
 use astar::Edge;
+use azalea_client::movement::walk_listener;
 use azalea_client::{StartSprintEvent, StartWalkEvent};
 use azalea_core::{BlockPos, CardinalDirection};
 use azalea_entity::metadata::Player;
@@ -43,16 +44,20 @@ impl Plugin for PathfinderPlugin {
                 FixedUpdate,
                 // putting systems in the FixedUpdate schedule makes them run every Minecraft tick
                 // (every 50 milliseconds).
-                tick_execute_path.after(PhysicsSet),
+                tick_execute_path
+                    .after(PhysicsSet)
+                    .after(azalea_client::movement::send_position),
             )
             .add_systems(PreUpdate, add_default_pathfinder)
             .add_systems(
                 Update,
                 (
                     goto_listener,
-                    (handle_tasks, path_found_listener).chain(),
-                    stop_pathfinding_on_instance_change,
-                ),
+                    handle_tasks,
+                    path_found_listener,
+                    stop_pathfinding_on_instance_change.before(walk_listener),
+                )
+                    .chain(),
             );
     }
 }

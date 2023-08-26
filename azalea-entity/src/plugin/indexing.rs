@@ -117,7 +117,6 @@ pub fn deduplicate_entities(
                     entity_id_index.insert(*id, *old_entity);
                 }
 
-
                 let old_loaded_by = loaded_by_query.get_mut(*old_entity);
                 // merge them if possible
                 if let Ok(mut old_loaded_by) = old_loaded_by {

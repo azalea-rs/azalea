@@ -25,7 +25,7 @@ use azalea_entity::{
     indexing::EntityIdIndex, metadata::Health, EntityPlugin, EntityUpdateSet, EyeHeight, Local,
     Position,
 };
-use azalea_physics::{PhysicsPlugin, PhysicsSet};
+use azalea_physics::PhysicsPlugin;
 use azalea_protocol::{
     connect::{Connection, ConnectionError},
     packets::{
@@ -48,7 +48,7 @@ use azalea_protocol::{
     resolver, ServerAddress,
 };
 use azalea_world::{Instance, InstanceContainer, InstanceName, PartialInstance};
-use bevy_app::{App, FixedUpdate, Main, Plugin, PluginGroup, PluginGroupBuilder, Update};
+use bevy_app::{App, FixedUpdate, Plugin, PluginGroup, PluginGroupBuilder, Update};
 use bevy_ecs::{
     bundle::Bundle,
     component::Component,
@@ -617,7 +617,7 @@ impl Plugin for AzaleaPlugin {
             .add_systems(
                 Update,
                 (
-                    update_in_loaded_chunk.after(PhysicsSet),
+                    update_in_loaded_chunk,
                     // fire the Death event when the player dies.
                     death_event,
                     // add GameProfileComponent when we get an AddPlayerEvent
@@ -721,7 +721,13 @@ impl Plugin for TickBroadcastPlugin {
 pub struct AmbiguityLoggerPlugin;
 impl Plugin for AmbiguityLoggerPlugin {
     fn build(&self, app: &mut App) {
-        app.edit_schedule(Main, |schedule| {
+        app.edit_schedule(Update, |schedule| {
+            schedule.set_build_settings(ScheduleBuildSettings {
+                ambiguity_detection: LogLevel::Warn,
+                ..Default::default()
+            });
+        });
+        app.edit_schedule(FixedUpdate, |schedule| {
             schedule.set_build_settings(ScheduleBuildSettings {
                 ambiguity_detection: LogLevel::Warn,
                 ..Default::default()
