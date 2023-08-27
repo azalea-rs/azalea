@@ -11,19 +11,19 @@ version = "0.6.0"
 [dependencies]
 azalea-buf = { path = "../azalea-buf", version = "^0.6.0" }
 azalea-crypto = { path = "../azalea-crypto", version = "^0.6.0" }
-chrono = { version = "0.4.22", default-features = false }
-log = "0.4.17"
-num-bigint = "0.4.3"
-reqwest = { version = "0.11.12", default-features = false, features = [
+chrono = { version = "0.4.26", default-features = false }
+log = "0.4.20"
+num-bigint = "0.4.4"
+reqwest = { version = "0.11.20", default-features = false, features = [
     "json",
     "rustls-tls",
 ] }
-serde = { version = "1.0.152", features = ["derive"] }
-serde_json = "1.0.93"
-thiserror = "1.0.37"
-tokio = { version = "1.24.2", features = ["fs"] }
-uuid = { version = "^1.1.2", features = ["serde"] }
+serde = { version = "1.0.188", features = ["derive"] }
+serde_json = "1.0.105"
+thiserror = "1.0.47"
+tokio = { version = "1.32.0", features = ["fs"] }
+uuid = { version = "^1.4.1", features = ["serde"] }
 
 [dev-dependencies]
 env_logger = "0.9.3"
-tokio = { version = "1.24.2", features = ["full"] }
+tokio = { version = "1.32.0", features = ["full"] }

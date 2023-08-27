@@ -16,6 +16,7 @@ members = [
   "azalea-physics",
   "azalea-registry",
 ]
+resolver = "2"
 
 [profile.release]
 debug = true

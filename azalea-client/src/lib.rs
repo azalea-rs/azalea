@@ -5,7 +5,6 @@
 //! [`azalea_protocol`]: https://crates.io/crates/azalea-protocol
 //! [`azalea`]: https://crates.io/crates/azalea
 
-#![feature(provide_any)]
 #![allow(incomplete_features)]
 #![feature(trait_upcasting)]
 #![feature(error_generic_member_access)]

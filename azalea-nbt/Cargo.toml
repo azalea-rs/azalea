@@ -12,11 +12,11 @@ repository = "https://github.com/mat-1/azalea/tree/main/azalea-nbt"
 ahash = { version = "^0.8.3" }
 azalea-buf = { path = "../azalea-buf", version = "^0.6.0" }
 byteorder = "^1.4.3"
-flate2 = "^1.0.25"
-log = "0.4.17"
+flate2 = "^1.0.27"
+log = "0.4.20"
 num-derive = "^0.3.3"
-num-traits = "^0.2.15"
-serde = { version = "1.0.152", features = ["derive"], optional = true }
+num-traits = "^0.2.16"
+serde = { version = "1.0.188", features = ["derive"], optional = true }
 
 [dev-dependencies]
 criterion = {version = "^0.4.0", features = ["html_reports"]}

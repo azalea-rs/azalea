@@ -330,9 +330,10 @@ fn process_packet_events(ecs: &mut World) {
                 > = SystemState::new(ecs);
                 let mut query = system_state.get_mut(ecs);
                 let Ok((mut local_player, mut physics, mut position, mut last_sent_position)) =
-                        query.get_mut(player_entity) else {
-                            continue;
-                        };
+                    query.get_mut(player_entity)
+                else {
+                    continue;
+                };
 
                 let delta_movement = physics.delta;
 
@@ -693,7 +694,7 @@ fn process_packet_events(ecs: &mut World) {
                     }
                     Action::UpdateGameMode(v) => {
                         for update in v {
-                            if let Some(mut info) = tab_list.get_mut(&update.uuid) {
+                            if let Some(info) = tab_list.get_mut(&update.uuid) {
                                 info.gamemode = update.gamemode;
 
                                 update_player_events.send(UpdatePlayerEvent {
@@ -707,7 +708,7 @@ fn process_packet_events(ecs: &mut World) {
                     }
                     Action::UpdateLatency(v) => {
                         for update in v {
-                            if let Some(mut info) = tab_list.get_mut(&update.uuid) {
+                            if let Some(info) = tab_list.get_mut(&update.uuid) {
                                 info.latency = update.latency;
 
                                 update_player_events.send(UpdatePlayerEvent {
@@ -721,7 +722,7 @@ fn process_packet_events(ecs: &mut World) {
                     }
                     Action::UpdateDisplayName(v) => {
                         for update in v {
-                            if let Some(mut info) = tab_list.get_mut(&update.uuid) {
+                            if let Some(info) = tab_list.get_mut(&update.uuid) {
                                 info.display_name = update.display_name.clone();
 
                                 update_player_events.send(UpdatePlayerEvent {
