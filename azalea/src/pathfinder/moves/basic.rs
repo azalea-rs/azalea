@@ -2,11 +2,13 @@ use azalea_client::{SprintDirection, StartSprintEvent};
 use azalea_core::{BlockPos, CardinalDirection};
 use azalea_world::Instance;
 
-use crate::{pathfinder::astar, JumpEvent, LookAtEvent};
+use crate::{
+    pathfinder::{astar, costs::*},
+    JumpEvent, LookAtEvent,
+};
 
 use super::{
     fall_distance, is_block_passable, is_passable, is_standable, Edge, ExecuteCtx, MoveData,
-    FALL_ONE_BLOCK_COST, JUMP_COST, WALK_ONE_BLOCK_COST,
 };
 
 pub fn basic_move(world: &Instance, node: BlockPos) -> Vec<Edge> {
@@ -27,7 +29,7 @@ fn forward_move(world: &Instance, pos: BlockPos) -> Vec<Edge> {
             continue;
         }
 
-        let cost = WALK_ONE_BLOCK_COST;
+        let cost = SPRINT_ONE_BLOCK_COST;
 
         edges.push(Edge {
             movement: astar::Movement {
@@ -68,11 +70,14 @@ fn ascend_move(world: &Instance, pos: BlockPos) -> Vec<Edge> {
     for dir in CardinalDirection::iter() {
         let offset = BlockPos::new(dir.x(), 1, dir.z());
 
-        if !is_block_passable(&pos.up(2), world) || !is_standable(&(pos + offset), world) {
+        if !is_block_passable(&pos.up(2), world) {
+            continue;
+        }
+        if !is_standable(&(pos + offset), world) {
             continue;
         }
 
-        let cost = WALK_ONE_BLOCK_COST + JUMP_COST;
+        let cost = SPRINT_ONE_BLOCK_COST + *JUMP_ONE_BLOCK_COST;
 
         edges.push(Edge {
             movement: astar::Movement {
@@ -121,8 +126,12 @@ fn descend_move(world: &Instance, pos: BlockPos) -> Vec<Edge> {
         if !is_passable(&new_horizontal_position, world) {
             continue;
         }
+        // check whether we can stand on the target position
+        if !is_standable(&new_position, world) {
+            continue;
+        }
 
-        let cost = WALK_ONE_BLOCK_COST + FALL_ONE_BLOCK_COST * fall_distance as f32;
+        let cost = SPRINT_ONE_BLOCK_COST + FALL_ONE_BLOCK_COST * fall_distance as f32;
 
         edges.push(Edge {
             movement: astar::Movement {
@@ -174,7 +183,7 @@ fn diagonal_move(world: &Instance, pos: BlockPos) -> Vec<Edge> {
         if !is_standable(&(pos + offset), world) {
             continue;
         }
-        let cost = WALK_ONE_BLOCK_COST * 1.4;
+        let cost = SPRINT_ONE_BLOCK_COST * 1.4;
 
         edges.push(Edge {
             movement: astar::Movement {

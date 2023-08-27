@@ -1,4 +1,5 @@
 mod astar;
+pub mod costs;
 pub mod goals;
 mod moves;
 pub mod simulation;
@@ -155,6 +156,11 @@ fn goto_listener(
             let end_time = std::time::Instant::now();
             debug!("partial: {partial:?}");
             debug!("time: {:?}", end_time - start_time);
+
+            println!("Path:");
+            for movement in &movements {
+                println!("  {:?}", movement.target);
+            }
 
             let path = movements.into_iter().collect::<VecDeque<_>>();
             Some(PathFoundEvent {

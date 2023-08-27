@@ -71,10 +71,6 @@ fn fall_distance(pos: &BlockPos, world: &Instance) -> u32 {
     distance
 }
 
-const JUMP_COST: f32 = 0.5;
-const WALK_ONE_BLOCK_COST: f32 = 1.0;
-const FALL_ONE_BLOCK_COST: f32 = 0.5;
-
 pub struct ExecuteCtx<'w1, 'w2, 'w3, 'w4, 'a> {
     pub entity: Entity,
     pub target: BlockPos,
