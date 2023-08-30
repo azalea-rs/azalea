@@ -1,5 +1,4 @@
 __pycache__
+__codegen_cache__
 *.tmp
-
-downloads
-__cache__
+*.egg-info

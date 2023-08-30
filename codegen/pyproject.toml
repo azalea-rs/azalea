@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "azalea_codegen"
+authors = [
+    { name = "KatieTheQt" },
+]
+description = "Codegen for Azalea projects"
+dependencies = [
+    "burger@git+ssh://git@github.com/Pokechu22/Burger",
+    "requests"
+]
+
+dynamic = ["version"]
