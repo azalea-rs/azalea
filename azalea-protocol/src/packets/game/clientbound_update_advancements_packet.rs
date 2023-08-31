@@ -9,7 +9,7 @@ use std::io::Cursor;
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundUpdateAdvancementsPacket {
     pub reset: bool,
-    pub added: HashMap<ResourceLocation, Advancement>,
+    pub added: Vec<AdvancementHolder>,
     pub removed: Vec<ResourceLocation>,
     pub progress: HashMap<ResourceLocation, AdvancementProgress>,
 }
@@ -112,6 +112,12 @@ pub type AdvancementProgress = HashMap<ResourceLocation, CriterionProgress>;
 #[derive(Clone, Debug, McBuf)]
 pub struct CriterionProgress {
     date: Option<u64>,
+}
+
+#[derive(Clone, Debug, McBuf)]
+pub struct AdvancementHolder {
+    pub id: ResourceLocation,
+    pub value: Advancement,
 }
 
 #[cfg(test)]
