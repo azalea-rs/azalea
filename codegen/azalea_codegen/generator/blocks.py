@@ -15,11 +15,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 def generate_blocks(mappings: Mappings, blocks_burger: dict, ordered_blocks: list[str], blocks_report: dict):
-    generated_code = [
-        '// This file is @generated (by codegen/azalea_codegen/generator/blocks.py) - your edits will not be saved.',
-        '',
-        'make_block_states! {'
-    ]
+    generated_code = ['make_block_states! {']
 
     # Aggregate all block state properties.
     all_properties = {}
@@ -135,7 +131,7 @@ def generate_blocks(mappings: Mappings, blocks_burger: dict, ordered_blocks: lis
 
     # Write out to file.
     with open(_OUTPUT_PATH, 'r') as f:
-        existing_code = f.readlines()
+        existing_code = f.read().splitlines()
 
     new_code = []
     in_macro = False
