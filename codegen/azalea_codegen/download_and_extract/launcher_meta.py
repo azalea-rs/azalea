@@ -60,11 +60,11 @@ def _fetch_from_mojang(version_id: str, download_name: str) -> bytes:
 
     if download_name not in info['downloads']:
         raise Exception(
-            f'Tried to download {download_name} from {version_id} but that download is not available')
+            f'Tried to download {download_name} for {version_id} but that download is not available')
 
     download_info = info['downloads'][download_name]
 
-    _LOGGER.info(f'Downloading {download_name} from {version_id} ({download_info["url"]} with SHA1 '
+    _LOGGER.info(f'Downloading {download_name} for {version_id} ({download_info["url"]} with SHA1 '
                  f'{download_info["sha1"]} - {download_info["size"]} bytes)')
 
     req = requests.get(download_info['url'])

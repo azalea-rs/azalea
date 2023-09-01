@@ -2,6 +2,9 @@ import os
 import re
 import subprocess
 import traceback
+from typing import TypeVar, Callable
+
+T = TypeVar('T')
 
 
 def run_command(command: list[str], **kwargs):
@@ -74,3 +77,11 @@ def get_root_path(*path: str) -> str:
 
 def padded_hex(n: int):
     return f'0x{n:02x}'
+
+
+def find(lst: list[T], f: Callable[[T], bool]) -> T | None:
+    for item in lst:
+        if f(item):
+            return item
+
+    return None

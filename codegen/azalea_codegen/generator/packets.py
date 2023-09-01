@@ -2,10 +2,9 @@
 import logging
 import re
 
+from azalea_codegen import utils
 from azalea_codegen.utils import Mappings, to_snake_case, to_camel_case, strip_suffix, strip_prefix, \
-    exception_to_string, get_root_path
-from lib import utils
-from lib.utils import padded_hex
+    exception_to_string, get_root_path, padded_hex
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -15,7 +14,7 @@ def _fix_state(state: str) -> str:
     return {'PLAY': 'game'}.get(state, state.lower())
 
 
-def generate_packet(mappings: Mappings, packet_data: dict) -> str:
+def generate_packet(mappings: Mappings, packet_data: dict):
     direction = packet_data['direction'].lower()
     state = _fix_state(packet_data['state'])
     generated_code = []

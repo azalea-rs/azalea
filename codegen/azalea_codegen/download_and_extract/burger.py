@@ -5,9 +5,9 @@ import json
 import logging
 import os
 import pkgutil
+from typing import Type
 from zipfile import ZipFile
 
-import burger.toppings
 from burger.roundedfloats import transform_floats
 from burger.toppings.topping import Topping
 from jawa.classloader import ClassLoader
@@ -20,17 +20,20 @@ _LOGGER = logging.getLogger(__name__)
 _CACHE = {}
 
 
-def import_toppings():
-    """Imports all toppings"""
-    toppings_path = os.path.dirname(burger.toppings.__file__)
-    toppings_names = [name for _, name, _ in pkgutil.iter_modules([toppings_path])]
+def _search_toppings(package: str, exclusions: set[str]) -> dict[str, Type[Topping]]:
+    package_module = importlib.import_module(package, package)
+
+    toppings_names = [name for _, name, _ in pkgutil.iter_modules([
+        os.path.dirname(package_module.__file__)
+    ])]
+
     toppings = {}
 
     for name in toppings_names:
-        if name == 'topping':
+        if name in exclusions:
             continue
 
-        module = importlib.import_module(f'burger.toppings.{name}', 'burger.toppings')
+        module = importlib.import_module(f'{package}.{name}', package)
         found_toppings = set()
 
         for key in module.__dict__:
@@ -43,10 +46,10 @@ def import_toppings():
                 found_toppings.add(item)
 
         if len(found_toppings) == 0:
-            _LOGGER.warning(f'Burger topping {name} does not contain any toppings, skipping')
+            _LOGGER.warning(f'Topping {package}.{name} does not contain any toppings, skipping')
 
         elif len(found_toppings) >= 2:
-            _LOGGER.warning(f'Burger topping {name} contains more than 1 topping, skipping')
+            _LOGGER.warning(f'Topping {package}.{name} contains more than 1 topping, skipping')
 
         else:
             toppings[name] = found_toppings.pop()
@@ -67,7 +70,9 @@ class _DependencyNode:
 
 def _run_burger(client_jar: ZipFile, verbose_toppings: bool = False) -> dict:
     # Load all toppings
-    all_toppings = import_toppings().values()
+    all_toppings = _search_toppings('burger.toppings', {'topping'})
+    all_toppings.update(_search_toppings('azalea_codegen.download_and_extract.toppings', set()))
+    all_toppings = all_toppings.values()
 
     # Order topping execution by building dependency tree
     topping_nodes = []

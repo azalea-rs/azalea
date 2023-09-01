@@ -26,6 +26,7 @@ def run_data_generators(version_id: str) -> str:
     os.makedirs(run_path)
 
     try:
+        # TODO: find java better
         run_command(
             ['java', '-DbundlerMainClass=net.minecraft.data.Main', '-jar', jar_path, '--all', '--output', output_path],
             cwd=run_path
@@ -38,8 +39,8 @@ def run_data_generators(version_id: str) -> str:
 
 
 @functools.cache
-def get_registry_report(version_id: str) -> dict:
-    path = os.path.join(run_data_generators(version_id), 'reports', 'registries.json')
+def get_report(version_id: str, name: str) -> dict:
+    path = os.path.join(run_data_generators(version_id), 'reports', f'{name}.json')
 
     with open(path, 'r') as f:
         return json.load(f)
