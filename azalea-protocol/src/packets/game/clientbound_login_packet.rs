@@ -98,14 +98,14 @@ pub mod registry {
     #[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
     pub struct RegistryRoot {
         #[cfg(feature = "strict_registry")]
-        #[serde(default, rename = "minecraft:trim_pattern")]
+        #[serde(rename = "minecraft:trim_material")]
         pub trim_material: RegistryType<TrimMaterialElement>,
         #[cfg(not(feature = "strict_registry"))]
         #[serde(default, rename = "minecraft:trim_material")]
         pub trim_material: Nbt,
 
         #[cfg(feature = "strict_registry")]
-        #[serde(default, rename = "minecraft:trim_pattern")]
+        #[serde(rename = "minecraft:chat_type")]
         pub chat_type: RegistryType<ChatTypeElement>,
         #[cfg(not(feature = "strict_registry"))]
         #[serde(default, rename = "minecraft:chat_type")]
@@ -115,21 +115,21 @@ pub mod registry {
         pub dimension_type: RegistryType<DimensionTypeElement>,
 
         #[cfg(feature = "strict_registry")]
-        #[serde(default, rename = "minecraft:trim_pattern")]
+        #[serde(rename = "minecraft:worldgen/biome")]
         pub world_type: RegistryType<WorldTypeElement>,
         #[cfg(not(feature = "strict_registry"))]
         #[serde(default, rename = "minecraft:worldgen/biome")]
         pub world_type: Nbt,
 
         #[cfg(feature = "strict_registry")]
-        #[serde(default, rename = "minecraft:trim_pattern")]
+        #[serde(rename = "minecraft:trim_pattern")]
         pub trim_pattern: RegistryType<TrimPatternElement>,
         #[cfg(not(feature = "strict_registry"))]
         #[serde(default, rename = "minecraft:trim_pattern")]
         pub trim_pattern: Nbt,
 
         #[cfg(feature = "strict_registry")]
-        #[serde(default, rename = "minecraft:damage_type")]
+        #[serde(rename = "minecraft:damage_type")]
         pub damage_type: RegistryType<DamageTypeElement>,
         #[cfg(not(feature = "strict_registry"))]
         #[serde(default, rename = "minecraft:damage_type")]
@@ -137,7 +137,7 @@ pub mod registry {
     }
 
     /// A collection of values for a certain type of registry data.
-    #[derive(Debug, Default, Clone, Serialize, Deserialize)]
+    #[derive(Debug, Clone, Serialize, Deserialize)]
     #[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
     pub struct RegistryType<T> {
         #[serde(rename = "type")]
