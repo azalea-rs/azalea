@@ -101,14 +101,14 @@ pub mod registry {
         #[serde(rename = "minecraft:trim_material")]
         pub trim_material: RegistryType<TrimMaterialElement>,
         #[cfg(not(feature = "strict_registry"))]
-        #[serde(rename = "minecraft:trim_material")]
+        #[serde(default, rename = "minecraft:trim_material")]
         pub trim_material: Nbt,
 
         #[cfg(feature = "strict_registry")]
         #[serde(rename = "minecraft:chat_type")]
         pub chat_type: RegistryType<ChatTypeElement>,
         #[cfg(not(feature = "strict_registry"))]
-        #[serde(rename = "minecraft:chat_type")]
+        #[serde(default, rename = "minecraft:chat_type")]
         pub chat_type: Nbt,
 
         #[serde(rename = "minecraft:dimension_type")]
@@ -118,21 +118,21 @@ pub mod registry {
         #[serde(rename = "minecraft:worldgen/biome")]
         pub world_type: RegistryType<WorldTypeElement>,
         #[cfg(not(feature = "strict_registry"))]
-        #[serde(rename = "minecraft:worldgen/biome")]
+        #[serde(default, rename = "minecraft:worldgen/biome")]
         pub world_type: Nbt,
 
         #[cfg(feature = "strict_registry")]
         #[serde(rename = "minecraft:trim_pattern")]
         pub trim_pattern: RegistryType<TrimPatternElement>,
         #[cfg(not(feature = "strict_registry"))]
-        #[serde(rename = "minecraft:trim_pattern")]
+        #[serde(default, rename = "minecraft:trim_pattern")]
         pub trim_pattern: Nbt,
 
         #[cfg(feature = "strict_registry")]
         #[serde(rename = "minecraft:damage_type")]
         pub damage_type: RegistryType<DamageTypeElement>,
         #[cfg(not(feature = "strict_registry"))]
-        #[serde(rename = "minecraft:damage_type")]
+        #[serde(default, rename = "minecraft:damage_type")]
         pub damage_type: Nbt,
     }
 
