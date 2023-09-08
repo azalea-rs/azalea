@@ -13,8 +13,8 @@ proc-macro = true
 
 [dependencies]
 proc-macro2 = "1.0.66"
-quote = "1.0.32"
-syn = "2.0.28"
+quote = "1.0.33"
+syn = "2.0.31"
 
 [features]
 serde = []

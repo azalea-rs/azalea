@@ -9,8 +9,8 @@ version = "0.7.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-reqwest = { version = "0.11.18", default-features = false }
-anyhow = "1.0.74"
+reqwest = { version = "0.11.20", default-features = false }
+anyhow = "1.0.75"
 async-trait = "0.1.73"
 azalea-auth = { path = "../azalea-auth", version = "0.7.0" }
 azalea-block = { path = "../azalea-block", version = "0.7.0" }
@@ -23,11 +23,11 @@ azalea-buf = { path = "../azalea-buf", version = "0.7.0" }
 azalea-protocol = { path = "../azalea-protocol", version = "0.7.0" }
 azalea-registry = { path = "../azalea-registry", version = "0.7.0" }
 azalea-world = { path = "../azalea-world", version = "0.7.0" }
-bevy_app = "0.11.1"
-bevy_ecs = "0.11.1"
-bevy_log = "0.11.1"
-bevy_tasks = "0.11.1"
-bevy_time = "0.11.1"
+bevy_app = "0.11.2"
+bevy_ecs = "0.11.2"
+bevy_log = "0.11.2"
+bevy_tasks = "0.11.2"
+bevy_time = "0.11.2"
 azalea-inventory = { path = "../azalea-inventory", version = "0.7.0" }
 derive_more = { version = "0.99.17", features = ["deref", "deref_mut"] }
 futures = "0.3.28"
@@ -35,9 +35,9 @@ log = "0.4.20"
 nohash-hasher = "0.2.0"
 once_cell = "1.18.0"
 parking_lot = { version = "^0.12.1", features = ["deadlock_detection"] }
-regex = "1.9.3"
-thiserror = "^1.0.46"
-tokio = { version = "^1.31.0", features = ["sync"] }
+regex = "1.9.5"
+thiserror = "^1.0.48"
+tokio = { version = "^1.32.0", features = ["sync"] }
 uuid = "^1.4.1"
 azalea-entity = { version = "0.1.0", path = "../azalea-entity" }
 
