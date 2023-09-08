@@ -6132,7 +6132,7 @@ impl Default for PlayerMetadataBundle {
             player_absorption: PlayerAbsorption(0.0),
             score: Score(0),
             player_mode_customisation: PlayerModeCustomisation(0),
-            player_main_hand: PlayerMainHand(1),
+            player_main_hand: PlayerMainHand(Default::default()),
             shoulder_left: ShoulderLeft(azalea_nbt::Nbt::Compound(Default::default())),
             shoulder_right: ShoulderRight(azalea_nbt::Nbt::Compound(Default::default())),
         }

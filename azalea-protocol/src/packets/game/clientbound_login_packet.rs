@@ -21,5 +21,6 @@ pub struct ClientboundLoginPacket {
     pub simulation_distance: u32,
     pub reduced_debug_info: bool,
     pub show_death_screen: bool,
+    pub do_limited_crafting: bool,
     pub common: CommonPlayerSpawnInfo,
 }

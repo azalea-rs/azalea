@@ -274,7 +274,7 @@ pub fn process_packet_events(ecs: &mut World) {
                 );
                 send_packet_events.send(SendPacketEvent {
                     entity: player_entity,
-                    packet: client_information.clone().get(),
+                    packet: azalea_protocol::packets::game::serverbound_client_information_packet::ServerboundClientInformationPacket { information: client_information.clone() }.get(),
                 });
 
                 system_state.apply(ecs);
@@ -583,17 +583,17 @@ pub fn process_packet_events(ecs: &mut World) {
                 #[allow(clippy::type_complexity)]
                 let mut system_state: SystemState<(
                     Commands,
-                    Query<Option<&InstanceName>>,
+                    Query<(Option<&InstanceName>, Option<&TabList>)>,
                     Res<InstanceContainer>,
                     ResMut<EntityUuidIndex>,
                 )> = SystemState::new(ecs);
                 let (mut commands, mut query, instance_container, mut entity_uuid_index) =
                     system_state.get_mut(ecs);
-                let instance_name = query.get_mut(player_entity).unwrap();
+                let (instance_name, tab_list) = query.get_mut(player_entity).unwrap();
 
                 if let Some(instance_name) = instance_name {
                     let bundle = p.as_entity_bundle((**instance_name).clone());
-                    let mut entity_commands = commands.spawn((
+                    let mut spawned = commands.spawn((
                         MinecraftEntityId(p.id),
                         LoadedBy(HashSet::from([player_entity])),
                         bundle,
@@ -606,13 +606,22 @@ pub fn process_packet_events(ecs: &mut World) {
                         instance
                             .write()
                             .entity_by_id
-                            .insert(MinecraftEntityId(p.id), entity_commands.id());
-                        entity_uuid_index.insert(p.uuid, entity_commands.id());
+                            .insert(MinecraftEntityId(p.id), spawned.id());
+                        entity_uuid_index.insert(p.uuid, spawned.id());
+                    }
+
+                    if let Some(tab_list) = tab_list {
+                        // technically this makes it possible for non-player entities to have
+                        // GameProfileComponents but the server would have to be doing something
+                        // really weird
+                        if let Some(player_info) = tab_list.get(&p.uuid) {
+                            spawned.insert(GameProfileComponent(player_info.profile.clone()));
+                        }
                     }
 
                     // the bundle doesn't include the default entity metadata so we add that
                     // separately
-                    p.apply_metadata(&mut entity_commands);
+                    p.apply_metadata(&mut spawned);
                 } else {
                     warn!("got add player packet but we haven't gotten a login packet yet");
                 }
@@ -658,34 +667,6 @@ pub fn process_packet_events(ecs: &mut World) {
             }
             ClientboundGamePacket::SetEntityLink(p) => {
                 debug!("Got set entity link packet {p:?}");
-            }
-            ClientboundGamePacket::AddPlayer(p) => {
-                debug!("Got add player packet {p:?}");
-
-                #[allow(clippy::type_complexity)]
-                let mut system_state: SystemState<(
-                    Commands,
-                    Query<(&TabList, Option<&InstanceName>)>,
-                )> = SystemState::new(ecs);
-                let (mut commands, mut query) = system_state.get_mut(ecs);
-                let (tab_list, world_name) = query.get_mut(player_entity).unwrap();
-
-                if let Some(InstanceName(world_name)) = world_name {
-                    let bundle = p.as_player_bundle(world_name.clone());
-                    let mut spawned = commands.spawn((
-                        MinecraftEntityId(p.id),
-                        LoadedBy(HashSet::from([player_entity])),
-                        bundle,
-                    ));
-
-                    if let Some(player_info) = tab_list.get(&p.uuid) {
-                        spawned.insert(GameProfileComponent(player_info.profile.clone()));
-                    }
-                } else {
-                    warn!("got add player packet but we haven't gotten a login packet yet");
-                }
-
-                system_state.apply(ecs);
             }
             ClientboundGamePacket::InitializeBorder(p) => {
                 debug!("Got initialize border packet {p:?}");
@@ -846,7 +827,6 @@ pub fn process_packet_events(ecs: &mut World) {
                     if let Some(entity) =
                         instance.write().entity_by_id.remove(&MinecraftEntityId(id))
                     {
-                        println!("despawning entity");
                         commands.entity(entity).despawn();
                     }
                 }

@@ -32,10 +32,7 @@ use azalea_protocol::{
     connect::{Connection, ConnectionError},
     packets::{
         configuration::{ClientboundConfigurationPacket, ServerboundConfigurationPacket},
-        game::{
-            serverbound_client_information_packet::ServerboundClientInformationPacket,
-            ServerboundGamePacket,
-        },
+        game::ServerboundGamePacket,
         handshaking::{
             client_intention_packet::ClientIntentionPacket, ClientboundHandshakePacket,
             ServerboundHandshakePacket,
@@ -485,7 +482,7 @@ impl Client {
     /// ```
     pub async fn set_client_information(
         &self,
-        client_information: ServerboundClientInformationPacket,
+        client_information: ClientInformation,
     ) -> Result<(), crate::raw_connection::WritePacketError> {
         {
             let mut ecs = self.ecs.lock();
@@ -498,7 +495,7 @@ impl Client {
                 "Sending client information (already logged in): {:?}",
                 client_information
             );
-            self.write_packet(client_information.get())?;
+            self.write_packet(azalea_protocol::packets::game::serverbound_client_information_packet::ServerboundClientInformationPacket { information: client_information.clone() }.get())?;
         }
 
         Ok(())

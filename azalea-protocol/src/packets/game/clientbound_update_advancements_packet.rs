@@ -18,7 +18,6 @@ pub struct ClientboundUpdateAdvancementsPacket {
 pub struct Advancement {
     pub parent_id: Option<ResourceLocation>,
     pub display: Option<DisplayInfo>,
-    pub criteria: HashMap<ResourceLocation, Criterion>,
     pub requirements: Vec<Vec<String>>,
     pub sends_telemetry_event: bool,
 }
@@ -103,15 +102,11 @@ pub enum FrameType {
     Goal = 2,
 }
 
-// nothing is written here
-#[derive(Clone, Debug, McBuf)]
-pub struct Criterion {}
-
-pub type AdvancementProgress = HashMap<ResourceLocation, CriterionProgress>;
+pub type AdvancementProgress = HashMap<String, CriterionProgress>;
 
 #[derive(Clone, Debug, McBuf)]
 pub struct CriterionProgress {
-    date: Option<u64>,
+    pub date: Option<u64>,
 }
 
 #[derive(Clone, Debug, McBuf)]
@@ -146,7 +141,6 @@ mod tests {
                         x: 0.0,
                         y: 0.0,
                     }),
-                    criteria: HashMap::new(),
                     requirements: Vec::new(),
                     sends_telemetry_event: false,
                 },

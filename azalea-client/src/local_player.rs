@@ -3,10 +3,9 @@ use std::{collections::HashMap, io, sync::Arc};
 use azalea_auth::game_profile::GameProfile;
 use azalea_core::{ChunkPos, GameMode};
 use azalea_entity::{Dead, Position};
+pub use azalea_protocol::packets::configuration::serverbound_client_information_packet::ClientInformation;
 use azalea_protocol::packets::game::{
-    clientbound_player_abilities_packet::ClientboundPlayerAbilitiesPacket,
-    serverbound_client_information_packet::ServerboundClientInformationPacket,
-    ServerboundGamePacket,
+    clientbound_player_abilities_packet::ClientboundPlayerAbilitiesPacket, ServerboundGamePacket,
 };
 use azalea_world::{Instance, InstanceContainer, InstanceName, PartialInstance};
 use bevy_ecs::{
@@ -80,11 +79,6 @@ pub struct LocalGameMode {
     pub current: GameMode,
     pub previous: Option<GameMode>,
 }
-
-/// A component that contains some of the "settings" for this client that are
-/// sent to the server, such as render distance. This is only present on local
-/// players.
-pub type ClientInformation = ServerboundClientInformationPacket;
 
 /// A component that contains the abilities the player has, like flying
 /// or instantly breaking blocks. This is only present on local players.
