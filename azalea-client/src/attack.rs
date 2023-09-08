@@ -1,8 +1,9 @@
 use azalea_core::GameMode;
 use azalea_entity::{
     metadata::{ShiftKeyDown, Sprinting},
-    Attributes, Physics,
+    update_bounding_box, Attributes, Physics,
 };
+use azalea_physics::PhysicsSet;
 use azalea_protocol::packets::game::serverbound_interact_packet::{
     self, ServerboundInteractPacket,
 };
@@ -14,6 +15,8 @@ use derive_more::{Deref, DerefMut};
 use crate::{
     interact::SwingArmEvent,
     local_player::{LocalGameMode, SendPacketEvent},
+    movement::walk_listener,
+    respawn::perform_respawn,
     Client,
 };
 
@@ -21,12 +24,18 @@ pub struct AttackPlugin;
 impl Plugin for AttackPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<AttackEvent>()
-            .add_systems(Update, handle_attack_event)
+            .add_systems(
+                Update,
+                handle_attack_event
+                    .before(update_bounding_box)
+                    .before(walk_listener)
+                    .after(perform_respawn),
+            )
             .add_systems(
                 FixedUpdate,
                 (
                     increment_ticks_since_last_attack,
-                    update_attack_strength_scale,
+                    update_attack_strength_scale.after(PhysicsSet),
                 )
                     .chain(),
             );

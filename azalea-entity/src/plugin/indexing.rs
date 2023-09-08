@@ -3,11 +3,13 @@
 use azalea_core::ChunkPos;
 use azalea_world::{InstanceContainer, InstanceName, MinecraftEntityId};
 use bevy_ecs::{
+    component::Component,
     entity::Entity,
     query::{Changed, With, Without},
     system::{Commands, Query, Res, ResMut, Resource},
 };
 use log::{debug, error, info, warn};
+use nohash_hasher::IntMap;
 use std::{collections::HashMap, fmt::Debug};
 use uuid::Uuid;
 
@@ -19,6 +21,15 @@ use super::LoadedBy;
 pub struct EntityUuidIndex {
     /// An index of entities by their UUIDs
     entity_by_uuid: HashMap<Uuid, Entity>,
+}
+
+/// An index of Minecraft entity IDs to Azalea ECS entities. This is a
+/// `Component` so local players can keep track of entity IDs independently from
+/// the instance.
+#[derive(Component, Default)]
+pub struct EntityIdIndex {
+    /// An index of entities by their MinecraftEntityId
+    entity_by_id: IntMap<MinecraftEntityId, Entity>,
 }
 
 impl EntityUuidIndex {
@@ -38,6 +49,24 @@ impl EntityUuidIndex {
 
     pub fn insert(&mut self, uuid: Uuid, entity: Entity) {
         self.entity_by_uuid.insert(uuid, entity);
+    }
+}
+
+impl EntityIdIndex {
+    pub fn get(&self, id: &MinecraftEntityId) -> Option<Entity> {
+        self.entity_by_id.get(id).copied()
+    }
+
+    pub fn contains_key(&self, id: &MinecraftEntityId) -> bool {
+        self.entity_by_id.contains_key(id)
+    }
+
+    pub fn insert(&mut self, id: MinecraftEntityId, entity: Entity) {
+        self.entity_by_id.insert(id, entity);
+    }
+
+    pub fn remove(&mut self, id: &MinecraftEntityId) -> Option<Entity> {
+        self.entity_by_id.remove(id)
     }
 }
 
@@ -61,9 +90,10 @@ pub fn deduplicate_entities(
         (Changed<MinecraftEntityId>, Without<LocalEntity>),
     >,
     mut loaded_by_query: Query<&mut LoadedBy>,
+    mut entity_id_index_query: Query<&mut EntityIdIndex>,
     instance_container: Res<InstanceContainer>,
 ) {
-    // if this entity already exists, remove it
+    // if this entity already exists, remove it and keep the old one
     for (new_entity, id, world_name) in query.iter_mut() {
         if let Some(world_lock) = instance_container.get(world_name) {
             let world = world_lock.write();
@@ -76,10 +106,17 @@ pub fn deduplicate_entities(
                 // the reference count
                 let new_loaded_by = loaded_by_query
                     .get(new_entity)
-                    .unwrap_or_else(|_| panic!(
-                        "Entities should always have the LoadedBy component ({new_entity:?} did not)"
-                    ))
+                    .expect("Entities should always have the LoadedBy component ({new_entity:?} did not)")
                     .clone();
+
+                // update the `EntityIdIndex`s of the local players that have this entity loaded
+                for local_player in new_loaded_by.iter() {
+                    let mut entity_id_index = entity_id_index_query
+                        .get_mut(*local_player)
+                        .expect("Local players should always have the EntityIdIndex component ({local_player:?} did not)");
+                    entity_id_index.insert(*id, *old_entity);
+                }
+
                 let old_loaded_by = loaded_by_query.get_mut(*old_entity);
                 // merge them if possible
                 if let Ok(mut old_loaded_by) = old_loaded_by {
@@ -140,8 +177,7 @@ pub fn update_uuid_index(
         if local.is_none() {
             if let Some(old_entity) = entity_infos.entity_by_uuid.get(&uuid) {
                 debug!(
-                    "Entity with UUID {uuid:?} already existed in the world, not adding to
-        index (old ecs id: {old_entity:?} / new ecs id: {entity:?})"
+                    "Entity with UUID {uuid:?} already existed in the world, not adding to index (old ecs id: {old_entity:?} / new ecs id: {entity:?})"
                 );
                 continue;
             }
@@ -169,8 +205,7 @@ pub fn update_entity_by_id_index(
         if local.is_none() {
             if let Some(old_entity) = world.entity_by_id.get(id) {
                 debug!(
-                    "Entity with ID {id:?} already existed in the world, not adding to
-        index (old ecs id: {old_entity:?} / new ecs id: {entity:?})"
+                    "Entity with ID {id:?} already existed in the world, not adding to index (old ecs id: {old_entity:?} / new ecs id: {entity:?})"
                 );
                 continue;
             }
@@ -207,15 +242,41 @@ pub fn update_entity_chunk_positions(
 }
 
 /// Despawn entities that aren't being loaded by anything.
+#[allow(clippy::type_complexity)]
 pub fn remove_despawned_entities_from_indexes(
     mut commands: Commands,
     mut entity_infos: ResMut<EntityUuidIndex>,
     instance_container: Res<InstanceContainer>,
-    query: Query<(Entity, &EntityUuid, &Position, &InstanceName, &LoadedBy), Changed<LoadedBy>>,
+    query: Query<
+        (
+            Entity,
+            &EntityUuid,
+            &MinecraftEntityId,
+            &Position,
+            &InstanceName,
+            &LoadedBy,
+        ),
+        Changed<LoadedBy>,
+    >,
 ) {
-    for (entity, uuid, position, world_name, loaded_by) in &query {
-        let world_lock = instance_container.get(world_name).unwrap();
-        let mut world = world_lock.write();
+    for (entity, uuid, minecraft_id, position, world_name, loaded_by) in &query {
+        let Some(instance_lock) = instance_container.get(world_name) else {
+            // the instance isn't even loaded by us, so we can safely delete the entity
+            debug!(
+                "Despawned entity {entity:?} because it's in an instance that isn't loaded anymore"
+            );
+            if entity_infos.entity_by_uuid.remove(uuid).is_none() {
+                warn!(
+                    "Tried to remove entity {entity:?} from the uuid index but it was not there."
+                );
+            }
+            // and now remove the entity from the ecs
+            commands.entity(entity).despawn();
+
+            continue;
+        };
+
+        let mut instance = instance_lock.write();
 
         // if the entity has no references left, despawn it
         if !loaded_by.is_empty() {
@@ -224,21 +285,24 @@ pub fn remove_despawned_entities_from_indexes(
 
         // remove the entity from the chunk index
         let chunk = ChunkPos::from(*position);
-        if let Some(entities_in_chunk) = world.entities_by_chunk.get_mut(&chunk) {
+        if let Some(entities_in_chunk) = instance.entities_by_chunk.get_mut(&chunk) {
             if entities_in_chunk.remove(&entity) {
                 // remove the chunk if there's no entities in it anymore
                 if entities_in_chunk.is_empty() {
-                    world.entities_by_chunk.remove(&chunk);
+                    instance.entities_by_chunk.remove(&chunk);
                 }
             } else {
                 warn!("Tried to remove entity from chunk {chunk:?} but the entity was not there.");
             }
         } else {
-            warn!("Tried to remove entity from chunk {chunk:?} but the chunk was not found.");
+            debug!("Tried to remove entity from chunk {chunk:?} but the chunk was not found.");
         }
         // remove it from the uuid index
         if entity_infos.entity_by_uuid.remove(uuid).is_none() {
             warn!("Tried to remove entity {entity:?} from the uuid index but it was not there.");
+        }
+        if instance.entity_by_id.remove(minecraft_id).is_none() {
+            warn!("Tried to remove entity {entity:?} from the id index but it was not there.");
         }
         // and now remove the entity from the ecs
         commands.entity(entity).despawn();

@@ -1,10 +1,8 @@
 use crate::client::Client;
-use crate::local_player::{
-    update_in_loaded_chunk, LocalEntityInLoadedChunk, PhysicsState, SendPacketEvent,
-};
+use crate::local_player::{update_in_loaded_chunk, LocalEntityInLoadedChunk, SendPacketEvent};
 use azalea_entity::{metadata::Sprinting, Attributes, Jumping};
 use azalea_entity::{LastSentPosition, LookDirection, Physics, Position};
-use azalea_physics::{force_jump_listener, PhysicsSet};
+use azalea_physics::{handle_force_jump, PhysicsSet};
 use azalea_protocol::packets::game::serverbound_player_command_packet::ServerboundPlayerCommandPacket;
 use azalea_protocol::packets::game::{
     serverbound_move_player_pos_packet::ServerboundMovePlayerPosPacket,
@@ -50,7 +48,7 @@ impl Plugin for PlayerMovePlugin {
                 Update,
                 (sprint_listener, walk_listener)
                     .chain()
-                    .before(force_jump_listener),
+                    .before(handle_force_jump),
             )
             .add_systems(
                 FixedUpdate,
@@ -59,7 +57,7 @@ impl Plugin for PlayerMovePlugin {
                         .chain()
                         .in_set(PhysicsSet),
                     send_sprinting_if_needed.after(update_in_loaded_chunk),
-                    send_position,
+                    send_position.after(PhysicsSet),
                 )
                     .chain(),
             );
@@ -105,8 +103,25 @@ pub struct LastSentLookDirection {
     pub y_rot: f32,
 }
 
+/// Component for entities that can move and sprint. Usually only in
+/// [`LocalPlayer`] entities.
+#[derive(Default, Component, Clone)]
+pub struct PhysicsState {
+    /// Minecraft only sends a movement packet either after 20 ticks or if the
+    /// player moved enough. This is that tick counter.
+    pub position_remainder: u32,
+    pub was_sprinting: bool,
+    // Whether we're going to try to start sprinting this tick. Equivalent to
+    // holding down ctrl for a tick.
+    pub trying_to_sprint: bool,
+
+    pub move_direction: WalkDirection,
+    pub forward_impulse: f32,
+    pub left_impulse: f32,
+}
+
 #[allow(clippy::type_complexity)]
-pub(crate) fn send_position(
+pub fn send_position(
     mut query: Query<
         (
             Entity,

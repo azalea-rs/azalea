@@ -16,10 +16,11 @@ use azalea_entity::{
     clamp_look_direction, metadata::Player, EyeHeight, Jumping, LocalEntity, LookDirection,
     Position,
 };
-use azalea_physics::{force_jump_listener, PhysicsSet};
+use azalea_physics::{handle_force_jump, PhysicsSet};
 use bevy_app::{FixedUpdate, Update};
 use bevy_ecs::prelude::Event;
 use bevy_ecs::schedule::IntoSystemConfigs;
+use log::trace;
 use std::f64::consts::PI;
 
 use crate::pathfinder::PathfinderPlugin;
@@ -35,9 +36,9 @@ impl Plugin for BotPlugin {
                 (
                     insert_bot,
                     look_at_listener
-                        .before(force_jump_listener)
+                        .before(handle_force_jump)
                         .before(clamp_look_direction),
-                    jump_listener,
+                    jump_listener.before(handle_force_jump),
                 ),
             )
             .add_systems(FixedUpdate, stop_jumping.after(PhysicsSet));
@@ -87,7 +88,9 @@ pub trait BotClientExt {
 impl BotClientExt for azalea_client::Client {
     fn jump(&mut self) {
         let mut ecs = self.ecs.lock();
-        ecs.send_event(JumpEvent(self.entity));
+        ecs.send_event(JumpEvent {
+            entity: self.entity,
+        });
     }
 
     fn look_at(&mut self, position: Vec3) {
@@ -136,11 +139,16 @@ impl BotClientExt for azalea_client::Client {
 
 /// Event to jump once.
 #[derive(Event)]
-pub struct JumpEvent(pub Entity);
+pub struct JumpEvent {
+    pub entity: Entity,
+}
 
-fn jump_listener(mut query: Query<(&mut Jumping, &mut Bot)>, mut events: EventReader<JumpEvent>) {
+pub fn jump_listener(
+    mut query: Query<(&mut Jumping, &mut Bot)>,
+    mut events: EventReader<JumpEvent>,
+) {
     for event in events.iter() {
-        if let Ok((mut jumping, mut bot)) = query.get_mut(event.0) {
+        if let Ok((mut jumping, mut bot)) = query.get_mut(event.entity) {
             **jumping = true;
             bot.jumping_once = true;
         }
@@ -162,6 +170,11 @@ fn look_at_listener(
         if let Ok((position, eye_height, mut look_direction)) = query.get_mut(event.entity) {
             let (y_rot, x_rot) =
                 direction_looking_at(&position.up(eye_height.into()), &event.position);
+            trace!(
+                "look at {:?} (currently at {:?})",
+                event.position,
+                **position
+            );
             (look_direction.y_rot, look_direction.x_rot) = (y_rot, x_rot);
         }
     }

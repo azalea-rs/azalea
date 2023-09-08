@@ -20,8 +20,8 @@ use std::sync::Arc;
 use azalea_world::{MinecraftEntityId, PartialInstance};
 use bevy_ecs::{
     prelude::{Component, Entity},
-    query::{Changed, With, Without},
-    system::{Commands, EntityCommand, Query},
+    query::With,
+    system::{EntityCommand, Query},
     world::{EntityMut, World},
 };
 use derive_more::{Deref, DerefMut};
@@ -69,45 +69,33 @@ impl EntityCommand for RelativeEntityUpdate {
         };
 
         let entity_id = *entity_mut.get::<MinecraftEntityId>().unwrap();
-        let Some(updates_received) = entity_mut.get_mut::<UpdatesReceived>() else {
+        if entity_mut.contains::<LocalEntity>() {
             // a client tried to update another client, which isn't allowed
             return;
-        };
+        }
 
         let this_client_updates_received = partial_entity_infos
             .updates_received
             .get(&entity_id)
             .copied();
 
-        let can_update = this_client_updates_received.unwrap_or(1) == **updates_received;
+        let can_update = if let Some(updates_received) = entity_mut.get::<UpdatesReceived>() {
+            this_client_updates_received.unwrap_or(1) == **updates_received
+        } else {
+            // no UpdatesReceived means the entity was just spawned
+            true
+        };
         if can_update {
             let new_updates_received = this_client_updates_received.unwrap_or(0) + 1;
             partial_entity_infos
                 .updates_received
                 .insert(entity_id, new_updates_received);
 
-            **entity_mut.get_mut::<UpdatesReceived>().unwrap() = new_updates_received;
+            entity_mut.insert(UpdatesReceived(new_updates_received));
 
             let mut entity = world.entity_mut(entity);
             (self.update)(&mut entity);
         }
-    }
-}
-
-#[allow(clippy::type_complexity)]
-pub fn add_updates_received(
-    mut commands: Commands,
-    query: Query<
-        Entity,
-        (
-            Changed<MinecraftEntityId>,
-            (Without<UpdatesReceived>, Without<LocalEntity>),
-        ),
-    >,
-) {
-    for entity in query.iter() {
-        // entities always start with 1 update received
-        commands.entity(entity).insert(UpdatesReceived(1));
     }
 }
 

@@ -3,6 +3,7 @@
 #![allow(incomplete_features)]
 #![feature(async_fn_in_trait)]
 #![feature(type_changing_struct_update)]
+#![feature(lazy_cell)]
 
 mod auto_respawn;
 mod bot;

@@ -37,7 +37,8 @@ impl InstanceContainer {
         }
     }
 
-    /// Get a world from the container.
+    /// Get a world from the container. Returns `None` if none of the clients
+    /// are in this world.
     pub fn get(&self, name: &InstanceName) -> Option<Arc<RwLock<Instance>>> {
         self.worlds.get(name).and_then(|world| world.upgrade())
     }

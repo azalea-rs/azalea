@@ -59,16 +59,15 @@ impl Plugin for EntityPlugin {
                 )
                     .in_set(EntityUpdateSet::Index),
                 (
-                    relative_updates::add_updates_received,
                     relative_updates::debug_detect_updates_received_on_local_entities,
                     debug_new_entity,
                     add_dead,
-                    update_bounding_box,
                     clamp_look_direction,
                     update_fluid_on_eyes,
                 ),
             ),
         )
+        .add_systems(Update, update_bounding_box)
         .init_resource::<EntityUuidIndex>();
     }
 }

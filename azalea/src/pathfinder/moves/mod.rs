@@ -1,11 +1,34 @@
-use super::{Node, VerticalVel};
-use azalea_core::{BlockPos, CardinalDirection};
+pub mod basic;
+
+use crate::{JumpEvent, LookAtEvent};
+
+use super::astar;
+use azalea_client::{StartSprintEvent, StartWalkEvent};
+use azalea_core::{BlockPos, Vec3};
 use azalea_physics::collision::{self, BlockWithShape};
 use azalea_world::Instance;
+use bevy_ecs::{entity::Entity, event::EventWriter};
+
+type Edge = astar::Edge<BlockPos, MoveData>;
+
+#[derive(Clone)]
+pub struct MoveData {
+    // pub move_kind: BasicMoves,
+    pub execute: &'static (dyn Fn(ExecuteCtx) + Send + Sync),
+}
 
 /// whether this block is passable
 fn is_block_passable(pos: &BlockPos, world: &Instance) -> bool {
     if let Some(block) = world.chunks.get_block_state(pos) {
+        if block.shape() != &collision::empty_shape() {
+            return false;
+        }
+        if block == azalea_registry::Block::Water.into() {
+            return false;
+        }
+        if block.waterlogged() {
+            return false;
+        }
         block.shape() == &collision::empty_shape()
     } else {
         false
@@ -15,8 +38,7 @@ fn is_block_passable(pos: &BlockPos, world: &Instance) -> bool {
 /// whether this block has a solid hitbox (i.e. we can stand on it)
 fn is_block_solid(pos: &BlockPos, world: &Instance) -> bool {
     if let Some(block) = world.chunks.get_block_state(pos) {
-        // block.shape() == &collision::block_shape()
-        block.shape() != &collision::empty_shape()
+        block.shape() == &collision::block_shape()
     } else {
         false
     }
@@ -49,127 +71,15 @@ fn fall_distance(pos: &BlockPos, world: &Instance) -> u32 {
     distance
 }
 
-const JUMP_COST: f32 = 0.5;
-const WALK_ONE_BLOCK_COST: f32 = 1.0;
-const FALL_ONE_BLOCK_COST: f32 = 0.5;
+pub struct ExecuteCtx<'w1, 'w2, 'w3, 'w4, 'a> {
+    pub entity: Entity,
+    pub target: BlockPos,
+    pub position: Vec3,
 
-pub trait Move: Send + Sync {
-    fn get(&self, world: &Instance, node: &Node) -> Option<MoveResult>;
-}
-pub struct MoveResult {
-    pub node: Node,
-    pub cost: f32,
-}
-
-pub struct ForwardMove(pub CardinalDirection);
-impl Move for ForwardMove {
-    fn get(&self, world: &Instance, node: &Node) -> Option<MoveResult> {
-        let offset = BlockPos::new(self.0.x(), 0, self.0.z());
-
-        if !is_standable(&(node.pos + offset), world) || node.vertical_vel != VerticalVel::None {
-            return None;
-        }
-
-        let cost = WALK_ONE_BLOCK_COST;
-
-        Some(MoveResult {
-            node: Node {
-                pos: node.pos + offset,
-                vertical_vel: VerticalVel::None,
-            },
-            cost,
-        })
-    }
-}
-
-pub struct AscendMove(pub CardinalDirection);
-impl Move for AscendMove {
-    fn get(&self, world: &Instance, node: &Node) -> Option<MoveResult> {
-        let offset = BlockPos::new(self.0.x(), 1, self.0.z());
-
-        if node.vertical_vel != VerticalVel::None
-            || !is_block_passable(&node.pos.up(2), world)
-            || !is_standable(&(node.pos + offset), world)
-        {
-            return None;
-        }
-
-        let cost = WALK_ONE_BLOCK_COST + JUMP_COST;
-
-        Some(MoveResult {
-            node: Node {
-                pos: node.pos + offset,
-                vertical_vel: VerticalVel::None,
-            },
-            cost,
-        })
-    }
-}
-pub struct DescendMove(pub CardinalDirection);
-impl Move for DescendMove {
-    fn get(&self, world: &Instance, node: &Node) -> Option<MoveResult> {
-        let new_horizontal_position = node.pos + BlockPos::new(self.0.x(), 0, self.0.z());
-        let fall_distance = fall_distance(&new_horizontal_position, world);
-        if fall_distance == 0 {
-            return None;
-        }
-        if fall_distance > 3 {
-            return None;
-        }
-        let new_position = new_horizontal_position.down(fall_distance as i32);
-
-        // check whether 3 blocks vertically forward are passable
-        if node.vertical_vel != VerticalVel::None || !is_passable(&new_horizontal_position, world) {
-            return None;
-        }
-
-        let cost = WALK_ONE_BLOCK_COST + FALL_ONE_BLOCK_COST * fall_distance as f32;
-
-        Some(MoveResult {
-            node: Node {
-                pos: new_position,
-                vertical_vel: VerticalVel::None,
-            },
-            cost,
-        })
-    }
-}
-pub struct DiagonalMove(pub CardinalDirection);
-impl Move for DiagonalMove {
-    fn get(&self, world: &Instance, node: &Node) -> Option<MoveResult> {
-        if node.vertical_vel != VerticalVel::None {
-            return None;
-        }
-
-        let right = self.0.right();
-        let offset = BlockPos::new(self.0.x() + right.x(), 0, self.0.z() + right.z());
-
-        if !is_passable(
-            &BlockPos::new(node.pos.x + self.0.x(), node.pos.y, node.pos.z + self.0.z()),
-            world,
-        ) && !is_passable(
-            &BlockPos::new(
-                node.pos.x + self.0.right().x(),
-                node.pos.y,
-                node.pos.z + self.0.right().z(),
-            ),
-            world,
-        ) {
-            return None;
-        }
-        if !is_standable(&(node.pos + offset), world) {
-            return None;
-        }
-        let cost = WALK_ONE_BLOCK_COST * 1.4;
-
-        Some(MoveResult {
-            node: Node {
-                pos: node.pos + offset,
-                vertical_vel: VerticalVel::None,
-            },
-            cost,
-        })
-    }
+    pub look_at_events: &'a mut EventWriter<'w1, LookAtEvent>,
+    pub sprint_events: &'a mut EventWriter<'w2, StartSprintEvent>,
+    pub walk_events: &'a mut EventWriter<'w3, StartWalkEvent>,
+    pub jump_events: &'a mut EventWriter<'w4, JumpEvent>,
 }
 
 #[cfg(test)]

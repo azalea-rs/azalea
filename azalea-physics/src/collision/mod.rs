@@ -4,6 +4,8 @@ mod mergers;
 mod shape;
 mod world_collisions;
 
+use std::ops::Add;
+
 use azalea_core::{Axis, Vec3, AABB, EPSILON};
 use azalea_world::{Instance, MoveEntityError};
 pub use blocks::BlockWithShape;
@@ -55,15 +57,80 @@ fn collide(movement: &Vec3, world: &Instance, physics: &azalea_entity::Physics) 
     // let entity_collisions = world.get_entity_collisions(self,
     // entity_bounding_box.expand_towards(movement));
     let entity_collisions = Vec::new();
-    if movement.length_sqr() == 0.0 {
+    let collided_movement = if movement.length_sqr() == 0.0 {
         *movement
     } else {
-        collide_bounding_box(movement, &entity_bounding_box, world, entity_collisions)
+        collide_bounding_box(
+            movement,
+            &entity_bounding_box,
+            world,
+            entity_collisions.clone(),
+        )
+    };
+
+    let x_collision = movement.x != collided_movement.x;
+    let y_collision = movement.y != collided_movement.y;
+    let z_collision = movement.z != collided_movement.z;
+
+    let on_ground = physics.on_ground || y_collision && movement.y < 0.;
+
+    let max_up_step = 0.6;
+    if on_ground && (x_collision || z_collision) {
+        let mut hypothetical_new_position = collide_bounding_box(
+            &Vec3 {
+                x: movement.x,
+                y: max_up_step,
+                z: movement.z,
+            },
+            &entity_bounding_box,
+            world,
+            entity_collisions.clone(),
+        );
+        let step_up_position = collide_bounding_box(
+            &Vec3 {
+                x: 0.,
+                y: max_up_step,
+                z: 0.,
+            },
+            &entity_bounding_box.expand_towards(&Vec3::new(movement.x, 0., movement.z)),
+            world,
+            entity_collisions.clone(),
+        );
+        if step_up_position.y < max_up_step {
+            let var11 = collide_bounding_box(
+                &Vec3 {
+                    x: movement.x,
+                    y: 0.,
+                    z: movement.z,
+                },
+                &entity_bounding_box.move_relative(&step_up_position),
+                world,
+                entity_collisions.clone(),
+            )
+            .add(step_up_position);
+            if var11.horizontal_distance_sqr() > hypothetical_new_position.horizontal_distance_sqr()
+            {
+                hypothetical_new_position = var11;
+            }
+        }
+
+        if hypothetical_new_position.horizontal_distance_sqr()
+            > collided_movement.horizontal_distance_sqr()
+        {
+            return hypothetical_new_position.add(collide_bounding_box(
+                &Vec3 {
+                    x: 0.,
+                    y: -hypothetical_new_position.y + movement.y,
+                    z: 0.,
+                },
+                &entity_bounding_box.move_relative(&hypothetical_new_position),
+                world,
+                entity_collisions.clone(),
+            ));
+        }
     }
 
-    // TODO: stepping (for stairs and stuff)
-
-    // collided_movement
+    collided_movement
 }
 
 /// Move an entity by a given delta, checking for collisions.

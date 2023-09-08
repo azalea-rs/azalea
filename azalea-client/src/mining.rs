@@ -2,6 +2,7 @@ use azalea_block::{Block, BlockState, FluidState};
 use azalea_core::{BlockPos, Direction, GameMode};
 use azalea_entity::{mining::get_mine_progress, FluidOnEyes, Physics};
 use azalea_inventory::ItemSlot;
+use azalea_physics::PhysicsSet;
 use azalea_protocol::packets::game::serverbound_player_action_packet::{
     self, ServerboundPlayerActionPacket,
 };
@@ -15,7 +16,7 @@ use crate::{
         can_use_game_master_blocks, check_is_interaction_restricted, CurrentSequenceNumber,
         HitResultComponent, SwingArmEvent,
     },
-    inventory::InventoryComponent,
+    inventory::{InventoryComponent, InventorySet},
     local_player::{LocalGameMode, PermissionLevel, PlayerAbilities, SendPacketEvent},
     Client,
 };
@@ -30,7 +31,7 @@ impl Plugin for MinePlugin {
             .add_event::<StopMiningBlockEvent>()
             .add_event::<MineBlockProgressEvent>()
             .add_event::<AttackBlockEvent>()
-            .add_systems(FixedUpdate, continue_mining_block)
+            .add_systems(FixedUpdate, continue_mining_block.before(PhysicsSet))
             .add_systems(
                 Update,
                 (
@@ -39,10 +40,22 @@ impl Plugin for MinePlugin {
                     handle_finish_mining_block_event,
                     handle_stop_mining_block_event,
                 )
-                    .chain(),
+                    .chain()
+                    .in_set(MiningSet)
+                    .after(InventorySet)
+                    .before(azalea_entity::update_bounding_box)
+                    .after(azalea_entity::update_fluid_on_eyes)
+                    .after(crate::interact::update_hit_result_component)
+                    .after(crate::attack::handle_attack_event)
+                    .after(crate::interact::handle_block_interact_event)
+                    .before(crate::interact::handle_swing_arm_event)
+                    .before(azalea_physics::handle_force_jump),
             );
     }
 }
+
+#[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
+pub struct MiningSet;
 
 impl Client {
     pub fn start_mining(&mut self, position: BlockPos) {

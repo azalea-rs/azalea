@@ -125,6 +125,11 @@ impl Debug for EntityUuid {
 /// automatically.
 #[derive(Component, Clone, Copy, Debug, Default, PartialEq, Deref, DerefMut)]
 pub struct Position(Vec3);
+impl Position {
+    pub fn new(pos: Vec3) -> Self {
+        Self(pos)
+    }
+}
 impl From<&Position> for Vec3 {
     fn from(value: &Position) -> Self {
         value.0
@@ -184,7 +189,7 @@ impl From<&LastSentPosition> for BlockPos {
 ///
 /// If this is true, the entity will try to jump every tick. (It's equivalent to
 /// the space key being held in vanilla.)
-#[derive(Debug, Component, Clone, Deref, DerefMut)]
+#[derive(Debug, Component, Clone, Deref, DerefMut, Default)]
 pub struct Jumping(bool);
 
 /// A component that contains the direction an entity is looking.
@@ -196,7 +201,7 @@ pub struct LookDirection {
 
 /// The physics data relating to the entity, such as position, velocity, and
 /// bounding box.
-#[derive(Debug, Component)]
+#[derive(Debug, Component, Clone)]
 pub struct Physics {
     pub delta: Vec3,
 
@@ -219,6 +224,26 @@ pub struct Physics {
     pub has_impulse: bool,
 }
 
+impl Physics {
+    pub fn new(dimensions: EntityDimensions, pos: &Vec3) -> Self {
+        Self {
+            delta: Vec3::default(),
+
+            xxa: 0.,
+            yya: 0.,
+            zza: 0.,
+
+            on_ground: false,
+            last_on_ground: false,
+
+            bounding_box: dimensions.make_bounding_box(pos),
+            dimensions,
+
+            has_impulse: false,
+        }
+    }
+}
+
 /// Marker component for entities that are dead.
 ///
 /// "Dead" means that the entity has 0 health.
@@ -232,6 +257,11 @@ pub struct Dead;
 /// an entity, and when raycasting from the entity.
 #[derive(Component, Clone, Copy, Debug, PartialEq, Deref, DerefMut)]
 pub struct EyeHeight(f32);
+impl EyeHeight {
+    pub fn new(height: f32) -> Self {
+        Self(height)
+    }
+}
 impl From<EyeHeight> for f32 {
     fn from(value: EyeHeight) -> Self {
         value.0
@@ -297,22 +327,7 @@ impl EntityBundle {
             world_name: InstanceName(world_name),
             position: Position(pos),
             last_sent_position: LastSentPosition(pos),
-            physics: Physics {
-                delta: Vec3::default(),
-
-                xxa: 0.,
-                yya: 0.,
-                zza: 0.,
-
-                on_ground: false,
-                last_on_ground: false,
-
-                // TODO: have this be based on the entity type
-                bounding_box: dimensions.make_bounding_box(&pos),
-                dimensions,
-
-                has_impulse: false,
-            },
+            physics: Physics::new(dimensions, &pos),
             eye_height: EyeHeight(eye_height),
             direction: LookDirection::default(),
 

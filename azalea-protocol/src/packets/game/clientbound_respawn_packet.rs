@@ -5,6 +5,6 @@ use crate::packets::common::CommonPlayerSpawnInfo;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundRespawnPacket {
-    pub common_player_spawn_info: CommonPlayerSpawnInfo,
+    pub common: CommonPlayerSpawnInfo,
     pub data_to_keep: u8,
 }

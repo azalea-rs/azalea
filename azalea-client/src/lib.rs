@@ -23,19 +23,22 @@ pub mod interact;
 pub mod inventory;
 mod local_player;
 pub mod mining;
-mod movement;
+pub mod movement;
 pub mod packet_handling;
 pub mod ping;
 mod player;
 pub mod raw_connection;
-mod received_registries;
+pub mod received_registries;
 pub mod respawn;
 pub mod task_pool;
 
 pub use account::{Account, AccountOpts};
+pub use azalea_protocol::packets::configuration::serverbound_client_information_packet::ClientInformation;
 pub use client::{start_ecs, Client, DefaultPlugins, JoinError, JoinedClientBundle, TickBroadcast};
 pub use events::Event;
-pub use local_player::{ClientInformation, GameProfileComponent, InstanceHolder, TabList};
-pub use movement::{SprintDirection, StartSprintEvent, StartWalkEvent, WalkDirection};
+pub use local_player::{GameProfileComponent, InstanceHolder, LocalEntityInLoadedChunk};
+pub use movement::{
+    PhysicsState, SprintDirection, StartSprintEvent, StartWalkEvent, WalkDirection,
+};
 pub use player::PlayerInfo;
 pub use received_registries::ReceivedRegistries;

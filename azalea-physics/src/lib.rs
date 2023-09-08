@@ -21,6 +21,7 @@ use bevy_ecs::{
     system::{Query, Res},
 };
 use collision::{move_colliding, MoverType};
+use log::trace;
 
 /// A Bevy [`SystemSet`] for running physics that makes entities do things.
 #[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
@@ -32,9 +33,9 @@ impl Plugin for PhysicsPlugin {
         app.add_event::<ForceJumpEvent>()
             .add_systems(
                 Update,
-                force_jump_listener
-                    .before(azalea_entity::update_bounding_box)
-                    .after(azalea_entity::clamp_look_direction),
+                handle_force_jump
+                    .after(azalea_entity::clamp_look_direction)
+                    .before(azalea_entity::update_bounding_box),
             )
             .add_systems(FixedUpdate, (ai_step, travel).chain().in_set(PhysicsSet));
     }
@@ -168,7 +169,7 @@ pub fn ai_step(
 #[derive(Event)]
 pub struct ForceJumpEvent(pub Entity);
 
-pub fn force_jump_listener(
+pub fn handle_force_jump(
     mut query: Query<(
         &mut Physics,
         &Position,
@@ -227,6 +228,7 @@ fn handle_relative_friction_and_calculate_movement(
     position: &mut Position,
     attributes: &Attributes,
 ) -> Vec3 {
+    trace!("handle_relative_friction_and_calculate_movement {direction:?}");
     move_relative(
         physics,
         direction,

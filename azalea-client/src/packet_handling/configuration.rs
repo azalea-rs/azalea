@@ -1,6 +1,7 @@
 use std::io::Cursor;
 use std::sync::Arc;
 
+use azalea_entity::indexing::EntityIdIndex;
 use azalea_protocol::packets::configuration::serverbound_finish_configuration_packet::ServerboundFinishConfigurationPacket;
 use azalea_protocol::packets::configuration::serverbound_keep_alive_packet::ServerboundKeepAlivePacket;
 use azalea_protocol::packets::configuration::serverbound_pong_packet::ServerboundPongPacket;
@@ -16,6 +17,7 @@ use parking_lot::RwLock;
 
 use crate::client::InConfigurationState;
 use crate::disconnect::DisconnectEvent;
+use crate::local_player::Hunger;
 use crate::packet_handling::game::KeepAliveEvent;
 use crate::raw_connection::RawConnection;
 use crate::ReceivedRegistries;
@@ -130,17 +132,22 @@ pub fn process_packet_events(ecs: &mut World) {
                     .remove::<InConfigurationState>()
                     .insert(crate::JoinedClientBundle {
                         instance_holder,
-                        physics_state: crate::local_player::PhysicsState::default(),
+                        physics_state: crate::PhysicsState::default(),
                         inventory: crate::inventory::InventoryComponent::default(),
                         client_information: crate::ClientInformation::default(),
-                        tab_list: crate::TabList::default(),
+                        tab_list: crate::local_player::TabList::default(),
                         current_sequence_number: crate::interact::CurrentSequenceNumber::default(),
                         last_sent_direction: crate::movement::LastSentLookDirection::default(),
                         abilities: crate::local_player::PlayerAbilities::default(),
                         permission_level: crate::local_player::PermissionLevel::default(),
+                        hunger: Hunger::default(),
+                        chunk_batch_info: crate::chunk_batching::ChunkBatchInfo::default(),
+
+                        entity_id_index: EntityIdIndex::default(),
+
                         mining: crate::mining::MineBundle::default(),
                         attack: crate::attack::AttackBundle::default(),
-                        chunk_batch_info: crate::chunk_batching::ChunkBatchInfo::default(),
+
                         _local_entity: azalea_entity::LocalEntity,
                     });
             }

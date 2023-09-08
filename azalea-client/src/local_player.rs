@@ -3,7 +3,6 @@ use std::{collections::HashMap, io, sync::Arc};
 use azalea_auth::game_profile::GameProfile;
 use azalea_core::{ChunkPos, GameMode};
 use azalea_entity::{Dead, Position};
-pub use azalea_protocol::packets::configuration::serverbound_client_information_packet::ClientInformation;
 use azalea_protocol::packets::game::{
     clientbound_player_abilities_packet::ClientboundPlayerAbilitiesPacket, ServerboundGamePacket,
 };
@@ -26,7 +25,7 @@ use uuid::Uuid;
 use crate::{
     events::{Event as AzaleaEvent, LocalPlayerEvents},
     raw_connection::RawConnection,
-    PlayerInfo, WalkDirection,
+    ClientInformation, PlayerInfo,
 };
 
 /// A component that keeps strong references to our [`PartialInstance`] and
@@ -40,23 +39,6 @@ pub struct InstanceHolder {
     /// same world. (Only relevant if you're using a shared world, i.e. a
     /// swarm)
     pub instance: Arc<RwLock<Instance>>,
-}
-
-/// Component for entities that can move and sprint. Usually only in
-/// [`LocalEntity`]s.
-#[derive(Default, Component)]
-pub struct PhysicsState {
-    /// Minecraft only sends a movement packet either after 20 ticks or if the
-    /// player moved enough. This is that tick counter.
-    pub position_remainder: u32,
-    pub was_sprinting: bool,
-    // Whether we're going to try to start sprinting this tick. Equivalent to
-    // holding down ctrl for a tick.
-    pub trying_to_sprint: bool,
-
-    pub move_direction: WalkDirection,
-    pub forward_impulse: f32,
-    pub left_impulse: f32,
 }
 
 /// A component only present in players that contains the [`GameProfile`] (which
@@ -135,6 +117,15 @@ pub struct Hunger {
     /// vanilla clients but it's a separate counter that makes it so your hunger
     /// only starts decreasing when this is 0.
     pub saturation: f32,
+}
+
+impl Default for Hunger {
+    fn default() -> Self {
+        Hunger {
+            food: 20,
+            saturation: 5.,
+        }
+    }
 }
 
 impl InstanceHolder {

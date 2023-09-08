@@ -8,16 +8,16 @@ use crate::{
     inventory::{InventoryComponent, InventoryPlugin},
     local_player::{
         death_event, handle_send_packet_event, update_in_loaded_chunk, GameProfileComponent,
-        Hunger, InstanceHolder, PermissionLevel, PhysicsState, PlayerAbilities, SendPacketEvent,
+        Hunger, InstanceHolder, PermissionLevel, PlayerAbilities, SendPacketEvent, TabList,
     },
     mining::{self, MinePlugin},
-    movement::{LastSentLookDirection, PlayerMovePlugin},
+    movement::{LastSentLookDirection, PhysicsState, PlayerMovePlugin},
     packet_handling::PacketHandlerPlugin,
     player::retroactively_add_game_profile_component,
     raw_connection::RawConnection,
     respawn::RespawnPlugin,
     task_pool::TaskPoolPlugin,
-    Account, ClientInformation, ReceivedRegistries, TabList,
+    Account, ReceivedRegistries,
 };
 
 use azalea_auth::{game_profile::GameProfile, sessionserver::ClientSessionServerError};
@@ -25,13 +25,17 @@ use azalea_buf::McBufWritable;
 use azalea_chat::FormattedText;
 use azalea_core::{ResourceLocation, Vec3};
 use azalea_entity::{
-    metadata::Health, EntityPlugin, EntityUpdateSet, EyeHeight, LocalEntity, Position,
+    indexing::EntityIdIndex, metadata::Health, EntityPlugin, EntityUpdateSet, EyeHeight,
+    LocalEntity, Position,
 };
-use azalea_physics::{PhysicsPlugin, PhysicsSet};
+use azalea_physics::PhysicsPlugin;
 use azalea_protocol::{
     connect::{Connection, ConnectionError},
     packets::{
-        configuration::{ClientboundConfigurationPacket, ServerboundConfigurationPacket},
+        configuration::{
+            serverbound_client_information_packet::ClientInformation,
+            ClientboundConfigurationPacket, ServerboundConfigurationPacket,
+        },
         game::ServerboundGamePacket,
         handshaking::{
             client_intention_packet::ClientIntentionPacket, ClientboundHandshakePacket,
@@ -49,7 +53,7 @@ use azalea_protocol::{
     resolver, ServerAddress,
 };
 use azalea_world::{Instance, InstanceContainer, InstanceName, PartialInstance};
-use bevy_app::{App, FixedUpdate, Main, Plugin, PluginGroup, PluginGroupBuilder, Update};
+use bevy_app::{App, FixedUpdate, Plugin, PluginGroup, PluginGroupBuilder, Update};
 use bevy_ecs::{
     bundle::Bundle,
     component::Component,
@@ -563,6 +567,9 @@ pub struct JoinedClientBundle {
     pub abilities: PlayerAbilities,
     pub permission_level: PermissionLevel,
     pub chunk_batch_info: ChunkBatchInfo,
+    pub hunger: Hunger,
+
+    pub entity_id_index: EntityIdIndex,
 
     pub mining: mining::MineBundle,
     pub attack: attack::AttackBundle,
@@ -583,7 +590,7 @@ impl Plugin for AzaleaPlugin {
             .add_systems(
                 Update,
                 (
-                    update_in_loaded_chunk.after(PhysicsSet),
+                    update_in_loaded_chunk,
                     // fire the Death event when the player dies.
                     death_event,
                     // add GameProfileComponent when we get an AddPlayerEvent
@@ -687,7 +694,13 @@ impl Plugin for TickBroadcastPlugin {
 pub struct AmbiguityLoggerPlugin;
 impl Plugin for AmbiguityLoggerPlugin {
     fn build(&self, app: &mut App) {
-        app.edit_schedule(Main, |schedule| {
+        app.edit_schedule(Update, |schedule| {
+            schedule.set_build_settings(ScheduleBuildSettings {
+                ambiguity_detection: LogLevel::Warn,
+                ..Default::default()
+            });
+        });
+        app.edit_schedule(FixedUpdate, |schedule| {
             schedule.set_build_settings(ScheduleBuildSettings {
                 ambiguity_detection: LogLevel::Warn,
                 ..Default::default()

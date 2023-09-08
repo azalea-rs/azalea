@@ -1,10 +1,12 @@
 mod astar;
+pub mod costs;
 pub mod goals;
 mod moves;
+pub mod simulation;
 
 use crate::bot::{JumpEvent, LookAtEvent};
 use crate::pathfinder::astar::a_star;
-use crate::{SprintDirection, WalkDirection};
+use crate::WalkDirection;
 
 use crate::app::{App, Plugin};
 use crate::ecs::{
@@ -14,22 +16,26 @@ use crate::ecs::{
     query::{With, Without},
     system::{Commands, Query, Res},
 };
-use astar::Edge;
+use azalea_client::movement::walk_listener;
 use azalea_client::{StartSprintEvent, StartWalkEvent};
-use azalea_core::{BlockPos, CardinalDirection};
+use azalea_core::BlockPos;
 use azalea_entity::metadata::Player;
 use azalea_entity::LocalEntity;
 use azalea_entity::{Physics, Position};
 use azalea_physics::PhysicsSet;
 use azalea_world::{InstanceContainer, InstanceName};
-use bevy_app::{FixedUpdate, Update};
+use bevy_app::{FixedUpdate, PreUpdate, Update};
 use bevy_ecs::prelude::Event;
+use bevy_ecs::query::Changed;
 use bevy_ecs::schedule::IntoSystemConfigs;
 use bevy_tasks::{AsyncComputeTaskPool, Task};
 use futures_lite::future;
-use log::{debug, error};
+use log::{debug, error, trace};
 use std::collections::VecDeque;
 use std::sync::Arc;
+use std::time::Duration;
+
+use self::moves::ExecuteCtx;
 
 #[derive(Clone, Default)]
 pub struct PathfinderPlugin;
@@ -41,15 +47,20 @@ impl Plugin for PathfinderPlugin {
                 FixedUpdate,
                 // putting systems in the FixedUpdate schedule makes them run every Minecraft tick
                 // (every 50 milliseconds).
-                tick_execute_path.before(PhysicsSet),
+                tick_execute_path
+                    .after(PhysicsSet)
+                    .after(azalea_client::movement::send_position),
             )
+            .add_systems(PreUpdate, add_default_pathfinder)
             .add_systems(
                 Update,
                 (
                     goto_listener,
-                    add_default_pathfinder,
-                    (handle_tasks, path_found_listener).chain(),
-                ),
+                    handle_tasks,
+                    path_found_listener,
+                    stop_pathfinding_on_instance_change.before(walk_listener),
+                )
+                    .chain(),
             );
     }
 }
@@ -57,7 +68,7 @@ impl Plugin for PathfinderPlugin {
 /// A component that makes this entity able to pathfind.
 #[derive(Component, Default)]
 pub struct Pathfinder {
-    pub path: VecDeque<Node>,
+    pub path: VecDeque<astar::Movement<BlockPos, moves::MoveData>>,
 }
 #[allow(clippy::type_complexity)]
 fn add_default_pathfinder(
@@ -96,7 +107,7 @@ pub struct GotoEvent {
 #[derive(Event)]
 pub struct PathFoundEvent {
     pub entity: Entity,
-    pub path: VecDeque<Node>,
+    pub path: Option<VecDeque<astar::Movement<BlockPos, moves::MoveData>>>,
 }
 
 #[derive(Component)]
@@ -108,16 +119,15 @@ fn goto_listener(
     mut query: Query<(&Position, &InstanceName)>,
     instance_container: Res<InstanceContainer>,
 ) {
+    let successors_fn = moves::basic::basic_move;
+
     let thread_pool = AsyncComputeTaskPool::get();
 
     for event in events.iter() {
         let (position, world_name) = query
             .get_mut(event.entity)
             .expect("Called goto on an entity that's not in the world");
-        let start = Node {
-            pos: BlockPos::from(position),
-            vertical_vel: VerticalVel::None,
-        };
+        let start = BlockPos::from(position);
 
         let world_lock = instance_container
             .get(world_name)
@@ -130,73 +140,33 @@ fn goto_listener(
         let task = thread_pool.spawn(async move {
             debug!("start: {start:?}, end: {end:?}");
 
-            let possible_moves: Vec<&dyn moves::Move> = vec![
-                &moves::ForwardMove(CardinalDirection::North),
-                &moves::ForwardMove(CardinalDirection::East),
-                &moves::ForwardMove(CardinalDirection::South),
-                &moves::ForwardMove(CardinalDirection::West),
-                //
-                &moves::AscendMove(CardinalDirection::North),
-                &moves::AscendMove(CardinalDirection::East),
-                &moves::AscendMove(CardinalDirection::South),
-                &moves::AscendMove(CardinalDirection::West),
-                //
-                &moves::DescendMove(CardinalDirection::North),
-                &moves::DescendMove(CardinalDirection::East),
-                &moves::DescendMove(CardinalDirection::South),
-                &moves::DescendMove(CardinalDirection::West),
-                //
-                &moves::DiagonalMove(CardinalDirection::North),
-                &moves::DiagonalMove(CardinalDirection::East),
-                &moves::DiagonalMove(CardinalDirection::South),
-                &moves::DiagonalMove(CardinalDirection::West),
-            ];
-
-            let successors = |node: &Node| {
-                let mut edges = Vec::new();
-
+            let successors = |pos: BlockPos| {
                 let world = world_lock.read();
-                for possible_move in &possible_moves {
-                    let possible_move = possible_move.get(&world, node);
-                    if let Some(possible_move) = possible_move {
-                        edges.push(Edge {
-                            target: possible_move.node,
-                            cost: possible_move.cost,
-                        });
-                    }
-                }
-                edges
+                successors_fn(&world, pos)
             };
 
-            // let mut pf = MTDStarLite::new(
-            //     start,
-            //     end,
-            //     |n| goal.heuristic(n),
-            //     successors,
-            //     successors,
-            //     |n| goal.success(n),
-            // );
-
             let start_time = std::time::Instant::now();
-            let p = a_star(
+            let astar::Path { movements, partial } = a_star(
                 start,
                 |n| goal.heuristic(n),
                 successors,
                 |n| goal.success(n),
+                Duration::from_secs(1),
             );
             let end_time = std::time::Instant::now();
-            debug!("path: {p:?}");
+            debug!("partial: {partial:?}");
             debug!("time: {:?}", end_time - start_time);
 
-            // convert the Option<Vec<Node>> to a VecDeque<Node>
-            if let Some(p) = p {
-                let path = p.into_iter().collect::<VecDeque<_>>();
-                // commands.entity(event.entity).insert(Pathfinder { path: p });
-                Some(PathFoundEvent { entity, path })
-            } else {
-                error!("no path found");
-                None
+            println!("Path:");
+            for movement in &movements {
+                println!("  {:?}", movement.target);
             }
+
+            let path = movements.into_iter().collect::<VecDeque<_>>();
+            Some(PathFoundEvent {
+                entity,
+                path: Some(path),
+            })
         });
 
         commands.spawn(ComputePath(task));
@@ -227,7 +197,12 @@ fn path_found_listener(mut events: EventReader<PathFoundEvent>, mut query: Query
         let mut pathfinder = query
             .get_mut(event.entity)
             .expect("Path found for an entity that doesn't have a pathfinder");
-        pathfinder.path = event.path.clone();
+        if let Some(path) = &event.path {
+            pathfinder.path = path.to_owned();
+        } else {
+            error!("No path found");
+            pathfinder.path.clear();
+        }
     }
 }
 
@@ -240,29 +215,12 @@ fn tick_execute_path(
 ) {
     for (entity, mut pathfinder, position, physics) in &mut query {
         loop {
-            let Some(target) = pathfinder.path.front() else {
+            let Some(movement) = pathfinder.path.front() else {
                 break;
             };
-            let center = target.pos.center();
-            // println!("going to {center:?} (at {pos:?})", pos = bot.entity().pos());
-            look_at_events.send(LookAtEvent {
-                entity,
-                position: center,
-            });
-            debug!(
-                "tick: pathfinder {entity:?}; going to {:?}; currently at {position:?}",
-                target.pos
-            );
-            sprint_events.send(StartSprintEvent {
-                entity,
-                direction: SprintDirection::Forward,
-            });
-            // check if we should jump
-            if target.pos.y > position.y.floor() as i32 {
-                jump_events.send(JumpEvent(entity));
-            }
-
-            if target.is_reached(position, physics) {
+            // we check if the goal was reached *before* actually executing the movement so
+            // we don't unnecessarily execute a movement when it wasn't necessary
+            if is_goal_reached(movement.target, position, physics) {
                 // println!("reached target");
                 pathfinder.path.pop_front();
                 if pathfinder.path.is_empty() {
@@ -273,54 +231,154 @@ fn tick_execute_path(
                     });
                 }
                 // tick again, maybe we already reached the next node!
-            } else {
-                break;
+                continue;
             }
+
+            let ctx = ExecuteCtx {
+                entity,
+                target: movement.target,
+                position: **position,
+                look_at_events: &mut look_at_events,
+                sprint_events: &mut sprint_events,
+                walk_events: &mut walk_events,
+                jump_events: &mut jump_events,
+            };
+            trace!("executing move");
+            (movement.data.execute)(ctx);
+            break;
         }
     }
 }
 
-/// Information about our vertical velocity
-#[derive(Eq, PartialEq, Hash, Clone, Copy, Debug)]
-pub enum VerticalVel {
-    None,
-    /// No vertical velocity, but we're not on the ground
-    NoneMidair,
-    // less than 3 blocks (no fall damage)
-    FallingLittle,
-}
-
-#[derive(Eq, PartialEq, Hash, Clone, Copy, Debug)]
-pub struct Node {
-    pub pos: BlockPos,
-    pub vertical_vel: VerticalVel,
+fn stop_pathfinding_on_instance_change(
+    mut query: Query<(Entity, &mut Pathfinder), Changed<InstanceName>>,
+    mut walk_events: EventWriter<StartWalkEvent>,
+) {
+    for (entity, mut pathfinder) in &mut query {
+        if !pathfinder.path.is_empty() {
+            debug!("instance changed, clearing path");
+            pathfinder.path.clear();
+            walk_events.send(StartWalkEvent {
+                entity,
+                direction: WalkDirection::None,
+            });
+        }
+    }
 }
 
 pub trait Goal {
-    fn heuristic(&self, n: &Node) -> f32;
-    fn success(&self, n: &Node) -> bool;
+    fn heuristic(&self, n: BlockPos) -> f32;
+    fn success(&self, n: BlockPos) -> bool;
     // TODO: this should be removed and mtdstarlite should stop depending on
     // being given a goal node
-    fn goal_node(&self) -> Node;
+    fn goal_node(&self) -> BlockPos;
 }
 
-impl Node {
-    /// Returns whether the entity is at the node and should start going to the
-    /// next node.
-    #[must_use]
-    pub fn is_reached(&self, position: &Position, physics: &Physics) -> bool {
-        // println!(
-        //     "entity.delta.y: {} {:?}=={:?}, self.vertical_vel={:?}",
-        //     entity.delta.y,
-        //     BlockPos::from(entity.pos()),
-        //     self.pos,
-        //     self.vertical_vel
-        // );
-        BlockPos::from(position) == self.pos
-            && match self.vertical_vel {
-                VerticalVel::NoneMidair => physics.delta.y > -0.1 && physics.delta.y < 0.1,
-                VerticalVel::None => physics.on_ground,
-                VerticalVel::FallingLittle => physics.delta.y < -0.1,
-            }
+/// Returns whether the entity is at the node and should start going to the
+/// next node.
+#[must_use]
+pub fn is_goal_reached(goal_pos: BlockPos, current_pos: &Position, physics: &Physics) -> bool {
+    // println!(
+    //     "entity.delta.y: {} {:?}=={:?}, self.vertical_vel={:?}",
+    //     entity.delta.y,
+    //     BlockPos::from(entity.pos()),
+    //     self.pos,
+    //     self.vertical_vel
+    // );
+    BlockPos::from(current_pos) == goal_pos && physics.on_ground
+}
+
+#[cfg(test)]
+mod tests {
+    use std::{collections::HashSet, sync::Arc};
+
+    use azalea_core::{BlockPos, ChunkPos, Vec3};
+    use azalea_world::{Chunk, ChunkStorage, PartialChunkStorage};
+    use bevy_log::LogPlugin;
+    use log::info;
+
+    use super::{
+        goals::BlockPosGoal,
+        simulation::{SimulatedPlayerBundle, Simulation},
+        GotoEvent,
+    };
+
+    fn setup_simulation(
+        partial_chunks: &mut PartialChunkStorage,
+        start_pos: BlockPos,
+        end_pos: BlockPos,
+        solid_blocks: Vec<BlockPos>,
+    ) -> Simulation {
+        let mut chunk_positions = HashSet::new();
+        for block_pos in &solid_blocks {
+            chunk_positions.insert(ChunkPos::from(block_pos));
+        }
+
+        let mut chunks = ChunkStorage::default();
+        for chunk_pos in chunk_positions {
+            partial_chunks.set(&chunk_pos, Some(Chunk::default()), &mut chunks);
+        }
+        for block_pos in solid_blocks {
+            chunks.set_block_state(&block_pos, azalea_registry::Block::Stone.into());
+        }
+        let player = SimulatedPlayerBundle::new(Vec3::new(
+            start_pos.x as f64 + 0.5,
+            start_pos.y as f64,
+            start_pos.z as f64 + 0.5,
+        ));
+        let mut simulation = Simulation::new(chunks, player);
+        simulation.app.add_plugins(LogPlugin {
+            level: bevy_log::Level::TRACE,
+            filter: "".to_string(),
+        });
+
+        simulation.app.world.send_event(GotoEvent {
+            entity: simulation.entity,
+            goal: Arc::new(BlockPosGoal::from(end_pos)),
+        });
+        simulation
+    }
+
+    #[test]
+    fn test_simple_forward() {
+        let mut partial_chunks = PartialChunkStorage::default();
+        let mut simulation = setup_simulation(
+            &mut partial_chunks,
+            BlockPos::new(0, 71, 0),
+            BlockPos::new(0, 71, 1),
+            vec![BlockPos::new(0, 70, 0), BlockPos::new(0, 70, 1)],
+        );
+        for _ in 0..20 {
+            simulation.tick();
+        }
+        assert_eq!(
+            BlockPos::from(simulation.position()),
+            BlockPos::new(0, 71, 1)
+        );
+    }
+
+    #[test]
+    fn test_double_diagonal_with_walls() {
+        let mut partial_chunks = PartialChunkStorage::default();
+        let mut simulation = setup_simulation(
+            &mut partial_chunks,
+            BlockPos::new(0, 71, 0),
+            BlockPos::new(2, 71, 2),
+            vec![
+                BlockPos::new(0, 70, 0),
+                BlockPos::new(1, 70, 1),
+                BlockPos::new(2, 70, 2),
+                BlockPos::new(1, 72, 0),
+                BlockPos::new(2, 72, 1),
+            ],
+        );
+        for i in 0..30 {
+            simulation.tick();
+            info!("-- tick #{i} --")
+        }
+        assert_eq!(
+            BlockPos::from(simulation.position()),
+            BlockPos::new(2, 71, 2)
+        );
     }
 }

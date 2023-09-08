@@ -1,6 +1,6 @@
 use azalea_core::{Vec3, AABB};
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct EntityDimensions {
     pub width: f32,
     pub height: f32,

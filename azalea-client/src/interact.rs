@@ -27,7 +27,7 @@ use derive_more::{Deref, DerefMut};
 use log::warn;
 
 use crate::{
-    inventory::InventoryComponent,
+    inventory::{InventoryComponent, InventorySet},
     local_player::{
         handle_send_packet_event, LocalGameMode, PermissionLevel, PlayerAbilities, SendPacketEvent,
     },
@@ -50,7 +50,9 @@ impl Plugin for InteractPlugin {
                     )
                         .before(handle_send_packet_event)
                         .chain(),
-                    update_modifiers_for_held_item,
+                    update_modifiers_for_held_item
+                        .after(InventorySet)
+                        .after(crate::movement::walk_listener),
                 ),
             );
     }
@@ -149,7 +151,7 @@ pub fn handle_block_interact_event(
 }
 
 #[allow(clippy::type_complexity)]
-fn update_hit_result_component(
+pub fn update_hit_result_component(
     mut commands: Commands,
     mut query: Query<(
         Entity,
@@ -295,7 +297,7 @@ pub fn can_use_game_master_blocks(
 pub struct SwingArmEvent {
     pub entity: Entity,
 }
-fn handle_swing_arm_event(
+pub fn handle_swing_arm_event(
     mut events: EventReader<SwingArmEvent>,
     mut send_packet_events: EventWriter<SendPacketEvent>,
 ) {
