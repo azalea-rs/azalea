@@ -115,8 +115,8 @@ impl Plugin for EventPlugin {
                 add_player_listener,
                 update_player_listener,
                 remove_player_listener,
-                death_listener,
                 keepalive_listener,
+                death_listener,
             ),
         )
         .add_systems(

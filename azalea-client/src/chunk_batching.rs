@@ -8,7 +8,12 @@ use azalea_protocol::packets::game::serverbound_chunk_batch_received_packet::Ser
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 
-use crate::local_player::{handle_send_packet_event, SendPacketEvent};
+use crate::{
+    interact::handle_block_interact_event,
+    inventory::InventorySet,
+    local_player::{handle_send_packet_event, SendPacketEvent},
+    respawn::perform_respawn,
+};
 
 pub struct ChunkBatchingPlugin;
 impl Plugin for ChunkBatchingPlugin {
@@ -20,7 +25,10 @@ impl Plugin for ChunkBatchingPlugin {
                 handle_chunk_batch_finished_event,
             )
                 .chain()
-                .before(handle_send_packet_event),
+                .before(handle_send_packet_event)
+                .before(InventorySet)
+                .before(handle_block_interact_event)
+                .before(perform_respawn),
         )
         .add_event::<ChunkBatchStartEvent>()
         .add_event::<ChunkBatchFinishedEvent>();

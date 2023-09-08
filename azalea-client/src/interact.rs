@@ -27,10 +27,12 @@ use derive_more::{Deref, DerefMut};
 use log::warn;
 
 use crate::{
+    attack::handle_attack_event,
     inventory::{InventoryComponent, InventorySet},
     local_player::{
         handle_send_packet_event, LocalGameMode, PermissionLevel, PlayerAbilities, SendPacketEvent,
     },
+    respawn::perform_respawn,
     Client,
 };
 
@@ -49,6 +51,9 @@ impl Plugin for InteractPlugin {
                         handle_swing_arm_event,
                     )
                         .before(handle_send_packet_event)
+                        .after(InventorySet)
+                        .after(perform_respawn)
+                        .after(handle_attack_event)
                         .chain(),
                     update_modifiers_for_held_item
                         .after(InventorySet)

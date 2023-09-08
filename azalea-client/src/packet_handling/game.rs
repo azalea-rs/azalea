@@ -100,20 +100,6 @@ pub struct DeathEvent {
     pub packet: Option<ClientboundPlayerCombatKillPacket>,
 }
 
-pub fn death_event_on_0_health(
-    query: Query<(Entity, &Health), Changed<Health>>,
-    mut death_events: EventWriter<DeathEvent>,
-) {
-    for (entity, health) in query.iter() {
-        if **health == 0. {
-            death_events.send(DeathEvent {
-                entity,
-                packet: None,
-            });
-        }
-    }
-}
-
 /// A KeepAlive packet is sent from the server to verify that the client is
 /// still connected.
 #[derive(Event, Debug, Clone)]

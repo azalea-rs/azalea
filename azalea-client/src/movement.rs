@@ -2,7 +2,7 @@ use crate::client::Client;
 use crate::local_player::{update_in_loaded_chunk, LocalEntityInLoadedChunk, SendPacketEvent};
 use azalea_entity::{metadata::Sprinting, Attributes, Jumping};
 use azalea_entity::{LastSentPosition, LookDirection, Physics, Position};
-use azalea_physics::{handle_force_jump, PhysicsSet};
+use azalea_physics::{ai_step, handle_force_jump, PhysicsSet};
 use azalea_protocol::packets::game::serverbound_player_command_packet::ServerboundPlayerCommandPacket;
 use azalea_protocol::packets::game::{
     serverbound_move_player_pos_packet::ServerboundMovePlayerPosPacket,
@@ -55,7 +55,8 @@ impl Plugin for PlayerMovePlugin {
                 (
                     (tick_controls, local_player_ai_step)
                         .chain()
-                        .in_set(PhysicsSet),
+                        .in_set(PhysicsSet)
+                        .before(ai_step),
                     send_sprinting_if_needed.after(update_in_loaded_chunk),
                     send_position.after(PhysicsSet),
                 )

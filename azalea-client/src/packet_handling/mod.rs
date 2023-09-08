@@ -1,8 +1,8 @@
-use azalea_entity::EntityUpdateSet;
+use azalea_entity::{metadata::Health, EntityUpdateSet};
 use bevy_app::{App, First, Plugin, PreUpdate, Update};
 use bevy_ecs::prelude::*;
 
-use crate::chat::ChatReceivedEvent;
+use crate::{chat::ChatReceivedEvent, events::death_listener};
 
 use self::game::{
     AddPlayerEvent, DeathEvent, KeepAliveEvent, RemovePlayerEvent, UpdatePlayerEvent,
@@ -12,6 +12,20 @@ pub mod configuration;
 pub mod game;
 
 pub struct PacketHandlerPlugin;
+
+pub fn death_event_on_0_health(
+    query: Query<(Entity, &Health), Changed<Health>>,
+    mut death_events: EventWriter<DeathEvent>,
+) {
+    for (entity, health) in query.iter() {
+        if **health == 0. {
+            death_events.send(DeathEvent {
+                entity,
+                packet: None,
+            });
+        }
+    }
+}
 
 impl Plugin for PacketHandlerPlugin {
     fn build(&self, app: &mut App) {
@@ -28,7 +42,7 @@ impl Plugin for PacketHandlerPlugin {
                 // we want to index and deindex right after
                 .before(EntityUpdateSet::Deindex),
         )
-        .add_systems(Update, game::death_event_on_0_health)
+        .add_systems(Update, death_event_on_0_health.before(death_listener))
         // we do this instead of add_event so we can handle the events ourselves
         .init_resource::<Events<game::PacketEvent>>()
         .init_resource::<Events<configuration::PacketEvent>>()

@@ -27,6 +27,7 @@ use log::warn;
 
 use crate::{
     local_player::{handle_send_packet_event, PlayerAbilities, SendPacketEvent},
+    respawn::perform_respawn,
     Client,
 };
 
@@ -48,7 +49,8 @@ impl Plugin for InventoryPlugin {
                     handle_client_side_close_container_event,
                 )
                     .chain()
-                    .in_set(InventorySet),
+                    .in_set(InventorySet)
+                    .before(perform_respawn),
             );
     }
 }
