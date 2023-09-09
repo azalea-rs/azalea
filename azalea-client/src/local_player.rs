@@ -34,7 +34,7 @@ use crate::{
 /// [`Client`]: crate::Client
 #[derive(Component)]
 pub struct LocalPlayer {
-    packet_writer: mpsc::UnboundedSender<ServerboundGamePacket>,
+    pub packet_writer: mpsc::UnboundedSender<ServerboundGamePacket>,
 
     /// The partial instance is the world this client currently has loaded. It
     /// has a limited render distance.
