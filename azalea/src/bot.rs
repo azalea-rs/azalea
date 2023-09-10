@@ -15,7 +15,7 @@ use azalea_core::{BlockPos, Vec3};
 use azalea_entity::{
     clamp_look_direction, metadata::Player, EyeHeight, Jumping, Local, LookDirection, Position,
 };
-use azalea_physics::{handle_force_jump, PhysicsSet};
+use azalea_physics::PhysicsSet;
 use bevy_app::{FixedUpdate, Update};
 use bevy_ecs::prelude::Event;
 use bevy_ecs::schedule::IntoSystemConfigs;
@@ -34,10 +34,8 @@ impl Plugin for BotPlugin {
                 Update,
                 (
                     insert_bot,
-                    look_at_listener
-                        .before(handle_force_jump)
-                        .before(clamp_look_direction),
-                    jump_listener.before(handle_force_jump),
+                    look_at_listener.before(clamp_look_direction),
+                    jump_listener,
                 ),
             )
             .add_systems(FixedUpdate, stop_jumping.after(PhysicsSet));

@@ -31,12 +31,6 @@ pub struct PhysicsPlugin;
 impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<ForceJumpEvent>()
-            .add_systems(
-                Update,
-                handle_force_jump
-                    .after(azalea_entity::clamp_look_direction)
-                    .before(azalea_entity::update_bounding_box),
-            )
             .add_systems(FixedUpdate, (ai_step, travel).chain().in_set(PhysicsSet));
     }
 }
@@ -125,15 +119,32 @@ fn travel(
 /// stuff.
 pub fn ai_step(
     mut query: Query<
-        (Entity, &mut Physics, Option<&Jumping>),
+        (
+            Entity,
+            &mut Physics,
+            Option<&Jumping>,
+            &Position,
+            &LookDirection,
+            &Sprinting,
+            &InstanceName,
+        ),
         With<Local>,
         // TODO: ai_step should only run for players in loaded chunks
         // With<LocalPlayerInLoadedChunk> maybe there should be an InLoadedChunk/InUnloadedChunk
         // component?
     >,
-    mut force_jump_events: EventWriter<ForceJumpEvent>,
+    // mut jump_query: Query<(
+    //     &mut Physics,
+    //     &Position,
+    //     &LookDirection,
+    //     &Sprinting,
+    //     &InstanceName,
+    // )>,
+    instance_container: Res<InstanceContainer>,
 ) {
-    for (entity, mut physics, jumping) in &mut query {
+    for (entity, mut physics, jumping, position, look_direction, sprinting, instance_name) in
+        &mut query
+    {
         // vanilla does movement interpolation here, doesn't really matter much for a
         // bot though
 
@@ -152,7 +163,14 @@ pub fn ai_step(
                 // TODO: jumping in liquids and jump delay
 
                 if physics.on_ground {
-                    force_jump_events.send(ForceJumpEvent(entity));
+                    jump_from_ground(
+                        &mut physics,
+                        position,
+                        look_direction,
+                        sprinting,
+                        instance_name,
+                        &instance_container,
+                    )
                 }
             }
         }
@@ -169,46 +187,37 @@ pub fn ai_step(
 #[derive(Event)]
 pub struct ForceJumpEvent(pub Entity);
 
-pub fn handle_force_jump(
-    mut query: Query<(
-        &mut Physics,
-        &Position,
-        &LookDirection,
-        &Sprinting,
-        &InstanceName,
-    )>,
-    instance_container: Res<InstanceContainer>,
-    mut events: EventReader<ForceJumpEvent>,
+pub fn jump_from_ground(
+    physics: &mut Physics,
+    position: &Position,
+    look_direction: &LookDirection,
+    sprinting: &Sprinting,
+    instance_name: &InstanceName,
+    instance_container: &InstanceContainer,
 ) {
-    for event in events.iter() {
-        if let Ok((mut physics, position, direction, sprinting, world_name)) =
-            query.get_mut(event.0)
-        {
-            let world_lock = instance_container
-                .get(world_name)
-                .expect("All entities should be in a valid world");
-            let world = world_lock.read();
+    let world_lock = instance_container
+        .get(instance_name)
+        .expect("All entities should be in a valid world");
+    let world = world_lock.read();
 
-            let jump_power: f64 = jump_power(&world, position) as f64 + jump_boost_power();
-            let old_delta_movement = physics.delta;
-            physics.delta = Vec3 {
-                x: old_delta_movement.x,
-                y: jump_power,
-                z: old_delta_movement.z,
-            };
-            if **sprinting {
-                // sprint jumping gives some extra velocity
-                let y_rot = direction.y_rot * 0.017453292;
-                physics.delta += Vec3 {
-                    x: (-f32::sin(y_rot) * 0.2) as f64,
-                    y: 0.,
-                    z: (f32::cos(y_rot) * 0.2) as f64,
-                };
-            }
-
-            physics.has_impulse = true;
-        }
+    let jump_power: f64 = jump_power(&world, position) as f64 + jump_boost_power();
+    let old_delta_movement = physics.delta;
+    physics.delta = Vec3 {
+        x: old_delta_movement.x,
+        y: jump_power,
+        z: old_delta_movement.z,
+    };
+    if **sprinting {
+        // sprint jumping gives some extra velocity
+        let y_rot = look_direction.y_rot * 0.017453292;
+        physics.delta += Vec3 {
+            x: (-f32::sin(y_rot) * 0.2) as f64,
+            y: 0.,
+            z: (f32::cos(y_rot) * 0.2) as f64,
+        };
     }
+
+    physics.has_impulse = true;
 }
 
 fn get_block_pos_below_that_affects_movement(position: &Position) -> BlockPos {
@@ -228,7 +237,6 @@ fn handle_relative_friction_and_calculate_movement(
     position: &mut Position,
     attributes: &Attributes,
 ) -> Vec3 {
-    trace!("handle_relative_friction_and_calculate_movement {direction:?}");
     move_relative(
         physics,
         direction,
