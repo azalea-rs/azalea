@@ -1,9 +1,9 @@
-use std::sync::LazyLock;
+use std::{f64::consts::PI, sync::LazyLock};
 
 pub static SIN: LazyLock<[f32; 65536]> = LazyLock::new(|| {
     let mut sin = [0.0; 65536];
-    for i in 0..65536 {
-        sin[i] = f64::sin((i as f64) * 3.141592653589793 * 2.0 / 65536.0) as f32;
+    for (i, item) in sin.iter_mut().enumerate() {
+        *item = f64::sin((i as f64) * PI * 2.0 / 65536.0) as f32;
     }
     sin
 });

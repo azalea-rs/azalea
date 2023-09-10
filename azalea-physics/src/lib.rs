@@ -11,17 +11,13 @@ use azalea_entity::{
     Position,
 };
 use azalea_world::{Instance, InstanceContainer, InstanceName};
-use bevy_app::{App, FixedUpdate, Plugin, Update};
+use bevy_app::{App, FixedUpdate, Plugin};
 use bevy_ecs::{
-    entity::Entity,
-    event::{EventReader, EventWriter},
-    prelude::Event,
     query::With,
     schedule::{IntoSystemConfigs, SystemSet},
     system::{Query, Res},
 };
 use collision::{move_colliding, MoverType};
-use log::trace;
 
 /// A Bevy [`SystemSet`] for running physics that makes entities do things.
 #[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
@@ -36,6 +32,7 @@ impl Plugin for PhysicsPlugin {
 
 /// Move the entity with the given acceleration while handling friction,
 /// gravity, collisions, and some other stuff.
+#[allow(clippy::type_complexity)]
 fn travel(
     mut query: Query<
         (
@@ -118,6 +115,7 @@ fn travel(
 
 /// applies air resistance, calls self.travel(), and some other random
 /// stuff.
+#[allow(clippy::type_complexity)]
 pub fn ai_step(
     mut query: Query<
         (
@@ -133,13 +131,6 @@ pub fn ai_step(
         // With<LocalPlayerInLoadedChunk> maybe there should be an InLoadedChunk/InUnloadedChunk
         // component?
     >,
-    // mut jump_query: Query<(
-    //     &mut Physics,
-    //     &Position,
-    //     &LookDirection,
-    //     &Sprinting,
-    //     &InstanceName,
-    // )>,
     instance_container: Res<InstanceContainer>,
 ) {
     for (mut physics, jumping, position, look_direction, sprinting, instance_name) in &mut query {
