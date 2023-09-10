@@ -12,7 +12,7 @@ mod plugin;
 use self::attributes::AttributeInstance;
 pub use attributes::Attributes;
 use azalea_block::BlockState;
-use azalea_core::{BlockPos, ChunkPos, ResourceLocation, Vec3, AABB};
+use azalea_core::{math, BlockPos, ChunkPos, ResourceLocation, Vec3, AABB};
 use azalea_world::{ChunkStorage, InstanceName};
 use bevy_ecs::{bundle::Bundle, component::Component};
 pub use data::*;
@@ -44,8 +44,8 @@ pub fn input_vector(direction: &LookDirection, speed: f32, acceleration: &Vec3) 
         *acceleration
     }
     .scale(speed as f64);
-    let y_rot = f32::sin(direction.y_rot * 0.017453292f32);
-    let x_rot = f32::cos(direction.y_rot * 0.017453292f32);
+    let y_rot = math::sin(direction.y_rot * 0.017453292f32);
+    let x_rot = math::cos(direction.y_rot * 0.017453292f32);
     Vec3 {
         x: acceleration.x * (x_rot as f64) - acceleration.z * (y_rot as f64),
         y: acceleration.y,
@@ -56,10 +56,10 @@ pub fn input_vector(direction: &LookDirection, speed: f32, acceleration: &Vec3) 
 pub fn view_vector(look_direction: &LookDirection) -> Vec3 {
     let x_rot = look_direction.x_rot * 0.017453292;
     let y_rot = -look_direction.y_rot * 0.017453292;
-    let y_rot_cos = f32::cos(y_rot);
-    let y_rot_sin = f32::sin(y_rot);
-    let x_rot_cos = f32::cos(x_rot);
-    let x_rot_sin = f32::sin(x_rot);
+    let y_rot_cos = math::cos(y_rot);
+    let y_rot_sin = math::sin(y_rot);
+    let x_rot_cos = math::cos(x_rot);
+    let x_rot_sin = math::sin(x_rot);
     Vec3 {
         x: (y_rot_sin * x_rot_cos) as f64,
         y: (-x_rot_sin) as f64,

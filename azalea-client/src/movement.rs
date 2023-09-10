@@ -405,6 +405,7 @@ pub fn walk_listener(
         if let Ok((mut physics_state, mut sprinting, mut attributes)) = query.get_mut(event.entity)
         {
             physics_state.move_direction = event.direction;
+            physics_state.trying_to_sprint = false;
             set_sprinting(false, &mut sprinting, &mut attributes);
         }
     }
