@@ -36,7 +36,7 @@ pub use client::{
     TickBroadcast,
 };
 pub use events::Event;
-pub use local_player::{GameProfileComponent, LocalPlayer, LocalPlayerInLoadedChunk};
+pub use local_player::{GameProfileComponent, LocalPlayer};
 pub use movement::{
     PhysicsState, SprintDirection, StartSprintEvent, StartWalkEvent, WalkDirection,
 };

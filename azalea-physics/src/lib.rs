@@ -7,8 +7,8 @@ pub mod collision;
 use azalea_block::{Block, BlockState};
 use azalea_core::{math, BlockPos, Vec3};
 use azalea_entity::{
-    metadata::Sprinting, move_relative, Attributes, Jumping, Local, LookDirection, Physics,
-    Position,
+    metadata::Sprinting, move_relative, Attributes, InLoadedChunk, Jumping, Local, LookDirection,
+    Physics, Position,
 };
 use azalea_world::{Instance, InstanceContainer, InstanceName};
 use bevy_app::{App, FixedUpdate, Plugin};
@@ -26,7 +26,13 @@ pub struct PhysicsSet;
 pub struct PhysicsPlugin;
 impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(FixedUpdate, (ai_step, travel).chain().in_set(PhysicsSet));
+        app.add_systems(
+            FixedUpdate,
+            (ai_step, travel)
+                .chain()
+                .in_set(PhysicsSet)
+                .after(azalea_entity::update_in_loaded_chunk),
+        );
     }
 }
 
@@ -43,7 +49,7 @@ fn travel(
             &Attributes,
             &InstanceName,
         ),
-        With<Local>,
+        (With<Local>, With<InLoadedChunk>),
     >,
     instance_container: Res<InstanceContainer>,
 ) {
@@ -126,10 +132,7 @@ pub fn ai_step(
             &Sprinting,
             &InstanceName,
         ),
-        With<Local>,
-        // TODO: ai_step should only run for players in loaded chunks
-        // With<LocalPlayerInLoadedChunk> maybe there should be an InLoadedChunk/InUnloadedChunk
-        // component?
+        (With<Local>, With<InLoadedChunk>),
     >,
     instance_container: Res<InstanceContainer>,
 ) {

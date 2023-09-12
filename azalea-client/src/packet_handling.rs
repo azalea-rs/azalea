@@ -709,14 +709,18 @@ pub fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::TeleportEntity(p) => {
                 let mut system_state: SystemState<(
                     Commands,
-                    Query<(&EntityIdIndex, &LocalPlayer)>,
+                    Query<(&EntityIdIndex, &LocalPlayer, Option<&mut Physics>)>,
                 )> = SystemState::new(ecs);
                 let (mut commands, mut query) = system_state.get_mut(ecs);
-                let (entity_id_index, local_player) = query.get_mut(player_entity).unwrap();
+                let (entity_id_index, local_player, physics) =
+                    query.get_mut(player_entity).unwrap();
 
                 let entity = entity_id_index.get(&MinecraftEntityId(p.id));
 
                 if let Some(entity) = entity {
+                    if let Some(mut physics) = physics {
+                        physics.on_ground = p.on_ground;
+                    }
                     let new_position = p.position;
                     commands.entity(entity).add(RelativeEntityUpdate {
                         partial_world: local_player.partial_instance.clone(),
@@ -740,14 +744,18 @@ pub fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::MoveEntityPos(p) => {
                 let mut system_state: SystemState<(
                     Commands,
-                    Query<(&EntityIdIndex, &LocalPlayer)>,
+                    Query<(&EntityIdIndex, &LocalPlayer, Option<&mut Physics>)>,
                 )> = SystemState::new(ecs);
                 let (mut commands, mut query) = system_state.get_mut(ecs);
-                let (entity_id_index, local_player) = query.get_mut(player_entity).unwrap();
+                let (entity_id_index, local_player, physics) =
+                    query.get_mut(player_entity).unwrap();
 
                 let entity = entity_id_index.get(&MinecraftEntityId(p.entity_id));
 
                 if let Some(entity) = entity {
+                    if let Some(mut physics) = physics {
+                        physics.on_ground = p.on_ground;
+                    }
                     let delta = p.delta.clone();
                     commands.entity(entity).add(RelativeEntityUpdate {
                         partial_world: local_player.partial_instance.clone(),
@@ -768,14 +776,18 @@ pub fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::MoveEntityPosRot(p) => {
                 let mut system_state: SystemState<(
                     Commands,
-                    Query<(&EntityIdIndex, &LocalPlayer)>,
+                    Query<(&EntityIdIndex, &LocalPlayer, Option<&mut Physics>)>,
                 )> = SystemState::new(ecs);
                 let (mut commands, mut query) = system_state.get_mut(ecs);
-                let (entity_id_index, local_player) = query.get_mut(player_entity).unwrap();
+                let (entity_id_index, local_player, physics) =
+                    query.get_mut(player_entity).unwrap();
 
                 let entity = entity_id_index.get(&MinecraftEntityId(p.entity_id));
 
                 if let Some(entity) = entity {
+                    if let Some(mut physics) = physics {
+                        physics.on_ground = p.on_ground;
+                    }
                     let delta = p.delta.clone();
                     commands.entity(entity).add(RelativeEntityUpdate {
                         partial_world: local_player.partial_instance.clone(),

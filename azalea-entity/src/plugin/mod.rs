@@ -3,9 +3,9 @@ mod relative_updates;
 
 use std::collections::HashSet;
 
-use azalea_core::{BlockPos, Vec3};
+use azalea_core::{BlockPos, ChunkPos, Vec3};
 use azalea_world::{InstanceContainer, InstanceName, MinecraftEntityId};
-use bevy_app::{App, Plugin, PostUpdate, PreUpdate, Update};
+use bevy_app::{App, FixedUpdate, Plugin, PostUpdate, PreUpdate, Update};
 use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
 use log::debug;
@@ -68,6 +68,7 @@ impl Plugin for EntityPlugin {
             ),
         )
         .add_systems(Update, update_bounding_box)
+        .add_systems(FixedUpdate, update_in_loaded_chunk)
         .init_resource::<EntityUuidIndex>();
     }
 }
@@ -142,5 +143,31 @@ pub fn update_bounding_box(mut query: Query<(&Position, &mut Physics), Changed<P
     for (position, mut physics) in query.iter_mut() {
         let bounding_box = physics.dimensions.make_bounding_box(position);
         physics.bounding_box = bounding_box;
+    }
+}
+
+/// Marks an entity that's in a loaded chunk. This is updated at the beginning
+/// of every tick.
+#[derive(Component, Clone, Debug, Copy)]
+pub struct InLoadedChunk;
+
+/// Update the [`InLoadedChunk`] component for all entities in the world.
+pub fn update_in_loaded_chunk(
+    mut commands: bevy_ecs::system::Commands,
+    query: Query<(Entity, &InstanceName, &Position)>,
+    instance_container: Res<InstanceContainer>,
+) {
+    for (entity, instance_name, position) in &query {
+        let player_chunk_pos = ChunkPos::from(position);
+        let Some(instance_lock) = instance_container.get(instance_name) else {
+            continue;
+        };
+
+        let in_loaded_chunk = instance_lock.read().chunks.get(&player_chunk_pos).is_some();
+        if in_loaded_chunk {
+            commands.entity(entity).insert(InLoadedChunk);
+        } else {
+            commands.entity(entity).remove::<InLoadedChunk>();
+        }
     }
 }

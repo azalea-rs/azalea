@@ -1,7 +1,7 @@
 use crate::client::Client;
-use crate::local_player::{LocalPlayer, LocalPlayerInLoadedChunk};
+use crate::local_player::LocalPlayer;
 use azalea_entity::{metadata::Sprinting, Attributes, Jumping};
-use azalea_entity::{LastSentPosition, LookDirection, Physics, Position};
+use azalea_entity::{InLoadedChunk, LastSentPosition, LookDirection, Physics, Position};
 use azalea_physics::PhysicsSet;
 use azalea_protocol::packets::game::serverbound_player_command_packet::ServerboundPlayerCommandPacket;
 use azalea_protocol::packets::game::{
@@ -128,7 +128,7 @@ pub fn send_position(
             &mut LastSentLookDirection,
             &Sprinting,
         ),
-        &LocalPlayerInLoadedChunk,
+        With<InLoadedChunk>,
     >,
 ) {
     for (
@@ -302,7 +302,7 @@ pub fn local_player_ai_step(
             &mut Sprinting,
             &mut Attributes,
         ),
-        With<LocalPlayerInLoadedChunk>,
+        With<InLoadedChunk>,
     >,
 ) {
     for (mut physics_state, mut physics, mut sprinting, mut attributes) in query.iter_mut() {
