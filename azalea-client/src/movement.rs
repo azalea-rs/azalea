@@ -1,8 +1,8 @@
 use crate::client::Client;
-use crate::local_player::{update_in_loaded_chunk, LocalEntityInLoadedChunk, SendPacketEvent};
+use crate::local_player::SendPacketEvent;
 use azalea_entity::{metadata::Sprinting, Attributes, Jumping};
-use azalea_entity::{LastSentPosition, LookDirection, Physics, Position};
-use azalea_physics::{ai_step, handle_force_jump, PhysicsSet};
+use azalea_entity::{InLoadedChunk, LastSentPosition, LookDirection, Physics, Position};
+use azalea_physics::{ai_step, PhysicsSet};
 use azalea_protocol::packets::game::serverbound_player_command_packet::ServerboundPlayerCommandPacket;
 use azalea_protocol::packets::game::{
     serverbound_move_player_pos_packet::ServerboundMovePlayerPosPacket,
@@ -44,12 +44,7 @@ impl Plugin for PlayerMovePlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<StartWalkEvent>()
             .add_event::<StartSprintEvent>()
-            .add_systems(
-                Update,
-                (sprint_listener, walk_listener)
-                    .chain()
-                    .before(handle_force_jump),
-            )
+            .add_systems(Update, (sprint_listener, walk_listener).chain())
             .add_systems(
                 FixedUpdate,
                 (
@@ -57,7 +52,7 @@ impl Plugin for PlayerMovePlugin {
                         .chain()
                         .in_set(PhysicsSet)
                         .before(ai_step),
-                    send_sprinting_if_needed.after(update_in_loaded_chunk),
+                    send_sprinting_if_needed.after(azalea_entity::update_in_loaded_chunk),
                     send_position.after(PhysicsSet),
                 )
                     .chain(),
@@ -133,7 +128,7 @@ pub fn send_position(
             &mut Physics,
             &mut LastSentLookDirection,
         ),
-        &LocalEntityInLoadedChunk,
+        With<InLoadedChunk>,
     >,
     mut send_packet_events: EventWriter<SendPacketEvent>,
 ) {
@@ -302,7 +297,7 @@ pub(crate) fn tick_controls(mut query: Query<&mut PhysicsState>) {
 pub fn local_player_ai_step(
     mut query: Query<
         (&PhysicsState, &mut Physics, &mut Sprinting, &mut Attributes),
-        With<LocalEntityInLoadedChunk>,
+        With<InLoadedChunk>,
     >,
 ) {
     for (physics_state, mut physics, mut sprinting, mut attributes) in query.iter_mut() {
@@ -403,6 +398,7 @@ pub fn walk_listener(
         if let Ok((mut physics_state, mut sprinting, mut attributes)) = query.get_mut(event.entity)
         {
             physics_state.move_direction = event.direction;
+            physics_state.trying_to_sprint = false;
             set_sprinting(false, &mut sprinting, &mut attributes);
         }
     }

@@ -5,23 +5,19 @@ pub mod clip;
 pub mod collision;
 
 use azalea_block::{Block, BlockState};
-use azalea_core::{BlockPos, Vec3};
+use azalea_core::{math, BlockPos, Vec3};
 use azalea_entity::{
-    metadata::Sprinting, move_relative, Attributes, Jumping, LocalEntity, LookDirection, Physics,
-    Position,
+    metadata::Sprinting, move_relative, Attributes, InLoadedChunk, Jumping, LocalEntity,
+    LookDirection, Physics, Position,
 };
 use azalea_world::{Instance, InstanceContainer, InstanceName};
-use bevy_app::{App, FixedUpdate, Plugin, Update};
+use bevy_app::{App, FixedUpdate, Plugin};
 use bevy_ecs::{
-    entity::Entity,
-    event::{EventReader, EventWriter},
-    prelude::Event,
     query::With,
     schedule::{IntoSystemConfigs, SystemSet},
     system::{Query, Res},
 };
 use collision::{move_colliding, MoverType};
-use log::trace;
 
 /// A Bevy [`SystemSet`] for running physics that makes entities do things.
 #[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
@@ -30,33 +26,34 @@ pub struct PhysicsSet;
 pub struct PhysicsPlugin;
 impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<ForceJumpEvent>()
-            .add_systems(
-                Update,
-                handle_force_jump
-                    .after(azalea_entity::clamp_look_direction)
-                    .before(azalea_entity::update_bounding_box),
-            )
-            .add_systems(FixedUpdate, (ai_step, travel).chain().in_set(PhysicsSet));
+        app.add_systems(
+            FixedUpdate,
+            (ai_step, travel)
+                .chain()
+                .in_set(PhysicsSet)
+                .after(azalea_entity::update_in_loaded_chunk),
+        );
     }
 }
 
 /// Move the entity with the given acceleration while handling friction,
 /// gravity, collisions, and some other stuff.
+#[allow(clippy::type_complexity)]
 fn travel(
     mut query: Query<
         (
             &mut Physics,
             &mut LookDirection,
             &mut Position,
+            Option<&Sprinting>,
             &Attributes,
             &InstanceName,
         ),
-        With<LocalEntity>,
+        (With<LocalEntity>, With<InLoadedChunk>),
     >,
     instance_container: Res<InstanceContainer>,
 ) {
-    for (mut physics, direction, mut position, attributes, world_name) in &mut query {
+    for (mut physics, direction, mut position, sprinting, attributes, world_name) in &mut query {
         let world_lock = instance_container
             .get(world_name)
             .expect("All entities should be in a valid world");
@@ -98,6 +95,7 @@ fn travel(
             &direction,
             &mut position,
             attributes,
+            sprinting.map(|s| **s).unwrap_or(false),
         );
 
         movement.y -= gravity;
@@ -114,7 +112,7 @@ fn travel(
         } else {
             physics.delta = Vec3 {
                 x: movement.x * inertia as f64,
-                y: movement.y * 0.98f64,
+                y: movement.y * 0.9800000190734863f64,
                 z: movement.z * inertia as f64,
             };
         }
@@ -123,17 +121,22 @@ fn travel(
 
 /// applies air resistance, calls self.travel(), and some other random
 /// stuff.
+#[allow(clippy::type_complexity)]
 pub fn ai_step(
     mut query: Query<
-        (Entity, &mut Physics, Option<&Jumping>),
-        With<LocalEntity>,
-        // TODO: ai_step should only run for players in loaded chunks
-        // With<LocalEntityInLoadedChunk> maybe there should be an InLoadedChunk/InUnloadedChunk
-        // component?
+        (
+            &mut Physics,
+            Option<&Jumping>,
+            &Position,
+            &LookDirection,
+            &Sprinting,
+            &InstanceName,
+        ),
+        (With<LocalEntity>, With<InLoadedChunk>),
     >,
-    mut force_jump_events: EventWriter<ForceJumpEvent>,
+    instance_container: Res<InstanceContainer>,
 ) {
-    for (entity, mut physics, jumping) in &mut query {
+    for (mut physics, jumping, position, look_direction, sprinting, instance_name) in &mut query {
         // vanilla does movement interpolation here, doesn't really matter much for a
         // bot though
 
@@ -152,7 +155,14 @@ pub fn ai_step(
                 // TODO: jumping in liquids and jump delay
 
                 if physics.on_ground {
-                    force_jump_events.send(ForceJumpEvent(entity));
+                    jump_from_ground(
+                        &mut physics,
+                        position,
+                        look_direction,
+                        sprinting,
+                        instance_name,
+                        &instance_container,
+                    )
                 }
             }
         }
@@ -165,50 +175,37 @@ pub fn ai_step(
     }
 }
 
-/// Jump even if we aren't on the ground.
-#[derive(Event)]
-pub struct ForceJumpEvent(pub Entity);
-
-pub fn handle_force_jump(
-    mut query: Query<(
-        &mut Physics,
-        &Position,
-        &LookDirection,
-        &Sprinting,
-        &InstanceName,
-    )>,
-    instance_container: Res<InstanceContainer>,
-    mut events: EventReader<ForceJumpEvent>,
+pub fn jump_from_ground(
+    physics: &mut Physics,
+    position: &Position,
+    look_direction: &LookDirection,
+    sprinting: &Sprinting,
+    instance_name: &InstanceName,
+    instance_container: &InstanceContainer,
 ) {
-    for event in events.iter() {
-        if let Ok((mut physics, position, direction, sprinting, world_name)) =
-            query.get_mut(event.0)
-        {
-            let world_lock = instance_container
-                .get(world_name)
-                .expect("All entities should be in a valid world");
-            let world = world_lock.read();
+    let world_lock = instance_container
+        .get(instance_name)
+        .expect("All entities should be in a valid world");
+    let world = world_lock.read();
 
-            let jump_power: f64 = jump_power(&world, position) as f64 + jump_boost_power();
-            let old_delta_movement = physics.delta;
-            physics.delta = Vec3 {
-                x: old_delta_movement.x,
-                y: jump_power,
-                z: old_delta_movement.z,
-            };
-            if **sprinting {
-                // sprint jumping gives some extra velocity
-                let y_rot = direction.y_rot * 0.017453292;
-                physics.delta += Vec3 {
-                    x: (-f32::sin(y_rot) * 0.2) as f64,
-                    y: 0.,
-                    z: (f32::cos(y_rot) * 0.2) as f64,
-                };
-            }
-
-            physics.has_impulse = true;
-        }
+    let jump_power: f64 = jump_power(&world, position) as f64 + jump_boost_power();
+    let old_delta_movement = physics.delta;
+    physics.delta = Vec3 {
+        x: old_delta_movement.x,
+        y: jump_power,
+        z: old_delta_movement.z,
+    };
+    if **sprinting {
+        // sprint jumping gives some extra velocity
+        let y_rot = look_direction.y_rot * 0.017453292;
+        physics.delta += Vec3 {
+            x: (-math::sin(y_rot) * 0.2) as f64,
+            y: 0.,
+            z: (math::cos(y_rot) * 0.2) as f64,
+        };
     }
+
+    physics.has_impulse = true;
 }
 
 fn get_block_pos_below_that_affects_movement(position: &Position) -> BlockPos {
@@ -227,12 +224,12 @@ fn handle_relative_friction_and_calculate_movement(
     direction: &LookDirection,
     position: &mut Position,
     attributes: &Attributes,
+    is_sprinting: bool,
 ) -> Vec3 {
-    trace!("handle_relative_friction_and_calculate_movement {direction:?}");
     move_relative(
         physics,
         direction,
-        get_friction_influenced_speed(physics, attributes, block_friction),
+        get_friction_influenced_speed(physics, attributes, block_friction, is_sprinting),
         &Vec3 {
             x: physics.xxa as f64,
             y: physics.yya as f64,
@@ -262,14 +259,23 @@ fn handle_relative_friction_and_calculate_movement(
 // private float getFrictionInfluencedSpeed(float friction) {
 //     return this.onGround ? this.getSpeed() * (0.21600002F / (friction *
 // friction * friction)) : this.flyingSpeed; }
-fn get_friction_influenced_speed(physics: &Physics, attributes: &Attributes, friction: f32) -> f32 {
+fn get_friction_influenced_speed(
+    physics: &Physics,
+    attributes: &Attributes,
+    friction: f32,
+    is_sprinting: bool,
+) -> f32 {
     // TODO: have speed & flying_speed fields in entity
     if physics.on_ground {
         let speed: f32 = attributes.speed.calculate() as f32;
         speed * (0.216f32 / (friction * friction * friction))
     } else {
         // entity.flying_speed
-        0.02
+        if is_sprinting {
+            0.025999999f32
+        } else {
+            0.02
+        }
     }
 }
 

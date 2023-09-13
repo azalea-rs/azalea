@@ -381,4 +381,33 @@ mod tests {
             BlockPos::new(2, 71, 2)
         );
     }
+
+    #[test]
+    fn test_jump_with_sideways_momentum() {
+        let mut partial_chunks = PartialChunkStorage::default();
+        let mut simulation = setup_simulation(
+            &mut partial_chunks,
+            BlockPos::new(0, 71, 3),
+            BlockPos::new(5, 76, 0),
+            vec![
+                BlockPos::new(0, 70, 3),
+                BlockPos::new(0, 70, 2),
+                BlockPos::new(0, 70, 1),
+                BlockPos::new(0, 70, 0),
+                BlockPos::new(1, 71, 0),
+                BlockPos::new(2, 72, 0),
+                BlockPos::new(3, 73, 0),
+                BlockPos::new(4, 74, 0),
+                BlockPos::new(5, 75, 0),
+            ],
+        );
+        for i in 0..120 {
+            simulation.tick();
+            info!("-- tick #{i} --")
+        }
+        assert_eq!(
+            BlockPos::from(simulation.position()),
+            BlockPos::new(5, 76, 0)
+        );
+    }
 }

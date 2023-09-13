@@ -36,7 +36,7 @@ pub use account::{Account, AccountOpts};
 pub use azalea_protocol::packets::configuration::serverbound_client_information_packet::ClientInformation;
 pub use client::{start_ecs, Client, DefaultPlugins, JoinError, JoinedClientBundle, TickBroadcast};
 pub use events::Event;
-pub use local_player::{GameProfileComponent, InstanceHolder, LocalEntityInLoadedChunk};
+pub use local_player::{GameProfileComponent, InstanceHolder};
 pub use movement::{
     PhysicsState, SprintDirection, StartSprintEvent, StartWalkEvent, WalkDirection,
 };

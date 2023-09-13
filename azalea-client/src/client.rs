@@ -7,8 +7,8 @@ use crate::{
     interact::{CurrentSequenceNumber, InteractPlugin},
     inventory::{InventoryComponent, InventoryPlugin},
     local_player::{
-        death_event, handle_send_packet_event, update_in_loaded_chunk, GameProfileComponent,
-        Hunger, InstanceHolder, PermissionLevel, PlayerAbilities, SendPacketEvent, TabList,
+        death_event, handle_send_packet_event, GameProfileComponent, Hunger, InstanceHolder,
+        PermissionLevel, PlayerAbilities, SendPacketEvent, TabList,
     },
     mining::{self, MinePlugin},
     movement::{LastSentLookDirection, PhysicsState, PlayerMovePlugin},
@@ -590,7 +590,6 @@ impl Plugin for AzaleaPlugin {
             .add_systems(
                 Update,
                 (
-                    update_in_loaded_chunk,
                     // fire the Death event when the player dies.
                     death_event,
                     // add GameProfileComponent when we get an AddPlayerEvent

@@ -1,19 +1,15 @@
 use std::{collections::HashMap, io, sync::Arc};
 
 use azalea_auth::game_profile::GameProfile;
-use azalea_core::{ChunkPos, GameMode};
-use azalea_entity::{Dead, Position};
+use azalea_core::GameMode;
+use azalea_entity::Dead;
 use azalea_protocol::packets::game::{
     clientbound_player_abilities_packet::ClientboundPlayerAbilitiesPacket, ServerboundGamePacket,
 };
-use azalea_world::{Instance, InstanceContainer, InstanceName, PartialInstance};
+use azalea_world::{Instance, PartialInstance};
 use bevy_ecs::{
-    component::Component,
-    entity::Entity,
-    event::EventReader,
-    prelude::*,
-    query::Added,
-    system::{Query, Res},
+    component::Component, entity::Entity, event::EventReader, prelude::*, query::Added,
+    system::Query,
 };
 use derive_more::{Deref, DerefMut};
 use log::error;
@@ -48,11 +44,6 @@ pub struct InstanceHolder {
 /// never sent the player info for them (though this is uncommon).
 #[derive(Component, Clone, Debug, Deref, DerefMut)]
 pub struct GameProfileComponent(pub GameProfile);
-
-/// Marks a [`LocalEntity`] that's in a loaded chunk. This is updated at the
-/// beginning of every tick.
-#[derive(Component, Clone, Debug, Copy)]
-pub struct LocalEntityInLoadedChunk;
 
 /// The gamemode of a local player. For a non-local player, you can look up the
 /// player in the [`TabList`].
@@ -141,27 +132,6 @@ impl InstanceHolder {
                 ),
                 Some(entity),
             ))),
-        }
-    }
-}
-
-/// Update the [`LocalEntityInLoadedChunk`] component for all [`LocalEntity`]s.
-pub fn update_in_loaded_chunk(
-    mut commands: bevy_ecs::system::Commands,
-    query: Query<(Entity, &InstanceName, &Position)>,
-    instance_container: Res<InstanceContainer>,
-) {
-    for (entity, local_player, position) in &query {
-        let player_chunk_pos = ChunkPos::from(position);
-        let Some(instance_lock) = instance_container.get(local_player) else {
-            continue;
-        };
-
-        let in_loaded_chunk = instance_lock.read().chunks.get(&player_chunk_pos).is_some();
-        if in_loaded_chunk {
-            commands.entity(entity).insert(LocalEntityInLoadedChunk);
-        } else {
-            commands.entity(entity).remove::<LocalEntityInLoadedChunk>();
         }
     }
 }

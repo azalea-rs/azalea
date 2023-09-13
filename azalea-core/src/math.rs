@@ -1,3 +1,27 @@
+use std::{f64::consts::PI, sync::LazyLock};
+
+pub static SIN: LazyLock<[f32; 65536]> = LazyLock::new(|| {
+    let mut sin = [0.0; 65536];
+    for (i, item) in sin.iter_mut().enumerate() {
+        *item = f64::sin((i as f64) * PI * 2.0 / 65536.0) as f32;
+    }
+    sin
+});
+
+/// A sine function that uses a lookup table.
+pub fn sin(var0: f32) -> f32 {
+    let var0 = var0 * 10430.378;
+    let var0 = var0 as usize;
+    SIN[var0 & 65535]
+}
+
+/// A cosine function that uses a lookup table.
+pub fn cos(var0: f32) -> f32 {
+    let var0 = var0 * 10430.378 + 16384.0;
+    let var0 = var0 as usize;
+    SIN[var0 & 65535]
+}
+
 // TODO: make this generic
 pub fn binary_search(mut min: i32, max: i32, predicate: &dyn Fn(i32) -> bool) -> i32 {
     let mut diff = max - min;

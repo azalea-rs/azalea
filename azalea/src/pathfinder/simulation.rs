@@ -84,7 +84,7 @@ impl Simulation {
                 MinecraftEntityId(0),
                 InstanceName(instance_name),
                 azalea_entity::LocalEntity,
-                azalea_client::LocalEntityInLoadedChunk,
+                azalea_entity::InLoadedChunk,
                 azalea_entity::Jumping::default(),
                 azalea_entity::LookDirection::default(),
                 Sprinting(true),

@@ -48,8 +48,7 @@ impl Plugin for MinePlugin {
                     .after(crate::interact::update_hit_result_component)
                     .after(crate::attack::handle_attack_event)
                     .after(crate::interact::handle_block_interact_event)
-                    .before(crate::interact::handle_swing_arm_event)
-                    .before(azalea_physics::handle_force_jump),
+                    .before(crate::interact::handle_swing_arm_event),
             );
     }
 }

@@ -10,6 +10,7 @@ use azalea::inventory::ItemSlot;
 use azalea::pathfinder::goals::BlockPosGoal;
 use azalea::{prelude::*, swarm::prelude::*, BlockPos, GameProfileComponent, WalkDirection};
 use azalea::{Account, Client, Event};
+use azalea_client::SprintDirection;
 use azalea_core::Vec3;
 use azalea_protocol::packets::game::ClientboundGamePacket;
 use azalea_world::{InstanceName, MinecraftEntityId};
@@ -144,6 +145,9 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                 }
                 "walk" => {
                     bot.walk(WalkDirection::Forward);
+                }
+                "sprint" => {
+                    bot.sprint(SprintDirection::Forward);
                 }
                 "stop" => {
                     bot.set_jumping(false);

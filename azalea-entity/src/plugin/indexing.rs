@@ -292,10 +292,12 @@ pub fn remove_despawned_entities_from_indexes(
                     instance.entities_by_chunk.remove(&chunk);
                 }
             } else {
-                warn!("Tried to remove entity from chunk {chunk:?} but the entity was not there.");
+                warn!(
+                    "Tried to remove entity {entity:?} from chunk {chunk:?} but the entity was not there."
+                );
             }
         } else {
-            debug!("Tried to remove entity from chunk {chunk:?} but the chunk was not found.");
+            debug!("Tried to remove entity {entity:?} from chunk {chunk:?} but the chunk was not found.");
         }
         // remove it from the uuid index
         if entity_infos.entity_by_uuid.remove(uuid).is_none() {
