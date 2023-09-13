@@ -1056,7 +1056,7 @@ pub fn process_packet_events(ecs: &mut World) {
             }
             ClientboundGamePacket::OpenSignEditor(_) => {}
             ClientboundGamePacket::Ping(p) => {
-                debug!("Got ping packet {:?}", p);
+                trace!("Got ping packet {:?}", p);
 
                 let mut system_state: SystemState<Query<&mut LocalPlayer>> = SystemState::new(ecs);
                 let mut query = system_state.get_mut(ecs);
