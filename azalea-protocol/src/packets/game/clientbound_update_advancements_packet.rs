@@ -126,9 +126,9 @@ mod tests {
     fn test() {
         let packet = ClientboundUpdateAdvancementsPacket {
             reset: true,
-            added: [(
-                ResourceLocation::new("minecraft:test"),
-                Advancement {
+            added: [AdvancementHolder {
+                id: ResourceLocation::new("minecraft:test"),
+                value: Advancement {
                     parent_id: None,
                     display: Some(DisplayInfo {
                         title: FormattedText::from("title".to_string()),
@@ -144,14 +144,14 @@ mod tests {
                     requirements: Vec::new(),
                     sends_telemetry_event: false,
                 },
-            )]
+            }]
             .into_iter()
             .collect(),
             removed: vec![ResourceLocation::new("minecraft:test2")],
             progress: [(
                 ResourceLocation::new("minecraft:test3"),
                 [(
-                    ResourceLocation::new("minecraft:test4"),
+                    "minecraft:test4".to_string(),
                     CriterionProgress {
                         date: Some(123456789),
                     },
@@ -173,12 +173,26 @@ mod tests {
 
         let advancement = packet
             .added
-            .get(&ResourceLocation::new("minecraft:test"))
+            .into_iter()
+            .find_map(|a| {
+                if a.id == ResourceLocation::new("minecraft:test") {
+                    Some(a.value)
+                } else {
+                    None
+                }
+            })
             .unwrap()
             .clone();
         let read_advancement = read_packet
             .added
-            .get(&ResourceLocation::new("minecraft:test"))
+            .into_iter()
+            .find_map(|a| {
+                if a.id == ResourceLocation::new("minecraft:test") {
+                    Some(a.value)
+                } else {
+                    None
+                }
+            })
             .unwrap()
             .clone();
         assert_eq!(advancement.parent_id, read_advancement.parent_id);

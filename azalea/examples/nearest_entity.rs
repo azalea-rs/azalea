@@ -3,7 +3,7 @@ use azalea::ClientBuilder;
 use azalea::{Bot, LookAtEvent};
 use azalea_client::Account;
 use azalea_entity::metadata::{ItemItem, Player};
-use azalea_entity::{EyeHeight, Local, Position};
+use azalea_entity::{EyeHeight, LocalEntity, Position};
 use bevy_app::{FixedUpdate, Plugin};
 use bevy_ecs::{
     prelude::{Entity, EventWriter},
@@ -30,7 +30,7 @@ impl Plugin for LookAtStuffPlugin {
 }
 
 fn look_at_everything(
-    bots: Query<Entity, (With<Local>, With<Player>)>,
+    bots: Query<Entity, (With<LocalEntity>, With<Player>)>,
     entities: EntityFinder,
     entity_positions: Query<(&Position, Option<&EyeHeight>)>,
     mut look_at_event: EventWriter<LookAtEvent>,
