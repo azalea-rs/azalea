@@ -63,7 +63,7 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
                         .dig(azalea::entity::feet_pos(bot.entity()).down(1))
                         .await
                     {
-                        println!("{:?}", e);
+                        println!("{e:?}");
                         break;
                     }
                 }

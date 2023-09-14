@@ -221,12 +221,12 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                     };
                     bot.look_at(target_pos.center());
                     let container = bot.open_container(target_pos).await;
-                    println!("container: {:?}", container);
+                    println!("container: {container:?}");
                     if let Some(container) = container {
                         if let Some(contents) = container.contents() {
                             for item in contents {
                                 if let ItemSlot::Present(item) = item {
-                                    println!("item: {:?}", item);
+                                    println!("item: {item:?}");
                                 }
                             }
                         } else {

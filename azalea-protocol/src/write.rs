@@ -88,7 +88,7 @@ where
     P: ProtocolPacket + Debug,
     W: AsyncWrite + Unpin + Send,
 {
-    trace!("Sending packet: {:?}", packet,);
+    trace!("Sending packet: {packet:?}");
     let mut buf = packet_encoder(packet).unwrap();
     if let Some(threshold) = compression_threshold {
         buf = compression_encoder(&buf, threshold).await.unwrap();

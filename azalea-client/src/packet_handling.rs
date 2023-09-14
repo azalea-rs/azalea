@@ -98,7 +98,8 @@ impl Plugin for PacketHandlerPlugin {
             .add_event::<UpdatePlayerEvent>()
             .add_event::<ChatReceivedEvent>()
             .add_event::<DeathEvent>()
-            .add_event::<KeepAliveEvent>();
+            .add_event::<KeepAliveEvent>()
+            .add_event::<ResourcePackEvent>();
     }
 }
 
