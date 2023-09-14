@@ -351,10 +351,17 @@ mod tests {
     #[test]
     fn test_gravity() {
         let mut app = make_test_app();
-        let _world_lock = app.world.resource_mut::<InstanceContainer>().insert(
+        let world_lock = app.world.resource_mut::<InstanceContainer>().insert(
             ResourceLocation::new("minecraft:overworld"),
             384,
             -64,
+        );
+        let mut partial_world = PartialInstance::default();
+        // the entity has to be in a loaded chunk for physics to work
+        partial_world.chunks.set(
+            &ChunkPos { x: 0, z: 0 },
+            Some(Chunk::default()),
+            &mut world_lock.write().chunks,
         );
 
         let entity = app
@@ -379,6 +386,7 @@ mod tests {
             // y should start at 70
             assert_eq!(entity_pos.y, 70.);
         }
+        app.update();
         app.world.run_schedule(FixedUpdate);
         app.update();
         {
@@ -441,6 +449,7 @@ mod tests {
             block_state.is_some(),
             "Block state should exist, if this fails that means the chunk wasn't loaded and the block didn't get placed"
         );
+        app.update();
         app.world.run_schedule(FixedUpdate);
         app.update();
         {
