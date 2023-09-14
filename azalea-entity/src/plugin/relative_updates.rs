@@ -28,7 +28,7 @@ use derive_more::{Deref, DerefMut};
 use log::warn;
 use parking_lot::RwLock;
 
-use crate::Local;
+use crate::LocalEntity;
 
 /// An [`EntityCommand`] that applies a "relative update" to an entity, which
 /// means this update won't be run multiple times by different clients in the
@@ -69,7 +69,7 @@ impl EntityCommand for RelativeEntityUpdate {
         };
 
         let entity_id = *entity_mut.get::<MinecraftEntityId>().unwrap();
-        if entity_mut.contains::<Local>() {
+        if entity_mut.contains::<LocalEntity>() {
             // a client tried to update another client, which isn't allowed
             return;
         }
@@ -99,12 +99,15 @@ impl EntityCommand for RelativeEntityUpdate {
     }
 }
 
-/// The [`UpdatesReceived`] component should never be on [`Local`] entities.
-/// This warns if an entity has both components.
+/// The [`UpdatesReceived`] component should never be on [`LocalEntity`]
+/// entities. This warns if an entity has both components.
 pub fn debug_detect_updates_received_on_local_entities(
-    query: Query<Entity, (With<Local>, With<UpdatesReceived>)>,
+    query: Query<Entity, (With<LocalEntity>, With<UpdatesReceived>)>,
 ) {
     for entity in &query {
-        warn!("Entity {:?} has both Local and UpdatesReceived", entity);
+        warn!(
+            "Entity {:?} has both LocalEntity and UpdatesReceived",
+            entity
+        );
     }
 }

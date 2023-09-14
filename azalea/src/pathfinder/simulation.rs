@@ -83,7 +83,7 @@ impl Simulation {
             .spawn((
                 MinecraftEntityId(0),
                 InstanceName(instance_name),
-                azalea_entity::Local,
+                azalea_entity::LocalEntity,
                 azalea_entity::Jumping::default(),
                 azalea_entity::LookDirection::default(),
                 Sprinting(true),

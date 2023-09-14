@@ -354,7 +354,7 @@ pub struct PlayerBundle {
 /// A marker component that signifies that this entity is "local" and shouldn't
 /// be updated by other clients.
 #[derive(Component)]
-pub struct Local;
+pub struct LocalEntity;
 
 #[derive(Component, Clone, Debug, PartialEq, Deref, DerefMut)]
 pub struct FluidOnEyes(azalea_registry::Fluid);

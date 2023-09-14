@@ -7,8 +7,8 @@ pub mod collision;
 use azalea_block::{Block, BlockState};
 use azalea_core::{math, BlockPos, Vec3};
 use azalea_entity::{
-    metadata::Sprinting, move_relative, Attributes, InLoadedChunk, Jumping, Local, LookDirection,
-    Physics, Position,
+    metadata::Sprinting, move_relative, Attributes, InLoadedChunk, Jumping, LocalEntity,
+    LookDirection, Physics, Position,
 };
 use azalea_world::{Instance, InstanceContainer, InstanceName};
 use bevy_app::{App, FixedUpdate, Plugin};
@@ -49,7 +49,7 @@ fn travel(
             &Attributes,
             &InstanceName,
         ),
-        (With<Local>, With<InLoadedChunk>),
+        (With<LocalEntity>, With<InLoadedChunk>),
     >,
     instance_container: Res<InstanceContainer>,
 ) {
@@ -132,7 +132,7 @@ pub fn ai_step(
             &Sprinting,
             &InstanceName,
         ),
-        (With<Local>, With<InLoadedChunk>),
+        (With<LocalEntity>, With<InLoadedChunk>),
     >,
     instance_container: Res<InstanceContainer>,
 ) {
@@ -378,7 +378,7 @@ mod tests {
                     ResourceLocation::new("minecraft:overworld"),
                 ),
                 MinecraftEntityId(0),
-                Local,
+                LocalEntity,
             ))
             .id();
         {
@@ -437,7 +437,7 @@ mod tests {
                     ResourceLocation::new("minecraft:overworld"),
                 ),
                 MinecraftEntityId(0),
-                Local,
+                LocalEntity,
             ))
             .id();
         let block_state = partial_world.chunks.set_block_state(
@@ -497,7 +497,7 @@ mod tests {
                     ResourceLocation::new("minecraft:overworld"),
                 ),
                 MinecraftEntityId(0),
-                Local,
+                LocalEntity,
             ))
             .id();
         let block_state = partial_world.chunks.set_block_state(
@@ -551,7 +551,7 @@ mod tests {
                     ResourceLocation::new("minecraft:overworld"),
                 ),
                 MinecraftEntityId(0),
-                Local,
+                LocalEntity,
             ))
             .id();
         let block_state = world_lock.write().chunks.set_block_state(
@@ -604,7 +604,7 @@ mod tests {
                     ResourceLocation::new("minecraft:overworld"),
                 ),
                 MinecraftEntityId(0),
-                Local,
+                LocalEntity,
             ))
             .id();
         let block_state = world_lock.write().chunks.set_block_state(
@@ -662,7 +662,7 @@ mod tests {
                     ResourceLocation::new("minecraft:overworld"),
                 ),
                 MinecraftEntityId(0),
-                Local,
+                LocalEntity,
             ))
             .id();
         let block_state = world_lock.write().chunks.set_block_state(

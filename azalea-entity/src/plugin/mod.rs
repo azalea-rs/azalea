@@ -5,13 +5,13 @@ use std::collections::HashSet;
 
 use azalea_core::{BlockPos, ChunkPos, Vec3};
 use azalea_world::{InstanceContainer, InstanceName, MinecraftEntityId};
-use bevy_app::{App, FixedUpdate, Plugin, PostUpdate, PreUpdate, Update};
+use bevy_app::{App, Plugin, PostUpdate, PreUpdate, Update};
 use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
 use log::debug;
 
 use crate::{
-    metadata::Health, Dead, EyeHeight, FluidOnEyes, Local, LookDirection, Physics, Position,
+    metadata::Health, Dead, EyeHeight, FluidOnEyes, LocalEntity, LookDirection, Physics, Position,
 };
 
 use indexing::EntityUuidIndex;
@@ -73,7 +73,7 @@ impl Plugin for EntityPlugin {
     }
 }
 
-fn debug_new_entity(query: Query<(Entity, Option<&Local>), Added<MinecraftEntityId>>) {
+fn debug_new_entity(query: Query<(Entity, Option<&LocalEntity>), Added<MinecraftEntityId>>) {
     for (entity, local) in query.iter() {
         if local.is_some() {
             debug!("new local entity: {:?}", entity);

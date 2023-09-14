@@ -23,10 +23,11 @@ use crate::{
 /// world. If you have access to a [`Client`], you probably don't need to care
 /// about this since `Client` gives you access to everything here.
 ///
-/// You can also use the [`Local`] marker component for queries if you're only
-/// checking for a local player and don't need the contents of this component.
+/// You can also use the [`LocalEntity`] marker component for queries if you're
+/// only checking for a local player and don't need the contents of this
+/// component.
 ///
-/// [`Local`]: azalea_entity::Local
+/// [`LocalEntity`]: azalea_entity::LocalEntity
 /// [`Client`]: crate::Client
 #[derive(Component)]
 pub struct LocalPlayer {

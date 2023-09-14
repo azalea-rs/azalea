@@ -3,7 +3,7 @@ use std::ops::AddAssign;
 use azalea_block::BlockState;
 use azalea_core::{BlockHitResult, BlockPos, Direction, GameMode, Vec3};
 use azalea_entity::{
-    clamp_look_direction, view_vector, Attributes, EyeHeight, Local, LookDirection, Position,
+    clamp_look_direction, view_vector, Attributes, EyeHeight, LocalEntity, LookDirection, Position,
 };
 use azalea_inventory::{ItemSlot, ItemSlotData};
 use azalea_nbt::NbtList;
@@ -318,7 +318,7 @@ pub fn handle_swing_arm_event(
 fn update_modifiers_for_held_item(
     mut query: Query<
         (&mut Attributes, &InventoryComponent),
-        (With<Local>, Changed<InventoryComponent>),
+        (With<LocalEntity>, Changed<InventoryComponent>),
     >,
 ) {
     for (mut attributes, inventory) in &mut query {

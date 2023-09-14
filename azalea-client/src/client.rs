@@ -22,8 +22,8 @@ use azalea_auth::{game_profile::GameProfile, sessionserver::ClientSessionServerE
 use azalea_chat::FormattedText;
 use azalea_core::Vec3;
 use azalea_entity::{
-    indexing::EntityIdIndex, metadata::Health, EntityPlugin, EntityUpdateSet, EyeHeight, Local,
-    Position,
+    indexing::EntityIdIndex, metadata::Health, EntityPlugin, EntityUpdateSet, EyeHeight,
+    LocalEntity, Position,
 };
 use azalea_physics::PhysicsPlugin;
 use azalea_protocol::{
@@ -316,7 +316,7 @@ impl Client {
             mining: mining::MineBundle::default(),
             attack: attack::AttackBundle::default(),
 
-            _local: Local,
+            _local: LocalEntity,
         });
 
         Ok((client, rx))
@@ -584,7 +584,7 @@ impl Client {
 }
 
 /// A bundle for the components that are present on a local player that received
-/// a login packet. If you want to filter for this, just use [`Local`].
+/// a login packet. If you want to filter for this, just use [`LocalEntity`].
 #[derive(Bundle)]
 pub struct JoinedClientBundle {
     pub local_player: LocalPlayer,
@@ -606,7 +606,7 @@ pub struct JoinedClientBundle {
     pub mining: mining::MineBundle,
     pub attack: attack::AttackBundle,
 
-    pub _local: Local,
+    pub _local: LocalEntity,
 }
 
 pub struct AzaleaPlugin;

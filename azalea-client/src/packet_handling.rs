@@ -709,11 +709,10 @@ pub fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::TeleportEntity(p) => {
                 let mut system_state: SystemState<(
                     Commands,
-                    Query<(&EntityIdIndex, &LocalPlayer, Option<&mut Physics>)>,
+                    Query<(&EntityIdIndex, &LocalPlayer)>,
                 )> = SystemState::new(ecs);
                 let (mut commands, mut query) = system_state.get_mut(ecs);
-                let (entity_id_index, local_player, physics) =
-                    query.get_mut(player_entity).unwrap();
+                let (entity_id_index, local_player) = query.get_mut(player_entity).unwrap();
 
                 let entity = entity_id_index.get(&MinecraftEntityId(p.id));
 
@@ -741,11 +740,10 @@ pub fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::MoveEntityPos(p) => {
                 let mut system_state: SystemState<(
                     Commands,
-                    Query<(&EntityIdIndex, &LocalPlayer, Option<&mut Physics>)>,
+                    Query<(&EntityIdIndex, &LocalPlayer)>,
                 )> = SystemState::new(ecs);
                 let (mut commands, mut query) = system_state.get_mut(ecs);
-                let (entity_id_index, local_player, physics) =
-                    query.get_mut(player_entity).unwrap();
+                let (entity_id_index, local_player) = query.get_mut(player_entity).unwrap();
 
                 let entity = entity_id_index.get(&MinecraftEntityId(p.entity_id));
 
@@ -770,11 +768,10 @@ pub fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::MoveEntityPosRot(p) => {
                 let mut system_state: SystemState<(
                     Commands,
-                    Query<(&EntityIdIndex, &LocalPlayer, Option<&mut Physics>)>,
+                    Query<(&EntityIdIndex, &LocalPlayer)>,
                 )> = SystemState::new(ecs);
                 let (mut commands, mut query) = system_state.get_mut(ecs);
-                let (entity_id_index, local_player, physics) =
-                    query.get_mut(player_entity).unwrap();
+                let (entity_id_index, local_player) = query.get_mut(player_entity).unwrap();
 
                 let entity = entity_id_index.get(&MinecraftEntityId(p.entity_id));
 

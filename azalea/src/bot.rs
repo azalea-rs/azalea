@@ -13,7 +13,8 @@ use azalea_client::mining::Mining;
 use azalea_client::TickBroadcast;
 use azalea_core::{BlockPos, Vec3};
 use azalea_entity::{
-    clamp_look_direction, metadata::Player, EyeHeight, Jumping, Local, LookDirection, Position,
+    clamp_look_direction, metadata::Player, EyeHeight, Jumping, LocalEntity, LookDirection,
+    Position,
 };
 use azalea_physics::PhysicsSet;
 use bevy_app::{FixedUpdate, Update};
@@ -52,7 +53,7 @@ pub struct Bot {
 #[allow(clippy::type_complexity)]
 fn insert_bot(
     mut commands: Commands,
-    mut query: Query<Entity, (Without<Bot>, With<Local>, With<Player>)>,
+    mut query: Query<Entity, (Without<Bot>, With<LocalEntity>, With<Player>)>,
 ) {
     for entity in &mut query {
         commands.entity(entity).insert(Bot::default());
