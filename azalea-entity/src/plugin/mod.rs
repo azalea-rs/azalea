@@ -68,7 +68,7 @@ impl Plugin for EntityPlugin {
             ),
         )
         .add_systems(Update, update_bounding_box)
-        .add_systems(FixedUpdate, update_in_loaded_chunk)
+        .add_systems(PreUpdate, update_in_loaded_chunk)
         .init_resource::<EntityUuidIndex>();
     }
 }
