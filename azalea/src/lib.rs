@@ -5,6 +5,7 @@
 #![feature(type_changing_struct_update)]
 #![feature(lazy_cell)]
 
+pub mod accept_resource_packs;
 mod auto_respawn;
 mod bot;
 pub mod container;

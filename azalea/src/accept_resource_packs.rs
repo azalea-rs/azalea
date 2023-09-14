@@ -1,0 +1,45 @@
+use crate::app::{App, Plugin};
+use azalea_client::packet_handling::{death_event_on_0_health, ResourcePackEvent};
+use azalea_client::respawn::perform_respawn;
+use azalea_client::SendPacketEvent;
+use azalea_protocol::packets::game::serverbound_resource_pack_packet::{
+    self, ServerboundResourcePackPacket,
+};
+use bevy_app::Update;
+use bevy_ecs::prelude::*;
+
+/// A plugin that makes it so bots automatically accept resource packs.
+#[derive(Clone, Default)]
+pub struct AcceptResourcePacksPlugin;
+impl Plugin for AcceptResourcePacksPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(
+            Update,
+            accept_resource_pack
+                .before(perform_respawn)
+                .after(death_event_on_0_health),
+        );
+    }
+}
+
+fn accept_resource_pack(
+    mut events: EventReader<ResourcePackEvent>,
+    mut send_packet_events: EventWriter<SendPacketEvent>,
+) {
+    for event in events.iter() {
+        send_packet_events.send(SendPacketEvent {
+            entity: event.entity,
+            packet: ServerboundResourcePackPacket {
+                action: serverbound_resource_pack_packet::Action::Accepted,
+            }
+            .get(),
+        });
+        send_packet_events.send(SendPacketEvent {
+            entity: event.entity,
+            packet: ServerboundResourcePackPacket {
+                action: serverbound_resource_pack_packet::Action::SuccessfullyLoaded,
+            }
+            .get(),
+        });
+    }
+}

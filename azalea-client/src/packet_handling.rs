@@ -1,6 +1,7 @@
 use std::{collections::HashSet, io::Cursor, sync::Arc};
 
 use azalea_buf::McBufWritable;
+use azalea_chat::FormattedText;
 use azalea_core::{ChunkPos, GameMode, ResourceLocation, Vec3};
 use azalea_entity::{
     indexing::{EntityIdIndex, EntityUuidIndex},
@@ -16,8 +17,7 @@ use azalea_protocol::{
         serverbound_custom_payload_packet::ServerboundCustomPayloadPacket,
         serverbound_keep_alive_packet::ServerboundKeepAlivePacket,
         serverbound_move_player_pos_rot_packet::ServerboundMovePlayerPosRotPacket,
-        serverbound_pong_packet::ServerboundPongPacket,
-        serverbound_resource_pack_packet::ServerboundResourcePackPacket, ClientboundGamePacket,
+        serverbound_pong_packet::ServerboundPongPacket, ClientboundGamePacket,
         ServerboundGamePacket,
     },
     read::ReadPacketError,
@@ -158,6 +158,15 @@ pub struct KeepAliveEvent {
     /// The ID of the keepalive. This is an arbitrary number, but vanilla
     /// servers use the time to generate this.
     pub id: u64,
+}
+
+#[derive(Event, Debug, Clone)]
+pub struct ResourcePackEvent {
+    pub entity: Entity,
+    pub url: String,
+    pub hash: String,
+    pub required: bool,
+    pub prompt: Option<FormattedText>,
 }
 
 /// Something that receives packets from the server.
@@ -1091,12 +1100,19 @@ pub fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::ResourcePack(p) => {
                 debug!("Got resource pack packet {:?}", p);
 
-                let mut system_state: SystemState<Query<&mut LocalPlayer>> = SystemState::new(ecs);
-                let mut query = system_state.get_mut(ecs);
+                let mut system_state: SystemState<EventWriter<ResourcePackEvent>> =
+                    SystemState::new(ecs);
+                let mut resource_pack_events = system_state.get_mut(ecs);
 
-                let local_player = query.get_mut(player_entity).unwrap();
-                // always accept resource pack
-                local_player.write_packet(ServerboundResourcePackPacket { action: azalea_protocol::packets::game::serverbound_resource_pack_packet::Action::Accepted }.get());
+                resource_pack_events.send(ResourcePackEvent {
+                    entity: player_entity,
+                    url: p.url,
+                    hash: p.hash,
+                    required: p.required,
+                    prompt: p.prompt,
+                });
+
+                system_state.apply(ecs);
             }
             ClientboundGamePacket::Respawn(p) => {
                 debug!("Got respawn packet {:?}", p);

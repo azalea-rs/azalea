@@ -1,3 +1,4 @@
+use crate::accept_resource_packs::AcceptResourcePacksPlugin;
 use crate::app::{App, Plugin, PluginGroup, PluginGroupBuilder};
 use crate::auto_respawn::AutoRespawnPlugin;
 use crate::container::ContainerPlugin;
@@ -200,5 +201,6 @@ impl PluginGroup for DefaultBotPlugins {
             .add(PathfinderPlugin)
             .add(ContainerPlugin)
             .add(AutoRespawnPlugin)
+            .add(AcceptResourcePacksPlugin)
     }
 }
