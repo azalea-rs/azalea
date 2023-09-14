@@ -220,11 +220,16 @@ pub fn process_packet_events(ecs: &mut World) {
                 #[allow(clippy::type_complexity)]
                 let mut system_state: SystemState<(
                     Commands,
-                    Query<(&mut LocalPlayer, &GameProfileComponent, &ClientInformation)>,
+                    Query<(
+                        &mut LocalPlayer,
+                        &mut EntityIdIndex,
+                        &GameProfileComponent,
+                        &ClientInformation,
+                    )>,
                     ResMut<InstanceContainer>,
                 )> = SystemState::new(ecs);
                 let (mut commands, mut query, mut instance_container) = system_state.get_mut(ecs);
-                let (mut local_player, game_profile, client_information) =
+                let (mut local_player, mut entity_id_index, game_profile, client_information) =
                     query.get_mut(player_entity).unwrap();
 
                 {
@@ -283,6 +288,9 @@ pub fn process_packet_events(ecs: &mut World) {
                         received_registries,
                         player_bundle,
                     ));
+
+                    // add our own player to our index
+                    entity_id_index.insert(MinecraftEntityId(p.player_id), player_entity);
                 }
 
                 // brand
@@ -579,7 +587,7 @@ pub fn process_packet_events(ecs: &mut World) {
                 }
             }
             ClientboundGamePacket::AddEntity(p) => {
-                debug!("Got add entity packet {:?}", p);
+                debug!("Got add entity packet {p:?}");
 
                 #[allow(clippy::type_complexity)]
                 let mut system_state: SystemState<(
@@ -657,10 +665,10 @@ pub fn process_packet_events(ecs: &mut World) {
                 // debug!("Got entity velocity packet {:?}", p);
             }
             ClientboundGamePacket::SetEntityLink(p) => {
-                debug!("Got set entity link packet {:?}", p);
+                debug!("Got set entity link packet {p:?}");
             }
             ClientboundGamePacket::AddPlayer(p) => {
-                debug!("Got add player packet {:?}", p);
+                debug!("Got add player packet {p:?}");
 
                 #[allow(clippy::type_complexity)]
                 let mut system_state: SystemState<(
