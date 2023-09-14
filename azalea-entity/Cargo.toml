@@ -1,7 +1,10 @@
 [package]
 name = "azalea-entity"
-version = "0.1.0"
+version = "0.8.0"
 edition = "2021"
+description = "Things related to Minecraft entities used by Azalea"
+repository = "https://github.com/mat-1/azalea/tree/main/azalea-entity"
+license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
