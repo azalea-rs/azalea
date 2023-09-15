@@ -4,15 +4,15 @@ edition = "2021"
 license = "MIT"
 name = "azalea-core"
 repository = "https://github.com/mat-1/azalea/tree/main/azalea-core"
-version = "0.7.0"
+version = "0.8.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-azalea-buf = { path = "../azalea-buf", version = "^0.7.0" }
-azalea-inventory = { version = "0.7.0", path = "../azalea-inventory" }
-azalea-nbt = { path = "../azalea-nbt", version = "^0.7.0" }
-azalea-registry = { path = "../azalea-registry", version = "^0.7.0" }
+azalea-buf = { path = "../azalea-buf", version = "0.8.0" }
+azalea-inventory = { version = "0.8.0", path = "../azalea-inventory" }
+azalea-nbt = { path = "../azalea-nbt", version = "0.8.0" }
+azalea-registry = { path = "../azalea-registry", version = "0.8.0" }
 bevy_ecs = { version = "0.11.2", default-features = false, optional = true }
 num-traits = "0.2.16"
 serde = { version = "^1.0", optional = true }
