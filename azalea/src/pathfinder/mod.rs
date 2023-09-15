@@ -30,7 +30,7 @@ use bevy_ecs::query::Changed;
 use bevy_ecs::schedule::IntoSystemConfigs;
 use bevy_tasks::{AsyncComputeTaskPool, Task};
 use futures_lite::future;
-use log::{debug, error, trace};
+use log::{debug, error, trace, warn};
 use std::collections::VecDeque;
 use std::sync::Arc;
 use std::time::Duration;
@@ -69,6 +69,7 @@ impl Plugin for PathfinderPlugin {
 #[derive(Component, Default)]
 pub struct Pathfinder {
     pub path: VecDeque<astar::Movement<BlockPos, moves::MoveData>>,
+    pub last_reached_node: Option<BlockPos>,
 }
 #[allow(clippy::type_complexity)]
 fn add_default_pathfinder(
@@ -107,6 +108,7 @@ pub struct GotoEvent {
 #[derive(Event)]
 pub struct PathFoundEvent {
     pub entity: Entity,
+    pub start: BlockPos,
     pub path: Option<VecDeque<astar::Movement<BlockPos, moves::MoveData>>>,
 }
 
@@ -124,13 +126,13 @@ fn goto_listener(
     let thread_pool = AsyncComputeTaskPool::get();
 
     for event in events.iter() {
-        let (position, world_name) = query
+        let (position, instance_name) = query
             .get_mut(event.entity)
             .expect("Called goto on an entity that's not in the world");
         let start = BlockPos::from(position);
 
         let world_lock = instance_container
-            .get(world_name)
+            .get(instance_name)
             .expect("Entity tried to pathfind but the entity isn't in a valid world");
         let end = event.goal.goal_node();
 
@@ -165,6 +167,7 @@ fn goto_listener(
             let path = movements.into_iter().collect::<VecDeque<_>>();
             Some(PathFoundEvent {
                 entity,
+                start,
                 path: Some(path),
             })
         });
@@ -199,6 +202,7 @@ fn path_found_listener(mut events: EventReader<PathFoundEvent>, mut query: Query
             .expect("Path found for an entity that doesn't have a pathfinder");
         if let Some(path) = &event.path {
             pathfinder.path = path.to_owned();
+            pathfinder.last_reached_node = Some(event.start);
         } else {
             error!("No path found");
             pathfinder.path.clear();
@@ -207,13 +211,20 @@ fn path_found_listener(mut events: EventReader<PathFoundEvent>, mut query: Query
 }
 
 fn tick_execute_path(
-    mut query: Query<(Entity, &mut Pathfinder, &Position, &Physics)>,
+    mut query: Query<(Entity, &mut Pathfinder, &Position, &Physics, &InstanceName)>,
     mut look_at_events: EventWriter<LookAtEvent>,
     mut sprint_events: EventWriter<StartSprintEvent>,
     mut walk_events: EventWriter<StartWalkEvent>,
     mut jump_events: EventWriter<JumpEvent>,
+    instance_container: Res<InstanceContainer>,
 ) {
-    for (entity, mut pathfinder, position, physics) in &mut query {
+    let successors_fn = moves::basic::basic_move;
+
+    for (entity, mut pathfinder, position, physics, instance_name) in &mut query {
+        let world_lock = instance_container
+            .get(instance_name)
+            .expect("Entity tried to pathfind but the entity isn't in a valid world");
+
         loop {
             let Some(movement) = pathfinder.path.front() else {
                 break;
@@ -222,6 +233,7 @@ fn tick_execute_path(
             // we don't unnecessarily execute a movement when it wasn't necessary
             if is_goal_reached(movement.target, position, physics) {
                 // println!("reached target");
+                pathfinder.last_reached_node = Some(movement.target);
                 pathfinder.path.pop_front();
                 if pathfinder.path.is_empty() {
                     // println!("reached goal");
@@ -232,6 +244,26 @@ fn tick_execute_path(
                 }
                 // tick again, maybe we already reached the next node!
                 continue;
+            }
+
+            {
+                // obstruction check
+                let successors = |pos: BlockPos| {
+                    let world = world_lock.read();
+                    successors_fn(&world, pos)
+                };
+
+                if let Some(obstructed_index) =
+                    check_path_obstructed(
+                        pathfinder.last_reached_node.expect("last_reached_node is set when we start pathfinding, so it should always be Some here"),
+                        &pathfinder.path,
+                        successors
+                    )
+                {
+                    warn!("path obstructed at index {obstructed_index}");
+                    pathfinder.path.truncate(obstructed_index);
+                    continue;
+                }
             }
 
             let ctx = ExecuteCtx {
@@ -278,14 +310,36 @@ pub trait Goal {
 /// next node.
 #[must_use]
 pub fn is_goal_reached(goal_pos: BlockPos, current_pos: &Position, physics: &Physics) -> bool {
-    // println!(
-    //     "entity.delta.y: {} {:?}=={:?}, self.vertical_vel={:?}",
-    //     entity.delta.y,
-    //     BlockPos::from(entity.pos()),
-    //     self.pos,
-    //     self.vertical_vel
-    // );
     BlockPos::from(current_pos) == goal_pos && physics.on_ground
+}
+
+/// Checks whether the path has been obstructed, and returns Some(index) if it
+/// has been. The index is of the first obstructed node.
+fn check_path_obstructed<SuccessorsFn>(
+    mut current_position: BlockPos,
+    path: &VecDeque<astar::Movement<BlockPos, moves::MoveData>>,
+    successors_fn: SuccessorsFn,
+) -> Option<usize>
+where
+    SuccessorsFn: Fn(BlockPos) -> Vec<astar::Edge<BlockPos, moves::MoveData>>,
+{
+    for (i, movement) in path.iter().enumerate() {
+        let mut found_obstruction = false;
+        for edge in successors_fn(current_position) {
+            if edge.movement.target == movement.target {
+                current_position = movement.target;
+                found_obstruction = false;
+                break;
+            } else {
+                found_obstruction = true;
+            }
+        }
+        if found_obstruction {
+            return Some(i);
+        }
+    }
+
+    None
 }
 
 #[cfg(test)]

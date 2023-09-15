@@ -129,6 +129,9 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                     println!("going to {target_pos:?}");
                     bot.goto(BlockPosGoal::from(target_pos));
                 }
+                "worldborder" => {
+                    bot.goto(BlockPosGoal::from(BlockPos::new(30_000_000, 70, 0)));
+                }
                 "look" => {
                     let Some(entity) = entity else {
                         bot.chat("I can't see you");

@@ -6,7 +6,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use log::info;
+use log::{info, warn};
 use priority_queue::PriorityQueue;
 
 pub struct Path<P, M>
@@ -16,6 +16,12 @@ where
     pub movements: Vec<Movement<P, M>>,
     pub partial: bool,
 }
+
+// used for better results when timing out
+// see https://github.com/cabaletta/baritone/blob/1.19.4/src/main/java/baritone/pathing/calc/AbstractNodeCostSearch.java#L68
+const COEFFICIENTS: [f32; 7] = [1.5, 2., 2.5, 3., 4., 5., 10.];
+
+const MIN_IMPROVEMENT: f32 = 0.01;
 
 pub fn a_star<P, M, HeuristicFn, SuccessorsFn, SuccessFn>(
     start: P,
@@ -46,8 +52,8 @@ where
         },
     );
 
-    let mut best_node = start;
-    let mut best_node_score = heuristic(start);
+    let mut best_paths: [P; 7] = [start; 7];
+    let mut best_path_scores: [f32; 7] = [heuristic(start); 7];
 
     while let Some((current_node, _)) = open_set.pop() {
         if success(current_node) {
@@ -83,10 +89,12 @@ where
                 );
                 open_set.push(neighbor.movement.target, Reverse(Weight(f_score)));
 
-                let node_score = heuristic + tentative_g_score / 1.5;
-                if node_score < best_node_score {
-                    best_node = neighbor.movement.target;
-                    best_node_score = node_score;
+                for (coefficient_i, &coefficient) in COEFFICIENTS.iter().enumerate() {
+                    let node_score = heuristic + tentative_g_score / coefficient;
+                    if best_path_scores[coefficient_i] - node_score > MIN_IMPROVEMENT {
+                        best_paths[coefficient_i] = neighbor.movement.target;
+                        best_path_scores[coefficient_i] = node_score;
+                    }
                 }
             }
         }
@@ -99,9 +107,28 @@ where
     }
 
     Path {
-        movements: reconstruct_path(nodes, best_node),
+        movements: reconstruct_path(nodes, determine_best_path(&best_paths, heuristic)),
         partial: true,
     }
+}
+
+const MIN_DISTANCE_PATH: f32 = 5.;
+
+fn determine_best_path<P, HeuristicFn>(best_node: &[P; 7], heuristic: HeuristicFn) -> P
+where
+    HeuristicFn: Fn(P) -> f32,
+    P: Eq + Hash + Copy + Debug,
+{
+    // this basically makes sure we don't create a path that's really short
+
+    for node in best_node.iter() {
+        // square MIN_DISTANCE_PATH because we're comparing squared distances
+        if heuristic(*node) > MIN_DISTANCE_PATH * MIN_DISTANCE_PATH {
+            return *node;
+        }
+    }
+    warn!("No best node found, returning first node");
+    return best_node[0];
 }
 
 fn reconstruct_path<P, M>(mut nodes: HashMap<P, Node<P, M>>, current: P) -> Vec<Movement<P, M>>

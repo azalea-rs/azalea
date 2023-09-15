@@ -1,3 +1,5 @@
+//! Simulate the Minecraft world, currently only used for tests.
+
 use std::{sync::Arc, time::Duration};
 
 use azalea_client::PhysicsState;
