@@ -1,5 +1,7 @@
 pub mod basic;
 
+use std::fmt::Debug;
+
 use crate::{JumpEvent, LookAtEvent};
 
 use super::astar;
@@ -16,6 +18,13 @@ pub struct MoveData {
     // pub move_kind: BasicMoves,
     pub execute: &'static (dyn Fn(ExecuteCtx) + Send + Sync),
 }
+impl Debug for MoveData {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("MoveData")
+            // .field("move_kind", &self.move_kind)
+            .finish()
+    }
+}
 
 /// whether this block is passable
 fn is_block_passable(pos: &BlockPos, world: &Instance) -> bool {
@@ -29,6 +38,12 @@ fn is_block_passable(pos: &BlockPos, world: &Instance) -> bool {
         if block.waterlogged() {
             return false;
         }
+        // block.waterlogged currently doesn't account for seagrass and some other water
+        // blocks
+        if block == azalea_registry::Block::Seagrass.into() {
+            return false;
+        }
+
         block.shape() == &collision::empty_shape()
     } else {
         false

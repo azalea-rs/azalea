@@ -6,7 +6,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use log::{info, warn};
+use log::{trace, warn};
 use priority_queue::PriorityQueue;
 
 pub struct Path<P, M>
@@ -74,7 +74,7 @@ where
                 .get(&neighbor.movement.target)
                 .map(|n| n.g_score)
                 .unwrap_or(f32::MAX);
-            if tentative_g_score < neighbor_g_score {
+            if tentative_g_score - neighbor_g_score < MIN_IMPROVEMENT {
                 let heuristic = heuristic(neighbor.movement.target);
                 let f_score = tentative_g_score + heuristic;
                 nodes.insert(
@@ -101,20 +101,22 @@ where
 
         if start_time.elapsed() > timeout {
             // timeout, just return the best path we have so far
-            info!("Pathfinder timeout");
+            trace!("A* couldn't find a path in time, returning best path");
             break;
         }
     }
 
+    let best_path = determine_best_path(&best_paths, &heuristic);
+
     Path {
-        movements: reconstruct_path(nodes, determine_best_path(&best_paths, heuristic)),
+        movements: reconstruct_path(nodes, best_path),
         partial: true,
     }
 }
 
 const MIN_DISTANCE_PATH: f32 = 5.;
 
-fn determine_best_path<P, HeuristicFn>(best_node: &[P; 7], heuristic: HeuristicFn) -> P
+fn determine_best_path<P, HeuristicFn>(best_node: &[P; 7], heuristic: &HeuristicFn) -> P
 where
     HeuristicFn: Fn(P) -> f32,
     P: Eq + Hash + Copy + Debug,
@@ -128,7 +130,7 @@ where
         }
     }
     warn!("No best node found, returning first node");
-    return best_node[0];
+    best_node[0]
 }
 
 fn reconstruct_path<P, M>(mut nodes: HashMap<P, Node<P, M>>, current: P) -> Vec<Movement<P, M>>
