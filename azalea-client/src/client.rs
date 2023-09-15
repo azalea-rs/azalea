@@ -260,8 +260,7 @@ impl Client {
         let mut ecs = ecs_lock.lock();
 
         // Make the ecs entity for this client
-        let entity_mut = ecs.spawn_empty();
-        let entity = entity_mut.id();
+        let entity = ecs.spawn_empty().id();
 
         // we got the GameConnection, so the server is now connected :)
         let client = Client::new(
@@ -296,28 +295,31 @@ impl Client {
             write_packets_task,
         );
 
-        ecs.entity_mut(entity).insert(JoinedClientBundle {
-            local_player,
-            packet_receiver,
-            game_profile: GameProfileComponent(game_profile),
-            physics_state: PhysicsState::default(),
-            local_player_events: LocalPlayerEvents(tx),
-            inventory: InventoryComponent::default(),
-            client_information: ClientInformation::default(),
-            tab_list: TabList::default(),
-            current_sequence_number: CurrentSequenceNumber::default(),
-            last_sent_direction: LastSentLookDirection::default(),
-            abilities: PlayerAbilities::default(),
-            permission_level: PermissionLevel::default(),
-            hunger: Hunger::default(),
+        ecs.entity_mut(entity).insert((
+            account.to_owned(),
+            JoinedClientBundle {
+                local_player,
+                packet_receiver,
+                game_profile: GameProfileComponent(game_profile),
+                physics_state: PhysicsState::default(),
+                local_player_events: LocalPlayerEvents(tx),
+                inventory: InventoryComponent::default(),
+                client_information: ClientInformation::default(),
+                tab_list: TabList::default(),
+                current_sequence_number: CurrentSequenceNumber::default(),
+                last_sent_direction: LastSentLookDirection::default(),
+                abilities: PlayerAbilities::default(),
+                permission_level: PermissionLevel::default(),
+                hunger: Hunger::default(),
 
-            entity_id_index: EntityIdIndex::default(),
+                entity_id_index: EntityIdIndex::default(),
 
-            mining: mining::MineBundle::default(),
-            attack: attack::AttackBundle::default(),
+                mining: mining::MineBundle::default(),
+                attack: attack::AttackBundle::default(),
 
-            _local: LocalEntity,
-        });
+                _local: LocalEntity,
+            },
+        ));
 
         Ok((client, rx))
     }

@@ -537,7 +537,6 @@ impl Swarm {
         let cloned_bots = self.bots.clone();
         let cloned_bots_tx = self.bots_tx.clone();
         let cloned_bot = bot.clone();
-        let owned_account = account.clone();
         let swarm_tx = self.swarm_tx.clone();
         tokio::spawn(async move {
             while let Some(event) = rx.recv().await {
@@ -548,6 +547,7 @@ impl Swarm {
                 }
             }
             cloned_bots.lock().remove(&bot.entity);
+            let owned_account = cloned_bot.component::<Account>();
             swarm_tx
                 .send(SwarmEvent::Disconnect(Box::new(owned_account)))
                 .unwrap();
