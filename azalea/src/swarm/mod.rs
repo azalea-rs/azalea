@@ -5,7 +5,7 @@ mod events;
 pub mod prelude;
 
 use azalea_client::{
-    chat::ChatPacket, start_ecs, Account, Client, DefaultPlugins, Event, JoinError,
+    chat::ChatPacket, start_ecs_runner, Account, Client, DefaultPlugins, Event, JoinError,
 };
 use azalea_protocol::{
     connect::ConnectionError,
@@ -319,7 +319,8 @@ where
         let (swarm_tx, mut swarm_rx) = mpsc::unbounded_channel();
 
         let (run_schedule_sender, run_schedule_receiver) = mpsc::unbounded_channel();
-        let ecs_lock = start_ecs(self.app, run_schedule_receiver, run_schedule_sender.clone());
+        let ecs_lock =
+            start_ecs_runner(self.app, run_schedule_receiver, run_schedule_sender.clone());
 
         let swarm = Swarm {
             ecs_lock: ecs_lock.clone(),
@@ -515,7 +516,8 @@ impl Swarm {
         // rx is used to receive events from the bot
         // An event that causes the schedule to run. This is only used internally.
         // let (run_schedule_sender, run_schedule_receiver) = mpsc::unbounded_channel();
-        // let ecs_lock = start_ecs(run_schedule_receiver, run_schedule_sender.clone());
+        // let ecs_lock = start_ecs_runner(run_schedule_receiver,
+        // run_schedule_sender.clone());
         let (bot, mut rx) = Client::start_client(
             self.ecs_lock.clone(),
             account,

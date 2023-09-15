@@ -230,7 +230,7 @@ impl Client {
         let mut app = App::new();
         app.add_plugins(DefaultPlugins);
 
-        let ecs_lock = start_ecs(app, run_schedule_receiver, run_schedule_sender.clone());
+        let ecs_lock = start_ecs_runner(app, run_schedule_receiver, run_schedule_sender.clone());
 
         Self::start_client(
             ecs_lock,
@@ -243,7 +243,7 @@ impl Client {
     }
 
     /// Create a [`Client`] when you already have the ECS made with
-    /// [`start_ecs`]. You'd usually want to use [`Self::join`] instead.
+    /// [`start_ecs_runner`]. You'd usually want to use [`Self::join`] instead.
     pub async fn start_client(
         ecs_lock: Arc<Mutex<World>>,
         account: &Account,
@@ -634,7 +634,7 @@ impl Plugin for AzaleaPlugin {
 /// You can create your app with `App::new()`, but don't forget to add
 /// [`DefaultPlugins`].
 #[doc(hidden)]
-pub fn start_ecs(
+pub fn start_ecs_runner(
     app: App,
     run_schedule_receiver: mpsc::UnboundedReceiver<()>,
     run_schedule_sender: mpsc::UnboundedSender<()>,

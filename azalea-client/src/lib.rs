@@ -32,8 +32,8 @@ pub mod task_pool;
 
 pub use account::{Account, AccountOpts};
 pub use client::{
-    start_ecs, Client, ClientInformation, DefaultPlugins, JoinError, JoinedClientBundle, TabList,
-    TickBroadcast,
+    start_ecs_runner, Client, ClientInformation, DefaultPlugins, JoinError, JoinedClientBundle,
+    TabList, TickBroadcast,
 };
 pub use events::Event;
 pub use local_player::{GameProfileComponent, LocalPlayer, SendPacketEvent};
