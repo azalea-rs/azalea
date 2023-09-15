@@ -547,9 +547,11 @@ impl Swarm {
                 }
             }
             cloned_bots.lock().remove(&bot.entity);
-            let owned_account = cloned_bot.component::<Account>();
+            let account = cloned_bot
+                .get_component::<Account>()
+                .expect("bot is missing required Account component");
             swarm_tx
-                .send(SwarmEvent::Disconnect(Box::new(owned_account)))
+                .send(SwarmEvent::Disconnect(Box::new(account)))
                 .unwrap();
         });
 

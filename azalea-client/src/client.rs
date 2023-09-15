@@ -251,24 +251,15 @@ impl Client {
         resolved_address: &SocketAddr,
         run_schedule_sender: mpsc::UnboundedSender<()>,
     ) -> Result<(Self, mpsc::UnboundedReceiver<Event>), JoinError> {
+        let entity = ecs_lock.lock().spawn(account.to_owned()).id();
+
         let conn = Connection::new(resolved_address).await?;
         let (conn, game_profile) = Self::handshake(conn, account, address).await?;
         let (read_conn, write_conn) = conn.into_split();
 
+        // we did the handshake, so now we're connected to the server
+
         let (tx, rx) = mpsc::unbounded_channel();
-
-        let mut ecs = ecs_lock.lock();
-
-        // Make the ecs entity for this client
-        let entity = ecs.spawn_empty().id();
-
-        // we got the GameConnection, so the server is now connected :)
-        let client = Client::new(
-            game_profile.clone(),
-            entity,
-            ecs_lock.clone(),
-            run_schedule_sender.clone(),
-        );
 
         let (packet_writer_sender, packet_writer_receiver) = mpsc::unbounded_channel();
 
@@ -295,12 +286,13 @@ impl Client {
             write_packets_task,
         );
 
-        ecs.entity_mut(entity).insert((
-            account.to_owned(),
-            JoinedClientBundle {
+        ecs_lock
+            .lock()
+            .entity_mut(entity)
+            .insert(JoinedClientBundle {
                 local_player,
                 packet_receiver,
-                game_profile: GameProfileComponent(game_profile),
+                game_profile: GameProfileComponent(game_profile.clone()),
                 physics_state: PhysicsState::default(),
                 local_player_events: LocalPlayerEvents(tx),
                 inventory: InventoryComponent::default(),
@@ -318,9 +310,14 @@ impl Client {
                 attack: attack::AttackBundle::default(),
 
                 _local: LocalEntity,
-            },
-        ));
+            });
 
+        let client = Client::new(
+            game_profile,
+            entity,
+            ecs_lock.clone(),
+            run_schedule_sender.clone(),
+        );
         Ok((client, rx))
     }
 
