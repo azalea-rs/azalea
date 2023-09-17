@@ -87,6 +87,8 @@ pub struct Client {
     /// This is immutable; the server cannot change it. To get the username and
     /// skin the server chose for you, get your player from the [`TabList`]
     /// component.
+    ///
+    /// This as also available from the ECS as [`GameProfileComponent`].
     pub profile: GameProfile,
     /// The entity for this client in the ECS.
     pub entity: Entity,
@@ -579,6 +581,28 @@ impl Client {
     /// This is a shortcut for `self.component::<Hunger>().to_owned()`.
     pub fn hunger(&self) -> Hunger {
         self.component::<Hunger>().to_owned()
+    }
+
+    /// Get the username of this client.
+    ///
+    /// This is a shortcut for
+    /// `bot.component::<GameProfileComponent>().name.clone()`.
+    pub fn username(&self) -> String {
+        self.component::<GameProfileComponent>().name.clone()
+    }
+
+    /// Get the Minecraft UUID of this client.
+    ///
+    /// This is a shortcut for `bot.component::<GameProfileComponent>().uuid`.
+    pub fn uuid(&self) -> Uuid {
+        self.component::<GameProfileComponent>().uuid
+    }
+
+    /// Get a map of player UUIDs to their information in the tab list.
+    ///
+    /// This is a shortcut for `bot.component::<TabList>().0`.
+    pub fn tab_list(&self) -> HashMap<Uuid, PlayerInfo> {
+        self.component::<TabList>().0
     }
 }
 

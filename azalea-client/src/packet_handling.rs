@@ -634,11 +634,11 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 let mut system_state: SystemState<(
                     Commands,
-                    Query<&EntityIdIndex>,
+                    Query<(&EntityIdIndex, &LocalPlayer)>,
                     Query<&EntityKind>,
                 )> = SystemState::new(ecs);
                 let (mut commands, mut query, entity_kind_query) = system_state.get_mut(ecs);
-                let entity_id_index = query.get_mut(player_entity).unwrap();
+                let (entity_id_index, local_player) = query.get_mut(player_entity).unwrap();
 
                 let entity = entity_id_index.get(&MinecraftEntityId(p.id));
 
@@ -646,15 +646,28 @@ pub fn process_packet_events(ecs: &mut World) {
                     warn!("Server sent an entity data packet for an entity id ({}) that we don't know about", p.id);
                     continue;
                 };
-                let entity_kind = entity_kind_query.get(entity).unwrap();
-                let mut entity_commands = commands.entity(entity);
-                if let Err(e) = apply_metadata(
-                    &mut entity_commands,
-                    **entity_kind,
-                    (*p.packed_items).clone(),
-                ) {
-                    warn!("{e}");
-                }
+                let entity_kind = *entity_kind_query.get(entity).unwrap();
+
+                // we use RelativeEntityUpdate because it makes sure changes aren't made
+                // multiple times
+                commands.entity(entity).add(RelativeEntityUpdate {
+                    partial_world: local_player.partial_instance.clone(),
+                    update: Box::new(move |entity| {
+                        let entity_id = entity.id();
+                        entity.world_scope(|world| {
+                            let mut commands_system_state = SystemState::<Commands>::new(world);
+                            let mut commands = commands_system_state.get_mut(world);
+                            let mut entity_comands = commands.entity(entity_id);
+                            if let Err(e) = apply_metadata(
+                                &mut entity_comands,
+                                *entity_kind,
+                                (*p.packed_items).clone(),
+                            ) {
+                                warn!("{e}");
+                            }
+                        });
+                    }),
+                });
 
                 system_state.apply(ecs);
             }
