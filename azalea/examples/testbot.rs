@@ -3,17 +3,18 @@
 #![feature(type_alias_impl_trait)]
 
 use azalea::ecs::query::With;
-use azalea::entity::metadata::Player;
-use azalea::entity::{EyeHeight, Position};
+use azalea::entity::{metadata::Player, EyeHeight, Position};
 use azalea::interact::HitResultComponent;
 use azalea::inventory::ItemSlot;
 use azalea::pathfinder::goals::BlockPosGoal;
 use azalea::protocol::packets::game::ClientboundGamePacket;
-use azalea::{prelude::*, swarm::prelude::*, BlockPos, GameProfileComponent, WalkDirection};
-use azalea::{Account, Client, Event};
-use azalea_client::SprintDirection;
-use azalea_core::Vec3;
-use azalea_world::{InstanceName, MinecraftEntityId};
+use azalea::world::{heightmap::HeightmapKind, InstanceName, MinecraftEntityId};
+use azalea::SprintDirection;
+use azalea::{prelude::*, swarm::prelude::*};
+use azalea::{
+    Account, BlockPos, ChunkPos, Client, Event, GameProfileComponent, Vec3, WalkDirection,
+};
+use azalea_core::ChunkBlockPos;
 use std::time::Duration;
 
 #[derive(Default, Clone, Component)]
@@ -286,6 +287,26 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                         bot.chat("finished attacking");
                     } else {
                         bot.chat("no entities found");
+                    }
+                }
+                "heightmap" => {
+                    let position = bot.position();
+                    let chunk_pos = ChunkPos::from(position);
+                    let chunk_block_pos = ChunkBlockPos::from(position);
+                    let chunk = bot.world().read().chunks.get(&chunk_pos);
+                    if let Some(chunk) = chunk {
+                        let heightmaps = &chunk.read().heightmaps;
+                        let Some(world_surface_heightmap) =
+                            heightmaps.get(&HeightmapKind::WorldSurface)
+                        else {
+                            bot.chat("no world surface heightmap");
+                            return Ok(());
+                        };
+                        let highest_y = world_surface_heightmap
+                            .get_highest_taken(chunk_block_pos.x, chunk_block_pos.z);
+                        bot.chat(&format!("highest_y: {highest_y}",));
+                    } else {
+                        bot.chat("no chunk found");
                     }
                 }
                 _ => {}

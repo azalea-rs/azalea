@@ -106,7 +106,7 @@ impl BitStorage {
             // 0 bit storage
             if data.is_empty() {
                 return Ok(BitStorage {
-                    data: Vec::with_capacity(0),
+                    data: Vec::new(),
                     bits,
                     size,
                     ..Default::default()

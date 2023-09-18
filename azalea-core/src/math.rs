@@ -9,17 +9,17 @@ pub static SIN: LazyLock<[f32; 65536]> = LazyLock::new(|| {
 });
 
 /// A sine function that uses a lookup table.
-pub fn sin(var0: f32) -> f32 {
-    let var0 = var0 * 10430.378;
-    let var0 = var0 as usize;
-    SIN[var0 & 65535]
+pub fn sin(x: f32) -> f32 {
+    let x = x * 10430.378;
+    let x = x as usize;
+    SIN[x & 65535]
 }
 
 /// A cosine function that uses a lookup table.
-pub fn cos(var0: f32) -> f32 {
-    let var0 = var0 * 10430.378 + 16384.0;
-    let var0 = var0 as usize;
-    SIN[var0 & 65535]
+pub fn cos(x: f32) -> f32 {
+    let x = x * 10430.378 + 16384.0;
+    let x = x as usize;
+    SIN[x & 65535]
 }
 
 // TODO: make this generic
@@ -54,6 +54,10 @@ pub fn gcd(mut a: u32, mut b: u32) -> u32 {
 
 pub fn lerp<T: num_traits::Float>(amount: T, a: T, b: T) -> T {
     a + amount * (b - a)
+}
+
+pub fn ceil_log2(x: u32) -> u32 {
+    u32::BITS - x.leading_zeros()
 }
 
 #[cfg(test)]

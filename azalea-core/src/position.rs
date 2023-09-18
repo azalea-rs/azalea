@@ -346,6 +346,17 @@ impl From<Vec3> for ChunkPos {
     }
 }
 
+impl From<&Vec3> for ChunkBlockPos {
+    fn from(pos: &Vec3) -> Self {
+        ChunkBlockPos::from(&BlockPos::from(pos))
+    }
+}
+impl From<Vec3> for ChunkBlockPos {
+    fn from(pos: Vec3) -> Self {
+        ChunkBlockPos::from(&pos)
+    }
+}
+
 const PACKED_X_LENGTH: u64 = 1 + 25; // minecraft does something a bit more complicated to get this 25
 const PACKED_Z_LENGTH: u64 = PACKED_X_LENGTH;
 const PACKED_Y_LENGTH: u64 = 64 - PACKED_X_LENGTH - PACKED_Z_LENGTH;

@@ -9,6 +9,7 @@ use azalea_entity::{
     Dead, EntityBundle, EntityKind, EntityUpdateSet, LastSentPosition, LoadedBy, LookDirection,
     Physics, PlayerBundle, Position, RelativeEntityUpdate,
 };
+use azalea_nbt::NbtCompound;
 use azalea_protocol::{
     connect::{ReadConnection, WriteConnection},
     packets::game::{
@@ -578,9 +579,20 @@ pub fn process_packet_events(ecs: &mut World) {
                     }
                 }
 
+                let heightmaps = p
+                    .chunk_data
+                    .heightmaps
+                    .as_compound()
+                    .and_then(|c| c.get(""))
+                    .and_then(|c| c.as_compound());
+                // necessary to make the unwrap_or work
+                let empty_nbt_compound = NbtCompound::default();
+                let heightmaps = heightmaps.unwrap_or(&empty_nbt_compound);
+
                 if let Err(e) = partial_world.chunks.replace_with_packet_data(
                     &pos,
                     &mut Cursor::new(&p.chunk_data.data),
+                    heightmaps,
                     &mut world.chunks,
                 ) {
                     error!("Couldn't set chunk data: {}", e);
@@ -632,6 +644,7 @@ pub fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::SetEntityData(p) => {
                 debug!("Got set entity data packet {:?}", p);
 
+                #[allow(clippy::type_complexity)]
                 let mut system_state: SystemState<(
                     Commands,
                     Query<(&EntityIdIndex, &LocalPlayer)>,
