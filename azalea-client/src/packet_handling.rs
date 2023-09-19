@@ -466,7 +466,9 @@ pub fn process_packet_events(ecs: &mut World) {
                     z: new_pos_z,
                 };
 
-                **position = new_pos;
+                if new_pos != **position {
+                    **position = new_pos;
+                }
 
                 local_player.write_packet(ServerboundAcceptTeleportationPacket { id: p.id }.get());
                 local_player.write_packet(
@@ -485,13 +487,19 @@ pub fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::PlayerInfoUpdate(p) => {
                 debug!("Got player info packet {:?}", p);
 
+                #[allow(clippy::type_complexity)]
                 let mut system_state: SystemState<(
                     Query<&mut TabList>,
                     EventWriter<AddPlayerEvent>,
                     EventWriter<UpdatePlayerEvent>,
+                    ResMut<TabList>,
                 )> = SystemState::new(ecs);
-                let (mut query, mut add_player_events, mut update_player_events) =
-                    system_state.get_mut(ecs);
+                let (
+                    mut query,
+                    mut add_player_events,
+                    mut update_player_events,
+                    mut tab_list_resource,
+                ) = system_state.get_mut(ecs);
                 let mut tab_list = query.get_mut(player_entity).unwrap();
 
                 for updated_info in &p.entries {
@@ -532,13 +540,17 @@ pub fn process_packet_events(ecs: &mut World) {
                         );
                     }
                 }
+
+                *tab_list_resource = tab_list.clone();
             }
             ClientboundGamePacket::PlayerInfoRemove(p) => {
                 let mut system_state: SystemState<(
                     Query<&mut TabList>,
                     EventWriter<RemovePlayerEvent>,
+                    ResMut<TabList>,
                 )> = SystemState::new(ecs);
-                let (mut query, mut remove_player_events) = system_state.get_mut(ecs);
+                let (mut query, mut remove_player_events, mut tab_list_resource) =
+                    system_state.get_mut(ecs);
                 let mut tab_list = query.get_mut(player_entity).unwrap();
 
                 for uuid in &p.profile_ids {
@@ -548,6 +560,7 @@ pub fn process_packet_events(ecs: &mut World) {
                             info,
                         });
                     }
+                    tab_list_resource.remove(uuid);
                 }
             }
             ClientboundGamePacket::SetChunkCacheCenter(p) => {
@@ -785,12 +798,14 @@ pub fn process_packet_events(ecs: &mut World) {
                 let entity = entity_id_index.get(&MinecraftEntityId(p.id));
 
                 if let Some(entity) = entity {
-                    let new_position = p.position;
+                    let new_pos = p.position;
                     commands.entity(entity).add(RelativeEntityUpdate {
                         partial_world: local_player.partial_instance.clone(),
                         update: Box::new(move |entity| {
                             let mut position = entity.get_mut::<Position>().unwrap();
-                            **position = new_position;
+                            if new_pos != **position {
+                                **position = new_pos;
+                            }
                         }),
                     });
                 } else {
@@ -821,7 +836,10 @@ pub fn process_packet_events(ecs: &mut World) {
                         partial_world: local_player.partial_instance.clone(),
                         update: Box::new(move |entity_mut| {
                             let mut position = entity_mut.get_mut::<Position>().unwrap();
-                            **position = position.with_delta(&delta);
+                            let new_pos = position.with_delta(&delta);
+                            if new_pos != **position {
+                                **position = new_pos;
+                            }
                         }),
                     });
                 } else {
@@ -849,7 +867,10 @@ pub fn process_packet_events(ecs: &mut World) {
                         partial_world: local_player.partial_instance.clone(),
                         update: Box::new(move |entity_mut| {
                             let mut position = entity_mut.get_mut::<Position>().unwrap();
-                            **position = position.with_delta(&delta);
+                            let new_pos = position.with_delta(&delta);
+                            if new_pos != **position {
+                                **position = new_pos;
+                            }
                         }),
                     });
                 } else {

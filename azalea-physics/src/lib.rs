@@ -16,6 +16,7 @@ use bevy_ecs::{
     query::With,
     schedule::{IntoSystemConfigs, SystemSet},
     system::{Query, Res},
+    world::Mut,
 };
 use collision::{move_colliding, MoverType};
 
@@ -53,7 +54,7 @@ fn travel(
     >,
     instance_container: Res<InstanceContainer>,
 ) {
-    for (mut physics, direction, mut position, sprinting, attributes, world_name) in &mut query {
+    for (mut physics, direction, position, sprinting, attributes, world_name) in &mut query {
         let world_lock = instance_container
             .get(world_name)
             .expect("All entities should be in a valid world");
@@ -93,7 +94,7 @@ fn travel(
             &world,
             &mut physics,
             &direction,
-            &mut position,
+            position,
             attributes,
             sprinting.map(|s| **s).unwrap_or(false),
         );
@@ -222,7 +223,8 @@ fn handle_relative_friction_and_calculate_movement(
     world: &Instance,
     physics: &mut Physics,
     direction: &LookDirection,
-    position: &mut Position,
+    // this is kept as a Mut for bevy change tracking
+    position: Mut<Position>,
     attributes: &Attributes,
     is_sprinting: bool,
 ) -> Vec3 {

@@ -8,6 +8,7 @@ use std::ops::Add;
 
 use azalea_core::{Axis, Vec3, AABB, EPSILON};
 use azalea_world::{Instance, MoveEntityError};
+use bevy_ecs::world::Mut;
 pub use blocks::BlockWithShape;
 pub use discrete_voxel_shape::*;
 pub use shape::*;
@@ -138,7 +139,7 @@ pub fn move_colliding(
     _mover_type: &MoverType,
     movement: &Vec3,
     world: &Instance,
-    position: &mut azalea_entity::Position,
+    mut position: Mut<azalea_entity::Position>,
     physics: &mut azalea_entity::Physics,
 ) -> Result<(), MoveEntityError> {
     // TODO: do all these
@@ -177,7 +178,9 @@ pub fn move_colliding(
             }
         };
 
-        **position = new_pos;
+        if new_pos != **position {
+            **position = new_pos;
+        }
     }
 
     let x_collision = movement.x != collide_result.x;
@@ -189,7 +192,7 @@ pub fn move_colliding(
 
     // TODO: minecraft checks for a "minor" horizontal collision here
 
-    let _block_pos_below = azalea_entity::on_pos_legacy(&world.chunks, position);
+    let _block_pos_below = azalea_entity::on_pos_legacy(&world.chunks, &position);
     // let _block_state_below = self
     //     .world
     //     .get_block_state(&block_pos_below)

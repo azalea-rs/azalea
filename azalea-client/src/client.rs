@@ -141,8 +141,12 @@ impl From<ClientboundPlayerAbilitiesPacket> for PlayerAbilities {
 #[derive(Component, Clone, Default, Deref, DerefMut)]
 pub struct PermissionLevel(pub u8);
 
-/// A component that contains a map of player UUIDs to their information in the
-/// tab list.
+/// A component and resource that contains a map of player UUIDs to their
+/// information in the tab list.
+///
+/// This is a component on local players in case you want to get the tab list
+/// that a certain client is seeing, and it's also a resource in case you know
+/// that the server gives the same tab list to every player.
 ///
 /// ```
 /// # use azalea_client::TabList;
@@ -153,7 +157,7 @@ pub struct PermissionLevel(pub u8);
 ///     println!("- {} ({}ms)", player_info.profile.name, player_info.latency);
 /// }
 /// # }
-#[derive(Component, Clone, Debug, Deref, DerefMut, Default)]
+#[derive(Component, Resource, Clone, Debug, Deref, DerefMut, Default)]
 pub struct TabList(HashMap<Uuid, PlayerInfo>);
 
 /// An error that happened while joining the server.
@@ -648,7 +652,8 @@ impl Plugin for AzaleaPlugin {
                 ),
             )
             .add_event::<SendPacketEvent>()
-            .init_resource::<InstanceContainer>();
+            .init_resource::<InstanceContainer>()
+            .init_resource::<TabList>();
     }
 }
 

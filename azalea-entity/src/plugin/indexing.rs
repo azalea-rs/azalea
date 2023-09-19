@@ -126,7 +126,7 @@ pub fn deduplicate_entities(
                 info!(
                     "Entity with id {id:?} / {new_entity:?} already existed in the world, merging it with {old_entity:?}"
                 );
-                break;
+                continue;
             }
         } else {
             error!("Entity was inserted into a world that doesn't exist.");
@@ -309,6 +309,6 @@ pub fn remove_despawned_entities_from_indexes(
         // and now remove the entity from the ecs
         commands.entity(entity).despawn();
         debug!("Despawned entity {entity:?} because it was not loaded by anything.");
-        return;
+        continue;
     }
 }
