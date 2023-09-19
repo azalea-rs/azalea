@@ -70,7 +70,7 @@ impl Simulation {
         // make sure it doesn't do fixed ticks without us telling it to
         .insert_resource(FixedTime::new(Duration::from_secs(60)))
         .insert_resource(InstanceContainer {
-            worlds: [(instance_name.clone(), Arc::downgrade(&instance.clone()))]
+            instances: [(instance_name.clone(), Arc::downgrade(&instance.clone()))]
                 .iter()
                 .cloned()
                 .collect(),

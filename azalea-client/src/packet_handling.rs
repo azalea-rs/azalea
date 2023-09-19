@@ -1,4 +1,8 @@
-use std::{collections::HashSet, io::Cursor, sync::Arc};
+use std::{
+    collections::HashSet,
+    io::Cursor,
+    sync::{Arc, Weak},
+};
 
 use azalea_buf::McBufWritable;
 use azalea_chat::FormattedText;
@@ -23,7 +27,7 @@ use azalea_protocol::{
     },
     read::ReadPacketError,
 };
-use azalea_world::{InstanceContainer, InstanceName, MinecraftEntityId, PartialInstance};
+use azalea_world::{Instance, InstanceContainer, InstanceName, MinecraftEntityId, PartialInstance};
 use bevy_app::{App, First, Plugin, PreUpdate, Update};
 use bevy_ecs::{
     component::Component,
@@ -36,7 +40,7 @@ use bevy_ecs::{
     world::World,
 };
 use log::{debug, error, trace, warn};
-use parking_lot::Mutex;
+use parking_lot::{Mutex, RwLock};
 use tokio::sync::mpsc;
 
 use crate::{
@@ -100,7 +104,8 @@ impl Plugin for PacketHandlerPlugin {
             .add_event::<ChatReceivedEvent>()
             .add_event::<DeathEvent>()
             .add_event::<KeepAliveEvent>()
-            .add_event::<ResourcePackEvent>();
+            .add_event::<ResourcePackEvent>()
+            .add_event::<InstanceLoadedEvent>();
     }
 }
 
@@ -171,6 +176,17 @@ pub struct ResourcePackEvent {
     pub prompt: Option<FormattedText>,
 }
 
+/// An instance (aka world, dimension) was loaded by a client.
+///
+/// Since the instance is given to you as a weak reference, it won't be able to
+/// be `upgrade`d if all local players leave it.
+#[derive(Event, Debug, Clone)]
+pub struct InstanceLoadedEvent {
+    pub entity: Entity,
+    pub name: ResourceLocation,
+    pub instance: Weak<RwLock<Instance>>,
+}
+
 /// Something that receives packets from the server.
 #[derive(Event, Component, Clone)]
 pub struct PacketReceiver {
@@ -227,9 +243,11 @@ pub fn process_packet_events(ecs: &mut World) {
                         &GameProfileComponent,
                         &ClientInformation,
                     )>,
+                    EventWriter<InstanceLoadedEvent>,
                     ResMut<InstanceContainer>,
                 )> = SystemState::new(ecs);
-                let (mut commands, mut query, mut instance_container) = system_state.get_mut(ecs);
+                let (mut commands, mut query, mut instance_loaded_events, mut instance_container) =
+                    system_state.get_mut(ecs);
                 let (mut local_player, mut entity_id_index, game_profile, client_information) =
                     query.get_mut(player_entity).unwrap();
 
@@ -246,15 +264,21 @@ pub fn process_packet_events(ecs: &mut World) {
                         })
                         .element;
 
-                    let new_world_name = p.dimension.clone();
+                    let new_instance_name = p.dimension.clone();
 
                     // add this world to the instance_container (or don't if it's already
                     // there)
-                    let weak_world = instance_container.insert(
-                        new_world_name.clone(),
+                    let instance = instance_container.insert(
+                        new_instance_name.clone(),
                         dimension.height,
                         dimension.min_y,
                     );
+                    instance_loaded_events.send(InstanceLoadedEvent {
+                        entity: player_entity,
+                        name: new_instance_name.clone(),
+                        instance: Arc::downgrade(&instance),
+                    });
+
                     // set the partial_world to an empty world
                     // (when we add chunks or entities those will be in the
                     // instance_container)
@@ -267,14 +291,14 @@ pub fn process_packet_events(ecs: &mut World) {
                         // in a shared world
                         Some(player_entity),
                     );
-                    local_player.world = weak_world;
+                    local_player.world = instance;
 
                     let player_bundle = PlayerBundle {
                         entity: EntityBundle::new(
                             game_profile.uuid,
                             Vec3::default(),
                             azalea_registry::EntityKind::Player,
-                            new_world_name,
+                            new_instance_name,
                         ),
                         metadata: PlayerMetadataBundle::default(),
                     };
@@ -1161,9 +1185,11 @@ pub fn process_packet_events(ecs: &mut World) {
                         &ClientInformation,
                         &ReceivedRegistries,
                     )>,
+                    EventWriter<InstanceLoadedEvent>,
                     ResMut<InstanceContainer>,
                 )> = SystemState::new(ecs);
-                let (mut commands, mut query, mut instance_container) = system_state.get_mut(ecs);
+                let (mut commands, mut query, mut instance_loaded_events, mut instance_container) =
+                    system_state.get_mut(ecs);
                 let (mut local_player, game_profile, client_information, received_registries) =
                     query.get_mut(player_entity).unwrap();
 
@@ -1178,15 +1204,20 @@ pub fn process_packet_events(ecs: &mut World) {
                         })
                         .element;
 
-                    let new_world_name = p.dimension.clone();
+                    let new_instance_name = p.dimension.clone();
 
                     // add this world to the instance_container (or don't if it's already
                     // there)
-                    let weak_world = instance_container.insert(
-                        new_world_name.clone(),
+                    let instance = instance_container.insert(
+                        new_instance_name.clone(),
                         dimension.height,
                         dimension.min_y,
                     );
+                    instance_loaded_events.send(InstanceLoadedEvent {
+                        entity: player_entity,
+                        name: new_instance_name.clone(),
+                        instance: Arc::downgrade(&instance),
+                    });
 
                     // set the partial_world to an empty world
                     // (when we add chunks or entities those will be in the
@@ -1197,7 +1228,7 @@ pub fn process_packet_events(ecs: &mut World) {
                         ),
                         Some(player_entity),
                     );
-                    local_player.world = weak_world;
+                    local_player.world = instance;
 
                     // this resets a bunch of our components like physics and stuff
                     let player_bundle = PlayerBundle {
@@ -1205,7 +1236,7 @@ pub fn process_packet_events(ecs: &mut World) {
                             game_profile.uuid,
                             Vec3::default(),
                             azalea_registry::EntityKind::Player,
-                            new_world_name,
+                            new_instance_name,
                         ),
                         metadata: PlayerMetadataBundle::default(),
                     };

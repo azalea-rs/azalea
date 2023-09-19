@@ -20,7 +20,7 @@ pub use azalea_block as blocks;
 pub use azalea_brigadier as brigadier;
 pub use azalea_chat::FormattedText;
 pub use azalea_client::*;
-pub use azalea_core::{BlockPos, ChunkPos, Vec3};
+pub use azalea_core::{BlockPos, ChunkPos, ResourceLocation, Vec3};
 pub use azalea_entity as entity;
 pub use azalea_protocol as protocol;
 pub use azalea_registry::{Block, EntityKind, Item};

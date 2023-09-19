@@ -218,6 +218,32 @@ impl BitStorage {
     pub fn size(&self) -> usize {
         self.size
     }
+
+    pub fn iter(&self) -> BitStorageIter {
+        BitStorageIter {
+            storage: self,
+            index: 0,
+        }
+    }
+}
+
+pub struct BitStorageIter<'a> {
+    storage: &'a BitStorage,
+    index: usize,
+}
+
+impl<'a> Iterator for BitStorageIter<'a> {
+    type Item = u64;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.index >= self.storage.size {
+            return None;
+        }
+
+        let value = self.storage.get(self.index);
+        self.index += 1;
+        Some(value)
+    }
 }
 
 #[cfg(test)]

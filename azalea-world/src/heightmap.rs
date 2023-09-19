@@ -119,6 +119,25 @@ impl Heightmap {
 
         false
     }
+
+    /// Get an iterator over the top available block positions in this
+    /// heightmap.
+    pub fn iter_first_available<'a>(&'a self) -> impl Iterator<Item = ChunkBlockPos> + 'a {
+        self.data.iter().enumerate().map(move |(index, height)| {
+            let x = (index % 16) as u8;
+            let z = (index / 16) as u8;
+            ChunkBlockPos::new(x, height as i32 + self.min_y, z)
+        })
+    }
+
+    /// Get an iterator over the top block positions in this heightmap.
+    pub fn iter_highest_taken<'a>(&'a self) -> impl Iterator<Item = ChunkBlockPos> + 'a {
+        self.data.iter().enumerate().map(move |(index, height)| {
+            let x = (index % 16) as u8;
+            let z = (index / 16) as u8;
+            ChunkBlockPos::new(x, height as i32 + self.min_y - 1, z)
+        })
+    }
 }
 
 impl FromStr for HeightmapKind {
