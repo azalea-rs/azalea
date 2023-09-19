@@ -164,17 +164,17 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                     println!("inventory: {:?}", bot.menu());
                 }
                 "findblock" => {
-                    let target_pos = bot
-                        .world()
-                        .read()
-                        .find_block(bot.position(), &azalea::Block::DiamondBlock.into());
+                    let target_pos = bot.world().read().find_block(
+                        bot.position(),
+                        &azalea::registry::Block::DiamondBlock.into(),
+                    );
                     bot.chat(&format!("target_pos: {target_pos:?}",));
                 }
                 "gotoblock" => {
-                    let target_pos = bot
-                        .world()
-                        .read()
-                        .find_block(bot.position(), &azalea::Block::DiamondBlock.into());
+                    let target_pos = bot.world().read().find_block(
+                        bot.position(),
+                        &azalea::registry::Block::DiamondBlock.into(),
+                    );
                     if let Some(target_pos) = target_pos {
                         // +1 to stand on top of the block
                         bot.goto(BlockPosGoal::from(target_pos.up(1)));
@@ -183,10 +183,10 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                     }
                 }
                 "mineblock" => {
-                    let target_pos = bot
-                        .world()
-                        .read()
-                        .find_block(bot.position(), &azalea::Block::DiamondBlock.into());
+                    let target_pos = bot.world().read().find_block(
+                        bot.position(),
+                        &azalea::registry::Block::DiamondBlock.into(),
+                    );
                     if let Some(target_pos) = target_pos {
                         // +1 to stand on top of the block
                         bot.chat("ok mining diamond block");
@@ -201,7 +201,7 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                     let target_pos = bot
                         .world()
                         .read()
-                        .find_block(bot.position(), &azalea::Block::Lever.into());
+                        .find_block(bot.position(), &azalea::registry::Block::Lever.into());
                     let Some(target_pos) = target_pos else {
                         bot.chat("no lever found");
                         return Ok(());
@@ -218,7 +218,7 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                     let target_pos = bot
                         .world()
                         .read()
-                        .find_block(bot.position(), &azalea::Block::Chest.into());
+                        .find_block(bot.position(), &azalea::registry::Block::Chest.into());
                     let Some(target_pos) = target_pos else {
                         bot.chat("no chest found");
                         return Ok(());

@@ -22,8 +22,9 @@ use azalea_auth::{game_profile::GameProfile, sessionserver::ClientSessionServerE
 use azalea_chat::FormattedText;
 use azalea_core::Vec3;
 use azalea_entity::{
-    indexing::EntityIdIndex, metadata::Health, EntityPlugin, EntityUpdateSet, EyeHeight,
-    LocalEntity, Position,
+    indexing::{EntityIdIndex, Loaded},
+    metadata::Health,
+    EntityPlugin, EntityUpdateSet, EyeHeight, LocalEntity, Position,
 };
 use azalea_physics::PhysicsPlugin;
 use azalea_protocol::{
@@ -316,6 +317,7 @@ impl Client {
                 attack: attack::AttackBundle::default(),
 
                 _local: LocalEntity,
+                _loaded: Loaded,
             });
 
         let client = Client::new(
@@ -634,6 +636,7 @@ pub struct JoinedClientBundle {
     pub attack: attack::AttackBundle,
 
     pub _local: LocalEntity,
+    pub _loaded: Loaded,
 }
 
 pub struct AzaleaPlugin;

@@ -76,6 +76,14 @@ impl Debug for EntityUuidIndex {
     }
 }
 
+/// A marker component for entities that are in the world and aren't temporary
+/// duplicates of other ones. This is meant to be used as a query filter
+/// `Added<Loaded>` (since if you do `Added` with another component it might
+/// trigger multiple times when in a swarm due to how entities are handled for
+/// swarms).
+#[derive(Component)]
+pub struct Loaded;
+
 /// Remove new entities that have the same id as an existing entity, and
 /// increase the reference counts.
 ///
@@ -86,7 +94,7 @@ impl Debug for EntityUuidIndex {
 pub fn deduplicate_entities(
     mut commands: Commands,
     mut query: Query<
-        (Entity, &MinecraftEntityId, &InstanceName),
+        (Entity, &MinecraftEntityId, &InstanceName, Option<&Loaded>),
         (Changed<MinecraftEntityId>, Without<LocalEntity>),
     >,
     mut loaded_by_query: Query<&mut LoadedBy>,
@@ -94,43 +102,51 @@ pub fn deduplicate_entities(
     instance_container: Res<InstanceContainer>,
 ) {
     // if this entity already exists, remove it and keep the old one
-    for (new_entity, id, world_name) in query.iter_mut() {
-        if let Some(world_lock) = instance_container.get(world_name) {
-            let world = world_lock.write();
-            if let Some(old_entity) = world.entity_by_id.get(id) {
-                if old_entity == &new_entity {
-                    continue;
-                }
+    for (new_entity, id, world_name, loaded) in query.iter_mut() {
+        let Some(world_lock) = instance_container.get(world_name) else {
+            error!("Entity was inserted into a world that doesn't exist.");
+            continue;
+        };
+        let world = world_lock.write();
+        let Some(old_entity) = world.entity_by_id.get(id) else {
+            // not in index yet, so it's good
+            if loaded.is_none() {
+                commands.entity(new_entity).insert(Loaded);
+            }
+            continue;
+        };
+        if old_entity == &new_entity {
+            if loaded.is_none() {
+                commands.entity(new_entity).insert(Loaded);
+            }
+            continue;
+        }
 
-                // this entity already exists!!! remove the one we just added but increase
-                // the reference count
-                let new_loaded_by = loaded_by_query
-                    .get(new_entity)
-                    .expect("Entities should always have the LoadedBy component ({new_entity:?} did not)")
-                    .clone();
+        // this entity already exists!!! remove the one we just added but increase
+        // the reference count
+        let new_loaded_by = loaded_by_query
+            .get(new_entity)
+            .expect("Entities should always have the LoadedBy component ({new_entity:?} did not)")
+            .clone();
 
-                // update the `EntityIdIndex`s of the local players that have this entity loaded
-                for local_player in new_loaded_by.iter() {
-                    let mut entity_id_index = entity_id_index_query
+        // update the `EntityIdIndex`s of the local players that have this entity loaded
+        for local_player in new_loaded_by.iter() {
+            let mut entity_id_index = entity_id_index_query
                         .get_mut(*local_player)
                         .expect("Local players should always have the EntityIdIndex component ({local_player:?} did not)");
-                    entity_id_index.insert(*id, *old_entity);
-                }
-
-                let old_loaded_by = loaded_by_query.get_mut(*old_entity);
-                // merge them if possible
-                if let Ok(mut old_loaded_by) = old_loaded_by {
-                    old_loaded_by.extend(new_loaded_by.iter());
-                }
-                commands.entity(new_entity).despawn();
-                info!(
-                    "Entity with id {id:?} / {new_entity:?} already existed in the world, merging it with {old_entity:?}"
-                );
-                continue;
-            }
-        } else {
-            error!("Entity was inserted into a world that doesn't exist.");
+            entity_id_index.insert(*id, *old_entity);
         }
+
+        let old_loaded_by = loaded_by_query.get_mut(*old_entity);
+        // merge them if possible
+        if let Ok(mut old_loaded_by) = old_loaded_by {
+            old_loaded_by.extend(new_loaded_by.iter());
+        }
+        commands.entity(new_entity).despawn();
+        info!(
+            "Entity with id {id:?} / {new_entity:?} already existed in the world, merging it with {old_entity:?}"
+        );
+        continue;
     }
 }
 
@@ -147,23 +163,24 @@ pub fn deduplicate_local_entities(
 ) {
     // if this entity already exists, remove the old one
     for (new_entity, id, world_name) in query.iter_mut() {
-        if let Some(world_lock) = instance_container.get(world_name) {
-            let world = world_lock.write();
-            if let Some(old_entity) = world.entity_by_id.get(id) {
-                if old_entity == &new_entity {
-                    // lol
-                    continue;
-                }
-
-                commands.entity(*old_entity).despawn();
-                debug!(
-                    "Added local entity {id:?} / {new_entity:?} but already existed in world as {old_entity:?}, despawning {old_entity:?}"
-                );
-                break;
-            }
-        } else {
+        let Some(world_lock) = instance_container.get(world_name) else {
             error!("Entity was inserted into a world that doesn't exist.");
+            continue;
+        };
+        let world = world_lock.write();
+        let Some(old_entity) = world.entity_by_id.get(id) else {
+            continue;
+        };
+        if old_entity == &new_entity {
+            // lol
+            continue;
         }
+
+        commands.entity(*old_entity).despawn();
+        debug!(
+            "Added local entity {id:?} / {new_entity:?} but already existed in world as {old_entity:?}, despawning {old_entity:?}"
+        );
+        break;
     }
 }
 
