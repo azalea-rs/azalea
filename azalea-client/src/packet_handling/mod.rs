@@ -5,7 +5,8 @@ use bevy_ecs::prelude::*;
 use crate::{chat::ChatReceivedEvent, events::death_listener};
 
 use self::game::{
-    AddPlayerEvent, DeathEvent, KeepAliveEvent, RemovePlayerEvent, UpdatePlayerEvent,
+    AddPlayerEvent, DeathEvent, InstanceLoadedEvent, KeepAliveEvent, RemovePlayerEvent,
+    ResourcePackEvent, UpdatePlayerEvent,
 };
 
 pub mod configuration;
@@ -51,6 +52,8 @@ impl Plugin for PacketHandlerPlugin {
         .add_event::<UpdatePlayerEvent>()
         .add_event::<ChatReceivedEvent>()
         .add_event::<DeathEvent>()
-        .add_event::<KeepAliveEvent>();
+        .add_event::<KeepAliveEvent>()
+        .add_event::<ResourcePackEvent>()
+        .add_event::<InstanceLoadedEvent>();
     }
 }

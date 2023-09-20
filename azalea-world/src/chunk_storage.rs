@@ -1,10 +1,14 @@
+use crate::heightmap::Heightmap;
+use crate::heightmap::HeightmapKind;
 use crate::palette::PalettedContainer;
 use crate::palette::PalettedContainerKind;
 use azalea_block::BlockState;
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 use azalea_core::{BlockPos, ChunkBlockPos, ChunkPos, ChunkSectionBlockPos};
+use azalea_nbt::NbtCompound;
 use log::{debug, trace, warn};
 use parking_lot::RwLock;
+use std::str::FromStr;
 use std::{
     collections::HashMap,
     fmt::Debug,
@@ -43,6 +47,10 @@ pub struct ChunkStorage {
 #[derive(Debug)]
 pub struct Chunk {
     pub sections: Vec<Section>,
+    /// Heightmaps are used for identifying the surface blocks in a chunk.
+    /// Usually for clients only `WorldSurface` and `MotionBlocking` are
+    /// present.
+    pub heightmaps: HashMap<HeightmapKind, Heightmap>,
 }
 
 /// A section of a chunk, i.e. a 16*16*16 block area.
@@ -73,6 +81,7 @@ impl Default for Chunk {
     fn default() -> Self {
         Chunk {
             sections: vec![Section::default(); (384 / 16) as usize],
+            heightmaps: HashMap::new(),
         }
     }
 }
@@ -119,6 +128,7 @@ impl PartialChunkStorage {
         &mut self,
         pos: &ChunkPos,
         data: &mut Cursor<&[u8]>,
+        heightmaps: &NbtCompound,
         chunk_storage: &mut ChunkStorage,
     ) -> Result<(), BufReadError> {
         debug!("Replacing chunk at {:?}", pos);
@@ -127,7 +137,12 @@ impl PartialChunkStorage {
             return Ok(());
         }
 
-        let chunk = Chunk::read_with_dimension_height(data, chunk_storage.height)?;
+        let chunk = Chunk::read_with_dimension_height(
+            data,
+            chunk_storage.height,
+            chunk_storage.min_y,
+            heightmaps,
+        )?;
 
         trace!("Loaded chunk {:?}", pos);
         self.set(pos, Some(chunk), chunk_storage);
@@ -229,6 +244,8 @@ impl Chunk {
     pub fn read_with_dimension_height(
         buf: &mut Cursor<&[u8]>,
         dimension_height: u32,
+        min_y: i32,
+        heightmaps_nbt: &NbtCompound,
     ) -> Result<Self, BufReadError> {
         let section_count = dimension_height / SECTION_HEIGHT;
         let mut sections = Vec::with_capacity(section_count as usize);
@@ -236,23 +253,30 @@ impl Chunk {
             let section = Section::read_from(buf)?;
             sections.push(section);
         }
-        Ok(Chunk { sections })
+
+        let mut heightmaps = HashMap::new();
+        for (name, heightmap) in heightmaps_nbt.iter() {
+            let Ok(kind) = HeightmapKind::from_str(name) else {
+                warn!("Unknown heightmap kind: {name}");
+                continue;
+            };
+            let Some(data) = heightmap.as_long_array() else {
+                warn!("Heightmap {name} is not a long array");
+                continue;
+            };
+            let data: Vec<u64> = data.iter().map(|x| *x as u64).collect();
+            let heightmap = Heightmap::new(kind, dimension_height, min_y, data);
+            heightmaps.insert(kind, heightmap);
+        }
+
+        Ok(Chunk {
+            sections,
+            heightmaps,
+        })
     }
 
     pub fn get(&self, pos: &ChunkBlockPos, min_y: i32) -> Option<BlockState> {
-        if pos.y < min_y {
-            // y position is out of bounds
-            return None;
-        }
-        let section_index = section_index(pos.y, min_y) as usize;
-        if section_index >= self.sections.len() {
-            // y position is out of bounds
-            return None;
-        };
-        // TODO: make sure the section exists
-        let section = &self.sections[section_index];
-        let chunk_section_pos = ChunkSectionBlockPos::from(pos);
-        Some(section.get(chunk_section_pos))
+        get_block_state_from_sections(&self.sections, pos, min_y)
     }
 
     pub fn get_and_set(
@@ -265,7 +289,13 @@ impl Chunk {
         // TODO: make sure the section exists
         let section = &mut self.sections[section_index as usize];
         let chunk_section_pos = ChunkSectionBlockPos::from(pos);
-        section.get_and_set(chunk_section_pos, state)
+        let previous_state = section.get_and_set(chunk_section_pos, state);
+
+        for heightmap in self.heightmaps.values_mut() {
+            heightmap.update(pos, state, &self.sections);
+        }
+
+        previous_state
     }
 
     pub fn set(&mut self, pos: &ChunkBlockPos, state: BlockState, min_y: i32) {
@@ -274,7 +304,33 @@ impl Chunk {
         let section = &mut self.sections[section_index as usize];
         let chunk_section_pos = ChunkSectionBlockPos::from(pos);
         section.set(chunk_section_pos, state);
+
+        for heightmap in self.heightmaps.values_mut() {
+            heightmap.update(pos, state, &self.sections);
+        }
     }
+}
+
+/// Get the block state at the given position from a list of sections. Returns
+/// `None` if the position is out of bounds.
+pub fn get_block_state_from_sections(
+    sections: &[Section],
+    pos: &ChunkBlockPos,
+    min_y: i32,
+) -> Option<BlockState> {
+    if pos.y < min_y {
+        // y position is out of bounds
+        return None;
+    }
+    let section_index = section_index(pos.y, min_y) as usize;
+    if section_index >= sections.len() {
+        // y position is out of bounds
+        return None;
+    };
+    // TODO: make sure the section exists
+    let section = &sections[section_index];
+    let chunk_section_pos = ChunkSectionBlockPos::from(pos);
+    Some(section.get(chunk_section_pos))
 }
 
 impl McBufWritable for Chunk {

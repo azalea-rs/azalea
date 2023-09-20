@@ -27,20 +27,18 @@ pub struct InstanceContainer {
     // telling them apart. We hope most servers are nice and don't do that though. It's only an
     // issue when there's multiple clients with the same WorldContainer in different worlds
     // anyways.
-    pub worlds: HashMap<ResourceLocation, Weak<RwLock<Instance>>>,
+    pub instances: HashMap<ResourceLocation, Weak<RwLock<Instance>>>,
 }
 
 impl InstanceContainer {
     pub fn new() -> Self {
-        InstanceContainer {
-            worlds: HashMap::new(),
-        }
+        InstanceContainer::default()
     }
 
     /// Get a world from the container. Returns `None` if none of the clients
     /// are in this world.
     pub fn get(&self, name: &InstanceName) -> Option<Arc<RwLock<Instance>>> {
-        self.worlds.get(name).and_then(|world| world.upgrade())
+        self.instances.get(name).and_then(|world| world.upgrade())
     }
 
     /// Add an empty world to the container (or not if it already exists) and
@@ -52,7 +50,7 @@ impl InstanceContainer {
         height: u32,
         min_y: i32,
     ) -> Arc<RwLock<Instance>> {
-        if let Some(existing_lock) = self.worlds.get(&name).and_then(|world| world.upgrade()) {
+        if let Some(existing_lock) = self.instances.get(&name).and_then(|world| world.upgrade()) {
             let existing = existing_lock.read();
             if existing.chunks.height != height {
                 error!(
@@ -73,7 +71,7 @@ impl InstanceContainer {
                 entities_by_chunk: HashMap::new(),
                 entity_by_id: IntMap::default(),
             }));
-            self.worlds.insert(name, Arc::downgrade(&world));
+            self.instances.insert(name, Arc::downgrade(&world));
             world
         }
     }

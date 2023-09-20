@@ -52,7 +52,7 @@ async fn main() {
             .set_handler(handle)
             .start(account.clone(), "localhost")
             .await;
-        eprintln!("{:?}", e);
+        eprintln!("{e:?}");
     }
 }
 

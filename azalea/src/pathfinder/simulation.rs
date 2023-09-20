@@ -1,3 +1,5 @@
+//! Simulate the Minecraft world, currently only used for tests.
+
 use std::{sync::Arc, time::Duration};
 
 use azalea_client::PhysicsState;
@@ -68,7 +70,7 @@ impl Simulation {
         // make sure it doesn't do fixed ticks without us telling it to
         .insert_resource(FixedTime::new(Duration::from_secs(60)))
         .insert_resource(InstanceContainer {
-            worlds: [(instance_name.clone(), Arc::downgrade(&instance.clone()))]
+            instances: [(instance_name.clone(), Arc::downgrade(&instance.clone()))]
                 .iter()
                 .cloned()
                 .collect(),
@@ -85,7 +87,6 @@ impl Simulation {
                 MinecraftEntityId(0),
                 InstanceName(instance_name),
                 azalea_entity::LocalEntity,
-                azalea_entity::InLoadedChunk,
                 azalea_entity::Jumping::default(),
                 azalea_entity::LookDirection::default(),
                 Sprinting(true),

@@ -1,3 +1,5 @@
+use std::f32::consts::SQRT_2;
+
 use azalea_client::{SprintDirection, StartSprintEvent};
 use azalea_core::{BlockPos, CardinalDirection};
 use azalea_world::Instance;
@@ -183,7 +185,7 @@ fn diagonal_move(world: &Instance, pos: BlockPos) -> Vec<Edge> {
         if !is_standable(&(pos + offset), world) {
             continue;
         }
-        let cost = SPRINT_ONE_BLOCK_COST * 1.4;
+        let cost = SPRINT_ONE_BLOCK_COST * SQRT_2;
 
         edges.push(Edge {
             movement: astar::Movement {

@@ -4,17 +4,17 @@ edition = "2021"
 license = "MIT"
 name = "azalea-physics"
 repository = "https://github.com/mat-1/azalea/tree/main/azalea-physics"
-version = "0.7.0"
+version = "0.8.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-azalea-block = { path = "../azalea-block", version = "^0.7.0" }
-azalea-core = { path = "../azalea-core", version = "^0.7.0" }
-azalea-entity = { version = "0.1.0", path = "../azalea-entity" }
-azalea-inventory = { version = "0.7.0", path = "../azalea-inventory" }
-azalea-registry = { path = "../azalea-registry", version = "^0.7.0" }
-azalea-world = { path = "../azalea-world", version = "^0.7.0" }
+azalea-block = { path = "../azalea-block", version = "0.8.0" }
+azalea-core = { path = "../azalea-core", version = "0.8.0" }
+azalea-entity = { version = "0.8.0", path = "../azalea-entity" }
+azalea-inventory = { version = "0.8.0", path = "../azalea-inventory" }
+azalea-registry = { path = "../azalea-registry", version = "0.8.0" }
+azalea-world = { path = "../azalea-world", version = "0.8.0" }
 bevy_app = "0.11.2"
 bevy_ecs = "0.11.2"
 log = "0.4.20"

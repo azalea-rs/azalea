@@ -36,7 +36,7 @@ impl ContainerClientExt for Client {
     /// let target_pos = bot
     ///     .world()
     ///     .read()
-    ///     .find_block(bot.position(), &azalea::Block::Chest.into());
+    ///     .find_block(bot.position(), &azalea::registry::Block::Chest.into());
     /// let Some(target_pos) = target_pos else {
     ///     bot.chat("no chest found");
     ///     return;

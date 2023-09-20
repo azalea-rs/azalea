@@ -35,7 +35,7 @@ fn tick_global_task_pools(_main_thread_marker: Option<NonSend<NonSendMarker>>) {
 }
 
 /// Helper for configuring and creating the default task pools. For end-users
-/// who want full control, set up [`TaskPoolPlugin`](TaskPoolPlugin)
+/// who want full control, set up [`TaskPoolPlugin`]
 #[derive(Clone, Resource)]
 pub struct TaskPoolOptions {
     /// If the number of physical cores is less than min_total_threads, force

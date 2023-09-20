@@ -3,16 +3,16 @@
 #![feature(type_alias_impl_trait)]
 
 use azalea::ecs::query::With;
-use azalea::entity::metadata::Player;
-use azalea::entity::{EyeHeight, Position};
+use azalea::entity::{metadata::Player, EyeHeight, Position};
 use azalea::interact::HitResultComponent;
 use azalea::inventory::ItemSlot;
 use azalea::pathfinder::goals::BlockPosGoal;
 use azalea::{prelude::*, swarm::prelude::*, BlockPos, GameProfileComponent, WalkDirection};
 use azalea::{Account, Client, Event};
 use azalea_client::SprintDirection;
-use azalea_core::Vec3;
+use azalea_core::{ChunkBlockPos, ChunkPos, Vec3};
 use azalea_protocol::packets::game::ClientboundGamePacket;
+use azalea_world::heightmap::HeightmapKind;
 use azalea_world::{InstanceName, MinecraftEntityId};
 use std::time::Duration;
 
@@ -129,6 +129,9 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                     println!("going to {target_pos:?}");
                     bot.goto(BlockPosGoal::from(target_pos));
                 }
+                "worldborder" => {
+                    bot.goto(BlockPosGoal::from(BlockPos::new(30_000_000, 70, 0)));
+                }
                 "look" => {
                     let Some(entity) = entity else {
                         bot.chat("I can't see you");
@@ -160,17 +163,17 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                     println!("inventory: {:?}", bot.menu());
                 }
                 "findblock" => {
-                    let target_pos = bot
-                        .world()
-                        .read()
-                        .find_block(bot.position(), &azalea::Block::DiamondBlock.into());
+                    let target_pos = bot.world().read().find_block(
+                        bot.position(),
+                        &azalea::registry::Block::DiamondBlock.into(),
+                    );
                     bot.chat(&format!("target_pos: {target_pos:?}",));
                 }
                 "gotoblock" => {
-                    let target_pos = bot
-                        .world()
-                        .read()
-                        .find_block(bot.position(), &azalea::Block::DiamondBlock.into());
+                    let target_pos = bot.world().read().find_block(
+                        bot.position(),
+                        &azalea::registry::Block::DiamondBlock.into(),
+                    );
                     if let Some(target_pos) = target_pos {
                         // +1 to stand on top of the block
                         bot.goto(BlockPosGoal::from(target_pos.up(1)));
@@ -179,10 +182,10 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                     }
                 }
                 "mineblock" => {
-                    let target_pos = bot
-                        .world()
-                        .read()
-                        .find_block(bot.position(), &azalea::Block::DiamondBlock.into());
+                    let target_pos = bot.world().read().find_block(
+                        bot.position(),
+                        &azalea::registry::Block::DiamondBlock.into(),
+                    );
                     if let Some(target_pos) = target_pos {
                         // +1 to stand on top of the block
                         bot.chat("ok mining diamond block");
@@ -197,7 +200,7 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                     let target_pos = bot
                         .world()
                         .read()
-                        .find_block(bot.position(), &azalea::Block::Lever.into());
+                        .find_block(bot.position(), &azalea::registry::Block::Lever.into());
                     let Some(target_pos) = target_pos else {
                         bot.chat("no lever found");
                         return Ok(());
@@ -214,19 +217,19 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                     let target_pos = bot
                         .world()
                         .read()
-                        .find_block(bot.position(), &azalea::Block::Chest.into());
+                        .find_block(bot.position(), &azalea::registry::Block::Chest.into());
                     let Some(target_pos) = target_pos else {
                         bot.chat("no chest found");
                         return Ok(());
                     };
                     bot.look_at(target_pos.center());
                     let container = bot.open_container(target_pos).await;
-                    println!("container: {:?}", container);
+                    println!("container: {container:?}");
                     if let Some(container) = container {
                         if let Some(contents) = container.contents() {
                             for item in contents {
                                 if let ItemSlot::Present(item) = item {
-                                    println!("item: {:?}", item);
+                                    println!("item: {item:?}");
                                 }
                             }
                         } else {
@@ -285,6 +288,26 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                         bot.chat("no entities found");
                     }
                 }
+                "heightmap" => {
+                    let position = bot.position();
+                    let chunk_pos = ChunkPos::from(position);
+                    let chunk_block_pos = ChunkBlockPos::from(position);
+                    let chunk = bot.world().read().chunks.get(&chunk_pos);
+                    if let Some(chunk) = chunk {
+                        let heightmaps = &chunk.read().heightmaps;
+                        let Some(world_surface_heightmap) =
+                            heightmaps.get(&HeightmapKind::WorldSurface)
+                        else {
+                            bot.chat("no world surface heightmap");
+                            return Ok(());
+                        };
+                        let highest_y = world_surface_heightmap
+                            .get_highest_taken(chunk_block_pos.x, chunk_block_pos.z);
+                        bot.chat(&format!("highest_y: {highest_y}",));
+                    } else {
+                        bot.chat("no chunk found");
+                    }
+                }
                 _ => {}
             }
         }
@@ -315,7 +338,7 @@ async fn swarm_handle(
         SwarmEvent::Chat(m) => {
             println!("swarm chat message: {}", m.message().to_ansi());
             if m.message().to_string() == "<py5> world" {
-                for (name, world) in &swarm.instance_container.read().worlds {
+                for (name, world) in &swarm.instance_container.read().instances {
                     println!("world name: {name}");
                     if let Some(w) = world.upgrade() {
                         for chunk_pos in w.read().chunks.map.values() {

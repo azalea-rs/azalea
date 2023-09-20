@@ -5,6 +5,7 @@
 #![feature(type_changing_struct_update)]
 #![feature(lazy_cell)]
 
+pub mod accept_resource_packs;
 mod auto_respawn;
 mod bot;
 pub mod container;
@@ -19,10 +20,10 @@ pub use azalea_block as blocks;
 pub use azalea_brigadier as brigadier;
 pub use azalea_chat::FormattedText;
 pub use azalea_client::*;
-pub use azalea_core::{BlockPos, Vec3};
+pub use azalea_core::{BlockPos, ChunkPos, ResourceLocation, Vec3};
 pub use azalea_entity as entity;
 pub use azalea_protocol as protocol;
-pub use azalea_registry::{Block, EntityKind, Item};
+pub use azalea_registry as registry;
 pub use azalea_world as world;
 pub use bot::*;
 use ecs::component::Component;
@@ -187,7 +188,8 @@ where
         // An event that causes the schedule to run. This is only used internally.
         let (run_schedule_sender, run_schedule_receiver) = mpsc::unbounded_channel();
 
-        let ecs_lock = start_ecs(self.app, run_schedule_receiver, run_schedule_sender.clone());
+        let ecs_lock =
+            start_ecs_runner(self.app, run_schedule_receiver, run_schedule_sender.clone());
 
         let (bot, mut rx) = Client::start_client(
             ecs_lock,

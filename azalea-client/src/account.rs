@@ -5,6 +5,7 @@ use std::sync::Arc;
 use crate::get_mc_dir;
 use azalea_auth::certs::{Certificates, FetchCertificatesError};
 use azalea_auth::AccessTokenResponse;
+use bevy_ecs::component::Component;
 use parking_lot::Mutex;
 use thiserror::Error;
 use uuid::Uuid;
@@ -13,6 +14,8 @@ use uuid::Uuid;
 ///
 /// To join a server using this account, use [`Client::join`] or
 /// [`azalea::ClientBuilder`].
+///
+/// Note that this is also a component that our clients have.
 ///
 /// # Examples
 ///
@@ -28,7 +31,7 @@ use uuid::Uuid;
 ///
 /// [`Client::join`]: crate::Client::join
 /// [`azalea::ClientBuilder`]: https://docs.rs/azalea/latest/azalea/struct.ClientBuilder.html
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Component)]
 pub struct Account {
     /// The Minecraft username of the account.
     pub username: String,

@@ -17,7 +17,7 @@ use crate::{
     raw_connection::RawConnection,
     respawn::RespawnPlugin,
     task_pool::TaskPoolPlugin,
-    Account, ReceivedRegistries,
+    Account, PlayerInfo, ReceivedRegistries,
 };
 
 use azalea_auth::{game_profile::GameProfile, sessionserver::ClientSessionServerError};
@@ -25,8 +25,9 @@ use azalea_buf::McBufWritable;
 use azalea_chat::FormattedText;
 use azalea_core::{ResourceLocation, Vec3};
 use azalea_entity::{
-    indexing::EntityIdIndex, metadata::Health, EntityPlugin, EntityUpdateSet, EyeHeight,
-    LocalEntity, Position,
+    indexing::{EntityIdIndex, Loaded},
+    metadata::Health,
+    EntityPlugin, EntityUpdateSet, EyeHeight, LocalEntity, Position,
 };
 use azalea_physics::PhysicsPlugin;
 use azalea_protocol::{
@@ -66,12 +67,15 @@ use bevy_time::{prelude::FixedTime, TimePlugin};
 use derive_more::Deref;
 use log::{debug, error};
 use parking_lot::{Mutex, RwLock};
-use std::{fmt::Debug, io, net::SocketAddr, sync::Arc, time::Duration};
+use std::{
+    collections::HashMap, fmt::Debug, io, net::SocketAddr, ops::Deref, sync::Arc, time::Duration,
+};
 use thiserror::Error;
 use tokio::{
     sync::{broadcast, mpsc},
     time,
 };
+use uuid::Uuid;
 
 /// `Client` has the things that a user interacting with the library will want.
 ///
@@ -90,6 +94,8 @@ pub struct Client {
     /// This is immutable; the server cannot change it. To get the username and
     /// skin the server chose for you, get your player from the [`TabList`]
     /// component.
+    ///
+    /// This as also available from the ECS as [`GameProfileComponent`].
     pub profile: GameProfile,
     /// The entity for this client in the ECS.
     pub entity: Entity,
@@ -181,7 +187,7 @@ impl Client {
         let mut app = App::new();
         app.add_plugins(DefaultPlugins);
 
-        let ecs_lock = start_ecs(app, run_schedule_receiver, run_schedule_sender.clone());
+        let ecs_lock = start_ecs_runner(app, run_schedule_receiver, run_schedule_sender.clone());
 
         Self::start_client(
             ecs_lock,
@@ -194,7 +200,7 @@ impl Client {
     }
 
     /// Create a [`Client`] when you already have the ECS made with
-    /// [`start_ecs`]. You'd usually want to use [`Self::join`] instead.
+    /// [`start_ecs_runner`]. You'd usually want to use [`Self::join`] instead.
     pub async fn start_client(
         ecs_lock: Arc<Mutex<World>>,
         account: &Account,
@@ -202,6 +208,8 @@ impl Client {
         resolved_address: &SocketAddr,
         run_schedule_sender: mpsc::UnboundedSender<()>,
     ) -> Result<(Self, mpsc::UnboundedReceiver<Event>), JoinError> {
+        let entity = ecs_lock.lock().spawn(account.to_owned()).id();
+
         let conn = Connection::new(resolved_address).await?;
         let (mut conn, game_profile) = Self::handshake(conn, account, address).await?;
 
@@ -222,13 +230,11 @@ impl Client {
         let (read_conn, write_conn) = conn.into_split();
         let (read_conn, write_conn) = (read_conn.raw, write_conn.raw);
 
+        // we did the handshake, so now we're connected to the server
+
         let (tx, rx) = mpsc::unbounded_channel();
 
         let mut ecs = ecs_lock.lock();
-
-        // Make the ecs entity for this client
-        let entity_mut = ecs.spawn_empty();
-        let entity = entity_mut.id();
 
         // we got the ConfigurationConnection, so the client is now connected :)
         let client = Client::new(
@@ -536,6 +542,28 @@ impl Client {
     pub fn hunger(&self) -> Hunger {
         self.component::<Hunger>().to_owned()
     }
+
+    /// Get the username of this client.
+    ///
+    /// This is a shortcut for
+    /// `bot.component::<GameProfileComponent>().name.clone()`.
+    pub fn username(&self) -> String {
+        self.component::<GameProfileComponent>().name.clone()
+    }
+
+    /// Get the Minecraft UUID of this client.
+    ///
+    /// This is a shortcut for `bot.component::<GameProfileComponent>().uuid`.
+    pub fn uuid(&self) -> Uuid {
+        self.component::<GameProfileComponent>().uuid
+    }
+
+    /// Get a map of player UUIDs to their information in the tab list.
+    ///
+    /// This is a shortcut for `*bot.component::<TabList>()`.
+    pub fn tab_list(&self) -> HashMap<Uuid, PlayerInfo> {
+        self.component::<TabList>().deref().clone()
+    }
 }
 
 /// The bundle of components that's shared when we're either in the
@@ -575,6 +603,7 @@ pub struct JoinedClientBundle {
     pub attack: attack::AttackBundle,
 
     pub _local_entity: LocalEntity,
+    pub _loaded: Loaded,
 }
 
 /// A marker component for local players that are currently in the
@@ -598,7 +627,8 @@ impl Plugin for AzaleaPlugin {
                 ),
             )
             .add_event::<SendPacketEvent>()
-            .init_resource::<InstanceContainer>();
+            .init_resource::<InstanceContainer>()
+            .init_resource::<TabList>();
     }
 }
 
@@ -607,7 +637,7 @@ impl Plugin for AzaleaPlugin {
 /// You can create your app with `App::new()`, but don't forget to add
 /// [`DefaultPlugins`].
 #[doc(hidden)]
-pub fn start_ecs(
+pub fn start_ecs_runner(
     app: App,
     run_schedule_receiver: mpsc::UnboundedReceiver<()>,
     run_schedule_sender: mpsc::UnboundedSender<()>,

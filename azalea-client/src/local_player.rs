@@ -97,7 +97,7 @@ pub struct PermissionLevel(pub u8);
 ///     println!("- {} ({}ms)", player_info.profile.name, player_info.latency);
 /// }
 /// # }
-#[derive(Component, Clone, Debug, Deref, DerefMut, Default)]
+#[derive(Component, Resource, Clone, Debug, Deref, DerefMut, Default)]
 pub struct TabList(HashMap<Uuid, PlayerInfo>);
 
 #[derive(Component, Clone)]

@@ -99,12 +99,15 @@ impl EntityCommand for RelativeEntityUpdate {
     }
 }
 
-/// The [`UpdatesReceived`] component should never be on [`Local`] entities.
-/// This warns if an entity has both components.
+/// The [`UpdatesReceived`] component should never be on [`LocalEntity`]
+/// entities. This warns if an entity has both components.
 pub fn debug_detect_updates_received_on_local_entities(
     query: Query<Entity, (With<LocalEntity>, With<UpdatesReceived>)>,
 ) {
     for entity in &query {
-        warn!("Entity {:?} has both Local and UpdatesReceived", entity);
+        warn!(
+            "Entity {:?} has both LocalEntity and UpdatesReceived",
+            entity
+        );
     }
 }

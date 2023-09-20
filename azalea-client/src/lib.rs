@@ -34,7 +34,9 @@ pub mod task_pool;
 
 pub use account::{Account, AccountOpts};
 pub use azalea_protocol::packets::configuration::serverbound_client_information_packet::ClientInformation;
-pub use client::{start_ecs, Client, DefaultPlugins, JoinError, JoinedClientBundle, TickBroadcast};
+pub use client::{
+    start_ecs_runner, Client, DefaultPlugins, JoinError, JoinedClientBundle, TickBroadcast,
+};
 pub use events::Event;
 pub use local_player::{GameProfileComponent, InstanceHolder, SendPacketEvent, TabList};
 pub use movement::{

@@ -5,7 +5,7 @@ mod events;
 pub mod prelude;
 
 use azalea_client::{
-    chat::ChatPacket, start_ecs, Account, Client, DefaultPlugins, Event, JoinError,
+    chat::ChatPacket, start_ecs_runner, Account, Client, DefaultPlugins, Event, JoinError,
 };
 use azalea_protocol::{
     connect::ConnectionError,
@@ -319,7 +319,8 @@ where
         let (swarm_tx, mut swarm_rx) = mpsc::unbounded_channel();
 
         let (run_schedule_sender, run_schedule_receiver) = mpsc::unbounded_channel();
-        let ecs_lock = start_ecs(self.app, run_schedule_receiver, run_schedule_sender.clone());
+        let ecs_lock =
+            start_ecs_runner(self.app, run_schedule_receiver, run_schedule_sender.clone());
 
         let swarm = Swarm {
             ecs_lock: ecs_lock.clone(),
@@ -515,7 +516,8 @@ impl Swarm {
         // rx is used to receive events from the bot
         // An event that causes the schedule to run. This is only used internally.
         // let (run_schedule_sender, run_schedule_receiver) = mpsc::unbounded_channel();
-        // let ecs_lock = start_ecs(run_schedule_receiver, run_schedule_sender.clone());
+        // let ecs_lock = start_ecs_runner(run_schedule_receiver,
+        // run_schedule_sender.clone());
         let (bot, mut rx) = Client::start_client(
             self.ecs_lock.clone(),
             account,
@@ -535,7 +537,6 @@ impl Swarm {
         let cloned_bots = self.bots.clone();
         let cloned_bots_tx = self.bots_tx.clone();
         let cloned_bot = bot.clone();
-        let owned_account = account.clone();
         let swarm_tx = self.swarm_tx.clone();
         tokio::spawn(async move {
             while let Some(event) = rx.recv().await {
@@ -546,8 +547,11 @@ impl Swarm {
                 }
             }
             cloned_bots.lock().remove(&bot.entity);
+            let account = cloned_bot
+                .get_component::<Account>()
+                .expect("bot is missing required Account component");
             swarm_tx
-                .send(SwarmEvent::Disconnect(Box::new(owned_account)))
+                .send(SwarmEvent::Disconnect(Box::new(account)))
                 .unwrap();
         });
 
