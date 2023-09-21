@@ -11,7 +11,7 @@ version = "0.8.0"
 [dependencies]
 azalea-buf = { path = "../azalea-buf", version = "0.8.0" }
 azalea-inventory = { version = "0.8.0", path = "../azalea-inventory" }
-azalea-nbt = { path = "../azalea-nbt", version = "0.8.0" }
+simdnbt = { git = "https://github.com/mat-1/simdnbt" }
 azalea-registry = { path = "../azalea-registry", version = "0.8.0" }
 bevy_ecs = { version = "0.11.2", default-features = false, optional = true }
 num-traits = "0.2.16"
