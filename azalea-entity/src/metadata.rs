@@ -761,9 +761,11 @@ impl Default for BlazeMetadataBundle {
 }
 
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct BlockDisplayInterpolationStartDeltaTicks(pub i32);
+pub struct BlockDisplayTransformationInterpolationStartDeltaTicks(pub i32);
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct BlockDisplayInterpolationDuration(pub i32);
+pub struct BlockDisplayTransformationInterpolationDuration(pub i32);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct BlockDisplayPosRotInterpolationDuration(pub i32);
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct BlockDisplayTranslation(pub Vec3);
 #[derive(Component, Deref, DerefMut, Clone)]
@@ -800,50 +802,55 @@ impl BlockDisplay {
         match d.index {
             0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
-                entity.insert(BlockDisplayInterpolationStartDeltaTicks(
+                entity.insert(BlockDisplayTransformationInterpolationStartDeltaTicks(
                     d.value.into_int()?,
                 ));
             }
             9 => {
-                entity.insert(BlockDisplayInterpolationDuration(d.value.into_int()?));
+                entity.insert(BlockDisplayTransformationInterpolationDuration(
+                    d.value.into_int()?,
+                ));
             }
             10 => {
-                entity.insert(BlockDisplayTranslation(d.value.into_vector3()?));
+                entity.insert(BlockDisplayPosRotInterpolationDuration(d.value.into_int()?));
             }
             11 => {
-                entity.insert(BlockDisplayScale(d.value.into_vector3()?));
+                entity.insert(BlockDisplayTranslation(d.value.into_vector3()?));
             }
             12 => {
-                entity.insert(BlockDisplayLeftRotation(d.value.into_quaternion()?));
+                entity.insert(BlockDisplayScale(d.value.into_vector3()?));
             }
             13 => {
-                entity.insert(BlockDisplayRightRotation(d.value.into_quaternion()?));
+                entity.insert(BlockDisplayLeftRotation(d.value.into_quaternion()?));
             }
             14 => {
-                entity.insert(BlockDisplayBillboardRenderConstraints(d.value.into_byte()?));
+                entity.insert(BlockDisplayRightRotation(d.value.into_quaternion()?));
             }
             15 => {
-                entity.insert(BlockDisplayBrightnessOverride(d.value.into_int()?));
+                entity.insert(BlockDisplayBillboardRenderConstraints(d.value.into_byte()?));
             }
             16 => {
-                entity.insert(BlockDisplayViewRange(d.value.into_float()?));
+                entity.insert(BlockDisplayBrightnessOverride(d.value.into_int()?));
             }
             17 => {
-                entity.insert(BlockDisplayShadowRadius(d.value.into_float()?));
+                entity.insert(BlockDisplayViewRange(d.value.into_float()?));
             }
             18 => {
-                entity.insert(BlockDisplayShadowStrength(d.value.into_float()?));
+                entity.insert(BlockDisplayShadowRadius(d.value.into_float()?));
             }
             19 => {
-                entity.insert(BlockDisplayWidth(d.value.into_float()?));
+                entity.insert(BlockDisplayShadowStrength(d.value.into_float()?));
             }
             20 => {
-                entity.insert(BlockDisplayHeight(d.value.into_float()?));
+                entity.insert(BlockDisplayWidth(d.value.into_float()?));
             }
             21 => {
-                entity.insert(BlockDisplayGlowColorOverride(d.value.into_int()?));
+                entity.insert(BlockDisplayHeight(d.value.into_float()?));
             }
             22 => {
+                entity.insert(BlockDisplayGlowColorOverride(d.value.into_int()?));
+            }
+            23 => {
                 entity.insert(BlockState(d.value.into_block_state()?));
             }
             _ => {}
@@ -856,8 +863,11 @@ impl BlockDisplay {
 pub struct BlockDisplayMetadataBundle {
     _marker: BlockDisplay,
     parent: AbstractEntityMetadataBundle,
-    block_display_interpolation_start_delta_ticks: BlockDisplayInterpolationStartDeltaTicks,
-    block_display_interpolation_duration: BlockDisplayInterpolationDuration,
+    block_display_transformation_interpolation_start_delta_ticks:
+        BlockDisplayTransformationInterpolationStartDeltaTicks,
+    block_display_transformation_interpolation_duration:
+        BlockDisplayTransformationInterpolationDuration,
+    block_display_pos_rot_interpolation_duration: BlockDisplayPosRotInterpolationDuration,
     block_display_translation: BlockDisplayTranslation,
     block_display_scale: BlockDisplayScale,
     block_display_left_rotation: BlockDisplayLeftRotation,
@@ -893,10 +903,13 @@ impl Default for BlockDisplayMetadataBundle {
                 pose: Pose::default(),
                 ticks_frozen: TicksFrozen(0),
             },
-            block_display_interpolation_start_delta_ticks: BlockDisplayInterpolationStartDeltaTicks(
+            block_display_transformation_interpolation_start_delta_ticks:
+                BlockDisplayTransformationInterpolationStartDeltaTicks(0),
+            block_display_transformation_interpolation_duration:
+                BlockDisplayTransformationInterpolationDuration(0),
+            block_display_pos_rot_interpolation_duration: BlockDisplayPosRotInterpolationDuration(
                 0,
             ),
-            block_display_interpolation_duration: BlockDisplayInterpolationDuration(0),
             block_display_translation: BlockDisplayTranslation(Vec3 {
                 x: 0.0,
                 y: 0.0,
@@ -1901,7 +1914,7 @@ impl Default for DolphinMetadataBundle {
                     aggressive: Aggressive(false),
                 },
             },
-            treasure_pos: TreasurePos(BlockPos::new(0, 0, 0)),
+            treasure_pos: TreasurePos(Default::default()),
             got_fish: GotFish(false),
             moistness_level: MoistnessLevel(2400),
         }
@@ -2929,7 +2942,7 @@ impl Default for FallingBlockMetadataBundle {
                 pose: Pose::default(),
                 ticks_frozen: TicksFrozen(0),
             },
-            start_pos: StartPos(BlockPos::new(0, 0, 0)),
+            start_pos: StartPos(Default::default()),
         }
     }
 }
@@ -4409,9 +4422,11 @@ impl Default for ItemMetadataBundle {
 }
 
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct ItemDisplayInterpolationStartDeltaTicks(pub i32);
+pub struct ItemDisplayTransformationInterpolationStartDeltaTicks(pub i32);
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct ItemDisplayInterpolationDuration(pub i32);
+pub struct ItemDisplayTransformationInterpolationDuration(pub i32);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct ItemDisplayPosRotInterpolationDuration(pub i32);
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct ItemDisplayTranslation(pub Vec3);
 #[derive(Component, Deref, DerefMut, Clone)]
@@ -4450,51 +4465,58 @@ impl ItemDisplay {
         match d.index {
             0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
-                entity.insert(ItemDisplayInterpolationStartDeltaTicks(d.value.into_int()?));
+                entity.insert(ItemDisplayTransformationInterpolationStartDeltaTicks(
+                    d.value.into_int()?,
+                ));
             }
             9 => {
-                entity.insert(ItemDisplayInterpolationDuration(d.value.into_int()?));
+                entity.insert(ItemDisplayTransformationInterpolationDuration(
+                    d.value.into_int()?,
+                ));
             }
             10 => {
-                entity.insert(ItemDisplayTranslation(d.value.into_vector3()?));
+                entity.insert(ItemDisplayPosRotInterpolationDuration(d.value.into_int()?));
             }
             11 => {
-                entity.insert(ItemDisplayScale(d.value.into_vector3()?));
+                entity.insert(ItemDisplayTranslation(d.value.into_vector3()?));
             }
             12 => {
-                entity.insert(ItemDisplayLeftRotation(d.value.into_quaternion()?));
+                entity.insert(ItemDisplayScale(d.value.into_vector3()?));
             }
             13 => {
-                entity.insert(ItemDisplayRightRotation(d.value.into_quaternion()?));
+                entity.insert(ItemDisplayLeftRotation(d.value.into_quaternion()?));
             }
             14 => {
-                entity.insert(ItemDisplayBillboardRenderConstraints(d.value.into_byte()?));
+                entity.insert(ItemDisplayRightRotation(d.value.into_quaternion()?));
             }
             15 => {
-                entity.insert(ItemDisplayBrightnessOverride(d.value.into_int()?));
+                entity.insert(ItemDisplayBillboardRenderConstraints(d.value.into_byte()?));
             }
             16 => {
-                entity.insert(ItemDisplayViewRange(d.value.into_float()?));
+                entity.insert(ItemDisplayBrightnessOverride(d.value.into_int()?));
             }
             17 => {
-                entity.insert(ItemDisplayShadowRadius(d.value.into_float()?));
+                entity.insert(ItemDisplayViewRange(d.value.into_float()?));
             }
             18 => {
-                entity.insert(ItemDisplayShadowStrength(d.value.into_float()?));
+                entity.insert(ItemDisplayShadowRadius(d.value.into_float()?));
             }
             19 => {
-                entity.insert(ItemDisplayWidth(d.value.into_float()?));
+                entity.insert(ItemDisplayShadowStrength(d.value.into_float()?));
             }
             20 => {
-                entity.insert(ItemDisplayHeight(d.value.into_float()?));
+                entity.insert(ItemDisplayWidth(d.value.into_float()?));
             }
             21 => {
-                entity.insert(ItemDisplayGlowColorOverride(d.value.into_int()?));
+                entity.insert(ItemDisplayHeight(d.value.into_float()?));
             }
             22 => {
-                entity.insert(ItemDisplayItemStack(d.value.into_item_stack()?));
+                entity.insert(ItemDisplayGlowColorOverride(d.value.into_int()?));
             }
             23 => {
+                entity.insert(ItemDisplayItemStack(d.value.into_item_stack()?));
+            }
+            24 => {
                 entity.insert(ItemDisplayItemDisplay(d.value.into_byte()?));
             }
             _ => {}
@@ -4507,8 +4529,11 @@ impl ItemDisplay {
 pub struct ItemDisplayMetadataBundle {
     _marker: ItemDisplay,
     parent: AbstractEntityMetadataBundle,
-    item_display_interpolation_start_delta_ticks: ItemDisplayInterpolationStartDeltaTicks,
-    item_display_interpolation_duration: ItemDisplayInterpolationDuration,
+    item_display_transformation_interpolation_start_delta_ticks:
+        ItemDisplayTransformationInterpolationStartDeltaTicks,
+    item_display_transformation_interpolation_duration:
+        ItemDisplayTransformationInterpolationDuration,
+    item_display_pos_rot_interpolation_duration: ItemDisplayPosRotInterpolationDuration,
     item_display_translation: ItemDisplayTranslation,
     item_display_scale: ItemDisplayScale,
     item_display_left_rotation: ItemDisplayLeftRotation,
@@ -4545,10 +4570,11 @@ impl Default for ItemDisplayMetadataBundle {
                 pose: Pose::default(),
                 ticks_frozen: TicksFrozen(0),
             },
-            item_display_interpolation_start_delta_ticks: ItemDisplayInterpolationStartDeltaTicks(
-                0,
-            ),
-            item_display_interpolation_duration: ItemDisplayInterpolationDuration(0),
+            item_display_transformation_interpolation_start_delta_ticks:
+                ItemDisplayTransformationInterpolationStartDeltaTicks(0),
+            item_display_transformation_interpolation_duration:
+                ItemDisplayTransformationInterpolationDuration(0),
+            item_display_pos_rot_interpolation_duration: ItemDisplayPosRotInterpolationDuration(0),
             item_display_translation: ItemDisplayTranslation(Vec3 {
                 x: 0.0,
                 y: 0.0,
@@ -6106,7 +6132,7 @@ impl Default for PlayerMetadataBundle {
             player_absorption: PlayerAbsorption(0.0),
             score: Score(0),
             player_mode_customisation: PlayerModeCustomisation(0),
-            player_main_hand: PlayerMainHand(1),
+            player_main_hand: PlayerMainHand(Default::default()),
             shoulder_left: ShoulderLeft(azalea_nbt::Nbt::Compound(Default::default())),
             shoulder_right: ShoulderRight(azalea_nbt::Nbt::Compound(Default::default())),
         }
@@ -7830,9 +7856,11 @@ impl Default for TadpoleMetadataBundle {
 }
 
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct TextDisplayInterpolationStartDeltaTicks(pub i32);
+pub struct TextDisplayTransformationInterpolationStartDeltaTicks(pub i32);
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct TextDisplayInterpolationDuration(pub i32);
+pub struct TextDisplayTransformationInterpolationDuration(pub i32);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct TextDisplayPosRotInterpolationDuration(pub i32);
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct TextDisplayTranslation(pub Vec3);
 #[derive(Component, Deref, DerefMut, Clone)]
@@ -7877,60 +7905,67 @@ impl TextDisplay {
         match d.index {
             0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
-                entity.insert(TextDisplayInterpolationStartDeltaTicks(d.value.into_int()?));
+                entity.insert(TextDisplayTransformationInterpolationStartDeltaTicks(
+                    d.value.into_int()?,
+                ));
             }
             9 => {
-                entity.insert(TextDisplayInterpolationDuration(d.value.into_int()?));
+                entity.insert(TextDisplayTransformationInterpolationDuration(
+                    d.value.into_int()?,
+                ));
             }
             10 => {
-                entity.insert(TextDisplayTranslation(d.value.into_vector3()?));
+                entity.insert(TextDisplayPosRotInterpolationDuration(d.value.into_int()?));
             }
             11 => {
-                entity.insert(TextDisplayScale(d.value.into_vector3()?));
+                entity.insert(TextDisplayTranslation(d.value.into_vector3()?));
             }
             12 => {
-                entity.insert(TextDisplayLeftRotation(d.value.into_quaternion()?));
+                entity.insert(TextDisplayScale(d.value.into_vector3()?));
             }
             13 => {
-                entity.insert(TextDisplayRightRotation(d.value.into_quaternion()?));
+                entity.insert(TextDisplayLeftRotation(d.value.into_quaternion()?));
             }
             14 => {
-                entity.insert(TextDisplayBillboardRenderConstraints(d.value.into_byte()?));
+                entity.insert(TextDisplayRightRotation(d.value.into_quaternion()?));
             }
             15 => {
-                entity.insert(TextDisplayBrightnessOverride(d.value.into_int()?));
+                entity.insert(TextDisplayBillboardRenderConstraints(d.value.into_byte()?));
             }
             16 => {
-                entity.insert(TextDisplayViewRange(d.value.into_float()?));
+                entity.insert(TextDisplayBrightnessOverride(d.value.into_int()?));
             }
             17 => {
-                entity.insert(TextDisplayShadowRadius(d.value.into_float()?));
+                entity.insert(TextDisplayViewRange(d.value.into_float()?));
             }
             18 => {
-                entity.insert(TextDisplayShadowStrength(d.value.into_float()?));
+                entity.insert(TextDisplayShadowRadius(d.value.into_float()?));
             }
             19 => {
-                entity.insert(TextDisplayWidth(d.value.into_float()?));
+                entity.insert(TextDisplayShadowStrength(d.value.into_float()?));
             }
             20 => {
-                entity.insert(TextDisplayHeight(d.value.into_float()?));
+                entity.insert(TextDisplayWidth(d.value.into_float()?));
             }
             21 => {
-                entity.insert(TextDisplayGlowColorOverride(d.value.into_int()?));
+                entity.insert(TextDisplayHeight(d.value.into_float()?));
             }
             22 => {
-                entity.insert(Text(d.value.into_formatted_text()?));
+                entity.insert(TextDisplayGlowColorOverride(d.value.into_int()?));
             }
             23 => {
-                entity.insert(LineWidth(d.value.into_int()?));
+                entity.insert(Text(d.value.into_formatted_text()?));
             }
             24 => {
-                entity.insert(BackgroundColor(d.value.into_int()?));
+                entity.insert(LineWidth(d.value.into_int()?));
             }
             25 => {
-                entity.insert(TextOpacity(d.value.into_byte()?));
+                entity.insert(BackgroundColor(d.value.into_int()?));
             }
             26 => {
+                entity.insert(TextOpacity(d.value.into_byte()?));
+            }
+            27 => {
                 entity.insert(StyleFlags(d.value.into_byte()?));
             }
             _ => {}
@@ -7943,8 +7978,11 @@ impl TextDisplay {
 pub struct TextDisplayMetadataBundle {
     _marker: TextDisplay,
     parent: AbstractEntityMetadataBundle,
-    text_display_interpolation_start_delta_ticks: TextDisplayInterpolationStartDeltaTicks,
-    text_display_interpolation_duration: TextDisplayInterpolationDuration,
+    text_display_transformation_interpolation_start_delta_ticks:
+        TextDisplayTransformationInterpolationStartDeltaTicks,
+    text_display_transformation_interpolation_duration:
+        TextDisplayTransformationInterpolationDuration,
+    text_display_pos_rot_interpolation_duration: TextDisplayPosRotInterpolationDuration,
     text_display_translation: TextDisplayTranslation,
     text_display_scale: TextDisplayScale,
     text_display_left_rotation: TextDisplayLeftRotation,
@@ -7984,10 +8022,11 @@ impl Default for TextDisplayMetadataBundle {
                 pose: Pose::default(),
                 ticks_frozen: TicksFrozen(0),
             },
-            text_display_interpolation_start_delta_ticks: TextDisplayInterpolationStartDeltaTicks(
-                0,
-            ),
-            text_display_interpolation_duration: TextDisplayInterpolationDuration(0),
+            text_display_transformation_interpolation_start_delta_ticks:
+                TextDisplayTransformationInterpolationStartDeltaTicks(0),
+            text_display_transformation_interpolation_duration:
+                TextDisplayTransformationInterpolationDuration(0),
+            text_display_pos_rot_interpolation_duration: TextDisplayPosRotInterpolationDuration(0),
             text_display_translation: TextDisplayTranslation(Vec3 {
                 x: 0.0,
                 y: 0.0,
@@ -8486,10 +8525,10 @@ impl Default for TurtleMetadataBundle {
                     abstract_ageable_baby: AbstractAgeableBaby(false),
                 },
             },
-            home_pos: HomePos(BlockPos::new(0, 0, 0)),
+            home_pos: HomePos(Default::default()),
             has_egg: HasEgg(false),
             laying_egg: LayingEgg(false),
-            travel_pos: TravelPos(BlockPos::new(0, 0, 0)),
+            travel_pos: TravelPos(Default::default()),
             going_home: GoingHome(false),
             travelling: Travelling(false),
         }

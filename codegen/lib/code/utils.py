@@ -71,6 +71,11 @@ def burger_type_to_rust_type(burger_type, field_name: Optional[str] = None, inst
             field_type_rs = 'todo!("fixed bitset")'
     elif burger_type == 'abstract':
         field_type_rs = 'todo!()'
+    elif burger_type == 'interface':
+        # depends on context
+        field_type_rs = 'todo!()'
+    elif burger_type == 'Iterator':
+        field_type_rs = 'todo!()'
     elif burger_type == 'enum':
         if not instruction or not mappings or not obfuscated_class_name:
             field_type_rs = 'todo!("enum")'
@@ -152,7 +157,9 @@ def burger_type_to_rust_type(burger_type, field_name: Optional[str] = None, inst
                     uses.add('azalea_buf::UnsizedByteArray')
 
     else:
-        raise Exception(f'Unknown field type: {burger_type}')
+        print('instruction that we errored on:', instruction)
+        deobfuscated_class_name = mappings.get_class(obfuscated_class_name) if obfuscated_class_name else None
+        raise Exception(f'Unknown field type: {burger_type} ({deobfuscated_class_name or obfuscated_class_name})')
     return field_type_rs, is_var, uses, extra_code
 
 

@@ -5,7 +5,7 @@ use uuid::Uuid;
 #[derive(Clone, Debug, PartialEq, Eq, McBuf, ServerboundLoginPacket)]
 pub struct ServerboundHelloPacket {
     pub name: String,
-    pub profile_id: Option<Uuid>,
+    pub profile_id: Uuid,
 }
 
 #[cfg(test)]
@@ -19,7 +19,7 @@ mod tests {
     fn test_read_write() {
         let packet = ServerboundHelloPacket {
             name: "test".to_string(),
-            profile_id: Some(Uuid::nil()),
+            profile_id: Uuid::nil(),
         };
         let mut buf: Vec<u8> = Vec::new();
         packet.write_into(&mut buf).unwrap();

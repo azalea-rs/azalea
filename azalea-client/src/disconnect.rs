@@ -12,7 +12,7 @@ use bevy_ecs::{
 };
 use derive_more::Deref;
 
-use crate::{client::JoinedClientBundle, LocalPlayer};
+use crate::{client::JoinedClientBundle, raw_connection::RawConnection};
 
 pub struct DisconnectPlugin;
 impl Plugin for DisconnectPlugin {
@@ -21,7 +21,7 @@ impl Plugin for DisconnectPlugin {
             PostUpdate,
             (
                 update_read_packets_task_running_component,
-                disconnect_on_read_packets_ended,
+                disconnect_on_connection_dead,
                 remove_components_from_disconnected_players,
             )
                 .chain(),
@@ -47,25 +47,23 @@ pub fn remove_components_from_disconnected_players(
 }
 
 #[derive(Component, Clone, Copy, Debug, Deref)]
-pub struct ReadPacketsTaskRunning(bool);
+pub struct IsConnectionAlive(bool);
 
 fn update_read_packets_task_running_component(
+    query: Query<(Entity, &RawConnection)>,
     mut commands: Commands,
-    local_player: Query<(Entity, &LocalPlayer)>,
 ) {
-    for (entity, local_player) in &local_player {
-        let running = !local_player.read_packets_task.is_finished();
-        commands
-            .entity(entity)
-            .insert(ReadPacketsTaskRunning(running));
+    for (entity, raw_connection) in &query {
+        let running = raw_connection.is_alive();
+        commands.entity(entity).insert(IsConnectionAlive(running));
     }
 }
-fn disconnect_on_read_packets_ended(
-    local_player: Query<(Entity, &ReadPacketsTaskRunning), Changed<ReadPacketsTaskRunning>>,
+fn disconnect_on_connection_dead(
+    query: Query<(Entity, &IsConnectionAlive), Changed<IsConnectionAlive>>,
     mut disconnect_events: EventWriter<DisconnectEvent>,
 ) {
-    for (entity, &read_packets_task_running) in &local_player {
-        if !*read_packets_task_running {
+    for (entity, &is_connection_alive) in &query {
+        if !*is_connection_alive {
             disconnect_events.send(DisconnectEvent { entity });
         }
     }

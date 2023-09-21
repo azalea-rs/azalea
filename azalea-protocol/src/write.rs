@@ -29,7 +29,7 @@ pub enum PacketEncodeError {
     },
 }
 
-pub fn packet_encoder<P: ProtocolPacket + std::fmt::Debug>(
+pub fn serialize_packet<P: ProtocolPacket + Debug>(
     packet: &P,
 ) -> Result<Vec<u8>, PacketEncodeError> {
     let mut buf = Vec::new();
@@ -89,14 +89,28 @@ where
     W: AsyncWrite + Unpin + Send,
 {
     trace!("Sending packet: {packet:?}");
-    let mut buf = packet_encoder(packet).unwrap();
+    let raw_packet = serialize_packet(packet).unwrap();
+    write_raw_packet(&raw_packet, stream, compression_threshold, cipher).await
+}
+
+pub async fn write_raw_packet<W>(
+    raw_packet: &[u8],
+    stream: &mut W,
+    compression_threshold: Option<u32>,
+    cipher: &mut Option<Aes128CfbEnc>,
+) -> std::io::Result<()>
+where
+    W: AsyncWrite + Unpin + Send,
+{
+    trace!("Writing raw packet: {raw_packet:?}");
+    let mut raw_packet = raw_packet.to_vec();
     if let Some(threshold) = compression_threshold {
-        buf = compression_encoder(&buf, threshold).await.unwrap();
+        raw_packet = compression_encoder(&raw_packet, threshold).await.unwrap();
     }
-    buf = frame_prepender(buf).unwrap();
+    raw_packet = frame_prepender(raw_packet).unwrap();
     // if we were given a cipher, encrypt the packet
     if let Some(cipher) = cipher {
-        azalea_crypto::encrypt_packet(cipher, &mut buf);
+        azalea_crypto::encrypt_packet(cipher, &mut raw_packet);
     }
-    stream.write_all(&buf).await
+    stream.write_all(&raw_packet).await
 }

@@ -20,7 +20,7 @@ use tokio::sync::mpsc;
 
 use crate::{
     chat::{ChatPacket, ChatReceivedEvent},
-    packet_handling::{
+    packet_handling::game::{
         AddPlayerEvent, DeathEvent, KeepAliveEvent, PacketEvent, RemovePlayerEvent,
         UpdatePlayerEvent,
     },
@@ -115,13 +115,13 @@ impl Plugin for EventPlugin {
                 add_player_listener,
                 update_player_listener,
                 remove_player_listener,
-                death_listener,
                 keepalive_listener,
+                death_listener,
             ),
         )
         .add_systems(
             PreUpdate,
-            init_listener.before(crate::packet_handling::process_packet_events),
+            init_listener.before(crate::packet_handling::game::process_packet_events),
         )
         .add_systems(FixedUpdate, tick_listener);
     }
@@ -145,7 +145,7 @@ fn chat_listener(query: Query<&LocalPlayerEvents>, mut events: EventReader<ChatR
     for event in events.iter() {
         let local_player_events = query
             .get(event.entity)
-            .expect("Non-localplayer entities shouldn't be able to receive chat events");
+            .expect("Non-local entities shouldn't be able to receive chat events");
         local_player_events
             .send(Event::Chat(event.packet.clone()))
             .unwrap();
@@ -163,7 +163,7 @@ fn packet_listener(query: Query<&LocalPlayerEvents>, mut events: EventReader<Pac
     for event in events.iter() {
         let local_player_events = query
             .get(event.entity)
-            .expect("Non-localplayer entities shouldn't be able to receive add player events");
+            .expect("Non-local entities shouldn't be able to receive add player events");
         local_player_events
             .send(Event::Packet(Arc::new(event.packet.clone())))
             .unwrap();
@@ -174,7 +174,7 @@ fn add_player_listener(query: Query<&LocalPlayerEvents>, mut events: EventReader
     for event in events.iter() {
         let local_player_events = query
             .get(event.entity)
-            .expect("Non-localplayer entities shouldn't be able to receive add player events");
+            .expect("Non-local entities shouldn't be able to receive add player events");
         local_player_events
             .send(Event::AddPlayer(event.info.clone()))
             .unwrap();
@@ -188,7 +188,7 @@ fn update_player_listener(
     for event in events.iter() {
         let local_player_events = query
             .get(event.entity)
-            .expect("Non-localplayer entities shouldn't be able to receive update player events");
+            .expect("Non-local entities shouldn't be able to receive update player events");
         local_player_events
             .send(Event::UpdatePlayer(event.info.clone()))
             .unwrap();
@@ -202,7 +202,7 @@ fn remove_player_listener(
     for event in events.iter() {
         let local_player_events = query
             .get(event.entity)
-            .expect("Non-localplayer entities shouldn't be able to receive remove player events");
+            .expect("Non-local entities shouldn't be able to receive remove player events");
         local_player_events
             .send(Event::RemovePlayer(event.info.clone()))
             .unwrap();
@@ -223,7 +223,7 @@ fn keepalive_listener(query: Query<&LocalPlayerEvents>, mut events: EventReader<
     for event in events.iter() {
         let local_player_events = query
             .get(event.entity)
-            .expect("Non-localplayer entities shouldn't be able to receive keepalive events");
+            .expect("Non-local entities shouldn't be able to receive keepalive events");
         local_player_events
             .send(Event::KeepAlive(event.id))
             .unwrap();

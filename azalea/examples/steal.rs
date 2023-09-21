@@ -38,7 +38,7 @@ async fn handle(mut bot: Client, event: Event, state: State) -> anyhow::Result<(
         let chest_block = bot
             .world()
             .read()
-            .find_block(bot.position(), &azalea::Block::Chest.into());
+            .find_block(bot.position(), &azalea::registry::Block::Chest.into());
         // TODO: update this when find_blocks is implemented
         let Some(chest_block) = chest_block else {
             bot.chat("No chest found");
@@ -59,7 +59,7 @@ async fn handle(mut bot: Client, event: Event, state: State) -> anyhow::Result<(
         {
             println!("Checking slot {index}: {slot:?}");
             if let ItemSlot::Present(item) = slot {
-                if item.kind == azalea::Item::Diamond {
+                if item.kind == azalea::registry::Item::Diamond {
                     println!("clicking slot ^");
                     chest.click(QuickMoveClick::Left { slot: index as u16 });
                 }

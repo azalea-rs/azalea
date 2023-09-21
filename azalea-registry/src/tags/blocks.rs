@@ -22,6 +22,12 @@ pub static MINEABLE_SHOVEL: Lazy<HashSet<Block>> = Lazy::new(|| {
         Block::Snow,
         Block::SoulSand,
         Block::DirtPath,
+        Block::SoulSoil,
+        Block::RootedDirt,
+        Block::MuddyMangroveRoots,
+        Block::Mud,
+        Block::SuspiciousSand,
+        Block::SuspiciousGravel,
         Block::WhiteConcretePowder,
         Block::OrangeConcretePowder,
         Block::MagentaConcretePowder,
@@ -38,12 +44,6 @@ pub static MINEABLE_SHOVEL: Lazy<HashSet<Block>> = Lazy::new(|| {
         Block::GreenConcretePowder,
         Block::RedConcretePowder,
         Block::BlackConcretePowder,
-        Block::SoulSoil,
-        Block::RootedDirt,
-        Block::MuddyMangroveRoots,
-        Block::Mud,
-        Block::SuspiciousSand,
-        Block::SuspiciousGravel,
     ])
 });
 pub static MINEABLE_AXE: Lazy<HashSet<Block>> = Lazy::new(|| {
@@ -979,6 +979,26 @@ pub static DEAD_BUSH_MAY_PLACE_ON: Lazy<HashSet<Block>> = Lazy::new(|| {
         Block::MuddyMangroveRoots,
     ])
 });
+pub static CONCRETE_POWDER: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::WhiteConcretePowder,
+        Block::OrangeConcretePowder,
+        Block::MagentaConcretePowder,
+        Block::LightBlueConcretePowder,
+        Block::YellowConcretePowder,
+        Block::LimeConcretePowder,
+        Block::PinkConcretePowder,
+        Block::GrayConcretePowder,
+        Block::LightGrayConcretePowder,
+        Block::CyanConcretePowder,
+        Block::PurpleConcretePowder,
+        Block::BlueConcretePowder,
+        Block::BrownConcretePowder,
+        Block::GreenConcretePowder,
+        Block::RedConcretePowder,
+        Block::BlackConcretePowder,
+    ])
+});
 pub static WOLVES_SPAWNABLE_ON: Lazy<HashSet<Block>> =
     Lazy::new(|| HashSet::from_iter(vec![Block::GrassBlock, Block::Snow, Block::SnowBlock]));
 pub static LUSH_GROUND_REPLACEABLE: Lazy<HashSet<Block>> = Lazy::new(|| {
@@ -1370,6 +1390,30 @@ pub static LOGS_THAT_BURN: Lazy<HashSet<Block>> = Lazy::new(|| {
         Block::StrippedCherryWood,
     ])
 });
+pub static CAMEL_SAND_STEP_SOUND_BLOCKS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::Sand,
+        Block::RedSand,
+        Block::SuspiciousSand,
+        Block::SuspiciousSand,
+        Block::WhiteConcretePowder,
+        Block::OrangeConcretePowder,
+        Block::MagentaConcretePowder,
+        Block::LightBlueConcretePowder,
+        Block::YellowConcretePowder,
+        Block::LimeConcretePowder,
+        Block::PinkConcretePowder,
+        Block::GrayConcretePowder,
+        Block::LightGrayConcretePowder,
+        Block::CyanConcretePowder,
+        Block::PurpleConcretePowder,
+        Block::BlueConcretePowder,
+        Block::BrownConcretePowder,
+        Block::GreenConcretePowder,
+        Block::RedConcretePowder,
+        Block::BlackConcretePowder,
+    ])
+});
 pub static CHERRY_LOGS: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
         Block::CherryLog,
@@ -1528,6 +1572,8 @@ pub static FLOWERS: Lazy<HashSet<Block>> = Lazy::new(|| {
         Block::MangrovePropagule,
         Block::CherryLeaves,
         Block::PinkPetals,
+        Block::ChorusFlower,
+        Block::SporeBlossom,
         Block::Dandelion,
         Block::Poppy,
         Block::BlueOrchid,

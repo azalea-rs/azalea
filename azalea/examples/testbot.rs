@@ -7,14 +7,13 @@ use azalea::entity::{metadata::Player, EyeHeight, Position};
 use azalea::interact::HitResultComponent;
 use azalea::inventory::ItemSlot;
 use azalea::pathfinder::goals::BlockPosGoal;
-use azalea::protocol::packets::game::ClientboundGamePacket;
-use azalea::world::{heightmap::HeightmapKind, InstanceName, MinecraftEntityId};
-use azalea::SprintDirection;
-use azalea::{prelude::*, swarm::prelude::*};
-use azalea::{
-    Account, BlockPos, ChunkPos, Client, Event, GameProfileComponent, Vec3, WalkDirection,
-};
-use azalea_core::ChunkBlockPos;
+use azalea::{prelude::*, swarm::prelude::*, BlockPos, GameProfileComponent, WalkDirection};
+use azalea::{Account, Client, Event};
+use azalea_client::SprintDirection;
+use azalea_core::{ChunkBlockPos, ChunkPos, Vec3};
+use azalea_protocol::packets::game::ClientboundGamePacket;
+use azalea_world::heightmap::HeightmapKind;
+use azalea_world::{InstanceName, MinecraftEntityId};
 use std::time::Duration;
 
 #[derive(Default, Clone, Component)]

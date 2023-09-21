@@ -1,26 +1,29 @@
 use crate::{
     attack::{self, AttackPlugin},
     chat::ChatPlugin,
+    chunk_batching::{ChunkBatchInfo, ChunkBatchingPlugin},
     disconnect::{DisconnectEvent, DisconnectPlugin},
     events::{Event, EventPlugin, LocalPlayerEvents},
     interact::{CurrentSequenceNumber, InteractPlugin},
     inventory::{InventoryComponent, InventoryPlugin},
     local_player::{
-        death_event, handle_send_packet_event, GameProfileComponent, Hunger, LocalPlayer,
-        SendPacketEvent,
+        death_event, handle_send_packet_event, GameProfileComponent, Hunger, InstanceHolder,
+        PermissionLevel, PlayerAbilities, SendPacketEvent, TabList,
     },
     mining::{self, MinePlugin},
     movement::{LastSentLookDirection, PhysicsState, PlayerMovePlugin},
-    packet_handling::{self, PacketHandlerPlugin, PacketReceiver},
+    packet_handling::PacketHandlerPlugin,
     player::retroactively_add_game_profile_component,
+    raw_connection::RawConnection,
     respawn::RespawnPlugin,
     task_pool::TaskPoolPlugin,
-    Account, PlayerInfo,
+    Account, PlayerInfo, ReceivedRegistries,
 };
 
 use azalea_auth::{game_profile::GameProfile, sessionserver::ClientSessionServerError};
+use azalea_buf::McBufWritable;
 use azalea_chat::FormattedText;
-use azalea_core::Vec3;
+use azalea_core::{ResourceLocation, Vec3};
 use azalea_entity::{
     indexing::{EntityIdIndex, Loaded},
     metadata::Health,
@@ -30,19 +33,21 @@ use azalea_physics::PhysicsPlugin;
 use azalea_protocol::{
     connect::{Connection, ConnectionError},
     packets::{
-        game::{
-            clientbound_player_abilities_packet::ClientboundPlayerAbilitiesPacket,
-            serverbound_client_information_packet::ServerboundClientInformationPacket,
-            ClientboundGamePacket, ServerboundGamePacket,
+        configuration::{
+            serverbound_client_information_packet::ClientInformation,
+            ClientboundConfigurationPacket, ServerboundConfigurationPacket,
         },
-        handshake::{
+        game::ServerboundGamePacket,
+        handshaking::{
             client_intention_packet::ClientIntentionPacket, ClientboundHandshakePacket,
             ServerboundHandshakePacket,
         },
         login::{
-            serverbound_custom_query_packet::ServerboundCustomQueryPacket,
+            serverbound_custom_query_answer_packet::ServerboundCustomQueryAnswerPacket,
             serverbound_hello_packet::ServerboundHelloPacket,
-            serverbound_key_packet::ServerboundKeyPacket, ClientboundLoginPacket,
+            serverbound_key_packet::ServerboundKeyPacket,
+            serverbound_login_acknowledged_packet::ServerboundLoginAcknowledgedPacket,
+            ClientboundLoginPacket,
         },
         ConnectionProtocol, PROTOCOL_VERSION,
     },
@@ -59,10 +64,12 @@ use bevy_ecs::{
     world::World,
 };
 use bevy_time::{prelude::FixedTime, TimePlugin};
-use derive_more::{Deref, DerefMut};
+use derive_more::Deref;
 use log::{debug, error};
 use parking_lot::{Mutex, RwLock};
-use std::{collections::HashMap, fmt::Debug, io, net::SocketAddr, sync::Arc, time::Duration};
+use std::{
+    collections::HashMap, fmt::Debug, io, net::SocketAddr, ops::Deref, sync::Arc, time::Duration,
+};
 use thiserror::Error;
 use tokio::{
     sync::{broadcast, mpsc},
@@ -71,7 +78,6 @@ use tokio::{
 use uuid::Uuid;
 
 /// `Client` has the things that a user interacting with the library will want.
-/// Things that a player in the world will want to know are in [`LocalPlayer`].
 ///
 /// To make a new client, use either [`azalea::ClientBuilder`] or
 /// [`Client::join`].
@@ -104,62 +110,6 @@ pub struct Client {
     /// Use this to force the client to run the schedule outside of a tick.
     pub run_schedule_sender: mpsc::UnboundedSender<()>,
 }
-
-/// A component that contains some of the "settings" for this client that are
-/// sent to the server, such as render distance. This is only present on local
-/// players.
-pub type ClientInformation = ServerboundClientInformationPacket;
-
-/// A component that contains the abilities the player has, like flying
-/// or instantly breaking blocks. This is only present on local players.
-#[derive(Clone, Debug, Component, Default)]
-pub struct PlayerAbilities {
-    pub invulnerable: bool,
-    pub flying: bool,
-    pub can_fly: bool,
-    /// Whether the player can instantly break blocks and can duplicate blocks
-    /// in their inventory.
-    pub instant_break: bool,
-
-    pub flying_speed: f32,
-    /// Used for the fov
-    pub walking_speed: f32,
-}
-impl From<ClientboundPlayerAbilitiesPacket> for PlayerAbilities {
-    fn from(packet: ClientboundPlayerAbilitiesPacket) -> Self {
-        Self {
-            invulnerable: packet.flags.invulnerable,
-            flying: packet.flags.flying,
-            can_fly: packet.flags.can_fly,
-            instant_break: packet.flags.instant_break,
-            flying_speed: packet.flying_speed,
-            walking_speed: packet.walking_speed,
-        }
-    }
-}
-
-/// Level must be 0..=4
-#[derive(Component, Clone, Default, Deref, DerefMut)]
-pub struct PermissionLevel(pub u8);
-
-/// A component and resource that contains a map of player UUIDs to their
-/// information in the tab list.
-///
-/// This is a component on local players in case you want to get the tab list
-/// that a certain client is seeing, and it's also a resource in case you know
-/// that the server gives the same tab list to every player.
-///
-/// ```
-/// # use azalea_client::TabList;
-/// # fn example(client: &azalea_client::Client) {
-/// let tab_list = client.component::<TabList>();
-/// println!("Online players:");
-/// for (uuid, player_info) in tab_list.iter() {
-///     println!("- {} ({}ms)", player_info.profile.name, player_info.latency);
-/// }
-/// # }
-#[derive(Component, Resource, Clone, Debug, Deref, DerefMut, Default)]
-pub struct TabList(HashMap<Uuid, PlayerInfo>);
 
 /// An error that happened while joining the server.
 #[derive(Error, Debug)]
@@ -261,71 +211,55 @@ impl Client {
         let entity = ecs_lock.lock().spawn(account.to_owned()).id();
 
         let conn = Connection::new(resolved_address).await?;
-        let (conn, game_profile) = Self::handshake(conn, account, address).await?;
+        let (mut conn, game_profile) = Self::handshake(conn, account, address).await?;
+
+        {
+            // quickly send the brand here
+            let mut brand_data = Vec::new();
+            // they don't have to know :)
+            "vanilla".write_into(&mut brand_data).unwrap();
+            conn.write(
+        azalea_protocol::packets::configuration::serverbound_custom_payload_packet::ServerboundCustomPayloadPacket {
+                    identifier: ResourceLocation::new("brand"),
+                    data: brand_data.into(),
+                }
+                .get(),
+            ).await?;
+        }
+
         let (read_conn, write_conn) = conn.into_split();
+        let (read_conn, write_conn) = (read_conn.raw, write_conn.raw);
 
         // we did the handshake, so now we're connected to the server
 
         let (tx, rx) = mpsc::unbounded_channel();
 
-        let (packet_writer_sender, packet_writer_receiver) = mpsc::unbounded_channel();
+        let mut ecs = ecs_lock.lock();
 
-        // start receiving packets
-        let packet_receiver = packet_handling::PacketReceiver {
-            packets: Arc::new(Mutex::new(Vec::new())),
-            run_schedule_sender: run_schedule_sender.clone(),
-        };
-
-        let read_packets_task = tokio::spawn(packet_receiver.clone().read_task(read_conn));
-        let write_packets_task = tokio::spawn(
-            packet_receiver
-                .clone()
-                .write_task(write_conn, packet_writer_receiver),
-        );
-
-        let local_player = crate::local_player::LocalPlayer::new(
-            entity,
-            packet_writer_sender,
-            // default to an empty world, it'll be set correctly later when we
-            // get the login packet
-            Arc::new(RwLock::new(Instance::default())),
-            read_packets_task,
-            write_packets_task,
-        );
-
-        ecs_lock
-            .lock()
-            .entity_mut(entity)
-            .insert(JoinedClientBundle {
-                local_player,
-                packet_receiver,
-                game_profile: GameProfileComponent(game_profile.clone()),
-                physics_state: PhysicsState::default(),
-                local_player_events: LocalPlayerEvents(tx),
-                inventory: InventoryComponent::default(),
-                client_information: ClientInformation::default(),
-                tab_list: TabList::default(),
-                current_sequence_number: CurrentSequenceNumber::default(),
-                last_sent_direction: LastSentLookDirection::default(),
-                abilities: PlayerAbilities::default(),
-                permission_level: PermissionLevel::default(),
-                hunger: Hunger::default(),
-
-                entity_id_index: EntityIdIndex::default(),
-
-                mining: mining::MineBundle::default(),
-                attack: attack::AttackBundle::default(),
-
-                _local: LocalEntity,
-                _loaded: Loaded,
-            });
-
+        // we got the ConfigurationConnection, so the client is now connected :)
         let client = Client::new(
-            game_profile,
+            game_profile.clone(),
             entity,
             ecs_lock.clone(),
             run_schedule_sender.clone(),
         );
+
+        ecs.entity_mut(entity).insert((
+            // these stay when we switch to the game state
+            LocalPlayerBundle {
+                raw_connection: RawConnection::new(
+                    run_schedule_sender,
+                    ConnectionProtocol::Configuration,
+                    read_conn,
+                    write_conn,
+                ),
+                received_registries: ReceivedRegistries::default(),
+                local_player_events: LocalPlayerEvents(tx),
+                game_profile: GameProfileComponent(game_profile),
+            },
+            InConfigurationState,
+        ));
+
         Ok((client, rx))
     }
 
@@ -340,7 +274,7 @@ impl Client {
         address: &ServerAddress,
     ) -> Result<
         (
-            Connection<ClientboundGamePacket, ServerboundGamePacket>,
+            Connection<ClientboundConfigurationPacket, ServerboundConfigurationPacket>,
             GameProfile,
         ),
         JoinError,
@@ -362,7 +296,9 @@ impl Client {
         conn.write(
             ServerboundHelloPacket {
                 name: account.username.clone(),
-                profile_id: account.uuid,
+                // TODO: pretty sure this should generate an offline-mode uuid instead of just
+                // Uuid::default()
+                profile_id: account.uuid.unwrap_or_default(),
             }
             .get(),
         )
@@ -428,8 +364,13 @@ impl Client {
                     conn.set_compression_threshold(p.compression_threshold);
                 }
                 ClientboundLoginPacket::GameProfile(p) => {
-                    debug!("Got profile {:?}", p.game_profile);
-                    break (conn.game(), p.game_profile);
+                    debug!(
+                        "Got profile {:?}. handshake is finished and we're now switching to the configuration state",
+                        p.game_profile
+                    );
+                    conn.write(ServerboundLoginAcknowledgedPacket {}.get())
+                        .await?;
+                    break (conn.configuration(), p.game_profile);
                 }
                 ClientboundLoginPacket::LoginDisconnect(p) => {
                     debug!("Got disconnect {:?}", p);
@@ -438,7 +379,7 @@ impl Client {
                 ClientboundLoginPacket::CustomQuery(p) => {
                     debug!("Got custom query {:?}", p);
                     conn.write(
-                        ServerboundCustomQueryPacket {
+                        ServerboundCustomQueryAnswerPacket {
                             transaction_id: p.transaction_id,
                             data: None,
                         }
@@ -453,9 +394,12 @@ impl Client {
     }
 
     /// Write a packet directly to the server.
-    pub fn write_packet(&self, packet: ServerboundGamePacket) {
-        self.local_player_mut(&mut self.ecs.lock())
-            .write_packet(packet);
+    pub fn write_packet(
+        &self,
+        packet: ServerboundGamePacket,
+    ) -> Result<(), crate::raw_connection::WritePacketError> {
+        self.raw_connection_mut(&mut self.ecs.lock())
+            .write_packet(packet)
     }
 
     /// Disconnect this client from the server by ending all tasks.
@@ -468,14 +412,24 @@ impl Client {
         });
     }
 
-    pub fn local_player<'a>(&'a self, ecs: &'a mut World) -> &'a LocalPlayer {
-        self.query::<&LocalPlayer>(ecs)
+    pub fn local_player<'a>(&'a self, ecs: &'a mut World) -> &'a InstanceHolder {
+        self.query::<&InstanceHolder>(ecs)
     }
     pub fn local_player_mut<'a>(
         &'a self,
         ecs: &'a mut World,
-    ) -> bevy_ecs::world::Mut<'a, LocalPlayer> {
-        self.query::<&mut LocalPlayer>(ecs)
+    ) -> bevy_ecs::world::Mut<'a, InstanceHolder> {
+        self.query::<&mut InstanceHolder>(ecs)
+    }
+
+    pub fn raw_connection<'a>(&'a self, ecs: &'a mut World) -> &'a RawConnection {
+        self.query::<&RawConnection>(ecs)
+    }
+    pub fn raw_connection_mut<'a>(
+        &'a self,
+        ecs: &'a mut World,
+    ) -> bevy_ecs::world::Mut<'a, RawConnection> {
+        self.query::<&mut RawConnection>(ecs)
     }
 
     /// Get a component from this client. This will clone the component and
@@ -538,8 +492,8 @@ impl Client {
     /// ```
     pub async fn set_client_information(
         &self,
-        client_information: ServerboundClientInformationPacket,
-    ) -> Result<(), std::io::Error> {
+        client_information: ClientInformation,
+    ) -> Result<(), crate::raw_connection::WritePacketError> {
         {
             let mut ecs = self.ecs.lock();
             let mut client_information_mut = self.query::<&mut ClientInformation>(&mut ecs);
@@ -551,7 +505,7 @@ impl Client {
                 "Sending client information (already logged in): {:?}",
                 client_information
             );
-            self.write_packet(client_information.get());
+            self.write_packet(azalea_protocol::packets::game::serverbound_client_information_packet::ServerboundClientInformationPacket { information: client_information.clone() }.get())?;
         }
 
         Ok(())
@@ -606,21 +560,33 @@ impl Client {
 
     /// Get a map of player UUIDs to their information in the tab list.
     ///
-    /// This is a shortcut for `bot.component::<TabList>().0`.
+    /// This is a shortcut for `*bot.component::<TabList>()`.
     pub fn tab_list(&self) -> HashMap<Uuid, PlayerInfo> {
-        self.component::<TabList>().0
+        self.component::<TabList>().deref().clone()
     }
 }
 
-/// A bundle for the components that are present on a local player that received
-/// a login packet. If you want to filter for this, just use [`LocalEntity`].
+/// The bundle of components that's shared when we're either in the
+/// `configuration` or `game` state.
+///
+/// For the components that are only present in the `game` state, see
+/// [`JoinedClientBundle`] and for the ones in the `configuration` state, see
+/// [`ConfigurationClientBundle`].
+#[derive(Bundle)]
+pub struct LocalPlayerBundle {
+    pub raw_connection: RawConnection,
+    pub received_registries: ReceivedRegistries,
+    pub local_player_events: LocalPlayerEvents,
+    pub game_profile: GameProfileComponent,
+}
+
+/// A bundle for the components that are present on a local player that is
+/// currently in the `game` protocol state. If you want to filter for this, just
+/// use [`LocalEntity`].
 #[derive(Bundle)]
 pub struct JoinedClientBundle {
-    pub local_player: LocalPlayer,
-    pub packet_receiver: PacketReceiver,
-    pub game_profile: GameProfileComponent,
+    pub instance_holder: InstanceHolder,
     pub physics_state: PhysicsState,
-    pub local_player_events: LocalPlayerEvents,
     pub inventory: InventoryComponent,
     pub client_information: ClientInformation,
     pub tab_list: TabList,
@@ -628,6 +594,7 @@ pub struct JoinedClientBundle {
     pub last_sent_direction: LastSentLookDirection,
     pub abilities: PlayerAbilities,
     pub permission_level: PermissionLevel,
+    pub chunk_batch_info: ChunkBatchInfo,
     pub hunger: Hunger,
 
     pub entity_id_index: EntityIdIndex,
@@ -635,9 +602,14 @@ pub struct JoinedClientBundle {
     pub mining: mining::MineBundle,
     pub attack: attack::AttackBundle,
 
-    pub _local: LocalEntity,
+    pub _local_entity: LocalEntity,
     pub _loaded: Loaded,
 }
+
+/// A marker component for local players that are currently in the
+/// `configuration` state.
+#[derive(Component)]
+pub struct InConfigurationState;
 
 pub struct AzaleaPlugin;
 impl Plugin for AzaleaPlugin {
@@ -790,6 +762,7 @@ impl PluginGroup for DefaultPlugins {
             .add(RespawnPlugin)
             .add(MinePlugin)
             .add(AttackPlugin)
+            .add(ChunkBatchingPlugin)
             .add(TickBroadcastPlugin);
         #[cfg(feature = "log")]
         {

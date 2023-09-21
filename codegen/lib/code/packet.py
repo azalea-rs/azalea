@@ -237,12 +237,16 @@ def burger_instruction_to_code(instructions: list[dict], index: int, generated_p
     field_type_rs = None
     field_comment = None
 
-    print('instruction', instruction)
+    print('instruction', instruction, next_instruction, next_next_instruction)
 
     # iterators
-    if instruction['operation'] == 'write' and instruction['field'].endswith('.size()') and next_instruction and next_instruction['type'] == 'Iterator' and next_next_instruction and next_next_instruction['operation'] == 'loop':
-        obfuscated_field_name = instruction['field'].split('.')[
-            0]
+    if instruction['operation'] == 'write'\
+        and instruction['field'].endswith('.size()')\
+        and next_instruction\
+        and next_instruction['type'] == 'Iterator'\
+        and next_next_instruction\
+        and next_next_instruction['operation'] == 'loop':
+        obfuscated_field_name = instruction['field'].split('.')[0]
         field_name = mappings.get_field(
             obfuscated_class_name, obfuscated_field_name)
 
@@ -303,6 +307,11 @@ def burger_instruction_to_code(instructions: list[dict], index: int, generated_p
 
         condition_types_rs = []
         for condition_instruction in condition_instructions:
+            print('condition_instruction', condition_instruction)
+            if 'type' not in condition_instruction:
+                # weird type, maybe it's a loop or something
+                condition_types_rs.append('todo!("weird type, maybe it\'s a loop or something")')
+                continue
             condition_type_rs, is_var, this_uses, this_extra_code = burger_type_to_rust_type(
                 condition_instruction['type'], None, condition_instruction, mappings, obfuscated_class_name)
             condition_types_rs.append(condition_type_rs)
@@ -381,8 +390,11 @@ def burger_field_to_type(field, mappings: Mappings, obfuscated_class_name: str, 
         if obfuscated_first in known_variable_types:
             first_type = known_variable_types[obfuscated_first]
         else:
-            first_type = mappings.get_field_type(
-                obfuscated_class_name, obfuscated_first)
+            try:
+                first_type = mappings.get_field_type(
+                    obfuscated_class_name, obfuscated_first)
+            except:
+                first_type = 'TODO'
         first_obfuscated_class_name: Optional[str] = mappings.get_class_from_deobfuscated_name(
             first_type)
         if first_obfuscated_class_name:

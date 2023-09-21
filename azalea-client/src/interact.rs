@@ -27,10 +27,13 @@ use derive_more::{Deref, DerefMut};
 use log::warn;
 
 use crate::{
-    client::{PermissionLevel, PlayerAbilities},
+    attack::handle_attack_event,
     inventory::{InventoryComponent, InventorySet},
-    local_player::{handle_send_packet_event, LocalGameMode, SendPacketEvent},
-    Client, LocalPlayer,
+    local_player::{
+        handle_send_packet_event, LocalGameMode, PermissionLevel, PlayerAbilities, SendPacketEvent,
+    },
+    respawn::perform_respawn,
+    Client,
 };
 
 /// A plugin that allows clients to interact with blocks in the world.
@@ -48,6 +51,9 @@ impl Plugin for InteractPlugin {
                         handle_swing_arm_event,
                     )
                         .before(handle_send_packet_event)
+                        .after(InventorySet)
+                        .after(perform_respawn)
+                        .after(handle_attack_event)
                         .chain(),
                     update_modifiers_for_held_item
                         .after(InventorySet)
@@ -100,16 +106,12 @@ pub struct HitResultComponent(BlockHitResult);
 
 pub fn handle_block_interact_event(
     mut events: EventReader<BlockInteractEvent>,
-    mut query: Query<(
-        &LocalPlayer,
-        &mut CurrentSequenceNumber,
-        &HitResultComponent,
-    )>,
+    mut query: Query<(Entity, &mut CurrentSequenceNumber, &HitResultComponent)>,
+    mut send_packet_events: EventWriter<SendPacketEvent>,
 ) {
     for event in events.iter() {
-        let Ok((local_player, mut sequence_number, hit_result)) = query.get_mut(event.entity)
-        else {
-            warn!("Sent BlockInteractEvent for entity that isn't LocalPlayer");
+        let Ok((entity, mut sequence_number, hit_result)) = query.get_mut(event.entity) else {
+            warn!("Sent BlockInteractEvent for entity that doesn't have the required components");
             continue;
         };
 
@@ -141,14 +143,15 @@ pub fn handle_block_interact_event(
             }
         };
 
-        local_player.write_packet(
-            ServerboundUseItemOnPacket {
+        send_packet_events.send(SendPacketEvent {
+            entity,
+            packet: ServerboundUseItemOnPacket {
                 hand: InteractionHand::MainHand,
                 block_hit,
                 sequence: sequence_number.0,
             }
             .get(),
-        )
+        })
     }
 }
 

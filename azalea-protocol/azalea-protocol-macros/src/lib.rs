@@ -47,7 +47,7 @@ pub fn derive_serverbound_game_packet(input: TokenStream) -> TokenStream {
 pub fn derive_serverbound_handshake_packet(input: TokenStream) -> TokenStream {
     as_packet_derive(
         input,
-        quote! {crate::packets::handshake::ServerboundHandshakePacket},
+        quote! {crate::packets::handshaking::ServerboundHandshakePacket},
     )
 }
 #[proc_macro_derive(ServerboundLoginPacket, attributes(var))]
@@ -64,6 +64,13 @@ pub fn derive_serverbound_status_packet(input: TokenStream) -> TokenStream {
         quote! {crate::packets::status::ServerboundStatusPacket},
     )
 }
+#[proc_macro_derive(ServerboundConfigurationPacket, attributes(var))]
+pub fn derive_serverbound_configuration_packet(input: TokenStream) -> TokenStream {
+    as_packet_derive(
+        input,
+        quote! {crate::packets::configuration::ServerboundConfigurationPacket},
+    )
+}
 
 #[proc_macro_derive(ClientboundGamePacket, attributes(var))]
 pub fn derive_clientbound_game_packet(input: TokenStream) -> TokenStream {
@@ -73,7 +80,7 @@ pub fn derive_clientbound_game_packet(input: TokenStream) -> TokenStream {
 pub fn derive_clientbound_handshake_packet(input: TokenStream) -> TokenStream {
     as_packet_derive(
         input,
-        quote! {crate::packets::handshake::ClientboundHandshakePacket},
+        quote! {crate::packets::handshaking::ClientboundHandshakePacket},
     )
 }
 #[proc_macro_derive(ClientboundLoginPacket, attributes(var))]
@@ -88,6 +95,13 @@ pub fn derive_clientbound_status_packet(input: TokenStream) -> TokenStream {
     as_packet_derive(
         input,
         quote! {crate::packets::status::ClientboundStatusPacket},
+    )
+}
+#[proc_macro_derive(ClientboundConfigurationPacket, attributes(var))]
+pub fn derive_clientbound_configuration_packet(input: TokenStream) -> TokenStream {
+    as_packet_derive(
+        input,
+        quote! {crate::packets::configuration::ClientboundConfigurationPacket},
     )
 }
 

@@ -13,6 +13,7 @@
 mod account;
 pub mod attack;
 pub mod chat;
+pub mod chunk_batching;
 mod client;
 pub mod disconnect;
 mod entity_query;
@@ -26,18 +27,20 @@ pub mod movement;
 pub mod packet_handling;
 pub mod ping;
 mod player;
+pub mod raw_connection;
 pub mod received_registries;
 pub mod respawn;
 pub mod task_pool;
 
 pub use account::{Account, AccountOpts};
+pub use azalea_protocol::packets::configuration::serverbound_client_information_packet::ClientInformation;
 pub use client::{
-    start_ecs_runner, Client, ClientInformation, DefaultPlugins, JoinError, JoinedClientBundle,
-    TabList, TickBroadcast,
+    start_ecs_runner, Client, DefaultPlugins, JoinError, JoinedClientBundle, TickBroadcast,
 };
 pub use events::Event;
-pub use local_player::{GameProfileComponent, LocalPlayer, SendPacketEvent};
+pub use local_player::{GameProfileComponent, InstanceHolder, SendPacketEvent, TabList};
 pub use movement::{
     PhysicsState, SprintDirection, StartSprintEvent, StartWalkEvent, WalkDirection,
 };
 pub use player::PlayerInfo;
+pub use received_registries::ReceivedRegistries;

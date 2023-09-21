@@ -9,7 +9,7 @@ use std::io::Cursor;
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundUpdateAdvancementsPacket {
     pub reset: bool,
-    pub added: HashMap<ResourceLocation, Advancement>,
+    pub added: Vec<AdvancementHolder>,
     pub removed: Vec<ResourceLocation>,
     pub progress: HashMap<ResourceLocation, AdvancementProgress>,
 }
@@ -18,7 +18,6 @@ pub struct ClientboundUpdateAdvancementsPacket {
 pub struct Advancement {
     pub parent_id: Option<ResourceLocation>,
     pub display: Option<DisplayInfo>,
-    pub criteria: HashMap<ResourceLocation, Criterion>,
     pub requirements: Vec<Vec<String>>,
     pub sends_telemetry_event: bool,
 }
@@ -103,15 +102,17 @@ pub enum FrameType {
     Goal = 2,
 }
 
-// nothing is written here
-#[derive(Clone, Debug, McBuf)]
-pub struct Criterion {}
-
-pub type AdvancementProgress = HashMap<ResourceLocation, CriterionProgress>;
+pub type AdvancementProgress = HashMap<String, CriterionProgress>;
 
 #[derive(Clone, Debug, McBuf)]
 pub struct CriterionProgress {
-    date: Option<u64>,
+    pub date: Option<u64>,
+}
+
+#[derive(Clone, Debug, McBuf)]
+pub struct AdvancementHolder {
+    pub id: ResourceLocation,
+    pub value: Advancement,
 }
 
 #[cfg(test)]
@@ -125,9 +126,9 @@ mod tests {
     fn test() {
         let packet = ClientboundUpdateAdvancementsPacket {
             reset: true,
-            added: [(
-                ResourceLocation::new("minecraft:test"),
-                Advancement {
+            added: [AdvancementHolder {
+                id: ResourceLocation::new("minecraft:test"),
+                value: Advancement {
                     parent_id: None,
                     display: Some(DisplayInfo {
                         title: FormattedText::from("title".to_string()),
@@ -140,18 +141,17 @@ mod tests {
                         x: 0.0,
                         y: 0.0,
                     }),
-                    criteria: HashMap::new(),
                     requirements: Vec::new(),
                     sends_telemetry_event: false,
                 },
-            )]
+            }]
             .into_iter()
             .collect(),
             removed: vec![ResourceLocation::new("minecraft:test2")],
             progress: [(
                 ResourceLocation::new("minecraft:test3"),
                 [(
-                    ResourceLocation::new("minecraft:test4"),
+                    "minecraft:test4".to_string(),
                     CriterionProgress {
                         date: Some(123456789),
                     },
@@ -173,12 +173,26 @@ mod tests {
 
         let advancement = packet
             .added
-            .get(&ResourceLocation::new("minecraft:test"))
+            .into_iter()
+            .find_map(|a| {
+                if a.id == ResourceLocation::new("minecraft:test") {
+                    Some(a.value)
+                } else {
+                    None
+                }
+            })
             .unwrap()
             .clone();
         let read_advancement = read_packet
             .added
-            .get(&ResourceLocation::new("minecraft:test"))
+            .into_iter()
+            .find_map(|a| {
+                if a.id == ResourceLocation::new("minecraft:test") {
+                    Some(a.value)
+                } else {
+                    None
+                }
+            })
             .unwrap()
             .clone();
         assert_eq!(advancement.parent_id, read_advancement.parent_id);

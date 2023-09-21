@@ -16,48 +16,52 @@ fn write_compound(writer: &mut impl Write, value: &NbtCompound, end_tag: bool) {
     for (key, tag) in value.iter() {
         writer.write_u8(tag.id()).unwrap();
         write_string(writer, key);
-        match tag {
-            Nbt::End => {}
-            Nbt::Byte(value) => {
-                writer.write_i8(*value).unwrap();
-            }
-            Nbt::Short(value) => {
-                writer.write_i16::<BE>(*value).unwrap();
-            }
-            Nbt::Int(value) => {
-                writer.write_i32::<BE>(*value).unwrap();
-            }
-            Nbt::Long(value) => {
-                writer.write_i64::<BE>(*value).unwrap();
-            }
-            Nbt::Float(value) => {
-                writer.write_f32::<BE>(*value).unwrap();
-            }
-            Nbt::Double(value) => {
-                writer.write_f64::<BE>(*value).unwrap();
-            }
-            Nbt::ByteArray(value) => {
-                write_byte_array(writer, value);
-            }
-            Nbt::String(value) => {
-                write_string(writer, value);
-            }
-            Nbt::List(value) => {
-                write_list(writer, value);
-            }
-            Nbt::Compound(value) => {
-                write_compound(writer, value, true);
-            }
-            Nbt::IntArray(value) => {
-                write_int_array(writer, value);
-            }
-            Nbt::LongArray(value) => {
-                write_long_array(writer, value);
-            }
-        }
+        write_known(writer, tag);
     }
     if end_tag {
         writer.write_u8(END_ID).unwrap();
+    }
+}
+
+fn write_known(writer: &mut impl Write, tag: &Nbt) {
+    match tag {
+        Nbt::End => {}
+        Nbt::Byte(value) => {
+            writer.write_i8(*value).unwrap();
+        }
+        Nbt::Short(value) => {
+            writer.write_i16::<BE>(*value).unwrap();
+        }
+        Nbt::Int(value) => {
+            writer.write_i32::<BE>(*value).unwrap();
+        }
+        Nbt::Long(value) => {
+            writer.write_i64::<BE>(*value).unwrap();
+        }
+        Nbt::Float(value) => {
+            writer.write_f32::<BE>(*value).unwrap();
+        }
+        Nbt::Double(value) => {
+            writer.write_f64::<BE>(*value).unwrap();
+        }
+        Nbt::ByteArray(value) => {
+            write_byte_array(writer, value);
+        }
+        Nbt::String(value) => {
+            write_string(writer, value);
+        }
+        Nbt::List(value) => {
+            write_list(writer, value);
+        }
+        Nbt::Compound(value) => {
+            write_compound(writer, value, true);
+        }
+        Nbt::IntArray(value) => {
+            write_int_array(writer, value);
+        }
+        Nbt::LongArray(value) => {
+            write_long_array(writer, value);
+        }
     }
 }
 
@@ -256,6 +260,13 @@ impl Nbt {
         }
     }
 
+    /// Write any tag as NBT data. This is used by Minecraft when writing to the
+    /// network, otherwise [`Nbt::write`] is usually used instead.
+    pub fn write_any(&self, writer: &mut impl Write) {
+        writer.write_u8(self.id()).unwrap();
+        write_known(writer, self);
+    }
+
     /// Write the compound tag as NBT data compressed wtih zlib.
     ///
     /// # Errors
@@ -279,7 +290,7 @@ impl Nbt {
 
 impl McBufWritable for Nbt {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        self.write(buf);
+        self.write_any(buf);
         Ok(())
     }
 }

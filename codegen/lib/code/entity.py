@@ -6,10 +6,10 @@ from typing import Optional
 import re
 
 METADATA_RS_DIR = get_dir_location(
-    '../azalea-world/src/entity/metadata.rs')
+    '../azalea-entity/src/metadata.rs')
 
 DATA_RS_DIR = get_dir_location(
-    '../azalea-world/src/entity/data.rs')
+    '../azalea-entity/src/data.rs')
 
 def generate_metadata_names(burger_dataserializers: dict, mappings: Mappings):
     serializer_names: list[Optional[str]] = [None] * len(burger_dataserializers)
@@ -105,7 +105,7 @@ use super::{
     SnifferState, VillagerData
 };
 use azalea_chat::FormattedText;
-use azalea_core::{BlockPos, Direction, Particle, Vec3};
+use azalea_core::{particle::Particle, BlockPos, Direction, Vec3};
 use azalea_inventory::ItemSlot;
 use bevy_ecs::{bundle::Bundle, component::Component};
 use derive_more::{Deref, DerefMut};

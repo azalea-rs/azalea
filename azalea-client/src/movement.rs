@@ -1,8 +1,8 @@
 use crate::client::Client;
-use crate::local_player::LocalPlayer;
+use crate::local_player::SendPacketEvent;
 use azalea_entity::{metadata::Sprinting, Attributes, Jumping};
 use azalea_entity::{InLoadedChunk, LastSentPosition, LookDirection, Physics, Position};
-use azalea_physics::PhysicsSet;
+use azalea_physics::{ai_step, PhysicsSet};
 use azalea_protocol::packets::game::serverbound_player_command_packet::ServerboundPlayerCommandPacket;
 use azalea_protocol::packets::game::{
     serverbound_move_player_pos_packet::ServerboundMovePlayerPosPacket,
@@ -12,7 +12,7 @@ use azalea_protocol::packets::game::{
 };
 use azalea_world::{MinecraftEntityId, MoveEntityError};
 use bevy_app::{App, FixedUpdate, Plugin, Update};
-use bevy_ecs::prelude::Event;
+use bevy_ecs::prelude::{Event, EventWriter};
 use bevy_ecs::{
     component::Component, entity::Entity, event::EventReader, query::With,
     schedule::IntoSystemConfigs, system::Query,
@@ -48,9 +48,11 @@ impl Plugin for PlayerMovePlugin {
             .add_systems(
                 FixedUpdate,
                 (
-                    local_player_ai_step
+                    (tick_controls, local_player_ai_step)
+                        .chain()
                         .in_set(PhysicsSet)
-                        .before(azalea_physics::ai_step),
+                        .before(ai_step),
+                    send_sprinting_if_needed.after(azalea_entity::update_in_loaded_chunk),
                     send_position.after(PhysicsSet),
                 )
                     .chain(),
@@ -118,33 +120,28 @@ pub struct PhysicsState {
 pub fn send_position(
     mut query: Query<
         (
-            &MinecraftEntityId,
-            &mut LocalPlayer,
-            &mut PhysicsState,
+            Entity,
             &Position,
+            &LookDirection,
+            &mut PhysicsState,
             &mut LastSentPosition,
             &mut Physics,
-            &LookDirection,
             &mut LastSentLookDirection,
-            &Sprinting,
         ),
         With<InLoadedChunk>,
     >,
+    mut send_packet_events: EventWriter<SendPacketEvent>,
 ) {
     for (
-        id,
-        mut local_player,
-        mut physics_state,
+        entity,
         position,
+        direction,
+        mut physics_state,
         mut last_sent_position,
         mut physics,
-        direction,
         mut last_direction,
-        sprinting,
     ) in query.iter_mut()
     {
-        local_player.send_sprinting_if_needed(id, sprinting, &mut physics_state);
-
         let packet = {
             // TODO: the camera being able to be controlled by other entities isn't
             // implemented yet if !self.is_controlled_camera() { return };
@@ -225,18 +222,16 @@ pub fn send_position(
         };
 
         if let Some(packet) = packet {
-            local_player.write_packet(packet);
+            send_packet_events.send(SendPacketEvent { entity, packet });
         }
     }
 }
 
-impl LocalPlayer {
-    fn send_sprinting_if_needed(
-        &mut self,
-        id: &MinecraftEntityId,
-        sprinting: &Sprinting,
-        physics_state: &mut PhysicsState,
-    ) {
+fn send_sprinting_if_needed(
+    mut query: Query<(Entity, &MinecraftEntityId, &Sprinting, &mut PhysicsState)>,
+    mut send_packet_events: EventWriter<SendPacketEvent>,
+) {
+    for (entity, minecraft_entity_id, sprinting, mut physics_state) in query.iter_mut() {
         let was_sprinting = physics_state.was_sprinting;
         if **sprinting != was_sprinting {
             let sprinting_action = if **sprinting {
@@ -244,21 +239,26 @@ impl LocalPlayer {
             } else {
                 azalea_protocol::packets::game::serverbound_player_command_packet::Action::StopSprinting
             };
-            self.write_packet(
-                ServerboundPlayerCommandPacket {
-                    id: **id,
+            send_packet_events.send(SendPacketEvent {
+                entity,
+                packet: ServerboundPlayerCommandPacket {
+                    id: **minecraft_entity_id,
                     action: sprinting_action,
                     data: 0,
                 }
                 .get(),
-            );
+            });
             physics_state.was_sprinting = **sprinting;
         }
     }
+}
 
-    /// Update the impulse from self.move_direction. The multipler is used for
-    /// sneaking.
-    pub(crate) fn tick_controls(multiplier: Option<f32>, physics_state: &mut PhysicsState) {
+/// Update the impulse from self.move_direction. The multipler is used for
+/// sneaking.
+pub(crate) fn tick_controls(mut query: Query<&mut PhysicsState>) {
+    for mut physics_state in query.iter_mut() {
+        let multiplier: Option<f32> = None;
+
         let mut forward_impulse: f32 = 0.;
         let mut left_impulse: f32 = 0.;
         let move_direction = physics_state.move_direction;
@@ -296,18 +296,11 @@ impl LocalPlayer {
 /// automatically by the client.
 pub fn local_player_ai_step(
     mut query: Query<
-        (
-            &mut PhysicsState,
-            &mut Physics,
-            &mut Sprinting,
-            &mut Attributes,
-        ),
+        (&PhysicsState, &mut Physics, &mut Sprinting, &mut Attributes),
         With<InLoadedChunk>,
     >,
 ) {
-    for (mut physics_state, mut physics, mut sprinting, mut attributes) in query.iter_mut() {
-        LocalPlayer::tick_controls(None, &mut physics_state);
-
+    for (physics_state, mut physics, mut sprinting, mut attributes) in query.iter_mut() {
         // server ai step
         physics.xxa = physics_state.left_impulse;
         physics.zza = physics_state.forward_impulse;
@@ -325,7 +318,7 @@ pub fn local_player_ai_step(
             && (
                 // !self.is_in_water()
                 // || self.is_underwater() &&
-                has_enough_impulse_to_start_sprinting(&physics_state)
+                has_enough_impulse_to_start_sprinting(physics_state)
                     && has_enough_food_to_sprint
                     // && !self.using_item()
                     // && !self.has_effect(MobEffects.BLINDNESS)

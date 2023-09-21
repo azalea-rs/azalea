@@ -1,5 +1,7 @@
+pub mod common;
+pub mod configuration;
 pub mod game;
-pub mod handshake;
+pub mod handshaking;
 pub mod login;
 pub mod status;
 
@@ -10,7 +12,7 @@ use std::io::{Cursor, Write};
 // TODO: rename the packet files to just like clientbound_add_entity instead of
 // clientbound_add_entity_packet
 
-pub const PROTOCOL_VERSION: u32 = 763;
+pub const PROTOCOL_VERSION: u32 = 764;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ConnectionProtocol {
@@ -18,6 +20,7 @@ pub enum ConnectionProtocol {
     Game = 0,
     Status = 1,
     Login = 2,
+    Configuration = 3,
 }
 
 impl ConnectionProtocol {
@@ -28,6 +31,7 @@ impl ConnectionProtocol {
             0 => Some(ConnectionProtocol::Game),
             1 => Some(ConnectionProtocol::Status),
             2 => Some(ConnectionProtocol::Login),
+            3 => Some(ConnectionProtocol::Configuration),
             _ => None,
         }
     }

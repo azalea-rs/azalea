@@ -1,6 +1,8 @@
 use crate::app::{App, Plugin};
-use azalea_client::packet_handling::{death_event_on_0_health, DeathEvent};
-use azalea_client::respawn::{perform_respawn, PerformRespawnEvent};
+use azalea_client::{
+    packet_handling::{death_event_on_0_health, game::DeathEvent},
+    respawn::{perform_respawn, PerformRespawnEvent},
+};
 use bevy_app::Update;
 use bevy_ecs::prelude::*;
 
