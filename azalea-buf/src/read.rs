@@ -1,7 +1,6 @@
 use super::{UnsizedByteArray, MAX_STRING_LENGTH};
 use byteorder::{ReadBytesExt, BE};
 use log::warn;
-use simdnbt::owned::Nbt;
 use std::{
     backtrace::Backtrace,
     collections::HashMap,
@@ -340,11 +339,5 @@ impl<T: McBufReadable, const N: usize> McBufReadable for [T; N] {
         contents.try_into().map_err(|_| {
             unreachable!("Panic is not possible since the Vec is the same size as the array")
         })
-    }
-}
-
-impl McBufReadable for Nbt {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        Ok(Nbt::new(buf)?)
     }
 }

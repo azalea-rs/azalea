@@ -14,7 +14,7 @@ anyhow = "1.0.75"
 async-trait = "0.1.73"
 azalea-auth = { path = "../azalea-auth", version = "0.8.0" }
 azalea-block = { path = "../azalea-block", version = "0.8.0" }
-simdnbt = { git = "https://github.com/mat-1/simdnbt" }
+azalea-nbt = { path = "../azalea-nbt", version = "0.8.0" }
 azalea-chat = { path = "../azalea-chat", version = "0.8.0" }
 azalea-core = { path = "../azalea-core", version = "0.8.0" }
 azalea-crypto = { path = "../azalea-crypto", version = "0.8.0" }
@@ -40,8 +40,8 @@ thiserror = "^1.0.48"
 tokio = { version = "^1.32.0", features = ["sync"] }
 uuid = "^1.4.1"
 azalea-entity = { version = "0.8.0", path = "../azalea-entity" }
-serde_json = "1.0.107"
-serde = "1.0.188"
+serde_json = "1.0.104"
+serde = "1.0.183"
 
 [features]
 default = ["log"]
