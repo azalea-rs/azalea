@@ -1,7 +1,7 @@
 use std::io::Cursor;
 use std::sync::Arc;
 
-use azalea_entity::indexing::{EntityIdIndex, Loaded};
+use azalea_entity::indexing::EntityIdIndex;
 use azalea_protocol::packets::configuration::serverbound_finish_configuration_packet::ServerboundFinishConfigurationPacket;
 use azalea_protocol::packets::configuration::serverbound_keep_alive_packet::ServerboundKeepAlivePacket;
 use azalea_protocol::packets::configuration::serverbound_pong_packet::ServerboundPongPacket;
@@ -149,7 +149,6 @@ pub fn process_packet_events(ecs: &mut World) {
                         attack: crate::attack::AttackBundle::default(),
 
                         _local_entity: azalea_entity::LocalEntity,
-                        _loaded: Loaded,
                     });
             }
             ClientboundConfigurationPacket::KeepAlive(p) => {

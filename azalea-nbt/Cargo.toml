@@ -28,14 +28,6 @@ fastnbt = "2.4.4"
 default = []
 serde = ["dep:serde"]
 
-[profile.release]
-lto = true
-debug = true
-
-[profile.bench]
-lto = true
-debug = true
-
 [[bench]]
 harness = false
 name = "nbt"

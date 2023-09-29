@@ -5,7 +5,7 @@ use std::collections::HashSet;
 
 use azalea_core::{BlockPos, ChunkPos, Vec3};
 use azalea_world::{InstanceContainer, InstanceName, MinecraftEntityId};
-use bevy_app::{App, Plugin, PostUpdate, PreUpdate, Update};
+use bevy_app::{App, Plugin, PreUpdate, Update};
 use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
 use log::debug;
@@ -20,9 +20,6 @@ pub use relative_updates::RelativeEntityUpdate;
 /// A Bevy [`SystemSet`] for various types of entity updates.
 #[derive(SystemSet, Debug, Hash, Eq, PartialEq, Clone)]
 pub enum EntityUpdateSet {
-    /// Remove ECS entities that refer to an entity that was already in the ECS
-    /// before.
-    Deduplicate,
     /// Create search indexes for entities.
     Index,
     /// Remove despawned entities from search indexes.
@@ -42,22 +39,9 @@ impl Plugin for EntityPlugin {
             indexing::remove_despawned_entities_from_indexes.in_set(EntityUpdateSet::Deindex),
         )
         .add_systems(
-            PostUpdate,
-            (
-                indexing::deduplicate_entities,
-                indexing::deduplicate_local_entities,
-            )
-                .in_set(EntityUpdateSet::Deduplicate),
-        )
-        .add_systems(
             Update,
             (
-                (
-                    indexing::update_entity_chunk_positions,
-                    indexing::update_uuid_index,
-                    indexing::update_entity_by_id_index,
-                )
-                    .in_set(EntityUpdateSet::Index),
+                (indexing::update_entity_chunk_positions).in_set(EntityUpdateSet::Index),
                 (
                     relative_updates::debug_detect_updates_received_on_local_entities,
                     debug_new_entity,

@@ -194,11 +194,13 @@ pub fn process_packet_events(ecs: &mut World) {
                         &ClientInformation,
                         &ReceivedRegistries,
                         Option<&mut InstanceName>,
+                        Option<&mut LoadedBy>,
                         &mut EntityIdIndex,
                         &mut InstanceHolder,
                     )>,
                     EventWriter<InstanceLoadedEvent>,
                     ResMut<InstanceContainer>,
+                    ResMut<EntityUuidIndex>,
                     EventWriter<SendPacketEvent>,
                 )> = SystemState::new(ecs);
                 let (
@@ -206,6 +208,7 @@ pub fn process_packet_events(ecs: &mut World) {
                     mut query,
                     mut instance_loaded_events,
                     mut instance_container,
+                    mut entity_uuid_index,
                     mut send_packet_events,
                 ) = system_state.get_mut(ecs);
                 let (
@@ -213,6 +216,7 @@ pub fn process_packet_events(ecs: &mut World) {
                     client_information,
                     received_registries,
                     instance_name,
+                    loaded_by,
                     mut entity_id_index,
                     mut instance_holder,
                 ) = query.get_mut(player_entity).unwrap();
@@ -277,9 +281,10 @@ pub fn process_packet_events(ecs: &mut World) {
                         ),
                         metadata: PlayerMetadataBundle::default(),
                     };
+                    let entity_id = MinecraftEntityId(p.player_id);
                     // insert our components into the ecs :)
                     commands.entity(player_entity).insert((
-                        MinecraftEntityId(p.player_id),
+                        entity_id,
                         LocalGameMode {
                             current: p.common.game_type,
                             previous: p.common.previous_game_type.into(),
@@ -289,8 +294,23 @@ pub fn process_packet_events(ecs: &mut World) {
                         player_bundle,
                     ));
 
-                    // add our own player to our index
-                    entity_id_index.insert(MinecraftEntityId(p.player_id), player_entity);
+                    azalea_entity::indexing::add_entity_to_indexes(
+                        entity_id,
+                        player_entity,
+                        Some(game_profile.uuid),
+                        &mut entity_id_index,
+                        &mut entity_uuid_index,
+                        &mut instance_holder.instance.write(),
+                    );
+
+                    // update or insert loaded_by
+                    if let Some(mut loaded_by) = loaded_by {
+                        loaded_by.insert(player_entity);
+                    } else {
+                        commands
+                            .entity(player_entity)
+                            .insert(LoadedBy(HashSet::from_iter(vec![player_entity])));
+                    }
                 }
 
                 // send the client information that we have set
@@ -595,10 +615,7 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 if !this_client_has_chunk {
                     if let Some(shared_chunk) = shared_chunk {
-                        trace!(
-                            "Skipping parsing chunk {:?} because we already know about it",
-                            pos
-                        );
+                        trace!("Skipping parsing chunk {pos:?} because we already know about it");
                         partial_world.chunks.set_with_shared_reference(
                             &pos,
                             Some(shared_chunk.clone()),
@@ -608,12 +625,7 @@ pub fn process_packet_events(ecs: &mut World) {
                     }
                 }
 
-                let heightmaps = p
-                    .chunk_data
-                    .heightmaps
-                    .as_compound()
-                    .and_then(|c| c.get(""))
-                    .and_then(|c| c.as_compound());
+                let heightmaps = p.chunk_data.heightmaps.as_compound();
                 // necessary to make the unwrap_or work
                 let empty_nbt_compound = NbtCompound::default();
                 let heightmaps = heightmaps.unwrap_or(&empty_nbt_compound);
@@ -624,7 +636,7 @@ pub fn process_packet_events(ecs: &mut World) {
                     heightmaps,
                     &mut world.chunks,
                 ) {
-                    error!("Couldn't set chunk data: {}", e);
+                    error!("Couldn't set chunk data: {e}");
                 }
             }
             ClientboundGamePacket::AddEntity(p) => {
@@ -634,49 +646,82 @@ pub fn process_packet_events(ecs: &mut World) {
                 let mut system_state: SystemState<(
                     Commands,
                     Query<(&mut EntityIdIndex, Option<&InstanceName>, Option<&TabList>)>,
+                    Query<&mut LoadedBy>,
+                    Query<Entity>,
                     Res<InstanceContainer>,
                     ResMut<EntityUuidIndex>,
                 )> = SystemState::new(ecs);
-                let (mut commands, mut query, instance_container, mut entity_uuid_index) =
-                    system_state.get_mut(ecs);
+                let (
+                    mut commands,
+                    mut query,
+                    mut loaded_by_query,
+                    entity_query,
+                    instance_container,
+                    mut entity_uuid_index,
+                ) = system_state.get_mut(ecs);
                 let (mut entity_id_index, instance_name, tab_list) =
                     query.get_mut(player_entity).unwrap();
 
-                if let Some(instance_name) = instance_name {
-                    let bundle = p.as_entity_bundle((**instance_name).clone());
-                    let mut spawned = commands.spawn((
-                        MinecraftEntityId(p.id),
-                        LoadedBy(HashSet::from([player_entity])),
-                        bundle,
-                    ));
-                    entity_id_index.insert(MinecraftEntityId(p.id), spawned.id());
+                let entity_id = MinecraftEntityId(p.id);
 
-                    {
-                        // add it to the indexes immediately so if there's a packet that references
-                        // it immediately after it still works
-                        let instance = instance_container.get(instance_name).unwrap();
-                        instance
-                            .write()
-                            .entity_by_id
-                            .insert(MinecraftEntityId(p.id), spawned.id());
-                        entity_uuid_index.insert(p.uuid, spawned.id());
-                    }
-
-                    if let Some(tab_list) = tab_list {
-                        // technically this makes it possible for non-player entities to have
-                        // GameProfileComponents but the server would have to be doing something
-                        // really weird
-                        if let Some(player_info) = tab_list.get(&p.uuid) {
-                            spawned.insert(GameProfileComponent(player_info.profile.clone()));
-                        }
-                    }
-
-                    // the bundle doesn't include the default entity metadata so we add that
-                    // separately
-                    p.apply_metadata(&mut spawned);
-                } else {
+                let Some(instance_name) = instance_name else {
                     warn!("got add player packet but we haven't gotten a login packet yet");
+                    continue;
+                };
+
+                // check if the entity already exists, and if it does then only add to LoadedBy
+                let instance = instance_container.get(instance_name).unwrap();
+                if let Some(&ecs_entity) = instance.read().entity_by_id.get(&entity_id) {
+                    // entity already exists
+                    let Ok(mut loaded_by) = loaded_by_query.get_mut(ecs_entity) else {
+                        // LoadedBy for this entity isn't in the ecs! figure out what went wrong
+                        // and print an error
+
+                        let entity_in_ecs = entity_query.get(ecs_entity).is_ok();
+
+                        if entity_in_ecs {
+                            error!("LoadedBy for entity {entity_id:?} ({ecs_entity:?}) isn't in the ecs, but the entity is in entity_by_id");
+                        } else {
+                            error!("Entity {entity_id:?} ({ecs_entity:?}) isn't in the ecs, but the entity is in entity_by_id");
+                        }
+                        continue;
+                    };
+                    loaded_by.insert(player_entity);
+
+                    // per-client id index
+                    entity_id_index.insert(entity_id, ecs_entity);
+                    continue;
+                };
+
+                // entity doesn't exist in the global index!
+
+                let bundle = p.as_entity_bundle((**instance_name).clone());
+                let mut spawned =
+                    commands.spawn((entity_id, LoadedBy(HashSet::from([player_entity])), bundle));
+                let ecs_entity = spawned.id();
+
+                azalea_entity::indexing::add_entity_to_indexes(
+                    entity_id,
+                    ecs_entity,
+                    Some(p.uuid),
+                    &mut entity_id_index,
+                    &mut entity_uuid_index,
+                    &mut instance.write(),
+                );
+
+                // add the GameProfileComponent if the uuid is in the tab list
+                if let Some(tab_list) = tab_list {
+                    // (technically this makes it possible for non-player entities to have
+                    // GameProfileComponents but the server would have to be doing something
+                    // really weird)
+                    if let Some(player_info) = tab_list.get(&p.uuid) {
+                        spawned.insert(GameProfileComponent(player_info.profile.clone()));
+                    }
                 }
+
+                // the bundle doesn't include the default entity metadata so we add that
+                // separately
+                p.apply_metadata(&mut spawned);
 
                 system_state.apply(ecs);
             }
@@ -901,6 +946,8 @@ pub fn process_packet_events(ecs: &mut World) {
                         );
                         continue;
                     };
+                    // the [`remove_despawned_entities_from_indexes`] system will despawn the entity
+                    // if it's not loaded by anything anymore
                     loaded_by.remove(&player_entity);
                 }
             }

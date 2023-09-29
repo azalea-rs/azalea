@@ -27,8 +27,5 @@ parking_lot = "^0.12.1"
 thiserror = "1.0.48"
 uuid = "1.4.1"
 
-[profile.release]
-lto = true
-
 [dev-dependencies]
 azalea-client = { path = "../azalea-client" }

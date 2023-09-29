@@ -25,7 +25,7 @@ use azalea_buf::McBufWritable;
 use azalea_chat::FormattedText;
 use azalea_core::{ResourceLocation, Vec3};
 use azalea_entity::{
-    indexing::{EntityIdIndex, Loaded},
+    indexing::{EntityIdIndex, EntityUuidIndex},
     metadata::Health,
     EntityPlugin, EntityUpdateSet, EyeHeight, LocalEntity, Position,
 };
@@ -208,8 +208,6 @@ impl Client {
         resolved_address: &SocketAddr,
         run_schedule_sender: mpsc::UnboundedSender<()>,
     ) -> Result<(Self, mpsc::UnboundedReceiver<Event>), JoinError> {
-        let entity = ecs_lock.lock().spawn(account.to_owned()).id();
-
         let conn = Connection::new(resolved_address).await?;
         let (mut conn, game_profile) = Self::handshake(conn, account, address).await?;
 
@@ -236,6 +234,22 @@ impl Client {
 
         let mut ecs = ecs_lock.lock();
 
+        // check if an entity with our uuid already exists in the ecs and if so then
+        // just use that
+        let entity = {
+            let entity_uuid_index = ecs.resource::<EntityUuidIndex>();
+            if let Some(entity) = entity_uuid_index.get(&game_profile.uuid) {
+                debug!("Reusing entity {entity:?} for client");
+                entity
+            } else {
+                let entity = ecs.spawn_empty().id();
+                debug!("Created new entity {entity:?} for client");
+                // add to the uuid index
+                let mut entity_uuid_index = ecs.resource_mut::<EntityUuidIndex>();
+                entity_uuid_index.insert(game_profile.uuid, entity);
+                entity
+            }
+        };
         // we got the ConfigurationConnection, so the client is now connected :)
         let client = Client::new(
             game_profile.clone(),
@@ -256,6 +270,7 @@ impl Client {
                 received_registries: ReceivedRegistries::default(),
                 local_player_events: LocalPlayerEvents(tx),
                 game_profile: GameProfileComponent(game_profile),
+                account: account.to_owned(),
             },
             InConfigurationState,
         ));
@@ -578,6 +593,7 @@ pub struct LocalPlayerBundle {
     pub received_registries: ReceivedRegistries,
     pub local_player_events: LocalPlayerEvents,
     pub game_profile: GameProfileComponent,
+    pub account: Account,
 }
 
 /// A bundle for the components that are present on a local player that is
@@ -603,7 +619,6 @@ pub struct JoinedClientBundle {
     pub attack: attack::AttackBundle,
 
     pub _local_entity: LocalEntity,
-    pub _loaded: Loaded,
 }
 
 /// A marker component for local players that are currently in the
