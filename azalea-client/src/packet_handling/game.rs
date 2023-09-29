@@ -690,6 +690,8 @@ pub fn process_packet_events(ecs: &mut World) {
 
                     // per-client id index
                     entity_id_index.insert(entity_id, ecs_entity);
+
+                    debug!("added to LoadedBy of entity {ecs_entity:?} with id {entity_id:?}");
                     continue;
                 };
 
@@ -698,7 +700,8 @@ pub fn process_packet_events(ecs: &mut World) {
                 let bundle = p.as_entity_bundle((**instance_name).clone());
                 let mut spawned =
                     commands.spawn((entity_id, LoadedBy(HashSet::from([player_entity])), bundle));
-                let ecs_entity = spawned.id();
+                let ecs_entity: Entity = spawned.id();
+                debug!("spawned entity {ecs_entity:?} with id {entity_id:?}");
 
                 azalea_entity::indexing::add_entity_to_indexes(
                     entity_id,
@@ -946,8 +949,13 @@ pub fn process_packet_events(ecs: &mut World) {
                         );
                         continue;
                     };
+
                     // the [`remove_despawned_entities_from_indexes`] system will despawn the entity
                     // if it's not loaded by anything anymore
+
+                    // also we can't just ecs.despawn because if we're in a swarm then the entity
+                    // might still be loaded by another client
+
                     loaded_by.remove(&player_entity);
                 }
             }

@@ -58,7 +58,7 @@ fn collide(movement: &Vec3, world: &Instance, physics: &azalea_entity::Physics) 
     // let entity_collisions = world.get_entity_collisions(self,
     // entity_bounding_box.expand_towards(movement));
     let entity_collisions = Vec::new();
-    let collided_movement = if movement.length_sqr() == 0.0 {
+    let collided_delta = if movement.length_sqr() == 0.0 {
         *movement
     } else {
         collide_bounding_box(
@@ -69,15 +69,15 @@ fn collide(movement: &Vec3, world: &Instance, physics: &azalea_entity::Physics) 
         )
     };
 
-    let x_collision = movement.x != collided_movement.x;
-    let y_collision = movement.y != collided_movement.y;
-    let z_collision = movement.z != collided_movement.z;
+    let x_collision = movement.x != collided_delta.x;
+    let y_collision = movement.y != collided_delta.y;
+    let z_collision = movement.z != collided_delta.z;
 
     let on_ground = physics.on_ground || y_collision && movement.y < 0.;
 
     let max_up_step = 0.6;
-    if on_ground && (x_collision || z_collision) {
-        let mut hypothetical_new_position = collide_bounding_box(
+    if max_up_step > 0. && on_ground && (x_collision || z_collision) {
+        let mut step_to_delta = collide_bounding_box(
             &Vec3 {
                 x: movement.x,
                 y: max_up_step,
@@ -87,7 +87,7 @@ fn collide(movement: &Vec3, world: &Instance, physics: &azalea_entity::Physics) 
             world,
             entity_collisions.clone(),
         );
-        let step_up_position = collide_bounding_box(
+        let directly_up_delta = collide_bounding_box(
             &Vec3 {
                 x: 0.,
                 y: max_up_step,
@@ -97,41 +97,38 @@ fn collide(movement: &Vec3, world: &Instance, physics: &azalea_entity::Physics) 
             world,
             entity_collisions.clone(),
         );
-        if step_up_position.y < max_up_step {
-            let var11 = collide_bounding_box(
+        if directly_up_delta.y < max_up_step {
+            let target_movement = collide_bounding_box(
                 &Vec3 {
                     x: movement.x,
                     y: 0.,
                     z: movement.z,
                 },
-                &entity_bounding_box.move_relative(&step_up_position),
+                &entity_bounding_box.move_relative(&directly_up_delta),
                 world,
                 entity_collisions.clone(),
             )
-            .add(step_up_position);
-            if var11.horizontal_distance_sqr() > hypothetical_new_position.horizontal_distance_sqr()
-            {
-                hypothetical_new_position = var11;
+            .add(directly_up_delta);
+            if target_movement.horizontal_distance_sqr() > step_to_delta.horizontal_distance_sqr() {
+                step_to_delta = target_movement;
             }
         }
 
-        if hypothetical_new_position.horizontal_distance_sqr()
-            > collided_movement.horizontal_distance_sqr()
-        {
-            return hypothetical_new_position.add(collide_bounding_box(
+        if step_to_delta.horizontal_distance_sqr() > collided_delta.horizontal_distance_sqr() {
+            return step_to_delta.add(collide_bounding_box(
                 &Vec3 {
                     x: 0.,
-                    y: -hypothetical_new_position.y + movement.y,
+                    y: -step_to_delta.y + movement.y,
                     z: 0.,
                 },
-                &entity_bounding_box.move_relative(&hypothetical_new_position),
+                &entity_bounding_box.move_relative(&step_to_delta),
                 world,
                 entity_collisions.clone(),
             ));
         }
     }
 
-    collided_movement
+    collided_delta
 }
 
 /// Move an entity by a given delta, checking for collisions.

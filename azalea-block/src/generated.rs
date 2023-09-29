@@ -3080,46 +3080,60 @@ make_block_states! {
             powered: false,
         },
         skeleton_skull => BlockBehavior::new().strength(1.0, 1.0), {
+            powered: false,
             rotation: SkeletonSkullRotation::_0,
         },
         skeleton_wall_skull => BlockBehavior::new().strength(1.0, 1.0), {
             facing: FacingCardinal::North,
+            powered: false,
         },
         wither_skeleton_skull => BlockBehavior::new().strength(1.0, 1.0), {
+            powered: false,
             rotation: WitherSkeletonSkullRotation::_0,
         },
         wither_skeleton_wall_skull => BlockBehavior::new().strength(1.0, 1.0), {
             facing: FacingCardinal::North,
+            powered: false,
         },
         zombie_head => BlockBehavior::new().strength(1.0, 1.0), {
+            powered: false,
             rotation: ZombieHeadRotation::_0,
         },
         zombie_wall_head => BlockBehavior::new().strength(1.0, 1.0), {
             facing: FacingCardinal::North,
+            powered: false,
         },
         player_head => BlockBehavior::new().strength(1.0, 1.0), {
+            powered: false,
             rotation: PlayerHeadRotation::_0,
         },
         player_wall_head => BlockBehavior::new().strength(1.0, 1.0), {
             facing: FacingCardinal::North,
+            powered: false,
         },
         creeper_head => BlockBehavior::new().strength(1.0, 1.0), {
+            powered: false,
             rotation: CreeperHeadRotation::_0,
         },
         creeper_wall_head => BlockBehavior::new().strength(1.0, 1.0), {
             facing: FacingCardinal::North,
+            powered: false,
         },
         dragon_head => BlockBehavior::new().strength(1.0, 1.0), {
+            powered: false,
             rotation: DragonHeadRotation::_0,
         },
         dragon_wall_head => BlockBehavior::new().strength(1.0, 1.0), {
             facing: FacingCardinal::North,
+            powered: false,
         },
         piglin_head => BlockBehavior::new().strength(1.0, 1.0), {
+            powered: false,
             rotation: PiglinHeadRotation::_0,
         },
         piglin_wall_head => BlockBehavior::new().strength(1.0, 1.0), {
             facing: FacingCardinal::North,
+            powered: false,
         },
         anvil => BlockBehavior::new().requires_correct_tool_for_drops().strength(5.0, 1200.0), {
             facing: FacingCardinal::North,
@@ -3341,7 +3355,9 @@ make_block_states! {
             waterlogged: false,
         },
         slime_block => BlockBehavior::new().friction(0.8), {},
-        barrier => BlockBehavior::new().strength(-1.0, 3600000.8), {},
+        barrier => BlockBehavior::new().strength(-1.0, 3600000.8), {
+            waterlogged: false,
+        },
         light => BlockBehavior::new().strength(-1.0, 3600000.8), {
             level: LightLevel::_15,
             waterlogged: false,
