@@ -109,7 +109,7 @@ impl PathfinderClientExt for azalea_client::Client {
     /// # use azalea::prelude::*;
     /// # use azalea::{BlockPos, pathfinder::goals::BlockPosGoal};
     /// # fn example(bot: &Client) {
-    /// bot.goto(BlockPosGoal::from(BlockPos::new(0, 70, 0)));
+    /// bot.goto(BlockPosGoal(BlockPos::new(0, 70, 0)));
     /// # }
     /// ```
     fn goto(&self, goal: impl Goal + Send + Sync + 'static) {
@@ -160,13 +160,12 @@ fn goto_listener(
         let world_lock = instance_container
             .get(instance_name)
             .expect("Entity tried to pathfind but the entity isn't in a valid world");
-        let end = event.goal.goal_node();
 
         let goal = event.goal.clone();
         let entity = event.entity;
 
         let task = thread_pool.spawn(async move {
-            debug!("start: {start:?}, end: {end:?}");
+            debug!("start: {start:?}");
 
             let successors = |pos: BlockPos| {
                 let world = world_lock.read();
@@ -477,9 +476,6 @@ fn stop_pathfinding_on_instance_change(
 pub trait Goal {
     fn heuristic(&self, n: BlockPos) -> f32;
     fn success(&self, n: BlockPos) -> bool;
-    // TODO: this should be removed and mtdstarlite should stop depending on
-    // being given a goal node
-    fn goal_node(&self) -> BlockPos;
 }
 
 /// Returns whether the entity is at the node and should start going to the
@@ -563,7 +559,7 @@ mod tests {
 
         simulation.app.world.send_event(GotoEvent {
             entity: simulation.entity,
-            goal: Arc::new(BlockPosGoal::from(end_pos)),
+            goal: Arc::new(BlockPosGoal(end_pos)),
         });
         simulation
     }

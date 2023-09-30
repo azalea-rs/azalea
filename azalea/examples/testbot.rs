@@ -127,10 +127,10 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                     let entity_pos = bot.entity_component::<Position>(entity);
                     let target_pos: BlockPos = entity_pos.into();
                     println!("going to {target_pos:?}");
-                    bot.goto(BlockPosGoal::from(target_pos));
+                    bot.goto(BlockPosGoal(target_pos));
                 }
                 "worldborder" => {
-                    bot.goto(BlockPosGoal::from(BlockPos::new(30_000_000, 70, 0)));
+                    bot.goto(BlockPosGoal(BlockPos::new(30_000_000, 70, 0)));
                 }
                 "look" => {
                     let Some(entity) = entity else {
@@ -176,7 +176,7 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                     );
                     if let Some(target_pos) = target_pos {
                         // +1 to stand on top of the block
-                        bot.goto(BlockPosGoal::from(target_pos.up(1)));
+                        bot.goto(BlockPosGoal(target_pos.up(1)));
                     } else {
                         bot.chat("no diamond block found");
                     }
@@ -205,7 +205,7 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                         bot.chat("no lever found");
                         return Ok(());
                     };
-                    bot.goto(BlockPosGoal::from(target_pos));
+                    bot.goto(BlockPosGoal(target_pos));
                     bot.look_at(target_pos.center());
                     bot.block_interact(target_pos);
                 }
