@@ -86,7 +86,7 @@ pub struct GotoEvent {
     pub entity: Entity,
     pub goal: Arc<dyn Goal + Send + Sync>,
     /// The function that's used for checking what moves are possible. Usually
-    /// `pathfinder::moves::basic::basic_move`
+    /// `pathfinder::moves::default_move`
     pub successors_fn: SuccessorsFn,
 }
 #[derive(Event)]
@@ -124,7 +124,7 @@ impl PathfinderClientExt for azalea_client::Client {
         self.ecs.lock().send_event(GotoEvent {
             entity: self.entity,
             goal: Arc::new(goal),
-            successors_fn: moves::basic::basic_move,
+            successors_fn: moves::default_move,
         });
     }
 }
@@ -370,7 +370,12 @@ fn tick_execute_path(
                     position: **position,
                     physics,
                 };
-                if (movement.data.is_reached)(is_reached_ctx) {
+                let on_ground_if_last = if i == pathfinder.path.len() - 1 {
+                    physics.on_ground
+                } else {
+                    true
+                };
+                if (movement.data.is_reached)(is_reached_ctx) && on_ground_if_last {
                     pathfinder.path = pathfinder.path.split_off(i + 1);
                     pathfinder.last_reached_node = Some(movement.target);
                     pathfinder.last_node_reached_at = Some(Instant::now());

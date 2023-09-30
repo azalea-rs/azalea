@@ -268,7 +268,8 @@ fn diagonal_move(world: &Instance, pos: BlockPos) -> Vec<Edge> {
         if !is_standable(&(pos + offset), world) {
             continue;
         }
-        let cost = SPRINT_ONE_BLOCK_COST * SQRT_2;
+        // +0.001 so it doesn't unnecessarily go diagonal sometimes
+        let cost = SPRINT_ONE_BLOCK_COST * SQRT_2 + 0.001;
 
         edges.push(Edge {
             movement: astar::Movement {

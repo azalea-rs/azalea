@@ -106,7 +106,7 @@ where
         }
     }
 
-    let best_path = determine_best_path(&best_paths, &heuristic);
+    let best_path = determine_best_path(&best_paths, &start);
 
     Path {
         movements: reconstruct_path(nodes, best_path),
@@ -114,23 +114,20 @@ where
     }
 }
 
-const MIN_DISTANCE_PATH: f32 = 5.;
-
-fn determine_best_path<P, HeuristicFn>(best_node: &[P; 7], heuristic: &HeuristicFn) -> P
+fn determine_best_path<P>(best_paths: &[P; 7], start: &P) -> P
 where
-    HeuristicFn: Fn(P) -> f32,
     P: Eq + Hash + Copy + Debug,
 {
     // this basically makes sure we don't create a path that's really short
 
-    for node in best_node.iter() {
-        // square MIN_DISTANCE_PATH because we're comparing squared distances
-        if heuristic(*node) > MIN_DISTANCE_PATH * MIN_DISTANCE_PATH {
+    for node in best_paths.iter() {
+        if node != start {
+            println!("chose best node {:?}", node);
             return *node;
         }
     }
     warn!("No best node found, returning first node");
-    best_node[0]
+    best_paths[0]
 }
 
 fn reconstruct_path<P, M>(mut nodes: HashMap<P, Node<P, M>>, current: P) -> Vec<Movement<P, M>>

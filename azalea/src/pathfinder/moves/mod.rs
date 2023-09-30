@@ -1,4 +1,5 @@
 pub mod basic;
+pub mod parkour;
 
 use std::fmt::Debug;
 
@@ -112,6 +113,13 @@ pub struct IsReachedCtx<'a> {
     pub start: BlockPos,
     pub position: Vec3,
     pub physics: &'a azalea_entity::Physics,
+}
+
+pub fn default_move(world: &Instance, node: BlockPos) -> Vec<Edge> {
+    let mut edges = Vec::new();
+    edges.extend(basic::basic_move(world, node));
+    edges.extend(parkour::parkour_move(world, node));
+    edges
 }
 
 /// Returns whether the entity is at the node and should start going to the
