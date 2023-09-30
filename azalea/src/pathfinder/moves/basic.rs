@@ -164,22 +164,36 @@ fn execute_descend_move(
 ) {
     let center = target.center();
     let horizontal_distance_from_target = (center - position).horizontal_distance_sqr().sqrt();
+    let horizontal_distance_from_start =
+        (start.center() - position).horizontal_distance_sqr().sqrt();
 
-    let dest_ahead = (start + (target - start) * 2).center();
-
-    println!();
-    println!("center: {center:?}, dest_ahead: {dest_ahead:?}");
-    println!("position: {position:?}");
+    let dest_ahead = BlockPos::new(
+        start.x + (target.x - start.x) * 2,
+        target.y,
+        start.z + (target.z - start.z) * 2,
+    );
 
     if BlockPos::from(position) != target || horizontal_distance_from_target > 0.25 {
-        look_at_events.send(LookAtEvent {
-            entity,
-            position: dest_ahead,
-        });
-        sprint_events.send(StartSprintEvent {
-            entity,
-            direction: SprintDirection::Forward,
-        });
+        // if we're only falling one block then it's fine to try to overshoot
+        if horizontal_distance_from_start < 1.25 || start.y - target.y == 1 {
+            look_at_events.send(LookAtEvent {
+                entity,
+                position: dest_ahead.center(),
+            });
+            sprint_events.send(StartSprintEvent {
+                entity,
+                direction: SprintDirection::Forward,
+            });
+        } else {
+            look_at_events.send(LookAtEvent {
+                entity,
+                position: center,
+            });
+            sprint_events.send(StartSprintEvent {
+                entity,
+                direction: SprintDirection::Forward,
+            });
+        }
     }
 }
 #[must_use]
@@ -191,7 +205,11 @@ pub fn is_reached_descend_move(
         ..
     }: IsReachedCtx,
 ) -> bool {
-    let dest_ahead = start + (target - start) * 2;
+    let dest_ahead = BlockPos::new(
+        start.x + (target.x - start.x) * 2,
+        target.y,
+        start.z + (target.z - start.z) * 2,
+    );
 
     (BlockPos::from(position) == target || BlockPos::from(position) == dest_ahead)
         && (position.y - target.y as f64) < 0.5
