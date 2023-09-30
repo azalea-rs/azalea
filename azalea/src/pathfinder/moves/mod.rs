@@ -13,10 +13,16 @@ use bevy_ecs::{entity::Entity, event::EventWriter};
 
 type Edge = astar::Edge<BlockPos, MoveData>;
 
+pub type SuccessorsFn =
+    fn(&azalea_world::Instance, BlockPos) -> Vec<astar::Edge<BlockPos, MoveData>>;
+
 #[derive(Clone)]
 pub struct MoveData {
-    // pub move_kind: BasicMoves,
+    /// Use the context to determine what events should be sent to complete this
+    /// movement.
     pub execute: &'static (dyn Fn(ExecuteCtx) + Send + Sync),
+    /// Whether we've reached the target.
+    pub is_reached: &'static (dyn Fn(IsReachedCtx) -> bool + Send + Sync),
 }
 impl Debug for MoveData {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -85,16 +91,40 @@ fn fall_distance(pos: &BlockPos, world: &Instance) -> u32 {
     }
     distance
 }
-
 pub struct ExecuteCtx<'w1, 'w2, 'w3, 'w4, 'a> {
     pub entity: Entity,
+    /// The node that we're trying to reach.
     pub target: BlockPos,
+    /// The last node that we reached.
+    pub start: BlockPos,
     pub position: Vec3,
 
     pub look_at_events: &'a mut EventWriter<'w1, LookAtEvent>,
     pub sprint_events: &'a mut EventWriter<'w2, StartSprintEvent>,
     pub walk_events: &'a mut EventWriter<'w3, StartWalkEvent>,
     pub jump_events: &'a mut EventWriter<'w4, JumpEvent>,
+}
+pub struct IsReachedCtx<'a> {
+    /// The node that we're trying to reach.
+    pub target: BlockPos,
+    /// The last node that we reached.
+    pub start: BlockPos,
+    pub position: Vec3,
+    pub physics: &'a azalea_entity::Physics,
+}
+
+/// Returns whether the entity is at the node and should start going to the
+/// next node.
+#[must_use]
+pub fn default_is_reached(
+    IsReachedCtx {
+        position,
+        target,
+        physics,
+        ..
+    }: IsReachedCtx,
+) -> bool {
+    BlockPos::from(position) == target && physics.on_ground
 }
 
 #[cfg(test)]

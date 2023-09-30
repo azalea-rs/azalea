@@ -10,7 +10,8 @@ use crate::{
 };
 
 use super::{
-    fall_distance, is_block_passable, is_passable, is_standable, Edge, ExecuteCtx, MoveData,
+    default_is_reached, fall_distance, is_block_passable, is_passable, is_standable, Edge,
+    ExecuteCtx, IsReachedCtx, MoveData,
 };
 
 pub fn basic_move(world: &Instance, node: BlockPos) -> Vec<Edge> {
@@ -38,6 +39,7 @@ fn forward_move(world: &Instance, pos: BlockPos) -> Vec<Edge> {
                 target: pos + offset,
                 data: MoveData {
                     execute: &execute_forward_move,
+                    is_reached: &default_is_reached,
                 },
             },
             cost,
@@ -86,6 +88,7 @@ fn ascend_move(world: &Instance, pos: BlockPos) -> Vec<Edge> {
                 target: pos + offset,
                 data: MoveData {
                     execute: &execute_ascend_move,
+                    is_reached: &default_is_reached,
                 },
             },
             cost,
@@ -140,6 +143,7 @@ fn descend_move(world: &Instance, pos: BlockPos) -> Vec<Edge> {
                 target: new_position,
                 data: MoveData {
                     execute: &execute_descend_move,
+                    is_reached: &is_reached_descend_move,
                 },
             },
             cost,
@@ -151,20 +155,46 @@ fn execute_descend_move(
     ExecuteCtx {
         entity,
         target,
+        start,
         look_at_events,
         sprint_events,
+        position,
         ..
     }: ExecuteCtx,
 ) {
     let center = target.center();
-    look_at_events.send(LookAtEvent {
-        entity,
-        position: center,
-    });
-    sprint_events.send(StartSprintEvent {
-        entity,
-        direction: SprintDirection::Forward,
-    });
+    let horizontal_distance_from_target = (center - position).horizontal_distance_sqr().sqrt();
+
+    let dest_ahead = (start + (target - start) * 2).center();
+
+    println!();
+    println!("center: {center:?}, dest_ahead: {dest_ahead:?}");
+    println!("position: {position:?}");
+
+    if BlockPos::from(position) != target || horizontal_distance_from_target > 0.25 {
+        look_at_events.send(LookAtEvent {
+            entity,
+            position: dest_ahead,
+        });
+        sprint_events.send(StartSprintEvent {
+            entity,
+            direction: SprintDirection::Forward,
+        });
+    }
+}
+#[must_use]
+pub fn is_reached_descend_move(
+    IsReachedCtx {
+        target,
+        start,
+        position,
+        ..
+    }: IsReachedCtx,
+) -> bool {
+    let dest_ahead = start + (target - start) * 2;
+
+    (BlockPos::from(position) == target || BlockPos::from(position) == dest_ahead)
+        && (position.y - target.y as f64) < 0.5
 }
 
 fn diagonal_move(world: &Instance, pos: BlockPos) -> Vec<Edge> {
@@ -192,6 +222,7 @@ fn diagonal_move(world: &Instance, pos: BlockPos) -> Vec<Edge> {
                 target: pos + offset,
                 data: MoveData {
                     execute: &execute_diagonal_move,
+                    is_reached: &default_is_reached,
                 },
             },
             cost,

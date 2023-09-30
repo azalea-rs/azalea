@@ -12,10 +12,10 @@ default nightly`.
 
 Then, add one of the following lines to your Cargo.toml:
 
-Latest bleeding-edge version:
+Latest bleeding-edge version (recommended):
 `azalea = { git="https://github.com/mat-1/azalea" }`\
 Latest "stable" release:
-`azalea = "0.7.0"`
+`azalea = "0.8.0"`
 
 ## Optimization
 

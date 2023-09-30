@@ -35,7 +35,7 @@ use std::collections::VecDeque;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-use self::moves::ExecuteCtx;
+use self::moves::{ExecuteCtx, IsReachedCtx, SuccessorsFn};
 
 #[derive(Clone, Default)]
 pub struct PathfinderPlugin;
@@ -75,12 +75,16 @@ pub struct Pathfinder {
     pub last_reached_node: Option<BlockPos>,
     pub last_node_reached_at: Option<Instant>,
     pub goal: Option<Arc<dyn Goal + Send + Sync>>,
+    pub successors_fn: Option<SuccessorsFn>,
     pub is_calculating: bool,
 }
 #[derive(Event)]
 pub struct GotoEvent {
     pub entity: Entity,
     pub goal: Arc<dyn Goal + Send + Sync>,
+    /// The function that's used for checking what moves are possible. Usually
+    /// `pathfinder::moves::basic::basic_move`
+    pub successors_fn: SuccessorsFn,
 }
 #[derive(Event)]
 pub struct PathFoundEvent {
@@ -88,6 +92,7 @@ pub struct PathFoundEvent {
     pub start: BlockPos,
     pub path: Option<VecDeque<astar::Movement<BlockPos, moves::MoveData>>>,
     pub is_partial: bool,
+    pub successors_fn: SuccessorsFn,
 }
 
 #[allow(clippy::type_complexity)]
@@ -116,6 +121,7 @@ impl PathfinderClientExt for azalea_client::Client {
         self.ecs.lock().send_event(GotoEvent {
             entity: self.entity,
             goal: Arc::new(goal),
+            successors_fn: moves::basic::basic_move,
         });
     }
 }
@@ -129,8 +135,6 @@ fn goto_listener(
     mut query: Query<(&mut Pathfinder, &Position, &InstanceName)>,
     instance_container: Res<InstanceContainer>,
 ) {
-    let successors_fn = moves::basic::basic_move;
-
     let thread_pool = AsyncComputeTaskPool::get();
 
     for event in events.iter() {
@@ -140,6 +144,7 @@ fn goto_listener(
 
         // we store the goal so it can be recalculated later if necessary
         pathfinder.goal = Some(event.goal.clone());
+        pathfinder.successors_fn = Some(event.successors_fn.clone());
         pathfinder.is_calculating = true;
 
         let start = if pathfinder.path.is_empty() {
@@ -156,6 +161,8 @@ fn goto_listener(
             "got goto, starting from {start:?} (currently at {:?})",
             BlockPos::from(position)
         );
+
+        let successors_fn: moves::SuccessorsFn = event.successors_fn;
 
         let world_lock = instance_container
             .get(instance_name)
@@ -216,6 +223,7 @@ fn goto_listener(
                 start,
                 path: Some(path),
                 is_partial,
+                successors_fn,
             })
         });
 
@@ -266,7 +274,7 @@ fn path_found_listener(
                         let world_lock = instance_container.get(instance_name).expect(
                             "Entity tried to pathfind but the entity isn't in a valid world",
                         );
-                        let successors_fn = moves::basic::basic_move;
+                        let successors_fn: moves::SuccessorsFn = event.successors_fn;
                         let successors = |pos: BlockPos| {
                             let world = world_lock.read();
                             successors_fn(&world, pos)
@@ -312,13 +320,15 @@ fn tick_execute_path(
     mut goto_events: EventWriter<GotoEvent>,
     instance_container: Res<InstanceContainer>,
 ) {
-    let successors_fn = moves::basic::basic_move;
-
     for (entity, mut pathfinder, position, physics, instance_name) in &mut query {
         if pathfinder.goal.is_none() {
             // no goal, no pathfinding
             continue;
         }
+
+        let successors_fn: moves::SuccessorsFn = pathfinder
+            .successors_fn
+            .expect("pathfinder.successors_fn should be Some if the goal is Some");
 
         let world_lock = instance_container
             .get(instance_name)
@@ -349,7 +359,15 @@ fn tick_execute_path(
                 .take(10)
                 .rev()
             {
-                if is_goal_reached(movement.target, position, physics) {
+                let is_reached_ctx = IsReachedCtx {
+                    target: movement.target,
+                    start: pathfinder.last_reached_node.expect(
+                        "pathfinder.last_node_reached_at should always be present if there's a path",
+                    ),
+                    position: **position,
+                    physics,
+                };
+                if (movement.data.is_reached)(is_reached_ctx) {
                     pathfinder.path = pathfinder.path.split_off(i + 1);
                     pathfinder.last_reached_node = Some(movement.target);
                     pathfinder.last_node_reached_at = Some(Instant::now());
@@ -384,6 +402,7 @@ fn tick_execute_path(
                             if goal.success(movement.target) {
                                 info!("goal was reached!");
                                 pathfinder.goal = None;
+                                pathfinder.successors_fn = None;
                             }
                         }
                     }
@@ -397,6 +416,9 @@ fn tick_execute_path(
                 entity,
                 target: movement.target,
                 position: **position,
+                start: pathfinder.last_reached_node.expect(
+                    "pathfinder.last_reached_node should always be present if there's a path",
+                ),
                 look_at_events: &mut look_at_events,
                 sprint_events: &mut sprint_events,
                 walk_events: &mut walk_events,
@@ -429,7 +451,11 @@ fn tick_execute_path(
             {
                 if let Some(goal) = pathfinder.goal.as_ref().cloned() {
                     debug!("Recalculating path because it ends soon");
-                    goto_events.send(GotoEvent { entity, goal });
+                    goto_events.send(GotoEvent {
+                        entity,
+                        goal,
+                        successors_fn,
+                    });
 
                     if pathfinder.path.is_empty() {
                         if let Some(new_path) = pathfinder.queued_path.take() {
@@ -478,13 +504,6 @@ pub trait Goal {
     fn success(&self, n: BlockPos) -> bool;
 }
 
-/// Returns whether the entity is at the node and should start going to the
-/// next node.
-#[must_use]
-pub fn is_goal_reached(goal_pos: BlockPos, current_pos: &Position, physics: &Physics) -> bool {
-    BlockPos::from(current_pos) == goal_pos && physics.on_ground
-}
-
 /// Checks whether the path has been obstructed, and returns Some(index) if it
 /// has been. The index is of the first obstructed node.
 fn check_path_obstructed<SuccessorsFn>(
@@ -524,6 +543,7 @@ mod tests {
 
     use super::{
         goals::BlockPosGoal,
+        moves,
         simulation::{SimulatedPlayerBundle, Simulation},
         GotoEvent,
     };
@@ -560,6 +580,7 @@ mod tests {
         simulation.app.world.send_event(GotoEvent {
             entity: simulation.entity,
             goal: Arc::new(BlockPosGoal(end_pos)),
+            successors_fn: moves::basic::basic_move,
         });
         simulation
     }

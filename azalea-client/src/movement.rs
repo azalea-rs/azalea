@@ -381,6 +381,8 @@ impl Client {
 
 /// An event sent when the client starts walking. This does not get sent for
 /// non-local entities.
+///
+/// To stop walking or sprinting, send this event with `WalkDirection::None`.
 #[derive(Event, Debug)]
 pub struct StartWalkEvent {
     pub entity: Entity,
