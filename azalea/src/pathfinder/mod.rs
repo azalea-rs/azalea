@@ -142,7 +142,20 @@ fn goto_listener(
         pathfinder.goal = Some(event.goal.clone());
         pathfinder.is_calculating = true;
 
-        let start = BlockPos::from(position);
+        let start = if pathfinder.path.is_empty() {
+            BlockPos::from(position)
+        } else {
+            // if we're currently pathfinding and got a goto event, start a little ahead
+            pathfinder
+                .path
+                .get(5)
+                .unwrap_or_else(|| pathfinder.path.back().unwrap())
+                .target
+        };
+        info!(
+            "got goto, starting from {start:?} (currently at {:?})",
+            BlockPos::from(position)
+        );
 
         let world_lock = instance_container
             .get(instance_name)
@@ -230,18 +243,56 @@ fn handle_tasks(
 }
 
 // set the path for the target entity when we get the PathFoundEvent
-fn path_found_listener(mut events: EventReader<PathFoundEvent>, mut query: Query<&mut Pathfinder>) {
+fn path_found_listener(
+    mut events: EventReader<PathFoundEvent>,
+    mut query: Query<(&mut Pathfinder, &InstanceName)>,
+    instance_container: Res<InstanceContainer>,
+) {
     for event in events.iter() {
-        let mut pathfinder = query
+        let (mut pathfinder, instance_name) = query
             .get_mut(event.entity)
             .expect("Path found for an entity that doesn't have a pathfinder");
         if let Some(path) = &event.path {
             if pathfinder.path.is_empty() {
                 pathfinder.path = path.to_owned();
+                debug!("set path to {:?}", path.iter().take(10).collect::<Vec<_>>());
+                pathfinder.last_reached_node = Some(event.start);
             } else {
-                pathfinder.queued_path = Some(path.to_owned());
+                let mut new_path = VecDeque::new();
+
+                // combine the old and new paths if the first node of the new path is a
+                // successor of the last node of the old path
+                if let Some(first_node) = path.front() {
+                    if let Some(last_node) = pathfinder.path.back() {
+                        let world_lock = instance_container.get(instance_name).expect(
+                            "Entity tried to pathfind but the entity isn't in a valid world",
+                        );
+                        let successors_fn = moves::basic::basic_move;
+                        let successors = |pos: BlockPos| {
+                            let world = world_lock.read();
+                            successors_fn(&world, pos)
+                        };
+
+                        if successors(last_node.target)
+                            .iter()
+                            .any(|edge| edge.movement.target == first_node.target)
+                        {
+                            debug!("combining old and new paths");
+                            debug!("old path: {:?}", pathfinder.path.iter().collect::<Vec<_>>());
+                            debug!("new path: {:?}", path.iter().take(10).collect::<Vec<_>>());
+                            new_path.extend(pathfinder.path.iter().cloned());
+                        }
+                    }
+                }
+
+                new_path.extend(path.to_owned());
+
+                debug!(
+                    "set queued path to {:?}",
+                    new_path.iter().take(10).collect::<Vec<_>>()
+                );
+                pathfinder.queued_path = Some(new_path);
             }
-            pathfinder.last_reached_node = Some(event.start);
             pathfinder.last_node_reached_at = Some(Instant::now());
         } else {
             error!("No path found");
@@ -280,6 +331,8 @@ fn tick_execute_path(
                 if last_node_reached_at.elapsed() > Duration::from_secs(2) {
                     warn!("pathfinder timeout");
                     pathfinder.path.clear();
+                    // set partial to true to make sure that the recalculation happens
+                    pathfinder.is_path_partial = true;
                 }
             }
         }
@@ -355,7 +408,7 @@ fn tick_execute_path(
         }
 
         {
-            // obstruction check
+            // obstruction check (the path we're executing isn't possible anymore)
             let successors = |pos: BlockPos| {
                 let world = world_lock.read();
                 successors_fn(&world, pos)
