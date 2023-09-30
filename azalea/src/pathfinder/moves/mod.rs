@@ -98,6 +98,7 @@ pub struct ExecuteCtx<'w1, 'w2, 'w3, 'w4, 'a> {
     /// The last node that we reached.
     pub start: BlockPos,
     pub position: Vec3,
+    pub physics: &'a azalea_entity::Physics,
 
     pub look_at_events: &'a mut EventWriter<'w1, LookAtEvent>,
     pub sprint_events: &'a mut EventWriter<'w2, StartSprintEvent>,
@@ -120,11 +121,11 @@ pub fn default_is_reached(
     IsReachedCtx {
         position,
         target,
-        physics,
+        // physics,
         ..
     }: IsReachedCtx,
 ) -> bool {
-    BlockPos::from(position) == target && physics.on_ground
+    BlockPos::from(position) == target
 }
 
 #[cfg(test)]

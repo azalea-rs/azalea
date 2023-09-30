@@ -1,6 +1,6 @@
 use std::f32::consts::SQRT_2;
 
-use azalea_client::{SprintDirection, StartSprintEvent};
+use azalea_client::{SprintDirection, StartSprintEvent, StartWalkEvent, WalkDirection};
 use azalea_core::{BlockPos, CardinalDirection};
 use azalea_world::Instance;
 
@@ -88,7 +88,7 @@ fn ascend_move(world: &Instance, pos: BlockPos) -> Vec<Edge> {
                 target: pos + offset,
                 data: MoveData {
                     execute: &execute_ascend_move,
-                    is_reached: &default_is_reached,
+                    is_reached: &ascend_is_reached,
                 },
             },
             cost,
@@ -99,24 +99,58 @@ fn ascend_move(world: &Instance, pos: BlockPos) -> Vec<Edge> {
 fn execute_ascend_move(
     ExecuteCtx {
         entity,
+        position,
         target,
+        start,
         look_at_events,
-        sprint_events,
+        walk_events,
         jump_events,
+        physics,
         ..
     }: ExecuteCtx,
 ) {
-    let center = target.center();
+    let target_center = target.center();
+
     look_at_events.send(LookAtEvent {
         entity,
-        position: center,
+        position: target_center,
     });
-    jump_events.send(JumpEvent { entity });
-    sprint_events.send(StartSprintEvent {
+    walk_events.send(StartWalkEvent {
         entity,
-        direction: SprintDirection::Forward,
+        direction: WalkDirection::Forward,
     });
+
+    // these checks are to make sure we don't fall if our velocity is too high in
+    // the wrong direction
+
+    let x_axis = (start.x - target.x).abs(); // either 0 or 1
+    let z_axis = (start.z - target.z).abs(); // either 0 or 1
+
+    let flat_distance_to_next = x_axis as f64 * (target_center.x - position.x)
+        + z_axis as f64 * (target_center.z - position.z);
+    let side_distance = z_axis as f64 * (target_center.x - position.x).abs()
+        + x_axis as f64 * (target_center.z - position.z).abs();
+
+    let lateral_motion = x_axis as f64 * physics.delta.z + z_axis as f64 * physics.delta.x;
+    if lateral_motion > 0.1 {
+        return;
+    }
+
+    if flat_distance_to_next > 1.2 || side_distance > 0.2 {
+        return;
+    }
+
+    jump_events.send(JumpEvent { entity });
 }
+#[must_use]
+pub fn ascend_is_reached(
+    IsReachedCtx {
+        position, target, ..
+    }: IsReachedCtx,
+) -> bool {
+    BlockPos::from(position) == target || BlockPos::from(position) == target.down(1)
+}
+
 fn descend_move(world: &Instance, pos: BlockPos) -> Vec<Edge> {
     let mut edges = Vec::new();
     for dir in CardinalDirection::iter() {
@@ -143,7 +177,7 @@ fn descend_move(world: &Instance, pos: BlockPos) -> Vec<Edge> {
                 target: new_position,
                 data: MoveData {
                     execute: &execute_descend_move,
-                    is_reached: &is_reached_descend_move,
+                    is_reached: &descend_is_reached,
                 },
             },
             cost,
@@ -176,6 +210,7 @@ fn execute_descend_move(
     if BlockPos::from(position) != target || horizontal_distance_from_target > 0.25 {
         // if we're only falling one block then it's fine to try to overshoot
         if horizontal_distance_from_start < 1.25 || start.y - target.y == 1 {
+            // this basically just exists to avoid doing spins while we're falling
             look_at_events.send(LookAtEvent {
                 entity,
                 position: dest_ahead.center(),
@@ -197,7 +232,7 @@ fn execute_descend_move(
     }
 }
 #[must_use]
-pub fn is_reached_descend_move(
+pub fn descend_is_reached(
     IsReachedCtx {
         target,
         start,

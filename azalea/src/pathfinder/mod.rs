@@ -1,3 +1,6 @@
+//! A pathfinding plugin to make bots navigate the world. A lot of this code is
+//! based on [Baritone](https://github.com/cabaletta/baritone).
+
 mod astar;
 pub mod costs;
 pub mod goals;
@@ -144,7 +147,7 @@ fn goto_listener(
 
         // we store the goal so it can be recalculated later if necessary
         pathfinder.goal = Some(event.goal.clone());
-        pathfinder.successors_fn = Some(event.successors_fn.clone());
+        pathfinder.successors_fn = Some(event.successors_fn);
         pathfinder.is_calculating = true;
 
         let start = if pathfinder.path.is_empty() {
@@ -419,6 +422,7 @@ fn tick_execute_path(
                 start: pathfinder.last_reached_node.expect(
                     "pathfinder.last_reached_node should always be present if there's a path",
                 ),
+                physics,
                 look_at_events: &mut look_at_events,
                 sprint_events: &mut sprint_events,
                 walk_events: &mut walk_events,
