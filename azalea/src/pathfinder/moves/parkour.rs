@@ -23,7 +23,7 @@ pub fn parkour_move(world: &Instance, node: BlockPos) -> Vec<Edge> {
 fn parkour_forward_1_move(world: &Instance, pos: BlockPos) -> Vec<Edge> {
     let mut edges = Vec::new();
     for dir in CardinalDirection::iter() {
-        let gap_offset = BlockPos::new(dir.x() * 1, 0, dir.z() * 1);
+        let gap_offset = BlockPos::new(dir.x(), 0, dir.z());
         let offset = BlockPos::new(dir.x() * 2, 0, dir.z() * 2);
 
         if !is_standable(&(pos + offset), world) {
@@ -64,7 +64,7 @@ fn parkour_forward_1_move(world: &Instance, pos: BlockPos) -> Vec<Edge> {
 fn parkour_forward_2_move(world: &Instance, pos: BlockPos) -> Vec<Edge> {
     let mut edges = Vec::new();
     for dir in CardinalDirection::iter() {
-        let gap_1_offset = BlockPos::new(dir.x() * 1, 0, dir.z() * 1);
+        let gap_1_offset = BlockPos::new(dir.x(), 0, dir.z());
         let gap_2_offset = BlockPos::new(dir.x() * 2, 0, dir.z() * 2);
         let offset = BlockPos::new(dir.x() * 3, 0, dir.z() * 3);
 
@@ -115,7 +115,7 @@ fn parkour_forward_2_move(world: &Instance, pos: BlockPos) -> Vec<Edge> {
 fn parkour_headhitter_forward_1_move(world: &Instance, pos: BlockPos) -> Vec<Edge> {
     let mut edges = Vec::new();
     for dir in CardinalDirection::iter() {
-        let gap_offset = BlockPos::new(dir.x() * 1, 0, dir.z() * 1);
+        let gap_offset = BlockPos::new(dir.x(), 0, dir.z());
         let offset = BlockPos::new(dir.x() * 2, 0, dir.z() * 2);
 
         if !is_standable(&(pos + offset), world) {
@@ -223,8 +223,8 @@ fn execute_headhitter_parkour_move(
 
     let start_center = start.center();
     let distance_from_start = f64::max(
-        (start_center.x as f64 - position.x).abs(),
-        (start_center.z as f64 - position.z).abs(),
+        (start_center.x - position.x).abs(),
+        (start_center.z - position.z).abs(),
     );
 
     if distance_from_start > 0.75 {
