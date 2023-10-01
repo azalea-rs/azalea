@@ -4,7 +4,7 @@ use crate::palette::PalettedContainer;
 use crate::palette::PalettedContainerKind;
 use azalea_block::BlockState;
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
-use azalea_core::{BlockPos, ChunkBlockPos, ChunkPos, ChunkSectionBlockPos};
+use azalea_core::position::{BlockPos, ChunkBlockPos, ChunkPos, ChunkSectionBlockPos};
 use azalea_nbt::NbtCompound;
 use log::{debug, trace, warn};
 use parking_lot::RwLock;

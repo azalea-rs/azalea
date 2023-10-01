@@ -1,5 +1,5 @@
 use azalea_buf::McBuf;
-use azalea_core::Vec3;
+use azalea_core::position::Vec3;
 use azalea_protocol_macros::ClientboundGamePacket;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]

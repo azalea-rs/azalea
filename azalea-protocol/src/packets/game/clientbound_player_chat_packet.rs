@@ -5,7 +5,7 @@ use azalea_chat::{
     translatable_component::{StringOrComponent, TranslatableComponent},
     FormattedText,
 };
-use azalea_core::BitSet;
+use azalea_core::bitset::BitSet;
 use azalea_crypto::MessageSignature;
 use azalea_protocol_macros::ClientboundGamePacket;
 use std::io::{Cursor, Write};

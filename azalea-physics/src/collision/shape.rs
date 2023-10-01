@@ -1,7 +1,10 @@
 use super::mergers::IndexMerger;
 use crate::collision::{BitSetDiscreteVoxelShape, DiscreteVoxelShape, AABB};
 use azalea_core::{
-    math::binary_search, Axis, AxisCycle, BlockHitResult, BlockPos, Direction, Vec3, EPSILON,
+    block_hit_result::BlockHitResult,
+    direction::{Axis, AxisCycle, Direction},
+    math::{binary_search, EPSILON},
+    position::{BlockPos, Vec3},
 };
 use std::{cmp, num::NonZeroU32};
 

@@ -1,6 +1,6 @@
 use azalea_buf::McBuf;
 use azalea_chat::FormattedText;
-use azalea_core::ResourceLocation;
+use azalea_core::resource_location::ResourceLocation;
 use azalea_inventory::ItemSlot;
 use azalea_protocol_macros::ClientboundGamePacket;
 use std::collections::HashMap;
@@ -119,7 +119,7 @@ pub struct AdvancementHolder {
 mod tests {
     use super::*;
     use azalea_buf::{McBufReadable, McBufWritable};
-    use azalea_core::ResourceLocation;
+    use azalea_core::resource_location::ResourceLocation;
     use std::io::Cursor;
 
     #[test]

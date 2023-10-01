@@ -1,5 +1,5 @@
 use azalea_buf::McBuf;
-use azalea_core::{ResourceLocation, Vec3};
+use azalea_core::{position::Vec3, resource_location::ResourceLocation};
 use azalea_entity::{metadata::apply_default_metadata, EntityBundle};
 use azalea_protocol_macros::ClientboundGamePacket;
 use uuid::Uuid;

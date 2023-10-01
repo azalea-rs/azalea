@@ -1,4 +1,4 @@
-use azalea_core::GameMode;
+use azalea_core::game_type::GameMode;
 use azalea_entity::{
     metadata::{ShiftKeyDown, Sprinting},
     update_bounding_box, Attributes, Physics,

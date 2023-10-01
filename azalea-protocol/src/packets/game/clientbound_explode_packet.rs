@@ -1,7 +1,7 @@
 use std::io::{Cursor, Write};
 
 use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
-use azalea_core::BlockPos;
+use azalea_core::position::BlockPos;
 use azalea_protocol_macros::ClientboundGamePacket;
 
 #[derive(Clone, Debug, PartialEq, ClientboundGamePacket)]

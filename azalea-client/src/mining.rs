@@ -1,5 +1,5 @@
 use azalea_block::{Block, BlockState, FluidState};
-use azalea_core::{BlockPos, Direction, GameMode};
+use azalea_core::{direction::Direction, game_type::GameMode, position::BlockPos};
 use azalea_entity::{mining::get_mine_progress, FluidOnEyes, Physics};
 use azalea_inventory::ItemSlot;
 use azalea_physics::PhysicsSet;

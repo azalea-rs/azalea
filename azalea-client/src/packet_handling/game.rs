@@ -5,7 +5,11 @@ use std::{
 };
 
 use azalea_chat::FormattedText;
-use azalea_core::{ChunkPos, GameMode, ResourceLocation, Vec3};
+use azalea_core::{
+    game_type::GameMode,
+    position::{ChunkPos, Vec3},
+    resource_location::ResourceLocation,
+};
 use azalea_entity::{
     indexing::{EntityIdIndex, EntityUuidIndex},
     metadata::{apply_metadata, Health, PlayerMetadataBundle},

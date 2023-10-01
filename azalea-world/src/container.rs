@@ -1,4 +1,4 @@
-use azalea_core::ResourceLocation;
+use azalea_core::resource_location::ResourceLocation;
 use bevy_ecs::{component::Component, system::Resource};
 use derive_more::{Deref, DerefMut};
 use log::error;

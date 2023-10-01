@@ -1,6 +1,9 @@
-use crate::{Axis, BlockHitResult, BlockPos, Direction, Vec3};
-
-pub const EPSILON: f64 = 1.0E-7;
+use crate::{
+    block_hit_result::BlockHitResult,
+    direction::{Axis, Direction},
+    math::EPSILON,
+    position::{BlockPos, Vec3},
+};
 
 /// A rectangular prism with a starting and ending point.
 #[derive(Copy, Clone, Debug, PartialEq, Default)]

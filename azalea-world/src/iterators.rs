@@ -1,12 +1,12 @@
 //! Iterators for iterating over Minecraft blocks and chunks, based on
 //! [prismarine-world's iterators](https://github.com/PrismarineJS/prismarine-world/blob/master/src/iterators.js).
 
-use azalea_core::{BlockPos, ChunkPos};
+use azalea_core::position::{BlockPos, ChunkPos};
 
 /// An octahedron iterator, useful for iterating over blocks in a world.
 ///
 /// ```
-/// # use azalea_core::BlockPos;
+/// # use azalea_core::position::BlockPos;
 /// # use azalea_world::iterators::BlockIterator;
 ///
 /// let mut iter = BlockIterator::new(BlockPos::default(), 4);
@@ -81,7 +81,7 @@ impl Iterator for BlockIterator {
 /// `ChunkIterator` to sort by x+y+z (Manhattan) distance.
 ///
 /// ```
-/// # use azalea_core::ChunkPos;
+/// # use azalea_core::position::ChunkPos;
 /// # use azalea_world::iterators::SquareChunkIterator;
 ///
 /// let mut iter = SquareChunkIterator::new(ChunkPos::default(), 4);
@@ -118,7 +118,7 @@ impl SquareChunkIterator {
     /// Change the distance that this iterator won't go past.
     ///
     /// ```
-    /// # use azalea_core::ChunkPos;
+    /// # use azalea_core::position::ChunkPos;
     /// # use azalea_world::iterators::SquareChunkIterator;
     ///
     /// let mut iter = SquareChunkIterator::new(ChunkPos::default(), 2);
@@ -169,7 +169,7 @@ impl Iterator for SquareChunkIterator {
 /// A diagonal spiral iterator, useful for iterating over chunks in a world.
 ///
 /// ```
-/// # use azalea_core::ChunkPos;
+/// # use azalea_core::position::ChunkPos;
 /// # use azalea_world::iterators::ChunkIterator;
 ///
 /// let mut iter = ChunkIterator::new(ChunkPos::default(), 4);

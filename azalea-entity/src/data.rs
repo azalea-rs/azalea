@@ -4,7 +4,11 @@ use azalea_buf::{
     BufReadError, McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable,
 };
 use azalea_chat::FormattedText;
-use azalea_core::{particle::Particle, BlockPos, Direction, GlobalPos, Vec3};
+use azalea_core::{
+    direction::Direction,
+    particle::Particle,
+    position::{BlockPos, GlobalPos, Vec3},
+};
 use azalea_inventory::ItemSlot;
 use bevy_ecs::component::Component;
 use derive_more::Deref;

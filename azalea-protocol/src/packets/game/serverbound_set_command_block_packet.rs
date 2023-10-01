@@ -1,6 +1,6 @@
 use crate::packets::McBufWritable;
 use azalea_buf::{BufReadError, McBuf, McBufReadable};
-use azalea_core::{BlockPos, FixedBitSet};
+use azalea_core::{bitset::FixedBitSet, position::BlockPos};
 use azalea_protocol_macros::ServerboundGamePacket;
 use std::io::Cursor;
 

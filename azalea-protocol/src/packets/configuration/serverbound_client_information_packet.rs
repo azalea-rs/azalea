@@ -1,5 +1,5 @@
 use azalea_buf::{McBuf, McBufReadable, McBufWritable};
-use azalea_core::FixedBitSet;
+use azalea_core::bitset::FixedBitSet;
 use azalea_protocol_macros::ServerboundConfigurationPacket;
 use bevy_ecs::component::Component;
 

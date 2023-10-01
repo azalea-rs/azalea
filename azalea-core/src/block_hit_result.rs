@@ -1,4 +1,7 @@
-use crate::{BlockPos, Direction, Vec3};
+use crate::{
+    direction::Direction,
+    position::{BlockPos, Vec3},
+};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct BlockHitResult {

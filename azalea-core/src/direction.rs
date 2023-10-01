@@ -1,6 +1,6 @@
 use azalea_buf::McBuf;
 
-use crate::Vec3;
+use crate::position::Vec3;
 
 #[derive(Clone, Copy, Debug, McBuf, Default, Eq, PartialEq)]
 pub enum Direction {

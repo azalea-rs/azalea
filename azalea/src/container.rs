@@ -5,7 +5,7 @@ use azalea_client::{
     packet_handling::game::PacketEvent,
     Client,
 };
-use azalea_core::BlockPos;
+use azalea_core::position::BlockPos;
 use azalea_inventory::{operations::ClickOperation, ItemSlot, Menu};
 use azalea_protocol::packets::game::ClientboundGamePacket;
 use bevy_app::{App, Plugin, Update};

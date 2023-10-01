@@ -1,6 +1,6 @@
 use crate::{iterators::ChunkIterator, palette::Palette, ChunkStorage, PartialChunkStorage};
 use azalea_block::{BlockState, BlockStates, FluidState};
-use azalea_core::{BlockPos, ChunkPos};
+use azalea_core::position::{BlockPos, ChunkPos};
 use bevy_ecs::{component::Component, entity::Entity};
 use derive_more::{Deref, DerefMut};
 use nohash_hasher::IntMap;

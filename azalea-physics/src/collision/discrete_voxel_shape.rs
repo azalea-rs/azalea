@@ -1,5 +1,9 @@
+use azalea_core::{
+    bitset::BitSet,
+    direction::{Axis, AxisCycle},
+};
+
 use super::mergers::IndexMerger;
-use azalea_core::{Axis, AxisCycle, BitSet};
 
 pub trait IntLineConsumer = FnMut(u32, u32, u32, u32, u32, u32);
 

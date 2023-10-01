@@ -23,7 +23,7 @@ use crate::{
 use azalea_auth::{game_profile::GameProfile, sessionserver::ClientSessionServerError};
 use azalea_buf::McBufWritable;
 use azalea_chat::FormattedText;
-use azalea_core::{ResourceLocation, Vec3};
+use azalea_core::{position::Vec3, resource_location::ResourceLocation};
 use azalea_entity::{
     indexing::{EntityIdIndex, EntityUuidIndex},
     metadata::Health,

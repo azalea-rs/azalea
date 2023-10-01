@@ -1,9 +1,15 @@
-use crate::ResourceLocation;
+//! Representations of positions of various things in Minecraft.
+//!
+//! The most common ones are [`Vec3`] and [`BlockPos`], which are usually used
+//! for entity positions and block positions, respectively.
+
 use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
 use std::{
     io::{Cursor, Write},
     ops::{Add, AddAssign, Mul, Rem, Sub},
 };
+
+use crate::resource_location::ResourceLocation;
 
 macro_rules! vec3_impl {
     ($name:ident, $type:ty) => {

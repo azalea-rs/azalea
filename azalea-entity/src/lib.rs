@@ -12,7 +12,12 @@ mod plugin;
 use self::attributes::AttributeInstance;
 pub use attributes::Attributes;
 use azalea_block::BlockState;
-use azalea_core::{math, BlockPos, ChunkPos, ResourceLocation, Vec3, AABB};
+use azalea_core::{
+    aabb::AABB,
+    math,
+    position::{BlockPos, ChunkPos, Vec3},
+    resource_location::ResourceLocation,
+};
 use azalea_world::{ChunkStorage, InstanceName};
 use bevy_ecs::{bundle::Bundle, component::Component};
 pub use data::*;

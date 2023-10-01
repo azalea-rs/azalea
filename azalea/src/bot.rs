@@ -12,7 +12,7 @@ use crate::ecs::{
 use azalea_client::interact::SwingArmEvent;
 use azalea_client::mining::Mining;
 use azalea_client::TickBroadcast;
-use azalea_core::{BlockPos, Vec3};
+use azalea_core::position::{BlockPos, Vec3};
 use azalea_entity::{
     clamp_look_direction, metadata::Player, EyeHeight, Jumping, LocalEntity, LookDirection,
     Position,

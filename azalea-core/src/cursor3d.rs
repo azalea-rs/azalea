@@ -1,4 +1,4 @@
-use crate::BlockPos;
+use crate::position::BlockPos;
 
 pub struct Cursor3d {
     index: usize,

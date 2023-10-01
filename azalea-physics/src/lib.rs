@@ -5,7 +5,10 @@ pub mod clip;
 pub mod collision;
 
 use azalea_block::{Block, BlockState};
-use azalea_core::{math, BlockPos, Vec3};
+use azalea_core::{
+    math,
+    position::{BlockPos, Vec3},
+};
 use azalea_entity::{
     metadata::Sprinting, move_relative, Attributes, InLoadedChunk, Jumping, LocalEntity,
     LookDirection, Physics, Position,
@@ -334,7 +337,7 @@ mod tests {
     use std::time::Duration;
 
     use super::*;
-    use azalea_core::{ChunkPos, ResourceLocation};
+    use azalea_core::{position::ChunkPos, resource_location::ResourceLocation};
     use azalea_entity::{EntityBundle, EntityPlugin};
     use azalea_world::{Chunk, MinecraftEntityId, PartialInstance};
     use bevy_app::App;

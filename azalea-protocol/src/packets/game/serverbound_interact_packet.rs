@@ -1,6 +1,6 @@
 use crate::packets::BufReadError;
 use azalea_buf::{McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
-use azalea_core::Vec3;
+use azalea_core::position::Vec3;
 use azalea_protocol_macros::ServerboundGamePacket;
 use std::io::{Cursor, Write};
 

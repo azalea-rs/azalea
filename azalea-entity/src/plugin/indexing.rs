@@ -1,6 +1,6 @@
 //! Stuff related to entity indexes and keeping track of entities in the world.
 
-use azalea_core::ChunkPos;
+use azalea_core::position::ChunkPos;
 use azalea_world::{Instance, InstanceContainer, InstanceName, MinecraftEntityId};
 use bevy_ecs::{
     component::Component,

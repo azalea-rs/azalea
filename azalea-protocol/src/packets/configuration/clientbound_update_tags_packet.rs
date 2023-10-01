@@ -1,6 +1,6 @@
 use azalea_buf::{BufReadError, McBuf, McBufVarReadable, McBufVarWritable};
 use azalea_buf::{McBufReadable, McBufWritable};
-use azalea_core::ResourceLocation;
+use azalea_core::resource_location::ResourceLocation;
 use azalea_protocol_macros::ClientboundConfigurationPacket;
 use std::io::Cursor;
 use std::ops::Deref;

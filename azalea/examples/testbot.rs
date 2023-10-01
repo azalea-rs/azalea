@@ -10,7 +10,7 @@ use azalea::pathfinder::goals::BlockPosGoal;
 use azalea::{prelude::*, swarm::prelude::*, BlockPos, GameProfileComponent, WalkDirection};
 use azalea::{Account, Client, Event};
 use azalea_client::SprintDirection;
-use azalea_core::{ChunkBlockPos, ChunkPos, Vec3};
+use azalea_core::position::{ChunkBlockPos, ChunkPos, Vec3};
 use azalea_protocol::packets::game::ClientboundGamePacket;
 use azalea_world::heightmap::HeightmapKind;
 use azalea_world::{InstanceName, MinecraftEntityId};

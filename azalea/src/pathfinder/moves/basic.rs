@@ -1,7 +1,7 @@
 use std::f32::consts::SQRT_2;
 
 use azalea_client::{SprintDirection, StartSprintEvent, StartWalkEvent, WalkDirection};
-use azalea_core::{BlockPos, CardinalDirection};
+use azalea_core::{direction::CardinalDirection, position::BlockPos};
 use azalea_world::Instance;
 
 use crate::{

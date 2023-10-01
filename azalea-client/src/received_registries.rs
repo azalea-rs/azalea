@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use azalea_core::ResourceLocation;
+use azalea_core::resource_location::ResourceLocation;
 use azalea_nbt::Nbt;
 use azalea_protocol::packets::configuration::clientbound_registry_data_packet::registry::{
     DimensionTypeElement, RegistryType,

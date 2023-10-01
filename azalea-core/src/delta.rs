@@ -1,4 +1,4 @@
-use crate::Vec3;
+use crate::position::Vec3;
 pub use azalea_buf::McBuf;
 
 pub trait PositionDeltaTrait {

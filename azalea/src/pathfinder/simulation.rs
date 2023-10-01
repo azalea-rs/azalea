@@ -3,7 +3,7 @@
 use std::{sync::Arc, time::Duration};
 
 use azalea_client::PhysicsState;
-use azalea_core::{ResourceLocation, Vec3};
+use azalea_core::{position::Vec3, resource_location::ResourceLocation};
 use azalea_entity::{
     attributes::AttributeInstance, metadata::Sprinting, Attributes, EntityDimensions, Physics,
     Position,

@@ -1,7 +1,7 @@
 use std::{collections::HashMap, io, sync::Arc};
 
 use azalea_auth::game_profile::GameProfile;
-use azalea_core::GameMode;
+use azalea_core::game_type::GameMode;
 use azalea_entity::Dead;
 use azalea_protocol::packets::game::{
     clientbound_player_abilities_packet::ClientboundPlayerAbilitiesPacket, ServerboundGamePacket,

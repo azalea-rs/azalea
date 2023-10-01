@@ -1,5 +1,5 @@
 use azalea_buf::{McBuf, UnsizedByteArray};
-use azalea_core::ResourceLocation;
+use azalea_core::resource_location::ResourceLocation;
 use azalea_protocol_macros::ClientboundLoginPacket;
 use std::hash::Hash;
 

@@ -1,5 +1,7 @@
 use std::{f64::consts::PI, sync::LazyLock};
 
+pub const EPSILON: f64 = 1.0E-7;
+
 pub static SIN: LazyLock<[f32; 65536]> = LazyLock::new(|| {
     let mut sin = [0.0; 65536];
     for (i, item) in sin.iter_mut().enumerate() {

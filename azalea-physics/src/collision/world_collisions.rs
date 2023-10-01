@@ -1,7 +1,11 @@
 use super::Shapes;
 use crate::collision::{BlockWithShape, VoxelShape, AABB};
 use azalea_block::BlockState;
-use azalea_core::{ChunkPos, ChunkSectionPos, Cursor3d, CursorIterationType, EPSILON};
+use azalea_core::{
+    cursor3d::{Cursor3d, CursorIterationType},
+    math::EPSILON,
+    position::{ChunkPos, ChunkSectionPos},
+};
 use azalea_world::{Chunk, Instance};
 use parking_lot::RwLock;
 use std::sync::Arc;

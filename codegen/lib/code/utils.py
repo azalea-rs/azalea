@@ -48,18 +48,18 @@ def burger_type_to_rust_type(burger_type, field_name: Optional[str] = None, inst
         uses.add('azalea_chat::FormattedText')
     elif burger_type == 'identifier':
         field_type_rs = 'ResourceLocation'
-        uses.add('azalea_core::ResourceLocation')
+        uses.add('azalea_core::resource_location::ResourceLocation')
     elif burger_type == 'uuid':
         field_type_rs = 'Uuid'
         uses.add('uuid::Uuid')
     elif burger_type == 'position':
         field_type_rs = 'BlockPos'
-        uses.add('azalea_core::BlockPos')
+        uses.add('azalea_core::position::BlockPos')
     elif burger_type == 'nbtcompound':
         field_type_rs = 'azalea_nbt::Nbt'
     elif burger_type == 'itemstack':
         field_type_rs = 'Slot'
-        uses.add('azalea_core::Slot')
+        uses.add('azalea_core::slot::Slot')
     elif burger_type == 'metadata':
         field_type_rs = 'EntityMetadata'
         uses.add('azalea_entity::EntityMetadata')

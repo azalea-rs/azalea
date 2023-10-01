@@ -21,7 +21,7 @@ use crate::ecs::{
 };
 use azalea_client::movement::walk_listener;
 use azalea_client::{StartSprintEvent, StartWalkEvent};
-use azalea_core::BlockPos;
+use azalea_core::position::BlockPos;
 use azalea_entity::metadata::Player;
 use azalea_entity::LocalEntity;
 use azalea_entity::{Physics, Position};
@@ -546,7 +546,7 @@ where
 mod tests {
     use std::{collections::HashSet, sync::Arc};
 
-    use azalea_core::{BlockPos, ChunkPos, Vec3};
+    use azalea_core::position::{BlockPos, ChunkPos, Vec3};
     use azalea_world::{Chunk, ChunkStorage, PartialChunkStorage};
     use log::info;
 

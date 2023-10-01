@@ -2,7 +2,7 @@ use std::io::Cursor;
 
 use azalea_buf::BufReadError;
 use azalea_buf::{McBufReadable, McBufWritable};
-use azalea_core::FixedBitSet;
+use azalea_core::bitset::FixedBitSet;
 use azalea_protocol_macros::ServerboundGamePacket;
 
 #[derive(Clone, Debug, ServerboundGamePacket)]

@@ -1,6 +1,9 @@
 use crate::packets::game::serverbound_interact_packet::InteractionHand;
 use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
-use azalea_core::{BlockPos, Direction, Vec3};
+use azalea_core::{
+    direction::Direction,
+    position::{BlockPos, Vec3},
+};
 use azalea_protocol_macros::ServerboundGamePacket;
 use std::io::{Cursor, Write};
 

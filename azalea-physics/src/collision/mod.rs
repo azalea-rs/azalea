@@ -6,7 +6,7 @@ mod world_collisions;
 
 use std::ops::Add;
 
-use azalea_core::{Axis, Vec3, AABB, EPSILON};
+use azalea_core::{aabb::AABB, direction::Axis, math::EPSILON, position::Vec3};
 use azalea_world::{Instance, MoveEntityError};
 use bevy_ecs::world::Mut;
 pub use blocks::BlockWithShape;

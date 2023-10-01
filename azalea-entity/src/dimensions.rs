@@ -1,4 +1,4 @@
-use azalea_core::{Vec3, AABB};
+use azalea_core::{aabb::AABB, position::Vec3};
 
 #[derive(Debug, Default, Clone)]
 pub struct EntityDimensions {

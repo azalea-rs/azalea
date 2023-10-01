@@ -1,4 +1,4 @@
-use azalea_core::{BlockPos, Vec3};
+use azalea_core::position::{BlockPos, Vec3};
 
 use super::Goal;
 

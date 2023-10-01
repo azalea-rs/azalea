@@ -1,6 +1,6 @@
 use azalea_buf::McBuf;
-use azalea_core::BlockPos;
-use azalea_core::Direction;
+use azalea_core::direction::Direction;
+use azalea_core::position::BlockPos;
 use azalea_protocol_macros::ServerboundGamePacket;
 
 #[derive(Clone, Debug, McBuf, ServerboundGamePacket)]

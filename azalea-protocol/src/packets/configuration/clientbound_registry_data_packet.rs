@@ -18,7 +18,7 @@ pub mod registry {
     //! biomes.
 
     use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
-    use azalea_core::ResourceLocation;
+    use azalea_core::resource_location::ResourceLocation;
     use azalea_nbt::Nbt;
     use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
     use std::{collections::HashMap, io::Cursor};

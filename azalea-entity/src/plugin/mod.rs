@@ -3,7 +3,7 @@ mod relative_updates;
 
 use std::collections::HashSet;
 
-use azalea_core::{BlockPos, ChunkPos, Vec3};
+use azalea_core::position::{BlockPos, ChunkPos, Vec3};
 use azalea_world::{InstanceContainer, InstanceName, MinecraftEntityId};
 use bevy_app::{App, Plugin, PreUpdate, Update};
 use bevy_ecs::prelude::*;

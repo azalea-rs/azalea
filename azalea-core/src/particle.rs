@@ -1,4 +1,4 @@
-use crate::BlockPos;
+use crate::position::BlockPos;
 use azalea_buf::McBuf;
 use azalea_inventory::ItemSlot;
 

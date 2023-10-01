@@ -7,7 +7,7 @@ use crate::{JumpEvent, LookAtEvent};
 
 use super::astar;
 use azalea_client::{StartSprintEvent, StartWalkEvent};
-use azalea_core::{BlockPos, Vec3};
+use azalea_core::position::{BlockPos, Vec3};
 use azalea_physics::collision::{self, BlockWithShape};
 use azalea_world::Instance;
 use bevy_ecs::{entity::Entity, event::EventWriter};
@@ -137,7 +137,7 @@ pub fn default_is_reached(
 mod tests {
     use super::*;
     use azalea_block::BlockState;
-    use azalea_core::ChunkPos;
+    use azalea_core::position::ChunkPos;
     use azalea_world::{Chunk, ChunkStorage, PartialInstance};
 
     #[test]

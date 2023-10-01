@@ -1,7 +1,12 @@
 use std::ops::AddAssign;
 
 use azalea_block::BlockState;
-use azalea_core::{BlockHitResult, BlockPos, Direction, GameMode, Vec3};
+use azalea_core::{
+    block_hit_result::BlockHitResult,
+    direction::Direction,
+    game_type::GameMode,
+    position::{BlockPos, Vec3},
+};
 use azalea_entity::{
     clamp_look_direction, view_vector, Attributes, EyeHeight, LocalEntity, LookDirection, Position,
 };

@@ -1,7 +1,7 @@
 use std::{fmt::Display, str::FromStr};
 
 use azalea_block::BlockState;
-use azalea_core::{math, ChunkBlockPos};
+use azalea_core::{math, position::ChunkBlockPos};
 use azalea_registry::tags::blocks::LEAVES;
 
 use crate::{chunk_storage::get_block_state_from_sections, BitStorage, Section};
