@@ -16,7 +16,7 @@ anyhow = "^1.0.75"
 async-trait = "0.1.73"
 azalea-block = { version = "0.8.0", path = "../azalea-block" }
 azalea-chat = { version = "0.8.0", path = "../azalea-chat" }
-azalea-client = { version = "0.8.0", path = "../azalea-client" }
+azalea-client = { version = "0.8.0", path = "../azalea-client", default-features = false }
 azalea-core = { version = "0.8.0", path = "../azalea-core" }
 azalea-inventory = { version = "0.8.0", path = "../azalea-inventory" }
 azalea-physics = { version = "0.8.0", path = "../azalea-physics" }
