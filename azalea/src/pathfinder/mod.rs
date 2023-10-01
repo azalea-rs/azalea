@@ -370,12 +370,12 @@ fn tick_execute_path(
                     position: **position,
                     physics,
                 };
-                let on_ground_if_last = if i == pathfinder.path.len() - 1 {
-                    physics.on_ground
+                let extra_strict_if_last = if i == pathfinder.path.len() - 1 {
+                    physics.on_ground && BlockPos::from(position) == movement.target
                 } else {
                     true
                 };
-                if (movement.data.is_reached)(is_reached_ctx) && on_ground_if_last {
+                if (movement.data.is_reached)(is_reached_ctx) && extra_strict_if_last {
                     pathfinder.path = pathfinder.path.split_off(i + 1);
                     pathfinder.last_reached_node = Some(movement.target);
                     pathfinder.last_node_reached_at = Some(Instant::now());
@@ -548,7 +548,6 @@ mod tests {
 
     use azalea_core::position::{BlockPos, ChunkPos, Vec3};
     use azalea_world::{Chunk, ChunkStorage, PartialChunkStorage};
-    use log::info;
 
     use super::{
         goals::BlockPosGoal,
@@ -589,7 +588,7 @@ mod tests {
         simulation.app.world.send_event(GotoEvent {
             entity: simulation.entity,
             goal: Arc::new(BlockPosGoal(end_pos)),
-            successors_fn: moves::basic::basic_move,
+            successors_fn: moves::default_move,
         });
         simulation
     }
@@ -627,9 +626,8 @@ mod tests {
                 BlockPos::new(2, 72, 1),
             ],
         );
-        for i in 0..30 {
+        for _ in 0..30 {
             simulation.tick();
-            info!("-- tick #{i} --")
         }
         assert_eq!(
             BlockPos::from(simulation.position()),
@@ -656,13 +654,78 @@ mod tests {
                 BlockPos::new(5, 75, 0),
             ],
         );
-        for i in 0..120 {
+        for _ in 0..120 {
             simulation.tick();
-            info!("-- tick #{i} --")
         }
         assert_eq!(
             BlockPos::from(simulation.position()),
             BlockPos::new(5, 76, 0)
+        );
+    }
+
+    #[test]
+    fn test_parkour_2_block_gap() {
+        let mut partial_chunks = PartialChunkStorage::default();
+        let mut simulation = setup_simulation(
+            &mut partial_chunks,
+            BlockPos::new(0, 71, 0),
+            BlockPos::new(0, 71, 3),
+            vec![BlockPos::new(0, 70, 0), BlockPos::new(0, 70, 3)],
+        );
+        for _ in 0..40 {
+            simulation.tick();
+        }
+        assert_eq!(
+            BlockPos::from(simulation.position()),
+            BlockPos::new(0, 71, 3)
+        );
+    }
+
+    #[test]
+    fn test_descend_and_parkour_2_block_gap() {
+        let mut partial_chunks = PartialChunkStorage::default();
+        let mut simulation = setup_simulation(
+            &mut partial_chunks,
+            BlockPos::new(0, 71, 0),
+            BlockPos::new(3, 68, 3),
+            vec![
+                BlockPos::new(0, 70, 0),
+                BlockPos::new(0, 69, 1),
+                BlockPos::new(0, 68, 2),
+                BlockPos::new(0, 67, 3),
+                BlockPos::new(0, 66, 4),
+                BlockPos::new(3, 66, 4),
+            ],
+        );
+        for _ in 0..140 {
+            simulation.tick();
+        }
+        assert_eq!(
+            BlockPos::from(simulation.position()),
+            BlockPos::new(3, 67, 4)
+        );
+    }
+
+    #[test]
+    fn test_quickly_descend() {
+        let mut partial_chunks = PartialChunkStorage::default();
+        let mut simulation = setup_simulation(
+            &mut partial_chunks,
+            BlockPos::new(0, 71, 0),
+            BlockPos::new(0, 68, 3),
+            vec![
+                BlockPos::new(0, 70, 0),
+                BlockPos::new(0, 69, 1),
+                BlockPos::new(0, 68, 2),
+                BlockPos::new(0, 67, 3),
+            ],
+        );
+        for _ in 0..40 {
+            simulation.tick();
+        }
+        assert_eq!(
+            BlockPos::from(simulation.position()),
+            BlockPos::new(0, 68, 3)
         );
     }
 }

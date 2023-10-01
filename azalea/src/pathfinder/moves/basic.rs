@@ -1,7 +1,10 @@
 use std::f32::consts::SQRT_2;
 
 use azalea_client::{SprintDirection, StartSprintEvent, StartWalkEvent, WalkDirection};
-use azalea_core::{direction::CardinalDirection, position::BlockPos};
+use azalea_core::{
+    direction::CardinalDirection,
+    position::{BlockPos, Vec3},
+};
 use azalea_world::Instance;
 
 use crate::{
@@ -140,7 +143,9 @@ fn execute_ascend_move(
         return;
     }
 
-    jump_events.send(JumpEvent { entity });
+    if BlockPos::from(position) == start {
+        jump_events.send(JumpEvent { entity });
+    }
 }
 #[must_use]
 pub fn ascend_is_reached(
@@ -154,7 +159,8 @@ pub fn ascend_is_reached(
 fn descend_move(world: &Instance, pos: BlockPos) -> Vec<Edge> {
     let mut edges = Vec::new();
     for dir in CardinalDirection::iter() {
-        let new_horizontal_position = pos + BlockPos::new(dir.x(), 0, dir.z());
+        let dir_delta = BlockPos::new(dir.x(), 0, dir.z());
+        let new_horizontal_position = pos + dir_delta;
         let fall_distance = fall_distance(&new_horizontal_position, world);
         if fall_distance == 0 || fall_distance > 3 {
             continue;
@@ -191,46 +197,48 @@ fn execute_descend_move(
         target,
         start,
         look_at_events,
-        sprint_events,
+        walk_events,
         position,
         ..
     }: ExecuteCtx,
 ) {
+    let start_center = start.center();
     let center = target.center();
     let horizontal_distance_from_target = (center - position).horizontal_distance_sqr().sqrt();
     let horizontal_distance_from_start =
         (start.center() - position).horizontal_distance_sqr().sqrt();
 
-    let dest_ahead = BlockPos::new(
-        start.x + (target.x - start.x) * 2,
-        target.y,
-        start.z + (target.z - start.z) * 2,
+    let dest_ahead = Vec3::new(
+        start_center.x + (center.x - start_center.x) * 1.5,
+        center.y,
+        start_center.z + (center.z - start_center.z) * 1.5,
     );
 
     if BlockPos::from(position) != target || horizontal_distance_from_target > 0.25 {
         // if we're only falling one block then it's fine to try to overshoot
-        if horizontal_distance_from_start < 1.25 || start.y - target.y == 1 {
+        if horizontal_distance_from_start < 1.25 {
             // this basically just exists to avoid doing spins while we're falling
             look_at_events.send(LookAtEvent {
                 entity,
-                position: dest_ahead.center(),
+                position: dest_ahead,
             });
-            sprint_events.send(StartSprintEvent {
+            walk_events.send(StartWalkEvent {
                 entity,
-                direction: SprintDirection::Forward,
+                direction: WalkDirection::Forward,
             });
         } else {
             look_at_events.send(LookAtEvent {
                 entity,
                 position: center,
             });
-            sprint_events.send(StartSprintEvent {
+            walk_events.send(StartWalkEvent {
                 entity,
-                direction: SprintDirection::Forward,
+                direction: WalkDirection::Forward,
             });
         }
     }
 }
+
 #[must_use]
 pub fn descend_is_reached(
     IsReachedCtx {

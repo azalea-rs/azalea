@@ -122,7 +122,6 @@ where
 
     for node in best_paths.iter() {
         if node != start {
-            println!("chose best node {:?}", node);
             return *node;
         }
     }
