@@ -127,10 +127,7 @@ pub fn default_move(world: &Instance, node: BlockPos) -> Vec<Edge> {
 #[must_use]
 pub fn default_is_reached(
     IsReachedCtx {
-        position,
-        target,
-        // physics,
-        ..
+        position, target, ..
     }: IsReachedCtx,
 ) -> bool {
     BlockPos::from(position) == target

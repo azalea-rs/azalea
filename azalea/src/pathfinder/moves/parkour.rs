@@ -9,7 +9,7 @@ use crate::{
 
 use super::{
     default_is_reached, is_block_passable, is_block_solid, is_passable, is_standable, Edge,
-    ExecuteCtx, MoveData,
+    ExecuteCtx, IsReachedCtx, MoveData,
 };
 
 pub fn parkour_move(world: &Instance, node: BlockPos) -> Vec<Edge> {
@@ -51,7 +51,7 @@ fn parkour_forward_1_move(world: &Instance, pos: BlockPos) -> Vec<Edge> {
                 target: pos + offset,
                 data: MoveData {
                     execute: &execute_parkour_move,
-                    is_reached: &default_is_reached,
+                    is_reached: &parkour_is_reached,
                 },
             },
             cost,
@@ -156,6 +156,7 @@ fn parkour_headhitter_forward_1_move(world: &Instance, pos: BlockPos) -> Vec<Edg
 fn execute_parkour_move(
     ExecuteCtx {
         entity,
+        position,
         target,
         start,
         look_at_events,
@@ -173,7 +174,7 @@ fn execute_parkour_move(
 
     let jump_distance = i32::max((target - start).x.abs(), (target - start).z.abs());
 
-    if jump_distance > 2 {
+    if jump_distance >= 4 {
         sprint_events.send(StartSprintEvent {
             entity,
             direction: SprintDirection::Forward,
@@ -185,7 +186,18 @@ fn execute_parkour_move(
         });
     }
 
-    jump_events.send(JumpEvent { entity });
+    let x_dir = (target.x - start.x).clamp(-1, 1);
+    let z_dir = (target.z - start.z).clamp(-1, 1);
+    let dir = BlockPos::new(x_dir, 0, z_dir);
+    let jump_at_pos = start + dir;
+
+    let is_at_start_block = BlockPos::from(position) == start;
+    let is_at_jump_block = BlockPos::from(position) == jump_at_pos;
+    let is_in_air = position.y - start.y as f64 > 0.0001;
+
+    if !is_at_start_block && (is_at_jump_block || is_in_air) {
+        jump_events.send(JumpEvent { entity });
+    }
 }
 
 fn execute_headhitter_parkour_move(
@@ -230,4 +242,14 @@ fn execute_headhitter_parkour_move(
     if distance_from_start > 0.75 {
         jump_events.send(JumpEvent { entity });
     }
+}
+
+#[must_use]
+pub fn parkour_is_reached(
+    IsReachedCtx {
+        position, target, ..
+    }: IsReachedCtx,
+) -> bool {
+    // 0.094 and not 0 for lilypads
+    BlockPos::from(position) == target && (position.y - target.y as f64) < 0.094
 }
