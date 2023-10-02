@@ -414,6 +414,8 @@ fn tick_execute_path(
                             }
                         }
                     }
+
+                    break;
                 }
             }
             break;
