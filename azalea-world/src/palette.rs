@@ -121,13 +121,11 @@ impl PalettedContainer {
     fn create_or_reuse_data(&self, bits_per_entry: u8) -> PalettedContainer {
         let new_palette_type =
             PaletteKind::from_bits_and_type(bits_per_entry, &self.container_type);
-        // note for whoever is trying to optimize this: vanilla has this
-        // but it causes a stack overflow since it's not changing the bits per entry
-        // i don't know how to fix this properly so glhf
-        // let old_palette_type: PaletteType = (&self.palette).into();
-        // if new_palette_type == old_palette_type {
-        //     return self.clone();
-        // }
+
+        let old_palette_type = (&self.palette).into();
+        if bits_per_entry == self.bits_per_entry && new_palette_type == old_palette_type {
+            return self.clone();
+        }
         let storage =
             BitStorage::new(bits_per_entry as usize, self.container_type.size(), None).unwrap();
 

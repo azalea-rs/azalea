@@ -29,3 +29,8 @@ uuid = "1.4.1"
 
 [dev-dependencies]
 azalea-client = { path = "../azalea-client" }
+criterion = "0.5.1"
+
+[[bench]]
+name = "chunks"
+harness = false

@@ -76,7 +76,7 @@ pub struct BitStorage {
     bits: usize,
     mask: u64,
     size: usize,
-    values_per_long: u8,
+    values_per_long: usize,
     divide_mul: u64,
     divide_add: u64,
     divide_shift: i32,
@@ -141,7 +141,7 @@ impl BitStorage {
             bits,
             mask,
             size,
-            values_per_long: values_per_long as u8,
+            values_per_long,
             divide_mul: divide_mul as u32 as u64,
             divide_add: divide_add as u32 as u64,
             divide_shift,
@@ -153,9 +153,7 @@ impl BitStorage {
         let first = self.divide_mul;
         let second = self.divide_add;
 
-        (((index * first) + second) >> 32 >> self.divide_shift)
-            .try_into()
-            .unwrap()
+        (((index * first) + second) >> 32 >> self.divide_shift) as usize
     }
 
     /// Get the data at the given index.
@@ -167,8 +165,7 @@ impl BitStorage {
     pub fn get(&self, index: usize) -> u64 {
         assert!(
             index < self.size,
-            "Index {} out of bounds (must be less than {})",
-            index,
+            "Index {index} out of bounds (must be less than {})",
             self.size
         );
 
@@ -179,7 +176,7 @@ impl BitStorage {
 
         let cell_index = self.cell_index(index as u64);
         let cell = &self.data[cell_index];
-        let bit_index = (index - cell_index * self.values_per_long as usize) * self.bits;
+        let bit_index = (index - cell_index * self.values_per_long) * self.bits;
         cell >> bit_index & self.mask
     }
 
@@ -189,11 +186,11 @@ impl BitStorage {
             return 0;
         }
 
-        assert!(index < self.size);
-        assert!(value <= self.mask);
+        debug_assert!(index < self.size);
+        debug_assert!(value <= self.mask);
         let cell_index = self.cell_index(index as u64);
         let cell = &mut self.data[cell_index];
-        let bit_index = (index - cell_index * self.values_per_long as usize) * self.bits;
+        let bit_index = (index - cell_index * self.values_per_long) * self.bits;
         let old_value = *cell >> (bit_index as u64) & self.mask;
         *cell = *cell & !(self.mask << bit_index) | (value & self.mask) << bit_index;
         old_value
@@ -205,11 +202,11 @@ impl BitStorage {
             return;
         }
 
-        assert!(index < self.size);
-        assert!(value <= self.mask);
+        debug_assert!(index < self.size);
+        debug_assert!(value <= self.mask);
         let cell_index = self.cell_index(index as u64);
         let cell = &mut self.data[cell_index];
-        let bit_index = (index - cell_index * self.values_per_long as usize) * self.bits;
+        let bit_index = (index - cell_index * self.values_per_long) * self.bits;
         *cell = *cell & !(self.mask << bit_index) | (value & self.mask) << bit_index;
     }
 

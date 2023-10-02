@@ -517,6 +517,7 @@ dependencies = [
  "azalea-nbt",
  "azalea-registry",
  "bevy_ecs",
+ "criterion",
  "derive_more",
  "enum-as-inner",
  "log",
