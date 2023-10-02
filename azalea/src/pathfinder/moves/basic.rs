@@ -5,7 +5,7 @@ use azalea_core::{
     direction::CardinalDirection,
     position::{BlockPos, Vec3},
 };
-use azalea_world::Instance;
+use azalea_world::ChunkStorage;
 
 use crate::{
     pathfinder::{astar, costs::*},
@@ -17,7 +17,7 @@ use super::{
     ExecuteCtx, IsReachedCtx, MoveData,
 };
 
-pub fn basic_move(world: &Instance, node: BlockPos) -> Vec<Edge> {
+pub fn basic_move(world: &ChunkStorage, node: BlockPos) -> Vec<Edge> {
     let mut edges = Vec::new();
     edges.extend(forward_move(world, node));
     edges.extend(ascend_move(world, node));
@@ -26,7 +26,7 @@ pub fn basic_move(world: &Instance, node: BlockPos) -> Vec<Edge> {
     edges
 }
 
-fn forward_move(world: &Instance, pos: BlockPos) -> Vec<Edge> {
+fn forward_move(world: &ChunkStorage, pos: BlockPos) -> Vec<Edge> {
     let mut edges = Vec::new();
     for dir in CardinalDirection::iter() {
         let offset = BlockPos::new(dir.x(), 0, dir.z());
@@ -72,7 +72,7 @@ fn execute_forward_move(
     });
 }
 
-fn ascend_move(world: &Instance, pos: BlockPos) -> Vec<Edge> {
+fn ascend_move(world: &ChunkStorage, pos: BlockPos) -> Vec<Edge> {
     let mut edges = Vec::new();
     for dir in CardinalDirection::iter() {
         let offset = BlockPos::new(dir.x(), 1, dir.z());
@@ -156,7 +156,7 @@ pub fn ascend_is_reached(
     BlockPos::from(position) == target || BlockPos::from(position) == target.down(1)
 }
 
-fn descend_move(world: &Instance, pos: BlockPos) -> Vec<Edge> {
+fn descend_move(world: &ChunkStorage, pos: BlockPos) -> Vec<Edge> {
     let mut edges = Vec::new();
     for dir in CardinalDirection::iter() {
         let dir_delta = BlockPos::new(dir.x(), 0, dir.z());
@@ -258,7 +258,7 @@ pub fn descend_is_reached(
         && (position.y - target.y as f64) < 0.5
 }
 
-fn diagonal_move(world: &Instance, pos: BlockPos) -> Vec<Edge> {
+fn diagonal_move(world: &ChunkStorage, pos: BlockPos) -> Vec<Edge> {
     let mut edges = Vec::new();
     for dir in CardinalDirection::iter() {
         let right = dir.right();

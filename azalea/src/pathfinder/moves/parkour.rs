@@ -1,6 +1,6 @@
 use azalea_client::{SprintDirection, StartSprintEvent, StartWalkEvent, WalkDirection};
 use azalea_core::{direction::CardinalDirection, position::BlockPos};
-use azalea_world::Instance;
+use azalea_world::ChunkStorage;
 
 use crate::{
     pathfinder::{astar, costs::*},
@@ -12,7 +12,7 @@ use super::{
     ExecuteCtx, IsReachedCtx, MoveData,
 };
 
-pub fn parkour_move(world: &Instance, node: BlockPos) -> Vec<Edge> {
+pub fn parkour_move(world: &ChunkStorage, node: BlockPos) -> Vec<Edge> {
     let mut edges = Vec::new();
     edges.extend(parkour_forward_1_move(world, node));
     edges.extend(parkour_headhitter_forward_1_move(world, node));
@@ -20,7 +20,7 @@ pub fn parkour_move(world: &Instance, node: BlockPos) -> Vec<Edge> {
     edges
 }
 
-fn parkour_forward_1_move(world: &Instance, pos: BlockPos) -> Vec<Edge> {
+fn parkour_forward_1_move(world: &ChunkStorage, pos: BlockPos) -> Vec<Edge> {
     let mut edges = Vec::new();
     for dir in CardinalDirection::iter() {
         let gap_offset = BlockPos::new(dir.x(), 0, dir.z());
@@ -61,7 +61,7 @@ fn parkour_forward_1_move(world: &Instance, pos: BlockPos) -> Vec<Edge> {
     edges
 }
 
-fn parkour_forward_2_move(world: &Instance, pos: BlockPos) -> Vec<Edge> {
+fn parkour_forward_2_move(world: &ChunkStorage, pos: BlockPos) -> Vec<Edge> {
     let mut edges = Vec::new();
     for dir in CardinalDirection::iter() {
         let gap_1_offset = BlockPos::new(dir.x(), 0, dir.z());
@@ -112,7 +112,7 @@ fn parkour_forward_2_move(world: &Instance, pos: BlockPos) -> Vec<Edge> {
     edges
 }
 
-fn parkour_headhitter_forward_1_move(world: &Instance, pos: BlockPos) -> Vec<Edge> {
+fn parkour_headhitter_forward_1_move(world: &ChunkStorage, pos: BlockPos) -> Vec<Edge> {
     let mut edges = Vec::new();
     for dir in CardinalDirection::iter() {
         let gap_offset = BlockPos::new(dir.x(), 0, dir.z());

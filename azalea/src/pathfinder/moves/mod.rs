@@ -9,13 +9,13 @@ use super::astar;
 use azalea_client::{StartSprintEvent, StartWalkEvent};
 use azalea_core::position::{BlockPos, Vec3};
 use azalea_physics::collision::{self, BlockWithShape};
-use azalea_world::Instance;
+use azalea_world::ChunkStorage;
 use bevy_ecs::{entity::Entity, event::EventWriter};
 
 type Edge = astar::Edge<BlockPos, MoveData>;
 
 pub type SuccessorsFn =
-    fn(&azalea_world::Instance, BlockPos) -> Vec<astar::Edge<BlockPos, MoveData>>;
+    fn(&azalea_world::ChunkStorage, BlockPos) -> Vec<astar::Edge<BlockPos, MoveData>>;
 
 #[derive(Clone)]
 pub struct MoveData {
@@ -34,8 +34,8 @@ impl Debug for MoveData {
 }
 
 /// whether this block is passable
-fn is_block_passable(pos: &BlockPos, world: &Instance) -> bool {
-    if let Some(block) = world.chunks.get_block_state(pos) {
+fn is_block_passable(pos: &BlockPos, world: &ChunkStorage) -> bool {
+    if let Some(block) = world.get_block_state(pos) {
         if block.shape() != &collision::empty_shape() {
             return false;
         }
@@ -58,8 +58,8 @@ fn is_block_passable(pos: &BlockPos, world: &Instance) -> bool {
 }
 
 /// whether this block has a solid hitbox (i.e. we can stand on it)
-fn is_block_solid(pos: &BlockPos, world: &Instance) -> bool {
-    if let Some(block) = world.chunks.get_block_state(pos) {
+fn is_block_solid(pos: &BlockPos, world: &ChunkStorage) -> bool {
+    if let Some(block) = world.get_block_state(pos) {
         block.shape() == &collision::block_shape()
     } else {
         false
@@ -67,26 +67,26 @@ fn is_block_solid(pos: &BlockPos, world: &Instance) -> bool {
 }
 
 /// Whether this block and the block above are passable
-fn is_passable(pos: &BlockPos, world: &Instance) -> bool {
+fn is_passable(pos: &BlockPos, world: &ChunkStorage) -> bool {
     is_block_passable(pos, world) && is_block_passable(&pos.up(1), world)
 }
 
 /// Whether we can stand in this position. Checks if the block below is solid,
 /// and that the two blocks above that are passable.
 
-fn is_standable(pos: &BlockPos, world: &Instance) -> bool {
+fn is_standable(pos: &BlockPos, world: &ChunkStorage) -> bool {
     is_block_solid(&pos.down(1), world) && is_passable(pos, world)
 }
 
 /// Get the amount of air blocks until the next solid block below this one.
-fn fall_distance(pos: &BlockPos, world: &Instance) -> u32 {
+fn fall_distance(pos: &BlockPos, world: &ChunkStorage) -> u32 {
     let mut distance = 0;
     let mut current_pos = pos.down(1);
     while is_block_passable(&current_pos, world) {
         distance += 1;
         current_pos = current_pos.down(1);
 
-        if current_pos.y < world.chunks.min_y {
+        if current_pos.y < world.min_y {
             return u32::MAX;
         }
     }
@@ -115,7 +115,7 @@ pub struct IsReachedCtx<'a> {
     pub physics: &'a azalea_entity::Physics,
 }
 
-pub fn default_move(world: &Instance, node: BlockPos) -> Vec<Edge> {
+pub fn default_move(world: &ChunkStorage, node: BlockPos) -> Vec<Edge> {
     let mut edges = Vec::new();
     edges.extend(basic::basic_move(world, node));
     edges.extend(parkour::parkour_move(world, node));

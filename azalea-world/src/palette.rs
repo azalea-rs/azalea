@@ -172,7 +172,7 @@ impl PalettedContainer {
                 }
             }
             Palette::Linear(palette) => {
-                if let Some(index) = palette.iter().position(|v| *v == value) {
+                if let Some(index) = palette.iter().position(|&v| v == value) {
                     return index;
                 }
                 let capacity = 2usize.pow(self.bits_per_entry.into());

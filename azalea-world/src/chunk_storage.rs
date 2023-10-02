@@ -279,6 +279,7 @@ impl Chunk {
         get_block_state_from_sections(&self.sections, pos, min_y)
     }
 
+    #[must_use = "Use Chunk::set instead if you don't need the previous state"]
     pub fn get_and_set(
         &mut self,
         pos: &ChunkBlockPos,

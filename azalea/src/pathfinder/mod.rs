@@ -1,10 +1,10 @@
 //! A pathfinding plugin to make bots navigate the world. A lot of this code is
 //! based on [Baritone](https://github.com/cabaletta/baritone).
 
-mod astar;
+pub mod astar;
 pub mod costs;
 pub mod goals;
-mod moves;
+pub mod moves;
 pub mod simulation;
 
 use crate::bot::{JumpEvent, LookAtEvent};
@@ -177,10 +177,8 @@ fn goto_listener(
         let task = thread_pool.spawn(async move {
             debug!("start: {start:?}");
 
-            let successors = |pos: BlockPos| {
-                let world = world_lock.read();
-                successors_fn(&world, pos)
-            };
+            let world = &world_lock.read().chunks;
+            let successors = |pos: BlockPos| successors_fn(world, pos);
 
             let mut attempt_number = 0;
 
@@ -279,8 +277,8 @@ fn path_found_listener(
                         );
                         let successors_fn: moves::SuccessorsFn = event.successors_fn;
                         let successors = |pos: BlockPos| {
-                            let world = world_lock.read();
-                            successors_fn(&world, pos)
+                            let world = &world_lock.read().chunks;
+                            successors_fn(world, pos)
                         };
 
                         if successors(last_node.target)
@@ -442,8 +440,8 @@ fn tick_execute_path(
         {
             // obstruction check (the path we're executing isn't possible anymore)
             let successors = |pos: BlockPos| {
-                let world = world_lock.read();
-                successors_fn(&world, pos)
+                let world = &world_lock.read().chunks;
+                successors_fn(world, pos)
             };
 
             if let Some(last_reached_node) = pathfinder.last_reached_node {
