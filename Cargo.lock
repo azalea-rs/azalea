@@ -327,6 +327,7 @@ dependencies = [
  "azalea-nbt",
  "azalea-registry",
  "bevy_ecs",
+ "nohash-hasher",
  "num-traits",
  "serde",
  "uuid",

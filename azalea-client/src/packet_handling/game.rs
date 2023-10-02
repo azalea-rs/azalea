@@ -267,7 +267,7 @@ pub fn process_packet_events(ecs: &mut World) {
                     // instance_container)
 
                     *instance_holder.partial_instance.write() = PartialInstance::new(
-                        azalea_world::calculate_chunk_storage_range(
+                        azalea_world::chunk_storage::calculate_chunk_storage_range(
                             client_information.view_distance.into(),
                         ),
                         // this argument makes it so other clients don't update this player entity
@@ -1287,7 +1287,7 @@ pub fn process_packet_events(ecs: &mut World) {
                     // (when we add chunks or entities those will be in the
                     // instance_container)
                     *instance_holder.partial_instance.write() = PartialInstance::new(
-                        azalea_world::calculate_chunk_storage_range(
+                        azalea_world::chunk_storage::calculate_chunk_storage_range(
                             client_information.view_distance.into(),
                         ),
                         Some(player_entity),

@@ -127,7 +127,7 @@ impl InstanceHolder {
         InstanceHolder {
             instance: world,
             partial_instance: Arc::new(RwLock::new(PartialInstance::new(
-                azalea_world::calculate_chunk_storage_range(
+                azalea_world::chunk_storage::calculate_chunk_storage_range(
                     client_information.view_distance.into(),
                 ),
                 Some(entity),

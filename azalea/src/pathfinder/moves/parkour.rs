@@ -1,46 +1,42 @@
 use azalea_client::{SprintDirection, StartSprintEvent, StartWalkEvent, WalkDirection};
 use azalea_core::{direction::CardinalDirection, position::BlockPos};
-use azalea_world::ChunkStorage;
 
 use crate::{
     pathfinder::{astar, costs::*},
     JumpEvent, LookAtEvent,
 };
 
-use super::{
-    default_is_reached, is_block_passable, is_block_solid, is_passable, is_standable, Edge,
-    ExecuteCtx, IsReachedCtx, MoveData,
-};
+use super::{default_is_reached, Edge, ExecuteCtx, IsReachedCtx, MoveData, PathfinderCtx};
 
-pub fn parkour_move(world: &ChunkStorage, node: BlockPos) -> Vec<Edge> {
+pub fn parkour_move(ctx: &PathfinderCtx, node: BlockPos) -> Vec<Edge> {
     let mut edges = Vec::new();
-    edges.extend(parkour_forward_1_move(world, node));
-    edges.extend(parkour_headhitter_forward_1_move(world, node));
-    edges.extend(parkour_forward_2_move(world, node));
+    edges.extend(parkour_forward_1_move(ctx, node));
+    edges.extend(parkour_headhitter_forward_1_move(ctx, node));
+    edges.extend(parkour_forward_2_move(ctx, node));
     edges
 }
 
-fn parkour_forward_1_move(world: &ChunkStorage, pos: BlockPos) -> Vec<Edge> {
+fn parkour_forward_1_move(ctx: &PathfinderCtx, pos: BlockPos) -> Vec<Edge> {
     let mut edges = Vec::new();
     for dir in CardinalDirection::iter() {
         let gap_offset = BlockPos::new(dir.x(), 0, dir.z());
         let offset = BlockPos::new(dir.x() * 2, 0, dir.z() * 2);
 
-        if !is_standable(&(pos + offset), world) {
+        if !ctx.is_standable(&(pos + offset)) {
             continue;
         }
-        if !is_passable(&(pos + gap_offset), world) {
+        if !ctx.is_passable(&(pos + gap_offset)) {
             continue;
         }
-        if !is_block_passable(&(pos + gap_offset).up(2), world) {
+        if !ctx.is_block_passable(&(pos + gap_offset).up(2)) {
             continue;
         }
         // make sure we actually have to jump
-        if is_block_solid(&(pos + gap_offset).down(1), world) {
+        if ctx.is_block_solid(&(pos + gap_offset).down(1)) {
             continue;
         }
         // make sure it's not a headhitter
-        if !is_block_passable(&pos.up(2), world) {
+        if !ctx.is_block_passable(&pos.up(2)) {
             continue;
         }
 
@@ -61,34 +57,34 @@ fn parkour_forward_1_move(world: &ChunkStorage, pos: BlockPos) -> Vec<Edge> {
     edges
 }
 
-fn parkour_forward_2_move(world: &ChunkStorage, pos: BlockPos) -> Vec<Edge> {
+fn parkour_forward_2_move(ctx: &PathfinderCtx, pos: BlockPos) -> Vec<Edge> {
     let mut edges = Vec::new();
     for dir in CardinalDirection::iter() {
         let gap_1_offset = BlockPos::new(dir.x(), 0, dir.z());
         let gap_2_offset = BlockPos::new(dir.x() * 2, 0, dir.z() * 2);
         let offset = BlockPos::new(dir.x() * 3, 0, dir.z() * 3);
 
-        if !is_standable(&(pos + offset), world) {
+        if !ctx.is_standable(&(pos + offset)) {
             continue;
         }
-        if !is_passable(&(pos + gap_1_offset), world) {
+        if !ctx.is_passable(&(pos + gap_1_offset)) {
             continue;
         }
-        if !is_block_passable(&(pos + gap_1_offset).up(2), world) {
+        if !ctx.is_block_passable(&(pos + gap_1_offset).up(2)) {
             continue;
         }
-        if !is_passable(&(pos + gap_2_offset), world) {
+        if !ctx.is_passable(&(pos + gap_2_offset)) {
             continue;
         }
-        if !is_block_passable(&(pos + gap_2_offset).up(2), world) {
+        if !ctx.is_block_passable(&(pos + gap_2_offset).up(2)) {
             continue;
         }
         // make sure we actually have to jump
-        if is_block_solid(&(pos + gap_1_offset).down(1), world) {
+        if ctx.is_block_solid(&(pos + gap_1_offset).down(1)) {
             continue;
         }
         // make sure it's not a headhitter
-        if !is_block_passable(&pos.up(2), world) {
+        if !ctx.is_block_passable(&pos.up(2)) {
             continue;
         }
 
@@ -112,27 +108,27 @@ fn parkour_forward_2_move(world: &ChunkStorage, pos: BlockPos) -> Vec<Edge> {
     edges
 }
 
-fn parkour_headhitter_forward_1_move(world: &ChunkStorage, pos: BlockPos) -> Vec<Edge> {
+fn parkour_headhitter_forward_1_move(ctx: &PathfinderCtx, pos: BlockPos) -> Vec<Edge> {
     let mut edges = Vec::new();
     for dir in CardinalDirection::iter() {
         let gap_offset = BlockPos::new(dir.x(), 0, dir.z());
         let offset = BlockPos::new(dir.x() * 2, 0, dir.z() * 2);
 
-        if !is_standable(&(pos + offset), world) {
+        if !ctx.is_standable(&(pos + offset)) {
             continue;
         }
-        if !is_passable(&(pos + gap_offset), world) {
+        if !ctx.is_passable(&(pos + gap_offset)) {
             continue;
         }
-        if !is_block_passable(&(pos + gap_offset).up(2), world) {
+        if !ctx.is_block_passable(&(pos + gap_offset).up(2)) {
             continue;
         }
         // make sure we actually have to jump
-        if is_block_solid(&(pos + gap_offset).down(1), world) {
+        if ctx.is_block_solid(&(pos + gap_offset).down(1)) {
             continue;
         }
         // make sure it is a headhitter
-        if !is_block_solid(&pos.up(2), world) {
+        if !ctx.is_block_solid(&pos.up(2)) {
             continue;
         }
 

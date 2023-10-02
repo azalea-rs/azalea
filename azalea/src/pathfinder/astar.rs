@@ -26,14 +26,14 @@ const MIN_IMPROVEMENT: f32 = 0.01;
 pub fn a_star<P, M, HeuristicFn, SuccessorsFn, SuccessFn>(
     start: P,
     heuristic: HeuristicFn,
-    successors: SuccessorsFn,
+    mut successors: SuccessorsFn,
     success: SuccessFn,
     timeout: Duration,
 ) -> Path<P, M>
 where
     P: Eq + Hash + Copy + Debug,
     HeuristicFn: Fn(P) -> f32,
-    SuccessorsFn: Fn(P) -> Vec<Edge<P, M>>,
+    SuccessorsFn: FnMut(P) -> Vec<Edge<P, M>>,
     SuccessFn: Fn(P) -> bool,
 {
     let start_time = Instant::now();

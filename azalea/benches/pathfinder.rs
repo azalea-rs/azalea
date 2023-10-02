@@ -4,6 +4,7 @@ use azalea::{
     pathfinder::{
         astar::{self, a_star},
         goals::BlockPosGoal,
+        moves::PathfinderCtx,
         Goal,
     },
     BlockPos,
@@ -73,13 +74,14 @@ fn generate_bedrock_world(
 fn bench_pathfinder(c: &mut Criterion) {
     c.bench_function("bedrock", |b| {
         let mut partial_chunks = PartialChunkStorage::new(32);
-        let successors_fn = azalea::pathfinder::moves::parkour::parkour_move;
+        let successors_fn = azalea::pathfinder::moves::default_move;
 
         b.iter(|| {
             let (world, start, end) = generate_bedrock_world(&mut partial_chunks, 4);
+            let ctx = PathfinderCtx::new(&world);
             let goal = BlockPosGoal(end);
 
-            let successors = |pos: BlockPos| successors_fn(&world, pos);
+            let successors = |pos: BlockPos| successors_fn(&ctx, pos);
 
             let astar::Path { movements, partial } = a_star(
                 start,

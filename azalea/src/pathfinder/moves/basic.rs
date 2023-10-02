@@ -5,33 +5,29 @@ use azalea_core::{
     direction::CardinalDirection,
     position::{BlockPos, Vec3},
 };
-use azalea_world::ChunkStorage;
 
 use crate::{
     pathfinder::{astar, costs::*},
     JumpEvent, LookAtEvent,
 };
 
-use super::{
-    default_is_reached, fall_distance, is_block_passable, is_passable, is_standable, Edge,
-    ExecuteCtx, IsReachedCtx, MoveData,
-};
+use super::{default_is_reached, Edge, ExecuteCtx, IsReachedCtx, MoveData, PathfinderCtx};
 
-pub fn basic_move(world: &ChunkStorage, node: BlockPos) -> Vec<Edge> {
+pub fn basic_move(ctx: &PathfinderCtx, node: BlockPos) -> Vec<Edge> {
     let mut edges = Vec::new();
-    edges.extend(forward_move(world, node));
-    edges.extend(ascend_move(world, node));
-    edges.extend(descend_move(world, node));
-    edges.extend(diagonal_move(world, node));
+    edges.extend(forward_move(ctx, node));
+    edges.extend(ascend_move(ctx, node));
+    edges.extend(descend_move(ctx, node));
+    edges.extend(diagonal_move(ctx, node));
     edges
 }
 
-fn forward_move(world: &ChunkStorage, pos: BlockPos) -> Vec<Edge> {
+fn forward_move(ctx: &PathfinderCtx, pos: BlockPos) -> Vec<Edge> {
     let mut edges = Vec::new();
     for dir in CardinalDirection::iter() {
         let offset = BlockPos::new(dir.x(), 0, dir.z());
 
-        if !is_standable(&(pos + offset), world) {
+        if !ctx.is_standable(&(pos + offset)) {
             continue;
         }
 
@@ -72,15 +68,15 @@ fn execute_forward_move(
     });
 }
 
-fn ascend_move(world: &ChunkStorage, pos: BlockPos) -> Vec<Edge> {
+fn ascend_move(ctx: &PathfinderCtx, pos: BlockPos) -> Vec<Edge> {
     let mut edges = Vec::new();
     for dir in CardinalDirection::iter() {
         let offset = BlockPos::new(dir.x(), 1, dir.z());
 
-        if !is_block_passable(&pos.up(2), world) {
+        if !ctx.is_block_passable(&pos.up(2)) {
             continue;
         }
-        if !is_standable(&(pos + offset), world) {
+        if !ctx.is_standable(&(pos + offset)) {
             continue;
         }
 
@@ -156,23 +152,23 @@ pub fn ascend_is_reached(
     BlockPos::from(position) == target || BlockPos::from(position) == target.down(1)
 }
 
-fn descend_move(world: &ChunkStorage, pos: BlockPos) -> Vec<Edge> {
+fn descend_move(ctx: &PathfinderCtx, pos: BlockPos) -> Vec<Edge> {
     let mut edges = Vec::new();
     for dir in CardinalDirection::iter() {
         let dir_delta = BlockPos::new(dir.x(), 0, dir.z());
         let new_horizontal_position = pos + dir_delta;
-        let fall_distance = fall_distance(&new_horizontal_position, world);
+        let fall_distance = ctx.fall_distance(&new_horizontal_position);
         if fall_distance == 0 || fall_distance > 3 {
             continue;
         }
         let new_position = new_horizontal_position.down(fall_distance as i32);
 
         // check whether 3 blocks vertically forward are passable
-        if !is_passable(&new_horizontal_position, world) {
+        if !ctx.is_passable(&new_horizontal_position) {
             continue;
         }
         // check whether we can stand on the target position
-        if !is_standable(&new_position, world) {
+        if !ctx.is_standable(&new_position) {
             continue;
         }
 
@@ -258,22 +254,22 @@ pub fn descend_is_reached(
         && (position.y - target.y as f64) < 0.5
 }
 
-fn diagonal_move(world: &ChunkStorage, pos: BlockPos) -> Vec<Edge> {
+fn diagonal_move(ctx: &PathfinderCtx, pos: BlockPos) -> Vec<Edge> {
     let mut edges = Vec::new();
     for dir in CardinalDirection::iter() {
         let right = dir.right();
         let offset = BlockPos::new(dir.x() + right.x(), 0, dir.z() + right.z());
 
-        if !is_passable(
-            &BlockPos::new(pos.x + dir.x(), pos.y, pos.z + dir.z()),
-            world,
-        ) && !is_passable(
-            &BlockPos::new(pos.x + dir.right().x(), pos.y, pos.z + dir.right().z()),
-            world,
-        ) {
+        if !ctx.is_passable(&BlockPos::new(pos.x + dir.x(), pos.y, pos.z + dir.z()))
+            && !ctx.is_passable(&BlockPos::new(
+                pos.x + dir.right().x(),
+                pos.y,
+                pos.z + dir.right().z(),
+            ))
+        {
             continue;
         }
-        if !is_standable(&(pos + offset), world) {
+        if !ctx.is_standable(&(pos + offset)) {
             continue;
         }
         // +0.001 so it doesn't unnecessarily go diagonal sometimes

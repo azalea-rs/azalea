@@ -1,21 +1,22 @@
 pub mod basic;
 pub mod parkour;
 
-use std::fmt::Debug;
+use std::{cell::RefCell, fmt::Debug};
 
 use crate::{JumpEvent, LookAtEvent};
 
 use super::astar;
+use azalea_block::BlockState;
 use azalea_client::{StartSprintEvent, StartWalkEvent};
-use azalea_core::position::{BlockPos, Vec3};
+use azalea_core::position::{BlockPos, ChunkBlockPos, ChunkPos, Vec3};
 use azalea_physics::collision::{self, BlockWithShape};
 use azalea_world::ChunkStorage;
 use bevy_ecs::{entity::Entity, event::EventWriter};
+use nohash_hasher::IntMap;
 
 type Edge = astar::Edge<BlockPos, MoveData>;
 
-pub type SuccessorsFn =
-    fn(&azalea_world::ChunkStorage, BlockPos) -> Vec<astar::Edge<BlockPos, MoveData>>;
+pub type SuccessorsFn = fn(&PathfinderCtx, BlockPos) -> Vec<astar::Edge<BlockPos, MoveData>>;
 
 #[derive(Clone)]
 pub struct MoveData {
@@ -33,71 +34,110 @@ impl Debug for MoveData {
     }
 }
 
-/// whether this block is passable
-fn is_block_passable(pos: &BlockPos, world: &ChunkStorage) -> bool {
-    let Some(block) = world.get_block_state(pos) else {
-        return false;
-    };
-    if block.is_air() {
-        // fast path
-        return true;
-    }
-    if block.shape() != &*collision::EMPTY_SHAPE {
-        return false;
-    }
-    if block == azalea_registry::Block::Water.into() {
-        return false;
-    }
-    if block.waterlogged() {
-        return false;
-    }
-    // block.waterlogged currently doesn't account for seagrass and some other water
-    // blocks
-    if block == azalea_registry::Block::Seagrass.into() {
-        return false;
-    }
-
-    true
+pub struct PathfinderCtx<'a> {
+    world: &'a ChunkStorage,
+    cached_chunks: RefCell<IntMap<ChunkPos, Vec<azalea_world::Section>>>,
 }
 
-/// whether this block has a solid hitbox (i.e. we can stand on it)
-fn is_block_solid(pos: &BlockPos, world: &ChunkStorage) -> bool {
-    let Some(block) = world.get_block_state(pos) else {
-        return false;
-    };
-    if block.is_air() {
-        // fast path
-        return false;
-    }
-    block.shape() == &*collision::BLOCK_SHAPE
-}
-
-/// Whether this block and the block above are passable
-fn is_passable(pos: &BlockPos, world: &ChunkStorage) -> bool {
-    is_block_passable(pos, world) && is_block_passable(&pos.up(1), world)
-}
-
-/// Whether we can stand in this position. Checks if the block below is solid,
-/// and that the two blocks above that are passable.
-
-fn is_standable(pos: &BlockPos, world: &ChunkStorage) -> bool {
-    is_block_solid(&pos.down(1), world) && is_passable(pos, world)
-}
-
-/// Get the amount of air blocks until the next solid block below this one.
-fn fall_distance(pos: &BlockPos, world: &ChunkStorage) -> u32 {
-    let mut distance = 0;
-    let mut current_pos = pos.down(1);
-    while is_block_passable(&current_pos, world) {
-        distance += 1;
-        current_pos = current_pos.down(1);
-
-        if current_pos.y < world.min_y {
-            return u32::MAX;
+impl<'a> PathfinderCtx<'a> {
+    pub fn new(world: &'a ChunkStorage) -> Self {
+        Self {
+            world,
+            cached_chunks: Default::default(),
         }
     }
-    distance
+
+    fn get_block_state(&self, pos: &BlockPos) -> Option<BlockState> {
+        let chunk_pos = ChunkPos::from(pos);
+
+        let mut cached_chunks = self.cached_chunks.borrow_mut();
+        if let Some(sections) = cached_chunks.get(&chunk_pos) {
+            return azalea_world::chunk_storage::get_block_state_from_sections(
+                sections,
+                &ChunkBlockPos::from(pos),
+                self.world.min_y,
+            );
+        }
+
+        let chunk = self.world.get(&chunk_pos)?;
+        let chunk = chunk.read();
+
+        cached_chunks.insert(chunk_pos, chunk.sections.clone());
+
+        azalea_world::chunk_storage::get_block_state_from_sections(
+            &chunk.sections,
+            &ChunkBlockPos::from(pos),
+            self.world.min_y,
+        )
+    }
+
+    /// whether this block is passable
+    pub fn is_block_passable(&self, pos: &BlockPos) -> bool {
+        let Some(block) = self.get_block_state(pos) else {
+            return false;
+        };
+        if block.is_air() {
+            // fast path
+            return true;
+        }
+        if block.shape() != &*collision::EMPTY_SHAPE {
+            return false;
+        }
+        if block == azalea_registry::Block::Water.into() {
+            return false;
+        }
+        if block.waterlogged() {
+            return false;
+        }
+        // block.waterlogged currently doesn't account for seagrass and some other water
+        // blocks
+        if block == azalea_registry::Block::Seagrass.into() {
+            return false;
+        }
+
+        true
+    }
+
+    /// whether this block has a solid hitbox (i.e. we can stand on it)
+    pub fn is_block_solid(&self, pos: &BlockPos) -> bool {
+        let Some(block) = self.get_block_state(pos) else {
+            return false;
+        };
+        if block.is_air() {
+            // fast path
+            return false;
+        }
+        block.shape() == &*collision::BLOCK_SHAPE
+    }
+
+    /// Whether this block and the block above are passable
+    pub fn is_passable(&self, pos: &BlockPos) -> bool {
+        self.is_block_passable(pos) && self.is_block_passable(&pos.up(1))
+    }
+
+    /// Whether we can stand in this position. Checks if the block below is
+    /// solid, and that the two blocks above that are passable.
+
+    pub fn is_standable(&self, pos: &BlockPos) -> bool {
+        self.is_block_solid(&pos.down(1)) && self.is_passable(pos)
+    }
+
+    /// Get the amount of air blocks until the next solid block below this one.
+    pub fn fall_distance(&self, pos: &BlockPos) -> u32 {
+        let mut distance = 0;
+        let mut current_pos = pos.down(1);
+        while self.is_block_passable(&current_pos) {
+            distance += 1;
+            current_pos = current_pos.down(1);
+
+            if current_pos.y < self.world.min_y {
+                return u32::MAX;
+            }
+        }
+        distance
+    }
 }
+
 pub struct ExecuteCtx<'w1, 'w2, 'w3, 'w4, 'a> {
     pub entity: Entity,
     /// The node that we're trying to reach.
@@ -121,10 +161,10 @@ pub struct IsReachedCtx<'a> {
     pub physics: &'a azalea_entity::Physics,
 }
 
-pub fn default_move(world: &ChunkStorage, node: BlockPos) -> Vec<Edge> {
+pub fn default_move(ctx: &PathfinderCtx, node: BlockPos) -> Vec<Edge> {
     let mut edges = Vec::new();
-    edges.extend(basic::basic_move(world, node));
-    edges.extend(parkour::parkour_move(world, node));
+    edges.extend(basic::basic_move(ctx, node));
+    edges.extend(parkour::parkour_move(ctx, node));
     edges
 }
 
@@ -163,8 +203,9 @@ mod tests {
             .chunks
             .set_block_state(&BlockPos::new(0, 1, 0), BlockState::AIR, &world);
 
-        assert!(!is_block_passable(&BlockPos::new(0, 0, 0), &world));
-        assert!(is_block_passable(&BlockPos::new(0, 1, 0), &world));
+        let ctx = PathfinderCtx::new(&world);
+        assert!(!ctx.is_block_passable(&BlockPos::new(0, 0, 0)));
+        assert!(ctx.is_block_passable(&BlockPos::new(0, 1, 0),));
     }
 
     #[test]
@@ -183,8 +224,9 @@ mod tests {
             .chunks
             .set_block_state(&BlockPos::new(0, 1, 0), BlockState::AIR, &world);
 
-        assert!(is_block_solid(&BlockPos::new(0, 0, 0), &world));
-        assert!(!is_block_solid(&BlockPos::new(0, 1, 0), &world));
+        let ctx = PathfinderCtx::new(&world);
+        assert!(ctx.is_block_solid(&BlockPos::new(0, 0, 0)));
+        assert!(!ctx.is_block_solid(&BlockPos::new(0, 1, 0)));
     }
 
     #[test]
@@ -209,8 +251,9 @@ mod tests {
             .chunks
             .set_block_state(&BlockPos::new(0, 3, 0), BlockState::AIR, &world);
 
-        assert!(is_standable(&BlockPos::new(0, 1, 0), &world));
-        assert!(!is_standable(&BlockPos::new(0, 0, 0), &world));
-        assert!(!is_standable(&BlockPos::new(0, 2, 0), &world));
+        let ctx = PathfinderCtx::new(&world);
+        assert!(ctx.is_standable(&BlockPos::new(0, 1, 0)));
+        assert!(!ctx.is_standable(&BlockPos::new(0, 0, 0)));
+        assert!(!ctx.is_standable(&BlockPos::new(0, 2, 0)));
     }
 }

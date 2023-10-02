@@ -7,6 +7,7 @@ use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 use azalea_core::position::{BlockPos, ChunkBlockPos, ChunkPos, ChunkSectionBlockPos};
 use azalea_nbt::NbtCompound;
 use log::{debug, trace, warn};
+use nohash_hasher::IntMap;
 use parking_lot::RwLock;
 use std::str::FromStr;
 use std::{
@@ -37,7 +38,7 @@ pub struct PartialChunkStorage {
 pub struct ChunkStorage {
     pub height: u32,
     pub min_y: i32,
-    pub map: HashMap<ChunkPos, Weak<RwLock<Chunk>>>,
+    pub map: IntMap<ChunkPos, Weak<RwLock<Chunk>>>,
 }
 
 /// A single chunk in a world (16*?*16 blocks). This only contains the blocks
@@ -214,7 +215,7 @@ impl ChunkStorage {
         ChunkStorage {
             height,
             min_y,
-            map: HashMap::new(),
+            map: IntMap::default(),
         }
     }
 

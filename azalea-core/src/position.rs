@@ -5,6 +5,7 @@
 
 use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
 use std::{
+    hash::Hash,
     io::{Cursor, Write},
     ops::{Add, AddAssign, Mul, Rem, Sub},
 };
@@ -193,7 +194,7 @@ impl BlockPos {
 
 /// Chunk coordinates are used to represent where a chunk is in the world. You
 /// can convert the x and z to block coordinates by multiplying them by 16.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, McBuf)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, McBuf)]
 pub struct ChunkPos {
     pub x: i32,
     pub z: i32,
@@ -213,6 +214,16 @@ impl Add<ChunkPos> for ChunkPos {
         }
     }
 }
+impl Hash for ChunkPos {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        // optimized hash that only calls hash once
+        let combined = (self.x as u64) << 32 | (self.z as u64);
+        combined.hash(state);
+    }
+}
+/// nohash_hasher lets us have IntMap<ChunkPos, _> which is significantly faster
+/// than a normal HashMap
+impl nohash_hasher::IsEnabled for ChunkPos {}
 
 /// The coordinates of a chunk section in the world.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -273,6 +284,7 @@ pub struct GlobalPos {
 }
 
 impl From<&BlockPos> for ChunkPos {
+    #[inline]
     fn from(pos: &BlockPos) -> Self {
         ChunkPos {
             x: pos.x.div_floor(16),
@@ -298,6 +310,7 @@ impl From<ChunkSectionPos> for ChunkPos {
 }
 
 impl From<&BlockPos> for ChunkBlockPos {
+    #[inline]
     fn from(pos: &BlockPos) -> Self {
         ChunkBlockPos {
             x: pos.x.rem_euclid(16) as u8,
@@ -318,6 +331,7 @@ impl From<&BlockPos> for ChunkSectionBlockPos {
 }
 
 impl From<&ChunkBlockPos> for ChunkSectionBlockPos {
+    #[inline]
     fn from(pos: &ChunkBlockPos) -> Self {
         ChunkSectionBlockPos {
             x: pos.x,
@@ -327,6 +341,7 @@ impl From<&ChunkBlockPos> for ChunkSectionBlockPos {
     }
 }
 impl From<&Vec3> for BlockPos {
+    #[inline]
     fn from(pos: &Vec3) -> Self {
         BlockPos {
             x: pos.x.floor() as i32,
@@ -336,6 +351,7 @@ impl From<&Vec3> for BlockPos {
     }
 }
 impl From<Vec3> for BlockPos {
+    #[inline]
     fn from(pos: Vec3) -> Self {
         BlockPos::from(&pos)
     }

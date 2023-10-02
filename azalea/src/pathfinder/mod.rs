@@ -19,6 +19,7 @@ use crate::ecs::{
     query::{With, Without},
     system::{Commands, Query, Res},
 };
+use crate::pathfinder::moves::PathfinderCtx;
 use azalea_client::movement::walk_listener;
 use azalea_client::{StartSprintEvent, StartWalkEvent};
 use azalea_core::position::BlockPos;
@@ -178,7 +179,8 @@ fn goto_listener(
             debug!("start: {start:?}");
 
             let world = &world_lock.read().chunks;
-            let successors = |pos: BlockPos| successors_fn(world, pos);
+            let ctx = PathfinderCtx::new(world);
+            let successors = |pos: BlockPos| successors_fn(&ctx, pos);
 
             let mut attempt_number = 0;
 
@@ -192,15 +194,20 @@ fn goto_listener(
                     |n| goal.heuristic(n),
                     successors,
                     |n| goal.success(n),
-                    Duration::from_secs(if attempt_number == 0 { 1 } else { 5 }),
+                    Duration::from_secs(if attempt_number == 0 { 10 } else { 10 }),
                 );
                 let end_time = std::time::Instant::now();
                 debug!("partial: {partial:?}");
-                debug!("time: {:?}", end_time - start_time);
+                let duration = end_time - start_time;
+                if partial {
+                    info!("Pathfinder took {duration:?} (timed out)");
+                } else {
+                    info!("Pathfinder took {duration:?}");
+                }
 
-                info!("Path:");
+                debug!("Path:");
                 for movement in &movements {
-                    info!("  {:?}", movement.target);
+                    debug!("  {:?}", movement.target);
                 }
 
                 path = movements.into_iter().collect::<VecDeque<_>>();
@@ -275,11 +282,10 @@ fn path_found_listener(
                         let world_lock = instance_container.get(instance_name).expect(
                             "Entity tried to pathfind but the entity isn't in a valid world",
                         );
+                        let world = &world_lock.read().chunks;
+                        let ctx = PathfinderCtx::new(&world);
                         let successors_fn: moves::SuccessorsFn = event.successors_fn;
-                        let successors = |pos: BlockPos| {
-                            let world = &world_lock.read().chunks;
-                            successors_fn(world, pos)
-                        };
+                        let successors = |pos: BlockPos| successors_fn(&ctx, pos);
 
                         if successors(last_node.target)
                             .iter()
@@ -439,10 +445,9 @@ fn tick_execute_path(
 
         {
             // obstruction check (the path we're executing isn't possible anymore)
-            let successors = |pos: BlockPos| {
-                let world = &world_lock.read().chunks;
-                successors_fn(world, pos)
-            };
+            let world = &world_lock.read().chunks;
+            let ctx = PathfinderCtx::new(&world);
+            let successors = |pos: BlockPos| successors_fn(&ctx, pos);
 
             if let Some(last_reached_node) = pathfinder.last_reached_node {
                 if let Some(obstructed_index) =
