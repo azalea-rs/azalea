@@ -1,5 +1,5 @@
 mod suggestions;
- mod suggestions_builder;
+mod suggestions_builder;
 
 use crate::context::StringRange;
 #[cfg(feature = "azalea-buf")]

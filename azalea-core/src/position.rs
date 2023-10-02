@@ -15,28 +15,33 @@ use crate::resource_location::ResourceLocation;
 macro_rules! vec3_impl {
     ($name:ident, $type:ty) => {
         impl $name {
+            #[inline]
             pub fn new(x: $type, y: $type, z: $type) -> Self {
                 Self { x, y, z }
             }
 
             /// Get the distance of this vector to the origin by doing `x^2 + y^2 +
             /// z^2`.
+            #[inline]
             pub fn length_sqr(&self) -> $type {
                 self.x * self.x + self.y * self.y + self.z * self.z
             }
 
             /// Get the squared distance from this position to another position.
             /// Equivalent to `(self - other).length_sqr()`.
+            #[inline]
             pub fn distance_to_sqr(&self, other: &Self) -> $type {
                 (self - other).length_sqr()
             }
 
+            #[inline]
             pub fn horizontal_distance_sqr(&self) -> $type {
                 self.x * self.x + self.z * self.z
             }
 
             /// Return a new instance of this position with the y coordinate
             /// decreased by the given number.
+            #[inline]
             pub fn down(&self, y: $type) -> Self {
                 Self {
                     x: self.x,
@@ -46,6 +51,7 @@ macro_rules! vec3_impl {
             }
             /// Return a new instance of this position with the y coordinate
             /// increased by the given number.
+            #[inline]
             pub fn up(&self, y: $type) -> Self {
                 Self {
                     x: self.x,
@@ -54,6 +60,7 @@ macro_rules! vec3_impl {
                 }
             }
 
+            #[inline]
             pub fn dot(&self, other: Self) -> $type {
                 self.x * other.x + self.y * other.y + self.z * other.z
             }
@@ -62,6 +69,7 @@ macro_rules! vec3_impl {
         impl Add for &$name {
             type Output = $name;
 
+            #[inline]
             fn add(self, rhs: Self) -> Self::Output {
                 $name {
                     x: self.x + rhs.x,
@@ -74,12 +82,14 @@ macro_rules! vec3_impl {
         impl Add for $name {
             type Output = $name;
 
+            #[inline]
             fn add(self, rhs: Self) -> Self::Output {
                 (&self).add(&rhs)
             }
         }
 
         impl AddAssign for $name {
+            #[inline]
             fn add_assign(&mut self, rhs: Self) {
                 self.x += rhs.x;
                 self.y += rhs.y;
@@ -89,6 +99,7 @@ macro_rules! vec3_impl {
         impl Rem<$type> for $name {
             type Output = Self;
 
+            #[inline]
             fn rem(self, rhs: $type) -> Self::Output {
                 Self {
                     x: self.x % rhs,
@@ -102,6 +113,7 @@ macro_rules! vec3_impl {
             type Output = $name;
 
             /// Find the difference between two positions.
+            #[inline]
             fn sub(self, other: Self) -> Self::Output {
                 Self::Output {
                     x: self.x - other.x,
@@ -113,6 +125,7 @@ macro_rules! vec3_impl {
         impl Sub for $name {
             type Output = Self;
 
+            #[inline]
             fn sub(self, other: Self) -> Self::Output {
                 (&self).sub(&other)
             }
@@ -121,6 +134,7 @@ macro_rules! vec3_impl {
         impl Mul<$type> for $name {
             type Output = Self;
 
+            #[inline]
             fn mul(self, multiplier: $type) -> Self::Output {
                 Self {
                     x: self.x * multiplier,

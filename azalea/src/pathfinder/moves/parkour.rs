@@ -22,6 +22,10 @@ fn parkour_forward_1_move(ctx: &PathfinderCtx, pos: BlockPos) -> Vec<Edge> {
         let gap_offset = BlockPos::new(dir.x(), 0, dir.z());
         let offset = BlockPos::new(dir.x() * 2, 0, dir.z() * 2);
 
+        // make sure we actually have to jump
+        if ctx.is_block_solid(&(pos + gap_offset).down(1)) {
+            continue;
+        }
         if !ctx.is_standable(&(pos + offset)) {
             continue;
         }
@@ -29,10 +33,6 @@ fn parkour_forward_1_move(ctx: &PathfinderCtx, pos: BlockPos) -> Vec<Edge> {
             continue;
         }
         if !ctx.is_block_passable(&(pos + gap_offset).up(2)) {
-            continue;
-        }
-        // make sure we actually have to jump
-        if ctx.is_block_solid(&(pos + gap_offset).down(1)) {
             continue;
         }
         // make sure it's not a headhitter
@@ -64,6 +64,13 @@ fn parkour_forward_2_move(ctx: &PathfinderCtx, pos: BlockPos) -> Vec<Edge> {
         let gap_2_offset = BlockPos::new(dir.x() * 2, 0, dir.z() * 2);
         let offset = BlockPos::new(dir.x() * 3, 0, dir.z() * 3);
 
+        // make sure we actually have to jump
+        if ctx.is_block_solid(&(pos + gap_1_offset).down(1))
+            || ctx.is_block_solid(&(pos + gap_2_offset).down(1))
+        {
+            continue;
+        }
+
         if !ctx.is_standable(&(pos + offset)) {
             continue;
         }
@@ -77,10 +84,6 @@ fn parkour_forward_2_move(ctx: &PathfinderCtx, pos: BlockPos) -> Vec<Edge> {
             continue;
         }
         if !ctx.is_block_passable(&(pos + gap_2_offset).up(2)) {
-            continue;
-        }
-        // make sure we actually have to jump
-        if ctx.is_block_solid(&(pos + gap_1_offset).down(1)) {
             continue;
         }
         // make sure it's not a headhitter
@@ -114,6 +117,10 @@ fn parkour_headhitter_forward_1_move(ctx: &PathfinderCtx, pos: BlockPos) -> Vec<
         let gap_offset = BlockPos::new(dir.x(), 0, dir.z());
         let offset = BlockPos::new(dir.x() * 2, 0, dir.z() * 2);
 
+        // make sure we actually have to jump
+        if ctx.is_block_solid(&(pos + gap_offset).down(1)) {
+            continue;
+        }
         if !ctx.is_standable(&(pos + offset)) {
             continue;
         }
@@ -121,10 +128,6 @@ fn parkour_headhitter_forward_1_move(ctx: &PathfinderCtx, pos: BlockPos) -> Vec<
             continue;
         }
         if !ctx.is_block_passable(&(pos + gap_offset).up(2)) {
-            continue;
-        }
-        // make sure we actually have to jump
-        if ctx.is_block_solid(&(pos + gap_offset).down(1)) {
             continue;
         }
         // make sure it is a headhitter

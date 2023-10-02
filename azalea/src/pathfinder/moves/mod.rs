@@ -80,7 +80,7 @@ impl<'a> PathfinderCtx<'a> {
             // fast path
             return true;
         }
-        if block.shape() != &*collision::EMPTY_SHAPE {
+        if !block.is_shape_empty() {
             return false;
         }
         if block == azalea_registry::Block::Water.into() {
@@ -107,7 +107,7 @@ impl<'a> PathfinderCtx<'a> {
             // fast path
             return false;
         }
-        block.shape() == &*collision::BLOCK_SHAPE
+        block.is_shape_full()
     }
 
     /// Whether this block and the block above are passable
