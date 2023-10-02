@@ -148,7 +148,7 @@ def generate_code_for_shape(shape_id: str, parts: list[list[float]]):
     code += f'static SHAPE{shape_id}: Lazy<VoxelShape> = Lazy::new(|| {{'
     steps = []
     if parts == ():
-        steps.append('collision::empty_shape()')
+        steps.append('collision::EMPTY_SHAPE.clone()')
     else:
         steps.append(f'collision::box_shape({make_arguments(parts[0])})')
         for part in parts[1:]:

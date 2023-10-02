@@ -6,15 +6,15 @@ use azalea_core::{
     math::{binary_search, EPSILON},
     position::{BlockPos, Vec3},
 };
-use std::{cmp, num::NonZeroU32};
+use std::{cmp, num::NonZeroU32, sync::LazyLock};
 
 pub struct Shapes;
 
-pub fn block_shape() -> VoxelShape {
+pub static BLOCK_SHAPE: LazyLock<VoxelShape> = LazyLock::new(|| {
     let mut shape = BitSetDiscreteVoxelShape::new(1, 1, 1);
     shape.fill(0, 0, 0);
     VoxelShape::Cube(CubeVoxelShape::new(DiscreteVoxelShape::BitSet(shape)))
-}
+});
 
 pub fn box_shape(
     min_x: f64,
@@ -43,7 +43,7 @@ pub fn box_shape_unchecked(
     max_z: f64,
 ) -> VoxelShape {
     if max_x - min_x < EPSILON && max_y - min_y < EPSILON && max_z - min_z < EPSILON {
-        return empty_shape();
+        return EMPTY_SHAPE.clone();
     }
 
     let x_bits = find_bits(min_x, max_x);
@@ -52,14 +52,14 @@ pub fn box_shape_unchecked(
 
     if x_bits < 0 || y_bits < 0 || z_bits < 0 {
         return VoxelShape::Array(ArrayVoxelShape::new(
-            block_shape().shape(),
+            BLOCK_SHAPE.shape(),
             vec![min_x, max_x],
             vec![min_y, max_y],
             vec![min_z, max_z],
         ));
     }
     if x_bits == 0 && y_bits == 0 && z_bits == 0 {
-        return block_shape();
+        return BLOCK_SHAPE.clone();
     }
 
     let x_bits = 1 << x_bits;
@@ -79,14 +79,14 @@ pub fn box_shape_unchecked(
     VoxelShape::Cube(CubeVoxelShape::new(DiscreteVoxelShape::BitSet(shape)))
 }
 
-pub fn empty_shape() -> VoxelShape {
+pub static EMPTY_SHAPE: LazyLock<VoxelShape> = LazyLock::new(|| {
     VoxelShape::Array(ArrayVoxelShape::new(
         DiscreteVoxelShape::BitSet(BitSetDiscreteVoxelShape::new(0, 0, 0)),
         vec![0.],
         vec![0.],
         vec![0.],
     ))
-}
+});
 
 fn find_bits(min: f64, max: f64) -> i32 {
     if min < -EPSILON || max > 1. + EPSILON {
@@ -143,10 +143,18 @@ impl Shapes {
         let op_true_false = op(true, false);
         let op_false_true = op(false, true);
         if a.is_empty() {
-            return if op_false_true { b } else { empty_shape() };
+            return if op_false_true {
+                b
+            } else {
+                EMPTY_SHAPE.clone()
+            };
         }
         if b.is_empty() {
-            return if op_true_false { a } else { empty_shape() };
+            return if op_true_false {
+                a
+            } else {
+                EMPTY_SHAPE.clone()
+            };
         }
         // IndexMerger var5 = createIndexMerger(1, a.getCoords(Direction.Axis.X),
         // b.getCoords(Direction.Axis.X), var3, var4); IndexMerger var6 =
@@ -360,7 +368,7 @@ impl VoxelShape {
     #[must_use]
     pub fn move_relative(&self, x: f64, y: f64, z: f64) -> VoxelShape {
         if self.shape().is_empty() {
-            return empty_shape();
+            return EMPTY_SHAPE.clone();
         }
 
         VoxelShape::Array(ArrayVoxelShape::new(
@@ -510,24 +518,15 @@ impl VoxelShape {
     //     return var1[0];
     // }
     fn optimize(&self) -> VoxelShape {
-        // let mut var1 = empty_shape();
-        // self.for_all_boxes(|var1x, var3, var5, var7, var9, var11| {
-        //     var1 = Shapes::join_unoptimized(
-        //         var1,
-        //         box_shape(var1x, var3, var5, var7, var9, var11),
-        //         |a, b| a || b,
-        //     );
-        // });
-        // var1
-        let mut var1 = empty_shape();
+        let mut shape = EMPTY_SHAPE.clone();
         self.for_all_boxes(|var1x, var3, var5, var7, var9, var11| {
-            var1 = Shapes::join_unoptimized(
-                var1.clone(),
+            shape = Shapes::join_unoptimized(
+                shape.clone(),
                 box_shape(var1x, var3, var5, var7, var9, var11),
                 |a, b| a || b,
             );
         });
-        var1
+        shape
     }
 
     // public void forAllBoxes(Shapes.DoubleLineConsumer var1) {
@@ -703,7 +702,7 @@ mod tests {
 
     #[test]
     fn test_block_shape() {
-        let shape = block_shape();
+        let shape = &*BLOCK_SHAPE;
         assert_eq!(shape.shape().size(Axis::X), 1);
         assert_eq!(shape.shape().size(Axis::Y), 1);
         assert_eq!(shape.shape().size(Axis::Z), 1);

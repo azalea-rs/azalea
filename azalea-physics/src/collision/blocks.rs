@@ -15,7 +15,7 @@ pub trait BlockWithShape {
     fn shape(&self) -> &'static VoxelShape;
 }
 
-static SHAPE0: Lazy<VoxelShape> = Lazy::new(|| collision::empty_shape());
+static SHAPE0: Lazy<VoxelShape> = Lazy::new(|| collision::EMPTY_SHAPE.clone());
 static SHAPE1: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0., 1., 1., 1.));
 static SHAPE2: Lazy<VoxelShape> =
     Lazy::new(|| collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 0.5625));

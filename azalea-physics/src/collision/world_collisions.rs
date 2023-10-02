@@ -1,4 +1,4 @@
-use super::Shapes;
+use super::{Shapes, BLOCK_SHAPE};
 use crate::collision::{BlockWithShape, VoxelShape, AABB};
 use azalea_block::BlockState;
 use azalea_core::{
@@ -8,7 +8,7 @@ use azalea_core::{
 };
 use azalea_world::{Chunk, Instance};
 use parking_lot::RwLock;
-use std::sync::Arc;
+use std::{ops::Deref, sync::Arc};
 
 pub fn get_block_collisions(world: &Instance, aabb: AABB) -> BlockCollisions<'_> {
     BlockCollisions::new(world, aabb)
@@ -91,7 +91,7 @@ impl<'a> Iterator for BlockCollisions<'a> {
             let block_shape = block_state.shape();
 
             // if it's a full block do a faster collision check
-            if block_shape == &crate::collision::block_shape() {
+            if block_shape == BLOCK_SHAPE.deref() {
                 if !self.aabb.intersects_aabb(&AABB {
                     min_x: item.pos.x as f64,
                     min_y: item.pos.y as f64,

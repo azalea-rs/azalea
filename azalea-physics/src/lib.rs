@@ -1,5 +1,6 @@
 #![doc = include_str!("../README.md")]
 #![feature(trait_alias)]
+#![feature(lazy_cell)]
 
 pub mod clip;
 pub mod collision;
