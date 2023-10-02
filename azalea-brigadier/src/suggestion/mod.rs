@@ -1,4 +1,5 @@
 mod suggestions;
+ mod suggestions_builder;
 
 use crate::context::StringRange;
 #[cfg(feature = "azalea-buf")]
@@ -7,7 +8,8 @@ use azalea_buf::McBufWritable;
 use azalea_chat::FormattedText;
 #[cfg(feature = "azalea-buf")]
 use std::io::Write;
-pub use suggestions::*;
+pub use suggestions::Suggestions;
+pub use suggestions_builder::SuggestionsBuilder;
 
 /// A suggestion given to the user for what they might want to type next.
 ///
