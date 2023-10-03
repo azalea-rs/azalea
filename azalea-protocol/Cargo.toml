@@ -9,7 +9,7 @@ version = "0.8.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-async-compression = { version = "^0.4.2", features = [
+async-compression = { version = "^0.4.3", features = [
     "tokio",
     "zlib",
 ], optional = true }
@@ -33,7 +33,7 @@ azalea-nbt = { path = "../azalea-nbt", version = "^0.8.0", features = [
 azalea-protocol-macros = { path = "./azalea-protocol-macros", version = "0.8.0" }
 azalea-registry = { path = "../azalea-registry", version = "0.8.0" }
 azalea-world = { path = "../azalea-world", version = "0.8.0" }
-bevy_ecs = { version = "0.11.2", default-features = false }
+bevy_ecs = { version = "0.11.3", default-features = false }
 byteorder = "^1.4.3"
 bytes = "^1.5.0"
 flate2 = "1.0.27"
@@ -42,10 +42,10 @@ futures-lite = "1.13.0"
 futures-util = "0.3.28"
 log = "0.4.20"
 serde = { version = "^1.0", features = ["serde_derive"] }
-serde_json = "^1.0.105"
-thiserror = "1.0.48"
+serde_json = "^1.0.107"
+thiserror = "1.0.49"
 tokio = { version = "^1.32.0", features = ["io-util", "net", "macros"] }
-tokio-util = { version = "0.7.8", features = ["codec"] }
+tokio-util = { version = "0.7.9", features = ["codec"] }
 trust-dns-resolver = { version = "^0.23.0", default-features = false, features = [
     "tokio-runtime",
 ] }

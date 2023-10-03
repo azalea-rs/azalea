@@ -9,7 +9,7 @@ version = "0.8.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-reqwest = { version = "0.11.20", default-features = false }
+reqwest = { version = "0.11.21", default-features = false }
 anyhow = "1.0.75"
 async-trait = "0.1.73"
 azalea-auth = { path = "../azalea-auth", version = "0.8.0" }
@@ -23,11 +23,11 @@ azalea-buf = { path = "../azalea-buf", version = "0.8.0" }
 azalea-protocol = { path = "../azalea-protocol", version = "0.8.0" }
 azalea-registry = { path = "../azalea-registry", version = "0.8.0" }
 azalea-world = { path = "../azalea-world", version = "0.8.0" }
-bevy_app = "0.11.2"
-bevy_ecs = "0.11.2"
-bevy_log = { version = "0.11.2", optional = true }
-bevy_tasks = "0.11.2"
-bevy_time = "0.11.2"
+bevy_app = "0.11.3"
+bevy_ecs = "0.11.3"
+bevy_log = { version = "0.11.3", optional = true }
+bevy_tasks = "0.11.3"
+bevy_time = "0.11.3"
 azalea-inventory = { path = "../azalea-inventory", version = "0.8.0" }
 derive_more = { version = "0.99.17", features = ["deref", "deref_mut"] }
 futures = "0.3.28"
@@ -35,13 +35,13 @@ log = "0.4.20"
 nohash-hasher = "0.2.0"
 once_cell = "1.18.0"
 parking_lot = { version = "^0.12.1", features = ["deadlock_detection"] }
-regex = "1.9.5"
-thiserror = "^1.0.48"
+regex = "1.9.6"
+thiserror = "^1.0.49"
 tokio = { version = "^1.32.0", features = ["sync"] }
 uuid = "^1.4.1"
 azalea-entity = { version = "0.8.0", path = "../azalea-entity" }
-serde_json = "1.0.104"
-serde = "1.0.183"
+serde_json = "1.0.107"
+serde = "1.0.188"
 
 [features]
 default = ["log"]
