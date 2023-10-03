@@ -586,6 +586,8 @@ mod tests {
             start_pos.z as f64 + 0.5,
         ));
         let mut simulation = Simulation::new(chunks, player);
+
+        // you can uncomment this while debugging tests to get trace logs
         // simulation.app.add_plugins(bevy_log::LogPlugin {
         //     level: bevy_log::Level::TRACE,
         //     filter: "".to_string(),
@@ -693,7 +695,7 @@ mod tests {
         let mut simulation = setup_simulation(
             &mut partial_chunks,
             BlockPos::new(0, 71, 0),
-            BlockPos::new(3, 68, 3),
+            BlockPos::new(3, 67, 4),
             vec![
                 BlockPos::new(0, 70, 0),
                 BlockPos::new(0, 69, 1),
@@ -703,7 +705,7 @@ mod tests {
                 BlockPos::new(3, 66, 4),
             ],
         );
-        for _ in 0..140 {
+        for _ in 0..100 {
             simulation.tick();
         }
         assert_eq!(

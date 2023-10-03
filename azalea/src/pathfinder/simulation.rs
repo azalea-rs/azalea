@@ -68,7 +68,7 @@ impl Simulation {
             azalea_client::task_pool::TaskPoolPlugin::default(),
         ))
         // make sure it doesn't do fixed ticks without us telling it to
-        .insert_resource(FixedTime::new(Duration::from_secs(60)))
+        .insert_resource(FixedTime::new(Duration::MAX))
         .insert_resource(InstanceContainer {
             instances: [(instance_name.clone(), Arc::downgrade(&instance.clone()))]
                 .iter()
