@@ -48,6 +48,7 @@ impl<'a> PathfinderCtx<'a> {
 
     fn get_block_state(&self, pos: &BlockPos) -> Option<BlockState> {
         let chunk_pos = ChunkPos::from(pos);
+        let chunk_block_pos = ChunkBlockPos::from(pos);
 
         let mut cached_chunks = self.cached_chunks.borrow_mut();
         if let Some(sections) = cached_chunks.iter().find_map(|(pos, sections)| {
@@ -59,7 +60,7 @@ impl<'a> PathfinderCtx<'a> {
         }) {
             return azalea_world::chunk_storage::get_block_state_from_sections(
                 sections,
-                &ChunkBlockPos::from(pos),
+                &chunk_block_pos,
                 self.world.min_y,
             );
         }
@@ -69,7 +70,6 @@ impl<'a> PathfinderCtx<'a> {
 
         cached_chunks.push((chunk_pos, chunk.sections.clone()));
 
-        let chunk_block_pos = ChunkBlockPos::from(pos);
         azalea_world::chunk_storage::get_block_state_from_sections(
             &chunk.sections,
             &chunk_block_pos,

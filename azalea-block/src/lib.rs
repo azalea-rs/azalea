@@ -53,6 +53,7 @@ impl BlockState {
         state_id <= Self::max_state()
     }
 
+    #[inline]
     pub fn is_air(&self) -> bool {
         self == &Self::AIR
     }

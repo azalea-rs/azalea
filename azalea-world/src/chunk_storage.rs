@@ -315,6 +315,7 @@ impl Chunk {
 
 /// Get the block state at the given position from a list of sections. Returns
 /// `None` if the position is out of bounds.
+#[inline]
 pub fn get_block_state_from_sections(
     sections: &[Section],
     pos: &ChunkBlockPos,
@@ -329,7 +330,6 @@ pub fn get_block_state_from_sections(
         // y position is out of bounds
         return None;
     };
-    // TODO: make sure the section exists
     let section = &sections[section_index];
     let chunk_section_pos = ChunkSectionBlockPos::from(pos);
     Some(section.get(chunk_section_pos))

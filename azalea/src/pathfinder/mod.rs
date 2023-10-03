@@ -194,7 +194,7 @@ fn goto_listener(
                     |n| goal.heuristic(n),
                     successors,
                     |n| goal.success(n),
-                    Duration::from_secs(if attempt_number == 0 { 10 } else { 10 }),
+                    Duration::from_secs(if attempt_number == 0 { 1 } else { 5 }),
                 );
                 let end_time = std::time::Instant::now();
                 debug!("partial: {partial:?}");
