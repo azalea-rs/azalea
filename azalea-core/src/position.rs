@@ -228,11 +228,17 @@ impl Add<ChunkPos> for ChunkPos {
         }
     }
 }
+impl From<ChunkPos> for u64 {
+    #[inline]
+    fn from(pos: ChunkPos) -> Self {
+        ((pos.x as u64) << 32) | (pos.z as u64)
+    }
+}
 impl Hash for ChunkPos {
+    #[inline]
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         // optimized hash that only calls hash once
-        let combined = (self.x as u64) << 32 | (self.z as u64);
-        combined.hash(state);
+        u64::from(*self).hash(state);
     }
 }
 /// nohash_hasher lets us have IntMap<ChunkPos, _> which is significantly faster
@@ -309,6 +315,15 @@ impl From<&BlockPos> for ChunkPos {
 
 impl From<BlockPos> for ChunkSectionPos {
     fn from(pos: BlockPos) -> Self {
+        ChunkSectionPos {
+            x: pos.x.div_floor(16),
+            y: pos.y.div_floor(16),
+            z: pos.z.div_floor(16),
+        }
+    }
+}
+impl From<&BlockPos> for ChunkSectionPos {
+    fn from(pos: &BlockPos) -> Self {
         ChunkSectionPos {
             x: pos.x.div_floor(16),
             y: pos.y.div_floor(16),

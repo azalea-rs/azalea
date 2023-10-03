@@ -283,7 +283,7 @@ fn path_found_listener(
                             "Entity tried to pathfind but the entity isn't in a valid world",
                         );
                         let world = &world_lock.read().chunks;
-                        let ctx = PathfinderCtx::new(&world);
+                        let ctx = PathfinderCtx::new(world);
                         let successors_fn: moves::SuccessorsFn = event.successors_fn;
                         let successors = |pos: BlockPos| successors_fn(&ctx, pos);
 
@@ -446,7 +446,7 @@ fn tick_execute_path(
         {
             // obstruction check (the path we're executing isn't possible anymore)
             let world = &world_lock.read().chunks;
-            let ctx = PathfinderCtx::new(&world);
+            let ctx = PathfinderCtx::new(world);
             let successors = |pos: BlockPos| successors_fn(&ctx, pos);
 
             if let Some(last_reached_node) = pathfinder.last_reached_node {

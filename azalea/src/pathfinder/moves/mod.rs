@@ -9,10 +9,9 @@ use super::astar;
 use azalea_block::BlockState;
 use azalea_client::{StartSprintEvent, StartWalkEvent};
 use azalea_core::position::{BlockPos, ChunkBlockPos, ChunkPos, Vec3};
-use azalea_physics::collision::{self, BlockWithShape};
+use azalea_physics::collision::BlockWithShape;
 use azalea_world::ChunkStorage;
 use bevy_ecs::{entity::Entity, event::EventWriter};
-use nohash_hasher::IntMap;
 
 type Edge = astar::Edge<BlockPos, MoveData>;
 
@@ -36,7 +35,7 @@ impl Debug for MoveData {
 
 pub struct PathfinderCtx<'a> {
     world: &'a ChunkStorage,
-    cached_chunks: RefCell<IntMap<ChunkPos, Vec<azalea_world::Section>>>,
+    cached_chunks: RefCell<Vec<(ChunkPos, Vec<azalea_world::Section>)>>,
 }
 
 impl<'a> PathfinderCtx<'a> {
@@ -51,7 +50,13 @@ impl<'a> PathfinderCtx<'a> {
         let chunk_pos = ChunkPos::from(pos);
 
         let mut cached_chunks = self.cached_chunks.borrow_mut();
-        if let Some(sections) = cached_chunks.get(&chunk_pos) {
+        if let Some(sections) = cached_chunks.iter().find_map(|(pos, sections)| {
+            if *pos == chunk_pos {
+                Some(sections)
+            } else {
+                None
+            }
+        }) {
             return azalea_world::chunk_storage::get_block_state_from_sections(
                 sections,
                 &ChunkBlockPos::from(pos),
@@ -62,11 +67,12 @@ impl<'a> PathfinderCtx<'a> {
         let chunk = self.world.get(&chunk_pos)?;
         let chunk = chunk.read();
 
-        cached_chunks.insert(chunk_pos, chunk.sections.clone());
+        cached_chunks.push((chunk_pos, chunk.sections.clone()));
 
+        let chunk_block_pos = ChunkBlockPos::from(pos);
         azalea_world::chunk_storage::get_block_state_from_sections(
             &chunk.sections,
-            &ChunkBlockPos::from(pos),
+            &chunk_block_pos,
             self.world.min_y,
         )
     }

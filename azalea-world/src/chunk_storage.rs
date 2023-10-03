@@ -397,7 +397,7 @@ impl McBufWritable for Section {
 }
 
 impl Section {
-    fn get(&self, pos: ChunkSectionBlockPos) -> BlockState {
+    pub fn get(&self, pos: ChunkSectionBlockPos) -> BlockState {
         // TODO: use the unsafe method and do the check earlier
         let state = self
             .states
@@ -406,7 +406,7 @@ impl Section {
         BlockState::try_from(state).unwrap_or(BlockState::AIR)
     }
 
-    fn get_and_set(&mut self, pos: ChunkSectionBlockPos, state: BlockState) -> BlockState {
+    pub fn get_and_set(&mut self, pos: ChunkSectionBlockPos, state: BlockState) -> BlockState {
         let previous_state =
             self.states
                 .get_and_set(pos.x as usize, pos.y as usize, pos.z as usize, state.id);
@@ -414,7 +414,7 @@ impl Section {
         BlockState::try_from(previous_state).unwrap_or(BlockState::AIR)
     }
 
-    fn set(&mut self, pos: ChunkSectionBlockPos, state: BlockState) {
+    pub fn set(&mut self, pos: ChunkSectionBlockPos, state: BlockState) {
         self.states
             .set(pos.x as usize, pos.y as usize, pos.z as usize, state.id);
     }
