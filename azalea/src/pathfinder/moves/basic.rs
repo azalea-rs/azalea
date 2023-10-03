@@ -80,7 +80,7 @@ fn ascend_move(ctx: &PathfinderCtx, pos: BlockPos) -> Vec<Edge> {
             continue;
         }
 
-        let cost = SPRINT_ONE_BLOCK_COST + *JUMP_ONE_BLOCK_COST;
+        let cost = SPRINT_ONE_BLOCK_COST + JUMP_PENALTY + *JUMP_ONE_BLOCK_COST;
 
         edges.push(Edge {
             movement: astar::Movement {

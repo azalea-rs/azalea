@@ -40,7 +40,7 @@ fn parkour_forward_1_move(ctx: &PathfinderCtx, pos: BlockPos) -> Vec<Edge> {
             continue;
         }
 
-        let cost = *JUMP_ONE_BLOCK_COST + SPRINT_ONE_BLOCK_COST + SPRINT_ONE_BLOCK_COST;
+        let cost = JUMP_PENALTY + WALK_ONE_BLOCK_COST * 2.;
 
         edges.push(Edge {
             movement: astar::Movement {
@@ -91,10 +91,7 @@ fn parkour_forward_2_move(ctx: &PathfinderCtx, pos: BlockPos) -> Vec<Edge> {
             continue;
         }
 
-        let cost = *JUMP_ONE_BLOCK_COST
-            + SPRINT_ONE_BLOCK_COST
-            + SPRINT_ONE_BLOCK_COST
-            + SPRINT_ONE_BLOCK_COST;
+        let cost = JUMP_PENALTY + WALK_ONE_BLOCK_COST * 3.;
 
         edges.push(Edge {
             movement: astar::Movement {
@@ -135,7 +132,7 @@ fn parkour_headhitter_forward_1_move(ctx: &PathfinderCtx, pos: BlockPos) -> Vec<
             continue;
         }
 
-        let cost = *JUMP_ONE_BLOCK_COST + WALK_ONE_BLOCK_COST + WALK_ONE_BLOCK_COST;
+        let cost = JUMP_PENALTY + WALK_ONE_BLOCK_COST + WALK_ONE_BLOCK_COST;
 
         edges.push(Edge {
             movement: astar::Movement {

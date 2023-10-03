@@ -8,6 +8,7 @@ pub const SPRINT_ONE_BLOCK_COST: f32 = 20. / 5.612;
 pub const FALL_ONE_BLOCK_COST: f32 = 0.5;
 pub const WALK_OFF_BLOCK_COST: f32 = WALK_ONE_BLOCK_COST * 0.8;
 pub const SPRINT_MULTIPLIER: f32 = SPRINT_ONE_BLOCK_COST / WALK_ONE_BLOCK_COST;
+pub const JUMP_PENALTY: f32 = 2.;
 
 pub static FALL_1_25_BLOCKS_COST: LazyLock<f32> = LazyLock::new(|| distance_to_ticks(1.25));
 pub static FALL_0_25_BLOCKS_COST: LazyLock<f32> = LazyLock::new(|| distance_to_ticks(0.25));

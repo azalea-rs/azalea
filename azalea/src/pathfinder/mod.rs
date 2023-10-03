@@ -470,6 +470,7 @@ fn tick_execute_path(
                         goal,
                         successors_fn,
                     });
+                    pathfinder.is_calculating = true;
 
                     if pathfinder.path.is_empty() {
                         if let Some(new_path) = pathfinder.queued_path.take() {
