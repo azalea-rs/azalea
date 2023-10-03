@@ -100,7 +100,9 @@ pub struct LastSentLookDirection {
 }
 
 /// Component for entities that can move and sprint. Usually only in
-/// [`LocalPlayer`] entities.
+/// [`LocalEntity`]s.
+///
+/// [`LocalEntity`]: azalea_entity::LocalEntity
 #[derive(Default, Component, Clone)]
 pub struct PhysicsState {
     /// Minecraft only sends a movement packet either after 20 ticks or if the
