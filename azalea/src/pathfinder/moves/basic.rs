@@ -211,7 +211,6 @@ fn execute_descend_move(
     );
 
     if BlockPos::from(position) != target || horizontal_distance_from_target > 0.25 {
-        // if we're only falling one block then it's fine to try to overshoot
         if horizontal_distance_from_start < 1.25 {
             // this basically just exists to avoid doing spins while we're falling
             look_at_events.send(LookAtEvent {
@@ -232,6 +231,11 @@ fn execute_descend_move(
                 direction: WalkDirection::Forward,
             });
         }
+    } else {
+        walk_events.send(StartWalkEvent {
+            entity,
+            direction: WalkDirection::None,
+        });
     }
 }
 

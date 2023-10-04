@@ -1,7 +1,7 @@
 pub mod basic;
 pub mod parkour;
 
-use std::{cell::RefCell, fmt::Debug};
+use std::{cell::RefCell, fmt::Debug, sync::Arc};
 
 use crate::{JumpEvent, LookAtEvent};
 
@@ -10,8 +10,9 @@ use azalea_block::BlockState;
 use azalea_client::{StartSprintEvent, StartWalkEvent};
 use azalea_core::position::{BlockPos, ChunkBlockPos, ChunkPos, Vec3};
 use azalea_physics::collision::BlockWithShape;
-use azalea_world::ChunkStorage;
+use azalea_world::Instance;
 use bevy_ecs::{entity::Entity, event::EventWriter};
+use parking_lot::RwLock;
 
 type Edge = astar::Edge<BlockPos, MoveData>;
 
@@ -33,15 +34,18 @@ impl Debug for MoveData {
     }
 }
 
-pub struct PathfinderCtx<'a> {
-    world: &'a ChunkStorage,
+pub struct PathfinderCtx {
+    min_y: i32,
+    world_lock: Arc<RwLock<Instance>>,
     cached_chunks: RefCell<Vec<(ChunkPos, Vec<azalea_world::Section>)>>,
 }
 
-impl<'a> PathfinderCtx<'a> {
-    pub fn new(world: &'a ChunkStorage) -> Self {
+impl PathfinderCtx {
+    pub fn new(world_lock: Arc<RwLock<Instance>>) -> Self {
+        let min_y = world_lock.read().chunks.min_y;
         Self {
-            world,
+            min_y,
+            world_lock,
             cached_chunks: Default::default(),
         }
     }
@@ -61,11 +65,12 @@ impl<'a> PathfinderCtx<'a> {
             return azalea_world::chunk_storage::get_block_state_from_sections(
                 sections,
                 &chunk_block_pos,
-                self.world.min_y,
+                self.min_y,
             );
         }
 
-        let chunk = self.world.get(&chunk_pos)?;
+        let world = self.world_lock.read();
+        let chunk = world.chunks.get(&chunk_pos)?;
         let chunk = chunk.read();
 
         cached_chunks.push((chunk_pos, chunk.sections.clone()));
@@ -73,7 +78,7 @@ impl<'a> PathfinderCtx<'a> {
         azalea_world::chunk_storage::get_block_state_from_sections(
             &chunk.sections,
             &chunk_block_pos,
-            self.world.min_y,
+            self.min_y,
         )
     }
 
@@ -136,7 +141,7 @@ impl<'a> PathfinderCtx<'a> {
             distance += 1;
             current_pos = current_pos.down(1);
 
-            if current_pos.y < self.world.min_y {
+            if current_pos.y < self.min_y {
                 return u32::MAX;
             }
         }
@@ -209,7 +214,7 @@ mod tests {
             .chunks
             .set_block_state(&BlockPos::new(0, 1, 0), BlockState::AIR, &world);
 
-        let ctx = PathfinderCtx::new(&world);
+        let ctx = PathfinderCtx::new(Arc::new(RwLock::new(world.into())));
         assert!(!ctx.is_block_passable(&BlockPos::new(0, 0, 0)));
         assert!(ctx.is_block_passable(&BlockPos::new(0, 1, 0),));
     }
@@ -230,7 +235,7 @@ mod tests {
             .chunks
             .set_block_state(&BlockPos::new(0, 1, 0), BlockState::AIR, &world);
 
-        let ctx = PathfinderCtx::new(&world);
+        let ctx = PathfinderCtx::new(Arc::new(RwLock::new(world.into())));
         assert!(ctx.is_block_solid(&BlockPos::new(0, 0, 0)));
         assert!(!ctx.is_block_solid(&BlockPos::new(0, 1, 0)));
     }
@@ -257,7 +262,7 @@ mod tests {
             .chunks
             .set_block_state(&BlockPos::new(0, 3, 0), BlockState::AIR, &world);
 
-        let ctx = PathfinderCtx::new(&world);
+        let ctx = PathfinderCtx::new(Arc::new(RwLock::new(world.into())));
         assert!(ctx.is_standable(&BlockPos::new(0, 1, 0)));
         assert!(!ctx.is_standable(&BlockPos::new(0, 0, 0)));
         assert!(!ctx.is_standable(&BlockPos::new(0, 2, 0)));
