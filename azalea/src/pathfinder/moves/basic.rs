@@ -172,7 +172,9 @@ fn descend_move(ctx: &PathfinderCtx, pos: BlockPos) -> Vec<Edge> {
             continue;
         }
 
-        let cost = SPRINT_ONE_BLOCK_COST + FALL_ONE_BLOCK_COST * fall_distance as f32;
+        let cost = SPRINT_ONE_BLOCK_COST
+            + WALK_OFF_BLOCK_COST
+            + FALL_ONE_BLOCK_COST * fall_distance as f32;
 
         edges.push(Edge {
             movement: astar::Movement {
