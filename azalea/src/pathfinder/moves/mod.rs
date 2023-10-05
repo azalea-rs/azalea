@@ -23,7 +23,7 @@ use parking_lot::RwLock;
 
 type Edge = astar::Edge<BlockPos, MoveData>;
 
-pub type SuccessorsFn = fn(&PathfinderCtx, BlockPos) -> Vec<astar::Edge<BlockPos, MoveData>>;
+pub type SuccessorsFn = fn(&mut Vec<Edge>, &PathfinderCtx, BlockPos);
 
 #[derive(Clone)]
 pub struct MoveData {
@@ -272,11 +272,9 @@ pub struct IsReachedCtx<'a> {
     pub physics: &'a azalea_entity::Physics,
 }
 
-pub fn default_move(ctx: &PathfinderCtx, node: BlockPos) -> Vec<Edge> {
-    let mut edges = Vec::new();
-    edges.extend(basic::basic_move(ctx, node));
-    edges.extend(parkour::parkour_move(ctx, node));
-    edges
+pub fn default_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, node: BlockPos) {
+    basic::basic_move(edges, ctx, node);
+    parkour::parkour_move(edges, ctx, node);
 }
 
 /// Returns whether the entity is at the node and should start going to the

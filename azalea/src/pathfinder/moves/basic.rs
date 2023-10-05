@@ -13,17 +13,14 @@ use crate::{
 
 use super::{default_is_reached, Edge, ExecuteCtx, IsReachedCtx, MoveData, PathfinderCtx};
 
-pub fn basic_move(ctx: &PathfinderCtx, node: BlockPos) -> Vec<Edge> {
-    let mut edges = Vec::with_capacity(8);
-    edges.extend(forward_move(ctx, node));
-    edges.extend(ascend_move(ctx, node));
-    edges.extend(descend_move(ctx, node));
-    edges.extend(diagonal_move(ctx, node));
-    edges
+pub fn basic_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, node: BlockPos) {
+    forward_move(edges, ctx, node);
+    ascend_move(edges, ctx, node);
+    descend_move(edges, ctx, node);
+    diagonal_move(edges, ctx, node);
 }
 
-fn forward_move(ctx: &PathfinderCtx, pos: BlockPos) -> Vec<Edge> {
-    let mut edges = Vec::new();
+fn forward_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, pos: BlockPos) {
     for dir in CardinalDirection::iter() {
         let offset = BlockPos::new(dir.x(), 0, dir.z());
 
@@ -44,8 +41,6 @@ fn forward_move(ctx: &PathfinderCtx, pos: BlockPos) -> Vec<Edge> {
             cost,
         })
     }
-
-    edges
 }
 
 fn execute_forward_move(
@@ -68,8 +63,7 @@ fn execute_forward_move(
     });
 }
 
-fn ascend_move(ctx: &PathfinderCtx, pos: BlockPos) -> Vec<Edge> {
-    let mut edges = Vec::new();
+fn ascend_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, pos: BlockPos) {
     for dir in CardinalDirection::iter() {
         let offset = BlockPos::new(dir.x(), 1, dir.z());
 
@@ -93,7 +87,6 @@ fn ascend_move(ctx: &PathfinderCtx, pos: BlockPos) -> Vec<Edge> {
             cost,
         })
     }
-    edges
 }
 fn execute_ascend_move(
     ExecuteCtx {
@@ -152,8 +145,7 @@ pub fn ascend_is_reached(
     BlockPos::from(position) == target || BlockPos::from(position) == target.down(1)
 }
 
-fn descend_move(ctx: &PathfinderCtx, pos: BlockPos) -> Vec<Edge> {
-    let mut edges = Vec::new();
+fn descend_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, pos: BlockPos) {
     for dir in CardinalDirection::iter() {
         let dir_delta = BlockPos::new(dir.x(), 0, dir.z());
         let new_horizontal_position = pos + dir_delta;
@@ -187,7 +179,6 @@ fn descend_move(ctx: &PathfinderCtx, pos: BlockPos) -> Vec<Edge> {
             cost,
         })
     }
-    edges
 }
 fn execute_descend_move(
     ExecuteCtx {
@@ -260,8 +251,7 @@ pub fn descend_is_reached(
         && (position.y - target.y as f64) < 0.5
 }
 
-fn diagonal_move(ctx: &PathfinderCtx, pos: BlockPos) -> Vec<Edge> {
-    let mut edges = Vec::new();
+fn diagonal_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, pos: BlockPos) {
     for dir in CardinalDirection::iter() {
         let right = dir.right();
         let offset = BlockPos::new(dir.x() + right.x(), 0, dir.z() + right.z());
@@ -292,7 +282,6 @@ fn diagonal_move(ctx: &PathfinderCtx, pos: BlockPos) -> Vec<Edge> {
             cost,
         })
     }
-    edges
 }
 fn execute_diagonal_move(
     ExecuteCtx {
