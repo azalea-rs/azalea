@@ -143,10 +143,12 @@ where
         }
     }
 
+    #[inline]
     pub fn index(&self, index: usize) -> bool {
         (self.data[index / 8] & (1u8 << (index % 8))) != 0
     }
 
+    #[inline]
     pub fn set(&mut self, bit_index: usize) {
         self.data[bit_index / 8] |= 1u8 << (bit_index % 8);
     }

@@ -261,7 +261,6 @@ impl ChunkSectionPos {
 }
 /// The coordinates of a block inside a chunk.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-#[repr(align(8))]
 pub struct ChunkBlockPos {
     pub x: u8,
     pub y: i32,
@@ -300,7 +299,6 @@ impl nohash_hasher::IsEnabled for ChunkBlockPos {}
 /// The coordinates of a block inside a chunk section. Each coordinate must be
 /// in the range [0, 15].
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-#[repr(align(4))]
 pub struct ChunkSectionBlockPos {
     pub x: u8,
     pub y: u8,
@@ -330,14 +328,7 @@ impl Hash for ChunkSectionBlockPos {
 impl From<ChunkSectionBlockPos> for u16 {
     #[inline]
     fn from(pos: ChunkSectionBlockPos) -> Self {
-        let mut val: u16 = 0;
-        // first 4 bits are z
-        val |= pos.z as u16;
-        // next 4 bits are y
-        val |= (pos.y as u16) << 4;
-        // last 4 bits are x
-        val |= (pos.x as u16) << 8;
-        val
+        (pos.z as u16) | ((pos.y as u16) << 4) | ((pos.x as u16) << 8)
     }
 }
 impl nohash_hasher::IsEnabled for ChunkSectionBlockPos {}

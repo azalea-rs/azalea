@@ -131,6 +131,7 @@ impl PathfinderCtx {
         let (section_pos, section_block_pos) =
             (ChunkSectionPos::from(pos), ChunkSectionBlockPos::from(pos));
         let index = u16::from(section_block_pos) as usize;
+        // SAFETY: we're only accessing this from one thread
         let cached_block_passable = unsafe { &mut *self.cached_block_passable.get() };
         if let Some(cached) = cached_block_passable.iter_mut().find_map(|cached| {
             if cached.pos == section_pos {
@@ -183,6 +184,7 @@ impl PathfinderCtx {
         let (section_pos, section_block_pos) =
             (ChunkSectionPos::from(pos), ChunkSectionBlockPos::from(pos));
         let index = u16::from(section_block_pos) as usize;
+        // SAFETY: we're only accessing this from one thread
         let cached_block_solid = unsafe { &mut *self.cached_block_solid.get() };
         if let Some(cached) = cached_block_solid.iter_mut().find_map(|cached| {
             if cached.pos == section_pos {
