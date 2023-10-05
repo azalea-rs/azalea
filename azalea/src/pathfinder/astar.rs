@@ -1,6 +1,5 @@
 use std::{
     cmp::Reverse,
-    collections::HashMap,
     fmt::Debug,
     hash::Hash,
     time::{Duration, Instant},
@@ -8,6 +7,7 @@ use std::{
 
 use log::{debug, trace, warn};
 use priority_queue::PriorityQueue;
+use rustc_hash::FxHashMap;
 
 pub struct Path<P, M>
 where
@@ -40,7 +40,7 @@ where
 
     let mut open_set = PriorityQueue::new();
     open_set.push(start, Reverse(Weight(0.)));
-    let mut nodes: HashMap<P, Node<P, M>> = HashMap::new();
+    let mut nodes: FxHashMap<P, Node<P, M>> = FxHashMap::default();
     nodes.insert(
         start,
         Node {
@@ -134,7 +134,7 @@ where
     best_paths[0]
 }
 
-fn reconstruct_path<P, M>(mut nodes: HashMap<P, Node<P, M>>, current: P) -> Vec<Movement<P, M>>
+fn reconstruct_path<P, M>(mut nodes: FxHashMap<P, Node<P, M>>, current: P) -> Vec<Movement<P, M>>
 where
     P: Eq + Hash + Copy + Debug,
 {

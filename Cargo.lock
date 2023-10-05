@@ -193,6 +193,7 @@ dependencies = [
  "parking_lot",
  "priority-queue",
  "rand",
+ "rustc-hash",
  "thiserror",
  "tokio",
  "uuid",

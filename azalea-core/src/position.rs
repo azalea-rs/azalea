@@ -246,7 +246,7 @@ impl Hash for ChunkPos {
 impl nohash_hasher::IsEnabled for ChunkPos {}
 
 /// The coordinates of a chunk section in the world.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ChunkSectionPos {
     pub x: i32,
     pub y: i32,
@@ -413,9 +413,9 @@ impl From<BlockPos> for ChunkSectionBlockPos {
     #[inline]
     fn from(pos: BlockPos) -> Self {
         ChunkSectionBlockPos {
-            x: pos.x as u8 & 0xF,
-            y: pos.y as u8 & 0xF,
-            z: pos.z as u8 & 0xF,
+            x: (pos.x & 0xF) as u8,
+            y: (pos.y & 0xF) as u8,
+            z: (pos.z & 0xF) as u8,
         }
     }
 }

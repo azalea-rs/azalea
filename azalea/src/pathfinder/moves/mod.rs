@@ -58,6 +58,7 @@ pub struct PathfinderCtx {
 #[derive(Default)]
 pub struct CachedSections {
     pub last_index: usize,
+    pub second_last_index: usize,
     pub sections: Vec<CachedSection>,
 }
 
@@ -67,15 +68,20 @@ impl CachedSections {
         if let Some(last_item) = self.sections.get(self.last_index) {
             if last_item.pos == pos {
                 return Some(&mut self.sections[self.last_index]);
+            } else if let Some(second_last_item) = self.sections.get(self.second_last_index) {
+                if second_last_item.pos == pos {
+                    return Some(&mut self.sections[self.second_last_index]);
+                }
             }
         }
 
         let index = self
             .sections
-            .iter_mut()
-            .position(|section| section.pos == pos);
+            .binary_search_by(|section| section.pos.cmp(&pos))
+            .ok();
 
         if let Some(index) = index {
+            self.second_last_index = self.last_index;
             self.last_index = index;
             return Some(&mut self.sections[index]);
         }
@@ -85,6 +91,7 @@ impl CachedSections {
     #[inline]
     pub fn insert(&mut self, section: CachedSection) {
         self.sections.push(section);
+        self.sections.sort_unstable_by(|a, b| a.pos.cmp(&b.pos));
     }
 }
 
