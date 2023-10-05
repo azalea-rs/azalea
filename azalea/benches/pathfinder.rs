@@ -82,7 +82,11 @@ fn bench_pathfinder(c: &mut Criterion) {
             let ctx = PathfinderCtx::new(Arc::new(RwLock::new(world.into())));
             let goal = BlockPosGoal(end);
 
-            let successors = |pos: BlockPos| successors_fn(&ctx, pos);
+            let successors = |pos: BlockPos| {
+                let mut edges = Vec::with_capacity(16);
+                successors_fn(&mut edges, &ctx, pos);
+                edges
+            };
 
             let astar::Path { movements, partial } = a_star(
                 start,

@@ -14,7 +14,7 @@ use azalea_block::BlockState;
 use azalea_client::{StartSprintEvent, StartWalkEvent};
 use azalea_core::{
     bitset::FixedBitSet,
-    position::{BlockPos, ChunkBlockPos, ChunkPos, ChunkSectionBlockPos, ChunkSectionPos, Vec3},
+    position::{BlockPos, ChunkPos, ChunkSectionBlockPos, ChunkSectionPos, Vec3},
 };
 use azalea_physics::collision::BlockWithShape;
 use azalea_world::Instance;
@@ -74,8 +74,12 @@ impl PathfinderCtx {
     }
 
     fn get_block_state(&self, pos: BlockPos) -> Option<BlockState> {
+        if pos.y < self.min_y {
+            // y position is out of bounds
+            return None;
+        }
+
         let chunk_pos = ChunkPos::from(pos);
-        let chunk_block_pos = ChunkBlockPos::from(pos);
 
         let mut cached_chunks = self.cached_chunks.borrow_mut();
         if let Some(sections) = cached_chunks.iter().find_map(|(pos, sections)| {
@@ -85,11 +89,15 @@ impl PathfinderCtx {
                 None
             }
         }) {
-            return azalea_world::chunk_storage::get_block_state_from_sections(
-                sections,
-                &chunk_block_pos,
-                self.min_y,
-            );
+            let section_index =
+                azalea_world::chunk_storage::section_index(pos.y, self.min_y) as usize;
+            if section_index >= sections.len() {
+                // y position is out of bounds
+                return None;
+            };
+            let section = &sections[section_index];
+            let chunk_section_pos = ChunkSectionBlockPos::from(pos);
+            return Some(section.get(chunk_section_pos));
         }
 
         let world = self.world_lock.read();
@@ -98,38 +106,14 @@ impl PathfinderCtx {
 
         cached_chunks.push((chunk_pos, chunk.sections.clone()));
 
-        azalea_world::chunk_storage::get_block_state_from_sections(
-            &chunk.sections,
-            &chunk_block_pos,
-            self.min_y,
-        )
-    }
-
-    /// whether this block is passable
-    fn uncached_is_block_passable(&self, pos: BlockPos) -> bool {
-        let Some(block) = self.get_block_state(pos) else {
-            return false;
+        let section_index = azalea_world::chunk_storage::section_index(pos.y, self.min_y) as usize;
+        if section_index >= chunk.sections.len() {
+            // y position is out of bounds
+            return None;
         };
-        if block.is_air() {
-            // fast path
-            return true;
-        }
-        if !block.is_shape_empty() {
-            return false;
-        }
-        if block == azalea_registry::Block::Water.into() {
-            return false;
-        }
-        if block.waterlogged() {
-            return false;
-        }
-        // block.waterlogged currently doesn't account for seagrass and some other water
-        // blocks
-        if block == azalea_registry::Block::Seagrass.into() {
-            return false;
-        }
-
-        true
+        let section = &chunk.sections[section_index];
+        let chunk_section_pos = ChunkSectionBlockPos::from(pos);
+        Some(section.get(chunk_section_pos))
     }
 
     pub fn is_block_passable(&self, pos: BlockPos) -> bool {
@@ -148,7 +132,11 @@ impl PathfinderCtx {
             if cached.present.index(index) {
                 return cached.value.index(index);
             } else {
-                let passable = self.uncached_is_block_passable(pos);
+                let Some(block) = self.get_block_state(pos) else {
+                    return false;
+                };
+                let passable = is_block_state_passable(block);
+
                 cached.present.set(index);
                 if passable {
                     cached.value.set(index);
@@ -157,9 +145,13 @@ impl PathfinderCtx {
             }
         }
 
-        let passable = self.uncached_is_block_passable(pos);
+        let Some(block) = self.get_block_state(pos) else {
+            return false;
+        };
+        let passable = is_block_state_passable(block);
         let mut present_bitset = FixedBitSet::new();
         let mut value_bitset = FixedBitSet::new();
+
         present_bitset.set(index);
         if passable {
             value_bitset.set(index);
@@ -171,18 +163,6 @@ impl PathfinderCtx {
             value: value_bitset,
         });
         passable
-    }
-
-    /// whether this block has a solid hitbox (i.e. we can stand on it)
-    fn uncached_is_block_solid(&self, pos: BlockPos) -> bool {
-        let Some(block) = self.get_block_state(pos) else {
-            return false;
-        };
-        if block.is_air() {
-            // fast path
-            return false;
-        }
-        block.is_shape_full()
     }
 
     pub fn is_block_solid(&self, pos: BlockPos) -> bool {
@@ -201,7 +181,10 @@ impl PathfinderCtx {
             if cached.present.index(index) {
                 return cached.value.index(index);
             } else {
-                let solid = self.uncached_is_block_solid(pos);
+                let Some(block) = self.get_block_state(pos) else {
+                    return false;
+                };
+                let solid = is_block_state_solid(block);
                 cached.present.set(index);
                 if solid {
                     cached.value.set(index);
@@ -210,7 +193,10 @@ impl PathfinderCtx {
             }
         }
 
-        let solid = self.uncached_is_block_solid(pos);
+        let Some(block) = self.get_block_state(pos) else {
+            return false;
+        };
+        let solid = is_block_state_solid(block);
         let mut present_bitset = FixedBitSet::new();
         let mut value_bitset = FixedBitSet::new();
         present_bitset.set(index);
@@ -252,6 +238,39 @@ impl PathfinderCtx {
         }
         distance
     }
+}
+
+/// whether this block is passable
+fn is_block_state_passable(block: BlockState) -> bool {
+    if block.is_air() {
+        // fast path
+        return true;
+    }
+    if !block.is_shape_empty() {
+        return false;
+    }
+    if block == azalea_registry::Block::Water.into() {
+        return false;
+    }
+    if block.waterlogged() {
+        return false;
+    }
+    // block.waterlogged currently doesn't account for seagrass and some other water
+    // blocks
+    if block == azalea_registry::Block::Seagrass.into() {
+        return false;
+    }
+
+    true
+}
+
+/// whether this block has a solid hitbox (i.e. we can stand on it)
+fn is_block_state_solid(block: BlockState) -> bool {
+    if block.is_air() {
+        // fast path
+        return false;
+    }
+    block.is_shape_full()
 }
 
 pub struct ExecuteCtx<'w1, 'w2, 'w3, 'w4, 'a> {
