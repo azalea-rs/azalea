@@ -51,11 +51,44 @@ pub struct PathfinderCtx {
     world_lock: Arc<RwLock<Instance>>,
     cached_chunks: RefCell<Vec<(ChunkPos, Vec<azalea_world::Section>)>>,
 
-    cached_block_passable: UnsafeCell<Vec<CachedBlocks>>,
-    cached_block_solid: UnsafeCell<Vec<CachedBlocks>>,
+    passable_cached_blocks: UnsafeCell<CachedSections>,
+    solid_cached_blocks: UnsafeCell<CachedSections>,
 }
 
-pub struct CachedBlocks {
+#[derive(Default)]
+pub struct CachedSections {
+    pub last_index: usize,
+    pub sections: Vec<CachedSection>,
+}
+
+impl CachedSections {
+    #[inline]
+    pub fn get_mut(&mut self, pos: ChunkSectionPos) -> Option<&mut CachedSection> {
+        if let Some(last_item) = self.sections.get(self.last_index) {
+            if last_item.pos == pos {
+                return Some(&mut self.sections[self.last_index]);
+            }
+        }
+
+        let index = self
+            .sections
+            .iter_mut()
+            .position(|section| section.pos == pos);
+
+        if let Some(index) = index {
+            self.last_index = index;
+            return Some(&mut self.sections[index]);
+        }
+        None
+    }
+
+    #[inline]
+    pub fn insert(&mut self, section: CachedSection) {
+        self.sections.push(section);
+    }
+}
+
+pub struct CachedSection {
     pub pos: ChunkSectionPos,
     pub present: FixedBitSet<4096>,
     pub value: FixedBitSet<4096>,
@@ -68,8 +101,8 @@ impl PathfinderCtx {
             min_y,
             world_lock,
             cached_chunks: Default::default(),
-            cached_block_passable: Default::default(),
-            cached_block_solid: Default::default(),
+            passable_cached_blocks: Default::default(),
+            solid_cached_blocks: Default::default(),
         }
     }
 
@@ -121,14 +154,8 @@ impl PathfinderCtx {
             (ChunkSectionPos::from(pos), ChunkSectionBlockPos::from(pos));
         let index = u16::from(section_block_pos) as usize;
         // SAFETY: we're only accessing this from one thread
-        let cached_block_passable = unsafe { &mut *self.cached_block_passable.get() };
-        if let Some(cached) = cached_block_passable.iter_mut().find_map(|cached| {
-            if cached.pos == section_pos {
-                Some(cached)
-            } else {
-                None
-            }
-        }) {
+        let cached_block_passable = unsafe { &mut *self.passable_cached_blocks.get() };
+        if let Some(cached) = cached_block_passable.get_mut(section_pos) {
             if cached.present.index(index) {
                 return cached.value.index(index);
             } else {
@@ -157,7 +184,7 @@ impl PathfinderCtx {
             value_bitset.set(index);
         }
 
-        cached_block_passable.push(CachedBlocks {
+        cached_block_passable.insert(CachedSection {
             pos: section_pos,
             present: present_bitset,
             value: value_bitset,
@@ -170,14 +197,8 @@ impl PathfinderCtx {
             (ChunkSectionPos::from(pos), ChunkSectionBlockPos::from(pos));
         let index = u16::from(section_block_pos) as usize;
         // SAFETY: we're only accessing this from one thread
-        let cached_block_solid = unsafe { &mut *self.cached_block_solid.get() };
-        if let Some(cached) = cached_block_solid.iter_mut().find_map(|cached| {
-            if cached.pos == section_pos {
-                Some(cached)
-            } else {
-                None
-            }
-        }) {
+        let cached_block_solid = unsafe { &mut *self.solid_cached_blocks.get() };
+        if let Some(cached) = cached_block_solid.get_mut(section_pos) {
             if cached.present.index(index) {
                 return cached.value.index(index);
             } else {
@@ -204,7 +225,7 @@ impl PathfinderCtx {
             value_bitset.set(index);
         }
 
-        cached_block_solid.push(CachedBlocks {
+        cached_block_solid.insert(CachedSection {
             pos: section_pos,
             present: present_bitset,
             value: value_bitset,
