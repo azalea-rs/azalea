@@ -261,6 +261,7 @@ impl ChunkSectionPos {
 }
 /// The coordinates of a block inside a chunk.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[repr(align(8))]
 pub struct ChunkBlockPos {
     pub x: u8,
     pub y: i32,
@@ -273,9 +274,33 @@ impl ChunkBlockPos {
     }
 }
 
+impl Hash for ChunkBlockPos {
+    // optimized hash that only calls hash once
+    #[inline]
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        u64::from(*self).hash(state);
+    }
+}
+impl From<ChunkBlockPos> for u64 {
+    #[inline]
+    fn from(pos: ChunkBlockPos) -> Self {
+        // convert to u64
+        let mut val: u64 = 0;
+        // first 32 bits are y
+        val |= pos.y as u64;
+        // next 8 bits are z
+        val |= (pos.z as u64) << 32;
+        // last 8 bits are x
+        val |= (pos.x as u64) << 40;
+        val
+    }
+}
+impl nohash_hasher::IsEnabled for ChunkBlockPos {}
+
 /// The coordinates of a block inside a chunk section. Each coordinate must be
 /// in the range [0, 15].
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[repr(align(4))]
 pub struct ChunkSectionBlockPos {
     pub x: u8,
     pub y: u8,
@@ -294,6 +319,28 @@ impl Add<ChunkSectionBlockPos> for ChunkSectionPos {
         )
     }
 }
+impl Hash for ChunkSectionBlockPos {
+    // optimized hash that only calls hash once
+    #[inline]
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        u16::from(*self).hash(state);
+    }
+}
+
+impl From<ChunkSectionBlockPos> for u16 {
+    #[inline]
+    fn from(pos: ChunkSectionBlockPos) -> Self {
+        let mut val: u16 = 0;
+        // first 4 bits are z
+        val |= pos.z as u16;
+        // next 4 bits are y
+        val |= (pos.y as u16) << 4;
+        // last 4 bits are x
+        val |= (pos.x as u16) << 8;
+        val
+    }
+}
+impl nohash_hasher::IsEnabled for ChunkSectionBlockPos {}
 
 /// A block pos with an attached world
 #[derive(Debug, Clone)]
@@ -312,22 +359,33 @@ impl From<&BlockPos> for ChunkPos {
         }
     }
 }
-
-impl From<BlockPos> for ChunkSectionPos {
+impl From<BlockPos> for ChunkPos {
+    #[inline]
     fn from(pos: BlockPos) -> Self {
-        ChunkSectionPos {
+        ChunkPos {
             x: pos.x.div_floor(16),
-            y: pos.y.div_floor(16),
             z: pos.z.div_floor(16),
         }
     }
 }
+
+impl From<BlockPos> for ChunkSectionPos {
+    #[inline]
+    fn from(pos: BlockPos) -> Self {
+        ChunkSectionPos {
+            x: pos.x >> 4,
+            y: pos.y >> 4,
+            z: pos.z >> 4,
+        }
+    }
+}
 impl From<&BlockPos> for ChunkSectionPos {
+    #[inline]
     fn from(pos: &BlockPos) -> Self {
         ChunkSectionPos {
-            x: pos.x.div_floor(16),
-            y: pos.y.div_floor(16),
-            z: pos.z.div_floor(16),
+            x: pos.x >> 4,
+            y: pos.y >> 4,
+            z: pos.z >> 4,
         }
     }
 }
@@ -348,13 +406,24 @@ impl From<&BlockPos> for ChunkBlockPos {
         }
     }
 }
-
-impl From<&BlockPos> for ChunkSectionBlockPos {
-    fn from(pos: &BlockPos) -> Self {
-        ChunkSectionBlockPos {
+impl From<BlockPos> for ChunkBlockPos {
+    #[inline]
+    fn from(pos: BlockPos) -> Self {
+        ChunkBlockPos {
             x: pos.x.rem_euclid(16) as u8,
-            y: pos.y.rem_euclid(16) as u8,
+            y: pos.y,
             z: pos.z.rem_euclid(16) as u8,
+        }
+    }
+}
+
+impl From<BlockPos> for ChunkSectionBlockPos {
+    #[inline]
+    fn from(pos: BlockPos) -> Self {
+        ChunkSectionBlockPos {
+            x: pos.x as u8 & 0xF,
+            y: pos.y as u8 & 0xF,
+            z: pos.z as u8 & 0xF,
         }
     }
 }
@@ -529,7 +598,7 @@ mod tests {
     fn test_into_chunk_section_block_pos() {
         let block_pos = BlockPos::new(0, -60, 0);
         assert_eq!(
-            ChunkSectionBlockPos::from(&block_pos),
+            ChunkSectionBlockPos::from(block_pos),
             ChunkSectionBlockPos::new(0, 4, 0)
         );
     }
