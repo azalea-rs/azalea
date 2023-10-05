@@ -25,6 +25,11 @@ type Edge = astar::Edge<BlockPos, MoveData>;
 
 pub type SuccessorsFn = fn(&mut Vec<Edge>, &PathfinderCtx, BlockPos);
 
+pub fn default_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, node: BlockPos) {
+    basic::basic_move(edges, ctx, node);
+    parkour::parkour_move(edges, ctx, node);
+}
+
 #[derive(Clone)]
 pub struct MoveData {
     /// Use the context to determine what events should be sent to complete this
@@ -270,11 +275,6 @@ pub struct IsReachedCtx<'a> {
     pub start: BlockPos,
     pub position: Vec3,
     pub physics: &'a azalea_entity::Physics,
-}
-
-pub fn default_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, node: BlockPos) {
-    basic::basic_move(edges, ctx, node);
-    parkour::parkour_move(edges, ctx, node);
 }
 
 /// Returns whether the entity is at the node and should start going to the

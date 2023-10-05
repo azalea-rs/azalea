@@ -259,6 +259,7 @@ impl ChunkSectionPos {
         block >> 4
     }
 }
+
 /// The coordinates of a block inside a chunk.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct ChunkBlockPos {

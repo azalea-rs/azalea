@@ -6,7 +6,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use log::{trace, warn};
+use log::{debug, trace, warn};
 use priority_queue::PriorityQueue;
 
 pub struct Path<P, M>
@@ -55,8 +55,12 @@ where
     let mut best_paths: [P; 7] = [start; 7];
     let mut best_path_scores: [f32; 7] = [heuristic(start); 7];
 
+    let mut num_nodes = 0;
+
     while let Some((current_node, _)) = open_set.pop() {
+        num_nodes += 1;
         if success(current_node) {
+            debug!("Nodes considered: {num_nodes}");
             return Path {
                 movements: reconstruct_path(nodes, current_node),
                 partial: false,
@@ -99,7 +103,8 @@ where
             }
         }
 
-        if start_time.elapsed() > timeout {
+        // check for timeout every ~1ms
+        if num_nodes % 1000 == 0 && start_time.elapsed() > timeout {
             // timeout, just return the best path we have so far
             trace!("A* couldn't find a path in time, returning best path");
             break;
