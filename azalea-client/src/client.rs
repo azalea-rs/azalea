@@ -270,6 +270,7 @@ impl Client {
                 received_registries: ReceivedRegistries::default(),
                 local_player_events: LocalPlayerEvents(tx),
                 game_profile: GameProfileComponent(game_profile),
+                client_information: crate::ClientInformation::default(),
                 account: account.to_owned(),
             },
             InConfigurationState,
@@ -593,6 +594,7 @@ pub struct LocalPlayerBundle {
     pub received_registries: ReceivedRegistries,
     pub local_player_events: LocalPlayerEvents,
     pub game_profile: GameProfileComponent,
+    pub client_information: ClientInformation,
     pub account: Account,
 }
 
@@ -604,7 +606,6 @@ pub struct JoinedClientBundle {
     pub instance_holder: InstanceHolder,
     pub physics_state: PhysicsState,
     pub inventory: InventoryComponent,
-    pub client_information: ClientInformation,
     pub tab_list: TabList,
     pub current_sequence_number: CurrentSequenceNumber,
     pub last_sent_direction: LastSentLookDirection,

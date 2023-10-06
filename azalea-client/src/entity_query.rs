@@ -23,9 +23,10 @@ impl Client {
     /// # }
     /// ```
     pub fn query<'w, Q: WorldQuery>(&self, ecs: &'w mut World) -> <Q as WorldQuery>::Item<'w> {
-        ecs.query::<Q>()
-            .get_mut(ecs, self.entity)
-            .expect("Our client is missing a required component.")
+        ecs.query::<Q>().get_mut(ecs, self.entity).expect(&format!(
+            "Our client is missing a required component {:?}",
+            std::any::type_name::<Q>()
+        ))
     }
 
     /// Return a lightweight [`Entity`] for the entity that matches the given
@@ -66,9 +67,10 @@ impl Client {
     pub fn entity_component<Q: Component + Clone>(&mut self, entity: Entity) -> Q {
         let mut ecs = self.ecs.lock();
         let mut q = ecs.query::<&Q>();
-        let components = q
-            .get(&ecs, entity)
-            .expect("Entity components must be present in Client::entity)components.");
+        let components = q.get(&ecs, entity).expect(&format!(
+            "Entity is missing a required component {:?}",
+            std::any::type_name::<Q>()
+        ));
         components.clone()
     }
 
