@@ -53,7 +53,13 @@ impl Client {
 
     /// Whether the player has an attack cooldown.
     pub fn has_attack_cooldown(&self) -> bool {
-        let ticks_since_last_attack = *self.component::<AttackStrengthScale>();
+        let Some(AttackStrengthScale(ticks_since_last_attack)) =
+            self.get_component::<AttackStrengthScale>()
+        else {
+            // they don't even have an AttackStrengthScale so they probably can't attack
+            // lmao, just return false
+            return false;
+        };
         ticks_since_last_attack < 1.0
     }
 }

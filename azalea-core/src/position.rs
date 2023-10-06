@@ -39,6 +39,11 @@ macro_rules! vec3_impl {
                 self.x * self.x + self.z * self.z
             }
 
+            #[inline]
+            pub fn horizontal_distance_to_sqr(&self, other: &Self) -> $type {
+                (self - other).horizontal_distance_sqr()
+            }
+
             /// Return a new instance of this position with the y coordinate
             /// decreased by the given number.
             #[inline]

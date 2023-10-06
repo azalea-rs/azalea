@@ -381,7 +381,13 @@ fn tick_execute_path(
                     physics,
                 };
                 let extra_strict_if_last = if i == pathfinder.path.len() - 1 {
-                    physics.on_ground && BlockPos::from(position) == movement.target
+                    let x_difference_from_center = position.x - (movement.target.x as f64 + 0.5);
+                    let z_difference_from_center = position.z - (movement.target.z as f64 + 0.5);
+                    // this is to make sure we don't fall off immediately after finishing the path
+                    physics.on_ground
+                        && BlockPos::from(position) == movement.target
+                        && x_difference_from_center.abs() < 0.2
+                        && z_difference_from_center.abs() < 0.2
                 } else {
                     true
                 };
