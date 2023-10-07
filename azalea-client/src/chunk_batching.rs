@@ -38,7 +38,31 @@ impl Plugin for ChunkBatchingPlugin {
 #[derive(Component, Clone, Debug)]
 pub struct ChunkBatchInfo {
     pub start_time: Instant,
-    pub accumulator: ChunkReceiveSpeedAccumulator,
+    pub aggregated_duration_per_chunk: Duration,
+    pub old_samples_weight: u32,
+}
+
+impl ChunkBatchInfo {
+    pub fn batch_finished(&mut self, batch_size: u32) {
+        if batch_size == 0 {
+            return;
+        }
+        let batch_duration = self.start_time.elapsed();
+        let duration_per_chunk = batch_duration / batch_size;
+        let clamped_duration = Duration::clamp(
+            duration_per_chunk,
+            self.aggregated_duration_per_chunk / 3,
+            self.aggregated_duration_per_chunk * 3,
+        );
+        self.aggregated_duration_per_chunk =
+            ((self.aggregated_duration_per_chunk * self.old_samples_weight) + clamped_duration)
+                / (self.old_samples_weight + 1);
+        self.old_samples_weight = u32::min(49, self.old_samples_weight + 1);
+    }
+
+    pub fn desired_chunks_per_tick(&self) -> f32 {
+        (7000000. / self.aggregated_duration_per_chunk.as_nanos() as f64) as f32
+    }
 }
 
 #[derive(Event)]
@@ -69,20 +93,8 @@ pub fn handle_chunk_batch_finished_event(
 ) {
     for event in events.iter() {
         if let Ok(mut chunk_batch_info) = query.get_mut(event.entity) {
-            let batch_duration = chunk_batch_info.start_time.elapsed();
-            if event.batch_size > 0 {
-                chunk_batch_info
-                    .accumulator
-                    .accumulate(event.batch_size, batch_duration);
-            }
-            let millis_per_chunk =
-                f64::max(0., chunk_batch_info.accumulator.get_millis_per_chunk());
-            let desired_chunks_per_tick = if millis_per_chunk == 0. {
-                // make it the server's problem instead
-                f32::NAN
-            } else {
-                (25. / millis_per_chunk) as f32
-            };
+            chunk_batch_info.batch_finished(event.batch_size);
+            let desired_chunks_per_tick = chunk_batch_info.desired_chunks_per_tick();
             send_packets.send(SendPacketEvent {
                 entity: event.entity,
                 packet: ServerboundChunkBatchReceivedPacket {
@@ -140,7 +152,8 @@ impl Default for ChunkBatchInfo {
     fn default() -> Self {
         Self {
             start_time: Instant::now(),
-            accumulator: ChunkReceiveSpeedAccumulator::new(50),
+            aggregated_duration_per_chunk: Duration::from_millis(2),
+            old_samples_weight: 1,
         }
     }
 }

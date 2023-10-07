@@ -145,8 +145,8 @@ impl PartialChunkStorage {
             heightmaps,
         )?;
 
-        trace!("Loaded chunk {:?}", pos);
         self.set(pos, Some(chunk), chunk_storage);
+        trace!("Loaded chunk {pos:?}");
 
         Ok(())
     }
