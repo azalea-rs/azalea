@@ -49,7 +49,9 @@ impl Debug for MoveData {
 pub struct PathfinderCtx {
     min_y: i32,
     world_lock: Arc<RwLock<Instance>>,
-    cached_chunks: RefCell<Vec<(ChunkPos, Vec<azalea_world::Section>)>>,
+    // we store `PalettedContainer`s instead of `Chunk`s or `Section`s because it doesn't contain
+    // any unnecessary data like heightmaps or biomes.
+    cached_chunks: RefCell<Vec<(ChunkPos, Vec<azalea_world::palette::PalettedContainer>)>>,
 
     cached_blocks: UnsafeCell<CachedSections>,
 }
@@ -89,8 +91,13 @@ impl CachedSections {
 
     #[inline]
     pub fn insert(&mut self, section: CachedSection) {
-        self.sections.push(section);
-        self.sections.sort_unstable_by(|a, b| a.pos.cmp(&b.pos));
+        // self.sections.push(section);
+        // self.sections.sort_unstable_by(|a, b| a.pos.cmp(&b.pos));
+        let index = self
+            .sections
+            .binary_search_by(|s| s.pos.cmp(&section.pos))
+            .unwrap_or_else(|e| e);
+        self.sections.insert(index, section);
     }
 }
 
@@ -111,17 +118,19 @@ impl PathfinderCtx {
         }
     }
 
-    fn get_block_state(&self, pos: BlockPos) -> Option<BlockState> {
-        self.with_section(ChunkSectionPos::from(pos), |section| {
-            let chunk_section_pos = ChunkSectionBlockPos::from(pos);
-            section.get(chunk_section_pos)
-        })
-    }
+    // ```
+    // fn get_block_state(&self, pos: BlockPos) -> Option<BlockState> {
+    //     self.with_section(ChunkSectionPos::from(pos), |section| {
+    //         let state = section.get(pos.x as usize, pos.y as usize, pos.z as usize);
+    //         BlockState::try_from(state).unwrap_or(BlockState::AIR)
+    //     })
+    // }
+    // ```
 
     fn with_section<T>(
         &self,
         section_pos: ChunkSectionPos,
-        f: impl FnOnce(&azalea_world::Section) -> T,
+        f: impl FnOnce(&azalea_world::palette::PalettedContainer) -> T,
     ) -> Option<T> {
         let chunk_pos = ChunkPos::from(section_pos);
         let section_index =
@@ -141,7 +150,7 @@ impl PathfinderCtx {
                 // y position is out of bounds
                 return None;
             };
-            let section: &azalea_world::Section = &sections[section_index];
+            let section: &azalea_world::palette::PalettedContainer = &sections[section_index];
             return Some(f(section));
         }
 
@@ -151,15 +160,24 @@ impl PathfinderCtx {
         };
         let chunk = chunk.read();
 
-        // add the sections to the chunk cache
-        cached_chunks.push((chunk_pos, chunk.sections.clone()));
+        let sections: Vec<azalea_world::palette::PalettedContainer> = chunk
+            .sections
+            .iter()
+            .map(|section| section.states.clone())
+            .collect();
 
-        if section_index >= chunk.sections.len() {
+        if section_index >= sections.len() {
             // y position is out of bounds
             return None;
         };
-        let section = &chunk.sections[section_index];
-        Some(f(section))
+
+        let section = &sections[section_index];
+        let r = f(section);
+
+        // add the sections to the chunk cache
+        cached_chunks.push((chunk_pos, sections));
+
+        Some(r)
     }
 
     fn calculate_bitsets_for_section(&self, section_pos: ChunkSectionPos) -> Option<CachedSection> {
@@ -167,7 +185,7 @@ impl PathfinderCtx {
             let mut passable_bitset = FixedBitSet::<4096>::new();
             let mut solid_bitset = FixedBitSet::<4096>::new();
             for i in 0..4096 {
-                let block_state_id = section.states.get_at_index(i);
+                let block_state_id = section.get_at_index(i);
                 let block_state = BlockState::try_from(block_state_id).unwrap_or(BlockState::AIR);
                 if is_block_state_passable(block_state) {
                     passable_bitset.set(i);
