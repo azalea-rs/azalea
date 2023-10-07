@@ -122,20 +122,7 @@ impl PathfinderCtx {
         let chunk_pos = ChunkPos::from(pos);
 
         let mut cached_chunks = self.cached_chunks.borrow_mut();
-        if let Some(sections) = cached_chunks.iter().find_map(|(pos, sections)| {
-            if *pos == chunk_pos {
-                Some(sections)
-            } else {
-                None
-            }
-        }) {
-            let section_index =
-                azalea_world::chunk_storage::section_index(pos.y, self.min_y) as usize;
-            if section_index >= sections.len() {
-                // y position is out of bounds
-                return None;
-            };
-            let section = &sections[section_index];
+        if let Some(section) = self.get_section_from_cache(&cached_chunks, pos) {
             let chunk_section_pos = ChunkSectionBlockPos::from(pos);
             return Some(section.get(chunk_section_pos));
         }
@@ -154,6 +141,33 @@ impl PathfinderCtx {
         let section = &chunk.sections[section_index];
         let chunk_section_pos = ChunkSectionBlockPos::from(pos);
         Some(section.get(chunk_section_pos))
+    }
+
+    fn get_section_from_cache<'a>(
+        &self,
+        cached_chunks: &'a [(ChunkPos, Vec<azalea_world::Section>)],
+        pos: BlockPos,
+    ) -> Option<&'a azalea_world::Section> {
+        let chunk_pos = ChunkPos::from(pos);
+
+        if let Some(sections) = cached_chunks.iter().find_map(|(pos, sections)| {
+            if *pos == chunk_pos {
+                Some(sections)
+            } else {
+                None
+            }
+        }) {
+            let section_index =
+                azalea_world::chunk_storage::section_index(pos.y, self.min_y) as usize;
+            if section_index >= sections.len() {
+                // y position is out of bounds
+                return None;
+            };
+            let section = &sections[section_index];
+            return Some(section);
+        }
+
+        None
     }
 
     pub fn is_block_passable(&self, pos: BlockPos) -> bool {

@@ -20,22 +20,26 @@ use crate::ecs::{
     system::{Commands, Query, Res},
 };
 use crate::pathfinder::moves::PathfinderCtx;
+use azalea_client::chat::SendChatEvent;
 use azalea_client::movement::walk_listener;
 use azalea_client::{StartSprintEvent, StartWalkEvent};
-use azalea_core::position::BlockPos;
+use azalea_core::position::{BlockPos, Vec3};
 use azalea_entity::metadata::Player;
 use azalea_entity::LocalEntity;
 use azalea_entity::{Physics, Position};
 use azalea_physics::PhysicsSet;
 use azalea_world::{InstanceContainer, InstanceName};
 use bevy_app::{FixedUpdate, PreUpdate, Update};
+use bevy_ecs::event::Events;
 use bevy_ecs::prelude::Event;
 use bevy_ecs::query::Changed;
 use bevy_ecs::schedule::IntoSystemConfigs;
+use bevy_ecs::system::{Local, ResMut};
 use bevy_tasks::{AsyncComputeTaskPool, Task};
 use futures_lite::future;
 use log::{debug, error, info, trace, warn};
 use std::collections::VecDeque;
+use std::sync::atomic::{self, AtomicUsize};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
@@ -51,9 +55,13 @@ impl Plugin for PathfinderPlugin {
                 FixedUpdate,
                 // putting systems in the FixedUpdate schedule makes them run every Minecraft tick
                 // (every 50 milliseconds).
-                tick_execute_path
-                    .after(PhysicsSet)
-                    .after(azalea_client::movement::send_position),
+                (
+                    tick_execute_path
+                        .after(PhysicsSet)
+                        .after(azalea_client::movement::send_position),
+                    debug_render_path_with_particles,
+                )
+                    .chain(),
             )
             .add_systems(PreUpdate, add_default_pathfinder)
             .add_systems(
@@ -81,6 +89,8 @@ pub struct Pathfinder {
     pub goal: Option<Arc<dyn Goal + Send + Sync>>,
     pub successors_fn: Option<SuccessorsFn>,
     pub is_calculating: bool,
+
+    pub goto_id: Arc<AtomicUsize>,
 }
 #[derive(Event)]
 pub struct GotoEvent {
@@ -157,7 +167,7 @@ fn goto_listener(
             // if we're currently pathfinding and got a goto event, start a little ahead
             pathfinder
                 .path
-                .get(5)
+                .get(20)
                 .unwrap_or_else(|| pathfinder.path.back().unwrap())
                 .target
         };
@@ -174,6 +184,9 @@ fn goto_listener(
 
         let goal = event.goal.clone();
         let entity = event.entity;
+
+        let goto_id_atomic = pathfinder.goto_id.clone();
+        let goto_id = goto_id_atomic.fetch_add(1, atomic::Ordering::Relaxed) + 1;
 
         let task = thread_pool.spawn(async move {
             debug!("start: {start:?}");
@@ -204,6 +217,8 @@ fn goto_listener(
                 let duration = end_time - start_time;
                 if partial {
                     info!("Pathfinder took {duration:?} (timed out)");
+                    // wait a bit so it's not a busy loop
+                    std::thread::sleep(Duration::from_millis(100));
                 } else {
                     info!("Pathfinder took {duration:?}");
                 }
@@ -215,6 +230,13 @@ fn goto_listener(
 
                 path = movements.into_iter().collect::<VecDeque<_>>();
                 is_partial = partial;
+
+                let goto_id_now = goto_id_atomic.load(atomic::Ordering::Relaxed);
+                if goto_id != goto_id_now {
+                    // we must've done another goto while calculating this path, so throw it away
+                    warn!("finished calculating a path, but it's outdated");
+                    return None;
+                }
 
                 if path.is_empty() && partial {
                     if attempt_number == 0 {
@@ -275,6 +297,7 @@ fn path_found_listener(
                 pathfinder.path = path.to_owned();
                 debug!("set path to {:?}", path.iter().take(10).collect::<Vec<_>>());
                 pathfinder.last_reached_node = Some(event.start);
+                pathfinder.last_node_reached_at = Some(Instant::now());
             } else {
                 let mut new_path = VecDeque::new();
 
@@ -313,7 +336,6 @@ fn path_found_listener(
                 );
                 pathfinder.queued_path = Some(new_path);
             }
-            pathfinder.last_node_reached_at = Some(Instant::now());
         } else {
             error!("No path found");
             pathfinder.path.clear();
@@ -353,6 +375,9 @@ fn tick_execute_path(
                 if last_node_reached_at.elapsed() > Duration::from_secs(2) {
                     warn!("pathfinder timeout");
                     pathfinder.path.clear();
+                    pathfinder.queued_path = None;
+                    pathfinder.last_reached_node = None;
+                    pathfinder.goto_id.fetch_add(1, atomic::Ordering::Relaxed);
                     // set partial to true to make sure that the recalculation happens
                     pathfinder.is_path_partial = true;
                 }
@@ -386,8 +411,10 @@ fn tick_execute_path(
                     // this is to make sure we don't fall off immediately after finishing the path
                     physics.on_ground
                         && BlockPos::from(position) == movement.target
-                        && x_difference_from_center.abs() < 0.2
-                        && z_difference_from_center.abs() < 0.2
+                        // adding the delta like this isn't a perfect solution but it helps to make
+                        // sure we don't keep going if our delta is high
+                        && (x_difference_from_center + physics.delta.x).abs() < 0.2
+                        && (z_difference_from_center + physics.delta.z).abs() < 0.2
                 } else {
                     true
                 };
@@ -470,13 +497,16 @@ fn tick_execute_path(
                 {
                     warn!("path obstructed at index {obstructed_index} (starting at {last_reached_node:?}, path: {:?})", pathfinder.path);
                     pathfinder.path.truncate(obstructed_index);
+                    pathfinder.is_path_partial = true;
                 }
             }
         }
 
         {
             // start recalculating if the path ends soon
-            if pathfinder.path.len() < 5 && !pathfinder.is_calculating && pathfinder.is_path_partial
+            if (pathfinder.path.len() == 20 || pathfinder.path.len() < 5)
+                && !pathfinder.is_calculating
+                && pathfinder.is_path_partial
             {
                 if let Some(goal) = pathfinder.goal.as_ref().cloned() {
                     debug!("Recalculating path because it ends soon");
@@ -507,6 +537,12 @@ fn tick_execute_path(
                             });
                         }
                     }
+                } else if pathfinder.path.is_empty() {
+                    // idk when this can happen but stop moving just in case
+                    walk_events.send(StartWalkEvent {
+                        entity,
+                        direction: WalkDirection::None,
+                    });
                 }
             }
         }
@@ -525,6 +561,79 @@ fn stop_pathfinding_on_instance_change(
                 entity,
                 direction: WalkDirection::None,
             });
+        }
+    }
+}
+
+/// A component that makes bots run /particle commands while pathfinding to show
+/// where they're going. This requires the bots to have op permissions, and
+/// it'll make them spam *a lot* of commands.
+#[derive(Component)]
+pub struct PathfinderDebugParticles;
+
+fn debug_render_path_with_particles(
+    mut query: Query<(Entity, &Pathfinder), With<PathfinderDebugParticles>>,
+    // chat_events is Option because the tests don't have SendChatEvent
+    // and we have to use ResMut<Events> because bevy doesn't support Option<EventWriter>
+    chat_events: Option<ResMut<Events<SendChatEvent>>>,
+    mut tick_count: Local<usize>,
+) {
+    let Some(mut chat_events) = chat_events else {
+        return;
+    };
+    if *tick_count >= 2 {
+        *tick_count = 0;
+    } else {
+        *tick_count += 1;
+        return;
+    }
+    for (entity, pathfinder) in &mut query {
+        if pathfinder.path.is_empty() {
+            continue;
+        }
+
+        let mut start = pathfinder
+            .last_reached_node
+            .unwrap_or_else(|| pathfinder.path.front().unwrap().target);
+        for movement in &pathfinder.path {
+            // /particle dust 0 1 1 1 ~ ~ ~ 0 0 0.2 0 100
+
+            let end = movement.target;
+
+            let start_vec3 = start.center();
+            let end_vec3 = end.center();
+
+            let step_count = (start_vec3.distance_to_sqr(&end_vec3).sqrt() * 4.0) as usize;
+
+            // interpolate between the start and end positions
+            for i in 0..step_count {
+                let percent = i as f64 / step_count as f64;
+                let pos = Vec3 {
+                    x: start_vec3.x + (end_vec3.x - start_vec3.x) * percent,
+                    y: start_vec3.y + (end_vec3.y - start_vec3.y) * percent,
+                    z: start_vec3.z + (end_vec3.z - start_vec3.z) * percent,
+                };
+                let particle_command = format!(
+                "/particle dust {r} {g} {b} {size} {start_x} {start_y} {start_z} {delta_x} {delta_y} {delta_z} 0 {count}",
+                r = 0,
+                g = 1,
+                b = 1,
+                size = 1,
+                start_x = pos.x,
+                start_y = pos.y,
+                start_z = pos.z,
+                delta_x = 0,
+                delta_y = 0,
+                delta_z = 0,
+                count = 1
+            );
+                chat_events.send(SendChatEvent {
+                    entity,
+                    content: particle_command,
+                });
+            }
+
+            start = movement.target;
         }
     }
 }
@@ -726,6 +835,29 @@ mod tests {
         assert_eq!(
             BlockPos::from(simulation.position()),
             BlockPos::new(3, 67, 4)
+        );
+    }
+
+    #[test]
+    fn test_small_descend_and_parkour_2_block_gap() {
+        let mut partial_chunks = PartialChunkStorage::default();
+        let mut simulation = setup_simulation(
+            &mut partial_chunks,
+            BlockPos::new(0, 71, 0),
+            BlockPos::new(0, 70, 5),
+            vec![
+                BlockPos::new(0, 70, 0),
+                BlockPos::new(0, 70, 1),
+                BlockPos::new(0, 69, 2),
+                BlockPos::new(0, 69, 5),
+            ],
+        );
+        for _ in 0..40 {
+            simulation.tick();
+        }
+        assert_eq!(
+            BlockPos::from(simulation.position()),
+            BlockPos::new(0, 70, 5)
         );
     }
 

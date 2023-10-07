@@ -164,9 +164,16 @@ fn descend_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, pos: BlockPos) {
             continue;
         }
 
-        let cost = SPRINT_ONE_BLOCK_COST
-            + WALK_OFF_BLOCK_COST
-            + FALL_ONE_BLOCK_COST * fall_distance as f32;
+        let cost = WALK_OFF_BLOCK_COST
+            + f32::max(
+                FALL_N_BLOCKS_COST
+                    .get(fall_distance as usize)
+                    .copied()
+                    // avoid panicking if we fall more than the size of FALL_N_BLOCKS_COST
+                    // probably not possible but just in case
+                    .unwrap_or(f32::MAX),
+                CENTER_AFTER_FALL_COST,
+            );
 
         edges.push(Edge {
             movement: astar::Movement {
@@ -255,21 +262,27 @@ fn diagonal_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, pos: BlockPos) {
     for dir in CardinalDirection::iter() {
         let right = dir.right();
         let offset = BlockPos::new(dir.x() + right.x(), 0, dir.z() + right.z());
+        let left_pos = BlockPos::new(pos.x + dir.x(), pos.y, pos.z + dir.z());
+        let right_pos = BlockPos::new(pos.x + right.x(), pos.y, pos.z + right.z());
 
-        if !ctx.is_passable(BlockPos::new(pos.x + dir.x(), pos.y, pos.z + dir.z()))
-            && !ctx.is_passable(BlockPos::new(
-                pos.x + dir.right().x(),
-                pos.y,
-                pos.z + dir.right().z(),
-            ))
-        {
+        // +0.001 so it doesn't unnecessarily go diagonal sometimes
+        let mut cost = SPRINT_ONE_BLOCK_COST * SQRT_2 + 0.001;
+
+        let left_passable = ctx.is_passable(left_pos);
+        let right_passable = ctx.is_passable(right_pos);
+
+        if !left_passable && !right_passable {
             continue;
         }
+
+        if !left_passable || !right_passable {
+            // add a bit of cost because it'll probably be hugging a wall here
+            cost += WALK_ONE_BLOCK_COST / 2.;
+        }
+
         if !ctx.is_standable(pos + offset) {
             continue;
         }
-        // +0.001 so it doesn't unnecessarily go diagonal sometimes
-        let cost = SPRINT_ONE_BLOCK_COST * SQRT_2 + 0.001;
 
         edges.push(Edge {
             movement: astar::Movement {
@@ -292,10 +305,11 @@ fn execute_diagonal_move(
         ..
     }: ExecuteCtx,
 ) {
-    let center = target.center();
+    let target_center = target.center();
+
     look_at_events.send(LookAtEvent {
         entity,
-        position: center,
+        position: target_center,
     });
     sprint_events.send(StartSprintEvent {
         entity,

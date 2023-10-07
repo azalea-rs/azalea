@@ -3,7 +3,7 @@ use std::f32::consts::SQRT_2;
 use azalea_core::position::{BlockPos, Vec3};
 
 use super::{
-    costs::{FALL_ONE_BLOCK_COST, JUMP_ONE_BLOCK_COST},
+    costs::{FALL_N_BLOCKS_COST, JUMP_ONE_BLOCK_COST},
     Goal,
 };
 
@@ -55,10 +55,10 @@ impl Goal for XZGoal {
 }
 
 fn y_heuristic(dy: f32) -> f32 {
-    if dy < 0.0 {
-        FALL_ONE_BLOCK_COST * -dy
-    } else {
+    if dy > 0.0 {
         *JUMP_ONE_BLOCK_COST * dy
+    } else {
+        FALL_N_BLOCKS_COST[2] / 2. * -dy
     }
 }
 
