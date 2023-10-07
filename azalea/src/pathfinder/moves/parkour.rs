@@ -8,6 +8,7 @@ use super::{default_is_reached, Edge, ExecuteCtx, IsReachedCtx, MoveData, Pathfi
 pub fn parkour_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, node: BlockPos) {
     parkour_forward_1_move(edges, ctx, node);
     parkour_forward_2_move(edges, ctx, node);
+    parkour_forward_3_move(edges, ctx, node);
 }
 
 fn parkour_forward_1_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, pos: BlockPos) {
@@ -38,8 +39,12 @@ fn parkour_forward_1_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, pos: Block
             continue;
         }
 
-        // make sure it's not a headhitter
+        // make sure there's not a block above us
         if !ctx.is_block_passable(pos.up(2)) {
+            continue;
+        }
+        // make sure there's not a block above the target
+        if !ctx.is_block_passable((pos + offset).up(2)) {
             continue;
         }
 
@@ -59,7 +64,7 @@ fn parkour_forward_1_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, pos: Block
 }
 
 fn parkour_forward_2_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, pos: BlockPos) {
-    for dir in CardinalDirection::iter() {
+    'dir: for dir in CardinalDirection::iter() {
         let gap_1_offset = BlockPos::new(dir.x(), 0, dir.z());
         let gap_2_offset = BlockPos::new(dir.x() * 2, 0, dir.z() * 2);
         let offset = BlockPos::new(dir.x() * 3, 0, dir.z() * 3);
@@ -71,23 +76,29 @@ fn parkour_forward_2_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, pos: Block
             continue;
         }
 
-        if !ctx.is_standable(pos + offset) {
+        let ascend: i32 = if ctx.is_standable(pos + offset.up(1)) {
+            1
+        } else if ctx.is_standable(pos + offset) {
+            0
+        } else {
             continue;
+        };
+
+        // make sure we have space to jump
+        for offset in [gap_1_offset, gap_2_offset] {
+            if !ctx.is_passable(pos + offset) {
+                continue 'dir;
+            }
+            if !ctx.is_block_passable((pos + offset).up(2)) {
+                continue 'dir;
+            }
         }
-        if !ctx.is_passable(pos + gap_1_offset) {
-            continue;
-        }
-        if !ctx.is_block_passable((pos + gap_1_offset).up(2)) {
-            continue;
-        }
-        if !ctx.is_passable(pos + gap_2_offset) {
-            continue;
-        }
-        if !ctx.is_block_passable((pos + gap_2_offset).up(2)) {
-            continue;
-        }
-        // make sure it's not a headhitter
+        // make sure there's not a block above us
         if !ctx.is_block_passable(pos.up(2)) {
+            continue;
+        }
+        // make sure there's not a block above the target
+        if !ctx.is_block_passable((pos + offset).up(2)) {
             continue;
         }
 
@@ -95,7 +106,63 @@ fn parkour_forward_2_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, pos: Block
 
         edges.push(Edge {
             movement: astar::Movement {
-                target: pos + offset,
+                target: pos + offset.up(ascend),
+                data: MoveData {
+                    execute: &execute_parkour_move,
+                    is_reached: &default_is_reached,
+                },
+            },
+            cost,
+        })
+    }
+}
+
+fn parkour_forward_3_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, pos: BlockPos) {
+    'dir: for dir in CardinalDirection::iter() {
+        let gap_1_offset = BlockPos::new(dir.x(), 0, dir.z());
+        let gap_2_offset = BlockPos::new(dir.x() * 2, 0, dir.z() * 2);
+        let gap_3_offset = BlockPos::new(dir.x() * 3, 0, dir.z() * 3);
+        let offset = BlockPos::new(dir.x() * 4, 0, dir.z() * 4);
+
+        // make sure we actually have to jump
+        if ctx.is_block_solid((pos + gap_1_offset).down(1))
+            || ctx.is_block_solid((pos + gap_2_offset).down(1))
+            || ctx.is_block_solid((pos + gap_3_offset).down(1))
+        {
+            continue;
+        }
+
+        let ascend: i32 = if ctx.is_standable(pos + offset.up(1)) {
+            1
+        } else if ctx.is_standable(pos + offset) {
+            0
+        } else {
+            continue;
+        };
+
+        // make sure we have space to jump
+        for offset in [gap_1_offset, gap_2_offset, gap_3_offset] {
+            if !ctx.is_passable(pos + offset) {
+                continue 'dir;
+            }
+            if !ctx.is_block_passable((pos + offset).up(2)) {
+                continue 'dir;
+            }
+        }
+        // make sure there's not a block above us
+        if !ctx.is_block_passable(pos.up(2)) {
+            continue;
+        }
+        // make sure there's not a block above the target
+        if !ctx.is_block_passable((pos + offset).up(2)) {
+            continue;
+        }
+
+        let cost = JUMP_PENALTY + WALK_ONE_BLOCK_COST * 3.;
+
+        edges.push(Edge {
+            movement: astar::Movement {
+                target: pos + offset.up(ascend),
                 data: MoveData {
                     execute: &execute_parkour_move,
                     is_reached: &default_is_reached,
@@ -116,12 +183,13 @@ fn execute_parkour_move(mut ctx: ExecuteCtx) {
 
     let start_center = start.center();
     let target_center = target.center();
-    ctx.look_at(target_center);
 
     let jump_distance = i32::max((target - start).x.abs(), (target - start).z.abs());
 
-    if jump_distance >= 4 {
-        // 3 block gap
+    let ascend: i32 = target.y - start.y;
+
+    if jump_distance >= 4 || (ascend > 0 && jump_distance >= 3) {
+        // 3 block gap OR 2 block gap with ascend
         ctx.sprint(SprintDirection::Forward);
     } else {
         ctx.walk(WalkDirection::Forward);
@@ -137,7 +205,7 @@ fn execute_parkour_move(mut ctx: ExecuteCtx) {
 
     let required_distance_from_center = if jump_distance <= 2 {
         // 1 block gap
-        0.
+        0.0
     } else {
         0.6
     };
@@ -145,6 +213,17 @@ fn execute_parkour_move(mut ctx: ExecuteCtx) {
         (position.x - start_center.x).abs(),
         (position.z - start_center.z).abs(),
     );
+
+    if !is_at_start_block
+        && !is_at_jump_block
+        && position.y == start.y as f64
+        && distance_from_start < 0.8
+    {
+        // we have to be on the start block to jump
+        ctx.look_at(start_center);
+    } else {
+        ctx.look_at(target_center);
+    }
 
     if !is_at_start_block && is_at_jump_block && distance_from_start > required_distance_from_center
     {
@@ -158,6 +237,8 @@ pub fn parkour_is_reached(
         position, target, ..
     }: IsReachedCtx,
 ) -> bool {
+    let target_center = target.center();
+
     // 0.094 and not 0 for lilypads
     BlockPos::from(position) == target && (position.y - target.y as f64) < 0.094
 }

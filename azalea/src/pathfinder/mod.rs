@@ -883,4 +883,27 @@ mod tests {
             BlockPos::new(0, 68, 3)
         );
     }
+
+    #[test]
+    fn test_2_gap_ascend_thrice() {
+        let mut partial_chunks = PartialChunkStorage::default();
+        let mut simulation = setup_simulation(
+            &mut partial_chunks,
+            BlockPos::new(0, 71, 0),
+            BlockPos::new(3, 74, 0),
+            vec![
+                BlockPos::new(0, 70, 0),
+                BlockPos::new(0, 71, 3),
+                BlockPos::new(3, 72, 3),
+                BlockPos::new(3, 73, 0),
+            ],
+        );
+        for _ in 0..60 {
+            simulation.tick();
+        }
+        assert_eq!(
+            BlockPos::from(simulation.position()),
+            BlockPos::new(3, 74, 0)
+        );
+    }
 }
