@@ -11,7 +11,7 @@ use crate::{JumpEvent, LookAtEvent};
 
 use super::astar;
 use azalea_block::BlockState;
-use azalea_client::{StartSprintEvent, StartWalkEvent};
+use azalea_client::{SprintDirection, StartSprintEvent, StartWalkEvent, WalkDirection};
 use azalea_core::{
     bitset::FixedBitSet,
     position::{BlockPos, ChunkPos, ChunkSectionBlockPos, ChunkSectionPos, Vec3},
@@ -313,6 +313,41 @@ pub struct ExecuteCtx<'w1, 'w2, 'w3, 'w4, 'a> {
     pub walk_events: &'a mut EventWriter<'w3, StartWalkEvent>,
     pub jump_events: &'a mut EventWriter<'w4, JumpEvent>,
 }
+
+impl ExecuteCtx<'_, '_, '_, '_, '_> {
+    pub fn look_at(&mut self, position: Vec3) {
+        self.look_at_events.send(LookAtEvent {
+            entity: self.entity,
+            position: Vec3 {
+                x: position.x,
+                // look forward
+                y: self.position.up(1.53).y,
+                z: position.z,
+            },
+        });
+    }
+
+    pub fn sprint(&mut self, direction: SprintDirection) {
+        self.sprint_events.send(StartSprintEvent {
+            entity: self.entity,
+            direction,
+        });
+    }
+
+    pub fn walk(&mut self, direction: WalkDirection) {
+        self.walk_events.send(StartWalkEvent {
+            entity: self.entity,
+            direction,
+        });
+    }
+
+    pub fn jump(&mut self) {
+        self.jump_events.send(JumpEvent {
+            entity: self.entity,
+        });
+    }
+}
+
 pub struct IsReachedCtx<'a> {
     /// The node that we're trying to reach.
     pub target: BlockPos,

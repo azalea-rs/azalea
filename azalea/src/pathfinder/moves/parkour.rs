@@ -1,10 +1,7 @@
-use azalea_client::{SprintDirection, StartSprintEvent, StartWalkEvent, WalkDirection};
+use azalea_client::{SprintDirection, WalkDirection};
 use azalea_core::{direction::CardinalDirection, position::BlockPos};
 
-use crate::{
-    pathfinder::{astar, costs::*},
-    JumpEvent, LookAtEvent,
-};
+use crate::pathfinder::{astar, costs::*};
 
 use super::{default_is_reached, Edge, ExecuteCtx, IsReachedCtx, MoveData, PathfinderCtx};
 
@@ -109,39 +106,25 @@ fn parkour_forward_2_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, pos: Block
     }
 }
 
-fn execute_parkour_move(
-    ExecuteCtx {
-        entity,
+fn execute_parkour_move(mut ctx: ExecuteCtx) {
+    let ExecuteCtx {
         position,
         target,
         start,
-        look_at_events,
-        sprint_events,
-        walk_events,
-        jump_events,
         ..
-    }: ExecuteCtx,
-) {
+    } = ctx;
+
     let start_center = start.center();
     let target_center = target.center();
-    look_at_events.send(LookAtEvent {
-        entity,
-        position: target_center,
-    });
+    ctx.look_at(target_center);
 
     let jump_distance = i32::max((target - start).x.abs(), (target - start).z.abs());
 
     if jump_distance >= 4 {
         // 3 block gap
-        sprint_events.send(StartSprintEvent {
-            entity,
-            direction: SprintDirection::Forward,
-        });
+        ctx.sprint(SprintDirection::Forward);
     } else {
-        walk_events.send(StartWalkEvent {
-            entity,
-            direction: WalkDirection::Forward,
-        });
+        ctx.walk(WalkDirection::Forward);
     }
 
     let x_dir = (target.x - start.x).clamp(-1, 1);
@@ -165,7 +148,7 @@ fn execute_parkour_move(
 
     if !is_at_start_block && is_at_jump_block && distance_from_start > required_distance_from_center
     {
-        jump_events.send(JumpEvent { entity });
+        ctx.jump();
     }
 }
 
