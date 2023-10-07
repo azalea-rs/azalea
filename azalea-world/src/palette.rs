@@ -86,7 +86,7 @@ impl PalettedContainer {
     /// of things in the storage. (So for block states, it must be less than
     /// 4096).
     pub fn get_at_index(&self, index: usize) -> u32 {
-        // first get the pallete id
+        // first get the palette id
         let paletted_value = self.storage.get(index);
         // and then get the value from that id
         self.palette.value_for(paletted_value as usize)

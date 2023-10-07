@@ -334,7 +334,8 @@ impl Hash for ChunkSectionBlockPos {
 impl From<ChunkSectionBlockPos> for u16 {
     #[inline]
     fn from(pos: ChunkSectionBlockPos) -> Self {
-        (pos.z as u16) | ((pos.y as u16) << 4) | ((pos.x as u16) << 8)
+        // (pos.z as u16) | ((pos.y as u16) << 4) | ((pos.x as u16) << 8)
+        ((((pos.y as u16) << 4) | pos.z as u16) << 4) | pos.x as u16
     }
 }
 impl nohash_hasher::IsEnabled for ChunkSectionBlockPos {}

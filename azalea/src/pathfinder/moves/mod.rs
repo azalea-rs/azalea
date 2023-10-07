@@ -51,8 +51,7 @@ pub struct PathfinderCtx {
     world_lock: Arc<RwLock<Instance>>,
     cached_chunks: RefCell<Vec<(ChunkPos, Vec<azalea_world::Section>)>>,
 
-    passable_cached_blocks: UnsafeCell<CachedSections>,
-    solid_cached_blocks: UnsafeCell<CachedSections>,
+    cached_blocks: UnsafeCell<CachedSections>,
 }
 
 #[derive(Default)]
@@ -97,8 +96,8 @@ impl CachedSections {
 
 pub struct CachedSection {
     pub pos: ChunkSectionPos,
-    pub present: FixedBitSet<4096>,
-    pub value: FixedBitSet<4096>,
+    pub passable_bitset: FixedBitSet<4096>,
+    pub solid_bitset: FixedBitSet<4096>,
 }
 
 impl PathfinderCtx {
@@ -108,48 +107,29 @@ impl PathfinderCtx {
             min_y,
             world_lock,
             cached_chunks: Default::default(),
-            passable_cached_blocks: Default::default(),
-            solid_cached_blocks: Default::default(),
+            cached_blocks: Default::default(),
         }
     }
 
     fn get_block_state(&self, pos: BlockPos) -> Option<BlockState> {
-        if pos.y < self.min_y {
-            // y position is out of bounds
-            return None;
-        }
-
-        let chunk_pos = ChunkPos::from(pos);
-
-        let mut cached_chunks = self.cached_chunks.borrow_mut();
-        if let Some(section) = self.get_section_from_cache(&cached_chunks, pos) {
+        self.with_section(ChunkSectionPos::from(pos), |section| {
             let chunk_section_pos = ChunkSectionBlockPos::from(pos);
-            return Some(section.get(chunk_section_pos));
-        }
-
-        let world = self.world_lock.read();
-        let chunk = world.chunks.get(&chunk_pos)?;
-        let chunk = chunk.read();
-
-        cached_chunks.push((chunk_pos, chunk.sections.clone()));
-
-        let section_index = azalea_world::chunk_storage::section_index(pos.y, self.min_y) as usize;
-        if section_index >= chunk.sections.len() {
-            // y position is out of bounds
-            return None;
-        };
-        let section = &chunk.sections[section_index];
-        let chunk_section_pos = ChunkSectionBlockPos::from(pos);
-        Some(section.get(chunk_section_pos))
+            section.get(chunk_section_pos)
+        })
     }
 
-    fn get_section_from_cache<'a>(
+    fn with_section<T>(
         &self,
-        cached_chunks: &'a [(ChunkPos, Vec<azalea_world::Section>)],
-        pos: BlockPos,
-    ) -> Option<&'a azalea_world::Section> {
-        let chunk_pos = ChunkPos::from(pos);
+        section_pos: ChunkSectionPos,
+        f: impl FnOnce(&azalea_world::Section) -> T,
+    ) -> Option<T> {
+        let chunk_pos = ChunkPos::from(section_pos);
+        let section_index =
+            azalea_world::chunk_storage::section_index(section_pos.y * 16, self.min_y) as usize;
 
+        let mut cached_chunks = self.cached_chunks.borrow_mut();
+
+        // get section from cache
         if let Some(sections) = cached_chunks.iter().find_map(|(pos, sections)| {
             if *pos == chunk_pos {
                 Some(sections)
@@ -157,17 +137,51 @@ impl PathfinderCtx {
                 None
             }
         }) {
-            let section_index =
-                azalea_world::chunk_storage::section_index(pos.y, self.min_y) as usize;
             if section_index >= sections.len() {
                 // y position is out of bounds
                 return None;
             };
-            let section = &sections[section_index];
-            return Some(section);
+            let section: &azalea_world::Section = &sections[section_index];
+            return Some(f(section));
         }
 
-        None
+        let world = self.world_lock.read();
+        let Some(chunk) = world.chunks.get(&chunk_pos) else {
+            return None;
+        };
+        let chunk = chunk.read();
+
+        // add the sections to the chunk cache
+        cached_chunks.push((chunk_pos, chunk.sections.clone()));
+
+        if section_index >= chunk.sections.len() {
+            // y position is out of bounds
+            return None;
+        };
+        let section = &chunk.sections[section_index];
+        Some(f(section))
+    }
+
+    fn calculate_bitsets_for_section(&self, section_pos: ChunkSectionPos) -> Option<CachedSection> {
+        self.with_section(section_pos, |section| {
+            let mut passable_bitset = FixedBitSet::<4096>::new();
+            let mut solid_bitset = FixedBitSet::<4096>::new();
+            for i in 0..4096 {
+                let block_state_id = section.states.get_at_index(i);
+                let block_state = BlockState::try_from(block_state_id).unwrap_or(BlockState::AIR);
+                if is_block_state_passable(block_state) {
+                    passable_bitset.set(i);
+                }
+                if is_block_state_solid(block_state) {
+                    solid_bitset.set(i);
+                }
+            }
+            CachedSection {
+                pos: section_pos,
+                passable_bitset,
+                solid_bitset,
+            }
+        })
     }
 
     pub fn is_block_passable(&self, pos: BlockPos) -> bool {
@@ -175,41 +189,16 @@ impl PathfinderCtx {
             (ChunkSectionPos::from(pos), ChunkSectionBlockPos::from(pos));
         let index = u16::from(section_block_pos) as usize;
         // SAFETY: we're only accessing this from one thread
-        let cached_block_passable = unsafe { &mut *self.passable_cached_blocks.get() };
-        if let Some(cached) = cached_block_passable.get_mut(section_pos) {
-            if cached.present.index(index) {
-                return cached.value.index(index);
-            } else {
-                let Some(block) = self.get_block_state(pos) else {
-                    return false;
-                };
-                let passable = is_block_state_passable(block);
-
-                cached.present.set(index);
-                if passable {
-                    cached.value.set(index);
-                }
-                return passable;
-            }
+        let cached_blocks = unsafe { &mut *self.cached_blocks.get() };
+        if let Some(cached) = cached_blocks.get_mut(section_pos) {
+            return cached.passable_bitset.index(index);
         }
 
-        let Some(block) = self.get_block_state(pos) else {
+        let Some(cached) = self.calculate_bitsets_for_section(section_pos) else {
             return false;
         };
-        let passable = is_block_state_passable(block);
-        let mut present_bitset = FixedBitSet::new();
-        let mut value_bitset = FixedBitSet::new();
-
-        present_bitset.set(index);
-        if passable {
-            value_bitset.set(index);
-        }
-
-        cached_block_passable.insert(CachedSection {
-            pos: section_pos,
-            present: present_bitset,
-            value: value_bitset,
-        });
+        let passable = cached.passable_bitset.index(index);
+        cached_blocks.insert(cached);
         passable
     }
 
@@ -218,39 +207,16 @@ impl PathfinderCtx {
             (ChunkSectionPos::from(pos), ChunkSectionBlockPos::from(pos));
         let index = u16::from(section_block_pos) as usize;
         // SAFETY: we're only accessing this from one thread
-        let cached_block_solid = unsafe { &mut *self.solid_cached_blocks.get() };
-        if let Some(cached) = cached_block_solid.get_mut(section_pos) {
-            if cached.present.index(index) {
-                return cached.value.index(index);
-            } else {
-                let Some(block) = self.get_block_state(pos) else {
-                    return false;
-                };
-                let solid = is_block_state_solid(block);
-                cached.present.set(index);
-                if solid {
-                    cached.value.set(index);
-                }
-                return solid;
-            }
+        let cached_blocks = unsafe { &mut *self.cached_blocks.get() };
+        if let Some(cached) = cached_blocks.get_mut(section_pos) {
+            return cached.solid_bitset.index(index);
         }
 
-        let Some(block) = self.get_block_state(pos) else {
+        let Some(cached) = self.calculate_bitsets_for_section(section_pos) else {
             return false;
         };
-        let solid = is_block_state_solid(block);
-        let mut present_bitset = FixedBitSet::new();
-        let mut value_bitset = FixedBitSet::new();
-        present_bitset.set(index);
-        if solid {
-            value_bitset.set(index);
-        }
-
-        cached_block_solid.insert(CachedSection {
-            pos: section_pos,
-            present: present_bitset,
-            value: value_bitset,
-        });
+        let solid = cached.solid_bitset.index(index);
+        cached_blocks.insert(cached);
         solid
     }
 

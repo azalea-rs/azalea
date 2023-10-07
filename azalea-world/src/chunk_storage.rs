@@ -433,6 +433,7 @@ impl Default for ChunkStorage {
 
 /// Get the index of where a section is in a chunk based on its y coordinate
 /// and the minimum y coordinate of the world.
+#[inline]
 pub fn section_index(y: i32, min_y: i32) -> u32 {
     assert!(y >= min_y, "y ({y}) must be at least {min_y}");
     let min_section_index = min_y.div_floor(16);
