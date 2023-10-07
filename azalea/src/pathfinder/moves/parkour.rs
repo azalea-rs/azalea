@@ -48,7 +48,7 @@ fn parkour_forward_1_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, pos: Block
             continue;
         }
 
-        let cost = JUMP_PENALTY + WALK_ONE_BLOCK_COST * 2.;
+        let cost = JUMP_PENALTY + WALK_ONE_BLOCK_COST * 2. + CENTER_AFTER_FALL_COST;
 
         edges.push(Edge {
             movement: astar::Movement {
@@ -102,7 +102,7 @@ fn parkour_forward_2_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, pos: Block
             continue;
         }
 
-        let cost = JUMP_PENALTY + WALK_ONE_BLOCK_COST * 3.;
+        let cost = JUMP_PENALTY + WALK_ONE_BLOCK_COST * 3. + CENTER_AFTER_FALL_COST;
 
         edges.push(Edge {
             movement: astar::Movement {
@@ -132,11 +132,7 @@ fn parkour_forward_3_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, pos: Block
             continue;
         }
 
-        let ascend: i32 = if ctx.is_standable(pos + offset.up(1)) {
-            1
-        } else if ctx.is_standable(pos + offset) {
-            0
-        } else {
+        if !ctx.is_standable(pos + offset) {
             continue;
         };
 
@@ -158,11 +154,11 @@ fn parkour_forward_3_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, pos: Block
             continue;
         }
 
-        let cost = JUMP_PENALTY + WALK_ONE_BLOCK_COST * 3.;
+        let cost = JUMP_PENALTY + SPRINT_ONE_BLOCK_COST * 4. + CENTER_AFTER_FALL_COST;
 
         edges.push(Edge {
             movement: astar::Movement {
-                target: pos + offset.up(ascend),
+                target: pos + offset,
                 data: MoveData {
                     execute: &execute_parkour_move,
                     is_reached: &default_is_reached,
@@ -237,8 +233,6 @@ pub fn parkour_is_reached(
         position, target, ..
     }: IsReachedCtx,
 ) -> bool {
-    let target_center = target.center();
-
     // 0.094 and not 0 for lilypads
     BlockPos::from(position) == target && (position.y - target.y as f64) < 0.094
 }
