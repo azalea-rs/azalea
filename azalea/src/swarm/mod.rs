@@ -390,7 +390,11 @@ where
         while let Some((Some(event), bot)) = bots_rx.recv().await {
             if let Some(handler) = &self.handler {
                 let state = bot.component::<S>();
-                tokio::spawn((handler)(bot, event, state));
+                tokio::spawn((handler)(bot, event, state.clone()));
+                // this makes it not have to keep locking the ecs
+                while let Ok((Some(event), bot)) = bots_rx.try_recv() {
+                    tokio::spawn((handler)(bot, event, state.clone()));
+                }
             }
         }
 

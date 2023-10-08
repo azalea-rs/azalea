@@ -4,6 +4,7 @@
 #![feature(async_fn_in_trait)]
 #![feature(type_changing_struct_update)]
 #![feature(lazy_cell)]
+#![feature(let_chains)]
 
 pub mod accept_resource_packs;
 mod auto_respawn;

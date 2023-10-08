@@ -3,7 +3,7 @@ use azalea_core::{direction::CardinalDirection, position::BlockPos};
 
 use crate::pathfinder::{astar, costs::*};
 
-use super::{default_is_reached, Edge, ExecuteCtx, IsReachedCtx, MoveData, PathfinderCtx};
+use super::{Edge, ExecuteCtx, IsReachedCtx, MoveData, PathfinderCtx};
 
 pub fn parkour_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, node: BlockPos) {
     parkour_forward_1_move(edges, ctx, node);
@@ -109,7 +109,7 @@ fn parkour_forward_2_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, pos: Block
                 target: pos + offset.up(ascend),
                 data: MoveData {
                     execute: &execute_parkour_move,
-                    is_reached: &default_is_reached,
+                    is_reached: &parkour_is_reached,
                 },
             },
             cost,
@@ -161,7 +161,7 @@ fn parkour_forward_3_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, pos: Block
                 target: pos + offset,
                 data: MoveData {
                     execute: &execute_parkour_move,
-                    is_reached: &default_is_reached,
+                    is_reached: &parkour_is_reached,
                 },
             },
             cost,
@@ -212,8 +212,8 @@ fn execute_parkour_move(mut ctx: ExecuteCtx) {
 
     if !is_at_start_block
         && !is_at_jump_block
-        && position.y == start.y as f64
-        && distance_from_start < 0.8
+        && (position.y - start.y as f64) < 0.094
+        && distance_from_start < 0.81
     {
         // we have to be on the start block to jump
         ctx.look_at(start_center);
