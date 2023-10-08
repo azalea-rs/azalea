@@ -3,7 +3,7 @@ description = "Serialize and deserialize buffers from Minecraft."
 edition = "2021"
 license = "MIT"
 name = "azalea-buf"
-repository = "https://github.com/mat-1/azalea/tree/main/azalea-buf"
+repository = "https://github.com/azalea-rs/azalea/tree/main/azalea-buf"
 version = "0.8.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

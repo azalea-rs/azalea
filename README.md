@@ -55,7 +55,7 @@ For fun, mostly. I wasn't satisfied with the current state of Minecraft bot libr
 
 There are several branches in the Azalea repository that target older Minecraft versions. It is not guaranteed that they will be up-to-date with the latest version of Azalea. If you'd like to update them or add more, please open a PR.
 
-- [1.20-1.20.1](https://github.com/mat-1/azalea/tree/1.20.1)
-- [1.19.4](https://github.com/mat-1/azalea/tree/1.19.4)
-- [1.19.3](https://github.com/mat-1/azalea/tree/1.19.3)
-- [1.19.2](https://github.com/mat-1/azalea/tree/1.19.2)
+- [1.20-1.20.1](https://github.com/azalea-rs/azalea/tree/1.20.1)
+- [1.19.4](https://github.com/azalea-rs/azalea/tree/1.19.4)
+- [1.19.3](https://github.com/azalea-rs/azalea/tree/1.19.3)
+- [1.19.2](https://github.com/azalea-rs/azalea/tree/1.19.2)

@@ -3,7 +3,7 @@ description = "Translate Minecraft strings from their id."
 edition = "2021"
 license = "MIT"
 name = "azalea-language"
-repository = "https://github.com/mat-1/azalea/tree/main/azalea-language"
+repository = "https://github.com/azalea-rs/azalea/tree/main/azalea-language"
 version = "0.8.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

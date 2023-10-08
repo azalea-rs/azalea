@@ -3,7 +3,7 @@ description = "A framework for creating Minecraft bots."
 edition = "2021"
 license = "MIT"
 name = "azalea"
-repository = "https://github.com/mat-1/azalea/tree/main/azalea"
+repository = "https://github.com/azalea-rs/azalea/tree/main/azalea"
 version = "0.8.0"
 
 [package.metadata.release]

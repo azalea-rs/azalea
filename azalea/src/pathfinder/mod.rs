@@ -699,8 +699,22 @@ fn stop_pathfinding_on_instance_change(
 }
 
 /// A component that makes bots run /particle commands while pathfinding to show
-/// where they're going. This requires the bots to have op permissions, and
-/// it'll make them spam *a lot* of commands.
+/// where they're going. This requires the bots to have server operator
+/// permissions, and it'll make them spam *a lot* of commands.
+///
+/// ```
+/// async fn handle(mut bot: Client, event: azalea::Event, state: State) -> anyhow::Result<()> {
+///     match event {
+///         azalea::Event::Init => {
+///             bot.ecs
+///                 .lock()
+///                 .entity_mut(bot.entity)
+///                 .insert(PathfinderDebugParticles);
+///         }
+///         _ => {}
+///     }
+/// }
+/// ```
 #[derive(Component)]
 pub struct PathfinderDebugParticles;
 
