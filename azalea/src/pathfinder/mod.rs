@@ -6,6 +6,7 @@ pub mod costs;
 pub mod goals;
 pub mod moves;
 pub mod simulation;
+pub mod world;
 
 use crate::bot::{JumpEvent, LookAtEvent};
 use crate::pathfinder::astar::a_star;
@@ -20,6 +21,7 @@ use crate::ecs::{
     system::{Commands, Query, Res},
 };
 use crate::pathfinder::moves::PathfinderCtx;
+use crate::pathfinder::world::CachedWorld;
 use azalea_client::chat::SendChatEvent;
 use azalea_client::movement::walk_listener;
 use azalea_client::{StartSprintEvent, StartWalkEvent};
@@ -219,12 +221,8 @@ fn goto_listener(
         let task = thread_pool.spawn(async move {
             debug!("start: {start:?}");
 
-            let ctx = PathfinderCtx::new(world_lock);
-            let successors = |pos: BlockPos| {
-                let mut edges = Vec::with_capacity(16);
-                successors_fn(&mut edges, &ctx, pos);
-                edges
-            };
+            let cached_world = CachedWorld::new(world_lock);
+            let successors = |pos: BlockPos| call_successors_fn(&cached_world, successors_fn, pos);
 
             let mut attempt_number = 0;
 
@@ -332,12 +330,9 @@ fn path_found_listener(
                         .get(instance_name)
                         .expect("Entity tried to pathfind but the entity isn't in a valid world");
                     let successors_fn: moves::SuccessorsFn = event.successors_fn;
-                    let ctx = PathfinderCtx::new(world_lock);
-                    let successors = |pos: BlockPos| {
-                        let mut edges = Vec::with_capacity(16);
-                        successors_fn(&mut edges, &ctx, pos);
-                        edges
-                    };
+                    let cached_world = CachedWorld::new(world_lock);
+                    let successors =
+                        |pos: BlockPos| call_successors_fn(&cached_world, successors_fn, pos);
 
                     if let Some(first_node_of_new_path) = path.front() {
                         if successors(last_node_of_current_path.target)
@@ -521,12 +516,8 @@ fn check_for_path_obstruction(
             .expect("Entity tried to pathfind but the entity isn't in a valid world");
 
         // obstruction check (the path we're executing isn't possible anymore)
-        let ctx = PathfinderCtx::new(world_lock);
-        let successors = |pos: BlockPos| {
-            let mut edges = Vec::with_capacity(16);
-            successors_fn(&mut edges, &ctx, pos);
-            edges
-        };
+        let cached_world = CachedWorld::new(world_lock);
+        let successors = |pos: BlockPos| call_successors_fn(&cached_world, successors_fn, pos);
 
         if let Some(obstructed_index) = check_path_obstructed(
             executing_path.last_reached_node,
@@ -814,6 +805,20 @@ where
     }
 
     None
+}
+
+pub fn call_successors_fn(
+    cached_world: &CachedWorld,
+    successors_fn: SuccessorsFn,
+    pos: BlockPos,
+) -> Vec<astar::Edge<BlockPos, moves::MoveData>> {
+    let mut edges = Vec::with_capacity(16);
+    let mut ctx = PathfinderCtx {
+        edges: &mut edges,
+        world: cached_world,
+    };
+    successors_fn(&mut ctx, pos);
+    edges
 }
 
 #[cfg(test)]

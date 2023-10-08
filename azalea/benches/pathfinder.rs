@@ -4,7 +4,7 @@ use azalea::{
     pathfinder::{
         astar::{self, a_star},
         goals::BlockPosGoal,
-        moves::PathfinderCtx,
+        world::CachedWorld,
         Goal,
     },
     BlockPos,
@@ -79,13 +79,11 @@ fn bench_pathfinder(c: &mut Criterion) {
 
         b.iter(|| {
             let (world, start, end) = generate_bedrock_world(&mut partial_chunks, 4);
-            let ctx = PathfinderCtx::new(Arc::new(RwLock::new(world.into())));
+            let cached_world = CachedWorld::new(Arc::new(RwLock::new(world.into())));
             let goal = BlockPosGoal(end);
 
             let successors = |pos: BlockPos| {
-                let mut edges = Vec::with_capacity(16);
-                successors_fn(&mut edges, &ctx, pos);
-                edges
+                azalea::pathfinder::call_successors_fn(&cached_world, successors_fn, pos)
             };
 
             let astar::Path { movements, partial } = a_star(

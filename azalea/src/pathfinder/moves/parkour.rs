@@ -5,29 +5,29 @@ use crate::pathfinder::{astar, costs::*};
 
 use super::{Edge, ExecuteCtx, IsReachedCtx, MoveData, PathfinderCtx};
 
-pub fn parkour_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, node: BlockPos) {
-    parkour_forward_1_move(edges, ctx, node);
-    parkour_forward_2_move(edges, ctx, node);
-    parkour_forward_3_move(edges, ctx, node);
+pub fn parkour_move(ctx: &mut PathfinderCtx, node: BlockPos) {
+    parkour_forward_1_move(ctx, node);
+    parkour_forward_2_move(ctx, node);
+    parkour_forward_3_move(ctx, node);
 }
 
-fn parkour_forward_1_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, pos: BlockPos) {
+fn parkour_forward_1_move(ctx: &mut PathfinderCtx, pos: BlockPos) {
     for dir in CardinalDirection::iter() {
         let gap_offset = BlockPos::new(dir.x(), 0, dir.z());
         let offset = BlockPos::new(dir.x() * 2, 0, dir.z() * 2);
 
         // make sure we actually have to jump
-        if ctx.is_block_solid((pos + gap_offset).down(1)) {
+        if ctx.world.is_block_solid((pos + gap_offset).down(1)) {
             continue;
         }
-        if !ctx.is_passable(pos + gap_offset) {
+        if !ctx.world.is_passable(pos + gap_offset) {
             continue;
         }
 
-        let ascend: i32 = if ctx.is_standable(pos + offset.up(1)) {
+        let ascend: i32 = if ctx.world.is_standable(pos + offset.up(1)) {
             // ascend
             1
-        } else if ctx.is_standable(pos + offset) {
+        } else if ctx.world.is_standable(pos + offset) {
             // forward
             0
         } else {
@@ -35,22 +35,22 @@ fn parkour_forward_1_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, pos: Block
         };
 
         // make sure we have space to jump
-        if !ctx.is_block_passable((pos + gap_offset).up(2)) {
+        if !ctx.world.is_block_passable((pos + gap_offset).up(2)) {
             continue;
         }
 
         // make sure there's not a block above us
-        if !ctx.is_block_passable(pos.up(2)) {
+        if !ctx.world.is_block_passable(pos.up(2)) {
             continue;
         }
         // make sure there's not a block above the target
-        if !ctx.is_block_passable((pos + offset).up(2)) {
+        if !ctx.world.is_block_passable((pos + offset).up(2)) {
             continue;
         }
 
         let cost = JUMP_PENALTY + WALK_ONE_BLOCK_COST * 2. + CENTER_AFTER_FALL_COST;
 
-        edges.push(Edge {
+        ctx.edges.push(Edge {
             movement: astar::Movement {
                 target: pos + offset.up(ascend),
                 data: MoveData {
@@ -63,22 +63,22 @@ fn parkour_forward_1_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, pos: Block
     }
 }
 
-fn parkour_forward_2_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, pos: BlockPos) {
+fn parkour_forward_2_move(ctx: &mut PathfinderCtx, pos: BlockPos) {
     'dir: for dir in CardinalDirection::iter() {
         let gap_1_offset = BlockPos::new(dir.x(), 0, dir.z());
         let gap_2_offset = BlockPos::new(dir.x() * 2, 0, dir.z() * 2);
         let offset = BlockPos::new(dir.x() * 3, 0, dir.z() * 3);
 
         // make sure we actually have to jump
-        if ctx.is_block_solid((pos + gap_1_offset).down(1))
-            || ctx.is_block_solid((pos + gap_2_offset).down(1))
+        if ctx.world.is_block_solid((pos + gap_1_offset).down(1))
+            || ctx.world.is_block_solid((pos + gap_2_offset).down(1))
         {
             continue;
         }
 
-        let ascend: i32 = if ctx.is_standable(pos + offset.up(1)) {
+        let ascend: i32 = if ctx.world.is_standable(pos + offset.up(1)) {
             1
-        } else if ctx.is_standable(pos + offset) {
+        } else if ctx.world.is_standable(pos + offset) {
             0
         } else {
             continue;
@@ -86,25 +86,25 @@ fn parkour_forward_2_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, pos: Block
 
         // make sure we have space to jump
         for offset in [gap_1_offset, gap_2_offset] {
-            if !ctx.is_passable(pos + offset) {
+            if !ctx.world.is_passable(pos + offset) {
                 continue 'dir;
             }
-            if !ctx.is_block_passable((pos + offset).up(2)) {
+            if !ctx.world.is_block_passable((pos + offset).up(2)) {
                 continue 'dir;
             }
         }
         // make sure there's not a block above us
-        if !ctx.is_block_passable(pos.up(2)) {
+        if !ctx.world.is_block_passable(pos.up(2)) {
             continue;
         }
         // make sure there's not a block above the target
-        if !ctx.is_block_passable((pos + offset).up(2)) {
+        if !ctx.world.is_block_passable((pos + offset).up(2)) {
             continue;
         }
 
         let cost = JUMP_PENALTY + WALK_ONE_BLOCK_COST * 3. + CENTER_AFTER_FALL_COST;
 
-        edges.push(Edge {
+        ctx.edges.push(Edge {
             movement: astar::Movement {
                 target: pos + offset.up(ascend),
                 data: MoveData {
@@ -117,7 +117,7 @@ fn parkour_forward_2_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, pos: Block
     }
 }
 
-fn parkour_forward_3_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, pos: BlockPos) {
+fn parkour_forward_3_move(ctx: &mut PathfinderCtx, pos: BlockPos) {
     'dir: for dir in CardinalDirection::iter() {
         let gap_1_offset = BlockPos::new(dir.x(), 0, dir.z());
         let gap_2_offset = BlockPos::new(dir.x() * 2, 0, dir.z() * 2);
@@ -125,38 +125,38 @@ fn parkour_forward_3_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, pos: Block
         let offset = BlockPos::new(dir.x() * 4, 0, dir.z() * 4);
 
         // make sure we actually have to jump
-        if ctx.is_block_solid((pos + gap_1_offset).down(1))
-            || ctx.is_block_solid((pos + gap_2_offset).down(1))
-            || ctx.is_block_solid((pos + gap_3_offset).down(1))
+        if ctx.world.is_block_solid((pos + gap_1_offset).down(1))
+            || ctx.world.is_block_solid((pos + gap_2_offset).down(1))
+            || ctx.world.is_block_solid((pos + gap_3_offset).down(1))
         {
             continue;
         }
 
-        if !ctx.is_standable(pos + offset) {
+        if !ctx.world.is_standable(pos + offset) {
             continue;
         };
 
         // make sure we have space to jump
         for offset in [gap_1_offset, gap_2_offset, gap_3_offset] {
-            if !ctx.is_passable(pos + offset) {
+            if !ctx.world.is_passable(pos + offset) {
                 continue 'dir;
             }
-            if !ctx.is_block_passable((pos + offset).up(2)) {
+            if !ctx.world.is_block_passable((pos + offset).up(2)) {
                 continue 'dir;
             }
         }
         // make sure there's not a block above us
-        if !ctx.is_block_passable(pos.up(2)) {
+        if !ctx.world.is_block_passable(pos.up(2)) {
             continue;
         }
         // make sure there's not a block above the target
-        if !ctx.is_block_passable((pos + offset).up(2)) {
+        if !ctx.world.is_block_passable((pos + offset).up(2)) {
             continue;
         }
 
         let cost = JUMP_PENALTY + SPRINT_ONE_BLOCK_COST * 4. + CENTER_AFTER_FALL_COST;
 
-        edges.push(Edge {
+        ctx.edges.push(Edge {
             movement: astar::Movement {
                 target: pos + offset,
                 data: MoveData {
