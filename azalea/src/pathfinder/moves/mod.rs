@@ -281,6 +281,9 @@ fn is_block_state_passable(block: BlockState) -> bool {
     if block.waterlogged() {
         return false;
     }
+    if block == azalea_registry::Block::Lava.into() {
+        return false;
+    }
     // block.waterlogged currently doesn't account for seagrass and some other water
     // blocks
     if block == azalea_registry::Block::Seagrass.into() {

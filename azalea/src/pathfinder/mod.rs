@@ -435,7 +435,7 @@ fn check_node_reached(
                 .clone()
                 .into_iter()
                 .enumerate()
-                .take(10)
+                .take(20)
                 .rev()
             {
                 let is_reached_ctx = IsReachedCtx {
