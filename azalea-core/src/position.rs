@@ -168,7 +168,7 @@ impl Vec3 {
         f64::sqrt(self.x * self.x + self.y * self.y + self.z * self.z)
     }
 
-    /// Get the squared distance from this position to another position.
+    /// Get the distance from this position to another position.
     /// Equivalent to `(self - other).length()`.
     pub fn distance_to(&self, other: &Self) -> f64 {
         (self - other).length()
