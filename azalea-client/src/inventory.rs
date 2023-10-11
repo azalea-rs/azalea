@@ -69,7 +69,7 @@ impl Client {
 }
 
 /// A component present on all local players that have an inventory.
-#[derive(Component, Debug)]
+#[derive(Component, Debug, Clone)]
 pub struct InventoryComponent {
     /// A component that contains the player's inventory menu. This is
     /// guaranteed to be a `Menu::Player`.

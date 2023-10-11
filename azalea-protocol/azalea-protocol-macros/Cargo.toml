@@ -4,7 +4,7 @@ edition = "2021"
 license = "MIT"
 name = "azalea-protocol-macros"
 version = "0.8.0"
-repository = "https://github.com/mat-1/azalea/tree/main/azalea-protocol/azalea-protocol-macros"
+repository = "https://github.com/azalea-rs/azalea/tree/main/azalea-protocol/azalea-protocol-macros"
 
 [lib]
 proc-macro = true

@@ -4,8 +4,10 @@
 pub mod astar;
 pub mod costs;
 pub mod goals;
+pub mod mining;
 pub mod moves;
 pub mod simulation;
+pub mod world;
 
 use crate::bot::{JumpEvent, LookAtEvent};
 use crate::pathfinder::astar::a_star;
@@ -20,7 +22,9 @@ use crate::ecs::{
     system::{Commands, Query, Res},
 };
 use crate::pathfinder::moves::PathfinderCtx;
+use crate::pathfinder::world::CachedWorld;
 use azalea_client::chat::SendChatEvent;
+use azalea_client::inventory::{InventoryComponent, InventorySet};
 use azalea_client::movement::walk_listener;
 use azalea_client::{StartSprintEvent, StartWalkEvent};
 use azalea_core::position::{BlockPos, Vec3};
@@ -43,6 +47,7 @@ use std::sync::atomic::{self, AtomicUsize};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
+use self::mining::MiningCache;
 use self::moves::{ExecuteCtx, IsReachedCtx, SuccessorsFn};
 
 #[derive(Clone, Default)]
@@ -80,7 +85,8 @@ impl Plugin for PathfinderPlugin {
                     handle_stop_pathfinding_event,
                 )
                     .chain()
-                    .before(walk_listener),
+                    .before(walk_listener)
+                    .before(InventorySet),
             );
     }
 }
@@ -114,7 +120,7 @@ pub struct GotoEvent {
     /// `pathfinder::moves::default_move`
     pub successors_fn: SuccessorsFn,
 }
-#[derive(Event)]
+#[derive(Event, Clone)]
 pub struct PathFoundEvent {
     pub entity: Entity,
     pub start: BlockPos,
@@ -173,13 +179,14 @@ fn goto_listener(
         Option<&ExecutingPath>,
         &Position,
         &InstanceName,
+        &InventoryComponent,
     )>,
     instance_container: Res<InstanceContainer>,
 ) {
     let thread_pool = AsyncComputeTaskPool::get();
 
     for event in events.iter() {
-        let (mut pathfinder, executing_path, position, instance_name) = query
+        let (mut pathfinder, executing_path, position, instance_name, inventory) = query
             .get_mut(event.entity)
             .expect("Called goto on an entity that's not in the world");
 
@@ -215,15 +222,14 @@ fn goto_listener(
 
         let goto_id_atomic = pathfinder.goto_id.clone();
         let goto_id = goto_id_atomic.fetch_add(1, atomic::Ordering::Relaxed) + 1;
+        let mining_cache = MiningCache::new(inventory.inventory_menu.clone());
 
         let task = thread_pool.spawn(async move {
             debug!("start: {start:?}");
 
-            let ctx = PathfinderCtx::new(world_lock);
+            let cached_world = CachedWorld::new(world_lock);
             let successors = |pos: BlockPos| {
-                let mut edges = Vec::with_capacity(16);
-                successors_fn(&mut edges, &ctx, pos);
-                edges
+                call_successors_fn(&cached_world, &mining_cache, successors_fn, pos)
             };
 
             let mut attempt_number = 0;
@@ -313,12 +319,17 @@ fn handle_tasks(
 // set the path for the target entity when we get the PathFoundEvent
 fn path_found_listener(
     mut events: EventReader<PathFoundEvent>,
-    mut query: Query<(&mut Pathfinder, Option<&mut ExecutingPath>, &InstanceName)>,
+    mut query: Query<(
+        &mut Pathfinder,
+        Option<&mut ExecutingPath>,
+        &InstanceName,
+        &InventoryComponent,
+    )>,
     instance_container: Res<InstanceContainer>,
     mut commands: Commands,
 ) {
     for event in events.iter() {
-        let (mut pathfinder, executing_path, instance_name) = query
+        let (mut pathfinder, executing_path, instance_name, inventory) = query
             .get_mut(event.entity)
             .expect("Path found for an entity that doesn't have a pathfinder");
         if let Some(path) = &event.path {
@@ -332,11 +343,10 @@ fn path_found_listener(
                         .get(instance_name)
                         .expect("Entity tried to pathfind but the entity isn't in a valid world");
                     let successors_fn: moves::SuccessorsFn = event.successors_fn;
-                    let ctx = PathfinderCtx::new(world_lock);
+                    let cached_world = CachedWorld::new(world_lock);
+                    let mining_cache = MiningCache::new(inventory.inventory_menu.clone());
                     let successors = |pos: BlockPos| {
-                        let mut edges = Vec::with_capacity(16);
-                        successors_fn(&mut edges, &ctx, pos);
-                        edges
+                        call_successors_fn(&cached_world, &mining_cache, successors_fn, pos)
                     };
 
                     if let Some(first_node_of_new_path) = path.front() {
@@ -435,7 +445,7 @@ fn check_node_reached(
                 .clone()
                 .into_iter()
                 .enumerate()
-                .take(10)
+                .take(20)
                 .rev()
             {
                 let is_reached_ctx = IsReachedCtx {
@@ -508,10 +518,15 @@ fn check_node_reached(
 }
 
 fn check_for_path_obstruction(
-    mut query: Query<(&Pathfinder, &mut ExecutingPath, &InstanceName)>,
+    mut query: Query<(
+        &Pathfinder,
+        &mut ExecutingPath,
+        &InstanceName,
+        &InventoryComponent,
+    )>,
     instance_container: Res<InstanceContainer>,
 ) {
-    for (pathfinder, mut executing_path, instance_name) in &mut query {
+    for (pathfinder, mut executing_path, instance_name, inventory) in &mut query {
         let Some(successors_fn) = pathfinder.successors_fn else {
             continue;
         };
@@ -521,12 +536,10 @@ fn check_for_path_obstruction(
             .expect("Entity tried to pathfind but the entity isn't in a valid world");
 
         // obstruction check (the path we're executing isn't possible anymore)
-        let ctx = PathfinderCtx::new(world_lock);
-        let successors = |pos: BlockPos| {
-            let mut edges = Vec::with_capacity(16);
-            successors_fn(&mut edges, &ctx, pos);
-            edges
-        };
+        let cached_world = CachedWorld::new(world_lock);
+        let mining_cache = MiningCache::new(inventory.inventory_menu.clone());
+        let successors =
+            |pos: BlockPos| call_successors_fn(&cached_world, &mining_cache, successors_fn, pos);
 
         if let Some(obstructed_index) = check_path_obstructed(
             executing_path.last_reached_node,
@@ -699,8 +712,28 @@ fn stop_pathfinding_on_instance_change(
 }
 
 /// A component that makes bots run /particle commands while pathfinding to show
-/// where they're going. This requires the bots to have op permissions, and
-/// it'll make them spam *a lot* of commands.
+/// where they're going. This requires the bots to have server operator
+/// permissions, and it'll make them spam *a lot* of commands.
+///
+/// ```
+/// # use azalea::prelude::*;
+/// # use azalea::pathfinder::PathfinderDebugParticles;
+/// # #[derive(Component, Clone, Default)]
+/// # pub struct State;
+///
+/// async fn handle(mut bot: Client, event: azalea::Event, state: State) -> anyhow::Result<()> {
+///     match event {
+///         azalea::Event::Init => {
+///             bot.ecs
+///                 .lock()
+///                 .entity_mut(bot.entity)
+///                 .insert(PathfinderDebugParticles);
+///         }
+///         _ => {}
+///     }
+///     Ok(())
+/// }
+/// ```
 #[derive(Component)]
 pub struct PathfinderDebugParticles;
 
@@ -800,6 +833,22 @@ where
     }
 
     None
+}
+
+pub fn call_successors_fn(
+    cached_world: &CachedWorld,
+    mining_cache: &MiningCache,
+    successors_fn: SuccessorsFn,
+    pos: BlockPos,
+) -> Vec<astar::Edge<BlockPos, moves::MoveData>> {
+    let mut edges = Vec::with_capacity(16);
+    let mut ctx = PathfinderCtx {
+        edges: &mut edges,
+        world: cached_world,
+        mining_cache,
+    };
+    successors_fn(&mut ctx, pos);
+    edges
 }
 
 #[cfg(test)]

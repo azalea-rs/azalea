@@ -3,7 +3,7 @@ description = "A port of Mojang's Brigadier command parsing and dispatching libr
 edition = "2021"
 license = "MIT"
 name = "azalea-brigadier"
-repository = "https://github.com/mat-1/azalea/tree/main/azalea-brigadier"
+repository = "https://github.com/azalea-rs/azalea/tree/main/azalea-brigadier"
 version = "0.8.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

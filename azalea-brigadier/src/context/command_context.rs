@@ -78,7 +78,7 @@ impl<S> CommandContext<S> {
         !self.nodes.is_empty()
     }
 
-    pub fn argument(&self, name: &str) -> Option<Rc<dyn Any>> {
+    pub fn argument(&self, name: &str) -> Option<Arc<dyn Any>> {
         let argument = self.arguments.get(name);
         argument.map(|a| a.result.clone())
     }

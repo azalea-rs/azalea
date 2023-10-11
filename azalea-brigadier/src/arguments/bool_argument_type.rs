@@ -1,4 +1,4 @@
-use std::{any::Any, rc::Rc};
+use std::{any::Any, sync::Arc};
 
 use crate::{
     context::CommandContext, exceptions::CommandSyntaxException, string_reader::StringReader,
@@ -10,8 +10,8 @@ use super::ArgumentType;
 struct Boolean;
 
 impl ArgumentType for Boolean {
-    fn parse(&self, reader: &mut StringReader) -> Result<Rc<dyn Any>, CommandSyntaxException> {
-        Ok(Rc::new(reader.read_boolean()?))
+    fn parse(&self, reader: &mut StringReader) -> Result<Arc<dyn Any>, CommandSyntaxException> {
+        Ok(Arc::new(reader.read_boolean()?))
     }
 }
 

@@ -22,5 +22,5 @@ assert_eq!(
 );
 ```
 
-See the [tests](https://github.com/mat-1/azalea/tree/main/azalea-brigadier/tests) for more.
+See the [tests](https://github.com/azalea-rs/azalea/tree/main/azalea-brigadier/tests) for more.
 

@@ -1,4 +1,4 @@
-use std::{any::Any, rc::Rc};
+use std::{any::Any, sync::Arc};
 
 use crate::{
     context::CommandContext,
@@ -15,7 +15,7 @@ struct Long {
 }
 
 impl ArgumentType for Long {
-    fn parse(&self, reader: &mut StringReader) -> Result<Rc<dyn Any>, CommandSyntaxException> {
+    fn parse(&self, reader: &mut StringReader) -> Result<Arc<dyn Any>, CommandSyntaxException> {
         let start = reader.cursor;
         let result = reader.read_long()?;
         if let Some(minimum) = self.minimum {
@@ -38,7 +38,7 @@ impl ArgumentType for Long {
                 .create_with_context(reader));
             }
         }
-        Ok(Rc::new(result))
+        Ok(Arc::new(result))
     }
 }
 

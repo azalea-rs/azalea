@@ -778,8 +778,38 @@ pub fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::UpdateAttributes(_p) => {
                 // debug!("Got update attributes packet {p:?}");
             }
-            ClientboundGamePacket::SetEntityMotion(_p) => {
-                // debug!("Got entity velocity packet {p:?}");
+            ClientboundGamePacket::SetEntityMotion(p) => {
+                // vanilla servers use this packet for knockback, but note that the Explode
+                // packet is also sometimes used by servers for knockback
+
+                let mut system_state: SystemState<(
+                    Commands,
+                    Query<(&EntityIdIndex, &InstanceHolder)>,
+                )> = SystemState::new(ecs);
+                let (mut commands, mut query) = system_state.get_mut(ecs);
+                let (entity_id_index, instance_holder) = query.get_mut(player_entity).unwrap();
+
+                let Some(entity) = entity_id_index.get(&MinecraftEntityId(p.id)) else {
+                    warn!(
+                        "Got set entity motion packet for unknown entity id {}",
+                        p.id
+                    );
+                    continue;
+                };
+
+                commands.entity(entity).add(RelativeEntityUpdate {
+                    partial_world: instance_holder.partial_instance.clone(),
+                    update: Box::new(move |entity| {
+                        let mut physics = entity.get_mut::<Physics>().unwrap();
+                        physics.delta = Vec3 {
+                            x: p.xa as f64 / 8000.,
+                            y: p.ya as f64 / 8000.,
+                            z: p.za as f64 / 8000.,
+                        };
+                    }),
+                });
+
+                system_state.apply(ecs);
             }
             ClientboundGamePacket::SetEntityLink(p) => {
                 debug!("Got set entity link packet {p:?}");
@@ -1154,7 +1184,20 @@ pub fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::Cooldown(_) => {}
             ClientboundGamePacket::CustomChatCompletions(_) => {}
             ClientboundGamePacket::DeleteChat(_) => {}
-            ClientboundGamePacket::Explode(_) => {}
+            ClientboundGamePacket::Explode(p) => {
+                trace!("Got explode packet {p:?}");
+                let mut system_state: SystemState<Query<&mut Physics>> = SystemState::new(ecs);
+                let mut query = system_state.get_mut(ecs);
+                let mut physics = query.get_mut(player_entity).unwrap();
+
+                physics.delta += Vec3 {
+                    x: p.knockback_x as f64,
+                    y: p.knockback_y as f64,
+                    z: p.knockback_z as f64,
+                };
+
+                system_state.apply(ecs);
+            }
             ClientboundGamePacket::ForgetLevelChunk(_) => {}
             ClientboundGamePacket::HorseScreenOpen(_) => {}
             ClientboundGamePacket::MapItemData(_) => {}

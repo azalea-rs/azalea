@@ -10,25 +10,25 @@ use crate::pathfinder::{astar, costs::*};
 
 use super::{default_is_reached, Edge, ExecuteCtx, IsReachedCtx, MoveData, PathfinderCtx};
 
-pub fn basic_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, node: BlockPos) {
-    forward_move(edges, ctx, node);
-    ascend_move(edges, ctx, node);
-    descend_move(edges, ctx, node);
-    diagonal_move(edges, ctx, node);
-    descend_forward_1_move(edges, ctx, node);
+pub fn basic_move(ctx: &mut PathfinderCtx, node: BlockPos) {
+    forward_move(ctx, node);
+    ascend_move(ctx, node);
+    descend_move(ctx, node);
+    diagonal_move(ctx, node);
+    descend_forward_1_move(ctx, node);
 }
 
-fn forward_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, pos: BlockPos) {
+fn forward_move(ctx: &mut PathfinderCtx, pos: BlockPos) {
     for dir in CardinalDirection::iter() {
         let offset = BlockPos::new(dir.x(), 0, dir.z());
 
-        if !ctx.is_standable(pos + offset) {
+        if !ctx.world.is_standable(pos + offset) {
             continue;
         }
 
         let cost = SPRINT_ONE_BLOCK_COST;
 
-        edges.push(Edge {
+        ctx.edges.push(Edge {
             movement: astar::Movement {
                 target: pos + offset,
                 data: MoveData {
@@ -47,20 +47,20 @@ fn execute_forward_move(mut ctx: ExecuteCtx) {
     ctx.sprint(SprintDirection::Forward);
 }
 
-fn ascend_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, pos: BlockPos) {
+fn ascend_move(ctx: &mut PathfinderCtx, pos: BlockPos) {
     for dir in CardinalDirection::iter() {
         let offset = BlockPos::new(dir.x(), 1, dir.z());
 
-        if !ctx.is_block_passable(pos.up(2)) {
+        if !ctx.world.is_block_passable(pos.up(2)) {
             continue;
         }
-        if !ctx.is_standable(pos + offset) {
+        if !ctx.world.is_standable(pos + offset) {
             continue;
         }
 
         let cost = SPRINT_ONE_BLOCK_COST + JUMP_PENALTY + *JUMP_ONE_BLOCK_COST;
 
-        edges.push(Edge {
+        ctx.edges.push(Edge {
             movement: astar::Movement {
                 target: pos + offset,
                 data: MoveData {
@@ -119,22 +119,22 @@ pub fn ascend_is_reached(
     BlockPos::from(position) == target || BlockPos::from(position) == target.down(1)
 }
 
-fn descend_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, pos: BlockPos) {
+fn descend_move(ctx: &mut PathfinderCtx, pos: BlockPos) {
     for dir in CardinalDirection::iter() {
         let dir_delta = BlockPos::new(dir.x(), 0, dir.z());
         let new_horizontal_position = pos + dir_delta;
-        let fall_distance = ctx.fall_distance(new_horizontal_position);
+        let fall_distance = ctx.world.fall_distance(new_horizontal_position);
         if fall_distance == 0 || fall_distance > 3 {
             continue;
         }
         let new_position = new_horizontal_position.down(fall_distance as i32);
 
         // check whether 3 blocks vertically forward are passable
-        if !ctx.is_passable(new_horizontal_position) {
+        if !ctx.world.is_passable(new_horizontal_position) {
             continue;
         }
         // check whether we can stand on the target position
-        if !ctx.is_standable(new_position) {
+        if !ctx.world.is_standable(new_position) {
             continue;
         }
 
@@ -149,7 +149,7 @@ fn descend_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, pos: BlockPos) {
                 CENTER_AFTER_FALL_COST,
             );
 
-        edges.push(Edge {
+        ctx.edges.push(Edge {
             movement: astar::Movement {
                 target: new_position,
                 data: MoveData {
@@ -214,14 +214,14 @@ pub fn descend_is_reached(
         && (position.y - target.y as f64) < 0.5
 }
 
-fn descend_forward_1_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, pos: BlockPos) {
+fn descend_forward_1_move(ctx: &mut PathfinderCtx, pos: BlockPos) {
     for dir in CardinalDirection::iter() {
         let dir_delta = BlockPos::new(dir.x(), 0, dir.z());
         let gap_horizontal_position = pos + dir_delta;
         let new_horizontal_position = pos + dir_delta * 2;
 
-        let gap_fall_distance = ctx.fall_distance(gap_horizontal_position);
-        let fall_distance = ctx.fall_distance(new_horizontal_position);
+        let gap_fall_distance = ctx.world.fall_distance(gap_horizontal_position);
+        let fall_distance = ctx.world.fall_distance(new_horizontal_position);
 
         if fall_distance == 0 || fall_distance > 3 || gap_fall_distance < fall_distance {
             continue;
@@ -230,14 +230,14 @@ fn descend_forward_1_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, pos: Block
         let new_position = new_horizontal_position.down(fall_distance as i32);
 
         // check whether 2 blocks vertically forward are passable
-        if !ctx.is_passable(new_horizontal_position) {
+        if !ctx.world.is_passable(new_horizontal_position) {
             continue;
         }
-        if !ctx.is_passable(gap_horizontal_position) {
+        if !ctx.world.is_passable(gap_horizontal_position) {
             continue;
         }
         // check whether we can stand on the target position
-        if !ctx.is_standable(new_position) {
+        if !ctx.world.is_standable(new_position) {
             continue;
         }
 
@@ -253,7 +253,7 @@ fn descend_forward_1_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, pos: Block
                 CENTER_AFTER_FALL_COST,
             );
 
-        edges.push(Edge {
+        ctx.edges.push(Edge {
             movement: astar::Movement {
                 target: new_position,
                 data: MoveData {
@@ -266,7 +266,7 @@ fn descend_forward_1_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, pos: Block
     }
 }
 
-fn diagonal_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, pos: BlockPos) {
+fn diagonal_move(ctx: &mut PathfinderCtx, pos: BlockPos) {
     for dir in CardinalDirection::iter() {
         let right = dir.right();
         let offset = BlockPos::new(dir.x() + right.x(), 0, dir.z() + right.z());
@@ -276,8 +276,8 @@ fn diagonal_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, pos: BlockPos) {
         // +0.001 so it doesn't unnecessarily go diagonal sometimes
         let mut cost = SPRINT_ONE_BLOCK_COST * SQRT_2 + 0.001;
 
-        let left_passable = ctx.is_passable(left_pos);
-        let right_passable = ctx.is_passable(right_pos);
+        let left_passable = ctx.world.is_passable(left_pos);
+        let right_passable = ctx.world.is_passable(right_pos);
 
         if !left_passable && !right_passable {
             continue;
@@ -288,11 +288,11 @@ fn diagonal_move(edges: &mut Vec<Edge>, ctx: &PathfinderCtx, pos: BlockPos) {
             cost += WALK_ONE_BLOCK_COST / 2.;
         }
 
-        if !ctx.is_standable(pos + offset) {
+        if !ctx.world.is_standable(pos + offset) {
             continue;
         }
 
-        edges.push(Edge {
+        ctx.edges.push(Edge {
             movement: astar::Movement {
                 target: pos + offset,
                 data: MoveData {

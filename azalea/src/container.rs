@@ -79,6 +79,10 @@ impl ContainerClientExt for Client {
     /// Note that this will send a packet to the server once it's dropped. Also,
     /// due to how it's implemented, you could call this function multiple times
     /// while another inventory handle already exists (but you shouldn't).
+    ///
+    /// If you just want to get the items in the player's inventory without
+    /// sending any packets, use [`Client::menu`], [`Menu::player_slots_range`],
+    /// and [`Menu::slots`].
     fn open_inventory(&mut self) -> Option<ContainerHandle> {
         let ecs = self.ecs.lock();
         let inventory = ecs

@@ -350,7 +350,7 @@ where
                 // if there's a join delay, then join one by one
                 for (account, state) in accounts.iter().zip(states) {
                     swarm_clone
-                        .add_with_exponential_backoff(account, state.clone())
+                        .add_with_exponential_backoff(account, state)
                         .await;
                     tokio::time::sleep(join_delay).await;
                 }
@@ -361,7 +361,7 @@ where
                     async move |(account, state)| -> Result<(), JoinError> {
                         swarm_borrow
                             .clone()
-                            .add_with_exponential_backoff(account, state.clone())
+                            .add_with_exponential_backoff(account, state)
                             .await;
                         Ok(())
                     },
@@ -387,12 +387,19 @@ where
         });
 
         // bot events
-        while let Some((Some(event), bot)) = bots_rx.recv().await {
+        while let Some((Some(first_event), first_bot)) = bots_rx.recv().await {
             if let Some(handler) = &self.handler {
-                let state = bot.component::<S>();
-                tokio::spawn((handler)(bot, event, state.clone()));
+                let first_bot_state = first_bot.component::<S>();
+                let first_bot_entity = first_bot.entity;
+                tokio::spawn((handler)(first_bot, first_event, first_bot_state.clone()));
+
                 // this makes it not have to keep locking the ecs
+                let mut states = HashMap::new();
+                states.insert(first_bot_entity, first_bot_state);
                 while let Ok((Some(event), bot)) = bots_rx.try_recv() {
+                    let state = states
+                        .entry(bot.entity)
+                        .or_insert_with(|| bot.component::<S>().clone());
                     tokio::spawn((handler)(bot, event, state.clone()));
                 }
             }

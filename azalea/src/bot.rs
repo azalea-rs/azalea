@@ -44,7 +44,8 @@ impl Plugin for BotPlugin {
     }
 }
 
-/// Component for all bots.
+/// A component that clients with [`BotPlugin`] will have. If you just want to
+/// check if an entity is one of our bots, you should use [`LocalEntity`].
 #[derive(Default, Component)]
 pub struct Bot {
     jumping_once: bool,
