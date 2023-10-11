@@ -66,7 +66,7 @@ pub fn accurate_best_tool_in_hotbar_for_block(
             let this_item_speed = azalea_entity::mining::get_mine_progress(
                 block.as_ref(),
                 item_slot.kind,
-                &menu,
+                menu,
                 fluid_on_eyes,
                 physics,
             );

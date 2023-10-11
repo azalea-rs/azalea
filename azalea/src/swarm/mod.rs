@@ -350,7 +350,7 @@ where
                 // if there's a join delay, then join one by one
                 for (account, state) in accounts.iter().zip(states) {
                     swarm_clone
-                        .add_with_exponential_backoff(account, state.clone())
+                        .add_with_exponential_backoff(account, state)
                         .await;
                     tokio::time::sleep(join_delay).await;
                 }
@@ -361,7 +361,7 @@ where
                     async move |(account, state)| -> Result<(), JoinError> {
                         swarm_borrow
                             .clone()
-                            .add_with_exponential_backoff(account, state.clone())
+                            .add_with_exponential_backoff(account, state)
                             .await;
                         Ok(())
                     },
