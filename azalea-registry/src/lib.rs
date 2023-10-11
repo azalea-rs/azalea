@@ -3373,6 +3373,7 @@ enum ParticleKind {
     Scrape => "minecraft:scrape",
     Shriek => "minecraft:shriek",
     EggCrack => "minecraft:egg_crack",
+    DustPlume => "minecraft:dust_plume",
 }
 }
 
@@ -3886,6 +3887,8 @@ enum SoundEvent {
     BlockDecoratedPotBreak => "minecraft:block.decorated_pot.break",
     BlockDecoratedPotFall => "minecraft:block.decorated_pot.fall",
     BlockDecoratedPotHit => "minecraft:block.decorated_pot.hit",
+    BlockDecoratedPotInsert => "minecraft:block.decorated_pot.insert",
+    BlockDecoratedPotInsertFail => "minecraft:block.decorated_pot.insert_fail",
     BlockDecoratedPotStep => "minecraft:block.decorated_pot.step",
     BlockDecoratedPotPlace => "minecraft:block.decorated_pot.place",
     BlockDecoratedPotShatter => "minecraft:block.decorated_pot.shatter",
@@ -4953,6 +4956,7 @@ enum SoundEvent {
     EntityWardenSonicCharge => "minecraft:entity.warden.sonic_charge",
     EntityWardenStep => "minecraft:entity.warden.step",
     EntityWardenTendrilClicks => "minecraft:entity.warden.tendril_clicks",
+    BlockHangingSignWaxedInteractFail => "minecraft:block.hanging_sign.waxed_interact_fail",
     BlockSignWaxedInteractFail => "minecraft:block.sign.waxed_interact_fail",
     BlockWaterAmbient => "minecraft:block.water.ambient",
     WeatherRain => "minecraft:weather.rain",
