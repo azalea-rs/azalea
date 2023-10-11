@@ -5,7 +5,7 @@ use std::fmt::Debug;
 
 use crate::{JumpEvent, LookAtEvent};
 
-use super::{astar, world::CachedWorld};
+use super::{astar, mining::MiningCache, world::CachedWorld};
 use azalea_client::{SprintDirection, StartSprintEvent, StartWalkEvent, WalkDirection};
 use azalea_core::position::{BlockPos, Vec3};
 use bevy_ecs::{entity::Entity, event::EventWriter};
@@ -107,4 +107,5 @@ pub fn default_is_reached(
 pub struct PathfinderCtx<'a> {
     pub edges: &'a mut Vec<Edge>,
     pub world: &'a CachedWorld,
+    pub mining_cache: &'a MiningCache,
 }

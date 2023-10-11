@@ -4,6 +4,14 @@ use azalea_registry as registry;
 
 use crate::{effects, enchantments, FluidOnEyes, Physics};
 
+/// How much progress is made towards mining the block per tick, as a
+/// percentage. If this is 1 then the block gets broken instantly.
+///
+/// You can divide 1 by this and then round up to get the number of ticks it
+/// takes to mine the block.
+///
+/// The player inventory is needed to check your armor and offhand for modifiers
+/// to your mining speed.
 pub fn get_mine_progress(
     block: &dyn Block,
     held_item: registry::Item,
@@ -11,16 +19,6 @@ pub fn get_mine_progress(
     fluid_on_eyes: &FluidOnEyes,
     physics: &Physics,
 ) -> f32 {
-    // public float getDestroyProgress(BlockState blockState, Player player,
-    // BlockGetter world, BlockPos blockPos) {     float destroySpeed =
-    // blockState.getDestroySpeed(world, blockPos);       if (destroySpeed ==
-    // -1.0F) {          return 0.0F;
-    //       } else {
-    //          int divider = player.hasCorrectToolForDrops(blockState) ? 30 : 100;
-    //          return player.getDestroySpeed(blockState) / destroySpeed /
-    // (float)divider;       }
-    //    }
-
     let block_behavior: BlockBehavior = block.behavior();
 
     let destroy_time = block_behavior.destroy_time;

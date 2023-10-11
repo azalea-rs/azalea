@@ -366,6 +366,12 @@ pub struct LocalEntity;
 #[derive(Component, Clone, Debug, PartialEq, Deref, DerefMut)]
 pub struct FluidOnEyes(azalea_registry::Fluid);
 
+impl FluidOnEyes {
+    pub fn new(fluid: azalea_registry::Fluid) -> Self {
+        Self(fluid)
+    }
+}
+
 // #[cfg(test)]
 // mod tests {
 //     use super::*;

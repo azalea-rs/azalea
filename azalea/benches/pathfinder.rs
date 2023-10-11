@@ -4,12 +4,14 @@ use azalea::{
     pathfinder::{
         astar::{self, a_star},
         goals::BlockPosGoal,
+        mining::MiningCache,
         world::CachedWorld,
         Goal,
     },
     BlockPos,
 };
 use azalea_core::position::{ChunkBlockPos, ChunkPos};
+use azalea_inventory::Menu;
 use azalea_world::{Chunk, ChunkStorage, PartialChunkStorage};
 use criterion::{criterion_group, criterion_main, Criterion};
 use parking_lot::RwLock;
@@ -80,10 +82,16 @@ fn bench_pathfinder(c: &mut Criterion) {
         b.iter(|| {
             let (world, start, end) = generate_bedrock_world(&mut partial_chunks, 4);
             let cached_world = CachedWorld::new(Arc::new(RwLock::new(world.into())));
+            let mining_cache = MiningCache::new(Menu::Player(azalea_inventory::Player::default()));
             let goal = BlockPosGoal(end);
 
             let successors = |pos: BlockPos| {
-                azalea::pathfinder::call_successors_fn(&cached_world, successors_fn, pos)
+                azalea::pathfinder::call_successors_fn(
+                    &cached_world,
+                    &mining_cache,
+                    successors_fn,
+                    pos,
+                )
             };
 
             let astar::Path { movements, partial } = a_star(

@@ -1,8 +1,8 @@
 use super::string_range::StringRange;
-use std::{any::Any, rc::Rc};
+use std::{any::Any, sync::Arc};
 
 #[derive(Clone)]
 pub struct ParsedArgument {
     pub range: StringRange,
-    pub result: Rc<dyn Any>,
+    pub result: Arc<dyn Any>,
 }

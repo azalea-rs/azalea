@@ -2,7 +2,7 @@
 
 use std::{sync::Arc, time::Duration};
 
-use azalea_client::PhysicsState;
+use azalea_client::{inventory::InventoryComponent, PhysicsState};
 use azalea_core::{position::Vec3, resource_location::ResourceLocation};
 use azalea_entity::{
     attributes::AttributeInstance, metadata::Sprinting, Attributes, EntityDimensions, Physics,
@@ -20,6 +20,7 @@ pub struct SimulatedPlayerBundle {
     pub physics: Physics,
     pub physics_state: PhysicsState,
     pub attributes: Attributes,
+    pub inventory: InventoryComponent,
 }
 
 impl SimulatedPlayerBundle {
@@ -37,6 +38,7 @@ impl SimulatedPlayerBundle {
                 speed: AttributeInstance::new(0.1),
                 attack_speed: AttributeInstance::new(4.0),
             },
+            inventory: InventoryComponent::default(),
         }
     }
 }

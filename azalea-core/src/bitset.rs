@@ -125,6 +125,11 @@ impl From<Vec<u8>> for BitSet {
 }
 
 /// A list of bits with a known fixed size.
+///
+/// Note that this is primarily meant for fast serialization and deserialization
+/// Minecraft, if you don't need that you should use the `fixedbitset` crate
+/// since it's approximately 20% faster (since it stores the data as usizes
+/// instead of u8s)
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct FixedBitSet<const N: usize>
 where
