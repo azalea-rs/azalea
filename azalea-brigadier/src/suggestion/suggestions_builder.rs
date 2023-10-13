@@ -1,24 +1,20 @@
 use std::collections::HashSet;
-use std::hash::Hash;
 
 use crate::context::StringRange;
 
 use super::{Suggestion, SuggestionValue, Suggestions};
 
 #[derive(PartialEq, Debug)]
-pub struct SuggestionsBuilder<M = ()>
-where
-    M: Clone + Eq + Hash,
-{
+pub struct SuggestionsBuilder {
     input: String,
     input_lowercase: String,
     start: usize,
     remaining: String,
     remaining_lowercase: String,
-    result: HashSet<Suggestion<M>>,
+    result: HashSet<Suggestion>,
 }
 
-impl SuggestionsBuilder<()> {
+impl SuggestionsBuilder {
     pub fn new(input: &str, start: usize) -> Self {
         Self::new_with_lowercase(input, input.to_lowercase().as_str(), start)
     }
@@ -35,7 +31,7 @@ impl SuggestionsBuilder<()> {
     }
 }
 
-impl<M: Clone + Eq + Hash> SuggestionsBuilder<M> {
+impl SuggestionsBuilder {
     pub fn input(&self) -> &str {
         &self.input
     }
@@ -52,7 +48,7 @@ impl<M: Clone + Eq + Hash> SuggestionsBuilder<M> {
         &self.remaining_lowercase
     }
 
-    pub fn build(&self) -> Suggestions<M> {
+    pub fn build(&self) -> Suggestions {
         Suggestions::create(&self.input, &self.result)
     }
 
@@ -68,7 +64,7 @@ impl<M: Clone + Eq + Hash> SuggestionsBuilder<M> {
         self
     }
 
-    pub fn suggest_with_tooltip(mut self, text: &str, tooltip: M) -> Self {
+    pub fn suggest_with_tooltip(mut self, text: &str, tooltip: String) -> Self {
         if text == self.remaining {
             return self;
         }
@@ -89,7 +85,7 @@ impl<M: Clone + Eq + Hash> SuggestionsBuilder<M> {
         self
     }
 
-    pub fn suggest_integer_with_tooltip(mut self, value: i32, tooltip: M) -> Self {
+    pub fn suggest_integer_with_tooltip(mut self, value: i32, tooltip: String) -> Self {
         self.result.insert(Suggestion {
             range: StringRange::between(self.start, self.input.len()),
             value: SuggestionValue::Integer(value),
@@ -99,16 +95,16 @@ impl<M: Clone + Eq + Hash> SuggestionsBuilder<M> {
     }
 
     #[allow(clippy::should_implement_trait)]
-    pub fn add(mut self, other: SuggestionsBuilder<M>) -> Self {
+    pub fn add(mut self, other: SuggestionsBuilder) -> Self {
         self.result.extend(other.result);
         self
     }
 
-    pub fn create_offset(&self, start: usize) -> SuggestionsBuilder<()> {
+    pub fn create_offset(&self, start: usize) -> SuggestionsBuilder {
         SuggestionsBuilder::new_with_lowercase(&self.input, &self.input_lowercase, start)
     }
 
-    pub fn restart(&self) -> SuggestionsBuilder<()> {
+    pub fn restart(&self) -> SuggestionsBuilder {
         self.create_offset(self.start)
     }
 }

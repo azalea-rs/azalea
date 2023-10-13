@@ -7,7 +7,7 @@ use azalea_brigadier::{
 
 #[test]
 fn merge_empty() {
-    let merged = Suggestions::<()>::merge("foo b", &[]);
+    let merged = Suggestions::merge("foo b", &[]);
     assert!(merged.is_empty());
 }
 

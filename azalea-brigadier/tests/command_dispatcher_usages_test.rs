@@ -1,6 +1,6 @@
 use std::{collections::HashSet, sync::Arc};
 
-use azalea_brigadier::{prelude::*, tree::CommandNode};
+use azalea_brigadier::{prelude::*, string_reader::StringReader, tree::CommandNode};
 use parking_lot::RwLock;
 
 fn setup() -> CommandDispatcher<()> {
@@ -133,6 +133,57 @@ fn test_smart_usage_root() {
     ];
 
     println!("-");
+
+    let expected = expected
+        .into_iter()
+        .map(|(k, v)| (k.read().name().to_owned(), v.to_owned()))
+        .collect::<HashSet<_>>();
+
+    assert_eq!(actual, expected);
+}
+
+#[test]
+fn test_smart_usage_h() {
+    let subject = setup();
+    let results = subject.get_smart_usage(&get(&subject, "h").read(), &());
+
+    let actual = results
+        .into_iter()
+        .map(|(k, v)| (k.read().name().to_owned(), v))
+        .collect::<HashSet<_>>();
+
+    let expected = vec![
+        (get(&subject, "h 1"), "[1] i"),
+        (get(&subject, "h 2"), "[2] i ii"),
+        (get(&subject, "h 3"), "[3]"),
+    ];
+
+    let expected = expected
+        .into_iter()
+        .map(|(k, v)| (k.read().name().to_owned(), v.to_owned()))
+        .collect::<HashSet<_>>();
+
+    assert_eq!(actual, expected);
+}
+
+#[test]
+fn test_smart_usage_offset_h() {
+    let subject = setup();
+    let mut offset_h = StringReader::from("/|/|/h");
+    offset_h.cursor = 5;
+
+    let results = subject.get_smart_usage(&get(&subject, "h").read(), &());
+
+    let actual = results
+        .into_iter()
+        .map(|(k, v)| (k.read().name().to_owned(), v))
+        .collect::<HashSet<_>>();
+
+    let expected = vec![
+        (get(&subject, "h 1"), "[1] i"),
+        (get(&subject, "h 2"), "[2] i ii"),
+        (get(&subject, "h 3"), "[3]"),
+    ];
 
     let expected = expected
         .into_iter()

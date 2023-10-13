@@ -29,6 +29,17 @@ impl ArgumentType for StringArgument {
         };
         Ok(Arc::new(result))
     }
+
+    fn examples(&self) -> Vec<String> {
+        match self {
+            StringArgument::SingleWord => vec!["word", "words_with_underscores"],
+            StringArgument::QuotablePhrase => vec!["\"quoted phrase\"", "word", "\"\""],
+            StringArgument::GreedyPhrase => vec!["word", "words with spaces", "\"and symbols\""],
+        }
+        .into_iter()
+        .map(|s| s.to_string())
+        .collect()
+    }
 }
 
 /// Match up until the next space.

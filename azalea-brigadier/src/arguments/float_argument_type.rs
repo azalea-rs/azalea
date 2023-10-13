@@ -40,6 +40,13 @@ impl ArgumentType for Float {
         }
         Ok(Arc::new(result))
     }
+
+    fn examples(&self) -> Vec<String> {
+        vec!["0", "1.2", ".5", "-1", "-.5", "-1234.56"]
+            .into_iter()
+            .map(|s| s.to_string())
+            .collect()
+    }
 }
 
 pub fn float() -> impl ArgumentType {

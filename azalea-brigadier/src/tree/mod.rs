@@ -9,6 +9,7 @@ use crate::{
     exceptions::{BuiltInExceptions, CommandSyntaxException},
     modifier::RedirectModifier,
     string_reader::StringReader,
+    suggestion::{Suggestions, SuggestionsBuilder},
 };
 use std::{
     collections::{BTreeMap, HashMap},
@@ -208,6 +209,29 @@ impl<S> CommandNode<S> {
             }
         }
         None
+    }
+
+    pub fn list_suggestions(
+        &self,
+        // context is here because that's how it is in mojang's brigadier, but we haven't
+        // implemented custom suggestions yet so this is unused rn
+        _context: CommandContext<S>,
+        builder: SuggestionsBuilder,
+    ) -> Suggestions {
+        match &self.value {
+            ArgumentBuilderType::Literal(literal) => {
+                if literal
+                    .value
+                    .to_lowercase()
+                    .starts_with(builder.remaining_lowercase())
+                {
+                    builder.suggest(&literal.value).build()
+                } else {
+                    Suggestions::default()
+                }
+            }
+            ArgumentBuilderType::Argument(argument) => argument.list_suggestions(builder),
+        }
     }
 }
 

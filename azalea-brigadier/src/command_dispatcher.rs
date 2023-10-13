@@ -6,6 +6,7 @@ use crate::{
     exceptions::{BuiltInExceptions, CommandSyntaxException},
     parse_results::ParseResults,
     string_reader::StringReader,
+    suggestion::{Suggestions, SuggestionsBuilder},
     tree::CommandNode,
 };
 use std::{
@@ -473,6 +474,41 @@ impl<S> CommandDispatcher<S> {
         }
 
         Some(this)
+    }
+
+    pub fn get_completion_suggestions(parse: ParseResults<S>) -> Suggestions {
+        let cursor = parse.reader.total_length();
+        Self::get_completion_suggestions_with_cursor(parse, cursor)
+    }
+
+    pub fn get_completion_suggestions_with_cursor(
+        parse: ParseResults<S>,
+        cursor: usize,
+    ) -> Suggestions {
+        let context = parse.context;
+
+        let node_before_cursor = context.find_suggestion_context(cursor);
+        let parent = node_before_cursor.parent;
+        let start = usize::min(node_before_cursor.start_pos, cursor);
+
+        let full_input = parse.reader.string();
+        let truncated_input = full_input[..cursor].to_string();
+        let truncated_input_lowercase = truncated_input.to_lowercase();
+
+        let mut all_suggestions = Vec::new();
+        for node in parent.read().children.values() {
+            let suggestions = node.read().list_suggestions(
+                context.build(&truncated_input),
+                SuggestionsBuilder::new_with_lowercase(
+                    &truncated_input,
+                    &truncated_input_lowercase,
+                    start,
+                ),
+            );
+            all_suggestions.push(suggestions);
+        }
+
+        Suggestions::merge(full_input, &all_suggestions)
     }
 }
 

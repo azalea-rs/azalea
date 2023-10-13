@@ -12,21 +12,18 @@ use azalea_chat::FormattedText;
 use std::io::{Cursor, Write};
 use std::{collections::HashSet, hash::Hash};
 
-#[derive(Debug, Clone, Eq, PartialEq, Hash)]
-pub struct Suggestions<M>
-where
-    M: Clone + PartialEq + Hash,
-{
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Default)]
+pub struct Suggestions {
     range: StringRange,
-    suggestions: Vec<Suggestion<M>>,
+    suggestions: Vec<Suggestion>,
 }
 
-impl<M: Clone + Eq + Hash> Suggestions<M> {
-    pub fn new(range: StringRange, suggestions: Vec<Suggestion<M>>) -> Self {
+impl Suggestions {
+    pub fn new(range: StringRange, suggestions: Vec<Suggestion>) -> Self {
         Self { range, suggestions }
     }
 
-    pub fn merge(command: &str, input: &[Suggestions<M>]) -> Self {
+    pub fn merge(command: &str, input: &[Suggestions]) -> Self {
         if input.is_empty() {
             return Suggestions::default();
         } else if input.len() == 1 {
@@ -41,7 +38,7 @@ impl<M: Clone + Eq + Hash> Suggestions<M> {
         Suggestions::create(command, &texts)
     }
 
-    pub fn create(command: &str, suggestions: &HashSet<Suggestion<M>>) -> Self {
+    pub fn create(command: &str, suggestions: &HashSet<Suggestion>) -> Self {
         if suggestions.is_empty() {
             return Suggestions::default();
         };
@@ -70,7 +67,7 @@ impl<M: Clone + Eq + Hash> Suggestions<M> {
         self.suggestions.is_empty()
     }
 
-    pub fn list(&self) -> &[Suggestion<M>] {
+    pub fn list(&self) -> &[Suggestion] {
         &self.suggestions
     }
 
@@ -79,19 +76,8 @@ impl<M: Clone + Eq + Hash> Suggestions<M> {
     }
 }
 
-// this can't be derived because that'd require the generic to have `Default`
-// too even if it's not actually necessary
-impl<M: Clone + Hash + Eq> Default for Suggestions<M> {
-    fn default() -> Self {
-        Self {
-            range: StringRange::default(),
-            suggestions: Vec::new(),
-        }
-    }
-}
-
 #[cfg(feature = "azalea-buf")]
-impl McBufReadable for Suggestions<FormattedText> {
+impl McBufReadable for Suggestions {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         #[derive(McBuf)]
         struct StandaloneSuggestion {
@@ -109,7 +95,7 @@ impl McBufReadable for Suggestions<FormattedText> {
             .into_iter()
             .map(|s| Suggestion {
                 value: SuggestionValue::Text(s.text),
-                tooltip: s.tooltip,
+                tooltip: s.tooltip.map(|t| t.to_string()),
                 range,
             })
             .collect::<Vec<_>>();
@@ -120,7 +106,7 @@ impl McBufReadable for Suggestions<FormattedText> {
 }
 
 #[cfg(feature = "azalea-buf")]
-impl McBufWritable for Suggestions<FormattedText> {
+impl McBufWritable for Suggestions {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         (self.range.start() as u32).var_write_into(buf)?;
         (self.range.length() as u32).var_write_into(buf)?;

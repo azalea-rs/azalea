@@ -20,13 +20,10 @@ pub use suggestions_builder::SuggestionsBuilder;
 /// The `M` generic is the type of the tooltip, so for example a `String` or
 /// just `()` if you don't care about it.
 #[derive(Debug, Clone, Hash, Eq, PartialEq)]
-pub struct Suggestion<M = ()>
-where
-    M: Clone,
-{
+pub struct Suggestion {
     pub range: StringRange,
     value: SuggestionValue,
-    pub tooltip: Option<M>,
+    pub tooltip: Option<String>,
 }
 
 #[derive(Debug, Clone, Hash, Eq, PartialEq)]
@@ -35,18 +32,16 @@ pub enum SuggestionValue {
     Text(String),
 }
 
-impl Suggestion<()> {
-    pub fn new(range: StringRange, text: &str) -> Suggestion<()> {
+impl Suggestion {
+    pub fn new(range: StringRange, text: &str) -> Suggestion {
         Suggestion {
             range,
             value: SuggestionValue::Text(text.to_string()),
             tooltip: None,
         }
     }
-}
 
-impl<M: Clone> Suggestion<M> {
-    pub fn new_with_tooltip(range: StringRange, text: &str, tooltip: M) -> Self {
+    pub fn new_with_tooltip(range: StringRange, text: &str, tooltip: String) -> Self {
         Self {
             range,
             value: SuggestionValue::Text(text.to_string()),
@@ -71,7 +66,7 @@ impl<M: Clone> Suggestion<M> {
         result
     }
 
-    pub fn expand(&self, command: &str, range: StringRange) -> Suggestion<M> {
+    pub fn expand(&self, command: &str, range: StringRange) -> Suggestion {
         if range == self.range {
             return self.clone();
         }
@@ -140,10 +135,13 @@ impl PartialOrd for SuggestionValue {
 }
 
 #[cfg(feature = "azalea-buf")]
-impl McBufWritable for Suggestion<FormattedText> {
+impl McBufWritable for Suggestion {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         self.value.to_string().write_into(buf)?;
-        self.tooltip.write_into(buf)?;
+        self.tooltip
+            .clone()
+            .map(FormattedText::from)
+            .write_into(buf)?;
         Ok(())
     }
 }
