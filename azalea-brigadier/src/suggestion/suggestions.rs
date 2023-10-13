@@ -110,7 +110,7 @@ impl McBufReadable for Suggestions<FormattedText> {
             .map(|s| Suggestion {
                 value: SuggestionValue::Text(s.text),
                 tooltip: s.tooltip,
-                range: range.clone(),
+                range,
             })
             .collect::<Vec<_>>();
         suggestions.sort_by(|a, b| a.value.cmp(&b.value));

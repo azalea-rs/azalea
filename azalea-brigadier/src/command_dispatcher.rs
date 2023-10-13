@@ -323,7 +323,7 @@ impl<S> CommandDispatcher<S> {
         prefix: &str,
         restricted: bool,
     ) {
-        if restricted && !node.can_use(&source) {
+        if restricted && !node.can_use(source) {
             return;
         }
         if node.command.is_some() {
@@ -345,7 +345,7 @@ impl<S> CommandDispatcher<S> {
                 let child = child.read();
                 self.get_all_usage_recursive(
                     &child,
-                    &source,
+                    source,
                     result,
                     if prefix.is_empty() {
                         child.usage_text()
@@ -388,7 +388,7 @@ impl<S> CommandDispatcher<S> {
         optional: bool,
         deep: bool,
     ) -> Option<String> {
-        if !node.can_use(&source) {
+        if !node.can_use(source) {
             return None;
         }
 
@@ -417,7 +417,7 @@ impl<S> CommandDispatcher<S> {
         let children = node
             .children
             .values()
-            .filter(|child| child.read().can_use(&source))
+            .filter(|child| child.read().can_use(source))
             .collect::<Vec<_>>();
         match children.len().cmp(&1) {
             Ordering::Less => {}
