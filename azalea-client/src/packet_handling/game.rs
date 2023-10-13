@@ -806,7 +806,7 @@ pub fn process_packet_events(ecs: &mut World) {
                         entity_mut.world_scope(|world| {
                             world.send_event(KnockbackEvent {
                                 entity,
-                                kind: KnockbackType::Set(Vec3 {
+                                knockback: KnockbackType::Set(Vec3 {
                                     x: p.xa as f64 / 8000.,
                                     y: p.ya as f64 / 8000.,
                                     z: p.za as f64 / 8000.,
@@ -1199,7 +1199,7 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 knockback_events.send(KnockbackEvent {
                     entity: player_entity,
-                    kind: KnockbackType::Set(Vec3 {
+                    knockback: KnockbackType::Set(Vec3 {
                         x: p.knockback_x as f64,
                         y: p.knockback_y as f64,
                         z: p.knockback_z as f64,

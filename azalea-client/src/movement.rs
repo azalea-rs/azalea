@@ -477,7 +477,7 @@ fn has_enough_impulse_to_start_sprinting(physics_state: &PhysicsState) -> bool {
 #[derive(Event)]
 pub struct KnockbackEvent {
     pub entity: Entity,
-    pub kind: KnockbackType,
+    pub knockback: KnockbackType,
 }
 
 pub enum KnockbackType {
@@ -488,7 +488,7 @@ pub enum KnockbackType {
 pub fn handle_knockback(mut query: Query<&mut Physics>, mut events: EventReader<KnockbackEvent>) {
     for event in events.iter() {
         if let Ok(mut physics) = query.get_mut(event.entity) {
-            match event.kind {
+            match event.knockback {
                 KnockbackType::Set(velocity) => {
                     physics.velocity = velocity;
                 }
