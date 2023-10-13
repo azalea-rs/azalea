@@ -15,7 +15,7 @@ use derive_more::{Deref, DerefMut};
 use crate::{
     interact::SwingArmEvent,
     local_player::{LocalGameMode, SendPacketEvent},
-    movement::walk_listener,
+    movement::MoveEventsSet,
     respawn::perform_respawn,
     Client,
 };
@@ -28,7 +28,7 @@ impl Plugin for AttackPlugin {
                 Update,
                 handle_attack_event
                     .before(update_bounding_box)
-                    .before(walk_listener)
+                    .before(MoveEventsSet)
                     .after(perform_respawn),
             )
             .add_systems(
@@ -106,7 +106,7 @@ pub fn handle_attack_event(
 
         ticks_since_last_attack.0 = 0;
 
-        physics.delta = physics.delta.multiply(0.6, 1.0, 0.6);
+        physics.velocity = physics.velocity.multiply(0.6, 1.0, 0.6);
         **sprinting = false;
     }
 }

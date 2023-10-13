@@ -25,7 +25,7 @@ use crate::pathfinder::moves::PathfinderCtx;
 use crate::pathfinder::world::CachedWorld;
 use azalea_client::chat::SendChatEvent;
 use azalea_client::inventory::{InventoryComponent, InventorySet};
-use azalea_client::movement::walk_listener;
+use azalea_client::movement::MoveEventsSet;
 use azalea_client::{StartSprintEvent, StartWalkEvent};
 use azalea_core::position::{BlockPos, Vec3};
 use azalea_entity::metadata::Player;
@@ -85,7 +85,7 @@ impl Plugin for PathfinderPlugin {
                     handle_stop_pathfinding_event,
                 )
                     .chain()
-                    .before(walk_listener)
+                    .before(MoveEventsSet)
                     .before(InventorySet),
             );
     }
@@ -462,8 +462,8 @@ fn check_node_reached(
                     && BlockPos::from(position) == movement.target
                     // adding the delta like this isn't a perfect solution but it helps to make
                     // sure we don't keep going if our delta is high
-                    && (x_difference_from_center + physics.delta.x).abs() < 0.2
-                    && (z_difference_from_center + physics.delta.z).abs() < 0.2
+                    && (x_difference_from_center + physics.velocity.x).abs() < 0.2
+                    && (z_difference_from_center + physics.velocity.z).abs() < 0.2
                 } else {
                     true
                 };

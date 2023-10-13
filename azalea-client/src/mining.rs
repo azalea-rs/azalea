@@ -18,6 +18,7 @@ use crate::{
     },
     inventory::{InventoryComponent, InventorySet},
     local_player::{LocalGameMode, PermissionLevel, PlayerAbilities, SendPacketEvent},
+    movement::MoveEventsSet,
     Client,
 };
 
@@ -43,6 +44,7 @@ impl Plugin for MinePlugin {
                     .chain()
                     .in_set(MiningSet)
                     .after(InventorySet)
+                    .after(MoveEventsSet)
                     .before(azalea_entity::update_bounding_box)
                     .after(azalea_entity::update_fluid_on_eyes)
                     .after(crate::interact::update_hit_result_component)

@@ -97,7 +97,7 @@ fn execute_ascend_move(mut ctx: ExecuteCtx) {
     let side_distance = z_axis as f64 * (target_center.x - position.x).abs()
         + x_axis as f64 * (target_center.z - position.z).abs();
 
-    let lateral_motion = x_axis as f64 * physics.delta.z + z_axis as f64 * physics.delta.x;
+    let lateral_motion = x_axis as f64 * physics.velocity.z + z_axis as f64 * physics.velocity.x;
     if lateral_motion > 0.1 {
         return;
     }
