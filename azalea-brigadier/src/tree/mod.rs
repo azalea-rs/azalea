@@ -10,7 +10,13 @@ use crate::{
     modifier::RedirectModifier,
     string_reader::StringReader,
 };
-use std::{collections::HashMap, fmt::Debug, hash::Hash, ptr, sync::Arc};
+use std::{
+    collections::{BTreeMap, HashMap},
+    fmt::Debug,
+    hash::Hash,
+    ptr,
+    sync::Arc,
+};
 
 pub type Command<S> = Option<Arc<dyn Fn(&CommandContext<S>) -> i32 + Send + Sync>>;
 
@@ -19,7 +25,8 @@ pub type Command<S> = Option<Arc<dyn Fn(&CommandContext<S>) -> i32 + Send + Sync
 pub struct CommandNode<S> {
     pub value: ArgumentBuilderType,
 
-    pub children: HashMap<String, Arc<RwLock<CommandNode<S>>>>,
+    // this is a BTreeMap because children need to be ordered when getting command suggestions
+    pub children: BTreeMap<String, Arc<RwLock<CommandNode<S>>>>,
     pub literals: HashMap<String, Arc<RwLock<CommandNode<S>>>>,
     pub arguments: HashMap<String, Arc<RwLock<CommandNode<S>>>>,
 
@@ -125,6 +132,13 @@ impl<S> CommandNode<S> {
         }
     }
 
+    pub fn usage_text(&self) -> String {
+        match &self.value {
+            ArgumentBuilderType::Argument(argument) => format!("<{}>", argument.name),
+            ArgumentBuilderType::Literal(literal) => literal.value.to_owned(),
+        }
+    }
+
     pub fn child(&self, name: &str) -> Option<Arc<RwLock<CommandNode<S>>>> {
         self.children.get(name).cloned()
     }
@@ -216,7 +230,7 @@ impl<S> Default for CommandNode<S> {
         Self {
             value: ArgumentBuilderType::Literal(Literal::default()),
 
-            children: HashMap::new(),
+            children: BTreeMap::new(),
             literals: HashMap::new(),
             arguments: HashMap::new(),
 

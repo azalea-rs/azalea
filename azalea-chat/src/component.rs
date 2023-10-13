@@ -15,7 +15,7 @@ use std::{
 };
 
 /// A chat component, basically anything you can see in chat.
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Hash)]
 #[serde(untagged)]
 pub enum FormattedText {
     Text(TextComponent),

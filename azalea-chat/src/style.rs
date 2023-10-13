@@ -6,7 +6,7 @@ use once_cell::sync::Lazy;
 use serde::{ser::SerializeStruct, Serialize, Serializer};
 use serde_json::Value;
 
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug, Hash)]
 pub struct TextColor {
     pub value: u32,
     pub name: Option<String>,
@@ -290,7 +290,7 @@ impl TryFrom<ChatFormatting> for TextColor {
     }
 }
 
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct Style {
     // These are options instead of just bools because None is different than false in this case
     pub color: Option<TextColor>,

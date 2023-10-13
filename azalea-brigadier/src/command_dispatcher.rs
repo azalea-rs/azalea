@@ -8,7 +8,13 @@ use crate::{
     string_reader::StringReader,
     tree::CommandNode,
 };
-use std::{cmp::Ordering, collections::HashMap, mem, rc::Rc, sync::Arc};
+use std::{
+    cmp::Ordering,
+    collections::{HashMap, HashSet},
+    mem,
+    rc::Rc,
+    sync::Arc,
+};
 
 /// The root of the command tree. You need to make this to register commands.
 ///
@@ -296,6 +302,182 @@ impl<S> CommandDispatcher<S> {
             result
         })
         // Ok(if forked { successful_forks } else { result })
+    }
+
+    pub fn get_all_usage(
+        &self,
+        node: &CommandNode<S>,
+        source: Arc<S>,
+        restricted: bool,
+    ) -> Vec<String> {
+        let mut result = vec![];
+        self.get_all_usage_recursive(node, source, &mut result, "", restricted);
+        result
+    }
+
+    fn get_all_usage_recursive(
+        &self,
+        node: &CommandNode<S>,
+        source: Arc<S>,
+        result: &mut Vec<String>,
+        prefix: &str,
+        restricted: bool,
+    ) {
+        if restricted && !node.can_use(source.clone()) {
+            return;
+        }
+        if node.command.is_some() {
+            result.push(prefix.to_owned());
+        }
+        if let Some(redirect) = &node.redirect {
+            let redirect = if redirect.data_ptr() == self.root.data_ptr() {
+                "...".to_string()
+            } else {
+                format!("-> {}", redirect.read().usage_text())
+            };
+            if prefix.is_empty() {
+                result.push(format!("{} {redirect}", node.usage_text()));
+            } else {
+                result.push(format!("{prefix} {redirect}"));
+            }
+        } else {
+            for child in node.children.values() {
+                let child = child.read();
+                self.get_all_usage_recursive(
+                    &child,
+                    Arc::clone(&source),
+                    result,
+                    if prefix.is_empty() {
+                        child.usage_text()
+                    } else {
+                        format!("{prefix} {}", child.usage_text())
+                    }
+                    .as_str(),
+                    restricted,
+                );
+            }
+        }
+    }
+
+    /// Gets the possible executable commands from a specified node.
+    ///
+    /// You may use [`Self::root`] as a target to get usage data for the entire
+    /// command tree.
+    pub fn get_smart_usage(
+        &self,
+        node: &CommandNode<S>,
+        source: Arc<S>,
+    ) -> Vec<(Arc<RwLock<CommandNode<S>>>, String)> {
+        let mut result = Vec::new();
+
+        let optional = node.command.is_some();
+        for child in node.children.values() {
+            let usage =
+                self.get_smart_usage_recursive(&child.read(), source.clone(), optional, false);
+            if let Some(usage) = usage {
+                result.push((child.clone(), usage));
+            }
+        }
+
+        result
+    }
+
+    fn get_smart_usage_recursive(
+        &self,
+        node: &CommandNode<S>,
+        source: Arc<S>,
+        optional: bool,
+        deep: bool,
+    ) -> Option<String> {
+        if !node.can_use(source.clone()) {
+            return None;
+        }
+
+        let this = if optional {
+            format!("[{}]", node.usage_text())
+        } else {
+            node.usage_text()
+        };
+        let child_optional = node.command.is_some();
+        let open = if child_optional { "[" } else { "(" };
+        let close = if child_optional { "]" } else { ")" };
+
+        if deep {
+            return Some(this);
+        }
+
+        if let Some(redirect) = &node.redirect {
+            let redirect = if redirect.data_ptr() == self.root.data_ptr() {
+                "...".to_string()
+            } else {
+                format!("-> {}", redirect.read().usage_text())
+            };
+            return Some(format!("{this} {redirect}"));
+        }
+
+        let children = node
+            .children
+            .values()
+            .filter(|child| child.read().can_use(source.clone()))
+            .collect::<Vec<_>>();
+        match children.len().cmp(&1) {
+            Ordering::Less => {}
+            Ordering::Equal => {
+                let usage = self.get_smart_usage_recursive(
+                    &children[0].read(),
+                    source.clone(),
+                    child_optional,
+                    child_optional,
+                );
+                if let Some(usage) = usage {
+                    return Some(format!("{this} {usage}"));
+                }
+            }
+            Ordering::Greater => {
+                let mut child_usage = HashSet::new();
+                for child in &children {
+                    let usage = self.get_smart_usage_recursive(
+                        &child.read(),
+                        source.clone(),
+                        child_optional,
+                        true,
+                    );
+                    if let Some(usage) = usage {
+                        child_usage.insert(usage);
+                    }
+                }
+                match child_usage.len().cmp(&1) {
+                    Ordering::Less => {}
+                    Ordering::Equal => {
+                        let usage = child_usage.into_iter().next().unwrap();
+                        let usage = if child_optional {
+                            format!("[{}]", usage)
+                        } else {
+                            usage
+                        };
+                        return Some(format!("{this} {usage}"));
+                    }
+                    Ordering::Greater => {
+                        let mut builder = String::new();
+                        builder.push_str(open);
+                        let mut count = 0;
+                        for child in children {
+                            if count > 0 {
+                                builder.push('|');
+                            }
+                            builder.push_str(&child.read().usage_text());
+                            count += 1;
+                        }
+                        if count > 0 {
+                            builder.push_str(close);
+                            return Some(format!("{this} {builder}"));
+                        }
+                    }
+                }
+            }
+        }
+
+        Some(this)
     }
 }
 

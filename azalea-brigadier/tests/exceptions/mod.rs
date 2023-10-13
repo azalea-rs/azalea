@@ -1,0 +1,2 @@
+mod dynamic_command_syntax_exception_type_test;
+mod simple_command_syntax_exception_type_test;

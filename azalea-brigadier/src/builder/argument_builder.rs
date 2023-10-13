@@ -16,6 +16,7 @@ pub enum ArgumentBuilderType {
 }
 
 /// A node that hasn't yet been built.
+#[derive(Clone)]
 pub struct ArgumentBuilder<S> {
     arguments: CommandNode<S>,
 
@@ -132,6 +133,10 @@ impl<S> ArgumentBuilder<S> {
         self.modifier = modifier;
         self.forks = fork;
         self
+    }
+
+    pub fn arguments(&self) -> &CommandNode<S> {
+        &self.arguments
     }
 
     /// Manually build this node into a [`CommandNode`]. You probably don't need

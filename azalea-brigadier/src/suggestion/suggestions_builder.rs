@@ -1,19 +1,24 @@
 use std::collections::HashSet;
+use std::hash::Hash;
 
 use crate::context::StringRange;
 
-use super::{Suggestion, Suggestions};
+use super::{Suggestion, SuggestionValue, Suggestions};
 
-pub struct SuggestionsBuilder {
+#[derive(PartialEq, Debug)]
+pub struct SuggestionsBuilder<M = ()>
+where
+    M: Clone + Eq + Hash,
+{
     input: String,
     input_lowercase: String,
     start: usize,
     remaining: String,
     remaining_lowercase: String,
-    result: HashSet<Suggestion>,
+    result: HashSet<Suggestion<M>>,
 }
 
-impl SuggestionsBuilder {
+impl SuggestionsBuilder<()> {
     pub fn new(input: &str, start: usize) -> Self {
         Self::new_with_lowercase(input, input.to_lowercase().as_str(), start)
     }
@@ -28,7 +33,9 @@ impl SuggestionsBuilder {
             result: HashSet::new(),
         }
     }
+}
 
+impl<M: Clone + Eq + Hash> SuggestionsBuilder<M> {
     pub fn input(&self) -> &str {
         &self.input
     }
@@ -37,7 +44,7 @@ impl SuggestionsBuilder {
         self.start
     }
 
-    pub fn remianing(&self) -> &str {
+    pub fn remaining(&self) -> &str {
         &self.remaining
     }
 
@@ -45,7 +52,7 @@ impl SuggestionsBuilder {
         &self.remaining_lowercase
     }
 
-    pub fn build(&self) -> Suggestions {
+    pub fn build(&self) -> Suggestions<M> {
         Suggestions::create(&self.input, &self.result)
     }
 
@@ -55,38 +62,53 @@ impl SuggestionsBuilder {
         }
         self.result.insert(Suggestion {
             range: StringRange::between(self.start, self.input.len()),
-            text: text.to_string(),
+            value: SuggestionValue::Text(text.to_string()),
             tooltip: None,
         });
         self
     }
 
-    pub fn suggest_with_tooltip(mut self, text: &str, tooltip: String) -> Self {
+    pub fn suggest_with_tooltip(mut self, text: &str, tooltip: M) -> Self {
         if text == self.remaining {
             return self;
         }
         self.result.insert(Suggestion {
             range: StringRange::between(self.start, self.input.len()),
-            text: text.to_string(),
+            value: SuggestionValue::Text(text.to_string()),
             tooltip: Some(tooltip),
         });
         self
     }
 
-    // TODO: integer suggestions
-    // https://github.com/Mojang/brigadier/blob/master/src/main/java/com/mojang/brigadier/suggestion/SuggestionsBuilder.java#L74
+    pub fn suggest_integer(mut self, value: i32) -> Self {
+        self.result.insert(Suggestion {
+            range: StringRange::between(self.start, self.input.len()),
+            value: SuggestionValue::Integer(value),
+            tooltip: None,
+        });
+        self
+    }
+
+    pub fn suggest_integer_with_tooltip(mut self, value: i32, tooltip: M) -> Self {
+        self.result.insert(Suggestion {
+            range: StringRange::between(self.start, self.input.len()),
+            value: SuggestionValue::Integer(value),
+            tooltip: Some(tooltip),
+        });
+        self
+    }
 
     #[allow(clippy::should_implement_trait)]
-    pub fn add(mut self, other: SuggestionsBuilder) -> Self {
+    pub fn add(mut self, other: SuggestionsBuilder<M>) -> Self {
         self.result.extend(other.result);
         self
     }
 
-    pub fn create_offset(&self, start: usize) -> Self {
+    pub fn create_offset(&self, start: usize) -> SuggestionsBuilder<()> {
         SuggestionsBuilder::new_with_lowercase(&self.input, &self.input_lowercase, start)
     }
 
-    pub fn restart(self) -> Self {
+    pub fn restart(&self) -> SuggestionsBuilder<()> {
         self.create_offset(self.start)
     }
 }
