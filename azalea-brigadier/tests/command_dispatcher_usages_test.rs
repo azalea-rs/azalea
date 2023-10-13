@@ -81,21 +81,21 @@ fn get(subject: &CommandDispatcher<()>, command: &str) -> Arc<RwLock<CommandNode
 #[test]
 fn test_all_usage_no_commands() {
     let subject = CommandDispatcher::<()>::new();
-    let results = subject.get_all_usage(&subject.root.read(), Arc::new(()), true);
+    let results = subject.get_all_usage(&subject.root.read(), &(), true);
     assert!(results.is_empty());
 }
 
 #[test]
 fn test_smart_usage_no_commands() {
     let subject = CommandDispatcher::<()>::new();
-    let results = subject.get_smart_usage(&subject.root.read(), Arc::new(()));
+    let results = subject.get_smart_usage(&subject.root.read(), &());
     assert!(results.is_empty());
 }
 
 #[test]
 fn test_all_usage_root() {
     let subject = setup();
-    let results = subject.get_all_usage(&subject.root.read(), Arc::new(()), true);
+    let results = subject.get_all_usage(&subject.root.read(), &(), true);
 
     let actual = results.into_iter().collect::<HashSet<_>>();
     let expected = vec![
@@ -112,7 +112,7 @@ fn test_all_usage_root() {
 #[test]
 fn test_smart_usage_root() {
     let subject = setup();
-    let results = subject.get_smart_usage(&subject.root.read(), Arc::new(()));
+    let results = subject.get_smart_usage(&subject.root.read(), &());
 
     let actual = results
         .into_iter()

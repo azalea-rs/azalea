@@ -31,7 +31,7 @@ pub struct CommandNode<S> {
     pub arguments: HashMap<String, Arc<RwLock<CommandNode<S>>>>,
 
     pub command: Command<S>,
-    pub requirement: Arc<dyn Fn(Arc<S>) -> bool + Send + Sync>,
+    pub requirement: Arc<dyn Fn(&S) -> bool + Send + Sync>,
     pub redirect: Option<Arc<RwLock<CommandNode<S>>>>,
     pub forks: bool,
     pub modifier: Option<Arc<RedirectModifier<S>>>,
@@ -97,7 +97,7 @@ impl<S> CommandNode<S> {
         }
     }
 
-    pub fn can_use(&self, source: Arc<S>) -> bool {
+    pub fn can_use(&self, source: &S) -> bool {
         (self.requirement)(source)
     }
 

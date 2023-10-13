@@ -69,7 +69,7 @@ impl<S> CommandDispatcher<S> {
         let cursor = original_reader.cursor();
 
         for child in node.read().get_relevant_nodes(&mut original_reader.clone()) {
-            if !child.read().can_use(source.clone()) {
+            if !child.read().can_use(&source) {
                 continue;
             }
             let mut context = context_so_far.clone();
@@ -307,7 +307,7 @@ impl<S> CommandDispatcher<S> {
     pub fn get_all_usage(
         &self,
         node: &CommandNode<S>,
-        source: Arc<S>,
+        source: &S,
         restricted: bool,
     ) -> Vec<String> {
         let mut result = vec![];
@@ -318,12 +318,12 @@ impl<S> CommandDispatcher<S> {
     fn get_all_usage_recursive(
         &self,
         node: &CommandNode<S>,
-        source: Arc<S>,
+        source: &S,
         result: &mut Vec<String>,
         prefix: &str,
         restricted: bool,
     ) {
-        if restricted && !node.can_use(source.clone()) {
+        if restricted && !node.can_use(&source) {
             return;
         }
         if node.command.is_some() {
@@ -345,7 +345,7 @@ impl<S> CommandDispatcher<S> {
                 let child = child.read();
                 self.get_all_usage_recursive(
                     &child,
-                    Arc::clone(&source),
+                    &source,
                     result,
                     if prefix.is_empty() {
                         child.usage_text()
@@ -366,14 +366,13 @@ impl<S> CommandDispatcher<S> {
     pub fn get_smart_usage(
         &self,
         node: &CommandNode<S>,
-        source: Arc<S>,
+        source: &S,
     ) -> Vec<(Arc<RwLock<CommandNode<S>>>, String)> {
         let mut result = Vec::new();
 
         let optional = node.command.is_some();
         for child in node.children.values() {
-            let usage =
-                self.get_smart_usage_recursive(&child.read(), source.clone(), optional, false);
+            let usage = self.get_smart_usage_recursive(&child.read(), source, optional, false);
             if let Some(usage) = usage {
                 result.push((child.clone(), usage));
             }
@@ -385,11 +384,11 @@ impl<S> CommandDispatcher<S> {
     fn get_smart_usage_recursive(
         &self,
         node: &CommandNode<S>,
-        source: Arc<S>,
+        source: &S,
         optional: bool,
         deep: bool,
     ) -> Option<String> {
-        if !node.can_use(source.clone()) {
+        if !node.can_use(&source) {
             return None;
         }
 
@@ -418,14 +417,14 @@ impl<S> CommandDispatcher<S> {
         let children = node
             .children
             .values()
-            .filter(|child| child.read().can_use(source.clone()))
+            .filter(|child| child.read().can_use(&source))
             .collect::<Vec<_>>();
         match children.len().cmp(&1) {
             Ordering::Less => {}
             Ordering::Equal => {
                 let usage = self.get_smart_usage_recursive(
                     &children[0].read(),
-                    source.clone(),
+                    source,
                     child_optional,
                     child_optional,
                 );
@@ -436,12 +435,8 @@ impl<S> CommandDispatcher<S> {
             Ordering::Greater => {
                 let mut child_usage = HashSet::new();
                 for child in &children {
-                    let usage = self.get_smart_usage_recursive(
-                        &child.read(),
-                        source.clone(),
-                        child_optional,
-                        true,
-                    );
+                    let usage =
+                        self.get_smart_usage_recursive(&child.read(), source, child_optional, true);
                     if let Some(usage) = usage {
                         child_usage.insert(usage);
                     }
