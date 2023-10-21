@@ -1184,6 +1184,7 @@ enum Block {
     Frogspawn => "minecraft:frogspawn",
     ReinforcedDeepslate => "minecraft:reinforced_deepslate",
     DecoratedPot => "minecraft:decorated_pot",
+    Crafter => "minecraft:crafter",
 }
 }
 
@@ -1233,6 +1234,7 @@ enum BlockEntityKind {
     ChiseledBookshelf => "minecraft:chiseled_bookshelf",
     BrushableBlock => "minecraft:brushable_block",
     DecoratedPot => "minecraft:decorated_pot",
+    Crafter => "minecraft:crafter",
 }
 }
 
@@ -2664,6 +2666,7 @@ enum Item {
     RedBed => "minecraft:red_bed",
     BlackBed => "minecraft:black_bed",
     Cookie => "minecraft:cookie",
+    Crafter => "minecraft:crafter",
     FilledMap => "minecraft:filled_map",
     Shears => "minecraft:shears",
     MelonSlice => "minecraft:melon_slice",
@@ -3330,6 +3333,7 @@ enum ParticleKind {
     Portal => "minecraft:portal",
     Rain => "minecraft:rain",
     Smoke => "minecraft:smoke",
+    WhiteSmoke => "minecraft:white_smoke",
     Sneeze => "minecraft:sneeze",
     Spit => "minecraft:spit",
     SquidInk => "minecraft:squid_ink",
@@ -3871,6 +3875,8 @@ enum SoundEvent {
     EntityCowHurt => "minecraft:entity.cow.hurt",
     EntityCowMilk => "minecraft:entity.cow.milk",
     EntityCowStep => "minecraft:entity.cow.step",
+    BlockCrafterCraft => "minecraft:block.crafter.craft",
+    BlockCrafterFail => "minecraft:block.crafter.fail",
     EntityCreeperDeath => "minecraft:entity.creeper.death",
     EntityCreeperHurt => "minecraft:entity.creeper.hurt",
     EntityCreeperPrimed => "minecraft:entity.creeper.primed",
@@ -5510,6 +5516,7 @@ enum MenuKind {
     Generic9x5 => "minecraft:generic_9x5",
     Generic9x6 => "minecraft:generic_9x6",
     Generic3x3 => "minecraft:generic_3x3",
+    Crafter3x3 => "minecraft:crafter_3x3",
     Anvil => "minecraft:anvil",
     Beacon => "minecraft:beacon",
     BlastFurnace => "minecraft:blast_furnace",
@@ -5591,6 +5598,7 @@ enum BlockKind {
     CoralFan => "minecraft:coral_fan",
     CoralPlant => "minecraft:coral_plant",
     CoralWallFan => "minecraft:coral_wall_fan",
+    Crafter => "minecraft:crafter",
     CraftingTable => "minecraft:crafting_table",
     Crop => "minecraft:crop",
     CryingObsidian => "minecraft:crying_obsidian",
@@ -5763,5 +5771,13 @@ enum BlockKind {
     WitherSkull => "minecraft:wither_skull",
     WitherWallSkull => "minecraft:wither_wall_skull",
     WoolCarpet => "minecraft:wool_carpet",
+}
+}
+
+registry! {
+enum WorldgenPoolAliasBinding {
+    Random => "minecraft:random",
+    RandomGroup => "minecraft:random_group",
+    Direct => "minecraft:direct",
 }
 }

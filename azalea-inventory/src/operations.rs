@@ -4,13 +4,13 @@ use azalea_buf::McBuf;
 
 use crate::{
     item::MaxStackSizeExt, AnvilMenuLocation, BeaconMenuLocation, BlastFurnaceMenuLocation,
-    BrewingStandMenuLocation, CartographyTableMenuLocation, CraftingMenuLocation,
-    EnchantmentMenuLocation, FurnaceMenuLocation, Generic3x3MenuLocation, Generic9x1MenuLocation,
-    Generic9x2MenuLocation, Generic9x3MenuLocation, Generic9x4MenuLocation, Generic9x5MenuLocation,
-    Generic9x6MenuLocation, GrindstoneMenuLocation, HopperMenuLocation, ItemSlot, ItemSlotData,
-    LecternMenuLocation, LoomMenuLocation, Menu, MenuLocation, MerchantMenuLocation, Player,
-    PlayerMenuLocation, ShulkerBoxMenuLocation, SmithingMenuLocation, SmokerMenuLocation,
-    StonecutterMenuLocation,
+    BrewingStandMenuLocation, CartographyTableMenuLocation, Crafter3x3MenuLocation,
+    CraftingMenuLocation, EnchantmentMenuLocation, FurnaceMenuLocation, Generic3x3MenuLocation,
+    Generic9x1MenuLocation, Generic9x2MenuLocation, Generic9x3MenuLocation, Generic9x4MenuLocation,
+    Generic9x5MenuLocation, Generic9x6MenuLocation, GrindstoneMenuLocation, HopperMenuLocation,
+    ItemSlot, ItemSlotData, LecternMenuLocation, LoomMenuLocation, Menu, MenuLocation,
+    MerchantMenuLocation, Player, PlayerMenuLocation, ShulkerBoxMenuLocation, SmithingMenuLocation,
+    SmokerMenuLocation, StonecutterMenuLocation,
 };
 
 #[derive(Debug, Clone)]
@@ -377,6 +377,17 @@ impl Menu {
                     self.try_move_item_to_slots(slot_index, self.player_slots_range());
                 }
                 Generic3x3MenuLocation::Player => {
+                    self.try_move_item_to_slots_or_toggle_hotbar(
+                        slot_index,
+                        Menu::GENERIC3X3_CONTENTS_SLOTS,
+                    );
+                }
+            },
+            MenuLocation::Crafter3x3(l) => match l {
+                Crafter3x3MenuLocation::Contents => {
+                    self.try_move_item_to_slots(slot_index, self.player_slots_range());
+                }
+                Crafter3x3MenuLocation::Player => {
                     self.try_move_item_to_slots_or_toggle_hotbar(
                         slot_index,
                         Menu::GENERIC3X3_CONTENTS_SLOTS,

@@ -795,7 +795,7 @@ pub struct BlockDisplayHeight(pub f32);
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct BlockDisplayGlowColorOverride(pub i32);
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct BlockState(pub azalea_block::BlockState);
+pub struct BlockDisplayBlockState(pub azalea_block::BlockState);
 #[derive(Component)]
 pub struct BlockDisplay;
 impl BlockDisplay {
@@ -855,7 +855,7 @@ impl BlockDisplay {
                 entity.insert(BlockDisplayGlowColorOverride(d.value.into_int()?));
             }
             23 => {
-                entity.insert(BlockState(d.value.into_block_state()?));
+                entity.insert(BlockDisplayBlockState(d.value.into_block_state()?));
             }
             _ => {}
         }
@@ -884,7 +884,7 @@ pub struct BlockDisplayMetadataBundle {
     block_display_width: BlockDisplayWidth,
     block_display_height: BlockDisplayHeight,
     block_display_glow_color_override: BlockDisplayGlowColorOverride,
-    block_state: BlockState,
+    block_display_block_state: BlockDisplayBlockState,
 }
 impl Default for BlockDisplayMetadataBundle {
     fn default() -> Self {
@@ -946,7 +946,7 @@ impl Default for BlockDisplayMetadataBundle {
             block_display_width: BlockDisplayWidth(0.0),
             block_display_height: BlockDisplayHeight(0.0),
             block_display_glow_color_override: BlockDisplayGlowColorOverride(-1),
-            block_state: BlockState(Default::default()),
+            block_display_block_state: BlockDisplayBlockState(Default::default()),
         }
     }
 }
@@ -8074,6 +8074,8 @@ impl Default for TextDisplayMetadataBundle {
 
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct Fuse(pub i32);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct TntBlockState(pub azalea_block::BlockState);
 #[derive(Component)]
 pub struct Tnt;
 impl Tnt {
@@ -8086,6 +8088,9 @@ impl Tnt {
             8 => {
                 entity.insert(Fuse(d.value.into_int()?));
             }
+            9 => {
+                entity.insert(TntBlockState(d.value.into_block_state()?));
+            }
             _ => {}
         }
         Ok(())
@@ -8097,6 +8102,7 @@ pub struct TntMetadataBundle {
     _marker: Tnt,
     parent: AbstractEntityMetadataBundle,
     fuse: Fuse,
+    tnt_block_state: TntBlockState,
 }
 impl Default for TntMetadataBundle {
     fn default() -> Self {
@@ -8120,6 +8126,7 @@ impl Default for TntMetadataBundle {
                 ticks_frozen: TicksFrozen(0),
             },
             fuse: Fuse(80),
+            tnt_block_state: TntBlockState(Default::default()),
         }
     }
 }

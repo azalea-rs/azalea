@@ -1902,6 +1902,7 @@ make_block_states! {
             Z,
         },
         "cracked" => bool,
+        "crafting" => bool,
     },
     Blocks => {
         air => BlockBehavior::new(), {},
@@ -5098,6 +5099,11 @@ make_block_states! {
             cracked: false,
             facing: FacingCardinal::North,
             waterlogged: false,
+        },
+        crafter => BlockBehavior::new().strength(1.5, 3.5), {
+            crafting: false,
+            orientation: Orientation::NorthUp,
+            triggered: false,
         },
     }
 }
