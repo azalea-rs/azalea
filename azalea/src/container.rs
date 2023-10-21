@@ -10,6 +10,7 @@ use azalea_inventory::{operations::ClickOperation, ItemSlot, Menu};
 use azalea_protocol::packets::game::ClientboundGamePacket;
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::{component::Component, prelude::EventReader, system::Commands};
+use futures_lite::Future;
 use std::fmt::Debug;
 
 use crate::bot::BotClientExt;
@@ -22,7 +23,10 @@ impl Plugin for ContainerPlugin {
 }
 
 pub trait ContainerClientExt {
-    async fn open_container(&mut self, pos: BlockPos) -> Option<ContainerHandle>;
+    fn open_container(
+        &mut self,
+        pos: BlockPos,
+    ) -> impl Future<Output = Option<ContainerHandle>> + Send;
     fn open_inventory(&mut self) -> Option<ContainerHandle>;
 }
 
