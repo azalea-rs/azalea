@@ -113,9 +113,9 @@ fn travel(
 
         // if should_discard_friction(self) {
         if false {
-            physics.delta = movement;
+            physics.velocity = movement;
         } else {
-            physics.delta = Vec3 {
+            physics.velocity = Vec3 {
                 x: movement.x * inertia as f64,
                 y: movement.y * 0.9800000190734863f64,
                 z: movement.z * inertia as f64,
@@ -145,14 +145,14 @@ pub fn ai_step(
         // vanilla does movement interpolation here, doesn't really matter much for a
         // bot though
 
-        if physics.delta.x.abs() < 0.003 {
-            physics.delta.x = 0.;
+        if physics.velocity.x.abs() < 0.003 {
+            physics.velocity.x = 0.;
         }
-        if physics.delta.y.abs() < 0.003 {
-            physics.delta.y = 0.;
+        if physics.velocity.y.abs() < 0.003 {
+            physics.velocity.y = 0.;
         }
-        if physics.delta.z.abs() < 0.003 {
-            physics.delta.z = 0.;
+        if physics.velocity.z.abs() < 0.003 {
+            physics.velocity.z = 0.;
         }
 
         if let Some(jumping) = jumping {
@@ -194,8 +194,8 @@ pub fn jump_from_ground(
     let world = world_lock.read();
 
     let jump_power: f64 = jump_power(&world, position) as f64 + jump_boost_power();
-    let old_delta_movement = physics.delta;
-    physics.delta = Vec3 {
+    let old_delta_movement = physics.velocity;
+    physics.velocity = Vec3 {
         x: old_delta_movement.x,
         y: jump_power,
         z: old_delta_movement.z,
@@ -203,7 +203,7 @@ pub fn jump_from_ground(
     if **sprinting {
         // sprint jumping gives some extra velocity
         let y_rot = look_direction.y_rot * 0.017453292;
-        physics.delta += Vec3 {
+        physics.velocity += Vec3 {
             x: (-math::sin(y_rot) * 0.2) as f64,
             y: 0.,
             z: (math::cos(y_rot) * 0.2) as f64,
@@ -245,7 +245,7 @@ fn handle_relative_friction_and_calculate_movement(
     // entity.delta = entity.handle_on_climbable(entity.delta);
     move_colliding(
         &MoverType::Own,
-        &physics.delta.clone(),
+        &physics.velocity.clone(),
         world,
         position,
         physics,
@@ -259,7 +259,7 @@ fn handle_relative_friction_and_calculate_movement(
     // Vec3(var3.x, 0.2D, var3.z);   }
     // TODO: powdered snow
 
-    physics.delta
+    physics.velocity
 }
 
 // private float getFrictionInfluencedSpeed(float friction) {
@@ -400,7 +400,7 @@ mod tests {
             // delta is applied before gravity, so the first tick only sets the delta
             assert_eq!(entity_pos.y, 70.);
             let entity_physics = app.world.get::<Physics>(entity).unwrap();
-            assert!(entity_physics.delta.y < 0.);
+            assert!(entity_physics.velocity.y < 0.);
         }
         app.world.run_schedule(FixedUpdate);
         app.update();
@@ -463,7 +463,7 @@ mod tests {
             // delta will change, but it won't move until next tick
             assert_eq!(entity_pos.y, 70.);
             let entity_physics = app.world.get::<Physics>(entity).unwrap();
-            assert!(entity_physics.delta.y < 0.);
+            assert!(entity_physics.velocity.y < 0.);
         }
         app.world.run_schedule(FixedUpdate);
         app.update();

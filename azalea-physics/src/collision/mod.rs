@@ -201,8 +201,8 @@ pub fn move_colliding(
     // if self.isRemoved() { return; }
 
     if horizontal_collision {
-        let delta_movement = &physics.delta;
-        physics.delta = Vec3 {
+        let delta_movement = &physics.velocity;
+        physics.velocity = Vec3 {
             x: if x_collision { 0. } else { delta_movement.x },
             y: delta_movement.y,
             z: if z_collision { 0. } else { delta_movement.z },
@@ -213,7 +213,7 @@ pub fn move_colliding(
         // blockBelow.updateEntityAfterFallOn(this.level, this);
         // the default implementation of updateEntityAfterFallOn sets the y movement to
         // 0
-        physics.delta.y = 0.;
+        physics.velocity.y = 0.;
     }
 
     if on_ground {

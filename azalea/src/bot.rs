@@ -21,6 +21,7 @@ use azalea_physics::PhysicsSet;
 use bevy_app::{FixedUpdate, Update};
 use bevy_ecs::prelude::Event;
 use bevy_ecs::schedule::IntoSystemConfigs;
+use futures_lite::Future;
 use log::trace;
 use std::f64::consts::PI;
 
@@ -82,7 +83,7 @@ pub trait BotClientExt {
     /// that's necessary you'll have to do that yourself with [`look_at`].
     ///
     /// [`look_at`]: crate::prelude::BotClientExt::look_at
-    async fn mine(&mut self, position: BlockPos);
+    fn mine(&mut self, position: BlockPos) -> impl Future<Output = ()> + Send;
 }
 
 impl BotClientExt for azalea_client::Client {

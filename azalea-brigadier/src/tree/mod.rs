@@ -9,8 +9,15 @@ use crate::{
     exceptions::{BuiltInExceptions, CommandSyntaxException},
     modifier::RedirectModifier,
     string_reader::StringReader,
+    suggestion::{Suggestions, SuggestionsBuilder},
 };
-use std::{collections::HashMap, fmt::Debug, hash::Hash, ptr, sync::Arc};
+use std::{
+    collections::{BTreeMap, HashMap},
+    fmt::Debug,
+    hash::Hash,
+    ptr,
+    sync::Arc,
+};
 
 pub type Command<S> = Option<Arc<dyn Fn(&CommandContext<S>) -> i32 + Send + Sync>>;
 
@@ -19,12 +26,13 @@ pub type Command<S> = Option<Arc<dyn Fn(&CommandContext<S>) -> i32 + Send + Sync
 pub struct CommandNode<S> {
     pub value: ArgumentBuilderType,
 
-    pub children: HashMap<String, Arc<RwLock<CommandNode<S>>>>,
+    // this is a BTreeMap because children need to be ordered when getting command suggestions
+    pub children: BTreeMap<String, Arc<RwLock<CommandNode<S>>>>,
     pub literals: HashMap<String, Arc<RwLock<CommandNode<S>>>>,
     pub arguments: HashMap<String, Arc<RwLock<CommandNode<S>>>>,
 
     pub command: Command<S>,
-    pub requirement: Arc<dyn Fn(Arc<S>) -> bool + Send + Sync>,
+    pub requirement: Arc<dyn Fn(&S) -> bool + Send + Sync>,
     pub redirect: Option<Arc<RwLock<CommandNode<S>>>>,
     pub forks: bool,
     pub modifier: Option<Arc<RedirectModifier<S>>>,
@@ -90,7 +98,7 @@ impl<S> CommandNode<S> {
         }
     }
 
-    pub fn can_use(&self, source: Arc<S>) -> bool {
+    pub fn can_use(&self, source: &S) -> bool {
         (self.requirement)(source)
     }
 
@@ -122,6 +130,13 @@ impl<S> CommandNode<S> {
         match &self.value {
             ArgumentBuilderType::Argument(argument) => &argument.name,
             ArgumentBuilderType::Literal(literal) => &literal.value,
+        }
+    }
+
+    pub fn usage_text(&self) -> String {
+        match &self.value {
+            ArgumentBuilderType::Argument(argument) => format!("<{}>", argument.name),
+            ArgumentBuilderType::Literal(literal) => literal.value.to_owned(),
         }
     }
 
@@ -195,6 +210,29 @@ impl<S> CommandNode<S> {
         }
         None
     }
+
+    pub fn list_suggestions(
+        &self,
+        // context is here because that's how it is in mojang's brigadier, but we haven't
+        // implemented custom suggestions yet so this is unused rn
+        _context: CommandContext<S>,
+        builder: SuggestionsBuilder,
+    ) -> Suggestions {
+        match &self.value {
+            ArgumentBuilderType::Literal(literal) => {
+                if literal
+                    .value
+                    .to_lowercase()
+                    .starts_with(builder.remaining_lowercase())
+                {
+                    builder.suggest(&literal.value).build()
+                } else {
+                    Suggestions::default()
+                }
+            }
+            ArgumentBuilderType::Argument(argument) => argument.list_suggestions(builder),
+        }
+    }
 }
 
 impl<S> Debug for CommandNode<S> {
@@ -216,7 +254,7 @@ impl<S> Default for CommandNode<S> {
         Self {
             value: ArgumentBuilderType::Literal(Literal::default()),
 
-            children: HashMap::new(),
+            children: BTreeMap::new(),
             literals: HashMap::new(),
             arguments: HashMap::new(),
 

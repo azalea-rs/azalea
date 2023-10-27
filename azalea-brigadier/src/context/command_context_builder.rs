@@ -2,7 +2,7 @@ use parking_lot::RwLock;
 
 use super::{
     command_context::CommandContext, parsed_command_node::ParsedCommandNode,
-    string_range::StringRange, ParsedArgument,
+    string_range::StringRange, suggestion_context::SuggestionContext, ParsedArgument,
 };
 use crate::{
     command_dispatcher::CommandDispatcher,
@@ -34,7 +34,7 @@ impl<S> Clone for CommandContextBuilder<'_, S> {
             source: self.source.clone(),
             command: self.command.clone(),
             child: self.child.clone(),
-            range: self.range.clone(),
+            range: self.range,
             modifier: self.modifier.clone(),
             forks: self.forks,
         }
@@ -77,7 +77,7 @@ impl<'a, S> CommandContextBuilder<'a, S> {
     pub fn with_node(&mut self, node: Arc<RwLock<CommandNode<S>>>, range: StringRange) -> &Self {
         self.nodes.push(ParsedCommandNode {
             node: node.clone(),
-            range: range.clone(),
+            range,
         });
         self.range = StringRange::encompassing(&self.range, &range);
         self.modifier = node.read().modifier.clone();
@@ -93,10 +93,47 @@ impl<'a, S> CommandContextBuilder<'a, S> {
             source: self.source.clone(),
             command: self.command.clone(),
             child: self.child.clone().map(|c| Rc::new(c.build(input))),
-            range: self.range.clone(),
+            range: self.range,
             forks: self.forks,
             modifier: self.modifier.clone(),
             input: input.to_string(),
+        }
+    }
+
+    pub fn find_suggestion_context(&self, cursor: usize) -> SuggestionContext<S> {
+        if self.range.start() > cursor {
+            panic!("Can't find node before cursor");
+        }
+
+        if self.range.end() < cursor {
+            if let Some(child) = &self.child {
+                child.find_suggestion_context(cursor)
+            } else if let Some(last) = self.nodes.last() {
+                SuggestionContext {
+                    parent: Arc::clone(&last.node),
+                    start_pos: last.range.end() + 1,
+                }
+            } else {
+                SuggestionContext {
+                    parent: Arc::clone(&self.root),
+                    start_pos: self.range.start(),
+                }
+            }
+        } else {
+            let mut prev = &self.root;
+            for node in &self.nodes {
+                if node.range.start() <= cursor && cursor <= node.range.end() {
+                    return SuggestionContext {
+                        parent: Arc::clone(prev),
+                        start_pos: node.range.start(),
+                    };
+                }
+                prev = &node.node;
+            }
+            SuggestionContext {
+                parent: Arc::clone(prev),
+                start_pos: self.range.start(),
+            }
         }
     }
 }

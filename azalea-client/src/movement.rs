@@ -1,5 +1,6 @@
 use crate::client::Client;
 use crate::local_player::SendPacketEvent;
+use azalea_core::position::Vec3;
 use azalea_entity::{metadata::Sprinting, Attributes, Jumping};
 use azalea_entity::{InLoadedChunk, LastSentPosition, LookDirection, Physics, Position};
 use azalea_physics::{ai_step, PhysicsSet};
@@ -13,6 +14,7 @@ use azalea_protocol::packets::game::{
 use azalea_world::{MinecraftEntityId, MoveEntityError};
 use bevy_app::{App, FixedUpdate, Plugin, Update};
 use bevy_ecs::prelude::{Event, EventWriter};
+use bevy_ecs::schedule::SystemSet;
 use bevy_ecs::{
     component::Component, entity::Entity, event::EventReader, query::With,
     schedule::IntoSystemConfigs, system::Query,
@@ -44,7 +46,13 @@ impl Plugin for PlayerMovePlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<StartWalkEvent>()
             .add_event::<StartSprintEvent>()
-            .add_systems(Update, (sprint_listener, walk_listener).chain())
+            .add_event::<KnockbackEvent>()
+            .add_systems(
+                Update,
+                (handle_sprint, handle_walk, handle_knockback)
+                    .chain()
+                    .in_set(MoveEventsSet),
+            )
             .add_systems(
                 FixedUpdate,
                 (
@@ -59,6 +67,9 @@ impl Plugin for PlayerMovePlugin {
             );
     }
 }
+
+#[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
+pub struct MoveEventsSet;
 
 impl Client {
     /// Set whether we're jumping. This acts as if you held space in
@@ -391,10 +402,9 @@ pub struct StartWalkEvent {
     pub direction: WalkDirection,
 }
 
-/// Start walking in the given direction. To sprint, use
-/// [`Client::sprint`]. To stop walking, call walk with
-/// `WalkDirection::None`.
-pub fn walk_listener(
+/// The system that makes the player start walking when they receive a
+/// [`StartWalkEvent`].
+pub fn handle_walk(
     mut events: EventReader<StartWalkEvent>,
     mut query: Query<(&mut PhysicsState, &mut Sprinting, &mut Attributes)>,
 ) {
@@ -415,8 +425,9 @@ pub struct StartSprintEvent {
     pub entity: Entity,
     pub direction: SprintDirection,
 }
-/// Start sprinting in the given direction.
-pub fn sprint_listener(
+/// The system that makes the player start sprinting when they receive a
+/// [`StartSprintEvent`].
+pub fn handle_sprint(
     mut query: Query<&mut PhysicsState>,
     mut events: EventReader<StartSprintEvent>,
 ) {
@@ -457,6 +468,36 @@ fn has_enough_impulse_to_start_sprinting(physics_state: &PhysicsState) -> bool {
     // } else {
     physics_state.forward_impulse > 0.8
     // }
+}
+
+/// An event sent by the server that sets or adds to our velocity. Usually
+/// `KnockbackKind::Set` is used for normal knockback and `KnockbackKind::Add`
+/// is used for explosions, but some servers (notably Hypixel) use explosions
+/// for knockback.
+#[derive(Event)]
+pub struct KnockbackEvent {
+    pub entity: Entity,
+    pub knockback: KnockbackType,
+}
+
+pub enum KnockbackType {
+    Set(Vec3),
+    Add(Vec3),
+}
+
+pub fn handle_knockback(mut query: Query<&mut Physics>, mut events: EventReader<KnockbackEvent>) {
+    for event in events.iter() {
+        if let Ok(mut physics) = query.get_mut(event.entity) {
+            match event.knockback {
+                KnockbackType::Set(velocity) => {
+                    physics.velocity = velocity;
+                }
+                KnockbackType::Add(velocity) => {
+                    physics.velocity += velocity;
+                }
+            }
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Default)]

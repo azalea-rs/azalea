@@ -1,6 +1,6 @@
 use std::cmp;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default, Copy)]
 pub struct StringRange {
     start: usize,
     end: usize,

@@ -40,6 +40,13 @@ impl ArgumentType for Long {
         }
         Ok(Arc::new(result))
     }
+
+    fn examples(&self) -> Vec<String> {
+        vec!["0", "123", "-123"]
+            .into_iter()
+            .map(|s| s.to_string())
+            .collect()
+    }
 }
 
 pub fn long() -> impl ArgumentType {

@@ -1,7 +1,12 @@
+use azalea_brigadier::{context::StringRange, suggestion::Suggestion};
+
 #[test]
 fn apply_insertation_start() {
     let suggestion = Suggestion::new(StringRange::at(0), "And so I said: ");
-    assert_eq!(suggestion.apply("Hello world!"), "And so I said: Hello world!");
+    assert_eq!(
+        suggestion.apply("Hello world!"),
+        "And so I said: Hello world!"
+    );
 }
 
 #[test]
@@ -49,23 +54,35 @@ fn expand_unchanged() {
 #[test]
 fn expand_left() {
     let suggestion = Suggestion::new(StringRange::at(1), "oo");
-    assert_eq!(suggestion.expand("f", StringRange::between(0, 1)), Suggestion::new(StringRange::between(0, 1), "foo"));
+    assert_eq!(
+        suggestion.expand("f", StringRange::between(0, 1)),
+        Suggestion::new(StringRange::between(0, 1), "foo")
+    );
 }
 
 #[test]
 fn expand_right() {
     let suggestion = Suggestion::new(StringRange::at(0), "minecraft:");
-    assert_eq!(suggestion.expand("fish", StringRange::between(0, 4)), Suggestion::new(StringRange::between(0, 4), "minecraft:fish"));
+    assert_eq!(
+        suggestion.expand("fish", StringRange::between(0, 4)),
+        Suggestion::new(StringRange::between(0, 4), "minecraft:fish")
+    );
 }
 
 #[test]
 fn expand_both() {
     let suggestion = Suggestion::new(StringRange::at(11), "minecraft:");
-    assert_eq!(suggestion.expand("give Steve fish_block", StringRange::between(5, 21)), Suggestion::new(StringRange::between(5, 21), "Steve minecraft:fish_block"));
+    assert_eq!(
+        suggestion.expand("give Steve fish_block", StringRange::between(5, 21)),
+        Suggestion::new(StringRange::between(5, 21), "Steve minecraft:fish_block")
+    );
 }
 
 #[test]
 fn expand_replacement() {
     let suggestion = Suggestion::new(StringRange::between(6, 11), "strangers");
-    assert_eq!(suggestion.expand("Hello world!", StringRange::between(0, 12)), Suggestion::new(StringRange::between(0, 12), "Hello strangers!"));
+    assert_eq!(
+        suggestion.expand("Hello world!", StringRange::between(0, 12)),
+        Suggestion::new(StringRange::between(0, 12), "Hello strangers!")
+    );
 }

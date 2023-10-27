@@ -44,6 +44,7 @@ use crate::{
         GameProfileComponent, Hunger, InstanceHolder, LocalGameMode, PlayerAbilities,
         SendPacketEvent, TabList,
     },
+    movement::{KnockbackEvent, KnockbackType},
     raw_connection::RawConnection,
     ClientInformation, PlayerInfo, ReceivedRegistries,
 };
@@ -422,7 +423,7 @@ pub fn process_packet_events(ecs: &mut World) {
                     continue;
                 };
 
-                let delta_movement = physics.delta;
+                let delta_movement = physics.velocity;
 
                 let is_x_relative = p.relative_arguments.x;
                 let is_y_relative = p.relative_arguments.y;
@@ -459,7 +460,7 @@ pub fn process_packet_events(ecs: &mut World) {
                     y_rot += direction.y_rot;
                 }
 
-                physics.delta = Vec3 {
+                physics.velocity = Vec3 {
                     x: delta_x,
                     y: delta_y,
                     z: delta_z,
@@ -797,15 +798,21 @@ pub fn process_packet_events(ecs: &mut World) {
                     continue;
                 };
 
+                // this is to make sure the same entity velocity update doesn't get sent
+                // multiple times when in swarms
                 commands.entity(entity).add(RelativeEntityUpdate {
                     partial_world: instance_holder.partial_instance.clone(),
-                    update: Box::new(move |entity| {
-                        let mut physics = entity.get_mut::<Physics>().unwrap();
-                        physics.delta = Vec3 {
-                            x: p.xa as f64 / 8000.,
-                            y: p.ya as f64 / 8000.,
-                            z: p.za as f64 / 8000.,
-                        };
+                    update: Box::new(move |entity_mut| {
+                        entity_mut.world_scope(|world| {
+                            world.send_event(KnockbackEvent {
+                                entity,
+                                knockback: KnockbackType::Set(Vec3 {
+                                    x: p.xa as f64 / 8000.,
+                                    y: p.ya as f64 / 8000.,
+                                    z: p.za as f64 / 8000.,
+                                }),
+                            })
+                        });
                     }),
                 });
 
@@ -1186,15 +1193,18 @@ pub fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::DeleteChat(_) => {}
             ClientboundGamePacket::Explode(p) => {
                 trace!("Got explode packet {p:?}");
-                let mut system_state: SystemState<Query<&mut Physics>> = SystemState::new(ecs);
-                let mut query = system_state.get_mut(ecs);
-                let mut physics = query.get_mut(player_entity).unwrap();
+                let mut system_state: SystemState<EventWriter<KnockbackEvent>> =
+                    SystemState::new(ecs);
+                let mut knockback_events = system_state.get_mut(ecs);
 
-                physics.delta += Vec3 {
-                    x: p.knockback_x as f64,
-                    y: p.knockback_y as f64,
-                    z: p.knockback_z as f64,
-                };
+                knockback_events.send(KnockbackEvent {
+                    entity: player_entity,
+                    knockback: KnockbackType::Set(Vec3 {
+                        x: p.knockback_x as f64,
+                        y: p.knockback_y as f64,
+                        z: p.knockback_z as f64,
+                    }),
+                });
 
                 system_state.apply(ecs);
             }

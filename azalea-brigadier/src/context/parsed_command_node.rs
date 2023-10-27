@@ -14,7 +14,7 @@ impl<S> Clone for ParsedCommandNode<S> {
     fn clone(&self) -> Self {
         Self {
             node: self.node.clone(),
-            range: self.range.clone(),
+            range: self.range,
         }
     }
 }

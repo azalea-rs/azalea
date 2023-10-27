@@ -3,6 +3,7 @@ mod command_context_builder;
 mod parsed_argument;
 mod parsed_command_node;
 mod string_range;
+pub mod suggestion_context;
 
 pub use command_context::CommandContext;
 pub use command_context_builder::CommandContextBuilder;

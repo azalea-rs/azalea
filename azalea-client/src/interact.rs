@@ -37,6 +37,7 @@ use crate::{
     local_player::{
         handle_send_packet_event, LocalGameMode, PermissionLevel, PlayerAbilities, SendPacketEvent,
     },
+    movement::MoveEventsSet,
     respawn::perform_respawn,
     Client,
 };
@@ -62,7 +63,7 @@ impl Plugin for InteractPlugin {
                         .chain(),
                     update_modifiers_for_held_item
                         .after(InventorySet)
-                        .after(crate::movement::walk_listener),
+                        .after(MoveEventsSet),
                 ),
             );
     }

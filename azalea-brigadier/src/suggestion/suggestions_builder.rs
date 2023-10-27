@@ -2,8 +2,9 @@ use std::collections::HashSet;
 
 use crate::context::StringRange;
 
-use super::{Suggestion, Suggestions};
+use super::{Suggestion, SuggestionValue, Suggestions};
 
+#[derive(PartialEq, Debug)]
 pub struct SuggestionsBuilder {
     input: String,
     input_lowercase: String,
@@ -28,7 +29,9 @@ impl SuggestionsBuilder {
             result: HashSet::new(),
         }
     }
+}
 
+impl SuggestionsBuilder {
     pub fn input(&self) -> &str {
         &self.input
     }
@@ -37,7 +40,7 @@ impl SuggestionsBuilder {
         self.start
     }
 
-    pub fn remianing(&self) -> &str {
+    pub fn remaining(&self) -> &str {
         &self.remaining
     }
 
@@ -55,7 +58,7 @@ impl SuggestionsBuilder {
         }
         self.result.insert(Suggestion {
             range: StringRange::between(self.start, self.input.len()),
-            text: text.to_string(),
+            value: SuggestionValue::Text(text.to_string()),
             tooltip: None,
         });
         self
@@ -67,14 +70,29 @@ impl SuggestionsBuilder {
         }
         self.result.insert(Suggestion {
             range: StringRange::between(self.start, self.input.len()),
-            text: text.to_string(),
+            value: SuggestionValue::Text(text.to_string()),
             tooltip: Some(tooltip),
         });
         self
     }
 
-    // TODO: integer suggestions
-    // https://github.com/Mojang/brigadier/blob/master/src/main/java/com/mojang/brigadier/suggestion/SuggestionsBuilder.java#L74
+    pub fn suggest_integer(mut self, value: i32) -> Self {
+        self.result.insert(Suggestion {
+            range: StringRange::between(self.start, self.input.len()),
+            value: SuggestionValue::Integer(value),
+            tooltip: None,
+        });
+        self
+    }
+
+    pub fn suggest_integer_with_tooltip(mut self, value: i32, tooltip: String) -> Self {
+        self.result.insert(Suggestion {
+            range: StringRange::between(self.start, self.input.len()),
+            value: SuggestionValue::Integer(value),
+            tooltip: Some(tooltip),
+        });
+        self
+    }
 
     #[allow(clippy::should_implement_trait)]
     pub fn add(mut self, other: SuggestionsBuilder) -> Self {
@@ -82,11 +100,11 @@ impl SuggestionsBuilder {
         self
     }
 
-    pub fn create_offset(&self, start: usize) -> Self {
+    pub fn create_offset(&self, start: usize) -> SuggestionsBuilder {
         SuggestionsBuilder::new_with_lowercase(&self.input, &self.input_lowercase, start)
     }
 
-    pub fn restart(self) -> Self {
+    pub fn restart(&self) -> SuggestionsBuilder {
         self.create_offset(self.start)
     }
 }

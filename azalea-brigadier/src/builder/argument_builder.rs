@@ -16,11 +16,12 @@ pub enum ArgumentBuilderType {
 }
 
 /// A node that hasn't yet been built.
+#[derive(Clone)]
 pub struct ArgumentBuilder<S> {
     arguments: CommandNode<S>,
 
     command: Command<S>,
-    requirement: Arc<dyn Fn(Arc<S>) -> bool + Send + Sync>,
+    requirement: Arc<dyn Fn(&S) -> bool + Send + Sync>,
     target: Option<Arc<RwLock<CommandNode<S>>>>,
 
     forks: bool,
@@ -95,13 +96,13 @@ impl<S> ArgumentBuilder<S> {
     /// # let mut subject = CommandDispatcher::<CommandSource>::new();
     /// # subject.register(
     /// literal("foo")
-    ///     .requires(|s: Arc<CommandSource>| s.opped)
+    ///     .requires(|s: &CommandSource| s.opped)
     ///     // ...
     ///     # .executes(|ctx: &CommandContext<CommandSource>| 42)
     /// # );
     pub fn requires<F>(mut self, requirement: F) -> Self
     where
-        F: Fn(Arc<S>) -> bool + Send + Sync + 'static,
+        F: Fn(&S) -> bool + Send + Sync + 'static,
     {
         self.requirement = Arc::new(requirement);
         self
@@ -132,6 +133,10 @@ impl<S> ArgumentBuilder<S> {
         self.modifier = modifier;
         self.forks = fork;
         self
+    }
+
+    pub fn arguments(&self) -> &CommandNode<S> {
+        &self.arguments
     }
 
     /// Manually build this node into a [`CommandNode`]. You probably don't need

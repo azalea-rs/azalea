@@ -35,7 +35,7 @@ pub fn move_relative(
     acceleration: &Vec3,
 ) {
     let input_vector = input_vector(direction, speed, acceleration);
-    physics.delta += input_vector;
+    physics.velocity += input_vector;
 }
 
 pub fn input_vector(direction: &LookDirection, speed: f32, acceleration: &Vec3) -> Vec3 {
@@ -208,7 +208,8 @@ pub struct LookDirection {
 /// bounding box.
 #[derive(Debug, Component, Clone)]
 pub struct Physics {
-    pub delta: Vec3,
+    /// How fast the entity is moving.
+    pub velocity: Vec3,
 
     /// X acceleration.
     pub xxa: f32,
@@ -232,7 +233,7 @@ pub struct Physics {
 impl Physics {
     pub fn new(dimensions: EntityDimensions, pos: &Vec3) -> Self {
         Self {
-            delta: Vec3::default(),
+            velocity: Vec3::default(),
 
             xxa: 0.,
             yya: 0.,

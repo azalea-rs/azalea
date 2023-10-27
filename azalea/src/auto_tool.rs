@@ -35,7 +35,7 @@ pub fn best_tool_in_hotbar_for_block(block: BlockState, menu: &Menu) -> BestTool
         menu,
         &Physics {
             on_ground: true,
-            delta: Default::default(),
+            velocity: Default::default(),
             xxa: Default::default(),
             yya: Default::default(),
             zza: Default::default(),
