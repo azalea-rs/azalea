@@ -1391,7 +1391,9 @@ pub fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::DamageEvent(_) => {}
             ClientboundGamePacket::HurtAnimation(_) => {}
 
-            ClientboundGamePacket::StartConfiguration(_) => todo!(),
+            ClientboundGamePacket::StartConfiguration(_) => {}
+            ClientboundGamePacket::TickingState(_) => {}
+            ClientboundGamePacket::TickingStep(_) => {}
         }
     }
 }

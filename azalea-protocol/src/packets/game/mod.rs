@@ -106,6 +106,8 @@ pub mod clientbound_tab_list_packet;
 pub mod clientbound_tag_query_packet;
 pub mod clientbound_take_item_entity_packet;
 pub mod clientbound_teleport_entity_packet;
+pub mod clientbound_ticking_state_packet;
+pub mod clientbound_ticking_step_packet;
 pub mod clientbound_update_advancements_packet;
 pub mod clientbound_update_attributes_packet;
 pub mod clientbound_update_mob_effect_packet;
@@ -337,10 +339,12 @@ declare_state_packets!(
         0x69: clientbound_tag_query_packet::ClientboundTagQueryPacket,
         0x6a: clientbound_take_item_entity_packet::ClientboundTakeItemEntityPacket,
         0x6b: clientbound_teleport_entity_packet::ClientboundTeleportEntityPacket,
-        0x6c: clientbound_update_advancements_packet::ClientboundUpdateAdvancementsPacket,
-        0x6d: clientbound_update_attributes_packet::ClientboundUpdateAttributesPacket,
-        0x6e: clientbound_update_mob_effect_packet::ClientboundUpdateMobEffectPacket,
-        0x6f: clientbound_update_recipes_packet::ClientboundUpdateRecipesPacket,
-        0x70: clientbound_update_tags_packet::ClientboundUpdateTagsPacket,
+        0x6c: clientbound_ticking_state_packet::ClientboundTickingStatePacket,
+        0x6d: clientbound_ticking_step_packet::ClientboundTickingStepPacket,
+        0x6e: clientbound_update_advancements_packet::ClientboundUpdateAdvancementsPacket,
+        0x6f: clientbound_update_attributes_packet::ClientboundUpdateAttributesPacket,
+        0x70: clientbound_update_mob_effect_packet::ClientboundUpdateMobEffectPacket,
+        0x71: clientbound_update_recipes_packet::ClientboundUpdateRecipesPacket,
+        0x72: clientbound_update_tags_packet::ClientboundUpdateTagsPacket,
     }
 );
