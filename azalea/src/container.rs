@@ -137,6 +137,10 @@ impl ContainerHandle {
 
     /// Returns the menu of the container. If the container is closed, this
     /// will return `None`.
+    ///
+    /// Note that any modifications you make to the `Menu` you're given will not
+    /// actually cause any packets to be sent. If you're trying to modify your
+    /// inventory, use [`Self::open_inventory`] instead
     pub fn menu(&self) -> Option<Menu> {
         let ecs = self.client.ecs.lock();
         let inventory = ecs

@@ -64,7 +64,7 @@ impl<T: McBufWritable> McBufWritable for Vec<T> {
 }
 
 impl<T: McBufWritable> McBufWritable for [T] {
-    default fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         (self.len() as u32).var_write_into(buf)?;
         for item in self {
             T::write_into(item, buf)?;
@@ -74,7 +74,7 @@ impl<T: McBufWritable> McBufWritable for [T] {
 }
 
 impl<K: McBufWritable, V: McBufWritable> McBufWritable for HashMap<K, V> {
-    default fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         u32::var_write_into(&(self.len() as u32), buf)?;
         for (key, value) in self {
             key.write_into(buf)?;
@@ -86,7 +86,7 @@ impl<K: McBufWritable, V: McBufWritable> McBufWritable for HashMap<K, V> {
 }
 
 impl<K: McBufWritable, V: McBufVarWritable> McBufVarWritable for HashMap<K, V> {
-    default fn var_write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn var_write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         u32::var_write_into(&(self.len() as u32), buf)?;
         for (key, value) in self {
             key.write_into(buf)?;
@@ -225,7 +225,7 @@ impl McBufWritable for f64 {
 }
 
 impl<T: McBufWritable> McBufWritable for Option<T> {
-    default fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         if let Some(s) = self {
             true.write_into(buf)?;
             s.write_into(buf)?;
@@ -237,7 +237,7 @@ impl<T: McBufWritable> McBufWritable for Option<T> {
 }
 
 impl<T: McBufVarWritable> McBufVarWritable for Option<T> {
-    default fn var_write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn var_write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         if let Some(s) = self {
             true.write_into(buf)?;
             s.var_write_into(buf)?;
@@ -250,7 +250,7 @@ impl<T: McBufVarWritable> McBufVarWritable for Option<T> {
 
 // [T; N]
 impl<T: McBufWritable, const N: usize> McBufWritable for [T; N] {
-    default fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         for i in self {
             i.write_into(buf)?;
         }

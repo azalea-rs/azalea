@@ -8,7 +8,6 @@
 #![allow(incomplete_features)]
 #![feature(trait_upcasting)]
 #![feature(error_generic_member_access)]
-#![feature(type_alias_impl_trait)]
 
 mod account;
 pub mod attack;

@@ -263,6 +263,9 @@ pub enum ClickType {
 
 impl Menu {
     /// Shift-click a slot in this menu.
+    ///
+    /// Keep in mind that this doesn't send any packets to the server, it just
+    /// mutates this specific `Menu`.
     pub fn quick_move_stack(&mut self, slot_index: usize) -> ItemSlot {
         let slot = self.slot(slot_index);
         if slot.is_none() {
