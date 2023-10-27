@@ -436,8 +436,8 @@ impl Default for ChunkStorage {
 #[inline]
 pub fn section_index(y: i32, min_y: i32) -> u32 {
     assert!(y >= min_y, "y ({y}) must be at least {min_y}");
-    let min_section_index = min_y.div_floor(16);
-    (y.div_floor(16) - min_section_index) as u32
+    let min_section_index = min_y >> 4;
+    ((y >> 4) - min_section_index) as u32
 }
 
 #[cfg(test)]

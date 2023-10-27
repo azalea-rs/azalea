@@ -1,5 +1,4 @@
 #![doc = include_str!("../README.md")]
-#![feature(min_specialization)]
 
 mod decode;
 mod encode;
