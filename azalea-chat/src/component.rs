@@ -276,9 +276,11 @@ impl<'de> Deserialize<'de> for FormattedText {
 #[cfg(feature = "azalea-buf")]
 impl McBufReadable for FormattedText {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let string = String::read_from(buf)?;
-        debug!("FormattedText string: {}", string);
-        let json: serde_json::Value = serde_json::from_str(string.as_str())?;
+        // deserialize from nbt
+        let nbt = azalea_nbt::Nbt::read_from(buf)?;
+        debug!("FormattedText nbt: {:?}", nbt);
+        // convert to serde_json::Value
+        let json: serde_json::Value = serde_json::to_value(nbt)?;
         let component = FormattedText::deserialize(json)?;
         Ok(component)
     }
@@ -287,8 +289,9 @@ impl McBufReadable for FormattedText {
 #[cfg(feature = "azalea-buf")]
 impl McBufWritable for FormattedText {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        let json = serde_json::to_string(self).unwrap();
-        json.write_into(buf)?;
+        let json = serde_json::to_value(self)?;
+        let nbt = azalea_nbt::Nbt::deserialize(json)?;
+        nbt.write_into(buf)?;
         Ok(())
     }
 }

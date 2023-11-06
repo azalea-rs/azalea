@@ -274,6 +274,7 @@ version = "0.8.0"
 dependencies = [
  "azalea-buf",
  "azalea-language",
+ "azalea-nbt",
  "log",
  "once_cell",
  "serde",
