@@ -308,6 +308,12 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                         bot.chat("no chunk found");
                     }
                 }
+                "debugblock" => {
+                    // send the block that we're standing on
+                    let block_pos = BlockPos::from(bot.position().down(0.1));
+                    let block = bot.world().read().get_block_state(&block_pos);
+                    bot.chat(&format!("block: {block:?}"));
+                }
                 _ => {}
             }
         }

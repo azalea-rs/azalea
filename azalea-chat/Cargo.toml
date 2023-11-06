@@ -16,7 +16,7 @@ azalea-buf = { path = "../azalea-buf", features = [
     "serde_json",
 ], version = "^0.8.0", optional = true }
 azalea-language = { path = "../azalea-language", version = "0.8.0" }
-azalea-nbt = { path = "../azalea-nbt", version = "0.8.0" }
+azalea-nbt = { path = "../azalea-nbt", version = "0.8.0", features = ["serde"] }
 log = "0.4.20"
 once_cell = "1.18.0"
 serde = { version = "^1.0", features = ["derive"] }
