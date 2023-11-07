@@ -140,7 +140,7 @@ impl ContainerHandle {
     ///
     /// Note that any modifications you make to the `Menu` you're given will not
     /// actually cause any packets to be sent. If you're trying to modify your
-    /// inventory, use [`Self::open_inventory`] instead
+    /// inventory, use [`Client::open_inventory`] instead
     pub fn menu(&self) -> Option<Menu> {
         let ecs = self.client.ecs.lock();
         let inventory = ecs
@@ -179,7 +179,7 @@ impl ContainerHandle {
 pub struct WaitingForInventoryOpen;
 
 fn handle_menu_opened_event(mut commands: Commands, mut events: EventReader<PacketEvent>) {
-    for event in events.iter() {
+    for event in events.read() {
         if let ClientboundGamePacket::ContainerSetContent { .. } = event.packet {
             commands
                 .entity(event.entity)

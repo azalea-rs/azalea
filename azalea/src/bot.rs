@@ -148,7 +148,7 @@ pub fn jump_listener(
     mut query: Query<(&mut Jumping, &mut Bot)>,
     mut events: EventReader<JumpEvent>,
 ) {
-    for event in events.iter() {
+    for event in events.read() {
         if let Ok((mut jumping, mut bot)) = query.get_mut(event.entity) {
             **jumping = true;
             bot.jumping_once = true;
@@ -167,7 +167,7 @@ fn look_at_listener(
     mut events: EventReader<LookAtEvent>,
     mut query: Query<(&Position, &EyeHeight, &mut LookDirection)>,
 ) {
-    for event in events.iter() {
+    for event in events.read() {
         if let Ok((position, eye_height, mut look_direction)) = query.get_mut(event.entity) {
             let (y_rot, x_rot) =
                 direction_looking_at(&position.up(eye_height.into()), &event.position);

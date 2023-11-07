@@ -59,7 +59,7 @@ use crate::{
 ///     for PacketEvent {
 ///         entity,
 ///         packet,
-///     } in events.iter() {
+///     } in events.read() {
 ///         match packet {
 ///             ClientboundGamePacket::LevelParticles(p) => {
 ///                 // ...
@@ -181,7 +181,7 @@ pub fn process_packet_events(ecs: &mut World) {
     for PacketEvent {
         entity: player_entity,
         packet,
-    } in events.iter()
+    } in events.read()
     {
         // we do this so `ecs` isn't borrowed for the whole loop
         events_owned.push((*player_entity, packet.clone()));

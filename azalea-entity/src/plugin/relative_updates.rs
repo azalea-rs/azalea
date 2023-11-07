@@ -22,7 +22,7 @@ use bevy_ecs::{
     prelude::{Component, Entity},
     query::With,
     system::{EntityCommand, Query},
-    world::{EntityMut, World},
+    world::{EntityWorldMut, World},
 };
 use derive_more::{Deref, DerefMut};
 use log::warn;
@@ -44,7 +44,7 @@ use crate::LocalEntity;
 pub struct RelativeEntityUpdate {
     pub partial_world: Arc<RwLock<PartialInstance>>,
     // a function that takes the entity and updates it
-    pub update: Box<dyn FnOnce(&mut EntityMut) + Send + Sync>,
+    pub update: Box<dyn FnOnce(&mut EntityWorldMut) + Send + Sync>,
 }
 
 /// A component that counts the number of times this entity has been modified.

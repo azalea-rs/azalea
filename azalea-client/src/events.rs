@@ -142,7 +142,7 @@ fn login_listener(query: Query<&LocalPlayerEvents, Added<MinecraftEntityId>>) {
 }
 
 fn chat_listener(query: Query<&LocalPlayerEvents>, mut events: EventReader<ChatReceivedEvent>) {
-    for event in events.iter() {
+    for event in events.read() {
         let local_player_events = query
             .get(event.entity)
             .expect("Non-local entities shouldn't be able to receive chat events");
@@ -160,7 +160,7 @@ fn tick_listener(query: Query<&LocalPlayerEvents, With<InstanceName>>) {
 }
 
 fn packet_listener(query: Query<&LocalPlayerEvents>, mut events: EventReader<PacketEvent>) {
-    for event in events.iter() {
+    for event in events.read() {
         let local_player_events = query
             .get(event.entity)
             .expect("Non-local entities shouldn't be able to receive add player events");
@@ -171,7 +171,7 @@ fn packet_listener(query: Query<&LocalPlayerEvents>, mut events: EventReader<Pac
 }
 
 fn add_player_listener(query: Query<&LocalPlayerEvents>, mut events: EventReader<AddPlayerEvent>) {
-    for event in events.iter() {
+    for event in events.read() {
         let local_player_events = query
             .get(event.entity)
             .expect("Non-local entities shouldn't be able to receive add player events");
@@ -185,7 +185,7 @@ fn update_player_listener(
     query: Query<&LocalPlayerEvents>,
     mut events: EventReader<UpdatePlayerEvent>,
 ) {
-    for event in events.iter() {
+    for event in events.read() {
         let local_player_events = query
             .get(event.entity)
             .expect("Non-local entities shouldn't be able to receive update player events");
@@ -199,7 +199,7 @@ fn remove_player_listener(
     query: Query<&LocalPlayerEvents>,
     mut events: EventReader<RemovePlayerEvent>,
 ) {
-    for event in events.iter() {
+    for event in events.read() {
         let local_player_events = query
             .get(event.entity)
             .expect("Non-local entities shouldn't be able to receive remove player events");
@@ -210,7 +210,7 @@ fn remove_player_listener(
 }
 
 pub fn death_listener(query: Query<&LocalPlayerEvents>, mut events: EventReader<DeathEvent>) {
-    for event in events.iter() {
+    for event in events.read() {
         if let Ok(local_player_events) = query.get(event.entity) {
             local_player_events
                 .send(Event::Death(event.packet.clone().map(|p| p.into())))
@@ -220,7 +220,7 @@ pub fn death_listener(query: Query<&LocalPlayerEvents>, mut events: EventReader<
 }
 
 fn keepalive_listener(query: Query<&LocalPlayerEvents>, mut events: EventReader<KeepAliveEvent>) {
-    for event in events.iter() {
+    for event in events.read() {
         let local_player_events = query
             .get(event.entity)
             .expect("Non-local entities shouldn't be able to receive keepalive events");

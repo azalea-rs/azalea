@@ -81,7 +81,7 @@ pub fn handle_attack_event(
     mut send_packet_events: EventWriter<SendPacketEvent>,
     mut swing_arm_event: EventWriter<SwingArmEvent>,
 ) {
-    for event in events.iter() {
+    for event in events.read() {
         let (game_mode, mut ticks_since_last_attack, mut physics, mut sprinting, sneaking) =
             query.get_mut(event.entity).unwrap();
 

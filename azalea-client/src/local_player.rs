@@ -172,7 +172,7 @@ pub fn handle_send_packet_event(
     mut send_packet_events: EventReader<SendPacketEvent>,
     mut query: Query<&mut RawConnection>,
 ) {
-    for event in send_packet_events.iter() {
+    for event in send_packet_events.read() {
         if let Ok(raw_connection) = query.get_mut(event.entity) {
             // debug!("Sending packet: {:?}", event.packet);
             if let Err(e) = raw_connection.write_packet(event.packet.clone()) {

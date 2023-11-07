@@ -185,7 +185,7 @@ fn goto_listener(
 ) {
     let thread_pool = AsyncComputeTaskPool::get();
 
-    for event in events.iter() {
+    for event in events.read() {
         let (mut pathfinder, executing_path, position, instance_name, inventory) = query
             .get_mut(event.entity)
             .expect("Called goto on an entity that's not in the world");
@@ -328,7 +328,7 @@ fn path_found_listener(
     instance_container: Res<InstanceContainer>,
     mut commands: Commands,
 ) {
-    for event in events.iter() {
+    for event in events.read() {
         let (mut pathfinder, executing_path, instance_name, inventory) = query
             .get_mut(event.entity)
             .expect("Path found for an entity that doesn't have a pathfinder");
@@ -676,7 +676,7 @@ fn handle_stop_pathfinding_event(
     mut walk_events: EventWriter<StartWalkEvent>,
     mut commands: Commands,
 ) {
-    for event in events.iter() {
+    for event in events.read() {
         let Ok((mut pathfinder, mut executing_path)) = query.get_mut(event.entity) else {
             continue;
         };

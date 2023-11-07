@@ -110,7 +110,7 @@ impl TaskPoolOptions {
 
             remaining_threads = remaining_threads.saturating_sub(io_threads);
 
-            IoTaskPool::init(|| {
+            IoTaskPool::get_or_init(|| {
                 TaskPoolBuilder::default()
                     .num_threads(io_threads)
                     .thread_name("IO Task Pool".to_string())
@@ -126,7 +126,7 @@ impl TaskPoolOptions {
 
             remaining_threads = remaining_threads.saturating_sub(async_compute_threads);
 
-            AsyncComputeTaskPool::init(|| {
+            AsyncComputeTaskPool::get_or_init(|| {
                 TaskPoolBuilder::default()
                     .num_threads(async_compute_threads)
                     .thread_name("Async Compute Task Pool".to_string())
@@ -141,7 +141,7 @@ impl TaskPoolOptions {
                 .compute
                 .get_number_of_threads(remaining_threads, total_threads);
 
-            ComputeTaskPool::init(|| {
+            ComputeTaskPool::get_or_init(|| {
                 TaskPoolBuilder::default()
                     .num_threads(compute_threads)
                     .thread_name("Compute Task Pool".to_string())
