@@ -342,14 +342,14 @@ mod tests {
     use azalea_entity::{EntityBundle, EntityPlugin};
     use azalea_world::{Chunk, MinecraftEntityId, PartialInstance};
     use bevy_app::App;
-    use bevy_time::fixed_timestep::FixedTime;
+    use bevy_time::{Fixed, Time};
     use uuid::Uuid;
 
     /// You need an app to spawn entities in the world and do updates.
     fn make_test_app() -> App {
         let mut app = App::new();
         app.add_plugins((PhysicsPlugin, EntityPlugin))
-            .insert_resource(FixedTime::new(Duration::from_millis(50)))
+            .insert_resource(Time::<Fixed>::from_duration(Duration::from_millis(50)))
             .init_resource::<InstanceContainer>();
         app
     }
