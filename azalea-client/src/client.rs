@@ -133,7 +133,8 @@ pub enum JoinError {
 }
 
 impl Client {
-    /// Create a new client from the given GameProfile, Connection, and World.
+    /// Create a new client from the given [`GameProfile`], ECS Entity, ECS
+    /// World, and schedule runner function.
     /// You should only use this if you want to change these fields from the
     /// defaults, otherwise use [`Client::join`].
     pub fn new(
@@ -562,9 +563,9 @@ impl Client {
     /// Get the username of this client.
     ///
     /// This is a shortcut for
-    /// `bot.component::<GameProfileComponent>().name.clone()`.
+    /// `bot.component::<GameProfileComponent>().name.to_owned()`.
     pub fn username(&self) -> String {
-        self.component::<GameProfileComponent>().name.clone()
+        self.component::<GameProfileComponent>().name.to_owned()
     }
 
     /// Get the Minecraft UUID of this client.

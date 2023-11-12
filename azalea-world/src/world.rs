@@ -36,6 +36,8 @@ impl PartialInstance {
 
 /// An entity ID used by Minecraft. These are not guaranteed to be unique in
 /// shared worlds, that's what [`Entity`] is for.
+///
+/// [`Entity`]: bevy_ecs::entity::Entity
 #[derive(Component, Copy, Clone, Debug, PartialEq, Eq, Deref, DerefMut)]
 pub struct MinecraftEntityId(pub u32);
 

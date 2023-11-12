@@ -58,9 +58,9 @@ impl Plugin for PathfinderPlugin {
             .add_event::<PathFoundEvent>()
             .add_event::<StopPathfindingEvent>()
             .add_systems(
-                FixedUpdate,
                 // putting systems in the FixedUpdate schedule makes them run every Minecraft tick
                 // (every 50 milliseconds).
+                FixedUpdate,
                 (
                     timeout_movement,
                     check_node_reached,

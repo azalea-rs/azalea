@@ -1,9 +1,7 @@
 Azalea is a framework for creating Minecraft bots.
 
-Internally, it's just a wrapper over [`azalea_client`], adding useful
-functions for making bots. Because of this, lots of the documentation will
-refer to `azalea_client`. You can just replace these with `azalea` in your
-code, since everything from azalea_client is re-exported in azalea.
+This page is primarily meant for developers that already know they want to use Azalea.
+See the [readme](https://github.com/azalea-rs/azalea) for an overview of why you might want to use it.
 
 # Installation
 
@@ -12,10 +10,8 @@ default nightly`.
 
 Then, add one of the following lines to your Cargo.toml:
 
-Latest bleeding-edge version (recommended):
-`azalea = { git="https://github.com/azalea-rs/azalea" }`\
-Latest "stable" release:
-`azalea = "0.8.0"`
+- Latest bleeding-edge version (recommended): `azalea = { git="https://github.com/azalea-rs/azalea" }`\
+- Latest "stable" release: `azalea = "0.8.0"`
 
 ## Optimization
 
@@ -32,6 +28,14 @@ opt-level = 1
 [profile.dev.package."*"]
 opt-level = 3
 ```
+# Documentation
+
+The documentation for the latest Azalea crates.io release is available at [docs.rs/azalea](https://docs.rs/azalea/latest/azalea/) and the docs for the latest bleeding-edge (git) version are at [azalea.matdoes.dev](https://azalea.matdoes.dev/azalea/).
+
+Note that the `azalea` crate is technically just a wrapper over [`azalea_client`] that adds some extra functions.
+Because of this, some of the documentation will refer to `azalea_client`.
+You can just replace these with `azalea` in your code since everything from `azalea_client` is re-exported in azalea.
+
 
 # Examples
 
@@ -73,7 +77,7 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
 
 # Swarms
 
-Azalea lets you create "swarms", which are a group of bots in the same world that can perform actions together. See [testbot](https://github.com/azalea-rs/azalea/blob/main/azalea/examples/testbot.rs) for an example. Also, if you're using swarms, you should also have both `azalea::prelude::*` and `azalea::swarm::prelude::*`.
+Azalea lets you create "swarms", which are a group of bots in the same world that can perform actions together. See [testbot](https://github.com/azalea-rs/azalea/blob/main/azalea/examples/testbot.rs) for an example. Also, if you're using swarms, you should also `use` both `azalea::prelude::*` and `azalea::swarm::prelude::*`.
 
 # Plugins
 
