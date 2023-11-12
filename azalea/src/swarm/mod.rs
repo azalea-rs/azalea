@@ -357,15 +357,17 @@ where
             } else {
                 // otherwise, join all at once
                 let swarm_borrow = &swarm_clone;
-                join_all(accounts.iter().zip(states).map(
-                    async move |(account, state)| -> Result<(), JoinError> {
-                        swarm_borrow
-                            .clone()
-                            .add_with_exponential_backoff(account, state)
-                            .await;
-                        Ok(())
-                    },
-                ))
+                join_all(
+                    accounts
+                        .iter()
+                        .zip(states)
+                        .map(move |(account, state)| async {
+                            swarm_borrow
+                                .clone()
+                                .add_with_exponential_backoff(account, state)
+                                .await;
+                        }),
+                )
                 .await;
             }
         });

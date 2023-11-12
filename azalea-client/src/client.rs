@@ -59,11 +59,11 @@ use bevy_ecs::{
     bundle::Bundle,
     component::Component,
     entity::Entity,
-    schedule::{IntoSystemConfigs, LogLevel, ScheduleBuildSettings, ScheduleLabel},
+    schedule::{InternedScheduleLabel, IntoSystemConfigs, LogLevel, ScheduleBuildSettings},
     system::{ResMut, Resource},
     world::World,
 };
-use bevy_time::{prelude::FixedTime, TimePlugin};
+use bevy_time::{Fixed, Time, TimePlugin};
 use derive_more::Deref;
 use log::{debug, error};
 use parking_lot::{Mutex, RwLock};
@@ -631,7 +631,7 @@ pub struct AzaleaPlugin;
 impl Plugin for AzaleaPlugin {
     fn build(&self, app: &mut App) {
         // Minecraft ticks happen every 50ms
-        app.insert_resource(FixedTime::new(Duration::from_millis(50)))
+        app.insert_resource(Time::<Fixed>::from_duration(Duration::from_millis(50)))
             .add_systems(
                 Update,
                 (
@@ -674,14 +674,14 @@ pub fn start_ecs_runner(
 
 async fn run_schedule_loop(
     ecs: Arc<Mutex<World>>,
-    outer_schedule_label: Box<dyn ScheduleLabel>,
+    outer_schedule_label: InternedScheduleLabel,
     mut run_schedule_receiver: mpsc::UnboundedReceiver<()>,
 ) {
     loop {
         // whenever we get an event from run_schedule_receiver, run the schedule
         run_schedule_receiver.recv().await;
         let mut ecs = ecs.lock();
-        ecs.run_schedule(&outer_schedule_label);
+        ecs.run_schedule(outer_schedule_label);
         ecs.clear_trackers();
     }
 }

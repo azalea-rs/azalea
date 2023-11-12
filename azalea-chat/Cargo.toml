@@ -20,4 +20,4 @@ azalea-nbt = { path = "../azalea-nbt", version = "0.8.0", features = ["serde"] }
 log = "0.4.20"
 once_cell = "1.18.0"
 serde = { version = "^1.0", features = ["derive"] }
-serde_json = "^1.0.107"
+serde_json = "^1.0.108"

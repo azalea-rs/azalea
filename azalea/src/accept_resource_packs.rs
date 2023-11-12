@@ -30,7 +30,7 @@ fn accept_resource_pack(
     mut events: EventReader<ResourcePackEvent>,
     mut send_packet_events: EventWriter<SendPacketEvent>,
 ) {
-    for event in events.iter() {
+    for event in events.read() {
         send_packet_events.send(SendPacketEvent {
             entity: event.entity,
             packet: ServerboundResourcePackPacket {

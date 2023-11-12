@@ -199,7 +199,7 @@ fn handle_send_chat_event(
     mut events: EventReader<SendChatEvent>,
     mut send_chat_kind_events: EventWriter<SendChatKindEvent>,
 ) {
-    for event in events.iter() {
+    for event in events.read() {
         if event.content.starts_with('/') {
             send_chat_kind_events.send(SendChatKindEvent {
                 entity: event.entity,
@@ -242,7 +242,7 @@ fn handle_send_chat_kind_event(
     mut events: EventReader<SendChatKindEvent>,
     mut send_packet_events: EventWriter<SendPacketEvent>,
 ) {
-    for event in events.iter() {
+    for event in events.read() {
         let content = event
             .content
             .chars()

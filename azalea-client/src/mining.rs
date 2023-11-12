@@ -89,7 +89,7 @@ fn handle_start_mining_block_event(
     mut start_mining_events: EventWriter<StartMiningBlockWithDirectionEvent>,
     mut query: Query<&HitResultComponent>,
 ) {
-    for event in events.iter() {
+    for event in events.read() {
         let hit_result = query.get_mut(event.entity).unwrap();
         let direction = if hit_result.block_pos == event.position {
             // we're looking at the block
@@ -136,7 +136,7 @@ fn handle_start_mining_block_with_direction_event(
     instances: Res<InstanceContainer>,
     mut commands: Commands,
 ) {
-    for event in events.iter() {
+    for event in events.read() {
         let (
             instance_name,
             game_mode,
@@ -346,7 +346,7 @@ fn handle_finish_mining_block_event(
     )>,
     instances: Res<InstanceContainer>,
 ) {
-    for event in events.iter() {
+    for event in events.read() {
         let (instance_name, game_mode, inventory, abilities, permission_level, _sequence_number) =
             query.get_mut(event.entity).unwrap();
         let instance_lock = instances.get(instance_name).unwrap();
@@ -407,7 +407,7 @@ fn handle_stop_mining_block_event(
     mut query: Query<(&mut Mining, &MineBlockPos, &mut MineProgress)>,
     mut commands: Commands,
 ) {
-    for event in events.iter() {
+    for event in events.read() {
         let (mut _mining, mine_block_pos, mut mine_progress) = query.get_mut(event.entity).unwrap();
 
         let mine_block_pos =

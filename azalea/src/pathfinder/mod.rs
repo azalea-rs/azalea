@@ -185,7 +185,7 @@ fn goto_listener(
 ) {
     let thread_pool = AsyncComputeTaskPool::get();
 
-    for event in events.iter() {
+    for event in events.read() {
         let (mut pathfinder, executing_path, position, instance_name, inventory) = query
             .get_mut(event.entity)
             .expect("Called goto on an entity that's not in the world");
@@ -328,7 +328,7 @@ fn path_found_listener(
     instance_container: Res<InstanceContainer>,
     mut commands: Commands,
 ) {
-    for event in events.iter() {
+    for event in events.read() {
         let (mut pathfinder, executing_path, instance_name, inventory) = query
             .get_mut(event.entity)
             .expect("Path found for an entity that doesn't have a pathfinder");
@@ -676,7 +676,7 @@ fn handle_stop_pathfinding_event(
     mut walk_events: EventWriter<StartWalkEvent>,
     mut commands: Commands,
 ) {
-    for event in events.iter() {
+    for event in events.read() {
         let Ok((mut pathfinder, mut executing_path)) = query.get_mut(event.entity) else {
             continue;
         };
@@ -853,7 +853,11 @@ pub fn call_successors_fn(
 
 #[cfg(test)]
 mod tests {
-    use std::{collections::HashSet, sync::Arc};
+    use std::{
+        collections::HashSet,
+        sync::Arc,
+        time::{Duration, Instant},
+    };
 
     use azalea_core::position::{BlockPos, ChunkPos, Vec3};
     use azalea_world::{Chunk, ChunkStorage, PartialChunkStorage};
@@ -904,6 +908,22 @@ mod tests {
         simulation
     }
 
+    pub fn assert_simulation_reaches(simulation: &mut Simulation, ticks: usize, end_pos: BlockPos) {
+        // wait until the bot starts moving
+        let start_pos = simulation.position();
+        let start_time = Instant::now();
+        while simulation.position() == start_pos
+            && start_time.elapsed() < Duration::from_millis(500)
+        {
+            simulation.tick();
+            std::thread::yield_now();
+        }
+        for _ in 0..ticks {
+            simulation.tick();
+        }
+        assert_eq!(BlockPos::from(simulation.position()), end_pos,);
+    }
+
     #[test]
     fn test_simple_forward() {
         let mut partial_chunks = PartialChunkStorage::default();
@@ -913,13 +933,7 @@ mod tests {
             BlockPos::new(0, 71, 1),
             vec![BlockPos::new(0, 70, 0), BlockPos::new(0, 70, 1)],
         );
-        for _ in 0..20 {
-            simulation.tick();
-        }
-        assert_eq!(
-            BlockPos::from(simulation.position()),
-            BlockPos::new(0, 71, 1)
-        );
+        assert_simulation_reaches(&mut simulation, 20, BlockPos::new(0, 71, 1));
     }
 
     #[test]
@@ -937,13 +951,7 @@ mod tests {
                 BlockPos::new(2, 72, 1),
             ],
         );
-        for _ in 0..30 {
-            simulation.tick();
-        }
-        assert_eq!(
-            BlockPos::from(simulation.position()),
-            BlockPos::new(2, 71, 2)
-        );
+        assert_simulation_reaches(&mut simulation, 30, BlockPos::new(2, 71, 2));
     }
 
     #[test]
@@ -965,13 +973,7 @@ mod tests {
                 BlockPos::new(5, 75, 0),
             ],
         );
-        for _ in 0..120 {
-            simulation.tick();
-        }
-        assert_eq!(
-            BlockPos::from(simulation.position()),
-            BlockPos::new(5, 76, 0)
-        );
+        assert_simulation_reaches(&mut simulation, 120, BlockPos::new(5, 76, 0));
     }
 
     #[test]
@@ -983,13 +985,7 @@ mod tests {
             BlockPos::new(0, 71, 3),
             vec![BlockPos::new(0, 70, 0), BlockPos::new(0, 70, 3)],
         );
-        for _ in 0..40 {
-            simulation.tick();
-        }
-        assert_eq!(
-            BlockPos::from(simulation.position()),
-            BlockPos::new(0, 71, 3)
-        );
+        assert_simulation_reaches(&mut simulation, 40, BlockPos::new(0, 71, 3));
     }
 
     #[test]
@@ -1008,13 +1004,7 @@ mod tests {
                 BlockPos::new(3, 66, 4),
             ],
         );
-        for _ in 0..100 {
-            simulation.tick();
-        }
-        assert_eq!(
-            BlockPos::from(simulation.position()),
-            BlockPos::new(3, 67, 4)
-        );
+        assert_simulation_reaches(&mut simulation, 100, BlockPos::new(3, 67, 4));
     }
 
     #[test]
@@ -1031,13 +1021,7 @@ mod tests {
                 BlockPos::new(0, 69, 5),
             ],
         );
-        for _ in 0..40 {
-            simulation.tick();
-        }
-        assert_eq!(
-            BlockPos::from(simulation.position()),
-            BlockPos::new(0, 70, 5)
-        );
+        assert_simulation_reaches(&mut simulation, 40, BlockPos::new(0, 70, 5));
     }
 
     #[test]
@@ -1054,13 +1038,7 @@ mod tests {
                 BlockPos::new(0, 67, 3),
             ],
         );
-        for _ in 0..60 {
-            simulation.tick();
-        }
-        assert_eq!(
-            BlockPos::from(simulation.position()),
-            BlockPos::new(0, 68, 3)
-        );
+        assert_simulation_reaches(&mut simulation, 60, BlockPos::new(0, 68, 3));
     }
 
     #[test]
@@ -1077,13 +1055,7 @@ mod tests {
                 BlockPos::new(3, 73, 0),
             ],
         );
-        for _ in 0..60 {
-            simulation.tick();
-        }
-        assert_eq!(
-            BlockPos::from(simulation.position()),
-            BlockPos::new(3, 74, 0)
-        );
+        assert_simulation_reaches(&mut simulation, 60, BlockPos::new(3, 74, 0));
     }
 
     #[test]
@@ -1101,12 +1073,6 @@ mod tests {
                 BlockPos::new(4, 70, 12),
             ],
         );
-        for _ in 0..80 {
-            simulation.tick();
-        }
-        assert_eq!(
-            BlockPos::from(simulation.position()),
-            BlockPos::new(4, 71, 12)
-        );
+        assert_simulation_reaches(&mut simulation, 80, BlockPos::new(4, 71, 12));
     }
 }

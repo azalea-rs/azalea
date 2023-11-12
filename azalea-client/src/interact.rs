@@ -115,7 +115,7 @@ pub fn handle_block_interact_event(
     mut query: Query<(Entity, &mut CurrentSequenceNumber, &HitResultComponent)>,
     mut send_packet_events: EventWriter<SendPacketEvent>,
 ) {
-    for event in events.iter() {
+    for event in events.read() {
         let Ok((entity, mut sequence_number, hit_result)) = query.get_mut(event.entity) else {
             warn!("Sent BlockInteractEvent for entity that doesn't have the required components");
             continue;
@@ -312,7 +312,7 @@ pub fn handle_swing_arm_event(
     mut events: EventReader<SwingArmEvent>,
     mut send_packet_events: EventWriter<SendPacketEvent>,
 ) {
-    for event in events.iter() {
+    for event in events.read() {
         send_packet_events.send(SendPacketEvent {
             entity: event.entity,
             packet: ServerboundSwingPacket {

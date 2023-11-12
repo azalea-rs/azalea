@@ -175,7 +175,7 @@ impl<T: McBufReadable + Send> McBufReadable for Vec<T> {
         let length = u32::var_read_from(buf)? as usize;
         // we don't set the capacity here so we can't get exploited into
         // allocating a bunch
-        let mut contents = vec![];
+        let mut contents = Vec::new();
         for _ in 0..length {
             contents.push(T::read_from(buf)?);
         }
@@ -184,7 +184,7 @@ impl<T: McBufReadable + Send> McBufReadable for Vec<T> {
 }
 
 impl<K: McBufReadable + Send + Eq + Hash, V: McBufReadable + Send> McBufReadable for HashMap<K, V> {
-    default fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let length = i32::var_read_from(buf)? as usize;
         let mut contents = HashMap::new();
         for _ in 0..length {
@@ -197,7 +197,7 @@ impl<K: McBufReadable + Send + Eq + Hash, V: McBufReadable + Send> McBufReadable
 impl<K: McBufReadable + Send + Eq + Hash, V: McBufVarReadable + Send> McBufVarReadable
     for HashMap<K, V>
 {
-    default fn var_read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+    fn var_read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let length = i32::var_read_from(buf)? as usize;
         let mut contents = HashMap::new();
         for _ in 0..length {
@@ -308,7 +308,7 @@ impl McBufReadable for f64 {
 }
 
 impl<T: McBufReadable> McBufReadable for Option<T> {
-    default fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let present = bool::read_from(buf)?;
         Ok(if present {
             Some(T::read_from(buf)?)
@@ -319,7 +319,7 @@ impl<T: McBufReadable> McBufReadable for Option<T> {
 }
 
 impl<T: McBufVarReadable> McBufVarReadable for Option<T> {
-    default fn var_read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+    fn var_read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let present = bool::read_from(buf)?;
         Ok(if present {
             Some(T::var_read_from(buf)?)
@@ -331,7 +331,7 @@ impl<T: McBufVarReadable> McBufVarReadable for Option<T> {
 
 // [String; 4]
 impl<T: McBufReadable, const N: usize> McBufReadable for [T; N] {
-    default fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let mut contents = Vec::with_capacity(N);
         for _ in 0..N {
             contents.push(T::read_from(buf)?);

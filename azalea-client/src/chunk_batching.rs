@@ -79,7 +79,7 @@ pub fn handle_chunk_batch_start_event(
     mut query: Query<&mut ChunkBatchInfo>,
     mut events: EventReader<ChunkBatchStartEvent>,
 ) {
-    for event in events.iter() {
+    for event in events.read() {
         if let Ok(mut chunk_batch_info) = query.get_mut(event.entity) {
             chunk_batch_info.start_time = Instant::now();
         }
@@ -91,7 +91,7 @@ pub fn handle_chunk_batch_finished_event(
     mut events: EventReader<ChunkBatchFinishedEvent>,
     mut send_packets: EventWriter<SendPacketEvent>,
 ) {
-    for event in events.iter() {
+    for event in events.read() {
         if let Ok(mut chunk_batch_info) = query.get_mut(event.entity) {
             chunk_batch_info.batch_finished(event.batch_size);
             let desired_chunks_per_tick = chunk_batch_info.desired_chunks_per_tick();

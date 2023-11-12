@@ -64,7 +64,7 @@ fn chat_listener(
     mut global_chat_state: ResMut<GlobalChatState>,
     mut new_chat_messages_events: EventWriter<NewChatMessageEvent>,
 ) {
-    for event in events.iter() {
+    for event in events.read() {
         let mut client_chat_state = query.get_mut(event.entity);
         let mut client_chat_index = if let Ok(ref client_chat_state) = client_chat_state {
             client_chat_state.chat_index
@@ -119,7 +119,7 @@ fn update_min_index_and_shrink_queue(
     mut events: EventReader<NewChatMessageEvent>,
     swarm: Option<Res<Swarm>>,
 ) {
-    for event in events.iter() {
+    for event in events.read() {
         if let Some(swarm) = &swarm {
             // it should also work if Swarm isn't present (so the tests don't need it)
             swarm

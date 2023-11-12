@@ -1,7 +1,5 @@
 //! a bot for testing new azalea features
 
-#![feature(type_alias_impl_trait)]
-
 use azalea::ecs::query::With;
 use azalea::entity::{metadata::Player, EyeHeight, Position};
 use azalea::interact::HitResultComponent;

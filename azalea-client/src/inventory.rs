@@ -585,7 +585,7 @@ fn handle_menu_opened_event(
     mut events: EventReader<MenuOpenedEvent>,
     mut query: Query<&mut InventoryComponent>,
 ) {
-    for event in events.iter() {
+    for event in events.read() {
         let mut inventory = query.get_mut(event.entity).unwrap();
         inventory.id = event.window_id as u8;
         inventory.container_menu = Some(Menu::from_kind(event.menu_type));
@@ -609,7 +609,7 @@ fn handle_container_close_event(
     mut client_side_events: EventWriter<ClientSideCloseContainerEvent>,
     mut send_packet_events: EventWriter<SendPacketEvent>,
 ) {
-    for event in events.iter() {
+    for event in events.read() {
         let (entity, inventory) = query.get(event.entity).unwrap();
         if event.id != inventory.id {
             warn!(
@@ -643,7 +643,7 @@ pub fn handle_client_side_close_container_event(
     mut events: EventReader<ClientSideCloseContainerEvent>,
     mut query: Query<&mut InventoryComponent>,
 ) {
-    for event in events.iter() {
+    for event in events.read() {
         let mut inventory = query.get_mut(event.entity).unwrap();
         inventory.container_menu = None;
         inventory.id = 0;
@@ -661,7 +661,7 @@ pub fn handle_container_click_event(
     mut events: EventReader<ContainerClickEvent>,
     mut send_packet_events: EventWriter<SendPacketEvent>,
 ) {
-    for event in events.iter() {
+    for event in events.read() {
         let (entity, mut inventory) = query.get_mut(event.entity).unwrap();
         if inventory.id != event.window_id {
             warn!(
@@ -714,7 +714,7 @@ fn handle_set_container_content_event(
     mut events: EventReader<SetContainerContentEvent>,
     mut query: Query<&mut InventoryComponent>,
 ) {
-    for event in events.iter() {
+    for event in events.read() {
         let mut inventory = query.get_mut(event.entity).unwrap();
 
         if event.container_id != inventory.id {

@@ -408,7 +408,7 @@ pub fn handle_walk(
     mut events: EventReader<StartWalkEvent>,
     mut query: Query<(&mut PhysicsState, &mut Sprinting, &mut Attributes)>,
 ) {
-    for event in events.iter() {
+    for event in events.read() {
         if let Ok((mut physics_state, mut sprinting, mut attributes)) = query.get_mut(event.entity)
         {
             physics_state.move_direction = event.direction;
@@ -431,7 +431,7 @@ pub fn handle_sprint(
     mut query: Query<&mut PhysicsState>,
     mut events: EventReader<StartSprintEvent>,
 ) {
-    for event in events.iter() {
+    for event in events.read() {
         if let Ok(mut physics_state) = query.get_mut(event.entity) {
             physics_state.move_direction = WalkDirection::from(event.direction);
             physics_state.trying_to_sprint = true;
@@ -486,7 +486,7 @@ pub enum KnockbackType {
 }
 
 pub fn handle_knockback(mut query: Query<&mut Physics>, mut events: EventReader<KnockbackEvent>) {
-    for event in events.iter() {
+    for event in events.read() {
         if let Ok(mut physics) = query.get_mut(event.entity) {
             match event.knockback {
                 KnockbackType::Set(velocity) => {

@@ -37,7 +37,7 @@ pub fn retroactively_add_game_profile_component(
     mut events: EventReader<AddPlayerEvent>,
     entity_uuid_index: Res<EntityUuidIndex>,
 ) {
-    for event in events.iter() {
+    for event in events.read() {
         if let Some(entity) = entity_uuid_index.get(&event.info.uuid) {
             commands
                 .entity(entity)

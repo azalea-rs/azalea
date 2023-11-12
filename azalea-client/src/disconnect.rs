@@ -41,7 +41,7 @@ pub fn remove_components_from_disconnected_players(
     mut commands: Commands,
     mut events: EventReader<DisconnectEvent>,
 ) {
-    for DisconnectEvent { entity } in events.iter() {
+    for DisconnectEvent { entity } in events.read() {
         commands.entity(*entity).remove::<JoinedClientBundle>();
     }
 }
