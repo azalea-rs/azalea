@@ -29,15 +29,48 @@ pub struct ShapelessRecipe {
     pub ingredients: Vec<Ingredient>,
     pub result: ItemSlot,
 }
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, McBuf)]
 pub struct ShapedRecipe {
-    pub width: usize,
-    pub height: usize,
     pub group: String,
     pub category: CraftingBookCategory,
-    pub ingredients: Vec<Ingredient>,
+    pub pattern: ShapedRecipePattern,
     pub result: ItemSlot,
     pub show_notification: bool,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct ShapedRecipePattern {
+    pub width: usize,
+    pub height: usize,
+    pub ingredients: Vec<Ingredient>,
+}
+
+impl McBufWritable for ShapedRecipePattern {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        (self.width as u32).var_write_into(buf)?;
+        (self.height as u32).var_write_into(buf)?;
+        debug_assert_eq!(self.width * self.height, self.ingredients.len());
+        for ingredient in &self.ingredients {
+            ingredient.write_into(buf)?;
+        }
+        Ok(())
+    }
+}
+
+impl McBufReadable for ShapedRecipePattern {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let width = u32::var_read_from(buf)? as usize;
+        let height = u32::var_read_from(buf)? as usize;
+        let mut ingredients = Vec::with_capacity(width * height);
+        for _ in 0..width * height {
+            ingredients.push(Ingredient::read_from(buf)?);
+        }
+        Ok(ShapedRecipePattern {
+            width,
+            height,
+            ingredients,
+        })
+    }
 }
 
 #[derive(Clone, Debug, Copy, PartialEq, McBuf)]
@@ -46,47 +79,6 @@ pub enum CraftingBookCategory {
     Redstone,
     Equipment,
     Misc,
-}
-
-impl McBufWritable for ShapedRecipe {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        (self.width as u32).var_write_into(buf)?;
-        (self.height as u32).var_write_into(buf)?;
-        self.group.write_into(buf)?;
-        self.category.write_into(buf)?;
-        debug_assert_eq!(self.width * self.height, self.ingredients.len());
-        for ingredient in &self.ingredients {
-            ingredient.write_into(buf)?;
-        }
-        self.result.write_into(buf)?;
-        self.show_notification.write_into(buf)?;
-
-        Ok(())
-    }
-}
-impl McBufReadable for ShapedRecipe {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let width = u32::var_read_from(buf)? as usize;
-        let height = u32::var_read_from(buf)? as usize;
-        let group = String::read_from(buf)?;
-        let category = CraftingBookCategory::read_from(buf)?;
-        let mut ingredients = Vec::with_capacity(width * height);
-        for _ in 0..width * height {
-            ingredients.push(Ingredient::read_from(buf)?);
-        }
-        let result = ItemSlot::read_from(buf)?;
-        let show_notification = bool::read_from(buf)?;
-
-        Ok(ShapedRecipe {
-            width,
-            height,
-            group,
-            category,
-            ingredients,
-            result,
-            show_notification,
-        })
-    }
 }
 
 #[derive(Clone, Debug, PartialEq, McBuf)]
