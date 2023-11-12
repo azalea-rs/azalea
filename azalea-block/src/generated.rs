@@ -1903,6 +1903,14 @@ make_block_states! {
         },
         "cracked" => bool,
         "crafting" => bool,
+        "trial_spawner_state" => State {
+            Inactive,
+            WaitingForPlayers,
+            Active,
+            WaitingForRewardEjection,
+            EjectingReward,
+            Cooldown,
+        },
     },
     Blocks => {
         air => BlockBehavior::new(), {},
@@ -4907,10 +4915,10 @@ make_block_states! {
             shrieking: false,
             waterlogged: false,
         },
-        oxidized_copper => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {},
-        weathered_copper => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {},
-        exposed_copper => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {},
         copper_block => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {},
+        exposed_copper => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {},
+        weathered_copper => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {},
+        oxidized_copper => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {},
         copper_ore => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 3.0), {},
         deepslate_copper_ore => BlockBehavior::new().requires_correct_tool_for_drops().strength(4.5, 3.0), {},
         oxidized_cut_copper => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {},
@@ -5322,6 +5330,9 @@ make_block_states! {
             crafting: false,
             orientation: Orientation::NorthUp,
             triggered: false,
+        },
+        trial_spawner => BlockBehavior::new().requires_correct_tool_for_drops().strength(50.0, 50.0), {
+            trial_spawner_state: State::Inactive,
         },
     }
 }
