@@ -1,7 +1,7 @@
 use crate::{
     attack::{self, AttackPlugin},
     chat::ChatPlugin,
-    chunk_batching::{ChunkBatchInfo, ChunkBatchingPlugin},
+    chunks::{ChunkBatchInfo, ChunkPlugin},
     disconnect::{DisconnectEvent, DisconnectPlugin},
     events::{Event, EventPlugin, LocalPlayerEvents},
     interact::{CurrentSequenceNumber, InteractPlugin},
@@ -782,7 +782,7 @@ impl PluginGroup for DefaultPlugins {
             .add(RespawnPlugin)
             .add(MinePlugin)
             .add(AttackPlugin)
-            .add(ChunkBatchingPlugin)
+            .add(ChunkPlugin)
             .add(TickBroadcastPlugin);
         #[cfg(feature = "log")]
         {

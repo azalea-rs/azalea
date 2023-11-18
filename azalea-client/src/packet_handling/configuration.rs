@@ -140,7 +140,7 @@ pub fn process_packet_events(ecs: &mut World) {
                         abilities: crate::local_player::PlayerAbilities::default(),
                         permission_level: crate::local_player::PermissionLevel::default(),
                         hunger: Hunger::default(),
-                        chunk_batch_info: crate::chunk_batching::ChunkBatchInfo::default(),
+                        chunk_batch_info: crate::chunks::ChunkBatchInfo::default(),
 
                         entity_id_index: EntityIdIndex::default(),
 

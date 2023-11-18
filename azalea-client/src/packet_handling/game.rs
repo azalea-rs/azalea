@@ -16,7 +16,6 @@ use azalea_entity::{
     Dead, EntityBundle, EntityKind, LastSentPosition, LoadedBy, LocalEntity, LookDirection,
     Physics, PlayerBundle, Position, RelativeEntityUpdate,
 };
-use azalea_nbt::NbtCompound;
 use azalea_protocol::{
     packets::game::{
         clientbound_player_combat_kill_packet::ClientboundPlayerCombatKillPacket,
@@ -34,7 +33,7 @@ use tracing::{debug, error, trace, warn};
 
 use crate::{
     chat::{ChatPacket, ChatReceivedEvent},
-    chunk_batching,
+    chunks,
     disconnect::DisconnectEvent,
     inventory::{
         ClientSideCloseContainerEvent, InventoryComponent, MenuOpenedEvent,
@@ -339,24 +338,22 @@ pub fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::ChunkBatchStart(_p) => {
                 // the packet is empty, just a marker to tell us when the batch starts and ends
                 debug!("Got chunk batch start");
-                let mut system_state: SystemState<
-                    EventWriter<chunk_batching::ChunkBatchStartEvent>,
-                > = SystemState::new(ecs);
+                let mut system_state: SystemState<EventWriter<chunks::ChunkBatchStartEvent>> =
+                    SystemState::new(ecs);
                 let mut chunk_batch_start_events = system_state.get_mut(ecs);
 
-                chunk_batch_start_events.send(chunk_batching::ChunkBatchStartEvent {
+                chunk_batch_start_events.send(chunks::ChunkBatchStartEvent {
                     entity: player_entity,
                 });
             }
             ClientboundGamePacket::ChunkBatchFinished(p) => {
                 debug!("Got chunk batch finished {p:?}");
 
-                let mut system_state: SystemState<
-                    EventWriter<chunk_batching::ChunkBatchFinishedEvent>,
-                > = SystemState::new(ecs);
+                let mut system_state: SystemState<EventWriter<chunks::ChunkBatchFinishedEvent>> =
+                    SystemState::new(ecs);
                 let mut chunk_batch_start_events = system_state.get_mut(ecs);
 
-                chunk_batch_start_events.send(chunk_batching::ChunkBatchFinishedEvent {
+                chunk_batch_start_events.send(chunks::ChunkBatchFinishedEvent {
                     entity: player_entity,
                     batch_size: p.batch_size,
                 });
@@ -597,54 +594,14 @@ pub fn process_packet_events(ecs: &mut World) {
             }
             ClientboundGamePacket::LevelChunkWithLight(p) => {
                 debug!("Got chunk with light packet {} {}", p.x, p.z);
-                let pos = ChunkPos::new(p.x, p.z);
 
-                let mut system_state: SystemState<Query<&mut InstanceHolder>> =
+                let mut system_state: SystemState<EventWriter<chunks::ReceiveChunkEvent>> =
                     SystemState::new(ecs);
-                let mut query = system_state.get_mut(ecs);
-                let local_player = query.get_mut(player_entity).unwrap();
-
-                // OPTIMIZATION: if we already know about the chunk from the
-                // shared world (and not ourselves), then we don't need to
-                // parse it again. This is only used when we have a shared
-                // world, since we check that the chunk isn't currently owned
-                // by this client.
-                let shared_chunk = local_player.instance.read().chunks.get(&pos);
-                let this_client_has_chunk = local_player
-                    .partial_instance
-                    .read()
-                    .chunks
-                    .limited_get(&pos)
-                    .is_some();
-
-                let mut world = local_player.instance.write();
-                let mut partial_world = local_player.partial_instance.write();
-
-                if !this_client_has_chunk {
-                    if let Some(shared_chunk) = shared_chunk {
-                        trace!("Skipping parsing chunk {pos:?} because we already know about it");
-                        partial_world.chunks.set_with_shared_reference(
-                            &pos,
-                            Some(shared_chunk.clone()),
-                            &mut world.chunks,
-                        );
-                        continue;
-                    }
-                }
-
-                let heightmaps = p.chunk_data.heightmaps.as_compound();
-                // necessary to make the unwrap_or work
-                let empty_nbt_compound = NbtCompound::default();
-                let heightmaps = heightmaps.unwrap_or(&empty_nbt_compound);
-
-                if let Err(e) = partial_world.chunks.replace_with_packet_data(
-                    &pos,
-                    &mut Cursor::new(&p.chunk_data.data),
-                    heightmaps,
-                    &mut world.chunks,
-                ) {
-                    error!("Couldn't set chunk data: {e}");
-                }
+                let mut receive_chunk_events = system_state.get_mut(ecs);
+                receive_chunk_events.send(chunks::ReceiveChunkEvent {
+                    entity: player_entity,
+                    packet: p.clone(),
+                });
             }
             ClientboundGamePacket::AddEntity(p) => {
                 debug!("Got add entity packet {p:?}");

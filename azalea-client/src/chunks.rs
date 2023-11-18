@@ -2,26 +2,37 @@
 //! for making the server spread out how often it sends us chunk packets
 //! depending on our receiving speed.
 
-use std::time::{Duration, Instant};
+use std::{
+    io::Cursor,
+    time::{Duration, Instant},
+};
 
-use azalea_protocol::packets::game::serverbound_chunk_batch_received_packet::ServerboundChunkBatchReceivedPacket;
+use azalea_core::position::ChunkPos;
+use azalea_nbt::NbtCompound;
+use azalea_protocol::packets::game::{
+    clientbound_level_chunk_with_light_packet::ClientboundLevelChunkWithLightPacket,
+    serverbound_chunk_batch_received_packet::ServerboundChunkBatchReceivedPacket,
+};
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
+use tracing::{error, trace};
 
 use crate::{
     interact::handle_block_interact_event,
     inventory::InventorySet,
     local_player::{handle_send_packet_event, SendPacketEvent},
     respawn::perform_respawn,
+    InstanceHolder,
 };
 
-pub struct ChunkBatchingPlugin;
-impl Plugin for ChunkBatchingPlugin {
+pub struct ChunkPlugin;
+impl Plugin for ChunkPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
             (
                 handle_chunk_batch_start_event,
+                handle_receive_chunk_events,
                 handle_chunk_batch_finished_event,
             )
                 .chain()
@@ -30,9 +41,16 @@ impl Plugin for ChunkBatchingPlugin {
                 .before(handle_block_interact_event)
                 .before(perform_respawn),
         )
+        .add_event::<ReceiveChunkEvent>()
         .add_event::<ChunkBatchStartEvent>()
         .add_event::<ChunkBatchFinishedEvent>();
     }
+}
+
+#[derive(Event)]
+pub struct ReceiveChunkEvent {
+    pub entity: Entity,
+    pub packet: ClientboundLevelChunkWithLightPacket,
 }
 
 #[derive(Component, Clone, Debug)]
@@ -40,6 +58,69 @@ pub struct ChunkBatchInfo {
     pub start_time: Instant,
     pub aggregated_duration_per_chunk: Duration,
     pub old_samples_weight: u32,
+}
+
+#[derive(Event)]
+pub struct ChunkBatchStartEvent {
+    pub entity: Entity,
+}
+#[derive(Event)]
+pub struct ChunkBatchFinishedEvent {
+    pub entity: Entity,
+    pub batch_size: u32,
+}
+
+fn handle_receive_chunk_events(
+    mut events: EventReader<ReceiveChunkEvent>,
+    mut query: Query<&mut InstanceHolder>,
+) {
+    for event in events.read() {
+        let pos = ChunkPos::new(event.packet.x, event.packet.z);
+
+        let local_player = query.get_mut(event.entity).unwrap();
+
+        // OPTIMIZATION: if we already know about the chunk from the
+        // shared world (and not ourselves), then we don't need to
+        // parse it again. This is only used when we have a shared
+        // world, since we check that the chunk isn't currently owned
+        // by this client.
+        let shared_chunk = local_player.instance.read().chunks.get(&pos);
+        let this_client_has_chunk = local_player
+            .partial_instance
+            .read()
+            .chunks
+            .limited_get(&pos)
+            .is_some();
+
+        let mut world = local_player.instance.write();
+        let mut partial_world = local_player.partial_instance.write();
+
+        if !this_client_has_chunk {
+            if let Some(shared_chunk) = shared_chunk {
+                trace!("Skipping parsing chunk {pos:?} because we already know about it");
+                partial_world.chunks.set_with_shared_reference(
+                    &pos,
+                    Some(shared_chunk.clone()),
+                    &mut world.chunks,
+                );
+                continue;
+            }
+        }
+
+        let heightmaps = event.packet.chunk_data.heightmaps.as_compound();
+        // necessary to make the unwrap_or work
+        let empty_nbt_compound = NbtCompound::default();
+        let heightmaps = heightmaps.unwrap_or(&empty_nbt_compound);
+
+        if let Err(e) = partial_world.chunks.replace_with_packet_data(
+            &pos,
+            &mut Cursor::new(&event.packet.chunk_data.data),
+            heightmaps,
+            &mut world.chunks,
+        ) {
+            error!("Couldn't set chunk data: {e}");
+        }
+    }
 }
 
 impl ChunkBatchInfo {
@@ -63,16 +144,6 @@ impl ChunkBatchInfo {
     pub fn desired_chunks_per_tick(&self) -> f32 {
         (7000000. / self.aggregated_duration_per_chunk.as_nanos() as f64) as f32
     }
-}
-
-#[derive(Event)]
-pub struct ChunkBatchStartEvent {
-    pub entity: Entity,
-}
-#[derive(Event)]
-pub struct ChunkBatchFinishedEvent {
-    pub entity: Entity,
-    pub batch_size: u32,
 }
 
 pub fn handle_chunk_batch_start_event(
