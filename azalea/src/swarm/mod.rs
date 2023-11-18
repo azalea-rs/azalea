@@ -393,7 +393,10 @@ where
             if let Some(handler) = &self.handler {
                 let first_bot_state = first_bot.component::<S>();
                 let first_bot_entity = first_bot.entity;
-                tokio::spawn((handler)(first_bot, first_event, first_bot_state.clone()));
+
+                let mut tasks = Vec::new();
+
+                tasks.push((handler)(first_bot, first_event, first_bot_state.clone()));
 
                 // this makes it not have to keep locking the ecs
                 let mut states = HashMap::new();
@@ -402,8 +405,10 @@ where
                     let state = states
                         .entry(bot.entity)
                         .or_insert_with(|| bot.component::<S>().clone());
-                    tokio::spawn((handler)(bot, event, state.clone()));
+                    tasks.push((handler)(bot, event, state.clone()));
                 }
+
+                tokio::spawn(join_all(tasks));
             }
         }
 

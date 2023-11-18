@@ -163,10 +163,13 @@ pub fn send_packet_events(
                             continue;
                         }
                     };
-                packet_events.send(PacketEvent {
-                    entity: player_entity,
-                    packet: packet.clone(),
-                });
+                if let ClientboundGamePacket::LevelChunkWithLight(_) = packet {
+                } else {
+                    packet_events.send(PacketEvent {
+                        entity: player_entity,
+                        packet,
+                    });
+                }
             }
             // clear the packets right after we read them
             packets.clear();

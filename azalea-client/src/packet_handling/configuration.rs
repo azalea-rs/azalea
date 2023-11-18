@@ -54,7 +54,7 @@ pub fn send_packet_events(
                 };
                 packet_events.send(PacketEvent {
                     entity: player_entity,
-                    packet: packet.clone(),
+                    packet,
                 });
             }
             // clear the packets right after we read them

@@ -681,6 +681,9 @@ async fn run_schedule_loop(
     loop {
         // whenever we get an event from run_schedule_receiver, run the schedule
         run_schedule_receiver.recv().await;
+        // get rid of any queued events
+        while let Ok(()) = run_schedule_receiver.try_recv() {}
+
         let mut ecs = ecs.lock();
         ecs.run_schedule(outer_schedule_label);
         ecs.clear_trackers();
