@@ -56,7 +56,7 @@ async fn main() -> anyhow::Result<()> {
             .add_accounts(accounts.clone())
             .set_handler(handle)
             .set_swarm_handler(swarm_handle)
-            .join_delay(Duration::from_millis(1000))
+            .join_delay(Duration::from_millis(100))
             .start("localhost")
             .await;
         // let e = azalea::ClientBuilder::new()
@@ -153,6 +153,11 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                 }
                 "lag" => {
                     std::thread::sleep(Duration::from_millis(1000));
+                }
+                "quit" => {
+                    bot.disconnect();
+                    tokio::time::sleep(Duration::from_millis(1000)).await;
+                    std::process::exit(0);
                 }
                 "inventory" => {
                     println!("inventory: {:?}", bot.menu());

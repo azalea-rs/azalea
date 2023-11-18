@@ -8,6 +8,7 @@ use azalea_core::position::{BlockPos, ChunkBlockPos, ChunkPos, ChunkSectionBlock
 use azalea_nbt::NbtCompound;
 use nohash_hasher::IntMap;
 use parking_lot::RwLock;
+use std::collections::hash_map::Entry;
 use std::str::FromStr;
 use std::{
     collections::HashMap,
@@ -184,7 +185,35 @@ impl PartialChunkStorage {
     /// # Panics
     /// If the chunk is not in the render distance.
     pub fn set(&mut self, pos: &ChunkPos, chunk: Option<Chunk>, chunk_storage: &mut ChunkStorage) {
-        self.set_with_shared_reference(pos, chunk.map(|c| Arc::new(RwLock::new(c))), chunk_storage);
+        let new_chunk;
+
+        if let Some(chunk) = chunk {
+            match chunk_storage.map.entry(*pos) {
+                Entry::Occupied(mut e) => {
+                    if let Some(old_chunk) = e.get_mut().upgrade() {
+                        *old_chunk.write() = chunk;
+                        new_chunk = Some(old_chunk.clone())
+                    } else {
+                        let chunk_lock = Arc::new(RwLock::new(chunk));
+                        e.insert(Arc::downgrade(&chunk_lock));
+                        new_chunk = Some(chunk_lock);
+                    }
+                }
+                Entry::Vacant(e) => {
+                    let chunk_lock = Arc::new(RwLock::new(chunk));
+                    e.insert(Arc::downgrade(&chunk_lock));
+                    new_chunk = Some(chunk_lock);
+                }
+            }
+        } else {
+            // don't remove it from the shared storage, since it'll be removed
+            // automatically if this was the last reference
+
+            new_chunk = None;
+        }
+        if let Some(chunk_mut) = self.limited_get_mut(pos) {
+            *chunk_mut = new_chunk;
+        }
     }
 
     /// Set a chunk in the shared storage and reference it from the limited
