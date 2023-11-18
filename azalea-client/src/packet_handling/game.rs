@@ -74,7 +74,7 @@ pub struct PacketEvent {
     /// The client entity that received the packet.
     pub entity: Entity,
     /// The packet that was actually received.
-    pub packet: ClientboundGamePacket,
+    pub packet: Arc<ClientboundGamePacket>,
 }
 
 /// A player joined the game (or more specifically, was added to the tab
@@ -163,13 +163,10 @@ pub fn send_packet_events(
                             continue;
                         }
                     };
-                if let ClientboundGamePacket::LevelChunkWithLight(_) = packet {
-                } else {
-                    packet_events.send(PacketEvent {
-                        entity: player_entity,
-                        packet,
-                    });
-                }
+                packet_events.send(PacketEvent {
+                    entity: player_entity,
+                    packet: Arc::new(packet),
+                });
             }
             // clear the packets right after we read them
             packets.clear();
@@ -190,7 +187,9 @@ pub fn process_packet_events(ecs: &mut World) {
         events_owned.push((*player_entity, packet.clone()));
     }
     for (player_entity, packet) in events_owned {
-        match packet {
+        let packet_clone = packet.clone();
+        let packet_ref = packet_clone.as_ref();
+        match packet_ref {
             ClientboundGamePacket::Login(p) => {
                 debug!("Got login packet");
 
@@ -756,6 +755,8 @@ pub fn process_packet_events(ecs: &mut World) {
                 };
                 let entity_kind = *entity_kind_query.get(entity).unwrap();
 
+                let packed_items = p.packed_items.clone().to_vec();
+
                 // we use RelativeEntityUpdate because it makes sure changes aren't made
                 // multiple times
                 commands.entity(entity).add(RelativeEntityUpdate {
@@ -766,11 +767,9 @@ pub fn process_packet_events(ecs: &mut World) {
                             let mut commands_system_state = SystemState::<Commands>::new(world);
                             let mut commands = commands_system_state.get_mut(world);
                             let mut entity_comands = commands.entity(entity_id);
-                            if let Err(e) = apply_metadata(
-                                &mut entity_comands,
-                                *entity_kind,
-                                (*p.packed_items).clone(),
-                            ) {
+                            if let Err(e) =
+                                apply_metadata(&mut entity_comands, *entity_kind, packed_items)
+                            {
                                 warn!("{e}");
                             }
                         });
@@ -803,18 +802,18 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 // this is to make sure the same entity velocity update doesn't get sent
                 // multiple times when in swarms
+
+                let knockback = KnockbackType::Set(Vec3 {
+                    x: p.xa as f64 / 8000.,
+                    y: p.ya as f64 / 8000.,
+                    z: p.za as f64 / 8000.,
+                });
+
                 commands.entity(entity).add(RelativeEntityUpdate {
                     partial_world: instance_holder.partial_instance.clone(),
                     update: Box::new(move |entity_mut| {
                         entity_mut.world_scope(|world| {
-                            world.send_event(KnockbackEvent {
-                                entity,
-                                knockback: KnockbackType::Set(Vec3 {
-                                    x: p.xa as f64 / 8000.,
-                                    y: p.ya as f64 / 8000.,
-                                    z: p.za as f64 / 8000.,
-                                }),
-                            })
+                            world.send_event(KnockbackEvent { entity, knockback })
                         });
                     }),
                 });
@@ -1226,7 +1225,7 @@ pub fn process_packet_events(ecs: &mut World) {
                     entity: player_entity,
                     window_id: p.container_id,
                     menu_type: p.menu_type,
-                    title: p.title,
+                    title: p.title.to_owned(),
                 })
             }
             ClientboundGamePacket::OpenSignEditor(_) => {}
@@ -1281,10 +1280,10 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 resource_pack_events.send(ResourcePackEvent {
                     entity: player_entity,
-                    url: p.url,
-                    hash: p.hash,
+                    url: p.url.to_owned(),
+                    hash: p.hash.to_owned(),
                     required: p.required,
-                    prompt: p.prompt,
+                    prompt: p.prompt.to_owned(),
                 });
 
                 system_state.apply(ecs);

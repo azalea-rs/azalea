@@ -180,7 +180,7 @@ pub struct WaitingForInventoryOpen;
 
 fn handle_menu_opened_event(mut commands: Commands, mut events: EventReader<PacketEvent>) {
     for event in events.read() {
-        if let ClientboundGamePacket::ContainerSetContent { .. } = event.packet {
+        if let ClientboundGamePacket::ContainerSetContent { .. } = event.packet.as_ref() {
             commands
                 .entity(event.entity)
                 .remove::<WaitingForInventoryOpen>();

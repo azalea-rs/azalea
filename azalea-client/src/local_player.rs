@@ -68,8 +68,8 @@ pub struct PlayerAbilities {
     /// Used for the fov
     pub walking_speed: f32,
 }
-impl From<ClientboundPlayerAbilitiesPacket> for PlayerAbilities {
-    fn from(packet: ClientboundPlayerAbilitiesPacket) -> Self {
+impl From<&ClientboundPlayerAbilitiesPacket> for PlayerAbilities {
+    fn from(packet: &ClientboundPlayerAbilitiesPacket) -> Self {
         Self {
             invulnerable: packet.flags.invulnerable,
             flying: packet.flags.flying,

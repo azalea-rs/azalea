@@ -47,7 +47,7 @@ async fn main() -> anyhow::Result<()> {
 
     let mut accounts = Vec::new();
 
-    for i in 0..200 {
+    for i in 0..3 {
         accounts.push(Account::offline(&format!("bot{i}")));
     }
 
