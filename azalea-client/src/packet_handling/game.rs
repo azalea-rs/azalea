@@ -60,7 +60,7 @@ use crate::{
 ///         entity,
 ///         packet,
 ///     } in events.read() {
-///         match packet {
+///         match packet.as_ref() {
 ///             ClientboundGamePacket::LevelParticles(p) => {
 ///                 // ...
 ///             }
