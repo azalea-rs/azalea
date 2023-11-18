@@ -29,7 +29,7 @@ use bevy_ecs::{
     system::{Commands, Query, Res},
 };
 use derive_more::{Deref, DerefMut};
-use log::warn;
+use tracing::warn;
 
 use crate::{
     attack::handle_attack_event,

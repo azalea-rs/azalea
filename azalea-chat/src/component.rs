@@ -6,13 +6,13 @@ use crate::{
 };
 #[cfg(feature = "azalea-buf")]
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
-use log::debug;
 use once_cell::sync::Lazy;
 use serde::{de, Deserialize, Deserializer, Serialize};
 use std::{
     fmt::Display,
     io::{Cursor, Write},
 };
+use tracing::debug;
 
 /// A chat component, basically anything you can see in chat.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Hash)]

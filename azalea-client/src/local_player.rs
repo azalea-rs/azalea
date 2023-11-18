@@ -12,10 +12,10 @@ use bevy_ecs::{
     system::Query,
 };
 use derive_more::{Deref, DerefMut};
-use log::error;
 use parking_lot::RwLock;
 use thiserror::Error;
 use tokio::sync::mpsc;
+use tracing::error;
 use uuid::Uuid;
 
 use crate::{

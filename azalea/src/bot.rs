@@ -22,8 +22,8 @@ use bevy_app::{FixedUpdate, Update};
 use bevy_ecs::prelude::Event;
 use bevy_ecs::schedule::IntoSystemConfigs;
 use futures_lite::Future;
-use log::trace;
 use std::f64::consts::PI;
+use tracing::trace;
 
 use crate::pathfinder::PathfinderPlugin;
 

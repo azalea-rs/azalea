@@ -9,7 +9,6 @@ use bytes::BytesMut;
 use flate2::read::ZlibDecoder;
 use futures::StreamExt;
 use futures_lite::future;
-use log::{log_enabled, trace};
 use std::backtrace::Backtrace;
 use std::{
     fmt::Debug,
@@ -18,6 +17,7 @@ use std::{
 use thiserror::Error;
 use tokio::io::AsyncRead;
 use tokio_util::codec::{BytesCodec, FramedRead};
+use tracing::if_log_enabled;
 
 #[derive(Error, Debug)]
 pub enum ReadPacketError {
@@ -346,7 +346,7 @@ where
             .map_err(ReadPacketError::from)?;
     }
 
-    if log_enabled!(log::Level::Trace) {
+    if_log_enabled!(tracing::Level::TRACE, {
         let buf_string: String = {
             if buf.len() > 500 {
                 let cut_off_buf = &buf[..500];
@@ -356,7 +356,7 @@ where
             }
         };
         trace!("Reading packet with bytes: {buf_string}");
-    }
+    });
 
     Ok(Some(buf))
 }

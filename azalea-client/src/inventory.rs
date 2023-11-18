@@ -23,7 +23,7 @@ use bevy_ecs::{
     schedule::{IntoSystemConfigs, SystemSet},
     system::Query,
 };
-use log::warn;
+use tracing::warn;
 
 use crate::{
     local_player::{handle_send_packet_event, PlayerAbilities, SendPacketEvent},

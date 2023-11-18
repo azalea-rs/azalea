@@ -3,8 +3,8 @@ use azalea_buf::{
 };
 use azalea_core::{bitset::FixedBitSet, resource_location::ResourceLocation};
 use azalea_protocol_macros::ClientboundGamePacket;
-use log::warn;
 use std::io::{Cursor, Write};
+use tracing::warn;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundCommandsPacket {

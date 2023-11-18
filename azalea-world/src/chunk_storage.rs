@@ -6,7 +6,6 @@ use azalea_block::BlockState;
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 use azalea_core::position::{BlockPos, ChunkBlockPos, ChunkPos, ChunkSectionBlockPos};
 use azalea_nbt::NbtCompound;
-use log::{debug, trace, warn};
 use nohash_hasher::IntMap;
 use parking_lot::RwLock;
 use std::str::FromStr;
@@ -16,6 +15,7 @@ use std::{
     io::{Cursor, Write},
     sync::{Arc, Weak},
 };
+use tracing::{debug, trace, warn};
 
 const SECTION_HEIGHT: u32 = 16;
 

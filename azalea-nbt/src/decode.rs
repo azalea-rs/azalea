@@ -3,8 +3,8 @@ use crate::Error;
 use azalea_buf::{BufReadError, McBufReadable};
 use byteorder::{ReadBytesExt, BE};
 use flate2::read::{GzDecoder, ZlibDecoder};
-use log::warn;
 use std::io::{BufRead, Cursor, Read};
+use tracing::warn;
 
 #[inline]
 fn read_bytes<'a>(buf: &'a mut Cursor<&[u8]>, length: usize) -> Result<&'a [u8], Error> {

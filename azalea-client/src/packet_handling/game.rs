@@ -29,8 +29,8 @@ use azalea_protocol::{
 };
 use azalea_world::{Instance, InstanceContainer, InstanceName, MinecraftEntityId, PartialInstance};
 use bevy_ecs::{prelude::*, system::SystemState};
-use log::{debug, error, trace, warn};
 use parking_lot::RwLock;
+use tracing::{debug, error, trace, warn};
 
 use crate::{
     chat::{ChatPacket, ChatReceivedEvent},

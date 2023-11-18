@@ -12,8 +12,8 @@ use azalea_protocol::read::deserialize_packet;
 use azalea_world::Instance;
 use bevy_ecs::prelude::*;
 use bevy_ecs::system::SystemState;
-use log::{debug, error, warn};
 use parking_lot::RwLock;
+use tracing::{debug, error, warn};
 
 use crate::client::InConfigurationState;
 use crate::disconnect::DisconnectEvent;

@@ -26,7 +26,7 @@ pub async fn fetch_certificates(
         .await?
         .json::<CertificatesResponse>()
         .await?;
-    log::trace!("{:?}", res);
+    tracing::trace!("{:?}", res);
 
     // using RsaPrivateKey::from_pkcs8_pem gives an error with decoding base64 so we
     // just decode it ourselves

@@ -1,6 +1,5 @@
 use super::{UnsizedByteArray, MAX_STRING_LENGTH};
 use byteorder::{ReadBytesExt, BE};
-use log::warn;
 use std::{
     backtrace::Backtrace,
     collections::HashMap,
@@ -8,6 +7,7 @@ use std::{
     io::{Cursor, Read},
 };
 use thiserror::Error;
+use tracing::warn;
 
 #[derive(Error, Debug)]
 pub enum BufReadError {

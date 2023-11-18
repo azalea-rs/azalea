@@ -31,7 +31,7 @@ bevy_tasks = { version = "0.12.0", features = ["multi-threaded"] }
 derive_more = { version = "0.99.17", features = ["deref", "deref_mut"] }
 futures = "0.3.29"
 futures-lite = "2.0.1"
-log = "0.4.20"
+tracing = "0.1.40"
 nohash-hasher = "0.2.0"
 num-traits = "0.2.17"
 parking_lot = { version = "^0.12.1", features = ["deadlock_detection"] }

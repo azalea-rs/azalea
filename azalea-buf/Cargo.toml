@@ -11,7 +11,7 @@ version = "0.8.0"
 [dependencies]
 azalea-buf-macros = { path = "./azalea-buf-macros", version = "0.8.0" }
 byteorder = "^1.5.0"
-log = "0.4.20"
+tracing = "0.1.40"
 serde_json = { version = "^1.0", optional = true }
 thiserror = "1.0.50"
 uuid = "^1.5.0"

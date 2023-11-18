@@ -65,7 +65,6 @@ use bevy_ecs::{
 };
 use bevy_time::{Fixed, Time, TimePlugin};
 use derive_more::Deref;
-use log::{debug, error};
 use parking_lot::{Mutex, RwLock};
 use std::{
     collections::HashMap, fmt::Debug, io, net::SocketAddr, ops::Deref, sync::Arc, time::Duration,
@@ -75,6 +74,7 @@ use tokio::{
     sync::{broadcast, mpsc},
     time,
 };
+use tracing::{debug, error};
 use uuid::Uuid;
 
 /// `Client` has the things that a user interacting with the library will want.
@@ -518,7 +518,7 @@ impl Client {
         }
 
         if self.logged_in() {
-            log::debug!(
+            tracing::debug!(
                 "Sending client information (already logged in): {:?}",
                 client_information
             );

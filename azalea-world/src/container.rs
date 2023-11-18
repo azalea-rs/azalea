@@ -1,13 +1,13 @@
 use azalea_core::resource_location::ResourceLocation;
 use bevy_ecs::{component::Component, system::Resource};
 use derive_more::{Deref, DerefMut};
-use log::error;
 use nohash_hasher::IntMap;
 use parking_lot::RwLock;
 use std::{
     collections::HashMap,
     sync::{Arc, Weak},
 };
+use tracing::error;
 
 use crate::{ChunkStorage, Instance};
 
