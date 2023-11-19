@@ -7,11 +7,11 @@
 
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 use simdnbt::{
-    owned::{BaseNbt, Nbt, NbtCompound, NbtTag},
+    owned::{NbtCompound, NbtTag},
     Deserialize, FromNbtTag, Serialize, ToNbtTag,
 };
 use std::{collections::HashMap, io::Cursor};
-use tracing::{error, warn};
+use tracing::error;
 
 use crate::resource_location::ResourceLocation;
 

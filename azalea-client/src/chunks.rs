@@ -15,10 +15,7 @@ use azalea_protocol::packets::game::{
 };
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
-use simdnbt::{
-    owned::{BaseNbt, NbtCompound},
-    Serialize,
-};
+use simdnbt::owned::BaseNbt;
 use tracing::{error, trace};
 
 use crate::{
@@ -111,7 +108,7 @@ fn handle_receive_chunk_events(
         if let Err(e) = partial_instance.chunks.replace_with_packet_data(
             &pos,
             &mut Cursor::new(&event.packet.chunk_data.data),
-            &heightmaps,
+            heightmaps,
             &mut instance.chunks,
         ) {
             error!("Couldn't set chunk data: {e}");
