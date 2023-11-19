@@ -47,7 +47,7 @@ async fn main() -> anyhow::Result<()> {
 
     let mut accounts = Vec::new();
 
-    for i in 0..100 {
+    for i in 0..1 {
         accounts.push(Account::offline(&format!("bot{i}")));
     }
 
@@ -56,7 +56,7 @@ async fn main() -> anyhow::Result<()> {
             .add_accounts(accounts.clone())
             .set_handler(handle)
             .set_swarm_handler(swarm_handle)
-            // .join_delay(Duration::from_millis(1000))
+            .join_delay(Duration::from_millis(100))
             .start("localhost")
             .await;
         // let e = azalea::ClientBuilder::new()

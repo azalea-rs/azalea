@@ -188,7 +188,7 @@ impl Shapes {
             op_true_false,
             op_false_true,
         );
-        let var8 = BitSetDiscreteVoxelShape::join(&a.shape(), &b.shape(), &var5, &var6, &var7, op);
+        let var8 = BitSetDiscreteVoxelShape::join(a.shape(), b.shape(), &var5, &var6, &var7, op);
         // if var5.is_discrete_cube_merger()
 
         if matches!(var5, IndexMerger::DiscreteCube { .. })
