@@ -480,7 +480,6 @@ dependencies = [
  "azalea-buf",
  "azalea-registry-macros",
  "once_cell",
- "serde",
  "simdnbt",
 ]
 
