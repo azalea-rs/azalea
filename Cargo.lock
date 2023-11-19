@@ -332,6 +332,7 @@ dependencies = [
  "nohash-hasher",
  "num-traits",
  "serde",
+ "serde_json",
  "uuid",
 ]
 
@@ -525,6 +526,8 @@ dependencies = [
  "nohash-hasher",
  "once_cell",
  "parking_lot",
+ "serde",
+ "serde_json",
  "thiserror",
  "tracing",
  "uuid",

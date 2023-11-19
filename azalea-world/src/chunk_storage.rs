@@ -23,9 +23,8 @@ const SECTION_HEIGHT: u32 = 16;
 /// An efficient storage of chunks for a client that has a limited render
 /// distance. This has support for using a shared [`ChunkStorage`].
 pub struct PartialChunkStorage {
-    /// The center of the view, i.e. the chunk the player is currently in. You
-    /// can safely modify this.
-    pub view_center: ChunkPos,
+    /// The center of the view, i.e. the chunk the player is currently in.
+    view_center: ChunkPos,
     chunk_radius: u32,
     view_range: u32,
     // chunks is a list of size chunk_radius * chunk_radius
@@ -99,14 +98,47 @@ impl PartialChunkStorage {
         }
     }
 
-    fn get_index(&self, chunk_pos: &ChunkPos) -> usize {
+    /// Update the chunk to center the view on. This should be called when the
+    /// client receives a `SetChunkCacheCenter` packet.
+    pub fn update_view_center(&mut self, view_center: ChunkPos) {
+        // this code block makes it force unload the chunks that are out of range after
+        // updating the view center. it's usually fine without it but the commented code
+        // is there in case you want to temporarily uncomment to test something
+
+        // ```
+        // for index in 0..self.chunks.len() {
+        //     let chunk_pos = self.chunk_pos_from_index(index);
+        //     if !in_range_for_view_center_and_radius(&chunk_pos, view_center, self.chunk_radius) {
+        //         self.chunks[index] = None;
+        //     }
+        // }
+        // ```
+
+        self.view_center = view_center;
+    }
+
+    /// Get the center of the view. This is usually the chunk that the player is
+    /// in.
+    pub fn view_center(&self) -> ChunkPos {
+        self.view_center
+    }
+
+    pub fn index_from_chunk_pos(&self, chunk_pos: &ChunkPos) -> usize {
         (i32::rem_euclid(chunk_pos.x, self.view_range as i32) * (self.view_range as i32)
             + i32::rem_euclid(chunk_pos.z, self.view_range as i32)) as usize
     }
 
+    pub fn chunk_pos_from_index(&self, index: usize) -> ChunkPos {
+        let x = index as i32 % self.view_range as i32;
+        let z = index as i32 / self.view_range as i32;
+        ChunkPos::new(
+            x + self.view_center.x - self.chunk_radius as i32,
+            z + self.view_center.z - self.chunk_radius as i32,
+        )
+    }
+
     pub fn in_range(&self, chunk_pos: &ChunkPos) -> bool {
-        (chunk_pos.x - self.view_center.x).unsigned_abs() <= self.chunk_radius
-            && (chunk_pos.z - self.view_center.z).unsigned_abs() <= self.chunk_radius
+        in_range_for_view_center_and_radius(chunk_pos, self.view_center, self.chunk_radius)
     }
 
     pub fn set_block_state(
@@ -163,7 +195,7 @@ impl PartialChunkStorage {
             return None;
         }
 
-        let index = self.get_index(pos);
+        let index = self.index_from_chunk_pos(pos);
         self.chunks[index].as_ref()
     }
     /// Get a mutable reference to a [`Chunk`] within render distance, or
@@ -174,7 +206,7 @@ impl PartialChunkStorage {
             return None;
         }
 
-        let index = self.get_index(pos);
+        let index = self.index_from_chunk_pos(pos);
         Some(&mut self.chunks[index])
     }
 
@@ -187,12 +219,13 @@ impl PartialChunkStorage {
     pub fn set(&mut self, pos: &ChunkPos, chunk: Option<Chunk>, chunk_storage: &mut ChunkStorage) {
         let new_chunk;
 
+        // add the chunk to the shared storage
         if let Some(chunk) = chunk {
             match chunk_storage.map.entry(*pos) {
                 Entry::Occupied(mut e) => {
                     if let Some(old_chunk) = e.get_mut().upgrade() {
                         *old_chunk.write() = chunk;
-                        new_chunk = Some(old_chunk.clone())
+                        new_chunk = Some(old_chunk);
                     } else {
                         let chunk_lock = Arc::new(RwLock::new(chunk));
                         e.insert(Arc::downgrade(&chunk_lock));
@@ -211,32 +244,27 @@ impl PartialChunkStorage {
 
             new_chunk = None;
         }
-        if let Some(chunk_mut) = self.limited_get_mut(pos) {
-            *chunk_mut = new_chunk;
-        }
+
+        self.limited_set(pos, new_chunk);
     }
 
-    /// Set a chunk in the shared storage and reference it from the limited
-    /// storage. Use [`Self::set`] if you don't already have an
-    /// `Arc<RwLock<Chunk>>` (it'll make it for you).
+    /// Set a chunk in our limited storage, useful if your chunk is already
+    /// referenced somewhere else and you want to make it also be referenced by
+    /// this storage.
+    ///
+    /// Use [`Self::set`] if you don't already have an `Arc<RwLock<Chunk>>`.
     ///
     /// # Panics
     /// If the chunk is not in the render distance.
-    pub fn set_with_shared_reference(
-        &mut self,
-        pos: &ChunkPos,
-        chunk: Option<Arc<RwLock<Chunk>>>,
-        chunk_storage: &mut ChunkStorage,
-    ) {
-        if let Some(chunk) = &chunk {
-            chunk_storage.map.insert(*pos, Arc::downgrade(chunk));
-        } else {
-            // don't remove it from the shared storage, since it'll be removed
-            // automatically if this was the last reference
-        }
+    pub fn limited_set(&mut self, pos: &ChunkPos, chunk: Option<Arc<RwLock<Chunk>>>) {
         if let Some(chunk_mut) = self.limited_get_mut(pos) {
             *chunk_mut = chunk;
         }
+    }
+
+    /// Get an iterator over all the chunks in the storage.
+    pub fn chunks(&self) -> impl Iterator<Item = &Option<Arc<RwLock<Chunk>>>> {
+        self.chunks.iter()
     }
 }
 impl ChunkStorage {
@@ -268,6 +296,15 @@ impl ChunkStorage {
         let mut chunk = chunk.write();
         Some(chunk.get_and_set(&ChunkBlockPos::from(pos), state, self.min_y))
     }
+}
+
+pub fn in_range_for_view_center_and_radius(
+    chunk_pos: &ChunkPos,
+    view_center: ChunkPos,
+    chunk_radius: u32,
+) -> bool {
+    (chunk_pos.x - view_center.x).unsigned_abs() <= chunk_radius
+        && (chunk_pos.z - view_center.z).unsigned_abs() <= chunk_radius
 }
 
 impl Chunk {

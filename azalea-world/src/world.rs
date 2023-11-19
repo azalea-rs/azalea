@@ -1,6 +1,7 @@
 use crate::{iterators::ChunkIterator, palette::Palette, ChunkStorage, PartialChunkStorage};
 use azalea_block::{BlockState, BlockStates, FluidState};
 use azalea_core::position::{BlockPos, ChunkPos};
+use azalea_core::registry_holder::RegistryHolder;
 use bevy_ecs::{component::Component, entity::Entity};
 use derive_more::{Deref, DerefMut};
 use nohash_hasher::IntMap;
@@ -87,6 +88,8 @@ pub struct Instance {
     /// An index of Minecraft entity IDs to Azalea ECS entities. You should
     /// avoid using this and instead use `azalea_entity::EntityIdIndex`
     pub entity_by_id: IntMap<MinecraftEntityId, Entity>,
+
+    pub registries: RegistryHolder,
 }
 
 impl Instance {
@@ -237,6 +240,7 @@ impl From<ChunkStorage> for Instance {
             chunks,
             entities_by_chunk: HashMap::new(),
             entity_by_id: IntMap::default(),
+            registries: RegistryHolder::default(),
         }
     }
 }

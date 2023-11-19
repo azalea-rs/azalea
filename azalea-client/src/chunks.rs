@@ -79,30 +79,22 @@ fn handle_receive_chunk_events(
 
         let local_player = query.get_mut(event.entity).unwrap();
 
-        // OPTIMIZATION: if we already know about the chunk from the
-        // shared world (and not ourselves), then we don't need to
-        // parse it again. This is only used when we have a shared
-        // world, since we check that the chunk isn't currently owned
-        // by this client.
-        let shared_chunk = local_player.instance.read().chunks.get(&pos);
-        let this_client_has_chunk = local_player
-            .partial_instance
-            .read()
-            .chunks
-            .limited_get(&pos)
-            .is_some();
+        let mut instance = local_player.instance.write();
+        let mut partial_instance = local_player.partial_instance.write();
 
-        let mut world = local_player.instance.write();
-        let mut partial_world = local_player.partial_instance.write();
+        // OPTIMIZATION: if we already know about the chunk from the shared world (and
+        // not ourselves), then we don't need to parse it again. This is only used when
+        // we have a shared world, since we check that the chunk isn't currently owned
+        // by this client.
+        let shared_chunk = instance.chunks.get(&pos);
+        let this_client_has_chunk = partial_instance.chunks.limited_get(&pos).is_some();
 
         if !this_client_has_chunk {
             if let Some(shared_chunk) = shared_chunk {
                 trace!("Skipping parsing chunk {pos:?} because we already know about it");
-                partial_world.chunks.set_with_shared_reference(
-                    &pos,
-                    Some(shared_chunk.clone()),
-                    &mut world.chunks,
-                );
+                partial_instance
+                    .chunks
+                    .limited_set(&pos, Some(shared_chunk));
                 continue;
             }
         }
@@ -112,11 +104,11 @@ fn handle_receive_chunk_events(
         let empty_nbt_compound = NbtCompound::default();
         let heightmaps = heightmaps.unwrap_or(&empty_nbt_compound);
 
-        if let Err(e) = partial_world.chunks.replace_with_packet_data(
+        if let Err(e) = partial_instance.chunks.replace_with_packet_data(
             &pos,
             &mut Cursor::new(&event.packet.chunk_data.data),
             heightmaps,
-            &mut world.chunks,
+            &mut instance.chunks,
         ) {
             error!("Couldn't set chunk data: {e}");
         }

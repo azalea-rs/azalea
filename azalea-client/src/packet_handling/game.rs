@@ -45,7 +45,7 @@ use crate::{
     },
     movement::{KnockbackEvent, KnockbackType},
     raw_connection::RawConnection,
-    ClientInformation, PlayerInfo, ReceivedRegistries,
+    ClientInformation, PlayerInfo,
 };
 
 /// An event that's sent when we receive a packet.
@@ -174,16 +174,18 @@ pub fn send_packet_events(
 }
 
 pub fn process_packet_events(ecs: &mut World) {
-    let mut events_owned = Vec::new();
-    let mut system_state: SystemState<EventReader<PacketEvent>> = SystemState::new(ecs);
-    let mut events = system_state.get_mut(ecs);
-    for PacketEvent {
-        entity: player_entity,
-        packet,
-    } in events.read()
+    let mut events_owned = Vec::<(Entity, Arc<ClientboundGamePacket>)>::new();
     {
-        // we do this so `ecs` isn't borrowed for the whole loop
-        events_owned.push((*player_entity, packet.clone()));
+        let mut system_state = SystemState::<EventReader<PacketEvent>>::new(ecs);
+        let mut events = system_state.get_mut(ecs);
+        for PacketEvent {
+            entity: player_entity,
+            packet,
+        } in events.read()
+        {
+            // we do this so `ecs` isn't borrowed for the whole loop
+            events_owned.push((*player_entity, packet.clone()));
+        }
     }
     for (player_entity, packet) in events_owned {
         let packet_clone = packet.clone();
@@ -198,7 +200,6 @@ pub fn process_packet_events(ecs: &mut World) {
                     Query<(
                         &GameProfileComponent,
                         &ClientInformation,
-                        &ReceivedRegistries,
                         Option<&mut InstanceName>,
                         Option<&mut LoadedBy>,
                         &mut EntityIdIndex,
@@ -220,7 +221,6 @@ pub fn process_packet_events(ecs: &mut World) {
                 let (
                     game_profile,
                     client_information,
-                    received_registries,
                     instance_name,
                     loaded_by,
                     mut entity_id_index,
@@ -238,7 +238,9 @@ pub fn process_packet_events(ecs: &mut World) {
                             .insert(InstanceName(new_instance_name.clone()));
                     }
 
-                    let Some(dimension_type) = received_registries.dimension_type() else {
+                    let Some(dimension_type) =
+                        instance_holder.instance.read().registries.dimension_type()
+                    else {
                         error!("Server didn't send dimension type registry, can't log in");
                         continue;
                     };
@@ -276,6 +278,17 @@ pub fn process_packet_events(ecs: &mut World) {
                         // in a shared instance
                         Some(player_entity),
                     );
+                    {
+                        let new_registries = &mut weak_instance.write().registries;
+                        // add the registries from this instance to the weak instance
+                        for (registry_name, registry) in
+                            &instance_holder.instance.read().registries.map
+                        {
+                            new_registries
+                                .map
+                                .insert(registry_name.clone(), registry.clone());
+                        }
+                    }
                     instance_holder.instance = weak_instance;
 
                     let player_bundle = PlayerBundle {
@@ -295,8 +308,6 @@ pub fn process_packet_events(ecs: &mut World) {
                             current: p.common.game_type,
                             previous: p.common.previous_game_type.into(),
                         },
-                        // this gets overwritten later by the SetHealth packet
-                        received_registries.clone(),
                         player_bundle,
                     ));
 
@@ -583,10 +594,12 @@ pub fn process_packet_events(ecs: &mut World) {
                 let mut system_state: SystemState<Query<&mut InstanceHolder>> =
                     SystemState::new(ecs);
                 let mut query = system_state.get_mut(ecs);
-                let local_player = query.get_mut(player_entity).unwrap();
-                let mut partial_world = local_player.partial_instance.write();
+                let instance_holder = query.get_mut(player_entity).unwrap();
+                let mut partial_world = instance_holder.partial_instance.write();
 
-                partial_world.chunks.view_center = ChunkPos::new(p.x, p.z);
+                partial_world
+                    .chunks
+                    .update_view_center(ChunkPos::new(p.x, p.z));
             }
             ClientboundGamePacket::ChunksBiomes(_) => {}
             ClientboundGamePacket::LightUpdate(_p) => {
@@ -1167,7 +1180,18 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 system_state.apply(ecs);
             }
-            ClientboundGamePacket::ForgetLevelChunk(_) => {}
+            ClientboundGamePacket::ForgetLevelChunk(p) => {
+                debug!("Got forget level chunk packet {p:?}");
+
+                let mut system_state: SystemState<Query<&mut InstanceHolder>> =
+                    SystemState::new(ecs);
+                let mut query = system_state.get_mut(ecs);
+                let local_player = query.get_mut(player_entity).unwrap();
+
+                let mut partial_instance = local_player.partial_instance.write();
+
+                partial_instance.chunks.limited_set(&p.pos, None);
+            }
             ClientboundGamePacket::HorseScreenOpen(_) => {}
             ClientboundGamePacket::MapItemData(_) => {}
             ClientboundGamePacket::MerchantOffers(_) => {}
@@ -1255,20 +1279,21 @@ pub fn process_packet_events(ecs: &mut World) {
                         &mut InstanceHolder,
                         &GameProfileComponent,
                         &ClientInformation,
-                        &ReceivedRegistries,
                     )>,
                     EventWriter<InstanceLoadedEvent>,
                     ResMut<InstanceContainer>,
                 )> = SystemState::new(ecs);
                 let (mut commands, mut query, mut instance_loaded_events, mut instance_container) =
                     system_state.get_mut(ecs);
-                let (mut instance_holder, game_profile, client_information, received_registries) =
+                let (mut instance_holder, game_profile, client_information) =
                     query.get_mut(player_entity).unwrap();
 
                 {
                     let new_instance_name = p.common.dimension.clone();
 
-                    let Some(dimension_type) = received_registries.dimension_type() else {
+                    let Some(dimension_type) =
+                        instance_holder.instance.read().registries.dimension_type()
+                    else {
                         error!("Server didn't send dimension type registry, can't log in");
                         continue;
                     };
@@ -1298,6 +1323,7 @@ pub fn process_packet_events(ecs: &mut World) {
                     // set the partial_world to an empty world
                     // (when we add chunks or entities those will be in the
                     // instance_container)
+
                     *instance_holder.partial_instance.write() = PartialInstance::new(
                         azalea_world::chunk_storage::calculate_chunk_storage_range(
                             client_information.view_distance.into(),

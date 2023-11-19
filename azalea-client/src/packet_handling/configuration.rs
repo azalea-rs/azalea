@@ -20,7 +20,6 @@ use crate::disconnect::DisconnectEvent;
 use crate::local_player::Hunger;
 use crate::packet_handling::game::KeepAliveEvent;
 use crate::raw_connection::RawConnection;
-use crate::ReceivedRegistries;
 
 #[derive(Event, Debug, Clone)]
 pub struct PacketEvent {
@@ -78,19 +77,21 @@ pub fn process_packet_events(ecs: &mut World) {
     for (player_entity, packet) in events_owned {
         match packet {
             ClientboundConfigurationPacket::RegistryData(p) => {
-                let mut system_state: SystemState<Query<&mut ReceivedRegistries>> =
-                    SystemState::new(ecs);
-                let mut query = system_state.get_mut(ecs);
-                let mut received_registries = query.get_mut(player_entity).unwrap();
+                let mut instance = Instance::default();
 
-                let new_received_registries = p.registry_holder.registries;
                 // override the old registries with the new ones
                 // but if a registry wasn't sent, keep the old one
-                for (registry_name, registry) in new_received_registries {
-                    received_registries
-                        .registries
-                        .insert(registry_name, registry);
+                for (registry_name, registry) in p.registry_holder.map {
+                    instance.registries.map.insert(registry_name, registry);
                 }
+
+                let instance_holder = crate::local_player::InstanceHolder::new(
+                    player_entity,
+                    // default to an empty world, it'll be set correctly later when we
+                    // get the login packet
+                    Arc::new(RwLock::new(instance)),
+                );
+                ecs.entity_mut(player_entity).insert(instance_holder);
             }
 
             ClientboundConfigurationPacket::CustomPayload(p) => {
@@ -113,13 +114,6 @@ pub fn process_packet_events(ecs: &mut World) {
                 let mut query = system_state.get_mut(ecs);
                 let mut raw_connection = query.get_mut(player_entity).unwrap();
 
-                let instance_holder = crate::local_player::InstanceHolder::new(
-                    player_entity,
-                    // default to an empty world, it'll be set correctly later when we
-                    // get the login packet
-                    Arc::new(RwLock::new(Instance::default())),
-                );
-
                 raw_connection
                     .write_packet(ServerboundFinishConfigurationPacket {}.get())
                     .expect(
@@ -131,7 +125,6 @@ pub fn process_packet_events(ecs: &mut World) {
                 ecs.entity_mut(player_entity)
                     .remove::<InConfigurationState>()
                     .insert(crate::JoinedClientBundle {
-                        instance_holder,
                         physics_state: crate::PhysicsState::default(),
                         inventory: crate::inventory::InventoryComponent::default(),
                         tab_list: crate::local_player::TabList::default(),

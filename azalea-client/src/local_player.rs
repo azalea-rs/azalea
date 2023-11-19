@@ -26,7 +26,7 @@ use crate::{
 
 /// A component that keeps strong references to our [`PartialInstance`] and
 /// [`Instance`] for local players.
-#[derive(Component)]
+#[derive(Component, Clone)]
 pub struct InstanceHolder {
     /// The partial instance is the world this client currently has loaded. It
     /// has a limited render distance.

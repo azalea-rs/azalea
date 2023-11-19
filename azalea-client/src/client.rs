@@ -17,7 +17,7 @@ use crate::{
     raw_connection::RawConnection,
     respawn::RespawnPlugin,
     task_pool::TaskPoolPlugin,
-    Account, PlayerInfo, ReceivedRegistries,
+    Account, PlayerInfo,
 };
 
 use azalea_auth::{game_profile::GameProfile, sessionserver::ClientSessionServerError};
@@ -99,8 +99,6 @@ pub struct Client {
     pub profile: GameProfile,
     /// The entity for this client in the ECS.
     pub entity: Entity,
-    /// The world that this client is in.
-    pub world: Arc<RwLock<PartialInstance>>,
 
     /// The entity component system. You probably don't need to access this
     /// directly. Note that if you're using a shared world (i.e. a swarm), this
@@ -147,7 +145,6 @@ impl Client {
             profile,
             // default our id to 0, it'll be set later
             entity,
-            world: Arc::new(RwLock::new(PartialInstance::default())),
 
             ecs,
 
@@ -268,7 +265,6 @@ impl Client {
                     read_conn,
                     write_conn,
                 ),
-                received_registries: ReceivedRegistries::default(),
                 local_player_events: LocalPlayerEvents(tx),
                 game_profile: GameProfileComponent(game_profile),
                 client_information: crate::ClientInformation::default(),
@@ -592,7 +588,6 @@ impl Client {
 #[derive(Bundle)]
 pub struct LocalPlayerBundle {
     pub raw_connection: RawConnection,
-    pub received_registries: ReceivedRegistries,
     pub local_player_events: LocalPlayerEvents,
     pub game_profile: GameProfileComponent,
     pub client_information: ClientInformation,
@@ -604,7 +599,7 @@ pub struct LocalPlayerBundle {
 /// use [`LocalEntity`].
 #[derive(Bundle)]
 pub struct JoinedClientBundle {
-    pub instance_holder: InstanceHolder,
+    // note that InstanceHolder isn't here because it's set slightly before we fully join the world
     pub physics_state: PhysicsState,
     pub inventory: InventoryComponent,
     pub tab_list: TabList,
@@ -679,10 +674,11 @@ async fn run_schedule_loop(
     mut run_schedule_receiver: mpsc::UnboundedReceiver<()>,
 ) {
     loop {
-        // whenever we get an event from run_schedule_receiver, run the schedule
-        run_schedule_receiver.recv().await;
         // get rid of any queued events
         while let Ok(()) = run_schedule_receiver.try_recv() {}
+
+        // whenever we get an event from run_schedule_receiver, run the schedule
+        run_schedule_receiver.recv().await;
 
         let mut ecs = ecs.lock();
         ecs.run_schedule(outer_schedule_label);
