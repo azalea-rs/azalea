@@ -255,6 +255,7 @@ dependencies = [
  "azalea-buf-macros",
  "byteorder",
  "serde_json",
+ "simdnbt",
  "thiserror",
  "tracing",
  "uuid",
@@ -295,7 +296,6 @@ dependencies = [
  "azalea-crypto",
  "azalea-entity",
  "azalea-inventory",
- "azalea-nbt",
  "azalea-physics",
  "azalea-protocol",
  "azalea-registry",
@@ -314,6 +314,7 @@ dependencies = [
  "reqwest",
  "serde",
  "serde_json",
+ "simdnbt",
  "thiserror",
  "tokio",
  "tracing",
@@ -326,13 +327,14 @@ version = "0.8.0"
 dependencies = [
  "azalea-buf",
  "azalea-inventory",
- "azalea-nbt",
  "azalea-registry",
  "bevy_ecs",
  "nohash-hasher",
  "num-traits",
  "serde",
  "serde_json",
+ "simdnbt",
+ "tracing",
  "uuid",
 ]
 
@@ -362,7 +364,6 @@ dependencies = [
  "azalea-chat",
  "azalea-core",
  "azalea-inventory",
- "azalea-nbt",
  "azalea-registry",
  "azalea-world",
  "bevy_app",
@@ -371,6 +372,7 @@ dependencies = [
  "enum-as-inner",
  "nohash-hasher",
  "parking_lot",
+ "simdnbt",
  "thiserror",
  "tracing",
  "uuid",
@@ -382,8 +384,8 @@ version = "0.8.0"
 dependencies = [
  "azalea-buf",
  "azalea-inventory-macros",
- "azalea-nbt",
  "azalea-registry",
+ "simdnbt",
 ]
 
 [[package]]
@@ -402,24 +404,6 @@ dependencies = [
  "once_cell",
  "serde",
  "serde_json",
-]
-
-[[package]]
-name = "azalea-nbt"
-version = "0.8.0"
-dependencies = [
- "azalea-buf",
- "byteorder",
- "compact_str",
- "criterion",
- "enum-as-inner",
- "fastnbt",
- "flate2",
- "graphite_binary",
- "serde",
- "thiserror",
- "tracing",
- "valence_nbt",
 ]
 
 [[package]]
@@ -457,7 +441,6 @@ dependencies = [
  "azalea-crypto",
  "azalea-entity",
  "azalea-inventory",
- "azalea-nbt",
  "azalea-protocol-macros",
  "azalea-registry",
  "azalea-world",
@@ -471,6 +454,7 @@ dependencies = [
  "once_cell",
  "serde",
  "serde_json",
+ "simdnbt",
  "thiserror",
  "tokio",
  "tokio-util",
@@ -497,6 +481,7 @@ dependencies = [
  "azalea-registry-macros",
  "once_cell",
  "serde",
+ "simdnbt",
 ]
 
 [[package]]
@@ -517,7 +502,6 @@ dependencies = [
  "azalea-client",
  "azalea-core",
  "azalea-inventory",
- "azalea-nbt",
  "azalea-registry",
  "bevy_ecs",
  "criterion",
@@ -528,6 +512,7 @@ dependencies = [
  "parking_lot",
  "serde",
  "serde_json",
+ "simdnbt",
  "thiserror",
  "tracing",
  "uuid",
@@ -806,15 +791,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "37b2a672a2cb129a2e41c10b1224bb368f9f37a2b16b612598138befd7b37eb5"
 
 [[package]]
-name = "castaway"
-version = "0.2.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8a17ed5635fc8536268e5d4de1e22e81ac34419e5f052d4d51f4e01dcc263fcc"
-dependencies = [
- "rustversion",
-]
-
-[[package]]
 name = "cc"
 version = "1.0.83"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -822,12 +798,6 @@ checksum = "f1174fb0b6ec23863f8b971027804a42614e347eafb0a95bf0b12cdae21fc4d0"
 dependencies = [
  "libc",
 ]
-
-[[package]]
-name = "cesu8"
-version = "1.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6d43a04d8753f35258c91f8ec639f792891f748a1edbd759cf1dcea3382ad83c"
 
 [[package]]
 name = "cfb8"
@@ -915,20 +885,6 @@ name = "clap_lex"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cd7cc57abe963c6d3b9d8be5b06ba7c8957a930305ca90304f24ef040aa6f961"
-
-[[package]]
-name = "compact_str"
-version = "0.7.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f86b9c4c00838774a6d902ef931eff7470720c51d90c2e32cfe15dc304737b3f"
-dependencies = [
- "castaway",
- "cfg-if",
- "itoa",
- "ryu",
- "serde",
- "static_assertions",
-]
 
 [[package]]
 name = "concurrent-queue"
@@ -1203,18 +1159,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0206175f82b8d6bf6652ff7d71a1e27fd2e4efde587fd368662814d6ec1d9ce0"
 
 [[package]]
-name = "fastnbt"
-version = "2.4.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3369bd70629bccfda7e344883c9ae3ab7f3b10a357bcf8b0f69caa7256bcf188"
-dependencies = [
- "byteorder",
- "cesu8",
- "serde",
- "serde_bytes",
-]
-
-[[package]]
 name = "fastrand"
 version = "1.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1415,31 +1359,6 @@ checksum = "b5418c17512bdf42730f9032c74e1ae39afc408745ebb2acf72fbc4691c17945"
 dependencies = [
  "bytemuck",
  "serde",
-]
-
-[[package]]
-name = "graphite_binary"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1dc8b44c673c50a2b3e6ec6652b8c8d26532254a3a182cc43b76d1b6e4cd1572"
-dependencies = [
- "anyhow",
- "bytes",
- "cesu8",
- "graphite_binary_macros",
- "thiserror",
-]
-
-[[package]]
-name = "graphite_binary_macros"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "30667bf8d368a37fa37f4165d90ee84362e360d83d85924898c41cfe3d097521"
-dependencies = [
- "anyhow",
- "proc-macro2",
- "quote",
- "syn 1.0.109",
 ]
 
 [[package]]
@@ -2234,6 +2153,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "residua-cesu8"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6ca29b145d9861719b5505602d881afc46705200144153ca9dbc0802be2938ea"
+
+[[package]]
+name = "residua-mutf8"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2adba843a48e520e7dad6d1e9c367a4f818787eaccf4530c6b90dd1f035e630d"
+dependencies = [
+ "residua-cesu8",
+]
+
+[[package]]
 name = "ring"
 version = "0.16.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2346,12 +2280,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rustversion"
-version = "1.0.14"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7ffc183a10b4478d04cbbbfc96d0873219d962dd5accaff2ffbd4ceb7df837f4"
-
-[[package]]
 name = "ryu"
 version = "1.0.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2395,15 +2323,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bca2a08484b285dcb282d0f67b26cadc0df8b19f8c12502c13d966bf9482f001"
 dependencies = [
  "serde_derive",
-]
-
-[[package]]
-name = "serde_bytes"
-version = "0.11.12"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ab33ec92f677585af6d88c65593ae2375adde54efdbf16d597f2cbc7a6d368ff"
-dependencies = [
- "serde",
 ]
 
 [[package]]
@@ -2491,6 +2410,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "simdnbt"
+version = "0.1.2"
+dependencies = [
+ "byteorder",
+ "flate2",
+ "residua-mutf8",
+ "simdnbt-derive",
+ "thiserror",
+]
+
+[[package]]
+name = "simdnbt-derive"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.39",
+]
+
+[[package]]
 name = "simple_asn1"
 version = "0.5.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2564,12 +2503,6 @@ dependencies = [
  "base64ct",
  "der",
 ]
-
-[[package]]
-name = "static_assertions"
-version = "1.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
 
 [[package]]
 name = "subtle"
@@ -2958,12 +2891,6 @@ dependencies = [
  "getrandom",
  "serde",
 ]
-
-[[package]]
-name = "valence_nbt"
-version = "0.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c3cddc3222ed5ead4fa446881b3deeeee0dba60b0088b2bf12fedbac7eda2312"
 
 [[package]]
 name = "valuable"

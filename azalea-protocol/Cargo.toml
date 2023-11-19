@@ -27,9 +27,7 @@ azalea-core = { path = "../azalea-core", optional = true, version = "^0.8.0", fe
 azalea-crypto = { path = "../azalea-crypto", version = "0.8.0" }
 azalea-entity = { version = "0.8.0", path = "../azalea-entity" }
 azalea-inventory = { version = "0.8.0", path = "../azalea-inventory" }
-azalea-nbt = { path = "../azalea-nbt", version = "^0.8.0", features = [
-    "serde",
-] }
+simdnbt = { path = "../../simdnbt/simdnbt" }
 azalea-protocol-macros = { path = "./azalea-protocol-macros", version = "0.8.0" }
 azalea-registry = { path = "../azalea-registry", version = "0.8.0" }
 azalea-world = { path = "../azalea-world", version = "0.8.0" }

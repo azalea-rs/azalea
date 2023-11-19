@@ -75,7 +75,7 @@ pub fn registry(input: TokenStream) -> TokenStream {
     let attributes = input.attributes;
     generated.extend(quote! {
         #(#attributes)*
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, azalea_buf::McBuf)]
+        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, azalea_buf::McBuf, simdnbt::ToNbtTag, simdnbt::FromNbtTag)]
         #[repr(u32)]
         pub enum #name {
             #enum_items

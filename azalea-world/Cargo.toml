@@ -15,7 +15,7 @@ azalea-core = { path = "../azalea-core", version = "^0.8.0", features = [
 	"bevy_ecs",
 ] }
 azalea-inventory = { version = "0.8.0", path = "../azalea-inventory" }
-azalea-nbt = { path = "../azalea-nbt", version = "0.8.0" }
+simdnbt = { path = "../../simdnbt/simdnbt" }
 azalea-registry = { path = "../azalea-registry", version = "0.8.0" }
 bevy_ecs = "0.12.0"
 derive_more = { version = "0.99.17", features = ["deref", "deref_mut"] }

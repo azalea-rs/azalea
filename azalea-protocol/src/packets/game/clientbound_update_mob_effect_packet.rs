@@ -1,5 +1,6 @@
 use azalea_buf::McBuf;
 use azalea_protocol_macros::ClientboundGamePacket;
+use simdnbt::owned::NbtTag;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundUpdateMobEffectPacket {
@@ -10,5 +11,5 @@ pub struct ClientboundUpdateMobEffectPacket {
     #[var]
     pub effect_duration_ticks: u32,
     pub flags: u8,
-    pub factor_data: Option<azalea_nbt::Nbt>,
+    pub factor_data: Option<NbtTag>,
 }
