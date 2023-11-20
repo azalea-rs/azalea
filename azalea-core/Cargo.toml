@@ -11,7 +11,7 @@ version = "0.8.0"
 [dependencies]
 azalea-buf = { path = "../azalea-buf", version = "0.8.0" }
 azalea-inventory = { version = "0.8.0", path = "../azalea-inventory" }
-azalea-nbt = { path = "../azalea-nbt", version = "0.8.0" }
+simdnbt = { version = "0.2.1" }
 azalea-registry = { path = "../azalea-registry", version = "0.8.0" }
 bevy_ecs = { version = "0.12.0", default-features = false, optional = true }
 nohash-hasher = "0.2.0"
@@ -19,6 +19,7 @@ num-traits = "0.2.17"
 serde = { version = "^1.0", optional = true }
 uuid = "^1.5.0"
 serde_json = "^1.0.108"
+tracing = "0.1.40"
 
 [features]
 bevy_ecs = ["dep:bevy_ecs"]

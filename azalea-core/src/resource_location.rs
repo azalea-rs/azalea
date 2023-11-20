@@ -1,7 +1,11 @@
 //! A resource, like minecraft:stone
 
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
-use std::io::{Cursor, Write};
+use simdnbt::{owned::NbtTag, FromNbtTag, ToNbtTag};
+use std::{
+    io::{Cursor, Write},
+    str::FromStr,
+};
 
 #[cfg(feature = "serde")]
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
@@ -47,6 +51,13 @@ impl std::fmt::Debug for ResourceLocation {
         write!(f, "{}:{}", self.namespace, self.path)
     }
 }
+impl FromStr for ResourceLocation {
+    type Err = &'static str;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(ResourceLocation::new(s))
+    }
+}
 
 impl McBufReadable for ResourceLocation {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
@@ -85,6 +96,18 @@ impl<'de> Deserialize<'de> for ResourceLocation {
                 &"a valid ResourceLocation",
             ))
         }
+    }
+}
+
+impl FromNbtTag for ResourceLocation {
+    fn from_nbt_tag(tag: NbtTag) -> Option<Self> {
+        tag.string().and_then(|s| s.to_str().parse().ok())
+    }
+}
+
+impl ToNbtTag for ResourceLocation {
+    fn to_nbt_tag(self) -> NbtTag {
+        NbtTag::String(self.to_string().into())
     }
 }
 

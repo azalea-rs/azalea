@@ -50,6 +50,18 @@ pub enum BufReadError {
         #[backtrace]
         source: serde_json::Error,
     },
+    #[error("{source}")]
+    Nbt {
+        #[from]
+        #[backtrace]
+        source: simdnbt::Error,
+    },
+    #[error("{source}")]
+    DeserializeNbt {
+        #[from]
+        #[backtrace]
+        source: simdnbt::DeserializeError,
+    },
 }
 
 fn read_bytes<'a>(buf: &'a mut Cursor<&[u8]>, length: usize) -> Result<&'a [u8], BufReadError> {
@@ -338,5 +350,26 @@ impl<T: McBufReadable, const N: usize> McBufReadable for [T; N] {
         contents.try_into().map_err(|_| {
             unreachable!("Panic is not possible since the Vec is the same size as the array")
         })
+    }
+}
+
+impl McBufReadable for simdnbt::owned::NbtTag {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        Ok(simdnbt::owned::NbtTag::read(buf)?)
+    }
+}
+
+impl McBufReadable for simdnbt::owned::NbtCompound {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        match simdnbt::owned::NbtTag::read(buf)? {
+            simdnbt::owned::NbtTag::Compound(compound) => Ok(compound),
+            _ => Err(BufReadError::Custom("Expected compound tag".to_string())),
+        }
+    }
+}
+
+impl McBufReadable for simdnbt::owned::Nbt {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        Ok(simdnbt::owned::Nbt::read_unnamed(buf)?)
     }
 }

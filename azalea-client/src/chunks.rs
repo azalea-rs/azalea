@@ -4,17 +4,18 @@
 
 use std::{
     io::Cursor,
+    ops::Deref,
     time::{Duration, Instant},
 };
 
 use azalea_core::position::ChunkPos;
-use azalea_nbt::NbtCompound;
 use azalea_protocol::packets::game::{
     clientbound_level_chunk_with_light_packet::ClientboundLevelChunkWithLightPacket,
     serverbound_chunk_batch_received_packet::ServerboundChunkBatchReceivedPacket,
 };
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
+use simdnbt::owned::BaseNbt;
 use tracing::{error, trace};
 
 use crate::{
@@ -99,10 +100,10 @@ fn handle_receive_chunk_events(
             }
         }
 
-        let heightmaps = event.packet.chunk_data.heightmaps.as_compound();
+        let heightmaps_nbt = &event.packet.chunk_data.heightmaps;
         // necessary to make the unwrap_or work
-        let empty_nbt_compound = NbtCompound::default();
-        let heightmaps = heightmaps.unwrap_or(&empty_nbt_compound);
+        let empty_nbt = BaseNbt::default();
+        let heightmaps = heightmaps_nbt.unwrap_or(&empty_nbt).deref();
 
         if let Err(e) = partial_instance.chunks.replace_with_packet_data(
             &pos,

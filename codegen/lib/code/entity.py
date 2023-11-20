@@ -400,7 +400,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
                     if default is None:
                         # some types don't have Default implemented
                         if type_name == 'CompoundTag':
-                            default = 'azalea_nbt::Nbt::Compound(Default::default())'
+                            default = 'simdnbt::owned::NbtCompound::default()'
                         elif type_name == 'CatVariant':
                             default = 'azalea_registry::CatVariant::Tabby'
                         elif type_name == 'PaintingVariant':
@@ -434,7 +434,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
                         elif type_name == 'OptionalFormattedText':
                             default = f'Some({default})' if default != 'Empty' else 'None'
                         elif type_name == 'CompoundTag':
-                            default = f'azalea_nbt::Nbt::Compound({default})' if default != 'Empty' else 'azalea_nbt::Nbt::Compound(Default::default())'
+                            default = f'simdnbt::owned::NbtCompound({default})' if default != 'Empty' else 'simdnbt::owned::NbtCompound::default()'
                         elif type_name == 'Quaternion':
                             default = f'Quaternion {{ x: {float(default["x"])}, y: {float(default["y"])}, z: {float(default["z"])}, w: {float(default["w"])} }}'
                         elif type_name == 'Vector3':

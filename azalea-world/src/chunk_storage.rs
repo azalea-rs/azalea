@@ -5,9 +5,9 @@ use crate::palette::PalettedContainerKind;
 use azalea_block::BlockState;
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 use azalea_core::position::{BlockPos, ChunkBlockPos, ChunkPos, ChunkSectionBlockPos};
-use azalea_nbt::NbtCompound;
 use nohash_hasher::IntMap;
 use parking_lot::RwLock;
+use simdnbt::owned::NbtCompound;
 use std::collections::hash_map::Entry;
 use std::str::FromStr;
 use std::{
@@ -323,11 +323,11 @@ impl Chunk {
 
         let mut heightmaps = HashMap::new();
         for (name, heightmap) in heightmaps_nbt.iter() {
-            let Ok(kind) = HeightmapKind::from_str(name) else {
+            let Ok(kind) = HeightmapKind::from_str(&name.to_str()) else {
                 warn!("Unknown heightmap kind: {name}");
                 continue;
             };
-            let Some(data) = heightmap.as_long_array() else {
+            let Some(data) = heightmap.long_array() else {
                 warn!("Heightmap {name} is not a long array");
                 continue;
             };

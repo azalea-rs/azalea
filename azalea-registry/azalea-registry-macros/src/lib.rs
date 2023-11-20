@@ -75,7 +75,7 @@ pub fn registry(input: TokenStream) -> TokenStream {
     let attributes = input.attributes;
     generated.extend(quote! {
         #(#attributes)*
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, azalea_buf::McBuf)]
+        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, azalea_buf::McBuf, simdnbt::ToNbtTag, simdnbt::FromNbtTag)]
         #[repr(u32)]
         pub enum #name {
             #enum_items
@@ -166,29 +166,6 @@ pub fn registry(input: TokenStream) -> TokenStream {
             }
         }
     });
-
-    #[cfg(feature = "serde")]
-    {
-        generated.extend(quote! {
-            impl serde::Serialize for #name {
-                fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-                where
-                    S: serde::Serializer,
-                {
-                    serializer.serialize_str(&self.to_string())
-                }
-            }
-            impl<'de> serde::Deserialize<'de> for #name {
-                fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-                where
-                    D: serde::Deserializer<'de>,
-                {
-                    let s = String::deserialize(deserializer)?;
-                    s.parse().map_err(serde::de::Error::custom)
-                }
-            }
-        });
-    }
 
     generated.into()
 }

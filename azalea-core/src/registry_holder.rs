@@ -6,100 +6,103 @@
 //! biomes.
 
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
-use azalea_nbt::Nbt;
-use serde::{
-    de::{self, DeserializeOwned},
-    Deserialize, Deserializer, Serialize, Serializer,
+use simdnbt::{
+    owned::{NbtCompound, NbtTag},
+    Deserialize, FromNbtTag, Serialize, ToNbtTag,
 };
 use std::{collections::HashMap, io::Cursor};
+use tracing::error;
 
 use crate::resource_location::ResourceLocation;
 
 /// The base of the registry.
 ///
 /// This is the registry that is sent to the client upon login.
-#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone)]
 pub struct RegistryHolder {
-    pub map: HashMap<ResourceLocation, Nbt>,
+    pub map: HashMap<ResourceLocation, NbtCompound>,
 }
 
 impl RegistryHolder {
-    fn get<T: DeserializeOwned>(&self, name: &ResourceLocation) -> Option<T> {
-        let nbt = self.map.get(name)?;
-        serde_json::from_value(serde_json::to_value(nbt).ok()?).ok()
+    fn get<T: Deserialize>(
+        &self,
+        name: &ResourceLocation,
+    ) -> Option<Result<T, simdnbt::DeserializeError>> {
+        self.map.get(name).map(|nbt| T::from_compound(nbt.clone()))
     }
 
     /// Get the dimension type registry, or `None` if it doesn't exist. You
     /// should do some type of error handling if this returns `None`.
     pub fn dimension_type(&self) -> Option<RegistryType<DimensionTypeElement>> {
-        self.get(&ResourceLocation::new("minecraft:dimension_type"))
-    }
-}
-
-impl TryFrom<Nbt> for RegistryHolder {
-    type Error = serde_json::Error;
-
-    fn try_from(value: Nbt) -> Result<Self, Self::Error> {
-        Ok(RegistryHolder {
-            map: serde_json::from_value(serde_json::to_value(value)?)?,
-        })
-    }
-}
-
-impl TryInto<Nbt> for RegistryHolder {
-    type Error = serde_json::Error;
-
-    fn try_into(self) -> Result<Nbt, Self::Error> {
-        serde_json::from_value(serde_json::to_value(self.map)?)
+        let name = ResourceLocation::new("minecraft:dimension_type");
+        match self.get(&name) {
+            Some(Ok(registry)) => Some(registry),
+            Some(Err(err)) => {
+                error!(
+                    "Error deserializing dimension type registry: {err:?}\n{:?}",
+                    self.map.get(&name)
+                );
+                None
+            }
+            None => None,
+        }
     }
 }
 
 impl McBufReadable for RegistryHolder {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        RegistryHolder::try_from(Nbt::read_from(buf)?)
-            .map_err(|e| BufReadError::Deserialization { source: e })
+        let nbt_compound = NbtCompound::read_from(buf)?;
+        Ok(RegistryHolder {
+            map: simdnbt::Deserialize::from_compound(nbt_compound)?,
+        })
     }
 }
 
 impl McBufWritable for RegistryHolder {
     fn write_into(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
-        TryInto::<Nbt>::try_into(self.clone())?.write_into(buf)
+        let mut written = Vec::new();
+        self.map.clone().to_compound().write_into(&mut written)?;
+        buf.write_all(&written)
     }
 }
 
 /// A collection of values for a certain type of registry data.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
-pub struct RegistryType<T> {
-    #[serde(rename = "type")]
+#[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
+pub struct RegistryType<T>
+where
+    T: Serialize + Deserialize,
+{
+    #[simdnbt(rename = "type")]
     pub kind: ResourceLocation,
     pub value: Vec<TypeValue<T>>,
 }
 
 /// A value for a certain type of registry data.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
-pub struct TypeValue<T> {
+#[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
+pub struct TypeValue<T>
+where
+    T: Serialize + Deserialize,
+{
     pub id: u32,
     pub name: ResourceLocation,
     pub element: T,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
+#[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
 pub struct TrimMaterialElement {
     pub asset_name: String,
     pub ingredient: ResourceLocation,
     pub item_model_index: f32,
     pub override_armor_materials: HashMap<String, String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
 }
 
 /// Data about a kind of chat message
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
+#[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
 pub struct ChatTypeElement {
     pub chat: ChatTypeData,
     pub narration: ChatTypeData,
@@ -107,48 +110,29 @@ pub struct ChatTypeElement {
 
 /// Data about a chat message.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
+#[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
 pub struct ChatTypeData {
     pub translation_key: String,
     pub parameters: Vec<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub style: Option<ChatTypeStyle>,
 }
 
 /// The style of a chat message.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
+#[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
 pub struct ChatTypeStyle {
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub color: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(with = "Convert")]
     pub bold: Option<bool>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(with = "Convert")]
     pub italic: Option<bool>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(with = "Convert")]
     pub underlined: Option<bool>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(with = "Convert")]
     pub strikethrough: Option<bool>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(with = "Convert")]
     pub obfuscated: Option<bool>,
 }
 
 /// Dimension attributes.
 #[cfg(feature = "strict_registry")]
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[simdnbt(deny_unknown_fields)]
 pub struct DimensionTypeElement {
     pub ambient_light: f32,
     #[serde(with = "Convert")]
@@ -186,65 +170,104 @@ pub struct DimensionTypeElement {
 pub struct DimensionTypeElement {
     pub height: u32,
     pub min_y: i32,
-    #[serde(flatten)]
-    pub _extra: HashMap<String, Nbt>,
+    #[simdnbt(flatten)]
+    pub _extra: HashMap<String, NbtTag>,
 }
 
 /// The light level at which monsters can spawn.
 ///
 /// This can be either a single minimum value, or a formula with a min and
 /// max.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(untagged)]
-#[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
+#[derive(Debug, Clone)]
+// #[serde(untagged)]
+#[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
 pub enum MonsterSpawnLightLevel {
     /// A simple minimum value.
     Simple(u32),
     /// A complex value with a type, minimum, and maximum.
     /// Vanilla minecraft only uses one type, "minecraft:uniform".
     Complex {
-        #[serde(rename = "type")]
         kind: ResourceLocation,
         value: MonsterSpawnLightLevelValues,
     },
+}
+
+impl FromNbtTag for MonsterSpawnLightLevel {
+    fn from_nbt_tag(tag: simdnbt::owned::NbtTag) -> Option<Self> {
+        if let Some(value) = tag.int() {
+            Some(Self::Simple(value as u32))
+        } else if let Some(value) = tag.compound() {
+            let kind = ResourceLocation::from_nbt_tag(value.get("type")?.clone())?;
+            let value = MonsterSpawnLightLevelValues::from_nbt_tag(value.get("value")?.clone())?;
+            Some(Self::Complex { kind, value })
+        } else {
+            None
+        }
+    }
+}
+
+impl ToNbtTag for MonsterSpawnLightLevel {
+    fn to_nbt_tag(self) -> simdnbt::owned::NbtTag {
+        match self {
+            Self::Simple(value) => value.to_nbt_tag(),
+            Self::Complex { kind, value } => {
+                let mut compound = NbtCompound::new();
+                compound.insert("type", kind.to_nbt_tag());
+                compound.insert("value", value.to_nbt_tag());
+                simdnbt::owned::NbtTag::Compound(compound)
+            }
+        }
+    }
 }
 
 /// The min and max light levels at which monsters can spawn.
 ///
 /// Values are inclusive.
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
+#[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
 pub struct MonsterSpawnLightLevelValues {
-    #[serde(rename = "min_inclusive")]
+    #[simdnbt(rename = "min_inclusive")]
     pub min: u32,
-    #[serde(rename = "max_inclusive")]
+    #[simdnbt(rename = "max_inclusive")]
     pub max: u32,
 }
 
 /// Biome attributes.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
+#[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
 pub struct WorldTypeElement {
-    #[serde(with = "Convert")]
     pub has_precipitation: bool,
     pub temperature: f32,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub temperature_modifier: Option<String>,
     pub downfall: f32,
     pub effects: BiomeEffects,
 }
 
 /// The precipitation of a biome.
-#[derive(Debug, PartialEq, Eq, Copy, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
+#[derive(Debug, PartialEq, Eq, Copy, Clone)]
 pub enum BiomePrecipitation {
-    #[serde(rename = "none")]
     None,
-    #[serde(rename = "rain")]
     Rain,
-    #[serde(rename = "snow")]
     Snow,
+}
+impl FromNbtTag for BiomePrecipitation {
+    fn from_nbt_tag(tag: NbtTag) -> Option<Self> {
+        match tag.string()?.to_str().as_ref() {
+            "none" => Some(Self::None),
+            "rain" => Some(Self::Rain),
+            "snow" => Some(Self::Snow),
+            _ => None,
+        }
+    }
+}
+impl ToNbtTag for BiomePrecipitation {
+    fn to_nbt_tag(self) -> NbtTag {
+        match self {
+            Self::None => NbtTag::String("none".into()),
+            Self::Rain => NbtTag::String("rain".into()),
+            Self::Snow => NbtTag::String("snow".into()),
+        }
+    }
 }
 
 /// The effects of a biome.
@@ -252,33 +275,19 @@ pub enum BiomePrecipitation {
 /// This includes the sky, fog, water, and grass color,
 /// as well as music and other sound effects.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
+#[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
 pub struct BiomeEffects {
     pub sky_color: u32,
     pub fog_color: u32,
     pub water_color: u32,
     pub water_fog_color: u32,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub foliage_color: Option<u32>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub grass_color: Option<u32>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub grass_color_modifier: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub music: Option<BiomeMusic>,
     pub mood_sound: BiomeMoodSound,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub additions_sound: Option<AdditionsSound>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub ambient_sound: Option<ResourceLocation>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub particle: Option<BiomeParticle>,
 }
 
@@ -286,9 +295,8 @@ pub struct BiomeEffects {
 ///
 /// Some biomes have unique music that only play when inside them.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
+#[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
 pub struct BiomeMusic {
-    #[serde(with = "Convert")]
     pub replace_current_music: bool,
     pub max_delay: u32,
     pub min_delay: u32,
@@ -296,7 +304,7 @@ pub struct BiomeMusic {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
+#[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
 pub struct BiomeMoodSound {
     pub tick_delay: u32,
     pub block_search_extent: u32,
@@ -305,7 +313,7 @@ pub struct BiomeMoodSound {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
+#[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
 pub struct AdditionsSound {
     pub tick_chance: f32,
     pub sound: azalea_registry::SoundEvent,
@@ -315,98 +323,25 @@ pub struct AdditionsSound {
 ///
 /// Some biomes have particles that spawn in the air.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
+#[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
 pub struct BiomeParticle {
     pub probability: f32,
     pub options: HashMap<String, String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
+#[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
 pub struct TrimPatternElement {
-    #[serde(flatten)]
+    #[simdnbt(flatten)]
     pub pattern: HashMap<String, String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "strict_registry", serde(deny_unknown_fields))]
+#[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
 pub struct DamageTypeElement {
     pub message_id: String,
     pub scaling: String,
     pub exhaustion: f32,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub effects: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub death_message_type: Option<String>,
-}
-
-// Using a trait because you can't implement methods for
-// types you don't own, in this case Option<bool> and bool.
-trait Convert: Sized {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer;
-
-    fn deserialize<'de, D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>;
-}
-
-// Convert between bool and u8
-impl Convert for bool {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        serializer.serialize_u8(if *self { 1 } else { 0 })
-    }
-
-    fn deserialize<'de, D>(deserializer: D) -> Result<bool, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        convert::<D>(u8::deserialize(deserializer)?)
-    }
-}
-
-// Convert between Option<bool> and u8
-impl Convert for Option<bool> {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        if let Some(value) = self {
-            Convert::serialize(value, serializer)
-        } else {
-            serializer.serialize_none()
-        }
-    }
-
-    fn deserialize<'de, D>(deserializer: D) -> Result<Option<bool>, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        if let Some(value) = Option::<u8>::deserialize(deserializer)? {
-            Ok(Some(convert::<D>(value)?))
-        } else {
-            Ok(None)
-        }
-    }
-}
-
-// Deserializing logic here to deduplicate code
-fn convert<'de, D>(value: u8) -> Result<bool, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    match value {
-        0 => Ok(false),
-        1 => Ok(true),
-        other => Err(de::Error::invalid_value(
-            de::Unexpected::Unsigned(other as u64),
-            &"zero or one",
-        )),
-    }
 }
