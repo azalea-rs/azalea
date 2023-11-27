@@ -304,7 +304,7 @@ enum Block {
     DetectorRail => "minecraft:detector_rail",
     StickyPiston => "minecraft:sticky_piston",
     Cobweb => "minecraft:cobweb",
-    Grass => "minecraft:grass",
+    ShortGrass => "minecraft:short_grass",
     Fern => "minecraft:fern",
     DeadBush => "minecraft:dead_bush",
     Seagrass => "minecraft:seagrass",
@@ -1363,6 +1363,7 @@ enum CommandArgumentKind {
     ItemPredicate => "minecraft:item_predicate",
     Color => "minecraft:color",
     Component => "minecraft:component",
+    Style => "minecraft:style",
     Message => "minecraft:message",
     NbtCompoundTag => "minecraft:nbt_compound_tag",
     NbtTag => "minecraft:nbt_tag",
@@ -1976,7 +1977,7 @@ enum Item {
     ChiseledSandstone => "minecraft:chiseled_sandstone",
     CutSandstone => "minecraft:cut_sandstone",
     Cobweb => "minecraft:cobweb",
-    Grass => "minecraft:grass",
+    ShortGrass => "minecraft:short_grass",
     Fern => "minecraft:fern",
     Azalea => "minecraft:azalea",
     FloweringAzalea => "minecraft:flowering_azalea",
@@ -5935,6 +5936,7 @@ enum BlockKind {
     WallTorch => "minecraft:wall_torch",
     Wall => "minecraft:wall",
     Waterlily => "minecraft:waterlily",
+    WaterloggedTransparent => "minecraft:waterlogged_transparent",
     WeatheringCopperBulb => "minecraft:weathering_copper_bulb",
     WeatheringCopperDoor => "minecraft:weathering_copper_door",
     WeatheringCopperFull => "minecraft:weathering_copper_full",
@@ -6016,5 +6018,13 @@ enum TriggerKind {
     AllayDropItemOnBlock => "minecraft:allay_drop_item_on_block",
     AvoidVibration => "minecraft:avoid_vibration",
     RecipeCrafted => "minecraft:recipe_crafted",
+}
+}
+
+registry! {
+enum NumberFormatKind {
+    Blank => "minecraft:blank",
+    Styled => "minecraft:styled",
+    Fixed => "minecraft:fixed",
 }
 }

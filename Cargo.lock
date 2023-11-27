@@ -276,6 +276,7 @@ dependencies = [
  "azalea-buf",
  "azalea-language",
  "azalea-nbt",
+ "azalea-registry",
  "log",
  "once_cell",
  "serde",

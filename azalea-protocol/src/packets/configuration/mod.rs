@@ -4,7 +4,8 @@ pub mod clientbound_finish_configuration_packet;
 pub mod clientbound_keep_alive_packet;
 pub mod clientbound_ping_packet;
 pub mod clientbound_registry_data_packet;
-pub mod clientbound_resource_pack_packet;
+pub mod clientbound_resource_pack_pop_packet;
+pub mod clientbound_resource_pack_push_packet;
 pub mod clientbound_update_enabled_features_packet;
 pub mod clientbound_update_tags_packet;
 pub mod serverbound_client_information_packet;
@@ -32,8 +33,9 @@ declare_state_packets!(
         0x03: clientbound_keep_alive_packet::ClientboundKeepAlivePacket,
         0x04: clientbound_ping_packet::ClientboundPingPacket,
         0x05: clientbound_registry_data_packet::ClientboundRegistryDataPacket,
-        0x06: clientbound_resource_pack_packet::ClientboundResourcePackPacket,
-        0x07: clientbound_update_enabled_features_packet::ClientboundUpdateEnabledFeaturesPacket,
-        0x08: clientbound_update_tags_packet::ClientboundUpdateTagsPacket,
+        0x06: clientbound_resource_pack_pop_packet::ClientboundResourcePackPopPacket,
+        0x07: clientbound_resource_pack_push_packet::ClientboundResourcePackPushPacket,
+        0x08: clientbound_update_enabled_features_packet::ClientboundUpdateEnabledFeaturesPacket,
+        0x09: clientbound_update_tags_packet::ClientboundUpdateTagsPacket,
     }
 );

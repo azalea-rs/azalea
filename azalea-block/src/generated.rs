@@ -832,6 +832,26 @@ make_block_states! {
         },
         "locked" => bool,
         "down" => bool,
+        "age" => PumpkinStemAge {
+            _0,
+            _1,
+            _2,
+            _3,
+            _4,
+            _5,
+            _6,
+            _7,
+        },
+        "age" => MelonStemAge {
+            _0,
+            _1,
+            _2,
+            _3,
+            _4,
+            _5,
+            _6,
+            _7,
+        },
         "down" => bool,
         "north" => bool,
         "south" => bool,
@@ -2261,7 +2281,7 @@ make_block_states! {
             facing: FacingCubic::North,
         },
         cobweb => BlockBehavior::new().requires_correct_tool_for_drops().strength(4.0, 4.0), {},
-        grass => BlockBehavior::new(), {},
+        short_grass => BlockBehavior::new(), {},
         fern => BlockBehavior::new(), {},
         dead_bush => BlockBehavior::new(), {},
         seagrass => BlockBehavior::new(), {},
@@ -2815,6 +2835,20 @@ make_block_states! {
             south: false,
             waterlogged: false,
             west: false,
+        },
+        pumpkin => BlockBehavior::new().strength(1.0, 1.0), {},
+        melon => BlockBehavior::new().strength(1.0, 1.0), {},
+        attached_pumpkin_stem => BlockBehavior::new(), {
+            facing: FacingCardinal::North,
+        },
+        attached_melon_stem => BlockBehavior::new(), {
+            facing: FacingCardinal::North,
+        },
+        pumpkin_stem => BlockBehavior::new(), {
+            age: PumpkinStemAge::_0,
+        },
+        melon_stem => BlockBehavior::new(), {
+            age: MelonStemAge::_0,
         },
         vine => BlockBehavior::new().strength(0.2, 0.2), {
             east: false,
@@ -5133,14 +5167,30 @@ make_block_states! {
             powered: false,
             waterlogged: false,
         },
-        copper_grate => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {},
-        exposed_copper_grate => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {},
-        weathered_copper_grate => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {},
-        oxidized_copper_grate => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {},
-        waxed_copper_grate => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {},
-        waxed_exposed_copper_grate => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {},
-        waxed_weathered_copper_grate => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {},
-        waxed_oxidized_copper_grate => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {},
+        copper_grate => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
+            waterlogged: false,
+        },
+        exposed_copper_grate => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
+            waterlogged: false,
+        },
+        weathered_copper_grate => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
+            waterlogged: false,
+        },
+        oxidized_copper_grate => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
+            waterlogged: false,
+        },
+        waxed_copper_grate => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
+            waterlogged: false,
+        },
+        waxed_exposed_copper_grate => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
+            waterlogged: false,
+        },
+        waxed_weathered_copper_grate => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
+            waterlogged: false,
+        },
+        waxed_oxidized_copper_grate => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
+            waterlogged: false,
+        },
         copper_bulb => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
             lit: false,
             powered: false,

@@ -307,24 +307,26 @@ mod tests {
         let recipe = Recipe {
             identifier: ResourceLocation::new("minecraft:crafting_shaped"),
             data: RecipeData::CraftingShaped(ShapedRecipe {
-                width: 2,
-                height: 2,
                 group: String::new(),
                 category: CraftingBookCategory::Building,
-                ingredients: vec![
-                    Ingredient {
-                        allowed: vec![ItemSlot::Empty],
-                    },
-                    Ingredient {
-                        allowed: vec![ItemSlot::Empty],
-                    },
-                    Ingredient {
-                        allowed: vec![ItemSlot::Empty],
-                    },
-                    Ingredient {
-                        allowed: vec![ItemSlot::Empty],
-                    },
-                ],
+                pattern: ShapedRecipePattern {
+                    width: 2,
+                    height: 2,
+                    ingredients: vec![
+                        Ingredient {
+                            allowed: vec![ItemSlot::Empty],
+                        },
+                        Ingredient {
+                            allowed: vec![ItemSlot::Empty],
+                        },
+                        Ingredient {
+                            allowed: vec![ItemSlot::Empty],
+                        },
+                        Ingredient {
+                            allowed: vec![ItemSlot::Empty],
+                        },
+                    ],
+                },
                 result: ItemSlot::Empty,
                 show_notification: false,
             }),
