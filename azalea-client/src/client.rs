@@ -476,7 +476,7 @@ impl Client {
     /// # use azalea_core::position::ChunkPos;
     /// # fn example(client: &azalea_client::Client) {
     /// let world = client.partial_world();
-    /// let is_0_0_loaded = world.read().chunks.in_range(&ChunkPos::new(0, 0));
+    /// let is_0_0_loaded = world.read().chunks.limited_get(&ChunkPos::new(0, 0)).is_some();
     /// # }
     pub fn partial_world(&self) -> Arc<RwLock<PartialInstance>> {
         let instance_holder = self.component::<InstanceHolder>();
