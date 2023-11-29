@@ -3,8 +3,6 @@
 #![feature(type_changing_struct_update)]
 #![feature(lazy_cell)]
 #![feature(let_chains)]
-#![feature(return_position_impl_trait_in_trait)]
-#![feature(async_fn_in_trait)]
 
 pub mod accept_resource_packs;
 mod auto_respawn;
