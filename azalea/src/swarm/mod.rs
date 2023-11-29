@@ -8,7 +8,7 @@ use azalea_client::{
     chat::ChatPacket, start_ecs_runner, Account, Client, DefaultPlugins, Event, JoinError,
 };
 use azalea_protocol::{
-    connect::ConnectionError,
+    connect::{ConnectionError, Proxy},
     resolver::{self, ResolverError},
     ServerAddress,
 };
@@ -350,7 +350,7 @@ where
                 // if there's a join delay, then join one by one
                 for (account, state) in accounts.iter().zip(states) {
                     swarm_clone
-                        .add_with_exponential_backoff(account, state)
+                        .add_with_exponential_backoff(account, None, state)
                         .await;
                     tokio::time::sleep(join_delay).await;
                 }
@@ -364,7 +364,7 @@ where
                         .map(move |(account, state)| async {
                             swarm_borrow
                                 .clone()
-                                .add_with_exponential_backoff(account, state)
+                                .add_with_exponential_backoff(account, None, state)
                                 .await;
                         }),
                 )
@@ -524,6 +524,7 @@ impl Swarm {
     pub async fn add<S: Component + Clone>(
         &mut self,
         account: &Account,
+        proxy: Option<Proxy>,
         state: S,
     ) -> Result<Client, JoinError> {
         // tx is moved to the bot so it can send us events
@@ -537,6 +538,7 @@ impl Swarm {
             account,
             &self.address,
             &self.resolved_address,
+            proxy,
             self.run_schedule_sender.clone(),
         )
         .await?;
@@ -580,11 +582,12 @@ impl Swarm {
     pub async fn add_with_exponential_backoff<S: Component + Clone>(
         &mut self,
         account: &Account,
+        proxy: Option<Proxy>,
         state: S,
     ) -> Client {
         let mut disconnects = 0;
         loop {
-            match self.add(account, state.clone()).await {
+            match self.add(account, proxy.clone(), state.clone()).await {
                 Ok(bot) => return bot,
                 Err(e) => {
                     disconnects += 1;

@@ -31,7 +31,7 @@ use azalea_entity::{
 };
 use azalea_physics::PhysicsPlugin;
 use azalea_protocol::{
-    connect::{Connection, ConnectionError},
+    connect::{Connection, ConnectionError, Proxy},
     packets::{
         configuration::{
             serverbound_client_information_packet::ClientInformation,
@@ -175,6 +175,7 @@ impl Client {
     pub async fn join(
         account: &Account,
         address: impl TryInto<ServerAddress>,
+        proxy: Option<Proxy>,
     ) -> Result<(Self, mpsc::UnboundedReceiver<Event>), JoinError> {
         let address: ServerAddress = address.try_into().map_err(|_| JoinError::InvalidAddress)?;
         let resolved_address = resolver::resolve_address(&address).await?;
@@ -192,6 +193,7 @@ impl Client {
             account,
             &address,
             &resolved_address,
+            proxy,
             run_schedule_sender,
         )
         .await
@@ -204,9 +206,10 @@ impl Client {
         account: &Account,
         address: &ServerAddress,
         resolved_address: &SocketAddr,
+        proxy: Option<Proxy>,
         run_schedule_sender: mpsc::UnboundedSender<()>,
     ) -> Result<(Self, mpsc::UnboundedReceiver<Event>), JoinError> {
-        let conn = Connection::new(resolved_address).await?;
+        let conn = Connection::new(resolved_address, proxy).await?;
         let (mut conn, game_profile) = Self::handshake(conn, account, address).await?;
 
         {

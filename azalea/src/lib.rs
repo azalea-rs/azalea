@@ -3,6 +3,8 @@
 #![feature(type_changing_struct_update)]
 #![feature(lazy_cell)]
 #![feature(let_chains)]
+#![feature(return_position_impl_trait_in_trait)]
+#![feature(async_fn_in_trait)]
 
 pub mod accept_resource_packs;
 mod auto_respawn;
@@ -33,6 +35,7 @@ pub use azalea_world as world;
 pub use bot::*;
 use ecs::component::Component;
 use futures::{future::BoxFuture, Future};
+use protocol::connect::Proxy;
 use protocol::{
     resolver::{self, ResolverError},
     ServerAddress,
@@ -186,6 +189,7 @@ where
         self,
         account: Account,
         address: impl TryInto<ServerAddress>,
+        proxy: Option<Proxy>,
     ) -> Result<(), StartError> {
         let address: ServerAddress = address.try_into().map_err(|_| JoinError::InvalidAddress)?;
         let resolved_address = resolver::resolve_address(&address).await?;
@@ -201,6 +205,7 @@ where
             &account,
             &address,
             &resolved_address,
+            proxy,
             run_schedule_sender,
         )
         .await?;

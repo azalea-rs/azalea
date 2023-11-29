@@ -15,12 +15,13 @@ use azalea_auth::game_profile::GameProfile;
 use azalea_auth::sessionserver::{ClientSessionServerError, ServerSessionServerError};
 use azalea_crypto::{Aes128CfbDec, Aes128CfbEnc};
 use bytes::BytesMut;
+use socks5_impl::protocol::UserKey;
 use std::fmt::Debug;
 use std::io::Cursor;
 use std::marker::PhantomData;
 use std::net::SocketAddr;
 use thiserror::Error;
-use tokio::io::AsyncWriteExt;
+use tokio::io::{AsyncWriteExt, BufStream};
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf, ReuniteError};
 use tokio::net::TcpStream;
 use tracing::{error, info};
@@ -257,15 +258,43 @@ pub enum ConnectionError {
     Io(#[from] std::io::Error),
 }
 
+#[derive(Debug, Clone)]
+pub struct Proxy {
+    pub addr: SocketAddr,
+    pub auth: Option<(String, String)>,
+}
+
+impl Proxy {
+    pub fn new(addr: SocketAddr, auth: Option<(String, String)>) -> Self {
+        Self { addr, auth }
+    }
+}
+
 impl Connection<ClientboundHandshakePacket, ServerboundHandshakePacket> {
     /// Create a new connection to the given address.
-    pub async fn new(address: &SocketAddr) -> Result<Self, ConnectionError> {
-        let stream = TcpStream::connect(address).await?;
+    pub async fn new(address: &SocketAddr, proxy: Option<Proxy>) -> Result<Self, ConnectionError> {
+        let (read_stream, write_stream) = match proxy {
+            Some(proxy) => {
+                let proxy_stream = TcpStream::connect(proxy.addr).await?;
+                let mut stream = BufStream::new(proxy_stream);
+                let auth = match proxy.auth {
+                    Some((username, password)) => Some(UserKey::new(&username, &password)),
+                    None => None,
+                };
+                
+                let _ = socks5_impl::client::connect(&mut stream, address, auth).await
+                    .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
+                stream.into_inner()
+            },
+            None => {
+                let stream = TcpStream::connect(address).await?;
 
-        // enable tcp_nodelay
-        stream.set_nodelay(true)?;
+                // enable tcp_nodelay
+                stream.set_nodelay(true)?;
 
-        let (read_stream, write_stream) = stream.into_split();
+                stream
+            },
+        }.into_split();
 
         Ok(Connection {
             reader: ReadConnection {

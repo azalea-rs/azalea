@@ -1,7 +1,7 @@
 //! Ping Minecraft servers.
 
 use azalea_protocol::{
-    connect::{Connection, ConnectionError},
+    connect::{Connection, ConnectionError, Proxy},
     packets::{
         handshaking::client_intention_packet::ClientIntentionPacket,
         status::{
@@ -45,12 +45,13 @@ pub enum PingError {
 /// ```
 pub async fn ping_server(
     address: impl TryInto<ServerAddress>,
+    proxy: Option<Proxy>
 ) -> Result<ClientboundStatusResponsePacket, PingError> {
     let address: ServerAddress = address.try_into().map_err(|_| PingError::InvalidAddress)?;
 
     let resolved_address = resolver::resolve_address(&address).await?;
 
-    let mut conn = Connection::new(&resolved_address).await?;
+    let mut conn = Connection::new(&resolved_address, proxy).await?;
 
     // send the client intention packet and switch to the status state
     conn.write(

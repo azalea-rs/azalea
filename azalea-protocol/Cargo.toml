@@ -48,6 +48,7 @@ trust-dns-resolver = { version = "^0.23.2", default-features = false, features =
     "tokio-runtime",
 ] }
 uuid = "1.5.0"
+socks5-impl = "0.5.6"
 
 [features]
 connecting = []
