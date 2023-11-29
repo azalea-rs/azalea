@@ -422,6 +422,7 @@ impl Client {
     pub fn disconnect(&self) {
         self.ecs.lock().send_event(DisconnectEvent {
             entity: self.entity,
+            reason: None,
         });
     }
 
