@@ -76,30 +76,26 @@ impl Display for ServerAddress {
     }
 }
 
-///
-/// Serde Deserialization for ServerAddress
-/// This is necessary for config file usage
-/// We are not using TryFrom because we want to use the serde error system
-/// 
+/// Serde deserialization for ServerAddress. This is useful for config file
+/// usage.
 impl<'de> serde::Deserialize<'de> for ServerAddress {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: serde::Deserializer<'de> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
         let string = String::deserialize(deserializer)?;
-        let mut parts = string.split(':');
-        let host = parts.next().ok_or(serde::de::Error::custom("No host specified"))?.to_string();
-        // default the port to 25565
-        let port = parts.next().unwrap_or("25565");
-        let port = u16::from_str(port).map_err(|_| serde::de::Error::custom("Invalid port specified"))?;
-        Ok(ServerAddress { host, port })
+        ServerAddress::try_from(string.as_str()).map_err(serde::de::Error::custom)
     }
 }
 
-///
-/// Serde Serialization for ServerAddress
-/// Pretty much like impl Display
-/// 
+/// Serde serialization for ServerAddress. This uses the Display impl, so it
+/// will serialize to a string.
 impl serde::Serialize for ServerAddress {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: serde::Serializer {
-        serializer.serialize_str(&format!("{}:{}", self.host, self.port))
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
     }
 }
 
