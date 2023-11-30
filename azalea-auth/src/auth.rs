@@ -58,7 +58,7 @@ pub enum AuthError {
 ///
 /// If you want to use your own code to cache or show the auth code to the user
 /// in a different way, use [`get_ms_link_code`], [`get_ms_auth_token`],
-/// [`get_minecraft_token`] and [`get_profile`] instead instead.
+/// [`get_minecraft_token`] and [`get_profile`] instead.
 pub async fn auth(email: &str, opts: AuthOpts) -> Result<AuthResult, AuthError> {
     let cached_account = if let Some(cache_file) = &opts.cache_file {
         cache::get_account_in_cache(cache_file, email).await
