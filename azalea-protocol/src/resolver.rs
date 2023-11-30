@@ -6,7 +6,7 @@ use std::net::{IpAddr, SocketAddr};
 use thiserror::Error;
 use trust_dns_resolver::{
     config::{ResolverConfig, ResolverOpts},
-    TokioAsyncResolver, Name,
+    Name, TokioAsyncResolver,
 };
 
 #[derive(Error, Debug)]
@@ -62,8 +62,7 @@ pub async fn resolve_address(address: &ServerAddress) -> Result<SocketAddr, Reso
     }
 
     // there's no redirect, try to resolve this as an ip address
-    let name = Name::from_ascii(&address.host)
-        .map_err(|_| ResolverError::NoIp)?;
+    let name = Name::from_ascii(&address.host).map_err(|_| ResolverError::NoIp)?;
     let lookup_ip_result = resolver.lookup_ip(name).await;
     let lookup_ip = lookup_ip_result.map_err(|_| ResolverError::NoIp)?;
 
