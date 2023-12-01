@@ -5,7 +5,7 @@
 #![feature(let_chains)]
 
 pub mod accept_resource_packs;
-mod auto_respawn;
+pub mod auto_respawn;
 pub mod auto_tool;
 mod bot;
 pub mod container;
