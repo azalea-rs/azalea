@@ -33,6 +33,7 @@ impl Plugin for DisconnectPlugin {
 #[derive(Event)]
 pub struct DisconnectEvent {
     pub entity: Entity,
+    pub reason: Option<String>,
 }
 
 /// System that removes the [`JoinedClientBundle`] from the entity when it
@@ -41,7 +42,7 @@ pub fn remove_components_from_disconnected_players(
     mut commands: Commands,
     mut events: EventReader<DisconnectEvent>,
 ) {
-    for DisconnectEvent { entity } in events.read() {
+    for DisconnectEvent { entity, .. } in events.read() {
         commands.entity(*entity).remove::<JoinedClientBundle>();
     }
 }
@@ -64,7 +65,7 @@ fn disconnect_on_connection_dead(
 ) {
     for (entity, &is_connection_alive) in &query {
         if !*is_connection_alive {
-            disconnect_events.send(DisconnectEvent { entity });
+            disconnect_events.send(DisconnectEvent { entity, reason: None });
         }
     }
 }

@@ -24,7 +24,7 @@ use crate::{
         AddPlayerEvent, DeathEvent, KeepAliveEvent, PacketEvent, RemovePlayerEvent,
         UpdatePlayerEvent,
     },
-    PlayerInfo,
+    PlayerInfo, disconnect::DisconnectEvent,
 };
 
 // (for contributors):
@@ -93,6 +93,8 @@ pub enum Event {
     Death(Option<Arc<ClientboundPlayerCombatKillPacket>>),
     /// A `KeepAlive` packet was sent by the server.
     KeepAlive(u64),
+    /// The client disconnected from the server.
+    Disconnect(Option<String>),
 }
 
 /// A component that contains an event sender for events that are only
@@ -117,6 +119,7 @@ impl Plugin for EventPlugin {
                 remove_player_listener,
                 keepalive_listener,
                 death_listener,
+                disconnect_listener,
             ),
         )
         .add_systems(
@@ -227,5 +230,13 @@ fn keepalive_listener(query: Query<&LocalPlayerEvents>, mut events: EventReader<
         local_player_events
             .send(Event::KeepAlive(event.id))
             .unwrap();
+    }
+}
+
+fn disconnect_listener(query: Query<&LocalPlayerEvents>, mut events: EventReader<DisconnectEvent>) {
+    for event in events.read() {
+        if let Ok(local_player_events) = query.get(event.entity) {
+            let _ = local_player_events.send(Event::Disconnect(event.reason.clone()));
+        }
     }
 }
