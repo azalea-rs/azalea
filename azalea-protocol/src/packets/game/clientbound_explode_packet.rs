@@ -23,7 +23,7 @@ pub struct ClientboundExplodePacket {
     pub explosion_sound: SoundEvent,
 }
 
-#[derive(Clone, Debug, PartialEq, McBuf)]
+#[derive(Clone, Copy, Debug, PartialEq, McBuf)]
 pub enum BlockInteraction {
     Keep,
     Destroy,
@@ -108,6 +108,7 @@ impl McBufWritable for ClientboundExplodePacket {
         self.block_interaction.write_into(buf)?;
         self.small_explosion_particles.write_into(buf)?;
         self.large_explosion_particles.write_into(buf)?;
+        self.explosion_sound.write_into(buf)?;
 
         Ok(())
     }

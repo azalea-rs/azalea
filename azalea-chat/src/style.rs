@@ -321,10 +321,11 @@ fn serde_serialize_field<S: serde::ser::SerializeStruct>(
     name: &'static str,
     value: &Option<impl serde::Serialize>,
     default: &(impl serde::Serialize + ?Sized),
+    reset: bool,
 ) -> Result<(), S::Error> {
     if let Some(value) = value {
         state.serialize_field(name, value)?;
-    } else {
+    } else if reset {
         state.serialize_field(name, default)?;
     }
     Ok(())
@@ -336,10 +337,11 @@ fn simdnbt_serialize_field(
     name: &'static str,
     value: Option<impl simdnbt::ToNbtTag>,
     default: impl simdnbt::ToNbtTag,
+    reset: bool,
 ) {
     if let Some(value) = value {
         compound.insert(name, value);
-    } else {
+    } else if reset {
         compound.insert(name, default);
     }
 }
@@ -361,12 +363,30 @@ impl Serialize for Style {
         };
         let mut state = serializer.serialize_struct("Style", len)?;
 
-        serde_serialize_field(&mut state, "color", &self.color, "white")?;
-        serde_serialize_field(&mut state, "bold", &self.bold, &false)?;
-        serde_serialize_field(&mut state, "italic", &self.italic, &false)?;
-        serde_serialize_field(&mut state, "underlined", &self.underlined, &false)?;
-        serde_serialize_field(&mut state, "strikethrough", &self.strikethrough, &false)?;
-        serde_serialize_field(&mut state, "obfuscated", &self.obfuscated, &false)?;
+        serde_serialize_field(&mut state, "color", &self.color, "white", self.reset)?;
+        serde_serialize_field(&mut state, "bold", &self.bold, &false, self.reset)?;
+        serde_serialize_field(&mut state, "italic", &self.italic, &false, self.reset)?;
+        serde_serialize_field(
+            &mut state,
+            "underlined",
+            &self.underlined,
+            &false,
+            self.reset,
+        )?;
+        serde_serialize_field(
+            &mut state,
+            "strikethrough",
+            &self.strikethrough,
+            &false,
+            self.reset,
+        )?;
+        serde_serialize_field(
+            &mut state,
+            "obfuscated",
+            &self.obfuscated,
+            &false,
+            self.reset,
+        )?;
 
         state.end()
     }
@@ -377,12 +397,30 @@ impl simdnbt::Serialize for Style {
     fn to_compound(self) -> NbtCompound {
         let mut compound = NbtCompound::new();
 
-        simdnbt_serialize_field(&mut compound, "color", self.color, "white");
-        simdnbt_serialize_field(&mut compound, "bold", self.bold, false);
-        simdnbt_serialize_field(&mut compound, "italic", self.italic, false);
-        simdnbt_serialize_field(&mut compound, "underlined", self.underlined, false);
-        simdnbt_serialize_field(&mut compound, "strikethrough", self.strikethrough, false);
-        simdnbt_serialize_field(&mut compound, "obfuscated", self.obfuscated, false);
+        simdnbt_serialize_field(&mut compound, "color", self.color, "white", self.reset);
+        simdnbt_serialize_field(&mut compound, "bold", self.bold, false, self.reset);
+        simdnbt_serialize_field(&mut compound, "italic", self.italic, false, self.reset);
+        simdnbt_serialize_field(
+            &mut compound,
+            "underlined",
+            self.underlined,
+            false,
+            self.reset,
+        );
+        simdnbt_serialize_field(
+            &mut compound,
+            "strikethrough",
+            self.strikethrough,
+            false,
+            self.reset,
+        );
+        simdnbt_serialize_field(
+            &mut compound,
+            "obfuscated",
+            self.obfuscated,
+            false,
+            self.reset,
+        );
 
         compound
     }
