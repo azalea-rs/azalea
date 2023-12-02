@@ -542,7 +542,7 @@ impl Style {
 
 impl simdnbt::Deserialize for Style {
     fn from_compound(
-        compound: simdnbt::owned::NbtCompound,
+        compound: &simdnbt::borrow::NbtCompound,
     ) -> Result<Self, simdnbt::DeserializeError> {
         let bold = compound.byte("bold").map(|v| v != 0);
         let italic = compound.byte("italic").map(|v| v != 0);

@@ -28,7 +28,15 @@ impl RegistryHolder {
         &self,
         name: &ResourceLocation,
     ) -> Option<Result<T, simdnbt::DeserializeError>> {
-        self.map.get(name).map(|nbt| T::from_compound(nbt.clone()))
+        // this is suboptimal, ideally simdnbt should just have a way to get the
+        // owned::NbtCompound as a borrow::NbtCompound
+
+        let nbt_owned_compound = self.map.get(name)?;
+        let mut nbt_bytes = Vec::new();
+        nbt_owned_compound.write(&mut nbt_bytes);
+        let nbt_borrow_compound =
+            simdnbt::borrow::NbtCompound::read(&mut Cursor::new(&nbt_bytes)).ok()?;
+        Some(T::from_compound(&nbt_borrow_compound))
     }
 
     /// Get the dimension type registry, or `None` if it doesn't exist. You
@@ -51,9 +59,12 @@ impl RegistryHolder {
 
 impl McBufReadable for RegistryHolder {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let nbt_compound = NbtCompound::read_from(buf)?;
+        let nbt_tag = simdnbt::borrow::NbtTag::read(buf)?;
+        let nbt_compound = nbt_tag
+            .compound()
+            .ok_or_else(|| BufReadError::Custom("RegistryHolder must be a compound".to_string()))?;
         Ok(RegistryHolder {
-            map: simdnbt::Deserialize::from_compound(nbt_compound)?,
+            map: simdnbt::Deserialize::from_compound(&nbt_compound)?,
         })
     }
 }
@@ -193,12 +204,12 @@ pub enum MonsterSpawnLightLevel {
 }
 
 impl FromNbtTag for MonsterSpawnLightLevel {
-    fn from_nbt_tag(tag: simdnbt::owned::NbtTag) -> Option<Self> {
+    fn from_nbt_tag(tag: &simdnbt::borrow::NbtTag) -> Option<Self> {
         if let Some(value) = tag.int() {
             Some(Self::Simple(value as u32))
         } else if let Some(value) = tag.compound() {
-            let kind = ResourceLocation::from_nbt_tag(value.get("type")?.clone())?;
-            let value = MonsterSpawnLightLevelValues::from_nbt_tag(value.get("value")?.clone())?;
+            let kind = ResourceLocation::from_nbt_tag(value.get("type")?)?;
+            let value = MonsterSpawnLightLevelValues::from_nbt_tag(value.get("value")?)?;
             Some(Self::Complex { kind, value })
         } else {
             None
@@ -251,7 +262,7 @@ pub enum BiomePrecipitation {
     Snow,
 }
 impl FromNbtTag for BiomePrecipitation {
-    fn from_nbt_tag(tag: NbtTag) -> Option<Self> {
+    fn from_nbt_tag(tag: &simdnbt::borrow::NbtTag) -> Option<Self> {
         match tag.string()?.to_str().as_ref() {
             "none" => Some(Self::None),
             "rain" => Some(Self::Rain),

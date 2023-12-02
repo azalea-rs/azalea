@@ -57,9 +57,9 @@ impl FormattedText {
     }
 
     #[cfg(feature = "simdnbt")]
-    fn parse_separator_nbt(nbt: &simdnbt::owned::NbtCompound) -> Option<FormattedText> {
+    fn parse_separator_nbt(nbt: &simdnbt::borrow::NbtCompound) -> Option<FormattedText> {
         if let Some(separator) = nbt.get("separator") {
-            FormattedText::from_nbt_tag(separator.clone())
+            FormattedText::from_nbt_tag(separator)
         } else {
             None
         }
@@ -290,17 +290,17 @@ impl simdnbt::Serialize for FormattedText {
 
 #[cfg(feature = "simdnbt")]
 impl simdnbt::FromNbtTag for FormattedText {
-    fn from_nbt_tag(tag: simdnbt::owned::NbtTag) -> Option<Self> {
+    fn from_nbt_tag(tag: &simdnbt::borrow::NbtTag) -> Option<Self> {
         // we create a component that we might add siblings to
         let mut component: FormattedText;
 
         match tag {
             // if it's a string, return a text component with that string
-            simdnbt::owned::NbtTag::String(string) => {
+            simdnbt::borrow::NbtTag::String(string) => {
                 Some(FormattedText::Text(TextComponent::new(string.to_string())))
             }
             // if it's a compound, make it do things with { text } and stuff
-            simdnbt::owned::NbtTag::Compound(compound) => {
+            simdnbt::borrow::NbtTag::Compound(compound) => {
                 if let Some(text) = compound.get("text") {
                     let text = text.string().unwrap_or_default().to_string();
                     component = FormattedText::Text(TextComponent::new(text));
@@ -313,9 +313,9 @@ impl simdnbt::FromNbtTag for FormattedText {
                             // if it's a string component with no styling and no siblings, just add
                             // a string to with_array otherwise add the
                             // component to the array
-                            let c = FormattedText::from_nbt_tag(simdnbt::owned::NbtTag::Compound(
-                                item.clone(),
-                            ))?;
+                            let c = FormattedText::from_nbt_tag(
+                                &simdnbt::borrow::NbtTag::Compound(item.clone()),
+                            )?;
                             if let FormattedText::Text(text_component) = c {
                                 if text_component.base.siblings.is_empty()
                                     && text_component.base.style.is_empty()
@@ -325,7 +325,7 @@ impl simdnbt::FromNbtTag for FormattedText {
                                 }
                             }
                             with_array.push(StringOrComponent::FormattedText(
-                                FormattedText::from_nbt_tag(simdnbt::owned::NbtTag::Compound(
+                                FormattedText::from_nbt_tag(&simdnbt::borrow::NbtTag::Compound(
                                     item.clone(),
                                 ))?,
                             ));
@@ -380,7 +380,7 @@ impl simdnbt::FromNbtTag for FormattedText {
                     }
                     for extra_component in extra {
                         let sibling = FormattedText::from_nbt_tag(
-                            simdnbt::owned::NbtTag::Compound(extra_component.clone()),
+                            &simdnbt::borrow::NbtTag::Compound(extra_component.clone()),
                         )?;
                         component.append(sibling);
                     }
@@ -392,14 +392,14 @@ impl simdnbt::FromNbtTag for FormattedText {
                 Some(component)
             }
             // ok so it's not a compound, if it's a list deserialize every item
-            simdnbt::owned::NbtTag::List(list) => {
+            simdnbt::borrow::NbtTag::List(list) => {
                 let list = list.compounds()?;
-                let mut component = FormattedText::from_nbt_tag(simdnbt::owned::NbtTag::Compound(
-                    list.get(0)?.clone(),
-                ))?;
+                let mut component = FormattedText::from_nbt_tag(
+                    &simdnbt::borrow::NbtTag::Compound(list.get(0)?.clone()),
+                )?;
                 for i in 1..list.len() {
                     component.append(FormattedText::from_nbt_tag(
-                        simdnbt::owned::NbtTag::Compound(list.get(i)?.clone()),
+                        &simdnbt::borrow::NbtTag::Compound(list.get(i)?.clone()),
                     )?);
                 }
                 Some(component)
@@ -412,8 +412,9 @@ impl simdnbt::FromNbtTag for FormattedText {
 #[cfg(feature = "azalea-buf")]
 impl McBufReadable for FormattedText {
     fn read_from(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let nbt = simdnbt::owned::NbtTag::read(buf)?;
-        FormattedText::from_nbt_tag(nbt).ok_or(BufReadError::Custom("couldn't read nbt".to_owned()))
+        let nbt = simdnbt::borrow::NbtTag::read(buf)?;
+        FormattedText::from_nbt_tag(&nbt)
+            .ok_or(BufReadError::Custom("couldn't read nbt".to_owned()))
     }
 }
 

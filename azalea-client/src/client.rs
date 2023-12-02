@@ -53,7 +53,7 @@ use azalea_protocol::{
     },
     resolver, ServerAddress,
 };
-use azalea_world::{Instance, InstanceContainer, InstanceName};
+use azalea_world::{Instance, InstanceContainer, InstanceName, PartialInstance};
 use bevy_app::{App, FixedUpdate, Plugin, PluginGroup, PluginGroupBuilder, Update};
 use bevy_ecs::{
     bundle::Bundle,
@@ -425,16 +425,6 @@ impl Client {
         });
     }
 
-    pub fn local_player<'a>(&'a self, ecs: &'a mut World) -> &'a InstanceHolder {
-        self.query::<&InstanceHolder>(ecs)
-    }
-    pub fn local_player_mut<'a>(
-        &'a self,
-        ecs: &'a mut World,
-    ) -> bevy_ecs::world::Mut<'a, InstanceHolder> {
-        self.query::<&mut InstanceHolder>(ecs)
-    }
-
     pub fn raw_connection<'a>(&'a self, ecs: &'a mut World) -> &'a RawConnection {
         self.query::<&RawConnection>(ecs)
     }
@@ -468,17 +458,29 @@ impl Client {
         self.query::<Option<&T>>(&mut self.ecs.lock()).cloned()
     }
 
-    /// Get a reference to our (potentially shared) world.
+    /// Get an `RwLock` with a reference to our (potentially shared) world.
     ///
-    /// This gets the [`Instance`] from our world container. If it's a normal
-    /// client, then it'll be the same as the world the client has loaded.
-    /// If the client using a shared world, then the shared world will be a
-    /// superset of the client's world.
+    /// This gets the [`Instance`] from the client's [`InstanceHolder`]
+    /// component. If it's a normal client, then it'll be the same as the
+    /// world the client has loaded. If the client is using a shared world,
+    /// then the shared world will be a superset of the client's world.
     pub fn world(&self) -> Arc<RwLock<Instance>> {
-        let world_name = self.component::<InstanceName>();
-        let ecs = self.ecs.lock();
-        let instance_container = ecs.resource::<InstanceContainer>();
-        instance_container.get(&world_name).unwrap()
+        let instance_holder = self.component::<InstanceHolder>();
+        instance_holder.instance.clone()
+    }
+
+    /// Get an `RwLock` with a reference to the world that this client has
+    /// loaded.
+    ///
+    /// ```
+    /// # use azalea_core::position::ChunkPos;
+    /// # fn example(client: &azalea_client::Client) {
+    /// let world = client.partial_world();
+    /// let is_0_0_loaded = world.read().chunks.limited_get(&ChunkPos::new(0, 0)).is_some();
+    /// # }
+    pub fn partial_world(&self) -> Arc<RwLock<PartialInstance>> {
+        let instance_holder = self.component::<InstanceHolder>();
+        instance_holder.partial_instance.clone()
     }
 
     /// Returns whether we have a received the login packet yet.

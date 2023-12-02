@@ -76,6 +76,29 @@ impl Display for ServerAddress {
     }
 }
 
+/// Serde deserialization for ServerAddress. This is useful for config file
+/// usage.
+impl<'de> serde::Deserialize<'de> for ServerAddress {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let string = String::deserialize(deserializer)?;
+        ServerAddress::try_from(string.as_str()).map_err(serde::de::Error::custom)
+    }
+}
+
+/// Serde serialization for ServerAddress. This uses the Display impl, so it
+/// will serialize to a string.
+impl serde::Serialize for ServerAddress {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::io::Cursor;
