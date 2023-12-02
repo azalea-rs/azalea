@@ -349,9 +349,7 @@ where
             if let Some(join_delay) = join_delay {
                 // if there's a join delay, then join one by one
                 for (account, state) in accounts.iter().zip(states) {
-                    swarm_clone
-                        .add_with_exponential_backoff(account, state)
-                        .await;
+                    swarm_clone.add_and_retry_forever(account, state).await;
                     tokio::time::sleep(join_delay).await;
                 }
             } else {
@@ -364,7 +362,7 @@ where
                         .map(move |(account, state)| async {
                             swarm_borrow
                                 .clone()
-                                .add_with_exponential_backoff(account, state)
+                                .add_and_retry_forever(account, state)
                                 .await;
                         }),
                 )
@@ -575,9 +573,9 @@ impl Swarm {
     /// Add a new account to the swarm, retrying if it couldn't join. This will
     /// run forever until the bot joins or the task is aborted.
     ///
-    /// Exponential backoff means if it fails joining it will initially wait 10
-    /// seconds, then 20, then 40, up to 2 minutes.
-    pub async fn add_with_exponential_backoff<S: Component + Clone>(
+    /// This does exponential backoff (though very limited), starting at 5
+    /// seconds and doubling up to 15 seconds.
+    pub async fn add_and_retry_forever<S: Component + Clone>(
         &mut self,
         account: &Account,
         state: S,

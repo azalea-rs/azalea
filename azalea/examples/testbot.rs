@@ -376,9 +376,7 @@ async fn swarm_handle(
         SwarmEvent::Disconnect(account) => {
             println!("bot got kicked! {}", account.username);
             tokio::time::sleep(Duration::from_secs(5)).await;
-            swarm
-                .add_with_exponential_backoff(account, State::default())
-                .await;
+            swarm.add_and_retry_forever(account, State::default()).await;
         }
         SwarmEvent::Chat(m) => {
             println!("swarm chat message: {}", m.message().to_ansi());
