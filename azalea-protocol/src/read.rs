@@ -357,7 +357,7 @@ where
                 format!("{buf:?}")
             }
         };
-        trace!("Reading packet with bytes: {buf_string}");
+        tracing::trace!("Reading packet with bytes: {buf_string}");
     });
 
     Ok(Some(buf))
