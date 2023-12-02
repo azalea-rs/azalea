@@ -262,7 +262,7 @@ impl McBufWritable for simdnbt::owned::NbtTag {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         let mut data = Vec::new();
         self.write(&mut data);
-        data.write_into(buf)
+        buf.write_all(&data)
     }
 }
 
@@ -270,7 +270,7 @@ impl McBufWritable for simdnbt::owned::NbtCompound {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         let mut data = Vec::new();
         simdnbt::owned::NbtTag::Compound(self.clone()).write(&mut data);
-        data.write_into(buf)
+        buf.write_all(&data)
     }
 }
 
@@ -278,6 +278,6 @@ impl McBufWritable for simdnbt::owned::Nbt {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         let mut data = Vec::new();
         self.write_unnamed(&mut data);
-        data.write_into(buf)
+        buf.write_all(&data)
     }
 }
