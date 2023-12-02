@@ -3,6 +3,7 @@
 
 use std::sync::Arc;
 
+use azalea_chat::FormattedText;
 use azalea_protocol::packets::game::{
     clientbound_player_combat_kill_packet::ClientboundPlayerCombatKillPacket, ClientboundGamePacket,
 };
@@ -20,11 +21,12 @@ use tokio::sync::mpsc;
 
 use crate::{
     chat::{ChatPacket, ChatReceivedEvent},
+    disconnect::DisconnectEvent,
     packet_handling::game::{
         AddPlayerEvent, DeathEvent, KeepAliveEvent, PacketEvent, RemovePlayerEvent,
         UpdatePlayerEvent,
     },
-    PlayerInfo, disconnect::DisconnectEvent,
+    PlayerInfo,
 };
 
 // (for contributors):
@@ -94,7 +96,7 @@ pub enum Event {
     /// A `KeepAlive` packet was sent by the server.
     KeepAlive(u64),
     /// The client disconnected from the server.
-    Disconnect(Option<String>),
+    Disconnect(Option<FormattedText>),
 }
 
 /// A component that contains an event sender for events that are only

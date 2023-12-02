@@ -354,6 +354,13 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                 println!("login packet");
             }
         }
+        Event::Disconnect(reason) => {
+            if let Some(reason) = reason {
+                println!("bot got kicked for reason: {}", reason.to_ansi());
+            } else {
+                println!("bot got kicked");
+            }
+        }
         _ => {}
     }
 

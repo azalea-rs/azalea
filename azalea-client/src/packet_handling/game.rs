@@ -401,7 +401,7 @@ pub fn process_packet_events(ecs: &mut World) {
                 let mut disconnect_events = system_state.get_mut(ecs);
                 disconnect_events.send(DisconnectEvent {
                     entity: player_entity,
-                    reason: Some(p.reason.to_ansi()),
+                    reason: Some(p.reason.clone()),
                 });
             }
             ClientboundGamePacket::UpdateRecipes(_p) => {
