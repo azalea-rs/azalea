@@ -1,12 +1,12 @@
 //! Write packets to a stream.
 
 use crate::{packets::ProtocolPacket, read::MAXIMUM_UNCOMPRESSED_LENGTH};
-use async_compression::tokio::bufread::ZlibEncoder;
 use azalea_buf::McBufVarWritable;
 use azalea_crypto::Aes128CfbEnc;
-use std::fmt::Debug;
+use flate2::{bufread::ZlibEncoder, Compression};
+use std::{fmt::Debug, io::Read};
 use thiserror::Error;
-use tokio::io::{AsyncReadExt, AsyncWrite, AsyncWriteExt};
+use tokio::io::{AsyncWrite, AsyncWriteExt};
 use tracing::trace;
 
 /// Prepend the length of the packet to it.
@@ -51,7 +51,7 @@ pub enum PacketCompressError {
     Io(#[from] std::io::Error),
 }
 
-pub async fn compression_encoder(
+pub fn compression_encoder(
     data: &[u8],
     compression_threshold: u32,
 ) -> Result<Vec<u8>, PacketCompressError> {
@@ -64,10 +64,10 @@ pub async fn compression_encoder(
         Ok(buf)
     } else {
         // otherwise, compress
-        let mut deflater = ZlibEncoder::new(data);
+        let mut deflater = ZlibEncoder::new(data, Compression::default());
         // write deflated data to buf
         let mut compressed_data = Vec::new();
-        deflater.read_to_end(&mut compressed_data).await?;
+        deflater.read_to_end(&mut compressed_data)?;
 
         // prepend the length
         let mut len_prepended_compressed_data = Vec::new();
@@ -105,7 +105,7 @@ where
     trace!("Writing raw packet: {raw_packet:?}");
     let mut raw_packet = raw_packet.to_vec();
     if let Some(threshold) = compression_threshold {
-        raw_packet = compression_encoder(&raw_packet, threshold).await.unwrap();
+        raw_packet = compression_encoder(&raw_packet, threshold).unwrap();
     }
     raw_packet = frame_prepender(raw_packet).unwrap();
     // if we were given a cipher, encrypt the packet

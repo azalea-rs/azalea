@@ -65,6 +65,8 @@ fn update_read_packets_task_running_component(
         commands.entity(entity).insert(IsConnectionAlive(running));
     }
 }
+
+#[allow(clippy::type_complexity)]
 fn disconnect_on_connection_dead(
     query: Query<(Entity, &IsConnectionAlive), (Changed<IsConnectionAlive>, With<LocalEntity>)>,
     mut disconnect_events: EventWriter<DisconnectEvent>,

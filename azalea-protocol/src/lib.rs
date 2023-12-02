@@ -180,9 +180,7 @@ mod tests {
         )
         .unwrap();
 
-        let buf = compression_encoder(&buf, compression_threshold)
-            .await
-            .unwrap();
+        let buf = compression_encoder(&buf, compression_threshold).unwrap();
 
         println!("{:?}", buf);
 
