@@ -38,8 +38,8 @@ pub struct Swarm {
     bots: Arc<Mutex<HashMap<Entity, Client>>>,
 
     // bot_datas: Arc<Mutex<Vec<(Client, S)>>>,
-    resolved_address: SocketAddr,
-    address: ServerAddress,
+    pub resolved_address: SocketAddr,
+    pub address: ServerAddress,
     pub instance_container: Arc<RwLock<InstanceContainer>>,
 
     bots_tx: mpsc::UnboundedSender<(Option<Event>, Client)>,
