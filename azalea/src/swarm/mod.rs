@@ -320,6 +320,9 @@ where
         let (swarm_tx, mut swarm_rx) = mpsc::unbounded_channel();
 
         let (run_schedule_sender, run_schedule_receiver) = mpsc::unbounded_channel();
+
+        let main_schedule_label = self.app.main_schedule_label;
+
         let ecs_lock =
             start_ecs_runner(self.app, run_schedule_receiver, run_schedule_sender.clone());
 
@@ -337,7 +340,14 @@ where
 
             run_schedule_sender,
         };
-        ecs_lock.lock().insert_resource(swarm.clone());
+
+        // run the main schedule so the startup systems run
+        {
+            let mut ecs = ecs_lock.lock();
+            ecs.insert_resource(swarm.clone());
+            ecs.run_schedule(main_schedule_label);
+            ecs.clear_trackers();
+        }
 
         // SwarmBuilder (self) isn't Send so we have to take all the things we need out
         // of it

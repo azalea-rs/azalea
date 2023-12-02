@@ -54,7 +54,9 @@ use azalea_protocol::{
     resolver, ServerAddress,
 };
 use azalea_world::{Instance, InstanceContainer, InstanceName, PartialInstance};
-use bevy_app::{App, FixedUpdate, Plugin, PluginGroup, PluginGroupBuilder, Update};
+use bevy_app::{
+    App, FixedUpdate, Plugin, PluginGroup, PluginGroupBuilder, PreStartup, Startup, Update,
+};
 use bevy_ecs::{
     bundle::Bundle,
     component::Component,
@@ -653,7 +655,7 @@ impl Plugin for AzaleaPlugin {
 /// [`DefaultPlugins`].
 #[doc(hidden)]
 pub fn start_ecs_runner(
-    app: App,
+    mut app: App,
     run_schedule_receiver: mpsc::UnboundedReceiver<()>,
     run_schedule_sender: mpsc::UnboundedSender<()>,
 ) -> Arc<Mutex<World>> {
