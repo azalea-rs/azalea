@@ -37,9 +37,10 @@ pub struct Swarm {
 
     bots: Arc<Mutex<HashMap<Entity, Client>>>,
 
-    // bot_datas: Arc<Mutex<Vec<(Client, S)>>>,
-    pub resolved_address: SocketAddr,
-    pub address: ServerAddress,
+    // the address is public and mutable so plugins can change it
+    pub resolved_address: Arc<RwLock<SocketAddr>>,
+    pub address: Arc<RwLock<ServerAddress>>,
+
     pub instance_container: Arc<RwLock<InstanceContainer>>,
 
     bots_tx: mpsc::UnboundedSender<(Option<Event>, Client)>,
@@ -326,8 +327,8 @@ where
             ecs_lock: ecs_lock.clone(),
             bots: Arc::new(Mutex::new(HashMap::new())),
 
-            resolved_address,
-            address,
+            resolved_address: Arc::new(RwLock::new(resolved_address)),
+            address: Arc::new(RwLock::new(address)),
             instance_container,
 
             bots_tx,
@@ -524,17 +525,14 @@ impl Swarm {
         account: &Account,
         state: S,
     ) -> Result<Client, JoinError> {
-        // tx is moved to the bot so it can send us events
-        // rx is used to receive events from the bot
-        // An event that causes the schedule to run. This is only used internally.
-        // let (run_schedule_sender, run_schedule_receiver) = mpsc::unbounded_channel();
-        // let ecs_lock = start_ecs_runner(run_schedule_receiver,
-        // run_schedule_sender.clone());
+        let address = self.address.read().clone();
+        let resolved_address = self.resolved_address.read().clone();
+
         let (bot, mut rx) = Client::start_client(
             self.ecs_lock.clone(),
             account,
-            &self.address,
-            &self.resolved_address,
+            &address,
+            &resolved_address,
             self.run_schedule_sender.clone(),
         )
         .await?;
