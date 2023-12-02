@@ -41,11 +41,11 @@ use bevy_ecs::schedule::IntoSystemConfigs;
 use bevy_ecs::system::{Local, ResMut};
 use bevy_tasks::{AsyncComputeTaskPool, Task};
 use futures_lite::future;
-use log::{debug, error, info, trace, warn};
 use std::collections::VecDeque;
 use std::sync::atomic::{self, AtomicUsize};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
+use tracing::{debug, error, info, trace, warn};
 
 use self::mining::MiningCache;
 use self::moves::{ExecuteCtx, IsReachedCtx, SuccessorsFn};
@@ -58,9 +58,9 @@ impl Plugin for PathfinderPlugin {
             .add_event::<PathFoundEvent>()
             .add_event::<StopPathfindingEvent>()
             .add_systems(
-                FixedUpdate,
                 // putting systems in the FixedUpdate schedule makes them run every Minecraft tick
                 // (every 50 milliseconds).
+                FixedUpdate,
                 (
                     timeout_movement,
                     check_node_reached,

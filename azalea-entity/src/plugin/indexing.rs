@@ -8,9 +8,9 @@ use bevy_ecs::{
     query::Changed,
     system::{Commands, Query, Res, ResMut, Resource},
 };
-use log::{debug, warn};
 use nohash_hasher::IntMap;
 use std::{collections::HashMap, fmt::Debug};
+use tracing::{debug, warn};
 use uuid::Uuid;
 
 use crate::{EntityUuid, LastSentPosition, Position};

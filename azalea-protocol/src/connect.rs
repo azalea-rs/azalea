@@ -15,7 +15,6 @@ use azalea_auth::game_profile::GameProfile;
 use azalea_auth::sessionserver::{ClientSessionServerError, ServerSessionServerError};
 use azalea_crypto::{Aes128CfbDec, Aes128CfbEnc};
 use bytes::BytesMut;
-use log::{error, info};
 use std::fmt::Debug;
 use std::io::Cursor;
 use std::marker::PhantomData;
@@ -24,6 +23,7 @@ use thiserror::Error;
 use tokio::io::AsyncWriteExt;
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf, ReuniteError};
 use tokio::net::TcpStream;
+use tracing::{error, info};
 use uuid::Uuid;
 
 pub struct RawReadConnection {

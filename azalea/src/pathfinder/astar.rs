@@ -5,9 +5,9 @@ use std::{
     time::{Duration, Instant},
 };
 
-use log::{debug, trace, warn};
 use priority_queue::PriorityQueue;
 use rustc_hash::FxHashMap;
+use tracing::{debug, trace, warn};
 
 pub struct Path<P, M>
 where

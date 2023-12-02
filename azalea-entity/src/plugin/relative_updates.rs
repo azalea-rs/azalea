@@ -25,8 +25,8 @@ use bevy_ecs::{
     world::{EntityWorldMut, World},
 };
 use derive_more::{Deref, DerefMut};
-use log::warn;
 use parking_lot::RwLock;
+use tracing::warn;
 
 use crate::LocalEntity;
 

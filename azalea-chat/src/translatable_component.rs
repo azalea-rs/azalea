@@ -4,12 +4,24 @@ use crate::{
     base_component::BaseComponent, style::Style, text_component::TextComponent, FormattedText,
 };
 use serde::{ser::SerializeMap, Serialize, Serializer, __private::ser::FlatMapSerializer};
+#[cfg(feature = "simdnbt")]
+use simdnbt::Serialize as _;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Eq, Hash)]
 #[serde(untagged)]
 pub enum StringOrComponent {
     String(String),
     FormattedText(FormattedText),
+}
+
+#[cfg(feature = "simdnbt")]
+impl simdnbt::ToNbtTag for StringOrComponent {
+    fn to_nbt_tag(self) -> simdnbt::owned::NbtTag {
+        match self {
+            StringOrComponent::String(s) => s.to_nbt_tag(),
+            StringOrComponent::FormattedText(c) => c.to_nbt_tag(),
+        }
+    }
 }
 
 /// A message whose content depends on the client's language.
@@ -30,6 +42,54 @@ impl Serialize for TranslatableComponent {
         Serialize::serialize(&self.base, FlatMapSerializer(&mut state))?;
         state.serialize_entry("with", &self.args)?;
         state.end()
+    }
+}
+
+#[cfg(feature = "simdnbt")]
+fn serialize_args_as_nbt(args: &[StringOrComponent]) -> simdnbt::owned::NbtList {
+    // if it's all strings then make it a string list
+    // if it's all components then make it a compound list
+    // if it's a mix then return an error
+
+    let mut string_list = Vec::new();
+    let mut compound_list = Vec::new();
+
+    for arg in args {
+        match arg {
+            StringOrComponent::String(s) => {
+                string_list.push(s.clone());
+            }
+            StringOrComponent::FormattedText(c) => {
+                compound_list.push(c.clone().to_compound());
+            }
+        }
+    }
+
+    if !string_list.is_empty() && !compound_list.is_empty() {
+        // i'm actually not sure what vanilla does here, so i just made it return the
+        // string list
+        tracing::debug!(
+            "Tried to serialize a TranslatableComponent with a mix of strings and components."
+        );
+        return string_list.into();
+    }
+
+    if !string_list.is_empty() {
+        return string_list.into();
+    }
+
+    compound_list.into()
+}
+
+#[cfg(feature = "simdnbt")]
+impl simdnbt::Serialize for TranslatableComponent {
+    fn to_compound(self) -> simdnbt::owned::NbtCompound {
+        let mut compound = simdnbt::owned::NbtCompound::new();
+        compound.insert("translate", self.key);
+        compound.extend(self.base.style.to_compound());
+
+        compound.insert("with", serialize_args_as_nbt(&self.args));
+        compound
     }
 }
 

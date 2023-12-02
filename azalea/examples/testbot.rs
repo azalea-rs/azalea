@@ -7,7 +7,7 @@ use azalea::inventory::ItemSlot;
 use azalea::pathfinder::goals::BlockPosGoal;
 use azalea::{prelude::*, swarm::prelude::*, BlockPos, GameProfileComponent, WalkDirection};
 use azalea::{Account, Client, Event};
-use azalea_client::SprintDirection;
+use azalea_client::{InstanceHolder, SprintDirection};
 use azalea_core::position::{ChunkBlockPos, ChunkPos, Vec3};
 use azalea_protocol::packets::game::ClientboundGamePacket;
 use azalea_world::heightmap::HeightmapKind;
@@ -56,7 +56,7 @@ async fn main() -> anyhow::Result<()> {
             .add_accounts(accounts.clone())
             .set_handler(handle)
             .set_swarm_handler(swarm_handle)
-            .join_delay(Duration::from_millis(1000))
+            .join_delay(Duration::from_millis(100))
             .start("localhost")
             .await;
         // let e = azalea::ClientBuilder::new()
@@ -80,7 +80,7 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
             bot.chat("Hello world");
         }
         Event::Chat(m) => {
-            println!("client chat message: {}", m.content());
+            // println!("client chat message: {}", m.content());
             if m.content() == bot.profile.name {
                 bot.chat("Bye");
                 tokio::time::sleep(Duration::from_millis(50)).await;
@@ -98,12 +98,8 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
             //     .find(|e| e.name() == Some(sender));
             // let entity = bot.entity_by::<With<Player>>(|name: &Name| name == sender);
             let entity = bot.entity_by::<With<Player>, (&GameProfileComponent,)>(
-                |(profile,): &(&GameProfileComponent,)| {
-                    println!("entity {profile:?}");
-                    profile.name == sender
-                },
+                |(profile,): &(&GameProfileComponent,)| profile.name == sender,
             );
-            println!("sender entity: {entity:?}");
             match m.content().as_str() {
                 "whereami" => {
                     let Some(entity) = entity else {
@@ -156,6 +152,11 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                 }
                 "lag" => {
                     std::thread::sleep(Duration::from_millis(1000));
+                }
+                "quit" => {
+                    bot.disconnect();
+                    tokio::time::sleep(Duration::from_millis(1000)).await;
+                    std::process::exit(0);
                 }
                 "inventory" => {
                     println!("inventory: {:?}", bot.menu());
@@ -311,6 +312,45 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                     let block_pos = BlockPos::from(bot.position().down(0.1));
                     let block = bot.world().read().get_block_state(&block_pos);
                     bot.chat(&format!("block: {block:?}"));
+                }
+                "debugchunks" => {
+                    println!("shared:");
+
+                    let partial_instance_lock = bot.component::<InstanceHolder>().partial_instance;
+                    let local_chunk_storage = &partial_instance_lock.read().chunks;
+
+                    let mut total_loaded_chunks_count = 0;
+                    for (chunk_pos, chunk) in &bot.world().read().chunks.map {
+                        if let Some(chunk) = chunk.upgrade() {
+                            let in_range = local_chunk_storage.in_range(chunk_pos);
+                            println!(
+                                "{chunk_pos:?} has {} references{}",
+                                std::sync::Arc::strong_count(&chunk) - 1,
+                                if in_range { "" } else { " (out of range)" }
+                            );
+                            total_loaded_chunks_count += 1;
+                        }
+                    }
+
+                    println!("local:");
+
+                    let mut local_loaded_chunks_count = 0;
+                    for (i, chunk) in local_chunk_storage.chunks().enumerate() {
+                        if let Some(chunk) = chunk {
+                            let chunk_pos = local_chunk_storage.chunk_pos_from_index(i);
+                            println!(
+                                "{chunk_pos:?} has {} references",
+                                std::sync::Arc::strong_count(&chunk)
+                            );
+                            local_loaded_chunks_count += 1;
+                        }
+                    }
+
+                    println!("total loaded chunks: {total_loaded_chunks_count}");
+                    println!(
+                        "local loaded chunks: {local_loaded_chunks_count}/{}",
+                        local_chunk_storage.chunks().collect::<Vec<_>>().len()
+                    );
                 }
                 _ => {}
             }

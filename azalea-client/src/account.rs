@@ -145,7 +145,7 @@ impl Account {
         let client = reqwest::Client::new();
 
         if msa.is_expired() {
-            log::trace!("refreshing Microsoft auth token");
+            tracing::trace!("refreshing Microsoft auth token");
             msa = azalea_auth::refresh_ms_auth_token(&client, &msa.data.refresh_token).await?;
         }
 

@@ -56,6 +56,8 @@ impl Client {
     /// }
     /// # }
     /// ```
+    ///
+    /// [`Entity`]: bevy_ecs::entity::Entity
     pub fn entity_by<F: ReadOnlyWorldQuery, Q: ReadOnlyWorldQuery>(
         &mut self,
         predicate: impl EntityPredicate<Q, F>,

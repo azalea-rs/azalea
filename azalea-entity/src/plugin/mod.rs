@@ -8,7 +8,7 @@ use azalea_world::{InstanceContainer, InstanceName, MinecraftEntityId};
 use bevy_app::{App, Plugin, PreUpdate, Update};
 use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
-use log::debug;
+use tracing::debug;
 
 use crate::{
     metadata::Health, Dead, EyeHeight, FluidOnEyes, LocalEntity, LookDirection, Physics, Position,

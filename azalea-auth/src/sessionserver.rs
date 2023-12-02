@@ -1,10 +1,10 @@
 //! Tell Mojang you're joining a multiplayer server.
-use log::debug;
 use once_cell::sync::Lazy;
 use reqwest::StatusCode;
 use serde::Deserialize;
 use serde_json::json;
 use thiserror::Error;
+use tracing::debug;
 use uuid::Uuid;
 
 use crate::game_profile::{GameProfile, SerializableGameProfile};

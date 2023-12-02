@@ -5,8 +5,8 @@ use std::io::{Cursor, Write};
 
 #[cfg(feature = "azalea-buf")]
 use azalea_buf::{McBufReadable, McBufWritable};
-use azalea_nbt::Nbt;
 use azalea_registry::NumberFormatKind;
+use simdnbt::owned::Nbt;
 
 use crate::FormattedText;
 
@@ -24,7 +24,7 @@ impl McBufReadable for NumberFormat {
         match kind {
             NumberFormatKind::Blank => Ok(NumberFormat::Blank),
             NumberFormatKind::Styled => Ok(NumberFormat::Styled {
-                style: Nbt::read_from(buf)?,
+                style: Nbt::read(buf)?,
             }),
             NumberFormatKind::Fixed => Ok(NumberFormat::Fixed {
                 value: FormattedText::read_from(buf)?,

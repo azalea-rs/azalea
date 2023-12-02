@@ -1,5 +1,5 @@
 use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
-use azalea_nbt::Nbt;
+use simdnbt::owned::Nbt;
 use std::io::{Cursor, Write};
 
 /// Either an item in an inventory or nothing.

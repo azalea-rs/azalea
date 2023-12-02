@@ -8,10 +8,10 @@ use azalea_protocol::{
     write::serialize_packet,
 };
 use bevy_ecs::prelude::*;
-use log::error;
 use parking_lot::Mutex;
 use thiserror::Error;
 use tokio::sync::mpsc;
+use tracing::error;
 
 /// A component for clients that can read and write packets to the server. This
 /// works with raw bytes, so you'll have to serialize/deserialize packets

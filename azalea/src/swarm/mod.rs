@@ -16,11 +16,11 @@ use azalea_world::InstanceContainer;
 use bevy_app::{App, PluginGroup, PluginGroupBuilder, Plugins};
 use bevy_ecs::{component::Component, entity::Entity, system::Resource, world::World};
 use futures::future::{join_all, BoxFuture};
-use log::error;
 use parking_lot::{Mutex, RwLock};
 use std::{collections::HashMap, future::Future, net::SocketAddr, sync::Arc, time::Duration};
 use thiserror::Error;
 use tokio::sync::mpsc;
+use tracing::error;
 
 use crate::{BoxHandleFn, DefaultBotPlugins, HandleFn, NoState};
 
@@ -393,6 +393,7 @@ where
             if let Some(handler) = &self.handler {
                 let first_bot_state = first_bot.component::<S>();
                 let first_bot_entity = first_bot.entity;
+
                 tokio::spawn((handler)(first_bot, first_event, first_bot_state.clone()));
 
                 // this makes it not have to keep locking the ecs

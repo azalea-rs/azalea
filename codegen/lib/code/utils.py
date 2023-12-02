@@ -56,7 +56,7 @@ def burger_type_to_rust_type(burger_type, field_name: Optional[str] = None, inst
         field_type_rs = 'BlockPos'
         uses.add('azalea_core::position::BlockPos')
     elif burger_type == 'nbtcompound':
-        field_type_rs = 'azalea_nbt::Nbt'
+        field_type_rs = 'simdnbt::owned::NbtCompound'
     elif burger_type == 'itemstack':
         field_type_rs = 'Slot'
         uses.add('azalea_core::slot::Slot')

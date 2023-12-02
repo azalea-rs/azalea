@@ -52,7 +52,7 @@ pub fn box_shape_unchecked(
 
     if x_bits < 0 || y_bits < 0 || z_bits < 0 {
         return VoxelShape::Array(ArrayVoxelShape::new(
-            BLOCK_SHAPE.shape(),
+            BLOCK_SHAPE.shape().to_owned(),
             vec![min_x, max_x],
             vec![min_y, max_y],
             vec![min_z, max_z],
@@ -188,7 +188,7 @@ impl Shapes {
             op_true_false,
             op_false_true,
         );
-        let var8 = BitSetDiscreteVoxelShape::join(&a.shape(), &b.shape(), &var5, &var6, &var7, op);
+        let var8 = BitSetDiscreteVoxelShape::join(a.shape(), b.shape(), &var5, &var6, &var7, op);
         // if var5.is_discrete_cube_merger()
 
         if matches!(var5, IndexMerger::DiscreteCube { .. })
@@ -253,7 +253,14 @@ impl Shapes {
             op_false_true,
         );
 
-        Self::matches_anywhere_with_mergers(x_merger, y_merger, z_merger, a.shape(), b.shape(), op)
+        Self::matches_anywhere_with_mergers(
+            x_merger,
+            y_merger,
+            z_merger,
+            a.shape().to_owned(),
+            b.shape().to_owned(),
+            op,
+        )
     }
 
     pub fn matches_anywhere_with_mergers(
@@ -347,7 +354,7 @@ impl VoxelShape {
         }
     }
 
-    pub fn shape(&self) -> DiscreteVoxelShape {
+    pub fn shape(&self) -> &DiscreteVoxelShape {
         match self {
             VoxelShape::Array(s) => s.shape(),
             VoxelShape::Cube(s) => s.shape(),
@@ -372,7 +379,7 @@ impl VoxelShape {
         }
 
         VoxelShape::Array(ArrayVoxelShape::new(
-            self.shape(),
+            self.shape().to_owned(),
             self.get_coords(Axis::X).iter().map(|c| c + x).collect(),
             self.get_coords(Axis::Y).iter().map(|c| c + y).collect(),
             self.get_coords(Axis::Z).iter().map(|c| c + z).collect(),
@@ -648,8 +655,8 @@ impl CubeVoxelShape {
 }
 
 impl ArrayVoxelShape {
-    fn shape(&self) -> DiscreteVoxelShape {
-        self.shape.clone()
+    fn shape(&self) -> &DiscreteVoxelShape {
+        &self.shape
     }
 
     fn get_coords(&self, axis: Axis) -> Vec<f64> {
@@ -658,8 +665,8 @@ impl ArrayVoxelShape {
 }
 
 impl CubeVoxelShape {
-    fn shape(&self) -> DiscreteVoxelShape {
-        self.shape.clone()
+    fn shape(&self) -> &DiscreteVoxelShape {
+        &self.shape
     }
 
     fn get_coords(&self, axis: Axis) -> Vec<f64> {

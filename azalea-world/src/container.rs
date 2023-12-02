@@ -1,13 +1,13 @@
-use azalea_core::resource_location::ResourceLocation;
+use azalea_core::{registry_holder::RegistryHolder, resource_location::ResourceLocation};
 use bevy_ecs::{component::Component, system::Resource};
 use derive_more::{Deref, DerefMut};
-use log::error;
 use nohash_hasher::IntMap;
 use parking_lot::RwLock;
 use std::{
     collections::HashMap,
     sync::{Arc, Weak},
 };
+use tracing::error;
 
 use crate::{ChunkStorage, Instance};
 
@@ -70,6 +70,7 @@ impl InstanceContainer {
                 chunks: ChunkStorage::new(height, min_y),
                 entities_by_chunk: HashMap::new(),
                 entity_by_id: IntMap::default(),
+                registries: RegistryHolder::default(),
             }));
             self.instances.insert(name, Arc::downgrade(&world));
             world

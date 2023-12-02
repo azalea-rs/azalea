@@ -4,10 +4,10 @@ use crate::{packets::ProtocolPacket, read::MAXIMUM_UNCOMPRESSED_LENGTH};
 use async_compression::tokio::bufread::ZlibEncoder;
 use azalea_buf::McBufVarWritable;
 use azalea_crypto::Aes128CfbEnc;
-use log::trace;
 use std::fmt::Debug;
 use thiserror::Error;
 use tokio::io::{AsyncReadExt, AsyncWrite, AsyncWriteExt};
+use tracing::trace;
 
 /// Prepend the length of the packet to it.
 fn frame_prepender(mut data: Vec<u8>) -> Result<Vec<u8>, std::io::Error> {

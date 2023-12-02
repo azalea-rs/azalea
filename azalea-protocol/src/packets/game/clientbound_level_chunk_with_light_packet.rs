@@ -1,6 +1,6 @@
 use azalea_buf::McBuf;
-use azalea_nbt::Nbt;
 use azalea_protocol_macros::ClientboundGamePacket;
+use simdnbt::owned::Nbt;
 
 use super::clientbound_light_update_packet::ClientboundLightUpdatePacketData;
 

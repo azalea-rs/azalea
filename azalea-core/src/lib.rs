@@ -15,5 +15,6 @@ pub mod math;
 pub mod objectives;
 pub mod particle;
 pub mod position;
+pub mod registry_holder;
 pub mod resource_location;
 pub mod tier;

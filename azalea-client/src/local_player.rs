@@ -12,10 +12,10 @@ use bevy_ecs::{
     system::Query,
 };
 use derive_more::{Deref, DerefMut};
-use log::error;
 use parking_lot::RwLock;
 use thiserror::Error;
 use tokio::sync::mpsc;
+use tracing::error;
 use uuid::Uuid;
 
 use crate::{
@@ -26,7 +26,7 @@ use crate::{
 
 /// A component that keeps strong references to our [`PartialInstance`] and
 /// [`Instance`] for local players.
-#[derive(Component)]
+#[derive(Component, Clone)]
 pub struct InstanceHolder {
     /// The partial instance is the world this client currently has loaded. It
     /// has a limited render distance.
@@ -68,8 +68,8 @@ pub struct PlayerAbilities {
     /// Used for the fov
     pub walking_speed: f32,
 }
-impl From<ClientboundPlayerAbilitiesPacket> for PlayerAbilities {
-    fn from(packet: ClientboundPlayerAbilitiesPacket) -> Self {
+impl From<&ClientboundPlayerAbilitiesPacket> for PlayerAbilities {
+    fn from(packet: &ClientboundPlayerAbilitiesPacket) -> Self {
         Self {
             invulnerable: packet.flags.invulnerable,
             flying: packet.flags.flying,

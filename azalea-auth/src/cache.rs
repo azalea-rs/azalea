@@ -82,13 +82,13 @@ async fn get_entire_cache(cache_file: &Path) -> Result<Vec<CachedAccount>, Cache
     Ok(cache)
 }
 async fn set_entire_cache(cache_file: &Path, cache: Vec<CachedAccount>) -> Result<(), CacheError> {
-    log::trace!("saving cache: {:?}", cache);
+    tracing::trace!("saving cache: {:?}", cache);
 
     if !cache_file.exists() {
         let cache_file_parent = cache_file
             .parent()
             .expect("Cache file is root directory and also doesn't exist.");
-        log::debug!(
+        tracing::debug!(
             "Making cache file parent directory at {}",
             cache_file_parent.to_string_lossy()
         );

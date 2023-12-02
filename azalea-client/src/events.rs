@@ -163,9 +163,9 @@ fn packet_listener(query: Query<&LocalPlayerEvents>, mut events: EventReader<Pac
     for event in events.read() {
         let local_player_events = query
             .get(event.entity)
-            .expect("Non-local entities shouldn't be able to receive add player events");
+            .expect("Non-local entities shouldn't be able to receive packet events");
         local_player_events
-            .send(Event::Packet(Arc::new(event.packet.clone())))
+            .send(Event::Packet(event.packet.clone()))
             .unwrap();
     }
 }
