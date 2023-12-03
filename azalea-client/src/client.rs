@@ -48,7 +48,6 @@ use azalea_protocol::{
             ServerboundHandshakePacket,
         },
         login::{
-            serverbound_custom_query_answer_packet::ServerboundCustomQueryAnswerPacket,
             serverbound_hello_packet::ServerboundHelloPacket,
             serverbound_key_packet::ServerboundKeyPacket,
             serverbound_login_acknowledged_packet::ServerboundLoginAcknowledgedPacket,
@@ -218,7 +217,7 @@ impl Client {
 
             let entity_uuid_index = ecs.resource::<EntityUuidIndex>();
             let uuid = account.uuid_or_offline();
-            if let Some(entity) = entity_uuid_index.get(&account.uuid_or_offline()) {
+            let entity = if let Some(entity) = entity_uuid_index.get(&account.uuid_or_offline()) {
                 debug!("Reusing entity {entity:?} for client");
                 entity
             } else {
@@ -228,7 +227,12 @@ impl Client {
                 let mut entity_uuid_index = ecs.resource_mut::<EntityUuidIndex>();
                 entity_uuid_index.insert(uuid, entity);
                 entity
-            }
+            };
+
+            // add the Account to the entity now so plugins can access it earlier
+            ecs.entity_mut(entity).insert(account.to_owned());
+
+            entity
         };
 
         let conn = Connection::new(resolved_address).await?;
@@ -279,7 +283,6 @@ impl Client {
                 local_player_events: LocalPlayerEvents(tx),
                 game_profile: GameProfileComponent(game_profile),
                 client_information: crate::ClientInformation::default(),
-                account: account.to_owned(),
             },
             InConfigurationState,
         ));
@@ -321,10 +324,10 @@ impl Client {
         // this makes it so plugins can send an `SendLoginPacketEvent` event to the ecs
         // and we'll send it to the server
         let (ecs_packets_tx, mut ecs_packets_rx) = mpsc::unbounded_channel();
-        ecs_lock
-            .lock()
-            .entity_mut(entity)
-            .insert(LoginSendPacketQueue { tx: ecs_packets_tx });
+        ecs_lock.lock().entity_mut(entity).insert((
+            LoginSendPacketQueue { tx: ecs_packets_tx },
+            login::IgnoreQueryIds::default(),
+        ));
 
         // login
         conn.write(
@@ -343,6 +346,7 @@ impl Client {
                 packet = conn.read() => packet?,
                 Some(packet) = ecs_packets_rx.recv() => {
                     // write this packet to the server
+                    println!("wrote packet to server {:?}", packet);
                     conn.write(packet).await?;
                     continue;
                 }
@@ -425,17 +429,17 @@ impl Client {
                 }
                 ClientboundLoginPacket::CustomQuery(p) => {
                     debug!("Got custom query {:?}", p);
-                    conn.write(
-                        ServerboundCustomQueryAnswerPacket {
-                            transaction_id: p.transaction_id,
-                            data: None,
-                        }
-                        .get(),
-                    )
-                    .await?;
+                    // replying to custom query is done in
+                    // packet_handling::login::process_packet_events
                 }
             }
         };
+
+        ecs_lock
+            .lock()
+            .entity_mut(entity)
+            .remove::<login::IgnoreQueryIds>()
+            .remove::<LoginSendPacketQueue>();
 
         Ok((conn, profile))
     }
@@ -628,7 +632,6 @@ pub struct LocalPlayerBundle {
     pub local_player_events: LocalPlayerEvents,
     pub game_profile: GameProfileComponent,
     pub client_information: ClientInformation,
-    pub account: Account,
 }
 
 /// A bundle for the components that are present on a local player that is

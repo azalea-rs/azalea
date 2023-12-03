@@ -18,6 +18,7 @@ use app::{App, Plugins};
 pub use azalea_auth as auth;
 pub use azalea_block as blocks;
 pub use azalea_brigadier as brigadier;
+pub use azalea_buf as buf;
 pub use azalea_chat::FormattedText;
 pub use azalea_client::*;
 pub use azalea_core as core;

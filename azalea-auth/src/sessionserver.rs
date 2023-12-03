@@ -69,6 +69,15 @@ pub async fn join(
         private_key,
     ));
 
+    join_with_server_id_hash(&client, access_token, uuid, &server_hash).await
+}
+
+pub async fn join_with_server_id_hash(
+    client: &reqwest::Client,
+    access_token: &str,
+    uuid: &Uuid,
+    server_hash: &str,
+) -> Result<(), ClientSessionServerError> {
     let mut encode_buffer = Uuid::encode_buffer();
     let undashed_uuid = uuid.simple().encode_lower(&mut encode_buffer);
 

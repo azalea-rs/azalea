@@ -25,6 +25,7 @@ azalea-registry = { version = "0.8.0", path = "../azalea-registry" }
 azalea-world = { version = "0.8.0", path = "../azalea-world" }
 azalea-auth = { version = "0.8.0", path = "../azalea-auth" }
 azalea-brigadier = { version = "0.8.0", path = "../azalea-brigadier" }
+azalea-buf = { version = "0.8.0", path = "../azalea-buf" }
 bevy_app = "0.12.0"
 bevy_ecs = "0.12.0"
 bevy_tasks = { version = "0.12.0", features = ["multi-threaded"] }

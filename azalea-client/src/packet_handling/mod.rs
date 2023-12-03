@@ -46,6 +46,7 @@ impl Plugin for PacketHandlerPlugin {
                     .before(EntityUpdateSet::Deindex),
                 configuration::process_packet_events,
                 login::handle_send_packet_event,
+                login::process_packet_events,
             ),
         )
         .add_systems(Update, death_event_on_0_health.before(death_listener))
