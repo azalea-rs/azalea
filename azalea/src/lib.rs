@@ -18,6 +18,7 @@ use app::{App, Plugins};
 pub use azalea_auth as auth;
 pub use azalea_block as blocks;
 pub use azalea_brigadier as brigadier;
+pub use azalea_buf as buf;
 pub use azalea_chat::FormattedText;
 pub use azalea_client::*;
 pub use azalea_core as core;
@@ -193,8 +194,17 @@ where
         // An event that causes the schedule to run. This is only used internally.
         let (run_schedule_sender, run_schedule_receiver) = mpsc::unbounded_channel();
 
+        let main_schedule_label = self.app.main_schedule_label;
+
         let ecs_lock =
             start_ecs_runner(self.app, run_schedule_receiver, run_schedule_sender.clone());
+
+        // run the main schedule so the startup systems run
+        {
+            let mut ecs = ecs_lock.lock();
+            ecs.run_schedule(main_schedule_label);
+            ecs.clear_trackers();
+        }
 
         let (bot, mut rx) = Client::start_client(
             ecs_lock,

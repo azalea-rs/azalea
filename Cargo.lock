@@ -92,19 +92,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "async-compression"
-version = "0.4.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bc2d0cfb2a7388d34f590e76686704c494ed7aaceed62ee1ba35cbf363abc2a5"
-dependencies = [
- "flate2",
- "futures-core",
- "memchr",
- "pin-project-lite",
- "tokio",
-]
-
-[[package]]
 name = "async-executor"
 version = "1.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -172,6 +159,7 @@ dependencies = [
  "azalea-auth",
  "azalea-block",
  "azalea-brigadier",
+ "azalea-buf",
  "azalea-chat",
  "azalea-client",
  "azalea-core",
@@ -211,6 +199,7 @@ dependencies = [
  "base64",
  "chrono",
  "env_logger",
+ "md-5",
  "num-bigint",
  "once_cell",
  "reqwest",
@@ -434,7 +423,6 @@ name = "azalea-protocol"
 version = "0.8.0"
 dependencies = [
  "anyhow",
- "async-compression",
  "async-recursion",
  "azalea-auth",
  "azalea-block",
@@ -1687,6 +1675,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "md-5"
+version = "0.10.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d89e7ee0cfbedfc4da3340218492196241d89eefb6dab27de5df917a6d2e78cf"
+dependencies = [
+ "cfg-if",
+ "digest",
+]
+
+[[package]]
 name = "memchr"
 version = "2.6.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2920,6 +2918,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5e395fcf16a7a3d8127ec99782007af141946b4795001f876d54fb0d55978560"
 dependencies = [
  "getrandom",
+ "md-5",
  "serde",
 ]
 

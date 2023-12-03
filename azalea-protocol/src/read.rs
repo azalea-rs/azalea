@@ -244,6 +244,8 @@ pub async fn read_raw_packet<'a, R>(
     stream: &'a mut R,
     buffer: &mut BytesMut,
     compression_threshold: Option<u32>,
+    // this has to be a &mut Option<T> instead of an Option<&mut T> because
+    // otherwise the borrow checker complains about the cipher being moved
     cipher: &mut Option<Aes128CfbDec>,
 ) -> Result<Vec<u8>, Box<ReadPacketError>>
 where
@@ -355,7 +357,7 @@ where
                 format!("{buf:?}")
             }
         };
-        trace!("Reading packet with bytes: {buf_string}");
+        tracing::trace!("Reading packet with bytes: {buf_string}");
     });
 
     Ok(Some(buf))

@@ -9,10 +9,6 @@ version = "0.8.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-async-compression = { version = "^0.4.5", features = [
-    "tokio",
-    "zlib",
-], optional = true }
 async-recursion = "1.0.5"
 azalea-auth = { path = "../azalea-auth", version = "0.8.0" }
 azalea-block = { path = "../azalea-block", default-features = false, version = "0.8.0" }
@@ -54,7 +50,7 @@ uuid = "1.5.0"
 [features]
 connecting = []
 default = ["packets"]
-packets = ["connecting", "dep:async-compression", "dep:azalea-core"]
+packets = ["connecting", "dep:azalea-core"]
 strict_registry = ["packets"]
 
 [dev-dependencies]

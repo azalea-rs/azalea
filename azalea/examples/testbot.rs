@@ -360,6 +360,13 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                 println!("login packet");
             }
         }
+        Event::Disconnect(reason) => {
+            if let Some(reason) = reason {
+                println!("bot got kicked for reason: {}", reason.to_ansi());
+            } else {
+                println!("bot got kicked");
+            }
+        }
         _ => {}
     }
 
@@ -375,9 +382,7 @@ async fn swarm_handle(
         SwarmEvent::Disconnect(account) => {
             println!("bot got kicked! {}", account.username);
             tokio::time::sleep(Duration::from_secs(5)).await;
-            swarm
-                .add_with_exponential_backoff(account, State::default())
-                .await;
+            swarm.add_and_retry_forever(account, State::default()).await;
         }
         SwarmEvent::Chat(m) => {
             println!("swarm chat message: {}", m.message().to_ansi());

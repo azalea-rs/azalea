@@ -1,5 +1,5 @@
 use crate::client::Client;
-use crate::local_player::SendPacketEvent;
+use crate::packet_handling::game::SendPacketEvent;
 use azalea_core::position::Vec3;
 use azalea_entity::{metadata::Sprinting, Attributes, Jumping};
 use azalea_entity::{InLoadedChunk, LastSentPosition, LookDirection, Physics, Position};

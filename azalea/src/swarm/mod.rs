@@ -37,9 +37,10 @@ pub struct Swarm {
 
     bots: Arc<Mutex<HashMap<Entity, Client>>>,
 
-    // bot_datas: Arc<Mutex<Vec<(Client, S)>>>,
-    resolved_address: SocketAddr,
-    address: ServerAddress,
+    // the address is public and mutable so plugins can change it
+    pub resolved_address: Arc<RwLock<SocketAddr>>,
+    pub address: Arc<RwLock<ServerAddress>>,
+
     pub instance_container: Arc<RwLock<InstanceContainer>>,
 
     bots_tx: mpsc::UnboundedSender<(Option<Event>, Client)>,
@@ -319,6 +320,9 @@ where
         let (swarm_tx, mut swarm_rx) = mpsc::unbounded_channel();
 
         let (run_schedule_sender, run_schedule_receiver) = mpsc::unbounded_channel();
+
+        let main_schedule_label = self.app.main_schedule_label;
+
         let ecs_lock =
             start_ecs_runner(self.app, run_schedule_receiver, run_schedule_sender.clone());
 
@@ -326,8 +330,8 @@ where
             ecs_lock: ecs_lock.clone(),
             bots: Arc::new(Mutex::new(HashMap::new())),
 
-            resolved_address,
-            address,
+            resolved_address: Arc::new(RwLock::new(resolved_address)),
+            address: Arc::new(RwLock::new(address)),
             instance_container,
 
             bots_tx,
@@ -336,7 +340,14 @@ where
 
             run_schedule_sender,
         };
-        ecs_lock.lock().insert_resource(swarm.clone());
+
+        // run the main schedule so the startup systems run
+        {
+            let mut ecs = ecs_lock.lock();
+            ecs.insert_resource(swarm.clone());
+            ecs.run_schedule(main_schedule_label);
+            ecs.clear_trackers();
+        }
 
         // SwarmBuilder (self) isn't Send so we have to take all the things we need out
         // of it
@@ -349,9 +360,7 @@ where
             if let Some(join_delay) = join_delay {
                 // if there's a join delay, then join one by one
                 for (account, state) in accounts.iter().zip(states) {
-                    swarm_clone
-                        .add_with_exponential_backoff(account, state)
-                        .await;
+                    swarm_clone.add_and_retry_forever(account, state).await;
                     tokio::time::sleep(join_delay).await;
                 }
             } else {
@@ -364,7 +373,7 @@ where
                         .map(move |(account, state)| async {
                             swarm_borrow
                                 .clone()
-                                .add_with_exponential_backoff(account, state)
+                                .add_and_retry_forever(account, state)
                                 .await;
                         }),
                 )
@@ -526,17 +535,14 @@ impl Swarm {
         account: &Account,
         state: S,
     ) -> Result<Client, JoinError> {
-        // tx is moved to the bot so it can send us events
-        // rx is used to receive events from the bot
-        // An event that causes the schedule to run. This is only used internally.
-        // let (run_schedule_sender, run_schedule_receiver) = mpsc::unbounded_channel();
-        // let ecs_lock = start_ecs_runner(run_schedule_receiver,
-        // run_schedule_sender.clone());
+        let address = self.address.read().clone();
+        let resolved_address = *self.resolved_address.read();
+
         let (bot, mut rx) = Client::start_client(
             self.ecs_lock.clone(),
             account,
-            &self.address,
-            &self.resolved_address,
+            &address,
+            &resolved_address,
             self.run_schedule_sender.clone(),
         )
         .await?;
@@ -575,9 +581,9 @@ impl Swarm {
     /// Add a new account to the swarm, retrying if it couldn't join. This will
     /// run forever until the bot joins or the task is aborted.
     ///
-    /// Exponential backoff means if it fails joining it will initially wait 10
-    /// seconds, then 20, then 40, up to 2 minutes.
-    pub async fn add_with_exponential_backoff<S: Component + Clone>(
+    /// This does exponential backoff (though very limited), starting at 5
+    /// seconds and doubling up to 15 seconds.
+    pub async fn add_and_retry_forever<S: Component + Clone>(
         &mut self,
         account: &Account,
         state: S,

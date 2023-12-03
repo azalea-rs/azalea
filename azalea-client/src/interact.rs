@@ -34,10 +34,9 @@ use tracing::warn;
 use crate::{
     attack::handle_attack_event,
     inventory::{InventoryComponent, InventorySet},
-    local_player::{
-        handle_send_packet_event, LocalGameMode, PermissionLevel, PlayerAbilities, SendPacketEvent,
-    },
+    local_player::{LocalGameMode, PermissionLevel, PlayerAbilities},
     movement::MoveEventsSet,
+    packet_handling::game::{handle_send_packet_event, SendPacketEvent},
     respawn::perform_respawn,
     Client,
 };
