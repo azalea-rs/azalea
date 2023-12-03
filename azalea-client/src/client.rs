@@ -346,7 +346,6 @@ impl Client {
                 packet = conn.read() => packet?,
                 Some(packet) = ecs_packets_rx.recv() => {
                     // write this packet to the server
-                    println!("wrote packet to server {:?}", packet);
                     conn.write(packet).await?;
                     continue;
                 }
