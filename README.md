@@ -47,7 +47,7 @@ For fun, mostly. I wasn't satisfied with the current state of Minecraft bot libr
 
 ## Non-goals
 
-- Supporting several versions of Minecraft on the same branch.
+- Supporting several versions of Minecraft on the same branch[*](https://github.com/azalea-rs/azalea-viaversion).
 - Bedrock edition.
 - Graphics.
 
