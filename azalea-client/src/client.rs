@@ -59,9 +59,7 @@ use azalea_protocol::{
     resolver, ServerAddress,
 };
 use azalea_world::{Instance, InstanceContainer, InstanceName, PartialInstance};
-use bevy_app::{
-    App, FixedUpdate, Plugin, PluginGroup, PluginGroupBuilder, PreStartup, Startup, Update,
-};
+use bevy_app::{App, FixedUpdate, Plugin, PluginGroup, PluginGroupBuilder, Update};
 use bevy_ecs::{
     bundle::Bundle,
     component::Component,

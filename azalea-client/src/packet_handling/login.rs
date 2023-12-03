@@ -8,10 +8,6 @@ use bevy_ecs::prelude::*;
 use tokio::sync::mpsc;
 use tracing::error;
 
-use crate::raw_connection::RawConnection;
-
-use super::game::SendPacketEvent;
-
 // this struct is defined here anyways though so it's consistent with the other
 // ones
 

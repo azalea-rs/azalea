@@ -536,7 +536,7 @@ impl Swarm {
         state: S,
     ) -> Result<Client, JoinError> {
         let address = self.address.read().clone();
-        let resolved_address = self.resolved_address.read().clone();
+        let resolved_address = *self.resolved_address.read();
 
         let (bot, mut rx) = Client::start_client(
             self.ecs_lock.clone(),

@@ -233,5 +233,3 @@ impl Account {
         Ok(())
     }
 }
-
-fn uuid_from_username() {}
