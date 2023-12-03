@@ -64,7 +64,7 @@ impl McBufReadable for RegistryHolder {
             .compound()
             .ok_or_else(|| BufReadError::Custom("RegistryHolder must be a compound".to_string()))?;
         Ok(RegistryHolder {
-            map: simdnbt::Deserialize::from_compound(&nbt_compound)?,
+            map: simdnbt::Deserialize::from_compound(nbt_compound)?,
         })
     }
 }

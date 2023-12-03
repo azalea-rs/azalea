@@ -2433,7 +2433,9 @@ dependencies = [
 
 [[package]]
 name = "simdnbt"
-version = "0.2.1"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b3d42fda2b44594e802fc92a5b3c633cd442cdb1c0a31e0b624ec5c6aab0d063"
 dependencies = [
  "byteorder",
  "flate2",
@@ -2444,7 +2446,9 @@ dependencies = [
 
 [[package]]
 name = "simdnbt-derive"
-version = "0.2.1"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6241f3aeb4a7cf50ab268d21af2d0cf5d5ede8d928d3c2709e01425fc7e8d54c"
 dependencies = [
  "proc-macro2",
  "quote",

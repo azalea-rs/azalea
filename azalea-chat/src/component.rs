@@ -362,7 +362,7 @@ impl simdnbt::FromNbtTag for FormattedText {
                         // Don't know how to turn 'nbt' into a FormattedText
                         return None;
                     };
-                    let _separator = FormattedText::parse_separator_nbt(&compound)?;
+                    let _separator = FormattedText::parse_separator_nbt(compound)?;
 
                     let _interpret = match compound.get("interpret") {
                         Some(v) => v.byte().unwrap_or_default() != 0,
