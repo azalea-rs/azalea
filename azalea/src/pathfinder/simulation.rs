@@ -2,7 +2,9 @@
 
 use std::{sync::Arc, time::Duration};
 
-use azalea_client::{inventory::InventoryComponent, PhysicsState};
+use azalea_client::{
+    inventory::InventoryComponent, packet_handling::game::SendPacketEvent, PhysicsState,
+};
 use azalea_core::{position::Vec3, resource_location::ResourceLocation};
 use azalea_entity::{
     attributes::AttributeInstance, metadata::Sprinting, Attributes, EntityDimensions, Physics,
@@ -77,7 +79,7 @@ impl Simulation {
                 .cloned()
                 .collect(),
         })
-        .add_event::<azalea_client::SendPacketEvent>();
+        .add_event::<SendPacketEvent>();
 
         app.edit_schedule(bevy_app::Main, |schedule| {
             schedule.set_executor_kind(bevy_ecs::schedule::ExecutorKind::SingleThreaded);

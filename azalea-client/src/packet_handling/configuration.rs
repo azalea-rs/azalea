@@ -22,7 +22,7 @@ use crate::packet_handling::game::KeepAliveEvent;
 use crate::raw_connection::RawConnection;
 
 #[derive(Event, Debug, Clone)]
-pub struct PacketEvent {
+pub struct ConfigurationPacketEvent {
     /// The client entity that received the packet.
     pub entity: Entity,
     /// The packet that was actually received.
@@ -31,7 +31,7 @@ pub struct PacketEvent {
 
 pub fn send_packet_events(
     query: Query<(Entity, &RawConnection), With<InConfigurationState>>,
-    mut packet_events: ResMut<Events<PacketEvent>>,
+    mut packet_events: ResMut<Events<ConfigurationPacketEvent>>,
 ) {
     // we manually clear and send the events at the beginning of each update
     // since otherwise it'd cause issues with events in process_packet_events
@@ -51,7 +51,7 @@ pub fn send_packet_events(
                         continue;
                     }
                 };
-                packet_events.send(PacketEvent {
+                packet_events.send(ConfigurationPacketEvent {
                     entity: player_entity,
                     packet,
                 });
@@ -64,9 +64,10 @@ pub fn send_packet_events(
 
 pub fn process_packet_events(ecs: &mut World) {
     let mut events_owned = Vec::new();
-    let mut system_state: SystemState<EventReader<PacketEvent>> = SystemState::new(ecs);
+    let mut system_state: SystemState<EventReader<ConfigurationPacketEvent>> =
+        SystemState::new(ecs);
     let mut events = system_state.get_mut(ecs);
-    for PacketEvent {
+    for ConfigurationPacketEvent {
         entity: player_entity,
         packet,
     } in events.read()

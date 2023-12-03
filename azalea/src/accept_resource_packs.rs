@@ -1,9 +1,9 @@
 use crate::app::{App, Plugin};
 use azalea_client::chunks::handle_chunk_batch_finished_event;
 use azalea_client::inventory::InventorySet;
+use azalea_client::packet_handling::game::SendPacketEvent;
 use azalea_client::packet_handling::{death_event_on_0_health, game::ResourcePackEvent};
 use azalea_client::respawn::perform_respawn;
-use azalea_client::SendPacketEvent;
 use azalea_protocol::packets::game::serverbound_resource_pack_packet::{
     self, ServerboundResourcePackPacket,
 };

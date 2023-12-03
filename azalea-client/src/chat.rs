@@ -22,7 +22,7 @@ use uuid::Uuid;
 
 use crate::{
     client::Client,
-    local_player::{handle_send_packet_event, SendPacketEvent},
+    packet_handling::game::{handle_send_packet_event, SendPacketEvent},
 };
 
 /// A chat packet, either a system message or a chat message.

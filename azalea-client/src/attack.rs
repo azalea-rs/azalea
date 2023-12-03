@@ -13,11 +13,8 @@ use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
 
 use crate::{
-    interact::SwingArmEvent,
-    local_player::{LocalGameMode, SendPacketEvent},
-    movement::MoveEventsSet,
-    respawn::perform_respawn,
-    Client,
+    interact::SwingArmEvent, local_player::LocalGameMode, movement::MoveEventsSet,
+    packet_handling::game::SendPacketEvent, respawn::perform_respawn, Client,
 };
 
 pub struct AttackPlugin;

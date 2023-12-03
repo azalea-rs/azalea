@@ -7,12 +7,16 @@ use crate::{
     interact::{CurrentSequenceNumber, InteractPlugin},
     inventory::{InventoryComponent, InventoryPlugin},
     local_player::{
-        death_event, handle_send_packet_event, GameProfileComponent, Hunger, InstanceHolder,
-        PermissionLevel, PlayerAbilities, SendPacketEvent, TabList,
+        death_event, GameProfileComponent, Hunger, InstanceHolder, PermissionLevel,
+        PlayerAbilities, TabList,
     },
     mining::{self, MinePlugin},
     movement::{LastSentLookDirection, PhysicsState, PlayerMovePlugin},
-    packet_handling::PacketHandlerPlugin,
+    packet_handling::{
+        game::{handle_send_packet_event, SendPacketEvent},
+        login::{self, LoginSendPacketQueue},
+        PacketHandlerPlugin,
+    },
     player::retroactively_add_game_profile_component,
     raw_connection::RawConnection,
     respawn::RespawnPlugin,
@@ -35,6 +39,7 @@ use azalea_protocol::{
     packets::{
         configuration::{
             serverbound_client_information_packet::ClientInformation,
+            serverbound_custom_payload_packet::ServerboundCustomPayloadPacket,
             ClientboundConfigurationPacket, ServerboundConfigurationPacket,
         },
         game::ServerboundGamePacket,
@@ -208,8 +213,29 @@ impl Client {
         resolved_address: &SocketAddr,
         run_schedule_sender: mpsc::UnboundedSender<()>,
     ) -> Result<(Self, mpsc::UnboundedReceiver<Event>), JoinError> {
+        // check if an entity with our uuid already exists in the ecs and if so then
+        // just use that
+        let entity = {
+            let mut ecs = ecs_lock.lock();
+
+            let entity_uuid_index = ecs.resource::<EntityUuidIndex>();
+            let uuid = account.uuid_or_offline();
+            if let Some(entity) = entity_uuid_index.get(&account.uuid_or_offline()) {
+                debug!("Reusing entity {entity:?} for client");
+                entity
+            } else {
+                let entity = ecs.spawn_empty().id();
+                debug!("Created new entity {entity:?} for client");
+                // add to the uuid index
+                let mut entity_uuid_index = ecs.resource_mut::<EntityUuidIndex>();
+                entity_uuid_index.insert(uuid, entity);
+                entity
+            }
+        };
+
         let conn = Connection::new(resolved_address).await?;
-        let (mut conn, game_profile) = Self::handshake(conn, account, address).await?;
+        let (mut conn, game_profile) =
+            Self::handshake(ecs_lock.clone(), entity, conn, account, address).await?;
 
         {
             // quickly send the brand here
@@ -217,12 +243,13 @@ impl Client {
             // they don't have to know :)
             "vanilla".write_into(&mut brand_data).unwrap();
             conn.write(
-        azalea_protocol::packets::configuration::serverbound_custom_payload_packet::ServerboundCustomPayloadPacket {
+                ServerboundCustomPayloadPacket {
                     identifier: ResourceLocation::new("brand"),
                     data: brand_data.into(),
                 }
                 .get(),
-            ).await?;
+            )
+            .await?;
         }
 
         let (read_conn, write_conn) = conn.into_split();
@@ -234,22 +261,6 @@ impl Client {
 
         let mut ecs = ecs_lock.lock();
 
-        // check if an entity with our uuid already exists in the ecs and if so then
-        // just use that
-        let entity = {
-            let entity_uuid_index = ecs.resource::<EntityUuidIndex>();
-            if let Some(entity) = entity_uuid_index.get(&game_profile.uuid) {
-                debug!("Reusing entity {entity:?} for client");
-                entity
-            } else {
-                let entity = ecs.spawn_empty().id();
-                debug!("Created new entity {entity:?} for client");
-                // add to the uuid index
-                let mut entity_uuid_index = ecs.resource_mut::<EntityUuidIndex>();
-                entity_uuid_index.insert(game_profile.uuid, entity);
-                entity
-            }
-        };
         // we got the ConfigurationConnection, so the client is now connected :)
         let client = Client::new(
             game_profile.clone(),
@@ -284,6 +295,8 @@ impl Client {
     /// This will also automatically refresh the account's access token if
     /// it's expired.
     pub async fn handshake(
+        ecs_lock: Arc<Mutex<World>>,
+        entity: Entity,
         mut conn: Connection<ClientboundHandshakePacket, ServerboundHandshakePacket>,
         account: &Account,
         address: &ServerAddress,
@@ -307,6 +320,14 @@ impl Client {
         .await?;
         let mut conn = conn.login();
 
+        // this makes it so plugins can send an `SendLoginPacketEvent` event to the ecs
+        // and we'll send it to the server
+        let (ecs_packets_tx, mut ecs_packets_rx) = mpsc::unbounded_channel();
+        ecs_lock
+            .lock()
+            .entity_mut(entity)
+            .insert(LoginSendPacketQueue { tx: ecs_packets_tx });
+
         // login
         conn.write(
             ServerboundHelloPacket {
@@ -320,7 +341,20 @@ impl Client {
         .await?;
 
         let (conn, profile) = loop {
-            let packet = conn.read().await?;
+            let packet = tokio::select! {
+                packet = conn.read() => packet?,
+                Some(packet) = ecs_packets_rx.recv() => {
+                    // write this packet to the server
+                    conn.write(packet).await?;
+                    continue;
+                }
+            };
+
+            ecs_lock.lock().send_event(login::LoginPacketEvent {
+                entity,
+                packet: Arc::new(packet.clone()),
+            });
+
             match packet {
                 ClientboundLoginPacket::Hello(p) => {
                     debug!("Got encryption request");
@@ -655,7 +689,7 @@ impl Plugin for AzaleaPlugin {
 /// [`DefaultPlugins`].
 #[doc(hidden)]
 pub fn start_ecs_runner(
-    mut app: App,
+    app: App,
     run_schedule_receiver: mpsc::UnboundedReceiver<()>,
     run_schedule_sender: mpsc::UnboundedSender<()>,
 ) -> Arc<Mutex<World>> {

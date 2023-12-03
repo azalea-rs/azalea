@@ -4,7 +4,7 @@ use azalea_protocol::packets::game::serverbound_client_command_packet::{
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 
-use crate::local_player::{handle_send_packet_event, SendPacketEvent};
+use crate::packet_handling::game::{handle_send_packet_event, SendPacketEvent};
 
 /// Tell the server that we're respawning.
 #[derive(Event, Debug, Clone)]

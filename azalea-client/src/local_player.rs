@@ -160,24 +160,3 @@ impl<T> From<std::sync::PoisonError<T>> for HandlePacketError {
         HandlePacketError::Poison(e.to_string())
     }
 }
-
-/// Event for sending a packet to the server.
-#[derive(Event)]
-pub struct SendPacketEvent {
-    pub entity: Entity,
-    pub packet: ServerboundGamePacket,
-}
-
-pub fn handle_send_packet_event(
-    mut send_packet_events: EventReader<SendPacketEvent>,
-    mut query: Query<&mut RawConnection>,
-) {
-    for event in send_packet_events.read() {
-        if let Ok(raw_connection) = query.get_mut(event.entity) {
-            // debug!("Sending packet: {:?}", event.packet);
-            if let Err(e) = raw_connection.write_packet(event.packet.clone()) {
-                error!("Failed to send packet: {e}");
-            }
-        }
-    }
-}
