@@ -255,7 +255,7 @@ declare_state_packets!(
         0x19: clientbound_damage_event_packet::ClientboundDamageEventPacket,
         0x1a: clientbound_delete_chat_packet::ClientboundDeleteChatPacket,
         0x1b: clientbound_disconnect_packet::ClientboundDisconnectPacket,
-        0x1c: clientbound_disguised_chat_packet::ClientboundDisguisedChatPacket,
+        0x1c: clientbound_disguised_chat_packet::ClientboundMaskedChatPacket,
         0x1d: clientbound_entity_event_packet::ClientboundEntityEventPacket,
         0x1e: clientbound_explode_packet::ClientboundExplodePacket,
         0x1f: clientbound_forget_level_chunk_packet::ClientboundForgetLevelChunkPacket,
