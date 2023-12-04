@@ -14,7 +14,7 @@ pub mod pathfinder;
 pub mod prelude;
 pub mod swarm;
 
-use app::{App, Plugins};
+use app::Plugins;
 pub use azalea_auth as auth;
 pub use azalea_block as blocks;
 pub use azalea_brigadier as brigadier;
@@ -34,12 +34,9 @@ pub use azalea_world as world;
 pub use bot::*;
 use ecs::component::Component;
 use futures::{future::BoxFuture, Future};
-use protocol::{
-    resolver::{self, ResolverError},
-    ServerAddress,
-};
+use protocol::{resolver::ResolverError, ServerAddress};
+use swarm::SwarmBuilder;
 use thiserror::Error;
-use tokio::sync::mpsc;
 
 pub use bevy_app as app;
 pub use bevy_ecs as ecs;
@@ -54,8 +51,6 @@ pub enum StartError {
     InvalidAddress,
     #[error(transparent)]
     ResolveAddress(#[from] ResolverError),
-    #[error("Join error: {0}")]
-    Join(#[from] azalea_client::JoinError),
 }
 
 /// A builder for creating new [`Client`]s. This is the recommended way of
@@ -80,10 +75,10 @@ pub struct ClientBuilder<S>
 where
     S: Default + Send + Sync + Clone + Component + 'static,
 {
-    app: App,
-    /// The function that's called every time a bot receives an [`Event`].
-    handler: Option<BoxHandleFn<S>>,
-    state: S,
+    /// Internally, ClientBuilder is just a wrapper over SwarmBuilder since it's
+    /// technically just a subset of it so we can avoid duplicating code this
+    /// way.
+    swarm: SwarmBuilder<S, swarm::NoSwarmState>,
 }
 impl ClientBuilder<NoState> {
     /// Start building a client that can join the world.
@@ -120,11 +115,7 @@ impl ClientBuilder<NoState> {
     #[must_use]
     pub fn new_without_plugins() -> ClientBuilder<NoState> {
         Self {
-            // we create the app here so plugins can add onto it.
-            // the schedules won't run until [`Self::start`] is called.
-            app: App::new(),
-            handler: None,
-            state: NoState,
+            swarm: SwarmBuilder::new_without_plugins(),
         }
     }
 
@@ -151,11 +142,7 @@ impl ClientBuilder<NoState> {
         Fut: Future<Output = Result<(), anyhow::Error>> + Send + 'static,
     {
         ClientBuilder {
-            handler: Some(Box::new(move |bot, event, state| {
-                Box::pin(handler(bot, event, state))
-            })),
-            state: S::default(),
-            ..self
+            swarm: self.swarm.set_handler(handler),
         }
     }
 }
@@ -166,62 +153,36 @@ where
     /// Set the client state instead of initializing defaults.
     #[must_use]
     pub fn set_state(mut self, state: S) -> Self {
-        self.state = state;
+        self.swarm.states = vec![state];
         self
     }
     /// Add a group of plugins to the client.
     #[must_use]
     pub fn add_plugins<M>(mut self, plugins: impl Plugins<M>) -> Self {
-        self.app.add_plugins(plugins);
+        self.swarm = self.swarm.add_plugins(plugins);
         self
     }
 
     /// Build this `ClientBuilder` into an actual [`Client`] and join the given
-    /// server.
+    /// server. If the client can't join, it'll keep retrying forever until it
+    /// can.
     ///
     /// The `address` argument can be a `&str`, [`ServerAddress`], or anything
     /// that implements `TryInto<ServerAddress>`.
     ///
+    /// # Errors
+    ///
+    /// This will error if the given address is invalid or couldn't be resolved
+    /// to a Minecraft server.
+    ///
     /// [`ServerAddress`]: azalea_protocol::ServerAddress
     pub async fn start(
-        self,
+        mut self,
         account: Account,
         address: impl TryInto<ServerAddress>,
     ) -> Result<(), StartError> {
-        let address: ServerAddress = address.try_into().map_err(|_| JoinError::InvalidAddress)?;
-        let resolved_address = resolver::resolve_address(&address).await?;
-
-        // An event that causes the schedule to run. This is only used internally.
-        let (run_schedule_sender, run_schedule_receiver) = mpsc::unbounded_channel();
-
-        let main_schedule_label = self.app.main_schedule_label;
-
-        let ecs_lock =
-            start_ecs_runner(self.app, run_schedule_receiver, run_schedule_sender.clone());
-
-        // run the main schedule so the startup systems run
-        {
-            let mut ecs = ecs_lock.lock();
-            ecs.run_schedule(main_schedule_label);
-            ecs.clear_trackers();
-        }
-
-        let (bot, mut rx) = Client::start_client(
-            ecs_lock,
-            &account,
-            &address,
-            &resolved_address,
-            run_schedule_sender,
-        )
-        .await?;
-
-        while let Some(event) = rx.recv().await {
-            if let Some(handler) = &self.handler {
-                tokio::spawn((handler)(bot.clone(), event.clone(), self.state.clone()));
-            }
-        }
-
-        Ok(())
+        self.swarm.accounts = vec![account];
+        self.swarm.start(address).await
     }
 }
 impl Default for ClientBuilder<NoState> {
