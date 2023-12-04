@@ -182,6 +182,9 @@ where
         address: impl TryInto<ServerAddress>,
     ) -> Result<(), StartError> {
         self.swarm.accounts = vec![account];
+        if self.swarm.states.is_empty() {
+            self.swarm.states = vec![S::default()];
+        }
         self.swarm.start(address).await
     }
 }
