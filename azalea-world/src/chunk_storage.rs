@@ -211,8 +211,8 @@ impl PartialChunkStorage {
     }
 
     /// Set a chunk in the shared storage and reference it from the limited
-    /// storage. Use [`Self::set_with_shared_reference`] if you already have
-    /// an `Arc<RwLock<Chunk>>`.
+    /// storage. Use [`Self::limited_set`] if you already have an
+    /// `Arc<RwLock<Chunk>>`.
     ///
     /// # Panics
     /// If the chunk is not in the render distance.

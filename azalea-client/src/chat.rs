@@ -2,7 +2,7 @@
 
 use azalea_chat::FormattedText;
 use azalea_protocol::packets::game::{
-    clientbound_disguised_chat_packet::ClientboundMaskedChatPacket,
+    clientbound_disguised_chat_packet::ClientboundDisguisedChatPacket,
     clientbound_player_chat_packet::ClientboundPlayerChatPacket,
     clientbound_system_chat_packet::ClientboundSystemChatPacket,
     serverbound_chat_command_packet::ServerboundChatCommandPacket,
@@ -31,7 +31,7 @@ use crate::{
 pub enum ChatPacket {
     System(Arc<ClientboundSystemChatPacket>),
     Player(Arc<ClientboundPlayerChatPacket>),
-    Masked(Arc<ClientboundMaskedChatPacket>),
+    Disguised(Arc<ClientboundDisguisedChatPacket>),
 }
 
 macro_rules! regex {
@@ -47,7 +47,7 @@ impl ChatPacket {
         match self {
             ChatPacket::System(p) => p.content.clone(),
             ChatPacket::Player(p) => p.message(),
-            ChatPacket::Masked(p) => p.message.clone(),
+            ChatPacket::Disguised(p) => p.message(),
         }
     }
 
@@ -57,12 +57,6 @@ impl ChatPacket {
     /// None.
     pub fn split_sender_and_content(&self) -> (Option<String>, String) {
         match self {
-            ChatPacket::Player(p) => (
-                // If it's a player chat packet, then the sender and content
-                // are already split for us.
-                Some(p.chat_type.name.to_string()),
-                p.body.content.clone(),
-            ),
             ChatPacket::System(p) => {
                 let message = p.content.to_string();
                 // Overlay messages aren't in chat
@@ -77,16 +71,18 @@ impl ChatPacket {
 
                 (None, message)
             }
-            ChatPacket::Masked(p) => {
-                let message = p.message.to_string();
-                // It's a system message, so we'll have to match the content
-                // with regex
-                if let Some(m) = regex!("^<([a-zA-Z_0-9]{1,16})> (.+)$").captures(&message) {
-                    return (Some(m[1].to_string()), m[2].to_string());
-                }
-
-                (None, message)
-            }
+            ChatPacket::Player(p) => (
+                // If it's a player chat packet, then the sender and content
+                // are already split for us.
+                Some(p.chat_type.name.to_string()),
+                p.body.content.clone(),
+            ),
+            ChatPacket::Disguised(p) => (
+                // disguised chat packets are basically the same as player chat packets but without
+                // the chat signing things
+                Some(p.chat_type.name.to_string()),
+                p.message.to_string(),
+            ),
         }
     }
 
@@ -104,7 +100,7 @@ impl ChatPacket {
         match self {
             ChatPacket::System(_) => None,
             ChatPacket::Player(m) => Some(m.sender),
-            ChatPacket::Masked(_) => None,
+            ChatPacket::Disguised(_) => None,
         }
     }
 
