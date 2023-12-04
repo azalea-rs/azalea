@@ -1382,7 +1382,18 @@ pub fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::TabList(_) => {}
             ClientboundGamePacket::TagQuery(_) => {}
             ClientboundGamePacket::TakeItemEntity(_) => {}
-            ClientboundGamePacket::DisguisedChat(_) => {}
+            ClientboundGamePacket::MaskedChat(p) => {
+                debug!("Got masked chat packet {p:?}");
+
+                let mut system_state: SystemState<EventWriter<ChatReceivedEvent>> =
+                    SystemState::new(ecs);
+                let mut chat_events = system_state.get_mut(ecs);
+
+                chat_events.send(ChatReceivedEvent {
+                    entity: player_entity,
+                    packet: ChatPacket::Masked(Arc::new(p.clone())),
+                });
+            }
             ClientboundGamePacket::Bundle(_) => {}
             ClientboundGamePacket::DamageEvent(_) => {}
             ClientboundGamePacket::HurtAnimation(_) => {}

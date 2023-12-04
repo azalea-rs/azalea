@@ -3,8 +3,8 @@ use azalea_buf::McBuf;
 use azalea_chat::FormattedText;
 use azalea_protocol_macros::ClientboundGamePacket;
 
-#[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
-pub struct ClientboundDisguisedChatPacket {
+#[derive(Clone, Debug, McBuf, ClientboundGamePacket, PartialEq)]
+pub struct ClientboundMaskedChatPacket {
     pub message: FormattedText,
     pub chat_type: ChatTypeBound,
 }
