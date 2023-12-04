@@ -312,8 +312,9 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
     let mut from_registry_block_to_blockstate_match = quote! {};
     let mut from_registry_block_to_blockstates_match = quote! {};
 
-    // a list of block state ids that are waterlogged
+    // a list of block state ids that have the properties
     let mut waterlogged_state_ids: Vec<u32> = Vec::new();
+    let mut open_state_ids: Vec<u32> = Vec::new();
 
     for block in &input.block_definitions.blocks {
         let block_property_names = &block
@@ -463,8 +464,18 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
 
                 // if "waterlogged" is a property and it's true for this state then add it to
                 // waterlogged_state_ids
-                if property_name == "waterlogged" && property_value.to_string() == "true" {
-                    waterlogged_state_ids.push(state_id)
+                match property_name.to_string().as_str() {
+                    "waterlogged" => {
+                        if property_value.to_string() == "true" {
+                            waterlogged_state_ids.push(state_id)
+                        }
+                    }
+                    "open" => {
+                        if property_value.to_string() == "true" {
+                            open_state_ids.push(state_id)
+                        }
+                    }
+                    _ => {}
                 }
             }
 
@@ -612,6 +623,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
     }
 
     let waterlogged_state_ids_match = quote! { #(#waterlogged_state_ids)|* };
+    let open_state_ids_match = quote! { #(#open_state_ids)|* };
 
     let last_state_id = state_id - 1;
     let mut generated = quote! {
@@ -626,6 +638,11 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             /// the `waterlogged` field, so it'll return false for water.
             pub fn waterlogged(&self) -> bool {
                 matches!(self.id, #waterlogged_state_ids_match)
+            }
+
+            /// Whether the given block state is "open". This depends on the block, but usually it's like if a door is open.
+            pub fn open(&self) -> bool {
+                matches!(self.id, #open_state_ids_match)
             }
         }
 

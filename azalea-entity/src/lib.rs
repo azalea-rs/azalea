@@ -373,6 +373,9 @@ impl FluidOnEyes {
     }
 }
 
+#[derive(Component, Clone, Debug, PartialEq, Deref, DerefMut)]
+pub struct OnClimbable(bool);
+
 // #[cfg(test)]
 // mod tests {
 //     use super::*;

@@ -242,7 +242,9 @@ fn handle_relative_friction_and_calculate_movement(
             z: physics.zza as f64,
         },
     );
-    // entity.delta = entity.handle_on_climbable(entity.delta);
+
+    physics.velocity = handle_on_climbable(physics.velocity);
+
     move_colliding(
         &MoverType::Own,
         &physics.velocity.clone(),
