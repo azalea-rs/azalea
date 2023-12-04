@@ -200,6 +200,13 @@ impl Account {
             }
         }
     }
+
+    /// Get the UUID of this account. This will generate an offline-mode UUID
+    /// by making a hash with the username if the `uuid` field is None.
+    pub fn uuid_or_offline(&self) -> Uuid {
+        self.uuid
+            .unwrap_or_else(|| azalea_auth::offline::generate_uuid(&self.username))
+    }
 }
 
 #[derive(Error, Debug)]

@@ -26,7 +26,8 @@ use bevy_ecs::{
 use tracing::warn;
 
 use crate::{
-    local_player::{handle_send_packet_event, PlayerAbilities, SendPacketEvent},
+    local_player::PlayerAbilities,
+    packet_handling::game::{handle_send_packet_event, SendPacketEvent},
     respawn::perform_respawn,
     Client,
 };

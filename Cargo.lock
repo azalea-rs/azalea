@@ -157,6 +157,7 @@ dependencies = [
  "azalea-auth",
  "azalea-block",
  "azalea-brigadier",
+ "azalea-buf",
  "azalea-chat",
  "azalea-client",
  "azalea-core",
@@ -196,6 +197,7 @@ dependencies = [
  "base64",
  "chrono",
  "env_logger",
+ "md-5",
  "num-bigint",
  "once_cell",
  "reqwest",
@@ -1638,6 +1640,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "md-5"
+version = "0.10.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d89e7ee0cfbedfc4da3340218492196241d89eefb6dab27de5df917a6d2e78cf"
+dependencies = [
+ "cfg-if",
+ "digest",
+]
+
+[[package]]
 name = "memchr"
 version = "2.6.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2878,6 +2890,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "88ad59a7560b41a70d191093a945f0b87bc1deeda46fb237479708a1d6b6cdfc"
 dependencies = [
  "getrandom",
+ "md-5",
  "serde",
 ]
 

@@ -17,8 +17,9 @@ use crate::{
         HitResultComponent, SwingArmEvent,
     },
     inventory::{InventoryComponent, InventorySet},
-    local_player::{LocalGameMode, PermissionLevel, PlayerAbilities, SendPacketEvent},
+    local_player::{LocalGameMode, PermissionLevel, PlayerAbilities},
     movement::MoveEventsSet,
+    packet_handling::game::SendPacketEvent,
     Client,
 };
 

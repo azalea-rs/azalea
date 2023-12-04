@@ -7,22 +7,17 @@ pub mod prelude;
 use azalea_client::{
     chat::ChatPacket, start_ecs_runner, Account, Client, DefaultPlugins, Event, JoinError,
 };
-use azalea_protocol::{
-    connect::ConnectionError,
-    resolver::{self, ResolverError},
-    ServerAddress,
-};
+use azalea_protocol::{resolver, ServerAddress};
 use azalea_world::InstanceContainer;
 use bevy_app::{App, PluginGroup, PluginGroupBuilder, Plugins};
 use bevy_ecs::{component::Component, entity::Entity, system::Resource, world::World};
 use futures::future::{join_all, BoxFuture};
 use parking_lot::{Mutex, RwLock};
 use std::{collections::HashMap, future::Future, net::SocketAddr, sync::Arc, time::Duration};
-use thiserror::Error;
 use tokio::sync::mpsc;
 use tracing::error;
 
-use crate::{BoxHandleFn, DefaultBotPlugins, HandleFn, NoState};
+use crate::{BoxHandleFn, DefaultBotPlugins, HandleFn, NoState, StartError};
 
 /// A swarm is a way to conveniently control many bots at once, while also
 /// being able to control bots at an individual level when desired.
@@ -55,25 +50,25 @@ where
     S: Send + Sync + Clone + Component + 'static,
     SS: Default + Send + Sync + Clone + Resource + 'static,
 {
-    app: App,
+    pub(crate) app: App,
     /// The accounts that are going to join the server.
-    accounts: Vec<Account>,
+    pub(crate) accounts: Vec<Account>,
     /// The individual bot states. This must be the same length as `accounts`,
     /// since each bot gets one state.
-    states: Vec<S>,
+    pub(crate) states: Vec<S>,
     /// The state for the overall swarm.
-    swarm_state: SS,
+    pub(crate) swarm_state: SS,
     /// The function that's called every time a bot receives an [`Event`].
-    handler: Option<BoxHandleFn<S>>,
+    pub(crate) handler: Option<BoxHandleFn<S>>,
     /// The function that's called every time the swarm receives a
     /// [`SwarmEvent`].
-    swarm_handler: Option<BoxSwarmHandleFn<SS>>,
+    pub(crate) swarm_handler: Option<BoxSwarmHandleFn<SS>>,
 
     /// How long we should wait between each bot joining the server. Set to
     /// None to have every bot connect at the same time. None is different than
     /// a duration of 0, since if a duration is present the bots will wait for
     /// the previous one to be ready.
-    join_delay: Option<std::time::Duration>,
+    pub(crate) join_delay: Option<std::time::Duration>,
 }
 impl SwarmBuilder<NoState, NoSwarmState> {
     /// Start creating the swarm.
@@ -297,7 +292,7 @@ where
     /// that implements `TryInto<ServerAddress>`.
     ///
     /// [`ServerAddress`]: azalea_protocol::ServerAddress
-    pub async fn start(self, address: impl TryInto<ServerAddress>) -> Result<(), SwarmStartError> {
+    pub async fn start(self, address: impl TryInto<ServerAddress>) -> Result<(), StartError> {
         assert_eq!(
             self.accounts.len(),
             self.states.len(),
@@ -307,7 +302,7 @@ where
         // convert the TryInto<ServerAddress> into a ServerAddress
         let address: ServerAddress = match address.try_into() {
             Ok(address) => address,
-            Err(_) => return Err(SwarmStartError::InvalidAddress),
+            Err(_) => return Err(StartError::InvalidAddress),
         };
 
         // resolve the address
@@ -450,16 +445,6 @@ pub type SwarmHandleFn<SS, Fut> = fn(Swarm, SwarmEvent, SS) -> Fut;
 pub type BoxSwarmHandleFn<SS> =
     Box<dyn Fn(Swarm, SwarmEvent, SS) -> BoxFuture<'static, Result<(), anyhow::Error>> + Send>;
 
-#[derive(Error, Debug)]
-pub enum SwarmStartError {
-    #[error("Invalid address")]
-    InvalidAddress,
-    #[error(transparent)]
-    ResolveAddress(#[from] ResolverError),
-    #[error("Join error: {0}")]
-    Join(#[from] azalea_client::JoinError),
-}
-
 /// Make a bot [`Swarm`].
 ///
 /// [`Swarm`]: struct.Swarm.html
@@ -536,7 +521,7 @@ impl Swarm {
         state: S,
     ) -> Result<Client, JoinError> {
         let address = self.address.read().clone();
-        let resolved_address = self.resolved_address.read().clone();
+        let resolved_address = *self.resolved_address.read();
 
         let (bot, mut rx) = Client::start_client(
             self.ecs_lock.clone(),
@@ -629,12 +614,6 @@ impl IntoIterator for Swarm {
             .into_values()
             .collect::<Vec<_>>()
             .into_iter()
-    }
-}
-
-impl From<ConnectionError> for SwarmStartError {
-    fn from(e: ConnectionError) -> Self {
-        SwarmStartError::from(JoinError::from(e))
     }
 }
 

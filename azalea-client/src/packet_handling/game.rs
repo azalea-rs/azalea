@@ -23,6 +23,7 @@ use azalea_protocol::{
         serverbound_keep_alive_packet::ServerboundKeepAlivePacket,
         serverbound_move_player_pos_rot_packet::ServerboundMovePlayerPosRotPacket,
         serverbound_pong_packet::ServerboundPongPacket, ClientboundGamePacket,
+        ServerboundGamePacket,
     },
     read::deserialize_packet,
 };
@@ -40,8 +41,7 @@ use crate::{
         SetContainerContentEvent,
     },
     local_player::{
-        GameProfileComponent, Hunger, InstanceHolder, LocalGameMode, PlayerAbilities,
-        SendPacketEvent, TabList,
+        GameProfileComponent, Hunger, InstanceHolder, LocalGameMode, PlayerAbilities, TabList,
     },
     movement::{KnockbackEvent, KnockbackType},
     raw_connection::RawConnection,
@@ -1399,6 +1399,27 @@ pub fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::HurtAnimation(_) => {}
 
             ClientboundGamePacket::StartConfiguration(_) => todo!(),
+        }
+    }
+}
+
+/// An event for sending a packet to the server while we're in the `game` state.
+#[derive(Event)]
+pub struct SendPacketEvent {
+    pub entity: Entity,
+    pub packet: ServerboundGamePacket,
+}
+
+pub fn handle_send_packet_event(
+    mut send_packet_events: EventReader<SendPacketEvent>,
+    mut query: Query<&mut RawConnection>,
+) {
+    for event in send_packet_events.read() {
+        if let Ok(raw_connection) = query.get_mut(event.entity) {
+            // debug!("Sending packet: {:?}", event.packet);
+            if let Err(e) = raw_connection.write_packet(event.packet.clone()) {
+                error!("Failed to send packet: {e}");
+            }
         }
     }
 }

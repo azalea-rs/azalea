@@ -35,7 +35,7 @@ pub use client::{
     start_ecs_runner, Client, DefaultPlugins, JoinError, JoinedClientBundle, TickBroadcast,
 };
 pub use events::Event;
-pub use local_player::{GameProfileComponent, InstanceHolder, SendPacketEvent, TabList};
+pub use local_player::{GameProfileComponent, InstanceHolder, TabList};
 pub use movement::{
     PhysicsState, SprintDirection, StartSprintEvent, StartWalkEvent, WalkDirection,
 };

@@ -196,13 +196,10 @@ fn goto_listener(
         pathfinder.is_calculating = true;
 
         let start = if let Some(executing_path) = executing_path
-            && let Some(final_node) = executing_path.path.back() {
+            && let Some(final_node) = executing_path.path.back()
+        {
             // if we're currently pathfinding and got a goto event, start a little ahead
-            executing_path
-                .path
-                .get(20)
-                .unwrap_or(final_node)
-                .target
+            executing_path.path.get(20).unwrap_or(final_node).target
         } else {
             BlockPos::from(position)
         };

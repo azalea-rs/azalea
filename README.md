@@ -11,7 +11,7 @@ A collection of Rust crates for making Minecraft bots, clients, and tools.
 <!-- The line below is automatically read and updated by the migrate script, so don't change it manually. -->
 *Currently supported Minecraft version: `1.20.2`.*
 
-> **Warning**
+> [!WARNING]
 > Azalea is still very unfinished, though most crates are in a somewhat useable state
 
 ## Features
@@ -32,10 +32,6 @@ The "stable" documentation is available at [docs.rs/azalea](https://docs.rs/azal
 
 If you'd like to chat about Azalea, you can join the Matrix space at [#azalea:matdoes.dev](https://matrix.to/#/#azalea:matdoes.dev) (recommended) or the Discord server at [discord.gg/FaRey6ytmC](https://discord.gg/FaRey6ytmC) (they're bridged so you don't need to join both).
 
-## Why
-
-For fun, mostly. I wasn't satisfied with the current state of Minecraft bot libraries, and this seemed like a good way to learn Rust.
-
 ## Goals
 
 - Do everything a vanilla client can do.
@@ -47,7 +43,7 @@ For fun, mostly. I wasn't satisfied with the current state of Minecraft bot libr
 
 ## Non-goals
 
-- Supporting several versions of Minecraft on the same branch.
+- Supporting several versions of Minecraft on the same branch[*](https://github.com/azalea-rs/azalea-viaversion).
 - Bedrock edition.
 - Graphics.
 
