@@ -32,10 +32,6 @@ The "stable" documentation is available at [docs.rs/azalea](https://docs.rs/azal
 
 If you'd like to chat about Azalea, you can join the Matrix space at [#azalea:matdoes.dev](https://matrix.to/#/#azalea:matdoes.dev) (recommended) or the Discord server at [discord.gg/FaRey6ytmC](https://discord.gg/FaRey6ytmC) (they're bridged so you don't need to join both).
 
-## Why
-
-For fun, mostly. I wasn't satisfied with the current state of Minecraft bot libraries, and this seemed like a good way to learn Rust.
-
 ## Goals
 
 - Do everything a vanilla client can do.
