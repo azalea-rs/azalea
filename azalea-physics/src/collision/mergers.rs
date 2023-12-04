@@ -135,7 +135,7 @@ impl IndexMerger {
         }
     }
 
-    pub fn new_indirect(var1: &Vec<f64>, var2: &Vec<f64>, var3: bool, var4: bool) -> Self {
+    pub fn new_indirect(var1: &[f64], var2: &[f64], var3: bool, var4: bool) -> Self {
         let mut var5 = f64::NAN;
         let var7 = var1.len();
         let var8 = var2.len();
@@ -204,11 +204,7 @@ impl IndexMerger {
 
 pub trait IndexConsumer = FnMut(i32, i32, i32) -> bool;
 
-fn for_non_swapped_indexes(
-    lower: &Vec<f64>,
-    upper: &Vec<f64>,
-    mut consumer: impl IndexConsumer,
-) -> bool {
+fn for_non_swapped_indexes(lower: &[f64], upper: &[f64], mut consumer: impl IndexConsumer) -> bool {
     let var2 = lower.len();
     for var3 in 0..var2 {
         if !consumer(var3.try_into().unwrap(), -1, var3.try_into().unwrap()) {
