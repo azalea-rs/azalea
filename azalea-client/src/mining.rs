@@ -1,5 +1,5 @@
 use azalea_block::{Block, BlockState, FluidState};
-use azalea_core::{direction::Direction, game_type::GameMode, position::BlockPos};
+use azalea_core::{direction::Direction, game_type::GameMode, position::BlockPos, tick::GameTick};
 use azalea_entity::{mining::get_mine_progress, FluidOnEyes, Physics};
 use azalea_inventory::ItemSlot;
 use azalea_physics::PhysicsSet;
@@ -7,7 +7,7 @@ use azalea_protocol::packets::game::serverbound_player_action_packet::{
     self, ServerboundPlayerActionPacket,
 };
 use azalea_world::{InstanceContainer, InstanceName};
-use bevy_app::{App, FixedUpdate, Plugin, Update};
+use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
 
@@ -33,7 +33,7 @@ impl Plugin for MinePlugin {
             .add_event::<StopMiningBlockEvent>()
             .add_event::<MineBlockProgressEvent>()
             .add_event::<AttackBlockEvent>()
-            .add_systems(FixedUpdate, continue_mining_block.before(PhysicsSet))
+            .add_systems(GameTick, continue_mining_block.before(PhysicsSet))
             .add_systems(
                 Update,
                 (

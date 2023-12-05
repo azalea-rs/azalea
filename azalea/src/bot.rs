@@ -13,12 +13,13 @@ use azalea_client::interact::SwingArmEvent;
 use azalea_client::mining::Mining;
 use azalea_client::TickBroadcast;
 use azalea_core::position::{BlockPos, Vec3};
+use azalea_core::tick::GameTick;
 use azalea_entity::{
     clamp_look_direction, metadata::Player, EyeHeight, Jumping, LocalEntity, LookDirection,
     Position,
 };
 use azalea_physics::PhysicsSet;
-use bevy_app::{FixedUpdate, Update};
+use bevy_app::Update;
 use bevy_ecs::prelude::Event;
 use bevy_ecs::schedule::IntoSystemConfigs;
 use futures_lite::Future;
@@ -41,7 +42,7 @@ impl Plugin for BotPlugin {
                     jump_listener,
                 ),
             )
-            .add_systems(FixedUpdate, stop_jumping.after(PhysicsSet));
+            .add_systems(GameTick, stop_jumping.after(PhysicsSet));
     }
 }
 

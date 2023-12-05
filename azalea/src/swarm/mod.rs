@@ -461,7 +461,7 @@ pub type BoxSwarmHandleFn<SS> =
 /// struct SwarmState {}
 ///
 /// #[tokio::main]
-/// async fn main() -> anyhow::Result<()> {
+/// async fn main() {
 ///     let mut accounts = Vec::new();
 ///     let mut states = Vec::new();
 ///
