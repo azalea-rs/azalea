@@ -10,12 +10,13 @@ async fn main() {
         states.push(State::default());
     }
 
-    let e = SwarmBuilder::new()
+    SwarmBuilder::new()
         .add_accounts(accounts.clone())
         .set_handler(handle)
         .set_swarm_handler(swarm_handle)
         .start("localhost")
-        .await;
+        .await
+        .unwrap();
 }
 
 #[derive(Default, Clone, Component)]

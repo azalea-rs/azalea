@@ -470,16 +470,14 @@ pub type BoxSwarmHandleFn<SS> =
 ///         states.push(State::default());
 ///     }
 ///
-///     loop {
-///         let e = SwarmBuilder::new()
-///             .add_accounts(accounts.clone())
-///             .set_handler(handle)
-///             .set_swarm_handler(swarm_handle)
-///             .join_delay(Duration::from_millis(1000))
-///             .start("localhost")
-///             .await;
-///         println!("{e:?}");
-///     }
+///     SwarmBuilder::new()
+///         .add_accounts(accounts.clone())
+///         .set_handler(handle)
+///         .set_swarm_handler(swarm_handle)
+///         .join_delay(Duration::from_millis(1000))
+///         .start("localhost")
+///         .await
+///         .unwrap();
 /// }
 ///
 /// async fn handle(bot: Client, event: Event, _state: State) -> anyhow::Result<()> {

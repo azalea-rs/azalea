@@ -50,13 +50,11 @@ async fn main() {
     let account = Account::offline("bot");
     // or Account::microsoft("example@example.com").await.unwrap();
 
-    loop {
-        let e = ClientBuilder::new()
-            .set_handler(handle)
-            .start(account.clone(), "localhost")
-            .await;
-        eprintln!("{e:?}");
-    }
+    ClientBuilder::new()
+        .set_handler(handle)
+        .start(account.clone(), "localhost")
+        .await
+        .unwrap();
 }
 
 #[derive(Default, Clone, Component)]
