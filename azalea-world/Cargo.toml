@@ -11,7 +11,7 @@ version = "0.9.0"
 [dependencies]
 azalea-block = { path = "../azalea-block", default-features = false, version = "0.9.0" }
 azalea-buf = { path = "../azalea-buf", version = "0.9.0" }
-azalea-core = { path = "../azalea-core", version = "^0.8.0", features = [
+azalea-core = { path = "../azalea-core", version = "0.9.0", features = [
 	"bevy_ecs",
 ] }
 azalea-inventory = { version = "0.9.0", path = "../azalea-inventory" }

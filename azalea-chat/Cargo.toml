@@ -17,7 +17,7 @@ simdnbt = ["dep:simdnbt"]
 [dependencies]
 azalea-buf = { path = "../azalea-buf", features = [
     "serde_json",
-], version = "^0.8.0", optional = true }
+], version = "0.9.0", optional = true }
 azalea-language = { path = "../azalea-language", version = "0.9.0" }
 simdnbt = { version = "0.3", optional = true }
 tracing = "0.1.40"
