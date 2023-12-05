@@ -395,7 +395,7 @@ impl simdnbt::FromNbtTag for FormattedText {
             simdnbt::borrow::NbtTag::List(list) => {
                 let list = list.compounds()?;
                 let mut component = FormattedText::from_nbt_tag(
-                    &simdnbt::borrow::NbtTag::Compound(list.get(0)?.clone()),
+                    &simdnbt::borrow::NbtTag::Compound(list.first()?.clone()),
                 )?;
                 for i in 1..list.len() {
                     component.append(FormattedText::from_nbt_tag(
