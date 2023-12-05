@@ -1,6 +1,7 @@
 use crate::client::Client;
 use crate::packet_handling::game::SendPacketEvent;
 use azalea_core::position::Vec3;
+use azalea_core::tick::GameTick;
 use azalea_entity::{metadata::Sprinting, Attributes, Jumping};
 use azalea_entity::{InLoadedChunk, LastSentPosition, LookDirection, Physics, Position};
 use azalea_physics::{ai_step, PhysicsSet};
@@ -12,7 +13,7 @@ use azalea_protocol::packets::game::{
     serverbound_move_player_status_only_packet::ServerboundMovePlayerStatusOnlyPacket,
 };
 use azalea_world::{MinecraftEntityId, MoveEntityError};
-use bevy_app::{App, FixedUpdate, Plugin, Update};
+use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::{Event, EventWriter};
 use bevy_ecs::schedule::SystemSet;
 use bevy_ecs::{
@@ -54,7 +55,7 @@ impl Plugin for PlayerMovePlugin {
                     .in_set(MoveEventsSet),
             )
             .add_systems(
-                FixedUpdate,
+                GameTick,
                 (
                     (tick_controls, local_player_ai_step)
                         .chain()

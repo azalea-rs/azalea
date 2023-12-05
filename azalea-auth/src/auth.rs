@@ -438,7 +438,7 @@ async fn auth_with_xbox_live(
     Ok(ExpiringValue {
         data: XboxLiveAuth {
             token: res.token,
-            user_hash: res.display_claims["xui"].get(0).unwrap()["uhs"].clone(),
+            user_hash: res.display_claims["xui"].first().unwrap()["uhs"].clone(),
         },
         expires_at,
     })

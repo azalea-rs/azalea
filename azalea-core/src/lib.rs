@@ -17,4 +17,5 @@ pub mod particle;
 pub mod position;
 pub mod registry_holder;
 pub mod resource_location;
+pub mod tick;
 pub mod tier;

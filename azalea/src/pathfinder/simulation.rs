@@ -1,19 +1,18 @@
 //! Simulate the Minecraft world, currently only used for tests.
 
-use std::{sync::Arc, time::Duration};
+use std::sync::Arc;
 
 use azalea_client::{
     inventory::InventoryComponent, packet_handling::game::SendPacketEvent, PhysicsState,
 };
-use azalea_core::{position::Vec3, resource_location::ResourceLocation};
+use azalea_core::{position::Vec3, resource_location::ResourceLocation, tick::GameTick};
 use azalea_entity::{
     attributes::AttributeInstance, metadata::Sprinting, Attributes, EntityDimensions, Physics,
     Position,
 };
 use azalea_world::{ChunkStorage, Instance, InstanceContainer, InstanceName, MinecraftEntityId};
-use bevy_app::{App, FixedUpdate};
+use bevy_app::App;
 use bevy_ecs::prelude::*;
-use bevy_time::{Fixed, Time};
 use parking_lot::RwLock;
 
 #[derive(Bundle, Clone)]
@@ -71,8 +70,6 @@ impl Simulation {
             crate::BotPlugin,
             azalea_client::task_pool::TaskPoolPlugin::default(),
         ))
-        // make sure it doesn't do fixed ticks without us telling it to
-        .insert_resource(Time::<Fixed>::from_duration(Duration::MAX))
         .insert_resource(InstanceContainer {
             instances: [(instance_name.clone(), Arc::downgrade(&instance.clone()))]
                 .iter()
@@ -107,7 +104,7 @@ impl Simulation {
         }
     }
     pub fn tick(&mut self) {
-        self.app.world.run_schedule(FixedUpdate);
+        self.app.world.run_schedule(GameTick);
         self.app.update();
     }
     pub fn position(&self) -> Vec3 {

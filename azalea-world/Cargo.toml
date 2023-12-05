@@ -17,7 +17,7 @@ azalea-core = { path = "../azalea-core", version = "^0.8.0", features = [
 azalea-inventory = { version = "0.8.0", path = "../azalea-inventory" }
 simdnbt = "0.3"
 azalea-registry = { path = "../azalea-registry", version = "0.8.0" }
-bevy_ecs = "0.12.0"
+bevy_ecs = "0.12.1"
 derive_more = { version = "0.99.17", features = ["deref", "deref_mut"] }
 enum-as-inner = "0.6.0"
 tracing = "0.1.40"

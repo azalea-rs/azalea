@@ -6,7 +6,6 @@
 //! [`azalea`]: https://docs.rs/azalea
 
 #![allow(incomplete_features)]
-#![feature(trait_upcasting)]
 #![feature(error_generic_member_access)]
 
 mod account;

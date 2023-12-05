@@ -1,12 +1,11 @@
 Azalea is a framework for creating Minecraft bots.
 
 This page is primarily meant for developers that already know they want to use Azalea.
-See the [readme](https://github.com/azalea-rs/azalea) for an overview of why you might want to use it.
+See the [readme](https://github.com/azalea-rs/azalea) for a higher-level overview of Azalea.
 
 # Installation
 
-First, install Rust nightly with `rustup install nightly` and `rustup
-default nightly`.
+First, install Rust nightly with `rustup install nightly` and `rustup default nightly`.
 
 Then, add one of the following lines to your Cargo.toml:
 
@@ -51,13 +50,11 @@ async fn main() {
     let account = Account::offline("bot");
     // or Account::microsoft("example@example.com").await.unwrap();
 
-    loop {
-        let e = ClientBuilder::new()
-            .set_handler(handle)
-            .start(account.clone(), "localhost")
-            .await;
-        eprintln!("{e:?}");
-    }
+    ClientBuilder::new()
+        .set_handler(handle)
+        .start(account.clone(), "localhost")
+        .await
+        .unwrap();
 }
 
 #[derive(Default, Clone, Component)]
