@@ -4,7 +4,7 @@ edition = "2021"
 license = "MIT"
 name = "azalea-buf-macros"
 repository = "https://github.com/azalea-rs/azalea/tree/main/azalea-buf"
-version = "0.8.0"
+version = "0.9.0"
 
 [lib]
 proc-macro = true
