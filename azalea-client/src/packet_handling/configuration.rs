@@ -174,7 +174,7 @@ pub fn process_packet_events(ecs: &mut World) {
                     .write_packet(ServerboundPongPacket { id: p.id }.get())
                     .unwrap();
             }
-            ClientboundConfigurationPacket::ResourcePack(p) => {
+            ClientboundConfigurationPacket::ResourcePackPush(p) => {
                 debug!("Got resource pack packet {p:?}");
 
                 let mut system_state: SystemState<Query<&RawConnection>> = SystemState::new(ecs);
@@ -183,8 +183,14 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 // always accept resource pack
                 raw_connection.write_packet(
-                    ServerboundResourcePackPacket { action: azalea_protocol::packets::configuration::serverbound_resource_pack_packet::Action::Accepted }.get()
+                    ServerboundResourcePackPacket {
+                        id: p.id,
+                        action: azalea_protocol::packets::configuration::serverbound_resource_pack_packet::Action::Accepted
+                    }.get()
                 ).unwrap();
+            }
+            ClientboundConfigurationPacket::ResourcePackPop(_) => {
+                // we can ignore this
             }
             ClientboundConfigurationPacket::UpdateEnabledFeatures(p) => {
                 debug!("Got update enabled features packet {p:?}");

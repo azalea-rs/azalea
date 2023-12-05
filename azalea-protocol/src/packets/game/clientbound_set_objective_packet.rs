@@ -1,7 +1,9 @@
-use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
-use azalea_chat::FormattedText;
-use azalea_protocol_macros::ClientboundGamePacket;
 use std::io::{Cursor, Write};
+
+use azalea_buf::{McBuf, McBufReadable, McBufWritable};
+use azalea_chat::{numbers::NumberFormat, FormattedText};
+use azalea_core::objectives::ObjectiveCriteria;
+use azalea_protocol_macros::ClientboundGamePacket;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundSetObjectivePacket {
@@ -9,51 +11,72 @@ pub struct ClientboundSetObjectivePacket {
     pub method: Method,
 }
 
+#[derive(Clone, Copy, Debug, McBuf)]
+pub enum MethodKind {
+    Add,
+    Remove,
+    Change,
+}
+
 #[derive(Clone, Debug)]
 pub enum Method {
-    Add(DisplayInfo),
+    Add {
+        display_name: FormattedText,
+        render_type: ObjectiveCriteria,
+        number_format: NumberFormat,
+    },
     Remove,
-    Change(DisplayInfo),
+    Change {
+        display_name: FormattedText,
+        render_type: ObjectiveCriteria,
+        number_format: NumberFormat,
+    },
 }
 
 impl McBufReadable for Method {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        Ok(match u8::read_from(buf)? {
-            0 => Method::Add(DisplayInfo::read_from(buf)?),
-            1 => Method::Remove,
-            2 => Method::Change(DisplayInfo::read_from(buf)?),
-            id => return Err(BufReadError::UnexpectedEnumVariant { id: i32::from(id) }),
-        })
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
+        let kind = MethodKind::read_from(buf)?;
+        match kind {
+            MethodKind::Add => Ok(Method::Add {
+                display_name: FormattedText::read_from(buf)?,
+                render_type: ObjectiveCriteria::read_from(buf)?,
+                number_format: NumberFormat::read_from(buf)?,
+            }),
+            MethodKind::Remove => Ok(Method::Remove),
+            MethodKind::Change => Ok(Method::Change {
+                display_name: FormattedText::read_from(buf)?,
+                render_type: ObjectiveCriteria::read_from(buf)?,
+                number_format: NumberFormat::read_from(buf)?,
+            }),
+        }
     }
 }
 
 impl McBufWritable for Method {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         match self {
-            Method::Add(info) => {
-                0u8.write_into(buf)?;
-                info.write_into(buf)?;
+            Method::Add {
+                display_name,
+                render_type,
+                number_format,
+            } => {
+                MethodKind::Add.write_into(buf)?;
+                display_name.write_into(buf)?;
+                render_type.write_into(buf)?;
+                number_format.write_into(buf)?;
             }
-            Method::Remove => {
-                1u8.write_into(buf)?;
-            }
-            Method::Change(info) => {
-                2u8.write_into(buf)?;
-                info.write_into(buf)?;
+            Method::Remove => MethodKind::Remove.write_into(buf)?,
+            Method::Change {
+                display_name,
+                render_type,
+                number_format,
+            } => {
+                MethodKind::Change.write_into(buf)?;
+                display_name.write_into(buf)?;
+                render_type.write_into(buf)?;
+                number_format.write_into(buf)?;
             }
         }
         Ok(())
     }
-}
-
-#[derive(McBuf, Clone, Debug)]
-pub struct DisplayInfo {
-    pub display_name: FormattedText,
-    pub render_type: RenderType,
-}
-
-#[derive(McBuf, Copy, Clone, Debug)]
-pub enum RenderType {
-    Integer,
-    Hearts,
 }

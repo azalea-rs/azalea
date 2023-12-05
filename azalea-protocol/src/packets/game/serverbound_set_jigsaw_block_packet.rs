@@ -16,6 +16,10 @@ pub struct ServerboundSetJigsawBlockPacket {
     pub pool: ResourceLocation,
     pub final_state: String,
     pub joint: String,
+    #[var]
+    pub selection_priority: i32,
+    #[var]
+    pub placement_priority: i32,
 }
 
 pub enum JointType {

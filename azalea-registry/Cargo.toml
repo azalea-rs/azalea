@@ -12,7 +12,7 @@ version = "0.8.0"
 azalea-buf = { path = "../azalea-buf", version = "0.8.0" }
 azalea-registry-macros = { path = "./azalea-registry-macros", version = "0.8.0" }
 once_cell = "1.18.0"
-simdnbt = { version = "0.2.1" }
+simdnbt = "0.3"
 
 [features]
 serde = ["azalea-registry-macros/serde"]

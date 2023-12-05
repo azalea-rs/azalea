@@ -16,14 +16,16 @@ azalea-brigadier = { path = "../azalea-brigadier", version = "^0.8.0", features 
     "azalea-buf",
 ] }
 azalea-buf = { path = "../azalea-buf", version = "0.8.0" }
-azalea-chat = { path = "../azalea-chat", version = "0.8.0" }
+azalea-chat = { path = "../azalea-chat", version = "0.8.0", features = [
+    "numbers",
+] }
 azalea-core = { path = "../azalea-core", optional = true, version = "^0.8.0", features = [
     "serde",
 ] }
 azalea-crypto = { path = "../azalea-crypto", version = "0.8.0" }
 azalea-entity = { version = "0.8.0", path = "../azalea-entity" }
 azalea-inventory = { version = "0.8.0", path = "../azalea-inventory" }
-simdnbt = { version = "0.2.1" }
+simdnbt = "0.3"
 azalea-protocol-macros = { path = "./azalea-protocol-macros", version = "0.8.0" }
 azalea-registry = { path = "../azalea-registry", version = "0.8.0" }
 azalea-world = { path = "../azalea-world", version = "0.8.0" }

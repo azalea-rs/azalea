@@ -2,7 +2,7 @@ use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 use azalea_chat::FormattedText;
 use azalea_protocol_macros::ClientboundStatusPacket;
 use serde::{Deserialize, Serialize};
-use serde_json::{value::Serializer, Value};
+use serde_json::value::Serializer;
 use std::io::{Cursor, Write};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -43,7 +43,7 @@ pub struct ClientboundStatusResponsePacket {
 impl McBufReadable for ClientboundStatusResponsePacket {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<ClientboundStatusResponsePacket, BufReadError> {
         let status_string = String::read_from(buf)?;
-        let status_json: Value = serde_json::from_str(status_string.as_str())?;
+        let status_json: serde_json::Value = serde_json::from_str(status_string.as_str())?;
 
         Ok(ClientboundStatusResponsePacket::deserialize(status_json)?)
     }
