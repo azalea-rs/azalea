@@ -101,7 +101,7 @@ dependencies = [
  "async-task",
  "concurrent-queue",
  "fastrand 2.0.1",
- "futures-lite 2.0.1",
+ "futures-lite 2.1.0",
  "slab",
 ]
 
@@ -177,7 +177,7 @@ dependencies = [
  "criterion",
  "derive_more",
  "futures",
- "futures-lite 2.0.1",
+ "futures-lite 2.1.0",
  "nohash-hasher",
  "num-traits",
  "parking_lot",
@@ -441,7 +441,7 @@ dependencies = [
  "bytes",
  "flate2",
  "futures",
- "futures-lite 2.0.1",
+ "futures-lite 2.1.0",
  "futures-util",
  "once_cell",
  "serde",
@@ -1281,14 +1281,13 @@ dependencies = [
 
 [[package]]
 name = "futures-lite"
-version = "2.0.1"
+version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d3831c2651acb5177cbd83943f3d9c8912c5ad03c76afcc0e9511ba568ec5ebb"
+checksum = "aeee267a1883f7ebef3700f262d2d54de95dfaf38189015a74fdc4e0c7ad8143"
 dependencies = [
  "fastrand 2.0.1",
  "futures-core",
  "futures-io",
- "memchr",
  "parking",
  "pin-project-lite",
 ]
