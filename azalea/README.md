@@ -7,10 +7,10 @@ See the [readme](https://github.com/azalea-rs/azalea) for a higher-level overvie
 
 First, install Rust nightly with `rustup install nightly` and `rustup default nightly`.
 
-Then, add one of the following lines to your Cargo.toml:
+Then, use one of the following commands to add Azalea to your project:
 
-- Latest bleeding-edge version (recommended): `azalea = { git="https://github.com/azalea-rs/azalea" }`\
-- Latest "stable" release: `azalea = "0.8.0"`
+-   Latest bleeding-edge version (recommended): `cargo add azalea --git=https://github.com/azalea-rs/azalea`\
+-   Latest "stable" release: `cargo add azalea`
 
 ## Optimization
 
@@ -21,12 +21,14 @@ into it. You may have to install the LLD linker.
 
 For faster performance in debug mode, add the following code to your
 Cargo.toml:
+
 ```toml
 [profile.dev]
 opt-level = 1
 [profile.dev.package."*"]
 opt-level = 3
 ```
+
 # Documentation
 
 The documentation for the latest Azalea crates.io release is available at [docs.rs/azalea](https://docs.rs/azalea/latest/azalea/) and the docs for the latest bleeding-edge (git) version are at [azalea.matdoes.dev](https://azalea.matdoes.dev/azalea/).
@@ -34,7 +36,6 @@ The documentation for the latest Azalea crates.io release is available at [docs.
 Note that the `azalea` crate is technically just a wrapper over [`azalea_client`] that adds some extra functions.
 Because of this, some of the documentation will refer to `azalea_client`.
 You can just replace these with `azalea` in your code since everything from `azalea_client` is re-exported in azalea.
-
 
 # Examples
 
