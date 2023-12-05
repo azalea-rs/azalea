@@ -292,7 +292,7 @@ where
     /// that implements `TryInto<ServerAddress>`.
     ///
     /// [`ServerAddress`]: azalea_protocol::ServerAddress
-    pub async fn start(self, address: impl TryInto<ServerAddress>) -> Result<(), StartError> {
+    pub async fn start(self, address: impl TryInto<ServerAddress>) -> Result<!, StartError> {
         assert_eq!(
             self.accounts.len(),
             self.states.len(),
@@ -351,7 +351,7 @@ where
         let accounts = self.accounts.clone();
         let states = self.states.clone();
 
-        let join_task = tokio::spawn(async move {
+        tokio::spawn(async move {
             if let Some(join_delay) = join_delay {
                 // if there's a join delay, then join one by one
                 for (account, state) in accounts.iter().zip(states) {
@@ -412,9 +412,9 @@ where
             }
         }
 
-        join_task.abort();
-
-        Ok(())
+        unreachable!(
+            "bots_rx.recv() should never be None because the bots_tx channel is never closed"
+        );
     }
 }
 
