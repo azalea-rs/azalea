@@ -1,4 +1,4 @@
-use azalea_core::game_type::GameMode;
+use azalea_core::{game_type::GameMode, tick::GameTick};
 use azalea_entity::{
     metadata::{ShiftKeyDown, Sprinting},
     update_bounding_box, Attributes, Physics,
@@ -8,7 +8,7 @@ use azalea_protocol::packets::game::serverbound_interact_packet::{
     self, ServerboundInteractPacket,
 };
 use azalea_world::MinecraftEntityId;
-use bevy_app::{App, FixedUpdate, Plugin, Update};
+use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
 
@@ -29,7 +29,7 @@ impl Plugin for AttackPlugin {
                     .after(perform_respawn),
             )
             .add_systems(
-                FixedUpdate,
+                GameTick,
                 (
                     increment_ticks_since_last_attack,
                     update_attack_strength_scale.after(PhysicsSet),

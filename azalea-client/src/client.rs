@@ -27,7 +27,7 @@ use crate::{
 use azalea_auth::{game_profile::GameProfile, sessionserver::ClientSessionServerError};
 use azalea_buf::McBufWritable;
 use azalea_chat::FormattedText;
-use azalea_core::{position::Vec3, resource_location::ResourceLocation};
+use azalea_core::{position::Vec3, resource_location::ResourceLocation, tick::GameTick};
 use azalea_entity::{
     indexing::{EntityIdIndex, EntityUuidIndex},
     metadata::Health,
@@ -58,7 +58,7 @@ use azalea_protocol::{
     resolver, ServerAddress,
 };
 use azalea_world::{Instance, InstanceContainer, InstanceName, PartialInstance};
-use bevy_app::{App, FixedUpdate, Plugin, PluginGroup, PluginGroupBuilder, Update};
+use bevy_app::{App, Plugin, PluginGroup, PluginGroupBuilder, Update};
 use bevy_ecs::{
     bundle::Bundle,
     component::Component,
@@ -67,11 +67,17 @@ use bevy_ecs::{
     system::{ResMut, Resource},
     world::World,
 };
-use bevy_time::{Fixed, Time, TimePlugin};
+use bevy_time::TimePlugin;
 use derive_more::Deref;
 use parking_lot::{Mutex, RwLock};
 use std::{
-    collections::HashMap, fmt::Debug, io, net::SocketAddr, ops::Deref, sync::Arc, time::Duration,
+    collections::HashMap,
+    fmt::Debug,
+    io,
+    net::SocketAddr,
+    ops::Deref,
+    sync::Arc,
+    time::{Duration, Instant},
 };
 use thiserror::Error;
 use tokio::{
@@ -665,21 +671,19 @@ pub struct InConfigurationState;
 pub struct AzaleaPlugin;
 impl Plugin for AzaleaPlugin {
     fn build(&self, app: &mut App) {
-        // Minecraft ticks happen every 50ms
-        app.insert_resource(Time::<Fixed>::from_duration(Duration::from_millis(50)))
-            .add_systems(
-                Update,
-                (
-                    // fire the Death event when the player dies.
-                    death_event,
-                    // add GameProfileComponent when we get an AddPlayerEvent
-                    retroactively_add_game_profile_component.after(EntityUpdateSet::Index),
-                    handle_send_packet_event,
-                ),
-            )
-            .add_event::<SendPacketEvent>()
-            .init_resource::<InstanceContainer>()
-            .init_resource::<TabList>();
+        app.add_systems(
+            Update,
+            (
+                // fire the Death event when the player dies.
+                death_event,
+                // add GameProfileComponent when we get an AddPlayerEvent
+                retroactively_add_game_profile_component.after(EntityUpdateSet::Index),
+                handle_send_packet_event,
+            ),
+        )
+        .add_event::<SendPacketEvent>()
+        .init_resource::<InstanceContainer>()
+        .init_resource::<TabList>();
     }
 }
 
@@ -712,6 +716,7 @@ async fn run_schedule_loop(
     outer_schedule_label: InternedScheduleLabel,
     mut run_schedule_receiver: mpsc::UnboundedReceiver<()>,
 ) {
+    let mut last_tick: Option<Instant> = None;
     loop {
         // get rid of any queued events
         while let Ok(()) = run_schedule_receiver.try_recv() {}
@@ -720,7 +725,18 @@ async fn run_schedule_loop(
         run_schedule_receiver.recv().await;
 
         let mut ecs = ecs.lock();
+
+        // if last tick is None or more than 50ms ago, run the GameTick schedule
+        if last_tick
+            .map(|last_tick| last_tick.elapsed() > Duration::from_millis(50))
+            .unwrap_or(true)
+        {
+            last_tick = Some(Instant::now());
+            ecs.run_schedule(GameTick);
+        }
+
         ecs.run_schedule(outer_schedule_label);
+
         ecs.clear_trackers();
     }
 }
@@ -771,7 +787,7 @@ pub struct TickBroadcastPlugin;
 impl Plugin for TickBroadcastPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(TickBroadcast(broadcast::channel(1).0))
-            .add_systems(FixedUpdate, send_tick_broadcast);
+            .add_systems(GameTick, send_tick_broadcast);
     }
 }
 
@@ -784,7 +800,7 @@ impl Plugin for AmbiguityLoggerPlugin {
                 ..Default::default()
             });
         });
-        app.edit_schedule(FixedUpdate, |schedule| {
+        app.edit_schedule(GameTick, |schedule| {
             schedule.set_build_settings(ScheduleBuildSettings {
                 ambiguity_detection: LogLevel::Warn,
                 ..Default::default()

@@ -9,13 +9,14 @@ use azalea_block::{Block, BlockState};
 use azalea_core::{
     math,
     position::{BlockPos, Vec3},
+    tick::GameTick,
 };
 use azalea_entity::{
     metadata::Sprinting, move_relative, Attributes, InLoadedChunk, Jumping, LocalEntity,
     LookDirection, Physics, Position,
 };
 use azalea_world::{Instance, InstanceContainer, InstanceName};
-use bevy_app::{App, FixedUpdate, Plugin};
+use bevy_app::{App, Plugin};
 use bevy_ecs::{
     query::With,
     schedule::{IntoSystemConfigs, SystemSet},
@@ -32,7 +33,7 @@ pub struct PhysicsPlugin;
 impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
-            FixedUpdate,
+            GameTick,
             (ai_step, travel)
                 .chain()
                 .in_set(PhysicsSet)
@@ -335,21 +336,18 @@ fn jump_boost_power() -> f64 {
 
 #[cfg(test)]
 mod tests {
-    use std::time::Duration;
 
     use super::*;
-    use azalea_core::{position::ChunkPos, resource_location::ResourceLocation};
+    use azalea_core::{position::ChunkPos, resource_location::ResourceLocation, tick::GameTick};
     use azalea_entity::{EntityBundle, EntityPlugin};
     use azalea_world::{Chunk, MinecraftEntityId, PartialInstance};
     use bevy_app::App;
-    use bevy_time::{Fixed, Time};
     use uuid::Uuid;
 
     /// You need an app to spawn entities in the world and do updates.
     fn make_test_app() -> App {
         let mut app = App::new();
         app.add_plugins((PhysicsPlugin, EntityPlugin))
-            .insert_resource(Time::<Fixed>::from_duration(Duration::from_millis(50)))
             .init_resource::<InstanceContainer>();
         app
     }
@@ -393,7 +391,7 @@ mod tests {
             assert_eq!(entity_pos.y, 70.);
         }
         app.update();
-        app.world.run_schedule(FixedUpdate);
+        app.world.run_schedule(GameTick);
         app.update();
         {
             let entity_pos = *app.world.get::<Position>(entity).unwrap();
@@ -402,7 +400,7 @@ mod tests {
             let entity_physics = app.world.get::<Physics>(entity).unwrap();
             assert!(entity_physics.velocity.y < 0.);
         }
-        app.world.run_schedule(FixedUpdate);
+        app.world.run_schedule(GameTick);
         app.update();
         {
             let entity_pos = *app.world.get::<Position>(entity).unwrap();
@@ -456,7 +454,7 @@ mod tests {
             "Block state should exist, if this fails that means the chunk wasn't loaded and the block didn't get placed"
         );
         app.update();
-        app.world.run_schedule(FixedUpdate);
+        app.world.run_schedule(GameTick);
         app.update();
         {
             let entity_pos = *app.world.get::<Position>(entity).unwrap();
@@ -465,7 +463,7 @@ mod tests {
             let entity_physics = app.world.get::<Physics>(entity).unwrap();
             assert!(entity_physics.velocity.y < 0.);
         }
-        app.world.run_schedule(FixedUpdate);
+        app.world.run_schedule(GameTick);
         app.update();
         {
             let entity_pos = *app.world.get::<Position>(entity).unwrap();
@@ -521,7 +519,7 @@ mod tests {
         );
         // do a few steps so we fall on the slab
         for _ in 0..20 {
-            app.world.run_schedule(FixedUpdate);
+            app.world.run_schedule(GameTick);
             app.update();
         }
         let entity_pos = app.world.get::<Position>(entity).unwrap();
@@ -574,7 +572,7 @@ mod tests {
         );
         // do a few steps so we fall on the slab
         for _ in 0..20 {
-            app.world.run_schedule(FixedUpdate);
+            app.world.run_schedule(GameTick);
             app.update();
         }
         let entity_pos = app.world.get::<Position>(entity).unwrap();
@@ -631,7 +629,7 @@ mod tests {
         );
         // do a few steps so we fall on the wall
         for _ in 0..20 {
-            app.world.run_schedule(FixedUpdate);
+            app.world.run_schedule(GameTick);
             app.update();
         }
 
@@ -693,7 +691,7 @@ mod tests {
         );
         // do a few steps so we fall on the wall
         for _ in 0..20 {
-            app.world.run_schedule(FixedUpdate);
+            app.world.run_schedule(GameTick);
             app.update();
         }
 

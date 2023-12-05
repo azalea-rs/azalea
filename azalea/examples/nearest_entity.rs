@@ -2,9 +2,10 @@ use azalea::nearest_entity::EntityFinder;
 use azalea::ClientBuilder;
 use azalea::{Bot, LookAtEvent};
 use azalea_client::Account;
+use azalea_core::tick::GameTick;
 use azalea_entity::metadata::{ItemItem, Player};
 use azalea_entity::{EyeHeight, LocalEntity, Position};
-use bevy_app::{FixedUpdate, Plugin};
+use bevy_app::Plugin;
 use bevy_ecs::{
     prelude::{Entity, EventWriter},
     query::With,
@@ -25,7 +26,7 @@ async fn main() {
 pub struct LookAtStuffPlugin;
 impl Plugin for LookAtStuffPlugin {
     fn build(&self, app: &mut bevy_app::App) {
-        app.add_systems(FixedUpdate, (look_at_everything, log_nearby_item_drops));
+        app.add_systems(GameTick, (look_at_everything, log_nearby_item_drops));
     }
 }
 
