@@ -9,7 +9,7 @@ version = "0.9.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = ["azalea-buf"]
+default = []
 azalea-buf = ["dep:azalea-buf", "simdnbt"]
 numbers = ["dep:azalea-registry", "dep:simdnbt"]
 simdnbt = ["dep:simdnbt"]

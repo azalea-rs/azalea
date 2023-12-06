@@ -578,6 +578,7 @@ impl Style {
     }
 }
 
+#[cfg(feature = "simdnbt")]
 impl simdnbt::Deserialize for Style {
     fn from_compound(
         compound: &simdnbt::borrow::NbtCompound,
