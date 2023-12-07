@@ -300,6 +300,7 @@ dependencies = [
  "bevy_time",
  "derive_more",
  "futures",
+ "minecraft_folder_path",
  "nohash-hasher",
  "once_cell",
  "parking_lot",
@@ -1703,6 +1704,12 @@ name = "mime"
 version = "0.3.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6877bb514081ee2a7ff5ef9de3281f14a4dd4bceac4c09388074a6b5df8a139a"
+
+[[package]]
+name = "minecraft_folder_path"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "63b886139d261301cf5f8c1c41b915ce66fe1de5d601e05d02ccaac079b48375"
 
 [[package]]
 name = "miniz_oxide"
