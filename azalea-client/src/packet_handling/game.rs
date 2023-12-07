@@ -20,6 +20,7 @@ use azalea_protocol::{
     packets::game::{
         clientbound_player_combat_kill_packet::ClientboundPlayerCombatKillPacket,
         serverbound_accept_teleportation_packet::ServerboundAcceptTeleportationPacket,
+        serverbound_configuration_acknowledged_packet::ServerboundConfigurationAcknowledgedPacket,
         serverbound_keep_alive_packet::ServerboundKeepAlivePacket,
         serverbound_move_player_pos_rot_packet::ServerboundMovePlayerPosRotPacket,
         serverbound_pong_packet::ServerboundPongPacket, ClientboundGamePacket,
@@ -1377,6 +1378,23 @@ pub fn process_packet_events(ecs: &mut World) {
                 system_state.apply(ecs);
             }
 
+            ClientboundGamePacket::StartConfiguration(_) => {
+                let mut system_state: SystemState<(Commands, EventWriter<SendPacketEvent>)> =
+                    SystemState::new(ecs);
+                let (mut commands, mut packet_events) = system_state.get_mut(ecs);
+
+                packet_events.send(SendPacketEvent {
+                    entity: player_entity,
+                    packet: ServerboundConfigurationAcknowledgedPacket {}.get(),
+                });
+
+                // add InConfigurationState
+                commands
+                    .entity(player_entity)
+                    .insert(crate::client::InConfigurationState)
+                    .remove::<crate::JoinedClientBundle>();
+            }
+
             ClientboundGamePacket::SelectAdvancementsTab(_) => {}
             ClientboundGamePacket::SetActionBarText(_) => {}
             ClientboundGamePacket::SetBorderCenter(_) => {}
@@ -1404,7 +1422,6 @@ pub fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::DamageEvent(_) => {}
             ClientboundGamePacket::HurtAnimation(_) => {}
 
-            ClientboundGamePacket::StartConfiguration(_) => {}
             ClientboundGamePacket::TickingState(_) => {}
             ClientboundGamePacket::TickingStep(_) => {}
 
