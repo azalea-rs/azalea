@@ -1388,11 +1388,12 @@ pub fn process_packet_events(ecs: &mut World) {
                     packet: ServerboundConfigurationAcknowledgedPacket {}.get(),
                 });
 
-                // add InConfigurationState
                 commands
                     .entity(player_entity)
                     .insert(crate::client::InConfigurationState)
                     .remove::<crate::JoinedClientBundle>();
+
+                system_state.apply(ecs);
             }
 
             ClientboundGamePacket::SelectAdvancementsTab(_) => {}
