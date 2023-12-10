@@ -33,6 +33,12 @@ impl dyn Block {
     }
 }
 
+pub trait Property {
+    type Value;
+
+    fn try_from_block_state(state: BlockState) -> Option<Self::Value>;
+}
+
 /// A representation of a state a block can be in.
 ///
 /// For example, a stone block only has one state but each possible stair
@@ -113,7 +119,10 @@ impl Default for FluidState {
 
 impl From<BlockState> for FluidState {
     fn from(state: BlockState) -> Self {
-        if state.waterlogged() {
+        if state
+            .property::<crate::properties::Waterlogged>()
+            .unwrap_or_default()
+        {
             Self {
                 fluid: azalea_registry::Fluid::Water,
                 height: 15,

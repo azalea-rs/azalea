@@ -32,7 +32,10 @@ fn blocks_motion(block_state: BlockState) -> bool {
 
 fn motion_blocking(block_state: BlockState) -> bool {
     // TODO
-    !block_state.is_air() || block_state.waterlogged()
+    !block_state.is_air()
+        || block_state
+            .property::<azalea_block::properties::Waterlogged>()
+            .unwrap_or_default()
 }
 
 impl HeightmapKind {

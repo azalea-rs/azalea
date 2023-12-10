@@ -1,4 +1,4 @@
-use crate::{Block, BlockBehavior, BlockState, BlockStates};
+use crate::{Block, BlockBehavior, BlockState, BlockStates, Property};
 use azalea_block_macros::make_block_states;
 use std::fmt::Debug;
 
@@ -5380,3 +5380,4 @@ make_block_states! {
         },
     }
 }
+

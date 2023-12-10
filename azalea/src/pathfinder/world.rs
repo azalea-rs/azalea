@@ -246,7 +246,10 @@ fn is_block_state_passable(block: BlockState) -> bool {
     if block == azalea_registry::Block::Water.into() {
         return false;
     }
-    if block.waterlogged() {
+    if block
+        .property::<azalea_block::properties::Waterlogged>()
+        .unwrap_or_default()
+    {
         return false;
     }
     if block == azalea_registry::Block::Lava.into() {
