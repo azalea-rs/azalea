@@ -22,11 +22,13 @@ fn forward_move(ctx: &mut PathfinderCtx, pos: BlockPos) {
     for dir in CardinalDirection::iter() {
         let offset = BlockPos::new(dir.x(), 0, dir.z());
 
-        if !ctx.world.is_standable(pos + offset) {
+        let mut cost = SPRINT_ONE_BLOCK_COST;
+
+        let break_cost = ctx.world.cost_for_standing(pos + offset, ctx.mining_cache);
+        if break_cost == f32::MAX {
             continue;
         }
-
-        let cost = SPRINT_ONE_BLOCK_COST;
+        cost += break_cost;
 
         ctx.edges.push(Edge {
             movement: astar::Movement {
@@ -43,6 +45,14 @@ fn forward_move(ctx: &mut PathfinderCtx, pos: BlockPos) {
 
 fn execute_forward_move(mut ctx: ExecuteCtx) {
     let center = ctx.target.center();
+
+    if ctx.mine(ctx.target.up(1)) {
+        return;
+    }
+    if ctx.mine(ctx.target) {
+        return;
+    }
+
     ctx.look_at(center);
     ctx.sprint(SprintDirection::Forward);
 }

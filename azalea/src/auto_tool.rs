@@ -4,6 +4,7 @@ use azalea_entity::{FluidOnEyes, Physics};
 use azalea_inventory::{ItemSlot, Menu};
 use azalea_registry::Fluid;
 
+#[derive(Debug)]
 pub struct BestToolResult {
     pub index: usize,
     pub percentage_per_tick: f32,
@@ -63,6 +64,44 @@ pub fn accurate_best_tool_in_hotbar_for_block(
 
     let block = Box::<dyn Block>::from(block);
 
+    // find the first slot that has an item without durability
+    for (i, item_slot) in hotbar_slots.iter().enumerate() {
+        let this_item_speed;
+        match item_slot {
+            ItemSlot::Empty => {
+                this_item_speed = Some(azalea_entity::mining::get_mine_progress(
+                    block.as_ref(),
+                    azalea_registry::Item::Air,
+                    menu,
+                    fluid_on_eyes,
+                    physics,
+                ));
+            }
+            ItemSlot::Present(item_slot) => {
+                // lazy way to avoid checking durability since azalea doesn't have durability
+                // data yet
+                if item_slot.nbt.is_none() {
+                    this_item_speed = Some(azalea_entity::mining::get_mine_progress(
+                        block.as_ref(),
+                        item_slot.kind,
+                        menu,
+                        fluid_on_eyes,
+                        physics,
+                    ));
+                } else {
+                    this_item_speed = None;
+                }
+            }
+        }
+        if let Some(this_item_speed) = this_item_speed {
+            if this_item_speed > best_speed {
+                best_slot = Some(i);
+                best_speed = this_item_speed;
+            }
+        }
+    }
+
+    // now check every item
     for (i, item_slot) in hotbar_slots.iter().enumerate() {
         if let ItemSlot::Present(item_slot) = item_slot {
             let this_item_speed = azalea_entity::mining::get_mine_progress(

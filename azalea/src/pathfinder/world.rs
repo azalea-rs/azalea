@@ -12,6 +12,8 @@ use azalea_physics::collision::BlockWithShape;
 use azalea_world::Instance;
 use parking_lot::RwLock;
 
+use super::mining::MiningCache;
+
 /// An efficient representation of the world used for the pathfinder.
 pub struct CachedWorld {
     min_y: i32,
@@ -206,16 +208,53 @@ impl CachedWorld {
         solid
     }
 
+    /// Returns how much it costs to break this block. Returns 0 if the block is
+    /// already passable.
+    pub fn cost_for_breaking_block(&self, pos: BlockPos, mining_cache: &MiningCache) -> f32 {
+        if self.is_block_passable(pos) {
+            // if the block is passable then it doesn't need to be broken
+            return 0.;
+        }
+
+        let (section_pos, section_block_pos) =
+            (ChunkSectionPos::from(pos), ChunkSectionBlockPos::from(pos));
+        let Some(block_state) = self.with_section(section_pos, |section| {
+            let block_state_id = section.get_at_index(u16::from(section_block_pos) as usize);
+            BlockState::try_from(block_state_id).unwrap_or_default()
+        }) else {
+            // the chunk isn't loaded
+            if self.is_block_solid(pos) {
+                // assume it's unbreakable if it's solid and out of render distance
+                return f32::MAX;
+            } else {
+                return 0.;
+            }
+        };
+
+        mining_cache.cost_for(block_state)
+    }
+
     /// Whether this block and the block above are passable
     pub fn is_passable(&self, pos: BlockPos) -> bool {
         self.is_block_passable(pos) && self.is_block_passable(pos.up(1))
     }
 
+    pub fn cost_for_passing(&self, pos: BlockPos, mining_cache: &MiningCache) -> f32 {
+        self.cost_for_breaking_block(pos, mining_cache)
+            + self.cost_for_breaking_block(pos.up(1), mining_cache)
+    }
+
     /// Whether we can stand in this position. Checks if the block below is
     /// solid, and that the two blocks above that are passable.
-
     pub fn is_standable(&self, pos: BlockPos) -> bool {
         self.is_block_solid(pos.down(1)) && self.is_passable(pos)
+    }
+
+    pub fn cost_for_standing(&self, pos: BlockPos, mining_cache: &MiningCache) -> f32 {
+        if !self.is_block_solid(pos.down(1)) {
+            return f32::MAX;
+        }
+        self.cost_for_passing(pos, mining_cache)
     }
 
     /// Get the amount of air blocks until the next solid block below this one.
@@ -235,7 +274,7 @@ impl CachedWorld {
 }
 
 /// whether this block is passable
-fn is_block_state_passable(block: BlockState) -> bool {
+pub fn is_block_state_passable(block: BlockState) -> bool {
     if block.is_air() {
         // fast path
         return true;
@@ -265,7 +304,7 @@ fn is_block_state_passable(block: BlockState) -> bool {
 }
 
 /// whether this block has a solid hitbox (i.e. we can stand on it)
-fn is_block_state_solid(block: BlockState) -> bool {
+pub fn is_block_state_solid(block: BlockState) -> bool {
     if block.is_air() {
         // fast path
         return false;

@@ -1,14 +1,22 @@
 pub mod basic;
 pub mod parkour;
 
-use std::fmt::Debug;
+use std::{fmt::Debug, sync::Arc};
 
 use crate::{JumpEvent, LookAtEvent};
 
-use super::{astar, mining::MiningCache, world::CachedWorld};
-use azalea_client::{SprintDirection, StartSprintEvent, StartWalkEvent, WalkDirection};
+use super::{
+    astar,
+    mining::MiningCache,
+    world::{is_block_state_passable, CachedWorld},
+};
+use azalea_client::{
+    mining::StartMiningBlockEvent, SprintDirection, StartSprintEvent, StartWalkEvent, WalkDirection,
+};
 use azalea_core::position::{BlockPos, Vec3};
+use azalea_world::Instance;
 use bevy_ecs::{entity::Entity, event::EventWriter};
+use parking_lot::RwLock;
 
 type Edge = astar::Edge<BlockPos, MoveData>;
 
@@ -35,7 +43,7 @@ impl Debug for MoveData {
     }
 }
 
-pub struct ExecuteCtx<'w1, 'w2, 'w3, 'w4, 'a> {
+pub struct ExecuteCtx<'w1, 'w2, 'w3, 'w4, 'w5, 'a> {
     pub entity: Entity,
     /// The node that we're trying to reach.
     pub target: BlockPos,
@@ -43,14 +51,17 @@ pub struct ExecuteCtx<'w1, 'w2, 'w3, 'w4, 'a> {
     pub start: BlockPos,
     pub position: Vec3,
     pub physics: &'a azalea_entity::Physics,
+    pub is_currently_mining: bool,
+    pub instance: Arc<RwLock<Instance>>,
 
     pub look_at_events: &'a mut EventWriter<'w1, LookAtEvent>,
     pub sprint_events: &'a mut EventWriter<'w2, StartSprintEvent>,
     pub walk_events: &'a mut EventWriter<'w3, StartWalkEvent>,
     pub jump_events: &'a mut EventWriter<'w4, JumpEvent>,
+    pub start_mining_events: &'a mut EventWriter<'w5, StartMiningBlockEvent>,
 }
 
-impl ExecuteCtx<'_, '_, '_, '_, '_> {
+impl ExecuteCtx<'_, '_, '_, '_, '_, '_> {
     pub fn look_at(&mut self, position: Vec3) {
         self.look_at_events.send(LookAtEvent {
             entity: self.entity,
@@ -81,6 +92,31 @@ impl ExecuteCtx<'_, '_, '_, '_, '_> {
         self.jump_events.send(JumpEvent {
             entity: self.entity,
         });
+    }
+
+    /// Mine the block at the given position. Returns whether the block is being
+    /// mined.
+    pub fn mine(&mut self, block: BlockPos) -> bool {
+        let block_state = self
+            .instance
+            .read()
+            .get_block_state(&block)
+            .unwrap_or_default();
+        if is_block_state_passable(block_state) {
+            // block is already passable, no need to mine it
+            return false;
+        }
+
+        if self.is_currently_mining {
+            return true;
+        }
+        self.is_currently_mining = true;
+        self.start_mining_events.send(StartMiningBlockEvent {
+            entity: self.entity,
+            position: block,
+        });
+
+        true
     }
 }
 

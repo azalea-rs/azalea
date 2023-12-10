@@ -25,15 +25,16 @@ use crate::pathfinder::moves::PathfinderCtx;
 use crate::pathfinder::world::CachedWorld;
 use azalea_client::chat::SendChatEvent;
 use azalea_client::inventory::{InventoryComponent, InventorySet};
+use azalea_client::mining::{Mining, StartMiningBlockEvent};
 use azalea_client::movement::MoveEventsSet;
-use azalea_client::{StartSprintEvent, StartWalkEvent};
+use azalea_client::{InstanceHolder, StartSprintEvent, StartWalkEvent};
 use azalea_core::position::{BlockPos, Vec3};
 use azalea_core::tick::GameTick;
 use azalea_entity::metadata::Player;
 use azalea_entity::LocalEntity;
 use azalea_entity::{Physics, Position};
 use azalea_physics::PhysicsSet;
-use azalea_world::{InstanceContainer, InstanceName};
+use azalea_world::{Instance, InstanceContainer, InstanceName};
 use bevy_app::{PreUpdate, Update};
 use bevy_ecs::event::Events;
 use bevy_ecs::prelude::Event;
@@ -615,13 +616,21 @@ fn recalculate_near_end_of_path(
 }
 
 fn tick_execute_path(
-    mut query: Query<(Entity, &mut ExecutingPath, &Position, &Physics)>,
+    mut query: Query<(
+        Entity,
+        &mut ExecutingPath,
+        &Position,
+        &Physics,
+        Option<&Mining>,
+        &InstanceHolder,
+    )>,
     mut look_at_events: EventWriter<LookAtEvent>,
     mut sprint_events: EventWriter<StartSprintEvent>,
     mut walk_events: EventWriter<StartWalkEvent>,
     mut jump_events: EventWriter<JumpEvent>,
+    mut start_mining_events: EventWriter<StartMiningBlockEvent>,
 ) {
-    for (entity, executing_path, position, physics) in &mut query {
+    for (entity, executing_path, position, physics, mining, instance_holder) in &mut query {
         if let Some(movement) = executing_path.path.front() {
             let ctx = ExecuteCtx {
                 entity,
@@ -629,10 +638,14 @@ fn tick_execute_path(
                 position: **position,
                 start: executing_path.last_reached_node,
                 physics,
+                is_currently_mining: mining.is_some(),
+                instance: instance_holder.instance.clone(),
+
                 look_at_events: &mut look_at_events,
                 sprint_events: &mut sprint_events,
                 walk_events: &mut walk_events,
                 jump_events: &mut jump_events,
+                start_mining_events: &mut start_mining_events,
             };
             trace!("executing move");
             (movement.data.execute)(ctx);
