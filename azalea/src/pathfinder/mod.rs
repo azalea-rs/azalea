@@ -292,7 +292,7 @@ fn goto_listener(
             })
         });
 
-        commands.spawn(ComputePath(task));
+        commands.entity(event.entity).insert(ComputePath(task));
     }
 }
 
@@ -675,6 +675,9 @@ fn handle_stop_pathfinding_event(
     mut commands: Commands,
 ) {
     for event in events.read() {
+        // stop computing any path that's being computed
+        commands.entity(event.entity).remove::<ComputePath>();
+
         let Ok((mut pathfinder, mut executing_path)) = query.get_mut(event.entity) else {
             continue;
         };
@@ -682,13 +685,19 @@ fn handle_stop_pathfinding_event(
         if event.force {
             executing_path.path.clear();
             executing_path.queued_path = None;
+        } else {
+            // switch to an empty path as soon as it can
+            executing_path.queued_path = Some(VecDeque::new());
+            // make sure it doesn't recalculate
+            executing_path.is_path_partial = false;
+        }
+
+        if executing_path.path.is_empty() {
             walk_events.send(StartWalkEvent {
                 entity: event.entity,
                 direction: WalkDirection::None,
             });
             commands.entity(event.entity).remove::<ExecutingPath>();
-        } else {
-            executing_path.queued_path = Some(VecDeque::new());
         }
     }
 }
