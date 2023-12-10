@@ -24,7 +24,7 @@ use crate::ecs::{
 use crate::pathfinder::moves::PathfinderCtx;
 use crate::pathfinder::world::CachedWorld;
 use azalea_client::chat::SendChatEvent;
-use azalea_client::inventory::{InventoryComponent, InventorySet};
+use azalea_client::inventory::{InventoryComponent, InventorySet, SetSelectedHotbarSlotEvent};
 use azalea_client::mining::{Mining, StartMiningBlockEvent};
 use azalea_client::movement::MoveEventsSet;
 use azalea_client::{InstanceHolder, StartSprintEvent, StartWalkEvent};
@@ -623,14 +623,18 @@ fn tick_execute_path(
         &Physics,
         Option<&Mining>,
         &InstanceHolder,
+        &InventoryComponent,
     )>,
     mut look_at_events: EventWriter<LookAtEvent>,
     mut sprint_events: EventWriter<StartSprintEvent>,
     mut walk_events: EventWriter<StartWalkEvent>,
     mut jump_events: EventWriter<JumpEvent>,
     mut start_mining_events: EventWriter<StartMiningBlockEvent>,
+    mut set_selected_hotbar_slot_events: EventWriter<SetSelectedHotbarSlotEvent>,
 ) {
-    for (entity, executing_path, position, physics, mining, instance_holder) in &mut query {
+    for (entity, executing_path, position, physics, mining, instance_holder, inventory_component) in
+        &mut query
+    {
         if let Some(movement) = executing_path.path.front() {
             let ctx = ExecuteCtx {
                 entity,
@@ -640,12 +644,14 @@ fn tick_execute_path(
                 physics,
                 is_currently_mining: mining.is_some(),
                 instance: instance_holder.instance.clone(),
+                menu: inventory_component.inventory_menu.clone(),
 
                 look_at_events: &mut look_at_events,
                 sprint_events: &mut sprint_events,
                 walk_events: &mut walk_events,
                 jump_events: &mut jump_events,
                 start_mining_events: &mut start_mining_events,
+                set_selected_hotbar_slot_events: &mut set_selected_hotbar_slot_events,
             };
             trace!("executing move");
             (movement.data.execute)(ctx);

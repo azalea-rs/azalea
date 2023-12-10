@@ -61,14 +61,22 @@ fn ascend_move(ctx: &mut PathfinderCtx, pos: BlockPos) {
     for dir in CardinalDirection::iter() {
         let offset = BlockPos::new(dir.x(), 1, dir.z());
 
-        if !ctx.world.is_block_passable(pos.up(2)) {
+        let break_cost_1 = ctx
+            .world
+            .cost_for_breaking_block(pos.up(2), ctx.mining_cache);
+        if break_cost_1 == f32::MAX {
             continue;
         }
-        if !ctx.world.is_standable(pos + offset) {
+        let break_cost_2 = ctx.world.cost_for_standing(pos + offset, ctx.mining_cache);
+        if break_cost_2 == f32::MAX {
             continue;
         }
 
-        let cost = SPRINT_ONE_BLOCK_COST + JUMP_PENALTY + *JUMP_ONE_BLOCK_COST;
+        let cost = SPRINT_ONE_BLOCK_COST
+            + JUMP_PENALTY
+            + *JUMP_ONE_BLOCK_COST
+            + break_cost_1
+            + break_cost_2;
 
         ctx.edges.push(Edge {
             movement: astar::Movement {
@@ -90,6 +98,16 @@ fn execute_ascend_move(mut ctx: ExecuteCtx) {
         physics,
         ..
     } = ctx;
+
+    if ctx.mine(start.up(2)) {
+        return;
+    }
+    if ctx.mine(target) {
+        return;
+    }
+    if ctx.mine(target.up(1)) {
+        return;
+    }
 
     let target_center = target.center();
 

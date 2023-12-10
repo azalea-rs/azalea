@@ -3,7 +3,7 @@ pub mod parkour;
 
 use std::{fmt::Debug, sync::Arc};
 
-use crate::{JumpEvent, LookAtEvent};
+use crate::{auto_tool::best_tool_in_hotbar_for_block, JumpEvent, LookAtEvent};
 
 use super::{
     astar,
@@ -11,9 +11,11 @@ use super::{
     world::{is_block_state_passable, CachedWorld},
 };
 use azalea_client::{
-    mining::StartMiningBlockEvent, SprintDirection, StartSprintEvent, StartWalkEvent, WalkDirection,
+    inventory::SetSelectedHotbarSlotEvent, mining::StartMiningBlockEvent, SprintDirection,
+    StartSprintEvent, StartWalkEvent, WalkDirection,
 };
 use azalea_core::position::{BlockPos, Vec3};
+use azalea_inventory::Menu;
 use azalea_world::Instance;
 use bevy_ecs::{entity::Entity, event::EventWriter};
 use parking_lot::RwLock;
@@ -43,7 +45,7 @@ impl Debug for MoveData {
     }
 }
 
-pub struct ExecuteCtx<'w1, 'w2, 'w3, 'w4, 'w5, 'a> {
+pub struct ExecuteCtx<'w1, 'w2, 'w3, 'w4, 'w5, 'w6, 'a> {
     pub entity: Entity,
     /// The node that we're trying to reach.
     pub target: BlockPos,
@@ -53,15 +55,17 @@ pub struct ExecuteCtx<'w1, 'w2, 'w3, 'w4, 'w5, 'a> {
     pub physics: &'a azalea_entity::Physics,
     pub is_currently_mining: bool,
     pub instance: Arc<RwLock<Instance>>,
+    pub menu: Menu,
 
     pub look_at_events: &'a mut EventWriter<'w1, LookAtEvent>,
     pub sprint_events: &'a mut EventWriter<'w2, StartSprintEvent>,
     pub walk_events: &'a mut EventWriter<'w3, StartWalkEvent>,
     pub jump_events: &'a mut EventWriter<'w4, JumpEvent>,
     pub start_mining_events: &'a mut EventWriter<'w5, StartMiningBlockEvent>,
+    pub set_selected_hotbar_slot_events: &'a mut EventWriter<'w6, SetSelectedHotbarSlotEvent>,
 }
 
-impl ExecuteCtx<'_, '_, '_, '_, '_, '_> {
+impl ExecuteCtx<'_, '_, '_, '_, '_, '_, '_> {
     pub fn look_at(&mut self, position: Vec3) {
         self.look_at_events.send(LookAtEvent {
             entity: self.entity,
@@ -71,6 +75,13 @@ impl ExecuteCtx<'_, '_, '_, '_, '_, '_> {
                 y: self.position.up(1.53).y,
                 z: position.z,
             },
+        });
+    }
+
+    pub fn look_at_exact(&mut self, position: Vec3) {
+        self.look_at_events.send(LookAtEvent {
+            entity: self.entity,
+            position,
         });
     }
 
@@ -107,10 +118,18 @@ impl ExecuteCtx<'_, '_, '_, '_, '_, '_> {
             return false;
         }
 
-        if self.is_currently_mining {
-            return true;
-        }
+        let best_tool_result = best_tool_in_hotbar_for_block(block_state, &self.menu);
+
+        self.set_selected_hotbar_slot_events
+            .send(SetSelectedHotbarSlotEvent {
+                entity: self.entity,
+                slot: best_tool_result.index as u8,
+            });
+
         self.is_currently_mining = true;
+
+        self.walk(WalkDirection::None);
+        self.look_at_exact(block.center());
         self.start_mining_events.send(StartMiningBlockEvent {
             entity: self.entity,
             position: block,
