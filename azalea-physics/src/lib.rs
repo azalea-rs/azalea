@@ -52,10 +52,10 @@ fn travel(
             &mut LookDirection,
             &mut Position,
             Option<&Sprinting>,
+            Option<&Pose>,
             &Attributes,
             &InstanceName,
             &OnClimbable,
-            &Pose,
             &Jumping,
         ),
         (With<LocalEntity>, With<InLoadedChunk>),
@@ -67,10 +67,10 @@ fn travel(
         direction,
         position,
         sprinting,
+        pose,
         attributes,
         world_name,
         on_climbable,
-        pose,
         jumping,
     ) in &mut query
     {
@@ -109,16 +109,18 @@ fn travel(
 
         // this applies the current delta
         let mut movement = handle_relative_friction_and_calculate_movement(
-            block_friction,
-            &world,
-            &mut physics,
-            &direction,
-            position,
-            attributes,
-            sprinting.map(|s| **s).unwrap_or(false),
-            on_climbable,
-            pose,
-            jumping,
+            HandleRelativeFrictionAndCalculateMovementOpts {
+                block_friction,
+                world: &world,
+                physics: &mut physics,
+                direction: &direction,
+                position,
+                attributes,
+                is_sprinting: sprinting.map(|s| **s).unwrap_or(false),
+                on_climbable,
+                pose,
+                jumping,
+            },
         );
 
         movement.y -= gravity;
@@ -240,18 +242,33 @@ fn get_block_pos_below_that_affects_movement(position: &Position) -> BlockPos {
     )
 }
 
-fn handle_relative_friction_and_calculate_movement(
+// opts for handle_relative_friction_and_calculate_movement
+struct HandleRelativeFrictionAndCalculateMovementOpts<'a> {
     block_friction: f32,
-    world: &Instance,
-    physics: &mut Physics,
-    direction: &LookDirection,
-    // this is kept as a Mut for bevy change tracking
-    mut position: Mut<Position>,
-    attributes: &Attributes,
+    world: &'a Instance,
+    physics: &'a mut Physics,
+    direction: &'a LookDirection,
+    position: Mut<'a, Position>,
+    attributes: &'a Attributes,
     is_sprinting: bool,
-    on_climbable: &OnClimbable,
-    pose: &Pose,
-    jumping: &Jumping,
+    on_climbable: &'a OnClimbable,
+    pose: Option<&'a Pose>,
+    jumping: &'a Jumping,
+}
+
+fn handle_relative_friction_and_calculate_movement(
+    HandleRelativeFrictionAndCalculateMovementOpts {
+        block_friction,
+        world,
+        physics,
+        direction,
+        mut position,
+        attributes,
+        is_sprinting,
+        on_climbable,
+        pose,
+        jumping,
+    }: HandleRelativeFrictionAndCalculateMovementOpts<'_>,
 ) -> Vec3 {
     move_relative(
         physics,
@@ -264,7 +281,7 @@ fn handle_relative_friction_and_calculate_movement(
         },
     );
 
-    physics.velocity = handle_on_climbable(physics.velocity, &on_climbable, &position, world, pose);
+    physics.velocity = handle_on_climbable(physics.velocity, on_climbable, &position, world, pose);
 
     move_colliding(
         &MoverType::Own,
@@ -302,7 +319,7 @@ fn handle_on_climbable(
     on_climbable: &OnClimbable,
     position: &Position,
     world: &Instance,
-    pose: &Pose,
+    pose: Option<&Pose>,
 ) -> Vec3 {
     if !**on_climbable {
         return velocity;
@@ -318,7 +335,7 @@ fn handle_on_climbable(
 
     // sneaking on ladders/vines
     if y < 0.0
-        && *pose == Pose::Sneaking
+        && pose.copied() == Some(Pose::Sneaking)
         && azalea_registry::Block::from(
             world
                 .chunks

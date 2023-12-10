@@ -192,7 +192,7 @@ pub fn move_colliding(
 
     // TODO: minecraft checks for a "minor" horizontal collision here
 
-    let _block_pos_below = azalea_entity::on_pos_legacy(&world.chunks, &position);
+    let _block_pos_below = azalea_entity::on_pos_legacy(&world.chunks, position);
     // let _block_state_below = self
     //     .world
     //     .get_block_state(&block_pos_below)

@@ -133,15 +133,9 @@ pub fn update_on_climbable(
         let block_at_feet = Box::<dyn azalea_block::Block>::from(block_state_at_feet);
         let registry_block_at_feet = block_at_feet.as_registry_block();
 
-        if azalea_registry::tags::blocks::CLIMBABLE.contains(&registry_block_at_feet) {
-            **on_climbable = true;
-        } else if azalea_registry::tags::blocks::TRAPDOORS.contains(&registry_block_at_feet)
-            && is_trapdoor_useable_as_ladder(block_state_at_feet, block_pos, &instance)
-        {
-            **on_climbable = true;
-        } else {
-            **on_climbable = false;
-        }
+        **on_climbable = azalea_registry::tags::blocks::CLIMBABLE.contains(&registry_block_at_feet)
+            || (azalea_registry::tags::blocks::TRAPDOORS.contains(&registry_block_at_feet)
+                && is_trapdoor_useable_as_ladder(block_state_at_feet, block_pos, &instance));
     }
 }
 

@@ -116,8 +116,13 @@ pub fn on_pos(offset: f32, chunk_storage: &ChunkStorage, pos: &Position) -> Bloc
 
 /// The Minecraft UUID of the entity. For players, this is their actual player
 /// UUID, and for other entities it's just random.
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, Default)]
 pub struct EntityUuid(Uuid);
+impl EntityUuid {
+    pub fn new(uuid: Uuid) -> Self {
+        Self(uuid)
+    }
+}
 impl Debug for EntityUuid {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         (self.0).fmt(f)

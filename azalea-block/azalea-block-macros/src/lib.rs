@@ -532,10 +532,9 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 // add to properties_to_state_ids
                 let property_variants = properties_to_state_ids
                     .entry(property_value_name_ident.to_string())
-                    .or_insert_with(Vec::new);
-                let property_variant_data = property_variants
-                    .iter_mut()
-                    .find(|v| v.ident.to_string() == variant.to_string());
+                    .or_default();
+                let property_variant_data =
+                    property_variants.iter_mut().find(|v| v.ident == variant);
                 if let Some(property_variant_data) = property_variant_data {
                     property_variant_data.block_state_ids.push(state_id);
                 } else {
