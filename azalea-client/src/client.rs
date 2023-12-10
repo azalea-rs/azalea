@@ -731,7 +731,11 @@ async fn run_schedule_loop(
             .map(|last_tick| last_tick.elapsed() > Duration::from_millis(50))
             .unwrap_or(true)
         {
-            last_tick = Some(Instant::now());
+            if let Some(last_tick) = &mut last_tick {
+                *last_tick += Duration::from_millis(50);
+            } else {
+                last_tick = Some(Instant::now());
+            }
             ecs.run_schedule(GameTick);
         }
 
