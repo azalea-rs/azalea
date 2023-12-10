@@ -742,9 +742,9 @@ pub fn process_packet_events(ecs: &mut World) {
                         entity.world_scope(|world| {
                             let mut commands_system_state = SystemState::<Commands>::new(world);
                             let mut commands = commands_system_state.get_mut(world);
-                            let mut entity_comands = commands.entity(entity_id);
+                            let mut entity_commands = commands.entity(entity_id);
                             if let Err(e) =
-                                apply_metadata(&mut entity_comands, *entity_kind, packed_items)
+                                apply_metadata(&mut entity_commands, *entity_kind, packed_items)
                             {
                                 warn!("{e}");
                             }
