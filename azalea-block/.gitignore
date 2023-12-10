@@ -1,0 +1,3 @@
+# cargo expand generated -p azalea-block > azalea-block/out.rs
+/out.rs
+
