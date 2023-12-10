@@ -70,7 +70,7 @@ impl FormattedText {
     /// can print it to your terminal and get styling.
     ///
     /// This is technically a shortcut for
-    /// [`FormattedText::to_ansi_custom_style`] with a default [`Style`]
+    /// [`FormattedText::to_ansi_with_custom_style`] with a default [`Style`]
     /// colored white.
     ///
     /// # Examples
