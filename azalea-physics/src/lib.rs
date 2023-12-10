@@ -13,7 +13,7 @@ use azalea_core::{
 };
 use azalea_entity::{
     metadata::Sprinting, move_relative, Attributes, InLoadedChunk, Jumping, LocalEntity,
-    LookDirection, Physics, Position,
+    LookDirection, OnClimbable, Physics, Pose, Position,
 };
 use azalea_world::{Instance, InstanceContainer, InstanceName};
 use bevy_app::{App, Plugin};
@@ -52,14 +52,28 @@ fn travel(
             &mut LookDirection,
             &mut Position,
             Option<&Sprinting>,
+            Option<&Pose>,
             &Attributes,
             &InstanceName,
+            &OnClimbable,
+            &Jumping,
         ),
         (With<LocalEntity>, With<InLoadedChunk>),
     >,
     instance_container: Res<InstanceContainer>,
 ) {
-    for (mut physics, direction, position, sprinting, attributes, world_name) in &mut query {
+    for (
+        mut physics,
+        direction,
+        position,
+        sprinting,
+        pose,
+        attributes,
+        world_name,
+        on_climbable,
+        jumping,
+    ) in &mut query
+    {
         let world_lock = instance_container
             .get(world_name)
             .expect("All entities should be in a valid world");
@@ -95,13 +109,18 @@ fn travel(
 
         // this applies the current delta
         let mut movement = handle_relative_friction_and_calculate_movement(
-            block_friction,
-            &world,
-            &mut physics,
-            &direction,
-            position,
-            attributes,
-            sprinting.map(|s| **s).unwrap_or(false),
+            HandleRelativeFrictionAndCalculateMovementOpts {
+                block_friction,
+                world: &world,
+                physics: &mut physics,
+                direction: &direction,
+                position,
+                attributes,
+                is_sprinting: sprinting.map(|s| **s).unwrap_or(false),
+                on_climbable,
+                pose,
+                jumping,
+            },
         );
 
         movement.y -= gravity;
@@ -223,15 +242,33 @@ fn get_block_pos_below_that_affects_movement(position: &Position) -> BlockPos {
     )
 }
 
-fn handle_relative_friction_and_calculate_movement(
+// opts for handle_relative_friction_and_calculate_movement
+struct HandleRelativeFrictionAndCalculateMovementOpts<'a> {
     block_friction: f32,
-    world: &Instance,
-    physics: &mut Physics,
-    direction: &LookDirection,
-    // this is kept as a Mut for bevy change tracking
-    position: Mut<Position>,
-    attributes: &Attributes,
+    world: &'a Instance,
+    physics: &'a mut Physics,
+    direction: &'a LookDirection,
+    position: Mut<'a, Position>,
+    attributes: &'a Attributes,
     is_sprinting: bool,
+    on_climbable: &'a OnClimbable,
+    pose: Option<&'a Pose>,
+    jumping: &'a Jumping,
+}
+
+fn handle_relative_friction_and_calculate_movement(
+    HandleRelativeFrictionAndCalculateMovementOpts {
+        block_friction,
+        world,
+        physics,
+        direction,
+        mut position,
+        attributes,
+        is_sprinting,
+        on_climbable,
+        pose,
+        jumping,
+    }: HandleRelativeFrictionAndCalculateMovementOpts<'_>,
 ) -> Vec3 {
     move_relative(
         physics,
@@ -243,12 +280,14 @@ fn handle_relative_friction_and_calculate_movement(
             z: physics.zza as f64,
         },
     );
-    // entity.delta = entity.handle_on_climbable(entity.delta);
+
+    physics.velocity = handle_on_climbable(physics.velocity, on_climbable, &position, world, pose);
+
     move_colliding(
         &MoverType::Own,
         &physics.velocity.clone(),
         world,
-        position,
+        &mut position,
         physics,
     )
     .expect("Entity should exist.");
@@ -258,9 +297,56 @@ fn handle_relative_friction_and_calculate_movement(
     // || entity.getFeetBlockState().is(Blocks.POWDER_SNOW) &&
     // PowderSnowBlock.canEntityWalkOnPowderSnow(entity))) {      var3 = new
     // Vec3(var3.x, 0.2D, var3.z);   }
-    // TODO: powdered snow
+
+    if physics.horizontal_collision || **jumping {
+        let block_at_feet: azalea_registry::Block = world
+            .chunks
+            .get_block_state(&(*position).into())
+            .unwrap_or_default()
+            .into();
+
+        // TODO: powdered snow
+        if **on_climbable || block_at_feet == azalea_registry::Block::PowderSnow {
+            physics.velocity.y = 0.2;
+        }
+    }
 
     physics.velocity
+}
+
+fn handle_on_climbable(
+    velocity: Vec3,
+    on_climbable: &OnClimbable,
+    position: &Position,
+    world: &Instance,
+    pose: Option<&Pose>,
+) -> Vec3 {
+    if !**on_climbable {
+        return velocity;
+    }
+
+    // minecraft does resetFallDistance here
+
+    const CLIMBING_SPEED: f64 = 0.15_f32 as f64;
+
+    let x = f64::clamp(velocity.x, -CLIMBING_SPEED, CLIMBING_SPEED);
+    let z = f64::clamp(velocity.z, -CLIMBING_SPEED, CLIMBING_SPEED);
+    let mut y = f64::max(velocity.y, -CLIMBING_SPEED);
+
+    // sneaking on ladders/vines
+    if y < 0.0
+        && pose.copied() == Some(Pose::Sneaking)
+        && azalea_registry::Block::from(
+            world
+                .chunks
+                .get_block_state(&position.into())
+                .unwrap_or_default(),
+        ) != azalea_registry::Block::Scaffolding
+    {
+        y = 0.;
+    }
+
+    Vec3 { x, y, z }
 }
 
 // private float getFrictionInfluencedSpeed(float friction) {

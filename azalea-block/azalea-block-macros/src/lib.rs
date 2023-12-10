@@ -327,16 +327,10 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 }
 
                 property_enums.extend(quote! {
-                    #[derive(Debug, Clone, Copy)]
+                    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
                     pub enum #property_struct_name {
                         #property_enum_variants
                     }
-
-                    // impl Property for #property_struct_name {
-                    //     type Value = Self;
-
-                    //     fn try_from_block_state
-                    // }
 
                     impl From<u32> for #property_struct_name {
                         fn from(value: u32) -> Self {
@@ -354,12 +348,8 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 property_variant_types = vec!["true".to_string(), "false".to_string()];
 
                 property_enums.extend(quote! {
-                    #[derive(Debug, Clone, Copy)]
+                    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
                     pub struct #property_struct_name(pub bool);
-
-                    // impl Property for #property_struct_name {
-                    //     type Value = bool;
-                    // }
 
                     impl From<u32> for #property_struct_name {
                         fn from(value: u32) -> Self {
@@ -542,10 +532,9 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 // add to properties_to_state_ids
                 let property_variants = properties_to_state_ids
                     .entry(property_value_name_ident.to_string())
-                    .or_insert_with(Vec::new);
-                let property_variant_data = property_variants
-                    .iter_mut()
-                    .find(|v| v.ident.to_string() == variant.to_string());
+                    .or_default();
+                let property_variant_data =
+                    property_variants.iter_mut().find(|v| v.ident == variant);
                 if let Some(property_variant_data) = property_variant_data {
                     property_variant_data.block_state_ids.push(state_id);
                 } else {

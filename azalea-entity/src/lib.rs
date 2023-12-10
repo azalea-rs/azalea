@@ -116,8 +116,13 @@ pub fn on_pos(offset: f32, chunk_storage: &ChunkStorage, pos: &Position) -> Bloc
 
 /// The Minecraft UUID of the entity. For players, this is their actual player
 /// UUID, and for other entities it's just random.
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, Default)]
 pub struct EntityUuid(Uuid);
+impl EntityUuid {
+    pub fn new(uuid: Uuid) -> Self {
+        Self(uuid)
+    }
+}
 impl Debug for EntityUuid {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         (self.0).fmt(f)
@@ -228,6 +233,10 @@ pub struct Physics {
     pub bounding_box: AABB,
 
     pub has_impulse: bool,
+
+    pub horizontal_collision: bool,
+    // pub minor_horizontal_collision: bool,
+    pub vertical_collision: bool,
 }
 
 impl Physics {
@@ -246,6 +255,9 @@ impl Physics {
             dimensions,
 
             has_impulse: false,
+
+            horizontal_collision: false,
+            vertical_collision: false,
         }
     }
 }
@@ -311,6 +323,7 @@ pub struct EntityBundle {
     pub attributes: Attributes,
     pub jumping: Jumping,
     pub fluid_on_eyes: FluidOnEyes,
+    pub on_climbable: OnClimbable,
 }
 
 impl EntityBundle {
@@ -346,6 +359,7 @@ impl EntityBundle {
 
             jumping: Jumping(false),
             fluid_on_eyes: FluidOnEyes(azalea_registry::Fluid::Empty),
+            on_climbable: OnClimbable(false),
         }
     }
 }
@@ -372,6 +386,9 @@ impl FluidOnEyes {
         Self(fluid)
     }
 }
+
+#[derive(Component, Clone, Debug, PartialEq, Deref, DerefMut)]
+pub struct OnClimbable(bool);
 
 // #[cfg(test)]
 // mod tests {

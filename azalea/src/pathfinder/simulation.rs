@@ -7,13 +7,13 @@ use azalea_client::{
 };
 use azalea_core::{position::Vec3, resource_location::ResourceLocation, tick::GameTick};
 use azalea_entity::{
-    attributes::AttributeInstance, metadata::Sprinting, Attributes, EntityDimensions, Physics,
-    Position,
+    attributes::AttributeInstance, Attributes, EntityDimensions, Physics, Position,
 };
-use azalea_world::{ChunkStorage, Instance, InstanceContainer, InstanceName, MinecraftEntityId};
+use azalea_world::{ChunkStorage, Instance, InstanceContainer, MinecraftEntityId};
 use bevy_app::App;
 use bevy_ecs::prelude::*;
 use parking_lot::RwLock;
+use uuid::Uuid;
 
 #[derive(Bundle, Clone)]
 pub struct SimulatedPlayerBundle {
@@ -82,24 +82,24 @@ impl Simulation {
             schedule.set_executor_kind(bevy_ecs::schedule::ExecutorKind::SingleThreaded);
         });
 
-        let entity = app
-            .world
-            .spawn((
-                MinecraftEntityId(0),
-                InstanceName(instance_name),
-                azalea_entity::LocalEntity,
-                azalea_entity::Jumping::default(),
-                azalea_entity::LookDirection::default(),
-                Sprinting(true),
-                azalea_entity::metadata::Player,
-                azalea_entity::EyeHeight::new(player.physics.dimensions.height * 0.85),
-                player,
-            ))
-            .id();
+        let mut entity = app.world.spawn((
+            MinecraftEntityId(0),
+            azalea_entity::LocalEntity,
+            azalea_entity::metadata::PlayerMetadataBundle::default(),
+            azalea_entity::EntityBundle::new(
+                Uuid::nil(),
+                *player.position,
+                azalea_registry::EntityKind::Player,
+                instance_name,
+            ),
+        ));
+        entity.insert(player);
+
+        let entity_id = entity.id();
 
         Self {
             app,
-            entity,
+            entity: entity_id,
             _instance: instance,
         }
     }

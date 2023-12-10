@@ -167,6 +167,12 @@ impl From<FluidState> for BlockState {
     }
 }
 
+impl From<BlockState> for azalea_registry::Block {
+    fn from(value: BlockState) -> Self {
+        Box::<dyn Block>::from(value).as_registry_block()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

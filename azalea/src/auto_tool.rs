@@ -43,6 +43,8 @@ pub fn best_tool_in_hotbar_for_block(block: BlockState, menu: &Menu) -> BestTool
             dimensions: Default::default(),
             bounding_box: Default::default(),
             has_impulse: Default::default(),
+            horizontal_collision: Default::default(),
+            vertical_collision: Default::default(),
         },
         &FluidOnEyes::new(Fluid::Empty),
     )

@@ -134,7 +134,7 @@ pub struct Rotations {
     pub z: f32,
 }
 
-#[derive(Clone, Debug, Copy, McBuf, Default, Component)]
+#[derive(Clone, Debug, Copy, McBuf, Default, Component, Eq, PartialEq)]
 pub enum Pose {
     #[default]
     Standing = 0,
