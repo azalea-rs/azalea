@@ -187,7 +187,7 @@ async fn transfer(
     outbound.set_nodelay(true)?;
 
     // Repeat the intent and hello packet
-    // recieved earlier to the proxy target
+    // received earlier to the proxy target
     let mut outbound_conn: Connection<ClientboundHandshakePacket, ServerboundHandshakePacket> =
         Connection::wrap(outbound);
     outbound_conn.write(intent.get()).await?;

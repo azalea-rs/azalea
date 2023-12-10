@@ -795,7 +795,7 @@ pub struct BlockDisplayHeight(pub f32);
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct BlockDisplayGlowColorOverride(pub i32);
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct BlockState(pub azalea_block::BlockState);
+pub struct BlockDisplayBlockState(pub azalea_block::BlockState);
 #[derive(Component)]
 pub struct BlockDisplay;
 impl BlockDisplay {
@@ -855,7 +855,7 @@ impl BlockDisplay {
                 entity.insert(BlockDisplayGlowColorOverride(d.value.into_int()?));
             }
             23 => {
-                entity.insert(BlockState(d.value.into_block_state()?));
+                entity.insert(BlockDisplayBlockState(d.value.into_block_state()?));
             }
             _ => {}
         }
@@ -884,7 +884,7 @@ pub struct BlockDisplayMetadataBundle {
     block_display_width: BlockDisplayWidth,
     block_display_height: BlockDisplayHeight,
     block_display_glow_color_override: BlockDisplayGlowColorOverride,
-    block_state: BlockState,
+    block_display_block_state: BlockDisplayBlockState,
 }
 impl Default for BlockDisplayMetadataBundle {
     fn default() -> Self {
@@ -946,7 +946,7 @@ impl Default for BlockDisplayMetadataBundle {
             block_display_width: BlockDisplayWidth(0.0),
             block_display_height: BlockDisplayHeight(0.0),
             block_display_glow_color_override: BlockDisplayGlowColorOverride(-1),
-            block_state: BlockState(Default::default()),
+            block_display_block_state: BlockDisplayBlockState(Default::default()),
         }
     }
 }
@@ -1041,6 +1041,74 @@ impl Default for BoatMetadataBundle {
             paddle_left: PaddleLeft(false),
             paddle_right: PaddleRight(false),
             bubble_time: BubbleTime(0),
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct Breeze;
+impl Breeze {
+    pub fn apply_metadata(
+        entity: &mut bevy_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractMonster::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct BreezeMetadataBundle {
+    _marker: Breeze,
+    parent: AbstractMonsterMetadataBundle,
+}
+impl Default for BreezeMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Breeze,
+            parent: AbstractMonsterMetadataBundle {
+                _marker: AbstractMonster,
+                parent: AbstractCreatureMetadataBundle {
+                    _marker: AbstractCreature,
+                    parent: AbstractInsentientMetadataBundle {
+                        _marker: AbstractInsentient,
+                        parent: AbstractLivingMetadataBundle {
+                            _marker: AbstractLiving,
+                            parent: AbstractEntityMetadataBundle {
+                                _marker: AbstractEntity,
+                                on_fire: OnFire(false),
+                                shift_key_down: ShiftKeyDown(false),
+                                sprinting: Sprinting(false),
+                                swimming: Swimming(false),
+                                currently_glowing: CurrentlyGlowing(false),
+                                invisible: Invisible(false),
+                                fall_flying: FallFlying(false),
+                                air_supply: AirSupply(Default::default()),
+                                custom_name: CustomName(None),
+                                custom_name_visible: CustomNameVisible(false),
+                                silent: Silent(false),
+                                no_gravity: NoGravity(false),
+                                pose: Pose::default(),
+                                ticks_frozen: TicksFrozen(0),
+                            },
+                            auto_spin_attack: AutoSpinAttack(false),
+                            abstract_living_using_item: AbstractLivingUsingItem(false),
+                            health: Health(1.0),
+                            abstract_living_effect_color: AbstractLivingEffectColor(0),
+                            effect_ambience: EffectAmbience(false),
+                            arrow_count: ArrowCount(0),
+                            stinger_count: StingerCount(0),
+                            sleeping_pos: SleepingPos(None),
+                        },
+                        no_ai: NoAi(false),
+                        left_handed: LeftHanded(false),
+                        aggressive: Aggressive(false),
+                    },
+                },
+            },
         }
     }
 }
@@ -8074,6 +8142,8 @@ impl Default for TextDisplayMetadataBundle {
 
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct Fuse(pub i32);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct TntBlockState(pub azalea_block::BlockState);
 #[derive(Component)]
 pub struct Tnt;
 impl Tnt {
@@ -8086,6 +8156,9 @@ impl Tnt {
             8 => {
                 entity.insert(Fuse(d.value.into_int()?));
             }
+            9 => {
+                entity.insert(TntBlockState(d.value.into_block_state()?));
+            }
             _ => {}
         }
         Ok(())
@@ -8097,6 +8170,7 @@ pub struct TntMetadataBundle {
     _marker: Tnt,
     parent: AbstractEntityMetadataBundle,
     fuse: Fuse,
+    tnt_block_state: TntBlockState,
 }
 impl Default for TntMetadataBundle {
     fn default() -> Self {
@@ -8120,6 +8194,7 @@ impl Default for TntMetadataBundle {
                 ticks_frozen: TicksFrozen(0),
             },
             fuse: Fuse(80),
+            tnt_block_state: TntBlockState(Default::default()),
         }
     }
 }
@@ -8923,6 +8998,51 @@ impl Default for WardenMetadataBundle {
                 },
             },
             client_anger_level: ClientAngerLevel(0),
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct WindCharge;
+impl WindCharge {
+    pub fn apply_metadata(
+        entity: &mut bevy_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=7 => AbstractEntity::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct WindChargeMetadataBundle {
+    _marker: WindCharge,
+    parent: AbstractEntityMetadataBundle,
+}
+impl Default for WindChargeMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: WindCharge,
+            parent: AbstractEntityMetadataBundle {
+                _marker: AbstractEntity,
+                on_fire: OnFire(false),
+                shift_key_down: ShiftKeyDown(false),
+                sprinting: Sprinting(false),
+                swimming: Swimming(false),
+                currently_glowing: CurrentlyGlowing(false),
+                invisible: Invisible(false),
+                fall_flying: FallFlying(false),
+                air_supply: AirSupply(Default::default()),
+                custom_name: CustomName(None),
+                custom_name_visible: CustomNameVisible(false),
+                silent: Silent(false),
+                no_gravity: NoGravity(false),
+                pose: Pose::default(),
+                ticks_frozen: TicksFrozen(0),
+            },
         }
     }
 }
@@ -10468,6 +10588,11 @@ pub fn apply_metadata(
                 Boat::apply_metadata(entity, d)?;
             }
         }
+        azalea_registry::EntityKind::Breeze => {
+            for d in items {
+                Breeze::apply_metadata(entity, d)?;
+            }
+        }
         azalea_registry::EntityKind::Camel => {
             for d in items {
                 Camel::apply_metadata(entity, d)?;
@@ -10988,6 +11113,11 @@ pub fn apply_metadata(
                 Warden::apply_metadata(entity, d)?;
             }
         }
+        azalea_registry::EntityKind::WindCharge => {
+            for d in items {
+                WindCharge::apply_metadata(entity, d)?;
+            }
+        }
         azalea_registry::EntityKind::Witch => {
             for d in items {
                 Witch::apply_metadata(entity, d)?;
@@ -11076,6 +11206,9 @@ pub fn apply_default_metadata(
         }
         azalea_registry::EntityKind::Boat => {
             entity.insert(BoatMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Breeze => {
+            entity.insert(BreezeMetadataBundle::default());
         }
         azalea_registry::EntityKind::Camel => {
             entity.insert(CamelMetadataBundle::default());
@@ -11388,6 +11521,9 @@ pub fn apply_default_metadata(
         }
         azalea_registry::EntityKind::Warden => {
             entity.insert(WardenMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::WindCharge => {
+            entity.insert(WindChargeMetadataBundle::default());
         }
         azalea_registry::EntityKind::Witch => {
             entity.insert(WitchMetadataBundle::default());

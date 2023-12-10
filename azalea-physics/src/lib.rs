@@ -9,13 +9,14 @@ use azalea_block::{Block, BlockState};
 use azalea_core::{
     math,
     position::{BlockPos, Vec3},
+    tick::GameTick,
 };
 use azalea_entity::{
     metadata::Sprinting, move_relative, Attributes, InLoadedChunk, Jumping, LocalEntity,
-    LookDirection, Physics, Position,
+    LookDirection, OnClimbable, Physics, Pose, Position,
 };
 use azalea_world::{Instance, InstanceContainer, InstanceName};
-use bevy_app::{App, FixedUpdate, Plugin};
+use bevy_app::{App, Plugin};
 use bevy_ecs::{
     query::With,
     schedule::{IntoSystemConfigs, SystemSet},
@@ -32,7 +33,7 @@ pub struct PhysicsPlugin;
 impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
-            FixedUpdate,
+            GameTick,
             (ai_step, travel)
                 .chain()
                 .in_set(PhysicsSet)
@@ -53,12 +54,26 @@ fn travel(
             Option<&Sprinting>,
             &Attributes,
             &InstanceName,
+            &OnClimbable,
+            &Pose,
+            &Jumping,
         ),
         (With<LocalEntity>, With<InLoadedChunk>),
     >,
     instance_container: Res<InstanceContainer>,
 ) {
-    for (mut physics, direction, position, sprinting, attributes, world_name) in &mut query {
+    for (
+        mut physics,
+        direction,
+        position,
+        sprinting,
+        attributes,
+        world_name,
+        on_climbable,
+        pose,
+        jumping,
+    ) in &mut query
+    {
         let world_lock = instance_container
             .get(world_name)
             .expect("All entities should be in a valid world");
@@ -101,6 +116,9 @@ fn travel(
             position,
             attributes,
             sprinting.map(|s| **s).unwrap_or(false),
+            on_climbable,
+            pose,
+            jumping,
         );
 
         movement.y -= gravity;
@@ -228,9 +246,12 @@ fn handle_relative_friction_and_calculate_movement(
     physics: &mut Physics,
     direction: &LookDirection,
     // this is kept as a Mut for bevy change tracking
-    position: Mut<Position>,
+    mut position: Mut<Position>,
     attributes: &Attributes,
     is_sprinting: bool,
+    on_climbable: &OnClimbable,
+    pose: &Pose,
+    jumping: &Jumping,
 ) -> Vec3 {
     move_relative(
         physics,
@@ -243,13 +264,13 @@ fn handle_relative_friction_and_calculate_movement(
         },
     );
 
-    physics.velocity = handle_on_climbable(physics.velocity);
+    physics.velocity = handle_on_climbable(physics.velocity, &on_climbable, &position, world, pose);
 
     move_colliding(
         &MoverType::Own,
         &physics.velocity.clone(),
         world,
-        position,
+        &mut position,
         physics,
     )
     .expect("Entity should exist.");
@@ -259,9 +280,56 @@ fn handle_relative_friction_and_calculate_movement(
     // || entity.getFeetBlockState().is(Blocks.POWDER_SNOW) &&
     // PowderSnowBlock.canEntityWalkOnPowderSnow(entity))) {      var3 = new
     // Vec3(var3.x, 0.2D, var3.z);   }
-    // TODO: powdered snow
+
+    if physics.horizontal_collision || **jumping {
+        let block_at_feet: azalea_registry::Block = world
+            .chunks
+            .get_block_state(&(*position).into())
+            .unwrap_or_default()
+            .into();
+
+        // TODO: powdered snow
+        if **on_climbable || block_at_feet == azalea_registry::Block::PowderSnow {
+            physics.velocity.y = 0.2;
+        }
+    }
 
     physics.velocity
+}
+
+fn handle_on_climbable(
+    velocity: Vec3,
+    on_climbable: &OnClimbable,
+    position: &Position,
+    world: &Instance,
+    pose: &Pose,
+) -> Vec3 {
+    if !**on_climbable {
+        return velocity;
+    }
+
+    // minecraft does resetFallDistance here
+
+    const CLIMBING_SPEED: f64 = 0.15_f32 as f64;
+
+    let x = f64::clamp(velocity.x, -CLIMBING_SPEED, CLIMBING_SPEED);
+    let z = f64::clamp(velocity.z, -CLIMBING_SPEED, CLIMBING_SPEED);
+    let mut y = f64::max(velocity.y, -CLIMBING_SPEED);
+
+    // sneaking on ladders/vines
+    if y < 0.0
+        && *pose == Pose::Sneaking
+        && azalea_registry::Block::from(
+            world
+                .chunks
+                .get_block_state(&position.into())
+                .unwrap_or_default(),
+        ) != azalea_registry::Block::Scaffolding
+    {
+        y = 0.;
+    }
+
+    Vec3 { x, y, z }
 }
 
 // private float getFrictionInfluencedSpeed(float friction) {
@@ -337,21 +405,18 @@ fn jump_boost_power() -> f64 {
 
 #[cfg(test)]
 mod tests {
-    use std::time::Duration;
 
     use super::*;
-    use azalea_core::{position::ChunkPos, resource_location::ResourceLocation};
+    use azalea_core::{position::ChunkPos, resource_location::ResourceLocation, tick::GameTick};
     use azalea_entity::{EntityBundle, EntityPlugin};
     use azalea_world::{Chunk, MinecraftEntityId, PartialInstance};
     use bevy_app::App;
-    use bevy_time::{Fixed, Time};
     use uuid::Uuid;
 
     /// You need an app to spawn entities in the world and do updates.
     fn make_test_app() -> App {
         let mut app = App::new();
         app.add_plugins((PhysicsPlugin, EntityPlugin))
-            .insert_resource(Time::<Fixed>::from_duration(Duration::from_millis(50)))
             .init_resource::<InstanceContainer>();
         app
     }
@@ -395,7 +460,7 @@ mod tests {
             assert_eq!(entity_pos.y, 70.);
         }
         app.update();
-        app.world.run_schedule(FixedUpdate);
+        app.world.run_schedule(GameTick);
         app.update();
         {
             let entity_pos = *app.world.get::<Position>(entity).unwrap();
@@ -404,7 +469,7 @@ mod tests {
             let entity_physics = app.world.get::<Physics>(entity).unwrap();
             assert!(entity_physics.velocity.y < 0.);
         }
-        app.world.run_schedule(FixedUpdate);
+        app.world.run_schedule(GameTick);
         app.update();
         {
             let entity_pos = *app.world.get::<Position>(entity).unwrap();
@@ -458,7 +523,7 @@ mod tests {
             "Block state should exist, if this fails that means the chunk wasn't loaded and the block didn't get placed"
         );
         app.update();
-        app.world.run_schedule(FixedUpdate);
+        app.world.run_schedule(GameTick);
         app.update();
         {
             let entity_pos = *app.world.get::<Position>(entity).unwrap();
@@ -467,7 +532,7 @@ mod tests {
             let entity_physics = app.world.get::<Physics>(entity).unwrap();
             assert!(entity_physics.velocity.y < 0.);
         }
-        app.world.run_schedule(FixedUpdate);
+        app.world.run_schedule(GameTick);
         app.update();
         {
             let entity_pos = *app.world.get::<Position>(entity).unwrap();
@@ -523,7 +588,7 @@ mod tests {
         );
         // do a few steps so we fall on the slab
         for _ in 0..20 {
-            app.world.run_schedule(FixedUpdate);
+            app.world.run_schedule(GameTick);
             app.update();
         }
         let entity_pos = app.world.get::<Position>(entity).unwrap();
@@ -576,7 +641,7 @@ mod tests {
         );
         // do a few steps so we fall on the slab
         for _ in 0..20 {
-            app.world.run_schedule(FixedUpdate);
+            app.world.run_schedule(GameTick);
             app.update();
         }
         let entity_pos = app.world.get::<Position>(entity).unwrap();
@@ -633,7 +698,7 @@ mod tests {
         );
         // do a few steps so we fall on the wall
         for _ in 0..20 {
-            app.world.run_schedule(FixedUpdate);
+            app.world.run_schedule(GameTick);
             app.update();
         }
 
@@ -695,7 +760,7 @@ mod tests {
         );
         // do a few steps so we fall on the wall
         for _ in 0..20 {
-            app.world.run_schedule(FixedUpdate);
+            app.world.run_schedule(GameTick);
             app.update();
         }
 

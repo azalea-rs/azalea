@@ -4,7 +4,7 @@ edition = "2021"
 license = "MIT"
 name = "azalea"
 repository = "https://github.com/azalea-rs/azalea/tree/main/azalea"
-version = "0.8.0"
+version = "0.9.0"
 
 [package.metadata.release]
 pre-release-replacements = [
@@ -14,24 +14,24 @@ pre-release-replacements = [
 [dependencies]
 anyhow = "^1.0.75"
 async-trait = "0.1.74"
-azalea-block = { version = "0.8.0", path = "../azalea-block" }
-azalea-chat = { version = "0.8.0", path = "../azalea-chat" }
-azalea-client = { version = "0.8.0", path = "../azalea-client", default-features = false }
-azalea-core = { version = "0.8.0", path = "../azalea-core" }
-azalea-inventory = { version = "0.8.0", path = "../azalea-inventory" }
-azalea-physics = { version = "0.8.0", path = "../azalea-physics" }
-azalea-protocol = { version = "0.8.0", path = "../azalea-protocol" }
-azalea-registry = { version = "0.8.0", path = "../azalea-registry" }
-azalea-world = { version = "0.8.0", path = "../azalea-world" }
-azalea-auth = { version = "0.8.0", path = "../azalea-auth" }
-azalea-brigadier = { version = "0.8.0", path = "../azalea-brigadier" }
-azalea-buf = { version = "0.8.0", path = "../azalea-buf" }
-bevy_app = "0.12.0"
-bevy_ecs = "0.12.0"
-bevy_tasks = { version = "0.12.0", features = ["multi-threaded"] }
+azalea-block = { version = "0.9.0", path = "../azalea-block" }
+azalea-chat = { version = "0.9.0", path = "../azalea-chat" }
+azalea-client = { version = "0.9.0", path = "../azalea-client", default-features = false }
+azalea-core = { version = "0.9.0", path = "../azalea-core" }
+azalea-inventory = { version = "0.9.0", path = "../azalea-inventory" }
+azalea-physics = { version = "0.9.0", path = "../azalea-physics" }
+azalea-protocol = { version = "0.9.0", path = "../azalea-protocol" }
+azalea-registry = { version = "0.9.0", path = "../azalea-registry" }
+azalea-world = { version = "0.9.0", path = "../azalea-world" }
+azalea-auth = { version = "0.9.0", path = "../azalea-auth" }
+azalea-brigadier = { version = "0.9.0", path = "../azalea-brigadier" }
+azalea-buf = { version = "0.9.0", path = "../azalea-buf" }
+bevy_app = "0.12.1"
+bevy_ecs = "0.12.1"
+bevy_tasks = { version = "0.12.1", features = ["multi-threaded"] }
 derive_more = { version = "0.99.17", features = ["deref", "deref_mut"] }
 futures = "0.3.29"
-futures-lite = "2.0.1"
+futures-lite = "2.1.0"
 tracing = "0.1.40"
 nohash-hasher = "0.2.0"
 num-traits = "0.2.17"
@@ -39,10 +39,10 @@ parking_lot = { version = "^0.12.1", features = ["deadlock_detection"] }
 priority-queue = "1.3.2"
 thiserror = "^1.0.50"
 tokio = "^1.34.0"
-uuid = "1.5.0"
-bevy_log = "0.12.0"
-azalea-entity = { version = "0.8.0", path = "../azalea-entity" }
-bevy_time = "0.12.0"
+uuid = "1.6.1"
+bevy_log = "0.12.1"
+azalea-entity = { version = "0.9.0", path = "../azalea-entity" }
+bevy_time = "0.12.1"
 rustc-hash = "1.1.0"
 
 [dev-dependencies]

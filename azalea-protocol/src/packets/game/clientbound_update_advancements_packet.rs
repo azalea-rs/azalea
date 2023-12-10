@@ -44,10 +44,10 @@ impl azalea_buf::McBufWritable for DisplayInfo {
 
         let mut data: u32 = 0;
         if self.background.is_some() {
-            data |= 0b1;
+            data |= 0b001;
         }
         if self.show_toast {
-            data |= 0b10;
+            data |= 0b010;
         }
         if self.hidden {
             data |= 0b100;

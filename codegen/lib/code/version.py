@@ -3,7 +3,7 @@ import re
 import os
 
 README_DIR = get_dir_location('../README.md')
-VERSION_REGEX = r'\*Currently supported Minecraft version: `(.*)`.\*'
+VERSION_REGEX = r'\_Currently supported Minecraft version: `(.*)`.\_'
 
 
 def get_version_id() -> str:

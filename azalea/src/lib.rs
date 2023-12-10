@@ -3,6 +3,7 @@
 #![feature(type_changing_struct_update)]
 #![feature(lazy_cell)]
 #![feature(let_chains)]
+#![feature(never_type)]
 
 pub mod accept_resource_packs;
 pub mod auto_respawn;
@@ -180,8 +181,11 @@ where
         mut self,
         account: Account,
         address: impl TryInto<ServerAddress>,
-    ) -> Result<(), StartError> {
+    ) -> Result<!, StartError> {
         self.swarm.accounts = vec![account];
+        if self.swarm.states.is_empty() {
+            self.swarm.states = vec![S::default()];
+        }
         self.swarm.start(address).await
     }
 }

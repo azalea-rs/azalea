@@ -4,11 +4,12 @@
 use std::sync::Arc;
 
 use azalea_chat::FormattedText;
+use azalea_core::tick::GameTick;
 use azalea_protocol::packets::game::{
     clientbound_player_combat_kill_packet::ClientboundPlayerCombatKillPacket, ClientboundGamePacket,
 };
 use azalea_world::{InstanceName, MinecraftEntityId};
-use bevy_app::{App, FixedUpdate, Plugin, PreUpdate, Update};
+use bevy_app::{App, Plugin, PreUpdate, Update};
 use bevy_ecs::{
     component::Component,
     event::EventReader,
@@ -128,7 +129,7 @@ impl Plugin for EventPlugin {
             PreUpdate,
             init_listener.before(crate::packet_handling::game::process_packet_events),
         )
-        .add_systems(FixedUpdate, tick_listener);
+        .add_systems(GameTick, tick_listener);
     }
 }
 

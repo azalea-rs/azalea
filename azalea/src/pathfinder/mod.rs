@@ -28,12 +28,13 @@ use azalea_client::inventory::{InventoryComponent, InventorySet};
 use azalea_client::movement::MoveEventsSet;
 use azalea_client::{StartSprintEvent, StartWalkEvent};
 use azalea_core::position::{BlockPos, Vec3};
+use azalea_core::tick::GameTick;
 use azalea_entity::metadata::Player;
 use azalea_entity::LocalEntity;
 use azalea_entity::{Physics, Position};
 use azalea_physics::PhysicsSet;
 use azalea_world::{InstanceContainer, InstanceName};
-use bevy_app::{FixedUpdate, PreUpdate, Update};
+use bevy_app::{PreUpdate, Update};
 use bevy_ecs::event::Events;
 use bevy_ecs::prelude::Event;
 use bevy_ecs::query::Changed;
@@ -58,9 +59,9 @@ impl Plugin for PathfinderPlugin {
             .add_event::<PathFoundEvent>()
             .add_event::<StopPathfindingEvent>()
             .add_systems(
-                // putting systems in the FixedUpdate schedule makes them run every Minecraft tick
+                // putting systems in the GameTick schedule makes them run every Minecraft tick
                 // (every 50 milliseconds).
-                FixedUpdate,
+                GameTick,
                 (
                     timeout_movement,
                     check_node_reached,

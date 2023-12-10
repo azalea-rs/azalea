@@ -76,6 +76,9 @@ def burger_type_to_rust_type(burger_type, field_name: Optional[str] = None, inst
         field_type_rs = 'todo!()'
     elif burger_type == 'Iterator':
         field_type_rs = 'todo!()'
+    elif burger_type == 'Object':
+        # depends on context
+        field_type_rs = 'todo!()'
     elif burger_type == 'enum':
         if not instruction or not mappings or not obfuscated_class_name:
             field_type_rs = 'todo!("enum")'

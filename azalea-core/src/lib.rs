@@ -12,8 +12,11 @@ pub mod difficulty;
 pub mod direction;
 pub mod game_type;
 pub mod math;
+pub mod objectives;
 pub mod particle;
 pub mod position;
 pub mod registry_holder;
 pub mod resource_location;
+#[cfg(feature = "bevy_ecs")]
+pub mod tick;
 pub mod tier;

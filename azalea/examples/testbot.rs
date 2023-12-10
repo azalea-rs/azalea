@@ -21,7 +21,7 @@ struct State {}
 struct SwarmState {}
 
 #[tokio::main]
-async fn main() -> anyhow::Result<()> {
+async fn main() {
     {
         use parking_lot::deadlock;
         use std::thread;
@@ -51,20 +51,14 @@ async fn main() -> anyhow::Result<()> {
         accounts.push(Account::offline(&format!("bot{i}")));
     }
 
-    loop {
-        let e = SwarmBuilder::new()
-            .add_accounts(accounts.clone())
-            .set_handler(handle)
-            .set_swarm_handler(swarm_handle)
-            .join_delay(Duration::from_millis(100))
-            .start("localhost")
-            .await;
-        // let e = azalea::ClientBuilder::new()
-        //     .set_handler(handle)
-        //     .start(Account::offline("bot"), "localhost")
-        //     .await;
-        eprintln!("{e:?}");
-    }
+    SwarmBuilder::new()
+        .add_accounts(accounts.clone())
+        .set_handler(handle)
+        .set_swarm_handler(swarm_handle)
+        .join_delay(Duration::from_millis(100))
+        .start("localhost")
+        .await
+        .unwrap();
 }
 
 async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<()> {
@@ -306,6 +300,12 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                     } else {
                         bot.chat("no chunk found");
                     }
+                }
+                "debugblock" => {
+                    // send the block that we're standing on
+                    let block_pos = BlockPos::from(bot.position().down(0.1));
+                    let block = bot.world().read().get_block_state(&block_pos);
+                    bot.chat(&format!("block: {block:?}"));
                 }
                 "debugchunks" => {
                     println!("shared:");

@@ -228,6 +228,10 @@ pub struct Physics {
     pub bounding_box: AABB,
 
     pub has_impulse: bool,
+
+    pub horizontal_collision: bool,
+    // pub minor_horizontal_collision: bool,
+    pub vertical_collision: bool,
 }
 
 impl Physics {
@@ -246,6 +250,9 @@ impl Physics {
             dimensions,
 
             has_impulse: false,
+
+            horizontal_collision: false,
+            vertical_collision: false,
         }
     }
 }
@@ -311,6 +318,7 @@ pub struct EntityBundle {
     pub attributes: Attributes,
     pub jumping: Jumping,
     pub fluid_on_eyes: FluidOnEyes,
+    pub on_climbable: OnClimbable,
 }
 
 impl EntityBundle {
@@ -346,6 +354,7 @@ impl EntityBundle {
 
             jumping: Jumping(false),
             fluid_on_eyes: FluidOnEyes(azalea_registry::Fluid::Empty),
+            on_climbable: OnClimbable(false),
         }
     }
 }

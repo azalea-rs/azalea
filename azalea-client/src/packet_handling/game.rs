@@ -20,6 +20,7 @@ use azalea_protocol::{
     packets::game::{
         clientbound_player_combat_kill_packet::ClientboundPlayerCombatKillPacket,
         serverbound_accept_teleportation_packet::ServerboundAcceptTeleportationPacket,
+        serverbound_configuration_acknowledged_packet::ServerboundConfigurationAcknowledgedPacket,
         serverbound_keep_alive_packet::ServerboundKeepAlivePacket,
         serverbound_move_player_pos_rot_packet::ServerboundMovePlayerPosRotPacket,
         serverbound_pong_packet::ServerboundPongPacket, ClientboundGamePacket,
@@ -31,6 +32,7 @@ use azalea_world::{Instance, InstanceContainer, InstanceName, MinecraftEntityId,
 use bevy_ecs::{prelude::*, system::SystemState};
 use parking_lot::RwLock;
 use tracing::{debug, error, trace, warn};
+use uuid::Uuid;
 
 use crate::{
     chat::{ChatPacket, ChatReceivedEvent},
@@ -123,6 +125,9 @@ pub struct KeepAliveEvent {
 #[derive(Event, Debug, Clone)]
 pub struct ResourcePackEvent {
     pub entity: Entity,
+    /// The random ID for this request to download the resource pack. The packet
+    /// for replying to a resource pack push must contain the same ID.
+    pub id: Uuid,
     pub url: String,
     pub hash: String,
     pub required: bool,
@@ -737,9 +742,9 @@ pub fn process_packet_events(ecs: &mut World) {
                         entity.world_scope(|world| {
                             let mut commands_system_state = SystemState::<Commands>::new(world);
                             let mut commands = commands_system_state.get_mut(world);
-                            let mut entity_comands = commands.entity(entity_id);
+                            let mut entity_commands = commands.entity(entity_id);
                             if let Err(e) =
-                                apply_metadata(&mut entity_comands, *entity_kind, packed_items)
+                                apply_metadata(&mut entity_commands, *entity_kind, packed_items)
                             {
                                 warn!("{e}");
                             }
@@ -995,6 +1000,18 @@ pub fn process_packet_events(ecs: &mut World) {
                 chat_events.send(ChatReceivedEvent {
                     entity: player_entity,
                     packet: ChatPacket::System(Arc::new(p.clone())),
+                });
+            }
+            ClientboundGamePacket::DisguisedChat(p) => {
+                debug!("Got disguised chat packet {p:?}");
+
+                let mut system_state: SystemState<EventWriter<ChatReceivedEvent>> =
+                    SystemState::new(ecs);
+                let mut chat_events = system_state.get_mut(ecs);
+
+                chat_events.send(ChatReceivedEvent {
+                    entity: player_entity,
+                    packet: ChatPacket::Disguised(Arc::new(p.clone())),
                 });
             }
             ClientboundGamePacket::Sound(_p) => {
@@ -1253,7 +1270,7 @@ pub fn process_packet_events(ecs: &mut World) {
             }
             ClientboundGamePacket::PlayerLookAt(_) => {}
             ClientboundGamePacket::RemoveMobEffect(_) => {}
-            ClientboundGamePacket::ResourcePack(p) => {
+            ClientboundGamePacket::ResourcePackPush(p) => {
                 debug!("Got resource pack packet {p:?}");
 
                 let mut system_state: SystemState<EventWriter<ResourcePackEvent>> =
@@ -1262,6 +1279,7 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 resource_pack_events.send(ResourcePackEvent {
                     entity: player_entity,
+                    id: p.id,
                     url: p.url.to_owned(),
                     hash: p.hash.to_owned(),
                     required: p.required,
@@ -1270,6 +1288,7 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 system_state.apply(ecs);
             }
+            ClientboundGamePacket::ResourcePackPop(_) => {}
             ClientboundGamePacket::Respawn(p) => {
                 debug!("Got respawn packet {p:?}");
 
@@ -1359,6 +1378,24 @@ pub fn process_packet_events(ecs: &mut World) {
                 system_state.apply(ecs);
             }
 
+            ClientboundGamePacket::StartConfiguration(_) => {
+                let mut system_state: SystemState<(Commands, EventWriter<SendPacketEvent>)> =
+                    SystemState::new(ecs);
+                let (mut commands, mut packet_events) = system_state.get_mut(ecs);
+
+                packet_events.send(SendPacketEvent {
+                    entity: player_entity,
+                    packet: ServerboundConfigurationAcknowledgedPacket {}.get(),
+                });
+
+                commands
+                    .entity(player_entity)
+                    .insert(crate::client::InConfigurationState)
+                    .remove::<crate::JoinedClientBundle>();
+
+                system_state.apply(ecs);
+            }
+
             ClientboundGamePacket::SelectAdvancementsTab(_) => {}
             ClientboundGamePacket::SetActionBarText(_) => {}
             ClientboundGamePacket::SetBorderCenter(_) => {}
@@ -1382,12 +1419,14 @@ pub fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::TabList(_) => {}
             ClientboundGamePacket::TagQuery(_) => {}
             ClientboundGamePacket::TakeItemEntity(_) => {}
-            ClientboundGamePacket::DisguisedChat(_) => {}
             ClientboundGamePacket::Bundle(_) => {}
             ClientboundGamePacket::DamageEvent(_) => {}
             ClientboundGamePacket::HurtAnimation(_) => {}
 
-            ClientboundGamePacket::StartConfiguration(_) => todo!(),
+            ClientboundGamePacket::TickingState(_) => {}
+            ClientboundGamePacket::TickingStep(_) => {}
+
+            ClientboundGamePacket::ResetScore(_) => {}
         }
     }
 }

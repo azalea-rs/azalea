@@ -5,6 +5,8 @@ use azalea_buf::McBuf;
 use once_cell::sync::Lazy;
 use serde::{ser::SerializeStruct, Serialize, Serializer};
 use serde_json::Value;
+#[cfg(feature = "simdnbt")]
+use simdnbt::owned::{NbtCompound, NbtTag};
 
 #[derive(Clone, PartialEq, Eq, Debug, Hash)]
 pub struct TextColor {
@@ -17,11 +19,22 @@ impl Serialize for TextColor {
     where
         S: Serializer,
     {
-        if self.name.is_some() {
-            serializer.serialize_str(&self.name.as_ref().unwrap().to_ascii_lowercase())
-        } else {
-            serializer.serialize_str(&self.format())
-        }
+        serializer.serialize_str(
+            &self
+                .name
+                .as_ref()
+                .map(|n| n.to_ascii_lowercase())
+                .unwrap_or_else(|| self.format()),
+        )
+    }
+}
+
+#[cfg(feature = "simdnbt")]
+impl simdnbt::ToNbtTag for TextColor {
+    fn to_nbt_tag(self) -> simdnbt::owned::NbtTag {
+        self.name
+            .map(|n| NbtTag::String(n.to_ascii_lowercase().into()))
+            .unwrap_or_else(|| NbtTag::Int(self.value as i32))
     }
 }
 
@@ -303,6 +316,36 @@ pub struct Style {
     pub reset: bool,
 }
 
+fn serde_serialize_field<S: serde::ser::SerializeStruct>(
+    state: &mut S,
+    name: &'static str,
+    value: &Option<impl serde::Serialize>,
+    default: &(impl serde::Serialize + ?Sized),
+    reset: bool,
+) -> Result<(), S::Error> {
+    if let Some(value) = value {
+        state.serialize_field(name, value)?;
+    } else if reset {
+        state.serialize_field(name, default)?;
+    }
+    Ok(())
+}
+
+#[cfg(feature = "simdnbt")]
+fn simdnbt_serialize_field(
+    compound: &mut simdnbt::owned::NbtCompound,
+    name: &'static str,
+    value: Option<impl simdnbt::ToNbtTag>,
+    default: impl simdnbt::ToNbtTag,
+    reset: bool,
+) {
+    if let Some(value) = value {
+        compound.insert(name, value);
+    } else if reset {
+        compound.insert(name, default);
+    }
+}
+
 impl Serialize for Style {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -319,37 +362,67 @@ impl Serialize for Style {
                 + usize::from(self.obfuscated.is_some())
         };
         let mut state = serializer.serialize_struct("Style", len)?;
-        if let Some(color) = &self.color {
-            state.serialize_field("color", color)?;
-        } else if self.reset {
-            state.serialize_field("color", "white")?;
-        }
-        if let Some(bold) = &self.bold {
-            state.serialize_field("bold", bold)?;
-        } else if self.reset {
-            state.serialize_field("bold", &false)?;
-        }
-        if let Some(italic) = &self.italic {
-            state.serialize_field("italic", italic)?;
-        } else if self.reset {
-            state.serialize_field("italic", &false)?;
-        }
-        if let Some(underlined) = &self.underlined {
-            state.serialize_field("underlined", underlined)?;
-        } else if self.reset {
-            state.serialize_field("underlined", &false)?;
-        }
-        if let Some(strikethrough) = &self.strikethrough {
-            state.serialize_field("strikethrough", strikethrough)?;
-        } else if self.reset {
-            state.serialize_field("strikethrough", &false)?;
-        }
-        if let Some(obfuscated) = &self.obfuscated {
-            state.serialize_field("obfuscated", obfuscated)?;
-        } else if self.reset {
-            state.serialize_field("obfuscated", &false)?;
-        }
+
+        serde_serialize_field(&mut state, "color", &self.color, "white", self.reset)?;
+        serde_serialize_field(&mut state, "bold", &self.bold, &false, self.reset)?;
+        serde_serialize_field(&mut state, "italic", &self.italic, &false, self.reset)?;
+        serde_serialize_field(
+            &mut state,
+            "underlined",
+            &self.underlined,
+            &false,
+            self.reset,
+        )?;
+        serde_serialize_field(
+            &mut state,
+            "strikethrough",
+            &self.strikethrough,
+            &false,
+            self.reset,
+        )?;
+        serde_serialize_field(
+            &mut state,
+            "obfuscated",
+            &self.obfuscated,
+            &false,
+            self.reset,
+        )?;
+
         state.end()
+    }
+}
+
+#[cfg(feature = "simdnbt")]
+impl simdnbt::Serialize for Style {
+    fn to_compound(self) -> NbtCompound {
+        let mut compound = NbtCompound::new();
+
+        simdnbt_serialize_field(&mut compound, "color", self.color, "white", self.reset);
+        simdnbt_serialize_field(&mut compound, "bold", self.bold, false, self.reset);
+        simdnbt_serialize_field(&mut compound, "italic", self.italic, false, self.reset);
+        simdnbt_serialize_field(
+            &mut compound,
+            "underlined",
+            self.underlined,
+            false,
+            self.reset,
+        );
+        simdnbt_serialize_field(
+            &mut compound,
+            "strikethrough",
+            self.strikethrough,
+            false,
+            self.reset,
+        );
+        simdnbt_serialize_field(
+            &mut compound,
+            "obfuscated",
+            self.obfuscated,
+            false,
+            self.reset,
+        );
+
+        compound
     }
 }
 
@@ -359,29 +432,27 @@ impl Style {
     }
 
     pub fn deserialize(json: &Value) -> Style {
-        return if json.is_object() {
-            let json_object = json.as_object().unwrap();
-            let bold = json_object.get("bold").and_then(|v| v.as_bool());
-            let italic = json_object.get("italic").and_then(|v| v.as_bool());
-            let underlined = json_object.get("underlined").and_then(|v| v.as_bool());
-            let strikethrough = json_object.get("strikethrough").and_then(|v| v.as_bool());
-            let obfuscated = json_object.get("obfuscated").and_then(|v| v.as_bool());
-            let color: Option<TextColor> = json_object
-                .get("color")
-                .and_then(|v| v.as_str())
-                .and_then(|v| TextColor::parse(v.to_string()));
-            Style {
-                color,
-                bold,
-                italic,
-                underlined,
-                strikethrough,
-                obfuscated,
-                ..Style::default()
-            }
-        } else {
-            Style::default()
+        let Some(json_object) = json.as_object() else {
+            return Style::default();
         };
+        let bold = json_object.get("bold").and_then(|v| v.as_bool());
+        let italic = json_object.get("italic").and_then(|v| v.as_bool());
+        let underlined = json_object.get("underlined").and_then(|v| v.as_bool());
+        let strikethrough = json_object.get("strikethrough").and_then(|v| v.as_bool());
+        let obfuscated = json_object.get("obfuscated").and_then(|v| v.as_bool());
+        let color: Option<TextColor> = json_object
+            .get("color")
+            .and_then(|v| v.as_str())
+            .and_then(|v| TextColor::parse(v.to_string()));
+        Style {
+            color,
+            bold,
+            italic,
+            underlined,
+            strikethrough,
+            obfuscated,
+            ..Style::default()
+        }
     }
 
     /// Check if a style has no attributes set
@@ -504,6 +575,31 @@ impl Style {
                 }
             }
         }
+    }
+}
+
+#[cfg(feature = "simdnbt")]
+impl simdnbt::Deserialize for Style {
+    fn from_compound(
+        compound: &simdnbt::borrow::NbtCompound,
+    ) -> Result<Self, simdnbt::DeserializeError> {
+        let bold = compound.byte("bold").map(|v| v != 0);
+        let italic = compound.byte("italic").map(|v| v != 0);
+        let underlined = compound.byte("underlined").map(|v| v != 0);
+        let strikethrough = compound.byte("strikethrough").map(|v| v != 0);
+        let obfuscated = compound.byte("obfuscated").map(|v| v != 0);
+        let color: Option<TextColor> = compound
+            .string("color")
+            .and_then(|v| TextColor::parse(v.to_string()));
+        Ok(Style {
+            color,
+            bold,
+            italic,
+            underlined,
+            strikethrough,
+            obfuscated,
+            ..Style::default()
+        })
     }
 }
 
