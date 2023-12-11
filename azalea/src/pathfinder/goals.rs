@@ -1,3 +1,5 @@
+//! The goals that a pathfinder can try to reach.
+
 use std::f32::consts::SQRT_2;
 
 use azalea_core::position::{BlockPos, Vec3};
@@ -7,6 +9,7 @@ use super::{
     Goal,
 };
 
+/// Move to the given block position.
 pub struct BlockPosGoal(pub BlockPos);
 impl Goal for BlockPosGoal {
     fn heuristic(&self, n: BlockPos) -> f32 {
@@ -39,6 +42,7 @@ fn xz_heuristic(dx: f32, dz: f32) -> f32 {
     diagonal * SQRT_2 + straight
 }
 
+/// Move to the given block position, ignoring the y axis.
 pub struct XZGoal {
     pub x: i32,
     pub z: i32,
@@ -62,6 +66,7 @@ fn y_heuristic(dy: f32) -> f32 {
     }
 }
 
+/// Move to the given y coordinate.
 pub struct YGoal {
     pub y: i32,
 }
@@ -75,6 +80,7 @@ impl Goal for YGoal {
     }
 }
 
+/// Get within the given radius of the given position.
 pub struct RadiusGoal {
     pub pos: Vec3,
     pub radius: f32,
@@ -96,6 +102,7 @@ impl Goal for RadiusGoal {
     }
 }
 
+/// Do the opposite of the given goal.
 pub struct InverseGoal<T: Goal>(pub T);
 impl<T: Goal> Goal for InverseGoal<T> {
     fn heuristic(&self, n: BlockPos) -> f32 {
@@ -106,6 +113,7 @@ impl<T: Goal> Goal for InverseGoal<T> {
     }
 }
 
+/// Do either of the given goals, whichever is closer.
 pub struct OrGoal<T: Goal, U: Goal>(pub T, pub U);
 impl<T: Goal, U: Goal> Goal for OrGoal<T, U> {
     fn heuristic(&self, n: BlockPos) -> f32 {
@@ -116,6 +124,7 @@ impl<T: Goal, U: Goal> Goal for OrGoal<T, U> {
     }
 }
 
+/// Try to reach both of the given goals.
 pub struct AndGoal<T: Goal, U: Goal>(pub T, pub U);
 impl<T: Goal, U: Goal> Goal for AndGoal<T, U> {
     fn heuristic(&self, n: BlockPos) -> f32 {

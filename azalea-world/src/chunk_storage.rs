@@ -16,6 +16,7 @@ use std::{
     io::{Cursor, Write},
     sync::{Arc, Weak},
 };
+use tracing::error;
 use tracing::{debug, trace, warn};
 
 const SECTION_HEIGHT: u32 = 16;
@@ -501,7 +502,12 @@ impl Default for ChunkStorage {
 /// and the minimum y coordinate of the world.
 #[inline]
 pub fn section_index(y: i32, min_y: i32) -> u32 {
-    assert!(y >= min_y, "y ({y}) must be at least {min_y}");
+    if y < min_y {
+        #[cfg(debug_assertions)]
+        panic!("y ({y}) must be at most {min_y}");
+        #[cfg(not(debug_assertions))]
+        tracing::error!("y ({y}) must be at least {min_y}")
+    };
     let min_section_index = min_y >> 4;
     ((y >> 4) - min_section_index) as u32
 }

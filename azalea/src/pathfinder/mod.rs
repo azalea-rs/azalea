@@ -94,7 +94,7 @@ impl Plugin for PathfinderPlugin {
 }
 
 /// A component that makes this client able to pathfind.
-#[derive(Component, Default)]
+#[derive(Component, Default, Clone)]
 pub struct Pathfinder {
     pub goal: Option<Arc<dyn Goal + Send + Sync>>,
     pub successors_fn: Option<SuccessorsFn>,
@@ -191,6 +191,14 @@ fn goto_listener(
         let (mut pathfinder, executing_path, position, instance_name, inventory) = query
             .get_mut(event.entity)
             .expect("Called goto on an entity that's not in the world");
+
+        if event.goal.success(BlockPos::from(position)) {
+            // we're already at the goal, nothing to do
+            pathfinder.goal = None;
+            pathfinder.successors_fn = None;
+            pathfinder.is_calculating = false;
+            continue;
+        }
 
         // we store the goal so it can be recalculated later if necessary
         pathfinder.goal = Some(event.goal.clone());
@@ -828,7 +836,9 @@ fn debug_render_path_with_particles(
 }
 
 pub trait Goal {
+    #[must_use]
     fn heuristic(&self, n: BlockPos) -> f32;
+    #[must_use]
     fn success(&self, n: BlockPos) -> bool;
 }
 

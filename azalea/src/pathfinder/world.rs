@@ -102,6 +102,11 @@ impl CachedWorld {
         section_pos: ChunkSectionPos,
         f: impl FnOnce(&azalea_world::palette::PalettedContainer) -> T,
     ) -> Option<T> {
+        if section_pos.y * 16 < self.min_y {
+            // y position is out of bounds
+            return None;
+        }
+
         let chunk_pos = ChunkPos::from(section_pos);
         let section_index =
             azalea_world::chunk_storage::section_index(section_pos.y * 16, self.min_y) as usize;
