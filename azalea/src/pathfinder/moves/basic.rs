@@ -151,19 +151,39 @@ fn descend_move(ctx: &mut PathfinderCtx, pos: BlockPos) {
     for dir in CardinalDirection::iter() {
         let dir_delta = BlockPos::new(dir.x(), 0, dir.z());
         let new_horizontal_position = pos + dir_delta;
-        let fall_distance = ctx.world.fall_distance(new_horizontal_position);
-        if fall_distance == 0 || fall_distance > 3 {
+
+        let break_cost_1 = ctx
+            .world
+            .cost_for_passing(new_horizontal_position, ctx.mining_cache);
+        if break_cost_1 == f32::MAX {
             continue;
         }
+
+        let mut fall_distance = ctx.world.fall_distance(new_horizontal_position);
+        if fall_distance > 3 {
+            continue;
+        }
+
+        if fall_distance == 0 {
+            // if the fall distance is 0, set it to 1 so we try mining
+            fall_distance = 1
+        }
+
         let new_position = new_horizontal_position.down(fall_distance as i32);
 
-        // check whether 3 blocks vertically forward are passable
-        if !ctx.world.is_passable(new_horizontal_position) {
-            continue;
-        }
-        // check whether we can stand on the target position
-        if !ctx.world.is_standable(new_position) {
-            continue;
+        // only mine if we're descending 1 block
+        let break_cost_2;
+        if fall_distance == 1 {
+            break_cost_2 = ctx.world.cost_for_standing(new_position, ctx.mining_cache);
+            if break_cost_2 == f32::MAX {
+                continue;
+            }
+        } else {
+            // check whether we can stand on the target position
+            if !ctx.world.is_standable(new_position) {
+                continue;
+            }
+            break_cost_2 = 0.;
         }
 
         let cost = WALK_OFF_BLOCK_COST
@@ -175,7 +195,9 @@ fn descend_move(ctx: &mut PathfinderCtx, pos: BlockPos) {
                     // probably not possible but just in case
                     .unwrap_or(f32::MAX),
                 CENTER_AFTER_FALL_COST,
-            );
+            )
+            + break_cost_1
+            + break_cost_2;
 
         ctx.edges.push(Edge {
             movement: astar::Movement {
@@ -196,6 +218,12 @@ fn execute_descend_move(mut ctx: ExecuteCtx) {
         position,
         ..
     } = ctx;
+
+    for i in (0..=(start.y - target.y + 1)).rev() {
+        if ctx.mine(target.up(i)) {
+            return;
+        }
+    }
 
     let start_center = start.center();
     let center = target.center();

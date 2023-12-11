@@ -63,6 +63,18 @@ pub fn accurate_best_tool_in_hotbar_for_block(
     let mut best_slot = None;
 
     let block = Box::<dyn Block>::from(block);
+    let registry_block = block.as_registry_block();
+
+    if matches!(
+        registry_block,
+        azalea_registry::Block::Water | azalea_registry::Block::Lava
+    ) {
+        // can't mine fluids
+        return BestToolResult {
+            index: 0,
+            percentage_per_tick: 0.,
+        };
+    }
 
     // find the first slot that has an item without durability
     for (i, item_slot) in hotbar_slots.iter().enumerate() {

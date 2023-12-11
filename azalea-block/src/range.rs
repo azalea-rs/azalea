@@ -1,4 +1,7 @@
-use std::{collections::HashSet, ops::RangeInclusive};
+use std::{
+    collections::HashSet,
+    ops::{Add, RangeInclusive},
+};
 
 use crate::BlockState;
 
@@ -29,5 +32,15 @@ impl IntoIterator for BlockStates {
 impl BlockStates {
     pub fn contains(&self, state: &BlockState) -> bool {
         self.set.contains(state)
+    }
+}
+
+impl Add for BlockStates {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Self {
+            set: self.set.union(&rhs.set).copied().collect(),
+        }
     }
 }
