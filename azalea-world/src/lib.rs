@@ -4,6 +4,7 @@
 mod bit_storage;
 pub mod chunk_storage;
 mod container;
+pub mod find_blocks;
 pub mod heightmap;
 pub mod iterators;
 pub mod palette;

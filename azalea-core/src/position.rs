@@ -5,6 +5,7 @@
 
 use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
 use std::{
+    fmt,
     hash::Hash,
     io::{Cursor, Write},
     ops::{Add, AddAssign, Mul, Rem, Sub},
@@ -472,6 +473,13 @@ impl From<&Vec3> for ChunkBlockPos {
 impl From<Vec3> for ChunkBlockPos {
     fn from(pos: Vec3) -> Self {
         ChunkBlockPos::from(&pos)
+    }
+}
+
+impl fmt::Display for BlockPos {
+    /// Display a block position as `x y z`.
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{} {} {}", self.x, self.y, self.z)
     }
 }
 

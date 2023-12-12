@@ -25,7 +25,7 @@ fn forward_move(ctx: &mut PathfinderCtx, pos: BlockPos) {
         let mut cost = SPRINT_ONE_BLOCK_COST;
 
         let break_cost = ctx.world.cost_for_standing(pos + offset, ctx.mining_cache);
-        if break_cost == f32::MAX {
+        if break_cost == f32::INFINITY {
             continue;
         }
         cost += break_cost;
@@ -64,11 +64,11 @@ fn ascend_move(ctx: &mut PathfinderCtx, pos: BlockPos) {
         let break_cost_1 = ctx
             .world
             .cost_for_breaking_block(pos.up(2), ctx.mining_cache);
-        if break_cost_1 == f32::MAX {
+        if break_cost_1 == f32::INFINITY {
             continue;
         }
         let break_cost_2 = ctx.world.cost_for_standing(pos + offset, ctx.mining_cache);
-        if break_cost_2 == f32::MAX {
+        if break_cost_2 == f32::INFINITY {
             continue;
         }
 
@@ -155,7 +155,7 @@ fn descend_move(ctx: &mut PathfinderCtx, pos: BlockPos) {
         let break_cost_1 = ctx
             .world
             .cost_for_passing(new_horizontal_position, ctx.mining_cache);
-        if break_cost_1 == f32::MAX {
+        if break_cost_1 == f32::INFINITY {
             continue;
         }
 
@@ -175,7 +175,7 @@ fn descend_move(ctx: &mut PathfinderCtx, pos: BlockPos) {
         let break_cost_2;
         if fall_distance == 1 {
             break_cost_2 = ctx.world.cost_for_standing(new_position, ctx.mining_cache);
-            if break_cost_2 == f32::MAX {
+            if break_cost_2 == f32::INFINITY {
                 continue;
             }
         } else {
@@ -193,7 +193,7 @@ fn descend_move(ctx: &mut PathfinderCtx, pos: BlockPos) {
                     .copied()
                     // avoid panicking if we fall more than the size of FALL_N_BLOCKS_COST
                     // probably not possible but just in case
-                    .unwrap_or(f32::MAX),
+                    .unwrap_or(f32::INFINITY),
                 CENTER_AFTER_FALL_COST,
             )
             + break_cost_1
@@ -305,7 +305,7 @@ fn descend_forward_1_move(ctx: &mut PathfinderCtx, pos: BlockPos) {
                     .copied()
                     // avoid panicking if we fall more than the size of FALL_N_BLOCKS_COST
                     // probably not possible but just in case
-                    .unwrap_or(f32::MAX),
+                    .unwrap_or(f32::INFINITY),
                 CENTER_AFTER_FALL_COST,
             );
 

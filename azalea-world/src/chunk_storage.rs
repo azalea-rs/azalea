@@ -16,7 +16,6 @@ use std::{
     io::{Cursor, Write},
     sync::{Arc, Weak},
 };
-use tracing::error;
 use tracing::{debug, trace, warn};
 
 const SECTION_HEIGHT: u32 = 16;

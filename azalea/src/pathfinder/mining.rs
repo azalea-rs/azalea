@@ -8,11 +8,11 @@ use crate::auto_tool::best_tool_in_hotbar_for_block;
 
 pub struct MiningCache {
     block_state_id_costs: UnsafeCell<IntMap<u32, f32>>,
-    inventory_menu: Menu,
+    inventory_menu: Option<Menu>,
 }
 
 impl MiningCache {
-    pub fn new(inventory_menu: Menu) -> Self {
+    pub fn new(inventory_menu: Option<Menu>) -> Self {
         Self {
             block_state_id_costs: UnsafeCell::new(IntMap::default()),
             inventory_menu,
@@ -20,13 +20,17 @@ impl MiningCache {
     }
 
     pub fn cost_for(&self, block: BlockState) -> f32 {
+        let Some(inventory_menu) = &self.inventory_menu else {
+            return f32::INFINITY;
+        };
+
         // SAFETY: mining is single-threaded, so this is safe
         let block_state_id_costs = unsafe { &mut *self.block_state_id_costs.get() };
 
         if let Some(cost) = block_state_id_costs.get(&block.id) {
             *cost
         } else {
-            let best_tool_result = best_tool_in_hotbar_for_block(block, &self.inventory_menu);
+            let best_tool_result = best_tool_in_hotbar_for_block(block, inventory_menu);
             let cost = 1. / best_tool_result.percentage_per_tick;
             block_state_id_costs.insert(block.id, cost);
             cost

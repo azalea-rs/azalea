@@ -34,7 +34,7 @@ use azalea_entity::metadata::Player;
 use azalea_entity::LocalEntity;
 use azalea_entity::{Physics, Position};
 use azalea_physics::PhysicsSet;
-use azalea_world::{Instance, InstanceContainer, InstanceName};
+use azalea_world::{InstanceContainer, InstanceName};
 use bevy_app::{PreUpdate, Update};
 use bevy_ecs::event::Events;
 use bevy_ecs::prelude::Event;
@@ -99,6 +99,7 @@ pub struct Pathfinder {
     pub goal: Option<Arc<dyn Goal + Send + Sync>>,
     pub successors_fn: Option<SuccessorsFn>,
     pub is_calculating: bool,
+    pub allow_mining: bool,
 
     pub goto_id: Arc<AtomicUsize>,
 }
@@ -121,6 +122,9 @@ pub struct GotoEvent {
     /// The function that's used for checking what moves are possible. Usually
     /// `pathfinder::moves::default_move`
     pub successors_fn: SuccessorsFn,
+
+    /// Whether the bot is allowed to break blocks while pathfinding.
+    pub allow_mining: bool,
 }
 #[derive(Event, Clone)]
 pub struct PathFoundEvent {
@@ -129,6 +133,7 @@ pub struct PathFoundEvent {
     pub path: Option<VecDeque<astar::Movement<BlockPos, moves::MoveData>>>,
     pub is_partial: bool,
     pub successors_fn: SuccessorsFn,
+    pub allow_mining: bool,
 }
 
 #[allow(clippy::type_complexity)]
@@ -143,6 +148,7 @@ fn add_default_pathfinder(
 
 pub trait PathfinderClientExt {
     fn goto(&self, goal: impl Goal + Send + Sync + 'static);
+    fn goto_without_mining(&self, goal: impl Goal + Send + Sync + 'static);
     fn stop_pathfinding(&self);
 }
 
@@ -159,6 +165,18 @@ impl PathfinderClientExt for azalea_client::Client {
             entity: self.entity,
             goal: Arc::new(goal),
             successors_fn: moves::default_move,
+            allow_mining: true,
+        });
+    }
+
+    /// Same as [`goto`](Self::goto). but the bot won't break any blocks while
+    /// executing the path.
+    fn goto_without_mining(&self, goal: impl Goal + Send + Sync + 'static) {
+        self.ecs.lock().send_event(GotoEvent {
+            entity: self.entity,
+            goal: Arc::new(goal),
+            successors_fn: moves::default_move,
+            allow_mining: false,
         });
     }
 
@@ -204,6 +222,7 @@ fn goto_listener(
         pathfinder.goal = Some(event.goal.clone());
         pathfinder.successors_fn = Some(event.successors_fn);
         pathfinder.is_calculating = true;
+        pathfinder.allow_mining = event.allow_mining;
 
         let start = if let Some(executing_path) = executing_path
             && let Some(final_node) = executing_path.path.back()
@@ -229,7 +248,13 @@ fn goto_listener(
 
         let goto_id_atomic = pathfinder.goto_id.clone();
         let goto_id = goto_id_atomic.fetch_add(1, atomic::Ordering::Relaxed) + 1;
-        let mining_cache = MiningCache::new(inventory.inventory_menu.clone());
+
+        let allow_mining = event.allow_mining;
+        let mining_cache = MiningCache::new(if allow_mining {
+            Some(inventory.inventory_menu.clone())
+        } else {
+            None
+        });
 
         let task = thread_pool.spawn(async move {
             debug!("start: {start:?}");
@@ -298,6 +323,7 @@ fn goto_listener(
                 path: Some(path),
                 is_partial,
                 successors_fn,
+                allow_mining,
             })
         });
 
@@ -351,7 +377,11 @@ fn path_found_listener(
                         .expect("Entity tried to pathfind but the entity isn't in a valid world");
                     let successors_fn: moves::SuccessorsFn = event.successors_fn;
                     let cached_world = CachedWorld::new(world_lock);
-                    let mining_cache = MiningCache::new(inventory.inventory_menu.clone());
+                    let mining_cache = MiningCache::new(if event.allow_mining {
+                        Some(inventory.inventory_menu.clone())
+                    } else {
+                        None
+                    });
                     let successors = |pos: BlockPos| {
                         call_successors_fn(&cached_world, &mining_cache, successors_fn, pos)
                     };
@@ -544,7 +574,11 @@ fn check_for_path_obstruction(
 
         // obstruction check (the path we're executing isn't possible anymore)
         let cached_world = CachedWorld::new(world_lock);
-        let mining_cache = MiningCache::new(inventory.inventory_menu.clone());
+        let mining_cache = MiningCache::new(if pathfinder.allow_mining {
+            Some(inventory.inventory_menu.clone())
+        } else {
+            None
+        });
         let successors =
             |pos: BlockPos| call_successors_fn(&cached_world, &mining_cache, successors_fn, pos);
 
@@ -589,6 +623,7 @@ fn recalculate_near_end_of_path(
                     entity,
                     goal,
                     successors_fn,
+                    allow_mining: pathfinder.allow_mining,
                 });
                 pathfinder.is_calculating = true;
 
@@ -679,6 +714,7 @@ fn recalculate_if_has_goal_but_no_path(
                     entity,
                     goal,
                     successors_fn: pathfinder.successors_fn.unwrap(),
+                    allow_mining: pathfinder.allow_mining,
                 });
                 pathfinder.is_calculating = true;
             }
@@ -940,6 +976,7 @@ mod tests {
             entity: simulation.entity,
             goal: Arc::new(BlockPosGoal(end_pos)),
             successors_fn: moves::default_move,
+            allow_mining: false,
         });
         simulation
     }

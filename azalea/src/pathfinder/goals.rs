@@ -10,6 +10,7 @@ use super::{
 };
 
 /// Move to the given block position.
+#[derive(Debug)]
 pub struct BlockPosGoal(pub BlockPos);
 impl Goal for BlockPosGoal {
     fn heuristic(&self, n: BlockPos) -> f32 {
@@ -43,6 +44,7 @@ fn xz_heuristic(dx: f32, dz: f32) -> f32 {
 }
 
 /// Move to the given block position, ignoring the y axis.
+#[derive(Debug)]
 pub struct XZGoal {
     pub x: i32,
     pub z: i32,
@@ -67,6 +69,7 @@ fn y_heuristic(dy: f32) -> f32 {
 }
 
 /// Move to the given y coordinate.
+#[derive(Debug)]
 pub struct YGoal {
     pub y: i32,
 }
@@ -81,6 +84,7 @@ impl Goal for YGoal {
 }
 
 /// Get within the given radius of the given position.
+#[derive(Debug)]
 pub struct RadiusGoal {
     pub pos: Vec3,
     pub radius: f32,
@@ -103,6 +107,7 @@ impl Goal for RadiusGoal {
 }
 
 /// Do the opposite of the given goal.
+#[derive(Debug)]
 pub struct InverseGoal<T: Goal>(pub T);
 impl<T: Goal> Goal for InverseGoal<T> {
     fn heuristic(&self, n: BlockPos) -> f32 {
@@ -114,6 +119,7 @@ impl<T: Goal> Goal for InverseGoal<T> {
 }
 
 /// Do either of the given goals, whichever is closer.
+#[derive(Debug)]
 pub struct OrGoal<T: Goal, U: Goal>(pub T, pub U);
 impl<T: Goal, U: Goal> Goal for OrGoal<T, U> {
     fn heuristic(&self, n: BlockPos) -> f32 {
@@ -124,7 +130,24 @@ impl<T: Goal, U: Goal> Goal for OrGoal<T, U> {
     }
 }
 
+/// Do any of the given goals, whichever is closest.
+#[derive(Debug)]
+pub struct OrGoals<T: Goal>(pub Vec<T>);
+impl<T: Goal> Goal for OrGoals<T> {
+    fn heuristic(&self, n: BlockPos) -> f32 {
+        self.0
+            .iter()
+            .map(|goal| goal.heuristic(n))
+            .min_by(|a, b| a.partial_cmp(b).unwrap())
+            .unwrap_or(f32::INFINITY)
+    }
+    fn success(&self, n: BlockPos) -> bool {
+        self.0.iter().any(|goal| goal.success(n))
+    }
+}
+
 /// Try to reach both of the given goals.
+#[derive(Debug)]
 pub struct AndGoal<T: Goal, U: Goal>(pub T, pub U);
 impl<T: Goal, U: Goal> Goal for AndGoal<T, U> {
     fn heuristic(&self, n: BlockPos) -> f32 {
@@ -132,5 +155,21 @@ impl<T: Goal, U: Goal> Goal for AndGoal<T, U> {
     }
     fn success(&self, n: BlockPos) -> bool {
         self.0.success(n) && self.1.success(n)
+    }
+}
+
+/// Try to reach all of the given goals.
+#[derive(Debug)]
+pub struct AndGoals<T: Goal>(pub Vec<T>);
+impl<T: Goal> Goal for AndGoals<T> {
+    fn heuristic(&self, n: BlockPos) -> f32 {
+        self.0
+            .iter()
+            .map(|goal| goal.heuristic(n))
+            .max_by(|a, b| a.partial_cmp(b).unwrap())
+            .unwrap_or(f32::INFINITY)
+    }
+    fn success(&self, n: BlockPos) -> bool {
+        self.0.iter().all(|goal| goal.success(n))
     }
 }

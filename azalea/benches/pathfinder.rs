@@ -82,7 +82,8 @@ fn bench_pathfinder(c: &mut Criterion) {
         b.iter(|| {
             let (world, start, end) = generate_bedrock_world(&mut partial_chunks, 4);
             let cached_world = CachedWorld::new(Arc::new(RwLock::new(world.into())));
-            let mining_cache = MiningCache::new(Menu::Player(azalea_inventory::Player::default()));
+            let mining_cache =
+                MiningCache::new(Some(Menu::Player(azalea_inventory::Player::default())));
             let goal = BlockPosGoal(end);
 
             let successors = |pos: BlockPos| {
