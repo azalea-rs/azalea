@@ -48,7 +48,7 @@ where
             movement_data: None,
             came_from: None,
             g_score: f32::default(),
-            f_score: f32::MAX,
+            f_score: f32::INFINITY,
         },
     );
 

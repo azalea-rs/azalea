@@ -253,7 +253,7 @@ impl CachedWorld {
             // the chunk isn't loaded
             if self.is_block_solid(pos) {
                 // assume it's unbreakable if it's solid and out of render distance
-                return f32::MAX;
+                return f32::INFINITY;
             } else {
                 return 0.;
             }
@@ -280,7 +280,7 @@ impl CachedWorld {
 
     pub fn cost_for_standing(&self, pos: BlockPos, mining_cache: &MiningCache) -> f32 {
         if !self.is_block_solid(pos.down(1)) {
-            return f32::MAX;
+            return f32::INFINITY;
         }
         self.cost_for_passing(pos, mining_cache)
     }
