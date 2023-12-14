@@ -6,6 +6,8 @@ use nohash_hasher::IntMap;
 
 use crate::auto_tool::best_tool_in_hotbar_for_block;
 
+use super::costs::BLOCK_BREAK_ADDITIONAL_PENALTY;
+
 pub struct MiningCache {
     block_state_id_costs: UnsafeCell<IntMap<u32, f32>>,
     inventory_menu: Option<Menu>,
@@ -31,7 +33,10 @@ impl MiningCache {
             *cost
         } else {
             let best_tool_result = best_tool_in_hotbar_for_block(block, inventory_menu);
-            let cost = 1. / best_tool_result.percentage_per_tick;
+            let mut cost = 1. / best_tool_result.percentage_per_tick;
+
+            cost += BLOCK_BREAK_ADDITIONAL_PENALTY;
+
             block_state_id_costs.insert(block.id, cost);
             cost
         }

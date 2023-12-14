@@ -5,7 +5,7 @@ use std::f32::consts::SQRT_2;
 use azalea_core::position::{BlockPos, Vec3};
 
 use super::{
-    costs::{FALL_N_BLOCKS_COST, JUMP_ONE_BLOCK_COST},
+    costs::{COST_HEURISTIC, FALL_N_BLOCKS_COST, JUMP_ONE_BLOCK_COST},
     Goal,
 };
 
@@ -18,7 +18,7 @@ impl Goal for BlockPosGoal {
         let dy = (self.0.y - n.y) as f32;
         let dz = (self.0.z - n.z) as f32;
 
-        xz_heuristic(dx, dz) + y_heuristic(dy)
+        (xz_heuristic(dx, dz) + y_heuristic(dy)) * COST_HEURISTIC
     }
     fn success(&self, n: BlockPos) -> bool {
         n == self.0
