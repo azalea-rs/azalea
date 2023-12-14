@@ -15,7 +15,7 @@ use azalea_inventory::Menu;
 use azalea_world::{Chunk, ChunkStorage, PartialChunkStorage};
 use criterion::{criterion_group, criterion_main, Criterion};
 use parking_lot::RwLock;
-use rand::Rng;
+use rand::{rngs::StdRng, Rng, SeedableRng};
 
 fn generate_bedrock_world(
     partial_chunks: &mut PartialChunkStorage,
@@ -31,7 +31,7 @@ fn generate_bedrock_world(
         }
     }
 
-    let mut rng = rand::thread_rng();
+    let mut rng = StdRng::seed_from_u64(0);
 
     for chunk_x in -size..size {
         for chunk_z in -size..size {
