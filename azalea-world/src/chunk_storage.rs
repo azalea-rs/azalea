@@ -123,18 +123,30 @@ impl PartialChunkStorage {
         self.view_center
     }
 
+    pub fn view_range(&self) -> u32 {
+        self.view_range
+    }
+
     pub fn index_from_chunk_pos(&self, chunk_pos: &ChunkPos) -> usize {
-        (i32::rem_euclid(chunk_pos.x, self.view_range as i32) * (self.view_range as i32)
-            + i32::rem_euclid(chunk_pos.z, self.view_range as i32)) as usize
+        let view_range = self.view_range as i32;
+
+        let x = i32::rem_euclid(chunk_pos.x, view_range) * view_range;
+        let z = i32::rem_euclid(chunk_pos.z, view_range);
+        (x + z) as usize
     }
 
     pub fn chunk_pos_from_index(&self, index: usize) -> ChunkPos {
-        let x = index as i32 % self.view_range as i32;
-        let z = index as i32 / self.view_range as i32;
-        ChunkPos::new(
-            x + self.view_center.x - self.chunk_radius as i32,
-            z + self.view_center.z - self.chunk_radius as i32,
-        )
+        let view_range = self.view_range as i32;
+
+        // find the base from the view center
+        let base_x = self.view_center.x.div_euclid(view_range) * view_range;
+        let base_z = self.view_center.z.div_euclid(view_range) * view_range;
+
+        // add the offset from the base
+        let offset_x = index as i32 / view_range;
+        let offset_z = index as i32 % view_range;
+
+        ChunkPos::new(base_x + offset_x, base_z + offset_z)
     }
 
     pub fn in_range(&self, chunk_pos: &ChunkPos) -> bool {
@@ -207,6 +219,7 @@ impl PartialChunkStorage {
         }
 
         let index = self.index_from_chunk_pos(pos);
+
         Some(&mut self.chunks[index])
     }
 
@@ -546,5 +559,17 @@ mod tests {
         assert!(chunk_storage
             .get_block_state(&BlockPos { x: 0, y: -65, z: 0 })
             .is_none());
+    }
+
+    #[test]
+    fn test_chunk_pos_from_index() {
+        let mut partial_chunk_storage = PartialChunkStorage::new(5);
+        partial_chunk_storage.update_view_center(ChunkPos::new(0, -1));
+        assert_eq!(
+            partial_chunk_storage.chunk_pos_from_index(
+                partial_chunk_storage.index_from_chunk_pos(&ChunkPos::new(2, -1))
+            ),
+            ChunkPos::new(2, -1),
+        );
     }
 }

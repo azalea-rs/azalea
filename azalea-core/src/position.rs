@@ -213,7 +213,7 @@ impl BlockPos {
 
 /// Chunk coordinates are used to represent where a chunk is in the world. You
 /// can convert the x and z to block coordinates by multiplying them by 16.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, McBuf)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct ChunkPos {
     pub x: i32,
     pub z: i32,
@@ -233,12 +233,38 @@ impl Add<ChunkPos> for ChunkPos {
         }
     }
 }
+
+// reading ChunkPos is done in reverse, so z first and then x
+// ........
+// mojang why
 impl From<ChunkPos> for u64 {
     #[inline]
     fn from(pos: ChunkPos) -> Self {
-        ((pos.x as u64) << 32) | (pos.z as u64)
+        (pos.x as u64) | ((pos.z as u64) << 32)
     }
 }
+impl From<u64> for ChunkPos {
+    #[inline]
+    fn from(pos: u64) -> Self {
+        ChunkPos {
+            x: (pos) as i32,
+            z: (pos >> 32) as i32,
+        }
+    }
+}
+impl McBufReadable for ChunkPos {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let long = u64::read_from(buf)?;
+        Ok(ChunkPos::from(long))
+    }
+}
+impl McBufWritable for ChunkPos {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        u64::from(*self).write_into(buf)?;
+        Ok(())
+    }
+}
+
 impl Hash for ChunkPos {
     #[inline]
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
@@ -599,5 +625,14 @@ mod tests {
             ChunkSectionBlockPos::from(block_pos),
             ChunkSectionBlockPos::new(0, 4, 0)
         );
+    }
+
+    #[test]
+    fn test_read_chunk_pos_from() {
+        let mut buf = Vec::new();
+        ChunkPos::new(2, -1).write_into(&mut buf).unwrap();
+        let mut buf = Cursor::new(&buf[..]);
+        let chunk_pos = ChunkPos::from(u64::read_from(&mut buf).unwrap());
+        assert_eq!(chunk_pos, ChunkPos::new(2, -1));
     }
 }
