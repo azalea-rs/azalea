@@ -282,7 +282,11 @@ fn goto_listener(
                 debug!("partial: {partial:?}");
                 let duration = end_time - start_time;
                 if partial {
-                    info!("Pathfinder took {duration:?} (incomplete path)");
+                    if movements.is_empty() {
+                        info!("Pathfinder took {duration:?} (empty path)");
+                    } else {
+                        info!("Pathfinder took {duration:?} (incomplete path)");
+                    }
                     // wait a bit so it's not a busy loop
                     std::thread::sleep(Duration::from_millis(100));
                 } else {

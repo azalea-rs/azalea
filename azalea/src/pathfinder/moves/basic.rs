@@ -397,13 +397,10 @@ fn downward_move(ctx: &mut PathfinderCtx, pos: BlockPos) {
 }
 fn execute_downward_move(mut ctx: ExecuteCtx) {
     let ExecuteCtx {
-        target,
-        start,
-        position,
-        ..
+        target, position, ..
     } = ctx;
 
-    if ctx.mine(start.down(1)) {
+    if ctx.mine(target) {
         return;
     }
 

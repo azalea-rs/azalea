@@ -18,7 +18,7 @@ impl Goal for BlockPosGoal {
         let dy = (self.0.y - n.y) as f32;
         let dz = (self.0.z - n.z) as f32;
 
-        (xz_heuristic(dx, dz) + y_heuristic(dy)) * COST_HEURISTIC
+        xz_heuristic(dx, dz) + y_heuristic(dy)
     }
     fn success(&self, n: BlockPos) -> bool {
         n == self.0
@@ -40,7 +40,7 @@ fn xz_heuristic(dx: f32, dz: f32) -> f32 {
         diagonal = z;
     }
 
-    diagonal * SQRT_2 + straight
+    (diagonal * SQRT_2 + straight) * COST_HEURISTIC
 }
 
 /// Move to the given block position, ignoring the y axis.
