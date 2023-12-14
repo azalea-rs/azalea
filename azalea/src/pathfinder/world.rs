@@ -22,6 +22,7 @@ pub struct CachedWorld {
     // we store `PalettedContainer`s instead of `Chunk`s or `Section`s because it doesn't contain
     // any unnecessary data like heightmaps or biomes.
     cached_chunks: RefCell<Vec<(ChunkPos, Vec<azalea_world::palette::PalettedContainer>)>>,
+    last_chunk_cache_index: RefCell<Option<usize>>,
 
     cached_blocks: UnsafeCell<CachedSections>,
 }
@@ -84,6 +85,7 @@ impl CachedWorld {
             min_y,
             world_lock,
             cached_chunks: Default::default(),
+            last_chunk_cache_index: Default::default(),
             cached_blocks: Default::default(),
         }
     }
@@ -113,18 +115,39 @@ impl CachedWorld {
 
         let mut cached_chunks = self.cached_chunks.borrow_mut();
 
-        // get section from cache
-        if let Some(sections) = cached_chunks.iter().find_map(|(pos, sections)| {
-            if *pos == chunk_pos {
-                Some(sections)
-            } else {
-                None
+        // optimization: avoid doing the iter lookup if the last chunk we looked up is
+        // the same
+        if let Some(last_chunk_cache_index) = *self.last_chunk_cache_index.borrow() {
+            if cached_chunks[last_chunk_cache_index].0 == chunk_pos {
+                // don't bother with the iter lookup
+                let sections = &cached_chunks[last_chunk_cache_index].1;
+                if section_index >= sections.len() {
+                    // y position is out of bounds
+                    return None;
+                };
+                let section: &azalea_world::palette::PalettedContainer = &sections[section_index];
+                return Some(f(section));
             }
-        }) {
+        }
+
+        // get section from cache
+        if let Some((chunk_index, sections)) =
+            cached_chunks
+                .iter()
+                .enumerate()
+                .find_map(|(i, (pos, sections))| {
+                    if *pos == chunk_pos {
+                        Some((i, sections))
+                    } else {
+                        None
+                    }
+                })
+        {
             if section_index >= sections.len() {
                 // y position is out of bounds
                 return None;
             };
+            *self.last_chunk_cache_index.borrow_mut() = Some(chunk_index);
             let section: &azalea_world::palette::PalettedContainer = &sections[section_index];
             return Some(f(section));
         }
