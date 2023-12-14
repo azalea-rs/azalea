@@ -16,6 +16,7 @@ pub fn basic_move(ctx: &mut PathfinderCtx, node: BlockPos) {
     descend_move(ctx, node);
     diagonal_move(ctx, node);
     descend_forward_1_move(ctx, node);
+    downward_move(ctx, node);
 }
 
 fn forward_move(ctx: &mut PathfinderCtx, pos: BlockPos) {
@@ -365,4 +366,56 @@ fn execute_diagonal_move(mut ctx: ExecuteCtx) {
 
     ctx.look_at(target_center);
     ctx.sprint(SprintDirection::Forward);
+}
+
+/// Go directly down, usually by mining.
+fn downward_move(ctx: &mut PathfinderCtx, pos: BlockPos) {
+    // make sure we land on a solid block after breaking the one below us
+    if !ctx.world.is_block_solid(pos.down(2)) {
+        return;
+    }
+
+    let break_cost = ctx
+        .world
+        .cost_for_breaking_block(pos.down(1), ctx.mining_cache);
+    if break_cost == f32::INFINITY {
+        return;
+    }
+
+    let cost = FALL_N_BLOCKS_COST[1] + break_cost;
+
+    ctx.edges.push(Edge {
+        movement: astar::Movement {
+            target: pos.down(1),
+            data: MoveData {
+                execute: &execute_downward_move,
+                is_reached: &default_is_reached,
+            },
+        },
+        cost,
+    })
+}
+fn execute_downward_move(mut ctx: ExecuteCtx) {
+    let ExecuteCtx {
+        target,
+        start,
+        position,
+        ..
+    } = ctx;
+
+    if ctx.mine(start.down(1)) {
+        return;
+    }
+
+    let target_center = target.center();
+
+    let horizontal_distance_from_target =
+        (target_center - position).horizontal_distance_sqr().sqrt();
+
+    if horizontal_distance_from_target > 0.25 {
+        ctx.look_at(target_center);
+        ctx.walk(WalkDirection::Forward);
+    } else {
+        ctx.walk(WalkDirection::None);
+    }
 }

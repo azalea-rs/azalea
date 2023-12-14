@@ -130,7 +130,6 @@ where
             return *node;
         }
     }
-    println!("best_paths: {:?}", best_paths);
     warn!("No best node found, returning first node");
     best_paths[0]
 }
