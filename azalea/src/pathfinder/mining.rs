@@ -1,6 +1,6 @@
-use std::cell::UnsafeCell;
+use std::{cell::UnsafeCell, ops::RangeInclusive};
 
-use azalea_block::BlockState;
+use azalea_block::{BlockState, BlockStates};
 use azalea_inventory::Menu;
 use nohash_hasher::IntMap;
 
@@ -11,13 +11,67 @@ use super::costs::BLOCK_BREAK_ADDITIONAL_PENALTY;
 pub struct MiningCache {
     block_state_id_costs: UnsafeCell<IntMap<u32, f32>>,
     inventory_menu: Option<Menu>,
+
+    water_block_state_range: RangeInclusive<u32>,
+    lava_block_state_range: RangeInclusive<u32>,
+
+    falling_blocks: Vec<BlockState>,
 }
 
 impl MiningCache {
     pub fn new(inventory_menu: Option<Menu>) -> Self {
+        let water_block_states = BlockStates::from(azalea_registry::Block::Water);
+        let lava_block_states = BlockStates::from(azalea_registry::Block::Lava);
+
+        let mut water_block_state_range_min = u32::MAX;
+        let mut water_block_state_range_max = u32::MIN;
+        for state in water_block_states {
+            water_block_state_range_min = water_block_state_range_min.min(state.id);
+            water_block_state_range_max = water_block_state_range_max.max(state.id);
+        }
+        let water_block_state_range = water_block_state_range_min..=water_block_state_range_max;
+
+        let mut lava_block_state_range_min = u32::MAX;
+        let mut lava_block_state_range_max = u32::MIN;
+        for state in lava_block_states {
+            lava_block_state_range_min = lava_block_state_range_min.min(state.id);
+            lava_block_state_range_max = lava_block_state_range_max.max(state.id);
+        }
+        let lava_block_state_range = lava_block_state_range_min..=lava_block_state_range_max;
+
+        let mut falling_blocks: Vec<BlockState> = vec![
+            azalea_registry::Block::Sand.into(),
+            azalea_registry::Block::RedSand.into(),
+            azalea_registry::Block::Gravel.into(),
+            azalea_registry::Block::Anvil.into(),
+            azalea_registry::Block::ChippedAnvil.into(),
+            azalea_registry::Block::DamagedAnvil.into(),
+            // concrete powders
+            azalea_registry::Block::WhiteConcretePowder.into(),
+            azalea_registry::Block::OrangeConcretePowder.into(),
+            azalea_registry::Block::MagentaConcretePowder.into(),
+            azalea_registry::Block::LightBlueConcretePowder.into(),
+            azalea_registry::Block::YellowConcretePowder.into(),
+            azalea_registry::Block::LimeConcretePowder.into(),
+            azalea_registry::Block::PinkConcretePowder.into(),
+            azalea_registry::Block::GrayConcretePowder.into(),
+            azalea_registry::Block::LightGrayConcretePowder.into(),
+            azalea_registry::Block::CyanConcretePowder.into(),
+            azalea_registry::Block::PurpleConcretePowder.into(),
+            azalea_registry::Block::BlueConcretePowder.into(),
+            azalea_registry::Block::BrownConcretePowder.into(),
+            azalea_registry::Block::GreenConcretePowder.into(),
+            azalea_registry::Block::RedConcretePowder.into(),
+            azalea_registry::Block::BlackConcretePowder.into(),
+        ];
+        falling_blocks.sort_unstable_by_key(|block| block.id);
+
         Self {
             block_state_id_costs: UnsafeCell::new(IntMap::default()),
             inventory_menu,
+            water_block_state_range,
+            lava_block_state_range,
+            falling_blocks,
         }
     }
 
@@ -40,5 +94,16 @@ impl MiningCache {
             block_state_id_costs.insert(block.id, cost);
             cost
         }
+    }
+
+    pub fn is_liquid(&self, block: BlockState) -> bool {
+        self.water_block_state_range.contains(&block.id)
+            || self.lava_block_state_range.contains(&block.id)
+    }
+
+    pub fn is_falling_block(&self, block: BlockState) -> bool {
+        self.falling_blocks
+            .binary_search_by_key(&block.id, |block| block.id)
+            .is_ok()
     }
 }

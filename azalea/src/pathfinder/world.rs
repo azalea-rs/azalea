@@ -246,9 +246,84 @@ impl CachedWorld {
 
         let (section_pos, section_block_pos) =
             (ChunkSectionPos::from(pos), ChunkSectionBlockPos::from(pos));
-        let Some(block_state) = self.with_section(section_pos, |section| {
-            let block_state_id = section.get_at_index(u16::from(section_block_pos) as usize);
-            BlockState::try_from(block_state_id).unwrap_or_default()
+
+        // we use this as an optimization to avoid getting the section again if the
+        // block is in the same section
+        let up_is_in_same_section = section_block_pos.y != 15;
+        let north_is_in_same_section = section_block_pos.z != 0;
+        let east_is_in_same_section = section_block_pos.x != 15;
+        let south_is_in_same_section = section_block_pos.z != 15;
+        let west_is_in_same_section = section_block_pos.x != 0;
+
+        let Some(mining_cost) = self.with_section(section_pos, |section| {
+            let block_state =
+                BlockState::try_from(section.get_at_index(u16::from(section_block_pos) as usize))
+                    .unwrap_or_default();
+            let mining_cost = mining_cache.cost_for(block_state);
+
+            if mining_cost == f32::INFINITY {
+                // the block is unbreakable
+                return f32::INFINITY;
+            }
+
+            // if there's a falling block or liquid above this block, abort
+            if up_is_in_same_section {
+                let up_block = BlockState::try_from(
+                    section.get_at_index(u16::from(section_block_pos.up(1)) as usize),
+                )
+                .unwrap_or_default();
+                if mining_cache.is_liquid(up_block) || mining_cache.is_falling_block(up_block) {
+                    return f32::INFINITY;
+                }
+            }
+
+            // if there's a liquid to the north of this block, abort
+            if north_is_in_same_section {
+                let north_block = BlockState::try_from(
+                    section.get_at_index(u16::from(section_block_pos.north(1)) as usize),
+                )
+                .unwrap_or_default();
+                if mining_cache.is_liquid(north_block) {
+                    return f32::INFINITY;
+                }
+            }
+
+            // liquid to the east
+            if east_is_in_same_section {
+                let east_block = BlockState::try_from(
+                    section.get_at_index(u16::from(section_block_pos.east(1)) as usize),
+                )
+                .unwrap_or_default();
+                if mining_cache.is_liquid(east_block) {
+                    return f32::INFINITY;
+                }
+            }
+
+            // liquid to the south
+            if south_is_in_same_section {
+                let south_block = BlockState::try_from(
+                    section.get_at_index(u16::from(section_block_pos.south(1)) as usize),
+                )
+                .unwrap_or_default();
+                if mining_cache.is_liquid(south_block) {
+                    return f32::INFINITY;
+                }
+            }
+
+            // liquid to the west
+            if west_is_in_same_section {
+                let west_block = BlockState::try_from(
+                    section.get_at_index(u16::from(section_block_pos.west(1)) as usize),
+                )
+                .unwrap_or_default();
+                if mining_cache.is_liquid(west_block) {
+                    return f32::INFINITY;
+                }
+            }
+
+            // the block is probably safe to break, we'll have to check the adjacent blocks
+            // that weren't in the same section next though
+            mining_cost
         }) else {
             // the chunk isn't loaded
             if self.is_block_solid(pos) {
@@ -259,7 +334,56 @@ impl CachedWorld {
             }
         };
 
-        mining_cache.cost_for(block_state)
+        if mining_cost == f32::INFINITY {
+            // the block is unbreakable
+            return f32::INFINITY;
+        }
+
+        let check_should_avoid_this_block = |pos: BlockPos, check: &dyn Fn(BlockState) -> bool| {
+            let block_state = BlockState::try_from(
+                self.with_section(ChunkSectionPos::from(pos), |section| {
+                    let block_state = BlockState::try_from(
+                        section.get_at_index(u16::from(ChunkSectionBlockPos::from(pos)) as usize),
+                    )
+                    .unwrap_or_default();
+                    block_state
+                })
+                .unwrap_or_default(),
+            )
+            .unwrap_or_default();
+            check(block_state)
+        };
+
+        // check the adjacent blocks that weren't in the same section
+        if !up_is_in_same_section {
+            if check_should_avoid_this_block(pos.up(1), &|b| {
+                mining_cache.is_liquid(b) || mining_cache.is_falling_block(b)
+            }) {
+                return f32::INFINITY;
+            }
+        }
+        if !north_is_in_same_section {
+            if check_should_avoid_this_block(pos.north(1), &|b| mining_cache.is_liquid(b)) {
+                return f32::INFINITY;
+            }
+        }
+        if !east_is_in_same_section {
+            if check_should_avoid_this_block(pos.east(1), &|b| mining_cache.is_liquid(b)) {
+                return f32::INFINITY;
+            }
+        }
+        if !south_is_in_same_section {
+            if check_should_avoid_this_block(pos.south(1), &|b| mining_cache.is_liquid(b)) {
+                return f32::INFINITY;
+            }
+        }
+        if !west_is_in_same_section {
+            if check_should_avoid_this_block(pos.west(1), &|b| mining_cache.is_liquid(b)) {
+                return f32::INFINITY;
+            }
+        }
+
+        mining_cost
     }
 
     /// Whether this block and the block above are passable

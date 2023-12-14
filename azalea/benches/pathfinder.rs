@@ -17,7 +17,7 @@ use criterion::{criterion_group, criterion_main, Criterion};
 use parking_lot::RwLock;
 use rand::{rngs::StdRng, Rng, SeedableRng};
 
-fn generate_bedrock_world(
+fn generate_world(
     partial_chunks: &mut PartialChunkStorage,
     size: u32,
 ) -> (ChunkStorage, BlockPos, BlockPos) {
@@ -42,13 +42,13 @@ fn generate_bedrock_world(
                 for z in 0..16_u8 {
                     chunk.set(
                         &ChunkBlockPos::new(x, 1, z),
-                        azalea_registry::Block::Bedrock.into(),
+                        azalea_registry::Block::Stone.into(),
                         chunks.min_y,
                     );
                     if rng.gen_bool(0.5) {
                         chunk.set(
                             &ChunkBlockPos::new(x, 2, z),
-                            azalea_registry::Block::Bedrock.into(),
+                            azalea_registry::Block::Stone.into(),
                             chunks.min_y,
                         );
                     }
@@ -58,14 +58,14 @@ fn generate_bedrock_world(
     }
 
     let mut start = BlockPos::new(-64, 4, -64);
-    // move start down until it's on bedrock
+    // move start down until it's on a solid block
     while chunks.get_block_state(&start).unwrap().is_air() {
         start = start.down(1);
     }
     start = start.up(1);
 
     let mut end = BlockPos::new(63, 4, 63);
-    // move end down until it's on bedrock
+    // move end down until it's on a solid block
     while chunks.get_block_state(&end).unwrap().is_air() {
         end = end.down(1);
     }
@@ -80,7 +80,7 @@ fn bench_pathfinder(c: &mut Criterion) {
         let successors_fn = azalea::pathfinder::moves::default_move;
 
         b.iter(|| {
-            let (world, start, end) = generate_bedrock_world(&mut partial_chunks, 4);
+            let (world, start, end) = generate_world(&mut partial_chunks, 4);
             let cached_world = CachedWorld::new(Arc::new(RwLock::new(world.into())));
             let mining_cache =
                 MiningCache::new(Some(Menu::Player(azalea_inventory::Player::default())));

@@ -66,6 +66,43 @@ macro_rules! vec3_impl {
                 }
             }
 
+            /// Return a new instance of this position with the z coordinate subtracted
+            /// by the given number.
+            pub fn north(&self, z: $type) -> Self {
+                Self {
+                    x: self.x,
+                    y: self.y,
+                    z: self.z - z,
+                }
+            }
+            /// Return a new instance of this position with the x coordinate increased
+            /// by the given number.
+            pub fn east(&self, x: $type) -> Self {
+                Self {
+                    x: self.x + x,
+                    y: self.y,
+                    z: self.z,
+                }
+            }
+            /// Return a new instance of this position with the z coordinate increased
+            /// by the given number.
+            pub fn south(&self, z: $type) -> Self {
+                Self {
+                    x: self.x,
+                    y: self.y,
+                    z: self.z + z,
+                }
+            }
+            /// Return a new instance of this position with the x coordinate subtracted
+            /// by the given number.
+            pub fn west(&self, x: $type) -> Self {
+                Self {
+                    x: self.x - x,
+                    y: self.y,
+                    z: self.z,
+                }
+            }
+
             #[inline]
             pub fn dot(&self, other: Self) -> $type {
                 self.x * other.x + self.y * other.y + self.z * other.z
