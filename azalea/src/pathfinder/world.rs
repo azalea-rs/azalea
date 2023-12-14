@@ -434,7 +434,7 @@ pub fn is_block_state_passable(block: BlockState) -> bool {
     if !block.is_shape_empty() {
         return false;
     }
-    if block == azalea_registry::Block::Water.into() {
+    if azalea_registry::Block::from(block) == azalea_registry::Block::Water {
         return false;
     }
     if block
@@ -443,7 +443,7 @@ pub fn is_block_state_passable(block: BlockState) -> bool {
     {
         return false;
     }
-    if block == azalea_registry::Block::Lava.into() {
+    if azalea_registry::Block::from(block) == azalea_registry::Block::Lava {
         return false;
     }
     // block.waterlogged currently doesn't account for seagrass and some other water
