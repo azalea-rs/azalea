@@ -229,6 +229,9 @@ where
     /// Use [`Self::add_account`] to only add one account. If you want the
     /// clients to have different default states, add them one at a time with
     /// [`Self::add_account_with_state`].
+    ///
+    /// By default every account will join at the same time, you can add a delay
+    /// with [`Self::join_delay`].
     #[must_use]
     pub fn add_accounts(mut self, accounts: Vec<Account>) -> Self
     where
