@@ -412,7 +412,7 @@ fn execute_downward_move(mut ctx: ExecuteCtx) {
     let horizontal_distance_from_target =
         (target_center - position).horizontal_distance_sqr().sqrt();
 
-    if horizontal_distance_from_target > 0.25 {
+    if horizontal_distance_from_target > 0.25 || BlockPos::from(position) != target {
         ctx.look_at(target_center);
         ctx.walk(WalkDirection::Forward);
     } else {
