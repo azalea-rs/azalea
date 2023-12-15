@@ -3,7 +3,6 @@
 use std::f32::consts::SQRT_2;
 
 use azalea_core::position::{BlockPos, Vec3};
-use azalea_entity::LookDirection;
 use azalea_world::ChunkStorage;
 
 use super::costs::{COST_HEURISTIC, FALL_N_BLOCKS_COST, JUMP_ONE_BLOCK_COST};

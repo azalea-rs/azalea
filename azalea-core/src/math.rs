@@ -13,15 +13,15 @@ pub static SIN: LazyLock<[f32; 65536]> = LazyLock::new(|| {
 /// A sine function that uses a lookup table.
 pub fn sin(x: f32) -> f32 {
     let x = x * 10430.378;
-    let x = x as usize;
-    SIN[x & 65535]
+    let x = x as i32 as usize & 65535;
+    SIN[x]
 }
 
 /// A cosine function that uses a lookup table.
 pub fn cos(x: f32) -> f32 {
     let x = x * 10430.378 + 16384.0;
-    let x = x as usize;
-    SIN[x & 65535]
+    let x = x as i32 as usize & 65535;
+    SIN[x]
 }
 
 // TODO: make this generic
@@ -82,5 +82,25 @@ mod tests {
 
         assert_eq!(gcd(12, 7), 1);
         assert_eq!(gcd(7, 12), 1);
+    }
+
+    #[test]
+    fn test_sin() {
+        const PI: f32 = std::f32::consts::PI;
+        // check that they're close enough
+        fn assert_sin_eq_enough(number: f32) {
+            let a = sin(number);
+            let b = f32::sin(number);
+            assert!((a - b).abs() < 0.01, "sin({number}) failed, {a} != {b}");
+        }
+        assert_sin_eq_enough(0.0);
+        assert_sin_eq_enough(PI / 2.0);
+        assert_sin_eq_enough(PI);
+        assert_sin_eq_enough(PI * 2.0);
+        assert_sin_eq_enough(PI * 3.0 / 2.0);
+        assert_sin_eq_enough(-PI / 2.0);
+        assert_sin_eq_enough(-PI);
+        assert_sin_eq_enough(-PI * 2.0);
+        assert_sin_eq_enough(-PI * 3.0 / 2.0);
     }
 }
