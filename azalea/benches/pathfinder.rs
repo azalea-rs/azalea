@@ -3,10 +3,9 @@ use std::{hint::black_box, sync::Arc, time::Duration};
 use azalea::{
     pathfinder::{
         astar::{self, a_star},
-        goals::BlockPosGoal,
+        goals::{BlockPosGoal, Goal},
         mining::MiningCache,
         world::CachedWorld,
-        Goal,
     },
     BlockPos,
 };

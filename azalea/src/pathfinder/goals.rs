@@ -3,11 +3,17 @@
 use std::f32::consts::SQRT_2;
 
 use azalea_core::position::{BlockPos, Vec3};
+use azalea_entity::LookDirection;
+use azalea_world::ChunkStorage;
 
-use super::{
-    costs::{COST_HEURISTIC, FALL_N_BLOCKS_COST, JUMP_ONE_BLOCK_COST},
-    Goal,
-};
+use super::costs::{COST_HEURISTIC, FALL_N_BLOCKS_COST, JUMP_ONE_BLOCK_COST};
+
+pub trait Goal {
+    #[must_use]
+    fn heuristic(&self, n: BlockPos) -> f32;
+    #[must_use]
+    fn success(&self, n: BlockPos) -> bool;
+}
 
 /// Move to the given block position.
 #[derive(Debug)]
@@ -171,5 +177,38 @@ impl<T: Goal> Goal for AndGoals<T> {
     }
     fn success(&self, n: BlockPos) -> bool {
         self.0.iter().all(|goal| goal.success(n))
+    }
+}
+
+/// Move to a position where we can reach the given block.
+#[derive(Debug)]
+pub struct ReachBlockPosGoal {
+    pub pos: BlockPos,
+    pub chunk_storage: ChunkStorage,
+}
+impl Goal for ReachBlockPosGoal {
+    fn heuristic(&self, n: BlockPos) -> f32 {
+        BlockPosGoal(self.pos).heuristic(n)
+    }
+    fn success(&self, n: BlockPos) -> bool {
+        // only do the expensive check if we're close enough
+        let max_pick_range = 6;
+        let actual_pick_range = 4.5;
+
+        let distance = (self.pos - n).length_sqr();
+        if distance > max_pick_range * max_pick_range {
+            return false;
+        }
+
+        let eye_position = n.to_vec3_floored() + Vec3::new(0.5, 1.62, 0.5);
+        let look_direction = crate::direction_looking_at(&eye_position, &self.pos.center());
+        let block_hit_result = azalea_client::interact::pick(
+            &look_direction,
+            &eye_position,
+            &self.chunk_storage,
+            actual_pick_range,
+        );
+
+        block_hit_result.block_pos == self.pos
     }
 }

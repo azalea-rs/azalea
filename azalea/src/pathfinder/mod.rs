@@ -49,6 +49,7 @@ use tracing::{debug, error, info, trace, warn};
 
 use self::debug::debug_render_path_with_particles;
 pub use self::debug::PathfinderDebugParticles;
+use self::goals::Goal;
 use self::mining::MiningCache;
 use self::moves::{ExecuteCtx, IsReachedCtx, SuccessorsFn};
 
@@ -797,13 +798,6 @@ fn stop_pathfinding_on_instance_change(
             });
         }
     }
-}
-
-pub trait Goal {
-    #[must_use]
-    fn heuristic(&self, n: BlockPos) -> f32;
-    #[must_use]
-    fn success(&self, n: BlockPos) -> bool;
 }
 
 /// Checks whether the path has been obstructed, and returns Some(index) if it
