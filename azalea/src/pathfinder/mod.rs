@@ -442,8 +442,21 @@ fn path_found_listener(
     }
 }
 
-fn timeout_movement(mut query: Query<(&Pathfinder, &mut ExecutingPath, &Position)>) {
-    for (pathfinder, mut executing_path, position) in &mut query {
+fn timeout_movement(
+    mut query: Query<(&Pathfinder, &mut ExecutingPath, &Position, Option<&Mining>)>,
+) {
+    for (pathfinder, mut executing_path, position, mining) in &mut query {
+        // don't timeout if we're mining
+        if let Some(mining) = mining {
+            // also make sure we're close enough to the block that's being mined
+            if mining.pos.distance_to_sqr(&BlockPos::from(position)) < 6_i32.pow(2) {
+                // also reset the last_node_reached_at so we don't timeout after we finish
+                // mining
+                executing_path.last_node_reached_at = Instant::now();
+                continue;
+            }
+        }
+
         if executing_path.last_node_reached_at.elapsed() > Duration::from_secs(2)
             && !pathfinder.is_calculating
             && !executing_path.path.is_empty()
@@ -662,6 +675,7 @@ fn recalculate_near_end_of_path(
     }
 }
 
+#[allow(clippy::type_complexity)]
 fn tick_execute_path(
     mut query: Query<(
         Entity,

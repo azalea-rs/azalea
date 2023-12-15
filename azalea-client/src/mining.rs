@@ -200,7 +200,20 @@ fn handle_start_mining_block_with_direction_event(
                 .get_block_state(&event.position)
                 .unwrap_or_default();
             *sequence_number += 1;
-            let block_is_solid = !target_block_state.is_air();
+            let target_registry_block = azalea_registry::Block::from(target_block_state);
+
+            // we can't break blocks if they don't have a bounding box
+
+            // TODO: So right now azalea doesn't differenciate between different types of
+            // bounding boxes. See ClipContext::block_shape for more info. Ideally this
+            // should just call ClipContext::block_shape and check if it's empty.
+            let block_is_solid = !target_block_state.is_air()
+                // this is a hack to make sure we can't break water or lava
+                && !matches!(
+                    target_registry_block,
+                    azalea_registry::Block::Water | azalea_registry::Block::Lava
+                );
+
             if block_is_solid && **mine_progress == 0. {
                 // interact with the block (like note block left click) here
                 attack_block_events.send(AttackBlockEvent {

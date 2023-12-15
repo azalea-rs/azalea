@@ -400,19 +400,22 @@ fn execute_downward_move(mut ctx: ExecuteCtx) {
         target, position, ..
     } = ctx;
 
-    if ctx.mine(target) {
-        return;
-    }
-
     let target_center = target.center();
 
     let horizontal_distance_from_target =
         (target_center - position).horizontal_distance_sqr().sqrt();
 
-    if horizontal_distance_from_target > 0.25 || BlockPos::from(position) != target {
+    if horizontal_distance_from_target > 0.25 {
         ctx.look_at(target_center);
         ctx.walk(WalkDirection::Forward);
     } else {
-        ctx.walk(WalkDirection::None);
+        if ctx.mine(target) {
+            ctx.walk(WalkDirection::None);
+        } else if BlockPos::from(position) != target {
+            ctx.look_at(target_center);
+            ctx.walk(WalkDirection::Forward);
+        } else {
+            ctx.walk(WalkDirection::None);
+        }
     }
 }

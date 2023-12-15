@@ -340,47 +340,44 @@ impl CachedWorld {
         }
 
         let check_should_avoid_this_block = |pos: BlockPos, check: &dyn Fn(BlockState) -> bool| {
-            let block_state = BlockState::try_from(
-                self.with_section(ChunkSectionPos::from(pos), |section| {
-                    let block_state = BlockState::try_from(
+            let block_state = self
+                .with_section(ChunkSectionPos::from(pos), |section| {
+                    BlockState::try_from(
                         section.get_at_index(u16::from(ChunkSectionBlockPos::from(pos)) as usize),
                     )
-                    .unwrap_or_default();
-                    block_state
+                    .unwrap_or_default()
                 })
-                .unwrap_or_default(),
-            )
-            .unwrap_or_default();
+                .unwrap_or_default();
             check(block_state)
         };
 
         // check the adjacent blocks that weren't in the same section
-        if !up_is_in_same_section {
-            if check_should_avoid_this_block(pos.up(1), &|b| {
+        if !up_is_in_same_section
+            && check_should_avoid_this_block(pos.up(1), &|b| {
                 mining_cache.is_liquid(b) || mining_cache.is_falling_block(b)
-            }) {
-                return f32::INFINITY;
-            }
+            })
+        {
+            return f32::INFINITY;
         }
-        if !north_is_in_same_section {
-            if check_should_avoid_this_block(pos.north(1), &|b| mining_cache.is_liquid(b)) {
-                return f32::INFINITY;
-            }
+        if !north_is_in_same_section
+            && check_should_avoid_this_block(pos.north(1), &|b| mining_cache.is_liquid(b))
+        {
+            return f32::INFINITY;
         }
-        if !east_is_in_same_section {
-            if check_should_avoid_this_block(pos.east(1), &|b| mining_cache.is_liquid(b)) {
-                return f32::INFINITY;
-            }
+        if !east_is_in_same_section
+            && check_should_avoid_this_block(pos.east(1), &|b| mining_cache.is_liquid(b))
+        {
+            return f32::INFINITY;
         }
-        if !south_is_in_same_section {
-            if check_should_avoid_this_block(pos.south(1), &|b| mining_cache.is_liquid(b)) {
-                return f32::INFINITY;
-            }
+        if !south_is_in_same_section
+            && check_should_avoid_this_block(pos.south(1), &|b| mining_cache.is_liquid(b))
+        {
+            return f32::INFINITY;
         }
-        if !west_is_in_same_section {
-            if check_should_avoid_this_block(pos.west(1), &|b| mining_cache.is_liquid(b)) {
-                return f32::INFINITY;
-            }
+        if !west_is_in_same_section
+            && check_should_avoid_this_block(pos.west(1), &|b| mining_cache.is_liquid(b))
+        {
+            return f32::INFINITY;
         }
 
         mining_cost
@@ -427,6 +424,9 @@ impl CachedWorld {
 
 /// whether this block is passable
 pub fn is_block_state_passable(block: BlockState) -> bool {
+    // i already tried optimizing this by having it cache in an IntMap/FxHashMap but
+    // it wasn't measurably faster
+
     if block.is_air() {
         // fast path
         return true;
@@ -434,7 +434,8 @@ pub fn is_block_state_passable(block: BlockState) -> bool {
     if !block.is_shape_empty() {
         return false;
     }
-    if azalea_registry::Block::from(block) == azalea_registry::Block::Water {
+    let registry_block = azalea_registry::Block::from(block);
+    if registry_block == azalea_registry::Block::Water {
         return false;
     }
     if block
@@ -443,12 +444,19 @@ pub fn is_block_state_passable(block: BlockState) -> bool {
     {
         return false;
     }
-    if azalea_registry::Block::from(block) == azalea_registry::Block::Lava {
+    if registry_block == azalea_registry::Block::Lava {
         return false;
     }
     // block.waterlogged currently doesn't account for seagrass and some other water
     // blocks
     if block == azalea_registry::Block::Seagrass.into() {
+        return false;
+    }
+
+    // don't walk into fire
+    if registry_block == azalea_registry::Block::Fire
+        || registry_block == azalea_registry::Block::SoulFire
+    {
         return false;
     }
 
