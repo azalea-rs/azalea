@@ -294,7 +294,7 @@ impl<S> PartialEq for CommandNode<S> {
         if let Some(selfexecutes) = &self.command {
             // idk how to do this better since we can't compare `dyn Fn`s
             if let Some(otherexecutes) = &other.command {
-                #[allow(clippy::vtable_address_comparisons)]
+                #[allow(clippy::ambiguous_wide_pointer_comparisons)]
                 if !Arc::ptr_eq(selfexecutes, otherexecutes) {
                     return false;
                 }
