@@ -48,7 +48,7 @@ where
             movement_data: None,
             came_from: None,
             g_score: f32::default(),
-            f_score: f32::MAX,
+            f_score: f32::INFINITY,
         },
     );
 
@@ -70,14 +70,14 @@ where
         let current_g_score = nodes
             .get(&current_node)
             .map(|n| n.g_score)
-            .unwrap_or(f32::MAX);
+            .unwrap_or(f32::INFINITY);
 
         for neighbor in successors(current_node) {
             let tentative_g_score = current_g_score + neighbor.cost;
             let neighbor_g_score = nodes
                 .get(&neighbor.movement.target)
                 .map(|n| n.g_score)
-                .unwrap_or(f32::MAX);
+                .unwrap_or(f32::INFINITY);
             if tentative_g_score - neighbor_g_score < MIN_IMPROVEMENT {
                 let heuristic = heuristic(neighbor.movement.target);
                 let f_score = tentative_g_score + heuristic;

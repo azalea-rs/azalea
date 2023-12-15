@@ -5,6 +5,7 @@
 
 use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
 use std::{
+    fmt,
     hash::Hash,
     io::{Cursor, Write},
     ops::{Add, AddAssign, Mul, Rem, Sub},
@@ -61,6 +62,43 @@ macro_rules! vec3_impl {
                 Self {
                     x: self.x,
                     y: self.y + y,
+                    z: self.z,
+                }
+            }
+
+            /// Return a new instance of this position with the z coordinate subtracted
+            /// by the given number.
+            pub fn north(&self, z: $type) -> Self {
+                Self {
+                    x: self.x,
+                    y: self.y,
+                    z: self.z - z,
+                }
+            }
+            /// Return a new instance of this position with the x coordinate increased
+            /// by the given number.
+            pub fn east(&self, x: $type) -> Self {
+                Self {
+                    x: self.x + x,
+                    y: self.y,
+                    z: self.z,
+                }
+            }
+            /// Return a new instance of this position with the z coordinate increased
+            /// by the given number.
+            pub fn south(&self, z: $type) -> Self {
+                Self {
+                    x: self.x,
+                    y: self.y,
+                    z: self.z + z,
+                }
+            }
+            /// Return a new instance of this position with the x coordinate subtracted
+            /// by the given number.
+            pub fn west(&self, x: $type) -> Self {
+                Self {
+                    x: self.x - x,
+                    y: self.y,
                     z: self.z,
                 }
             }
@@ -498,6 +536,13 @@ impl From<&Vec3> for ChunkBlockPos {
 impl From<Vec3> for ChunkBlockPos {
     fn from(pos: Vec3) -> Self {
         ChunkBlockPos::from(&pos)
+    }
+}
+
+impl fmt::Display for BlockPos {
+    /// Display a block position as `x y z`.
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{} {} {}", self.x, self.y, self.z)
     }
 }
 

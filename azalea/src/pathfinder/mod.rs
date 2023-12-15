@@ -1,8 +1,10 @@
-//! A pathfinding plugin to make bots navigate the world. A lot of this code is
-//! based on [Baritone](https://github.com/cabaletta/baritone).
+//! A pathfinding plugin to make bots able to traverse the world.
+//!
+//! Much of this code is based on [Baritone](https://github.com/cabaletta/baritone).
 
 pub mod astar;
 pub mod costs;
+mod debug;
 pub mod goals;
 pub mod mining;
 pub mod moves;
@@ -23,11 +25,11 @@ use crate::ecs::{
 };
 use crate::pathfinder::moves::PathfinderCtx;
 use crate::pathfinder::world::CachedWorld;
-use azalea_client::chat::SendChatEvent;
-use azalea_client::inventory::{InventoryComponent, InventorySet};
+use azalea_client::inventory::{InventoryComponent, InventorySet, SetSelectedHotbarSlotEvent};
+use azalea_client::mining::{Mining, StartMiningBlockEvent};
 use azalea_client::movement::MoveEventsSet;
-use azalea_client::{StartSprintEvent, StartWalkEvent};
-use azalea_core::position::{BlockPos, Vec3};
+use azalea_client::{InstanceHolder, StartSprintEvent, StartWalkEvent};
+use azalea_core::position::BlockPos;
 use azalea_core::tick::GameTick;
 use azalea_entity::metadata::Player;
 use azalea_entity::LocalEntity;
@@ -35,11 +37,9 @@ use azalea_entity::{Physics, Position};
 use azalea_physics::PhysicsSet;
 use azalea_world::{InstanceContainer, InstanceName};
 use bevy_app::{PreUpdate, Update};
-use bevy_ecs::event::Events;
 use bevy_ecs::prelude::Event;
 use bevy_ecs::query::Changed;
 use bevy_ecs::schedule::IntoSystemConfigs;
-use bevy_ecs::system::{Local, ResMut};
 use bevy_tasks::{AsyncComputeTaskPool, Task};
 use futures_lite::future;
 use std::collections::VecDeque;
@@ -48,6 +48,9 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tracing::{debug, error, info, trace, warn};
 
+use self::debug::debug_render_path_with_particles;
+pub use self::debug::PathfinderDebugParticles;
+use self::goals::Goal;
 use self::mining::MiningCache;
 use self::moves::{ExecuteCtx, IsReachedCtx, SuccessorsFn};
 
@@ -93,11 +96,12 @@ impl Plugin for PathfinderPlugin {
 }
 
 /// A component that makes this client able to pathfind.
-#[derive(Component, Default)]
+#[derive(Component, Default, Clone)]
 pub struct Pathfinder {
     pub goal: Option<Arc<dyn Goal + Send + Sync>>,
     pub successors_fn: Option<SuccessorsFn>,
     pub is_calculating: bool,
+    pub allow_mining: bool,
 
     pub goto_id: Arc<AtomicUsize>,
 }
@@ -120,6 +124,9 @@ pub struct GotoEvent {
     /// The function that's used for checking what moves are possible. Usually
     /// `pathfinder::moves::default_move`
     pub successors_fn: SuccessorsFn,
+
+    /// Whether the bot is allowed to break blocks while pathfinding.
+    pub allow_mining: bool,
 }
 #[derive(Event, Clone)]
 pub struct PathFoundEvent {
@@ -128,6 +135,7 @@ pub struct PathFoundEvent {
     pub path: Option<VecDeque<astar::Movement<BlockPos, moves::MoveData>>>,
     pub is_partial: bool,
     pub successors_fn: SuccessorsFn,
+    pub allow_mining: bool,
 }
 
 #[allow(clippy::type_complexity)]
@@ -142,6 +150,7 @@ fn add_default_pathfinder(
 
 pub trait PathfinderClientExt {
     fn goto(&self, goal: impl Goal + Send + Sync + 'static);
+    fn goto_without_mining(&self, goal: impl Goal + Send + Sync + 'static);
     fn stop_pathfinding(&self);
 }
 
@@ -158,6 +167,18 @@ impl PathfinderClientExt for azalea_client::Client {
             entity: self.entity,
             goal: Arc::new(goal),
             successors_fn: moves::default_move,
+            allow_mining: true,
+        });
+    }
+
+    /// Same as [`goto`](Self::goto). but the bot won't break any blocks while
+    /// executing the path.
+    fn goto_without_mining(&self, goal: impl Goal + Send + Sync + 'static) {
+        self.ecs.lock().send_event(GotoEvent {
+            entity: self.entity,
+            goal: Arc::new(goal),
+            successors_fn: moves::default_move,
+            allow_mining: false,
         });
     }
 
@@ -191,10 +212,19 @@ fn goto_listener(
             .get_mut(event.entity)
             .expect("Called goto on an entity that's not in the world");
 
+        if event.goal.success(BlockPos::from(position)) {
+            // we're already at the goal, nothing to do
+            pathfinder.goal = None;
+            pathfinder.successors_fn = None;
+            pathfinder.is_calculating = false;
+            continue;
+        }
+
         // we store the goal so it can be recalculated later if necessary
         pathfinder.goal = Some(event.goal.clone());
         pathfinder.successors_fn = Some(event.successors_fn);
         pathfinder.is_calculating = true;
+        pathfinder.allow_mining = event.allow_mining;
 
         let start = if let Some(executing_path) = executing_path
             && let Some(final_node) = executing_path.path.back()
@@ -220,7 +250,13 @@ fn goto_listener(
 
         let goto_id_atomic = pathfinder.goto_id.clone();
         let goto_id = goto_id_atomic.fetch_add(1, atomic::Ordering::Relaxed) + 1;
-        let mining_cache = MiningCache::new(inventory.inventory_menu.clone());
+
+        let allow_mining = event.allow_mining;
+        let mining_cache = MiningCache::new(if allow_mining {
+            Some(inventory.inventory_menu.clone())
+        } else {
+            None
+        });
 
         let task = thread_pool.spawn(async move {
             debug!("start: {start:?}");
@@ -248,7 +284,11 @@ fn goto_listener(
                 debug!("partial: {partial:?}");
                 let duration = end_time - start_time;
                 if partial {
-                    info!("Pathfinder took {duration:?} (incomplete path)");
+                    if movements.is_empty() {
+                        info!("Pathfinder took {duration:?} (empty path)");
+                    } else {
+                        info!("Pathfinder took {duration:?} (incomplete path)");
+                    }
                     // wait a bit so it's not a busy loop
                     std::thread::sleep(Duration::from_millis(100));
                 } else {
@@ -289,6 +329,7 @@ fn goto_listener(
                 path: Some(path),
                 is_partial,
                 successors_fn,
+                allow_mining,
             })
         });
 
@@ -342,7 +383,11 @@ fn path_found_listener(
                         .expect("Entity tried to pathfind but the entity isn't in a valid world");
                     let successors_fn: moves::SuccessorsFn = event.successors_fn;
                     let cached_world = CachedWorld::new(world_lock);
-                    let mining_cache = MiningCache::new(inventory.inventory_menu.clone());
+                    let mining_cache = MiningCache::new(if event.allow_mining {
+                        Some(inventory.inventory_menu.clone())
+                    } else {
+                        None
+                    });
                     let successors = |pos: BlockPos| {
                         call_successors_fn(&cached_world, &mining_cache, successors_fn, pos)
                     };
@@ -399,8 +444,21 @@ fn path_found_listener(
     }
 }
 
-fn timeout_movement(mut query: Query<(&Pathfinder, &mut ExecutingPath, &Position)>) {
-    for (pathfinder, mut executing_path, position) in &mut query {
+fn timeout_movement(
+    mut query: Query<(&Pathfinder, &mut ExecutingPath, &Position, Option<&Mining>)>,
+) {
+    for (pathfinder, mut executing_path, position, mining) in &mut query {
+        // don't timeout if we're mining
+        if let Some(mining) = mining {
+            // also make sure we're close enough to the block that's being mined
+            if mining.pos.distance_to_sqr(&BlockPos::from(position)) < 6_i32.pow(2) {
+                // also reset the last_node_reached_at so we don't timeout after we finish
+                // mining
+                executing_path.last_node_reached_at = Instant::now();
+                continue;
+            }
+        }
+
         if executing_path.last_node_reached_at.elapsed() > Duration::from_secs(2)
             && !pathfinder.is_calculating
             && !executing_path.path.is_empty()
@@ -535,7 +593,11 @@ fn check_for_path_obstruction(
 
         // obstruction check (the path we're executing isn't possible anymore)
         let cached_world = CachedWorld::new(world_lock);
-        let mining_cache = MiningCache::new(inventory.inventory_menu.clone());
+        let mining_cache = MiningCache::new(if pathfinder.allow_mining {
+            Some(inventory.inventory_menu.clone())
+        } else {
+            None
+        });
         let successors =
             |pos: BlockPos| call_successors_fn(&cached_world, &mining_cache, successors_fn, pos);
 
@@ -580,6 +642,7 @@ fn recalculate_near_end_of_path(
                     entity,
                     goal,
                     successors_fn,
+                    allow_mining: pathfinder.allow_mining,
                 });
                 pathfinder.is_calculating = true;
 
@@ -614,14 +677,27 @@ fn recalculate_near_end_of_path(
     }
 }
 
+#[allow(clippy::type_complexity)]
 fn tick_execute_path(
-    mut query: Query<(Entity, &mut ExecutingPath, &Position, &Physics)>,
+    mut query: Query<(
+        Entity,
+        &mut ExecutingPath,
+        &Position,
+        &Physics,
+        Option<&Mining>,
+        &InstanceHolder,
+        &InventoryComponent,
+    )>,
     mut look_at_events: EventWriter<LookAtEvent>,
     mut sprint_events: EventWriter<StartSprintEvent>,
     mut walk_events: EventWriter<StartWalkEvent>,
     mut jump_events: EventWriter<JumpEvent>,
+    mut start_mining_events: EventWriter<StartMiningBlockEvent>,
+    mut set_selected_hotbar_slot_events: EventWriter<SetSelectedHotbarSlotEvent>,
 ) {
-    for (entity, executing_path, position, physics) in &mut query {
+    for (entity, executing_path, position, physics, mining, instance_holder, inventory_component) in
+        &mut query
+    {
         if let Some(movement) = executing_path.path.front() {
             let ctx = ExecuteCtx {
                 entity,
@@ -629,10 +705,16 @@ fn tick_execute_path(
                 position: **position,
                 start: executing_path.last_reached_node,
                 physics,
+                is_currently_mining: mining.is_some(),
+                instance: instance_holder.instance.clone(),
+                menu: inventory_component.inventory_menu.clone(),
+
                 look_at_events: &mut look_at_events,
                 sprint_events: &mut sprint_events,
                 walk_events: &mut walk_events,
                 jump_events: &mut jump_events,
+                start_mining_events: &mut start_mining_events,
+                set_selected_hotbar_slot_events: &mut set_selected_hotbar_slot_events,
             };
             trace!("executing move");
             (movement.data.execute)(ctx);
@@ -652,6 +734,7 @@ fn recalculate_if_has_goal_but_no_path(
                     entity,
                     goal,
                     successors_fn: pathfinder.successors_fn.unwrap(),
+                    allow_mining: pathfinder.allow_mining,
                 });
                 pathfinder.is_calculating = true;
             }
@@ -716,101 +799,6 @@ fn stop_pathfinding_on_instance_change(
             });
         }
     }
-}
-
-/// A component that makes bots run /particle commands while pathfinding to show
-/// where they're going. This requires the bots to have server operator
-/// permissions, and it'll make them spam *a lot* of commands.
-///
-/// ```
-/// # use azalea::prelude::*;
-/// # use azalea::pathfinder::PathfinderDebugParticles;
-/// # #[derive(Component, Clone, Default)]
-/// # pub struct State;
-///
-/// async fn handle(mut bot: Client, event: azalea::Event, state: State) -> anyhow::Result<()> {
-///     match event {
-///         azalea::Event::Init => {
-///             bot.ecs
-///                 .lock()
-///                 .entity_mut(bot.entity)
-///                 .insert(PathfinderDebugParticles);
-///         }
-///         _ => {}
-///     }
-///     Ok(())
-/// }
-/// ```
-#[derive(Component)]
-pub struct PathfinderDebugParticles;
-
-fn debug_render_path_with_particles(
-    mut query: Query<(Entity, &ExecutingPath), With<PathfinderDebugParticles>>,
-    // chat_events is Option because the tests don't have SendChatEvent
-    // and we have to use ResMut<Events> because bevy doesn't support Option<EventWriter>
-    chat_events: Option<ResMut<Events<SendChatEvent>>>,
-    mut tick_count: Local<usize>,
-) {
-    let Some(mut chat_events) = chat_events else {
-        return;
-    };
-    if *tick_count >= 2 {
-        *tick_count = 0;
-    } else {
-        *tick_count += 1;
-        return;
-    }
-    for (entity, executing_path) in &mut query {
-        if executing_path.path.is_empty() {
-            continue;
-        }
-
-        let mut start = executing_path.last_reached_node;
-        for (i, movement) in executing_path.path.iter().enumerate() {
-            // /particle dust 0 1 1 1 ~ ~ ~ 0 0 0.2 0 100
-
-            let end = movement.target;
-
-            let start_vec3 = start.center();
-            let end_vec3 = end.center();
-
-            let step_count = (start_vec3.distance_to_sqr(&end_vec3).sqrt() * 4.0) as usize;
-
-            let (r, g, b): (f64, f64, f64) = if i == 0 { (0., 1., 0.) } else { (0., 1., 1.) };
-
-            // interpolate between the start and end positions
-            for i in 0..step_count {
-                let percent = i as f64 / step_count as f64;
-                let pos = Vec3 {
-                    x: start_vec3.x + (end_vec3.x - start_vec3.x) * percent,
-                    y: start_vec3.y + (end_vec3.y - start_vec3.y) * percent,
-                    z: start_vec3.z + (end_vec3.z - start_vec3.z) * percent,
-                };
-                let particle_command = format!(
-                "/particle dust {r} {g} {b} {size} {start_x} {start_y} {start_z} {delta_x} {delta_y} {delta_z} 0 {count}",
-                size = 1,
-                start_x = pos.x,
-                start_y = pos.y,
-                start_z = pos.z,
-                delta_x = 0,
-                delta_y = 0,
-                delta_z = 0,
-                count = 1
-            );
-                chat_events.send(SendChatEvent {
-                    entity,
-                    content: particle_command,
-                });
-            }
-
-            start = movement.target;
-        }
-    }
-}
-
-pub trait Goal {
-    fn heuristic(&self, n: BlockPos) -> f32;
-    fn success(&self, n: BlockPos) -> bool;
 }
 
 /// Checks whether the path has been obstructed, and returns Some(index) if it
@@ -911,6 +899,7 @@ mod tests {
             entity: simulation.entity,
             goal: Arc::new(BlockPosGoal(end_pos)),
             successors_fn: moves::default_move,
+            allow_mining: false,
         });
         simulation
     }

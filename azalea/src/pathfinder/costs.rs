@@ -10,6 +10,15 @@ pub const SPRINT_MULTIPLIER: f32 = SPRINT_ONE_BLOCK_COST / WALK_ONE_BLOCK_COST;
 pub const JUMP_PENALTY: f32 = 2.;
 pub const CENTER_AFTER_FALL_COST: f32 = WALK_ONE_BLOCK_COST - WALK_OFF_BLOCK_COST; // 0.927
 
+// explanation here:
+// https://github.com/cabaletta/baritone/blob/f147519a5c291015d4f18c94558a3f1bdcdb9588/src/api/java/baritone/api/Settings.java#L405
+// it's basically just the heuristic multiplier
+pub const COST_HEURISTIC: f32 = 3.563;
+
+// this one is also from baritone, it's helpful as a tiebreaker to avoid
+// breaking blocks if it can be avoided
+pub const BLOCK_BREAK_ADDITIONAL_PENALTY: f32 = 2.;
+
 pub static FALL_1_25_BLOCKS_COST: LazyLock<f32> = LazyLock::new(|| distance_to_ticks(1.25));
 pub static FALL_0_25_BLOCKS_COST: LazyLock<f32> = LazyLock::new(|| distance_to_ticks(0.25));
 pub static JUMP_ONE_BLOCK_COST: LazyLock<f32> =
