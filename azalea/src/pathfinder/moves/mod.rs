@@ -105,6 +105,21 @@ impl ExecuteCtx<'_, '_, '_, '_, '_, '_, '_> {
         });
     }
 
+    /// Returns whether this block could be mined.
+    pub fn should_mine(&mut self, block: BlockPos) -> bool {
+        let block_state = self
+            .instance
+            .read()
+            .get_block_state(&block)
+            .unwrap_or_default();
+        if is_block_state_passable(block_state) {
+            // block is already passable, no need to mine it
+            return false;
+        }
+
+        true
+    }
+
     /// Mine the block at the given position. Returns whether the block is being
     /// mined.
     pub fn mine(&mut self, block: BlockPos) -> bool {
@@ -136,6 +151,28 @@ impl ExecuteCtx<'_, '_, '_, '_, '_, '_, '_> {
         });
 
         true
+    }
+
+    /// Mine the given block, but make sure the player is standing at the start
+    /// of the current node first.
+    pub fn mine_while_at_start(&mut self, block: BlockPos) -> bool {
+        let horizontal_distance_from_start = (self.start.center() - self.position)
+            .horizontal_distance_sqr()
+            .sqrt();
+        let at_start_position =
+            BlockPos::from(self.position) == self.start && horizontal_distance_from_start < 0.25;
+
+        if self.should_mine(block) {
+            if at_start_position {
+                self.mine(block);
+            } else {
+                self.look_at(self.start.center());
+                self.walk(WalkDirection::None);
+            }
+            true
+        } else {
+            false
+        }
     }
 }
 

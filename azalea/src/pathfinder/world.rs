@@ -11,6 +11,7 @@ use azalea_core::{
 use azalea_physics::collision::BlockWithShape;
 use azalea_world::Instance;
 use parking_lot::RwLock;
+use rustc_hash::FxHashMap;
 
 use super::mining::MiningCache;
 
@@ -25,6 +26,8 @@ pub struct CachedWorld {
     last_chunk_cache_index: RefCell<Option<usize>>,
 
     cached_blocks: UnsafeCell<CachedSections>,
+
+    cached_mining_costs: RefCell<FxHashMap<BlockPos, f32>>,
 }
 
 #[derive(Default)]
@@ -87,6 +90,7 @@ impl CachedWorld {
             cached_chunks: Default::default(),
             last_chunk_cache_index: Default::default(),
             cached_blocks: Default::default(),
+            cached_mining_costs: Default::default(),
         }
     }
 
@@ -239,6 +243,18 @@ impl CachedWorld {
     /// Returns how much it costs to break this block. Returns 0 if the block is
     /// already passable.
     pub fn cost_for_breaking_block(&self, pos: BlockPos, mining_cache: &MiningCache) -> f32 {
+        let mut cached_mining_costs = self.cached_mining_costs.borrow_mut();
+
+        if let Some(&cost) = cached_mining_costs.get(&pos) {
+            return cost;
+        }
+
+        let cost = self.uncached_cost_for_breaking_block(pos, mining_cache);
+        cached_mining_costs.insert(pos, cost);
+        cost
+    }
+
+    fn uncached_cost_for_breaking_block(&self, pos: BlockPos, mining_cache: &MiningCache) -> f32 {
         if self.is_block_passable(pos) {
             // if the block is passable then it doesn't need to be broken
             return 0.;
@@ -326,12 +342,13 @@ impl CachedWorld {
             mining_cost
         }) else {
             // the chunk isn't loaded
-            if self.is_block_solid(pos) {
+            let cost = if self.is_block_solid(pos) {
                 // assume it's unbreakable if it's solid and out of render distance
-                return f32::INFINITY;
+                f32::INFINITY
             } else {
-                return 0.;
-            }
+                0.
+            };
+            return cost;
         };
 
         if mining_cost == f32::INFINITY {

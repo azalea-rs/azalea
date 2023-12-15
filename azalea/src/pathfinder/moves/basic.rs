@@ -47,10 +47,10 @@ fn forward_move(ctx: &mut PathfinderCtx, pos: BlockPos) {
 fn execute_forward_move(mut ctx: ExecuteCtx) {
     let center = ctx.target.center();
 
-    if ctx.mine(ctx.target.up(1)) {
+    if ctx.mine_while_at_start(ctx.target.up(1)) {
         return;
     }
-    if ctx.mine(ctx.target) {
+    if ctx.mine_while_at_start(ctx.target) {
         return;
     }
 
@@ -100,13 +100,13 @@ fn execute_ascend_move(mut ctx: ExecuteCtx) {
         ..
     } = ctx;
 
-    if ctx.mine(start.up(2)) {
+    if ctx.mine_while_at_start(start.up(2)) {
         return;
     }
-    if ctx.mine(target) {
+    if ctx.mine_while_at_start(target) {
         return;
     }
-    if ctx.mine(target.up(1)) {
+    if ctx.mine_while_at_start(target.up(1)) {
         return;
     }
 
@@ -221,7 +221,7 @@ fn execute_descend_move(mut ctx: ExecuteCtx) {
     } = ctx;
 
     for i in (0..=(start.y - target.y + 1)).rev() {
-        if ctx.mine(target.up(i)) {
+        if ctx.mine_while_at_start(target.up(i)) {
             return;
         }
     }
@@ -409,7 +409,7 @@ fn execute_downward_move(mut ctx: ExecuteCtx) {
         ctx.look_at(target_center);
         ctx.walk(WalkDirection::Forward);
     } else {
-        if ctx.mine(target) {
+        if ctx.mine_while_at_start(target) {
             ctx.walk(WalkDirection::None);
         } else if BlockPos::from(position) != target {
             ctx.look_at(target_center);
