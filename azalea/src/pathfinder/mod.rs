@@ -1,5 +1,6 @@
-//! A pathfinding plugin to make bots navigate the world. A lot of this code is
-//! based on [Baritone](https://github.com/cabaletta/baritone).
+//! A pathfinding plugin to make bots able to traverse the world.
+//!
+//! Much of this code is based on [Baritone](https://github.com/cabaletta/baritone).
 
 pub mod astar;
 pub mod costs;
