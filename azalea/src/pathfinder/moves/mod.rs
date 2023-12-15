@@ -167,7 +167,7 @@ impl ExecuteCtx<'_, '_, '_, '_, '_, '_, '_> {
                 self.mine(block);
             } else {
                 self.look_at(self.start.center());
-                self.walk(WalkDirection::None);
+                self.walk(WalkDirection::Forward);
             }
             true
         } else {
