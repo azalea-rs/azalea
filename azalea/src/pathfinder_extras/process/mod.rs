@@ -118,8 +118,16 @@ pub fn process_tick(
                 // the index is from the top-down, so 0 means the top layer
                 let layer_index = determine_layer(&bb, &chunk_storage);
                 let layer_bb = BlockBox::new(
-                    BlockPos::new(bb.min().x, bb.max().y - layer_index as i32, bb.min().z),
-                    BlockPos::new(bb.max().x, bb.max().y - layer_index as i32, bb.max().z),
+                    BlockPos::new(
+                        bb.min().x,
+                        i32::max(bb.min().y, bb.max().y - layer_index as i32),
+                        bb.min().z,
+                    ),
+                    BlockPos::new(
+                        bb.max().x,
+                        i32::max(bb.min().y, bb.max().y - layer_index as i32),
+                        bb.max().z,
+                    ),
                 );
 
                 let reachable_blocks =
