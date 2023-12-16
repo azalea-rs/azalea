@@ -317,6 +317,8 @@ where
         let (bots_tx, mut bots_rx) = mpsc::unbounded_channel();
         let (swarm_tx, mut swarm_rx) = mpsc::unbounded_channel();
 
+        swarm_tx.send(SwarmEvent::Init).unwrap();
+
         let (run_schedule_sender, run_schedule_receiver) = mpsc::unbounded_channel();
 
         let main_schedule_label = self.app.main_schedule_label;
@@ -377,6 +379,8 @@ where
                 )
                 .await;
             }
+
+            swarm_tx.send(SwarmEvent::Login).unwrap();
         });
 
         let swarm_state = self.swarm_state;
