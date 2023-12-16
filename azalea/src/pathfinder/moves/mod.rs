@@ -3,10 +3,7 @@ pub mod parkour;
 
 use std::{fmt::Debug, sync::Arc};
 
-use crate::{
-    auto_tool::{best_tool_in_hotbar_for_block, StartMiningBlockWithAutoToolEvent},
-    JumpEvent, LookAtEvent,
-};
+use crate::{auto_tool::StartMiningBlockWithAutoToolEvent, JumpEvent, LookAtEvent};
 
 use super::{
     astar,
@@ -14,8 +11,8 @@ use super::{
     world::{is_block_state_passable, CachedWorld},
 };
 use azalea_client::{
-    inventory::SetSelectedHotbarSlotEvent, mining::StartMiningBlockEvent, SprintDirection,
-    StartSprintEvent, StartWalkEvent, WalkDirection,
+    inventory::SetSelectedHotbarSlotEvent, SprintDirection, StartSprintEvent, StartWalkEvent,
+    WalkDirection,
 };
 use azalea_core::position::{BlockPos, Vec3};
 use azalea_inventory::Menu;

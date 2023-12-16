@@ -1,11 +1,8 @@
 use std::sync::Arc;
 
 use azalea_block::BlockState;
-use azalea_client::{
-    mining::{Mining, StartMiningBlockEvent},
-    InstanceHolder,
-};
-use azalea_core::position::{BlockPos, Vec3};
+use azalea_client::{mining::Mining, InstanceHolder};
+use azalea_core::position::BlockPos;
 use azalea_entity::Position;
 use azalea_world::ChunkStorage;
 use tracing::info;
@@ -19,7 +16,7 @@ use crate::{
         goals::{Goal, OrGoals, ReachBlockPosGoal, ReachBoxGoal},
         ExecutingPath, GotoEvent, Pathfinder,
     },
-    utils::{get_hit_result_while_looking_at, get_reachable_blocks_around_player},
+    utils::get_reachable_blocks_around_player,
     LookAtEvent,
 };
 
@@ -81,6 +78,7 @@ fn determine_layer(bb: &BlockBox, chunks: &ChunkStorage) -> usize {
     layer
 }
 
+#[allow(clippy::type_complexity)]
 pub fn process_tick(
     mut commands: Commands,
     query: Query<(

@@ -251,6 +251,7 @@ impl BlockPos {
     /// Make a new BlockPos with the lower coordinates for each axis.
     ///
     /// ```
+    /// # use azalea_core::position::BlockPos;
     /// assert_eq!(
     ///     BlockPos::min(
     ///        &BlockPos::new(1, 20, 300),
@@ -270,6 +271,7 @@ impl BlockPos {
     /// Make a new BlockPos with the higher coordinates for each axis.
     ///
     /// ```
+    /// # use azalea_core::position::BlockPos;
     /// assert_eq!(
     ///    BlockPos::max(
     ///       &BlockPos::new(1, 20, 300),

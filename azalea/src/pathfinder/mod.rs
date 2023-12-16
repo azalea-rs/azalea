@@ -28,7 +28,7 @@ use crate::ecs::{
 use crate::pathfinder::moves::PathfinderCtx;
 use crate::pathfinder::world::CachedWorld;
 use azalea_client::inventory::{InventoryComponent, InventorySet, SetSelectedHotbarSlotEvent};
-use azalea_client::mining::{Mining, StartMiningBlockEvent};
+use azalea_client::mining::Mining;
 use azalea_client::movement::MoveEventsSet;
 use azalea_client::{InstanceHolder, StartSprintEvent, StartWalkEvent};
 use azalea_core::position::BlockPos;
