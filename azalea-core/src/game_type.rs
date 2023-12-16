@@ -94,7 +94,7 @@ impl GameMode {
 impl McBufReadable for GameMode {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let id = u8::read_from(buf)?;
-        GameMode::from_id(id).ok_or(BufReadError::UnexpectedEnumVariant { id: id as i32 })
+        Ok(GameMode::from_id(id).unwrap_or_default())
     }
 }
 
