@@ -10,7 +10,6 @@ use std::{
     time::{Instant, SystemTime, UNIX_EPOCH},
 };
 use thiserror::Error;
-use tracing::trace;
 use uuid::Uuid;
 
 #[derive(Default)]

@@ -1,3 +1,4 @@
+#![feature(cursor_remaining)]
 #![doc = include_str!("../README.md")]
 
 pub mod base_component;
