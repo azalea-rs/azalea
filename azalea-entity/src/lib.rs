@@ -205,8 +205,8 @@ pub struct Jumping(bool);
 /// A component that contains the direction an entity is looking.
 #[derive(Debug, Component, Clone, Default)]
 pub struct LookDirection {
-    pub x_rot: f32,
     pub y_rot: f32,
+    pub x_rot: f32,
 }
 
 /// The physics data relating to the entity, such as position, velocity, and
