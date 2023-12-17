@@ -9,7 +9,7 @@ use azalea_core::{position::Vec3, resource_location::ResourceLocation, tick::Gam
 use azalea_entity::{
     attributes::AttributeInstance, Attributes, EntityDimensions, Physics, Position,
 };
-use azalea_world::{ChunkStorage, Instance, InstanceContainer, MinecraftEntityId};
+use azalea_world::{ChunkStorage, Instance, InstanceContainer, MinecraftEntityId, PartialInstance};
 use bevy_app::App;
 use bevy_ecs::prelude::*;
 use parking_lot::RwLock;
@@ -69,6 +69,10 @@ impl Simulation {
             super::PathfinderPlugin,
             crate::BotPlugin,
             azalea_client::task_pool::TaskPoolPlugin::default(),
+            // for mining
+            azalea_client::inventory::InventoryPlugin,
+            azalea_client::mining::MinePlugin,
+            azalea_client::interact::InteractPlugin,
         ))
         .insert_resource(InstanceContainer {
             instances: [(instance_name.clone(), Arc::downgrade(&instance.clone()))]
@@ -92,6 +96,12 @@ impl Simulation {
                 azalea_registry::EntityKind::Player,
                 instance_name,
             ),
+            azalea_client::InstanceHolder {
+                // partial_instance is never actually used by the pathfinder so
+                partial_instance: Arc::new(RwLock::new(PartialInstance::default())),
+                instance: instance.clone(),
+            },
+            InventoryComponent::default(),
         ));
         entity.insert(player);
 
