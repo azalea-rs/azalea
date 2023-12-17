@@ -16,7 +16,7 @@ Then, use one of the following commands to add Azalea to your project:
 
 For faster compile times, make a `.cargo/config.toml` file in your project
 and copy
-[this file](https://github.com/azalea-rs/azalea/blob/main/.cargo/config.toml)
+[this file](https://github.com/azalea-rs/azalea/blob/main/.cargo/config_fast_builds)
 into it. You may have to install the LLD linker.
 
 For faster performance in debug mode, add the following code to your
