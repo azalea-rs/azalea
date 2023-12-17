@@ -76,16 +76,16 @@ impl McBufWritable for Operation {
 
 #[derive(Clone, Debug, McBuf)]
 pub struct AddOperation {
-    name: FormattedText,
-    progress: f32,
-    style: Style,
-    properties: Properties,
+    pub name: FormattedText,
+    pub progress: f32,
+    pub style: Style,
+    pub properties: Properties,
 }
 
 #[derive(Clone, Debug, McBuf)]
 pub struct Style {
-    color: BossBarColor,
-    overlay: BossBarOverlay,
+    pub color: BossBarColor,
+    pub overlay: BossBarOverlay,
 }
 
 #[derive(McBuf, Clone, Copy, Debug)]

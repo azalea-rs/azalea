@@ -230,6 +230,6 @@ mod tests {
 
     #[test]
     fn test_indirect_index_merger() {
-        IndexMerger::new_indirect(&vec![0.0, 1.0], &vec![0.0, 0.5, 1.0], true, true);
+        IndexMerger::new_indirect(&[0.0, 1.0], &[0.0, 0.5, 1.0], true, true);
     }
 }

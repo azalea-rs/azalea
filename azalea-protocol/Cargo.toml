@@ -46,6 +46,7 @@ trust-dns-resolver = { version = "^0.23.2", default-features = false, features =
     "tokio-runtime",
 ] }
 uuid = "1.6.1"
+log = "0.4.20"
 
 [features]
 connecting = []

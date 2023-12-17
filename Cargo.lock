@@ -444,6 +444,7 @@ dependencies = [
  "futures",
  "futures-lite 2.1.0",
  "futures-util",
+ "log",
  "once_cell",
  "serde",
  "serde_json",

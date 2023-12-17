@@ -17,7 +17,6 @@ use std::{
 use thiserror::Error;
 use tokio::io::AsyncRead;
 use tokio_util::codec::{BytesCodec, FramedRead};
-use tracing::if_log_enabled;
 
 #[derive(Error, Debug)]
 pub enum ReadPacketError {
@@ -348,7 +347,7 @@ where
             .map_err(ReadPacketError::from)?;
     }
 
-    if_log_enabled!(tracing::Level::TRACE, {
+    if log::log_enabled!(log::Level::Trace) {
         let buf_string: String = {
             if buf.len() > 500 {
                 let cut_off_buf = &buf[..500];
@@ -358,7 +357,7 @@ where
             }
         };
         tracing::trace!("Reading packet with bytes: {buf_string}");
-    });
+    };
 
     Ok(Some(buf))
 }

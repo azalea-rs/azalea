@@ -1,5 +1,6 @@
-use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
+use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufWritable};
 use std::io::{Cursor, Write};
+use tracing::warn;
 
 /// A Minecraft gamemode, like survival or creative.
 #[derive(Hash, Copy, Clone, Debug, Default, Eq, PartialEq)]
@@ -93,8 +94,15 @@ impl GameMode {
 
 impl McBufReadable for GameMode {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let id = u8::read_from(buf)?;
-        GameMode::from_id(id).ok_or(BufReadError::UnexpectedEnumVariant { id: id as i32 })
+        let id = u32::var_read_from(buf)?;
+        let id = id.try_into().unwrap_or_else(|_| {
+            warn!("Unknown game mode id {id}, defaulting to survival");
+            0
+        });
+        Ok(GameMode::from_id(id).unwrap_or_else(|| {
+            warn!("Unknown game mode id {id}, defaulting to survival");
+            GameMode::Survival
+        }))
     }
 }
 

@@ -84,7 +84,14 @@ pub async fn auth(email: &str, opts: AuthOpts) -> Result<AuthResult, AuthError> 
         };
         if msa.is_expired() {
             tracing::trace!("refreshing Microsoft auth token");
-            msa = refresh_ms_auth_token(&client, &msa.data.refresh_token).await?;
+            match refresh_ms_auth_token(&client, &msa.data.refresh_token).await {
+                Ok(new_msa) => msa = new_msa,
+                Err(e) => {
+                    // can't refresh, ask the user to auth again
+                    tracing::error!("Error refreshing Microsoft auth token: {}", e);
+                    msa = interactive_get_ms_auth_token(&client, email).await?;
+                }
+            }
         }
 
         let msa_token = &msa.data.access_token;
@@ -361,13 +368,15 @@ pub async fn interactive_get_ms_auth_token(
 pub enum RefreshMicrosoftAuthTokenError {
     #[error("Http error: {0}")]
     Http(#[from] reqwest::Error),
+    #[error("Error parsing JSON: {0}")]
+    Json(#[from] serde_json::Error),
 }
 
 pub async fn refresh_ms_auth_token(
     client: &reqwest::Client,
     refresh_token: &str,
 ) -> Result<ExpiringValue<AccessTokenResponse>, RefreshMicrosoftAuthTokenError> {
-    let access_token_response = client
+    let access_token_response_text = client
         .post("https://login.live.com/oauth20_token.srf")
         .form(&vec![
             ("scope", "service::user.auth.xboxlive.com::MBI_SSL"),
@@ -377,8 +386,10 @@ pub async fn refresh_ms_auth_token(
         ])
         .send()
         .await?
-        .json::<AccessTokenResponse>()
+        .text()
         .await?;
+    let access_token_response: AccessTokenResponse =
+        serde_json::from_str(&access_token_response_text)?;
 
     let expires_at =
         SystemTime::now() + std::time::Duration::from_secs(access_token_response.expires_in);
