@@ -1,6 +1,7 @@
 use crate::position::BlockPos;
 use azalea_buf::McBuf;
 use azalea_inventory::ItemSlot;
+use azalea_registry::ParticleKind;
 
 #[cfg_attr(feature = "bevy_ecs", derive(bevy_ecs::component::Component))]
 #[derive(Debug, Clone, McBuf, Default)]
@@ -113,15 +114,129 @@ pub enum ParticleData {
     EggCrack,
     DustPlume,
     GustDust,
-    TrialSpawnerDetection
+    TrialSpawnerDetection,
 }
 
-#[derive(Debug, Clone, McBuf)]
+impl From<ParticleKind> for ParticleData {
+    /// Convert a particle kind into particle data. If the particle has data
+    /// attached (like block particles), then it's set to the default.
+    fn from(kind: ParticleKind) -> Self {
+        // this is mostly just here so it fails to compile when a new particle is added
+        // to ParticleKind, since ParticleData has to be updated manually
+        match kind {
+            ParticleKind::AmbientEntityEffect => Self::AmbientEntityEffect,
+            ParticleKind::AngryVillager => Self::AngryVillager,
+            ParticleKind::Block => Self::Block(BlockParticle::default()),
+            ParticleKind::BlockMarker => Self::BlockMarker(BlockParticle::default()),
+            ParticleKind::Bubble => Self::Bubble,
+            ParticleKind::Cloud => Self::Cloud,
+            ParticleKind::Crit => Self::Crit,
+            ParticleKind::DamageIndicator => Self::DamageIndicator,
+            ParticleKind::DragonBreath => Self::DragonBreath,
+            ParticleKind::DrippingLava => Self::DrippingLava,
+            ParticleKind::FallingLava => Self::FallingLava,
+            ParticleKind::LandingLava => Self::LandingLava,
+            ParticleKind::DrippingWater => Self::DrippingWater,
+            ParticleKind::FallingWater => Self::FallingWater,
+            ParticleKind::Dust => Self::Dust(DustParticle::default()),
+            ParticleKind::DustColorTransition => {
+                Self::DustColorTransition(DustColorTransitionParticle::default())
+            }
+            ParticleKind::Effect => Self::Effect,
+            ParticleKind::ElderGuardian => Self::ElderGuardian,
+            ParticleKind::EnchantedHit => Self::EnchantedHit,
+            ParticleKind::Enchant => Self::Enchant,
+            ParticleKind::EndRod => Self::EndRod,
+            ParticleKind::EntityEffect => Self::EntityEffect,
+            ParticleKind::ExplosionEmitter => Self::ExplosionEmitter,
+            ParticleKind::Explosion => Self::Explosion,
+            ParticleKind::Gust => Self::Gust,
+            ParticleKind::GustEmitter => Self::GustEmitter,
+            ParticleKind::SonicBoom => Self::SonicBoom,
+            ParticleKind::FallingDust => Self::FallingDust(BlockParticle::default()),
+            ParticleKind::Firework => Self::Firework,
+            ParticleKind::Fishing => Self::Fishing,
+            ParticleKind::Flame => Self::Flame,
+            ParticleKind::CherryLeaves => Self::CherryLeaves,
+            ParticleKind::SculkSoul => Self::SculkSoul,
+            ParticleKind::SculkCharge => Self::SculkCharge(SculkChargeParticle::default()),
+            ParticleKind::SculkChargePop => Self::SculkChargePop,
+            ParticleKind::SoulFireFlame => Self::SoulFireFlame,
+            ParticleKind::Soul => Self::Soul,
+            ParticleKind::Flash => Self::Flash,
+            ParticleKind::HappyVillager => Self::HappyVillager,
+            ParticleKind::Composter => Self::Composter,
+            ParticleKind::Heart => Self::Heart,
+            ParticleKind::InstantEffect => Self::InstantEffect,
+            ParticleKind::Item => Self::Item(ItemParticle::default()),
+            ParticleKind::Vibration => Self::Vibration(VibrationParticle::default()),
+            ParticleKind::ItemSlime => Self::ItemSlime,
+            ParticleKind::ItemSnowball => Self::ItemSnowball,
+            ParticleKind::LargeSmoke => Self::LargeSmoke,
+            ParticleKind::Lava => Self::Lava,
+            ParticleKind::Mycelium => Self::Mycelium,
+            ParticleKind::Note => Self::Note,
+            ParticleKind::Poof => Self::Poof,
+            ParticleKind::Portal => Self::Portal,
+            ParticleKind::Rain => Self::Rain,
+            ParticleKind::Smoke => Self::Smoke,
+            ParticleKind::WhiteSmoke => Self::WhiteSmoke,
+            ParticleKind::Sneeze => Self::Sneeze,
+            ParticleKind::Spit => Self::Spit,
+            ParticleKind::SquidInk => Self::SquidInk,
+            ParticleKind::SweepAttack => Self::SweepAttack,
+            ParticleKind::TotemOfUndying => Self::TotemOfUndying,
+            ParticleKind::Underwater => Self::Underwater,
+            ParticleKind::Splash => Self::Splash,
+            ParticleKind::Witch => Self::Witch,
+            ParticleKind::BubblePop => Self::BubblePop,
+            ParticleKind::CurrentDown => Self::CurrentDown,
+            ParticleKind::BubbleColumnUp => Self::BubbleColumnUp,
+            ParticleKind::Nautilus => Self::Nautilus,
+            ParticleKind::Dolphin => Self::Dolphin,
+            ParticleKind::CampfireCosySmoke => Self::CampfireCozySmoke,
+            ParticleKind::CampfireSignalSmoke => Self::CampfireSignalSmoke,
+            ParticleKind::DrippingHoney => Self::DrippingHoney,
+            ParticleKind::FallingHoney => Self::FallingHoney,
+            ParticleKind::LandingHoney => Self::LandingHoney,
+            ParticleKind::FallingNectar => Self::FallingNectar,
+            ParticleKind::FallingSporeBlossom => Self::FallingSporeBlossom,
+            ParticleKind::Ash => Self::Ash,
+            ParticleKind::CrimsonSpore => Self::CrimsonSpore,
+            ParticleKind::WarpedSpore => Self::WarpedSpore,
+            ParticleKind::SporeBlossomAir => Self::SporeBlossomAir,
+            ParticleKind::DrippingObsidianTear => Self::DrippingObsidianTear,
+            ParticleKind::FallingObsidianTear => Self::FallingObsidianTear,
+            ParticleKind::LandingObsidianTear => Self::LandingObsidianTear,
+            ParticleKind::ReversePortal => Self::ReversePortal,
+            ParticleKind::WhiteAsh => Self::WhiteAsh,
+            ParticleKind::SmallFlame => Self::SmallFlame,
+            ParticleKind::Snowflake => Self::Snowflake,
+            ParticleKind::DrippingDripstoneLava => Self::DrippingDripstoneLava,
+            ParticleKind::FallingDripstoneLava => Self::FallingDripstoneLava,
+            ParticleKind::DrippingDripstoneWater => Self::DrippingDripstoneWater,
+            ParticleKind::FallingDripstoneWater => Self::FallingDripstoneWater,
+            ParticleKind::GlowSquidInk => Self::GlowSquidInk,
+            ParticleKind::Glow => Self::Glow,
+            ParticleKind::WaxOn => Self::WaxOn,
+            ParticleKind::WaxOff => Self::WaxOff,
+            ParticleKind::ElectricSpark => Self::ElectricSpark,
+            ParticleKind::Scrape => Self::Scrape,
+            ParticleKind::Shriek => Self::Shriek(ShriekParticle::default()),
+            ParticleKind::EggCrack => Self::EggCrack,
+            ParticleKind::DustPlume => Self::DustPlume,
+            ParticleKind::GustDust => Self::GustDust,
+            ParticleKind::TrialSpawnerDetection => Self::TrialSpawnerDetection,
+        }
+    }
+}
+
+#[derive(Debug, Clone, McBuf, Default)]
 pub struct BlockParticle {
     #[var]
     pub block_state: i32,
 }
-#[derive(Debug, Clone, McBuf)]
+#[derive(Debug, Clone, McBuf, Default)]
 pub struct DustParticle {
     /// Red value, 0-1
     pub red: f32,
@@ -133,7 +248,7 @@ pub struct DustParticle {
     pub scale: f32,
 }
 
-#[derive(Debug, Clone, McBuf)]
+#[derive(Debug, Clone, McBuf, Default)]
 pub struct DustColorTransitionParticle {
     /// Red value, 0-1
     pub from_red: f32,
@@ -151,12 +266,12 @@ pub struct DustColorTransitionParticle {
     pub to_blue: f32,
 }
 
-#[derive(Debug, Clone, McBuf)]
+#[derive(Debug, Clone, McBuf, Default)]
 pub struct ItemParticle {
     pub item: ItemSlot,
 }
 
-#[derive(Debug, Clone, McBuf)]
+#[derive(Debug, Clone, McBuf, Default)]
 pub struct VibrationParticle {
     pub origin: BlockPos,
     pub position_type: String,
@@ -167,13 +282,13 @@ pub struct VibrationParticle {
     pub ticks: u32,
 }
 
-#[derive(Debug, Clone, McBuf)]
+#[derive(Debug, Clone, McBuf, Default)]
 pub struct SculkChargeParticle {
-    pub roll: f32
+    pub roll: f32,
 }
 
-#[derive(Debug, Clone, McBuf)]
+#[derive(Debug, Clone, McBuf, Default)]
 pub struct ShriekParticle {
     #[var]
-    pub delay: i32 // The time in ticks before the particle is displayed
+    pub delay: i32, // The time in ticks before the particle is displayed
 }
