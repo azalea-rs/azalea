@@ -37,10 +37,17 @@ pub enum ParticleData {
     EntityEffect,
     ExplosionEmitter,
     Explosion,
+    Gust,
+    GustEmitter,
+    SonicBoom,
     FallingDust(BlockParticle),
     Firework,
     Fishing,
     Flame,
+    CherryLeaves,
+    SculkSoul,
+    SculkCharge(SculkChargeParticle),
+    SculkChargePop,
     SoulFireFlame,
     Soul,
     Flash,
@@ -60,6 +67,7 @@ pub enum ParticleData {
     Portal,
     Rain,
     Smoke,
+    WhiteSmoke,
     Sneeze,
     Spit,
     SquidInk,
@@ -101,6 +109,11 @@ pub enum ParticleData {
     WaxOff,
     ElectricSpark,
     Scrape,
+    Shriek(ShriekParticle),
+    EggCrack,
+    DustPlume,
+    GustDust,
+    TrialSpawnerDetection
 }
 
 #[derive(Debug, Clone, McBuf)]
@@ -152,4 +165,15 @@ pub struct VibrationParticle {
     pub entity_id: u32,
     #[var]
     pub ticks: u32,
+}
+
+#[derive(Debug, Clone, McBuf)]
+pub struct SculkChargeParticle {
+    pub roll: f32
+}
+
+#[derive(Debug, Clone, McBuf)]
+pub struct ShriekParticle {
+    #[var]
+    pub delay: i32 // The time in ticks before the particle is displayed
 }
