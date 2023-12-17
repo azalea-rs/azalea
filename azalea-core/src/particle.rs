@@ -67,7 +67,7 @@ pub enum ParticleData {
     Portal,
     Rain,
     Smoke,
-    WhiteSmoke
+    WhiteSmoke,
     Sneeze,
     Spit,
     SquidInk,
