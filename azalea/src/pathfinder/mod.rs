@@ -756,7 +756,7 @@ pub struct StopPathfindingEvent {
     pub force: bool,
 }
 
-fn handle_stop_pathfinding_event(
+pub fn handle_stop_pathfinding_event(
     mut events: EventReader<StopPathfindingEvent>,
     mut query: Query<(&mut Pathfinder, &mut ExecutingPath)>,
     mut walk_events: EventWriter<StartWalkEvent>,
@@ -790,7 +790,7 @@ fn handle_stop_pathfinding_event(
     }
 }
 
-fn stop_pathfinding_on_instance_change(
+pub fn stop_pathfinding_on_instance_change(
     mut query: Query<(Entity, &mut ExecutingPath), Changed<InstanceName>>,
     mut stop_pathfinding_events: EventWriter<StopPathfindingEvent>,
 ) {

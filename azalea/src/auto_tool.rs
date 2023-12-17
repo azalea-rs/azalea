@@ -5,7 +5,7 @@ use azalea_client::{
     Client, InstanceHolder,
 };
 use azalea_core::position::BlockPos;
-use azalea_entity::{FluidOnEyes, Physics};
+use azalea_entity::{update_fluid_on_eyes, FluidOnEyes, Physics};
 use azalea_inventory::{ItemSlot, Menu};
 use azalea_registry::Fluid;
 use bevy_app::{App, Plugin, Update};
@@ -24,7 +24,9 @@ impl Plugin for AutoToolPlugin {
             .add_systems(
                 Update,
                 start_mining_block_with_auto_tool_listener
-                    .before(azalea_client::inventory::handle_set_selected_hotbar_slot_event),
+                    .before(azalea_client::inventory::handle_set_selected_hotbar_slot_event)
+                    .after(update_fluid_on_eyes)
+                    .after(azalea_client::chunks::handle_receive_chunk_events),
             );
     }
 }
