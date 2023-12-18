@@ -11,12 +11,12 @@ use crate::ecs::{
     system::{Commands, Query},
 };
 use crate::pathfinder_extras::PathfinderExtrasPlugin;
-use crate::utils::direction_looking_at;
 use azalea_client::interact::SwingArmEvent;
 use azalea_client::mining::Mining;
 use azalea_client::TickBroadcast;
 use azalea_core::position::{BlockPos, Vec3};
 use azalea_core::tick::GameTick;
+use azalea_entity::direction_looking_at;
 use azalea_entity::{
     clamp_look_direction, metadata::Player, EyeHeight, Jumping, LocalEntity, LookDirection,
     Position,

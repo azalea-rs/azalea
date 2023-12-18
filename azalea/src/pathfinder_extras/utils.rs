@@ -1,29 +1,8 @@
 //! Random utility functions that are useful for bots.
 
-use std::f64::consts::PI;
-
 use azalea_core::position::{BlockPos, Vec3};
-use azalea_entity::LookDirection;
+use azalea_entity::direction_looking_at;
 use azalea_world::ChunkStorage;
-
-/// Return the look direction that would make a client at `current` be
-/// looking at `target`.
-pub fn direction_looking_at(current: &Vec3, target: &Vec3) -> LookDirection {
-    // borrowed from mineflayer's Bot.lookAt because i didn't want to do math
-    let delta = target - current;
-    let y_rot = (PI - f64::atan2(-delta.x, -delta.z)) * (180.0 / PI);
-    let ground_distance = f64::sqrt(delta.x * delta.x + delta.z * delta.z);
-    let x_rot = f64::atan2(delta.y, ground_distance) * -(180.0 / PI);
-
-    // clamp
-    let y_rot = y_rot.rem_euclid(360.0);
-    let x_rot = x_rot.clamp(-90.0, 90.0) % 360.0;
-
-    LookDirection {
-        x_rot: x_rot as f32,
-        y_rot: y_rot as f32,
-    }
-}
 
 /// Return the block that we'd be looking at if we were at a given position and
 /// looking at a given block.
@@ -45,6 +24,15 @@ pub fn get_hit_result_while_looking_at(
         z: player_position.z as f64 + 0.5,
     };
     get_hit_result_while_looking_at_with_eye_position(chunk_storage, eye_position, look_target)
+}
+
+pub fn can_reach_block(
+    chunk_storage: &ChunkStorage,
+    player_position: BlockPos,
+    look_target: BlockPos,
+) -> bool {
+    let hit_result = get_hit_result_while_looking_at(chunk_storage, player_position, look_target);
+    hit_result == look_target
 }
 
 /// Return the block that we'd be looking at if our eyes are at a given position
@@ -84,9 +72,7 @@ pub fn get_reachable_blocks_around_player(
                     continue;
                 }
 
-                let hit_result =
-                    get_hit_result_while_looking_at(chunk_storage, player_position, block_pos);
-                if hit_result == block_pos {
+                if can_reach_block(chunk_storage, player_position, block_pos) {
                     blocks.push(block_pos);
                 }
             }
@@ -96,34 +82,32 @@ pub fn get_reachable_blocks_around_player(
     blocks
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_direction_looking_at() {
-        let direction = direction_looking_at(&Vec3::new(0.0, 0.0, 0.0), &Vec3::new(0.0, 0.0, 1.0));
-        assert_eq!(direction.y_rot, 0.0);
-        assert_eq!(direction.x_rot, 0.0);
-
-        let direction = direction_looking_at(&Vec3::new(0.0, 0.0, 0.0), &Vec3::new(1.0, 0.0, 0.0));
-        assert_eq!(direction.y_rot, 270.0);
-        assert_eq!(direction.x_rot, 0.0);
-
-        let direction = direction_looking_at(&Vec3::new(0.0, 0.0, 0.0), &Vec3::new(0.0, 0.0, -1.0));
-        assert_eq!(direction.y_rot, 180.0);
-        assert_eq!(direction.x_rot, 0.0);
-
-        let direction = direction_looking_at(&Vec3::new(0.0, 0.0, 0.0), &Vec3::new(-1.0, 0.0, 0.0));
-        assert_eq!(direction.y_rot, 90.0);
-        assert_eq!(direction.x_rot, 0.0);
-
-        let direction = direction_looking_at(&Vec3::new(0.0, 0.0, 0.0), &Vec3::new(0.0, 1.0, 0.0));
-        assert_eq!(direction.y_rot, 0.0);
-        assert_eq!(direction.x_rot, -90.0);
-
-        let direction = direction_looking_at(&Vec3::new(0.0, 0.0, 0.0), &Vec3::new(0.0, -1.0, 0.0));
-        assert_eq!(direction.y_rot, 0.0);
-        assert_eq!(direction.x_rot, 90.0);
+pub fn pick_closest_block(position: BlockPos, blocks: &[BlockPos]) -> Option<BlockPos> {
+    // pick the closest one and mine it
+    let mut closest_block_pos = None;
+    let mut closest_distance = i32::MAX;
+    for block_pos in &blocks[1..] {
+        if block_pos.y < position.y {
+            // skip blocks below us at first
+            continue;
+        }
+        let distance = block_pos.distance_squared_to(&position);
+        if distance < closest_distance {
+            closest_block_pos = Some(*block_pos);
+            closest_distance = distance;
+        }
     }
+
+    if closest_block_pos.is_none() {
+        // ok now check every block if the only ones around us are below
+        for block_pos in blocks {
+            let distance = block_pos.distance_squared_to(&position);
+            if distance < closest_distance {
+                closest_block_pos = Some(*block_pos);
+                closest_distance = distance;
+            }
+        }
+    }
+
+    closest_block_pos
 }

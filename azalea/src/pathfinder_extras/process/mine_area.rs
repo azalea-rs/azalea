@@ -8,13 +8,11 @@ use tracing::info;
 use crate::{
     auto_tool::StartMiningBlockWithAutoToolEvent,
     ecs::prelude::*,
-    pathfinder::{
-        self,
-        block_box::BlockBox,
-        goals::{Goal, ReachBlockPosGoal},
-        GotoEvent,
+    pathfinder::{self, block_box::BlockBox, goals::Goal, GotoEvent},
+    pathfinder_extras::{
+        goals::{ReachBlockPosGoal, ReachBoxGoal},
+        utils::{get_reachable_blocks_around_player, pick_closest_block},
     },
-    utils::get_reachable_blocks_around_player,
     LookAtEvent,
 };
 
@@ -26,7 +24,7 @@ pub struct MineArea {
     pub corner2: BlockPos,
 }
 
-pub fn mine_area<'a>(
+pub fn mine_area(
     mine_area: &MineArea,
     commands: &mut Commands,
     ProcessSystemComponents {
@@ -36,7 +34,7 @@ pub fn mine_area<'a>(
         pathfinder,
         mining,
         executing_path,
-    }: ProcessSystemComponents<'a>,
+    }: ProcessSystemComponents<'_>,
     goto_events: &mut EventWriter<GotoEvent>,
     look_at_events: &mut EventWriter<LookAtEvent>,
     start_mining_block_events: &mut EventWriter<StartMiningBlockWithAutoToolEvent>,
@@ -94,33 +92,9 @@ pub fn mine_area<'a>(
 
     if !mineable_blocks.is_empty() {
         // pick the closest one and mine it
-        let mut closest_block_pos = None;
-        let mut closest_distance = i32::MAX;
-        for block_pos in &mineable_blocks[1..] {
-            if block_pos.y < player_position.y {
-                // skip blocks below us at first
-                continue;
-            }
-            let distance = block_pos.distance_squared_to(&player_position);
-            if distance < closest_distance {
-                closest_block_pos = Some(*block_pos);
-                closest_distance = distance;
-            }
-        }
-
-        if closest_block_pos.is_none() {
-            // ok now check every block if the only ones around us are below
-            for block_pos in &mineable_blocks {
-                let distance = block_pos.distance_squared_to(&player_position);
-                if distance < closest_distance {
-                    closest_block_pos = Some(*block_pos);
-                    closest_distance = distance;
-                }
-            }
-        }
-
-        let closest_block_pos = closest_block_pos
+        let closest_block_pos = pick_closest_block(player_position, &mineable_blocks)
             .expect("there must be a closest block because mineable_blocks wasn't empty");
+
         look_at_events.send(LookAtEvent {
             entity,
             position: closest_block_pos.center(),
@@ -185,7 +159,7 @@ pub fn mine_area<'a>(
     } else {
         println!("reaching for box because we're at {player_position}");
 
-        let reach_box_goal = pathfinder::goals::ReachBoxGoal {
+        let reach_box_goal = ReachBoxGoal {
             bb: bb.clone(),
             chunk_storage: chunk_storage.clone(),
         };

@@ -15,7 +15,6 @@ pub mod pathfinder;
 pub mod pathfinder_extras;
 pub mod prelude;
 pub mod swarm;
-pub mod utils;
 
 use app::Plugins;
 pub use azalea_auth as auth;

@@ -1,4 +1,5 @@
 pub mod mine_area;
+pub mod mine_forever;
 
 use azalea_client::{mining::Mining, InstanceHolder};
 use azalea_entity::Position;
@@ -13,11 +14,17 @@ use crate::{
 #[derive(Component, Clone, Debug)]
 pub enum Process {
     MineArea(mine_area::MineArea),
+    MineForever(mine_forever::MineForever),
 }
 
 impl From<mine_area::MineArea> for Process {
     fn from(mine_area: mine_area::MineArea) -> Self {
         Self::MineArea(mine_area)
+    }
+}
+impl From<mine_forever::MineForever> for Process {
+    fn from(mine_forever: mine_forever::MineForever) -> Self {
+        Self::MineForever(mine_forever)
     }
 }
 
@@ -79,6 +86,16 @@ pub fn process_tick(
             Process::MineArea(mine_area) => {
                 mine_area::mine_area(
                     mine_area,
+                    &mut commands,
+                    components,
+                    &mut goto_events,
+                    &mut look_at_events,
+                    &mut start_mining_block_events,
+                );
+            }
+            Process::MineForever(mine_forever) => {
+                mine_forever::mine_forever(
+                    mine_forever,
                     &mut commands,
                     components,
                     &mut goto_events,
