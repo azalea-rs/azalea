@@ -8,10 +8,15 @@ use tracing::info;
 use crate::{
     auto_tool::StartMiningBlockWithAutoToolEvent,
     ecs::prelude::*,
-    pathfinder::{self, block_box::BlockBox, goals::Goal, GotoEvent},
-    pathfinder_extras::{
-        goals::{ReachBlockPosGoal, ReachBoxGoal},
-        utils::{get_reachable_blocks_around_player, pick_closest_block},
+    pathfinder::{
+        self,
+        block_box::BlockBox,
+        extras::{
+            goals::{ReachBlockPosGoal, ReachBoxGoal},
+            utils::{get_reachable_blocks_around_player, pick_closest_block},
+        },
+        goals::Goal,
+        GotoEvent,
     },
     LookAtEvent,
 };
@@ -34,6 +39,7 @@ pub fn mine_area(
         pathfinder,
         mining,
         executing_path,
+        ..
     }: ProcessSystemComponents<'_>,
     goto_events: &mut EventWriter<GotoEvent>,
     look_at_events: &mut EventWriter<LookAtEvent>,
@@ -41,13 +47,11 @@ pub fn mine_area(
 ) {
     if pathfinder.goal.is_some() || executing_path.is_some() {
         // already pathfinding
-        println!("currently pathfinding");
         return;
     }
 
     if mining.is_some() {
         // currently mining, so wait for that to finish
-        println!("currently mining");
         return;
     }
 

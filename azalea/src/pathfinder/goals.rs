@@ -99,13 +99,15 @@ impl Goal for RadiusGoal {
         let dx = (self.pos.x - n.x) as f32;
         let dy = (self.pos.y - n.y) as f32;
         let dz = (self.pos.z - n.z) as f32;
-        dx * dx + dy * dy + dz * dz
+
+        xz_heuristic(dx, dz) + y_heuristic(dy)
     }
     fn success(&self, n: BlockPos) -> bool {
         let n = n.center();
         let dx = (self.pos.x - n.x) as f32;
         let dy = (self.pos.y - n.y) as f32;
         let dz = (self.pos.z - n.z) as f32;
+
         dx * dx + dy * dy + dz * dz <= self.radius * self.radius
     }
 }
@@ -175,5 +177,27 @@ impl<T: Goal> Goal for AndGoals<T> {
     }
     fn success(&self, n: BlockPos) -> bool {
         self.0.iter().all(|goal| goal.success(n))
+    }
+}
+
+/// Multiply the heuristic of the given goal by the given factor.
+///
+/// Setting the value to less than 1 makes it be biased towards the goal, and
+/// setting it to more than 1 makes it be biased away from the goal. For
+/// example, setting the value to 0.5 makes the pathfinder think that the
+/// goal is half the distance that it actually is.
+///
+/// Note that this may reduce the quality of paths or make the pathfinder slower
+/// if used incorrectly.
+///
+/// This goal is most useful when combined with [`OrGoal`].
+#[derive(Debug)]
+pub struct ScaleGoal<T: Goal>(pub T, pub f32);
+impl<T: Goal> Goal for ScaleGoal<T> {
+    fn heuristic(&self, n: BlockPos) -> f32 {
+        self.0.heuristic(n) * self.1
+    }
+    fn success(&self, n: BlockPos) -> bool {
+        self.0.success(n)
     }
 }

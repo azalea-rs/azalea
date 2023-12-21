@@ -1,16 +1,19 @@
 use std::sync::Arc;
 
 use azalea_block::BlockStates;
-use azalea_core::position::BlockPos;
+use azalea_core::position::{BlockPos, Vec3};
 use tracing::info;
 
 use crate::{
     auto_tool::StartMiningBlockWithAutoToolEvent,
     ecs::prelude::*,
-    pathfinder::{self, GotoEvent},
-    pathfinder_extras::{
-        goals::ReachBlockPosGoal,
-        utils::{can_reach_block, pick_closest_block},
+    pathfinder::{
+        self,
+        extras::{
+            goals::ReachBlockPosGoal,
+            utils::{can_reach_block, pick_closest_block},
+        },
+        GotoEvent,
     },
     LookAtEvent,
 };
@@ -32,22 +35,35 @@ pub fn mine_forever(
         pathfinder,
         mining,
         executing_path,
+        mut items_to_pickup_change_acknowledged,
     }: ProcessSystemComponents<'_>,
+    items_to_pickup_positions: &[Vec3],
     goto_events: &mut EventWriter<GotoEvent>,
     look_at_events: &mut EventWriter<LookAtEvent>,
     start_mining_block_events: &mut EventWriter<StartMiningBlockWithAutoToolEvent>,
 ) {
-    if pathfinder.goal.is_some() || executing_path.is_some() {
-        // already pathfinding
-        println!("currently pathfinding");
-        return;
+    let mut should_force_recalculate_path = false;
+
+    if !pathfinder.is_calculating {
+        if !**items_to_pickup_change_acknowledged {
+            should_force_recalculate_path = true;
+            **items_to_pickup_change_acknowledged = true;
+            println!("items_to_pickup_change_acknowledged = true");
+        }
     }
 
-    if mining.is_some() {
-        // currently mining, so wait for that to finish
-        println!("currently mining");
-        return;
+    if !should_force_recalculate_path {
+        if mining.is_some() {
+            // currently mining, so wait for that to finish
+            return;
+        }
+
+        if pathfinder.goal.is_some() || executing_path.is_some() {
+            // already pathfinding
+            return;
+        }
     }
+
     let instance = &instance_holder.instance.read();
 
     let target_blocks = instance
@@ -82,15 +98,24 @@ pub fn mine_forever(
         return;
     }
 
-    let mut potential_goals = Vec::new();
+    let mut reach_block_goals = Vec::new();
     for target_pos in target_blocks {
-        potential_goals.push(ReachBlockPosGoal {
+        reach_block_goals.push(ReachBlockPosGoal {
             pos: target_pos,
             chunk_storage: chunk_storage.clone(),
         });
     }
 
-    if potential_goals.is_empty() {
+    let mut reach_item_goals = Vec::new();
+    for &item_position in items_to_pickup_positions {
+        println!("item_position: {item_position:?}");
+        reach_item_goals.push(pathfinder::goals::RadiusGoal {
+            pos: item_position,
+            radius: 1.0,
+        });
+    }
+
+    if reach_block_goals.is_empty() && reach_item_goals.is_empty() {
         info!("MineForever process is done, can't find any more blocks to mine");
         commands.entity(entity).remove::<Process>();
         return;
@@ -98,7 +123,10 @@ pub fn mine_forever(
 
     goto_events.send(GotoEvent {
         entity,
-        goal: Arc::new(pathfinder::goals::OrGoals(potential_goals)),
+        goal: Arc::new(pathfinder::goals::OrGoal(
+            pathfinder::goals::OrGoals(reach_block_goals),
+            pathfinder::goals::ScaleGoal(pathfinder::goals::OrGoals(reach_item_goals), 0.5),
+        )),
         successors_fn: pathfinder::moves::default_move,
         allow_mining: true,
     });

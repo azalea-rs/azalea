@@ -10,7 +10,6 @@ use crate::ecs::{
     query::{With, Without},
     system::{Commands, Query},
 };
-use crate::pathfinder_extras::PathfinderExtrasPlugin;
 use azalea_client::interact::SwingArmEvent;
 use azalea_client::mining::Mining;
 use azalea_client::TickBroadcast;
@@ -193,7 +192,6 @@ impl PluginGroup for DefaultBotPlugins {
         PluginGroupBuilder::start::<Self>()
             .add(BotPlugin)
             .add(PathfinderPlugin)
-            .add(PathfinderExtrasPlugin)
             .add(ContainerPlugin)
             .add(AutoRespawnPlugin)
             .add(AcceptResourcePacksPlugin)

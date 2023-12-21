@@ -6,6 +6,7 @@ pub mod astar;
 pub mod block_box;
 pub mod costs;
 mod debug;
+pub mod extras;
 pub mod goals;
 pub mod mining;
 pub mod moves;
@@ -93,7 +94,8 @@ impl Plugin for PathfinderPlugin {
                     .chain()
                     .before(MoveEventsSet)
                     .before(InventorySet),
-            );
+            )
+            .add_plugins(crate::pathfinder::extras::PathfinderExtrasPlugin);
     }
 }
 

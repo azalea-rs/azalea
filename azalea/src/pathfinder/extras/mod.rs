@@ -1,6 +1,7 @@
 //! Adds utility functions that all depend on the pathfinder.
 
 pub mod goals;
+pub mod pickup;
 pub mod process;
 pub mod utils;
 
@@ -22,11 +23,24 @@ impl Plugin for PathfinderExtrasPlugin {
         app.add_event::<SetActiveProcessEvent>()
             .add_systems(
                 Update,
-                process::set_active_pathfinder_process_listener
-                    .after(crate::pathfinder::stop_pathfinding_on_instance_change)
-                    .before(crate::pathfinder::handle_stop_pathfinding_event),
+                (
+                    process::set_active_pathfinder_process_listener
+                        .after(crate::pathfinder::stop_pathfinding_on_instance_change)
+                        .before(crate::pathfinder::handle_stop_pathfinding_event),
+                    pickup::add_pickup_components_to_player,
+                    pickup::remove_pickup_components_from_player,
+                    pickup::watch_for_mined_blocks,
+                    pickup::watch_for_item_spawns_from_blocks_we_mined,
+                ),
             )
-            .add_systems(GameTick, process::process_tick.before(PhysicsSet));
+            .add_systems(
+                GameTick,
+                (
+                    pickup::remove_despawned_items_to_pickup,
+                    process::process_tick.before(PhysicsSet),
+                )
+                    .chain(),
+            );
     }
 }
 
