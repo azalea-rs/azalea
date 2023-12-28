@@ -522,7 +522,7 @@ pub enum CheckOwnershipError {
     Http(#[from] reqwest::Error),
 }
 
-async fn check_ownership(
+pub async fn check_ownership(
     client: &reqwest::Client,
     minecraft_access_token: &str,
 ) -> Result<bool, CheckOwnershipError> {
