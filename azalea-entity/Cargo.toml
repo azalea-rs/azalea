@@ -9,6 +9,7 @@ license = "MIT"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+simdnbt = { version = "0.3", git = "https://github.com/azalea-rs/simdnbt" }
 azalea-block = { version = "0.9.0", path = "../azalea-block" }
 azalea-buf = { version = "0.9.0", path = "../azalea-buf" }
 azalea-chat = { version = "0.9.0", path = "../azalea-chat", features = [
@@ -16,7 +17,6 @@ azalea-chat = { version = "0.9.0", path = "../azalea-chat", features = [
 ] }
 azalea-core = { version = "0.9.0", path = "../azalea-core" }
 azalea-inventory = { version = "0.9.0", path = "../azalea-inventory" }
-simdnbt = "0.3"
 azalea-registry = { version = "0.9.0", path = "../azalea-registry" }
 azalea-world = { version = "0.9.0", path = "../azalea-world" }
 bevy_app = "0.12.1"
