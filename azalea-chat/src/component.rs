@@ -373,15 +373,13 @@ impl simdnbt::FromNbtTag for FormattedText {
                     return None;
                 }
                 if let Some(extra) = compound.get("extra") {
-                    let extra = extra.list()?.compounds()?;
+                    let extra = extra.list()?.as_nbt_tags();
                     if extra.is_empty() {
                         // Unexpected empty array of components
                         return None;
                     }
                     for extra_component in extra {
-                        let sibling = FormattedText::from_nbt_tag(
-                            &simdnbt::borrow::NbtTag::Compound(extra_component.clone()),
-                        )?;
+                        let sibling = FormattedText::from_nbt_tag(&extra_component)?;
                         component.append(sibling);
                     }
                 }
