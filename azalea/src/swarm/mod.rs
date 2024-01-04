@@ -32,6 +32,7 @@ pub struct Swarm {
     pub ecs_lock: Arc<Mutex<World>>,
 
     bots: Arc<Mutex<HashMap<Entity, Client>>>,
+    proxies: Vec<Proxy>,
 
     // the address is public and mutable so plugins can change it
     pub resolved_address: Arc<RwLock<SocketAddr>>,
@@ -344,6 +345,7 @@ where
         let swarm = Swarm {
             ecs_lock: ecs_lock.clone(),
             bots: Arc::new(Mutex::new(HashMap::new())),
+            proxies: self.proxies,
 
             resolved_address: Arc::new(RwLock::new(resolved_address)),
             address: Arc::new(RwLock::new(address)),
@@ -369,15 +371,13 @@ where
         let mut swarm_clone = swarm.clone();
         let join_delay = self.join_delay;
         let accounts = self.accounts.clone();
-        let proxies = self.proxies.clone();
         let states = self.states.clone();
 
         tokio::spawn(async move {
             if let Some(join_delay) = join_delay {
                 // if there's a join delay, then join one by one
                 for (account, state) in accounts.iter().zip(states) {
-                    let proxy = proxies.choose(&mut thread_rng()).map(|p| p.clone());
-                    swarm_clone.add_and_retry_forever(account, proxy, state).await;
+                    swarm_clone.add_and_retry_forever(account, state).await;
                     tokio::time::sleep(join_delay).await;
                 }
             } else {
@@ -387,12 +387,10 @@ where
                     accounts
                         .iter()
                         .zip(states)
-                        .zip(proxies.iter().cycle())
-                        .map(move |((account, state), proxy)| async {
-                            // todo: fix when no proxies available + make proxies random
+                        .map(move |(account, state)| async {
                             swarm_borrow
                                 .clone()
-                                .add_and_retry_forever(account, Some(proxy.clone()), state)
+                                .add_and_retry_forever(account, state)
                                 .await;
                         }),
                 )
@@ -597,12 +595,12 @@ impl Swarm {
     pub async fn add_and_retry_forever<S: Component + Clone>(
         &mut self,
         account: &Account,
-        proxy: Option<Proxy>,
         state: S,
     ) -> Client {
         let mut disconnects = 0;
         loop {
-            match self.add(account, proxy.clone(), state.clone()).await {
+            let proxy = self.proxies.choose(&mut thread_rng()).map(|p| p.clone());
+            match self.add(account, proxy, state.clone()).await {
                 Ok(bot) => return bot,
                 Err(e) => {
                     disconnects += 1;
