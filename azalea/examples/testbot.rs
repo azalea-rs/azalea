@@ -216,7 +216,7 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                         return Ok(());
                     };
                     bot.look_at(target_pos.center());
-                    let container = bot.open_container(target_pos).await;
+                    let container = bot.open_container_at(target_pos).await;
                     println!("container: {container:?}");
                     if let Some(container) = container {
                         if let Some(contents) = container.contents() {

@@ -90,6 +90,9 @@ pub struct InventoryComponent {
     /// The current container menu that the player has open. If no container is
     /// open, this will be `None`.
     pub container_menu: Option<azalea_inventory::Menu>,
+    /// The custom name of the menu that's currently open. This is Some when
+    /// `container_menu` is Some.
+    pub container_menu_title: Option<FormattedText>,
     /// The item that is currently held by the cursor. `Slot::Empty` if nothing
     /// is currently being held.
     ///
@@ -566,6 +569,7 @@ impl Default for InventoryComponent {
             inventory_menu: Menu::Player(azalea_inventory::Player::default()),
             id: 0,
             container_menu: None,
+            container_menu_title: None,
             carried: ItemSlot::Empty,
             state_id: 0,
             quick_craft_status: QuickCraftStatusKind::Start,
@@ -593,6 +597,7 @@ fn handle_menu_opened_event(
         let mut inventory = query.get_mut(event.entity).unwrap();
         inventory.id = event.window_id as u8;
         inventory.container_menu = Some(Menu::from_kind(event.menu_type));
+        inventory.container_menu_title = Some(event.title.clone());
     }
 }
 
@@ -651,6 +656,7 @@ pub fn handle_client_side_close_container_event(
         let mut inventory = query.get_mut(event.entity).unwrap();
         inventory.container_menu = None;
         inventory.id = 0;
+        inventory.container_menu_title = None;
     }
 }
 
