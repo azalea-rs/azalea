@@ -1,5 +1,4 @@
 #![doc = include_str!("../README.md")]
-#![feature(trait_upcasting)]
 
 mod behavior;
 mod generated;
@@ -32,6 +31,12 @@ impl dyn Block {
     pub fn downcast_ref<T: Block>(&self) -> Option<&T> {
         (self as &dyn Any).downcast_ref::<T>()
     }
+}
+
+pub trait Property {
+    type Value;
+
+    fn try_from_block_state(state: BlockState) -> Option<Self::Value>;
 }
 
 /// A representation of a state a block can be in.
@@ -114,7 +119,10 @@ impl Default for FluidState {
 
 impl From<BlockState> for FluidState {
     fn from(state: BlockState) -> Self {
-        if state.waterlogged() {
+        if state
+            .property::<crate::properties::Waterlogged>()
+            .unwrap_or_default()
+        {
             Self {
                 fluid: azalea_registry::Fluid::Water,
                 height: 15,
@@ -156,6 +164,12 @@ impl From<FluidState> for BlockState {
                 })
             }
         }
+    }
+}
+
+impl From<BlockState> for azalea_registry::Block {
+    fn from(value: BlockState) -> Self {
+        Box::<dyn Block>::from(value).as_registry_block()
     }
 }
 

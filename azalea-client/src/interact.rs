@@ -34,10 +34,9 @@ use tracing::warn;
 use crate::{
     attack::handle_attack_event,
     inventory::{InventoryComponent, InventorySet},
-    local_player::{
-        handle_send_packet_event, LocalGameMode, PermissionLevel, PlayerAbilities, SendPacketEvent,
-    },
+    local_player::{LocalGameMode, PermissionLevel, PlayerAbilities},
     movement::MoveEventsSet,
+    packet_handling::game::{handle_send_packet_event, SendPacketEvent},
     respawn::perform_respawn,
     Client,
 };
@@ -194,7 +193,7 @@ pub fn update_hit_result_component(
         };
         let instance = instance_lock.read();
 
-        let hit_result = pick(look_direction, &eye_position, &instance, pick_range);
+        let hit_result = pick(look_direction, &eye_position, &instance.chunks, pick_range);
         if let Some(mut hit_result_ref) = hit_result_ref {
             **hit_result_ref = hit_result;
         } else {
@@ -213,13 +212,13 @@ pub fn update_hit_result_component(
 pub fn pick(
     look_direction: &LookDirection,
     eye_position: &Vec3,
-    instance: &Instance,
+    chunks: &azalea_world::ChunkStorage,
     pick_range: f64,
 ) -> BlockHitResult {
     let view_vector = view_vector(look_direction);
     let end_position = eye_position + &(view_vector * pick_range);
     azalea_physics::clip::clip(
-        &instance.chunks,
+        chunks,
         ClipContext {
             from: *eye_position,
             to: end_position,

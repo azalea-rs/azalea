@@ -3,6 +3,7 @@ mod relative_updates;
 
 use std::collections::HashSet;
 
+use azalea_block::BlockState;
 use azalea_core::position::{BlockPos, ChunkPos, Vec3};
 use azalea_world::{InstanceContainer, InstanceName, MinecraftEntityId};
 use bevy_app::{App, Plugin, PreUpdate, Update};
@@ -11,7 +12,8 @@ use derive_more::{Deref, DerefMut};
 use tracing::debug;
 
 use crate::{
-    metadata::Health, Dead, EyeHeight, FluidOnEyes, LocalEntity, LookDirection, Physics, Position,
+    metadata::Health, Dead, EyeHeight, FluidOnEyes, LocalEntity, LookDirection, OnClimbable,
+    Physics, Position,
 };
 
 use indexing::EntityUuidIndex;
@@ -48,6 +50,7 @@ impl Plugin for EntityPlugin {
                     add_dead,
                     clamp_look_direction,
                     update_fluid_on_eyes,
+                    update_on_climbable,
                 ),
             ),
         )
@@ -104,6 +107,72 @@ pub fn update_fluid_on_eyes(
             **fluid_on_eyes = azalea_registry::Fluid::Empty;
         }
     }
+}
+
+pub fn update_on_climbable(
+    mut query: Query<(&mut OnClimbable, &Position, &InstanceName)>,
+    instance_container: Res<InstanceContainer>,
+) {
+    for (mut on_climbable, position, instance_name) in query.iter_mut() {
+        // TODO: there's currently no gamemode component that can be accessed from here,
+        // maybe LocalGameMode should be replaced with two components, maybe called
+        // EntityGameMode and PreviousGameMode?
+
+        // if game_mode == GameMode::Spectator {
+        //     continue;
+        // }
+
+        let Some(instance) = instance_container.get(instance_name) else {
+            continue;
+        };
+
+        let instance = instance.read();
+
+        let block_pos = BlockPos::from(position);
+        let block_state_at_feet = instance.get_block_state(&block_pos).unwrap_or_default();
+        let block_at_feet = Box::<dyn azalea_block::Block>::from(block_state_at_feet);
+        let registry_block_at_feet = block_at_feet.as_registry_block();
+
+        **on_climbable = azalea_registry::tags::blocks::CLIMBABLE.contains(&registry_block_at_feet)
+            || (azalea_registry::tags::blocks::TRAPDOORS.contains(&registry_block_at_feet)
+                && is_trapdoor_useable_as_ladder(block_state_at_feet, block_pos, &instance));
+    }
+}
+
+fn is_trapdoor_useable_as_ladder(
+    block_state: BlockState,
+    block_pos: BlockPos,
+    instance: &azalea_world::Instance,
+) -> bool {
+    // trapdoor must be open
+    if !block_state
+        .property::<azalea_block::properties::Open>()
+        .unwrap_or_default()
+    {
+        return false;
+    }
+
+    // block below must be a ladder
+    let block_below = instance
+        .get_block_state(&block_pos.down(1))
+        .unwrap_or_default();
+    let registry_block_below =
+        Box::<dyn azalea_block::Block>::from(block_below).as_registry_block();
+    if registry_block_below != azalea_registry::Block::Ladder {
+        return false;
+    }
+    // and the ladder must be facing the same direction as the trapdoor
+    let ladder_facing = block_below
+        .property::<azalea_block::properties::Facing>()
+        .expect("ladder block must have facing property");
+    let trapdoor_facing = block_state
+        .property::<azalea_block::properties::Facing>()
+        .expect("trapdoor block must have facing property");
+    if ladder_facing != trapdoor_facing {
+        return false;
+    }
+
+    true
 }
 
 /// A component that lists all the local player entities that have this entity

@@ -8,11 +8,9 @@ use crate::{
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 use once_cell::sync::Lazy;
 use serde::{de, Deserialize, Deserializer, Serialize};
-use std::{
-    fmt::Display,
-    io::{Cursor, Write},
-};
-use tracing::debug;
+#[cfg(feature = "simdnbt")]
+use simdnbt::{Deserialize as _, FromNbtTag as _, Serialize as _};
+use std::fmt::Display;
 
 /// A chat component, basically anything you can see in chat.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Hash)]
@@ -52,12 +50,19 @@ impl FormattedText {
     fn parse_separator(
         json: &serde_json::Value,
     ) -> Result<Option<FormattedText>, serde_json::Error> {
-        if json.get("separator").is_some() {
-            return Ok(Some(FormattedText::deserialize(
-                json.get("separator").unwrap(),
-            )?));
+        if let Some(separator) = json.get("separator") {
+            return Ok(Some(FormattedText::deserialize(separator)?));
         }
         Ok(None)
+    }
+
+    #[cfg(feature = "simdnbt")]
+    fn parse_separator_nbt(nbt: &simdnbt::borrow::NbtCompound) -> Option<FormattedText> {
+        if let Some(separator) = nbt.get("separator") {
+            FormattedText::from_nbt_tag(separator)
+        } else {
+            None
+        }
     }
 
     /// Convert this component into an
@@ -65,7 +70,7 @@ impl FormattedText {
     /// can print it to your terminal and get styling.
     ///
     /// This is technically a shortcut for
-    /// [`FormattedText::to_ansi_custom_style`] with a default [`Style`]
+    /// [`FormattedText::to_ansi_with_custom_style`] with a default [`Style`]
     /// colored white.
     ///
     /// # Examples
@@ -83,7 +88,7 @@ impl FormattedText {
     /// ```
     pub fn to_ansi(&self) -> String {
         // default the default_style to white if it's not set
-        self.to_ansi_custom_style(&DEFAULT_STYLE)
+        self.to_ansi_with_custom_style(&DEFAULT_STYLE)
     }
 
     /// Convert this component into an
@@ -91,7 +96,7 @@ impl FormattedText {
     ///
     /// This is the same as [`FormattedText::to_ansi`], but you can specify a
     /// default [`Style`] to use.
-    pub fn to_ansi_custom_style(&self, default_style: &Style) -> String {
+    pub fn to_ansi_with_custom_style(&self, default_style: &Style) -> String {
         // this contains the final string will all the ansi escape codes
         let mut built_string = String::new();
         // this style will update as we visit components
@@ -273,23 +278,155 @@ impl<'de> Deserialize<'de> for FormattedText {
     }
 }
 
-#[cfg(feature = "azalea-buf")]
-impl McBufReadable for FormattedText {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let string = String::read_from(buf)?;
-        debug!("FormattedText string: {}", string);
-        let json: serde_json::Value = serde_json::from_str(string.as_str())?;
-        let component = FormattedText::deserialize(json)?;
-        Ok(component)
+#[cfg(feature = "simdnbt")]
+impl simdnbt::Serialize for FormattedText {
+    fn to_compound(self) -> simdnbt::owned::NbtCompound {
+        match self {
+            FormattedText::Text(c) => c.to_compound(),
+            FormattedText::Translatable(c) => c.to_compound(),
+        }
+    }
+}
+
+#[cfg(feature = "simdnbt")]
+impl simdnbt::FromNbtTag for FormattedText {
+    fn from_nbt_tag(tag: &simdnbt::borrow::NbtTag) -> Option<Self> {
+        // we create a component that we might add siblings to
+        let mut component: FormattedText;
+
+        match tag {
+            // if it's a string, return a text component with that string
+            simdnbt::borrow::NbtTag::String(string) => {
+                Some(FormattedText::Text(TextComponent::new(string.to_string())))
+            }
+            // if it's a compound, make it do things with { text } and stuff
+            simdnbt::borrow::NbtTag::Compound(compound) => {
+                if let Some(text) = compound.get("text") {
+                    let text = text.string().unwrap_or_default().to_string();
+                    component = FormattedText::Text(TextComponent::new(text));
+                } else if let Some(translate) = compound.get("translate") {
+                    let translate = translate.string()?.into();
+                    if let Some(with) = compound.get("with") {
+                        let with = with.list()?.compounds()?;
+                        let mut with_array = Vec::with_capacity(with.len());
+                        for item in with {
+                            // if it's a string component with no styling and no siblings, just add
+                            // a string to with_array otherwise add the
+                            // component to the array
+                            let c = FormattedText::from_nbt_tag(
+                                &simdnbt::borrow::NbtTag::Compound(item.clone()),
+                            )?;
+                            if let FormattedText::Text(text_component) = c {
+                                if text_component.base.siblings.is_empty()
+                                    && text_component.base.style.is_empty()
+                                {
+                                    with_array.push(StringOrComponent::String(text_component.text));
+                                    continue;
+                                }
+                            }
+                            with_array.push(StringOrComponent::FormattedText(
+                                FormattedText::from_nbt_tag(&simdnbt::borrow::NbtTag::Compound(
+                                    item.clone(),
+                                ))?,
+                            ));
+                        }
+                        component = FormattedText::Translatable(TranslatableComponent::new(
+                            translate, with_array,
+                        ));
+                    } else {
+                        // if it doesn't have a "with", just have the with_array be empty
+                        component = FormattedText::Translatable(TranslatableComponent::new(
+                            translate,
+                            Vec::new(),
+                        ));
+                    }
+                } else if let Some(score) = compound.compound("score") {
+                    // object = GsonHelper.getAsJsonObject(jsonObject, "score");
+                    if score.get("name").is_none() || score.get("objective").is_none() {
+                        // A score component needs at least a name and an objective
+                        tracing::trace!("A score component needs at least a name and an objective");
+                        return None;
+                    }
+                    // TODO, score text components aren't yet supported
+                    return None;
+                } else if compound.get("selector").is_some() {
+                    // selector text components aren't yet supported
+                    tracing::trace!("selector text components aren't yet supported");
+                    return None;
+                } else if compound.get("keybind").is_some() {
+                    // keybind text components aren't yet supported
+                    tracing::trace!("keybind text components aren't yet supported");
+                    return None;
+                } else {
+                    let Some(_nbt) = compound.get("nbt") else {
+                        // Don't know how to turn 'nbt' into a FormattedText
+                        return None;
+                    };
+                    let _separator = FormattedText::parse_separator_nbt(compound)?;
+
+                    let _interpret = match compound.get("interpret") {
+                        Some(v) => v.byte().unwrap_or_default() != 0,
+                        None => false,
+                    };
+                    if let Some(_block) = compound.get("block") {}
+                    // nbt text components aren't yet supported
+                    return None;
+                }
+                if let Some(extra) = compound.get("extra") {
+                    let extra = extra.list()?.as_nbt_tags();
+                    if extra.is_empty() {
+                        // Unexpected empty array of components
+                        return None;
+                    }
+                    for extra_component in extra {
+                        let sibling = FormattedText::from_nbt_tag(&extra_component)?;
+                        component.append(sibling);
+                    }
+                }
+
+                let style = Style::from_compound(compound).ok()?;
+                component.get_base_mut().style = style;
+
+                Some(component)
+            }
+            // ok so it's not a compound, if it's a list deserialize every item
+            simdnbt::borrow::NbtTag::List(list) => {
+                let list = list.compounds()?;
+                let mut component = FormattedText::from_nbt_tag(
+                    &simdnbt::borrow::NbtTag::Compound(list.first()?.clone()),
+                )?;
+                for i in 1..list.len() {
+                    component.append(FormattedText::from_nbt_tag(
+                        &simdnbt::borrow::NbtTag::Compound(list.get(i)?.clone()),
+                    )?);
+                }
+                Some(component)
+            }
+            _ => Some(FormattedText::Text(TextComponent::new("".to_owned()))),
+        }
     }
 }
 
 #[cfg(feature = "azalea-buf")]
+impl McBufReadable for FormattedText {
+    fn read_from(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let nbt = simdnbt::borrow::NbtTag::read_optional(buf)?;
+        if let Some(nbt) = nbt {
+            FormattedText::from_nbt_tag(&nbt)
+                .ok_or(BufReadError::Custom("couldn't read nbt".to_owned()))
+        } else {
+            Ok(FormattedText::default())
+        }
+    }
+}
+
+#[cfg(feature = "azalea-buf")]
+#[cfg(feature = "simdnbt")]
 impl McBufWritable for FormattedText {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        let json = serde_json::to_string(self).unwrap();
-        json.write_into(buf)?;
-        Ok(())
+    fn write_into(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
+        let mut out = Vec::new();
+        simdnbt::owned::BaseNbt::write_unnamed(&(self.clone().to_compound().into()), &mut out);
+        buf.write_all(&out)
     }
 }
 

@@ -1,18 +1,19 @@
 //! Simulate the Minecraft world, currently only used for tests.
 
-use std::{sync::Arc, time::Duration};
+use std::sync::Arc;
 
-use azalea_client::{inventory::InventoryComponent, PhysicsState};
-use azalea_core::{position::Vec3, resource_location::ResourceLocation};
-use azalea_entity::{
-    attributes::AttributeInstance, metadata::Sprinting, Attributes, EntityDimensions, Physics,
-    Position,
+use azalea_client::{
+    inventory::InventoryComponent, packet_handling::game::SendPacketEvent, PhysicsState,
 };
-use azalea_world::{ChunkStorage, Instance, InstanceContainer, InstanceName, MinecraftEntityId};
-use bevy_app::{App, FixedUpdate};
+use azalea_core::{position::Vec3, resource_location::ResourceLocation, tick::GameTick};
+use azalea_entity::{
+    attributes::AttributeInstance, Attributes, EntityDimensions, Physics, Position,
+};
+use azalea_world::{ChunkStorage, Instance, InstanceContainer, MinecraftEntityId, PartialInstance};
+use bevy_app::App;
 use bevy_ecs::prelude::*;
-use bevy_time::{Fixed, Time};
 use parking_lot::RwLock;
+use uuid::Uuid;
 
 #[derive(Bundle, Clone)]
 pub struct SimulatedPlayerBundle {
@@ -68,44 +69,52 @@ impl Simulation {
             super::PathfinderPlugin,
             crate::BotPlugin,
             azalea_client::task_pool::TaskPoolPlugin::default(),
+            // for mining
+            azalea_client::inventory::InventoryPlugin,
+            azalea_client::mining::MinePlugin,
+            azalea_client::interact::InteractPlugin,
         ))
-        // make sure it doesn't do fixed ticks without us telling it to
-        .insert_resource(Time::<Fixed>::from_duration(Duration::MAX))
         .insert_resource(InstanceContainer {
             instances: [(instance_name.clone(), Arc::downgrade(&instance.clone()))]
                 .iter()
                 .cloned()
                 .collect(),
         })
-        .add_event::<azalea_client::SendPacketEvent>();
+        .add_event::<SendPacketEvent>();
 
         app.edit_schedule(bevy_app::Main, |schedule| {
             schedule.set_executor_kind(bevy_ecs::schedule::ExecutorKind::SingleThreaded);
         });
 
-        let entity = app
-            .world
-            .spawn((
-                MinecraftEntityId(0),
-                InstanceName(instance_name),
-                azalea_entity::LocalEntity,
-                azalea_entity::Jumping::default(),
-                azalea_entity::LookDirection::default(),
-                Sprinting(true),
-                azalea_entity::metadata::Player,
-                azalea_entity::EyeHeight::new(player.physics.dimensions.height * 0.85),
-                player,
-            ))
-            .id();
+        let mut entity = app.world.spawn((
+            MinecraftEntityId(0),
+            azalea_entity::LocalEntity,
+            azalea_entity::metadata::PlayerMetadataBundle::default(),
+            azalea_entity::EntityBundle::new(
+                Uuid::nil(),
+                *player.position,
+                azalea_registry::EntityKind::Player,
+                instance_name,
+            ),
+            azalea_client::InstanceHolder {
+                // partial_instance is never actually used by the pathfinder so
+                partial_instance: Arc::new(RwLock::new(PartialInstance::default())),
+                instance: instance.clone(),
+            },
+            InventoryComponent::default(),
+        ));
+        entity.insert(player);
+
+        let entity_id = entity.id();
 
         Self {
             app,
-            entity,
+            entity: entity_id,
             _instance: instance,
         }
     }
     pub fn tick(&mut self) {
-        self.app.world.run_schedule(FixedUpdate);
+        self.app.world.run_schedule(GameTick);
         self.app.update();
     }
     pub fn position(&self) -> Vec3 {

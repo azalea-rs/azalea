@@ -3,14 +3,9 @@ use std::{collections::HashMap, io, sync::Arc};
 use azalea_auth::game_profile::GameProfile;
 use azalea_core::game_type::GameMode;
 use azalea_entity::Dead;
-use azalea_protocol::packets::game::{
-    clientbound_player_abilities_packet::ClientboundPlayerAbilitiesPacket, ServerboundGamePacket,
-};
+use azalea_protocol::packets::game::clientbound_player_abilities_packet::ClientboundPlayerAbilitiesPacket;
 use azalea_world::{Instance, PartialInstance};
-use bevy_ecs::{
-    component::Component, entity::Entity, event::EventReader, prelude::*, query::Added,
-    system::Query,
-};
+use bevy_ecs::{component::Component, entity::Entity, prelude::*, query::Added, system::Query};
 use derive_more::{Deref, DerefMut};
 use parking_lot::RwLock;
 use thiserror::Error;
@@ -20,7 +15,6 @@ use uuid::Uuid;
 
 use crate::{
     events::{Event as AzaleaEvent, LocalPlayerEvents},
-    raw_connection::RawConnection,
     ClientInformation, PlayerInfo,
 };
 
@@ -158,26 +152,5 @@ pub enum HandlePacketError {
 impl<T> From<std::sync::PoisonError<T>> for HandlePacketError {
     fn from(e: std::sync::PoisonError<T>) -> Self {
         HandlePacketError::Poison(e.to_string())
-    }
-}
-
-/// Event for sending a packet to the server.
-#[derive(Event)]
-pub struct SendPacketEvent {
-    pub entity: Entity,
-    pub packet: ServerboundGamePacket,
-}
-
-pub fn handle_send_packet_event(
-    mut send_packet_events: EventReader<SendPacketEvent>,
-    mut query: Query<&mut RawConnection>,
-) {
-    for event in send_packet_events.read() {
-        if let Ok(raw_connection) = query.get_mut(event.entity) {
-            // debug!("Sending packet: {:?}", event.packet);
-            if let Err(e) = raw_connection.write_packet(event.packet.clone()) {
-                error!("Failed to send packet: {e}");
-            }
-        }
     }
 }

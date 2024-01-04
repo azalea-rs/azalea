@@ -7,12 +7,16 @@ use crate::{
     interact::{CurrentSequenceNumber, InteractPlugin},
     inventory::{InventoryComponent, InventoryPlugin},
     local_player::{
-        death_event, handle_send_packet_event, GameProfileComponent, Hunger, InstanceHolder,
-        PermissionLevel, PlayerAbilities, SendPacketEvent, TabList,
+        death_event, GameProfileComponent, Hunger, InstanceHolder, PermissionLevel,
+        PlayerAbilities, TabList,
     },
     mining::{self, MinePlugin},
     movement::{LastSentLookDirection, PhysicsState, PlayerMovePlugin},
-    packet_handling::PacketHandlerPlugin,
+    packet_handling::{
+        game::{handle_send_packet_event, SendPacketEvent},
+        login::{self, LoginSendPacketQueue},
+        PacketHandlerPlugin,
+    },
     player::retroactively_add_game_profile_component,
     raw_connection::RawConnection,
     respawn::RespawnPlugin,
@@ -23,7 +27,7 @@ use crate::{
 use azalea_auth::{game_profile::GameProfile, sessionserver::ClientSessionServerError};
 use azalea_buf::McBufWritable;
 use azalea_chat::FormattedText;
-use azalea_core::{position::Vec3, resource_location::ResourceLocation};
+use azalea_core::{position::Vec3, resource_location::ResourceLocation, tick::GameTick};
 use azalea_entity::{
     indexing::{EntityIdIndex, EntityUuidIndex},
     metadata::Health,
@@ -35,6 +39,7 @@ use azalea_protocol::{
     packets::{
         configuration::{
             serverbound_client_information_packet::ClientInformation,
+            serverbound_custom_payload_packet::ServerboundCustomPayloadPacket,
             ClientboundConfigurationPacket, ServerboundConfigurationPacket,
         },
         game::ServerboundGamePacket,
@@ -43,7 +48,6 @@ use azalea_protocol::{
             ServerboundHandshakePacket,
         },
         login::{
-            serverbound_custom_query_answer_packet::ServerboundCustomQueryAnswerPacket,
             serverbound_hello_packet::ServerboundHelloPacket,
             serverbound_key_packet::ServerboundKeyPacket,
             serverbound_login_acknowledged_packet::ServerboundLoginAcknowledgedPacket,
@@ -54,7 +58,7 @@ use azalea_protocol::{
     resolver, ServerAddress,
 };
 use azalea_world::{Instance, InstanceContainer, InstanceName, PartialInstance};
-use bevy_app::{App, FixedUpdate, Plugin, PluginGroup, PluginGroupBuilder, Update};
+use bevy_app::{App, Plugin, PluginGroup, PluginGroupBuilder, Update};
 use bevy_ecs::{
     bundle::Bundle,
     component::Component,
@@ -63,11 +67,17 @@ use bevy_ecs::{
     system::{ResMut, Resource},
     world::World,
 };
-use bevy_time::{Fixed, Time, TimePlugin};
+use bevy_time::TimePlugin;
 use derive_more::Deref;
 use parking_lot::{Mutex, RwLock};
 use std::{
-    collections::HashMap, fmt::Debug, io, net::SocketAddr, ops::Deref, sync::Arc, time::Duration,
+    collections::HashMap,
+    fmt::Debug,
+    io,
+    net::SocketAddr,
+    ops::Deref,
+    sync::Arc,
+    time::{Duration, Instant},
 };
 use thiserror::Error;
 use tokio::{
@@ -209,8 +219,34 @@ impl Client {
         proxy: Option<Proxy>,
         run_schedule_sender: mpsc::UnboundedSender<()>,
     ) -> Result<(Self, mpsc::UnboundedReceiver<Event>), JoinError> {
+        // check if an entity with our uuid already exists in the ecs and if so then
+        // just use that
+        let entity = {
+            let mut ecs = ecs_lock.lock();
+
+            let entity_uuid_index = ecs.resource::<EntityUuidIndex>();
+            let uuid = account.uuid_or_offline();
+            let entity = if let Some(entity) = entity_uuid_index.get(&account.uuid_or_offline()) {
+                debug!("Reusing entity {entity:?} for client");
+                entity
+            } else {
+                let entity = ecs.spawn_empty().id();
+                debug!("Created new entity {entity:?} for client");
+                // add to the uuid index
+                let mut entity_uuid_index = ecs.resource_mut::<EntityUuidIndex>();
+                entity_uuid_index.insert(uuid, entity);
+                entity
+            };
+
+            // add the Account to the entity now so plugins can access it earlier
+            ecs.entity_mut(entity).insert(account.to_owned());
+
+            entity
+        };
+
         let conn = Connection::new(resolved_address, proxy).await?;
-        let (mut conn, game_profile) = Self::handshake(conn, account, address).await?;
+        let (mut conn, game_profile) =
+            Self::handshake(ecs_lock.clone(), entity, conn, account, address).await?;
 
         {
             // quickly send the brand here
@@ -218,12 +254,13 @@ impl Client {
             // they don't have to know :)
             "vanilla".write_into(&mut brand_data).unwrap();
             conn.write(
-        azalea_protocol::packets::configuration::serverbound_custom_payload_packet::ServerboundCustomPayloadPacket {
+                ServerboundCustomPayloadPacket {
                     identifier: ResourceLocation::new("brand"),
                     data: brand_data.into(),
                 }
                 .get(),
-            ).await?;
+            )
+            .await?;
         }
 
         let (read_conn, write_conn) = conn.into_split();
@@ -235,22 +272,6 @@ impl Client {
 
         let mut ecs = ecs_lock.lock();
 
-        // check if an entity with our uuid already exists in the ecs and if so then
-        // just use that
-        let entity = {
-            let entity_uuid_index = ecs.resource::<EntityUuidIndex>();
-            if let Some(entity) = entity_uuid_index.get(&game_profile.uuid) {
-                debug!("Reusing entity {entity:?} for client");
-                entity
-            } else {
-                let entity = ecs.spawn_empty().id();
-                debug!("Created new entity {entity:?} for client");
-                // add to the uuid index
-                let mut entity_uuid_index = ecs.resource_mut::<EntityUuidIndex>();
-                entity_uuid_index.insert(game_profile.uuid, entity);
-                entity
-            }
-        };
         // we got the ConfigurationConnection, so the client is now connected :)
         let client = Client::new(
             game_profile.clone(),
@@ -271,7 +292,6 @@ impl Client {
                 local_player_events: LocalPlayerEvents(tx),
                 game_profile: GameProfileComponent(game_profile),
                 client_information: crate::ClientInformation::default(),
-                account: account.to_owned(),
             },
             InConfigurationState,
         ));
@@ -285,6 +305,8 @@ impl Client {
     /// This will also automatically refresh the account's access token if
     /// it's expired.
     pub async fn handshake(
+        ecs_lock: Arc<Mutex<World>>,
+        entity: Entity,
         mut conn: Connection<ClientboundHandshakePacket, ServerboundHandshakePacket>,
         account: &Account,
         address: &ServerAddress,
@@ -308,6 +330,14 @@ impl Client {
         .await?;
         let mut conn = conn.login();
 
+        // this makes it so plugins can send an `SendLoginPacketEvent` event to the ecs
+        // and we'll send it to the server
+        let (ecs_packets_tx, mut ecs_packets_rx) = mpsc::unbounded_channel();
+        ecs_lock.lock().entity_mut(entity).insert((
+            LoginSendPacketQueue { tx: ecs_packets_tx },
+            login::IgnoreQueryIds::default(),
+        ));
+
         // login
         conn.write(
             ServerboundHelloPacket {
@@ -321,7 +351,20 @@ impl Client {
         .await?;
 
         let (conn, profile) = loop {
-            let packet = conn.read().await?;
+            let packet = tokio::select! {
+                packet = conn.read() => packet?,
+                Some(packet) = ecs_packets_rx.recv() => {
+                    // write this packet to the server
+                    conn.write(packet).await?;
+                    continue;
+                }
+            };
+
+            ecs_lock.lock().send_event(login::LoginPacketEvent {
+                entity,
+                packet: Arc::new(packet.clone()),
+            });
+
             match packet {
                 ClientboundLoginPacket::Hello(p) => {
                     debug!("Got encryption request");
@@ -394,17 +437,17 @@ impl Client {
                 }
                 ClientboundLoginPacket::CustomQuery(p) => {
                     debug!("Got custom query {:?}", p);
-                    conn.write(
-                        ServerboundCustomQueryAnswerPacket {
-                            transaction_id: p.transaction_id,
-                            data: None,
-                        }
-                        .get(),
-                    )
-                    .await?;
+                    // replying to custom query is done in
+                    // packet_handling::login::process_packet_events
                 }
             }
         };
+
+        ecs_lock
+            .lock()
+            .entity_mut(entity)
+            .remove::<login::IgnoreQueryIds>()
+            .remove::<LoginSendPacketQueue>();
 
         Ok((conn, profile))
     }
@@ -425,6 +468,7 @@ impl Client {
     pub fn disconnect(&self) {
         self.ecs.lock().send_event(DisconnectEvent {
             entity: self.entity,
+            reason: None,
         });
     }
 
@@ -596,7 +640,6 @@ pub struct LocalPlayerBundle {
     pub local_player_events: LocalPlayerEvents,
     pub game_profile: GameProfileComponent,
     pub client_information: ClientInformation,
-    pub account: Account,
 }
 
 /// A bundle for the components that are present on a local player that is
@@ -631,21 +674,19 @@ pub struct InConfigurationState;
 pub struct AzaleaPlugin;
 impl Plugin for AzaleaPlugin {
     fn build(&self, app: &mut App) {
-        // Minecraft ticks happen every 50ms
-        app.insert_resource(Time::<Fixed>::from_duration(Duration::from_millis(50)))
-            .add_systems(
-                Update,
-                (
-                    // fire the Death event when the player dies.
-                    death_event,
-                    // add GameProfileComponent when we get an AddPlayerEvent
-                    retroactively_add_game_profile_component.after(EntityUpdateSet::Index),
-                    handle_send_packet_event,
-                ),
-            )
-            .add_event::<SendPacketEvent>()
-            .init_resource::<InstanceContainer>()
-            .init_resource::<TabList>();
+        app.add_systems(
+            Update,
+            (
+                // fire the Death event when the player dies.
+                death_event,
+                // add GameProfileComponent when we get an AddPlayerEvent
+                retroactively_add_game_profile_component.after(EntityUpdateSet::Index),
+                handle_send_packet_event,
+            ),
+        )
+        .add_event::<SendPacketEvent>()
+        .init_resource::<InstanceContainer>()
+        .init_resource::<TabList>();
     }
 }
 
@@ -678,6 +719,7 @@ async fn run_schedule_loop(
     outer_schedule_label: InternedScheduleLabel,
     mut run_schedule_receiver: mpsc::UnboundedReceiver<()>,
 ) {
+    let mut last_tick: Option<Instant> = None;
     loop {
         // get rid of any queued events
         while let Ok(()) = run_schedule_receiver.try_recv() {}
@@ -686,7 +728,22 @@ async fn run_schedule_loop(
         run_schedule_receiver.recv().await;
 
         let mut ecs = ecs.lock();
+
+        // if last tick is None or more than 50ms ago, run the GameTick schedule
+        if last_tick
+            .map(|last_tick| last_tick.elapsed() > Duration::from_millis(50))
+            .unwrap_or(true)
+        {
+            if let Some(last_tick) = &mut last_tick {
+                *last_tick += Duration::from_millis(50);
+            } else {
+                last_tick = Some(Instant::now());
+            }
+            ecs.run_schedule(GameTick);
+        }
+
         ecs.run_schedule(outer_schedule_label);
+
         ecs.clear_trackers();
     }
 }
@@ -737,7 +794,7 @@ pub struct TickBroadcastPlugin;
 impl Plugin for TickBroadcastPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(TickBroadcast(broadcast::channel(1).0))
-            .add_systems(FixedUpdate, send_tick_broadcast);
+            .add_systems(GameTick, send_tick_broadcast);
     }
 }
 
@@ -750,7 +807,7 @@ impl Plugin for AmbiguityLoggerPlugin {
                 ..Default::default()
             });
         });
-        app.edit_schedule(FixedUpdate, |schedule| {
+        app.edit_schedule(GameTick, |schedule| {
             schedule.set_build_settings(ScheduleBuildSettings {
                 ambiguity_detection: LogLevel::Warn,
                 ..Default::default()

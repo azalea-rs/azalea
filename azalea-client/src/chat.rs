@@ -2,6 +2,7 @@
 
 use azalea_chat::FormattedText;
 use azalea_protocol::packets::game::{
+    clientbound_disguised_chat_packet::ClientboundDisguisedChatPacket,
     clientbound_player_chat_packet::ClientboundPlayerChatPacket,
     clientbound_system_chat_packet::ClientboundSystemChatPacket,
     serverbound_chat_command_packet::ServerboundChatCommandPacket,
@@ -22,7 +23,7 @@ use uuid::Uuid;
 
 use crate::{
     client::Client,
-    local_player::{handle_send_packet_event, SendPacketEvent},
+    packet_handling::game::{handle_send_packet_event, SendPacketEvent},
 };
 
 /// A chat packet, either a system message or a chat message.
@@ -30,6 +31,7 @@ use crate::{
 pub enum ChatPacket {
     System(Arc<ClientboundSystemChatPacket>),
     Player(Arc<ClientboundPlayerChatPacket>),
+    Disguised(Arc<ClientboundDisguisedChatPacket>),
 }
 
 macro_rules! regex {
@@ -45,6 +47,7 @@ impl ChatPacket {
         match self {
             ChatPacket::System(p) => p.content.clone(),
             ChatPacket::Player(p) => p.message(),
+            ChatPacket::Disguised(p) => p.message(),
         }
     }
 
@@ -54,12 +57,6 @@ impl ChatPacket {
     /// None.
     pub fn split_sender_and_content(&self) -> (Option<String>, String) {
         match self {
-            ChatPacket::Player(p) => (
-                // If it's a player chat packet, then the sender and content
-                // are already split for us.
-                Some(p.chat_type.name.to_string()),
-                p.body.content.clone(),
-            ),
             ChatPacket::System(p) => {
                 let message = p.content.to_string();
                 // Overlay messages aren't in chat
@@ -74,6 +71,18 @@ impl ChatPacket {
 
                 (None, message)
             }
+            ChatPacket::Player(p) => (
+                // If it's a player chat packet, then the sender and content
+                // are already split for us.
+                Some(p.chat_type.name.to_string()),
+                p.body.content.clone(),
+            ),
+            ChatPacket::Disguised(p) => (
+                // disguised chat packets are basically the same as player chat packets but without
+                // the chat signing things
+                Some(p.chat_type.name.to_string()),
+                p.message.to_string(),
+            ),
         }
     }
 
@@ -91,6 +100,7 @@ impl ChatPacket {
         match self {
             ChatPacket::System(_) => None,
             ChatPacket::Player(m) => Some(m.sender),
+            ChatPacket::Disguised(_) => None,
         }
     }
 

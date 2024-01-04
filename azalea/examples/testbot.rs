@@ -21,7 +21,7 @@ struct State {}
 struct SwarmState {}
 
 #[tokio::main]
-async fn main() -> anyhow::Result<()> {
+async fn main() {
     {
         use parking_lot::deadlock;
         use std::thread;
@@ -51,20 +51,14 @@ async fn main() -> anyhow::Result<()> {
         accounts.push(Account::offline(&format!("bot{i}")));
     }
 
-    loop {
-        let e = SwarmBuilder::new()
-            .add_accounts(accounts.clone())
-            .set_handler(handle)
-            .set_swarm_handler(swarm_handle)
-            .join_delay(Duration::from_millis(100))
-            .start("localhost")
-            .await;
-        // let e = azalea::ClientBuilder::new()
-        //     .set_handler(handle)
-        //     .start(Account::offline("bot"), "localhost")
-        //     .await;
-        eprintln!("{e:?}");
-    }
+    SwarmBuilder::new()
+        .add_accounts(accounts.clone())
+        .set_handler(handle)
+        .set_swarm_handler(swarm_handle)
+        .join_delay(Duration::from_millis(100))
+        .start("localhost")
+        .await
+        .unwrap();
 }
 
 async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<()> {
@@ -307,44 +301,70 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
                         bot.chat("no chunk found");
                     }
                 }
+                "debugblock" => {
+                    // send the block that we're standing on
+                    let block_pos = BlockPos::from(bot.position().down(0.1));
+                    let block = bot.world().read().get_block_state(&block_pos);
+                    bot.chat(&format!("block: {block:?}"));
+                }
                 "debugchunks" => {
-                    println!("shared:");
+                    {
+                        println!("shared:");
 
-                    let partial_instance_lock = bot.component::<InstanceHolder>().partial_instance;
-                    let local_chunk_storage = &partial_instance_lock.read().chunks;
+                        let mut ecs = bot.ecs.lock();
 
-                    let mut total_loaded_chunks_count = 0;
-                    for (chunk_pos, chunk) in &bot.world().read().chunks.map {
-                        if let Some(chunk) = chunk.upgrade() {
-                            let in_range = local_chunk_storage.in_range(chunk_pos);
-                            println!(
-                                "{chunk_pos:?} has {} references{}",
-                                std::sync::Arc::strong_count(&chunk) - 1,
-                                if in_range { "" } else { " (out of range)" }
-                            );
-                            total_loaded_chunks_count += 1;
+                        let instance_holder = bot.query::<&InstanceHolder>(&mut ecs).clone();
+                        drop(ecs);
+                        let local_chunk_storage = &instance_holder.partial_instance.read().chunks;
+                        let shared_chunk_storage = instance_holder.instance.read();
+
+                        let mut total_loaded_chunks_count = 0;
+                        for (chunk_pos, chunk) in &shared_chunk_storage.chunks.map {
+                            if let Some(chunk) = chunk.upgrade() {
+                                let in_range = local_chunk_storage.in_range(chunk_pos);
+                                println!(
+                                    "{chunk_pos:?} has {} references{}",
+                                    std::sync::Arc::strong_count(&chunk) - 1,
+                                    if in_range { "" } else { " (out of range)" }
+                                );
+                                total_loaded_chunks_count += 1;
+                            }
                         }
-                    }
 
-                    println!("local:");
+                        println!("local:");
+                        println!("view range: {}", local_chunk_storage.view_range());
+                        println!("view center: {:?}", local_chunk_storage.view_center());
 
-                    let mut local_loaded_chunks_count = 0;
-                    for (i, chunk) in local_chunk_storage.chunks().enumerate() {
-                        if let Some(chunk) = chunk {
-                            let chunk_pos = local_chunk_storage.chunk_pos_from_index(i);
-                            println!(
-                                "{chunk_pos:?} has {} references",
-                                std::sync::Arc::strong_count(&chunk)
-                            );
-                            local_loaded_chunks_count += 1;
+                        let mut local_loaded_chunks_count = 0;
+                        for (i, chunk) in local_chunk_storage.chunks().enumerate() {
+                            if let Some(chunk) = chunk {
+                                let chunk_pos = local_chunk_storage.chunk_pos_from_index(i);
+                                println!(
+                                    "{chunk_pos:?} (#{i}) has {} references",
+                                    std::sync::Arc::strong_count(&chunk)
+                                );
+                                local_loaded_chunks_count += 1;
+                            }
                         }
-                    }
 
-                    println!("total loaded chunks: {total_loaded_chunks_count}");
-                    println!(
-                        "local loaded chunks: {local_loaded_chunks_count}/{}",
-                        local_chunk_storage.chunks().collect::<Vec<_>>().len()
-                    );
+                        println!("total loaded chunks: {total_loaded_chunks_count}");
+                        println!(
+                            "local loaded chunks: {local_loaded_chunks_count}/{}",
+                            local_chunk_storage.chunks().collect::<Vec<_>>().len()
+                        );
+                    }
+                    {
+                        let local_chunk_storage_lock = bot.partial_world();
+                        let local_chunk_storage = local_chunk_storage_lock.read();
+                        let current_chunk_loaded = local_chunk_storage
+                            .chunks
+                            .limited_get(&ChunkPos::from(bot.position()));
+
+                        bot.chat(&format!(
+                            "current chunk loaded: {}",
+                            current_chunk_loaded.is_some()
+                        ));
+                    }
                 }
                 _ => {}
             }
@@ -352,6 +372,13 @@ async fn handle(mut bot: Client, event: Event, _state: State) -> anyhow::Result<
         Event::Packet(packet) => {
             if let ClientboundGamePacket::Login(_) = *packet {
                 println!("login packet");
+            }
+        }
+        Event::Disconnect(reason) => {
+            if let Some(reason) = reason {
+                println!("bot got kicked for reason: {}", reason.to_ansi());
+            } else {
+                println!("bot got kicked");
             }
         }
         _ => {}
@@ -369,9 +396,7 @@ async fn swarm_handle(
         SwarmEvent::Disconnect(account) => {
             println!("bot got kicked! {}", account.username);
             tokio::time::sleep(Duration::from_secs(5)).await;
-            swarm
-                .add_with_exponential_backoff(account,  None, State::default())
-                .await;
+            swarm.add_and_retry_forever(account, State::default()).await;
         }
         SwarmEvent::Chat(m) => {
             println!("swarm chat message: {}", m.message().to_ansi());

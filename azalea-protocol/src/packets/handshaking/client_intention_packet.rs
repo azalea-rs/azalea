@@ -6,7 +6,7 @@ use std::hash::Hash;
 #[derive(Hash, Clone, Debug, McBuf, ServerboundHandshakePacket)]
 pub struct ClientIntentionPacket {
     #[var]
-    pub protocol_version: u32,
+    pub protocol_version: i32,
     pub hostname: String,
     pub port: u16,
     pub intention: ConnectionProtocol,

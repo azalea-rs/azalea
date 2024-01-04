@@ -133,7 +133,10 @@ impl RawConnectionReader {
                 Ok(raw_packet) => {
                     self.incoming_packet_queue.lock().push(raw_packet);
                     // tell the client to run all the systems
-                    self.run_schedule_sender.send(()).unwrap();
+                    if self.run_schedule_sender.send(()).is_err() {
+                        // the client was dropped
+                        break;
+                    }
                 }
                 Err(error) => {
                     if !matches!(*error, ReadPacketError::ConnectionClosed) {

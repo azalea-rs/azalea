@@ -6,7 +6,6 @@
 //! [`azalea`]: https://docs.rs/azalea
 
 #![allow(incomplete_features)]
-#![feature(trait_upcasting)]
 #![feature(error_generic_member_access)]
 
 mod account;
@@ -17,7 +16,6 @@ mod client;
 pub mod disconnect;
 mod entity_query;
 mod events;
-mod get_mc_dir;
 pub mod interact;
 pub mod inventory;
 mod local_player;
@@ -36,7 +34,7 @@ pub use client::{
     start_ecs_runner, Client, DefaultPlugins, JoinError, JoinedClientBundle, TickBroadcast,
 };
 pub use events::Event;
-pub use local_player::{GameProfileComponent, InstanceHolder, SendPacketEvent, TabList};
+pub use local_player::{GameProfileComponent, InstanceHolder, TabList};
 pub use movement::{
     PhysicsState, SprintDirection, StartSprintEvent, StartWalkEvent, WalkDirection,
 };

@@ -1,33 +1,34 @@
 Azalea is a framework for creating Minecraft bots.
 
 This page is primarily meant for developers that already know they want to use Azalea.
-See the [readme](https://github.com/azalea-rs/azalea) for an overview of why you might want to use it.
+See the [readme](https://github.com/azalea-rs/azalea) for a higher-level overview of Azalea.
 
 # Installation
 
-First, install Rust nightly with `rustup install nightly` and `rustup
-default nightly`.
+First, install Rust nightly with `rustup install nightly` and `rustup default nightly`.
 
-Then, add one of the following lines to your Cargo.toml:
+Then, use one of the following commands to add Azalea to your project:
 
-- Latest bleeding-edge version (recommended): `azalea = { git="https://github.com/azalea-rs/azalea" }`\
-- Latest "stable" release: `azalea = "0.8.0"`
+-   Latest bleeding-edge version (recommended): `cargo add azalea --git=https://github.com/azalea-rs/azalea`\
+-   Latest "stable" release: `cargo add azalea`
 
 ## Optimization
 
 For faster compile times, make a `.cargo/config.toml` file in your project
 and copy
-[this file](https://github.com/azalea-rs/azalea/blob/main/.cargo/config.toml)
+[this file](https://github.com/azalea-rs/azalea/blob/main/.cargo/config_fast_builds)
 into it. You may have to install the LLD linker.
 
 For faster performance in debug mode, add the following code to your
 Cargo.toml:
+
 ```toml
 [profile.dev]
 opt-level = 1
 [profile.dev.package."*"]
 opt-level = 3
 ```
+
 # Documentation
 
 The documentation for the latest Azalea crates.io release is available at [docs.rs/azalea](https://docs.rs/azalea/latest/azalea/) and the docs for the latest bleeding-edge (git) version are at [azalea.matdoes.dev](https://azalea.matdoes.dev/azalea/).
@@ -35,7 +36,6 @@ The documentation for the latest Azalea crates.io release is available at [docs.
 Note that the `azalea` crate is technically just a wrapper over [`azalea_client`] that adds some extra functions.
 Because of this, some of the documentation will refer to `azalea_client`.
 You can just replace these with `azalea` in your code since everything from `azalea_client` is re-exported in azalea.
-
 
 # Examples
 
@@ -51,13 +51,11 @@ async fn main() {
     let account = Account::offline("bot");
     // or Account::microsoft("example@example.com").await.unwrap();
 
-    loop {
-        let e = ClientBuilder::new()
-            .set_handler(handle)
-            .start(account.clone(), "localhost")
-            .await;
-        eprintln!("{e:?}");
-    }
+    ClientBuilder::new()
+        .set_handler(handle)
+        .start(account.clone(), "localhost")
+        .await
+        .unwrap();
 }
 
 #[derive(Default, Clone, Component)]

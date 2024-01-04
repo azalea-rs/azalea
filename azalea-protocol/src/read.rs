@@ -17,7 +17,6 @@ use std::{
 use thiserror::Error;
 use tokio::io::AsyncRead;
 use tokio_util::codec::{BytesCodec, FramedRead};
-use tracing::if_log_enabled;
 
 #[derive(Error, Debug)]
 pub enum ReadPacketError {
@@ -244,6 +243,8 @@ pub async fn read_raw_packet<'a, R>(
     stream: &'a mut R,
     buffer: &mut BytesMut,
     compression_threshold: Option<u32>,
+    // this has to be a &mut Option<T> instead of an Option<&mut T> because
+    // otherwise the borrow checker complains about the cipher being moved
     cipher: &mut Option<Aes128CfbDec>,
 ) -> Result<Vec<u8>, Box<ReadPacketError>>
 where
@@ -346,7 +347,7 @@ where
             .map_err(ReadPacketError::from)?;
     }
 
-    if_log_enabled!(tracing::Level::TRACE, {
+    if log::log_enabled!(log::Level::Trace) {
         let buf_string: String = {
             if buf.len() > 500 {
                 let cut_off_buf = &buf[..500];
@@ -355,8 +356,8 @@ where
                 format!("{buf:?}")
             }
         };
-        trace!("Reading packet with bytes: {buf_string}");
-    });
+        tracing::trace!("Reading packet with bytes: {buf_string}");
+    };
 
     Ok(Some(buf))
 }

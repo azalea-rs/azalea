@@ -3,11 +3,13 @@
 
 use std::sync::Arc;
 
+use azalea_chat::FormattedText;
+use azalea_core::tick::GameTick;
 use azalea_protocol::packets::game::{
     clientbound_player_combat_kill_packet::ClientboundPlayerCombatKillPacket, ClientboundGamePacket,
 };
 use azalea_world::{InstanceName, MinecraftEntityId};
-use bevy_app::{App, FixedUpdate, Plugin, PreUpdate, Update};
+use bevy_app::{App, Plugin, PreUpdate, Update};
 use bevy_ecs::{
     component::Component,
     event::EventReader,
@@ -20,6 +22,7 @@ use tokio::sync::mpsc;
 
 use crate::{
     chat::{ChatPacket, ChatReceivedEvent},
+    disconnect::DisconnectEvent,
     packet_handling::game::{
         AddPlayerEvent, DeathEvent, KeepAliveEvent, PacketEvent, RemovePlayerEvent,
         UpdatePlayerEvent,
@@ -93,6 +96,8 @@ pub enum Event {
     Death(Option<Arc<ClientboundPlayerCombatKillPacket>>),
     /// A `KeepAlive` packet was sent by the server.
     KeepAlive(u64),
+    /// The client disconnected from the server.
+    Disconnect(Option<FormattedText>),
 }
 
 /// A component that contains an event sender for events that are only
@@ -117,13 +122,14 @@ impl Plugin for EventPlugin {
                 remove_player_listener,
                 keepalive_listener,
                 death_listener,
+                disconnect_listener,
             ),
         )
         .add_systems(
             PreUpdate,
             init_listener.before(crate::packet_handling::game::process_packet_events),
         )
-        .add_systems(FixedUpdate, tick_listener);
+        .add_systems(GameTick, tick_listener);
     }
 }
 
@@ -227,5 +233,13 @@ fn keepalive_listener(query: Query<&LocalPlayerEvents>, mut events: EventReader<
         local_player_events
             .send(Event::KeepAlive(event.id))
             .unwrap();
+    }
+}
+
+fn disconnect_listener(query: Query<&LocalPlayerEvents>, mut events: EventReader<DisconnectEvent>) {
+    for event in events.read() {
+        if let Ok(local_player_events) = query.get(event.entity) {
+            let _ = local_player_events.send(Event::Disconnect(event.reason.clone()));
+        }
     }
 }

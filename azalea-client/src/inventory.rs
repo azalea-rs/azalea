@@ -12,6 +12,7 @@ use azalea_inventory::{
 use azalea_protocol::packets::game::{
     serverbound_container_click_packet::ServerboundContainerClickPacket,
     serverbound_container_close_packet::ServerboundContainerClosePacket,
+    serverbound_set_carried_item_packet::ServerboundSetCarriedItemPacket,
 };
 use azalea_registry::MenuKind;
 use bevy_app::{App, Plugin, Update};
@@ -26,7 +27,8 @@ use bevy_ecs::{
 use tracing::warn;
 
 use crate::{
-    local_player::{handle_send_packet_event, PlayerAbilities, SendPacketEvent},
+    local_player::PlayerAbilities,
+    packet_handling::game::{handle_send_packet_event, SendPacketEvent},
     respawn::perform_respawn,
     Client,
 };
@@ -39,9 +41,11 @@ impl Plugin for InventoryPlugin {
             .add_event::<CloseContainerEvent>()
             .add_event::<ContainerClickEvent>()
             .add_event::<SetContainerContentEvent>()
+            .add_event::<SetSelectedHotbarSlotEvent>()
             .add_systems(
                 Update,
                 (
+                    handle_set_selected_hotbar_slot_event,
                     handle_menu_opened_event,
                     handle_set_container_content_event,
                     handle_container_click_event,
@@ -731,5 +735,35 @@ fn handle_set_container_content_event(
                 *slot_mut = slot.clone();
             }
         }
+    }
+}
+
+#[derive(Event)]
+pub struct SetSelectedHotbarSlotEvent {
+    pub entity: Entity,
+    /// The hotbar slot to select. This should be in the range 0..=8.
+    pub slot: u8,
+}
+fn handle_set_selected_hotbar_slot_event(
+    mut events: EventReader<SetSelectedHotbarSlotEvent>,
+    mut send_packet_events: EventWriter<SendPacketEvent>,
+    mut query: Query<&mut InventoryComponent>,
+) {
+    for event in events.read() {
+        let mut inventory = query.get_mut(event.entity).unwrap();
+
+        // if the slot is already selected, don't send a packet
+        if inventory.selected_hotbar_slot == event.slot {
+            continue;
+        }
+
+        inventory.selected_hotbar_slot = event.slot;
+        send_packet_events.send(SendPacketEvent {
+            entity: event.entity,
+            packet: ServerboundSetCarriedItemPacket {
+                slot: event.slot as u16,
+            }
+            .get(),
+        });
     }
 }

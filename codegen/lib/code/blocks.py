@@ -71,9 +71,9 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, pixlyzer_block_dat
         # },
         property_name = property_struct_names_to_names[property_struct_name]
 
-        # if the only variants are true and false, we can just make it a normal boolean
+        # if the only variants are true and false, we make it unit struct with a boolean instead of an enum
         if property_variants == ['true', 'false']:
-            property_shape_code = 'bool'
+            property_shape_code = f'{property_struct_name}(bool)'
         else:
             property_shape_code = f'{property_struct_name} {{\n'
             for variant in property_variants:
@@ -119,7 +119,7 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, pixlyzer_block_dat
             if is_boolean_property:
                 # if it's a boolean, keep the type lowercase
                 # (so it's either `true` or `false`)
-                property_default_type = property_default
+                property_default_type = f'{property_struct_name}({property_default})'
             else:
                 property_default_type = f'{property_struct_name}::{to_camel_case(property_default)}'
 
@@ -207,6 +207,10 @@ def get_property_struct_name(property: Optional[dict], block_data_burger: dict, 
 
     if property is None:
         return ''.join(map(to_camel_case, property_variants))
+
+    if property_variants == ['true', 'false']:
+        # booleans are weird, so just return the string name minecraft uses
+        return to_camel_case(property['name'])
 
     for class_name in [block_data_burger['class']] + block_data_burger['super']:
         property_name = mappings.get_field(

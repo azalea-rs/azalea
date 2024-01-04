@@ -2,7 +2,6 @@
 
 use std::sync::Arc;
 
-use crate::get_mc_dir;
 use azalea_auth::certs::{Certificates, FetchCertificatesError};
 use azalea_auth::AccessTokenResponse;
 use bevy_ecs::component::Component;
@@ -91,10 +90,10 @@ impl Account {
     /// a key for the cache, but it's recommended to use the real email to
     /// avoid confusion.
     pub async fn microsoft(email: &str) -> Result<Self, azalea_auth::AuthError> {
-        let minecraft_dir = get_mc_dir::minecraft_dir().unwrap_or_else(|| {
+        let minecraft_dir = minecraft_folder_path::minecraft_dir().unwrap_or_else(|| {
             panic!(
                 "No {} environment variable found",
-                get_mc_dir::home_env_var()
+                minecraft_folder_path::home_env_var()
             )
         });
         let auth_result = azalea_auth::auth(
@@ -199,6 +198,13 @@ impl Account {
                 Ok(())
             }
         }
+    }
+
+    /// Get the UUID of this account. This will generate an offline-mode UUID
+    /// by making a hash with the username if the `uuid` field is None.
+    pub fn uuid_or_offline(&self) -> Uuid {
+        self.uuid
+            .unwrap_or_else(|| azalea_auth::offline::generate_uuid(&self.username))
     }
 }
 

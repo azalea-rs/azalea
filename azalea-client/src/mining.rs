@@ -1,5 +1,5 @@
 use azalea_block::{Block, BlockState, FluidState};
-use azalea_core::{direction::Direction, game_type::GameMode, position::BlockPos};
+use azalea_core::{direction::Direction, game_type::GameMode, position::BlockPos, tick::GameTick};
 use azalea_entity::{mining::get_mine_progress, FluidOnEyes, Physics};
 use azalea_inventory::ItemSlot;
 use azalea_physics::PhysicsSet;
@@ -7,7 +7,7 @@ use azalea_protocol::packets::game::serverbound_player_action_packet::{
     self, ServerboundPlayerActionPacket,
 };
 use azalea_world::{InstanceContainer, InstanceName};
-use bevy_app::{App, FixedUpdate, Plugin, Update};
+use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
 
@@ -17,8 +17,9 @@ use crate::{
         HitResultComponent, SwingArmEvent,
     },
     inventory::{InventoryComponent, InventorySet},
-    local_player::{LocalGameMode, PermissionLevel, PlayerAbilities, SendPacketEvent},
+    local_player::{LocalGameMode, PermissionLevel, PlayerAbilities},
     movement::MoveEventsSet,
+    packet_handling::game::SendPacketEvent,
     Client,
 };
 
@@ -32,7 +33,7 @@ impl Plugin for MinePlugin {
             .add_event::<StopMiningBlockEvent>()
             .add_event::<MineBlockProgressEvent>()
             .add_event::<AttackBlockEvent>()
-            .add_systems(FixedUpdate, continue_mining_block.before(PhysicsSet))
+            .add_systems(GameTick, continue_mining_block.before(PhysicsSet))
             .add_systems(
                 Update,
                 (
@@ -199,7 +200,20 @@ fn handle_start_mining_block_with_direction_event(
                 .get_block_state(&event.position)
                 .unwrap_or_default();
             *sequence_number += 1;
-            let block_is_solid = !target_block_state.is_air();
+            let target_registry_block = azalea_registry::Block::from(target_block_state);
+
+            // we can't break blocks if they don't have a bounding box
+
+            // TODO: So right now azalea doesn't differenciate between different types of
+            // bounding boxes. See ClipContext::block_shape for more info. Ideally this
+            // should just call ClipContext::block_shape and check if it's empty.
+            let block_is_solid = !target_block_state.is_air()
+                // this is a hack to make sure we can't break water or lava
+                && !matches!(
+                    target_registry_block,
+                    azalea_registry::Block::Water | azalea_registry::Block::Lava
+                );
+
             if block_is_solid && **mine_progress == 0. {
                 // interact with the block (like note block left click) here
                 attack_block_events.send(AttackBlockEvent {

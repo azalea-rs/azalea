@@ -161,7 +161,7 @@ mod tests {
     fn make_test_app() -> App {
         let mut app = App::new();
         // we add the events like this instead of with .add_event so we can have our own
-        // event mangement in drain_events
+        // event management in drain_events
         app.init_resource::<Events<ChatReceivedEvent>>()
             .init_resource::<Events<NewChatMessageEvent>>()
             .add_systems(

@@ -3,7 +3,7 @@ import re
 import os
 
 README_DIR = get_dir_location('../README.md')
-VERSION_REGEX = r'\*Currently supported Minecraft version: `(.*)`.\*'
+VERSION_REGEX = r'\_Currently supported Minecraft version: `(.*)`.\_'
 
 
 def get_version_id() -> str:
@@ -35,7 +35,7 @@ def set_version_id(version_id: str) -> None:
 
 def get_protocol_version() -> str:
     # azalea-protocol/src/packets/mod.rs
-    # pub const PROTOCOL_VERSION: u32 = 758;
+    # pub const PROTOCOL_VERSION: i32 = 758;
     with open(get_dir_location('../azalea-protocol/src/packets/mod.rs'), 'r') as f:
         mod_rs = f.read().splitlines()
     for line in mod_rs:
@@ -50,7 +50,7 @@ def set_protocol_version(protocol_version: str) -> None:
         mod_rs = f.read().splitlines()
     for i, line in enumerate(mod_rs):
         if line.strip().startswith('pub const PROTOCOL_VERSION'):
-            mod_rs[i] = f'pub const PROTOCOL_VERSION: u32 = {protocol_version};'
+            mod_rs[i] = f'pub const PROTOCOL_VERSION: i32 = {protocol_version};'
             break
     else:
         raise Exception(

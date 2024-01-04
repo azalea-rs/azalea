@@ -58,7 +58,7 @@ pub enum AuthError {
 ///
 /// If you want to use your own code to cache or show the auth code to the user
 /// in a different way, use [`get_ms_link_code`], [`get_ms_auth_token`],
-/// [`get_minecraft_token`] and [`get_profile`] instead instead.
+/// [`get_minecraft_token`] and [`get_profile`] instead.
 pub async fn auth(email: &str, opts: AuthOpts) -> Result<AuthResult, AuthError> {
     let cached_account = if let Some(cache_file) = &opts.cache_file {
         cache::get_account_in_cache(cache_file, email).await
@@ -84,7 +84,14 @@ pub async fn auth(email: &str, opts: AuthOpts) -> Result<AuthResult, AuthError> 
         };
         if msa.is_expired() {
             tracing::trace!("refreshing Microsoft auth token");
-            msa = refresh_ms_auth_token(&client, &msa.data.refresh_token).await?;
+            match refresh_ms_auth_token(&client, &msa.data.refresh_token).await {
+                Ok(new_msa) => msa = new_msa,
+                Err(e) => {
+                    // can't refresh, ask the user to auth again
+                    tracing::error!("Error refreshing Microsoft auth token: {}", e);
+                    msa = interactive_get_ms_auth_token(&client, email).await?;
+                }
+            }
         }
 
         let msa_token = &msa.data.access_token;
@@ -361,13 +368,15 @@ pub async fn interactive_get_ms_auth_token(
 pub enum RefreshMicrosoftAuthTokenError {
     #[error("Http error: {0}")]
     Http(#[from] reqwest::Error),
+    #[error("Error parsing JSON: {0}")]
+    Json(#[from] serde_json::Error),
 }
 
 pub async fn refresh_ms_auth_token(
     client: &reqwest::Client,
     refresh_token: &str,
 ) -> Result<ExpiringValue<AccessTokenResponse>, RefreshMicrosoftAuthTokenError> {
-    let access_token_response = client
+    let access_token_response_text = client
         .post("https://login.live.com/oauth20_token.srf")
         .form(&vec![
             ("scope", "service::user.auth.xboxlive.com::MBI_SSL"),
@@ -377,8 +386,10 @@ pub async fn refresh_ms_auth_token(
         ])
         .send()
         .await?
-        .json::<AccessTokenResponse>()
+        .text()
         .await?;
+    let access_token_response: AccessTokenResponse =
+        serde_json::from_str(&access_token_response_text)?;
 
     let expires_at =
         SystemTime::now() + std::time::Duration::from_secs(access_token_response.expires_in);
@@ -438,7 +449,7 @@ async fn auth_with_xbox_live(
     Ok(ExpiringValue {
         data: XboxLiveAuth {
             token: res.token,
-            user_hash: res.display_claims["xui"].get(0).unwrap()["uhs"].clone(),
+            user_hash: res.display_claims["xui"].first().unwrap()["uhs"].clone(),
         },
         expires_at,
     })
@@ -511,7 +522,7 @@ pub enum CheckOwnershipError {
     Http(#[from] reqwest::Error),
 }
 
-async fn check_ownership(
+pub async fn check_ownership(
     client: &reqwest::Client,
     minecraft_access_token: &str,
 ) -> Result<bool, CheckOwnershipError> {

@@ -136,7 +136,7 @@ pub fn move_colliding(
     _mover_type: &MoverType,
     movement: &Vec3,
     world: &Instance,
-    mut position: Mut<azalea_entity::Position>,
+    position: &mut Mut<azalea_entity::Position>,
     physics: &mut azalea_entity::Physics,
 ) -> Result<(), MoveEntityError> {
     // TODO: do all these
@@ -175,8 +175,8 @@ pub fn move_colliding(
             }
         };
 
-        if new_pos != **position {
-            **position = new_pos;
+        if new_pos != ***position {
+            ***position = new_pos;
         }
     }
 
@@ -185,11 +185,14 @@ pub fn move_colliding(
     let horizontal_collision = x_collision || z_collision;
     let vertical_collision = movement.y != collide_result.y;
     let on_ground = vertical_collision && movement.y < 0.;
+
+    physics.horizontal_collision = horizontal_collision;
+    physics.vertical_collision = vertical_collision;
     physics.on_ground = on_ground;
 
     // TODO: minecraft checks for a "minor" horizontal collision here
 
-    let _block_pos_below = azalea_entity::on_pos_legacy(&world.chunks, &position);
+    let _block_pos_below = azalea_entity::on_pos_legacy(&world.chunks, position);
     // let _block_state_below = self
     //     .world
     //     .get_block_state(&block_pos_below)

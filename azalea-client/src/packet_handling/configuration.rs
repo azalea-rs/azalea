@@ -22,7 +22,7 @@ use crate::packet_handling::game::KeepAliveEvent;
 use crate::raw_connection::RawConnection;
 
 #[derive(Event, Debug, Clone)]
-pub struct PacketEvent {
+pub struct ConfigurationPacketEvent {
     /// The client entity that received the packet.
     pub entity: Entity,
     /// The packet that was actually received.
@@ -31,7 +31,7 @@ pub struct PacketEvent {
 
 pub fn send_packet_events(
     query: Query<(Entity, &RawConnection), With<InConfigurationState>>,
-    mut packet_events: ResMut<Events<PacketEvent>>,
+    mut packet_events: ResMut<Events<ConfigurationPacketEvent>>,
 ) {
     // we manually clear and send the events at the beginning of each update
     // since otherwise it'd cause issues with events in process_packet_events
@@ -51,7 +51,7 @@ pub fn send_packet_events(
                         continue;
                     }
                 };
-                packet_events.send(PacketEvent {
+                packet_events.send(ConfigurationPacketEvent {
                     entity: player_entity,
                     packet,
                 });
@@ -64,9 +64,10 @@ pub fn send_packet_events(
 
 pub fn process_packet_events(ecs: &mut World) {
     let mut events_owned = Vec::new();
-    let mut system_state: SystemState<EventReader<PacketEvent>> = SystemState::new(ecs);
+    let mut system_state: SystemState<EventReader<ConfigurationPacketEvent>> =
+        SystemState::new(ecs);
     let mut events = system_state.get_mut(ecs);
-    for PacketEvent {
+    for ConfigurationPacketEvent {
         entity: player_entity,
         packet,
     } in events.read()
@@ -104,6 +105,7 @@ pub fn process_packet_events(ecs: &mut World) {
                 let mut disconnect_events = system_state.get_mut(ecs);
                 disconnect_events.send(DisconnectEvent {
                     entity: player_entity,
+                    reason: Some(p.reason.clone()),
                 });
             }
             ClientboundConfigurationPacket::FinishConfiguration(p) => {
@@ -172,7 +174,7 @@ pub fn process_packet_events(ecs: &mut World) {
                     .write_packet(ServerboundPongPacket { id: p.id }.get())
                     .unwrap();
             }
-            ClientboundConfigurationPacket::ResourcePack(p) => {
+            ClientboundConfigurationPacket::ResourcePackPush(p) => {
                 debug!("Got resource pack packet {p:?}");
 
                 let mut system_state: SystemState<Query<&RawConnection>> = SystemState::new(ecs);
@@ -181,8 +183,14 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 // always accept resource pack
                 raw_connection.write_packet(
-                    ServerboundResourcePackPacket { action: azalea_protocol::packets::configuration::serverbound_resource_pack_packet::Action::Accepted }.get()
+                    ServerboundResourcePackPacket {
+                        id: p.id,
+                        action: azalea_protocol::packets::configuration::serverbound_resource_pack_packet::Action::Accepted
+                    }.get()
                 ).unwrap();
+            }
+            ClientboundConfigurationPacket::ResourcePackPop(_) => {
+                // we can ignore this
             }
             ClientboundConfigurationPacket::UpdateEnabledFeatures(p) => {
                 debug!("Got update enabled features packet {p:?}");

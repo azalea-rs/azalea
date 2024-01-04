@@ -21,7 +21,7 @@ use tracing::{error, trace};
 use crate::{
     interact::handle_block_interact_event,
     inventory::InventorySet,
-    local_player::{handle_send_packet_event, SendPacketEvent},
+    packet_handling::game::{handle_send_packet_event, SendPacketEvent},
     respawn::perform_respawn,
     InstanceHolder,
 };

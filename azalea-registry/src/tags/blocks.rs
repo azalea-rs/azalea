@@ -80,7 +80,7 @@ pub static MINEABLE_AXE: Lazy<HashSet<Block>> = Lazy::new(|| {
         Block::Fern,
         Block::FletchingTable,
         Block::GlowLichen,
-        Block::Grass,
+        Block::ShortGrass,
         Block::HangingRoots,
         Block::JackOLantern,
         Block::Jukebox,
@@ -845,7 +845,7 @@ pub static BAMBOO_PLANTABLE_ON: Lazy<HashSet<Block>> = Lazy::new(|| {
 });
 pub static SWORD_EFFICIENT: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
-        Block::Grass,
+        Block::ShortGrass,
         Block::Fern,
         Block::DeadBush,
         Block::Vine,
@@ -1534,7 +1534,7 @@ pub static DRAGON_TRANSPARENT: Lazy<HashSet<Block>> =
     Lazy::new(|| HashSet::from_iter(vec![Block::Light, Block::Fire, Block::SoulFire]));
 pub static REPLACEABLE_BY_TREES: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
-        Block::Grass,
+        Block::ShortGrass,
         Block::Fern,
         Block::DeadBush,
         Block::Vine,
@@ -2042,7 +2042,7 @@ pub static ENCHANTMENT_POWER_TRANSMITTER: Lazy<HashSet<Block>> = Lazy::new(|| {
         Block::Air,
         Block::Water,
         Block::Lava,
-        Block::Grass,
+        Block::ShortGrass,
         Block::Fern,
         Block::DeadBush,
         Block::Seagrass,
@@ -2497,7 +2497,7 @@ pub static REPLACEABLE: Lazy<HashSet<Block>> = Lazy::new(|| {
         Block::Air,
         Block::Water,
         Block::Lava,
-        Block::Grass,
+        Block::ShortGrass,
         Block::Fern,
         Block::DeadBush,
         Block::Seagrass,
