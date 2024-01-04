@@ -7,12 +7,13 @@ pub mod prelude;
 use azalea_client::{
     chat::ChatPacket, start_ecs_runner, Account, Client, DefaultPlugins, Event, JoinError,
 };
-use azalea_protocol::{resolver, ServerAddress};
+use azalea_protocol::{resolver, ServerAddress, connect::Proxy};
 use azalea_world::InstanceContainer;
 use bevy_app::{App, PluginGroup, PluginGroupBuilder, Plugins};
 use bevy_ecs::{component::Component, entity::Entity, system::Resource, world::World};
 use futures::future::{join_all, BoxFuture};
 use parking_lot::{Mutex, RwLock};
+use rand::{seq::SliceRandom, thread_rng};
 use std::{collections::HashMap, future::Future, net::SocketAddr, sync::Arc, time::Duration};
 use tokio::sync::mpsc;
 use tracing::error;
@@ -53,6 +54,8 @@ where
     pub(crate) app: App,
     /// The accounts that are going to join the server.
     pub(crate) accounts: Vec<Account>,
+    /// The proxies used for the swarm, if any. If empty, no proxies will be used.
+    pub (crate) proxies: Vec<Proxy>,
     /// The individual bot states. This must be the same length as `accounts`,
     /// since each bot gets one state.
     pub(crate) states: Vec<S>,
@@ -112,6 +115,7 @@ impl SwarmBuilder<NoState, NoSwarmState> {
             // the schedules won't run until [`Self::start`] is called.
             app: App::new(),
             accounts: Vec::new(),
+            proxies: Vec::new(),
             states: Vec::new(),
             swarm_state: NoSwarmState,
             handler: None,
@@ -209,6 +213,7 @@ where
             handler: self.handler,
             app: self.app,
             accounts: self.accounts,
+            proxies: self.proxies,
             states: self.states,
             swarm_state: SS::default(),
             swarm_handler: Some(Box::new(move |swarm, event, state| {
@@ -260,6 +265,16 @@ where
     pub fn add_account_with_state(mut self, account: Account, state: S) -> Self {
         self.accounts.push(account);
         self.states.push(state);
+        self
+    }
+
+    pub fn add_proxy(mut self, proxy: Proxy) -> Self {
+        self.proxies.push(proxy);
+        self
+    }
+
+    pub fn add_proxies(mut self, proxies: Vec<Proxy>) -> Self {
+        self.proxies.extend(proxies);
         self
     }
 
@@ -354,13 +369,15 @@ where
         let mut swarm_clone = swarm.clone();
         let join_delay = self.join_delay;
         let accounts = self.accounts.clone();
+        let proxies = self.proxies.clone();
         let states = self.states.clone();
 
         tokio::spawn(async move {
             if let Some(join_delay) = join_delay {
                 // if there's a join delay, then join one by one
                 for (account, state) in accounts.iter().zip(states) {
-                    swarm_clone.add_and_retry_forever(account, state).await;
+                    let proxy = proxies.choose(&mut thread_rng()).map(|p| p.clone());
+                    swarm_clone.add_and_retry_forever(account, proxy, state).await;
                     tokio::time::sleep(join_delay).await;
                 }
             } else {
@@ -370,10 +387,12 @@ where
                     accounts
                         .iter()
                         .zip(states)
-                        .map(move |(account, state)| async {
+                        .zip(proxies.iter().cycle())
+                        .map(move |((account, state), proxy)| async {
+                            // todo: fix when no proxies available + make proxies random
                             swarm_borrow
                                 .clone()
-                                .add_and_retry_forever(account, state)
+                                .add_and_retry_forever(account, Some(proxy.clone()), state)
                                 .await;
                         }),
                 )
@@ -532,14 +551,9 @@ impl Swarm {
         let (bot, mut rx) = Client::start_client(
             self.ecs_lock.clone(),
             account,
-<<<<<<< HEAD
-            &self.address,
-            &self.resolved_address,
-            proxy,
-=======
             &address,
             &resolved_address,
->>>>>>> main
+            proxy,
             self.run_schedule_sender.clone(),
         )
         .await?;
