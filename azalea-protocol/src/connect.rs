@@ -15,7 +15,6 @@ use azalea_auth::game_profile::GameProfile;
 use azalea_auth::sessionserver::{ClientSessionServerError, ServerSessionServerError};
 use azalea_crypto::{Aes128CfbDec, Aes128CfbEnc};
 use bytes::BytesMut;
-use socks5_impl::protocol::UserKey;
 use std::fmt::Debug;
 use std::io::Cursor;
 use std::marker::PhantomData;
@@ -258,14 +257,16 @@ pub enum ConnectionError {
     Io(#[from] std::io::Error),
 }
 
+use socks5_impl::protocol::UserKey;
+
 #[derive(Debug, Clone)]
 pub struct Proxy {
     pub addr: SocketAddr,
-    pub auth: Option<(String, String)>,
+    pub auth: Option<UserKey>
 }
 
 impl Proxy {
-    pub fn new(addr: SocketAddr, auth: Option<(String, String)>) -> Self {
+    pub fn new(addr: SocketAddr, auth: Option<UserKey>) -> Self {
         Self { addr, auth }
     }
 }
@@ -278,7 +279,7 @@ impl Connection<ClientboundHandshakePacket, ServerboundHandshakePacket> {
                 let proxy_stream = TcpStream::connect(proxy.addr).await?;
                 let mut stream = BufStream::new(proxy_stream);
                 let auth = match proxy.auth {
-                    Some((username, password)) => Some(UserKey::new(&username, &password)),
+                    Some(user_key) => Some(user_key),
                     None => None,
                 };
                 
