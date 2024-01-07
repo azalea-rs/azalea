@@ -5380,4 +5380,3 @@ make_block_states! {
         },
     }
 }
-

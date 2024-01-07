@@ -140,6 +140,9 @@ pub async fn auth(email: &str, opts: AuthOpts) -> Result<AuthResult, AuthError> 
 ///
 /// If you don't have a Microsoft auth token, you can get it from
 /// [`get_ms_link_code`] and then [`get_ms_auth_token`].
+///
+/// If you got the MSA token from your own app (as opposed to the default
+/// Nintendo Switch one), you may have to prepend "d=" to the token.
 pub async fn get_minecraft_token(
     client: &reqwest::Client,
     msa: &str,
@@ -418,9 +421,9 @@ async fn auth_with_xbox_live(
         "Properties": {
             "AuthMethod": "RPS",
             "SiteName": "user.auth.xboxlive.com",
-            // i thought this was supposed to be d={} but it doesn't work for
-            // me when i add it ??????
-            "RpsTicket": format!("{access_token}")
+            // this value should have "d=" prepended if you're using your own app (as opposed to
+            // the default nintendo switch one)
+            "RpsTicket": access_token
         },
         "RelyingParty": "http://auth.xboxlive.com",
         "TokenType": "JWT"
