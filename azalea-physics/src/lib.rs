@@ -74,9 +74,9 @@ fn travel(
         jumping,
     ) in &mut query
     {
-        let world_lock = instance_container
-            .get(world_name)
-            .expect("All entities should be in a valid world");
+        let Some(world_lock) = instance_container.get(world_name) else {
+            continue;
+        };
         let world = world_lock.read();
         // if !self.is_effective_ai() && !self.is_controlled_by_local_instance() {
         //     // this.calculateEntityAnimation(this, this instanceof FlyingAnimal);

@@ -5,7 +5,7 @@
 //! - Run `cargo r --example testbot`
 //! - Commands are prefixed with `!` in chat. You can send them either in public
 //!   chat or as a /msg.
-//! - Some commands to try are `!goto`, `!killaura`, `!down`. Check the
+//! - Some commands to try are `!goto`, `!killaura true`, `!down`. Check the
 //!   `commands` directory to see all of them.
 
 #![feature(async_closure)]
@@ -31,7 +31,7 @@ const ADDRESS: &str = "localhost";
 /// Whether the bot should run /particle a ton of times to show where it's
 /// pathfinding to. You should only have this on if the bot has operator
 /// permissions, otherwise it'll just spam the server console unnecessarily.
-const PATHFINDER_DEBUG_PARTICLES: bool = true;
+const PATHFINDER_DEBUG_PARTICLES: bool = false;
 
 #[tokio::main]
 async fn main() {
