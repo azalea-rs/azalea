@@ -53,7 +53,7 @@ async fn main() {
 
     ClientBuilder::new()
         .set_handler(handle)
-        .start(account.clone(), "localhost")
+        .start(account, "localhost")
         .await
         .unwrap();
 }
