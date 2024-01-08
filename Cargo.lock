@@ -81,6 +81,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c9d19de80eff169429ac1e9f48fffb163916b448a44e8e046186232046d9e1f9"
 
 [[package]]
+name = "as-any"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5b8a30a44e99a1c83ccb2a6298c563c888952a1c9134953db26876528f84c93a"
+
+[[package]]
 name = "async-channel"
 version = "1.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -309,6 +315,7 @@ dependencies = [
  "serde",
  "serde_json",
  "simdnbt",
+ "socks5-impl",
  "thiserror",
  "tokio",
  "tracing",
@@ -449,6 +456,7 @@ dependencies = [
  "serde",
  "serde_json",
  "simdnbt",
+ "socks5-impl",
  "thiserror",
  "tokio",
  "tokio-util",
@@ -2494,6 +2502,20 @@ checksum = "7b5fac59a5cb5dd637972e5fca70daf0523c9067fcdc4842f053dae04a18f8e9"
 dependencies = [
  "libc",
  "windows-sys 0.48.0",
+]
+
+[[package]]
+name = "socks5-impl"
+version = "0.5.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9dfc11441196e51be4f48c72b075e7fff394a3c6a43f93420f907a2708079b27"
+dependencies = [
+ "as-any",
+ "async-trait",
+ "byteorder",
+ "bytes",
+ "thiserror",
+ "tokio",
 ]
 
 [[package]]

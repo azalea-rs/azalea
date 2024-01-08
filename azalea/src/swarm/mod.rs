@@ -7,12 +7,13 @@ pub mod prelude;
 use azalea_client::{
     chat::ChatPacket, start_ecs_runner, Account, Client, DefaultPlugins, Event, JoinError,
 };
-use azalea_protocol::{resolver, ServerAddress};
+use azalea_protocol::{resolver, ServerAddress, connect::Proxy};
 use azalea_world::InstanceContainer;
 use bevy_app::{App, PluginGroup, PluginGroupBuilder, Plugins};
 use bevy_ecs::{component::Component, entity::Entity, system::Resource, world::World};
 use futures::future::{join_all, BoxFuture};
 use parking_lot::{Mutex, RwLock};
+use rand::{seq::SliceRandom, thread_rng};
 use std::{collections::HashMap, future::Future, net::SocketAddr, sync::Arc, time::Duration};
 use tokio::sync::mpsc;
 use tracing::error;
@@ -31,6 +32,7 @@ pub struct Swarm {
     pub ecs_lock: Arc<Mutex<World>>,
 
     bots: Arc<Mutex<HashMap<Entity, Client>>>,
+    proxies: Vec<Proxy>,
 
     // the address is public and mutable so plugins can change it
     pub resolved_address: Arc<RwLock<SocketAddr>>,
@@ -53,6 +55,8 @@ where
     pub(crate) app: App,
     /// The accounts that are going to join the server.
     pub(crate) accounts: Vec<Account>,
+    /// The proxies used for the swarm, if any. If empty, no proxies will be used.
+    pub (crate) proxies: Vec<Proxy>,
     /// The individual bot states. This must be the same length as `accounts`,
     /// since each bot gets one state.
     pub(crate) states: Vec<S>,
@@ -112,6 +116,7 @@ impl SwarmBuilder<NoState, NoSwarmState> {
             // the schedules won't run until [`Self::start`] is called.
             app: App::new(),
             accounts: Vec::new(),
+            proxies: Vec::new(),
             states: Vec::new(),
             swarm_state: NoSwarmState,
             handler: None,
@@ -209,6 +214,7 @@ where
             handler: self.handler,
             app: self.app,
             accounts: self.accounts,
+            proxies: self.proxies,
             states: self.states,
             swarm_state: SS::default(),
             swarm_handler: Some(Box::new(move |swarm, event, state| {
@@ -260,6 +266,16 @@ where
     pub fn add_account_with_state(mut self, account: Account, state: S) -> Self {
         self.accounts.push(account);
         self.states.push(state);
+        self
+    }
+
+    pub fn add_proxy(mut self, proxy: Proxy) -> Self {
+        self.proxies.push(proxy);
+        self
+    }
+
+    pub fn add_proxies(mut self, proxies: Vec<Proxy>) -> Self {
+        self.proxies.extend(proxies);
         self
     }
 
@@ -329,6 +345,7 @@ where
         let swarm = Swarm {
             ecs_lock: ecs_lock.clone(),
             bots: Arc::new(Mutex::new(HashMap::new())),
+            proxies: self.proxies,
 
             resolved_address: Arc::new(RwLock::new(resolved_address)),
             address: Arc::new(RwLock::new(address)),
@@ -523,6 +540,7 @@ impl Swarm {
     pub async fn add<S: Component + Clone>(
         &mut self,
         account: &Account,
+        proxy: Option<Proxy>,
         state: S,
     ) -> Result<Client, JoinError> {
         let address = self.address.read().clone();
@@ -533,6 +551,7 @@ impl Swarm {
             account,
             &address,
             &resolved_address,
+            proxy,
             self.run_schedule_sender.clone(),
         )
         .await?;
@@ -580,7 +599,8 @@ impl Swarm {
     ) -> Client {
         let mut disconnects = 0;
         loop {
-            match self.add(account, state.clone()).await {
+            let proxy = self.proxies.choose(&mut thread_rng()).map(|p| p.clone());
+            match self.add(account, proxy, state.clone()).await {
                 Ok(bot) => return bot,
                 Err(e) => {
                     disconnects += 1;
