@@ -70,6 +70,7 @@ impl Simulation {
             crate::BotPlugin,
             azalea_client::task_pool::TaskPoolPlugin::default(),
             // for mining
+            crate::auto_tool::AutoToolPlugin,
             azalea_client::inventory::InventoryPlugin,
             azalea_client::mining::MinePlugin,
             azalea_client::interact::InteractPlugin,

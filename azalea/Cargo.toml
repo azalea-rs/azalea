@@ -29,7 +29,7 @@ azalea-buf = { version = "0.9.0", path = "../azalea-buf" }
 bevy_app = "0.12.1"
 bevy_ecs = "0.12.1"
 bevy_tasks = { version = "0.12.1", features = ["multi-threaded"] }
-derive_more = { version = "0.99.17", features = ["deref", "deref_mut"] }
+derive_more = { version = "0.99.17" }
 futures = "0.3.29"
 futures-lite = "2.1.0"
 tracing = "0.1.40"
