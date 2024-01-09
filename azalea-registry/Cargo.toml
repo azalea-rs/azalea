@@ -13,7 +13,7 @@ simdnbt = { version = "0.3", git = "https://github.com/azalea-rs/simdnbt" }
 
 azalea-buf = { path = "../azalea-buf", version = "0.9.0" }
 azalea-registry-macros = { path = "./azalea-registry-macros", version = "0.9.0" }
-once_cell = "1.18.0"
+once_cell = "1.19.0"
 [features]
 serde = ["azalea-registry-macros/serde"]
 default = ["serde"]

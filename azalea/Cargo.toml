@@ -12,8 +12,8 @@ pre-release-replacements = [
 ]
 
 [dependencies]
-anyhow = "^1.0.75"
-async-trait = "0.1.74"
+anyhow = "^1.0.79"
+async-trait = "0.1.77"
 azalea-block = { version = "0.9.0", path = "../azalea-block" }
 azalea-chat = { version = "0.9.0", path = "../azalea-chat" }
 azalea-client = { version = "0.9.0", path = "../azalea-client", default-features = false }
@@ -30,15 +30,15 @@ bevy_app = "0.12.1"
 bevy_ecs = "0.12.1"
 bevy_tasks = { version = "0.12.1", features = ["multi-threaded"] }
 derive_more = { version = "0.99.17", features = ["deref", "deref_mut"] }
-futures = "0.3.29"
-futures-lite = "2.1.0"
+futures = "0.3.30"
+futures-lite = "2.2.0"
 tracing = "0.1.40"
 nohash-hasher = "0.2.0"
 num-traits = "0.2.17"
 parking_lot = { version = "^0.12.1", features = ["deadlock_detection"] }
 priority-queue = "1.3.2"
-thiserror = "^1.0.50"
-tokio = "^1.34.0"
+thiserror = "^1.0.56"
+tokio = "^1.35.1"
 uuid = "1.6.1"
 bevy_log = "0.12.1"
 azalea-entity = { version = "0.9.0", path = "../azalea-entity" }

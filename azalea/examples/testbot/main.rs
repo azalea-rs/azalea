@@ -123,7 +123,6 @@ async fn handle(bot: Client, event: azalea::Event, state: State) -> anyhow::Resu
                     .insert(PathfinderDebugParticles);
             }
         }
-        azalea::Event::Login => {}
         azalea::Event::Chat(chat) => {
             let (Some(username), content) = chat.split_sender_and_content() else {
                 return Ok(());
