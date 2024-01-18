@@ -89,7 +89,7 @@ def generate_entity_metadata(burger_entities_data: dict, mappings: Mappings):
         with open(DATA_RS_DIR, 'w') as f:
             f.write('\n'.join(lines))
         print('Expected metadata types:\n' + '\n'.join(new_metadata_names))
-        print('Updated metadata types in azalea-world/src/entity/data.rs, go make sure they\'re correct and then press enter')
+        print('Updated metadata types in azalea-entity/src/data.rs, go make sure they\'re correct (check EntityDataSerializers.java) and then press enter')
         input()
     
     metadata_types = parse_metadata_types_from_code()
@@ -101,8 +101,8 @@ def generate_entity_metadata(burger_entities_data: dict, mappings: Mappings):
 // Don't change it manually!
 
 use super::{
-    EntityDataItem, EntityDataValue, OptionalUnsignedInt, Pose, Quaternion, Rotations,
-    SnifferState, VillagerData
+    ArmadilloStateKind, EntityDataItem, EntityDataValue, OptionalUnsignedInt, Pose, Quaternion,
+    Rotations, SnifferState, VillagerData,
 };
 use azalea_chat::FormattedText;
 use azalea_core::{particle::Particle, position::{BlockPos, Vec3}, direction::Direction};

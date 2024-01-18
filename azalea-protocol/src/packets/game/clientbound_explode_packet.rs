@@ -121,7 +121,7 @@ impl McBufWritable for ClientboundExplodePacket {
 
         let sound_event_resource_location =
             ResourceLocation::new(&self.explosion_sound.to_string());
-            sound_event_resource_location.write_into(buf)?;
+        sound_event_resource_location.write_into(buf)?;
 
         Ok(())
     }
