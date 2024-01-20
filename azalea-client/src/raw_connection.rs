@@ -10,7 +10,7 @@ use azalea_protocol::{
 use bevy_ecs::prelude::*;
 use parking_lot::Mutex;
 use thiserror::Error;
-use tokio::sync::mpsc;
+use tokio::sync::mpsc::{self, error::SendError};
 use tracing::error;
 
 /// A component for clients that can read and write packets to the server. This
@@ -51,6 +51,12 @@ pub enum WritePacketError {
     },
     #[error(transparent)]
     Encoding(#[from] azalea_protocol::write::PacketEncodeError),
+    #[error(transparent)]
+    SendError {
+        #[from]
+        #[backtrace]
+        source: SendError<Vec<u8>>,
+    },
 }
 
 impl RawConnection {
@@ -88,11 +94,12 @@ impl RawConnection {
         }
     }
 
-    pub fn write_raw_packet(&self, raw_packet: Vec<u8>) {
+    pub fn write_raw_packet(&self, raw_packet: Vec<u8>) -> Result<(), WritePacketError>  {
         self.writer
             .outgoing_packets_sender
             .send(raw_packet)
-            .unwrap();
+            .map_err(WritePacketError::from)?;
+        Ok(())
     }
 
     /// Write the packet with the given state to the server.
@@ -106,7 +113,8 @@ impl RawConnection {
         packet: P,
     ) -> Result<(), WritePacketError> {
         let raw_packet = serialize_packet(&packet)?;
-        self.write_raw_packet(raw_packet);
+        self.write_raw_packet(raw_packet)?;
+        
         Ok(())
     }
 
