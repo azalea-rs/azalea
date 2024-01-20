@@ -94,11 +94,8 @@ impl RawConnection {
         }
     }
 
-    pub fn write_raw_packet(&self, raw_packet: Vec<u8>) -> Result<(), WritePacketError>  {
-        self.writer
-            .outgoing_packets_sender
-            .send(raw_packet)
-            .map_err(WritePacketError::from)?;
+    pub fn write_raw_packet(&self, raw_packet: Vec<u8>) -> Result<(), WritePacketError> {
+        self.writer.outgoing_packets_sender.send(raw_packet)?;
         Ok(())
     }
 
@@ -114,7 +111,7 @@ impl RawConnection {
     ) -> Result<(), WritePacketError> {
         let raw_packet = serialize_packet(&packet)?;
         self.write_raw_packet(raw_packet)?;
-        
+
         Ok(())
     }
 
