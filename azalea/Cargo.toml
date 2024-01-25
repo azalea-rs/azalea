@@ -39,7 +39,7 @@ parking_lot = { version = "^0.12.1", features = ["deadlock_detection"] }
 priority-queue = "1.3.2"
 thiserror = "^1.0.56"
 tokio = "^1.35.1"
-uuid = "1.6.1"
+uuid = "1.7.0"
 bevy_log = "0.12.1"
 azalea-entity = { version = "0.9.0", path = "../azalea-entity" }
 bevy_time = "0.12.1"
