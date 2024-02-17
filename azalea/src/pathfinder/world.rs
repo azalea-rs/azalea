@@ -157,9 +157,7 @@ impl CachedWorld {
         }
 
         let world = self.world_lock.read();
-        let Some(chunk) = world.chunks.get(&chunk_pos) else {
-            return None;
-        };
+        let chunk = world.chunks.get(&chunk_pos)?;
         let chunk = chunk.read();
 
         let sections: Vec<azalea_world::palette::PalettedContainer> = chunk

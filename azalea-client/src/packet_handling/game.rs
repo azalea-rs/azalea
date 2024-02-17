@@ -1176,7 +1176,7 @@ pub fn process_packet_events(ecs: &mut World) {
                 let mut client_side_close_container_events = system_state.get_mut(ecs);
                 client_side_close_container_events.send(ClientSideCloseContainerEvent {
                     entity: player_entity,
-                })
+                });
             }
             ClientboundGamePacket::Cooldown(_) => {}
             ClientboundGamePacket::CustomChatCompletions(_) => {}
@@ -1225,7 +1225,7 @@ pub fn process_packet_events(ecs: &mut World) {
                     window_id: p.container_id,
                     menu_type: p.menu_type,
                     title: p.title.to_owned(),
-                })
+                });
             }
             ClientboundGamePacket::OpenSignEditor(_) => {}
             ClientboundGamePacket::Ping(p) => {

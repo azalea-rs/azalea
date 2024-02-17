@@ -156,7 +156,7 @@ pub fn handle_block_interact_event(
                 sequence: sequence_number.0,
             }
             .get(),
-        })
+        });
     }
 }
 
