@@ -2,6 +2,7 @@ use crate::{
     attack::{self, AttackPlugin},
     chat::ChatPlugin,
     chunks::{ChunkBatchInfo, ChunkPlugin},
+    configuration::ConfigurationPlugin,
     disconnect::{DisconnectEvent, DisconnectPlugin},
     events::{Event, EventPlugin, LocalPlayerEvents},
     interact::{CurrentSequenceNumber, InteractPlugin},
@@ -13,7 +14,6 @@ use crate::{
     mining::{self, MinePlugin},
     movement::{LastSentLookDirection, PhysicsState, PlayerMovePlugin},
     packet_handling::{
-        game::{handle_send_packet_event, SendPacketEvent},
         login::{self, LoginSendPacketQueue},
         PacketHandlerPlugin,
     },
@@ -25,9 +25,8 @@ use crate::{
 };
 
 use azalea_auth::{game_profile::GameProfile, sessionserver::ClientSessionServerError};
-use azalea_buf::McBufWritable;
 use azalea_chat::FormattedText;
-use azalea_core::{position::Vec3, resource_location::ResourceLocation, tick::GameTick};
+use azalea_core::{position::Vec3, tick::GameTick};
 use azalea_entity::{
     indexing::{EntityIdIndex, EntityUuidIndex},
     metadata::Health,
@@ -39,7 +38,6 @@ use azalea_protocol::{
     packets::{
         configuration::{
             serverbound_client_information_packet::ClientInformation,
-            serverbound_custom_payload_packet::ServerboundCustomPayloadPacket,
             ClientboundConfigurationPacket, ServerboundConfigurationPacket,
         },
         game::ServerboundGamePacket,
@@ -242,23 +240,11 @@ impl Client {
         };
 
         let conn = Connection::new(resolved_address).await?;
-        let (mut conn, game_profile) =
+        let (conn, game_profile) =
             Self::handshake(ecs_lock.clone(), entity, conn, account, address).await?;
 
-        {
-            // quickly send the brand here
-            let mut brand_data = Vec::new();
-            // they don't have to know :)
-            "vanilla".write_into(&mut brand_data).unwrap();
-            conn.write(
-                ServerboundCustomPayloadPacket {
-                    identifier: ResourceLocation::new("brand"),
-                    data: brand_data.into(),
-                }
-                .get(),
-            )
-            .await?;
-        }
+        // note that we send the proper packets in
+        // crate::configuration::handle_in_configuration_state
 
         let (read_conn, write_conn) = conn.into_split();
         let (read_conn, write_conn) = (read_conn.raw, write_conn.raw);
@@ -678,10 +664,8 @@ impl Plugin for AzaleaPlugin {
                 death_event,
                 // add GameProfileComponent when we get an AddPlayerEvent
                 retroactively_add_game_profile_component.after(EntityUpdateSet::Index),
-                handle_send_packet_event,
             ),
         )
-        .add_event::<SendPacketEvent>()
         .init_resource::<InstanceContainer>()
         .init_resource::<TabList>();
     }
@@ -838,6 +822,7 @@ impl PluginGroup for DefaultPlugins {
             .add(MinePlugin)
             .add(AttackPlugin)
             .add(ChunkPlugin)
+            .add(ConfigurationPlugin)
             .add(TickBroadcastPlugin);
         #[cfg(feature = "log")]
         {
