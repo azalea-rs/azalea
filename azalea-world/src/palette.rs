@@ -49,9 +49,9 @@ impl PalettedContainer {
         let size = container_type.size();
         let data = Vec::<u64>::read_from(buf)?;
 
-        // if there's too much data that the bits per entry would be global, we have to
-        // figure out the bits per entry ourselves by checking the number of bits in the
-        // length of the data.
+        // we can only trust the bits per entry that we're sent if there's enough data
+        // that it'd be global. if it's not global, then we have to calculate it
+        // ourselves.
         // this almost never matters, except on some custom servers like hypixel limbo
         let calculated_bits_per_entry = math::ceil_log2(data.len() as u32) as u8;
         let calculated_bits_per_entry_palette_kind =
