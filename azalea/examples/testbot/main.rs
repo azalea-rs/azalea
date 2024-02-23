@@ -28,6 +28,8 @@ use std::time::Duration;
 
 const USERNAME: &str = "azalea";
 const ADDRESS: &str = "localhost";
+/// The bot will only listen to commands sent by the player with this username.
+const OWNER_USERNAME: &str = "py5";
 /// Whether the bot should run /particle a ton of times to show where it's
 /// pathfinding to. You should only have this on if the bot has operator
 /// permissions, otherwise it'll just spam the server console unnecessarily.
@@ -127,7 +129,7 @@ async fn handle(bot: Client, event: azalea::Event, state: State) -> anyhow::Resu
             let (Some(username), content) = chat.split_sender_and_content() else {
                 return Ok(());
             };
-            if username != "py5" {
+            if username != OWNER_USERNAME {
                 return Ok(());
             }
 
