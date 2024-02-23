@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, convert::TryInto};
+use std::cmp::Ordering;
 
 use super::CubePointRange;
 use azalea_core::math::{gcd, lcm, EPSILON};

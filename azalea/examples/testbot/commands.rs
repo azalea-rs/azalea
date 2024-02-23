@@ -4,7 +4,6 @@ pub mod movement;
 
 use azalea::brigadier::prelude::*;
 use azalea::chat::ChatPacket;
-use azalea::ecs::prelude::Entity;
 use azalea::ecs::prelude::*;
 use azalea::entity::metadata::Player;
 use azalea::Client;

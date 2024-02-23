@@ -1,5 +1,7 @@
 use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
+use azalea_core::math;
 use std::io::{Cursor, Write};
+use tracing::warn;
 
 use crate::BitStorage;
 
@@ -41,17 +43,39 @@ impl PalettedContainer {
         buf: &mut Cursor<&[u8]>,
         container_type: &'static PalettedContainerKind,
     ) -> Result<Self, BufReadError> {
-        let bits_per_entry = u8::read_from(buf)?;
-        let palette_type = PaletteKind::from_bits_and_type(bits_per_entry, container_type);
+        let server_bits_per_entry = u8::read_from(buf)?;
+        let palette_type = PaletteKind::from_bits_and_type(server_bits_per_entry, container_type);
         let palette = palette_type.read(buf)?;
         let size = container_type.size();
-
         let data = Vec::<u64>::read_from(buf)?;
+
+        // if there's too much data that the bits per entry would be global, we have to
+        // figure out the bits per entry ourselves by checking the number of bits in the
+        // length of the data.
+        // this almost never matters, except on some custom servers like hypixel limbo
+        let calculated_bits_per_entry = math::ceil_log2(data.len() as u32) as u8;
+        let calculated_bits_per_entry_palette_kind =
+            PaletteKind::from_bits_and_type(calculated_bits_per_entry, container_type);
+        let bits_per_entry = if calculated_bits_per_entry_palette_kind == PaletteKind::Global {
+            server_bits_per_entry
+        } else {
+            calculated_bits_per_entry
+        };
+
         debug_assert!(
             bits_per_entry != 0 || data.is_empty(),
             "Bits per entry is 0 but data is not empty."
         );
-        let storage = BitStorage::new(bits_per_entry.into(), size, Some(data)).unwrap();
+
+        let storage = match BitStorage::new(bits_per_entry.into(), size, Some(data)) {
+            Ok(storage) => storage,
+            Err(e) => {
+                warn!("Failed to create bit storage: {:?}", e);
+                return Err(BufReadError::Custom(
+                    "Failed to create bit storage".to_string(),
+                ));
+            }
+        };
 
         Ok(PalettedContainer {
             bits_per_entry,

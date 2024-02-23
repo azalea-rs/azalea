@@ -1,5 +1,5 @@
 use quote::{quote, ToTokens};
-use syn::{self, punctuated::Punctuated, token::Comma, Data, Field, FieldsNamed, Ident};
+use syn::{punctuated::Punctuated, token::Comma, Data, Field, FieldsNamed, Ident};
 
 fn read_named_fields(
     named: &Punctuated<Field, Comma>,

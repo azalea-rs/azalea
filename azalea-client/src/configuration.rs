@@ -29,7 +29,6 @@ fn handle_in_configuration_state(
     mut send_packet_events: EventWriter<SendConfigurationPacketEvent>,
 ) {
     for (entity, client_information) in query.iter() {
-        // quickly send the brand here
         let mut brand_data = Vec::new();
         // they don't have to know :)
         "vanilla".write_into(&mut brand_data).unwrap();

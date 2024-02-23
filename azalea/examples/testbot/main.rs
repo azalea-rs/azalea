@@ -15,7 +15,7 @@ mod commands;
 pub mod killaura;
 
 use azalea::pathfinder::PathfinderDebugParticles;
-use azalea::{Account, ClientInformation};
+use azalea::ClientInformation;
 
 use azalea::brigadier::command_dispatcher::CommandDispatcher;
 use azalea::ecs::prelude::*;
@@ -136,7 +136,7 @@ async fn handle(bot: Client, event: azalea::Event, state: State) -> anyhow::Resu
             let command = if chat.is_whisper() {
                 Some(content)
             } else {
-                content.strip_prefix("!").map(|s| s.to_owned())
+                content.strip_prefix('!').map(|s| s.to_owned())
             };
             if let Some(command) = command {
                 match state.commands.execute(
@@ -163,7 +163,7 @@ async fn handle(bot: Client, event: azalea::Event, state: State) -> anyhow::Resu
         azalea::Event::Tick => {
             killaura::tick(bot.clone(), state.clone())?;
 
-            let task = state.task.lock().clone();
+            let task = *state.task.lock();
             match task {
                 BotTask::None => {}
             }

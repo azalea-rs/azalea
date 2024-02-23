@@ -424,10 +424,9 @@ fn jump_boost_power() -> f64 {
 mod tests {
 
     use super::*;
-    use azalea_core::{position::ChunkPos, resource_location::ResourceLocation, tick::GameTick};
+    use azalea_core::{position::ChunkPos, resource_location::ResourceLocation};
     use azalea_entity::{EntityBundle, EntityPlugin};
     use azalea_world::{Chunk, MinecraftEntityId, PartialInstance};
-    use bevy_app::App;
     use uuid::Uuid;
 
     /// You need an app to spawn entities in the world and do updates.
