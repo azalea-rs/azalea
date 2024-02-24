@@ -748,6 +748,7 @@ pub fn process_packet_events(ecs: &mut World) {
                             {
                                 warn!("{e}");
                             }
+                            commands_system_state.apply(world);
                         });
                     }),
                 });
