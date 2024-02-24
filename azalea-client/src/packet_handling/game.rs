@@ -419,7 +419,6 @@ pub fn process_packet_events(ecs: &mut World) {
                 debug!("Got recipe packet");
             }
             ClientboundGamePacket::PlayerPosition(p) => {
-                // TODO: reply with teleport confirm
                 debug!("Got player position packet {p:?}");
 
                 #[allow(clippy::type_complexity)]
@@ -839,12 +838,20 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 if let Some(entity) = entity {
                     let new_pos = p.position;
+                    let new_look_direction = LookDirection {
+                        x_rot: (p.x_rot as i32 * 360) as f32 / 256.,
+                        y_rot: (p.y_rot as i32 * 360) as f32 / 256.,
+                    };
                     commands.entity(entity).add(RelativeEntityUpdate {
                         partial_world: instance_holder.partial_instance.clone(),
                         update: Box::new(move |entity| {
                             let mut position = entity.get_mut::<Position>().unwrap();
                             if new_pos != **position {
                                 **position = new_pos;
+                            }
+                            let mut look_direction = entity.get_mut::<LookDirection>().unwrap();
+                            if new_look_direction != *look_direction {
+                                *look_direction = new_look_direction;
                             }
                         }),
                     });
@@ -903,6 +910,11 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 if let Some(entity) = entity {
                     let delta = p.delta.clone();
+                    let new_look_direction = LookDirection {
+                        x_rot: (p.x_rot as i32 * 360) as f32 / 256.,
+                        y_rot: (p.y_rot as i32 * 360) as f32 / 256.,
+                    };
+
                     commands.entity(entity).add(RelativeEntityUpdate {
                         partial_world: instance_holder.partial_instance.clone(),
                         update: Box::new(move |entity_mut| {
@@ -910,6 +922,10 @@ pub fn process_packet_events(ecs: &mut World) {
                             let new_pos = position.with_delta(&delta);
                             if new_pos != **position {
                                 **position = new_pos;
+                            }
+                            let mut look_direction = entity_mut.get_mut::<LookDirection>().unwrap();
+                            if new_look_direction != *look_direction {
+                                *look_direction = new_look_direction;
                             }
                         }),
                     });
@@ -923,8 +939,39 @@ pub fn process_packet_events(ecs: &mut World) {
                 system_state.apply(ecs);
             }
 
-            ClientboundGamePacket::MoveEntityRot(_p) => {
-                // debug!("Got move entity rot packet {p:?}");
+            ClientboundGamePacket::MoveEntityRot(p) => {
+                let mut system_state: SystemState<(
+                    Commands,
+                    Query<(&EntityIdIndex, &InstanceHolder)>,
+                )> = SystemState::new(ecs);
+                let (mut commands, mut query) = system_state.get_mut(ecs);
+                let (entity_id_index, instance_holder) = query.get_mut(player_entity).unwrap();
+
+                let entity = entity_id_index.get(&MinecraftEntityId(p.entity_id));
+
+                if let Some(entity) = entity {
+                    let new_look_direction = LookDirection {
+                        x_rot: (p.x_rot as i32 * 360) as f32 / 256.,
+                        y_rot: (p.y_rot as i32 * 360) as f32 / 256.,
+                    };
+
+                    commands.entity(entity).add(RelativeEntityUpdate {
+                        partial_world: instance_holder.partial_instance.clone(),
+                        update: Box::new(move |entity_mut| {
+                            let mut look_direction = entity_mut.get_mut::<LookDirection>().unwrap();
+                            if new_look_direction != *look_direction {
+                                *look_direction = new_look_direction;
+                            }
+                        }),
+                    });
+                } else {
+                    warn!(
+                        "Got move entity rot packet for unknown entity id {}",
+                        p.entity_id
+                    );
+                }
+
+                system_state.apply(ecs);
             }
             ClientboundGamePacket::KeepAlive(p) => {
                 debug!("Got keep alive packet {p:?} for {player_entity:?}");

@@ -203,7 +203,7 @@ impl From<&LastSentPosition> for BlockPos {
 pub struct Jumping(bool);
 
 /// A component that contains the direction an entity is looking.
-#[derive(Debug, Component, Clone, Default)]
+#[derive(Debug, Component, Clone, Default, PartialEq)]
 pub struct LookDirection {
     pub x_rot: f32,
     pub y_rot: f32,
