@@ -349,10 +349,10 @@ where
     }
 
     if log::log_enabled!(log::Level::Trace) {
-        const EXTRA_LARGE_LOGS: bool = false;
+        const DO_NOT_CUT_OFF_PACKET_LOGS: bool = false;
 
         let buf_string: String = {
-            if !EXTRA_LARGE_LOGS && buf.len() > 500 {
+            if !DO_NOT_CUT_OFF_PACKET_LOGS && buf.len() > 500 {
                 let cut_off_buf = &buf[..500];
                 format!("{cut_off_buf:?}...")
             } else {
