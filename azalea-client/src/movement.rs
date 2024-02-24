@@ -86,9 +86,7 @@ impl Client {
 
     /// Returns whether the player will try to jump next tick.
     pub fn jumping(&self) -> bool {
-        let mut ecs = self.ecs.lock();
-        let jumping_ref = self.query::<&Jumping>(&mut ecs);
-        **jumping_ref
+        *self.component::<Jumping>()
     }
 
     /// Sets the direction the client is looking. `y_rot` is yaw (looking to the
@@ -100,6 +98,14 @@ impl Client {
         let mut look_direction = self.query::<&mut LookDirection>(&mut ecs);
 
         (look_direction.y_rot, look_direction.x_rot) = (y_rot, x_rot);
+    }
+
+    /// Returns the direction the client is looking. The first value is the y
+    /// rotation (ie. yaw, looking to the side) and the second value is the x
+    /// rotation (ie. pitch, looking up and down).
+    pub fn direction(&self) -> (f32, f32) {
+        let look_direction = self.component::<LookDirection>();
+        (look_direction.y_rot, look_direction.x_rot)
     }
 }
 

@@ -23,7 +23,10 @@ use bevy_ecs::{bundle::Bundle, component::Component};
 pub use data::*;
 use derive_more::{Deref, DerefMut};
 pub use dimensions::EntityDimensions;
-use std::fmt::Debug;
+use std::{
+    fmt::Debug,
+    hash::{Hash, Hasher},
+};
 use uuid::Uuid;
 
 pub use crate::plugin::*;
@@ -199,15 +202,42 @@ impl From<&LastSentPosition> for BlockPos {
 ///
 /// If this is true, the entity will try to jump every tick. (It's equivalent to
 /// the space key being held in vanilla.)
-#[derive(Debug, Component, Clone, Deref, DerefMut, Default)]
+#[derive(Debug, Component, Copy, Clone, Deref, DerefMut, Default)]
 pub struct Jumping(bool);
 
 /// A component that contains the direction an entity is looking.
-#[derive(Debug, Component, Clone, Default, PartialEq)]
+#[derive(Debug, Component, Copy, Clone, Default, PartialEq)]
 pub struct LookDirection {
-    pub x_rot: f32,
+    /// Left and right. Aka yaw.
     pub y_rot: f32,
+    /// Up and down. Aka pitch.
+    pub x_rot: f32,
 }
+
+impl LookDirection {
+    pub fn new(y_rot: f32, x_rot: f32) -> Self {
+        Self { y_rot, x_rot }
+    }
+}
+
+impl From<LookDirection> for (f32, f32) {
+    fn from(value: LookDirection) -> Self {
+        (value.y_rot, value.x_rot)
+    }
+}
+impl From<(f32, f32)> for LookDirection {
+    fn from((y_rot, x_rot): (f32, f32)) -> Self {
+        Self { y_rot, x_rot }
+    }
+}
+
+impl Hash for LookDirection {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.y_rot.to_bits().hash(state);
+        self.x_rot.to_bits().hash(state);
+    }
+}
+impl Eq for LookDirection {}
 
 /// The physics data relating to the entity, such as position, velocity, and
 /// bounding box.
