@@ -8,12 +8,13 @@ use bevy_ecs::{
     query::Changed,
     system::{Commands, Query, Res, ResMut, Resource},
 };
+use derive_more::{Deref, DerefMut};
 use nohash_hasher::IntMap;
 use std::{collections::HashMap, fmt::Debug};
 use tracing::{debug, warn};
 use uuid::Uuid;
 
-use crate::{EntityUuid, LastSentPosition, Position};
+use crate::{EntityUuid, Position};
 
 use super::LoadedBy;
 
@@ -83,33 +84,37 @@ impl Debug for EntityUuidIndex {
     }
 }
 
-// TODO: this should keep track of chunk position changes in a better way
-// instead of relying on LastSentPosition
+/// The chunk position that an entity is currently in.
+#[derive(Component, Debug, Deref, DerefMut)]
+pub struct EntityChunkPos(pub ChunkPos);
 
 /// Update the chunk position indexes in [`Instance::entities_by_chunk`].
 ///
 /// [`Instance::entities_by_chunk`]: azalea_world::Instance::entities_by_chunk
 pub fn update_entity_chunk_positions(
-    mut query: Query<(Entity, &Position, &LastSentPosition, &InstanceName), Changed<Position>>,
+    mut query: Query<(Entity, &Position, &InstanceName, &mut EntityChunkPos), Changed<Position>>,
     instance_container: Res<InstanceContainer>,
 ) {
-    for (entity, pos, last_pos, world_name) in query.iter_mut() {
+    for (entity, pos, world_name, mut entity_chunk_pos) in query.iter_mut() {
         let instance_lock = instance_container.get(world_name).unwrap();
         let mut instance = instance_lock.write();
 
-        let old_chunk = ChunkPos::from(*last_pos);
+        let old_chunk = **entity_chunk_pos;
         let new_chunk = ChunkPos::from(*pos);
-
         if old_chunk != new_chunk {
-            // move the entity from the old chunk to the new one
-            if let Some(entities) = instance.entities_by_chunk.get_mut(&old_chunk) {
-                entities.remove(&entity);
+            **entity_chunk_pos = new_chunk;
+
+            if old_chunk != new_chunk {
+                // move the entity from the old chunk to the new one
+                if let Some(entities) = instance.entities_by_chunk.get_mut(&old_chunk) {
+                    entities.remove(&entity);
+                }
+                instance
+                    .entities_by_chunk
+                    .entry(new_chunk)
+                    .or_default()
+                    .insert(entity);
             }
-            instance
-                .entities_by_chunk
-                .entry(new_chunk)
-                .or_default()
-                .insert(entity);
         }
     }
 }

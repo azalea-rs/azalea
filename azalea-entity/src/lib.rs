@@ -23,6 +23,7 @@ use bevy_ecs::{bundle::Bundle, component::Component};
 pub use data::*;
 use derive_more::{Deref, DerefMut};
 pub use dimensions::EntityDimensions;
+use plugin::indexing::EntityChunkPos;
 use std::{
     fmt::Debug,
     hash::{Hash, Hasher},
@@ -347,6 +348,9 @@ pub struct EntityBundle {
     pub world_name: InstanceName,
     pub position: Position,
     pub last_sent_position: LastSentPosition,
+
+    pub chunk_pos: EntityChunkPos,
+
     pub physics: Physics,
     pub direction: LookDirection,
     pub eye_height: EyeHeight,
@@ -375,6 +379,7 @@ impl EntityBundle {
             uuid: EntityUuid(uuid),
             world_name: InstanceName(world_name),
             position: Position(pos),
+            chunk_pos: EntityChunkPos(ChunkPos::from(&pos)),
             last_sent_position: LastSentPosition(pos),
             physics: Physics::new(dimensions, &pos),
             eye_height: EyeHeight(eye_height),

@@ -564,6 +564,12 @@ impl fmt::Display for BlockPos {
         write!(f, "{} {} {}", self.x, self.y, self.z)
     }
 }
+impl fmt::Display for Vec3 {
+    /// Display a position as `x y z`.
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{} {} {}", self.x, self.y, self.z)
+    }
+}
 
 const PACKED_X_LENGTH: u64 = 1 + 25; // minecraft does something a bit more complicated to get this 25
 const PACKED_Z_LENGTH: u64 = PACKED_X_LENGTH;
