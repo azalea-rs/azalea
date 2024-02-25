@@ -57,3 +57,7 @@ log = ["azalea-client/log"]
 [[bench]]
 name = "pathfinder"
 harness = false
+
+[[bench]]
+name = "physics"
+harness = false

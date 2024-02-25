@@ -397,9 +397,7 @@ impl simdnbt::FromNbtTag for FormattedText {
                     trace!("keybind text components aren't yet supported");
                     return None;
                 } else {
-                    let Some(_nbt) = compound.get("nbt") else {
-                        return None;
-                    };
+                    let _nbt = compound.get("nbt")?;
                     let _separator = FormattedText::parse_separator_nbt(compound)?;
 
                     let _interpret = match compound.get("interpret") {

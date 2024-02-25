@@ -4,11 +4,11 @@ use azalea_block::BlockState;
 use azalea_core::{
     cursor3d::{Cursor3d, CursorIterationType},
     math::EPSILON,
-    position::{ChunkPos, ChunkSectionPos},
+    position::{BlockPos, ChunkPos, ChunkSectionBlockPos, ChunkSectionPos},
 };
 use azalea_world::{Chunk, Instance};
 use parking_lot::RwLock;
-use std::{ops::Deref, sync::Arc};
+use std::sync::Arc;
 
 pub fn get_block_collisions(world: &Instance, aabb: AABB) -> BlockCollisions<'_> {
     BlockCollisions::new(world, aabb)
@@ -20,6 +20,8 @@ pub struct BlockCollisions<'a> {
     pub entity_shape: VoxelShape,
     pub cursor: Cursor3d,
     pub only_suffocating_blocks: bool,
+
+    cached_sections: Vec<(ChunkSectionPos, azalea_world::Section)>,
 }
 
 impl<'a> BlockCollisions<'a> {
@@ -40,6 +42,8 @@ impl<'a> BlockCollisions<'a> {
             entity_shape: VoxelShape::from(aabb),
             cursor,
             only_suffocating_blocks: false,
+
+            cached_sections: Vec::new(),
         }
     }
 
@@ -63,6 +67,36 @@ impl<'a> BlockCollisions<'a> {
 
         self.world.chunks.get(&chunk_pos)
     }
+
+    fn get_block_state(&mut self, block_pos: BlockPos) -> BlockState {
+        let section_pos = ChunkSectionPos::from(block_pos);
+        let section_block_pos = ChunkSectionBlockPos::from(block_pos);
+
+        for (cached_section_pos, cached_section) in &self.cached_sections {
+            if section_pos == *cached_section_pos {
+                return cached_section.get(section_block_pos);
+            }
+        }
+
+        let chunk = self.get_chunk(block_pos.x, block_pos.z);
+        let Some(chunk) = chunk else {
+            return BlockState::AIR;
+        };
+        let chunk = chunk.read();
+
+        let sections = &chunk.sections;
+        let section_index =
+            azalea_world::chunk_storage::section_index(block_pos.y, self.world.chunks.min_y)
+                as usize;
+
+        let Some(section) = sections.get(section_index) else {
+            return BlockState::AIR;
+        };
+
+        self.cached_sections.push((section_pos, section.clone()));
+
+        section.get(section_block_pos)
+    }
 }
 
 impl<'a> Iterator for BlockCollisions<'a> {
@@ -74,24 +108,18 @@ impl<'a> Iterator for BlockCollisions<'a> {
                 continue;
             }
 
-            let chunk = self.get_chunk(item.pos.x, item.pos.z);
-            let Some(chunk) = chunk else {
-                continue;
-            };
+            let block_state = self.get_block_state(item.pos);
 
-            let pos = item.pos;
-            let block_state: BlockState = chunk
-                .read()
-                .get(&(&pos).into(), self.world.chunks.min_y)
-                .unwrap_or(BlockState::AIR);
+            if block_state.is_air() {
+                // fast path since we can't collide with air
+                continue;
+            }
 
             // TODO: continue if self.only_suffocating_blocks and the block is not
             // suffocating
 
-            let block_shape = block_state.shape();
-
             // if it's a full block do a faster collision check
-            if block_shape == BLOCK_SHAPE.deref() {
+            if block_state.is_shape_full() {
                 if !self.aabb.intersects_aabb(&AABB {
                     min_x: item.pos.x as f64,
                     min_y: item.pos.y as f64,
@@ -103,12 +131,14 @@ impl<'a> Iterator for BlockCollisions<'a> {
                     continue;
                 }
 
-                return Some(block_shape.move_relative(
+                return Some(BLOCK_SHAPE.move_relative(
                     item.pos.x as f64,
                     item.pos.y as f64,
                     item.pos.z as f64,
                 ));
             }
+
+            let block_shape = block_state.shape();
 
             let block_shape =
                 block_shape.move_relative(item.pos.x as f64, item.pos.y as f64, item.pos.z as f64);

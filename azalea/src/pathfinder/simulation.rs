@@ -113,8 +113,7 @@ fn create_simulation_player(
     ));
     entity.insert(player);
 
-    let entity_id = entity.id();
-    entity_id
+    entity.id()
 }
 
 /// Simulate the Minecraft world to see if certain movements would be possible.
