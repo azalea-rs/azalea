@@ -618,7 +618,7 @@ fn check_for_path_obstruction(
     }
 }
 
-fn recalculate_near_end_of_path(
+pub fn recalculate_near_end_of_path(
     mut query: Query<(Entity, &mut Pathfinder, &mut ExecutingPath)>,
     mut walk_events: EventWriter<StartWalkEvent>,
     mut goto_events: EventWriter<GotoEvent>,
