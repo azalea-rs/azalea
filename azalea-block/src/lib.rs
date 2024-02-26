@@ -59,6 +59,8 @@ impl BlockState {
         state_id <= Self::max_state()
     }
 
+    /// Returns true if the block is air. This only checks for normal air, not
+    /// other types like cave air.
     #[inline]
     pub fn is_air(&self) -> bool {
         self == &Self::AIR

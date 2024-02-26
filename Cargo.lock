@@ -460,6 +460,7 @@ dependencies = [
  "nohash-hasher",
  "once_cell",
  "parking_lot",
+ "smallvec",
  "tracing",
  "uuid",
 ]

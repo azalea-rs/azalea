@@ -169,22 +169,22 @@ impl Shapes {
         // var5.getList(), var6.getList(), var7.getList()));
         let var5 = Self::create_index_merger(
             1,
-            a.get_coords(Axis::X),
-            b.get_coords(Axis::X),
+            a.get_coords(Axis::X).to_vec(),
+            b.get_coords(Axis::X).to_vec(),
             op_true_false,
             op_false_true,
         );
         let var6 = Self::create_index_merger(
             (var5.size() - 1).try_into().unwrap(),
-            a.get_coords(Axis::Y),
-            b.get_coords(Axis::Y),
+            a.get_coords(Axis::Y).to_vec(),
+            b.get_coords(Axis::Y).to_vec(),
             op_true_false,
             op_false_true,
         );
         let var7 = Self::create_index_merger(
             ((var5.size() - 1) * (var6.size() - 1)).try_into().unwrap(),
-            a.get_coords(Axis::Z),
-            b.get_coords(Axis::Z),
+            a.get_coords(Axis::Z).to_vec(),
+            b.get_coords(Axis::Z).to_vec(),
             op_true_false,
             op_false_true,
         );
@@ -233,22 +233,22 @@ impl Shapes {
 
         let x_merger = Self::create_index_merger(
             1,
-            a.get_coords(Axis::X),
-            b.get_coords(Axis::X),
+            a.get_coords(Axis::X).to_vec(),
+            b.get_coords(Axis::X).to_vec(),
             op_true_false,
             op_false_true,
         );
         let y_merger = Self::create_index_merger(
             (x_merger.size() - 1) as i32,
-            a.get_coords(Axis::Y),
-            b.get_coords(Axis::Y),
+            a.get_coords(Axis::Y).to_vec(),
+            b.get_coords(Axis::Y).to_vec(),
             op_true_false,
             op_false_true,
         );
         let z_merger = Self::create_index_merger(
             ((x_merger.size() - 1) * (y_merger.size() - 1)) as i32,
-            a.get_coords(Axis::Z),
-            b.get_coords(Axis::Z),
+            a.get_coords(Axis::Z).to_vec(),
+            b.get_coords(Axis::Z).to_vec(),
             op_true_false,
             op_false_true,
         );
@@ -361,7 +361,7 @@ impl VoxelShape {
         }
     }
 
-    pub fn get_coords(&self, axis: Axis) -> Vec<f64> {
+    pub fn get_coords(&self, axis: Axis) -> &[f64] {
         match self {
             VoxelShape::Array(s) => s.get_coords(axis),
             VoxelShape::Cube(s) => s.get_coords(axis),
@@ -625,6 +625,10 @@ pub struct CubeVoxelShape {
     // TODO: check where faces is used in minecraft
     #[allow(dead_code)]
     faces: Option<Vec<VoxelShape>>,
+
+    x_coords: Vec<f64>,
+    y_coords: Vec<f64>,
+    z_coords: Vec<f64>,
 }
 
 impl ArrayVoxelShape {
@@ -634,9 +638,9 @@ impl ArrayVoxelShape {
         let z_size = shape.size(Axis::Z) + 1;
 
         // Lengths of point arrays must be consistent with the size of the VoxelShape.
-        assert_eq!(x_size, xs.len() as u32);
-        assert_eq!(y_size, ys.len() as u32);
-        assert_eq!(z_size, zs.len() as u32);
+        debug_assert_eq!(x_size, xs.len() as u32);
+        debug_assert_eq!(y_size, ys.len() as u32);
+        debug_assert_eq!(z_size, zs.len() as u32);
 
         Self {
             faces: None,
@@ -648,19 +652,30 @@ impl ArrayVoxelShape {
     }
 }
 
-impl CubeVoxelShape {
-    pub fn new(shape: DiscreteVoxelShape) -> Self {
-        Self { shape, faces: None }
-    }
-}
-
 impl ArrayVoxelShape {
     fn shape(&self) -> &DiscreteVoxelShape {
         &self.shape
     }
 
-    fn get_coords(&self, axis: Axis) -> Vec<f64> {
-        axis.choose(self.xs.clone(), self.ys.clone(), self.zs.clone())
+    fn get_coords(&self, axis: Axis) -> &[f64] {
+        axis.choose(&self.xs, &self.ys, &self.zs)
+    }
+}
+
+impl CubeVoxelShape {
+    pub fn new(shape: DiscreteVoxelShape) -> Self {
+        // pre-calculate the coor
+        let x_coords = Self::calculate_coords(&shape, Axis::X);
+        let y_coords = Self::calculate_coords(&shape, Axis::Y);
+        let z_coords = Self::calculate_coords(&shape, Axis::Z);
+
+        Self {
+            shape,
+            faces: None,
+            x_coords,
+            y_coords,
+            z_coords,
+        }
     }
 }
 
@@ -669,13 +684,17 @@ impl CubeVoxelShape {
         &self.shape
     }
 
-    fn get_coords(&self, axis: Axis) -> Vec<f64> {
-        let size = self.shape.size(axis);
+    fn calculate_coords(shape: &DiscreteVoxelShape, axis: Axis) -> Vec<f64> {
+        let size = shape.size(axis);
         let mut parts = Vec::with_capacity(size as usize);
         for i in 0..=size {
             parts.push(i as f64 / size as f64);
         }
         parts
+    }
+
+    fn get_coords(&self, axis: Axis) -> &[f64] {
+        axis.choose(&self.x_coords, &self.y_coords, &self.z_coords)
     }
 
     fn find_index(&self, axis: Axis, coord: f64) -> i32 {

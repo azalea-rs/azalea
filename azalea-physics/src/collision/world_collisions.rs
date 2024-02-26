@@ -22,6 +22,7 @@ pub struct BlockCollisions<'a> {
     pub only_suffocating_blocks: bool,
 
     cached_sections: Vec<(ChunkSectionPos, azalea_world::Section)>,
+    cached_block_shapes: Vec<(BlockState, &'static VoxelShape)>,
 }
 
 impl<'a> BlockCollisions<'a> {
@@ -44,6 +45,7 @@ impl<'a> BlockCollisions<'a> {
             only_suffocating_blocks: false,
 
             cached_sections: Vec::new(),
+            cached_block_shapes: Vec::new(),
         }
     }
 
@@ -95,7 +97,26 @@ impl<'a> BlockCollisions<'a> {
 
         self.cached_sections.push((section_pos, section.clone()));
 
+        // println!(
+        //     "chunk section length: {}",
+        //     section.states.storage.data.len()
+        // );
+        // println!("biome length: {}", section.biomes.storage.data.len());
+
         section.get(section_block_pos)
+    }
+
+    fn get_block_shape(&mut self, block_state: BlockState) -> &'static VoxelShape {
+        for (cached_block_state, cached_shape) in &self.cached_block_shapes {
+            if block_state == *cached_block_state {
+                return cached_shape;
+            }
+        }
+
+        let shape = block_state.shape();
+        self.cached_block_shapes.push((block_state, shape));
+
+        shape
     }
 }
 
@@ -138,7 +159,7 @@ impl<'a> Iterator for BlockCollisions<'a> {
                 ));
             }
 
-            let block_shape = block_state.shape();
+            let block_shape = self.get_block_shape(block_state);
 
             let block_shape =
                 block_shape.move_relative(item.pos.x as f64, item.pos.y as f64, item.pos.z as f64);
