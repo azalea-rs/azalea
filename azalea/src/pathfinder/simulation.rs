@@ -87,14 +87,13 @@ fn create_simulation_instance(chunks: ChunkStorage) -> (App, Arc<RwLock<Instance
     (app, instance)
 }
 
-fn create_simulation_player(
-    ecs: &mut World,
+fn create_simulation_player_complete_bundle(
     instance: Arc<RwLock<Instance>>,
-    player: SimulatedPlayerBundle,
-) -> Entity {
+    player: &SimulatedPlayerBundle,
+) -> impl Bundle {
     let instance_name = simulation_instance_name();
 
-    let mut entity = ecs.spawn((
+    (
         MinecraftEntityId(0),
         azalea_entity::LocalEntity,
         azalea_entity::metadata::PlayerMetadataBundle::default(),
@@ -110,9 +109,16 @@ fn create_simulation_player(
             instance: instance.clone(),
         },
         InventoryComponent::default(),
-    ));
-    entity.insert(player);
+    )
+}
 
+fn create_simulation_player(
+    ecs: &mut World,
+    instance: Arc<RwLock<Instance>>,
+    player: SimulatedPlayerBundle,
+) -> Entity {
+    let mut entity = ecs.spawn(create_simulation_player_complete_bundle(instance, &player));
+    entity.insert(player);
     entity.id()
 }
 

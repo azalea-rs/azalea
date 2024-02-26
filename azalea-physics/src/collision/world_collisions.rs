@@ -4,17 +4,79 @@ use azalea_block::BlockState;
 use azalea_core::{
     cursor3d::{Cursor3d, CursorIterationType},
     math::EPSILON,
-    position::{BlockPos, ChunkPos, ChunkSectionBlockPos, ChunkSectionPos},
+    position::{BlockPos, ChunkBlockPos, ChunkPos, ChunkSectionBlockPos, ChunkSectionPos},
 };
 use azalea_world::{Chunk, Instance};
 use parking_lot::RwLock;
 use std::sync::Arc;
 
-pub fn get_block_collisions(world: &Instance, aabb: AABB) -> BlockCollisions<'_> {
-    BlockCollisions::new(world, aabb)
+pub fn get_block_collisions(world: &Instance, aabb: AABB) -> Vec<VoxelShape> {
+    let mut state = BlockCollisionsState::new(world, aabb);
+    let mut block_collisions = Vec::new();
+
+    let initial_chunk_pos = ChunkPos::from(state.cursor.origin());
+    let initial_chunk = world.chunks.get(&initial_chunk_pos).unwrap();
+    let initial_chunk = initial_chunk.read();
+
+    while let Some(item) = state.cursor.next() {
+        if item.iteration_type == CursorIterationType::Corner {
+            continue;
+        }
+
+        let item_chunk_pos = ChunkPos::from(item.pos);
+        let block_state: BlockState = if item_chunk_pos == initial_chunk_pos {
+            initial_chunk
+                .get(&ChunkBlockPos::from(item.pos), state.world.chunks.min_y)
+                .unwrap_or(BlockState::AIR)
+        } else {
+            state.get_block_state(item.pos)
+        };
+
+        if block_state.is_air() {
+            // fast path since we can't collide with air
+            continue;
+        }
+
+        // TODO: continue if self.only_suffocating_blocks and the block is not
+        // suffocating
+
+        // if it's a full block do a faster collision check
+        if block_state.is_shape_full() {
+            if !state.aabb.intersects_aabb(&AABB {
+                min_x: item.pos.x as f64,
+                min_y: item.pos.y as f64,
+                min_z: item.pos.z as f64,
+                max_x: (item.pos.x + 1) as f64,
+                max_y: (item.pos.y + 1) as f64,
+                max_z: (item.pos.z + 1) as f64,
+            }) {
+                continue;
+            }
+
+            block_collisions.push(BLOCK_SHAPE.move_relative(
+                item.pos.x as f64,
+                item.pos.y as f64,
+                item.pos.z as f64,
+            ));
+            continue;
+        }
+
+        let block_shape = state.get_block_shape(block_state);
+
+        let block_shape =
+            block_shape.move_relative(item.pos.x as f64, item.pos.y as f64, item.pos.z as f64);
+        // if the entity shape and block shape don't collide, continue
+        if !Shapes::matches_anywhere(&block_shape, &state.entity_shape, |a, b| a && b) {
+            continue;
+        }
+
+        block_collisions.push(block_shape);
+    }
+
+    block_collisions
 }
 
-pub struct BlockCollisions<'a> {
+pub struct BlockCollisionsState<'a> {
     pub world: &'a Instance,
     pub aabb: AABB,
     pub entity_shape: VoxelShape,
@@ -25,17 +87,21 @@ pub struct BlockCollisions<'a> {
     cached_block_shapes: Vec<(BlockState, &'static VoxelShape)>,
 }
 
-impl<'a> BlockCollisions<'a> {
+impl<'a> BlockCollisionsState<'a> {
     pub fn new(world: &'a Instance, aabb: AABB) -> Self {
-        let origin_x = (aabb.min_x - EPSILON).floor() as i32 - 1;
-        let origin_y = (aabb.min_y - EPSILON).floor() as i32 - 1;
-        let origin_z = (aabb.min_z - EPSILON).floor() as i32 - 1;
+        let origin = BlockPos {
+            x: (aabb.min_x - EPSILON).floor() as i32 - 1,
+            y: (aabb.min_y - EPSILON).floor() as i32 - 1,
+            z: (aabb.min_z - EPSILON).floor() as i32 - 1,
+        };
 
-        let end_x = (aabb.max_x + EPSILON).floor() as i32 + 1;
-        let end_y = (aabb.max_y + EPSILON).floor() as i32 + 1;
-        let end_z = (aabb.max_z + EPSILON).floor() as i32 + 1;
+        let end = BlockPos {
+            x: (aabb.max_x + EPSILON).floor() as i32 + 1,
+            y: (aabb.max_y + EPSILON).floor() as i32 + 1,
+            z: (aabb.max_z + EPSILON).floor() as i32 + 1,
+        };
 
-        let cursor = Cursor3d::new(origin_x, origin_y, origin_z, end_x, end_y, end_z);
+        let cursor = Cursor3d::new(origin, end);
 
         Self {
             world,
@@ -97,10 +163,8 @@ impl<'a> BlockCollisions<'a> {
 
         self.cached_sections.push((section_pos, section.clone()));
 
-        // println!(
-        //     "chunk section length: {}",
-        //     section.states.storage.data.len()
-        // );
+        // println!("chunk section palette: {:?}", section.states.palette);
+        // println!("chunk section data: {:?}", section.states.storage.data);
         // println!("biome length: {}", section.biomes.storage.data.len());
 
         section.get(section_block_pos)
@@ -117,60 +181,5 @@ impl<'a> BlockCollisions<'a> {
         self.cached_block_shapes.push((block_state, shape));
 
         shape
-    }
-}
-
-impl<'a> Iterator for BlockCollisions<'a> {
-    type Item = VoxelShape;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        while let Some(item) = self.cursor.next() {
-            if item.iteration_type == CursorIterationType::Corner {
-                continue;
-            }
-
-            let block_state = self.get_block_state(item.pos);
-
-            if block_state.is_air() {
-                // fast path since we can't collide with air
-                continue;
-            }
-
-            // TODO: continue if self.only_suffocating_blocks and the block is not
-            // suffocating
-
-            // if it's a full block do a faster collision check
-            if block_state.is_shape_full() {
-                if !self.aabb.intersects_aabb(&AABB {
-                    min_x: item.pos.x as f64,
-                    min_y: item.pos.y as f64,
-                    min_z: item.pos.z as f64,
-                    max_x: (item.pos.x + 1) as f64,
-                    max_y: (item.pos.y + 1) as f64,
-                    max_z: (item.pos.z + 1) as f64,
-                }) {
-                    continue;
-                }
-
-                return Some(BLOCK_SHAPE.move_relative(
-                    item.pos.x as f64,
-                    item.pos.y as f64,
-                    item.pos.z as f64,
-                ));
-            }
-
-            let block_shape = self.get_block_shape(block_state);
-
-            let block_shape =
-                block_shape.move_relative(item.pos.x as f64, item.pos.y as f64, item.pos.z as f64);
-            // if the entity shape and block shape don't collide, continue
-            if !Shapes::matches_anywhere(&block_shape, &self.entity_shape, |a, b| a && b) {
-                continue;
-            }
-
-            return Some(block_shape);
-        }
-
-        None
     }
 }

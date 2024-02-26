@@ -169,22 +169,22 @@ impl Shapes {
         // var5.getList(), var6.getList(), var7.getList()));
         let var5 = Self::create_index_merger(
             1,
-            a.get_coords(Axis::X).to_vec(),
-            b.get_coords(Axis::X).to_vec(),
+            a.get_coords(Axis::X),
+            b.get_coords(Axis::X),
             op_true_false,
             op_false_true,
         );
         let var6 = Self::create_index_merger(
             (var5.size() - 1).try_into().unwrap(),
-            a.get_coords(Axis::Y).to_vec(),
-            b.get_coords(Axis::Y).to_vec(),
+            a.get_coords(Axis::Y),
+            b.get_coords(Axis::Y),
             op_true_false,
             op_false_true,
         );
         let var7 = Self::create_index_merger(
             ((var5.size() - 1) * (var6.size() - 1)).try_into().unwrap(),
-            a.get_coords(Axis::Z).to_vec(),
-            b.get_coords(Axis::Z).to_vec(),
+            a.get_coords(Axis::Z),
+            b.get_coords(Axis::Z),
             op_true_false,
             op_false_true,
         );
@@ -208,8 +208,12 @@ impl Shapes {
 
     /// Check if the op is true anywhere when joining the two shapes
     /// vanilla calls this joinIsNotEmpty
-    pub fn matches_anywhere(a: &VoxelShape, b: &VoxelShape, op: fn(bool, bool) -> bool) -> bool {
-        assert!(!op(false, false));
+    pub fn matches_anywhere(
+        a: &VoxelShape,
+        b: &VoxelShape,
+        op: impl Fn(bool, bool) -> bool,
+    ) -> bool {
+        debug_assert!(!op(false, false));
         let a_is_empty = a.is_empty();
         let b_is_empty = b.is_empty();
         if a_is_empty || b_is_empty {
@@ -233,22 +237,22 @@ impl Shapes {
 
         let x_merger = Self::create_index_merger(
             1,
-            a.get_coords(Axis::X).to_vec(),
-            b.get_coords(Axis::X).to_vec(),
+            a.get_coords(Axis::X),
+            b.get_coords(Axis::X),
             op_true_false,
             op_false_true,
         );
         let y_merger = Self::create_index_merger(
             (x_merger.size() - 1) as i32,
-            a.get_coords(Axis::Y).to_vec(),
-            b.get_coords(Axis::Y).to_vec(),
+            a.get_coords(Axis::Y),
+            b.get_coords(Axis::Y),
             op_true_false,
             op_false_true,
         );
         let z_merger = Self::create_index_merger(
             ((x_merger.size() - 1) * (y_merger.size() - 1)) as i32,
-            a.get_coords(Axis::Z).to_vec(),
-            b.get_coords(Axis::Z).to_vec(),
+            a.get_coords(Axis::Z),
+            b.get_coords(Axis::Z),
             op_true_false,
             op_false_true,
         );
@@ -269,7 +273,7 @@ impl Shapes {
         merged_z: IndexMerger,
         shape1: DiscreteVoxelShape,
         shape2: DiscreteVoxelShape,
-        op: fn(bool, bool) -> bool,
+        op: impl Fn(bool, bool) -> bool,
     ) -> bool {
         !merged_x.for_merged_indexes(|var5x, var6, _var7| {
             merged_y.for_merged_indexes(|var6x, var7x, _var8| {
@@ -285,13 +289,13 @@ impl Shapes {
 
     pub fn create_index_merger(
         _var0: i32,
-        var1: Vec<f64>,
-        var2: Vec<f64>,
+        coords1: &[f64],
+        coords2: &[f64],
         var3: bool,
         var4: bool,
     ) -> IndexMerger {
-        let var5 = var1.len() - 1;
-        let var6 = var2.len() - 1;
+        let var5 = coords1.len() - 1;
+        let var6 = coords2.len() - 1;
         // if (&var1 as &dyn Any).is::<CubePointRange>() && (&var2 as &dyn
         // Any).is::<CubePointRange>() {
         // return new DiscreteCubeMerger(var0, var5, var6, var3, var4);
@@ -302,22 +306,24 @@ impl Shapes {
         // }
         // }
 
-        if var1[var5] < var2[0] - EPSILON {
+        if coords1[var5] < coords2[0] - EPSILON {
             IndexMerger::NonOverlapping {
-                lower: var1,
-                upper: var2,
+                lower: coords1.to_vec(),
+                upper: coords2.to_vec(),
                 swap: false,
             }
-        } else if var2[var6] < var1[0] - EPSILON {
+        } else if coords2[var6] < coords1[0] - EPSILON {
             IndexMerger::NonOverlapping {
-                lower: var2,
-                upper: var1,
+                lower: coords2.to_vec(),
+                upper: coords1.to_vec(),
                 swap: true,
             }
-        } else if var5 == var6 && var1 == var2 {
-            IndexMerger::Identical { coords: var1 }
+        } else if var5 == var6 && coords1 == coords2 {
+            IndexMerger::Identical {
+                coords: coords1.to_vec(),
+            }
         } else {
-            IndexMerger::new_indirect(&var1, &var2, var3, var4)
+            IndexMerger::new_indirect(&coords1, &coords2, var3, var4)
         }
     }
 }
@@ -386,6 +392,7 @@ impl VoxelShape {
         ))
     }
 
+    #[inline]
     pub fn get(&self, axis: Axis, index: usize) -> f64 {
         // self.get_coords(axis)[index]
         match self {
@@ -403,9 +410,8 @@ impl VoxelShape {
         match self {
             VoxelShape::Cube(s) => s.find_index(axis, coord),
             _ => {
-                binary_search(0, (self.shape().size(axis) + 1) as i32, &|t| {
-                    coord < self.get(axis, t as usize)
-                }) - 1
+                let upper_limit = (self.shape().size(axis) + 1) as i32;
+                binary_search(0, upper_limit, &|t| coord < self.get(axis, t as usize)) - 1
             }
         }
     }
@@ -657,6 +663,7 @@ impl ArrayVoxelShape {
         &self.shape
     }
 
+    #[inline]
     fn get_coords(&self, axis: Axis) -> &[f64] {
         axis.choose(&self.xs, &self.ys, &self.zs)
     }
@@ -693,6 +700,7 @@ impl CubeVoxelShape {
         parts
     }
 
+    #[inline]
     fn get_coords(&self, axis: Axis) -> &[f64] {
         axis.choose(&self.x_coords, &self.y_coords, &self.z_coords)
     }
