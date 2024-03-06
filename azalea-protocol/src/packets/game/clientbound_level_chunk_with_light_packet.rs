@@ -1,60 +1,20 @@
-use azalea_buf::McBuf;
 use azalea_protocol_macros::ClientboundGamePacket;
-use simdnbt::owned::Nbt;
-
-use super::clientbound_light_update_packet::ClientboundLightUpdatePacketData;
+use azalea_buf::McBuf;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundLevelChunkWithLightPacket {
-    pub x: i32,
-    pub z: i32,
-    pub chunk_data: ClientboundLevelChunkPacketData,
-    pub light_data: ClientboundLightUpdatePacketData,
+#[var]
+pub x: i32,
+#[var]
+pub z: i32,
+// TODO: {'field': 'e.a.toLongArray().length', 'operation': 'write', 'type': 'varint'}
+// TODO: {'field': 'e.a.toLongArray()', 'operation': 'write', 'type': 'long[]'}
+// TODO: {'field': 'e.b.toLongArray().length', 'operation': 'write', 'type': 'varint'}
+// TODO: {'field': 'e.b.toLongArray()', 'operation': 'write', 'type': 'long[]'}
+// TODO: {'field': 'e.c.toLongArray().length', 'operation': 'write', 'type': 'varint'}
+// TODO: {'field': 'e.c.toLongArray()', 'operation': 'write', 'type': 'long[]'}
+// TODO: {'field': 'e.d.toLongArray().length', 'operation': 'write', 'type': 'varint'}
+// TODO: {'field': 'e.d.toLongArray()', 'operation': 'write', 'type': 'long[]'}
+pub light_data: todo!(),
+pub light_data: todo!(),
 }
-
-#[derive(Clone, Debug, McBuf)]
-pub struct ClientboundLevelChunkPacketData {
-    pub heightmaps: Nbt,
-    // we can't parse the data in azalea-protocol because it depends on context from other packets
-    pub data: Vec<u8>,
-    pub block_entities: Vec<BlockEntity>,
-}
-
-#[derive(Clone, Debug, McBuf)]
-pub struct BlockEntity {
-    pub packed_xz: u8,
-    pub y: u16,
-    pub kind: azalea_registry::BlockEntityKind,
-    pub data: Nbt,
-}
-
-// Compound(NbtCompound {
-//     inner: [("", Compound(NbtCompound {
-//         inner: [
-//         ("MOTION_BLOCKING", LongArray([2310355422147575936,
-// 2292305770412047999, 2310355422147575423, 2292305770412310656,
-// 2310355422013095551, 2292305839266005120, 2310320168921529983,
-// 2310355422147575936, 2292305770412048512, 2310355422147575935,
-// 2292305839266005120, 2310355422147313279, 2292305770546528384,
-// 2310355353293618815, 2292305839266005120, 2292305770412047999,
-// 2310355422147575936, 2292305770412047999, 2310355422147575423,
-// 2292305770412048512, 2292305770412047999, 2292305770412047999,
-// 2292305770412047999, 2292305770412047999, 2292305770412047999,
-// 2292305770412047999, 2292305770412047999, 2292305770412047999,
-// 2292305770412047999, 2292305770412047999, 2292305770412047999,
-// 2292305770412047999, 2292305770412047999, 2292305770412047999,
-// 2292305770412047999, 2292305770412047999, 17079008895])),
-//         ("WORLD_SURFACE", LongArray([2310355422147575936,
-// 2292340954784136831, 2310355422147575423, 2292305770412310656,
-// 2310355422013095551, 2292305839266005120, 2310320168921529983,
-// 2310355422147575936, 2292305770412048512, 2310355422147575935,
-// 2292305839266005120, 2310355422147313279, 2292305770546528384,
-// 2310355353293618815, 2292305839266005120, 2292305770412047999,
-// 2310355422147575936, 2292305770412047999, 2310355422147575423,
-// 2292305770412048512, 2292305770412047999, 2292305770412047999,
-// 2292305770412047999, 2292305770412047999, 2292305770412047999,
-// 2292305770412047999, 2292305770412047999, 2292305770412047999,
-// 2292305770412047999, 2292305770412047999, 2292305770412047999,
-// 2292305770412047999, 2292305770412047999, 2292305770412047999,
-// 2292305770412047999, 2292305770412047999, 17079008895]))]     }))]
-// })

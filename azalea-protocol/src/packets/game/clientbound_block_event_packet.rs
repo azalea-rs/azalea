@@ -1,12 +1,11 @@
-use azalea_buf::McBuf;
-use azalea_core::position::BlockPos;
 use azalea_protocol_macros::ClientboundGamePacket;
-use azalea_registry::Block;
+use azalea_buf::McBuf;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundBlockEventPacket {
-    pub pos: BlockPos,
-    pub action_id: u8,
-    pub action_parameter: u8,
-    pub block: Block,
+pub pos: u64, // TODO: Does BlockPos::asLong, may not be implemented
+#[var]
+pub b0: u32,
+#[var]
+pub b1: u32,
 }

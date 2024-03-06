@@ -2065,7 +2065,7 @@ impl Default for DolphinMetadataBundle {
                     aggressive: Aggressive(false),
                 },
             },
-            treasure_pos: TreasurePos(BlockPos::new(0, 0, 0)),
+            treasure_pos: TreasurePos(Default::default()),
             got_fish: GotFish(false),
             moistness_level: MoistnessLevel(2400),
         }
@@ -3093,7 +3093,7 @@ impl Default for FallingBlockMetadataBundle {
                 pose: Pose::default(),
                 ticks_frozen: TicksFrozen(0),
             },
-            start_pos: StartPos(BlockPos::new(0, 0, 0)),
+            start_pos: StartPos(Default::default()),
         }
     }
 }
@@ -8683,10 +8683,10 @@ impl Default for TurtleMetadataBundle {
                     abstract_ageable_baby: AbstractAgeableBaby(false),
                 },
             },
-            home_pos: HomePos(BlockPos::new(0, 0, 0)),
+            home_pos: HomePos(Default::default()),
             has_egg: HasEgg(false),
             laying_egg: LayingEgg(false),
-            travel_pos: TravelPos(BlockPos::new(0, 0, 0)),
+            travel_pos: TravelPos(Default::default()),
             going_home: GoingHome(false),
             travelling: Travelling(false),
         }

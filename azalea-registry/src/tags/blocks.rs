@@ -2372,6 +2372,30 @@ pub static FENCES: Lazy<HashSet<Block>> = Lazy::new(|| {
         Block::CherryFence,
     ])
 });
+pub static ARMADILLO_SPAWNABLE_ON: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::RedSand,
+        Block::CoarseDirt,
+        Block::GrassBlock,
+        Block::Terracotta,
+        Block::WhiteTerracotta,
+        Block::OrangeTerracotta,
+        Block::MagentaTerracotta,
+        Block::LightBlueTerracotta,
+        Block::YellowTerracotta,
+        Block::LimeTerracotta,
+        Block::PinkTerracotta,
+        Block::GrayTerracotta,
+        Block::LightGrayTerracotta,
+        Block::CyanTerracotta,
+        Block::PurpleTerracotta,
+        Block::BlueTerracotta,
+        Block::BrownTerracotta,
+        Block::GreenTerracotta,
+        Block::RedTerracotta,
+        Block::BlackTerracotta,
+    ])
+});
 pub static GEODE_INVALID_BLOCKS: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
         Block::Bedrock,

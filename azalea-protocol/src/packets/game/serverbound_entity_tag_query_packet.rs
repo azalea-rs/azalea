@@ -2,7 +2,9 @@ use azalea_buf::McBuf;
 use azalea_protocol_macros::ServerboundGamePacket;
 
 #[derive(Clone, Debug, McBuf, ServerboundGamePacket)]
-pub struct ServerboundSetCreativeModeSlotPacket {
+pub struct ServerboundEntityTagQueryPacket {
 #[var]
-pub slot_num: u32,
+pub transaction_id: u32,
+#[var]
+pub entity_id: u32,
 }

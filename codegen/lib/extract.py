@@ -1,5 +1,6 @@
 # Extracting data from the Minecraft jars
 
+from typing import TYPE_CHECKING
 from lib.download import get_server_jar, get_burger, get_client_jar, get_pixlyzer, get_yarn_data, get_fabric_api_versions, get_fabric_loader_versions
 from lib.utils import get_dir_location
 from zipfile import ZipFile
@@ -275,3 +276,19 @@ def get_en_us_lang(version_id: str):
     return json.loads(
         get_file_from_jar(version_id, 'assets/minecraft/lang/en_us.json')
     )
+
+# burger packet id extraction is broken since 1.20.5 (always returns -1, so we have to determine packet id ourselves from the mappings).
+# this is very much not ideal.
+
+if TYPE_CHECKING: from codegen.lib.mappings import Mappings
+def get_packet_list(burger_data, mappings: 'Mappings'):
+    packet_list = list(burger_data[0]['packets']['packet'].values())
+    
+    current_packet_id = 0
+    for packet in packet_list:
+        if packet['id'] == -1:
+            packet['id'] = current_packet_id
+            print(packet)
+        current_packet_id += 1
+
+    return packet_list

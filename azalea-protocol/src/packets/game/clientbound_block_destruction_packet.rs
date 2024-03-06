@@ -1,13 +1,10 @@
-use azalea_buf::McBuf;
-use azalea_core::position::BlockPos;
 use azalea_protocol_macros::ClientboundGamePacket;
+use azalea_buf::McBuf;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundBlockDestructionPacket {
-    /// The ID of the entity breaking the block.
-    #[var]
-    pub id: u32,
-    pub pos: BlockPos,
-    /// 0–9 to set it, any other value to remove it.
-    pub progress: u8,
+#[var]
+pub id: u32,
+pub pos: u64, // TODO: Does BlockPos::asLong, may not be implemented
+pub progress: u8,
 }

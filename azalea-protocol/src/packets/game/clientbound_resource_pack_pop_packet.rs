@@ -1,8 +1,6 @@
-use azalea_buf::McBuf;
 use azalea_protocol_macros::ClientboundGamePacket;
-use uuid::Uuid;
+use azalea_buf::McBuf;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundResourcePackPopPacket {
-    pub id: Option<Uuid>,
 }

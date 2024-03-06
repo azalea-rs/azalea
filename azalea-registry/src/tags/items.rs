@@ -6,6 +6,353 @@ use once_cell::sync::Lazy;
 
 use crate::Item;
 
+pub static ENCHANTABLE_HEAD_ARMOR: Lazy<HashSet<Item>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Item::LeatherHelmet,
+        Item::ChainmailHelmet,
+        Item::GoldenHelmet,
+        Item::IronHelmet,
+        Item::DiamondHelmet,
+        Item::NetheriteHelmet,
+        Item::TurtleHelmet,
+    ])
+});
+pub static ENCHANTABLE_MINING_LOOT: Lazy<HashSet<Item>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Item::DiamondAxe,
+        Item::StoneAxe,
+        Item::GoldenAxe,
+        Item::NetheriteAxe,
+        Item::WoodenAxe,
+        Item::IronAxe,
+        Item::DiamondPickaxe,
+        Item::StonePickaxe,
+        Item::GoldenPickaxe,
+        Item::NetheritePickaxe,
+        Item::WoodenPickaxe,
+        Item::IronPickaxe,
+        Item::DiamondShovel,
+        Item::StoneShovel,
+        Item::GoldenShovel,
+        Item::NetheriteShovel,
+        Item::WoodenShovel,
+        Item::IronShovel,
+        Item::DiamondHoe,
+        Item::StoneHoe,
+        Item::GoldenHoe,
+        Item::NetheriteHoe,
+        Item::WoodenHoe,
+        Item::IronHoe,
+    ])
+});
+pub static ENCHANTABLE_BOW: Lazy<HashSet<Item>> = Lazy::new(|| HashSet::from_iter(vec![Item::Bow]));
+pub static ENCHANTABLE_SWORD: Lazy<HashSet<Item>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Item::DiamondSword,
+        Item::StoneSword,
+        Item::GoldenSword,
+        Item::NetheriteSword,
+        Item::WoodenSword,
+        Item::IronSword,
+    ])
+});
+pub static ENCHANTABLE_TRIDENT: Lazy<HashSet<Item>> =
+    Lazy::new(|| HashSet::from_iter(vec![Item::Trident]));
+pub static ENCHANTABLE_VANISHING: Lazy<HashSet<Item>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Item::Compass,
+        Item::CarvedPumpkin,
+        Item::Elytra,
+        Item::Shield,
+        Item::Bow,
+        Item::Crossbow,
+        Item::Trident,
+        Item::FlintAndSteel,
+        Item::Shears,
+        Item::Brush,
+        Item::FishingRod,
+        Item::CarrotOnAStick,
+        Item::WarpedFungusOnAStick,
+        Item::PlayerHead,
+        Item::CreeperHead,
+        Item::ZombieHead,
+        Item::SkeletonSkull,
+        Item::WitherSkeletonSkull,
+        Item::DragonHead,
+        Item::PiglinHead,
+        Item::LeatherBoots,
+        Item::ChainmailBoots,
+        Item::GoldenBoots,
+        Item::IronBoots,
+        Item::DiamondBoots,
+        Item::NetheriteBoots,
+        Item::LeatherLeggings,
+        Item::ChainmailLeggings,
+        Item::GoldenLeggings,
+        Item::IronLeggings,
+        Item::DiamondLeggings,
+        Item::NetheriteLeggings,
+        Item::LeatherChestplate,
+        Item::ChainmailChestplate,
+        Item::GoldenChestplate,
+        Item::IronChestplate,
+        Item::DiamondChestplate,
+        Item::NetheriteChestplate,
+        Item::LeatherHelmet,
+        Item::ChainmailHelmet,
+        Item::GoldenHelmet,
+        Item::IronHelmet,
+        Item::DiamondHelmet,
+        Item::NetheriteHelmet,
+        Item::TurtleHelmet,
+        Item::DiamondSword,
+        Item::StoneSword,
+        Item::GoldenSword,
+        Item::NetheriteSword,
+        Item::WoodenSword,
+        Item::IronSword,
+        Item::DiamondAxe,
+        Item::StoneAxe,
+        Item::GoldenAxe,
+        Item::NetheriteAxe,
+        Item::WoodenAxe,
+        Item::IronAxe,
+        Item::DiamondPickaxe,
+        Item::StonePickaxe,
+        Item::GoldenPickaxe,
+        Item::NetheritePickaxe,
+        Item::WoodenPickaxe,
+        Item::IronPickaxe,
+        Item::DiamondShovel,
+        Item::StoneShovel,
+        Item::GoldenShovel,
+        Item::NetheriteShovel,
+        Item::WoodenShovel,
+        Item::IronShovel,
+        Item::DiamondHoe,
+        Item::StoneHoe,
+        Item::GoldenHoe,
+        Item::NetheriteHoe,
+        Item::WoodenHoe,
+        Item::IronHoe,
+    ])
+});
+pub static ENCHANTABLE_CROSSBOW: Lazy<HashSet<Item>> =
+    Lazy::new(|| HashSet::from_iter(vec![Item::Crossbow]));
+pub static ENCHANTABLE_CHEST_ARMOR: Lazy<HashSet<Item>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Item::LeatherChestplate,
+        Item::ChainmailChestplate,
+        Item::GoldenChestplate,
+        Item::IronChestplate,
+        Item::DiamondChestplate,
+        Item::NetheriteChestplate,
+    ])
+});
+pub static ENCHANTABLE_LEG_ARMOR: Lazy<HashSet<Item>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Item::LeatherLeggings,
+        Item::ChainmailLeggings,
+        Item::GoldenLeggings,
+        Item::IronLeggings,
+        Item::DiamondLeggings,
+        Item::NetheriteLeggings,
+    ])
+});
+pub static ENCHANTABLE_MINING: Lazy<HashSet<Item>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Item::Shears,
+        Item::DiamondAxe,
+        Item::StoneAxe,
+        Item::GoldenAxe,
+        Item::NetheriteAxe,
+        Item::WoodenAxe,
+        Item::IronAxe,
+        Item::DiamondPickaxe,
+        Item::StonePickaxe,
+        Item::GoldenPickaxe,
+        Item::NetheritePickaxe,
+        Item::WoodenPickaxe,
+        Item::IronPickaxe,
+        Item::DiamondShovel,
+        Item::StoneShovel,
+        Item::GoldenShovel,
+        Item::NetheriteShovel,
+        Item::WoodenShovel,
+        Item::IronShovel,
+        Item::DiamondHoe,
+        Item::StoneHoe,
+        Item::GoldenHoe,
+        Item::NetheriteHoe,
+        Item::WoodenHoe,
+        Item::IronHoe,
+    ])
+});
+pub static ENCHANTABLE_ARMOR: Lazy<HashSet<Item>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Item::LeatherBoots,
+        Item::ChainmailBoots,
+        Item::GoldenBoots,
+        Item::IronBoots,
+        Item::DiamondBoots,
+        Item::NetheriteBoots,
+        Item::LeatherLeggings,
+        Item::ChainmailLeggings,
+        Item::GoldenLeggings,
+        Item::IronLeggings,
+        Item::DiamondLeggings,
+        Item::NetheriteLeggings,
+        Item::LeatherChestplate,
+        Item::ChainmailChestplate,
+        Item::GoldenChestplate,
+        Item::IronChestplate,
+        Item::DiamondChestplate,
+        Item::NetheriteChestplate,
+        Item::LeatherHelmet,
+        Item::ChainmailHelmet,
+        Item::GoldenHelmet,
+        Item::IronHelmet,
+        Item::DiamondHelmet,
+        Item::NetheriteHelmet,
+        Item::TurtleHelmet,
+    ])
+});
+pub static ENCHANTABLE_FISHING: Lazy<HashSet<Item>> =
+    Lazy::new(|| HashSet::from_iter(vec![Item::FishingRod]));
+pub static ENCHANTABLE_EQUIPPABLE: Lazy<HashSet<Item>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Item::Elytra,
+        Item::CarvedPumpkin,
+        Item::LeatherBoots,
+        Item::ChainmailBoots,
+        Item::GoldenBoots,
+        Item::IronBoots,
+        Item::DiamondBoots,
+        Item::NetheriteBoots,
+        Item::LeatherLeggings,
+        Item::ChainmailLeggings,
+        Item::GoldenLeggings,
+        Item::IronLeggings,
+        Item::DiamondLeggings,
+        Item::NetheriteLeggings,
+        Item::LeatherChestplate,
+        Item::ChainmailChestplate,
+        Item::GoldenChestplate,
+        Item::IronChestplate,
+        Item::DiamondChestplate,
+        Item::NetheriteChestplate,
+        Item::LeatherHelmet,
+        Item::ChainmailHelmet,
+        Item::GoldenHelmet,
+        Item::IronHelmet,
+        Item::DiamondHelmet,
+        Item::NetheriteHelmet,
+        Item::TurtleHelmet,
+        Item::PlayerHead,
+        Item::CreeperHead,
+        Item::ZombieHead,
+        Item::SkeletonSkull,
+        Item::WitherSkeletonSkull,
+        Item::DragonHead,
+        Item::PiglinHead,
+    ])
+});
+pub static ENCHANTABLE_FOOT_ARMOR: Lazy<HashSet<Item>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Item::LeatherBoots,
+        Item::ChainmailBoots,
+        Item::GoldenBoots,
+        Item::IronBoots,
+        Item::DiamondBoots,
+        Item::NetheriteBoots,
+    ])
+});
+pub static ENCHANTABLE_WEAPON: Lazy<HashSet<Item>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Item::DiamondSword,
+        Item::StoneSword,
+        Item::GoldenSword,
+        Item::NetheriteSword,
+        Item::WoodenSword,
+        Item::IronSword,
+        Item::DiamondAxe,
+        Item::StoneAxe,
+        Item::GoldenAxe,
+        Item::NetheriteAxe,
+        Item::WoodenAxe,
+        Item::IronAxe,
+    ])
+});
+pub static ENCHANTABLE_DURABILITY: Lazy<HashSet<Item>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Item::Elytra,
+        Item::Shield,
+        Item::Bow,
+        Item::Crossbow,
+        Item::Trident,
+        Item::FlintAndSteel,
+        Item::Shears,
+        Item::Brush,
+        Item::FishingRod,
+        Item::CarrotOnAStick,
+        Item::WarpedFungusOnAStick,
+        Item::LeatherBoots,
+        Item::ChainmailBoots,
+        Item::GoldenBoots,
+        Item::IronBoots,
+        Item::DiamondBoots,
+        Item::NetheriteBoots,
+        Item::LeatherLeggings,
+        Item::ChainmailLeggings,
+        Item::GoldenLeggings,
+        Item::IronLeggings,
+        Item::DiamondLeggings,
+        Item::NetheriteLeggings,
+        Item::LeatherChestplate,
+        Item::ChainmailChestplate,
+        Item::GoldenChestplate,
+        Item::IronChestplate,
+        Item::DiamondChestplate,
+        Item::NetheriteChestplate,
+        Item::LeatherHelmet,
+        Item::ChainmailHelmet,
+        Item::GoldenHelmet,
+        Item::IronHelmet,
+        Item::DiamondHelmet,
+        Item::NetheriteHelmet,
+        Item::TurtleHelmet,
+        Item::DiamondSword,
+        Item::StoneSword,
+        Item::GoldenSword,
+        Item::NetheriteSword,
+        Item::WoodenSword,
+        Item::IronSword,
+        Item::DiamondAxe,
+        Item::StoneAxe,
+        Item::GoldenAxe,
+        Item::NetheriteAxe,
+        Item::WoodenAxe,
+        Item::IronAxe,
+        Item::DiamondPickaxe,
+        Item::StonePickaxe,
+        Item::GoldenPickaxe,
+        Item::NetheritePickaxe,
+        Item::WoodenPickaxe,
+        Item::IronPickaxe,
+        Item::DiamondShovel,
+        Item::StoneShovel,
+        Item::GoldenShovel,
+        Item::NetheriteShovel,
+        Item::WoodenShovel,
+        Item::IronShovel,
+        Item::DiamondHoe,
+        Item::StoneHoe,
+        Item::GoldenHoe,
+        Item::NetheriteHoe,
+        Item::WoodenHoe,
+        Item::IronHoe,
+    ])
+});
 pub static WOODEN_FENCES: Lazy<HashSet<Item>> = Lazy::new(|| {
     HashSet::from_iter(vec![
         Item::OakFence,
@@ -31,6 +378,17 @@ pub static ACACIA_LOGS: Lazy<HashSet<Item>> = Lazy::new(|| {
 });
 pub static CREEPER_IGNITERS: Lazy<HashSet<Item>> =
     Lazy::new(|| HashSet::from_iter(vec![Item::FlintAndSteel, Item::FireCharge]));
+pub static HEAD_ARMOR: Lazy<HashSet<Item>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Item::LeatherHelmet,
+        Item::ChainmailHelmet,
+        Item::GoldenHelmet,
+        Item::IronHelmet,
+        Item::DiamondHelmet,
+        Item::NetheriteHelmet,
+        Item::TurtleHelmet,
+    ])
+});
 pub static WOODEN_SLABS: Lazy<HashSet<Item>> = Lazy::new(|| {
     HashSet::from_iter(vec![
         Item::OakSlab,
@@ -595,6 +953,16 @@ pub static STONE_CRAFTING_MATERIALS: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::CobbledDeepslate,
     ])
 });
+pub static CHEST_ARMOR: Lazy<HashSet<Item>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Item::LeatherChestplate,
+        Item::ChainmailChestplate,
+        Item::GoldenChestplate,
+        Item::IronChestplate,
+        Item::DiamondChestplate,
+        Item::NetheriteChestplate,
+    ])
+});
 pub static FISHES: Lazy<HashSet<Item>> = Lazy::new(|| {
     HashSet::from_iter(vec![
         Item::Cod,
@@ -761,6 +1129,16 @@ pub static PICKAXES: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::IronPickaxe,
     ])
 });
+pub static LEG_ARMOR: Lazy<HashSet<Item>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Item::LeatherLeggings,
+        Item::ChainmailLeggings,
+        Item::GoldenLeggings,
+        Item::IronLeggings,
+        Item::DiamondLeggings,
+        Item::NetheriteLeggings,
+    ])
+});
 pub static HOES: Lazy<HashSet<Item>> = Lazy::new(|| {
     HashSet::from_iter(vec![
         Item::DiamondHoe,
@@ -908,6 +1286,17 @@ pub static STONE_BRICKS: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::ChiseledStoneBricks,
     ])
 });
+pub static SKULLS: Lazy<HashSet<Item>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Item::PlayerHead,
+        Item::CreeperHead,
+        Item::ZombieHead,
+        Item::SkeletonSkull,
+        Item::WitherSkeletonSkull,
+        Item::DragonHead,
+        Item::PiglinHead,
+    ])
+});
 pub static STONE_TOOL_MATERIALS: Lazy<HashSet<Item>> = Lazy::new(|| {
     HashSet::from_iter(vec![
         Item::Cobblestone,
@@ -1010,6 +1399,16 @@ pub static CHEST_BOATS: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::MangroveChestBoat,
         Item::BambooChestRaft,
         Item::CherryChestBoat,
+    ])
+});
+pub static FOOT_ARMOR: Lazy<HashSet<Item>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Item::LeatherBoots,
+        Item::ChainmailBoots,
+        Item::GoldenBoots,
+        Item::IronBoots,
+        Item::DiamondBoots,
+        Item::NetheriteBoots,
     ])
 });
 pub static BOOKSHELF_BOOKS: Lazy<HashSet<Item>> = Lazy::new(|| {
@@ -1146,30 +1545,30 @@ pub static RAILS: Lazy<HashSet<Item>> = Lazy::new(|| {
 });
 pub static TRIMMABLE_ARMOR: Lazy<HashSet<Item>> = Lazy::new(|| {
     HashSet::from_iter(vec![
-        Item::NetheriteHelmet,
-        Item::NetheriteChestplate,
-        Item::NetheriteLeggings,
-        Item::NetheriteBoots,
-        Item::DiamondHelmet,
-        Item::DiamondChestplate,
-        Item::DiamondLeggings,
-        Item::DiamondBoots,
-        Item::GoldenHelmet,
-        Item::GoldenChestplate,
-        Item::GoldenLeggings,
-        Item::GoldenBoots,
-        Item::IronHelmet,
-        Item::IronChestplate,
-        Item::IronLeggings,
-        Item::IronBoots,
-        Item::ChainmailHelmet,
-        Item::ChainmailChestplate,
-        Item::ChainmailLeggings,
-        Item::ChainmailBoots,
-        Item::LeatherHelmet,
-        Item::LeatherChestplate,
-        Item::LeatherLeggings,
         Item::LeatherBoots,
+        Item::ChainmailBoots,
+        Item::GoldenBoots,
+        Item::IronBoots,
+        Item::DiamondBoots,
+        Item::NetheriteBoots,
+        Item::LeatherLeggings,
+        Item::ChainmailLeggings,
+        Item::GoldenLeggings,
+        Item::IronLeggings,
+        Item::DiamondLeggings,
+        Item::NetheriteLeggings,
+        Item::LeatherChestplate,
+        Item::ChainmailChestplate,
+        Item::GoldenChestplate,
+        Item::IronChestplate,
+        Item::DiamondChestplate,
+        Item::NetheriteChestplate,
+        Item::LeatherHelmet,
+        Item::ChainmailHelmet,
+        Item::GoldenHelmet,
+        Item::IronHelmet,
+        Item::DiamondHelmet,
+        Item::NetheriteHelmet,
         Item::TurtleHelmet,
     ])
 });

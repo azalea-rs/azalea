@@ -1,9 +1,8 @@
-use azalea_buf::McBuf;
-use azalea_core::position::BlockPos;
 use azalea_protocol_macros::ClientboundGamePacket;
+use azalea_buf::McBuf;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundSetDefaultSpawnPositionPacket {
-    pub pos: BlockPos,
-    pub angle: f32,
+pub pos: u64, // TODO: Does BlockPos::asLong, may not be implemented
+pub angle: f32,
 }
