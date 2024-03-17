@@ -24,7 +24,7 @@ use crate::{
     PlayerInfo,
 };
 
-use azalea_auth::{account::Account, game_profile::GameProfile, sessionserver::ClientSessionServerError};
+use azalea_auth::{account::{Account, BoxedAccount}, game_profile::GameProfile, sessionserver::ClientSessionServerError};
 use azalea_chat::FormattedText;
 use azalea_core::{position::Vec3, tick::GameTick};
 use azalea_entity::{
@@ -182,7 +182,7 @@ impl Client {
     /// }
     /// ```
     pub async fn join(
-        account: &impl Account,
+        account: impl Account,
         address: impl TryInto<ServerAddress>,
     ) -> Result<(Self, mpsc::UnboundedReceiver<Event>), JoinError> {
         let address: ServerAddress = address.try_into().map_err(|_| JoinError::InvalidAddress)?;
@@ -198,7 +198,7 @@ impl Client {
 
         Self::start_client(
             ecs_lock,
-            account,
+            BoxedAccount(Arc::new(account)),
             &address,
             &resolved_address,
             run_schedule_sender,
@@ -210,7 +210,7 @@ impl Client {
     /// [`start_ecs_runner`]. You'd usually want to use [`Self::join`] instead.
     pub async fn start_client(
         ecs_lock: Arc<Mutex<World>>,
-        account: &impl Account,
+        account: BoxedAccount,
         address: &ServerAddress,
         resolved_address: &SocketAddr,
         run_schedule_sender: mpsc::UnboundedSender<()>,
@@ -221,8 +221,8 @@ impl Client {
             let mut ecs = ecs_lock.lock();
 
             let entity_uuid_index = ecs.resource::<EntityUuidIndex>();
-            let uuid = account.get_uuid();
-            let entity = if let Some(entity) = entity_uuid_index.get(&account.get_uuid()) {
+            let uuid = account.0.get_uuid();
+            let entity = if let Some(entity) = entity_uuid_index.get(&account.0.get_uuid()) {
                 debug!("Reusing entity {entity:?} for client");
                 entity
             } else {
@@ -235,7 +235,7 @@ impl Client {
             };
 
             // add the Account to the entity now so plugins can access it earlier
-            ecs.entity_mut(entity).insert(account.to_owned());
+            ecs.entity_mut(entity).insert(account.clone());
 
             entity
         };
@@ -292,7 +292,7 @@ impl Client {
         ecs_lock: Arc<Mutex<World>>,
         entity: Entity,
         mut conn: Connection<ClientboundHandshakePacket, ServerboundHandshakePacket>,
-        account: &impl Account,
+        account: BoxedAccount,
         address: &ServerAddress,
     ) -> Result<
         (
@@ -325,8 +325,8 @@ impl Client {
         // login
         conn.write(
             ServerboundHelloPacket {
-                name: account.get_username().clone(),
-                profile_id: account.get_uuid(),
+                name: account.0.get_username().clone(),
+                profile_id: account.0.get_uuid(),
             }
             .get(),
         )
@@ -352,14 +352,14 @@ impl Client {
                     debug!("Got encryption request");
                     let e = azalea_crypto::encrypt(&p.public_key, &p.nonce).unwrap();
 
-                    if account.is_online() {
+                    if account.0.is_online() {
                         // keep track of the number of times we tried
                         // authenticating so we can give up after too many
                         let mut attempts: usize = 1;
 
                         while let Err(e) = {
                             conn.authenticate(
-                                account,
+                                account.clone(),
                                 e.secret_key,
                                 &p,
                             )

@@ -1,10 +1,10 @@
-use bevy_ecs::component::Component;
+use async_trait::async_trait;
 use md5::{Digest, Md5};
 use uuid::Uuid;
 
 use crate::{account::Account, certs::{Certificates, FetchCertificatesError}, sessionserver::ClientSessionServerError};
 
-#[derive(Clone, Debug, Component)]
+#[derive(Clone, Debug)]
 pub struct OfflineAccount {
     pub username: String,
     pub uuid: Option<Uuid>,
@@ -26,6 +26,7 @@ impl OfflineAccount {
     }
 }
 
+#[async_trait]
 impl Account for OfflineAccount {
     async fn join_with_server_id_hash(&self, _: Uuid, _: String) -> Result<(), ClientSessionServerError> {
         unimplemented!("Offline accounts can't join servers with a session server.")

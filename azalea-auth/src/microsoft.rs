@@ -1,6 +1,7 @@
 //! Handle Minecraft (Xbox) authentication.
 
 use crate::{account::Account, cache::{self, CachedAccount, ExpiringValue}, certs::{Certificates, CertificatesResponse, FetchCertificatesError}, sessionserver::{ClientSessionServerError, ForbiddenError}};
+use async_trait::async_trait;
 use base64::Engine;
 use bevy_ecs::component::Component;
 use chrono::{DateTime, Utc};
@@ -31,7 +32,7 @@ pub struct MicrosoftAuthOpts {
     pub cache_file: Option<PathBuf>,
 }
 
-#[derive(Clone, Debug, Component)]
+#[derive(Clone, Debug)]
 pub struct MicrosoftAccount {
     pub client: reqwest::Client,
     pub access_token: String,
@@ -156,6 +157,7 @@ impl MicrosoftAccount {
     }
 }
 
+#[async_trait]
 impl Account for MicrosoftAccount {
     async fn join_with_server_id_hash(&self, uuid: Uuid, server_hash: String) -> Result<(), ClientSessionServerError> {
         let mut encode_buffer = Uuid::encode_buffer();

@@ -1,17 +1,20 @@
-use std::future::Future;
+use std::{future::Future, sync::Arc};
 
+
+use async_trait::async_trait;
 use bevy_ecs::component::Component;
 use uuid::Uuid;
 
 use crate::{certs::{Certificates, FetchCertificatesError}, sessionserver::ClientSessionServerError};
 
-pub trait Account: Clone + Component {
-    fn join(
+#[async_trait]
+pub trait Account: std::fmt::Debug + Send + Sync + 'static {
+    async fn join(
         &self,
         public_key: &[u8],
         private_key: &[u8],
         server_id: &str,
-    ) -> impl Future<Output = Result<(), ClientSessionServerError>> + Send {    
+    ) -> Result<(), ClientSessionServerError> {    
         let server_hash = azalea_crypto::hex_digest(&azalea_crypto::digest_data(
             server_id.as_bytes(),
             public_key,
@@ -19,11 +22,11 @@ pub trait Account: Clone + Component {
         ));
         let uuid = self.get_uuid();
     
-        self.join_with_server_id_hash(uuid, server_hash)
+        self.join_with_server_id_hash(uuid, server_hash).await
     }
-    fn join_with_server_id_hash(&self, uuid: Uuid, server_hash: String) -> impl Future<Output = Result<(), ClientSessionServerError>> + Send;
+    async fn join_with_server_id_hash(&self, uuid: Uuid, server_hash: String) -> Result<(), ClientSessionServerError>;
 
-    fn fetch_certificates(&self) -> impl Future<Output = Result<Certificates, FetchCertificatesError>> + Send;
+    async fn fetch_certificates(&self) -> Result<Certificates, FetchCertificatesError>;
 
     fn get_username(&self) -> String;
     fn get_uuid(&self) -> Uuid;
@@ -32,3 +35,6 @@ pub trait Account: Clone + Component {
         true
     }
 }
+
+#[derive(Clone, Debug, Component)]
+pub struct BoxedAccount(pub Arc<dyn Account>);
