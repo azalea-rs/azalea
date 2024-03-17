@@ -14,7 +14,7 @@ use bevy_app::{App, PluginGroup, PluginGroupBuilder, Plugins};
 use bevy_ecs::{component::Component, entity::Entity, system::Resource, world::World};
 use futures::future::{join_all, BoxFuture};
 use parking_lot::{Mutex, RwLock};
-use std::{collections::HashMap, future::Future, net::SocketAddr, sync::Arc, time::Duration};
+use std::{collections::HashMap, future::Future, marker::PhantomData, net::SocketAddr, sync::Arc, time::Duration};
 use tokio::sync::mpsc;
 use tracing::error;
 
@@ -28,7 +28,7 @@ use crate::{BoxHandleFn, DefaultBotPlugins, HandleFn, NoState, StartError};
 /// The `S` type parameter is the type of the state for individual bots.
 /// It's used to make the [`Swarm::add`] function work.
 #[derive(Clone, Resource)]
-pub struct Swarm {
+pub struct Swarm<A> where A: Send + Sync + Clone + Account + 'static, {
     pub ecs_lock: Arc<Mutex<World>>,
 
     bots: Arc<Mutex<HashMap<Entity, Client>>>,
@@ -40,7 +40,7 @@ pub struct Swarm {
     pub instance_container: Arc<RwLock<InstanceContainer>>,
 
     bots_tx: mpsc::UnboundedSender<(Option<Event>, Client)>,
-    swarm_tx: mpsc::UnboundedSender<SwarmEvent>,
+    swarm_tx: mpsc::UnboundedSender<SwarmEvent<A>>,
 
     run_schedule_sender: mpsc::UnboundedSender<()>,
 }
@@ -50,7 +50,7 @@ pub struct SwarmBuilder<S, SS, A>
 where
     S: Send + Sync + Clone + Component + 'static,
     SS: Default + Send + Sync + Clone + Resource + 'static,
-    A: Account
+    A: Send + Sync + Clone + Account + 'static,
 {
     pub(crate) app: App,
     /// The accounts that are going to join the server.
@@ -64,7 +64,7 @@ where
     pub(crate) handler: Option<BoxHandleFn<S>>,
     /// The function that's called every time the swarm receives a
     /// [`SwarmEvent`].
-    pub(crate) swarm_handler: Option<BoxSwarmHandleFn<SS>>,
+    pub(crate) swarm_handler: Option<BoxSwarmHandleFn<SS, A>>,
 
     /// How long we should wait between each bot joining the server. Set to
     /// None to have every bot connect at the same time. None is different than
@@ -72,14 +72,14 @@ where
     /// the previous one to be ready.
     pub(crate) join_delay: Option<std::time::Duration>,
 }
-impl SwarmBuilder<NoState, NoSwarmState> {
+impl<A> SwarmBuilder<NoState, NoSwarmState, A> where A: Send + Sync + Clone + Account + 'static {
     /// Start creating the swarm.
     #[must_use]
-    pub fn new() -> SwarmBuilder<NoState, NoSwarmState> {
+    pub fn new() -> SwarmBuilder<NoState, NoSwarmState, A> {
         Self::new_without_plugins()
             .add_plugins(DefaultPlugins)
             .add_plugins(DefaultBotPlugins)
-            .add_plugins(DefaultSwarmPlugins)
+            .add_plugins(DefaultSwarmPlugins { _account: PhantomData::<A> })
     }
 
     /// [`Self::new`] but without adding the plugins by default. This is useful
@@ -108,7 +108,7 @@ impl SwarmBuilder<NoState, NoSwarmState> {
     /// # }
     /// ```
     #[must_use]
-    pub fn new_without_plugins() -> SwarmBuilder<NoState, NoSwarmState> {
+    pub fn new_without_plugins() -> SwarmBuilder<NoState, NoSwarmState, A> {
         SwarmBuilder {
             // we create the app here so plugins can add onto it.
             // the schedules won't run until [`Self::start`] is called.
@@ -123,9 +123,10 @@ impl SwarmBuilder<NoState, NoSwarmState> {
     }
 }
 
-impl<SS> SwarmBuilder<NoState, SS>
+impl<SS, A> SwarmBuilder<NoState, SS, A>
 where
     SS: Default + Send + Sync + Clone + Resource + 'static,
+    A: Send + Sync + Clone + Account + 'static,
 {
     /// Set the function that's called every time a bot receives an [`Event`].
     /// This is the way to handle normal per-bot events.
@@ -154,7 +155,7 @@ where
     /// # }
     /// ```
     #[must_use]
-    pub fn set_handler<S, Fut>(self, handler: HandleFn<S, Fut>) -> SwarmBuilder<S, SS>
+    pub fn set_handler<S, Fut>(self, handler: HandleFn<S, Fut>) -> SwarmBuilder<S, SS, A>
     where
         Fut: Future<Output = Result<(), anyhow::Error>> + Send + 'static,
         S: Send + Sync + Clone + Component + Default + 'static,
@@ -170,9 +171,10 @@ where
     }
 }
 
-impl<S> SwarmBuilder<S, NoSwarmState>
+impl<S, A> SwarmBuilder<S, NoSwarmState, A>
 where
     S: Send + Sync + Clone + Component + 'static,
+    A: Send + Sync + Clone + Account + 'static
 {
     /// Set the function that's called every time the swarm receives a
     /// [`SwarmEvent`]. This is the way to handle global swarm events.
@@ -202,10 +204,11 @@ where
     /// }
     /// ```
     #[must_use]
-    pub fn set_swarm_handler<SS, Fut>(self, handler: SwarmHandleFn<SS, Fut>) -> SwarmBuilder<S, SS>
+    pub fn set_swarm_handler<SS, Fut>(self, handler: SwarmHandleFn<SS, A, Fut>) -> SwarmBuilder<S, SS, A>
     where
         SS: Default + Send + Sync + Clone + Resource + 'static,
         Fut: Future<Output = Result<(), anyhow::Error>> + Send + 'static,
+        A: Send + Sync + Clone + Account + 'static,
     {
         SwarmBuilder {
             handler: self.handler,
@@ -221,10 +224,11 @@ where
     }
 }
 
-impl<S, SS> SwarmBuilder<S, SS>
+impl<S, SS, A> SwarmBuilder<S, SS, A>
 where
     S: Send + Sync + Clone + Component + 'static,
     SS: Default + Send + Sync + Clone + Resource + 'static,
+    A: Send + Sync + Clone + Account + 'static,
 {
     /// Add a vec of [`Account`]s to the swarm.
     ///
@@ -235,7 +239,7 @@ where
     /// By default every account will join at the same time, you can add a delay
     /// with [`Self::join_delay`].
     #[must_use]
-    pub fn add_accounts(mut self, accounts: Vec<impl Account>) -> Self
+    pub fn add_accounts(mut self, accounts: Vec<A>) -> Self
     where
         S: Default,
     {
@@ -250,7 +254,7 @@ where
     /// This will make the state for this client be the default, use
     /// [`Self::add_account_with_state`] to avoid that.
     #[must_use]
-    pub fn add_account(self, account: impl Account) -> Self
+    pub fn add_account(self, account: A) -> Self
     where
         S: Default,
     {
@@ -259,7 +263,7 @@ where
     /// Add an account with a custom initial state. Use just
     /// [`Self::add_account`] to use the Default implementation for the state.
     #[must_use]
-    pub fn add_account_with_state(mut self, account: impl Account, state: S) -> Self {
+    pub fn add_account_with_state(mut self, account: A, state: S) -> Self {
         self.accounts.push(account);
         self.states.push(state);
         self
@@ -427,15 +431,10 @@ where
     }
 }
 
-impl Default for SwarmBuilder<NoState, NoSwarmState> {
-    fn default() -> Self {
-        Self::new()
-    }
-}
 
 /// An event about something that doesn't have to do with a single bot.
 #[derive(Clone, Debug)]
-pub enum SwarmEvent {
+pub enum SwarmEvent<A> where A: Send + Sync + Clone + Account + 'static, {
     /// All the bots in the swarm have successfully joined the server.
     Login,
     /// The swarm was created. This is only fired once, and it's guaranteed to
@@ -445,14 +444,14 @@ pub enum SwarmEvent {
     ///
     /// You can implement an auto-reconnect by calling [`Swarm::add`]
     /// with the account from this event.
-    Disconnect(Box<Account>),
+    Disconnect(Box<A>),
     /// At least one bot received a chat message.
     Chat(ChatPacket),
 }
 
-pub type SwarmHandleFn<SS, Fut> = fn(Swarm, SwarmEvent, SS) -> Fut;
-pub type BoxSwarmHandleFn<SS> =
-    Box<dyn Fn(Swarm, SwarmEvent, SS) -> BoxFuture<'static, Result<(), anyhow::Error>> + Send>;
+pub type SwarmHandleFn<SS, A, Fut> = fn(Swarm<A>, SwarmEvent<A>, SS) -> Fut;
+pub type BoxSwarmHandleFn<SS, A> =
+    Box<dyn Fn(Swarm<A>, SwarmEvent<A>, SS) -> BoxFuture<'static, Result<(), anyhow::Error>> + Send>;
 
 /// Make a bot [`Swarm`].
 ///
@@ -515,7 +514,7 @@ pub type BoxSwarmHandleFn<SS> =
 ///     Ok(())
 /// }
 
-impl Swarm {
+impl<A> Swarm<A> where A: Send + Sync + Clone + Account + 'static, {
     /// Add a new account to the swarm. You can remove it later by calling
     /// [`Client::disconnect`].
     ///
@@ -560,7 +559,7 @@ impl Swarm {
             }
             cloned_bots.lock().remove(&bot.entity);
             let account = cloned_bot
-                .get_component::<Account>()
+                .get_component::<A>()
                 .expect("bot is missing required Account component");
             swarm_tx
                 .send(SwarmEvent::Disconnect(Box::new(account)))
@@ -597,7 +596,7 @@ impl Swarm {
     }
 }
 
-impl IntoIterator for Swarm {
+impl<A> IntoIterator for Swarm<A> where A: Send + Sync + Clone + Account + 'static, {
     type Item = Client;
     type IntoIter = std::vec::IntoIter<Self::Item>;
 
@@ -626,12 +625,15 @@ impl IntoIterator for Swarm {
 
 /// This plugin group will add all the default plugins necessary for swarms to
 /// work.
-pub struct DefaultSwarmPlugins;
+pub struct DefaultSwarmPlugins<A> where A: Send + Sync + Clone + Account + 'static {
+    _account: PhantomData<A>,
 
-impl PluginGroup for DefaultSwarmPlugins {
+}
+
+impl<A> PluginGroup for DefaultSwarmPlugins<A> where A: Send + Sync + Clone + Account + 'static {
     fn build(self) -> PluginGroupBuilder {
         PluginGroupBuilder::start::<Self>()
-            .add(chat::SwarmChatPlugin)
+            .add(chat::SwarmChatPlugin { account: PhantomData::<A> })
             .add(events::SwarmPlugin)
     }
 }

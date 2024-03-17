@@ -73,19 +73,20 @@ pub enum StartError {
 /// #     Ok(())
 /// # }
 /// ```
-pub struct ClientBuilder<S>
+pub struct ClientBuilder<S, A>
 where
     S: Default + Send + Sync + Clone + Component + 'static,
+    A: Send + Sync + Clone + auth::account::Account + 'static,
 {
     /// Internally, ClientBuilder is just a wrapper over SwarmBuilder since it's
     /// technically just a subset of it so we can avoid duplicating code this
     /// way.
-    swarm: SwarmBuilder<S, swarm::NoSwarmState>,
+    swarm: SwarmBuilder<S, swarm::NoSwarmState, A>,
 }
-impl ClientBuilder<NoState> {
+impl<A> ClientBuilder<NoState, A> where A: Send + Sync + Clone + auth::account::Account + 'static, {
     /// Start building a client that can join the world.
     #[must_use]
-    pub fn new() -> ClientBuilder<NoState> {
+    pub fn new() -> ClientBuilder<NoState, A> {
         Self::new_without_plugins()
             .add_plugins(DefaultPlugins)
             .add_plugins(DefaultBotPlugins)
@@ -115,7 +116,7 @@ impl ClientBuilder<NoState> {
     /// # }
     /// ```
     #[must_use]
-    pub fn new_without_plugins() -> ClientBuilder<NoState> {
+    pub fn new_without_plugins() -> ClientBuilder<NoState, A> {
         Self {
             swarm: SwarmBuilder::new_without_plugins(),
         }
@@ -138,7 +139,7 @@ impl ClientBuilder<NoState> {
     /// }
     /// ```
     #[must_use]
-    pub fn set_handler<S, Fut>(self, handler: HandleFn<S, Fut>) -> ClientBuilder<S>
+    pub fn set_handler<S, Fut>(self, handler: HandleFn<S, Fut>) -> ClientBuilder<S, A>
     where
         S: Default + Send + Sync + Clone + Component + 'static,
         Fut: Future<Output = Result<(), anyhow::Error>> + Send + 'static,
@@ -148,9 +149,10 @@ impl ClientBuilder<NoState> {
         }
     }
 }
-impl<S> ClientBuilder<S>
+impl<S, A> ClientBuilder<S, A>
 where
     S: Default + Send + Sync + Clone + Component + 'static,
+    A: Send + Sync + Clone + auth::account::Account + 'static,
 {
     /// Set the client state instead of initializing defaults.
     #[must_use]
@@ -180,7 +182,7 @@ where
     /// [`ServerAddress`]: azalea_protocol::ServerAddress
     pub async fn start(
         mut self,
-        account: Account,
+        account: A,
         address: impl TryInto<ServerAddress>,
     ) -> Result<!, StartError> {
         self.swarm.accounts = vec![account];
@@ -188,11 +190,6 @@ where
             self.swarm.states = vec![S::default()];
         }
         self.swarm.start(address).await
-    }
-}
-impl Default for ClientBuilder<NoState> {
-    fn default() -> Self {
-        Self::new()
     }
 }
 
