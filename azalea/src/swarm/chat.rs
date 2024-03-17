@@ -19,7 +19,6 @@ use crate::ecs::{
     schedule::IntoSystemConfigs,
     system::{Commands, Query, Res, ResMut, Resource},
 };
-use azalea_auth::account::Account;
 use azalea_client::chat::{ChatPacket, ChatReceivedEvent};
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::Event;
@@ -28,16 +27,13 @@ use std::collections::VecDeque;
 use super::{Swarm, SwarmEvent};
 
 #[derive(Clone)]
-pub struct SwarmChatPlugin<A> where A: Send + Sync + Clone + Account + 'static {
-    pub account: std::marker::PhantomData<A>,
-}
-
-impl<A> Plugin for SwarmChatPlugin<A> where A: Send + Sync + Clone + Account + 'static {
+pub struct SwarmChatPlugin;
+impl Plugin for SwarmChatPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<NewChatMessageEvent>()
             .add_systems(
                 Update,
-                (chat_listener, update_min_index_and_shrink_queue::<A>).chain(),
+                (chat_listener, update_min_index_and_shrink_queue).chain(),
             )
             .insert_resource(GlobalChatState {
                 chat_queue: VecDeque::new(),
@@ -117,12 +113,12 @@ fn chat_listener(
     }
 }
 
-fn update_min_index_and_shrink_queue<A>(
+fn update_min_index_and_shrink_queue(
     query: Query<&ClientChatState>,
     mut global_chat_state: ResMut<GlobalChatState>,
     mut events: EventReader<NewChatMessageEvent>,
-    swarm: Option<Res<Swarm<A>>>,
-) where A: Send + Sync + Clone + Account + 'static {
+    swarm: Option<Res<Swarm>>,
+) {
     for event in events.read() {
         if let Some(swarm) = &swarm {
             // it should also work if Swarm isn't present (so the tests don't need it)

@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 use crate::{certs::{Certificates, FetchCertificatesError}, sessionserver::ClientSessionServerError};
 
-pub trait Account: Send + Sync + Clone + Component {
+pub trait Account: Clone + Component {
     fn join(
         &self,
         public_key: &[u8],
