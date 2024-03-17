@@ -15,16 +15,16 @@ pub struct OfflineAccount {
 }
 
 impl OfflineAccount {
-    pub fn new(username: String) -> Self {
+    pub fn new(username: impl ToString) -> Self {
         Self {
-            username,
+            username: username.to_string(),
             uuid: None,
         }
     }
 
-    pub fn with_uuid(username: String, uuid: Uuid) -> Self {
+    pub fn with_uuid(username: impl ToString, uuid: Uuid) -> Self {
         Self {
-            username,
+            username: username.to_string(),
             uuid: Some(uuid),
         }
     }

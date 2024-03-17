@@ -8,7 +8,6 @@ use crate::{
 };
 use async_trait::async_trait;
 use base64::Engine;
-use bevy_ecs::component::Component;
 use chrono::{DateTime, Utc};
 use reqwest::StatusCode;
 use rsa::{pkcs8::DecodePrivateKey, RsaPrivateKey};
@@ -68,7 +67,7 @@ pub enum MicrosoftAuthError {
 }
 
 impl MicrosoftAccount {
-    async fn new(email: &str, opts: MicrosoftAuthOpts) -> Result<Self, MicrosoftAuthError> {
+    pub async fn new(email: &str, opts: MicrosoftAuthOpts) -> Result<Self, MicrosoftAuthError> {
         let cached_account = if let Some(cache_file) = &opts.cache_file {
             cache::get_account_in_cache(cache_file, email).await
         } else {
@@ -508,7 +507,7 @@ pub enum XboxLiveAuthError {
     InvalidExpiryDate(String),
 }
 
-async fn auth_with_xbox_live(
+pub async fn auth_with_xbox_live(
     client: &reqwest::Client,
     access_token: &str,
 ) -> Result<ExpiringValue<XboxLiveAuth>, XboxLiveAuthError> {
@@ -559,7 +558,7 @@ pub enum MinecraftXstsAuthError {
     Http(#[from] reqwest::Error),
 }
 
-async fn obtain_xsts_for_minecraft(
+pub async fn obtain_xsts_for_minecraft(
     client: &reqwest::Client,
     xbl_auth_token: &str,
 ) -> Result<String, MinecraftXstsAuthError> {
@@ -589,7 +588,7 @@ pub enum MinecraftAuthError {
     Http(#[from] reqwest::Error),
 }
 
-async fn auth_with_minecraft(
+pub async fn auth_with_minecraft(
     client: &reqwest::Client,
     user_hash: &str,
     xsts_token: &str,
