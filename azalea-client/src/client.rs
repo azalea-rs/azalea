@@ -24,7 +24,11 @@ use crate::{
     PlayerInfo,
 };
 
-use azalea_auth::{account::{Account, BoxedAccount}, game_profile::GameProfile, sessionserver::ClientSessionServerError};
+use azalea_auth::{
+    account::{Account, BoxedAccount},
+    game_profile::GameProfile,
+    sessionserver::ClientSessionServerError,
+};
 use azalea_chat::FormattedText;
 use azalea_core::{position::Vec3, tick::GameTick};
 use azalea_entity::{
@@ -357,14 +361,9 @@ impl Client {
                         // authenticating so we can give up after too many
                         let mut attempts: usize = 1;
 
-                        while let Err(e) = {
-                            conn.authenticate(
-                                account.clone(),
-                                e.secret_key,
-                                &p,
-                            )
-                            .await
-                        } {
+                        while let Err(e) =
+                            { conn.authenticate(account.clone(), e.secret_key, &p).await }
+                        {
                             if attempts >= 2 {
                                 // if this is the second attempt and we failed
                                 // both times, give up
@@ -377,7 +376,8 @@ impl Client {
                             ) {
                                 // uh oh, we got an invalid session and have
                                 // to reauthenticate now
-                                // account.refresh().await?; FIXME: Make this work with microsoft accounts or smth
+                                // account.refresh().await?; FIXME: Make this
+                                // work with microsoft accounts or smth
                             } else {
                                 return Err(e.into());
                             }

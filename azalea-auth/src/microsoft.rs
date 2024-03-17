@@ -1,6 +1,11 @@
 //! Handle Minecraft (Xbox) authentication.
 
-use crate::{account::Account, cache::{self, CachedAccount, ExpiringValue}, certs::{Certificates, CertificatesResponse, FetchCertificatesError}, sessionserver::{ClientSessionServerError, ForbiddenError}};
+use crate::{
+    account::Account,
+    cache::{self, CachedAccount, ExpiringValue},
+    certs::{Certificates, CertificatesResponse, FetchCertificatesError},
+    sessionserver::{ClientSessionServerError, ForbiddenError},
+};
 use async_trait::async_trait;
 use base64::Engine;
 use bevy_ecs::component::Component;
@@ -9,13 +14,13 @@ use reqwest::StatusCode;
 use rsa::{pkcs8::DecodePrivateKey, RsaPrivateKey};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use tracing::debug;
 use std::{
     collections::HashMap,
     path::PathBuf,
     time::{Instant, SystemTime, UNIX_EPOCH},
 };
 use thiserror::Error;
+use tracing::debug;
 use uuid::Uuid;
 
 #[derive(Default)]
@@ -69,12 +74,12 @@ impl MicrosoftAccount {
         } else {
             None
         };
-    
+
         if cached_account.is_some() && !cached_account.as_ref().unwrap().mca.is_expired() {
             let account = cached_account.as_ref().unwrap();
             // the minecraft auth data is cached and not expired, so we can just
             // use that instead of doing auth all over again :)
-    
+
             Ok(Self {
                 client: reqwest::Client::new(),
                 access_token: account.mca.data.access_token.clone(),
@@ -98,16 +103,15 @@ impl MicrosoftAccount {
                     }
                 }
             }
-    
+
             let msa_token = &msa.data.access_token;
             tracing::trace!("Got access token: {msa_token}");
-    
+
             let xbl = auth_with_xbox_live(&client, msa_token).await?;
 
             let xsts_token = obtain_xsts_for_minecraft(
                 &client,
-                &xbl
-                    .get()
+                &xbl.get()
                     .expect("Xbox Live auth token shouldn't have expired yet")
                     .token,
             )
@@ -120,16 +124,16 @@ impl MicrosoftAccount {
                 .expect("Minecraft auth shouldn't have expired yet")
                 .access_token
                 .to_string();
-    
+
             if opts.check_ownership {
                 let has_game = check_ownership(&client, &minecraft_access_token).await?;
                 if !has_game {
                     return Err(MicrosoftAuthError::DoesNotOwnGame);
                 }
             }
-    
+
             let profile: ProfileResponse = get_profile(&client, &minecraft_access_token).await?;
-    
+
             if let Some(cache_file) = opts.cache_file {
                 if let Err(e) = cache::set_account_in_cache(
                     &cache_file,
@@ -147,7 +151,7 @@ impl MicrosoftAccount {
                     tracing::error!("{}", e);
                 }
             }
-    
+
             Ok(Self {
                 client,
                 access_token: minecraft_access_token,
@@ -159,7 +163,11 @@ impl MicrosoftAccount {
 
 #[async_trait]
 impl Account for MicrosoftAccount {
-    async fn join_with_server_id_hash(&self, uuid: Uuid, server_hash: String) -> Result<(), ClientSessionServerError> {
+    async fn join_with_server_id_hash(
+        &self,
+        uuid: Uuid,
+        server_hash: String,
+    ) -> Result<(), ClientSessionServerError> {
         let mut encode_buffer = Uuid::encode_buffer();
         let undashed_uuid = uuid.simple().encode_lower(&mut encode_buffer);
 
@@ -168,7 +176,8 @@ impl Account for MicrosoftAccount {
             "selectedProfile": undashed_uuid,
             "serverId": server_hash
         });
-        let res = self.client
+        let res = self
+            .client
             .post("https://sessionserver.mojang.com/session/minecraft/join")
             .json(&data)
             .send()
@@ -187,7 +196,9 @@ impl Account for MicrosoftAccount {
                         Err(ClientSessionServerError::AuthServersUnreachable)
                     }
                     "InvalidCredentialsException" => Err(ClientSessionServerError::InvalidSession),
-                    "ForbiddenOperationException" => Err(ClientSessionServerError::ForbiddenOperation),
+                    "ForbiddenOperationException" => {
+                        Err(ClientSessionServerError::ForbiddenOperation)
+                    }
                     _ => Err(ClientSessionServerError::Unknown(forbidden.error)),
                 }
             }
@@ -203,17 +214,18 @@ impl Account for MicrosoftAccount {
             }
         }
     }
-    
+
     fn get_username(&self) -> String {
         self.profile.name.clone()
     }
-    
+
     fn get_uuid(&self) -> Uuid {
         self.profile.id
     }
-    
+
     async fn fetch_certificates(&self) -> Result<Certificates, FetchCertificatesError> {
-        let res = self.client
+        let res = self
+            .client
             .post("https://api.minecraftservices.com/player/certificates")
             .header("Authorization", format!("Bearer {}", self.access_token))
             .send()

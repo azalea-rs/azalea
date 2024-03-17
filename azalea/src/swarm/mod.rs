@@ -5,9 +5,7 @@ mod events;
 pub mod prelude;
 
 use azalea_auth::account::{Account, BoxedAccount};
-use azalea_client::{
-    chat::ChatPacket, start_ecs_runner, Client, DefaultPlugins, Event, JoinError,
-};
+use azalea_client::{chat::ChatPacket, start_ecs_runner, Client, DefaultPlugins, Event, JoinError};
 use azalea_protocol::{resolver, ServerAddress};
 use azalea_world::InstanceContainer;
 use bevy_app::{App, PluginGroup, PluginGroupBuilder, Plugins};
@@ -44,7 +42,6 @@ pub struct Swarm {
 
     run_schedule_sender: mpsc::UnboundedSender<()>,
 }
-
 
 /// Create a new [`Swarm`].
 pub struct SwarmBuilder<S, SS>
@@ -563,9 +560,7 @@ impl Swarm {
             let account = cloned_bot
                 .get_component::<BoxedAccount>()
                 .expect("bot is missing required Account component");
-            swarm_tx
-                .send(SwarmEvent::Disconnect(account))
-                .unwrap();
+            swarm_tx.send(SwarmEvent::Disconnect(account)).unwrap();
         });
 
         Ok(bot)

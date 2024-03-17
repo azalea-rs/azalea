@@ -395,7 +395,10 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
         private_key: [u8; 16],
         packet: &ClientboundHelloPacket,
     ) -> Result<(), ClientSessionServerError> {
-        account.0.join(&packet.public_key, &private_key, &packet.server_id).await
+        account
+            .0
+            .join(&packet.public_key, &private_key, &packet.server_id)
+            .await
     }
 }
 
