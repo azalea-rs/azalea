@@ -155,7 +155,7 @@ impl Account for BoxedAccount {
         self.0.join_with_server_id_hash(uuid, server_hash).await
     }
 
-    async fn fetch_certificates(&self) -> Result<Certificates, FetchCertificatesError> {
+    async fn fetch_certificates(&self) -> Result<Option<Certificates>, FetchCertificatesError> {
         self.0.fetch_certificates().await
     }
 
@@ -165,10 +165,6 @@ impl Account for BoxedAccount {
 
     fn get_uuid(&self) -> Uuid {
         self.0.get_uuid()
-    }
-
-    fn is_online(&self) -> bool {
-        self.0.is_online()
     }
 }
 
@@ -386,33 +382,31 @@ impl Client {
                     debug!("Got encryption request");
                     let e = azalea_crypto::encrypt(&p.public_key, &p.nonce).unwrap();
 
-                    if account.0.is_online() {
-                        // keep track of the number of times we tried
-                        // authenticating so we can give up after too many
-                        let mut attempts: usize = 1;
+                    // keep track of the number of times we tried
+                    // authenticating so we can give up after too many
+                    let mut attempts: usize = 1;
 
-                        while let Err(e) =
-                            { conn.authenticate(account.0.clone(), e.secret_key, &p).await }
-                        {
-                            if attempts >= 2 {
-                                // if this is the second attempt and we failed
-                                // both times, give up
-                                return Err(e.into());
-                            }
-                            if matches!(
-                                e,
-                                ClientSessionServerError::InvalidSession
-                                    | ClientSessionServerError::ForbiddenOperation
-                            ) {
-                                // uh oh, we got an invalid session and have
-                                // to reauthenticate now
-                                // account.refresh().await?; FIXME: Make this
-                                // work with microsoft accounts or smth
-                            } else {
-                                return Err(e.into());
-                            }
-                            attempts += 1;
+                    while let Err(e) =
+                        { conn.authenticate(account.0.clone(), e.secret_key, &p).await }
+                    {
+                        if attempts >= 2 {
+                            // if this is the second attempt and we failed
+                            // both times, give up
+                            return Err(e.into());
                         }
+                        if matches!(
+                            e,
+                            ClientSessionServerError::InvalidSession
+                                | ClientSessionServerError::ForbiddenOperation
+                        ) {
+                            // uh oh, we got an invalid session and have
+                            // to reauthenticate now
+                            // account.refresh().await?; FIXME: Make this
+                            // work with microsoft accounts or smth
+                        } else {
+                            return Err(e.into());
+                        }
+                        attempts += 1;
                     }
 
                     conn.write(

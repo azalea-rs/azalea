@@ -37,11 +37,11 @@ impl Account for OfflineAccount {
         _: Uuid,
         _: String,
     ) -> Result<(), ClientSessionServerError> {
-        unimplemented!("Offline accounts can't join servers with a session server.")
+        Ok(())
     }
 
-    async fn fetch_certificates(&self) -> Result<Certificates, FetchCertificatesError> {
-        unimplemented!("Offline accounts can't fetch certificates.")
+    async fn fetch_certificates(&self) -> Result<Option<Certificates>, FetchCertificatesError> {
+        Ok(None)
     }
 
     fn get_username(&self) -> String {
@@ -50,10 +50,6 @@ impl Account for OfflineAccount {
 
     fn get_uuid(&self) -> Uuid {
         self.uuid.unwrap_or_else(|| generate_uuid(&self.username))
-    }
-
-    fn is_online(&self) -> bool {
-        false
     }
 }
 

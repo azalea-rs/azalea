@@ -29,12 +29,8 @@ pub trait Account: std::fmt::Debug + Send + Sync + 'static {
         server_hash: String,
     ) -> Result<(), ClientSessionServerError>;
 
-    async fn fetch_certificates(&self) -> Result<Certificates, FetchCertificatesError>;
+    async fn fetch_certificates(&self) -> Result<Option<Certificates>, FetchCertificatesError>;
 
     fn get_username(&self) -> String;
     fn get_uuid(&self) -> Uuid;
-
-    fn is_online(&self) -> bool {
-        true
-    }
 }

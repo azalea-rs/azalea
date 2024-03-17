@@ -222,7 +222,7 @@ impl Account for MicrosoftAccount {
         self.profile.id
     }
 
-    async fn fetch_certificates(&self) -> Result<Certificates, FetchCertificatesError> {
+    async fn fetch_certificates(&self) -> Result<Option<Certificates>, FetchCertificatesError> {
         let res = self
             .client
             .post("https://api.minecraftservices.com/player/certificates")
@@ -277,7 +277,7 @@ impl Account for MicrosoftAccount {
             refresh_after: res.refreshed_after,
         };
 
-        Ok(certificates)
+        Ok(Some(certificates))
     }
 }
 
