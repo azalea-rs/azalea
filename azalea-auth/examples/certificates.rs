@@ -8,7 +8,7 @@ async fn main() {
 
     let auth_result = azalea_auth::auth(
         "example@example.com",
-        azalea_auth::AuthOpts {
+        azalea_auth::MicrosoftAuthOpts {
             cache_file: Some(cache_file),
             ..Default::default()
         },

@@ -21,10 +21,10 @@ use crate::{
     raw_connection::RawConnection,
     respawn::RespawnPlugin,
     task_pool::TaskPoolPlugin,
-    Account, PlayerInfo,
+    PlayerInfo,
 };
 
-use azalea_auth::{game_profile::GameProfile, sessionserver::ClientSessionServerError};
+use azalea_auth::{account::Account, game_profile::GameProfile, sessionserver::ClientSessionServerError};
 use azalea_chat::FormattedText;
 use azalea_core::{position::Vec3, tick::GameTick};
 use azalea_entity::{
@@ -105,6 +105,7 @@ pub struct Client {
     ///
     /// This as also available from the ECS as [`GameProfileComponent`].
     pub profile: GameProfile,
+
     /// The entity for this client in the ECS.
     pub entity: Entity,
 
@@ -133,7 +134,7 @@ pub enum JoinError {
     #[error("The given address could not be parsed into a ServerAddress")]
     InvalidAddress,
     #[error("Couldn't refresh access token: {0}")]
-    Auth(#[from] azalea_auth::AuthError),
+    Auth(#[from] azalea_auth::MicrosoftAuthError),
     #[error("Disconnected: {reason}")]
     Disconnect { reason: FormattedText },
 }
@@ -181,7 +182,7 @@ impl Client {
     /// }
     /// ```
     pub async fn join(
-        account: &Account,
+        account: &impl Account,
         address: impl TryInto<ServerAddress>,
     ) -> Result<(Self, mpsc::UnboundedReceiver<Event>), JoinError> {
         let address: ServerAddress = address.try_into().map_err(|_| JoinError::InvalidAddress)?;
@@ -209,7 +210,7 @@ impl Client {
     /// [`start_ecs_runner`]. You'd usually want to use [`Self::join`] instead.
     pub async fn start_client(
         ecs_lock: Arc<Mutex<World>>,
-        account: &Account,
+        account: &impl Account,
         address: &ServerAddress,
         resolved_address: &SocketAddr,
         run_schedule_sender: mpsc::UnboundedSender<()>,
@@ -220,8 +221,8 @@ impl Client {
             let mut ecs = ecs_lock.lock();
 
             let entity_uuid_index = ecs.resource::<EntityUuidIndex>();
-            let uuid = account.uuid_or_offline();
-            let entity = if let Some(entity) = entity_uuid_index.get(&account.uuid_or_offline()) {
+            let uuid = account.get_uuid();
+            let entity = if let Some(entity) = entity_uuid_index.get(&account.get_uuid()) {
                 debug!("Reusing entity {entity:?} for client");
                 entity
             } else {
@@ -291,7 +292,7 @@ impl Client {
         ecs_lock: Arc<Mutex<World>>,
         entity: Entity,
         mut conn: Connection<ClientboundHandshakePacket, ServerboundHandshakePacket>,
-        account: &Account,
+        account: &impl Account,
         address: &ServerAddress,
     ) -> Result<
         (
@@ -324,10 +325,8 @@ impl Client {
         // login
         conn.write(
             ServerboundHelloPacket {
-                name: account.username.clone(),
-                // TODO: pretty sure this should generate an offline-mode uuid instead of just
-                // Uuid::default()
-                profile_id: account.uuid.unwrap_or_default(),
+                name: account.get_username().clone(),
+                profile_id: account.get_uuid(),
             }
             .get(),
         )
@@ -353,18 +352,14 @@ impl Client {
                     debug!("Got encryption request");
                     let e = azalea_crypto::encrypt(&p.public_key, &p.nonce).unwrap();
 
-                    if let Some(access_token) = &account.access_token {
+                    if account.is_online() {
                         // keep track of the number of times we tried
                         // authenticating so we can give up after too many
                         let mut attempts: usize = 1;
 
                         while let Err(e) = {
-                            let access_token = access_token.lock().clone();
                             conn.authenticate(
-                                &access_token,
-                                &account
-                                    .uuid
-                                    .expect("Uuid must be present if access token is present."),
+                                account,
                                 e.secret_key,
                                 &p,
                             )
@@ -382,7 +377,7 @@ impl Client {
                             ) {
                                 // uh oh, we got an invalid session and have
                                 // to reauthenticate now
-                                account.refresh().await?;
+                                // account.refresh().await?; FIXME: Make this work with microsoft accounts or smth
                             } else {
                                 return Err(e.into());
                             }

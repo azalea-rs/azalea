@@ -4,8 +4,9 @@ mod chat;
 mod events;
 pub mod prelude;
 
+use azalea_auth::account::Account;
 use azalea_client::{
-    chat::ChatPacket, start_ecs_runner, Account, Client, DefaultPlugins, Event, JoinError,
+    chat::ChatPacket, start_ecs_runner, Client, DefaultPlugins, Event, JoinError,
 };
 use azalea_protocol::{resolver, ServerAddress};
 use azalea_world::InstanceContainer;
@@ -45,14 +46,15 @@ pub struct Swarm {
 }
 
 /// Create a new [`Swarm`].
-pub struct SwarmBuilder<S, SS>
+pub struct SwarmBuilder<S, SS, A>
 where
     S: Send + Sync + Clone + Component + 'static,
     SS: Default + Send + Sync + Clone + Resource + 'static,
+    A: Account
 {
     pub(crate) app: App,
     /// The accounts that are going to join the server.
-    pub(crate) accounts: Vec<Account>,
+    pub(crate) accounts: Vec<A>,
     /// The individual bot states. This must be the same length as `accounts`,
     /// since each bot gets one state.
     pub(crate) states: Vec<S>,
@@ -233,7 +235,7 @@ where
     /// By default every account will join at the same time, you can add a delay
     /// with [`Self::join_delay`].
     #[must_use]
-    pub fn add_accounts(mut self, accounts: Vec<Account>) -> Self
+    pub fn add_accounts(mut self, accounts: Vec<impl Account>) -> Self
     where
         S: Default,
     {
@@ -248,7 +250,7 @@ where
     /// This will make the state for this client be the default, use
     /// [`Self::add_account_with_state`] to avoid that.
     #[must_use]
-    pub fn add_account(self, account: Account) -> Self
+    pub fn add_account(self, account: impl Account) -> Self
     where
         S: Default,
     {
@@ -257,7 +259,7 @@ where
     /// Add an account with a custom initial state. Use just
     /// [`Self::add_account`] to use the Default implementation for the state.
     #[must_use]
-    pub fn add_account_with_state(mut self, account: Account, state: S) -> Self {
+    pub fn add_account_with_state(mut self, account: impl Account, state: S) -> Self {
         self.accounts.push(account);
         self.states.push(state);
         self
@@ -522,7 +524,7 @@ impl Swarm {
     /// Returns an `Err` if the bot could not do a handshake successfully.
     pub async fn add<S: Component + Clone>(
         &mut self,
-        account: &Account,
+        account: &impl Account,
         state: S,
     ) -> Result<Client, JoinError> {
         let address = self.address.read().clone();
@@ -575,7 +577,7 @@ impl Swarm {
     /// seconds and doubling up to 15 seconds.
     pub async fn add_and_retry_forever<S: Component + Clone>(
         &mut self,
-        account: &Account,
+        account: &impl Account,
         state: S,
     ) -> Client {
         let mut disconnects = 0;
@@ -586,7 +588,7 @@ impl Swarm {
                     disconnects += 1;
                     let delay = (Duration::from_secs(5) * 2u32.pow(disconnects.min(16)))
                         .min(Duration::from_secs(15));
-                    let username = account.username.clone();
+                    let username = account.get_username().clone();
                     error!("Error joining as {username}: {e}. Waiting {delay:?} and trying again.");
                     tokio::time::sleep(delay).await;
                 }
