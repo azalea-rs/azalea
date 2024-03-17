@@ -1,7 +1,4 @@
-use std::sync::Arc;
-
 use async_trait::async_trait;
-use bevy_ecs::component::Component;
 use uuid::Uuid;
 
 use crate::{
@@ -39,35 +36,5 @@ pub trait Account: std::fmt::Debug + Send + Sync + 'static {
 
     fn is_online(&self) -> bool {
         true
-    }
-}
-
-#[derive(Clone, Debug, Component)]
-pub struct BoxedAccount(pub Arc<dyn Account>);
-
-#[async_trait]
-impl Account for BoxedAccount {
-    async fn join_with_server_id_hash(
-        &self,
-        uuid: Uuid,
-        server_hash: String,
-    ) -> Result<(), ClientSessionServerError> {
-        self.0.join_with_server_id_hash(uuid, server_hash).await
-    }
-
-    async fn fetch_certificates(&self) -> Result<Certificates, FetchCertificatesError> {
-        self.0.fetch_certificates().await
-    }
-
-    fn get_username(&self) -> String {
-        self.0.get_username()
-    }
-
-    fn get_uuid(&self) -> Uuid {
-        self.0.get_uuid()
-    }
-
-    fn is_online(&self) -> bool {
-        self.0.is_online()
     }
 }

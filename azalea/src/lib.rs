@@ -18,7 +18,7 @@ pub mod swarm;
 use std::sync::Arc;
 
 use app::Plugins;
-use auth::account::{Account, BoxedAccount};
+use auth::account::Account;
 pub use azalea_auth as auth;
 pub use azalea_block as blocks;
 pub use azalea_brigadier as brigadier;

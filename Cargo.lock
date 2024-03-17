@@ -242,7 +242,6 @@ dependencies = [
  "azalea-buf",
  "azalea-crypto",
  "base64",
- "bevy_ecs",
  "chrono",
  "env_logger",
  "md-5",

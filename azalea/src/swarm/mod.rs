@@ -4,8 +4,8 @@ mod chat;
 mod events;
 pub mod prelude;
 
-use azalea_auth::account::{Account, BoxedAccount};
-use azalea_client::{chat::ChatPacket, start_ecs_runner, Client, DefaultPlugins, Event, JoinError};
+use azalea_auth::account::Account;
+use azalea_client::{chat::ChatPacket, start_ecs_runner, BoxedAccount, Client, DefaultPlugins, Event, JoinError};
 use azalea_protocol::{resolver, ServerAddress};
 use azalea_world::InstanceContainer;
 use bevy_app::{App, PluginGroup, PluginGroupBuilder, Plugins};

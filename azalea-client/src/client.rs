@@ -24,10 +24,9 @@ use crate::{
     PlayerInfo,
 };
 
+use async_trait::async_trait;
 use azalea_auth::{
-    account::{Account, BoxedAccount},
-    game_profile::GameProfile,
-    sessionserver::ClientSessionServerError,
+    account::Account, certs::{Certificates, FetchCertificatesError}, game_profile::GameProfile, sessionserver::ClientSessionServerError
 };
 use azalea_chat::FormattedText;
 use azalea_core::{position::Vec3, tick::GameTick};
@@ -142,6 +141,37 @@ pub enum JoinError {
     #[error("Disconnected: {reason}")]
     Disconnect { reason: FormattedText },
 }
+
+#[derive(Clone, Debug, Component)]
+pub struct BoxedAccount(pub Arc<dyn Account>);
+
+#[async_trait]
+impl Account for BoxedAccount {
+    async fn join_with_server_id_hash(
+        &self,
+        uuid: Uuid,
+        server_hash: String,
+    ) -> Result<(), ClientSessionServerError> {
+        self.0.join_with_server_id_hash(uuid, server_hash).await
+    }
+
+    async fn fetch_certificates(&self) -> Result<Certificates, FetchCertificatesError> {
+        self.0.fetch_certificates().await
+    }
+
+    fn get_username(&self) -> String {
+        self.0.get_username()
+    }
+
+    fn get_uuid(&self) -> Uuid {
+        self.0.get_uuid()
+    }
+
+    fn is_online(&self) -> bool {
+        self.0.is_online()
+    }
+}
+
 
 impl Client {
     /// Create a new client from the given [`GameProfile`], ECS Entity, ECS
@@ -362,7 +392,7 @@ impl Client {
                         let mut attempts: usize = 1;
 
                         while let Err(e) =
-                            { conn.authenticate(account.clone(), e.secret_key, &p).await }
+                            { conn.authenticate(account.0.clone(), e.secret_key, &p).await }
                         {
                             if attempts >= 2 {
                                 // if this is the second attempt and we failed
