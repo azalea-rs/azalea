@@ -238,6 +238,7 @@ pub struct MinecraftAuthResponse {
 pub struct GameOwnershipResponse {
     pub items: Vec<GameOwnershipItem>,
     pub signature: String,
+    #[serde(rename = "keyId")]
     pub key_id: String,
 }
 
