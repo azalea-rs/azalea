@@ -1,5 +1,4 @@
 use azalea_buf::McBuf;
-use azalea_core::resource_location::ResourceLocation;
 use azalea_entity::attributes::AttributeModifier;
 use azalea_protocol_macros::ClientboundGamePacket;
 
@@ -12,7 +11,7 @@ pub struct ClientboundUpdateAttributesPacket {
 
 #[derive(Clone, Debug, McBuf)]
 pub struct AttributeSnapshot {
-    pub attribute: ResourceLocation,
+    pub attribute: azalea_registry::Attribute,
     pub base: f64,
     pub modifiers: Vec<AttributeModifier>,
 }

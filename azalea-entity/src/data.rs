@@ -92,6 +92,7 @@ pub enum EntityDataValue {
     OptionalGlobalPos(Option<GlobalPos>),
     PaintingVariant(azalea_registry::PaintingVariant),
     SnifferState(SnifferState),
+    ArmadilloState(ArmadilloStateKind),
     Vector3(Vec3),
     Quaternion(Quaternion),
 }
@@ -105,6 +106,16 @@ pub struct Quaternion {
     pub y: f32,
     pub z: f32,
     pub w: f32,
+}
+
+// mojang just calls this ArmadilloState but i added "Kind" since otherwise it
+// collides with a name in metadata.rs
+#[derive(Clone, Debug, Copy, Default, McBuf)]
+pub enum ArmadilloStateKind {
+    #[default]
+    Idle,
+    Rolling,
+    Scared,
 }
 
 impl McBufReadable for OptionalUnsignedInt {

@@ -4,8 +4,8 @@
 // Don't change it manually!
 
 use super::{
-    EntityDataItem, EntityDataValue, OptionalUnsignedInt, Pose, Quaternion, Rotations,
-    SnifferState, VillagerData,
+    ArmadilloStateKind, EntityDataItem, EntityDataValue, OptionalUnsignedInt, Pose, Quaternion,
+    Rotations, SnifferState, VillagerData,
 };
 use azalea_chat::FormattedText;
 use azalea_core::{
@@ -228,6 +228,87 @@ impl Default for AreaEffectCloudMetadataBundle {
     }
 }
 
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct AbstractAgeableBaby(pub bool);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct ArmadilloState(pub ArmadilloStateKind);
+#[derive(Component)]
+pub struct Armadillo;
+impl Armadillo {
+    pub fn apply_metadata(
+        entity: &mut bevy_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
+            17 => {
+                entity.insert(ArmadilloState(d.value.into_armadillo_state()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct ArmadilloMetadataBundle {
+    _marker: Armadillo,
+    parent: AbstractAnimalMetadataBundle,
+    armadillo_state: ArmadilloState,
+}
+impl Default for ArmadilloMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: Armadillo,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(None),
+                                    custom_name_visible: CustomNameVisible(false),
+                                    silent: Silent(false),
+                                    no_gravity: NoGravity(false),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(0),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                abstract_living_effect_color: AbstractLivingEffectColor(0),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
+            armadillo_state: ArmadilloState(Default::default()),
+        }
+    }
+}
+
 #[derive(Component, Deref, DerefMut, Clone, Copy)]
 pub struct Small(pub bool);
 #[derive(Component, Deref, DerefMut, Clone, Copy)]
@@ -426,8 +507,6 @@ impl Default for ArrowMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
-pub struct AbstractAgeableBaby(pub bool);
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct AxolotlVariant(pub i32);
 #[derive(Component, Deref, DerefMut, Clone)]
@@ -1986,7 +2065,7 @@ impl Default for DolphinMetadataBundle {
                     aggressive: Aggressive(false),
                 },
             },
-            treasure_pos: TreasurePos(Default::default()),
+            treasure_pos: TreasurePos(BlockPos::new(0, 0, 0)),
             got_fish: GotFish(false),
             moistness_level: MoistnessLevel(2400),
         }
@@ -3014,7 +3093,7 @@ impl Default for FallingBlockMetadataBundle {
                 pose: Pose::default(),
                 ticks_frozen: TicksFrozen(0),
             },
-            start_pos: StartPos(Default::default()),
+            start_pos: StartPos(BlockPos::new(0, 0, 0)),
         }
     }
 }
@@ -8604,10 +8683,10 @@ impl Default for TurtleMetadataBundle {
                     abstract_ageable_baby: AbstractAgeableBaby(false),
                 },
             },
-            home_pos: HomePos(Default::default()),
+            home_pos: HomePos(BlockPos::new(0, 0, 0)),
             has_egg: HasEgg(false),
             laying_egg: LayingEgg(false),
-            travel_pos: TravelPos(Default::default()),
+            travel_pos: TravelPos(BlockPos::new(0, 0, 0)),
             going_home: GoingHome(false),
             travelling: Travelling(false),
         }
@@ -9350,6 +9429,8 @@ pub struct WolfInterested(pub bool);
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct WolfCollarColor(pub i32);
 #[derive(Component, Deref, DerefMut, Clone)]
+pub struct HasArmor(pub bool);
+#[derive(Component, Deref, DerefMut, Clone)]
 pub struct WolfRemainingAngerTime(pub i32);
 #[derive(Component)]
 pub struct Wolf;
@@ -9367,6 +9448,9 @@ impl Wolf {
                 entity.insert(WolfCollarColor(d.value.into_int()?));
             }
             21 => {
+                entity.insert(HasArmor(d.value.into_boolean()?));
+            }
+            22 => {
                 entity.insert(WolfRemainingAngerTime(d.value.into_int()?));
             }
             _ => {}
@@ -9381,6 +9465,7 @@ pub struct WolfMetadataBundle {
     parent: AbstractTameableMetadataBundle,
     wolf_interested: WolfInterested,
     wolf_collar_color: WolfCollarColor,
+    has_armor: HasArmor,
     wolf_remaining_anger_time: WolfRemainingAngerTime,
 }
 impl Default for WolfMetadataBundle {
@@ -9439,6 +9524,7 @@ impl Default for WolfMetadataBundle {
             },
             wolf_interested: WolfInterested(false),
             wolf_collar_color: WolfCollarColor(Default::default()),
+            has_armor: HasArmor(false),
             wolf_remaining_anger_time: WolfRemainingAngerTime(0),
         }
     }
@@ -10548,6 +10634,11 @@ pub fn apply_metadata(
                 AreaEffectCloud::apply_metadata(entity, d)?;
             }
         }
+        azalea_registry::EntityKind::Armadillo => {
+            for d in items {
+                Armadillo::apply_metadata(entity, d)?;
+            }
+        }
         azalea_registry::EntityKind::ArmorStand => {
             for d in items {
                 ArmorStand::apply_metadata(entity, d)?;
@@ -11182,6 +11273,9 @@ pub fn apply_default_metadata(
         }
         azalea_registry::EntityKind::AreaEffectCloud => {
             entity.insert(AreaEffectCloudMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::Armadillo => {
+            entity.insert(ArmadilloMetadataBundle::default());
         }
         azalea_registry::EntityKind::ArmorStand => {
             entity.insert(ArmorStandMetadataBundle::default());
