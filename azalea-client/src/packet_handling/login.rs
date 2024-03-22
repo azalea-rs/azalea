@@ -90,6 +90,9 @@ pub fn process_packet_events(ecs: &mut World) {
                     entity: player_entity,
                     packet: ServerboundCustomQueryAnswerPacket {
                         transaction_id: p.transaction_id,
+                        // From https://wiki.vg/Protocol#Login_Plugin_Request:
+                        // > The notchian client always responds that it hasn't understood, and sends an empty payload.
+                        successful: false,
                         data: None,
                     }
                     .get(),

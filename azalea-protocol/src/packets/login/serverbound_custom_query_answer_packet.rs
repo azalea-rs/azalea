@@ -6,5 +6,6 @@ use std::hash::Hash;
 pub struct ServerboundCustomQueryAnswerPacket {
     #[var]
     pub transaction_id: u32,
+    pub successful: bool,
     pub data: Option<UnsizedByteArray>,
 }
