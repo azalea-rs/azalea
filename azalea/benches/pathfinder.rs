@@ -16,6 +16,7 @@ use criterion::{criterion_group, criterion_main, Bencher, Criterion};
 use parking_lot::RwLock;
 use rand::{rngs::StdRng, Rng, SeedableRng};
 
+#[allow(dead_code)]
 fn generate_bedrock_world(
     partial_chunks: &mut PartialChunkStorage,
     size: u32,
@@ -87,7 +88,7 @@ fn generate_mining_world(
         }
     }
 
-    let mut rng = StdRng::seed_from_u64(0);
+    // let mut rng = StdRng::seed_from_u64(0);
 
     for chunk_x in -size..size {
         for chunk_z in -size..size {

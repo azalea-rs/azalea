@@ -1,33 +1,72 @@
-use azalea_buf::McBuf;
+use crate::packets::game::serverbound_interact_packet::InteractionHand;
+use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
+use azalea_core::{
+    direction::Direction,
+    position::{BlockPos, Vec3},
+};
 use azalea_protocol_macros::ServerboundGamePacket;
+use std::io::{Cursor, Write};
 
 #[derive(Clone, Debug, McBuf, ServerboundGamePacket)]
 pub struct ServerboundUseItemOnPacket {
-pub hand: InteractionHand,
-// TODO: {'operation': 'store', 'type': 'Object', 'value': 'this.b.a()', 'var': 'var2'}
-pub var2: u64, // TODO: Does TODO::a, may not be implemented
-pub block_hit: Direction, // TODO: Does BlockHitResult::getDirection, may not be implemented
-// TODO: {'operation': 'store', 'type': 'Object', 'value': 'this.b.e()', 'var': 'var3'}
-// TODO: {'field': '(float)(var3.c - ((double)var2.u()))', 'operation': 'write', 'type': 'float'}
-// TODO: {'field': '(float)(var3.d - ((double)var2.v()))', 'operation': 'write', 'type': 'float'}
-// TODO: {'field': '(float)(var3.e - ((double)var2.w()))', 'operation': 'write', 'type': 'float'}
-pub block_hit: bool, // TODO: Does BlockHitResult::isInside, may not be implemented
-#[var]
-pub sequence: u32,
+    pub hand: InteractionHand,
+    pub block_hit: BlockHit,
+    #[var]
+    pub sequence: u32,
 }
 
-#[derive(McBuf, Clone, Copy, Debug)]
-pub enum InteractionHand {
-    MainHand=0,
-    OffHand=1,
+#[derive(Clone, Debug)]
+pub struct BlockHit {
+    /// The block that we clicked.
+    pub block_pos: BlockPos,
+    /// The face of the block that was clicked.
+    pub direction: Direction,
+    /// The exact coordinates of the world where the block was clicked. In the
+    /// network, this is transmitted as the difference between the location and
+    /// block position.
+    pub location: Vec3,
+    /// Whether the player's head is inside of a block.
+    pub inside: bool,
 }
 
-#[derive(McBuf, Clone, Copy, Debug)]
-pub enum Direction {
-    Down=0,
-    Up=1,
-    North=2,
-    South=3,
-    West=4,
-    East=5,
+impl McBufWritable for BlockHit {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        self.block_pos.write_into(buf)?;
+        self.direction.write_into(buf)?;
+        f32::write_into(
+            &((self.location.x - f64::from(self.block_pos.x)) as f32),
+            buf,
+        )?;
+        f32::write_into(
+            &((self.location.y - f64::from(self.block_pos.y)) as f32),
+            buf,
+        )?;
+        f32::write_into(
+            &((self.location.z - f64::from(self.block_pos.z)) as f32),
+            buf,
+        )?;
+        self.inside.write_into(buf)?;
+        Ok(())
+    }
+}
+
+impl McBufReadable for BlockHit {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let block_pos = BlockPos::read_from(buf)?;
+        let direction = Direction::read_from(buf)?;
+        let cursor_x = f32::read_from(buf)?;
+        let cursor_y = f32::read_from(buf)?;
+        let cursor_z = f32::read_from(buf)?;
+        let inside = bool::read_from(buf)?;
+        Ok(Self {
+            block_pos,
+            direction,
+            location: Vec3 {
+                x: f64::from(block_pos.x) + f64::from(cursor_x),
+                y: f64::from(block_pos.y) + f64::from(cursor_y),
+                z: f64::from(block_pos.z) + f64::from(cursor_z),
+            },
+            inside,
+        })
+    }
 }

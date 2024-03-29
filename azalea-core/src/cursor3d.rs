@@ -3,15 +3,19 @@ use crate::position::BlockPos;
 pub struct Cursor3d {
     index: usize,
 
-    origin_x: i32,
-    origin_y: i32,
-    origin_z: i32,
+    origin: BlockPos,
 
     width: usize,
     height: usize,
     depth: usize,
 
     end: usize,
+}
+
+impl Cursor3d {
+    pub fn origin(&self) -> BlockPos {
+        self.origin
+    }
 }
 
 impl Iterator for Cursor3d {
@@ -40,9 +44,9 @@ impl Iterator for Cursor3d {
 
         Some(CursorIteration {
             pos: BlockPos {
-                x: self.origin_x + x as i32,
-                y: self.origin_y + y as i32,
-                z: self.origin_z + z as i32,
+                x: self.origin.x + x as i32,
+                y: self.origin.y + y as i32,
+                z: self.origin.z + z as i32,
             },
             iteration_type: iteration_type.into(),
         })
@@ -64,30 +68,21 @@ pub struct CursorIteration {
 }
 
 impl Cursor3d {
-    pub fn new(
-        origin_x: i32,
-        origin_y: i32,
-        origin_z: i32,
-        end_x: i32,
-        end_y: i32,
-        end_z: i32,
-    ) -> Self {
-        let width = (end_x - origin_x + 1)
+    pub fn new(origin: BlockPos, end: BlockPos) -> Self {
+        let width = (end.x - origin.x + 1)
             .try_into()
             .expect("Impossible width.");
-        let height = (end_y - origin_y + 1)
+        let height = (end.y - origin.y + 1)
             .try_into()
             .expect("Impossible height.");
-        let depth = (end_z - origin_z + 1)
+        let depth = (end.z - origin.z + 1)
             .try_into()
             .expect("Impossible depth.");
 
         Self {
             index: 0,
 
-            origin_x,
-            origin_y,
-            origin_z,
+            origin,
 
             width,
             height,

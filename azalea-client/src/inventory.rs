@@ -708,7 +708,7 @@ pub fn handle_container_click_event(
                 carried_item: inventory.carried.clone(),
             }
             .get(),
-        })
+        });
     }
 }
 

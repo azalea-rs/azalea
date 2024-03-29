@@ -26,23 +26,23 @@ azalea-world = { version = "0.9.0", path = "../azalea-world" }
 azalea-auth = { version = "0.9.0", path = "../azalea-auth" }
 azalea-brigadier = { version = "0.9.0", path = "../azalea-brigadier" }
 azalea-buf = { version = "0.9.0", path = "../azalea-buf" }
-bevy_app = "0.12.1"
-bevy_ecs = "0.12.1"
-bevy_tasks = { version = "0.12.1", features = ["multi-threaded"] }
+bevy_app = "0.13.0"
+bevy_ecs = "0.13.0"
+bevy_tasks = { version = "0.13.0", features = ["multi-threaded"] }
 derive_more = { version = "0.99.17", features = ["deref", "deref_mut"] }
 futures = "0.3.30"
 futures-lite = "2.2.0"
 tracing = "0.1.40"
 nohash-hasher = "0.2.0"
-num-traits = "0.2.17"
+num-traits = "0.2.18"
 parking_lot = { version = "^0.12.1", features = ["deadlock_detection"] }
-priority-queue = "1.3.2"
-thiserror = "^1.0.56"
-tokio = "^1.35.1"
-uuid = "1.6.1"
-bevy_log = "0.12.1"
+priority-queue = "1.4.0"
+thiserror = "^1.0.57"
+tokio = "^1.36.0"
+uuid = "1.7.0"
+bevy_log = "0.13.0"
 azalea-entity = { version = "0.9.0", path = "../azalea-entity" }
-bevy_time = "0.12.1"
+bevy_time = "0.13.0"
 rustc-hash = "1.1.0"
 
 [dev-dependencies]
@@ -56,4 +56,8 @@ log = ["azalea-client/log"]
 
 [[bench]]
 name = "pathfinder"
+harness = false
+
+[[bench]]
+name = "physics"
 harness = false

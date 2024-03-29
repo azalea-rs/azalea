@@ -3,7 +3,8 @@ use std::sync::Arc;
 use bevy_ecs::{
     component::Component,
     entity::Entity,
-    query::{ROQueryItem, ReadOnlyWorldQuery, WorldQuery},
+    query::QueryData,
+    query::{QueryFilter, ROQueryItem},
     world::World,
 };
 use parking_lot::Mutex;
@@ -22,13 +23,13 @@ impl Client {
     ///     .is_some();
     /// # }
     /// ```
-    pub fn query<'w, Q: WorldQuery>(&self, ecs: &'w mut World) -> <Q as WorldQuery>::Item<'w> {
-        ecs.query::<Q>()
+    pub fn query<'w, D: QueryData>(&self, ecs: &'w mut World) -> D::Item<'w> {
+        ecs.query::<D>()
             .get_mut(ecs, self.entity)
             .unwrap_or_else(|_| {
                 panic!(
                     "Our client is missing a required component {:?}",
-                    std::any::type_name::<Q>()
+                    std::any::type_name::<D>()
                 )
             })
     }
@@ -58,7 +59,7 @@ impl Client {
     /// ```
     ///
     /// [`Entity`]: bevy_ecs::entity::Entity
-    pub fn entity_by<F: ReadOnlyWorldQuery, Q: ReadOnlyWorldQuery>(
+    pub fn entity_by<F: QueryFilter, Q: QueryData>(
         &mut self,
         predicate: impl EntityPredicate<Q, F>,
     ) -> Option<Entity> {
@@ -93,14 +94,14 @@ impl Client {
     }
 }
 
-pub trait EntityPredicate<Q: ReadOnlyWorldQuery, Filter: ReadOnlyWorldQuery> {
+pub trait EntityPredicate<Q: QueryData, Filter: QueryFilter> {
     fn find(&self, ecs_lock: Arc<Mutex<World>>) -> Option<Entity>;
 }
 impl<F, Q, Filter> EntityPredicate<Q, Filter> for F
 where
     F: Fn(&ROQueryItem<Q>) -> bool,
-    Q: ReadOnlyWorldQuery,
-    Filter: ReadOnlyWorldQuery,
+    Q: QueryData,
+    Filter: QueryFilter,
 {
     fn find(&self, ecs_lock: Arc<Mutex<World>>) -> Option<Entity> {
         let mut ecs = ecs_lock.lock();
@@ -114,8 +115,8 @@ where
 // impl<'a, F, Q1, Q2> EntityPredicate<'a, (Q1, Q2)> for F
 // where
 //     F: Fn(&<Q1 as WorldQuery>::Item<'_>, &<Q2 as WorldQuery>::Item<'_>) ->
-// bool,     Q1: ReadOnlyWorldQuery,
-//     Q2: ReadOnlyWorldQuery,
+// bool,     Q1: QueryFilter,
+//     Q2: QueryFilter,
 // {
 //     fn find(&self, ecs: &mut Ecs) -> Option<Entity> {
 //         // (self)(query)

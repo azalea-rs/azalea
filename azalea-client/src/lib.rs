@@ -13,6 +13,7 @@ pub mod attack;
 pub mod chat;
 pub mod chunks;
 mod client;
+pub mod configuration;
 pub mod disconnect;
 mod entity_query;
 mod events;

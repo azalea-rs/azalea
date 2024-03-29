@@ -29,6 +29,7 @@ pub use azalea_core::{
     resource_location::ResourceLocation,
 };
 pub use azalea_entity as entity;
+pub use azalea_physics as physics;
 pub use azalea_protocol as protocol;
 pub use azalea_registry as registry;
 pub use azalea_world as world;

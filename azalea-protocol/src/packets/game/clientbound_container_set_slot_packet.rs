@@ -1,12 +1,12 @@
-use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_buf::McBuf;
+use azalea_inventory::ItemSlot;
+use azalea_protocol_macros::ClientboundGamePacket;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundContainerSetSlotPacket {
-#[var]
-pub container_id: u32,
-#[var]
-pub state_id: u32,
-#[var]
-pub slot: u32,
+    pub container_id: i8,
+    #[var]
+    pub state_id: u32,
+    pub slot: u16,
+    pub item_stack: ItemSlot,
 }

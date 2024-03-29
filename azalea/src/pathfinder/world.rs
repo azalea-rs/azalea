@@ -157,9 +157,7 @@ impl CachedWorld {
         }
 
         let world = self.world_lock.read();
-        let Some(chunk) = world.chunks.get(&chunk_pos) else {
-            return None;
-        };
+        let chunk = world.chunks.get(&chunk_pos)?;
         let chunk = chunk.read();
 
         let sections: Vec<azalea_world::palette::PalettedContainer> = chunk
@@ -491,13 +489,9 @@ pub fn is_block_state_solid(block: BlockState) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::Arc;
 
     use super::*;
-    use azalea_block::BlockState;
-    use azalea_core::position::ChunkPos;
     use azalea_world::{Chunk, ChunkStorage, PartialInstance};
-    use parking_lot::RwLock;
 
     #[test]
     fn test_is_passable() {

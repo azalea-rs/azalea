@@ -49,10 +49,22 @@ impl Plugin for PacketHandlerPlugin {
                 login::process_packet_events,
             ),
         )
-        .add_systems(Update, death_event_on_0_health.before(death_listener))
+        .add_systems(
+            Update,
+            (
+                (
+                    configuration::handle_send_packet_event,
+                    game::handle_send_packet_event,
+                )
+                    .chain(),
+                death_event_on_0_health.before(death_listener),
+            ),
+        )
         // we do this instead of add_event so we can handle the events ourselves
         .init_resource::<Events<game::PacketEvent>>()
         .init_resource::<Events<configuration::ConfigurationPacketEvent>>()
+        .add_event::<game::SendPacketEvent>()
+        .add_event::<configuration::SendConfigurationPacketEvent>()
         .add_event::<AddPlayerEvent>()
         .add_event::<RemovePlayerEvent>()
         .add_event::<UpdatePlayerEvent>()
