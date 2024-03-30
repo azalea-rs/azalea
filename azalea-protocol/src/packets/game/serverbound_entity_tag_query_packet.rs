@@ -3,8 +3,8 @@ use azalea_protocol_macros::ServerboundGamePacket;
 
 #[derive(Clone, Debug, McBuf, ServerboundGamePacket)]
 pub struct ServerboundEntityTagQueryPacket {
-#[var]
-pub transaction_id: u32,
-#[var]
-pub entity_id: u32,
+    #[var]
+    pub transaction_id: u32,
+    #[var]
+    pub entity_id: u32,
 }

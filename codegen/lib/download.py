@@ -16,7 +16,7 @@ def get_burger():
     if not os.path.exists(get_dir_location('__cache__/Burger')):
         print('\033[92mDownloading Burger...\033[m')
         os.system(
-            f'cd {get_dir_location("__cache__")} && git clone https://github.com/pokechu22/Burger && cd Burger && git pull')
+            f'cd {get_dir_location("__cache__")} && git clone https://github.com/mat-1/Burger && cd Burger && git pull')
 
         print('\033[92mInstalling dependencies...\033[m')
         os.system(f'cd {get_dir_location("__cache__")}/Burger && pip install six jawa')

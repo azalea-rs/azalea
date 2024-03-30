@@ -83,11 +83,13 @@ pub enum EntityDataValue {
     OptionalBlockState(azalea_block::BlockState),
     CompoundTag(simdnbt::owned::NbtCompound),
     Particle(Particle),
+    Particles(Vec<Particle>),
     VillagerData(VillagerData),
     // 0 for absent; 1 + actual value otherwise. Used for entity IDs.
     OptionalUnsignedInt(OptionalUnsignedInt),
     Pose(Pose),
     CatVariant(azalea_registry::CatVariant),
+    WolfVariant(azalea_registry::WolfVariant),
     FrogVariant(azalea_registry::FrogVariant),
     OptionalGlobalPos(Option<GlobalPos>),
     PaintingVariant(azalea_registry::PaintingVariant),

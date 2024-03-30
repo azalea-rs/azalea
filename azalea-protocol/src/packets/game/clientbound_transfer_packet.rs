@@ -1,9 +1,9 @@
-use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_buf::McBuf;
+use azalea_protocol_macros::ClientboundGamePacket;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundTransferPacket {
-pub host: String,
-#[var]
-pub port: u32,
+    pub host: String,
+    #[var]
+    pub port: u32,
 }

@@ -1917,13 +1917,20 @@ make_block_states! {
         },
         "cracked" => Cracked(bool),
         "crafting" => Crafting(bool),
-        "trial_spawner_state" => State {
+        "ominous" => Ominous(bool),
+        "trial_spawner_state" => TrialSpawnerState {
             Inactive,
             WaitingForPlayers,
             Active,
             WaitingForRewardEjection,
             EjectingReward,
             Cooldown,
+        },
+        "vault_state" => VaultState {
+            Inactive,
+            Active,
+            Unlocking,
+            Ejecting,
         },
     },
     Blocks => {
@@ -5376,7 +5383,16 @@ make_block_states! {
             triggered: Triggered(false),
         },
         trial_spawner => BlockBehavior::new().requires_correct_tool_for_drops().strength(50.0, 50.0), {
-            trial_spawner_state: State::Inactive,
+            ominous: Ominous(false),
+            trial_spawner_state: TrialSpawnerState::Inactive,
+        },
+        vault => BlockBehavior::new(), {
+            facing: FacingCardinal::North,
+            ominous: Ominous(false),
+            vault_state: VaultState::Inactive,
+        },
+        heavy_core => BlockBehavior::new(), {
+            waterlogged: Waterlogged(false),
         },
     }
 }

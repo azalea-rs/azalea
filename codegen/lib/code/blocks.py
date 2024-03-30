@@ -41,7 +41,7 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, pixlyzer_block_dat
 
             if property_burger is None:
                 print(
-                    'Warning: The reports have states for a block, but Burger doesn\'t!', block_data_burger)
+                    f'Warning: The reports have states for a block, but Burger doesn\'t! (missing "{property_name}")', block_data_burger)
 
             property_struct_name = get_property_struct_name(
                 property_burger, block_data_burger, property_variants, mappings)
@@ -90,7 +90,7 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, pixlyzer_block_dat
     for block_id in ordered_blocks:
         block_data_burger = blocks_burger[block_id]
         block_data_report = blocks_report['minecraft:' + block_id]
-        block_data_pixlyzer = pixlyzer_block_datas[f'minecraft:{block_id}']
+        block_data_pixlyzer = pixlyzer_block_datas.get(f'minecraft:{block_id}', {})
 
         block_properties = block_data_burger.get('states', [])
         block_properties_burger = block_data_burger.get('states', [])
@@ -202,6 +202,10 @@ def get_property_struct_name(property: Optional[dict], block_data_burger: dict, 
         return 'ChestType'
     if property_variants == ['compare', 'subtract']:
         return 'ComparatorType'
+    if property_variants == ['inactive', 'waiting_for_players', 'active', 'waiting_for_reward_ejection', 'ejecting_reward', 'cooldown']:
+        return 'TrialSpawnerState'
+    if property_variants == ['inactive', 'active', 'unlocking', 'ejecting']:
+        return 'VaultState'
     if 'harp' in property_variants and 'didgeridoo' in property_variants:
         return 'Sound'
 

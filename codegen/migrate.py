@@ -119,10 +119,11 @@ if old_ordered_blocks != new_ordered_blocks:
     block_states_burger = lib.extract.get_block_states_burger(new_version_id)
     block_states_report = lib.extract.get_block_states_report(new_version_id)
 
+    # TODO: pixlyzer is currently broken so uhhhh
     shape_datas = lib.extract.get_pixlyzer_data(
-        new_version_id, 'shapes')
+        '1.20.3-pre4', 'shapes')
     pixlyzer_block_datas = lib.extract.get_pixlyzer_data(
-        new_version_id, 'blocks')
+        '1.20.3-pre4', 'blocks')
 
     lib.code.blocks.generate_blocks(
         block_states_burger, block_states_report, pixlyzer_block_datas, new_ordered_blocks, new_mappings)
@@ -137,9 +138,9 @@ print('Generating registries...')
 import genregistries
 genregistries.generate(new_version_id)
 
-print('Generating entity metadata...')
-burger_entities_data = new_burger_data[0]['entities']
-lib.code.entity.generate_entity_metadata(burger_entities_data, new_mappings)
+# print('Generating entity metadata...')
+# burger_entities_data = new_burger_data[0]['entities']
+# lib.code.entity.generate_entity_metadata(burger_entities_data, new_mappings)
 
 print('Finishing touches, setting version in README and formatting code...')
 lib.code.version.set_version_id(new_version_id)

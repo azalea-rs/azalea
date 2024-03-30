@@ -9,10 +9,11 @@ import lib.utils
 
 version_id = lib.code.version.get_version_id()
 
+# TODO: pixlyzer is broken so we use old data
 shape_datas = lib.extract.get_pixlyzer_data(
-    version_id, 'shapes')
+    '1.20.3-pre4', 'shapes')
 pixlyzer_block_datas = lib.extract.get_pixlyzer_data(
-    version_id, 'blocks')
+    '1.20.3-pre4', 'blocks')
 
 mappings = lib.download.get_mappings_for_version(version_id)
 block_states_burger = lib.extract.get_block_states_burger(version_id)

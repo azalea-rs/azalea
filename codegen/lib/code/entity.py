@@ -218,8 +218,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
 
                 struct_name = upper_first_letter(
                     to_camel_case(name_or_bitfield))
-                type_id = next(filter(lambda i: i['index'] == index, entity_metadatas))[
-                    'type_id']
+                type_id = next(filter(lambda i: i['index'] == index, entity_metadatas))['type_id']
                 metadata_type_data = metadata_types[type_id]
                 rust_type = metadata_type_data['type']
 
@@ -281,8 +280,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
                 if name_or_bitfield in single_use_imported_types:
                     field_struct_name = ''
 
-                type_id = next(filter(lambda i: i['index'] == index, entity_metadatas))[
-                    'type_id']
+                type_id = next(filter(lambda i: i['index'] == index, entity_metadatas))['type_id']
                 metadata_type_data = metadata_types[type_id]
                 rust_type = metadata_type_data['type']
                 type_name = metadata_type_data['name']
@@ -384,8 +382,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
                     '            },')
 
             for index, name_or_bitfield in get_entity_metadata_names(this_entity_id, burger_entity_metadata, mappings).items():
-                default = next(filter(lambda i: i['index'] == index, entity_metadatas)).get(
-                    'default', 'Default::default()')
+                default = next(filter(lambda i: i['index'] == index, entity_metadatas)).get('default', 'Default::default()')
                 if isinstance(name_or_bitfield, str):
                     type_id = next(filter(lambda i: i['index'] == index, entity_metadatas))[
                         'type_id']
@@ -454,8 +451,10 @@ impl From<EntityDataValue> for UpdateMetadataError {
                     for mask, name in name_or_bitfield.items():
                         name = maybe_rename_field(name, index)
                         mask = int(mask, 0)
-                        bit_default = 'true' if (
-                            default & mask != 0) else 'false'
+                        if default is None:
+                            bit_default = 'false'
+                        else:
+                            bit_default = 'true' if (default & mask != 0) else 'false'
                         code.append(
                             f'            {name}: {upper_first_letter(to_camel_case(name))}({bit_default}),')
         code.append('        Self {')
