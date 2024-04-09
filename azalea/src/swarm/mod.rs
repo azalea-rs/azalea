@@ -296,6 +296,28 @@ where
     ///
     /// [`ServerAddress`]: azalea_protocol::ServerAddress
     pub async fn start(self, address: impl TryInto<ServerAddress>) -> Result<!, StartError> {
+        // convert the TryInto<ServerAddress> into a ServerAddress
+        let address: ServerAddress = match address.try_into() {
+            Ok(address) => address,
+            Err(_) => return Err(StartError::InvalidAddress),
+        };
+
+        // resolve the address
+        let resolved_address = resolver::resolve_address(&address).await?;
+
+        self.start_with_custom_resolved_address(address, resolved_address)
+            .await
+    }
+
+    /// Do the same as [`Self::start`], but allow passing in a custom resolved
+    /// address. This is useful if the address you're connecting to doesn't
+    /// resolve to anything, like if the server uses the address field to pass
+    /// custom data (like Bungeecord or Forge).
+    pub async fn start_with_custom_resolved_address(
+        self,
+        address: impl TryInto<ServerAddress>,
+        resolved_address: SocketAddr,
+    ) -> Result<!, StartError> {
         assert_eq!(
             self.accounts.len(),
             self.states.len(),
@@ -307,9 +329,6 @@ where
             Ok(address) => address,
             Err(_) => return Err(StartError::InvalidAddress),
         };
-
-        // resolve the address
-        let resolved_address = resolver::resolve_address(&address).await?;
 
         let instance_container = Arc::new(RwLock::new(InstanceContainer::default()));
 
@@ -528,6 +547,23 @@ impl Swarm {
         let address = self.address.read().clone();
         let resolved_address = *self.resolved_address.read();
 
+        self.add_with_custom_address(account, state, address, resolved_address)
+            .await
+    }
+    /// Add a new account to the swarm, using the given host and socket
+    /// address. This is useful if you want bots in the same swarm to connect to
+    /// different addresses. Usually you'll just want [`Self::add`] though.
+    ///
+    /// # Errors
+    ///
+    /// Returns an `Err` if the bot could not do a handshake successfully.
+    pub async fn add_with_custom_address<S: Component + Clone>(
+        &mut self,
+        account: &Account,
+        state: S,
+        address: ServerAddress,
+        resolved_address: SocketAddr,
+    ) -> Result<Client, JoinError> {
         let (bot, mut rx) = Client::start_client(
             self.ecs_lock.clone(),
             account,

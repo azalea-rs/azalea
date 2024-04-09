@@ -15,6 +15,8 @@ pub mod pathfinder;
 pub mod prelude;
 pub mod swarm;
 
+use std::net::SocketAddr;
+
 use app::Plugins;
 pub use azalea_auth as auth;
 pub use azalea_block as blocks;
@@ -188,6 +190,25 @@ where
             self.swarm.states = vec![S::default()];
         }
         self.swarm.start(address).await
+    }
+
+    /// Do the same as [`Self::start`], but allow passing in a custom resolved
+    /// address. This is useful if the address you're connecting to doesn't
+    /// resolve to anything, like if the server uses the address field to pass
+    /// custom data (like Bungeecord or Forge).
+    pub async fn start_with_custom_resolved_address(
+        mut self,
+        account: Account,
+        address: impl TryInto<ServerAddress>,
+        resolved_address: SocketAddr,
+    ) -> Result<!, StartError> {
+        self.swarm.accounts = vec![account];
+        if self.swarm.states.is_empty() {
+            self.swarm.states = vec![S::default()];
+        }
+        self.swarm
+            .start_with_custom_resolved_address(address, resolved_address)
+            .await
     }
 }
 impl Default for ClientBuilder<NoState> {
