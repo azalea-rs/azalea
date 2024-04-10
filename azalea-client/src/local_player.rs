@@ -5,7 +5,7 @@ use azalea_core::game_type::GameMode;
 use azalea_entity::Dead;
 use azalea_protocol::packets::game::clientbound_player_abilities_packet::ClientboundPlayerAbilitiesPacket;
 use azalea_world::{Instance, PartialInstance};
-use bevy_ecs::{component::Component, entity::Entity, prelude::*, query::Added, system::Query};
+use bevy_ecs::{component::Component, prelude::*};
 use derive_more::{Deref, DerefMut};
 use parking_lot::RwLock;
 use thiserror::Error;

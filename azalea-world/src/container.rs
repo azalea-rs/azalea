@@ -3,6 +3,7 @@ use bevy_ecs::{component::Component, system::Resource};
 use derive_more::{Deref, DerefMut};
 use nohash_hasher::IntMap;
 use parking_lot::RwLock;
+use rustc_hash::FxHashMap;
 use std::{
     collections::HashMap,
     sync::{Arc, Weak},
@@ -27,7 +28,7 @@ pub struct InstanceContainer {
     // telling them apart. We hope most servers are nice and don't do that though. It's only an
     // issue when there's multiple clients with the same WorldContainer in different worlds
     // anyways.
-    pub instances: HashMap<ResourceLocation, Weak<RwLock<Instance>>>,
+    pub instances: FxHashMap<ResourceLocation, Weak<RwLock<Instance>>>,
 }
 
 impl InstanceContainer {

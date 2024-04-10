@@ -8,7 +8,7 @@ use quote::quote;
 use std::collections::HashMap;
 use std::fmt::Write;
 use syn::{
-    self, braced,
+    braced,
     ext::IdentExt,
     parenthesized,
     parse::{Parse, ParseStream, Result},

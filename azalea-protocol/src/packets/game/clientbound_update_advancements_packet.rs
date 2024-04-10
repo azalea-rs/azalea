@@ -119,8 +119,6 @@ pub struct AdvancementHolder {
 mod tests {
     use super::*;
     use azalea_buf::{McBufReadable, McBufWritable};
-    use azalea_core::resource_location::ResourceLocation;
-    use std::io::Cursor;
 
     #[test]
     fn test() {

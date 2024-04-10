@@ -40,7 +40,7 @@ static PROXY_FAVICON: Lazy<Option<String>> = Lazy::new(|| None);
 
 static PROXY_VERSION: Lazy<Version> = Lazy::new(|| Version {
     name: "1.19.3".to_string(),
-    protocol: PROTOCOL_VERSION as i32,
+    protocol: PROTOCOL_VERSION,
 });
 
 const PROXY_PLAYERS: Players = Players {

@@ -53,7 +53,7 @@ async fn main() {
 
     ClientBuilder::new()
         .set_handler(handle)
-        .start(account.clone(), "localhost")
+        .start(account, "localhost")
         .await
         .unwrap();
 }
@@ -75,7 +75,7 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
 
 # Swarms
 
-Azalea lets you create "swarms", which are a group of bots in the same world that can perform actions together. See [testbot](https://github.com/azalea-rs/azalea/blob/main/azalea/examples/testbot.rs) for an example. Also, if you're using swarms, you should also `use` both `azalea::prelude::*` and `azalea::swarm::prelude::*`.
+Azalea lets you create "swarms", which are a group of bots in the same world that can perform actions together. See [testbot](https://github.com/azalea-rs/azalea/blob/main/azalea/examples/testbot/main.rs) for an example. Also, if you're using swarms, you should also `use` both `azalea::prelude::*` and `azalea::swarm::prelude::*`.
 
 # Plugins
 
@@ -99,7 +99,7 @@ Note: If you get a `SetLoggerError`, it's because you have multiple loggers. Aza
 
 ## Deadlocks
 
-If your code is simply hanging, it might be a deadlock. Copy the deadlock block in [`azalea/examples/testbot.rs`](https://github.com/azalea-rs/azalea/blob/main/azalea/examples/testbot.rs) to the beginning of your code and it'll print a long backtrace if a deadlock is detected.
+If your code is simply hanging, it might be a deadlock. Copy the deadlock block in [`azalea/examples/testbot.rs`](https://github.com/azalea-rs/azalea/blob/main/azalea/examples/testbot/main.rs) to the beginning of your code and it'll print a long backtrace if a deadlock is detected.
 
 ## Backtraces
 

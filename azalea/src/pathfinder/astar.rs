@@ -78,7 +78,7 @@ where
                 .get(&neighbor.movement.target)
                 .map(|n| n.g_score)
                 .unwrap_or(f32::INFINITY);
-            if tentative_g_score - neighbor_g_score < MIN_IMPROVEMENT {
+            if neighbor_g_score - tentative_g_score > MIN_IMPROVEMENT {
                 let heuristic = heuristic(neighbor.movement.target);
                 let f_score = tentative_g_score + heuristic;
                 nodes.insert(

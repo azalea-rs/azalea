@@ -5,8 +5,9 @@
 A collection of Rust crates for making Minecraft bots, clients, and tools.
 
 <p align="center">
-    <img src="https://cdn.matdoes.dev/images/flowering_azalea.webp" alt="Azalea" height="200">
+    <img src="https://github.com/azalea-rs/azalea/assets/27899617/b98a42df-5cf0-4d1f-ae7c-ecca333e3cab" alt="Azalea" height="200">
 </p>
+
 
 <!-- The line below is automatically read and updated by the migrate script, so don't change it manually. -->
 

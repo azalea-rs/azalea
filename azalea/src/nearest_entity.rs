@@ -2,7 +2,7 @@ use azalea_entity::Position;
 use azalea_world::{InstanceName, MinecraftEntityId};
 use bevy_ecs::{
     prelude::Entity,
-    query::{ReadOnlyWorldQuery, With},
+    query::{QueryFilter, With},
     system::{Query, SystemParam},
 };
 
@@ -44,7 +44,7 @@ use bevy_ecs::{
 #[derive(SystemParam)]
 pub struct EntityFinder<'w, 's, F = ()>
 where
-    F: ReadOnlyWorldQuery + 'static,
+    F: QueryFilter + 'static,
 {
     all_entities:
         Query<'w, 's, (&'static Position, &'static InstanceName), With<MinecraftEntityId>>,
@@ -59,7 +59,7 @@ where
 
 impl<'w, 's, 'a, F> EntityFinder<'w, 's, F>
 where
-    F: ReadOnlyWorldQuery + 'static,
+    F: QueryFilter + 'static,
 {
     /// Gets the nearest entity to the given position and world instance name.
     /// This method will return `None` if there are no entities within range. If

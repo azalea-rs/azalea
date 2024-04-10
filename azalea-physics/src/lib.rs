@@ -74,9 +74,9 @@ fn travel(
         jumping,
     ) in &mut query
     {
-        let world_lock = instance_container
-            .get(world_name)
-            .expect("All entities should be in a valid world");
+        let Some(world_lock) = instance_container.get(world_name) else {
+            continue;
+        };
         let world = world_lock.read();
         // if !self.is_effective_ai() && !self.is_controlled_by_local_instance() {
         //     // this.calculateEntityAnimation(this, this instanceof FlyingAnimal);
@@ -424,10 +424,9 @@ fn jump_boost_power() -> f64 {
 mod tests {
 
     use super::*;
-    use azalea_core::{position::ChunkPos, resource_location::ResourceLocation, tick::GameTick};
+    use azalea_core::{position::ChunkPos, resource_location::ResourceLocation};
     use azalea_entity::{EntityBundle, EntityPlugin};
     use azalea_world::{Chunk, MinecraftEntityId, PartialInstance};
-    use bevy_app::App;
     use uuid::Uuid;
 
     /// You need an app to spawn entities in the world and do updates.

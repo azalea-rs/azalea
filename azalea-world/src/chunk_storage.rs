@@ -450,9 +450,8 @@ impl McBufReadable for Section {
         for i in 0..states.storage.size() {
             if !BlockState::is_valid_state(states.storage.get(i) as u32) {
                 return Err(BufReadError::Custom(format!(
-                    "Invalid block state {} (index {}) found in section.",
-                    states.storage.get(i),
-                    i
+                    "Invalid block state {} (index {i}) found in section.",
+                    states.storage.get(i)
                 )));
             }
         }

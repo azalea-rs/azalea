@@ -11,6 +11,7 @@ use serde::{de, Deserialize, Deserializer, Serialize};
 #[cfg(feature = "simdnbt")]
 use simdnbt::{Deserialize as _, FromNbtTag as _, Serialize as _};
 use std::fmt::Display;
+use tracing::{trace, warn};
 
 /// A chat component, basically anything you can see in chat.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Hash)]
@@ -313,22 +314,60 @@ impl simdnbt::FromNbtTag for FormattedText {
                             // if it's a string component with no styling and no siblings, just add
                             // a string to with_array otherwise add the
                             // component to the array
-                            let c = FormattedText::from_nbt_tag(
-                                &simdnbt::borrow::NbtTag::Compound(item.clone()),
-                            )?;
-                            if let FormattedText::Text(text_component) = c {
-                                if text_component.base.siblings.is_empty()
-                                    && text_component.base.style.is_empty()
-                                {
-                                    with_array.push(StringOrComponent::String(text_component.text));
-                                    continue;
+                            if let Some(primitive) = item.get("") {
+                                // minecraft does this sometimes, for example
+                                // for the /give system messages
+                                match primitive {
+                                    simdnbt::borrow::NbtTag::Byte(b) => {
+                                        // interpreted as boolean
+                                        with_array.push(StringOrComponent::String(
+                                            if *b != 0 { "true" } else { "false" }.to_string(),
+                                        ));
+                                    }
+                                    simdnbt::borrow::NbtTag::Short(s) => {
+                                        with_array.push(StringOrComponent::String(s.to_string()));
+                                    }
+                                    simdnbt::borrow::NbtTag::Int(i) => {
+                                        with_array.push(StringOrComponent::String(i.to_string()));
+                                    }
+                                    simdnbt::borrow::NbtTag::Long(l) => {
+                                        with_array.push(StringOrComponent::String(l.to_string()));
+                                    }
+                                    simdnbt::borrow::NbtTag::Float(f) => {
+                                        with_array.push(StringOrComponent::String(f.to_string()));
+                                    }
+                                    simdnbt::borrow::NbtTag::Double(d) => {
+                                        with_array.push(StringOrComponent::String(d.to_string()));
+                                    }
+                                    simdnbt::borrow::NbtTag::String(s) => {
+                                        with_array.push(StringOrComponent::String(s.to_string()));
+                                    }
+                                    _ => {
+                                        warn!("couldn't parse {item:?} as FormattedText because it has a disallowed primitive");
+                                        with_array.push(StringOrComponent::String("?".to_string()));
+                                    }
                                 }
+                            } else if let Some(c) = FormattedText::from_nbt_tag(
+                                &simdnbt::borrow::NbtTag::Compound(item.clone()),
+                            ) {
+                                if let FormattedText::Text(text_component) = c {
+                                    if text_component.base.siblings.is_empty()
+                                        && text_component.base.style.is_empty()
+                                    {
+                                        with_array
+                                            .push(StringOrComponent::String(text_component.text));
+                                        continue;
+                                    }
+                                }
+                                with_array.push(StringOrComponent::FormattedText(
+                                    FormattedText::from_nbt_tag(
+                                        &simdnbt::borrow::NbtTag::Compound(item.clone()),
+                                    )?,
+                                ));
+                            } else {
+                                warn!("couldn't parse {item:?} as FormattedText");
+                                with_array.push(StringOrComponent::String("?".to_string()));
                             }
-                            with_array.push(StringOrComponent::FormattedText(
-                                FormattedText::from_nbt_tag(&simdnbt::borrow::NbtTag::Compound(
-                                    item.clone(),
-                                ))?,
-                            ));
                         }
                         component = FormattedText::Translatable(TranslatableComponent::new(
                             translate, with_array,
@@ -344,24 +383,21 @@ impl simdnbt::FromNbtTag for FormattedText {
                     // object = GsonHelper.getAsJsonObject(jsonObject, "score");
                     if score.get("name").is_none() || score.get("objective").is_none() {
                         // A score component needs at least a name and an objective
-                        tracing::trace!("A score component needs at least a name and an objective");
+                        trace!("A score component needs at least a name and an objective");
                         return None;
                     }
                     // TODO, score text components aren't yet supported
                     return None;
                 } else if compound.get("selector").is_some() {
                     // selector text components aren't yet supported
-                    tracing::trace!("selector text components aren't yet supported");
+                    trace!("selector text components aren't yet supported");
                     return None;
                 } else if compound.get("keybind").is_some() {
                     // keybind text components aren't yet supported
-                    tracing::trace!("keybind text components aren't yet supported");
+                    trace!("keybind text components aren't yet supported");
                     return None;
                 } else {
-                    let Some(_nbt) = compound.get("nbt") else {
-                        // Don't know how to turn 'nbt' into a FormattedText
-                        return None;
-                    };
+                    let _nbt = compound.get("nbt")?;
                     let _separator = FormattedText::parse_separator_nbt(compound)?;
 
                     let _interpret = match compound.get("interpret") {
@@ -369,7 +405,7 @@ impl simdnbt::FromNbtTag for FormattedText {
                         None => false,
                     };
                     if let Some(_block) = compound.get("block") {}
-                    // nbt text components aren't yet supported
+                    trace!("nbt text components aren't yet supported");
                     return None;
                 }
                 if let Some(extra) = compound.get("extra") {

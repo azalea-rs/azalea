@@ -45,7 +45,7 @@ async fn handle(mut bot: Client, event: Event, state: State) -> anyhow::Result<(
             return Ok(());
         };
         // bot.goto(BlockPosGoal(chest_block));
-        let Some(chest) = bot.open_container(chest_block).await else {
+        let Some(chest) = bot.open_container_at(chest_block).await else {
             println!("Couldn't open chest");
             return Ok(());
         };

@@ -38,7 +38,7 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
                 bot.goto(pathfinder::Goals::NearXZ(5, azalea::BlockXZ(0, 0)))
                     .await;
                 let chest = bot
-                    .open_container(&bot.world().find_block(azalea::Block::Chest))
+                    .open_container_at(&bot.world().find_block(azalea::Block::Chest))
                     .await
                     .unwrap();
                 bot.take_amount_from_container(&chest, 5, |i| i.id == "#minecraft:planks")
