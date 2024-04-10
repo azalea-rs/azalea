@@ -565,7 +565,7 @@ impl Swarm {
         let address = self.address.read().clone();
         let resolved_address = *self.resolved_address.read();
 
-        self.add_with_custom_address(account, state, address, resolved_address)
+        self.add_with_custom_address(account, state, address, resolved_address, proxy)
             .await
     }
     /// Add a new account to the swarm, using the given host and socket
@@ -581,6 +581,7 @@ impl Swarm {
         state: S,
         address: ServerAddress,
         resolved_address: SocketAddr,
+        proxy: Option<Proxy>,
     ) -> Result<Client, JoinError> {
         let (bot, mut rx) = Client::start_client(
             self.ecs_lock.clone(),
