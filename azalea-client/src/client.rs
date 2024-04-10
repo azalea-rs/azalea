@@ -243,7 +243,7 @@ impl Client {
         };
 
         let conn = Connection::new(resolved_address, proxy).await?;
-        let (mut conn, game_profile) =
+        let (conn, game_profile) =
             Self::handshake(ecs_lock.clone(), entity, conn, account, address).await?;
 
         // note that we send the proper packets in
