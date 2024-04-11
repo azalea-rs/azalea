@@ -5,9 +5,10 @@ use std::io::{Cursor, Write};
 /// Either an item in an inventory or nothing.
 #[derive(Debug, Clone, Default, PartialEq)]
 pub enum ItemSlot {
-    #[default]
-    Empty,
-    Present(ItemSlotData),
+    TODO: make this use the new network protocol and implement all the components
+    // #[default]
+    // Empty,
+    // Present(ItemSlotData),
 }
 
 impl ItemSlot {
