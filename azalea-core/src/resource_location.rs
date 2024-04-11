@@ -3,6 +3,7 @@
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 use simdnbt::{owned::NbtTag, FromNbtTag, ToNbtTag};
 use std::{
+    fmt,
     io::{Cursor, Write},
     str::FromStr,
 };
@@ -41,13 +42,13 @@ impl ResourceLocation {
     }
 }
 
-impl std::fmt::Display for ResourceLocation {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl fmt::Display for ResourceLocation {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}:{}", self.namespace, self.path)
     }
 }
-impl std::fmt::Debug for ResourceLocation {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl fmt::Debug for ResourceLocation {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}:{}", self.namespace, self.path)
     }
 }

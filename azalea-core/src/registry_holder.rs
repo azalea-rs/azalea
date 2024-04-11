@@ -5,7 +5,7 @@
 //! the game, including the types of chat messages, dimensions, and
 //! biomes.
 
-use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
+use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufWritable};
 use simdnbt::{
     owned::{NbtCompound, NbtTag},
     Deserialize, FromNbtTag, Serialize, ToNbtTag,
@@ -20,23 +20,51 @@ use crate::resource_location::ResourceLocation;
 /// This is the registry that is sent to the client upon login.
 #[derive(Default, Debug, Clone)]
 pub struct RegistryHolder {
-    pub map: HashMap<ResourceLocation, NbtCompound>,
+    pub map: HashMap<ResourceLocation, HashMap<ResourceLocation, NbtCompound>>,
 }
 
 impl RegistryHolder {
+    pub fn append(
+        &mut self,
+        id: ResourceLocation,
+        entries: HashMap<ResourceLocation, Option<NbtCompound>>,
+    ) {
+        let map = self.map.entry(id).or_insert_with(HashMap::new);
+        for (key, value) in entries {
+            if let Some(value) = value {
+                map.insert(key, value);
+            } else {
+                map.remove(&key);
+            }
+        }
+    }
+
     fn get<T: Deserialize>(
         &self,
         name: &ResourceLocation,
-    ) -> Option<Result<T, simdnbt::DeserializeError>> {
+    ) -> Option<Result<RegistryType<T>, simdnbt::DeserializeError>> {
         // this is suboptimal, ideally simdnbt should just have a way to get the
         // owned::NbtCompound as a borrow::NbtCompound
 
-        let nbt_owned_compound = self.map.get(name)?;
-        let mut nbt_bytes = Vec::new();
-        nbt_owned_compound.write(&mut nbt_bytes);
-        let nbt_borrow_compound =
-            simdnbt::borrow::NbtCompound::read(&mut Cursor::new(&nbt_bytes)).ok()?;
-        Some(T::from_compound(&nbt_borrow_compound))
+        let mut map = HashMap::new();
+
+        for (key, value) in self.map.get(name)? {
+            // convert the value to T
+            let mut nbt_bytes = Vec::new();
+            value.write(&mut nbt_bytes);
+            let nbt_borrow_compound =
+                simdnbt::borrow::NbtCompound::read(&mut Cursor::new(&nbt_bytes)).ok()?;
+            let value = match T::from_compound(&nbt_borrow_compound) {
+                Ok(value) => value,
+                Err(err) => {
+                    return Some(Err(err));
+                }
+            };
+
+            map.insert(key.clone(), value);
+        }
+
+        Some(Ok(RegistryType { map }))
     }
 
     /// Get the dimension type registry, or `None` if it doesn't exist. You
@@ -57,48 +85,10 @@ impl RegistryHolder {
     }
 }
 
-impl McBufReadable for RegistryHolder {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let nbt_tag = simdnbt::borrow::NbtTag::read(buf)?;
-        let nbt_compound = nbt_tag
-            .compound()
-            .ok_or_else(|| BufReadError::Custom("RegistryHolder must be a compound".to_string()))?;
-        Ok(RegistryHolder {
-            map: simdnbt::Deserialize::from_compound(nbt_compound)?,
-        })
-    }
-}
-
-impl McBufWritable for RegistryHolder {
-    fn write_into(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
-        let mut written = Vec::new();
-        self.map.clone().to_compound().write_into(&mut written)?;
-        buf.write_all(&written)
-    }
-}
-
 /// A collection of values for a certain type of registry data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
-pub struct RegistryType<T>
-where
-    T: Serialize + Deserialize,
-{
-    #[simdnbt(rename = "type")]
-    pub kind: ResourceLocation,
-    pub value: Vec<TypeValue<T>>,
-}
-
-/// A value for a certain type of registry data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
-pub struct TypeValue<T>
-where
-    T: Serialize + Deserialize,
-{
-    pub id: u32,
-    pub name: ResourceLocation,
-    pub element: T,
+#[derive(Debug, Clone)]
+pub struct RegistryType<T> {
+    pub map: HashMap<ResourceLocation, T>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -243,20 +243,20 @@ pub fn process_packet_events(ecs: &mut World) {
                             .insert(InstanceName(new_instance_name.clone()));
                     }
 
-                    let Some(dimension_type) =
+                    let Some(dimension_type_element) =
                         instance_holder.instance.read().registries.dimension_type()
                     else {
                         error!("Server didn't send dimension type registry, can't log in");
                         continue;
                     };
-                    let dimension = &dimension_type
-                        .value
-                        .iter()
-                        .find(|t| t.name == p.common.dimension_type)
-                        .unwrap_or_else(|| {
-                            panic!("No dimension_type with name {}", p.common.dimension_type)
-                        })
-                        .element;
+
+                    let dimension_type =
+                        ResourceLocation::new(&p.common.dimension_type.to_string());
+
+                    let dimension = dimension_type_element
+                        .map
+                        .get(&dimension_type)
+                        .unwrap_or_else(|| panic!("No dimension_type with name {dimension_type}"));
 
                     // add this world to the instance_container (or don't if it's already
                     // there)
@@ -1356,21 +1356,20 @@ pub fn process_packet_events(ecs: &mut World) {
                 {
                     let new_instance_name = p.common.dimension.clone();
 
-                    let Some(dimension_type) =
+                    let Some(dimension_type_element) =
                         instance_holder.instance.read().registries.dimension_type()
                     else {
                         error!("Server didn't send dimension type registry, can't log in");
                         continue;
                     };
 
-                    let dimension = &dimension_type
-                        .value
-                        .iter()
-                        .find(|t| t.name == p.common.dimension_type)
-                        .unwrap_or_else(|| {
-                            panic!("No dimension_type with name {}", p.common.dimension_type)
-                        })
-                        .element;
+                    let dimension_type =
+                        ResourceLocation::new(&p.common.dimension_type.to_string());
+
+                    let dimension = dimension_type_element
+                        .map
+                        .get(&dimension_type)
+                        .unwrap_or_else(|| panic!("No dimension_type with name {dimension_type}"));
 
                     // add this world to the instance_container (or don't if it's already
                     // there)

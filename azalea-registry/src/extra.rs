@@ -1,5 +1,6 @@
-// these are definitely still registries, but they're not provided by mojang's
-// data generator
+//! These registries are sent by the server during the configuration state so
+//! you should be relying on those if possible, but these are provided for your
+//! convenience anyways.
 
 use crate::Registry;
 use azalea_registry_macros::registry;
@@ -22,4 +23,13 @@ impl Default for WolfVariant {
     fn default() -> Self {
         WolfVariant::Pale
     }
+}
+
+registry! {
+enum DimensionType {
+    Overworld => "minecraft:overworld",
+    Nether => "minecraft:the_nether",
+    End => "minecraft:the_end",
+    OverworldCaves => "minecraft:overworld_caves",
+}
 }

@@ -5,7 +5,7 @@ use azalea_protocol_macros::declare_state_packets;
 declare_state_packets!(
     HandshakePacket,
     Serverbound => {
-        0x02: client_intention_packet::ClientIntentionPacket,
+        0x00: client_intention_packet::ClientIntentionPacket,
     },
     Clientbound => {}
 );
