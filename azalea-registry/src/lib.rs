@@ -15,7 +15,7 @@ use azalea_registry_macros::registry;
 
 pub use extra::*;
 
-pub trait Registry
+pub trait Registry: McBufReadable + McBufWritable
 where
     Self: Sized,
 {
@@ -76,6 +76,38 @@ impl<D: Registry, C: McBufReadable + McBufWritable> McBufWritable for CustomRegi
                 0u32.var_write_into(buf)?;
                 custom_registry.write_into(buf)
             }
+        }
+    }
+}
+
+#[derive(Clone)]
+pub enum HolderSet<D: Registry, ResourceLocation: McBufReadable + McBufWritable> {
+    Direct {
+        contents: Vec<D>,
+    },
+    Named {
+        key: ResourceLocation,
+        contents: Vec<ResourceLocation>,
+    },
+}
+
+impl<D: Registry, ResourceLocation: McBufReadable + McBufWritable> McBufReadable
+    for HolderSet<D, ResourceLocation>
+{
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let size = i32::var_read_from(buf)? - 1;
+        if size == -1 {
+            let key = ResourceLocation::read_from(buf)?;
+            Ok(Self::Named {
+                key,
+                contents: Vec::new(),
+            })
+        } else {
+            let mut contents = Vec::new();
+            for _ in 0..size {
+                contents.push(D::read_from(buf)?);
+            }
+            Ok(Self::Direct { contents })
         }
     }
 }

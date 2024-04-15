@@ -5,7 +5,7 @@ pub trait MaxStackSizeExt {
     /// [`ItemSlotData`].
     ///
     /// [`ItemSlotData`]: crate::ItemSlotData
-    fn max_stack_size(&self) -> i8;
+    fn max_stack_size(&self) -> i32;
 
     /// Whether this item can be stacked with other items.
     ///
@@ -16,7 +16,7 @@ pub trait MaxStackSizeExt {
 }
 
 impl MaxStackSizeExt for azalea_registry::Item {
-    fn max_stack_size(&self) -> i8 {
+    fn max_stack_size(&self) -> i32 {
         // TODO: have the properties for every item defined somewhere
         64
     }

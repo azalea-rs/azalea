@@ -1,5 +1,5 @@
-#![doc = include_str!("../README.md")]
-
+/// Representations of various inventory data structures in Minecraft.
+pub mod components;
 pub mod item;
 pub mod operations;
 mod slot;

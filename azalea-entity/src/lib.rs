@@ -10,14 +10,14 @@ pub mod mining;
 mod plugin;
 
 use self::attributes::AttributeInstance;
-pub use attributes::Attributes;
-use azalea_block::BlockState;
-use azalea_core::{
+use crate::{
     aabb::AABB,
     math,
     position::{BlockPos, ChunkPos, Vec3},
     resource_location::ResourceLocation,
 };
+pub use attributes::Attributes;
+use azalea_block::BlockState;
 use azalea_world::{ChunkStorage, InstanceName};
 use bevy_ecs::{bundle::Bundle, component::Component};
 pub use data::*;
