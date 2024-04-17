@@ -19,6 +19,7 @@ enum WolfVariant {
 }
 }
 
+#[allow(clippy::derivable_impls)]
 impl Default for WolfVariant {
     fn default() -> Self {
         WolfVariant::Pale

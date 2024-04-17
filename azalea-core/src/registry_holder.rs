@@ -28,7 +28,7 @@ impl RegistryHolder {
         id: ResourceLocation,
         entries: HashMap<ResourceLocation, Option<NbtCompound>>,
     ) {
-        let map = self.map.entry(id).or_insert_with(HashMap::new);
+        let map = self.map.entry(id).or_default();
         for (key, value) in entries {
             if let Some(value) = value {
                 map.insert(key, value);

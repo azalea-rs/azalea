@@ -148,7 +148,7 @@ impl McBufReadable for ItemSlot {
             let kind = azalea_registry::Item::read_from(buf)?;
             let components = DataComponentPatch::read_from(buf)?;
             Ok(ItemSlot::Present(ItemSlotData {
-                count: count as i32,
+                count,
                 kind,
                 components,
             }))
@@ -176,11 +176,8 @@ pub struct DataComponentPatch {
 }
 
 impl DataComponentPatch {
-    pub fn get(
-        &self,
-        kind: DataComponentKind,
-    ) -> Option<&Box<dyn components::EncodableDataComponent>> {
-        self.components.get(&kind).and_then(|c| c.as_ref())
+    pub fn get(&self, kind: DataComponentKind) -> Option<&dyn components::EncodableDataComponent> {
+        self.components.get(&kind).and_then(|c| c.as_deref())
     }
 }
 
@@ -213,7 +210,7 @@ impl McBufWritable for DataComponentPatch {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         let mut components_with_data_count = 0;
         let mut components_without_data_count = 0;
-        for (_, component) in &self.components {
+        for component in self.components.values() {
             if component.is_some() {
                 components_with_data_count += 1;
             } else {
@@ -247,7 +244,7 @@ impl Clone for DataComponentPatch {
     fn clone(&self) -> Self {
         let mut components = HashMap::with_capacity(self.components.len());
         for (kind, component) in &self.components {
-            components.insert(kind.clone(), component.as_ref().map(|c| (*c).clone()));
+            components.insert(*kind, component.as_ref().map(|c| (*c).clone()));
         }
         DataComponentPatch { components }
     }

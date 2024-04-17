@@ -557,7 +557,7 @@ pub fn process_packet_events(ecs: &mut World) {
                             info.latency = updated_info.latency;
                         }
                         if p.actions.update_display_name {
-                            info.display_name = updated_info.display_name.clone();
+                            info.display_name.clone_from(&updated_info.display_name);
                         }
                         update_player_events.send(UpdatePlayerEvent {
                             entity: player_entity,

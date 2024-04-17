@@ -214,9 +214,7 @@ impl McBufWritable for RecipeHolder {
 impl McBufReadable for RecipeHolder {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let identifier = ResourceLocation::read_from(buf)?;
-        println!("identifier: {identifier:?}");
         let recipe_serializer = RecipeSerializer::read_from(buf)?;
-        println!("recipe_serializer: {recipe_serializer:?}");
 
         // rust doesn't let us match ResourceLocation so we have to do a big
         // if-else chain :(

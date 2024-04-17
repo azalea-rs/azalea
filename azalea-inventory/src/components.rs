@@ -257,9 +257,9 @@ pub enum AttributeModifierOperation {
     MultiplyTotal,
 }
 
-// TODO: this is duplicated in azalea-entity (but we can't use the one from
-// azalea-entity because it would create a circular dependency), this should
-// maybe be put in its own crate or something
+// this is duplicated in azalea-entity, BUT the one there has a different
+// protocol format (and we can't use it anyways because it would cause a
+// circular dependency)
 #[derive(Clone, PartialEq, McBuf)]
 pub struct AttributeModifier {
     pub uuid: Uuid,

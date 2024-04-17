@@ -252,7 +252,7 @@ impl InventoryComponent {
                                     // && slot.may_place(item_stack)
                                     && (
                                         self.quick_craft_kind == QuickCraftKind::Middle
-                                        || item_stack.count() as i32 >= self.quick_craft_slots.len() as i32
+                                        || item_stack.count()  >= self.quick_craft_slots.len() as i32
                                     )
                             {
                                 break;
