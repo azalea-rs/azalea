@@ -1,5 +1,4 @@
 use std::io::Cursor;
-use std::sync::Arc;
 
 use azalea_entity::indexing::EntityIdIndex;
 use azalea_protocol::packets::configuration::serverbound_finish_configuration_packet::ServerboundFinishConfigurationPacket;
@@ -12,10 +11,8 @@ use azalea_protocol::packets::configuration::{
 };
 use azalea_protocol::packets::ConnectionProtocol;
 use azalea_protocol::read::deserialize_packet;
-use azalea_world::Instance;
 use bevy_ecs::prelude::*;
 use bevy_ecs::system::SystemState;
-use parking_lot::RwLock;
 use tracing::{debug, error, warn};
 
 use crate::client::InConfigurationState;

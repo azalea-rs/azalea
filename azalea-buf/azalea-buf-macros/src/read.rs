@@ -38,24 +38,34 @@ fn read_named_fields(
 
 pub fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenStream {
     match data {
-        syn::Data::Struct(syn::DataStruct { fields, .. }) => {
-            let syn::Fields::Named(FieldsNamed { named, .. }) = fields else {
-                panic!("#[derive(McBuf)] can only be used on structs with named fields")
-            };
+        syn::Data::Struct(syn::DataStruct { fields, .. }) => match fields {
+            syn::Fields::Named(FieldsNamed { named, .. }) => {
+                let (read_fields, read_field_names) = read_named_fields(named);
 
-            let (read_fields, read_field_names) = read_named_fields(named);
-
-            quote! {
-            impl azalea_buf::McBufReadable for #ident {
-                fn read_from(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
-                    #(#read_fields)*
-                    Ok(#ident {
-                        #(#read_field_names: #read_field_names),*
-                    })
+                quote! {
+                impl azalea_buf::McBufReadable for #ident {
+                    fn read_from(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
+                        #(#read_fields)*
+                        Ok(Self {
+                            #(#read_field_names: #read_field_names),*
+                        })
+                    }
+                }
                 }
             }
+            syn::Fields::Unit => {
+                quote! {
+                impl azalea_buf::McBufReadable for #ident {
+                    fn read_from(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
+                        Ok(Self)
+                    }
+                }
+                }
             }
-        }
+            _ => {
+                panic!("#[derive(McBuf)] can only be used on structs with named fields")
+            }
+        },
         syn::Data::Enum(syn::DataEnum { variants, .. }) => {
             let mut match_contents = quote!();
             let mut variant_discrim: u32 = 0;

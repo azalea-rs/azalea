@@ -42,6 +42,8 @@ uuid = "1.7.0"
 bevy_log = "0.13.0"
 bevy_time = "0.13.0"
 rustc-hash = "1.1.0"
+azalea-inventory = { version = "0.9.0", path = "../azalea-inventory" }
+azalea-entity = { version = "0.9.0", path = "../azalea-entity" }
 
 [dev-dependencies]
 criterion = "0.5.1"

@@ -1,16 +1,12 @@
-use azalea_buf::{
-    BufReadError, McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable,
-};
+use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufWritable};
 use azalea_registry::DataComponentKind;
-use simdnbt::owned::Nbt;
 use std::{
-    any::Any,
-    collections::{HashMap, HashSet},
+    collections::HashMap,
     fmt,
     io::{Cursor, Write},
 };
 
-use crate::components::{self, EncodableDataComponent};
+use crate::components::{self};
 
 /// Either an item in an inventory or nothing.
 #[derive(Debug, Clone, Default, PartialEq)]
@@ -176,7 +172,16 @@ impl McBufWritable for ItemSlot {
 
 #[derive(Default)]
 pub struct DataComponentPatch {
-    pub components: HashMap<DataComponentKind, Option<Box<dyn components::EncodableDataComponent>>>,
+    components: HashMap<DataComponentKind, Option<Box<dyn components::EncodableDataComponent>>>,
+}
+
+impl DataComponentPatch {
+    pub fn get(
+        &self,
+        kind: DataComponentKind,
+    ) -> Option<&Box<dyn components::EncodableDataComponent>> {
+        self.components.get(&kind).and_then(|c| c.as_ref())
+    }
 }
 
 impl McBufReadable for DataComponentPatch {

@@ -13,3 +13,6 @@ simdnbt = { version = "0.4", git = "https://github.com/azalea-rs/simdnbt" }
 azalea-buf = { version = "0.9.0", path = "../azalea-buf" }
 azalea-inventory-macros = { version = "0.9.0", path = "./azalea-inventory-macros" }
 azalea-registry = { version = "0.9.0", path = "../azalea-registry" }
+azalea-chat = { version = "0.9.0", path = "../azalea-chat" }
+azalea-core = { version = "0.9.0", path = "../azalea-core" }
+uuid = "1.8.0"

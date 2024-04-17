@@ -3,6 +3,8 @@
 // This file is generated from codegen/lib/code/entity.py.
 // Don't change it manually!
 
+use crate::particle::Particle;
+
 use super::{
     ArmadilloStateKind, EntityDataItem, EntityDataValue, OptionalUnsignedInt, Pose, Quaternion,
     Rotations, SnifferState, VillagerData,
@@ -10,7 +12,6 @@ use super::{
 use azalea_chat::FormattedText;
 use azalea_core::{
     direction::Direction,
-    particle::Particle,
     position::{BlockPos, Vec3},
 };
 use azalea_inventory::ItemSlot;

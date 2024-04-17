@@ -45,6 +45,8 @@ trust-dns-resolver = { version = "^0.23.2", default-features = false, features =
 ] }
 uuid = "1.7.0"
 log = "0.4.20"
+azalea-entity = { version = "0.9.0", path = "../azalea-entity" }
+azalea-inventory = { version = "0.9.0", path = "../azalea-inventory" }
 
 [features]
 connecting = []

@@ -80,7 +80,7 @@ impl<D: Registry, C: McBufReadable + McBufWritable> McBufWritable for CustomRegi
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum HolderSet<D: Registry, ResourceLocation: McBufReadable + McBufWritable> {
     Direct {
         contents: Vec<D>,
@@ -109,6 +109,26 @@ impl<D: Registry, ResourceLocation: McBufReadable + McBufWritable> McBufReadable
             }
             Ok(Self::Direct { contents })
         }
+    }
+}
+
+impl<D: Registry, ResourceLocation: McBufReadable + McBufWritable> McBufWritable
+    for HolderSet<D, ResourceLocation>
+{
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        match self {
+            Self::Direct { contents } => {
+                (contents.len() as i32 + 1).var_write_into(buf)?;
+                for item in contents {
+                    item.write_into(buf)?;
+                }
+            }
+            Self::Named { key, .. } => {
+                0i32.var_write_into(buf)?;
+                key.write_into(buf)?;
+            }
+        }
+        Ok(())
     }
 }
 

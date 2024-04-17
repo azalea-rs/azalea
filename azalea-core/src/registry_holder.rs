@@ -5,7 +5,6 @@
 //! the game, including the types of chat messages, dimensions, and
 //! biomes.
 
-use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufWritable};
 use simdnbt::{
     owned::{NbtCompound, NbtTag},
     Deserialize, FromNbtTag, Serialize, ToNbtTag,

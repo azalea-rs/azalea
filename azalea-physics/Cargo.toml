@@ -20,6 +20,8 @@ once_cell = "1.19.0"
 parking_lot = "^0.12.1"
 nohash-hasher = "0.2.0"
 smallvec = "1.13.1"
+azalea-entity = { version = "0.9.0", path = "../azalea-entity" }
+azalea-inventory = { version = "0.9.0", path = "../azalea-inventory" }
 
 [dev-dependencies]
 bevy_time = "0.13.0"

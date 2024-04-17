@@ -2,7 +2,7 @@ use azalea_block::{Block, BlockState};
 use azalea_client::{inventory::InventoryComponent, Client};
 use azalea_entity::{FluidOnEyes, Physics};
 use azalea_inventory::{ItemSlot, Menu};
-use azalea_registry::Fluid;
+use azalea_registry::{DataComponentKind, Fluid};
 
 #[derive(Debug)]
 pub struct BestToolResult {
@@ -92,7 +92,11 @@ pub fn accurate_best_tool_in_hotbar_for_block(
             ItemSlot::Present(item_slot) => {
                 // lazy way to avoid checking durability since azalea doesn't have durability
                 // data yet
-                if item_slot.nbt.is_none() {
+                if item_slot
+                    .components
+                    .get(DataComponentKind::Damage)
+                    .is_none()
+                {
                     this_item_speed = Some(azalea_entity::mining::get_mine_progress(
                         block.as_ref(),
                         item_slot.kind,

@@ -33,3 +33,41 @@ enum DimensionType {
     OverworldCaves => "minecraft:overworld_caves",
 }
 }
+
+registry! {
+enum TrimMaterial {
+    Quartz => "minecraft:quartz",
+    Iron => "minecraft:iron",
+    Netherite => "minecraft:netherite",
+    Redstone => "minecraft:redstone",
+    Copper => "minecraft:copper",
+    Gold => "minecraft:gold",
+    Emerald => "minecraft:emerald",
+    Diamond => "minecraft:diamond",
+    Lapis => "minecraft:lapis",
+    Amethyst => "minecraft:amethyst",
+}
+}
+
+registry! {
+enum TrimPattern {
+    Sentry => "sentry",
+    Dune => "dune",
+    Coast => "coast",
+    Wild => "wild",
+    Ward => "ward",
+    Eye => "eye",
+    Vex => "vex",
+    Tide => "tide",
+    Snout => "snout",
+    Rib => "rib",
+    Spire => "spire",
+    Wayfinder => "wayfinder",
+    Shaper => "shaper",
+    Silence => "silence",
+    Raiser => "raiser",
+    Host => "host",
+    Flow => "flow",
+    Bolt => "bolt",
+}
+}

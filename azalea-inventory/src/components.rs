@@ -1,26 +1,27 @@
-use std::{
-    any::Any,
-    collections::HashMap,
-    io::{Cursor, Write},
-};
+use core::f64;
+use std::{any::Any, collections::HashMap, io::Cursor};
 
 use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
 use azalea_chat::FormattedText;
-use azalea_core::resource_location::ResourceLocation;
-use azalea_registry::{Attribute, Block, DataComponentKind, Enchantment, HolderSet, Item};
+use azalea_core::{position::GlobalPos, resource_location::ResourceLocation};
+use azalea_registry::{
+    Attribute, Block, DataComponentKind, Enchantment, HolderSet, Item, MobEffect, Potion,
+    TrimMaterial, TrimPattern,
+};
 use simdnbt::owned::{Nbt, NbtCompound};
+use uuid::Uuid;
 
 use crate::ItemSlot;
 
 pub trait DataComponent: Send + Sync + Any {}
 
-pub trait EncodableDataComponent: Send + Sync {
+pub trait EncodableDataComponent: Send + Sync + Any {
     fn encode(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error>;
     // using the Clone trait makes it not be object-safe, so we have our own clone
     // function instead
-    fn clone(&self) -> Box<dyn DataComponent>;
+    fn clone(&self) -> Box<dyn EncodableDataComponent>;
     // same deal here
-    fn eq(&self, other: Box<dyn DataComponent>) -> bool;
+    fn eq(&self, other: Box<dyn EncodableDataComponent>) -> bool;
 }
 
 impl<T> EncodableDataComponent for T
@@ -30,11 +31,11 @@ where
     fn encode(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
         self.write_into(buf)
     }
-    fn clone(&self) -> Box<dyn DataComponent> {
-        Box::new(self.clone())
+    fn clone(&self) -> Box<dyn EncodableDataComponent> {
+        let cloned = self.clone();
+        Box::new(cloned)
     }
-    fn eq(&self, other: Box<dyn DataComponent>) -> bool {
-        // convert to Any and downcast
+    fn eq(&self, other: Box<dyn EncodableDataComponent>) -> bool {
         let other_any: Box<dyn Any> = other;
         if let Some(other) = other_any.downcast_ref::<T>() {
             self == other
@@ -194,10 +195,27 @@ pub struct Enchantments {
 impl DataComponent for Enchantments {}
 
 #[derive(Clone, PartialEq, McBuf)]
+pub enum BlockStateValueMatcher {
+    Exact {
+        value: String,
+    },
+    Range {
+        min: Option<String>,
+        max: Option<String>,
+    },
+}
+
+#[derive(Clone, PartialEq, McBuf)]
+pub struct BlockStatePropertyMatcher {
+    pub name: String,
+    pub value_matcher: BlockStateValueMatcher,
+}
+
+#[derive(Clone, PartialEq, McBuf)]
 pub struct BlockPredicate {
-    pub blocks: HolderSet<Block, ResourceLocation>,
-    pub properties: Option<StatePropertiesPredicate>,
-    pub nbt: Option<NbtPredicate>,
+    pub blocks: Option<HolderSet<Block, ResourceLocation>>,
+    pub properties: Option<Vec<BlockStatePropertyMatcher>>,
+    pub nbt: Option<NbtCompound>,
 }
 
 #[derive(Clone, PartialEq, McBuf)]
@@ -218,7 +236,40 @@ pub struct CanBreak {
 }
 impl DataComponent for CanBreak {}
 
-pub struct AttributeModifierEntry {
+#[derive(Clone, Copy, PartialEq, McBuf)]
+pub enum EquipmentSlotGroup {
+    Any,
+    Mainhand,
+    Offhand,
+    Hand,
+    Feet,
+    Legs,
+    Chest,
+    Head,
+    Armor,
+    Body,
+}
+
+#[derive(Clone, Copy, PartialEq, McBuf)]
+pub enum AttributeModifierOperation {
+    Addition,
+    MultiplyBase,
+    MultiplyTotal,
+}
+
+// TODO: this is duplicated in azalea-entity (but we can't use the one from
+// azalea-entity because it would create a circular dependency), this should
+// maybe be put in its own crate or something
+#[derive(Clone, PartialEq, McBuf)]
+pub struct AttributeModifier {
+    pub uuid: Uuid,
+    pub name: String,
+    pub amount: f64,
+    pub operation: AttributeModifierOperation,
+}
+
+#[derive(Clone, PartialEq, McBuf)]
+pub struct AttributeModifiersEntry {
     pub attribute: Attribute,
     pub modifier: AttributeModifier,
     pub slot: EquipmentSlotGroup,
@@ -226,7 +277,7 @@ pub struct AttributeModifierEntry {
 
 #[derive(Clone, PartialEq, McBuf)]
 pub struct AttributeModifiers {
-    pub modifiers: Vec<AttributeModifier>,
+    pub modifiers: Vec<AttributeModifiersEntry>,
     pub show_in_tooltip: bool,
 }
 impl DataComponent for AttributeModifiers {}
@@ -239,11 +290,11 @@ pub struct CustomModelData {
 impl DataComponent for CustomModelData {}
 
 #[derive(Clone, PartialEq, McBuf)]
-pub struct HideAdditionalTooltip {}
+pub struct HideAdditionalTooltip;
 impl DataComponent for HideAdditionalTooltip {}
 
 #[derive(Clone, PartialEq, McBuf)]
-pub struct HideTooltip {}
+pub struct HideTooltip;
 impl DataComponent for HideTooltip {}
 
 #[derive(Clone, PartialEq, McBuf)]
@@ -254,7 +305,7 @@ pub struct RepairCost {
 impl DataComponent for RepairCost {}
 
 #[derive(Clone, PartialEq, McBuf)]
-pub struct CreativeSlotLock {}
+pub struct CreativeSlotLock;
 impl DataComponent for CreativeSlotLock {}
 
 #[derive(Clone, PartialEq, McBuf)]
@@ -264,14 +315,37 @@ pub struct EnchantmentGlintOverride {
 impl DataComponent for EnchantmentGlintOverride {}
 
 #[derive(Clone, PartialEq, McBuf)]
-pub struct IntangibleProjectile {}
+pub struct IntangibleProjectile;
 impl DataComponent for IntangibleProjectile {}
+
+#[derive(Clone, PartialEq, McBuf)]
+pub struct MobEffectDetails {
+    #[var]
+    pub amplifier: i32,
+    #[var]
+    pub duration: i32,
+    pub ambient: bool,
+    pub show_particles: bool,
+    pub show_icon: bool,
+    pub hidden_effect: Option<Box<MobEffectDetails>>,
+}
+
+#[derive(Clone, PartialEq, McBuf)]
+pub struct MobEffectInstance {
+    pub effect: MobEffect,
+    pub details: MobEffectDetails,
+}
+
+#[derive(Clone, PartialEq, McBuf)]
+pub struct PossibleEffect {
+    pub effect: MobEffectInstance,
+    pub probability: f32,
+}
 
 #[derive(Clone, PartialEq, McBuf)]
 pub struct Food {
     #[var]
     pub nutrition: i32,
-    #[var]
     pub saturation: f32,
     pub can_always_eat: bool,
     pub eat_seconds: f32,
@@ -280,8 +354,15 @@ pub struct Food {
 impl DataComponent for Food {}
 
 #[derive(Clone, PartialEq, McBuf)]
-pub struct FireResistant {}
+pub struct FireResistant;
 impl DataComponent for FireResistant {}
+
+#[derive(Clone, PartialEq, McBuf)]
+pub struct ToolRule {
+    pub blocks: Vec<Block>,
+    pub speed: Option<f32>,
+    pub correct_for_drops: Option<bool>,
+}
 
 #[derive(Clone, PartialEq, McBuf)]
 pub struct Tool {
@@ -322,7 +403,7 @@ impl DataComponent for MapId {}
 
 #[derive(Clone, PartialEq, McBuf)]
 pub struct MapDecorations {
-    pub decorations: HashMap<String, MapDecoration>,
+    pub decorations: NbtCompound,
 }
 impl DataComponent for MapDecorations {}
 
@@ -352,6 +433,13 @@ pub struct PotionContents {
     pub custom_effects: Vec<MobEffectInstance>,
 }
 impl DataComponent for PotionContents {}
+
+#[derive(Clone, PartialEq, McBuf)]
+pub struct SuspiciousStewEffect {
+    pub effect: MobEffect,
+    #[var]
+    pub duration: i32,
+}
 
 #[derive(Clone, PartialEq, McBuf)]
 pub struct SuspiciousStewEffects {
@@ -433,6 +521,15 @@ pub struct LodestoneTracker {
     pub tracked: bool,
 }
 impl DataComponent for LodestoneTracker {}
+
+#[derive(Clone, Copy, PartialEq, McBuf)]
+pub enum FireworkExplosionShape {
+    SmallBall,
+    LargeBall,
+    Star,
+    Creeper,
+    Burst,
+}
 
 #[derive(Clone, PartialEq, McBuf)]
 pub struct FireworkExplosion {

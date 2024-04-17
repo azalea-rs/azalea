@@ -7,7 +7,6 @@ use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_registry::RecipeSerializer;
 
 use std::io::{Cursor, Write};
-use std::str::FromStr;
 
 #[derive(Clone, Debug, McBuf, PartialEq, ClientboundGamePacket)]
 pub struct ClientboundUpdateRecipesPacket {

@@ -1,10 +1,10 @@
-use crate::position::BlockPos;
 use azalea_buf::McBuf;
+use azalea_core::position::BlockPos;
 use azalea_inventory::ItemSlot;
 use azalea_registry::ParticleKind;
+use bevy_ecs::component::Component;
 
-#[cfg_attr(feature = "bevy_ecs", derive(bevy_ecs::component::Component))]
-#[derive(Debug, Clone, McBuf, Default)]
+#[derive(Component, Debug, Clone, McBuf, Default)]
 pub struct Particle {
     #[var]
     pub id: i32,

@@ -7,17 +7,18 @@ mod effects;
 mod enchantments;
 pub mod metadata;
 pub mod mining;
+pub mod particle;
 mod plugin;
 
 use self::attributes::AttributeInstance;
-use crate::{
+pub use attributes::Attributes;
+use azalea_block::BlockState;
+use azalea_core::{
     aabb::AABB,
     math,
     position::{BlockPos, ChunkPos, Vec3},
     resource_location::ResourceLocation,
 };
-pub use attributes::Attributes;
-use azalea_block::BlockState;
 use azalea_world::{ChunkStorage, InstanceName};
 use bevy_ecs::{bundle::Bundle, component::Component};
 pub use data::*;

@@ -6,7 +6,6 @@ use azalea_buf::{
 use azalea_chat::FormattedText;
 use azalea_core::{
     direction::Direction,
-    particle::Particle,
     position::{BlockPos, GlobalPos, Vec3},
 };
 use azalea_inventory::ItemSlot;
@@ -16,6 +15,8 @@ use enum_as_inner::EnumAsInner;
 use nohash_hasher::IntSet;
 use std::io::{Cursor, Write};
 use uuid::Uuid;
+
+use crate::particle::Particle;
 
 #[derive(Clone, Debug, Deref)]
 pub struct EntityMetadataItems(Vec<EntityDataItem>);

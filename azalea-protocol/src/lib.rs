@@ -18,7 +18,6 @@ use std::{fmt::Display, net::SocketAddr, str::FromStr};
 pub mod connect;
 #[cfg(feature = "packets")]
 pub mod packets;
-pub mod particle;
 pub mod read;
 pub mod resolver;
 pub mod write;
