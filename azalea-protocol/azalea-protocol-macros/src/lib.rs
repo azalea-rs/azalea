@@ -13,7 +13,6 @@ fn as_packet_derive(input: TokenStream, state: proc_macro2::TokenStream) -> Toke
         panic!("#[derive(*Packet)] can only be used on structs")
     };
 
-    
     let (syn::Fields::Named(_) | syn::Fields::Unit) = fields else {
         panic!("#[derive(*Packet)] can only be used on structs with named fields")
     };

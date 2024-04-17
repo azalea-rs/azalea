@@ -3219,6 +3219,7 @@ enum LootConditionKind {
 registry! {
 enum LootFunctionKind {
     SetCount => "minecraft:set_count",
+    SetItem => "minecraft:set_item",
     EnchantWithLevels => "minecraft:enchant_with_levels",
     EnchantRandomly => "minecraft:enchant_randomly",
     SetEnchantments => "minecraft:set_enchantments",
@@ -3233,6 +3234,8 @@ enum LootFunctionKind {
     SetStewEffect => "minecraft:set_stew_effect",
     CopyName => "minecraft:copy_name",
     SetContents => "minecraft:set_contents",
+    ModifyContents => "minecraft:modify_contents",
+    Filtered => "minecraft:filtered",
     LimitCount => "minecraft:limit_count",
     ApplyBonus => "minecraft:apply_bonus",
     SetLootTable => "minecraft:set_loot_table",
@@ -3254,6 +3257,7 @@ enum LootFunctionKind {
     SetWritableBookPages => "minecraft:set_writable_book_pages",
     ToggleTooltips => "minecraft:toggle_tooltips",
     SetOminousBottleAmplifier => "minecraft:set_ominous_bottle_amplifier",
+    SetCustomModelData => "minecraft:set_custom_model_data",
 }
 }
 
@@ -6337,6 +6341,14 @@ enum ItemSubPredicateKind {
     StoredEnchantments => "minecraft:stored_enchantments",
     PotionContents => "minecraft:potion_contents",
     CustomData => "minecraft:custom_data",
+    Container => "minecraft:container",
+    BundleContents => "minecraft:bundle_contents",
+    FireworkExplosion => "minecraft:firework_explosion",
+    Fireworks => "minecraft:fireworks",
+    WritableBookContent => "minecraft:writable_book_content",
+    WrittenBookContent => "minecraft:written_book_content",
+    AttributeModifiers => "minecraft:attribute_modifiers",
+    Trim => "minecraft:trim",
 }
 }
 
