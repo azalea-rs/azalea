@@ -21,4 +21,6 @@ pub enum EventType {
     PufferFishSting = 9,
     GuardianElderEffect = 10,
     ImmediateRespawn = 11,
+    LimitedCrafting = 12,
+    WaitForLevelChunks = 13,
 }
