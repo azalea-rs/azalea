@@ -4,7 +4,7 @@ edition = "2021"
 license = "MIT"
 name = "azalea-registry-macros"
 repository = "https://github.com/azalea-rs/azalea/tree/main/azalea-registry/azalea-registry-macros"
-version = "0.9.0"
+version = "0.9.1"
 
 [lib]
 proc-macro = true
