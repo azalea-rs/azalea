@@ -1,4 +1,4 @@
-use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufWritable};
+use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
 use azalea_registry::DataComponentKind;
 use std::{
     collections::HashMap,
@@ -122,12 +122,12 @@ impl ItemSlotData {
     /// let mut a = ItemSlotData {
     ///    kind: Item::Stone,
     ///    count: 1,
-    ///    nbt: Default::default(),
+    ///    components: Default::default(),
     /// };
     /// let mut b = ItemSlotData {
     ///   kind: Item::Stone,
     ///   count: 2,
-    ///   nbt: Default::default(),
+    ///   components: Default::default(),
     /// };
     /// assert!(a.is_same_item_and_components(&b));
     ///
@@ -159,9 +159,9 @@ impl McBufReadable for ItemSlot {
 impl McBufWritable for ItemSlot {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         match self {
-            ItemSlot::Empty => 0.write_into(buf)?,
+            ItemSlot::Empty => 0.var_write_into(buf)?,
             ItemSlot::Present(i) => {
-                i.count.write_into(buf)?;
+                i.count.var_write_into(buf)?;
                 i.kind.write_into(buf)?;
                 i.components.write_into(buf)?;
             }

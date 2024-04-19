@@ -104,12 +104,12 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///         let packet = conn.read().await?;
 ///         match packet {
 ///             ClientboundLoginPacket::Hello(p) => {
-///                 let e = azalea_crypto::encrypt(&p.public_key, &p.nonce).unwrap();
+///                 let e = azalea_crypto::encrypt(&p.public_key, &p.challenge).unwrap();
 ///
 ///                 conn.write(
 ///                     ServerboundKeyPacket {
 ///                         key_bytes: e.encrypted_public_key,
-///                         encrypted_challenge: e.encrypted_nonce,
+///                         encrypted_challenge: e.encrypted_challenge,
 ///                     }
 ///                     .get(),
 ///                 )
@@ -127,6 +127,7 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///                 return Err("login disconnect".into());
 ///             }
 ///             ClientboundLoginPacket::CustomQuery(p) => {}
+///             ClientboundLoginPacket::CookieRequest(_) => {}
 ///         }
 ///     };
 ///
@@ -368,7 +369,7 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
     /// match conn.read().await? {
     ///     ClientboundLoginPacket::Hello(p) => {
     ///         // tell Mojang we're joining the server & enable encryption
-    ///         let e = azalea_crypto::encrypt(&p.public_key, &p.nonce).unwrap();
+    ///         let e = azalea_crypto::encrypt(&p.public_key, &p.challenge).unwrap();
     ///         conn.authenticate(
     ///             &access_token,
     ///             &profile.id,
@@ -378,7 +379,7 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
     ///         conn.write(
     ///             ServerboundKeyPacket {
     ///                 key_bytes: e.encrypted_public_key,
-    ///                 encrypted_challenge: e.encrypted_nonce,
+    ///                 encrypted_challenge: e.encrypted_challenge,
     ///             }.get()
     ///         ).await?;
     ///         conn.set_encryption_key(e.secret_key);

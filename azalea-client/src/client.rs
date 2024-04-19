@@ -402,7 +402,7 @@ impl Client {
                     conn.write(
                         ServerboundKeyPacket {
                             key_bytes: e.encrypted_public_key,
-                            encrypted_challenge: e.encrypted_nonce,
+                            encrypted_challenge: e.encrypted_challenge,
                         }
                         .get(),
                     )
