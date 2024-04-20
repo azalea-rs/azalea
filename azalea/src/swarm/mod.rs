@@ -6,6 +6,7 @@ pub mod prelude;
 
 use azalea_client::{
     chat::ChatPacket, start_ecs_runner, Account, Client, DefaultPlugins, Event, JoinError,
+    StartClientOpts,
 };
 use azalea_protocol::{resolver, ServerAddress};
 use azalea_world::InstanceContainer;
@@ -535,10 +536,10 @@ pub type BoxSwarmHandleFn<SS> =
 ///     _state: SwarmState,
 /// ) -> anyhow::Result<()> {
 ///     match &event {
-///         SwarmEvent::Disconnect(account) => {
+///         SwarmEvent::Disconnect(account, join_opts) => {
 ///             // automatically reconnect after 5 seconds
 ///             tokio::time::sleep(Duration::from_secs(5)).await;
-///             swarm.add(account, State::default()).await?;
+///             swarm.add_with_opts(account, State::default(), join_opts).await?;
 ///         }
 ///         SwarmEvent::Chat(m) => {
 ///             println!("{}", m.message().to_ansi());
@@ -560,7 +561,7 @@ impl Swarm {
         account: &Account,
         state: S,
     ) -> Result<Client, JoinError> {
-        self.add_with_opts(account, state, JoinOpts::default())
+        self.add_with_opts(account, state, &JoinOpts::default())
             .await
     }
     /// Add a new account to the swarm, using custom options. This is useful if
@@ -574,24 +575,24 @@ impl Swarm {
         &mut self,
         account: &Account,
         state: S,
-        opts: JoinOpts,
+        join_opts: &JoinOpts,
     ) -> Result<Client, JoinError> {
-        let address = opts
+        let address = join_opts
             .custom_address
             .clone()
             .unwrap_or_else(|| self.address.read().clone());
-        let resolved_address = opts
+        let resolved_address = join_opts
             .custom_resolved_address
             .unwrap_or_else(|| *self.resolved_address.read());
 
-        let (bot, mut rx) = Client::start_client(
-            self.ecs_lock.clone(),
+        let (bot, mut rx) = Client::start_client(StartClientOpts {
+            ecs_lock: self.ecs_lock.clone(),
             account,
-            &address,
-            &resolved_address,
-            opts.proxy.clone(),
-            self.run_schedule_sender.clone(),
-        )
+            address: &address,
+            resolved_address: &resolved_address,
+            proxy: join_opts.proxy.clone(),
+            run_schedule_sender: self.run_schedule_sender.clone(),
+        })
         .await?;
         // add the state to the client
         {
@@ -605,6 +606,7 @@ impl Swarm {
         let cloned_bots_tx = self.bots_tx.clone();
         let cloned_bot = bot.clone();
         let swarm_tx = self.swarm_tx.clone();
+        let join_opts = join_opts.clone();
         tokio::spawn(async move {
             while let Some(event) = rx.recv().await {
                 // we can't handle events here (since we can't copy the handler),
@@ -618,7 +620,7 @@ impl Swarm {
                 .get_component::<Account>()
                 .expect("bot is missing required Account component");
             swarm_tx
-                .send(SwarmEvent::Disconnect(Box::new(account), opts))
+                .send(SwarmEvent::Disconnect(Box::new(account), join_opts))
                 .unwrap();
         });
 
@@ -649,10 +651,7 @@ impl Swarm {
     ) -> Client {
         let mut disconnects = 0;
         loop {
-            match self
-                .add_with_opts(account, state.clone(), opts.clone())
-                .await
-            {
+            match self.add_with_opts(account, state.clone(), opts).await {
                 Ok(bot) => return bot,
                 Err(e) => {
                     disconnects += 1;
