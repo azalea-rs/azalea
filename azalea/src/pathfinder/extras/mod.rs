@@ -7,7 +7,7 @@ pub mod utils;
 
 use crate::ecs::prelude::*;
 use azalea_block::BlockStates;
-use azalea_client::Client;
+use azalea_client::{mining::MiningSet, Client};
 use azalea_core::{position::BlockPos, tick::GameTick};
 use azalea_physics::PhysicsSet;
 use bevy_app::Update;
@@ -29,8 +29,12 @@ impl Plugin for PathfinderExtrasPlugin {
                         .before(crate::pathfinder::handle_stop_pathfinding_event),
                     pickup::add_pickup_components_to_player,
                     pickup::remove_pickup_components_from_player,
-                    pickup::watch_for_mined_blocks,
-                    pickup::watch_for_item_spawns_from_blocks_we_mined,
+                    (
+                        pickup::watch_for_mined_blocks,
+                        pickup::watch_for_item_spawns_from_blocks_we_mined,
+                    )
+                        .chain()
+                        .after(MiningSet),
                 ),
             )
             .add_systems(
