@@ -48,6 +48,8 @@ trust-dns-resolver = { version = "^0.23.2", default-features = false, features =
 uuid = "1.7.0"
 log = "0.4.20"
 
+socks5-impl = "0.5.6"
+
 [features]
 connecting = []
 default = ["packets"]
