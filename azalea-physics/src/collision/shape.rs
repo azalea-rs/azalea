@@ -323,7 +323,7 @@ impl Shapes {
                 coords: coords1.to_vec(),
             }
         } else {
-            IndexMerger::new_indirect(&coords1, &coords2, var3, var4)
+            IndexMerger::new_indirect(coords1, coords2, var3, var4)
         }
     }
 }

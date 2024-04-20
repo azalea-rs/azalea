@@ -63,7 +63,7 @@ impl<'a, S> CommandContextBuilder<'a, S> {
     }
 
     pub fn with_command(&mut self, command: &Command<S>) -> &Self {
-        self.command = command.clone();
+        self.command.clone_from(command);
         self
     }
     pub fn with_child(&mut self, child: Rc<CommandContextBuilder<'a, S>>) -> &Self {
@@ -80,7 +80,7 @@ impl<'a, S> CommandContextBuilder<'a, S> {
             range,
         });
         self.range = StringRange::encompassing(&self.range, &range);
-        self.modifier = node.read().modifier.clone();
+        self.modifier.clone_from(&node.read().modifier);
         self.forks = node.read().forks;
         self
     }

@@ -85,7 +85,6 @@ pub struct BlockCollisionsState<'a> {
     pub aabb: AABB,
     pub entity_shape: VoxelShape,
     pub cursor: Cursor3d,
-    pub only_suffocating_blocks: bool,
 
     cached_sections: Vec<(ChunkSectionPos, azalea_world::Section)>,
     cached_block_shapes: Vec<(BlockState, &'static VoxelShape)>,
@@ -112,7 +111,6 @@ impl<'a> BlockCollisionsState<'a> {
             aabb,
             entity_shape: VoxelShape::from(aabb),
             cursor,
-            only_suffocating_blocks: false,
 
             cached_sections: Vec::new(),
             cached_block_shapes: Vec::new(),

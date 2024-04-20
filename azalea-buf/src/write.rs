@@ -41,7 +41,7 @@ impl McBufVarWritable for i32 {
         }
         while value != 0 {
             buffer[0] = (value & 0b0111_1111) as u8;
-            value = (value >> 7) & (i32::max_value() >> 6);
+            value = (value >> 7) & (i32::MAX >> 6);
             if value != 0 {
                 buffer[0] |= 0b1000_0000;
             }
@@ -137,7 +137,7 @@ impl McBufVarWritable for i64 {
         }
         while value != 0 {
             buffer[0] = (value & 0b0111_1111) as u8;
-            value = (value >> 7) & (i64::max_value() >> 6);
+            value = (value >> 7) & (i64::MAX >> 6);
             if value != 0 {
                 buffer[0] |= 0b1000_0000;
             }
