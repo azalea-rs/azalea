@@ -29,4 +29,17 @@ mod tests {
             "[py5: Gave 1 [Diamond Pickaxe] to py5]".to_string()
         );
     }
+
+    #[test]
+    fn test_translate_with_string_array_clientbound_system_chat_packet() {
+        #[rustfmt::skip]
+        let bytes = [
+            10, 9, 0, 4, 119, 105, 116, 104, 8, 0, 0, 0, 1, 0, 14, 109, 105, 110, 101, 99, 114, 97, 102, 116, 58, 100, 117, 115, 116, 8, 0, 9, 116, 114, 97, 110, 115, 108, 97, 116, 101, 0, 25, 99, 111, 109, 109, 97, 110, 100, 115, 46, 112, 97, 114, 116, 105, 99, 108, 101, 46, 115, 117, 99, 99, 101, 115, 115, 0, 0
+        ];
+        let packet = ClientboundSystemChatPacket::read_from(&mut Cursor::new(&bytes)).unwrap();
+        assert_eq!(
+            packet.content.to_string(),
+            "Displaying particle minecraft:dust".to_string()
+        );
+    }
 }
