@@ -214,9 +214,11 @@ pub fn goto_listener(
     let thread_pool = AsyncComputeTaskPool::get();
 
     for event in events.read() {
-        let (mut pathfinder, executing_path, position, instance_name, inventory) = query
-            .get_mut(event.entity)
-            .expect("Called goto on an entity that's not in the world");
+        let Ok((mut pathfinder, executing_path, position, instance_name, inventory)) =
+            query.get_mut(event.entity)
+        else {
+            continue;
+        };
 
         if event.goal.success(BlockPos::from(position)) {
             // we're already at the goal, nothing to do
@@ -622,7 +624,7 @@ fn check_for_path_obstruction(
     }
 }
 
-fn recalculate_near_end_of_path(
+pub fn recalculate_near_end_of_path(
     mut query: Query<(Entity, &mut Pathfinder, &mut ExecutingPath)>,
     mut walk_events: EventWriter<StartWalkEvent>,
     mut goto_events: EventWriter<GotoEvent>,

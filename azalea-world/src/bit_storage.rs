@@ -114,8 +114,7 @@ impl BitStorage {
             }
         }
 
-        // vanilla has this assert but it's not always true for some reason??
-        // assert!(bits >= 1 && bits <= 32);
+        debug_assert!((1..=32).contains(&bits));
 
         let values_per_long = 64 / bits;
         let magic_index = values_per_long - 1;

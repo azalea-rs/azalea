@@ -1,5 +1,5 @@
 use syn::{
-    self, braced,
+     braced,
     parse::{Parse, ParseStream, Result},
     Ident, LitInt, Token,
 };

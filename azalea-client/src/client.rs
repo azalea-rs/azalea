@@ -2,6 +2,7 @@ use crate::{
     attack::{self, AttackPlugin},
     chat::ChatPlugin,
     chunks::{ChunkBatchInfo, ChunkPlugin},
+    configuration::ConfigurationPlugin,
     disconnect::{DisconnectEvent, DisconnectPlugin},
     events::{Event, EventPlugin, LocalPlayerEvents},
     interact::{CurrentSequenceNumber, InteractPlugin},
@@ -13,7 +14,6 @@ use crate::{
     mining::{self, MinePlugin},
     movement::{LastSentLookDirection, PhysicsState, PlayerMovePlugin},
     packet_handling::{
-        game::{handle_send_packet_event, SendPacketEvent},
         login::{self, LoginSendPacketQueue},
         PacketHandlerPlugin,
     },
@@ -25,9 +25,8 @@ use crate::{
 };
 
 use azalea_auth::{game_profile::GameProfile, sessionserver::ClientSessionServerError};
-use azalea_buf::McBufWritable;
 use azalea_chat::FormattedText;
-use azalea_core::{position::Vec3, resource_location::ResourceLocation, tick::GameTick};
+use azalea_core::{position::Vec3, tick::GameTick};
 use azalea_entity::{
     indexing::{EntityIdIndex, EntityUuidIndex},
     metadata::Health,
@@ -35,11 +34,10 @@ use azalea_entity::{
 };
 use azalea_physics::PhysicsPlugin;
 use azalea_protocol::{
-    connect::{Connection, ConnectionError},
+    connect::{Connection, ConnectionError, Proxy},
     packets::{
         configuration::{
             serverbound_client_information_packet::ClientInformation,
-            serverbound_custom_payload_packet::ServerboundCustomPayloadPacket,
             ClientboundConfigurationPacket, ServerboundConfigurationPacket,
         },
         game::ServerboundGamePacket,
@@ -140,6 +138,45 @@ pub enum JoinError {
     Disconnect { reason: FormattedText },
 }
 
+pub struct StartClientOpts<'a> {
+    pub ecs_lock: Arc<Mutex<World>>,
+    pub account: &'a Account,
+    pub address: &'a ServerAddress,
+    pub resolved_address: &'a SocketAddr,
+    pub proxy: Option<Proxy>,
+    pub run_schedule_sender: mpsc::UnboundedSender<()>,
+}
+
+impl<'a> StartClientOpts<'a> {
+    pub fn new(
+        account: &'a Account,
+        address: &'a ServerAddress,
+        resolved_address: &'a SocketAddr,
+    ) -> StartClientOpts<'a> {
+        // An event that causes the schedule to run. This is only used internally.
+        let (run_schedule_sender, run_schedule_receiver) = mpsc::unbounded_channel();
+
+        let mut app = App::new();
+        app.add_plugins(DefaultPlugins);
+
+        let ecs_lock = start_ecs_runner(app, run_schedule_receiver, run_schedule_sender.clone());
+
+        Self {
+            ecs_lock,
+            account,
+            address,
+            resolved_address,
+            proxy: None,
+            run_schedule_sender,
+        }
+    }
+
+    pub fn proxy(mut self, proxy: Proxy) -> Self {
+        self.proxy = Some(proxy);
+        self
+    }
+}
+
 impl Client {
     /// Create a new client from the given [`GameProfile`], ECS Entity, ECS
     /// World, and schedule runner function.
@@ -189,32 +226,32 @@ impl Client {
         let address: ServerAddress = address.try_into().map_err(|_| JoinError::InvalidAddress)?;
         let resolved_address = resolver::resolve_address(&address).await?;
 
-        // An event that causes the schedule to run. This is only used internally.
-        let (run_schedule_sender, run_schedule_receiver) = mpsc::unbounded_channel();
+        Self::start_client(StartClientOpts::new(account, &address, &resolved_address)).await
+    }
 
-        let mut app = App::new();
-        app.add_plugins(DefaultPlugins);
+    pub async fn join_with_proxy(
+        account: &Account,
+        address: impl TryInto<ServerAddress>,
+        proxy: Proxy,
+    ) -> Result<(Self, mpsc::UnboundedReceiver<Event>), JoinError> {
+        let address: ServerAddress = address.try_into().map_err(|_| JoinError::InvalidAddress)?;
+        let resolved_address = resolver::resolve_address(&address).await?;
 
-        let ecs_lock = start_ecs_runner(app, run_schedule_receiver, run_schedule_sender.clone());
-
-        Self::start_client(
-            ecs_lock,
-            account,
-            &address,
-            &resolved_address,
-            run_schedule_sender,
-        )
-        .await
+        Self::start_client(StartClientOpts::new(account, &address, &resolved_address).proxy(proxy))
+            .await
     }
 
     /// Create a [`Client`] when you already have the ECS made with
     /// [`start_ecs_runner`]. You'd usually want to use [`Self::join`] instead.
     pub async fn start_client(
-        ecs_lock: Arc<Mutex<World>>,
-        account: &Account,
-        address: &ServerAddress,
-        resolved_address: &SocketAddr,
-        run_schedule_sender: mpsc::UnboundedSender<()>,
+        StartClientOpts {
+            ecs_lock,
+            account,
+            address,
+            resolved_address,
+            proxy,
+            run_schedule_sender,
+        }: StartClientOpts<'_>,
     ) -> Result<(Self, mpsc::UnboundedReceiver<Event>), JoinError> {
         // check if an entity with our uuid already exists in the ecs and if so then
         // just use that
@@ -241,24 +278,16 @@ impl Client {
             entity
         };
 
-        let conn = Connection::new(resolved_address).await?;
-        let (mut conn, game_profile) =
+        let conn = if let Some(proxy) = proxy {
+            Connection::new_with_proxy(resolved_address, proxy).await?
+        } else {
+            Connection::new(resolved_address).await?
+        };
+        let (conn, game_profile) =
             Self::handshake(ecs_lock.clone(), entity, conn, account, address).await?;
 
-        {
-            // quickly send the brand here
-            let mut brand_data = Vec::new();
-            // they don't have to know :)
-            "vanilla".write_into(&mut brand_data).unwrap();
-            conn.write(
-                ServerboundCustomPayloadPacket {
-                    identifier: ResourceLocation::new("brand"),
-                    data: brand_data.into(),
-                }
-                .get(),
-            )
-            .await?;
-        }
+        // note that we send the proper packets in
+        // crate::configuration::handle_in_configuration_state
 
         let (read_conn, write_conn) = conn.into_split();
         let (read_conn, write_conn) = (read_conn.raw, write_conn.raw);
@@ -678,10 +707,8 @@ impl Plugin for AzaleaPlugin {
                 death_event,
                 // add GameProfileComponent when we get an AddPlayerEvent
                 retroactively_add_game_profile_component.after(EntityUpdateSet::Index),
-                handle_send_packet_event,
             ),
         )
-        .add_event::<SendPacketEvent>()
         .init_resource::<InstanceContainer>()
         .init_resource::<TabList>();
     }
@@ -838,6 +865,7 @@ impl PluginGroup for DefaultPlugins {
             .add(MinePlugin)
             .add(AttackPlugin)
             .add(ChunkPlugin)
+            .add(ConfigurationPlugin)
             .add(TickBroadcastPlugin);
         #[cfg(feature = "log")]
         {

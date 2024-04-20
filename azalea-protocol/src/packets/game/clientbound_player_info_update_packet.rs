@@ -224,8 +224,6 @@ mod tests {
 
     #[test]
     fn read_player_info_update_packet() {
-        tracing_subscriber::fmt::init();
-
         // from wynncraft
         let mut bytes = Cursor::new(
             &[

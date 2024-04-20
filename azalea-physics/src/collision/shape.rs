@@ -208,8 +208,12 @@ impl Shapes {
 
     /// Check if the op is true anywhere when joining the two shapes
     /// vanilla calls this joinIsNotEmpty
-    pub fn matches_anywhere(a: &VoxelShape, b: &VoxelShape, op: fn(bool, bool) -> bool) -> bool {
-        assert!(!op(false, false));
+    pub fn matches_anywhere(
+        a: &VoxelShape,
+        b: &VoxelShape,
+        op: impl Fn(bool, bool) -> bool,
+    ) -> bool {
+        debug_assert!(!op(false, false));
         let a_is_empty = a.is_empty();
         let b_is_empty = b.is_empty();
         if a_is_empty || b_is_empty {
@@ -269,7 +273,7 @@ impl Shapes {
         merged_z: IndexMerger,
         shape1: DiscreteVoxelShape,
         shape2: DiscreteVoxelShape,
-        op: fn(bool, bool) -> bool,
+        op: impl Fn(bool, bool) -> bool,
     ) -> bool {
         !merged_x.for_merged_indexes(|var5x, var6, _var7| {
             merged_y.for_merged_indexes(|var6x, var7x, _var8| {
@@ -285,13 +289,13 @@ impl Shapes {
 
     pub fn create_index_merger(
         _var0: i32,
-        var1: Vec<f64>,
-        var2: Vec<f64>,
+        coords1: &[f64],
+        coords2: &[f64],
         var3: bool,
         var4: bool,
     ) -> IndexMerger {
-        let var5 = var1.len() - 1;
-        let var6 = var2.len() - 1;
+        let var5 = coords1.len() - 1;
+        let var6 = coords2.len() - 1;
         // if (&var1 as &dyn Any).is::<CubePointRange>() && (&var2 as &dyn
         // Any).is::<CubePointRange>() {
         // return new DiscreteCubeMerger(var0, var5, var6, var3, var4);
@@ -302,22 +306,24 @@ impl Shapes {
         // }
         // }
 
-        if var1[var5] < var2[0] - EPSILON {
+        if coords1[var5] < coords2[0] - EPSILON {
             IndexMerger::NonOverlapping {
-                lower: var1,
-                upper: var2,
+                lower: coords1.to_vec(),
+                upper: coords2.to_vec(),
                 swap: false,
             }
-        } else if var2[var6] < var1[0] - EPSILON {
+        } else if coords2[var6] < coords1[0] - EPSILON {
             IndexMerger::NonOverlapping {
-                lower: var2,
-                upper: var1,
+                lower: coords2.to_vec(),
+                upper: coords1.to_vec(),
                 swap: true,
             }
-        } else if var5 == var6 && var1 == var2 {
-            IndexMerger::Identical { coords: var1 }
+        } else if var5 == var6 && coords1 == coords2 {
+            IndexMerger::Identical {
+                coords: coords1.to_vec(),
+            }
         } else {
-            IndexMerger::new_indirect(&var1, &var2, var3, var4)
+            IndexMerger::new_indirect(coords1, coords2, var3, var4)
         }
     }
 }
@@ -361,7 +367,7 @@ impl VoxelShape {
         }
     }
 
-    pub fn get_coords(&self, axis: Axis) -> Vec<f64> {
+    pub fn get_coords(&self, axis: Axis) -> &[f64] {
         match self {
             VoxelShape::Array(s) => s.get_coords(axis),
             VoxelShape::Cube(s) => s.get_coords(axis),
@@ -386,6 +392,7 @@ impl VoxelShape {
         ))
     }
 
+    #[inline]
     pub fn get(&self, axis: Axis, index: usize) -> f64 {
         // self.get_coords(axis)[index]
         match self {
@@ -403,9 +410,8 @@ impl VoxelShape {
         match self {
             VoxelShape::Cube(s) => s.find_index(axis, coord),
             _ => {
-                binary_search(0, (self.shape().size(axis) + 1) as i32, |t| {
-                    coord < self.get(axis, t as usize)
-                }) - 1
+                let upper_limit = (self.shape().size(axis) + 1) as i32;
+                binary_search(0, upper_limit, &|t| coord < self.get(axis, t as usize)) - 1
             }
         }
     }
@@ -625,6 +631,10 @@ pub struct CubeVoxelShape {
     // TODO: check where faces is used in minecraft
     #[allow(dead_code)]
     faces: Option<Vec<VoxelShape>>,
+
+    x_coords: Vec<f64>,
+    y_coords: Vec<f64>,
+    z_coords: Vec<f64>,
 }
 
 impl ArrayVoxelShape {
@@ -634,9 +644,9 @@ impl ArrayVoxelShape {
         let z_size = shape.size(Axis::Z) + 1;
 
         // Lengths of point arrays must be consistent with the size of the VoxelShape.
-        assert_eq!(x_size, xs.len() as u32);
-        assert_eq!(y_size, ys.len() as u32);
-        assert_eq!(z_size, zs.len() as u32);
+        debug_assert_eq!(x_size, xs.len() as u32);
+        debug_assert_eq!(y_size, ys.len() as u32);
+        debug_assert_eq!(z_size, zs.len() as u32);
 
         Self {
             faces: None,
@@ -648,19 +658,31 @@ impl ArrayVoxelShape {
     }
 }
 
-impl CubeVoxelShape {
-    pub fn new(shape: DiscreteVoxelShape) -> Self {
-        Self { shape, faces: None }
-    }
-}
-
 impl ArrayVoxelShape {
     fn shape(&self) -> &DiscreteVoxelShape {
         &self.shape
     }
 
-    fn get_coords(&self, axis: Axis) -> Vec<f64> {
-        axis.choose(self.xs.clone(), self.ys.clone(), self.zs.clone())
+    #[inline]
+    fn get_coords(&self, axis: Axis) -> &[f64] {
+        axis.choose(&self.xs, &self.ys, &self.zs)
+    }
+}
+
+impl CubeVoxelShape {
+    pub fn new(shape: DiscreteVoxelShape) -> Self {
+        // pre-calculate the coor
+        let x_coords = Self::calculate_coords(&shape, Axis::X);
+        let y_coords = Self::calculate_coords(&shape, Axis::Y);
+        let z_coords = Self::calculate_coords(&shape, Axis::Z);
+
+        Self {
+            shape,
+            faces: None,
+            x_coords,
+            y_coords,
+            z_coords,
+        }
     }
 }
 
@@ -669,13 +691,18 @@ impl CubeVoxelShape {
         &self.shape
     }
 
-    fn get_coords(&self, axis: Axis) -> Vec<f64> {
-        let size = self.shape.size(axis);
+    fn calculate_coords(shape: &DiscreteVoxelShape, axis: Axis) -> Vec<f64> {
+        let size = shape.size(axis);
         let mut parts = Vec::with_capacity(size as usize);
         for i in 0..=size {
             parts.push(i as f64 / size as f64);
         }
         parts
+    }
+
+    #[inline]
+    fn get_coords(&self, axis: Axis) -> &[f64] {
+        axis.choose(&self.x_coords, &self.y_coords, &self.z_coords)
     }
 
     fn find_index(&self, axis: Axis, coord: f64) -> i32 {

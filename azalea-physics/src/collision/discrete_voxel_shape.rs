@@ -13,6 +13,7 @@ pub enum DiscreteVoxelShape {
 }
 
 impl DiscreteVoxelShape {
+    #[inline]
     pub fn size(&self, axis: Axis) -> u32 {
         match self {
             DiscreteVoxelShape::BitSet(shape) => shape.size(axis),
@@ -305,6 +306,7 @@ impl BitSetDiscreteVoxelShape {
 }
 
 impl BitSetDiscreteVoxelShape {
+    #[inline]
     fn size(&self, axis: Axis) -> u32 {
         axis.choose(self.x_size, self.y_size, self.z_size)
     }

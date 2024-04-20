@@ -253,7 +253,7 @@ fn handle_start_mining_block_with_direction_event(
                     entity: event.entity,
                     position: event.position,
                     destroy_stage: mine_progress.destroy_stage(),
-                })
+                });
             }
 
             send_packet_events.send(SendPacketEvent {
@@ -572,7 +572,7 @@ fn continue_mining_block(
                 entity,
                 position: mining.pos,
                 direction: mining.dir,
-            })
+            });
         }
 
         swing_arm_events.send(SwingArmEvent { entity });

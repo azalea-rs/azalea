@@ -270,7 +270,6 @@ fn collide_bounding_box(
 
     let block_collisions =
         get_block_collisions(world, entity_bounding_box.expand_towards(movement));
-    let block_collisions = block_collisions.collect::<Vec<_>>();
     collision_boxes.extend(block_collisions);
     collide_with_shapes(movement, *entity_bounding_box, &collision_boxes)
 }

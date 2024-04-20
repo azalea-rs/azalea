@@ -6,7 +6,9 @@ use azalea_protocol::packets::configuration::serverbound_finish_configuration_pa
 use azalea_protocol::packets::configuration::serverbound_keep_alive_packet::ServerboundKeepAlivePacket;
 use azalea_protocol::packets::configuration::serverbound_pong_packet::ServerboundPongPacket;
 use azalea_protocol::packets::configuration::serverbound_resource_pack_packet::ServerboundResourcePackPacket;
-use azalea_protocol::packets::configuration::ClientboundConfigurationPacket;
+use azalea_protocol::packets::configuration::{
+    ClientboundConfigurationPacket, ServerboundConfigurationPacket,
+};
 use azalea_protocol::packets::ConnectionProtocol;
 use azalea_protocol::read::deserialize_packet;
 use azalea_world::Instance;
@@ -197,6 +199,28 @@ pub fn process_packet_events(ecs: &mut World) {
             }
             ClientboundConfigurationPacket::UpdateTags(_p) => {
                 debug!("Got update tags packet");
+            }
+        }
+    }
+}
+
+/// An event for sending a packet to the server while we're in the
+/// `configuration` state.
+#[derive(Event)]
+pub struct SendConfigurationPacketEvent {
+    pub entity: Entity,
+    pub packet: ServerboundConfigurationPacket,
+}
+
+pub fn handle_send_packet_event(
+    mut send_packet_events: EventReader<SendConfigurationPacketEvent>,
+    mut query: Query<&mut RawConnection>,
+) {
+    for event in send_packet_events.read() {
+        if let Ok(raw_connection) = query.get_mut(event.entity) {
+            // debug!("Sending packet: {:?}", event.packet);
+            if let Err(e) = raw_connection.write_packet(event.packet.clone()) {
+                error!("Failed to send packet: {e}");
             }
         }
     }

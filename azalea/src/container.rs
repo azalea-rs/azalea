@@ -23,11 +23,12 @@ impl Plugin for ContainerPlugin {
 }
 
 pub trait ContainerClientExt {
-    fn open_container(
+    fn open_container_at(
         &mut self,
         pos: BlockPos,
     ) -> impl Future<Output = Option<ContainerHandle>> + Send;
     fn open_inventory(&mut self) -> Option<ContainerHandle>;
+    fn get_open_container(&self) -> Option<ContainerHandleRef>;
 }
 
 impl ContainerClientExt for Client {
@@ -45,10 +46,10 @@ impl ContainerClientExt for Client {
     ///     bot.chat("no chest found");
     ///     return;
     /// };
-    /// let container = bot.open_container(target_pos).await;
+    /// let container = bot.open_container_at(target_pos).await;
     /// # }
     /// ```
-    async fn open_container(&mut self, pos: BlockPos) -> Option<ContainerHandle> {
+    async fn open_container_at(&mut self, pos: BlockPos) -> Option<ContainerHandle> {
         self.ecs
             .lock()
             .entity_mut(self.entity)
@@ -70,10 +71,7 @@ impl ContainerClientExt for Client {
         if inventory.id == 0 {
             None
         } else {
-            Some(ContainerHandle {
-                id: inventory.id,
-                client: self.clone(),
-            })
+            Some(ContainerHandle::new(inventory.id, self.clone()))
         }
     }
 
@@ -94,40 +92,55 @@ impl ContainerClientExt for Client {
             .expect("no inventory");
 
         if inventory.id == 0 {
-            Some(ContainerHandle {
-                id: 0,
-                client: self.clone(),
-            })
+            Some(ContainerHandle::new(0, self.clone()))
         } else {
             None
         }
     }
+
+    /// Get a handle to the open container. This will return None if no
+    /// container is open. This will not close the container when it's dropped.
+    ///
+    /// See [`Client::open_inventory`] or [`Client::menu`] if you want to open
+    /// your own inventory.
+    fn get_open_container(&self) -> Option<ContainerHandleRef> {
+        let ecs = self.ecs.lock();
+        let inventory = ecs
+            .get::<InventoryComponent>(self.entity)
+            .expect("no inventory");
+
+        if inventory.id == 0 {
+            None
+        } else {
+            Some(ContainerHandleRef {
+                id: inventory.id,
+                client: self.clone(),
+            })
+        }
+    }
 }
 
-/// A handle to the open container. The container will be closed once this is
-/// dropped.
-pub struct ContainerHandle {
-    /// The id of the container. If this is 0, that means it's the player's
-    /// inventory.
+/// A handle to a container that may be open. This does not close the container
+/// when it's dropped. See [`ContainerHandle`] if that behavior is desired.
+pub struct ContainerHandleRef {
     id: u8,
     client: Client,
 }
-impl Drop for ContainerHandle {
-    fn drop(&mut self) {
+impl Debug for ContainerHandleRef {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ContainerHandle")
+            .field("id", &self.id())
+            .finish()
+    }
+}
+impl ContainerHandleRef {
+    pub fn close(&self) {
         self.client.ecs.lock().send_event(CloseContainerEvent {
             entity: self.client.entity,
             id: self.id,
         });
     }
-}
-impl Debug for ContainerHandle {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("ContainerHandle")
-            .field("id", &self.id)
-            .finish()
-    }
-}
-impl ContainerHandle {
+
     /// Get the id of the container. If this is 0, that means it's the player's
     /// inventory. Otherwise, the number isn't really meaningful since only one
     /// container can be open at a time.
@@ -172,6 +185,55 @@ impl ContainerHandle {
             window_id: self.id,
             operation,
         });
+    }
+}
+
+/// A handle to the open container. The container will be closed once this is
+/// dropped.
+pub struct ContainerHandle(ContainerHandleRef);
+
+impl Drop for ContainerHandle {
+    fn drop(&mut self) {
+        self.0.close();
+    }
+}
+impl Debug for ContainerHandle {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ContainerHandle")
+            .field("id", &self.id())
+            .finish()
+    }
+}
+impl ContainerHandle {
+    fn new(id: u8, client: Client) -> Self {
+        Self(ContainerHandleRef { id, client })
+    }
+
+    /// Get the id of the container. If this is 0, that means it's the player's
+    /// inventory. Otherwise, the number isn't really meaningful since only one
+    /// container can be open at a time.
+    pub fn id(&self) -> u8 {
+        self.0.id()
+    }
+
+    /// Returns the menu of the container. If the container is closed, this
+    /// will return `None`.
+    ///
+    /// Note that any modifications you make to the `Menu` you're given will not
+    /// actually cause any packets to be sent. If you're trying to modify your
+    /// inventory, use [`ContainerHandle::click`] instead
+    pub fn menu(&self) -> Option<Menu> {
+        self.0.menu()
+    }
+
+    /// Returns the item slots in the container, not including the player's
+    /// inventory. If the container is closed, this will return `None`.
+    pub fn contents(&self) -> Option<Vec<ItemSlot>> {
+        self.0.contents()
+    }
+
+    pub fn click(&self, operation: impl Into<ClickOperation>) {
+        self.0.click(operation);
     }
 }
 

@@ -1,9 +1,12 @@
-use std::io::{Cursor, Write};
+use std::{
+    io::{Cursor, Write},
+    str::FromStr,
+};
 
 use azalea_buf::{
     BufReadError, McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable,
 };
-use azalea_core::position::BlockPos;
+use azalea_core::{position::BlockPos, resource_location::ResourceLocation};
 use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_registry::{ParticleKind, SoundEvent};
 
@@ -59,7 +62,14 @@ impl McBufReadable for ClientboundExplodePacket {
         let block_interaction = BlockInteraction::read_from(buf)?;
         let small_explosion_particles = ParticleKind::read_from(buf)?;
         let large_explosion_particles = ParticleKind::read_from(buf)?;
-        let explosion_sound = SoundEvent::read_from(buf)?;
+
+        let sound_event_resource_location = ResourceLocation::read_from(buf)?.to_string();
+        let explosion_sound =
+            SoundEvent::from_str(&sound_event_resource_location).map_err(|_| {
+                BufReadError::UnexpectedStringEnumVariant {
+                    id: sound_event_resource_location,
+                }
+            })?;
 
         Ok(Self {
             x,
@@ -108,7 +118,10 @@ impl McBufWritable for ClientboundExplodePacket {
         self.block_interaction.write_into(buf)?;
         self.small_explosion_particles.write_into(buf)?;
         self.large_explosion_particles.write_into(buf)?;
-        self.explosion_sound.write_into(buf)?;
+
+        let sound_event_resource_location =
+            ResourceLocation::new(&self.explosion_sound.to_string());
+        sound_event_resource_location.write_into(buf)?;
 
         Ok(())
     }

@@ -186,6 +186,25 @@ macro_rules! vec3_impl {
                 }
             }
         }
+
+        impl From<($type, $type, $type)> for $name {
+            #[inline]
+            fn from(pos: ($type, $type, $type)) -> Self {
+                Self::new(pos.0, pos.1, pos.2)
+            }
+        }
+        impl From<&($type, $type, $type)> for $name {
+            #[inline]
+            fn from(pos: &($type, $type, $type)) -> Self {
+                Self::new(pos.0, pos.1, pos.2)
+            }
+        }
+        impl From<$name> for ($type, $type, $type) {
+            #[inline]
+            fn from(pos: $name) -> Self {
+                (pos.x, pos.y, pos.z)
+            }
+        }
     };
 }
 
@@ -581,6 +600,12 @@ impl From<Vec3> for ChunkBlockPos {
 
 impl fmt::Display for BlockPos {
     /// Display a block position as `x y z`.
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{} {} {}", self.x, self.y, self.z)
+    }
+}
+impl fmt::Display for Vec3 {
+    /// Display a position as `x y z`.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{} {} {}", self.x, self.y, self.z)
     }

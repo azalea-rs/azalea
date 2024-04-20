@@ -3,7 +3,7 @@ mod write;
 
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{self, parse_macro_input, DeriveInput};
+use syn::{parse_macro_input, DeriveInput};
 
 #[proc_macro_derive(McBufReadable, attributes(var))]
 pub fn derive_mcbufreadable(input: TokenStream) -> TokenStream {

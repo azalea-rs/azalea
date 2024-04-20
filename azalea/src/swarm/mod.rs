@@ -6,6 +6,7 @@ pub mod prelude;
 
 use azalea_client::{
     chat::ChatPacket, start_ecs_runner, Account, Client, DefaultPlugins, Event, JoinError,
+    StartClientOpts,
 };
 use azalea_protocol::{resolver, ServerAddress};
 use azalea_world::InstanceContainer;
@@ -17,7 +18,7 @@ use std::{collections::HashMap, future::Future, net::SocketAddr, sync::Arc, time
 use tokio::sync::mpsc;
 use tracing::error;
 
-use crate::{BoxHandleFn, DefaultBotPlugins, HandleFn, NoState, StartError};
+use crate::{BoxHandleFn, DefaultBotPlugins, HandleFn, JoinOpts, NoState, StartError};
 
 /// A swarm is a way to conveniently control many bots at once, while also
 /// being able to control bots at an individual level when desired.
@@ -51,8 +52,8 @@ where
     SS: Default + Send + Sync + Clone + Resource + 'static,
 {
     pub(crate) app: App,
-    /// The accounts that are going to join the server.
-    pub(crate) accounts: Vec<Account>,
+    /// The accounts and proxies that are going to join the server.
+    pub(crate) accounts: Vec<(Account, JoinOpts)>,
     /// The individual bot states. This must be the same length as `accounts`,
     /// since each bot gets one state.
     pub(crate) states: Vec<S>,
@@ -257,8 +258,20 @@ where
     /// Add an account with a custom initial state. Use just
     /// [`Self::add_account`] to use the Default implementation for the state.
     #[must_use]
-    pub fn add_account_with_state(mut self, account: Account, state: S) -> Self {
-        self.accounts.push(account);
+    pub fn add_account_with_state(self, account: Account, state: S) -> Self {
+        self.add_account_with_state_and_opts(account, state, JoinOpts::default())
+    }
+
+    /// Same as [`Self::add_account_with_state`], but allow passing in custom
+    /// join options.
+    #[must_use]
+    pub fn add_account_with_state_and_opts(
+        mut self,
+        account: Account,
+        state: S,
+        join_opts: JoinOpts,
+    ) -> Self {
+        self.accounts.push((account, join_opts));
         self.states.push(state);
         self
     }
@@ -296,6 +309,23 @@ where
     ///
     /// [`ServerAddress`]: azalea_protocol::ServerAddress
     pub async fn start(self, address: impl TryInto<ServerAddress>) -> Result<!, StartError> {
+        // convert the TryInto<ServerAddress> into a ServerAddress
+        let address: ServerAddress = match address.try_into() {
+            Ok(address) => address,
+            Err(_) => return Err(StartError::InvalidAddress),
+        };
+
+        self.start_with_default_opts(address, JoinOpts::default())
+            .await
+    }
+
+    /// Do the same as [`Self::start`], but allow passing in default join
+    /// options for the bots.
+    pub async fn start_with_default_opts(
+        self,
+        address: impl TryInto<ServerAddress>,
+        default_join_opts: JoinOpts,
+    ) -> Result<!, StartError> {
         assert_eq!(
             self.accounts.len(),
             self.states.len(),
@@ -303,13 +333,16 @@ where
         );
 
         // convert the TryInto<ServerAddress> into a ServerAddress
-        let address: ServerAddress = match address.try_into() {
+        let address = match address.try_into() {
             Ok(address) => address,
             Err(_) => return Err(StartError::InvalidAddress),
         };
 
-        // resolve the address
-        let resolved_address = resolver::resolve_address(&address).await?;
+        let address: ServerAddress = default_join_opts.custom_address.clone().unwrap_or(address);
+        let resolved_address: SocketAddr = match default_join_opts.custom_resolved_address {
+            Some(resolved_address) => resolved_address,
+            None => resolver::resolve_address(&address).await?,
+        };
 
         let instance_container = Arc::new(RwLock::new(InstanceContainer::default()));
 
@@ -359,24 +392,27 @@ where
         tokio::spawn(async move {
             if let Some(join_delay) = join_delay {
                 // if there's a join delay, then join one by one
-                for (account, state) in accounts.iter().zip(states) {
-                    swarm_clone.add_and_retry_forever(account, state).await;
+                for ((account, bot_join_opts), state) in accounts.iter().zip(states) {
+                    let mut join_opts = default_join_opts.clone();
+                    join_opts.update(bot_join_opts);
+                    swarm_clone
+                        .add_and_retry_forever_with_opts(account, state, &join_opts)
+                        .await;
                     tokio::time::sleep(join_delay).await;
                 }
             } else {
                 // otherwise, join all at once
                 let swarm_borrow = &swarm_clone;
-                join_all(
-                    accounts
-                        .iter()
-                        .zip(states)
-                        .map(move |(account, state)| async {
-                            swarm_borrow
-                                .clone()
-                                .add_and_retry_forever(account, state)
-                                .await;
-                        }),
-                )
+                join_all(accounts.iter().zip(states).map(
+                    |((account, bot_join_opts), state)| async {
+                        let mut join_opts = default_join_opts.clone();
+                        join_opts.update(bot_join_opts);
+                        swarm_borrow
+                            .clone()
+                            .add_and_retry_forever_with_opts(account, state, &join_opts)
+                            .await;
+                    },
+                ))
                 .await;
             }
 
@@ -441,9 +477,9 @@ pub enum SwarmEvent {
     Init,
     /// A bot got disconnected from the server.
     ///
-    /// You can implement an auto-reconnect by calling [`Swarm::add`]
-    /// with the account from this event.
-    Disconnect(Box<Account>),
+    /// You can implement an auto-reconnect by calling [`Swarm::add_with_opts`]
+    /// with the account and options from this event.
+    Disconnect(Box<Account>, JoinOpts),
     /// At least one bot received a chat message.
     Chat(ChatPacket),
 }
@@ -500,10 +536,10 @@ pub type BoxSwarmHandleFn<SS> =
 ///     _state: SwarmState,
 /// ) -> anyhow::Result<()> {
 ///     match &event {
-///         SwarmEvent::Disconnect(account) => {
+///         SwarmEvent::Disconnect(account, join_opts) => {
 ///             // automatically reconnect after 5 seconds
 ///             tokio::time::sleep(Duration::from_secs(5)).await;
-///             swarm.add(account, State::default()).await?;
+///             swarm.add_with_opts(account, State::default(), join_opts).await?;
 ///         }
 ///         SwarmEvent::Chat(m) => {
 ///             println!("{}", m.message().to_ansi());
@@ -525,16 +561,38 @@ impl Swarm {
         account: &Account,
         state: S,
     ) -> Result<Client, JoinError> {
-        let address = self.address.read().clone();
-        let resolved_address = *self.resolved_address.read();
+        self.add_with_opts(account, state, &JoinOpts::default())
+            .await
+    }
+    /// Add a new account to the swarm, using custom options. This is useful if
+    /// you want bots in the same swarm to connect to different addresses.
+    /// Usually you'll just want [`Self::add`] though.
+    ///
+    /// # Errors
+    ///
+    /// Returns an `Err` if the bot could not do a handshake successfully.
+    pub async fn add_with_opts<S: Component + Clone>(
+        &mut self,
+        account: &Account,
+        state: S,
+        join_opts: &JoinOpts,
+    ) -> Result<Client, JoinError> {
+        let address = join_opts
+            .custom_address
+            .clone()
+            .unwrap_or_else(|| self.address.read().clone());
+        let resolved_address = join_opts
+            .custom_resolved_address
+            .unwrap_or_else(|| *self.resolved_address.read());
 
-        let (bot, mut rx) = Client::start_client(
-            self.ecs_lock.clone(),
+        let (bot, mut rx) = Client::start_client(StartClientOpts {
+            ecs_lock: self.ecs_lock.clone(),
             account,
-            &address,
-            &resolved_address,
-            self.run_schedule_sender.clone(),
-        )
+            address: &address,
+            resolved_address: &resolved_address,
+            proxy: join_opts.proxy.clone(),
+            run_schedule_sender: self.run_schedule_sender.clone(),
+        })
         .await?;
         // add the state to the client
         {
@@ -548,6 +606,7 @@ impl Swarm {
         let cloned_bots_tx = self.bots_tx.clone();
         let cloned_bot = bot.clone();
         let swarm_tx = self.swarm_tx.clone();
+        let join_opts = join_opts.clone();
         tokio::spawn(async move {
             while let Some(event) = rx.recv().await {
                 // we can't handle events here (since we can't copy the handler),
@@ -561,7 +620,7 @@ impl Swarm {
                 .get_component::<Account>()
                 .expect("bot is missing required Account component");
             swarm_tx
-                .send(SwarmEvent::Disconnect(Box::new(account)))
+                .send(SwarmEvent::Disconnect(Box::new(account), join_opts))
                 .unwrap();
         });
 
@@ -578,9 +637,21 @@ impl Swarm {
         account: &Account,
         state: S,
     ) -> Client {
+        self.add_and_retry_forever_with_opts(account, state, &JoinOpts::default())
+            .await
+    }
+
+    /// Same as [`Self::add_and_retry_forever`], but allow passing custom join
+    /// options.
+    pub async fn add_and_retry_forever_with_opts<S: Component + Clone>(
+        &mut self,
+        account: &Account,
+        state: S,
+        opts: &JoinOpts,
+    ) -> Client {
         let mut disconnects = 0;
         loop {
-            match self.add(account, state.clone()).await {
+            match self.add_with_opts(account, state.clone(), opts).await {
                 Ok(bot) => return bot,
                 Err(e) => {
                     disconnects += 1;

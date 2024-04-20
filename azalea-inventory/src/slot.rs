@@ -71,6 +71,14 @@ impl ItemSlot {
             }
         }
     }
+
+    /// Convert this slot into an [`ItemSlotData`], if it's present.
+    pub fn as_present(&self) -> Option<&ItemSlotData> {
+        match self {
+            ItemSlot::Empty => None,
+            ItemSlot::Present(i) => Some(i),
+        }
+    }
 }
 
 /// An item in an inventory, with a count and NBT. Usually you want [`ItemSlot`]

@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, convert::TryInto};
+use std::cmp::{self, Ordering};
 
 use super::CubePointRange;
 use azalea_core::math::{gcd, lcm, EPSILON};
@@ -135,27 +135,27 @@ impl IndexMerger {
         }
     }
 
-    pub fn new_indirect(var1: &[f64], var2: &[f64], var3: bool, var4: bool) -> Self {
+    pub fn new_indirect(coords1: &[f64], coords2: &[f64], var3: bool, var4: bool) -> Self {
         let mut var5 = f64::NAN;
-        let var7 = var1.len();
-        let var8 = var2.len();
-        let var9 = var7 + var8;
-        let mut result = vec![0.0; var9];
-        let mut first_indices: Vec<isize> = vec![0; var9];
-        let mut second_indices: Vec<isize> = vec![0; var9];
+        let coords1_len = coords1.len();
+        let coords2_len = coords2.len();
+        let number_of_indices = coords1_len + coords2_len;
+        let mut result = vec![0.0; number_of_indices];
+        let mut first_indices: Vec<isize> = vec![0; number_of_indices];
+        let mut second_indices: Vec<isize> = vec![0; number_of_indices];
         let var10 = !var3;
         let var11 = !var4;
         let mut var12 = 0;
-        let mut var13 = 0;
-        let mut var14 = 0;
+        let mut coords1_index = 0;
+        let mut coords2_index = 0;
 
         loop {
-            let mut var17: bool;
+            let mut iterating_coords1: bool;
             loop {
-                let var15 = var13 >= var7;
-                let var16 = var14 >= var8;
-                if var15 && var16 {
-                    let result_length = std::cmp::max(1, var12);
+                let at_end_of_coords1 = coords1_index >= coords1_len;
+                let at_end_of_coords2 = coords2_index >= coords2_len;
+                if at_end_of_coords1 && at_end_of_coords2 {
+                    let result_length = cmp::max(1, var12);
                     return Self::Indirect {
                         result,
                         first_indices,
@@ -164,26 +164,28 @@ impl IndexMerger {
                     };
                 }
 
-                var17 = !var15 && (var16 || var1[var13] < var2[var14] + EPSILON);
-                if var17 {
-                    var13 += 1;
-                    if !var10 || var14 != 0 && !var16 {
+                iterating_coords1 = !at_end_of_coords1
+                    && (at_end_of_coords2
+                        || coords1[coords1_index] < coords2[coords2_index] + EPSILON);
+                if iterating_coords1 {
+                    coords1_index += 1;
+                    if !var10 || coords2_index != 0 && !at_end_of_coords2 {
                         break;
                     }
                 } else {
-                    var14 += 1;
-                    if !var11 || var13 != 0 && !var15 {
+                    coords2_index += 1;
+                    if !var11 || coords1_index != 0 && !at_end_of_coords1 {
                         break;
                     }
                 }
             }
 
-            let var18: isize = (var13 as isize) - 1;
-            let var19: isize = (var14 as isize) - 1;
-            let var20 = if var17 {
-                var1[TryInto::<usize>::try_into(var18).unwrap()]
+            let var18: isize = (coords1_index as isize) - 1;
+            let var19: isize = (coords2_index as isize) - 1;
+            let var20 = if iterating_coords1 {
+                coords1[usize::try_from(var18).unwrap()]
             } else {
-                var2[TryInto::<usize>::try_into(var19).unwrap()]
+                coords2[usize::try_from(var19).unwrap()]
             };
             match var5.partial_cmp(&(var20 - EPSILON)) {
                 None | Some(Ordering::Less) => {
