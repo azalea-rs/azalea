@@ -37,6 +37,46 @@ pub static MINEABLE_HOE: Lazy<HashSet<Block>> = Lazy::new(|| {
         Block::CherryLeaves,
     ])
 });
+pub static MINEABLE_SHOVEL: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::Clay,
+        Block::Dirt,
+        Block::CoarseDirt,
+        Block::Podzol,
+        Block::Farmland,
+        Block::GrassBlock,
+        Block::Gravel,
+        Block::Mycelium,
+        Block::Sand,
+        Block::RedSand,
+        Block::SnowBlock,
+        Block::Snow,
+        Block::SoulSand,
+        Block::DirtPath,
+        Block::SoulSoil,
+        Block::RootedDirt,
+        Block::MuddyMangroveRoots,
+        Block::Mud,
+        Block::SuspiciousSand,
+        Block::SuspiciousGravel,
+        Block::WhiteConcretePowder,
+        Block::OrangeConcretePowder,
+        Block::MagentaConcretePowder,
+        Block::LightBlueConcretePowder,
+        Block::YellowConcretePowder,
+        Block::LimeConcretePowder,
+        Block::PinkConcretePowder,
+        Block::GrayConcretePowder,
+        Block::LightGrayConcretePowder,
+        Block::CyanConcretePowder,
+        Block::PurpleConcretePowder,
+        Block::BlueConcretePowder,
+        Block::BrownConcretePowder,
+        Block::GreenConcretePowder,
+        Block::RedConcretePowder,
+        Block::BlackConcretePowder,
+    ])
+});
 pub static MINEABLE_AXE: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
         Block::NoteBlock,
@@ -337,46 +377,6 @@ pub static MINEABLE_AXE: Lazy<HashSet<Block>> = Lazy::new(|| {
         Block::CherryWood,
         Block::StrippedCherryLog,
         Block::StrippedCherryWood,
-    ])
-});
-pub static MINEABLE_SHOVEL: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::Clay,
-        Block::Dirt,
-        Block::CoarseDirt,
-        Block::Podzol,
-        Block::Farmland,
-        Block::GrassBlock,
-        Block::Gravel,
-        Block::Mycelium,
-        Block::Sand,
-        Block::RedSand,
-        Block::SnowBlock,
-        Block::Snow,
-        Block::SoulSand,
-        Block::DirtPath,
-        Block::SoulSoil,
-        Block::RootedDirt,
-        Block::MuddyMangroveRoots,
-        Block::Mud,
-        Block::SuspiciousSand,
-        Block::SuspiciousGravel,
-        Block::WhiteConcretePowder,
-        Block::OrangeConcretePowder,
-        Block::MagentaConcretePowder,
-        Block::LightBlueConcretePowder,
-        Block::YellowConcretePowder,
-        Block::LimeConcretePowder,
-        Block::PinkConcretePowder,
-        Block::GrayConcretePowder,
-        Block::LightGrayConcretePowder,
-        Block::CyanConcretePowder,
-        Block::PurpleConcretePowder,
-        Block::BlueConcretePowder,
-        Block::BrownConcretePowder,
-        Block::GreenConcretePowder,
-        Block::RedConcretePowder,
-        Block::BlackConcretePowder,
     ])
 });
 pub static MINEABLE_PICKAXE: Lazy<HashSet<Block>> = Lazy::new(|| {
@@ -758,29 +758,16 @@ pub static MINEABLE_PICKAXE: Lazy<HashSet<Block>> = Lazy::new(|| {
         Block::ActivatorRail,
     ])
 });
-pub static MOSS_REPLACEABLE: Lazy<HashSet<Block>> = Lazy::new(|| {
+pub static STONE_BUTTONS: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::StoneButton, Block::PolishedBlackstoneButton]));
+pub static STONE_BRICKS: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
-        Block::Stone,
-        Block::Granite,
-        Block::Diorite,
-        Block::Andesite,
-        Block::Tuff,
-        Block::Deepslate,
-        Block::CaveVinesPlant,
-        Block::CaveVines,
-        Block::Dirt,
-        Block::GrassBlock,
-        Block::Podzol,
-        Block::CoarseDirt,
-        Block::Mycelium,
-        Block::RootedDirt,
-        Block::MossBlock,
-        Block::Mud,
-        Block::MuddyMangroveRoots,
+        Block::StoneBricks,
+        Block::MossyStoneBricks,
+        Block::CrackedStoneBricks,
+        Block::ChiseledStoneBricks,
     ])
 });
-pub static SNOW: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![Block::Snow, Block::SnowBlock, Block::PowderSnow]));
 pub static WOOL: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
         Block::WhiteWool,
@@ -801,19 +788,243 @@ pub static WOOL: Lazy<HashSet<Block>> = Lazy::new(|| {
         Block::BlackWool,
     ])
 });
-pub static UNSTABLE_BOTTOM_CENTER: Lazy<HashSet<Block>> = Lazy::new(|| {
+pub static PLANKS: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
-        Block::AcaciaFenceGate,
-        Block::BirchFenceGate,
-        Block::DarkOakFenceGate,
-        Block::JungleFenceGate,
-        Block::OakFenceGate,
-        Block::SpruceFenceGate,
-        Block::CrimsonFenceGate,
-        Block::WarpedFenceGate,
-        Block::MangroveFenceGate,
-        Block::BambooFenceGate,
-        Block::CherryFenceGate,
+        Block::OakPlanks,
+        Block::SprucePlanks,
+        Block::BirchPlanks,
+        Block::JunglePlanks,
+        Block::AcaciaPlanks,
+        Block::DarkOakPlanks,
+        Block::CrimsonPlanks,
+        Block::WarpedPlanks,
+        Block::MangrovePlanks,
+        Block::BambooPlanks,
+        Block::CherryPlanks,
+    ])
+});
+pub static WOODEN_BUTTONS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::OakButton,
+        Block::SpruceButton,
+        Block::BirchButton,
+        Block::JungleButton,
+        Block::AcaciaButton,
+        Block::DarkOakButton,
+        Block::CrimsonButton,
+        Block::WarpedButton,
+        Block::MangroveButton,
+        Block::BambooButton,
+        Block::CherryButton,
+    ])
+});
+pub static BUTTONS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::OakButton,
+        Block::SpruceButton,
+        Block::BirchButton,
+        Block::JungleButton,
+        Block::AcaciaButton,
+        Block::DarkOakButton,
+        Block::CrimsonButton,
+        Block::WarpedButton,
+        Block::MangroveButton,
+        Block::BambooButton,
+        Block::CherryButton,
+        Block::StoneButton,
+        Block::PolishedBlackstoneButton,
+    ])
+});
+pub static WOOL_CARPETS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::WhiteCarpet,
+        Block::OrangeCarpet,
+        Block::MagentaCarpet,
+        Block::LightBlueCarpet,
+        Block::YellowCarpet,
+        Block::LimeCarpet,
+        Block::PinkCarpet,
+        Block::GrayCarpet,
+        Block::LightGrayCarpet,
+        Block::CyanCarpet,
+        Block::PurpleCarpet,
+        Block::BlueCarpet,
+        Block::BrownCarpet,
+        Block::GreenCarpet,
+        Block::RedCarpet,
+        Block::BlackCarpet,
+    ])
+});
+pub static WOODEN_DOORS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::OakDoor,
+        Block::SpruceDoor,
+        Block::BirchDoor,
+        Block::JungleDoor,
+        Block::AcaciaDoor,
+        Block::DarkOakDoor,
+        Block::CrimsonDoor,
+        Block::WarpedDoor,
+        Block::MangroveDoor,
+        Block::BambooDoor,
+        Block::CherryDoor,
+    ])
+});
+pub static WOODEN_STAIRS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::OakStairs,
+        Block::SpruceStairs,
+        Block::BirchStairs,
+        Block::JungleStairs,
+        Block::AcaciaStairs,
+        Block::DarkOakStairs,
+        Block::CrimsonStairs,
+        Block::WarpedStairs,
+        Block::MangroveStairs,
+        Block::BambooStairs,
+        Block::CherryStairs,
+    ])
+});
+pub static WOODEN_SLABS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::OakSlab,
+        Block::SpruceSlab,
+        Block::BirchSlab,
+        Block::JungleSlab,
+        Block::AcaciaSlab,
+        Block::DarkOakSlab,
+        Block::CrimsonSlab,
+        Block::WarpedSlab,
+        Block::MangroveSlab,
+        Block::BambooSlab,
+        Block::CherrySlab,
+    ])
+});
+pub static WOODEN_FENCES: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::OakFence,
+        Block::AcaciaFence,
+        Block::DarkOakFence,
+        Block::SpruceFence,
+        Block::BirchFence,
+        Block::JungleFence,
+        Block::CrimsonFence,
+        Block::WarpedFence,
+        Block::MangroveFence,
+        Block::BambooFence,
+        Block::CherryFence,
+    ])
+});
+pub static DOORS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::IronDoor,
+        Block::OakDoor,
+        Block::SpruceDoor,
+        Block::BirchDoor,
+        Block::JungleDoor,
+        Block::AcaciaDoor,
+        Block::DarkOakDoor,
+        Block::CrimsonDoor,
+        Block::WarpedDoor,
+        Block::MangroveDoor,
+        Block::BambooDoor,
+        Block::CherryDoor,
+    ])
+});
+pub static SAPLINGS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::OakSapling,
+        Block::SpruceSapling,
+        Block::BirchSapling,
+        Block::JungleSapling,
+        Block::AcaciaSapling,
+        Block::DarkOakSapling,
+        Block::Azalea,
+        Block::FloweringAzalea,
+        Block::MangrovePropagule,
+        Block::CherrySapling,
+    ])
+});
+pub static BAMBOO_BLOCKS: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::BambooBlock, Block::StrippedBambooBlock]));
+pub static DARK_OAK_LOGS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::DarkOakLog,
+        Block::DarkOakWood,
+        Block::StrippedDarkOakLog,
+        Block::StrippedDarkOakWood,
+    ])
+});
+pub static OAK_LOGS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::OakLog,
+        Block::OakWood,
+        Block::StrippedOakLog,
+        Block::StrippedOakWood,
+    ])
+});
+pub static ACACIA_LOGS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::AcaciaLog,
+        Block::AcaciaWood,
+        Block::StrippedAcaciaLog,
+        Block::StrippedAcaciaWood,
+    ])
+});
+pub static JUNGLE_LOGS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::JungleLog,
+        Block::JungleWood,
+        Block::StrippedJungleLog,
+        Block::StrippedJungleWood,
+    ])
+});
+pub static BIRCH_LOGS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::BirchLog,
+        Block::BirchWood,
+        Block::StrippedBirchLog,
+        Block::StrippedBirchWood,
+    ])
+});
+pub static SPRUCE_LOGS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::SpruceLog,
+        Block::SpruceWood,
+        Block::StrippedSpruceLog,
+        Block::StrippedSpruceWood,
+    ])
+});
+pub static CRIMSON_STEMS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::CrimsonStem,
+        Block::StrippedCrimsonStem,
+        Block::CrimsonHyphae,
+        Block::StrippedCrimsonHyphae,
+    ])
+});
+pub static WARPED_STEMS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::WarpedStem,
+        Block::StrippedWarpedStem,
+        Block::WarpedHyphae,
+        Block::StrippedWarpedHyphae,
+    ])
+});
+pub static MANGROVE_LOGS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::MangroveLog,
+        Block::MangroveWood,
+        Block::StrippedMangroveLog,
+        Block::StrippedMangroveWood,
+    ])
+});
+pub static CHERRY_LOGS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::CherryLog,
+        Block::CherryWood,
+        Block::StrippedCherryLog,
+        Block::StrippedCherryWood,
     ])
 });
 pub static LOGS_THAT_BURN: Lazy<HashSet<Block>> = Lazy::new(|| {
@@ -852,83 +1063,311 @@ pub static LOGS_THAT_BURN: Lazy<HashSet<Block>> = Lazy::new(|| {
         Block::StrippedCherryWood,
     ])
 });
-pub static FROG_PREFER_JUMP_TO: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![Block::LilyPad, Block::BigDripleaf]));
-pub static RAILS: Lazy<HashSet<Block>> = Lazy::new(|| {
+pub static OVERWORLD_NATURAL_LOGS: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
-        Block::Rail,
-        Block::PoweredRail,
-        Block::DetectorRail,
-        Block::ActivatorRail,
+        Block::AcaciaLog,
+        Block::BirchLog,
+        Block::OakLog,
+        Block::JungleLog,
+        Block::SpruceLog,
+        Block::DarkOakLog,
+        Block::MangroveLog,
+        Block::CherryLog,
     ])
 });
-pub static CAMEL_SAND_STEP_SOUND_BLOCKS: Lazy<HashSet<Block>> = Lazy::new(|| {
+pub static LOGS: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
-        Block::Sand,
-        Block::RedSand,
-        Block::SuspiciousSand,
-        Block::SuspiciousSand,
-        Block::WhiteConcretePowder,
-        Block::OrangeConcretePowder,
-        Block::MagentaConcretePowder,
-        Block::LightBlueConcretePowder,
-        Block::YellowConcretePowder,
-        Block::LimeConcretePowder,
-        Block::PinkConcretePowder,
-        Block::GrayConcretePowder,
-        Block::LightGrayConcretePowder,
-        Block::CyanConcretePowder,
-        Block::PurpleConcretePowder,
-        Block::BlueConcretePowder,
-        Block::BrownConcretePowder,
-        Block::GreenConcretePowder,
-        Block::RedConcretePowder,
-        Block::BlackConcretePowder,
-    ])
-});
-pub static ENCHANTMENT_POWER_PROVIDER: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![Block::Bookshelf]));
-pub static SNOW_LAYER_CANNOT_SURVIVE_ON: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![Block::Ice, Block::PackedIce, Block::Barrier]));
-pub static MOOSHROOMS_SPAWNABLE_ON: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![Block::Mycelium]));
-pub static STONE_BRICKS: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::StoneBricks,
-        Block::MossyStoneBricks,
-        Block::CrackedStoneBricks,
-        Block::ChiseledStoneBricks,
-    ])
-});
-pub static WARPED_STEMS: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
+        Block::CrimsonStem,
+        Block::StrippedCrimsonStem,
+        Block::CrimsonHyphae,
+        Block::StrippedCrimsonHyphae,
         Block::WarpedStem,
         Block::StrippedWarpedStem,
         Block::WarpedHyphae,
         Block::StrippedWarpedHyphae,
-    ])
-});
-pub static FOXES_SPAWNABLE_ON: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::GrassBlock,
-        Block::Snow,
-        Block::SnowBlock,
-        Block::Podzol,
-        Block::CoarseDirt,
-    ])
-});
-pub static SNOW_LAYER_CAN_SURVIVE_ON: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![Block::HoneyBlock, Block::SoulSand, Block::Mud]));
-pub static OAK_LOGS: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
+        Block::DarkOakLog,
+        Block::DarkOakWood,
+        Block::StrippedDarkOakLog,
+        Block::StrippedDarkOakWood,
         Block::OakLog,
         Block::OakWood,
         Block::StrippedOakLog,
         Block::StrippedOakWood,
+        Block::AcaciaLog,
+        Block::AcaciaWood,
+        Block::StrippedAcaciaLog,
+        Block::StrippedAcaciaWood,
+        Block::BirchLog,
+        Block::BirchWood,
+        Block::StrippedBirchLog,
+        Block::StrippedBirchWood,
+        Block::JungleLog,
+        Block::JungleWood,
+        Block::StrippedJungleLog,
+        Block::StrippedJungleWood,
+        Block::SpruceLog,
+        Block::SpruceWood,
+        Block::StrippedSpruceLog,
+        Block::StrippedSpruceWood,
+        Block::MangroveLog,
+        Block::MangroveWood,
+        Block::StrippedMangroveLog,
+        Block::StrippedMangroveWood,
+        Block::CherryLog,
+        Block::CherryWood,
+        Block::StrippedCherryLog,
+        Block::StrippedCherryWood,
     ])
 });
-pub static VIBRATION_RESONATORS: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![Block::AmethystBlock]));
+pub static ANVIL: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::Anvil, Block::ChippedAnvil, Block::DamagedAnvil]));
+pub static SMALL_FLOWERS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::Dandelion,
+        Block::Poppy,
+        Block::BlueOrchid,
+        Block::Allium,
+        Block::AzureBluet,
+        Block::RedTulip,
+        Block::OrangeTulip,
+        Block::WhiteTulip,
+        Block::PinkTulip,
+        Block::OxeyeDaisy,
+        Block::Cornflower,
+        Block::LilyOfTheValley,
+        Block::WitherRose,
+        Block::Torchflower,
+    ])
+});
+pub static DIRT: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::Dirt,
+        Block::GrassBlock,
+        Block::Podzol,
+        Block::CoarseDirt,
+        Block::Mycelium,
+        Block::RootedDirt,
+        Block::MossBlock,
+        Block::Mud,
+        Block::MuddyMangroveRoots,
+    ])
+});
+pub static ENDERMAN_HOLDABLE: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::Sand,
+        Block::RedSand,
+        Block::Gravel,
+        Block::BrownMushroom,
+        Block::RedMushroom,
+        Block::Tnt,
+        Block::Cactus,
+        Block::Clay,
+        Block::Pumpkin,
+        Block::CarvedPumpkin,
+        Block::Melon,
+        Block::CrimsonFungus,
+        Block::CrimsonNylium,
+        Block::CrimsonRoots,
+        Block::WarpedFungus,
+        Block::WarpedNylium,
+        Block::WarpedRoots,
+        Block::Dandelion,
+        Block::Poppy,
+        Block::BlueOrchid,
+        Block::Allium,
+        Block::AzureBluet,
+        Block::RedTulip,
+        Block::OrangeTulip,
+        Block::WhiteTulip,
+        Block::PinkTulip,
+        Block::OxeyeDaisy,
+        Block::Cornflower,
+        Block::LilyOfTheValley,
+        Block::WitherRose,
+        Block::Torchflower,
+        Block::Dirt,
+        Block::GrassBlock,
+        Block::Podzol,
+        Block::CoarseDirt,
+        Block::Mycelium,
+        Block::RootedDirt,
+        Block::MossBlock,
+        Block::Mud,
+        Block::MuddyMangroveRoots,
+    ])
+});
+pub static FLOWER_POTS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::FlowerPot,
+        Block::PottedPoppy,
+        Block::PottedBlueOrchid,
+        Block::PottedAllium,
+        Block::PottedAzureBluet,
+        Block::PottedRedTulip,
+        Block::PottedOrangeTulip,
+        Block::PottedWhiteTulip,
+        Block::PottedPinkTulip,
+        Block::PottedOxeyeDaisy,
+        Block::PottedDandelion,
+        Block::PottedOakSapling,
+        Block::PottedSpruceSapling,
+        Block::PottedBirchSapling,
+        Block::PottedJungleSapling,
+        Block::PottedAcaciaSapling,
+        Block::PottedDarkOakSapling,
+        Block::PottedRedMushroom,
+        Block::PottedBrownMushroom,
+        Block::PottedDeadBush,
+        Block::PottedFern,
+        Block::PottedCactus,
+        Block::PottedCornflower,
+        Block::PottedLilyOfTheValley,
+        Block::PottedWitherRose,
+        Block::PottedBamboo,
+        Block::PottedCrimsonFungus,
+        Block::PottedWarpedFungus,
+        Block::PottedCrimsonRoots,
+        Block::PottedWarpedRoots,
+        Block::PottedAzaleaBush,
+        Block::PottedFloweringAzaleaBush,
+        Block::PottedMangrovePropagule,
+        Block::PottedCherrySapling,
+        Block::PottedTorchflower,
+    ])
+});
+pub static WOODEN_PRESSURE_PLATES: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::OakPressurePlate,
+        Block::SprucePressurePlate,
+        Block::BirchPressurePlate,
+        Block::JunglePressurePlate,
+        Block::AcaciaPressurePlate,
+        Block::DarkOakPressurePlate,
+        Block::CrimsonPressurePlate,
+        Block::WarpedPressurePlate,
+        Block::MangrovePressurePlate,
+        Block::BambooPressurePlate,
+        Block::CherryPressurePlate,
+    ])
+});
+pub static STONE_PRESSURE_PLATES: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::StonePressurePlate,
+        Block::PolishedBlackstonePressurePlate,
+    ])
+});
+pub static PRESSURE_PLATES: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::LightWeightedPressurePlate,
+        Block::HeavyWeightedPressurePlate,
+        Block::OakPressurePlate,
+        Block::SprucePressurePlate,
+        Block::BirchPressurePlate,
+        Block::JunglePressurePlate,
+        Block::AcaciaPressurePlate,
+        Block::DarkOakPressurePlate,
+        Block::CrimsonPressurePlate,
+        Block::WarpedPressurePlate,
+        Block::MangrovePressurePlate,
+        Block::BambooPressurePlate,
+        Block::CherryPressurePlate,
+        Block::StonePressurePlate,
+        Block::PolishedBlackstonePressurePlate,
+    ])
+});
+pub static BANNERS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::WhiteBanner,
+        Block::OrangeBanner,
+        Block::MagentaBanner,
+        Block::LightBlueBanner,
+        Block::YellowBanner,
+        Block::LimeBanner,
+        Block::PinkBanner,
+        Block::GrayBanner,
+        Block::LightGrayBanner,
+        Block::CyanBanner,
+        Block::PurpleBanner,
+        Block::BlueBanner,
+        Block::BrownBanner,
+        Block::GreenBanner,
+        Block::RedBanner,
+        Block::BlackBanner,
+        Block::WhiteWallBanner,
+        Block::OrangeWallBanner,
+        Block::MagentaWallBanner,
+        Block::LightBlueWallBanner,
+        Block::YellowWallBanner,
+        Block::LimeWallBanner,
+        Block::PinkWallBanner,
+        Block::GrayWallBanner,
+        Block::LightGrayWallBanner,
+        Block::CyanWallBanner,
+        Block::PurpleWallBanner,
+        Block::BlueWallBanner,
+        Block::BrownWallBanner,
+        Block::GreenWallBanner,
+        Block::RedWallBanner,
+        Block::BlackWallBanner,
+    ])
+});
+pub static STAIRS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::BambooMosaicStairs,
+        Block::CobblestoneStairs,
+        Block::SandstoneStairs,
+        Block::NetherBrickStairs,
+        Block::StoneBrickStairs,
+        Block::BrickStairs,
+        Block::PurpurStairs,
+        Block::QuartzStairs,
+        Block::RedSandstoneStairs,
+        Block::PrismarineBrickStairs,
+        Block::PrismarineStairs,
+        Block::DarkPrismarineStairs,
+        Block::PolishedGraniteStairs,
+        Block::SmoothRedSandstoneStairs,
+        Block::MossyStoneBrickStairs,
+        Block::PolishedDioriteStairs,
+        Block::MossyCobblestoneStairs,
+        Block::EndStoneBrickStairs,
+        Block::StoneStairs,
+        Block::SmoothSandstoneStairs,
+        Block::SmoothQuartzStairs,
+        Block::GraniteStairs,
+        Block::AndesiteStairs,
+        Block::RedNetherBrickStairs,
+        Block::PolishedAndesiteStairs,
+        Block::DioriteStairs,
+        Block::BlackstoneStairs,
+        Block::PolishedBlackstoneBrickStairs,
+        Block::PolishedBlackstoneStairs,
+        Block::CobbledDeepslateStairs,
+        Block::PolishedDeepslateStairs,
+        Block::DeepslateTileStairs,
+        Block::DeepslateBrickStairs,
+        Block::OxidizedCutCopperStairs,
+        Block::WeatheredCutCopperStairs,
+        Block::ExposedCutCopperStairs,
+        Block::CutCopperStairs,
+        Block::WaxedWeatheredCutCopperStairs,
+        Block::WaxedExposedCutCopperStairs,
+        Block::WaxedCutCopperStairs,
+        Block::WaxedOxidizedCutCopperStairs,
+        Block::MudBrickStairs,
+        Block::OakStairs,
+        Block::SpruceStairs,
+        Block::BirchStairs,
+        Block::JungleStairs,
+        Block::AcaciaStairs,
+        Block::DarkOakStairs,
+        Block::CrimsonStairs,
+        Block::WarpedStairs,
+        Block::MangroveStairs,
+        Block::BambooStairs,
+        Block::CherryStairs,
+    ])
+});
 pub static SLABS: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
         Block::BambooMosaicSlab,
@@ -990,6 +1429,253 @@ pub static SLABS: Lazy<HashSet<Block>> = Lazy::new(|| {
         Block::CherrySlab,
     ])
 });
+pub static WALLS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::CobblestoneWall,
+        Block::MossyCobblestoneWall,
+        Block::BrickWall,
+        Block::PrismarineWall,
+        Block::RedSandstoneWall,
+        Block::MossyStoneBrickWall,
+        Block::GraniteWall,
+        Block::StoneBrickWall,
+        Block::NetherBrickWall,
+        Block::AndesiteWall,
+        Block::RedNetherBrickWall,
+        Block::SandstoneWall,
+        Block::EndStoneBrickWall,
+        Block::DioriteWall,
+        Block::BlackstoneWall,
+        Block::PolishedBlackstoneBrickWall,
+        Block::PolishedBlackstoneWall,
+        Block::CobbledDeepslateWall,
+        Block::PolishedDeepslateWall,
+        Block::DeepslateTileWall,
+        Block::DeepslateBrickWall,
+        Block::MudBrickWall,
+    ])
+});
+pub static CORAL_PLANTS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::TubeCoral,
+        Block::BrainCoral,
+        Block::BubbleCoral,
+        Block::FireCoral,
+        Block::HornCoral,
+    ])
+});
+pub static CORALS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::TubeCoralFan,
+        Block::BrainCoralFan,
+        Block::BubbleCoralFan,
+        Block::FireCoralFan,
+        Block::HornCoralFan,
+        Block::TubeCoral,
+        Block::BrainCoral,
+        Block::BubbleCoral,
+        Block::FireCoral,
+        Block::HornCoral,
+    ])
+});
+pub static WALL_CORALS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::TubeCoralWallFan,
+        Block::BrainCoralWallFan,
+        Block::BubbleCoralWallFan,
+        Block::FireCoralWallFan,
+        Block::HornCoralWallFan,
+    ])
+});
+pub static SAND: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::Sand,
+        Block::RedSand,
+        Block::SuspiciousSand,
+        Block::SuspiciousSand,
+    ])
+});
+pub static CORAL_BLOCKS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::TubeCoralBlock,
+        Block::BrainCoralBlock,
+        Block::BubbleCoralBlock,
+        Block::FireCoralBlock,
+        Block::HornCoralBlock,
+    ])
+});
+pub static RAILS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::Rail,
+        Block::PoweredRail,
+        Block::DetectorRail,
+        Block::ActivatorRail,
+    ])
+});
+pub static ICE: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::Ice,
+        Block::PackedIce,
+        Block::BlueIce,
+        Block::FrostedIce,
+    ])
+});
+pub static VALID_SPAWN: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::GrassBlock, Block::Podzol]));
+pub static LEAVES: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::JungleLeaves,
+        Block::OakLeaves,
+        Block::SpruceLeaves,
+        Block::DarkOakLeaves,
+        Block::AcaciaLeaves,
+        Block::BirchLeaves,
+        Block::AzaleaLeaves,
+        Block::FloweringAzaleaLeaves,
+        Block::MangroveLeaves,
+        Block::CherryLeaves,
+    ])
+});
+pub static IMPERMEABLE: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::Glass,
+        Block::WhiteStainedGlass,
+        Block::OrangeStainedGlass,
+        Block::MagentaStainedGlass,
+        Block::LightBlueStainedGlass,
+        Block::YellowStainedGlass,
+        Block::LimeStainedGlass,
+        Block::PinkStainedGlass,
+        Block::GrayStainedGlass,
+        Block::LightGrayStainedGlass,
+        Block::CyanStainedGlass,
+        Block::PurpleStainedGlass,
+        Block::BlueStainedGlass,
+        Block::BrownStainedGlass,
+        Block::GreenStainedGlass,
+        Block::RedStainedGlass,
+        Block::BlackStainedGlass,
+        Block::TintedGlass,
+    ])
+});
+pub static WOODEN_TRAPDOORS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::AcaciaTrapdoor,
+        Block::BirchTrapdoor,
+        Block::DarkOakTrapdoor,
+        Block::JungleTrapdoor,
+        Block::OakTrapdoor,
+        Block::SpruceTrapdoor,
+        Block::CrimsonTrapdoor,
+        Block::WarpedTrapdoor,
+        Block::MangroveTrapdoor,
+        Block::BambooTrapdoor,
+        Block::CherryTrapdoor,
+    ])
+});
+pub static TRAPDOORS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::IronTrapdoor,
+        Block::AcaciaTrapdoor,
+        Block::BirchTrapdoor,
+        Block::DarkOakTrapdoor,
+        Block::JungleTrapdoor,
+        Block::OakTrapdoor,
+        Block::SpruceTrapdoor,
+        Block::CrimsonTrapdoor,
+        Block::WarpedTrapdoor,
+        Block::MangroveTrapdoor,
+        Block::BambooTrapdoor,
+        Block::CherryTrapdoor,
+    ])
+});
+pub static SIGNS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::OakSign,
+        Block::SpruceSign,
+        Block::BirchSign,
+        Block::AcaciaSign,
+        Block::JungleSign,
+        Block::DarkOakSign,
+        Block::CrimsonSign,
+        Block::WarpedSign,
+        Block::MangroveSign,
+        Block::BambooSign,
+        Block::CherrySign,
+        Block::OakWallSign,
+        Block::SpruceWallSign,
+        Block::BirchWallSign,
+        Block::AcaciaWallSign,
+        Block::JungleWallSign,
+        Block::DarkOakWallSign,
+        Block::CrimsonWallSign,
+        Block::WarpedWallSign,
+        Block::MangroveWallSign,
+        Block::BambooWallSign,
+        Block::CherryWallSign,
+    ])
+});
+pub static UNDERWATER_BONEMEALS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::Seagrass,
+        Block::TubeCoralFan,
+        Block::BrainCoralFan,
+        Block::BubbleCoralFan,
+        Block::FireCoralFan,
+        Block::HornCoralFan,
+        Block::TubeCoralWallFan,
+        Block::BrainCoralWallFan,
+        Block::BubbleCoralWallFan,
+        Block::FireCoralWallFan,
+        Block::HornCoralWallFan,
+        Block::TubeCoral,
+        Block::BrainCoral,
+        Block::BubbleCoral,
+        Block::FireCoral,
+        Block::HornCoral,
+    ])
+});
+pub static CEILING_HANGING_SIGNS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::OakHangingSign,
+        Block::SpruceHangingSign,
+        Block::BirchHangingSign,
+        Block::AcaciaHangingSign,
+        Block::CherryHangingSign,
+        Block::JungleHangingSign,
+        Block::DarkOakHangingSign,
+        Block::CrimsonHangingSign,
+        Block::WarpedHangingSign,
+        Block::MangroveHangingSign,
+        Block::BambooHangingSign,
+    ])
+});
+pub static ALL_HANGING_SIGNS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::OakHangingSign,
+        Block::SpruceHangingSign,
+        Block::BirchHangingSign,
+        Block::AcaciaHangingSign,
+        Block::CherryHangingSign,
+        Block::JungleHangingSign,
+        Block::DarkOakHangingSign,
+        Block::CrimsonHangingSign,
+        Block::WarpedHangingSign,
+        Block::MangroveHangingSign,
+        Block::BambooHangingSign,
+        Block::OakWallHangingSign,
+        Block::SpruceWallHangingSign,
+        Block::BirchWallHangingSign,
+        Block::AcaciaWallHangingSign,
+        Block::CherryWallHangingSign,
+        Block::JungleWallHangingSign,
+        Block::DarkOakWallHangingSign,
+        Block::CrimsonWallHangingSign,
+        Block::WarpedWallHangingSign,
+        Block::MangroveWallHangingSign,
+        Block::BambooWallHangingSign,
+    ])
+});
 pub static ALL_SIGNS: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
         Block::OakSign,
@@ -1038,309 +1724,24 @@ pub static ALL_SIGNS: Lazy<HashSet<Block>> = Lazy::new(|| {
         Block::BambooWallHangingSign,
     ])
 });
-pub static WART_BLOCKS: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![Block::NetherWartBlock, Block::WarpedWartBlock]));
-pub static SCULK_REPLACEABLE: Lazy<HashSet<Block>> = Lazy::new(|| {
+pub static BEDS: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
-        Block::Sand,
-        Block::RedSand,
-        Block::Gravel,
-        Block::SoulSand,
-        Block::SoulSoil,
-        Block::Calcite,
-        Block::SmoothBasalt,
-        Block::Clay,
-        Block::DripstoneBlock,
-        Block::EndStone,
-        Block::RedSandstone,
-        Block::Sandstone,
-        Block::Stone,
-        Block::Granite,
-        Block::Diorite,
-        Block::Andesite,
-        Block::Tuff,
-        Block::Deepslate,
-        Block::Dirt,
-        Block::GrassBlock,
-        Block::Podzol,
-        Block::CoarseDirt,
-        Block::Mycelium,
-        Block::RootedDirt,
-        Block::MossBlock,
-        Block::Mud,
-        Block::MuddyMangroveRoots,
-        Block::Terracotta,
-        Block::WhiteTerracotta,
-        Block::OrangeTerracotta,
-        Block::MagentaTerracotta,
-        Block::LightBlueTerracotta,
-        Block::YellowTerracotta,
-        Block::LimeTerracotta,
-        Block::PinkTerracotta,
-        Block::GrayTerracotta,
-        Block::LightGrayTerracotta,
-        Block::CyanTerracotta,
-        Block::PurpleTerracotta,
-        Block::BlueTerracotta,
-        Block::BrownTerracotta,
-        Block::GreenTerracotta,
-        Block::RedTerracotta,
-        Block::BlackTerracotta,
-        Block::CrimsonNylium,
-        Block::WarpedNylium,
-        Block::Netherrack,
-        Block::Basalt,
-        Block::Blackstone,
-    ])
-});
-pub static TRAIL_RUINS_REPLACEABLE: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![Block::Gravel]));
-pub static LOGS: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::CrimsonStem,
-        Block::StrippedCrimsonStem,
-        Block::CrimsonHyphae,
-        Block::StrippedCrimsonHyphae,
-        Block::WarpedStem,
-        Block::StrippedWarpedStem,
-        Block::WarpedHyphae,
-        Block::StrippedWarpedHyphae,
-        Block::DarkOakLog,
-        Block::DarkOakWood,
-        Block::StrippedDarkOakLog,
-        Block::StrippedDarkOakWood,
-        Block::OakLog,
-        Block::OakWood,
-        Block::StrippedOakLog,
-        Block::StrippedOakWood,
-        Block::AcaciaLog,
-        Block::AcaciaWood,
-        Block::StrippedAcaciaLog,
-        Block::StrippedAcaciaWood,
-        Block::BirchLog,
-        Block::BirchWood,
-        Block::StrippedBirchLog,
-        Block::StrippedBirchWood,
-        Block::JungleLog,
-        Block::JungleWood,
-        Block::StrippedJungleLog,
-        Block::StrippedJungleWood,
-        Block::SpruceLog,
-        Block::SpruceWood,
-        Block::StrippedSpruceLog,
-        Block::StrippedSpruceWood,
-        Block::MangroveLog,
-        Block::MangroveWood,
-        Block::StrippedMangroveLog,
-        Block::StrippedMangroveWood,
-        Block::CherryLog,
-        Block::CherryWood,
-        Block::StrippedCherryLog,
-        Block::StrippedCherryWood,
-    ])
-});
-pub static ANCIENT_CITY_REPLACEABLE: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::Deepslate,
-        Block::DeepslateBricks,
-        Block::DeepslateTiles,
-        Block::DeepslateBrickSlab,
-        Block::DeepslateTileSlab,
-        Block::DeepslateBrickStairs,
-        Block::DeepslateTileWall,
-        Block::DeepslateBrickWall,
-        Block::CobbledDeepslate,
-        Block::CrackedDeepslateBricks,
-        Block::CrackedDeepslateTiles,
-        Block::GrayWool,
-    ])
-});
-pub static STONE_ORE_REPLACEABLES: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::Stone,
-        Block::Granite,
-        Block::Diorite,
-        Block::Andesite,
-    ])
-});
-pub static DARK_OAK_LOGS: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::DarkOakLog,
-        Block::DarkOakWood,
-        Block::StrippedDarkOakLog,
-        Block::StrippedDarkOakWood,
-    ])
-});
-pub static STRIDER_WARM_BLOCKS: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![Block::Lava]));
-pub static INCORRECT_FOR_GOLD_TOOL: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::Obsidian,
-        Block::CryingObsidian,
-        Block::NetheriteBlock,
-        Block::RespawnAnchor,
-        Block::AncientDebris,
-        Block::DiamondBlock,
-        Block::DiamondOre,
-        Block::DeepslateDiamondOre,
-        Block::EmeraldOre,
-        Block::DeepslateEmeraldOre,
-        Block::EmeraldBlock,
-        Block::GoldBlock,
-        Block::RawGoldBlock,
-        Block::GoldOre,
-        Block::DeepslateGoldOre,
-        Block::RedstoneOre,
-        Block::DeepslateRedstoneOre,
-        Block::IronBlock,
-        Block::RawIronBlock,
-        Block::IronOre,
-        Block::DeepslateIronOre,
-        Block::LapisBlock,
-        Block::LapisOre,
-        Block::DeepslateLapisOre,
-        Block::CopperBlock,
-        Block::RawCopperBlock,
-        Block::CopperOre,
-        Block::DeepslateCopperOre,
-        Block::CutCopperSlab,
-        Block::CutCopperStairs,
-        Block::CutCopper,
-        Block::WeatheredCopper,
-        Block::WeatheredCutCopperSlab,
-        Block::WeatheredCutCopperStairs,
-        Block::WeatheredCutCopper,
-        Block::OxidizedCopper,
-        Block::OxidizedCutCopperSlab,
-        Block::OxidizedCutCopperStairs,
-        Block::OxidizedCutCopper,
-        Block::ExposedCopper,
-        Block::ExposedCutCopperSlab,
-        Block::ExposedCutCopperStairs,
-        Block::ExposedCutCopper,
-        Block::WaxedCopperBlock,
-        Block::WaxedCutCopperSlab,
-        Block::WaxedCutCopperStairs,
-        Block::WaxedCutCopper,
-        Block::WaxedWeatheredCopper,
-        Block::WaxedWeatheredCutCopperSlab,
-        Block::WaxedWeatheredCutCopperStairs,
-        Block::WaxedWeatheredCutCopper,
-        Block::WaxedExposedCopper,
-        Block::WaxedExposedCutCopperSlab,
-        Block::WaxedExposedCutCopperStairs,
-        Block::WaxedExposedCutCopper,
-        Block::WaxedOxidizedCopper,
-        Block::WaxedOxidizedCutCopperSlab,
-        Block::WaxedOxidizedCutCopperStairs,
-        Block::WaxedOxidizedCutCopper,
-        Block::LightningRod,
-    ])
-});
-pub static JUNGLE_LOGS: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::JungleLog,
-        Block::JungleWood,
-        Block::StrippedJungleLog,
-        Block::StrippedJungleWood,
-    ])
-});
-pub static DAMPENS_VIBRATIONS: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::WhiteWool,
-        Block::OrangeWool,
-        Block::MagentaWool,
-        Block::LightBlueWool,
-        Block::YellowWool,
-        Block::LimeWool,
-        Block::PinkWool,
-        Block::GrayWool,
-        Block::LightGrayWool,
-        Block::CyanWool,
-        Block::PurpleWool,
-        Block::BlueWool,
-        Block::BrownWool,
-        Block::GreenWool,
-        Block::RedWool,
-        Block::BlackWool,
-        Block::WhiteCarpet,
-        Block::OrangeCarpet,
-        Block::MagentaCarpet,
-        Block::LightBlueCarpet,
-        Block::YellowCarpet,
-        Block::LimeCarpet,
-        Block::PinkCarpet,
-        Block::GrayCarpet,
-        Block::LightGrayCarpet,
-        Block::CyanCarpet,
-        Block::PurpleCarpet,
-        Block::BlueCarpet,
-        Block::BrownCarpet,
-        Block::GreenCarpet,
-        Block::RedCarpet,
-        Block::BlackCarpet,
-    ])
-});
-pub static LAPIS_ORES: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![Block::LapisOre, Block::DeepslateLapisOre]));
-pub static FROGS_SPAWNABLE_ON: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::GrassBlock,
-        Block::Mud,
-        Block::MangroveRoots,
-        Block::MuddyMangroveRoots,
-    ])
-});
-pub static INVALID_SPAWN_INSIDE: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![Block::EndPortal, Block::EndGateway]));
-pub static VALID_SPAWN: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![Block::GrassBlock, Block::Podzol]));
-pub static MANGROVE_LOGS: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::MangroveLog,
-        Block::MangroveWood,
-        Block::StrippedMangroveLog,
-        Block::StrippedMangroveWood,
-    ])
-});
-pub static DIRT: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::Dirt,
-        Block::GrassBlock,
-        Block::Podzol,
-        Block::CoarseDirt,
-        Block::Mycelium,
-        Block::RootedDirt,
-        Block::MossBlock,
-        Block::Mud,
-        Block::MuddyMangroveRoots,
-    ])
-});
-pub static FIRE: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![Block::Fire, Block::SoulFire]));
-pub static COMBINATION_STEP_SOUND_BLOCKS: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::MossCarpet,
-        Block::Snow,
-        Block::NetherSprouts,
-        Block::WarpedRoots,
-        Block::CrimsonRoots,
-        Block::WhiteCarpet,
-        Block::OrangeCarpet,
-        Block::MagentaCarpet,
-        Block::LightBlueCarpet,
-        Block::YellowCarpet,
-        Block::LimeCarpet,
-        Block::PinkCarpet,
-        Block::GrayCarpet,
-        Block::LightGrayCarpet,
-        Block::CyanCarpet,
-        Block::PurpleCarpet,
-        Block::BlueCarpet,
-        Block::BrownCarpet,
-        Block::GreenCarpet,
-        Block::RedCarpet,
-        Block::BlackCarpet,
+        Block::RedBed,
+        Block::BlackBed,
+        Block::BlueBed,
+        Block::BrownBed,
+        Block::CyanBed,
+        Block::GrayBed,
+        Block::GreenBed,
+        Block::LightBlueBed,
+        Block::LightGrayBed,
+        Block::LimeBed,
+        Block::MagentaBed,
+        Block::OrangeBed,
+        Block::PinkBed,
+        Block::PurpleBed,
+        Block::WhiteBed,
+        Block::YellowBed,
     ])
 });
 pub static FENCES: Lazy<HashSet<Block>> = Lazy::new(|| {
@@ -1359,82 +1760,29 @@ pub static FENCES: Lazy<HashSet<Block>> = Lazy::new(|| {
         Block::CherryFence,
     ])
 });
-pub static CORALS: Lazy<HashSet<Block>> = Lazy::new(|| {
+pub static DRAGON_IMMUNE: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
-        Block::TubeCoralFan,
-        Block::BrainCoralFan,
-        Block::BubbleCoralFan,
-        Block::FireCoralFan,
-        Block::HornCoralFan,
-        Block::TubeCoral,
-        Block::BrainCoral,
-        Block::BubbleCoral,
-        Block::FireCoral,
-        Block::HornCoral,
+        Block::Barrier,
+        Block::Bedrock,
+        Block::EndPortal,
+        Block::EndPortalFrame,
+        Block::EndGateway,
+        Block::CommandBlock,
+        Block::RepeatingCommandBlock,
+        Block::ChainCommandBlock,
+        Block::StructureBlock,
+        Block::Jigsaw,
+        Block::MovingPiston,
+        Block::Obsidian,
+        Block::CryingObsidian,
+        Block::EndStone,
+        Block::IronBars,
+        Block::RespawnAnchor,
+        Block::ReinforcedDeepslate,
     ])
 });
-pub static WOOL_CARPETS: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::WhiteCarpet,
-        Block::OrangeCarpet,
-        Block::MagentaCarpet,
-        Block::LightBlueCarpet,
-        Block::YellowCarpet,
-        Block::LimeCarpet,
-        Block::PinkCarpet,
-        Block::GrayCarpet,
-        Block::LightGrayCarpet,
-        Block::CyanCarpet,
-        Block::PurpleCarpet,
-        Block::BlueCarpet,
-        Block::BrownCarpet,
-        Block::GreenCarpet,
-        Block::RedCarpet,
-        Block::BlackCarpet,
-    ])
-});
-pub static INFINIBURN_OVERWORLD: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![Block::Netherrack, Block::MagmaBlock]));
-pub static ICE: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::Ice,
-        Block::PackedIce,
-        Block::BlueIce,
-        Block::FrostedIce,
-    ])
-});
-pub static SNAPS_GOAT_HORN: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::Stone,
-        Block::PackedIce,
-        Block::IronOre,
-        Block::CoalOre,
-        Block::CopperOre,
-        Block::EmeraldOre,
-        Block::AcaciaLog,
-        Block::BirchLog,
-        Block::OakLog,
-        Block::JungleLog,
-        Block::SpruceLog,
-        Block::DarkOakLog,
-        Block::MangroveLog,
-        Block::CherryLog,
-    ])
-});
-pub static ARMADILLO_SPAWNABLE_ON: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::RedSand,
-        Block::CoarseDirt,
-        Block::GrassBlock,
-        Block::Terracotta,
-        Block::WhiteTerracotta,
-        Block::YellowTerracotta,
-        Block::OrangeTerracotta,
-        Block::RedTerracotta,
-        Block::BrownTerracotta,
-        Block::LightGrayTerracotta,
-    ])
-});
+pub static DRAGON_TRANSPARENT: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::Light, Block::Fire, Block::SoulFire]));
 pub static WITHER_IMMUNE: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
         Block::Barrier,
@@ -1452,243 +1800,49 @@ pub static WITHER_IMMUNE: Lazy<HashSet<Block>> = Lazy::new(|| {
         Block::ReinforcedDeepslate,
     ])
 });
-pub static BEACON_BASE_BLOCKS: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::NetheriteBlock,
-        Block::EmeraldBlock,
-        Block::DiamondBlock,
-        Block::GoldBlock,
-        Block::IronBlock,
-    ])
-});
-pub static COAL_ORES: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![Block::CoalOre, Block::DeepslateCoalOre]));
-pub static NETHER_CARVER_REPLACEABLES: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::SoulSand,
-        Block::SoulSoil,
-        Block::Stone,
-        Block::Granite,
-        Block::Diorite,
-        Block::Andesite,
-        Block::Tuff,
-        Block::Deepslate,
-        Block::Netherrack,
-        Block::Basalt,
-        Block::Blackstone,
-        Block::Dirt,
-        Block::GrassBlock,
-        Block::Podzol,
-        Block::CoarseDirt,
-        Block::Mycelium,
-        Block::RootedDirt,
-        Block::MossBlock,
-        Block::Mud,
-        Block::MuddyMangroveRoots,
-        Block::CrimsonNylium,
-        Block::WarpedNylium,
-        Block::NetherWartBlock,
-        Block::WarpedWartBlock,
-    ])
-});
-pub static PARROTS_SPAWNABLE_ON: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::GrassBlock,
-        Block::Air,
-        Block::JungleLeaves,
-        Block::OakLeaves,
-        Block::SpruceLeaves,
-        Block::DarkOakLeaves,
-        Block::AcaciaLeaves,
-        Block::BirchLeaves,
-        Block::AzaleaLeaves,
-        Block::FloweringAzaleaLeaves,
-        Block::MangroveLeaves,
-        Block::CherryLeaves,
-        Block::CrimsonStem,
-        Block::StrippedCrimsonStem,
-        Block::CrimsonHyphae,
-        Block::StrippedCrimsonHyphae,
-        Block::WarpedStem,
-        Block::StrippedWarpedStem,
-        Block::WarpedHyphae,
-        Block::StrippedWarpedHyphae,
-        Block::DarkOakLog,
-        Block::DarkOakWood,
-        Block::StrippedDarkOakLog,
-        Block::StrippedDarkOakWood,
-        Block::OakLog,
-        Block::OakWood,
-        Block::StrippedOakLog,
-        Block::StrippedOakWood,
-        Block::AcaciaLog,
-        Block::AcaciaWood,
-        Block::StrippedAcaciaLog,
-        Block::StrippedAcaciaWood,
-        Block::BirchLog,
-        Block::BirchWood,
-        Block::StrippedBirchLog,
-        Block::StrippedBirchWood,
-        Block::JungleLog,
-        Block::JungleWood,
-        Block::StrippedJungleLog,
-        Block::StrippedJungleWood,
-        Block::SpruceLog,
-        Block::SpruceWood,
-        Block::StrippedSpruceLog,
-        Block::StrippedSpruceWood,
-        Block::MangroveLog,
-        Block::MangroveWood,
-        Block::StrippedMangroveLog,
-        Block::StrippedMangroveWood,
-        Block::CherryLog,
-        Block::CherryWood,
-        Block::StrippedCherryLog,
-        Block::StrippedCherryWood,
-    ])
-});
-pub static NEEDS_IRON_TOOL: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::DiamondBlock,
-        Block::DiamondOre,
-        Block::DeepslateDiamondOre,
-        Block::EmeraldOre,
-        Block::DeepslateEmeraldOre,
-        Block::EmeraldBlock,
-        Block::GoldBlock,
-        Block::RawGoldBlock,
-        Block::GoldOre,
-        Block::DeepslateGoldOre,
-        Block::RedstoneOre,
-        Block::DeepslateRedstoneOre,
-    ])
-});
-pub static WOODEN_DOORS: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::OakDoor,
-        Block::SpruceDoor,
-        Block::BirchDoor,
-        Block::JungleDoor,
-        Block::AcaciaDoor,
-        Block::DarkOakDoor,
-        Block::CrimsonDoor,
-        Block::WarpedDoor,
-        Block::MangroveDoor,
-        Block::BambooDoor,
-        Block::CherryDoor,
-    ])
-});
-pub static INFINIBURN_END: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![Block::Bedrock, Block::Netherrack, Block::MagmaBlock]));
-pub static MUSHROOM_GROW_BLOCK: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::Mycelium,
-        Block::Podzol,
-        Block::CrimsonNylium,
-        Block::WarpedNylium,
-    ])
-});
-pub static CROPS: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::Beetroots,
-        Block::Carrots,
-        Block::Potatoes,
-        Block::Wheat,
-        Block::MelonStem,
-        Block::PumpkinStem,
-        Block::TorchflowerCrop,
-        Block::PitcherCrop,
-    ])
-});
-pub static HOGLIN_REPELLENTS: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::WarpedFungus,
-        Block::PottedWarpedFungus,
-        Block::NetherPortal,
-        Block::RespawnAnchor,
-    ])
-});
-pub static NYLIUM: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![Block::CrimsonNylium, Block::WarpedNylium]));
-pub static CONCRETE_POWDER: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::WhiteConcretePowder,
-        Block::OrangeConcretePowder,
-        Block::MagentaConcretePowder,
-        Block::LightBlueConcretePowder,
-        Block::YellowConcretePowder,
-        Block::LimeConcretePowder,
-        Block::PinkConcretePowder,
-        Block::GrayConcretePowder,
-        Block::LightGrayConcretePowder,
-        Block::CyanConcretePowder,
-        Block::PurpleConcretePowder,
-        Block::BlueConcretePowder,
-        Block::BrownConcretePowder,
-        Block::GreenConcretePowder,
-        Block::RedConcretePowder,
-        Block::BlackConcretePowder,
-    ])
-});
-pub static STANDING_SIGNS: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::OakSign,
-        Block::SpruceSign,
-        Block::BirchSign,
-        Block::AcaciaSign,
-        Block::JungleSign,
-        Block::DarkOakSign,
-        Block::CrimsonSign,
-        Block::WarpedSign,
-        Block::MangroveSign,
-        Block::BambooSign,
-        Block::CherrySign,
-    ])
-});
-pub static TRAPDOORS: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::IronTrapdoor,
-        Block::AcaciaTrapdoor,
-        Block::BirchTrapdoor,
-        Block::DarkOakTrapdoor,
-        Block::JungleTrapdoor,
-        Block::OakTrapdoor,
-        Block::SpruceTrapdoor,
-        Block::CrimsonTrapdoor,
-        Block::WarpedTrapdoor,
-        Block::MangroveTrapdoor,
-        Block::BambooTrapdoor,
-        Block::CherryTrapdoor,
-    ])
-});
-pub static ALL_HANGING_SIGNS: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::OakHangingSign,
-        Block::SpruceHangingSign,
-        Block::BirchHangingSign,
-        Block::AcaciaHangingSign,
-        Block::CherryHangingSign,
-        Block::JungleHangingSign,
-        Block::DarkOakHangingSign,
-        Block::CrimsonHangingSign,
-        Block::WarpedHangingSign,
-        Block::MangroveHangingSign,
-        Block::BambooHangingSign,
-        Block::OakWallHangingSign,
-        Block::SpruceWallHangingSign,
-        Block::BirchWallHangingSign,
-        Block::AcaciaWallHangingSign,
-        Block::CherryWallHangingSign,
-        Block::JungleWallHangingSign,
-        Block::DarkOakWallHangingSign,
-        Block::CrimsonWallHangingSign,
-        Block::WarpedWallHangingSign,
-        Block::MangroveWallHangingSign,
-        Block::BambooWallHangingSign,
-    ])
-});
-pub static SOUL_SPEED_BLOCKS: Lazy<HashSet<Block>> =
+pub static WITHER_SUMMON_BASE_BLOCKS: Lazy<HashSet<Block>> =
     Lazy::new(|| HashSet::from_iter(vec![Block::SoulSand, Block::SoulSoil]));
+pub static TALL_FLOWERS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::Sunflower,
+        Block::Lilac,
+        Block::Peony,
+        Block::RoseBush,
+        Block::PitcherPlant,
+    ])
+});
+pub static FLOWERS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::FloweringAzaleaLeaves,
+        Block::FloweringAzalea,
+        Block::MangrovePropagule,
+        Block::CherryLeaves,
+        Block::PinkPetals,
+        Block::ChorusFlower,
+        Block::SporeBlossom,
+        Block::Dandelion,
+        Block::Poppy,
+        Block::BlueOrchid,
+        Block::Allium,
+        Block::AzureBluet,
+        Block::RedTulip,
+        Block::OrangeTulip,
+        Block::WhiteTulip,
+        Block::PinkTulip,
+        Block::OxeyeDaisy,
+        Block::Cornflower,
+        Block::LilyOfTheValley,
+        Block::WitherRose,
+        Block::Torchflower,
+        Block::Sunflower,
+        Block::Lilac,
+        Block::Peony,
+        Block::RoseBush,
+        Block::PitcherPlant,
+    ])
+});
+pub static BEEHIVES: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::BeeNest, Block::Beehive]));
 pub static BEE_GROWABLES: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
         Block::SweetBerryBush,
@@ -1704,389 +1858,61 @@ pub static BEE_GROWABLES: Lazy<HashSet<Block>> = Lazy::new(|| {
         Block::PitcherCrop,
     ])
 });
-pub static COMPLETES_FIND_TREE_TUTORIAL: Lazy<HashSet<Block>> = Lazy::new(|| {
+pub static SHULKER_BOXES: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
-        Block::JungleLeaves,
-        Block::OakLeaves,
-        Block::SpruceLeaves,
-        Block::DarkOakLeaves,
-        Block::AcaciaLeaves,
-        Block::BirchLeaves,
-        Block::AzaleaLeaves,
-        Block::FloweringAzaleaLeaves,
-        Block::MangroveLeaves,
-        Block::CherryLeaves,
-        Block::NetherWartBlock,
-        Block::WarpedWartBlock,
-        Block::CrimsonStem,
-        Block::StrippedCrimsonStem,
-        Block::CrimsonHyphae,
-        Block::StrippedCrimsonHyphae,
-        Block::WarpedStem,
-        Block::StrippedWarpedStem,
-        Block::WarpedHyphae,
-        Block::StrippedWarpedHyphae,
-        Block::DarkOakLog,
-        Block::DarkOakWood,
-        Block::StrippedDarkOakLog,
-        Block::StrippedDarkOakWood,
-        Block::OakLog,
-        Block::OakWood,
-        Block::StrippedOakLog,
-        Block::StrippedOakWood,
-        Block::AcaciaLog,
-        Block::AcaciaWood,
-        Block::StrippedAcaciaLog,
-        Block::StrippedAcaciaWood,
-        Block::BirchLog,
-        Block::BirchWood,
-        Block::StrippedBirchLog,
-        Block::StrippedBirchWood,
-        Block::JungleLog,
-        Block::JungleWood,
-        Block::StrippedJungleLog,
-        Block::StrippedJungleWood,
-        Block::SpruceLog,
-        Block::SpruceWood,
-        Block::StrippedSpruceLog,
-        Block::StrippedSpruceWood,
-        Block::MangroveLog,
-        Block::MangroveWood,
-        Block::StrippedMangroveLog,
-        Block::StrippedMangroveWood,
-        Block::CherryLog,
-        Block::CherryWood,
-        Block::StrippedCherryLog,
-        Block::StrippedCherryWood,
+        Block::ShulkerBox,
+        Block::BlackShulkerBox,
+        Block::BlueShulkerBox,
+        Block::BrownShulkerBox,
+        Block::CyanShulkerBox,
+        Block::GrayShulkerBox,
+        Block::GreenShulkerBox,
+        Block::LightBlueShulkerBox,
+        Block::LightGrayShulkerBox,
+        Block::LimeShulkerBox,
+        Block::MagentaShulkerBox,
+        Block::OrangeShulkerBox,
+        Block::PinkShulkerBox,
+        Block::PurpleShulkerBox,
+        Block::RedShulkerBox,
+        Block::WhiteShulkerBox,
+        Block::YellowShulkerBox,
     ])
 });
-pub static UNDERWATER_BONEMEALS: Lazy<HashSet<Block>> = Lazy::new(|| {
+pub static CROPS: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
-        Block::Seagrass,
-        Block::TubeCoralFan,
-        Block::BrainCoralFan,
-        Block::BubbleCoralFan,
-        Block::FireCoralFan,
-        Block::HornCoralFan,
-        Block::TubeCoralWallFan,
-        Block::BrainCoralWallFan,
-        Block::BubbleCoralWallFan,
-        Block::FireCoralWallFan,
-        Block::HornCoralWallFan,
-        Block::TubeCoral,
-        Block::BrainCoral,
-        Block::BubbleCoral,
-        Block::FireCoral,
-        Block::HornCoral,
+        Block::Beetroots,
+        Block::Carrots,
+        Block::Potatoes,
+        Block::Wheat,
+        Block::MelonStem,
+        Block::PumpkinStem,
+        Block::TorchflowerCrop,
+        Block::PitcherCrop,
     ])
 });
-pub static ACACIA_LOGS: Lazy<HashSet<Block>> = Lazy::new(|| {
+pub static PORTALS: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
-        Block::AcaciaLog,
-        Block::AcaciaWood,
-        Block::StrippedAcaciaLog,
-        Block::StrippedAcaciaWood,
+        Block::NetherPortal,
+        Block::EndPortal,
+        Block::EndGateway,
     ])
 });
-pub static SAND: Lazy<HashSet<Block>> = Lazy::new(|| {
+pub static FIRE: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::Fire, Block::SoulFire]));
+pub static BEACON_BASE_BLOCKS: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
-        Block::Sand,
-        Block::RedSand,
-        Block::SuspiciousSand,
-        Block::SuspiciousSand,
+        Block::NetheriteBlock,
+        Block::EmeraldBlock,
+        Block::DiamondBlock,
+        Block::GoldBlock,
+        Block::IronBlock,
     ])
 });
-pub static CEILING_HANGING_SIGNS: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::OakHangingSign,
-        Block::SpruceHangingSign,
-        Block::BirchHangingSign,
-        Block::AcaciaHangingSign,
-        Block::CherryHangingSign,
-        Block::JungleHangingSign,
-        Block::DarkOakHangingSign,
-        Block::CrimsonHangingSign,
-        Block::WarpedHangingSign,
-        Block::MangroveHangingSign,
-        Block::BambooHangingSign,
-    ])
-});
-pub static WOODEN_TRAPDOORS: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::AcaciaTrapdoor,
-        Block::BirchTrapdoor,
-        Block::DarkOakTrapdoor,
-        Block::JungleTrapdoor,
-        Block::OakTrapdoor,
-        Block::SpruceTrapdoor,
-        Block::CrimsonTrapdoor,
-        Block::WarpedTrapdoor,
-        Block::MangroveTrapdoor,
-        Block::BambooTrapdoor,
-        Block::CherryTrapdoor,
-    ])
-});
-pub static BASE_STONE_NETHER: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![Block::Netherrack, Block::Basalt, Block::Blackstone]));
-pub static CHERRY_LOGS: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::CherryLog,
-        Block::CherryWood,
-        Block::StrippedCherryLog,
-        Block::StrippedCherryWood,
-    ])
-});
-pub static SCULK_REPLACEABLE_WORLD_GEN: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::DeepslateBricks,
-        Block::DeepslateTiles,
-        Block::CobbledDeepslate,
-        Block::CrackedDeepslateBricks,
-        Block::CrackedDeepslateTiles,
-        Block::PolishedDeepslate,
-        Block::Sand,
-        Block::RedSand,
-        Block::Gravel,
-        Block::SoulSand,
-        Block::SoulSoil,
-        Block::Calcite,
-        Block::SmoothBasalt,
-        Block::Clay,
-        Block::DripstoneBlock,
-        Block::EndStone,
-        Block::RedSandstone,
-        Block::Sandstone,
-        Block::Stone,
-        Block::Granite,
-        Block::Diorite,
-        Block::Andesite,
-        Block::Tuff,
-        Block::Deepslate,
-        Block::Dirt,
-        Block::GrassBlock,
-        Block::Podzol,
-        Block::CoarseDirt,
-        Block::Mycelium,
-        Block::RootedDirt,
-        Block::MossBlock,
-        Block::Mud,
-        Block::MuddyMangroveRoots,
-        Block::Terracotta,
-        Block::WhiteTerracotta,
-        Block::OrangeTerracotta,
-        Block::MagentaTerracotta,
-        Block::LightBlueTerracotta,
-        Block::YellowTerracotta,
-        Block::LimeTerracotta,
-        Block::PinkTerracotta,
-        Block::GrayTerracotta,
-        Block::LightGrayTerracotta,
-        Block::CyanTerracotta,
-        Block::PurpleTerracotta,
-        Block::BlueTerracotta,
-        Block::BrownTerracotta,
-        Block::GreenTerracotta,
-        Block::RedTerracotta,
-        Block::BlackTerracotta,
-        Block::CrimsonNylium,
-        Block::WarpedNylium,
-        Block::Netherrack,
-        Block::Basalt,
-        Block::Blackstone,
-    ])
-});
-pub static STAIRS: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::BambooMosaicStairs,
-        Block::CobblestoneStairs,
-        Block::SandstoneStairs,
-        Block::NetherBrickStairs,
-        Block::StoneBrickStairs,
-        Block::BrickStairs,
-        Block::PurpurStairs,
-        Block::QuartzStairs,
-        Block::RedSandstoneStairs,
-        Block::PrismarineBrickStairs,
-        Block::PrismarineStairs,
-        Block::DarkPrismarineStairs,
-        Block::PolishedGraniteStairs,
-        Block::SmoothRedSandstoneStairs,
-        Block::MossyStoneBrickStairs,
-        Block::PolishedDioriteStairs,
-        Block::MossyCobblestoneStairs,
-        Block::EndStoneBrickStairs,
-        Block::StoneStairs,
-        Block::SmoothSandstoneStairs,
-        Block::SmoothQuartzStairs,
-        Block::GraniteStairs,
-        Block::AndesiteStairs,
-        Block::RedNetherBrickStairs,
-        Block::PolishedAndesiteStairs,
-        Block::DioriteStairs,
-        Block::BlackstoneStairs,
-        Block::PolishedBlackstoneBrickStairs,
-        Block::PolishedBlackstoneStairs,
-        Block::CobbledDeepslateStairs,
-        Block::PolishedDeepslateStairs,
-        Block::DeepslateTileStairs,
-        Block::DeepslateBrickStairs,
-        Block::OxidizedCutCopperStairs,
-        Block::WeatheredCutCopperStairs,
-        Block::ExposedCutCopperStairs,
-        Block::CutCopperStairs,
-        Block::WaxedWeatheredCutCopperStairs,
-        Block::WaxedExposedCutCopperStairs,
-        Block::WaxedCutCopperStairs,
-        Block::WaxedOxidizedCutCopperStairs,
-        Block::MudBrickStairs,
-        Block::OakStairs,
-        Block::SpruceStairs,
-        Block::BirchStairs,
-        Block::JungleStairs,
-        Block::AcaciaStairs,
-        Block::DarkOakStairs,
-        Block::CrimsonStairs,
-        Block::WarpedStairs,
-        Block::MangroveStairs,
-        Block::BambooStairs,
-        Block::CherryStairs,
-    ])
-});
-pub static ANIMALS_SPAWNABLE_ON: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![Block::GrassBlock]));
-pub static SIGNS: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::OakSign,
-        Block::SpruceSign,
-        Block::BirchSign,
-        Block::AcaciaSign,
-        Block::JungleSign,
-        Block::DarkOakSign,
-        Block::CrimsonSign,
-        Block::WarpedSign,
-        Block::MangroveSign,
-        Block::BambooSign,
-        Block::CherrySign,
-        Block::OakWallSign,
-        Block::SpruceWallSign,
-        Block::BirchWallSign,
-        Block::AcaciaWallSign,
-        Block::JungleWallSign,
-        Block::DarkOakWallSign,
-        Block::CrimsonWallSign,
-        Block::WarpedWallSign,
-        Block::MangroveWallSign,
-        Block::BambooWallSign,
-        Block::CherryWallSign,
-    ])
-});
-pub static FALL_DAMAGE_RESETTING: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::SweetBerryBush,
-        Block::Cobweb,
-        Block::Ladder,
-        Block::Vine,
-        Block::Scaffolding,
-        Block::WeepingVines,
-        Block::WeepingVinesPlant,
-        Block::TwistingVines,
-        Block::TwistingVinesPlant,
-        Block::CaveVines,
-        Block::CaveVinesPlant,
-    ])
-});
-pub static ENDERMAN_HOLDABLE: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::Sand,
-        Block::RedSand,
-        Block::Gravel,
-        Block::BrownMushroom,
-        Block::RedMushroom,
-        Block::Tnt,
-        Block::Cactus,
-        Block::Clay,
-        Block::Pumpkin,
-        Block::CarvedPumpkin,
-        Block::Melon,
-        Block::CrimsonFungus,
-        Block::CrimsonNylium,
-        Block::CrimsonRoots,
-        Block::WarpedFungus,
-        Block::WarpedNylium,
-        Block::WarpedRoots,
-        Block::Dandelion,
-        Block::Poppy,
-        Block::BlueOrchid,
-        Block::Allium,
-        Block::AzureBluet,
-        Block::RedTulip,
-        Block::OrangeTulip,
-        Block::WhiteTulip,
-        Block::PinkTulip,
-        Block::OxeyeDaisy,
-        Block::Cornflower,
-        Block::LilyOfTheValley,
-        Block::WitherRose,
-        Block::Torchflower,
-        Block::Dirt,
-        Block::GrassBlock,
-        Block::Podzol,
-        Block::CoarseDirt,
-        Block::Mycelium,
-        Block::RootedDirt,
-        Block::MossBlock,
-        Block::Mud,
-        Block::MuddyMangroveRoots,
-    ])
-});
-pub static GEODE_INVALID_BLOCKS: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::Bedrock,
-        Block::Water,
-        Block::Lava,
-        Block::Ice,
-        Block::PackedIce,
-        Block::BlueIce,
-    ])
-});
-pub static SMALL_DRIPLEAF_PLACEABLE: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![Block::Clay, Block::MossBlock]));
-pub static ENCHANTMENT_POWER_TRANSMITTER: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::Air,
-        Block::Water,
-        Block::Lava,
-        Block::ShortGrass,
-        Block::Fern,
-        Block::DeadBush,
-        Block::Seagrass,
-        Block::TallSeagrass,
-        Block::Fire,
-        Block::SoulFire,
-        Block::Snow,
-        Block::Vine,
-        Block::GlowLichen,
-        Block::Light,
-        Block::TallGrass,
-        Block::LargeFern,
-        Block::StructureVoid,
-        Block::VoidAir,
-        Block::CaveAir,
-        Block::BubbleColumn,
-        Block::WarpedRoots,
-        Block::NetherSprouts,
-        Block::CrimsonRoots,
-        Block::HangingRoots,
-    ])
-});
-pub static ANVIL: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![Block::Anvil, Block::ChippedAnvil, Block::DamagedAnvil]));
-pub static CONVERTABLE_TO_MUD: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![Block::Dirt, Block::CoarseDirt, Block::RootedDirt]));
-pub static SMELTS_TO_GLASS: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![Block::Sand, Block::RedSand]));
-pub static BAMBOO_BLOCKS: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![Block::BambooBlock, Block::StrippedBambooBlock]));
+pub static WART_BLOCKS: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::NetherWartBlock, Block::WarpedWartBlock]));
+pub static SOUL_SPEED_BLOCKS: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::SoulSand, Block::SoulSoil]));
 pub static WALL_POST_OVERRIDE: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
         Block::Torch,
@@ -2164,226 +1990,40 @@ pub static WALL_POST_OVERRIDE: Lazy<HashSet<Block>> = Lazy::new(|| {
         Block::PolishedBlackstonePressurePlate,
     ])
 });
-pub static BASE_STONE_OVERWORLD: Lazy<HashSet<Block>> = Lazy::new(|| {
+pub static CLIMBABLE: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
-        Block::Stone,
-        Block::Granite,
-        Block::Diorite,
-        Block::Andesite,
-        Block::Tuff,
-        Block::Deepslate,
-    ])
-});
-pub static INCORRECT_FOR_WOODEN_TOOL: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::Obsidian,
-        Block::CryingObsidian,
-        Block::NetheriteBlock,
-        Block::RespawnAnchor,
-        Block::AncientDebris,
-        Block::DiamondBlock,
-        Block::DiamondOre,
-        Block::DeepslateDiamondOre,
-        Block::EmeraldOre,
-        Block::DeepslateEmeraldOre,
-        Block::EmeraldBlock,
-        Block::GoldBlock,
-        Block::RawGoldBlock,
-        Block::GoldOre,
-        Block::DeepslateGoldOre,
-        Block::RedstoneOre,
-        Block::DeepslateRedstoneOre,
-        Block::IronBlock,
-        Block::RawIronBlock,
-        Block::IronOre,
-        Block::DeepslateIronOre,
-        Block::LapisBlock,
-        Block::LapisOre,
-        Block::DeepslateLapisOre,
-        Block::CopperBlock,
-        Block::RawCopperBlock,
-        Block::CopperOre,
-        Block::DeepslateCopperOre,
-        Block::CutCopperSlab,
-        Block::CutCopperStairs,
-        Block::CutCopper,
-        Block::WeatheredCopper,
-        Block::WeatheredCutCopperSlab,
-        Block::WeatheredCutCopperStairs,
-        Block::WeatheredCutCopper,
-        Block::OxidizedCopper,
-        Block::OxidizedCutCopperSlab,
-        Block::OxidizedCutCopperStairs,
-        Block::OxidizedCutCopper,
-        Block::ExposedCopper,
-        Block::ExposedCutCopperSlab,
-        Block::ExposedCutCopperStairs,
-        Block::ExposedCutCopper,
-        Block::WaxedCopperBlock,
-        Block::WaxedCutCopperSlab,
-        Block::WaxedCutCopperStairs,
-        Block::WaxedCutCopper,
-        Block::WaxedWeatheredCopper,
-        Block::WaxedWeatheredCutCopperSlab,
-        Block::WaxedWeatheredCutCopperStairs,
-        Block::WaxedWeatheredCutCopper,
-        Block::WaxedExposedCopper,
-        Block::WaxedExposedCutCopperSlab,
-        Block::WaxedExposedCutCopperStairs,
-        Block::WaxedExposedCutCopper,
-        Block::WaxedOxidizedCopper,
-        Block::WaxedOxidizedCutCopperSlab,
-        Block::WaxedOxidizedCutCopperStairs,
-        Block::WaxedOxidizedCutCopper,
-        Block::LightningRod,
-    ])
-});
-pub static MANGROVE_ROOTS_CAN_GROW_THROUGH: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::Mud,
-        Block::MuddyMangroveRoots,
-        Block::MangroveRoots,
-        Block::MossCarpet,
+        Block::Ladder,
         Block::Vine,
-        Block::MangrovePropagule,
-        Block::Snow,
+        Block::Scaffolding,
+        Block::WeepingVines,
+        Block::WeepingVinesPlant,
+        Block::TwistingVines,
+        Block::TwistingVinesPlant,
+        Block::CaveVines,
+        Block::CaveVinesPlant,
     ])
 });
-pub static WOODEN_STAIRS: Lazy<HashSet<Block>> = Lazy::new(|| {
+pub static FALL_DAMAGE_RESETTING: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
-        Block::OakStairs,
-        Block::SpruceStairs,
-        Block::BirchStairs,
-        Block::JungleStairs,
-        Block::AcaciaStairs,
-        Block::DarkOakStairs,
-        Block::CrimsonStairs,
-        Block::WarpedStairs,
-        Block::MangroveStairs,
-        Block::BambooStairs,
-        Block::CherryStairs,
+        Block::SweetBerryBush,
+        Block::Cobweb,
+        Block::Ladder,
+        Block::Vine,
+        Block::Scaffolding,
+        Block::WeepingVines,
+        Block::WeepingVinesPlant,
+        Block::TwistingVines,
+        Block::TwistingVinesPlant,
+        Block::CaveVines,
+        Block::CaveVinesPlant,
     ])
 });
-pub static DEAD_BUSH_MAY_PLACE_ON: Lazy<HashSet<Block>> = Lazy::new(|| {
+pub static HOGLIN_REPELLENTS: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
-        Block::Sand,
-        Block::RedSand,
-        Block::SuspiciousSand,
-        Block::SuspiciousSand,
-        Block::Terracotta,
-        Block::WhiteTerracotta,
-        Block::OrangeTerracotta,
-        Block::MagentaTerracotta,
-        Block::LightBlueTerracotta,
-        Block::YellowTerracotta,
-        Block::LimeTerracotta,
-        Block::PinkTerracotta,
-        Block::GrayTerracotta,
-        Block::LightGrayTerracotta,
-        Block::CyanTerracotta,
-        Block::PurpleTerracotta,
-        Block::BlueTerracotta,
-        Block::BrownTerracotta,
-        Block::GreenTerracotta,
-        Block::RedTerracotta,
-        Block::BlackTerracotta,
-        Block::Dirt,
-        Block::GrassBlock,
-        Block::Podzol,
-        Block::CoarseDirt,
-        Block::Mycelium,
-        Block::RootedDirt,
-        Block::MossBlock,
-        Block::Mud,
-        Block::MuddyMangroveRoots,
-    ])
-});
-pub static LAVA_POOL_STONE_CANNOT_REPLACE: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::Bedrock,
-        Block::Spawner,
-        Block::Chest,
-        Block::EndPortalFrame,
-        Block::ReinforcedDeepslate,
-        Block::JungleLeaves,
-        Block::OakLeaves,
-        Block::SpruceLeaves,
-        Block::DarkOakLeaves,
-        Block::AcaciaLeaves,
-        Block::BirchLeaves,
-        Block::AzaleaLeaves,
-        Block::FloweringAzaleaLeaves,
-        Block::MangroveLeaves,
-        Block::CherryLeaves,
-        Block::CrimsonStem,
-        Block::StrippedCrimsonStem,
-        Block::CrimsonHyphae,
-        Block::StrippedCrimsonHyphae,
-        Block::WarpedStem,
-        Block::StrippedWarpedStem,
-        Block::WarpedHyphae,
-        Block::StrippedWarpedHyphae,
-        Block::DarkOakLog,
-        Block::DarkOakWood,
-        Block::StrippedDarkOakLog,
-        Block::StrippedDarkOakWood,
-        Block::OakLog,
-        Block::OakWood,
-        Block::StrippedOakLog,
-        Block::StrippedOakWood,
-        Block::AcaciaLog,
-        Block::AcaciaWood,
-        Block::StrippedAcaciaLog,
-        Block::StrippedAcaciaWood,
-        Block::BirchLog,
-        Block::BirchWood,
-        Block::StrippedBirchLog,
-        Block::StrippedBirchWood,
-        Block::JungleLog,
-        Block::JungleWood,
-        Block::StrippedJungleLog,
-        Block::StrippedJungleWood,
-        Block::SpruceLog,
-        Block::SpruceWood,
-        Block::StrippedSpruceLog,
-        Block::StrippedSpruceWood,
-        Block::MangroveLog,
-        Block::MangroveWood,
-        Block::StrippedMangroveLog,
-        Block::StrippedMangroveWood,
-        Block::CherryLog,
-        Block::CherryWood,
-        Block::StrippedCherryLog,
-        Block::StrippedCherryWood,
-    ])
-});
-pub static STONE_BUTTONS: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![Block::StoneButton, Block::PolishedBlackstoneButton]));
-pub static DRIPSTONE_REPLACEABLE_BLOCKS: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::Stone,
-        Block::Granite,
-        Block::Diorite,
-        Block::Andesite,
-        Block::Tuff,
-        Block::Deepslate,
-    ])
-});
-pub static BUTTONS: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::OakButton,
-        Block::SpruceButton,
-        Block::BirchButton,
-        Block::JungleButton,
-        Block::AcaciaButton,
-        Block::DarkOakButton,
-        Block::CrimsonButton,
-        Block::WarpedButton,
-        Block::MangroveButton,
-        Block::BambooButton,
-        Block::CherryButton,
-        Block::StoneButton,
-        Block::PolishedBlackstoneButton,
+        Block::WarpedFungus,
+        Block::PottedWarpedFungus,
+        Block::NetherPortal,
+        Block::RespawnAnchor,
     ])
 });
 pub static PIGLIN_REPELLENTS: Lazy<HashSet<Block>> = Lazy::new(|| {
@@ -2395,117 +2035,27 @@ pub static PIGLIN_REPELLENTS: Lazy<HashSet<Block>> = Lazy::new(|| {
         Block::SoulCampfire,
     ])
 });
-pub static RABBITS_SPAWNABLE_ON: Lazy<HashSet<Block>> = Lazy::new(|| {
+pub static GOLD_ORES: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
-        Block::GrassBlock,
-        Block::Snow,
-        Block::SnowBlock,
-        Block::Sand,
+        Block::GoldOre,
+        Block::NetherGoldOre,
+        Block::DeepslateGoldOre,
     ])
 });
-pub static SMALL_FLOWERS: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::Dandelion,
-        Block::Poppy,
-        Block::BlueOrchid,
-        Block::Allium,
-        Block::AzureBluet,
-        Block::RedTulip,
-        Block::OrangeTulip,
-        Block::WhiteTulip,
-        Block::PinkTulip,
-        Block::OxeyeDaisy,
-        Block::Cornflower,
-        Block::LilyOfTheValley,
-        Block::WitherRose,
-        Block::Torchflower,
-    ])
-});
-pub static CAULDRONS: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::Cauldron,
-        Block::WaterCauldron,
-        Block::LavaCauldron,
-        Block::PowderSnowCauldron,
-    ])
-});
-pub static MANGROVE_LOGS_CAN_GROW_THROUGH: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::Mud,
-        Block::MuddyMangroveRoots,
-        Block::MangroveRoots,
-        Block::MangroveLeaves,
-        Block::MangroveLog,
-        Block::MangrovePropagule,
-        Block::MossCarpet,
-        Block::Vine,
-    ])
-});
-pub static IMPERMEABLE: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::Glass,
-        Block::WhiteStainedGlass,
-        Block::OrangeStainedGlass,
-        Block::MagentaStainedGlass,
-        Block::LightBlueStainedGlass,
-        Block::YellowStainedGlass,
-        Block::LimeStainedGlass,
-        Block::PinkStainedGlass,
-        Block::GrayStainedGlass,
-        Block::LightGrayStainedGlass,
-        Block::CyanStainedGlass,
-        Block::PurpleStainedGlass,
-        Block::BlueStainedGlass,
-        Block::BrownStainedGlass,
-        Block::GreenStainedGlass,
-        Block::RedStainedGlass,
-        Block::BlackStainedGlass,
-        Block::TintedGlass,
-    ])
-});
-pub static DIAMOND_ORES: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![Block::DiamondOre, Block::DeepslateDiamondOre]));
 pub static IRON_ORES: Lazy<HashSet<Block>> =
     Lazy::new(|| HashSet::from_iter(vec![Block::IronOre, Block::DeepslateIronOre]));
-pub static TERRACOTTA: Lazy<HashSet<Block>> = Lazy::new(|| {
+pub static DIAMOND_ORES: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::DiamondOre, Block::DeepslateDiamondOre]));
+pub static BAMBOO_PLANTABLE_ON: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
-        Block::Terracotta,
-        Block::WhiteTerracotta,
-        Block::OrangeTerracotta,
-        Block::MagentaTerracotta,
-        Block::LightBlueTerracotta,
-        Block::YellowTerracotta,
-        Block::LimeTerracotta,
-        Block::PinkTerracotta,
-        Block::GrayTerracotta,
-        Block::LightGrayTerracotta,
-        Block::CyanTerracotta,
-        Block::PurpleTerracotta,
-        Block::BlueTerracotta,
-        Block::BrownTerracotta,
-        Block::GreenTerracotta,
-        Block::RedTerracotta,
-        Block::BlackTerracotta,
-    ])
-});
-pub static OVERWORLD_CARVER_REPLACEABLES: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::Water,
+        Block::Bamboo,
+        Block::BambooSapling,
         Block::Gravel,
         Block::SuspiciousGravel,
-        Block::Sandstone,
-        Block::RedSandstone,
-        Block::Calcite,
-        Block::Snow,
-        Block::PackedIce,
-        Block::RawIronBlock,
-        Block::RawCopperBlock,
-        Block::Stone,
-        Block::Granite,
-        Block::Diorite,
-        Block::Andesite,
-        Block::Tuff,
-        Block::Deepslate,
+        Block::Sand,
+        Block::RedSand,
+        Block::SuspiciousSand,
+        Block::SuspiciousSand,
         Block::Dirt,
         Block::GrassBlock,
         Block::Podzol,
@@ -2515,78 +2065,24 @@ pub static OVERWORLD_CARVER_REPLACEABLES: Lazy<HashSet<Block>> = Lazy::new(|| {
         Block::MossBlock,
         Block::Mud,
         Block::MuddyMangroveRoots,
-        Block::Sand,
-        Block::RedSand,
-        Block::SuspiciousSand,
-        Block::SuspiciousSand,
-        Block::Terracotta,
-        Block::WhiteTerracotta,
-        Block::OrangeTerracotta,
-        Block::MagentaTerracotta,
-        Block::LightBlueTerracotta,
-        Block::YellowTerracotta,
-        Block::LimeTerracotta,
-        Block::PinkTerracotta,
-        Block::GrayTerracotta,
-        Block::LightGrayTerracotta,
-        Block::CyanTerracotta,
-        Block::PurpleTerracotta,
-        Block::BlueTerracotta,
-        Block::BrownTerracotta,
-        Block::GreenTerracotta,
-        Block::RedTerracotta,
-        Block::BlackTerracotta,
-        Block::IronOre,
-        Block::DeepslateIronOre,
-        Block::CopperOre,
-        Block::DeepslateCopperOre,
     ])
 });
-pub static GOATS_SPAWNABLE_ON: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::Stone,
-        Block::Snow,
-        Block::SnowBlock,
-        Block::PackedIce,
-        Block::Gravel,
-        Block::GrassBlock,
-    ])
-});
-pub static NEEDS_DIAMOND_TOOL: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::Obsidian,
-        Block::CryingObsidian,
-        Block::NetheriteBlock,
-        Block::RespawnAnchor,
-        Block::AncientDebris,
-    ])
-});
-pub static WALLS: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::CobblestoneWall,
-        Block::MossyCobblestoneWall,
-        Block::BrickWall,
-        Block::PrismarineWall,
-        Block::RedSandstoneWall,
-        Block::MossyStoneBrickWall,
-        Block::GraniteWall,
-        Block::StoneBrickWall,
-        Block::NetherBrickWall,
-        Block::AndesiteWall,
-        Block::RedNetherBrickWall,
-        Block::SandstoneWall,
-        Block::EndStoneBrickWall,
-        Block::DioriteWall,
-        Block::BlackstoneWall,
-        Block::PolishedBlackstoneBrickWall,
-        Block::PolishedBlackstoneWall,
-        Block::CobbledDeepslateWall,
-        Block::PolishedDeepslateWall,
-        Block::DeepslateTileWall,
-        Block::DeepslateBrickWall,
-        Block::MudBrickWall,
-    ])
-});
+pub static COAL_ORES: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::CoalOre, Block::DeepslateCoalOre]));
+pub static REDSTONE_ORES: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::RedstoneOre, Block::DeepslateRedstoneOre]));
+pub static EMERALD_ORES: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::EmeraldOre, Block::DeepslateEmeraldOre]));
+pub static COPPER_ORES: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::CopperOre, Block::DeepslateCopperOre]));
+pub static LAPIS_ORES: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::LapisOre, Block::DeepslateLapisOre]));
+pub static SOUL_FIRE_BASE_BLOCKS: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::SoulSand, Block::SoulSoil]));
+pub static STRIDER_WARM_BLOCKS: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::Lava]));
+pub static CAMPFIRES: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::Campfire, Block::SoulCampfire]));
 pub static GUARDED_BY_PIGLINS: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
         Block::GoldBlock,
@@ -2618,18 +2114,12 @@ pub static GUARDED_BY_PIGLINS: Lazy<HashSet<Block>> = Lazy::new(|| {
         Block::DeepslateGoldOre,
     ])
 });
-pub static LEAVES: Lazy<HashSet<Block>> = Lazy::new(|| {
+pub static PREVENT_MOB_SPAWNING_INSIDE: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
-        Block::JungleLeaves,
-        Block::OakLeaves,
-        Block::SpruceLeaves,
-        Block::DarkOakLeaves,
-        Block::AcaciaLeaves,
-        Block::BirchLeaves,
-        Block::AzaleaLeaves,
-        Block::FloweringAzaleaLeaves,
-        Block::MangroveLeaves,
-        Block::CherryLeaves,
+        Block::Rail,
+        Block::PoweredRail,
+        Block::DetectorRail,
+        Block::ActivatorRail,
     ])
 });
 pub static FENCE_GATES: Lazy<HashSet<Block>> = Lazy::new(|| {
@@ -2647,72 +2137,350 @@ pub static FENCE_GATES: Lazy<HashSet<Block>> = Lazy::new(|| {
         Block::CherryFenceGate,
     ])
 });
-pub static PREVENT_MOB_SPAWNING_INSIDE: Lazy<HashSet<Block>> = Lazy::new(|| {
+pub static UNSTABLE_BOTTOM_CENTER: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
-        Block::Rail,
-        Block::PoweredRail,
-        Block::DetectorRail,
-        Block::ActivatorRail,
+        Block::AcaciaFenceGate,
+        Block::BirchFenceGate,
+        Block::DarkOakFenceGate,
+        Block::JungleFenceGate,
+        Block::OakFenceGate,
+        Block::SpruceFenceGate,
+        Block::CrimsonFenceGate,
+        Block::WarpedFenceGate,
+        Block::MangroveFenceGate,
+        Block::BambooFenceGate,
+        Block::CherryFenceGate,
     ])
 });
-pub static DOORS: Lazy<HashSet<Block>> = Lazy::new(|| {
+pub static MUSHROOM_GROW_BLOCK: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
-        Block::IronDoor,
-        Block::OakDoor,
-        Block::SpruceDoor,
-        Block::BirchDoor,
-        Block::JungleDoor,
-        Block::AcaciaDoor,
-        Block::DarkOakDoor,
-        Block::CrimsonDoor,
-        Block::WarpedDoor,
-        Block::MangroveDoor,
-        Block::BambooDoor,
-        Block::CherryDoor,
+        Block::Mycelium,
+        Block::Podzol,
+        Block::CrimsonNylium,
+        Block::WarpedNylium,
     ])
 });
-pub static WOODEN_PRESSURE_PLATES: Lazy<HashSet<Block>> = Lazy::new(|| {
+pub static INFINIBURN_OVERWORLD: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::Netherrack, Block::MagmaBlock]));
+pub static INFINIBURN_NETHER: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::Netherrack, Block::MagmaBlock]));
+pub static INFINIBURN_END: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::Bedrock, Block::Netherrack, Block::MagmaBlock]));
+pub static STONE_ORE_REPLACEABLES: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
-        Block::OakPressurePlate,
-        Block::SprucePressurePlate,
-        Block::BirchPressurePlate,
-        Block::JunglePressurePlate,
-        Block::AcaciaPressurePlate,
-        Block::DarkOakPressurePlate,
-        Block::CrimsonPressurePlate,
-        Block::WarpedPressurePlate,
-        Block::MangrovePressurePlate,
-        Block::BambooPressurePlate,
-        Block::CherryPressurePlate,
+        Block::Stone,
+        Block::Granite,
+        Block::Diorite,
+        Block::Andesite,
     ])
 });
-pub static INCORRECT_FOR_STONE_TOOL: Lazy<HashSet<Block>> = Lazy::new(|| {
+pub static DEEPSLATE_ORE_REPLACEABLES: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::Deepslate, Block::Tuff]));
+pub static BASE_STONE_OVERWORLD: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::Stone,
+        Block::Granite,
+        Block::Diorite,
+        Block::Andesite,
+        Block::Tuff,
+        Block::Deepslate,
+    ])
+});
+pub static CANDLES: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::Candle,
+        Block::WhiteCandle,
+        Block::OrangeCandle,
+        Block::MagentaCandle,
+        Block::LightBlueCandle,
+        Block::YellowCandle,
+        Block::LimeCandle,
+        Block::PinkCandle,
+        Block::GrayCandle,
+        Block::LightGrayCandle,
+        Block::CyanCandle,
+        Block::PurpleCandle,
+        Block::BlueCandle,
+        Block::BrownCandle,
+        Block::GreenCandle,
+        Block::RedCandle,
+        Block::BlackCandle,
+    ])
+});
+pub static STANDING_SIGNS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::OakSign,
+        Block::SpruceSign,
+        Block::BirchSign,
+        Block::AcaciaSign,
+        Block::JungleSign,
+        Block::DarkOakSign,
+        Block::CrimsonSign,
+        Block::WarpedSign,
+        Block::MangroveSign,
+        Block::BambooSign,
+        Block::CherrySign,
+    ])
+});
+pub static WALL_SIGNS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::OakWallSign,
+        Block::SpruceWallSign,
+        Block::BirchWallSign,
+        Block::AcaciaWallSign,
+        Block::JungleWallSign,
+        Block::DarkOakWallSign,
+        Block::CrimsonWallSign,
+        Block::WarpedWallSign,
+        Block::MangroveWallSign,
+        Block::BambooWallSign,
+        Block::CherryWallSign,
+    ])
+});
+pub static CANDLE_CAKES: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::CandleCake,
+        Block::WhiteCandleCake,
+        Block::OrangeCandleCake,
+        Block::MagentaCandleCake,
+        Block::LightBlueCandleCake,
+        Block::YellowCandleCake,
+        Block::LimeCandleCake,
+        Block::PinkCandleCake,
+        Block::GrayCandleCake,
+        Block::LightGrayCandleCake,
+        Block::CyanCandleCake,
+        Block::PurpleCandleCake,
+        Block::BlueCandleCake,
+        Block::BrownCandleCake,
+        Block::GreenCandleCake,
+        Block::RedCandleCake,
+        Block::BlackCandleCake,
+    ])
+});
+pub static CRYSTAL_SOUND_BLOCKS: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::AmethystBlock, Block::BuddingAmethyst]));
+pub static SMELTS_TO_GLASS: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::Sand, Block::RedSand]));
+pub static INSIDE_STEP_SOUND_BLOCKS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::PowderSnow,
+        Block::SculkVein,
+        Block::GlowLichen,
+        Block::LilyPad,
+        Block::SmallAmethystBud,
+        Block::PinkPetals,
+    ])
+});
+pub static COMBINATION_STEP_SOUND_BLOCKS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::MossCarpet,
+        Block::Snow,
+        Block::NetherSprouts,
+        Block::WarpedRoots,
+        Block::CrimsonRoots,
+        Block::WhiteCarpet,
+        Block::OrangeCarpet,
+        Block::MagentaCarpet,
+        Block::LightBlueCarpet,
+        Block::YellowCarpet,
+        Block::LimeCarpet,
+        Block::PinkCarpet,
+        Block::GrayCarpet,
+        Block::LightGrayCarpet,
+        Block::CyanCarpet,
+        Block::PurpleCarpet,
+        Block::BlueCarpet,
+        Block::BrownCarpet,
+        Block::GreenCarpet,
+        Block::RedCarpet,
+        Block::BlackCarpet,
+    ])
+});
+pub static DRIPSTONE_REPLACEABLE_BLOCKS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::Stone,
+        Block::Granite,
+        Block::Diorite,
+        Block::Andesite,
+        Block::Tuff,
+        Block::Deepslate,
+    ])
+});
+pub static BASE_STONE_NETHER: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::Netherrack, Block::Basalt, Block::Blackstone]));
+pub static MOSS_REPLACEABLE: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::Stone,
+        Block::Granite,
+        Block::Diorite,
+        Block::Andesite,
+        Block::Tuff,
+        Block::Deepslate,
+        Block::CaveVinesPlant,
+        Block::CaveVines,
+        Block::Dirt,
+        Block::GrassBlock,
+        Block::Podzol,
+        Block::CoarseDirt,
+        Block::Mycelium,
+        Block::RootedDirt,
+        Block::MossBlock,
+        Block::Mud,
+        Block::MuddyMangroveRoots,
+    ])
+});
+pub static CAVE_VINES: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::CaveVinesPlant, Block::CaveVines]));
+pub static LUSH_GROUND_REPLACEABLE: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::Clay,
+        Block::Gravel,
+        Block::Sand,
+        Block::Stone,
+        Block::Granite,
+        Block::Diorite,
+        Block::Andesite,
+        Block::Tuff,
+        Block::Deepslate,
+        Block::CaveVinesPlant,
+        Block::CaveVines,
+        Block::Dirt,
+        Block::GrassBlock,
+        Block::Podzol,
+        Block::CoarseDirt,
+        Block::Mycelium,
+        Block::RootedDirt,
+        Block::MossBlock,
+        Block::Mud,
+        Block::MuddyMangroveRoots,
+    ])
+});
+pub static SMALL_DRIPLEAF_PLACEABLE: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::Clay, Block::MossBlock]));
+pub static AZALEA_ROOT_REPLACEABLE: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::RedSand,
+        Block::Clay,
+        Block::Gravel,
+        Block::Sand,
+        Block::SnowBlock,
+        Block::PowderSnow,
+        Block::Stone,
+        Block::Granite,
+        Block::Diorite,
+        Block::Andesite,
+        Block::Tuff,
+        Block::Deepslate,
+        Block::Dirt,
+        Block::GrassBlock,
+        Block::Podzol,
+        Block::CoarseDirt,
+        Block::Mycelium,
+        Block::RootedDirt,
+        Block::MossBlock,
+        Block::Mud,
+        Block::MuddyMangroveRoots,
+        Block::Terracotta,
+        Block::WhiteTerracotta,
+        Block::OrangeTerracotta,
+        Block::MagentaTerracotta,
+        Block::LightBlueTerracotta,
+        Block::YellowTerracotta,
+        Block::LimeTerracotta,
+        Block::PinkTerracotta,
+        Block::GrayTerracotta,
+        Block::LightGrayTerracotta,
+        Block::CyanTerracotta,
+        Block::PurpleTerracotta,
+        Block::BlueTerracotta,
+        Block::BrownTerracotta,
+        Block::GreenTerracotta,
+        Block::RedTerracotta,
+        Block::BlackTerracotta,
+    ])
+});
+pub static BIG_DRIPLEAF_PLACEABLE: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::Farmland,
+        Block::Clay,
+        Block::MossBlock,
+        Block::Dirt,
+        Block::GrassBlock,
+        Block::Podzol,
+        Block::CoarseDirt,
+        Block::Mycelium,
+        Block::RootedDirt,
+        Block::MossBlock,
+        Block::Mud,
+        Block::MuddyMangroveRoots,
+    ])
+});
+pub static OCCLUDES_VIBRATION_SIGNALS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::WhiteWool,
+        Block::OrangeWool,
+        Block::MagentaWool,
+        Block::LightBlueWool,
+        Block::YellowWool,
+        Block::LimeWool,
+        Block::PinkWool,
+        Block::GrayWool,
+        Block::LightGrayWool,
+        Block::CyanWool,
+        Block::PurpleWool,
+        Block::BlueWool,
+        Block::BrownWool,
+        Block::GreenWool,
+        Block::RedWool,
+        Block::BlackWool,
+    ])
+});
+pub static DAMPENS_VIBRATIONS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::WhiteWool,
+        Block::OrangeWool,
+        Block::MagentaWool,
+        Block::LightBlueWool,
+        Block::YellowWool,
+        Block::LimeWool,
+        Block::PinkWool,
+        Block::GrayWool,
+        Block::LightGrayWool,
+        Block::CyanWool,
+        Block::PurpleWool,
+        Block::BlueWool,
+        Block::BrownWool,
+        Block::GreenWool,
+        Block::RedWool,
+        Block::BlackWool,
+        Block::WhiteCarpet,
+        Block::OrangeCarpet,
+        Block::MagentaCarpet,
+        Block::LightBlueCarpet,
+        Block::YellowCarpet,
+        Block::LimeCarpet,
+        Block::PinkCarpet,
+        Block::GrayCarpet,
+        Block::LightGrayCarpet,
+        Block::CyanCarpet,
+        Block::PurpleCarpet,
+        Block::BlueCarpet,
+        Block::BrownCarpet,
+        Block::GreenCarpet,
+        Block::RedCarpet,
+        Block::BlackCarpet,
+    ])
+});
+pub static SNOW: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::Snow, Block::SnowBlock, Block::PowderSnow]));
+pub static NEEDS_DIAMOND_TOOL: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
         Block::Obsidian,
         Block::CryingObsidian,
         Block::NetheriteBlock,
         Block::RespawnAnchor,
         Block::AncientDebris,
-        Block::DiamondBlock,
-        Block::DiamondOre,
-        Block::DeepslateDiamondOre,
-        Block::EmeraldOre,
-        Block::DeepslateEmeraldOre,
-        Block::EmeraldBlock,
-        Block::GoldBlock,
-        Block::RawGoldBlock,
-        Block::GoldOre,
-        Block::DeepslateGoldOre,
-        Block::RedstoneOre,
-        Block::DeepslateRedstoneOre,
-    ])
-});
-pub static SPRUCE_LOGS: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::SpruceLog,
-        Block::SpruceWood,
-        Block::StrippedSpruceLog,
-        Block::StrippedSpruceWood,
     ])
 });
 pub static SWORD_EFFICIENT: Lazy<HashSet<Block>> = Lazy::new(|| {
@@ -2807,40 +2575,373 @@ pub static SWORD_EFFICIENT: Lazy<HashSet<Block>> = Lazy::new(|| {
         Block::PitcherCrop,
     ])
 });
-pub static BANNERS: Lazy<HashSet<Block>> = Lazy::new(|| {
+pub static NEEDS_IRON_TOOL: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
-        Block::WhiteBanner,
-        Block::OrangeBanner,
-        Block::MagentaBanner,
-        Block::LightBlueBanner,
-        Block::YellowBanner,
-        Block::LimeBanner,
-        Block::PinkBanner,
-        Block::GrayBanner,
-        Block::LightGrayBanner,
-        Block::CyanBanner,
-        Block::PurpleBanner,
-        Block::BlueBanner,
-        Block::BrownBanner,
-        Block::GreenBanner,
-        Block::RedBanner,
-        Block::BlackBanner,
-        Block::WhiteWallBanner,
-        Block::OrangeWallBanner,
-        Block::MagentaWallBanner,
-        Block::LightBlueWallBanner,
-        Block::YellowWallBanner,
-        Block::LimeWallBanner,
-        Block::PinkWallBanner,
-        Block::GrayWallBanner,
-        Block::LightGrayWallBanner,
-        Block::CyanWallBanner,
-        Block::PurpleWallBanner,
-        Block::BlueWallBanner,
-        Block::BrownWallBanner,
-        Block::GreenWallBanner,
-        Block::RedWallBanner,
-        Block::BlackWallBanner,
+        Block::DiamondBlock,
+        Block::DiamondOre,
+        Block::DeepslateDiamondOre,
+        Block::EmeraldOre,
+        Block::DeepslateEmeraldOre,
+        Block::EmeraldBlock,
+        Block::GoldBlock,
+        Block::RawGoldBlock,
+        Block::GoldOre,
+        Block::DeepslateGoldOre,
+        Block::RedstoneOre,
+        Block::DeepslateRedstoneOre,
+    ])
+});
+pub static INCORRECT_FOR_NETHERITE_TOOL: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![]));
+pub static CAULDRONS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::Cauldron,
+        Block::WaterCauldron,
+        Block::LavaCauldron,
+        Block::PowderSnowCauldron,
+    ])
+});
+pub static INCORRECT_FOR_DIAMOND_TOOL: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![]));
+pub static INCORRECT_FOR_IRON_TOOL: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::Obsidian,
+        Block::CryingObsidian,
+        Block::NetheriteBlock,
+        Block::RespawnAnchor,
+        Block::AncientDebris,
+    ])
+});
+pub static INCORRECT_FOR_STONE_TOOL: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::Obsidian,
+        Block::CryingObsidian,
+        Block::NetheriteBlock,
+        Block::RespawnAnchor,
+        Block::AncientDebris,
+        Block::DiamondBlock,
+        Block::DiamondOre,
+        Block::DeepslateDiamondOre,
+        Block::EmeraldOre,
+        Block::DeepslateEmeraldOre,
+        Block::EmeraldBlock,
+        Block::GoldBlock,
+        Block::RawGoldBlock,
+        Block::GoldOre,
+        Block::DeepslateGoldOre,
+        Block::RedstoneOre,
+        Block::DeepslateRedstoneOre,
+    ])
+});
+pub static INCORRECT_FOR_GOLD_TOOL: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::Obsidian,
+        Block::CryingObsidian,
+        Block::NetheriteBlock,
+        Block::RespawnAnchor,
+        Block::AncientDebris,
+        Block::DiamondBlock,
+        Block::DiamondOre,
+        Block::DeepslateDiamondOre,
+        Block::EmeraldOre,
+        Block::DeepslateEmeraldOre,
+        Block::EmeraldBlock,
+        Block::GoldBlock,
+        Block::RawGoldBlock,
+        Block::GoldOre,
+        Block::DeepslateGoldOre,
+        Block::RedstoneOre,
+        Block::DeepslateRedstoneOre,
+        Block::IronBlock,
+        Block::RawIronBlock,
+        Block::IronOre,
+        Block::DeepslateIronOre,
+        Block::LapisBlock,
+        Block::LapisOre,
+        Block::DeepslateLapisOre,
+        Block::CopperBlock,
+        Block::RawCopperBlock,
+        Block::CopperOre,
+        Block::DeepslateCopperOre,
+        Block::CutCopperSlab,
+        Block::CutCopperStairs,
+        Block::CutCopper,
+        Block::WeatheredCopper,
+        Block::WeatheredCutCopperSlab,
+        Block::WeatheredCutCopperStairs,
+        Block::WeatheredCutCopper,
+        Block::OxidizedCopper,
+        Block::OxidizedCutCopperSlab,
+        Block::OxidizedCutCopperStairs,
+        Block::OxidizedCutCopper,
+        Block::ExposedCopper,
+        Block::ExposedCutCopperSlab,
+        Block::ExposedCutCopperStairs,
+        Block::ExposedCutCopper,
+        Block::WaxedCopperBlock,
+        Block::WaxedCutCopperSlab,
+        Block::WaxedCutCopperStairs,
+        Block::WaxedCutCopper,
+        Block::WaxedWeatheredCopper,
+        Block::WaxedWeatheredCutCopperSlab,
+        Block::WaxedWeatheredCutCopperStairs,
+        Block::WaxedWeatheredCutCopper,
+        Block::WaxedExposedCopper,
+        Block::WaxedExposedCutCopperSlab,
+        Block::WaxedExposedCutCopperStairs,
+        Block::WaxedExposedCutCopper,
+        Block::WaxedOxidizedCopper,
+        Block::WaxedOxidizedCutCopperSlab,
+        Block::WaxedOxidizedCutCopperStairs,
+        Block::WaxedOxidizedCutCopper,
+        Block::LightningRod,
+    ])
+});
+pub static INCORRECT_FOR_WOODEN_TOOL: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::Obsidian,
+        Block::CryingObsidian,
+        Block::NetheriteBlock,
+        Block::RespawnAnchor,
+        Block::AncientDebris,
+        Block::DiamondBlock,
+        Block::DiamondOre,
+        Block::DeepslateDiamondOre,
+        Block::EmeraldOre,
+        Block::DeepslateEmeraldOre,
+        Block::EmeraldBlock,
+        Block::GoldBlock,
+        Block::RawGoldBlock,
+        Block::GoldOre,
+        Block::DeepslateGoldOre,
+        Block::RedstoneOre,
+        Block::DeepslateRedstoneOre,
+        Block::IronBlock,
+        Block::RawIronBlock,
+        Block::IronOre,
+        Block::DeepslateIronOre,
+        Block::LapisBlock,
+        Block::LapisOre,
+        Block::DeepslateLapisOre,
+        Block::CopperBlock,
+        Block::RawCopperBlock,
+        Block::CopperOre,
+        Block::DeepslateCopperOre,
+        Block::CutCopperSlab,
+        Block::CutCopperStairs,
+        Block::CutCopper,
+        Block::WeatheredCopper,
+        Block::WeatheredCutCopperSlab,
+        Block::WeatheredCutCopperStairs,
+        Block::WeatheredCutCopper,
+        Block::OxidizedCopper,
+        Block::OxidizedCutCopperSlab,
+        Block::OxidizedCutCopperStairs,
+        Block::OxidizedCutCopper,
+        Block::ExposedCopper,
+        Block::ExposedCutCopperSlab,
+        Block::ExposedCutCopperStairs,
+        Block::ExposedCutCopper,
+        Block::WaxedCopperBlock,
+        Block::WaxedCutCopperSlab,
+        Block::WaxedCutCopperStairs,
+        Block::WaxedCutCopper,
+        Block::WaxedWeatheredCopper,
+        Block::WaxedWeatheredCutCopperSlab,
+        Block::WaxedWeatheredCutCopperStairs,
+        Block::WaxedWeatheredCutCopper,
+        Block::WaxedExposedCopper,
+        Block::WaxedExposedCutCopperSlab,
+        Block::WaxedExposedCutCopperStairs,
+        Block::WaxedExposedCutCopper,
+        Block::WaxedOxidizedCopper,
+        Block::WaxedOxidizedCutCopperSlab,
+        Block::WaxedOxidizedCutCopperStairs,
+        Block::WaxedOxidizedCutCopper,
+        Block::LightningRod,
+    ])
+});
+pub static FEATURES_CANNOT_REPLACE: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::Bedrock,
+        Block::Spawner,
+        Block::Chest,
+        Block::EndPortalFrame,
+        Block::ReinforcedDeepslate,
+    ])
+});
+pub static LAVA_POOL_STONE_CANNOT_REPLACE: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::Bedrock,
+        Block::Spawner,
+        Block::Chest,
+        Block::EndPortalFrame,
+        Block::ReinforcedDeepslate,
+        Block::JungleLeaves,
+        Block::OakLeaves,
+        Block::SpruceLeaves,
+        Block::DarkOakLeaves,
+        Block::AcaciaLeaves,
+        Block::BirchLeaves,
+        Block::AzaleaLeaves,
+        Block::FloweringAzaleaLeaves,
+        Block::MangroveLeaves,
+        Block::CherryLeaves,
+        Block::CrimsonStem,
+        Block::StrippedCrimsonStem,
+        Block::CrimsonHyphae,
+        Block::StrippedCrimsonHyphae,
+        Block::WarpedStem,
+        Block::StrippedWarpedStem,
+        Block::WarpedHyphae,
+        Block::StrippedWarpedHyphae,
+        Block::DarkOakLog,
+        Block::DarkOakWood,
+        Block::StrippedDarkOakLog,
+        Block::StrippedDarkOakWood,
+        Block::OakLog,
+        Block::OakWood,
+        Block::StrippedOakLog,
+        Block::StrippedOakWood,
+        Block::AcaciaLog,
+        Block::AcaciaWood,
+        Block::StrippedAcaciaLog,
+        Block::StrippedAcaciaWood,
+        Block::BirchLog,
+        Block::BirchWood,
+        Block::StrippedBirchLog,
+        Block::StrippedBirchWood,
+        Block::JungleLog,
+        Block::JungleWood,
+        Block::StrippedJungleLog,
+        Block::StrippedJungleWood,
+        Block::SpruceLog,
+        Block::SpruceWood,
+        Block::StrippedSpruceLog,
+        Block::StrippedSpruceWood,
+        Block::MangroveLog,
+        Block::MangroveWood,
+        Block::StrippedMangroveLog,
+        Block::StrippedMangroveWood,
+        Block::CherryLog,
+        Block::CherryWood,
+        Block::StrippedCherryLog,
+        Block::StrippedCherryWood,
+    ])
+});
+pub static GEODE_INVALID_BLOCKS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::Bedrock,
+        Block::Water,
+        Block::Lava,
+        Block::Ice,
+        Block::PackedIce,
+        Block::BlueIce,
+    ])
+});
+pub static ANIMALS_SPAWNABLE_ON: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::GrassBlock]));
+pub static ARMADILLO_SPAWNABLE_ON: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::RedSand,
+        Block::CoarseDirt,
+        Block::GrassBlock,
+        Block::Terracotta,
+        Block::WhiteTerracotta,
+        Block::YellowTerracotta,
+        Block::OrangeTerracotta,
+        Block::RedTerracotta,
+        Block::BrownTerracotta,
+        Block::LightGrayTerracotta,
+    ])
+});
+pub static AXOLOTLS_SPAWNABLE_ON: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::Clay]));
+pub static GOATS_SPAWNABLE_ON: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::Stone,
+        Block::Snow,
+        Block::SnowBlock,
+        Block::PackedIce,
+        Block::Gravel,
+        Block::GrassBlock,
+    ])
+});
+pub static MOOSHROOMS_SPAWNABLE_ON: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::Mycelium]));
+pub static PARROTS_SPAWNABLE_ON: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::GrassBlock,
+        Block::Air,
+        Block::JungleLeaves,
+        Block::OakLeaves,
+        Block::SpruceLeaves,
+        Block::DarkOakLeaves,
+        Block::AcaciaLeaves,
+        Block::BirchLeaves,
+        Block::AzaleaLeaves,
+        Block::FloweringAzaleaLeaves,
+        Block::MangroveLeaves,
+        Block::CherryLeaves,
+        Block::CrimsonStem,
+        Block::StrippedCrimsonStem,
+        Block::CrimsonHyphae,
+        Block::StrippedCrimsonHyphae,
+        Block::WarpedStem,
+        Block::StrippedWarpedStem,
+        Block::WarpedHyphae,
+        Block::StrippedWarpedHyphae,
+        Block::DarkOakLog,
+        Block::DarkOakWood,
+        Block::StrippedDarkOakLog,
+        Block::StrippedDarkOakWood,
+        Block::OakLog,
+        Block::OakWood,
+        Block::StrippedOakLog,
+        Block::StrippedOakWood,
+        Block::AcaciaLog,
+        Block::AcaciaWood,
+        Block::StrippedAcaciaLog,
+        Block::StrippedAcaciaWood,
+        Block::BirchLog,
+        Block::BirchWood,
+        Block::StrippedBirchLog,
+        Block::StrippedBirchWood,
+        Block::JungleLog,
+        Block::JungleWood,
+        Block::StrippedJungleLog,
+        Block::StrippedJungleWood,
+        Block::SpruceLog,
+        Block::SpruceWood,
+        Block::StrippedSpruceLog,
+        Block::StrippedSpruceWood,
+        Block::MangroveLog,
+        Block::MangroveWood,
+        Block::StrippedMangroveLog,
+        Block::StrippedMangroveWood,
+        Block::CherryLog,
+        Block::CherryWood,
+        Block::StrippedCherryLog,
+        Block::StrippedCherryWood,
+    ])
+});
+pub static POLAR_BEARS_SPAWNABLE_ON_ALTERNATE: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::Ice]));
+pub static RABBITS_SPAWNABLE_ON: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::GrassBlock,
+        Block::Snow,
+        Block::SnowBlock,
+        Block::Sand,
+    ])
+});
+pub static FOXES_SPAWNABLE_ON: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::GrassBlock,
+        Block::Snow,
+        Block::SnowBlock,
+        Block::Podzol,
+        Block::CoarseDirt,
     ])
 });
 pub static WOLVES_SPAWNABLE_ON: Lazy<HashSet<Block>> = Lazy::new(|| {
@@ -2852,141 +2953,27 @@ pub static WOLVES_SPAWNABLE_ON: Lazy<HashSet<Block>> = Lazy::new(|| {
         Block::Podzol,
     ])
 });
-pub static INSIDE_STEP_SOUND_BLOCKS: Lazy<HashSet<Block>> = Lazy::new(|| {
+pub static FROGS_SPAWNABLE_ON: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
-        Block::PowderSnow,
-        Block::SculkVein,
-        Block::GlowLichen,
-        Block::LilyPad,
-        Block::SmallAmethystBud,
-        Block::PinkPetals,
-    ])
-});
-pub static CRYSTAL_SOUND_BLOCKS: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![Block::AmethystBlock, Block::BuddingAmethyst]));
-pub static GOLD_ORES: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::GoldOre,
-        Block::NetherGoldOre,
-        Block::DeepslateGoldOre,
-    ])
-});
-pub static BEEHIVES: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![Block::BeeNest, Block::Beehive]));
-pub static REPLACEABLE: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::Air,
-        Block::Water,
-        Block::Lava,
-        Block::ShortGrass,
-        Block::Fern,
-        Block::DeadBush,
-        Block::Seagrass,
-        Block::TallSeagrass,
-        Block::Fire,
-        Block::SoulFire,
-        Block::Snow,
-        Block::Vine,
-        Block::GlowLichen,
-        Block::Light,
-        Block::TallGrass,
-        Block::LargeFern,
-        Block::StructureVoid,
-        Block::VoidAir,
-        Block::CaveAir,
-        Block::BubbleColumn,
-        Block::WarpedRoots,
-        Block::NetherSprouts,
-        Block::CrimsonRoots,
-        Block::HangingRoots,
-    ])
-});
-pub static COPPER_ORES: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![Block::CopperOre, Block::DeepslateCopperOre]));
-pub static CORAL_PLANTS: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::TubeCoral,
-        Block::BrainCoral,
-        Block::BubbleCoral,
-        Block::FireCoral,
-        Block::HornCoral,
-    ])
-});
-pub static SAPLINGS: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::OakSapling,
-        Block::SpruceSapling,
-        Block::BirchSapling,
-        Block::JungleSapling,
-        Block::AcaciaSapling,
-        Block::DarkOakSapling,
-        Block::Azalea,
-        Block::FloweringAzalea,
-        Block::MangrovePropagule,
-        Block::CherrySapling,
-    ])
-});
-pub static DRAGON_IMMUNE: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::Barrier,
-        Block::Bedrock,
-        Block::EndPortal,
-        Block::EndPortalFrame,
-        Block::EndGateway,
-        Block::CommandBlock,
-        Block::RepeatingCommandBlock,
-        Block::ChainCommandBlock,
-        Block::StructureBlock,
-        Block::Jigsaw,
-        Block::MovingPiston,
-        Block::Obsidian,
-        Block::CryingObsidian,
-        Block::EndStone,
-        Block::IronBars,
-        Block::RespawnAnchor,
-        Block::ReinforcedDeepslate,
-    ])
-});
-pub static REDSTONE_ORES: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![Block::RedstoneOre, Block::DeepslateRedstoneOre]));
-pub static PLANKS: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::OakPlanks,
-        Block::SprucePlanks,
-        Block::BirchPlanks,
-        Block::JunglePlanks,
-        Block::AcaciaPlanks,
-        Block::DarkOakPlanks,
-        Block::CrimsonPlanks,
-        Block::WarpedPlanks,
-        Block::MangrovePlanks,
-        Block::BambooPlanks,
-        Block::CherryPlanks,
-    ])
-});
-pub static AZALEA_ROOT_REPLACEABLE: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::RedSand,
-        Block::Clay,
-        Block::Gravel,
-        Block::Sand,
-        Block::SnowBlock,
-        Block::PowderSnow,
-        Block::Stone,
-        Block::Granite,
-        Block::Diorite,
-        Block::Andesite,
-        Block::Tuff,
-        Block::Deepslate,
-        Block::Dirt,
         Block::GrassBlock,
-        Block::Podzol,
-        Block::CoarseDirt,
-        Block::Mycelium,
-        Block::RootedDirt,
-        Block::MossBlock,
         Block::Mud,
+        Block::MangroveRoots,
         Block::MuddyMangroveRoots,
+    ])
+});
+pub static BADLANDS_TERRACOTTA: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::Terracotta,
+        Block::WhiteTerracotta,
+        Block::YellowTerracotta,
+        Block::OrangeTerracotta,
+        Block::RedTerracotta,
+        Block::BrownTerracotta,
+        Block::LightGrayTerracotta,
+    ])
+});
+pub static TERRACOTTA: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
         Block::Terracotta,
         Block::WhiteTerracotta,
         Block::OrangeTerracotta,
@@ -3006,231 +2993,26 @@ pub static AZALEA_ROOT_REPLACEABLE: Lazy<HashSet<Block>> = Lazy::new(|| {
         Block::BlackTerracotta,
     ])
 });
-pub static CLIMBABLE: Lazy<HashSet<Block>> = Lazy::new(|| {
+pub static CONCRETE_POWDER: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
-        Block::Ladder,
-        Block::Vine,
-        Block::Scaffolding,
-        Block::WeepingVines,
-        Block::WeepingVinesPlant,
-        Block::TwistingVines,
-        Block::TwistingVinesPlant,
-        Block::CaveVines,
-        Block::CaveVinesPlant,
+        Block::WhiteConcretePowder,
+        Block::OrangeConcretePowder,
+        Block::MagentaConcretePowder,
+        Block::LightBlueConcretePowder,
+        Block::YellowConcretePowder,
+        Block::LimeConcretePowder,
+        Block::PinkConcretePowder,
+        Block::GrayConcretePowder,
+        Block::LightGrayConcretePowder,
+        Block::CyanConcretePowder,
+        Block::PurpleConcretePowder,
+        Block::BlueConcretePowder,
+        Block::BrownConcretePowder,
+        Block::GreenConcretePowder,
+        Block::RedConcretePowder,
+        Block::BlackConcretePowder,
     ])
 });
-pub static BIRCH_LOGS: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::BirchLog,
-        Block::BirchWood,
-        Block::StrippedBirchLog,
-        Block::StrippedBirchWood,
-    ])
-});
-pub static SNIFFER_DIGGABLE_BLOCK: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::Dirt,
-        Block::GrassBlock,
-        Block::Podzol,
-        Block::CoarseDirt,
-        Block::RootedDirt,
-        Block::MossBlock,
-        Block::Mud,
-        Block::MuddyMangroveRoots,
-    ])
-});
-pub static INFINIBURN_NETHER: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![Block::Netherrack, Block::MagmaBlock]));
-pub static SNIFFER_EGG_HATCH_BOOST: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![Block::MossBlock]));
-pub static INCORRECT_FOR_IRON_TOOL: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::Obsidian,
-        Block::CryingObsidian,
-        Block::NetheriteBlock,
-        Block::RespawnAnchor,
-        Block::AncientDebris,
-    ])
-});
-pub static DRAGON_TRANSPARENT: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![Block::Light, Block::Fire, Block::SoulFire]));
-pub static PRESSURE_PLATES: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::LightWeightedPressurePlate,
-        Block::HeavyWeightedPressurePlate,
-        Block::OakPressurePlate,
-        Block::SprucePressurePlate,
-        Block::BirchPressurePlate,
-        Block::JunglePressurePlate,
-        Block::AcaciaPressurePlate,
-        Block::DarkOakPressurePlate,
-        Block::CrimsonPressurePlate,
-        Block::WarpedPressurePlate,
-        Block::MangrovePressurePlate,
-        Block::BambooPressurePlate,
-        Block::CherryPressurePlate,
-        Block::StonePressurePlate,
-        Block::PolishedBlackstonePressurePlate,
-    ])
-});
-pub static SHULKER_BOXES: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::ShulkerBox,
-        Block::BlackShulkerBox,
-        Block::BlueShulkerBox,
-        Block::BrownShulkerBox,
-        Block::CyanShulkerBox,
-        Block::GrayShulkerBox,
-        Block::GreenShulkerBox,
-        Block::LightBlueShulkerBox,
-        Block::LightGrayShulkerBox,
-        Block::LimeShulkerBox,
-        Block::MagentaShulkerBox,
-        Block::OrangeShulkerBox,
-        Block::PinkShulkerBox,
-        Block::PurpleShulkerBox,
-        Block::RedShulkerBox,
-        Block::WhiteShulkerBox,
-        Block::YellowShulkerBox,
-    ])
-});
-pub static TALL_FLOWERS: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::Sunflower,
-        Block::Lilac,
-        Block::Peony,
-        Block::RoseBush,
-        Block::PitcherPlant,
-    ])
-});
-pub static DEEPSLATE_ORE_REPLACEABLES: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![Block::Deepslate, Block::Tuff]));
-pub static OCCLUDES_VIBRATION_SIGNALS: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::WhiteWool,
-        Block::OrangeWool,
-        Block::MagentaWool,
-        Block::LightBlueWool,
-        Block::YellowWool,
-        Block::LimeWool,
-        Block::PinkWool,
-        Block::GrayWool,
-        Block::LightGrayWool,
-        Block::CyanWool,
-        Block::PurpleWool,
-        Block::BlueWool,
-        Block::BrownWool,
-        Block::GreenWool,
-        Block::RedWool,
-        Block::BlackWool,
-    ])
-});
-pub static CRIMSON_STEMS: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::CrimsonStem,
-        Block::StrippedCrimsonStem,
-        Block::CrimsonHyphae,
-        Block::StrippedCrimsonHyphae,
-    ])
-});
-pub static DOES_NOT_BLOCK_HOPPERS: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![Block::BeeNest, Block::Beehive]));
-pub static LUSH_GROUND_REPLACEABLE: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::Clay,
-        Block::Gravel,
-        Block::Sand,
-        Block::Stone,
-        Block::Granite,
-        Block::Diorite,
-        Block::Andesite,
-        Block::Tuff,
-        Block::Deepslate,
-        Block::CaveVinesPlant,
-        Block::CaveVines,
-        Block::Dirt,
-        Block::GrassBlock,
-        Block::Podzol,
-        Block::CoarseDirt,
-        Block::Mycelium,
-        Block::RootedDirt,
-        Block::MossBlock,
-        Block::Mud,
-        Block::MuddyMangroveRoots,
-    ])
-});
-pub static WOODEN_BUTTONS: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::OakButton,
-        Block::SpruceButton,
-        Block::BirchButton,
-        Block::JungleButton,
-        Block::AcaciaButton,
-        Block::DarkOakButton,
-        Block::CrimsonButton,
-        Block::WarpedButton,
-        Block::MangroveButton,
-        Block::BambooButton,
-        Block::CherryButton,
-    ])
-});
-pub static STONE_PRESSURE_PLATES: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::StonePressurePlate,
-        Block::PolishedBlackstonePressurePlate,
-    ])
-});
-pub static SOUL_FIRE_BASE_BLOCKS: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![Block::SoulSand, Block::SoulSoil]));
-pub static BIG_DRIPLEAF_PLACEABLE: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::Farmland,
-        Block::Clay,
-        Block::MossBlock,
-        Block::Dirt,
-        Block::GrassBlock,
-        Block::Podzol,
-        Block::CoarseDirt,
-        Block::Mycelium,
-        Block::RootedDirt,
-        Block::MossBlock,
-        Block::Mud,
-        Block::MuddyMangroveRoots,
-    ])
-});
-pub static POLAR_BEARS_SPAWNABLE_ON_ALTERNATE: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![Block::Ice]));
-pub static CAVE_VINES: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![Block::CaveVinesPlant, Block::CaveVines]));
-pub static OVERWORLD_NATURAL_LOGS: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::AcaciaLog,
-        Block::BirchLog,
-        Block::OakLog,
-        Block::JungleLog,
-        Block::SpruceLog,
-        Block::DarkOakLog,
-        Block::MangroveLog,
-        Block::CherryLog,
-    ])
-});
-pub static WOODEN_FENCES: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::OakFence,
-        Block::AcaciaFence,
-        Block::DarkOakFence,
-        Block::SpruceFence,
-        Block::BirchFence,
-        Block::JungleFence,
-        Block::CrimsonFence,
-        Block::WarpedFence,
-        Block::MangroveFence,
-        Block::BambooFence,
-        Block::CherryFence,
-    ])
-});
-pub static CAMPFIRES: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![Block::Campfire, Block::SoulCampfire]));
 pub static AZALEA_GROWS_ON: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
         Block::SnowBlock,
@@ -3267,57 +3049,186 @@ pub static AZALEA_GROWS_ON: Lazy<HashSet<Block>> = Lazy::new(|| {
         Block::BlackTerracotta,
     ])
 });
-pub static WALL_SIGNS: Lazy<HashSet<Block>> = Lazy::new(|| {
+pub static FROG_PREFER_JUMP_TO: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::LilyPad, Block::BigDripleaf]));
+pub static SCULK_REPLACEABLE: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
-        Block::OakWallSign,
-        Block::SpruceWallSign,
-        Block::BirchWallSign,
-        Block::AcaciaWallSign,
-        Block::JungleWallSign,
-        Block::DarkOakWallSign,
-        Block::CrimsonWallSign,
-        Block::WarpedWallSign,
-        Block::MangroveWallSign,
-        Block::BambooWallSign,
-        Block::CherryWallSign,
-    ])
-});
-pub static BADLANDS_TERRACOTTA: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
+        Block::Sand,
+        Block::RedSand,
+        Block::Gravel,
+        Block::SoulSand,
+        Block::SoulSoil,
+        Block::Calcite,
+        Block::SmoothBasalt,
+        Block::Clay,
+        Block::DripstoneBlock,
+        Block::EndStone,
+        Block::RedSandstone,
+        Block::Sandstone,
+        Block::Stone,
+        Block::Granite,
+        Block::Diorite,
+        Block::Andesite,
+        Block::Tuff,
+        Block::Deepslate,
+        Block::Dirt,
+        Block::GrassBlock,
+        Block::Podzol,
+        Block::CoarseDirt,
+        Block::Mycelium,
+        Block::RootedDirt,
+        Block::MossBlock,
+        Block::Mud,
+        Block::MuddyMangroveRoots,
         Block::Terracotta,
         Block::WhiteTerracotta,
-        Block::YellowTerracotta,
         Block::OrangeTerracotta,
-        Block::RedTerracotta,
-        Block::BrownTerracotta,
+        Block::MagentaTerracotta,
+        Block::LightBlueTerracotta,
+        Block::YellowTerracotta,
+        Block::LimeTerracotta,
+        Block::PinkTerracotta,
+        Block::GrayTerracotta,
         Block::LightGrayTerracotta,
+        Block::CyanTerracotta,
+        Block::PurpleTerracotta,
+        Block::BlueTerracotta,
+        Block::BrownTerracotta,
+        Block::GreenTerracotta,
+        Block::RedTerracotta,
+        Block::BlackTerracotta,
+        Block::CrimsonNylium,
+        Block::WarpedNylium,
+        Block::Netherrack,
+        Block::Basalt,
+        Block::Blackstone,
     ])
 });
-pub static WALL_HANGING_SIGNS: Lazy<HashSet<Block>> = Lazy::new(|| {
+pub static SCULK_REPLACEABLE_WORLD_GEN: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
-        Block::OakWallHangingSign,
-        Block::SpruceWallHangingSign,
-        Block::BirchWallHangingSign,
-        Block::AcaciaWallHangingSign,
-        Block::CherryWallHangingSign,
-        Block::JungleWallHangingSign,
-        Block::DarkOakWallHangingSign,
-        Block::CrimsonWallHangingSign,
-        Block::WarpedWallHangingSign,
-        Block::MangroveWallHangingSign,
-        Block::BambooWallHangingSign,
-    ])
-});
-pub static BAMBOO_PLANTABLE_ON: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::Bamboo,
-        Block::BambooSapling,
+        Block::DeepslateBricks,
+        Block::DeepslateTiles,
+        Block::CobbledDeepslate,
+        Block::CrackedDeepslateBricks,
+        Block::CrackedDeepslateTiles,
+        Block::PolishedDeepslate,
+        Block::Sand,
+        Block::RedSand,
         Block::Gravel,
-        Block::SuspiciousGravel,
+        Block::SoulSand,
+        Block::SoulSoil,
+        Block::Calcite,
+        Block::SmoothBasalt,
+        Block::Clay,
+        Block::DripstoneBlock,
+        Block::EndStone,
+        Block::RedSandstone,
+        Block::Sandstone,
+        Block::Stone,
+        Block::Granite,
+        Block::Diorite,
+        Block::Andesite,
+        Block::Tuff,
+        Block::Deepslate,
+        Block::Dirt,
+        Block::GrassBlock,
+        Block::Podzol,
+        Block::CoarseDirt,
+        Block::Mycelium,
+        Block::RootedDirt,
+        Block::MossBlock,
+        Block::Mud,
+        Block::MuddyMangroveRoots,
+        Block::Terracotta,
+        Block::WhiteTerracotta,
+        Block::OrangeTerracotta,
+        Block::MagentaTerracotta,
+        Block::LightBlueTerracotta,
+        Block::YellowTerracotta,
+        Block::LimeTerracotta,
+        Block::PinkTerracotta,
+        Block::GrayTerracotta,
+        Block::LightGrayTerracotta,
+        Block::CyanTerracotta,
+        Block::PurpleTerracotta,
+        Block::BlueTerracotta,
+        Block::BrownTerracotta,
+        Block::GreenTerracotta,
+        Block::RedTerracotta,
+        Block::BlackTerracotta,
+        Block::CrimsonNylium,
+        Block::WarpedNylium,
+        Block::Netherrack,
+        Block::Basalt,
+        Block::Blackstone,
+    ])
+});
+pub static CONVERTABLE_TO_MUD: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::Dirt, Block::CoarseDirt, Block::RootedDirt]));
+pub static VIBRATION_RESONATORS: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::AmethystBlock]));
+pub static ANCIENT_CITY_REPLACEABLE: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::Deepslate,
+        Block::DeepslateBricks,
+        Block::DeepslateTiles,
+        Block::DeepslateBrickSlab,
+        Block::DeepslateTileSlab,
+        Block::DeepslateBrickStairs,
+        Block::DeepslateTileWall,
+        Block::DeepslateBrickWall,
+        Block::CobbledDeepslate,
+        Block::CrackedDeepslateBricks,
+        Block::CrackedDeepslateTiles,
+        Block::GrayWool,
+    ])
+});
+pub static MANGROVE_LOGS_CAN_GROW_THROUGH: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::Mud,
+        Block::MuddyMangroveRoots,
+        Block::MangroveRoots,
+        Block::MangroveLeaves,
+        Block::MangroveLog,
+        Block::MangrovePropagule,
+        Block::MossCarpet,
+        Block::Vine,
+    ])
+});
+pub static MANGROVE_ROOTS_CAN_GROW_THROUGH: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::Mud,
+        Block::MuddyMangroveRoots,
+        Block::MangroveRoots,
+        Block::MossCarpet,
+        Block::Vine,
+        Block::MangrovePropagule,
+        Block::Snow,
+    ])
+});
+pub static DEAD_BUSH_MAY_PLACE_ON: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
         Block::Sand,
         Block::RedSand,
         Block::SuspiciousSand,
         Block::SuspiciousSand,
+        Block::Terracotta,
+        Block::WhiteTerracotta,
+        Block::OrangeTerracotta,
+        Block::MagentaTerracotta,
+        Block::LightBlueTerracotta,
+        Block::YellowTerracotta,
+        Block::LimeTerracotta,
+        Block::PinkTerracotta,
+        Block::GrayTerracotta,
+        Block::LightGrayTerracotta,
+        Block::CyanTerracotta,
+        Block::PurpleTerracotta,
+        Block::BlueTerracotta,
+        Block::BrownTerracotta,
+        Block::GreenTerracotta,
+        Block::RedTerracotta,
+        Block::BlackTerracotta,
         Block::Dirt,
         Block::GrassBlock,
         Block::Podzol,
@@ -3329,47 +3240,10 @@ pub static BAMBOO_PLANTABLE_ON: Lazy<HashSet<Block>> = Lazy::new(|| {
         Block::MuddyMangroveRoots,
     ])
 });
-pub static WITHER_SUMMON_BASE_BLOCKS: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![Block::SoulSand, Block::SoulSoil]));
-pub static WALL_CORALS: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::TubeCoralWallFan,
-        Block::BrainCoralWallFan,
-        Block::BubbleCoralWallFan,
-        Block::FireCoralWallFan,
-        Block::HornCoralWallFan,
-    ])
-});
-pub static MAINTAINS_FARMLAND: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::PumpkinStem,
-        Block::AttachedPumpkinStem,
-        Block::MelonStem,
-        Block::AttachedMelonStem,
-        Block::Beetroots,
-        Block::Carrots,
-        Block::Potatoes,
-        Block::TorchflowerCrop,
-        Block::Torchflower,
-        Block::PitcherCrop,
-        Block::Wheat,
-    ])
-});
-pub static WOODEN_SLABS: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::OakSlab,
-        Block::SpruceSlab,
-        Block::BirchSlab,
-        Block::JungleSlab,
-        Block::AcaciaSlab,
-        Block::DarkOakSlab,
-        Block::CrimsonSlab,
-        Block::WarpedSlab,
-        Block::MangroveSlab,
-        Block::BambooSlab,
-        Block::CherrySlab,
-    ])
-});
+pub static SNOW_LAYER_CANNOT_SURVIVE_ON: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::Ice, Block::PackedIce, Block::Barrier]));
+pub static SNOW_LAYER_CAN_SURVIVE_ON: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::HoneyBlock, Block::SoulSand, Block::Mud]));
 pub static REPLACEABLE_BY_TREES: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
         Block::ShortGrass,
@@ -3403,118 +3277,197 @@ pub static REPLACEABLE_BY_TREES: Lazy<HashSet<Block>> = Lazy::new(|| {
         Block::CherryLeaves,
     ])
 });
-pub static FEATURES_CANNOT_REPLACE: Lazy<HashSet<Block>> = Lazy::new(|| {
+pub static COMPLETES_FIND_TREE_TUTORIAL: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
-        Block::Bedrock,
-        Block::Spawner,
-        Block::Chest,
-        Block::EndPortalFrame,
-        Block::ReinforcedDeepslate,
-    ])
-});
-pub static INCORRECT_FOR_DIAMOND_TOOL: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![]));
-pub static AXOLOTLS_SPAWNABLE_ON: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![Block::Clay]));
-pub static PORTALS: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::NetherPortal,
-        Block::EndPortal,
-        Block::EndGateway,
-    ])
-});
-pub static FLOWER_POTS: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Block::FlowerPot,
-        Block::PottedPoppy,
-        Block::PottedBlueOrchid,
-        Block::PottedAllium,
-        Block::PottedAzureBluet,
-        Block::PottedRedTulip,
-        Block::PottedOrangeTulip,
-        Block::PottedWhiteTulip,
-        Block::PottedPinkTulip,
-        Block::PottedOxeyeDaisy,
-        Block::PottedDandelion,
-        Block::PottedOakSapling,
-        Block::PottedSpruceSapling,
-        Block::PottedBirchSapling,
-        Block::PottedJungleSapling,
-        Block::PottedAcaciaSapling,
-        Block::PottedDarkOakSapling,
-        Block::PottedRedMushroom,
-        Block::PottedBrownMushroom,
-        Block::PottedDeadBush,
-        Block::PottedFern,
-        Block::PottedCactus,
-        Block::PottedCornflower,
-        Block::PottedLilyOfTheValley,
-        Block::PottedWitherRose,
-        Block::PottedBamboo,
-        Block::PottedCrimsonFungus,
-        Block::PottedWarpedFungus,
-        Block::PottedCrimsonRoots,
-        Block::PottedWarpedRoots,
-        Block::PottedAzaleaBush,
-        Block::PottedFloweringAzaleaBush,
-        Block::PottedMangrovePropagule,
-        Block::PottedCherrySapling,
-        Block::PottedTorchflower,
-    ])
-});
-pub static FLOWERS: Lazy<HashSet<Block>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
+        Block::JungleLeaves,
+        Block::OakLeaves,
+        Block::SpruceLeaves,
+        Block::DarkOakLeaves,
+        Block::AcaciaLeaves,
+        Block::BirchLeaves,
+        Block::AzaleaLeaves,
         Block::FloweringAzaleaLeaves,
-        Block::FloweringAzalea,
-        Block::MangrovePropagule,
+        Block::MangroveLeaves,
         Block::CherryLeaves,
-        Block::PinkPetals,
-        Block::ChorusFlower,
-        Block::SporeBlossom,
-        Block::Dandelion,
-        Block::Poppy,
-        Block::BlueOrchid,
-        Block::Allium,
-        Block::AzureBluet,
-        Block::RedTulip,
-        Block::OrangeTulip,
-        Block::WhiteTulip,
-        Block::PinkTulip,
-        Block::OxeyeDaisy,
-        Block::Cornflower,
-        Block::LilyOfTheValley,
-        Block::WitherRose,
-        Block::Torchflower,
-        Block::Sunflower,
-        Block::Lilac,
-        Block::Peony,
-        Block::RoseBush,
-        Block::PitcherPlant,
+        Block::NetherWartBlock,
+        Block::WarpedWartBlock,
+        Block::CrimsonStem,
+        Block::StrippedCrimsonStem,
+        Block::CrimsonHyphae,
+        Block::StrippedCrimsonHyphae,
+        Block::WarpedStem,
+        Block::StrippedWarpedStem,
+        Block::WarpedHyphae,
+        Block::StrippedWarpedHyphae,
+        Block::DarkOakLog,
+        Block::DarkOakWood,
+        Block::StrippedDarkOakLog,
+        Block::StrippedDarkOakWood,
+        Block::OakLog,
+        Block::OakWood,
+        Block::StrippedOakLog,
+        Block::StrippedOakWood,
+        Block::AcaciaLog,
+        Block::AcaciaWood,
+        Block::StrippedAcaciaLog,
+        Block::StrippedAcaciaWood,
+        Block::BirchLog,
+        Block::BirchWood,
+        Block::StrippedBirchLog,
+        Block::StrippedBirchWood,
+        Block::JungleLog,
+        Block::JungleWood,
+        Block::StrippedJungleLog,
+        Block::StrippedJungleWood,
+        Block::SpruceLog,
+        Block::SpruceWood,
+        Block::StrippedSpruceLog,
+        Block::StrippedSpruceWood,
+        Block::MangroveLog,
+        Block::MangroveWood,
+        Block::StrippedMangroveLog,
+        Block::StrippedMangroveWood,
+        Block::CherryLog,
+        Block::CherryWood,
+        Block::StrippedCherryLog,
+        Block::StrippedCherryWood,
     ])
 });
-pub static CANDLE_CAKES: Lazy<HashSet<Block>> = Lazy::new(|| {
+pub static SNAPS_GOAT_HORN: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
-        Block::CandleCake,
-        Block::WhiteCandleCake,
-        Block::OrangeCandleCake,
-        Block::MagentaCandleCake,
-        Block::LightBlueCandleCake,
-        Block::YellowCandleCake,
-        Block::LimeCandleCake,
-        Block::PinkCandleCake,
-        Block::GrayCandleCake,
-        Block::LightGrayCandleCake,
-        Block::CyanCandleCake,
-        Block::PurpleCandleCake,
-        Block::BlueCandleCake,
-        Block::BrownCandleCake,
-        Block::GreenCandleCake,
-        Block::RedCandleCake,
-        Block::BlackCandleCake,
+        Block::Stone,
+        Block::PackedIce,
+        Block::IronOre,
+        Block::CoalOre,
+        Block::CopperOre,
+        Block::EmeraldOre,
+        Block::AcaciaLog,
+        Block::BirchLog,
+        Block::OakLog,
+        Block::JungleLog,
+        Block::SpruceLog,
+        Block::DarkOakLog,
+        Block::MangroveLog,
+        Block::CherryLog,
     ])
 });
-pub static INCORRECT_FOR_NETHERITE_TOOL: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![]));
+pub static TRAIL_RUINS_REPLACEABLE: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::Gravel]));
+pub static INVALID_SPAWN_INSIDE: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::EndPortal, Block::EndGateway]));
+pub static SNIFFER_DIGGABLE_BLOCK: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::Dirt,
+        Block::GrassBlock,
+        Block::Podzol,
+        Block::CoarseDirt,
+        Block::RootedDirt,
+        Block::MossBlock,
+        Block::Mud,
+        Block::MuddyMangroveRoots,
+    ])
+});
+pub static SNIFFER_EGG_HATCH_BOOST: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::MossBlock]));
+pub static REPLACEABLE: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::Air,
+        Block::Water,
+        Block::Lava,
+        Block::ShortGrass,
+        Block::Fern,
+        Block::DeadBush,
+        Block::Seagrass,
+        Block::TallSeagrass,
+        Block::Fire,
+        Block::SoulFire,
+        Block::Snow,
+        Block::Vine,
+        Block::GlowLichen,
+        Block::Light,
+        Block::TallGrass,
+        Block::LargeFern,
+        Block::StructureVoid,
+        Block::VoidAir,
+        Block::CaveAir,
+        Block::BubbleColumn,
+        Block::WarpedRoots,
+        Block::NetherSprouts,
+        Block::CrimsonRoots,
+        Block::HangingRoots,
+    ])
+});
+pub static ENCHANTMENT_POWER_PROVIDER: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::Bookshelf]));
+pub static ENCHANTMENT_POWER_TRANSMITTER: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::Air,
+        Block::Water,
+        Block::Lava,
+        Block::ShortGrass,
+        Block::Fern,
+        Block::DeadBush,
+        Block::Seagrass,
+        Block::TallSeagrass,
+        Block::Fire,
+        Block::SoulFire,
+        Block::Snow,
+        Block::Vine,
+        Block::GlowLichen,
+        Block::Light,
+        Block::TallGrass,
+        Block::LargeFern,
+        Block::StructureVoid,
+        Block::VoidAir,
+        Block::CaveAir,
+        Block::BubbleColumn,
+        Block::WarpedRoots,
+        Block::NetherSprouts,
+        Block::CrimsonRoots,
+        Block::HangingRoots,
+    ])
+});
+pub static MAINTAINS_FARMLAND: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::PumpkinStem,
+        Block::AttachedPumpkinStem,
+        Block::MelonStem,
+        Block::AttachedMelonStem,
+        Block::Beetroots,
+        Block::Carrots,
+        Block::Potatoes,
+        Block::TorchflowerCrop,
+        Block::Torchflower,
+        Block::PitcherCrop,
+        Block::Wheat,
+    ])
+});
+pub static CAMEL_SAND_STEP_SOUND_BLOCKS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::Sand,
+        Block::RedSand,
+        Block::SuspiciousSand,
+        Block::SuspiciousSand,
+        Block::WhiteConcretePowder,
+        Block::OrangeConcretePowder,
+        Block::MagentaConcretePowder,
+        Block::LightBlueConcretePowder,
+        Block::YellowConcretePowder,
+        Block::LimeConcretePowder,
+        Block::PinkConcretePowder,
+        Block::GrayConcretePowder,
+        Block::LightGrayConcretePowder,
+        Block::CyanConcretePowder,
+        Block::PurpleConcretePowder,
+        Block::BlueConcretePowder,
+        Block::BrownConcretePowder,
+        Block::GreenConcretePowder,
+        Block::RedConcretePowder,
+        Block::BlackConcretePowder,
+    ])
+});
+pub static DOES_NOT_BLOCK_HOPPERS: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::BeeNest, Block::Beehive]));
 pub static NEEDS_STONE_TOOL: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
         Block::IronBlock,
@@ -3562,55 +3515,102 @@ pub static NEEDS_STONE_TOOL: Lazy<HashSet<Block>> = Lazy::new(|| {
         Block::LightningRod,
     ])
 });
-pub static CANDLES: Lazy<HashSet<Block>> = Lazy::new(|| {
+pub static OVERWORLD_CARVER_REPLACEABLES: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
-        Block::Candle,
-        Block::WhiteCandle,
-        Block::OrangeCandle,
-        Block::MagentaCandle,
-        Block::LightBlueCandle,
-        Block::YellowCandle,
-        Block::LimeCandle,
-        Block::PinkCandle,
-        Block::GrayCandle,
-        Block::LightGrayCandle,
-        Block::CyanCandle,
-        Block::PurpleCandle,
-        Block::BlueCandle,
-        Block::BrownCandle,
-        Block::GreenCandle,
-        Block::RedCandle,
-        Block::BlackCandle,
+        Block::Water,
+        Block::Gravel,
+        Block::SuspiciousGravel,
+        Block::Sandstone,
+        Block::RedSandstone,
+        Block::Calcite,
+        Block::Snow,
+        Block::PackedIce,
+        Block::RawIronBlock,
+        Block::RawCopperBlock,
+        Block::Stone,
+        Block::Granite,
+        Block::Diorite,
+        Block::Andesite,
+        Block::Tuff,
+        Block::Deepslate,
+        Block::Dirt,
+        Block::GrassBlock,
+        Block::Podzol,
+        Block::CoarseDirt,
+        Block::Mycelium,
+        Block::RootedDirt,
+        Block::MossBlock,
+        Block::Mud,
+        Block::MuddyMangroveRoots,
+        Block::Sand,
+        Block::RedSand,
+        Block::SuspiciousSand,
+        Block::SuspiciousSand,
+        Block::Terracotta,
+        Block::WhiteTerracotta,
+        Block::OrangeTerracotta,
+        Block::MagentaTerracotta,
+        Block::LightBlueTerracotta,
+        Block::YellowTerracotta,
+        Block::LimeTerracotta,
+        Block::PinkTerracotta,
+        Block::GrayTerracotta,
+        Block::LightGrayTerracotta,
+        Block::CyanTerracotta,
+        Block::PurpleTerracotta,
+        Block::BlueTerracotta,
+        Block::BrownTerracotta,
+        Block::GreenTerracotta,
+        Block::RedTerracotta,
+        Block::BlackTerracotta,
+        Block::IronOre,
+        Block::DeepslateIronOre,
+        Block::CopperOre,
+        Block::DeepslateCopperOre,
     ])
 });
-pub static EMERALD_ORES: Lazy<HashSet<Block>> =
-    Lazy::new(|| HashSet::from_iter(vec![Block::EmeraldOre, Block::DeepslateEmeraldOre]));
-pub static CORAL_BLOCKS: Lazy<HashSet<Block>> = Lazy::new(|| {
+pub static NYLIUM: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::CrimsonNylium, Block::WarpedNylium]));
+pub static WALL_HANGING_SIGNS: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
-        Block::TubeCoralBlock,
-        Block::BrainCoralBlock,
-        Block::BubbleCoralBlock,
-        Block::FireCoralBlock,
-        Block::HornCoralBlock,
+        Block::OakWallHangingSign,
+        Block::SpruceWallHangingSign,
+        Block::BirchWallHangingSign,
+        Block::AcaciaWallHangingSign,
+        Block::CherryWallHangingSign,
+        Block::JungleWallHangingSign,
+        Block::DarkOakWallHangingSign,
+        Block::CrimsonWallHangingSign,
+        Block::WarpedWallHangingSign,
+        Block::MangroveWallHangingSign,
+        Block::BambooWallHangingSign,
     ])
 });
-pub static BEDS: Lazy<HashSet<Block>> = Lazy::new(|| {
+pub static NETHER_CARVER_REPLACEABLES: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
-        Block::RedBed,
-        Block::BlackBed,
-        Block::BlueBed,
-        Block::BrownBed,
-        Block::CyanBed,
-        Block::GrayBed,
-        Block::GreenBed,
-        Block::LightBlueBed,
-        Block::LightGrayBed,
-        Block::LimeBed,
-        Block::MagentaBed,
-        Block::OrangeBed,
-        Block::PinkBed,
-        Block::PurpleBed,
-        Block::WhiteBed,
-        Block::YellowBed,
+        Block::SoulSand,
+        Block::SoulSoil,
+        Block::Stone,
+        Block::Granite,
+        Block::Diorite,
+        Block::Andesite,
+        Block::Tuff,
+        Block::Deepslate,
+        Block::Netherrack,
+        Block::Basalt,
+        Block::Blackstone,
+        Block::Dirt,
+        Block::GrassBlock,
+        Block::Podzol,
+        Block::CoarseDirt,
+        Block::Mycelium,
+        Block::RootedDirt,
+        Block::MossBlock,
+        Block::Mud,
+        Block::MuddyMangroveRoots,
+        Block::CrimsonNylium,
+        Block::WarpedNylium,
+        Block::NetherWartBlock,
+        Block::WarpedWartBlock,
     ])
 });
