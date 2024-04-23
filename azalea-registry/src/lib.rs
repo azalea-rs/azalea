@@ -5,6 +5,7 @@
 // auto-generated (so you can add doc comments to the registry enums if you
 // want)
 
+mod extra;
 pub mod tags;
 
 use std::io::{Cursor, Write};
@@ -12,7 +13,9 @@ use std::io::{Cursor, Write};
 use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
 use azalea_registry_macros::registry;
 
-pub trait Registry
+pub use extra::*;
+
+pub trait Registry: McBufReadable + McBufWritable
 where
     Self: Sized,
 {
@@ -77,6 +80,58 @@ impl<D: Registry, C: McBufReadable + McBufWritable> McBufWritable for CustomRegi
     }
 }
 
+#[derive(Clone, PartialEq)]
+pub enum HolderSet<D: Registry, ResourceLocation: McBufReadable + McBufWritable> {
+    Direct {
+        contents: Vec<D>,
+    },
+    Named {
+        key: ResourceLocation,
+        contents: Vec<ResourceLocation>,
+    },
+}
+
+impl<D: Registry, ResourceLocation: McBufReadable + McBufWritable> McBufReadable
+    for HolderSet<D, ResourceLocation>
+{
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let size = i32::var_read_from(buf)? - 1;
+        if size == -1 {
+            let key = ResourceLocation::read_from(buf)?;
+            Ok(Self::Named {
+                key,
+                contents: Vec::new(),
+            })
+        } else {
+            let mut contents = Vec::new();
+            for _ in 0..size {
+                contents.push(D::read_from(buf)?);
+            }
+            Ok(Self::Direct { contents })
+        }
+    }
+}
+
+impl<D: Registry, ResourceLocation: McBufReadable + McBufWritable> McBufWritable
+    for HolderSet<D, ResourceLocation>
+{
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        match self {
+            Self::Direct { contents } => {
+                (contents.len() as i32 + 1).var_write_into(buf)?;
+                for item in contents {
+                    item.write_into(buf)?;
+                }
+            }
+            Self::Named { key, .. } => {
+                0i32.var_write_into(buf)?;
+                key.write_into(buf)?;
+            }
+        }
+        Ok(())
+    }
+}
+
 registry! {
 /// The AI code that's currently being executed for the entity.
 enum Activity {
@@ -116,15 +171,23 @@ enum Attribute {
     GenericAttackDamage => "minecraft:generic.attack_damage",
     GenericAttackKnockback => "minecraft:generic.attack_knockback",
     GenericAttackSpeed => "minecraft:generic.attack_speed",
+    PlayerBlockBreakSpeed => "minecraft:player.block_break_speed",
+    PlayerBlockInteractionRange => "minecraft:player.block_interaction_range",
+    PlayerEntityInteractionRange => "minecraft:player.entity_interaction_range",
+    GenericFallDamageMultiplier => "minecraft:generic.fall_damage_multiplier",
     GenericFlyingSpeed => "minecraft:generic.flying_speed",
     GenericFollowRange => "minecraft:generic.follow_range",
-    HorseJumpStrength => "minecraft:horse.jump_strength",
+    GenericGravity => "minecraft:generic.gravity",
+    GenericJumpStrength => "minecraft:generic.jump_strength",
     GenericKnockbackResistance => "minecraft:generic.knockback_resistance",
     GenericLuck => "minecraft:generic.luck",
     GenericMaxAbsorption => "minecraft:generic.max_absorption",
     GenericMaxHealth => "minecraft:generic.max_health",
     GenericMovementSpeed => "minecraft:generic.movement_speed",
+    GenericSafeFallDistance => "minecraft:generic.safe_fall_distance",
+    GenericScale => "minecraft:generic.scale",
     ZombieSpawnReinforcements => "minecraft:zombie.spawn_reinforcements",
+    GenericStepHeight => "minecraft:generic.step_height",
 }
 }
 
@@ -1239,6 +1302,8 @@ enum Block {
     DecoratedPot => "minecraft:decorated_pot",
     Crafter => "minecraft:crafter",
     TrialSpawner => "minecraft:trial_spawner",
+    Vault => "minecraft:vault",
+    HeavyCore => "minecraft:heavy_core",
 }
 }
 
@@ -1290,6 +1355,7 @@ enum BlockEntityKind {
     DecoratedPot => "minecraft:decorated_pot",
     Crafter => "minecraft:crafter",
     TrialSpawner => "minecraft:trial_spawner",
+    Vault => "minecraft:vault",
 }
 }
 
@@ -1379,6 +1445,7 @@ enum CommandArgumentKind {
     Swizzle => "minecraft:swizzle",
     Team => "minecraft:team",
     ItemSlot => "minecraft:item_slot",
+    ItemSlots => "minecraft:item_slots",
     ResourceLocation => "minecraft:resource_location",
     Function => "minecraft:function",
     EntityAnchor => "minecraft:entity_anchor",
@@ -1394,6 +1461,9 @@ enum CommandArgumentKind {
     TemplateMirror => "minecraft:template_mirror",
     TemplateRotation => "minecraft:template_rotation",
     Heightmap => "minecraft:heightmap",
+    LootTable => "minecraft:loot_table",
+    LootPredicate => "minecraft:loot_predicate",
+    LootModifier => "minecraft:loot_modifier",
     Uuid => "minecraft:uuid",
 }
 }
@@ -1499,7 +1569,7 @@ enum Enchantment {
     Knockback => "minecraft:knockback",
     FireAspect => "minecraft:fire_aspect",
     Looting => "minecraft:looting",
-    Sweeping => "minecraft:sweeping",
+    SweepingEdge => "minecraft:sweeping_edge",
     Efficiency => "minecraft:efficiency",
     SilkTouch => "minecraft:silk_touch",
     Unbreaking => "minecraft:unbreaking",
@@ -1517,6 +1587,9 @@ enum Enchantment {
     Multishot => "minecraft:multishot",
     QuickCharge => "minecraft:quick_charge",
     Piercing => "minecraft:piercing",
+    Density => "minecraft:density",
+    Breach => "minecraft:breach",
+    WindBurst => "minecraft:wind_burst",
     Mending => "minecraft:mending",
     VanishingCurse => "minecraft:vanishing_curse",
 }
@@ -1527,6 +1600,7 @@ registry! {
 enum EntityKind {
     Allay => "minecraft:allay",
     AreaEffectCloud => "minecraft:area_effect_cloud",
+    Armadillo => "minecraft:armadillo",
     ArmorStand => "minecraft:armor_stand",
     Arrow => "minecraft:arrow",
     Axolotl => "minecraft:axolotl",
@@ -1535,7 +1609,9 @@ enum EntityKind {
     Blaze => "minecraft:blaze",
     BlockDisplay => "minecraft:block_display",
     Boat => "minecraft:boat",
+    Bogged => "minecraft:bogged",
     Breeze => "minecraft:breeze",
+    BreezeWindCharge => "minecraft:breeze_wind_charge",
     Camel => "minecraft:camel",
     Cat => "minecraft:cat",
     CaveSpider => "minecraft:cave_spider",
@@ -1583,6 +1659,7 @@ enum EntityKind {
     Item => "minecraft:item",
     ItemDisplay => "minecraft:item_display",
     ItemFrame => "minecraft:item_frame",
+    OminousItemSpawner => "minecraft:ominous_item_spawner",
     Fireball => "minecraft:fireball",
     LeashKnot => "minecraft:leash_knot",
     LightningBolt => "minecraft:lightning_bolt",
@@ -1868,6 +1945,7 @@ enum Item {
     RawIronBlock => "minecraft:raw_iron_block",
     RawCopperBlock => "minecraft:raw_copper_block",
     RawGoldBlock => "minecraft:raw_gold_block",
+    HeavyCore => "minecraft:heavy_core",
     AmethystBlock => "minecraft:amethyst_block",
     BuddingAmethyst => "minecraft:budding_amethyst",
     IronBlock => "minecraft:iron_block",
@@ -2577,7 +2655,9 @@ enum Item {
     StructureBlock => "minecraft:structure_block",
     Jigsaw => "minecraft:jigsaw",
     TurtleHelmet => "minecraft:turtle_helmet",
-    Scute => "minecraft:scute",
+    TurtleScute => "minecraft:turtle_scute",
+    ArmadilloScute => "minecraft:armadillo_scute",
+    WolfArmor => "minecraft:wolf_armor",
     FlintAndSteel => "minecraft:flint_and_steel",
     Apple => "minecraft:apple",
     Bow => "minecraft:bow",
@@ -2788,11 +2868,13 @@ enum Item {
     Cauldron => "minecraft:cauldron",
     EnderEye => "minecraft:ender_eye",
     GlisteringMelonSlice => "minecraft:glistering_melon_slice",
+    ArmadilloSpawnEgg => "minecraft:armadillo_spawn_egg",
     AllaySpawnEgg => "minecraft:allay_spawn_egg",
     AxolotlSpawnEgg => "minecraft:axolotl_spawn_egg",
     BatSpawnEgg => "minecraft:bat_spawn_egg",
     BeeSpawnEgg => "minecraft:bee_spawn_egg",
     BlazeSpawnEgg => "minecraft:blaze_spawn_egg",
+    BoggedSpawnEgg => "minecraft:bogged_spawn_egg",
     BreezeSpawnEgg => "minecraft:breeze_spawn_egg",
     CatSpawnEgg => "minecraft:cat_spawn_egg",
     CamelSpawnEgg => "minecraft:camel_spawn_egg",
@@ -2868,8 +2950,10 @@ enum Item {
     ZombifiedPiglinSpawnEgg => "minecraft:zombified_piglin_spawn_egg",
     ExperienceBottle => "minecraft:experience_bottle",
     FireCharge => "minecraft:fire_charge",
+    WindCharge => "minecraft:wind_charge",
     WritableBook => "minecraft:writable_book",
     WrittenBook => "minecraft:written_book",
+    Mace => "minecraft:mace",
     ItemFrame => "minecraft:item_frame",
     GlowItemFrame => "minecraft:glow_item_frame",
     FlowerPot => "minecraft:flower_pot",
@@ -2974,6 +3058,8 @@ enum Item {
     MojangBannerPattern => "minecraft:mojang_banner_pattern",
     GlobeBannerPattern => "minecraft:globe_banner_pattern",
     PiglinBannerPattern => "minecraft:piglin_banner_pattern",
+    FlowBannerPattern => "minecraft:flow_banner_pattern",
+    GusterBannerPattern => "minecraft:guster_banner_pattern",
     GoatHorn => "minecraft:goat_horn",
     Composter => "minecraft:composter",
     Barrel => "minecraft:barrel",
@@ -3057,6 +3143,8 @@ enum Item {
     SilenceArmorTrimSmithingTemplate => "minecraft:silence_armor_trim_smithing_template",
     RaiserArmorTrimSmithingTemplate => "minecraft:raiser_armor_trim_smithing_template",
     HostArmorTrimSmithingTemplate => "minecraft:host_armor_trim_smithing_template",
+    FlowArmorTrimSmithingTemplate => "minecraft:flow_armor_trim_smithing_template",
+    BoltArmorTrimSmithingTemplate => "minecraft:bolt_armor_trim_smithing_template",
     AnglerPotterySherd => "minecraft:angler_pottery_sherd",
     ArcherPotterySherd => "minecraft:archer_pottery_sherd",
     ArmsUpPotterySherd => "minecraft:arms_up_pottery_sherd",
@@ -3065,7 +3153,9 @@ enum Item {
     BurnPotterySherd => "minecraft:burn_pottery_sherd",
     DangerPotterySherd => "minecraft:danger_pottery_sherd",
     ExplorerPotterySherd => "minecraft:explorer_pottery_sherd",
+    FlowPotterySherd => "minecraft:flow_pottery_sherd",
     FriendPotterySherd => "minecraft:friend_pottery_sherd",
+    GusterPotterySherd => "minecraft:guster_pottery_sherd",
     HeartPotterySherd => "minecraft:heart_pottery_sherd",
     HeartbreakPotterySherd => "minecraft:heartbreak_pottery_sherd",
     HowlPotterySherd => "minecraft:howl_pottery_sherd",
@@ -3073,6 +3163,7 @@ enum Item {
     MournerPotterySherd => "minecraft:mourner_pottery_sherd",
     PlentyPotterySherd => "minecraft:plenty_pottery_sherd",
     PrizePotterySherd => "minecraft:prize_pottery_sherd",
+    ScrapePotterySherd => "minecraft:scrape_pottery_sherd",
     SheafPotterySherd => "minecraft:sheaf_pottery_sherd",
     ShelterPotterySherd => "minecraft:shelter_pottery_sherd",
     SkullPotterySherd => "minecraft:skull_pottery_sherd",
@@ -3095,6 +3186,10 @@ enum Item {
     WaxedOxidizedCopperBulb => "minecraft:waxed_oxidized_copper_bulb",
     TrialSpawner => "minecraft:trial_spawner",
     TrialKey => "minecraft:trial_key",
+    OminousTrialKey => "minecraft:ominous_trial_key",
+    Vault => "minecraft:vault",
+    OminousBottle => "minecraft:ominous_bottle",
+    BreezeRod => "minecraft:breeze_rod",
 }
 }
 
@@ -3124,10 +3219,12 @@ enum LootConditionKind {
 registry! {
 enum LootFunctionKind {
     SetCount => "minecraft:set_count",
+    SetItem => "minecraft:set_item",
     EnchantWithLevels => "minecraft:enchant_with_levels",
     EnchantRandomly => "minecraft:enchant_randomly",
     SetEnchantments => "minecraft:set_enchantments",
-    SetNbt => "minecraft:set_nbt",
+    SetCustomData => "minecraft:set_custom_data",
+    SetComponents => "minecraft:set_components",
     FurnaceSmelt => "minecraft:furnace_smelt",
     LootingEnchant => "minecraft:looting_enchant",
     SetDamage => "minecraft:set_damage",
@@ -3137,19 +3234,30 @@ enum LootFunctionKind {
     SetStewEffect => "minecraft:set_stew_effect",
     CopyName => "minecraft:copy_name",
     SetContents => "minecraft:set_contents",
+    ModifyContents => "minecraft:modify_contents",
+    Filtered => "minecraft:filtered",
     LimitCount => "minecraft:limit_count",
     ApplyBonus => "minecraft:apply_bonus",
     SetLootTable => "minecraft:set_loot_table",
     ExplosionDecay => "minecraft:explosion_decay",
     SetLore => "minecraft:set_lore",
     FillPlayerHead => "minecraft:fill_player_head",
-    CopyNbt => "minecraft:copy_nbt",
+    CopyCustomData => "minecraft:copy_custom_data",
     CopyState => "minecraft:copy_state",
     SetBannerPattern => "minecraft:set_banner_pattern",
     SetPotion => "minecraft:set_potion",
     SetInstrument => "minecraft:set_instrument",
     Reference => "minecraft:reference",
     Sequence => "minecraft:sequence",
+    CopyComponents => "minecraft:copy_components",
+    SetFireworks => "minecraft:set_fireworks",
+    SetFireworkExplosion => "minecraft:set_firework_explosion",
+    SetBookCover => "minecraft:set_book_cover",
+    SetWrittenBookPages => "minecraft:set_written_book_pages",
+    SetWritableBookPages => "minecraft:set_writable_book_pages",
+    ToggleTooltips => "minecraft:toggle_tooltips",
+    SetOminousBottleAmplifier => "minecraft:set_ominous_bottle_amplifier",
+    SetCustomModelData => "minecraft:set_custom_model_data",
 }
 }
 
@@ -3166,6 +3274,7 @@ enum LootNumberProviderKind {
     Uniform => "minecraft:uniform",
     Binomial => "minecraft:binomial",
     Score => "minecraft:score",
+    Storage => "minecraft:storage",
 }
 }
 
@@ -3223,6 +3332,7 @@ enum MemoryModuleKind {
     HeardBellTime => "minecraft:heard_bell_time",
     CantReachWalkTargetSince => "minecraft:cant_reach_walk_target_since",
     GolemDetectedRecently => "minecraft:golem_detected_recently",
+    DangerDetectedRecently => "minecraft:danger_detected_recently",
     LastSlept => "minecraft:last_slept",
     LastWoken => "minecraft:last_woken",
     LastWorkedAtPoi => "minecraft:last_worked_at_poi",
@@ -3295,6 +3405,7 @@ enum MemoryModuleKind {
     BreezeShootCooldown => "minecraft:breeze_shoot_cooldown",
     BreezeJumpInhaling => "minecraft:breeze_jump_inhaling",
     BreezeJumpTarget => "minecraft:breeze_jump_target",
+    BreezeLeavingWater => "minecraft:breeze_leaving_water",
 }
 }
 
@@ -3362,6 +3473,12 @@ enum MobEffect {
     BadOmen => "minecraft:bad_omen",
     HeroOfTheVillage => "minecraft:hero_of_the_village",
     Darkness => "minecraft:darkness",
+    TrialOmen => "minecraft:trial_omen",
+    RaidOmen => "minecraft:raid_omen",
+    WindCharged => "minecraft:wind_charged",
+    Weaving => "minecraft:weaving",
+    Oozing => "minecraft:oozing",
+    Infested => "minecraft:infested",
 }
 }
 
@@ -3402,7 +3519,6 @@ enum PaintingVariant {
 
 registry! {
 enum ParticleKind {
-    AmbientEntityEffect => "minecraft:ambient_entity_effect",
     AngryVillager => "minecraft:angry_villager",
     Block => "minecraft:block",
     BlockMarker => "minecraft:block_marker",
@@ -3427,12 +3543,15 @@ enum ParticleKind {
     ExplosionEmitter => "minecraft:explosion_emitter",
     Explosion => "minecraft:explosion",
     Gust => "minecraft:gust",
-    GustEmitter => "minecraft:gust_emitter",
+    SmallGust => "minecraft:small_gust",
+    GustEmitterLarge => "minecraft:gust_emitter_large",
+    GustEmitterSmall => "minecraft:gust_emitter_small",
     SonicBoom => "minecraft:sonic_boom",
     FallingDust => "minecraft:falling_dust",
     Firework => "minecraft:firework",
     Fishing => "minecraft:fishing",
     Flame => "minecraft:flame",
+    Infested => "minecraft:infested",
     CherryLeaves => "minecraft:cherry_leaves",
     SculkSoul => "minecraft:sculk_soul",
     SculkCharge => "minecraft:sculk_charge",
@@ -3447,6 +3566,7 @@ enum ParticleKind {
     Item => "minecraft:item",
     Vibration => "minecraft:vibration",
     ItemSlime => "minecraft:item_slime",
+    ItemCobweb => "minecraft:item_cobweb",
     ItemSnowball => "minecraft:item_snowball",
     LargeSmoke => "minecraft:large_smoke",
     Lava => "minecraft:lava",
@@ -3501,8 +3621,13 @@ enum ParticleKind {
     Shriek => "minecraft:shriek",
     EggCrack => "minecraft:egg_crack",
     DustPlume => "minecraft:dust_plume",
-    GustDust => "minecraft:gust_dust",
     TrialSpawnerDetection => "minecraft:trial_spawner_detection",
+    TrialSpawnerDetectionOminous => "minecraft:trial_spawner_detection_ominous",
+    VaultConnection => "minecraft:vault_connection",
+    DustPillar => "minecraft:dust_pillar",
+    OminousSpawning => "minecraft:ominous_spawning",
+    RaidOmen => "minecraft:raid_omen",
+    TrialOmen => "minecraft:trial_omen",
 }
 }
 
@@ -3548,7 +3673,6 @@ enum PositionSourceKind {
 
 registry! {
 enum Potion {
-    Empty => "minecraft:empty",
     Water => "minecraft:water",
     Mundane => "minecraft:mundane",
     Thick => "minecraft:thick",
@@ -3591,6 +3715,10 @@ enum Potion {
     Luck => "minecraft:luck",
     SlowFalling => "minecraft:slow_falling",
     LongSlowFalling => "minecraft:long_slow_falling",
+    WindCharged => "minecraft:wind_charged",
+    Weaving => "minecraft:weaving",
+    Oozing => "minecraft:oozing",
+    Infested => "minecraft:infested",
 }
 }
 
@@ -3666,6 +3794,7 @@ enum SensorKind {
     VillagerBabies => "minecraft:villager_babies",
     SecondaryPois => "minecraft:secondary_pois",
     GolemDetected => "minecraft:golem_detected",
+    ArmadilloScareDetected => "minecraft:armadillo_scare_detected",
     PiglinSpecificSensor => "minecraft:piglin_specific_sensor",
     PiglinBruteSpecificSensor => "minecraft:piglin_brute_specific_sensor",
     HoglinSpecificSensor => "minecraft:hoglin_specific_sensor",
@@ -3675,6 +3804,7 @@ enum SensorKind {
     GoatTemptations => "minecraft:goat_temptations",
     FrogTemptations => "minecraft:frog_temptations",
     CamelTemptations => "minecraft:camel_temptations",
+    ArmadilloTemptations => "minecraft:armadillo_temptations",
     FrogAttackables => "minecraft:frog_attackables",
     IsInWater => "minecraft:is_in_water",
     WardenEntitySensor => "minecraft:warden_entity_sensor",
@@ -3739,6 +3869,19 @@ enum SoundEvent {
     BlockAnvilPlace => "minecraft:block.anvil.place",
     BlockAnvilStep => "minecraft:block.anvil.step",
     BlockAnvilUse => "minecraft:block.anvil.use",
+    EntityArmadilloEat => "minecraft:entity.armadillo.eat",
+    EntityArmadilloHurt => "minecraft:entity.armadillo.hurt",
+    EntityArmadilloHurtReduced => "minecraft:entity.armadillo.hurt_reduced",
+    EntityArmadilloAmbient => "minecraft:entity.armadillo.ambient",
+    EntityArmadilloStep => "minecraft:entity.armadillo.step",
+    EntityArmadilloDeath => "minecraft:entity.armadillo.death",
+    EntityArmadilloRoll => "minecraft:entity.armadillo.roll",
+    EntityArmadilloLand => "minecraft:entity.armadillo.land",
+    EntityArmadilloScuteDrop => "minecraft:entity.armadillo.scute_drop",
+    EntityArmadilloUnrollFinish => "minecraft:entity.armadillo.unroll_finish",
+    EntityArmadilloPeek => "minecraft:entity.armadillo.peek",
+    EntityArmadilloUnrollStart => "minecraft:entity.armadillo.unroll_start",
+    EntityArmadilloBrush => "minecraft:entity.armadillo.brush",
     ItemArmorEquipChain => "minecraft:item.armor.equip_chain",
     ItemArmorEquipDiamond => "minecraft:item.armor.equip_diamond",
     ItemArmorEquipElytra => "minecraft:item.armor.equip_elytra",
@@ -3748,6 +3891,8 @@ enum SoundEvent {
     ItemArmorEquipLeather => "minecraft:item.armor.equip_leather",
     ItemArmorEquipNetherite => "minecraft:item.armor.equip_netherite",
     ItemArmorEquipTurtle => "minecraft:item.armor.equip_turtle",
+    ItemArmorEquipWolf => "minecraft:item.armor.equip_wolf",
+    ItemArmorUnequipWolf => "minecraft:item.armor.unequip_wolf",
     EntityArmorStandBreak => "minecraft:entity.armor_stand.break",
     EntityArmorStandFall => "minecraft:entity.armor_stand.fall",
     EntityArmorStandHit => "minecraft:entity.armor_stand.hit",
@@ -3839,6 +3984,11 @@ enum SoundEvent {
     EntityBlazeShoot => "minecraft:entity.blaze.shoot",
     EntityBoatPaddleLand => "minecraft:entity.boat.paddle_land",
     EntityBoatPaddleWater => "minecraft:entity.boat.paddle_water",
+    EntityBoggedAmbient => "minecraft:entity.bogged.ambient",
+    EntityBoggedDeath => "minecraft:entity.bogged.death",
+    EntityBoggedHurt => "minecraft:entity.bogged.hurt",
+    EntityBoggedShear => "minecraft:entity.bogged.shear",
+    EntityBoggedStep => "minecraft:entity.bogged.step",
     BlockBoneBlockBreak => "minecraft:block.bone_block.break",
     BlockBoneBlockFall => "minecraft:block.bone_block.fall",
     BlockBoneBlockHit => "minecraft:block.bone_block.hit",
@@ -3851,6 +4001,8 @@ enum SoundEvent {
     ItemBottleEmpty => "minecraft:item.bottle.empty",
     ItemBottleFill => "minecraft:item.bottle.fill",
     ItemBottleFillDragonbreath => "minecraft:item.bottle.fill_dragonbreath",
+    EntityBreezeCharge => "minecraft:entity.breeze.charge",
+    EntityBreezeDeflect => "minecraft:entity.breeze.deflect",
     EntityBreezeInhale => "minecraft:entity.breeze.inhale",
     EntityBreezeIdleGround => "minecraft:entity.breeze.idle_ground",
     EntityBreezeIdleAir => "minecraft:entity.breeze.idle_air",
@@ -3860,6 +4012,8 @@ enum SoundEvent {
     EntityBreezeSlide => "minecraft:entity.breeze.slide",
     EntityBreezeDeath => "minecraft:entity.breeze.death",
     EntityBreezeHurt => "minecraft:entity.breeze.hurt",
+    EntityBreezeWhirl => "minecraft:entity.breeze.whirl",
+    EntityBreezeWindBurst => "minecraft:entity.breeze.wind_burst",
     BlockBrewingStandBrew => "minecraft:block.brewing_stand.brew",
     ItemBrushBrushingGeneric => "minecraft:item.brush.brushing.generic",
     ItemBrushBrushingSand => "minecraft:item.brush.brushing.sand",
@@ -3981,6 +4135,11 @@ enum SoundEvent {
     BlockChorusFlowerDeath => "minecraft:block.chorus_flower.death",
     BlockChorusFlowerGrow => "minecraft:block.chorus_flower.grow",
     ItemChorusFruitTeleport => "minecraft:item.chorus_fruit.teleport",
+    BlockCobwebBreak => "minecraft:block.cobweb.break",
+    BlockCobwebStep => "minecraft:block.cobweb.step",
+    BlockCobwebPlace => "minecraft:block.cobweb.place",
+    BlockCobwebHit => "minecraft:block.cobweb.hit",
+    BlockCobwebFall => "minecraft:block.cobweb.fall",
     EntityCodAmbient => "minecraft:entity.cod.ambient",
     EntityCodDeath => "minecraft:entity.cod.death",
     EntityCodFlop => "minecraft:entity.cod.flop",
@@ -4083,6 +4242,7 @@ enum SoundEvent {
     EntityDonkeyDeath => "minecraft:entity.donkey.death",
     EntityDonkeyEat => "minecraft:entity.donkey.eat",
     EntityDonkeyHurt => "minecraft:entity.donkey.hurt",
+    EntityDonkeyJump => "minecraft:entity.donkey.jump",
     BlockDripstoneBlockBreak => "minecraft:block.dripstone_block.break",
     BlockDripstoneBlockStep => "minecraft:block.dripstone_block.step",
     BlockDripstoneBlockPlace => "minecraft:block.dripstone_block.place",
@@ -4313,6 +4473,11 @@ enum SoundEvent {
     BlockHangingSignFall => "minecraft:block.hanging_sign.fall",
     BlockHangingSignHit => "minecraft:block.hanging_sign.hit",
     BlockHangingSignPlace => "minecraft:block.hanging_sign.place",
+    BlockHeavyCoreBreak => "minecraft:block.heavy_core.break",
+    BlockHeavyCoreFall => "minecraft:block.heavy_core.fall",
+    BlockHeavyCoreHit => "minecraft:block.heavy_core.hit",
+    BlockHeavyCorePlace => "minecraft:block.heavy_core.place",
+    BlockHeavyCoreStep => "minecraft:block.heavy_core.step",
     BlockNetherWoodHangingSignStep => "minecraft:block.nether_wood_hanging_sign.step",
     BlockNetherWoodHangingSignBreak => "minecraft:block.nether_wood_hanging_sign.break",
     BlockNetherWoodHangingSignFall => "minecraft:block.nether_wood_hanging_sign.fall",
@@ -4329,8 +4494,13 @@ enum SoundEvent {
     BlockTrialSpawnerHit => "minecraft:block.trial_spawner.hit",
     BlockTrialSpawnerFall => "minecraft:block.trial_spawner.fall",
     BlockTrialSpawnerSpawnMob => "minecraft:block.trial_spawner.spawn_mob",
+    BlockTrialSpawnerAboutToSpawnItem => "minecraft:block.trial_spawner.about_to_spawn_item",
+    BlockTrialSpawnerSpawnItem => "minecraft:block.trial_spawner.spawn_item",
+    BlockTrialSpawnerSpawnItemBegin => "minecraft:block.trial_spawner.spawn_item_begin",
     BlockTrialSpawnerDetectPlayer => "minecraft:block.trial_spawner.detect_player",
+    BlockTrialSpawnerChargeActivate => "minecraft:block.trial_spawner.charge_activate",
     BlockTrialSpawnerAmbient => "minecraft:block.trial_spawner.ambient",
+    BlockTrialSpawnerAmbientCharged => "minecraft:block.trial_spawner.ambient_charged",
     BlockTrialSpawnerOpenShutter => "minecraft:block.trial_spawner.open_shutter",
     BlockTrialSpawnerCloseShutter => "minecraft:block.trial_spawner.close_shutter",
     BlockTrialSpawnerEjectItem => "minecraft:block.trial_spawner.eject_item",
@@ -4445,6 +4615,9 @@ enum SoundEvent {
     BlockLodestoneHit => "minecraft:block.lodestone.hit",
     BlockLodestoneFall => "minecraft:block.lodestone.fall",
     ItemLodestoneCompassLock => "minecraft:item.lodestone_compass.lock",
+    ItemMaceSmashAir => "minecraft:item.mace.smash_air",
+    ItemMaceSmashGround => "minecraft:item.mace.smash_ground",
+    ItemMaceSmashGroundHeavy => "minecraft:item.mace.smash_ground_heavy",
     EntityMagmaCubeDeath => "minecraft:entity.magma_cube.death",
     EntityMagmaCubeHurt => "minecraft:entity.magma_cube.hurt",
     EntityMagmaCubeHurtSmall => "minecraft:entity.magma_cube.hurt_small",
@@ -4509,6 +4682,7 @@ enum SoundEvent {
     EntityMuleDeath => "minecraft:entity.mule.death",
     EntityMuleEat => "minecraft:entity.mule.eat",
     EntityMuleHurt => "minecraft:entity.mule.hurt",
+    EntityMuleJump => "minecraft:entity.mule.jump",
     MusicCreative => "minecraft:music.creative",
     MusicCredits => "minecraft:music.credits",
     MusicDisc5 => "minecraft:music_disc.5",
@@ -4649,6 +4823,7 @@ enum SoundEvent {
     EntityOcelotHurt => "minecraft:entity.ocelot.hurt",
     EntityOcelotAmbient => "minecraft:entity.ocelot.ambient",
     EntityOcelotDeath => "minecraft:entity.ocelot.death",
+    ItemOminousBottleDispose => "minecraft:item.ominous_bottle.dispose",
     EntityPaintingBreak => "minecraft:entity.painting.break",
     EntityPaintingPlace => "minecraft:entity.painting.place",
     EntityPandaPreSneeze => "minecraft:entity.panda.pre_sneeze",
@@ -4668,6 +4843,7 @@ enum SoundEvent {
     EntityParrotFly => "minecraft:entity.parrot.fly",
     EntityParrotHurt => "minecraft:entity.parrot.hurt",
     EntityParrotImitateBlaze => "minecraft:entity.parrot.imitate.blaze",
+    EntityParrotImitateBogged => "minecraft:entity.parrot.imitate.bogged",
     EntityParrotImitateBreeze => "minecraft:entity.parrot.imitate.breeze",
     EntityParrotImitateCreeper => "minecraft:entity.parrot.imitate.creeper",
     EntityParrotImitateDrowned => "minecraft:entity.parrot.imitate.drowned",
@@ -5072,6 +5248,19 @@ enum SoundEvent {
     UiToastChallengeComplete => "minecraft:ui.toast.challenge_complete",
     UiToastIn => "minecraft:ui.toast.in",
     UiToastOut => "minecraft:ui.toast.out",
+    BlockVaultActivate => "minecraft:block.vault.activate",
+    BlockVaultAmbient => "minecraft:block.vault.ambient",
+    BlockVaultBreak => "minecraft:block.vault.break",
+    BlockVaultCloseShutter => "minecraft:block.vault.close_shutter",
+    BlockVaultDeactivate => "minecraft:block.vault.deactivate",
+    BlockVaultEjectItem => "minecraft:block.vault.eject_item",
+    BlockVaultFall => "minecraft:block.vault.fall",
+    BlockVaultHit => "minecraft:block.vault.hit",
+    BlockVaultInsertItem => "minecraft:block.vault.insert_item",
+    BlockVaultInsertItemFail => "minecraft:block.vault.insert_item_fail",
+    BlockVaultOpenShutter => "minecraft:block.vault.open_shutter",
+    BlockVaultPlace => "minecraft:block.vault.place",
+    BlockVaultStep => "minecraft:block.vault.step",
     EntityVexAmbient => "minecraft:entity.vex.ambient",
     EntityVexCharge => "minecraft:entity.vex.charge",
     EntityVexDeath => "minecraft:entity.vex.death",
@@ -5147,11 +5336,13 @@ enum SoundEvent {
     BlockWetGrassPlace => "minecraft:block.wet_grass.place",
     BlockWetGrassStep => "minecraft:block.wet_grass.step",
     BlockWetSpongeBreak => "minecraft:block.wet_sponge.break",
+    BlockWetSpongeDries => "minecraft:block.wet_sponge.dries",
     BlockWetSpongeFall => "minecraft:block.wet_sponge.fall",
     BlockWetSpongeHit => "minecraft:block.wet_sponge.hit",
     BlockWetSpongePlace => "minecraft:block.wet_sponge.place",
     BlockWetSpongeStep => "minecraft:block.wet_sponge.step",
-    EntityGenericWindBurst => "minecraft:entity.generic.wind_burst",
+    EntityWindChargeWindBurst => "minecraft:entity.wind_charge.wind_burst",
+    EntityWindChargeThrow => "minecraft:entity.wind_charge.throw",
     EntityWitchAmbient => "minecraft:entity.witch.ambient",
     EntityWitchCelebrate => "minecraft:entity.witch.celebrate",
     EntityWitchDeath => "minecraft:entity.witch.death",
@@ -5168,6 +5359,10 @@ enum SoundEvent {
     EntityWitherSkeletonHurt => "minecraft:entity.wither_skeleton.hurt",
     EntityWitherSkeletonStep => "minecraft:entity.wither_skeleton.step",
     EntityWitherSpawn => "minecraft:entity.wither.spawn",
+    ItemWolfArmorBreak => "minecraft:item.wolf_armor.break",
+    ItemWolfArmorCrack => "minecraft:item.wolf_armor.crack",
+    ItemWolfArmorDamage => "minecraft:item.wolf_armor.damage",
+    ItemWolfArmorRepair => "minecraft:item.wolf_armor.repair",
     EntityWolfAmbient => "minecraft:entity.wolf.ambient",
     EntityWolfDeath => "minecraft:entity.wolf.death",
     EntityWolfGrowl => "minecraft:entity.wolf.growl",
@@ -5224,6 +5419,9 @@ enum SoundEvent {
     EntityZombieVillagerDeath => "minecraft:entity.zombie_villager.death",
     EntityZombieVillagerHurt => "minecraft:entity.zombie_villager.hurt",
     EntityZombieVillagerStep => "minecraft:entity.zombie_villager.step",
+    EventMobEffectBadOmen => "minecraft:event.mob_effect.bad_omen",
+    EventMobEffectTrialOmen => "minecraft:event.mob_effect.trial_omen",
+    EventMobEffectRaidOmen => "minecraft:event.mob_effect.raid_omen",
 }
 }
 
@@ -5638,7 +5836,9 @@ enum DecoratedPotPatterns {
     BurnPotteryPattern => "minecraft:burn_pottery_pattern",
     DangerPotteryPattern => "minecraft:danger_pottery_pattern",
     ExplorerPotteryPattern => "minecraft:explorer_pottery_pattern",
+    FlowPotteryPattern => "minecraft:flow_pottery_pattern",
     FriendPotteryPattern => "minecraft:friend_pottery_pattern",
+    GusterPotteryPattern => "minecraft:guster_pottery_pattern",
     HeartPotteryPattern => "minecraft:heart_pottery_pattern",
     HeartbreakPotteryPattern => "minecraft:heartbreak_pottery_pattern",
     HowlPotteryPattern => "minecraft:howl_pottery_pattern",
@@ -5646,6 +5846,7 @@ enum DecoratedPotPatterns {
     MournerPotteryPattern => "minecraft:mourner_pottery_pattern",
     PlentyPotteryPattern => "minecraft:plenty_pottery_pattern",
     PrizePotteryPattern => "minecraft:prize_pottery_pattern",
+    ScrapePotteryPattern => "minecraft:scrape_pottery_pattern",
     SheafPotteryPattern => "minecraft:sheaf_pottery_pattern",
     ShelterPotteryPattern => "minecraft:shelter_pottery_pattern",
     SkullPotteryPattern => "minecraft:skull_pottery_pattern",
@@ -5813,6 +6014,7 @@ enum BlockKind {
     HalfTransparent => "minecraft:half_transparent",
     HangingRoots => "minecraft:hanging_roots",
     Hay => "minecraft:hay",
+    HeavyCore => "minecraft:heavy_core",
     Honey => "minecraft:honey",
     Hopper => "minecraft:hopper",
     HugeMushroom => "minecraft:huge_mushroom",
@@ -5928,6 +6130,7 @@ enum BlockKind {
     TurtleEgg => "minecraft:turtle_egg",
     TwistingVinesPlant => "minecraft:twisting_vines_plant",
     TwistingVines => "minecraft:twisting_vines",
+    Vault => "minecraft:vault",
     Vine => "minecraft:vine",
     WallBanner => "minecraft:wall_banner",
     WallHangingSign => "minecraft:wall_hanging_sign",
@@ -6005,6 +6208,8 @@ enum TriggerKind {
     BeeNestDestroyed => "minecraft:bee_nest_destroyed",
     TargetHit => "minecraft:target_hit",
     ItemUsedOnBlock => "minecraft:item_used_on_block",
+    DefaultBlockUse => "minecraft:default_block_use",
+    AnyBlockUse => "minecraft:any_block_use",
     PlayerGeneratesContainerLoot => "minecraft:player_generates_container_loot",
     ThrownItemPickedUpByEntity => "minecraft:thrown_item_picked_up_by_entity",
     ThrownItemPickedUpByPlayer => "minecraft:thrown_item_picked_up_by_player",
@@ -6018,6 +6223,8 @@ enum TriggerKind {
     AllayDropItemOnBlock => "minecraft:allay_drop_item_on_block",
     AvoidVibration => "minecraft:avoid_vibration",
     RecipeCrafted => "minecraft:recipe_crafted",
+    CrafterRecipeCrafted => "minecraft:crafter_recipe_crafted",
+    FallAfterExplosion => "minecraft:fall_after_explosion",
 }
 }
 
@@ -6026,5 +6233,161 @@ enum NumberFormatKind {
     Blank => "minecraft:blank",
     Styled => "minecraft:styled",
     Fixed => "minecraft:fixed",
+}
+}
+
+registry! {
+enum ArmorMaterial {
+    Leather => "minecraft:leather",
+    Chainmail => "minecraft:chainmail",
+    Iron => "minecraft:iron",
+    Gold => "minecraft:gold",
+    Diamond => "minecraft:diamond",
+    Turtle => "minecraft:turtle",
+    Netherite => "minecraft:netherite",
+    Armadillo => "minecraft:armadillo",
+}
+}
+
+registry! {
+enum DataComponentKind {
+    CustomData => "minecraft:custom_data",
+    MaxStackSize => "minecraft:max_stack_size",
+    MaxDamage => "minecraft:max_damage",
+    Damage => "minecraft:damage",
+    Unbreakable => "minecraft:unbreakable",
+    CustomName => "minecraft:custom_name",
+    ItemName => "minecraft:item_name",
+    Lore => "minecraft:lore",
+    Rarity => "minecraft:rarity",
+    Enchantments => "minecraft:enchantments",
+    CanPlaceOn => "minecraft:can_place_on",
+    CanBreak => "minecraft:can_break",
+    AttributeModifiers => "minecraft:attribute_modifiers",
+    CustomModelData => "minecraft:custom_model_data",
+    HideAdditionalTooltip => "minecraft:hide_additional_tooltip",
+    HideTooltip => "minecraft:hide_tooltip",
+    RepairCost => "minecraft:repair_cost",
+    CreativeSlotLock => "minecraft:creative_slot_lock",
+    EnchantmentGlintOverride => "minecraft:enchantment_glint_override",
+    IntangibleProjectile => "minecraft:intangible_projectile",
+    Food => "minecraft:food",
+    FireResistant => "minecraft:fire_resistant",
+    Tool => "minecraft:tool",
+    StoredEnchantments => "minecraft:stored_enchantments",
+    DyedColor => "minecraft:dyed_color",
+    MapColor => "minecraft:map_color",
+    MapId => "minecraft:map_id",
+    MapDecorations => "minecraft:map_decorations",
+    MapPostProcessing => "minecraft:map_post_processing",
+    ChargedProjectiles => "minecraft:charged_projectiles",
+    BundleContents => "minecraft:bundle_contents",
+    PotionContents => "minecraft:potion_contents",
+    SuspiciousStewEffects => "minecraft:suspicious_stew_effects",
+    WritableBookContent => "minecraft:writable_book_content",
+    WrittenBookContent => "minecraft:written_book_content",
+    Trim => "minecraft:trim",
+    DebugStickState => "minecraft:debug_stick_state",
+    EntityData => "minecraft:entity_data",
+    BucketEntityData => "minecraft:bucket_entity_data",
+    BlockEntityData => "minecraft:block_entity_data",
+    Instrument => "minecraft:instrument",
+    OminousBottleAmplifier => "minecraft:ominous_bottle_amplifier",
+    Recipes => "minecraft:recipes",
+    LodestoneTracker => "minecraft:lodestone_tracker",
+    FireworkExplosion => "minecraft:firework_explosion",
+    Fireworks => "minecraft:fireworks",
+    Profile => "minecraft:profile",
+    NoteBlockSound => "minecraft:note_block_sound",
+    BannerPatterns => "minecraft:banner_patterns",
+    BaseColor => "minecraft:base_color",
+    PotDecorations => "minecraft:pot_decorations",
+    Container => "minecraft:container",
+    BlockState => "minecraft:block_state",
+    Bees => "minecraft:bees",
+    Lock => "minecraft:lock",
+    ContainerLoot => "minecraft:container_loot",
+}
+}
+
+registry! {
+enum EntitySubPredicateKind {
+    Lightning => "minecraft:lightning",
+    FishingHook => "minecraft:fishing_hook",
+    Player => "minecraft:player",
+    Slime => "minecraft:slime",
+    Raider => "minecraft:raider",
+    Axolotl => "minecraft:axolotl",
+    Boat => "minecraft:boat",
+    Fox => "minecraft:fox",
+    Mooshroom => "minecraft:mooshroom",
+    Rabbit => "minecraft:rabbit",
+    Horse => "minecraft:horse",
+    Llama => "minecraft:llama",
+    Villager => "minecraft:villager",
+    Parrot => "minecraft:parrot",
+    TropicalFish => "minecraft:tropical_fish",
+    Painting => "minecraft:painting",
+    Cat => "minecraft:cat",
+    Frog => "minecraft:frog",
+    Wolf => "minecraft:wolf",
+}
+}
+
+registry! {
+enum ItemSubPredicateKind {
+    Damage => "minecraft:damage",
+    Enchantments => "minecraft:enchantments",
+    StoredEnchantments => "minecraft:stored_enchantments",
+    PotionContents => "minecraft:potion_contents",
+    CustomData => "minecraft:custom_data",
+    Container => "minecraft:container",
+    BundleContents => "minecraft:bundle_contents",
+    FireworkExplosion => "minecraft:firework_explosion",
+    Fireworks => "minecraft:fireworks",
+    WritableBookContent => "minecraft:writable_book_content",
+    WrittenBookContent => "minecraft:written_book_content",
+    AttributeModifiers => "minecraft:attribute_modifiers",
+    Trim => "minecraft:trim",
+}
+}
+
+registry! {
+enum MapDecorationKind {
+    Player => "minecraft:player",
+    Frame => "minecraft:frame",
+    RedMarker => "minecraft:red_marker",
+    BlueMarker => "minecraft:blue_marker",
+    TargetX => "minecraft:target_x",
+    TargetPoint => "minecraft:target_point",
+    PlayerOffMap => "minecraft:player_off_map",
+    PlayerOffLimits => "minecraft:player_off_limits",
+    Mansion => "minecraft:mansion",
+    Monument => "minecraft:monument",
+    BannerWhite => "minecraft:banner_white",
+    BannerOrange => "minecraft:banner_orange",
+    BannerMagenta => "minecraft:banner_magenta",
+    BannerLightBlue => "minecraft:banner_light_blue",
+    BannerYellow => "minecraft:banner_yellow",
+    BannerLime => "minecraft:banner_lime",
+    BannerPink => "minecraft:banner_pink",
+    BannerGray => "minecraft:banner_gray",
+    BannerLightGray => "minecraft:banner_light_gray",
+    BannerCyan => "minecraft:banner_cyan",
+    BannerPurple => "minecraft:banner_purple",
+    BannerBlue => "minecraft:banner_blue",
+    BannerBrown => "minecraft:banner_brown",
+    BannerGreen => "minecraft:banner_green",
+    BannerRed => "minecraft:banner_red",
+    BannerBlack => "minecraft:banner_black",
+    RedX => "minecraft:red_x",
+    VillageDesert => "minecraft:village_desert",
+    VillagePlains => "minecraft:village_plains",
+    VillageSavanna => "minecraft:village_savanna",
+    VillageSnowy => "minecraft:village_snowy",
+    VillageTaiga => "minecraft:village_taiga",
+    JungleTemple => "minecraft:jungle_temple",
+    SwampHut => "minecraft:swamp_hut",
+    TrialChambers => "minecraft:trial_chambers",
 }
 }

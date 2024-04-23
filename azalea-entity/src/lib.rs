@@ -7,6 +7,7 @@ mod effects;
 mod enchantments;
 pub mod metadata;
 pub mod mining;
+pub mod particle;
 mod plugin;
 
 use self::attributes::AttributeInstance;

@@ -128,6 +128,7 @@ pub enum BrigadierParser {
     Swizzle,
     Team,
     ItemSlot,
+    ItemSlots,
     ResourceLocation,
     Function,
     EntityAnchor,
@@ -143,6 +144,9 @@ pub enum BrigadierParser {
     TemplateMirror,
     TemplateRotation,
     Heightmap,
+    LootTable,
+    LootPredicate,
+    LootModifier,
     Uuid,
 }
 

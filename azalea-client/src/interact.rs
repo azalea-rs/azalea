@@ -17,6 +17,7 @@ use azalea_protocol::packets::game::{
     serverbound_swing_packet::ServerboundSwingPacket,
     serverbound_use_item_on_packet::{BlockHit, ServerboundUseItemOnPacket},
 };
+use azalea_registry::DataComponentKind;
 use azalea_world::{Instance, InstanceContainer, InstanceName};
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::{
@@ -28,7 +29,6 @@ use bevy_ecs::{
     system::{Commands, Query, Res},
 };
 use derive_more::{Deref, DerefMut};
-use simdnbt::owned::NbtList;
 use tracing::warn;
 
 use crate::{
@@ -269,17 +269,8 @@ pub fn check_block_can_be_broken_by_item_in_adventure_mode(
     // minecraft caches the last checked block but that's kind of an unnecessary
     // optimization and makes the code too complicated
 
-    let Some(can_destroy) = item
-        .nbt
-        .compound("tag")
-        .and_then(|nbt| nbt.list("CanDestroy"))
-    else {
+    let Some(_can_destroy) = item.components.get(DataComponentKind::CanBreak) else {
         // no CanDestroy tag
-        return false;
-    };
-
-    let NbtList::String(_can_destroy) = can_destroy else {
-        // CanDestroy tag must be a list of strings
         return false;
     };
 

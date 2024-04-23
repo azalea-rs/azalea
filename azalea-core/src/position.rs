@@ -424,11 +424,11 @@ impl From<ChunkSectionBlockPos> for u16 {
 impl nohash_hasher::IsEnabled for ChunkSectionBlockPos {}
 
 /// A block pos with an attached world
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GlobalPos {
-    pub pos: BlockPos,
     // this is actually a ResourceKey in Minecraft, but i don't think it matters?
     pub world: ResourceLocation,
+    pub pos: BlockPos,
 }
 
 impl From<&BlockPos> for ChunkPos {

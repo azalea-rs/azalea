@@ -306,6 +306,14 @@ impl Client {
             run_schedule_sender.clone(),
         );
 
+        let instance = Instance::default();
+        let instance_holder = crate::local_player::InstanceHolder::new(
+            entity,
+            // default to an empty world, it'll be set correctly later when we
+            // get the login packet
+            Arc::new(RwLock::new(instance)),
+        );
+
         ecs.entity_mut(entity).insert((
             // these stay when we switch to the game state
             LocalPlayerBundle {
@@ -318,6 +326,7 @@ impl Client {
                 local_player_events: LocalPlayerEvents(tx),
                 game_profile: GameProfileComponent(game_profile),
                 client_information: crate::ClientInformation::default(),
+                instance_holder,
             },
             InConfigurationState,
         ));
@@ -394,7 +403,7 @@ impl Client {
             match packet {
                 ClientboundLoginPacket::Hello(p) => {
                     debug!("Got encryption request");
-                    let e = azalea_crypto::encrypt(&p.public_key, &p.nonce).unwrap();
+                    let e = azalea_crypto::encrypt(&p.public_key, &p.challenge).unwrap();
 
                     if let Some(access_token) = &account.access_token {
                         // keep track of the number of times we tried
@@ -436,7 +445,7 @@ impl Client {
                     conn.write(
                         ServerboundKeyPacket {
                             key_bytes: e.encrypted_public_key,
-                            encrypted_challenge: e.encrypted_nonce,
+                            encrypted_challenge: e.encrypted_challenge,
                         }
                         .get(),
                     )
@@ -465,6 +474,9 @@ impl Client {
                     debug!("Got custom query {:?}", p);
                     // replying to custom query is done in
                     // packet_handling::login::process_packet_events
+                }
+                ClientboundLoginPacket::CookieRequest(p) => {
+                    debug!("Got cookie request {:?}", p);
                 }
             }
         };
@@ -666,6 +678,7 @@ pub struct LocalPlayerBundle {
     pub local_player_events: LocalPlayerEvents,
     pub game_profile: GameProfileComponent,
     pub client_information: ClientInformation,
+    pub instance_holder: InstanceHolder,
 }
 
 /// A bundle for the components that are present on a local player that is

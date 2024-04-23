@@ -39,23 +39,33 @@ fn write_named_fields(
 
 pub fn create_impl_mcbufwritable(ident: &Ident, data: &Data) -> proc_macro2::TokenStream {
     match data {
-        syn::Data::Struct(syn::DataStruct { fields, .. }) => {
-            let syn::Fields::Named(FieldsNamed { named, .. }) = fields else {
-                panic!("#[derive(McBuf)] can only be used on structs with named fields")
-            };
+        syn::Data::Struct(syn::DataStruct { fields, .. }) => match fields {
+            syn::Fields::Named(FieldsNamed { named, .. }) => {
+                let write_fields =
+                    write_named_fields(named, Some(&Ident::new("self", Span::call_site())));
 
-            let write_fields =
-                write_named_fields(named, Some(&Ident::new("self", Span::call_site())));
-
-            quote! {
-                impl azalea_buf::McBufWritable for #ident {
-                    fn write_into(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
-                        #write_fields
-                        Ok(())
+                quote! {
+                    impl azalea_buf::McBufWritable for #ident {
+                        fn write_into(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
+                            #write_fields
+                            Ok(())
+                        }
                     }
                 }
             }
-        }
+            syn::Fields::Unit => {
+                quote! {
+                    impl azalea_buf::McBufWritable for #ident {
+                        fn write_into(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
+                            Ok(())
+                        }
+                    }
+                }
+            }
+            _ => {
+                panic!("#[derive(McBuf)] can only be used on structs with named fields")
+            }
+        },
         syn::Data::Enum(syn::DataEnum { variants, .. }) => {
             // remember whether it's a data variant so we can do an optimization later
             let mut is_data_enum = false;

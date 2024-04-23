@@ -40,7 +40,7 @@ If it all works, make a pull request. If the version you updated to is a snapsho
 At the time of writing, the following data generators are used:
 
 - [Vanilla data generator](https://wiki.vg/Data_Generators)
-- [Burger](https://github.com/Pokechu22/Burger)
+- [Burger](https://github.com/mat-1/Burger)
 - [PixLyzer](https://gitlab.bixilon.de/bixilon/pixlyzer)
 
 Some things can be obtained from multiple generators. You should prefer them by the order above (the vanilla generator is the most reliable).

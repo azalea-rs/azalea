@@ -347,7 +347,6 @@ dependencies = [
  "serde",
  "serde_json",
  "simdnbt",
- "socks5-impl",
  "thiserror",
  "tokio",
  "tracing",
@@ -359,7 +358,6 @@ name = "azalea-core"
 version = "0.9.1"
 dependencies = [
  "azalea-buf",
- "azalea-inventory",
  "azalea-registry",
  "bevy_ecs",
  "nohash-hasher",
@@ -416,9 +414,12 @@ name = "azalea-inventory"
 version = "0.9.1"
 dependencies = [
  "azalea-buf",
+ "azalea-chat",
+ "azalea-core",
  "azalea-inventory-macros",
  "azalea-registry",
  "simdnbt",
+ "uuid",
 ]
 
 [[package]]
@@ -536,7 +537,6 @@ dependencies = [
  "azalea-buf",
  "azalea-client",
  "azalea-core",
- "azalea-inventory",
  "azalea-registry",
  "bevy_ecs",
  "criterion",

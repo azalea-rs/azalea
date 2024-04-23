@@ -1,10 +1,10 @@
 use azalea_buf::McBuf;
-use azalea_core::resource_location::ResourceLocation;
 use azalea_protocol_macros::ClientboundGamePacket;
+use azalea_registry::SoundEvent;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundSoundPacket {
-    pub sound: azalea_registry::CustomRegistry<azalea_registry::SoundEvent, CustomSoundEvent>,
+    pub sound: SoundEvent,
     pub source: SoundSource,
     pub x: i32,
     pub y: i32,
@@ -12,12 +12,6 @@ pub struct ClientboundSoundPacket {
     pub volume: f32,
     pub pitch: f32,
     pub seed: u64,
-}
-
-#[derive(McBuf, Clone, Debug)]
-pub struct CustomSoundEvent {
-    pub location: ResourceLocation,
-    pub range: Option<f32>,
 }
 
 #[derive(McBuf, Clone, Copy, Debug)]

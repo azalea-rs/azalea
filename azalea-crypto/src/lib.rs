@@ -39,10 +39,10 @@ pub fn hex_digest(digest: &[u8]) -> String {
 pub struct EncryptResult {
     pub secret_key: [u8; 16],
     pub encrypted_public_key: Vec<u8>,
-    pub encrypted_nonce: Vec<u8>,
+    pub encrypted_challenge: Vec<u8>,
 }
 
-pub fn encrypt(public_key: &[u8], nonce: &[u8]) -> Result<EncryptResult, String> {
+pub fn encrypt(public_key: &[u8], challenge: &[u8]) -> Result<EncryptResult, String> {
     // On receipt of a Encryption Request from the server, the client will
     // generate a random 16-byte shared secret, to be used with the AES/CFB8
     // stream cipher.
@@ -51,14 +51,14 @@ pub fn encrypt(public_key: &[u8], nonce: &[u8]) -> Result<EncryptResult, String>
     // &secret_key));
 
     // this.keybytes = Crypt.encryptUsingKey(publicKey, secretKey.getEncoded());
-    // this.nonce = Crypt.encryptUsingKey(publicKey, arrby);
+    // this.challenge = Crypt.encryptUsingKey(publicKey, arrby);
     let encrypted_public_key: Vec<u8> = rsa_public_encrypt_pkcs1::encrypt(public_key, &secret_key)?;
-    let encrypted_nonce: Vec<u8> = rsa_public_encrypt_pkcs1::encrypt(public_key, nonce)?;
+    let encrypted_challenge: Vec<u8> = rsa_public_encrypt_pkcs1::encrypt(public_key, challenge)?;
 
     Ok(EncryptResult {
         secret_key,
         encrypted_public_key,
-        encrypted_nonce,
+        encrypted_challenge,
     })
 }
 

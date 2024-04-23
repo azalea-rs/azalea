@@ -1,8 +1,10 @@
+pub mod clientbound_cookie_request_packet;
 pub mod clientbound_custom_query_packet;
 pub mod clientbound_game_profile_packet;
 pub mod clientbound_hello_packet;
 pub mod clientbound_login_compression_packet;
 pub mod clientbound_login_disconnect_packet;
+pub mod serverbound_cookie_response_packet;
 pub mod serverbound_custom_query_answer_packet;
 pub mod serverbound_hello_packet;
 pub mod serverbound_key_packet;
@@ -17,6 +19,7 @@ declare_state_packets!(
         0x01: serverbound_key_packet::ServerboundKeyPacket,
         0x02: serverbound_custom_query_answer_packet::ServerboundCustomQueryAnswerPacket,
         0x03: serverbound_login_acknowledged_packet::ServerboundLoginAcknowledgedPacket,
+        0x04: serverbound_cookie_response_packet::ServerboundCookieResponsePacket,
     },
     Clientbound => {
         0x00: clientbound_login_disconnect_packet::ClientboundLoginDisconnectPacket,
@@ -24,5 +27,6 @@ declare_state_packets!(
         0x02: clientbound_game_profile_packet::ClientboundGameProfilePacket,
         0x03: clientbound_login_compression_packet::ClientboundLoginCompressionPacket,
         0x04: clientbound_custom_query_packet::ClientboundCustomQueryPacket,
+        0x05: clientbound_cookie_request_packet::ClientboundCookieRequestPacket,
     }
 );

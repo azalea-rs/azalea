@@ -22,21 +22,6 @@ pub struct ClientboundAddEntityPacket {
     pub z_vel: i16,
 }
 
-// impl From<&ClientboundAddEntityPacket> for EntityData {
-//     fn from(p: &ClientboundAddEntityPacket) -> Self {
-//         Self::new(
-//             p.uuid,
-//             Vec3 {
-//                 x: p.x,
-//                 y: p.y,
-//                 z: p.z,
-//             },
-//             // default metadata for the entity type
-//             EntityMetadata::from(p.entity_type),
-//         )
-//     }
-// }
-
 impl ClientboundAddEntityPacket {
     /// Make the entity into a bundle that can be inserted into the ECS. You
     /// must apply the metadata after inserting the bundle with
