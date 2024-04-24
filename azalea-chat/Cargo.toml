@@ -10,9 +10,9 @@ version = "0.10.0"
 
 [features]
 default = []
+simdnbt = ["dep:simdnbt"]
 azalea-buf = ["dep:azalea-buf", "simdnbt"]
 numbers = ["dep:azalea-registry", "dep:simdnbt"]
-simdnbt = ["dep:simdnbt"]
 
 [dependencies]
 azalea-buf = { path = "../azalea-buf", features = [
