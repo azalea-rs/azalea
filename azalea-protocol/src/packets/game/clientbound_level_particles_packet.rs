@@ -1,6 +1,6 @@
 use azalea_buf::McBuf;
+use azalea_entity::particle::Particle;
 use azalea_protocol_macros::ClientboundGamePacket;
-use azalea_registry::ParticleKind;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundLevelParticlesPacket {
@@ -12,7 +12,6 @@ pub struct ClientboundLevelParticlesPacket {
     pub y_dist: f32,
     pub z_dist: f32,
     pub max_speed: f32,
-    #[var]
     pub count: u32,
-    pub particle: ParticleKind,
+    pub particle: Particle,
 }
