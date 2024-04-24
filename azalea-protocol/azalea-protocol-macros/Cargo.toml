@@ -3,7 +3,7 @@ description = "Macros internally used in azalea-protocol."
 edition = "2021"
 license = "MIT"
 name = "azalea-protocol-macros"
-version = "0.10.0"
+version = "0.9.1"
 repository = "https://github.com/azalea-rs/azalea/tree/main/azalea-protocol/azalea-protocol-macros"
 
 [lib]
