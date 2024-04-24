@@ -12,7 +12,7 @@ version = "0.10.0"
 simdnbt = { version = "0.4", git = "https://github.com/azalea-rs/simdnbt" }
 azalea-block = { path = "../azalea-block", default-features = false, version = "0.10.0" }
 azalea-buf = { path = "../azalea-buf", version = "0.10.0" }
-azalea-core = { path = "../azalea-core", version = "0.9.1", features = [
+azalea-core = { path = "../azalea-core", version = "0.10.0", features = [
 	"bevy_ecs",
 ] }
 azalea-registry = { path = "../azalea-registry", version = "0.10.0" }

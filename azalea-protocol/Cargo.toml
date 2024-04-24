@@ -13,14 +13,14 @@ simdnbt = { version = "0.4", git = "https://github.com/azalea-rs/simdnbt" }
 async-recursion = "1.1.0"
 azalea-auth = { path = "../azalea-auth", version = "0.10.0" }
 azalea-block = { path = "../azalea-block", default-features = false, version = "0.10.0" }
-azalea-brigadier = { path = "../azalea-brigadier", version = "0.9.1", features = [
+azalea-brigadier = { path = "../azalea-brigadier", version = "0.10.0", features = [
     "azalea-buf",
 ] }
 azalea-buf = { path = "../azalea-buf", version = "0.10.0" }
-azalea-chat = { path = "../azalea-chat", version = "0.9.1", features = [
+azalea-chat = { path = "../azalea-chat", version = "0.10.0", features = [
     "numbers",
 ] }
-azalea-core = { path = "../azalea-core", optional = true, version = "0.9.1", features = [
+azalea-core = { path = "../azalea-core", optional = true, version = "0.10.0", features = [
     "serde",
 ] }
 azalea-crypto = { path = "../azalea-crypto", version = "0.10.0" }
