@@ -4,7 +4,7 @@ edition = "2021"
 license = "MIT"
 name = "azalea-client"
 repository = "https://github.com/azalea-rs/azalea/tree/main/azalea-client"
-version = "0.9.1"
+version = "0.10.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -13,16 +13,16 @@ simdnbt = { version = "0.4", git = "https://github.com/azalea-rs/simdnbt" }
 reqwest = { version = "0.12.4", default-features = false }
 anyhow = "1.0.82"
 async-trait = "0.1.80"
-azalea-auth = { path = "../azalea-auth", version = "0.9.0" }
-azalea-block = { path = "../azalea-block", version = "0.9.0" }
-azalea-chat = { path = "../azalea-chat", version = "0.9.0" }
-azalea-core = { path = "../azalea-core", version = "0.9.0" }
-azalea-crypto = { path = "../azalea-crypto", version = "0.9.0" }
-azalea-physics = { path = "../azalea-physics", version = "0.9.0" }
-azalea-buf = { path = "../azalea-buf", version = "0.9.0" }
-azalea-protocol = { path = "../azalea-protocol", version = "0.9.0" }
-azalea-registry = { path = "../azalea-registry", version = "0.9.0" }
-azalea-world = { path = "../azalea-world", version = "0.9.0" }
+azalea-auth = { path = "../azalea-auth", version = "0.10.0" }
+azalea-block = { path = "../azalea-block", version = "0.10.0" }
+azalea-chat = { path = "../azalea-chat", version = "0.10.0" }
+azalea-core = { path = "../azalea-core", version = "0.10.0" }
+azalea-crypto = { path = "../azalea-crypto", version = "0.10.0" }
+azalea-physics = { path = "../azalea-physics", version = "0.10.0" }
+azalea-buf = { path = "../azalea-buf", version = "0.10.0" }
+azalea-protocol = { path = "../azalea-protocol", version = "0.10.0" }
+azalea-registry = { path = "../azalea-registry", version = "0.10.0" }
+azalea-world = { path = "../azalea-world", version = "0.10.0" }
 bevy_app = "0.13.2"
 bevy_ecs = "0.13.2"
 bevy_log = { version = "0.13.2", optional = true }
@@ -41,8 +41,8 @@ uuid = "^1.8.0"
 serde_json = "1.0.116"
 serde = "1.0.198"
 minecraft_folder_path = "0.1.2"
-azalea-entity = { version = "0.9.0", path = "../azalea-entity" }
-azalea-inventory = { version = "0.9.0", path = "../azalea-inventory" }
+azalea-entity = { version = "0.10.0", path = "../azalea-entity" }
+azalea-inventory = { version = "0.10.0", path = "../azalea-inventory" }
 
 [features]
 default = ["log"]

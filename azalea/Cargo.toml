@@ -4,7 +4,7 @@ edition = "2021"
 license = "MIT"
 name = "azalea"
 repository = "https://github.com/azalea-rs/azalea/tree/main/azalea"
-version = "0.9.1"
+version = "0.10.0"
 
 [package.metadata.release]
 pre-release-replacements = [
@@ -14,17 +14,17 @@ pre-release-replacements = [
 [dependencies]
 anyhow = "^1.0.82"
 async-trait = "0.1.80"
-azalea-block = { version = "0.9.0", path = "../azalea-block" }
-azalea-chat = { version = "0.9.0", path = "../azalea-chat" }
-azalea-client = { version = "0.9.0", path = "../azalea-client", default-features = false }
-azalea-core = { version = "0.9.0", path = "../azalea-core" }
-azalea-physics = { version = "0.9.0", path = "../azalea-physics" }
-azalea-protocol = { version = "0.9.0", path = "../azalea-protocol" }
-azalea-registry = { version = "0.9.0", path = "../azalea-registry" }
-azalea-world = { version = "0.9.0", path = "../azalea-world" }
-azalea-auth = { version = "0.9.0", path = "../azalea-auth" }
-azalea-brigadier = { version = "0.9.0", path = "../azalea-brigadier" }
-azalea-buf = { version = "0.9.0", path = "../azalea-buf" }
+azalea-block = { version = "0.10.0", path = "../azalea-block" }
+azalea-chat = { version = "0.10.0", path = "../azalea-chat" }
+azalea-client = { version = "0.10.0", path = "../azalea-client", default-features = false }
+azalea-core = { version = "0.10.0", path = "../azalea-core" }
+azalea-physics = { version = "0.10.0", path = "../azalea-physics" }
+azalea-protocol = { version = "0.10.0", path = "../azalea-protocol" }
+azalea-registry = { version = "0.10.0", path = "../azalea-registry" }
+azalea-world = { version = "0.10.0", path = "../azalea-world" }
+azalea-auth = { version = "0.10.0", path = "../azalea-auth" }
+azalea-brigadier = { version = "0.10.0", path = "../azalea-brigadier" }
+azalea-buf = { version = "0.10.0", path = "../azalea-buf" }
 bevy_app = "0.13.2"
 bevy_ecs = "0.13.2"
 bevy_tasks = { version = "0.13.2", features = ["multi-threaded"] }
@@ -42,8 +42,8 @@ uuid = "1.8.0"
 bevy_log = "0.13.2"
 bevy_time = "0.13.2"
 rustc-hash = "1.1.0"
-azalea-inventory = { version = "0.9.0", path = "../azalea-inventory" }
-azalea-entity = { version = "0.9.0", path = "../azalea-entity" }
+azalea-inventory = { version = "0.10.0", path = "../azalea-inventory" }
+azalea-entity = { version = "0.10.0", path = "../azalea-entity" }
 
 [dev-dependencies]
 criterion = "0.5.1"

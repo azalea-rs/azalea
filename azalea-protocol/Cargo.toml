@@ -4,29 +4,29 @@ edition = "2021"
 license = "MIT"
 name = "azalea-protocol"
 repository = "https://github.com/azalea-rs/azalea/tree/main/azalea-protocol"
-version = "0.9.1"
+version = "0.10.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 simdnbt = { version = "0.4", git = "https://github.com/azalea-rs/simdnbt" }
 async-recursion = "1.1.0"
-azalea-auth = { path = "../azalea-auth", version = "0.9.0" }
-azalea-block = { path = "../azalea-block", default-features = false, version = "0.9.0" }
+azalea-auth = { path = "../azalea-auth", version = "0.10.0" }
+azalea-block = { path = "../azalea-block", default-features = false, version = "0.10.0" }
 azalea-brigadier = { path = "../azalea-brigadier", version = "0.9.0", features = [
     "azalea-buf",
 ] }
-azalea-buf = { path = "../azalea-buf", version = "0.9.0" }
+azalea-buf = { path = "../azalea-buf", version = "0.10.0" }
 azalea-chat = { path = "../azalea-chat", version = "0.9.0", features = [
     "numbers",
 ] }
 azalea-core = { path = "../azalea-core", optional = true, version = "0.9.0", features = [
     "serde",
 ] }
-azalea-crypto = { path = "../azalea-crypto", version = "0.9.0" }
-azalea-protocol-macros = { path = "./azalea-protocol-macros", version = "0.9.0" }
-azalea-registry = { path = "../azalea-registry", version = "0.9.0" }
-azalea-world = { path = "../azalea-world", version = "0.9.0" }
+azalea-crypto = { path = "../azalea-crypto", version = "0.10.0" }
+azalea-protocol-macros = { path = "./azalea-protocol-macros", version = "0.10.0" }
+azalea-registry = { path = "../azalea-registry", version = "0.10.0" }
+azalea-world = { path = "../azalea-world", version = "0.10.0" }
 bevy_ecs = { version = "0.13.2", default-features = false }
 byteorder = "^1.5.0"
 bytes = "^1.6.0"
@@ -45,8 +45,8 @@ trust-dns-resolver = { version = "^0.23.2", default-features = false, features =
 ] }
 uuid = "1.8.0"
 log = "0.4.21"
-azalea-entity = { version = "0.9.0", path = "../azalea-entity" }
-azalea-inventory = { version = "0.9.0", path = "../azalea-inventory" }
+azalea-entity = { version = "0.10.0", path = "../azalea-entity" }
+azalea-inventory = { version = "0.10.0", path = "../azalea-inventory" }
 socks5-impl = "0.5.12"
 
 [features]
