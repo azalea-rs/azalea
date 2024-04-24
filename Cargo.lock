@@ -190,15 +190,15 @@ checksum = "f1fdabc7756949593fe60f30ec81974b613357de856987752631dea1e3394c80"
 
 [[package]]
 name = "azalea"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "anyhow",
  "async-trait",
  "azalea-auth",
  "azalea-block",
  "azalea-brigadier",
- "azalea-buf 0.10.0",
- "azalea-chat 0.10.0",
+ "azalea-buf",
+ "azalea-chat",
  "azalea-client",
  "azalea-core",
  "azalea-entity",
@@ -230,9 +230,9 @@ dependencies = [
 
 [[package]]
 name = "azalea-auth"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
- "azalea-buf 0.10.0",
+ "azalea-buf",
  "azalea-crypto",
  "base64",
  "chrono",
@@ -255,7 +255,7 @@ name = "azalea-block"
 version = "0.10.0"
 dependencies = [
  "azalea-block-macros",
- "azalea-buf 0.10.0",
+ "azalea-buf",
  "azalea-registry",
 ]
 
@@ -272,48 +272,22 @@ dependencies = [
 name = "azalea-brigadier"
 version = "0.10.0"
 dependencies = [
- "azalea-buf 0.10.0",
- "azalea-chat 0.10.0",
+ "azalea-buf",
+ "azalea-chat",
  "parking_lot",
 ]
 
 [[package]]
 name = "azalea-buf"
-version = "0.9.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "68f594a8b604e04e923b101add22ae79304c15ecd26f448b4273123c56b92693"
+version = "0.10.1"
 dependencies = [
- "azalea-buf-macros 0.9.1",
+ "azalea-buf-macros",
  "byteorder",
  "serde_json",
- "simdnbt 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "simdnbt",
  "thiserror",
  "tracing",
  "uuid",
-]
-
-[[package]]
-name = "azalea-buf"
-version = "0.10.0"
-dependencies = [
- "azalea-buf-macros 0.10.0",
- "byteorder",
- "serde_json",
- "simdnbt 0.4.2 (git+https://github.com/azalea-rs/simdnbt)",
- "thiserror",
- "tracing",
- "uuid",
-]
-
-[[package]]
-name = "azalea-buf-macros"
-version = "0.9.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9d9fde530111dfc02008917d26ad53dd31a5267d7abe0fde6c93a72fce681257"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.60",
 ]
 
 [[package]]
@@ -327,43 +301,28 @@ dependencies = [
 
 [[package]]
 name = "azalea-chat"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
- "azalea-buf 0.10.0",
- "azalea-language 0.10.0",
+ "azalea-buf",
+ "azalea-language",
  "azalea-registry",
  "once_cell",
  "serde",
  "serde_json",
- "simdnbt 0.4.2 (git+https://github.com/azalea-rs/simdnbt)",
- "tracing",
-]
-
-[[package]]
-name = "azalea-chat"
-version = "0.10.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "574654cb6a6897ed2c041212989ef7458f499cabffc4ff92894567bf9dee1fc8"
-dependencies = [
- "azalea-buf 0.9.1",
- "azalea-language 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "once_cell",
- "serde",
- "serde_json",
- "simdnbt 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "simdnbt",
  "tracing",
 ]
 
 [[package]]
 name = "azalea-client"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "anyhow",
  "async-trait",
  "azalea-auth",
  "azalea-block",
- "azalea-buf 0.10.0",
- "azalea-chat 0.10.0",
+ "azalea-buf",
+ "azalea-chat",
  "azalea-core",
  "azalea-crypto",
  "azalea-entity",
@@ -387,7 +346,7 @@ dependencies = [
  "reqwest",
  "serde",
  "serde_json",
- "simdnbt 0.4.2 (git+https://github.com/azalea-rs/simdnbt)",
+ "simdnbt",
  "thiserror",
  "tokio",
  "tracing",
@@ -398,14 +357,14 @@ dependencies = [
 name = "azalea-core"
 version = "0.10.0"
 dependencies = [
- "azalea-buf 0.10.0",
+ "azalea-buf",
  "azalea-registry",
  "bevy_ecs",
  "nohash-hasher",
  "num-traits",
  "serde",
  "serde_json",
- "simdnbt 0.4.2 (git+https://github.com/azalea-rs/simdnbt)",
+ "simdnbt",
  "tracing",
  "uuid",
 ]
@@ -415,7 +374,7 @@ name = "azalea-crypto"
 version = "0.10.0"
 dependencies = [
  "aes",
- "azalea-buf 0.10.0",
+ "azalea-buf",
  "cfb8",
  "criterion",
  "num-bigint",
@@ -429,11 +388,11 @@ dependencies = [
 
 [[package]]
 name = "azalea-entity"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "azalea-block",
- "azalea-buf 0.10.0",
- "azalea-chat 0.10.0",
+ "azalea-buf",
+ "azalea-chat",
  "azalea-core",
  "azalea-inventory",
  "azalea-registry",
@@ -444,7 +403,7 @@ dependencies = [
  "enum-as-inner",
  "nohash-hasher",
  "parking_lot",
- "simdnbt 0.4.2 (git+https://github.com/azalea-rs/simdnbt)",
+ "simdnbt",
  "thiserror",
  "tracing",
  "uuid",
@@ -452,14 +411,14 @@ dependencies = [
 
 [[package]]
 name = "azalea-inventory"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
- "azalea-buf 0.10.0",
- "azalea-chat 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "azalea-buf",
+ "azalea-chat",
  "azalea-core",
  "azalea-inventory-macros",
  "azalea-registry",
- "simdnbt 0.4.2 (git+https://github.com/azalea-rs/simdnbt)",
+ "simdnbt",
  "uuid",
 ]
 
@@ -475,17 +434,6 @@ dependencies = [
 [[package]]
 name = "azalea-language"
 version = "0.10.0"
-dependencies = [
- "once_cell",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "azalea-language"
-version = "0.10.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "11f12a23b2459b91147a818bd16e3bac3cf7271d7a61d4d2b386a5edce870d63"
 dependencies = [
  "once_cell",
  "serde",
@@ -515,15 +463,15 @@ dependencies = [
 
 [[package]]
 name = "azalea-protocol"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "anyhow",
  "async-recursion",
  "azalea-auth",
  "azalea-block",
  "azalea-brigadier",
- "azalea-buf 0.10.0",
- "azalea-chat 0.10.0",
+ "azalea-buf",
+ "azalea-chat",
  "azalea-core",
  "azalea-crypto",
  "azalea-entity",
@@ -542,7 +490,7 @@ dependencies = [
  "once_cell",
  "serde",
  "serde_json",
- "simdnbt 0.4.2 (git+https://github.com/azalea-rs/simdnbt)",
+ "simdnbt",
  "socks5-impl",
  "thiserror",
  "tokio",
@@ -566,10 +514,10 @@ dependencies = [
 name = "azalea-registry"
 version = "0.10.0"
 dependencies = [
- "azalea-buf 0.10.0",
+ "azalea-buf",
  "azalea-registry-macros",
  "once_cell",
- "simdnbt 0.4.2 (git+https://github.com/azalea-rs/simdnbt)",
+ "simdnbt",
 ]
 
 [[package]]
@@ -583,10 +531,10 @@ dependencies = [
 
 [[package]]
 name = "azalea-world"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "azalea-block",
- "azalea-buf 0.10.0",
+ "azalea-buf",
  "azalea-client",
  "azalea-core",
  "azalea-registry",
@@ -599,7 +547,7 @@ dependencies = [
  "rustc-hash",
  "serde",
  "serde_json",
- "simdnbt 0.4.2 (git+https://github.com/azalea-rs/simdnbt)",
+ "simdnbt",
  "thiserror",
  "tracing",
  "uuid",
@@ -2452,39 +2400,14 @@ dependencies = [
 [[package]]
 name = "simdnbt"
 version = "0.4.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fb95596ab43601d8f81981640b5c29962a859039eace993b2584f09ea9923eca"
-dependencies = [
- "byteorder",
- "flate2",
- "residua-mutf8",
- "simdnbt-derive 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "thiserror",
- "valence_nbt",
-]
-
-[[package]]
-name = "simdnbt"
-version = "0.4.2"
 source = "git+https://github.com/azalea-rs/simdnbt#860d6e1b3a50d49b58b2853bf160420cd0b5eafe"
 dependencies = [
  "byteorder",
  "flate2",
  "residua-mutf8",
- "simdnbt-derive 0.4.1 (git+https://github.com/azalea-rs/simdnbt)",
+ "simdnbt-derive",
  "thiserror",
  "valence_nbt",
-]
-
-[[package]]
-name = "simdnbt-derive"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "314648cf81002de46e7398c99bbdbcc8a3aef38d93ac167ebe328a4a8414fac2"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.60",
 ]
 
 [[package]]
