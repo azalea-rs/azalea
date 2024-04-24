@@ -1,6 +1,6 @@
 [package]
 name = "azalea-entity"
-version = "0.9.1"
+version = "0.10.0"
 edition = "2021"
 description = "Things related to Minecraft entities used by Azalea"
 repository = "https://github.com/azalea-rs/azalea/tree/main/azalea-entity"
@@ -10,15 +10,15 @@ license = "MIT"
 
 [dependencies]
 simdnbt = { version = "0.4", git = "https://github.com/azalea-rs/simdnbt" }
-azalea-block = { version = "0.9.1", path = "../azalea-block" }
-azalea-buf = { version = "0.9.1", path = "../azalea-buf" }
+azalea-block = { version = "0.10.0", path = "../azalea-block" }
+azalea-buf = { version = "0.10.0", path = "../azalea-buf" }
 azalea-chat = { version = "0.9.1", path = "../azalea-chat", features = [
     "azalea-buf",
 ] }
-azalea-core = { version = "0.9.1", path = "../azalea-core" }
-azalea-inventory = { version = "0.9.1", path = "../azalea-inventory" }
-azalea-registry = { version = "0.9.1", path = "../azalea-registry" }
-azalea-world = { version = "0.9.1", path = "../azalea-world" }
+azalea-core = { version = "0.10.0", path = "../azalea-core" }
+azalea-inventory = { version = "0.10.0", path = "../azalea-inventory" }
+azalea-registry = { version = "0.10.0", path = "../azalea-registry" }
+azalea-world = { version = "0.10.0", path = "../azalea-world" }
 bevy_app = "0.13.2"
 bevy_ecs = "0.13.2"
 derive_more = "0.99.17"
