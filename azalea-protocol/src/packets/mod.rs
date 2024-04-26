@@ -70,9 +70,9 @@ impl TryFrom<i32> for ClientIntention {
     }
 }
 
-impl Into<ConnectionProtocol> for ClientIntention {
-    fn into(self) -> ConnectionProtocol {
-        match self {
+impl From<ClientIntention> for ConnectionProtocol {
+    fn from(intention: ClientIntention) -> Self {
+        match intention {
             ClientIntention::Status => ConnectionProtocol::Status,
             ClientIntention::Login | ClientIntention::Transfer => ConnectionProtocol::Login,
         }
