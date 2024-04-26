@@ -51,7 +51,7 @@ use azalea_protocol::{
             serverbound_login_acknowledged_packet::ServerboundLoginAcknowledgedPacket,
             ClientboundLoginPacket,
         },
-        ConnectionProtocol, PROTOCOL_VERSION,
+        ConnectionProtocol, ClientIntention, PROTOCOL_VERSION,
     },
     resolver, ServerAddress,
 };
@@ -84,7 +84,6 @@ use tokio::{
 };
 use tracing::{debug, error};
 use uuid::Uuid;
-use azalea_protocol::packets::ClientIntention;
 
 /// `Client` has the things that a user interacting with the library will want.
 ///
