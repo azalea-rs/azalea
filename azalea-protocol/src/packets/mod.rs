@@ -50,19 +50,6 @@ where
     fn write(&self, buf: &mut impl Write) -> Result<(), std::io::Error>;
 }
 
-/*impl azalea_buf::McBufReadable for ConnectionProtocol {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let id = i32::var_read_from(buf)?;
-        ConnectionProtocol::from_i32(id).ok_or(BufReadError::UnexpectedEnumVariant { id })
-    }
-}
-
-impl McBufWritable for ConnectionProtocol {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        (*self as i32).var_write_into(buf)
-    }
-}*/
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ClientIntention {
     Status = 1,
