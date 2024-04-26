@@ -61,7 +61,7 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///     resolver,
 ///     connect::Connection,
 ///     packets::{
-///         ConnectionProtocol, PROTOCOL_VERSION,
+///         ClientIntention, PROTOCOL_VERSION,
 ///         login::{
 ///             ClientboundLoginPacket,
 ///             serverbound_hello_packet::ServerboundHelloPacket,
@@ -82,7 +82,7 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///             protocol_version: PROTOCOL_VERSION,
 ///             hostname: resolved_address.ip().to_string(),
 ///             port: resolved_address.port(),
-///             intention: ConnectionProtocol::Login,
+///             intention: ClientIntention::Login,
 ///         }
 ///         .get(),
 ///     )

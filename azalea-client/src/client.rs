@@ -84,6 +84,7 @@ use tokio::{
 };
 use tracing::{debug, error};
 use uuid::Uuid;
+use azalea_protocol::packets::ClientIntention;
 
 /// `Client` has the things that a user interacting with the library will want.
 ///
@@ -358,7 +359,7 @@ impl Client {
                 protocol_version: PROTOCOL_VERSION,
                 hostname: address.host.clone(),
                 port: address.port,
-                intention: ConnectionProtocol::Login,
+                intention: ClientIntention::Login,
             }
             .get(),
         )

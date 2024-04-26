@@ -16,7 +16,7 @@ use azalea_protocol::{
             },
             ServerboundStatusPacket,
         },
-        ConnectionProtocol, PROTOCOL_VERSION,
+        ClientIntention, PROTOCOL_VERSION,
     },
     read::ReadPacketError,
 };
@@ -95,7 +95,7 @@ async fn handle_connection(stream: TcpStream) -> anyhow::Result<()> {
     match intent.intention {
         // If the client is pinging the proxy,
         // reply with the information below.
-        ConnectionProtocol::Status => {
+        ClientIntention::Status => {
             let mut conn = conn.status();
             loop {
                 match conn.read().await {
@@ -135,7 +135,7 @@ async fn handle_connection(stream: TcpStream) -> anyhow::Result<()> {
         // wait for them to send the `Hello` packet to
         // log their username and uuid, then forward the
         // connection along to the proxy target.
-        ConnectionProtocol::Login => {
+        ClientIntention::Login => {
             let mut conn = conn.login();
             loop {
                 match conn.read().await {
@@ -169,8 +169,8 @@ async fn handle_connection(stream: TcpStream) -> anyhow::Result<()> {
                 }
             }
         }
-        _ => {
-            warn!("Client provided weird intent: {:?}", intent.intention);
+        ClientIntention::Transfer => {
+            warn!("Client attempted to join via transfer")
         }
     }
 
