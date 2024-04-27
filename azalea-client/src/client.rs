@@ -51,7 +51,7 @@ use azalea_protocol::{
             serverbound_login_acknowledged_packet::ServerboundLoginAcknowledgedPacket,
             ClientboundLoginPacket,
         },
-        ConnectionProtocol, ClientIntention, PROTOCOL_VERSION,
+        ClientIntention, ConnectionProtocol, PROTOCOL_VERSION,
     },
     resolver, ServerAddress,
 };

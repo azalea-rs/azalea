@@ -54,7 +54,7 @@ where
 pub enum ClientIntention {
     Status = 1,
     Login = 2,
-    Transfer = 3
+    Transfer = 3,
 }
 
 impl TryFrom<i32> for ClientIntention {
@@ -82,7 +82,8 @@ impl From<ClientIntention> for ConnectionProtocol {
 impl azalea_buf::McBufReadable for ClientIntention {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let id = i32::var_read_from(buf)?;
-        id.try_into().map_err(|_| BufReadError::UnexpectedEnumVariant { id })
+        id.try_into()
+            .map_err(|_| BufReadError::UnexpectedEnumVariant { id })
     }
 }
 
