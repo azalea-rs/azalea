@@ -51,7 +51,7 @@ use azalea_protocol::{
             serverbound_login_acknowledged_packet::ServerboundLoginAcknowledgedPacket,
             ClientboundLoginPacket,
         },
-        ConnectionProtocol, PROTOCOL_VERSION,
+        ConnectionProtocol, ClientIntention, PROTOCOL_VERSION,
     },
     resolver, ServerAddress,
 };
@@ -358,7 +358,7 @@ impl Client {
                 protocol_version: PROTOCOL_VERSION,
                 hostname: address.host.clone(),
                 port: address.port,
-                intention: ConnectionProtocol::Login,
+                intention: ClientIntention::Login,
             }
             .get(),
         )
