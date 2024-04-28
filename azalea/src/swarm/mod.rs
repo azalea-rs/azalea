@@ -343,7 +343,7 @@ where
         let mut swarm_clone = swarm.clone();
         let join_delay = self.join_delay;
         let accounts = self.accounts.clone();
-        let states = self.states.clone();
+        let states: Vec<S> = self.states.clone();
 
         let join_task = tokio::spawn(async move {
             if let Some(join_delay) = join_delay {
@@ -357,15 +357,12 @@ where
             } else {
                 // otherwise, join all at once
                 let swarm_borrow = &swarm_clone;
-                join_all(accounts.iter().zip(states).map(
-                    async move |(account, state)| -> Result<(), JoinError> {
-                        swarm_borrow
-                            .clone()
-                            .add_with_exponential_backoff(account, state.clone())
-                            .await;
-                        Ok(())
-                    },
-                ))
+                join_all(accounts.iter().zip(states).map(|(account, state)| async {
+                    swarm_borrow
+                        .clone()
+                        .add_with_exponential_backoff(account, state)
+                        .await;
+                }))
                 .await;
             }
         });
