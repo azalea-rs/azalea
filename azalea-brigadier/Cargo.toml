@@ -8,10 +8,14 @@ version = "0.10.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[dev-dependencies]
+bevy_app = "0.13.0"
+bevy_ecs = "0.13.0"
+
 [dependencies]
 azalea-buf = { path = "../azalea-buf", version = "0.10.0", optional = true }
 azalea-chat = { path = "../azalea-chat", version = "0.10.0", optional = true }
 parking_lot = "0.12.1"
 
 [features]
-azalea-buf = ["dep:azalea-buf", "dep:azalea-chat"]
+azalea-buf = ["dep:azalea-buf", "dep:azalea-chat", "azalea-chat/azalea-buf"]
