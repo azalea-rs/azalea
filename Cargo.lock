@@ -274,6 +274,8 @@ version = "0.10.0"
 dependencies = [
  "azalea-buf",
  "azalea-chat",
+ "bevy_app",
+ "bevy_ecs",
  "parking_lot",
 ]
 
