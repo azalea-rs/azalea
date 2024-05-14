@@ -135,18 +135,12 @@ pub struct ChatTypeStyle {
 #[simdnbt(deny_unknown_fields)]
 pub struct DimensionTypeElement {
     pub ambient_light: f32,
-    #[serde(with = "Convert")]
     pub bed_works: bool,
     pub coordinate_scale: f32,
     pub effects: ResourceLocation,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub fixed_time: Option<u32>,
-    #[serde(with = "Convert")]
     pub has_ceiling: bool,
-    #[serde(with = "Convert")]
     pub has_raids: bool,
-    #[serde(with = "Convert")]
     pub has_skylight: bool,
     pub height: u32,
     pub infiniburn: ResourceLocation,
@@ -154,13 +148,9 @@ pub struct DimensionTypeElement {
     pub min_y: i32,
     pub monster_spawn_block_light_limit: u32,
     pub monster_spawn_light_level: MonsterSpawnLightLevel,
-    #[serde(with = "Convert")]
     pub natural: bool,
-    #[serde(with = "Convert")]
     pub piglin_safe: bool,
-    #[serde(with = "Convert")]
     pub respawn_anchor_works: bool,
-    #[serde(with = "Convert")]
     pub ultrawarm: bool,
 }
 
@@ -180,7 +170,6 @@ pub struct DimensionTypeElement {
 /// max.
 #[derive(Debug, Clone)]
 // #[serde(untagged)]
-#[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
 pub enum MonsterSpawnLightLevel {
     /// A simple minimum value.
     Simple(u32),
