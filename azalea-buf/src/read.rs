@@ -359,7 +359,7 @@ impl McBufReadable for simdnbt::owned::NbtCompound {
 
 impl McBufReadable for simdnbt::owned::Nbt {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        Ok(simdnbt::owned::Nbt::read_unnamed(buf)?)
+        Ok(simdnbt::owned::read_unnamed(buf)?)
     }
 }
 

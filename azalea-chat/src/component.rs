@@ -470,8 +470,7 @@ impl simdnbt::FromNbtTag for FormattedText {
 #[cfg(feature = "azalea-buf")]
 impl McBufReadable for FormattedText {
     fn read_from(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let alloc = Default::default();
-        let nbt = simdnbt::borrow::NbtTag::read_optional(buf, &alloc)?;
+        let nbt = simdnbt::borrow::read_optional_tag(buf)?;
         if let Some(nbt) = nbt {
             FormattedText::from_nbt_tag(&nbt).ok_or(BufReadError::Custom(
                 "couldn't convert nbt to chat message".to_owned(),
