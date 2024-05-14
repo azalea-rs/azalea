@@ -27,6 +27,8 @@ pub trait Block: Debug + Any {
     /// Convert the block to an [`azalea_registry::Block`]. This is lossy, as
     /// `azalea_registry::Block` doesn't contain any state data.
     fn as_registry_block(&self) -> azalea_registry::Block;
+
+    fn as_property_list(&self) -> HashMap<String, String>;
 }
 impl dyn Block {
     pub fn downcast_ref<T: Block>(&self) -> Option<&T> {
