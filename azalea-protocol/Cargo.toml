@@ -54,7 +54,6 @@ socks5-impl = "0.5.12"
 connecting = []
 default = ["packets"]
 packets = ["connecting", "dep:azalea-core"]
-strict_registry = ["packets"]
 
 [dev-dependencies]
 anyhow = "^1.0.82"

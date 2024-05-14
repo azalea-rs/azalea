@@ -51,8 +51,9 @@ impl RegistryHolder {
             // convert the value to T
             let mut nbt_bytes = Vec::new();
             value.write(&mut nbt_bytes);
+            let alloc = Default::default();
             let nbt_borrow_compound =
-                simdnbt::borrow::NbtCompound::read(&mut Cursor::new(&nbt_bytes)).ok()?;
+                simdnbt::borrow::NbtCompound::read(&mut Cursor::new(&nbt_bytes), &alloc).ok()?;
             let value = match T::from_compound(&nbt_borrow_compound) {
                 Ok(value) => value,
                 Err(err) => {

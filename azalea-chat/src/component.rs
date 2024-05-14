@@ -312,12 +312,12 @@ impl simdnbt::FromNbtTag for FormattedText {
                         match with.list()? {
                             simdnbt::borrow::NbtList::Empty => {}
                             simdnbt::borrow::NbtList::String(with) => {
-                                for item in with {
+                                for item in *with {
                                     with_array.push(StringOrComponent::String(item.to_string()));
                                 }
                             }
                             simdnbt::borrow::NbtList::Compound(with) => {
-                                for item in with {
+                                for item in *with {
                                     // if it's a string component with no styling and no siblings,
                                     // just add a string to
                                     // with_array otherwise add the
@@ -470,7 +470,8 @@ impl simdnbt::FromNbtTag for FormattedText {
 #[cfg(feature = "azalea-buf")]
 impl McBufReadable for FormattedText {
     fn read_from(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let nbt = simdnbt::borrow::NbtTag::read_optional(buf)?;
+        let alloc = Default::default();
+        let nbt = simdnbt::borrow::NbtTag::read_optional(buf, &alloc)?;
         if let Some(nbt) = nbt {
             FormattedText::from_nbt_tag(&nbt).ok_or(BufReadError::Custom(
                 "couldn't convert nbt to chat message".to_owned(),
