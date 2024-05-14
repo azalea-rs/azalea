@@ -24,7 +24,7 @@ impl McBufReadable for NumberFormat {
         match kind {
             NumberFormatKind::Blank => Ok(NumberFormat::Blank),
             NumberFormatKind::Styled => Ok(NumberFormat::Styled {
-                style: Nbt::read(buf)?,
+                style: simdnbt::owned::read(buf)?,
             }),
             NumberFormatKind::Fixed => Ok(NumberFormat::Fixed {
                 value: FormattedText::read_from(buf)?,
