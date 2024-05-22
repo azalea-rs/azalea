@@ -96,7 +96,7 @@ def generate_block_shapes_code(blocks: dict, shapes: dict, block_states_report, 
 
     generated_map_code = f'static SHAPES_MAP: [&Lazy<VoxelShape>; {block_state_ids_to_shape_ids.__len__()}] = ['
 
-    block_state_ids_to_shape_ids = sorted(block_state_ids_to_shape_ids, key=lambda x: x[0], reverse=True)
+    block_state_ids_to_shape_ids = sorted(block_state_ids_to_shape_ids, key=lambda x: x[0])
 
     empty_shape_match_code = convert_ints_to_rust_ranges(empty_shapes)
     block_shape_match_code = convert_ints_to_rust_ranges(full_shapes)
