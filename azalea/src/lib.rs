@@ -181,11 +181,14 @@ where
     /// to a Minecraft server.
     ///
     /// [`ServerAddress`]: azalea_protocol::ServerAddress
-    pub async fn start(
+    pub async fn start<A>(
         mut self,
-        account: impl Account,
+        account: A,
         address: impl TryInto<ServerAddress>,
-    ) -> Result<!, StartError> {
+    ) -> Result<!, StartError>
+    where
+        A: Account,
+    {
         self.swarm.accounts = vec![BoxedAccount(Arc::new(account))];
         if self.swarm.states.is_empty() {
             self.swarm.states = vec![S::default()];

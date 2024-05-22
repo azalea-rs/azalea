@@ -5,7 +5,9 @@ mod events;
 pub mod prelude;
 
 use azalea_auth::account::Account;
-use azalea_client::{chat::ChatPacket, start_ecs_runner, BoxedAccount, Client, DefaultPlugins, Event, JoinError};
+use azalea_client::{
+    chat::ChatPacket, start_ecs_runner, BoxedAccount, Client, DefaultPlugins, Event, JoinError,
+};
 use azalea_protocol::{resolver, ServerAddress};
 use azalea_world::InstanceContainer;
 use bevy_app::{App, PluginGroup, PluginGroupBuilder, Plugins};
@@ -232,9 +234,10 @@ where
     /// By default every account will join at the same time, you can add a delay
     /// with [`Self::join_delay`].
     #[must_use]
-    pub fn add_accounts(mut self, accounts: Vec<impl Account>) -> Self
+    pub fn add_accounts<A>(mut self, accounts: Vec<A>) -> Self
     where
         S: Default,
+        A: Account,
     {
         for account in accounts {
             self = self.add_account(account);
@@ -247,16 +250,20 @@ where
     /// This will make the state for this client be the default, use
     /// [`Self::add_account_with_state`] to avoid that.
     #[must_use]
-    pub fn add_account(self, account: impl Account) -> Self
+    pub fn add_account<A>(self, account: A) -> Self
     where
         S: Default,
+        A: Account,
     {
         self.add_account_with_state(account, S::default())
     }
     /// Add an account with a custom initial state. Use just
     /// [`Self::add_account`] to use the Default implementation for the state.
     #[must_use]
-    pub fn add_account_with_state(mut self, account: impl Account, state: S) -> Self {
+    pub fn add_account_with_state<A>(mut self, account: A, state: S) -> Self
+    where
+        A: Account,
+    {
         self.accounts.push(BoxedAccount(Arc::new(account)));
         self.states.push(state);
         self

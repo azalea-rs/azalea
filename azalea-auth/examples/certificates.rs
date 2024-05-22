@@ -18,9 +18,7 @@ async fn main() {
     .await
     .unwrap();
 
-    let certs = auth_result.fetch_certificates()
-        .await
-        .unwrap();
+    let certs = auth_result.fetch_certificates().await.unwrap();
 
     println!("{certs:?}");
 }

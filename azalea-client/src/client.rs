@@ -26,7 +26,10 @@ use crate::{
 
 use async_trait::async_trait;
 use azalea_auth::{
-    account::Account, certs::{Certificates, FetchCertificatesError}, game_profile::GameProfile, sessionserver::ClientSessionServerError
+    account::Account,
+    certs::{Certificates, FetchCertificatesError},
+    game_profile::GameProfile,
+    sessionserver::ClientSessionServerError,
 };
 use azalea_chat::FormattedText;
 use azalea_core::{position::Vec3, tick::GameTick};
@@ -168,7 +171,6 @@ impl Account for BoxedAccount {
     }
 }
 
-
 impl Client {
     /// Create a new client from the given [`GameProfile`], ECS Entity, ECS
     /// World, and schedule runner function.
@@ -211,10 +213,13 @@ impl Client {
     ///     Ok(())
     /// }
     /// ```
-    pub async fn join(
-        account: impl Account,
+    pub async fn join<A>(
+        account: A,
         address: impl TryInto<ServerAddress>,
-    ) -> Result<(Self, mpsc::UnboundedReceiver<Event>), JoinError> {
+    ) -> Result<(Self, mpsc::UnboundedReceiver<Event>), JoinError>
+    where
+        A: Account,
+    {
         let address: ServerAddress = address.try_into().map_err(|_| JoinError::InvalidAddress)?;
         let resolved_address = resolver::resolve_address(&address).await?;
 

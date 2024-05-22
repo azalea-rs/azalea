@@ -39,7 +39,8 @@ async fn auth() -> Result<ProfileResponse, Box<dyn Error>> {
     .await?;
 
     // Minecraft auth
-    let mca = azalea_auth::auth_with_minecraft(&client, &xbl_auth.data.user_hash, &xsts_token).await?;
+    let mca =
+        azalea_auth::auth_with_minecraft(&client, &xbl_auth.data.user_hash, &xsts_token).await?;
 
     let minecraft_access_token: String = mca
         .get()
