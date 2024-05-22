@@ -359,7 +359,7 @@ impl DataComponent for FireResistant {}
 
 #[derive(Clone, PartialEq, McBuf)]
 pub struct ToolRule {
-    pub blocks: Vec<Block>,
+    pub blocks: HolderSet<Block, ResourceLocation>,
     pub speed: Option<f32>,
     pub correct_for_drops: Option<bool>,
 }
