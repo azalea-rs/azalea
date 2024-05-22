@@ -468,6 +468,7 @@ impl simdnbt::FromNbtTag for FormattedText {
 }
 
 #[cfg(feature = "azalea-buf")]
+#[cfg(feature = "simdnbt")]
 impl McBufReadable for FormattedText {
     fn read_from(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let nbt = simdnbt::borrow::read_optional_tag(buf)?;
