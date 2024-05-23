@@ -177,12 +177,12 @@ def fmt():
 
 def clean_property_name(property_name):
     # if the name ends with _<number>, remove that part
-    ending = property_name.split('_')[-1]
-    if ending.isdigit():
-        property_name = property_name[:-(len(ending) + 1)]
+    # ending = property_name.split('_')[-1]
+    # if ending.isdigit():
+    #     property_name = property_name[:-(len(ending) + 1)]
 
     # `type` is a reserved keyword, so we use kind instead ¯\_(ツ)_/¯
-    if property_name == 'type':
-        property_name = 'kind'
+    # if property_name == 'type':
+    #     property_name = 'kind'
 
     return property_name

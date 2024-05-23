@@ -125,8 +125,7 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, pixlyzer_block_dat
 
             assert property_default is not None
 
-            property_name = clean_property_name(property_name)
-            this_property_code = f'{property_name}: {property_default_type}'
+            this_property_code = f'"{property_name}": {property_default_type}'
 
             properties_code += f'\n            {this_property_code},'
         # if there's nothing inside the properties, keep it in one line
