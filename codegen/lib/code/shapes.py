@@ -1,6 +1,4 @@
 from lib.utils import get_dir_location, to_camel_case
-from lib.code.utils import clean_property_name
-from .blocks import get_property_struct_name
 from ..mappings import Mappings
 
 COLLISION_BLOCKS_RS_DIR = get_dir_location(
