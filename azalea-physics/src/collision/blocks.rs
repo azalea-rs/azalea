@@ -1735,7 +1735,7 @@ static SHAPE317: Lazy<VoxelShape> =
 
 impl BlockWithShape for BlockState {
     fn shape(&self) -> &'static VoxelShape {
-        SHAPES_MAP[self.id as usize]
+        SHAPES_MAP.get(self.id as usize).unwrap_or(&&SHAPE1)
     }
 
     fn is_shape_empty(&self) -> bool {

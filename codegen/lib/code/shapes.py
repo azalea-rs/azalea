@@ -73,7 +73,7 @@ def generate_block_shapes_code(blocks: dict, shapes: dict, block_states_report, 
         generated_shape_code += generate_code_for_shape(shape_id, shape)
 
 
-    # 1..100 | 200..300 => &SHAPE1,
+    # static SHAPES_MAP: [&Lazy<VoxelShape>; 26644] = [&SHAPE0, &SHAPE1, &SHAPE1, ...]
     empty_shapes = []
     full_shapes = []
 
@@ -94,14 +94,13 @@ def generate_block_shapes_code(blocks: dict, shapes: dict, block_states_report, 
             block_state_ids_to_shape_ids.append((block_state_id, shape_id))
 
 
-    generated_map_code = f'static SHAPES_MAP: [&Lazy<VoxelShape>; {block_state_ids_to_shape_ids.__len__()}] = ['
+    generated_map_code = f'static SHAPES_MAP: [&Lazy<VoxelShape>; {len(block_state_ids_to_shape_ids)}] = ['
 
     block_state_ids_to_shape_ids = sorted(block_state_ids_to_shape_ids, key=lambda x: x[0])
 
     empty_shape_match_code = convert_ints_to_rust_ranges(empty_shapes)
     block_shape_match_code = convert_ints_to_rust_ranges(full_shapes)
 
-    # shape 1 is the most common so we have a _ => &SHAPE1 at the end
     for block_state_id, shape_id in block_state_ids_to_shape_ids:
         generated_map_code += f'&SHAPE{shape_id},\n'
     generated_map_code += '];'
@@ -137,7 +136,7 @@ pub trait BlockWithShape {{
 
 impl BlockWithShape for BlockState {{
     fn shape(&self) -> &'static VoxelShape {{
-        SHAPES_MAP[self.id as usize]
+        SHAPES_MAP.get(self.id as usize).unwrap_or(&&SHAPE1)
     }}
 
     fn is_shape_empty(&self) -> bool {{
