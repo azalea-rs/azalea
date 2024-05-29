@@ -38,13 +38,14 @@ use azalea_protocol::{
 
 use azalea_world::{Instance, InstanceContainer};
 use bevy_app::{
-    App, FixedMain, FixedMainScheduleOrder, FixedUpdate, Main, MainSchedulePlugin, Plugin,
+    App, AppExit, FixedMain, FixedMainScheduleOrder, FixedUpdate, Main, MainSchedulePlugin, Plugin,
     PluginGroup, PluginGroupBuilder, Plugins, PluginsState, PreUpdate, Update,
 };
 use bevy_ecs::{
     component::Component,
+    event::{Event, EventReader},
     schedule::IntoSystemConfigs,
-    system::{IntoSystem, ResMut, Resource},
+    system::{IntoSystem, ResMut, Resource, SystemState},
     world::World,
 };
 use bevy_time::{Fixed, Time, TimePlugin, Virtual};
@@ -161,46 +162,54 @@ pub enum JoinError {
 }
 
 impl ClientBuilder<'_> {
-    pub fn run(self) -> Result<(), JoinError> {
-        self.rt.handle().clone().block_on(self.init())?.run();
-        Ok(())
-    }
-
-    pub async fn init(mut self) -> Result<App, JoinError> {
-        // check if an entity with our uuid already exists in the ecs and if so then
-        // just use that
-        let entity = {
-            let entity_uuid_index = self.app.world.resource::<EntityUuidIndex>();
-            let uuid = self.account.uuid_or_offline();
-            let entity =
-                if let Some(entity) = entity_uuid_index.get(&self.account.uuid_or_offline()) {
-                    debug!("Reusing entity {entity:?} for client");
-                    entity
-                } else {
-                    let entity = self.app.world.spawn_empty().id();
-                    debug!("Created new entity {entity:?} for client");
-                    // add to the uuid index
-                    let mut entity_uuid_index = self.app.world.resource_mut::<EntityUuidIndex>();
-                    entity_uuid_index.insert(uuid, entity);
-                    entity
-                };
-
-            // add the Account to the entity now so plugins can access it earlier
-            self.app
-                .world
-                .entity_mut(entity)
-                .insert(self.account.to_owned());
-
-            entity
-        };
-
-        let (conn, game_profile) = Self::handshake(
+    pub fn run(mut self) -> Result<(), JoinError> {
+        self.rt.handle().clone().block_on(Self::init(
+            &mut self.app,
+            self.rt.handle().clone(),
             self.account,
             self.address,
             self.resolved_address,
             self.proxy,
-        )
-        .await?;
+        ))?;
+
+        self.app.world.insert_resource(TokioRuntime { rt: self.rt });
+        self.app.run();
+        Ok(())
+    }
+
+    async fn init(
+        app: &mut App,
+        handle: runtime::Handle,
+        account: &Account,
+        address: &ServerAddress,
+        resolved_address: &SocketAddr,
+        proxy: Option<Proxy>,
+    ) -> Result<(), JoinError> {
+        // check if an entity with our uuid already exists in the ecs and if so then
+        // just use that
+        let entity = {
+            let entity_uuid_index = app.world.resource::<EntityUuidIndex>();
+            let uuid = account.uuid_or_offline();
+            let entity = if let Some(entity) = entity_uuid_index.get(&account.uuid_or_offline()) {
+                debug!("reusing entity {entity:?} for client");
+                entity
+            } else {
+                let entity = app.world.spawn_empty().id();
+                debug!("created new entity {entity:?} for client");
+                // add to the uuid index
+                let mut entity_uuid_index = app.world.resource_mut::<EntityUuidIndex>();
+                entity_uuid_index.insert(uuid, entity);
+                entity
+            };
+
+            // add the account to the entity now so plugins can access it earlier
+            app.world.entity_mut(entity).insert(account.to_owned());
+
+            entity
+        };
+
+        let (conn, game_profile) =
+            Self::handshake(account, address, resolved_address, proxy).await?;
 
         // note that we send the proper packets in
         // crate::configuration::handle_in_configuration_state
@@ -218,11 +227,11 @@ impl ClientBuilder<'_> {
             Arc::new(RwLock::new(instance)),
         );
 
-        self.app.world.entity_mut(entity).insert((
+        app.world.entity_mut(entity).insert((
             // these stay when we switch to the game state
             LocalPlayerBundle {
                 raw_connection: RawConnection::new(
-                    self.rt.handle().clone(),
+                    handle,
                     ConnectionProtocol::Configuration,
                     read_conn,
                     write_conn,
@@ -234,9 +243,7 @@ impl ClientBuilder<'_> {
             InConfigurationState,
         ));
 
-        self.app.world.insert_resource(TokioRuntime { rt: self.rt });
-
-        Ok(self.app)
+        Ok(())
     }
 
     /// Do a handshake with the server and get to the game state from the
@@ -380,6 +387,30 @@ impl ClientBuilder<'_> {
     }
 }
 
+#[derive(Event)]
+pub struct AddClientEvent {
+    pub account: Account,
+    pub address: ServerAddress,
+    pub resolved_address: SocketAddr,
+    pub proxy: Option<Proxy>,
+}
+
+impl AddClientEvent {
+    pub fn new(
+        account: Account,
+        address: ServerAddress,
+        resolved_address: SocketAddr,
+        proxy: Option<Proxy>,
+    ) -> Self {
+        Self {
+            account,
+            address,
+            resolved_address,
+            proxy,
+        }
+    }
+}
+
 /// The bundle of components that's shared when we're either in the
 /// `configuration` or `game` state.
 ///
@@ -442,7 +473,13 @@ fn run_loop(mut app: App) {
     app.finish();
     app.cleanup();
 
+    let mut system_state = SystemState::<EventReader<AppExit>>::new(&mut app.world);
     loop {
+        let events = system_state.get(&mut app.world);
+
+        if !events.is_empty() {
+            break;
+        }
         app.update();
     }
 }
@@ -474,7 +511,7 @@ impl PluginGroup for DefaultPlugins {
         #[cfg(feature = "log")]
         {
             let mut log = bevy_log::LogPlugin::default();
-            log.level = Level::DEBUG;
+            log.level = Level::TRACE;
             group = group.add(log);
         }
         group

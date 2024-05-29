@@ -4,17 +4,13 @@ use bevy_ecs::prelude::*;
 
 use crate::chat::ChatReceivedEvent;
 
-use self::{
-    game::{
-        AddPlayerEvent, DeathEvent, InstanceLoadedEvent, KeepAliveEvent, RemovePlayerEvent,
-        ResourcePackEvent, UpdatePlayerEvent,
-    },
-    login::{LoginPacketEvent, SendLoginPacketEvent},
+use self::game::{
+    AddPlayerEvent, DeathEvent, InstanceLoadedEvent, KeepAliveEvent, RemovePlayerEvent,
+    ResourcePackEvent, UpdatePlayerEvent,
 };
 
 pub mod configuration;
 pub mod game;
-pub mod login;
 
 pub struct PacketHandlerPlugin;
 
@@ -45,8 +41,6 @@ impl Plugin for PacketHandlerPlugin {
                     // we want to index and deindex right after
                     .before(EntityUpdateSet::Deindex),
                 configuration::process_packet_events,
-                login::handle_send_packet_event,
-                login::process_packet_events,
             ),
         )
         .add_systems(
@@ -72,8 +66,6 @@ impl Plugin for PacketHandlerPlugin {
         .add_event::<DeathEvent>()
         .add_event::<KeepAliveEvent>()
         .add_event::<ResourcePackEvent>()
-        .add_event::<InstanceLoadedEvent>()
-        .add_event::<LoginPacketEvent>()
-        .add_event::<SendLoginPacketEvent>();
+        .add_event::<InstanceLoadedEvent>();
     }
 }
