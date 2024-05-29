@@ -65,6 +65,7 @@ impl<S> CommandDispatcher<S> {
         context_so_far: CommandContextBuilder<'a, S>,
     ) -> Result<ParseResults<'a, S>, CommandSyntaxException> {
         let source = context_so_far.source.clone();
+        #[allow(clippy::mutable_key_type)] // this is fine because we don't mutate the key
         let mut errors = HashMap::<Rc<CommandNode<S>>, CommandSyntaxException>::new();
         let mut potentials: Vec<ParseResults<S>> = vec![];
         let cursor = original_reader.cursor();

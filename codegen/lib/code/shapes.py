@@ -1,6 +1,4 @@
 from lib.utils import get_dir_location, to_camel_case
-from lib.code.utils import clean_property_name
-from .blocks import get_property_struct_name
 from ..mappings import Mappings
 
 COLLISION_BLOCKS_RS_DIR = get_dir_location(
@@ -73,9 +71,11 @@ def generate_block_shapes_code(blocks: dict, shapes: dict, block_states_report, 
         generated_shape_code += generate_code_for_shape(shape_id, shape)
 
 
-    # 1..100 | 200..300 => &SHAPE1,
-    generated_match_inner_code = ''
-    shape_ids_to_block_state_ids = {}
+    # static SHAPES_MAP: [&Lazy<VoxelShape>; 26644] = [&SHAPE0, &SHAPE1, &SHAPE1, ...]
+    empty_shapes = []
+    full_shapes = []
+
+    block_state_ids_to_shape_ids = []
     for block_id, shape_ids in blocks.items():
         if isinstance(shape_ids, int):
             shape_ids = [shape_ids]
@@ -84,19 +84,24 @@ def generate_block_shapes_code(blocks: dict, shapes: dict, block_states_report, 
         for possible_state, shape_id in zip(block_report_data['states'], shape_ids):
             block_state_id = possible_state['id']
 
-            if shape_id not in shape_ids_to_block_state_ids:
-                shape_ids_to_block_state_ids[shape_id] = []
-            shape_ids_to_block_state_ids[shape_id].append(block_state_id)
+            if shape_id == 0 :
+                empty_shapes.append(block_state_id)
+            elif shape_id == 1 :
+                full_shapes.append(block_state_id)
 
-    empty_shape_match_code = convert_ints_to_rust_ranges(shape_ids_to_block_state_ids[0])
-    block_shape_match_code = convert_ints_to_rust_ranges(shape_ids_to_block_state_ids[1])
+            block_state_ids_to_shape_ids.append((block_state_id, shape_id))
 
-    # shape 1 is the most common so we have a _ => &SHAPE1 at the end
-    del shape_ids_to_block_state_ids[1]
 
-    for shape_id, block_state_ids in shape_ids_to_block_state_ids.items():
-        generated_match_inner_code += f'{convert_ints_to_rust_ranges(block_state_ids)} => &SHAPE{shape_id},\n'
-    generated_match_inner_code += '_ => &SHAPE1'
+    generated_map_code = f'static SHAPES_MAP: [&Lazy<VoxelShape>; {len(block_state_ids_to_shape_ids)}] = ['
+
+    block_state_ids_to_shape_ids = sorted(block_state_ids_to_shape_ids, key=lambda x: x[0])
+
+    empty_shape_match_code = convert_ints_to_rust_ranges(empty_shapes)
+    block_shape_match_code = convert_ints_to_rust_ranges(full_shapes)
+
+    for block_state_id, shape_id in block_state_ids_to_shape_ids:
+        generated_map_code += f'&SHAPE{shape_id},\n'
+    generated_map_code += '];'
 
     if empty_shape_match_code == '':
         print('Error: shape 0 was not found')
@@ -126,11 +131,10 @@ pub trait BlockWithShape {{
 
 {generated_shape_code}
 
+
 impl BlockWithShape for BlockState {{
     fn shape(&self) -> &'static VoxelShape {{
-        match self.id {{
-            {generated_match_inner_code}
-        }}
+        SHAPES_MAP.get(self.id as usize).unwrap_or(&&SHAPE1)
     }}
 
     fn is_shape_empty(&self) -> bool {{
@@ -141,7 +145,11 @@ impl BlockWithShape for BlockState {{
         matches!(self.id, {block_shape_match_code})
     }}
 }}
+
+{generated_map_code}
 '''
+
+    
 
 
 def generate_code_for_shape(shape_id: str, parts: list[list[float]]):
