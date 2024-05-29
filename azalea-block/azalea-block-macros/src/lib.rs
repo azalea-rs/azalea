@@ -486,6 +486,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         //     pub has_bottle_2: HasBottle,
         let mut block_struct_fields = quote! {};
         let mut get_property_match = quote! {};
+        let mut build_properties_map = quote! {};
 
         for PropertyWithNameAndDefault {
             property_value_type,
@@ -504,6 +505,9 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             get_property_match.extend(quote! {
                 #name => Some(self.#name_ident.to_string()),
             });
+
+            build_properties_map
+                .extend(quote! { map.insert(#name.to_string(), self.#name_ident.to_string()); })
         }
 
         let block_name_pascal_case = Ident::new(
@@ -714,6 +718,12 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                         #get_property_match
                         _ => None
                     }
+                }
+                fn as_property_map(&self) -> std::collections::HashMap<String, String>{
+                    let mut map = std::collections::HashMap::new();
+
+                    #build_properties_map
+                    map
                 }
 
             }
