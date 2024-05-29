@@ -733,8 +733,6 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             }
         };
 
-        eprintln!("OUTPUT: {}", block_struct);
-
         block_structs.extend(block_struct);
     }
 
