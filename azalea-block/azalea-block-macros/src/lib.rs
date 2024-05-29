@@ -5,8 +5,8 @@ mod utils;
 use proc_macro::TokenStream;
 use proc_macro2::TokenTree;
 use quote::quote;
-use std::collections::HashMap;
 use std::fmt::Write;
+use std::{collections::HashMap, str::FromStr};
 use syn::{
     braced,
     ext::IdentExt,
@@ -485,7 +485,8 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         //     pub has_bottle_1: HasBottle,
         //     pub has_bottle_2: HasBottle,
         let mut block_struct_fields = quote! {};
-        let mut build_properties_map = quote! {};
+        let mut get_property_match = quote! {};
+
         for PropertyWithNameAndDefault {
             property_value_type,
             name,
@@ -500,10 +501,9 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 quote! { pub #name_ident: #property_value_type, }
             });
 
-            let name_string = name.to_string();
-
-            build_properties_map
-                .extend(quote! { map.insert(#name_string.to_string(), self.#name.to_string()); })
+            get_property_match.extend(quote! {
+                #name => Some(self.#name_ident.to_string()),
+            });
         }
 
         let block_name_pascal_case = Ident::new(
@@ -709,12 +709,13 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 fn as_registry_block(&self) -> azalea_registry::Block {
                     azalea_registry::Block::#block_name_pascal_case
                 }
-                fn as_property_list(&self) -> std::collections::HashMap<String, String>{
-                    let mut map = std::collections::HashMap::new();
-
-                    #build_properties_map
-                    map
+                fn get_property(&self, name: &str) -> Option<String>{
+                    match name{
+                        #get_property_match
+                        _ => None
+                    }
                 }
+
             }
 
             impl From<#block_struct_name> for BlockState {
@@ -731,6 +732,8 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 }
             }
         };
+
+        eprintln!("OUTPUT: {}", block_struct);
 
         block_structs.extend(block_struct);
     }
@@ -866,5 +869,6 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         }
     });
 
-    generated.into()
+    let out = generated.into();
+    out
 }
