@@ -337,7 +337,10 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                         #i_lit => #property_struct_name::#variant,
                     });
 
-                    let variant_snake = pascal_to_snake_case(&property_struct_name.to_string());
+                    let struct_name = property_struct_name.to_string();
+
+                    let variant_snake =
+                        pascal_to_snake_case(struct_name.strip_prefix('_').unwrap_or(&struct_name));
 
                     property_to_string.extend(quote! {
                         #property_struct_name::#variant => #variant_snake,
