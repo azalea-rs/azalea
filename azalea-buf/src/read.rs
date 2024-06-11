@@ -145,7 +145,7 @@ impl McBufVarReadable for i64 {
     fn var_read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let mut buffer = [0];
         let mut ans = 0;
-        for i in 0..8 {
+        for i in 0..10 {
             buf.read_exact(&mut buffer)
                 .map_err(|_| BufReadError::InvalidVarLong)?;
             ans |= ((buffer[0] & 0b0111_1111) as i64) << (7 * i);
