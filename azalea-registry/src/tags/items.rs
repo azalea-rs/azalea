@@ -487,7 +487,6 @@ pub static DIRT: Lazy<HashSet<Item>> = Lazy::new(|| {
 });
 pub static DOORS: Lazy<HashSet<Item>> = Lazy::new(|| {
     HashSet::from_iter(vec![
-        Item::IronDoor,
         Item::CopperDoor,
         Item::ExposedCopperDoor,
         Item::WeatheredCopperDoor,
@@ -496,6 +495,7 @@ pub static DOORS: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::WaxedExposedCopperDoor,
         Item::WaxedWeatheredCopperDoor,
         Item::WaxedOxidizedCopperDoor,
+        Item::IronDoor,
         Item::OakDoor,
         Item::SpruceDoor,
         Item::BirchDoor,
@@ -507,14 +507,6 @@ pub static DOORS: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::MangroveDoor,
         Item::BambooDoor,
         Item::CherryDoor,
-        Item::CopperDoor,
-        Item::ExposedCopperDoor,
-        Item::WeatheredCopperDoor,
-        Item::OxidizedCopperDoor,
-        Item::WaxedCopperDoor,
-        Item::WaxedExposedCopperDoor,
-        Item::WaxedWeatheredCopperDoor,
-        Item::WaxedOxidizedCopperDoor,
     ])
 });
 pub static DYEABLE: Lazy<HashSet<Item>> = Lazy::new(|| {
@@ -1212,29 +1204,6 @@ pub static MEAT: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::RottenFlesh,
     ])
 });
-pub static MUSIC_DISCS: Lazy<HashSet<Item>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Item::MusicDiscPigstep,
-        Item::MusicDiscOtherside,
-        Item::MusicDisc5,
-        Item::MusicDiscRelic,
-        Item::MusicDiscCreator,
-        Item::MusicDiscCreatorMusicBox,
-        Item::MusicDiscPrecipice,
-        Item::MusicDisc13,
-        Item::MusicDiscCat,
-        Item::MusicDiscBlocks,
-        Item::MusicDiscChirp,
-        Item::MusicDiscFar,
-        Item::MusicDiscMall,
-        Item::MusicDiscMellohi,
-        Item::MusicDiscStal,
-        Item::MusicDiscStrad,
-        Item::MusicDiscWard,
-        Item::MusicDisc11,
-        Item::MusicDiscWait,
-    ])
-});
 pub static NON_FLAMMABLE_WOOD: Lazy<HashSet<Item>> = Lazy::new(|| {
     HashSet::from_iter(vec![
         Item::WarpedStem,
@@ -1841,14 +1810,6 @@ pub static WOODEN_DOORS: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::MangroveDoor,
         Item::BambooDoor,
         Item::CherryDoor,
-        Item::CopperDoor,
-        Item::ExposedCopperDoor,
-        Item::WeatheredCopperDoor,
-        Item::OxidizedCopperDoor,
-        Item::WaxedCopperDoor,
-        Item::WaxedExposedCopperDoor,
-        Item::WaxedWeatheredCopperDoor,
-        Item::WaxedOxidizedCopperDoor,
     ])
 });
 pub static WOODEN_FENCES: Lazy<HashSet<Item>> = Lazy::new(|| {

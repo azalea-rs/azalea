@@ -2669,6 +2669,7 @@ enum Item {
     ArmadilloScute => "minecraft:armadillo_scute",
     WolfArmor => "minecraft:wolf_armor",
     FlintAndSteel => "minecraft:flint_and_steel",
+    Bowl => "minecraft:bowl",
     Apple => "minecraft:apple",
     Bow => "minecraft:bow",
     Arrow => "minecraft:arrow",
@@ -2718,7 +2719,6 @@ enum Item {
     NetheriteAxe => "minecraft:netherite_axe",
     NetheriteHoe => "minecraft:netherite_hoe",
     Stick => "minecraft:stick",
-    Bowl => "minecraft:bowl",
     MushroomStew => "minecraft:mushroom_stew",
     String => "minecraft:string",
     Feather => "minecraft:feather",
@@ -5272,6 +5272,7 @@ enum SoundEvent {
     BlockVaultCloseShutter => "minecraft:block.vault.close_shutter",
     BlockVaultDeactivate => "minecraft:block.vault.deactivate",
     BlockVaultEjectItem => "minecraft:block.vault.eject_item",
+    BlockVaultRejectRewardedPlayer => "minecraft:block.vault.reject_rewarded_player",
     BlockVaultFall => "minecraft:block.vault.fall",
     BlockVaultHit => "minecraft:block.vault.hit",
     BlockVaultInsertItem => "minecraft:block.vault.insert_item",
@@ -5596,6 +5597,7 @@ enum WorldgenFeature {
     Disk => "minecraft:disk",
     Lake => "minecraft:lake",
     Ore => "minecraft:ore",
+    EndPlatform => "minecraft:end_platform",
     EndSpike => "minecraft:end_spike",
     EndIsland => "minecraft:end_island",
     EndGateway => "minecraft:end_gateway",
@@ -5694,6 +5696,7 @@ enum WorldgenPlacementModifierKind {
     InSquare => "minecraft:in_square",
     RandomOffset => "minecraft:random_offset",
     CarvingMask => "minecraft:carving_mask",
+    FixedPlacement => "minecraft:fixed_placement",
 }
 }
 
@@ -6311,6 +6314,7 @@ enum DataComponentKind {
     BlockEntityData => "minecraft:block_entity_data",
     Instrument => "minecraft:instrument",
     OminousBottleAmplifier => "minecraft:ominous_bottle_amplifier",
+    JukeboxPlayable => "minecraft:jukebox_playable",
     Recipes => "minecraft:recipes",
     LodestoneTracker => "minecraft:lodestone_tracker",
     FireworkExplosion => "minecraft:firework_explosion",
@@ -6367,6 +6371,7 @@ enum ItemSubPredicateKind {
     WrittenBookContent => "minecraft:written_book_content",
     AttributeModifiers => "minecraft:attribute_modifiers",
     Trim => "minecraft:trim",
+    JukeboxPlayable => "minecraft:jukebox_playable",
 }
 }
 
@@ -6430,18 +6435,18 @@ enum EnchantmentEffectComponentKind {
     ProjectileSpawned => "minecraft:projectile_spawned",
     ProjectileSpread => "minecraft:projectile_spread",
     ProjectileCount => "minecraft:projectile_count",
-    CrossbowChargeTime => "minecraft:crossbow_charge_time",
     TridentReturnAcceleration => "minecraft:trident_return_acceleration",
     FishingTimeReduction => "minecraft:fishing_time_reduction",
     FishingLuckBonus => "minecraft:fishing_luck_bonus",
     BlockExperience => "minecraft:block_experience",
     MobExperience => "minecraft:mob_experience",
-    TridentSpinAttackStrength => "minecraft:trident_spin_attack_strength",
     RepairWithXp => "minecraft:repair_with_xp",
+    CrossbowChargeTime => "minecraft:crossbow_charge_time",
     CrossbowChargingSounds => "minecraft:crossbow_charging_sounds",
     TridentSound => "minecraft:trident_sound",
     PreventEquipmentDrop => "minecraft:prevent_equipment_drop",
     PreventArmorChange => "minecraft:prevent_armor_change",
+    TridentSpinAttackStrength => "minecraft:trident_spin_attack_strength",
 }
 }
 
@@ -6455,7 +6460,7 @@ enum EnchantmentEntityEffectKind {
     Ignite => "minecraft:ignite",
     PlaySound => "minecraft:play_sound",
     ReplaceBlock => "minecraft:replace_block",
-    ReplaceDisc => "minecraft:replace_disc",
+    ReplaceDisk => "minecraft:replace_disk",
     RunFunction => "minecraft:run_function",
     SetBlockProperties => "minecraft:set_block_properties",
     SpawnParticles => "minecraft:spawn_particles",
@@ -6469,6 +6474,7 @@ enum EnchantmentLevelBasedValueKind {
     Fraction => "minecraft:fraction",
     LevelsSquared => "minecraft:levels_squared",
     Linear => "minecraft:linear",
+    Lookup => "minecraft:lookup",
 }
 }
 
@@ -6483,7 +6489,7 @@ enum EnchantmentLocationBasedEffectKind {
     Ignite => "minecraft:ignite",
     PlaySound => "minecraft:play_sound",
     ReplaceBlock => "minecraft:replace_block",
-    ReplaceDisc => "minecraft:replace_disc",
+    ReplaceDisk => "minecraft:replace_disk",
     RunFunction => "minecraft:run_function",
     SetBlockProperties => "minecraft:set_block_properties",
     SpawnParticles => "minecraft:spawn_particles",
@@ -6506,5 +6512,34 @@ enum EnchantmentValueEffectKind {
     Multiply => "minecraft:multiply",
     RemoveBinomial => "minecraft:remove_binomial",
     Set => "minecraft:set",
+}
+}
+
+registry! {
+enum DecoratedPotPattern {
+    Angler => "minecraft:angler",
+    Archer => "minecraft:archer",
+    ArmsUp => "minecraft:arms_up",
+    Blade => "minecraft:blade",
+    Brewer => "minecraft:brewer",
+    Burn => "minecraft:burn",
+    Danger => "minecraft:danger",
+    Explorer => "minecraft:explorer",
+    Flow => "minecraft:flow",
+    Friend => "minecraft:friend",
+    Guster => "minecraft:guster",
+    Heart => "minecraft:heart",
+    Heartbreak => "minecraft:heartbreak",
+    Howl => "minecraft:howl",
+    Miner => "minecraft:miner",
+    Mourner => "minecraft:mourner",
+    Plenty => "minecraft:plenty",
+    Prize => "minecraft:prize",
+    Scrape => "minecraft:scrape",
+    Sheaf => "minecraft:sheaf",
+    Shelter => "minecraft:shelter",
+    Skull => "minecraft:skull",
+    Snort => "minecraft:snort",
+    Blank => "minecraft:blank",
 }
 }

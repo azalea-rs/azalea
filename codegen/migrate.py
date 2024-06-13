@@ -31,8 +31,8 @@ new_version_id = sys.argv[1]
 new_mappings = lib.download.get_mappings_for_version(new_version_id)
 new_burger_data = lib.extract.get_burger_data_for_version(new_version_id)
 
-old_packet_list = lib.extract.get_packet_list(old_burger_data, old_mappings)
-new_packet_list = lib.extract.get_packet_list(new_burger_data, new_mappings)
+old_packet_list = lib.extract.get_packet_list(old_version_id)
+new_packet_list = lib.extract.get_packet_list(new_version_id)
 
 
 # old_packets: dict[PacketIdentifier, str] = {}

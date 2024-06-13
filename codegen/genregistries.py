@@ -15,9 +15,9 @@ def generate(version_id: str):
     lib.code.inventory.update_menus(registries['minecraft:menu']['entries'])
 
 
-    block_tags = lib.extract.get_registry_tags(version_id, 'blocks')
-    item_tags = lib.extract.get_registry_tags(version_id, 'items')
-    fluid_tags = lib.extract.get_registry_tags(version_id, 'fluids')
+    block_tags = lib.extract.get_registry_tags(version_id, 'block')
+    item_tags = lib.extract.get_registry_tags(version_id, 'item')
+    fluid_tags = lib.extract.get_registry_tags(version_id, 'fluid')
 
     lib.code.tags.generate_tags(block_tags, 'blocks', 'Block')
     lib.code.tags.generate_tags(item_tags, 'items', 'Item')

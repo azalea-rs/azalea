@@ -14,6 +14,8 @@ pub static ACACIA_LOGS: Lazy<HashSet<Block>> = Lazy::new(|| {
         Block::StrippedAcaciaWood,
     ])
 });
+pub static AIR: Lazy<HashSet<Block>> =
+    Lazy::new(|| HashSet::from_iter(vec![Block::Air, Block::VoidAir, Block::CaveAir]));
 pub static ALL_HANGING_SIGNS: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
         Block::OakHangingSign,
@@ -747,7 +749,6 @@ pub static DOES_NOT_BLOCK_HOPPERS: Lazy<HashSet<Block>> =
     Lazy::new(|| HashSet::from_iter(vec![Block::BeeNest, Block::Beehive]));
 pub static DOORS: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
-        Block::IronDoor,
         Block::CopperDoor,
         Block::ExposedCopperDoor,
         Block::WeatheredCopperDoor,
@@ -756,6 +757,7 @@ pub static DOORS: Lazy<HashSet<Block>> = Lazy::new(|| {
         Block::WaxedExposedCopperDoor,
         Block::WaxedWeatheredCopperDoor,
         Block::WaxedOxidizedCopperDoor,
+        Block::IronDoor,
         Block::OakDoor,
         Block::SpruceDoor,
         Block::BirchDoor,
@@ -767,14 +769,6 @@ pub static DOORS: Lazy<HashSet<Block>> = Lazy::new(|| {
         Block::MangroveDoor,
         Block::BambooDoor,
         Block::CherryDoor,
-        Block::CopperDoor,
-        Block::ExposedCopperDoor,
-        Block::WeatheredCopperDoor,
-        Block::OxidizedCopperDoor,
-        Block::WaxedCopperDoor,
-        Block::WaxedExposedCopperDoor,
-        Block::WaxedWeatheredCopperDoor,
-        Block::WaxedOxidizedCopperDoor,
     ])
 });
 pub static DRAGON_IMMUNE: Lazy<HashSet<Block>> = Lazy::new(|| {
@@ -1226,6 +1220,14 @@ pub static INCORRECT_FOR_GOLD_TOOL: Lazy<HashSet<Block>> = Lazy::new(|| {
         Block::WaxedExposedCopperTrapdoor,
         Block::WaxedWeatheredCopperTrapdoor,
         Block::WaxedOxidizedCopperTrapdoor,
+        Block::CopperDoor,
+        Block::ExposedCopperDoor,
+        Block::WeatheredCopperDoor,
+        Block::OxidizedCopperDoor,
+        Block::WaxedCopperDoor,
+        Block::WaxedExposedCopperDoor,
+        Block::WaxedWeatheredCopperDoor,
+        Block::WaxedOxidizedCopperDoor,
     ])
 });
 pub static INCORRECT_FOR_IRON_TOOL: Lazy<HashSet<Block>> = Lazy::new(|| {
@@ -1355,6 +1357,14 @@ pub static INCORRECT_FOR_WOODEN_TOOL: Lazy<HashSet<Block>> = Lazy::new(|| {
         Block::WaxedExposedCopperTrapdoor,
         Block::WaxedWeatheredCopperTrapdoor,
         Block::WaxedOxidizedCopperTrapdoor,
+        Block::CopperDoor,
+        Block::ExposedCopperDoor,
+        Block::WeatheredCopperDoor,
+        Block::OxidizedCopperDoor,
+        Block::WaxedCopperDoor,
+        Block::WaxedExposedCopperDoor,
+        Block::WaxedWeatheredCopperDoor,
+        Block::WaxedOxidizedCopperDoor,
     ])
 });
 pub static INFINIBURN_END: Lazy<HashSet<Block>> =
@@ -1771,14 +1781,6 @@ pub static MINEABLE_AXE: Lazy<HashSet<Block>> = Lazy::new(|| {
         Block::MangroveDoor,
         Block::BambooDoor,
         Block::CherryDoor,
-        Block::CopperDoor,
-        Block::ExposedCopperDoor,
-        Block::WeatheredCopperDoor,
-        Block::OxidizedCopperDoor,
-        Block::WaxedCopperDoor,
-        Block::WaxedExposedCopperDoor,
-        Block::WaxedWeatheredCopperDoor,
-        Block::WaxedOxidizedCopperDoor,
         Block::OakFence,
         Block::AcaciaFence,
         Block::DarkOakFence,
@@ -2430,6 +2432,29 @@ pub static MINEABLE_SHOVEL: Lazy<HashSet<Block>> = Lazy::new(|| {
         Block::BlackConcretePowder,
     ])
 });
+pub static MOB_INTERACTABLE_DOORS: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::CopperDoor,
+        Block::ExposedCopperDoor,
+        Block::WeatheredCopperDoor,
+        Block::OxidizedCopperDoor,
+        Block::WaxedCopperDoor,
+        Block::WaxedExposedCopperDoor,
+        Block::WaxedWeatheredCopperDoor,
+        Block::WaxedOxidizedCopperDoor,
+        Block::OakDoor,
+        Block::SpruceDoor,
+        Block::BirchDoor,
+        Block::JungleDoor,
+        Block::AcaciaDoor,
+        Block::DarkOakDoor,
+        Block::CrimsonDoor,
+        Block::WarpedDoor,
+        Block::MangroveDoor,
+        Block::BambooDoor,
+        Block::CherryDoor,
+    ])
+});
 pub static MOOSHROOMS_SPAWNABLE_ON: Lazy<HashSet<Block>> =
     Lazy::new(|| HashSet::from_iter(vec![Block::Mycelium]));
 pub static MOSS_REPLACEABLE: Lazy<HashSet<Block>> = Lazy::new(|| {
@@ -2564,6 +2589,14 @@ pub static NEEDS_STONE_TOOL: Lazy<HashSet<Block>> = Lazy::new(|| {
         Block::WaxedExposedCopperTrapdoor,
         Block::WaxedWeatheredCopperTrapdoor,
         Block::WaxedOxidizedCopperTrapdoor,
+        Block::CopperDoor,
+        Block::ExposedCopperDoor,
+        Block::WeatheredCopperDoor,
+        Block::OxidizedCopperDoor,
+        Block::WaxedCopperDoor,
+        Block::WaxedExposedCopperDoor,
+        Block::WaxedWeatheredCopperDoor,
+        Block::WaxedOxidizedCopperDoor,
     ])
 });
 pub static NETHER_CARVER_REPLACEABLES: Lazy<HashSet<Block>> = Lazy::new(|| {
@@ -3701,14 +3734,6 @@ pub static WOODEN_DOORS: Lazy<HashSet<Block>> = Lazy::new(|| {
         Block::MangroveDoor,
         Block::BambooDoor,
         Block::CherryDoor,
-        Block::CopperDoor,
-        Block::ExposedCopperDoor,
-        Block::WeatheredCopperDoor,
-        Block::OxidizedCopperDoor,
-        Block::WaxedCopperDoor,
-        Block::WaxedExposedCopperDoor,
-        Block::WaxedWeatheredCopperDoor,
-        Block::WaxedOxidizedCopperDoor,
     ])
 });
 pub static WOODEN_FENCES: Lazy<HashSet<Block>> = Lazy::new(|| {

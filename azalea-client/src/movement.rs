@@ -463,7 +463,7 @@ fn set_sprinting(
     } else {
         attributes
             .speed
-            .remove(&azalea_entity::attributes::sprinting_modifier().uuid)
+            .remove(&azalea_entity::attributes::sprinting_modifier().id)
             .is_none()
     }
 }

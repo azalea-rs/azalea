@@ -72,3 +72,27 @@ enum TrimPattern {
     Bolt => "bolt",
 }
 }
+
+registry! {
+enum JukeboxSong {
+    Thirteen => "13",
+    Cat => "cat",
+    Blocks => "blocks",
+    Chirp => "chirp",
+    Far => "far",
+    Mall => "mall",
+    Mellohi => "mellohi",
+    Stal => "stal",
+    Strad => "strad",
+    Ward => "ward",
+    Eleven => "11",
+    Wait => "wait",
+    Pigstep => "pigstep",
+    Otherside => "otherside",
+    Five => "5",
+    Relic => "relic",
+    Precipice => "precipice",
+    Creator => "creator",
+    CreatorMusicBox => "creator_music_box",
+}
+}
