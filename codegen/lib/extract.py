@@ -236,9 +236,9 @@ def get_pixlyzer_data(version_id: str, category: str):
         assert pom_xml_dependencies != ''
         pom_xml = open(f'{pixlyzer_dir}/pom.xml', 'r').read()
         pom_xml = re.sub(
-            '<dependencies>.*?</dependencies>', f'<dependencies>{pom_xml_dependencies}</dependencies>', pom_xml, flags=re.DOTALL)
+            r'<dependencies>.*?</dependencies>', f'<dependencies>{pom_xml_dependencies}</dependencies>', pom_xml, flags=re.DOTALL)
         pom_xml = re.sub(
-            '<minecraft\.version>.*?</minecraft\.version>', f'<minecraft.version>{version_id}</minecraft.version>', pom_xml, flags=re.DOTALL)
+            r'<minecraft\.version>.*?</minecraft\.version>', f'<minecraft.version>{version_id}</minecraft.version>', pom_xml, flags=re.DOTALL)
         open(f'{pixlyzer_dir}/pom.xml', 'w').write(pom_xml)
 
         # compile

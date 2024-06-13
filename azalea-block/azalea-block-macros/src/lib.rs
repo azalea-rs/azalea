@@ -39,11 +39,11 @@ struct PropertyDefinitions {
     properties: Vec<PropertyDefinition>,
 }
 
-/// `snowy: Snowy(false)` or `axis: properties::Axis::Y`
+/// `"snowy": Snowy(false)` or `"axis": properties::Axis::Y`
 #[derive(Debug)]
 struct PropertyWithNameAndDefault {
     // "snowy" / "axis"
-    name: Ident,
+    name: String,
     // Snowy / Axis
     property_type: Ident,
     property_value_type: Ident,
@@ -54,7 +54,7 @@ struct PropertyWithNameAndDefault {
 
 /// ```ignore
 /// grass_block => BlockBehavior::default(), {
-///   snowy: false,
+///   "snowy": false,
 /// },
 /// ```
 struct BlockDefinition {
@@ -64,8 +64,8 @@ struct BlockDefinition {
 }
 impl Parse for PropertyWithNameAndDefault {
     fn parse(input: ParseStream) -> Result<Self> {
-        // `snowy: Snowy(false)` or `axis: properties::Axis::Y`
-        let property_name = input.parse()?;
+        // `"snowy": Snowy(false)` or `"axis": properties::Axis::Y`
+        let property_name = input.parse::<LitStr>()?.value();
         input.parse::<Token![:]>()?;
 
         let first_ident = input.call(Ident::parse_any)?;
@@ -196,11 +196,11 @@ impl Parse for PropertyDefinitions {
 
 impl Parse for BlockDefinition {
     fn parse(input: ParseStream) -> Result<Self> {
-        // acacia_button => BlockBehavior::default(), {
-        //     Facing=North,
-        //     Powered=False,
-        //     Face=Wall,
-        // }
+        // acacia_button => BlockBehavior::new().strength(0.5, 0.5), {
+        //     "face": Face::Wall,
+        //     "facing": FacingCardinal::North,
+        //     "powered": Powered(false),
+        // },
         let name = input.parse()?;
         input.parse::<Token![=>]>()?;
         let behavior = input.parse()?;
@@ -416,29 +416,24 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 Some(
                     previous_names
                         .iter()
-                        .filter(|&p| p == &property.name.to_string())
+                        .filter(|&p| p == &property.name)
                         .count(),
                 )
             } else {
                 None
             };
-            // ```ignore
-            // let mut property_name = property_struct_names_to_names
-            //     .get(&property.property_type.to_string())
-            //     .unwrap_or_else(|| panic!("Property '{}' is bad", property.property_type))
-            //     .clone();
-            // ```
+
             let mut property_name = property_struct_names_to_names
-                .get(&property.name.to_string())
+                .get(&property.name)
                 .cloned()
-                .unwrap_or_else(|| property.name.to_string());
+                .unwrap_or_else(|| property.name.clone());
             previous_names.push(property_name.clone());
             if let Some(index) = index {
                 // property_name.push_str(&format!("_{}", &index.to_string()));
                 write!(property_name, "_{index}").unwrap();
             }
             properties_with_name.push(PropertyWithNameAndDefault {
-                name: Ident::new(&property_name, proc_macro2::Span::call_site()),
+                name: property_name,
                 property_type: property.property_type.clone(),
                 property_value_type: property.property_value_type.clone(),
                 is_enum: property.is_enum,
@@ -462,12 +457,11 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             ..
         } in &properties_with_name
         {
-            // let property_name_snake =
-            //     Ident::new(&property.to_string(), proc_macro2::Span::call_site());
+            let name_ident = Ident::new_raw(name, proc_macro2::Span::call_site());
             block_struct_fields.extend(if *is_enum {
-                quote! { pub #name: properties::#property_value_type, }
+                quote! { pub #name_ident: properties::#property_value_type, }
             } else {
-                quote! { pub #name: #property_value_type, }
+                quote! { pub #name_ident: #property_value_type, }
             });
         }
 
@@ -525,8 +519,10 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                     quote! {#variant}
                 };
 
+                let property_name_ident =
+                    Ident::new_raw(property_name, proc_macro2::Span::call_site());
                 from_block_to_state_combination_match_inner.extend(quote! {
-                    #property_name: #property_variant,
+                    #property_name_ident: #property_variant,
                 });
 
                 // add to properties_to_state_ids
@@ -602,8 +598,9 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                     quote! {properties::#property_struct_name_ident::from((b / #division) % #property_variants_count)}
                 }
             };
+            let property_name_ident = Ident::new_raw(property_name, proc_macro2::Span::call_site());
             from_state_to_block_inner.extend(quote! {
-                #property_name: #conversion_code,
+                #property_name_ident: #conversion_code,
             });
 
             division *= property_variants_count;
@@ -635,7 +632,8 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             ..
         } in properties_with_name
         {
-            block_default_fields.extend(quote! { #name: #property_default, });
+            let name_ident = Ident::new_raw(&name, proc_macro2::Span::call_site());
+            block_default_fields.extend(quote! { #name_ident: #property_default, });
         }
 
         let block_behavior = &block.behavior;

@@ -9,7 +9,7 @@ version = "0.10.1"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-simdnbt = { version = "0.4", git = "https://github.com/azalea-rs/simdnbt" }
+simdnbt = { version = "0.5", git = "https://github.com/azalea-rs/simdnbt" }
 azalea-block = { path = "../azalea-block", default-features = false, version = "0.10.0" }
 azalea-buf = { path = "../azalea-buf", version = "0.10.0" }
 azalea-core = { path = "../azalea-core", version = "0.10.0", features = [
