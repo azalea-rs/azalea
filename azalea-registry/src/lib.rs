@@ -173,6 +173,8 @@ enum Attribute {
     GenericAttackSpeed => "minecraft:generic.attack_speed",
     PlayerBlockBreakSpeed => "minecraft:player.block_break_speed",
     PlayerBlockInteractionRange => "minecraft:player.block_interaction_range",
+    GenericBurningTime => "minecraft:generic.burning_time",
+    GenericExplosionKnockbackResistance => "minecraft:generic.explosion_knockback_resistance",
     PlayerEntityInteractionRange => "minecraft:player.entity_interaction_range",
     GenericFallDamageMultiplier => "minecraft:generic.fall_damage_multiplier",
     GenericFlyingSpeed => "minecraft:generic.flying_speed",
@@ -183,11 +185,18 @@ enum Attribute {
     GenericLuck => "minecraft:generic.luck",
     GenericMaxAbsorption => "minecraft:generic.max_absorption",
     GenericMaxHealth => "minecraft:generic.max_health",
+    PlayerMiningEfficiency => "minecraft:player.mining_efficiency",
+    GenericMovementEfficiency => "minecraft:generic.movement_efficiency",
     GenericMovementSpeed => "minecraft:generic.movement_speed",
+    GenericOxygenBonus => "minecraft:generic.oxygen_bonus",
     GenericSafeFallDistance => "minecraft:generic.safe_fall_distance",
     GenericScale => "minecraft:generic.scale",
+    PlayerSneakingSpeed => "minecraft:player.sneaking_speed",
     ZombieSpawnReinforcements => "minecraft:zombie.spawn_reinforcements",
     GenericStepHeight => "minecraft:generic.step_height",
+    PlayerSubmergedMiningSpeed => "minecraft:player.submerged_mining_speed",
+    PlayerSweepingDamageRatio => "minecraft:player.sweeping_damage_ratio",
+    GenericWaterMovementEfficiency => "minecraft:generic.water_movement_efficiency",
 }
 }
 
@@ -1373,6 +1382,7 @@ enum BlockPredicateKind {
     AllOf => "minecraft:all_of",
     Not => "minecraft:not",
     True => "minecraft:true",
+    Unobstructed => "minecraft:unobstructed",
 }
 }
 
@@ -2659,6 +2669,7 @@ enum Item {
     ArmadilloScute => "minecraft:armadillo_scute",
     WolfArmor => "minecraft:wolf_armor",
     FlintAndSteel => "minecraft:flint_and_steel",
+    Bowl => "minecraft:bowl",
     Apple => "minecraft:apple",
     Bow => "minecraft:bow",
     Arrow => "minecraft:arrow",
@@ -2708,7 +2719,6 @@ enum Item {
     NetheriteAxe => "minecraft:netherite_axe",
     NetheriteHoe => "minecraft:netherite_hoe",
     Stick => "minecraft:stick",
-    Bowl => "minecraft:bowl",
     MushroomStew => "minecraft:mushroom_stew",
     String => "minecraft:string",
     Feather => "minecraft:feather",
@@ -3032,6 +3042,8 @@ enum Item {
     MusicDiscCat => "minecraft:music_disc_cat",
     MusicDiscBlocks => "minecraft:music_disc_blocks",
     MusicDiscChirp => "minecraft:music_disc_chirp",
+    MusicDiscCreator => "minecraft:music_disc_creator",
+    MusicDiscCreatorMusicBox => "minecraft:music_disc_creator_music_box",
     MusicDiscFar => "minecraft:music_disc_far",
     MusicDiscMall => "minecraft:music_disc_mall",
     MusicDiscMellohi => "minecraft:music_disc_mellohi",
@@ -3044,6 +3056,7 @@ enum Item {
     MusicDiscRelic => "minecraft:music_disc_relic",
     MusicDisc5 => "minecraft:music_disc_5",
     MusicDiscPigstep => "minecraft:music_disc_pigstep",
+    MusicDiscPrecipice => "minecraft:music_disc_precipice",
     DiscFragment5 => "minecraft:disc_fragment_5",
     Trident => "minecraft:trident",
     PhantomMembrane => "minecraft:phantom_membrane",
@@ -3199,7 +3212,7 @@ enum LootConditionKind {
     AnyOf => "minecraft:any_of",
     AllOf => "minecraft:all_of",
     RandomChance => "minecraft:random_chance",
-    RandomChanceWithLooting => "minecraft:random_chance_with_looting",
+    RandomChanceWithEnchantedBonus => "minecraft:random_chance_with_enchanted_bonus",
     EntityProperties => "minecraft:entity_properties",
     KilledByPlayer => "minecraft:killed_by_player",
     EntityScores => "minecraft:entity_scores",
@@ -3213,6 +3226,7 @@ enum LootConditionKind {
     Reference => "minecraft:reference",
     TimeCheck => "minecraft:time_check",
     ValueCheck => "minecraft:value_check",
+    EnchantmentActiveCheck => "minecraft:enchantment_active_check",
 }
 }
 
@@ -3226,7 +3240,7 @@ enum LootFunctionKind {
     SetCustomData => "minecraft:set_custom_data",
     SetComponents => "minecraft:set_components",
     FurnaceSmelt => "minecraft:furnace_smelt",
-    LootingEnchant => "minecraft:looting_enchant",
+    EnchantedCountIncrease => "minecraft:enchanted_count_increase",
     SetDamage => "minecraft:set_damage",
     SetAttributes => "minecraft:set_attributes",
     SetName => "minecraft:set_name",
@@ -3275,6 +3289,7 @@ enum LootNumberProviderKind {
     Binomial => "minecraft:binomial",
     Score => "minecraft:score",
     Storage => "minecraft:storage",
+    EnchantmentLevel => "minecraft:enchantment_level",
 }
 }
 
@@ -4498,9 +4513,9 @@ enum SoundEvent {
     BlockTrialSpawnerSpawnItem => "minecraft:block.trial_spawner.spawn_item",
     BlockTrialSpawnerSpawnItemBegin => "minecraft:block.trial_spawner.spawn_item_begin",
     BlockTrialSpawnerDetectPlayer => "minecraft:block.trial_spawner.detect_player",
-    BlockTrialSpawnerChargeActivate => "minecraft:block.trial_spawner.charge_activate",
+    BlockTrialSpawnerOminousActivate => "minecraft:block.trial_spawner.ominous_activate",
     BlockTrialSpawnerAmbient => "minecraft:block.trial_spawner.ambient",
-    BlockTrialSpawnerAmbientCharged => "minecraft:block.trial_spawner.ambient_charged",
+    BlockTrialSpawnerAmbientOminous => "minecraft:block.trial_spawner.ambient_ominous",
     BlockTrialSpawnerOpenShutter => "minecraft:block.trial_spawner.open_shutter",
     BlockTrialSpawnerCloseShutter => "minecraft:block.trial_spawner.close_shutter",
     BlockTrialSpawnerEjectItem => "minecraft:block.trial_spawner.eject_item",
@@ -4701,6 +4716,9 @@ enum SoundEvent {
     MusicDiscWard => "minecraft:music_disc.ward",
     MusicDiscOtherside => "minecraft:music_disc.otherside",
     MusicDiscRelic => "minecraft:music_disc.relic",
+    MusicDiscCreator => "minecraft:music_disc.creator",
+    MusicDiscCreatorMusicBox => "minecraft:music_disc.creator_music_box",
+    MusicDiscPrecipice => "minecraft:music_disc.precipice",
     MusicDragon => "minecraft:music.dragon",
     MusicEnd => "minecraft:music.end",
     MusicGame => "minecraft:music.game",
@@ -5254,6 +5272,7 @@ enum SoundEvent {
     BlockVaultCloseShutter => "minecraft:block.vault.close_shutter",
     BlockVaultDeactivate => "minecraft:block.vault.deactivate",
     BlockVaultEjectItem => "minecraft:block.vault.eject_item",
+    BlockVaultRejectRewardedPlayer => "minecraft:block.vault.reject_rewarded_player",
     BlockVaultFall => "minecraft:block.vault.fall",
     BlockVaultHit => "minecraft:block.vault.hit",
     BlockVaultInsertItem => "minecraft:block.vault.insert_item",
@@ -5578,6 +5597,7 @@ enum WorldgenFeature {
     Disk => "minecraft:disk",
     Lake => "minecraft:lake",
     Ore => "minecraft:ore",
+    EndPlatform => "minecraft:end_platform",
     EndSpike => "minecraft:end_spike",
     EndIsland => "minecraft:end_island",
     EndGateway => "minecraft:end_gateway",
@@ -5676,6 +5696,7 @@ enum WorldgenPlacementModifierKind {
     InSquare => "minecraft:in_square",
     RandomOffset => "minecraft:random_offset",
     CarvingMask => "minecraft:carving_mask",
+    FixedPlacement => "minecraft:fixed_placement",
 }
 }
 
@@ -6293,6 +6314,7 @@ enum DataComponentKind {
     BlockEntityData => "minecraft:block_entity_data",
     Instrument => "minecraft:instrument",
     OminousBottleAmplifier => "minecraft:ominous_bottle_amplifier",
+    JukeboxPlayable => "minecraft:jukebox_playable",
     Recipes => "minecraft:recipes",
     LodestoneTracker => "minecraft:lodestone_tracker",
     FireworkExplosion => "minecraft:firework_explosion",
@@ -6349,6 +6371,7 @@ enum ItemSubPredicateKind {
     WrittenBookContent => "minecraft:written_book_content",
     AttributeModifiers => "minecraft:attribute_modifiers",
     Trim => "minecraft:trim",
+    JukeboxPlayable => "minecraft:jukebox_playable",
 }
 }
 
@@ -6389,5 +6412,134 @@ enum MapDecorationKind {
     JungleTemple => "minecraft:jungle_temple",
     SwampHut => "minecraft:swamp_hut",
     TrialChambers => "minecraft:trial_chambers",
+}
+}
+
+registry! {
+enum EnchantmentEffectComponentKind {
+    DamageProtection => "minecraft:damage_protection",
+    DamageImmunity => "minecraft:damage_immunity",
+    Damage => "minecraft:damage",
+    SmashDamagePerFallenBlock => "minecraft:smash_damage_per_fallen_block",
+    Knockback => "minecraft:knockback",
+    ArmorEffectiveness => "minecraft:armor_effectiveness",
+    PostAttack => "minecraft:post_attack",
+    HitBlock => "minecraft:hit_block",
+    ItemDamage => "minecraft:item_damage",
+    Attributes => "minecraft:attributes",
+    EquipmentDrops => "minecraft:equipment_drops",
+    LocationChanged => "minecraft:location_changed",
+    Tick => "minecraft:tick",
+    AmmoUse => "minecraft:ammo_use",
+    ProjectilePiercing => "minecraft:projectile_piercing",
+    ProjectileSpawned => "minecraft:projectile_spawned",
+    ProjectileSpread => "minecraft:projectile_spread",
+    ProjectileCount => "minecraft:projectile_count",
+    TridentReturnAcceleration => "minecraft:trident_return_acceleration",
+    FishingTimeReduction => "minecraft:fishing_time_reduction",
+    FishingLuckBonus => "minecraft:fishing_luck_bonus",
+    BlockExperience => "minecraft:block_experience",
+    MobExperience => "minecraft:mob_experience",
+    RepairWithXp => "minecraft:repair_with_xp",
+    CrossbowChargeTime => "minecraft:crossbow_charge_time",
+    CrossbowChargingSounds => "minecraft:crossbow_charging_sounds",
+    TridentSound => "minecraft:trident_sound",
+    PreventEquipmentDrop => "minecraft:prevent_equipment_drop",
+    PreventArmorChange => "minecraft:prevent_armor_change",
+    TridentSpinAttackStrength => "minecraft:trident_spin_attack_strength",
+}
+}
+
+registry! {
+enum EnchantmentEntityEffectKind {
+    AllOf => "minecraft:all_of",
+    ApplyMobEffect => "minecraft:apply_mob_effect",
+    DamageEntity => "minecraft:damage_entity",
+    DamageItem => "minecraft:damage_item",
+    Explode => "minecraft:explode",
+    Ignite => "minecraft:ignite",
+    PlaySound => "minecraft:play_sound",
+    ReplaceBlock => "minecraft:replace_block",
+    ReplaceDisk => "minecraft:replace_disk",
+    RunFunction => "minecraft:run_function",
+    SetBlockProperties => "minecraft:set_block_properties",
+    SpawnParticles => "minecraft:spawn_particles",
+    SummonEntity => "minecraft:summon_entity",
+}
+}
+
+registry! {
+enum EnchantmentLevelBasedValueKind {
+    Clamped => "minecraft:clamped",
+    Fraction => "minecraft:fraction",
+    LevelsSquared => "minecraft:levels_squared",
+    Linear => "minecraft:linear",
+    Lookup => "minecraft:lookup",
+}
+}
+
+registry! {
+enum EnchantmentLocationBasedEffectKind {
+    AllOf => "minecraft:all_of",
+    ApplyMobEffect => "minecraft:apply_mob_effect",
+    Attribute => "minecraft:attribute",
+    DamageEntity => "minecraft:damage_entity",
+    DamageItem => "minecraft:damage_item",
+    Explode => "minecraft:explode",
+    Ignite => "minecraft:ignite",
+    PlaySound => "minecraft:play_sound",
+    ReplaceBlock => "minecraft:replace_block",
+    ReplaceDisk => "minecraft:replace_disk",
+    RunFunction => "minecraft:run_function",
+    SetBlockProperties => "minecraft:set_block_properties",
+    SpawnParticles => "minecraft:spawn_particles",
+    SummonEntity => "minecraft:summon_entity",
+}
+}
+
+registry! {
+enum EnchantmentProviderKind {
+    ByCost => "minecraft:by_cost",
+    ByCostWithDifficulty => "minecraft:by_cost_with_difficulty",
+    Single => "minecraft:single",
+}
+}
+
+registry! {
+enum EnchantmentValueEffectKind {
+    Add => "minecraft:add",
+    AllOf => "minecraft:all_of",
+    Multiply => "minecraft:multiply",
+    RemoveBinomial => "minecraft:remove_binomial",
+    Set => "minecraft:set",
+}
+}
+
+registry! {
+enum DecoratedPotPattern {
+    Angler => "minecraft:angler",
+    Archer => "minecraft:archer",
+    ArmsUp => "minecraft:arms_up",
+    Blade => "minecraft:blade",
+    Brewer => "minecraft:brewer",
+    Burn => "minecraft:burn",
+    Danger => "minecraft:danger",
+    Explorer => "minecraft:explorer",
+    Flow => "minecraft:flow",
+    Friend => "minecraft:friend",
+    Guster => "minecraft:guster",
+    Heart => "minecraft:heart",
+    Heartbreak => "minecraft:heartbreak",
+    Howl => "minecraft:howl",
+    Miner => "minecraft:miner",
+    Mourner => "minecraft:mourner",
+    Plenty => "minecraft:plenty",
+    Prize => "minecraft:prize",
+    Scrape => "minecraft:scrape",
+    Sheaf => "minecraft:sheaf",
+    Shelter => "minecraft:shelter",
+    Skull => "minecraft:skull",
+    Snort => "minecraft:snort",
+    Blank => "minecraft:blank",
 }
 }

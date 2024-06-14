@@ -49,6 +49,8 @@ pub fn from_kind(
     kind: azalea_registry::DataComponentKind,
     buf: &mut Cursor<&[u8]>,
 ) -> Result<Box<dyn EncodableDataComponent>, BufReadError> {
+    // if this is causing a compile-time error, look at DataComponents.java in the
+    // decompiled vanilla code to see how to implement new components
     Ok(match kind {
         DataComponentKind::CustomData => Box::new(CustomData::read_from(buf)?),
         DataComponentKind::MaxStackSize => Box::new(MaxStackSize::read_from(buf)?),
@@ -114,6 +116,7 @@ pub fn from_kind(
         DataComponentKind::Bees => Box::new(Bees::read_from(buf)?),
         DataComponentKind::Lock => Box::new(Lock::read_from(buf)?),
         DataComponentKind::ContainerLoot => Box::new(ContainerLoot::read_from(buf)?),
+        DataComponentKind::JukeboxPlayable => todo!(),
     })
 }
 
@@ -654,3 +657,10 @@ pub struct ContainerLoot {
     pub loot: NbtCompound,
 }
 impl DataComponent for ContainerLoot {}
+
+#[derive(Clone, PartialEq, McBuf)]
+pub struct JukeboxPlayable {
+    pub song: azalea_registry::JukeboxSong,
+    pub show_in_tooltip: bool,
+}
+impl DataComponent for JukeboxPlayable {}

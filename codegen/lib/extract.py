@@ -1,8 +1,8 @@
 # Extracting data from the Minecraft jars
 
 from typing import TYPE_CHECKING
-from lib.download import get_server_jar, get_burger, get_client_jar, get_pixlyzer, get_yarn_data, get_fabric_api_versions, get_fabric_loader_versions
-from lib.utils import get_dir_location
+from lib.download import get_mappings_for_version, get_server_jar, get_burger, get_client_jar, get_pixlyzer, get_yarn_data, get_fabric_api_versions, get_fabric_loader_versions
+from lib.utils import get_dir_location, to_camel_case, upper_first_letter
 from zipfile import ZipFile
 import subprocess
 import requests
@@ -281,14 +281,22 @@ def get_en_us_lang(version_id: str):
 # this is very much not ideal.
 
 if TYPE_CHECKING: from codegen.lib.mappings import Mappings
-def get_packet_list(burger_data, mappings: 'Mappings'):
-    packet_list = list(burger_data[0]['packets']['packet'].values())
-    
-    current_packet_id = 0
-    for packet in packet_list:
-        if packet['id'] == -1:
-            packet['id'] = current_packet_id
-            print(packet)
-        current_packet_id += 1
+def get_packet_list(version_id: str):
+    if version_id != '1.21':
+        return []
 
-    return packet_list
+    generate_data_from_server_jar(version_id)
+    with open(get_dir_location(f'__cache__/generated-{version_id}/reports/packets.json'), 'r') as f:
+        packets_report = json.load(f)
+    packet_list = []
+    for state, state_value in packets_report.items():
+        for direction, direction_value in state_value.items():
+            for packet_resourcelocation, packet_value in direction_value.items():
+                assert packet_resourcelocation.startswith('minecraft:')
+                packet_resourcelocation = upper_first_letter(to_camel_case(packet_resourcelocation[len('minecraft:'):]))
+                packet_list.append({
+                    'state': state,
+                    'direction': direction,
+                    'name': packet_resourcelocation,
+                    'id': packet_value['protocol_id']
+                })

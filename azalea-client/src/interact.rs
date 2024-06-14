@@ -365,10 +365,7 @@ fn update_modifiers_for_held_item(
         };
         attributes
             .attack_speed
-            .remove(&azalea_entity::attributes::BASE_ATTACK_SPEED_UUID);
-        attributes
-            .attack_speed
-            .insert(azalea_entity::attributes::tool_attack_speed_modifier(
+            .insert(azalea_entity::attributes::base_attack_speed_modifier(
                 added_attack_speed,
             ))
             .unwrap();
