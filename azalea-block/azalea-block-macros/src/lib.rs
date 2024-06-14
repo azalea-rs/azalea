@@ -42,8 +42,11 @@ struct PropertyDefinitions {
 /// `"snowy": Snowy(false)` or `"axis": properties::Axis::Y`
 #[derive(Debug)]
 struct PropertyWithNameAndDefault {
-    // "snowy" / "axis"
+    // "snowy" "axis"
     name: String,
+    /// The property name, potentially modified so it works better as a struct
+    /// field.
+    name_ident: Ident,
     // Snowy / Axis
     property_type: Ident,
     property_value_type: Ident,
@@ -100,8 +103,11 @@ impl Parse for PropertyWithNameAndDefault {
             }
         };
 
+        let property_name_ident = name_to_ident(&property_name);
+
         Ok(PropertyWithNameAndDefault {
             name: property_name,
+            name_ident: property_name_ident,
             property_type,
             property_value_type,
             is_enum,
@@ -433,6 +439,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 write!(property_name, "_{index}").unwrap();
             }
             properties_with_name.push(PropertyWithNameAndDefault {
+                name_ident: name_to_ident(&property_name),
                 name: property_name,
                 property_type: property.property_type.clone(),
                 property_value_type: property.property_value_type.clone(),
@@ -452,12 +459,11 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         let mut block_struct_fields = quote! {};
         for PropertyWithNameAndDefault {
             property_value_type,
-            name,
+            name_ident,
             is_enum,
             ..
         } in &properties_with_name
         {
-            let name_ident = Ident::new_raw(name, proc_macro2::Span::call_site());
             block_struct_fields.extend(if *is_enum {
                 quote! { pub #name_ident: properties::#property_value_type, }
             } else {
@@ -496,7 +502,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             let mut from_block_to_state_combination_match_inner = quote! {};
             for i in 0..properties_with_name.len() {
                 let property = &properties_with_name[i];
-                let property_name = &property.name;
+                let property_name_ident = &property.name_ident;
                 let property_value_name_ident = &property.property_type;
                 let variant =
                     Ident::new(&combination[i].to_string(), proc_macro2::Span::call_site());
@@ -519,8 +525,6 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                     quote! {#variant}
                 };
 
-                let property_name_ident =
-                    Ident::new_raw(property_name, proc_macro2::Span::call_site());
                 from_block_to_state_combination_match_inner.extend(quote! {
                     #property_name_ident: #property_variant,
                 });
@@ -582,7 +586,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         for i in (0..properties_with_name.len()).rev() {
             let PropertyWithNameAndDefault {
                 property_type: property_struct_name_ident,
-                name: property_name,
+                name_ident: property_name_ident,
                 property_value_type,
                 ..
             } = &properties_with_name[i];
@@ -598,7 +602,6 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                     quote! {properties::#property_struct_name_ident::from((b / #division) % #property_variants_count)}
                 }
             };
-            let property_name_ident = Ident::new_raw(property_name, proc_macro2::Span::call_site());
             from_state_to_block_inner.extend(quote! {
                 #property_name_ident: #conversion_code,
             });
@@ -627,12 +630,11 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
 
         let mut block_default_fields = quote! {};
         for PropertyWithNameAndDefault {
-            name,
+            name_ident,
             default: property_default,
             ..
         } in properties_with_name
         {
-            let name_ident = Ident::new_raw(&name, proc_macro2::Span::call_site());
             block_default_fields.extend(quote! { #name_ident: #property_default, });
         }
 
@@ -820,4 +822,14 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
     });
 
     generated.into()
+}
+
+/// Convert a name to a Rust identifier, replacing some Rust keywords with
+/// alternatives (e.g. `type` -> `kind`).
+fn name_to_ident(name: &str) -> Ident {
+    let ident_str = match name {
+        "type" => "kind",
+        _ => &name,
+    };
+    Ident::new(ident_str, proc_macro2::Span::call_site())
 }
