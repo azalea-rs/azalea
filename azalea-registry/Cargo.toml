@@ -4,7 +4,7 @@ edition = "2021"
 license = "MIT"
 name = "azalea-registry"
 repository = "https://github.com/azalea-rs/azalea/tree/main/azalea-registry"
-version = "0.10.0"
+version = "0.10.2"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

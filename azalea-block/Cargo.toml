@@ -4,7 +4,7 @@ edition = "2021"
 license = "MIT"
 name = "azalea-block"
 repository = "https://github.com/azalea-rs/azalea/tree/main/azalea-block"
-version = "0.10.0"
+version = "0.10.2"
 
 [lib]
 

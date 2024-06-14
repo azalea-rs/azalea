@@ -1,6 +1,6 @@
 [package]
 name = "azalea-entity"
-version = "0.10.1"
+version = "0.10.2"
 edition = "2021"
 description = "Things related to Minecraft entities used by Azalea"
 repository = "https://github.com/azalea-rs/azalea/tree/main/azalea-entity"
