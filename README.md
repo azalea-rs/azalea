@@ -53,6 +53,7 @@ If you'd like to chat about Azalea, you can join the Matrix space at [#azalea:ma
 
 There are several branches in the Azalea repository that target older Minecraft versions. It is not guaranteed that they will be up-to-date with the latest version of Azalea. If you'd like to update them or add more, please open a PR.
 
+-   [1.20.5-1.20.6](https://github.com/azalea-rs/azalea/tree/1.20.6)
 -   [1.20.4](https://github.com/azalea-rs/azalea/tree/1.20.4)
 -   [1.20.2](https://github.com/azalea-rs/azalea/tree/1.20.2)
 -   [1.20-1.20.1](https://github.com/azalea-rs/azalea/tree/1.20.1)
