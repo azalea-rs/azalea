@@ -880,10 +880,7 @@ impl PluginGroup for DefaultPlugins {
             .add(ChunkPlugin)
             .add(ConfigurationPlugin)
             .add(TickBroadcastPlugin);
-        #[cfg(feature = "log")]
-        {
-            group = group.add(bevy_log::LogPlugin::default());
-        }
+
         group
     }
 }
