@@ -276,19 +276,7 @@ fn handle_send_chat_kind_event(
             .get(),
             ChatPacketKind::Command => {
                 // TODO: chat signing
-                ServerboundChatCommandPacket {
-                    command: content,
-                    timestamp: SystemTime::now()
-                        .duration_since(UNIX_EPOCH)
-                        .expect("Time shouldn't be before epoch")
-                        .as_millis()
-                        .try_into()
-                        .expect("Instant should fit into a u64"),
-                    salt: azalea_crypto::make_salt(),
-                    argument_signatures: vec![],
-                    last_seen_messages: LastSeenMessagesUpdate::default(),
-                }
-                .get()
+                ServerboundChatCommandPacket { command: content }.get()
             }
         };
 
