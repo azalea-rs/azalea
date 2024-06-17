@@ -1,6 +1,6 @@
 use azalea_block::{Block, BlockState, FluidState};
 use azalea_core::{direction::Direction, game_type::GameMode, position::BlockPos, tick::GameTick};
-use azalea_entity::{mining::get_mine_progress, FluidOnEyes, Physics};
+use azalea_entity::{mining::get_mine_progress, FluidOnEyes, Physics, Position};
 use azalea_inventory::ItemSlot;
 use azalea_physics::PhysicsSet;
 use azalea_protocol::packets::game::serverbound_player_action_packet::{
@@ -10,6 +10,7 @@ use azalea_world::{InstanceContainer, InstanceName};
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
+use tracing::info;
 
 use crate::{
     interact::{
@@ -33,7 +34,15 @@ impl Plugin for MinePlugin {
             .add_event::<StopMiningBlockEvent>()
             .add_event::<MineBlockProgressEvent>()
             .add_event::<AttackBlockEvent>()
-            .add_systems(GameTick, continue_mining_block.before(PhysicsSet))
+            .add_systems(
+                GameTick,
+                (
+                    continue_mining_block,
+                    handle_auto_mine
+                )
+                    .chain()
+                    .before(PhysicsSet)
+            )
             .add_systems(
                 Update,
                 (
@@ -65,6 +74,67 @@ impl Client {
             entity: self.entity,
             position,
         });
+    }
+
+    /// When enabled, the bot will mine any block that it is looking at if it is reachable.
+    /// By default, reachability is set to 5 blocks.
+    pub fn auto_mine(&self, enabled: bool) {
+        let mut ecs = self.ecs.lock();
+        let mut entity_mut = ecs.entity_mut(self.entity);
+
+        if enabled {
+            entity_mut.insert(AutoMine);
+        } else {
+            entity_mut.remove::<AutoMine>();
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct AutoMine;
+
+fn handle_auto_mine(
+    mut query: Query<
+        (
+            &HitResultComponent,
+            &Position,
+            Entity,
+            Option<&Mining>,
+            &InventoryComponent,
+            &MineBlockPos,
+            &MineItem,
+        ),
+        With<AutoMine>,
+    >,
+    mut start_mining_block_event_writer: EventWriter<StartMiningBlockEvent>,
+) {
+    for (
+        hit_result_component,
+        position,
+        entity,
+        mining,
+        inventory,
+        current_mining_pos,
+        current_mining_item,
+    ) in &mut query.iter_mut()
+    {
+        let block_pos = hit_result_component.block_pos;
+
+        if (mining.is_none()
+            || !is_same_mining_target(
+                block_pos,
+                inventory,
+                current_mining_pos,
+                current_mining_item,
+            ))
+            && position.distance_to(&block_pos.to_vec3_floored()) <= 7.0
+        {
+            info!("sending mining event");
+            start_mining_block_event_writer.send(StartMiningBlockEvent {
+                entity,
+                position: block_pos,
+            });
+        }
     }
 }
 
