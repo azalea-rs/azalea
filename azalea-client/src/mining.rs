@@ -1,6 +1,6 @@
 use azalea_block::{Block, BlockState, FluidState};
 use azalea_core::{direction::Direction, game_type::GameMode, position::BlockPos, tick::GameTick};
-use azalea_entity::{mining::get_mine_progress, FluidOnEyes, Physics};
+use azalea_entity::{mining::get_mine_progress, FluidOnEyes, Physics, Position, LocalEntity};
 use azalea_inventory::ItemSlot;
 use azalea_physics::PhysicsSet;
 use azalea_protocol::packets::game::serverbound_player_action_packet::{
@@ -10,6 +10,7 @@ use azalea_world::{InstanceContainer, InstanceName};
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
+use azalea_entity::metadata::Player;
 
 use crate::{
     interact::{
@@ -25,6 +26,7 @@ use crate::{
 
 /// A plugin that allows clients to break blocks in the world.
 pub struct MinePlugin;
+
 impl Plugin for MinePlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<StartMiningBlockEvent>()
@@ -33,7 +35,15 @@ impl Plugin for MinePlugin {
             .add_event::<StopMiningBlockEvent>()
             .add_event::<MineBlockProgressEvent>()
             .add_event::<AttackBlockEvent>()
-            .add_systems(GameTick, continue_mining_block.before(PhysicsSet))
+            .add_systems(
+                GameTick,
+                (
+                    continue_mining_block,
+                    handle_auto_mine
+                )
+                    .chain()
+                    .before(PhysicsSet),
+            )
             .add_systems(
                 Update,
                 (
@@ -66,6 +76,66 @@ impl Client {
             position,
         });
     }
+
+    /// When enabled, the bot will mine any block that it is looking at if it is reachable.
+    /// By default, reachability is set to 5 blocks.
+    pub fn auto_mine(&self, enabled: bool) {
+        let mut ecs = self.ecs.lock();
+        let mut entity_mut = ecs.entity_mut(self.entity);
+
+        if enabled {
+            entity_mut.insert(AutoMine);
+        } else {
+            entity_mut.remove::<AutoMine>();
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct AutoMine;
+
+fn handle_auto_mine(
+    mut query: Query<
+        (
+            &HitResultComponent,
+            &Position,
+            Entity,
+            Option<&Mining>,
+            &InventoryComponent,
+            &MineBlockPos,
+            &MineItem,
+        ),
+        (With<AutoMine>, With<Player>, With<LocalEntity>),
+    >,
+    mut start_mining_block_event_writer: EventWriter<StartMiningBlockEvent>,
+) {
+    for (
+        hit_result_component,
+        position,
+        entity,
+        mining,
+        inventory,
+        current_mining_pos,
+        current_mining_item,
+    ) in &mut query.iter_mut()
+    {
+        let block_pos = hit_result_component.block_pos;
+
+        if (mining.is_none()
+            || !is_same_mining_target(
+            block_pos,
+            inventory,
+            current_mining_pos,
+            current_mining_item,
+        ))
+            && position.distance_to(&block_pos.to_vec3_floored()) <= 7.0
+        {
+            start_mining_block_event_writer.send(StartMiningBlockEvent {
+                entity,
+                position: block_pos,
+            });
+        }
+    }
 }
 
 /// Information about the block we're currently mining. This is only present if
@@ -85,6 +155,7 @@ pub struct StartMiningBlockEvent {
     pub entity: Entity,
     pub position: BlockPos,
 }
+
 fn handle_start_mining_block_event(
     mut events: EventReader<StartMiningBlockEvent>,
     mut start_mining_events: EventWriter<StartMiningBlockWithDirectionEvent>,
@@ -113,6 +184,7 @@ pub struct StartMiningBlockWithDirectionEvent {
     pub position: BlockPos,
     pub direction: Direction,
 }
+
 #[allow(clippy::too_many_arguments, clippy::type_complexity)]
 fn handle_start_mining_block_with_direction_event(
     mut events: EventReader<StartMiningBlockWithDirectionEvent>,
@@ -175,11 +247,11 @@ fn handle_start_mining_block_with_direction_event(
             **mine_delay = 5;
         } else if mining.is_none()
             || !is_same_mining_target(
-                event.position,
-                inventory,
-                &current_mining_pos,
-                &current_mining_item,
-            )
+            event.position,
+            inventory,
+            &current_mining_pos,
+            &current_mining_item,
+        )
         {
             if mining.is_some() {
                 // send a packet to stop mining since we just changed target
@@ -192,7 +264,7 @@ fn handle_start_mining_block_with_direction_event(
                         direction: event.direction,
                         sequence: 0,
                     }
-                    .get(),
+                        .get(),
                 });
             }
 
@@ -228,12 +300,12 @@ fn handle_start_mining_block_with_direction_event(
 
             if block_is_solid
                 && get_mine_progress(
-                    block.as_ref(),
-                    held_item.kind(),
-                    &inventory.inventory_menu,
-                    fluid_on_eyes,
-                    physics,
-                ) >= 1.
+                block.as_ref(),
+                held_item.kind(),
+                &inventory.inventory_menu,
+                fluid_on_eyes,
+                physics,
+            ) >= 1.
             {
                 // block was broken instantly
                 finish_mining_events.send(FinishMiningBlockEvent {
@@ -264,7 +336,7 @@ fn handle_start_mining_block_with_direction_event(
                     direction: event.direction,
                     sequence: **sequence_number,
                 }
-                .get(),
+                    .get(),
             });
         }
     }
@@ -414,6 +486,7 @@ fn handle_finish_mining_block_event(
 pub struct StopMiningBlockEvent {
     pub entity: Entity,
 }
+
 fn handle_stop_mining_block_event(
     mut events: EventReader<StopMiningBlockEvent>,
     mut send_packet_events: EventWriter<SendPacketEvent>,
@@ -434,7 +507,7 @@ fn handle_stop_mining_block_event(
                 direction: Direction::Down,
                 sequence: 0,
             }
-            .get(),
+                .get(),
         });
         commands.entity(event.entity).remove::<Mining>();
         **mine_progress = 0.;
@@ -508,7 +581,7 @@ fn continue_mining_block(
                     direction: mining.dir,
                     sequence: **sequence_number,
                 }
-                .get(),
+                    .get(),
             });
             swing_arm_events.send(SwingArmEvent { entity });
         } else if is_same_mining_target(
@@ -554,7 +627,7 @@ fn continue_mining_block(
                         direction: mining.dir,
                         sequence: **sequence_number,
                     }
-                    .get(),
+                        .get(),
                 });
                 **mine_progress = 0.;
                 **mine_ticks = 0.;
