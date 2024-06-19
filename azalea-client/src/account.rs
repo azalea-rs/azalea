@@ -146,13 +146,22 @@ impl Account {
     /// # }
     /// ```
     pub async fn with_microsoft_access_token(
+        msa: azalea_auth::cache::ExpiringValue<AccessTokenResponse>
+    ) -> Result<Self, azalea_auth::AuthError> {
+        Self::with_microsoft_access_token_and_custom_client_id(msa, None, None).await
+    }
+
+    /// Similar to [`Account::with_microsoft_access_token`] but you can you custom `client_id` and `scope`
+    pub async fn with_microsoft_access_token_and_custom_client_id(
         mut msa: azalea_auth::cache::ExpiringValue<AccessTokenResponse>,
+        scope: Option<&'static str>,
+        client_id: Option<&'static str>
     ) -> Result<Self, azalea_auth::AuthError> {
         let client = reqwest::Client::new();
 
         if msa.is_expired() {
             tracing::trace!("refreshing Microsoft auth token");
-            msa = azalea_auth::refresh_ms_auth_token(&client, &msa.data.refresh_token, None, None).await?;
+            msa = azalea_auth::refresh_ms_auth_token(&client, &msa.data.refresh_token, scope, client_id).await?;
         }
 
         let msa_token = &msa.data.access_token;
