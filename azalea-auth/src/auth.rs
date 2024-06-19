@@ -389,7 +389,7 @@ pub enum RefreshMicrosoftAuthTokenError {
 pub async fn refresh_ms_auth_token(
     client: &reqwest::Client,
     refresh_token: &str,
-    client_id: Option<&str>
+    client_id: Option<&'static str>
 ) -> Result<ExpiringValue<AccessTokenResponse>, RefreshMicrosoftAuthTokenError> {
     let client_id = if client_id.is_some() {
         client_id.unwrap()
@@ -401,7 +401,7 @@ pub async fn refresh_ms_auth_token(
         .post("https://login.live.com/oauth20_token.srf")
         .form(&vec![
             ("scope", "service::user.auth.xboxlive.com::MBI_SSL"),
-            ("client_id", client_id.unwrap()),
+            ("client_id", client_id),
             ("grant_type", "refresh_token"),
             ("refresh_token", refresh_token),
         ])

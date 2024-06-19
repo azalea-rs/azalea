@@ -93,7 +93,7 @@ impl Account {
         Self::microsoft_with_custom_client_id(email, None).await
     }
 
-    /// Similar to [`account.microsoft()`](Self::microsoft) but you can use your own `client_id` and `scope`.
+    /// Similar to [`account.microsoft()`](Self::microsoft) but you can use your own `client_id`.
     pub async fn microsoft_with_custom_client_id(email: &str, client_id: Option<&'static str>) -> Result<Self, azalea_auth::AuthError> {
         let minecraft_dir = minecraft_folder_path::minecraft_dir().unwrap_or_else(|| {
             panic!(
@@ -135,6 +135,8 @@ impl Account {
     /// let client = reqwest::Client::new();
     ///
     /// let res = azalea_auth::get_ms_link_code(&client, None).await?;
+    /// // Or, `azalea_auth::get_ms_link_code(&client, Some(client_id)).await?`
+    /// // if you want to use your own client_id
     /// println!(
     ///     "Go to {} and enter the code {}",
     ///     res.verification_uri, res.user_code
@@ -150,7 +152,7 @@ impl Account {
         Self::with_microsoft_access_token_and_custom_client_id(msa, None).await
     }
 
-    /// Similar to [`Account::with_microsoft_access_token`] but you can you custom `client_id` and `scope`
+    /// Similar to [`Account::with_microsoft_access_token`] but you can you custom `client_id`.
     pub async fn with_microsoft_access_token_and_custom_client_id(
         mut msa: azalea_auth::cache::ExpiringValue<AccessTokenResponse>,
         client_id: Option<&'static str>
