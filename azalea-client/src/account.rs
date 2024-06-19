@@ -90,11 +90,11 @@ impl Account {
     /// a key for the cache, but it's recommended to use the real email to
     /// avoid confusion.
     pub async fn microsoft(email: &str) -> Result<Self, azalea_auth::AuthError> {
-        Self::microsoft_with_custom_client_id(email, None, None)
+        Self::microsoft_with_custom_client_id(email, None, None).await
     }
 
     /// Similar to [`account.microsoft()`](Self::microsoft) but you can use your own `client_id` and `scope`.
-    pub async fn microsoft_with_custom_client_id(email: &str, scope: Option<&str>, client_id: Option<&str>) -> Result<Self, azalea_auth::AuthError> {
+    pub async fn microsoft_with_custom_client_id(email: &str, scope: Option<&'static str>, client_id: Option<&'static str>) -> Result<Self, azalea_auth::AuthError> {
         let minecraft_dir = minecraft_folder_path::minecraft_dir().unwrap_or_else(|| {
             panic!(
                 "No {} environment variable found",
