@@ -515,9 +515,9 @@ impl Default for ChunkStorage {
 pub fn section_index(y: i32, min_y: i32) -> u32 {
     if y < min_y {
         #[cfg(debug_assertions)]
-        panic!("y ({y}) must be at most {min_y}");
+        warn!("y ({y}) must be at most {min_y}");
         #[cfg(not(debug_assertions))]
-        tracing::error!("y ({y}) must be at least {min_y}")
+        trace!("y ({y}) must be at least {min_y}")
     };
     let min_section_index = min_y >> 4;
     ((y >> 4) - min_section_index) as u32
