@@ -24,6 +24,8 @@ pub struct AuthOpts {
     /// The directory to store the cache in. If this is not set, caching is not
     /// done.
     pub cache_file: Option<PathBuf>,
+    pub scope: Option<&'static str>,
+    pub client_id: Option<&'static str>
 }
 
 #[derive(Debug, Error)]
@@ -60,6 +62,10 @@ pub enum AuthError {
 /// in a different way, use [`get_ms_link_code`], [`get_ms_auth_token`],
 /// [`get_minecraft_token`] and [`get_profile`] instead.
 pub async fn auth(email: &str, opts: AuthOpts) -> Result<AuthResult, AuthError> {
+    if !((opts.scope.is_some() && opts.client_id.is_some()) || (opts.scope.is_none() && opts.client_id.is_none())) {
+        panic!("Either provide both `scope` and `client_id` or nether.")
+    }
+
     let cached_account = if let Some(cache_file) = &opts.cache_file {
         cache::get_account_in_cache(cache_file, email).await
     } else {
@@ -80,16 +86,16 @@ pub async fn auth(email: &str, opts: AuthOpts) -> Result<AuthResult, AuthError> 
         let mut msa = if let Some(account) = cached_account {
             account.msa
         } else {
-            interactive_get_ms_auth_token(&client, email).await?
+            interactive_get_ms_auth_token(&client, email, opts.scope, opts.client_id).await?
         };
         if msa.is_expired() {
             tracing::trace!("refreshing Microsoft auth token");
-            match refresh_ms_auth_token(&client, &msa.data.refresh_token).await {
+            match refresh_ms_auth_token(&client, &msa.data.refresh_token, opts.scope, opts.client_id).await {
                 Ok(new_msa) => msa = new_msa,
                 Err(e) => {
                     // can't refresh, ask the user to auth again
                     tracing::error!("Error refreshing Microsoft auth token: {}", e);
-                    msa = interactive_get_ms_auth_token(&client, email).await?;
+                    msa = interactive_get_ms_auth_token(&client, email, opts.scope, opts.client_id).await?;
                 }
             }
         }
@@ -280,7 +286,7 @@ pub enum GetMicrosoftAuthTokenError {
 ///
 /// ```
 /// # async fn example(client: &reqwest::Client) -> Result<(), Box<dyn std::error::Error>> {
-/// let res = azalea_auth::get_ms_link_code(&client).await?;
+/// let res = azalea_auth::get_ms_link_code(&client, None, None).await?;
 /// println!(
 ///     "Go to {} and enter the code {}",
 ///     res.verification_uri, res.user_code
@@ -293,12 +299,20 @@ pub enum GetMicrosoftAuthTokenError {
 /// ```
 pub async fn get_ms_link_code(
     client: &reqwest::Client,
+    scope: Option<&str>,
+    client_id: Option<&str>
 ) -> Result<DeviceCodeResponse, GetMicrosoftAuthTokenError> {
+    let (scope, client_id) = if scope.is_some() && client_id.is_some() {
+        (scope.unwrap(), client_id.unwrap())
+    } else {
+        ("service::user.auth.xboxlive.com::MBI_SSL", CLIENT_ID)
+    };
+
     Ok(client
         .post("https://login.live.com/oauth20_connect.srf")
         .form(&vec![
-            ("scope", "service::user.auth.xboxlive.com::MBI_SSL"),
-            ("client_id", CLIENT_ID),
+            ("scope", scope),
+            ("client_id", client_id),
             ("response_type", "device_code"),
         ])
         .send()
@@ -357,8 +371,10 @@ pub async fn get_ms_auth_token(
 pub async fn interactive_get_ms_auth_token(
     client: &reqwest::Client,
     email: &str,
+    scope: Option<&str>,
+    client_id: Option<&str>
 ) -> Result<ExpiringValue<AccessTokenResponse>, GetMicrosoftAuthTokenError> {
-    let res = get_ms_link_code(client).await?;
+    let res = get_ms_link_code(client, scope, client_id).await?;
     tracing::trace!("Device code response: {:?}", res);
     println!(
         "Go to \x1b[1m{}\x1b[m and enter the code \x1b[1m{}\x1b[m for \x1b[1m{}\x1b[m",
@@ -379,19 +395,36 @@ pub enum RefreshMicrosoftAuthTokenError {
 pub async fn refresh_ms_auth_token(
     client: &reqwest::Client,
     refresh_token: &str,
+    scope: Option<&str>,
+    client_id: Option<&str>
 ) -> Result<ExpiringValue<AccessTokenResponse>, RefreshMicrosoftAuthTokenError> {
-    let access_token_response_text = client
-        .post("https://login.live.com/oauth20_token.srf")
-        .form(&vec![
-            ("scope", "service::user.auth.xboxlive.com::MBI_SSL"),
-            ("client_id", CLIENT_ID),
-            ("grant_type", "refresh_token"),
-            ("refresh_token", refresh_token),
-        ])
-        .send()
-        .await?
-        .text()
-        .await?;
+    let access_token_response_text = if scope.is_some() && client_id.is_some() {
+        client
+            .post("https://login.live.com/oauth20_token.srf")
+            .form(&vec![
+                ("scope", scope.unwrap()),
+                ("client_id", client_id.unwrap()),
+                ("grant_type", "refresh_token"),
+                ("refresh_token", refresh_token),
+            ])
+            .send()
+            .await?
+            .text()
+            .await?
+    } else {
+        client
+            .post("https://login.live.com/oauth20_token.srf")
+            .form(&vec![
+                ("scope", "service::user.auth.xboxlive.com::MBI_SSL"),
+                ("client_id", CLIENT_ID),
+                ("grant_type", "refresh_token"),
+                ("refresh_token", refresh_token),
+            ])
+            .send()
+            .await?
+            .text()
+            .await?
+    };
     let access_token_response: AccessTokenResponse =
         serde_json::from_str(&access_token_response_text)?;
 
