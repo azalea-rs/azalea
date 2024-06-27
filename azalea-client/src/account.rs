@@ -137,14 +137,14 @@ impl Account {
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let client = reqwest::Client::new();
     ///
-    /// let res = azalea_auth::get_ms_link_code(&client, "00000000441cc96b", "service::user. auth. xboxlive. com::MBI_SSL").await?;
+    /// let res = azalea_auth::get_ms_link_code(&client, "client_id", "scope").await?;
     /// // Or, `azalea_auth::get_ms_link_code(&client, Some(client_id)).await?`
     /// // if you want to use your own client_id
     /// println!(
     ///     "Go to {} and enter the code {}",
     ///     res.verification_uri, res.user_code
     /// );
-    /// let msa = azalea_auth::get_ms_auth_token(&client, res).await?;
+    /// let msa = azalea_auth::get_ms_auth_token(&client, res, "client_id").await?;
     /// Account::with_microsoft_access_token(msa).await?;
     /// # Ok(())
     /// # }

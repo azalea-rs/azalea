@@ -288,12 +288,12 @@ pub enum GetMicrosoftAuthTokenError {
 ///
 /// ```
 /// # async fn example(client: &reqwest::Client) -> Result<(), Box<dyn std::error::Error>> {
-/// let res = azalea_auth::get_ms_link_code(&client, "00000000441cc96b", "service::user.auth.xboxlive.com::MBI_SSL").await?;
+/// let res = azalea_auth::get_ms_link_code(&client, "client_id", "scope").await?;
 /// println!(
 ///     "Go to {} and enter the code {}",
 ///     res.verification_uri, res.user_code
 /// );
-/// let msa = azalea_auth::get_ms_auth_token(client, res).await?;
+/// let msa = azalea_auth::get_ms_auth_token(client, res, "client_id").await?;
 /// let minecraft = azalea_auth::get_minecraft_token(client, &msa.data.access_token).await?;
 /// let profile = azalea_auth::get_profile(&client, &minecraft.minecraft_access_token).await?;
 /// # Ok(())
@@ -324,6 +324,7 @@ pub async fn get_ms_link_code(
 pub async fn get_ms_auth_token(
     client: &reqwest::Client,
     res: DeviceCodeResponse,
+    client_id: &str
 ) -> Result<ExpiringValue<AccessTokenResponse>, GetMicrosoftAuthTokenError> {
     let login_expires_at = Instant::now() + std::time::Duration::from_secs(res.expires_in);
 
@@ -331,12 +332,12 @@ pub async fn get_ms_auth_token(
         tokio::time::sleep(std::time::Duration::from_secs(res.interval)).await;
 
         tracing::trace!("Polling to check if user has logged in...");
-        if let Ok(access_token_response) = client
+        if let Ok(mut access_token_response) = client
             .post(format!(
-                "https://login.live.com/oauth20_token.srf?client_id={CLIENT_ID}"
+                "https://login.live.com/oauth20_token.srf?client_id={client_id}"
             ))
             .form(&vec![
-                ("client_id", CLIENT_ID),
+                ("client_id", client_id),
                 ("device_code", &res.device_code),
                 ("grant_type", "urn:ietf:params:oauth:grant-type:device_code"),
             ])
@@ -345,6 +346,10 @@ pub async fn get_ms_auth_token(
             .json::<AccessTokenResponse>()
             .await
         {
+            if client_id != CLIENT_ID {
+                access_token_response.access_token.insert_str(0, "d=");
+            }
+
             tracing::trace!("access_token_response: {:?}", access_token_response);
             let expires_at = SystemTime::now()
                 + std::time::Duration::from_secs(access_token_response.expires_in);
@@ -377,7 +382,7 @@ pub async fn interactive_get_ms_auth_token(
         res.verification_uri, res.user_code, email
     );
 
-    get_ms_auth_token(client, res).await
+    get_ms_auth_token(client, res, client_id).await
 }
 
 #[derive(Debug, Error)]
