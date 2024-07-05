@@ -101,7 +101,7 @@ impl<'de> Deserialize<'de> for ResourceLocation {
 }
 
 impl FromNbtTag for ResourceLocation {
-    fn from_nbt_tag(tag: &simdnbt::borrow::NbtTag) -> Option<Self> {
+    fn from_nbt_tag(tag: simdnbt::borrow::NbtTag) -> Option<Self> {
         tag.string().and_then(|s| s.to_str().parse().ok())
     }
 }

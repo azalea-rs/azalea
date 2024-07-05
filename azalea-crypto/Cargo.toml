@@ -12,13 +12,13 @@ repository = "https://github.com/azalea-rs/azalea/tree/main/azalea-crypto"
 aes = "0.8.4"
 azalea-buf = { path = "../azalea-buf", version = "0.10.0" }
 cfb8 = "0.8.1"
-num-bigint = "^0.4.4"
+num-bigint = "^0.4.6"
 rand = { version = "^0.8.5", features = ["getrandom"] }
 rsa = { version = "0.9.6", features = ["sha2"] }
 rsa_public_encrypt_pkcs1 = "0.4.0"
 sha-1 = "^0.10.1"
 sha2 = "0.10.8"
-uuid = "^1.8.0"
+uuid = "^1.9.1"
 
 [dev-dependencies]
 criterion = { version = "^0.5.1", features = ["html_reports"] }

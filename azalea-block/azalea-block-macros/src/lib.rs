@@ -829,7 +829,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
 fn name_to_ident(name: &str) -> Ident {
     let ident_str = match name {
         "type" => "kind",
-        _ => &name,
+        _ => name,
     };
     Ident::new(ident_str, proc_macro2::Span::call_site())
 }
