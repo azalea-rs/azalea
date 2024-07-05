@@ -53,7 +53,7 @@ impl RegistryHolder {
             value.write(&mut nbt_bytes);
             let nbt_borrow_compound =
                 simdnbt::borrow::read_compound(&mut Cursor::new(&nbt_bytes)).ok()?;
-            let value = match T::from_compound(&nbt_borrow_compound) {
+            let value = match T::from_compound((&nbt_borrow_compound).into()) {
                 Ok(value) => value,
                 Err(err) => {
                     return Some(Err(err));
@@ -182,7 +182,7 @@ pub enum MonsterSpawnLightLevel {
 }
 
 impl FromNbtTag for MonsterSpawnLightLevel {
-    fn from_nbt_tag(tag: &simdnbt::borrow::NbtTag) -> Option<Self> {
+    fn from_nbt_tag(tag: simdnbt::borrow::NbtTag) -> Option<Self> {
         if let Some(value) = tag.int() {
             Some(Self::Simple(value as u32))
         } else if let Some(value) = tag.compound() {
@@ -240,7 +240,7 @@ pub enum BiomePrecipitation {
     Snow,
 }
 impl FromNbtTag for BiomePrecipitation {
-    fn from_nbt_tag(tag: &simdnbt::borrow::NbtTag) -> Option<Self> {
+    fn from_nbt_tag(tag: simdnbt::borrow::NbtTag) -> Option<Self> {
         match tag.string()?.to_str().as_ref() {
             "none" => Some(Self::None),
             "rain" => Some(Self::Rain),

@@ -12,7 +12,7 @@ pre-release-replacements = [
 ]
 
 [dependencies]
-anyhow = "^1.0.82"
+anyhow = "^1.0.86"
 async-trait = "0.1.80"
 azalea-block = { version = "0.10.0", path = "../azalea-block" }
 azalea-chat = { version = "0.10.0", path = "../azalea-chat" }
@@ -25,23 +25,23 @@ azalea-world = { version = "0.10.0", path = "../azalea-world" }
 azalea-auth = { version = "0.10.0", path = "../azalea-auth" }
 azalea-brigadier = { version = "0.10.0", path = "../azalea-brigadier" }
 azalea-buf = { version = "0.10.0", path = "../azalea-buf" }
-bevy_app = "0.13.2"
-bevy_ecs = "0.13.2"
-bevy_tasks = { version = "0.13.2", features = ["multi-threaded"] }
-derive_more = { version = "0.99.17", features = ["deref", "deref_mut"] }
+bevy_app = "0.13.0"
+bevy_ecs = "0.13.0"
+bevy_tasks = { version = "0.13.0", features = ["multi-threaded"] }
+derive_more = { version = "0.99.18", features = ["deref", "deref_mut"] }
 futures = "0.3.30"
 futures-lite = "2.3.0"
 tracing = "0.1.40"
 nohash-hasher = "0.2.0"
-num-traits = "0.2.18"
-parking_lot = { version = "^0.12.1", features = ["deadlock_detection"] }
-priority-queue = "2.0.2"
-thiserror = "^1.0.59"
-tokio = "^1.37.0"
-uuid = "1.8.0"
-bevy_log = "0.13.2"
-bevy_time = "0.13.2"
-rustc-hash = "1.1.0"
+num-traits = "0.2.19"
+parking_lot = { version = "^0.12.3", features = ["deadlock_detection"] }
+priority-queue = "2.0.3"
+thiserror = "^1.0.61"
+tokio = "^1.38.0"
+uuid = "1.9.1"
+bevy_log = "0.13.0"
+bevy_time = "0.13.0"
+rustc-hash = "2.0.0"
 azalea-inventory = { version = "0.10.0", path = "../azalea-inventory" }
 azalea-entity = { version = "0.10.0", path = "../azalea-entity" }
 
