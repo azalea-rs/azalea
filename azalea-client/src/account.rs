@@ -96,7 +96,7 @@ impl Account {
     /// Similar to [`account.microsoft()`](Self::microsoft) but you can use your own `client_id` and `scope`.
     ///
     /// Pass `None` if you want to use default ones.
-    pub async fn microsoft_with_custom_client_id_and_scope(email: &str, client_id: Option<&'static str>, scope: Option<&'static str>) -> Result<Self, azalea_auth::AuthError> {
+    pub async fn microsoft_with_custom_client_id_and_scope(email: &str, client_id: Option<&str>, scope: Option<&str>) -> Result<Self, azalea_auth::AuthError> {
         let minecraft_dir = minecraft_folder_path::minecraft_dir().unwrap_or_else(|| {
             panic!(
                 "No {} environment variable found",
@@ -158,8 +158,8 @@ impl Account {
     /// Similar to [`Account::with_microsoft_access_token`] but you can use custom `client_id` and `scope`.
     pub async fn with_microsoft_access_token_and_custom_client_id_and_scope(
         mut msa: azalea_auth::cache::ExpiringValue<AccessTokenResponse>,
-        client_id: Option<&'static str>,
-        scope: Option<&'static str>
+        client_id: Option<&str>,
+        scope: Option<&str>
     ) -> Result<Self, azalea_auth::AuthError> {
         let client = reqwest::Client::new();
 

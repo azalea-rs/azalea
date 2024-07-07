@@ -13,7 +13,7 @@ use thiserror::Error;
 use uuid::Uuid;
 
 #[derive(Default)]
-pub struct AuthOpts {
+pub struct AuthOpts<'a> {
     /// Whether we should check if the user actually owns the game. This will
     /// fail if the user has Xbox Game Pass! Note that this isn't really
     /// necessary, since getting the user profile will check this anyways.
@@ -25,9 +25,9 @@ pub struct AuthOpts {
     /// done.
     pub cache_file: Option<PathBuf>,
     /// If you choose to use your own microsoft authentication instead of using nintendo switch, just put your client_id here
-    pub client_id: Option<&'static str>,
+    pub client_id: Option<&'a str>,
     /// If you want to use custom scope instead of default one
-    pub scope: Option<&'static str>
+    pub scope: Option<&'a str>
 }
 
 #[derive(Debug, Error)]
@@ -63,7 +63,7 @@ pub enum AuthError {
 /// If you want to use your own code to cache or show the auth code to the user
 /// in a different way, use [`get_ms_link_code`], [`get_ms_auth_token`],
 /// [`get_minecraft_token`] and [`get_profile`] instead.
-pub async fn auth(email: &str, opts: AuthOpts) -> Result<AuthResult, AuthError> {
+pub async fn auth<'a>(email: &str, opts: AuthOpts<'a>) -> Result<AuthResult, AuthError> {
     let cached_account = if let Some(cache_file) = &opts.cache_file {
         cache::get_account_in_cache(cache_file, email).await
     } else {
