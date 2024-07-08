@@ -501,6 +501,23 @@ impl Connection<ServerboundLoginPacket, ClientboundLoginPacket> {
     ) -> Result<GameProfile, ServerSessionServerError> {
         azalea_auth::sessionserver::serverside_auth(username, public_key, private_key, ip).await
     }
+
+    /// Change our state back to configuration.
+    #[must_use]
+    pub fn configuration(
+        self,
+    ) -> Connection<ServerboundConfigurationPacket, ClientboundConfigurationPacket> {
+        Connection::from(self)
+    }
+}
+
+impl Connection<ServerboundConfigurationPacket, ClientboundConfigurationPacket> {
+    /// Change our state from configuration to game. This is the state that's
+    /// used when the client is actually in the world.
+    #[must_use]
+    pub fn game(self) -> Connection<ServerboundGamePacket, ClientboundGamePacket> {
+        Connection::from(self)
+    }
 }
 
 impl Connection<ClientboundConfigurationPacket, ServerboundConfigurationPacket> {
