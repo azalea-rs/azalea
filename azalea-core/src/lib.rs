@@ -1,5 +1,4 @@
 #![doc = include_str!("../README.md")]
-#![feature(lazy_cell)]
 #![feature(trait_upcasting)]
 #![allow(incomplete_features)]
 #![feature(generic_const_exprs)]
