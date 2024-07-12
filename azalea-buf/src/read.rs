@@ -344,13 +344,13 @@ impl<T: McBufReadable, const N: usize> McBufReadable for [T; N] {
 
 impl McBufReadable for simdnbt::owned::NbtTag {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        Ok(simdnbt::owned::NbtTag::read(buf)?)
+        Ok(simdnbt::owned::read_tag(buf)?)
     }
 }
 
 impl McBufReadable for simdnbt::owned::NbtCompound {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        match simdnbt::owned::NbtTag::read(buf)? {
+        match simdnbt::owned::read_tag(buf)? {
             simdnbt::owned::NbtTag::Compound(compound) => Ok(compound),
             _ => Err(BufReadError::Custom("Expected compound tag".to_string())),
         }

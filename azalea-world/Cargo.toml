@@ -9,24 +9,24 @@ version = "0.10.2"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-simdnbt = { version = "0.5", git = "https://github.com/azalea-rs/simdnbt" }
+simdnbt = "0.6"
 azalea-block = { path = "../azalea-block", default-features = false, version = "0.10.0" }
 azalea-buf = { path = "../azalea-buf", version = "0.10.0" }
 azalea-core = { path = "../azalea-core", version = "0.10.0", features = [
 	"bevy_ecs",
 ] }
 azalea-registry = { path = "../azalea-registry", version = "0.10.0" }
-bevy_ecs = "0.13.2"
-derive_more = { version = "0.99.17", features = ["deref", "deref_mut"] }
+bevy_ecs = "0.13.0"
+derive_more = { version = "0.99.18", features = ["deref", "deref_mut"] }
 tracing = "0.1.40"
 nohash-hasher = "0.2.0"
 once_cell = "1.19.0"
-parking_lot = "^0.12.1"
-thiserror = "1.0.59"
-uuid = "1.8.0"
-serde_json = "1.0.116"
-serde = "1.0.198"
-rustc-hash = "1.1.0"
+parking_lot = "^0.12.3"
+thiserror = "1.0.61"
+uuid = "1.9.1"
+serde_json = "1.0.120"
+serde = "1.0.203"
+rustc-hash = "2.0.0"
 
 [dev-dependencies]
 azalea-client = { path = "../azalea-client" }

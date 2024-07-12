@@ -1,7 +1,6 @@
 #![doc = include_str!("../README.md")]
 #![allow(incomplete_features)]
 #![feature(type_changing_struct_update)]
-#![feature(lazy_cell)]
 #![feature(let_chains)]
 #![feature(never_type)]
 
