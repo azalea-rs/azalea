@@ -1,8 +1,12 @@
-use std::env;
+use std::process::Command;
 
 fn main() {
-    let rust_toolchain = env::var("RUSTUP_TOOLCHAIN").unwrap();
-    if rust_toolchain.starts_with("stable") {
-        panic!("Azalea currently requires nightly Rust. You can use `rustup override set nightly` to set the toolchain for this directory.");
+    let rustc_version_output = Command::new("rustc").arg("-V").output().unwrap();
+    if !rustc_version_output.status.success()
+        || !String::from_utf8(rustc_version_output.stdout)
+            .unwrap()
+            .contains("nightly")
+    {
+        panic!("Azalea currently requires nightly Rust. If you have installed Rust with rustup you can use `rustup override set nightly` to set the toolchain for this directory.");
     }
 }
