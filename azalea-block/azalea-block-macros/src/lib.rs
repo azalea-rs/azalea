@@ -5,8 +5,8 @@ mod utils;
 use proc_macro::TokenStream;
 use proc_macro2::TokenTree;
 use quote::quote;
-use std::collections::HashMap;
 use std::fmt::Write;
+use std::{collections::HashMap, str::FromStr};
 use syn::{
     braced,
     ext::IdentExt,
@@ -279,6 +279,19 @@ struct PropertyVariantData {
     pub is_enum: bool,
 }
 
+fn pascal_to_snake_case(input: &str) -> String {
+    let mut snake_case = String::new();
+
+    for (i, c) in input.chars().enumerate() {
+        if c.is_ascii_uppercase() && i > 0 {
+            snake_case.push('_');
+        }
+        snake_case.push(c.to_ascii_lowercase());
+    }
+
+    snake_case
+}
+
 #[proc_macro]
 pub fn make_block_states(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as MakeBlockStates);
@@ -302,6 +315,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             } => {
                 let mut property_enum_variants = quote! {};
                 let mut property_from_number_variants = quote! {};
+                let mut property_to_string = quote! {};
 
                 property_value_name = enum_name.clone();
                 property_struct_name = enum_name.clone();
@@ -329,6 +343,15 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                         #i_lit => #property_struct_name::#variant,
                     });
 
+                    let struct_name = property_struct_name.to_string();
+
+                    let variant_snake =
+                        pascal_to_snake_case(struct_name.strip_prefix('_').unwrap_or(&struct_name));
+
+                    property_to_string.extend(quote! {
+                        #property_struct_name::#variant => #variant_snake,
+                    });
+
                     property_variant_types.push(variant.to_string());
                 }
 
@@ -344,6 +367,14 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                                 #property_from_number_variants
                                 _ => panic!("Invalid property value: {}", value),
                             }
+                        }
+                    }
+
+                    impl ToString for #property_struct_name{
+                        fn to_string(&self) -> String{
+                            match *self{
+                                #property_to_string
+                            }.to_string()
                         }
                     }
                 });
@@ -366,6 +397,13 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                             }
                         }
                     }
+
+                    impl ToString for #property_struct_name{
+                        fn to_string(&self) -> String{
+                            self.0.to_string()
+                        }
+                    }
+
                 });
             }
         }
@@ -457,6 +495,9 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         //     pub has_bottle_1: HasBottle,
         //     pub has_bottle_2: HasBottle,
         let mut block_struct_fields = quote! {};
+        let mut get_property_match = quote! {};
+        let mut build_properties_map = quote! {};
+
         for PropertyWithNameAndDefault {
             property_value_type,
             name_ident,
@@ -469,6 +510,13 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             } else {
                 quote! { pub #name_ident: #property_value_type, }
             });
+
+            get_property_match.extend(quote! {
+                #name => Some(self.#name_ident.to_string()),
+            });
+
+            build_properties_map
+                .extend(quote! { map.insert(#name.to_string(), self.#name_ident.to_string()); })
         }
 
         let block_name_pascal_case = Ident::new(
@@ -670,6 +718,19 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 fn as_registry_block(&self) -> azalea_registry::Block {
                     azalea_registry::Block::#block_name_pascal_case
                 }
+                fn get_property(&self, name: &str) -> Option<String>{
+                    match name{
+                        #get_property_match
+                        _ => None
+                    }
+                }
+                fn as_property_map(&self) -> std::collections::HashMap<String, String>{
+                    let mut map = std::collections::HashMap::new();
+
+                    #build_properties_map
+                    map
+                }
+
             }
 
             impl From<#block_struct_name> for BlockState {
@@ -821,7 +882,8 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         }
     });
 
-    generated.into()
+    let out = generated.into();
+    out
 }
 
 /// Convert a name to a Rust identifier, replacing some Rust keywords with
