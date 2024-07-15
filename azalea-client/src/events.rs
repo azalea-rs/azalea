@@ -5,8 +5,12 @@ use std::sync::Arc;
 
 use azalea_chat::FormattedText;
 use azalea_core::tick::GameTick;
-use azalea_protocol::packets::game::{
-    clientbound_player_combat_kill_packet::ClientboundPlayerCombatKillPacket, ClientboundGamePacket,
+use azalea_protocol::packets::{
+    configuration::{ClientboundConfigurationPacket, ServerboundConfigurationPacket},
+    game::{
+        clientbound_player_combat_kill_packet::ClientboundPlayerCombatKillPacket,
+        ClientboundGamePacket, ServerboundGamePacket,
+    },
 };
 use azalea_world::{InstanceName, MinecraftEntityId};
 use bevy_app::{App, Plugin, PreUpdate, Update};
@@ -23,12 +27,21 @@ use tokio::sync::mpsc;
 use crate::{
     chat::{ChatPacket, ChatReceivedEvent},
     disconnect::DisconnectEvent,
-    packet_handling::game::{
-        AddPlayerEvent, DeathEvent, KeepAliveEvent, PacketEvent, RemovePlayerEvent,
-        UpdatePlayerEvent,
+    packet_handling::{
+        configuration::ConfigurationPacketEvent,
+        game::{
+            AddPlayerEvent, DeathEvent, GamePacketEvent, KeepAliveEvent, RemovePlayerEvent,
+            UpdatePlayerEvent,
+        },
     },
     PlayerInfo,
 };
+
+#[derive(Debug, Clone)]
+pub enum ClientboundPacket {
+    Configuration(Arc<ClientboundConfigurationPacket>),
+    Game(Arc<ClientboundGamePacket>),
+}
 
 // (for contributors):
 // HOW TO ADD A NEW (packet based) EVENT:
@@ -82,7 +95,7 @@ pub enum Event {
     /// # }
     /// # }
     /// ```
-    Packet(Arc<ClientboundGamePacket>),
+    Packet(ClientboundPacket),
     /// A player joined the game (or more specifically, was added to the tab
     /// list).
     AddPlayer(PlayerInfo),
@@ -116,7 +129,8 @@ impl Plugin for EventPlugin {
             (
                 chat_listener,
                 login_listener,
-                packet_listener,
+                configuration_packet_listener,
+                game_packet_listener,
                 add_player_listener,
                 update_player_listener,
                 remove_player_listener,
@@ -165,13 +179,32 @@ fn tick_listener(query: Query<&LocalPlayerEvents, With<InstanceName>>) {
     }
 }
 
-fn packet_listener(query: Query<&LocalPlayerEvents>, mut events: EventReader<PacketEvent>) {
+fn configuration_packet_listener(
+    query: Query<&LocalPlayerEvents>,
+    mut events: EventReader<ConfigurationPacketEvent>,
+) {
     for event in events.read() {
         let local_player_events = query
             .get(event.entity)
             .expect("Non-local entities shouldn't be able to receive packet events");
         local_player_events
-            .send(Event::Packet(event.packet.clone()))
+            .send(Event::Packet(ClientboundPacket::Configuration(
+                event.packet.clone(),
+            )))
+            .unwrap();
+    }
+}
+
+fn game_packet_listener(
+    query: Query<&LocalPlayerEvents>,
+    mut events: EventReader<GamePacketEvent>,
+) {
+    for event in events.read() {
+        let local_player_events = query
+            .get(event.entity)
+            .expect("Non-local entities shouldn't be able to receive packet events");
+        local_player_events
+            .send(Event::Packet(ClientboundPacket::Game(event.packet.clone())))
             .unwrap();
     }
 }

@@ -1,4 +1,5 @@
 use std::io::Cursor;
+use std::sync::Arc;
 
 use azalea_entity::indexing::EntityIdIndex;
 use azalea_protocol::packets::configuration::serverbound_finish_configuration_packet::ServerboundFinishConfigurationPacket;
@@ -27,7 +28,7 @@ pub struct ConfigurationPacketEvent {
     /// The client entity that received the packet.
     pub entity: Entity,
     /// The packet that was actually received.
-    pub packet: ClientboundConfigurationPacket,
+    pub packet: Arc<ClientboundConfigurationPacket>,
 }
 
 pub fn send_packet_events(
@@ -55,7 +56,7 @@ pub fn send_packet_events(
                 };
                 packet_events.send(ConfigurationPacketEvent {
                     entity: player_entity,
-                    packet,
+                    packet: Arc::new(packet),
                 });
             }
             // clear the packets right after we read them
@@ -78,7 +79,7 @@ pub fn process_packet_events(ecs: &mut World) {
         events_owned.push((*player_entity, packet.clone()));
     }
     for (player_entity, packet) in events_owned {
-        match packet {
+        match packet.as_ref() {
             ClientboundConfigurationPacket::RegistryData(p) => {
                 let mut system_state: SystemState<Query<&mut InstanceHolder>> =
                     SystemState::new(ecs);
@@ -87,7 +88,9 @@ pub fn process_packet_events(ecs: &mut World) {
                 let mut instance = instance_holder.instance.write();
 
                 // add the new registry data
-                instance.registries.append(p.registry_id, p.entries);
+                instance
+                    .registries
+                    .append(p.registry_id.clone(), p.entries.clone());
             }
 
             ClientboundConfigurationPacket::CustomPayload(p) => {

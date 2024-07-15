@@ -71,7 +71,7 @@ use crate::{
 /// }
 /// ```
 #[derive(Event, Debug, Clone)]
-pub struct PacketEvent {
+pub struct GamePacketEvent {
     /// The client entity that received the packet.
     pub entity: Entity,
     /// The packet that was actually received.
@@ -147,7 +147,7 @@ pub struct InstanceLoadedEvent {
 
 pub fn send_packet_events(
     query: Query<(Entity, &RawConnection), With<LocalEntity>>,
-    mut packet_events: ResMut<Events<PacketEvent>>,
+    mut packet_events: ResMut<Events<GamePacketEvent>>,
 ) {
     // we manually clear and send the events at the beginning of each update
     // since otherwise it'd cause issues with events in process_packet_events
@@ -168,7 +168,7 @@ pub fn send_packet_events(
                             continue;
                         }
                     };
-                packet_events.send(PacketEvent {
+                packet_events.send(GamePacketEvent {
                     entity: player_entity,
                     packet: Arc::new(packet),
                 });
@@ -182,9 +182,9 @@ pub fn send_packet_events(
 pub fn process_packet_events(ecs: &mut World) {
     let mut events_owned = Vec::<(Entity, Arc<ClientboundGamePacket>)>::new();
     {
-        let mut system_state = SystemState::<EventReader<PacketEvent>>::new(ecs);
+        let mut system_state = SystemState::<EventReader<GamePacketEvent>>::new(ecs);
         let mut events = system_state.get_mut(ecs);
-        for PacketEvent {
+        for GamePacketEvent {
             entity: player_entity,
             packet,
         } in events.read()
