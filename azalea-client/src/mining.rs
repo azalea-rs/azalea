@@ -39,7 +39,7 @@ impl Plugin for MinePlugin {
                 GameTick,
                 (
                     continue_mining_block,
-                    handle_auto_mine
+                    handle_left_click_mine
                 )
                     .chain()
                     .before(PhysicsSet),
@@ -78,24 +78,23 @@ impl Client {
     }
 
     /// When enabled, the bot will mine any block that it is looking at if it is reachable.
-    /// By default, reachability is set to 5 blocks.
-    pub fn auto_mine(&self, enabled: bool) {
+    pub fn left_click_mine(&self, enabled: bool) {
         let mut ecs = self.ecs.lock();
         let mut entity_mut = ecs.entity_mut(self.entity);
 
         if enabled {
-            entity_mut.insert(AutoMine);
+            entity_mut.insert(LeftClickMine);
         } else {
-            entity_mut.remove::<AutoMine>();
+            entity_mut.remove::<LeftClickMine>();
         }
     }
 }
 
 #[derive(Component)]
-pub struct AutoMine;
+pub struct LeftClickMine;
 
 #[allow(clippy::type_complexity)]
-fn handle_auto_mine(
+fn handle_left_click_mine(
     mut query: Query<
         (
             &HitResultComponent,
@@ -105,7 +104,7 @@ fn handle_auto_mine(
             &MineBlockPos,
             &MineItem,
         ),
-        (With<AutoMine>, With<Player>, With<LocalEntity>),
+        (With<LeftClickMine>, With<Player>, With<LocalEntity>),
     >,
     mut start_mining_block_event: EventWriter<StartMiningBlockEvent>,
     mut stop_mining_block_event: EventWriter<StopMiningBlockEvent>
