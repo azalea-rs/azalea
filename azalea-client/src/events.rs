@@ -95,6 +95,8 @@ pub enum Event {
     /// # }
     /// # }
     /// ```
+    ConfigurationPacket(ClientboundConfigurationPacket),
+    GamePacket(ClientboundGamePacket),
     Packet(ClientboundPacket),
     /// A player joined the game (or more specifically, was added to the tab
     /// list).
@@ -192,6 +194,9 @@ fn configuration_packet_listener(
                 event.packet.clone(),
             )))
             .unwrap();
+        local_player_events
+            .send(Event::ConfigurationPacket(event.packet.clone()))
+            .unwrap();
     }
 }
 
@@ -205,6 +210,9 @@ fn game_packet_listener(
             .expect("Non-local entities shouldn't be able to receive packet events");
         local_player_events
             .send(Event::Packet(ClientboundPacket::Game(event.packet.clone())))
+            .unwrap();
+        local_player_events
+            .send(Event::GamePacket(event.packet.clone()))
             .unwrap();
     }
 }
