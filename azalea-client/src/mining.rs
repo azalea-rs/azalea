@@ -94,6 +94,7 @@ impl Client {
 #[derive(Component)]
 pub struct AutoMine;
 
+#[allow(clippy::type_complexity)]
 fn handle_auto_mine(
     mut query: Query<
         (
