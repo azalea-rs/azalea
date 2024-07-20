@@ -106,7 +106,8 @@ fn handle_auto_mine(
         ),
         (With<AutoMine>, With<Player>, With<LocalEntity>),
     >,
-    mut start_mining_block_event_writer: EventWriter<StartMiningBlockEvent>,
+    mut start_mining_block_event: EventWriter<StartMiningBlockEvent>,
+    mut stop_mining_block_event: EventWriter<StopMiningBlockEvent>
 ) {
     for (
         hit_result_component,
@@ -119,17 +120,22 @@ fn handle_auto_mine(
     {
         let block_pos = hit_result_component.block_pos;
 
-        if mining.is_none()
+        if (mining.is_none()
             || !is_same_mining_target(
             block_pos,
             inventory,
             current_mining_pos,
             current_mining_item,
-        )
+        )) && !hit_result_component.miss
         {
-            start_mining_block_event_writer.send(StartMiningBlockEvent {
+            start_mining_block_event.send(StartMiningBlockEvent {
                 entity,
                 position: block_pos,
+            });
+        } else if mining.is_some() && hit_result_component.miss {
+            // Stop mining as the block is not reachable
+            stop_mining_block_event.send(StopMiningBlockEvent {
+                entity
             });
         }
     }
