@@ -6,10 +6,10 @@ use std::sync::Arc;
 use azalea_chat::FormattedText;
 use azalea_core::tick::GameTick;
 use azalea_protocol::packets::{
-    configuration::{ClientboundConfigurationPacket, ServerboundConfigurationPacket},
+    configuration::ClientboundConfigurationPacket,
     game::{
         clientbound_player_combat_kill_packet::ClientboundPlayerCombatKillPacket,
-        ClientboundGamePacket, ServerboundGamePacket,
+        ClientboundGamePacket,
     },
 };
 use azalea_world::{InstanceName, MinecraftEntityId};
@@ -95,8 +95,8 @@ pub enum Event {
     /// # }
     /// # }
     /// ```
-    ConfigurationPacket(ClientboundConfigurationPacket),
-    GamePacket(ClientboundGamePacket),
+    ConfigurationPacket(Arc<ClientboundConfigurationPacket>),
+    GamePacket(Arc<ClientboundGamePacket>),
     Packet(ClientboundPacket),
     /// A player joined the game (or more specifically, was added to the tab
     /// list).
