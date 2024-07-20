@@ -10,7 +10,6 @@ use azalea_world::{InstanceContainer, InstanceName};
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
-use tracing::debug;
 
 use crate::{
     interact::{
@@ -77,22 +76,22 @@ impl Client {
     }
 
     /// When enabled, the bot will mine any block that it is looking at if it is reachable.
-    /// By default, reachability is set to 5 blocks.
-    pub fn auto_mine(&self, enabled: bool) {
+    pub fn left_click_mine(&self, enabled: bool) {
         let mut ecs = self.ecs.lock();
         let mut entity_mut = ecs.entity_mut(self.entity);
 
         if enabled {
-            entity_mut.insert(AutoMine);
+            entity_mut.insert(LeftClickMine);
         } else {
-            entity_mut.remove::<AutoMine>();
+            entity_mut.remove::<LeftClickMine>();
         }
     }
 }
 
 #[derive(Component)]
-pub struct AutoMine;
+pub struct LeftClickMine;
 
+#[allow(clippy::type_complexity)]
 fn handle_auto_mine(
     mut query: Query<
         (
@@ -103,9 +102,10 @@ fn handle_auto_mine(
             &MineBlockPos,
             &MineItem,
         ),
-        With<AutoMine>,
+        With<LeftClickMine>,
     >,
-    mut start_mining_block_event_writer: EventWriter<StartMiningBlockEvent>,
+    mut start_mining_block_event: EventWriter<StartMiningBlockEvent>,
+    mut stop_mining_block_event: EventWriter<StopMiningBlockEvent>
 ) {
     for (
         hit_result_component,
@@ -118,18 +118,21 @@ fn handle_auto_mine(
     {
         let block_pos = hit_result_component.block_pos;
 
-        if mining.is_none()
+        if (mining.is_none()
             || !is_same_mining_target(
                 block_pos,
                 inventory,
                 current_mining_pos,
                 current_mining_item,
-            )
+            )) && !hit_result_component.miss
         {
-            debug!("sending mining event");
-            start_mining_block_event_writer.send(StartMiningBlockEvent {
+            start_mining_block_event.send(StartMiningBlockEvent {
                 entity,
                 position: block_pos,
+            });
+        }  else if mining.is_some() && hit_result_component.miss {
+            stop_mining_block_event.send(StopMiningBlockEvent {
+                entity
             });
         }
     }
