@@ -1,6 +1,6 @@
 use azalea_block::{Block, BlockState, FluidState};
 use azalea_core::{direction::Direction, game_type::GameMode, position::BlockPos, tick::GameTick};
-use azalea_entity::{mining::get_mine_progress, FluidOnEyes, Physics, Position, LocalEntity};
+use azalea_entity::{mining::get_mine_progress, FluidOnEyes, Physics, LocalEntity};
 use azalea_inventory::ItemSlot;
 use azalea_physics::PhysicsSet;
 use azalea_protocol::packets::game::serverbound_player_action_packet::{
@@ -98,7 +98,6 @@ fn handle_auto_mine(
     mut query: Query<
         (
             &HitResultComponent,
-            &Position,
             Entity,
             Option<&Mining>,
             &InventoryComponent,
@@ -111,7 +110,6 @@ fn handle_auto_mine(
 ) {
     for (
         hit_result_component,
-        position,
         entity,
         mining,
         inventory,
@@ -121,14 +119,13 @@ fn handle_auto_mine(
     {
         let block_pos = hit_result_component.block_pos;
 
-        if (mining.is_none()
+        if mining.is_none()
             || !is_same_mining_target(
             block_pos,
             inventory,
             current_mining_pos,
             current_mining_item,
-        ))
-            && position.distance_to(&block_pos.to_vec3_floored()) <= 7.0
+        )
         {
             start_mining_block_event_writer.send(StartMiningBlockEvent {
                 entity,
