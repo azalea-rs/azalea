@@ -363,11 +363,11 @@ fn update_modifiers_for_held_item(
             Item::Trident => -2.9,
             _ => 0.,
         };
-        attributes
-            .attack_speed
-            .insert(azalea_entity::attributes::base_attack_speed_modifier(
-                added_attack_speed,
-            ))
-            .unwrap();
+        let _ =
+            attributes
+                .attack_speed
+                .insert(azalea_entity::attributes::base_attack_speed_modifier(
+                    added_attack_speed,
+                ));
     }
 }

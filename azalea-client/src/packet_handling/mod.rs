@@ -61,7 +61,7 @@ impl Plugin for PacketHandlerPlugin {
             ),
         )
         // we do this instead of add_event so we can handle the events ourselves
-        .init_resource::<Events<game::PacketEvent>>()
+        .init_resource::<Events<game::GamePacketEvent>>()
         .init_resource::<Events<configuration::ConfigurationPacketEvent>>()
         .add_event::<game::SendPacketEvent>()
         .add_event::<configuration::SendConfigurationPacketEvent>()
