@@ -33,7 +33,15 @@ impl Plugin for MinePlugin {
             .add_event::<StopMiningBlockEvent>()
             .add_event::<MineBlockProgressEvent>()
             .add_event::<AttackBlockEvent>()
-            .add_systems(GameTick, continue_mining_block.before(PhysicsSet))
+            .add_systems(
+                GameTick,
+                (
+                    continue_mining_block,
+                    handle_auto_mine
+                )
+                    .chain()
+                    .before(PhysicsSet)
+            )
             .add_systems(
                 Update,
                 (
@@ -65,6 +73,68 @@ impl Client {
             entity: self.entity,
             position,
         });
+    }
+
+    /// When enabled, the bot will mine any block that it is looking at if it is reachable.
+    pub fn left_click_mine(&self, enabled: bool) {
+        let mut ecs = self.ecs.lock();
+        let mut entity_mut = ecs.entity_mut(self.entity);
+
+        if enabled {
+            entity_mut.insert(LeftClickMine);
+        } else {
+            entity_mut.remove::<LeftClickMine>();
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct LeftClickMine;
+
+#[allow(clippy::type_complexity)]
+fn handle_auto_mine(
+    mut query: Query<
+        (
+            &HitResultComponent,
+            Entity,
+            Option<&Mining>,
+            &InventoryComponent,
+            &MineBlockPos,
+            &MineItem,
+        ),
+        With<LeftClickMine>,
+    >,
+    mut start_mining_block_event: EventWriter<StartMiningBlockEvent>,
+    mut stop_mining_block_event: EventWriter<StopMiningBlockEvent>
+) {
+    for (
+        hit_result_component,
+        entity,
+        mining,
+        inventory,
+        current_mining_pos,
+        current_mining_item,
+    ) in &mut query.iter_mut()
+    {
+        let block_pos = hit_result_component.block_pos;
+
+        if (mining.is_none()
+            || !is_same_mining_target(
+                block_pos,
+                inventory,
+                current_mining_pos,
+                current_mining_item,
+            )) && !hit_result_component.miss
+        {
+            start_mining_block_event.send(StartMiningBlockEvent {
+                entity,
+                position: block_pos,
+            });
+        }  else if mining.is_some() && hit_result_component.miss {
+            stop_mining_block_event.send(StopMiningBlockEvent {
+                entity
+            });
+        }
     }
 }
 
