@@ -1,6 +1,6 @@
 //! See <https://minecraft.fandom.com/wiki/Attribute>.
 
-use std::collections::HashMap;
+use std::collections::{hash_map, HashMap};
 
 use azalea_buf::McBuf;
 use azalea_core::resource_location::ResourceLocation;
@@ -46,16 +46,21 @@ impl AttributeInstance {
         total
     }
 
-    /// Add a new modifier to this attribute.
-    pub fn insert(&mut self, modifier: AttributeModifier) -> Result<(), AlreadyPresentError> {
-        if self
-            .modifiers_by_id
-            .insert(modifier.id.clone(), modifier)
-            .is_some()
-        {
-            Err(AlreadyPresentError)
-        } else {
-            Ok(())
+    /// Add a new modifier to this attribute and return the previous value, if
+    /// present.
+    pub fn insert(&mut self, modifier: AttributeModifier) -> Option<AttributeModifier> {
+        self.modifiers_by_id.insert(modifier.id.clone(), modifier)
+    }
+
+    /// Insert the given modifier if it's not already present, otherwise returns
+    /// [`AlreadyPresentError`].
+    pub fn try_insert(&mut self, modifier: AttributeModifier) -> Result<(), AlreadyPresentError> {
+        match self.modifiers_by_id.entry(modifier.id.clone()) {
+            hash_map::Entry::Occupied(_) => Err(AlreadyPresentError),
+            hash_map::Entry::Vacant(entry) => {
+                entry.insert(modifier);
+                Ok(())
+            }
         }
     }
 
