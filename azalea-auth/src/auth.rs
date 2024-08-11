@@ -371,10 +371,6 @@ pub async fn get_ms_auth_token(
             .json::<AccessTokenResponse>()
             .await
         {
-            if client_id != CLIENT_ID {
-                access_token_response.access_token.insert_str(0, "d=");
-            }
-
             tracing::trace!("access_token_response: {:?}", access_token_response);
             let expires_at = SystemTime::now()
                 + std::time::Duration::from_secs(access_token_response.expires_in);
