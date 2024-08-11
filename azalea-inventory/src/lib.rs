@@ -9,7 +9,7 @@ mod slot;
 use std::ops::{Deref, DerefMut, RangeInclusive};
 
 use azalea_inventory_macros::declare_menus;
-pub use slot::{ItemSlot, ItemSlotData, DataComponentPatch};
+pub use slot::{DataComponentPatch, ItemSlot, ItemSlotData};
 
 // TODO: remove this here and in azalea-inventory-macros when rust makes
 // Default be implemented for all array sizes

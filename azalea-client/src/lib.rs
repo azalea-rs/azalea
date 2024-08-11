@@ -36,7 +36,7 @@ pub use client::{
     TickBroadcast,
 };
 pub use events::Event;
-pub use local_player::{GameProfileComponent, InstanceHolder, TabList, Hunger};
+pub use local_player::{GameProfileComponent, Hunger, InstanceHolder, TabList};
 pub use movement::{
     PhysicsState, SprintDirection, StartSprintEvent, StartWalkEvent, WalkDirection,
 };
