@@ -144,7 +144,7 @@ impl Account {
     ///     "Go to {} and enter the code {}",
     ///     res.verification_uri, res.user_code
     /// );
-    /// let msa = azalea_auth::get_ms_auth_token(&client, res, "client_id").await?;
+    /// let msa = azalea_auth::get_ms_auth_token(&client, res, None).await?;
     /// Account::with_microsoft_access_token(msa).await?;
     /// # Ok(())
     /// # }

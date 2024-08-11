@@ -24,10 +24,12 @@ pub struct AuthOpts<'a> {
     /// The directory to store the cache in. If this is not set, caching is not
     /// done.
     pub cache_file: Option<PathBuf>,
-    /// If you choose to use your own Microsoft authentication instead of using Nintendo Switch, just put your client_id here.
+    /// If you choose to use your own Microsoft authentication instead of using
+    /// Nintendo Switch, just put your client_id here.
     pub client_id: Option<&'a str>,
-    /// If you want to use custom scope instead of default one, just put your scope here.
-    pub scope: Option<&'a str>
+    /// If you want to use custom scope instead of default one, just put your
+    /// scope here.
+    pub scope: Option<&'a str>,
 }
 
 #[derive(Debug, Error)]
@@ -80,23 +82,32 @@ pub async fn auth<'a>(email: &str, opts: AuthOpts<'a>) -> Result<AuthResult, Aut
             profile: account.profile.clone(),
         })
     } else {
-        let client_id= opts.client_id.unwrap_or(CLIENT_ID);
+        let client_id = opts.client_id.unwrap_or(CLIENT_ID);
         let scope = opts.scope.unwrap_or(SCOPE);
 
         let client = reqwest::Client::new();
         let mut msa = if let Some(account) = cached_account {
             account.msa
         } else {
-            interactive_get_ms_auth_token(&client, email, client_id, scope).await?
+            interactive_get_ms_auth_token(&client, email, Some(client_id), Some(scope)).await?
         };
         if msa.is_expired() {
             tracing::trace!("refreshing Microsoft auth token");
-            match refresh_ms_auth_token(&client, &msa.data.refresh_token, opts.client_id, opts.scope).await {
+            match refresh_ms_auth_token(
+                &client,
+                &msa.data.refresh_token,
+                opts.client_id,
+                opts.scope,
+            )
+            .await
+            {
                 Ok(new_msa) => msa = new_msa,
                 Err(e) => {
                     // can't refresh, ask the user to auth again
                     tracing::error!("Error refreshing Microsoft auth token: {}", e);
-                    msa = interactive_get_ms_auth_token(&client, email, client_id, scope).await?;
+                    msa =
+                        interactive_get_ms_auth_token(&client, email, Some(client_id), Some(scope))
+                            .await?;
                 }
             }
         }
@@ -288,12 +299,12 @@ pub enum GetMicrosoftAuthTokenError {
 ///
 /// ```
 /// # async fn example(client: &reqwest::Client) -> Result<(), Box<dyn std::error::Error>> {
-/// let res = azalea_auth::get_ms_link_code(&client, "client_id", "scope").await?;
+/// let res = azalea_auth::get_ms_link_code(&client, None, None).await?;
 /// println!(
 ///     "Go to {} and enter the code {}",
 ///     res.verification_uri, res.user_code
 /// );
-/// let msa = azalea_auth::get_ms_auth_token(client, res, "client_id").await?;
+/// let msa = azalea_auth::get_ms_auth_token(client, res, None).await?;
 /// let minecraft = azalea_auth::get_minecraft_token(client, &msa.data.access_token).await?;
 /// let profile = azalea_auth::get_profile(&client, &minecraft.minecraft_access_token).await?;
 /// # Ok(())
@@ -301,9 +312,17 @@ pub enum GetMicrosoftAuthTokenError {
 /// ```
 pub async fn get_ms_link_code(
     client: &reqwest::Client,
-    client_id: &str,
-    scope: &str
+    client_id: Option<&str>,
+    scope: Option<&str>,
 ) -> Result<DeviceCodeResponse, GetMicrosoftAuthTokenError> {
+    let client_id = if let Some(c) = client_id {
+        c
+    } else {
+        CLIENT_ID
+    };
+
+    let scope = if let Some(c) = scope { c } else { SCOPE };
+
     Ok(client
         .post("https://login.live.com/oauth20_connect.srf")
         .form(&vec![
@@ -324,8 +343,14 @@ pub async fn get_ms_link_code(
 pub async fn get_ms_auth_token(
     client: &reqwest::Client,
     res: DeviceCodeResponse,
-    client_id: &str
+    client_id: Option<&str>,
 ) -> Result<ExpiringValue<AccessTokenResponse>, GetMicrosoftAuthTokenError> {
+    let client_id = if let Some(c) = client_id {
+        c
+    } else {
+        CLIENT_ID
+    };
+
     let login_expires_at = Instant::now() + std::time::Duration::from_secs(res.expires_in);
 
     while Instant::now() < login_expires_at {
@@ -372,8 +397,8 @@ pub async fn get_ms_auth_token(
 pub async fn interactive_get_ms_auth_token(
     client: &reqwest::Client,
     email: &str,
-    client_id: &str,
-    scope: &str
+    client_id: Option<&str>,
+    scope: Option<&str>,
 ) -> Result<ExpiringValue<AccessTokenResponse>, GetMicrosoftAuthTokenError> {
     let res = get_ms_link_code(client, client_id, scope).await?;
     tracing::trace!("Device code response: {:?}", res);
@@ -397,9 +422,9 @@ pub async fn refresh_ms_auth_token(
     client: &reqwest::Client,
     refresh_token: &str,
     client_id: Option<&str>,
-    scope: Option<&str>
+    scope: Option<&str>,
 ) -> Result<ExpiringValue<AccessTokenResponse>, RefreshMicrosoftAuthTokenError> {
-    let client_id= client_id.unwrap_or(CLIENT_ID);
+    let client_id = client_id.unwrap_or(CLIENT_ID);
     let scope = scope.unwrap_or(SCOPE);
 
     let access_token_response_text = client
