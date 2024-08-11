@@ -13,7 +13,7 @@ use thiserror::Error;
 use uuid::Uuid;
 
 #[derive(Default)]
-pub struct AuthOpts {
+pub struct AuthOpts<'a> {
     /// Whether we should check if the user actually owns the game. This will
     /// fail if the user has Xbox Game Pass! Note that this isn't really
     /// necessary, since getting the user profile will check this anyways.
@@ -24,6 +24,12 @@ pub struct AuthOpts {
     /// The directory to store the cache in. If this is not set, caching is not
     /// done.
     pub cache_file: Option<PathBuf>,
+    /// If you choose to use your own Microsoft authentication instead of using
+    /// Nintendo Switch, just put your client_id here.
+    pub client_id: Option<&'a str>,
+    /// If you want to use custom scope instead of default one, just put your
+    /// scope here.
+    pub scope: Option<&'a str>,
 }
 
 #[derive(Debug, Error)]
@@ -59,7 +65,7 @@ pub enum AuthError {
 /// If you want to use your own code to cache or show the auth code to the user
 /// in a different way, use [`get_ms_link_code`], [`get_ms_auth_token`],
 /// [`get_minecraft_token`] and [`get_profile`] instead.
-pub async fn auth(email: &str, opts: AuthOpts) -> Result<AuthResult, AuthError> {
+pub async fn auth<'a>(email: &str, opts: AuthOpts<'a>) -> Result<AuthResult, AuthError> {
     let cached_account = if let Some(cache_file) = &opts.cache_file {
         cache::get_account_in_cache(cache_file, email).await
     } else {
@@ -76,20 +82,32 @@ pub async fn auth(email: &str, opts: AuthOpts) -> Result<AuthResult, AuthError> 
             profile: account.profile.clone(),
         })
     } else {
+        let client_id = opts.client_id.unwrap_or(CLIENT_ID);
+        let scope = opts.scope.unwrap_or(SCOPE);
+
         let client = reqwest::Client::new();
         let mut msa = if let Some(account) = cached_account {
             account.msa
         } else {
-            interactive_get_ms_auth_token(&client, email).await?
+            interactive_get_ms_auth_token(&client, email, Some(client_id), Some(scope)).await?
         };
         if msa.is_expired() {
             tracing::trace!("refreshing Microsoft auth token");
-            match refresh_ms_auth_token(&client, &msa.data.refresh_token).await {
+            match refresh_ms_auth_token(
+                &client,
+                &msa.data.refresh_token,
+                opts.client_id,
+                opts.scope,
+            )
+            .await
+            {
                 Ok(new_msa) => msa = new_msa,
                 Err(e) => {
                     // can't refresh, ask the user to auth again
                     tracing::error!("Error refreshing Microsoft auth token: {}", e);
-                    msa = interactive_get_ms_auth_token(&client, email).await?;
+                    msa =
+                        interactive_get_ms_auth_token(&client, email, Some(client_id), Some(scope))
+                            .await?;
                 }
             }
         }
@@ -259,6 +277,7 @@ pub struct ProfileResponse {
 
 // nintendo switch (so it works for accounts that are under 18 years old)
 const CLIENT_ID: &str = "00000000441cc96b";
+const SCOPE: &str = "service::user.auth.xboxlive.com::MBI_SSL";
 
 #[derive(Debug, Error)]
 pub enum GetMicrosoftAuthTokenError {
@@ -280,12 +299,12 @@ pub enum GetMicrosoftAuthTokenError {
 ///
 /// ```
 /// # async fn example(client: &reqwest::Client) -> Result<(), Box<dyn std::error::Error>> {
-/// let res = azalea_auth::get_ms_link_code(&client).await?;
+/// let res = azalea_auth::get_ms_link_code(&client, None, None).await?;
 /// println!(
 ///     "Go to {} and enter the code {}",
 ///     res.verification_uri, res.user_code
 /// );
-/// let msa = azalea_auth::get_ms_auth_token(client, res).await?;
+/// let msa = azalea_auth::get_ms_auth_token(client, res, None).await?;
 /// let minecraft = azalea_auth::get_minecraft_token(client, &msa.data.access_token).await?;
 /// let profile = azalea_auth::get_profile(&client, &minecraft.minecraft_access_token).await?;
 /// # Ok(())
@@ -293,12 +312,22 @@ pub enum GetMicrosoftAuthTokenError {
 /// ```
 pub async fn get_ms_link_code(
     client: &reqwest::Client,
+    client_id: Option<&str>,
+    scope: Option<&str>,
 ) -> Result<DeviceCodeResponse, GetMicrosoftAuthTokenError> {
+    let client_id = if let Some(c) = client_id {
+        c
+    } else {
+        CLIENT_ID
+    };
+
+    let scope = if let Some(c) = scope { c } else { SCOPE };
+
     Ok(client
         .post("https://login.live.com/oauth20_connect.srf")
         .form(&vec![
-            ("scope", "service::user.auth.xboxlive.com::MBI_SSL"),
-            ("client_id", CLIENT_ID),
+            ("scope", scope),
+            ("client_id", client_id),
             ("response_type", "device_code"),
         ])
         .send()
@@ -314,7 +343,14 @@ pub async fn get_ms_link_code(
 pub async fn get_ms_auth_token(
     client: &reqwest::Client,
     res: DeviceCodeResponse,
+    client_id: Option<&str>,
 ) -> Result<ExpiringValue<AccessTokenResponse>, GetMicrosoftAuthTokenError> {
+    let client_id = if let Some(c) = client_id {
+        c
+    } else {
+        CLIENT_ID
+    };
+
     let login_expires_at = Instant::now() + std::time::Duration::from_secs(res.expires_in);
 
     while Instant::now() < login_expires_at {
@@ -323,10 +359,10 @@ pub async fn get_ms_auth_token(
         tracing::trace!("Polling to check if user has logged in...");
         if let Ok(access_token_response) = client
             .post(format!(
-                "https://login.live.com/oauth20_token.srf?client_id={CLIENT_ID}"
+                "https://login.live.com/oauth20_token.srf?client_id={client_id}"
             ))
             .form(&vec![
-                ("client_id", CLIENT_ID),
+                ("client_id", client_id),
                 ("device_code", &res.device_code),
                 ("grant_type", "urn:ietf:params:oauth:grant-type:device_code"),
             ])
@@ -357,15 +393,17 @@ pub async fn get_ms_auth_token(
 pub async fn interactive_get_ms_auth_token(
     client: &reqwest::Client,
     email: &str,
+    client_id: Option<&str>,
+    scope: Option<&str>,
 ) -> Result<ExpiringValue<AccessTokenResponse>, GetMicrosoftAuthTokenError> {
-    let res = get_ms_link_code(client).await?;
+    let res = get_ms_link_code(client, client_id, scope).await?;
     tracing::trace!("Device code response: {:?}", res);
     println!(
         "Go to \x1b[1m{}\x1b[m and enter the code \x1b[1m{}\x1b[m for \x1b[1m{}\x1b[m",
         res.verification_uri, res.user_code, email
     );
 
-    get_ms_auth_token(client, res).await
+    get_ms_auth_token(client, res, client_id).await
 }
 
 #[derive(Debug, Error)]
@@ -379,12 +417,17 @@ pub enum RefreshMicrosoftAuthTokenError {
 pub async fn refresh_ms_auth_token(
     client: &reqwest::Client,
     refresh_token: &str,
+    client_id: Option<&str>,
+    scope: Option<&str>,
 ) -> Result<ExpiringValue<AccessTokenResponse>, RefreshMicrosoftAuthTokenError> {
+    let client_id = client_id.unwrap_or(CLIENT_ID);
+    let scope = scope.unwrap_or(SCOPE);
+
     let access_token_response_text = client
         .post("https://login.live.com/oauth20_token.srf")
         .form(&vec![
-            ("scope", "service::user.auth.xboxlive.com::MBI_SSL"),
-            ("client_id", CLIENT_ID),
+            ("scope", scope),
+            ("client_id", client_id),
             ("grant_type", "refresh_token"),
             ("refresh_token", refresh_token),
         ])
