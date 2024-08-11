@@ -24,9 +24,9 @@ pub struct AuthOpts<'a> {
     /// The directory to store the cache in. If this is not set, caching is not
     /// done.
     pub cache_file: Option<PathBuf>,
-    /// If you choose to use your own microsoft authentication instead of using nintendo switch, just put your client_id here
+    /// If you choose to use your own Microsoft authentication instead of using Nintendo Switch, just put your client_id here.
     pub client_id: Option<&'a str>,
-    /// If you want to use custom scope instead of default one
+    /// If you want to use custom scope instead of default one, just put your scope here.
     pub scope: Option<&'a str>
 }
 
