@@ -1,4 +1,4 @@
-use crate::packets::ConnectionProtocol;
+use crate::packets::ClientIntention;
 use azalea_buf::McBuf;
 use azalea_protocol_macros::ServerboundHandshakePacket;
 use std::hash::Hash;
@@ -9,5 +9,5 @@ pub struct ClientIntentionPacket {
     pub protocol_version: i32,
     pub hostname: String,
     pub port: u16,
-    pub intention: ConnectionProtocol,
+    pub intention: ClientIntention,
 }

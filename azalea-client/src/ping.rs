@@ -12,7 +12,7 @@ use azalea_protocol::{
             serverbound_status_request_packet::ServerboundStatusRequestPacket,
             ClientboundStatusPacket,
         },
-        ConnectionProtocol, PROTOCOL_VERSION,
+        ClientIntention, PROTOCOL_VERSION,
     },
     resolver, ServerAddress,
 };
@@ -79,7 +79,7 @@ pub async fn ping_server_with_connection(
             protocol_version: PROTOCOL_VERSION,
             hostname: address.host.clone(),
             port: address.port,
-            intention: ConnectionProtocol::Status,
+            intention: ClientIntention::Status,
         }
         .get(),
     )

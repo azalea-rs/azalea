@@ -252,7 +252,7 @@ impl InventoryComponent {
                                     // && slot.may_place(item_stack)
                                     && (
                                         self.quick_craft_kind == QuickCraftKind::Middle
-                                        || item_stack.count() as i32 >= self.quick_craft_slots.len() as i32
+                                        || item_stack.count()  >= self.quick_craft_slots.len() as i32
                                     )
                             {
                                 break;
@@ -273,9 +273,9 @@ impl InventoryComponent {
                             &mut new_carried,
                             slot_item_count,
                         );
-                        let max_stack_size = i8::min(
+                        let max_stack_size = i32::min(
                             new_carried.kind.max_stack_size(),
-                            i8::min(
+                            i32::min(
                                 new_carried.kind.max_stack_size(),
                                 slot.kind.max_stack_size(),
                             ),
@@ -391,7 +391,7 @@ impl InventoryComponent {
                     };
                     if self.menu().may_place(source_slot_index, target_item) {
                         let source_max_stack = self.menu().max_stack_size(source_slot_index);
-                        if target_slot.count() > source_max_stack as i8 {
+                        if target_slot.count() > source_max_stack as i32 {
                             // if there's more than the max stack size in the target slot
 
                             let target_slot = self.menu_mut().slot_mut(target_slot_index).unwrap();
@@ -449,7 +449,7 @@ impl InventoryComponent {
                     ThrowClick::All { .. } => slot_item.count,
                 };
 
-                let _dropping = slot_item.split(dropping_count as u8);
+                let _dropping = slot_item.split(dropping_count as u32);
                 // player.drop(dropping, true);
             }
             ClickOperation::PickupAll(PickupAllClick {
@@ -492,7 +492,7 @@ impl InventoryComponent {
                                     let checking_slot = self.menu_mut().slot_mut(i).unwrap();
 
                                     let taken_item =
-                                        checking_slot.split(checking_slot.count() as u8);
+                                        checking_slot.split(checking_slot.count() as u32);
 
                                     // now extend the carried item
                                     let target_slot = &mut self.carried;
@@ -537,7 +537,7 @@ fn can_item_quick_replace(
         return false;
     };
 
-    if !item.is_same_item_and_nbt(target_slot) {
+    if !item.is_same_item_and_components(target_slot) {
         return false;
     }
     let count = target_slot.count as u16
@@ -553,10 +553,10 @@ fn get_quick_craft_slot_count(
     quick_craft_slots: &HashSet<u16>,
     quick_craft_kind: &QuickCraftKind,
     item: &mut ItemSlotData,
-    slot_item_count: i8,
+    slot_item_count: i32,
 ) {
     item.count = match quick_craft_kind {
-        QuickCraftKind::Left => item.count / quick_craft_slots.len() as i8,
+        QuickCraftKind::Left => item.count / quick_craft_slots.len() as i32,
         QuickCraftKind::Right => 1,
         QuickCraftKind::Middle => item.kind.max_stack_size(),
     };

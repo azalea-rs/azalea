@@ -89,7 +89,7 @@ def generate_entity_metadata(burger_entities_data: dict, mappings: Mappings):
         with open(DATA_RS_DIR, 'w') as f:
             f.write('\n'.join(lines))
         print('Expected metadata types:\n' + '\n'.join(new_metadata_names))
-        print('Updated metadata types in azalea-world/src/entity/data.rs, go make sure they\'re correct and then press enter')
+        print('Updated metadata types in azalea-entity/src/data.rs, go make sure they\'re correct (check EntityDataSerializers.java) and then press enter')
         input()
     
     metadata_types = parse_metadata_types_from_code()
@@ -100,12 +100,17 @@ def generate_entity_metadata(burger_entities_data: dict, mappings: Mappings):
 // This file is generated from codegen/lib/code/entity.py.
 // Don't change it manually!
 
+use crate::particle::Particle;
+
 use super::{
-    EntityDataItem, EntityDataValue, OptionalUnsignedInt, Pose, Quaternion, Rotations,
-    SnifferState, VillagerData
+    ArmadilloStateKind, EntityDataItem, EntityDataValue, OptionalUnsignedInt, Pose, Quaternion,
+    Rotations, SnifferState, VillagerData,
 };
 use azalea_chat::FormattedText;
-use azalea_core::{particle::Particle, position::{BlockPos, Vec3}, direction::Direction};
+use azalea_core::{
+    direction::Direction,
+    position::{BlockPos, Vec3},
+};
 use azalea_inventory::ItemSlot;
 use bevy_ecs::{bundle::Bundle, component::Component};
 use derive_more::{Deref, DerefMut};
@@ -218,8 +223,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
 
                 struct_name = upper_first_letter(
                     to_camel_case(name_or_bitfield))
-                type_id = next(filter(lambda i: i['index'] == index, entity_metadatas))[
-                    'type_id']
+                type_id = next(filter(lambda i: i['index'] == index, entity_metadatas))['type_id']
                 metadata_type_data = metadata_types[type_id]
                 rust_type = metadata_type_data['type']
 
@@ -281,8 +285,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
                 if name_or_bitfield in single_use_imported_types:
                     field_struct_name = ''
 
-                type_id = next(filter(lambda i: i['index'] == index, entity_metadatas))[
-                    'type_id']
+                type_id = next(filter(lambda i: i['index'] == index, entity_metadatas))['type_id']
                 metadata_type_data = metadata_types[type_id]
                 rust_type = metadata_type_data['type']
                 type_name = metadata_type_data['name']
@@ -384,8 +387,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
                     '            },')
 
             for index, name_or_bitfield in get_entity_metadata_names(this_entity_id, burger_entity_metadata, mappings).items():
-                default = next(filter(lambda i: i['index'] == index, entity_metadatas)).get(
-                    'default', 'Default::default()')
+                default = next(filter(lambda i: i['index'] == index, entity_metadatas)).get('default', 'Default::default()')
                 if isinstance(name_or_bitfield, str):
                     type_id = next(filter(lambda i: i['index'] == index, entity_metadatas))[
                         'type_id']
@@ -454,8 +456,10 @@ impl From<EntityDataValue> for UpdateMetadataError {
                     for mask, name in name_or_bitfield.items():
                         name = maybe_rename_field(name, index)
                         mask = int(mask, 0)
-                        bit_default = 'true' if (
-                            default & mask != 0) else 'false'
+                        if default is None:
+                            bit_default = 'false'
+                        else:
+                            bit_default = 'true' if (default & mask != 0) else 'false'
                         code.append(
                             f'            {name}: {upper_first_letter(to_camel_case(name))}({bit_default}),')
         code.append('        Self {')

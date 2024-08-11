@@ -12,7 +12,8 @@ fn as_packet_derive(input: TokenStream, state: proc_macro2::TokenStream) -> Toke
     let syn::Data::Struct(syn::DataStruct { fields, .. }) = &data else {
         panic!("#[derive(*Packet)] can only be used on structs")
     };
-    let syn::Fields::Named(_) = fields else {
+
+    let (syn::Fields::Named(_) | syn::Fields::Unit) = fields else {
         panic!("#[derive(*Packet)] can only be used on structs with named fields")
     };
     let variant_name = variant_name_from(&ident);

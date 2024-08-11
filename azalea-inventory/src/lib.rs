@@ -1,5 +1,7 @@
-#![doc = include_str!("../README.md")]
+#![feature(trait_upcasting)]
 
+/// Representations of various inventory data structures in Minecraft.
+pub mod components;
 pub mod item;
 pub mod operations;
 mod slot;
@@ -7,7 +9,7 @@ mod slot;
 use std::ops::{Deref, DerefMut, RangeInclusive};
 
 use azalea_inventory_macros::declare_menus;
-pub use slot::{ItemSlot, ItemSlotData};
+pub use slot::{DataComponentPatch, ItemSlot, ItemSlotData};
 
 // TODO: remove this here and in azalea-inventory-macros when rust makes
 // Default be implemented for all array sizes

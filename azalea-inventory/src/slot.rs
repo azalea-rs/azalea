@@ -1,6 +1,12 @@
-use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
-use simdnbt::owned::Nbt;
-use std::io::{Cursor, Write};
+use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
+use azalea_registry::DataComponentKind;
+use std::{
+    collections::HashMap,
+    fmt,
+    io::{Cursor, Write},
+};
+
+use crate::components::{self};
 
 /// Either an item in an inventory or nothing.
 #[derive(Debug, Clone, Default, PartialEq)]
@@ -33,7 +39,7 @@ impl ItemSlot {
     ///
     /// Note that it's possible for the count to be zero or negative when the
     /// slot is present.
-    pub fn count(&self) -> i8 {
+    pub fn count(&self) -> i32 {
         match self {
             ItemSlot::Empty => 0,
             ItemSlot::Present(i) => i.count,
@@ -41,7 +47,7 @@ impl ItemSlot {
     }
 
     /// Remove `count` items from this slot, returning the removed items.
-    pub fn split(&mut self, count: u8) -> ItemSlot {
+    pub fn split(&mut self, count: u32) -> ItemSlot {
         match self {
             ItemSlot::Empty => ItemSlot::Empty,
             ItemSlot::Present(i) => {
@@ -83,20 +89,20 @@ impl ItemSlot {
 
 /// An item in an inventory, with a count and NBT. Usually you want [`ItemSlot`]
 /// or [`azalea_registry::Item`] instead.
-#[derive(Debug, Clone, McBuf, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ItemSlotData {
-    pub kind: azalea_registry::Item,
     /// The amount of the item in this slot.
     ///
     /// The count can be zero or negative, but this is rare.
-    pub count: i8,
-    pub nbt: Nbt,
+    pub count: i32,
+    pub kind: azalea_registry::Item,
+    pub components: DataComponentPatch,
 }
 
 impl ItemSlotData {
     /// Remove `count` items from this slot, returning the removed items.
-    pub fn split(&mut self, count: u8) -> ItemSlotData {
-        let returning_count = i8::min(count as i8, self.count);
+    pub fn split(&mut self, count: u32) -> ItemSlotData {
+        let returning_count = i32::min(count as i32, self.count);
         let mut returning = self.clone();
         returning.count = returning_count;
         self.count -= returning_count;
@@ -116,39 +122,161 @@ impl ItemSlotData {
     /// let mut a = ItemSlotData {
     ///    kind: Item::Stone,
     ///    count: 1,
-    ///    nbt: Default::default(),
+    ///    components: Default::default(),
     /// };
     /// let mut b = ItemSlotData {
     ///   kind: Item::Stone,
     ///   count: 2,
-    ///   nbt: Default::default(),
+    ///   components: Default::default(),
     /// };
-    /// assert!(a.is_same_item_and_nbt(&b));
+    /// assert!(a.is_same_item_and_components(&b));
     ///
     /// b.kind = Item::Dirt;
-    /// assert!(!a.is_same_item_and_nbt(&b));
+    /// assert!(!a.is_same_item_and_components(&b));
     /// ```
-    pub fn is_same_item_and_nbt(&self, other: &ItemSlotData) -> bool {
-        self.kind == other.kind && self.nbt == other.nbt
+    pub fn is_same_item_and_components(&self, other: &ItemSlotData) -> bool {
+        self.kind == other.kind && self.components == other.components
     }
 }
 
 impl McBufReadable for ItemSlot {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let slot = Option::<ItemSlotData>::read_from(buf)?;
-        Ok(slot.map_or(ItemSlot::Empty, ItemSlot::Present))
+        let count = i32::var_read_from(buf)?;
+        if count <= 0 {
+            Ok(ItemSlot::Empty)
+        } else {
+            let kind = azalea_registry::Item::read_from(buf)?;
+            let components = DataComponentPatch::read_from(buf)?;
+            Ok(ItemSlot::Present(ItemSlotData {
+                count,
+                kind,
+                components,
+            }))
+        }
     }
 }
 
 impl McBufWritable for ItemSlot {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         match self {
-            ItemSlot::Empty => false.write_into(buf)?,
+            ItemSlot::Empty => 0.var_write_into(buf)?,
             ItemSlot::Present(i) => {
-                true.write_into(buf)?;
-                i.write_into(buf)?;
+                i.count.var_write_into(buf)?;
+                i.kind.write_into(buf)?;
+                i.components.write_into(buf)?;
             }
         };
         Ok(())
+    }
+}
+
+#[derive(Default)]
+pub struct DataComponentPatch {
+    components: HashMap<DataComponentKind, Option<Box<dyn components::EncodableDataComponent>>>,
+}
+
+impl DataComponentPatch {
+    pub fn get(&self, kind: DataComponentKind) -> Option<&dyn components::EncodableDataComponent> {
+        self.components.get(&kind).and_then(|c| c.as_deref())
+    }
+}
+
+impl McBufReadable for DataComponentPatch {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let components_with_data_count = u32::var_read_from(buf)?;
+        let components_without_data_count = u32::var_read_from(buf)?;
+
+        if components_without_data_count == 0 && components_with_data_count == 0 {
+            return Ok(DataComponentPatch::default());
+        }
+
+        let mut components = HashMap::new();
+        for _ in 0..components_with_data_count {
+            let component_kind = DataComponentKind::read_from(buf)?;
+            let component_data = components::from_kind(component_kind, buf)?;
+            components.insert(component_kind, Some(component_data));
+        }
+
+        for _ in 0..components_without_data_count {
+            let component_kind = DataComponentKind::read_from(buf)?;
+            components.insert(component_kind, None);
+        }
+
+        Ok(DataComponentPatch { components })
+    }
+}
+
+impl McBufWritable for DataComponentPatch {
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        let mut components_with_data_count = 0;
+        let mut components_without_data_count = 0;
+        for component in self.components.values() {
+            if component.is_some() {
+                components_with_data_count += 1;
+            } else {
+                components_without_data_count += 1;
+            }
+        }
+
+        components_with_data_count.write_into(buf)?;
+        components_without_data_count.write_into(buf)?;
+
+        for (kind, component) in &self.components {
+            if let Some(component) = component {
+                kind.write_into(buf)?;
+                let mut component_buf = Vec::new();
+                component.encode(&mut component_buf).unwrap();
+                component_buf.write_into(buf)?;
+            }
+        }
+
+        for (kind, component) in &self.components {
+            if component.is_none() {
+                kind.write_into(buf)?;
+            }
+        }
+
+        Ok(())
+    }
+}
+
+impl Clone for DataComponentPatch {
+    fn clone(&self) -> Self {
+        let mut components = HashMap::with_capacity(self.components.len());
+        for (kind, component) in &self.components {
+            components.insert(*kind, component.as_ref().map(|c| (*c).clone()));
+        }
+        DataComponentPatch { components }
+    }
+}
+impl fmt::Debug for DataComponentPatch {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_set().entries(self.components.keys()).finish()
+    }
+}
+impl PartialEq for DataComponentPatch {
+    fn eq(&self, other: &Self) -> bool {
+        if self.components.len() != other.components.len() {
+            return false;
+        }
+        for (kind, component) in &self.components {
+            if let Some(other_component) = other.components.get(kind) {
+                // we can't use PartialEq, but we can use our own eq method
+                if let Some(component) = component {
+                    if let Some(other_component) = other_component {
+                        if !component.eq((*other_component).clone()) {
+                            return false;
+                        }
+                    } else {
+                        return false;
+                    }
+                } else if other_component.is_some() {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        }
+        true
     }
 }

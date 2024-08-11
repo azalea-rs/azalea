@@ -16,7 +16,7 @@ use crate::{struct_name};
 
 '''
 
-    for tag_name, tag in registries.items():
+    for tag_name, tag in sorted(registries.items(), key=lambda x: x[0]):
         tag_name = tag_name.replace('/', '_')
         static_set_name = to_snake_case(tag_name).upper()
         generated += f'pub static {static_set_name}: Lazy<HashSet<{struct_name}>> = Lazy::new(|| HashSet::from_iter(vec!['

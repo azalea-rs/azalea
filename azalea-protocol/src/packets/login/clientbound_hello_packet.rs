@@ -7,5 +7,6 @@ pub struct ClientboundHelloPacket {
     // #[len(20)]
     pub server_id: String,
     pub public_key: Vec<u8>,
-    pub nonce: Vec<u8>,
+    pub challenge: Vec<u8>,
+    pub should_authenticate: bool,
 }

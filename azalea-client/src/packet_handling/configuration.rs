@@ -1,20 +1,18 @@
 use std::io::Cursor;
-use std::sync::Arc;
 
 use azalea_entity::indexing::EntityIdIndex;
 use azalea_protocol::packets::configuration::serverbound_finish_configuration_packet::ServerboundFinishConfigurationPacket;
 use azalea_protocol::packets::configuration::serverbound_keep_alive_packet::ServerboundKeepAlivePacket;
 use azalea_protocol::packets::configuration::serverbound_pong_packet::ServerboundPongPacket;
 use azalea_protocol::packets::configuration::serverbound_resource_pack_packet::ServerboundResourcePackPacket;
+use azalea_protocol::packets::configuration::serverbound_select_known_packs_packet::ServerboundSelectKnownPacksPacket;
 use azalea_protocol::packets::configuration::{
     ClientboundConfigurationPacket, ServerboundConfigurationPacket,
 };
 use azalea_protocol::packets::ConnectionProtocol;
 use azalea_protocol::read::deserialize_packet;
-use azalea_world::Instance;
 use bevy_ecs::prelude::*;
 use bevy_ecs::system::SystemState;
-use parking_lot::RwLock;
 use tracing::{debug, error, warn};
 
 use crate::client::InConfigurationState;
@@ -22,6 +20,7 @@ use crate::disconnect::DisconnectEvent;
 use crate::local_player::Hunger;
 use crate::packet_handling::game::KeepAliveEvent;
 use crate::raw_connection::RawConnection;
+use crate::InstanceHolder;
 
 #[derive(Event, Debug, Clone)]
 pub struct ConfigurationPacketEvent {
@@ -50,6 +49,7 @@ pub fn send_packet_events(
                     Ok(packet) => packet,
                     Err(err) => {
                         error!("failed to read packet: {:?}", err);
+                        debug!("packet bytes: {:?}", raw_packet);
                         continue;
                     }
                 };
@@ -80,21 +80,14 @@ pub fn process_packet_events(ecs: &mut World) {
     for (player_entity, packet) in events_owned {
         match packet {
             ClientboundConfigurationPacket::RegistryData(p) => {
-                let mut instance = Instance::default();
+                let mut system_state: SystemState<Query<&mut InstanceHolder>> =
+                    SystemState::new(ecs);
+                let mut query = system_state.get_mut(ecs);
+                let instance_holder = query.get_mut(player_entity).unwrap();
+                let mut instance = instance_holder.instance.write();
 
-                // override the old registries with the new ones
-                // but if a registry wasn't sent, keep the old one
-                for (registry_name, registry) in p.registry_holder.map {
-                    instance.registries.map.insert(registry_name, registry);
-                }
-
-                let instance_holder = crate::local_player::InstanceHolder::new(
-                    player_entity,
-                    // default to an empty world, it'll be set correctly later when we
-                    // get the login packet
-                    Arc::new(RwLock::new(instance)),
-                );
-                ecs.entity_mut(player_entity).insert(instance_holder);
+                // add the new registry data
+                instance.registries.append(p.registry_id, p.entries);
             }
 
             ClientboundConfigurationPacket::CustomPayload(p) => {
@@ -199,6 +192,35 @@ pub fn process_packet_events(ecs: &mut World) {
             }
             ClientboundConfigurationPacket::UpdateTags(_p) => {
                 debug!("Got update tags packet");
+            }
+            ClientboundConfigurationPacket::CookieRequest(p) => {
+                debug!("Got cookie request packet {p:?}");
+            }
+            ClientboundConfigurationPacket::ResetChat(p) => {
+                debug!("Got reset chat packet {p:?}");
+            }
+            ClientboundConfigurationPacket::StoreCookie(p) => {
+                debug!("Got store cookie packet {p:?}");
+            }
+            ClientboundConfigurationPacket::Transfer(p) => {
+                debug!("Got transfer packet {p:?}");
+            }
+            ClientboundConfigurationPacket::SelectKnownPacks(p) => {
+                debug!("Got select known packs packet {p:?}");
+
+                let mut system_state: SystemState<Query<&RawConnection>> = SystemState::new(ecs);
+                let mut query = system_state.get_mut(ecs);
+                let raw_connection = query.get_mut(player_entity).unwrap();
+
+                // resource pack management isn't implemented
+                raw_connection
+                    .write_packet(
+                        ServerboundSelectKnownPacksPacket {
+                            known_packs: vec![],
+                        }
+                        .get(),
+                    )
+                    .unwrap();
             }
         }
     }

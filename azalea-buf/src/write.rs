@@ -281,3 +281,12 @@ impl McBufWritable for simdnbt::owned::Nbt {
         buf.write_all(&data)
     }
 }
+
+impl<T> McBufWritable for Box<T>
+where
+    T: McBufWritable,
+{
+    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        T::write_into(&**self, buf)
+    }
+}

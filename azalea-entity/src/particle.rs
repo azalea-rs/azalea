@@ -1,19 +1,14 @@
-use crate::position::BlockPos;
 use azalea_buf::McBuf;
+use azalea_core::position::BlockPos;
 use azalea_inventory::ItemSlot;
 use azalea_registry::ParticleKind;
+use bevy_ecs::component::Component;
 
-#[cfg_attr(feature = "bevy_ecs", derive(bevy_ecs::component::Component))]
-#[derive(Debug, Clone, McBuf, Default)]
-pub struct Particle {
-    #[var]
-    pub id: i32,
-    pub data: ParticleData,
-}
-
-#[derive(Clone, Debug, McBuf, Default)]
-pub enum ParticleData {
-    AmbientEntityEffect,
+// the order of this enum must be kept in-sync with ParticleKind, otherwise
+// we get errors parsing particles.
+/// A [`ParticleKind`] with data potentially attached to it.
+#[derive(Component, Clone, Debug, McBuf, Default)]
+pub enum Particle {
     AngryVillager,
     Block(BlockParticle),
     BlockMarker(BlockParticle),
@@ -39,12 +34,15 @@ pub enum ParticleData {
     ExplosionEmitter,
     Explosion,
     Gust,
-    GustEmitter,
+    SmallGust,
+    GustEmitterLarge,
+    GustEmitterSmall,
     SonicBoom,
     FallingDust(BlockParticle),
     Firework,
     Fishing,
     Flame,
+    Infested,
     CherryLeaves,
     SculkSoul,
     SculkCharge(SculkChargeParticle),
@@ -59,6 +57,7 @@ pub enum ParticleData {
     Item(ItemParticle),
     Vibration(VibrationParticle),
     ItemSlime,
+    ItemCobweb,
     ItemSnowball,
     LargeSmoke,
     Lava,
@@ -82,7 +81,7 @@ pub enum ParticleData {
     BubbleColumnUp,
     Nautilus,
     Dolphin,
-    CampfireCozySmoke,
+    CampfireCosySmoke,
     CampfireSignalSmoke,
     DrippingHoney,
     FallingHoney,
@@ -113,18 +112,22 @@ pub enum ParticleData {
     Shriek(ShriekParticle),
     EggCrack,
     DustPlume,
-    GustDust,
     TrialSpawnerDetection,
+    TrialSpawnerDetectionOminous,
+    VaultConnection,
+    DustPillar,
+    OminousSpawning,
+    RaidOmen,
+    TrialOmen,
 }
 
-impl From<ParticleKind> for ParticleData {
+impl From<ParticleKind> for Particle {
     /// Convert a particle kind into particle data. If the particle has data
     /// attached (like block particles), then it's set to the default.
     fn from(kind: ParticleKind) -> Self {
         // this is mostly just here so it fails to compile when a new particle is added
         // to ParticleKind, since ParticleData has to be updated manually
         match kind {
-            ParticleKind::AmbientEntityEffect => Self::AmbientEntityEffect,
             ParticleKind::AngryVillager => Self::AngryVillager,
             ParticleKind::Block => Self::Block(BlockParticle::default()),
             ParticleKind::BlockMarker => Self::BlockMarker(BlockParticle::default()),
@@ -151,7 +154,6 @@ impl From<ParticleKind> for ParticleData {
             ParticleKind::ExplosionEmitter => Self::ExplosionEmitter,
             ParticleKind::Explosion => Self::Explosion,
             ParticleKind::Gust => Self::Gust,
-            ParticleKind::GustEmitter => Self::GustEmitter,
             ParticleKind::SonicBoom => Self::SonicBoom,
             ParticleKind::FallingDust => Self::FallingDust(BlockParticle::default()),
             ParticleKind::Firework => Self::Firework,
@@ -194,7 +196,7 @@ impl From<ParticleKind> for ParticleData {
             ParticleKind::BubbleColumnUp => Self::BubbleColumnUp,
             ParticleKind::Nautilus => Self::Nautilus,
             ParticleKind::Dolphin => Self::Dolphin,
-            ParticleKind::CampfireCosySmoke => Self::CampfireCozySmoke,
+            ParticleKind::CampfireCosySmoke => Self::CampfireCosySmoke,
             ParticleKind::CampfireSignalSmoke => Self::CampfireSignalSmoke,
             ParticleKind::DrippingHoney => Self::DrippingHoney,
             ParticleKind::FallingHoney => Self::FallingHoney,
@@ -225,8 +227,18 @@ impl From<ParticleKind> for ParticleData {
             ParticleKind::Shriek => Self::Shriek(ShriekParticle::default()),
             ParticleKind::EggCrack => Self::EggCrack,
             ParticleKind::DustPlume => Self::DustPlume,
-            ParticleKind::GustDust => Self::GustDust,
+            ParticleKind::SmallGust => Self::SmallGust,
+            ParticleKind::GustEmitterLarge => Self::GustEmitterLarge,
+            ParticleKind::GustEmitterSmall => Self::GustEmitterSmall,
+            ParticleKind::Infested => Self::Infested,
+            ParticleKind::ItemCobweb => Self::ItemCobweb,
             ParticleKind::TrialSpawnerDetection => Self::TrialSpawnerDetection,
+            ParticleKind::TrialSpawnerDetectionOminous => Self::TrialSpawnerDetectionOminous,
+            ParticleKind::VaultConnection => Self::VaultConnection,
+            ParticleKind::DustPillar => Self::DustPillar,
+            ParticleKind::OminousSpawning => Self::OminousSpawning,
+            ParticleKind::RaidOmen => Self::RaidOmen,
+            ParticleKind::TrialOmen => Self::TrialOmen,
         }
     }
 }

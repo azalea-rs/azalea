@@ -7,7 +7,7 @@ use azalea_client::{
 use azalea_core::position::BlockPos;
 use azalea_entity::{update_fluid_on_eyes, FluidOnEyes, Physics};
 use azalea_inventory::{ItemSlot, Menu};
-use azalea_registry::Fluid;
+use azalea_registry::{DataComponentKind, Fluid};
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 
@@ -113,7 +113,11 @@ pub fn accurate_best_tool_in_hotbar_for_block(
             ItemSlot::Present(item_slot) => {
                 // lazy way to avoid checking durability since azalea doesn't have durability
                 // data yet
-                if item_slot.nbt.is_none() {
+                if item_slot
+                    .components
+                    .get(DataComponentKind::Damage)
+                    .is_none()
+                {
                     this_item_speed = Some(azalea_entity::mining::get_mine_progress(
                         block.as_ref(),
                         item_slot.kind,

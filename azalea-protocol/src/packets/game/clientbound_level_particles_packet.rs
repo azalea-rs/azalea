@@ -1,12 +1,9 @@
-use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
-use azalea_core::particle::ParticleData;
+use azalea_buf::McBuf;
+use azalea_entity::particle::Particle;
 use azalea_protocol_macros::ClientboundGamePacket;
-use std::io::{Cursor, Write};
 
-#[derive(Clone, Debug, ClientboundGamePacket)]
+#[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundLevelParticlesPacket {
-    #[var]
-    pub particle_id: u32,
     pub override_limiter: bool,
     pub x: f64,
     pub y: f64,
@@ -16,53 +13,27 @@ pub struct ClientboundLevelParticlesPacket {
     pub z_dist: f32,
     pub max_speed: f32,
     pub count: u32,
-    pub data: ParticleData,
+    pub particle: Particle,
 }
 
-impl McBufReadable for ClientboundLevelParticlesPacket {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let particle_id = u32::var_read_from(buf)?;
-        let override_limiter = bool::read_from(buf)?;
-        let x = f64::read_from(buf)?;
-        let y = f64::read_from(buf)?;
-        let z = f64::read_from(buf)?;
-        let x_dist = f32::read_from(buf)?;
-        let y_dist = f32::read_from(buf)?;
-        let z_dist = f32::read_from(buf)?;
-        let max_speed = f32::read_from(buf)?;
-        let count = u32::read_from(buf)?;
+#[cfg(test)]
+mod tests {
+    use std::io::Cursor;
 
-        let data = ParticleData::read_from_id(buf, particle_id)?;
+    use azalea_buf::McBufReadable;
 
-        Ok(Self {
-            particle_id,
-            override_limiter,
-            x,
-            y,
-            z,
-            x_dist,
-            y_dist,
-            z_dist,
-            max_speed,
-            count,
-            data,
-        })
-    }
-}
+    use super::*;
 
-impl McBufWritable for ClientboundLevelParticlesPacket {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        self.particle_id.var_write_into(buf)?;
-        self.override_limiter.write_into(buf)?;
-        self.x.write_into(buf)?;
-        self.y.write_into(buf)?;
-        self.z.write_into(buf)?;
-        self.x_dist.write_into(buf)?;
-        self.y_dist.write_into(buf)?;
-        self.z_dist.write_into(buf)?;
-        self.max_speed.write_into(buf)?;
-        self.count.write_into(buf)?;
-        self.data.write_without_id(buf)?;
-        Ok(())
+    #[test]
+    fn test_clientbound_level_particles_packet() {
+        let slice = &[
+            0, 64, 139, 10, 0, 0, 0, 0, 0, 192, 26, 0, 0, 0, 0, 0, 0, 64, 144, 58, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 13, 63, 128, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 63, 128, 0, 0,
+        ][..];
+        let mut bytes = Cursor::new(slice);
+
+        let _packet = ClientboundLevelParticlesPacket::read_from(&mut bytes).unwrap();
+        assert_eq!(bytes.position(), slice.len() as u64);
     }
 }

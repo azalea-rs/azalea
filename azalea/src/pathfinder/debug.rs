@@ -91,7 +91,7 @@ pub fn debug_render_path_with_particles(
                     z: start_vec3.z + (end_vec3.z - start_vec3.z) * percent,
                 };
                 let particle_command = format!(
-                "/particle dust {r} {g} {b} {size} {start_x} {start_y} {start_z} {delta_x} {delta_y} {delta_z} 0 {count}",
+                "/particle dust{{color:[{r},{g},{b}],scale:{size}}} {start_x} {start_y} {start_z} {delta_x} {delta_y} {delta_z} 0 {count}",
                 size = 1,
                 start_x = pos.x,
                 start_y = pos.y,

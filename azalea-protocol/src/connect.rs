@@ -61,7 +61,7 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///     resolver,
 ///     connect::Connection,
 ///     packets::{
-///         ConnectionProtocol, PROTOCOL_VERSION,
+///         ClientIntention, PROTOCOL_VERSION,
 ///         login::{
 ///             ClientboundLoginPacket,
 ///             serverbound_hello_packet::ServerboundHelloPacket,
@@ -82,7 +82,7 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///             protocol_version: PROTOCOL_VERSION,
 ///             hostname: resolved_address.ip().to_string(),
 ///             port: resolved_address.port(),
-///             intention: ConnectionProtocol::Login,
+///             intention: ClientIntention::Login,
 ///         }
 ///         .get(),
 ///     )
@@ -104,12 +104,12 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///         let packet = conn.read().await?;
 ///         match packet {
 ///             ClientboundLoginPacket::Hello(p) => {
-///                 let e = azalea_crypto::encrypt(&p.public_key, &p.nonce).unwrap();
+///                 let e = azalea_crypto::encrypt(&p.public_key, &p.challenge).unwrap();
 ///
 ///                 conn.write(
 ///                     ServerboundKeyPacket {
 ///                         key_bytes: e.encrypted_public_key,
-///                         encrypted_challenge: e.encrypted_nonce,
+///                         encrypted_challenge: e.encrypted_challenge,
 ///                     }
 ///                     .get(),
 ///                 )
@@ -127,6 +127,7 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///                 return Err("login disconnect".into());
 ///             }
 ///             ClientboundLoginPacket::CustomQuery(p) => {}
+///             ClientboundLoginPacket::CookieRequest(_) => {}
 ///         }
 ///     };
 ///
@@ -404,7 +405,7 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
     /// match conn.read().await? {
     ///     ClientboundLoginPacket::Hello(p) => {
     ///         // tell Mojang we're joining the server & enable encryption
-    ///         let e = azalea_crypto::encrypt(&p.public_key, &p.nonce).unwrap();
+    ///         let e = azalea_crypto::encrypt(&p.public_key, &p.challenge).unwrap();
     ///         conn.authenticate(
     ///             &access_token,
     ///             &profile.id,
@@ -414,7 +415,7 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
     ///         conn.write(
     ///             ServerboundKeyPacket {
     ///                 key_bytes: e.encrypted_public_key,
-    ///                 encrypted_challenge: e.encrypted_nonce,
+    ///                 encrypted_challenge: e.encrypted_challenge,
     ///             }.get()
     ///         ).await?;
     ///         conn.set_encryption_key(e.secret_key);
@@ -499,6 +500,23 @@ impl Connection<ServerboundLoginPacket, ClientboundLoginPacket> {
         ip: Option<&str>,
     ) -> Result<GameProfile, ServerSessionServerError> {
         azalea_auth::sessionserver::serverside_auth(username, public_key, private_key, ip).await
+    }
+
+    /// Change our state back to configuration.
+    #[must_use]
+    pub fn configuration(
+        self,
+    ) -> Connection<ServerboundConfigurationPacket, ClientboundConfigurationPacket> {
+        Connection::from(self)
+    }
+}
+
+impl Connection<ServerboundConfigurationPacket, ClientboundConfigurationPacket> {
+    /// Change our state from configuration to game. This is the state that's
+    /// used when the client is actually in the world.
+    #[must_use]
+    pub fn game(self) -> Connection<ServerboundGamePacket, ClientboundGamePacket> {
+        Connection::from(self)
     }
 }
 

@@ -5,7 +5,7 @@ use azalea_world::{Instance, InstanceContainer, InstanceName, MinecraftEntityId}
 use bevy_ecs::{
     component::Component,
     entity::Entity,
-    query::Changed,
+    query::{Added, Changed},
     system::{Commands, Query, Res, ResMut, Resource},
 };
 use derive_more::{Deref, DerefMut};
@@ -116,6 +116,24 @@ pub fn update_entity_chunk_positions(
                     .insert(entity);
             }
         }
+    }
+}
+
+/// Insert new entities into [`Instance::entities_by_chunk`].
+pub fn insert_entity_chunk_position(
+    query: Query<(Entity, &Position, &InstanceName), Added<EntityChunkPos>>,
+    instance_container: Res<InstanceContainer>,
+) {
+    for (entity, pos, world_name) in query.iter() {
+        let instance_lock = instance_container.get(world_name).unwrap();
+        let mut instance = instance_lock.write();
+
+        let chunk = ChunkPos::from(*pos);
+        instance
+            .entities_by_chunk
+            .entry(chunk)
+            .or_default()
+            .insert(entity);
     }
 }
 

@@ -43,7 +43,12 @@ impl Plugin for EntityPlugin {
         .add_systems(
             Update,
             (
-                (indexing::update_entity_chunk_positions).in_set(EntityUpdateSet::Index),
+                (
+                    indexing::update_entity_chunk_positions,
+                    indexing::insert_entity_chunk_position,
+                )
+                    .chain()
+                    .in_set(EntityUpdateSet::Index),
                 (
                     relative_updates::debug_detect_updates_received_on_local_entities,
                     debug_new_entity,

@@ -1,7 +1,8 @@
 # Extracting data from the Minecraft jars
 
-from lib.download import get_server_jar, get_burger, get_client_jar, get_pixlyzer, get_yarn_data, get_fabric_api_versions, get_fabric_loader_versions
-from lib.utils import get_dir_location
+from typing import TYPE_CHECKING
+from lib.download import get_mappings_for_version, get_server_jar, get_burger, get_client_jar, get_pixlyzer, get_yarn_data, get_fabric_api_versions, get_fabric_loader_versions
+from lib.utils import get_dir_location, to_camel_case, upper_first_letter
 from zipfile import ZipFile
 import subprocess
 import requests
@@ -235,9 +236,9 @@ def get_pixlyzer_data(version_id: str, category: str):
         assert pom_xml_dependencies != ''
         pom_xml = open(f'{pixlyzer_dir}/pom.xml', 'r').read()
         pom_xml = re.sub(
-            '<dependencies>.*?</dependencies>', f'<dependencies>{pom_xml_dependencies}</dependencies>', pom_xml, flags=re.DOTALL)
+            r'<dependencies>.*?</dependencies>', f'<dependencies>{pom_xml_dependencies}</dependencies>', pom_xml, flags=re.DOTALL)
         pom_xml = re.sub(
-            '<minecraft\.version>.*?</minecraft\.version>', f'<minecraft.version>{version_id}</minecraft.version>', pom_xml, flags=re.DOTALL)
+            r'<minecraft\.version>.*?</minecraft\.version>', f'<minecraft.version>{version_id}</minecraft.version>', pom_xml, flags=re.DOTALL)
         open(f'{pixlyzer_dir}/pom.xml', 'w').write(pom_xml)
 
         # compile
@@ -275,3 +276,27 @@ def get_en_us_lang(version_id: str):
     return json.loads(
         get_file_from_jar(version_id, 'assets/minecraft/lang/en_us.json')
     )
+
+# burger packet id extraction is broken since 1.20.5 (always returns -1, so we have to determine packet id ourselves from the mappings).
+# this is very much not ideal.
+
+if TYPE_CHECKING: from codegen.lib.mappings import Mappings
+def get_packet_list(version_id: str):
+    if version_id != '1.21':
+        return []
+
+    generate_data_from_server_jar(version_id)
+    with open(get_dir_location(f'__cache__/generated-{version_id}/reports/packets.json'), 'r') as f:
+        packets_report = json.load(f)
+    packet_list = []
+    for state, state_value in packets_report.items():
+        for direction, direction_value in state_value.items():
+            for packet_resourcelocation, packet_value in direction_value.items():
+                assert packet_resourcelocation.startswith('minecraft:')
+                packet_resourcelocation = upper_first_letter(to_camel_case(packet_resourcelocation[len('minecraft:'):]))
+                packet_list.append({
+                    'state': state,
+                    'direction': direction,
+                    'name': packet_resourcelocation,
+                    'id': packet_value['protocol_id']
+                })

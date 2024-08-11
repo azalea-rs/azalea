@@ -458,12 +458,12 @@ fn set_sprinting(
     if sprinting {
         attributes
             .speed
-            .insert(azalea_entity::attributes::sprinting_modifier())
+            .try_insert(azalea_entity::attributes::sprinting_modifier())
             .is_ok()
     } else {
         attributes
             .speed
-            .remove(&azalea_entity::attributes::sprinting_modifier().uuid)
+            .remove(&azalea_entity::attributes::sprinting_modifier().id)
             .is_none()
     }
 }

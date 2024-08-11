@@ -1,5 +1,4 @@
 from lib.utils import get_dir_location, to_camel_case
-from lib.code.utils import clean_property_name
 from ..mappings import Mappings
 from typing import Optional
 import re
@@ -41,7 +40,7 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, pixlyzer_block_dat
 
             if property_burger is None:
                 print(
-                    'Warning: The reports have states for a block, but Burger doesn\'t!', block_data_burger)
+                    f'Warning: The reports have states for a block, but Burger doesn\'t! (missing "{property_name}")', block_data_burger)
 
             property_struct_name = get_property_struct_name(
                 property_burger, block_data_burger, property_variants, mappings)
@@ -56,7 +55,6 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, pixlyzer_block_dat
 
             block_properties[property_struct_name] = property_variants
 
-            property_name = clean_property_name(property_name)
             property_struct_names_to_names[property_struct_name] = property_name
 
         properties.update(block_properties)
@@ -90,7 +88,7 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, pixlyzer_block_dat
     for block_id in ordered_blocks:
         block_data_burger = blocks_burger[block_id]
         block_data_report = blocks_report['minecraft:' + block_id]
-        block_data_pixlyzer = pixlyzer_block_datas[f'minecraft:{block_id}']
+        block_data_pixlyzer = pixlyzer_block_datas.get(f'minecraft:{block_id}', {})
 
         block_properties = block_data_burger.get('states', [])
         block_properties_burger = block_data_burger.get('states', [])
@@ -125,8 +123,7 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, pixlyzer_block_dat
 
             assert property_default is not None
 
-            property_name = clean_property_name(property_name)
-            this_property_code = f'{property_name}: {property_default_type}'
+            this_property_code = f'"{property_name}": {property_default_type}'
 
             properties_code += f'\n            {this_property_code},'
         # if there's nothing inside the properties, keep it in one line
@@ -202,6 +199,10 @@ def get_property_struct_name(property: Optional[dict], block_data_burger: dict, 
         return 'ChestType'
     if property_variants == ['compare', 'subtract']:
         return 'ComparatorType'
+    if property_variants == ['inactive', 'waiting_for_players', 'active', 'waiting_for_reward_ejection', 'ejecting_reward', 'cooldown']:
+        return 'TrialSpawnerState'
+    if property_variants == ['inactive', 'active', 'unlocking', 'ejecting']:
+        return 'VaultState'
     if 'harp' in property_variants and 'didgeridoo' in property_variants:
         return 'Sound'
 

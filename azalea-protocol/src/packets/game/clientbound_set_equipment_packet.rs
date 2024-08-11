@@ -7,7 +7,7 @@ use std::io::Cursor;
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundSetEquipmentPacket {
     #[var]
-    pub entity: i32,
+    pub entity_id: u32,
     pub slots: EquipmentSlots,
 }
 

@@ -6,7 +6,6 @@ use azalea_buf::{
 use azalea_chat::FormattedText;
 use azalea_core::{
     direction::Direction,
-    particle::Particle,
     position::{BlockPos, GlobalPos, Vec3},
 };
 use azalea_inventory::ItemSlot;
@@ -16,6 +15,8 @@ use enum_as_inner::EnumAsInner;
 use nohash_hasher::IntSet;
 use std::io::{Cursor, Write};
 use uuid::Uuid;
+
+use crate::particle::Particle;
 
 #[derive(Clone, Debug, Deref)]
 pub struct EntityMetadataItems(Vec<EntityDataItem>);
@@ -83,15 +84,18 @@ pub enum EntityDataValue {
     OptionalBlockState(azalea_block::BlockState),
     CompoundTag(simdnbt::owned::NbtCompound),
     Particle(Particle),
+    Particles(Vec<Particle>),
     VillagerData(VillagerData),
     // 0 for absent; 1 + actual value otherwise. Used for entity IDs.
     OptionalUnsignedInt(OptionalUnsignedInt),
     Pose(Pose),
     CatVariant(azalea_registry::CatVariant),
+    WolfVariant(azalea_registry::WolfVariant),
     FrogVariant(azalea_registry::FrogVariant),
     OptionalGlobalPos(Option<GlobalPos>),
     PaintingVariant(azalea_registry::PaintingVariant),
     SnifferState(SnifferState),
+    ArmadilloState(ArmadilloStateKind),
     Vector3(Vec3),
     Quaternion(Quaternion),
 }
@@ -105,6 +109,16 @@ pub struct Quaternion {
     pub y: f32,
     pub z: f32,
     pub w: f32,
+}
+
+// mojang just calls this ArmadilloState but i added "Kind" since otherwise it
+// collides with a name in metadata.rs
+#[derive(Clone, Debug, Copy, Default, McBuf)]
+pub enum ArmadilloStateKind {
+    #[default]
+    Idle,
+    Rolling,
+    Scared,
 }
 
 impl McBufReadable for OptionalUnsignedInt {

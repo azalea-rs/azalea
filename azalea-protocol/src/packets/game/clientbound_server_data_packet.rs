@@ -6,5 +6,4 @@ use azalea_protocol_macros::ClientboundGamePacket;
 pub struct ClientboundServerDataPacket {
     pub motd: FormattedText,
     pub icon_bytes: Option<Vec<u8>>,
-    pub enforces_secure_chat: bool,
 }
