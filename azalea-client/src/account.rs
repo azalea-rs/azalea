@@ -137,8 +137,8 @@ impl Account {
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let client = reqwest::Client::new();
     ///
-    /// let res = azalea_auth::get_ms_link_code(&client, "client_id", "scope").await?;
-    /// // Or, `azalea_auth::get_ms_link_code(&client, Some(client_id)).await?`
+    /// let res = azalea_auth::get_ms_link_code(&client, None, None).await?;
+    /// // Or, `azalea_auth::get_ms_link_code(&client, Some(client_id), None).await?`
     /// // if you want to use your own client_id
     /// println!(
     ///     "Go to {} and enter the code {}",
