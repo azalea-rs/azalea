@@ -357,7 +357,7 @@ pub async fn get_ms_auth_token(
         tokio::time::sleep(std::time::Duration::from_secs(res.interval)).await;
 
         tracing::trace!("Polling to check if user has logged in...");
-        if let Ok(mut access_token_response) = client
+        if let Ok(access_token_response) = client
             .post(format!(
                 "https://login.live.com/oauth20_token.srf?client_id={client_id}"
             ))
