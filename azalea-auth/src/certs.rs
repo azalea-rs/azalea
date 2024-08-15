@@ -3,6 +3,7 @@ use chrono::{DateTime, Utc};
 use rsa::{pkcs8::DecodePrivateKey, RsaPrivateKey};
 use serde::Deserialize;
 use thiserror::Error;
+use tracing::trace;
 
 #[derive(Debug, Error)]
 pub enum FetchCertificatesError {
@@ -26,7 +27,7 @@ pub async fn fetch_certificates(
         .await?
         .json::<CertificatesResponse>()
         .await?;
-    tracing::trace!("{:?}", res);
+    trace!("{:?}", res);
 
     // using RsaPrivateKey::from_pkcs8_pem gives an error with decoding base64 so we
     // just decode it ourselves

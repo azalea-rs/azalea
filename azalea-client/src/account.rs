@@ -7,6 +7,7 @@ use azalea_auth::AccessTokenResponse;
 use bevy_ecs::component::Component;
 use parking_lot::Mutex;
 use thiserror::Error;
+use tracing::trace;
 use uuid::Uuid;
 
 /// Something that can join Minecraft servers.
@@ -135,7 +136,7 @@ impl Account {
     /// the authentication process (like doing your own caching or
     /// displaying the Microsoft user code to the user in a different way).
     ///
-    /// Note that this will not refresh the token when it expires.
+    /// This will refresh the given token if it's expired.
     ///
     /// ```
     /// # use azalea_client::Account;
@@ -170,7 +171,7 @@ impl Account {
         let client = reqwest::Client::new();
 
         if msa.is_expired() {
-            tracing::trace!("refreshing Microsoft auth token");
+            trace!("refreshing Microsoft auth token");
             msa = azalea_auth::refresh_ms_auth_token(
                 &client,
                 &msa.data.refresh_token,

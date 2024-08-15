@@ -10,6 +10,7 @@ use std::{
     time::{Instant, SystemTime, UNIX_EPOCH},
 };
 use thiserror::Error;
+use tracing::{error, trace};
 use uuid::Uuid;
 
 #[derive(Default)]
@@ -92,7 +93,7 @@ pub async fn auth<'a>(email: &str, opts: AuthOpts<'a>) -> Result<AuthResult, Aut
             interactive_get_ms_auth_token(&client, email, Some(client_id), Some(scope)).await?
         };
         if msa.is_expired() {
-            tracing::trace!("refreshing Microsoft auth token");
+            trace!("refreshing Microsoft auth token");
             match refresh_ms_auth_token(
                 &client,
                 &msa.data.refresh_token,
@@ -104,7 +105,7 @@ pub async fn auth<'a>(email: &str, opts: AuthOpts<'a>) -> Result<AuthResult, Aut
                 Ok(new_msa) => msa = new_msa,
                 Err(e) => {
                     // can't refresh, ask the user to auth again
-                    tracing::error!("Error refreshing Microsoft auth token: {}", e);
+                    error!("Error refreshing Microsoft auth token: {}", e);
                     msa =
                         interactive_get_ms_auth_token(&client, email, Some(client_id), Some(scope))
                             .await?;
@@ -113,7 +114,7 @@ pub async fn auth<'a>(email: &str, opts: AuthOpts<'a>) -> Result<AuthResult, Aut
         }
 
         let msa_token = &msa.data.access_token;
-        tracing::trace!("Got access token: {msa_token}");
+        trace!("Got access token: {msa_token}");
 
         let res = get_minecraft_token(&client, msa_token).await?;
 
@@ -140,7 +141,7 @@ pub async fn auth<'a>(email: &str, opts: AuthOpts<'a>) -> Result<AuthResult, Aut
             )
             .await
             {
-                tracing::error!("{}", e);
+                error!("{}", e);
             }
         }
 
@@ -356,7 +357,7 @@ pub async fn get_ms_auth_token(
     while Instant::now() < login_expires_at {
         tokio::time::sleep(std::time::Duration::from_secs(res.interval)).await;
 
-        tracing::trace!("Polling to check if user has logged in...");
+        trace!("Polling to check if user has logged in...");
         if let Ok(access_token_response) = client
             .post(format!(
                 "https://login.live.com/oauth20_token.srf?client_id={client_id}"
@@ -371,7 +372,7 @@ pub async fn get_ms_auth_token(
             .json::<AccessTokenResponse>()
             .await
         {
-            tracing::trace!("access_token_response: {:?}", access_token_response);
+            trace!("access_token_response: {:?}", access_token_response);
             let expires_at = SystemTime::now()
                 + std::time::Duration::from_secs(access_token_response.expires_in);
             return Ok(ExpiringValue {
@@ -397,7 +398,7 @@ pub async fn interactive_get_ms_auth_token(
     scope: Option<&str>,
 ) -> Result<ExpiringValue<AccessTokenResponse>, GetMicrosoftAuthTokenError> {
     let res = get_ms_link_code(client, client_id, scope).await?;
-    tracing::trace!("Device code response: {:?}", res);
+    trace!("Device code response: {:?}", res);
     println!(
         "Go to \x1b[1m{}\x1b[m and enter the code \x1b[1m{}\x1b[m for \x1b[1m{}\x1b[m",
         res.verification_uri, res.user_code, email
@@ -473,7 +474,7 @@ async fn auth_with_xbox_live(
         "TokenType": "JWT"
     });
     let payload = auth_json.to_string();
-    tracing::trace!("auth_json: {:#?}", auth_json);
+    trace!("auth_json: {:#?}", auth_json);
     let res = client
         .post("https://user.auth.xboxlive.com/user/authenticate")
         .header("Content-Type", "application/json")
@@ -486,7 +487,7 @@ async fn auth_with_xbox_live(
         .await?
         .json::<XboxLiveAuthResponse>()
         .await?;
-    tracing::trace!("Xbox Live auth response: {:?}", res);
+    trace!("Xbox Live auth response: {:?}", res);
 
     // not_after looks like 2020-12-21T19:52:08.4463796Z
     let expires_at = DateTime::parse_from_rfc3339(&res.not_after)
@@ -527,7 +528,7 @@ async fn obtain_xsts_for_minecraft(
         .await?
         .json::<XboxLiveAuthResponse>()
         .await?;
-    tracing::trace!("Xbox Live auth response (for XSTS): {:?}", res);
+    trace!("Xbox Live auth response (for XSTS): {:?}", res);
 
     Ok(res.token)
 }
@@ -553,7 +554,7 @@ async fn auth_with_minecraft(
         .await?
         .json::<MinecraftAuthResponse>()
         .await?;
-    tracing::trace!("{:?}", res);
+    trace!("{:?}", res);
 
     let expires_at = SystemTime::now() + std::time::Duration::from_secs(res.expires_in);
     Ok(ExpiringValue {
@@ -580,7 +581,7 @@ pub async fn check_ownership(
         .await?
         .json::<GameOwnershipResponse>()
         .await?;
-    tracing::trace!("{:?}", res);
+    trace!("{:?}", res);
 
     // vanilla checks here to make sure the signatures are right, but it's not
     // actually required so we just don't
@@ -605,7 +606,7 @@ pub async fn get_profile(
         .await?
         .json::<ProfileResponse>()
         .await?;
-    tracing::trace!("{:?}", res);
+    trace!("{:?}", res);
 
     Ok(res)
 }

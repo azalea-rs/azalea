@@ -6,6 +6,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use thiserror::Error;
 use tokio::fs::File;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tracing::{debug, trace};
 
 #[derive(Debug, Error)]
 pub enum CacheError {
@@ -82,13 +83,13 @@ async fn get_entire_cache(cache_file: &Path) -> Result<Vec<CachedAccount>, Cache
     Ok(cache)
 }
 async fn set_entire_cache(cache_file: &Path, cache: Vec<CachedAccount>) -> Result<(), CacheError> {
-    tracing::trace!("saving cache: {:?}", cache);
+    trace!("saving cache: {:?}", cache);
 
     if !cache_file.exists() {
         let cache_file_parent = cache_file
             .parent()
             .expect("Cache file is root directory and also doesn't exist.");
-        tracing::debug!(
+        debug!(
             "Making cache file parent directory at {}",
             cache_file_parent.to_string_lossy()
         );
