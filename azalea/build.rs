@@ -7,7 +7,7 @@ fn main() {
             // stable & beta
             panic!("Azalea currently requires nightly Rust. You can use `rustup override set nightly` to set the toolchain for this directory.");
         }
-        Ok(_) => return, // nightly
+        Ok(_) => {} // nightly
         Err(_) => {
             // probably not installed via rustup, run rustc and parse its output
             let rustc_command = env::var("RUSTC")
