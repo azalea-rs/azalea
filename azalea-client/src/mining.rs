@@ -396,16 +396,16 @@ impl MineProgress {
 /// A component that stores the number of ticks that we've been mining the same
 /// block for. This is a float even though it should only ever be a round
 /// number.
-#[derive(Component, Debug, Default, Deref, DerefMut)]
+#[derive(Component, Clone, Debug, Default, Deref, DerefMut)]
 pub struct MineTicks(pub f32);
 
 /// A component that stores the position of the block we're currently mining.
-#[derive(Component, Debug, Default, Deref, DerefMut)]
+#[derive(Component, Clone, Debug, Default, Deref, DerefMut)]
 pub struct MineBlockPos(pub Option<BlockPos>);
 
 /// A component that contains the item we're currently using to mine. If we're
 /// not mining anything, it'll be [`ItemSlot::Empty`].
-#[derive(Component, Debug, Default, Deref, DerefMut)]
+#[derive(Component, Clone, Debug, Default, Deref, DerefMut)]
 pub struct MineItem(pub ItemSlot);
 
 /// Sent when we completed mining a block.

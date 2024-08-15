@@ -62,6 +62,12 @@ pub fn ceil_log2(x: u32) -> u32 {
     u32::BITS - x.leading_zeros()
 }
 
+pub fn fract(x: f64) -> f64 {
+    let x_int = x as i64 as f64;
+    let floor = if x < x_int { x_int - 1. } else { x_int };
+    x - floor
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -866,10 +866,32 @@ mod tests {
         GotoEvent,
     };
 
-    fn setup_simulation(
+    fn setup_blockposgoal_simulation(
         partial_chunks: &mut PartialChunkStorage,
         start_pos: BlockPos,
         end_pos: BlockPos,
+        solid_blocks: Vec<BlockPos>,
+    ) -> Simulation {
+        let mut simulation = setup_simulation_world(partial_chunks, start_pos, solid_blocks);
+
+        // you can uncomment this while debugging tests to get trace logs
+        // simulation.app.add_plugins(bevy_log::LogPlugin {
+        //     level: bevy_log::Level::TRACE,
+        //     filter: "".to_string(),
+        // });
+
+        simulation.app.world.send_event(GotoEvent {
+            entity: simulation.entity,
+            goal: Arc::new(BlockPosGoal(end_pos)),
+            successors_fn: moves::default_move,
+            allow_mining: false,
+        });
+        simulation
+    }
+
+    fn setup_simulation_world(
+        partial_chunks: &mut PartialChunkStorage,
+        start_pos: BlockPos,
         solid_blocks: Vec<BlockPos>,
     ) -> Simulation {
         let mut chunk_positions = HashSet::new();
@@ -889,43 +911,33 @@ mod tests {
             start_pos.y as f64,
             start_pos.z as f64 + 0.5,
         ));
-        let mut simulation = Simulation::new(chunks, player);
-
-        // you can uncomment this while debugging tests to get trace logs
-        // simulation.app.add_plugins(bevy_log::LogPlugin {
-        //     level: bevy_log::Level::TRACE,
-        //     filter: "".to_string(),
-        // });
-
-        simulation.app.world.send_event(GotoEvent {
-            entity: simulation.entity,
-            goal: Arc::new(BlockPosGoal(end_pos)),
-            successors_fn: moves::default_move,
-            allow_mining: false,
-        });
-        simulation
+        Simulation::new(chunks, player)
     }
 
     pub fn assert_simulation_reaches(simulation: &mut Simulation, ticks: usize, end_pos: BlockPos) {
-        // wait until the bot starts moving
+        wait_until_bot_starts_moving(simulation);
+        for _ in 0..ticks {
+            simulation.tick();
+        }
+        assert_eq!(BlockPos::from(simulation.position()), end_pos);
+    }
+
+    pub fn wait_until_bot_starts_moving(simulation: &mut Simulation) {
         let start_pos = simulation.position();
         let start_time = Instant::now();
         while simulation.position() == start_pos
+            && !simulation.is_mining()
             && start_time.elapsed() < Duration::from_millis(500)
         {
             simulation.tick();
             std::thread::yield_now();
         }
-        for _ in 0..ticks {
-            simulation.tick();
-        }
-        assert_eq!(BlockPos::from(simulation.position()), end_pos,);
     }
 
     #[test]
     fn test_simple_forward() {
         let mut partial_chunks = PartialChunkStorage::default();
-        let mut simulation = setup_simulation(
+        let mut simulation = setup_blockposgoal_simulation(
             &mut partial_chunks,
             BlockPos::new(0, 71, 0),
             BlockPos::new(0, 71, 1),
@@ -937,7 +949,7 @@ mod tests {
     #[test]
     fn test_double_diagonal_with_walls() {
         let mut partial_chunks = PartialChunkStorage::default();
-        let mut simulation = setup_simulation(
+        let mut simulation = setup_blockposgoal_simulation(
             &mut partial_chunks,
             BlockPos::new(0, 71, 0),
             BlockPos::new(2, 71, 2),
@@ -955,7 +967,7 @@ mod tests {
     #[test]
     fn test_jump_with_sideways_momentum() {
         let mut partial_chunks = PartialChunkStorage::default();
-        let mut simulation = setup_simulation(
+        let mut simulation = setup_blockposgoal_simulation(
             &mut partial_chunks,
             BlockPos::new(0, 71, 3),
             BlockPos::new(5, 76, 0),
@@ -977,7 +989,7 @@ mod tests {
     #[test]
     fn test_parkour_2_block_gap() {
         let mut partial_chunks = PartialChunkStorage::default();
-        let mut simulation = setup_simulation(
+        let mut simulation = setup_blockposgoal_simulation(
             &mut partial_chunks,
             BlockPos::new(0, 71, 0),
             BlockPos::new(0, 71, 3),
@@ -989,7 +1001,7 @@ mod tests {
     #[test]
     fn test_descend_and_parkour_2_block_gap() {
         let mut partial_chunks = PartialChunkStorage::default();
-        let mut simulation = setup_simulation(
+        let mut simulation = setup_blockposgoal_simulation(
             &mut partial_chunks,
             BlockPos::new(0, 71, 0),
             BlockPos::new(3, 67, 4),
@@ -1008,7 +1020,7 @@ mod tests {
     #[test]
     fn test_small_descend_and_parkour_2_block_gap() {
         let mut partial_chunks = PartialChunkStorage::default();
-        let mut simulation = setup_simulation(
+        let mut simulation = setup_blockposgoal_simulation(
             &mut partial_chunks,
             BlockPos::new(0, 71, 0),
             BlockPos::new(0, 70, 5),
@@ -1025,7 +1037,7 @@ mod tests {
     #[test]
     fn test_quickly_descend() {
         let mut partial_chunks = PartialChunkStorage::default();
-        let mut simulation = setup_simulation(
+        let mut simulation = setup_blockposgoal_simulation(
             &mut partial_chunks,
             BlockPos::new(0, 71, 0),
             BlockPos::new(0, 68, 3),
@@ -1042,7 +1054,7 @@ mod tests {
     #[test]
     fn test_2_gap_ascend_thrice() {
         let mut partial_chunks = PartialChunkStorage::default();
-        let mut simulation = setup_simulation(
+        let mut simulation = setup_blockposgoal_simulation(
             &mut partial_chunks,
             BlockPos::new(0, 71, 0),
             BlockPos::new(3, 74, 0),
@@ -1059,7 +1071,7 @@ mod tests {
     #[test]
     fn test_consecutive_3_gap_parkour() {
         let mut partial_chunks = PartialChunkStorage::default();
-        let mut simulation = setup_simulation(
+        let mut simulation = setup_blockposgoal_simulation(
             &mut partial_chunks,
             BlockPos::new(0, 71, 0),
             BlockPos::new(4, 71, 12),
