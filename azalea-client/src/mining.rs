@@ -86,6 +86,9 @@ impl Client {
     }
 }
 
+/// A component that simulates the client holding down left click to mine the
+/// block that it's facing, but this only interacts with blocks and not
+/// entities.
 #[derive(Component)]
 pub struct LeftClickMine;
 

@@ -93,7 +93,7 @@ impl Account {
         Self::microsoft_with_custom_client_id_and_scope(email, None, None).await
     }
 
-    /// Similar to [`account.microsoft()`](Self::microsoft) but you can use your
+    /// Similar to [`Account::microsoft`] but you can use your
     /// own `client_id` and `scope`.
     ///
     /// Pass `None` if you want to use default ones.
