@@ -111,7 +111,6 @@ fn clip_with_interaction_override(
     block_state: &BlockState,
 ) -> Option<BlockHitResult> {
     let block_hit_result = block_shape.clip(from, to, block_pos);
-    println!("block_hit_result: {block_hit_result:?}");
     if let Some(block_hit_result) = block_hit_result {
         // TODO: minecraft calls .getInteractionShape here
         // some blocks (like tall grass) have a physics shape that's different from the
@@ -207,9 +206,6 @@ pub fn traverse_blocks<C, T>(
                 math::fract(right_before_start.z)
             },
     };
-
-    println!("percentage_step: {percentage_step:?}");
-    println!("percentage: {percentage:?}");
 
     loop {
         if percentage.x > 1. && percentage.y > 1. && percentage.z > 1. {
