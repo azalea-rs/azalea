@@ -5,8 +5,8 @@ use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
 use azalea_chat::FormattedText;
 use azalea_core::{position::GlobalPos, resource_location::ResourceLocation};
 use azalea_registry::{
-    Attribute, Block, DataComponentKind, Enchantment, HolderSet, Item, MobEffect, Potion,
-    TrimMaterial, TrimPattern,
+    Attribute, Block, ConsumeEffectKind, DataComponentKind, Enchantment, HolderSet, Item,
+    MobEffect, Potion, SoundEvent, TrimMaterial, TrimPattern,
 };
 use simdnbt::owned::{Nbt, NbtCompound};
 use uuid::Uuid;
@@ -116,7 +116,12 @@ pub fn from_kind(
         DataComponentKind::Bees => Box::new(Bees::read_from(buf)?),
         DataComponentKind::Lock => Box::new(Lock::read_from(buf)?),
         DataComponentKind::ContainerLoot => Box::new(ContainerLoot::read_from(buf)?),
-        DataComponentKind::JukeboxPlayable => todo!(),
+        DataComponentKind::JukeboxPlayable => Box::new(JukeboxPlayable::read_from(buf)?),
+        DataComponentKind::Consumable => Box::new(Consumable::read_from(buf)?),
+        DataComponentKind::UseRemainder => Box::new(UseRemainder::read_from(buf)?),
+        DataComponentKind::UseCooldown => Box::new(UseCooldown::read_from(buf)?),
+        DataComponentKind::Enchantable => Box::new(Enchantable::read_from(buf)?),
+        DataComponentKind::Repairable => Box::new(Repairable::read_from(buf)?),
     })
 }
 
@@ -664,3 +669,53 @@ pub struct JukeboxPlayable {
     pub show_in_tooltip: bool,
 }
 impl DataComponent for JukeboxPlayable {}
+
+#[derive(Clone, PartialEq, McBuf)]
+pub struct Consumable {
+    pub consume_seconds: f32,
+    pub animation: ItemUseAnimation,
+    pub sound: SoundEvent,
+    pub has_consume_particles: bool,
+    pub on_consuime_effects: Vec<ConsumeEffectKind>,
+}
+impl DataComponent for Consumable {}
+
+#[derive(Clone, Copy, PartialEq, McBuf)]
+pub enum ItemUseAnimation {
+    None,
+    Eat,
+    Drink,
+    Block,
+    Bow,
+    Spear,
+    Crossbow,
+    Spyglass,
+    TootHorn,
+    Brush,
+}
+
+#[derive(Clone, PartialEq, McBuf)]
+pub struct UseRemainder {
+    pub convert_into: ItemSlot,
+}
+impl DataComponent for UseRemainder {}
+
+#[derive(Clone, PartialEq, McBuf)]
+pub struct UseCooldown {
+    pub seconds: f32,
+    pub cooldown_group: Option<ResourceLocation>,
+}
+impl DataComponent for UseCooldown {}
+
+#[derive(Clone, PartialEq, McBuf)]
+pub struct Enchantable {
+    #[var]
+    pub value: u32,
+}
+impl DataComponent for Enchantable {}
+
+#[derive(Clone, PartialEq, McBuf)]
+pub struct Repairable {
+    pub items: HolderSet<Item, ResourceLocation>,
+}
+impl DataComponent for Repairable {}

@@ -394,8 +394,8 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 *player_abilities = PlayerAbilities::from(p);
             }
-            ClientboundGamePacket::SetCarriedItem(p) => {
-                debug!("Got set carried item packet {p:?}");
+            ClientboundGamePacket::SetCursorItem(p) => {
+                debug!("Got set cursor item packet {p:?}");
             }
             ClientboundGamePacket::UpdateTags(_p) => {
                 debug!("Got update tags packet");
@@ -1477,6 +1477,12 @@ pub fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::PongResponse(_) => {}
             ClientboundGamePacket::StoreCookie(_) => {}
             ClientboundGamePacket::Transfer(_) => {}
+            ClientboundGamePacket::MoveMinecart(_) => {}
+            ClientboundGamePacket::SetHeldSlot(_) => {}
+            ClientboundGamePacket::SetPlayerInventory(_) => {}
+            ClientboundGamePacket::ProjectilePower(_) => {}
+            ClientboundGamePacket::CustomReportDetails(_) => {}
+            ClientboundGamePacket::ServerLinks(_) => {}
         }
     }
 }
