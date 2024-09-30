@@ -129,7 +129,7 @@ where
         position: &'a Position,
         instance_name: &'a InstanceName,
         max_distance: f64,
-    ) -> impl Iterator<Item = (Entity, f64)> + '_ {
+    ) -> impl Iterator<Item = (Entity, f64)> + 'a {
         self.filtered_entities
             .iter()
             .filter_map(move |(target_entity, e_instance, e_pos)| {
@@ -156,7 +156,7 @@ where
         &'a self,
         entity: Entity,
         max_distance: f64,
-    ) -> impl Iterator<Item = (Entity, f64)> + '_ {
+    ) -> impl Iterator<Item = (Entity, f64)> + 'a {
         let position;
         let instance_name;
         if let Ok((pos, instance)) = self.all_entities.get(entity) {

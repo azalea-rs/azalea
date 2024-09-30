@@ -5,8 +5,8 @@ use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
 use azalea_chat::FormattedText;
 use azalea_core::{position::GlobalPos, resource_location::ResourceLocation};
 use azalea_registry::{
-    Attribute, Block, DataComponentKind, Enchantment, HolderSet, Item, MobEffect, Potion,
-    TrimMaterial, TrimPattern,
+    Attribute, Block, ConsumeEffectKind, DataComponentKind, Enchantment, EntityKind, HolderSet,
+    Item, MobEffect, Potion, SoundEvent, TrimMaterial, TrimPattern,
 };
 use simdnbt::owned::{Nbt, NbtCompound};
 use uuid::Uuid;
@@ -51,6 +51,8 @@ pub fn from_kind(
 ) -> Result<Box<dyn EncodableDataComponent>, BufReadError> {
     // if this is causing a compile-time error, look at DataComponents.java in the
     // decompiled vanilla code to see how to implement new components
+
+    // note that this match statement is updated by genitemcomponents.py
     Ok(match kind {
         DataComponentKind::CustomData => Box::new(CustomData::read_from(buf)?),
         DataComponentKind::MaxStackSize => Box::new(MaxStackSize::read_from(buf)?),
@@ -77,7 +79,6 @@ pub fn from_kind(
         }
         DataComponentKind::IntangibleProjectile => Box::new(IntangibleProjectile::read_from(buf)?),
         DataComponentKind::Food => Box::new(Food::read_from(buf)?),
-        DataComponentKind::FireResistant => Box::new(FireResistant::read_from(buf)?),
         DataComponentKind::Tool => Box::new(Tool::read_from(buf)?),
         DataComponentKind::StoredEnchantments => Box::new(StoredEnchantments::read_from(buf)?),
         DataComponentKind::DyedColor => Box::new(DyedColor::read_from(buf)?),
@@ -116,7 +117,18 @@ pub fn from_kind(
         DataComponentKind::Bees => Box::new(Bees::read_from(buf)?),
         DataComponentKind::Lock => Box::new(Lock::read_from(buf)?),
         DataComponentKind::ContainerLoot => Box::new(ContainerLoot::read_from(buf)?),
-        DataComponentKind::JukeboxPlayable => todo!(),
+        DataComponentKind::JukeboxPlayable => Box::new(JukeboxPlayable::read_from(buf)?),
+        DataComponentKind::Consumable => Box::new(Consumable::read_from(buf)?),
+        DataComponentKind::UseRemainder => Box::new(UseRemainder::read_from(buf)?),
+        DataComponentKind::UseCooldown => Box::new(UseCooldown::read_from(buf)?),
+        DataComponentKind::Enchantable => Box::new(Enchantable::read_from(buf)?),
+        DataComponentKind::Repairable => Box::new(Repairable::read_from(buf)?),
+        DataComponentKind::ItemModel => Box::new(ItemModel::read_from(buf)?),
+        DataComponentKind::DamageResistant => Box::new(DamageResistant::read_from(buf)?),
+        DataComponentKind::Equippable => Box::new(Equippable::read_from(buf)?),
+        DataComponentKind::Glider => Box::new(Glider::read_from(buf)?),
+        DataComponentKind::TooltipStyle => Box::new(TooltipStyle::read_from(buf)?),
+        DataComponentKind::DeathProtection => Box::new(DeathProtection::read_from(buf)?),
     })
 }
 
@@ -355,10 +367,6 @@ pub struct Food {
     pub effects: Vec<PossibleEffect>,
 }
 impl DataComponent for Food {}
-
-#[derive(Clone, PartialEq, McBuf)]
-pub struct FireResistant;
-impl DataComponent for FireResistant {}
 
 #[derive(Clone, PartialEq, McBuf)]
 pub struct ToolRule {
@@ -664,3 +672,111 @@ pub struct JukeboxPlayable {
     pub show_in_tooltip: bool,
 }
 impl DataComponent for JukeboxPlayable {}
+
+#[derive(Clone, PartialEq, McBuf)]
+pub struct Consumable {
+    pub consume_seconds: f32,
+    pub animation: ItemUseAnimation,
+    pub sound: SoundEvent,
+    pub has_consume_particles: bool,
+    pub on_consuime_effects: Vec<ConsumeEffectKind>,
+}
+impl DataComponent for Consumable {}
+
+#[derive(Clone, Copy, PartialEq, McBuf)]
+pub enum ItemUseAnimation {
+    None,
+    Eat,
+    Drink,
+    Block,
+    Bow,
+    Spear,
+    Crossbow,
+    Spyglass,
+    TootHorn,
+    Brush,
+}
+
+#[derive(Clone, PartialEq, McBuf)]
+pub struct UseRemainder {
+    pub convert_into: ItemSlot,
+}
+impl DataComponent for UseRemainder {}
+
+#[derive(Clone, PartialEq, McBuf)]
+pub struct UseCooldown {
+    pub seconds: f32,
+    pub cooldown_group: Option<ResourceLocation>,
+}
+impl DataComponent for UseCooldown {}
+
+#[derive(Clone, PartialEq, McBuf)]
+pub struct Enchantable {
+    #[var]
+    pub value: u32,
+}
+impl DataComponent for Enchantable {}
+
+#[derive(Clone, PartialEq, McBuf)]
+pub struct Repairable {
+    pub items: HolderSet<Item, ResourceLocation>,
+}
+impl DataComponent for Repairable {}
+
+#[derive(Clone, PartialEq, McBuf)]
+pub struct ItemModel {
+    pub resource_location: ResourceLocation,
+}
+impl DataComponent for ItemModel {}
+
+#[derive(Clone, PartialEq, McBuf)]
+pub struct DamageResistant {
+    // in the vanilla code this is
+    // ```
+    // StreamCodec.composite(
+    //   TagKey.streamCodec(Registries.DAMAGE_TYPE), DamageResistant::types, DamageResistant::new
+    // );
+    // ```
+    // i'm not entirely sure if this is meant to be a vec or something, i just made it a
+    // resourcelocation for now
+    pub types: ResourceLocation,
+}
+impl DataComponent for DamageResistant {}
+
+#[derive(Clone, PartialEq, McBuf)]
+pub struct Equippable {
+    pub slot: EquipmentSlot,
+    pub equip_sound: SoundEvent,
+    pub model: Option<ResourceLocation>,
+    pub allowed_entities: HolderSet<EntityKind, ResourceLocation>,
+}
+impl DataComponent for Equippable {}
+
+#[derive(Clone, Copy, Debug, PartialEq, McBuf)]
+pub enum EquipmentSlot {
+    Mainhand,
+    Offhand,
+    Hand,
+    Feet,
+    Legs,
+    Chest,
+    Head,
+    Armor,
+    Body,
+}
+
+#[derive(Clone, PartialEq, McBuf)]
+pub struct Glider;
+impl DataComponent for Glider {}
+
+#[derive(Clone, PartialEq, McBuf)]
+pub struct TooltipStyle {
+    pub resource_location: ResourceLocation,
+}
+impl DataComponent for TooltipStyle {}
+
+#[derive(Clone, PartialEq, McBuf)]
+pub struct DeathProtection {
+    pub death_effects: Vec<ConsumeEffectKind>,
+}
+impl DataComponent for DeathProtection {}
