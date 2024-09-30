@@ -188,6 +188,29 @@ pub static BREAKS_DECORATED_POTS: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::IronHoe,
     ])
 });
+pub static BREWING_FUEL: Lazy<HashSet<Item>> =
+    Lazy::new(|| HashSet::from_iter(vec![Item::BlazePowder]));
+pub static BUNDLES: Lazy<HashSet<Item>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Item::Bundle,
+        Item::BlackBundle,
+        Item::BlueBundle,
+        Item::BrownBundle,
+        Item::CyanBundle,
+        Item::GrayBundle,
+        Item::GreenBundle,
+        Item::LightBlueBundle,
+        Item::LightGrayBundle,
+        Item::LimeBundle,
+        Item::MagentaBundle,
+        Item::OrangeBundle,
+        Item::PinkBundle,
+        Item::PurpleBundle,
+        Item::RedBundle,
+        Item::YellowBundle,
+        Item::WhiteBundle,
+    ])
+});
 pub static BUTTONS: Lazy<HashSet<Item>> = Lazy::new(|| {
     HashSet::from_iter(vec![
         Item::OakButton,
@@ -511,6 +534,8 @@ pub static DOORS: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::CherryDoor,
     ])
 });
+pub static DUPLICATES_ALLAYS: Lazy<HashSet<Item>> =
+    Lazy::new(|| HashSet::from_iter(vec![Item::AmethystShard]));
 pub static DYEABLE: Lazy<HashSet<Item>> = Lazy::new(|| {
     HashSet::from_iter(vec![
         Item::LeatherHelmet,
@@ -1197,6 +1222,8 @@ pub static MANGROVE_LOGS: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::StrippedMangroveWood,
     ])
 });
+pub static MAP_INVISIBILITY_EQUIPMENT: Lazy<HashSet<Item>> =
+    Lazy::new(|| HashSet::from_iter(vec![Item::CarvedPumpkin]));
 pub static MEAT: Lazy<HashSet<Item>> = Lazy::new(|| {
     HashSet::from_iter(vec![
         Item::Beef,
@@ -1269,6 +1296,8 @@ pub static OAK_LOGS: Lazy<HashSet<Item>> = Lazy::new(|| {
 });
 pub static OCELOT_FOOD: Lazy<HashSet<Item>> =
     Lazy::new(|| HashSet::from_iter(vec![Item::Cod, Item::Salmon]));
+pub static PANDA_EATS_FROM_GROUND: Lazy<HashSet<Item>> =
+    Lazy::new(|| HashSet::from_iter(vec![Item::Cake, Item::Bamboo]));
 pub static PANDA_FOOD: Lazy<HashSet<Item>> = Lazy::new(|| HashSet::from_iter(vec![Item::Bamboo]));
 pub static PARROT_FOOD: Lazy<HashSet<Item>> = Lazy::new(|| {
     HashSet::from_iter(vec![
@@ -1327,6 +1356,14 @@ pub static PIGLIN_LOVED: Lazy<HashSet<Item>> = Lazy::new(|| {
 });
 pub static PIGLIN_REPELLENTS: Lazy<HashSet<Item>> =
     Lazy::new(|| HashSet::from_iter(vec![Item::SoulTorch, Item::SoulLantern, Item::SoulCampfire]));
+pub static PIGLIN_SAFE_ARMOR: Lazy<HashSet<Item>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Item::GoldenHelmet,
+        Item::GoldenChestplate,
+        Item::GoldenLeggings,
+        Item::GoldenBoots,
+    ])
+});
 pub static PLANKS: Lazy<HashSet<Item>> = Lazy::new(|| {
     HashSet::from_iter(vec![
         Item::OakPlanks,
@@ -1354,6 +1391,22 @@ pub static RAILS: Lazy<HashSet<Item>> = Lazy::new(|| {
 });
 pub static REDSTONE_ORES: Lazy<HashSet<Item>> =
     Lazy::new(|| HashSet::from_iter(vec![Item::RedstoneOre, Item::DeepslateRedstoneOre]));
+pub static REPAIRS_CHAIN_ARMOR: Lazy<HashSet<Item>> =
+    Lazy::new(|| HashSet::from_iter(vec![Item::IronIngot]));
+pub static REPAIRS_DIAMOND_ARMOR: Lazy<HashSet<Item>> =
+    Lazy::new(|| HashSet::from_iter(vec![Item::Diamond]));
+pub static REPAIRS_GOLD_ARMOR: Lazy<HashSet<Item>> =
+    Lazy::new(|| HashSet::from_iter(vec![Item::GoldIngot]));
+pub static REPAIRS_IRON_ARMOR: Lazy<HashSet<Item>> =
+    Lazy::new(|| HashSet::from_iter(vec![Item::IronIngot]));
+pub static REPAIRS_LEATHER_ARMOR: Lazy<HashSet<Item>> =
+    Lazy::new(|| HashSet::from_iter(vec![Item::Leather]));
+pub static REPAIRS_NETHERITE_ARMOR: Lazy<HashSet<Item>> =
+    Lazy::new(|| HashSet::from_iter(vec![Item::NetheriteIngot]));
+pub static REPAIRS_TURTLE_HELMET: Lazy<HashSet<Item>> =
+    Lazy::new(|| HashSet::from_iter(vec![Item::TurtleScute]));
+pub static REPAIRS_WOLF_ARMOR: Lazy<HashSet<Item>> =
+    Lazy::new(|| HashSet::from_iter(vec![Item::ArmadilloScute]));
 pub static SAND: Lazy<HashSet<Item>> = Lazy::new(|| {
     HashSet::from_iter(vec![
         Item::Sand,
@@ -1385,6 +1438,27 @@ pub static SHOVELS: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::NetheriteShovel,
         Item::WoodenShovel,
         Item::IronShovel,
+    ])
+});
+pub static SHULKER_BOXES: Lazy<HashSet<Item>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Item::ShulkerBox,
+        Item::BlackShulkerBox,
+        Item::BlueShulkerBox,
+        Item::BrownShulkerBox,
+        Item::CyanShulkerBox,
+        Item::GrayShulkerBox,
+        Item::GreenShulkerBox,
+        Item::LightBlueShulkerBox,
+        Item::LightGrayShulkerBox,
+        Item::LimeShulkerBox,
+        Item::MagentaShulkerBox,
+        Item::OrangeShulkerBox,
+        Item::PinkShulkerBox,
+        Item::PurpleShulkerBox,
+        Item::RedShulkerBox,
+        Item::WhiteShulkerBox,
+        Item::YellowShulkerBox,
     ])
 });
 pub static SIGNS: Lazy<HashSet<Item>> = Lazy::new(|| {
