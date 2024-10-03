@@ -3,16 +3,18 @@
 //! The most common ones are [`Vec3`] and [`BlockPos`], which are usually used
 //! for entity positions and block positions, respectively.
 
+use crate::resource_location::ResourceLocation;
 use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+use std::fmt::Display;
+use std::str::FromStr;
 use std::{
     fmt,
     hash::Hash,
     io::{Cursor, Write},
     ops::{Add, AddAssign, Mul, Rem, Sub},
 };
-#[cfg(feature = "serde")]
-use serde::{Deserialize, Serialize};
-use crate::resource_location::ResourceLocation;
 
 macro_rules! vec3_impl {
     ($name:ident, $type:ty) => {
@@ -267,6 +269,33 @@ impl BlockPos {
     /// Get the distance of this vector from the origin by doing `x + y + z`.
     pub fn length_manhattan(&self) -> u32 {
         (self.x.abs() + self.y.abs() + self.z.abs()) as u32
+    }
+}
+
+impl Display for BlockPos {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "({}, {}, {})", self.x, self.y, self.z)
+    }
+}
+
+impl FromStr for BlockPos {
+    type Err = &'static str;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let pos = s
+            .trim_matches(|c| c == '(' || c == ')')
+            .split(',')
+            .collect::<Vec<_>>();
+
+        if pos.len() != 3 {
+            return Err("Must be a length of 3");
+        }
+
+        Ok(BlockPos {
+            x: pos[0].parse()?,
+            y: pos[1].parse()?,
+            z: pos[2].parse()?,
+        })
     }
 }
 
