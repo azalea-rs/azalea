@@ -187,7 +187,7 @@ fn configuration_packet_listener(
         let local_player_events = query
             .get(event.entity)
             .expect("Non-local entities shouldn't be able to receive packet events");
-        let _ = local_player_events.send(Event::Packet(event.packet.clone()));
+        let _ = local_player_events.send(Event::Packet(ClientboundPacket::Configuration(event.packet.clone())));
     }
 }
 
@@ -199,7 +199,7 @@ fn game_packet_listener(
         let local_player_events = query
             .get(event.entity)
             .expect("Non-local entities shouldn't be able to receive packet events");
-        let _ = local_player_events.send(Event::Packet(event.packet.clone()));
+        let _ = local_player_events.send(Event::Packet(ClientboundPacket::Game(event.packet.clone())));
     }
 }
 
