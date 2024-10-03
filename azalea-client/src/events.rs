@@ -191,6 +191,18 @@ fn configuration_packet_listener(
     }
 }
 
+fn game_packet_listener(
+    query: Query<&LocalPlayerEvents>,
+    mut events: EventReader<GamePacketEvent>,
+) {
+    for event in events.read() {
+        let local_player_events = query
+            .get(event.entity)
+            .expect("Non-local entities shouldn't be able to receive packet events");
+        let _ = local_player_events.send(Event::Packet(event.packet.clone()));
+    }
+}
+
 fn add_player_listener(query: Query<&LocalPlayerEvents>, mut events: EventReader<AddPlayerEvent>) {
     for event in events.read() {
         let local_player_events = query
