@@ -10,7 +10,8 @@ use std::{
     io::{Cursor, Write},
     ops::{Add, AddAssign, Mul, Rem, Sub},
 };
-
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 use crate::resource_location::ResourceLocation;
 
 macro_rules! vec3_impl {
@@ -235,6 +236,7 @@ impl Vec3 {
 /// The coordinates of a block in the world. For entities (if the coordinate
 /// with decimals), use [`Vec3`] instead.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct BlockPos {
     pub x: i32,
     pub y: i32,
