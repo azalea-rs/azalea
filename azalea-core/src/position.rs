@@ -214,6 +214,7 @@ macro_rules! vec3_impl {
 /// Used to represent an exact position in the world where an entity could be.
 /// For blocks, [`BlockPos`] is used instead.
 #[derive(Clone, Copy, Debug, Default, PartialEq, McBuf)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Vec3 {
     pub x: f64,
     pub y: f64,
