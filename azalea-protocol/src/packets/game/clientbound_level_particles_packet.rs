@@ -15,3 +15,25 @@ pub struct ClientboundLevelParticlesPacket {
     pub count: u32,
     pub particle: Particle,
 }
+
+#[cfg(test)]
+mod tests {
+    use std::io::Cursor;
+
+    use azalea_buf::McBufReadable;
+
+    use super::*;
+
+    #[test]
+    fn test_clientbound_level_particles_packet() {
+        let slice = &[
+            0, 64, 139, 10, 0, 0, 0, 0, 0, 192, 26, 0, 0, 0, 0, 0, 0, 64, 144, 58, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 13, 63, 128, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 63, 128, 0, 0,
+        ][..];
+        let mut bytes = Cursor::new(slice);
+
+        let _packet = ClientboundLevelParticlesPacket::read_from(&mut bytes).unwrap();
+        assert_eq!(bytes.position(), slice.len() as u64);
+    }
+}

@@ -51,6 +51,8 @@ fn serialize_args_as_nbt(args: &[StringOrComponent]) -> simdnbt::owned::NbtList 
     // if it's all components then make it a compound list
     // if it's a mix then return an error
 
+    use tracing::debug;
+
     let mut string_list = Vec::new();
     let mut compound_list = Vec::new();
 
@@ -68,9 +70,7 @@ fn serialize_args_as_nbt(args: &[StringOrComponent]) -> simdnbt::owned::NbtList 
     if !string_list.is_empty() && !compound_list.is_empty() {
         // i'm actually not sure what vanilla does here, so i just made it return the
         // string list
-        tracing::debug!(
-            "Tried to serialize a TranslatableComponent with a mix of strings and components."
-        );
+        debug!("Tried to serialize a TranslatableComponent with a mix of strings and components.");
         return string_list.into();
     }
 

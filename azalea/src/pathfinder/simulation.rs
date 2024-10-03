@@ -144,8 +144,21 @@ impl Simulation {
         self.app.update();
         self.app.world.run_schedule(GameTick);
     }
+    pub fn component<T: Component + Clone>(&self) -> T {
+        self.app.world.get::<T>(self.entity).unwrap().clone()
+    }
+    pub fn get_component<T: Component + Clone>(&self) -> Option<T> {
+        self.app.world.get::<T>(self.entity).cloned()
+    }
     pub fn position(&self) -> Vec3 {
-        **self.app.world.get::<Position>(self.entity).unwrap()
+        *self.component::<Position>()
+    }
+    pub fn is_mining(&self) -> bool {
+        // return true if the component is present and Some
+        self.get_component::<azalea_client::mining::MineBlockPos>()
+            .map(|c| *c)
+            .flatten()
+            .is_some()
     }
 }
 

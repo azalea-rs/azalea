@@ -2,7 +2,7 @@ use azalea_block::BlockState;
 use azalea_core::{
     block_hit_result::BlockHitResult,
     direction::Direction,
-    math::{lerp, EPSILON},
+    math::{self, lerp, EPSILON},
     position::{BlockPos, Vec3},
 };
 use azalea_inventory::ItemSlot;
@@ -113,11 +113,9 @@ fn clip_with_interaction_override(
     let block_hit_result = block_shape.clip(from, to, block_pos);
     if let Some(block_hit_result) = block_hit_result {
         // TODO: minecraft calls .getInteractionShape here
-        // are there even any blocks that have a physics shape different from the
-        // interaction shape???
-        // (if not then you can delete this comment)
-        // (if there are then you have to implement BlockState::interaction_shape, lol
-        // have fun)
+        // some blocks (like tall grass) have a physics shape that's different from the
+        // interaction shape, so we need to implement BlockState::interaction_shape. lol
+        // have fun
         let interaction_shape = block_state.shape();
         let interaction_hit_result = interaction_shape.clip(from, to, block_pos);
         if let Some(interaction_hit_result) = interaction_hit_result {
@@ -191,21 +189,21 @@ pub fn traverse_blocks<C, T>(
     let mut percentage = Vec3 {
         x: percentage_step.x
             * if vec_sign.x > 0. {
-                1. - right_before_start.x.fract()
+                1. - math::fract(right_before_start.x)
             } else {
-                right_before_start.x.fract().abs()
+                math::fract(right_before_start.x)
             },
         y: percentage_step.y
             * if vec_sign.y > 0. {
-                1. - right_before_start.y.fract()
+                1. - math::fract(right_before_start.y)
             } else {
-                right_before_start.y.fract().abs()
+                math::fract(right_before_start.y)
             },
         z: percentage_step.z
             * if vec_sign.z > 0. {
-                1. - right_before_start.z.fract()
+                1. - math::fract(right_before_start.z)
             } else {
-                right_before_start.z.fract().abs()
+                math::fract(right_before_start.z)
             },
     };
 

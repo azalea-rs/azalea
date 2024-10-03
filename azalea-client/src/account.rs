@@ -7,6 +7,7 @@ use azalea_auth::AccessTokenResponse;
 use bevy_ecs::component::Component;
 use parking_lot::Mutex;
 use thiserror::Error;
+use tracing::trace;
 use uuid::Uuid;
 
 /// Something that can join Minecraft servers.
@@ -90,6 +91,18 @@ impl Account {
     /// a key for the cache, but it's recommended to use the real email to
     /// avoid confusion.
     pub async fn microsoft(email: &str) -> Result<Self, azalea_auth::AuthError> {
+        Self::microsoft_with_custom_client_id_and_scope(email, None, None).await
+    }
+
+    /// Similar to [`Account::microsoft`] but you can use your
+    /// own `client_id` and `scope`.
+    ///
+    /// Pass `None` if you want to use default ones.
+    pub async fn microsoft_with_custom_client_id_and_scope(
+        email: &str,
+        client_id: Option<&str>,
+        scope: Option<&str>,
+    ) -> Result<Self, azalea_auth::AuthError> {
         let minecraft_dir = minecraft_folder_path::minecraft_dir().unwrap_or_else(|| {
             panic!(
                 "No {} environment variable found",
@@ -100,6 +113,8 @@ impl Account {
             email,
             azalea_auth::AuthOpts {
                 cache_file: Some(minecraft_dir.join("azalea-auth.json")),
+                client_id,
+                scope,
                 ..Default::default()
             },
         )
@@ -121,31 +136,49 @@ impl Account {
     /// the authentication process (like doing your own caching or
     /// displaying the Microsoft user code to the user in a different way).
     ///
-    /// Note that this will not refresh the token when it expires.
+    /// This will refresh the given token if it's expired.
     ///
     /// ```
     /// # use azalea_client::Account;
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// let client = reqwest::Client::new();
     ///
-    /// let res = azalea_auth::get_ms_link_code(&client).await?;
+    /// let res = azalea_auth::get_ms_link_code(&client, None, None).await?;
+    /// // Or, `azalea_auth::get_ms_link_code(&client, Some(client_id), None).await?`
+    /// // if you want to use your own client_id
     /// println!(
     ///     "Go to {} and enter the code {}",
     ///     res.verification_uri, res.user_code
     /// );
-    /// let msa = azalea_auth::get_ms_auth_token(&client, res).await?;
+    /// let msa = azalea_auth::get_ms_auth_token(&client, res, None).await?;
     /// Account::with_microsoft_access_token(msa).await?;
     /// # Ok(())
     /// # }
     /// ```
     pub async fn with_microsoft_access_token(
+        msa: azalea_auth::cache::ExpiringValue<AccessTokenResponse>,
+    ) -> Result<Self, azalea_auth::AuthError> {
+        Self::with_microsoft_access_token_and_custom_client_id_and_scope(msa, None, None).await
+    }
+
+    /// Similar to [`Account::with_microsoft_access_token`] but you can use
+    /// custom `client_id` and `scope`.
+    pub async fn with_microsoft_access_token_and_custom_client_id_and_scope(
         mut msa: azalea_auth::cache::ExpiringValue<AccessTokenResponse>,
+        client_id: Option<&str>,
+        scope: Option<&str>,
     ) -> Result<Self, azalea_auth::AuthError> {
         let client = reqwest::Client::new();
 
         if msa.is_expired() {
-            tracing::trace!("refreshing Microsoft auth token");
-            msa = azalea_auth::refresh_ms_auth_token(&client, &msa.data.refresh_token).await?;
+            trace!("refreshing Microsoft auth token");
+            msa = azalea_auth::refresh_ms_auth_token(
+                &client,
+                &msa.data.refresh_token,
+                client_id,
+                scope,
+            )
+            .await?;
         }
 
         let msa_token = &msa.data.access_token;

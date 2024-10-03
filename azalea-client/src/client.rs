@@ -601,7 +601,7 @@ impl Client {
         }
 
         if self.logged_in() {
-            tracing::debug!(
+            debug!(
                 "Sending client information (already logged in): {:?}",
                 client_information
             );

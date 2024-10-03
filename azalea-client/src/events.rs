@@ -152,14 +152,14 @@ impl Plugin for EventPlugin {
 // when LocalPlayerEvents is added, it means the client just started
 fn init_listener(query: Query<&LocalPlayerEvents, Added<LocalPlayerEvents>>) {
     for local_player_events in &query {
-        local_player_events.send(Event::Init).unwrap();
+        let _ = local_player_events.send(Event::Init);
     }
 }
 
 // when MinecraftEntityId is added, it means the player is now in the world
 fn login_listener(query: Query<&LocalPlayerEvents, Added<MinecraftEntityId>>) {
     for local_player_events in &query {
-        local_player_events.send(Event::Login).unwrap();
+        let _ = local_player_events.send(Event::Login);
     }
 }
 
@@ -168,16 +168,14 @@ fn chat_listener(query: Query<&LocalPlayerEvents>, mut events: EventReader<ChatR
         let local_player_events = query
             .get(event.entity)
             .expect("Non-local entities shouldn't be able to receive chat events");
-        local_player_events
-            .send(Event::Chat(event.packet.clone()))
-            .unwrap();
+        let _ = local_player_events.send(Event::Chat(event.packet.clone()));
     }
 }
 
 // only tick if we're in a world
 fn tick_listener(query: Query<&LocalPlayerEvents, With<InstanceName>>) {
     for local_player_events in &query {
-        local_player_events.send(Event::Tick).unwrap();
+        let _ = local_player_events.send(Event::Tick);
     }
 }
 
@@ -189,31 +187,7 @@ fn configuration_packet_listener(
         let local_player_events = query
             .get(event.entity)
             .expect("Non-local entities shouldn't be able to receive packet events");
-        local_player_events
-            .send(Event::Packet(ClientboundPacket::Configuration(
-                event.packet.clone(),
-            )))
-            .unwrap();
-        local_player_events
-            .send(Event::ConfigurationPacket(event.packet.clone()))
-            .unwrap();
-    }
-}
-
-fn game_packet_listener(
-    query: Query<&LocalPlayerEvents>,
-    mut events: EventReader<GamePacketEvent>,
-) {
-    for event in events.read() {
-        let local_player_events = query
-            .get(event.entity)
-            .expect("Non-local entities shouldn't be able to receive packet events");
-        local_player_events
-            .send(Event::Packet(ClientboundPacket::Game(event.packet.clone())))
-            .unwrap();
-        local_player_events
-            .send(Event::GamePacket(event.packet.clone()))
-            .unwrap();
+        let _ = local_player_events.send(Event::Packet(event.packet.clone()));
     }
 }
 
@@ -222,9 +196,7 @@ fn add_player_listener(query: Query<&LocalPlayerEvents>, mut events: EventReader
         let local_player_events = query
             .get(event.entity)
             .expect("Non-local entities shouldn't be able to receive add player events");
-        local_player_events
-            .send(Event::AddPlayer(event.info.clone()))
-            .unwrap();
+        let _ = local_player_events.send(Event::AddPlayer(event.info.clone()));
     }
 }
 
@@ -236,9 +208,7 @@ fn update_player_listener(
         let local_player_events = query
             .get(event.entity)
             .expect("Non-local entities shouldn't be able to receive update player events");
-        local_player_events
-            .send(Event::UpdatePlayer(event.info.clone()))
-            .unwrap();
+        let _ = local_player_events.send(Event::UpdatePlayer(event.info.clone()));
     }
 }
 
@@ -250,18 +220,14 @@ fn remove_player_listener(
         let local_player_events = query
             .get(event.entity)
             .expect("Non-local entities shouldn't be able to receive remove player events");
-        local_player_events
-            .send(Event::RemovePlayer(event.info.clone()))
-            .unwrap();
+        let _ = local_player_events.send(Event::RemovePlayer(event.info.clone()));
     }
 }
 
 pub fn death_listener(query: Query<&LocalPlayerEvents>, mut events: EventReader<DeathEvent>) {
     for event in events.read() {
         if let Ok(local_player_events) = query.get(event.entity) {
-            local_player_events
-                .send(Event::Death(event.packet.clone().map(|p| p.into())))
-                .unwrap();
+            let _ = local_player_events.send(Event::Death(event.packet.clone().map(|p| p.into())));
         }
     }
 }
@@ -271,9 +237,7 @@ fn keepalive_listener(query: Query<&LocalPlayerEvents>, mut events: EventReader<
         let local_player_events = query
             .get(event.entity)
             .expect("Non-local entities shouldn't be able to receive keepalive events");
-        local_player_events
-            .send(Event::KeepAlive(event.id))
-            .unwrap();
+        let _ = local_player_events.send(Event::KeepAlive(event.id));
     }
 }
 

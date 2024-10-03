@@ -458,7 +458,7 @@ fn set_sprinting(
     if sprinting {
         attributes
             .speed
-            .insert(azalea_entity::attributes::sprinting_modifier())
+            .try_insert(azalea_entity::attributes::sprinting_modifier())
             .is_ok()
     } else {
         attributes
