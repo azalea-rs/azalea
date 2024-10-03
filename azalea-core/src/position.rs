@@ -3,15 +3,18 @@
 //! The most common ones are [`Vec3`] and [`BlockPos`], which are usually used
 //! for entity positions and block positions, respectively.
 
+use crate::resource_location::ResourceLocation;
 use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+use std::str::FromStr;
 use std::{
     fmt,
     hash::Hash,
     io::{Cursor, Write},
     ops::{Add, AddAssign, Mul, Rem, Sub},
 };
-
-use crate::resource_location::ResourceLocation;
+use std::num::{ParseFloatError, ParseIntError};
 
 macro_rules! vec3_impl {
     ($name:ident, $type:ty) => {
@@ -211,6 +214,7 @@ macro_rules! vec3_impl {
 /// Used to represent an exact position in the world where an entity could be.
 /// For blocks, [`BlockPos`] is used instead.
 #[derive(Clone, Copy, Debug, Default, PartialEq, McBuf)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Vec3 {
     pub x: f64,
     pub y: f64,
@@ -235,6 +239,7 @@ impl Vec3 {
 /// The coordinates of a block in the world. For entities (if the coordinate
 /// with decimals), use [`Vec3`] instead.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct BlockPos {
     pub x: i32,
     pub y: i32,
@@ -568,6 +573,46 @@ impl fmt::Display for Vec3 {
     /// Display a position as `x y z`.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{} {} {}", self.x, self.y, self.z)
+    }
+}
+
+impl FromStr for BlockPos {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let pos = s
+            .split(' ')
+            .collect::<Vec<_>>();
+
+        if pos.len() != 3 {
+            return Err("Must be a length of 3".to_string());
+        }
+
+        Ok(BlockPos {
+            x: pos[0].parse().map_err(|e: ParseIntError| e.to_string())?,
+            y: pos[1].parse().map_err(|e: ParseIntError| e.to_string())?,
+            z: pos[2].parse().map_err(|e: ParseIntError| e.to_string())?,
+        })
+    }
+}
+
+impl FromStr for Vec3 {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let pos = s
+            .split(' ')
+            .collect::<Vec<_>>();
+
+        if pos.len() != 3 {
+            return Err("Must be a length of 3".to_string());
+        }
+
+        Ok(Vec3 {
+            x: pos[0].parse().map_err(|e: ParseFloatError| e.to_string())?,
+            y: pos[1].parse().map_err(|e: ParseFloatError| e.to_string())?,
+            z: pos[2].parse().map_err(|e: ParseFloatError| e.to_string())?,
+        })
     }
 }
 
