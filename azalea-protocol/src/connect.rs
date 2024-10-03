@@ -529,6 +529,17 @@ impl Connection<ClientboundConfigurationPacket, ServerboundConfigurationPacket> 
     }
 }
 
+impl Connection<ServerboundGamePacket, ClientboundGamePacket> {
+    /// Change our state from configuration to game. This is the state that's
+    /// used when the client is actually in the world.
+    #[must_use]
+    pub fn game(
+        self,
+    ) -> Connection<ServerboundConfigurationPacket, ClientboundConfigurationPacket> {
+        Connection::from(self)
+    }
+}
+
 impl Connection<ClientboundGamePacket, ServerboundGamePacket> {
     /// Change our state back to configuration.
     #[must_use]
