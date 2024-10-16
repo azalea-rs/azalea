@@ -133,10 +133,7 @@ impl IntoIterator for FormattedText {
         let siblings = base.siblings.clone();
         let mut v: Vec<FormattedText> = Vec::with_capacity(siblings.len() + 1);
         v.push(self);
-        for sibling in siblings {
-            v.extend(sibling);
-        }
-
+        v.extend(siblings);
         v.into_iter()
     }
 
