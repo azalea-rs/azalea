@@ -8,6 +8,7 @@
 mod extra;
 pub mod tags;
 
+use std::fmt::{self, Debug};
 use std::io::{Cursor, Write};
 
 use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
@@ -111,7 +112,6 @@ impl<D: Registry, ResourceLocation: McBufReadable + McBufWritable> McBufReadable
         }
     }
 }
-
 impl<D: Registry, ResourceLocation: McBufReadable + McBufWritable> McBufWritable
     for HolderSet<D, ResourceLocation>
 {
@@ -129,6 +129,20 @@ impl<D: Registry, ResourceLocation: McBufReadable + McBufWritable> McBufWritable
             }
         }
         Ok(())
+    }
+}
+impl<D: Registry + Debug, ResourceLocation: McBufReadable + McBufWritable + Debug> Debug
+    for HolderSet<D, ResourceLocation>
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Direct { contents } => f.debug_list().entries(contents).finish(),
+            Self::Named { key, contents } => f
+                .debug_struct("Named")
+                .field("key", key)
+                .field("contents", contents)
+                .finish(),
+        }
     }
 }
 

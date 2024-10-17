@@ -1,21 +1,76 @@
-use azalea_buf::{
-    BufReadError, McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable,
-};
+use std::io::{self, Cursor};
+
+use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufVarReadable, McBufWritable};
 use azalea_core::resource_location::ResourceLocation;
 use azalea_inventory::ItemSlot;
 use azalea_protocol_macros::ClientboundGamePacket;
+use azalea_registry::HolderSet;
 
-use std::io::{Cursor, Write};
-
-#[derive(Clone, Debug, McBuf, PartialEq, ClientboundGamePacket)]
+#[derive(Clone, Debug, PartialEq, ClientboundGamePacket)]
 pub struct ClientboundUpdateRecipesPacket {
     pub recipes: Vec<RecipeHolder>,
 }
 
-#[derive(Clone, Debug, PartialEq, McBuf)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct RecipeHolder {
     pub id: ResourceLocation,
     pub data: RecipeData,
+}
+
+// custom reader for additional debug info
+
+impl McBufReadable for ClientboundUpdateRecipesPacket {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let length = u32::var_read_from(buf)? as usize;
+        // we limit the capacity to not get exploited into allocating a bunch
+        let mut recipes = Vec::with_capacity(usize::min(length, 65536));
+
+        #[cfg(debug_assertions)]
+        {
+            let mut last_id = None;
+            for _ in 0..length {
+                let recipe = RecipeHolder::read_from(buf).map_err(|e| {
+                    BufReadError::Custom(format!(
+                        "Failed to read RecipeHolder for recipe right after id {:?}: {e}",
+                        last_id
+                    ))
+                })?;
+                last_id = Some(recipe.id.clone());
+                recipes.push(recipe);
+            }
+        }
+        #[cfg(not(debug_assertions))]
+        {
+            for _ in 0..length {
+                recipes.push(RecipeHolder::read_from(buf)?);
+            }
+        }
+
+        Ok(ClientboundUpdateRecipesPacket { recipes })
+    }
+}
+impl McBufWritable for ClientboundUpdateRecipesPacket {
+    fn write_into(&self, buf: &mut impl io::Write) -> Result<(), io::Error> {
+        self.recipes.write_into(buf)
+    }
+}
+
+impl McBufReadable for RecipeHolder {
+    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let id = ResourceLocation::read_from(buf)?;
+        let data = RecipeData::read_from(buf).map_err(|e| {
+            BufReadError::Custom(format!(
+                "Failed to read RecipeData for recipe with id {id}: {e}"
+            ))
+        })?;
+        Ok(RecipeHolder { id, data })
+    }
+}
+impl McBufWritable for RecipeHolder {
+    fn write_into(&self, buf: &mut impl io::Write) -> Result<(), io::Error> {
+        self.id.write_into(buf)?;
+        self.data.write_into(buf)
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, McBuf)]
@@ -24,8 +79,8 @@ pub struct ShapelessRecipe {
     /// Nbt is present in recipe JSON
     pub group: String,
     pub category: CraftingBookCategory,
-    pub ingredients: Vec<Ingredient>,
     pub result: ItemSlot,
+    pub ingredients: Vec<Ingredient>,
 }
 #[derive(Clone, Debug, PartialEq, McBuf)]
 pub struct ShapedRecipe {
@@ -36,39 +91,13 @@ pub struct ShapedRecipe {
     pub show_notification: bool,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, McBuf)]
 pub struct ShapedRecipePattern {
-    pub width: usize,
-    pub height: usize,
+    #[var]
+    pub width: u32,
+    #[var]
+    pub height: u32,
     pub ingredients: Vec<Ingredient>,
-}
-
-impl McBufWritable for ShapedRecipePattern {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        (self.width as u32).var_write_into(buf)?;
-        (self.height as u32).var_write_into(buf)?;
-        debug_assert_eq!(self.width * self.height, self.ingredients.len());
-        for ingredient in &self.ingredients {
-            ingredient.write_into(buf)?;
-        }
-        Ok(())
-    }
-}
-
-impl McBufReadable for ShapedRecipePattern {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let width = u32::var_read_from(buf)? as usize;
-        let height = u32::var_read_from(buf)? as usize;
-        let mut ingredients = Vec::with_capacity(width * height);
-        for _ in 0..width * height {
-            ingredients.push(Ingredient::read_from(buf)?);
-        }
-        Ok(ShapedRecipePattern {
-            width,
-            height,
-            ingredients,
-        })
-    }
 }
 
 #[derive(Clone, Debug, Copy, PartialEq, McBuf)]
@@ -80,7 +109,7 @@ pub enum CraftingBookCategory {
 }
 
 #[derive(Clone, Debug, PartialEq, McBuf)]
-pub struct CookingRecipe {
+pub struct SimpleCookingRecipe {
     pub group: String,
     pub category: CraftingBookCategory,
     pub ingredient: Ingredient,
@@ -97,13 +126,13 @@ pub struct StoneCutterRecipe {
 }
 #[derive(Clone, Debug, PartialEq, McBuf)]
 pub struct SmithingRecipe {
+    pub template: ItemSlot,
     pub base: Ingredient,
     pub addition: Ingredient,
-    pub result: ItemSlot,
 }
 
 #[derive(Clone, Debug, PartialEq, McBuf)]
-pub struct SimpleRecipe {
+pub struct SimpleCraftingRecipe {
     pub category: CraftingBookCategory,
 }
 
@@ -123,35 +152,44 @@ pub struct SmithingTrimRecipe {
 }
 
 #[derive(Clone, Debug, PartialEq, McBuf)]
+pub struct TransmuteRecipe {
+    pub group: String,
+    pub category: CraftingBookCategory,
+    pub input: Ingredient,
+    pub material: Ingredient,
+    pub result: azalea_registry::Item,
+}
+
+// see RecipeSerializer.java
+#[derive(Clone, Debug, PartialEq, McBuf)]
 pub enum RecipeData {
     CraftingShaped(ShapedRecipe),
     CraftingShapeless(ShapelessRecipe),
-    CraftingSpecialArmorDye(SimpleRecipe),
-    CraftingSpecialBookCloning(SimpleRecipe),
-    CraftingSpecialMapCloning(SimpleRecipe),
-    CraftingSpecialMapExtending(SimpleRecipe),
-    CraftingSpecialFireworkRocket(SimpleRecipe),
-    CraftingSpecialFireworkStar(SimpleRecipe),
-    CraftingSpecialFireworkStarFade(SimpleRecipe),
-    CraftingSpecialRepairItem(SimpleRecipe),
-    CraftingSpecialTippedArrow(SimpleRecipe),
-    CraftingSpecialBannerDuplicate(SimpleRecipe),
-    CraftingSpecialShieldDecoration(SimpleRecipe),
-    CraftingSpecialShulkerBoxColoring(SimpleRecipe),
-    CraftingSpecialSuspiciousStew(SimpleRecipe),
-    Smelting(CookingRecipe),
-    Blasting(CookingRecipe),
-    Smoking(CookingRecipe),
-    CampfireCooking(CookingRecipe),
+    CraftingSpecialArmorDye(SimpleCraftingRecipe),
+    CraftingSpecialBookCloning(SimpleCraftingRecipe),
+    CraftingSpecialMapCloning(SimpleCraftingRecipe),
+    CraftingSpecialMapExtending(SimpleCraftingRecipe),
+    CraftingSpecialFireworkRocket(SimpleCraftingRecipe),
+    CraftingSpecialFireworkStar(SimpleCraftingRecipe),
+    CraftingSpecialFireworkStarFade(SimpleCraftingRecipe),
+    CraftingSpecialTippedArrow(SimpleCraftingRecipe),
+    CraftingSpecialBannerDuplicate(SimpleCraftingRecipe),
+    CraftingSpecialShieldDecoration(SimpleCraftingRecipe),
+    Transmute(TransmuteRecipe),
+    CraftingSpecialRepairItem(SimpleCraftingRecipe),
+    Smelting(SimpleCookingRecipe),
+    Blasting(SimpleCookingRecipe),
+    Smoking(SimpleCookingRecipe),
+    CampfireCooking(SimpleCookingRecipe),
     Stonecutting(StoneCutterRecipe),
     SmithingTransform(SmithingTransformRecipe),
     SmithingTrim(SmithingTrimRecipe),
-    CraftingDecoratedPot(SimpleRecipe),
+    CraftingDecoratedPot(SimpleCraftingRecipe),
 }
 
 #[derive(Clone, Debug, PartialEq, McBuf)]
 pub struct Ingredient {
-    pub allowed: Vec<ItemSlot>,
+    pub allowed: HolderSet<azalea_registry::Item, ResourceLocation>,
 }
 
 #[cfg(test)]
@@ -171,16 +209,16 @@ mod tests {
                     height: 2,
                     ingredients: vec![
                         Ingredient {
-                            allowed: vec![ItemSlot::Empty],
+                            allowed: HolderSet::Direct { contents: vec![] },
                         },
                         Ingredient {
-                            allowed: vec![ItemSlot::Empty],
+                            allowed: HolderSet::Direct { contents: vec![] },
                         },
                         Ingredient {
-                            allowed: vec![ItemSlot::Empty],
+                            allowed: HolderSet::Direct { contents: vec![] },
                         },
                         Ingredient {
-                            allowed: vec![ItemSlot::Empty],
+                            allowed: HolderSet::Direct { contents: vec![] },
                         },
                     ],
                 },
@@ -203,16 +241,16 @@ mod tests {
                 category: CraftingBookCategory::Building,
                 ingredients: vec![
                     Ingredient {
-                        allowed: vec![ItemSlot::Empty],
+                        allowed: HolderSet::Direct { contents: vec![] },
                     },
                     Ingredient {
-                        allowed: vec![ItemSlot::Empty],
+                        allowed: HolderSet::Direct { contents: vec![] },
                     },
                     Ingredient {
-                        allowed: vec![ItemSlot::Empty],
+                        allowed: HolderSet::Direct { contents: vec![] },
                     },
                     Ingredient {
-                        allowed: vec![ItemSlot::Empty],
+                        allowed: HolderSet::Direct { contents: vec![] },
                     },
                 ],
                 result: ItemSlot::Empty,
@@ -228,7 +266,7 @@ mod tests {
         let mut buf = Vec::new();
         let recipe = RecipeHolder {
             id: ResourceLocation::new("minecraft:crafting_special_armordye"),
-            data: RecipeData::CraftingSpecialArmorDye(SimpleRecipe {
+            data: RecipeData::CraftingSpecialArmorDye(SimpleCraftingRecipe {
                 category: CraftingBookCategory::Building,
             }),
         };

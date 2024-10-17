@@ -17,4 +17,6 @@ pub struct CommonPlayerSpawnInfo {
     pub last_death_location: Option<GlobalPos>,
     #[var]
     pub portal_cooldown: u32,
+    #[var]
+    pub sea_level: i32,
 }

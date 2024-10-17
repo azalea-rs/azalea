@@ -446,25 +446,25 @@ pub fn process_packet_events(ecs: &mut World) {
                 let is_z_relative = p.relative_arguments.z;
 
                 let (delta_x, new_pos_x) = if is_x_relative {
-                    last_sent_position.x += p.x;
-                    (delta_movement.x, position.x + p.x)
+                    last_sent_position.x += p.pos.x;
+                    (delta_movement.x, position.x + p.pos.x)
                 } else {
-                    last_sent_position.x = p.x;
-                    (0.0, p.x)
+                    last_sent_position.x = p.pos.x;
+                    (0.0, p.pos.x)
                 };
                 let (delta_y, new_pos_y) = if is_y_relative {
-                    last_sent_position.y += p.y;
-                    (delta_movement.y, position.y + p.y)
+                    last_sent_position.y += p.pos.y;
+                    (delta_movement.y, position.y + p.pos.y)
                 } else {
-                    last_sent_position.y = p.y;
-                    (0.0, p.y)
+                    last_sent_position.y = p.pos.y;
+                    (0.0, p.pos.y)
                 };
                 let (delta_z, new_pos_z) = if is_z_relative {
-                    last_sent_position.z += p.z;
-                    (delta_movement.z, position.z + p.z)
+                    last_sent_position.z += p.pos.z;
+                    (delta_movement.z, position.z + p.pos.z)
                 } else {
-                    last_sent_position.z = p.z;
-                    (0.0, p.z)
+                    last_sent_position.z = p.pos.z;
+                    (0.0, p.pos.z)
                 };
 
                 let mut y_rot = p.y_rot;
