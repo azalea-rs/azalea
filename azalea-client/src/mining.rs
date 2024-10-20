@@ -93,7 +93,7 @@ impl Client {
 pub struct LeftClickMine;
 
 #[allow(clippy::type_complexity)]
-fn handle_auto_mine(
+pub fn handle_auto_mine(
     mut query: Query<
         (
             &HitResultComponent,
@@ -155,7 +155,7 @@ pub struct StartMiningBlockEvent {
     pub entity: Entity,
     pub position: BlockPos,
 }
-fn handle_start_mining_block_event(
+pub fn handle_start_mining_block_event(
     mut events: EventReader<StartMiningBlockEvent>,
     mut start_mining_events: EventWriter<StartMiningBlockWithDirectionEvent>,
     mut query: Query<&HitResultComponent>,
@@ -184,7 +184,7 @@ pub struct StartMiningBlockWithDirectionEvent {
     pub direction: Direction,
 }
 #[allow(clippy::too_many_arguments, clippy::type_complexity)]
-fn handle_start_mining_block_with_direction_event(
+pub fn handle_start_mining_block_with_direction_event(
     mut events: EventReader<StartMiningBlockWithDirectionEvent>,
     mut finish_mining_events: EventWriter<FinishMiningBlockEvent>,
     mut send_packet_events: EventWriter<SendPacketEvent>,
@@ -418,7 +418,7 @@ pub struct FinishMiningBlockEvent {
     pub position: BlockPos,
 }
 
-fn handle_finish_mining_block_event(
+pub fn handle_finish_mining_block_event(
     mut events: EventReader<FinishMiningBlockEvent>,
     mut query: Query<(
         &InstanceName,
@@ -484,7 +484,7 @@ fn handle_finish_mining_block_event(
 pub struct StopMiningBlockEvent {
     pub entity: Entity,
 }
-fn handle_stop_mining_block_event(
+pub fn handle_stop_mining_block_event(
     mut events: EventReader<StopMiningBlockEvent>,
     mut send_packet_events: EventWriter<SendPacketEvent>,
     mut mine_block_progress_events: EventWriter<MineBlockProgressEvent>,
@@ -517,7 +517,7 @@ fn handle_stop_mining_block_event(
 }
 
 #[allow(clippy::too_many_arguments, clippy::type_complexity)]
-fn continue_mining_block(
+pub fn continue_mining_block(
     mut query: Query<(
         Entity,
         &InstanceName,
