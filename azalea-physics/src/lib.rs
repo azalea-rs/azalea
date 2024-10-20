@@ -44,7 +44,7 @@ impl Plugin for PhysicsPlugin {
 /// Move the entity with the given acceleration while handling friction,
 /// gravity, collisions, and some other stuff.
 #[allow(clippy::type_complexity)]
-fn travel(
+pub fn travel(
     mut query: Query<
         (
             &mut Physics,

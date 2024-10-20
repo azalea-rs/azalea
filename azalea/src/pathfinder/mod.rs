@@ -680,7 +680,7 @@ pub fn recalculate_near_end_of_path(
 }
 
 #[allow(clippy::type_complexity)]
-fn tick_execute_path(
+pub fn tick_execute_path(
     mut query: Query<(
         Entity,
         &mut ExecutingPath,
