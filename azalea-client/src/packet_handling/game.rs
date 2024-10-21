@@ -39,8 +39,7 @@ use crate::{
     chunks,
     disconnect::DisconnectEvent,
     inventory::{
-        ClientSideCloseContainerEvent, InventoryComponent, MenuOpenedEvent,
-        SetContainerContentEvent,
+        ClientSideCloseContainerEvent, Inventory, MenuOpenedEvent, SetContainerContentEvent,
     },
     local_player::{
         GameProfileComponent, Hunger, InstanceHolder, LocalGameMode, PlayerAbilities, TabList,
@@ -1144,7 +1143,7 @@ pub fn process_packet_events(ecs: &mut World) {
                 debug!("Got container set content packet {p:?}");
 
                 let mut system_state: SystemState<(
-                    Query<&mut InventoryComponent>,
+                    Query<&mut Inventory>,
                     EventWriter<SetContainerContentEvent>,
                 )> = SystemState::new(ecs);
                 let (mut query, mut events) = system_state.get_mut(ecs);
@@ -1183,8 +1182,7 @@ pub fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::ContainerSetSlot(p) => {
                 debug!("Got container set slot packet {p:?}");
 
-                let mut system_state: SystemState<Query<&mut InventoryComponent>> =
-                    SystemState::new(ecs);
+                let mut system_state: SystemState<Query<&mut Inventory>> = SystemState::new(ecs);
                 let mut query = system_state.get_mut(ecs);
                 let mut inventory = query.get_mut(player_entity).unwrap();
 

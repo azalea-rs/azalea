@@ -1,7 +1,7 @@
 use std::fmt::Formatter;
 
 use azalea_client::{
-    inventory::{CloseContainerEvent, ContainerClickEvent, InventoryComponent},
+    inventory::{CloseContainerEvent, ContainerClickEvent, Inventory},
     packet_handling::game::PacketEvent,
     Client,
 };
@@ -65,9 +65,7 @@ impl ContainerClientExt for Client {
         }
 
         let ecs = self.ecs.lock();
-        let inventory = ecs
-            .get::<InventoryComponent>(self.entity)
-            .expect("no inventory");
+        let inventory = ecs.get::<Inventory>(self.entity).expect("no inventory");
         if inventory.id == 0 {
             None
         } else {
@@ -87,9 +85,7 @@ impl ContainerClientExt for Client {
     /// and [`Menu::slots`].
     fn open_inventory(&mut self) -> Option<ContainerHandle> {
         let ecs = self.ecs.lock();
-        let inventory = ecs
-            .get::<InventoryComponent>(self.entity)
-            .expect("no inventory");
+        let inventory = ecs.get::<Inventory>(self.entity).expect("no inventory");
 
         if inventory.id == 0 {
             Some(ContainerHandle::new(0, self.clone()))
@@ -105,9 +101,7 @@ impl ContainerClientExt for Client {
     /// your own inventory.
     fn get_open_container(&self) -> Option<ContainerHandleRef> {
         let ecs = self.ecs.lock();
-        let inventory = ecs
-            .get::<InventoryComponent>(self.entity)
-            .expect("no inventory");
+        let inventory = ecs.get::<Inventory>(self.entity).expect("no inventory");
 
         if inventory.id == 0 {
             None
@@ -157,7 +151,7 @@ impl ContainerHandleRef {
     pub fn menu(&self) -> Option<Menu> {
         let ecs = self.client.ecs.lock();
         let inventory = ecs
-            .get::<InventoryComponent>(self.client.entity)
+            .get::<Inventory>(self.client.entity)
             .expect("no inventory");
 
         // this also makes sure we can't access the inventory while a container is open

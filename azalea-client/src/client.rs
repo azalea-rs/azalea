@@ -6,7 +6,7 @@ use crate::{
     disconnect::{DisconnectEvent, DisconnectPlugin},
     events::{Event, EventPlugin, LocalPlayerEvents},
     interact::{CurrentSequenceNumber, InteractPlugin},
-    inventory::{InventoryComponent, InventoryPlugin},
+    inventory::{Inventory, InventoryPlugin},
     local_player::{
         death_event, GameProfileComponent, Hunger, InstanceHolder, PermissionLevel,
         PlayerAbilities, TabList,
@@ -688,7 +688,7 @@ pub struct LocalPlayerBundle {
 pub struct JoinedClientBundle {
     // note that InstanceHolder isn't here because it's set slightly before we fully join the world
     pub physics_state: PhysicsState,
-    pub inventory: InventoryComponent,
+    pub inventory: Inventory,
     pub tab_list: TabList,
     pub current_sequence_number: CurrentSequenceNumber,
     pub last_sent_direction: LastSentLookDirection,

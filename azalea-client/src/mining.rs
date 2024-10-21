@@ -16,7 +16,7 @@ use crate::{
         can_use_game_master_blocks, check_is_interaction_restricted, CurrentSequenceNumber,
         HitResultComponent, SwingArmEvent,
     },
-    inventory::{InventoryComponent, InventorySet},
+    inventory::{Inventory, InventorySet},
     local_player::{LocalGameMode, PermissionLevel, PlayerAbilities},
     movement::MoveEventsSet,
     packet_handling::game::SendPacketEvent,
@@ -99,7 +99,7 @@ fn handle_auto_mine(
             &HitResultComponent,
             Entity,
             Option<&Mining>,
-            &InventoryComponent,
+            &Inventory,
             &MineBlockPos,
             &MineItem,
         ),
@@ -193,7 +193,7 @@ fn handle_start_mining_block_with_direction_event(
     mut query: Query<(
         &InstanceName,
         &LocalGameMode,
-        &InventoryComponent,
+        &Inventory,
         &FluidOnEyes,
         &Physics,
         Option<&Mining>,
@@ -359,7 +359,7 @@ pub struct AttackBlockEvent {
 /// mining.
 fn is_same_mining_target(
     target_block: BlockPos,
-    inventory: &InventoryComponent,
+    inventory: &Inventory,
     current_mining_pos: &MineBlockPos,
     current_mining_item: &MineItem,
 ) -> bool {
@@ -423,7 +423,7 @@ fn handle_finish_mining_block_event(
     mut query: Query<(
         &InstanceName,
         &LocalGameMode,
-        &InventoryComponent,
+        &Inventory,
         &PlayerAbilities,
         &PermissionLevel,
         &mut CurrentSequenceNumber,
@@ -522,7 +522,7 @@ fn continue_mining_block(
         Entity,
         &InstanceName,
         &LocalGameMode,
-        &InventoryComponent,
+        &Inventory,
         &MineBlockPos,
         &MineItem,
         &FluidOnEyes,

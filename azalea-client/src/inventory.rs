@@ -67,14 +67,14 @@ impl Client {
     /// have the player's inventory.
     pub fn menu(&self) -> Menu {
         let mut ecs = self.ecs.lock();
-        let inventory = self.query::<&InventoryComponent>(&mut ecs);
+        let inventory = self.query::<&Inventory>(&mut ecs);
         inventory.menu().clone()
     }
 }
 
 /// A component present on all local players that have an inventory.
 #[derive(Component, Debug, Clone)]
-pub struct InventoryComponent {
+pub struct Inventory {
     /// A component that contains the player's inventory menu. This is
     /// guaranteed to be a `Menu::Player`.
     ///
@@ -118,7 +118,7 @@ pub struct InventoryComponent {
     pub selected_hotbar_slot: u8,
 }
 
-impl InventoryComponent {
+impl Inventory {
     /// Returns a reference to the currently active menu. If a container is open
     /// it'll return [`Self::container_menu`], otherwise
     /// [`Self::inventory_menu`].
@@ -563,9 +563,9 @@ fn get_quick_craft_slot_count(
     item.count += slot_item_count;
 }
 
-impl Default for InventoryComponent {
+impl Default for Inventory {
     fn default() -> Self {
-        InventoryComponent {
+        Inventory {
             inventory_menu: Menu::Player(azalea_inventory::Player::default()),
             id: 0,
             container_menu: None,
@@ -591,7 +591,7 @@ pub struct MenuOpenedEvent {
 }
 fn handle_menu_opened_event(
     mut events: EventReader<MenuOpenedEvent>,
-    mut query: Query<&mut InventoryComponent>,
+    mut query: Query<&mut Inventory>,
 ) {
     for event in events.read() {
         let mut inventory = query.get_mut(event.entity).unwrap();
@@ -613,7 +613,7 @@ pub struct CloseContainerEvent {
     pub id: u8,
 }
 fn handle_container_close_event(
-    query: Query<(Entity, &InventoryComponent)>,
+    query: Query<(Entity, &Inventory)>,
     mut events: EventReader<CloseContainerEvent>,
     mut client_side_events: EventWriter<ClientSideCloseContainerEvent>,
     mut send_packet_events: EventWriter<SendPacketEvent>,
@@ -650,7 +650,7 @@ pub struct ClientSideCloseContainerEvent {
 }
 pub fn handle_client_side_close_container_event(
     mut events: EventReader<ClientSideCloseContainerEvent>,
-    mut query: Query<&mut InventoryComponent>,
+    mut query: Query<&mut Inventory>,
 ) {
     for event in events.read() {
         let mut inventory = query.get_mut(event.entity).unwrap();
@@ -667,7 +667,7 @@ pub struct ContainerClickEvent {
     pub operation: ClickOperation,
 }
 pub fn handle_container_click_event(
-    mut query: Query<(Entity, &mut InventoryComponent)>,
+    mut query: Query<(Entity, &mut Inventory)>,
     mut events: EventReader<ContainerClickEvent>,
     mut send_packet_events: EventWriter<SendPacketEvent>,
 ) {
@@ -722,7 +722,7 @@ pub struct SetContainerContentEvent {
 }
 fn handle_set_container_content_event(
     mut events: EventReader<SetContainerContentEvent>,
-    mut query: Query<&mut InventoryComponent>,
+    mut query: Query<&mut Inventory>,
 ) {
     for event in events.read() {
         let mut inventory = query.get_mut(event.entity).unwrap();
@@ -753,7 +753,7 @@ pub struct SetSelectedHotbarSlotEvent {
 fn handle_set_selected_hotbar_slot_event(
     mut events: EventReader<SetSelectedHotbarSlotEvent>,
     mut send_packet_events: EventWriter<SendPacketEvent>,
-    mut query: Query<&mut InventoryComponent>,
+    mut query: Query<&mut Inventory>,
 ) {
     for event in events.read() {
         let mut inventory = query.get_mut(event.entity).unwrap();

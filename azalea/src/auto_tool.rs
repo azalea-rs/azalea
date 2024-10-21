@@ -1,5 +1,5 @@
 use azalea_block::{Block, BlockState};
-use azalea_client::{inventory::InventoryComponent, Client};
+use azalea_client::{inventory::Inventory, Client};
 use azalea_entity::{FluidOnEyes, Physics};
 use azalea_inventory::{ItemSlot, Menu};
 use azalea_registry::{DataComponentKind, Fluid};
@@ -18,7 +18,7 @@ impl AutoToolClientExt for Client {
     fn best_tool_in_hotbar_for_block(&self, block: BlockState) -> BestToolResult {
         let mut ecs = self.ecs.lock();
         let (inventory, physics, fluid_on_eyes) =
-            self.query::<(&InventoryComponent, &Physics, &FluidOnEyes)>(&mut ecs);
+            self.query::<(&Inventory, &Physics, &FluidOnEyes)>(&mut ecs);
         let menu = &inventory.inventory_menu;
 
         accurate_best_tool_in_hotbar_for_block(block, menu, physics, fluid_on_eyes)
