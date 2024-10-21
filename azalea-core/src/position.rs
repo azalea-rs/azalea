@@ -656,6 +656,11 @@ where
     Ok([x, y, z])
 }
 
+/// Parses a string in the format "X Y Z" into a BlockPos.
+///
+/// The input string should contain three integer values separated by spaces,
+/// representing the x, y, and z components of the vector respectively.
+/// This can be used to parse user input or from `BlockPos::to_string`.
 impl FromStr for BlockPos {
     type Err = &'static str;
 
@@ -665,6 +670,11 @@ impl FromStr for BlockPos {
     }
 }
 
+/// Parses a string in the format "X Y Z" into a Vec3.
+///
+/// The input string should contain three floating-point values separated by
+/// spaces, representing the x, y, and z components of the vector respectively.
+/// This can be used to parse user input or from `Vec3::to_string`.
 impl FromStr for Vec3 {
     type Err = &'static str;
 
