@@ -3,6 +3,7 @@
 //! The most common ones are [`Vec3`] and [`BlockPos`], which are usually used
 //! for entity positions and block positions, respectively.
 
+use crate::resource_location::ResourceLocation;
 use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -11,9 +12,8 @@ use std::{
     hash::Hash,
     io::{Cursor, Write},
     ops::{Add, AddAssign, Mul, Rem, Sub},
+    str::FromStr,
 };
-
-use crate::resource_location::ResourceLocation;
 
 macro_rules! vec3_impl {
     ($name:ident, $type:ty) => {
@@ -640,6 +640,51 @@ impl McBufWritable for ChunkSectionPos {
             | (((self.z & 0x3FFFFF) as i64) << 20);
         long.write_into(buf)?;
         Ok(())
+    }
+}
+
+fn parse_three_values<T>(s: &str) -> Result<[T; 3], &'static str>
+where
+    T: FromStr,
+    <T as FromStr>::Err: fmt::Debug,
+{
+    let parts = s.split_whitespace().collect::<Vec<_>>();
+    if parts.len() != 3 {
+        return Err("Expected three values");
+    }
+
+    let x = parts[0].parse().map_err(|_| "Invalid X value")?;
+    let y = parts[1].parse().map_err(|_| "Invalid Y value")?;
+    let z = parts[2].parse().map_err(|_| "Invalid Z value")?;
+
+    Ok([x, y, z])
+}
+
+/// Parses a string in the format "X Y Z" into a BlockPos.
+///
+/// The input string should contain three integer values separated by spaces,
+/// representing the x, y, and z components of the vector respectively.
+/// This can be used to parse user input or from `BlockPos::to_string`.
+impl FromStr for BlockPos {
+    type Err = &'static str;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let [x, y, z] = parse_three_values::<i32>(s)?;
+        Ok(BlockPos { x, y, z })
+    }
+}
+
+/// Parses a string in the format "X Y Z" into a Vec3.
+///
+/// The input string should contain three floating-point values separated by
+/// spaces, representing the x, y, and z components of the vector respectively.
+/// This can be used to parse user input or from `Vec3::to_string`.
+impl FromStr for Vec3 {
+    type Err = &'static str;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let [x, y, z] = parse_three_values::<f64>(s)?;
+        Ok(Vec3 { x, y, z })
     }
 }
 
