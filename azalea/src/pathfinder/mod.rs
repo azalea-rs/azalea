@@ -25,7 +25,7 @@ use crate::ecs::{
 };
 use crate::pathfinder::moves::PathfinderCtx;
 use crate::pathfinder::world::CachedWorld;
-use azalea_client::inventory::{InventoryComponent, InventorySet, SetSelectedHotbarSlotEvent};
+use azalea_client::inventory::{Inventory, InventorySet, SetSelectedHotbarSlotEvent};
 use azalea_client::mining::{Mining, StartMiningBlockEvent};
 use azalea_client::movement::MoveEventsSet;
 use azalea_client::{InstanceHolder, StartSprintEvent, StartWalkEvent};
@@ -201,7 +201,7 @@ fn goto_listener(
         Option<&ExecutingPath>,
         &Position,
         &InstanceName,
-        &InventoryComponent,
+        &Inventory,
     )>,
     instance_container: Res<InstanceContainer>,
 ) {
@@ -364,7 +364,7 @@ fn path_found_listener(
         &mut Pathfinder,
         Option<&mut ExecutingPath>,
         &InstanceName,
-        &InventoryComponent,
+        &Inventory,
     )>,
     instance_container: Res<InstanceContainer>,
     mut commands: Commands,
@@ -576,12 +576,7 @@ fn check_node_reached(
 }
 
 fn check_for_path_obstruction(
-    mut query: Query<(
-        &Pathfinder,
-        &mut ExecutingPath,
-        &InstanceName,
-        &InventoryComponent,
-    )>,
+    mut query: Query<(&Pathfinder, &mut ExecutingPath, &InstanceName, &Inventory)>,
     instance_container: Res<InstanceContainer>,
 ) {
     for (pathfinder, mut executing_path, instance_name, inventory) in &mut query {
@@ -688,7 +683,7 @@ fn tick_execute_path(
         &Physics,
         Option<&Mining>,
         &InstanceHolder,
-        &InventoryComponent,
+        &Inventory,
     )>,
     mut look_at_events: EventWriter<LookAtEvent>,
     mut sprint_events: EventWriter<StartSprintEvent>,

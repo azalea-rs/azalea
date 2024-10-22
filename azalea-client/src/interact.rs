@@ -33,7 +33,7 @@ use tracing::warn;
 
 use crate::{
     attack::handle_attack_event,
-    inventory::{InventoryComponent, InventorySet},
+    inventory::{Inventory, InventorySet},
     local_player::{LocalGameMode, PermissionLevel, PlayerAbilities},
     movement::MoveEventsSet,
     packet_handling::game::{handle_send_packet_event, SendPacketEvent},
@@ -237,7 +237,7 @@ pub fn check_is_interaction_restricted(
     instance: &Instance,
     block_pos: &BlockPos,
     game_mode: &GameMode,
-    inventory: &InventoryComponent,
+    inventory: &Inventory,
 ) -> bool {
     match game_mode {
         GameMode::Adventure => {
@@ -314,10 +314,7 @@ pub fn handle_swing_arm_event(
 
 #[allow(clippy::type_complexity)]
 fn update_modifiers_for_held_item(
-    mut query: Query<
-        (&mut Attributes, &InventoryComponent),
-        (With<LocalEntity>, Changed<InventoryComponent>),
-    >,
+    mut query: Query<(&mut Attributes, &Inventory), (With<LocalEntity>, Changed<Inventory>)>,
 ) {
     for (mut attributes, inventory) in &mut query {
         let held_item = inventory.held_item();

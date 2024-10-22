@@ -123,7 +123,7 @@ pub fn process_packet_events(ecs: &mut World) {
                     .remove::<InConfigurationState>()
                     .insert(crate::JoinedClientBundle {
                         physics_state: crate::PhysicsState::default(),
-                        inventory: crate::inventory::InventoryComponent::default(),
+                        inventory: crate::inventory::Inventory::default(),
                         tab_list: crate::local_player::TabList::default(),
                         current_sequence_number: crate::interact::CurrentSequenceNumber::default(),
                         last_sent_direction: crate::movement::LastSentLookDirection::default(),
