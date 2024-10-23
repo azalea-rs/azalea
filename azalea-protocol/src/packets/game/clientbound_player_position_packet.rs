@@ -26,8 +26,7 @@ pub struct RelativeMovements {
 
 impl McBufReadable for RelativeMovements {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        // yes minecraft seriously wastes that many bits
-        // smh
+        // yes minecraft seriously wastes that many bits, smh
         let set = FixedBitSet::<32>::read_from(buf)?;
         Ok(RelativeMovements {
             x: set.index(0),

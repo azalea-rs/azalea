@@ -1022,6 +1022,8 @@ pub static FREEZE_IMMUNE_WEARABLES: Lazy<HashSet<Item>> = Lazy::new(|| {
 pub static FROG_FOOD: Lazy<HashSet<Item>> = Lazy::new(|| HashSet::from_iter(vec![Item::SlimeBall]));
 pub static FURNACE_MINECART_FUEL: Lazy<HashSet<Item>> =
     Lazy::new(|| HashSet::from_iter(vec![Item::Coal, Item::Charcoal]));
+pub static GAZE_DISGUISE_EQUIPMENT: Lazy<HashSet<Item>> =
+    Lazy::new(|| HashSet::from_iter(vec![Item::CarvedPumpkin]));
 pub static GOAT_FOOD: Lazy<HashSet<Item>> = Lazy::new(|| HashSet::from_iter(vec![Item::Wheat]));
 pub static GOLD_ORES: Lazy<HashSet<Item>> = Lazy::new(|| {
     HashSet::from_iter(vec![

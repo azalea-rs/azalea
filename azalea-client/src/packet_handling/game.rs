@@ -416,9 +416,6 @@ pub fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::EntityEvent(_p) => {
                 // debug!("Got entity event packet {p:?}");
             }
-            ClientboundGamePacket::Recipe(_p) => {
-                debug!("Got recipe packet");
-            }
             ClientboundGamePacket::PlayerPosition(p) => {
                 debug!("Got player position packet {p:?}");
 
@@ -1483,6 +1480,11 @@ pub fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::ProjectilePower(_) => {}
             ClientboundGamePacket::CustomReportDetails(_) => {}
             ClientboundGamePacket::ServerLinks(_) => {}
+            ClientboundGamePacket::EntityPositionSync(_) => {}
+            ClientboundGamePacket::PlayerRotation(_) => {}
+            ClientboundGamePacket::RecipeBookAdd(_) => {}
+            ClientboundGamePacket::RecipeBookRemove(_) => {}
+            ClientboundGamePacket::RecipeBookSettings(_) => {}
         }
     }
 }
