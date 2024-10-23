@@ -56,6 +56,7 @@ pub enum Particle {
     InstantEffect,
     Item(ItemParticle),
     Vibration(VibrationParticle),
+    Trail,
     ItemSlime,
     ItemCobweb,
     ItemSnowball,
@@ -119,6 +120,7 @@ pub enum Particle {
     OminousSpawning,
     RaidOmen,
     TrialOmen,
+    BlockCrumble,
 }
 
 impl From<ParticleKind> for Particle {
@@ -239,6 +241,8 @@ impl From<ParticleKind> for Particle {
             ParticleKind::OminousSpawning => Self::OminousSpawning,
             ParticleKind::RaidOmen => Self::RaidOmen,
             ParticleKind::TrialOmen => Self::TrialOmen,
+            ParticleKind::Trail => Self::Trail,
+            ParticleKind::BlockCrumble => Self::BlockCrumble,
         }
     }
 }

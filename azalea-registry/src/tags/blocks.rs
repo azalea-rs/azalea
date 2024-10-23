@@ -286,6 +286,16 @@ pub static BASE_STONE_OVERWORLD: Lazy<HashSet<Block>> = Lazy::new(|| {
         Block::Deepslate,
     ])
 });
+pub static BATS_SPAWNABLE_ON: Lazy<HashSet<Block>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Block::Stone,
+        Block::Granite,
+        Block::Diorite,
+        Block::Andesite,
+        Block::Tuff,
+        Block::Deepslate,
+    ])
+});
 pub static BEACON_BASE_BLOCKS: Lazy<HashSet<Block>> = Lazy::new(|| {
     HashSet::from_iter(vec![
         Block::NetheriteBlock,

@@ -393,8 +393,8 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 *player_abilities = PlayerAbilities::from(p);
             }
-            ClientboundGamePacket::SetCarriedItem(p) => {
-                debug!("Got set carried item packet {p:?}");
+            ClientboundGamePacket::SetCursorItem(p) => {
+                debug!("Got set cursor item packet {p:?}");
             }
             ClientboundGamePacket::UpdateTags(_p) => {
                 debug!("Got update tags packet");
@@ -414,9 +414,6 @@ pub fn process_packet_events(ecs: &mut World) {
             }
             ClientboundGamePacket::EntityEvent(_p) => {
                 // debug!("Got entity event packet {p:?}");
-            }
-            ClientboundGamePacket::Recipe(_p) => {
-                debug!("Got recipe packet");
             }
             ClientboundGamePacket::PlayerPosition(p) => {
                 debug!("Got player position packet {p:?}");
@@ -445,25 +442,25 @@ pub fn process_packet_events(ecs: &mut World) {
                 let is_z_relative = p.relative_arguments.z;
 
                 let (delta_x, new_pos_x) = if is_x_relative {
-                    last_sent_position.x += p.x;
-                    (delta_movement.x, position.x + p.x)
+                    last_sent_position.x += p.pos.x;
+                    (delta_movement.x, position.x + p.pos.x)
                 } else {
-                    last_sent_position.x = p.x;
-                    (0.0, p.x)
+                    last_sent_position.x = p.pos.x;
+                    (0.0, p.pos.x)
                 };
                 let (delta_y, new_pos_y) = if is_y_relative {
-                    last_sent_position.y += p.y;
-                    (delta_movement.y, position.y + p.y)
+                    last_sent_position.y += p.pos.y;
+                    (delta_movement.y, position.y + p.pos.y)
                 } else {
-                    last_sent_position.y = p.y;
-                    (0.0, p.y)
+                    last_sent_position.y = p.pos.y;
+                    (0.0, p.pos.y)
                 };
                 let (delta_z, new_pos_z) = if is_z_relative {
-                    last_sent_position.z += p.z;
-                    (delta_movement.z, position.z + p.z)
+                    last_sent_position.z += p.pos.z;
+                    (delta_movement.z, position.z + p.pos.z)
                 } else {
-                    last_sent_position.z = p.z;
-                    (0.0, p.z)
+                    last_sent_position.z = p.pos.z;
+                    (0.0, p.pos.z)
                 };
 
                 let mut y_rot = p.y_rot;
@@ -1475,6 +1472,17 @@ pub fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::PongResponse(_) => {}
             ClientboundGamePacket::StoreCookie(_) => {}
             ClientboundGamePacket::Transfer(_) => {}
+            ClientboundGamePacket::MoveMinecart(_) => {}
+            ClientboundGamePacket::SetHeldSlot(_) => {}
+            ClientboundGamePacket::SetPlayerInventory(_) => {}
+            ClientboundGamePacket::ProjectilePower(_) => {}
+            ClientboundGamePacket::CustomReportDetails(_) => {}
+            ClientboundGamePacket::ServerLinks(_) => {}
+            ClientboundGamePacket::EntityPositionSync(_) => {}
+            ClientboundGamePacket::PlayerRotation(_) => {}
+            ClientboundGamePacket::RecipeBookAdd(_) => {}
+            ClientboundGamePacket::RecipeBookRemove(_) => {}
+            ClientboundGamePacket::RecipeBookSettings(_) => {}
         }
     }
 }

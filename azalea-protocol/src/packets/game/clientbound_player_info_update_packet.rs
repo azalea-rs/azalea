@@ -26,6 +26,7 @@ pub struct PlayerInfoEntry {
     pub latency: i32,
     pub game_mode: GameMode,
     pub display_name: Option<FormattedText>,
+    pub list_order: i32,
     pub chat_session: Option<RemoteChatSessionData>,
 }
 
@@ -54,6 +55,11 @@ pub struct UpdateLatencyAction {
 #[derive(Clone, Debug, McBuf)]
 pub struct UpdateDisplayNameAction {
     pub display_name: Option<FormattedText>,
+}
+#[derive(Clone, Debug, McBuf)]
+pub struct UpdateListOrderAction {
+    #[var]
+    pub list_order: i32,
 }
 
 impl McBufReadable for ClientboundPlayerInfoUpdatePacket {
@@ -91,6 +97,10 @@ impl McBufReadable for ClientboundPlayerInfoUpdatePacket {
             if actions.update_display_name {
                 let action = UpdateDisplayNameAction::read_from(buf)?;
                 entry.display_name = action.display_name;
+            }
+            if actions.update_list_order {
+                let action = UpdateListOrderAction::read_from(buf)?;
+                entry.list_order = action.list_order;
             }
 
             entries.push(entry);
@@ -159,6 +169,7 @@ pub struct ActionEnumSet {
     pub update_listed: bool,
     pub update_latency: bool,
     pub update_display_name: bool,
+    pub update_list_order: bool,
 }
 
 impl McBufReadable for ActionEnumSet {
@@ -171,6 +182,7 @@ impl McBufReadable for ActionEnumSet {
             update_listed: set.index(3),
             update_latency: set.index(4),
             update_display_name: set.index(5),
+            update_list_order: set.index(6),
         })
     }
 }
@@ -214,6 +226,7 @@ mod tests {
             update_listed: false,
             update_latency: true,
             update_display_name: false,
+            update_list_order: true,
         };
         let mut buf = Vec::new();
         data.write_into(&mut buf).unwrap();

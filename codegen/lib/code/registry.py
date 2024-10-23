@@ -5,7 +5,6 @@ import re
 
 REGISTRIES_DIR = get_dir_location('../azalea-registry/src/lib.rs')
 
-
 def generate_registries(registries: dict):
     with open(REGISTRIES_DIR, 'r') as f:
         code = f.read().split('\n')
@@ -17,23 +16,14 @@ def generate_registries(registries: dict):
         # });
 
         registry_name = registry_name.split(':')[1]
-
-        if registry_name.endswith('_type'):
-            # change _type to _kind because that's Rustier (and because _type
-            # is a reserved keyword)
-            registry_name = registry_name[:-5] + '_kind'
-        elif registry_name in {'menu'}:
-            registry_name += '_kind'
-
-        registry_struct_name = to_camel_case(registry_name)
+        registry_enum_name = registry_name_to_enum_name(registry_name)
 
         registry_code = []
-        registry_code.append(f'enum {registry_struct_name} {{')
+        registry_code.append(f'enum {registry_enum_name} {{')
         registry_entries = sorted(
             registry['entries'].items(), key=lambda x: x[1]['protocol_id'])
         for variant_name, _variant in registry_entries:
-            variant_struct_name = to_camel_case(
-                variant_name.split(':')[1])
+            variant_struct_name = to_camel_case(variant_name.split(':')[-1])
             registry_code.append(f'\t{variant_struct_name} => "{variant_name}",')
         registry_code.append('}')
 
@@ -59,3 +49,15 @@ def generate_registries(registries: dict):
 
     with open(REGISTRIES_DIR, 'w') as f:
         f.write('\n'.join(code))
+
+def registry_name_to_enum_name(registry_name: str) -> str:
+    registry_name = registry_name.split(':')[-1]
+
+    if registry_name.endswith('_type'):
+        # change _type to _kind because that's Rustier (and because _type
+        # is a reserved keyword)
+        registry_name = registry_name[:-5] + '_kind'
+    elif registry_name in {'menu'}:
+        registry_name += '_kind'
+
+    return to_camel_case(registry_name)

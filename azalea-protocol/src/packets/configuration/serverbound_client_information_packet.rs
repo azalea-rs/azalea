@@ -30,6 +30,7 @@ pub struct ClientInformation {
     /// Whether the client should show up as "Anonymous Player" in the server
     /// list.
     pub allows_listing: bool,
+    pub particle_status: ParticleStatus,
 }
 
 impl Default for ClientInformation {
@@ -43,6 +44,7 @@ impl Default for ClientInformation {
             main_hand: HumanoidArm::Right,
             text_filtering_enabled: false,
             allows_listing: false,
+            particle_status: ParticleStatus::default(),
         }
     }
 }
@@ -75,6 +77,14 @@ pub struct ModelCustomization {
     pub left_pants: bool,
     pub right_pants: bool,
     pub hat: bool,
+}
+
+#[derive(McBuf, Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub enum ParticleStatus {
+    #[default]
+    All,
+    Decreased,
+    Minimal,
 }
 
 impl Default for ModelCustomization {
@@ -169,6 +179,7 @@ mod tests {
                 main_hand: HumanoidArm::Left,
                 text_filtering_enabled: true,
                 allows_listing: true,
+                particle_status: ParticleStatus::Decreased,
             };
             let mut buf = Vec::new();
             data.write_into(&mut buf).unwrap();

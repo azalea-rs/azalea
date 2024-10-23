@@ -1,19 +1,18 @@
 use std::io::{Cursor, Write};
 
 use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
-use azalea_core::bitset::FixedBitSet;
+use azalea_core::{bitset::FixedBitSet, position::Vec3};
 use azalea_protocol_macros::ClientboundGamePacket;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundPlayerPositionPacket {
-    pub x: f64,
-    pub y: f64,
-    pub z: f64,
+    #[var]
+    pub id: u32,
+    pub pos: Vec3,
+    pub delta_movement: Vec3,
     pub y_rot: f32,
     pub x_rot: f32,
     pub relative_arguments: RelativeMovements,
-    #[var]
-    pub id: u32,
 }
 
 #[derive(Debug, Clone)]
@@ -27,7 +26,8 @@ pub struct RelativeMovements {
 
 impl McBufReadable for RelativeMovements {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let set = FixedBitSet::<5>::read_from(buf)?;
+        // yes minecraft seriously wastes that many bits, smh
+        let set = FixedBitSet::<32>::read_from(buf)?;
         Ok(RelativeMovements {
             x: set.index(0),
             y: set.index(1),

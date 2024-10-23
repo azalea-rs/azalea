@@ -457,7 +457,7 @@ impl Client {
                     debug!("Got compression request {:?}", p.compression_threshold);
                     conn.set_compression_threshold(p.compression_threshold);
                 }
-                ClientboundLoginPacket::GameProfile(p) => {
+                ClientboundLoginPacket::LoginFinished(p) => {
                     debug!(
                         "Got profile {:?}. handshake is finished and we're now switching to the configuration state",
                         p.game_profile
