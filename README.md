@@ -55,6 +55,7 @@ There are several branches in the Azalea repository that target older Minecraft 
 Most of them are severely outdated compared to the latest version of Azalea.
 If you'd like to update them or add more, please open a PR.
 
+-   [1.21-1.21.1](https://github.com/azalea-rs/azalea/tree/1.21.1)
 -   [1.20.5-1.20.6](https://github.com/azalea-rs/azalea/tree/1.20.6)
 -   [1.20.4](https://github.com/azalea-rs/azalea/tree/1.20.4)
 -   [1.20.2](https://github.com/azalea-rs/azalea/tree/1.20.2)
