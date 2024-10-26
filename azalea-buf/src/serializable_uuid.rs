@@ -1,6 +1,8 @@
-use crate::{read::BufReadError, McBufReadable, McBufWritable};
 use std::io::{Cursor, Write};
+
 use uuid::Uuid;
+
+use crate::{read::BufReadError, McBufReadable, McBufWritable};
 
 pub trait SerializableUuid {
     fn to_int_array(&self) -> [u32; 4];

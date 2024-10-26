@@ -1,5 +1,21 @@
 //! Connect to remote servers/clients.
 
+use std::fmt::Debug;
+use std::io::Cursor;
+use std::marker::PhantomData;
+use std::net::SocketAddr;
+
+use azalea_auth::game_profile::GameProfile;
+use azalea_auth::sessionserver::{ClientSessionServerError, ServerSessionServerError};
+use azalea_crypto::{Aes128CfbDec, Aes128CfbEnc};
+use bytes::BytesMut;
+use thiserror::Error;
+use tokio::io::{AsyncWriteExt, BufStream};
+use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf, ReuniteError};
+use tokio::net::TcpStream;
+use tracing::{error, info};
+use uuid::Uuid;
+
 use crate::packets::configuration::{
     ClientboundConfigurationPacket, ServerboundConfigurationPacket,
 };
@@ -11,20 +27,6 @@ use crate::packets::status::{ClientboundStatusPacket, ServerboundStatusPacket};
 use crate::packets::ProtocolPacket;
 use crate::read::{deserialize_packet, read_raw_packet, try_read_raw_packet, ReadPacketError};
 use crate::write::{serialize_packet, write_raw_packet};
-use azalea_auth::game_profile::GameProfile;
-use azalea_auth::sessionserver::{ClientSessionServerError, ServerSessionServerError};
-use azalea_crypto::{Aes128CfbDec, Aes128CfbEnc};
-use bytes::BytesMut;
-use std::fmt::Debug;
-use std::io::Cursor;
-use std::marker::PhantomData;
-use std::net::SocketAddr;
-use thiserror::Error;
-use tokio::io::{AsyncWriteExt, BufStream};
-use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf, ReuniteError};
-use tokio::net::TcpStream;
-use tracing::{error, info};
-use uuid::Uuid;
 
 pub struct RawReadConnection {
     pub read_stream: OwnedReadHalf,

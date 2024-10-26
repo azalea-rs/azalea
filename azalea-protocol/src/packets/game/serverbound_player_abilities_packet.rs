@@ -1,8 +1,10 @@
-use crate::packets::BufReadError;
+use std::io::Cursor;
+
 use azalea_buf::{McBufReadable, McBufWritable};
 use azalea_core::bitset::FixedBitSet;
 use azalea_protocol_macros::ServerboundGamePacket;
-use std::io::Cursor;
+
+use crate::packets::BufReadError;
 
 #[derive(Clone, Debug, ServerboundGamePacket)]
 pub struct ServerboundPlayerAbilitiesPacket {

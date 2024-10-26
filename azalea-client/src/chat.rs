@@ -1,5 +1,10 @@
 //! Implementations of chat-related features.
 
+use std::{
+    sync::Arc,
+    time::{SystemTime, UNIX_EPOCH},
+};
+
 use azalea_chat::FormattedText;
 use azalea_protocol::packets::game::{
     clientbound_disguised_chat_packet::ClientboundDisguisedChatPacket,
@@ -14,10 +19,6 @@ use bevy_ecs::{
     event::{EventReader, EventWriter},
     prelude::Event,
     schedule::IntoSystemConfigs,
-};
-use std::{
-    sync::Arc,
-    time::{SystemTime, UNIX_EPOCH},
 };
 use uuid::Uuid;
 

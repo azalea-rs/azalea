@@ -1,8 +1,7 @@
 use std::fmt;
 
-use crate::string_reader::StringReader;
-
 use super::command_syntax_exception::CommandSyntaxException;
+use crate::string_reader::StringReader;
 
 #[derive(Clone, PartialEq)]
 pub enum BuiltInExceptions {

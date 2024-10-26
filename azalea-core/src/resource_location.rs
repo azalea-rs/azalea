@@ -1,15 +1,15 @@
 //! A resource, like minecraft:stone
 
-use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
-use simdnbt::{owned::NbtTag, FromNbtTag, ToNbtTag};
 use std::{
     fmt,
     io::{Cursor, Write},
     str::FromStr,
 };
 
+use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 #[cfg(feature = "serde")]
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
+use simdnbt::{owned::NbtTag, FromNbtTag, ToNbtTag};
 
 #[derive(Hash, Clone, PartialEq, Eq)]
 pub struct ResourceLocation {

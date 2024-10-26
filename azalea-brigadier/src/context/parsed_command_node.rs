@@ -1,8 +1,9 @@
+use std::sync::Arc;
+
 use parking_lot::RwLock;
 
 use super::string_range::StringRange;
 use crate::tree::CommandNode;
-use std::sync::Arc;
 
 #[derive(Debug)]
 pub struct ParsedCommandNode<S> {

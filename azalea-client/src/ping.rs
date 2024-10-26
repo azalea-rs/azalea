@@ -1,5 +1,7 @@
 //! Ping Minecraft servers.
 
+use std::io;
+
 use azalea_protocol::{
     connect::{Connection, ConnectionError, Proxy},
     packets::{
@@ -16,7 +18,6 @@ use azalea_protocol::{
     },
     resolver, ServerAddress,
 };
-use std::io;
 use thiserror::Error;
 
 #[derive(Error, Debug)]

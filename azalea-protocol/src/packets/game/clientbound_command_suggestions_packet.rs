@@ -11,10 +11,12 @@ pub struct ClientboundCommandSuggestionsPacket {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use std::io::Cursor;
+
     use azalea_brigadier::{context::StringRange, suggestion::Suggestion};
     use azalea_buf::{McBufReadable, McBufWritable};
-    use std::io::Cursor;
+
+    use super::*;
 
     #[test]
     fn test_suggestions() {

@@ -1,6 +1,8 @@
 //! A "simple" server that gets login information and proxies connections.
 //! After login all connections are encrypted and Azalea cannot read them.
 
+use std::error::Error;
+
 use azalea_protocol::{
     connect::Connection,
     packets::{
@@ -22,7 +24,6 @@ use azalea_protocol::{
 };
 use futures::FutureExt;
 use once_cell::sync::Lazy;
-use std::error::Error;
 use tokio::{
     io::{self, AsyncWriteExt},
     net::{TcpListener, TcpStream},

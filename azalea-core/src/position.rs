@@ -3,10 +3,6 @@
 //! The most common ones are [`Vec3`] and [`BlockPos`], which are usually used
 //! for entity positions and block positions, respectively.
 
-use crate::resource_location::ResourceLocation;
-use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
-#[cfg(feature = "serde")]
-use serde::{Deserialize, Serialize};
 use std::{
     fmt,
     hash::Hash,
@@ -14,6 +10,12 @@ use std::{
     ops::{Add, AddAssign, Mul, Rem, Sub},
     str::FromStr,
 };
+
+use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
+use crate::resource_location::ResourceLocation;
 
 macro_rules! vec3_impl {
     ($name:ident, $type:ty) => {

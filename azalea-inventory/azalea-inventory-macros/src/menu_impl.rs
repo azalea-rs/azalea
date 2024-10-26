@@ -1,10 +1,11 @@
+use proc_macro2::TokenStream;
+use quote::quote;
+use syn::Ident;
+
 use crate::{
     parse_macro::{DeclareMenus, Menu},
     utils::{to_pascal_case, to_snake_case},
 };
-use proc_macro2::TokenStream;
-use quote::quote;
-use syn::Ident;
 
 pub fn generate(input: &DeclareMenus) -> TokenStream {
     let mut slot_mut_match_variants = quote! {};

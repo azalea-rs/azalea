@@ -1,9 +1,10 @@
 //! Generate the `enum menu` and nothing else. Implementations are in
 //! impl_menu.rs
 
-use crate::parse_macro::{DeclareMenus, Field, Menu};
 use proc_macro2::TokenStream;
 use quote::quote;
+
+use crate::parse_macro::{DeclareMenus, Field, Menu};
 
 pub fn generate(input: &DeclareMenus) -> TokenStream {
     let mut variants = quote! {};

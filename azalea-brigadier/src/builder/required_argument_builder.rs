@@ -1,3 +1,5 @@
+use std::{any::Any, fmt::Debug, sync::Arc};
+
 use super::argument_builder::{ArgumentBuilder, ArgumentBuilderType};
 use crate::{
     arguments::ArgumentType,
@@ -5,7 +7,6 @@ use crate::{
     string_reader::StringReader,
     suggestion::{Suggestions, SuggestionsBuilder},
 };
-use std::{any::Any, fmt::Debug, sync::Arc};
 
 /// An argument node type. The `T` type parameter is the type of the argument,
 /// which can be anything.

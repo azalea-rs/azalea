@@ -1,17 +1,19 @@
-use crate::{
-    base_component::BaseComponent,
-    style::{ChatFormatting, Style},
-    text_component::TextComponent,
-    translatable_component::{StringOrComponent, TranslatableComponent},
-};
+use std::fmt::Display;
+
 #[cfg(feature = "azalea-buf")]
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 use once_cell::sync::Lazy;
 use serde::{de, Deserialize, Deserializer, Serialize};
 #[cfg(feature = "simdnbt")]
 use simdnbt::{Deserialize as _, FromNbtTag as _, Serialize as _};
-use std::fmt::Display;
 use tracing::{debug, trace, warn};
+
+use crate::{
+    base_component::BaseComponent,
+    style::{ChatFormatting, Style},
+    text_component::TextComponent,
+    translatable_component::{StringOrComponent, TranslatableComponent},
+};
 
 /// A chat component, basically anything you can see in chat.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Hash)]

@@ -1,13 +1,3 @@
-use crate::heightmap::Heightmap;
-use crate::heightmap::HeightmapKind;
-use crate::palette::PalettedContainer;
-use crate::palette::PalettedContainerKind;
-use azalea_block::BlockState;
-use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
-use azalea_core::position::{BlockPos, ChunkBlockPos, ChunkPos, ChunkSectionBlockPos};
-use nohash_hasher::IntMap;
-use parking_lot::RwLock;
-use simdnbt::owned::NbtCompound;
 use std::collections::hash_map::Entry;
 use std::str::FromStr;
 use std::{
@@ -16,7 +6,19 @@ use std::{
     io::{Cursor, Write},
     sync::{Arc, Weak},
 };
+
+use azalea_block::BlockState;
+use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
+use azalea_core::position::{BlockPos, ChunkBlockPos, ChunkPos, ChunkSectionBlockPos};
+use nohash_hasher::IntMap;
+use parking_lot::RwLock;
+use simdnbt::owned::NbtCompound;
 use tracing::{debug, trace, warn};
+
+use crate::heightmap::Heightmap;
+use crate::heightmap::HeightmapKind;
+use crate::palette::PalettedContainer;
+use crate::palette::PalettedContainerKind;
 
 const SECTION_HEIGHT: u32 = 16;
 

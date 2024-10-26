@@ -1,7 +1,8 @@
 use std::cmp::{self, Ordering};
 
-use super::CubePointRange;
 use azalea_core::math::{gcd, lcm, EPSILON};
+
+use super::CubePointRange;
 
 #[derive(Debug)]
 pub enum IndexMerger {

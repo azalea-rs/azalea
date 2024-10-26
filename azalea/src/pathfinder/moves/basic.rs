@@ -6,9 +6,8 @@ use azalea_core::{
     position::{BlockPos, Vec3},
 };
 
-use crate::pathfinder::{astar, costs::*};
-
 use super::{default_is_reached, Edge, ExecuteCtx, IsReachedCtx, MoveData, PathfinderCtx};
+use crate::pathfinder::{astar, costs::*};
 
 pub fn basic_move(ctx: &mut PathfinderCtx, node: BlockPos) {
     forward_move(ctx, node);

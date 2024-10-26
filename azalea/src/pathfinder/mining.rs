@@ -4,9 +4,8 @@ use azalea_block::{BlockState, BlockStates};
 use azalea_inventory::Menu;
 use nohash_hasher::IntMap;
 
-use crate::auto_tool::best_tool_in_hotbar_for_block;
-
 use super::costs::BLOCK_BREAK_ADDITIONAL_PENALTY;
+use crate::auto_tool::best_tool_in_hotbar_for_block;
 
 pub struct MiningCache {
     block_state_id_costs: UnsafeCell<IntMap<u32, f32>>,

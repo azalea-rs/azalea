@@ -1,6 +1,7 @@
+use std::io::{Cursor, Write};
+
 use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
 use azalea_core::math;
-use std::io::{Cursor, Write};
 use tracing::warn;
 
 use crate::BitStorage;

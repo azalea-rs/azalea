@@ -1,7 +1,8 @@
+use std::collections::HashMap;
+
 use azalea_buf::McBuf;
 use azalea_inventory::{operations::ClickType, ItemSlot};
 use azalea_protocol_macros::ServerboundGamePacket;
-use std::collections::HashMap;
 
 #[derive(Clone, Debug, McBuf, ServerboundGamePacket)]
 pub struct ServerboundContainerClickPacket {

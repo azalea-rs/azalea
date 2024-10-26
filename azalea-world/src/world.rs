@@ -1,15 +1,17 @@
-use crate::{ChunkStorage, PartialChunkStorage};
+use std::fmt::Formatter;
+use std::{
+    collections::{HashMap, HashSet},
+    fmt::Debug,
+};
+
 use azalea_block::{BlockState, FluidState};
 use azalea_core::position::{BlockPos, ChunkPos};
 use azalea_core::registry_holder::RegistryHolder;
 use bevy_ecs::{component::Component, entity::Entity};
 use derive_more::{Deref, DerefMut};
 use nohash_hasher::IntMap;
-use std::fmt::Formatter;
-use std::{
-    collections::{HashMap, HashSet},
-    fmt::Debug,
-};
+
+use crate::{ChunkStorage, PartialChunkStorage};
 
 /// PartialInstances are usually owned by clients, and hold strong references to
 /// chunks and entities in [`Instance`]s.

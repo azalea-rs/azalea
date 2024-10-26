@@ -1,5 +1,6 @@
-use crate::exceptions::{BuiltInExceptions, CommandSyntaxException};
 use std::str::FromStr;
+
+use crate::exceptions::{BuiltInExceptions, CommandSyntaxException};
 
 #[derive(Clone)]
 pub struct StringReader {

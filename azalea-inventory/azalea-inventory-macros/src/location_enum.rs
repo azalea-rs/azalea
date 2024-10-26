@@ -1,7 +1,8 @@
-use crate::{parse_macro::DeclareMenus, utils::to_pascal_case};
 use proc_macro2::TokenStream;
 use quote::quote;
 use syn::Ident;
+
+use crate::{parse_macro::DeclareMenus, utils::to_pascal_case};
 
 pub fn generate(input: &DeclareMenus) -> TokenStream {
     // pub enum MenuLocation {

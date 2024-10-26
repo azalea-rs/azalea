@@ -1,11 +1,13 @@
-use crate::packets::game::serverbound_interact_packet::InteractionHand;
+use std::io::{Cursor, Write};
+
 use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
 use azalea_core::{
     direction::Direction,
     position::{BlockPos, Vec3},
 };
 use azalea_protocol_macros::ServerboundGamePacket;
-use std::io::{Cursor, Write};
+
+use crate::packets::game::serverbound_interact_packet::InteractionHand;
 
 #[derive(Clone, Debug, McBuf, ServerboundGamePacket)]
 pub struct ServerboundUseItemOnPacket {

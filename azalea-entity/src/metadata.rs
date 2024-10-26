@@ -3,12 +3,6 @@
 // This file is generated from codegen/lib/code/entity.py.
 // Don't change it manually!
 
-use crate::particle::Particle;
-
-use super::{
-    ArmadilloStateKind, EntityDataItem, EntityDataValue, OptionalUnsignedInt, Pose, Quaternion,
-    Rotations, SnifferState, VillagerData,
-};
 use azalea_chat::FormattedText;
 use azalea_core::{
     direction::Direction,
@@ -19,6 +13,12 @@ use bevy_ecs::{bundle::Bundle, component::Component};
 use derive_more::{Deref, DerefMut};
 use thiserror::Error;
 use uuid::Uuid;
+
+use super::{
+    ArmadilloStateKind, EntityDataItem, EntityDataValue, OptionalUnsignedInt, Pose, Quaternion,
+    Rotations, SnifferState, VillagerData,
+};
+use crate::particle::Particle;
 
 #[derive(Error, Debug)]
 pub enum UpdateMetadataError {

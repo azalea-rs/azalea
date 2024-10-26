@@ -1,17 +1,19 @@
 //! Handle Minecraft (Xbox) authentication.
 
-use crate::cache::{self, CachedAccount, ExpiringValue};
-use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
-use serde_json::json;
 use std::{
     collections::HashMap,
     path::PathBuf,
     time::{Instant, SystemTime, UNIX_EPOCH},
 };
+
+use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
+use serde_json::json;
 use thiserror::Error;
 use tracing::{error, trace};
 use uuid::Uuid;
+
+use crate::cache::{self, CachedAccount, ExpiringValue};
 
 #[derive(Default)]
 pub struct AuthOpts<'a> {

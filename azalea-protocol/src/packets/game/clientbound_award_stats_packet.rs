@@ -1,6 +1,7 @@
+use std::collections::HashMap;
+
 use azalea_buf::McBuf;
 use azalea_protocol_macros::ClientboundGamePacket;
-use std::collections::HashMap;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundAwardStatsPacket {

@@ -1,13 +1,15 @@
 //! Resolve IPs from hostnames.
 
-use crate::ServerAddress;
-use async_recursion::async_recursion;
 use std::net::{IpAddr, SocketAddr};
+
+use async_recursion::async_recursion;
 use thiserror::Error;
 use trust_dns_resolver::{
     config::{ResolverConfig, ResolverOpts},
     Name, TokioAsyncResolver,
 };
+
+use crate::ServerAddress;
 
 #[derive(Error, Debug)]
 pub enum ResolverError {

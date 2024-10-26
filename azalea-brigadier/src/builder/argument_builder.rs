@@ -1,13 +1,13 @@
+use std::{fmt::Debug, sync::Arc};
+
 use parking_lot::RwLock;
 
+use super::{literal_argument_builder::Literal, required_argument_builder::Argument};
 use crate::{
     context::CommandContext,
     modifier::RedirectModifier,
     tree::{Command, CommandNode},
 };
-
-use super::{literal_argument_builder::Literal, required_argument_builder::Argument};
-use std::{fmt::Debug, sync::Arc};
 
 #[derive(Debug, Clone)]
 pub enum ArgumentBuilderType {

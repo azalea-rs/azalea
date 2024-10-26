@@ -1,13 +1,12 @@
 use std::{any::Any, sync::Arc};
 
+use super::ArgumentType;
 use crate::{
     context::CommandContext,
     exceptions::CommandSyntaxException,
     string_reader::StringReader,
     suggestion::{Suggestions, SuggestionsBuilder},
 };
-
-use super::ArgumentType;
 
 #[derive(Default)]
 struct Boolean;

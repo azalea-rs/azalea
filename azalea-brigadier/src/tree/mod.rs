@@ -1,3 +1,11 @@
+use std::{
+    collections::{BTreeMap, HashMap},
+    fmt::Debug,
+    hash::Hash,
+    ptr,
+    sync::Arc,
+};
+
 use parking_lot::RwLock;
 
 use crate::{
@@ -10,13 +18,6 @@ use crate::{
     modifier::RedirectModifier,
     string_reader::StringReader,
     suggestion::{Suggestions, SuggestionsBuilder},
-};
-use std::{
-    collections::{BTreeMap, HashMap},
-    fmt::Debug,
-    hash::Hash,
-    ptr,
-    sync::Arc,
 };
 
 pub type Command<S> = Option<Arc<dyn Fn(&CommandContext<S>) -> i32 + Send + Sync>>;

@@ -2,8 +2,9 @@
 //! you should be relying on those if possible, but these are provided for your
 //! convenience anyways.
 
-use crate::Registry;
 use azalea_registry_macros::registry;
+
+use crate::Registry;
 
 registry! {
 enum WolfVariant {

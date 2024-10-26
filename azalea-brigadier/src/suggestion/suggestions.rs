@@ -1,16 +1,18 @@
-use super::Suggestion;
-use crate::context::StringRange;
 #[cfg(feature = "azalea-buf")]
-use crate::suggestion::SuggestionValue;
+use std::io::{Cursor, Write};
+use std::{collections::HashSet, hash::Hash};
+
 #[cfg(feature = "azalea-buf")]
 use azalea_buf::{
     BufReadError, McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable,
 };
 #[cfg(feature = "azalea-buf")]
 use azalea_chat::FormattedText;
+
+use super::Suggestion;
+use crate::context::StringRange;
 #[cfg(feature = "azalea-buf")]
-use std::io::{Cursor, Write};
-use std::{collections::HashSet, hash::Hash};
+use crate::suggestion::SuggestionValue;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Default)]
 pub struct Suggestions {

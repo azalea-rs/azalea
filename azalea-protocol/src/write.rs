@@ -1,13 +1,15 @@
 //! Write packets to a stream.
 
-use crate::{packets::ProtocolPacket, read::MAXIMUM_UNCOMPRESSED_LENGTH};
+use std::{fmt::Debug, io::Read};
+
 use azalea_buf::McBufVarWritable;
 use azalea_crypto::Aes128CfbEnc;
 use flate2::{bufread::ZlibEncoder, Compression};
-use std::{fmt::Debug, io::Read};
 use thiserror::Error;
 use tokio::io::{AsyncWrite, AsyncWriteExt};
 use tracing::trace;
+
+use crate::{packets::ProtocolPacket, read::MAXIMUM_UNCOMPRESSED_LENGTH};
 
 /// Prepend the length of the packet to it.
 fn frame_prepender(mut data: Vec<u8>) -> Result<Vec<u8>, std::io::Error> {

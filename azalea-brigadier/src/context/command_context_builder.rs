@@ -1,3 +1,5 @@
+use std::{collections::HashMap, fmt::Debug, rc::Rc, sync::Arc};
+
 use parking_lot::RwLock;
 
 use super::{
@@ -9,7 +11,6 @@ use crate::{
     modifier::RedirectModifier,
     tree::{Command, CommandNode},
 };
-use std::{collections::HashMap, fmt::Debug, rc::Rc, sync::Arc};
 
 pub struct CommandContextBuilder<'a, S> {
     pub arguments: HashMap<String, ParsedArgument>,

@@ -246,9 +246,8 @@ impl<'a> Iterator for FindBlocks<'a> {
 mod tests {
     use azalea_registry::Block;
 
-    use crate::{Chunk, PartialChunkStorage};
-
     use super::*;
+    use crate::{Chunk, PartialChunkStorage};
 
     #[test]
     fn find_block() {

@@ -1,7 +1,8 @@
+use std::io::{Cursor, Write};
+
 use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
 use azalea_chat::{style::ChatFormatting, FormattedText};
 use azalea_protocol_macros::ClientboundGamePacket;
-use std::io::{Cursor, Write};
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundSetPlayerTeamPacket {

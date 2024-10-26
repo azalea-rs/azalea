@@ -1,6 +1,7 @@
+use std::collections::HashMap;
+
 use azalea_buf::McBuf;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use uuid::Uuid;
 
 #[derive(McBuf, Debug, Clone, Default, Eq, PartialEq)]

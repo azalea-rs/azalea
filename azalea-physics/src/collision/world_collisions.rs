@@ -1,5 +1,5 @@
-use super::{Shapes, BLOCK_SHAPE};
-use crate::collision::{BlockWithShape, VoxelShape, AABB};
+use std::sync::Arc;
+
 use azalea_block::BlockState;
 use azalea_core::{
     cursor3d::{Cursor3d, CursorIterationType},
@@ -8,7 +8,9 @@ use azalea_core::{
 };
 use azalea_world::{Chunk, Instance};
 use parking_lot::RwLock;
-use std::sync::Arc;
+
+use super::{Shapes, BLOCK_SHAPE};
+use crate::collision::{BlockWithShape, VoxelShape, AABB};
 
 pub fn get_block_collisions(world: &Instance, aabb: AABB) -> Vec<VoxelShape> {
     let mut state = BlockCollisionsState::new(world, aabb);

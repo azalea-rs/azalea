@@ -14,17 +14,17 @@
 mod commands;
 pub mod killaura;
 
-use azalea::pathfinder::PathfinderDebugParticles;
-use azalea::ClientInformation;
+use std::sync::Arc;
+use std::time::Duration;
 
 use azalea::brigadier::command_dispatcher::CommandDispatcher;
 use azalea::ecs::prelude::*;
+use azalea::pathfinder::PathfinderDebugParticles;
 use azalea::prelude::*;
 use azalea::swarm::prelude::*;
+use azalea::ClientInformation;
 use commands::{register_commands, CommandSource};
 use parking_lot::Mutex;
-use std::sync::Arc;
-use std::time::Duration;
 
 const USERNAME: &str = "azalea";
 const ADDRESS: &str = "localhost";
@@ -38,9 +38,10 @@ const PATHFINDER_DEBUG_PARTICLES: bool = false;
 #[tokio::main]
 async fn main() {
     {
-        use parking_lot::deadlock;
         use std::thread;
         use std::time::Duration;
+
+        use parking_lot::deadlock;
 
         // Create a background thread which checks for deadlocks every 10s
         thread::spawn(move || loop {

@@ -6,10 +6,11 @@
 #![allow(clippy::explicit_auto_deref)]
 #![allow(clippy::redundant_closure)]
 
-use super::VoxelShape;
-use crate::collision::{self, Shapes};
 use azalea_block::*;
 use once_cell::sync::Lazy;
+
+use super::VoxelShape;
+use crate::collision::{self, Shapes};
 
 pub trait BlockWithShape {
     fn shape(&self) -> &'static VoxelShape;

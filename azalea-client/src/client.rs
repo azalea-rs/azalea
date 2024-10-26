@@ -1,27 +1,11 @@
-use crate::{
-    attack::{self, AttackPlugin},
-    chat::ChatPlugin,
-    chunks::{ChunkBatchInfo, ChunkPlugin},
-    configuration::ConfigurationPlugin,
-    disconnect::{DisconnectEvent, DisconnectPlugin},
-    events::{Event, EventPlugin, LocalPlayerEvents},
-    interact::{CurrentSequenceNumber, InteractPlugin},
-    inventory::{Inventory, InventoryPlugin},
-    local_player::{
-        death_event, GameProfileComponent, Hunger, InstanceHolder, PermissionLevel,
-        PlayerAbilities, TabList,
-    },
-    mining::{self, MinePlugin},
-    movement::{LastSentLookDirection, PhysicsState, PlayerMovePlugin},
-    packet_handling::{
-        login::{self, LoginSendPacketQueue},
-        PacketHandlerPlugin,
-    },
-    player::retroactively_add_game_profile_component,
-    raw_connection::RawConnection,
-    respawn::RespawnPlugin,
-    task_pool::TaskPoolPlugin,
-    Account, PlayerInfo,
+use std::{
+    collections::HashMap,
+    fmt::Debug,
+    io,
+    net::SocketAddr,
+    ops::Deref,
+    sync::Arc,
+    time::{Duration, Instant},
 };
 
 use azalea_auth::{game_profile::GameProfile, sessionserver::ClientSessionServerError};
@@ -68,15 +52,6 @@ use bevy_ecs::{
 use bevy_time::TimePlugin;
 use derive_more::Deref;
 use parking_lot::{Mutex, RwLock};
-use std::{
-    collections::HashMap,
-    fmt::Debug,
-    io,
-    net::SocketAddr,
-    ops::Deref,
-    sync::Arc,
-    time::{Duration, Instant},
-};
 use thiserror::Error;
 use tokio::{
     sync::{broadcast, mpsc},
@@ -84,6 +59,32 @@ use tokio::{
 };
 use tracing::{debug, error};
 use uuid::Uuid;
+
+use crate::{
+    attack::{self, AttackPlugin},
+    chat::ChatPlugin,
+    chunks::{ChunkBatchInfo, ChunkPlugin},
+    configuration::ConfigurationPlugin,
+    disconnect::{DisconnectEvent, DisconnectPlugin},
+    events::{Event, EventPlugin, LocalPlayerEvents},
+    interact::{CurrentSequenceNumber, InteractPlugin},
+    inventory::{Inventory, InventoryPlugin},
+    local_player::{
+        death_event, GameProfileComponent, Hunger, InstanceHolder, PermissionLevel,
+        PlayerAbilities, TabList,
+    },
+    mining::{self, MinePlugin},
+    movement::{LastSentLookDirection, PhysicsState, PlayerMovePlugin},
+    packet_handling::{
+        login::{self, LoginSendPacketQueue},
+        PacketHandlerPlugin,
+    },
+    player::retroactively_add_game_profile_component,
+    raw_connection::RawConnection,
+    respawn::RespawnPlugin,
+    task_pool::TaskPoolPlugin,
+    Account, PlayerInfo,
+};
 
 /// `Client` has the things that a user interacting with the library will want.
 ///

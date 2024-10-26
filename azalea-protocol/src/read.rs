@@ -1,6 +1,11 @@
 //! Read packets from a stream.
 
-use crate::packets::ProtocolPacket;
+use std::backtrace::Backtrace;
+use std::{
+    fmt::Debug,
+    io::{Cursor, Read},
+};
+
 use azalea_buf::BufReadError;
 use azalea_buf::McBufVarReadable;
 use azalea_crypto::Aes128CfbDec;
@@ -9,15 +14,12 @@ use bytes::BytesMut;
 use flate2::read::ZlibDecoder;
 use futures::StreamExt;
 use futures_lite::future;
-use std::backtrace::Backtrace;
-use std::{
-    fmt::Debug,
-    io::{Cursor, Read},
-};
 use thiserror::Error;
 use tokio::io::AsyncRead;
 use tokio_util::codec::{BytesCodec, FramedRead};
 use tracing::trace;
+
+use crate::packets::ProtocolPacket;
 
 #[derive(Error, Debug)]
 pub enum ReadPacketError {

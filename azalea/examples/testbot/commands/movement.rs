@@ -9,9 +9,8 @@ use azalea::{
 };
 use parking_lot::Mutex;
 
-use crate::BotTask;
-
 use super::{CommandSource, Ctx};
+use crate::BotTask;
 
 pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
     commands.register(

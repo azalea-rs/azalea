@@ -1,4 +1,3 @@
-use crate::app::{App, Plugin};
 use azalea_client::chunks::handle_chunk_batch_finished_event;
 use azalea_client::inventory::InventorySet;
 use azalea_client::packet_handling::game::SendPacketEvent;
@@ -9,6 +8,8 @@ use azalea_protocol::packets::game::serverbound_resource_pack_packet::{
 };
 use bevy_app::Update;
 use bevy_ecs::prelude::*;
+
+use crate::app::{App, Plugin};
 
 /// A plugin that makes it so bots automatically accept resource packs.
 #[derive(Clone, Default)]

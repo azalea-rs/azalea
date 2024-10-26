@@ -103,6 +103,9 @@ impl serde::Serialize for ServerAddress {
 mod tests {
     use std::io::Cursor;
 
+    use bytes::BytesMut;
+    use uuid::Uuid;
+
     use crate::{
         packets::{
             game::serverbound_chat_packet::{LastSeenMessagesUpdate, ServerboundChatPacket},
@@ -111,8 +114,6 @@ mod tests {
         read::{compression_decoder, read_packet},
         write::{compression_encoder, serialize_packet, write_packet},
     };
-    use bytes::BytesMut;
-    use uuid::Uuid;
 
     #[tokio::test]
     async fn test_hello_packet() {

@@ -1,7 +1,9 @@
-use crate::packets::ClientIntention;
+use std::hash::Hash;
+
 use azalea_buf::McBuf;
 use azalea_protocol_macros::ServerboundHandshakePacket;
-use std::hash::Hash;
+
+use crate::packets::ClientIntention;
 
 #[derive(Hash, Clone, Debug, McBuf, ServerboundHandshakePacket)]
 pub struct ClientIntentionPacket {

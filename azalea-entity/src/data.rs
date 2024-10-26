@@ -1,5 +1,7 @@
 //! Define some types needed for entity metadata.
 
+use std::io::{Cursor, Write};
+
 use azalea_buf::{
     BufReadError, McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable,
 };
@@ -13,7 +15,6 @@ use bevy_ecs::component::Component;
 use derive_more::Deref;
 use enum_as_inner::EnumAsInner;
 use nohash_hasher::IntSet;
-use std::io::{Cursor, Write};
 use uuid::Uuid;
 
 use crate::particle::Particle;

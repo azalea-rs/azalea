@@ -1,7 +1,8 @@
+use std::io::{Cursor, Write};
+
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 use azalea_core::{bitset::FixedBitSet, resource_location::ResourceLocation};
 use azalea_protocol_macros::ClientboundGamePacket;
-use std::io::{Cursor, Write};
 
 use super::clientbound_sound_packet::SoundSource;
 

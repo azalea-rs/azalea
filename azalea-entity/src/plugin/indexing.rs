@@ -1,5 +1,7 @@
 //! Stuff related to entity indexes and keeping track of entities in the world.
 
+use std::{collections::HashMap, fmt::Debug};
+
 use azalea_core::position::ChunkPos;
 use azalea_world::{Instance, InstanceContainer, InstanceName, MinecraftEntityId};
 use bevy_ecs::{
@@ -10,13 +12,11 @@ use bevy_ecs::{
 };
 use derive_more::{Deref, DerefMut};
 use nohash_hasher::IntMap;
-use std::{collections::HashMap, fmt::Debug};
 use tracing::{debug, warn};
 use uuid::Uuid;
 
-use crate::{EntityUuid, Position};
-
 use super::LoadedBy;
+use crate::{EntityUuid, Position};
 
 #[derive(Resource, Default)]
 pub struct EntityUuidIndex {

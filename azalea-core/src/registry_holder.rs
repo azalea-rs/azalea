@@ -5,11 +5,12 @@
 //! the game, including the types of chat messages, dimensions, and
 //! biomes.
 
+use std::{collections::HashMap, io::Cursor};
+
 use simdnbt::{
     owned::{NbtCompound, NbtTag},
     Deserialize, FromNbtTag, Serialize, ToNbtTag,
 };
-use std::{collections::HashMap, io::Cursor};
 use tracing::error;
 
 use crate::resource_location::ResourceLocation;

@@ -1,8 +1,8 @@
-use crate::packets::common::CommonPlayerSpawnInfo;
-
 use azalea_buf::McBuf;
 use azalea_core::resource_location::ResourceLocation;
 use azalea_protocol_macros::ClientboundGamePacket;
+
+use crate::packets::common::CommonPlayerSpawnInfo;
 
 /// The first packet sent by the server to the client after login.
 ///

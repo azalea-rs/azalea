@@ -11,20 +11,11 @@ pub mod moves;
 pub mod simulation;
 pub mod world;
 
-use crate::bot::{JumpEvent, LookAtEvent};
-use crate::pathfinder::astar::a_star;
-use crate::WalkDirection;
+use std::collections::VecDeque;
+use std::sync::atomic::{self, AtomicUsize};
+use std::sync::Arc;
+use std::time::{Duration, Instant};
 
-use crate::app::{App, Plugin};
-use crate::ecs::{
-    component::Component,
-    entity::Entity,
-    event::{EventReader, EventWriter},
-    query::{With, Without},
-    system::{Commands, Query, Res},
-};
-use crate::pathfinder::moves::PathfinderCtx;
-use crate::pathfinder::world::CachedWorld;
 use azalea_client::inventory::{Inventory, InventorySet, SetSelectedHotbarSlotEvent};
 use azalea_client::mining::{Mining, StartMiningBlockEvent};
 use azalea_client::movement::MoveEventsSet;
@@ -42,10 +33,6 @@ use bevy_ecs::query::Changed;
 use bevy_ecs::schedule::IntoSystemConfigs;
 use bevy_tasks::{AsyncComputeTaskPool, Task};
 use futures_lite::future;
-use std::collections::VecDeque;
-use std::sync::atomic::{self, AtomicUsize};
-use std::sync::Arc;
-use std::time::{Duration, Instant};
 use tracing::{debug, error, info, trace, warn};
 
 use self::debug::debug_render_path_with_particles;
@@ -53,6 +40,19 @@ pub use self::debug::PathfinderDebugParticles;
 use self::goals::Goal;
 use self::mining::MiningCache;
 use self::moves::{ExecuteCtx, IsReachedCtx, SuccessorsFn};
+use crate::app::{App, Plugin};
+use crate::bot::{JumpEvent, LookAtEvent};
+use crate::ecs::{
+    component::Component,
+    entity::Entity,
+    event::{EventReader, EventWriter},
+    query::{With, Without},
+    system::{Commands, Query, Res},
+};
+use crate::pathfinder::astar::a_star;
+use crate::pathfinder::moves::PathfinderCtx;
+use crate::pathfinder::world::CachedWorld;
+use crate::WalkDirection;
 
 #[derive(Clone, Default)]
 pub struct PathfinderPlugin;

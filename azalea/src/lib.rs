@@ -34,6 +34,8 @@ pub use azalea_physics as physics;
 pub use azalea_protocol as protocol;
 pub use azalea_registry as registry;
 pub use azalea_world as world;
+pub use bevy_app as app;
+pub use bevy_ecs as ecs;
 pub use bot::*;
 use ecs::component::Component;
 use futures::{future::BoxFuture, Future};
@@ -41,9 +43,6 @@ use protocol::connect::Proxy;
 use protocol::{resolver::ResolverError, ServerAddress};
 use swarm::SwarmBuilder;
 use thiserror::Error;
-
-pub use bevy_app as app;
-pub use bevy_ecs as ecs;
 
 pub type BoxHandleFn<S> =
     Box<dyn Fn(Client, azalea_client::Event, S) -> BoxFuture<'static, Result<(), anyhow::Error>>>;

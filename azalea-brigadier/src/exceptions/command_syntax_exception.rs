@@ -1,8 +1,9 @@
-use super::builtin_exceptions::BuiltInExceptions;
 use std::{
     cmp,
     fmt::{self, Write},
 };
+
+use super::builtin_exceptions::BuiltInExceptions;
 
 #[derive(Clone, PartialEq)]
 pub struct CommandSyntaxException {

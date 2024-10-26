@@ -1,6 +1,8 @@
-use crate::{base_component::BaseComponent, style::ChatFormatting, FormattedText};
-use serde::{ser::SerializeMap, Serialize, Serializer, __private::ser::FlatMapSerializer};
 use std::fmt::Display;
+
+use serde::{ser::SerializeMap, Serialize, Serializer, __private::ser::FlatMapSerializer};
+
+use crate::{base_component::BaseComponent, style::ChatFormatting, FormattedText};
 
 /// A component that contains text that's the same in all locales.
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
@@ -140,9 +142,8 @@ impl Display for TextComponent {
 
 #[cfg(test)]
 mod tests {
-    use crate::style::Ansi;
-
     use super::*;
+    use crate::style::Ansi;
 
     #[test]
     fn test_hypixel_motd() {

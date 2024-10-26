@@ -1,12 +1,11 @@
 use std::{any::Any, sync::Arc};
 
+use super::ArgumentType;
 use crate::{
     context::CommandContext,
     exceptions::{BuiltInExceptions, CommandSyntaxException},
     string_reader::StringReader,
 };
-
-use super::ArgumentType;
 
 #[derive(Default)]
 struct Integer {

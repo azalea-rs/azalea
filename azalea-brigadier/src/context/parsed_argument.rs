@@ -1,5 +1,6 @@
-use super::string_range::StringRange;
 use std::{any::Any, sync::Arc};
+
+use super::string_range::StringRange;
 
 #[derive(Clone)]
 pub struct ParsedArgument {

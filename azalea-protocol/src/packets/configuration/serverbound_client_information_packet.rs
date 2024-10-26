@@ -146,8 +146,9 @@ impl McBufWritable for ModelCustomization {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use std::io::Cursor;
+
+    use super::*;
 
     #[test]
     fn test_client_information_packet() {

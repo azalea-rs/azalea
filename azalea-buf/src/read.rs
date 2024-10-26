@@ -1,13 +1,15 @@
-use super::{UnsizedByteArray, MAX_STRING_LENGTH};
-use byteorder::{ReadBytesExt, BE};
 use std::{
     backtrace::Backtrace,
     collections::HashMap,
     hash::Hash,
     io::{Cursor, Read},
 };
+
+use byteorder::{ReadBytesExt, BE};
 use thiserror::Error;
 use tracing::warn;
+
+use super::{UnsizedByteArray, MAX_STRING_LENGTH};
 
 #[derive(Error, Debug)]
 pub enum BufReadError {

@@ -4,6 +4,8 @@ mod chat;
 mod events;
 pub mod prelude;
 
+use std::{collections::HashMap, future::Future, net::SocketAddr, sync::Arc, time::Duration};
+
 use azalea_client::{
     chat::ChatPacket, start_ecs_runner, Account, Client, DefaultPlugins, Event, JoinError,
     StartClientOpts,
@@ -14,7 +16,6 @@ use bevy_app::{App, PluginGroup, PluginGroupBuilder, Plugins};
 use bevy_ecs::{component::Component, entity::Entity, system::Resource, world::World};
 use futures::future::{join_all, BoxFuture};
 use parking_lot::{Mutex, RwLock};
-use std::{collections::HashMap, future::Future, net::SocketAddr, sync::Arc, time::Duration};
 use tokio::sync::mpsc;
 use tracing::error;
 

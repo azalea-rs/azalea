@@ -1,12 +1,14 @@
-use super::mergers::IndexMerger;
-use crate::collision::{BitSetDiscreteVoxelShape, DiscreteVoxelShape, AABB};
+use std::{cmp, num::NonZeroU32, sync::LazyLock};
+
 use azalea_core::{
     block_hit_result::BlockHitResult,
     direction::{Axis, AxisCycle, Direction},
     math::{binary_search, EPSILON},
     position::{BlockPos, Vec3},
 };
-use std::{cmp, num::NonZeroU32, sync::LazyLock};
+
+use super::mergers::IndexMerger;
+use crate::collision::{BitSetDiscreteVoxelShape, DiscreteVoxelShape, AABB};
 
 pub struct Shapes;
 

@@ -1,8 +1,7 @@
 use std::collections::HashSet;
 
-use crate::context::StringRange;
-
 use super::{Suggestion, SuggestionValue, Suggestions};
+use crate::context::StringRange;
 
 #[derive(PartialEq, Debug)]
 pub struct SuggestionsBuilder {

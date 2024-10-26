@@ -1,10 +1,11 @@
-use super::clientbound_player_chat_packet::ChatTypeBound;
 use azalea_buf::McBuf;
 use azalea_chat::{
     translatable_component::{StringOrComponent, TranslatableComponent},
     FormattedText,
 };
 use azalea_protocol_macros::ClientboundGamePacket;
+
+use super::clientbound_player_chat_packet::ChatTypeBound;
 
 // A disguised chat packet is basically the same as a normal
 // [`ClientboundPlayerChatPacket`], except that it doesn't have any of the chat

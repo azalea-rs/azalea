@@ -1,8 +1,9 @@
+use std::io::Cursor;
+
 use azalea_buf::{BufReadError, McBuf};
 use azalea_buf::{McBufReadable, McBufWritable};
 use azalea_inventory::ItemSlot;
 use azalea_protocol_macros::ClientboundGamePacket;
-use std::io::Cursor;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundSetEquipmentPacket {

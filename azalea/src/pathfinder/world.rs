@@ -490,8 +490,9 @@ pub fn is_block_state_solid(block: BlockState) -> bool {
 #[cfg(test)]
 mod tests {
 
-    use super::*;
     use azalea_world::{Chunk, ChunkStorage, PartialInstance};
+
+    use super::*;
 
     #[test]
     fn test_is_passable() {

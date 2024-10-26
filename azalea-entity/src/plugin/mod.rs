@@ -9,15 +9,14 @@ use azalea_world::{InstanceContainer, InstanceName, MinecraftEntityId};
 use bevy_app::{App, Plugin, PreUpdate, Update};
 use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
+use indexing::EntityUuidIndex;
+pub use relative_updates::RelativeEntityUpdate;
 use tracing::debug;
 
 use crate::{
     metadata::Health, Dead, EyeHeight, FluidOnEyes, LocalEntity, LookDirection, OnClimbable,
     Physics, Position,
 };
-
-use indexing::EntityUuidIndex;
-pub use relative_updates::RelativeEntityUpdate;
 
 /// A Bevy [`SystemSet`] for various types of entity updates.
 #[derive(SystemSet, Debug, Hash, Eq, PartialEq, Clone)]

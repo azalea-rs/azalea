@@ -1,10 +1,11 @@
+use std::io::Cursor;
+use std::ops::Deref;
+use std::{collections::HashMap, io::Write};
+
 use azalea_buf::{BufReadError, McBuf, McBufVarReadable, McBufVarWritable};
 use azalea_buf::{McBufReadable, McBufWritable};
 use azalea_core::resource_location::ResourceLocation;
 use azalea_protocol_macros::ClientboundGamePacket;
-use std::io::Cursor;
-use std::ops::Deref;
-use std::{collections::HashMap, io::Write};
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundUpdateTagsPacket {

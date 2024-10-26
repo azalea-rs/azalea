@@ -1,10 +1,11 @@
-use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
-use azalea_registry::DataComponentKind;
 use std::{
     collections::HashMap,
     fmt,
     io::{Cursor, Write},
 };
+
+use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
+use azalea_registry::DataComponentKind;
 
 use crate::components::{self};
 

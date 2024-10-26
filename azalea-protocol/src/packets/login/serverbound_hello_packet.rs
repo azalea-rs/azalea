@@ -12,8 +12,9 @@ pub struct ServerboundHelloPacket {
 mod tests {
     use std::io::Cursor;
 
-    use super::*;
     use azalea_buf::{McBufReadable, McBufWritable};
+
+    use super::*;
 
     #[test]
     fn test_read_write() {

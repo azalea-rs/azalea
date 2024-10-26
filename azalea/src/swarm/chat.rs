@@ -13,18 +13,19 @@
 // in Swarm that's set to the smallest index of all the bots, and we remove all
 // messages from the queue that are before that index.
 
+use std::collections::VecDeque;
+
+use azalea_client::chat::{ChatPacket, ChatReceivedEvent};
+use bevy_app::{App, Plugin, Update};
+use bevy_ecs::prelude::Event;
+
+use super::{Swarm, SwarmEvent};
 use crate::ecs::{
     component::Component,
     event::{EventReader, EventWriter},
     schedule::IntoSystemConfigs,
     system::{Commands, Query, Res, ResMut, Resource},
 };
-use azalea_client::chat::{ChatPacket, ChatReceivedEvent};
-use bevy_app::{App, Plugin, Update};
-use bevy_ecs::prelude::Event;
-use std::collections::VecDeque;
-
-use super::{Swarm, SwarmEvent};
 
 #[derive(Clone)]
 pub struct SwarmChatPlugin;

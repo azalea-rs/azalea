@@ -1,3 +1,8 @@
+use std::{
+    collections::HashMap,
+    io::{Cursor, Write},
+};
+
 use azalea_auth::game_profile::{GameProfile, ProfilePropertyValue};
 use azalea_buf::{
     BufReadError, McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable,
@@ -5,10 +10,6 @@ use azalea_buf::{
 use azalea_chat::FormattedText;
 use azalea_core::{bitset::FixedBitSet, game_type::GameMode};
 use azalea_protocol_macros::ClientboundGamePacket;
-use std::{
-    collections::HashMap,
-    io::{Cursor, Write},
-};
 use uuid::Uuid;
 
 use super::serverbound_chat_session_update_packet::RemoteChatSessionData;

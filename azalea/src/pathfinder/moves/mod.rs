@@ -3,13 +3,6 @@ pub mod parkour;
 
 use std::{fmt::Debug, sync::Arc};
 
-use crate::{auto_tool::best_tool_in_hotbar_for_block, JumpEvent, LookAtEvent};
-
-use super::{
-    astar,
-    mining::MiningCache,
-    world::{is_block_state_passable, CachedWorld},
-};
 use azalea_client::{
     inventory::SetSelectedHotbarSlotEvent, mining::StartMiningBlockEvent, SprintDirection,
     StartSprintEvent, StartWalkEvent, WalkDirection,
@@ -19,6 +12,13 @@ use azalea_inventory::Menu;
 use azalea_world::Instance;
 use bevy_ecs::{entity::Entity, event::EventWriter};
 use parking_lot::RwLock;
+
+use super::{
+    astar,
+    mining::MiningCache,
+    world::{is_block_state_passable, CachedWorld},
+};
+use crate::{auto_tool::best_tool_in_hotbar_for_block, JumpEvent, LookAtEvent};
 
 type Edge = astar::Edge<BlockPos, MoveData>;
 

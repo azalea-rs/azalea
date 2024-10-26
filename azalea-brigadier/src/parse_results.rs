@@ -1,8 +1,9 @@
+use std::{collections::HashMap, fmt::Debug, rc::Rc};
+
 use crate::{
     context::CommandContextBuilder, exceptions::CommandSyntaxException,
     string_reader::StringReader, tree::CommandNode,
 };
-use std::{collections::HashMap, fmt::Debug, rc::Rc};
 
 pub struct ParseResults<'a, S> {
     pub context: CommandContextBuilder<'a, S>,

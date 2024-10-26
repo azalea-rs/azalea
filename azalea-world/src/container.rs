@@ -1,13 +1,14 @@
+use std::{
+    collections::HashMap,
+    sync::{Arc, Weak},
+};
+
 use azalea_core::{registry_holder::RegistryHolder, resource_location::ResourceLocation};
 use bevy_ecs::{component::Component, system::Resource};
 use derive_more::{Deref, DerefMut};
 use nohash_hasher::IntMap;
 use parking_lot::RwLock;
 use rustc_hash::FxHashMap;
-use std::{
-    collections::HashMap,
-    sync::{Arc, Weak},
-};
 use tracing::error;
 
 use crate::{ChunkStorage, Instance};

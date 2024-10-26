@@ -1,10 +1,11 @@
+use std::collections::HashMap;
+use std::io::Cursor;
+
 use azalea_buf::McBuf;
 use azalea_chat::FormattedText;
 use azalea_core::resource_location::ResourceLocation;
 use azalea_inventory::ItemSlot;
 use azalea_protocol_macros::ClientboundGamePacket;
-use std::collections::HashMap;
-use std::io::Cursor;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
 pub struct ClientboundUpdateAdvancementsPacket {
@@ -117,8 +118,9 @@ pub struct AdvancementHolder {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use azalea_buf::{McBufReadable, McBufWritable};
+
+    use super::*;
 
     #[test]
     fn test() {

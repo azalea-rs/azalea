@@ -2,11 +2,12 @@
 
 mod utils;
 
+use std::collections::HashMap;
+use std::fmt::Write;
+
 use proc_macro::TokenStream;
 use proc_macro2::TokenTree;
 use quote::quote;
-use std::collections::HashMap;
-use std::fmt::Write;
 use syn::{
     braced,
     ext::IdentExt,

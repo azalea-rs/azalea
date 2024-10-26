@@ -605,9 +605,8 @@ impl simdnbt::Deserialize for Style {
 
 #[cfg(test)]
 mod tests {
-    use crate::component::DEFAULT_STYLE;
-
     use super::*;
+    use crate::component::DEFAULT_STYLE;
 
     #[test]
     fn text_color_named_colors() {

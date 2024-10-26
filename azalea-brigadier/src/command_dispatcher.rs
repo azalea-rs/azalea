@@ -1,3 +1,11 @@
+use std::{
+    cmp::Ordering,
+    collections::{HashMap, HashSet},
+    mem,
+    rc::Rc,
+    sync::Arc,
+};
+
 use parking_lot::RwLock;
 
 use crate::{
@@ -8,13 +16,6 @@ use crate::{
     string_reader::StringReader,
     suggestion::{Suggestions, SuggestionsBuilder},
     tree::CommandNode,
-};
-use std::{
-    cmp::Ordering,
-    collections::{HashMap, HashSet},
-    mem,
-    rc::Rc,
-    sync::Arc,
 };
 
 /// The root of the command tree. You need to make this to register commands.

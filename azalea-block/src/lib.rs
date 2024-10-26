@@ -5,16 +5,16 @@ mod behavior;
 mod generated;
 mod range;
 
-pub use generated::{blocks, properties};
-
-use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
-pub use behavior::BlockBehavior;
 use core::fmt::Debug;
-pub use range::BlockStates;
 use std::{
     any::Any,
     io::{Cursor, Write},
 };
+
+use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
+pub use behavior::BlockBehavior;
+pub use generated::{blocks, properties};
+pub use range::BlockStates;
 
 pub trait Block: Debug + Any {
     fn behavior(&self) -> BlockBehavior;

@@ -1,12 +1,14 @@
-use crate::packets::BufReadError;
-use crate::packets::McBufWritable;
+use std::io::Cursor;
+use std::io::Write;
+
 use azalea_buf::McBuf;
 use azalea_buf::McBufReadable;
 use azalea_core::position::BlockPos;
 use azalea_core::resource_location::ResourceLocation;
 use azalea_protocol_macros::ServerboundGamePacket;
-use std::io::Cursor;
-use std::io::Write;
+
+use crate::packets::BufReadError;
+use crate::packets::McBufWritable;
 
 #[derive(Clone, Debug, McBuf, ServerboundGamePacket)]
 pub struct ServerboundSetJigsawBlockPacket {

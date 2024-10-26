@@ -1,9 +1,8 @@
 use azalea_client::{SprintDirection, WalkDirection};
 use azalea_core::{direction::CardinalDirection, position::BlockPos};
 
-use crate::pathfinder::{astar, costs::*};
-
 use super::{Edge, ExecuteCtx, IsReachedCtx, MoveData, PathfinderCtx};
+use crate::pathfinder::{astar, costs::*};
 
 pub fn parkour_move(ctx: &mut PathfinderCtx, node: BlockPos) {
     parkour_forward_1_move(ctx, node);

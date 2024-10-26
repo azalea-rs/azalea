@@ -13,7 +13,6 @@ use std::io::{Cursor, Write};
 
 use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
 use azalea_registry_macros::registry;
-
 pub use extra::*;
 
 pub trait Registry: McBufReadable + McBufWritable

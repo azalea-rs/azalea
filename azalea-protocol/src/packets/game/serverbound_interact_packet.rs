@@ -1,8 +1,10 @@
-use crate::packets::BufReadError;
+use std::io::{Cursor, Write};
+
 use azalea_buf::{McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
 use azalea_core::position::Vec3;
 use azalea_protocol_macros::ServerboundGamePacket;
-use std::io::{Cursor, Write};
+
+use crate::packets::BufReadError;
 
 #[derive(Clone, Debug, McBuf, ServerboundGamePacket)]
 pub struct ServerboundInteractPacket {

@@ -20,8 +20,9 @@ const MAX_STRING_LENGTH: u16 = 32767;
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use std::{collections::HashMap, io::Cursor};
+
+    use super::*;
 
     #[test]
     fn test_write_varint() {

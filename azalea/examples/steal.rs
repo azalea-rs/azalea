@@ -1,10 +1,11 @@
 //! Steal all the diamonds from all the nearby chests.
 
+use std::sync::Arc;
+
 use azalea::{prelude::*, BlockPos};
 use azalea_inventory::operations::QuickMoveClick;
 use azalea_inventory::ItemSlot;
 use parking_lot::Mutex;
-use std::sync::Arc;
 
 #[tokio::main]
 async fn main() {

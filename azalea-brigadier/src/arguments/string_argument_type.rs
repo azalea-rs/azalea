@@ -1,10 +1,9 @@
 use std::{any::Any, sync::Arc};
 
+use super::ArgumentType;
 use crate::{
     context::CommandContext, exceptions::CommandSyntaxException, string_reader::StringReader,
 };
-
-use super::ArgumentType;
 
 pub enum StringArgument {
     /// Match up until the next space.

@@ -10,7 +10,11 @@ pub mod mining;
 pub mod particle;
 mod plugin;
 
-use self::attributes::AttributeInstance;
+use std::{
+    fmt::Debug,
+    hash::{Hash, Hasher},
+};
+
 pub use attributes::Attributes;
 use azalea_block::BlockState;
 use azalea_core::{
@@ -25,12 +29,9 @@ pub use data::*;
 use derive_more::{Deref, DerefMut};
 pub use dimensions::EntityDimensions;
 use plugin::indexing::EntityChunkPos;
-use std::{
-    fmt::Debug,
-    hash::{Hash, Hasher},
-};
 use uuid::Uuid;
 
+use self::attributes::AttributeInstance;
 pub use crate::plugin::*;
 
 pub fn move_relative(

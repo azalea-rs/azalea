@@ -1,5 +1,6 @@
-use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufWritable};
 use std::io::{Cursor, Write};
+
+use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufWritable};
 use tracing::debug;
 
 /// A Minecraft gamemode, like survival or creative.

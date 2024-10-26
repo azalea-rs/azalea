@@ -1,9 +1,10 @@
+use std::io::{Cursor, Write};
+
 use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
 use azalea_chat::FormattedText;
 use azalea_protocol_macros::ClientboundStatusPacket;
 use serde::{Deserialize, Serialize};
 use serde_json::value::Serializer;
-use std::io::{Cursor, Write};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Version {

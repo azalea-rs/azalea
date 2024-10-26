@@ -2,8 +2,6 @@ use azalea_entity::{metadata::Health, EntityUpdateSet};
 use bevy_app::{App, First, Plugin, PreUpdate, Update};
 use bevy_ecs::prelude::*;
 
-use crate::{chat::ChatReceivedEvent, events::death_listener};
-
 use self::{
     game::{
         AddPlayerEvent, DeathEvent, InstanceLoadedEvent, KeepAliveEvent, RemovePlayerEvent,
@@ -11,6 +9,7 @@ use self::{
     },
     login::{LoginPacketEvent, SendLoginPacketEvent},
 };
+use crate::{chat::ChatReceivedEvent, events::death_listener};
 
 pub mod configuration;
 pub mod game;

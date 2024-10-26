@@ -1,14 +1,5 @@
-use crate::accept_resource_packs::AcceptResourcePacksPlugin;
-use crate::app::{App, Plugin, PluginGroup, PluginGroupBuilder};
-use crate::auto_respawn::AutoRespawnPlugin;
-use crate::container::ContainerPlugin;
-use crate::ecs::{
-    component::Component,
-    entity::Entity,
-    event::EventReader,
-    query::{With, Without},
-    system::{Commands, Query},
-};
+use std::f64::consts::PI;
+
 use azalea_client::interact::SwingArmEvent;
 use azalea_client::mining::Mining;
 use azalea_client::TickBroadcast;
@@ -23,9 +14,19 @@ use bevy_app::Update;
 use bevy_ecs::prelude::Event;
 use bevy_ecs::schedule::IntoSystemConfigs;
 use futures_lite::Future;
-use std::f64::consts::PI;
 use tracing::trace;
 
+use crate::accept_resource_packs::AcceptResourcePacksPlugin;
+use crate::app::{App, Plugin, PluginGroup, PluginGroupBuilder};
+use crate::auto_respawn::AutoRespawnPlugin;
+use crate::container::ContainerPlugin;
+use crate::ecs::{
+    component::Component,
+    entity::Entity,
+    event::EventReader,
+    query::{With, Without},
+    system::{Commands, Query},
+};
 use crate::pathfinder::PathfinderPlugin;
 
 #[derive(Clone, Default)]

@@ -1,11 +1,12 @@
 use std::fmt::{self, Display, Formatter};
 
-use crate::{
-    base_component::BaseComponent, style::Style, text_component::TextComponent, FormattedText,
-};
 use serde::{ser::SerializeMap, Serialize, Serializer, __private::ser::FlatMapSerializer};
 #[cfg(feature = "simdnbt")]
 use simdnbt::Serialize as _;
+
+use crate::{
+    base_component::BaseComponent, style::Style, text_component::TextComponent, FormattedText,
+};
 
 #[derive(Clone, Debug, PartialEq, Serialize, Eq, Hash)]
 #[serde(untagged)]

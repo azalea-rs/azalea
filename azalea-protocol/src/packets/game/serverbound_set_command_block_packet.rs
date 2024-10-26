@@ -1,8 +1,10 @@
-use crate::packets::McBufWritable;
+use std::io::Cursor;
+
 use azalea_buf::{BufReadError, McBuf, McBufReadable};
 use azalea_core::{bitset::FixedBitSet, position::BlockPos};
 use azalea_protocol_macros::ServerboundGamePacket;
-use std::io::Cursor;
+
+use crate::packets::McBufWritable;
 
 #[derive(Clone, Debug, ServerboundGamePacket)]
 pub struct ServerboundSetCommandBlockPacket {
