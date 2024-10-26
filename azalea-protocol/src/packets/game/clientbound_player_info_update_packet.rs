@@ -174,7 +174,7 @@ pub struct ActionEnumSet {
 
 impl McBufReadable for ActionEnumSet {
     fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let set = FixedBitSet::<6>::read_from(buf)?;
+        let set = FixedBitSet::<7>::read_from(buf)?;
         Ok(ActionEnumSet {
             add_player: set.index(0),
             initialize_chat: set.index(1),
@@ -189,7 +189,7 @@ impl McBufReadable for ActionEnumSet {
 
 impl McBufWritable for ActionEnumSet {
     fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        let mut set = FixedBitSet::<6>::new();
+        let mut set = FixedBitSet::<7>::new();
         if self.add_player {
             set.set(0);
         }
@@ -207,6 +207,9 @@ impl McBufWritable for ActionEnumSet {
         }
         if self.update_display_name {
             set.set(5);
+        }
+        if self.update_list_order {
+            set.set(6);
         }
         set.write_into(buf)?;
         Ok(())

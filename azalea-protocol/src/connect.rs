@@ -119,7 +119,7 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///             ClientboundLoginPacket::LoginCompression(p) => {
 ///                 conn.set_compression_threshold(p.compression_threshold);
 ///             }
-///             ClientboundLoginPacket::GameProfile(p) => {
+///             ClientboundLoginPacket::LoginFinished(p) => {
 ///                 break (conn.configuration(), p.game_profile);
 ///             }
 ///             ClientboundLoginPacket::LoginDisconnect(p) => {
