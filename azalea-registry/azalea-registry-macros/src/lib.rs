@@ -76,6 +76,7 @@ pub fn registry(input: TokenStream) -> TokenStream {
     generated.extend(quote! {
         #(#attributes)*
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, azalea_buf::McBuf, simdnbt::ToNbtTag, simdnbt::FromNbtTag)]
+        #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
         #[repr(u32)]
         pub enum #name {
             #enum_items
