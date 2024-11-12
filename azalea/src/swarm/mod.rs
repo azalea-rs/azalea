@@ -355,7 +355,7 @@ where
 
         let (run_schedule_sender, run_schedule_receiver) = mpsc::unbounded_channel();
 
-        let main_schedule_label = self.app.main_schedule_label;
+        let main_schedule_label = self.app.main().update_schedule.unwrap();
 
         let ecs_lock =
             start_ecs_runner(self.app, run_schedule_receiver, run_schedule_sender.clone());
@@ -549,7 +549,6 @@ pub type BoxSwarmHandleFn<SS> =
 ///     }
 ///     Ok(())
 /// }
-
 impl Swarm {
     /// Add a new account to the swarm. You can remove it later by calling
     /// [`Client::disconnect`].

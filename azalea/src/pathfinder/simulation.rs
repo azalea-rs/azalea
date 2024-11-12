@@ -130,7 +130,7 @@ pub struct Simulation {
 impl Simulation {
     pub fn new(chunks: ChunkStorage, player: SimulatedPlayerBundle) -> Self {
         let (mut app, instance) = create_simulation_instance(chunks);
-        let entity = create_simulation_player(&mut app.world, instance.clone(), player);
+        let entity = create_simulation_player(app.world_mut(), instance.clone(), player);
         Self {
             app,
             entity,
@@ -140,13 +140,13 @@ impl Simulation {
 
     pub fn tick(&mut self) {
         self.app.update();
-        self.app.world.run_schedule(GameTick);
+        self.app.world_mut().run_schedule(GameTick);
     }
     pub fn component<T: Component + Clone>(&self) -> T {
-        self.app.world.get::<T>(self.entity).unwrap().clone()
+        self.app.world().get::<T>(self.entity).unwrap().clone()
     }
     pub fn get_component<T: Component + Clone>(&self) -> Option<T> {
-        self.app.world.get::<T>(self.entity).cloned()
+        self.app.world().get::<T>(self.entity).cloned()
     }
     pub fn position(&self) -> Vec3 {
         *self.component::<Position>()
@@ -154,8 +154,7 @@ impl Simulation {
     pub fn is_mining(&self) -> bool {
         // return true if the component is present and Some
         self.get_component::<azalea_client::mining::MineBlockPos>()
-            .map(|c| *c)
-            .flatten()
+            .and_then(|c| *c)
             .is_some()
     }
 }
@@ -172,17 +171,17 @@ impl SimulationSet {
     }
     pub fn tick(&mut self) {
         self.app.update();
-        self.app.world.run_schedule(GameTick);
+        self.app.world_mut().run_schedule(GameTick);
     }
 
     pub fn spawn(&mut self, player: SimulatedPlayerBundle) -> Entity {
-        create_simulation_player(&mut self.app.world, self.instance.clone(), player)
+        create_simulation_player(self.app.world_mut(), self.instance.clone(), player)
     }
     pub fn despawn(&mut self, entity: Entity) {
-        self.app.world.despawn(entity);
+        self.app.world_mut().despawn(entity);
     }
 
     pub fn position(&self, entity: Entity) -> Vec3 {
-        **self.app.world.get::<Position>(entity).unwrap()
+        **self.app.world().get::<Position>(entity).unwrap()
     }
 }

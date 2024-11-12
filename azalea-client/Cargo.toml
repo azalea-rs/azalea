@@ -30,9 +30,9 @@ derive_more = { workspace = true }
 futures = { workspace = true }
 minecraft_folder_path = "0.1.2"
 nohash-hasher = { workspace = true }
-parking_lot = { workspace = true, features = ["deadlock_detection"] }
+parking_lot = { workspace = true }
 regex = "1.11.1"
-reqwest = { version = "0.12.9", default-features = false }
+reqwest = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 simdnbt = { workspace = true }

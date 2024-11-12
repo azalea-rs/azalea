@@ -23,11 +23,11 @@ fn bevy_app() {
     app.init_resource::<DispatchStorage>();
 
     // Process commands from bevy
-    app.world
+    app.world_mut()
         .run_system_once(DispatchStorage::bevy_process_commands);
 
     // Verify spawned entities exist after processing commands
-    app.world
+    app.world_mut()
         .run_system_once(DispatchStorage::verify_spawned_entities);
 }
 

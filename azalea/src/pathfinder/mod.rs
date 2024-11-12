@@ -875,7 +875,7 @@ mod tests {
         //     filter: "".to_string(),
         // });
 
-        simulation.app.world.send_event(GotoEvent {
+        simulation.app.world_mut().send_event(GotoEvent {
             entity: simulation.entity,
             goal: Arc::new(BlockPosGoal(end_pos)),
             successors_fn: moves::default_move,

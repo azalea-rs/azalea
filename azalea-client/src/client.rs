@@ -733,17 +733,17 @@ impl Plugin for AzaleaPlugin {
 /// [`DefaultPlugins`].
 #[doc(hidden)]
 pub fn start_ecs_runner(
-    app: App,
+    mut app: App,
     run_schedule_receiver: mpsc::UnboundedReceiver<()>,
     run_schedule_sender: mpsc::UnboundedSender<()>,
 ) -> Arc<Mutex<World>> {
     // all resources should have been added by now so we can take the ecs from the
     // app
-    let ecs = Arc::new(Mutex::new(app.world));
+    let ecs = Arc::new(Mutex::new(std::mem::take(app.world_mut())));
 
     tokio::spawn(run_schedule_loop(
         ecs.clone(),
-        app.main_schedule_label,
+        *app.main().update_schedule.as_ref().unwrap(),
         run_schedule_receiver,
     ));
     tokio::spawn(tick_run_schedule_loop(run_schedule_sender));

@@ -11,6 +11,10 @@ pre-release-replacements = [
   { file = "README.md", search = "`azalea = \"[a-z0-9\\.-]+\"`", replace = "`azalea = \"{{version}}\"`" },
 ]
 
+[dev-dependencies]
+criterion = { workspace = true }
+rand = { workspace = true }
+
 [dependencies]
 anyhow = { workspace = true }
 async-trait = { workspace = true }
@@ -28,9 +32,9 @@ azalea-protocol = { path = "../azalea-protocol", version = "0.10.0" }
 azalea-registry = { path = "../azalea-registry", version = "0.10.0" }
 azalea-world = { path = "../azalea-world", version = "0.10.0" }
 bevy_app = { workspace = true }
-bevy_ecs = { workspace = true }
+bevy_ecs = { workspace = true, features = ["multi_threaded"] }
 bevy_log = { workspace = true }
-bevy_tasks = { workspace = true, features = ["multi-threaded"] }
+bevy_tasks = { workspace = true, features = ["multi_threaded"] }
 bevy_time = { workspace = true }
 derive_more = { workspace = true, features = ["deref", "deref_mut"] }
 futures = { workspace = true }
@@ -44,10 +48,6 @@ thiserror = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }
 uuid = { workspace = true }
-
-[dev-dependencies]
-criterion = "0.5.1"
-rand = "0.8.5"
 
 [features]
 default = ["log"]
