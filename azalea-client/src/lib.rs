@@ -16,7 +16,7 @@ mod client;
 pub mod configuration;
 pub mod disconnect;
 mod entity_query;
-mod events;
+pub mod events;
 pub mod interact;
 pub mod inventory;
 mod local_player;
