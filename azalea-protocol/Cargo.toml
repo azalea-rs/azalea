@@ -38,7 +38,6 @@ bytes = "1.6.0"
 flate2 = "1.0.30"
 futures = { workspace = true }
 futures-lite = { workspace = true }
-futures-util = { workspace = true }
 tracing = { workspace = true }
 serde = { workspace = true, features = ["serde_derive"] }
 serde_json = { workspace = true }

@@ -12,12 +12,12 @@ pre-release-replacements = [
 ]
 
 [dev-dependencies]
+bevy_log = { workspace = true }
 criterion = { workspace = true }
 rand = { workspace = true }
 
 [dependencies]
 anyhow = { workspace = true }
-async-trait = { workspace = true }
 azalea-auth = { path = "../azalea-auth", version = "0.10.0" }
 azalea-block = { path = "../azalea-block", version = "0.10.0" }
 azalea-brigadier = { path = "../azalea-brigadier", version = "0.10.0" }
@@ -33,9 +33,7 @@ azalea-registry = { path = "../azalea-registry", version = "0.10.0" }
 azalea-world = { path = "../azalea-world", version = "0.10.0" }
 bevy_app = { workspace = true }
 bevy_ecs = { workspace = true, features = ["multi_threaded"] }
-bevy_log = { workspace = true }
 bevy_tasks = { workspace = true, features = ["multi_threaded"] }
-bevy_time = { workspace = true }
 derive_more = { workspace = true, features = ["deref", "deref_mut"] }
 futures = { workspace = true }
 futures-lite = { workspace = true }

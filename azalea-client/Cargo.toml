@@ -8,7 +8,6 @@ repository = { workspace = true }
 
 [dependencies]
 anyhow = { workspace = true }
-async-trait = { workspace = true }
 azalea-auth = { path = "../azalea-auth", version = "0.10.0" }
 azalea-block = { path = "../azalea-block", version = "0.10.0" }
 azalea-buf = { path = "../azalea-buf", version = "0.10.0" }
@@ -27,14 +26,10 @@ bevy_log = { workspace = true, optional = true }
 bevy_tasks = { workspace = true }
 bevy_time = { workspace = true }
 derive_more = { workspace = true }
-futures = { workspace = true }
 minecraft_folder_path = "0.1.2"
-nohash-hasher = { workspace = true }
 parking_lot = { workspace = true }
 regex = "1.11.1"
 reqwest = { workspace = true }
-serde = { workspace = true }
-serde_json = { workspace = true }
 simdnbt = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["sync"] }

@@ -199,7 +199,6 @@ name = "azalea"
 version = "0.10.3+mc1.21.1"
 dependencies = [
  "anyhow",
- "async-trait",
  "azalea-auth",
  "azalea-block",
  "azalea-brigadier",
@@ -217,7 +216,6 @@ dependencies = [
  "bevy_ecs",
  "bevy_log",
  "bevy_tasks",
- "bevy_time",
  "criterion",
  "derive_more",
  "futures",
@@ -244,7 +242,6 @@ dependencies = [
  "chrono",
  "env_logger",
  "md-5",
- "num-bigint",
  "reqwest",
  "rsa",
  "serde",
@@ -324,7 +321,6 @@ name = "azalea-client"
 version = "0.10.3+mc1.21.1"
 dependencies = [
  "anyhow",
- "async-trait",
  "azalea-auth",
  "azalea-block",
  "azalea-buf",
@@ -343,14 +339,10 @@ dependencies = [
  "bevy_tasks",
  "bevy_time",
  "derive_more",
- "futures",
  "minecraft_folder_path",
- "nohash-hasher",
  "parking_lot",
  "regex",
  "reqwest",
- "serde",
- "serde_json",
  "simdnbt",
  "thiserror 2.0.3",
  "tokio",
@@ -368,10 +360,8 @@ dependencies = [
  "nohash-hasher",
  "num-traits",
  "serde",
- "serde_json",
  "simdnbt",
  "tracing",
- "uuid",
 ]
 
 [[package]]
@@ -440,7 +430,6 @@ dependencies = [
 name = "azalea-language"
 version = "0.10.3+mc1.21.1"
 dependencies = [
- "serde",
  "serde_json",
 ]
 
@@ -457,10 +446,7 @@ dependencies = [
  "bevy_app",
  "bevy_ecs",
  "bevy_time",
- "nohash-hasher",
  "parking_lot",
- "smallvec",
- "tracing",
  "uuid",
 ]
 
@@ -488,7 +474,6 @@ dependencies = [
  "flate2",
  "futures",
  "futures-lite",
- "futures-util",
  "serde",
  "serde_json",
  "simdnbt",
@@ -545,12 +530,9 @@ dependencies = [
  "nohash-hasher",
  "parking_lot",
  "rustc-hash",
- "serde",
- "serde_json",
  "simdnbt",
  "thiserror 2.0.3",
  "tracing",
- "uuid",
 ]
 
 [[package]]

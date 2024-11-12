@@ -22,12 +22,9 @@ derive_more = { workspace = true }
 nohash-hasher = { workspace = true }
 parking_lot = { workspace = true }
 rustc-hash = { workspace = true }
-serde = { workspace = true }
-serde_json = { workspace = true }
 simdnbt = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
-uuid = { workspace = true }
 
 [[bench]]
 name = "chunks"
