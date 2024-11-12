@@ -1,17 +1,15 @@
 [package]
-description = "Proc macros used by azalea-block."
-edition = "2021"
-license = "MIT"
 name = "azalea-block-macros"
-repository = "https://github.com/azalea-rs/azalea/tree/main/azalea-block/azalea-block-macros"
-version = "0.10.3+mc1.21.1"
+description = "Proc macros used by azalea-block."
+version = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
 
 [lib]
 proc-macro = true
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
-proc-macro2 = "1.0.86"
-quote = "1.0.36"
-syn = "2.0.68"
+proc-macro2 = { workspace = true }
+quote = { workspace = true }
+syn = { workspace = true }

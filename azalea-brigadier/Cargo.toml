@@ -1,21 +1,19 @@
 [package]
-description = "A port of Mojang's Brigadier command parsing and dispatching library."
-edition = "2021"
-license = "MIT"
 name = "azalea-brigadier"
-repository = "https://github.com/azalea-rs/azalea/tree/main/azalea-brigadier"
-version = "0.10.3+mc1.21.1"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+description = "A port of Mojang's Brigadier command parsing and dispatching library."
+version = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
 
 [dev-dependencies]
-bevy_app = "0.13.0"
-bevy_ecs = "0.13.0"
+bevy_app = { workspace = true }
+bevy_ecs = { workspace = true }
 
 [dependencies]
 azalea-buf = { path = "../azalea-buf", version = "0.10.0", optional = true }
 azalea-chat = { path = "../azalea-chat", version = "0.10.0", optional = true }
-parking_lot = "0.12.3"
+parking_lot = { workspace = true }
 
 [features]
 azalea-buf = ["dep:azalea-buf", "dep:azalea-chat", "azalea-chat/azalea-buf"]

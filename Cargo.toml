@@ -19,6 +19,52 @@ members = [
 ]
 resolver = "2"
 
+# --- Workspace Settings ---
+
+[workspace.package]
+version = "0.10.3+mc1.21.1"
+edition = "2021"
+license = "MIT"
+repository = "https://github.com/azalea-rs/azalea"
+# homepage = "https://github.com/azalea-rs/azalea"
+
+[workspace.dependencies]
+anyhow = "1.0.93"
+async-trait = "0.1.83"
+bevy_app = "0.13.0"
+bevy_ecs = { version = "0.13.0", default-features = false }
+bevy_log = "0.13.0"
+bevy_tasks = "0.13.0"
+bevy_time = "0.13.0"
+byteorder = "1.5.0"
+criterion = { version = "^0.5.1", features = ["html_reports"] }
+derive_more = { version = "1.0.0", features = ["full"] }
+futures = "0.3.31"
+futures-lite = "2.5.0"
+futures-util = "0.3.31"
+nohash-hasher = "0.2.0"
+num-bigint = "0.4.6"
+num-traits = "0.2.19"
+parking_lot = "0.12.3"
+proc-macro2 = "1.0.89"
+quote = "1.0.37"
+rsa = "0.9.6"
+rustc-hash = "2.0.0"
+serde = "1.0.215"
+serde_json = "1.0.132"
+simdnbt = "0.6.1"
+smallvec = "1.13.2"
+syn = { version = "2.0.87", features = ["full"] }
+thiserror = "2.0.3"
+tokio = "1.41.0"
+tokio-util = "0.7.12"
+tracing = "0.1.40"
+tracing-subscriber = "0.3.18"
+uuid = "1.11.0"
+
+
+# --- Profile Settings ---
+
 [profile.release]
 debug = true
 

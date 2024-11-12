@@ -1,5 +1,6 @@
 //! Tell Mojang you're joining a multiplayer server.
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
+
 use reqwest::StatusCode;
 use serde::Deserialize;
 use serde_json::json;
@@ -49,7 +50,7 @@ pub struct ForbiddenError {
     pub path: String,
 }
 
-static REQWEST_CLIENT: Lazy<reqwest::Client> = Lazy::new(reqwest::Client::new);
+static REQWEST_CLIENT: LazyLock<reqwest::Client> = LazyLock::new(reqwest::Client::new);
 
 /// Tell Mojang's servers that you are going to join a multiplayer server,
 /// which is required to join online-mode servers. The server ID is an empty

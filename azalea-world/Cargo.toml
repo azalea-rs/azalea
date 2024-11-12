@@ -1,36 +1,33 @@
 [package]
-description = "The Minecraft world representation used in Azalea."
-edition = "2021"
-license = "MIT"
 name = "azalea-world"
-repository = "https://github.com/azalea-rs/azalea/tree/main/azalea-world"
-version = "0.10.3+mc1.21.1"
+description = "The Minecraft world representation used in Azalea."
+version = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[dev-dependencies]
+azalea-client = { path = "../azalea-client" }
+criterion = "0.5.1"
 
 [dependencies]
-simdnbt = "0.6"
 azalea-block = { path = "../azalea-block", default-features = false, version = "0.10.0" }
 azalea-buf = { path = "../azalea-buf", version = "0.10.0" }
 azalea-core = { path = "../azalea-core", version = "0.10.0", features = [
 	"bevy_ecs",
 ] }
 azalea-registry = { path = "../azalea-registry", version = "0.10.0" }
-bevy_ecs = "0.13.0"
-derive_more = { version = "0.99.18", features = ["deref", "deref_mut"] }
-tracing = "0.1.40"
-nohash-hasher = "0.2.0"
-once_cell = "1.19.0"
-parking_lot = "^0.12.3"
-thiserror = "1.0.61"
-uuid = "1.9.1"
-serde_json = "1.0.120"
-serde = "1.0.203"
-rustc-hash = "2.0.0"
-
-[dev-dependencies]
-azalea-client = { path = "../azalea-client" }
-criterion = "0.5.1"
+bevy_ecs = { workspace = true }
+derive_more = { workspace = true }
+nohash-hasher = { workspace = true }
+parking_lot = { workspace = true }
+rustc-hash = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+simdnbt = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true }
 
 [[bench]]
 name = "chunks"

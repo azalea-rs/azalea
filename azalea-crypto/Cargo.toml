@@ -1,27 +1,26 @@
 [package]
-description = "Cryptography features used in Minecraft."
-edition = "2021"
-license = "MIT"
 name = "azalea-crypto"
-version = "0.10.3+mc1.21.1"
-repository = "https://github.com/azalea-rs/azalea/tree/main/azalea-crypto"
+description = "Cryptography features used in Minecraft."
+version = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[dev-dependencies]
+criterion = { workspace = true }
 
 [dependencies]
 aes = "0.8.4"
 azalea-buf = { path = "../azalea-buf", version = "0.10.0" }
 cfb8 = "0.8.1"
-num-bigint = "^0.4.6"
+num-bigint = { workspace = true }
 rand = { version = "^0.8.5", features = ["getrandom"] }
-rsa = { version = "0.9.6", features = ["sha2"] }
+rsa = { workspace = true, features = ["sha2"] }
 rsa_public_encrypt_pkcs1 = "0.4.0"
 sha-1 = "^0.10.1"
 sha2 = "0.10.8"
-uuid = "^1.9.1"
+uuid = { workspace = true }
 
-[dev-dependencies]
-criterion = { version = "^0.5.1", features = ["html_reports"] }
 
 [[bench]]
 harness = false

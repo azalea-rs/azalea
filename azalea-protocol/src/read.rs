@@ -350,7 +350,7 @@ where
             .map_err(ReadPacketError::from)?;
     }
 
-    if log::log_enabled!(log::Level::Trace) {
+    if tracing::enabled!(tracing::Level::TRACE) {
         const DO_NOT_CUT_OFF_PACKET_LOGS: bool = false;
 
         let buf_string: String = {

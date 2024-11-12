@@ -6,8 +6,9 @@
 #![allow(clippy::explicit_auto_deref)]
 #![allow(clippy::redundant_closure)]
 
+use std::sync::LazyLock;
+
 use azalea_block::*;
-use once_cell::sync::Lazy;
 
 use super::VoxelShape;
 use crate::collision::{self, Shapes};
@@ -22,11 +23,12 @@ pub trait BlockWithShape {
     fn is_shape_full(&self) -> bool;
 }
 
-static SHAPE0: Lazy<VoxelShape> = Lazy::new(|| collision::EMPTY_SHAPE.clone());
-static SHAPE1: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0., 1., 1., 1.));
-static SHAPE2: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 0.5625));
-static SHAPE3: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE0: LazyLock<VoxelShape> = LazyLock::new(|| collision::EMPTY_SHAPE.clone());
+static SHAPE1: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0., 0., 1., 1., 1.));
+static SHAPE2: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 0.5625));
+static SHAPE3: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.1875, 0.5625, 0.1875);
     let s = Shapes::or(s, collision::box_shape(0.8125, 0., 0., 1., 0.5625, 0.1875));
     let s = Shapes::or(s, collision::box_shape(0., 0.1875, 0.1875, 1., 0.5625, 1.));
@@ -35,7 +37,7 @@ static SHAPE3: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.5625, 0.1875),
     )
 });
-static SHAPE4: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE4: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0.8125, 0.1875, 0.5625, 1.);
     let s = Shapes::or(s, collision::box_shape(0.8125, 0., 0.8125, 1., 0.5625, 1.));
     let s = Shapes::or(s, collision::box_shape(0., 0.1875, 0., 1., 0.5625, 0.8125));
@@ -44,7 +46,7 @@ static SHAPE4: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.1875, 0.1875, 0.8125, 0.8125, 0.5625, 1.),
     )
 });
-static SHAPE5: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE5: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.1875, 0.5625, 0.1875);
     let s = Shapes::or(s, collision::box_shape(0., 0., 0.8125, 0.1875, 0.5625, 1.));
     let s = Shapes::or(
@@ -60,7 +62,7 @@ static SHAPE5: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.1875, 0.1875, 0.8125, 1., 0.5625, 1.),
     )
 });
-static SHAPE6: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE6: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.8125, 0., 0., 1., 0.5625, 0.1875);
     let s = Shapes::or(s, collision::box_shape(0.8125, 0., 0.8125, 1., 0.5625, 1.));
     let s = Shapes::or(s, collision::box_shape(0., 0.1875, 0., 0.8125, 0.5625, 1.));
@@ -69,380 +71,400 @@ static SHAPE6: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.8125, 0.1875, 0.1875, 1., 0.5625, 0.8125),
     )
 });
-static SHAPE7: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0., 1., 0.125, 1.));
-static SHAPE8: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0., 1., 0.5, 1.));
-static SHAPE9: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0.25, 1., 1., 1.));
-static SHAPE10: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0., 0.75, 1., 1.));
-static SHAPE11: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0., 1., 1., 0.75));
-static SHAPE12: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0.25, 0., 0., 1., 1., 1.));
-static SHAPE13: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0., 1., 0.75, 1.));
-static SHAPE14: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0.25, 0., 1., 1., 1.));
-static SHAPE15: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE7: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0., 0., 1., 0.125, 1.));
+static SHAPE8: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0., 0., 1., 0.5, 1.));
+static SHAPE9: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0., 0.25, 1., 1., 1.));
+static SHAPE10: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0., 0., 0.75, 1., 1.));
+static SHAPE11: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0., 0., 1., 1., 0.75));
+static SHAPE12: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.25, 0., 0., 1., 1., 1.));
+static SHAPE13: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0., 0., 1., 0.75, 1.));
+static SHAPE14: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0.25, 0., 1., 1., 1.));
+static SHAPE15: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 1., 0.25);
     Shapes::or(
         s,
         collision::box_shape(0.375, 0.375, 0.25, 0.625, 0.625, 1.),
     )
 });
-static SHAPE16: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE16: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 1., 0.25);
     Shapes::or(
         s,
         collision::box_shape(0.375, 0.375, 0.25, 0.625, 0.625, 1.25),
     )
 });
-static SHAPE17: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE17: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.75, 0., 0., 1., 1., 1.);
     Shapes::or(
         s,
         collision::box_shape(0., 0.375, 0.375, 0.75, 0.625, 0.625),
     )
 });
-static SHAPE18: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE18: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.75, 0., 0., 1., 1., 1.);
     Shapes::or(
         s,
         collision::box_shape(-0.25, 0.375, 0.375, 0.75, 0.625, 0.625),
     )
 });
-static SHAPE19: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE19: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0.75, 1., 1., 1.);
     Shapes::or(
         s,
         collision::box_shape(0.375, 0.375, 0., 0.625, 0.625, 0.75),
     )
 });
-static SHAPE20: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE20: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0.75, 1., 1., 1.);
     Shapes::or(
         s,
         collision::box_shape(0.375, 0.375, -0.25, 0.625, 0.625, 0.75),
     )
 });
-static SHAPE21: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE21: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.25, 1., 1.);
     Shapes::or(
         s,
         collision::box_shape(0.25, 0.375, 0.375, 1., 0.625, 0.625),
     )
 });
-static SHAPE22: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE22: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.25, 1., 1.);
     Shapes::or(
         s,
         collision::box_shape(0.25, 0.375, 0.375, 1.25, 0.625, 0.625),
     )
 });
-static SHAPE23: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE23: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.375, 0., 0.375, 0.625, 1., 0.625);
     let s = Shapes::or(s, collision::box_shape(0., 0.75, 0., 0.375, 1., 1.));
     let s = Shapes::or(s, collision::box_shape(0.375, 0.75, 0., 1., 1., 0.375));
     let s = Shapes::or(s, collision::box_shape(0.375, 0.75, 0.625, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0.625, 0.75, 0.375, 1., 1., 0.625))
 });
-static SHAPE24: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE24: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.375, -0.25, 0.375, 0.625, 1., 0.625);
     let s = Shapes::or(s, collision::box_shape(0., 0.75, 0., 0.375, 1., 1.));
     let s = Shapes::or(s, collision::box_shape(0.375, 0.75, 0., 1., 1., 0.375));
     let s = Shapes::or(s, collision::box_shape(0.375, 0.75, 0.625, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0.625, 0.75, 0.375, 1., 1., 0.625))
 });
-static SHAPE25: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE25: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.25, 1.);
     Shapes::or(
         s,
         collision::box_shape(0.375, 0.25, 0.375, 0.625, 1., 0.625),
     )
 });
-static SHAPE26: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE26: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.25, 1.);
     Shapes::or(
         s,
         collision::box_shape(0.375, 0.25, 0.375, 0.625, 1.25, 0.625),
     )
 });
-static SHAPE27: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.3125, 0., 0.3125, 0.6875, 0.375, 0.6875));
-static SHAPE28: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0., 1., 0.0625, 1.));
-static SHAPE29: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE27: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.3125, 0., 0.3125, 0.6875, 0.375, 0.6875));
+static SHAPE28: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0., 0., 1., 0.0625, 1.));
+static SHAPE29: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 1., 0.5);
     Shapes::or(s, collision::box_shape(0., 0.5, 0.5, 1., 1., 1.))
 });
-static SHAPE30: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE30: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.5, 1., 1.);
     let s = Shapes::or(s, collision::box_shape(0.5, 0., 0., 1., 1., 0.5));
     Shapes::or(s, collision::box_shape(0.5, 0.5, 0.5, 1., 1., 1.))
 });
-static SHAPE31: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE31: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 1., 0.5);
     let s = Shapes::or(s, collision::box_shape(0.5, 0., 0.5, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0., 0.5, 0.5, 0.5, 1., 1.))
 });
-static SHAPE32: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE32: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.5, 1., 0.5);
     let s = Shapes::or(s, collision::box_shape(0., 0.5, 0.5, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0.5, 0.5, 0., 1., 1., 0.5))
 });
-static SHAPE33: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE33: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.5, 0., 0., 1., 1., 0.5);
     let s = Shapes::or(s, collision::box_shape(0., 0.5, 0., 0.5, 1., 1.));
     Shapes::or(s, collision::box_shape(0.5, 0.5, 0.5, 1., 1., 1.))
 });
-static SHAPE34: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE34: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.5, 1.);
     Shapes::or(s, collision::box_shape(0., 0.5, 0., 1., 1., 0.5))
 });
-static SHAPE35: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE35: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.5, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.5, 0., 0.5, 1., 1.));
     Shapes::or(s, collision::box_shape(0.5, 0.5, 0., 1., 1., 0.5))
 });
-static SHAPE36: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE36: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.5, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.5, 0., 1., 1., 0.5));
     Shapes::or(s, collision::box_shape(0.5, 0.5, 0.5, 1., 1., 1.))
 });
-static SHAPE37: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE37: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.5, 1.);
     Shapes::or(s, collision::box_shape(0., 0.5, 0., 0.5, 1., 0.5))
 });
-static SHAPE38: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE38: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.5, 1.);
     Shapes::or(s, collision::box_shape(0.5, 0.5, 0., 1., 1., 0.5))
 });
-static SHAPE39: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE39: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0.5, 1., 1., 1.);
     Shapes::or(s, collision::box_shape(0., 0.5, 0., 1., 1., 0.5))
 });
-static SHAPE40: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE40: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0.5, 1., 1., 1.);
     let s = Shapes::or(s, collision::box_shape(0.5, 0., 0., 1., 1., 0.5));
     Shapes::or(s, collision::box_shape(0., 0.5, 0., 0.5, 1., 0.5))
 });
-static SHAPE41: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE41: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.5, 1., 1.);
     let s = Shapes::or(s, collision::box_shape(0.5, 0., 0.5, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0.5, 0.5, 0., 1., 1., 0.5))
 });
-static SHAPE42: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE42: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.5, 0., 0.5, 1., 1., 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.5, 0., 0.5, 1., 1.));
     Shapes::or(s, collision::box_shape(0.5, 0.5, 0., 1., 1., 0.5))
 });
-static SHAPE43: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE43: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0.5, 0.5, 1., 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.5, 0., 1., 1., 0.5));
     Shapes::or(s, collision::box_shape(0.5, 0.5, 0.5, 1., 1., 1.))
 });
-static SHAPE44: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE44: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.5, 1.);
     Shapes::or(s, collision::box_shape(0., 0.5, 0.5, 1., 1., 1.))
 });
-static SHAPE45: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE45: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.5, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.5, 0.5, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0.5, 0.5, 0., 1., 1., 0.5))
 });
-static SHAPE46: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE46: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.5, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.5, 0., 0.5, 1., 1.));
     Shapes::or(s, collision::box_shape(0.5, 0.5, 0.5, 1., 1., 1.))
 });
-static SHAPE47: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE47: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.5, 1.);
     Shapes::or(s, collision::box_shape(0.5, 0.5, 0.5, 1., 1., 1.))
 });
-static SHAPE48: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE48: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.5, 1.);
     Shapes::or(s, collision::box_shape(0., 0.5, 0.5, 0.5, 1., 1.))
 });
-static SHAPE49: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE49: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.5, 1., 1.);
     Shapes::or(s, collision::box_shape(0.5, 0.5, 0., 1., 1., 1.))
 });
-static SHAPE50: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE50: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.5, 1.);
     Shapes::or(s, collision::box_shape(0., 0.5, 0., 0.5, 1., 1.))
 });
-static SHAPE51: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE51: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.5, 0., 0., 1., 1., 1.);
     Shapes::or(s, collision::box_shape(0., 0.5, 0., 0.5, 1., 1.))
 });
-static SHAPE52: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE52: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.5, 1.);
     Shapes::or(s, collision::box_shape(0.5, 0.5, 0., 1., 1., 1.))
 });
-static SHAPE53: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.0625, 0., 0.0625, 0.9375, 0.875, 0.9375));
-static SHAPE54: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.0625, 0., 0.0625, 1., 0.875, 0.9375));
-static SHAPE55: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0., 0., 0.0625, 0.9375, 0.875, 0.9375));
-static SHAPE56: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.0625, 0., 0., 0.9375, 0.875, 0.9375));
-static SHAPE57: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.0625, 0., 0.0625, 0.9375, 0.875, 1.));
-static SHAPE58: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0., 1., 0.25, 1.));
-static SHAPE59: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0., 1., 0.375, 1.));
-static SHAPE60: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0., 1., 0.625, 1.));
-static SHAPE61: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0., 1., 0.875, 1.));
-static SHAPE62: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0., 1., 0.9375, 1.));
-static SHAPE63: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.25, 0., 0.25, 0.75, 1., 0.75));
-static SHAPE64: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0., 0.1875, 1., 1.));
-static SHAPE65: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0.8125, 1., 1., 1.));
-static SHAPE66: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0.8125, 0., 0., 1., 1., 1.));
-static SHAPE67: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0., 1., 1., 0.1875));
-static SHAPE68: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.1875, 0., 0.1875, 0.8125, 1., 0.8125));
-static SHAPE69: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0., 0.875, 0.375, 1., 1., 0.625));
-static SHAPE70: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.375, 0.875, 0., 0.625, 1., 1.));
-static SHAPE71: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.0625, 0., 0.0625, 0.9375, 0.9375, 0.9375));
-static SHAPE72: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.0625, 0., 0.0625, 0.9375, 1., 0.9375));
-static SHAPE73: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.125, 0., 0.125, 0.875, 1., 0.875));
-static SHAPE74: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE53: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.0625, 0., 0.0625, 0.9375, 0.875, 0.9375));
+static SHAPE54: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.0625, 0., 0.0625, 1., 0.875, 0.9375));
+static SHAPE55: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0., 0.0625, 0.9375, 0.875, 0.9375));
+static SHAPE56: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.0625, 0., 0., 0.9375, 0.875, 0.9375));
+static SHAPE57: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.0625, 0., 0.0625, 0.9375, 0.875, 1.));
+static SHAPE58: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0., 0., 1., 0.25, 1.));
+static SHAPE59: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0., 0., 1., 0.375, 1.));
+static SHAPE60: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0., 0., 1., 0.625, 1.));
+static SHAPE61: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0., 0., 1., 0.875, 1.));
+static SHAPE62: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0., 0., 1., 0.9375, 1.));
+static SHAPE63: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.25, 0., 0.25, 0.75, 1., 0.75));
+static SHAPE64: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0., 0., 0.1875, 1., 1.));
+static SHAPE65: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0., 0.8125, 1., 1., 1.));
+static SHAPE66: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.8125, 0., 0., 1., 1., 1.));
+static SHAPE67: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0., 0., 1., 1., 0.1875));
+static SHAPE68: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.1875, 0., 0.1875, 0.8125, 1., 0.8125));
+static SHAPE69: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0.875, 0.375, 1., 1., 0.625));
+static SHAPE70: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.375, 0.875, 0., 0.625, 1., 1.));
+static SHAPE71: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.0625, 0., 0.0625, 0.9375, 0.9375, 0.9375));
+static SHAPE72: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.0625, 0., 0.0625, 0.9375, 1., 0.9375));
+static SHAPE73: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.125, 0., 0.125, 0.875, 1., 0.875));
+static SHAPE74: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0.375, 1., 1.5, 0.625);
     let s = Shapes::or(s, collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.375));
     Shapes::or(s, collision::box_shape(0.375, 0., 0.625, 0.625, 1.5, 1.))
 });
-static SHAPE75: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE75: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.375, 0., 0., 0.625, 1.5, 1.);
     Shapes::or(s, collision::box_shape(0.625, 0., 0.375, 1., 1.5, 0.625))
 });
-static SHAPE76: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE76: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0.375, 1., 1.5, 0.625);
     Shapes::or(s, collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.375))
 });
-static SHAPE77: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE77: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.625);
     Shapes::or(s, collision::box_shape(0.625, 0., 0.375, 1., 1.5, 0.625))
 });
-static SHAPE78: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE78: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0.375, 1., 1.5, 0.625);
     Shapes::or(s, collision::box_shape(0.375, 0., 0.625, 0.625, 1.5, 1.))
 });
-static SHAPE79: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE79: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 1.);
     Shapes::or(s, collision::box_shape(0.625, 0., 0.375, 1., 1.5, 0.625))
 });
-static SHAPE80: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0., 0., 0.375, 1., 1.5, 0.625));
-static SHAPE81: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.375, 0., 0.375, 1., 1.5, 0.625));
-static SHAPE82: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE80: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0., 0.375, 1., 1.5, 0.625));
+static SHAPE81: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.375, 0., 0.375, 1., 1.5, 0.625));
+static SHAPE82: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
     let s = Shapes::or(s, collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.375));
     Shapes::or(s, collision::box_shape(0.375, 0., 0.625, 0.625, 1.5, 1.))
 });
-static SHAPE83: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.375, 0., 0., 0.625, 1.5, 1.));
-static SHAPE84: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE83: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.375, 0., 0., 0.625, 1.5, 1.));
+static SHAPE84: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
     Shapes::or(s, collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.375))
 });
-static SHAPE85: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.625));
-static SHAPE86: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE85: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.375, 0., 0., 0.625, 1.5, 0.625));
+static SHAPE86: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625);
     Shapes::or(s, collision::box_shape(0.375, 0., 0.625, 0.625, 1.5, 1.))
 });
-static SHAPE87: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 1.));
-static SHAPE88: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625));
-static SHAPE89: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 0.625));
-static SHAPE90: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.375, 0., 0.375, 0.625, 1., 0.625));
-static SHAPE91: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.0625, 0., 0.0625, 0.9375, 0.5, 0.9375));
-static SHAPE92: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.1875, 0., 0.0625, 0.9375, 0.5, 0.9375));
-static SHAPE93: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.3125, 0., 0.0625, 0.9375, 0.5, 0.9375));
-static SHAPE94: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.4375, 0., 0.0625, 0.9375, 0.5, 0.9375));
-static SHAPE95: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.5625, 0., 0.0625, 0.9375, 0.5, 0.9375));
-static SHAPE96: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.6875, 0., 0.0625, 0.9375, 0.5, 0.9375));
-static SHAPE97: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.8125, 0., 0.0625, 0.9375, 0.5, 0.9375));
-static SHAPE98: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0.8125, 0., 1., 1., 1.));
-static SHAPE99: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0., 1., 0.1875, 1.));
-static SHAPE100: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE87: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 1.));
+static SHAPE88: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0., 0.375, 0.625, 1.5, 0.625));
+static SHAPE89: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.375, 0., 0.375, 0.625, 1.5, 0.625));
+static SHAPE90: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.375, 0., 0.375, 0.625, 1., 0.625));
+static SHAPE91: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.0625, 0., 0.0625, 0.9375, 0.5, 0.9375));
+static SHAPE92: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.1875, 0., 0.0625, 0.9375, 0.5, 0.9375));
+static SHAPE93: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.3125, 0., 0.0625, 0.9375, 0.5, 0.9375));
+static SHAPE94: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.4375, 0., 0.0625, 0.9375, 0.5, 0.9375));
+static SHAPE95: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.5625, 0., 0.0625, 0.9375, 0.5, 0.9375));
+static SHAPE96: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.6875, 0., 0.0625, 0.9375, 0.5, 0.9375));
+static SHAPE97: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.8125, 0., 0.0625, 0.9375, 0.5, 0.9375));
+static SHAPE98: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0.8125, 0., 1., 1., 1.));
+static SHAPE99: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0., 0., 1., 0.1875, 1.));
+static SHAPE100: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625);
     let s = Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375));
     Shapes::or(s, collision::box_shape(0.4375, 0., 0.5625, 0.5625, 1., 1.))
 });
-static SHAPE101: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE101: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.4375, 0., 0., 0.5625, 1., 1.);
     Shapes::or(s, collision::box_shape(0.5625, 0., 0.4375, 1., 1., 0.5625))
 });
-static SHAPE102: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE102: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625);
     Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375))
 });
-static SHAPE103: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE103: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.5625);
     Shapes::or(s, collision::box_shape(0.5625, 0., 0.4375, 1., 1., 0.5625))
 });
-static SHAPE104: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE104: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625);
     Shapes::or(s, collision::box_shape(0.4375, 0., 0.5625, 0.5625, 1., 1.))
 });
-static SHAPE105: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE105: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.);
     Shapes::or(s, collision::box_shape(0.5625, 0., 0.4375, 1., 1., 0.5625))
 });
-static SHAPE106: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625));
-static SHAPE107: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.4375, 0., 0.4375, 1., 1., 0.5625));
-static SHAPE108: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE106: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0., 0.4375, 1., 1., 0.5625));
+static SHAPE107: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.4375, 0., 0.4375, 1., 1., 0.5625));
+static SHAPE108: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
     let s = Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375));
     Shapes::or(s, collision::box_shape(0.4375, 0., 0.5625, 0.5625, 1., 1.))
 });
-static SHAPE109: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.4375, 0., 0., 0.5625, 1., 1.));
-static SHAPE110: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE109: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.4375, 0., 0., 0.5625, 1., 1.));
+static SHAPE110: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
     Shapes::or(s, collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.4375))
 });
-static SHAPE111: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.5625));
-static SHAPE112: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE111: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.4375, 0., 0., 0.5625, 1., 0.5625));
+static SHAPE112: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625);
     Shapes::or(s, collision::box_shape(0.4375, 0., 0.5625, 0.5625, 1., 1.))
 });
-static SHAPE113: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.));
-static SHAPE114: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625));
-static SHAPE115: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0., 0.40625, 0.40625, 1., 0.59375, 0.59375));
-static SHAPE116: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.40625, 0., 0.40625, 0.59375, 1., 0.59375));
-static SHAPE117: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.40625, 0.40625, 0., 0.59375, 0.59375, 1.));
-static SHAPE118: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.4375, 0., 0.4375, 0.5625, 0.375, 0.5625));
-static SHAPE119: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.0625, 0., 0.0625, 0.9375, 0.09375, 0.9375));
-static SHAPE120: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE113: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.4375, 0., 0.4375, 0.5625, 1., 1.));
+static SHAPE114: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0., 0.4375, 0.5625, 1., 0.5625));
+static SHAPE115: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0.40625, 0.40625, 1., 0.59375, 0.59375));
+static SHAPE116: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.40625, 0., 0.40625, 0.59375, 1., 0.59375));
+static SHAPE117: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.40625, 0.40625, 0., 0.59375, 0.59375, 1.));
+static SHAPE118: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.4375, 0., 0.4375, 0.5625, 0.375, 0.5625));
+static SHAPE119: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.0625, 0., 0.0625, 0.9375, 0.09375, 0.9375));
+static SHAPE120: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.0625, 0., 0.0625, 0.9375, 0.125, 0.9375);
     Shapes::or(
         s,
         collision::box_shape(0.4375, 0.125, 0.4375, 0.5625, 0.875, 0.5625),
     )
 });
-static SHAPE121: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE121: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.125, 1., 0.25);
     let s = Shapes::or(s, collision::box_shape(0., 0., 0.75, 0.125, 1., 1.));
     let s = Shapes::or(s, collision::box_shape(0.125, 0., 0., 0.25, 1., 0.125));
@@ -465,191 +487,194 @@ static SHAPE121: Lazy<VoxelShape> = Lazy::new(|| {
     let s = Shapes::or(s, collision::box_shape(0., 0.25, 0.25, 0.125, 1., 0.75));
     Shapes::or(s, collision::box_shape(0.875, 0.25, 0.25, 1., 1., 0.75))
 });
-static SHAPE122: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE122: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.8125, 1.);
     Shapes::or(s, collision::box_shape(0.25, 0.8125, 0.25, 0.75, 1., 0.75))
 });
-static SHAPE123: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0., 1., 0.8125, 1.));
-static SHAPE124: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.375, 0.4375, 0.0625, 0.625, 0.75, 0.3125));
-static SHAPE125: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.375, 0.4375, 0.6875, 0.625, 0.75, 0.9375));
-static SHAPE126: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.0625, 0.4375, 0.375, 0.3125, 0.75, 0.625));
-static SHAPE127: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.6875, 0.4375, 0.375, 0.9375, 0.75, 0.625));
-static SHAPE128: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.3125, 0.3125, 0.0625, 0.6875, 0.75, 0.4375));
-static SHAPE129: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.3125, 0.3125, 0.5625, 0.6875, 0.75, 0.9375));
-static SHAPE130: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.0625, 0.3125, 0.3125, 0.4375, 0.75, 0.6875));
-static SHAPE131: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.5625, 0.3125, 0.3125, 0.9375, 0.75, 0.6875));
-static SHAPE132: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.25, 0.1875, 0.0625, 0.75, 0.75, 0.5625));
-static SHAPE133: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.25, 0.1875, 0.4375, 0.75, 0.75, 0.9375));
-static SHAPE134: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.0625, 0.1875, 0.25, 0.5625, 0.75, 0.75));
-static SHAPE135: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.4375, 0.1875, 0.25, 0.9375, 0.75, 0.75));
-static SHAPE136: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75));
-static SHAPE137: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE123: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0., 0., 1., 0.8125, 1.));
+static SHAPE124: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.375, 0.4375, 0.0625, 0.625, 0.75, 0.3125));
+static SHAPE125: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.375, 0.4375, 0.6875, 0.625, 0.75, 0.9375));
+static SHAPE126: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.0625, 0.4375, 0.375, 0.3125, 0.75, 0.625));
+static SHAPE127: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.6875, 0.4375, 0.375, 0.9375, 0.75, 0.625));
+static SHAPE128: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.3125, 0.3125, 0.0625, 0.6875, 0.75, 0.4375));
+static SHAPE129: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.3125, 0.3125, 0.5625, 0.6875, 0.75, 0.9375));
+static SHAPE130: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.0625, 0.3125, 0.3125, 0.4375, 0.75, 0.6875));
+static SHAPE131: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.5625, 0.3125, 0.3125, 0.9375, 0.75, 0.6875));
+static SHAPE132: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.25, 0.1875, 0.0625, 0.75, 0.75, 0.5625));
+static SHAPE133: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.25, 0.1875, 0.4375, 0.75, 0.75, 0.9375));
+static SHAPE134: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.0625, 0.1875, 0.25, 0.5625, 0.75, 0.75));
+static SHAPE135: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.4375, 0.1875, 0.25, 0.9375, 0.75, 0.75));
+static SHAPE136: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75));
+static SHAPE137: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0.3125, 0.75, 1.5, 0.6875);
     let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
     Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
 });
-static SHAPE138: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875));
-static SHAPE139: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE138: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875));
+static SHAPE139: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
     Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
 });
-static SHAPE140: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE140: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0.3125, 0.75, 1.5, 0.6875);
     let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
     let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
     Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
 });
-static SHAPE141: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.));
-static SHAPE142: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE141: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.));
+static SHAPE142: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
     Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
 });
-static SHAPE143: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE143: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
     Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
 });
-static SHAPE144: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE144: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0.3125, 0.75, 1.5, 0.6875);
     let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
     let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
     Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
 });
-static SHAPE145: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875));
-static SHAPE146: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE145: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875));
+static SHAPE146: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
     Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125))
 });
-static SHAPE147: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE147: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
     let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
     Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
 });
-static SHAPE148: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE148: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0.3125, 0.75, 1.5, 0.6875);
     let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
     let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
     let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
     Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
 });
-static SHAPE149: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.));
-static SHAPE150: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE149: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.));
+static SHAPE150: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0.3125, 0.6875, 1.5, 0.6875);
     let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
     Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
 });
-static SHAPE151: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE151: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
     Shapes::or(s, collision::box_shape(0.75, 0., 0.3125, 1., 1.5, 0.6875))
 });
-static SHAPE152: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE152: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
     Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75))
 });
-static SHAPE153: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875));
-static SHAPE154: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875));
-static SHAPE155: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE153: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.3125, 0., 0.3125, 1., 1.5, 0.6875));
+static SHAPE154: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875));
+static SHAPE155: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
     let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.));
     Shapes::or(s, collision::box_shape(0.75, 0., 0.3125, 1., 1.5, 0.6875))
 });
-static SHAPE156: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE156: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
     let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
     Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
 });
-static SHAPE157: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE157: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1.5, 1.);
     Shapes::or(s, collision::box_shape(0.6875, 0., 0.3125, 1., 1.5, 0.6875))
 });
-static SHAPE158: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE158: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
 });
-static SHAPE159: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE159: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
     let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
     Shapes::or(s, collision::box_shape(0.75, 0., 0.3125, 1., 1.5, 0.6875))
 });
-static SHAPE160: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE160: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
     let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
     Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25))
 });
-static SHAPE161: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE161: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.6875);
     Shapes::or(s, collision::box_shape(0.6875, 0., 0.3125, 1., 1.5, 0.6875))
 });
-static SHAPE162: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE162: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125))
 });
-static SHAPE163: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE163: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.75);
     let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
     let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.));
     Shapes::or(s, collision::box_shape(0.75, 0., 0.3125, 1., 1.5, 0.6875))
 });
-static SHAPE164: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE164: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.25, 0.75, 1.5, 0.3125));
     let s = Shapes::or(s, collision::box_shape(0.25, 0., 0.6875, 0.75, 1.5, 0.75));
     let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.25));
     Shapes::or(s, collision::box_shape(0.3125, 0., 0.75, 0.6875, 1.5, 1.))
 });
-static SHAPE165: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE165: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 1.);
     Shapes::or(s, collision::box_shape(0.6875, 0., 0.3125, 1., 1.5, 0.6875))
 });
-static SHAPE166: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE166: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0.3125, 1., 1.5, 0.6875);
     let s = Shapes::or(s, collision::box_shape(0.3125, 0., 0., 0.6875, 1.5, 0.3125));
     Shapes::or(s, collision::box_shape(0.3125, 0., 0.6875, 0.6875, 1.5, 1.))
 });
-static SHAPE167: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0., 1., 0.4375, 1.));
-static SHAPE168: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0., 1., 0.5625, 1.));
-static SHAPE169: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.25, 0., 0.25, 0.75, 0.5, 0.75));
-static SHAPE170: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.25, 0.25, 0.5, 0.75, 0.75, 1.));
-static SHAPE171: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.25, 0.25, 0., 0.75, 0.75, 0.5));
-static SHAPE172: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.5, 0.25, 0.25, 1., 0.75, 0.75));
-static SHAPE173: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0., 0.25, 0.25, 0.5, 0.75, 0.75));
-static SHAPE174: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.5, 0.8125));
-static SHAPE175: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.1875, 0.25, 0.5, 0.8125, 0.75, 1.));
-static SHAPE176: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.1875, 0.25, 0., 0.8125, 0.75, 0.5));
-static SHAPE177: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.5, 0.25, 0.1875, 1., 0.75, 0.8125));
-static SHAPE178: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0., 0.25, 0.1875, 0.5, 0.75, 0.8125));
-static SHAPE179: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE167: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0., 0., 1., 0.4375, 1.));
+static SHAPE168: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0., 0., 1., 0.5625, 1.));
+static SHAPE169: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.25, 0., 0.25, 0.75, 0.5, 0.75));
+static SHAPE170: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.25, 0.25, 0.5, 0.75, 0.75, 1.));
+static SHAPE171: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.25, 0.25, 0., 0.75, 0.75, 0.5));
+static SHAPE172: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.5, 0.25, 0.25, 1., 0.75, 0.75));
+static SHAPE173: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0.25, 0.25, 0.5, 0.75, 0.75));
+static SHAPE174: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.5, 0.8125));
+static SHAPE175: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.1875, 0.25, 0.5, 0.8125, 0.75, 1.));
+static SHAPE176: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.1875, 0.25, 0., 0.8125, 0.75, 0.5));
+static SHAPE177: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.5, 0.25, 0.1875, 1., 0.75, 0.8125));
+static SHAPE178: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0.25, 0.1875, 0.5, 0.75, 0.8125));
+static SHAPE179: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.125, 0., 0.125, 0.875, 0.25, 0.875);
     let s = Shapes::or(
         s,
@@ -667,7 +692,7 @@ static SHAPE179: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.625, 0.625, 0.25, 0.8125, 1., 0.75),
     )
 });
-static SHAPE180: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE180: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.125, 0., 0.125, 0.875, 0.25, 0.875);
     let s = Shapes::or(
         s,
@@ -682,7 +707,7 @@ static SHAPE180: Lazy<VoxelShape> = Lazy::new(|| {
     let s = Shapes::or(s, collision::box_shape(0.25, 0.625, 0.625, 1., 1., 0.8125));
     Shapes::or(s, collision::box_shape(0.75, 0.625, 0.375, 1., 1., 0.625))
 });
-static SHAPE181: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE181: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.375, 0., 0.375, 0.625, 0.6875, 0.625);
     let s = Shapes::or(
         s,
@@ -709,7 +734,7 @@ static SHAPE181: Lazy<VoxelShape> = Lazy::new(|| {
     let s = Shapes::or(s, collision::box_shape(0.125, 0.6875, 0.875, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0.875, 0.6875, 0.125, 1., 1., 0.875))
 });
-static SHAPE182: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE182: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.25, 0.25, 0.25, 0.75, 0.6875, 0.75);
     let s = Shapes::or(s, collision::box_shape(0.375, 0.25, 0., 0.625, 0.5, 0.25));
     let s = Shapes::or(s, collision::box_shape(0., 0.625, 0., 0.25, 0.6875, 1.));
@@ -721,7 +746,7 @@ static SHAPE182: Lazy<VoxelShape> = Lazy::new(|| {
     let s = Shapes::or(s, collision::box_shape(0.125, 0.6875, 0.875, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0.875, 0.6875, 0.125, 1., 1., 0.875))
 });
-static SHAPE183: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE183: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.25, 0.25, 0.25, 0.75, 0.6875, 0.75);
     let s = Shapes::or(s, collision::box_shape(0.375, 0.25, 0.75, 0.625, 0.5, 1.));
     let s = Shapes::or(s, collision::box_shape(0., 0.625, 0., 0.25, 0.6875, 1.));
@@ -733,7 +758,7 @@ static SHAPE183: Lazy<VoxelShape> = Lazy::new(|| {
     let s = Shapes::or(s, collision::box_shape(0.125, 0.6875, 0.875, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0.875, 0.6875, 0.125, 1., 1., 0.875))
 });
-static SHAPE184: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE184: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0.25, 0.375, 0.75, 0.5, 0.625);
     let s = Shapes::or(
         s,
@@ -756,7 +781,7 @@ static SHAPE184: Lazy<VoxelShape> = Lazy::new(|| {
     let s = Shapes::or(s, collision::box_shape(0.125, 0.6875, 0.875, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0.875, 0.6875, 0.125, 1., 1., 0.875))
 });
-static SHAPE185: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE185: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.25, 0.25, 0.25, 0.75, 0.6875, 0.75);
     let s = Shapes::or(s, collision::box_shape(0.75, 0.25, 0.375, 1., 0.5, 0.625));
     let s = Shapes::or(s, collision::box_shape(0., 0.625, 0., 0.25, 0.6875, 1.));
@@ -768,12 +793,13 @@ static SHAPE185: Lazy<VoxelShape> = Lazy::new(|| {
     let s = Shapes::or(s, collision::box_shape(0.125, 0.6875, 0.875, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0.875, 0.6875, 0.125, 1., 1., 0.875))
 });
-static SHAPE186: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0.5, 0., 1., 1., 1.));
-static SHAPE187: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.375, 0.375, 0., 0.625, 0.625, 1.));
-static SHAPE188: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0., 0.375, 0.375, 1., 0.625, 0.625));
-static SHAPE189: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE186: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0.5, 0., 1., 1., 1.));
+static SHAPE187: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.375, 0.375, 0., 0.625, 0.625, 1.));
+static SHAPE188: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0.375, 0.375, 1., 0.625, 0.625));
+static SHAPE189: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.1875, 0., 0.1875, 0.8125, 1., 0.8125);
     let s = Shapes::or(
         s,
@@ -792,7 +818,7 @@ static SHAPE189: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.8125, 0.1875, 0.1875, 1., 0.8125, 0.8125),
     )
 });
-static SHAPE190: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE190: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.1875, 0., 0.1875, 0.8125, 1., 0.8125);
     let s = Shapes::or(
         s,
@@ -807,7 +833,7 @@ static SHAPE190: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.8125, 0.1875, 0.1875, 1., 0.8125, 0.8125),
     )
 });
-static SHAPE191: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE191: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.8125, 0.8125);
     let s = Shapes::or(
         s,
@@ -826,7 +852,7 @@ static SHAPE191: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.8125, 0.1875, 0.1875, 1., 0.8125, 0.8125),
     )
 });
-static SHAPE192: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE192: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.8125, 0.8125);
     let s = Shapes::or(
         s,
@@ -841,7 +867,7 @@ static SHAPE192: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.8125, 0.1875, 0.1875, 1., 0.8125, 0.8125),
     )
 });
-static SHAPE193: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE193: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.1875, 0., 0.1875, 0.8125, 1., 0.8125);
     let s = Shapes::or(
         s,
@@ -856,7 +882,7 @@ static SHAPE193: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.8125, 0.1875, 0.1875, 1., 0.8125, 0.8125),
     )
 });
-static SHAPE194: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE194: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.1875, 0., 0.1875, 0.8125, 1., 0.8125);
     let s = Shapes::or(
         s,
@@ -867,7 +893,7 @@ static SHAPE194: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.8125, 0.1875, 0.1875, 1., 0.8125, 0.8125),
     )
 });
-static SHAPE195: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE195: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.8125, 0.8125);
     let s = Shapes::or(
         s,
@@ -882,7 +908,7 @@ static SHAPE195: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.8125, 0.1875, 0.1875, 1., 0.8125, 0.8125),
     )
 });
-static SHAPE196: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE196: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.8125, 0.8125);
     let s = Shapes::or(
         s,
@@ -893,34 +919,8 @@ static SHAPE196: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.8125, 0.1875, 0.1875, 1., 0.8125, 0.8125),
     )
 });
-static SHAPE197: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE197: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.1875, 0., 0.1875, 0.8125, 1., 0.8125);
-    let s = Shapes::or(
-        s,
-        collision::box_shape(0., 0.1875, 0.1875, 0.1875, 0.8125, 0.8125),
-    );
-    let s = Shapes::or(
-        s,
-        collision::box_shape(0.1875, 0.1875, 0.8125, 0.8125, 0.8125, 1.),
-    );
-    Shapes::or(
-        s,
-        collision::box_shape(0.8125, 0.1875, 0.1875, 1., 0.8125, 0.8125),
-    )
-});
-static SHAPE198: Lazy<VoxelShape> = Lazy::new(|| {
-    let s = collision::box_shape(0.1875, 0., 0.1875, 0.8125, 1., 0.8125);
-    let s = Shapes::or(
-        s,
-        collision::box_shape(0.1875, 0.1875, 0.8125, 0.8125, 0.8125, 1.),
-    );
-    Shapes::or(
-        s,
-        collision::box_shape(0.8125, 0.1875, 0.1875, 1., 0.8125, 0.8125),
-    )
-});
-static SHAPE199: Lazy<VoxelShape> = Lazy::new(|| {
-    let s = collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.8125, 0.8125);
     let s = Shapes::or(
         s,
         collision::box_shape(0., 0.1875, 0.1875, 0.1875, 0.8125, 0.8125),
@@ -934,7 +934,33 @@ static SHAPE199: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.8125, 0.1875, 0.1875, 1., 0.8125, 0.8125),
     )
 });
-static SHAPE200: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE198: LazyLock<VoxelShape> = LazyLock::new(|| {
+    let s = collision::box_shape(0.1875, 0., 0.1875, 0.8125, 1., 0.8125);
+    let s = Shapes::or(
+        s,
+        collision::box_shape(0.1875, 0.1875, 0.8125, 0.8125, 0.8125, 1.),
+    );
+    Shapes::or(
+        s,
+        collision::box_shape(0.8125, 0.1875, 0.1875, 1., 0.8125, 0.8125),
+    )
+});
+static SHAPE199: LazyLock<VoxelShape> = LazyLock::new(|| {
+    let s = collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.8125, 0.8125);
+    let s = Shapes::or(
+        s,
+        collision::box_shape(0., 0.1875, 0.1875, 0.1875, 0.8125, 0.8125),
+    );
+    let s = Shapes::or(
+        s,
+        collision::box_shape(0.1875, 0.1875, 0.8125, 0.8125, 0.8125, 1.),
+    );
+    Shapes::or(
+        s,
+        collision::box_shape(0.8125, 0.1875, 0.1875, 1., 0.8125, 0.8125),
+    )
+});
+static SHAPE200: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.8125, 0.8125);
     let s = Shapes::or(
         s,
@@ -945,7 +971,7 @@ static SHAPE200: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.8125, 0.1875, 0.1875, 1., 0.8125, 0.8125),
     )
 });
-static SHAPE201: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE201: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.1875, 0., 0.1875, 0.8125, 1., 0.8125);
     let s = Shapes::or(
         s,
@@ -956,14 +982,14 @@ static SHAPE201: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.8125, 0.1875, 0.1875, 1., 0.8125, 0.8125),
     )
 });
-static SHAPE202: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE202: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.1875, 0., 0.1875, 0.8125, 1., 0.8125);
     Shapes::or(
         s,
         collision::box_shape(0.8125, 0.1875, 0.1875, 1., 0.8125, 0.8125),
     )
 });
-static SHAPE203: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE203: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.8125, 0.8125);
     let s = Shapes::or(
         s,
@@ -974,14 +1000,14 @@ static SHAPE203: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.8125, 0.1875, 0.1875, 1., 0.8125, 0.8125),
     )
 });
-static SHAPE204: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE204: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.8125, 0.8125);
     Shapes::or(
         s,
         collision::box_shape(0.8125, 0.1875, 0.1875, 1., 0.8125, 0.8125),
     )
 });
-static SHAPE205: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE205: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.1875, 0., 0.1875, 0.8125, 1., 0.8125);
     let s = Shapes::or(
         s,
@@ -996,7 +1022,7 @@ static SHAPE205: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.1875, 0.1875, 0.8125, 0.8125, 0.8125, 1.),
     )
 });
-static SHAPE206: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE206: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.1875, 0., 0.1875, 0.8125, 1., 0.8125);
     let s = Shapes::or(
         s,
@@ -1007,7 +1033,7 @@ static SHAPE206: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.1875, 0.1875, 0.8125, 0.8125, 0.8125, 1.),
     )
 });
-static SHAPE207: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE207: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.8125, 0.8125);
     let s = Shapes::or(
         s,
@@ -1022,7 +1048,7 @@ static SHAPE207: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.1875, 0.1875, 0.8125, 0.8125, 0.8125, 1.),
     )
 });
-static SHAPE208: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE208: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.8125, 0.8125);
     let s = Shapes::or(
         s,
@@ -1033,7 +1059,7 @@ static SHAPE208: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.1875, 0.1875, 0.8125, 0.8125, 0.8125, 1.),
     )
 });
-static SHAPE209: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE209: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.1875, 0., 0.1875, 0.8125, 1., 0.8125);
     let s = Shapes::or(
         s,
@@ -1044,14 +1070,14 @@ static SHAPE209: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 0.1875),
     )
 });
-static SHAPE210: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE210: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.1875, 0., 0.1875, 0.8125, 1., 0.8125);
     Shapes::or(
         s,
         collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 0.1875),
     )
 });
-static SHAPE211: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE211: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.8125, 0.8125);
     let s = Shapes::or(
         s,
@@ -1062,14 +1088,14 @@ static SHAPE211: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 0.1875),
     )
 });
-static SHAPE212: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE212: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.8125, 0.8125);
     Shapes::or(
         s,
         collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 0.1875),
     )
 });
-static SHAPE213: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE213: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.1875, 0., 0.1875, 0.8125, 1., 0.8125);
     let s = Shapes::or(
         s,
@@ -1080,14 +1106,14 @@ static SHAPE213: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.1875, 0.1875, 0.8125, 0.8125, 0.8125, 1.),
     )
 });
-static SHAPE214: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE214: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.1875, 0., 0.1875, 0.8125, 1., 0.8125);
     Shapes::or(
         s,
         collision::box_shape(0.1875, 0.1875, 0.8125, 0.8125, 0.8125, 1.),
     )
 });
-static SHAPE215: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE215: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.8125, 0.8125);
     let s = Shapes::or(
         s,
@@ -1098,30 +1124,30 @@ static SHAPE215: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.1875, 0.1875, 0.8125, 0.8125, 0.8125, 1.),
     )
 });
-static SHAPE216: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE216: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.8125, 0.8125);
     Shapes::or(
         s,
         collision::box_shape(0.1875, 0.1875, 0.8125, 0.8125, 0.8125, 1.),
     )
 });
-static SHAPE217: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE217: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.1875, 0., 0.1875, 0.8125, 1., 0.8125);
     Shapes::or(
         s,
         collision::box_shape(0., 0.1875, 0.1875, 0.1875, 0.8125, 0.8125),
     )
 });
-static SHAPE218: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE218: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.8125, 0.8125);
     Shapes::or(
         s,
         collision::box_shape(0., 0.1875, 0.1875, 0.1875, 0.8125, 0.8125),
     )
 });
-static SHAPE219: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.8125, 0.8125));
-static SHAPE220: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE219: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.8125, 0.8125));
+static SHAPE220: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0.1875, 0.1875, 1., 0.8125, 0.8125);
     let s = Shapes::or(
         s,
@@ -1136,7 +1162,7 @@ static SHAPE220: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.1875, 0.8125, 0.1875, 0.8125, 1., 0.8125),
     )
 });
-static SHAPE221: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE221: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 1.);
     let s = Shapes::or(
         s,
@@ -1147,7 +1173,7 @@ static SHAPE221: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.1875, 0.8125, 0.1875, 0.8125, 1., 0.8125),
     )
 });
-static SHAPE222: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE222: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0.1875, 0.1875, 1., 0.8125, 0.8125);
     let s = Shapes::or(
         s,
@@ -1158,14 +1184,14 @@ static SHAPE222: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.1875, 0.1875, 0.8125, 0.8125, 0.8125, 1.),
     )
 });
-static SHAPE223: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE223: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 1.);
     Shapes::or(
         s,
         collision::box_shape(0.8125, 0.1875, 0.1875, 1., 0.8125, 0.8125),
     )
 });
-static SHAPE224: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE224: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0.1875, 0.1875, 1., 0.8125, 0.8125);
     let s = Shapes::or(
         s,
@@ -1176,7 +1202,7 @@ static SHAPE224: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.1875, 0.8125, 0.1875, 0.8125, 1., 0.8125),
     )
 });
-static SHAPE225: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE225: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 0.8125);
     let s = Shapes::or(
         s,
@@ -1187,21 +1213,21 @@ static SHAPE225: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.1875, 0.8125, 0.1875, 0.8125, 1., 0.8125),
     )
 });
-static SHAPE226: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE226: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0.1875, 0.1875, 1., 0.8125, 0.8125);
     Shapes::or(
         s,
         collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 0.1875),
     )
 });
-static SHAPE227: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE227: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 0.8125);
     Shapes::or(
         s,
         collision::box_shape(0.8125, 0.1875, 0.1875, 1., 0.8125, 0.8125),
     )
 });
-static SHAPE228: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE228: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0.1875, 0.1875, 1., 0.8125, 0.8125);
     let s = Shapes::or(
         s,
@@ -1212,7 +1238,7 @@ static SHAPE228: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.1875, 0.8125, 0.1875, 0.8125, 1., 0.8125),
     )
 });
-static SHAPE229: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE229: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.1875, 0.1875, 0.1875, 0.8125, 0.8125, 1.);
     let s = Shapes::or(
         s,
@@ -1223,39 +1249,39 @@ static SHAPE229: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.1875, 0.8125, 0.1875, 0.8125, 1., 0.8125),
     )
 });
-static SHAPE230: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE230: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0.1875, 0.1875, 1., 0.8125, 0.8125);
     Shapes::or(
         s,
         collision::box_shape(0.1875, 0.1875, 0.8125, 0.8125, 0.8125, 1.),
     )
 });
-static SHAPE231: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE231: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.1875, 0.1875, 0.1875, 0.8125, 0.8125, 1.);
     Shapes::or(
         s,
         collision::box_shape(0.8125, 0.1875, 0.1875, 1., 0.8125, 0.8125),
     )
 });
-static SHAPE232: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE232: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0.1875, 0.1875, 1., 0.8125, 0.8125);
     Shapes::or(
         s,
         collision::box_shape(0.1875, 0.8125, 0.1875, 0.8125, 1., 0.8125),
     )
 });
-static SHAPE233: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE233: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.1875, 0.1875, 0.1875, 1., 0.8125, 0.8125);
     Shapes::or(
         s,
         collision::box_shape(0.1875, 0.8125, 0.1875, 0.8125, 1., 0.8125),
     )
 });
-static SHAPE234: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0., 0.1875, 0.1875, 1., 0.8125, 0.8125));
-static SHAPE235: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.1875, 0.1875, 0.1875, 1., 0.8125, 0.8125));
-static SHAPE236: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE234: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0.1875, 0.1875, 1., 0.8125, 0.8125));
+static SHAPE235: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.1875, 0.1875, 0.1875, 1., 0.8125, 0.8125));
+static SHAPE236: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0.1875, 0.1875, 0.8125, 0.8125, 0.8125);
     let s = Shapes::or(
         s,
@@ -1270,14 +1296,14 @@ static SHAPE236: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.1875, 0.8125, 0.1875, 0.8125, 1., 0.8125),
     )
 });
-static SHAPE237: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE237: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 1.);
     Shapes::or(
         s,
         collision::box_shape(0.1875, 0.8125, 0.1875, 0.8125, 1., 0.8125),
     )
 });
-static SHAPE238: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE238: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0.1875, 0.1875, 0.8125, 0.8125, 0.8125);
     let s = Shapes::or(
         s,
@@ -1288,9 +1314,9 @@ static SHAPE238: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.1875, 0.1875, 0.8125, 0.8125, 0.8125, 1.),
     )
 });
-static SHAPE239: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 1.));
-static SHAPE240: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE239: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 1.));
+static SHAPE240: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0.1875, 0.1875, 0.8125, 0.8125, 0.8125);
     let s = Shapes::or(
         s,
@@ -1301,23 +1327,23 @@ static SHAPE240: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.1875, 0.8125, 0.1875, 0.8125, 1., 0.8125),
     )
 });
-static SHAPE241: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE241: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 0.8125);
     Shapes::or(
         s,
         collision::box_shape(0.1875, 0.8125, 0.1875, 0.8125, 1., 0.8125),
     )
 });
-static SHAPE242: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE242: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0.1875, 0.1875, 0.8125, 0.8125, 0.8125);
     Shapes::or(
         s,
         collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 0.1875),
     )
 });
-static SHAPE243: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 0.8125));
-static SHAPE244: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE243: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 0.8125));
+static SHAPE244: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0.1875, 0.1875, 0.8125, 0.8125, 0.8125);
     let s = Shapes::or(
         s,
@@ -1328,58 +1354,58 @@ static SHAPE244: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.1875, 0.8125, 0.1875, 0.8125, 1., 0.8125),
     )
 });
-static SHAPE245: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE245: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.1875, 0.1875, 0.1875, 0.8125, 0.8125, 1.);
     Shapes::or(
         s,
         collision::box_shape(0.1875, 0.8125, 0.1875, 0.8125, 1., 0.8125),
     )
 });
-static SHAPE246: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE246: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0.1875, 0.1875, 0.8125, 0.8125, 0.8125);
     Shapes::or(
         s,
         collision::box_shape(0.1875, 0.1875, 0.8125, 0.8125, 0.8125, 1.),
     )
 });
-static SHAPE247: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.1875, 0.1875, 0.1875, 0.8125, 0.8125, 1.));
-static SHAPE248: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE247: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.1875, 0.1875, 0.1875, 0.8125, 0.8125, 1.));
+static SHAPE248: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0.1875, 0.1875, 0.8125, 0.8125, 0.8125);
     Shapes::or(
         s,
         collision::box_shape(0.1875, 0.8125, 0.1875, 0.8125, 1., 0.8125),
     )
 });
-static SHAPE249: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.1875, 0.1875, 0.1875, 0.8125, 1., 0.8125));
-static SHAPE250: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0., 0.1875, 0.1875, 0.8125, 0.8125, 0.8125));
-static SHAPE251: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.1875, 0.1875, 0.1875, 0.8125, 0.8125, 0.8125));
-static SHAPE252: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.3125, -0.0625, 0.3125, 0.6875, 0.1875, 0.6875));
-static SHAPE253: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.1875, -0.0625, 0.1875, 0.8125, 0.3125, 0.8125));
-static SHAPE254: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.3125, 0.3125, 0.3125, 0.6875, 0.6875, 0.6875));
-static SHAPE255: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.1875, 0., 0.1875, 0.75, 0.4375, 0.75));
-static SHAPE256: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.0625, 0., 0.0625, 0.9375, 0.4375, 0.9375));
-static SHAPE257: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.0625, 0., 0.125, 0.9375, 1., 0.875));
-static SHAPE258: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.375, 0., 0.375, 0.625, 0.375, 0.625));
-static SHAPE259: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.375, 0.8125));
-static SHAPE260: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.125, 0., 0.125, 0.875, 0.375, 0.875));
-static SHAPE261: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.125, 0., 0.125, 0.875, 0.4375, 0.875));
-static SHAPE262: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1., 0.6875));
-static SHAPE263: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE249: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.1875, 0.1875, 0.1875, 0.8125, 1., 0.8125));
+static SHAPE250: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0.1875, 0.1875, 0.8125, 0.8125, 0.8125));
+static SHAPE251: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.1875, 0.1875, 0.1875, 0.8125, 0.8125, 0.8125));
+static SHAPE252: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.3125, -0.0625, 0.3125, 0.6875, 0.1875, 0.6875));
+static SHAPE253: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.1875, -0.0625, 0.1875, 0.8125, 0.3125, 0.8125));
+static SHAPE254: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.3125, 0.3125, 0.3125, 0.6875, 0.6875, 0.6875));
+static SHAPE255: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.1875, 0., 0.1875, 0.75, 0.4375, 0.75));
+static SHAPE256: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.0625, 0., 0.0625, 0.9375, 0.4375, 0.9375));
+static SHAPE257: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.0625, 0., 0.125, 0.9375, 1., 0.875));
+static SHAPE258: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.375, 0., 0.375, 0.625, 0.375, 0.625));
+static SHAPE259: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.375, 0.8125));
+static SHAPE260: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.125, 0., 0.125, 0.875, 0.375, 0.875));
+static SHAPE261: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.125, 0., 0.125, 0.875, 0.4375, 0.875));
+static SHAPE262: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.3125, 0., 0.3125, 0.6875, 1., 0.6875));
+static SHAPE263: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.125, 1., 0.125);
     let s = Shapes::or(s, collision::box_shape(0., 0., 0.875, 0.125, 1., 1.));
     let s = Shapes::or(s, collision::box_shape(0.875, 0., 0., 1., 1., 0.125));
@@ -1388,7 +1414,7 @@ static SHAPE263: Lazy<VoxelShape> = Lazy::new(|| {
     let s = Shapes::or(s, collision::box_shape(0.125, 0.875, 0., 0.875, 1., 0.125));
     Shapes::or(s, collision::box_shape(0.125, 0.875, 0.875, 0.875, 1., 1.))
 });
-static SHAPE264: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE264: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.125, 0., 0.375, 0.25, 0.8125, 0.625);
     let s = Shapes::or(
         s,
@@ -1412,7 +1438,7 @@ static SHAPE264: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.75, 0.4375, 0.625, 0.875, 0.8125, 0.6875),
     )
 });
-static SHAPE265: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE265: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.375, 0., 0.125, 0.625, 0.8125, 0.25);
     let s = Shapes::or(
         s,
@@ -1436,7 +1462,7 @@ static SHAPE265: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.625, 0.4375, 0.75, 0.6875, 0.8125, 0.875),
     )
 });
-static SHAPE266: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE266: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.25, 0.125, 0., 0.75, 0.875, 0.75);
     let s = Shapes::or(
         s,
@@ -1455,7 +1481,7 @@ static SHAPE266: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.75, 0.375, 0.5625, 0.875, 0.625, 1.),
     )
 });
-static SHAPE267: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE267: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.25, 0.125, 0.25, 0.75, 0.875, 1.);
     let s = Shapes::or(
         s,
@@ -1474,7 +1500,7 @@ static SHAPE267: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.75, 0.375, 0., 0.875, 0.625, 0.4375),
     )
 });
-static SHAPE268: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE268: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0.125, 0.25, 0.75, 0.875, 0.75);
     let s = Shapes::or(
         s,
@@ -1493,7 +1519,7 @@ static SHAPE268: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.5625, 0.375, 0.75, 1., 0.625, 0.875),
     )
 });
-static SHAPE269: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE269: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.25, 0.125, 0.25, 1., 0.875, 0.75);
     let s = Shapes::or(
         s,
@@ -1512,7 +1538,7 @@ static SHAPE269: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0., 0.375, 0.75, 0.4375, 0.625, 0.875),
     )
 });
-static SHAPE270: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE270: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.25, 0., 0.125, 0.75, 0.75, 0.875);
     let s = Shapes::or(
         s,
@@ -1531,7 +1557,7 @@ static SHAPE270: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.75, 0.5625, 0.375, 0.875, 1., 0.625),
     )
 });
-static SHAPE271: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE271: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.125, 0., 0.25, 0.875, 0.75, 0.75);
     let s = Shapes::or(
         s,
@@ -1550,16 +1576,18 @@ static SHAPE271: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.375, 0.5625, 0.75, 0.625, 1., 0.875),
     )
 });
-static SHAPE272: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE272: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.125, 1.);
     Shapes::or(
         s,
         collision::box_shape(0.25, 0.125, 0.25, 0.75, 0.875, 0.75),
     )
 });
-static SHAPE273: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0., 0., 0.25, 1., 1., 0.75));
-static SHAPE274: Lazy<VoxelShape> = Lazy::new(|| collision::box_shape(0.25, 0., 0., 0.75, 1., 1.));
-static SHAPE275: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE273: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0., 0.25, 1., 1., 0.75));
+static SHAPE274: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.25, 0., 0., 0.75, 1., 1.));
+static SHAPE275: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.25, 0.25, 0.25, 0.75, 0.375, 0.75);
     let s = Shapes::or(
         s,
@@ -1570,7 +1598,7 @@ static SHAPE275: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.4375, 0.8125, 0.4375, 0.5625, 1., 0.5625),
     )
 });
-static SHAPE276: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE276: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.25, 0.25, 0.25, 0.75, 0.375, 0.75);
     let s = Shapes::or(
         s,
@@ -1581,7 +1609,7 @@ static SHAPE276: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.4375, 0.8125, 0., 0.5625, 0.9375, 0.8125),
     )
 });
-static SHAPE277: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE277: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.25, 0.25, 0.25, 0.75, 0.375, 0.75);
     let s = Shapes::or(
         s,
@@ -1592,7 +1620,7 @@ static SHAPE277: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.4375, 0.8125, 0.1875, 0.5625, 0.9375, 1.),
     )
 });
-static SHAPE278: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE278: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.25, 0.25, 0.25, 0.75, 0.375, 0.75);
     let s = Shapes::or(
         s,
@@ -1603,7 +1631,7 @@ static SHAPE278: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0., 0.8125, 0.4375, 0.8125, 0.9375, 0.5625),
     )
 });
-static SHAPE279: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE279: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.25, 0.25, 0.25, 0.75, 0.375, 0.75);
     let s = Shapes::or(
         s,
@@ -1614,7 +1642,7 @@ static SHAPE279: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.1875, 0.8125, 0.4375, 1., 0.9375, 0.5625),
     )
 });
-static SHAPE280: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE280: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.25, 0.25, 0.25, 0.75, 0.375, 0.75);
     let s = Shapes::or(
         s,
@@ -1625,7 +1653,7 @@ static SHAPE280: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0.4375, 0.8125, 0., 0.5625, 0.9375, 1.),
     )
 });
-static SHAPE281: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE281: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.25, 0.25, 0.25, 0.75, 0.375, 0.75);
     let s = Shapes::or(
         s,
@@ -1636,103 +1664,103 @@ static SHAPE281: Lazy<VoxelShape> = Lazy::new(|| {
         collision::box_shape(0., 0.8125, 0.4375, 1., 0.9375, 0.5625),
     )
 });
-static SHAPE282: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE282: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.3125, 0.0625, 0.3125, 0.6875, 0.5, 0.6875);
     Shapes::or(
         s,
         collision::box_shape(0.375, 0.5, 0.375, 0.625, 0.625, 0.625),
     )
 });
-static SHAPE283: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE283: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 0.4375, 0.6875);
     Shapes::or(
         s,
         collision::box_shape(0.375, 0.4375, 0.375, 0.625, 0.5625, 0.625),
     )
 });
-static SHAPE284: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE284: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.125, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.125, 0., 0.125, 1., 1.));
     let s = Shapes::or(s, collision::box_shape(0.125, 0.125, 0., 1., 1., 0.125));
     let s = Shapes::or(s, collision::box_shape(0.125, 0.125, 0.875, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0.875, 0.125, 0.125, 1., 1., 0.875))
 });
-static SHAPE285: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.3125, 0., 0.375, 0.6875, 0.375, 0.5625));
-static SHAPE286: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.3125, 0., 0.375, 0.625, 0.375, 0.6875));
-static SHAPE287: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.3125, 0., 0.3125, 0.6875, 0.375, 0.625));
-static SHAPE288: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE285: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.3125, 0., 0.375, 0.6875, 0.375, 0.5625));
+static SHAPE286: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.3125, 0., 0.375, 0.625, 0.375, 0.6875));
+static SHAPE287: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.3125, 0., 0.3125, 0.6875, 0.375, 0.625));
+static SHAPE288: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.0625, 0., 0.0625, 0.9375, 0.5, 0.9375);
     Shapes::or(
         s,
         collision::box_shape(0.4375, 0.5, 0.4375, 0.5625, 0.875, 0.5625),
     )
 });
-static SHAPE289: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.1875, 0.1875, 0.5625, 0.8125, 0.8125, 1.));
-static SHAPE290: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0., 0.1875, 0.1875, 0.4375, 0.8125, 0.8125));
-static SHAPE291: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 0.4375));
-static SHAPE292: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.5625, 0.1875, 0.1875, 1., 0.8125, 0.8125));
-static SHAPE293: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.4375, 0.8125));
-static SHAPE294: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.1875, 0.5625, 0.1875, 0.8125, 1., 0.8125));
-static SHAPE295: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.1875, 0.1875, 0.6875, 0.8125, 0.8125, 1.));
-static SHAPE296: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0., 0.1875, 0.1875, 0.3125, 0.8125, 0.8125));
-static SHAPE297: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 0.3125));
-static SHAPE298: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.6875, 0.1875, 0.1875, 1., 0.8125, 0.8125));
-static SHAPE299: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.3125, 0.8125));
-static SHAPE300: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.1875, 0.6875, 0.1875, 0.8125, 1., 0.8125));
-static SHAPE301: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.1875, 0.1875, 0.75, 0.8125, 0.8125, 1.));
-static SHAPE302: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0., 0.1875, 0.1875, 0.25, 0.8125, 0.8125));
-static SHAPE303: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 0.25));
-static SHAPE304: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.75, 0.1875, 0.1875, 1., 0.8125, 0.8125));
-static SHAPE305: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.25, 0.8125));
-static SHAPE306: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.1875, 0.75, 0.1875, 0.8125, 1., 0.8125));
-static SHAPE307: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.25, 0.25, 0.8125, 0.75, 0.75, 1.));
-static SHAPE308: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0., 0.25, 0.25, 0.1875, 0.75, 0.75));
-static SHAPE309: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.25, 0.25, 0., 0.75, 0.75, 0.1875));
-static SHAPE310: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.8125, 0.25, 0.25, 1., 0.75, 0.75));
-static SHAPE311: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.25, 0., 0.25, 0.75, 0.1875, 0.75));
-static SHAPE312: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.25, 0.8125, 0.25, 0.75, 1., 0.75));
-static SHAPE313: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.3125, 0., 0.3125, 0.6875, 0.6875, 0.6875));
-static SHAPE314: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0.3125, 0.3125, 0.3125, 0.6875, 1., 0.6875));
-static SHAPE315: Lazy<VoxelShape> = Lazy::new(|| {
+static SHAPE289: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.1875, 0.1875, 0.5625, 0.8125, 0.8125, 1.));
+static SHAPE290: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0.1875, 0.1875, 0.4375, 0.8125, 0.8125));
+static SHAPE291: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 0.4375));
+static SHAPE292: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.5625, 0.1875, 0.1875, 1., 0.8125, 0.8125));
+static SHAPE293: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.4375, 0.8125));
+static SHAPE294: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.1875, 0.5625, 0.1875, 0.8125, 1., 0.8125));
+static SHAPE295: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.1875, 0.1875, 0.6875, 0.8125, 0.8125, 1.));
+static SHAPE296: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0.1875, 0.1875, 0.3125, 0.8125, 0.8125));
+static SHAPE297: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 0.3125));
+static SHAPE298: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.6875, 0.1875, 0.1875, 1., 0.8125, 0.8125));
+static SHAPE299: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.3125, 0.8125));
+static SHAPE300: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.1875, 0.6875, 0.1875, 0.8125, 1., 0.8125));
+static SHAPE301: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.1875, 0.1875, 0.75, 0.8125, 0.8125, 1.));
+static SHAPE302: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0.1875, 0.1875, 0.25, 0.8125, 0.8125));
+static SHAPE303: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 0.25));
+static SHAPE304: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.75, 0.1875, 0.1875, 1., 0.8125, 0.8125));
+static SHAPE305: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.25, 0.8125));
+static SHAPE306: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.1875, 0.75, 0.1875, 0.8125, 1., 0.8125));
+static SHAPE307: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.25, 0.25, 0.8125, 0.75, 0.75, 1.));
+static SHAPE308: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0.25, 0.25, 0.1875, 0.75, 0.75));
+static SHAPE309: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.25, 0.25, 0., 0.75, 0.75, 0.1875));
+static SHAPE310: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.8125, 0.25, 0.25, 1., 0.75, 0.75));
+static SHAPE311: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.25, 0., 0.25, 0.75, 0.1875, 0.75));
+static SHAPE312: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.25, 0.8125, 0.25, 0.75, 1., 0.75));
+static SHAPE313: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.3125, 0., 0.3125, 0.6875, 0.6875, 0.6875));
+static SHAPE314: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.3125, 0.3125, 0.3125, 0.6875, 1., 0.6875));
+static SHAPE315: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.375, 0., 0.375, 0.625, 1., 0.625);
     let s = Shapes::or(s, collision::box_shape(0., 0.5, 0., 0.375, 1., 1.));
     let s = Shapes::or(s, collision::box_shape(0.375, 0.5, 0., 1., 1., 0.375));
     let s = Shapes::or(s, collision::box_shape(0.375, 0.5, 0.625, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0.625, 0.5, 0.375, 1., 1., 0.625))
 });
-static SHAPE316: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0., 0.6875, 0., 1., 0.9375, 1.));
-static SHAPE317: Lazy<VoxelShape> =
-    Lazy::new(|| collision::box_shape(0., 0.6875, 0., 1., 0.8125, 1.));
+static SHAPE316: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0.6875, 0., 1., 0.9375, 1.));
+static SHAPE317: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0.6875, 0., 1., 0.8125, 1.));
 
 impl BlockWithShape for BlockState {
     fn shape(&self) -> &'static VoxelShape {
@@ -1748,7 +1776,7 @@ impl BlockWithShape for BlockState {
     }
 }
 
-static SHAPES_MAP: [&Lazy<VoxelShape>; 26644] = [
+static SHAPES_MAP: [&LazyLock<VoxelShape>; 26644] = [
     &SHAPE0, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1,
     &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1,
     &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0,

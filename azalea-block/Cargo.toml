@@ -1,16 +1,12 @@
 [package]
-description = "Representation of Minecraft block states."
-edition = "2021"
-license = "MIT"
 name = "azalea-block"
-repository = "https://github.com/azalea-rs/azalea/tree/main/azalea-block"
-version = "0.10.3+mc1.21.1"
-
-[lib]
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+description = "Representation of Minecraft block states."
+version = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
 
 [dependencies]
 azalea-block-macros = { path = "./azalea-block-macros", version = "0.10.0" }
 azalea-buf = { path = "../azalea-buf", version = "0.10.0" }
-azalea-registry = { version = "0.10.0", path = "../azalea-registry" }
+azalea-registry = { path = "../azalea-registry", version = "0.10.0" }

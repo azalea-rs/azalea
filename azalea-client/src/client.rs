@@ -3,7 +3,6 @@ use std::{
     fmt::Debug,
     io,
     net::SocketAddr,
-    ops::Deref,
     sync::Arc,
     time::{Duration, Instant},
 };
