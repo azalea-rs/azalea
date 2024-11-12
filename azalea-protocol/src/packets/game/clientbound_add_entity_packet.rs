@@ -8,7 +8,7 @@ use uuid::Uuid;
 pub struct ClientboundAddEntityPacket {
     /// The id of the entity.
     #[var]
-    pub id: u32,
+    pub id: i32,
     pub uuid: Uuid,
     pub entity_type: azalea_registry::EntityKind,
     pub position: Vec3,
