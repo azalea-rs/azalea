@@ -21,10 +21,9 @@ pub struct RawConnection {
     reader: RawConnectionReader,
     writer: RawConnectionWriter,
 
-    /// Packets sent to this will be sent to the server.
-
-    /// A task that reads packets from the server. The client is disconnected
-    /// when this task ends.
+    /// A task that reads packets from the server.
+    ///
+    /// The client is disconnected when this task ends.
     read_packets_task: tokio::task::JoinHandle<()>,
     /// A task that writes packets from the server.
     write_packets_task: tokio::task::JoinHandle<()>,
