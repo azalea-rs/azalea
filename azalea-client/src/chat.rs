@@ -207,7 +207,7 @@ pub struct SendChatEvent {
     pub content: String,
 }
 
-fn handle_send_chat_event(
+pub fn handle_send_chat_event(
     mut events: EventReader<SendChatEvent>,
     mut send_chat_kind_events: EventWriter<SendChatKindEvent>,
 ) {
@@ -250,7 +250,7 @@ pub enum ChatPacketKind {
     Command,
 }
 
-fn handle_send_chat_kind_event(
+pub fn handle_send_chat_kind_event(
     mut events: EventReader<SendChatKindEvent>,
     mut send_packet_events: EventWriter<SendPacketEvent>,
 ) {

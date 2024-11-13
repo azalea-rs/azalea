@@ -139,7 +139,7 @@ pub struct PathFoundEvent {
 }
 
 #[allow(clippy::type_complexity)]
-fn add_default_pathfinder(
+pub fn add_default_pathfinder(
     mut commands: Commands,
     mut query: Query<Entity, (Without<Pathfinder>, With<LocalEntity>, With<Player>)>,
 ) {
@@ -193,7 +193,7 @@ impl PathfinderClientExt for azalea_client::Client {
 #[derive(Component)]
 pub struct ComputePath(Task<Option<PathFoundEvent>>);
 
-fn goto_listener(
+pub fn goto_listener(
     mut commands: Commands,
     mut events: EventReader<GotoEvent>,
     mut query: Query<(
@@ -340,7 +340,7 @@ fn goto_listener(
 }
 
 // poll the tasks and send the PathFoundEvent if they're done
-fn handle_tasks(
+pub fn handle_tasks(
     mut commands: Commands,
     mut transform_tasks: Query<(Entity, &mut ComputePath)>,
     mut path_found_events: EventWriter<PathFoundEvent>,
@@ -358,7 +358,7 @@ fn handle_tasks(
 }
 
 // set the path for the target entity when we get the PathFoundEvent
-fn path_found_listener(
+pub fn path_found_listener(
     mut events: EventReader<PathFoundEvent>,
     mut query: Query<(
         &mut Pathfinder,
@@ -446,7 +446,7 @@ fn path_found_listener(
     }
 }
 
-fn timeout_movement(
+pub fn timeout_movement(
     mut query: Query<(&Pathfinder, &mut ExecutingPath, &Position, Option<&Mining>)>,
 ) {
     for (pathfinder, mut executing_path, position, mining) in &mut query {
@@ -481,7 +481,7 @@ fn timeout_movement(
     }
 }
 
-fn check_node_reached(
+pub fn check_node_reached(
     mut query: Query<(
         Entity,
         &mut Pathfinder,
@@ -575,7 +575,7 @@ fn check_node_reached(
     }
 }
 
-fn check_for_path_obstruction(
+pub fn check_for_path_obstruction(
     mut query: Query<(&Pathfinder, &mut ExecutingPath, &InstanceName, &Inventory)>,
     instance_container: Res<InstanceContainer>,
 ) {
@@ -675,7 +675,7 @@ pub fn recalculate_near_end_of_path(
 }
 
 #[allow(clippy::type_complexity)]
-fn tick_execute_path(
+pub fn tick_execute_path(
     mut query: Query<(
         Entity,
         &mut ExecutingPath,
@@ -719,7 +719,7 @@ fn tick_execute_path(
     }
 }
 
-fn recalculate_if_has_goal_but_no_path(
+pub fn recalculate_if_has_goal_but_no_path(
     mut query: Query<(Entity, &mut Pathfinder), Without<ExecutingPath>>,
     mut goto_events: EventWriter<GotoEvent>,
 ) {
@@ -748,7 +748,7 @@ pub struct StopPathfindingEvent {
     pub force: bool,
 }
 
-fn handle_stop_pathfinding_event(
+pub fn handle_stop_pathfinding_event(
     mut events: EventReader<StopPathfindingEvent>,
     mut query: Query<(&mut Pathfinder, &mut ExecutingPath)>,
     mut walk_events: EventWriter<StartWalkEvent>,
@@ -782,7 +782,7 @@ fn handle_stop_pathfinding_event(
     }
 }
 
-fn stop_pathfinding_on_instance_change(
+pub fn stop_pathfinding_on_instance_change(
     mut query: Query<(Entity, &mut ExecutingPath), Changed<InstanceName>>,
     mut stop_pathfinding_events: EventWriter<StopPathfindingEvent>,
 ) {
@@ -800,7 +800,7 @@ fn stop_pathfinding_on_instance_change(
 
 /// Checks whether the path has been obstructed, and returns Some(index) if it
 /// has been. The index is of the first obstructed node.
-fn check_path_obstructed<SuccessorsFn>(
+pub fn check_path_obstructed<SuccessorsFn>(
     mut current_position: BlockPos,
     path: &VecDeque<astar::Movement<BlockPos, moves::MoveData>>,
     successors_fn: SuccessorsFn,

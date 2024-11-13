@@ -16,7 +16,7 @@ pub struct ClientboundAddEntityPacket {
     pub y_rot: i8,
     pub y_head_rot: i8,
     #[var]
-    pub data: i32,
+    pub data: u32,
     pub x_vel: i16,
     pub y_vel: i16,
     pub z_vel: i16,
