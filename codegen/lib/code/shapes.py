@@ -71,7 +71,7 @@ def generate_block_shapes_code(blocks: dict, shapes: dict, block_states_report, 
         generated_shape_code += generate_code_for_shape(shape_id, shape)
 
 
-    # static SHAPES_MAP: [&Lazy<VoxelShape>; 26644] = [&SHAPE0, &SHAPE1, &SHAPE1, ...]
+    # static SHAPES_MAP: [&LazyLock<VoxelShape>; 26644] = [&SHAPE0, &SHAPE1, &SHAPE1, ...]
     empty_shapes = []
     full_shapes = []
 
@@ -92,7 +92,7 @@ def generate_block_shapes_code(blocks: dict, shapes: dict, block_states_report, 
             block_state_ids_to_shape_ids.append((block_state_id, shape_id))
 
 
-    generated_map_code = f'static SHAPES_MAP: [&Lazy<VoxelShape>; {len(block_state_ids_to_shape_ids)}] = ['
+    generated_map_code = f'static SHAPES_MAP: [&LazyLock<VoxelShape>; {len(block_state_ids_to_shape_ids)}] = ['
 
     block_state_ids_to_shape_ids = sorted(block_state_ids_to_shape_ids, key=lambda x: x[0])
 
@@ -115,10 +115,11 @@ def generate_block_shapes_code(blocks: dict, shapes: dict, block_states_report, 
 #![allow(clippy::explicit_auto_deref)]
 #![allow(clippy::redundant_closure)]
 
+use std::sync::LazyLock;
+
 use super::VoxelShape;
 use crate::collision::{{self, Shapes}};
 use azalea_block::*;
-use once_cell::sync::Lazy;
 
 pub trait BlockWithShape {{
     fn shape(&self) -> &'static VoxelShape;
@@ -156,7 +157,7 @@ def generate_code_for_shape(shape_id: str, parts: list[list[float]]):
     def make_arguments(part: list[float]):
         return ', '.join(map(lambda n: str(n).rstrip('0'), part))
     code = ''
-    code += f'static SHAPE{shape_id}: Lazy<VoxelShape> = Lazy::new(|| {{'
+    code += f'static SHAPE{shape_id}: LazyLock<VoxelShape> = LazyLock::new(|| {{'
     steps = []
     if parts == ():
         steps.append('collision::EMPTY_SHAPE.clone()')
