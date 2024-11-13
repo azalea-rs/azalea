@@ -222,6 +222,7 @@ dependencies = [
  "priority-queue",
  "rand",
  "rustc-hash 2.0.0",
+ "serde",
  "thiserror",
  "tokio",
  "tracing",
