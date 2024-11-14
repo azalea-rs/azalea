@@ -731,7 +731,7 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 // we use RelativeEntityUpdate because it makes sure changes aren't made
                 // multiple times
-                commands.entity(entity).add(RelativeEntityUpdate {
+                commands.entity(entity).queue(RelativeEntityUpdate {
                     partial_world: instance_holder.partial_instance.clone(),
                     update: Box::new(move |entity| {
                         let entity_id = entity.id();
@@ -782,7 +782,7 @@ pub fn process_packet_events(ecs: &mut World) {
                     z: p.za as f64 / 8000.,
                 });
 
-                commands.entity(entity).add(RelativeEntityUpdate {
+                commands.entity(entity).queue(RelativeEntityUpdate {
                     partial_world: instance_holder.partial_instance.clone(),
                     update: Box::new(move |entity_mut| {
                         entity_mut.world_scope(|world| {
@@ -839,7 +839,7 @@ pub fn process_packet_events(ecs: &mut World) {
                         x_rot: (p.x_rot as i32 * 360) as f32 / 256.,
                         y_rot: (p.y_rot as i32 * 360) as f32 / 256.,
                     };
-                    commands.entity(entity).add(RelativeEntityUpdate {
+                    commands.entity(entity).queue(RelativeEntityUpdate {
                         partial_world: instance_holder.partial_instance.clone(),
                         update: Box::new(move |entity| {
                             let mut position = entity.get_mut::<Position>().unwrap();
@@ -876,7 +876,7 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 if let Some(entity) = entity {
                     let delta = p.delta.clone();
-                    commands.entity(entity).add(RelativeEntityUpdate {
+                    commands.entity(entity).queue(RelativeEntityUpdate {
                         partial_world: instance_holder.partial_instance.clone(),
                         update: Box::new(move |entity_mut| {
                             let mut position = entity_mut.get_mut::<Position>().unwrap();
@@ -912,7 +912,7 @@ pub fn process_packet_events(ecs: &mut World) {
                         y_rot: (p.y_rot as i32 * 360) as f32 / 256.,
                     };
 
-                    commands.entity(entity).add(RelativeEntityUpdate {
+                    commands.entity(entity).queue(RelativeEntityUpdate {
                         partial_world: instance_holder.partial_instance.clone(),
                         update: Box::new(move |entity_mut| {
                             let mut position = entity_mut.get_mut::<Position>().unwrap();
@@ -952,7 +952,7 @@ pub fn process_packet_events(ecs: &mut World) {
                         y_rot: (p.y_rot as i32 * 360) as f32 / 256.,
                     };
 
-                    commands.entity(entity).add(RelativeEntityUpdate {
+                    commands.entity(entity).queue(RelativeEntityUpdate {
                         partial_world: instance_holder.partial_instance.clone(),
                         update: Box::new(move |entity_mut| {
                             let mut look_direction = entity_mut.get_mut::<LookDirection>().unwrap();

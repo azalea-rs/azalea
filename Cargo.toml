@@ -30,11 +30,11 @@ repository = "https://github.com/azalea-rs/azalea"
 
 [workspace.dependencies]
 anyhow = "1.0.93"
-bevy_app = "0.14.2"
-bevy_ecs = { version = "0.14.2", default-features = false }
-bevy_log = "0.14.2"
-bevy_tasks = "0.14.2"
-bevy_time = "0.14.2"
+bevy_app = "0.15.0-rc.3"
+bevy_ecs = { version = "0.15.0-rc.3", default-features = false }
+bevy_log = "0.15.0-rc.3"
+bevy_tasks = "0.15.0-rc.3"
+bevy_time = "0.15.0-rc.3"
 byteorder = "1.5.0"
 criterion = { version = "0.5.1", features = ["html_reports"] }
 derive_more = { version = "1.0.0", features = ["full"] }
