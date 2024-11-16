@@ -8,51 +8,53 @@ version = "0.10.3+mc1.21.1"
 
 [package.metadata.release]
 pre-release-replacements = [
-  { file = "README.md", search = "`azalea = \"[a-z0-9\\.-]+\"`", replace = "`azalea = \"{{version}}\"`" },
+    { file = "README.md", search = "`azalea = \"[a-z0-9\\.-]+\"`", replace = "`azalea = \"{{version}}\"`" },
 ]
 
 [dependencies]
 anyhow = "^1.0.86"
 async-trait = "0.1.80"
+azalea-auth = { version = "0.10.0", path = "../azalea-auth" }
 azalea-block = { version = "0.10.0", path = "../azalea-block" }
+azalea-brigadier = { version = "0.10.0", path = "../azalea-brigadier" }
+azalea-buf = { version = "0.10.0", path = "../azalea-buf" }
 azalea-chat = { version = "0.10.0", path = "../azalea-chat" }
 azalea-client = { version = "0.10.0", path = "../azalea-client", default-features = false }
 azalea-core = { version = "0.10.0", path = "../azalea-core" }
+azalea-entity = { version = "0.10.0", path = "../azalea-entity" }
+azalea-inventory = { version = "0.10.0", path = "../azalea-inventory" }
 azalea-physics = { version = "0.10.0", path = "../azalea-physics" }
 azalea-protocol = { version = "0.10.0", path = "../azalea-protocol" }
 azalea-registry = { version = "0.10.0", path = "../azalea-registry" }
 azalea-world = { version = "0.10.0", path = "../azalea-world" }
-azalea-auth = { version = "0.10.0", path = "../azalea-auth" }
-azalea-brigadier = { version = "0.10.0", path = "../azalea-brigadier" }
-azalea-buf = { version = "0.10.0", path = "../azalea-buf" }
 bevy_app = "0.13.0"
 bevy_ecs = "0.13.0"
+bevy_log = "0.13.0"
 bevy_tasks = { version = "0.13.0", features = ["multi-threaded"] }
+bevy_time = "0.13.0"
 derive_more = { version = "0.99.18", features = ["deref", "deref_mut"] }
 futures = "0.3.30"
 futures-lite = "2.3.0"
-tracing = "0.1.40"
 nohash-hasher = "0.2.0"
 num-traits = "0.2.19"
 parking_lot = { version = "^0.12.3", features = ["deadlock_detection"] }
 priority-queue = "2.0.3"
+rustc-hash = "2.0.0"
+serde = { version = "1", optional = true }
 thiserror = "^1.0.61"
 tokio = "^1.38.0"
+tracing = "0.1.40"
 uuid = "1.9.1"
-bevy_log = "0.13.0"
-bevy_time = "0.13.0"
-rustc-hash = "2.0.0"
-azalea-inventory = { version = "0.10.0", path = "../azalea-inventory" }
-azalea-entity = { version = "0.10.0", path = "../azalea-entity" }
 
 [dev-dependencies]
 criterion = "0.5.1"
 rand = "0.8.5"
 
 [features]
-default = ["log"]
+default = ["log", "serde"]
 # enables bevy_log::LogPlugin by default
 log = ["azalea-client/log"]
+serde = ["dep:serde"]
 
 [[bench]]
 name = "pathfinder"

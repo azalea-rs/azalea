@@ -1,9 +1,10 @@
 //! The goals that a pathfinder can try to reach.
 
-use std::f32::consts::SQRT_2;
-
 use azalea_core::position::{BlockPos, Vec3};
 use azalea_world::ChunkStorage;
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+use std::f32::consts::SQRT_2;
 
 use super::costs::{COST_HEURISTIC, FALL_N_BLOCKS_COST, JUMP_ONE_BLOCK_COST};
 
@@ -15,7 +16,8 @@ pub trait Goal {
 }
 
 /// Move to the given block position.
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct BlockPosGoal(pub BlockPos);
 impl Goal for BlockPosGoal {
     fn heuristic(&self, n: BlockPos) -> f32 {
@@ -48,8 +50,9 @@ fn xz_heuristic(dx: f32, dz: f32) -> f32 {
     (diagonal * SQRT_2 + straight) * COST_HEURISTIC
 }
 
-/// Move to the given block position, ignoring the y axis.
-#[derive(Debug)]
+/// Move to the given block position, ignoring the y-axis.
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct XZGoal {
     pub x: i32,
     pub z: i32,
@@ -74,7 +77,8 @@ fn y_heuristic(dy: f32) -> f32 {
 }
 
 /// Move to the given y coordinate.
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct YGoal {
     pub y: i32,
 }
@@ -89,7 +93,8 @@ impl Goal for YGoal {
 }
 
 /// Get within the given radius of the given position.
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct RadiusGoal {
     pub pos: Vec3,
     pub radius: f32,
@@ -163,7 +168,7 @@ impl<T: Goal, U: Goal> Goal for AndGoal<T, U> {
     }
 }
 
-/// Try to reach all of the given goals.
+/// Try to reach all the given goals.
 #[derive(Debug)]
 pub struct AndGoals<T: Goal>(pub Vec<T>);
 impl<T: Goal> Goal for AndGoals<T> {
@@ -180,7 +185,7 @@ impl<T: Goal> Goal for AndGoals<T> {
 }
 
 /// Move to a position where we can reach the given block.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct ReachBlockPosGoal {
     pub pos: BlockPos,
     pub chunk_storage: ChunkStorage,
