@@ -183,6 +183,12 @@ pub fn process_packet_events(ecs: &mut World) {
                         action: azalea_protocol::packets::configuration::serverbound_resource_pack_packet::Action::Accepted
                     }.get()
                 ).unwrap();
+                raw_connection.write_packet(
+                    ServerboundResourcePackPacket {
+                        id: p.id,
+                        action: azalea_protocol::packets::configuration::serverbound_resource_pack_packet::Action::SuccessfullyLoaded
+                    }.get()
+                ).unwrap();
             }
             ClientboundConfigurationPacket::ResourcePackPop(_) => {
                 // we can ignore this
