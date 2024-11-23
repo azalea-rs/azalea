@@ -155,7 +155,7 @@ impl<'a> FindBlocks<'a> {
     }
 }
 
-impl<'a> Iterator for FindBlocks<'a> {
+impl Iterator for FindBlocks<'_> {
     type Item = BlockPos;
 
     fn next(&mut self) -> Option<Self::Item> {

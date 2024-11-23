@@ -562,7 +562,6 @@ pub type BoxSwarmHandleFn<SS> =
 ///     }
 ///     Ok(())
 /// }
-
 impl Swarm {
     /// Add a new account to the swarm. You can remove it later by calling
     /// [`Client::disconnect`].

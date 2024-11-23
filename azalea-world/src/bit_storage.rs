@@ -119,7 +119,7 @@ impl BitStorage {
         let values_per_long = 64 / bits;
         let magic_index = values_per_long - 1;
         let (divide_mul, divide_add, divide_shift) = MAGIC[magic_index];
-        let calculated_length = (size + values_per_long - 1) / values_per_long;
+        let calculated_length = size.div_ceil(values_per_long);
 
         let mask = (1 << bits) - 1;
 
@@ -228,7 +228,7 @@ pub struct BitStorageIter<'a> {
     index: usize,
 }
 
-impl<'a> Iterator for BitStorageIter<'a> {
+impl Iterator for BitStorageIter<'_> {
     type Item = u64;
 
     fn next(&mut self) -> Option<Self::Item> {

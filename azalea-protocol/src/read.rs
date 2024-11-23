@@ -209,8 +209,8 @@ pub fn compression_decoder(
 /// The current protocol state must be passed as a generic.
 ///
 /// For the non-waiting version, see [`try_read_packet`].
-pub async fn read_packet<'a, P: ProtocolPacket + Debug, R>(
-    stream: &'a mut R,
+pub async fn read_packet<P: ProtocolPacket + Debug, R>(
+    stream: &mut R,
     buffer: &mut BytesMut,
     compression_threshold: Option<u32>,
     cipher: &mut Option<Aes128CfbDec>,
@@ -242,8 +242,8 @@ where
     Ok(Some(packet))
 }
 
-pub async fn read_raw_packet<'a, R>(
-    stream: &'a mut R,
+pub async fn read_raw_packet<R>(
+    stream: &mut R,
     buffer: &mut BytesMut,
     compression_threshold: Option<u32>,
     // this has to be a &mut Option<T> instead of an Option<&mut T> because

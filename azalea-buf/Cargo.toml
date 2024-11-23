@@ -9,13 +9,13 @@ version = "0.10.3+mc1.21.1"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-simdnbt = "0.6"
 azalea-buf-macros = { path = "./azalea-buf-macros", version = "0.10.0" }
-byteorder = "^1.5.0"
-tracing = "0.1.40"
-serde_json = { version = "^1.0", optional = true }
-thiserror = "1.0.61"
-uuid = "^1.9.1"
+byteorder = { workspace = true }
+serde_json = { workspace = true, optional = true }
+simdnbt = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true }
 
 [features]
 serde_json = ["dep:serde_json"]

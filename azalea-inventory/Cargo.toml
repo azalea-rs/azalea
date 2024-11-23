@@ -9,12 +9,10 @@ version = "0.10.3+mc1.21.1"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-simdnbt = "0.6"
 azalea-buf = { version = "0.10.0", path = "../azalea-buf" }
+azalea-chat = { version = "0.10.0", path = "../azalea-chat", features = ["azalea-buf"] }
+azalea-core = { version = "0.10.0", path = "../azalea-core" }
 azalea-inventory-macros = { version = "0.10.0", path = "./azalea-inventory-macros" }
 azalea-registry = { version = "0.10.0", path = "../azalea-registry" }
-azalea-chat = { version = "0.10.0", path = "../azalea-chat", features = [
-    "azalea-buf",
-] }
-azalea-core = { version = "0.10.0", path = "../azalea-core" }
-uuid = "1.9.1"
+simdnbt = { workspace = true }
+uuid = { workspace = true }
