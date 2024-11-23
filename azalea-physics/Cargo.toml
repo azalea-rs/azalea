@@ -11,17 +11,17 @@ version = "0.10.3+mc1.21.1"
 [dependencies]
 azalea-block = { path = "../azalea-block", version = "0.10.0" }
 azalea-core = { path = "../azalea-core", version = "0.10.0" }
+azalea-entity = { version = "0.10.0", path = "../azalea-entity" }
+azalea-inventory = { version = "0.10.0", path = "../azalea-inventory" }
 azalea-registry = { path = "../azalea-registry", version = "0.10.0" }
 azalea-world = { path = "../azalea-world", version = "0.10.0" }
 bevy_app = "0.13.0"
 bevy_ecs = "0.13.0"
-tracing = "0.1.40"
+nohash-hasher = "0.2.0"
 once_cell = "1.19.0"
 parking_lot = "^0.12.3"
-nohash-hasher = "0.2.0"
 smallvec = "1.13.2"
-azalea-entity = { version = "0.10.0", path = "../azalea-entity" }
-azalea-inventory = { version = "0.10.0", path = "../azalea-inventory" }
+tracing = "0.1.40"
 
 [dev-dependencies]
 bevy_time = "0.13.0"
