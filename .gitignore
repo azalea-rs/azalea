@@ -1,6 +1,7 @@
-/target
-/doc
-.vscode
+.idea/
+.vscode/
+doc/
+target/
 
 .cargo/config
 .cargo/config.toml
