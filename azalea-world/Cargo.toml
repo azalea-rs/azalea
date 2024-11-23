@@ -12,9 +12,7 @@ version = "0.10.3+mc1.21.1"
 simdnbt = "0.6"
 azalea-block = { path = "../azalea-block", default-features = false, version = "0.10.0" }
 azalea-buf = { path = "../azalea-buf", version = "0.10.0" }
-azalea-core = { path = "../azalea-core", version = "0.10.0", features = [
-	"bevy_ecs",
-] }
+azalea-core = { path = "../azalea-core", version = "0.10.0", features = ["bevy_ecs"] }
 azalea-registry = { path = "../azalea-registry", version = "0.10.0" }
 bevy_ecs = "0.13.0"
 derive_more = { version = "0.99.18", features = ["deref", "deref_mut"] }

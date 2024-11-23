@@ -12,9 +12,7 @@ license = "MIT"
 simdnbt = "0.6"
 azalea-block = { version = "0.10.0", path = "../azalea-block" }
 azalea-buf = { version = "0.10.0", path = "../azalea-buf" }
-azalea-chat = { version = "0.10.0", path = "../azalea-chat", features = [
-    "azalea-buf",
-] }
+azalea-chat = { version = "0.10.0", path = "../azalea-chat", features = ["azalea-buf"] }
 azalea-core = { version = "0.10.0", path = "../azalea-core" }
 azalea-inventory = { version = "0.10.0", path = "../azalea-inventory" }
 azalea-registry = { version = "0.10.0", path = "../azalea-registry" }
