@@ -15,4 +15,4 @@ azalea-core = { version = "0.10.0", path = "../azalea-core" }
 azalea-inventory-macros = { version = "0.10.0", path = "./azalea-inventory-macros" }
 azalea-registry = { version = "0.10.0", path = "../azalea-registry" }
 simdnbt = "0.6"
-uuid = "1.9.1"
+uuid = "1.11.0"
