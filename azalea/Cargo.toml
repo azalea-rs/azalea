@@ -12,8 +12,8 @@ pre-release-replacements = [
 ]
 
 [dependencies]
-anyhow = "^1.0.93"
-#async-trait = "0.1.83"
+anyhow = { workspace = true }
+#async-trait = { workspace = true }
 azalea-auth = { version = "0.10.0", path = "../azalea-auth" }
 azalea-block = { version = "0.10.0", path = "../azalea-block" }
 azalea-brigadier = { version = "0.10.0", path = "../azalea-brigadier" }
@@ -27,28 +27,28 @@ azalea-physics = { version = "0.10.0", path = "../azalea-physics" }
 azalea-protocol = { version = "0.10.0", path = "../azalea-protocol" }
 azalea-registry = { version = "0.10.0", path = "../azalea-registry" }
 azalea-world = { version = "0.10.0", path = "../azalea-world" }
-bevy_app = "0.13.2"
-bevy_ecs = "0.13.2"
-bevy_log = "0.13.2"
-bevy_tasks = { version = "0.13.2", features = ["multi-threaded"] }
-#bevy_time = "0.13.2"
-derive_more = { version = "1.0.0", features = ["deref", "deref_mut"] }
-futures = "0.3.31"
-futures-lite = "2.5.0"
-nohash-hasher = "0.2.0"
-num-traits = "0.2.19"
-parking_lot = { version = "^0.12.3", features = ["deadlock_detection"] }
-priority-queue = "2.1.1"
-rustc-hash = "2.0.0"
-serde = { version = "1", optional = true }
-thiserror = "2.0.3"
-tokio = "^1.41.1"
-tracing = "0.1.40"
-uuid = "1.11.0"
+bevy_app = { workspace = true }
+bevy_ecs = { workspace = true }
+bevy_log = { workspace = true }
+bevy_tasks = { workspace = true, features = ["multi-threaded"] }
+#bevy_time = { workspace = true }
+derive_more = { workspace = true, features = ["deref", "deref_mut"] }
+futures = { workspace = true }
+futures-lite = { workspace = true }
+nohash-hasher = { workspace = true }
+num-traits = { workspace = true }
+parking_lot = { workspace = true, features = ["deadlock_detection"] }
+priority-queue = { workspace = true }
+rustc-hash = { workspace = true }
+serde = { workspace = true, optional = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true }
 
 [dev-dependencies]
-criterion = "0.5.1"
-rand = "0.8.5"
+criterion = { workspace = true }
+rand = { workspace = true }
 
 [features]
 default = ["log", "serde"]

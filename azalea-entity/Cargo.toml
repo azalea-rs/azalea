@@ -16,13 +16,13 @@ azalea-core = { version = "0.10.0", path = "../azalea-core" }
 azalea-inventory = { version = "0.10.0", path = "../azalea-inventory" }
 azalea-registry = { version = "0.10.0", path = "../azalea-registry" }
 azalea-world = { version = "0.10.0", path = "../azalea-world" }
-bevy_app = "0.13.2"
-bevy_ecs = "0.13.2"
-derive_more = "1.0.0"
-enum-as-inner = "0.6.1"
-nohash-hasher = "0.2.0"
-parking_lot = "0.12.3"
-simdnbt = "0.6"
-thiserror = "2.0.3"
-tracing = "0.1.40"
-uuid = "1.11.0"
+bevy_app = { workspace = true }
+bevy_ecs = { workspace = true }
+derive_more = { workspace = true }
+enum-as-inner = { workspace = true }
+nohash-hasher = { workspace = true }
+parking_lot = { workspace = true }
+simdnbt = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true }

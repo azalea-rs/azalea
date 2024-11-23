@@ -9,19 +9,19 @@ repository = "https://github.com/azalea-rs/azalea/tree/main/azalea-crypto"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-aes = "0.8.4"
+aes = { workspace = true }
 azalea-buf = { path = "../azalea-buf", version = "0.10.0" }
-cfb8 = "0.8.1"
-num-bigint = "^0.4.6"
-rand = { version = "^0.8.5", features = ["getrandom"] }
-rsa = { version = "0.9.6", features = ["sha2"] }
-rsa_public_encrypt_pkcs1 = "0.4.0"
-sha-1 = "^0.10.1"
-sha2 = "0.10.8"
-uuid = "^1.11.0"
+cfb8 = { workspace = true }
+num-bigint = { workspace = true }
+rand = { workspace = true, features = ["getrandom"] }
+rsa = { workspace = true, features = ["sha2"] }
+rsa_public_encrypt_pkcs1 = { workspace = true }
+sha-1 = { workspace = true }
+sha2 = { workspace = true }
+uuid = { workspace = true }
 
 [dev-dependencies]
-criterion = { version = "^0.5.1", features = ["html_reports"] }
+criterion = { workspace = true, features = ["html_reports"] }
 
 [[bench]]
 harness = false
