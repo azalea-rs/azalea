@@ -57,7 +57,7 @@ where
     >,
 }
 
-impl<'w, 's, 'a, F> EntityFinder<'w, 's, F>
+impl<'a, F> EntityFinder<'_, '_, F>
 where
     F: QueryFilter + 'static,
 {

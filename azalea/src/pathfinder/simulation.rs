@@ -154,8 +154,7 @@ impl Simulation {
     pub fn is_mining(&self) -> bool {
         // return true if the component is present and Some
         self.get_component::<azalea_client::mining::MineBlockPos>()
-            .map(|c| *c)
-            .flatten()
+            .and_then(|c| *c)
             .is_some()
     }
 }
