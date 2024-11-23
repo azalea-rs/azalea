@@ -14,7 +14,7 @@ azalea-crypto = { path = "../azalea-crypto", version = "0.10.0" }
 base64 = "0.22.1"
 chrono = { version = "0.4.38", default-features = false, features = ["serde"] }
 md-5 = "0.10.6"
-num-bigint = "0.4.6"
+#num-bigint = "0.4.6"
 once_cell = "1.20.2"
 reqwest = { version = "0.12.9", default-features = false, features = ["json", "rustls-tls"] }
 rsa = "0.9.6"

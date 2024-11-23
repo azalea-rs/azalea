@@ -13,7 +13,7 @@ pre-release-replacements = [
 
 [dependencies]
 anyhow = "^1.0.93"
-async-trait = "0.1.83"
+#async-trait = "0.1.83"
 azalea-auth = { version = "0.10.0", path = "../azalea-auth" }
 azalea-block = { version = "0.10.0", path = "../azalea-block" }
 azalea-brigadier = { version = "0.10.0", path = "../azalea-brigadier" }
@@ -31,7 +31,7 @@ bevy_app = "0.13.2"
 bevy_ecs = "0.13.2"
 bevy_log = "0.13.2"
 bevy_tasks = { version = "0.13.2", features = ["multi-threaded"] }
-bevy_time = "0.13.2"
+#bevy_time = "0.13.2"
 derive_more = { version = "1.0.0", features = ["deref", "deref_mut"] }
 futures = "0.3.31"
 futures-lite = "2.5.0"

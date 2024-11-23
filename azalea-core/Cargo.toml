@@ -15,10 +15,10 @@ bevy_ecs = { version = "0.13.2", default-features = false, optional = true }
 nohash-hasher = "0.2.0"
 num-traits = "0.2.19"
 serde = { version = "^1.0", optional = true }
-serde_json = "^1.0.133"
+#serde_json = "^1.0.133"
 simdnbt = "0.6"
 tracing = "0.1.40"
-uuid = "^1.11.0"
+#uuid = "^1.11.0"
 
 [features]
 bevy_ecs = ["dep:bevy_ecs"]

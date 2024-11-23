@@ -193,7 +193,6 @@ name = "azalea"
 version = "0.10.3+mc1.21.1"
 dependencies = [
  "anyhow",
- "async-trait",
  "azalea-auth",
  "azalea-block",
  "azalea-brigadier",
@@ -211,7 +210,6 @@ dependencies = [
  "bevy_ecs",
  "bevy_log",
  "bevy_tasks",
- "bevy_time",
  "criterion",
  "derive_more",
  "futures",
@@ -223,7 +221,7 @@ dependencies = [
  "rand",
  "rustc-hash 2.0.0",
  "serde",
- "thiserror 1.0.69",
+ "thiserror 2.0.3",
  "tokio",
  "tracing",
  "uuid",
@@ -239,13 +237,12 @@ dependencies = [
  "chrono",
  "env_logger",
  "md-5",
- "num-bigint",
  "once_cell",
  "reqwest",
  "rsa",
  "serde",
  "serde_json",
- "thiserror 1.0.69",
+ "thiserror 2.0.3",
  "tokio",
  "tracing",
  "uuid",
@@ -288,7 +285,7 @@ dependencies = [
  "byteorder",
  "serde_json",
  "simdnbt",
- "thiserror 1.0.69",
+ "thiserror 2.0.3",
  "tracing",
  "uuid",
 ]
@@ -321,7 +318,6 @@ name = "azalea-client"
 version = "0.10.3+mc1.21.1"
 dependencies = [
  "anyhow",
- "async-trait",
  "azalea-auth",
  "azalea-block",
  "azalea-buf",
@@ -340,17 +336,13 @@ dependencies = [
  "bevy_tasks",
  "bevy_time",
  "derive_more",
- "futures",
  "minecraft_folder_path",
- "nohash-hasher",
  "once_cell",
  "parking_lot",
  "regex",
  "reqwest",
- "serde",
- "serde_json",
  "simdnbt",
- "thiserror 1.0.69",
+ "thiserror 2.0.3",
  "tokio",
  "tracing",
  "uuid",
@@ -366,10 +358,8 @@ dependencies = [
  "nohash-hasher",
  "num-traits",
  "serde",
- "serde_json",
  "simdnbt",
  "tracing",
- "uuid",
 ]
 
 [[package]]
@@ -407,7 +397,7 @@ dependencies = [
  "nohash-hasher",
  "parking_lot",
  "simdnbt",
- "thiserror 1.0.69",
+ "thiserror 2.0.3",
  "tracing",
  "uuid",
 ]
@@ -455,12 +445,8 @@ dependencies = [
  "azalea-world",
  "bevy_app",
  "bevy_ecs",
- "bevy_time",
- "nohash-hasher",
  "once_cell",
  "parking_lot",
- "smallvec",
- "tracing",
  "uuid",
 ]
 
@@ -483,12 +469,10 @@ dependencies = [
  "azalea-registry",
  "azalea-world",
  "bevy_ecs",
- "byteorder",
  "bytes",
  "flate2",
  "futures",
  "futures-lite",
- "futures-util",
  "log",
  "once_cell",
  "serde",
@@ -528,7 +512,6 @@ dependencies = [
 name = "azalea-registry-macros"
 version = "0.10.3+mc1.21.1"
 dependencies = [
- "proc-macro2",
  "quote",
  "syn",
 ]
@@ -546,15 +529,11 @@ dependencies = [
  "criterion",
  "derive_more",
  "nohash-hasher",
- "once_cell",
  "parking_lot",
  "rustc-hash 2.0.0",
- "serde",
- "serde_json",
  "simdnbt",
- "thiserror 1.0.69",
+ "thiserror 2.0.3",
  "tracing",
- "uuid",
 ]
 
 [[package]]
@@ -962,12 +941,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2459377285ad874054d797f3ccebf984978aa39129f6eafde5cdc8315b612f8"
 
 [[package]]
-name = "convert_case"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6245d59a3e82a7fc217c5828a6692dbc6dfb63a0c8c90495621f7b9d79704a0e"
-
-[[package]]
 name = "cpufeatures"
 version = "0.2.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1090,14 +1063,21 @@ dependencies = [
 
 [[package]]
 name = "derive_more"
-version = "0.99.18"
+version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5f33878137e4dafd7fa914ad4e259e18a4e8e532b9617a2d0150262bf53abfce"
+checksum = "4a9b99b9cbbe49445b21764dc0625032a89b145a2642e67603e1c936f5458d05"
 dependencies = [
- "convert_case",
+ "derive_more-impl",
+]
+
+[[package]]
+name = "derive_more-impl"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cb7330aeadfbe296029522e6c40f315320aba36fc43a5b3632f3795348f3bd22"
+dependencies = [
  "proc-macro2",
  "quote",
- "rustc_version",
  "syn",
 ]
 

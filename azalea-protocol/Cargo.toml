@@ -23,12 +23,12 @@ azalea-protocol-macros = { path = "./azalea-protocol-macros", version = "0.10.0"
 azalea-registry = { path = "../azalea-registry", version = "0.10.0" }
 azalea-world = { path = "../azalea-world", version = "0.10.0" }
 bevy_ecs = { version = "0.13.2", default-features = false }
-byteorder = "^1.5.0"
+#byteorder = "^1.5.0"
 bytes = "^1.8.0"
 flate2 = "1.0.35"
 futures = "0.3.31"
 futures-lite = "2.5.0"
-futures-util = "0.3.31"
+#futures-util = "0.3.31"
 log = "0.4.22"
 serde = { version = "^1.0", features = ["serde_derive"] }
 serde_json = "^1.0.133"

@@ -17,12 +17,12 @@ azalea-registry = { path = "../azalea-registry", version = "0.10.0" }
 azalea-world = { path = "../azalea-world", version = "0.10.0" }
 bevy_app = "0.13.2"
 bevy_ecs = "0.13.2"
-nohash-hasher = "0.2.0"
+#nohash-hasher = "0.2.0"
 once_cell = "1.20.2"
 parking_lot = "^0.12.3"
-smallvec = "1.13.2"
-tracing = "0.1.40"
+#smallvec = "1.13.2"
+#tracing = "0.1.40"
 
 [dev-dependencies]
-bevy_time = "0.13.2"
+#bevy_time = "0.13.2"
 uuid = "^1.11.0"
