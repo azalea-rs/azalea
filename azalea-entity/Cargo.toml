@@ -18,11 +18,11 @@ azalea-registry = { version = "0.10.0", path = "../azalea-registry" }
 azalea-world = { version = "0.10.0", path = "../azalea-world" }
 bevy_app = "0.13.2"
 bevy_ecs = "0.13.2"
-derive_more = "0.99.18"
+derive_more = "1.0.0"
 enum-as-inner = "0.6.1"
 nohash-hasher = "0.2.0"
 parking_lot = "0.12.3"
 simdnbt = "0.6"
-thiserror = "1.0.69"
+thiserror = "2.0.3"
 tracing = "0.1.40"
 uuid = "1.11.0"

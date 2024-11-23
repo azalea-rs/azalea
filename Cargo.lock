@@ -495,7 +495,7 @@ dependencies = [
  "serde_json",
  "simdnbt",
  "socks5-impl",
- "thiserror 1.0.69",
+ "thiserror 2.0.3",
  "tokio",
  "tokio-util",
  "tracing",

@@ -28,7 +28,7 @@ bevy_ecs = "0.13.2"
 bevy_log = { version = "0.13.2", optional = true }
 bevy_tasks = "0.13.2"
 bevy_time = "0.13.2"
-derive_more = { version = "0.99.18", features = ["deref", "deref_mut"] }
+derive_more = { version = "1.0.0", features = ["deref", "deref_mut"] }
 futures = "0.3.31"
 minecraft_folder_path = "0.1.2"
 nohash-hasher = "0.2.0"
@@ -39,7 +39,7 @@ reqwest = { version = "0.12.9", default-features = false }
 serde = "1.0.215"
 serde_json = "1.0.133"
 simdnbt = "0.6"
-thiserror = "^1.0.69"
+thiserror = "2.0.3"
 tokio = { version = "^1.41.1", features = ["sync"] }
 tracing = "0.1.40"
 uuid = "^1.11.0"
