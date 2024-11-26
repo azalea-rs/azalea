@@ -4,13 +4,15 @@ edition = "2021"
 license = "MIT"
 name = "azalea-inventory"
 repository = "https://github.com/azalea-rs/azalea/tree/main/azalea-inventory-macros"
-version = "0.10.3+mc1.21.1"
+version = "0.10.3+mc1.21.4"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 azalea-buf = { version = "0.10.0", path = "../azalea-buf" }
-azalea-chat = { version = "0.10.0", path = "../azalea-chat", features = ["azalea-buf"] }
+azalea-chat = { version = "0.10.0", path = "../azalea-chat", features = [
+    "azalea-buf",
+] }
 azalea-core = { version = "0.10.0", path = "../azalea-core" }
 azalea-inventory-macros = { version = "0.10.0", path = "./azalea-inventory-macros" }
 azalea-registry = { version = "0.10.0", path = "../azalea-registry" }

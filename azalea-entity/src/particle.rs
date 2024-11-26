@@ -4,7 +4,7 @@ use azalea_inventory::ItemSlot;
 use azalea_registry::ParticleKind;
 use bevy_ecs::component::Component;
 
-// the order of this enum must be kept in-sync with ParticleKind, otherwise
+// the order of this enum must be kept in sync with ParticleKind, otherwise
 // we get errors parsing particles.
 /// A [`ParticleKind`] with data potentially attached to it.
 #[derive(Component, Clone, Debug, McBuf, Default)]
@@ -44,6 +44,7 @@ pub enum Particle {
     Flame,
     Infested,
     CherryLeaves,
+    PaleOakLeaves,
     SculkSoul,
     SculkCharge(SculkChargeParticle),
     SculkChargePop,
@@ -128,7 +129,7 @@ impl From<ParticleKind> for Particle {
     /// attached (like block particles), then it's set to the default.
     fn from(kind: ParticleKind) -> Self {
         // this is mostly just here so it fails to compile when a new particle is added
-        // to ParticleKind, since ParticleData has to be updated manually
+        // to ParticleKind, since `Particle` has to be updated manually
         match kind {
             ParticleKind::AngryVillager => Self::AngryVillager,
             ParticleKind::Block => Self::Block(BlockParticle::default()),
@@ -162,6 +163,7 @@ impl From<ParticleKind> for Particle {
             ParticleKind::Fishing => Self::Fishing,
             ParticleKind::Flame => Self::Flame,
             ParticleKind::CherryLeaves => Self::CherryLeaves,
+            ParticleKind::PaleOakLeaves => Self::PaleOakLeaves,
             ParticleKind::SculkSoul => Self::SculkSoul,
             ParticleKind::SculkCharge => Self::SculkCharge(SculkChargeParticle::default()),
             ParticleKind::SculkChargePop => Self::SculkChargePop,

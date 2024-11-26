@@ -2564,6 +2564,10 @@ impl Default for CowMetadataBundle {
 pub struct CanMove(pub bool);
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct IsActive(pub bool);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct IsTearingDown(pub bool);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct CreakingHomePos(pub Option<BlockPos>);
 #[derive(Component)]
 pub struct Creaking;
 impl Creaking {
@@ -2579,6 +2583,12 @@ impl Creaking {
             17 => {
                 entity.insert(IsActive(d.value.into_boolean()?));
             }
+            18 => {
+                entity.insert(IsTearingDown(d.value.into_boolean()?));
+            }
+            19 => {
+                entity.insert(CreakingHomePos(d.value.into_optional_block_pos()?));
+            }
             _ => {}
         }
         Ok(())
@@ -2591,6 +2601,8 @@ pub struct CreakingMetadataBundle {
     parent: AbstractMonsterMetadataBundle,
     can_move: CanMove,
     is_active: IsActive,
+    is_tearing_down: IsTearingDown,
+    creaking_home_pos: CreakingHomePos,
 }
 impl Default for CreakingMetadataBundle {
     fn default() -> Self {
@@ -2638,79 +2650,8 @@ impl Default for CreakingMetadataBundle {
             },
             can_move: CanMove(true),
             is_active: IsActive(false),
-        }
-    }
-}
-
-#[derive(Component)]
-pub struct CreakingTransient;
-impl CreakingTransient {
-    pub fn apply_metadata(
-        entity: &mut bevy_ecs::system::EntityCommands,
-        d: EntityDataItem,
-    ) -> Result<(), UpdateMetadataError> {
-        match d.index {
-            0..=17 => Creaking::apply_metadata(entity, d)?,
-            _ => {}
-        }
-        Ok(())
-    }
-}
-
-#[derive(Bundle)]
-pub struct CreakingTransientMetadataBundle {
-    _marker: CreakingTransient,
-    parent: CreakingMetadataBundle,
-}
-impl Default for CreakingTransientMetadataBundle {
-    fn default() -> Self {
-        Self {
-            _marker: CreakingTransient,
-            parent: CreakingMetadataBundle {
-                _marker: Creaking,
-                parent: AbstractMonsterMetadataBundle {
-                    _marker: AbstractMonster,
-                    parent: AbstractCreatureMetadataBundle {
-                        _marker: AbstractCreature,
-                        parent: AbstractInsentientMetadataBundle {
-                            _marker: AbstractInsentient,
-                            parent: AbstractLivingMetadataBundle {
-                                _marker: AbstractLiving,
-                                parent: AbstractEntityMetadataBundle {
-                                    _marker: AbstractEntity,
-                                    on_fire: OnFire(false),
-                                    shift_key_down: ShiftKeyDown(false),
-                                    sprinting: Sprinting(false),
-                                    swimming: Swimming(false),
-                                    currently_glowing: CurrentlyGlowing(false),
-                                    invisible: Invisible(false),
-                                    fall_flying: FallFlying(false),
-                                    air_supply: AirSupply(Default::default()),
-                                    custom_name: CustomName(Default::default()),
-                                    custom_name_visible: CustomNameVisible(Default::default()),
-                                    silent: Silent(Default::default()),
-                                    no_gravity: NoGravity(Default::default()),
-                                    pose: Pose::default(),
-                                    ticks_frozen: TicksFrozen(Default::default()),
-                                },
-                                auto_spin_attack: AutoSpinAttack(false),
-                                abstract_living_using_item: AbstractLivingUsingItem(false),
-                                health: Health(1.0),
-                                effect_particles: EffectParticles(Default::default()),
-                                effect_ambience: EffectAmbience(false),
-                                arrow_count: ArrowCount(0),
-                                stinger_count: StingerCount(0),
-                                sleeping_pos: SleepingPos(None),
-                            },
-                            no_ai: NoAi(false),
-                            left_handed: LeftHanded(false),
-                            aggressive: Aggressive(false),
-                        },
-                    },
-                },
-                can_move: CanMove(true),
-                is_active: IsActive(false),
-            },
+            is_tearing_down: IsTearingDown(false),
+            creaking_home_pos: CreakingHomePos(None),
         }
     }
 }
@@ -8398,7 +8339,7 @@ impl Default for RavagerMetadataBundle {
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct SalmonFromBucket(pub bool);
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct SalmonKind(pub String);
+pub struct SalmonKind(pub i32);
 #[derive(Component)]
 pub struct Salmon;
 impl Salmon {
@@ -8412,7 +8353,7 @@ impl Salmon {
                 entity.insert(SalmonFromBucket(d.value.into_boolean()?));
             }
             17 => {
-                entity.insert(SalmonKind(d.value.into_string()?));
+                entity.insert(SalmonKind(d.value.into_int()?));
             }
             _ => {}
         }
@@ -10509,7 +10450,7 @@ impl Default for TropicalFishMetadataBundle {
 }
 
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct HomePos(pub BlockPos);
+pub struct TurtleHomePos(pub BlockPos);
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct HasEgg(pub bool);
 #[derive(Component, Deref, DerefMut, Clone)]
@@ -10530,7 +10471,7 @@ impl Turtle {
         match d.index {
             0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
             17 => {
-                entity.insert(HomePos(d.value.into_block_pos()?));
+                entity.insert(TurtleHomePos(d.value.into_block_pos()?));
             }
             18 => {
                 entity.insert(HasEgg(d.value.into_boolean()?));
@@ -10557,7 +10498,7 @@ impl Turtle {
 pub struct TurtleMetadataBundle {
     _marker: Turtle,
     parent: AbstractAnimalMetadataBundle,
-    home_pos: HomePos,
+    turtle_home_pos: TurtleHomePos,
     has_egg: HasEgg,
     laying_egg: LayingEgg,
     travel_pos: TravelPos,
@@ -10612,7 +10553,7 @@ impl Default for TurtleMetadataBundle {
                     abstract_ageable_baby: AbstractAgeableBaby(false),
                 },
             },
-            home_pos: HomePos(BlockPos::new(0, 0, 0)),
+            turtle_home_pos: TurtleHomePos(BlockPos::new(0, 0, 0)),
             has_egg: HasEgg(false),
             laying_egg: LayingEgg(false),
             travel_pos: TravelPos(BlockPos::new(0, 0, 0)),
@@ -12703,11 +12644,6 @@ pub fn apply_metadata(
                 Creaking::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::CreakingTransient => {
-            for d in items {
-                CreakingTransient::apply_metadata(entity, d)?;
-            }
-        }
         azalea_registry::EntityKind::Creeper => {
             for d in items {
                 Creeper::apply_metadata(entity, d)?;
@@ -13401,9 +13337,6 @@ pub fn apply_default_metadata(
         }
         azalea_registry::EntityKind::Creaking => {
             entity.insert(CreakingMetadataBundle::default());
-        }
-        azalea_registry::EntityKind::CreakingTransient => {
-            entity.insert(CreakingTransientMetadataBundle::default());
         }
         azalea_registry::EntityKind::Creeper => {
             entity.insert(CreeperMetadataBundle::default());

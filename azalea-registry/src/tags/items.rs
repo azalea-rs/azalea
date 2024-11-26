@@ -85,14 +85,8 @@ pub static BEDS: Lazy<HashSet<Item>> = Lazy::new(|| {
 });
 pub static BEE_FOOD: Lazy<HashSet<Item>> = Lazy::new(|| {
     HashSet::from_iter(vec![
-        Item::FloweringAzaleaLeaves,
-        Item::FloweringAzalea,
-        Item::MangrovePropagule,
-        Item::CherryLeaves,
-        Item::PinkPetals,
-        Item::ChorusFlower,
-        Item::SporeBlossom,
         Item::Dandelion,
+        Item::OpenEyeblossom,
         Item::Poppy,
         Item::BlueOrchid,
         Item::Allium,
@@ -111,6 +105,13 @@ pub static BEE_FOOD: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::Peony,
         Item::RoseBush,
         Item::PitcherPlant,
+        Item::FloweringAzaleaLeaves,
+        Item::FloweringAzalea,
+        Item::MangrovePropagule,
+        Item::CherryLeaves,
+        Item::PinkPetals,
+        Item::ChorusFlower,
+        Item::SporeBlossom,
     ])
 });
 pub static BIRCH_LOGS: Lazy<HashSet<Item>> = Lazy::new(|| {
@@ -129,6 +130,7 @@ pub static BOATS: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::JungleBoat,
         Item::AcaciaBoat,
         Item::DarkOakBoat,
+        Item::PaleOakBoat,
         Item::MangroveBoat,
         Item::BambooRaft,
         Item::CherryBoat,
@@ -138,6 +140,7 @@ pub static BOATS: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::JungleChestBoat,
         Item::AcaciaChestBoat,
         Item::DarkOakChestBoat,
+        Item::PaleOakChestBoat,
         Item::MangroveChestBoat,
         Item::BambooChestRaft,
         Item::CherryChestBoat,
@@ -219,6 +222,7 @@ pub static BUTTONS: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::JungleButton,
         Item::AcaciaButton,
         Item::DarkOakButton,
+        Item::PaleOakButton,
         Item::CrimsonButton,
         Item::WarpedButton,
         Item::MangroveButton,
@@ -278,6 +282,7 @@ pub static CHEST_BOATS: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::JungleChestBoat,
         Item::AcaciaChestBoat,
         Item::DarkOakChestBoat,
+        Item::PaleOakChestBoat,
         Item::MangroveChestBoat,
         Item::BambooChestRaft,
         Item::CherryChestBoat,
@@ -314,6 +319,7 @@ pub static COMPLETES_FIND_TREE_TUTORIAL: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::JungleLeaves,
         Item::OakLeaves,
         Item::SpruceLeaves,
+        Item::PaleOakLeaves,
         Item::DarkOakLeaves,
         Item::AcaciaLeaves,
         Item::BirchLeaves,
@@ -335,6 +341,10 @@ pub static COMPLETES_FIND_TREE_TUTORIAL: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::DarkOakWood,
         Item::StrippedDarkOakLog,
         Item::StrippedDarkOakWood,
+        Item::PaleOakLog,
+        Item::PaleOakWood,
+        Item::StrippedPaleOakLog,
+        Item::StrippedPaleOakWood,
         Item::OakLog,
         Item::OakWood,
         Item::StrippedOakLog,
@@ -506,6 +516,7 @@ pub static DIRT: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::Mycelium,
         Item::RootedDirt,
         Item::MossBlock,
+        Item::PaleMossBlock,
         Item::Mud,
         Item::MuddyMangroveRoots,
     ])
@@ -527,6 +538,7 @@ pub static DOORS: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::JungleDoor,
         Item::AcaciaDoor,
         Item::DarkOakDoor,
+        Item::PaleOakDoor,
         Item::CrimsonDoor,
         Item::WarpedDoor,
         Item::MangroveDoor,
@@ -534,6 +546,8 @@ pub static DOORS: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::CherryDoor,
     ])
 });
+pub static DROWNED_PREFERRED_WEAPONS: Lazy<HashSet<Item>> =
+    Lazy::new(|| HashSet::from_iter(vec![Item::Trident]));
 pub static DUPLICATES_ALLAYS: Lazy<HashSet<Item>> =
     Lazy::new(|| HashSet::from_iter(vec![Item::AmethystShard]));
 pub static DYEABLE: Lazy<HashSet<Item>> = Lazy::new(|| {
@@ -932,6 +946,7 @@ pub static FENCE_GATES: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::AcaciaFenceGate,
         Item::BirchFenceGate,
         Item::DarkOakFenceGate,
+        Item::PaleOakFenceGate,
         Item::JungleFenceGate,
         Item::OakFenceGate,
         Item::SpruceFenceGate,
@@ -948,6 +963,7 @@ pub static FENCES: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::OakFence,
         Item::AcaciaFence,
         Item::DarkOakFence,
+        Item::PaleOakFence,
         Item::SpruceFence,
         Item::BirchFence,
         Item::JungleFence,
@@ -966,36 +982,6 @@ pub static FISHES: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::CookedSalmon,
         Item::Pufferfish,
         Item::TropicalFish,
-    ])
-});
-pub static FLOWERS: Lazy<HashSet<Item>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Item::FloweringAzaleaLeaves,
-        Item::FloweringAzalea,
-        Item::MangrovePropagule,
-        Item::CherryLeaves,
-        Item::PinkPetals,
-        Item::ChorusFlower,
-        Item::SporeBlossom,
-        Item::Dandelion,
-        Item::Poppy,
-        Item::BlueOrchid,
-        Item::Allium,
-        Item::AzureBluet,
-        Item::RedTulip,
-        Item::OrangeTulip,
-        Item::WhiteTulip,
-        Item::PinkTulip,
-        Item::OxeyeDaisy,
-        Item::Cornflower,
-        Item::LilyOfTheValley,
-        Item::WitherRose,
-        Item::Torchflower,
-        Item::Sunflower,
-        Item::Lilac,
-        Item::Peony,
-        Item::RoseBush,
-        Item::PitcherPlant,
     ])
 });
 pub static FOOT_ARMOR: Lazy<HashSet<Item>> = Lazy::new(|| {
@@ -1043,6 +1029,7 @@ pub static HANGING_SIGNS: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::CherryHangingSign,
         Item::JungleHangingSign,
         Item::DarkOakHangingSign,
+        Item::PaleOakHangingSign,
         Item::CrimsonHangingSign,
         Item::WarpedHangingSign,
         Item::MangroveHangingSign,
@@ -1111,6 +1098,7 @@ pub static LEAVES: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::JungleLeaves,
         Item::OakLeaves,
         Item::SpruceLeaves,
+        Item::PaleOakLeaves,
         Item::DarkOakLeaves,
         Item::AcaciaLeaves,
         Item::BirchLeaves,
@@ -1150,6 +1138,10 @@ pub static LOGS: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::DarkOakWood,
         Item::StrippedDarkOakLog,
         Item::StrippedDarkOakWood,
+        Item::PaleOakLog,
+        Item::PaleOakWood,
+        Item::StrippedPaleOakLog,
+        Item::StrippedPaleOakWood,
         Item::OakLog,
         Item::OakWood,
         Item::StrippedOakLog,
@@ -1186,6 +1178,10 @@ pub static LOGS_THAT_BURN: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::DarkOakWood,
         Item::StrippedDarkOakLog,
         Item::StrippedDarkOakWood,
+        Item::PaleOakLog,
+        Item::PaleOakWood,
+        Item::StrippedPaleOakLog,
+        Item::StrippedPaleOakWood,
         Item::OakLog,
         Item::OakWood,
         Item::StrippedOakLog,
@@ -1298,6 +1294,14 @@ pub static OAK_LOGS: Lazy<HashSet<Item>> = Lazy::new(|| {
 });
 pub static OCELOT_FOOD: Lazy<HashSet<Item>> =
     Lazy::new(|| HashSet::from_iter(vec![Item::Cod, Item::Salmon]));
+pub static PALE_OAK_LOGS: Lazy<HashSet<Item>> = Lazy::new(|| {
+    HashSet::from_iter(vec![
+        Item::PaleOakLog,
+        Item::PaleOakWood,
+        Item::StrippedPaleOakLog,
+        Item::StrippedPaleOakWood,
+    ])
+});
 pub static PANDA_EATS_FROM_GROUND: Lazy<HashSet<Item>> =
     Lazy::new(|| HashSet::from_iter(vec![Item::Cake, Item::Bamboo]));
 pub static PANDA_FOOD: Lazy<HashSet<Item>> = Lazy::new(|| HashSet::from_iter(vec![Item::Bamboo]));
@@ -1356,6 +1360,8 @@ pub static PIGLIN_LOVED: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::DeepslateGoldOre,
     ])
 });
+pub static PIGLIN_PREFERRED_WEAPONS: Lazy<HashSet<Item>> =
+    Lazy::new(|| HashSet::from_iter(vec![Item::Crossbow]));
 pub static PIGLIN_REPELLENTS: Lazy<HashSet<Item>> =
     Lazy::new(|| HashSet::from_iter(vec![Item::SoulTorch, Item::SoulLantern, Item::SoulCampfire]));
 pub static PIGLIN_SAFE_ARMOR: Lazy<HashSet<Item>> = Lazy::new(|| {
@@ -1366,6 +1372,8 @@ pub static PIGLIN_SAFE_ARMOR: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::GoldenBoots,
     ])
 });
+pub static PILLAGER_PREFERRED_WEAPONS: Lazy<HashSet<Item>> =
+    Lazy::new(|| HashSet::from_iter(vec![Item::Crossbow]));
 pub static PLANKS: Lazy<HashSet<Item>> = Lazy::new(|| {
     HashSet::from_iter(vec![
         Item::OakPlanks,
@@ -1374,6 +1382,7 @@ pub static PLANKS: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::JunglePlanks,
         Item::AcaciaPlanks,
         Item::DarkOakPlanks,
+        Item::PaleOakPlanks,
         Item::CrimsonPlanks,
         Item::WarpedPlanks,
         Item::MangrovePlanks,
@@ -1425,6 +1434,7 @@ pub static SAPLINGS: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::JungleSapling,
         Item::AcaciaSapling,
         Item::DarkOakSapling,
+        Item::PaleOakSapling,
         Item::Azalea,
         Item::FloweringAzalea,
         Item::MangrovePropagule,
@@ -1471,6 +1481,7 @@ pub static SIGNS: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::AcaciaSign,
         Item::JungleSign,
         Item::DarkOakSign,
+        Item::PaleOakSign,
         Item::CrimsonSign,
         Item::WarpedSign,
         Item::MangroveSign,
@@ -1478,6 +1489,8 @@ pub static SIGNS: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::CherrySign,
     ])
 });
+pub static SKELETON_PREFERRED_WEAPONS: Lazy<HashSet<Item>> =
+    Lazy::new(|| HashSet::from_iter(vec![Item::Bow]));
 pub static SKULLS: Lazy<HashSet<Item>> = Lazy::new(|| {
     HashSet::from_iter(vec![
         Item::PlayerHead,
@@ -1540,12 +1553,14 @@ pub static SLABS: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::TuffSlab,
         Item::PolishedTuffSlab,
         Item::TuffBrickSlab,
+        Item::ResinBrickSlab,
         Item::OakSlab,
         Item::SpruceSlab,
         Item::BirchSlab,
         Item::JungleSlab,
         Item::AcaciaSlab,
         Item::DarkOakSlab,
+        Item::PaleOakSlab,
         Item::CrimsonSlab,
         Item::WarpedSlab,
         Item::MangroveSlab,
@@ -1556,6 +1571,7 @@ pub static SLABS: Lazy<HashSet<Item>> = Lazy::new(|| {
 pub static SMALL_FLOWERS: Lazy<HashSet<Item>> = Lazy::new(|| {
     HashSet::from_iter(vec![
         Item::Dandelion,
+        Item::OpenEyeblossom,
         Item::Poppy,
         Item::BlueOrchid,
         Item::Allium,
@@ -1569,6 +1585,7 @@ pub static SMALL_FLOWERS: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::LilyOfTheValley,
         Item::WitherRose,
         Item::Torchflower,
+        Item::ClosedEyeblossom,
     ])
 });
 pub static SMELTS_TO_GLASS: Lazy<HashSet<Item>> =
@@ -1632,12 +1649,14 @@ pub static STAIRS: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::TuffStairs,
         Item::PolishedTuffStairs,
         Item::TuffBrickStairs,
+        Item::ResinBrickStairs,
         Item::OakStairs,
         Item::SpruceStairs,
         Item::BirchStairs,
         Item::JungleStairs,
         Item::AcaciaStairs,
         Item::DarkOakStairs,
+        Item::PaleOakStairs,
         Item::CrimsonStairs,
         Item::WarpedStairs,
         Item::MangroveStairs,
@@ -1683,15 +1702,6 @@ pub static SWORDS: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::IronSword,
     ])
 });
-pub static TALL_FLOWERS: Lazy<HashSet<Item>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Item::Sunflower,
-        Item::Lilac,
-        Item::Peony,
-        Item::RoseBush,
-        Item::PitcherPlant,
-    ])
-});
 pub static TERRACOTTA: Lazy<HashSet<Item>> = Lazy::new(|| {
     HashSet::from_iter(vec![
         Item::Terracotta,
@@ -1727,6 +1737,7 @@ pub static TRAPDOORS: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::AcaciaTrapdoor,
         Item::BirchTrapdoor,
         Item::DarkOakTrapdoor,
+        Item::PaleOakTrapdoor,
         Item::JungleTrapdoor,
         Item::OakTrapdoor,
         Item::SpruceTrapdoor,
@@ -1739,38 +1750,17 @@ pub static TRAPDOORS: Lazy<HashSet<Item>> = Lazy::new(|| {
 });
 pub static TRIM_MATERIALS: Lazy<HashSet<Item>> = Lazy::new(|| {
     HashSet::from_iter(vec![
-        Item::IronIngot,
-        Item::CopperIngot,
-        Item::GoldIngot,
-        Item::LapisLazuli,
-        Item::Emerald,
-        Item::Diamond,
-        Item::NetheriteIngot,
-        Item::Redstone,
-        Item::Quartz,
         Item::AmethystShard,
-    ])
-});
-pub static TRIM_TEMPLATES: Lazy<HashSet<Item>> = Lazy::new(|| {
-    HashSet::from_iter(vec![
-        Item::WardArmorTrimSmithingTemplate,
-        Item::SpireArmorTrimSmithingTemplate,
-        Item::CoastArmorTrimSmithingTemplate,
-        Item::EyeArmorTrimSmithingTemplate,
-        Item::DuneArmorTrimSmithingTemplate,
-        Item::WildArmorTrimSmithingTemplate,
-        Item::RibArmorTrimSmithingTemplate,
-        Item::TideArmorTrimSmithingTemplate,
-        Item::SentryArmorTrimSmithingTemplate,
-        Item::VexArmorTrimSmithingTemplate,
-        Item::SnoutArmorTrimSmithingTemplate,
-        Item::WayfinderArmorTrimSmithingTemplate,
-        Item::ShaperArmorTrimSmithingTemplate,
-        Item::SilenceArmorTrimSmithingTemplate,
-        Item::RaiserArmorTrimSmithingTemplate,
-        Item::HostArmorTrimSmithingTemplate,
-        Item::FlowArmorTrimSmithingTemplate,
-        Item::BoltArmorTrimSmithingTemplate,
+        Item::CopperIngot,
+        Item::Diamond,
+        Item::Emerald,
+        Item::GoldIngot,
+        Item::IronIngot,
+        Item::LapisLazuli,
+        Item::NetheriteIngot,
+        Item::Quartz,
+        Item::Redstone,
+        Item::ResinBrick,
     ])
 });
 pub static TRIMMABLE_ARMOR: Lazy<HashSet<Item>> = Lazy::new(|| {
@@ -1854,6 +1844,7 @@ pub static WALLS: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::TuffWall,
         Item::PolishedTuffWall,
         Item::TuffBrickWall,
+        Item::ResinBrickWall,
     ])
 });
 pub static WARPED_STEMS: Lazy<HashSet<Item>> = Lazy::new(|| {
@@ -1866,6 +1857,8 @@ pub static WARPED_STEMS: Lazy<HashSet<Item>> = Lazy::new(|| {
 });
 pub static WART_BLOCKS: Lazy<HashSet<Item>> =
     Lazy::new(|| HashSet::from_iter(vec![Item::NetherWartBlock, Item::WarpedWartBlock]));
+pub static WITHER_SKELETON_DISLIKED_WEAPONS: Lazy<HashSet<Item>> =
+    Lazy::new(|| HashSet::from_iter(vec![Item::Bow, Item::Crossbow]));
 pub static WOLF_FOOD: Lazy<HashSet<Item>> = Lazy::new(|| {
     HashSet::from_iter(vec![
         Item::Cod,
@@ -1896,6 +1889,7 @@ pub static WOODEN_BUTTONS: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::JungleButton,
         Item::AcaciaButton,
         Item::DarkOakButton,
+        Item::PaleOakButton,
         Item::CrimsonButton,
         Item::WarpedButton,
         Item::MangroveButton,
@@ -1911,6 +1905,7 @@ pub static WOODEN_DOORS: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::JungleDoor,
         Item::AcaciaDoor,
         Item::DarkOakDoor,
+        Item::PaleOakDoor,
         Item::CrimsonDoor,
         Item::WarpedDoor,
         Item::MangroveDoor,
@@ -1923,6 +1918,7 @@ pub static WOODEN_FENCES: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::OakFence,
         Item::AcaciaFence,
         Item::DarkOakFence,
+        Item::PaleOakFence,
         Item::SpruceFence,
         Item::BirchFence,
         Item::JungleFence,
@@ -1941,6 +1937,7 @@ pub static WOODEN_PRESSURE_PLATES: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::JunglePressurePlate,
         Item::AcaciaPressurePlate,
         Item::DarkOakPressurePlate,
+        Item::PaleOakPressurePlate,
         Item::CrimsonPressurePlate,
         Item::WarpedPressurePlate,
         Item::MangrovePressurePlate,
@@ -1956,6 +1953,7 @@ pub static WOODEN_SLABS: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::JungleSlab,
         Item::AcaciaSlab,
         Item::DarkOakSlab,
+        Item::PaleOakSlab,
         Item::CrimsonSlab,
         Item::WarpedSlab,
         Item::MangroveSlab,
@@ -1971,6 +1969,7 @@ pub static WOODEN_STAIRS: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::JungleStairs,
         Item::AcaciaStairs,
         Item::DarkOakStairs,
+        Item::PaleOakStairs,
         Item::CrimsonStairs,
         Item::WarpedStairs,
         Item::MangroveStairs,
@@ -1986,6 +1985,7 @@ pub static WOODEN_TOOL_MATERIALS: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::JunglePlanks,
         Item::AcaciaPlanks,
         Item::DarkOakPlanks,
+        Item::PaleOakPlanks,
         Item::CrimsonPlanks,
         Item::WarpedPlanks,
         Item::MangrovePlanks,
@@ -1998,6 +1998,7 @@ pub static WOODEN_TRAPDOORS: Lazy<HashSet<Item>> = Lazy::new(|| {
         Item::AcaciaTrapdoor,
         Item::BirchTrapdoor,
         Item::DarkOakTrapdoor,
+        Item::PaleOakTrapdoor,
         Item::JungleTrapdoor,
         Item::OakTrapdoor,
         Item::SpruceTrapdoor,

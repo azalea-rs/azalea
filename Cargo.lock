@@ -250,7 +250,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-block"
-version = "0.10.3+mc1.21.1"
+version = "0.10.3+mc1.21.4"
 dependencies = [
  "azalea-block-macros",
  "azalea-buf",
@@ -404,7 +404,7 @@ dependencies = [
 
 [[package]]
 name = "azalea-inventory"
-version = "0.10.3+mc1.21.1"
+version = "0.10.3+mc1.21.4"
 dependencies = [
  "azalea-buf",
  "azalea-chat",
