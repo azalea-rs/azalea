@@ -18,13 +18,11 @@ use azalea_entity::{
 };
 use azalea_protocol::{
     packets::game::{
-        clientbound_player_combat_kill_packet::ClientboundPlayerCombatKillPacket,
-        serverbound_accept_teleportation_packet::ServerboundAcceptTeleportationPacket,
-        serverbound_configuration_acknowledged_packet::ServerboundConfigurationAcknowledgedPacket,
-        serverbound_keep_alive_packet::ServerboundKeepAlivePacket,
-        serverbound_move_player_pos_rot_packet::ServerboundMovePlayerPosRotPacket,
-        serverbound_pong_packet::ServerboundPongPacket, ClientboundGamePacket,
-        ServerboundGamePacket,
+        c_player_combat_kill::ClientboundPlayerCombatKill,
+        s_accept_teleportation::ServerboundAcceptTeleportation,
+        s_configuration_acknowledged::ServerboundConfigurationAcknowledged,
+        s_keep_alive::ServerboundKeepAlive, s_move_player_pos_rot::ServerboundMovePlayerPosRot,
+        s_pong::ServerboundPong, ClientboundGamePacket, ServerboundGamePacket,
     },
     read::deserialize_packet,
 };
@@ -35,7 +33,7 @@ use tracing::{debug, error, trace, warn};
 use uuid::Uuid;
 
 use crate::{
-    chat::{ChatPacket, ChatReceivedEvent},
+    chat::{Chat, ChatReceivedEvent},
     chunks,
     disconnect::DisconnectEvent,
     inventory::{
@@ -103,12 +101,12 @@ pub struct UpdatePlayerEvent {
 }
 
 /// Event for when an entity dies. dies. If it's a local player and there's a
-/// reason in the death screen, the [`ClientboundPlayerCombatKillPacket`] will
+/// reason in the death screen, the [`ClientboundPlayerCombatKill`] will
 /// be included.
 #[derive(Event, Debug, Clone)]
 pub struct DeathEvent {
     pub entity: Entity,
-    pub packet: Option<ClientboundPlayerCombatKillPacket>,
+    pub packet: Option<ClientboundPlayerCombatKill>,
 }
 
 /// A KeepAlive packet is sent from the server to verify that the client is
@@ -342,7 +340,7 @@ pub fn process_packet_events(ecs: &mut World) {
                 );
                 send_packet_events.send(SendPacketEvent {
                     entity: player_entity,
-                    packet: azalea_protocol::packets::game::serverbound_client_information_packet::ServerboundClientInformationPacket { information: client_information.clone() }.get(),
+                    packet: azalea_protocol::packets::game::s_client_information::ServerboundClientInformation { information: client_information.clone() }.get(),
                 });
 
                 system_state.apply(ecs);
@@ -495,11 +493,11 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 send_packet_events.send(SendPacketEvent {
                     entity: player_entity,
-                    packet: ServerboundAcceptTeleportationPacket { id: p.id }.get(),
+                    packet: ServerboundAcceptTeleportation { id: p.id }.get(),
                 });
                 send_packet_events.send(SendPacketEvent {
                     entity: player_entity,
-                    packet: ServerboundMovePlayerPosRotPacket {
+                    packet: ServerboundMovePlayerPosRot {
                         x: new_pos.x,
                         y: new_pos.y,
                         z: new_pos.z,
@@ -985,7 +983,7 @@ pub fn process_packet_events(ecs: &mut World) {
                 });
                 send_packet_events.send(SendPacketEvent {
                     entity: player_entity,
-                    packet: ServerboundKeepAlivePacket { id: p.id }.get(),
+                    packet: ServerboundKeepAlive { id: p.id }.get(),
                 });
             }
             ClientboundGamePacket::RemoveEntities(p) => {
@@ -1032,7 +1030,7 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 chat_events.send(ChatReceivedEvent {
                     entity: player_entity,
-                    packet: ChatPacket::Player(Arc::new(p.clone())),
+                    packet: Chat::Player(Arc::new(p.clone())),
                 });
             }
             ClientboundGamePacket::SystemChat(p) => {
@@ -1044,7 +1042,7 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 chat_events.send(ChatReceivedEvent {
                     entity: player_entity,
-                    packet: ChatPacket::System(Arc::new(p.clone())),
+                    packet: Chat::System(Arc::new(p.clone())),
                 });
             }
             ClientboundGamePacket::DisguisedChat(p) => {
@@ -1056,7 +1054,7 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 chat_events.send(ChatReceivedEvent {
                     entity: player_entity,
-                    packet: ChatPacket::Disguised(Arc::new(p.clone())),
+                    packet: Chat::Disguised(Arc::new(p.clone())),
                 });
             }
             ClientboundGamePacket::Sound(_p) => {
@@ -1096,7 +1094,7 @@ pub fn process_packet_events(ecs: &mut World) {
                 }
             }
             ClientboundGamePacket::GameEvent(p) => {
-                use azalea_protocol::packets::game::clientbound_game_event_packet::EventType;
+                use azalea_protocol::packets::game::c_game_event::EventType;
 
                 debug!("Got game event packet {p:?}");
 
@@ -1281,7 +1279,7 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 send_packet_events.send(SendPacketEvent {
                     entity: player_entity,
-                    packet: ServerboundPongPacket { id: p.id }.get(),
+                    packet: ServerboundPong { id: p.id }.get(),
                 });
             }
             ClientboundGamePacket::PlaceGhostRecipe(_) => {}
@@ -1425,7 +1423,7 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 packet_events.send(SendPacketEvent {
                     entity: player_entity,
-                    packet: ServerboundConfigurationAcknowledgedPacket {}.get(),
+                    packet: ServerboundConfigurationAcknowledged {}.get(),
                 });
 
                 commands

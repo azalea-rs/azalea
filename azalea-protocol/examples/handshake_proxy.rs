@@ -6,16 +6,14 @@ use std::error::Error;
 use azalea_protocol::{
     connect::Connection,
     packets::{
-        handshaking::{
-            client_intention_packet::ClientIntentionPacket, ClientboundHandshakePacket,
+        handshake::{
+            client_intention::ClientIntention, ClientboundHandshakePacket,
             ServerboundHandshakePacket,
         },
-        login::{serverbound_hello_packet::ServerboundHelloPacket, ServerboundLoginPacket},
+        login::{s_hello::ServerboundHello, ServerboundLoginPacket},
         status::{
-            clientbound_pong_response_packet::ClientboundPongResponsePacket,
-            clientbound_status_response_packet::{
-                ClientboundStatusResponsePacket, Players, Version,
-            },
+            c_pong_response::ClientboundPongResponse,
+            c_status_response::{ClientboundStatusResponse, Players, Version},
             ServerboundStatusPacket,
         },
         ClientIntention, PROTOCOL_VERSION,
@@ -103,7 +101,7 @@ async fn handle_connection(stream: TcpStream) -> anyhow::Result<()> {
                     Ok(p) => match p {
                         ServerboundStatusPacket::StatusRequest(_) => {
                             conn.write(
-                                ClientboundStatusResponsePacket {
+                                ClientboundStatusResponse {
                                     description: PROXY_DESC.into(),
                                     favicon: PROXY_FAVICON.clone(),
                                     players: PROXY_PLAYERS.clone(),
@@ -115,7 +113,7 @@ async fn handle_connection(stream: TcpStream) -> anyhow::Result<()> {
                             .await?;
                         }
                         ServerboundStatusPacket::PingRequest(p) => {
-                            conn.write(ClientboundPongResponsePacket { time: p.time }.get())
+                            conn.write(ClientboundPongResponse { time: p.time }.get())
                                 .await?;
                             break;
                         }
@@ -180,8 +178,8 @@ async fn handle_connection(stream: TcpStream) -> anyhow::Result<()> {
 
 async fn transfer(
     mut inbound: TcpStream,
-    intent: ClientIntentionPacket,
-    hello: ServerboundHelloPacket,
+    intent: ClientIntention,
+    hello: ServerboundHello,
 ) -> Result<(), Box<dyn Error>> {
     let outbound = TcpStream::connect(PROXY_ADDR).await?;
     let name = hello.name.clone();

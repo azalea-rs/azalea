@@ -6,7 +6,7 @@ use std::sync::Arc;
 use azalea_chat::FormattedText;
 use azalea_core::tick::GameTick;
 use azalea_protocol::packets::game::{
-    clientbound_player_combat_kill_packet::ClientboundPlayerCombatKillPacket, ClientboundGamePacket,
+    c_player_combat_kill::ClientboundPlayerCombatKill, ClientboundGamePacket,
 };
 use azalea_world::{InstanceName, MinecraftEntityId};
 use bevy_app::{App, Plugin, PreUpdate, Update};
@@ -21,7 +21,7 @@ use derive_more::{Deref, DerefMut};
 use tokio::sync::mpsc;
 
 use crate::{
-    chat::{ChatPacket, ChatReceivedEvent},
+    chat::{Chat, ChatReceivedEvent},
     disconnect::DisconnectEvent,
     packet_handling::game::{
         AddPlayerEvent, DeathEvent, KeepAliveEvent, PacketEvent, RemovePlayerEvent,
@@ -62,7 +62,7 @@ pub enum Event {
     /// The client is now in the world. Fired when we receive a login packet.
     Login,
     /// A chat message was sent in the game chat.
-    Chat(ChatPacket),
+    Chat(Chat),
     /// Happens 20 times per second, but only when the world is loaded.
     Tick,
     /// We received a packet from the server.
@@ -93,7 +93,7 @@ pub enum Event {
     /// name, or latency changed).
     UpdatePlayer(PlayerInfo),
     /// The client player died in-game.
-    Death(Option<Arc<ClientboundPlayerCombatKillPacket>>),
+    Death(Option<Arc<ClientboundPlayerCombatKill>>),
     /// A `KeepAlive` packet was sent by the server.
     KeepAlive(u64),
     /// The client disconnected from the server.

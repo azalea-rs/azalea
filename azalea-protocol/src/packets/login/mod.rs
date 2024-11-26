@@ -1,32 +1,32 @@
-pub mod clientbound_cookie_request_packet;
-pub mod clientbound_custom_query_packet;
-pub mod clientbound_hello_packet;
-pub mod clientbound_login_compression_packet;
-pub mod clientbound_login_disconnect_packet;
-pub mod clientbound_login_finished_packet;
-pub mod serverbound_cookie_response_packet;
-pub mod serverbound_custom_query_answer_packet;
-pub mod serverbound_hello_packet;
-pub mod serverbound_key_packet;
-pub mod serverbound_login_acknowledged_packet;
+pub mod c_cookie_request;
+pub mod c_custom_query;
+pub mod c_hello;
+pub mod c_login_compression;
+pub mod c_login_disconnect;
+pub mod c_login_finished;
+pub mod s_cookie_response;
+pub mod s_custom_query_answer;
+pub mod s_hello;
+pub mod s_key;
+pub mod s_login_acknowledged;
 
 use azalea_protocol_macros::declare_state_packets;
 
 declare_state_packets!(
     LoginPacket,
     Serverbound => {
-        0x00: serverbound_hello_packet::ServerboundHelloPacket,
-        0x01: serverbound_key_packet::ServerboundKeyPacket,
-        0x02: serverbound_custom_query_answer_packet::ServerboundCustomQueryAnswerPacket,
-        0x03: serverbound_login_acknowledged_packet::ServerboundLoginAcknowledgedPacket,
-        0x04: serverbound_cookie_response_packet::ServerboundCookieResponsePacket,
+        0x00: s_hello::ServerboundHello,
+        0x01: s_key::ServerboundKey,
+        0x02: s_custom_query_answer::ServerboundCustomQueryAnswer,
+        0x03: s_login_acknowledged::ServerboundLoginAcknowledged,
+        0x04: s_cookie_response::ServerboundCookieResponse,
     },
     Clientbound => {
-        0x00: clientbound_login_disconnect_packet::ClientboundLoginDisconnectPacket,
-        0x01: clientbound_hello_packet::ClientboundHelloPacket,
-        0x02: clientbound_login_finished_packet::ClientboundLoginFinishedPacket,
-        0x03: clientbound_login_compression_packet::ClientboundLoginCompressionPacket,
-        0x04: clientbound_custom_query_packet::ClientboundCustomQueryPacket,
-        0x05: clientbound_cookie_request_packet::ClientboundCookieRequestPacket,
+        0x00: c_login_disconnect::ClientboundLoginDisconnect,
+        0x01: c_hello::ClientboundHello,
+        0x02: c_login_finished::ClientboundLoginFinished,
+        0x03: c_login_compression::ClientboundLoginCompression,
+        0x04: c_custom_query::ClientboundCustomQuery,
+        0x05: c_cookie_request::ClientboundCookieRequest,
     }
 );

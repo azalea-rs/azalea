@@ -13,9 +13,9 @@ use azalea_entity::{
 use azalea_inventory::{ItemSlot, ItemSlotData};
 use azalea_physics::clip::{BlockShapeType, ClipContext, FluidPickType};
 use azalea_protocol::packets::game::{
-    serverbound_interact_packet::InteractionHand,
-    serverbound_swing_packet::ServerboundSwingPacket,
-    serverbound_use_item_on_packet::{BlockHit, ServerboundUseItemOnPacket},
+    s_interact::InteractionHand,
+    s_swing::ServerboundSwing,
+    s_use_item_on::{BlockHit, ServerboundUseItemOn},
 };
 use azalea_registry::DataComponentKind;
 use azalea_world::{Instance, InstanceContainer, InstanceName};
@@ -150,7 +150,7 @@ pub fn handle_block_interact_event(
 
         send_packet_events.send(SendPacketEvent {
             entity,
-            packet: ServerboundUseItemOnPacket {
+            packet: ServerboundUseItemOn {
                 hand: InteractionHand::MainHand,
                 block_hit,
                 sequence: sequence_number.0,
@@ -304,7 +304,7 @@ pub fn handle_swing_arm_event(
     for event in events.read() {
         send_packet_events.send(SendPacketEvent {
             entity: event.entity,
-            packet: ServerboundSwingPacket {
+            packet: ServerboundSwing {
                 hand: InteractionHand::MainHand,
             }
             .get(),

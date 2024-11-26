@@ -7,11 +7,11 @@ use std::{
 
 use azalea_chat::FormattedText;
 use azalea_protocol::packets::game::{
-    clientbound_disguised_chat_packet::ClientboundDisguisedChatPacket,
-    clientbound_player_chat_packet::ClientboundPlayerChatPacket,
-    clientbound_system_chat_packet::ClientboundSystemChatPacket,
-    serverbound_chat_command_packet::ServerboundChatCommandPacket,
-    serverbound_chat_packet::{LastSeenMessagesUpdate, ServerboundChatPacket},
+    c_disguised_chat::ClientboundDisguisedChat,
+    c_player_chat::ClientboundPlayerChat,
+    c_system_chat::ClientboundSystemChat,
+    s_chat::{LastSeenMessagesUpdate, ServerboundChat},
+    s_chat_command::ServerboundChatCommand,
 };
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::{
@@ -29,10 +29,10 @@ use crate::{
 
 /// A chat packet, either a system message or a chat message.
 #[derive(Debug, Clone, PartialEq)]
-pub enum ChatPacket {
-    System(Arc<ClientboundSystemChatPacket>),
-    Player(Arc<ClientboundPlayerChatPacket>),
-    Disguised(Arc<ClientboundDisguisedChatPacket>),
+pub enum Chat {
+    System(Arc<ClientboundSystemChat>),
+    Player(Arc<ClientboundPlayerChat>),
+    Disguised(Arc<ClientboundDisguisedChat>),
 }
 
 macro_rules! regex {
@@ -42,13 +42,13 @@ macro_rules! regex {
     }};
 }
 
-impl ChatPacket {
+impl Chat {
     /// Get the message shown in chat for this packet.
     pub fn message(&self) -> FormattedText {
         match self {
-            ChatPacket::System(p) => p.content.clone(),
-            ChatPacket::Player(p) => p.message(),
-            ChatPacket::Disguised(p) => p.message(),
+            Chat::System(p) => p.content.clone(),
+            Chat::Player(p) => p.message(),
+            Chat::Disguised(p) => p.message(),
         }
     }
 
@@ -58,7 +58,7 @@ impl ChatPacket {
     /// None.
     pub fn split_sender_and_content(&self) -> (Option<String>, String) {
         match self {
-            ChatPacket::System(p) => {
+            Chat::System(p) => {
                 let message = p.content.to_string();
                 // Overlay messages aren't in chat
                 if p.overlay {
@@ -72,13 +72,13 @@ impl ChatPacket {
 
                 (None, message)
             }
-            ChatPacket::Player(p) => (
+            Chat::Player(p) => (
                 // If it's a player chat packet, then the sender and content
                 // are already split for us.
                 Some(p.chat_type.name.to_string()),
                 p.body.content.clone(),
             ),
-            ChatPacket::Disguised(p) => (
+            Chat::Disguised(p) => (
                 // disguised chat packets are basically the same as player chat packets but without
                 // the chat signing things
                 Some(p.chat_type.name.to_string()),
@@ -99,9 +99,9 @@ impl ChatPacket {
     /// when a server uses a plugin to modify chat messages).
     pub fn uuid(&self) -> Option<Uuid> {
         match self {
-            ChatPacket::System(_) => None,
-            ChatPacket::Player(m) => Some(m.sender),
-            ChatPacket::Disguised(_) => None,
+            Chat::System(_) => None,
+            Chat::Player(m) => Some(m.sender),
+            Chat::Disguised(_) => None,
         }
     }
 
@@ -112,10 +112,10 @@ impl ChatPacket {
         self.split_sender_and_content().1
     }
 
-    /// Create a new ChatPacket from a string. This is meant to be used as a
+    /// Create a new Chat from a string. This is meant to be used as a
     /// convenience function for testing.
     pub fn new(message: &str) -> Self {
-        ChatPacket::System(Arc::new(ClientboundSystemChatPacket {
+        Chat::System(Arc::new(ClientboundSystemChat {
             content: FormattedText::from(message),
             overlay: false,
         }))
@@ -142,7 +142,7 @@ impl Client {
         self.ecs.lock().send_event(SendChatKindEvent {
             entity: self.entity,
             content: message.to_string(),
-            kind: ChatPacketKind::Message,
+            kind: ChatKind::Message,
         });
         self.run_schedule_sender.send(()).unwrap();
     }
@@ -153,7 +153,7 @@ impl Client {
         self.ecs.lock().send_event(SendChatKindEvent {
             entity: self.entity,
             content: command.to_string(),
-            kind: ChatPacketKind::Command,
+            kind: ChatKind::Command,
         });
         self.run_schedule_sender.send(()).unwrap();
     }
@@ -197,7 +197,7 @@ impl Plugin for ChatPlugin {
 #[derive(Event, Debug, Clone)]
 pub struct ChatReceivedEvent {
     pub entity: Entity,
-    pub packet: ChatPacket,
+    pub packet: Chat,
 }
 
 /// Send a chat message (or command, if it starts with a slash) to the server.
@@ -216,13 +216,13 @@ pub fn handle_send_chat_event(
             send_chat_kind_events.send(SendChatKindEvent {
                 entity: event.entity,
                 content: event.content[1..].to_string(),
-                kind: ChatPacketKind::Command,
+                kind: ChatKind::Command,
             });
         } else {
             send_chat_kind_events.send(SendChatKindEvent {
                 entity: event.entity,
                 content: event.content.clone(),
-                kind: ChatPacketKind::Message,
+                kind: ChatKind::Message,
             });
         }
     }
@@ -241,11 +241,11 @@ pub fn handle_send_chat_event(
 pub struct SendChatKindEvent {
     pub entity: Entity,
     pub content: String,
-    pub kind: ChatPacketKind,
+    pub kind: ChatKind,
 }
 
 /// A kind of chat packet, either a chat message or a command.
-pub enum ChatPacketKind {
+pub enum ChatKind {
     Message,
     Command,
 }
@@ -262,7 +262,7 @@ pub fn handle_send_chat_kind_event(
             .take(256)
             .collect::<String>();
         let packet = match event.kind {
-            ChatPacketKind::Message => ServerboundChatPacket {
+            ChatKind::Message => ServerboundChat {
                 message: content,
                 timestamp: SystemTime::now()
                     .duration_since(UNIX_EPOCH)
@@ -275,9 +275,9 @@ pub fn handle_send_chat_kind_event(
                 last_seen_messages: LastSeenMessagesUpdate::default(),
             }
             .get(),
-            ChatPacketKind::Command => {
+            ChatKind::Command => {
                 // TODO: chat signing
-                ServerboundChatCommandPacket { command: content }.get()
+                ServerboundChatCommand { command: content }.get()
             }
         };
 

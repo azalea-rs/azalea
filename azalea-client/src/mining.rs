@@ -3,9 +3,7 @@ use azalea_core::{direction::Direction, game_type::GameMode, position::BlockPos,
 use azalea_entity::{mining::get_mine_progress, FluidOnEyes, Physics};
 use azalea_inventory::ItemSlot;
 use azalea_physics::PhysicsSet;
-use azalea_protocol::packets::game::serverbound_player_action_packet::{
-    self, ServerboundPlayerActionPacket,
-};
+use azalea_protocol::packets::game::s_player_action::{self, ServerboundPlayerAction};
 use azalea_world::{InstanceContainer, InstanceName};
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
@@ -255,8 +253,8 @@ fn handle_start_mining_block_with_direction_event(
                 // send a packet to stop mining since we just changed target
                 send_packet_events.send(SendPacketEvent {
                     entity: event.entity,
-                    packet: ServerboundPlayerActionPacket {
-                        action: serverbound_player_action_packet::Action::AbortDestroyBlock,
+                    packet: ServerboundPlayerAction {
+                        action: s_player_action::Action::AbortDestroyBlock,
                         pos: current_mining_pos
                             .expect("IsMining is true so MineBlockPos must be present"),
                         direction: event.direction,
@@ -328,8 +326,8 @@ fn handle_start_mining_block_with_direction_event(
 
             send_packet_events.send(SendPacketEvent {
                 entity: event.entity,
-                packet: ServerboundPlayerActionPacket {
-                    action: serverbound_player_action_packet::Action::StartDestroyBlock,
+                packet: ServerboundPlayerAction {
+                    action: s_player_action::Action::StartDestroyBlock,
                     pos: event.position,
                     direction: event.direction,
                     sequence: **sequence_number,
@@ -498,8 +496,8 @@ pub fn handle_stop_mining_block_event(
             mine_block_pos.expect("IsMining is true so MineBlockPos must be present");
         send_packet_events.send(SendPacketEvent {
             entity: event.entity,
-            packet: ServerboundPlayerActionPacket {
-                action: serverbound_player_action_packet::Action::AbortDestroyBlock,
+            packet: ServerboundPlayerAction {
+                action: s_player_action::Action::AbortDestroyBlock,
                 pos: mine_block_pos,
                 direction: Direction::Down,
                 sequence: 0,
@@ -572,8 +570,8 @@ pub fn continue_mining_block(
             *sequence_number += 1;
             send_packet_events.send(SendPacketEvent {
                 entity,
-                packet: ServerboundPlayerActionPacket {
-                    action: serverbound_player_action_packet::Action::StartDestroyBlock,
+                packet: ServerboundPlayerAction {
+                    action: s_player_action::Action::StartDestroyBlock,
                     pos: mining.pos,
                     direction: mining.dir,
                     sequence: **sequence_number,
@@ -618,8 +616,8 @@ pub fn continue_mining_block(
                 });
                 send_packet_events.send(SendPacketEvent {
                     entity,
-                    packet: ServerboundPlayerActionPacket {
-                        action: serverbound_player_action_packet::Action::StopDestroyBlock,
+                    packet: ServerboundPlayerAction {
+                        action: s_player_action::Action::StopDestroyBlock,
                         pos: mining.pos,
                         direction: mining.dir,
                         sequence: **sequence_number,

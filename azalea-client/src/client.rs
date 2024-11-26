@@ -17,22 +17,18 @@ use azalea_entity::{
 };
 use azalea_physics::PhysicsPlugin;
 use azalea_protocol::{
+    common::ClientInformation,
     connect::{Connection, ConnectionError, Proxy},
     packets::{
-        configuration::{
-            serverbound_client_information_packet::ClientInformation,
-            ClientboundConfigurationPacket, ServerboundConfigurationPacket,
-        },
+        config::{ClientboundConfigPacket, ServerboundConfigPacket},
         game::ServerboundGamePacket,
-        handshaking::{
-            client_intention_packet::ClientIntentionPacket, ClientboundHandshakePacket,
+        handshake::{
+            s_client_intention::ServerboundClientIntention, ClientboundHandshakePacket,
             ServerboundHandshakePacket,
         },
         login::{
-            serverbound_hello_packet::ServerboundHelloPacket,
-            serverbound_key_packet::ServerboundKeyPacket,
-            serverbound_login_acknowledged_packet::ServerboundLoginAcknowledgedPacket,
-            ClientboundLoginPacket,
+            s_hello::ServerboundHello, s_key::ServerboundKey,
+            s_login_acknowledged::ServerboundLoginAcknowledged, ClientboundLoginPacket,
         },
         ClientIntention, ConnectionProtocol, PROTOCOL_VERSION,
     },
@@ -347,14 +343,14 @@ impl Client {
         address: &ServerAddress,
     ) -> Result<
         (
-            Connection<ClientboundConfigurationPacket, ServerboundConfigurationPacket>,
+            Connection<ClientboundConfigPacket, ServerboundConfigPacket>,
             GameProfile,
         ),
         JoinError,
     > {
         // handshake
         conn.write(
-            ClientIntentionPacket {
+            ServerboundClientIntention {
                 protocol_version: PROTOCOL_VERSION,
                 hostname: address.host.clone(),
                 port: address.port,
@@ -375,7 +371,7 @@ impl Client {
 
         // login
         conn.write(
-            ServerboundHelloPacket {
+            ServerboundHello {
                 name: account.username.clone(),
                 // TODO: pretty sure this should generate an offline-mode uuid instead of just
                 // Uuid::default()
@@ -443,7 +439,7 @@ impl Client {
                     }
 
                     conn.write(
-                        ServerboundKeyPacket {
+                        ServerboundKey {
                             key_bytes: e.encrypted_public_key,
                             encrypted_challenge: e.encrypted_challenge,
                         }
@@ -462,8 +458,7 @@ impl Client {
                         "Got profile {:?}. handshake is finished and we're now switching to the configuration state",
                         p.game_profile
                     );
-                    conn.write(ServerboundLoginAcknowledgedPacket {}.get())
-                        .await?;
+                    conn.write(ServerboundLoginAcknowledged {}.get()).await?;
                     break (conn.configuration(), p.game_profile);
                 }
                 ClientboundLoginPacket::LoginDisconnect(p) => {
@@ -605,7 +600,7 @@ impl Client {
                 "Sending client information (already logged in): {:?}",
                 client_information
             );
-            self.write_packet(azalea_protocol::packets::game::serverbound_client_information_packet::ServerboundClientInformationPacket { information: client_information.clone() }.get())?;
+            self.write_packet(azalea_protocol::packets::game::s_client_information::ServerboundClientInformation { information: client_information.clone() }.get())?;
         }
 
         Ok(())

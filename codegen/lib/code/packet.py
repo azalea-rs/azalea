@@ -170,7 +170,7 @@ def set_packets(packet_ids: list[int], packet_class_names: list[str], direction:
 
         if not ignore_lines:
             new_mod_rs.append(line)
-            # 0x00: clientbound_status_response_packet::ClientboundStatusResponsePacket,
+            # 0x00: c_status_response::ClientboundStatusResponsePacket,
             if line.strip().startswith('0x'):
                 required_modules.append(
                     line.strip().split(':')[1].split('::')[0].strip())

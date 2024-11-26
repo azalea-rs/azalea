@@ -16,12 +16,10 @@ use tokio::net::TcpStream;
 use tracing::{error, info};
 use uuid::Uuid;
 
-use crate::packets::configuration::{
-    ClientboundConfigurationPacket, ServerboundConfigurationPacket,
-};
+use crate::packets::config::{ClientboundConfigPacket, ServerboundConfigPacket};
 use crate::packets::game::{ClientboundGamePacket, ServerboundGamePacket};
-use crate::packets::handshaking::{ClientboundHandshakePacket, ServerboundHandshakePacket};
-use crate::packets::login::clientbound_hello_packet::ClientboundHelloPacket;
+use crate::packets::handshake::{ClientboundHandshakePacket, ServerboundHandshakePacket};
+use crate::packets::login::c_hello::ClientboundHello;
 use crate::packets::login::{ClientboundLoginPacket, ServerboundLoginPacket};
 use crate::packets::status::{ClientboundStatusPacket, ServerboundStatusPacket};
 use crate::packets::ProtocolPacket;
@@ -66,10 +64,10 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///         ClientIntention, PROTOCOL_VERSION,
 ///         login::{
 ///             ClientboundLoginPacket,
-///             serverbound_hello_packet::ServerboundHelloPacket,
-///             serverbound_key_packet::ServerboundKeyPacket
+///             s_hello::ServerboundHello,
+///             s_key::ServerboundKeyPacket
 ///         },
-///         handshaking::client_intention_packet::ClientIntentionPacket
+///         handshaking::client_intention::ClientIntention
 ///     }
 /// };
 ///
@@ -80,7 +78,7 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///
 ///     // handshake
 ///     conn.write(
-///         ClientIntentionPacket {
+///         ClientIntention {
 ///             protocol_version: PROTOCOL_VERSION,
 ///             hostname: resolved_address.ip().to_string(),
 ///             port: resolved_address.port(),
@@ -94,7 +92,7 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///
 ///     // login
 ///     conn.write(
-///         ServerboundHelloPacket {
+///         ServerboundHello {
 ///             name: "bot".to_string(),
 ///             profile_id: uuid::Uuid::nil(),
 ///         }
@@ -368,9 +366,7 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
     /// Change our state from login to configuration. This is the state where
     /// the server sends us the registries and resource pack and stuff.
     #[must_use]
-    pub fn configuration(
-        self,
-    ) -> Connection<ClientboundConfigurationPacket, ServerboundConfigurationPacket> {
+    pub fn configuration(self) -> Connection<ClientboundConfigPacket, ServerboundConfigPacket> {
         Connection::from(self)
     }
 
@@ -385,7 +381,7 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
     /// use azalea_protocol::connect::Connection;
     /// use azalea_protocol::packets::login::{
     ///     ClientboundLoginPacket,
-    ///     serverbound_key_packet::ServerboundKeyPacket
+    ///     s_key::ServerboundKeyPacket
     /// };
     /// use uuid::Uuid;
     /// # use azalea_protocol::ServerAddress;
@@ -432,7 +428,7 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
         access_token: &str,
         uuid: &Uuid,
         private_key: [u8; 16],
-        packet: &ClientboundHelloPacket,
+        packet: &ClientboundHello,
     ) -> Result<(), ClientSessionServerError> {
         azalea_auth::sessionserver::join(
             access_token,
@@ -506,14 +502,12 @@ impl Connection<ServerboundLoginPacket, ClientboundLoginPacket> {
 
     /// Change our state back to configuration.
     #[must_use]
-    pub fn configuration(
-        self,
-    ) -> Connection<ServerboundConfigurationPacket, ClientboundConfigurationPacket> {
+    pub fn configuration(self) -> Connection<ServerboundConfigPacket, ClientboundConfigPacket> {
         Connection::from(self)
     }
 }
 
-impl Connection<ServerboundConfigurationPacket, ClientboundConfigurationPacket> {
+impl Connection<ServerboundConfigPacket, ClientboundConfigPacket> {
     /// Change our state from configuration to game. This is the state that's
     /// used when the client is actually in the world.
     #[must_use]
@@ -522,7 +516,7 @@ impl Connection<ServerboundConfigurationPacket, ClientboundConfigurationPacket> 
     }
 }
 
-impl Connection<ClientboundConfigurationPacket, ServerboundConfigurationPacket> {
+impl Connection<ClientboundConfigPacket, ServerboundConfigPacket> {
     /// Change our state from configuration to game. This is the state that's
     /// used when the client is actually in the world.
     #[must_use]
@@ -534,9 +528,7 @@ impl Connection<ClientboundConfigurationPacket, ServerboundConfigurationPacket> 
 impl Connection<ClientboundGamePacket, ServerboundGamePacket> {
     /// Change our state back to configuration.
     #[must_use]
-    pub fn configuration(
-        self,
-    ) -> Connection<ClientboundConfigurationPacket, ServerboundConfigurationPacket> {
+    pub fn configuration(self) -> Connection<ClientboundConfigPacket, ServerboundConfigPacket> {
         Connection::from(self)
     }
 }

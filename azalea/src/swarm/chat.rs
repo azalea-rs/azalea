@@ -15,7 +15,7 @@
 
 use std::collections::VecDeque;
 
-use azalea_client::chat::{ChatPacket, ChatReceivedEvent};
+use azalea_client::chat::{Chat, ChatReceivedEvent};
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::Event;
 
@@ -50,11 +50,11 @@ pub struct ClientChatState {
 
 /// A chat message that no other bots have seen yet was received by a bot.
 #[derive(Event, Debug)]
-pub struct NewChatMessageEvent(ChatPacket);
+pub struct NewChatMessageEvent(Chat);
 
 #[derive(Resource)]
 pub struct GlobalChatState {
-    pub chat_queue: VecDeque<ChatPacket>,
+    pub chat_queue: VecDeque<Chat>,
     pub chat_min_index: usize,
 }
 
@@ -176,7 +176,7 @@ mod tests {
         app
     }
 
-    fn drain_events(ecs: &mut World) -> Vec<ChatPacket> {
+    fn drain_events(ecs: &mut World) -> Vec<Chat> {
         let mut system_state: SystemState<ResMut<Events<NewChatMessageEvent>>> =
             SystemState::new(ecs);
         let mut events = system_state.get_mut(ecs);
@@ -193,12 +193,12 @@ mod tests {
 
         app.world.send_event(ChatReceivedEvent {
             entity: bot0,
-            packet: ChatPacket::new("a"),
+            packet: Chat::new("a"),
         });
         app.update();
 
         // the swarm should get the event immediately after the bot gets it
-        assert_eq!(drain_events(&mut app.world), vec![ChatPacket::new("a")]);
+        assert_eq!(drain_events(&mut app.world), vec![Chat::new("a")]);
         assert_eq!(
             app.world.get::<ClientChatState>(bot0).unwrap().chat_index,
             1
@@ -206,7 +206,7 @@ mod tests {
         // and a second bot sending the event shouldn't do anything
         app.world.send_event(ChatReceivedEvent {
             entity: bot1,
-            packet: ChatPacket::new("a"),
+            packet: Chat::new("a"),
         });
         app.update();
         assert_eq!(drain_events(&mut app.world), vec![]);
@@ -218,19 +218,19 @@ mod tests {
         // but if the first one gets it again, it should sent it again
         app.world.send_event(ChatReceivedEvent {
             entity: bot0,
-            packet: ChatPacket::new("a"),
+            packet: Chat::new("a"),
         });
         app.update();
-        assert_eq!(drain_events(&mut app.world), vec![ChatPacket::new("a")]);
+        assert_eq!(drain_events(&mut app.world), vec![Chat::new("a")]);
 
         // alright and now the second bot got a different chat message and it should be
         // sent
         app.world.send_event(ChatReceivedEvent {
             entity: bot1,
-            packet: ChatPacket::new("b"),
+            packet: Chat::new("b"),
         });
         app.update();
-        assert_eq!(drain_events(&mut app.world), vec![ChatPacket::new("b")]);
+        assert_eq!(drain_events(&mut app.world), vec![Chat::new("b")]);
     }
 
     #[tokio::test]
@@ -242,16 +242,16 @@ mod tests {
         // bot0 gets a chat message
         app.world.send_event(ChatReceivedEvent {
             entity: bot0,
-            packet: ChatPacket::new("a"),
+            packet: Chat::new("a"),
         });
         app.update();
-        assert_eq!(drain_events(&mut app.world), vec![ChatPacket::new("a")]);
+        assert_eq!(drain_events(&mut app.world), vec![Chat::new("a")]);
         let bot1 = app.world.spawn_empty().id();
         app.world.send_event(ChatReceivedEvent {
             entity: bot1,
-            packet: ChatPacket::new("b"),
+            packet: Chat::new("b"),
         });
         app.update();
-        assert_eq!(drain_events(&mut app.world), vec![ChatPacket::new("b")]);
+        assert_eq!(drain_events(&mut app.world), vec![Chat::new("b")]);
     }
 }

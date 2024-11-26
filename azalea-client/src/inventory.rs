@@ -10,9 +10,8 @@ use azalea_inventory::{
     },
 };
 use azalea_protocol::packets::game::{
-    serverbound_container_click_packet::ServerboundContainerClickPacket,
-    serverbound_container_close_packet::ServerboundContainerClosePacket,
-    serverbound_set_carried_item_packet::ServerboundSetCarriedItemPacket,
+    s_container_click::ServerboundContainerClick, s_container_close::ServerboundContainerClose,
+    s_set_carried_item::ServerboundSetCarriedItem,
 };
 use azalea_registry::MenuKind;
 use bevy_app::{App, Plugin, Update};
@@ -630,7 +629,7 @@ fn handle_container_close_event(
 
         send_packet_events.send(SendPacketEvent {
             entity,
-            packet: ServerboundContainerClosePacket {
+            packet: ServerboundContainerClose {
                 container_id: inventory.id,
             }
             .get(),
@@ -698,7 +697,7 @@ pub fn handle_container_click_event(
 
         send_packet_events.send(SendPacketEvent {
             entity,
-            packet: ServerboundContainerClickPacket {
+            packet: ServerboundContainerClick {
                 container_id: event.window_id,
                 state_id: inventory.state_id,
                 slot_num: event.operation.slot_num().map(|n| n as i16).unwrap_or(-999),
@@ -766,7 +765,7 @@ fn handle_set_selected_hotbar_slot_event(
         inventory.selected_hotbar_slot = event.slot;
         send_packet_events.send(SendPacketEvent {
             entity: event.entity,
-            packet: ServerboundSetCarriedItemPacket {
+            packet: ServerboundSetCarriedItem {
                 slot: event.slot as u16,
             }
             .get(),

@@ -1,6 +1,4 @@
-use azalea_protocol::packets::game::serverbound_client_command_packet::{
-    self, ServerboundClientCommandPacket,
-};
+use azalea_protocol::packets::game::s_client_command::{self, ServerboundClientCommand};
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 
@@ -28,8 +26,8 @@ pub fn perform_respawn(
     for event in events.read() {
         send_packets.send(SendPacketEvent {
             entity: event.entity,
-            packet: ServerboundClientCommandPacket {
-                action: serverbound_client_command_packet::Action::PerformRespawn,
+            packet: ServerboundClientCommand {
+                action: s_client_command::Action::PerformRespawn,
             }
             .get(),
         });

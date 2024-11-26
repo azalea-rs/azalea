@@ -1,7 +1,7 @@
 pub mod common;
-pub mod configuration;
+pub mod config;
 pub mod game;
-pub mod handshaking;
+pub mod handshake;
 pub mod login;
 pub mod status;
 
@@ -11,8 +11,8 @@ use azalea_buf::{BufReadError, McBufVarReadable, McBufVarWritable, McBufWritable
 
 use crate::read::ReadPacketError;
 
-// TODO: rename the packet files to just like clientbound_add_entity instead of
-// clientbound_add_entity_packet
+// TODO: rename the packet files to just like c_add_entity instead of
+// c_add_entity_packet
 
 pub const PROTOCOL_VERSION: i32 = 1073742049;
 

@@ -3,9 +3,7 @@ use azalea_client::inventory::InventorySet;
 use azalea_client::packet_handling::game::SendPacketEvent;
 use azalea_client::packet_handling::{death_event_on_0_health, game::ResourcePackEvent};
 use azalea_client::respawn::perform_respawn;
-use azalea_protocol::packets::game::serverbound_resource_pack_packet::{
-    self, ServerboundResourcePackPacket,
-};
+use azalea_protocol::packets::game::s_resource_pack::{self, ServerboundResourcePack};
 use bevy_app::Update;
 use bevy_ecs::prelude::*;
 
@@ -34,17 +32,17 @@ fn accept_resource_pack(
     for event in events.read() {
         send_packet_events.send(SendPacketEvent {
             entity: event.entity,
-            packet: ServerboundResourcePackPacket {
+            packet: ServerboundResourcePack {
                 id: event.id,
-                action: serverbound_resource_pack_packet::Action::Accepted,
+                action: s_resource_pack::Action::Accepted,
             }
             .get(),
         });
         send_packet_events.send(SendPacketEvent {
             entity: event.entity,
-            packet: ServerboundResourcePackPacket {
+            packet: ServerboundResourcePack {
                 id: event.id,
-                action: serverbound_resource_pack_packet::Action::SuccessfullyLoaded,
+                action: s_resource_pack::Action::SuccessfullyLoaded,
             }
             .get(),
         });

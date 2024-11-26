@@ -14,6 +14,7 @@
 
 use std::{fmt::Display, net::SocketAddr, str::FromStr};
 
+pub mod common;
 #[cfg(feature = "connecting")]
 pub mod connect;
 #[cfg(feature = "packets")]
@@ -108,8 +109,8 @@ mod tests {
 
     use crate::{
         packets::{
-            game::serverbound_chat_packet::{LastSeenMessagesUpdate, ServerboundChatPacket},
-            login::{serverbound_hello_packet::ServerboundHelloPacket, ServerboundLoginPacket},
+            game::s_chat::{LastSeenMessagesUpdate, ServerboundChat},
+            login::{s_hello::ServerboundHello, ServerboundLoginPacket},
         },
         read::{compression_decoder, read_packet},
         write::{compression_encoder, serialize_packet, write_packet},
@@ -117,7 +118,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_hello_packet() {
-        let packet = ServerboundHelloPacket {
+        let packet = ServerboundHello {
             name: "test".to_string(),
             profile_id: Uuid::nil(),
         }
@@ -129,19 +130,15 @@ mod tests {
 
         let mut stream = Cursor::new(stream);
 
-        let _ = read_packet::<ServerboundLoginPacket, _>(
-            &mut stream,
-            &mut BytesMut::new(),
-            None,
-            &mut None,
-        )
-        .await
-        .unwrap();
+        let _ =
+            read::<ServerboundLoginPacket, _>(&mut stream, &mut BytesMut::new(), None, &mut None)
+                .await
+                .unwrap();
     }
 
     #[tokio::test]
     async fn test_double_hello_packet() {
-        let packet = ServerboundHelloPacket {
+        let packet = ServerboundHello {
             name: "test".to_string(),
             profile_id: Uuid::nil(),
         }
@@ -157,10 +154,10 @@ mod tests {
 
         let mut buffer = BytesMut::new();
 
-        let _ = read_packet::<ServerboundLoginPacket, _>(&mut stream, &mut buffer, None, &mut None)
+        let _ = read::<ServerboundLoginPacket, _>(&mut stream, &mut buffer, None, &mut None)
             .await
             .unwrap();
-        let _ = read_packet::<ServerboundLoginPacket, _>(&mut stream, &mut buffer, None, &mut None)
+        let _ = read::<ServerboundLoginPacket, _>(&mut stream, &mut buffer, None, &mut None)
             .await
             .unwrap();
     }
@@ -170,7 +167,7 @@ mod tests {
         let compression_threshold = 256;
 
         let buf = serialize_packet(
-            &ServerboundChatPacket {
+            &ServerboundChat {
                 message: "a".repeat(256),
                 timestamp: 0,
                 salt: 0,

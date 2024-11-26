@@ -4,8 +4,8 @@
 use std::{collections::HashSet, sync::Arc};
 
 use azalea_protocol::packets::login::{
-    serverbound_custom_query_answer_packet::ServerboundCustomQueryAnswerPacket,
-    ClientboundLoginPacket, ServerboundLoginPacket,
+    s_custom_query_answer::ServerboundCustomQueryAnswer, ClientboundLoginPacket,
+    ServerboundLoginPacket,
 };
 use bevy_ecs::{prelude::*, system::SystemState};
 use derive_more::{Deref, DerefMut};
@@ -88,7 +88,7 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 send_packet_events.send(SendLoginPacketEvent {
                     entity: player_entity,
-                    packet: ServerboundCustomQueryAnswerPacket {
+                    packet: ServerboundCustomQueryAnswer {
                         transaction_id: p.transaction_id,
                         data: None,
                     }
