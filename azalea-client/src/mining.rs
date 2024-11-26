@@ -1,7 +1,7 @@
 use azalea_block::{Block, BlockState, FluidState};
 use azalea_core::{direction::Direction, game_type::GameMode, position::BlockPos, tick::GameTick};
 use azalea_entity::{mining::get_mine_progress, FluidOnEyes, Physics};
-use azalea_inventory::ItemSlot;
+use azalea_inventory::ItemStack;
 use azalea_physics::PhysicsSet;
 use azalea_protocol::packets::game::s_player_action::{self, ServerboundPlayerAction};
 use azalea_world::{InstanceContainer, InstanceName};
@@ -405,9 +405,9 @@ pub struct MineTicks(pub f32);
 pub struct MineBlockPos(pub Option<BlockPos>);
 
 /// A component that contains the item we're currently using to mine. If we're
-/// not mining anything, it'll be [`ItemSlot::Empty`].
+/// not mining anything, it'll be [`ItemStack::Empty`].
 #[derive(Component, Clone, Debug, Default, Deref, DerefMut)]
-pub struct MineItem(pub ItemSlot);
+pub struct MineItem(pub ItemStack);
 
 /// Sent when we completed mining a block.
 #[derive(Event)]

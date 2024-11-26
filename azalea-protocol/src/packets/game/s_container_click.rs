@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use azalea_buf::McBuf;
-use azalea_inventory::{operations::ClickType, ItemSlot};
+use azalea_inventory::{operations::ClickType, ItemStack};
 use azalea_protocol_macros::ServerboundGamePacket;
 
 #[derive(Clone, Debug, McBuf, ServerboundGamePacket)]
@@ -12,6 +12,6 @@ pub struct ServerboundContainerClick {
     pub slot_num: i16,
     pub button_num: u8,
     pub click_type: ClickType,
-    pub changed_slots: HashMap<u16, ItemSlot>,
-    pub carried_item: ItemSlot,
+    pub changed_slots: HashMap<u16, ItemStack>,
+    pub carried_item: ItemStack,
 }

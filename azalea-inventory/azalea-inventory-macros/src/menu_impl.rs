@@ -95,11 +95,11 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
         impl Menu {
             #menu_consts
 
-            /// Get a mutable reference to the [`ItemSlot`] at the given protocol index.
+            /// Get a mutable reference to the [`ItemStack`] at the given protocol index.
             ///
             /// If you're trying to get an item in a menu without caring about
             /// protocol indexes, you should just `match` it and index the
-            /// [`ItemSlot`] you get.
+            /// [`ItemStack`] you get.
             ///
             /// Use [`Menu::slot`] if you don't need a mutable reference to the slot.
             ///
@@ -107,24 +107,24 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
             ///
             /// Returns `None` if the index is out of bounds.
             #[inline]
-            pub fn slot_mut(&mut self, i: usize) -> Option<&mut ItemSlot> {
+            pub fn slot_mut(&mut self, i: usize) -> Option<&mut ItemStack> {
                 Some(match self {
                     #slot_mut_match_variants
                 })
             }
 
-            /// Get a reference to the [`ItemSlot`] at the given protocol index.
+            /// Get a reference to the [`ItemStack`] at the given protocol index.
             ///
             /// If you're trying to get an item in a menu without caring about
             /// protocol indexes, you should just `match` it and index the
-            /// [`ItemSlot`] you get.
+            /// [`ItemStack`] you get.
             ///
             /// Use [`Menu::slot_mut`] if you need a mutable reference to the slot.
             ///
             /// # Errors
             ///
             /// Returns `None` if the index is out of bounds.
-            pub fn slot(&self, i: usize) -> Option<&ItemSlot> {
+            pub fn slot(&self, i: usize) -> Option<&ItemStack> {
                 Some(match self {
                     #slot_match_variants
                 })
@@ -153,7 +153,7 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
             ///
             /// If you *only* want to include the players inventory, then you can filter by only
             /// using the slots in [`Self::player_slots_range`].
-            pub fn slots(&self) -> Vec<ItemSlot> {
+            pub fn slots(&self) -> Vec<ItemStack> {
                 match self {
                     #slots_match_variants
                 }
@@ -162,7 +162,7 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
             /// Return the contents of the menu, not including the player's inventory.
             ///
             /// If you want to include the player's inventory, use [`Menu::slots`] instead.
-            pub fn contents(&self) -> Vec<ItemSlot> {
+            pub fn contents(&self) -> Vec<ItemStack> {
                 match self {
                     #contents_match_variants
                 }

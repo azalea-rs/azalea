@@ -10,7 +10,7 @@ use azalea_core::{
 use azalea_entity::{
     clamp_look_direction, view_vector, Attributes, EyeHeight, LocalEntity, LookDirection, Position,
 };
-use azalea_inventory::{ItemSlot, ItemSlotData};
+use azalea_inventory::{ItemStack, ItemStackData};
 use azalea_physics::clip::{BlockShapeType, ClipContext, FluidPickType};
 use azalea_protocol::packets::game::{
     s_interact::InteractionHand,
@@ -245,7 +245,7 @@ pub fn check_is_interaction_restricted(
             // way of modifying that
 
             let held_item = inventory.held_item();
-            if let ItemSlot::Present(item) = &held_item {
+            if let ItemStack::Present(item) = &held_item {
                 let block = instance.chunks.get_block_state(block_pos);
                 let Some(block) = block else {
                     // block isn't loaded so just say that it is restricted
@@ -263,7 +263,7 @@ pub fn check_is_interaction_restricted(
 
 /// Check if the item has the `CanDestroy` tag for the block.
 pub fn check_block_can_be_broken_by_item_in_adventure_mode(
-    item: &ItemSlotData,
+    item: &ItemStackData,
     _block: &BlockState,
 ) -> bool {
     // minecraft caches the last checked block but that's kind of an unnecessary

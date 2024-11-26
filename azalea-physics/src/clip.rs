@@ -5,7 +5,7 @@ use azalea_core::{
     math::{self, lerp, EPSILON},
     position::{BlockPos, Vec3},
 };
-use azalea_inventory::ItemSlot;
+use azalea_inventory::ItemStack;
 use azalea_world::ChunkStorage;
 use bevy_ecs::entity::Entity;
 
@@ -52,7 +52,7 @@ pub enum FluidPickType {
 pub struct EntityCollisionContext {
     pub descending: bool,
     pub entity_bottom: f64,
-    pub held_item: ItemSlot,
+    pub held_item: ItemStack,
     // pub can_stand_on_fluid: Box<dyn Fn(&FluidState) -> bool>,
     pub entity: Entity,
 }

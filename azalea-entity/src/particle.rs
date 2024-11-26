@@ -1,6 +1,6 @@
 use azalea_buf::McBuf;
 use azalea_core::position::BlockPos;
-use azalea_inventory::ItemSlot;
+use azalea_inventory::ItemStack;
 use azalea_registry::ParticleKind;
 use bevy_ecs::component::Component;
 
@@ -286,7 +286,7 @@ pub struct DustColorTransitionParticle {
 
 #[derive(Debug, Clone, McBuf, Default)]
 pub struct ItemParticle {
-    pub item: ItemSlot,
+    pub item: ItemStack,
 }
 
 #[derive(Debug, Clone, McBuf, Default)]

@@ -4,7 +4,7 @@ use std::io::Cursor;
 use azalea_buf::McBuf;
 use azalea_chat::FormattedText;
 use azalea_core::resource_location::ResourceLocation;
-use azalea_inventory::ItemSlot;
+use azalea_inventory::ItemStack;
 use azalea_protocol_macros::ClientboundGamePacket;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
@@ -27,7 +27,7 @@ pub struct Advancement {
 pub struct DisplayInfo {
     pub title: FormattedText,
     pub description: FormattedText,
-    pub icon: ItemSlot,
+    pub icon: ItemStack,
     pub frame: FrameType,
     pub show_toast: bool,
     pub hidden: bool,
@@ -133,7 +133,7 @@ mod tests {
                     display: Some(DisplayInfo {
                         title: FormattedText::from("title".to_string()),
                         description: FormattedText::from("description".to_string()),
-                        icon: ItemSlot::Empty,
+                        icon: ItemStack::Empty,
                         frame: FrameType::Task,
                         show_toast: true,
                         hidden: false,

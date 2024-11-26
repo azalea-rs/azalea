@@ -2,7 +2,7 @@ use std::io::Cursor;
 
 use azalea_buf::{BufReadError, McBuf};
 use azalea_buf::{McBufReadable, McBufWritable};
-use azalea_inventory::ItemSlot;
+use azalea_inventory::ItemStack;
 use azalea_protocol_macros::ClientboundGamePacket;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
@@ -14,7 +14,7 @@ pub struct ClientboundSetEquipment {
 
 #[derive(Clone, Debug)]
 pub struct EquipmentSlots {
-    pub slots: Vec<(EquipmentSlot, ItemSlot)>,
+    pub slots: Vec<(EquipmentSlot, ItemStack)>,
 }
 
 impl McBufReadable for EquipmentSlots {
@@ -29,7 +29,7 @@ impl McBufReadable for EquipmentSlots {
                         id: equipment_byte.into(),
                     }
                 })?;
-            let item = ItemSlot::read_from(buf)?;
+            let item = ItemStack::read_from(buf)?;
             slots.push((equipment_slot, item));
             if equipment_byte & 128 == 0 {
                 break;

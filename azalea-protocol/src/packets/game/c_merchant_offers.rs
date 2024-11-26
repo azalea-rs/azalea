@@ -1,5 +1,5 @@
 use azalea_buf::McBuf;
-use azalea_inventory::ItemSlot;
+use azalea_inventory::ItemStack;
 use azalea_protocol_macros::ClientboundGamePacket;
 
 #[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
@@ -17,9 +17,9 @@ pub struct ClientboundMerchantOffers {
 
 #[derive(Clone, Debug, McBuf)]
 pub struct MerchantOffer {
-    pub base_cost_a: ItemSlot,
-    pub result: ItemSlot,
-    pub cost_b: ItemSlot,
+    pub base_cost_a: ItemStack,
+    pub result: ItemStack,
+    pub cost_b: ItemStack,
     pub out_of_stock: bool,
     pub uses: u32,
     pub max_uses: u32,

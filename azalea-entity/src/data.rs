@@ -10,7 +10,7 @@ use azalea_core::{
     direction::Direction,
     position::{BlockPos, GlobalPos, Vec3},
 };
-use azalea_inventory::ItemSlot;
+use azalea_inventory::ItemStack;
 use bevy_ecs::component::Component;
 use derive_more::Deref;
 use enum_as_inner::EnumAsInner;
@@ -73,7 +73,7 @@ pub enum EntityDataValue {
     String(String),
     FormattedText(FormattedText),
     OptionalFormattedText(Option<FormattedText>),
-    ItemStack(ItemSlot),
+    ItemStack(ItemStack),
     Boolean(bool),
     Rotations(Rotations),
     BlockPos(BlockPos),

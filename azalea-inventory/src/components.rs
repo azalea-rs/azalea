@@ -11,7 +11,7 @@ use azalea_registry::{
 use simdnbt::owned::{Nbt, NbtCompound};
 use uuid::Uuid;
 
-use crate::ItemSlot;
+use crate::ItemStack;
 
 pub trait DataComponent: Send + Sync + Any {}
 
@@ -427,13 +427,13 @@ impl DataComponent for MapPostProcessing {}
 
 #[derive(Clone, PartialEq, McBuf)]
 pub struct ChargedProjectiles {
-    pub items: Vec<ItemSlot>,
+    pub items: Vec<ItemStack>,
 }
 impl DataComponent for ChargedProjectiles {}
 
 #[derive(Clone, PartialEq, McBuf)]
 pub struct BundleContents {
-    pub items: Vec<ItemSlot>,
+    pub items: Vec<ItemStack>,
 }
 impl DataComponent for BundleContents {}
 
@@ -629,7 +629,7 @@ impl DataComponent for PotDecorations {}
 
 #[derive(Clone, PartialEq, McBuf)]
 pub struct Container {
-    pub items: Vec<ItemSlot>,
+    pub items: Vec<ItemStack>,
 }
 impl DataComponent for Container {}
 
@@ -699,7 +699,7 @@ pub enum ItemUseAnimation {
 
 #[derive(Clone, PartialEq, McBuf)]
 pub struct UseRemainder {
-    pub convert_into: ItemSlot,
+    pub convert_into: ItemStack,
 }
 impl DataComponent for UseRemainder {}
 

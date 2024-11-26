@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use azalea_buf::McBuf;
 use azalea_core::resource_location::ResourceLocation;
-use azalea_inventory::ItemSlot;
+use azalea_inventory::ItemStack;
 use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_registry::HolderSet;
 
@@ -27,7 +27,7 @@ pub struct SelectableRecipe {
 pub enum SlotDisplayData {
     Empty,
     AnyFuel,
-    Item(ItemSlotDisplay),
+    Item(ItemStackDisplay),
     ItemStack(ItemStackSlotDisplay),
     Tag(ResourceLocation),
     SmithingTrim(Box<SmithingTrimDemoSlotDisplay>),
@@ -36,12 +36,12 @@ pub enum SlotDisplayData {
 }
 
 #[derive(Clone, Debug, PartialEq, McBuf)]
-pub struct ItemSlotDisplay {
+pub struct ItemStackDisplay {
     pub item: azalea_registry::Item,
 }
 #[derive(Clone, Debug, PartialEq, McBuf)]
 pub struct ItemStackSlotDisplay {
-    pub stack: ItemSlot,
+    pub stack: ItemStack,
 }
 #[derive(Clone, Debug, PartialEq, McBuf)]
 pub struct TagSlotDisplay {

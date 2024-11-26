@@ -7,7 +7,7 @@ use azalea_client::{
     Client,
 };
 use azalea_core::position::BlockPos;
-use azalea_inventory::{operations::ClickOperation, ItemSlot, Menu};
+use azalea_inventory::{operations::ClickOperation, ItemStack, Menu};
 use azalea_protocol::packets::game::ClientboundGamePacket;
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::{component::Component, prelude::EventReader, system::Commands};
@@ -168,7 +168,7 @@ impl ContainerHandleRef {
 
     /// Returns the item slots in the container, not including the player's
     /// inventory. If the container is closed, this will return `None`.
-    pub fn contents(&self) -> Option<Vec<ItemSlot>> {
+    pub fn contents(&self) -> Option<Vec<ItemStack>> {
         self.menu().map(|menu| menu.contents())
     }
 
@@ -222,7 +222,7 @@ impl ContainerHandle {
 
     /// Returns the item slots in the container, not including the player's
     /// inventory. If the container is closed, this will return `None`.
-    pub fn contents(&self) -> Option<Vec<ItemSlot>> {
+    pub fn contents(&self) -> Option<Vec<ItemStack>> {
         self.0.contents()
     }
 
