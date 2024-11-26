@@ -5,11 +5,11 @@ COLLISION_BLOCKS_RS_DIR = get_dir_location(
     '../azalea-physics/src/collision/blocks.rs')
 
 
-def generate_block_shapes(blocks_pixlyzer: dict, shapes: dict, aabbs: dict, block_states_report, block_datas_burger, mappings: Mappings):
+def generate_block_shapes(blocks_pixlyzer: dict, shapes: dict, aabbs: dict, block_states_report, mappings: Mappings):
     blocks, shapes = simplify_shapes(blocks_pixlyzer, shapes, aabbs)
 
     code = generate_block_shapes_code(
-        blocks, shapes, block_states_report, block_datas_burger, mappings)
+        blocks, shapes, block_states_report, mappings)
     with open(COLLISION_BLOCKS_RS_DIR, 'w') as f:
         f.write(code)
 
@@ -63,7 +63,7 @@ def simplify_shapes(blocks: dict, shapes: dict, aabbs: dict):
     return new_blocks, new_shapes
 
 
-def generate_block_shapes_code(blocks: dict, shapes: dict, block_states_report, block_datas_burger, mappings: Mappings):
+def generate_block_shapes_code(blocks: dict, shapes: dict, block_states_report, mappings: Mappings):
     # look at __cache__/generator-mod-*/blockCollisionShapes.json for format of blocks and shapes
 
     generated_shape_code = ''

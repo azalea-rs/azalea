@@ -50,17 +50,6 @@ def get_registry_tags(version_id: str, name: str):
                 tags[relative_path[:-5]] = json.load(f)
     return tags
 
-
-def get_block_states_burger(version_id: str):
-    burger_data = get_burger_data_for_version(version_id)
-    return burger_data[0]['blocks']['block']
-
-
-def get_ordered_blocks_burger(version_id: str):
-    burger_data = get_burger_data_for_version(version_id)
-    return burger_data[0]['blocks']['ordered_blocks']
-
-
 python_command = None
 
 
