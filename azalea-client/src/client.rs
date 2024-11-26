@@ -356,7 +356,7 @@ impl Client {
                 port: address.port,
                 intention: ClientIntention::Login,
             }
-            .get(),
+            .into_variant(),
         )
         .await?;
         let mut conn = conn.login();
@@ -377,7 +377,7 @@ impl Client {
                 // Uuid::default()
                 profile_id: account.uuid.unwrap_or_default(),
             }
-            .get(),
+            .into_variant(),
         )
         .await?;
 
@@ -443,7 +443,7 @@ impl Client {
                             key_bytes: e.encrypted_public_key,
                             encrypted_challenge: e.encrypted_challenge,
                         }
-                        .get(),
+                        .into_variant(),
                     )
                     .await?;
 
@@ -458,7 +458,8 @@ impl Client {
                         "Got profile {:?}. handshake is finished and we're now switching to the configuration state",
                         p.game_profile
                     );
-                    conn.write(ServerboundLoginAcknowledged {}.get()).await?;
+                    conn.write(ServerboundLoginAcknowledged {}.into_variant())
+                        .await?;
                     break (conn.configuration(), p.game_profile);
                 }
                 ClientboundLoginPacket::LoginDisconnect(p) => {
@@ -600,7 +601,7 @@ impl Client {
                 "Sending client information (already logged in): {:?}",
                 client_information
             );
-            self.write_packet(azalea_protocol::packets::game::s_client_information::ServerboundClientInformation { information: client_information.clone() }.get())?;
+            self.write_packet(azalea_protocol::packets::game::s_client_information::ServerboundClientInformation { information: client_information.clone() }.into_variant())?;
         }
 
         Ok(())

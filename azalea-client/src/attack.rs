@@ -90,7 +90,7 @@ pub fn handle_attack_event(
                 action: s_interact::ActionType::Attack,
                 using_secondary_action: **sneaking,
             }
-            .get(),
+            .into_variant(),
         });
 
         // we can't attack if we're in spectator mode but it still sends the attack

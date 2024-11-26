@@ -340,7 +340,7 @@ pub fn process_packet_events(ecs: &mut World) {
                 );
                 send_packet_events.send(SendPacketEvent {
                     entity: player_entity,
-                    packet: azalea_protocol::packets::game::s_client_information::ServerboundClientInformation { information: client_information.clone() }.get(),
+                    packet: azalea_protocol::packets::game::s_client_information::ServerboundClientInformation { information: client_information.clone() }.into_variant(),
                 });
 
                 system_state.apply(ecs);
@@ -493,7 +493,7 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 send_packet_events.send(SendPacketEvent {
                     entity: player_entity,
-                    packet: ServerboundAcceptTeleportation { id: p.id }.get(),
+                    packet: ServerboundAcceptTeleportation { id: p.id }.into_variant(),
                 });
                 send_packet_events.send(SendPacketEvent {
                     entity: player_entity,
@@ -506,7 +506,7 @@ pub fn process_packet_events(ecs: &mut World) {
                         // this is always false
                         on_ground: false,
                     }
-                    .get(),
+                    .into_variant(),
                 });
             }
             ClientboundGamePacket::PlayerInfoUpdate(p) => {
@@ -983,7 +983,7 @@ pub fn process_packet_events(ecs: &mut World) {
                 });
                 send_packet_events.send(SendPacketEvent {
                     entity: player_entity,
-                    packet: ServerboundKeepAlive { id: p.id }.get(),
+                    packet: ServerboundKeepAlive { id: p.id }.into_variant(),
                 });
             }
             ClientboundGamePacket::RemoveEntities(p) => {
@@ -1279,7 +1279,7 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 send_packet_events.send(SendPacketEvent {
                     entity: player_entity,
-                    packet: ServerboundPong { id: p.id }.get(),
+                    packet: ServerboundPong { id: p.id }.into_variant(),
                 });
             }
             ClientboundGamePacket::PlaceGhostRecipe(_) => {}
@@ -1423,7 +1423,7 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 packet_events.send(SendPacketEvent {
                     entity: player_entity,
-                    packet: ServerboundConfigurationAcknowledged {}.get(),
+                    packet: ServerboundConfigurationAcknowledged {}.into_variant(),
                 });
 
                 commands

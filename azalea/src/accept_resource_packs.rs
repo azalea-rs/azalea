@@ -36,7 +36,7 @@ fn accept_resource_pack(
                 id: event.id,
                 action: s_resource_pack::Action::Accepted,
             }
-            .get(),
+            .into_variant(),
         });
         send_packet_events.send(SendPacketEvent {
             entity: event.entity,
@@ -44,7 +44,7 @@ fn accept_resource_pack(
                 id: event.id,
                 action: s_resource_pack::Action::SuccessfullyLoaded,
             }
-            .get(),
+            .into_variant(),
         });
     }
 }

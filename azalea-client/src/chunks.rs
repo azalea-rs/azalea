@@ -164,7 +164,7 @@ pub fn handle_chunk_batch_finished_event(
                 packet: ServerboundChunkBatchReceived {
                     desired_chunks_per_tick,
                 }
-                .get(),
+                .into_variant(),
             });
         }
     }

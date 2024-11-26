@@ -107,7 +107,7 @@ pub fn process_packet_events(ecs: &mut World) {
                 let mut raw_connection = query.get_mut(player_entity).unwrap();
 
                 raw_connection
-                    .write_packet(ServerboundFinishConfiguration {}.get())
+                    .write_packet(ServerboundFinishConfiguration {}.into_variant())
                     .expect(
                         "we should be in the right state and encoding this packet shouldn't fail",
                     );
@@ -150,7 +150,7 @@ pub fn process_packet_events(ecs: &mut World) {
                     id: p.id,
                 });
                 raw_connection
-                    .write_packet(ServerboundKeepAlive { id: p.id }.get())
+                    .write_packet(ServerboundKeepAlive { id: p.id }.into_variant())
                     .unwrap();
             }
             ClientboundConfigPacket::Ping(p) => {
@@ -161,7 +161,7 @@ pub fn process_packet_events(ecs: &mut World) {
                 let raw_connection = query.get_mut(player_entity).unwrap();
 
                 raw_connection
-                    .write_packet(config::s_pong::ServerboundPong { id: p.id }.get())
+                    .write_packet(config::s_pong::ServerboundPong { id: p.id }.into_variant())
                     .unwrap();
             }
             ClientboundConfigPacket::ResourcePackPush(p) => {
@@ -178,7 +178,7 @@ pub fn process_packet_events(ecs: &mut World) {
                             id: p.id,
                             action: config::s_resource_pack::Action::Accepted,
                         }
-                        .get(),
+                        .into_variant(),
                     )
                     .unwrap();
             }
@@ -216,7 +216,7 @@ pub fn process_packet_events(ecs: &mut World) {
                         ServerboundSelectKnownPacks {
                             known_packs: vec![],
                         }
-                        .get(),
+                        .into_variant(),
                     )
                     .unwrap();
             }

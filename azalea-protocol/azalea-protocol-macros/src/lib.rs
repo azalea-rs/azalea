@@ -20,10 +20,6 @@ fn as_packet_derive(input: TokenStream, state: proc_macro2::TokenStream) -> Toke
 
     let contents = quote! {
         impl #ident {
-            pub fn get(self) -> #state {
-                #state::#variant_name(self)
-            }
-
             pub fn write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
                 azalea_buf::McBufWritable::write_into(self, buf)
             }
@@ -32,7 +28,12 @@ fn as_packet_derive(input: TokenStream, state: proc_macro2::TokenStream) -> Toke
                 buf: &mut std::io::Cursor<&[u8]>,
             ) -> Result<#state, azalea_buf::BufReadError> {
                 use azalea_buf::McBufReadable;
-                Ok(Self::read_from(buf)?.get())
+                Ok(Self::read_from(buf)?.into_variant())
+            }
+
+            /// Convert this packet into an variant for the enum of the state and direction.
+            pub fn into_variant(self) -> #state {
+                #state::#variant_name(self)
             }
         }
     };

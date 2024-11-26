@@ -29,7 +29,7 @@ pub fn perform_respawn(
             packet: ServerboundClientCommand {
                 action: s_client_command::Action::PerformRespawn,
             }
-            .get(),
+            .into_variant(),
         });
     }
 }

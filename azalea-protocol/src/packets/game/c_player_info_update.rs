@@ -308,6 +308,6 @@ mod tests {
                 0,
             ][..],
         );
-        let _packet = ClientboundPlayerInfoUpdatePacket::read_from(&mut bytes).unwrap();
+        let _packet = ClientboundPlayerInfoUpdate::read_from(&mut bytes).unwrap();
     }
 }

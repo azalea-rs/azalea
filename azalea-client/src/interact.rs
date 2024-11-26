@@ -155,7 +155,7 @@ pub fn handle_block_interact_event(
                 block_hit,
                 sequence: sequence_number.0,
             }
-            .get(),
+            .into_variant(),
         });
     }
 }
@@ -307,7 +307,7 @@ pub fn handle_swing_arm_event(
             packet: ServerboundSwing {
                 hand: InteractionHand::MainHand,
             }
-            .get(),
+            .into_variant(),
         });
     }
 }

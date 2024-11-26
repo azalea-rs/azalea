@@ -632,7 +632,7 @@ fn handle_container_close_event(
             packet: ServerboundContainerClose {
                 container_id: inventory.id,
             }
-            .get(),
+            .into_variant(),
         });
         client_side_events.send(ClientSideCloseContainerEvent {
             entity: event.entity,
@@ -706,7 +706,7 @@ pub fn handle_container_click_event(
                 changed_slots,
                 carried_item: inventory.carried.clone(),
             }
-            .get(),
+            .into_variant(),
         });
     }
 }
@@ -768,7 +768,7 @@ fn handle_set_selected_hotbar_slot_event(
             packet: ServerboundSetCarriedItem {
                 slot: event.slot as u16,
             }
-            .get(),
+            .into_variant(),
         });
     }
 }

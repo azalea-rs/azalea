@@ -196,7 +196,7 @@ pub fn send_position(
                         y_rot: direction.y_rot,
                         on_ground: physics.on_ground,
                     }
-                    .get(),
+                    .into_variant(),
                 )
             } else if sending_position {
                 Some(
@@ -206,7 +206,7 @@ pub fn send_position(
                         z: position.z,
                         on_ground: physics.on_ground,
                     }
-                    .get(),
+                    .into_variant(),
                 )
             } else if sending_direction {
                 Some(
@@ -215,14 +215,14 @@ pub fn send_position(
                         y_rot: direction.y_rot,
                         on_ground: physics.on_ground,
                     }
-                    .get(),
+                    .into_variant(),
                 )
             } else if physics.last_on_ground != physics.on_ground {
                 Some(
                     ServerboundMovePlayerStatusOnly {
                         on_ground: physics.on_ground,
                     }
-                    .get(),
+                    .into_variant(),
                 )
             } else {
                 None
@@ -268,7 +268,7 @@ fn send_sprinting_if_needed(
                     action: sprinting_action,
                     data: 0,
                 }
-                .get(),
+                .into_variant(),
             });
             physics_state.was_sprinting = **sprinting;
         }

@@ -7,7 +7,7 @@ use azalea_protocol::{
     connect::Connection,
     packets::{
         handshake::{
-            client_intention::ClientIntention, ClientboundHandshakePacket,
+            s_client_intention::ServerboundClientIntention, ClientboundHandshakePacket,
             ServerboundHandshakePacket,
         },
         login::{s_hello::ServerboundHello, ServerboundLoginPacket},
@@ -108,12 +108,12 @@ async fn handle_connection(stream: TcpStream) -> anyhow::Result<()> {
                                     version: PROXY_VERSION.clone(),
                                     enforces_secure_chat: PROXY_SECURE_CHAT,
                                 }
-                                .get(),
+                                .into_variant(),
                             )
                             .await?;
                         }
                         ServerboundStatusPacket::PingRequest(p) => {
-                            conn.write(ClientboundPongResponse { time: p.time }.get())
+                            conn.write(ClientboundPongResponse { time: p.time }.into_variant())
                                 .await?;
                             break;
                         }
@@ -178,7 +178,7 @@ async fn handle_connection(stream: TcpStream) -> anyhow::Result<()> {
 
 async fn transfer(
     mut inbound: TcpStream,
-    intent: ClientIntention,
+    intent: ServerboundClientIntention,
     hello: ServerboundHello,
 ) -> Result<(), Box<dyn Error>> {
     let outbound = TcpStream::connect(PROXY_ADDR).await?;
@@ -189,10 +189,10 @@ async fn transfer(
     // received earlier to the proxy target
     let mut outbound_conn: Connection<ClientboundHandshakePacket, ServerboundHandshakePacket> =
         Connection::wrap(outbound);
-    outbound_conn.write(intent.get()).await?;
+    outbound_conn.write(intent.into_variant()).await?;
 
     let mut outbound_conn = outbound_conn.login();
-    outbound_conn.write(hello.get()).await?;
+    outbound_conn.write(hello.into_variant()).await?;
 
     let mut outbound = outbound_conn.unwrap()?;
 

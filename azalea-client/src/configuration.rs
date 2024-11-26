@@ -37,7 +37,7 @@ fn handle_in_configuration_state(
                 identifier: ResourceLocation::new("brand"),
                 data: brand_data.into(),
             }
-            .get(),
+            .into_variant(),
         });
 
         send_packet_events.send(SendConfigurationEvent {
@@ -45,7 +45,7 @@ fn handle_in_configuration_state(
             packet: ServerboundClientInformation {
                 information: client_information.clone(),
             }
-            .get(),
+            .into_variant(),
         });
     }
 }

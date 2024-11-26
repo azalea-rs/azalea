@@ -122,7 +122,7 @@ mod tests {
             name: "test".to_string(),
             profile_id: Uuid::nil(),
         }
-        .get();
+        .into_variant();
         let mut stream = Vec::new();
         write_packet(&packet, &mut stream, None, &mut None)
             .await
@@ -130,10 +130,14 @@ mod tests {
 
         let mut stream = Cursor::new(stream);
 
-        let _ =
-            read::<ServerboundLoginPacket, _>(&mut stream, &mut BytesMut::new(), None, &mut None)
-                .await
-                .unwrap();
+        let _ = read_packet::<ServerboundLoginPacket, _>(
+            &mut stream,
+            &mut BytesMut::new(),
+            None,
+            &mut None,
+        )
+        .await
+        .unwrap();
     }
 
     #[tokio::test]
@@ -142,7 +146,7 @@ mod tests {
             name: "test".to_string(),
             profile_id: Uuid::nil(),
         }
-        .get();
+        .into_variant();
         let mut stream = Vec::new();
         write_packet(&packet, &mut stream, None, &mut None)
             .await
@@ -154,10 +158,10 @@ mod tests {
 
         let mut buffer = BytesMut::new();
 
-        let _ = read::<ServerboundLoginPacket, _>(&mut stream, &mut buffer, None, &mut None)
+        let _ = read_packet::<ServerboundLoginPacket, _>(&mut stream, &mut buffer, None, &mut None)
             .await
             .unwrap();
-        let _ = read::<ServerboundLoginPacket, _>(&mut stream, &mut buffer, None, &mut None)
+        let _ = read_packet::<ServerboundLoginPacket, _>(&mut stream, &mut buffer, None, &mut None)
             .await
             .unwrap();
     }
@@ -174,7 +178,7 @@ mod tests {
                 signature: None,
                 last_seen_messages: LastSeenMessagesUpdate::default(),
             }
-            .get(),
+            .into_variant(),
         )
         .unwrap();
 

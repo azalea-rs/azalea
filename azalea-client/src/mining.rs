@@ -260,7 +260,7 @@ fn handle_start_mining_block_with_direction_event(
                         direction: event.direction,
                         sequence: 0,
                     }
-                    .get(),
+                    .into_variant(),
                 });
             }
 
@@ -332,7 +332,7 @@ fn handle_start_mining_block_with_direction_event(
                     direction: event.direction,
                     sequence: **sequence_number,
                 }
-                .get(),
+                .into_variant(),
             });
         }
     }
@@ -502,7 +502,7 @@ pub fn handle_stop_mining_block_event(
                 direction: Direction::Down,
                 sequence: 0,
             }
-            .get(),
+            .into_variant(),
         });
         commands.entity(event.entity).remove::<Mining>();
         **mine_progress = 0.;
@@ -576,7 +576,7 @@ pub fn continue_mining_block(
                     direction: mining.dir,
                     sequence: **sequence_number,
                 }
-                .get(),
+                .into_variant(),
             });
             swing_arm_events.send(SwingArmEvent { entity });
         } else if is_same_mining_target(
@@ -622,7 +622,7 @@ pub fn continue_mining_block(
                         direction: mining.dir,
                         sequence: **sequence_number,
                     }
-                    .get(),
+                    .into_variant(),
                 });
                 **mine_progress = 0.;
                 **mine_ticks = 0.;

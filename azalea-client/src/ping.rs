@@ -81,13 +81,14 @@ pub async fn ping_server_with_connection(
             port: address.port,
             intention: ClientIntention::Status,
         }
-        .get(),
+        .into_variant(),
     )
     .await?;
     let mut conn = conn.status();
 
     // send the empty status request packet
-    conn.write(ServerboundStatusRequest {}.get()).await?;
+    conn.write(ServerboundStatusRequest {}.into_variant())
+        .await?;
 
     let packet = conn.read().await?;
 

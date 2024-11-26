@@ -84,7 +84,7 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///             port: resolved_address.port(),
 ///             intention: ClientIntention::Login,
 ///         }
-///         .get(),
+///         .into_variant(),
 ///     )
 ///     .await?;
 ///
@@ -96,7 +96,7 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///             name: "bot".to_string(),
 ///             profile_id: uuid::Uuid::nil(),
 ///         }
-///         .get(),
+///         .into_variant(),
 ///     )
 ///     .await?;
 ///
@@ -111,7 +111,7 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///                         key_bytes: e.encrypted_public_key,
 ///                         encrypted_challenge: e.encrypted_challenge,
 ///                     }
-///                     .get(),
+///                     .into_variant(),
 ///                 )
 ///                 .await?;
 ///                 conn.set_encryption_key(e.secret_key);
@@ -414,7 +414,7 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
     ///             ServerboundKeyPacket {
     ///                 key_bytes: e.encrypted_public_key,
     ///                 encrypted_challenge: e.encrypted_challenge,
-    ///             }.get()
+    ///             }.into_variant()
     ///         ).await?;
     ///         conn.set_encryption_key(e.secret_key);
     ///     }

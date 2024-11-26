@@ -274,10 +274,10 @@ pub fn handle_send_chat_kind_event(
                 signature: None,
                 last_seen_messages: LastSeenMessagesUpdate::default(),
             }
-            .get(),
+            .into_variant(),
             ChatKind::Command => {
                 // TODO: chat signing
-                ServerboundChatCommand { command: content }.get()
+                ServerboundChatCommand { command: content }.into_variant()
             }
         };
 

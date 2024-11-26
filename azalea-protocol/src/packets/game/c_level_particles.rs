@@ -33,7 +33,7 @@ mod tests {
         ][..];
         let mut bytes = Cursor::new(slice);
 
-        let _packet = ClientboundLevelParticlesPacket::read_from(&mut bytes).unwrap();
+        let _packet = ClientboundLevelParticles::read_from(&mut bytes).unwrap();
         assert_eq!(bytes.position(), slice.len() as u64);
     }
 }

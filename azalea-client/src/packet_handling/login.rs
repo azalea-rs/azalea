@@ -92,7 +92,7 @@ pub fn process_packet_events(ecs: &mut World) {
                         transaction_id: p.transaction_id,
                         data: None,
                     }
-                    .get(),
+                    .into_variant(),
                 });
             }
             _ => {}
