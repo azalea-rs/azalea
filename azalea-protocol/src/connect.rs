@@ -64,10 +64,10 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///         ClientIntention, PROTOCOL_VERSION,
 ///         login::{
 ///             ClientboundLoginPacket,
-///             s_hello::ServerboundHello,
-///             s_key::ServerboundKeyPacket
+///             ServerboundHello,
+///             ServerboundKey
 ///         },
-///         handshaking::client_intention::ClientIntention
+///         handshake::ServerboundIntention
 ///     }
 /// };
 ///
@@ -77,28 +77,20 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///     let mut conn = Connection::new(&resolved_address).await?;
 ///
 ///     // handshake
-///     conn.write(
-///         ClientIntention {
-///             protocol_version: PROTOCOL_VERSION,
-///             hostname: resolved_address.ip().to_string(),
-///             port: resolved_address.port(),
-///             intention: ClientIntention::Login,
-///         }
-///         .into(),
-///     )
-///     .await?;
+///     conn.write(ServerboundIntention {
+///         protocol_version: PROTOCOL_VERSION,
+///         hostname: resolved_address.ip().to_string(),
+///         port: resolved_address.port(),
+///         intention: ClientIntention::Login,
+///     }).await?;
 ///
 ///     let mut conn = conn.login();
 ///
 ///     // login
-///     conn.write(
-///         ServerboundHello {
-///             name: "bot".to_string(),
-///             profile_id: uuid::Uuid::nil(),
-///         }
-///         .into(),
-///     )
-///     .await?;
+///     conn.write(ServerboundHello {
+///         name: "bot".to_string(),
+///         profile_id: uuid::Uuid::nil(),
+///     }).await?;
 ///
 ///     let (conn, game_profile) = loop {
 ///         let packet = conn.read().await?;
@@ -106,14 +98,10 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///             ClientboundLoginPacket::Hello(p) => {
 ///                 let e = azalea_crypto::encrypt(&p.public_key, &p.challenge).unwrap();
 ///
-///                 conn.write(
-///                     ServerboundKeyPacket {
-///                         key_bytes: e.encrypted_public_key,
-///                         encrypted_challenge: e.encrypted_challenge,
-///                     }
-///                     .into(),
-///                 )
-///                 .await?;
+///                 conn.write(ServerboundKey {
+///                     key_bytes: e.encrypted_public_key,
+///                     encrypted_challenge: e.encrypted_challenge,
+///                 }).await?;
 ///                 conn.set_encryption_key(e.secret_key);
 ///             }
 ///             ClientboundLoginPacket::LoginCompression(p) => {
@@ -382,7 +370,7 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
     /// use azalea_protocol::connect::Connection;
     /// use azalea_protocol::packets::login::{
     ///     ClientboundLoginPacket,
-    ///     s_key::ServerboundKeyPacket
+    ///     s_key::ServerboundKey
     /// };
     /// use uuid::Uuid;
     /// # use azalea_protocol::ServerAddress;
@@ -411,12 +399,10 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
     ///             e.secret_key,
     ///             &p
     ///         ).await?;
-    ///         conn.write(
-    ///             ServerboundKeyPacket {
-    ///                 key_bytes: e.encrypted_public_key,
-    ///                 encrypted_challenge: e.encrypted_challenge,
-    ///             }.into()
-    ///         ).await?;
+    ///         conn.write(ServerboundKey {
+    ///             key_bytes: e.encrypted_public_key,
+    ///             encrypted_challenge: e.encrypted_challenge,
+    ///         }).await?;
     ///         conn.set_encryption_key(e.secret_key);
     ///     }
     ///     _ => {}
