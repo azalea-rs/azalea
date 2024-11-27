@@ -32,34 +32,34 @@ pub struct BlockHit {
 }
 
 impl McBufWritable for BlockHit {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        self.block_pos.write_into(buf)?;
-        self.direction.write_into(buf)?;
-        f32::write_into(
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        self.block_pos.azalea_write(buf)?;
+        self.direction.azalea_write(buf)?;
+        f32::azalea_write(
             &((self.location.x - f64::from(self.block_pos.x)) as f32),
             buf,
         )?;
-        f32::write_into(
+        f32::azalea_write(
             &((self.location.y - f64::from(self.block_pos.y)) as f32),
             buf,
         )?;
-        f32::write_into(
+        f32::azalea_write(
             &((self.location.z - f64::from(self.block_pos.z)) as f32),
             buf,
         )?;
-        self.inside.write_into(buf)?;
+        self.inside.azalea_write(buf)?;
         Ok(())
     }
 }
 
 impl McBufReadable for BlockHit {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let block_pos = BlockPos::read_from(buf)?;
-        let direction = Direction::read_from(buf)?;
-        let cursor_x = f32::read_from(buf)?;
-        let cursor_y = f32::read_from(buf)?;
-        let cursor_z = f32::read_from(buf)?;
-        let inside = bool::read_from(buf)?;
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let block_pos = BlockPos::azalea_read(buf)?;
+        let direction = Direction::azalea_read(buf)?;
+        let cursor_x = f32::azalea_read(buf)?;
+        let cursor_y = f32::azalea_read(buf)?;
+        let cursor_z = f32::azalea_read(buf)?;
+        let inside = bool::azalea_read(buf)?;
         Ok(Self {
             block_pos,
             direction,

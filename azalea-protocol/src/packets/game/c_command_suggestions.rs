@@ -29,9 +29,9 @@ mod tests {
             )],
         );
         let mut buf = Vec::new();
-        suggestions.write_into(&mut buf).unwrap();
+        suggestions.azalea_write(&mut buf).unwrap();
         let mut cursor = Cursor::new(&buf[..]);
-        let suggestions = Suggestions::read_from(&mut cursor).unwrap();
+        let suggestions = Suggestions::azalea_read(&mut cursor).unwrap();
         assert_eq!(suggestions, suggestions);
     }
 }

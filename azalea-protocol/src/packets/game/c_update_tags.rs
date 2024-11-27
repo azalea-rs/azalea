@@ -22,15 +22,15 @@ pub struct Tags {
 pub struct TagMap(pub HashMap<ResourceLocation, Vec<Tags>>);
 
 impl McBufReadable for TagMap {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let length = u32::var_read_from(buf)? as usize;
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let length = u32::azalea_read_var(buf)? as usize;
         let mut data = HashMap::with_capacity(length);
         for _ in 0..length {
-            let tag_type = ResourceLocation::read_from(buf)?;
-            let tags_count = i32::var_read_from(buf)? as usize;
+            let tag_type = ResourceLocation::azalea_read(buf)?;
+            let tags_count = i32::azalea_read_var(buf)? as usize;
             let mut tags_vec = Vec::with_capacity(tags_count);
             for _ in 0..tags_count {
-                let tags = Tags::read_from(buf)?;
+                let tags = Tags::azalea_read(buf)?;
                 tags_vec.push(tags);
             }
             data.insert(tag_type, tags_vec);
@@ -40,27 +40,27 @@ impl McBufReadable for TagMap {
 }
 
 impl McBufWritable for TagMap {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        (self.len() as u32).var_write_into(buf)?;
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        (self.len() as u32).azalea_write_var(buf)?;
         for (k, v) in &self.0 {
-            k.write_into(buf)?;
-            v.write_into(buf)?;
+            k.azalea_write(buf)?;
+            v.azalea_write(buf)?;
         }
         Ok(())
     }
 }
 impl McBufReadable for Tags {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let name = ResourceLocation::read_from(buf)?;
-        let elements = Vec::<i32>::var_read_from(buf)?;
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let name = ResourceLocation::azalea_read(buf)?;
+        let elements = Vec::<i32>::azalea_read_var(buf)?;
         Ok(Tags { name, elements })
     }
 }
 
 impl McBufWritable for Tags {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        self.name.write_into(buf)?;
-        self.elements.var_write_into(buf)?;
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        self.name.azalea_write(buf)?;
+        self.elements.azalea_write_var(buf)?;
         Ok(())
     }
 }

@@ -28,21 +28,21 @@ pub enum ActionType {
 }
 
 impl McBufWritable for ActionType {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         match self {
             ActionType::Interact { hand } => {
-                0u32.var_write_into(buf)?;
-                hand.write_into(buf)?;
+                0u32.azalea_write_var(buf)?;
+                hand.azalea_write(buf)?;
             }
             ActionType::Attack => {
-                1u32.var_write_into(buf)?;
+                1u32.azalea_write_var(buf)?;
             }
             ActionType::InteractAt { location, hand } => {
-                2u32.var_write_into(buf)?;
-                (location.x as f32).write_into(buf)?;
-                (location.y as f32).write_into(buf)?;
-                (location.z as f32).write_into(buf)?;
-                hand.write_into(buf)?;
+                2u32.azalea_write_var(buf)?;
+                (location.x as f32).azalea_write(buf)?;
+                (location.y as f32).azalea_write(buf)?;
+                (location.z as f32).azalea_write(buf)?;
+                hand.azalea_write(buf)?;
             }
         }
         Ok(())
@@ -50,19 +50,19 @@ impl McBufWritable for ActionType {
 }
 
 impl McBufReadable for ActionType {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let action_type = u32::var_read_from(buf)?;
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let action_type = u32::azalea_read_var(buf)?;
         match action_type {
             0 => {
-                let hand = InteractionHand::read_from(buf)?;
+                let hand = InteractionHand::azalea_read(buf)?;
                 Ok(ActionType::Interact { hand })
             }
             1 => Ok(ActionType::Attack),
             2 => {
-                let x = f32::read_from(buf)?;
-                let y = f32::read_from(buf)?;
-                let z = f32::read_from(buf)?;
-                let hand = InteractionHand::read_from(buf)?;
+                let x = f32::azalea_read(buf)?;
+                let y = f32::azalea_read(buf)?;
+                let z = f32::azalea_read(buf)?;
+                let hand = InteractionHand::azalea_read(buf)?;
                 Ok(ActionType::InteractAt {
                     location: Vec3 {
                         x: f64::from(x),

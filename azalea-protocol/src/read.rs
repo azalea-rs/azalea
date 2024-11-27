@@ -86,7 +86,7 @@ fn parse_frame(buffer: &mut BytesMut) -> Result<BytesMut, FrameSplitterError> {
     // the packet is all good we read it fully
     let mut buffer_copy = Cursor::new(&buffer[..]);
     // Packet Length
-    let length = match u32::var_read_from(&mut buffer_copy) {
+    let length = match u32::azalea_read_var(&mut buffer_copy) {
         Ok(length) => length as usize,
         Err(err) => match err {
             BufReadError::Io { source } => return Err(FrameSplitterError::Io { source }),
@@ -134,7 +134,7 @@ pub fn deserialize_packet<P: ProtocolPacket + Debug>(
 ) -> Result<P, Box<ReadPacketError>> {
     // Packet ID
     let packet_id =
-        u32::var_read_from(stream).map_err(|e| ReadPacketError::ReadPacketId { source: e })?;
+        u32::azalea_read_var(stream).map_err(|e| ReadPacketError::ReadPacketId { source: e })?;
     P::read(packet_id, stream)
 }
 
@@ -171,7 +171,7 @@ pub fn compression_decoder(
     compression_threshold: u32,
 ) -> Result<Vec<u8>, DecompressionError> {
     // Data Length
-    let n = u32::var_read_from(stream)?;
+    let n = u32::azalea_read_var(stream)?;
     if n == 0 {
         // no data size, no compression
         let mut buf = vec![];

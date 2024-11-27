@@ -64,43 +64,43 @@ pub struct UpdateListOrderAction {
 }
 
 impl McBufReadable for ClientboundPlayerInfoUpdate {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let actions = ActionEnumSet::read_from(buf)?;
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let actions = ActionEnumSet::azalea_read(buf)?;
         let mut entries = Vec::new();
 
-        let entry_count = u32::var_read_from(buf)?;
+        let entry_count = u32::azalea_read_var(buf)?;
         for _ in 0..entry_count {
-            let profile_id = Uuid::read_from(buf)?;
+            let profile_id = Uuid::azalea_read(buf)?;
             let mut entry = PlayerInfoEntry::default();
             entry.profile.uuid = profile_id;
 
             if actions.add_player {
-                let action = AddPlayerAction::read_from(buf)?;
+                let action = AddPlayerAction::azalea_read(buf)?;
                 entry.profile.name = action.name;
                 entry.profile.properties = action.properties;
             }
             if actions.initialize_chat {
-                let action = InitializeChatAction::read_from(buf)?;
+                let action = InitializeChatAction::azalea_read(buf)?;
                 entry.chat_session = action.chat_session;
             }
             if actions.update_game_mode {
-                let action = UpdateGameModeAction::read_from(buf)?;
+                let action = UpdateGameModeAction::azalea_read(buf)?;
                 entry.game_mode = action.game_mode;
             }
             if actions.update_listed {
-                let action = UpdateListedAction::read_from(buf)?;
+                let action = UpdateListedAction::azalea_read(buf)?;
                 entry.listed = action.listed;
             }
             if actions.update_latency {
-                let action = UpdateLatencyAction::read_from(buf)?;
+                let action = UpdateLatencyAction::azalea_read(buf)?;
                 entry.latency = action.latency;
             }
             if actions.update_display_name {
-                let action = UpdateDisplayNameAction::read_from(buf)?;
+                let action = UpdateDisplayNameAction::azalea_read(buf)?;
                 entry.display_name = action.display_name;
             }
             if actions.update_list_order {
-                let action = UpdateListOrderAction::read_from(buf)?;
+                let action = UpdateListOrderAction::azalea_read(buf)?;
                 entry.list_order = action.list_order;
             }
 
@@ -112,49 +112,49 @@ impl McBufReadable for ClientboundPlayerInfoUpdate {
 }
 
 impl McBufWritable for ClientboundPlayerInfoUpdate {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        self.actions.write_into(buf)?;
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        self.actions.azalea_write(buf)?;
 
-        (self.entries.len() as u32).var_write_into(buf)?;
+        (self.entries.len() as u32).azalea_write_var(buf)?;
         for entry in &self.entries {
-            entry.profile.uuid.write_into(buf)?;
+            entry.profile.uuid.azalea_write(buf)?;
 
             if self.actions.add_player {
                 AddPlayerAction {
                     name: entry.profile.name.clone(),
                     properties: entry.profile.properties.clone(),
                 }
-                .write_into(buf)?;
+                .azalea_write(buf)?;
             }
             if self.actions.initialize_chat {
                 InitializeChatAction {
                     chat_session: entry.chat_session.clone(),
                 }
-                .write_into(buf)?;
+                .azalea_write(buf)?;
             }
             if self.actions.update_game_mode {
                 UpdateGameModeAction {
                     game_mode: entry.game_mode,
                 }
-                .write_into(buf)?;
+                .azalea_write(buf)?;
             }
             if self.actions.update_listed {
                 UpdateListedAction {
                     listed: entry.listed,
                 }
-                .write_into(buf)?;
+                .azalea_write(buf)?;
             }
             if self.actions.update_latency {
                 UpdateLatencyAction {
                     latency: entry.latency,
                 }
-                .write_into(buf)?;
+                .azalea_write(buf)?;
             }
             if self.actions.update_display_name {
                 UpdateDisplayNameAction {
                     display_name: entry.display_name.clone(),
                 }
-                .write_into(buf)?;
+                .azalea_write(buf)?;
             }
         }
 
@@ -174,8 +174,8 @@ pub struct ActionEnumSet {
 }
 
 impl McBufReadable for ActionEnumSet {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let set = FixedBitSet::<7>::read_from(buf)?;
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let set = FixedBitSet::<7>::azalea_read(buf)?;
         Ok(ActionEnumSet {
             add_player: set.index(0),
             initialize_chat: set.index(1),
@@ -189,7 +189,7 @@ impl McBufReadable for ActionEnumSet {
 }
 
 impl McBufWritable for ActionEnumSet {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         let mut set = FixedBitSet::<7>::new();
         if self.add_player {
             set.set(0);
@@ -212,7 +212,7 @@ impl McBufWritable for ActionEnumSet {
         if self.update_list_order {
             set.set(6);
         }
-        set.write_into(buf)?;
+        set.azalea_write(buf)?;
         Ok(())
     }
 }
@@ -233,9 +233,9 @@ mod tests {
             update_list_order: true,
         };
         let mut buf = Vec::new();
-        data.write_into(&mut buf).unwrap();
+        data.azalea_write(&mut buf).unwrap();
         let mut data_cursor: Cursor<&[u8]> = Cursor::new(&buf);
-        let read_data = ActionEnumSet::read_from(&mut data_cursor).unwrap();
+        let read_data = ActionEnumSet::azalea_read(&mut data_cursor).unwrap();
         assert_eq!(read_data, data);
     }
 
@@ -308,6 +308,6 @@ mod tests {
                 0,
             ][..],
         );
-        let _packet = ClientboundPlayerInfoUpdate::read_from(&mut bytes).unwrap();
+        let _packet = ClientboundPlayerInfoUpdate::azalea_read(&mut bytes).unwrap();
     }
 }

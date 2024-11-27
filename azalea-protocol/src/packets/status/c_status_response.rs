@@ -42,8 +42,8 @@ pub struct ClientboundStatusResponse {
 }
 
 impl McBufReadable for ClientboundStatusResponse {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<ClientboundStatusResponse, BufReadError> {
-        let status_string = String::read_from(buf)?;
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<ClientboundStatusResponse, BufReadError> {
+        let status_string = String::azalea_read(buf)?;
         let status_json: serde_json::Value = serde_json::from_str(status_string.as_str())?;
 
         Ok(ClientboundStatusResponse::deserialize(status_json)?)
@@ -51,11 +51,11 @@ impl McBufReadable for ClientboundStatusResponse {
 }
 
 impl McBufWritable for ClientboundStatusResponse {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         let status_string = ClientboundStatusResponse::serialize(self, Serializer)
             .unwrap()
             .to_string();
-        status_string.write_into(buf)?;
+        status_string.azalea_write(buf)?;
         Ok(())
     }
 }

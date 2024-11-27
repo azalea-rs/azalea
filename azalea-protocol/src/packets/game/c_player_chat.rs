@@ -145,10 +145,10 @@ impl ChatType {
 }
 
 impl McBufReadable for PackedMessageSignature {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let id = u32::var_read_from(buf)?;
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let id = u32::azalea_read_var(buf)?;
         if id == 0 {
-            let full_signature = MessageSignature::read_from(buf)?;
+            let full_signature = MessageSignature::azalea_read(buf)?;
 
             Ok(PackedMessageSignature::Signature(Box::new(full_signature)))
         } else {
@@ -157,14 +157,14 @@ impl McBufReadable for PackedMessageSignature {
     }
 }
 impl McBufWritable for PackedMessageSignature {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         match self {
             PackedMessageSignature::Signature(full_signature) => {
-                0u32.var_write_into(buf)?;
-                full_signature.write_into(buf)?;
+                0u32.azalea_write_var(buf)?;
+                full_signature.azalea_write(buf)?;
             }
             PackedMessageSignature::Id(id) => {
-                (id + 1).var_write_into(buf)?;
+                (id + 1).azalea_write_var(buf)?;
             }
         }
         Ok(())
@@ -197,6 +197,6 @@ mod tests {
                 105, 115, 97, 8, 0, 4, 116, 101, 120, 116, 0, 0, 0, 0,
             ][..],
         );
-        let _packet = ClientboundPlayerChat::read_from(&mut bytes).unwrap();
+        let _packet = ClientboundPlayerChat::azalea_read(&mut bytes).unwrap();
     }
 }

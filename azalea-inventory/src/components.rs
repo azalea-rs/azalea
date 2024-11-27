@@ -29,7 +29,7 @@ where
     T: DataComponent + Clone + McBufWritable + McBufReadable + PartialEq,
 {
     fn encode(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
-        self.write_into(buf)
+        self.azalea_write(buf)
     }
     fn clone(&self) -> Box<dyn EncodableDataComponent> {
         let cloned = self.clone();
@@ -54,81 +54,83 @@ pub fn from_kind(
 
     // note that this match statement is updated by genitemcomponents.py
     Ok(match kind {
-        DataComponentKind::CustomData => Box::new(CustomData::read_from(buf)?),
-        DataComponentKind::MaxStackSize => Box::new(MaxStackSize::read_from(buf)?),
-        DataComponentKind::MaxDamage => Box::new(MaxDamage::read_from(buf)?),
-        DataComponentKind::Damage => Box::new(Damage::read_from(buf)?),
-        DataComponentKind::Unbreakable => Box::new(Unbreakable::read_from(buf)?),
-        DataComponentKind::CustomName => Box::new(CustomName::read_from(buf)?),
-        DataComponentKind::ItemName => Box::new(ItemName::read_from(buf)?),
-        DataComponentKind::Lore => Box::new(Lore::read_from(buf)?),
-        DataComponentKind::Rarity => Box::new(Rarity::read_from(buf)?),
-        DataComponentKind::Enchantments => Box::new(Enchantments::read_from(buf)?),
-        DataComponentKind::CanPlaceOn => Box::new(CanPlaceOn::read_from(buf)?),
-        DataComponentKind::CanBreak => Box::new(CanBreak::read_from(buf)?),
-        DataComponentKind::AttributeModifiers => Box::new(AttributeModifiers::read_from(buf)?),
-        DataComponentKind::CustomModelData => Box::new(CustomModelData::read_from(buf)?),
+        DataComponentKind::CustomData => Box::new(CustomData::azalea_read(buf)?),
+        DataComponentKind::MaxStackSize => Box::new(MaxStackSize::azalea_read(buf)?),
+        DataComponentKind::MaxDamage => Box::new(MaxDamage::azalea_read(buf)?),
+        DataComponentKind::Damage => Box::new(Damage::azalea_read(buf)?),
+        DataComponentKind::Unbreakable => Box::new(Unbreakable::azalea_read(buf)?),
+        DataComponentKind::CustomName => Box::new(CustomName::azalea_read(buf)?),
+        DataComponentKind::ItemName => Box::new(ItemName::azalea_read(buf)?),
+        DataComponentKind::Lore => Box::new(Lore::azalea_read(buf)?),
+        DataComponentKind::Rarity => Box::new(Rarity::azalea_read(buf)?),
+        DataComponentKind::Enchantments => Box::new(Enchantments::azalea_read(buf)?),
+        DataComponentKind::CanPlaceOn => Box::new(CanPlaceOn::azalea_read(buf)?),
+        DataComponentKind::CanBreak => Box::new(CanBreak::azalea_read(buf)?),
+        DataComponentKind::AttributeModifiers => Box::new(AttributeModifiers::azalea_read(buf)?),
+        DataComponentKind::CustomModelData => Box::new(CustomModelData::azalea_read(buf)?),
         DataComponentKind::HideAdditionalTooltip => {
-            Box::new(HideAdditionalTooltip::read_from(buf)?)
+            Box::new(HideAdditionalTooltip::azalea_read(buf)?)
         }
-        DataComponentKind::HideTooltip => Box::new(HideTooltip::read_from(buf)?),
-        DataComponentKind::RepairCost => Box::new(RepairCost::read_from(buf)?),
-        DataComponentKind::CreativeSlotLock => Box::new(CreativeSlotLock::read_from(buf)?),
+        DataComponentKind::HideTooltip => Box::new(HideTooltip::azalea_read(buf)?),
+        DataComponentKind::RepairCost => Box::new(RepairCost::azalea_read(buf)?),
+        DataComponentKind::CreativeSlotLock => Box::new(CreativeSlotLock::azalea_read(buf)?),
         DataComponentKind::EnchantmentGlintOverride => {
-            Box::new(EnchantmentGlintOverride::read_from(buf)?)
+            Box::new(EnchantmentGlintOverride::azalea_read(buf)?)
         }
-        DataComponentKind::IntangibleProjectile => Box::new(IntangibleProjectile::read_from(buf)?),
-        DataComponentKind::Food => Box::new(Food::read_from(buf)?),
-        DataComponentKind::Tool => Box::new(Tool::read_from(buf)?),
-        DataComponentKind::StoredEnchantments => Box::new(StoredEnchantments::read_from(buf)?),
-        DataComponentKind::DyedColor => Box::new(DyedColor::read_from(buf)?),
-        DataComponentKind::MapColor => Box::new(MapColor::read_from(buf)?),
-        DataComponentKind::MapId => Box::new(MapId::read_from(buf)?),
-        DataComponentKind::MapDecorations => Box::new(MapDecorations::read_from(buf)?),
-        DataComponentKind::MapPostProcessing => Box::new(MapPostProcessing::read_from(buf)?),
-        DataComponentKind::ChargedProjectiles => Box::new(ChargedProjectiles::read_from(buf)?),
-        DataComponentKind::BundleContents => Box::new(BundleContents::read_from(buf)?),
-        DataComponentKind::PotionContents => Box::new(PotionContents::read_from(buf)?),
+        DataComponentKind::IntangibleProjectile => {
+            Box::new(IntangibleProjectile::azalea_read(buf)?)
+        }
+        DataComponentKind::Food => Box::new(Food::azalea_read(buf)?),
+        DataComponentKind::Tool => Box::new(Tool::azalea_read(buf)?),
+        DataComponentKind::StoredEnchantments => Box::new(StoredEnchantments::azalea_read(buf)?),
+        DataComponentKind::DyedColor => Box::new(DyedColor::azalea_read(buf)?),
+        DataComponentKind::MapColor => Box::new(MapColor::azalea_read(buf)?),
+        DataComponentKind::MapId => Box::new(MapId::azalea_read(buf)?),
+        DataComponentKind::MapDecorations => Box::new(MapDecorations::azalea_read(buf)?),
+        DataComponentKind::MapPostProcessing => Box::new(MapPostProcessing::azalea_read(buf)?),
+        DataComponentKind::ChargedProjectiles => Box::new(ChargedProjectiles::azalea_read(buf)?),
+        DataComponentKind::BundleContents => Box::new(BundleContents::azalea_read(buf)?),
+        DataComponentKind::PotionContents => Box::new(PotionContents::azalea_read(buf)?),
         DataComponentKind::SuspiciousStewEffects => {
-            Box::new(SuspiciousStewEffects::read_from(buf)?)
+            Box::new(SuspiciousStewEffects::azalea_read(buf)?)
         }
-        DataComponentKind::WritableBookContent => Box::new(WritableBookContent::read_from(buf)?),
-        DataComponentKind::WrittenBookContent => Box::new(WrittenBookContent::read_from(buf)?),
-        DataComponentKind::Trim => Box::new(Trim::read_from(buf)?),
-        DataComponentKind::DebugStickState => Box::new(DebugStickState::read_from(buf)?),
-        DataComponentKind::EntityData => Box::new(EntityData::read_from(buf)?),
-        DataComponentKind::BucketEntityData => Box::new(BucketEntityData::read_from(buf)?),
-        DataComponentKind::BlockEntityData => Box::new(BlockEntityData::read_from(buf)?),
-        DataComponentKind::Instrument => Box::new(Instrument::read_from(buf)?),
+        DataComponentKind::WritableBookContent => Box::new(WritableBookContent::azalea_read(buf)?),
+        DataComponentKind::WrittenBookContent => Box::new(WrittenBookContent::azalea_read(buf)?),
+        DataComponentKind::Trim => Box::new(Trim::azalea_read(buf)?),
+        DataComponentKind::DebugStickState => Box::new(DebugStickState::azalea_read(buf)?),
+        DataComponentKind::EntityData => Box::new(EntityData::azalea_read(buf)?),
+        DataComponentKind::BucketEntityData => Box::new(BucketEntityData::azalea_read(buf)?),
+        DataComponentKind::BlockEntityData => Box::new(BlockEntityData::azalea_read(buf)?),
+        DataComponentKind::Instrument => Box::new(Instrument::azalea_read(buf)?),
         DataComponentKind::OminousBottleAmplifier => {
-            Box::new(OminousBottleAmplifier::read_from(buf)?)
+            Box::new(OminousBottleAmplifier::azalea_read(buf)?)
         }
-        DataComponentKind::Recipes => Box::new(Recipes::read_from(buf)?),
-        DataComponentKind::LodestoneTracker => Box::new(LodestoneTracker::read_from(buf)?),
-        DataComponentKind::FireworkExplosion => Box::new(FireworkExplosion::read_from(buf)?),
-        DataComponentKind::Fireworks => Box::new(Fireworks::read_from(buf)?),
-        DataComponentKind::Profile => Box::new(Profile::read_from(buf)?),
-        DataComponentKind::NoteBlockSound => Box::new(NoteBlockSound::read_from(buf)?),
-        DataComponentKind::BannerPatterns => Box::new(BannerPatterns::read_from(buf)?),
-        DataComponentKind::BaseColor => Box::new(BaseColor::read_from(buf)?),
-        DataComponentKind::PotDecorations => Box::new(PotDecorations::read_from(buf)?),
-        DataComponentKind::Container => Box::new(Container::read_from(buf)?),
-        DataComponentKind::BlockState => Box::new(BlockState::read_from(buf)?),
-        DataComponentKind::Bees => Box::new(Bees::read_from(buf)?),
-        DataComponentKind::Lock => Box::new(Lock::read_from(buf)?),
-        DataComponentKind::ContainerLoot => Box::new(ContainerLoot::read_from(buf)?),
-        DataComponentKind::JukeboxPlayable => Box::new(JukeboxPlayable::read_from(buf)?),
-        DataComponentKind::Consumable => Box::new(Consumable::read_from(buf)?),
-        DataComponentKind::UseRemainder => Box::new(UseRemainder::read_from(buf)?),
-        DataComponentKind::UseCooldown => Box::new(UseCooldown::read_from(buf)?),
-        DataComponentKind::Enchantable => Box::new(Enchantable::read_from(buf)?),
-        DataComponentKind::Repairable => Box::new(Repairable::read_from(buf)?),
-        DataComponentKind::ItemModel => Box::new(ItemModel::read_from(buf)?),
-        DataComponentKind::DamageResistant => Box::new(DamageResistant::read_from(buf)?),
-        DataComponentKind::Equippable => Box::new(Equippable::read_from(buf)?),
-        DataComponentKind::Glider => Box::new(Glider::read_from(buf)?),
-        DataComponentKind::TooltipStyle => Box::new(TooltipStyle::read_from(buf)?),
-        DataComponentKind::DeathProtection => Box::new(DeathProtection::read_from(buf)?),
+        DataComponentKind::Recipes => Box::new(Recipes::azalea_read(buf)?),
+        DataComponentKind::LodestoneTracker => Box::new(LodestoneTracker::azalea_read(buf)?),
+        DataComponentKind::FireworkExplosion => Box::new(FireworkExplosion::azalea_read(buf)?),
+        DataComponentKind::Fireworks => Box::new(Fireworks::azalea_read(buf)?),
+        DataComponentKind::Profile => Box::new(Profile::azalea_read(buf)?),
+        DataComponentKind::NoteBlockSound => Box::new(NoteBlockSound::azalea_read(buf)?),
+        DataComponentKind::BannerPatterns => Box::new(BannerPatterns::azalea_read(buf)?),
+        DataComponentKind::BaseColor => Box::new(BaseColor::azalea_read(buf)?),
+        DataComponentKind::PotDecorations => Box::new(PotDecorations::azalea_read(buf)?),
+        DataComponentKind::Container => Box::new(Container::azalea_read(buf)?),
+        DataComponentKind::BlockState => Box::new(BlockState::azalea_read(buf)?),
+        DataComponentKind::Bees => Box::new(Bees::azalea_read(buf)?),
+        DataComponentKind::Lock => Box::new(Lock::azalea_read(buf)?),
+        DataComponentKind::ContainerLoot => Box::new(ContainerLoot::azalea_read(buf)?),
+        DataComponentKind::JukeboxPlayable => Box::new(JukeboxPlayable::azalea_read(buf)?),
+        DataComponentKind::Consumable => Box::new(Consumable::azalea_read(buf)?),
+        DataComponentKind::UseRemainder => Box::new(UseRemainder::azalea_read(buf)?),
+        DataComponentKind::UseCooldown => Box::new(UseCooldown::azalea_read(buf)?),
+        DataComponentKind::Enchantable => Box::new(Enchantable::azalea_read(buf)?),
+        DataComponentKind::Repairable => Box::new(Repairable::azalea_read(buf)?),
+        DataComponentKind::ItemModel => Box::new(ItemModel::azalea_read(buf)?),
+        DataComponentKind::DamageResistant => Box::new(DamageResistant::azalea_read(buf)?),
+        DataComponentKind::Equippable => Box::new(Equippable::azalea_read(buf)?),
+        DataComponentKind::Glider => Box::new(Glider::azalea_read(buf)?),
+        DataComponentKind::TooltipStyle => Box::new(TooltipStyle::azalea_read(buf)?),
+        DataComponentKind::DeathProtection => Box::new(DeathProtection::azalea_read(buf)?),
     })
 }
 

@@ -94,8 +94,8 @@ impl GameMode {
 }
 
 impl McBufReadable for GameMode {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let id = u32::var_read_from(buf)?;
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let id = u32::azalea_read_var(buf)?;
         let id = id.try_into().unwrap_or_else(|_| {
             debug!("Unknown game mode id {id}, defaulting to survival");
             0
@@ -108,8 +108,8 @@ impl McBufReadable for GameMode {
 }
 
 impl McBufWritable for GameMode {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        u8::write_into(&self.to_id(), buf)
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        u8::azalea_write(&self.to_id(), buf)
     }
 }
 
@@ -131,14 +131,14 @@ impl From<OptionalGameType> for Option<GameMode> {
 }
 
 impl McBufReadable for OptionalGameType {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let id = i8::read_from(buf)?;
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let id = i8::azalea_read(buf)?;
         GameMode::from_optional_id(id).ok_or(BufReadError::UnexpectedEnumVariant { id: id as i32 })
     }
 }
 
 impl McBufWritable for OptionalGameType {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        GameMode::to_optional_id(*self).write_into(buf)
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        GameMode::to_optional_id(*self).azalea_write(buf)
     }
 }

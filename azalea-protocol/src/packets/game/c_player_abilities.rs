@@ -22,8 +22,8 @@ pub struct PlayerAbilitiesFlags {
 }
 
 impl McBufReadable for PlayerAbilitiesFlags {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let set = FixedBitSet::<4>::read_from(buf)?;
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let set = FixedBitSet::<4>::azalea_read(buf)?;
         Ok(PlayerAbilitiesFlags {
             invulnerable: set.index(0),
             flying: set.index(1),
@@ -34,7 +34,7 @@ impl McBufReadable for PlayerAbilitiesFlags {
 }
 
 impl McBufWritable for PlayerAbilitiesFlags {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         let mut set = FixedBitSet::<4>::new();
         if self.invulnerable {
             set.set(0);
@@ -48,6 +48,6 @@ impl McBufWritable for PlayerAbilitiesFlags {
         if self.instant_break {
             set.set(3);
         }
-        set.write_into(buf)
+        set.azalea_write(buf)
     }
 }

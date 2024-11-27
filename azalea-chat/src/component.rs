@@ -457,7 +457,7 @@ impl From<&simdnbt::Mutf8Str> for FormattedText {
 #[cfg(feature = "azalea-buf")]
 #[cfg(feature = "simdnbt")]
 impl McBufReadable for FormattedText {
-    fn read_from(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, BufReadError> {
+    fn azalea_read(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let nbt = simdnbt::borrow::read_optional_tag(buf)?;
         if let Some(nbt) = nbt {
             FormattedText::from_nbt_tag(nbt.as_tag()).ok_or(BufReadError::Custom(
@@ -472,7 +472,7 @@ impl McBufReadable for FormattedText {
 #[cfg(feature = "azalea-buf")]
 #[cfg(feature = "simdnbt")]
 impl McBufWritable for FormattedText {
-    fn write_into(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
         let mut out = Vec::new();
         simdnbt::owned::BaseNbt::write_unnamed(&(self.clone().to_compound().into()), &mut out);
         buf.write_all(&out)

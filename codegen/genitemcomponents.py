@@ -144,7 +144,7 @@ def add_variant(variant: str):
         raise ValueError('Couldn\'t find end of match')
     
     code = code[:last_line_in_match] + [
-        f'        DataComponentKind::{variant} => Box::new({variant}::read_from(buf)?),',
+        f'        DataComponentKind::{variant} => Box::new({variant}::azalea_read(buf)?),',
     ] + code[last_line_in_match:]
 
     # now insert the struct

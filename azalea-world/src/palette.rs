@@ -44,11 +44,11 @@ impl PalettedContainer {
         buf: &mut Cursor<&[u8]>,
         container_type: &'static PalettedContainerKind,
     ) -> Result<Self, BufReadError> {
-        let server_bits_per_entry = u8::read_from(buf)?;
+        let server_bits_per_entry = u8::azalea_read(buf)?;
         let palette_type = PaletteKind::from_bits_and_type(server_bits_per_entry, container_type);
         let palette = palette_type.read(buf)?;
         let size = container_type.size();
-        let data = Vec::<u64>::read_from(buf)?;
+        let data = Vec::<u64>::azalea_read(buf)?;
 
         // we can only trust the bits per entry that we're sent if there's enough data
         // that it'd be global. if it's not global, then we have to calculate it
@@ -225,10 +225,10 @@ impl PalettedContainer {
 }
 
 impl McBufWritable for PalettedContainer {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        self.bits_per_entry.write_into(buf)?;
-        self.palette.write_into(buf)?;
-        self.storage.data.write_into(buf)?;
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        self.bits_per_entry.azalea_write(buf)?;
+        self.palette.azalea_write(buf)?;
+        self.storage.data.azalea_write(buf)?;
         Ok(())
     }
 }
@@ -265,16 +265,16 @@ impl Palette {
 }
 
 impl McBufWritable for Palette {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         match self {
             Palette::SingleValue(value) => {
-                value.var_write_into(buf)?;
+                value.azalea_write_var(buf)?;
             }
             Palette::Linear(values) => {
-                values.var_write_into(buf)?;
+                values.azalea_write_var(buf)?;
             }
             Palette::Hashmap(values) => {
-                values.var_write_into(buf)?;
+                values.azalea_write_var(buf)?;
             }
             Palette::Global => {}
         }
@@ -301,9 +301,9 @@ impl PaletteKind {
 
     pub fn read(&self, buf: &mut Cursor<&[u8]>) -> Result<Palette, BufReadError> {
         Ok(match self {
-            PaletteKind::SingleValue => Palette::SingleValue(u32::var_read_from(buf)?),
-            PaletteKind::Linear => Palette::Linear(Vec::<u32>::var_read_from(buf)?),
-            PaletteKind::Hashmap => Palette::Hashmap(Vec::<u32>::var_read_from(buf)?),
+            PaletteKind::SingleValue => Palette::SingleValue(u32::azalea_read_var(buf)?),
+            PaletteKind::Linear => Palette::Linear(Vec::<u32>::azalea_read_var(buf)?),
+            PaletteKind::Hashmap => Palette::Hashmap(Vec::<u32>::azalea_read_var(buf)?),
             PaletteKind::Global => Palette::Global,
         })
     }

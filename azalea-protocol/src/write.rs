@@ -14,7 +14,7 @@ use crate::{packets::ProtocolPacket, read::MAXIMUM_UNCOMPRESSED_LENGTH};
 /// Prepend the length of the packet to it.
 fn frame_prepender(mut data: Vec<u8>) -> Result<Vec<u8>, std::io::Error> {
     let mut buf = Vec::new();
-    (data.len() as u32).var_write_into(&mut buf)?;
+    (data.len() as u32).azalea_write_var(&mut buf)?;
     buf.append(&mut data);
     Ok(buf)
 }
@@ -35,7 +35,7 @@ pub fn serialize_packet<P: ProtocolPacket + Debug>(
     packet: &P,
 ) -> Result<Vec<u8>, PacketEncodeError> {
     let mut buf = Vec::new();
-    packet.id().var_write_into(&mut buf)?;
+    packet.id().azalea_write_var(&mut buf)?;
     packet.write(&mut buf)?;
     if buf.len() > MAXIMUM_UNCOMPRESSED_LENGTH as usize {
         return Err(PacketEncodeError::TooBig {
@@ -61,7 +61,7 @@ pub fn compression_encoder(
     // if it's less than the compression threshold, don't compress
     if n < compression_threshold as usize {
         let mut buf = Vec::new();
-        0.var_write_into(&mut buf)?;
+        0.azalea_write_var(&mut buf)?;
         std::io::Write::write_all(&mut buf, data)?;
         Ok(buf)
     } else {
@@ -73,7 +73,7 @@ pub fn compression_encoder(
 
         // prepend the length
         let mut len_prepended_compressed_data = Vec::new();
-        (data.len() as u32).var_write_into(&mut len_prepended_compressed_data)?;
+        (data.len() as u32).azalea_write_var(&mut len_prepended_compressed_data)?;
         len_prepended_compressed_data.append(&mut compressed_data);
 
         Ok(len_prepended_compressed_data)

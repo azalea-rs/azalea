@@ -35,35 +35,35 @@ pub enum BlockInteraction {
 }
 
 impl McBufReadable for ClientboundExplode {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let x = f64::read_from(buf)?;
-        let y = f64::read_from(buf)?;
-        let z = f64::read_from(buf)?;
-        let power = f32::read_from(buf)?;
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let x = f64::azalea_read(buf)?;
+        let y = f64::azalea_read(buf)?;
+        let z = f64::azalea_read(buf)?;
+        let power = f32::azalea_read(buf)?;
 
         let x_floor = x.floor() as i32;
         let y_floor = y.floor() as i32;
         let z_floor = z.floor() as i32;
 
-        let to_blow_len = u32::var_read_from(buf)?;
+        let to_blow_len = u32::azalea_read_var(buf)?;
         let mut to_blow = Vec::with_capacity(to_blow_len as usize);
         for _ in 0..to_blow_len {
             // the bytes are offsets from the main x y z
-            let x = x_floor + i32::from(i8::read_from(buf)?);
-            let y = y_floor + i32::from(i8::read_from(buf)?);
-            let z = z_floor + i32::from(i8::read_from(buf)?);
+            let x = x_floor + i32::from(i8::azalea_read(buf)?);
+            let y = y_floor + i32::from(i8::azalea_read(buf)?);
+            let z = z_floor + i32::from(i8::azalea_read(buf)?);
             to_blow.push(BlockPos { x, y, z });
         }
 
-        let knockback_x = f32::read_from(buf)?;
-        let knockback_y = f32::read_from(buf)?;
-        let knockback_z = f32::read_from(buf)?;
+        let knockback_x = f32::azalea_read(buf)?;
+        let knockback_y = f32::azalea_read(buf)?;
+        let knockback_z = f32::azalea_read(buf)?;
 
-        let block_interaction = BlockInteraction::read_from(buf)?;
-        let small_explosion_particles = ParticleKind::read_from(buf)?;
-        let large_explosion_particles = ParticleKind::read_from(buf)?;
+        let block_interaction = BlockInteraction::azalea_read(buf)?;
+        let small_explosion_particles = ParticleKind::azalea_read(buf)?;
+        let large_explosion_particles = ParticleKind::azalea_read(buf)?;
 
-        let sound_event_resource_location = ResourceLocation::read_from(buf)?.to_string();
+        let sound_event_resource_location = ResourceLocation::azalea_read(buf)?.to_string();
         let explosion_sound =
             SoundEvent::from_str(&sound_event_resource_location).map_err(|_| {
                 BufReadError::UnexpectedStringEnumVariant {
@@ -89,14 +89,14 @@ impl McBufReadable for ClientboundExplode {
 }
 
 impl McBufWritable for ClientboundExplode {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        self.x.write_into(buf)?;
-        self.y.write_into(buf)?;
-        self.z.write_into(buf)?;
-        self.power.write_into(buf)?;
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        self.x.azalea_write(buf)?;
+        self.y.azalea_write(buf)?;
+        self.z.azalea_write(buf)?;
+        self.power.azalea_write(buf)?;
 
         let to_blow_len = self.to_blow.len() as u32;
-        to_blow_len.var_write_into(buf)?;
+        to_blow_len.azalea_write_var(buf)?;
 
         let x_floor = self.x.floor() as i32;
         let y_floor = self.y.floor() as i32;
@@ -106,22 +106,22 @@ impl McBufWritable for ClientboundExplode {
             let x = (pos.x - x_floor) as i8;
             let y = (pos.y - y_floor) as i8;
             let z = (pos.z - z_floor) as i8;
-            x.write_into(buf)?;
-            y.write_into(buf)?;
-            z.write_into(buf)?;
+            x.azalea_write(buf)?;
+            y.azalea_write(buf)?;
+            z.azalea_write(buf)?;
         }
 
-        self.knockback_x.write_into(buf)?;
-        self.knockback_y.write_into(buf)?;
-        self.knockback_z.write_into(buf)?;
+        self.knockback_x.azalea_write(buf)?;
+        self.knockback_y.azalea_write(buf)?;
+        self.knockback_z.azalea_write(buf)?;
 
-        self.block_interaction.write_into(buf)?;
-        self.small_explosion_particles.write_into(buf)?;
-        self.large_explosion_particles.write_into(buf)?;
+        self.block_interaction.azalea_write(buf)?;
+        self.small_explosion_particles.azalea_write(buf)?;
+        self.large_explosion_particles.azalea_write(buf)?;
 
         let sound_event_resource_location =
             ResourceLocation::new(&self.explosion_sound.to_string());
-        sound_event_resource_location.write_into(buf)?;
+        sound_event_resource_location.azalea_write(buf)?;
 
         Ok(())
     }
@@ -159,8 +159,8 @@ mod tests {
             explosion_sound: SoundEvent::EntityGenericExplode,
         };
         let mut buf = Vec::new();
-        packet.write_into(&mut buf).unwrap();
-        let packet2 = ClientboundExplode::read_from(&mut Cursor::new(&buf)).unwrap();
+        packet.azalea_write(&mut buf).unwrap();
+        let packet2 = ClientboundExplode::azalea_read(&mut Cursor::new(&buf)).unwrap();
         assert_eq!(packet, packet2);
     }
 }

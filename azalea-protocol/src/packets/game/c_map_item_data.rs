@@ -27,22 +27,22 @@ pub struct MapDecoration {
 pub struct OptionalMapPatch(pub Option<MapPatch>);
 
 impl McBufReadable for OptionalMapPatch {
-    fn read_from(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
+    fn azalea_read(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
         let pos = buf.position();
-        Ok(Self(if u8::read_from(buf)? == 0 {
+        Ok(Self(if u8::azalea_read(buf)? == 0 {
             None
         } else {
             buf.set_position(pos);
-            Some(MapPatch::read_from(buf)?)
+            Some(MapPatch::azalea_read(buf)?)
         }))
     }
 }
 
 impl McBufWritable for OptionalMapPatch {
-    fn write_into(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
         match &self.0 {
-            None => 0u8.write_into(buf),
-            Some(m) => m.write_into(buf),
+            None => 0u8.azalea_write(buf),
+            Some(m) => m.azalea_write(buf),
         }
     }
 }

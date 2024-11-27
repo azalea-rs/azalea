@@ -13,15 +13,15 @@ pub struct ClientboundStopSound {
 }
 
 impl McBufReadable for ClientboundStopSound {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let set = FixedBitSet::<2>::read_from(buf)?;
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let set = FixedBitSet::<2>::azalea_read(buf)?;
         let source = if set.index(0) {
-            Some(SoundSource::read_from(buf)?)
+            Some(SoundSource::azalea_read(buf)?)
         } else {
             None
         };
         let name = if set.index(1) {
-            Some(ResourceLocation::read_from(buf)?)
+            Some(ResourceLocation::azalea_read(buf)?)
         } else {
             None
         };
@@ -31,7 +31,7 @@ impl McBufReadable for ClientboundStopSound {
 }
 
 impl McBufWritable for ClientboundStopSound {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         let mut set = FixedBitSet::<2>::new();
         if self.source.is_some() {
             set.set(0);
@@ -39,12 +39,12 @@ impl McBufWritable for ClientboundStopSound {
         if self.name.is_some() {
             set.set(1);
         }
-        set.write_into(buf)?;
+        set.azalea_write(buf)?;
         if let Some(source) = &self.source {
-            source.write_into(buf)?;
+            source.azalea_write(buf)?;
         }
         if let Some(name) = &self.name {
-            name.write_into(buf)?;
+            name.azalea_write(buf)?;
         }
         Ok(())
     }

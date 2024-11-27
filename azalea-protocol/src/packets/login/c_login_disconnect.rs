@@ -11,8 +11,8 @@ pub struct ClientboundLoginDisconnect {
 }
 
 impl McBufReadable for ClientboundLoginDisconnect {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<ClientboundLoginDisconnect, BufReadError> {
-        let disconnect_string = String::read_from(buf)?;
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<ClientboundLoginDisconnect, BufReadError> {
+        let disconnect_string = String::azalea_read(buf)?;
         let disconnect_json: serde_json::Value = serde_json::from_str(disconnect_string.as_str())?;
 
         Ok(ClientboundLoginDisconnect {
@@ -22,11 +22,11 @@ impl McBufReadable for ClientboundLoginDisconnect {
 }
 
 impl McBufWritable for ClientboundLoginDisconnect {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         let status_string = FormattedText::serialize(&self.reason, serde_json::value::Serializer)
             .unwrap()
             .to_string();
-        status_string.write_into(buf)?;
+        status_string.azalea_write(buf)?;
         Ok(())
     }
 }

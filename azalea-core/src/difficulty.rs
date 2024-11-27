@@ -67,14 +67,14 @@ impl Difficulty {
 }
 
 impl McBufReadable for Difficulty {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        Ok(Difficulty::by_id(u8::read_from(buf)?))
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        Ok(Difficulty::by_id(u8::azalea_read(buf)?))
     }
 }
 
 impl McBufWritable for Difficulty {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        u8::write_into(&self.id(), buf)
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        u8::azalea_write(&self.id(), buf)
     }
 }
 

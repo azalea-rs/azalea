@@ -20,8 +20,8 @@ pub struct BlockStateWithPosition {
 }
 
 impl McBufReadable for BlockStateWithPosition {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let data = u64::var_read_from(buf)?;
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let data = u64::azalea_read_var(buf)?;
         let position_part = data & 4095;
         let state = (data >> 12) as u32;
         let state = BlockState::try_from(state)
@@ -36,10 +36,10 @@ impl McBufReadable for BlockStateWithPosition {
 }
 
 impl McBufWritable for BlockStateWithPosition {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         let data = (self.state.id as u64) << 12
             | (u64::from(self.pos.x) << 8 | u64::from(self.pos.z) << 4 | u64::from(self.pos.y));
-        u64::var_write_into(&data, buf)?;
+        u64::azalea_write_var(&data, buf)?;
         Ok(())
     }
 }

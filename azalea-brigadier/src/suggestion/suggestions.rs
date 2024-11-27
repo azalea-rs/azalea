@@ -80,20 +80,20 @@ impl Suggestions {
 
 #[cfg(feature = "azalea-buf")]
 impl McBufReadable for Suggestions {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         #[derive(McBuf)]
         struct StandaloneSuggestion {
             pub text: String,
             pub tooltip: Option<FormattedText>,
         }
 
-        let start = u32::var_read_from(buf)? as usize;
-        let length = u32::var_read_from(buf)? as usize;
+        let start = u32::azalea_read_var(buf)? as usize;
+        let length = u32::azalea_read_var(buf)? as usize;
         let range = StringRange::between(start, start + length);
 
         // the range of a Suggestion depends on the Suggestions containing it,
         // so we can't just `impl McBufReadable for Suggestion`
-        let mut suggestions = Vec::<StandaloneSuggestion>::read_from(buf)?
+        let mut suggestions = Vec::<StandaloneSuggestion>::azalea_read(buf)?
             .into_iter()
             .map(|s| Suggestion {
                 value: SuggestionValue::Text(s.text),
@@ -109,10 +109,10 @@ impl McBufReadable for Suggestions {
 
 #[cfg(feature = "azalea-buf")]
 impl McBufWritable for Suggestions {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        (self.range.start() as u32).var_write_into(buf)?;
-        (self.range.length() as u32).var_write_into(buf)?;
-        self.suggestions.write_into(buf)?;
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        (self.range.start() as u32).azalea_write_var(buf)?;
+        (self.range.length() as u32).azalea_write_var(buf)?;
+        self.suggestions.azalea_write(buf)?;
         Ok(())
     }
 }

@@ -25,12 +25,12 @@ pub enum Mode {
 }
 
 impl McBufReadable for ServerboundSetCommandBlock {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let pos = BlockPos::read_from(buf)?;
-        let command = String::read_from(buf)?;
-        let mode = Mode::read_from(buf)?;
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let pos = BlockPos::azalea_read(buf)?;
+        let command = String::azalea_read(buf)?;
+        let mode = Mode::azalea_read(buf)?;
 
-        let set = FixedBitSet::<3>::read_from(buf)?;
+        let set = FixedBitSet::<3>::azalea_read(buf)?;
         Ok(Self {
             pos,
             command,
@@ -43,10 +43,10 @@ impl McBufReadable for ServerboundSetCommandBlock {
 }
 
 impl McBufWritable for ServerboundSetCommandBlock {
-    fn write_into(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
-        self.pos.write_into(buf)?;
-        self.command.write_into(buf)?;
-        self.mode.write_into(buf)?;
+    fn azalea_write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
+        self.pos.azalea_write(buf)?;
+        self.command.azalea_write(buf)?;
+        self.mode.azalea_write(buf)?;
 
         let mut set = FixedBitSet::<3>::new();
         if self.track_output {
@@ -58,6 +58,6 @@ impl McBufWritable for ServerboundSetCommandBlock {
         if self.automatic {
             set.set(2);
         }
-        set.write_into(buf)
+        set.azalea_write(buf)
     }
 }

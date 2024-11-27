@@ -15,11 +15,11 @@ fn read_named_fields(
                 syn::Type::Path(_) | syn::Type::Array(_) => {
                     if f.attrs.iter().any(|a| a.path().is_ident("var")) {
                         quote! {
-                            let #field_name = azalea_buf::McBufVarReadable::var_read_from(buf)?;
+                            let #field_name = azalea_buf::McBufVarReadable::azalea_read_var(buf)?;
                         }
                     } else {
                         quote! {
-                            let #field_name = azalea_buf::McBufReadable::read_from(buf)?;
+                            let #field_name = azalea_buf::McBufReadable::azalea_read(buf)?;
                         }
                     }
                 }
@@ -44,7 +44,7 @@ pub fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::Tok
 
                 quote! {
                 impl azalea_buf::McBufReadable for #ident {
-                    fn read_from(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
+                    fn azalea_read(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
                         #(#read_fields)*
                         Ok(Self {
                             #(#read_field_names: #read_field_names),*
@@ -56,7 +56,7 @@ pub fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::Tok
             syn::Fields::Unit => {
                 quote! {
                 impl azalea_buf::McBufReadable for #ident {
-                    fn read_from(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
+                    fn azalea_read(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
                         Ok(Self)
                     }
                 }
@@ -110,11 +110,11 @@ pub fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::Tok
                         for f in &fields.unnamed {
                             if f.attrs.iter().any(|attr| attr.path().is_ident("var")) {
                                 reader_code.extend(quote! {
-                                    Self::#variant_name(azalea_buf::McBufVarReadable::var_read_from(buf)?),
+                                    Self::#variant_name(azalea_buf::McBufVarReadable::azalea_read_var(buf)?),
                                 });
                             } else {
                                 reader_code.extend(quote! {
-                                    Self::#variant_name(azalea_buf::McBufReadable::read_from(buf)?),
+                                    Self::#variant_name(azalea_buf::McBufReadable::azalea_read(buf)?),
                                 });
                             }
                         }
@@ -140,14 +140,14 @@ pub fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::Tok
 
             quote! {
             impl azalea_buf::McBufReadable for #ident {
-                fn read_from(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
-                    let id = azalea_buf::McBufVarReadable::var_read_from(buf)?;
-                    Self::read_from_id(buf, id)
+                fn azalea_read(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
+                    let id = azalea_buf::McBufVarReadable::azalea_read_var(buf)?;
+                    Self::azalea_read_id(buf, id)
                 }
             }
 
             impl #ident {
-                pub fn read_from_id(buf: &mut std::io::Cursor<&[u8]>, id: u32) -> Result<Self, azalea_buf::BufReadError> {
+                pub fn azalea_read_id(buf: &mut std::io::Cursor<&[u8]>, id: u32) -> Result<Self, azalea_buf::BufReadError> {
                     match id {
                         #match_contents
                         // you'd THINK this throws an error, but mojang decided to make it default for some reason

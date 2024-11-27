@@ -70,8 +70,8 @@ pub struct Flags {
 }
 
 impl McBufReadable for Flags {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let set = FixedBitSet::<3>::read_from(buf)?;
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let set = FixedBitSet::<3>::azalea_read(buf)?;
         Ok(Self {
             ignore_entities: set.index(0),
             show_air: set.index(1),
@@ -81,7 +81,7 @@ impl McBufReadable for Flags {
 }
 
 impl McBufWritable for Flags {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         let mut set = FixedBitSet::<3>::new();
         if self.ignore_entities {
             set.set(0);
@@ -92,7 +92,7 @@ impl McBufWritable for Flags {
         if self.show_bounding_box {
             set.set(2);
         }
-        set.write_into(buf)?;
+        set.azalea_write(buf)?;
         Ok(())
     }
 }

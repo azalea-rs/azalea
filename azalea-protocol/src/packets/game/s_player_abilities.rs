@@ -12,8 +12,8 @@ pub struct ServerboundPlayerAbilities {
 }
 
 impl McBufReadable for ServerboundPlayerAbilities {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let set = FixedBitSet::<2>::read_from(buf)?;
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let set = FixedBitSet::<2>::azalea_read(buf)?;
         Ok(Self {
             is_flying: set.index(1),
         })
@@ -21,11 +21,11 @@ impl McBufReadable for ServerboundPlayerAbilities {
 }
 
 impl McBufWritable for ServerboundPlayerAbilities {
-    fn write_into(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
         let mut set = FixedBitSet::<2>::new();
         if self.is_flying {
             set.set(1);
         }
-        set.write_into(buf)
+        set.azalea_write(buf)
     }
 }

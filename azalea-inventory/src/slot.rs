@@ -141,13 +141,13 @@ impl ItemStackData {
 }
 
 impl McBufReadable for ItemStack {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let count = i32::var_read_from(buf)?;
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let count = i32::azalea_read_var(buf)?;
         if count <= 0 {
             Ok(ItemStack::Empty)
         } else {
-            let kind = azalea_registry::Item::read_from(buf)?;
-            let components = DataComponentPatch::read_from(buf)?;
+            let kind = azalea_registry::Item::azalea_read(buf)?;
+            let components = DataComponentPatch::azalea_read(buf)?;
             Ok(ItemStack::Present(ItemStackData {
                 count,
                 kind,
@@ -158,13 +158,13 @@ impl McBufReadable for ItemStack {
 }
 
 impl McBufWritable for ItemStack {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         match self {
-            ItemStack::Empty => 0.var_write_into(buf)?,
+            ItemStack::Empty => 0.azalea_write_var(buf)?,
             ItemStack::Present(i) => {
-                i.count.var_write_into(buf)?;
-                i.kind.write_into(buf)?;
-                i.components.write_into(buf)?;
+                i.count.azalea_write_var(buf)?;
+                i.kind.azalea_write(buf)?;
+                i.components.azalea_write(buf)?;
             }
         };
         Ok(())
@@ -183,9 +183,9 @@ impl DataComponentPatch {
 }
 
 impl McBufReadable for DataComponentPatch {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let components_with_data_count = u32::var_read_from(buf)?;
-        let components_without_data_count = u32::var_read_from(buf)?;
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let components_with_data_count = u32::azalea_read_var(buf)?;
+        let components_without_data_count = u32::azalea_read_var(buf)?;
 
         if components_without_data_count == 0 && components_with_data_count == 0 {
             return Ok(DataComponentPatch::default());
@@ -193,13 +193,13 @@ impl McBufReadable for DataComponentPatch {
 
         let mut components = HashMap::new();
         for _ in 0..components_with_data_count {
-            let component_kind = DataComponentKind::read_from(buf)?;
+            let component_kind = DataComponentKind::azalea_read(buf)?;
             let component_data = components::from_kind(component_kind, buf)?;
             components.insert(component_kind, Some(component_data));
         }
 
         for _ in 0..components_without_data_count {
-            let component_kind = DataComponentKind::read_from(buf)?;
+            let component_kind = DataComponentKind::azalea_read(buf)?;
             components.insert(component_kind, None);
         }
 
@@ -208,7 +208,7 @@ impl McBufReadable for DataComponentPatch {
 }
 
 impl McBufWritable for DataComponentPatch {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         let mut components_with_data_count = 0;
         let mut components_without_data_count = 0;
         for component in self.components.values() {
@@ -219,21 +219,21 @@ impl McBufWritable for DataComponentPatch {
             }
         }
 
-        components_with_data_count.write_into(buf)?;
-        components_without_data_count.write_into(buf)?;
+        components_with_data_count.azalea_write(buf)?;
+        components_without_data_count.azalea_write(buf)?;
 
         for (kind, component) in &self.components {
             if let Some(component) = component {
-                kind.write_into(buf)?;
+                kind.azalea_write(buf)?;
                 let mut component_buf = Vec::new();
                 component.encode(&mut component_buf).unwrap();
-                component_buf.write_into(buf)?;
+                component_buf.azalea_write(buf)?;
             }
         }
 
         for (kind, component) in &self.components {
             if component.is_none() {
-                kind.write_into(buf)?;
+                kind.azalea_write(buf)?;
             }
         }
 

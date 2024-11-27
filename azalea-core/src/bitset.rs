@@ -163,10 +163,10 @@ impl<const N: usize> McBufReadable for FixedBitSet<N>
 where
     [u8; N.div_ceil(8)]: Sized,
 {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let mut data = [0; N.div_ceil(8)];
         for item in data.iter_mut().take(N.div_ceil(8)) {
-            *item = u8::read_from(buf)?;
+            *item = u8::azalea_read(buf)?;
         }
         Ok(FixedBitSet { data })
     }
@@ -175,9 +175,9 @@ impl<const N: usize> McBufWritable for FixedBitSet<N>
 where
     [u8; N.div_ceil(8)]: Sized,
 {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         for i in 0..N.div_ceil(8) {
-            self.data[i].write_into(buf)?;
+            self.data[i].azalea_write(buf)?;
         }
         Ok(())
     }

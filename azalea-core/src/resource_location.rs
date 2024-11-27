@@ -61,14 +61,14 @@ impl FromStr for ResourceLocation {
 }
 
 impl McBufReadable for ResourceLocation {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let location_string = String::read_from(buf)?;
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let location_string = String::azalea_read(buf)?;
         Ok(ResourceLocation::new(&location_string))
     }
 }
 impl McBufWritable for ResourceLocation {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        self.to_string().write_into(buf)
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        self.to_string().azalea_write(buf)
     }
 }
 
@@ -145,13 +145,13 @@ mod tests {
     fn mcbuf_resource_location() {
         let mut buf = Vec::new();
         ResourceLocation::new("minecraft:dirt")
-            .write_into(&mut buf)
+            .azalea_write(&mut buf)
             .unwrap();
 
         let mut buf = Cursor::new(&buf[..]);
 
         assert_eq!(
-            ResourceLocation::read_from(&mut buf).unwrap(),
+            ResourceLocation::azalea_read(&mut buf).unwrap(),
             ResourceLocation::new("minecraft:dirt")
         );
     }

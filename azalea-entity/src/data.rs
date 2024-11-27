@@ -37,14 +37,14 @@ impl EntityMetadataItems {
 }
 
 impl McBufReadable for EntityMetadataItems {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let mut metadata = Vec::new();
         loop {
-            let id = u8::read_from(buf)?;
+            let id = u8::azalea_read(buf)?;
             if id == 0xff {
                 break;
             }
-            let value = EntityDataValue::read_from(buf)?;
+            let value = EntityDataValue::azalea_read(buf)?;
             metadata.push(EntityDataItem { index: id, value });
         }
         Ok(EntityMetadataItems(metadata))
@@ -52,12 +52,12 @@ impl McBufReadable for EntityMetadataItems {
 }
 
 impl McBufWritable for EntityMetadataItems {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         for item in &self.0 {
-            item.index.write_into(buf)?;
-            item.value.write_into(buf)?;
+            item.index.azalea_write(buf)?;
+            item.value.azalea_write(buf)?;
         }
-        0xffu8.write_into(buf)?;
+        0xffu8.azalea_write(buf)?;
         Ok(())
     }
 }
@@ -123,8 +123,8 @@ pub enum ArmadilloStateKind {
 }
 
 impl McBufReadable for OptionalUnsignedInt {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let val = u32::var_read_from(buf)?;
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let val = u32::azalea_read_var(buf)?;
         Ok(OptionalUnsignedInt(if val == 0 {
             None
         } else {
@@ -133,10 +133,10 @@ impl McBufReadable for OptionalUnsignedInt {
     }
 }
 impl McBufWritable for OptionalUnsignedInt {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         match self.0 {
-            Some(val) => (val + 1).var_write_into(buf),
-            None => 0u32.var_write_into(buf),
+            Some(val) => (val + 1).azalea_write_var(buf),
+            None => 0u32.azalea_write_var(buf),
         }
     }
 }

@@ -316,14 +316,14 @@ impl From<u64> for ChunkPos {
     }
 }
 impl McBufReadable for ChunkPos {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let long = u64::read_from(buf)?;
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let long = u64::azalea_read(buf)?;
         Ok(ChunkPos::from(long))
     }
 }
 impl McBufWritable for ChunkPos {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        u64::from(*self).write_into(buf)?;
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        u64::from(*self).azalea_write(buf)?;
         Ok(())
     }
 }
@@ -587,8 +587,8 @@ const Z_OFFSET: u64 = PACKED_Y_LENGTH;
 const X_OFFSET: u64 = PACKED_Y_LENGTH + PACKED_Z_LENGTH;
 
 impl McBufReadable for BlockPos {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let val = i64::read_from(buf)?;
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let val = i64::azalea_read(buf)?;
         let x = (val << (64 - X_OFFSET - PACKED_X_LENGTH) >> (64 - PACKED_X_LENGTH)) as i32;
         let y = (val << (64 - PACKED_Y_LENGTH) >> (64 - PACKED_Y_LENGTH)) as i32;
         let z = (val << (64 - Z_OFFSET - PACKED_Z_LENGTH) >> (64 - PACKED_Z_LENGTH)) as i32;
@@ -597,17 +597,17 @@ impl McBufReadable for BlockPos {
 }
 
 impl McBufReadable for GlobalPos {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(GlobalPos {
-            world: ResourceLocation::read_from(buf)?,
-            pos: BlockPos::read_from(buf)?,
+            world: ResourceLocation::azalea_read(buf)?,
+            pos: BlockPos::azalea_read(buf)?,
         })
     }
 }
 
 impl McBufReadable for ChunkSectionPos {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let long = i64::read_from(buf)?;
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let long = i64::azalea_read(buf)?;
         Ok(ChunkSectionPos {
             x: (long >> 42) as i32,
             y: (long << 44 >> 44) as i32,
@@ -617,30 +617,30 @@ impl McBufReadable for ChunkSectionPos {
 }
 
 impl McBufWritable for BlockPos {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         let mut val: u64 = 0;
         val |= ((self.x as u64) & PACKED_X_MASK) << X_OFFSET;
         val |= (self.y as u64) & PACKED_Y_MASK;
         val |= ((self.z as u64) & PACKED_Z_MASK) << Z_OFFSET;
-        val.write_into(buf)
+        val.azalea_write(buf)
     }
 }
 
 impl McBufWritable for GlobalPos {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        ResourceLocation::write_into(&self.world, buf)?;
-        BlockPos::write_into(&self.pos, buf)?;
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        ResourceLocation::azalea_write(&self.world, buf)?;
+        BlockPos::azalea_write(&self.pos, buf)?;
 
         Ok(())
     }
 }
 
 impl McBufWritable for ChunkSectionPos {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         let long = (((self.x & 0x3FFFFF) as i64) << 42)
             | (self.y & 0xFFFFF) as i64
             | (((self.z & 0x3FFFFF) as i64) << 20);
-        long.write_into(buf)?;
+        long.azalea_write(buf)?;
         Ok(())
     }
 }
@@ -733,9 +733,9 @@ mod tests {
     #[test]
     fn test_read_blockpos_from() {
         let mut buf = Vec::new();
-        13743895338965u64.write_into(&mut buf).unwrap();
+        13743895338965u64.azalea_write(&mut buf).unwrap();
         let mut buf = Cursor::new(&buf[..]);
-        let block_pos = BlockPos::read_from(&mut buf).unwrap();
+        let block_pos = BlockPos::azalea_read(&mut buf).unwrap();
         assert_eq!(block_pos, BlockPos::new(49, -43, -3));
     }
 
@@ -751,9 +751,9 @@ mod tests {
     #[test]
     fn test_read_chunk_pos_from() {
         let mut buf = Vec::new();
-        ChunkPos::new(2, -1).write_into(&mut buf).unwrap();
+        ChunkPos::new(2, -1).azalea_write(&mut buf).unwrap();
         let mut buf = Cursor::new(&buf[..]);
-        let chunk_pos = ChunkPos::from(u64::read_from(&mut buf).unwrap());
+        let chunk_pos = ChunkPos::from(u64::azalea_read(&mut buf).unwrap());
         assert_eq!(chunk_pos, ChunkPos::new(2, -1));
     }
 }

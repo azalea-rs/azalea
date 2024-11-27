@@ -17,8 +17,8 @@ pub struct ServerboundPlayerInput {
 }
 
 impl McBufReadable for ServerboundPlayerInput {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let set = FixedBitSet::<7>::read_from(buf)?;
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let set = FixedBitSet::<7>::azalea_read(buf)?;
         Ok(Self {
             forward: set.index(0),
             backward: set.index(1),
@@ -32,7 +32,7 @@ impl McBufReadable for ServerboundPlayerInput {
 }
 
 impl McBufWritable for ServerboundPlayerInput {
-    fn write_into(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
         let mut set = FixedBitSet::<7>::new();
         if self.forward {
             set.set(0);
@@ -55,6 +55,6 @@ impl McBufWritable for ServerboundPlayerInput {
         if self.sprint {
             set.set(6);
         }
-        set.write_into(buf)
+        set.azalea_write(buf)
     }
 }

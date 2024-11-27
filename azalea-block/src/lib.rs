@@ -81,16 +81,16 @@ impl TryFrom<u32> for BlockState {
 }
 
 impl McBufReadable for BlockState {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let state_id = u32::var_read_from(buf)?;
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let state_id = u32::azalea_read_var(buf)?;
         Self::try_from(state_id).map_err(|_| BufReadError::UnexpectedEnumVariant {
             id: state_id as i32,
         })
     }
 }
 impl McBufWritable for BlockState {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        u32::var_write_into(&self.id, buf)
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        u32::azalea_write_var(&self.id, buf)
     }
 }
 

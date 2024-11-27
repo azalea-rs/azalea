@@ -138,12 +138,12 @@ impl PartialOrd for SuggestionValue {
 
 #[cfg(feature = "azalea-buf")]
 impl McBufWritable for Suggestion {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        self.value.to_string().write_into(buf)?;
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        self.value.to_string().azalea_write(buf)?;
         self.tooltip
             .clone()
             .map(FormattedText::from)
-            .write_into(buf)?;
+            .azalea_write(buf)?;
         Ok(())
     }
 }

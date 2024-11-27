@@ -34,47 +34,47 @@ pub enum Method {
 }
 
 impl McBufReadable for Method {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
-        let kind = MethodKind::read_from(buf)?;
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
+        let kind = MethodKind::azalea_read(buf)?;
         match kind {
             MethodKind::Add => Ok(Method::Add {
-                display_name: FormattedText::read_from(buf)?,
-                render_type: ObjectiveCriteria::read_from(buf)?,
-                number_format: NumberFormat::read_from(buf)?,
+                display_name: FormattedText::azalea_read(buf)?,
+                render_type: ObjectiveCriteria::azalea_read(buf)?,
+                number_format: NumberFormat::azalea_read(buf)?,
             }),
             MethodKind::Remove => Ok(Method::Remove),
             MethodKind::Change => Ok(Method::Change {
-                display_name: FormattedText::read_from(buf)?,
-                render_type: ObjectiveCriteria::read_from(buf)?,
-                number_format: NumberFormat::read_from(buf)?,
+                display_name: FormattedText::azalea_read(buf)?,
+                render_type: ObjectiveCriteria::azalea_read(buf)?,
+                number_format: NumberFormat::azalea_read(buf)?,
             }),
         }
     }
 }
 
 impl McBufWritable for Method {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         match self {
             Method::Add {
                 display_name,
                 render_type,
                 number_format,
             } => {
-                MethodKind::Add.write_into(buf)?;
-                display_name.write_into(buf)?;
-                render_type.write_into(buf)?;
-                number_format.write_into(buf)?;
+                MethodKind::Add.azalea_write(buf)?;
+                display_name.azalea_write(buf)?;
+                render_type.azalea_write(buf)?;
+                number_format.azalea_write(buf)?;
             }
-            Method::Remove => MethodKind::Remove.write_into(buf)?,
+            Method::Remove => MethodKind::Remove.azalea_write(buf)?,
             Method::Change {
                 display_name,
                 render_type,
                 number_format,
             } => {
-                MethodKind::Change.write_into(buf)?;
-                display_name.write_into(buf)?;
-                render_type.write_into(buf)?;
-                number_format.write_into(buf)?;
+                MethodKind::Change.azalea_write(buf)?;
+                display_name.azalea_write(buf)?;
+                render_type.azalea_write(buf)?;
+                number_format.azalea_write(buf)?;
             }
         }
         Ok(())

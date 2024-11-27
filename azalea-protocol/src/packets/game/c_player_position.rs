@@ -25,9 +25,9 @@ pub struct RelativeMovements {
 }
 
 impl McBufReadable for RelativeMovements {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         // yes minecraft seriously wastes that many bits, smh
-        let set = FixedBitSet::<32>::read_from(buf)?;
+        let set = FixedBitSet::<32>::azalea_read(buf)?;
         Ok(RelativeMovements {
             x: set.index(0),
             y: set.index(1),
@@ -39,7 +39,7 @@ impl McBufReadable for RelativeMovements {
 }
 
 impl McBufWritable for RelativeMovements {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         let mut set = FixedBitSet::<5>::new();
         if self.x {
             set.set(0);
@@ -56,6 +56,6 @@ impl McBufWritable for RelativeMovements {
         if self.x_rot {
             set.set(4);
         }
-        set.write_into(buf)
+        set.azalea_write(buf)
     }
 }

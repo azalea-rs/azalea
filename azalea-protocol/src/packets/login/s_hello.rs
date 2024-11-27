@@ -23,8 +23,8 @@ mod tests {
             profile_id: Uuid::nil(),
         };
         let mut buf: Vec<u8> = Vec::new();
-        packet.write_into(&mut buf).unwrap();
-        let packet2 = ServerboundHello::read_from(&mut Cursor::new(&buf)).unwrap();
+        packet.azalea_write(&mut buf).unwrap();
+        let packet2 = ServerboundHello::azalea_read(&mut Cursor::new(&buf)).unwrap();
         assert_eq!(packet, packet2);
     }
 }

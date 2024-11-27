@@ -19,15 +19,15 @@ pub enum NumberFormat {
 
 #[cfg(feature = "azalea-buf")]
 impl McBufReadable for NumberFormat {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
-        let kind = NumberFormatKind::read_from(buf)?;
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
+        let kind = NumberFormatKind::azalea_read(buf)?;
         match kind {
             NumberFormatKind::Blank => Ok(NumberFormat::Blank),
             NumberFormatKind::Styled => Ok(NumberFormat::Styled {
                 style: simdnbt::owned::read(buf)?,
             }),
             NumberFormatKind::Fixed => Ok(NumberFormat::Fixed {
-                value: FormattedText::read_from(buf)?,
+                value: FormattedText::azalea_read(buf)?,
             }),
         }
     }
@@ -35,16 +35,16 @@ impl McBufReadable for NumberFormat {
 
 #[cfg(feature = "azalea-buf")]
 impl McBufWritable for NumberFormat {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         match self {
-            NumberFormat::Blank => NumberFormatKind::Blank.write_into(buf)?,
+            NumberFormat::Blank => NumberFormatKind::Blank.azalea_write(buf)?,
             NumberFormat::Styled { style } => {
-                NumberFormatKind::Styled.write_into(buf)?;
-                style.write_into(buf)?;
+                NumberFormatKind::Styled.azalea_write(buf)?;
+                style.azalea_write(buf)?;
             }
             NumberFormat::Fixed { value } => {
-                NumberFormatKind::Fixed.write_into(buf)?;
-                value.write_into(buf)?;
+                NumberFormatKind::Fixed.azalea_write(buf)?;
+                value.azalea_write(buf)?;
             }
         }
         Ok(())

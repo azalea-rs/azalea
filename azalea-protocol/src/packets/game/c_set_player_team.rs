@@ -20,40 +20,40 @@ pub enum Method {
 }
 
 impl McBufReadable for Method {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        Ok(match u8::read_from(buf)? {
-            0 => Method::Add((Parameters::read_from(buf)?, PlayerList::read_from(buf)?)),
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        Ok(match u8::azalea_read(buf)? {
+            0 => Method::Add((Parameters::azalea_read(buf)?, PlayerList::azalea_read(buf)?)),
             1 => Method::Remove,
-            2 => Method::Change(Parameters::read_from(buf)?),
-            3 => Method::Join(PlayerList::read_from(buf)?),
-            4 => Method::Leave(PlayerList::read_from(buf)?),
+            2 => Method::Change(Parameters::azalea_read(buf)?),
+            3 => Method::Join(PlayerList::azalea_read(buf)?),
+            4 => Method::Leave(PlayerList::azalea_read(buf)?),
             id => return Err(BufReadError::UnexpectedEnumVariant { id: i32::from(id) }),
         })
     }
 }
 
 impl McBufWritable for Method {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         match self {
             Method::Add((parameters, playerlist)) => {
-                0u8.write_into(buf)?;
-                parameters.write_into(buf)?;
-                playerlist.write_into(buf)?;
+                0u8.azalea_write(buf)?;
+                parameters.azalea_write(buf)?;
+                playerlist.azalea_write(buf)?;
             }
             Method::Remove => {
-                1u8.write_into(buf)?;
+                1u8.azalea_write(buf)?;
             }
             Method::Change(parameters) => {
-                2u8.write_into(buf)?;
-                parameters.write_into(buf)?;
+                2u8.azalea_write(buf)?;
+                parameters.azalea_write(buf)?;
             }
             Method::Join(playerlist) => {
-                3u8.write_into(buf)?;
-                playerlist.write_into(buf)?;
+                3u8.azalea_write(buf)?;
+                playerlist.azalea_write(buf)?;
             }
             Method::Leave(playerlist) => {
-                4u8.write_into(buf)?;
-                playerlist.write_into(buf)?;
+                4u8.azalea_write(buf)?;
+                playerlist.azalea_write(buf)?;
             }
         }
         Ok(())

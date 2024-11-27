@@ -332,7 +332,7 @@ impl Chunk {
         let section_count = dimension_height / SECTION_HEIGHT;
         let mut sections = Vec::with_capacity(section_count as usize);
         for _ in 0..section_count {
-            let section = Section::read_from(buf)?;
+            let section = Section::azalea_read(buf)?;
             sections.push(section);
         }
 
@@ -417,9 +417,9 @@ pub fn get_block_state_from_sections(
 }
 
 impl McBufWritable for Chunk {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         for section in &self.sections {
-            section.write_into(buf)?;
+            section.azalea_write(buf)?;
         }
         Ok(())
     }
@@ -438,8 +438,8 @@ impl Debug for PartialChunkStorage {
 }
 
 impl McBufReadable for Section {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let block_count = u16::read_from(buf)?;
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let block_count = u16::azalea_read(buf)?;
 
         // this is commented out because the vanilla server is wrong
         // assert!(
@@ -468,10 +468,10 @@ impl McBufReadable for Section {
 }
 
 impl McBufWritable for Section {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        self.block_count.write_into(buf)?;
-        self.states.write_into(buf)?;
-        self.biomes.write_into(buf)?;
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        self.block_count.azalea_write(buf)?;
+        self.states.azalea_write(buf)?;
+        self.biomes.azalea_write(buf)?;
         Ok(())
     }
 }

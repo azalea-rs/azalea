@@ -47,15 +47,15 @@ impl<T: PartialEq> PartialEq for BrigadierNumber<T> {
 }
 
 impl<T: McBufReadable> McBufReadable for BrigadierNumber<T> {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let flags = FixedBitSet::<2>::read_from(buf)?;
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let flags = FixedBitSet::<2>::azalea_read(buf)?;
         let min = if flags.index(0) {
-            Some(T::read_from(buf)?)
+            Some(T::azalea_read(buf)?)
         } else {
             None
         };
         let max = if flags.index(1) {
-            Some(T::read_from(buf)?)
+            Some(T::azalea_read(buf)?)
         } else {
             None
         };
@@ -63,7 +63,7 @@ impl<T: McBufReadable> McBufReadable for BrigadierNumber<T> {
     }
 }
 impl<T: McBufWritable> McBufWritable for BrigadierNumber<T> {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         let mut flags = FixedBitSet::<2>::new();
         if self.min.is_some() {
             flags.set(0);
@@ -71,12 +71,12 @@ impl<T: McBufWritable> McBufWritable for BrigadierNumber<T> {
         if self.max.is_some() {
             flags.set(1);
         }
-        flags.write_into(buf)?;
+        flags.azalea_write(buf)?;
         if let Some(min) = &self.min {
-            min.write_into(buf)?;
+            min.azalea_write(buf)?;
         }
         if let Some(max) = &self.max {
-            max.write_into(buf)?;
+            max.azalea_write(buf)?;
         }
         Ok(())
     }
@@ -157,8 +157,8 @@ pub struct EntityParser {
     pub players_only: bool,
 }
 impl McBufReadable for EntityParser {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let flags = FixedBitSet::<2>::read_from(buf)?;
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let flags = FixedBitSet::<2>::azalea_read(buf)?;
         Ok(EntityParser {
             single: flags.index(0),
             players_only: flags.index(1),
@@ -166,7 +166,7 @@ impl McBufReadable for EntityParser {
     }
 }
 impl McBufWritable for EntityParser {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         let mut flags = FixedBitSet::<2>::new();
         if self.single {
             flags.set(0);
@@ -174,15 +174,15 @@ impl McBufWritable for EntityParser {
         if self.players_only {
             flags.set(1);
         }
-        flags.write_into(buf)?;
+        flags.azalea_write(buf)?;
         Ok(())
     }
 }
 
 // TODO: BrigadierNodeStub should have more stuff
 impl McBufReadable for BrigadierNodeStub {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let flags = FixedBitSet::<8>::read_from(buf)?;
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let flags = FixedBitSet::<8>::azalea_read(buf)?;
         if flags.index(5) || flags.index(6) || flags.index(7) {
             warn!("Warning: The flags from a Brigadier node are over 31. This is probably a bug.",);
         }
@@ -192,19 +192,19 @@ impl McBufReadable for BrigadierNodeStub {
         let has_redirect = flags.index(3);
         let has_suggestions_type = flags.index(4);
 
-        let children = Vec::<u32>::var_read_from(buf)?;
+        let children = Vec::<u32>::azalea_read_var(buf)?;
         let redirect_node = if has_redirect {
-            Some(u32::var_read_from(buf)?)
+            Some(u32::azalea_read_var(buf)?)
         } else {
             None
         };
 
         // argument node
         if node_type == 2 {
-            let name = String::read_from(buf)?;
-            let parser = BrigadierParser::read_from(buf)?;
+            let name = String::azalea_read(buf)?;
+            let parser = BrigadierParser::azalea_read(buf)?;
             let suggestions_type = if has_suggestions_type {
-                Some(ResourceLocation::read_from(buf)?)
+                Some(ResourceLocation::azalea_read(buf)?)
             } else {
                 None
             };
@@ -222,7 +222,7 @@ impl McBufReadable for BrigadierNodeStub {
         }
         // literal node
         else if node_type == 1 {
-            let name = String::read_from(buf)?;
+            let name = String::azalea_read(buf)?;
             return Ok(BrigadierNodeStub {
                 is_executable,
                 children,
@@ -240,7 +240,7 @@ impl McBufReadable for BrigadierNodeStub {
 }
 
 impl McBufWritable for BrigadierNodeStub {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         let mut flags = FixedBitSet::<4>::new();
         if self.is_executable {
             flags.set(2);
@@ -251,25 +251,25 @@ impl McBufWritable for BrigadierNodeStub {
 
         match &self.node_type {
             NodeType::Root => {
-                flags.write_into(buf)?;
+                flags.azalea_write(buf)?;
 
-                self.children.var_write_into(buf)?;
+                self.children.azalea_write_var(buf)?;
 
                 if let Some(redirect) = self.redirect_node {
-                    redirect.var_write_into(buf)?;
+                    redirect.azalea_write_var(buf)?;
                 }
             }
             NodeType::Literal { name } => {
                 flags.set(0);
-                flags.write_into(buf)?;
+                flags.azalea_write(buf)?;
 
-                self.children.var_write_into(buf)?;
+                self.children.azalea_write_var(buf)?;
 
                 if let Some(redirect) = self.redirect_node {
-                    redirect.var_write_into(buf)?;
+                    redirect.azalea_write_var(buf)?;
                 }
 
-                name.write_into(buf)?;
+                name.azalea_write(buf)?;
             }
             NodeType::Argument {
                 name,
@@ -280,19 +280,19 @@ impl McBufWritable for BrigadierNodeStub {
                 if suggestions_type.is_some() {
                     flags.set(4);
                 }
-                flags.write_into(buf)?;
+                flags.azalea_write(buf)?;
 
-                self.children.var_write_into(buf)?;
+                self.children.azalea_write_var(buf)?;
 
                 if let Some(redirect) = self.redirect_node {
-                    redirect.var_write_into(buf)?;
+                    redirect.azalea_write_var(buf)?;
                 }
 
-                name.write_into(buf)?;
-                parser.write_into(buf)?;
+                name.azalea_write(buf)?;
+                parser.azalea_write(buf)?;
 
                 if let Some(suggestion) = suggestions_type {
-                    suggestion.write_into(buf)?;
+                    suggestion.azalea_write(buf)?;
                 }
             }
         }
@@ -336,9 +336,9 @@ mod tests {
             node_type: NodeType::Root,
         };
         let mut buf = Vec::new();
-        data.write_into(&mut buf).unwrap();
+        data.azalea_write(&mut buf).unwrap();
         let mut data_cursor: Cursor<&[u8]> = Cursor::new(&buf);
-        let read_data = BrigadierNodeStub::read_from(&mut data_cursor).unwrap();
+        let read_data = BrigadierNodeStub::azalea_read(&mut data_cursor).unwrap();
         assert_eq!(data, read_data);
     }
 
@@ -353,9 +353,9 @@ mod tests {
             },
         };
         let mut buf = Vec::new();
-        data.write_into(&mut buf).unwrap();
+        data.azalea_write(&mut buf).unwrap();
         let mut data_cursor: Cursor<&[u8]> = Cursor::new(&buf);
-        let read_data = BrigadierNodeStub::read_from(&mut data_cursor).unwrap();
+        let read_data = BrigadierNodeStub::azalea_read(&mut data_cursor).unwrap();
         assert_eq!(data, read_data);
     }
 
@@ -372,9 +372,9 @@ mod tests {
             },
         };
         let mut buf = Vec::new();
-        data.write_into(&mut buf).unwrap();
+        data.azalea_write(&mut buf).unwrap();
         let mut data_cursor: Cursor<&[u8]> = Cursor::new(&buf);
-        let read_data = BrigadierNodeStub::read_from(&mut data_cursor).unwrap();
+        let read_data = BrigadierNodeStub::azalea_read(&mut data_cursor).unwrap();
         assert_eq!(data, read_data);
     }
 }

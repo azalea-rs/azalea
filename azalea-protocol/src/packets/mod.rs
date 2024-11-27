@@ -82,15 +82,15 @@ impl From<ClientIntention> for ConnectionProtocol {
 }
 
 impl azalea_buf::McBufReadable for ClientIntention {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let id = i32::var_read_from(buf)?;
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let id = i32::azalea_read_var(buf)?;
         id.try_into()
             .map_err(|_| BufReadError::UnexpectedEnumVariant { id })
     }
 }
 
 impl McBufWritable for ClientIntention {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        (*self as i32).var_write_into(buf)
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        (*self as i32).azalea_write_var(buf)
     }
 }

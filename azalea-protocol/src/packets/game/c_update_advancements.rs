@@ -37,11 +37,11 @@ pub struct DisplayInfo {
 }
 
 impl azalea_buf::McBufWritable for DisplayInfo {
-    fn write_into(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
-        self.title.write_into(buf)?;
-        self.description.write_into(buf)?;
-        self.icon.write_into(buf)?;
-        self.frame.write_into(buf)?;
+    fn azalea_write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
+        self.title.azalea_write(buf)?;
+        self.description.azalea_write(buf)?;
+        self.icon.azalea_write(buf)?;
+        self.frame.azalea_write(buf)?;
 
         let mut data: u32 = 0;
         if self.background.is_some() {
@@ -53,35 +53,35 @@ impl azalea_buf::McBufWritable for DisplayInfo {
         if self.hidden {
             data |= 0b100;
         }
-        data.write_into(buf)?;
+        data.azalea_write(buf)?;
 
         if let Some(background) = &self.background {
-            background.write_into(buf)?;
+            background.azalea_write(buf)?;
         }
-        self.x.write_into(buf)?;
-        self.y.write_into(buf)?;
+        self.x.azalea_write(buf)?;
+        self.y.azalea_write(buf)?;
         Ok(())
     }
 }
 impl azalea_buf::McBufReadable for DisplayInfo {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
-        let title = azalea_buf::McBufReadable::read_from(buf)?;
-        let description = azalea_buf::McBufReadable::read_from(buf)?;
-        let icon = azalea_buf::McBufReadable::read_from(buf)?;
-        let frame = azalea_buf::McBufReadable::read_from(buf)?;
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
+        let title = azalea_buf::McBufReadable::azalea_read(buf)?;
+        let description = azalea_buf::McBufReadable::azalea_read(buf)?;
+        let icon = azalea_buf::McBufReadable::azalea_read(buf)?;
+        let frame = azalea_buf::McBufReadable::azalea_read(buf)?;
 
-        let data = u32::read_from(buf)?;
+        let data = u32::azalea_read(buf)?;
         let has_background = (data & 0b1) != 0;
         let show_toast = (data & 0b10) != 0;
         let hidden = (data & 0b100) != 0;
 
         let background = if has_background {
-            Some(ResourceLocation::read_from(buf)?)
+            Some(ResourceLocation::azalea_read(buf)?)
         } else {
             None
         };
-        let x = azalea_buf::McBufReadable::read_from(buf)?;
-        let y = azalea_buf::McBufReadable::read_from(buf)?;
+        let x = azalea_buf::McBufReadable::azalea_read(buf)?;
+        let y = azalea_buf::McBufReadable::azalea_read(buf)?;
         Ok(DisplayInfo {
             title,
             description,
@@ -164,10 +164,10 @@ mod tests {
         };
 
         let mut data = Vec::new();
-        packet.write_into(&mut data).unwrap();
+        packet.azalea_write(&mut data).unwrap();
         let mut buf: Cursor<&[u8]> = Cursor::new(&data);
 
-        let read_packet = ClientboundUpdateAdvancements::read_from(&mut buf).unwrap();
+        let read_packet = ClientboundUpdateAdvancements::azalea_read(&mut buf).unwrap();
         assert_eq!(packet.reset, read_packet.reset);
         assert_eq!(packet.removed, read_packet.removed);
 

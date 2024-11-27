@@ -30,7 +30,7 @@ fn handle_in_configuration_state(
     for (entity, client_information) in query.iter() {
         let mut brand_data = Vec::new();
         // they don't have to know :)
-        "vanilla".write_into(&mut brand_data).unwrap();
+        "vanilla".azalea_write(&mut brand_data).unwrap();
         send_packet_events.send(SendConfigurationEvent {
             entity,
             packet: ServerboundCustomPayload {

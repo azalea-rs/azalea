@@ -19,10 +19,10 @@ pub enum Action {
 }
 
 impl McBufReadable for ServerboundSeenAdvancements {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let action = Action::read_from(buf)?;
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let action = Action::azalea_read(buf)?;
         let tab = if action == Action::OpenedTab {
-            Some(ResourceLocation::read_from(buf)?)
+            Some(ResourceLocation::azalea_read(buf)?)
         } else {
             None
         };
@@ -31,10 +31,10 @@ impl McBufReadable for ServerboundSeenAdvancements {
 }
 
 impl McBufWritable for ServerboundSeenAdvancements {
-    fn write_into(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
-        self.action.write_into(buf)?;
+    fn azalea_write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
+        self.action.azalea_write(buf)?;
         if let Some(tab) = &self.tab {
-            tab.write_into(buf)?;
+            tab.azalea_write(buf)?;
         }
         Ok(())
     }

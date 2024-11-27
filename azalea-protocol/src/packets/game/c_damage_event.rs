@@ -18,18 +18,18 @@ pub struct ClientboundDamageEvent {
 #[derive(Clone, Debug)]
 pub struct OptionalEntityId(pub Option<u32>);
 impl McBufReadable for OptionalEntityId {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
-        match u32::var_read_from(buf)? {
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
+        match u32::azalea_read_var(buf)? {
             0 => Ok(OptionalEntityId(None)),
             id => Ok(OptionalEntityId(Some(id - 1))),
         }
     }
 }
 impl McBufWritable for OptionalEntityId {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         match self.0 {
-            Some(id) => (id + 1).var_write_into(buf),
-            None => 0u32.var_write_into(buf),
+            Some(id) => (id + 1).azalea_write_var(buf),
+            None => 0u32.azalea_write_var(buf),
         }
     }
 }

@@ -18,18 +18,18 @@ pub struct EquipmentSlots {
 }
 
 impl McBufReadable for EquipmentSlots {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let mut slots = vec![];
 
         loop {
-            let equipment_byte = u8::read_from(buf)?;
+            let equipment_byte = u8::azalea_read(buf)?;
             let equipment_slot =
                 EquipmentSlot::from_byte(equipment_byte & 127).ok_or_else(|| {
                     BufReadError::UnexpectedEnumVariant {
                         id: equipment_byte.into(),
                     }
                 })?;
-            let item = ItemStack::read_from(buf)?;
+            let item = ItemStack::azalea_read(buf)?;
             slots.push((equipment_slot, item));
             if equipment_byte & 128 == 0 {
                 break;
@@ -40,15 +40,15 @@ impl McBufReadable for EquipmentSlots {
     }
 }
 impl McBufWritable for EquipmentSlots {
-    fn write_into(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
         for i in 0..self.slots.len() {
             let (equipment_slot, item) = &self.slots[i];
             let mut equipment_byte = *equipment_slot as u8;
             if i != self.slots.len() - 1 {
                 equipment_byte |= 128;
             }
-            equipment_byte.write_into(buf)?;
-            item.write_into(buf)?;
+            equipment_byte.azalea_write(buf)?;
+            item.azalea_write(buf)?;
         }
 
         Ok(())

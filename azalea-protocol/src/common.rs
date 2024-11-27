@@ -98,8 +98,8 @@ impl Default for ModelCustomization {
 }
 
 impl McBufReadable for ModelCustomization {
-    fn read_from(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
-        let set = FixedBitSet::<7>::read_from(buf)?;
+    fn azalea_read(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
+        let set = FixedBitSet::<7>::azalea_read(buf)?;
         Ok(Self {
             cape: set.index(0),
             jacket: set.index(1),
@@ -113,7 +113,7 @@ impl McBufReadable for ModelCustomization {
 }
 
 impl McBufWritable for ModelCustomization {
-    fn write_into(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
         let mut set = FixedBitSet::<7>::new();
         if self.cape {
             set.set(0);
@@ -136,7 +136,7 @@ impl McBufWritable for ModelCustomization {
         if self.hat {
             set.set(6);
         }
-        set.write_into(buf)
+        set.azalea_write(buf)
     }
 }
 
@@ -153,10 +153,10 @@ mod tests {
         {
             let data = ClientInformation::default();
             let mut buf = Vec::new();
-            data.write_into(&mut buf).unwrap();
+            data.azalea_write(&mut buf).unwrap();
             let mut data_cursor: Cursor<&[u8]> = Cursor::new(&buf);
 
-            let read_data = ClientInformation::read_from(&mut data_cursor).unwrap();
+            let read_data = ClientInformation::azalea_read(&mut data_cursor).unwrap();
             assert_eq!(read_data, data);
         }
 
@@ -180,10 +180,10 @@ mod tests {
             particle_status: ParticleStatus::Decreased,
         };
         let mut buf = Vec::new();
-        data.write_into(&mut buf).unwrap();
+        data.azalea_write(&mut buf).unwrap();
         let mut data_cursor: Cursor<&[u8]> = Cursor::new(&buf);
 
-        let read_data = ClientInformation::read_from(&mut data_cursor).unwrap();
+        let read_data = ClientInformation::azalea_read(&mut data_cursor).unwrap();
         assert_eq!(read_data, data);
     }
 }
