@@ -41,21 +41,32 @@ jobs:
           rm -rf versioned_docs  # Clean up
           rm -rf target # Clean up
 
-      - name: Generate BRANCHES.md
+      - name: Generate branches.html
         run: |
           VERSIONS=$(ls -d */ | sed 's#/##' | sort -r)  # Get all version directories and sort them (latest first)
-          rm README.md # Delete README.md and generate a new one
-          echo "# Azalea Docs" > BRANCHES.md
-          echo "Welcome to the documentation for Azalea Crate." >> BRANCHES.md
-          echo "" >> BRANCHES.md
+          echo "<!DOCTYPE html>" > branches.html
+          echo "<html lang=\"en\">" >> branches.html
+          echo "<head>" >> branches.html
+          echo "  <meta charset=\"UTF-8\">" >> branches.html
+          echo "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">" >> branches.html
+          echo "  <title>Azalea Docs</title>" >> branches.html
+          echo "</head>" >> branches.html
+          echo "<body>" >> branches.html
+          echo "  <h1>Azalea Docs</h1>" >> branches.html
+          echo "  <p>Welcome to the documentation for Azalea Crate.</p>" >> branches.html
+          echo "  <h2>Available Versions</h2>" >> branches.html
+          echo "  <ul>" >> branches.html
           
-          # Update README.md with available versions
-          echo "## Available Versions" >> BRANCHES.md
+          # Update branches.html with available versions
           for VERSION in $VERSIONS; do
-            echo "- [$VERSION](https://azalea.matdoes.dev/$VERSION/index.html)" >> BRANCHES.md
-          done
+          echo "    <li><a href=\"https://azalea.matdoes.dev/$VERSION/index.html\">$VERSION</a></li>" >> branches.html
+            done
 
-          echo "README.md updated successfully."
+            echo "  </ul>" >> branches.html
+            echo "</body>" >> branches.html
+            echo "</html>" >> branches.html
+
+            echo "branches.html generated successfully."
       
       - name: Create Index Page
         run: |
