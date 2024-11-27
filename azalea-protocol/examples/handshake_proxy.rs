@@ -1,7 +1,7 @@
 //! A "simple" server that gets login information and proxies connections.
 //! After login all connections are encrypted and Azalea cannot read them.
 
-use std::error::Error;
+use std::{error::Error, sync::LazyLock};
 
 use azalea_protocol::{
     connect::Connection,
@@ -21,7 +21,6 @@ use azalea_protocol::{
     read::ReadPacketError,
 };
 use futures::FutureExt;
-use once_cell::sync::Lazy;
 use tokio::{
     io::{self, AsyncWriteExt},
     net::{TcpListener, TcpStream},
@@ -35,9 +34,9 @@ const PROXY_ADDR: &str = "127.0.0.1:25565";
 const PROXY_DESC: &str = "An Azalea Minecraft Proxy";
 
 // String must be formatted like "data:image/png;base64,<data>"
-static PROXY_FAVICON: Lazy<Option<String>> = Lazy::new(|| None);
+static PROXY_FAVICON: LazyLock<Option<String>> = LazyLock::new(|| None);
 
-static PROXY_VERSION: Lazy<Version> = Lazy::new(|| Version {
+static PROXY_VERSION: LazyLock<Version> = LazyLock::new(|| Version {
     name: "1.19.3".to_string(),
     protocol: PROTOCOL_VERSION,
 });

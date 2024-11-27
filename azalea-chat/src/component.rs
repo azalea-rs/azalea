@@ -1,8 +1,7 @@
-use std::fmt::Display;
+use std::{fmt::Display, sync::LazyLock};
 
 #[cfg(feature = "azalea-buf")]
 use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
-use once_cell::sync::Lazy;
 use serde::{de, Deserialize, Deserializer, Serialize};
 #[cfg(feature = "simdnbt")]
 use simdnbt::{Deserialize as _, FromNbtTag as _, Serialize as _};
@@ -23,7 +22,7 @@ pub enum FormattedText {
     Translatable(TranslatableComponent),
 }
 
-pub static DEFAULT_STYLE: Lazy<Style> = Lazy::new(|| Style {
+pub static DEFAULT_STYLE: LazyLock<Style> = LazyLock::new(|| Style {
     color: Some(ChatFormatting::White.try_into().unwrap()),
     ..Style::default()
 });
