@@ -41,18 +41,18 @@ jobs:
           rm -rf versioned_docs  # Clean up
           rm -rf target # Clean up
 
-      - name: Generate README.md
+      - name: Generate BRANCHES.md
         run: |
           VERSIONS=$(ls -d */ | sed 's#/##' | sort -r)  # Get all version directories and sort them (latest first)
           rm README.md # Delete README.md and generate a new one
-          echo "# Azalea Docs" > README.md
-          echo "Welcome to the documentation for Azalea Crate." >> README.md
-          echo "" >> README.md
+          echo "# Azalea Docs" > BRANCHES.md
+          echo "Welcome to the documentation for Azalea Crate." >> BRANCHES.md
+          echo "" >> BRANCHES.md
           
           # Update README.md with available versions
-          echo "## Available Versions" >> README.md
+          echo "## Available Versions" >> BRANCHES.md
           for VERSION in $VERSIONS; do
-            echo "- [$VERSION](./$VERSION/index.html)" >> README.md
+            echo "- [$VERSION](https://azalea.matdoes.dev/$VERSION/index.html)" >> BRANCHES.md
           done
 
           echo "README.md updated successfully."
