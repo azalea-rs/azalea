@@ -27,7 +27,7 @@ def generate():
         block_states_report, pixlyzer_block_datas, ordered_blocks, mappings)
 
     lib.code.shapes.generate_block_shapes(
-        pixlyzer_block_datas, shape_datas['shapes'], shape_datas['aabbs'], block_states_report, mappings)
+        pixlyzer_block_datas, shape_datas['shapes'], shape_datas['aabbs'], block_states_report)
 
     lib.code.utils.fmt()
 

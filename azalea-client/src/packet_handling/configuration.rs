@@ -5,7 +5,8 @@ use azalea_protocol::packets::config::s_finish_configuration::ServerboundFinishC
 use azalea_protocol::packets::config::s_keep_alive::ServerboundKeepAlive;
 use azalea_protocol::packets::config::s_select_known_packs::ServerboundSelectKnownPacks;
 use azalea_protocol::packets::config::{
-    self, ClientboundConfigPacket, ServerboundConfigPacket, ServerboundResourcePack,
+    self, ClientboundConfigPacket, ServerboundConfigPacket, ServerboundCookieResponse,
+    ServerboundResourcePack,
 };
 use azalea_protocol::packets::{ConnectionProtocol, Packet};
 use azalea_protocol::read::deserialize_packet;
@@ -36,8 +37,8 @@ pub fn send_packet_events(
     // since otherwise it'd cause issues with events in process_packet_events
     // running twice
     packet_events.clear();
-    for (player_entity, raw_connection) in &query {
-        let packets_lock = raw_connection.incoming_packet_queue();
+    for (player_entity, raw_conn) in &query {
+        let packets_lock = raw_conn.incoming_packet_queue();
         let mut packets = packets_lock.lock();
         if !packets.is_empty() {
             for raw_packet in packets.iter() {
@@ -106,14 +107,14 @@ pub fn process_packet_events(ecs: &mut World) {
                 let mut system_state: SystemState<Query<&mut RawConnection>> =
                     SystemState::new(ecs);
                 let mut query = system_state.get_mut(ecs);
-                let mut raw_connection = query.get_mut(player_entity).unwrap();
+                let mut raw_conn = query.get_mut(player_entity).unwrap();
 
-                raw_connection
+                raw_conn
                     .write_packet(ServerboundFinishConfiguration {})
                     .expect(
                         "we should be in the right state and encoding this packet shouldn't fail",
                     );
-                raw_connection.set_state(ConnectionProtocol::Game);
+                raw_conn.set_state(ConnectionProtocol::Game);
 
                 // these components are added now that we're going to be in the Game state
                 ecs.entity_mut(player_entity)
@@ -145,13 +146,13 @@ pub fn process_packet_events(ecs: &mut World) {
                     EventWriter<KeepAliveEvent>,
                 )> = SystemState::new(ecs);
                 let (query, mut keepalive_events) = system_state.get_mut(ecs);
-                let raw_connection = query.get(player_entity).unwrap();
+                let raw_conn = query.get(player_entity).unwrap();
 
                 keepalive_events.send(KeepAliveEvent {
                     entity: player_entity,
                     id: p.id,
                 });
-                raw_connection
+                raw_conn
                     .write_packet(ServerboundKeepAlive { id: p.id })
                     .unwrap();
             }
@@ -160,9 +161,9 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 let mut system_state: SystemState<Query<&RawConnection>> = SystemState::new(ecs);
                 let mut query = system_state.get_mut(ecs);
-                let raw_connection = query.get_mut(player_entity).unwrap();
+                let raw_conn = query.get_mut(player_entity).unwrap();
 
-                raw_connection
+                raw_conn
                     .write_packet(config::s_pong::ServerboundPong { id: p.id })
                     .unwrap();
             }
@@ -171,10 +172,10 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 let mut system_state: SystemState<Query<&RawConnection>> = SystemState::new(ecs);
                 let mut query = system_state.get_mut(ecs);
-                let raw_connection = query.get_mut(player_entity).unwrap();
+                let raw_conn = query.get_mut(player_entity).unwrap();
 
                 // always accept resource pack
-                raw_connection
+                raw_conn
                     .write_packet(ServerboundResourcePack {
                         id: p.id,
                         action: config::s_resource_pack::Action::Accepted,
@@ -192,6 +193,18 @@ pub fn process_packet_events(ecs: &mut World) {
             }
             ClientboundConfigPacket::CookieRequest(p) => {
                 debug!("Got cookie request packet {p:?}");
+
+                let mut system_state: SystemState<Query<&RawConnection>> = SystemState::new(ecs);
+                let mut query = system_state.get_mut(ecs);
+                let raw_conn = query.get_mut(player_entity).unwrap();
+
+                raw_conn
+                    .write_packet(ServerboundCookieResponse {
+                        key: p.key,
+                        // cookies aren't implemented
+                        payload: None,
+                    })
+                    .unwrap();
             }
             ClientboundConfigPacket::ResetChat(p) => {
                 debug!("Got reset chat packet {p:?}");
@@ -207,10 +220,10 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 let mut system_state: SystemState<Query<&RawConnection>> = SystemState::new(ecs);
                 let mut query = system_state.get_mut(ecs);
-                let raw_connection = query.get_mut(player_entity).unwrap();
+                let raw_conn = query.get_mut(player_entity).unwrap();
 
                 // resource pack management isn't implemented
-                raw_connection
+                raw_conn
                     .write_packet(ServerboundSelectKnownPacks {
                         known_packs: vec![],
                     })
@@ -241,9 +254,9 @@ pub fn handle_send_packet_event(
     mut query: Query<&mut RawConnection>,
 ) {
     for event in send_packet_events.read() {
-        if let Ok(raw_connection) = query.get_mut(event.sent_by) {
+        if let Ok(raw_conn) = query.get_mut(event.sent_by) {
             // debug!("Sending packet: {:?}", event.packet);
-            if let Err(e) = raw_connection.write_packet(event.packet.clone()) {
+            if let Err(e) = raw_conn.write_packet(event.packet.clone()) {
                 error!("Failed to send packet: {e}");
             }
         }

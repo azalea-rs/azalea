@@ -81,7 +81,7 @@ def packet_direction_report_to_packet_names(report):
         packet_id = packet['protocol_id']
         name_to_id[resource_location.split(':')[-1]] = packet_id
     
-    names_sorted = [name for name in sorted(name_to_id.keys(), key=lambda item: item[1])]
+    names_sorted = [name for name in sorted(name_to_id, key=lambda x: name_to_id[x])]
     return names_sorted
 
 def get_packets(direction: str, state: str):

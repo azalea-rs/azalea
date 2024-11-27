@@ -20,6 +20,7 @@ use azalea_protocol::{
     common::client_information::ClientInformation,
     connect::{Connection, ConnectionError, Proxy},
     packets::{
+        self,
         config::{ClientboundConfigPacket, ServerboundConfigPacket},
         game::ServerboundGamePacket,
         handshake::{
@@ -463,6 +464,13 @@ impl Client {
                 }
                 ClientboundLoginPacket::CookieRequest(p) => {
                     debug!("Got cookie request {:?}", p);
+
+                    conn.write(packets::login::ServerboundCookieResponse {
+                        key: p.key,
+                        // cookies aren't implemented
+                        payload: None,
+                    })
+                    .await?;
                 }
             }
         };

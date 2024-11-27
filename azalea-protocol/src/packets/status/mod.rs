@@ -5,11 +5,11 @@ use azalea_protocol_macros::declare_state_packets;
 
 declare_state_packets!(StatusPacket,
     Clientbound => [
-        pong_response,
         status_response,
+        pong_response,
     ],
     Serverbound => [
-        ping_request,
         status_request,
+        ping_request,
     ]
 );
