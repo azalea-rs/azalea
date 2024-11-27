@@ -56,6 +56,12 @@ jobs:
           done
 
           echo "README.md updated successfully."
+      
+      - name: Create Index Page
+        run: |
+          if [ ! -f index.html ]; then
+            echo "<meta http-equiv=refresh content=0;url=main/azalea>" > index.html
+          fi
 
       - name: Deploy Documentation to Docs Branch
         run: |
