@@ -17,13 +17,13 @@ use azalea_entity::{
 };
 use azalea_physics::PhysicsPlugin;
 use azalea_protocol::{
-    common::ClientInformation,
+    common::client_information::ClientInformation,
     connect::{Connection, ConnectionError, Proxy},
     packets::{
         config::{ClientboundConfigPacket, ServerboundConfigPacket},
         game::ServerboundGamePacket,
         handshake::{
-            s_client_intention::ServerboundClientIntention, ClientboundHandshakePacket,
+            s_intention::ServerboundIntention, ClientboundHandshakePacket,
             ServerboundHandshakePacket,
         },
         login::{
@@ -349,7 +349,7 @@ impl Client {
         JoinError,
     > {
         // handshake
-        conn.write(ServerboundClientIntention {
+        conn.write(ServerboundIntention {
             protocol_version: PROTOCOL_VERSION,
             hostname: address.host.clone(),
             port: address.port,

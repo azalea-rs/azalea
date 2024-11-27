@@ -3,7 +3,7 @@ use std::{
     io::{Cursor, Write},
 };
 
-use azalea_buf::{BufReadError, AzaleaRead, AzaleaWrite};
+use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
 
 #[derive(Hash, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Difficulty {

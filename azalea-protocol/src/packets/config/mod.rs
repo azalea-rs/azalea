@@ -1,32 +1,36 @@
+// NOTE: This file is generated automatically by codegen/packet.py.
+// Don't edit it directly!
+
 use azalea_protocol_macros::declare_state_packets;
 
-declare_state_packets!(
-    ConfigPacket,
-    Serverbound => [
-        s_client_information::ServerboundClientInformation,
-        s_cookie_response::ServerboundCookieResponse,
-        s_custom_payload::ServerboundCustomPayload,
-        s_finish_configuration::ServerboundFinishConfiguration,
-        s_keep_alive::ServerboundKeepAlive,
-        s_pong::ServerboundPong,
-        s_resource_pack::ServerboundResourcePack,
-        s_select_known_packs::ServerboundSelectKnownPacks,
-    ],
+declare_state_packets!(ConfigPacket,
     Clientbound => [
-        c_cookie_request::ClientboundCookieRequest,
-        c_custom_payload::ClientboundCustomPayload,
-        c_disconnect::ClientboundDisconnect,
-        c_finish_configuration::ClientboundFinishConfiguration,
-        c_keep_alive::ClientboundKeepAlive,
-        c_ping::ClientboundPing,
-        c_reset_chat::ClientboundResetChat,
-        c_registry_data::ClientboundRegistryData,
-        c_resource_pack_pop::ClientboundResourcePackPop,
-        c_resource_pack_push::ClientboundResourcePackPush,
-        c_store_cookie::ClientboundStoreCookie,
-        c_transfer::ClientboundTransfer,
-        c_update_enabled_features::ClientboundUpdateEnabledFeatures,
-        c_update_tags::ClientboundUpdateTags,
-        c_select_known_packs::ClientboundSelectKnownPacks,
+        keep_alive,
+        registry_data,
+        reset_chat,
+        resource_pack_pop,
+        resource_pack_push,
+        select_known_packs,
+        server_links,
+        disconnect,
+        finish_configuration,
+        ping,
+        cookie_request,
+        update_enabled_features,
+        update_tags,
+        transfer,
+        store_cookie,
+        custom_payload,
+        custom_report_details,
+    ],
+    Serverbound => [
+        keep_alive,
+        resource_pack,
+        select_known_packs,
+        finish_configuration,
+        client_information,
+        cookie_response,
+        pong,
+        custom_payload,
     ]
 );

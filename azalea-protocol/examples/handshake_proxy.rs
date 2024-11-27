@@ -7,7 +7,7 @@ use azalea_protocol::{
     connect::Connection,
     packets::{
         handshake::{
-            s_client_intention::ServerboundClientIntention, ClientboundHandshakePacket,
+            s_intention::ServerboundIntention, ClientboundHandshakePacket,
             ServerboundHandshakePacket,
         },
         login::{s_hello::ServerboundHello, ServerboundLoginPacket},
@@ -74,7 +74,7 @@ async fn handle_connection(stream: TcpStream) -> anyhow::Result<()> {
     // the server or is going to join the game.
     let intent = match conn.read().await {
         Ok(packet) => match packet {
-            ServerboundHandshakePacket::ClientIntention(packet) => {
+            ServerboundHandshakePacket::Intention(packet) => {
                 info!(
                     "New connection: {0}, Version {1}, {2:?}",
                     ip.ip(),
@@ -100,21 +100,17 @@ async fn handle_connection(stream: TcpStream) -> anyhow::Result<()> {
                 match conn.read().await {
                     Ok(p) => match p {
                         ServerboundStatusPacket::StatusRequest(_) => {
-                            conn.write(
-                                ClientboundStatusResponse {
-                                    description: PROXY_DESC.into(),
-                                    favicon: PROXY_FAVICON.clone(),
-                                    players: PROXY_PLAYERS.clone(),
-                                    version: PROXY_VERSION.clone(),
-                                    enforces_secure_chat: PROXY_SECURE_CHAT,
-                                }
-                                .into(),
-                            )
+                            conn.write(ClientboundStatusResponse {
+                                description: PROXY_DESC.into(),
+                                favicon: PROXY_FAVICON.clone(),
+                                players: PROXY_PLAYERS.clone(),
+                                version: PROXY_VERSION.clone(),
+                                enforces_secure_chat: PROXY_SECURE_CHAT,
+                            })
                             .await?;
                         }
                         ServerboundStatusPacket::PingRequest(p) => {
-                            conn.write(ClientboundPongResponse { time: p.time }.into())
-                                .await?;
+                            conn.write(ClientboundPongResponse { time: p.time }).await?;
                             break;
                         }
                     },
@@ -178,7 +174,7 @@ async fn handle_connection(stream: TcpStream) -> anyhow::Result<()> {
 
 async fn transfer(
     mut inbound: TcpStream,
-    intent: ServerboundClientIntention,
+    intent: ServerboundIntention,
     hello: ServerboundHello,
 ) -> Result<(), Box<dyn Error>> {
     let outbound = TcpStream::connect(PROXY_ADDR).await?;
@@ -189,10 +185,10 @@ async fn transfer(
     // received earlier to the proxy target
     let mut outbound_conn: Connection<ClientboundHandshakePacket, ServerboundHandshakePacket> =
         Connection::wrap(outbound);
-    outbound_conn.write(intent.into()).await?;
+    outbound_conn.write(intent).await?;
 
     let mut outbound_conn = outbound_conn.login();
-    outbound_conn.write(hello.into()).await?;
+    outbound_conn.write(hello).await?;
 
     let mut outbound = outbound_conn.unwrap()?;
 

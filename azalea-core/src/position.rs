@@ -11,7 +11,7 @@ use std::{
     str::FromStr,
 };
 
-use azalea_buf::{BufReadError, AzBuf, AzaleaRead, AzaleaWrite};
+use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 

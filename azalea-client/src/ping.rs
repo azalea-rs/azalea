@@ -6,7 +6,7 @@ use azalea_protocol::{
     connect::{Connection, ConnectionError, Proxy},
     packets::{
         handshake::{
-            s_client_intention::ServerboundClientIntention, ClientboundHandshakePacket,
+            s_intention::ServerboundIntention, ClientboundHandshakePacket,
             ServerboundHandshakePacket,
         },
         status::{
@@ -74,7 +74,7 @@ pub async fn ping_server_with_connection(
     mut conn: Connection<ClientboundHandshakePacket, ServerboundHandshakePacket>,
 ) -> Result<ClientboundStatusResponse, PingError> {
     // send the client intention packet and switch to the status state
-    conn.write(ServerboundClientIntention {
+    conn.write(ServerboundIntention {
         protocol_version: PROTOCOL_VERSION,
         hostname: address.host.clone(),
         port: address.port,

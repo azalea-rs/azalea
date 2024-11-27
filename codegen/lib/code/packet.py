@@ -9,179 +9,80 @@ import re
 def make_packet_mod_rs_line(packet_id: int, packet_class_name: str):
     return f'        {padded_hex(packet_id)}: {to_snake_case(packet_class_name)}::{to_camel_case(packet_class_name)},'
 
+MOJMAP_TO_AZALEA_STATE_NAME_MAPPING = {
+    # shorter name, i like it more
+    'configuration': 'config',
+    # in the files mojang calls the directory "game" so we do that too
+    'play': 'game'
+}
+AZALEA_TO_MOJMAP_STATE_NAME_MAPPING = {v: k for k, v in MOJMAP_TO_AZALEA_STATE_NAME_MAPPING.items()}
 
-def fix_state(state: str):
-    return {'PLAY': 'game'}.get(state, state.lower())
+def generate_packet(packets_report, packet_name, direction, state):
+    mojmap_state = AZALEA_TO_MOJMAP_STATE_NAME_MAPPING.get(state, state)
+    _packet_report = packets_report[mojmap_state][direction]['minecraft:' + packet_name]
 
+    code = []
+    uses = set()
 
-def generate_packet(burger_packets, mappings: Mappings, target_packet_id, target_packet_direction, target_packet_state):
-    for packet in burger_packets.values():
-        if packet['id'] != target_packet_id:
-            continue
+    packet_derive_name = f'{to_camel_case(direction)}{to_camel_case(state)}Packet'
 
-        direction = packet['direction'].lower()  # serverbound or clientbound
-        state = fix_state(packet['state'])
+    packet_struct_name = to_camel_case(f'{direction}_{packet_name}')
+    packet_module_name = f'{direction[0]}_{packet_name}'
 
-        if state != target_packet_state or direction != target_packet_direction:
-            continue
+    code.append(f'use azalea_buf::AzBuf;')
+    code.append(f'use azalea_protocol_macros::{packet_derive_name};')
+    code.append('')
+   
+    code.append(
+        f'#[derive(Clone, Debug, AzBuf, {packet_derive_name})]')
+    code.append(
+        f'pub struct {packet_struct_name} {{')
+    code.append('    TODO')
+    code.append('}')
 
-        generated_packet_code = []
-        uses = set()
-        extra_code = []
+    print(code)
+    write_packet_file(state, packet_module_name, '\n'.join(code))
 
-        packet_derive_name = f'{to_camel_case(direction)}{to_camel_case(state)}Packet'
+    # this won't handle writing to the packets/{state}/mod.rs file since we'd need to know the full packet list
 
-        generated_packet_code.append(
-            f'#[derive(Clone, Debug, AzBuf, {packet_derive_name})]')
-        uses.add(f'azalea_protocol_macros::{packet_derive_name}')
-        uses.add(f'azalea_buf::AzBuf')
-
-        obfuscated_class_name = packet['class'].split('.')[0]
-        class_name = mappings.get_class(
-            obfuscated_class_name).split('.')[-1]
-        if '$' in class_name:
-            class_name, extra_part = class_name.split('$')
-            if class_name.endswith('Packet'):
-                class_name = class_name[:-
-                                        len('Packet')] + extra_part + 'Packet'
-
-        generated_packet_code.append(
-            f'pub struct {to_camel_case(class_name)} {{')
-
-        # call burger_instruction_to_code for each instruction
-        i = -1
-        instructions = packet.get('instructions', [])
-        while (i + 1) < len(instructions):
-            i += 1
-
-            if instructions[i]['operation'] == 'write':
-                skip = burger_instruction_to_code(
-                    instructions, i, generated_packet_code, mappings, obfuscated_class_name, uses, extra_code)
-                if skip:
-                    i += skip
-            else:
-                generated_packet_code.append(f'// TODO: {instructions[i]}')
-
-        generated_packet_code.append('}')
-
-        if uses:
-            # empty line before the `use` statements
-            generated_packet_code.insert(0, '')
-        for use in uses:
-            generated_packet_code.insert(0, f'use {use};')
-        for line in extra_code:
-            generated_packet_code.append(line)
-
-        print(generated_packet_code)
-        write_packet_file(state, to_snake_case(class_name),
-                          '\n'.join(generated_packet_code))
-        print()
-
+def set_packets(packets_report):
+    for mojmap_state in packets_report:
+        state = MOJMAP_TO_AZALEA_STATE_NAME_MAPPING.get(mojmap_state, mojmap_state)
         mod_rs_dir = get_dir_location(
             f'../azalea-protocol/src/packets/{state}/mod.rs')
-        with open(mod_rs_dir, 'r') as f:
-            mod_rs = f.read().splitlines()
 
-        pub_mod_line = f'pub mod {to_snake_case(class_name)};'
-        if pub_mod_line not in mod_rs:
-            mod_rs.insert(0, pub_mod_line)
-            packet_mod_rs_line = make_packet_mod_rs_line(
-                packet['id'], class_name)
+        serverbound_packets = packet_direction_report_to_packet_names(packets_report[mojmap_state]['serverbound'])
+        clientbound_packets = packet_direction_report_to_packet_names(packets_report[mojmap_state].get('clientbound', {}))
 
-            in_serverbound = False
-            in_clientbound = False
-            for i, line in enumerate(mod_rs):
-                if line.strip() == 'Serverbound => {':
-                    in_serverbound = True
-                    continue
-                elif line.strip() == 'Clientbound => {':
-                    in_clientbound = True
-                    continue
-                elif line.strip() in ('}', '},'):
-                    if (in_serverbound and direction == 'serverbound') or (in_clientbound and direction == 'clientbound'):
-                        mod_rs.insert(i, packet_mod_rs_line)
-                        break
-                    in_serverbound = in_clientbound = False
-                    continue
+        code = []
+        code.append('// NOTE: This file is generated automatically by codegen/packet.py.')
+        code.append("// Don't edit it directly!")
+        code.append('')
+        code.append('use azalea_protocol_macros::declare_state_packets;')
+        code.append('')
+        code.append(f'declare_state_packets!({to_camel_case(state)}Packet,')
+        code.append('    Clientbound => [')
+        for packet_name in clientbound_packets:
+            code.append(f'        {packet_name},')
+        code.append('    ],')
+        code.append('    Serverbound => [')
+        for packet_name in serverbound_packets:
+            code.append(f'        {packet_name},')
+        code.append('    ]')
+        code.append(');')
+        code.append('')
 
-                if line.strip() == '' or line.strip().startswith('//') or (not in_serverbound and direction == 'serverbound') or (not in_clientbound and direction == 'clientbound'):
-                    continue
+        with open(mod_rs_dir, 'w') as f:
+            f.write('\n'.join(code))
 
-                line_packet_id_hex = line.strip().split(':')[0]
-                assert line_packet_id_hex.startswith('0x')
-                line_packet_id = int(line_packet_id_hex[2:], 16)
-                if line_packet_id > packet['id']:
-                    mod_rs.insert(i, packet_mod_rs_line)
-                    break
-
-            with open(mod_rs_dir, 'w') as f:
-                f.write('\n'.join(mod_rs))
-
-
-def set_packets(packet_ids: list[int], packet_class_names: list[str], direction: str, state: str):
-    assert len(packet_ids) == len(packet_class_names)
-
-    # ids are repeated
-    assert len(packet_ids) == len(set(packet_ids))
-
-    # sort the packets by id
-    packet_ids, packet_class_names = [list(x) for x in zip(
-        *sorted(zip(packet_ids, packet_class_names), key=lambda pair: pair[0]))]  # type: ignore
-
-    mod_rs_dir = get_dir_location(
-        f'../azalea-protocol/src/packets/{state}/mod.rs')
-    with open(mod_rs_dir, 'r') as f:
-        mod_rs = f.read().splitlines()
-    new_mod_rs = []
-
-    required_modules = []
-
-    ignore_lines = False
-
-    for line in mod_rs:
-        if line.strip() == 'Serverbound => {':
-            new_mod_rs.append(line)
-            if direction == 'serverbound':
-                ignore_lines = True
-                for packet_id, packet_class_name in zip(packet_ids, packet_class_names):
-                    new_mod_rs.append(
-                        make_packet_mod_rs_line(packet_id, packet_class_name)
-                    )
-                    required_modules.append(packet_class_name)
-            else:
-                ignore_lines = False
-            continue
-        elif line.strip() == 'Clientbound => {':
-            new_mod_rs.append(line)
-            if direction == 'clientbound':
-                ignore_lines = True
-                for packet_id, packet_class_name in zip(packet_ids, packet_class_names):
-                    new_mod_rs.append(
-                        make_packet_mod_rs_line(packet_id, packet_class_name)
-                    )
-                    required_modules.append(packet_class_name)
-            else:
-                ignore_lines = False
-            continue
-        elif line.strip() in ('}', '},'):
-            ignore_lines = False
-        elif line.strip().startswith('pub mod '):
-            continue
-
-        if not ignore_lines:
-            new_mod_rs.append(line)
-            # 0x00: c_status_response::ClientboundStatusResponsePacket,
-            if line.strip().startswith('0x'):
-                required_modules.append(
-                    line.strip().split(':')[1].split('::')[0].strip())
-
-    for i, required_module in enumerate(required_modules):
-        if required_module not in mod_rs:
-            new_mod_rs.insert(i, f'pub mod {required_module};')
-
-    with open(mod_rs_dir, 'w') as f:
-        f.write('\n'.join(new_mod_rs))
-
+def packet_direction_report_to_packet_names(report):
+    name_to_id = {}
+    for resource_location, packet in report.items():
+        packet_id = packet['protocol_id']
+        name_to_id[resource_location.split(':')[-1]] = packet_id
+    
+    names_sorted = [name for name in sorted(name_to_id.keys(), key=lambda item: item[1])]
+    return names_sorted
 
 def get_packets(direction: str, state: str):
     mod_rs_dir = get_dir_location(

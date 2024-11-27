@@ -1,7 +1,7 @@
 use azalea_buf::AzaleaWrite;
 use azalea_core::resource_location::ResourceLocation;
 use azalea_protocol::{
-    common::ClientInformation,
+    common::client_information::ClientInformation,
     packets::config::{
         s_client_information::ServerboundClientInformation,
         s_custom_payload::ServerboundCustomPayload,

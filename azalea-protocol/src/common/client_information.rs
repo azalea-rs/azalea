@@ -1,5 +1,3 @@
-//! Some serializable data types that are used by several packets.
-
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite};
 use azalea_core::bitset::FixedBitSet;
 use bevy_ecs::component::Component;

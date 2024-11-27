@@ -196,9 +196,7 @@ impl<K: AzaleaRead + Send + Eq + Hash, V: AzaleaRead + Send> AzaleaRead for Hash
     }
 }
 
-impl<K: AzaleaRead + Send + Eq + Hash, V: AzaleaReadVar + Send> AzaleaReadVar
-    for HashMap<K, V>
-{
+impl<K: AzaleaRead + Send + Eq + Hash, V: AzaleaReadVar + Send> AzaleaReadVar for HashMap<K, V> {
     fn azalea_read_var(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let length = i32::azalea_read_var(buf)? as usize;
         let mut contents = HashMap::with_capacity(usize::min(length, 65536));

@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
 #[cfg(feature = "azalea-buf")]
-use azalea_buf::{BufReadError, AzaleaRead, AzaleaWrite};
+use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
 use once_cell::sync::Lazy;
 use serde::{de, Deserialize, Deserializer, Serialize};
 #[cfg(feature = "simdnbt")]

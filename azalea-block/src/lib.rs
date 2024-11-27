@@ -11,7 +11,7 @@ use std::{
     io::{Cursor, Write},
 };
 
-use azalea_buf::{BufReadError, AzaleaRead, AzaleaReadVar, AzaleaWriteVar, AzaleaWrite};
+use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
 pub use behavior::BlockBehavior;
 pub use generated::{blocks, properties};
 pub use range::BlockStates;

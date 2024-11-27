@@ -111,6 +111,7 @@ mod tests {
         packets::{
             game::s_chat::{LastSeenMessagesUpdate, ServerboundChat},
             login::{s_hello::ServerboundHello, ServerboundLoginPacket},
+            Packet,
         },
         read::{compression_decoder, read_packet},
         write::{compression_encoder, serialize_packet, write_packet},
@@ -121,10 +122,9 @@ mod tests {
         let packet = ServerboundHello {
             name: "test".to_string(),
             profile_id: Uuid::nil(),
-        }
-        .into();
+        };
         let mut stream = Vec::new();
-        write_packet(&packet, &mut stream, None, &mut None)
+        write_packet(&packet.into_variant(), &mut stream, None, &mut None)
             .await
             .unwrap();
 
@@ -146,7 +146,7 @@ mod tests {
             name: "test".to_string(),
             profile_id: Uuid::nil(),
         }
-        .into();
+        .into_variant();
         let mut stream = Vec::new();
         write_packet(&packet, &mut stream, None, &mut None)
             .await
@@ -170,13 +170,16 @@ mod tests {
     async fn test_read_long_compressed_chat() {
         let compression_threshold = 256;
 
-        let buf = serialize_packet(&ServerboundChat {
-            message: "a".repeat(256),
-            timestamp: 0,
-            salt: 0,
-            signature: None,
-            last_seen_messages: LastSeenMessagesUpdate::default(),
-        })
+        let buf = serialize_packet(
+            &ServerboundChat {
+                message: "a".repeat(256),
+                timestamp: 0,
+                salt: 0,
+                signature: None,
+                last_seen_messages: LastSeenMessagesUpdate::default(),
+            }
+            .into_variant(),
+        )
         .unwrap();
 
         let buf = compression_encoder(&buf, compression_threshold).unwrap();

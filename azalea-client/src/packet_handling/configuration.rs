@@ -216,6 +216,8 @@ pub fn process_packet_events(ecs: &mut World) {
                     })
                     .unwrap();
             }
+            ClientboundConfigPacket::ServerLinks(_) => {}
+            ClientboundConfigPacket::CustomReportDetails(_) => {}
         }
     }
 }

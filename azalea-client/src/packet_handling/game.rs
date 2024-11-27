@@ -1458,7 +1458,7 @@ pub fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::TabList(_) => {}
             ClientboundGamePacket::TagQuery(_) => {}
             ClientboundGamePacket::TakeItemEntity(_) => {}
-            ClientboundGamePacket::Bundle(_) => {}
+            ClientboundGamePacket::BundleDelimiter(_) => {}
             ClientboundGamePacket::DamageEvent(_) => {}
             ClientboundGamePacket::HurtAnimation(_) => {}
 
@@ -1471,7 +1471,7 @@ pub fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::PongResponse(_) => {}
             ClientboundGamePacket::StoreCookie(_) => {}
             ClientboundGamePacket::Transfer(_) => {}
-            ClientboundGamePacket::MoveMinecart(_) => {}
+            ClientboundGamePacket::MoveMinecartAlongTrack(_) => {}
             ClientboundGamePacket::SetHeldSlot(_) => {}
             ClientboundGamePacket::SetPlayerInventory(_) => {}
             ClientboundGamePacket::ProjectilePower(_) => {}

@@ -166,8 +166,8 @@ def burger_type_to_rust_type(burger_type, field_name: Optional[str] = None, inst
     return field_type_rs, is_var, uses, extra_code
 
 
-def write_packet_file(state, packet_name_snake_case, code):
-    with open(get_dir_location(f'../azalea-protocol/src/packets/{state}/{packet_name_snake_case}.rs'), 'w') as f:
+def write_packet_file(state, packet_module_name, code):
+    with open(get_dir_location(f'../azalea-protocol/src/packets/{state}/{packet_module_name}.rs'), 'w') as f:
         f.write(code)
 
 

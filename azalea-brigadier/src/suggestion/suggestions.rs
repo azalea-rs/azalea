@@ -3,9 +3,7 @@ use std::io::{Cursor, Write};
 use std::{collections::HashSet, hash::Hash};
 
 #[cfg(feature = "azalea-buf")]
-use azalea_buf::{
-    BufReadError, AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWriteVar, AzaleaWrite,
-};
+use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
 #[cfg(feature = "azalea-buf")]
 use azalea_chat::FormattedText;
 

@@ -8,7 +8,7 @@ use std::{
 };
 
 use azalea_block::BlockState;
-use azalea_buf::{BufReadError, AzaleaRead, AzaleaWrite};
+use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
 use azalea_core::position::{BlockPos, ChunkBlockPos, ChunkPos, ChunkSectionBlockPos};
 use nohash_hasher::IntMap;
 use parking_lot::RwLock;

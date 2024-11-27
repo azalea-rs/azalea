@@ -110,13 +110,8 @@ pub fn derive_c_config_packet(input: TokenStream) -> TokenStream {
 }
 
 #[derive(Debug)]
-struct PacketListItem {
-    module: Ident,
-    name: Ident,
-}
-#[derive(Debug)]
 struct PacketList {
-    packets: Vec<PacketListItem>,
+    packets: Vec<Ident>,
 }
 
 impl Parse for PacketList {
@@ -124,15 +119,10 @@ impl Parse for PacketList {
         let mut packets = vec![];
 
         // example:
-        // c_change_difficulty::ClientboundChangeDifficultyPacket,
-
-        // c_change_difficulty
-        while let Ok(module) = input.parse::<Ident>() {
-            input.parse::<Token![::]>()?;
-            // ClientboundChangeDifficultyPacket
-            let name = input.parse::<Ident>()?;
-            packets.push(PacketListItem { module, name });
-
+        // change_difficulty,
+        // keep_alive,
+        while let Ok(packet_name) = input.parse::<Ident>() {
+            packets.push(packet_name);
             if input.parse::<Token![,]>().is_err() {
                 break;
             }
@@ -145,8 +135,8 @@ impl Parse for PacketList {
 #[derive(Debug)]
 struct DeclareStatePackets {
     name: Ident,
-    serverbound: PacketList,
     clientbound: PacketList,
+    serverbound: PacketList,
 }
 
 impl Parse for DeclareStatePackets {
@@ -154,25 +144,31 @@ impl Parse for DeclareStatePackets {
         let name = input.parse()?;
         input.parse::<Token![,]>()?;
 
-        let s_token: Ident = input.parse()?;
-        if s_token != "Serverbound" {
-            return Err(syn::Error::new(s_token.span(), "Expected `Serverbound`"));
-        }
-        input.parse::<Token![=>]>()?;
-        let content;
-        bracketed!(content in input);
-        let serverbound = content.parse()?;
-
-        input.parse::<Token![,]>()?;
-
-        let c_token: Ident = input.parse()?;
-        if c_token != "Clientbound" {
-            return Err(syn::Error::new(c_token.span(), "Expected `Clientbound`"));
+        let clientbound_token: Ident = input.parse()?;
+        if clientbound_token != "Clientbound" {
+            return Err(syn::Error::new(
+                clientbound_token.span(),
+                "Expected `Clientbound`",
+            ));
         }
         input.parse::<Token![=>]>()?;
         let content;
         bracketed!(content in input);
         let clientbound = content.parse()?;
+
+        input.parse::<Token![,]>()?;
+
+        let serverbound_token: Ident = input.parse()?;
+        if serverbound_token != "Serverbound" {
+            return Err(syn::Error::new(
+                serverbound_token.span(),
+                "Expected `Serverbound`",
+            ));
+        }
+        input.parse::<Token![=>]>()?;
+        let content;
+        bracketed!(content in input);
+        let serverbound = content.parse()?;
 
         Ok(DeclareStatePackets {
             name,
@@ -185,89 +181,55 @@ impl Parse for DeclareStatePackets {
 pub fn declare_state_packets(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeclareStatePackets);
 
-    let s_state_name = Ident::new(&format!("Serverbound{}", input.name), input.name.span());
-    let c_state_name = Ident::new(&format!("Clientbound{}", input.name), input.name.span());
+    let clientbound_state_name =
+        Ident::new(&format!("Clientbound{}", input.name), input.name.span());
+    let serverbound_state_name =
+        Ident::new(&format!("Serverbound{}", input.name), input.name.span());
 
     let state_name_litstr = syn::LitStr::new(&input.name.to_string(), input.name.span());
 
-    let has_s_packets = !input.serverbound.packets.is_empty();
-    let has_c_packets = !input.clientbound.packets.is_empty();
+    let has_clientbound_packets = !input.clientbound.packets.is_empty();
+    let has_serverbound_packets = !input.serverbound.packets.is_empty();
 
     let mut mod_and_use_statements_contents = quote!();
-    let mut s_enum_contents = quote!();
-    let mut c_enum_contents = quote!();
-    let mut s_id_match_contents = quote!();
-    let mut c_id_match_contents = quote!();
-    let mut s_write_match_contents = quote!();
-    let mut c_write_match_contents = quote!();
-    let mut s_read_match_contents = quote!();
-    let mut c_read_match_contents = quote!();
+    let mut clientbound_enum_contents = quote!();
+    let mut serverbound_enum_contents = quote!();
+    let mut clientbound_id_match_contents = quote!();
+    let mut serverbound_id_match_contents = quote!();
+    let mut clientbound_write_match_contents = quote!();
+    let mut serverbound_write_match_contents = quote!();
+    let mut clientbound_read_match_contents = quote!();
+    let mut serverbound_read_match_contents = quote!();
 
-    for (id, PacketListItem { module, name }) in input.serverbound.packets.iter().enumerate() {
+    for (id, packet_name) in input.clientbound.packets.iter().enumerate() {
         let id = id as u32;
-        let name_litstr = syn::LitStr::new(&name.to_string(), name.span());
-        let variant_name = variant_name_from(name);
+
+        let struct_name = packet_name_to_struct_name(packet_name, "clientbound");
+        let module_name = packet_name_to_module_name(packet_name, "clientbound");
+        let variant_name = packet_name_to_variant_name(packet_name);
+        let packet_name_litstr = syn::LitStr::new(&packet_name.to_string(), packet_name.span());
 
         mod_and_use_statements_contents.extend(quote! {
-            pub mod #module;
-            pub use #module::#name;
+            pub mod #module_name;
+            pub use #module_name::#struct_name;
         });
 
-        s_enum_contents.extend(quote! {
-            #variant_name(#module::#name),
+        clientbound_enum_contents.extend(quote! {
+            #variant_name(#module_name::#struct_name),
         });
-        s_id_match_contents.extend(quote! {
-            #s_state_name::#variant_name(_packet) => #id,
+        clientbound_id_match_contents.extend(quote! {
+            #clientbound_state_name::#variant_name(_packet) => #id,
         });
-        s_write_match_contents.extend(quote! {
-            #s_state_name::#variant_name(packet) => packet.write(buf),
+        clientbound_write_match_contents.extend(quote! {
+            #clientbound_state_name::#variant_name(packet) => packet.write(buf),
         });
-        s_read_match_contents.extend(quote! {
+        clientbound_read_match_contents.extend(quote! {
             #id => {
-                let data = #module::#name::read(buf).map_err(|e| crate::read::ReadPacketError::Parse {
+                let data = #module_name::#struct_name::read(buf).map_err(|e| crate::read::ReadPacketError::Parse {
                     source: e,
                     packet_id: #id,
                     backtrace: Box::new(std::backtrace::Backtrace::capture()),
-                    packet_name: #name_litstr.to_string(),
-                })?;
-                #[cfg(debug_assertions)]
-                {
-                    let mut leftover = Vec::new();
-                    let _ = std::io::Read::read_to_end(buf, &mut leftover);
-                    if !leftover.is_empty() {
-                        return Err(Box::new(crate::read::ReadPacketError::LeftoverData { packet_name: #name_litstr.to_string(), data: leftover }));
-                    }
-                }
-                data
-            },
-        });
-    }
-    for (id, PacketListItem { module, name }) in input.clientbound.packets.iter().enumerate() {
-        let id = id as u32;
-        let name_litstr = syn::LitStr::new(&name.to_string(), name.span());
-        let variant_name = variant_name_from(name);
-
-        mod_and_use_statements_contents.extend(quote! {
-            pub mod #module;
-            pub use #module::#name;
-        });
-
-        c_enum_contents.extend(quote! {
-            #variant_name(#module::#name),
-        });
-        c_id_match_contents.extend(quote! {
-            #c_state_name::#variant_name(_packet) => #id,
-        });
-        c_write_match_contents.extend(quote! {
-            #c_state_name::#variant_name(packet) => packet.write(buf),
-        });
-        c_read_match_contents.extend(quote! {
-            #id => {
-                let data = #module::#name::read(buf).map_err(|e| crate::read::ReadPacketError::Parse {
-                    source: e,
-                    packet_id: #id,
-                    backtrace: Box::new(std::backtrace::Backtrace::capture()),
-                    packet_name: #name_litstr.to_string(),
+                    packet_name: #packet_name_litstr.to_string(),
                 })?;
                 #[cfg(debug_assertions)]
                 {
@@ -277,7 +239,7 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
                         return Err(
                             Box::new(
                                 crate::read::ReadPacketError::LeftoverData {
-                                    packet_name: #name_litstr.to_string(),
+                                    packet_name: #packet_name_litstr.to_string(),
                                     data: leftover
                                 }
                             )
@@ -288,20 +250,62 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
             },
         });
     }
+    for (id, packet_name) in input.serverbound.packets.iter().enumerate() {
+        let id = id as u32;
 
-    if !has_s_packets {
-        s_id_match_contents.extend(quote! {
+        let struct_name = packet_name_to_struct_name(packet_name, "serverbound");
+        let module_name = packet_name_to_module_name(packet_name, "serverbound");
+        let variant_name = packet_name_to_variant_name(packet_name);
+        let packet_name_litstr = syn::LitStr::new(&packet_name.to_string(), packet_name.span());
+
+        mod_and_use_statements_contents.extend(quote! {
+            pub mod #module_name;
+            pub use #module_name::#struct_name;
+        });
+
+        serverbound_enum_contents.extend(quote! {
+            #variant_name(#module_name::#struct_name),
+        });
+        serverbound_id_match_contents.extend(quote! {
+            #serverbound_state_name::#variant_name(_packet) => #id,
+        });
+        serverbound_write_match_contents.extend(quote! {
+            #serverbound_state_name::#variant_name(packet) => packet.write(buf),
+        });
+        serverbound_read_match_contents.extend(quote! {
+            #id => {
+                let data = #module_name::#struct_name::read(buf).map_err(|e| crate::read::ReadPacketError::Parse {
+                    source: e,
+                    packet_id: #id,
+                    backtrace: Box::new(std::backtrace::Backtrace::capture()),
+                    packet_name: #packet_name_litstr.to_string(),
+                })?;
+                #[cfg(debug_assertions)]
+                {
+                    let mut leftover = Vec::new();
+                    let _ = std::io::Read::read_to_end(buf, &mut leftover);
+                    if !leftover.is_empty() {
+                        return Err(Box::new(crate::read::ReadPacketError::LeftoverData { packet_name: #packet_name_litstr.to_string(), data: leftover }));
+                    }
+                }
+                data
+            },
+        });
+    }
+
+    if !has_serverbound_packets {
+        serverbound_id_match_contents.extend(quote! {
             _ => unreachable!("This enum is empty and can't exist.")
         });
-        s_write_match_contents.extend(quote! {
+        serverbound_write_match_contents.extend(quote! {
             _ => unreachable!("This enum is empty and can't exist.")
         });
     }
-    if !has_c_packets {
-        c_id_match_contents.extend(quote! {
+    if !has_clientbound_packets {
+        clientbound_id_match_contents.extend(quote! {
             _ => unreachable!("This enum is empty and can't exist.")
         });
-        c_write_match_contents.extend(quote! {
+        clientbound_write_match_contents.extend(quote! {
             _ => unreachable!("This enum is empty and can't exist.")
         });
     }
@@ -310,33 +314,33 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
         #mod_and_use_statements_contents
 
         #[derive(Clone, Debug)]
-        pub enum #s_state_name
-        where
-        Self: Sized,
-        {
-            #s_enum_contents
-        }
-        #[derive(Clone, Debug)]
-        pub enum #c_state_name
+        pub enum #clientbound_state_name
         where
             Self: Sized,
         {
-            #c_enum_contents
+            #clientbound_enum_contents
+        }
+        #[derive(Clone, Debug)]
+        pub enum #serverbound_state_name
+        where
+        Self: Sized,
+        {
+            #serverbound_enum_contents
         }
     };
 
     contents.extend(quote! {
         #[allow(unreachable_code)]
-        impl crate::packets::ProtocolPacket for #s_state_name {
+        impl crate::packets::ProtocolPacket for #serverbound_state_name {
             fn id(&self) -> u32 {
                 match self {
-                    #s_id_match_contents
+                    #serverbound_id_match_contents
                 }
             }
 
             fn write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
                 match self {
-                    #s_write_match_contents
+                    #serverbound_write_match_contents
                 }
             }
 
@@ -344,20 +348,20 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
             fn read(
                 id: u32,
                 buf: &mut std::io::Cursor<&[u8]>,
-            ) -> Result<#s_state_name, Box<crate::read::ReadPacketError>>
+            ) -> Result<#serverbound_state_name, Box<crate::read::ReadPacketError>>
             where
                 Self: Sized,
             {
                 Ok(match id {
-                    #s_read_match_contents
+                    #serverbound_read_match_contents
                     _ => return Err(Box::new(crate::read::ReadPacketError::UnknownPacketId { state_name: #state_name_litstr.to_string(), id })),
                 })
             }
         }
 
-        impl crate::packets::Packet<#s_state_name> for #s_state_name {
+        impl crate::packets::Packet<#serverbound_state_name> for #serverbound_state_name {
             /// No-op, exists so you can pass a packet enum when a Packet<> is expected.
-            fn into_variant(self) -> #s_state_name {
+            fn into_variant(self) -> #serverbound_state_name {
                 self
             }
         }
@@ -365,16 +369,16 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
 
     contents.extend(quote! {
         #[allow(unreachable_code)]
-        impl crate::packets::ProtocolPacket for #c_state_name {
+        impl crate::packets::ProtocolPacket for #clientbound_state_name {
             fn id(&self) -> u32 {
                 match self {
-                    #c_id_match_contents
+                    #clientbound_id_match_contents
                 }
             }
 
             fn write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
                 match self {
-                    #c_write_match_contents
+                    #clientbound_write_match_contents
                 }
             }
 
@@ -382,12 +386,12 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
             fn read(
                 id: u32,
                 buf: &mut std::io::Cursor<&[u8]>,
-            ) -> Result<#c_state_name, Box<crate::read::ReadPacketError>>
+            ) -> Result<#clientbound_state_name, Box<crate::read::ReadPacketError>>
             where
                 Self: Sized,
             {
                 Ok(match id {
-                    #c_read_match_contents
+                    #clientbound_read_match_contents
                     _ => return Err(Box::new(crate::read::ReadPacketError::UnknownPacketId { state_name: #state_name_litstr.to_string(), id })),
                 })
             }
@@ -406,4 +410,49 @@ fn variant_name_from(name: &syn::Ident) -> syn::Ident {
         variant_name = variant_name["Serverbound".len()..].to_string();
     }
     syn::Ident::new(&variant_name, name.span())
+}
+
+fn packet_name_to_struct_name(name: &syn::Ident, direction: &str) -> syn::Ident {
+    let struct_name_snake = format!("{direction}_{name}");
+    let struct_name = to_camel_case(&struct_name_snake);
+    syn::Ident::new(&struct_name, name.span())
+}
+fn packet_name_to_module_name(name: &syn::Ident, direction: &str) -> syn::Ident {
+    let module_name_snake = format!("{}_{name}", direction.chars().next().unwrap());
+    let module_name = to_snake_case(&module_name_snake);
+    syn::Ident::new(&module_name, name.span())
+}
+fn packet_name_to_variant_name(name: &syn::Ident) -> syn::Ident {
+    let variant_name = to_camel_case(&name.to_string());
+    syn::Ident::new(&variant_name, name.span())
+}
+
+fn to_camel_case(snake_case: &str) -> String {
+    let mut camel_case = String::new();
+    let mut capitalize_next = true;
+    for c in snake_case.chars() {
+        if c == '_' {
+            capitalize_next = true;
+        } else {
+            if capitalize_next {
+                camel_case.push(c.to_ascii_uppercase());
+            } else {
+                camel_case.push(c);
+            }
+            capitalize_next = false;
+        }
+    }
+    camel_case
+}
+fn to_snake_case(camel_case: &str) -> String {
+    let mut snake_case = String::new();
+    for c in camel_case.chars() {
+        if c.is_ascii_uppercase() {
+            snake_case.push('_');
+            snake_case.push(c.to_ascii_lowercase());
+        } else {
+            snake_case.push(c);
+        }
+    }
+    snake_case
 }

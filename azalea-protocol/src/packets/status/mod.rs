@@ -1,13 +1,15 @@
+// NOTE: This file is generated automatically by codegen/packet.py.
+// Don't edit it directly!
+
 use azalea_protocol_macros::declare_state_packets;
 
-declare_state_packets!(
-    StatusPacket,
-    Serverbound => [
-        s_status_request::ServerboundStatusRequest,
-        s_ping_request::ServerboundPingRequest,
-    ],
+declare_state_packets!(StatusPacket,
     Clientbound => [
-        c_status_response::ClientboundStatusResponse,
-        c_pong_response::ClientboundPongResponse,
+        pong_response,
+        status_response,
+    ],
+    Serverbound => [
+        ping_request,
+        status_request,
     ]
 );
