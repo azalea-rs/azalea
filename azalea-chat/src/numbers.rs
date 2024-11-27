@@ -4,7 +4,7 @@
 use std::io::{Cursor, Write};
 
 #[cfg(feature = "azalea-buf")]
-use azalea_buf::{McBufReadable, McBufWritable};
+use azalea_buf::{AzaleaRead, AzaleaWrite};
 use azalea_registry::NumberFormatKind;
 use simdnbt::owned::Nbt;
 
@@ -18,7 +18,7 @@ pub enum NumberFormat {
 }
 
 #[cfg(feature = "azalea-buf")]
-impl McBufReadable for NumberFormat {
+impl AzaleaRead for NumberFormat {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
         let kind = NumberFormatKind::azalea_read(buf)?;
         match kind {
@@ -34,7 +34,7 @@ impl McBufReadable for NumberFormat {
 }
 
 #[cfg(feature = "azalea-buf")]
-impl McBufWritable for NumberFormat {
+impl AzaleaWrite for NumberFormat {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         match self {
             NumberFormat::Blank => NumberFormatKind::Blank.azalea_write(buf)?,

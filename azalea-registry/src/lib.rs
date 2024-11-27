@@ -11,11 +11,11 @@ pub mod tags;
 use std::fmt::{self, Debug};
 use std::io::{Cursor, Write};
 
-use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
+use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
 use azalea_registry_macros::registry;
 pub use extra::*;
 
-pub trait Registry: McBufReadable + McBufWritable
+pub trait Registry: AzaleaRead + AzaleaWrite
 where
     Self: Sized,
 {
@@ -28,7 +28,7 @@ where
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct OptionalRegistry<T: Registry>(Option<T>);
 
-impl<T: Registry> McBufReadable for OptionalRegistry<T> {
+impl<T: Registry> AzaleaRead for OptionalRegistry<T> {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(OptionalRegistry(match u32::azalea_read_var(buf)? {
             0 => None,
@@ -39,7 +39,7 @@ impl<T: Registry> McBufReadable for OptionalRegistry<T> {
         }))
     }
 }
-impl<T: Registry> McBufWritable for OptionalRegistry<T> {
+impl<T: Registry> AzaleaWrite for OptionalRegistry<T> {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         match &self.0 {
             None => 0u32.azalea_write_var(buf),
@@ -50,12 +50,12 @@ impl<T: Registry> McBufWritable for OptionalRegistry<T> {
 
 /// A registry that will either take an ID or a resource location.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum CustomRegistry<D: Registry, C: McBufReadable + McBufWritable> {
+pub enum CustomRegistry<D: Registry, C: AzaleaRead + AzaleaWrite> {
     Direct(D),
     Custom(C),
 }
 
-impl<D: Registry, C: McBufReadable + McBufWritable> McBufReadable for CustomRegistry<D, C> {
+impl<D: Registry, C: AzaleaRead + AzaleaWrite> AzaleaRead for CustomRegistry<D, C> {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let direct_registry = OptionalRegistry::<D>::azalea_read(buf)?;
         if let Some(direct_registry) = direct_registry.0 {
@@ -64,7 +64,7 @@ impl<D: Registry, C: McBufReadable + McBufWritable> McBufReadable for CustomRegi
         Ok(CustomRegistry::Custom(C::azalea_read(buf)?))
     }
 }
-impl<D: Registry, C: McBufReadable + McBufWritable> McBufWritable for CustomRegistry<D, C> {
+impl<D: Registry, C: AzaleaRead + AzaleaWrite> AzaleaWrite for CustomRegistry<D, C> {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         match self {
             CustomRegistry::Direct(direct_registry) => {
@@ -81,7 +81,7 @@ impl<D: Registry, C: McBufReadable + McBufWritable> McBufWritable for CustomRegi
 }
 
 #[derive(Clone, PartialEq)]
-pub enum HolderSet<D: Registry, ResourceLocation: McBufReadable + McBufWritable> {
+pub enum HolderSet<D: Registry, ResourceLocation: AzaleaRead + AzaleaWrite> {
     Direct {
         contents: Vec<D>,
     },
@@ -91,7 +91,7 @@ pub enum HolderSet<D: Registry, ResourceLocation: McBufReadable + McBufWritable>
     },
 }
 
-impl<D: Registry, ResourceLocation: McBufReadable + McBufWritable> McBufReadable
+impl<D: Registry, ResourceLocation: AzaleaRead + AzaleaWrite> AzaleaRead
     for HolderSet<D, ResourceLocation>
 {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
@@ -111,7 +111,7 @@ impl<D: Registry, ResourceLocation: McBufReadable + McBufWritable> McBufReadable
         }
     }
 }
-impl<D: Registry, ResourceLocation: McBufReadable + McBufWritable> McBufWritable
+impl<D: Registry, ResourceLocation: AzaleaRead + AzaleaWrite> AzaleaWrite
     for HolderSet<D, ResourceLocation>
 {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
@@ -130,7 +130,7 @@ impl<D: Registry, ResourceLocation: McBufReadable + McBufWritable> McBufWritable
         Ok(())
     }
 }
-impl<D: Registry + Debug, ResourceLocation: McBufReadable + McBufWritable + Debug> Debug
+impl<D: Registry + Debug, ResourceLocation: AzaleaRead + AzaleaWrite + Debug> Debug
     for HolderSet<D, ResourceLocation>
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

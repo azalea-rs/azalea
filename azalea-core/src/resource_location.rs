@@ -6,7 +6,7 @@ use std::{
     str::FromStr,
 };
 
-use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
+use azalea_buf::{BufReadError, AzaleaRead, AzaleaWrite};
 #[cfg(feature = "serde")]
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 use simdnbt::{owned::NbtTag, FromNbtTag, ToNbtTag};
@@ -60,13 +60,13 @@ impl FromStr for ResourceLocation {
     }
 }
 
-impl McBufReadable for ResourceLocation {
+impl AzaleaRead for ResourceLocation {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let location_string = String::azalea_read(buf)?;
         Ok(ResourceLocation::new(&location_string))
     }
 }
-impl McBufWritable for ResourceLocation {
+impl AzaleaWrite for ResourceLocation {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         self.to_string().azalea_write(buf)
     }

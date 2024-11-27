@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
 #[cfg(feature = "azalea-buf")]
-use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
+use azalea_buf::{BufReadError, AzaleaRead, AzaleaWrite};
 use once_cell::sync::Lazy;
 use serde::{de, Deserialize, Deserializer, Serialize};
 #[cfg(feature = "simdnbt")]
@@ -456,7 +456,7 @@ impl From<&simdnbt::Mutf8Str> for FormattedText {
 
 #[cfg(feature = "azalea-buf")]
 #[cfg(feature = "simdnbt")]
-impl McBufReadable for FormattedText {
+impl AzaleaRead for FormattedText {
     fn azalea_read(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let nbt = simdnbt::borrow::read_optional_tag(buf)?;
         if let Some(nbt) = nbt {
@@ -471,7 +471,7 @@ impl McBufReadable for FormattedText {
 
 #[cfg(feature = "azalea-buf")]
 #[cfg(feature = "simdnbt")]
-impl McBufWritable for FormattedText {
+impl AzaleaWrite for FormattedText {
     fn azalea_write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
         let mut out = Vec::new();
         simdnbt::owned::BaseNbt::write_unnamed(&(self.clone().to_compound().into()), &mut out);

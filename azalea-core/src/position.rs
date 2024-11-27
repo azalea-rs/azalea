@@ -11,7 +11,7 @@ use std::{
     str::FromStr,
 };
 
-use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
+use azalea_buf::{BufReadError, McBuf, AzaleaRead, AzaleaWrite};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -315,13 +315,13 @@ impl From<u64> for ChunkPos {
         }
     }
 }
-impl McBufReadable for ChunkPos {
+impl AzaleaRead for ChunkPos {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let long = u64::azalea_read(buf)?;
         Ok(ChunkPos::from(long))
     }
 }
-impl McBufWritable for ChunkPos {
+impl AzaleaWrite for ChunkPos {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         u64::from(*self).azalea_write(buf)?;
         Ok(())
@@ -586,7 +586,7 @@ const PACKED_Z_MASK: u64 = (1 << PACKED_Z_LENGTH) - 1;
 const Z_OFFSET: u64 = PACKED_Y_LENGTH;
 const X_OFFSET: u64 = PACKED_Y_LENGTH + PACKED_Z_LENGTH;
 
-impl McBufReadable for BlockPos {
+impl AzaleaRead for BlockPos {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let val = i64::azalea_read(buf)?;
         let x = (val << (64 - X_OFFSET - PACKED_X_LENGTH) >> (64 - PACKED_X_LENGTH)) as i32;
@@ -596,7 +596,7 @@ impl McBufReadable for BlockPos {
     }
 }
 
-impl McBufReadable for GlobalPos {
+impl AzaleaRead for GlobalPos {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(GlobalPos {
             world: ResourceLocation::azalea_read(buf)?,
@@ -605,7 +605,7 @@ impl McBufReadable for GlobalPos {
     }
 }
 
-impl McBufReadable for ChunkSectionPos {
+impl AzaleaRead for ChunkSectionPos {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let long = i64::azalea_read(buf)?;
         Ok(ChunkSectionPos {
@@ -616,7 +616,7 @@ impl McBufReadable for ChunkSectionPos {
     }
 }
 
-impl McBufWritable for BlockPos {
+impl AzaleaWrite for BlockPos {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         let mut val: u64 = 0;
         val |= ((self.x as u64) & PACKED_X_MASK) << X_OFFSET;
@@ -626,7 +626,7 @@ impl McBufWritable for BlockPos {
     }
 }
 
-impl McBufWritable for GlobalPos {
+impl AzaleaWrite for GlobalPos {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         ResourceLocation::azalea_write(&self.world, buf)?;
         BlockPos::azalea_write(&self.pos, buf)?;
@@ -635,7 +635,7 @@ impl McBufWritable for GlobalPos {
     }
 }
 
-impl McBufWritable for ChunkSectionPos {
+impl AzaleaWrite for ChunkSectionPos {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         let long = (((self.x & 0x3FFFFF) as i64) << 42)
             | (self.y & 0xFFFFF) as i64

@@ -20,21 +20,21 @@ fn write_utf_with_len(
     Ok(())
 }
 
-pub trait McBufWritable {
+pub trait AzaleaWrite {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error>;
 }
 
-pub trait McBufVarWritable {
+pub trait AzaleaWriteVar {
     fn azalea_write_var(&self, buf: &mut impl Write) -> Result<(), std::io::Error>;
 }
 
-impl McBufWritable for i32 {
+impl AzaleaWrite for i32 {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         WriteBytesExt::write_i32::<BigEndian>(buf, *self)
     }
 }
 
-impl McBufVarWritable for i32 {
+impl AzaleaWriteVar for i32 {
     fn azalea_write_var(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         let mut buffer = [0];
         let mut value = *self;
@@ -53,19 +53,19 @@ impl McBufVarWritable for i32 {
     }
 }
 
-impl McBufWritable for UnsizedByteArray {
+impl AzaleaWrite for UnsizedByteArray {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         buf.write_all(self)
     }
 }
 
-impl<T: McBufWritable> McBufWritable for Vec<T> {
+impl<T: AzaleaWrite> AzaleaWrite for Vec<T> {
     default fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         self[..].azalea_write(buf)
     }
 }
 
-impl<T: McBufWritable> McBufWritable for [T] {
+impl<T: AzaleaWrite> AzaleaWrite for [T] {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         (self.len() as u32).azalea_write_var(buf)?;
         for item in self {
@@ -75,7 +75,7 @@ impl<T: McBufWritable> McBufWritable for [T] {
     }
 }
 
-impl<K: McBufWritable, V: McBufWritable> McBufWritable for HashMap<K, V> {
+impl<K: AzaleaWrite, V: AzaleaWrite> AzaleaWrite for HashMap<K, V> {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         u32::azalea_write_var(&(self.len() as u32), buf)?;
         for (key, value) in self {
@@ -87,7 +87,7 @@ impl<K: McBufWritable, V: McBufWritable> McBufWritable for HashMap<K, V> {
     }
 }
 
-impl<K: McBufWritable, V: McBufVarWritable> McBufVarWritable for HashMap<K, V> {
+impl<K: AzaleaWrite, V: AzaleaWriteVar> AzaleaWriteVar for HashMap<K, V> {
     fn azalea_write_var(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         u32::azalea_write_var(&(self.len() as u32), buf)?;
         for (key, value) in self {
@@ -99,38 +99,38 @@ impl<K: McBufWritable, V: McBufVarWritable> McBufVarWritable for HashMap<K, V> {
     }
 }
 
-impl McBufWritable for Vec<u8> {
+impl AzaleaWrite for Vec<u8> {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         (self.len() as u32).azalea_write_var(buf)?;
         buf.write_all(self)
     }
 }
 
-impl McBufWritable for String {
+impl AzaleaWrite for String {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         write_utf_with_len(buf, self, MAX_STRING_LENGTH.into())
     }
 }
 
-impl McBufWritable for &str {
+impl AzaleaWrite for &str {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         write_utf_with_len(buf, self, MAX_STRING_LENGTH.into())
     }
 }
 
-impl McBufWritable for u32 {
+impl AzaleaWrite for u32 {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         i32::azalea_write(&(*self as i32), buf)
     }
 }
 
-impl McBufVarWritable for u32 {
+impl AzaleaWriteVar for u32 {
     fn azalea_write_var(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         i32::azalea_write_var(&(*self as i32), buf)
     }
 }
 
-impl McBufVarWritable for i64 {
+impl AzaleaWriteVar for i64 {
     fn azalea_write_var(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         let mut buffer = [0];
         let mut value = *self;
@@ -149,25 +149,25 @@ impl McBufVarWritable for i64 {
     }
 }
 
-impl McBufVarWritable for u64 {
+impl AzaleaWriteVar for u64 {
     fn azalea_write_var(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         i64::azalea_write_var(&(*self as i64), buf)
     }
 }
 
-impl McBufWritable for u16 {
+impl AzaleaWrite for u16 {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         i16::azalea_write(&(*self as i16), buf)
     }
 }
 
-impl McBufVarWritable for u16 {
+impl AzaleaWriteVar for u16 {
     fn azalea_write_var(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         i32::azalea_write_var(&(*self as i32), buf)
     }
 }
 
-impl<T: McBufVarWritable> McBufVarWritable for Vec<T> {
+impl<T: AzaleaWriteVar> AzaleaWriteVar for Vec<T> {
     fn azalea_write_var(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         u32::azalea_write_var(&(self.len() as u32), buf)?;
         for i in self {
@@ -177,56 +177,56 @@ impl<T: McBufVarWritable> McBufVarWritable for Vec<T> {
     }
 }
 
-impl McBufWritable for u8 {
+impl AzaleaWrite for u8 {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         WriteBytesExt::write_u8(buf, *self)
     }
 }
 
-impl McBufWritable for i16 {
+impl AzaleaWrite for i16 {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         WriteBytesExt::write_i16::<BigEndian>(buf, *self)
     }
 }
 
-impl McBufWritable for i64 {
+impl AzaleaWrite for i64 {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         WriteBytesExt::write_i64::<BigEndian>(buf, *self)
     }
 }
 
-impl McBufWritable for u64 {
+impl AzaleaWrite for u64 {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         i64::azalea_write(&(*self as i64), buf)
     }
 }
 
-impl McBufWritable for bool {
+impl AzaleaWrite for bool {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         let byte = u8::from(*self);
         byte.azalea_write(buf)
     }
 }
 
-impl McBufWritable for i8 {
+impl AzaleaWrite for i8 {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         (*self as u8).azalea_write(buf)
     }
 }
 
-impl McBufWritable for f32 {
+impl AzaleaWrite for f32 {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         WriteBytesExt::write_f32::<BigEndian>(buf, *self)
     }
 }
 
-impl McBufWritable for f64 {
+impl AzaleaWrite for f64 {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         WriteBytesExt::write_f64::<BigEndian>(buf, *self)
     }
 }
 
-impl<T: McBufWritable> McBufWritable for Option<T> {
+impl<T: AzaleaWrite> AzaleaWrite for Option<T> {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         if let Some(s) = self {
             true.azalea_write(buf)?;
@@ -238,7 +238,7 @@ impl<T: McBufWritable> McBufWritable for Option<T> {
     }
 }
 
-impl<T: McBufVarWritable> McBufVarWritable for Option<T> {
+impl<T: AzaleaWriteVar> AzaleaWriteVar for Option<T> {
     fn azalea_write_var(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         if let Some(s) = self {
             true.azalea_write(buf)?;
@@ -251,7 +251,7 @@ impl<T: McBufVarWritable> McBufVarWritable for Option<T> {
 }
 
 // [T; N]
-impl<T: McBufWritable, const N: usize> McBufWritable for [T; N] {
+impl<T: AzaleaWrite, const N: usize> AzaleaWrite for [T; N] {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         for i in self {
             i.azalea_write(buf)?;
@@ -260,7 +260,7 @@ impl<T: McBufWritable, const N: usize> McBufWritable for [T; N] {
     }
 }
 
-impl McBufWritable for simdnbt::owned::NbtTag {
+impl AzaleaWrite for simdnbt::owned::NbtTag {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         let mut data = Vec::new();
         self.write(&mut data);
@@ -268,7 +268,7 @@ impl McBufWritable for simdnbt::owned::NbtTag {
     }
 }
 
-impl McBufWritable for simdnbt::owned::NbtCompound {
+impl AzaleaWrite for simdnbt::owned::NbtCompound {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         let mut data = Vec::new();
         simdnbt::owned::NbtTag::Compound(self.clone()).write(&mut data);
@@ -276,7 +276,7 @@ impl McBufWritable for simdnbt::owned::NbtCompound {
     }
 }
 
-impl McBufWritable for simdnbt::owned::Nbt {
+impl AzaleaWrite for simdnbt::owned::Nbt {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         let mut data = Vec::new();
         self.write_unnamed(&mut data);
@@ -284,9 +284,9 @@ impl McBufWritable for simdnbt::owned::Nbt {
     }
 }
 
-impl<T> McBufWritable for Box<T>
+impl<T> AzaleaWrite for Box<T>
 where
-    T: McBufWritable,
+    T: AzaleaWrite,
 {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         T::azalea_write(&**self, buf)

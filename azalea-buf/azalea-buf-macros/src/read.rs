@@ -15,11 +15,11 @@ fn read_named_fields(
                 syn::Type::Path(_) | syn::Type::Array(_) => {
                     if f.attrs.iter().any(|a| a.path().is_ident("var")) {
                         quote! {
-                            let #field_name = azalea_buf::McBufVarReadable::azalea_read_var(buf)?;
+                            let #field_name = azalea_buf::AzaleaReadVar::azalea_read_var(buf)?;
                         }
                     } else {
                         quote! {
-                            let #field_name = azalea_buf::McBufReadable::azalea_read(buf)?;
+                            let #field_name = azalea_buf::AzaleaRead::azalea_read(buf)?;
                         }
                     }
                 }
@@ -36,14 +36,14 @@ fn read_named_fields(
     (read_fields, read_field_names)
 }
 
-pub fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenStream {
+pub fn create_impl_azalearead(ident: &Ident, data: &Data) -> proc_macro2::TokenStream {
     match data {
         syn::Data::Struct(syn::DataStruct { fields, .. }) => match fields {
             syn::Fields::Named(FieldsNamed { named, .. }) => {
                 let (read_fields, read_field_names) = read_named_fields(named);
 
                 quote! {
-                impl azalea_buf::McBufReadable for #ident {
+                impl azalea_buf::AzaleaRead for #ident {
                     fn azalea_read(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
                         #(#read_fields)*
                         Ok(Self {
@@ -55,7 +55,7 @@ pub fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::Tok
             }
             syn::Fields::Unit => {
                 quote! {
-                impl azalea_buf::McBufReadable for #ident {
+                impl azalea_buf::AzaleaRead for #ident {
                     fn azalea_read(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
                         Ok(Self)
                     }
@@ -110,11 +110,11 @@ pub fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::Tok
                         for f in &fields.unnamed {
                             if f.attrs.iter().any(|attr| attr.path().is_ident("var")) {
                                 reader_code.extend(quote! {
-                                    Self::#variant_name(azalea_buf::McBufVarReadable::azalea_read_var(buf)?),
+                                    Self::#variant_name(azalea_buf::AzaleaReadVar::azalea_read_var(buf)?),
                                 });
                             } else {
                                 reader_code.extend(quote! {
-                                    Self::#variant_name(azalea_buf::McBufReadable::azalea_read(buf)?),
+                                    Self::#variant_name(azalea_buf::AzaleaRead::azalea_read(buf)?),
                                 });
                             }
                         }
@@ -139,9 +139,9 @@ pub fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::Tok
             let first_reader = first_reader.expect("There should be at least one variant");
 
             quote! {
-            impl azalea_buf::McBufReadable for #ident {
+            impl azalea_buf::AzaleaRead for #ident {
                 fn azalea_read(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
-                    let id = azalea_buf::McBufVarReadable::azalea_read_var(buf)?;
+                    let id = azalea_buf::AzaleaReadVar::azalea_read_var(buf)?;
                     Self::azalea_read_id(buf, id)
                 }
             }

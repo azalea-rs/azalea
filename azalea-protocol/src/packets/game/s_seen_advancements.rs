@@ -1,6 +1,6 @@
 use std::io::Cursor;
 
-use azalea_buf::{McBuf, McBufReadable, McBufWritable};
+use azalea_buf::{McBuf, AzaleaRead, AzaleaWrite};
 use azalea_core::resource_location::ResourceLocation;
 use azalea_protocol_macros::ServerboundGamePacket;
 
@@ -18,7 +18,7 @@ pub enum Action {
     ClosedScreen = 1,
 }
 
-impl McBufReadable for ServerboundSeenAdvancements {
+impl AzaleaRead for ServerboundSeenAdvancements {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let action = Action::azalea_read(buf)?;
         let tab = if action == Action::OpenedTab {
@@ -30,7 +30,7 @@ impl McBufReadable for ServerboundSeenAdvancements {
     }
 }
 
-impl McBufWritable for ServerboundSeenAdvancements {
+impl AzaleaWrite for ServerboundSeenAdvancements {
     fn azalea_write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
         self.action.azalea_write(buf)?;
         if let Some(tab) = &self.tab {

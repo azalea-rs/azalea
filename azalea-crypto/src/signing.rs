@@ -1,6 +1,6 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use azalea_buf::{McBuf, McBufWritable};
+use azalea_buf::{McBuf, AzaleaWrite};
 use rsa::{
     signature::{RandomizedSigner, SignatureEncoding},
     RsaPrivateKey,

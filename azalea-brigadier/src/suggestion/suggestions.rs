@@ -4,7 +4,7 @@ use std::{collections::HashSet, hash::Hash};
 
 #[cfg(feature = "azalea-buf")]
 use azalea_buf::{
-    BufReadError, McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable,
+    BufReadError, McBuf, AzaleaRead, AzaleaReadVar, AzaleaWriteVar, AzaleaWrite,
 };
 #[cfg(feature = "azalea-buf")]
 use azalea_chat::FormattedText;
@@ -79,7 +79,7 @@ impl Suggestions {
 }
 
 #[cfg(feature = "azalea-buf")]
-impl McBufReadable for Suggestions {
+impl AzaleaRead for Suggestions {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         #[derive(McBuf)]
         struct StandaloneSuggestion {
@@ -92,7 +92,7 @@ impl McBufReadable for Suggestions {
         let range = StringRange::between(start, start + length);
 
         // the range of a Suggestion depends on the Suggestions containing it,
-        // so we can't just `impl McBufReadable for Suggestion`
+        // so we can't just `impl AzaleaRead for Suggestion`
         let mut suggestions = Vec::<StandaloneSuggestion>::azalea_read(buf)?
             .into_iter()
             .map(|s| Suggestion {
@@ -108,7 +108,7 @@ impl McBufReadable for Suggestions {
 }
 
 #[cfg(feature = "azalea-buf")]
-impl McBufWritable for Suggestions {
+impl AzaleaWrite for Suggestions {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         (self.range.start() as u32).azalea_write_var(buf)?;
         (self.range.length() as u32).azalea_write_var(buf)?;

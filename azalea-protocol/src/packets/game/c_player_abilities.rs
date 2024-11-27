@@ -1,7 +1,7 @@
 use std::io::{Cursor, Write};
 
 use azalea_buf::{BufReadError, McBuf};
-use azalea_buf::{McBufReadable, McBufWritable};
+use azalea_buf::{AzaleaRead, AzaleaWrite};
 use azalea_core::bitset::FixedBitSet;
 use azalea_protocol_macros::ClientboundGamePacket;
 
@@ -21,7 +21,7 @@ pub struct PlayerAbilitiesFlags {
     pub instant_break: bool,
 }
 
-impl McBufReadable for PlayerAbilitiesFlags {
+impl AzaleaRead for PlayerAbilitiesFlags {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let set = FixedBitSet::<4>::azalea_read(buf)?;
         Ok(PlayerAbilitiesFlags {
@@ -33,7 +33,7 @@ impl McBufReadable for PlayerAbilitiesFlags {
     }
 }
 
-impl McBufWritable for PlayerAbilitiesFlags {
+impl AzaleaWrite for PlayerAbilitiesFlags {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         let mut set = FixedBitSet::<4>::new();
         if self.invulnerable {

@@ -1,4 +1,4 @@
-use azalea_buf::McBufWritable;
+use azalea_buf::AzaleaWrite;
 use azalea_core::resource_location::ResourceLocation;
 use azalea_protocol::{
     common::ClientInformation,

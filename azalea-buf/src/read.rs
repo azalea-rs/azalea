@@ -105,27 +105,27 @@ fn read_utf_with_len(buf: &mut Cursor<&[u8]>, max_length: u32) -> Result<String,
     Ok(string)
 }
 
-pub trait McBufReadable
+pub trait AzaleaRead
 where
     Self: Sized,
 {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError>;
 }
 
-pub trait McBufVarReadable
+pub trait AzaleaReadVar
 where
     Self: Sized,
 {
     fn azalea_read_var(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError>;
 }
 
-impl McBufReadable for i32 {
+impl AzaleaRead for i32 {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(buf.read_i32::<BE>()?)
     }
 }
 
-impl McBufVarReadable for i32 {
+impl AzaleaReadVar for i32 {
     // fast varints modified from https://github.com/luojia65/mc-varint/blob/master/src/lib.rs#L67
     /// Read a single varint from the reader and return the value
     fn azalea_read_var(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
@@ -142,7 +142,7 @@ impl McBufVarReadable for i32 {
     }
 }
 
-impl McBufVarReadable for i64 {
+impl AzaleaReadVar for i64 {
     // fast varints modified from https://github.com/luojia65/mc-varint/blob/master/src/lib.rs#L54
     fn azalea_read_var(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let mut buffer = [0];
@@ -158,13 +158,13 @@ impl McBufVarReadable for i64 {
         Ok(ans)
     }
 }
-impl McBufVarReadable for u64 {
+impl AzaleaReadVar for u64 {
     fn azalea_read_var(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         i64::azalea_read_var(buf).map(|i| i as u64)
     }
 }
 
-impl McBufReadable for UnsizedByteArray {
+impl AzaleaRead for UnsizedByteArray {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         // read to end of the buffer
         let data = buf.get_ref()[buf.position() as usize..].to_vec();
@@ -173,7 +173,7 @@ impl McBufReadable for UnsizedByteArray {
     }
 }
 
-impl<T: McBufReadable + Send> McBufReadable for Vec<T> {
+impl<T: AzaleaRead + Send> AzaleaRead for Vec<T> {
     default fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let length = u32::azalea_read_var(buf)? as usize;
         // we limit the capacity to not get exploited into allocating a bunch
@@ -185,7 +185,7 @@ impl<T: McBufReadable + Send> McBufReadable for Vec<T> {
     }
 }
 
-impl<K: McBufReadable + Send + Eq + Hash, V: McBufReadable + Send> McBufReadable for HashMap<K, V> {
+impl<K: AzaleaRead + Send + Eq + Hash, V: AzaleaRead + Send> AzaleaRead for HashMap<K, V> {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let length = i32::azalea_read_var(buf)? as usize;
         let mut contents = HashMap::with_capacity(usize::min(length, 65536));
@@ -196,7 +196,7 @@ impl<K: McBufReadable + Send + Eq + Hash, V: McBufReadable + Send> McBufReadable
     }
 }
 
-impl<K: McBufReadable + Send + Eq + Hash, V: McBufVarReadable + Send> McBufVarReadable
+impl<K: AzaleaRead + Send + Eq + Hash, V: AzaleaReadVar + Send> AzaleaReadVar
     for HashMap<K, V>
 {
     fn azalea_read_var(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
@@ -209,50 +209,50 @@ impl<K: McBufReadable + Send + Eq + Hash, V: McBufVarReadable + Send> McBufVarRe
     }
 }
 
-impl McBufReadable for Vec<u8> {
+impl AzaleaRead for Vec<u8> {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let length = i32::azalea_read_var(buf)? as usize;
         read_bytes(buf, length).map(|b| b.to_vec())
     }
 }
 
-impl McBufReadable for String {
+impl AzaleaRead for String {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         read_utf_with_len(buf, MAX_STRING_LENGTH.into())
     }
 }
 
-impl McBufReadable for u32 {
+impl AzaleaRead for u32 {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(i32::azalea_read(buf)? as u32)
     }
 }
 
-impl McBufVarReadable for u32 {
+impl AzaleaReadVar for u32 {
     fn azalea_read_var(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(i32::azalea_read_var(buf)? as u32)
     }
 }
 
-impl McBufReadable for u16 {
+impl AzaleaRead for u16 {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         i16::azalea_read(buf).map(|i| i as u16)
     }
 }
 
-impl McBufReadable for i16 {
+impl AzaleaRead for i16 {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(buf.read_i16::<BE>()?)
     }
 }
 
-impl McBufVarReadable for u16 {
+impl AzaleaReadVar for u16 {
     fn azalea_read_var(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(i32::azalea_read_var(buf)? as u16)
     }
 }
 
-impl<T: McBufVarReadable> McBufVarReadable for Vec<T> {
+impl<T: AzaleaReadVar> AzaleaReadVar for Vec<T> {
     fn azalea_read_var(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let length = i32::azalea_read_var(buf)? as usize;
         let mut contents = Vec::with_capacity(usize::min(length, 65536));
@@ -263,19 +263,19 @@ impl<T: McBufVarReadable> McBufVarReadable for Vec<T> {
     }
 }
 
-impl McBufReadable for i64 {
+impl AzaleaRead for i64 {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(buf.read_i64::<BE>()?)
     }
 }
 
-impl McBufReadable for u64 {
+impl AzaleaRead for u64 {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         i64::azalea_read(buf).map(|i| i as u64)
     }
 }
 
-impl McBufReadable for bool {
+impl AzaleaRead for bool {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let byte = u8::azalea_read(buf)?;
         if byte > 1 {
@@ -285,31 +285,31 @@ impl McBufReadable for bool {
     }
 }
 
-impl McBufReadable for u8 {
+impl AzaleaRead for u8 {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(buf.read_u8()?)
     }
 }
 
-impl McBufReadable for i8 {
+impl AzaleaRead for i8 {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         u8::azalea_read(buf).map(|i| i as i8)
     }
 }
 
-impl McBufReadable for f32 {
+impl AzaleaRead for f32 {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(buf.read_f32::<BE>()?)
     }
 }
 
-impl McBufReadable for f64 {
+impl AzaleaRead for f64 {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(buf.read_f64::<BE>()?)
     }
 }
 
-impl<T: McBufReadable> McBufReadable for Option<T> {
+impl<T: AzaleaRead> AzaleaRead for Option<T> {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let present = bool::azalea_read(buf)?;
         Ok(if present {
@@ -320,7 +320,7 @@ impl<T: McBufReadable> McBufReadable for Option<T> {
     }
 }
 
-impl<T: McBufVarReadable> McBufVarReadable for Option<T> {
+impl<T: AzaleaReadVar> AzaleaReadVar for Option<T> {
     fn azalea_read_var(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let present = bool::azalea_read(buf)?;
         Ok(if present {
@@ -332,7 +332,7 @@ impl<T: McBufVarReadable> McBufVarReadable for Option<T> {
 }
 
 // [String; 4]
-impl<T: McBufReadable, const N: usize> McBufReadable for [T; N] {
+impl<T: AzaleaRead, const N: usize> AzaleaRead for [T; N] {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let mut contents = Vec::with_capacity(N);
         for _ in 0..N {
@@ -344,13 +344,13 @@ impl<T: McBufReadable, const N: usize> McBufReadable for [T; N] {
     }
 }
 
-impl McBufReadable for simdnbt::owned::NbtTag {
+impl AzaleaRead for simdnbt::owned::NbtTag {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(simdnbt::owned::read_tag(buf).map_err(simdnbt::Error::from)?)
     }
 }
 
-impl McBufReadable for simdnbt::owned::NbtCompound {
+impl AzaleaRead for simdnbt::owned::NbtCompound {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         match simdnbt::owned::read_tag(buf).map_err(simdnbt::Error::from)? {
             simdnbt::owned::NbtTag::Compound(compound) => Ok(compound),
@@ -359,15 +359,15 @@ impl McBufReadable for simdnbt::owned::NbtCompound {
     }
 }
 
-impl McBufReadable for simdnbt::owned::Nbt {
+impl AzaleaRead for simdnbt::owned::Nbt {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(simdnbt::owned::read_unnamed(buf)?)
     }
 }
 
-impl<T> McBufReadable for Box<T>
+impl<T> AzaleaRead for Box<T>
 where
-    T: McBufReadable,
+    T: AzaleaRead,
 {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(Box::new(T::azalea_read(buf)?))

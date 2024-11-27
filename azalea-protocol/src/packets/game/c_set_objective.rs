@@ -1,6 +1,6 @@
 use std::io::{Cursor, Write};
 
-use azalea_buf::{McBuf, McBufReadable, McBufWritable};
+use azalea_buf::{AzaleaRead, McBuf, AzaleaWrite};
 use azalea_chat::{numbers::NumberFormat, FormattedText};
 use azalea_core::objectives::ObjectiveCriteria;
 use azalea_protocol_macros::ClientboundGamePacket;
@@ -33,7 +33,7 @@ pub enum Method {
     },
 }
 
-impl McBufReadable for Method {
+impl AzaleaRead for Method {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
         let kind = MethodKind::azalea_read(buf)?;
         match kind {
@@ -52,7 +52,7 @@ impl McBufReadable for Method {
     }
 }
 
-impl McBufWritable for Method {
+impl AzaleaWrite for Method {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         match self {
             Method::Add {

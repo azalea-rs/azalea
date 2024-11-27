@@ -2,8 +2,8 @@ use std::io::Cursor;
 use std::ops::Deref;
 use std::{collections::HashMap, io::Write};
 
-use azalea_buf::{BufReadError, McBuf, McBufVarReadable, McBufVarWritable};
-use azalea_buf::{McBufReadable, McBufWritable};
+use azalea_buf::{AzaleaRead, AzaleaWrite};
+use azalea_buf::{AzaleaWriteVar, BufReadError, McBuf, AzaleaReadVar};
 use azalea_core::resource_location::ResourceLocation;
 use azalea_protocol_macros::ClientboundConfigPacket;
 
@@ -21,7 +21,7 @@ pub struct Tags {
 #[derive(Clone, Debug)]
 pub struct TagMap(pub HashMap<ResourceLocation, Vec<Tags>>);
 
-impl McBufReadable for TagMap {
+impl AzaleaRead for TagMap {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let length = u32::azalea_read_var(buf)? as usize;
         let mut data = HashMap::with_capacity(length);
@@ -39,7 +39,7 @@ impl McBufReadable for TagMap {
     }
 }
 
-impl McBufWritable for TagMap {
+impl AzaleaWrite for TagMap {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         (self.len() as u32).azalea_write_var(buf)?;
         for (k, v) in &self.0 {
@@ -49,7 +49,7 @@ impl McBufWritable for TagMap {
         Ok(())
     }
 }
-impl McBufReadable for Tags {
+impl AzaleaRead for Tags {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let name = ResourceLocation::azalea_read(buf)?;
         let elements = Vec::<i32>::azalea_read_var(buf)?;
@@ -57,7 +57,7 @@ impl McBufReadable for Tags {
     }
 }
 
-impl McBufWritable for Tags {
+impl AzaleaWrite for Tags {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         self.name.azalea_write(buf)?;
         self.elements.azalea_write_var(buf)?;

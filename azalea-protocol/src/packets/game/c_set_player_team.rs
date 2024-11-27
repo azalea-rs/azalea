@@ -1,6 +1,6 @@
 use std::io::{Cursor, Write};
 
-use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
+use azalea_buf::{BufReadError, McBuf, AzaleaRead, AzaleaWrite};
 use azalea_chat::{style::ChatFormatting, FormattedText};
 use azalea_protocol_macros::ClientboundGamePacket;
 
@@ -19,7 +19,7 @@ pub enum Method {
     Leave(PlayerList),
 }
 
-impl McBufReadable for Method {
+impl AzaleaRead for Method {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(match u8::azalea_read(buf)? {
             0 => Method::Add((Parameters::azalea_read(buf)?, PlayerList::azalea_read(buf)?)),
@@ -32,7 +32,7 @@ impl McBufReadable for Method {
     }
 }
 
-impl McBufWritable for Method {
+impl AzaleaWrite for Method {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         match self {
             Method::Add((parameters, playerlist)) => {

@@ -32,7 +32,7 @@ pub struct BlockEntity {
 mod tests {
     use std::{io::Cursor, ops::Deref};
 
-    use azalea_buf::McBufReadable;
+    use azalea_buf::AzaleaRead;
     use azalea_world::Chunk;
     use simdnbt::owned::BaseNbt;
 

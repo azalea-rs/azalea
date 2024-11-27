@@ -8,7 +8,7 @@ use std::{
 };
 
 use azalea_block::BlockState;
-use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
+use azalea_buf::{BufReadError, AzaleaRead, AzaleaWrite};
 use azalea_core::position::{BlockPos, ChunkBlockPos, ChunkPos, ChunkSectionBlockPos};
 use nohash_hasher::IntMap;
 use parking_lot::RwLock;
@@ -416,7 +416,7 @@ pub fn get_block_state_from_sections(
     Some(section.get(chunk_section_pos))
 }
 
-impl McBufWritable for Chunk {
+impl AzaleaWrite for Chunk {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         for section in &self.sections {
             section.azalea_write(buf)?;
@@ -437,7 +437,7 @@ impl Debug for PartialChunkStorage {
     }
 }
 
-impl McBufReadable for Section {
+impl AzaleaRead for Section {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let block_count = u16::azalea_read(buf)?;
 
@@ -467,7 +467,7 @@ impl McBufReadable for Section {
     }
 }
 
-impl McBufWritable for Section {
+impl AzaleaWrite for Section {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         self.block_count.azalea_write(buf)?;
         self.states.azalea_write(buf)?;

@@ -4,7 +4,7 @@ use std::{
 };
 
 use azalea_buf::{
-    BufReadError, McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable,
+    BufReadError, McBuf, AzaleaRead, AzaleaReadVar, AzaleaWriteVar, AzaleaWrite,
 };
 use azalea_core::{position::BlockPos, resource_location::ResourceLocation};
 use azalea_protocol_macros::ClientboundGamePacket;
@@ -34,7 +34,7 @@ pub enum BlockInteraction {
     TriggerBlock,
 }
 
-impl McBufReadable for ClientboundExplode {
+impl AzaleaRead for ClientboundExplode {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let x = f64::azalea_read(buf)?;
         let y = f64::azalea_read(buf)?;
@@ -88,7 +88,7 @@ impl McBufReadable for ClientboundExplode {
     }
 }
 
-impl McBufWritable for ClientboundExplode {
+impl AzaleaWrite for ClientboundExplode {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         self.x.azalea_write(buf)?;
         self.y.azalea_write(buf)?;

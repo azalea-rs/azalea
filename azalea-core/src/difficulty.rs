@@ -3,7 +3,7 @@ use std::{
     io::{Cursor, Write},
 };
 
-use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
+use azalea_buf::{BufReadError, AzaleaRead, AzaleaWrite};
 
 #[derive(Hash, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Difficulty {
@@ -66,13 +66,13 @@ impl Difficulty {
     }
 }
 
-impl McBufReadable for Difficulty {
+impl AzaleaRead for Difficulty {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(Difficulty::by_id(u8::azalea_read(buf)?))
     }
 }
 
-impl McBufWritable for Difficulty {
+impl AzaleaWrite for Difficulty {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         u8::azalea_write(&self.id(), buf)
     }

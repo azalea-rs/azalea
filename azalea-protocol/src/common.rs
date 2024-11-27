@@ -1,6 +1,6 @@
 //! Some serializable data types that are used by several packets.
 
-use azalea_buf::{McBuf, McBufReadable, McBufWritable};
+use azalea_buf::{AzaleaRead, AzaleaWrite, McBuf};
 use azalea_core::bitset::FixedBitSet;
 use bevy_ecs::component::Component;
 
@@ -97,7 +97,7 @@ impl Default for ModelCustomization {
     }
 }
 
-impl McBufReadable for ModelCustomization {
+impl AzaleaRead for ModelCustomization {
     fn azalea_read(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
         let set = FixedBitSet::<7>::azalea_read(buf)?;
         Ok(Self {
@@ -112,7 +112,7 @@ impl McBufReadable for ModelCustomization {
     }
 }
 
-impl McBufWritable for ModelCustomization {
+impl AzaleaWrite for ModelCustomization {
     fn azalea_write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
         let mut set = FixedBitSet::<7>::new();
         if self.cape {
@@ -144,7 +144,7 @@ impl McBufWritable for ModelCustomization {
 mod tests {
     use std::io::Cursor;
 
-    use azalea_buf::{McBufReadable, McBufWritable};
+    use azalea_buf::{AzaleaRead, AzaleaWrite};
 
     use super::*;
 

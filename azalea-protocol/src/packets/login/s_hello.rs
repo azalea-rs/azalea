@@ -12,7 +12,7 @@ pub struct ServerboundHello {
 mod tests {
     use std::io::Cursor;
 
-    use azalea_buf::{McBufReadable, McBufWritable};
+    use azalea_buf::{AzaleaRead, AzaleaWrite};
 
     use super::*;
 

@@ -1,6 +1,6 @@
 use std::io::{Cursor, Write};
 
-use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
+use azalea_buf::{BufReadError, McBuf, AzaleaRead, AzaleaWrite};
 
 /// Represents Java's BitSet, a list of bits.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Default, McBuf)]
@@ -159,7 +159,7 @@ where
     }
 }
 
-impl<const N: usize> McBufReadable for FixedBitSet<N>
+impl<const N: usize> AzaleaRead for FixedBitSet<N>
 where
     [u8; N.div_ceil(8)]: Sized,
 {
@@ -171,7 +171,7 @@ where
         Ok(FixedBitSet { data })
     }
 }
-impl<const N: usize> McBufWritable for FixedBitSet<N>
+impl<const N: usize> AzaleaWrite for FixedBitSet<N>
 where
     [u8; N.div_ceil(8)]: Sized,
 {

@@ -1,6 +1,6 @@
 use std::io::{Cursor, Write};
 
-use azalea_buf::{McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
+use azalea_buf::{McBuf, AzaleaRead, AzaleaReadVar, AzaleaWriteVar, AzaleaWrite};
 use azalea_core::position::Vec3;
 use azalea_protocol_macros::ServerboundGamePacket;
 
@@ -27,7 +27,7 @@ pub enum ActionType {
     },
 }
 
-impl McBufWritable for ActionType {
+impl AzaleaWrite for ActionType {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         match self {
             ActionType::Interact { hand } => {
@@ -49,7 +49,7 @@ impl McBufWritable for ActionType {
     }
 }
 
-impl McBufReadable for ActionType {
+impl AzaleaRead for ActionType {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let action_type = u32::azalea_read_var(buf)?;
         match action_type {

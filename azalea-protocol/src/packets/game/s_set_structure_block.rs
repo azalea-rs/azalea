@@ -1,7 +1,7 @@
 use std::io::{Cursor, Write};
 
 use azalea_buf::McBuf;
-use azalea_buf::{McBufReadable, McBufWritable};
+use azalea_buf::{AzaleaRead, AzaleaWrite};
 use azalea_core::{bitset::FixedBitSet, position::BlockPos};
 use azalea_protocol_macros::ServerboundGamePacket;
 
@@ -69,7 +69,7 @@ pub struct Flags {
     pub show_bounding_box: bool,
 }
 
-impl McBufReadable for Flags {
+impl AzaleaRead for Flags {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let set = FixedBitSet::<3>::azalea_read(buf)?;
         Ok(Self {
@@ -80,7 +80,7 @@ impl McBufReadable for Flags {
     }
 }
 
-impl McBufWritable for Flags {
+impl AzaleaWrite for Flags {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         let mut set = FixedBitSet::<3>::new();
         if self.ignore_entities {

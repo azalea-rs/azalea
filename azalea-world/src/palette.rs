@@ -1,6 +1,6 @@
 use std::io::{Cursor, Write};
 
-use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
+use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
 use azalea_core::math;
 use tracing::warn;
 
@@ -224,7 +224,7 @@ impl PalettedContainer {
     }
 }
 
-impl McBufWritable for PalettedContainer {
+impl AzaleaWrite for PalettedContainer {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         self.bits_per_entry.azalea_write(buf)?;
         self.palette.azalea_write(buf)?;
@@ -264,7 +264,7 @@ impl Palette {
     }
 }
 
-impl McBufWritable for Palette {
+impl AzaleaWrite for Palette {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         match self {
             Palette::SingleValue(value) => {

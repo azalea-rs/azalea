@@ -1,6 +1,6 @@
 use std::io::{Cursor, Write};
 
-use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
+use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
 use azalea_chat::FormattedText;
 use azalea_protocol_macros::ClientboundStatusPacket;
 use serde::{Deserialize, Serialize};
@@ -41,7 +41,7 @@ pub struct ClientboundStatusResponse {
     pub enforces_secure_chat: Option<bool>,
 }
 
-impl McBufReadable for ClientboundStatusResponse {
+impl AzaleaRead for ClientboundStatusResponse {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<ClientboundStatusResponse, BufReadError> {
         let status_string = String::azalea_read(buf)?;
         let status_json: serde_json::Value = serde_json::from_str(status_string.as_str())?;
@@ -50,7 +50,7 @@ impl McBufReadable for ClientboundStatusResponse {
     }
 }
 
-impl McBufWritable for ClientboundStatusResponse {
+impl AzaleaWrite for ClientboundStatusResponse {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         let status_string = ClientboundStatusResponse::serialize(self, Serializer)
             .unwrap()

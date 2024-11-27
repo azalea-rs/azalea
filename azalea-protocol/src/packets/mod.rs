@@ -7,7 +7,7 @@ pub mod status;
 
 use std::io::{Cursor, Write};
 
-use azalea_buf::{BufReadError, McBufVarReadable, McBufVarWritable, McBufWritable};
+use azalea_buf::{AzaleaWrite, AzaleaWriteVar, BufReadError, AzaleaReadVar};
 
 use crate::read::ReadPacketError;
 
@@ -81,7 +81,7 @@ impl From<ClientIntention> for ConnectionProtocol {
     }
 }
 
-impl azalea_buf::McBufReadable for ClientIntention {
+impl azalea_buf::AzaleaRead for ClientIntention {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let id = i32::azalea_read_var(buf)?;
         id.try_into()
@@ -89,7 +89,7 @@ impl azalea_buf::McBufReadable for ClientIntention {
     }
 }
 
-impl McBufWritable for ClientIntention {
+impl AzaleaWrite for ClientIntention {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         (*self as i32).azalea_write_var(buf)
     }

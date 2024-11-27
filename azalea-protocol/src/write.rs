@@ -2,7 +2,7 @@
 
 use std::{fmt::Debug, io::Read};
 
-use azalea_buf::McBufVarWritable;
+use azalea_buf::AzaleaWriteVar;
 use azalea_crypto::Aes128CfbEnc;
 use flate2::{bufread::ZlibEncoder, Compression};
 use thiserror::Error;

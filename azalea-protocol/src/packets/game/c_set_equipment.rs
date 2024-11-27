@@ -1,7 +1,7 @@
 use std::io::Cursor;
 
 use azalea_buf::{BufReadError, McBuf};
-use azalea_buf::{McBufReadable, McBufWritable};
+use azalea_buf::{AzaleaRead, AzaleaWrite};
 use azalea_inventory::ItemStack;
 use azalea_protocol_macros::ClientboundGamePacket;
 
@@ -17,7 +17,7 @@ pub struct EquipmentSlots {
     pub slots: Vec<(EquipmentSlot, ItemStack)>,
 }
 
-impl McBufReadable for EquipmentSlots {
+impl AzaleaRead for EquipmentSlots {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let mut slots = vec![];
 
@@ -39,7 +39,7 @@ impl McBufReadable for EquipmentSlots {
         Ok(EquipmentSlots { slots })
     }
 }
-impl McBufWritable for EquipmentSlots {
+impl AzaleaWrite for EquipmentSlots {
     fn azalea_write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
         for i in 0..self.slots.len() {
             let (equipment_slot, item) = &self.slots[i];

@@ -1,6 +1,6 @@
 use std::io::{Cursor, Write};
 
-use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufWritable};
+use azalea_buf::{BufReadError, AzaleaRead, AzaleaReadVar, AzaleaWrite};
 use tracing::debug;
 
 /// A Minecraft gamemode, like survival or creative.
@@ -93,7 +93,7 @@ impl GameMode {
     }
 }
 
-impl McBufReadable for GameMode {
+impl AzaleaRead for GameMode {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let id = u32::azalea_read_var(buf)?;
         let id = id.try_into().unwrap_or_else(|_| {
@@ -107,13 +107,13 @@ impl McBufReadable for GameMode {
     }
 }
 
-impl McBufWritable for GameMode {
+impl AzaleaWrite for GameMode {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         u8::azalea_write(&self.to_id(), buf)
     }
 }
 
-/// Rust doesn't let us `impl McBufReadable for Option<GameType>` so we have to
+/// Rust doesn't let us `impl AzaleaRead for Option<GameType>` so we have to
 /// make a new type :(
 #[derive(Hash, Copy, Clone, Debug)]
 pub struct OptionalGameType(pub Option<GameMode>);
@@ -130,14 +130,14 @@ impl From<OptionalGameType> for Option<GameMode> {
     }
 }
 
-impl McBufReadable for OptionalGameType {
+impl AzaleaRead for OptionalGameType {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let id = i8::azalea_read(buf)?;
         GameMode::from_optional_id(id).ok_or(BufReadError::UnexpectedEnumVariant { id: id as i32 })
     }
 }
 
-impl McBufWritable for OptionalGameType {
+impl AzaleaWrite for OptionalGameType {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         GameMode::to_optional_id(*self).azalea_write(buf)
     }

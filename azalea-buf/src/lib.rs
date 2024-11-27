@@ -10,9 +10,9 @@ mod write;
 
 pub use azalea_buf_macros::*;
 pub use definitions::*;
-pub use read::{BufReadError, McBufReadable, McBufVarReadable};
+pub use read::{BufReadError, AzaleaRead, AzaleaReadVar};
 pub use serializable_uuid::*;
-pub use write::{McBufVarWritable, McBufWritable};
+pub use write::{AzaleaWriteVar, AzaleaWrite};
 
 // const DEFAULT_NBT_QUOTA: u32 = 2097152;
 const MAX_STRING_LENGTH: u16 = 32767;

@@ -4,7 +4,7 @@ use std::{
     io::{Cursor, Write},
 };
 
-use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
+use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
 use azalea_registry::DataComponentKind;
 
 use crate::components::{self};
@@ -140,7 +140,7 @@ impl ItemStackData {
     }
 }
 
-impl McBufReadable for ItemStack {
+impl AzaleaRead for ItemStack {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let count = i32::azalea_read_var(buf)?;
         if count <= 0 {
@@ -157,7 +157,7 @@ impl McBufReadable for ItemStack {
     }
 }
 
-impl McBufWritable for ItemStack {
+impl AzaleaWrite for ItemStack {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         match self {
             ItemStack::Empty => 0.azalea_write_var(buf)?,
@@ -182,7 +182,7 @@ impl DataComponentPatch {
     }
 }
 
-impl McBufReadable for DataComponentPatch {
+impl AzaleaRead for DataComponentPatch {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let components_with_data_count = u32::azalea_read_var(buf)?;
         let components_without_data_count = u32::azalea_read_var(buf)?;
@@ -207,7 +207,7 @@ impl McBufReadable for DataComponentPatch {
     }
 }
 
-impl McBufWritable for DataComponentPatch {
+impl AzaleaWrite for DataComponentPatch {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         let mut components_with_data_count = 0;
         let mut components_without_data_count = 0;

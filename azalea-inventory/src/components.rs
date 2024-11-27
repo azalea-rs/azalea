@@ -1,7 +1,7 @@
 use core::f64;
 use std::{any::Any, collections::HashMap, io::Cursor};
 
-use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
+use azalea_buf::{BufReadError, McBuf, AzaleaRead, AzaleaWrite};
 use azalea_chat::FormattedText;
 use azalea_core::{position::GlobalPos, resource_location::ResourceLocation};
 use azalea_registry::{
@@ -26,7 +26,7 @@ pub trait EncodableDataComponent: Send + Sync + Any {
 
 impl<T> EncodableDataComponent for T
 where
-    T: DataComponent + Clone + McBufWritable + McBufReadable + PartialEq,
+    T: DataComponent + Clone + AzaleaWrite + AzaleaRead + PartialEq,
 {
     fn encode(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
         self.azalea_write(buf)

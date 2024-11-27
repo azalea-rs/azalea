@@ -36,7 +36,7 @@ pub struct DisplayInfo {
     pub y: f32,
 }
 
-impl azalea_buf::McBufWritable for DisplayInfo {
+impl azalea_buf::AzaleaWrite for DisplayInfo {
     fn azalea_write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
         self.title.azalea_write(buf)?;
         self.description.azalea_write(buf)?;
@@ -63,12 +63,12 @@ impl azalea_buf::McBufWritable for DisplayInfo {
         Ok(())
     }
 }
-impl azalea_buf::McBufReadable for DisplayInfo {
+impl azalea_buf::AzaleaRead for DisplayInfo {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
-        let title = azalea_buf::McBufReadable::azalea_read(buf)?;
-        let description = azalea_buf::McBufReadable::azalea_read(buf)?;
-        let icon = azalea_buf::McBufReadable::azalea_read(buf)?;
-        let frame = azalea_buf::McBufReadable::azalea_read(buf)?;
+        let title = azalea_buf::AzaleaRead::azalea_read(buf)?;
+        let description = azalea_buf::AzaleaRead::azalea_read(buf)?;
+        let icon = azalea_buf::AzaleaRead::azalea_read(buf)?;
+        let frame = azalea_buf::AzaleaRead::azalea_read(buf)?;
 
         let data = u32::azalea_read(buf)?;
         let has_background = (data & 0b1) != 0;
@@ -80,8 +80,8 @@ impl azalea_buf::McBufReadable for DisplayInfo {
         } else {
             None
         };
-        let x = azalea_buf::McBufReadable::azalea_read(buf)?;
-        let y = azalea_buf::McBufReadable::azalea_read(buf)?;
+        let x = azalea_buf::AzaleaRead::azalea_read(buf)?;
+        let y = azalea_buf::AzaleaRead::azalea_read(buf)?;
         Ok(DisplayInfo {
             title,
             description,
@@ -118,7 +118,7 @@ pub struct AdvancementHolder {
 
 #[cfg(test)]
 mod tests {
-    use azalea_buf::{McBufReadable, McBufWritable};
+    use azalea_buf::{AzaleaRead, AzaleaWrite};
 
     use super::*;
 

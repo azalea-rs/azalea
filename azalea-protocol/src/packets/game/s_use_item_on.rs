@@ -1,6 +1,6 @@
 use std::io::{Cursor, Write};
 
-use azalea_buf::{BufReadError, McBuf, McBufReadable, McBufWritable};
+use azalea_buf::{BufReadError, McBuf, AzaleaRead, AzaleaWrite};
 use azalea_core::{
     direction::Direction,
     position::{BlockPos, Vec3},
@@ -31,7 +31,7 @@ pub struct BlockHit {
     pub inside: bool,
 }
 
-impl McBufWritable for BlockHit {
+impl AzaleaWrite for BlockHit {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         self.block_pos.azalea_write(buf)?;
         self.direction.azalea_write(buf)?;
@@ -52,7 +52,7 @@ impl McBufWritable for BlockHit {
     }
 }
 
-impl McBufReadable for BlockHit {
+impl AzaleaRead for BlockHit {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let block_pos = BlockPos::azalea_read(buf)?;
         let direction = Direction::azalea_read(buf)?;

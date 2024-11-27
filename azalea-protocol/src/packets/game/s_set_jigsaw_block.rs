@@ -2,13 +2,13 @@ use std::io::Cursor;
 use std::io::Write;
 
 use azalea_buf::McBuf;
-use azalea_buf::McBufReadable;
+use azalea_buf::AzaleaRead;
 use azalea_core::position::BlockPos;
 use azalea_core::resource_location::ResourceLocation;
 use azalea_protocol_macros::ServerboundGamePacket;
 
 use crate::packets::BufReadError;
-use crate::packets::McBufWritable;
+use crate::packets::AzaleaWrite;
 
 #[derive(Clone, Debug, McBuf, ServerboundGamePacket)]
 pub struct ServerboundSetJigsawBlock {
@@ -29,7 +29,7 @@ pub enum JointType {
     Aligned,
 }
 
-impl McBufReadable for JointType {
+impl AzaleaRead for JointType {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let name = String::azalea_read(buf)?;
         match name.as_str() {
@@ -40,7 +40,7 @@ impl McBufReadable for JointType {
     }
 }
 
-impl McBufWritable for JointType {
+impl AzaleaWrite for JointType {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         match self {
             JointType::Rollable => "rollable".to_string().azalea_write(buf)?,

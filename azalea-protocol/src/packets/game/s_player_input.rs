@@ -1,7 +1,7 @@
 use std::io::Cursor;
 
 use azalea_buf::BufReadError;
-use azalea_buf::{McBufReadable, McBufWritable};
+use azalea_buf::{AzaleaRead, AzaleaWrite};
 use azalea_core::bitset::FixedBitSet;
 use azalea_protocol_macros::ServerboundGamePacket;
 
@@ -16,7 +16,7 @@ pub struct ServerboundPlayerInput {
     pub sprint: bool,
 }
 
-impl McBufReadable for ServerboundPlayerInput {
+impl AzaleaRead for ServerboundPlayerInput {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let set = FixedBitSet::<7>::azalea_read(buf)?;
         Ok(Self {
@@ -31,7 +31,7 @@ impl McBufReadable for ServerboundPlayerInput {
     }
 }
 
-impl McBufWritable for ServerboundPlayerInput {
+impl AzaleaWrite for ServerboundPlayerInput {
     fn azalea_write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
         let mut set = FixedBitSet::<7>::new();
         if self.forward {

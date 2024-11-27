@@ -1,7 +1,7 @@
 use std::io::{Cursor, Write};
 
 use azalea_buf::{
-    BufReadError, McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable,
+    BufReadError, McBuf, AzaleaRead, AzaleaReadVar, AzaleaWriteVar, AzaleaWrite,
 };
 use azalea_chat::{
     translatable_component::{StringOrComponent, TranslatableComponent},
@@ -144,7 +144,7 @@ impl ChatType {
     }
 }
 
-impl McBufReadable for PackedMessageSignature {
+impl AzaleaRead for PackedMessageSignature {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let id = u32::azalea_read_var(buf)?;
         if id == 0 {
@@ -156,7 +156,7 @@ impl McBufReadable for PackedMessageSignature {
         }
     }
 }
-impl McBufWritable for PackedMessageSignature {
+impl AzaleaWrite for PackedMessageSignature {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         match self {
             PackedMessageSignature::Signature(full_signature) => {

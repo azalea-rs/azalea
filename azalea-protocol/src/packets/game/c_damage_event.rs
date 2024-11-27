@@ -1,6 +1,6 @@
 use std::io::{Cursor, Write};
 
-use azalea_buf::{McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
+use azalea_buf::{McBuf, AzaleaRead, AzaleaReadVar, AzaleaWriteVar, AzaleaWrite};
 use azalea_core::position::Vec3;
 use azalea_protocol_macros::ClientboundGamePacket;
 
@@ -17,7 +17,7 @@ pub struct ClientboundDamageEvent {
 
 #[derive(Clone, Debug)]
 pub struct OptionalEntityId(pub Option<u32>);
-impl McBufReadable for OptionalEntityId {
+impl AzaleaRead for OptionalEntityId {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
         match u32::azalea_read_var(buf)? {
             0 => Ok(OptionalEntityId(None)),
@@ -25,7 +25,7 @@ impl McBufReadable for OptionalEntityId {
         }
     }
 }
-impl McBufWritable for OptionalEntityId {
+impl AzaleaWrite for OptionalEntityId {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         match self.0 {
             Some(id) => (id + 1).azalea_write_var(buf),

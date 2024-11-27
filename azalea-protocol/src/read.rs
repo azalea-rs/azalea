@@ -6,8 +6,8 @@ use std::{
     io::{Cursor, Read},
 };
 
+use azalea_buf::AzaleaReadVar;
 use azalea_buf::BufReadError;
-use azalea_buf::McBufVarReadable;
 use azalea_crypto::Aes128CfbDec;
 use bytes::Buf;
 use bytes::BytesMut;

@@ -1,6 +1,6 @@
 use std::io::{Cursor, Write};
 
-use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
+use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
 use azalea_chat::FormattedText;
 use azalea_protocol_macros::ClientboundLoginPacket;
 use serde::{Deserialize, Serialize};
@@ -10,7 +10,7 @@ pub struct ClientboundLoginDisconnect {
     pub reason: FormattedText,
 }
 
-impl McBufReadable for ClientboundLoginDisconnect {
+impl AzaleaRead for ClientboundLoginDisconnect {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<ClientboundLoginDisconnect, BufReadError> {
         let disconnect_string = String::azalea_read(buf)?;
         let disconnect_json: serde_json::Value = serde_json::from_str(disconnect_string.as_str())?;
@@ -21,7 +21,7 @@ impl McBufReadable for ClientboundLoginDisconnect {
     }
 }
 
-impl McBufWritable for ClientboundLoginDisconnect {
+impl AzaleaWrite for ClientboundLoginDisconnect {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         let status_string = FormattedText::serialize(&self.reason, serde_json::value::Serializer)
             .unwrap()

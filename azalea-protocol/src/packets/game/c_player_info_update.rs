@@ -5,7 +5,7 @@ use std::{
 
 use azalea_auth::game_profile::{GameProfile, ProfilePropertyValue};
 use azalea_buf::{
-    BufReadError, McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable,
+    BufReadError, McBuf, AzaleaRead, AzaleaReadVar, AzaleaWriteVar, AzaleaWrite,
 };
 use azalea_chat::FormattedText;
 use azalea_core::{bitset::FixedBitSet, game_type::GameMode};
@@ -63,7 +63,7 @@ pub struct UpdateListOrderAction {
     pub list_order: i32,
 }
 
-impl McBufReadable for ClientboundPlayerInfoUpdate {
+impl AzaleaRead for ClientboundPlayerInfoUpdate {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let actions = ActionEnumSet::azalea_read(buf)?;
         let mut entries = Vec::new();
@@ -111,7 +111,7 @@ impl McBufReadable for ClientboundPlayerInfoUpdate {
     }
 }
 
-impl McBufWritable for ClientboundPlayerInfoUpdate {
+impl AzaleaWrite for ClientboundPlayerInfoUpdate {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         self.actions.azalea_write(buf)?;
 
@@ -173,7 +173,7 @@ pub struct ActionEnumSet {
     pub update_list_order: bool,
 }
 
-impl McBufReadable for ActionEnumSet {
+impl AzaleaRead for ActionEnumSet {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let set = FixedBitSet::<7>::azalea_read(buf)?;
         Ok(ActionEnumSet {
@@ -188,7 +188,7 @@ impl McBufReadable for ActionEnumSet {
     }
 }
 
-impl McBufWritable for ActionEnumSet {
+impl AzaleaWrite for ActionEnumSet {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         let mut set = FixedBitSet::<7>::new();
         if self.add_player {
