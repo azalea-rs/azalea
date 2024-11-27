@@ -1,9 +1,9 @@
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{
-    braced,
+    bracketed,
     parse::{Parse, ParseStream, Result},
-    parse_macro_input, DeriveInput, Ident, LitInt, Token,
+    parse_macro_input, DeriveInput, Ident, Token,
 };
 
 fn as_packet_derive(input: TokenStream, state: proc_macro2::TokenStream) -> TokenStream {
@@ -108,55 +108,43 @@ pub fn derive_c_config_packet(input: TokenStream) -> TokenStream {
 }
 
 #[derive(Debug)]
-struct PacketIdPair {
-    id: u32,
+struct PacketListItem {
     module: Ident,
     name: Ident,
 }
 #[derive(Debug)]
-struct PacketIdMap {
-    packets: Vec<PacketIdPair>,
+struct PacketList {
+    packets: Vec<PacketListItem>,
 }
 
-impl Parse for PacketIdMap {
+impl Parse for PacketList {
     fn parse(input: ParseStream) -> Result<Self> {
         let mut packets = vec![];
 
         // example:
-        // 0x0e: c_change_difficulty::ClientboundChangeDifficultyPacket,
+        // c_change_difficulty::ClientboundChangeDifficultyPacket,
 
-        // 0x0e
-        while let Ok(packet_id) = input.parse::<LitInt>() {
-            let packet_id = packet_id.base10_parse::<u32>()?;
-            // :
-            input.parse::<Token![:]>()?;
-            // c_change_difficulty_packet
-            let module: Ident = input.parse()?;
-            // ::
+        // c_change_difficulty
+        while let Ok(module) = input.parse::<Ident>() {
             input.parse::<Token![::]>()?;
             // ClientboundChangeDifficultyPacket
-            let name: Ident = input.parse()?;
-
-            packets.push(PacketIdPair {
-                id: packet_id,
-                module,
-                name,
-            });
+            let name = input.parse::<Ident>()?;
+            packets.push(PacketListItem { module, name });
 
             if input.parse::<Token![,]>().is_err() {
                 break;
             }
         }
 
-        Ok(PacketIdMap { packets })
+        Ok(PacketList { packets })
     }
 }
 
 #[derive(Debug)]
 struct DeclareStatePackets {
     name: Ident,
-    serverbound: PacketIdMap,
-    clientbound: PacketIdMap,
+    serverbound: PacketList,
+    clientbound: PacketList,
 }
 
 impl Parse for DeclareStatePackets {
@@ -170,7 +158,7 @@ impl Parse for DeclareStatePackets {
         }
         input.parse::<Token![=>]>()?;
         let content;
-        braced!(content in input);
+        bracketed!(content in input);
         let serverbound = content.parse()?;
 
         input.parse::<Token![,]>()?;
@@ -181,7 +169,7 @@ impl Parse for DeclareStatePackets {
         }
         input.parse::<Token![=>]>()?;
         let content;
-        braced!(content in input);
+        bracketed!(content in input);
         let clientbound = content.parse()?;
 
         Ok(DeclareStatePackets {
@@ -203,6 +191,7 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
     let has_s_packets = !input.serverbound.packets.is_empty();
     let has_c_packets = !input.clientbound.packets.is_empty();
 
+    let mut mod_and_use_statements_contents = quote!();
     let mut s_enum_contents = quote!();
     let mut c_enum_contents = quote!();
     let mut s_id_match_contents = quote!();
@@ -212,10 +201,16 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
     let mut s_read_match_contents = quote!();
     let mut c_read_match_contents = quote!();
 
-    for PacketIdPair { id, module, name } in input.serverbound.packets {
-        let variant_name = variant_name_from(&name);
-
+    for (id, PacketListItem { module, name }) in input.serverbound.packets.iter().enumerate() {
+        let id = id as u32;
         let name_litstr = syn::LitStr::new(&name.to_string(), name.span());
+        let variant_name = variant_name_from(name);
+
+        mod_and_use_statements_contents.extend(quote! {
+            pub mod #module;
+            pub use #module::#name;
+        });
+
         s_enum_contents.extend(quote! {
             #variant_name(#module::#name),
         });
@@ -245,9 +240,15 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
             },
         });
     }
-    for PacketIdPair { id, module, name } in input.clientbound.packets {
+    for (id, PacketListItem { module, name }) in input.clientbound.packets.iter().enumerate() {
+        let id = id as u32;
         let name_litstr = syn::LitStr::new(&name.to_string(), name.span());
-        let variant_name = variant_name_from(&name);
+        let variant_name = variant_name_from(name);
+
+        mod_and_use_statements_contents.extend(quote! {
+            pub mod #module;
+            pub use #module::#name;
+        });
 
         c_enum_contents.extend(quote! {
             #variant_name(#module::#name),
@@ -304,6 +305,8 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
     }
 
     let mut contents = quote! {
+        #mod_and_use_statements_contents
+
         #[derive(Clone, Debug)]
         pub enum #s_state_name
         where
