@@ -9,13 +9,34 @@ fn read_named_fields(
         .map(|f| {
             let field_name = &f.ident;
             let field_type = &f.ty;
+
+            let is_variable_length = f.attrs.iter().any(|a| a.path().is_ident("var"));
+            let limit = f
+                .attrs
+                .iter()
+                .find(|a| a.path().is_ident("limit"))
+                .map(|a| {
+                    a.parse_args::<syn::LitInt>()
+                        .unwrap()
+                        .base10_parse::<usize>()
+                        .unwrap()
+                });
+
+            if is_variable_length && limit.is_some() {
+                panic!("Fields cannot have both var and limit attributes");
+            }
+
             // do a different buf.write_* for each field depending on the type
             // if it's a string, use buf.write_string
             match field_type {
                 syn::Type::Path(_) | syn::Type::Array(_) => {
-                    if f.attrs.iter().any(|a| a.path().is_ident("var")) {
+                    if is_variable_length {
                         quote! {
                             let #field_name = azalea_buf::AzaleaReadVar::azalea_read_var(buf)?;
+                        }
+                    } else if let Some(limit) = limit {
+                        quote! {
+                            let #field_name = azalea_buf::AzaleaReadLimited::azalea_read_limited(buf, #limit)?;
                         }
                     } else {
                         quote! {
@@ -108,9 +129,30 @@ pub fn create_impl_azalearead(ident: &Ident, data: &Data) -> proc_macro2::TokenS
                     syn::Fields::Unnamed(fields) => {
                         let mut reader_code = quote! {};
                         for f in &fields.unnamed {
-                            if f.attrs.iter().any(|attr| attr.path().is_ident("var")) {
+                            let is_variable_length =
+                                f.attrs.iter().any(|a| a.path().is_ident("var"));
+                            let limit =
+                                f.attrs
+                                    .iter()
+                                    .find(|a| a.path().is_ident("limit"))
+                                    .map(|a| {
+                                        a.parse_args::<syn::LitInt>()
+                                            .unwrap()
+                                            .base10_parse::<usize>()
+                                            .unwrap()
+                                    });
+
+                            if is_variable_length && limit.is_some() {
+                                panic!("Fields cannot have both var and limit attributes");
+                            }
+
+                            if is_variable_length {
                                 reader_code.extend(quote! {
                                     Self::#variant_name(azalea_buf::AzaleaReadVar::azalea_read_var(buf)?),
+                                });
+                            } else if let Some(limit) = limit {
+                                reader_code.extend(quote! {
+                                    Self::#variant_name(azalea_buf::AzaleaReadLimited::azalea_read_limited(buf, #limit)?),
                                 });
                             } else {
                                 reader_code.extend(quote! {

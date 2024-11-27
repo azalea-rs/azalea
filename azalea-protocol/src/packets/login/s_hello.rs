@@ -4,6 +4,7 @@ use uuid::Uuid;
 
 #[derive(Clone, Debug, PartialEq, Eq, AzBuf, ServerboundLoginPacket)]
 pub struct ServerboundHello {
+    #[limit(16)]
     pub name: String,
     pub profile_id: Uuid,
 }

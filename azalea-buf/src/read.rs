@@ -119,6 +119,16 @@ where
     fn azalea_read_var(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError>;
 }
 
+// note that there's no Write equivalent for this trait since we don't really
+// care if we're writing over the limit (and maybe we already know that the
+// server implementation accepts it)
+pub trait AzaleaReadLimited
+where
+    Self: Sized,
+{
+    fn azalea_read_limited(buf: &mut Cursor<&[u8]>, limit: usize) -> Result<Self, BufReadError>;
+}
+
 impl AzaleaRead for i32 {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(buf.read_i32::<BE>()?)
@@ -217,6 +227,11 @@ impl AzaleaRead for Vec<u8> {
 impl AzaleaRead for String {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         read_utf_with_len(buf, MAX_STRING_LENGTH.into())
+    }
+}
+impl AzaleaReadLimited for String {
+    fn azalea_read_limited(buf: &mut Cursor<&[u8]>, limit: usize) -> Result<Self, BufReadError> {
+        read_utf_with_len(buf, limit as u32)
     }
 }
 
