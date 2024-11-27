@@ -26,6 +26,7 @@ pub struct PlayerInfoEntry {
     pub game_mode: GameMode,
     pub display_name: Option<FormattedText>,
     pub list_order: i32,
+    pub update_hat: bool,
     pub chat_session: Option<RemoteChatSessionData>,
 }
 
@@ -54,6 +55,10 @@ pub struct UpdateLatencyAction {
 #[derive(Clone, Debug, AzBuf)]
 pub struct UpdateDisplayNameAction {
     pub display_name: Option<FormattedText>,
+}
+#[derive(Clone, Debug, AzBuf)]
+pub struct UpdateHatAction {
+    pub update_hat: bool,
 }
 #[derive(Clone, Debug, AzBuf)]
 pub struct UpdateListOrderAction {
@@ -96,6 +101,10 @@ impl AzaleaRead for ClientboundPlayerInfoUpdate {
             if actions.update_display_name {
                 let action = UpdateDisplayNameAction::azalea_read(buf)?;
                 entry.display_name = action.display_name;
+            }
+            if actions.update_hat {
+                let action = UpdateHatAction::azalea_read(buf)?;
+                entry.update_hat = action.update_hat;
             }
             if actions.update_list_order {
                 let action = UpdateListOrderAction::azalea_read(buf)?;
@@ -168,6 +177,7 @@ pub struct ActionEnumSet {
     pub update_listed: bool,
     pub update_latency: bool,
     pub update_display_name: bool,
+    pub update_hat: bool,
     pub update_list_order: bool,
 }
 
@@ -181,7 +191,8 @@ impl AzaleaRead for ActionEnumSet {
             update_listed: set.index(3),
             update_latency: set.index(4),
             update_display_name: set.index(5),
-            update_list_order: set.index(6),
+            update_hat: set.index(6),
+            update_list_order: set.index(7),
         })
     }
 }
@@ -207,8 +218,11 @@ impl AzaleaWrite for ActionEnumSet {
         if self.update_display_name {
             set.set(5);
         }
-        if self.update_list_order {
+        if self.update_hat {
             set.set(6);
+        }
+        if self.update_list_order {
+            set.set(7);
         }
         set.azalea_write(buf)?;
         Ok(())
@@ -228,6 +242,7 @@ mod tests {
             update_listed: false,
             update_latency: true,
             update_display_name: false,
+            update_hat: false,
             update_list_order: true,
         };
         let mut buf = Vec::new();

@@ -351,7 +351,7 @@ where
     }
 
     if log::log_enabled!(log::Level::Trace) {
-        const DO_NOT_CUT_OFF_PACKET_LOGS: bool = false;
+        const DO_NOT_CUT_OFF_PACKET_LOGS: bool = true;
 
         let buf_string: String = {
             if !DO_NOT_CUT_OFF_PACKET_LOGS && buf.len() > 500 {

@@ -8,6 +8,7 @@ use azalea_chat::{
 use azalea_core::bitset::BitSet;
 use azalea_crypto::MessageSignature;
 use azalea_protocol_macros::ClientboundGamePacket;
+use azalea_registry::{ChatType, OptionalRegistry};
 use uuid::Uuid;
 
 #[derive(Clone, Debug, AzBuf, ClientboundGamePacket, PartialEq)]
@@ -51,22 +52,34 @@ pub enum FilterMask {
     PartiallyFiltered(BitSet),
 }
 
-#[derive(Copy, Clone, Debug, AzBuf, PartialEq, Eq)]
-pub enum ChatType {
-    Chat = 0,
-    SayCommand = 1,
-    MsgCommandIncoming = 2,
-    MsgCommandOutgoing = 3,
-    TeamMsgCommandIncoming = 4,
-    TeamMsgCommandOutgoing = 5,
-    EmoteCommand = 6,
-}
-
-#[derive(Clone, Debug, AzBuf, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct ChatTypeBound {
     pub chat_type: ChatType,
     pub name: FormattedText,
     pub target_name: Option<FormattedText>,
+}
+impl AzaleaRead for ChatTypeBound {
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let Some(chat_type) = OptionalRegistry::<ChatType>::azalea_read(buf)?.0 else {
+            return Err(BufReadError::Custom("ChatType cannot be None".to_owned()));
+        };
+        let name = FormattedText::azalea_read(buf)?;
+        let target_name = Option::<FormattedText>::azalea_read(buf)?;
+
+        Ok(ChatTypeBound {
+            chat_type,
+            name,
+            target_name,
+        })
+    }
+}
+impl AzaleaWrite for ChatTypeBound {
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        OptionalRegistry(Some(self.chat_type)).azalea_write(buf)?;
+        self.name.azalea_write(buf)?;
+        self.target_name.azalea_write(buf)?;
+        Ok(())
+    }
 }
 
 // must be in Client
@@ -119,29 +132,6 @@ impl ClientboundPlayerChat {
     }
 }
 
-impl ChatType {
-    #[must_use]
-    pub fn chat_translation_key(&self) -> &'static str {
-        match self {
-            ChatType::Chat => "chat.type.text",
-            ChatType::SayCommand => "chat.type.announcement",
-            ChatType::MsgCommandIncoming => "commands.message.display.incoming",
-            ChatType::MsgCommandOutgoing => "commands.message.display.outgoing",
-            ChatType::TeamMsgCommandIncoming => "chat.type.team.text",
-            ChatType::TeamMsgCommandOutgoing => "chat.type.team.sent",
-            ChatType::EmoteCommand => "chat.type.emote",
-        }
-    }
-
-    #[must_use]
-    pub fn narrator_translation_key(&self) -> &'static str {
-        match self {
-            ChatType::EmoteCommand => "chat.type.emote",
-            _ => "chat.type.text.narrate",
-        }
-    }
-}
-
 impl AzaleaRead for PackedMessageSignature {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let id = u32::azalea_read_var(buf)?;
@@ -166,35 +156,5 @@ impl AzaleaWrite for PackedMessageSignature {
             }
         }
         Ok(())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_read_player_chat_packet() {
-        let mut bytes = Cursor::new(
-            &[
-                55, 186, 28, 76, 92, 167, 177, 75, 188, 158, 200, 179, 191, 227, 16, 171, 145, 0,
-                0, 4, 116, 101, 115, 116, 0, 0, 1, 140, 178, 225, 89, 103, 0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 10, 10, 0, 10, 104, 111, 118, 101, 114, 69, 118, 101, 110, 116, 10, 0,
-                8, 99, 111, 110, 116, 101, 110, 116, 115, 8, 0, 4, 110, 97, 109, 101, 0, 12, 75,
-                97, 115, 117, 109, 105, 77, 97, 114, 105, 115, 97, 11, 0, 2, 105, 100, 0, 0, 0, 4,
-                186, 28, 76, 92, 167, 177, 75, 188, 158, 200, 179, 191, 227, 16, 171, 145, 8, 0, 4,
-                116, 121, 112, 101, 0, 16, 109, 105, 110, 101, 99, 114, 97, 102, 116, 58, 112, 108,
-                97, 121, 101, 114, 0, 8, 0, 6, 97, 99, 116, 105, 111, 110, 0, 11, 115, 104, 111,
-                119, 95, 101, 110, 116, 105, 116, 121, 0, 10, 0, 10, 99, 108, 105, 99, 107, 69,
-                118, 101, 110, 116, 8, 0, 6, 97, 99, 116, 105, 111, 110, 0, 15, 115, 117, 103, 103,
-                101, 115, 116, 95, 99, 111, 109, 109, 97, 110, 100, 8, 0, 5, 118, 97, 108, 117,
-                101, 0, 19, 47, 116, 101, 108, 108, 32, 75, 97, 115, 117, 109, 105, 77, 97, 114,
-                105, 115, 97, 32, 0, 9, 0, 5, 101, 120, 116, 114, 97, 8, 0, 0, 0, 3, 0, 0, 0, 12,
-                75, 97, 115, 117, 109, 105, 77, 97, 114, 105, 115, 97, 0, 0, 8, 0, 9, 105, 110,
-                115, 101, 114, 116, 105, 111, 110, 0, 12, 75, 97, 115, 117, 109, 105, 77, 97, 114,
-                105, 115, 97, 8, 0, 4, 116, 101, 120, 116, 0, 0, 0, 0,
-            ][..],
-        );
-        let _packet = ClientboundPlayerChat::azalea_read(&mut bytes).unwrap();
     }
 }

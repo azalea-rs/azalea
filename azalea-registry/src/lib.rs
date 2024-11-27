@@ -26,7 +26,7 @@ where
 /// A registry that might not be present. This is transmitted as a single
 /// varint in the protocol.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct OptionalRegistry<T: Registry>(Option<T>);
+pub struct OptionalRegistry<T: Registry>(pub Option<T>);
 
 impl<T: Registry> AzaleaRead for OptionalRegistry<T> {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {

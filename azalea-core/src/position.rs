@@ -8,11 +8,9 @@ use std::{
     hash::Hash,
     io::{Cursor, Write},
     ops::{Add, AddAssign, Mul, Rem, Sub},
-    str::FromStr,
 };
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
-#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 use crate::resource_location::ResourceLocation;
@@ -28,25 +26,25 @@ macro_rules! vec3_impl {
             /// Get the distance of this vector to the origin by doing `x^2 + y^2 +
             /// z^2`.
             #[inline]
-            pub fn length_sqr(&self) -> $type {
+            pub fn length_squared(&self) -> $type {
                 self.x * self.x + self.y * self.y + self.z * self.z
             }
 
             /// Get the squared distance from this position to another position.
-            /// Equivalent to `(self - other).length_sqr()`.
+            /// Equivalent to `(self - other).length_squared()`.
             #[inline]
-            pub fn distance_to_sqr(&self, other: &Self) -> $type {
-                (self - other).length_sqr()
+            pub fn distance_squared_to(&self, other: &Self) -> $type {
+                (self - other).length_squared()
             }
 
             #[inline]
-            pub fn horizontal_distance_sqr(&self) -> $type {
+            pub fn horizontal_distance_squared(&self) -> $type {
                 self.x * self.x + self.z * self.z
             }
 
             #[inline]
-            pub fn horizontal_distance_to_sqr(&self, other: &Self) -> $type {
-                (self - other).horizontal_distance_sqr()
+            pub fn horizontal_distance_squared_to(&self, other: &Self) -> $type {
+                (self - other).horizontal_distance_squared()
             }
 
             /// Return a new instance of this position with the y coordinate
@@ -271,6 +269,46 @@ impl BlockPos {
     /// Get the distance of this vector from the origin by doing `x + y + z`.
     pub fn length_manhattan(&self) -> u32 {
         (self.x.abs() + self.y.abs() + self.z.abs()) as u32
+    }
+
+    /// Make a new BlockPos with the lower coordinates for each axis.
+    ///
+    /// ```
+    /// # use azalea_core::position::BlockPos;
+    /// assert_eq!(
+    ///     BlockPos::min(
+    ///        &BlockPos::new(1, 20, 300),
+    ///        &BlockPos::new(50, 40, 30),
+    ///    ),
+    ///    BlockPos::new(1, 20, 30),
+    /// );
+    /// ```
+    pub fn min(&self, other: &Self) -> Self {
+        Self {
+            x: self.x.min(other.x),
+            y: self.y.min(other.y),
+            z: self.z.min(other.z),
+        }
+    }
+
+    /// Make a new BlockPos with the higher coordinates for each axis.
+    ///
+    /// ```
+    /// # use azalea_core::position::BlockPos;
+    /// assert_eq!(
+    ///    BlockPos::max(
+    ///       &BlockPos::new(1, 20, 300),
+    ///       &BlockPos::new(50, 40, 30),
+    ///   ),
+    ///   BlockPos::new(50, 40, 300),
+    /// );
+    /// ```
+    pub fn max(&self, other: &Self) -> Self {
+        Self {
+            x: self.x.max(other.x),
+            y: self.y.max(other.y),
+            z: self.z.max(other.z),
+        }
     }
 }
 
@@ -642,51 +680,6 @@ impl AzaleaWrite for ChunkSectionPos {
             | (((self.z & 0x3FFFFF) as i64) << 20);
         long.azalea_write(buf)?;
         Ok(())
-    }
-}
-
-fn parse_three_values<T>(s: &str) -> Result<[T; 3], &'static str>
-where
-    T: FromStr,
-    <T as FromStr>::Err: fmt::Debug,
-{
-    let parts = s.split_whitespace().collect::<Vec<_>>();
-    if parts.len() != 3 {
-        return Err("Expected three values");
-    }
-
-    let x = parts[0].parse().map_err(|_| "Invalid X value")?;
-    let y = parts[1].parse().map_err(|_| "Invalid Y value")?;
-    let z = parts[2].parse().map_err(|_| "Invalid Z value")?;
-
-    Ok([x, y, z])
-}
-
-/// Parses a string in the format "X Y Z" into a BlockPos.
-///
-/// The input string should contain three integer values separated by spaces,
-/// representing the x, y, and z components of the vector respectively.
-/// This can be used to parse user input or from `BlockPos::to_string`.
-impl FromStr for BlockPos {
-    type Err = &'static str;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let [x, y, z] = parse_three_values::<i32>(s)?;
-        Ok(BlockPos { x, y, z })
-    }
-}
-
-/// Parses a string in the format "X Y Z" into a Vec3.
-///
-/// The input string should contain three floating-point values separated by
-/// spaces, representing the x, y, and z components of the vector respectively.
-/// This can be used to parse user input or from `Vec3::to_string`.
-impl FromStr for Vec3 {
-    type Err = &'static str;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let [x, y, z] = parse_three_values::<f64>(s)?;
-        Ok(Vec3 { x, y, z })
     }
 }
 

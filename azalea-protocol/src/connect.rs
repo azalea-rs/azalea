@@ -370,7 +370,7 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
     /// use azalea_protocol::connect::Connection;
     /// use azalea_protocol::packets::login::{
     ///     ClientboundLoginPacket,
-    ///     s_key::ServerboundKey
+    ///     ServerboundKey
     /// };
     /// use uuid::Uuid;
     /// # use azalea_protocol::ServerAddress;
