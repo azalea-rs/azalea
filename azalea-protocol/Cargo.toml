@@ -12,10 +12,17 @@ version = "0.10.3+mc1.21.1"
 async-recursion = { workspace = true }
 azalea-auth = { path = "../azalea-auth", version = "0.10.0" }
 azalea-block = { path = "../azalea-block", default-features = false, version = "0.10.0" }
-azalea-brigadier = { path = "../azalea-brigadier", version = "0.10.0", features = ["azalea-buf"] }
+azalea-brigadier = { path = "../azalea-brigadier", version = "0.10.0", features = [
+    "azalea-buf",
+] }
 azalea-buf = { path = "../azalea-buf", version = "0.10.0" }
-azalea-chat = { path = "../azalea-chat", version = "0.10.0", features = ["numbers", "azalea-buf"] }
-azalea-core = { path = "../azalea-core", optional = true, version = "0.10.0", features = ["serde"] }
+azalea-chat = { path = "../azalea-chat", version = "0.10.0", features = [
+    "numbers",
+    "azalea-buf",
+] }
+azalea-core = { path = "../azalea-core", optional = true, version = "0.10.0", features = [
+    "serde",
+] }
 azalea-crypto = { path = "../azalea-crypto", version = "0.10.0" }
 azalea-entity = { version = "0.10.0", path = "../azalea-entity" }
 azalea-inventory = { version = "0.10.0", path = "../azalea-inventory" }
@@ -48,6 +55,5 @@ packets = ["connecting", "dep:azalea-core"]
 
 [dev-dependencies]
 anyhow = { workspace = true }
-once_cell = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }

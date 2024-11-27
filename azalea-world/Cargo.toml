@@ -11,20 +11,18 @@ version = "0.10.3+mc1.21.1"
 [dependencies]
 azalea-block = { path = "../azalea-block", default-features = false, version = "0.10.0" }
 azalea-buf = { path = "../azalea-buf", version = "0.10.0" }
-azalea-core = { path = "../azalea-core", version = "0.10.0", features = ["bevy_ecs"] }
+azalea-core = { path = "../azalea-core", version = "0.10.0", features = [
+    "bevy_ecs",
+] }
 azalea-registry = { path = "../azalea-registry", version = "0.10.0" }
 bevy_ecs = { workspace = true }
 derive_more = { workspace = true, features = ["deref", "deref_mut"] }
 nohash-hasher = { workspace = true }
-#once_cell = { workspace = true }
 parking_lot = { workspace = true }
 rustc-hash = { workspace = true }
-#serde = { workspace = true }
-#serde_json = { workspace = true }
 simdnbt = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
-#uuid = { workspace = true }
 
 [dev-dependencies]
 azalea-client = { path = "../azalea-client" }

@@ -237,7 +237,6 @@ dependencies = [
  "chrono",
  "env_logger",
  "md-5",
- "once_cell",
  "reqwest",
  "rsa",
  "serde",
@@ -306,7 +305,6 @@ dependencies = [
  "azalea-buf",
  "azalea-language",
  "azalea-registry",
- "once_cell",
  "serde",
  "serde_json",
  "simdnbt",
@@ -337,7 +335,6 @@ dependencies = [
  "bevy_time",
  "derive_more",
  "minecraft_folder_path",
- "once_cell",
  "parking_lot",
  "regex",
  "reqwest",
@@ -428,7 +425,6 @@ dependencies = [
 name = "azalea-language"
 version = "0.10.3+mc1.21.1"
 dependencies = [
- "once_cell",
  "serde",
  "serde_json",
 ]
@@ -445,7 +441,6 @@ dependencies = [
  "azalea-world",
  "bevy_app",
  "bevy_ecs",
- "once_cell",
  "parking_lot",
  "uuid",
 ]
@@ -474,7 +469,6 @@ dependencies = [
  "futures",
  "futures-lite",
  "log",
- "once_cell",
  "serde",
  "serde_json",
  "simdnbt",
@@ -503,7 +497,6 @@ version = "0.10.3+mc1.21.1"
 dependencies = [
  "azalea-buf",
  "azalea-registry-macros",
- "once_cell",
  "serde",
  "simdnbt",
 ]
