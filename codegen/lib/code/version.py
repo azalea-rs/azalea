@@ -31,7 +31,28 @@ def set_version_id(version_id: str) -> None:
 
     with open(README_DIR, 'wb') as f:
         f.write(readme_text.encode())
-
+    
+    # update the version in all Cargo.toml files
+    # version = "0.10.3+mc1.21.1"
+    for root, _, files in os.walk(get_dir_location('..')):
+        for file in files:
+            if file == 'Cargo.toml':
+                with open(os.path.join(root, file), 'r') as f:
+                    cargo_toml = f.read().splitlines()
+                for i, line in enumerate(cargo_toml):
+                    if line.strip().startswith('version = '):
+                        replaced = re.sub(r'\+mc[^"]+?"', f'+mc{version_id}"', line)
+                        cargo_toml[i] = replaced
+                        break
+                else:
+                    # didn't have a version line
+                    continue
+                if cargo_toml[-1] != '':
+                    # make sure there's always a trailing newline
+                    cargo_toml.append('')
+                with open(os.path.join(root, file), 'w') as f:
+                    f.write('\n'.join(cargo_toml))
+    print('Updated version in README.md and Cargo.toml files')
 
 def get_protocol_version() -> str:
     # azalea-protocol/src/packets/mod.rs

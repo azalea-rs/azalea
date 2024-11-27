@@ -37,25 +37,19 @@ lib.code.version.set_protocol_version(
 
 print('Updated protocol!')
 
-
-# old_ordered_blocks = lib.extract.get_ordered_blocks_burger(old_version_id)
-# new_ordered_blocks = lib.extract.get_ordered_blocks_burger(new_version_id)
-# if old_ordered_blocks != new_ordered_blocks:
-#     print('Blocks changed, updating...')
-
-#     block_states_burger = lib.extract.get_block_states_burger(new_version_id)
-#     block_states_report = lib.extract.get_block_states_report(new_version_id)
-
-#     # TODO: pixlyzer is currently broken so uhhhh
-#     shape_datas = lib.extract.get_pixlyzer_data(
-#         '1.20.3-pre4', 'shapes')
-#     pixlyzer_block_datas = lib.extract.get_pixlyzer_data(
-#         '1.20.3-pre4', 'blocks')
-
-#     lib.code.blocks.generate_blocks(
-#         block_states_burger, block_states_report, pixlyzer_block_datas, new_ordered_blocks, new_mappings)
-#     lib.code.shapes.generate_block_shapes(
-#         pixlyzer_block_datas, shape_datas['shapes'], shape_datas['aabbs'], block_states_report, block_states_burger, new_mappings)
+print('Generating blocks and shapes...')
+# TODO: pixlyzer is broken so we use old data
+new_shape_datas = lib.extract.get_pixlyzer_data(
+    '1.20.3-pre4', 'shapes')
+new_pixlyzer_block_datas = lib.extract.get_pixlyzer_data(
+    '1.20.3-pre4', 'blocks')
+new_block_states_report = lib.extract.get_block_states_report(new_version_id)
+new_registries = lib.extract.get_registries_report(new_version_id)
+new_ordered_blocks = lib.code.blocks.get_ordered_blocks(new_registries)
+lib.code.blocks.generate_blocks(
+    new_block_states_report, new_pixlyzer_block_datas, new_ordered_blocks)
+lib.code.shapes.generate_block_shapes(
+    new_pixlyzer_block_datas, new_shape_datas['shapes'], new_shape_datas['aabbs'], new_block_states_report)
 
 print('Getting en_us.json...')
 language = lib.extract.get_en_us_lang(new_version_id)
@@ -66,12 +60,11 @@ import genregistries
 genregistries.generate(new_version_id)
 
 # print('Generating entity metadata...')
-# burger_entities_data = new_burger_data[0]['entities']
-# lib.code.entity.generate_entity_metadata(burger_entities_data, new_mappings)
+burger_entities_data = new_burger_data[0]['entities']
+lib.code.entity.generate_entity_metadata(burger_entities_data, new_mappings)
 
 print('Finishing touches, setting version in README and formatting code...')
 lib.code.version.set_version_id(new_version_id)
-
 
 lib.code.utils.fmt()
 

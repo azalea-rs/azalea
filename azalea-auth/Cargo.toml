@@ -4,7 +4,7 @@ edition = "2021"
 license = "MIT"
 name = "azalea-auth"
 repository = "https://github.com/azalea-rs/azalea/tree/main/azalea-auth"
-version = "0.10.3+mc1.21.1"
+version = "0.10.3+mc1.21.4-pre3"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

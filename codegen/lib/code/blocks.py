@@ -12,7 +12,7 @@ BLOCKS_RS_DIR = get_dir_location('../azalea-block/src/generated.rs')
 # - Block: Has properties and states.
 
 
-def generate_blocks(blocks_report: dict, pixlyzer_block_datas: dict, ordered_blocks: list[str], mappings: Mappings):
+def generate_blocks(blocks_report: dict, pixlyzer_block_datas: dict, ordered_blocks: list[str]):
     with open(BLOCKS_RS_DIR, 'r') as f:
         existing_code = f.read().splitlines()
 
@@ -32,7 +32,7 @@ def generate_blocks(blocks_report: dict, pixlyzer_block_datas: dict, ordered_blo
             property_variants = block_data_report['properties'][property_id]
 
             property_struct_name = get_property_struct_name(
-                block_id, property_id, property_variants, mappings)
+                block_id, property_id, property_variants)
 
             if property_struct_name in properties:
                 if not properties[property_struct_name] == property_variants:
@@ -89,7 +89,7 @@ def generate_blocks(blocks_report: dict, pixlyzer_block_datas: dict, ordered_blo
             property_variants = block_data_report['properties'][property_id]
 
             property_struct_name = get_property_struct_name(
-                block_id, property_id, property_variants, mappings)
+                block_id, property_id, property_variants)
 
             is_boolean_property = property_variants == ['true', 'false']
 
@@ -156,7 +156,7 @@ def generate_blocks(blocks_report: dict, pixlyzer_block_datas: dict, ordered_blo
     with open(BLOCKS_RS_DIR, 'w') as f:
         f.write('\n'.join(new_code))
 
-def get_property_struct_name(block_id: str, property_id: str, property_variants: list[str], mappings: Mappings) -> str:
+def get_property_struct_name(block_id: str, property_id: str, property_variants: list[str]) -> str:
     # these are hardcoded because otherwise they cause conflicts
     # some names inspired by https://github.com/feather-rs/feather/blob/main/feather/blocks/src/generated/table.rs
     if property_variants == ['north', 'east', 'south', 'west', 'up', 'down']:
@@ -195,3 +195,22 @@ def get_property_struct_name(block_id: str, property_id: str, property_variants:
 
 def is_list_of_string_integers(l: list[str]) -> bool:
     return all(map(str.isdigit, l))
+
+def get_ordered_blocks(registries_report: dict[str, dict]) -> list[str]:
+    '''
+    Returns a list of block ids (like ['air', 'stone', ...]) ordered by their protocol id.
+    '''
+    blocks_registry = registries_report['minecraft:block']
+
+    blocks_to_ids = {} 
+    for block_id, value in blocks_registry['entries'].items():
+        prefix = 'minecraft:'
+        assert block_id.startswith(prefix)
+        block_id = block_id[len(prefix):]
+        protocol_id = value['protocol_id']
+        blocks_to_ids[block_id] = protocol_id
+    
+    ordered_blocks = []
+    for block_id in sorted(blocks_to_ids, key=blocks_to_ids.get):
+        ordered_blocks.append(block_id)
+    return ordered_blocks
