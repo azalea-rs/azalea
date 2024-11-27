@@ -1,11 +1,11 @@
 use std::hash::Hash;
 
-use azalea_buf::McBuf;
+use azalea_buf::AzBuf;
 use azalea_protocol_macros::ServerboundHandshakePacket;
 
 use crate::packets::ClientIntention;
 
-#[derive(Hash, Clone, Debug, McBuf, ServerboundHandshakePacket)]
+#[derive(Hash, Clone, Debug, AzBuf, ServerboundHandshakePacket)]
 pub struct ServerboundClientIntention {
     #[var]
     pub protocol_version: i32,

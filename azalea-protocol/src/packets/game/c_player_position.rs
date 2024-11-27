@@ -1,10 +1,10 @@
 use std::io::{Cursor, Write};
 
-use azalea_buf::{BufReadError, McBuf, AzaleaRead, AzaleaWrite};
+use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
 use azalea_core::{bitset::FixedBitSet, position::Vec3};
 use azalea_protocol_macros::ClientboundGamePacket;
 
-#[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
 pub struct ClientboundPlayerPosition {
     #[var]
     pub id: u32,

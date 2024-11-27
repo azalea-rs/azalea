@@ -1,11 +1,11 @@
 use std::io::{Cursor, Write};
 
-use azalea_buf::{BufReadError, McBuf};
+use azalea_buf::{AzBuf, BufReadError};
 use azalea_buf::{AzaleaRead, AzaleaWrite};
 use azalea_core::bitset::FixedBitSet;
 use azalea_protocol_macros::ClientboundGamePacket;
 
-#[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
 pub struct ClientboundPlayerAbilities {
     pub flags: PlayerAbilitiesFlags,
     pub flying_speed: f32,

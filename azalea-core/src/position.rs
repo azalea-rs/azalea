@@ -11,7 +11,7 @@ use std::{
     str::FromStr,
 };
 
-use azalea_buf::{BufReadError, McBuf, AzaleaRead, AzaleaWrite};
+use azalea_buf::{BufReadError, AzBuf, AzaleaRead, AzaleaWrite};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -214,7 +214,7 @@ macro_rules! vec3_impl {
 
 /// Used to represent an exact position in the world where an entity could be.
 /// For blocks, [`BlockPos`] is used instead.
-#[derive(Clone, Copy, Debug, Default, PartialEq, McBuf)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, AzBuf)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct Vec3 {
     pub x: f64,

@@ -33,7 +33,7 @@ use tracing::{debug, error, trace, warn};
 use uuid::Uuid;
 
 use crate::{
-    chat::{Chat, ChatReceivedEvent},
+    chat::{ChatPacket, ChatReceivedEvent},
     chunks,
     disconnect::DisconnectEvent,
     inventory::{
@@ -1030,7 +1030,7 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 chat_events.send(ChatReceivedEvent {
                     entity: player_entity,
-                    packet: Chat::Player(Arc::new(p.clone())),
+                    packet: ChatPacket::Player(Arc::new(p.clone())),
                 });
             }
             ClientboundGamePacket::SystemChat(p) => {
@@ -1042,7 +1042,7 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 chat_events.send(ChatReceivedEvent {
                     entity: player_entity,
-                    packet: Chat::System(Arc::new(p.clone())),
+                    packet: ChatPacket::System(Arc::new(p.clone())),
                 });
             }
             ClientboundGamePacket::DisguisedChat(p) => {
@@ -1054,7 +1054,7 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 chat_events.send(ChatReceivedEvent {
                     entity: player_entity,
-                    packet: Chat::Disguised(Arc::new(p.clone())),
+                    packet: ChatPacket::Disguised(Arc::new(p.clone())),
                 });
             }
             ClientboundGamePacket::Sound(_p) => {

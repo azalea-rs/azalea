@@ -3,7 +3,7 @@ pub mod debug;
 pub mod movement;
 
 use azalea::brigadier::prelude::*;
-use azalea::chat::Chat;
+use azalea::chat::ChatPacket;
 use azalea::ecs::prelude::*;
 use azalea::entity::metadata::Player;
 use azalea::Client;
@@ -17,7 +17,7 @@ pub type Ctx = CommandContext<Mutex<CommandSource>>;
 pub struct CommandSource {
     pub bot: Client,
     pub state: State,
-    pub chat: Chat,
+    pub chat: ChatPacket,
 }
 
 impl CommandSource {

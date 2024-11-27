@@ -3,9 +3,7 @@ use std::{
     str::FromStr,
 };
 
-use azalea_buf::{
-    BufReadError, McBuf, AzaleaRead, AzaleaReadVar, AzaleaWriteVar, AzaleaWrite,
-};
+use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
 use azalea_core::{position::BlockPos, resource_location::ResourceLocation};
 use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_registry::{ParticleKind, SoundEvent};
@@ -26,7 +24,7 @@ pub struct ClientboundExplode {
     pub explosion_sound: SoundEvent,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, McBuf)]
+#[derive(Clone, Copy, Debug, PartialEq, AzBuf)]
 pub enum BlockInteraction {
     Keep,
     Destroy,

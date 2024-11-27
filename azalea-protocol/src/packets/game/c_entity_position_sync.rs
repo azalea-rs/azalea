@@ -1,8 +1,8 @@
-use azalea_buf::McBuf;
+use azalea_buf::AzBuf;
 use azalea_core::position::Vec3;
 use azalea_protocol_macros::ClientboundGamePacket;
 
-#[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
 pub struct ClientboundEntityPositionSync {
     #[var]
     pub id: u32,
@@ -10,7 +10,7 @@ pub struct ClientboundEntityPositionSync {
     pub on_ground: bool,
 }
 
-#[derive(McBuf, Clone, Debug)]
+#[derive(AzBuf, Clone, Debug)]
 pub struct PositionMoveRotation {
     pub position: Vec3,
     pub delta_movement: Vec3,

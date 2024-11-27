@@ -1,6 +1,6 @@
 use std::ops::RangeInclusive;
 
-use azalea_buf::McBuf;
+use azalea_buf::AzBuf;
 
 use crate::{
     item::MaxStackSizeExt, AnvilMenuLocation, BeaconMenuLocation, BlastFurnaceMenuLocation,
@@ -250,7 +250,7 @@ impl ClickOperation {
     }
 }
 
-#[derive(McBuf, Clone, Copy, Debug)]
+#[derive(AzBuf, Clone, Copy, Debug)]
 pub enum ClickType {
     Pickup = 0,
     QuickMove = 1,

@@ -4,9 +4,7 @@ use std::{
 };
 
 use azalea_auth::game_profile::{GameProfile, ProfilePropertyValue};
-use azalea_buf::{
-    BufReadError, McBuf, AzaleaRead, AzaleaReadVar, AzaleaWriteVar, AzaleaWrite,
-};
+use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
 use azalea_chat::FormattedText;
 use azalea_core::{bitset::FixedBitSet, game_type::GameMode};
 use azalea_protocol_macros::ClientboundGamePacket;
@@ -31,33 +29,33 @@ pub struct PlayerInfoEntry {
     pub chat_session: Option<RemoteChatSessionData>,
 }
 
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, AzBuf)]
 pub struct AddPlayerAction {
     pub name: String,
     pub properties: HashMap<String, ProfilePropertyValue>,
 }
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, AzBuf)]
 pub struct InitializeChatAction {
     pub chat_session: Option<RemoteChatSessionData>,
 }
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, AzBuf)]
 pub struct UpdateGameModeAction {
     pub game_mode: GameMode,
 }
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, AzBuf)]
 pub struct UpdateListedAction {
     pub listed: bool,
 }
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, AzBuf)]
 pub struct UpdateLatencyAction {
     #[var]
     pub latency: i32,
 }
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, AzBuf)]
 pub struct UpdateDisplayNameAction {
     pub display_name: Option<FormattedText>,
 }
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, AzBuf)]
 pub struct UpdateListOrderAction {
     #[var]
     pub list_order: i32,

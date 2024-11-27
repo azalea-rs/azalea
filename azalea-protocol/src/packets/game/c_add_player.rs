@@ -1,4 +1,4 @@
-use azalea_buf::McBuf;
+use azalea_buf::AzBuf;
 use azalea_core::{ResourceLocation, Vec3};
 use azalea_entity::{metadata::PlayerMetadataBundle, EntityBundle, PlayerBundle};
 use azalea_protocol_macros::ClientboundGamePacket;
@@ -7,7 +7,7 @@ use uuid::Uuid;
 
 /// This packet is sent by the server when a player comes into visible range,
 /// not when a player joins.
-#[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
 pub struct ClientboundAddPlayer {
     #[var]
     pub id: u32,

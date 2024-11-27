@@ -1,8 +1,8 @@
-use azalea_buf::McBuf;
+use azalea_buf::AzBuf;
 use azalea_protocol_macros::ServerboundLoginPacket;
 use uuid::Uuid;
 
-#[derive(Clone, Debug, PartialEq, Eq, McBuf, ServerboundLoginPacket)]
+#[derive(Clone, Debug, PartialEq, Eq, AzBuf, ServerboundLoginPacket)]
 pub struct ServerboundHello {
     pub name: String,
     pub profile_id: Uuid,

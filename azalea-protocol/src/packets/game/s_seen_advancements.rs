@@ -1,6 +1,6 @@
 use std::io::Cursor;
 
-use azalea_buf::{McBuf, AzaleaRead, AzaleaWrite};
+use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite};
 use azalea_core::resource_location::ResourceLocation;
 use azalea_protocol_macros::ServerboundGamePacket;
 
@@ -12,7 +12,7 @@ pub struct ServerboundSeenAdvancements {
     pub tab: Option<ResourceLocation>,
 }
 
-#[derive(McBuf, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(AzBuf, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Action {
     OpenedTab = 0,
     ClosedScreen = 1,

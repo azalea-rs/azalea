@@ -1,17 +1,17 @@
 use std::io::{Cursor, Write};
 
-use azalea_buf::{AzaleaRead, McBuf, AzaleaWrite};
+use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite};
 use azalea_chat::{numbers::NumberFormat, FormattedText};
 use azalea_core::objectives::ObjectiveCriteria;
 use azalea_protocol_macros::ClientboundGamePacket;
 
-#[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
 pub struct ClientboundSetObjective {
     pub objective_name: String,
     pub method: Method,
 }
 
-#[derive(Clone, Copy, Debug, McBuf)]
+#[derive(Clone, Copy, Debug, AzBuf)]
 pub enum MethodKind {
     Add,
     Remove,

@@ -1,4 +1,4 @@
-pub use azalea_buf::McBuf;
+pub use azalea_buf::AzBuf;
 
 use crate::position::Vec3;
 
@@ -9,7 +9,7 @@ pub trait PositionDeltaTrait {
 }
 
 /// Only works for up to 8 blocks
-#[derive(Clone, Debug, McBuf, Default)]
+#[derive(Clone, Debug, AzBuf, Default)]
 pub struct PositionDelta8 {
     pub xa: i16,
     pub ya: i16,

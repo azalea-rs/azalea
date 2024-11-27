@@ -1,6 +1,6 @@
 use std::io::Cursor;
 
-use azalea_buf::{BufReadError, McBuf, AzaleaRead};
+use azalea_buf::{AzBuf, AzaleaRead, BufReadError};
 use azalea_core::{bitset::FixedBitSet, position::BlockPos};
 use azalea_protocol_macros::ServerboundGamePacket;
 
@@ -17,7 +17,7 @@ pub struct ServerboundSetCommandBlock {
     pub automatic: bool,
 }
 
-#[derive(McBuf, Clone, Copy, Debug)]
+#[derive(AzBuf, Clone, Copy, Debug)]
 pub enum Mode {
     Sequence = 0,
     Auto = 1,

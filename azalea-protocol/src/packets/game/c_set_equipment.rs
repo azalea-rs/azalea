@@ -1,11 +1,11 @@
 use std::io::Cursor;
 
-use azalea_buf::{BufReadError, McBuf};
+use azalea_buf::{AzBuf, BufReadError};
 use azalea_buf::{AzaleaRead, AzaleaWrite};
 use azalea_inventory::ItemStack;
 use azalea_protocol_macros::ClientboundGamePacket;
 
-#[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
 pub struct ClientboundSetEquipment {
     #[var]
     pub entity_id: u32,
@@ -55,7 +55,7 @@ impl AzaleaWrite for EquipmentSlots {
     }
 }
 
-#[derive(Clone, Debug, Copy, McBuf)]
+#[derive(Clone, Debug, Copy, AzBuf)]
 pub enum EquipmentSlot {
     MainHand = 0,
     OffHand = 1,

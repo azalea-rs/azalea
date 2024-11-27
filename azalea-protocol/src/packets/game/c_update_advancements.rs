@@ -1,13 +1,13 @@
 use std::collections::HashMap;
 use std::io::Cursor;
 
-use azalea_buf::McBuf;
+use azalea_buf::AzBuf;
 use azalea_chat::FormattedText;
 use azalea_core::resource_location::ResourceLocation;
 use azalea_inventory::ItemStack;
 use azalea_protocol_macros::ClientboundGamePacket;
 
-#[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
 pub struct ClientboundUpdateAdvancements {
     pub reset: bool,
     pub added: Vec<AdvancementHolder>,
@@ -15,7 +15,7 @@ pub struct ClientboundUpdateAdvancements {
     pub progress: HashMap<ResourceLocation, AdvancementProgress>,
 }
 
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, AzBuf)]
 pub struct Advancement {
     pub parent_id: Option<ResourceLocation>,
     pub display: Option<DisplayInfo>,
@@ -96,7 +96,7 @@ impl azalea_buf::AzaleaRead for DisplayInfo {
     }
 }
 
-#[derive(Clone, Debug, Copy, McBuf)]
+#[derive(Clone, Debug, Copy, AzBuf)]
 pub enum FrameType {
     Task = 0,
     Challenge = 1,
@@ -105,12 +105,12 @@ pub enum FrameType {
 
 pub type AdvancementProgress = HashMap<String, CriterionProgress>;
 
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, AzBuf)]
 pub struct CriterionProgress {
     pub date: Option<u64>,
 }
 
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, AzBuf)]
 pub struct AdvancementHolder {
     pub id: ResourceLocation,
     pub value: Advancement,

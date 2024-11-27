@@ -1,7 +1,7 @@
-use azalea_buf::{McBuf, UnsizedByteArray};
+use azalea_buf::{AzBuf, UnsizedByteArray};
 use azalea_protocol_macros::ServerboundLoginPacket;
 
-#[derive(Clone, Debug, McBuf, ServerboundLoginPacket)]
+#[derive(Clone, Debug, AzBuf, ServerboundLoginPacket)]
 pub struct ServerboundCustomQuery {
     #[var]
     pub transaction_id: u32,

@@ -1,7 +1,7 @@
-use azalea_buf::McBuf;
+use azalea_buf::AzBuf;
 use azalea_protocol_macros::ClientboundGamePacket;
 
-#[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
 pub struct ClientboundSoundEntity {
     pub source: SoundSource,
     #[var]
@@ -12,7 +12,7 @@ pub struct ClientboundSoundEntity {
     pub seed: u64,
 }
 
-#[derive(McBuf, Clone, Copy, Debug)]
+#[derive(AzBuf, Clone, Copy, Debug)]
 pub enum SoundSource {
     Master = 0,
     Music = 1,

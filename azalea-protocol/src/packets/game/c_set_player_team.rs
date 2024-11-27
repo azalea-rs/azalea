@@ -1,10 +1,10 @@
 use std::io::{Cursor, Write};
 
-use azalea_buf::{BufReadError, McBuf, AzaleaRead, AzaleaWrite};
+use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
 use azalea_chat::{style::ChatFormatting, FormattedText};
 use azalea_protocol_macros::ClientboundGamePacket;
 
-#[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
 pub struct ClientboundSetPlayerTeam {
     pub name: String,
     pub method: Method,
@@ -60,7 +60,7 @@ impl AzaleaWrite for Method {
     }
 }
 
-#[derive(McBuf, Clone, Debug)]
+#[derive(AzBuf, Clone, Debug)]
 pub struct Parameters {
     pub display_name: FormattedText,
     pub options: u8,

@@ -21,7 +21,7 @@ use derive_more::{Deref, DerefMut};
 use tokio::sync::mpsc;
 
 use crate::{
-    chat::{Chat, ChatReceivedEvent},
+    chat::{ChatPacket, ChatReceivedEvent},
     disconnect::DisconnectEvent,
     packet_handling::game::{
         AddPlayerEvent, DeathEvent, KeepAliveEvent, PacketEvent, RemovePlayerEvent,
@@ -62,7 +62,7 @@ pub enum Event {
     /// The client is now in the world. Fired when we receive a login packet.
     Login,
     /// A chat message was sent in the game chat.
-    Chat(Chat),
+    Chat(ChatPacket),
     /// Happens 20 times per second, but only when the world is loaded.
     Tick,
     /// We received a packet from the server.

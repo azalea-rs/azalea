@@ -1,13 +1,11 @@
 use std::io::{Cursor, Write};
 
-use azalea_buf::{
-    BufReadError, McBuf, AzaleaRead, AzaleaReadVar, AzaleaWriteVar, AzaleaWrite,
-};
+use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
 use azalea_core::{bitset::FixedBitSet, resource_location::ResourceLocation};
 use azalea_protocol_macros::ClientboundGamePacket;
 use tracing::warn;
 
-#[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
 pub struct ClientboundCommands {
     pub entries: Vec<BrigadierNodeStub>,
     #[var]
@@ -82,7 +80,7 @@ impl<T: AzaleaWrite> AzaleaWrite for BrigadierNumber<T> {
     }
 }
 
-#[derive(Debug, Clone, Copy, McBuf, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, AzBuf, PartialEq, Eq)]
 pub enum BrigadierString {
     /// Reads a single word
     SingleWord = 0,
@@ -93,7 +91,7 @@ pub enum BrigadierString {
     GreedyPhrase = 2,
 }
 
-#[derive(Debug, Clone, McBuf, PartialEq)]
+#[derive(Debug, Clone, AzBuf, PartialEq)]
 pub enum BrigadierParser {
     Bool,
     Float(BrigadierNumber<f32>),

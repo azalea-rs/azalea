@@ -1,9 +1,9 @@
-use azalea_buf::McBuf;
+use azalea_buf::AzBuf;
 use azalea_core::bitset::FixedBitSet;
 use azalea_crypto::MessageSignature;
 use azalea_protocol_macros::ServerboundGamePacket;
 
-#[derive(Clone, Debug, McBuf, ServerboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, ServerboundGamePacket)]
 pub struct ServerboundChat {
     pub message: String,
     pub timestamp: u64,
@@ -12,7 +12,7 @@ pub struct ServerboundChat {
     pub last_seen_messages: LastSeenMessagesUpdate,
 }
 
-#[derive(Clone, Debug, McBuf, Default)]
+#[derive(Clone, Debug, AzBuf, Default)]
 pub struct LastSeenMessagesUpdate {
     #[var]
     pub messages: u32,

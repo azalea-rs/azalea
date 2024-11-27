@@ -1,10 +1,10 @@
-use azalea_buf::McBuf;
+use azalea_buf::AzBuf;
 use azalea_protocol_macros::ClientboundGamePacket;
 use simdnbt::owned::Nbt;
 
 use super::c_light_update::ClientboundLightUpdatePacketData;
 
-#[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
 pub struct ClientboundLevelChunkWithLight {
     pub x: i32,
     pub z: i32,
@@ -12,7 +12,7 @@ pub struct ClientboundLevelChunkWithLight {
     pub light_data: ClientboundLightUpdatePacketData,
 }
 
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, AzBuf)]
 pub struct ClientboundLevelChunkPacketData {
     pub heightmaps: Nbt,
     // we can't parse the data in azalea-protocol because it depends on context from other packets
@@ -20,7 +20,7 @@ pub struct ClientboundLevelChunkPacketData {
     pub block_entities: Vec<BlockEntity>,
 }
 
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, AzBuf)]
 pub struct BlockEntity {
     pub packed_xz: u8,
     pub y: u16,

@@ -6,7 +6,7 @@ use std::{
     str::FromStr,
 };
 
-use azalea_buf::{BufReadError, AzaleaRead, AzaleaWrite};
+use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
 #[cfg(feature = "serde")]
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 use simdnbt::{owned::NbtTag, FromNbtTag, ToNbtTag};
@@ -142,7 +142,7 @@ mod tests {
     }
 
     #[test]
-    fn mcbuf_resource_location() {
+    fn azbuf_resource_location() {
         let mut buf = Vec::new();
         ResourceLocation::new("minecraft:dirt")
             .azalea_write(&mut buf)

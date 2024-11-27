@@ -1,8 +1,8 @@
-use azalea_buf::McBuf;
+use azalea_buf::AzBuf;
 use azalea_core::resource_location::ResourceLocation;
 use azalea_protocol_macros::ClientboundGamePacket;
 
-#[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
 pub struct ClientboundCustomSound {
     pub name: ResourceLocation,
     pub source: SoundSource,
@@ -13,7 +13,7 @@ pub struct ClientboundCustomSound {
     pub pitch: f32,
 }
 
-#[derive(McBuf, Clone, Copy, Debug)]
+#[derive(AzBuf, Clone, Copy, Debug)]
 pub enum SoundSource {
     Master = 0,
     Music = 1,

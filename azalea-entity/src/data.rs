@@ -2,7 +2,7 @@
 
 use std::io::{Cursor, Write};
 
-use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError, McBuf};
+use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
 use azalea_chat::FormattedText;
 use azalea_core::{
     direction::Direction,
@@ -62,7 +62,7 @@ impl AzaleaWrite for EntityMetadataItems {
 
 // Note: This enum is partially generated and parsed by
 // codegen/lib/code/entity.py
-#[derive(Clone, Debug, EnumAsInner, McBuf)]
+#[derive(Clone, Debug, EnumAsInner, AzBuf)]
 pub enum EntityDataValue {
     Byte(u8),
     Int(#[var] i32),
@@ -102,7 +102,7 @@ pub enum EntityDataValue {
 #[derive(Clone, Debug)]
 pub struct OptionalUnsignedInt(pub Option<u32>);
 
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, AzBuf)]
 pub struct Quaternion {
     pub x: f32,
     pub y: f32,
@@ -112,7 +112,7 @@ pub struct Quaternion {
 
 // mojang just calls this ArmadilloState but i added "Kind" since otherwise it
 // collides with a name in metadata.rs
-#[derive(Clone, Debug, Copy, Default, McBuf)]
+#[derive(Clone, Debug, Copy, Default, AzBuf)]
 pub enum ArmadilloStateKind {
     #[default]
     Idle,
@@ -140,14 +140,14 @@ impl AzaleaWrite for OptionalUnsignedInt {
 }
 
 /// A set of x, y, and z rotations. This is used for armor stands.
-#[derive(Clone, Debug, McBuf, Default)]
+#[derive(Clone, Debug, AzBuf, Default)]
 pub struct Rotations {
     pub x: f32,
     pub y: f32,
     pub z: f32,
 }
 
-#[derive(Clone, Debug, Copy, McBuf, Default, Component, Eq, PartialEq)]
+#[derive(Clone, Debug, Copy, AzBuf, Default, Component, Eq, PartialEq)]
 pub enum Pose {
     #[default]
     Standing = 0,
@@ -160,7 +160,7 @@ pub enum Pose {
     Dying,
 }
 
-#[derive(Debug, Clone, McBuf)]
+#[derive(Debug, Clone, AzBuf)]
 pub struct VillagerData {
     pub kind: azalea_registry::VillagerKind,
     pub profession: azalea_registry::VillagerProfession,
@@ -197,7 +197,7 @@ impl TryFrom<EntityMetadataItems> for Vec<EntityDataValue> {
     }
 }
 
-#[derive(Debug, Copy, Clone, McBuf, Default)]
+#[derive(Debug, Copy, Clone, AzBuf, Default)]
 pub enum SnifferState {
     #[default]
     Idling,

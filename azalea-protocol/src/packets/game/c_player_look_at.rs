@@ -1,7 +1,7 @@
-use azalea_buf::McBuf;
+use azalea_buf::AzBuf;
 use azalea_protocol_macros::ClientboundGamePacket;
 
-#[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
 pub struct ClientboundPlayerLookAt {
     pub from_anchor: Anchor,
     pub x: f64,
@@ -10,13 +10,13 @@ pub struct ClientboundPlayerLookAt {
     pub entity: Option<AtEntity>,
 }
 
-#[derive(McBuf, Clone, Copy, Debug)]
+#[derive(AzBuf, Clone, Copy, Debug)]
 pub enum Anchor {
     Feet = 0,
     Eyes = 1,
 }
 
-#[derive(McBuf, Clone, Debug)]
+#[derive(AzBuf, Clone, Debug)]
 pub struct AtEntity {
     #[var]
     pub entity: u32,

@@ -1,7 +1,7 @@
 use core::f64;
 use std::{any::Any, collections::HashMap, io::Cursor};
 
-use azalea_buf::{BufReadError, McBuf, AzaleaRead, AzaleaWrite};
+use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
 use azalea_chat::FormattedText;
 use azalea_core::{position::GlobalPos, resource_location::ResourceLocation};
 use azalea_registry::{
@@ -134,27 +134,27 @@ pub fn from_kind(
     })
 }
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct CustomData {
     pub nbt: Nbt,
 }
 impl DataComponent for CustomData {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct MaxStackSize {
     #[var]
     pub count: i32,
 }
 impl DataComponent for MaxStackSize {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct MaxDamage {
     #[var]
     pub amount: i32,
 }
 impl DataComponent for MaxDamage {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct Damage {
     #[var]
     pub amount: i32,
@@ -162,7 +162,7 @@ pub struct Damage {
 
 impl DataComponent for Damage {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct Unbreakable {
     pub show_in_tooltip: bool,
 }
@@ -175,26 +175,26 @@ impl Default for Unbreakable {
     }
 }
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct CustomName {
     pub name: FormattedText,
 }
 impl DataComponent for CustomName {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct ItemName {
     pub name: FormattedText,
 }
 impl DataComponent for ItemName {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct Lore {
     pub lines: Vec<FormattedText>,
     // vanilla also has styled_lines here but it doesn't appear to be used for the protocol
 }
 impl DataComponent for Lore {}
 
-#[derive(Clone, PartialEq, Copy, McBuf)]
+#[derive(Clone, PartialEq, Copy, AzBuf)]
 pub enum Rarity {
     Common,
     Uncommon,
@@ -203,7 +203,7 @@ pub enum Rarity {
 }
 impl DataComponent for Rarity {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct Enchantments {
     #[var]
     pub levels: HashMap<Enchantment, u32>,
@@ -211,7 +211,7 @@ pub struct Enchantments {
 }
 impl DataComponent for Enchantments {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub enum BlockStateValueMatcher {
     Exact {
         value: String,
@@ -222,38 +222,38 @@ pub enum BlockStateValueMatcher {
     },
 }
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct BlockStatePropertyMatcher {
     pub name: String,
     pub value_matcher: BlockStateValueMatcher,
 }
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct BlockPredicate {
     pub blocks: Option<HolderSet<Block, ResourceLocation>>,
     pub properties: Option<Vec<BlockStatePropertyMatcher>>,
     pub nbt: Option<NbtCompound>,
 }
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct AdventureModePredicate {
     pub predicates: Vec<BlockPredicate>,
     pub show_in_tooltip: bool,
 }
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct CanPlaceOn {
     pub predicate: AdventureModePredicate,
 }
 impl DataComponent for CanPlaceOn {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct CanBreak {
     pub predicate: AdventureModePredicate,
 }
 impl DataComponent for CanBreak {}
 
-#[derive(Clone, Copy, PartialEq, McBuf)]
+#[derive(Clone, Copy, PartialEq, AzBuf)]
 pub enum EquipmentSlotGroup {
     Any,
     Mainhand,
@@ -267,7 +267,7 @@ pub enum EquipmentSlotGroup {
     Body,
 }
 
-#[derive(Clone, Copy, PartialEq, McBuf)]
+#[derive(Clone, Copy, PartialEq, AzBuf)]
 pub enum AttributeModifierOperation {
     Addition,
     MultiplyBase,
@@ -277,7 +277,7 @@ pub enum AttributeModifierOperation {
 // this is duplicated in azalea-entity, BUT the one there has a different
 // protocol format (and we can't use it anyways because it would cause a
 // circular dependency)
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct AttributeModifier {
     pub uuid: Uuid,
     pub name: String,
@@ -285,57 +285,57 @@ pub struct AttributeModifier {
     pub operation: AttributeModifierOperation,
 }
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct AttributeModifiersEntry {
     pub attribute: Attribute,
     pub modifier: AttributeModifier,
     pub slot: EquipmentSlotGroup,
 }
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct AttributeModifiers {
     pub modifiers: Vec<AttributeModifiersEntry>,
     pub show_in_tooltip: bool,
 }
 impl DataComponent for AttributeModifiers {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct CustomModelData {
     #[var]
     pub value: i32,
 }
 impl DataComponent for CustomModelData {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct HideAdditionalTooltip;
 impl DataComponent for HideAdditionalTooltip {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct HideTooltip;
 impl DataComponent for HideTooltip {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct RepairCost {
     #[var]
     pub cost: u32,
 }
 impl DataComponent for RepairCost {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct CreativeSlotLock;
 impl DataComponent for CreativeSlotLock {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct EnchantmentGlintOverride {
     pub show_glint: bool,
 }
 impl DataComponent for EnchantmentGlintOverride {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct IntangibleProjectile;
 impl DataComponent for IntangibleProjectile {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct MobEffectDetails {
     #[var]
     pub amplifier: i32,
@@ -347,19 +347,19 @@ pub struct MobEffectDetails {
     pub hidden_effect: Option<Box<MobEffectDetails>>,
 }
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct MobEffectInstance {
     pub effect: MobEffect,
     pub details: MobEffectDetails,
 }
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct PossibleEffect {
     pub effect: MobEffectInstance,
     pub probability: f32,
 }
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct Food {
     #[var]
     pub nutrition: i32,
@@ -370,14 +370,14 @@ pub struct Food {
 }
 impl DataComponent for Food {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct ToolRule {
     pub blocks: HolderSet<Block, ResourceLocation>,
     pub speed: Option<f32>,
     pub correct_for_drops: Option<bool>,
 }
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct Tool {
     pub rules: Vec<ToolRule>,
     pub default_mining_speed: f32,
@@ -386,7 +386,7 @@ pub struct Tool {
 }
 impl DataComponent for Tool {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct StoredEnchantments {
     #[var]
     pub enchantments: HashMap<Enchantment, i32>,
@@ -394,52 +394,52 @@ pub struct StoredEnchantments {
 }
 impl DataComponent for StoredEnchantments {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct DyedColor {
     pub rgb: i32,
     pub show_in_tooltip: bool,
 }
 impl DataComponent for DyedColor {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct MapColor {
     pub color: i32,
 }
 impl DataComponent for MapColor {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct MapId {
     #[var]
     pub id: i32,
 }
 impl DataComponent for MapId {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct MapDecorations {
     pub decorations: NbtCompound,
 }
 impl DataComponent for MapDecorations {}
 
-#[derive(Clone, Copy, PartialEq, McBuf)]
+#[derive(Clone, Copy, PartialEq, AzBuf)]
 pub enum MapPostProcessing {
     Lock,
     Scale,
 }
 impl DataComponent for MapPostProcessing {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct ChargedProjectiles {
     pub items: Vec<ItemStack>,
 }
 impl DataComponent for ChargedProjectiles {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct BundleContents {
     pub items: Vec<ItemStack>,
 }
 impl DataComponent for BundleContents {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct PotionContents {
     pub potion: Option<Potion>,
     pub custom_color: Option<i32>,
@@ -447,26 +447,26 @@ pub struct PotionContents {
 }
 impl DataComponent for PotionContents {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct SuspiciousStewEffect {
     pub effect: MobEffect,
     #[var]
     pub duration: i32,
 }
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct SuspiciousStewEffects {
     pub effects: Vec<SuspiciousStewEffect>,
 }
 impl DataComponent for SuspiciousStewEffects {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct WritableBookContent {
     pub pages: Vec<String>,
 }
 impl DataComponent for WritableBookContent {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct WrittenBookContent {
     pub title: String,
     pub author: String,
@@ -477,7 +477,7 @@ pub struct WrittenBookContent {
 }
 impl DataComponent for WrittenBookContent {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct Trim {
     pub material: TrimMaterial,
     pub pattern: TrimPattern,
@@ -485,57 +485,57 @@ pub struct Trim {
 }
 impl DataComponent for Trim {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct DebugStickState {
     pub properties: NbtCompound,
 }
 impl DataComponent for DebugStickState {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct EntityData {
     pub entity: NbtCompound,
 }
 impl DataComponent for EntityData {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct BucketEntityData {
     pub entity: NbtCompound,
 }
 impl DataComponent for BucketEntityData {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct BlockEntityData {
     pub entity: NbtCompound,
 }
 impl DataComponent for BlockEntityData {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct Instrument {
     pub instrument: azalea_registry::Instrument,
 }
 impl DataComponent for Instrument {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct OminousBottleAmplifier {
     #[var]
     pub amplifier: i32,
 }
 impl DataComponent for OminousBottleAmplifier {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct Recipes {
     pub recipes: Vec<ResourceLocation>,
 }
 impl DataComponent for Recipes {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct LodestoneTracker {
     pub target: Option<GlobalPos>,
     pub tracked: bool,
 }
 impl DataComponent for LodestoneTracker {}
 
-#[derive(Clone, Copy, PartialEq, McBuf)]
+#[derive(Clone, Copy, PartialEq, AzBuf)]
 pub enum FireworkExplosionShape {
     SmallBall,
     LargeBall,
@@ -544,7 +544,7 @@ pub enum FireworkExplosionShape {
     Burst,
 }
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct FireworkExplosion {
     pub shape: FireworkExplosionShape,
     pub colors: Vec<i32>,
@@ -554,7 +554,7 @@ pub struct FireworkExplosion {
 }
 impl DataComponent for FireworkExplosion {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct Fireworks {
     #[var]
     pub flight_duration: i32,
@@ -562,14 +562,14 @@ pub struct Fireworks {
 }
 impl DataComponent for Fireworks {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct GameProfileProperty {
     pub name: String,
     pub value: String,
     pub signature: Option<String>,
 }
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct Profile {
     pub name: String,
     pub id: Option<Uuid>,
@@ -577,13 +577,13 @@ pub struct Profile {
 }
 impl DataComponent for Profile {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct NoteBlockSound {
     pub sound: ResourceLocation,
 }
 impl DataComponent for NoteBlockSound {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct BannerPattern {
     #[var]
     pub pattern: i32,
@@ -591,13 +591,13 @@ pub struct BannerPattern {
     pub color: i32,
 }
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct BannerPatterns {
     pub patterns: Vec<BannerPattern>,
 }
 impl DataComponent for BannerPatterns {}
 
-#[derive(Clone, Copy, PartialEq, McBuf)]
+#[derive(Clone, Copy, PartialEq, AzBuf)]
 pub enum DyeColor {
     White,
     Orange,
@@ -617,31 +617,31 @@ pub enum DyeColor {
     Black,
 }
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct BaseColor {
     pub color: DyeColor,
 }
 impl DataComponent for BaseColor {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct PotDecorations {
     pub items: Vec<Item>,
 }
 impl DataComponent for PotDecorations {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct Container {
     pub items: Vec<ItemStack>,
 }
 impl DataComponent for Container {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct BlockState {
     pub properties: HashMap<String, String>,
 }
 impl DataComponent for BlockState {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct BeehiveOccupant {
     pub entity_data: NbtCompound,
     #[var]
@@ -650,32 +650,32 @@ pub struct BeehiveOccupant {
     pub min_ticks_in_hive: i32,
 }
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct Bees {
     pub occupants: Vec<BeehiveOccupant>,
 }
 impl DataComponent for Bees {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct Lock {
     pub key: String,
 }
 impl DataComponent for Lock {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct ContainerLoot {
     pub loot: NbtCompound,
 }
 impl DataComponent for ContainerLoot {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct JukeboxPlayable {
     pub song: azalea_registry::JukeboxSong,
     pub show_in_tooltip: bool,
 }
 impl DataComponent for JukeboxPlayable {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct Consumable {
     pub consume_seconds: f32,
     pub animation: ItemUseAnimation,
@@ -685,7 +685,7 @@ pub struct Consumable {
 }
 impl DataComponent for Consumable {}
 
-#[derive(Clone, Copy, PartialEq, McBuf)]
+#[derive(Clone, Copy, PartialEq, AzBuf)]
 pub enum ItemUseAnimation {
     None,
     Eat,
@@ -699,39 +699,39 @@ pub enum ItemUseAnimation {
     Brush,
 }
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct UseRemainder {
     pub convert_into: ItemStack,
 }
 impl DataComponent for UseRemainder {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct UseCooldown {
     pub seconds: f32,
     pub cooldown_group: Option<ResourceLocation>,
 }
 impl DataComponent for UseCooldown {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct Enchantable {
     #[var]
     pub value: u32,
 }
 impl DataComponent for Enchantable {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct Repairable {
     pub items: HolderSet<Item, ResourceLocation>,
 }
 impl DataComponent for Repairable {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct ItemModel {
     pub resource_location: ResourceLocation,
 }
 impl DataComponent for ItemModel {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct DamageResistant {
     // in the vanilla code this is
     // ```
@@ -745,7 +745,7 @@ pub struct DamageResistant {
 }
 impl DataComponent for DamageResistant {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct Equippable {
     pub slot: EquipmentSlot,
     pub equip_sound: SoundEvent,
@@ -754,7 +754,7 @@ pub struct Equippable {
 }
 impl DataComponent for Equippable {}
 
-#[derive(Clone, Copy, Debug, PartialEq, McBuf)]
+#[derive(Clone, Copy, Debug, PartialEq, AzBuf)]
 pub enum EquipmentSlot {
     Mainhand,
     Offhand,
@@ -767,17 +767,17 @@ pub enum EquipmentSlot {
     Body,
 }
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct Glider;
 impl DataComponent for Glider {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct TooltipStyle {
     pub resource_location: ResourceLocation,
 }
 impl DataComponent for TooltipStyle {}
 
-#[derive(Clone, PartialEq, McBuf)]
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct DeathProtection {
     pub death_effects: Vec<ConsumeEffectKind>,
 }

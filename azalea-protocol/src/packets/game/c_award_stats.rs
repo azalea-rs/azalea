@@ -1,15 +1,15 @@
 use std::collections::HashMap;
 
-use azalea_buf::McBuf;
+use azalea_buf::AzBuf;
 use azalea_protocol_macros::ClientboundGamePacket;
 
-#[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
 pub struct ClientboundAwardStats {
     #[var]
     pub stats: HashMap<Stat, i32>,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, McBuf)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, AzBuf)]
 pub enum Stat {
     Mined(azalea_registry::Block),
     Crafted(azalea_registry::Item),

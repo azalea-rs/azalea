@@ -149,7 +149,7 @@ def add_variant(variant: str):
 
     # now insert the struct
     code.append('')
-    code.append('#[derive(Clone, PartialEq, McBuf)]')
+    code.append('#[derive(Clone, PartialEq, AzBuf)]')
     code.append(f'pub struct {variant} {{')
     code.append('   pub todo: todo!(), // see DataComponents.java')
     code.append('}')

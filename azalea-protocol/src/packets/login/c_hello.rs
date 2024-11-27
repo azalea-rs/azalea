@@ -1,7 +1,7 @@
-use azalea_buf::McBuf;
+use azalea_buf::AzBuf;
 use azalea_protocol_macros::ClientboundLoginPacket;
 
-#[derive(Clone, Debug, McBuf, ClientboundLoginPacket)]
+#[derive(Clone, Debug, AzBuf, ClientboundLoginPacket)]
 pub struct ClientboundHello {
     // TODO: make this len thing work
     // #[len(20)]

@@ -1,6 +1,6 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use azalea_buf::{McBuf, AzaleaWrite};
+use azalea_buf::{AzBuf, AzaleaWrite};
 use rsa::{
     signature::{RandomizedSigner, SignatureEncoding},
     RsaPrivateKey,
@@ -8,18 +8,18 @@ use rsa::{
 use sha2::Sha256;
 use uuid::Uuid;
 
-#[derive(Debug, Clone, McBuf)]
+#[derive(Debug, Clone, AzBuf)]
 pub struct SaltSignaturePair {
     pub salt: u64,
     pub signature: Vec<u8>,
 }
 
-#[derive(Clone, Debug, PartialEq, McBuf)]
+#[derive(Clone, Debug, PartialEq, AzBuf)]
 pub struct MessageSignature {
     pub bytes: [u8; 256],
 }
 
-#[derive(Clone, Debug, McBuf, PartialEq)]
+#[derive(Clone, Debug, AzBuf, PartialEq)]
 pub struct SignedMessageHeader {
     pub previous_signature: Option<MessageSignature>,
     pub sender: Uuid,

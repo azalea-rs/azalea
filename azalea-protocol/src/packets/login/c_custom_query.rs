@@ -1,10 +1,10 @@
 use std::hash::Hash;
 
-use azalea_buf::{McBuf, UnsizedByteArray};
+use azalea_buf::{AzBuf, UnsizedByteArray};
 use azalea_core::resource_location::ResourceLocation;
 use azalea_protocol_macros::ClientboundLoginPacket;
 
-#[derive(Hash, Clone, Debug, McBuf, ClientboundLoginPacket)]
+#[derive(Hash, Clone, Debug, AzBuf, ClientboundLoginPacket)]
 pub struct ClientboundCustomQuery {
     #[var]
     pub transaction_id: u32,

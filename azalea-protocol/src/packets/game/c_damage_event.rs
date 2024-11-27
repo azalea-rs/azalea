@@ -1,10 +1,10 @@
 use std::io::{Cursor, Write};
 
-use azalea_buf::{McBuf, AzaleaRead, AzaleaReadVar, AzaleaWriteVar, AzaleaWrite};
+use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWriteVar, AzaleaWrite};
 use azalea_core::position::Vec3;
 use azalea_protocol_macros::ClientboundGamePacket;
 
-#[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
 pub struct ClientboundDamageEvent {
     #[var]
     pub entity_id: u32,

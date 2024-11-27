@@ -29,7 +29,7 @@ use crate::{
 
 /// A chat packet, either a system message or a chat message.
 #[derive(Debug, Clone, PartialEq)]
-pub enum Chat {
+pub enum ChatPacket {
     System(Arc<ClientboundSystemChat>),
     Player(Arc<ClientboundPlayerChat>),
     Disguised(Arc<ClientboundDisguisedChat>),
@@ -42,13 +42,13 @@ macro_rules! regex {
     }};
 }
 
-impl Chat {
+impl ChatPacket {
     /// Get the message shown in chat for this packet.
     pub fn message(&self) -> FormattedText {
         match self {
-            Chat::System(p) => p.content.clone(),
-            Chat::Player(p) => p.message(),
-            Chat::Disguised(p) => p.message(),
+            ChatPacket::System(p) => p.content.clone(),
+            ChatPacket::Player(p) => p.message(),
+            ChatPacket::Disguised(p) => p.message(),
         }
     }
 
@@ -58,7 +58,7 @@ impl Chat {
     /// None.
     pub fn split_sender_and_content(&self) -> (Option<String>, String) {
         match self {
-            Chat::System(p) => {
+            ChatPacket::System(p) => {
                 let message = p.content.to_string();
                 // Overlay messages aren't in chat
                 if p.overlay {
@@ -72,13 +72,13 @@ impl Chat {
 
                 (None, message)
             }
-            Chat::Player(p) => (
+            ChatPacket::Player(p) => (
                 // If it's a player chat packet, then the sender and content
                 // are already split for us.
                 Some(p.chat_type.name.to_string()),
                 p.body.content.clone(),
             ),
-            Chat::Disguised(p) => (
+            ChatPacket::Disguised(p) => (
                 // disguised chat packets are basically the same as player chat packets but without
                 // the chat signing things
                 Some(p.chat_type.name.to_string()),
@@ -99,9 +99,9 @@ impl Chat {
     /// when a server uses a plugin to modify chat messages).
     pub fn uuid(&self) -> Option<Uuid> {
         match self {
-            Chat::System(_) => None,
-            Chat::Player(m) => Some(m.sender),
-            Chat::Disguised(_) => None,
+            ChatPacket::System(_) => None,
+            ChatPacket::Player(m) => Some(m.sender),
+            ChatPacket::Disguised(_) => None,
         }
     }
 
@@ -115,7 +115,7 @@ impl Chat {
     /// Create a new Chat from a string. This is meant to be used as a
     /// convenience function for testing.
     pub fn new(message: &str) -> Self {
-        Chat::System(Arc::new(ClientboundSystemChat {
+        ChatPacket::System(Arc::new(ClientboundSystemChat {
             content: FormattedText::from(message),
             overlay: false,
         }))
@@ -197,7 +197,7 @@ impl Plugin for ChatPlugin {
 #[derive(Event, Debug, Clone)]
 pub struct ChatReceivedEvent {
     pub entity: Entity,
-    pub packet: Chat,
+    pub packet: ChatPacket,
 }
 
 /// Send a chat message (or command, if it starts with a slash) to the server.

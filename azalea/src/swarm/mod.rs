@@ -7,7 +7,7 @@ pub mod prelude;
 use std::{collections::HashMap, future::Future, net::SocketAddr, sync::Arc, time::Duration};
 
 use azalea_client::{
-    chat::Chat, start_ecs_runner, Account, Client, DefaultPlugins, Event, JoinError,
+    chat::ChatPacket, start_ecs_runner, Account, Client, DefaultPlugins, Event, JoinError,
     StartClientOpts,
 };
 use azalea_protocol::{resolver, ServerAddress};
@@ -495,7 +495,7 @@ pub enum SwarmEvent {
     /// with the account and options from this event.
     Disconnect(Box<Account>, JoinOpts),
     /// At least one bot received a chat message.
-    Chat(Chat),
+    Chat(ChatPacket),
 }
 
 pub type SwarmHandleFn<SS, Fut> = fn(Swarm, SwarmEvent, SS) -> Fut;

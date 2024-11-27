@@ -131,7 +131,7 @@ def burger_type_to_rust_type(burger_type, field_name: Optional[str] = None, inst
             field_type_rs = to_camel_case(
                 enum_name.split('.')[-1].split('$')[-1])
             extra_code.append('')
-            extra_code.append(f'#[derive(McBuf, Clone, Copy, Debug)]')
+            extra_code.append(f'#[derive(AzBuf, Clone, Copy, Debug)]')
             extra_code.append(f'pub enum {field_type_rs} {{')
             for index, variant in enumerate(enum_variants):
                 extra_code.append(

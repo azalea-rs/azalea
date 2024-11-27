@@ -1,9 +1,9 @@
-use azalea_buf::McBuf;
+use azalea_buf::AzBuf;
 use azalea_chat::FormattedText;
 use azalea_protocol_macros::ClientboundConfigPacket;
 use uuid::Uuid;
 
-#[derive(Clone, Debug, McBuf, ClientboundConfigPacket)]
+#[derive(Clone, Debug, AzBuf, ClientboundConfigPacket)]
 pub struct ClientboundResourcePackPush {
     pub id: Uuid,
     pub url: String,

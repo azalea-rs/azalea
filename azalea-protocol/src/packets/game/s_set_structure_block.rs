@@ -1,13 +1,13 @@
 use std::io::{Cursor, Write};
 
-use azalea_buf::McBuf;
+use azalea_buf::AzBuf;
 use azalea_buf::{AzaleaRead, AzaleaWrite};
 use azalea_core::{bitset::FixedBitSet, position::BlockPos};
 use azalea_protocol_macros::ServerboundGamePacket;
 
 use crate::packets::BufReadError;
 
-#[derive(Clone, Debug, McBuf, ServerboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, ServerboundGamePacket)]
 pub struct ServerboundSetStructureBlock {
     pub pos: BlockPos,
     pub update_type: UpdateType,
@@ -24,14 +24,14 @@ pub struct ServerboundSetStructureBlock {
     pub flags: Flags,
 }
 
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, AzBuf)]
 pub struct BytePosition {
     pub x: u8,
     pub y: u8,
     pub z: u8,
 }
 
-#[derive(McBuf, Clone, Copy, Debug)]
+#[derive(AzBuf, Clone, Copy, Debug)]
 pub enum UpdateType {
     UpdateData = 0,
     SaveArea = 1,
@@ -39,7 +39,7 @@ pub enum UpdateType {
     ScanArea = 3,
 }
 
-#[derive(McBuf, Clone, Copy, Debug)]
+#[derive(AzBuf, Clone, Copy, Debug)]
 pub enum StructureMode {
     Save = 0,
     Load = 1,
@@ -47,14 +47,14 @@ pub enum StructureMode {
     Data = 3,
 }
 
-#[derive(McBuf, Clone, Copy, Debug)]
+#[derive(AzBuf, Clone, Copy, Debug)]
 pub enum Mirror {
     None = 0,
     LeftRight = 1,
     FrontBack = 2,
 }
 
-#[derive(McBuf, Clone, Copy, Debug)]
+#[derive(AzBuf, Clone, Copy, Debug)]
 pub enum Rotation {
     None = 0,
     Clockwise90 = 1,

@@ -1,8 +1,8 @@
-use azalea_buf::McBuf;
+use azalea_buf::AzBuf;
 use azalea_inventory::ItemStack;
 use azalea_protocol_macros::ClientboundGamePacket;
 
-#[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
 pub struct ClientboundMerchantOffers {
     #[var]
     pub container_id: u32,
@@ -15,7 +15,7 @@ pub struct ClientboundMerchantOffers {
     pub can_restock: bool,
 }
 
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, AzBuf)]
 pub struct MerchantOffer {
     pub base_cost_a: ItemStack,
     pub result: ItemStack,

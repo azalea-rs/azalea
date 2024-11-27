@@ -1,7 +1,7 @@
-use azalea_buf::McBuf;
+use azalea_buf::AzBuf;
 use azalea_protocol_macros::ServerboundGamePacket;
 
-#[derive(Clone, Debug, McBuf, ServerboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, ServerboundGamePacket)]
 pub struct ServerboundPlayerCommand {
     #[var]
     pub id: u32,
@@ -10,7 +10,7 @@ pub struct ServerboundPlayerCommand {
     pub data: u32,
 }
 
-#[derive(McBuf, Clone, Copy, Debug)]
+#[derive(AzBuf, Clone, Copy, Debug)]
 pub enum Action {
     PressShiftKey = 0,
     ReleaseShiftKey = 1,

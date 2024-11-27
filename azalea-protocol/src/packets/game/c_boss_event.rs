@@ -1,15 +1,13 @@
 use std::io::Cursor;
 use std::io::Write;
 
-use azalea_buf::{
-    BufReadError, McBuf, AzaleaRead, AzaleaReadVar, AzaleaWriteVar, AzaleaWrite,
-};
+use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
 use azalea_chat::FormattedText;
 use azalea_core::bitset::FixedBitSet;
 use azalea_protocol_macros::ClientboundGamePacket;
 use uuid::Uuid;
 
-#[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
 pub struct ClientboundBossEvent {
     pub id: Uuid,
     pub operation: Operation,
@@ -75,7 +73,7 @@ impl AzaleaWrite for Operation {
     }
 }
 
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, AzBuf)]
 pub struct AddOperation {
     pub name: FormattedText,
     pub progress: f32,
@@ -83,13 +81,13 @@ pub struct AddOperation {
     pub properties: Properties,
 }
 
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, AzBuf)]
 pub struct Style {
     pub color: BossBarColor,
     pub overlay: BossBarOverlay,
 }
 
-#[derive(McBuf, Clone, Copy, Debug)]
+#[derive(AzBuf, Clone, Copy, Debug)]
 pub enum BossBarColor {
     Pink = 0,
     Blue = 1,
@@ -100,7 +98,7 @@ pub enum BossBarColor {
     White = 6,
 }
 
-#[derive(McBuf, Clone, Copy, Debug)]
+#[derive(AzBuf, Clone, Copy, Debug)]
 pub enum BossBarOverlay {
     Progress = 0,
     Notched6 = 1,

@@ -1,8 +1,8 @@
-use azalea_buf::McBuf;
+use azalea_buf::AzBuf;
 use azalea_core::position::BlockPos;
 use azalea_protocol_macros::ServerboundGamePacket;
 
-#[derive(Clone, Debug, McBuf, ServerboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, ServerboundGamePacket)]
 pub struct ServerboundSignUpdate {
     pub pos: BlockPos,
     pub is_front_text: bool,

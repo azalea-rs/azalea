@@ -1,9 +1,9 @@
 use std::io::{Cursor, Write};
 
-use azalea_buf::{BufReadError, McBuf, AzaleaRead, AzaleaWrite};
+use azalea_buf::{BufReadError, AzBuf, AzaleaRead, AzaleaWrite};
 
 /// Represents Java's BitSet, a list of bits.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Default, McBuf)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default, AzBuf)]
 pub struct BitSet {
     data: Vec<u64>,
 }

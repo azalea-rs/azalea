@@ -4,7 +4,7 @@ use std::{collections::HashSet, hash::Hash};
 
 #[cfg(feature = "azalea-buf")]
 use azalea_buf::{
-    BufReadError, McBuf, AzaleaRead, AzaleaReadVar, AzaleaWriteVar, AzaleaWrite,
+    BufReadError, AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWriteVar, AzaleaWrite,
 };
 #[cfg(feature = "azalea-buf")]
 use azalea_chat::FormattedText;
@@ -81,7 +81,7 @@ impl Suggestions {
 #[cfg(feature = "azalea-buf")]
 impl AzaleaRead for Suggestions {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        #[derive(McBuf)]
+        #[derive(AzBuf)]
         struct StandaloneSuggestion {
             pub text: String,
             pub tooltip: Option<FormattedText>,

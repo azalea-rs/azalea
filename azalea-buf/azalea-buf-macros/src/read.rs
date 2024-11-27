@@ -63,7 +63,7 @@ pub fn create_impl_azalearead(ident: &Ident, data: &Data) -> proc_macro2::TokenS
                 }
             }
             _ => {
-                panic!("#[derive(McBuf)] can only be used on structs with named fields")
+                panic!("#[derive(AzBuf)] can only be used on structs with named fields")
             }
         },
         syn::Data::Enum(syn::DataEnum { variants, .. }) => {
@@ -157,6 +157,6 @@ pub fn create_impl_azalearead(ident: &Ident, data: &Data) -> proc_macro2::TokenS
             }
             }
         }
-        _ => panic!("#[derive(McBuf)] can only be used on structs"),
+        _ => panic!("#[derive(AzBuf)] can only be used on structs"),
     }
 }

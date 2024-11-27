@@ -1,12 +1,12 @@
 use std::io::{Cursor, Write};
 
-use azalea_buf::{McBuf, AzaleaRead, AzaleaReadVar, AzaleaWriteVar, AzaleaWrite};
+use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar};
 use azalea_core::position::Vec3;
 use azalea_protocol_macros::ServerboundGamePacket;
 
 use crate::packets::BufReadError;
 
-#[derive(Clone, Debug, McBuf, ServerboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, ServerboundGamePacket)]
 pub struct ServerboundInteract {
     #[var]
     pub entity_id: u32,
@@ -79,7 +79,7 @@ impl AzaleaRead for ActionType {
     }
 }
 
-#[derive(McBuf, Clone, Copy, Debug)]
+#[derive(AzBuf, Clone, Copy, Debug)]
 pub enum InteractionHand {
     MainHand = 0,
     OffHand = 1,

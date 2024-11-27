@@ -1,14 +1,14 @@
-use azalea_buf::McBuf;
+use azalea_buf::AzBuf;
 use azalea_protocol_macros::ServerboundGamePacket;
 use uuid::Uuid;
 
-#[derive(Clone, Debug, McBuf, ServerboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, ServerboundGamePacket)]
 pub struct ServerboundResourcePack {
     pub id: Uuid,
     pub action: Action,
 }
 
-#[derive(McBuf, Clone, Copy, Debug)]
+#[derive(AzBuf, Clone, Copy, Debug)]
 pub enum Action {
     SuccessfullyLoaded = 0,
     Declined = 1,

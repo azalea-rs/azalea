@@ -2,12 +2,12 @@ use std::io::Cursor;
 use std::ops::Deref;
 use std::{collections::HashMap, io::Write};
 
+use azalea_buf::{AzBuf, AzaleaReadVar, AzaleaWriteVar, BufReadError};
 use azalea_buf::{AzaleaRead, AzaleaWrite};
-use azalea_buf::{AzaleaWriteVar, BufReadError, McBuf, AzaleaReadVar};
 use azalea_core::resource_location::ResourceLocation;
 use azalea_protocol_macros::ClientboundConfigPacket;
 
-#[derive(Clone, Debug, McBuf, ClientboundConfigPacket)]
+#[derive(Clone, Debug, AzBuf, ClientboundConfigPacket)]
 pub struct ClientboundUpdateTags {
     pub tags: TagMap,
 }

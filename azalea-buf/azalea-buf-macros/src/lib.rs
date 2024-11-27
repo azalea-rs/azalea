@@ -19,8 +19,8 @@ pub fn derive_azaleawrite(input: TokenStream) -> TokenStream {
     write::create_impl_azaleawrite(&ident, &data).into()
 }
 
-#[proc_macro_derive(McBuf, attributes(var))]
-pub fn derive_mcbuf(input: TokenStream) -> TokenStream {
+#[proc_macro_derive(AzBuf, attributes(var))]
+pub fn derive_azbuf(input: TokenStream) -> TokenStream {
     let DeriveInput { ident, data, .. } = parse_macro_input!(input);
 
     let writable = write::create_impl_azaleawrite(&ident, &data);

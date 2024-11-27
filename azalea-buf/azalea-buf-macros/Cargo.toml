@@ -1,5 +1,5 @@
 [package]
-description = "#[derive(McBuf)]"
+description = "#[derive(AzBuf)]"
 edition = "2021"
 license = "MIT"
 name = "azalea-buf-macros"

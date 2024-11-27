@@ -1,8 +1,6 @@
 use std::io::{Cursor, Write};
 
-use azalea_buf::{
-    BufReadError, McBuf, AzaleaRead, AzaleaReadVar, AzaleaWriteVar, AzaleaWrite,
-};
+use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
 use azalea_chat::{
     translatable_component::{StringOrComponent, TranslatableComponent},
     FormattedText,
@@ -12,7 +10,7 @@ use azalea_crypto::MessageSignature;
 use azalea_protocol_macros::ClientboundGamePacket;
 use uuid::Uuid;
 
-#[derive(Clone, Debug, McBuf, ClientboundGamePacket, PartialEq)]
+#[derive(Clone, Debug, AzBuf, ClientboundGamePacket, PartialEq)]
 pub struct ClientboundPlayerChat {
     pub sender: Uuid,
     #[var]
@@ -24,7 +22,7 @@ pub struct ClientboundPlayerChat {
     pub chat_type: ChatTypeBound,
 }
 
-#[derive(Clone, Debug, PartialEq, McBuf)]
+#[derive(Clone, Debug, PartialEq, AzBuf)]
 pub struct PackedSignedMessageBody {
     // the error is here, for some reason it skipped a byte earlier and here
     // it's reading `0` when it should be `11`
@@ -34,7 +32,7 @@ pub struct PackedSignedMessageBody {
     pub last_seen: PackedLastSeenMessages,
 }
 
-#[derive(Clone, Debug, PartialEq, McBuf)]
+#[derive(Clone, Debug, PartialEq, AzBuf)]
 pub struct PackedLastSeenMessages {
     pub entries: Vec<PackedMessageSignature>,
 }
@@ -46,14 +44,14 @@ pub enum PackedMessageSignature {
     Id(u32),
 }
 
-#[derive(Clone, Debug, PartialEq, McBuf)]
+#[derive(Clone, Debug, PartialEq, AzBuf)]
 pub enum FilterMask {
     PassThrough,
     FullyFiltered,
     PartiallyFiltered(BitSet),
 }
 
-#[derive(Copy, Clone, Debug, McBuf, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, AzBuf, PartialEq, Eq)]
 pub enum ChatType {
     Chat = 0,
     SayCommand = 1,
@@ -64,7 +62,7 @@ pub enum ChatType {
     EmoteCommand = 6,
 }
 
-#[derive(Clone, Debug, McBuf, PartialEq)]
+#[derive(Clone, Debug, AzBuf, PartialEq)]
 pub struct ChatTypeBound {
     pub chat_type: ChatType,
     pub name: FormattedText,

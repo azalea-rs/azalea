@@ -1,4 +1,4 @@
-use azalea_buf::McBuf;
+use azalea_buf::AzBuf;
 use azalea_core::position::BlockPos;
 use azalea_inventory::ItemStack;
 use azalea_registry::ParticleKind;
@@ -7,7 +7,7 @@ use bevy_ecs::component::Component;
 // the order of this enum must be kept in sync with ParticleKind, otherwise
 // we get errors parsing particles.
 /// A [`ParticleKind`] with data potentially attached to it.
-#[derive(Component, Clone, Debug, McBuf, Default)]
+#[derive(Component, Clone, Debug, AzBuf, Default)]
 pub enum Particle {
     AngryVillager,
     Block(BlockParticle),
@@ -249,12 +249,12 @@ impl From<ParticleKind> for Particle {
     }
 }
 
-#[derive(Debug, Clone, McBuf, Default)]
+#[derive(Debug, Clone, AzBuf, Default)]
 pub struct BlockParticle {
     #[var]
     pub block_state: i32,
 }
-#[derive(Debug, Clone, McBuf, Default)]
+#[derive(Debug, Clone, AzBuf, Default)]
 pub struct DustParticle {
     /// Red value, 0-1
     pub red: f32,
@@ -266,7 +266,7 @@ pub struct DustParticle {
     pub scale: f32,
 }
 
-#[derive(Debug, Clone, McBuf, Default)]
+#[derive(Debug, Clone, AzBuf, Default)]
 pub struct DustColorTransitionParticle {
     /// Red value, 0-1
     pub from_red: f32,
@@ -284,12 +284,12 @@ pub struct DustColorTransitionParticle {
     pub to_blue: f32,
 }
 
-#[derive(Debug, Clone, McBuf, Default)]
+#[derive(Debug, Clone, AzBuf, Default)]
 pub struct ItemParticle {
     pub item: ItemStack,
 }
 
-#[derive(Debug, Clone, McBuf, Default)]
+#[derive(Debug, Clone, AzBuf, Default)]
 pub struct VibrationParticle {
     pub origin: BlockPos,
     pub position_type: String,
@@ -300,12 +300,12 @@ pub struct VibrationParticle {
     pub ticks: u32,
 }
 
-#[derive(Debug, Clone, McBuf, Default)]
+#[derive(Debug, Clone, AzBuf, Default)]
 pub struct SculkChargeParticle {
     pub roll: f32,
 }
 
-#[derive(Debug, Clone, McBuf, Default)]
+#[derive(Debug, Clone, AzBuf, Default)]
 pub struct ShriekParticle {
     #[var]
     pub delay: i32, // The time in ticks before the particle is displayed

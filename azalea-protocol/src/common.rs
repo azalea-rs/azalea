@@ -1,13 +1,13 @@
 //! Some serializable data types that are used by several packets.
 
-use azalea_buf::{AzaleaRead, AzaleaWrite, McBuf};
+use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite};
 use azalea_core::bitset::FixedBitSet;
 use bevy_ecs::component::Component;
 
 /// A component that contains some of the "settings" for this client that are
 /// sent to the server, such as render distance. This is only present on local
 /// players.
-#[derive(Clone, Debug, McBuf, PartialEq, Eq, Component)]
+#[derive(Clone, Debug, AzBuf, PartialEq, Eq, Component)]
 pub struct ClientInformation {
     /// The locale of the client.
     pub language: String,
@@ -45,7 +45,7 @@ impl Default for ClientInformation {
     }
 }
 
-#[derive(McBuf, Clone, Copy, Debug, PartialEq, Eq, Default)]
+#[derive(AzBuf, Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum ChatVisibility {
     /// All chat messages should be sent to the client.
     #[default]
@@ -57,7 +57,7 @@ pub enum ChatVisibility {
     Hidden = 2,
 }
 
-#[derive(McBuf, Clone, Copy, Debug, PartialEq, Eq, Default)]
+#[derive(AzBuf, Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum HumanoidArm {
     Left = 0,
     #[default]
@@ -75,7 +75,7 @@ pub struct ModelCustomization {
     pub hat: bool,
 }
 
-#[derive(McBuf, Clone, Copy, Debug, PartialEq, Eq, Default)]
+#[derive(AzBuf, Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum ParticleStatus {
     #[default]
     All,

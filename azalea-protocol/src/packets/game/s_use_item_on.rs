@@ -1,6 +1,6 @@
 use std::io::{Cursor, Write};
 
-use azalea_buf::{BufReadError, McBuf, AzaleaRead, AzaleaWrite};
+use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
 use azalea_core::{
     direction::Direction,
     position::{BlockPos, Vec3},
@@ -9,7 +9,7 @@ use azalea_protocol_macros::ServerboundGamePacket;
 
 use crate::packets::game::s_interact::InteractionHand;
 
-#[derive(Clone, Debug, McBuf, ServerboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, ServerboundGamePacket)]
 pub struct ServerboundUseItemOn {
     pub hand: InteractionHand,
     pub block_hit: BlockHit,

@@ -1,25 +1,25 @@
-use azalea_buf::McBuf;
+use azalea_buf::AzBuf;
 use azalea_chat::FormattedText;
 use azalea_protocol_macros::ClientboundGamePacket;
 
-#[derive(Clone, Debug, McBuf, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
 pub struct ClientboundServerLinks {
     pub links: Vec<ServerLinkEntry>,
 }
 
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, AzBuf)]
 pub struct ServerLinkEntry {
     pub kind: ServerLinkKind,
     pub link: String,
 }
 
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, AzBuf)]
 pub enum ServerLinkKind {
     Known(KnownLinkKind),
     Component(FormattedText),
 }
 
-#[derive(Clone, Copy, Debug, McBuf)]
+#[derive(Clone, Copy, Debug, AzBuf)]
 pub enum KnownLinkKind {
     BugReport,
     CommunityGuidelines,
