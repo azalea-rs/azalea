@@ -1,5 +1,3 @@
-from lib.code.packet import fix_state
-from lib.utils import PacketIdentifier, group_packets
 import lib.code.inventory
 import lib.code.language
 import lib.code.registry
