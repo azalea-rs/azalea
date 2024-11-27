@@ -4,8 +4,10 @@ use azalea_entity::indexing::EntityIdIndex;
 use azalea_protocol::packets::config::s_finish_configuration::ServerboundFinishConfiguration;
 use azalea_protocol::packets::config::s_keep_alive::ServerboundKeepAlive;
 use azalea_protocol::packets::config::s_select_known_packs::ServerboundSelectKnownPacks;
-use azalea_protocol::packets::config::{self, ClientboundConfigPacket, ServerboundConfigPacket};
-use azalea_protocol::packets::ConnectionProtocol;
+use azalea_protocol::packets::config::{
+    self, ClientboundConfigPacket, ServerboundConfigPacket, ServerboundResourcePack,
+};
+use azalea_protocol::packets::{ConnectionProtocol, Packet};
 use azalea_protocol::read::deserialize_packet;
 use bevy_ecs::prelude::*;
 use bevy_ecs::system::SystemState;
@@ -107,7 +109,7 @@ pub fn process_packet_events(ecs: &mut World) {
                 let mut raw_connection = query.get_mut(player_entity).unwrap();
 
                 raw_connection
-                    .write_packet(ServerboundFinishConfiguration {}.into_variant())
+                    .write_packet(ServerboundFinishConfiguration {})
                     .expect(
                         "we should be in the right state and encoding this packet shouldn't fail",
                     );
@@ -150,7 +152,7 @@ pub fn process_packet_events(ecs: &mut World) {
                     id: p.id,
                 });
                 raw_connection
-                    .write_packet(ServerboundKeepAlive { id: p.id }.into_variant())
+                    .write_packet(ServerboundKeepAlive { id: p.id })
                     .unwrap();
             }
             ClientboundConfigPacket::Ping(p) => {
@@ -161,7 +163,7 @@ pub fn process_packet_events(ecs: &mut World) {
                 let raw_connection = query.get_mut(player_entity).unwrap();
 
                 raw_connection
-                    .write_packet(config::s_pong::ServerboundPong { id: p.id }.into_variant())
+                    .write_packet(config::s_pong::ServerboundPong { id: p.id })
                     .unwrap();
             }
             ClientboundConfigPacket::ResourcePackPush(p) => {
@@ -173,13 +175,10 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 // always accept resource pack
                 raw_connection
-                    .write_packet(
-                        config::s_resource_pack::ServerboundResourcePack {
-                            id: p.id,
-                            action: config::s_resource_pack::Action::Accepted,
-                        }
-                        .into_variant(),
-                    )
+                    .write_packet(ServerboundResourcePack {
+                        id: p.id,
+                        action: config::s_resource_pack::Action::Accepted,
+                    })
                     .unwrap();
             }
             ClientboundConfigPacket::ResourcePackPop(_) => {
@@ -212,12 +211,9 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 // resource pack management isn't implemented
                 raw_connection
-                    .write_packet(
-                        ServerboundSelectKnownPacks {
-                            known_packs: vec![],
-                        }
-                        .into_variant(),
-                    )
+                    .write_packet(ServerboundSelectKnownPacks {
+                        known_packs: vec![],
+                    })
                     .unwrap();
             }
         }
@@ -228,8 +224,14 @@ pub fn process_packet_events(ecs: &mut World) {
 /// `configuration` state.
 #[derive(Event)]
 pub struct SendConfigurationEvent {
-    pub entity: Entity,
+    pub sent_by: Entity,
     pub packet: ServerboundConfigPacket,
+}
+impl SendConfigurationEvent {
+    pub fn new(sent_by: Entity, packet: impl Packet<ServerboundConfigPacket>) -> Self {
+        let packet = packet.into_variant();
+        Self { sent_by, packet }
+    }
 }
 
 pub fn handle_send_packet_event(
@@ -237,7 +239,7 @@ pub fn handle_send_packet_event(
     mut query: Query<&mut RawConnection>,
 ) {
     for event in send_packet_events.read() {
-        if let Ok(raw_connection) = query.get_mut(event.entity) {
+        if let Ok(raw_connection) = query.get_mut(event.sent_by) {
             // debug!("Sending packet: {:?}", event.packet);
             if let Err(e) = raw_connection.write_packet(event.packet.clone()) {
                 error!("Failed to send packet: {e}");

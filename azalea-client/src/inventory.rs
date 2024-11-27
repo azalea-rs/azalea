@@ -627,13 +627,12 @@ fn handle_container_close_event(
             continue;
         }
 
-        send_packet_events.send(SendPacketEvent {
+        send_packet_events.send(SendPacketEvent::new(
             entity,
-            packet: ServerboundContainerClose {
+            ServerboundContainerClose {
                 container_id: inventory.id,
-            }
-            .into_variant(),
-        });
+            },
+        ));
         client_side_events.send(ClientSideCloseContainerEvent {
             entity: event.entity,
         });
@@ -695,9 +694,9 @@ pub fn handle_container_click_event(
             }
         }
 
-        send_packet_events.send(SendPacketEvent {
+        send_packet_events.send(SendPacketEvent::new(
             entity,
-            packet: ServerboundContainerClick {
+            ServerboundContainerClick {
                 container_id: event.window_id,
                 state_id: inventory.state_id,
                 slot_num: event.operation.slot_num().map(|n| n as i16).unwrap_or(-999),
@@ -705,9 +704,8 @@ pub fn handle_container_click_event(
                 click_type: event.operation.click_type(),
                 changed_slots,
                 carried_item: inventory.carried.clone(),
-            }
-            .into_variant(),
-        });
+            },
+        ));
     }
 }
 
@@ -763,12 +761,11 @@ fn handle_set_selected_hotbar_slot_event(
         }
 
         inventory.selected_hotbar_slot = event.slot;
-        send_packet_events.send(SendPacketEvent {
-            entity: event.entity,
-            packet: ServerboundSetCarriedItem {
+        send_packet_events.send(SendPacketEvent::new(
+            event.entity,
+            ServerboundSetCarriedItem {
                 slot: event.slot as u16,
-            }
-            .into_variant(),
-        });
+            },
+        ));
     }
 }

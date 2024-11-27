@@ -31,21 +31,19 @@ fn handle_in_configuration_state(
         let mut brand_data = Vec::new();
         // they don't have to know :)
         "vanilla".azalea_write(&mut brand_data).unwrap();
-        send_packet_events.send(SendConfigurationEvent {
+        send_packet_events.send(SendConfigurationEvent::new(
             entity,
-            packet: ServerboundCustomPayload {
+            ServerboundCustomPayload {
                 identifier: ResourceLocation::new("brand"),
                 data: brand_data.into(),
-            }
-            .into_variant(),
-        });
+            },
+        ));
 
-        send_packet_events.send(SendConfigurationEvent {
+        send_packet_events.send(SendConfigurationEvent::new(
             entity,
-            packet: ServerboundClientInformation {
+            ServerboundClientInformation {
                 information: client_information.clone(),
-            }
-            .into_variant(),
-        });
+            },
+        ));
     }
 }

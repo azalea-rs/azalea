@@ -24,12 +24,11 @@ pub fn perform_respawn(
     mut send_packets: EventWriter<SendPacketEvent>,
 ) {
     for event in events.read() {
-        send_packets.send(SendPacketEvent {
-            entity: event.entity,
-            packet: ServerboundClientCommand {
+        send_packets.send(SendPacketEvent::new(
+            event.entity,
+            ServerboundClientCommand {
                 action: s_client_command::Action::PerformRespawn,
-            }
-            .into_variant(),
-        });
+            },
+        ));
     }
 }

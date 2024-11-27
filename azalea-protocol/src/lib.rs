@@ -122,7 +122,7 @@ mod tests {
             name: "test".to_string(),
             profile_id: Uuid::nil(),
         }
-        .into_variant();
+        .into();
         let mut stream = Vec::new();
         write_packet(&packet, &mut stream, None, &mut None)
             .await
@@ -146,7 +146,7 @@ mod tests {
             name: "test".to_string(),
             profile_id: Uuid::nil(),
         }
-        .into_variant();
+        .into();
         let mut stream = Vec::new();
         write_packet(&packet, &mut stream, None, &mut None)
             .await
@@ -170,16 +170,13 @@ mod tests {
     async fn test_read_long_compressed_chat() {
         let compression_threshold = 256;
 
-        let buf = serialize_packet(
-            &ServerboundChat {
-                message: "a".repeat(256),
-                timestamp: 0,
-                salt: 0,
-                signature: None,
-                last_seen_messages: LastSeenMessagesUpdate::default(),
-            }
-            .into_variant(),
-        )
+        let buf = serialize_packet(&ServerboundChat {
+            message: "a".repeat(256),
+            timestamp: 0,
+            salt: 0,
+            signature: None,
+            last_seen_messages: LastSeenMessagesUpdate::default(),
+        })
         .unwrap();
 
         let buf = compression_encoder(&buf, compression_threshold).unwrap();

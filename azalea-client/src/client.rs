@@ -30,7 +30,7 @@ use azalea_protocol::{
             s_hello::ServerboundHello, s_key::ServerboundKey,
             s_login_acknowledged::ServerboundLoginAcknowledged, ClientboundLoginPacket,
         },
-        ClientIntention, ConnectionProtocol, PROTOCOL_VERSION,
+        ClientIntention, ConnectionProtocol, Packet, PROTOCOL_VERSION,
     },
     resolver, ServerAddress,
 };
@@ -349,15 +349,12 @@ impl Client {
         JoinError,
     > {
         // handshake
-        conn.write(
-            ServerboundClientIntention {
-                protocol_version: PROTOCOL_VERSION,
-                hostname: address.host.clone(),
-                port: address.port,
-                intention: ClientIntention::Login,
-            }
-            .into_variant(),
-        )
+        conn.write(ServerboundClientIntention {
+            protocol_version: PROTOCOL_VERSION,
+            hostname: address.host.clone(),
+            port: address.port,
+            intention: ClientIntention::Login,
+        })
         .await?;
         let mut conn = conn.login();
 
@@ -370,15 +367,12 @@ impl Client {
         ));
 
         // login
-        conn.write(
-            ServerboundHello {
-                name: account.username.clone(),
-                // TODO: pretty sure this should generate an offline-mode uuid instead of just
-                // Uuid::default()
-                profile_id: account.uuid.unwrap_or_default(),
-            }
-            .into_variant(),
-        )
+        conn.write(ServerboundHello {
+            name: account.username.clone(),
+            // TODO: pretty sure this should generate an offline-mode uuid instead of just
+            // Uuid::default()
+            profile_id: account.uuid.unwrap_or_default(),
+        })
         .await?;
 
         let (conn, profile) = loop {
@@ -438,13 +432,10 @@ impl Client {
                         }
                     }
 
-                    conn.write(
-                        ServerboundKey {
-                            key_bytes: e.encrypted_public_key,
-                            encrypted_challenge: e.encrypted_challenge,
-                        }
-                        .into_variant(),
-                    )
+                    conn.write(ServerboundKey {
+                        key_bytes: e.encrypted_public_key,
+                        encrypted_challenge: e.encrypted_challenge,
+                    })
                     .await?;
 
                     conn.set_encryption_key(e.secret_key);
@@ -458,8 +449,7 @@ impl Client {
                         "Got profile {:?}. handshake is finished and we're now switching to the configuration state",
                         p.game_profile
                     );
-                    conn.write(ServerboundLoginAcknowledged {}.into_variant())
-                        .await?;
+                    conn.write(ServerboundLoginAcknowledged {}).await?;
                     break (conn.configuration(), p.game_profile);
                 }
                 ClientboundLoginPacket::LoginDisconnect(p) => {
@@ -489,8 +479,9 @@ impl Client {
     /// Write a packet directly to the server.
     pub fn write_packet(
         &self,
-        packet: ServerboundGamePacket,
+        packet: impl Packet<ServerboundGamePacket>,
     ) -> Result<(), crate::raw_connection::WritePacketError> {
+        let packet = packet.into_variant();
         self.raw_connection_mut(&mut self.ecs.lock())
             .write_packet(packet)
     }
@@ -601,7 +592,7 @@ impl Client {
                 "Sending client information (already logged in): {:?}",
                 client_information
             );
-            self.write_packet(azalea_protocol::packets::game::s_client_information::ServerboundClientInformation { information: client_information.clone() }.into_variant())?;
+            self.write_packet(azalea_protocol::packets::game::s_client_information::ServerboundClientInformation { information: client_information.clone() })?;
         }
 
         Ok(())

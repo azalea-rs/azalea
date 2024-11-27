@@ -28,11 +28,13 @@ fn as_packet_derive(input: TokenStream, state: proc_macro2::TokenStream) -> Toke
                 buf: &mut std::io::Cursor<&[u8]>,
             ) -> Result<#state, azalea_buf::BufReadError> {
                 use azalea_buf::AzaleaRead;
-                Ok(Self::azalea_read(buf)?.into_variant())
+                Ok(crate::packets::Packet::into_variant(Self::azalea_read(buf)?))
             }
 
-            /// Convert this packet into an variant for the enum of the state and direction.
-            pub fn into_variant(self) -> #state {
+        }
+
+        impl crate::packets::Packet<#state> for #ident {
+            fn into_variant(self) -> #state {
                 #state::#variant_name(self)
             }
         }
@@ -350,6 +352,13 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
                     #s_read_match_contents
                     _ => return Err(Box::new(crate::read::ReadPacketError::UnknownPacketId { state_name: #state_name_litstr.to_string(), id })),
                 })
+            }
+        }
+
+        impl crate::packets::Packet<#s_state_name> for #s_state_name {
+            /// No-op, exists so you can pass a packet enum when a Packet<> is expected.
+            fn into_variant(self) -> #s_state_name {
+                self
             }
         }
     });

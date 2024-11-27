@@ -648,8 +648,7 @@ mod tests {
             azalea_block::blocks::StoneSlab {
                 kind: azalea_block::properties::Type::Top,
                 waterlogged: false,
-            }
-            .into(),
+            },
         );
         assert!(
             block_state.is_some(),
@@ -705,8 +704,7 @@ mod tests {
                 west: azalea_block::properties::WallWest::Low,
                 up: false,
                 waterlogged: false,
-            }
-            .into(),
+            },
         );
         assert!(
             block_state.is_some(),
@@ -767,8 +765,7 @@ mod tests {
                 west: azalea_block::properties::WallWest::Low,
                 up: false,
                 waterlogged: false,
-            }
-            .into(),
+            },
         );
         assert!(
             block_state.is_some(),

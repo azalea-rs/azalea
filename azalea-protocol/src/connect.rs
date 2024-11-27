@@ -84,7 +84,7 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///             port: resolved_address.port(),
 ///             intention: ClientIntention::Login,
 ///         }
-///         .into_variant(),
+///         .into(),
 ///     )
 ///     .await?;
 ///
@@ -96,7 +96,7 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///             name: "bot".to_string(),
 ///             profile_id: uuid::Uuid::nil(),
 ///         }
-///         .into_variant(),
+///         .into(),
 ///     )
 ///     .await?;
 ///
@@ -111,7 +111,7 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///                         key_bytes: e.encrypted_public_key,
 ///                         encrypted_challenge: e.encrypted_challenge,
 ///                     }
-///                     .into_variant(),
+///                     .into(),
 ///                 )
 ///                 .await?;
 ///                 conn.set_encryption_key(e.secret_key);
@@ -241,7 +241,8 @@ where
     }
 
     /// Write a packet to the other side of the connection.
-    pub async fn write(&mut self, packet: W) -> std::io::Result<()> {
+    pub async fn write(&mut self, packet: impl crate::packets::Packet<W>) -> std::io::Result<()> {
+        let packet = packet.into_variant();
         self.writer.write(packet).await
     }
 
@@ -414,7 +415,7 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
     ///             ServerboundKeyPacket {
     ///                 key_bytes: e.encrypted_public_key,
     ///                 encrypted_challenge: e.encrypted_challenge,
-    ///             }.into_variant()
+    ///             }.into()
     ///         ).await?;
     ///         conn.set_encryption_key(e.secret_key);
     ///     }

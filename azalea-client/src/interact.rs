@@ -148,15 +148,14 @@ pub fn handle_block_interact_event(
             }
         };
 
-        send_packet_events.send(SendPacketEvent {
+        send_packet_events.send(SendPacketEvent::new(
             entity,
-            packet: ServerboundUseItemOn {
+            ServerboundUseItemOn {
                 hand: InteractionHand::MainHand,
                 block_hit,
                 sequence: sequence_number.0,
-            }
-            .into_variant(),
-        });
+            },
+        ));
     }
 }
 
@@ -302,13 +301,12 @@ pub fn handle_swing_arm_event(
     mut send_packet_events: EventWriter<SendPacketEvent>,
 ) {
     for event in events.read() {
-        send_packet_events.send(SendPacketEvent {
-            entity: event.entity,
-            packet: ServerboundSwing {
+        send_packet_events.send(SendPacketEvent::new(
+            event.entity,
+            ServerboundSwing {
                 hand: InteractionHand::MainHand,
-            }
-            .into_variant(),
-        });
+            },
+        ));
     }
 }
 

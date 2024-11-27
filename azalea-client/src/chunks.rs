@@ -159,13 +159,12 @@ pub fn handle_chunk_batch_finished_event(
         if let Ok(mut chunk_batch_info) = query.get_mut(event.entity) {
             chunk_batch_info.batch_finished(event.batch_size);
             let desired_chunks_per_tick = chunk_batch_info.desired_chunks_per_tick();
-            send_packets.send(SendPacketEvent {
-                entity: event.entity,
-                packet: ServerboundChunkBatchReceived {
+            send_packets.send(SendPacketEvent::new(
+                event.entity,
+                ServerboundChunkBatchReceived {
                     desired_chunks_per_tick,
-                }
-                .into_variant(),
-            });
+                },
+            ));
         }
     }
 }

@@ -6,12 +6,15 @@ use std::{
 };
 
 use azalea_chat::FormattedText;
-use azalea_protocol::packets::game::{
-    c_disguised_chat::ClientboundDisguisedChat,
-    c_player_chat::ClientboundPlayerChat,
-    c_system_chat::ClientboundSystemChat,
-    s_chat::{LastSeenMessagesUpdate, ServerboundChat},
-    s_chat_command::ServerboundChatCommand,
+use azalea_protocol::packets::{
+    game::{
+        c_disguised_chat::ClientboundDisguisedChat,
+        c_player_chat::ClientboundPlayerChat,
+        c_system_chat::ClientboundSystemChat,
+        s_chat::{LastSeenMessagesUpdate, ServerboundChat},
+        s_chat_command::ServerboundChatCommand,
+    },
+    Packet,
 };
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::{
@@ -281,10 +284,7 @@ pub fn handle_send_chat_kind_event(
             }
         };
 
-        send_packet_events.send(SendPacketEvent {
-            entity: event.entity,
-            packet,
-        });
+        send_packet_events.send(SendPacketEvent::new(event.entity, packet));
     }
 }
 

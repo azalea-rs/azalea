@@ -5,12 +5,15 @@ use azalea_core::tick::GameTick;
 use azalea_entity::{metadata::Sprinting, Attributes, Jumping};
 use azalea_entity::{InLoadedChunk, LastSentPosition, LookDirection, Physics, Position};
 use azalea_physics::{ai_step, PhysicsSet};
-use azalea_protocol::packets::game::s_player_command::ServerboundPlayerCommand;
-use azalea_protocol::packets::game::{
-    s_move_player_pos::ServerboundMovePlayerPos,
-    s_move_player_pos_rot::ServerboundMovePlayerPosRot,
-    s_move_player_rot::ServerboundMovePlayerRot,
-    s_move_player_status_only::ServerboundMovePlayerStatusOnly,
+use azalea_protocol::packets::game::ServerboundPlayerCommand;
+use azalea_protocol::packets::{
+    game::{
+        s_move_player_pos::ServerboundMovePlayerPos,
+        s_move_player_pos_rot::ServerboundMovePlayerPosRot,
+        s_move_player_rot::ServerboundMovePlayerRot,
+        s_move_player_status_only::ServerboundMovePlayerStatusOnly,
+    },
+    Packet,
 };
 use azalea_world::{MinecraftEntityId, MoveEntityError};
 use bevy_app::{App, Plugin, Update};
@@ -244,7 +247,10 @@ pub fn send_position(
         };
 
         if let Some(packet) = packet {
-            send_packet_events.send(SendPacketEvent { entity, packet });
+            send_packet_events.send(SendPacketEvent {
+                sent_by: entity,
+                packet,
+            });
         }
     }
 }
@@ -261,15 +267,14 @@ fn send_sprinting_if_needed(
             } else {
                 azalea_protocol::packets::game::s_player_command::Action::StopSprinting
             };
-            send_packet_events.send(SendPacketEvent {
+            send_packet_events.send(SendPacketEvent::new(
                 entity,
-                packet: ServerboundPlayerCommand {
+                ServerboundPlayerCommand {
                     id: **minecraft_entity_id,
                     action: sprinting_action,
                     data: 0,
-                }
-                .into_variant(),
-            });
+                },
+            ));
             physics_state.was_sprinting = **sprinting;
         }
     }

@@ -83,15 +83,14 @@ pub fn handle_attack_event(
         swing_arm_event.send(SwingArmEvent {
             entity: event.entity,
         });
-        send_packet_events.send(SendPacketEvent {
-            entity: event.entity,
-            packet: ServerboundInteract {
+        send_packet_events.send(SendPacketEvent::new(
+            event.entity,
+            ServerboundInteract {
                 entity_id: *event.target,
                 action: s_interact::ActionType::Attack,
                 using_secondary_action: **sneaking,
-            }
-            .into_variant(),
-        });
+            },
+        ));
 
         // we can't attack if we're in spectator mode but it still sends the attack
         // packet

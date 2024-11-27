@@ -30,21 +30,19 @@ fn accept_resource_pack(
     mut send_packet_events: EventWriter<SendPacketEvent>,
 ) {
     for event in events.read() {
-        send_packet_events.send(SendPacketEvent {
-            entity: event.entity,
-            packet: ServerboundResourcePack {
+        send_packet_events.send(SendPacketEvent::new(
+            event.entity,
+            ServerboundResourcePack {
                 id: event.id,
                 action: s_resource_pack::Action::Accepted,
-            }
-            .into_variant(),
-        });
-        send_packet_events.send(SendPacketEvent {
-            entity: event.entity,
-            packet: ServerboundResourcePack {
+            },
+        ));
+        send_packet_events.send(SendPacketEvent::new(
+            event.entity,
+            ServerboundResourcePack {
                 id: event.id,
                 action: s_resource_pack::Action::SuccessfullyLoaded,
-            }
-            .into_variant(),
-        });
+            },
+        ));
     }
 }

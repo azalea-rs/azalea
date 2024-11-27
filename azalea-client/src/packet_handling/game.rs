@@ -17,12 +17,15 @@ use azalea_entity::{
     Physics, PlayerBundle, Position, RelativeEntityUpdate,
 };
 use azalea_protocol::{
-    packets::game::{
-        c_player_combat_kill::ClientboundPlayerCombatKill,
-        s_accept_teleportation::ServerboundAcceptTeleportation,
-        s_configuration_acknowledged::ServerboundConfigurationAcknowledged,
-        s_keep_alive::ServerboundKeepAlive, s_move_player_pos_rot::ServerboundMovePlayerPosRot,
-        s_pong::ServerboundPong, ClientboundGamePacket, ServerboundGamePacket,
+    packets::{
+        game::{
+            c_player_combat_kill::ClientboundPlayerCombatKill,
+            s_accept_teleportation::ServerboundAcceptTeleportation,
+            s_configuration_acknowledged::ServerboundConfigurationAcknowledged,
+            s_keep_alive::ServerboundKeepAlive, s_move_player_pos_rot::ServerboundMovePlayerPosRot,
+            s_pong::ServerboundPong, ClientboundGamePacket, ServerboundGamePacket,
+        },
+        Packet,
     },
     read::deserialize_packet,
 };
@@ -338,10 +341,9 @@ pub fn process_packet_events(ecs: &mut World) {
                     "Sending client information because login: {:?}",
                     client_information
                 );
-                send_packet_events.send(SendPacketEvent {
-                    entity: player_entity,
-                    packet: azalea_protocol::packets::game::s_client_information::ServerboundClientInformation { information: client_information.clone() }.into_variant(),
-                });
+                send_packet_events.send(SendPacketEvent::new(player_entity,
+                    azalea_protocol::packets::game::s_client_information::ServerboundClientInformation { information: client_information.clone() },
+                ));
 
                 system_state.apply(ecs);
             }
@@ -491,13 +493,13 @@ pub fn process_packet_events(ecs: &mut World) {
                     **position = new_pos;
                 }
 
-                send_packet_events.send(SendPacketEvent {
-                    entity: player_entity,
-                    packet: ServerboundAcceptTeleportation { id: p.id }.into_variant(),
-                });
-                send_packet_events.send(SendPacketEvent {
-                    entity: player_entity,
-                    packet: ServerboundMovePlayerPosRot {
+                send_packet_events.send(SendPacketEvent::new(
+                    player_entity,
+                    ServerboundAcceptTeleportation { id: p.id },
+                ));
+                send_packet_events.send(SendPacketEvent::new(
+                    player_entity,
+                    ServerboundMovePlayerPosRot {
                         x: new_pos.x,
                         y: new_pos.y,
                         z: new_pos.z,
@@ -505,9 +507,8 @@ pub fn process_packet_events(ecs: &mut World) {
                         x_rot,
                         // this is always false
                         on_ground: false,
-                    }
-                    .into_variant(),
-                });
+                    },
+                ));
             }
             ClientboundGamePacket::PlayerInfoUpdate(p) => {
                 debug!("Got player info packet {p:?}");
@@ -981,10 +982,10 @@ pub fn process_packet_events(ecs: &mut World) {
                     entity: player_entity,
                     id: p.id,
                 });
-                send_packet_events.send(SendPacketEvent {
-                    entity: player_entity,
-                    packet: ServerboundKeepAlive { id: p.id }.into_variant(),
-                });
+                send_packet_events.send(SendPacketEvent::new(
+                    player_entity,
+                    ServerboundKeepAlive { id: p.id },
+                ));
             }
             ClientboundGamePacket::RemoveEntities(p) => {
                 debug!("Got remove entities packet {:?}", p);
@@ -1277,10 +1278,10 @@ pub fn process_packet_events(ecs: &mut World) {
                     SystemState::new(ecs);
                 let mut send_packet_events = system_state.get_mut(ecs);
 
-                send_packet_events.send(SendPacketEvent {
-                    entity: player_entity,
-                    packet: ServerboundPong { id: p.id }.into_variant(),
-                });
+                send_packet_events.send(SendPacketEvent::new(
+                    player_entity,
+                    ServerboundPong { id: p.id },
+                ));
             }
             ClientboundGamePacket::PlaceGhostRecipe(_) => {}
             ClientboundGamePacket::PlayerCombatEnd(_) => {}
@@ -1421,10 +1422,10 @@ pub fn process_packet_events(ecs: &mut World) {
                     SystemState::new(ecs);
                 let (mut commands, mut packet_events) = system_state.get_mut(ecs);
 
-                packet_events.send(SendPacketEvent {
-                    entity: player_entity,
-                    packet: ServerboundConfigurationAcknowledged {}.into_variant(),
-                });
+                packet_events.send(SendPacketEvent::new(
+                    player_entity,
+                    ServerboundConfigurationAcknowledged {},
+                ));
 
                 commands
                     .entity(player_entity)
@@ -1488,8 +1489,14 @@ pub fn process_packet_events(ecs: &mut World) {
 /// An event for sending a packet to the server while we're in the `game` state.
 #[derive(Event)]
 pub struct SendPacketEvent {
-    pub entity: Entity,
+    pub sent_by: Entity,
     pub packet: ServerboundGamePacket,
+}
+impl SendPacketEvent {
+    pub fn new(sent_by: Entity, packet: impl Packet<ServerboundGamePacket>) -> Self {
+        let packet = packet.into_variant();
+        Self { sent_by, packet }
+    }
 }
 
 pub fn handle_send_packet_event(
@@ -1497,7 +1504,7 @@ pub fn handle_send_packet_event(
     mut query: Query<&mut RawConnection>,
 ) {
     for event in send_packet_events.read() {
-        if let Ok(raw_connection) = query.get_mut(event.entity) {
+        if let Ok(raw_connection) = query.get_mut(event.sent_by) {
             // debug!("Sending packet: {:?}", event.packet);
             if let Err(e) = raw_connection.write_packet(event.packet.clone()) {
                 error!("Failed to send packet: {e}");

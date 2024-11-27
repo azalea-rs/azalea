@@ -7,7 +7,7 @@ pub mod status;
 
 use std::io::{Cursor, Write};
 
-use azalea_buf::{AzaleaWrite, AzaleaWriteVar, BufReadError, AzaleaReadVar};
+use azalea_buf::{AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
 
 use crate::read::ReadPacketError;
 
@@ -39,7 +39,7 @@ impl ConnectionProtocol {
     }
 }
 
-/// An enum of packets for a certain protocol
+/// An enum of packets for a certain protocol.
 pub trait ProtocolPacket
 where
     Self: Sized,
@@ -50,6 +50,10 @@ where
     fn read(id: u32, buf: &mut Cursor<&[u8]>) -> Result<Self, Box<ReadPacketError>>;
 
     fn write(&self, buf: &mut impl Write) -> Result<(), std::io::Error>;
+}
+
+pub trait Packet<Protocol> {
+    fn into_variant(self) -> Protocol;
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

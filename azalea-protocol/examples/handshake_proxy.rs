@@ -108,12 +108,12 @@ async fn handle_connection(stream: TcpStream) -> anyhow::Result<()> {
                                     version: PROXY_VERSION.clone(),
                                     enforces_secure_chat: PROXY_SECURE_CHAT,
                                 }
-                                .into_variant(),
+                                .into(),
                             )
                             .await?;
                         }
                         ServerboundStatusPacket::PingRequest(p) => {
-                            conn.write(ClientboundPongResponse { time: p.time }.into_variant())
+                            conn.write(ClientboundPongResponse { time: p.time }.into())
                                 .await?;
                             break;
                         }
@@ -189,10 +189,10 @@ async fn transfer(
     // received earlier to the proxy target
     let mut outbound_conn: Connection<ClientboundHandshakePacket, ServerboundHandshakePacket> =
         Connection::wrap(outbound);
-    outbound_conn.write(intent.into_variant()).await?;
+    outbound_conn.write(intent.into()).await?;
 
     let mut outbound_conn = outbound_conn.login();
-    outbound_conn.write(hello.into_variant()).await?;
+    outbound_conn.write(hello.into()).await?;
 
     let mut outbound = outbound_conn.unwrap()?;
 
