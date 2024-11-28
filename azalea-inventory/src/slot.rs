@@ -217,11 +217,11 @@ impl DataComponentPatch {
     /// # assert!(!is_edible);
     /// ```
     pub fn has<T: components::DataComponent>(&self) -> bool {
-        self.components.contains_key(&T::KIND)
+        self.has_kind(T::KIND)
     }
 
     pub fn has_kind(&self, kind: DataComponentKind) -> bool {
-        self.components.contains_key(&kind)
+        self.get_kind(kind).is_some()
     }
 }
 
