@@ -12,13 +12,12 @@ use azalea_inventory::ItemStack;
 use bevy_ecs::component::Component;
 use derive_more::Deref;
 use enum_as_inner::EnumAsInner;
-use nohash_hasher::IntSet;
 use uuid::Uuid;
 
 use crate::particle::Particle;
 
 #[derive(Clone, Debug, Deref)]
-pub struct EntityMetadataItems(Vec<EntityDataItem>);
+pub struct EntityMetadataItems(pub Vec<EntityDataItem>);
 
 #[derive(Clone, Debug)]
 pub struct EntityDataItem {
@@ -26,12 +25,6 @@ pub struct EntityDataItem {
     // entity type
     pub index: u8,
     pub value: EntityDataValue,
-}
-
-impl EntityMetadataItems {
-    pub fn new(data: Vec<EntityDataItem>) -> Self {
-        EntityMetadataItems(data)
-    }
 }
 
 impl AzaleaRead for EntityMetadataItems {
@@ -166,35 +159,6 @@ pub struct VillagerData {
     pub profession: azalea_registry::VillagerProfession,
     #[var]
     pub level: u32,
-}
-
-impl TryFrom<EntityMetadataItems> for Vec<EntityDataValue> {
-    type Error = String;
-
-    fn try_from(data: EntityMetadataItems) -> Result<Self, Self::Error> {
-        let mut data = data.0;
-
-        data.sort_by(|a, b| a.index.cmp(&b.index));
-
-        let mut prev_indexes = IntSet::default();
-        let len = data.len();
-        // check to make sure it's valid, in vanilla this is guaranteed to pass
-        // but it's possible there's mods that mess with it so we want to make
-        // sure it's good
-        for item in &data {
-            if prev_indexes.contains(&item.index) {
-                return Err(format!("Index {} is duplicated", item.index));
-            }
-            if item.index as usize > len {
-                return Err(format!("Index {} is too big", item.index));
-            }
-            prev_indexes.insert(item.index);
-        }
-
-        let data = data.into_iter().map(|d| d.value).collect();
-
-        Ok(data)
-    }
 }
 
 #[derive(Debug, Copy, Clone, AzBuf, Default)]
