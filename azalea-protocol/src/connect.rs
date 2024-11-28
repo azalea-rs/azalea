@@ -61,6 +61,7 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///     resolver,
 ///     connect::Connection,
 ///     packets::{
+///         self,
 ///         ClientIntention, PROTOCOL_VERSION,
 ///         login::{
 ///             ClientboundLoginPacket,
@@ -115,7 +116,13 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///                 return Err("login disconnect".into());
 ///             }
 ///             ClientboundLoginPacket::CustomQuery(p) => {}
-///             ClientboundLoginPacket::CookieRequest(_) => {}
+///             ClientboundLoginPacket::CookieRequest(p) => {
+///                 conn.write(packets::login::ServerboundCookieResponse {
+///                     key: p.key,
+///                     payload: None,
+///                 })
+///                 .await?;
+///             }
 ///         }
 ///     };
 ///

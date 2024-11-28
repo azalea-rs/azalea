@@ -88,16 +88,6 @@ pub struct MessageSignatureCache {
     pub entries: Vec<Option<MessageSignature>>,
 }
 
-// impl MessageSignatureCache {
-//     pub fn unpacker(&self) -> impl Fn(u32) -> Option<SignedMessageBody> {
-
-//     }
-// }
-
-// impl PackedSignedMessageBody {
-//     pub fn unpack(&self, unpacker: impl Fn(u32) -> Option<SignedMessageBody>)
-// {} }
-
 impl ClientboundPlayerChat {
     /// Returns the content of the message. If you want to get the FormattedText
     /// for the whole message including the sender part, use
