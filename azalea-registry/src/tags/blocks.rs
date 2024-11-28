@@ -2070,7 +2070,6 @@ pub static MINEABLE_PICKAXE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
         Block::NetherGoldOre,
         Block::LapisOre,
         Block::DeepslateLapisOre,
-        Block::ResinBricks,
         Block::LapisBlock,
         Block::Dispenser,
         Block::Sandstone,
