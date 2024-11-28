@@ -3,9 +3,12 @@
 
 use std::{collections::HashSet, sync::Arc};
 
-use azalea_protocol::packets::login::{
-    serverbound_custom_query_answer_packet::ServerboundCustomQueryAnswerPacket,
-    ClientboundLoginPacket, ServerboundLoginPacket,
+use azalea_protocol::packets::{
+    login::{
+        s_custom_query_answer::ServerboundCustomQueryAnswer, ClientboundLoginPacket,
+        ServerboundLoginPacket,
+    },
+    Packet,
 };
 use bevy_ecs::{prelude::*, system::SystemState};
 use derive_more::{Deref, DerefMut};
@@ -32,6 +35,12 @@ pub struct LoginPacketEvent {
 pub struct SendLoginPacketEvent {
     pub entity: Entity,
     pub packet: ServerboundLoginPacket,
+}
+impl SendLoginPacketEvent {
+    pub fn new(entity: Entity, packet: impl Packet<ServerboundLoginPacket>) -> Self {
+        let packet = packet.into_variant();
+        Self { entity, packet }
+    }
 }
 
 #[derive(Component)]
@@ -86,14 +95,13 @@ pub fn process_packet_events(ecs: &mut World) {
                     }
                 }
 
-                send_packet_events.send(SendLoginPacketEvent {
-                    entity: player_entity,
-                    packet: ServerboundCustomQueryAnswerPacket {
+                send_packet_events.send(SendLoginPacketEvent::new(
+                    player_entity,
+                    ServerboundCustomQueryAnswer {
                         transaction_id: p.transaction_id,
                         data: None,
-                    }
-                    .get(),
-                });
+                    },
+                ));
             }
             _ => {}
         }

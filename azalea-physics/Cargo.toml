@@ -4,7 +4,7 @@ edition = "2021"
 license = "MIT"
 name = "azalea-physics"
 repository = "https://github.com/azalea-rs/azalea/tree/main/azalea-physics"
-version = "0.10.3+mc1.21.1"
+version = "0.10.3+mc1.21.4-pre3"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -17,12 +17,7 @@ azalea-registry = { path = "../azalea-registry", version = "0.10.0" }
 azalea-world = { path = "../azalea-world", version = "0.10.0" }
 bevy_app = { workspace = true }
 bevy_ecs = { workspace = true }
-#nohash-hasher = { workspace = true }
-once_cell = { workspace = true }
 parking_lot = { workspace = true }
-#smallvec = { workspace = true }
-#tracing = { workspace = true }
 
 [dev-dependencies]
-#bevy_time = { workspace = true }
 uuid = { workspace = true }

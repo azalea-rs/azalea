@@ -10,9 +10,8 @@ use azalea_inventory::{
     },
 };
 use azalea_protocol::packets::game::{
-    serverbound_container_click_packet::ServerboundContainerClickPacket,
-    serverbound_container_close_packet::ServerboundContainerClosePacket,
-    serverbound_set_carried_item_packet::ServerboundSetCarriedItemPacket,
+    s_container_click::ServerboundContainerClick, s_container_close::ServerboundContainerClose,
+    s_set_carried_item::ServerboundSetCarriedItem,
 };
 use azalea_registry::MenuKind;
 use bevy_app::{App, Plugin, Update};
@@ -98,7 +97,7 @@ pub struct Inventory {
     ///
     /// This is different from [`Self::selected_hotbar_slot`], which is the
     /// item that's selected in the hotbar.
-    pub carried: ItemSlot,
+    pub carried: ItemStack,
     /// An identifier used by the server to track client inventory desyncs. This
     /// is sent on every container click, and it's only ever updated when the
     /// server sends a new container update.
@@ -183,7 +182,7 @@ impl Inventory {
             if let QuickCraftStatus::Add { slot } = quick_craft.status {
                 let slot_item = self.menu().slot(slot as usize);
                 if let Some(slot_item) = slot_item {
-                    if let ItemSlot::Present(carried) = &self.carried {
+                    if let ItemStack::Present(carried) = &self.carried {
                         // minecraft also checks slot.may_place(carried) and
                         // menu.can_drag_to(slot)
                         // but they always return true so they're not relevant for us
@@ -222,7 +221,7 @@ impl Inventory {
                         return;
                     }
 
-                    let ItemSlot::Present(mut carried) = self.carried.clone() else {
+                    let ItemStack::Present(mut carried) = self.carried.clone() else {
                         // this should never happen
                         return self.reset_quick_craft();
                     };
@@ -231,14 +230,14 @@ impl Inventory {
                     let mut quick_craft_slots_iter = self.quick_craft_slots.iter();
 
                     loop {
-                        let mut slot: &ItemSlot;
+                        let mut slot: &ItemStack;
                         let mut slot_index: u16;
-                        let mut item_stack: &ItemSlot;
+                        let mut item_stack: &ItemStack;
 
                         loop {
                             let Some(&next_slot) = quick_craft_slots_iter.next() else {
                                 carried.count = carried_count;
-                                self.carried = ItemSlot::Present(carried);
+                                self.carried = ItemStack::Present(carried);
                                 return self.reset_quick_craft();
                             };
 
@@ -259,8 +258,8 @@ impl Inventory {
                             }
                         }
 
-                        // get the ItemSlotData for the slot
-                        let ItemSlot::Present(slot) = slot else {
+                        // get the ItemStackData for the slot
+                        let ItemStack::Present(slot) = slot else {
                             unreachable!("the loop above requires the slot to be present to break")
                         };
 
@@ -293,7 +292,7 @@ impl Inventory {
                             &mut self.inventory_menu
                         };
                         *menu.slot_mut(slot_index as usize).unwrap() =
-                            ItemSlot::Present(new_carried);
+                            ItemStack::Present(new_carried);
                     }
                 }
             } else {
@@ -316,7 +315,7 @@ impl Inventory {
                     // implementation
 
                     // player.drop(self.carried, true);
-                    self.carried = ItemSlot::Empty;
+                    self.carried = ItemStack::Empty;
                 }
             }
             ClickOperation::Pickup(PickupClick::Right { slot: None }) => {
@@ -336,8 +335,8 @@ impl Inventory {
                 // here
                 // i don't understand it so i didn't implement it
                 match slot_item {
-                    ItemSlot::Empty => if carried.is_present() {},
-                    ItemSlot::Present(_) => todo!(),
+                    ItemStack::Empty => if carried.is_present() {},
+                    ItemStack::Present(_) => todo!(),
                 }
             }
             ClickOperation::QuickMove(
@@ -374,7 +373,7 @@ impl Inventory {
                         *target_slot = source_slot;
                     }
                 } else if source_slot.is_empty() {
-                    let ItemSlot::Present(target_item) = target_slot else {
+                    let ItemStack::Present(target_item) = target_slot else {
                         unreachable!("target slot is not empty but is not present");
                     };
                     if self.menu().may_place(source_slot_index, target_item) {
@@ -386,7 +385,7 @@ impl Inventory {
                         *self.menu_mut().slot_mut(source_slot_index).unwrap() = new_source_slot;
                     }
                 } else if self.menu().may_pickup(source_slot_index) {
-                    let ItemSlot::Present(target_item) = target_slot else {
+                    let ItemStack::Present(target_item) = target_slot else {
                         unreachable!("target slot is not empty but is not present");
                     };
                     if self.menu().may_place(source_slot_index, target_item) {
@@ -421,12 +420,12 @@ impl Inventory {
                 let Some(source_slot) = self.menu().slot(*slot as usize) else {
                     return;
                 };
-                let ItemSlot::Present(source_item) = source_slot else {
+                let ItemStack::Present(source_item) = source_slot else {
                     return;
                 };
                 let mut new_carried = source_item.clone();
                 new_carried.count = new_carried.kind.max_stack_size();
-                self.carried = ItemSlot::Present(new_carried);
+                self.carried = ItemStack::Present(new_carried);
             }
             ClickOperation::Throw(c) => {
                 if self.carried.is_present() {
@@ -440,7 +439,7 @@ impl Inventory {
                 let Some(slot) = self.menu_mut().slot_mut(slot_index) else {
                     return;
                 };
-                let ItemSlot::Present(slot_item) = slot else {
+                let ItemStack::Present(slot_item) = slot else {
                     return;
                 };
 
@@ -467,7 +466,7 @@ impl Inventory {
                     return;
                 }
 
-                let ItemSlot::Present(target_slot_item) = &target_slot else {
+                let ItemStack::Present(target_slot_item) = &target_slot else {
                     unreachable!("target slot is not empty but is not present");
                 };
 
@@ -481,7 +480,7 @@ impl Inventory {
                     for i in iterator {
                         if target_slot_item.count < target_slot_item.kind.max_stack_size() {
                             let checking_slot = self.menu().slot(i).unwrap();
-                            if let ItemSlot::Present(checking_item) = checking_slot {
+                            if let ItemStack::Present(checking_item) = checking_slot {
                                 if can_item_quick_replace(checking_slot, &target_slot, true)
                                     && self.menu().may_pickup(i)
                                     && (round != 0
@@ -496,7 +495,7 @@ impl Inventory {
 
                                     // now extend the carried item
                                     let target_slot = &mut self.carried;
-                                    let ItemSlot::Present(target_slot_item) = target_slot else {
+                                    let ItemStack::Present(target_slot_item) = target_slot else {
                                         unreachable!("target slot is not empty but is not present");
                                     };
                                     target_slot_item.count += taken_item.count();
@@ -516,7 +515,7 @@ impl Inventory {
     }
 
     /// Get the item in the player's hotbar that is currently being held.
-    pub fn held_item(&self) -> ItemSlot {
+    pub fn held_item(&self) -> ItemStack {
         let inventory = &self.inventory_menu;
         let hotbar_items = &inventory.slots()[inventory.hotbar_slots_range()];
         hotbar_items[self.selected_hotbar_slot as usize].clone()
@@ -524,14 +523,14 @@ impl Inventory {
 }
 
 fn can_item_quick_replace(
-    target_slot: &ItemSlot,
-    item: &ItemSlot,
+    target_slot: &ItemStack,
+    item: &ItemStack,
     ignore_item_count: bool,
 ) -> bool {
-    let ItemSlot::Present(target_slot) = target_slot else {
+    let ItemStack::Present(target_slot) = target_slot else {
         return false;
     };
-    let ItemSlot::Present(item) = item else {
+    let ItemStack::Present(item) = item else {
         // i *think* this is what vanilla does
         // not 100% sure lol probably doesn't matter though
         return false;
@@ -552,7 +551,7 @@ fn can_item_quick_replace(
 fn get_quick_craft_slot_count(
     quick_craft_slots: &HashSet<u16>,
     quick_craft_kind: &QuickCraftKind,
-    item: &mut ItemSlotData,
+    item: &mut ItemStackData,
     slot_item_count: i32,
 ) {
     item.count = match quick_craft_kind {
@@ -570,7 +569,7 @@ impl Default for Inventory {
             id: 0,
             container_menu: None,
             container_menu_title: None,
-            carried: ItemSlot::Empty,
+            carried: ItemStack::Empty,
             state_id: 0,
             quick_craft_status: QuickCraftStatusKind::Start,
             quick_craft_kind: QuickCraftKind::Middle,
@@ -628,13 +627,12 @@ fn handle_container_close_event(
             continue;
         }
 
-        send_packet_events.send(SendPacketEvent {
+        send_packet_events.send(SendPacketEvent::new(
             entity,
-            packet: ServerboundContainerClosePacket {
+            ServerboundContainerClose {
                 container_id: inventory.id,
-            }
-            .get(),
-        });
+            },
+        ));
         client_side_events.send(ClientSideCloseContainerEvent {
             entity: event.entity,
         });
@@ -688,7 +686,7 @@ pub fn handle_container_click_event(
 
         // see which slots changed after clicking and put them in the hashmap
         // the server uses this to check if we desynced
-        let mut changed_slots: HashMap<u16, ItemSlot> = HashMap::new();
+        let mut changed_slots: HashMap<u16, ItemStack> = HashMap::new();
         for (slot_index, old_slot) in old_slots.iter().enumerate() {
             let new_slot = &menu.slots()[slot_index];
             if old_slot != new_slot {
@@ -696,9 +694,9 @@ pub fn handle_container_click_event(
             }
         }
 
-        send_packet_events.send(SendPacketEvent {
+        send_packet_events.send(SendPacketEvent::new(
             entity,
-            packet: ServerboundContainerClickPacket {
+            ServerboundContainerClick {
                 container_id: event.window_id,
                 state_id: inventory.state_id,
                 slot_num: event.operation.slot_num().map(|n| n as i16).unwrap_or(-999),
@@ -706,9 +704,8 @@ pub fn handle_container_click_event(
                 click_type: event.operation.click_type(),
                 changed_slots,
                 carried_item: inventory.carried.clone(),
-            }
-            .get(),
-        });
+            },
+        ));
     }
 }
 
@@ -717,7 +714,7 @@ pub fn handle_container_click_event(
 #[derive(Event)]
 pub struct SetContainerContentEvent {
     pub entity: Entity,
-    pub slots: Vec<ItemSlot>,
+    pub slots: Vec<ItemStack>,
     pub container_id: u8,
 }
 fn handle_set_container_content_event(
@@ -764,12 +761,11 @@ fn handle_set_selected_hotbar_slot_event(
         }
 
         inventory.selected_hotbar_slot = event.slot;
-        send_packet_events.send(SendPacketEvent {
-            entity: event.entity,
-            packet: ServerboundSetCarriedItemPacket {
+        send_packet_events.send(SendPacketEvent::new(
+            event.entity,
+            ServerboundSetCarriedItem {
                 slot: event.slot as u16,
-            }
-            .get(),
-        });
+            },
+        ));
     }
 }

@@ -3,7 +3,7 @@ use std::{collections::HashMap, io, sync::Arc};
 use azalea_auth::game_profile::GameProfile;
 use azalea_core::game_type::GameMode;
 use azalea_entity::Dead;
-use azalea_protocol::packets::game::clientbound_player_abilities_packet::ClientboundPlayerAbilitiesPacket;
+use azalea_protocol::packets::game::c_player_abilities::ClientboundPlayerAbilities;
 use azalea_world::{Instance, PartialInstance};
 use bevy_ecs::{component::Component, prelude::*};
 use derive_more::{Deref, DerefMut};
@@ -62,8 +62,8 @@ pub struct PlayerAbilities {
     /// Used for the fov
     pub walking_speed: f32,
 }
-impl From<&ClientboundPlayerAbilitiesPacket> for PlayerAbilities {
-    fn from(packet: &ClientboundPlayerAbilitiesPacket) -> Self {
+impl From<&ClientboundPlayerAbilities> for PlayerAbilities {
+    fn from(packet: &ClientboundPlayerAbilities) -> Self {
         Self {
             invulnerable: packet.flags.invulnerable,
             flying: packet.flags.flying,

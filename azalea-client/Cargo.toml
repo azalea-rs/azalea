@@ -4,13 +4,12 @@ edition = "2021"
 license = "MIT"
 name = "azalea-client"
 repository = "https://github.com/azalea-rs/azalea/tree/main/azalea-client"
-version = "0.10.3+mc1.21.1"
+version = "0.10.3+mc1.21.4-pre3"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 anyhow = { workspace = true }
-#async-trait = { workspace = true }
 azalea-auth = { path = "../azalea-auth", version = "0.10.0" }
 azalea-block = { path = "../azalea-block", version = "0.10.0" }
 azalea-buf = { path = "../azalea-buf", version = "0.10.0" }
@@ -29,15 +28,10 @@ bevy_log = { workspace = true, optional = true }
 bevy_tasks = { workspace = true }
 bevy_time = { workspace = true }
 derive_more = { workspace = true, features = ["deref", "deref_mut"] }
-#futures = { workspace = true }
 minecraft_folder_path = { workspace = true }
-#nohash-hasher = { workspace = true }
-once_cell = { workspace = true }
 parking_lot = { workspace = true, features = ["deadlock_detection"] }
 regex = { workspace = true }
 reqwest = { workspace = true }
-#serde = { workspace = true }
-#serde_json = { workspace = true }
 simdnbt = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["sync"] }

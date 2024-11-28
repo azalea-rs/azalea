@@ -111,7 +111,7 @@ use azalea_core::{
     direction::Direction,
     position::{BlockPos, Vec3},
 };
-use azalea_inventory::ItemSlot;
+use azalea_inventory::ItemStack;
 use bevy_ecs::{bundle::Bundle, component::Component};
 use derive_more::{Deref, DerefMut};
 use thiserror::Error;
@@ -428,7 +428,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
                         elif type_name == 'OptionalUnsignedInt':
                             default = f'OptionalUnsignedInt(Some({default}))' if default != 'Empty' else 'OptionalUnsignedInt(None)'
                         elif type_name == 'ItemStack':
-                            default = f'ItemSlot::Present({default})' if default != 'Empty' else 'ItemSlot::Empty'
+                            default = f'ItemStack::Present({default})' if default != 'Empty' else 'ItemStack::Empty'
                         elif type_name == 'BlockState':
                             default = f'{default}' if default != 'Empty' else 'azalea_block::BlockState::AIR'
                         elif type_name == 'OptionalBlockState':

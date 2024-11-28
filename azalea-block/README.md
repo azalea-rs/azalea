@@ -9,10 +9,10 @@ There's three block types, used for different things. You can (mostly) convert b
 ```
 # use azalea_block::BlockState;
 let block_state: BlockState = azalea_block::blocks::CobblestoneWall {
-    east: azalea_block::properties::EastWall::Low,
-    north: azalea_block::properties::NorthWall::Low,
-    south: azalea_block::properties::SouthWall::Low,
-    west: azalea_block::properties::WestWall::Low,
+    east: azalea_block::properties::WallEast::Low,
+    north: azalea_block::properties::WallNorth::Low,
+    south: azalea_block::properties::WallSouth::Low,
+    west: azalea_block::properties::WallWest::Low,
     up: false,
     waterlogged: false,
 }

@@ -4,7 +4,7 @@ edition = "2021"
 license = "MIT"
 name = "azalea-world"
 repository = "https://github.com/azalea-rs/azalea/tree/main/azalea-world"
-version = "0.10.3+mc1.21.1"
+version = "0.10.3+mc1.21.4-pre3"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -18,15 +18,11 @@ azalea-registry = { path = "../azalea-registry", version = "0.10.0" }
 bevy_ecs = { workspace = true }
 derive_more = { workspace = true, features = ["deref", "deref_mut"] }
 nohash-hasher = { workspace = true }
-#once_cell = { workspace = true }
 parking_lot = { workspace = true }
 rustc-hash = { workspace = true }
-#serde = { workspace = true }
-#serde_json = { workspace = true }
 simdnbt = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
-#uuid = { workspace = true }
 
 [dev-dependencies]
 azalea-client = { path = "../azalea-client" }

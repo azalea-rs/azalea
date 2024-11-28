@@ -1,8 +1,7 @@
-use std::{collections::HashMap, fmt};
+use std::{collections::HashMap, fmt, sync::LazyLock};
 
 #[cfg(feature = "azalea-buf")]
-use azalea_buf::McBuf;
-use once_cell::sync::Lazy;
+use azalea_buf::AzBuf;
 use serde::{ser::SerializeStruct, Serialize, Serializer};
 use serde_json::Value;
 #[cfg(feature = "simdnbt")]
@@ -57,8 +56,8 @@ impl TextColor {
     }
 }
 
-static LEGACY_FORMAT_TO_COLOR: Lazy<HashMap<&'static ChatFormatting, TextColor>> =
-    Lazy::new(|| {
+static LEGACY_FORMAT_TO_COLOR: LazyLock<HashMap<&'static ChatFormatting, TextColor>> =
+    LazyLock::new(|| {
         let mut legacy_format_to_color = HashMap::new();
         for formatter in &ChatFormatting::FORMATTERS {
             if !formatter.is_format() && *formatter != ChatFormatting::Reset {
@@ -73,7 +72,7 @@ static LEGACY_FORMAT_TO_COLOR: Lazy<HashMap<&'static ChatFormatting, TextColor>>
         }
         legacy_format_to_color
     });
-static NAMED_COLORS: Lazy<HashMap<String, TextColor>> = Lazy::new(|| {
+static NAMED_COLORS: LazyLock<HashMap<String, TextColor>> = LazyLock::new(|| {
     let mut named_colors = HashMap::new();
     for color in LEGACY_FORMAT_TO_COLOR.values() {
         named_colors.insert(color.name.clone().unwrap(), color.clone());
@@ -101,7 +100,7 @@ impl Ansi {
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
-#[cfg_attr(feature = "azalea-buf", derive(McBuf))]
+#[cfg_attr(feature = "azalea-buf", derive(AzBuf))]
 pub enum ChatFormatting {
     Black,
     DarkBlue,

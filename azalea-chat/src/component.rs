@@ -1,8 +1,7 @@
-use std::fmt::Display;
+use std::{fmt::Display, sync::LazyLock};
 
 #[cfg(feature = "azalea-buf")]
-use azalea_buf::{BufReadError, McBufReadable, McBufWritable};
-use once_cell::sync::Lazy;
+use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
 use serde::{de, Deserialize, Deserializer, Serialize};
 #[cfg(feature = "simdnbt")]
 use simdnbt::{Deserialize as _, FromNbtTag as _, Serialize as _};
@@ -23,7 +22,7 @@ pub enum FormattedText {
     Translatable(TranslatableComponent),
 }
 
-pub static DEFAULT_STYLE: Lazy<Style> = Lazy::new(|| Style {
+pub static DEFAULT_STYLE: LazyLock<Style> = LazyLock::new(|| Style {
     color: Some(ChatFormatting::White.try_into().unwrap()),
     ..Style::default()
 });
@@ -456,8 +455,8 @@ impl From<&simdnbt::Mutf8Str> for FormattedText {
 
 #[cfg(feature = "azalea-buf")]
 #[cfg(feature = "simdnbt")]
-impl McBufReadable for FormattedText {
-    fn read_from(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, BufReadError> {
+impl AzaleaRead for FormattedText {
+    fn azalea_read(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let nbt = simdnbt::borrow::read_optional_tag(buf)?;
         if let Some(nbt) = nbt {
             FormattedText::from_nbt_tag(nbt.as_tag()).ok_or(BufReadError::Custom(
@@ -471,8 +470,8 @@ impl McBufReadable for FormattedText {
 
 #[cfg(feature = "azalea-buf")]
 #[cfg(feature = "simdnbt")]
-impl McBufWritable for FormattedText {
-    fn write_into(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
+impl AzaleaWrite for FormattedText {
+    fn azalea_write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
         let mut out = Vec::new();
         simdnbt::owned::BaseNbt::write_unnamed(&(self.clone().to_compound().into()), &mut out);
         buf.write_all(&out)

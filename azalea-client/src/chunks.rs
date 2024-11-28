@@ -10,8 +10,8 @@ use std::{
 
 use azalea_core::position::ChunkPos;
 use azalea_protocol::packets::game::{
-    clientbound_level_chunk_with_light_packet::ClientboundLevelChunkWithLightPacket,
-    serverbound_chunk_batch_received_packet::ServerboundChunkBatchReceivedPacket,
+    c_level_chunk_with_light::ClientboundLevelChunkWithLight,
+    s_chunk_batch_received::ServerboundChunkBatchReceived,
 };
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
@@ -51,7 +51,7 @@ impl Plugin for ChunkPlugin {
 #[derive(Event)]
 pub struct ReceiveChunkEvent {
     pub entity: Entity,
-    pub packet: ClientboundLevelChunkWithLightPacket,
+    pub packet: ClientboundLevelChunkWithLight,
 }
 
 #[derive(Component, Clone, Debug)]
@@ -159,13 +159,12 @@ pub fn handle_chunk_batch_finished_event(
         if let Ok(mut chunk_batch_info) = query.get_mut(event.entity) {
             chunk_batch_info.batch_finished(event.batch_size);
             let desired_chunks_per_tick = chunk_batch_info.desired_chunks_per_tick();
-            send_packets.send(SendPacketEvent {
-                entity: event.entity,
-                packet: ServerboundChunkBatchReceivedPacket {
+            send_packets.send(SendPacketEvent::new(
+                event.entity,
+                ServerboundChunkBatchReceived {
                     desired_chunks_per_tick,
-                }
-                .get(),
-            });
+                },
+            ));
         }
     }
 }

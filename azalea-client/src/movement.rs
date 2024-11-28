@@ -5,12 +5,15 @@ use azalea_core::tick::GameTick;
 use azalea_entity::{metadata::Sprinting, Attributes, Jumping};
 use azalea_entity::{InLoadedChunk, LastSentPosition, LookDirection, Physics, Position};
 use azalea_physics::{ai_step, PhysicsSet};
-use azalea_protocol::packets::game::serverbound_player_command_packet::ServerboundPlayerCommandPacket;
-use azalea_protocol::packets::game::{
-    serverbound_move_player_pos_packet::ServerboundMovePlayerPosPacket,
-    serverbound_move_player_pos_rot_packet::ServerboundMovePlayerPosRotPacket,
-    serverbound_move_player_rot_packet::ServerboundMovePlayerRotPacket,
-    serverbound_move_player_status_only_packet::ServerboundMovePlayerStatusOnlyPacket,
+use azalea_protocol::packets::game::ServerboundPlayerCommand;
+use azalea_protocol::packets::{
+    game::{
+        s_move_player_pos::ServerboundMovePlayerPos,
+        s_move_player_pos_rot::ServerboundMovePlayerPosRot,
+        s_move_player_rot::ServerboundMovePlayerRot,
+        s_move_player_status_only::ServerboundMovePlayerStatusOnly,
+    },
+    Packet,
 };
 use azalea_world::{MinecraftEntityId, MoveEntityError};
 use bevy_app::{App, Plugin, Update};
@@ -188,7 +191,7 @@ pub fn send_position(
             // }
             let packet = if sending_position && sending_direction {
                 Some(
-                    ServerboundMovePlayerPosRotPacket {
+                    ServerboundMovePlayerPosRot {
                         x: position.x,
                         y: position.y,
                         z: position.z,
@@ -196,33 +199,33 @@ pub fn send_position(
                         y_rot: direction.y_rot,
                         on_ground: physics.on_ground,
                     }
-                    .get(),
+                    .into_variant(),
                 )
             } else if sending_position {
                 Some(
-                    ServerboundMovePlayerPosPacket {
+                    ServerboundMovePlayerPos {
                         x: position.x,
                         y: position.y,
                         z: position.z,
                         on_ground: physics.on_ground,
                     }
-                    .get(),
+                    .into_variant(),
                 )
             } else if sending_direction {
                 Some(
-                    ServerboundMovePlayerRotPacket {
+                    ServerboundMovePlayerRot {
                         x_rot: direction.x_rot,
                         y_rot: direction.y_rot,
                         on_ground: physics.on_ground,
                     }
-                    .get(),
+                    .into_variant(),
                 )
             } else if physics.last_on_ground != physics.on_ground {
                 Some(
-                    ServerboundMovePlayerStatusOnlyPacket {
+                    ServerboundMovePlayerStatusOnly {
                         on_ground: physics.on_ground,
                     }
-                    .get(),
+                    .into_variant(),
                 )
             } else {
                 None
@@ -244,7 +247,10 @@ pub fn send_position(
         };
 
         if let Some(packet) = packet {
-            send_packet_events.send(SendPacketEvent { entity, packet });
+            send_packet_events.send(SendPacketEvent {
+                sent_by: entity,
+                packet,
+            });
         }
     }
 }
@@ -257,19 +263,18 @@ fn send_sprinting_if_needed(
         let was_sprinting = physics_state.was_sprinting;
         if **sprinting != was_sprinting {
             let sprinting_action = if **sprinting {
-                azalea_protocol::packets::game::serverbound_player_command_packet::Action::StartSprinting
+                azalea_protocol::packets::game::s_player_command::Action::StartSprinting
             } else {
-                azalea_protocol::packets::game::serverbound_player_command_packet::Action::StopSprinting
+                azalea_protocol::packets::game::s_player_command::Action::StopSprinting
             };
-            send_packet_events.send(SendPacketEvent {
+            send_packet_events.send(SendPacketEvent::new(
                 entity,
-                packet: ServerboundPlayerCommandPacket {
+                ServerboundPlayerCommand {
                     id: **minecraft_entity_id,
                     action: sprinting_action,
                     data: 0,
-                }
-                .get(),
-            });
+                },
+            ));
             physics_state.was_sprinting = **sprinting;
         }
     }

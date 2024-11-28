@@ -4,14 +4,13 @@ edition = "2021"
 license = "MIT"
 name = "azalea-registry"
 repository = "https://github.com/azalea-rs/azalea/tree/main/azalea-registry"
-version = "0.10.3+mc1.21.1"
+version = "0.10.3+mc1.21.4-pre3"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 azalea-buf = { path = "../azalea-buf", version = "0.10.0" }
 azalea-registry-macros = { path = "./azalea-registry-macros", version = "0.10.0" }
-once_cell = { workspace = true }
 serde = { workspace = true, optional = true }
 simdnbt = { workspace = true }
 

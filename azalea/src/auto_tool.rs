@@ -1,7 +1,7 @@
 use azalea_block::{Block, BlockState};
 use azalea_client::{inventory::Inventory, Client};
 use azalea_entity::{FluidOnEyes, Physics};
-use azalea_inventory::{ItemSlot, Menu};
+use azalea_inventory::{ItemStack, Menu};
 use azalea_registry::{DataComponentKind, Fluid};
 
 #[derive(Debug)]
@@ -80,7 +80,7 @@ pub fn accurate_best_tool_in_hotbar_for_block(
     for (i, item_slot) in hotbar_slots.iter().enumerate() {
         let this_item_speed;
         match item_slot {
-            ItemSlot::Empty => {
+            ItemStack::Empty => {
                 this_item_speed = Some(azalea_entity::mining::get_mine_progress(
                     block.as_ref(),
                     azalea_registry::Item::Air,
@@ -89,7 +89,7 @@ pub fn accurate_best_tool_in_hotbar_for_block(
                     physics,
                 ));
             }
-            ItemSlot::Present(item_slot) => {
+            ItemStack::Present(item_slot) => {
                 // lazy way to avoid checking durability since azalea doesn't have durability
                 // data yet
                 if item_slot
@@ -119,7 +119,7 @@ pub fn accurate_best_tool_in_hotbar_for_block(
 
     // now check every item
     for (i, item_slot) in hotbar_slots.iter().enumerate() {
-        if let ItemSlot::Present(item_slot) = item_slot {
+        if let ItemStack::Present(item_slot) = item_slot {
             let this_item_speed = azalea_entity::mining::get_mine_progress(
                 block.as_ref(),
                 item_slot.kind,
