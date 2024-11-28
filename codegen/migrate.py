@@ -34,6 +34,7 @@ lib.code.packet.set_packets(new_packets_report)
 
 lib.code.version.set_protocol_version(
     new_burger_data[0]['version']['protocol'])
+lib.code.version.set_version_name(new_version_id)
 
 print('Updated protocol!')
 

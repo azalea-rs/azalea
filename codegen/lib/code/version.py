@@ -70,12 +70,25 @@ def set_protocol_version(protocol_version: str) -> None:
     with open(get_dir_location('../azalea-protocol/src/packets/mod.rs'), 'r') as f:
         mod_rs = f.read().splitlines()
     for i, line in enumerate(mod_rs):
-        if line.strip().startswith('pub const PROTOCOL_VERSION'):
+        if line.strip().startswith('pub const PROTOCOL_VERSION:'):
             mod_rs[i] = f'pub const PROTOCOL_VERSION: i32 = {protocol_version};'
             break
     else:
         raise Exception(
             'Could not find protocol version in azalea-protocol/src/packets/mod.rs')
+
+    with open(get_dir_location('../azalea-protocol/src/packets/mod.rs'), 'w') as f:
+        f.write('\n'.join(mod_rs))
+def set_version_name(version_name: str) -> None:
+    with open(get_dir_location('../azalea-protocol/src/packets/mod.rs'), 'r') as f:
+        mod_rs = f.read().splitlines()
+    for i, line in enumerate(mod_rs):
+        if line.strip().startswith('pub const VERSION_NAME:'):
+            mod_rs[i] = f'pub const VERSION_NAME: &str = "{version_name}";'
+            break
+    else:
+        raise Exception(
+            'Could not find version name in azalea-protocol/src/packets/mod.rs')
 
     with open(get_dir_location('../azalea-protocol/src/packets/mod.rs'), 'w') as f:
         f.write('\n'.join(mod_rs))

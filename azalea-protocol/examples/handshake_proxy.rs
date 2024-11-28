@@ -16,7 +16,7 @@ use azalea_protocol::{
             c_status_response::{ClientboundStatusResponse, Players, Version},
             ServerboundStatusPacket,
         },
-        ClientIntention, PROTOCOL_VERSION,
+        ClientIntention, PROTOCOL_VERSION, VERSION_NAME,
     },
     read::ReadPacketError,
 };
@@ -37,7 +37,7 @@ const PROXY_DESC: &str = "An Azalea Minecraft Proxy";
 static PROXY_FAVICON: LazyLock<Option<String>> = LazyLock::new(|| None);
 
 static PROXY_VERSION: LazyLock<Version> = LazyLock::new(|| Version {
-    name: "1.19.3".to_string(),
+    name: VERSION_NAME.to_string(),
     protocol: PROTOCOL_VERSION,
 });
 
