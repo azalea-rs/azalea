@@ -1,4 +1,5 @@
 use std::{
+    any::Any,
     collections::HashMap,
     fmt,
     io::{Cursor, Write},
@@ -177,8 +178,50 @@ pub struct DataComponentPatch {
 }
 
 impl DataComponentPatch {
-    pub fn get(&self, kind: DataComponentKind) -> Option<&dyn components::EncodableDataComponent> {
+    /// Returns the value of the component in the generic argument for this
+    /// item.
+    ///
+    /// ```
+    /// # use azalea_inventory::{ItemStackData, DataComponentPatch, components};
+    /// # use azalea_registry::Item;
+    /// # fn example(item: &ItemStackData) -> Option<()> {
+    /// let item_nutrition = item.components.get::<components::Food>()?.nutrition;
+    /// # Some(())
+    /// # }
+    /// ```
+    pub fn get<T: components::DataComponent>(&self) -> Option<&T> {
+        let component = self.components.get(&T::KIND).and_then(|c| c.as_deref())?;
+        let component_any = component as &dyn Any;
+        component_any.downcast_ref::<T>()
+    }
+
+    pub fn get_kind(
+        &self,
+        kind: DataComponentKind,
+    ) -> Option<&dyn components::EncodableDataComponent> {
         self.components.get(&kind).and_then(|c| c.as_deref())
+    }
+
+    /// Returns whether the component in the generic argument is present for
+    /// this item.
+    ///
+    /// ```
+    /// # use azalea_inventory::{ItemStackData, DataComponentPatch, components};
+    /// # use azalea_registry::Item;
+    /// # let item = ItemStackData {
+    /// #     kind: Item::Stone,
+    /// #     count: 1,
+    /// #     components: Default::default(),
+    /// # };
+    /// let is_edible = item.components.has::<components::Food>();
+    /// # assert!(!is_edible);
+    /// ```
+    pub fn has<T: components::DataComponent>(&self) -> bool {
+        self.components.contains_key(&T::KIND)
+    }
+
+    pub fn has_kind(&self, kind: DataComponentKind) -> bool {
+        self.components.contains_key(&kind)
     }
 }
 

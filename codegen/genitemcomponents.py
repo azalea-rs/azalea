@@ -109,12 +109,12 @@ def remove_variant(variant: str):
 
     # now remove the struct
     line_before_struct = None # this is the #[derive] line
-    line_after_struct = None # impl DataComponent for ... {}
+    line_after_struct = None # impl DataComponent for ... {\n...\n}
     for i, line in enumerate(list(code)):
         if line == f'pub struct {variant} {{' or line == f'pub struct {variant};':
             line_before_struct = i - 1
-        elif line == f'impl DataComponent for {variant} {{}}':
-            line_after_struct = i + 1
+        elif line == f'impl DataComponent for {variant} {{':
+            line_after_struct = i + 3
             break
     if line_before_struct is None:
         raise ValueError(f'Couldn\'t find struct {variant}')
@@ -153,7 +153,9 @@ def add_variant(variant: str):
     code.append(f'pub struct {variant} {{')
     code.append('   pub todo: todo!(), // see DataComponents.java')
     code.append('}')
-    code.append(f'impl DataComponent for {variant} {{}}')
+    code.append(f'impl DataComponent for {variant} {{')
+    code.append(f'    const KIND: DataComponentKind = DataComponentKind::{variant};')
+    code.append('}')
 
     with open(ITEM_COMPONENTS_DIR, 'w') as f:
         f.write('\n'.join(code))

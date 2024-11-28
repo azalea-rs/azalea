@@ -13,7 +13,9 @@ use uuid::Uuid;
 
 use crate::ItemStack;
 
-pub trait DataComponent: Send + Sync + Any {}
+pub trait DataComponent: Send + Sync + Any {
+    const KIND: DataComponentKind;
+}
 
 pub trait EncodableDataComponent: Send + Sync + Any {
     fn encode(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error>;
@@ -138,21 +140,27 @@ pub fn from_kind(
 pub struct CustomData {
     pub nbt: Nbt,
 }
-impl DataComponent for CustomData {}
+impl DataComponent for CustomData {
+    const KIND: DataComponentKind = DataComponentKind::CustomData;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct MaxStackSize {
     #[var]
     pub count: i32,
 }
-impl DataComponent for MaxStackSize {}
+impl DataComponent for MaxStackSize {
+    const KIND: DataComponentKind = DataComponentKind::MaxStackSize;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct MaxDamage {
     #[var]
     pub amount: i32,
 }
-impl DataComponent for MaxDamage {}
+impl DataComponent for MaxDamage {
+    const KIND: DataComponentKind = DataComponentKind::MaxDamage;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct Damage {
@@ -160,13 +168,17 @@ pub struct Damage {
     pub amount: i32,
 }
 
-impl DataComponent for Damage {}
+impl DataComponent for Damage {
+    const KIND: DataComponentKind = DataComponentKind::Damage;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct Unbreakable {
     pub show_in_tooltip: bool,
 }
-impl DataComponent for Unbreakable {}
+impl DataComponent for Unbreakable {
+    const KIND: DataComponentKind = DataComponentKind::Unbreakable;
+}
 impl Default for Unbreakable {
     fn default() -> Self {
         Self {
@@ -179,20 +191,26 @@ impl Default for Unbreakable {
 pub struct CustomName {
     pub name: FormattedText,
 }
-impl DataComponent for CustomName {}
+impl DataComponent for CustomName {
+    const KIND: DataComponentKind = DataComponentKind::CustomName;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct ItemName {
     pub name: FormattedText,
 }
-impl DataComponent for ItemName {}
+impl DataComponent for ItemName {
+    const KIND: DataComponentKind = DataComponentKind::ItemName;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct Lore {
     pub lines: Vec<FormattedText>,
     // vanilla also has styled_lines here but it doesn't appear to be used for the protocol
 }
-impl DataComponent for Lore {}
+impl DataComponent for Lore {
+    const KIND: DataComponentKind = DataComponentKind::Lore;
+}
 
 #[derive(Clone, PartialEq, Copy, AzBuf)]
 pub enum Rarity {
@@ -201,7 +219,9 @@ pub enum Rarity {
     Rare,
     Epic,
 }
-impl DataComponent for Rarity {}
+impl DataComponent for Rarity {
+    const KIND: DataComponentKind = DataComponentKind::Rarity;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct Enchantments {
@@ -209,7 +229,9 @@ pub struct Enchantments {
     pub levels: HashMap<Enchantment, u32>,
     pub show_in_tooltip: bool,
 }
-impl DataComponent for Enchantments {}
+impl DataComponent for Enchantments {
+    const KIND: DataComponentKind = DataComponentKind::Enchantments;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub enum BlockStateValueMatcher {
@@ -245,13 +267,17 @@ pub struct AdventureModePredicate {
 pub struct CanPlaceOn {
     pub predicate: AdventureModePredicate,
 }
-impl DataComponent for CanPlaceOn {}
+impl DataComponent for CanPlaceOn {
+    const KIND: DataComponentKind = DataComponentKind::CanPlaceOn;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct CanBreak {
     pub predicate: AdventureModePredicate,
 }
-impl DataComponent for CanBreak {}
+impl DataComponent for CanBreak {
+    const KIND: DataComponentKind = DataComponentKind::CanBreak;
+}
 
 #[derive(Clone, Copy, PartialEq, AzBuf)]
 pub enum EquipmentSlotGroup {
@@ -297,43 +323,59 @@ pub struct AttributeModifiers {
     pub modifiers: Vec<AttributeModifiersEntry>,
     pub show_in_tooltip: bool,
 }
-impl DataComponent for AttributeModifiers {}
+impl DataComponent for AttributeModifiers {
+    const KIND: DataComponentKind = DataComponentKind::AttributeModifiers;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct CustomModelData {
     #[var]
     pub value: i32,
 }
-impl DataComponent for CustomModelData {}
+impl DataComponent for CustomModelData {
+    const KIND: DataComponentKind = DataComponentKind::CustomModelData;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct HideAdditionalTooltip;
-impl DataComponent for HideAdditionalTooltip {}
+impl DataComponent for HideAdditionalTooltip {
+    const KIND: DataComponentKind = DataComponentKind::HideAdditionalTooltip;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct HideTooltip;
-impl DataComponent for HideTooltip {}
+impl DataComponent for HideTooltip {
+    const KIND: DataComponentKind = DataComponentKind::HideTooltip;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct RepairCost {
     #[var]
     pub cost: u32,
 }
-impl DataComponent for RepairCost {}
+impl DataComponent for RepairCost {
+    const KIND: DataComponentKind = DataComponentKind::RepairCost;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct CreativeSlotLock;
-impl DataComponent for CreativeSlotLock {}
+impl DataComponent for CreativeSlotLock {
+    const KIND: DataComponentKind = DataComponentKind::CreativeSlotLock;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct EnchantmentGlintOverride {
     pub show_glint: bool,
 }
-impl DataComponent for EnchantmentGlintOverride {}
+impl DataComponent for EnchantmentGlintOverride {
+    const KIND: DataComponentKind = DataComponentKind::EnchantmentGlintOverride;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct IntangibleProjectile;
-impl DataComponent for IntangibleProjectile {}
+impl DataComponent for IntangibleProjectile {
+    const KIND: DataComponentKind = DataComponentKind::IntangibleProjectile;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct MobEffectDetails {
@@ -368,7 +410,9 @@ pub struct Food {
     pub eat_seconds: f32,
     pub effects: Vec<PossibleEffect>,
 }
-impl DataComponent for Food {}
+impl DataComponent for Food {
+    const KIND: DataComponentKind = DataComponentKind::Food;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct ToolRule {
@@ -384,7 +428,9 @@ pub struct Tool {
     #[var]
     pub damage_per_block: i32,
 }
-impl DataComponent for Tool {}
+impl DataComponent for Tool {
+    const KIND: DataComponentKind = DataComponentKind::Tool;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct StoredEnchantments {
@@ -392,52 +438,68 @@ pub struct StoredEnchantments {
     pub enchantments: HashMap<Enchantment, i32>,
     pub show_in_tooltip: bool,
 }
-impl DataComponent for StoredEnchantments {}
+impl DataComponent for StoredEnchantments {
+    const KIND: DataComponentKind = DataComponentKind::StoredEnchantments;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct DyedColor {
     pub rgb: i32,
     pub show_in_tooltip: bool,
 }
-impl DataComponent for DyedColor {}
+impl DataComponent for DyedColor {
+    const KIND: DataComponentKind = DataComponentKind::DyedColor;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct MapColor {
     pub color: i32,
 }
-impl DataComponent for MapColor {}
+impl DataComponent for MapColor {
+    const KIND: DataComponentKind = DataComponentKind::MapColor;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct MapId {
     #[var]
     pub id: i32,
 }
-impl DataComponent for MapId {}
+impl DataComponent for MapId {
+    const KIND: DataComponentKind = DataComponentKind::MapId;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct MapDecorations {
     pub decorations: NbtCompound,
 }
-impl DataComponent for MapDecorations {}
+impl DataComponent for MapDecorations {
+    const KIND: DataComponentKind = DataComponentKind::MapDecorations;
+}
 
 #[derive(Clone, Copy, PartialEq, AzBuf)]
 pub enum MapPostProcessing {
     Lock,
     Scale,
 }
-impl DataComponent for MapPostProcessing {}
+impl DataComponent for MapPostProcessing {
+    const KIND: DataComponentKind = DataComponentKind::MapPostProcessing;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct ChargedProjectiles {
     pub items: Vec<ItemStack>,
 }
-impl DataComponent for ChargedProjectiles {}
+impl DataComponent for ChargedProjectiles {
+    const KIND: DataComponentKind = DataComponentKind::ChargedProjectiles;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct BundleContents {
     pub items: Vec<ItemStack>,
 }
-impl DataComponent for BundleContents {}
+impl DataComponent for BundleContents {
+    const KIND: DataComponentKind = DataComponentKind::BundleContents;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct PotionContents {
@@ -445,7 +507,9 @@ pub struct PotionContents {
     pub custom_color: Option<i32>,
     pub custom_effects: Vec<MobEffectInstance>,
 }
-impl DataComponent for PotionContents {}
+impl DataComponent for PotionContents {
+    const KIND: DataComponentKind = DataComponentKind::PotionContents;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct SuspiciousStewEffect {
@@ -458,13 +522,17 @@ pub struct SuspiciousStewEffect {
 pub struct SuspiciousStewEffects {
     pub effects: Vec<SuspiciousStewEffect>,
 }
-impl DataComponent for SuspiciousStewEffects {}
+impl DataComponent for SuspiciousStewEffects {
+    const KIND: DataComponentKind = DataComponentKind::SuspiciousStewEffects;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct WritableBookContent {
     pub pages: Vec<String>,
 }
-impl DataComponent for WritableBookContent {}
+impl DataComponent for WritableBookContent {
+    const KIND: DataComponentKind = DataComponentKind::WritableBookContent;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct WrittenBookContent {
@@ -475,7 +543,9 @@ pub struct WrittenBookContent {
     pub pages: Vec<FormattedText>,
     pub resolved: bool,
 }
-impl DataComponent for WrittenBookContent {}
+impl DataComponent for WrittenBookContent {
+    const KIND: DataComponentKind = DataComponentKind::WrittenBookContent;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct Trim {
@@ -483,57 +553,75 @@ pub struct Trim {
     pub pattern: TrimPattern,
     pub show_in_tooltip: bool,
 }
-impl DataComponent for Trim {}
+impl DataComponent for Trim {
+    const KIND: DataComponentKind = DataComponentKind::Trim;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct DebugStickState {
     pub properties: NbtCompound,
 }
-impl DataComponent for DebugStickState {}
+impl DataComponent for DebugStickState {
+    const KIND: DataComponentKind = DataComponentKind::DebugStickState;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct EntityData {
     pub entity: NbtCompound,
 }
-impl DataComponent for EntityData {}
+impl DataComponent for EntityData {
+    const KIND: DataComponentKind = DataComponentKind::EntityData;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct BucketEntityData {
     pub entity: NbtCompound,
 }
-impl DataComponent for BucketEntityData {}
+impl DataComponent for BucketEntityData {
+    const KIND: DataComponentKind = DataComponentKind::BucketEntityData;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct BlockEntityData {
     pub entity: NbtCompound,
 }
-impl DataComponent for BlockEntityData {}
+impl DataComponent for BlockEntityData {
+    const KIND: DataComponentKind = DataComponentKind::BlockEntityData;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct Instrument {
     pub instrument: azalea_registry::Instrument,
 }
-impl DataComponent for Instrument {}
+impl DataComponent for Instrument {
+    const KIND: DataComponentKind = DataComponentKind::Instrument;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct OminousBottleAmplifier {
     #[var]
     pub amplifier: i32,
 }
-impl DataComponent for OminousBottleAmplifier {}
+impl DataComponent for OminousBottleAmplifier {
+    const KIND: DataComponentKind = DataComponentKind::OminousBottleAmplifier;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct Recipes {
     pub recipes: Vec<ResourceLocation>,
 }
-impl DataComponent for Recipes {}
+impl DataComponent for Recipes {
+    const KIND: DataComponentKind = DataComponentKind::Recipes;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct LodestoneTracker {
     pub target: Option<GlobalPos>,
     pub tracked: bool,
 }
-impl DataComponent for LodestoneTracker {}
+impl DataComponent for LodestoneTracker {
+    const KIND: DataComponentKind = DataComponentKind::LodestoneTracker;
+}
 
 #[derive(Clone, Copy, PartialEq, AzBuf)]
 pub enum FireworkExplosionShape {
@@ -552,7 +640,9 @@ pub struct FireworkExplosion {
     pub has_trail: bool,
     pub has_twinkle: bool,
 }
-impl DataComponent for FireworkExplosion {}
+impl DataComponent for FireworkExplosion {
+    const KIND: DataComponentKind = DataComponentKind::FireworkExplosion;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct Fireworks {
@@ -560,7 +650,9 @@ pub struct Fireworks {
     pub flight_duration: i32,
     pub explosions: Vec<FireworkExplosion>,
 }
-impl DataComponent for Fireworks {}
+impl DataComponent for Fireworks {
+    const KIND: DataComponentKind = DataComponentKind::Fireworks;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct GameProfileProperty {
@@ -575,13 +667,17 @@ pub struct Profile {
     pub id: Option<Uuid>,
     pub properties: Vec<GameProfileProperty>,
 }
-impl DataComponent for Profile {}
+impl DataComponent for Profile {
+    const KIND: DataComponentKind = DataComponentKind::Profile;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct NoteBlockSound {
     pub sound: ResourceLocation,
 }
-impl DataComponent for NoteBlockSound {}
+impl DataComponent for NoteBlockSound {
+    const KIND: DataComponentKind = DataComponentKind::NoteBlockSound;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct BannerPattern {
@@ -595,7 +691,9 @@ pub struct BannerPattern {
 pub struct BannerPatterns {
     pub patterns: Vec<BannerPattern>,
 }
-impl DataComponent for BannerPatterns {}
+impl DataComponent for BannerPatterns {
+    const KIND: DataComponentKind = DataComponentKind::BannerPatterns;
+}
 
 #[derive(Clone, Copy, PartialEq, AzBuf)]
 pub enum DyeColor {
@@ -621,25 +719,33 @@ pub enum DyeColor {
 pub struct BaseColor {
     pub color: DyeColor,
 }
-impl DataComponent for BaseColor {}
+impl DataComponent for BaseColor {
+    const KIND: DataComponentKind = DataComponentKind::BaseColor;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct PotDecorations {
     pub items: Vec<Item>,
 }
-impl DataComponent for PotDecorations {}
+impl DataComponent for PotDecorations {
+    const KIND: DataComponentKind = DataComponentKind::PotDecorations;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct Container {
     pub items: Vec<ItemStack>,
 }
-impl DataComponent for Container {}
+impl DataComponent for Container {
+    const KIND: DataComponentKind = DataComponentKind::Container;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct BlockState {
     pub properties: HashMap<String, String>,
 }
-impl DataComponent for BlockState {}
+impl DataComponent for BlockState {
+    const KIND: DataComponentKind = DataComponentKind::BlockState;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct BeehiveOccupant {
@@ -654,26 +760,34 @@ pub struct BeehiveOccupant {
 pub struct Bees {
     pub occupants: Vec<BeehiveOccupant>,
 }
-impl DataComponent for Bees {}
+impl DataComponent for Bees {
+    const KIND: DataComponentKind = DataComponentKind::Bees;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct Lock {
     pub key: String,
 }
-impl DataComponent for Lock {}
+impl DataComponent for Lock {
+    const KIND: DataComponentKind = DataComponentKind::Lock;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct ContainerLoot {
     pub loot: NbtCompound,
 }
-impl DataComponent for ContainerLoot {}
+impl DataComponent for ContainerLoot {
+    const KIND: DataComponentKind = DataComponentKind::ContainerLoot;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct JukeboxPlayable {
     pub song: azalea_registry::JukeboxSong,
     pub show_in_tooltip: bool,
 }
-impl DataComponent for JukeboxPlayable {}
+impl DataComponent for JukeboxPlayable {
+    const KIND: DataComponentKind = DataComponentKind::JukeboxPlayable;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct Consumable {
@@ -683,7 +797,9 @@ pub struct Consumable {
     pub has_consume_particles: bool,
     pub on_consuime_effects: Vec<ConsumeEffectKind>,
 }
-impl DataComponent for Consumable {}
+impl DataComponent for Consumable {
+    const KIND: DataComponentKind = DataComponentKind::Consumable;
+}
 
 #[derive(Clone, Copy, PartialEq, AzBuf)]
 pub enum ItemUseAnimation {
@@ -703,33 +819,43 @@ pub enum ItemUseAnimation {
 pub struct UseRemainder {
     pub convert_into: ItemStack,
 }
-impl DataComponent for UseRemainder {}
+impl DataComponent for UseRemainder {
+    const KIND: DataComponentKind = DataComponentKind::UseRemainder;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct UseCooldown {
     pub seconds: f32,
     pub cooldown_group: Option<ResourceLocation>,
 }
-impl DataComponent for UseCooldown {}
+impl DataComponent for UseCooldown {
+    const KIND: DataComponentKind = DataComponentKind::UseCooldown;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct Enchantable {
     #[var]
     pub value: u32,
 }
-impl DataComponent for Enchantable {}
+impl DataComponent for Enchantable {
+    const KIND: DataComponentKind = DataComponentKind::Enchantable;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct Repairable {
     pub items: HolderSet<Item, ResourceLocation>,
 }
-impl DataComponent for Repairable {}
+impl DataComponent for Repairable {
+    const KIND: DataComponentKind = DataComponentKind::Repairable;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct ItemModel {
     pub resource_location: ResourceLocation,
 }
-impl DataComponent for ItemModel {}
+impl DataComponent for ItemModel {
+    const KIND: DataComponentKind = DataComponentKind::ItemModel;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct DamageResistant {
@@ -743,7 +869,9 @@ pub struct DamageResistant {
     // resourcelocation for now
     pub types: ResourceLocation,
 }
-impl DataComponent for DamageResistant {}
+impl DataComponent for DamageResistant {
+    const KIND: DataComponentKind = DataComponentKind::DamageResistant;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct Equippable {
@@ -752,7 +880,9 @@ pub struct Equippable {
     pub model: Option<ResourceLocation>,
     pub allowed_entities: HolderSet<EntityKind, ResourceLocation>,
 }
-impl DataComponent for Equippable {}
+impl DataComponent for Equippable {
+    const KIND: DataComponentKind = DataComponentKind::Equippable;
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, AzBuf)]
 pub enum EquipmentSlot {
@@ -769,16 +899,22 @@ pub enum EquipmentSlot {
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct Glider;
-impl DataComponent for Glider {}
+impl DataComponent for Glider {
+    const KIND: DataComponentKind = DataComponentKind::Glider;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct TooltipStyle {
     pub resource_location: ResourceLocation,
 }
-impl DataComponent for TooltipStyle {}
+impl DataComponent for TooltipStyle {
+    const KIND: DataComponentKind = DataComponentKind::TooltipStyle;
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct DeathProtection {
     pub death_effects: Vec<ConsumeEffectKind>,
 }
-impl DataComponent for DeathProtection {}
+impl DataComponent for DeathProtection {
+    const KIND: DataComponentKind = DataComponentKind::DeathProtection;
+}
