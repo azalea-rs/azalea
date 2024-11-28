@@ -200,7 +200,7 @@ impl Goal for ReachBlockPosGoal {
         let max_pick_range = 6;
         let actual_pick_range = 4.5;
 
-        let distance = (self.pos - n).length_sqr();
+        let distance = (self.pos - n).length_squared();
         if distance > max_pick_range * max_pick_range {
             return false;
         }

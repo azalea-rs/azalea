@@ -97,3 +97,37 @@ enum JukeboxSong {
     CreatorMusicBox => "creator_music_box",
 }
 }
+
+registry! {
+enum ChatType {
+    Chat => "chat",
+    SayCommand => "say_command",
+    MsgCommandIncoming => "msg_command_incoming",
+    MsgCommandOutgoing => "msg_command_outgoing",
+    TeamMsgCommandIncoming => "team_msg_command_incoming",
+    TeamMsgCommandOutgoing => "team_msg_command_outgoing",
+    EmoteCommand => "emote_command",
+}
+}
+impl ChatType {
+    #[must_use]
+    pub fn chat_translation_key(self) -> &'static str {
+        match self {
+            ChatType::Chat => "chat.type.text",
+            ChatType::SayCommand => "chat.type.announcement",
+            ChatType::MsgCommandIncoming => "commands.message.display.incoming",
+            ChatType::MsgCommandOutgoing => "commands.message.display.outgoing",
+            ChatType::TeamMsgCommandIncoming => "chat.type.team.text",
+            ChatType::TeamMsgCommandOutgoing => "chat.type.team.sent",
+            ChatType::EmoteCommand => "chat.type.emote",
+        }
+    }
+
+    #[must_use]
+    pub fn narrator_translation_key(self) -> &'static str {
+        match self {
+            ChatType::EmoteCommand => "chat.type.emote",
+            _ => "chat.type.text.narrate",
+        }
+    }
+}

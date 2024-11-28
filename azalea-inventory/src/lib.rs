@@ -9,17 +9,17 @@ mod slot;
 use std::ops::{Deref, DerefMut, RangeInclusive};
 
 use azalea_inventory_macros::declare_menus;
-pub use slot::{DataComponentPatch, ItemSlot, ItemSlotData};
+pub use slot::{DataComponentPatch, ItemStack, ItemStackData};
 
 // TODO: remove this here and in azalea-inventory-macros when rust makes
 // Default be implemented for all array sizes
 // https://github.com/rust-lang/rust/issues/61415
 
-/// A fixed-size list of [`ItemSlot`]s.
+/// A fixed-size list of [`ItemStack`]s.
 #[derive(Debug, Clone)]
-pub struct SlotList<const N: usize>([ItemSlot; N]);
+pub struct SlotList<const N: usize>([ItemStack; N]);
 impl<const N: usize> Deref for SlotList<N> {
-    type Target = [ItemSlot; N];
+    type Target = [ItemStack; N];
     fn deref(&self) -> &Self::Target {
         &self.0
     }
@@ -31,7 +31,7 @@ impl<const N: usize> DerefMut for SlotList<N> {
 }
 impl<const N: usize> Default for SlotList<N> {
     fn default() -> Self {
-        SlotList([(); N].map(|_| ItemSlot::Empty))
+        SlotList([(); N].map(|_| ItemStack::Empty))
     }
 }
 

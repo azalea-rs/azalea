@@ -1,11 +1,9 @@
 use azalea_block::{Block, BlockState, FluidState};
 use azalea_core::{direction::Direction, game_type::GameMode, position::BlockPos, tick::GameTick};
 use azalea_entity::{mining::get_mine_progress, FluidOnEyes, Physics};
-use azalea_inventory::ItemSlot;
+use azalea_inventory::ItemStack;
 use azalea_physics::PhysicsSet;
-use azalea_protocol::packets::game::serverbound_player_action_packet::{
-    self, ServerboundPlayerActionPacket,
-};
+use azalea_protocol::packets::game::s_player_action::{self, ServerboundPlayerAction};
 use azalea_world::{InstanceContainer, InstanceName};
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
@@ -253,17 +251,16 @@ fn handle_start_mining_block_with_direction_event(
         {
             if mining.is_some() {
                 // send a packet to stop mining since we just changed target
-                send_packet_events.send(SendPacketEvent {
-                    entity: event.entity,
-                    packet: ServerboundPlayerActionPacket {
-                        action: serverbound_player_action_packet::Action::AbortDestroyBlock,
+                send_packet_events.send(SendPacketEvent::new(
+                    event.entity,
+                    ServerboundPlayerAction {
+                        action: s_player_action::Action::AbortDestroyBlock,
                         pos: current_mining_pos
                             .expect("IsMining is true so MineBlockPos must be present"),
                         direction: event.direction,
                         sequence: 0,
-                    }
-                    .get(),
-                });
+                    },
+                ));
             }
 
             let target_block_state = instance
@@ -326,16 +323,15 @@ fn handle_start_mining_block_with_direction_event(
                 });
             }
 
-            send_packet_events.send(SendPacketEvent {
-                entity: event.entity,
-                packet: ServerboundPlayerActionPacket {
-                    action: serverbound_player_action_packet::Action::StartDestroyBlock,
+            send_packet_events.send(SendPacketEvent::new(
+                event.entity,
+                ServerboundPlayerAction {
+                    action: s_player_action::Action::StartDestroyBlock,
                     pos: event.position,
                     direction: event.direction,
                     sequence: **sequence_number,
-                }
-                .get(),
-            });
+                },
+            ));
         }
     }
 }
@@ -407,9 +403,9 @@ pub struct MineTicks(pub f32);
 pub struct MineBlockPos(pub Option<BlockPos>);
 
 /// A component that contains the item we're currently using to mine. If we're
-/// not mining anything, it'll be [`ItemSlot::Empty`].
+/// not mining anything, it'll be [`ItemStack::Empty`].
 #[derive(Component, Clone, Debug, Default, Deref, DerefMut)]
-pub struct MineItem(pub ItemSlot);
+pub struct MineItem(pub ItemStack);
 
 /// Sent when we completed mining a block.
 #[derive(Event)]
@@ -496,16 +492,15 @@ pub fn handle_stop_mining_block_event(
 
         let mine_block_pos =
             mine_block_pos.expect("IsMining is true so MineBlockPos must be present");
-        send_packet_events.send(SendPacketEvent {
-            entity: event.entity,
-            packet: ServerboundPlayerActionPacket {
-                action: serverbound_player_action_packet::Action::AbortDestroyBlock,
+        send_packet_events.send(SendPacketEvent::new(
+            event.entity,
+            ServerboundPlayerAction {
+                action: s_player_action::Action::AbortDestroyBlock,
                 pos: mine_block_pos,
                 direction: Direction::Down,
                 sequence: 0,
-            }
-            .get(),
-        });
+            },
+        ));
         commands.entity(event.entity).remove::<Mining>();
         **mine_progress = 0.;
         mine_block_progress_events.send(MineBlockProgressEvent {
@@ -570,16 +565,15 @@ pub fn continue_mining_block(
                 position: mining.pos,
             });
             *sequence_number += 1;
-            send_packet_events.send(SendPacketEvent {
+            send_packet_events.send(SendPacketEvent::new(
                 entity,
-                packet: ServerboundPlayerActionPacket {
-                    action: serverbound_player_action_packet::Action::StartDestroyBlock,
+                ServerboundPlayerAction {
+                    action: s_player_action::Action::StartDestroyBlock,
                     pos: mining.pos,
                     direction: mining.dir,
                     sequence: **sequence_number,
-                }
-                .get(),
-            });
+                },
+            ));
             swing_arm_events.send(SwingArmEvent { entity });
         } else if is_same_mining_target(
             mining.pos,
@@ -616,16 +610,15 @@ pub fn continue_mining_block(
                     entity,
                     position: mining.pos,
                 });
-                send_packet_events.send(SendPacketEvent {
+                send_packet_events.send(SendPacketEvent::new(
                     entity,
-                    packet: ServerboundPlayerActionPacket {
-                        action: serverbound_player_action_packet::Action::StopDestroyBlock,
+                    ServerboundPlayerAction {
+                        action: s_player_action::Action::StopDestroyBlock,
                         pos: mining.pos,
                         direction: mining.dir,
                         sequence: **sequence_number,
-                    }
-                    .get(),
-                });
+                    },
+                ));
                 **mine_progress = 0.;
                 **mine_ticks = 0.;
                 **mine_delay = 0;

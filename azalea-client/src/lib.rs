@@ -30,7 +30,7 @@ pub mod respawn;
 pub mod task_pool;
 
 pub use account::{Account, AccountOpts};
-pub use azalea_protocol::packets::configuration::serverbound_client_information_packet::ClientInformation;
+pub use azalea_protocol::common::client_information::ClientInformation;
 pub use client::{
     start_ecs_runner, Client, DefaultPlugins, JoinError, JoinedClientBundle, StartClientOpts,
     TickBroadcast,

@@ -2,9 +2,9 @@ pub trait MaxStackSizeExt {
     /// Get the maximum stack size for this item.
     ///
     /// This is a signed integer to be consistent with the `count` field of
-    /// [`ItemSlotData`].
+    /// [`ItemStackData`].
     ///
-    /// [`ItemSlotData`]: crate::ItemSlotData
+    /// [`ItemStackData`]: crate::ItemStackData
     fn max_stack_size(&self) -> i32;
 
     /// Whether this item can be stacked with other items.

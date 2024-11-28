@@ -1,10 +1,10 @@
 [package]
-description = "#[derive(McBuf)]"
+description = "#[derive(AzBuf)]"
 edition = "2021"
 license = "MIT"
 name = "azalea-buf-macros"
 repository = "https://github.com/azalea-rs/azalea/tree/main/azalea-buf"
-version = "0.10.3+mc1.21.1"
+version = "0.10.3+mc1.21.3"
 
 [lib]
 proc-macro = true

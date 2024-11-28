@@ -2,7 +2,7 @@
 
 use std::collections::{hash_map, HashMap};
 
-use azalea_buf::McBuf;
+use azalea_buf::AzBuf;
 use azalea_core::resource_location::ResourceLocation;
 use bevy_ecs::component::Component;
 use thiserror::Error;
@@ -71,14 +71,14 @@ impl AttributeInstance {
     }
 }
 
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, AzBuf)]
 pub struct AttributeModifier {
     pub id: ResourceLocation,
     pub amount: f64,
     pub operation: AttributeModifierOperation,
 }
 
-#[derive(Clone, Debug, Copy, McBuf)]
+#[derive(Clone, Debug, Copy, AzBuf)]
 pub enum AttributeModifierOperation {
     Addition,
     MultiplyBase,

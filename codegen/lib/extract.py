@@ -1,7 +1,7 @@
 # Extracting data from the Minecraft jars
 
 from typing import TYPE_CHECKING
-from lib.download import get_mappings_for_version, get_server_jar, get_burger, get_client_jar, get_pixlyzer, get_yarn_data, get_fabric_api_versions, get_fabric_loader_versions
+from lib.download import get_server_jar, get_burger, get_client_jar, get_pixlyzer, get_yarn_data, get_fabric_api_versions, get_fabric_loader_versions
 from lib.utils import get_dir_location, to_camel_case, upper_first_letter
 from zipfile import ZipFile
 import subprocess
@@ -23,16 +23,15 @@ def generate_data_from_server_jar(version_id: str):
 
 
 def get_block_states_report(version_id: str):
-    generate_data_from_server_jar(version_id)
-    with open(get_dir_location(f'__cache__/generated-{version_id}/reports/blocks.json'), 'r') as f:
-        return json.load(f)
-
-
+    return get_report(version_id, 'blocks')
 def get_registries_report(version_id: str):
+    return get_report(version_id, 'registries')
+def get_packets_report(version_id: str):
+    return get_report(version_id, 'packets')
+def get_report(version_id: str, name: str):
     generate_data_from_server_jar(version_id)
-    with open(get_dir_location(f'__cache__/generated-{version_id}/reports/registries.json'), 'r') as f:
+    with open(get_dir_location(f'__cache__/generated-{version_id}/reports/{name}.json'), 'r') as f:
         return json.load(f)
-
 
 def get_registry_tags(version_id: str, name: str):
     generate_data_from_server_jar(version_id)
@@ -49,17 +48,6 @@ def get_registry_tags(version_id: str, name: str):
             with open(file, 'r') as f:
                 tags[relative_path[:-5]] = json.load(f)
     return tags
-
-
-def get_block_states_burger(version_id: str):
-    burger_data = get_burger_data_for_version(version_id)
-    return burger_data[0]['blocks']['block']
-
-
-def get_ordered_blocks_burger(version_id: str):
-    burger_data = get_burger_data_for_version(version_id)
-    return burger_data[0]['blocks']['ordered_blocks']
-
 
 python_command = None
 

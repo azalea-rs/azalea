@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use azalea::{prelude::*, BlockPos};
 use azalea_inventory::operations::QuickMoveClick;
-use azalea_inventory::ItemSlot;
+use azalea_inventory::ItemStack;
 use parking_lot::Mutex;
 
 #[tokio::main]
@@ -59,7 +59,7 @@ async fn handle(mut bot: Client, event: Event, state: State) -> anyhow::Result<(
             .enumerate()
         {
             println!("Checking slot {index}: {slot:?}");
-            if let ItemSlot::Present(item) = slot {
+            if let ItemStack::Present(item) = slot {
                 if item.kind == azalea::registry::Item::Diamond {
                     println!("clicking slot ^");
                     chest.click(QuickMoveClick::Left { slot: index as u16 });

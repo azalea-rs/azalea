@@ -2,7 +2,7 @@ use std::io::{Cursor, Write};
 
 use uuid::Uuid;
 
-use crate::{read::BufReadError, McBufReadable, McBufWritable};
+use crate::{read::BufReadError, AzaleaRead, AzaleaWrite};
 
 pub trait SerializableUuid {
     fn to_int_array(&self) -> [u32; 4];
@@ -34,24 +34,24 @@ impl SerializableUuid for Uuid {
     }
 }
 
-impl McBufReadable for Uuid {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+impl AzaleaRead for Uuid {
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(Uuid::from_int_array([
-            u32::read_from(buf)?,
-            u32::read_from(buf)?,
-            u32::read_from(buf)?,
-            u32::read_from(buf)?,
+            u32::azalea_read(buf)?,
+            u32::azalea_read(buf)?,
+            u32::azalea_read(buf)?,
+            u32::azalea_read(buf)?,
         ]))
     }
 }
 
-impl McBufWritable for Uuid {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+impl AzaleaWrite for Uuid {
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         let [a, b, c, d] = self.to_int_array();
-        a.write_into(buf)?;
-        b.write_into(buf)?;
-        c.write_into(buf)?;
-        d.write_into(buf)?;
+        a.azalea_write(buf)?;
+        b.azalea_write(buf)?;
+        c.azalea_write(buf)?;
+        d.azalea_write(buf)?;
         Ok(())
     }
 }
@@ -79,10 +79,10 @@ mod tests {
     fn read_write() {
         let u = Uuid::parse_str("6536bfed-8695-48fd-83a1-ecd24cf2a0fd").unwrap();
         let mut buf = Vec::new();
-        u.write_into(&mut buf).unwrap();
+        u.azalea_write(&mut buf).unwrap();
         println!("{buf:?}");
         assert_eq!(buf.len(), 16);
-        let u2 = Uuid::read_from(&mut Cursor::new(&buf)).unwrap();
+        let u2 = Uuid::azalea_read(&mut Cursor::new(&buf)).unwrap();
         assert_eq!(u, u2);
     }
 }

@@ -11,7 +11,7 @@ use std::{
     io::{Cursor, Write},
 };
 
-use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
+use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
 pub use behavior::BlockBehavior;
 pub use generated::{blocks, properties};
 pub use range::BlockStates;
@@ -80,17 +80,17 @@ impl TryFrom<u32> for BlockState {
     }
 }
 
-impl McBufReadable for BlockState {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let state_id = u32::var_read_from(buf)?;
+impl AzaleaRead for BlockState {
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let state_id = u32::azalea_read_var(buf)?;
         Self::try_from(state_id).map_err(|_| BufReadError::UnexpectedEnumVariant {
             id: state_id as i32,
         })
     }
 }
-impl McBufWritable for BlockState {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        u32::var_write_into(&self.id, buf)
+impl AzaleaWrite for BlockState {
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        u32::azalea_write_var(&self.id, buf)
     }
 }
 

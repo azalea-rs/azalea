@@ -5,18 +5,20 @@ import lib.download
 import lib.extract
 import sys
 
-version_id = lib.code.version.get_version_id()
+def generate():
+    version_id = lib.code.version.get_version_id()
 
-mappings = lib.download.get_mappings_for_version(version_id)
-burger_data = lib.extract.get_burger_data_for_version(version_id)
+    packets_report = lib.extract.get_packets_report(version_id)
 
-burger_packets_data = burger_data[0]['packets']['packet']
-packet_id, direction, state = int(sys.argv[1], 0), sys.argv[2], sys.argv[3]
-print(
-    f'Generating code for packet id: {packet_id} with direction {direction} and state {state}')
-lib.code.packet.generate_packet(burger_packets_data, mappings,
-                                packet_id, direction, state)
+    packet_id, direction, state = sys.argv[1], sys.argv[2], sys.argv[3]
+    print(
+        f'Generating code for packet id: {packet_id} with direction {direction} and state {state}')
+    lib.code.packet.generate_packet(packets_report, packet_id, direction, state)
+    lib.code.packet.set_packets(packets_report)
 
-lib.code.utils.fmt()
+    lib.code.utils.fmt()
 
-print('Done!')
+    print('Done!')
+
+if __name__ == '__main__':
+    generate()

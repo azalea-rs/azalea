@@ -1,11 +1,11 @@
-use azalea_buf::McBuf;
+use azalea_buf::AzBuf;
 use azalea_core::{
     game_type::{GameMode, OptionalGameType},
     position::GlobalPos,
     resource_location::ResourceLocation,
 };
 
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, AzBuf)]
 pub struct CommonPlayerSpawnInfo {
     pub dimension_type: azalea_registry::DimensionType,
     pub dimension: ResourceLocation,

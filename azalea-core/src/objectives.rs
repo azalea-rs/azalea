@@ -3,9 +3,9 @@ use std::{
     str::FromStr,
 };
 
-use azalea_buf::McBuf;
+use azalea_buf::AzBuf;
 
-#[derive(Clone, Copy, Debug, McBuf)]
+#[derive(Clone, Copy, Debug, AzBuf)]
 pub enum ObjectiveCriteria {
     Integer,
     Hearts,

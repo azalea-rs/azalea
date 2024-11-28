@@ -7,25 +7,27 @@ import lib.download
 import lib.extract
 import lib.utils
 
-version_id = lib.code.version.get_version_id()
+def generate(version_id):
+    # TODO: pixlyzer is broken so we use old data
+    shape_datas = lib.extract.get_pixlyzer_data(
+        '1.20.3-pre4', 'shapes')
+    pixlyzer_block_datas = lib.extract.get_pixlyzer_data(
+        '1.20.3-pre4', 'blocks')
 
-# TODO: pixlyzer is broken so we use old data
-shape_datas = lib.extract.get_pixlyzer_data(
-    '1.20.3-pre4', 'shapes')
-pixlyzer_block_datas = lib.extract.get_pixlyzer_data(
-    '1.20.3-pre4', 'blocks')
+    block_states_report = lib.extract.get_block_states_report(version_id)
+    registries = lib.extract.get_registries_report(version_id)
+    ordered_blocks = lib.code.blocks.get_ordered_blocks(registries)
 
-mappings = lib.download.get_mappings_for_version(version_id)
-block_states_burger = lib.extract.get_block_states_burger(version_id)
-ordered_blocks = lib.extract.get_ordered_blocks_burger(version_id)
-block_states_report = lib.extract.get_block_states_report(version_id)
+    lib.code.blocks.generate_blocks(
+        block_states_report, pixlyzer_block_datas, ordered_blocks)
 
-lib.code.blocks.generate_blocks(
-    block_states_burger, block_states_report, pixlyzer_block_datas, ordered_blocks, mappings)
+    lib.code.shapes.generate_block_shapes(
+        pixlyzer_block_datas, shape_datas['shapes'], shape_datas['aabbs'], block_states_report)
 
-lib.code.shapes.generate_block_shapes(
-    pixlyzer_block_datas, shape_datas['shapes'], shape_datas['aabbs'], block_states_report, block_states_burger, mappings)
+    lib.code.utils.fmt()
 
-lib.code.utils.fmt()
+    print('Done!')
 
-print('Done!')
+
+if __name__ == '__main__':
+    generate(lib.code.version.get_version_id())

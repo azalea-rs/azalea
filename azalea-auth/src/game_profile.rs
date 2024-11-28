@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 
-use azalea_buf::McBuf;
+use azalea_buf::AzBuf;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-#[derive(McBuf, Debug, Clone, Default, Eq, PartialEq)]
+#[derive(AzBuf, Debug, Clone, Default, Eq, PartialEq)]
 pub struct GameProfile {
     /// The UUID of the player.
     pub uuid: Uuid,
@@ -43,7 +43,7 @@ impl From<SerializableGameProfile> for GameProfile {
     }
 }
 
-#[derive(McBuf, Debug, Clone, Eq, PartialEq)]
+#[derive(AzBuf, Debug, Clone, Eq, PartialEq)]
 pub struct ProfilePropertyValue {
     pub value: String,
     pub signature: Option<String>,

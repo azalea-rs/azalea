@@ -16,12 +16,10 @@ use tokio::net::TcpStream;
 use tracing::{error, info};
 use uuid::Uuid;
 
-use crate::packets::configuration::{
-    ClientboundConfigurationPacket, ServerboundConfigurationPacket,
-};
+use crate::packets::config::{ClientboundConfigPacket, ServerboundConfigPacket};
 use crate::packets::game::{ClientboundGamePacket, ServerboundGamePacket};
-use crate::packets::handshaking::{ClientboundHandshakePacket, ServerboundHandshakePacket};
-use crate::packets::login::clientbound_hello_packet::ClientboundHelloPacket;
+use crate::packets::handshake::{ClientboundHandshakePacket, ServerboundHandshakePacket};
+use crate::packets::login::c_hello::ClientboundHello;
 use crate::packets::login::{ClientboundLoginPacket, ServerboundLoginPacket};
 use crate::packets::status::{ClientboundStatusPacket, ServerboundStatusPacket};
 use crate::packets::ProtocolPacket;
@@ -66,10 +64,10 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///         ClientIntention, PROTOCOL_VERSION,
 ///         login::{
 ///             ClientboundLoginPacket,
-///             serverbound_hello_packet::ServerboundHelloPacket,
-///             serverbound_key_packet::ServerboundKeyPacket
+///             ServerboundHello,
+///             ServerboundKey
 ///         },
-///         handshaking::client_intention_packet::ClientIntentionPacket
+///         handshake::ServerboundIntention
 ///     }
 /// };
 ///
@@ -79,28 +77,20 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///     let mut conn = Connection::new(&resolved_address).await?;
 ///
 ///     // handshake
-///     conn.write(
-///         ClientIntentionPacket {
-///             protocol_version: PROTOCOL_VERSION,
-///             hostname: resolved_address.ip().to_string(),
-///             port: resolved_address.port(),
-///             intention: ClientIntention::Login,
-///         }
-///         .get(),
-///     )
-///     .await?;
+///     conn.write(ServerboundIntention {
+///         protocol_version: PROTOCOL_VERSION,
+///         hostname: resolved_address.ip().to_string(),
+///         port: resolved_address.port(),
+///         intention: ClientIntention::Login,
+///     }).await?;
 ///
 ///     let mut conn = conn.login();
 ///
 ///     // login
-///     conn.write(
-///         ServerboundHelloPacket {
-///             name: "bot".to_string(),
-///             profile_id: uuid::Uuid::nil(),
-///         }
-///         .get(),
-///     )
-///     .await?;
+///     conn.write(ServerboundHello {
+///         name: "bot".to_string(),
+///         profile_id: uuid::Uuid::nil(),
+///     }).await?;
 ///
 ///     let (conn, game_profile) = loop {
 ///         let packet = conn.read().await?;
@@ -108,14 +98,10 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///             ClientboundLoginPacket::Hello(p) => {
 ///                 let e = azalea_crypto::encrypt(&p.public_key, &p.challenge).unwrap();
 ///
-///                 conn.write(
-///                     ServerboundKeyPacket {
-///                         key_bytes: e.encrypted_public_key,
-///                         encrypted_challenge: e.encrypted_challenge,
-///                     }
-///                     .get(),
-///                 )
-///                 .await?;
+///                 conn.write(ServerboundKey {
+///                     key_bytes: e.encrypted_public_key,
+///                     encrypted_challenge: e.encrypted_challenge,
+///                 }).await?;
 ///                 conn.set_encryption_key(e.secret_key);
 ///             }
 ///             ClientboundLoginPacket::LoginCompression(p) => {
@@ -243,7 +229,8 @@ where
     }
 
     /// Write a packet to the other side of the connection.
-    pub async fn write(&mut self, packet: W) -> std::io::Result<()> {
+    pub async fn write(&mut self, packet: impl crate::packets::Packet<W>) -> std::io::Result<()> {
+        let packet = packet.into_variant();
         self.writer.write(packet).await
     }
 
@@ -368,9 +355,7 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
     /// Change our state from login to configuration. This is the state where
     /// the server sends us the registries and resource pack and stuff.
     #[must_use]
-    pub fn configuration(
-        self,
-    ) -> Connection<ClientboundConfigurationPacket, ServerboundConfigurationPacket> {
+    pub fn configuration(self) -> Connection<ClientboundConfigPacket, ServerboundConfigPacket> {
         Connection::from(self)
     }
 
@@ -385,7 +370,7 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
     /// use azalea_protocol::connect::Connection;
     /// use azalea_protocol::packets::login::{
     ///     ClientboundLoginPacket,
-    ///     serverbound_key_packet::ServerboundKeyPacket
+    ///     ServerboundKey
     /// };
     /// use uuid::Uuid;
     /// # use azalea_protocol::ServerAddress;
@@ -414,12 +399,10 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
     ///             e.secret_key,
     ///             &p
     ///         ).await?;
-    ///         conn.write(
-    ///             ServerboundKeyPacket {
-    ///                 key_bytes: e.encrypted_public_key,
-    ///                 encrypted_challenge: e.encrypted_challenge,
-    ///             }.get()
-    ///         ).await?;
+    ///         conn.write(ServerboundKey {
+    ///             key_bytes: e.encrypted_public_key,
+    ///             encrypted_challenge: e.encrypted_challenge,
+    ///         }).await?;
     ///         conn.set_encryption_key(e.secret_key);
     ///     }
     ///     _ => {}
@@ -432,7 +415,7 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
         access_token: &str,
         uuid: &Uuid,
         private_key: [u8; 16],
-        packet: &ClientboundHelloPacket,
+        packet: &ClientboundHello,
     ) -> Result<(), ClientSessionServerError> {
         azalea_auth::sessionserver::join(
             access_token,
@@ -506,14 +489,12 @@ impl Connection<ServerboundLoginPacket, ClientboundLoginPacket> {
 
     /// Change our state back to configuration.
     #[must_use]
-    pub fn configuration(
-        self,
-    ) -> Connection<ServerboundConfigurationPacket, ClientboundConfigurationPacket> {
+    pub fn configuration(self) -> Connection<ServerboundConfigPacket, ClientboundConfigPacket> {
         Connection::from(self)
     }
 }
 
-impl Connection<ServerboundConfigurationPacket, ClientboundConfigurationPacket> {
+impl Connection<ServerboundConfigPacket, ClientboundConfigPacket> {
     /// Change our state from configuration to game. This is the state that's
     /// used when the client is actually in the world.
     #[must_use]
@@ -522,7 +503,7 @@ impl Connection<ServerboundConfigurationPacket, ClientboundConfigurationPacket> 
     }
 }
 
-impl Connection<ClientboundConfigurationPacket, ServerboundConfigurationPacket> {
+impl Connection<ClientboundConfigPacket, ServerboundConfigPacket> {
     /// Change our state from configuration to game. This is the state that's
     /// used when the client is actually in the world.
     #[must_use]
@@ -534,9 +515,7 @@ impl Connection<ClientboundConfigurationPacket, ServerboundConfigurationPacket> 
 impl Connection<ClientboundGamePacket, ServerboundGamePacket> {
     /// Change our state back to configuration.
     #[must_use]
-    pub fn configuration(
-        self,
-    ) -> Connection<ClientboundConfigurationPacket, ServerboundConfigurationPacket> {
+    pub fn configuration(self) -> Connection<ClientboundConfigPacket, ServerboundConfigPacket> {
         Connection::from(self)
     }
 }

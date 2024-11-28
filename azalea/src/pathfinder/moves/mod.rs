@@ -157,7 +157,7 @@ impl ExecuteCtx<'_, '_, '_, '_, '_, '_, '_> {
     /// of the current node first.
     pub fn mine_while_at_start(&mut self, block: BlockPos) -> bool {
         let horizontal_distance_from_start = (self.start.center() - self.position)
-            .horizontal_distance_sqr()
+            .horizontal_distance_squared()
             .sqrt();
         let at_start_position =
             BlockPos::from(self.position) == self.start && horizontal_distance_from_start < 0.25;

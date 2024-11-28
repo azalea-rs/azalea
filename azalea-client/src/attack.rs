@@ -4,9 +4,7 @@ use azalea_entity::{
     update_bounding_box, Attributes, Physics,
 };
 use azalea_physics::PhysicsSet;
-use azalea_protocol::packets::game::serverbound_interact_packet::{
-    self, ServerboundInteractPacket,
-};
+use azalea_protocol::packets::game::s_interact::{self, ServerboundInteract};
 use azalea_world::MinecraftEntityId;
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
@@ -85,15 +83,14 @@ pub fn handle_attack_event(
         swing_arm_event.send(SwingArmEvent {
             entity: event.entity,
         });
-        send_packet_events.send(SendPacketEvent {
-            entity: event.entity,
-            packet: ServerboundInteractPacket {
+        send_packet_events.send(SendPacketEvent::new(
+            event.entity,
+            ServerboundInteract {
                 entity_id: *event.target,
-                action: serverbound_interact_packet::ActionType::Attack,
+                action: s_interact::ActionType::Attack,
                 using_secondary_action: **sneaking,
-            }
-            .get(),
-        });
+            },
+        ));
 
         // we can't attack if we're in spectator mode but it still sends the attack
         // packet

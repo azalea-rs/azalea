@@ -10,12 +10,12 @@ use azalea_core::{
 use azalea_entity::{
     clamp_look_direction, view_vector, Attributes, EyeHeight, LocalEntity, LookDirection, Position,
 };
-use azalea_inventory::{ItemSlot, ItemSlotData};
+use azalea_inventory::{ItemStack, ItemStackData};
 use azalea_physics::clip::{BlockShapeType, ClipContext, FluidPickType};
 use azalea_protocol::packets::game::{
-    serverbound_interact_packet::InteractionHand,
-    serverbound_swing_packet::ServerboundSwingPacket,
-    serverbound_use_item_on_packet::{BlockHit, ServerboundUseItemOnPacket},
+    s_interact::InteractionHand,
+    s_swing::ServerboundSwing,
+    s_use_item_on::{BlockHit, ServerboundUseItemOn},
 };
 use azalea_registry::DataComponentKind;
 use azalea_world::{Instance, InstanceContainer, InstanceName};
@@ -148,15 +148,14 @@ pub fn handle_block_interact_event(
             }
         };
 
-        send_packet_events.send(SendPacketEvent {
+        send_packet_events.send(SendPacketEvent::new(
             entity,
-            packet: ServerboundUseItemOnPacket {
+            ServerboundUseItemOn {
                 hand: InteractionHand::MainHand,
                 block_hit,
                 sequence: sequence_number.0,
-            }
-            .get(),
-        });
+            },
+        ));
     }
 }
 
@@ -245,7 +244,7 @@ pub fn check_is_interaction_restricted(
             // way of modifying that
 
             let held_item = inventory.held_item();
-            if let ItemSlot::Present(item) = &held_item {
+            if let ItemStack::Present(item) = &held_item {
                 let block = instance.chunks.get_block_state(block_pos);
                 let Some(block) = block else {
                     // block isn't loaded so just say that it is restricted
@@ -263,7 +262,7 @@ pub fn check_is_interaction_restricted(
 
 /// Check if the item has the `CanDestroy` tag for the block.
 pub fn check_block_can_be_broken_by_item_in_adventure_mode(
-    item: &ItemSlotData,
+    item: &ItemStackData,
     _block: &BlockState,
 ) -> bool {
     // minecraft caches the last checked block but that's kind of an unnecessary
@@ -302,13 +301,12 @@ pub fn handle_swing_arm_event(
     mut send_packet_events: EventWriter<SendPacketEvent>,
 ) {
     for event in events.read() {
-        send_packet_events.send(SendPacketEvent {
-            entity: event.entity,
-            packet: ServerboundSwingPacket {
+        send_packet_events.send(SendPacketEvent::new(
+            event.entity,
+            ServerboundSwing {
                 hand: InteractionHand::MainHand,
-            }
-            .get(),
-        });
+            },
+        ));
     }
 }
 
