@@ -1,21 +1,21 @@
 [workspace]
 members = [
-  "azalea",
-  "azalea-client",
-  "azalea-protocol",
-  "azalea-chat",
-  "azalea-core",
-  "azalea-auth",
-  "azalea-brigadier",
-  "azalea-crypto",
-  "azalea-world",
-  "azalea-language",
-  "azalea-block",
-  "azalea-buf",
-  "azalea-physics",
-  "azalea-registry",
-  "azalea-inventory",
-  "azalea-entity",
+    "azalea",
+    "azalea-client",
+    "azalea-protocol",
+    "azalea-chat",
+    "azalea-core",
+    "azalea-auth",
+    "azalea-brigadier",
+    "azalea-crypto",
+    "azalea-world",
+    "azalea-language",
+    "azalea-block",
+    "azalea-buf",
+    "azalea-physics",
+    "azalea-registry",
+    "azalea-inventory",
+    "azalea-entity",
 ]
 resolver = "2"
 
@@ -30,11 +30,11 @@ repository = "https://github.com/azalea-rs/azalea"
 
 [workspace.dependencies]
 anyhow = "1.0.93"
-bevy_app = "0.15.0-rc.3"
-bevy_ecs = { version = "0.15.0-rc.3", default-features = false }
-bevy_log = "0.15.0-rc.3"
-bevy_tasks = "0.15.0-rc.3"
-bevy_time = "0.15.0-rc.3"
+bevy_app = "0.15.0"
+bevy_ecs = { version = "0.15.0", default-features = false }
+bevy_log = "0.15.0"
+bevy_tasks = "0.15.0"
+bevy_time = "0.15.0"
 byteorder = "1.5.0"
 criterion = { version = "0.5.1", features = ["html_reports"] }
 derive_more = { version = "1.0.0", features = ["full"] }
@@ -45,22 +45,22 @@ nohash-hasher = "0.2.0"
 num-bigint = "0.4.6"
 num-traits = "0.2.19"
 parking_lot = "0.12.3"
-proc-macro2 = "1.0.89"
+proc-macro2 = "1.0.92"
 quote = "1.0.37"
 rand = "0.8.5"
 reqwest = { version = "0.12.9", default-features = false }
-rsa = "0.9.6"
+rsa = "0.9.7"
 rustc-hash = "2.0.0"
 serde = "1.0.215"
-serde_json = "1.0.132"
+serde_json = "1.0.133"
 simdnbt = "0.6.1"
 smallvec = "1.13.2"
-syn = { version = "2.0.87", features = ["full"] }
+syn = { version = "2.0.89", features = ["full"] }
 thiserror = "2.0.3"
 tokio = "1.41.1"
 tokio-util = "0.7.12"
-tracing = "0.1.40"
-tracing-subscriber = "0.3.18"
+tracing = "0.1.41"
+tracing-subscriber = "0.3.19"
 uuid = "1.11.0"
 
 # --- Profile Settings ---
