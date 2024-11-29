@@ -11,11 +11,11 @@ pub mod tags;
 use std::fmt::{self, Debug};
 use std::io::{Cursor, Write};
 
-use azalea_buf::{BufReadError, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable};
+use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
 use azalea_registry_macros::registry;
 pub use extra::*;
 
-pub trait Registry: McBufReadable + McBufWritable
+pub trait Registry: AzaleaRead + AzaleaWrite
 where
     Self: Sized,
 {
@@ -26,11 +26,11 @@ where
 /// A registry that might not be present. This is transmitted as a single
 /// varint in the protocol.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct OptionalRegistry<T: Registry>(Option<T>);
+pub struct OptionalRegistry<T: Registry>(pub Option<T>);
 
-impl<T: Registry> McBufReadable for OptionalRegistry<T> {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        Ok(OptionalRegistry(match u32::var_read_from(buf)? {
+impl<T: Registry> AzaleaRead for OptionalRegistry<T> {
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        Ok(OptionalRegistry(match u32::azalea_read_var(buf)? {
             0 => None,
             value => Some(
                 T::from_u32(value - 1)
@@ -39,49 +39,49 @@ impl<T: Registry> McBufReadable for OptionalRegistry<T> {
         }))
     }
 }
-impl<T: Registry> McBufWritable for OptionalRegistry<T> {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+impl<T: Registry> AzaleaWrite for OptionalRegistry<T> {
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         match &self.0 {
-            None => 0u32.var_write_into(buf),
-            Some(value) => (value.to_u32() + 1).var_write_into(buf),
+            None => 0u32.azalea_write_var(buf),
+            Some(value) => (value.to_u32() + 1).azalea_write_var(buf),
         }
     }
 }
 
 /// A registry that will either take an ID or a resource location.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum CustomRegistry<D: Registry, C: McBufReadable + McBufWritable> {
+pub enum CustomRegistry<D: Registry, C: AzaleaRead + AzaleaWrite> {
     Direct(D),
     Custom(C),
 }
 
-impl<D: Registry, C: McBufReadable + McBufWritable> McBufReadable for CustomRegistry<D, C> {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let direct_registry = OptionalRegistry::<D>::read_from(buf)?;
+impl<D: Registry, C: AzaleaRead + AzaleaWrite> AzaleaRead for CustomRegistry<D, C> {
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let direct_registry = OptionalRegistry::<D>::azalea_read(buf)?;
         if let Some(direct_registry) = direct_registry.0 {
             return Ok(CustomRegistry::Direct(direct_registry));
         }
-        Ok(CustomRegistry::Custom(C::read_from(buf)?))
+        Ok(CustomRegistry::Custom(C::azalea_read(buf)?))
     }
 }
-impl<D: Registry, C: McBufReadable + McBufWritable> McBufWritable for CustomRegistry<D, C> {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+impl<D: Registry, C: AzaleaRead + AzaleaWrite> AzaleaWrite for CustomRegistry<D, C> {
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         match self {
             CustomRegistry::Direct(direct_registry) => {
                 // write the id + 1
-                (direct_registry.to_u32() + 1).var_write_into(buf)
+                (direct_registry.to_u32() + 1).azalea_write_var(buf)
             }
             CustomRegistry::Custom(custom_registry) => {
                 // write 0, then the custom registry
-                0u32.var_write_into(buf)?;
-                custom_registry.write_into(buf)
+                0u32.azalea_write_var(buf)?;
+                custom_registry.azalea_write(buf)
             }
         }
     }
 }
 
 #[derive(Clone, PartialEq)]
-pub enum HolderSet<D: Registry, ResourceLocation: McBufReadable + McBufWritable> {
+pub enum HolderSet<D: Registry, ResourceLocation: AzaleaRead + AzaleaWrite> {
     Direct {
         contents: Vec<D>,
     },
@@ -91,13 +91,13 @@ pub enum HolderSet<D: Registry, ResourceLocation: McBufReadable + McBufWritable>
     },
 }
 
-impl<D: Registry, ResourceLocation: McBufReadable + McBufWritable> McBufReadable
+impl<D: Registry, ResourceLocation: AzaleaRead + AzaleaWrite> AzaleaRead
     for HolderSet<D, ResourceLocation>
 {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let size = i32::var_read_from(buf)? - 1;
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let size = i32::azalea_read_var(buf)? - 1;
         if size == -1 {
-            let key = ResourceLocation::read_from(buf)?;
+            let key = ResourceLocation::azalea_read(buf)?;
             Ok(Self::Named {
                 key,
                 contents: Vec::new(),
@@ -105,32 +105,32 @@ impl<D: Registry, ResourceLocation: McBufReadable + McBufWritable> McBufReadable
         } else {
             let mut contents = Vec::new();
             for _ in 0..size {
-                contents.push(D::read_from(buf)?);
+                contents.push(D::azalea_read(buf)?);
             }
             Ok(Self::Direct { contents })
         }
     }
 }
-impl<D: Registry, ResourceLocation: McBufReadable + McBufWritable> McBufWritable
+impl<D: Registry, ResourceLocation: AzaleaRead + AzaleaWrite> AzaleaWrite
     for HolderSet<D, ResourceLocation>
 {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         match self {
             Self::Direct { contents } => {
-                (contents.len() as i32 + 1).var_write_into(buf)?;
+                (contents.len() as i32 + 1).azalea_write_var(buf)?;
                 for item in contents {
-                    item.write_into(buf)?;
+                    item.azalea_write(buf)?;
                 }
             }
             Self::Named { key, .. } => {
-                0i32.var_write_into(buf)?;
-                key.write_into(buf)?;
+                0i32.azalea_write_var(buf)?;
+                key.azalea_write(buf)?;
             }
         }
         Ok(())
     }
 }
-impl<D: Registry + Debug, ResourceLocation: McBufReadable + McBufWritable + Debug> Debug
+impl<D: Registry + Debug, ResourceLocation: AzaleaRead + AzaleaWrite + Debug> Debug
     for HolderSet<D, ResourceLocation>
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

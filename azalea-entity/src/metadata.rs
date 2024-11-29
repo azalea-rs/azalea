@@ -8,7 +8,7 @@ use azalea_core::{
     direction::Direction,
     position::{BlockPos, Vec3},
 };
-use azalea_inventory::ItemSlot;
+use azalea_inventory::ItemStack;
 use bevy_ecs::{bundle::Bundle, component::Component};
 use derive_more::{Deref, DerefMut};
 use thiserror::Error;
@@ -3301,7 +3301,7 @@ impl Default for DrownedMetadataBundle {
 }
 
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct EggItemStack(pub ItemSlot);
+pub struct EggItemStack(pub ItemStack);
 #[derive(Component)]
 pub struct Egg;
 impl Egg {
@@ -3558,7 +3558,7 @@ impl Default for EnderDragonMetadataBundle {
 }
 
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct EnderPearlItemStack(pub ItemSlot);
+pub struct EnderPearlItemStack(pub ItemStack);
 #[derive(Component)]
 pub struct EnderPearl;
 impl EnderPearl {
@@ -3894,7 +3894,7 @@ impl Default for EvokerFangsMetadataBundle {
 }
 
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct ExperienceBottleItemStack(pub ItemSlot);
+pub struct ExperienceBottleItemStack(pub ItemStack);
 #[derive(Component)]
 pub struct ExperienceBottle;
 impl ExperienceBottle {
@@ -3991,7 +3991,7 @@ impl Default for ExperienceOrbMetadataBundle {
 }
 
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct EyeOfEnderItemStack(pub ItemSlot);
+pub struct EyeOfEnderItemStack(pub ItemStack);
 #[derive(Component)]
 pub struct EyeOfEnder;
 impl EyeOfEnder {
@@ -4095,7 +4095,7 @@ impl Default for FallingBlockMetadataBundle {
 }
 
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct FireballItemStack(pub ItemSlot);
+pub struct FireballItemStack(pub ItemStack);
 #[derive(Component)]
 pub struct Fireball;
 impl Fireball {
@@ -4147,7 +4147,7 @@ impl Default for FireballMetadataBundle {
 }
 
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct FireworksItem(pub ItemSlot);
+pub struct FireworksItem(pub ItemStack);
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct AttachedToTarget(pub OptionalUnsignedInt);
 #[derive(Component, Deref, DerefMut, Clone)]
@@ -4682,7 +4682,7 @@ impl Default for GiantMetadataBundle {
 }
 
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct ItemFrameItem(pub ItemSlot);
+pub struct ItemFrameItem(pub ItemStack);
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct Rotation(pub i32);
 #[derive(Component)]
@@ -4728,7 +4728,7 @@ impl Default for GlowItemFrameMetadataBundle {
                     pose: Pose::default(),
                     ticks_frozen: TicksFrozen(Default::default()),
                 },
-                item_frame_item: ItemFrameItem(ItemSlot::Empty),
+                item_frame_item: ItemFrameItem(ItemStack::Empty),
                 rotation: Rotation(0),
             },
         }
@@ -5521,7 +5521,7 @@ impl Default for IronGolemMetadataBundle {
 }
 
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct ItemItem(pub ItemSlot);
+pub struct ItemItem(pub ItemStack);
 #[derive(Component)]
 pub struct Item;
 impl Item {
@@ -5567,7 +5567,7 @@ impl Default for ItemMetadataBundle {
                 pose: Pose::default(),
                 ticks_frozen: TicksFrozen(Default::default()),
             },
-            item_item: ItemItem(ItemSlot::Empty),
+            item_item: ItemItem(ItemStack::Empty),
         }
     }
 }
@@ -5603,7 +5603,7 @@ pub struct ItemDisplayHeight(pub f32);
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct ItemDisplayGlowColorOverride(pub i32);
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct ItemDisplayItemStack(pub ItemSlot);
+pub struct ItemDisplayItemStack(pub ItemStack);
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct ItemDisplayItemDisplay(pub u8);
 #[derive(Component)]
@@ -5758,7 +5758,7 @@ impl Default for ItemDisplayMetadataBundle {
             item_display_width: ItemDisplayWidth(0.0),
             item_display_height: ItemDisplayHeight(0.0),
             item_display_glow_color_override: ItemDisplayGlowColorOverride(-1),
-            item_display_item_stack: ItemDisplayItemStack(ItemSlot::Empty),
+            item_display_item_stack: ItemDisplayItemStack(ItemStack::Empty),
             item_display_item_display: ItemDisplayItemDisplay(Default::default()),
         }
     }
@@ -5813,7 +5813,7 @@ impl Default for ItemFrameMetadataBundle {
                 pose: Pose::default(),
                 ticks_frozen: TicksFrozen(Default::default()),
             },
-            item_frame_item: ItemFrameItem(ItemSlot::Empty),
+            item_frame_item: ItemFrameItem(ItemStack::Empty),
             rotation: Rotation(0),
         }
     }
@@ -7033,7 +7033,7 @@ impl Default for OcelotMetadataBundle {
 }
 
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct OminousItemSpawnerItem(pub ItemSlot);
+pub struct OminousItemSpawnerItem(pub ItemStack);
 #[derive(Component)]
 pub struct OminousItemSpawner;
 impl OminousItemSpawner {
@@ -7079,7 +7079,7 @@ impl Default for OminousItemSpawnerMetadataBundle {
                 pose: Pose::default(),
                 ticks_frozen: TicksFrozen(Default::default()),
             },
-            ominous_item_spawner_item: OminousItemSpawnerItem(ItemSlot::Empty),
+            ominous_item_spawner_item: OminousItemSpawnerItem(ItemStack::Empty),
         }
     }
 }
@@ -8111,7 +8111,7 @@ impl Default for PolarBearMetadataBundle {
 }
 
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct PotionItemStack(pub ItemSlot);
+pub struct PotionItemStack(pub ItemStack);
 #[derive(Component)]
 pub struct Potion;
 impl Potion {
@@ -8996,7 +8996,7 @@ impl Default for SlimeMetadataBundle {
 }
 
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct SmallFireballItemStack(pub ItemSlot);
+pub struct SmallFireballItemStack(pub ItemStack);
 #[derive(Component)]
 pub struct SmallFireball;
 impl SmallFireball {
@@ -9207,7 +9207,7 @@ impl Default for SnowGolemMetadataBundle {
 }
 
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct SnowballItemStack(pub ItemSlot);
+pub struct SnowballItemStack(pub ItemStack);
 #[derive(Component)]
 pub struct Snowball;
 impl Snowball {

@@ -9,17 +9,38 @@ fn read_named_fields(
         .map(|f| {
             let field_name = &f.ident;
             let field_type = &f.ty;
+
+            let is_variable_length = f.attrs.iter().any(|a| a.path().is_ident("var"));
+            let limit = f
+                .attrs
+                .iter()
+                .find(|a| a.path().is_ident("limit"))
+                .map(|a| {
+                    a.parse_args::<syn::LitInt>()
+                        .unwrap()
+                        .base10_parse::<usize>()
+                        .unwrap()
+                });
+
+            if is_variable_length && limit.is_some() {
+                panic!("Fields cannot have both var and limit attributes");
+            }
+
             // do a different buf.write_* for each field depending on the type
             // if it's a string, use buf.write_string
             match field_type {
                 syn::Type::Path(_) | syn::Type::Array(_) => {
-                    if f.attrs.iter().any(|a| a.path().is_ident("var")) {
+                    if is_variable_length {
                         quote! {
-                            let #field_name = azalea_buf::McBufVarReadable::var_read_from(buf)?;
+                            let #field_name = azalea_buf::AzaleaReadVar::azalea_read_var(buf)?;
+                        }
+                    } else if let Some(limit) = limit {
+                        quote! {
+                            let #field_name = azalea_buf::AzaleaReadLimited::azalea_read_limited(buf, #limit)?;
                         }
                     } else {
                         quote! {
-                            let #field_name = azalea_buf::McBufReadable::read_from(buf)?;
+                            let #field_name = azalea_buf::AzaleaRead::azalea_read(buf)?;
                         }
                     }
                 }
@@ -36,15 +57,15 @@ fn read_named_fields(
     (read_fields, read_field_names)
 }
 
-pub fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::TokenStream {
+pub fn create_impl_azalearead(ident: &Ident, data: &Data) -> proc_macro2::TokenStream {
     match data {
         syn::Data::Struct(syn::DataStruct { fields, .. }) => match fields {
             syn::Fields::Named(FieldsNamed { named, .. }) => {
                 let (read_fields, read_field_names) = read_named_fields(named);
 
                 quote! {
-                impl azalea_buf::McBufReadable for #ident {
-                    fn read_from(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
+                impl azalea_buf::AzaleaRead for #ident {
+                    fn azalea_read(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
                         #(#read_fields)*
                         Ok(Self {
                             #(#read_field_names: #read_field_names),*
@@ -55,15 +76,15 @@ pub fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::Tok
             }
             syn::Fields::Unit => {
                 quote! {
-                impl azalea_buf::McBufReadable for #ident {
-                    fn read_from(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
+                impl azalea_buf::AzaleaRead for #ident {
+                    fn azalea_read(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
                         Ok(Self)
                     }
                 }
                 }
             }
             _ => {
-                panic!("#[derive(McBuf)] can only be used on structs with named fields")
+                panic!("#[derive(AzBuf)] can only be used on structs with named fields")
             }
         },
         syn::Data::Enum(syn::DataEnum { variants, .. }) => {
@@ -108,13 +129,34 @@ pub fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::Tok
                     syn::Fields::Unnamed(fields) => {
                         let mut reader_code = quote! {};
                         for f in &fields.unnamed {
-                            if f.attrs.iter().any(|attr| attr.path().is_ident("var")) {
+                            let is_variable_length =
+                                f.attrs.iter().any(|a| a.path().is_ident("var"));
+                            let limit =
+                                f.attrs
+                                    .iter()
+                                    .find(|a| a.path().is_ident("limit"))
+                                    .map(|a| {
+                                        a.parse_args::<syn::LitInt>()
+                                            .unwrap()
+                                            .base10_parse::<usize>()
+                                            .unwrap()
+                                    });
+
+                            if is_variable_length && limit.is_some() {
+                                panic!("Fields cannot have both var and limit attributes");
+                            }
+
+                            if is_variable_length {
                                 reader_code.extend(quote! {
-                                    Self::#variant_name(azalea_buf::McBufVarReadable::var_read_from(buf)?),
+                                    Self::#variant_name(azalea_buf::AzaleaReadVar::azalea_read_var(buf)?),
+                                });
+                            } else if let Some(limit) = limit {
+                                reader_code.extend(quote! {
+                                    Self::#variant_name(azalea_buf::AzaleaReadLimited::azalea_read_limited(buf, #limit)?),
                                 });
                             } else {
                                 reader_code.extend(quote! {
-                                    Self::#variant_name(azalea_buf::McBufReadable::read_from(buf)?),
+                                    Self::#variant_name(azalea_buf::AzaleaRead::azalea_read(buf)?),
                                 });
                             }
                         }
@@ -139,15 +181,15 @@ pub fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::Tok
             let first_reader = first_reader.expect("There should be at least one variant");
 
             quote! {
-            impl azalea_buf::McBufReadable for #ident {
-                fn read_from(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
-                    let id = azalea_buf::McBufVarReadable::var_read_from(buf)?;
-                    Self::read_from_id(buf, id)
+            impl azalea_buf::AzaleaRead for #ident {
+                fn azalea_read(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
+                    let id = azalea_buf::AzaleaReadVar::azalea_read_var(buf)?;
+                    Self::azalea_read_id(buf, id)
                 }
             }
 
             impl #ident {
-                pub fn read_from_id(buf: &mut std::io::Cursor<&[u8]>, id: u32) -> Result<Self, azalea_buf::BufReadError> {
+                pub fn azalea_read_id(buf: &mut std::io::Cursor<&[u8]>, id: u32) -> Result<Self, azalea_buf::BufReadError> {
                     match id {
                         #match_contents
                         // you'd THINK this throws an error, but mojang decided to make it default for some reason
@@ -157,6 +199,6 @@ pub fn create_impl_mcbufreadable(ident: &Ident, data: &Data) -> proc_macro2::Tok
             }
             }
         }
-        _ => panic!("#[derive(McBuf)] can only be used on structs"),
+        _ => panic!("#[derive(AzBuf)] can only be used on structs"),
     }
 }

@@ -12,7 +12,7 @@ BLOCKS_RS_DIR = get_dir_location('../azalea-block/src/generated.rs')
 # - Block: Has properties and states.
 
 
-def generate_blocks(blocks_burger: dict, blocks_report: dict, pixlyzer_block_datas: dict, ordered_blocks: list[str], mappings: Mappings):
+def generate_blocks(blocks_report: dict, pixlyzer_block_datas: dict, ordered_blocks: list[str]):
     with open(BLOCKS_RS_DIR, 'r') as f:
         existing_code = f.read().splitlines()
 
@@ -25,25 +25,14 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, pixlyzer_block_dat
     # This dict looks like { 'FloweringAzaleaLeavesDistance': 'distance' }
     property_struct_names_to_names = {}
     for block_id in ordered_blocks:
-        block_data_burger = blocks_burger[block_id]
         block_data_report = blocks_report[f'minecraft:{block_id}']
 
         block_properties = {}
-        for property_name in list(block_data_report.get('properties', {}).keys()):
-            property_burger = None
-            for property in block_data_burger.get('states', []):
-                if property['name'] == property_name:
-                    property_burger = property
-                    break
-
-            property_variants = block_data_report['properties'][property_name]
-
-            if property_burger is None:
-                print(
-                    f'Warning: The reports have states for a block, but Burger doesn\'t! (missing "{property_name}")', block_data_burger)
+        for property_id in list(block_data_report.get('properties', {}).keys()):
+            property_variants = block_data_report['properties'][property_id]
 
             property_struct_name = get_property_struct_name(
-                property_burger, block_data_burger, property_variants, mappings)
+                block_id, property_id, property_variants)
 
             if property_struct_name in properties:
                 if not properties[property_struct_name] == property_variants:
@@ -55,7 +44,7 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, pixlyzer_block_dat
 
             block_properties[property_struct_name] = property_variants
 
-            property_struct_names_to_names[property_struct_name] = property_name
+            property_struct_names_to_names[property_struct_name] = property_id
 
         properties.update(block_properties)
 
@@ -67,7 +56,7 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, pixlyzer_block_dat
         #     Wall,
         #     Ceiling,
         # },
-        property_name = property_struct_names_to_names[property_struct_name]
+        property_id = property_struct_names_to_names[property_struct_name]
 
         # if the only variants are true and false, we make it unit struct with a boolean instead of an enum
         if property_variants == ['true', 'false']:
@@ -79,19 +68,15 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, pixlyzer_block_dat
             property_shape_code += '        }'
 
         new_make_block_states_macro_code.append(
-            f'        "{property_name}" => {property_shape_code},')
+            f'        "{property_id}" => {property_shape_code},')
 
     new_make_block_states_macro_code.append('    },')
 
     # Block codegen
     new_make_block_states_macro_code.append('    Blocks => {')
     for block_id in ordered_blocks:
-        block_data_burger = blocks_burger[block_id]
         block_data_report = blocks_report['minecraft:' + block_id]
         block_data_pixlyzer = pixlyzer_block_datas.get(f'minecraft:{block_id}', {})
-
-        block_properties = block_data_burger.get('states', [])
-        block_properties_burger = block_data_burger.get('states', [])
 
         default_property_variants: dict[str, str] = {}
         for state in block_data_report['states']:
@@ -99,18 +84,12 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, pixlyzer_block_dat
                 default_property_variants = state.get('properties', {})
 
         properties_code = '{'
-        for property_name in list(block_data_report.get('properties', {}).keys()):
-            property_burger = None
-            for property in block_data_burger.get('states', []):
-                if property['name'] == property_name:
-                    property_burger = property
-                    break
-
-            property_default = default_property_variants.get(property_name)
-            property_variants = block_data_report['properties'][property_name]
+        for property_id in list(block_data_report.get('properties', {}).keys()):
+            property_default = default_property_variants.get(property_id)
+            property_variants = block_data_report['properties'][property_id]
 
             property_struct_name = get_property_struct_name(
-                property_burger, block_data_burger, property_variants, mappings)
+                block_id, property_id, property_variants)
 
             is_boolean_property = property_variants == ['true', 'false']
 
@@ -123,7 +102,7 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, pixlyzer_block_dat
 
             assert property_default is not None
 
-            this_property_code = f'"{property_name}": {property_default_type}'
+            this_property_code = f'"{property_id}": {property_default_type}'
 
             properties_code += f'\n            {this_property_code},'
         # if there's nothing inside the properties, keep it in one line
@@ -177,8 +156,7 @@ def generate_blocks(blocks_burger: dict, blocks_report: dict, pixlyzer_block_dat
     with open(BLOCKS_RS_DIR, 'w') as f:
         f.write('\n'.join(new_code))
 
-
-def get_property_struct_name(property: Optional[dict], block_data_burger: dict, property_variants: list[str], mappings: Mappings) -> str:
+def get_property_struct_name(block_id: str, property_id: str, property_variants: list[str]) -> str:
     # these are hardcoded because otherwise they cause conflicts
     # some names inspired by https://github.com/feather-rs/feather/blob/main/feather/blocks/src/generated/table.rs
     if property_variants == ['north', 'east', 'south', 'west', 'up', 'down']:
@@ -205,34 +183,34 @@ def get_property_struct_name(property: Optional[dict], block_data_burger: dict, 
         return 'VaultState'
     if 'harp' in property_variants and 'didgeridoo' in property_variants:
         return 'Sound'
-
-    if property is None:
-        return ''.join(map(to_camel_case, property_variants))
-
-    if property_variants == ['true', 'false']:
-        # booleans are weird, so just return the string name minecraft uses
-        return to_camel_case(property['name'])
-
-    for class_name in [block_data_burger['class']] + block_data_burger['super']:
-        property_name = mappings.get_field(
-            class_name, property['field_name'])
-        if property_name:
-            break
-    if property_name is None:
-        if 'declared_in' in property:
-            property_name = mappings.get_field(
-                property['declared_in'], property['field_name'])
-    if property_name is None:
-        property_name = property['name']
-    assert property_name
-    property_name = to_camel_case(property_name.lower())
-    if property['type'] == 'int':
-        property_name = to_camel_case(
-            block_data_burger['text_id']) + property_name
-
-    # if property_variants == ['none', 'low', 'tall']:
-
+    if is_list_of_string_integers(property_variants):
+        # if the values are all integers, then prepend the block name
+        return to_camel_case(block_id) + to_camel_case(property_id)
     if property_variants == ['up', 'side', 'none']:
-        property_name = 'Wire' + to_camel_case(property_name)
+        return 'Wire' + to_camel_case(property_id)
+    if property_variants == ['none', 'low', 'tall']:
+        return 'Wall' + to_camel_case(property_id)
 
-    return property_name
+    return to_camel_case(property_id)
+
+def is_list_of_string_integers(l: list[str]) -> bool:
+    return all(map(str.isdigit, l))
+
+def get_ordered_blocks(registries_report: dict[str, dict]) -> list[str]:
+    '''
+    Returns a list of block ids (like ['air', 'stone', ...]) ordered by their protocol id.
+    '''
+    blocks_registry = registries_report['minecraft:block']
+
+    blocks_to_ids = {} 
+    for block_id, value in blocks_registry['entries'].items():
+        prefix = 'minecraft:'
+        assert block_id.startswith(prefix)
+        block_id = block_id[len(prefix):]
+        protocol_id = value['protocol_id']
+        blocks_to_ids[block_id] = protocol_id
+    
+    ordered_blocks = []
+    for block_id in sorted(blocks_to_ids, key=blocks_to_ids.get):
+        ordered_blocks.append(block_id)
+    return ordered_blocks

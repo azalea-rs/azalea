@@ -1,6 +1,6 @@
 use std::ops::RangeInclusive;
 
-use azalea_buf::McBuf;
+use azalea_buf::AzBuf;
 
 use crate::{
     item::MaxStackSizeExt, AnvilMenuLocation, BeaconMenuLocation, BlastFurnaceMenuLocation,
@@ -8,7 +8,7 @@ use crate::{
     CraftingMenuLocation, EnchantmentMenuLocation, FurnaceMenuLocation, Generic3x3MenuLocation,
     Generic9x1MenuLocation, Generic9x2MenuLocation, Generic9x3MenuLocation, Generic9x4MenuLocation,
     Generic9x5MenuLocation, Generic9x6MenuLocation, GrindstoneMenuLocation, HopperMenuLocation,
-    ItemSlot, ItemSlotData, LecternMenuLocation, LoomMenuLocation, Menu, MenuLocation,
+    ItemStack, ItemStackData, LecternMenuLocation, LoomMenuLocation, Menu, MenuLocation,
     MerchantMenuLocation, Player, PlayerMenuLocation, ShulkerBoxMenuLocation, SmithingMenuLocation,
     SmokerMenuLocation, StonecutterMenuLocation,
 };
@@ -250,7 +250,7 @@ impl ClickOperation {
     }
 }
 
-#[derive(McBuf, Clone, Copy, Debug)]
+#[derive(AzBuf, Clone, Copy, Debug)]
 pub enum ClickType {
     Pickup = 0,
     QuickMove = 1,
@@ -266,10 +266,10 @@ impl Menu {
     ///
     /// Keep in mind that this doesn't send any packets to the server, it just
     /// mutates this specific `Menu`.
-    pub fn quick_move_stack(&mut self, slot_index: usize) -> ItemSlot {
+    pub fn quick_move_stack(&mut self, slot_index: usize) -> ItemStack {
         let slot = self.slot(slot_index);
         if slot.is_none() {
-            return ItemSlot::Empty;
+            return ItemStack::Empty;
         };
 
         let slot_location = self
@@ -587,7 +587,7 @@ impl Menu {
             },
         }
 
-        ItemSlot::Empty
+        ItemStack::Empty
     }
 
     fn try_move_item_to_slots_or_toggle_hotbar(
@@ -610,7 +610,7 @@ impl Menu {
     /// Whether the given item could be placed in this menu.
     ///
     /// TODO: right now this always returns true
-    pub fn may_place(&self, _target_slot_index: usize, _item: &ItemSlotData) -> bool {
+    pub fn may_place(&self, _target_slot_index: usize, _item: &ItemStackData) -> bool {
         true
     }
 
@@ -662,14 +662,14 @@ impl Menu {
     /// slot is present and the same item.
     fn move_item_to_slot_if_stackable(
         &mut self,
-        item_slot: &mut ItemSlot,
+        item_slot: &mut ItemStack,
         target_slot_index: usize,
     ) {
-        let ItemSlot::Present(item) = item_slot else {
+        let ItemStack::Present(item) = item_slot else {
             return;
         };
         let target_slot = self.slot(target_slot_index).unwrap();
-        if let ItemSlot::Present(target_item) = target_slot {
+        if let ItemStack::Present(target_item) = target_slot {
             // the target slot is empty, so we can just move the item there
             if self.may_place(target_slot_index, item)
                 && target_item.is_same_item_and_components(item)
@@ -679,15 +679,15 @@ impl Menu {
 
                 // get the target slot again but mut this time so we can update it
                 let target_slot = self.slot_mut(target_slot_index).unwrap();
-                *target_slot = ItemSlot::Present(new_target_slot_data);
+                *target_slot = ItemStack::Present(new_target_slot_data);
 
                 item_slot.update_empty();
             }
         }
     }
 
-    fn move_item_to_slot_if_empty(&mut self, item_slot: &mut ItemSlot, target_slot_index: usize) {
-        let ItemSlot::Present(item) = item_slot else {
+    fn move_item_to_slot_if_empty(&mut self, item_slot: &mut ItemStack, target_slot_index: usize) {
+        let ItemStack::Present(item) = item_slot else {
             return;
         };
         let target_slot = self.slot(target_slot_index).unwrap();
@@ -696,7 +696,7 @@ impl Menu {
             let new_target_slot_data = item.split(u32::min(slot_item_limit, item.count as u32));
 
             let target_slot = self.slot_mut(target_slot_index).unwrap();
-            *target_slot = ItemSlot::Present(new_target_slot_data);
+            *target_slot = ItemStack::Present(new_target_slot_data);
             item_slot.update_empty();
         }
     }

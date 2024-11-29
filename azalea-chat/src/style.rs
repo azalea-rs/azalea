@@ -1,7 +1,7 @@
 use std::{collections::HashMap, fmt, sync::LazyLock};
 
 #[cfg(feature = "azalea-buf")]
-use azalea_buf::McBuf;
+use azalea_buf::AzBuf;
 use serde::{ser::SerializeStruct, Serialize, Serializer};
 use serde_json::Value;
 #[cfg(feature = "simdnbt")]
@@ -100,7 +100,7 @@ impl Ansi {
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
-#[cfg_attr(feature = "azalea-buf", derive(McBuf))]
+#[cfg_attr(feature = "azalea-buf", derive(AzBuf))]
 pub enum ChatFormatting {
     Black,
     DarkBlue,

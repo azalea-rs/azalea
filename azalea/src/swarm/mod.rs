@@ -232,8 +232,8 @@ where
     /// clients to have different default states, add them one at a time with
     /// [`Self::add_account_with_state`].
     ///
-    /// By default every account will join at the same time, you can add a delay
-    /// with [`Self::join_delay`].
+    /// By default, every account will join at the same time, you can add a
+    /// delay with [`Self::join_delay`].
     #[must_use]
     pub fn add_accounts(mut self, accounts: Vec<Account>) -> Self
     where
@@ -242,8 +242,10 @@ where
         for account in accounts {
             self = self.add_account(account);
         }
+
         self
     }
+
     /// Add a single new [`Account`] to the swarm. Use [`Self::add_accounts`] to
     /// add multiple accounts at a time.
     ///
@@ -254,13 +256,24 @@ where
     where
         S: Default,
     {
-        self.add_account_with_state(account, S::default())
+        self.add_account_with_state_and_opts(account, S::default(), JoinOpts::default())
     }
+
     /// Add an account with a custom initial state. Use just
     /// [`Self::add_account`] to use the Default implementation for the state.
     #[must_use]
     pub fn add_account_with_state(self, account: Account, state: S) -> Self {
         self.add_account_with_state_and_opts(account, state, JoinOpts::default())
+    }
+
+    /// Add an account with a custom initial state. Use just
+    /// [`Self::add_account`] to use the Default implementation for the state.
+    #[must_use]
+    pub fn add_account_with_opts(self, account: Account, opts: JoinOpts) -> Self
+    where
+        S: Default,
+    {
+        self.add_account_with_state_and_opts(account, S::default(), opts)
     }
 
     /// Same as [`Self::add_account_with_state`], but allow passing in custom

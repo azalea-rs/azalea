@@ -6,19 +6,17 @@ use std::{error::Error, sync::LazyLock};
 use azalea_protocol::{
     connect::Connection,
     packets::{
-        handshaking::{
-            client_intention_packet::ClientIntentionPacket, ClientboundHandshakePacket,
+        handshake::{
+            s_intention::ServerboundIntention, ClientboundHandshakePacket,
             ServerboundHandshakePacket,
         },
-        login::{serverbound_hello_packet::ServerboundHelloPacket, ServerboundLoginPacket},
+        login::{s_hello::ServerboundHello, ServerboundLoginPacket},
         status::{
-            clientbound_pong_response_packet::ClientboundPongResponsePacket,
-            clientbound_status_response_packet::{
-                ClientboundStatusResponsePacket, Players, Version,
-            },
+            c_pong_response::ClientboundPongResponse,
+            c_status_response::{ClientboundStatusResponse, Players, Version},
             ServerboundStatusPacket,
         },
-        ClientIntention, PROTOCOL_VERSION,
+        ClientIntention, PROTOCOL_VERSION, VERSION_NAME,
     },
     read::ReadPacketError,
 };
@@ -39,7 +37,7 @@ const PROXY_DESC: &str = "An Azalea Minecraft Proxy";
 static PROXY_FAVICON: LazyLock<Option<String>> = LazyLock::new(|| None);
 
 static PROXY_VERSION: LazyLock<Version> = LazyLock::new(|| Version {
-    name: "1.21.1".to_string(),
+    name: VERSION_NAME.to_string(),
     protocol: PROTOCOL_VERSION,
 });
 
@@ -75,7 +73,7 @@ async fn handle_connection(stream: TcpStream) -> anyhow::Result<()> {
     // the server or is going to join the game.
     let intent = match conn.read().await {
         Ok(packet) => match packet {
-            ServerboundHandshakePacket::ClientIntention(packet) => {
+            ServerboundHandshakePacket::Intention(packet) => {
                 info!(
                     "New connection: {0}, Version {1}, {2:?}",
                     ip.ip(),
@@ -101,21 +99,17 @@ async fn handle_connection(stream: TcpStream) -> anyhow::Result<()> {
                 match conn.read().await {
                     Ok(p) => match p {
                         ServerboundStatusPacket::StatusRequest(_) => {
-                            conn.write(
-                                ClientboundStatusResponsePacket {
-                                    description: PROXY_DESC.into(),
-                                    favicon: PROXY_FAVICON.clone(),
-                                    players: PROXY_PLAYERS.clone(),
-                                    version: PROXY_VERSION.clone(),
-                                    enforces_secure_chat: PROXY_SECURE_CHAT,
-                                }
-                                .get(),
-                            )
+                            conn.write(ClientboundStatusResponse {
+                                description: PROXY_DESC.into(),
+                                favicon: PROXY_FAVICON.clone(),
+                                players: PROXY_PLAYERS.clone(),
+                                version: PROXY_VERSION.clone(),
+                                enforces_secure_chat: PROXY_SECURE_CHAT,
+                            })
                             .await?;
                         }
                         ServerboundStatusPacket::PingRequest(p) => {
-                            conn.write(ClientboundPongResponsePacket { time: p.time }.get())
-                                .await?;
+                            conn.write(ClientboundPongResponse { time: p.time }).await?;
                             break;
                         }
                     },
@@ -179,8 +173,8 @@ async fn handle_connection(stream: TcpStream) -> anyhow::Result<()> {
 
 async fn transfer(
     mut inbound: TcpStream,
-    intent: ClientIntentionPacket,
-    hello: ServerboundHelloPacket,
+    intent: ServerboundIntention,
+    hello: ServerboundHello,
 ) -> Result<(), Box<dyn Error>> {
     let outbound = TcpStream::connect(PROXY_ADDR).await?;
     let name = hello.name.clone();
@@ -190,10 +184,10 @@ async fn transfer(
     // received earlier to the proxy target
     let mut outbound_conn: Connection<ClientboundHandshakePacket, ServerboundHandshakePacket> =
         Connection::wrap(outbound);
-    outbound_conn.write(intent.get()).await?;
+    outbound_conn.write(intent).await?;
 
     let mut outbound_conn = outbound_conn.login();
-    outbound_conn.write(hello.get()).await?;
+    outbound_conn.write(hello).await?;
 
     let mut outbound = outbound_conn.unwrap()?;
 

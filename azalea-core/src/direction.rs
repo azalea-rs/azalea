@@ -1,8 +1,8 @@
-use azalea_buf::McBuf;
+use azalea_buf::AzBuf;
 
 use crate::position::Vec3;
 
-#[derive(Clone, Copy, Debug, McBuf, Default, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, AzBuf, Default, Eq, PartialEq)]
 pub enum Direction {
     #[default]
     Down = 0,
@@ -62,7 +62,7 @@ impl Direction {
 }
 
 // TODO: make azalea_block use this instead of FacingCardinal
-#[derive(Clone, Copy, Debug, McBuf, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, AzBuf, PartialEq, Eq, Hash)]
 pub enum CardinalDirection {
     North,
     South,

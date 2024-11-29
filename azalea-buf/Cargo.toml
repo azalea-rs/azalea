@@ -7,12 +7,12 @@ license = { workspace = true }
 repository = { workspace = true }
 
 [dependencies]
-simdnbt = { workspace = true }
 azalea-buf-macros = { path = "./azalea-buf-macros", version = "0.10.0" }
 byteorder = { workspace = true }
-tracing = { workspace = true }
 serde_json = { workspace = true, optional = true }
+simdnbt = { workspace = true }
 thiserror = { workspace = true }
+tracing = { workspace = true }
 uuid = { workspace = true }
 
 [features]

@@ -25,10 +25,10 @@ bevy_ecs = { workspace = true }
 bevy_log = { workspace = true, optional = true }
 bevy_tasks = { workspace = true }
 bevy_time = { workspace = true }
-derive_more = { workspace = true }
-minecraft_folder_path = "0.1.2"
-parking_lot = { workspace = true }
-regex = "1.11.1"
+derive_more = { workspace = true, features = ["deref", "deref_mut"] }
+minecraft_folder_path = { workspace = true }
+parking_lot = { workspace = true, features = ["deadlock_detection"] }
+regex = { workspace = true }
 reqwest = { workspace = true }
 simdnbt = { workspace = true }
 thiserror = { workspace = true }

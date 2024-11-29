@@ -5,14 +5,13 @@ use std::io;
 use azalea_protocol::{
     connect::{Connection, ConnectionError, Proxy},
     packets::{
-        handshaking::{
-            client_intention_packet::ClientIntentionPacket, ClientboundHandshakePacket,
+        handshake::{
+            s_intention::ServerboundIntention, ClientboundHandshakePacket,
             ServerboundHandshakePacket,
         },
         status::{
-            clientbound_status_response_packet::ClientboundStatusResponsePacket,
-            serverbound_status_request_packet::ServerboundStatusRequestPacket,
-            ClientboundStatusPacket,
+            c_status_response::ClientboundStatusResponse,
+            s_status_request::ServerboundStatusRequest, ClientboundStatusPacket,
         },
         ClientIntention, PROTOCOL_VERSION,
     },
@@ -49,7 +48,7 @@ pub enum PingError {
 /// ```
 pub async fn ping_server(
     address: impl TryInto<ServerAddress>,
-) -> Result<ClientboundStatusResponsePacket, PingError> {
+) -> Result<ClientboundStatusResponse, PingError> {
     let address: ServerAddress = address.try_into().map_err(|_| PingError::InvalidAddress)?;
     let resolved_address = resolver::resolve_address(&address).await?;
     let conn = Connection::new(&resolved_address).await?;
@@ -60,7 +59,7 @@ pub async fn ping_server(
 pub async fn ping_server_with_proxy(
     address: impl TryInto<ServerAddress>,
     proxy: Proxy,
-) -> Result<ClientboundStatusResponsePacket, PingError> {
+) -> Result<ClientboundStatusResponse, PingError> {
     let address: ServerAddress = address.try_into().map_err(|_| PingError::InvalidAddress)?;
     let resolved_address = resolver::resolve_address(&address).await?;
     let conn = Connection::new_with_proxy(&resolved_address, proxy).await?;
@@ -73,22 +72,19 @@ pub async fn ping_server_with_proxy(
 pub async fn ping_server_with_connection(
     address: ServerAddress,
     mut conn: Connection<ClientboundHandshakePacket, ServerboundHandshakePacket>,
-) -> Result<ClientboundStatusResponsePacket, PingError> {
+) -> Result<ClientboundStatusResponse, PingError> {
     // send the client intention packet and switch to the status state
-    conn.write(
-        ClientIntentionPacket {
-            protocol_version: PROTOCOL_VERSION,
-            hostname: address.host.clone(),
-            port: address.port,
-            intention: ClientIntention::Status,
-        }
-        .get(),
-    )
+    conn.write(ServerboundIntention {
+        protocol_version: PROTOCOL_VERSION,
+        hostname: address.host.clone(),
+        port: address.port,
+        intention: ClientIntention::Status,
+    })
     .await?;
     let mut conn = conn.status();
 
     // send the empty status request packet
-    conn.write(ServerboundStatusRequestPacket {}.get()).await?;
+    conn.write(ServerboundStatusRequest {}).await?;
 
     let packet = conn.read().await?;
 

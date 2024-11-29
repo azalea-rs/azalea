@@ -2,25 +2,22 @@
 
 use std::io::{Cursor, Write};
 
-use azalea_buf::{
-    BufReadError, McBuf, McBufReadable, McBufVarReadable, McBufVarWritable, McBufWritable,
-};
+use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
 use azalea_chat::FormattedText;
 use azalea_core::{
     direction::Direction,
     position::{BlockPos, GlobalPos, Vec3},
 };
-use azalea_inventory::ItemSlot;
+use azalea_inventory::ItemStack;
 use bevy_ecs::component::Component;
 use derive_more::Deref;
 use enum_as_inner::EnumAsInner;
-use nohash_hasher::IntSet;
 use uuid::Uuid;
 
 use crate::particle::Particle;
 
 #[derive(Clone, Debug, Deref)]
-pub struct EntityMetadataItems(Vec<EntityDataItem>);
+pub struct EntityMetadataItems(pub Vec<EntityDataItem>);
 
 #[derive(Clone, Debug)]
 pub struct EntityDataItem {
@@ -30,41 +27,35 @@ pub struct EntityDataItem {
     pub value: EntityDataValue,
 }
 
-impl EntityMetadataItems {
-    pub fn new(data: Vec<EntityDataItem>) -> Self {
-        EntityMetadataItems(data)
-    }
-}
-
-impl McBufReadable for EntityMetadataItems {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+impl AzaleaRead for EntityMetadataItems {
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let mut metadata = Vec::new();
         loop {
-            let id = u8::read_from(buf)?;
+            let id = u8::azalea_read(buf)?;
             if id == 0xff {
                 break;
             }
-            let value = EntityDataValue::read_from(buf)?;
+            let value = EntityDataValue::azalea_read(buf)?;
             metadata.push(EntityDataItem { index: id, value });
         }
         Ok(EntityMetadataItems(metadata))
     }
 }
 
-impl McBufWritable for EntityMetadataItems {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+impl AzaleaWrite for EntityMetadataItems {
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         for item in &self.0 {
-            item.index.write_into(buf)?;
-            item.value.write_into(buf)?;
+            item.index.azalea_write(buf)?;
+            item.value.azalea_write(buf)?;
         }
-        0xffu8.write_into(buf)?;
+        0xffu8.azalea_write(buf)?;
         Ok(())
     }
 }
 
 // Note: This enum is partially generated and parsed by
 // codegen/lib/code/entity.py
-#[derive(Clone, Debug, EnumAsInner, McBuf)]
+#[derive(Clone, Debug, EnumAsInner, AzBuf)]
 pub enum EntityDataValue {
     Byte(u8),
     Int(#[var] i32),
@@ -73,7 +64,7 @@ pub enum EntityDataValue {
     String(String),
     FormattedText(FormattedText),
     OptionalFormattedText(Option<FormattedText>),
-    ItemStack(ItemSlot),
+    ItemStack(ItemStack),
     Boolean(bool),
     Rotations(Rotations),
     BlockPos(BlockPos),
@@ -104,7 +95,7 @@ pub enum EntityDataValue {
 #[derive(Clone, Debug)]
 pub struct OptionalUnsignedInt(pub Option<u32>);
 
-#[derive(Clone, Debug, McBuf)]
+#[derive(Clone, Debug, AzBuf)]
 pub struct Quaternion {
     pub x: f32,
     pub y: f32,
@@ -114,7 +105,7 @@ pub struct Quaternion {
 
 // mojang just calls this ArmadilloState but i added "Kind" since otherwise it
 // collides with a name in metadata.rs
-#[derive(Clone, Debug, Copy, Default, McBuf)]
+#[derive(Clone, Debug, Copy, Default, AzBuf)]
 pub enum ArmadilloStateKind {
     #[default]
     Idle,
@@ -122,9 +113,9 @@ pub enum ArmadilloStateKind {
     Scared,
 }
 
-impl McBufReadable for OptionalUnsignedInt {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let val = u32::var_read_from(buf)?;
+impl AzaleaRead for OptionalUnsignedInt {
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let val = u32::azalea_read_var(buf)?;
         Ok(OptionalUnsignedInt(if val == 0 {
             None
         } else {
@@ -132,24 +123,24 @@ impl McBufReadable for OptionalUnsignedInt {
         }))
     }
 }
-impl McBufWritable for OptionalUnsignedInt {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+impl AzaleaWrite for OptionalUnsignedInt {
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         match self.0 {
-            Some(val) => (val + 1).var_write_into(buf),
-            None => 0u32.var_write_into(buf),
+            Some(val) => (val + 1).azalea_write_var(buf),
+            None => 0u32.azalea_write_var(buf),
         }
     }
 }
 
 /// A set of x, y, and z rotations. This is used for armor stands.
-#[derive(Clone, Debug, McBuf, Default)]
+#[derive(Clone, Debug, AzBuf, Default)]
 pub struct Rotations {
     pub x: f32,
     pub y: f32,
     pub z: f32,
 }
 
-#[derive(Clone, Debug, Copy, McBuf, Default, Component, Eq, PartialEq)]
+#[derive(Clone, Debug, Copy, AzBuf, Default, Component, Eq, PartialEq)]
 pub enum Pose {
     #[default]
     Standing = 0,
@@ -162,7 +153,7 @@ pub enum Pose {
     Dying,
 }
 
-#[derive(Debug, Clone, McBuf)]
+#[derive(Debug, Clone, AzBuf)]
 pub struct VillagerData {
     pub kind: azalea_registry::VillagerKind,
     pub profession: azalea_registry::VillagerProfession,
@@ -170,36 +161,7 @@ pub struct VillagerData {
     pub level: u32,
 }
 
-impl TryFrom<EntityMetadataItems> for Vec<EntityDataValue> {
-    type Error = String;
-
-    fn try_from(data: EntityMetadataItems) -> Result<Self, Self::Error> {
-        let mut data = data.0;
-
-        data.sort_by(|a, b| a.index.cmp(&b.index));
-
-        let mut prev_indexes = IntSet::default();
-        let len = data.len();
-        // check to make sure it's valid, in vanilla this is guaranteed to pass
-        // but it's possible there's mods that mess with it so we want to make
-        // sure it's good
-        for item in &data {
-            if prev_indexes.contains(&item.index) {
-                return Err(format!("Index {} is duplicated", item.index));
-            }
-            if item.index as usize > len {
-                return Err(format!("Index {} is too big", item.index));
-            }
-            prev_indexes.insert(item.index);
-        }
-
-        let data = data.into_iter().map(|d| d.value).collect();
-
-        Ok(data)
-    }
-}
-
-#[derive(Debug, Copy, Clone, McBuf, Default)]
+#[derive(Debug, Copy, Clone, AzBuf, Default)]
 pub enum SnifferState {
     #[default]
     Idling,

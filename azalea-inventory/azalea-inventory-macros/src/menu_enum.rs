@@ -34,11 +34,11 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
 }
 
 /// Player {
-///     craft_result: ItemSlot,
-///     craft: [ItemSlot; 4],
-///     armor: [ItemSlot; 4],
-///     inventory: [ItemSlot; 36],
-///     offhand: ItemSlot,
+///     craft_result: ItemStack,
+///     craft: [ItemStack; 4],
+///     armor: [ItemStack; 4],
+///     inventory: [ItemStack; 36],
+///     offhand: ItemStack,
 /// },
 fn generate_variant_for_menu(menu: &Menu) -> TokenStream {
     let name = &menu.name;
@@ -56,7 +56,7 @@ fn generate_fields(fields: &[Field], public: bool) -> TokenStream {
     for field in fields {
         let field_length = field.length;
         let field_type = if field.length == 1 {
-            quote! { ItemSlot }
+            quote! { ItemStack }
         } else {
             quote! { SlotList<#field_length> }
         };

@@ -19,7 +19,7 @@ azalea-world = { path = "../azalea-world", version = "0.10.0" }
 bevy_app = { workspace = true }
 bevy_ecs = { workspace = true }
 derive_more = { workspace = true }
-enum-as-inner = "0.6.1"
+enum-as-inner = { workspace = true }
 nohash-hasher = { workspace = true }
 parking_lot = { workspace = true }
 simdnbt = { workspace = true }

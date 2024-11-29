@@ -1,6 +1,6 @@
 [package]
 name = "azalea-buf-macros"
-description = "#[derive(McBuf)]"
+description = "#[derive(AzBuf)]"
 version = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }
@@ -12,4 +12,4 @@ proc-macro = true
 [dependencies]
 proc-macro2 = { workspace = true }
 quote = { workspace = true }
-syn = { workspace = true }
+syn = { workspace = true, features = ["extra-traits"] }

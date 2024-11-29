@@ -453,7 +453,7 @@ pub fn timeout_movement(
         // don't timeout if we're mining
         if let Some(mining) = mining {
             // also make sure we're close enough to the block that's being mined
-            if mining.pos.distance_to_sqr(&BlockPos::from(position)) < 6_i32.pow(2) {
+            if mining.pos.distance_squared_to(&BlockPos::from(position)) < 6_i32.pow(2) {
                 // also reset the last_node_reached_at so we don't timeout after we finish
                 // mining
                 executing_path.last_node_reached_at = Instant::now();

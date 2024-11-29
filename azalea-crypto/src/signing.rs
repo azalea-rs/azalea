@@ -1,6 +1,6 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use azalea_buf::{McBuf, McBufWritable};
+use azalea_buf::{AzBuf, AzaleaWrite};
 use rsa::{
     signature::{RandomizedSigner, SignatureEncoding},
     RsaPrivateKey,
@@ -8,18 +8,18 @@ use rsa::{
 use sha2::Sha256;
 use uuid::Uuid;
 
-#[derive(Debug, Clone, McBuf)]
+#[derive(Debug, Clone, AzBuf)]
 pub struct SaltSignaturePair {
     pub salt: u64,
     pub signature: Vec<u8>,
 }
 
-#[derive(Clone, Debug, PartialEq, McBuf)]
+#[derive(Clone, Debug, PartialEq, AzBuf)]
 pub struct MessageSignature {
     pub bytes: [u8; 256],
 }
 
-#[derive(Clone, Debug, McBuf, PartialEq)]
+#[derive(Clone, Debug, AzBuf, PartialEq)]
 pub struct SignedMessageHeader {
     pub previous_signature: Option<MessageSignature>,
     pub sender: Uuid,
@@ -51,17 +51,17 @@ pub struct SignChatMessageOptions {
 pub fn sign_chat_message(opts: &SignChatMessageOptions) -> MessageSignature {
     let mut data_to_sign = Vec::new();
     // always 1 for some reason
-    1i32.write_into(&mut data_to_sign).unwrap();
+    1i32.azalea_write(&mut data_to_sign).unwrap();
     // player uuid
-    opts.account_uuid.write_into(&mut data_to_sign).unwrap();
+    opts.account_uuid.azalea_write(&mut data_to_sign).unwrap();
     // chat session uuid
     opts.chat_session_uuid
-        .write_into(&mut data_to_sign)
+        .azalea_write(&mut data_to_sign)
         .unwrap();
     // message index
-    opts.message_index.write_into(&mut data_to_sign).unwrap();
+    opts.message_index.azalea_write(&mut data_to_sign).unwrap();
     // salt
-    opts.salt.write_into(&mut data_to_sign).unwrap();
+    opts.salt.azalea_write(&mut data_to_sign).unwrap();
 
     // timestamp as seconds
     let seconds_since_epoch = opts
@@ -69,16 +69,16 @@ pub fn sign_chat_message(opts: &SignChatMessageOptions) -> MessageSignature {
         .duration_since(UNIX_EPOCH)
         .expect("timestamp must be after epoch")
         .as_secs();
-    seconds_since_epoch.write_into(&mut data_to_sign).unwrap();
+    seconds_since_epoch.azalea_write(&mut data_to_sign).unwrap();
 
     // message length as u32
     let message_len: u32 = opts.message.len().try_into().unwrap();
-    message_len.write_into(&mut data_to_sign).unwrap();
+    message_len.azalea_write(&mut data_to_sign).unwrap();
     // message bytes
     data_to_sign.extend_from_slice(opts.message.as_bytes());
 
     // last seen messages length
-    0i32.write_into(&mut data_to_sign).unwrap();
+    0i32.azalea_write(&mut data_to_sign).unwrap();
     // signatures of last seen messages
     // ... not implemented yet
 

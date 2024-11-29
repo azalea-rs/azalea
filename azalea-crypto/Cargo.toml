@@ -10,17 +10,16 @@ repository = { workspace = true }
 criterion = { workspace = true }
 
 [dependencies]
-aes = "0.8.4"
+aes = { workspace = true }
 azalea-buf = { path = "../azalea-buf", version = "0.10.0" }
-cfb8 = "0.8.1"
+cfb8 = { workspace = true }
 num-bigint = { workspace = true }
 rand = { workspace = true, features = ["getrandom"] }
 rsa = { workspace = true, features = ["sha2"] }
-rsa_public_encrypt_pkcs1 = "0.4.0"
-sha-1 = "0.10.1"
-sha2 = "0.10.8"
+rsa_public_encrypt_pkcs1 = { workspace = true }
+sha-1 = { workspace = true }
+sha2 = { workspace = true }
 uuid = { workspace = true }
-
 
 [[bench]]
 harness = false

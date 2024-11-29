@@ -423,7 +423,7 @@ impl VoxelShape {
             return None;
         }
         let vector = to - from;
-        if vector.length_sqr() < EPSILON {
+        if vector.length_squared() < EPSILON {
             return None;
         }
         let right_after_start = from + &(vector * 0.0001);

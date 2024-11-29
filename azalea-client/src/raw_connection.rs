@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use azalea_protocol::{
     connect::{RawReadConnection, RawWriteConnection},
-    packets::{ConnectionProtocol, ProtocolPacket},
+    packets::{ConnectionProtocol, Packet, ProtocolPacket},
     read::ReadPacketError,
     write::serialize_packet,
 };
@@ -21,9 +21,9 @@ pub struct RawConnection {
     reader: RawConnectionReader,
     writer: RawConnectionWriter,
 
-    /// A task that reads packets from the server.
-    ///
-    /// The client is disconnected when this task ends.
+    /// Packets sent to this will be sent to the server.
+    /// A task that reads packets from the server. The client is disconnected
+    /// when this task ends.
     read_packets_task: tokio::task::JoinHandle<()>,
     /// A task that writes packets from the server.
     write_packets_task: tokio::task::JoinHandle<()>,
@@ -106,8 +106,9 @@ impl RawConnection {
     /// encoding it failed somehow (like it's too big or something).
     pub fn write_packet<P: ProtocolPacket + Debug>(
         &self,
-        packet: P,
+        packet: impl Packet<P>,
     ) -> Result<(), WritePacketError> {
+        let packet = packet.into_variant();
         let raw_packet = serialize_packet(&packet)?;
         self.write_raw_packet(raw_packet)?;
 

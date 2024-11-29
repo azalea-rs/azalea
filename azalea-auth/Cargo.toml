@@ -9,9 +9,9 @@ repository = { workspace = true }
 [dependencies]
 azalea-buf = { path = "../azalea-buf", version = "0.10.0" }
 azalea-crypto = { path = "../azalea-crypto", version = "0.10.0" }
-base64 = "0.22.1"
-chrono = { version = "0.4.38", default-features = false, features = ["serde"] }
-md-5 = "0.10.6"
+base64 = { workspace = true }
+chrono = { workspace = true, features = ["serde"] }
+md-5 = { workspace = true }
 reqwest = { workspace = true, features = ["json", "rustls-tls"] }
 rsa = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
@@ -22,5 +22,5 @@ tracing = { workspace = true }
 uuid = { workspace = true, features = ["serde", "v3"] }
 
 [dev-dependencies]
-env_logger = "0.11.5"
+env_logger = { workspace = true }
 tokio = { workspace = true, features = ["full"] }

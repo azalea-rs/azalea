@@ -1,20 +1,18 @@
 pub mod common;
-pub mod configuration;
+pub mod config;
 pub mod game;
-pub mod handshaking;
+pub mod handshake;
 pub mod login;
 pub mod status;
 
 use std::io::{Cursor, Write};
 
-use azalea_buf::{BufReadError, McBufVarReadable, McBufVarWritable, McBufWritable};
+use azalea_buf::{AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
 
 use crate::read::ReadPacketError;
 
-// TODO: rename the packet files to just like clientbound_add_entity instead of
-// clientbound_add_entity_packet
-
 pub const PROTOCOL_VERSION: i32 = 768;
+pub const VERSION_NAME: &str = "1.21.3";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ConnectionProtocol {
@@ -39,7 +37,7 @@ impl ConnectionProtocol {
     }
 }
 
-/// An enum of packets for a certain protocol
+/// An enum of packets for a certain protocol.
 pub trait ProtocolPacket
 where
     Self: Sized,
@@ -50,6 +48,10 @@ where
     fn read(id: u32, buf: &mut Cursor<&[u8]>) -> Result<Self, Box<ReadPacketError>>;
 
     fn write(&self, buf: &mut impl Write) -> Result<(), std::io::Error>;
+}
+
+pub trait Packet<Protocol> {
+    fn into_variant(self) -> Protocol;
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -81,16 +83,16 @@ impl From<ClientIntention> for ConnectionProtocol {
     }
 }
 
-impl azalea_buf::McBufReadable for ClientIntention {
-    fn read_from(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let id = i32::var_read_from(buf)?;
+impl azalea_buf::AzaleaRead for ClientIntention {
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let id = i32::azalea_read_var(buf)?;
         id.try_into()
             .map_err(|_| BufReadError::UnexpectedEnumVariant { id })
     }
 }
 
-impl McBufWritable for ClientIntention {
-    fn write_into(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        (*self as i32).var_write_into(buf)
+impl AzaleaWrite for ClientIntention {
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        (*self as i32).azalea_write_var(buf)
     }
 }

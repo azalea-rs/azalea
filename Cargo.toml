@@ -1,66 +1,86 @@
 [workspace]
 members = [
     "azalea",
-    "azalea-client",
-    "azalea-protocol",
-    "azalea-chat",
-    "azalea-core",
     "azalea-auth",
-    "azalea-brigadier",
-    "azalea-crypto",
-    "azalea-world",
-    "azalea-language",
     "azalea-block",
+    "azalea-brigadier",
     "azalea-buf",
-    "azalea-physics",
-    "azalea-registry",
-    "azalea-inventory",
+    "azalea-chat",
+    "azalea-client",
+    "azalea-core",
+    "azalea-crypto",
     "azalea-entity",
+    "azalea-inventory",
+    "azalea-language",
+    "azalea-physics",
+    "azalea-protocol",
+    "azalea-registry",
+    "azalea-world",
 ]
 resolver = "2"
 
 # --- Workspace Settings ---
 
 [workspace.package]
-version = "0.10.3+mc1.21.1"
+version = "0.10.3+mc1.21.3"
 edition = "2021"
 license = "MIT"
 repository = "https://github.com/azalea-rs/azalea"
 # homepage = "https://github.com/azalea-rs/azalea"
 
 [workspace.dependencies]
+aes = "0.8.4"
 anyhow = "1.0.93"
+async-recursion = "1.1.1"
+async-trait = "0.1.83"
+base64 = "0.22.1"
 bevy_app = "0.15.0"
 bevy_ecs = { version = "0.15.0", default-features = false }
 bevy_log = "0.15.0"
 bevy_tasks = "0.15.0"
 bevy_time = "0.15.0"
 byteorder = "1.5.0"
-criterion = { version = "0.5.1", features = ["html_reports"] }
-derive_more = { version = "1.0.0", features = ["full"] }
+bytes = "1.9.0"
+cfb8 = "0.8.1"
+chrono = { version = "0.4.38", default-features = false }
+criterion = "0.5.1"
+derive_more = "1.0.0"
+enum-as-inner = "0.6.1"
+env_logger = "0.11.5"
+flate2 = "1.0.35"
 futures = "0.3.31"
 futures-lite = "2.5.0"
-futures-util = "0.3.31"
+#futures-util = "0.3.31"
+log = "0.4.22"
+md-5 = "0.10.6"
+minecraft_folder_path = "0.1.2"
 nohash-hasher = "0.2.0"
 num-bigint = "0.4.6"
 num-traits = "0.2.19"
 parking_lot = "0.12.3"
+priority-queue = "2.1.1"
 proc-macro2 = "1.0.92"
 quote = "1.0.37"
 rand = "0.8.5"
+regex = "1.11.1"
 reqwest = { version = "0.12.9", default-features = false }
 rsa = "0.9.7"
+rsa_public_encrypt_pkcs1 = "0.4.0"
 rustc-hash = "2.0.0"
 serde = "1.0.215"
 serde_json = "1.0.133"
-simdnbt = "0.6.1"
-smallvec = "1.13.2"
-syn = { version = "2.0.89", features = ["full"] }
+sha-1 = "0.10.1"
+sha2 = "0.10.8"
+simdnbt = "0.6"
+#smallvec = "1.13.2"
+socks5-impl = "0.5.17"
+syn = "2.0.90"
 thiserror = "2.0.3"
 tokio = "1.41.1"
 tokio-util = "0.7.12"
 tracing = "0.1.41"
 tracing-subscriber = "0.3.19"
+trust-dns-resolver = { version = "0.23.2", default-features = false }
 uuid = "1.11.0"
 
 # --- Profile Settings ---

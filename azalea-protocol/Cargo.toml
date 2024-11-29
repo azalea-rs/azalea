@@ -12,7 +12,7 @@ tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 
 [dependencies]
-async-recursion = "1.1.1"
+async-recursion = { workspace = true }
 azalea-auth = { path = "../azalea-auth", version = "0.10.0" }
 azalea-block = { path = "../azalea-block", version = "0.10.0", default-features = false }
 azalea-brigadier = { path = "../azalea-brigadier", version = "0.10.0", features = [
@@ -33,23 +33,23 @@ azalea-protocol-macros = { path = "./azalea-protocol-macros", version = "0.10.0"
 azalea-registry = { path = "../azalea-registry", version = "0.10.0" }
 azalea-world = { path = "../azalea-world", version = "0.10.0" }
 bevy_ecs = { workspace = true }
-byteorder = { workspace = true }
-bytes = "1.6.0"
-flate2 = "1.0.30"
+#byteorder = { workspace = true }
+bytes = { workspace = true }
+flate2 = { workspace = true }
 futures = { workspace = true }
 futures-lite = { workspace = true }
-tracing = { workspace = true }
+#futures-util = { workspace = true }
+log = { workspace = true }
 serde = { workspace = true, features = ["serde_derive"] }
 serde_json = { workspace = true }
 simdnbt = { workspace = true }
+socks5-impl = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["io-util", "net", "macros"] }
 tokio-util = { workspace = true, features = ["codec"] }
-trust-dns-resolver = { version = "0.23.2", default-features = false, features = [
-    "tokio-runtime",
-] }
+tracing = { workspace = true }
+trust-dns-resolver = { workspace = true, features = ["tokio-runtime"] }
 uuid = { workspace = true }
-socks5-impl = "0.5.14"
 
 [features]
 connecting = []
