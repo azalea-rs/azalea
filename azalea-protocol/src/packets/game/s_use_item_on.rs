@@ -27,8 +27,10 @@ pub struct BlockHit {
     /// network, this is transmitted as the difference between the location and
     /// block position.
     pub location: Vec3,
-    /// Whether the player's head is inside of a block.
+    /// Whether the player's head is inside a block.
     pub inside: bool,
+    /// Whether the player's hitting the world border.
+    pub world_border: bool,
 }
 
 impl AzaleaWrite for BlockHit {
@@ -48,6 +50,7 @@ impl AzaleaWrite for BlockHit {
             buf,
         )?;
         self.inside.azalea_write(buf)?;
+        self.world_border.azalea_write(buf)?;
         Ok(())
     }
 }
@@ -60,6 +63,7 @@ impl AzaleaRead for BlockHit {
         let cursor_y = f32::azalea_read(buf)?;
         let cursor_z = f32::azalea_read(buf)?;
         let inside = bool::azalea_read(buf)?;
+        let world_border = bool::azalea_read(buf)?;
         Ok(Self {
             block_pos,
             direction,
@@ -69,6 +73,7 @@ impl AzaleaRead for BlockHit {
                 z: f64::from(block_pos.z) + f64::from(cursor_z),
             },
             inside,
+            world_border,
         })
     }
 }

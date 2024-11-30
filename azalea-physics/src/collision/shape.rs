@@ -439,6 +439,7 @@ impl VoxelShape {
                 location: right_after_start,
                 inside: true,
                 miss: false,
+                world_border: false,
             })
         } else {
             AABB::clip_iterable(&self.to_aabbs(), from, to, block_pos)

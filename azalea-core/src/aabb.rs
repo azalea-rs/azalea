@@ -260,6 +260,7 @@ impl AABB {
             block_pos: *pos,
             inside: false,
             miss: false,
+            world_border: false,
         })
     }
 
