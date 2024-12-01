@@ -136,6 +136,7 @@ pub fn handle_block_interact_event(
                 direction: hit_result.direction,
                 location: hit_result.location,
                 inside: hit_result.inside,
+                world_border: hit_result.world_border,
             }
         } else {
             // we're not looking at the block, so make up some numbers
@@ -144,6 +145,7 @@ pub fn handle_block_interact_event(
                 direction: Direction::Up,
                 location: event.position.center(),
                 inside: false,
+                world_border: false,
             }
         };
 

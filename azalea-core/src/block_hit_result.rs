@@ -10,6 +10,7 @@ pub struct BlockHitResult {
     pub block_pos: BlockPos,
     pub miss: bool,
     pub inside: bool,
+    pub world_border: bool,
 }
 
 impl BlockHitResult {
@@ -20,6 +21,7 @@ impl BlockHitResult {
             block_pos,
             miss: true,
             inside: false,
+            world_border: false,
         }
     }
 
