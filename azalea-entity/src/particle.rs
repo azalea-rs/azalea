@@ -163,6 +163,7 @@ impl From<ParticleKind> for Particle {
             ParticleKind::Fishing => Self::Fishing,
             ParticleKind::Flame => Self::Flame,
             ParticleKind::CherryLeaves => Self::CherryLeaves,
+            ParticleKind::PaleOakLeaves => Self::PaleOakLeaves,
             ParticleKind::SculkSoul => Self::SculkSoul,
             ParticleKind::SculkCharge => Self::SculkCharge(SculkChargeParticle::default()),
             ParticleKind::SculkChargePop => Self::SculkChargePop,
