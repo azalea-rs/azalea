@@ -3,7 +3,7 @@ description = "Cryptography features used in Minecraft."
 edition = "2021"
 license = "MIT"
 name = "azalea-crypto"
-version = "0.10.3+mc1.21.4-rc1"
+version = "0.10.3+mc1.21.4"
 repository = "https://github.com/azalea-rs/azalea/tree/main/azalea-crypto"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
