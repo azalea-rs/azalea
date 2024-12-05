@@ -1,12 +1,10 @@
 [package]
-description = "Translate Minecraft strings from their id."
-edition = "2021"
-license = "MIT"
 name = "azalea-language"
-repository = "https://github.com/azalea-rs/azalea/tree/main/azalea-language"
-version = "0.10.3+mc1.21.4"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+description = "Translate Minecraft strings from their id."
+version = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
 
 [dependencies]
 serde = { workspace = true }

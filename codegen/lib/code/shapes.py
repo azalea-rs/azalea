@@ -119,10 +119,11 @@ def generate_block_shapes_code(blocks: dict, shapes: dict, block_states_report):
 #![allow(clippy::explicit_auto_deref)]
 #![allow(clippy::redundant_closure)]
 
+use std::sync::LazyLock;
+
 use super::VoxelShape;
 use crate::collision::{{self, Shapes}};
 use azalea_block::*;
-use std::sync::LazyLock;
 
 pub trait BlockWithShape {{
     fn shape(&self) -> &'static VoxelShape;

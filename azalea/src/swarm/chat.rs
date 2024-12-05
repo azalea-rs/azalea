@@ -188,70 +188,70 @@ mod tests {
     async fn test_swarm_chat() {
         let mut app = make_test_app();
 
-        let bot0 = app.world.spawn_empty().id();
-        let bot1 = app.world.spawn_empty().id();
+        let bot0 = app.world_mut().spawn_empty().id();
+        let bot1 = app.world_mut().spawn_empty().id();
 
-        app.world.send_event(ChatReceivedEvent {
+        app.world_mut().send_event(ChatReceivedEvent {
             entity: bot0,
             packet: ChatPacket::new("a"),
         });
         app.update();
 
         // the swarm should get the event immediately after the bot gets it
-        assert_eq!(drain_events(&mut app.world), vec![ChatPacket::new("a")]);
+        assert_eq!(drain_events(app.world_mut()), vec![ChatPacket::new("a")]);
         assert_eq!(
-            app.world.get::<ClientChatState>(bot0).unwrap().chat_index,
+            app.world().get::<ClientChatState>(bot0).unwrap().chat_index,
             1
         );
         // and a second bot sending the event shouldn't do anything
-        app.world.send_event(ChatReceivedEvent {
+        app.world_mut().send_event(ChatReceivedEvent {
             entity: bot1,
             packet: ChatPacket::new("a"),
         });
         app.update();
-        assert_eq!(drain_events(&mut app.world), vec![]);
+        assert_eq!(drain_events(app.world_mut()), vec![]);
         assert_eq!(
-            app.world.get::<ClientChatState>(bot1).unwrap().chat_index,
+            app.world().get::<ClientChatState>(bot1).unwrap().chat_index,
             1
         );
 
         // but if the first one gets it again, it should sent it again
-        app.world.send_event(ChatReceivedEvent {
+        app.world_mut().send_event(ChatReceivedEvent {
             entity: bot0,
             packet: ChatPacket::new("a"),
         });
         app.update();
-        assert_eq!(drain_events(&mut app.world), vec![ChatPacket::new("a")]);
+        assert_eq!(drain_events(app.world_mut()), vec![ChatPacket::new("a")]);
 
         // alright and now the second bot got a different chat message and it should be
         // sent
-        app.world.send_event(ChatReceivedEvent {
+        app.world_mut().send_event(ChatReceivedEvent {
             entity: bot1,
             packet: ChatPacket::new("b"),
         });
         app.update();
-        assert_eq!(drain_events(&mut app.world), vec![ChatPacket::new("b")]);
+        assert_eq!(drain_events(app.world_mut()), vec![ChatPacket::new("b")]);
     }
 
     #[tokio::test]
     async fn test_new_bot() {
         let mut app = make_test_app();
 
-        let bot0 = app.world.spawn_empty().id();
+        let bot0 = app.world_mut().spawn_empty().id();
 
         // bot0 gets a chat message
-        app.world.send_event(ChatReceivedEvent {
+        app.world_mut().send_event(ChatReceivedEvent {
             entity: bot0,
             packet: ChatPacket::new("a"),
         });
         app.update();
-        assert_eq!(drain_events(&mut app.world), vec![ChatPacket::new("a")]);
-        let bot1 = app.world.spawn_empty().id();
-        app.world.send_event(ChatReceivedEvent {
+        assert_eq!(drain_events(app.world_mut()), vec![ChatPacket::new("a")]);
+        let bot1 = app.world_mut().spawn_empty().id();
+        app.world_mut().send_event(ChatReceivedEvent {
             entity: bot1,
             packet: ChatPacket::new("b"),
         });
         app.update();
-        assert_eq!(drain_events(&mut app.world), vec![ChatPacket::new("b")]);
+        assert_eq!(drain_events(app.world_mut()), vec![ChatPacket::new("b")]);
     }
 }

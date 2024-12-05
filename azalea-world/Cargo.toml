@@ -1,12 +1,14 @@
 [package]
-description = "The Minecraft world representation used in Azalea."
-edition = "2021"
-license = "MIT"
 name = "azalea-world"
-repository = "https://github.com/azalea-rs/azalea/tree/main/azalea-world"
-version = "0.10.3+mc1.21.4"
+description = "The Minecraft world representation used in Azalea."
+version = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[dev-dependencies]
+azalea-client = { path = "../azalea-client" }
+criterion = "0.5.1"
 
 [dependencies]
 azalea-block = { path = "../azalea-block", default-features = false, version = "0.10.0" }
@@ -23,10 +25,6 @@ rustc-hash = { workspace = true }
 simdnbt = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
-
-[dev-dependencies]
-azalea-client = { path = "../azalea-client" }
-criterion = { workspace = true }
 
 [[bench]]
 name = "chunks"

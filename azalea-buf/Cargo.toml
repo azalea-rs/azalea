@@ -1,12 +1,10 @@
 [package]
-description = "Serialize and deserialize buffers from Minecraft."
-edition = "2021"
-license = "MIT"
 name = "azalea-buf"
-repository = "https://github.com/azalea-rs/azalea/tree/main/azalea-buf"
-version = "0.10.3+mc1.21.4"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+description = "Serialize and deserialize buffers from Minecraft."
+version = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
 
 [dependencies]
 azalea-buf-macros = { path = "./azalea-buf-macros", version = "0.10.0" }

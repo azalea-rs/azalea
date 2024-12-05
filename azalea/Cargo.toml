@@ -1,10 +1,10 @@
 [package]
-description = "A framework for creating Minecraft bots."
-edition = "2021"
-license = "MIT"
 name = "azalea"
-repository = "https://github.com/azalea-rs/azalea/tree/main/azalea"
-version = "0.10.3+mc1.21.4"
+description = "A framework for creating Minecraft bots."
+version = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
 
 [package.metadata.release]
 pre-release-replacements = [
@@ -30,7 +30,7 @@ azalea-world = { version = "0.10.0", path = "../azalea-world" }
 bevy_app = { workspace = true }
 bevy_ecs = { workspace = true }
 bevy_log = { workspace = true }
-bevy_tasks = { workspace = true, features = ["multi-threaded"] }
+bevy_tasks = { workspace = true, features = ["multi_threaded"] }
 #bevy_time = { workspace = true }
 derive_more = { workspace = true, features = ["deref", "deref_mut"] }
 futures = { workspace = true }

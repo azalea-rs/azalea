@@ -23,12 +23,20 @@ fn bevy_app() {
     app.init_resource::<DispatchStorage>();
 
     // Process commands from bevy
-    app.world
-        .run_system_once(DispatchStorage::bevy_process_commands);
+    if let Err(err) = app
+        .world_mut()
+        .run_system_once(DispatchStorage::bevy_process_commands)
+    {
+        panic!("Failed to process commands: {err}");
+    }
 
     // Verify spawned entities exist after processing commands
-    app.world
-        .run_system_once(DispatchStorage::verify_spawned_entities);
+    if let Err(err) = app
+        .world_mut()
+        .run_system_once(DispatchStorage::verify_spawned_entities)
+    {
+        panic!("Failed to verify spawned entities: {err}");
+    }
 }
 
 #[derive(Resource)]

@@ -1,12 +1,10 @@
 [package]
-description = "Miscellaneous things in Azalea."
-edition = "2021"
-license = "MIT"
 name = "azalea-core"
-repository = "https://github.com/azalea-rs/azalea/tree/main/azalea-core"
-version = "0.10.3+mc1.21.4"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+description = "Miscellaneous things in Azalea."
+version = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
 
 [dependencies]
 azalea-buf = { path = "../azalea-buf", version = "0.10.0" }

@@ -41,7 +41,7 @@ pub struct ServerAddress {
     pub port: u16,
 }
 
-impl TryFrom<&'_ str> for ServerAddress {
+impl TryFrom<&str> for ServerAddress {
     type Error = String;
 
     /// Convert a Minecraft server address (host:port, the port is optional) to

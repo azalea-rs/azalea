@@ -137,8 +137,8 @@ pub fn death_event(query: Query<&LocalPlayerEvents, Added<Dead>>) {
     }
 }
 
-#[allow(clippy::large_enum_variant)]
 #[derive(Error, Debug)]
+#[expect(clippy::large_enum_variant)]
 pub enum HandlePacketError {
     #[error("{0}")]
     Poison(String),
