@@ -13,6 +13,7 @@ use std::{
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
 
+use crate::math;
 use crate::resource_location::ResourceLocation;
 
 macro_rules! vec3_impl {
@@ -232,6 +233,23 @@ impl Vec3 {
     /// Equivalent to `(self - other).length()`.
     pub fn distance_to(&self, other: &Self) -> f64 {
         (self - other).length()
+    }
+
+    pub fn x_rot(self, radians: f32) -> Vec3 {
+        let x_delta = math::cos(radians);
+        let y_delta = math::sin(radians);
+        let x = self.x;
+        let y = self.y * (x_delta as f64) + self.z * (y_delta as f64);
+        let z = self.z * (x_delta as f64) - self.y * (y_delta as f64);
+        Vec3 { x, y, z }
+    }
+    pub fn y_rot(self, radians: f32) -> Vec3 {
+        let x_delta = math::cos(radians);
+        let y_delta = math::sin(radians);
+        let x = self.x * (x_delta as f64) + self.z * (y_delta as f64);
+        let y = self.y;
+        let z = self.z * (x_delta as f64) - self.x * (y_delta as f64);
+        Vec3 { x, y, z }
     }
 }
 

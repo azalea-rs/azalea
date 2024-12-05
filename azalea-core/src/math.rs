@@ -68,6 +68,15 @@ pub fn fract(x: f64) -> f64 {
     x - floor
 }
 
+// these are copied from the java standard library, we don't calculate the
+// consts ourself to make sure it's the same as java
+pub fn to_radians(degrees: f64) -> f64 {
+    degrees * 0.017453292519943295
+}
+pub fn to_degrees(radians: f64) -> f64 {
+    radians * 57.29577951308232
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

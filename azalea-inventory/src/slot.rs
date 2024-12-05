@@ -161,7 +161,7 @@ impl AzaleaRead for ItemStack {
 impl AzaleaWrite for ItemStack {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         match self {
-            ItemStack::Empty => 0.azalea_write_var(buf)?,
+            ItemStack::Empty => 0_i32.azalea_write_var(buf)?,
             ItemStack::Present(i) => {
                 i.count.azalea_write_var(buf)?;
                 i.kind.azalea_write(buf)?;
@@ -262,8 +262,8 @@ impl AzaleaWrite for DataComponentPatch {
             }
         }
 
-        components_with_data_count.azalea_write(buf)?;
-        components_without_data_count.azalea_write(buf)?;
+        components_with_data_count.azalea_write_var(buf)?;
+        components_without_data_count.azalea_write_var(buf)?;
 
         for (kind, component) in &self.components {
             if let Some(component) = component {

@@ -172,7 +172,8 @@ impl From<&Position> for BlockPos {
     }
 }
 
-/// The last position of the entity that was sent over the network.
+/// The second most recent position of the entity that was sent over the
+/// network. This is currently only updated for our own local player entities.
 #[derive(Component, Clone, Copy, Debug, Default, PartialEq, Deref, DerefMut)]
 pub struct LastSentPosition(Vec3);
 impl From<&LastSentPosition> for Vec3 {

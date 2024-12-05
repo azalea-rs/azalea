@@ -192,9 +192,7 @@ pub fn send_position(
             let packet = if sending_position && sending_direction {
                 Some(
                     ServerboundMovePlayerPosRot {
-                        x: position.x,
-                        y: position.y,
-                        z: position.z,
+                        pos: **position,
                         x_rot: direction.x_rot,
                         y_rot: direction.y_rot,
                         on_ground: physics.on_ground,

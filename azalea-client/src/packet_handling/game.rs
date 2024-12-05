@@ -1,12 +1,14 @@
 use std::{
     collections::HashSet,
     io::Cursor,
+    ops::Add,
     sync::{Arc, Weak},
 };
 
 use azalea_chat::FormattedText;
 use azalea_core::{
     game_type::GameMode,
+    math,
     position::{ChunkPos, Vec3},
     resource_location::ResourceLocation,
 };
@@ -435,63 +437,62 @@ pub fn process_packet_events(ecs: &mut World) {
                     continue;
                 };
 
-                let delta_movement = physics.velocity;
+                **last_sent_position = **position;
 
-                let is_x_relative = p.relative_arguments.x;
-                let is_y_relative = p.relative_arguments.y;
-                let is_z_relative = p.relative_arguments.z;
-
-                let (delta_x, new_pos_x) = if is_x_relative {
-                    last_sent_position.x += p.pos.x;
-                    (delta_movement.x, position.x + p.pos.x)
-                } else {
-                    last_sent_position.x = p.pos.x;
-                    (0.0, p.pos.x)
-                };
-                let (delta_y, new_pos_y) = if is_y_relative {
-                    last_sent_position.y += p.pos.y;
-                    (delta_movement.y, position.y + p.pos.y)
-                } else {
-                    last_sent_position.y = p.pos.y;
-                    (0.0, p.pos.y)
-                };
-                let (delta_z, new_pos_z) = if is_z_relative {
-                    last_sent_position.z += p.pos.z;
-                    (delta_movement.z, position.z + p.pos.z)
-                } else {
-                    last_sent_position.z = p.pos.z;
-                    (0.0, p.pos.z)
-                };
-
-                let mut y_rot = p.y_rot;
-                let mut x_rot = p.x_rot;
-                if p.relative_arguments.x_rot {
-                    x_rot += direction.x_rot;
-                }
-                if p.relative_arguments.y_rot {
-                    y_rot += direction.y_rot;
+                fn apply_change<T: Add<Output = T>>(base: T, condition: bool, change: T) -> T {
+                    if condition {
+                        base + change
+                    } else {
+                        change
+                    }
                 }
 
-                physics.velocity = Vec3 {
-                    x: delta_x,
-                    y: delta_y,
-                    z: delta_z,
-                };
-                // we call a function instead of setting the fields ourself since the
-                // function makes sure the rotations stay in their
-                // ranges
-                (direction.y_rot, direction.x_rot) = (y_rot, x_rot);
-                // TODO: minecraft sets "xo", "yo", and "zo" here but idk what that means
-                // so investigate that ig
-                let new_pos = Vec3 {
-                    x: new_pos_x,
-                    y: new_pos_y,
-                    z: new_pos_z,
-                };
+                let new_x = apply_change(position.x, p.relative.x, p.change.pos.x);
+                let new_y = apply_change(position.y, p.relative.y, p.change.pos.y);
+                let new_z = apply_change(position.z, p.relative.z, p.change.pos.z);
 
+                let new_y_rot = apply_change(direction.y_rot, p.relative.y_rot, p.change.y_rot);
+                let new_x_rot = apply_change(direction.x_rot, p.relative.x_rot, p.change.x_rot);
+
+                let mut new_delta_from_rotations = physics.velocity;
+                if p.relative.rotate_delta {
+                    let y_rot_delta = direction.y_rot - new_y_rot;
+                    let x_rot_delta = direction.x_rot - new_x_rot;
+                    new_delta_from_rotations = new_delta_from_rotations
+                        .x_rot(math::to_radians(x_rot_delta as f64) as f32)
+                        .y_rot(math::to_radians(y_rot_delta as f64) as f32);
+                }
+
+                let new_delta = Vec3::new(
+                    apply_change(
+                        new_delta_from_rotations.x,
+                        p.relative.delta_x,
+                        p.change.delta.x,
+                    ),
+                    apply_change(
+                        new_delta_from_rotations.y,
+                        p.relative.delta_y,
+                        p.change.delta.y,
+                    ),
+                    apply_change(
+                        new_delta_from_rotations.z,
+                        p.relative.delta_z,
+                        p.change.delta.z,
+                    ),
+                );
+
+                // apply the updates
+
+                physics.velocity = new_delta;
+
+                (direction.y_rot, direction.x_rot) = (new_y_rot, new_x_rot);
+
+                let new_pos = Vec3::new(new_x, new_y, new_z);
                 if new_pos != **position {
                     **position = new_pos;
                 }
+
+                // send the relevant packets
 
                 send_packet_events.send(SendPacketEvent::new(
                     player_entity,
@@ -500,11 +501,9 @@ pub fn process_packet_events(ecs: &mut World) {
                 send_packet_events.send(SendPacketEvent::new(
                     player_entity,
                     ServerboundMovePlayerPosRot {
-                        x: new_pos.x,
-                        y: new_pos.y,
-                        z: new_pos.z,
-                        y_rot,
-                        x_rot,
+                        pos: new_pos,
+                        y_rot: new_y_rot,
+                        x_rot: new_x_rot,
                         // this is always false
                         on_ground: false,
                     },
