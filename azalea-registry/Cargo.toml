@@ -9,10 +9,10 @@ version = "0.9.1"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-simdnbt = { version = "0.4", git = "https://github.com/azalea-rs/simdnbt" }
+simdnbt = { version = "0.4", git = "https://github.com/azalea-rs/simdnbt", rev = "860d6e1" }
 azalea-buf = { path = "../azalea-buf", version = "0.9.0" }
 azalea-registry-macros = { path = "./azalea-registry-macros", version = "0.9.0" }
-once_cell = "1.19.0"
+once_cell = "1.20.2"
 [features]
 serde = ["azalea-registry-macros/serde"]
 default = ["serde"]
