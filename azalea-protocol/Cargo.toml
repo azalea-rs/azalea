@@ -39,7 +39,6 @@ flate2 = { workspace = true }
 futures = { workspace = true }
 futures-lite = { workspace = true }
 #futures-util = { workspace = true }
-log = { workspace = true }
 serde = { workspace = true, features = ["serde_derive"] }
 serde_json = { workspace = true }
 simdnbt = { workspace = true }

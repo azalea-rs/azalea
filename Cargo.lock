@@ -481,7 +481,6 @@ dependencies = [
  "flate2",
  "futures",
  "futures-lite",
- "log",
  "serde",
  "serde_json",
  "simdnbt",
