@@ -11,7 +11,7 @@ A collection of Rust crates for making Minecraft bots, clients, and tools.
 
 <!-- The line below is automatically read and updated by the migrate script, so don't change it manually. -->
 
-_Currently supported Minecraft version: `1.21.3`._
+_Currently supported Minecraft version: `1.21.4`._
 
 > [!WARNING]
 > Azalea is still very unfinished, though most crates are in a somewhat useable state
@@ -55,6 +55,7 @@ There are several branches in the Azalea repository that target older Minecraft 
 Most of them are severely outdated compared to the latest version of Azalea.
 If you'd like to update them or add more, please open a PR.
 
+-   [1.21.2-1.21.3](https://github.com/azalea-rs/azalea/tree/1.21.3)
 -   [1.21-1.21.1](https://github.com/azalea-rs/azalea/tree/1.21.1)
 -   [1.20.5-1.20.6](https://github.com/azalea-rs/azalea/tree/1.20.6)
 -   [1.20.4](https://github.com/azalea-rs/azalea/tree/1.20.4)

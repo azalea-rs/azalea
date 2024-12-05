@@ -326,11 +326,8 @@ make_block_states! {
         "south" => South(bool),
         "up" => Up(bool),
         "west" => West(bool),
-        "creaking" => Creaking {
-            Disabled,
-            Dormant,
-            Active,
-        },
+        "active" => Active(bool),
+        "natural" => Natural(bool),
         "half" => TopBottom {
             Top,
             Bottom,
@@ -914,6 +911,31 @@ make_block_states! {
             _7,
         },
         "in_wall" => InWall(bool),
+        "type" => Type {
+            Top,
+            Bottom,
+            Double,
+        },
+        "east" => WallEast {
+            None,
+            Low,
+            Tall,
+        },
+        "north" => WallNorth {
+            None,
+            Low,
+            Tall,
+        },
+        "south" => WallSouth {
+            None,
+            Low,
+            Tall,
+        },
+        "west" => WallWest {
+            None,
+            Low,
+            Tall,
+        },
         "age" => NetherWartAge {
             _0,
             _1,
@@ -941,26 +963,6 @@ make_block_states! {
         },
         "disarmed" => Disarmed(bool),
         "conditional" => Conditional(bool),
-        "east" => WallEast {
-            None,
-            Low,
-            Tall,
-        },
-        "north" => WallNorth {
-            None,
-            Low,
-            Tall,
-        },
-        "south" => WallSouth {
-            None,
-            Low,
-            Tall,
-        },
-        "west" => WallWest {
-            None,
-            Low,
-            Tall,
-        },
         "age" => CarrotsAge {
             _0,
             _1,
@@ -1191,11 +1193,6 @@ make_block_states! {
             _13,
             _14,
             _15,
-        },
-        "type" => Type {
-            Top,
-            Bottom,
-            Double,
         },
         "rotation" => WhiteBannerRotation {
             _0,
@@ -2441,8 +2438,9 @@ make_block_states! {
         soul_fire => BlockBehavior::new(), {},
         spawner => BlockBehavior::new().requires_correct_tool_for_drops().strength(5.0, 5.0), {},
         creaking_heart => BlockBehavior::new(), {
+            "active": Active(false),
             "axis": Axis::Y,
-            "creaking": Creaking::Disabled,
+            "natural": Natural(false),
         },
         oak_stairs => BlockBehavior::new().strength(2.0, 3.0), {
             "facing": FacingCardinal::North,
@@ -2972,6 +2970,15 @@ make_block_states! {
             "waterlogged": Waterlogged(false),
             "west": West(false),
         },
+        resin_clump => BlockBehavior::new(), {
+            "down": Down(false),
+            "east": East(false),
+            "north": North(false),
+            "south": South(false),
+            "up": Up(false),
+            "waterlogged": Waterlogged(false),
+            "west": West(false),
+        },
         oak_fence_gate => BlockBehavior::new().strength(2.0, 3.0), {
             "facing": FacingCardinal::North,
             "in_wall": InWall(false),
@@ -3000,6 +3007,27 @@ make_block_states! {
             "snowy": Snowy(false),
         },
         lily_pad => BlockBehavior::new(), {},
+        resin_block => BlockBehavior::new(), {},
+        resin_bricks => BlockBehavior::new(), {},
+        resin_brick_stairs => BlockBehavior::new(), {
+            "facing": FacingCardinal::North,
+            "half": TopBottom::Bottom,
+            "shape": StairShape::Straight,
+            "waterlogged": Waterlogged(false),
+        },
+        resin_brick_slab => BlockBehavior::new(), {
+            "type": Type::Bottom,
+            "waterlogged": Waterlogged(false),
+        },
+        resin_brick_wall => BlockBehavior::new(), {
+            "east": WallEast::None,
+            "north": WallNorth::None,
+            "south": WallSouth::None,
+            "up": Up(true),
+            "waterlogged": Waterlogged(false),
+            "west": WallWest::None,
+        },
+        chiseled_resin_bricks => BlockBehavior::new(), {},
         nether_bricks => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {},
         nether_brick_fence => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {
             "east": East(false),
@@ -5546,5 +5574,9 @@ make_block_states! {
         pale_hanging_moss => BlockBehavior::new(), {
             "tip": Tip(true),
         },
+        open_eyeblossom => BlockBehavior::new(), {},
+        closed_eyeblossom => BlockBehavior::new(), {},
+        potted_open_eyeblossom => BlockBehavior::new(), {},
+        potted_closed_eyeblossom => BlockBehavior::new(), {},
     }
 }
