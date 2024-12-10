@@ -99,7 +99,7 @@ Note: If you get a `SetLoggerError`, it's because you have multiple loggers. Aza
 
 ## Deadlocks
 
-If your code is simply hanging, it might be a deadlock. Copy the deadlock block in [`azalea/examples/testbot.rs`](https://github.com/azalea-rs/azalea/blob/main/azalea/examples/testbot/main.rs) to the beginning of your code and it'll print a long backtrace if a deadlock is detected.
+If your code is simply hanging, it might be a deadlock. Enable `parking_lot`'s `deadlock_detection` feature and copy the deadlock block in [`azalea/examples/testbot.rs`](https://github.com/azalea-rs/azalea/blob/main/azalea/examples/testbot/main.rs) to the beginning of your code and it'll print a long backtrace if a deadlock is detected.
 
 ## Backtraces
 

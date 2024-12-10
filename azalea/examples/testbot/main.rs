@@ -14,8 +14,8 @@
 mod commands;
 pub mod killaura;
 
-use std::sync::Arc;
 use std::time::Duration;
+use std::{sync::Arc, thread};
 
 use azalea::brigadier::command_dispatcher::CommandDispatcher;
 use azalea::ecs::prelude::*;
@@ -37,30 +37,7 @@ const PATHFINDER_DEBUG_PARTICLES: bool = false;
 
 #[tokio::main]
 async fn main() {
-    {
-        use std::thread;
-        use std::time::Duration;
-
-        use parking_lot::deadlock;
-
-        // Create a background thread which checks for deadlocks every 10s
-        thread::spawn(move || loop {
-            thread::sleep(Duration::from_secs(10));
-            let deadlocks = deadlock::check_deadlock();
-            if deadlocks.is_empty() {
-                continue;
-            }
-
-            println!("{} deadlocks detected", deadlocks.len());
-            for (i, threads) in deadlocks.iter().enumerate() {
-                println!("Deadlock #{i}");
-                for t in threads {
-                    println!("Thread Id {:#?}", t.thread_id());
-                    println!("{:#?}", t.backtrace());
-                }
-            }
-        });
-    }
+    thread::spawn(deadlock_detection_thread);
 
     let account = Account::offline(USERNAME);
 
@@ -83,6 +60,30 @@ async fn main() {
         .start(ADDRESS)
         .await
         .unwrap();
+}
+
+/// Runs a loop that checks for deadlocks every 10 seconds.
+///
+/// Note that this requires the `deadlock_detection` parking_lot feature to be
+/// enabled, which is only enabled in azalea by default when running in debug
+/// mode.
+fn deadlock_detection_thread() {
+    loop {
+        thread::sleep(Duration::from_secs(10));
+        let deadlocks = parking_lot::deadlock::check_deadlock();
+        if deadlocks.is_empty() {
+            continue;
+        }
+
+        println!("{} deadlocks detected", deadlocks.len());
+        for (i, threads) in deadlocks.iter().enumerate() {
+            println!("Deadlock #{i}");
+            for t in threads {
+                println!("Thread Id {:#?}", t.thread_id());
+                println!("{:#?}", t.backtrace());
+            }
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
