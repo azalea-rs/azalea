@@ -32,7 +32,7 @@ impl SimulatedPlayerBundle {
 
         SimulatedPlayerBundle {
             position: Position::new(position),
-            physics: Physics::new(dimensions, &position),
+            physics: Physics::new(dimensions, position),
             physics_state: PhysicsState::default(),
             look_direction: LookDirection::new(0.0, 0.0),
             attributes: Attributes {

@@ -1,4 +1,5 @@
 use std::fmt::Formatter;
+use std::hash::{Hash, Hasher};
 use std::{
     collections::{HashMap, HashSet},
     fmt::Debug,
@@ -44,8 +45,8 @@ impl PartialInstance {
 #[derive(Component, Copy, Clone, Debug, PartialEq, Eq, Deref, DerefMut)]
 pub struct MinecraftEntityId(pub u32);
 
-impl std::hash::Hash for MinecraftEntityId {
-    fn hash<H: std::hash::Hasher>(&self, hasher: &mut H) {
+impl Hash for MinecraftEntityId {
+    fn hash<H: Hasher>(&self, hasher: &mut H) {
         hasher.write_u32(self.0);
     }
 }

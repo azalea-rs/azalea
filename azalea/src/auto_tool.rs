@@ -31,24 +31,10 @@ impl AutoToolClientExt for Client {
 /// or in water, use [`accurate_best_tool_in_hotbar_for_block`] instead if you
 /// care about those things.
 pub fn best_tool_in_hotbar_for_block(block: BlockState, menu: &Menu) -> BestToolResult {
-    accurate_best_tool_in_hotbar_for_block(
-        block,
-        menu,
-        &Physics {
-            on_ground: true,
-            velocity: Default::default(),
-            xxa: Default::default(),
-            yya: Default::default(),
-            zza: Default::default(),
-            last_on_ground: Default::default(),
-            dimensions: Default::default(),
-            bounding_box: Default::default(),
-            has_impulse: Default::default(),
-            horizontal_collision: Default::default(),
-            vertical_collision: Default::default(),
-        },
-        &FluidOnEyes::new(Fluid::Empty),
-    )
+    let mut physics = Physics::default();
+    physics.set_on_ground(true);
+
+    accurate_best_tool_in_hotbar_for_block(block, menu, &physics, &FluidOnEyes::new(Fluid::Empty))
 }
 
 pub fn accurate_best_tool_in_hotbar_for_block(

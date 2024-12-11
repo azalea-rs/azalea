@@ -20,7 +20,7 @@ macro_rules! vec3_impl {
     ($name:ident, $type:ty) => {
         impl $name {
             #[inline]
-            pub fn new(x: $type, y: $type, z: $type) -> Self {
+            pub const fn new(x: $type, y: $type, z: $type) -> Self {
                 Self { x, y, z }
             }
 
@@ -223,6 +223,8 @@ pub struct Vec3 {
 vec3_impl!(Vec3, f64);
 
 impl Vec3 {
+    pub const ZERO: Vec3 = Vec3::new(0.0, 0.0, 0.0);
+
     /// Get the distance of this vector to the origin by doing
     /// `sqrt(x^2 + y^2 + z^2)`.
     pub fn length(&self) -> f64 {
