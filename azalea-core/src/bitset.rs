@@ -174,10 +174,7 @@ impl<const N: usize> AzaleaWrite for FixedBitSet<N> {
         Ok(())
     }
 }
-impl<const N: usize> Default for FixedBitSet<N>
-where
-    [u8; N.div_ceil(8)]: Sized,
-{
+impl<const N: usize> Default for FixedBitSet<N> {
     fn default() -> Self {
         Self::new()
     }

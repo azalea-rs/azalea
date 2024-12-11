@@ -172,6 +172,10 @@ impl AzaleaWrite for ItemStack {
     }
 }
 
+/// An update to an item's data components.
+///
+/// Note that in vanilla items come with their own set of default components,
+/// and Azalea does not implement that yet.
 #[derive(Default)]
 pub struct DataComponentPatch {
     components: HashMap<DataComponentKind, Option<Box<dyn components::EncodableDataComponent>>>,
