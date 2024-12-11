@@ -116,7 +116,7 @@ pub struct Properties {
 
 impl AzaleaRead for Properties {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let set = FixedBitSet::<3>::azalea_read(buf)?;
+        let set = FixedBitSet::<{ 3_usize.div_ceil(8) }>::azalea_read(buf)?;
         Ok(Self {
             darken_screen: set.index(0),
             play_music: set.index(1),
@@ -127,7 +127,7 @@ impl AzaleaRead for Properties {
 
 impl AzaleaWrite for Properties {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        let mut set = FixedBitSet::<3>::new();
+        let mut set = FixedBitSet::<{ 3_usize.div_ceil(8) }>::new();
         if self.darken_screen {
             set.set(0);
         }
