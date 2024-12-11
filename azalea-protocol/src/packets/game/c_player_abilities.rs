@@ -23,7 +23,7 @@ pub struct PlayerAbilitiesFlags {
 
 impl AzaleaRead for PlayerAbilitiesFlags {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let set = FixedBitSet::<4>::azalea_read(buf)?;
+        let set = FixedBitSet::<{ 4_usize.div_ceil(8) }>::azalea_read(buf)?;
         Ok(PlayerAbilitiesFlags {
             invulnerable: set.index(0),
             flying: set.index(1),
@@ -35,7 +35,7 @@ impl AzaleaRead for PlayerAbilitiesFlags {
 
 impl AzaleaWrite for PlayerAbilitiesFlags {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        let mut set = FixedBitSet::<4>::new();
+        let mut set = FixedBitSet::<{ 4_usize.div_ceil(8) }>::new();
         if self.invulnerable {
             set.set(0);
         }

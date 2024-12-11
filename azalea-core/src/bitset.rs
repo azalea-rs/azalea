@@ -126,26 +126,24 @@ impl From<Vec<u8>> for BitSet {
 
 /// A list of bits with a known fixed size.
 ///
+/// The `N` is the number of bytes reserved for the bitset. You're encouraged to
+/// use it like `FixedBitSet<{ 20_usize.div_ceil(8) }>` if you need 20 bits.
+///
+/// TODO: this should be changed back to bits once this is resolved:
+/// https://github.com/rust-lang/rust/issues/133199#issuecomment-2531645526
+///
 /// Note that this is primarily meant for fast serialization and deserialization
 /// for Minecraft, if you don't need that you should use the `fixedbitset` crate
 /// since it's approximately 20% faster (since it stores the data as usizes
-/// instead of u8s)
+/// instead of u8s).
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct FixedBitSet<const N: usize>
-where
-    [(); N.div_ceil(8)]: Sized,
-{
-    data: [u8; N.div_ceil(8)],
+pub struct FixedBitSet<const N: usize> {
+    data: [u8; N],
 }
 
-impl<const N: usize> FixedBitSet<N>
-where
-    [u8; N.div_ceil(8)]: Sized,
-{
+impl<const N: usize> FixedBitSet<N> {
     pub fn new() -> Self {
-        FixedBitSet {
-            data: [0; N.div_ceil(8)],
-        }
+        FixedBitSet { data: [0; N] }
     }
 
     #[inline]
@@ -159,24 +157,18 @@ where
     }
 }
 
-impl<const N: usize> AzaleaRead for FixedBitSet<N>
-where
-    [u8; N.div_ceil(8)]: Sized,
-{
+impl<const N: usize> AzaleaRead for FixedBitSet<N> {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let mut data = [0; N.div_ceil(8)];
-        for item in data.iter_mut().take(N.div_ceil(8)) {
+        let mut data = [0; N];
+        for item in data.iter_mut().take(N) {
             *item = u8::azalea_read(buf)?;
         }
         Ok(FixedBitSet { data })
     }
 }
-impl<const N: usize> AzaleaWrite for FixedBitSet<N>
-where
-    [u8; N.div_ceil(8)]: Sized,
-{
+impl<const N: usize> AzaleaWrite for FixedBitSet<N> {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        for i in 0..N.div_ceil(8) {
+        for i in 0..N {
             self.data[i].azalea_write(buf)?;
         }
         Ok(())

@@ -77,8 +77,8 @@ impl CachedSections {
 
 pub struct CachedSection {
     pub pos: ChunkSectionPos,
-    pub passable_bitset: FixedBitSet<4096>,
-    pub solid_bitset: FixedBitSet<4096>,
+    pub passable_bitset: FixedBitSet<{ 4096_usize.div_ceil(8) }>,
+    pub solid_bitset: FixedBitSet<{ 4096_usize.div_ceil(8) }>,
 }
 
 impl CachedWorld {
@@ -182,8 +182,8 @@ impl CachedWorld {
 
     fn calculate_bitsets_for_section(&self, section_pos: ChunkSectionPos) -> Option<CachedSection> {
         self.with_section(section_pos, |section| {
-            let mut passable_bitset = FixedBitSet::<4096>::new();
-            let mut solid_bitset = FixedBitSet::<4096>::new();
+            let mut passable_bitset = FixedBitSet::<{ 4096_usize.div_ceil(8) }>::new();
+            let mut solid_bitset = FixedBitSet::<{ 4096_usize.div_ceil(8) }>::new();
             for i in 0..4096 {
                 let block_state_id = section.get_at_index(i);
                 let block_state = BlockState::try_from(block_state_id).unwrap_or(BlockState::AIR);

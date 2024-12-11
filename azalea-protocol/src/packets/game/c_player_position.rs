@@ -39,7 +39,7 @@ pub struct RelativeMovements {
 impl AzaleaRead for RelativeMovements {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         // yes minecraft seriously wastes that many bits, smh
-        let set = FixedBitSet::<32>::azalea_read(buf)?;
+        let set = FixedBitSet::<{ 32_usize.div_ceil(8) }>::azalea_read(buf)?;
         Ok(RelativeMovements {
             x: set.index(0),
             y: set.index(1),
@@ -56,7 +56,7 @@ impl AzaleaRead for RelativeMovements {
 
 impl AzaleaWrite for RelativeMovements {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        let mut set = FixedBitSet::<32>::new();
+        let mut set = FixedBitSet::<{ 32_usize.div_ceil(8) }>::new();
         let mut set_bit = |index: usize, value: bool| {
             if value {
                 set.set(index);
