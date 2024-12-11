@@ -837,30 +837,29 @@ pub fn process_packet_events(ecs: &mut World) {
                 let (mut commands, mut query) = system_state.get_mut(ecs);
                 let (entity_id_index, instance_holder) = query.get_mut(player_entity).unwrap();
 
-                let entity = entity_id_index.get(&MinecraftEntityId(p.id));
-
-                if let Some(entity) = entity {
-                    let new_pos = p.position;
-                    let new_look_direction = LookDirection {
-                        x_rot: (p.x_rot as i32 * 360) as f32 / 256.,
-                        y_rot: (p.y_rot as i32 * 360) as f32 / 256.,
-                    };
-                    commands.entity(entity).queue(RelativeEntityUpdate {
-                        partial_world: instance_holder.partial_instance.clone(),
-                        update: Box::new(move |entity| {
-                            let mut position = entity.get_mut::<Position>().unwrap();
-                            if new_pos != **position {
-                                **position = new_pos;
-                            }
-                            let mut look_direction = entity.get_mut::<LookDirection>().unwrap();
-                            if new_look_direction != *look_direction {
-                                *look_direction = new_look_direction;
-                            }
-                        }),
-                    });
-                } else {
+                let Some(entity) = entity_id_index.get(&MinecraftEntityId(p.id)) else {
                     warn!("Got teleport entity packet for unknown entity id {}", p.id);
-                }
+                    continue;
+                };
+
+                let new_pos = p.position;
+                let new_look_direction = LookDirection {
+                    x_rot: (p.x_rot as i32 * 360) as f32 / 256.,
+                    y_rot: (p.y_rot as i32 * 360) as f32 / 256.,
+                };
+                commands.entity(entity).queue(RelativeEntityUpdate {
+                    partial_world: instance_holder.partial_instance.clone(),
+                    update: Box::new(move |entity| {
+                        let mut position = entity.get_mut::<Position>().unwrap();
+                        if new_pos != **position {
+                            **position = new_pos;
+                        }
+                        let mut look_direction = entity.get_mut::<LookDirection>().unwrap();
+                        if new_look_direction != *look_direction {
+                            *look_direction = new_look_direction;
+                        }
+                    }),
+                });
 
                 system_state.apply(ecs);
             }
@@ -877,6 +876,8 @@ pub fn process_packet_events(ecs: &mut World) {
                 )> = SystemState::new(ecs);
                 let (mut commands, mut query) = system_state.get_mut(ecs);
                 let (entity_id_index, instance_holder) = query.get_mut(player_entity).unwrap();
+
+                debug!("Got move entity pos packet {p:?}");
 
                 let entity = entity_id_index.get(&MinecraftEntityId(p.entity_id));
 
@@ -917,6 +918,8 @@ pub fn process_packet_events(ecs: &mut World) {
                 )> = SystemState::new(ecs);
                 let (mut commands, mut query) = system_state.get_mut(ecs);
                 let (entity_id_index, instance_holder) = query.get_mut(player_entity).unwrap();
+
+                debug!("Got move entity pos rot packet {p:?}");
 
                 let entity = entity_id_index.get(&MinecraftEntityId(p.entity_id));
 
@@ -1467,52 +1470,49 @@ pub fn process_packet_events(ecs: &mut World) {
             }
 
             ClientboundGamePacket::EntityPositionSync(p) => {
-                debug!("Got entity position sync packet {p:?}");
-
                 let mut system_state: SystemState<(
-                    Query<&EntityIdIndex>,
-                    Query<(
-                        &mut Physics,
-                        &mut Position,
-                        &mut LastSentPosition,
-                        &mut LookDirection,
-                        Option<&LocalEntity>,
-                    )>,
+                    Commands,
+                    Query<(&EntityIdIndex, &InstanceHolder)>,
                 )> = SystemState::new(ecs);
-                let (mut index_query, mut query) = system_state.get_mut(ecs);
-                let entity_id_index = index_query.get_mut(player_entity).unwrap();
+                let (mut commands, mut query) = system_state.get_mut(ecs);
+                let (entity_id_index, instance_holder) = query.get_mut(player_entity).unwrap();
+
                 let Some(entity) = entity_id_index.get(&MinecraftEntityId(p.id)) else {
-                    warn!(
-                        "Got entity position sync packet for unknown entity id {}",
-                        p.id
-                    );
+                    warn!("Got teleport entity packet for unknown entity id {}", p.id);
                     continue;
                 };
 
-                let Ok((
-                    mut physics,
-                    mut position,
-                    mut last_sent_position,
-                    mut look_direction,
-                    local_entity,
-                )) = query.get_mut(entity)
-                else {
-                    continue;
-                };
+                let new_position = p.values.pos;
+                let new_on_ground = p.on_ground;
+                let new_look_direction = p.values.look_direction;
 
-                physics.vec_delta_codec.set_base(**position);
+                commands.entity(entity).queue(RelativeEntityUpdate {
+                    partial_world: instance_holder.partial_instance.clone(),
+                    update: Box::new(move |entity_mut| {
+                        let is_local_entity = entity_mut.get::<LocalEntity>().is_some();
+                        let mut physics = entity_mut.get_mut::<Physics>().unwrap();
 
-                if local_entity.is_some() {
-                    debug!("Ignoring entity position sync packet for local player");
-                    continue;
-                }
+                        physics.vec_delta_codec.set_base(new_position);
 
-                **last_sent_position = **position;
-                **position = p.values.pos;
+                        if is_local_entity {
+                            debug!("Ignoring entity position sync packet for local player");
+                            return;
+                        }
 
-                *look_direction = p.values.look_direction;
+                        physics.set_on_ground(new_on_ground);
 
-                physics.set_on_ground(p.on_ground);
+                        let mut last_sent_position =
+                            entity_mut.get_mut::<LastSentPosition>().unwrap();
+                        **last_sent_position = new_position;
+                        let mut position = entity_mut.get_mut::<Position>().unwrap();
+                        **position = new_position;
+
+                        let mut look_direction = entity_mut.get_mut::<LookDirection>().unwrap();
+                        *look_direction = new_look_direction;
+                    }),
+                });
+
+                system_state.apply(ecs);
             }
 
             ClientboundGamePacket::SelectAdvancementsTab(_) => {}
