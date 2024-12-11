@@ -59,7 +59,7 @@ impl AzaleaWrite for EntityMetadataItems {
 pub enum EntityDataValue {
     Byte(u8),
     Int(#[var] i32),
-    Long(i64),
+    Long(#[var] i64),
     Float(f32),
     String(String),
     FormattedText(FormattedText),
