@@ -3,6 +3,7 @@ use azalea_buf::AzBuf;
 use crate::position::Vec3;
 
 #[derive(Clone, Copy, Debug, AzBuf, Default, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum Direction {
     #[default]
     Down = 0,
@@ -63,6 +64,7 @@ impl Direction {
 
 // TODO: make azalea_block use this instead of FacingCardinal
 #[derive(Clone, Copy, Debug, AzBuf, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum CardinalDirection {
     North,
     South,
