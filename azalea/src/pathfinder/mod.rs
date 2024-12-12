@@ -516,7 +516,7 @@ pub fn check_node_reached(
                     let x_difference_from_center = position.x - (movement.target.x as f64 + 0.5);
                     let z_difference_from_center = position.z - (movement.target.z as f64 + 0.5);
                     // this is to make sure we don't fall off immediately after finishing the path
-                    physics.on_ground
+                    physics.on_ground()
                     && BlockPos::from(position) == movement.target
                     // adding the delta like this isn't a perfect solution but it helps to make
                     // sure we don't keep going if our delta is high

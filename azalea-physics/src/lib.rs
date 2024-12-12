@@ -100,7 +100,7 @@ fn travel(
         let block_below: Box<dyn Block> = block_state_below.into();
         let block_friction = block_below.behavior().friction;
 
-        let inertia = if physics.on_ground {
+        let inertia = if physics.on_ground() {
             block_friction * 0.91
         } else {
             0.91
@@ -178,7 +178,7 @@ pub fn ai_step(
             if **jumping {
                 // TODO: jumping in liquids and jump delay
 
-                if physics.on_ground {
+                if physics.on_ground() {
                     jump_from_ground(
                         &mut physics,
                         position,
@@ -358,7 +358,7 @@ fn get_friction_influenced_speed(
     is_sprinting: bool,
 ) -> f32 {
     // TODO: have speed & flying_speed fields in entity
-    if physics.on_ground {
+    if physics.on_ground() {
         let speed: f32 = attributes.speed.calculate() as f32;
         speed * (0.216f32 / (friction * friction * friction))
     } else {

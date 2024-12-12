@@ -2,6 +2,7 @@ use std::io::{Cursor, Write};
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
 use azalea_core::{bitset::FixedBitSet, position::Vec3};
+use azalea_entity::LookDirection;
 use azalea_protocol_macros::ClientboundGamePacket;
 
 #[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
@@ -18,9 +19,12 @@ pub struct ClientboundPlayerPosition {
 pub struct PositionMoveRotation {
     pub pos: Vec3,
     /// The updated delta movement (velocity).
+    ///
+    /// This is unused when included in a [`ClientboundEntityPositionSync`].
+    ///
+    /// [`ClientboundEntityPositionSync`]: super::c_entity_position_sync::ClientboundEntityPositionSync
     pub delta: Vec3,
-    pub y_rot: f32,
-    pub x_rot: f32,
+    pub look_direction: LookDirection,
 }
 
 #[derive(Debug, Clone)]

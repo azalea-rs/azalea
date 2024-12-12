@@ -195,7 +195,7 @@ pub fn send_position(
                         pos: **position,
                         x_rot: direction.x_rot,
                         y_rot: direction.y_rot,
-                        on_ground: physics.on_ground,
+                        on_ground: physics.on_ground(),
                     }
                     .into_variant(),
                 )
@@ -205,7 +205,7 @@ pub fn send_position(
                         x: position.x,
                         y: position.y,
                         z: position.z,
-                        on_ground: physics.on_ground,
+                        on_ground: physics.on_ground(),
                     }
                     .into_variant(),
                 )
@@ -214,14 +214,14 @@ pub fn send_position(
                     ServerboundMovePlayerRot {
                         x_rot: direction.x_rot,
                         y_rot: direction.y_rot,
-                        on_ground: physics.on_ground,
+                        on_ground: physics.on_ground(),
                     }
                     .into_variant(),
                 )
-            } else if physics.last_on_ground != physics.on_ground {
+            } else if physics.last_on_ground() != physics.on_ground() {
                 Some(
                     ServerboundMovePlayerStatusOnly {
-                        on_ground: physics.on_ground,
+                        on_ground: physics.on_ground(),
                     }
                     .into_variant(),
                 )
@@ -238,7 +238,8 @@ pub fn send_position(
                 last_direction.x_rot = direction.x_rot;
             }
 
-            physics.last_on_ground = physics.on_ground;
+            let on_ground = physics.on_ground();
+            physics.set_last_on_ground(on_ground);
             // minecraft checks for autojump here, but also autojump is bad so
 
             packet

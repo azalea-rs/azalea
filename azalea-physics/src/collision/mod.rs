@@ -73,7 +73,7 @@ fn collide(movement: &Vec3, world: &Instance, physics: &azalea_entity::Physics) 
     let y_collision = movement.y != collided_delta.y;
     let z_collision = movement.z != collided_delta.z;
 
-    let on_ground = physics.on_ground || y_collision && movement.y < 0.;
+    let on_ground = physics.on_ground() || y_collision && movement.y < 0.;
 
     let max_up_step = 0.6;
     if max_up_step > 0. && on_ground && (x_collision || z_collision) {
@@ -192,7 +192,7 @@ pub fn move_colliding(
 
     physics.horizontal_collision = horizontal_collision;
     physics.vertical_collision = vertical_collision;
-    physics.on_ground = on_ground;
+    physics.set_on_ground(on_ground);
 
     // TODO: minecraft checks for a "minor" horizontal collision here
 

@@ -9,6 +9,7 @@ pub mod metadata;
 pub mod mining;
 pub mod particle;
 mod plugin;
+pub mod vec_delta_codec;
 
 use std::{
     fmt::Debug,
@@ -17,6 +18,7 @@ use std::{
 
 pub use attributes::Attributes;
 use azalea_block::BlockState;
+use azalea_buf::AzBuf;
 use azalea_core::{
     aabb::AABB,
     math,
@@ -30,6 +32,7 @@ use derive_more::{Deref, DerefMut};
 pub use dimensions::EntityDimensions;
 use plugin::indexing::EntityChunkPos;
 use uuid::Uuid;
+use vec_delta_codec::VecDeltaCodec;
 
 use self::attributes::AttributeInstance;
 pub use crate::plugin::*;
@@ -210,7 +213,7 @@ impl From<&LastSentPosition> for BlockPos {
 pub struct Jumping(bool);
 
 /// A component that contains the direction an entity is looking.
-#[derive(Debug, Component, Copy, Clone, Default, PartialEq)]
+#[derive(Debug, Component, Copy, Clone, Default, PartialEq, AzBuf)]
 pub struct LookDirection {
     /// Left and right. Aka yaw.
     pub y_rot: f32,
@@ -245,7 +248,7 @@ impl Eq for LookDirection {}
 
 /// The physics data relating to the entity, such as position, velocity, and
 /// bounding box.
-#[derive(Debug, Component, Clone)]
+#[derive(Debug, Component, Clone, Default)]
 pub struct Physics {
     /// How fast the entity is moving.
     pub velocity: Vec3,
@@ -257,8 +260,10 @@ pub struct Physics {
     /// Z acceleration.
     pub zza: f32,
 
-    pub on_ground: bool,
-    pub last_on_ground: bool,
+    on_ground: bool,
+    last_on_ground: bool,
+
+    pub vec_delta_codec: VecDeltaCodec,
 
     /// The width and height of the entity.
     pub dimensions: EntityDimensions,
@@ -274,7 +279,7 @@ pub struct Physics {
 }
 
 impl Physics {
-    pub fn new(dimensions: EntityDimensions, pos: &Vec3) -> Self {
+    pub fn new(dimensions: EntityDimensions, pos: Vec3) -> Self {
         Self {
             velocity: Vec3::default(),
 
@@ -292,7 +297,29 @@ impl Physics {
 
             horizontal_collision: false,
             vertical_collision: false,
+
+            vec_delta_codec: VecDeltaCodec::new(pos),
         }
+    }
+
+    pub fn on_ground(&self) -> bool {
+        self.on_ground
+    }
+    /// Updates [`Self::on_ground`] and [`Self::last_on_ground`].
+    pub fn set_on_ground(&mut self, on_ground: bool) {
+        self.last_on_ground = self.on_ground;
+        self.on_ground = on_ground;
+    }
+
+    /// The last value of the on_ground value.
+    ///
+    /// This is used by Azalea internally for physics, it might not work as you
+    /// expect since it can be influenced by packets sent by the server.
+    pub fn last_on_ground(&self) -> bool {
+        self.last_on_ground
+    }
+    pub fn set_last_on_ground(&mut self, last_on_ground: bool) {
+        self.last_on_ground = last_on_ground;
     }
 }
 
@@ -384,7 +411,7 @@ impl EntityBundle {
             position: Position(pos),
             chunk_pos: EntityChunkPos(ChunkPos::from(&pos)),
             last_sent_position: LastSentPosition(pos),
-            physics: Physics::new(dimensions, &pos),
+            physics: Physics::new(dimensions, pos),
             eye_height: EyeHeight(eye_height),
             direction: LookDirection::default(),
 
@@ -427,25 +454,3 @@ impl FluidOnEyes {
 
 #[derive(Component, Clone, Debug, PartialEq, Deref, DerefMut)]
 pub struct OnClimbable(bool);
-
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-//     use crate::PartialWorld;
-
-//     #[test]
-//     fn from_mut_entity_to_ref_entity() {
-//         let mut world = PartialWorld::default();
-//         let uuid = Uuid::from_u128(100);
-//         world.add_entity(
-//             0,
-//             EntityData::new(
-//                 uuid,
-//                 Vec3::default(),
-//                 EntityMetadata::Player(metadata::Player::default()),
-//             ),
-//         );
-//         let entity: Entity = world.entity_mut(0).unwrap();
-//         assert_eq!(entity.uuid, uuid);
-//     }
-// }
