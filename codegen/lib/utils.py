@@ -25,7 +25,7 @@ def upper_first_letter(name: str):
 
 
 def padded_hex(n: int):
-    return f'0x{n:02x}'
+    return f'0x{n:02X}'
 
 
 class PacketIdentifier:

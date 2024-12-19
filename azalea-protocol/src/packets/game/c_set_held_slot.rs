@@ -3,5 +3,6 @@ use azalea_protocol_macros::ClientboundGamePacket;
 
 #[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
 pub struct ClientboundSetHeldSlot {
-    pub slot: u8,
+    #[var]
+    pub slot: u32,
 }

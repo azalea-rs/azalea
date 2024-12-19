@@ -6,9 +6,6 @@ import os
 import re
 
 
-def make_packet_mod_rs_line(packet_id: int, packet_class_name: str):
-    return f'        {padded_hex(packet_id)}: {to_snake_case(packet_class_name)}::{to_camel_case(packet_class_name)},'
-
 MOJMAP_TO_AZALEA_STATE_NAME_MAPPING = {
     # shorter name, i like it more
     'configuration': 'config',
@@ -62,12 +59,12 @@ def set_packets(packets_report):
         code.append('')
         code.append(f'declare_state_packets!({to_camel_case(state)}Packet,')
         code.append('    Clientbound => [')
-        for packet_name in clientbound_packets:
-            code.append(f'        {packet_name},')
+        for packet_id, packet_name in enumerate(clientbound_packets):
+            code.append(f'        {packet_name}, // {padded_hex(packet_id)}')
         code.append('    ],')
         code.append('    Serverbound => [')
-        for packet_name in serverbound_packets:
-            code.append(f'        {packet_name},')
+        for packet_id, packet_name in enumerate(serverbound_packets):
+            code.append(f'        {packet_name}, // {padded_hex(packet_id)}')
         code.append('    ]')
         code.append(');')
         code.append('')

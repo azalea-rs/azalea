@@ -85,7 +85,7 @@ pub struct Inventory {
     /// guaranteed to be anything specific, and may change every time you open a
     /// container (unless it's 0, in which case it means that no container is
     /// open).
-    pub id: u8,
+    pub id: i32,
     /// The current container menu that the player has open. If no container is
     /// open, this will be `None`.
     pub container_menu: Option<azalea_inventory::Menu>,
@@ -584,7 +584,7 @@ impl Default for Inventory {
 #[derive(Event, Debug)]
 pub struct MenuOpenedEvent {
     pub entity: Entity,
-    pub window_id: u32,
+    pub window_id: i32,
     pub menu_type: MenuKind,
     pub title: FormattedText,
 }
@@ -594,7 +594,7 @@ fn handle_menu_opened_event(
 ) {
     for event in events.read() {
         let mut inventory = query.get_mut(event.entity).unwrap();
-        inventory.id = event.window_id as u8;
+        inventory.id = event.window_id;
         inventory.container_menu = Some(Menu::from_kind(event.menu_type));
         inventory.container_menu_title = Some(event.title.clone());
     }
@@ -609,7 +609,7 @@ pub struct CloseContainerEvent {
     pub entity: Entity,
     /// The ID of the container to close. 0 for the player's inventory. If this
     /// is not the same as the currently open inventory, nothing will happen.
-    pub id: u8,
+    pub id: i32,
 }
 fn handle_container_close_event(
     query: Query<(Entity, &Inventory)>,
@@ -661,7 +661,7 @@ pub fn handle_client_side_close_container_event(
 #[derive(Event, Debug)]
 pub struct ContainerClickEvent {
     pub entity: Entity,
-    pub window_id: u8,
+    pub window_id: i32,
     pub operation: ClickOperation,
 }
 pub fn handle_container_click_event(
@@ -715,7 +715,7 @@ pub fn handle_container_click_event(
 pub struct SetContainerContentEvent {
     pub entity: Entity,
     pub slots: Vec<ItemStack>,
-    pub container_id: u8,
+    pub container_id: i32,
 }
 fn handle_set_container_content_event(
     mut events: EventReader<SetContainerContentEvent>,

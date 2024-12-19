@@ -1,4 +1,5 @@
 use azalea_buf::AzBuf;
+use azalea_core::position::Vec3;
 use azalea_entity::particle::Particle;
 use azalea_protocol_macros::ClientboundGamePacket;
 
@@ -6,9 +7,7 @@ use azalea_protocol_macros::ClientboundGamePacket;
 pub struct ClientboundLevelParticles {
     pub override_limiter: bool,
     pub always_show: bool,
-    pub x: f64,
-    pub y: f64,
-    pub z: f64,
+    pub pos: Vec3,
     pub x_dist: f32,
     pub y_dist: f32,
     pub z_dist: f32,

@@ -3,5 +3,6 @@ use azalea_protocol_macros::ClientboundGamePacket;
 
 #[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
 pub struct ClientboundContainerClose {
-    pub container_id: u8,
+    #[var]
+    pub container_id: i32,
 }

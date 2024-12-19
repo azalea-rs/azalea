@@ -1,7 +1,7 @@
 use azalea_buf::AzBuf;
 use azalea_protocol_macros::ClientboundGamePacket;
 
-use super::c_player_position::PositionMoveRotation;
+use crate::common::movements::PositionMoveRotation;
 
 #[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
 pub struct ClientboundEntityPositionSync {

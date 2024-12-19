@@ -510,8 +510,7 @@ pub fn process_packet_events(ecs: &mut World) {
                     player_entity,
                     ServerboundMovePlayerPosRot {
                         pos: new_pos,
-                        y_rot: new_y_rot,
-                        x_rot: new_x_rot,
+                        look_direction: LookDirection::new(new_y_rot, new_x_rot),
                         // this is always false
                         on_ground: false,
                     },
@@ -842,10 +841,10 @@ pub fn process_packet_events(ecs: &mut World) {
                     continue;
                 };
 
-                let new_pos = p.position;
+                let new_pos = p.change.pos;
                 let new_look_direction = LookDirection {
-                    x_rot: (p.x_rot as i32 * 360) as f32 / 256.,
-                    y_rot: (p.y_rot as i32 * 360) as f32 / 256.,
+                    x_rot: (p.change.look_direction.x_rot as i32 * 360) as f32 / 256.,
+                    y_rot: (p.change.look_direction.y_rot as i32 * 360) as f32 / 256.,
                 };
                 commands.entity(entity).queue(RelativeEntityUpdate {
                     partial_world: instance_holder.partial_instance.clone(),
@@ -879,35 +878,34 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 debug!("Got move entity pos packet {p:?}");
 
-                let entity = entity_id_index.get(&MinecraftEntityId(p.entity_id));
-
-                if let Some(entity) = entity {
-                    let new_delta = p.delta.clone();
-                    let new_on_ground = p.on_ground;
-                    commands.entity(entity).queue(RelativeEntityUpdate {
-                        partial_world: instance_holder.partial_instance.clone(),
-                        update: Box::new(move |entity_mut| {
-                            let mut physics = entity_mut.get_mut::<Physics>().unwrap();
-                            let new_pos = physics.vec_delta_codec.decode(
-                                new_delta.xa as i64,
-                                new_delta.ya as i64,
-                                new_delta.za as i64,
-                            );
-                            physics.vec_delta_codec.set_base(new_pos);
-                            physics.set_on_ground(new_on_ground);
-
-                            let mut position = entity_mut.get_mut::<Position>().unwrap();
-                            if new_pos != **position {
-                                **position = new_pos;
-                            }
-                        }),
-                    });
-                } else {
+                let Some(entity) = entity_id_index.get(&MinecraftEntityId(p.entity_id)) else {
                     warn!(
                         "Got move entity pos packet for unknown entity id {}",
                         p.entity_id
                     );
-                }
+                    continue;
+                };
+
+                let new_delta = p.delta.clone();
+                let new_on_ground = p.on_ground;
+                commands.entity(entity).queue(RelativeEntityUpdate {
+                    partial_world: instance_holder.partial_instance.clone(),
+                    update: Box::new(move |entity_mut| {
+                        let mut physics = entity_mut.get_mut::<Physics>().unwrap();
+                        let new_pos = physics.vec_delta_codec.decode(
+                            new_delta.xa as i64,
+                            new_delta.ya as i64,
+                            new_delta.za as i64,
+                        );
+                        physics.vec_delta_codec.set_base(new_pos);
+                        physics.set_on_ground(new_on_ground);
+
+                        let mut position = entity_mut.get_mut::<Position>().unwrap();
+                        if new_pos != **position {
+                            **position = new_pos;
+                        }
+                    }),
+                });
 
                 system_state.apply(ecs);
             }
@@ -1191,7 +1189,7 @@ pub fn process_packet_events(ecs: &mut World) {
                     events.send(SetContainerContentEvent {
                         entity: player_entity,
                         slots: p.items.clone(),
-                        container_id: p.container_id as u8,
+                        container_id: p.container_id,
                     });
                 }
             }
@@ -1235,7 +1233,7 @@ pub fn process_packet_events(ecs: &mut World) {
                         if let Some(slot) = inventory.inventory_menu.slot_mut(p.slot.into()) {
                             *slot = p.item_stack.clone();
                         }
-                    } else if p.container_id == (inventory.id as i8)
+                    } else if p.container_id == inventory.id
                         && (p.container_id != 0 || !is_creative_mode_and_inventory_closed)
                     {
                         // var2.containerMenu.setItem(var4, var1.getStateId(), var3);
@@ -1260,20 +1258,18 @@ pub fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::DeleteChat(_) => {}
             ClientboundGamePacket::Explode(p) => {
                 trace!("Got explode packet {p:?}");
-                let mut system_state: SystemState<EventWriter<KnockbackEvent>> =
-                    SystemState::new(ecs);
-                let mut knockback_events = system_state.get_mut(ecs);
+                if let Some(knockback) = p.knockback {
+                    let mut system_state: SystemState<EventWriter<KnockbackEvent>> =
+                        SystemState::new(ecs);
+                    let mut knockback_events = system_state.get_mut(ecs);
 
-                knockback_events.send(KnockbackEvent {
-                    entity: player_entity,
-                    knockback: KnockbackType::Set(Vec3 {
-                        x: p.knockback_x as f64,
-                        y: p.knockback_y as f64,
-                        z: p.knockback_z as f64,
-                    }),
-                });
+                    knockback_events.send(KnockbackEvent {
+                        entity: player_entity,
+                        knockback: KnockbackType::Set(knockback),
+                    });
 
-                system_state.apply(ecs);
+                    system_state.apply(ecs);
+                }
             }
             ClientboundGamePacket::ForgetLevelChunk(p) => {
                 debug!("Got forget level chunk packet {p:?}");

@@ -4,5 +4,5 @@ use azalea_protocol_macros::ClientboundGamePacket;
 
 #[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
 pub struct ClientboundSetCursorItem {
-    pub contents: Option<ItemStack>,
+    pub contents: ItemStack,
 }

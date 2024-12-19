@@ -3,8 +3,9 @@ use azalea_protocol_macros::ClientboundGamePacket;
 
 #[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
 pub struct ClientboundHorseScreenOpen {
-    pub container_id: u8,
     #[var]
-    pub size: u32,
+    pub container_id: i32,
+    #[var]
+    pub inventory_columns: u32,
     pub entity_id: u32,
 }

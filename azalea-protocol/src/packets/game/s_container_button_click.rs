@@ -3,6 +3,8 @@ use azalea_protocol_macros::ServerboundGamePacket;
 
 #[derive(Clone, Debug, AzBuf, ServerboundGamePacket)]
 pub struct ServerboundContainerButtonClick {
-    pub container_id: u8,
-    pub button_id: u8,
+    #[var]
+    pub container_id: i32,
+    #[var]
+    pub button_id: u32,
 }

@@ -5,18 +5,18 @@ use azalea_protocol_macros::declare_state_packets;
 
 declare_state_packets!(LoginPacket,
     Clientbound => [
-        login_disconnect,
-        hello,
-        login_finished,
-        login_compression,
-        custom_query,
-        cookie_request,
+        login_disconnect, // 0x00
+        hello, // 0x01
+        login_finished, // 0x02
+        login_compression, // 0x03
+        custom_query, // 0x04
+        cookie_request, // 0x05
     ],
     Serverbound => [
-        hello,
-        key,
-        custom_query_answer,
-        login_acknowledged,
-        cookie_response,
+        hello, // 0x00
+        key, // 0x01
+        custom_query_answer, // 0x02
+        login_acknowledged, // 0x03
+        cookie_response, // 0x04
     ]
 );

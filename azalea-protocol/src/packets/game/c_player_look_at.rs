@@ -1,12 +1,11 @@
 use azalea_buf::AzBuf;
+use azalea_core::position::Vec3;
 use azalea_protocol_macros::ClientboundGamePacket;
 
 #[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
 pub struct ClientboundPlayerLookAt {
     pub from_anchor: Anchor,
-    pub x: f64,
-    pub y: f64,
-    pub z: f64,
+    pub pos: Vec3,
     pub entity: Option<AtEntity>,
 }
 

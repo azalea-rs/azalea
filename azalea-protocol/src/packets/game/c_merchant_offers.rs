@@ -5,7 +5,7 @@ use azalea_protocol_macros::ClientboundGamePacket;
 #[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
 pub struct ClientboundMerchantOffers {
     #[var]
-    pub container_id: u32,
+    pub container_id: i32,
     pub offers: Vec<MerchantOffer>,
     #[var]
     pub villager_level: u32,

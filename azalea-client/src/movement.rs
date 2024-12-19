@@ -193,8 +193,7 @@ pub fn send_position(
                 Some(
                     ServerboundMovePlayerPosRot {
                         pos: **position,
-                        x_rot: direction.x_rot,
-                        y_rot: direction.y_rot,
+                        look_direction: *direction,
                         on_ground: physics.on_ground(),
                     }
                     .into_variant(),
@@ -202,9 +201,7 @@ pub fn send_position(
             } else if sending_position {
                 Some(
                     ServerboundMovePlayerPos {
-                        x: position.x,
-                        y: position.y,
-                        z: position.z,
+                        pos: **position,
                         on_ground: physics.on_ground(),
                     }
                     .into_variant(),
@@ -212,8 +209,7 @@ pub fn send_position(
             } else if sending_direction {
                 Some(
                     ServerboundMovePlayerRot {
-                        x_rot: direction.x_rot,
-                        y_rot: direction.y_rot,
+                        look_direction: *direction,
                         on_ground: physics.on_ground(),
                     }
                     .into_variant(),

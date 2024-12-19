@@ -1,9 +1,11 @@
 use azalea_buf::AzBuf;
-use azalea_core::resource_location::ResourceLocation;
 use azalea_protocol_macros::ClientboundGamePacket;
+
+use crate::common::recipe::RecipeDisplayData;
 
 #[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
 pub struct ClientboundPlaceGhostRecipe {
-    pub container_id: u8,
-    pub recipe: ResourceLocation,
+    #[var]
+    pub container_id: i32,
+    pub recipe: RecipeDisplayData,
 }

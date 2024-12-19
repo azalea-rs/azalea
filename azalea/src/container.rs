@@ -117,7 +117,7 @@ impl ContainerClientExt for Client {
 /// A handle to a container that may be open. This does not close the container
 /// when it's dropped. See [`ContainerHandle`] if that behavior is desired.
 pub struct ContainerHandleRef {
-    id: u8,
+    id: i32,
     client: Client,
 }
 impl Debug for ContainerHandleRef {
@@ -138,7 +138,7 @@ impl ContainerHandleRef {
     /// Get the id of the container. If this is 0, that means it's the player's
     /// inventory. Otherwise, the number isn't really meaningful since only one
     /// container can be open at a time.
-    pub fn id(&self) -> u8 {
+    pub fn id(&self) -> i32 {
         self.id
     }
 
@@ -199,14 +199,14 @@ impl Debug for ContainerHandle {
     }
 }
 impl ContainerHandle {
-    fn new(id: u8, client: Client) -> Self {
+    fn new(id: i32, client: Client) -> Self {
         Self(ContainerHandleRef { id, client })
     }
 
     /// Get the id of the container. If this is 0, that means it's the player's
     /// inventory. Otherwise, the number isn't really meaningful since only one
     /// container can be open at a time.
-    pub fn id(&self) -> u8 {
+    pub fn id(&self) -> i32 {
         self.0.id()
     }
 
