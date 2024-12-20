@@ -233,7 +233,7 @@ dependencies = [
  "rand",
  "rustc-hash 2.1.0",
  "serde",
- "thiserror 2.0.6",
+ "thiserror 2.0.8",
  "tokio",
  "tracing",
  "uuid",
@@ -253,7 +253,7 @@ dependencies = [
  "rsa",
  "serde",
  "serde_json",
- "thiserror 2.0.6",
+ "thiserror 2.0.8",
  "tokio",
  "tracing",
  "uuid",
@@ -296,7 +296,7 @@ dependencies = [
  "byteorder",
  "serde_json",
  "simdnbt",
- "thiserror 2.0.6",
+ "thiserror 2.0.8",
  "tracing",
  "uuid",
 ]
@@ -351,7 +351,7 @@ dependencies = [
  "regex",
  "reqwest",
  "simdnbt",
- "thiserror 2.0.6",
+ "thiserror 2.0.8",
  "tokio",
  "tracing",
  "uuid",
@@ -406,7 +406,7 @@ dependencies = [
  "nohash-hasher",
  "parking_lot",
  "simdnbt",
- "thiserror 2.0.6",
+ "thiserror 2.0.8",
  "tracing",
  "uuid",
 ]
@@ -485,7 +485,7 @@ dependencies = [
  "serde_json",
  "simdnbt",
  "socks5-impl",
- "thiserror 2.0.6",
+ "thiserror 2.0.8",
  "tokio",
  "tokio-util",
  "tracing",
@@ -537,7 +537,7 @@ dependencies = [
  "parking_lot",
  "rustc-hash 2.1.0",
  "simdnbt",
- "thiserror 2.0.6",
+ "thiserror 2.0.8",
  "tracing",
 ]
 
@@ -1205,9 +1205,9 @@ dependencies = [
 
 [[package]]
 name = "env_logger"
-version = "0.11.5"
+version = "0.11.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e13fa619b91fb2381732789fc5de83b45675e882f66623b7d8cb4f643017018d"
+checksum = "dcaee3d8e3cfc3fd92428d477bc97fc29ec8716d180c0d74c643bb26166660e0"
 dependencies = [
  "anstream",
  "anstyle",
@@ -2282,7 +2282,7 @@ dependencies = [
  "rustc-hash 2.1.0",
  "rustls",
  "socket2",
- "thiserror 2.0.6",
+ "thiserror 2.0.8",
  "tokio",
  "tracing",
 ]
@@ -2301,7 +2301,7 @@ dependencies = [
  "rustls",
  "rustls-pki-types",
  "slab",
- "thiserror 2.0.6",
+ "thiserror 2.0.8",
  "tinyvec",
  "tracing",
  "web-time",
@@ -2318,7 +2318,7 @@ dependencies = [
  "once_cell",
  "socket2",
  "tracing",
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -2621,18 +2621,18 @@ checksum = "61697e0a1c7e512e84a621326239844a24d8207b4669b41bc18b32ea5cbf988b"
 
 [[package]]
 name = "serde"
-version = "1.0.215"
+version = "1.0.216"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6513c1ad0b11a9376da888e3e0baa0077f1aed55c17f50e7b2397136129fb88f"
+checksum = "0b9781016e935a97e8beecf0c933758c97a5520d32930e460142b4cd80c6338e"
 dependencies = [
  "serde_derive",
 ]
 
 [[package]]
 name = "serde_derive"
-version = "1.0.215"
+version = "1.0.216"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ad1e866f866923f252f05c889987993144fb74e722403468a4ebd70c3cd756c0"
+checksum = "46f859dbbf73865c6627ed570e78961cd3ac92407a2d117204c49232485da55e"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2808,17 +2808,16 @@ dependencies = [
 
 [[package]]
 name = "socks5-impl"
-version = "0.5.17"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "82a85c021488d0690111763ddd6466b4e9e13b6e7e11651c678c0f52568877e3"
+checksum = "5e829db4e195dbf4aad910f6c25125ea00e01c1d0baced94b1a10a9660b17531"
 dependencies = [
  "as-any",
  "async-trait",
  "byteorder",
  "bytes",
  "percent-encoding",
- "serde",
- "thiserror 2.0.6",
+ "thiserror 2.0.8",
  "tokio",
 ]
 
@@ -2892,11 +2891,11 @@ dependencies = [
 
 [[package]]
 name = "thiserror"
-version = "2.0.6"
+version = "2.0.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8fec2a1820ebd077e2b90c4df007bebf344cd394098a13c563957d0afc83ea47"
+checksum = "08f5383f3e0071702bf93ab5ee99b52d26936be9dedd9413067cbdcddcb6141a"
 dependencies = [
- "thiserror-impl 2.0.6",
+ "thiserror-impl 2.0.8",
 ]
 
 [[package]]
@@ -2912,9 +2911,9 @@ dependencies = [
 
 [[package]]
 name = "thiserror-impl"
-version = "2.0.6"
+version = "2.0.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d65750cab40f4ff1929fb1ba509e9914eb756131cef4210da8d5d700d26f6312"
+checksum = "f2f357fcec90b3caef6623a099691be676d033b40a058ac95d2a6ade6fa0c943"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3447,7 +3446,7 @@ version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf221c93e13a30d793f7645a0e7762c55d169dbb0a49671918a2319d289b10bb"
 dependencies = [
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]

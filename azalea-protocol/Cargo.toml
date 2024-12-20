@@ -42,7 +42,7 @@ futures-lite = { workspace = true }
 serde = { workspace = true, features = ["serde_derive"] }
 serde_json = { workspace = true }
 simdnbt = { workspace = true }
-socks5-impl = { workspace = true }
+socks5-impl = { workspace = true, features = ["client"] }
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["io-util", "net", "macros"] }
 tokio-util = { workspace = true, features = ["codec"] }
