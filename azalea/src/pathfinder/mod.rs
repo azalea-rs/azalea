@@ -84,8 +84,8 @@ impl Plugin for PathfinderPlugin {
                 (
                     goto_listener,
                     handle_tasks,
-                    path_found_listener,
                     stop_pathfinding_on_instance_change,
+                    path_found_listener,
                     handle_stop_pathfinding_event,
                 )
                     .chain()
