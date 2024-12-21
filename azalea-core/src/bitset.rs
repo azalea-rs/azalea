@@ -130,7 +130,7 @@ impl From<Vec<u8>> for BitSet {
 /// use it like `FixedBitSet<{ 20_usize.div_ceil(8) }>` if you need 20 bits.
 ///
 /// TODO: this should be changed back to bits once this is resolved:
-/// https://github.com/rust-lang/rust/issues/133199#issuecomment-2531645526
+/// <https://github.com/rust-lang/rust/issues/133199#issuecomment-2531645526>
 ///
 /// Note that this is primarily meant for fast serialization and deserialization
 /// for Minecraft, if you don't need that you should use the `fixedbitset` crate
