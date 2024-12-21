@@ -3,11 +3,11 @@
 use std::net::{IpAddr, SocketAddr};
 
 use async_recursion::async_recursion;
-use thiserror::Error;
-use trust_dns_resolver::{
+use hickory_resolver::{
     config::{ResolverConfig, ResolverOpts},
     Name, TokioAsyncResolver,
 };
+use thiserror::Error;
 
 use crate::ServerAddress;
 
@@ -30,7 +30,7 @@ pub async fn resolve_address(address: &ServerAddress) -> Result<SocketAddr, Reso
     }
 
     // we specify Cloudflare instead of the default resolver because
-    // trust_dns_resolver has an issue on Windows where it's really slow using the
+    // hickory_resolver has an issue on Windows where it's really slow using the
     // default resolver
     let resolver = TokioAsyncResolver::tokio(ResolverConfig::cloudflare(), ResolverOpts::default());
 

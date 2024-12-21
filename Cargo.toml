@@ -78,7 +78,7 @@ tokio = "1.42.0"
 tokio-util = "0.7.13"
 tracing = "0.1.41"
 tracing-subscriber = "0.3.19"
-trust-dns-resolver = { version = "0.23.2", default-features = false }
+hickory-resolver = { version = "0.24.2", default-features = false }
 uuid = "1.11.0"
 
 # --- Profile Settings ---
