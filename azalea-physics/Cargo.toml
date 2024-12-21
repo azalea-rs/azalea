@@ -11,12 +11,12 @@ bevy_time = { workspace = true }
 uuid = { workspace = true }
 
 [dependencies]
-azalea-block = { path = "../azalea-block", version = "0.10.0" }
-azalea-core = { path = "../azalea-core", version = "0.10.0" }
-azalea-entity = { version = "0.10.0", path = "../azalea-entity" }
-azalea-inventory = { version = "0.10.0", path = "../azalea-inventory" }
-azalea-registry = { path = "../azalea-registry", version = "0.10.0" }
-azalea-world = { path = "../azalea-world", version = "0.10.0" }
+azalea-block = { path = "../azalea-block", version = "0.11.0+mc1.21.4" }
+azalea-core = { path = "../azalea-core", version = "0.11.0+mc1.21.4" }
+azalea-entity = { version = "0.11.0+mc1.21.4", path = "../azalea-entity" }
+azalea-inventory = { version = "0.11.0+mc1.21.4", path = "../azalea-inventory" }
+azalea-registry = { path = "../azalea-registry", version = "0.11.0+mc1.21.4" }
+azalea-world = { path = "../azalea-world", version = "0.11.0+mc1.21.4" }
 bevy_app = { workspace = true }
 bevy_ecs = { workspace = true }
 parking_lot = { workspace = true }

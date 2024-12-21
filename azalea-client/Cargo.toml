@@ -8,18 +8,18 @@ repository = { workspace = true }
 
 [dependencies]
 anyhow = { workspace = true }
-azalea-auth = { path = "../azalea-auth", version = "0.10.0" }
-azalea-block = { path = "../azalea-block", version = "0.10.0" }
-azalea-buf = { path = "../azalea-buf", version = "0.10.0" }
-azalea-chat = { path = "../azalea-chat", version = "0.10.0" }
-azalea-core = { path = "../azalea-core", version = "0.10.0" }
-azalea-crypto = { path = "../azalea-crypto", version = "0.10.0" }
-azalea-entity = { path = "../azalea-entity", version = "0.10.0" }
-azalea-inventory = { path = "../azalea-inventory", version = "0.10.0" }
-azalea-physics = { path = "../azalea-physics", version = "0.10.0" }
-azalea-protocol = { path = "../azalea-protocol", version = "0.10.0" }
-azalea-registry = { path = "../azalea-registry", version = "0.10.0" }
-azalea-world = { path = "../azalea-world", version = "0.10.0" }
+azalea-auth = { path = "../azalea-auth", version = "0.11.0+mc1.21.4" }
+azalea-block = { path = "../azalea-block", version = "0.11.0+mc1.21.4" }
+azalea-buf = { path = "../azalea-buf", version = "0.11.0+mc1.21.4" }
+azalea-chat = { path = "../azalea-chat", version = "0.11.0+mc1.21.4" }
+azalea-core = { path = "../azalea-core", version = "0.11.0+mc1.21.4" }
+azalea-crypto = { path = "../azalea-crypto", version = "0.11.0+mc1.21.4" }
+azalea-entity = { path = "../azalea-entity", version = "0.11.0+mc1.21.4" }
+azalea-inventory = { path = "../azalea-inventory", version = "0.11.0+mc1.21.4" }
+azalea-physics = { path = "../azalea-physics", version = "0.11.0+mc1.21.4" }
+azalea-protocol = { path = "../azalea-protocol", version = "0.11.0+mc1.21.4" }
+azalea-registry = { path = "../azalea-registry", version = "0.11.0+mc1.21.4" }
+azalea-world = { path = "../azalea-world", version = "0.11.0+mc1.21.4" }
 bevy_app = { workspace = true }
 bevy_ecs = { workspace = true }
 bevy_log = { workspace = true, optional = true }

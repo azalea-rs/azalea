@@ -7,7 +7,7 @@ license = { workspace = true }
 repository = { workspace = true }
 
 [dependencies]
-azalea-buf-macros = { path = "./azalea-buf-macros", version = "0.10.0" }
+azalea-buf-macros = { path = "./azalea-buf-macros", version = "0.11.0+mc1.21.4" }
 byteorder = { workspace = true }
 serde_json = { workspace = true, optional = true }
 simdnbt = { workspace = true }

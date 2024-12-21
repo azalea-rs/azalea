@@ -11,12 +11,12 @@ azalea-client = { path = "../azalea-client" }
 criterion = "0.5.1"
 
 [dependencies]
-azalea-block = { path = "../azalea-block", default-features = false, version = "0.10.0" }
-azalea-buf = { path = "../azalea-buf", version = "0.10.0" }
+azalea-block = { path = "../azalea-block", default-features = false, version = "0.11.0+mc1.21.4" }
+azalea-buf = { path = "../azalea-buf", version = "0.11.0+mc1.21.4" }
 azalea-core = { path = "../azalea-core", version = "0.10.0", features = [
     "bevy_ecs",
 ] }
-azalea-registry = { path = "../azalea-registry", version = "0.10.0" }
+azalea-registry = { path = "../azalea-registry", version = "0.11.0+mc1.21.4" }
 bevy_ecs = { workspace = true }
 derive_more = { workspace = true, features = ["deref", "deref_mut"] }
 nohash-hasher = { workspace = true }
