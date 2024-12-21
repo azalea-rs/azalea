@@ -7,8 +7,8 @@ license = { workspace = true }
 repository = { workspace = true }
 
 [dependencies]
-azalea-buf = { path = "../azalea-buf", version = "0.11.0+mc1.21.4" }
-azalea-registry-macros = { path = "./azalea-registry-macros", version = "0.11.0+mc1.21.4" }
+azalea-buf = { path = "../azalea-buf", version = "0.11.0" }
+azalea-registry-macros = { path = "./azalea-registry-macros", version = "0.11.0" }
 serde = { workspace = true, optional = true }
 simdnbt = { workspace = true }
 
