@@ -104,7 +104,7 @@ use crate::particle::Particle;
 
 use super::{
     ArmadilloStateKind, EntityDataItem, EntityDataValue, OptionalUnsignedInt, Pose, Quaternion,
-    Rotations, SnifferState, VillagerData,
+    Rotations, SnifferStateKind, VillagerData,
 };
 use azalea_chat::FormattedText;
 use azalea_core::{
@@ -140,6 +140,10 @@ impl From<EntityDataValue> for UpdateMetadataError {
     # build the duplicate_field_names set
     previous_field_names = set()
     duplicate_field_names = set()
+
+    # some generic names... we don't like these
+    duplicate_field_names.add('state') # SnifferState instead of State
+
     for entity_id in burger_entity_metadata.keys():
         field_name_map[entity_id] = {}
         for field_name_or_bitfield in get_entity_metadata_names(entity_id, burger_entity_metadata, mappings).values():

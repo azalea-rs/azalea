@@ -86,7 +86,7 @@ pub enum EntityDataValue {
     FrogVariant(azalea_registry::FrogVariant),
     OptionalGlobalPos(Option<GlobalPos>),
     PaintingVariant(azalea_registry::PaintingVariant),
-    SnifferState(SnifferState),
+    SnifferState(SnifferStateKind),
     ArmadilloState(ArmadilloStateKind),
     Vector3(Vec3),
     Quaternion(Quaternion),
@@ -162,7 +162,7 @@ pub struct VillagerData {
 }
 
 #[derive(Debug, Copy, Clone, AzBuf, Default)]
-pub enum SnifferState {
+pub enum SnifferStateKind {
     #[default]
     Idling,
     FeelingHappy,

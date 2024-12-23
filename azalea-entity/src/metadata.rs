@@ -16,7 +16,7 @@ use uuid::Uuid;
 
 use super::{
     ArmadilloStateKind, EntityDataItem, EntityDataValue, OptionalUnsignedInt, Pose, Quaternion,
-    Rotations, SnifferState, VillagerData,
+    Rotations, SnifferStateKind, VillagerData,
 };
 use crate::particle::Particle;
 
@@ -8100,7 +8100,7 @@ impl Default for SmallFireballMetadataBundle {
 }
 
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct State(pub SnifferState);
+pub struct SnifferState(pub SnifferStateKind);
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct DropSeedAtTick(pub i32);
 #[derive(Component)]
@@ -8113,7 +8113,7 @@ impl Sniffer {
         match d.index {
             0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
             17 => {
-                entity.insert(State(d.value.into_sniffer_state()?));
+                entity.insert(SnifferState(d.value.into_sniffer_state()?));
             }
             18 => {
                 entity.insert(DropSeedAtTick(d.value.into_int()?));
@@ -8128,7 +8128,7 @@ impl Sniffer {
 pub struct SnifferMetadataBundle {
     _marker: Sniffer,
     parent: AbstractAnimalMetadataBundle,
-    state: State,
+    sniffer_state: SnifferState,
     drop_seed_at_tick: DropSeedAtTick,
 }
 impl Default for SnifferMetadataBundle {
@@ -8179,7 +8179,7 @@ impl Default for SnifferMetadataBundle {
                     abstract_ageable_baby: AbstractAgeableBaby(false),
                 },
             },
-            state: State(Default::default()),
+            sniffer_state: SnifferState(Default::default()),
             drop_seed_at_tick: DropSeedAtTick(0),
         }
     }
