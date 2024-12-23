@@ -141,6 +141,11 @@ impl<'a> BlockCollisionsState<'a> {
     }
 
     fn get_block_state(&mut self, block_pos: BlockPos) -> BlockState {
+        if block_pos.y < self.world.chunks.min_y {
+            // below the world
+            return BlockState::AIR;
+        }
+
         let section_pos = ChunkSectionPos::from(block_pos);
         let section_block_pos = ChunkSectionBlockPos::from(block_pos);
 
