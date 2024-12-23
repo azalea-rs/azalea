@@ -55,6 +55,9 @@ async fn main() -> anyhow::Result<()> {
 
     // Bind to an address and port
     let listener = TcpListener::bind(LISTEN_ADDR).await?;
+
+    info!("Listening on {LISTEN_ADDR}, proxying to {PROXY_ADDR}");
+
     loop {
         // When a connection is made, pass it off to another thread
         let (stream, _) = listener.accept().await?;
@@ -75,8 +78,10 @@ async fn handle_connection(stream: TcpStream) -> anyhow::Result<()> {
         Ok(packet) => match packet {
             ServerboundHandshakePacket::Intention(packet) => {
                 info!(
-                    "New connection: {0}, Version {1}, {2:?}",
+                    "New connection from {}, hostname {:?}:{}, version {}, {:?}",
                     ip.ip(),
+                    packet.hostname,
+                    packet.port,
                     packet.protocol_version,
                     packet.intention
                 );
