@@ -44,8 +44,7 @@ use protocol::{resolver::ResolverError, ServerAddress};
 use swarm::SwarmBuilder;
 use thiserror::Error;
 
-pub type BoxHandleFn<S> =
-    Box<dyn Fn(Client, azalea_client::Event, S) -> BoxFuture<'static, Result<(), anyhow::Error>>>;
+pub type BoxHandleFn<S, R> = Box<dyn Fn(Client, azalea_client::Event, S) -> BoxFuture<'static, R>>;
 pub type HandleFn<S, Fut> = fn(Client, azalea_client::Event, S) -> Fut;
 
 #[derive(Error, Debug)]
@@ -74,19 +73,20 @@ pub enum StartError {
 /// #     Ok(())
 /// # }
 /// ```
-pub struct ClientBuilder<S>
+pub struct ClientBuilder<S, R>
 where
     S: Default + Send + Sync + Clone + Component + 'static,
+    R: Send + 'static,
 {
     /// Internally, ClientBuilder is just a wrapper over SwarmBuilder since it's
     /// technically just a subset of it so we can avoid duplicating code this
     /// way.
-    swarm: SwarmBuilder<S, swarm::NoSwarmState>,
+    swarm: SwarmBuilder<S, swarm::NoSwarmState, R, ()>,
 }
-impl ClientBuilder<NoState> {
+impl ClientBuilder<NoState, ()> {
     /// Start building a client that can join the world.
     #[must_use]
-    pub fn new() -> ClientBuilder<NoState> {
+    pub fn new() -> Self {
         Self::new_without_plugins()
             .add_plugins(DefaultPlugins)
             .add_plugins(DefaultBotPlugins)
@@ -116,7 +116,7 @@ impl ClientBuilder<NoState> {
     /// # }
     /// ```
     #[must_use]
-    pub fn new_without_plugins() -> ClientBuilder<NoState> {
+    pub fn new_without_plugins() -> Self {
         Self {
             swarm: SwarmBuilder::new_without_plugins(),
         }
@@ -139,19 +139,21 @@ impl ClientBuilder<NoState> {
     /// }
     /// ```
     #[must_use]
-    pub fn set_handler<S, Fut>(self, handler: HandleFn<S, Fut>) -> ClientBuilder<S>
+    pub fn set_handler<S, Fut, R>(self, handler: HandleFn<S, Fut>) -> ClientBuilder<S, R>
     where
         S: Default + Send + Sync + Clone + Component + 'static,
-        Fut: Future<Output = Result<(), anyhow::Error>> + Send + 'static,
+        Fut: Future<Output = R> + Send + 'static,
+        R: Send + 'static,
     {
         ClientBuilder {
             swarm: self.swarm.set_handler(handler),
         }
     }
 }
-impl<S> ClientBuilder<S>
+impl<S, R> ClientBuilder<S, R>
 where
     S: Default + Send + Sync + Clone + Component + 'static,
+    R: Send + 'static,
 {
     /// Set the client state instead of initializing defaults.
     #[must_use]
@@ -206,7 +208,7 @@ where
         self.swarm.start_with_default_opts(address, opts).await
     }
 }
-impl Default for ClientBuilder<NoState> {
+impl Default for ClientBuilder<NoState, ()> {
     fn default() -> Self {
         Self::new()
     }

@@ -47,7 +47,15 @@ pub struct Swarm {
 }
 
 /// Create a new [`Swarm`].
-pub struct SwarmBuilder<S, SS>
+///
+/// The generics of this struct stand for the following:
+/// - S: State
+/// - SS: Swarm State
+/// - R: Return type of the handler
+/// - SR: Return type of the swarm handler
+///
+/// You shouldn't have to manually set them though, they'll be inferred for you.
+pub struct SwarmBuilder<S, SS, R, SR>
 where
     S: Send + Sync + Clone + Component + 'static,
     SS: Default + Send + Sync + Clone + Resource + 'static,
@@ -61,10 +69,10 @@ where
     /// The state for the overall swarm.
     pub(crate) swarm_state: SS,
     /// The function that's called every time a bot receives an [`Event`].
-    pub(crate) handler: Option<BoxHandleFn<S>>,
+    pub(crate) handler: Option<BoxHandleFn<S, R>>,
     /// The function that's called every time the swarm receives a
     /// [`SwarmEvent`].
-    pub(crate) swarm_handler: Option<BoxSwarmHandleFn<SS>>,
+    pub(crate) swarm_handler: Option<BoxSwarmHandleFn<SS, SR>>,
 
     /// How long we should wait between each bot joining the server. Set to
     /// None to have every bot connect at the same time. None is different than
@@ -72,10 +80,10 @@ where
     /// the previous one to be ready.
     pub(crate) join_delay: Option<std::time::Duration>,
 }
-impl SwarmBuilder<NoState, NoSwarmState> {
+impl SwarmBuilder<NoState, NoSwarmState, (), ()> {
     /// Start creating the swarm.
     #[must_use]
-    pub fn new() -> SwarmBuilder<NoState, NoSwarmState> {
+    pub fn new() -> Self {
         Self::new_without_plugins()
             .add_plugins(DefaultPlugins)
             .add_plugins(DefaultBotPlugins)
@@ -108,7 +116,7 @@ impl SwarmBuilder<NoState, NoSwarmState> {
     /// # }
     /// ```
     #[must_use]
-    pub fn new_without_plugins() -> SwarmBuilder<NoState, NoSwarmState> {
+    pub fn new_without_plugins() -> Self {
         SwarmBuilder {
             // we create the app here so plugins can add onto it.
             // the schedules won't run until [`Self::start`] is called.
@@ -123,7 +131,7 @@ impl SwarmBuilder<NoState, NoSwarmState> {
     }
 }
 
-impl<SS> SwarmBuilder<NoState, SS>
+impl<SS, R, SR> SwarmBuilder<NoState, SS, R, SR>
 where
     SS: Default + Send + Sync + Clone + Resource + 'static,
 {
@@ -154,9 +162,9 @@ where
     /// # }
     /// ```
     #[must_use]
-    pub fn set_handler<S, Fut>(self, handler: HandleFn<S, Fut>) -> SwarmBuilder<S, SS>
+    pub fn set_handler<S, Fut, Ret>(self, handler: HandleFn<S, Fut>) -> SwarmBuilder<S, SS, Ret, SR>
     where
-        Fut: Future<Output = Result<(), anyhow::Error>> + Send + 'static,
+        Fut: Future<Output = Ret> + Send + 'static,
         S: Send + Sync + Clone + Component + Default + 'static,
     {
         SwarmBuilder {
@@ -171,7 +179,7 @@ where
     }
 }
 
-impl<S> SwarmBuilder<S, NoSwarmState>
+impl<S, R, SR> SwarmBuilder<S, NoSwarmState, R, SR>
 where
     S: Send + Sync + Clone + Component + 'static,
 {
@@ -203,10 +211,13 @@ where
     /// }
     /// ```
     #[must_use]
-    pub fn set_swarm_handler<SS, Fut>(self, handler: SwarmHandleFn<SS, Fut>) -> SwarmBuilder<S, SS>
+    pub fn set_swarm_handler<SS, Fut, SRet>(
+        self,
+        handler: SwarmHandleFn<SS, Fut>,
+    ) -> SwarmBuilder<S, SS, R, SRet>
     where
         SS: Default + Send + Sync + Clone + Resource + 'static,
-        Fut: Future<Output = Result<(), anyhow::Error>> + Send + 'static,
+        Fut: Future<Output = SRet> + Send + 'static,
     {
         SwarmBuilder {
             handler: self.handler,
@@ -222,10 +233,12 @@ where
     }
 }
 
-impl<S, SS> SwarmBuilder<S, SS>
+impl<S, SS, R, SR> SwarmBuilder<S, SS, R, SR>
 where
     S: Send + Sync + Clone + Component + 'static,
     SS: Default + Send + Sync + Clone + Resource + 'static,
+    R: Send + 'static,
+    SR: Send + 'static,
 {
     /// Add a vec of [`Account`]s to the swarm.
     ///
@@ -354,9 +367,10 @@ where
         };
 
         let address: ServerAddress = default_join_opts.custom_address.clone().unwrap_or(address);
-        let resolved_address: SocketAddr = match default_join_opts.custom_resolved_address {
-            Some(resolved_address) => resolved_address,
-            None => resolver::resolve_address(&address).await?,
+        let resolved_address = if let Some(a) = default_join_opts.custom_resolved_address {
+            a
+        } else {
+            resolver::resolve_address(&address).await?
         };
 
         let instance_container = Arc::new(RwLock::new(InstanceContainer::default()));
@@ -476,7 +490,7 @@ where
     }
 }
 
-impl Default for SwarmBuilder<NoState, NoSwarmState> {
+impl Default for SwarmBuilder<NoState, NoSwarmState, (), ()> {
     fn default() -> Self {
         Self::new()
     }
@@ -500,8 +514,8 @@ pub enum SwarmEvent {
 }
 
 pub type SwarmHandleFn<SS, Fut> = fn(Swarm, SwarmEvent, SS) -> Fut;
-pub type BoxSwarmHandleFn<SS> =
-    Box<dyn Fn(Swarm, SwarmEvent, SS) -> BoxFuture<'static, Result<(), anyhow::Error>> + Send>;
+pub type BoxSwarmHandleFn<SS, R> =
+    Box<dyn Fn(Swarm, SwarmEvent, SS) -> BoxFuture<'static, R> + Send>;
 
 /// Make a bot [`Swarm`].
 ///
