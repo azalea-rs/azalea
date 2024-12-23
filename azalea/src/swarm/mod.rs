@@ -1,4 +1,6 @@
 //! Swarms are a way to conveniently control many bots.
+//!
+//! See [`Swarm`] for more information.
 
 mod chat;
 mod events;
@@ -26,8 +28,8 @@ use crate::{BoxHandleFn, DefaultBotPlugins, HandleFn, JoinOpts, NoState, StartEr
 ///
 /// Swarms are created from [`SwarmBuilder`].
 ///
-/// The `S` type parameter is the type of the state for individual bots.
-/// It's used to make the [`Swarm::add`] function work.
+/// Clients can be added to the swarm later via [`Swarm::add`], and can be
+/// removed with [`Client::disconnect`].
 #[derive(Clone, Resource)]
 pub struct Swarm {
     pub ecs_lock: Arc<Mutex<World>>,
@@ -131,7 +133,7 @@ impl SwarmBuilder<NoState, NoSwarmState, (), ()> {
     }
 }
 
-impl<SS, R, SR> SwarmBuilder<NoState, SS, R, SR>
+impl<SS, SR> SwarmBuilder<NoState, SS, (), SR>
 where
     SS: Default + Send + Sync + Clone + Resource + 'static,
 {
@@ -162,9 +164,9 @@ where
     /// # }
     /// ```
     #[must_use]
-    pub fn set_handler<S, Fut, Ret>(self, handler: HandleFn<S, Fut>) -> SwarmBuilder<S, SS, Ret, SR>
+    pub fn set_handler<S, Fut, R>(self, handler: HandleFn<S, Fut>) -> SwarmBuilder<S, SS, R, SR>
     where
-        Fut: Future<Output = Ret> + Send + 'static,
+        Fut: Future<Output = R> + Send + 'static,
         S: Send + Sync + Clone + Component + Default + 'static,
     {
         SwarmBuilder {
@@ -179,7 +181,7 @@ where
     }
 }
 
-impl<S, R, SR> SwarmBuilder<S, NoSwarmState, R, SR>
+impl<S, R> SwarmBuilder<S, NoSwarmState, R, ()>
 where
     S: Send + Sync + Clone + Component + 'static,
 {
@@ -211,13 +213,13 @@ where
     /// }
     /// ```
     #[must_use]
-    pub fn set_swarm_handler<SS, Fut, SRet>(
+    pub fn set_swarm_handler<SS, Fut, SR>(
         self,
         handler: SwarmHandleFn<SS, Fut>,
-    ) -> SwarmBuilder<S, SS, R, SRet>
+    ) -> SwarmBuilder<S, SS, R, SR>
     where
         SS: Default + Send + Sync + Clone + Resource + 'static,
-        Fut: Future<Output = SRet> + Send + 'static,
+        Fut: Future<Output = SR> + Send + 'static,
     {
         SwarmBuilder {
             handler: self.handler,
