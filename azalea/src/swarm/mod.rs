@@ -163,6 +163,7 @@ where
             handler: Some(Box::new(move |bot, event, state: S| {
                 Box::pin(handler(bot, event, state))
             })),
+            // if we added accounts before the State was set, we've gotta set it to the default now
             states: vec![S::default(); self.accounts.len()],
             app: self.app,
             ..self

@@ -2,7 +2,8 @@
 //!
 //! Usage:
 //! - Modify the consts below if necessary.
-//! - Run `cargo r --example testbot`
+//! - Run `cargo r --example testbot -- --owner <owner> --name <username/email>
+//!   --address <address>`.
 //! - Commands are prefixed with `!` in chat. You can send them either in public
 //!   chat or as a /msg.
 //! - Some commands to try are `!goto`, `!killaura true`, `!down`. Check the
@@ -15,6 +16,7 @@ mod commands;
 pub mod killaura;
 
 use std::time::Duration;
+use std::{env, process};
 use std::{sync::Arc, thread};
 
 use azalea::brigadier::command_dispatcher::CommandDispatcher;
@@ -26,10 +28,6 @@ use azalea::ClientInformation;
 use commands::{register_commands, CommandSource};
 use parking_lot::Mutex;
 
-const USERNAME: &str = "azalea";
-const ADDRESS: &str = "localhost";
-/// The bot will only listen to commands sent by the player with this username.
-const OWNER_USERNAME: &str = "py5";
 /// Whether the bot should run /particle a ton of times to show where it's
 /// pathfinding to. You should only have this on if the bot has operator
 /// permissions, otherwise it'll just spam the server console unnecessarily.
@@ -37,27 +35,28 @@ const PATHFINDER_DEBUG_PARTICLES: bool = false;
 
 #[tokio::main]
 async fn main() {
+    let args = parse_args();
+
     thread::spawn(deadlock_detection_thread);
 
-    let account = Account::offline(USERNAME);
+    let account = if args.name.contains('@') {
+        Account::microsoft(&args.name).await.unwrap()
+    } else {
+        Account::offline(&args.name)
+    };
 
     let mut commands = CommandDispatcher::new();
     register_commands(&mut commands);
-    let commands = Arc::new(commands);
+
+    let join_address = args.address.clone();
 
     let builder = SwarmBuilder::new();
     builder
         .set_handler(handle)
         .set_swarm_handler(swarm_handle)
-        .add_account_with_state(
-            account,
-            State {
-                commands: commands.clone(),
-                ..Default::default()
-            },
-        )
+        .add_account_with_state(account, State::new(args, commands))
         .join_delay(Duration::from_millis(100))
-        .start(ADDRESS)
+        .start(join_address)
         .await
         .unwrap();
 }
@@ -92,17 +91,19 @@ pub enum BotTask {
     None,
 }
 
-#[derive(Component, Clone)]
+#[derive(Component, Clone, Default)]
 pub struct State {
+    pub args: Args,
     pub commands: Arc<CommandDispatcher<Mutex<CommandSource>>>,
     pub killaura: bool,
     pub task: Arc<Mutex<BotTask>>,
 }
 
-impl Default for State {
-    fn default() -> Self {
+impl State {
+    fn new(args: Args, commands: CommandDispatcher<Mutex<CommandSource>>) -> Self {
         Self {
-            commands: Arc::new(CommandDispatcher::new()),
+            args,
+            commands: Arc::new(commands),
             killaura: true,
             task: Arc::new(Mutex::new(BotTask::None)),
         }
@@ -131,7 +132,7 @@ async fn handle(bot: Client, event: azalea::Event, state: State) -> anyhow::Resu
             let (Some(username), content) = chat.split_sender_and_content() else {
                 return Ok(());
             };
-            if username != OWNER_USERNAME {
+            if username != state.args.owner {
                 return Ok(());
             }
 
@@ -200,4 +201,42 @@ async fn swarm_handle(
     }
 
     Ok(())
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct Args {
+    pub owner: String,
+    pub name: String,
+    pub address: String,
+}
+
+fn parse_args() -> Args {
+    let mut owner_username = None;
+    let mut bot_username = None;
+    let mut address = None;
+
+    let mut args = env::args().skip(1);
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--owner" | "-O" => {
+                owner_username = args.next();
+            }
+            "--name" | "-N" => {
+                bot_username = args.next();
+            }
+            "--address" | "-A" => {
+                address = args.next();
+            }
+            _ => {
+                eprintln!("Unknown argument: {}", arg);
+                process::exit(1);
+            }
+        }
+    }
+
+    Args {
+        owner: owner_username.unwrap_or_else(|| "admin".to_string()),
+        name: bot_username.unwrap_or_else(|| "azalea".to_string()),
+        address: address.unwrap_or_else(|| "localhost".to_string()),
+    }
 }

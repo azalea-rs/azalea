@@ -58,6 +58,13 @@ impl TryFrom<&str> for ServerAddress {
         Ok(ServerAddress { host, port })
     }
 }
+impl TryFrom<String> for ServerAddress {
+    type Error = String;
+
+    fn try_from(string: String) -> Result<Self, Self::Error> {
+        ServerAddress::try_from(string.as_str())
+    }
+}
 
 impl From<SocketAddr> for ServerAddress {
     /// Convert an existing `SocketAddr` into a `ServerAddress`. This just
