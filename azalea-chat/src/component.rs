@@ -434,9 +434,7 @@ impl FormattedText {
             return None;
         }
         if let Some(extra) = compound.get("extra") {
-            for c in FormattedText::from_nbt_tag(extra)? {
-                component.append(c);
-            }
+            component.append(FormattedText::from_nbt_tag(extra)?);
         }
 
         let style = Style::from_compound(compound).ok()?;
