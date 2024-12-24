@@ -58,6 +58,9 @@ pub enum Event {
     /// it's actually spawned. This can be useful for setting the client
     /// information with `Client::set_client_information`, so the packet
     /// doesn't have to be sent twice.
+    ///
+    /// You may want to use [`Event::Login`] instead to wait for the bot to be
+    /// in the world.
     Init,
     /// The client is now in the world. Fired when we receive a login packet.
     Login,

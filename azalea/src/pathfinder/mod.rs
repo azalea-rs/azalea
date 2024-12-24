@@ -16,6 +16,7 @@ use std::sync::atomic::{self, AtomicUsize};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
+use astar::PathfinderTimeout;
 use azalea_client::inventory::{Inventory, InventorySet, SetSelectedHotbarSlotEvent};
 use azalea_client::mining::{Mining, StartMiningBlockEvent};
 use azalea_client::movement::MoveEventsSet;
@@ -33,6 +34,7 @@ use bevy_ecs::query::Changed;
 use bevy_ecs::schedule::IntoSystemConfigs;
 use bevy_tasks::{AsyncComputeTaskPool, Task};
 use futures_lite::future;
+use parking_lot::RwLock;
 use tracing::{debug, error, info, trace, warn};
 
 use self::debug::debug_render_path_with_particles;
@@ -49,9 +51,7 @@ use crate::ecs::{
     query::{With, Without},
     system::{Commands, Query, Res},
 };
-use crate::pathfinder::astar::a_star;
-use crate::pathfinder::moves::PathfinderCtx;
-use crate::pathfinder::world::CachedWorld;
+use crate::pathfinder::{astar::a_star, moves::PathfinderCtx, world::CachedWorld};
 use crate::WalkDirection;
 
 #[derive(Clone, Default)]
@@ -103,6 +103,8 @@ pub struct Pathfinder {
     pub is_calculating: bool,
     pub allow_mining: bool,
 
+    pub deterministic_timeout: bool,
+
     pub goto_id: Arc<AtomicUsize>,
 }
 
@@ -117,8 +119,14 @@ pub struct ExecutingPath {
     pub is_path_partial: bool,
 }
 
+/// Send this event to start pathfinding to the given goal.
+///
+/// Also see [`PathfinderClientExt::goto`].
+///
+/// This event is read by [`goto_listener`].
 #[derive(Event)]
 pub struct GotoEvent {
+    /// The local bot entity that will do the pathfinding and execute the path.
     pub entity: Entity,
     pub goal: Arc<dyn Goal + Send + Sync>,
     /// The function that's used for checking what moves are possible. Usually
@@ -127,6 +135,12 @@ pub struct GotoEvent {
 
     /// Whether the bot is allowed to break blocks while pathfinding.
     pub allow_mining: bool,
+
+    /// Whether the timeout should be based on number of nodes considered
+    /// instead of the time passed.
+    ///
+    /// Also see: [`PathfinderTimeout::Nodes`]
+    pub deterministic_timeout: bool,
 }
 #[derive(Event, Clone)]
 pub struct PathFoundEvent {
@@ -155,6 +169,8 @@ pub trait PathfinderClientExt {
 }
 
 impl PathfinderClientExt for azalea_client::Client {
+    /// Start pathfinding to a given goal.
+    ///
     /// ```
     /// # use azalea::prelude::*;
     /// # use azalea::{BlockPos, pathfinder::goals::BlockPosGoal};
@@ -168,6 +184,7 @@ impl PathfinderClientExt for azalea_client::Client {
             goal: Arc::new(goal),
             successors_fn: moves::default_move,
             allow_mining: true,
+            deterministic_timeout: false,
         });
     }
 
@@ -179,6 +196,7 @@ impl PathfinderClientExt for azalea_client::Client {
             goal: Arc::new(goal),
             successors_fn: moves::default_move,
             allow_mining: false,
+            deterministic_timeout: false,
         });
     }
 
@@ -251,7 +269,6 @@ pub fn goto_listener(
         let entity = event.entity;
 
         let goto_id_atomic = pathfinder.goto_id.clone();
-        let goto_id = goto_id_atomic.fetch_add(1, atomic::Ordering::Relaxed) + 1;
 
         let allow_mining = event.allow_mining;
         let mining_cache = MiningCache::new(if allow_mining {
@@ -260,83 +277,131 @@ pub fn goto_listener(
             None
         });
 
-        let task = thread_pool.spawn(async move {
-            debug!("start: {start:?}");
+        let deterministic_timeout = event.deterministic_timeout;
 
-            let cached_world = CachedWorld::new(world_lock);
-            let successors = |pos: BlockPos| {
-                call_successors_fn(&cached_world, &mining_cache, successors_fn, pos)
-            };
-
-            let mut attempt_number = 0;
-
-            let mut path;
-            let mut is_partial: bool;
-
-            'calculate: loop {
-                let start_time = std::time::Instant::now();
-                let astar::Path { movements, partial } = a_star(
-                    start,
-                    |n| goal.heuristic(n),
-                    successors,
-                    |n| goal.success(n),
-                    Duration::from_secs(if attempt_number == 0 { 1 } else { 5 }),
-                );
-                let end_time = std::time::Instant::now();
-                debug!("partial: {partial:?}");
-                let duration = end_time - start_time;
-                if partial {
-                    if movements.is_empty() {
-                        info!("Pathfinder took {duration:?} (empty path)");
-                    } else {
-                        info!("Pathfinder took {duration:?} (incomplete path)");
-                    }
-                    // wait a bit so it's not a busy loop
-                    std::thread::sleep(Duration::from_millis(100));
-                } else {
-                    info!("Pathfinder took {duration:?}");
-                }
-
-                debug!("Path:");
-                for movement in &movements {
-                    debug!("  {:?}", movement.target);
-                }
-
-                path = movements.into_iter().collect::<VecDeque<_>>();
-                is_partial = partial;
-
-                let goto_id_now = goto_id_atomic.load(atomic::Ordering::Relaxed);
-                if goto_id != goto_id_now {
-                    // we must've done another goto while calculating this path, so throw it away
-                    warn!("finished calculating a path, but it's outdated");
-                    return None;
-                }
-
-                if path.is_empty() && partial {
-                    if attempt_number == 0 {
-                        debug!("this path is empty, retrying with a higher timeout");
-                        attempt_number += 1;
-                        continue 'calculate;
-                    } else {
-                        debug!("this path is empty, giving up");
-                        break 'calculate;
-                    }
-                }
-                break;
-            }
-
-            Some(PathFoundEvent {
-                entity,
-                start,
-                path: Some(path),
-                is_partial,
-                successors_fn,
-                allow_mining,
-            })
-        });
+        let task = thread_pool.spawn(calculate_path(CalculatePathOpts {
+            entity,
+            start,
+            goal,
+            successors_fn,
+            world_lock,
+            goto_id_atomic,
+            allow_mining,
+            mining_cache,
+            deterministic_timeout,
+        }));
 
         commands.entity(event.entity).insert(ComputePath(task));
     }
+}
+
+pub struct CalculatePathOpts {
+    pub entity: Entity,
+    pub start: BlockPos,
+    pub goal: Arc<dyn Goal + Send + Sync>,
+    pub successors_fn: SuccessorsFn,
+    pub world_lock: Arc<RwLock<azalea_world::Instance>>,
+    pub goto_id_atomic: Arc<AtomicUsize>,
+    pub allow_mining: bool,
+    pub mining_cache: MiningCache,
+    /// See [`GotoEvent::deterministic_timeout`]
+    pub deterministic_timeout: bool,
+}
+
+/// Calculate the [`PathFoundEvent`] for the given pathfinder options.
+///
+/// You usually want to just use [`PathfinderClientExt::goto`] or send a
+/// [`GotoEvent`] instead of calling this directly.
+///
+/// You are expected to immediately send the `PathFoundEvent` you received after
+/// calling this function. `None` will be returned if the pathfinding was
+/// interrupted by another path calculation.
+pub async fn calculate_path(opts: CalculatePathOpts) -> Option<PathFoundEvent> {
+    debug!("start: {:?}", opts.start);
+
+    let goto_id = opts.goto_id_atomic.fetch_add(1, atomic::Ordering::SeqCst) + 1;
+
+    let cached_world = CachedWorld::new(opts.world_lock);
+    let successors = |pos: BlockPos| {
+        call_successors_fn(&cached_world, &opts.mining_cache, opts.successors_fn, pos)
+    };
+
+    let mut attempt_number = 0;
+
+    let mut path;
+    let mut is_partial: bool;
+
+    'calculate: loop {
+        let start_time = Instant::now();
+
+        let timeout = if opts.deterministic_timeout {
+            PathfinderTimeout::Nodes(if attempt_number == 0 {
+                1_000_000
+            } else {
+                5_000_000
+            })
+        } else {
+            PathfinderTimeout::Time(Duration::from_secs(if attempt_number == 0 { 1 } else { 5 }))
+        };
+
+        let astar::Path { movements, partial } = a_star(
+            opts.start,
+            |n| opts.goal.heuristic(n),
+            successors,
+            |n| opts.goal.success(n),
+            timeout,
+        );
+        let end_time = Instant::now();
+        debug!("partial: {partial:?}");
+        let duration = end_time - start_time;
+        if partial {
+            if movements.is_empty() {
+                info!("Pathfinder took {duration:?} (empty path)");
+            } else {
+                info!("Pathfinder took {duration:?} (incomplete path)");
+            }
+            // wait a bit so it's not a busy loop
+            std::thread::sleep(Duration::from_millis(100));
+        } else {
+            info!("Pathfinder took {duration:?}");
+        }
+
+        debug!("Path:");
+        for movement in &movements {
+            debug!("  {}", movement.target);
+        }
+
+        path = movements.into_iter().collect::<VecDeque<_>>();
+        is_partial = partial;
+
+        let goto_id_now = opts.goto_id_atomic.load(atomic::Ordering::SeqCst);
+        if goto_id != goto_id_now {
+            // we must've done another goto while calculating this path, so throw it away
+            warn!("finished calculating a path, but it's outdated");
+            return None;
+        }
+
+        if path.is_empty() && partial {
+            if attempt_number == 0 {
+                debug!("this path is empty, retrying with a higher timeout");
+                attempt_number += 1;
+                continue 'calculate;
+            } else {
+                debug!("this path is empty, giving up");
+                break 'calculate;
+            }
+        }
+        break;
+    }
+
+    Some(PathFoundEvent {
+        entity: opts.entity,
+        start: opts.start,
+        path: Some(path),
+        is_partial,
+        successors_fn: opts.successors_fn,
+        allow_mining: opts.allow_mining,
+    })
 }
 
 // poll the tasks and send the PathFoundEvent if they're done
@@ -529,6 +594,7 @@ pub fn check_node_reached(
                     executing_path.path = executing_path.path.split_off(i + 1);
                     executing_path.last_reached_node = movement.target;
                     executing_path.last_node_reached_at = Instant::now();
+                    trace!("reached node {:?}", movement.target);
 
                     if let Some(new_path) = executing_path.queued_path.take() {
                         debug!(
@@ -640,6 +706,7 @@ pub fn recalculate_near_end_of_path(
                     goal,
                     successors_fn,
                     allow_mining: pathfinder.allow_mining,
+                    deterministic_timeout: pathfinder.deterministic_timeout,
                 });
                 pathfinder.is_calculating = true;
 
@@ -713,7 +780,11 @@ pub fn tick_execute_path(
                 start_mining_events: &mut start_mining_events,
                 set_selected_hotbar_slot_events: &mut set_selected_hotbar_slot_events,
             };
-            trace!("executing move");
+            trace!(
+                "executing move, position: {}, last_reached_node: {}",
+                **position,
+                executing_path.last_reached_node
+            );
             (movement.data.execute)(ctx);
         }
     }
@@ -732,6 +803,7 @@ pub fn recalculate_if_has_goal_but_no_path(
                     goal,
                     successors_fn: pathfinder.successors_fn.unwrap(),
                     allow_mining: pathfinder.allow_mining,
+                    deterministic_timeout: pathfinder.deterministic_timeout,
                 });
                 pathfinder.is_calculating = true;
             }
@@ -880,6 +952,7 @@ mod tests {
             goal: Arc::new(BlockPosGoal(end_pos)),
             successors_fn: moves::default_move,
             allow_mining: false,
+            deterministic_timeout: false,
         });
         simulation
     }

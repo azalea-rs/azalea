@@ -104,6 +104,11 @@ impl BotClientExt for azalea_client::Client {
         });
     }
 
+    /// Returns a Receiver that receives a message every game tick.
+    ///
+    /// This is useful if you want to efficiently loop until a certain condition
+    /// is met.
+    ///
     /// ```
     /// # use azalea::prelude::*;
     /// # use azalea::container::WaitingForInventoryOpen;

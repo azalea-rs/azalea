@@ -144,7 +144,7 @@ pub enum HandlePacketError {
     #[error(transparent)]
     Io(#[from] io::Error),
     #[error(transparent)]
-    Other(#[from] anyhow::Error),
+    Other(#[from] Box<dyn std::error::Error + Send + Sync>),
     #[error("{0}")]
     Send(#[from] mpsc::error::SendError<AzaleaEvent>),
 }

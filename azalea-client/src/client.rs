@@ -518,6 +518,14 @@ impl Client {
     /// Get a component from this client. This will clone the component and
     /// return it.
     ///
+    ///
+    /// If the component can't be cloned, try [`Self::map_component`] instead.
+    /// If it isn't guaranteed to be present, use [`Self::get_component`] or
+    /// [`Self::map_get_component`].
+    ///
+    /// You may also use [`Self::ecs`] and [`Self::query`] directly if you need
+    /// more control over when the ECS is locked.
+    ///
     /// # Panics
     ///
     /// This will panic if the component doesn't exist on the client.
@@ -534,8 +542,54 @@ impl Client {
     }
 
     /// Get a component from this client, or `None` if it doesn't exist.
+    ///
+    /// If the component can't be cloned, try [`Self::map_component`] instead.
+    /// You may also have to use [`Self::ecs`] and [`Self::query`] directly.
     pub fn get_component<T: Component + Clone>(&self) -> Option<T> {
         self.query::<Option<&T>>(&mut self.ecs.lock()).cloned()
+    }
+
+    /// Get a required component for this client and call the given function.
+    ///
+    /// Similar to [`Self::component`], but doesn't clone the component since
+    /// it's passed as a reference. [`Self::ecs`] will remain locked while the
+    /// callback is being run.
+    ///
+    /// If the component is not guaranteed to be present, use
+    /// [`Self::get_component`] instead.
+    ///
+    /// # Panics
+    ///
+    /// This will panic if the component doesn't exist on the client.
+    ///
+    /// ```
+    /// # use azalea_client::{Client, Hunger};
+    /// # fn example(bot: &Client) {
+    /// let hunger = bot.map_component::<Hunger, _>(|h| h.food);
+    /// # }
+    /// ```
+    pub fn map_component<T: Component, R>(&self, f: impl FnOnce(&T) -> R) -> R {
+        let mut ecs = self.ecs.lock();
+        let value = self.query::<&T>(&mut ecs);
+        f(value)
+    }
+
+    /// Optionally get a component for this client and call the given function.
+    ///
+    /// Similar to [`Self::get_component`], but doesn't clone the component
+    /// since it's passed as a reference. [`Self::ecs`] will remain locked
+    /// while the callback is being run.
+    ///
+    /// ```
+    /// # use azalea_client::{Client, mining::Mining};
+    /// # fn example(bot: &Client) {
+    /// let is_mining = bot.map_get_component::<Mining, _>(|m| m.is_some());
+    /// # }
+    /// ```
+    pub fn map_get_component<T: Component, R>(&self, f: impl FnOnce(Option<&T>) -> R) -> R {
+        let mut ecs = self.ecs.lock();
+        let value = self.query::<Option<&T>>(&mut ecs);
+        f(value)
     }
 
     /// Get an `RwLock` with a reference to our (potentially shared) world.

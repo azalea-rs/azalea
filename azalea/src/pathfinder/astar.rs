@@ -23,12 +23,24 @@ const COEFFICIENTS: [f32; 7] = [1.5, 2., 2.5, 3., 4., 5., 10.];
 
 const MIN_IMPROVEMENT: f32 = 0.01;
 
+pub enum PathfinderTimeout {
+    /// Time out after a certain duration has passed. This is a good default so
+    /// you don't waste too much time calculating a path if you're on a slow
+    /// computer.
+    Time(Duration),
+    /// Time out after this many nodes have been considered.
+    ///
+    /// This is useful as an alternative to a time limit if you're doing
+    /// something like running tests where you want consistent results.
+    Nodes(usize),
+}
+
 pub fn a_star<P, M, HeuristicFn, SuccessorsFn, SuccessFn>(
     start: P,
     heuristic: HeuristicFn,
     mut successors: SuccessorsFn,
     success: SuccessFn,
-    timeout: Duration,
+    timeout: PathfinderTimeout,
 ) -> Path<P, M>
 where
     P: Eq + Hash + Copy + Debug,
@@ -104,10 +116,16 @@ where
         }
 
         // check for timeout every ~1ms
-        if num_nodes % 1000 == 0 && start_time.elapsed() > timeout {
-            // timeout, just return the best path we have so far
-            trace!("A* couldn't find a path in time, returning best path");
-            break;
+        if num_nodes % 1000 == 0 {
+            let timed_out = match timeout {
+                PathfinderTimeout::Time(max_duration) => start_time.elapsed() > max_duration,
+                PathfinderTimeout::Nodes(max_nodes) => num_nodes > max_nodes,
+            };
+            if timed_out {
+                // timeout, just return the best path we have so far
+                trace!("A* couldn't find a path in time, returning best path");
+                break;
+            }
         }
     }
 
