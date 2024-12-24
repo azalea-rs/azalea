@@ -27,7 +27,7 @@ pub struct CachedWorld {
 
     cached_blocks: UnsafeCell<CachedSections>,
 
-    cached_mining_costs: RefCell<FxHashMap<BlockPos, f32>>,
+    cached_mining_costs: UnsafeCell<FxHashMap<BlockPos, f32>>,
 }
 
 #[derive(Default)]
@@ -241,7 +241,8 @@ impl CachedWorld {
     /// Returns how much it costs to break this block. Returns 0 if the block is
     /// already passable.
     pub fn cost_for_breaking_block(&self, pos: BlockPos, mining_cache: &MiningCache) -> f32 {
-        let mut cached_mining_costs = self.cached_mining_costs.borrow_mut();
+        // SAFETY: pathfinding is single-threaded
+        let cached_mining_costs = unsafe { &mut *self.cached_mining_costs.get() };
 
         if let Some(&cost) = cached_mining_costs.get(&pos) {
             return cost;
