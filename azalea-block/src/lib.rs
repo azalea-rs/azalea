@@ -56,7 +56,7 @@ impl BlockState {
 
     #[inline]
     pub fn is_valid_state(state_id: u32) -> bool {
-        state_id <= Self::max_state()
+        state_id <= Self::MAX_STATE
     }
 
     /// Returns true if the block is air. This only checks for normal air, not
@@ -184,8 +184,8 @@ mod tests {
     fn test_from_u32() {
         assert_eq!(BlockState::try_from(0).unwrap(), BlockState::AIR);
 
-        assert!(BlockState::try_from(BlockState::max_state()).is_ok());
-        assert!(BlockState::try_from(BlockState::max_state() + 1).is_err());
+        assert!(BlockState::try_from(BlockState::MAX_STATE).is_ok());
+        assert!(BlockState::try_from(BlockState::MAX_STATE + 1).is_err());
     }
 
     #[test]

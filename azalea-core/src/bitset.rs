@@ -12,9 +12,9 @@ const ADDRESS_BITS_PER_WORD: usize = 6;
 
 // the Index trait requires us to return a reference, but we can't do that
 impl BitSet {
-    pub fn new(size: usize) -> Self {
+    pub fn new(num_bits: usize) -> Self {
         BitSet {
-            data: vec![0; size.div_ceil(64)],
+            data: vec![0; num_bits.div_ceil(64)],
         }
     }
 

@@ -26,12 +26,11 @@ mod tests {
 
     #[test]
     fn test_c_level_particles_packet() {
-        let slice = &[
-            0, 0, 64, 36, 19, 1, 192, 139, 224, 69, 64, 91, 192, 0, 0, 0, 0, 0, 63, 229, 66, 62,
-            20, 132, 232, 141, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 62, 25, 153, 154, 0, 0, 0, 70,
-            1, 9,
-        ][..];
-        let mut bytes = Cursor::new(slice);
+        #[rustfmt::skip]
+        let slice = [
+            0, 0, 64, 156, 51, 153, 153, 153, 153, 154, 192, 64, 140, 204, 204, 204, 204, 205, 63, 248, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 13, 255, 0, 255, 255, 63, 128, 0, 0
+        ];
+        let mut bytes = Cursor::new(slice.as_slice());
 
         let packet = ClientboundLevelParticles::azalea_read(&mut bytes).unwrap();
         println!("{packet:?}");

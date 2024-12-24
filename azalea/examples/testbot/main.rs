@@ -1,13 +1,24 @@
 //! A relatively simple bot for demonstrating some of Azalea's capabilities.
 //!
-//! Usage:
+//! ## Usage
+//!
 //! - Modify the consts below if necessary.
-//! - Run `cargo r --example testbot -- --owner <owner> --name <username/email>
-//!   --address <address>`.
+//! - Run `cargo r --example testbot -- [arguments]`. (see below)
 //! - Commands are prefixed with `!` in chat. You can send them either in public
 //!   chat or as a /msg.
 //! - Some commands to try are `!goto`, `!killaura true`, `!down`. Check the
 //!   `commands` directory to see all of them.
+//!
+//! ### Arguments
+//!
+//! - `--owner` or `-O`: The username of the player who owns the bot. The bot
+//!   will ignore commands from other players.
+//! - `--name` or `-N`: The username or email of the bot.
+//! - `--address` or `-A`: The address of the server to join.
+//! - `--pathfinder-debug-particles` or `-P`: Whether the bot should run
+//!   /particle a ton of times to show where it's pathfinding to. You should
+//!   only have this on if the bot has operator permissions, otherwise it'll
+//!   just spam the server console unnecessarily.
 
 #![feature(async_closure)]
 #![feature(trivial_bounds)]
@@ -27,11 +38,6 @@ use azalea::swarm::prelude::*;
 use azalea::ClientInformation;
 use commands::{register_commands, CommandSource};
 use parking_lot::Mutex;
-
-/// Whether the bot should run /particle a ton of times to show where it's
-/// pathfinding to. You should only have this on if the bot has operator
-/// permissions, otherwise it'll just spam the server console unnecessarily.
-const PATHFINDER_DEBUG_PARTICLES: bool = false;
 
 #[tokio::main]
 async fn main() {
@@ -121,7 +127,7 @@ async fn handle(bot: Client, event: azalea::Event, state: State) -> anyhow::Resu
                 ..Default::default()
             })
             .await?;
-            if PATHFINDER_DEBUG_PARTICLES {
+            if state.args.pathfinder_debug_particles {
                 bot.ecs
                     .lock()
                     .entity_mut(bot.entity)
@@ -208,12 +214,14 @@ pub struct Args {
     pub owner: String,
     pub name: String,
     pub address: String,
+    pub pathfinder_debug_particles: bool,
 }
 
 fn parse_args() -> Args {
     let mut owner_username = None;
     let mut bot_username = None;
     let mut address = None;
+    let mut pathfinder_debug_particles = false;
 
     let mut args = env::args().skip(1);
     while let Some(arg) = args.next() {
@@ -227,6 +235,9 @@ fn parse_args() -> Args {
             "--address" | "-A" => {
                 address = args.next();
             }
+            "--pathfinder-debug-particles" | "-P" => {
+                pathfinder_debug_particles = true;
+            }
             _ => {
                 eprintln!("Unknown argument: {}", arg);
                 process::exit(1);
@@ -238,5 +249,6 @@ fn parse_args() -> Args {
         owner: owner_username.unwrap_or_else(|| "admin".to_string()),
         name: bot_username.unwrap_or_else(|| "azalea".to_string()),
         address: address.unwrap_or_else(|| "localhost".to_string()),
+        pathfinder_debug_particles,
     }
 }

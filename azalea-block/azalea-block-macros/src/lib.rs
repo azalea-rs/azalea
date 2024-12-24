@@ -694,11 +694,8 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
     let last_state_id = state_id - 1;
     let mut generated = quote! {
         impl BlockState {
-            /// Returns the highest possible state ID.
-            #[inline]
-            pub fn max_state() -> u32 {
-                #last_state_id
-            }
+            /// The highest possible block state ID.
+            pub const MAX_STATE: u32 = #last_state_id;
 
             /// Get a property from this block state. Will be `None` if the block can't have the property.
             ///

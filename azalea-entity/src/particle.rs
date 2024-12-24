@@ -1,5 +1,6 @@
+use azalea_block::BlockState;
 use azalea_buf::AzBuf;
-use azalea_core::position::BlockPos;
+use azalea_core::{color::RgbColor, position::BlockPos};
 use azalea_inventory::ItemStack;
 use azalea_registry::ParticleKind;
 use bevy_ecs::component::Component;
@@ -251,37 +252,21 @@ impl From<ParticleKind> for Particle {
 
 #[derive(Debug, Clone, AzBuf, Default)]
 pub struct BlockParticle {
-    #[var]
-    pub block_state: i32,
+    pub block_state: BlockState,
 }
 #[derive(Debug, Clone, AzBuf, Default)]
 pub struct DustParticle {
-    /// Red value, 0-1
-    pub red: f32,
-    /// Green value, 0-1
-    pub green: f32,
-    /// Blue value, 0-1
-    pub blue: f32,
+    pub color: RgbColor,
     /// The scale, will be clamped between 0.01 and 4.
     pub scale: f32,
 }
 
 #[derive(Debug, Clone, AzBuf, Default)]
 pub struct DustColorTransitionParticle {
-    /// Red value, 0-1
-    pub from_red: f32,
-    /// Green value, 0-1
-    pub from_green: f32,
-    /// Blue value, 0-1
-    pub from_blue: f32,
+    pub from: RgbColor,
+    pub to: RgbColor,
     /// The scale, will be clamped between 0.01 and 4.
     pub scale: f32,
-    /// Red value, 0-1
-    pub to_red: f32,
-    /// Green value, 0-1
-    pub to_green: f32,
-    /// Blue value, 0-1
-    pub to_blue: f32,
 }
 
 #[derive(Debug, Clone, AzBuf, Default)]

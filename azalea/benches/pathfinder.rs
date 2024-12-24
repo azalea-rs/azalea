@@ -2,7 +2,7 @@ use std::{hint::black_box, sync::Arc, time::Duration};
 
 use azalea::{
     pathfinder::{
-        astar::{self, a_star},
+        astar::{self, a_star, PathfinderTimeout},
         goals::{BlockPosGoal, Goal},
         mining::MiningCache,
         world::CachedWorld,
@@ -139,7 +139,7 @@ fn run_pathfinder_benchmark(
             |n| goal.heuristic(n),
             successors,
             |n| goal.success(n),
-            Duration::MAX,
+            PathfinderTimeout::Time(Duration::MAX),
         );
 
         assert!(!partial);

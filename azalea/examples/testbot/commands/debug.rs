@@ -5,6 +5,7 @@ use azalea::{
     entity::{LookDirection, Position},
     interact::HitResultComponent,
     world::MinecraftEntityId,
+    BlockPos,
 };
 use parking_lot::Mutex;
 
@@ -102,4 +103,18 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
 
         1
     }));
+
+    commands.register(literal("getblock").then(argument("x", integer()).then(
+        argument("y", integer()).then(argument("z", integer()).executes(|ctx: &Ctx| {
+            let source = ctx.source.lock();
+            let x = get_integer(ctx, "x").unwrap();
+            let y = get_integer(ctx, "y").unwrap();
+            let z = get_integer(ctx, "z").unwrap();
+            println!("getblock xyz {x} {y} {z}");
+            let block_pos = BlockPos::new(x, y, z);
+            let block = source.bot.world().read().get_block_state(&block_pos);
+            source.reply(&format!("Block at {block_pos:?} is {block:?}"));
+            1
+        })),
+    )));
 }

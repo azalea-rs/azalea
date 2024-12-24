@@ -1,6 +1,7 @@
 use std::{cell::UnsafeCell, ops::RangeInclusive};
 
-use azalea_block::{BlockState, BlockStates};
+use azalea_block::{properties::Waterlogged, BlockState, BlockStates};
+use azalea_core::bitset::BitSet;
 use azalea_inventory::Menu;
 use nohash_hasher::IntMap;
 
@@ -96,8 +97,12 @@ impl MiningCache {
     }
 
     pub fn is_liquid(&self, block: BlockState) -> bool {
+        // this already runs in about 1 nanosecond, so if you wanna try optimizing it at
+        // least run the benchmarks (in benches/checks.rs)
+
         self.water_block_state_range.contains(&block.id)
             || self.lava_block_state_range.contains(&block.id)
+            || is_waterlogged(block)
     }
 
     pub fn is_falling_block(&self, block: BlockState) -> bool {
@@ -105,4 +110,8 @@ impl MiningCache {
             .binary_search_by_key(&block.id, |block| block.id)
             .is_ok()
     }
+}
+
+pub fn is_waterlogged(block: BlockState) -> bool {
+    block.property::<Waterlogged>().unwrap_or_default()
 }

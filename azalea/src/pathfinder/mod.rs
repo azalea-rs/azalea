@@ -594,7 +594,7 @@ pub fn check_node_reached(
                     executing_path.path = executing_path.path.split_off(i + 1);
                     executing_path.last_reached_node = movement.target;
                     executing_path.last_node_reached_at = Instant::now();
-                    trace!("reached node {:?}", movement.target);
+                    trace!("reached node {}", movement.target);
 
                     if let Some(new_path) = executing_path.queued_path.take() {
                         debug!(
@@ -696,7 +696,7 @@ pub fn recalculate_near_end_of_path(
             && executing_path.is_path_partial
         {
             if let Some(goal) = pathfinder.goal.as_ref().cloned() {
-                debug!("Recalculating path because it ends soon");
+                debug!("Recalculating path because it's empty or ends soon");
                 debug!(
                     "recalculate_near_end_of_path executing_path.is_path_partial: {}",
                     executing_path.is_path_partial
@@ -953,7 +953,7 @@ mod tests {
             goal: Arc::new(BlockPosGoal(end_pos)),
             successors_fn: moves::default_move,
             allow_mining: false,
-            deterministic_timeout: false,
+            deterministic_timeout: true,
         });
         simulation
     }
@@ -1161,7 +1161,7 @@ mod tests {
         let mut simulation = setup_blockposgoal_simulation(
             &mut partial_chunks,
             BlockPos::new(0, 71, 0),
-            BlockPos::new(2, 74, 9),
+            BlockPos::new(4, 74, 9),
             vec![
                 BlockPos::new(0, 70, 0),
                 BlockPos::new(0, 70, 1),
@@ -1169,9 +1169,11 @@ mod tests {
                 BlockPos::new(0, 71, 3),
                 BlockPos::new(0, 72, 6),
                 BlockPos::new(0, 73, 9),
+                // this is the point where the bot might fall if it has too much momentum
                 BlockPos::new(2, 73, 9),
+                BlockPos::new(4, 73, 9),
             ],
         );
-        assert_simulation_reaches(&mut simulation, 80, BlockPos::new(2, 74, 9));
+        assert_simulation_reaches(&mut simulation, 80, BlockPos::new(4, 74, 9));
     }
 }
