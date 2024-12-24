@@ -212,6 +212,7 @@ macro_rules! vec3_impl {
 }
 
 /// Used to represent an exact position in the world where an entity could be.
+///
 /// For blocks, [`BlockPos`] is used instead.
 #[derive(Clone, Copy, Debug, Default, PartialEq, AzBuf)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]

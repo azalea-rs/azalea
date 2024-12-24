@@ -1,5 +1,6 @@
 use azalea_client::{SprintDirection, WalkDirection};
 use azalea_core::{direction::CardinalDirection, position::BlockPos};
+use tracing::trace;
 
 use super::{Edge, ExecuteCtx, IsReachedCtx, MoveData, PathfinderCtx};
 use crate::pathfinder::{astar, costs::*};
@@ -212,12 +213,14 @@ fn execute_parkour_move(mut ctx: ExecuteCtx) {
     if !is_at_start_block
         && !is_at_jump_block
         && (position.y - start.y as f64) < 0.094
-        && distance_from_start < 0.81
+        && distance_from_start < 0.85
     {
         // we have to be on the start block to jump
         ctx.look_at(start_center);
+        trace!("looking at start_center");
     } else {
         ctx.look_at(target_center);
+        trace!("looking at target_center");
     }
 
     if !is_at_start_block && is_at_jump_block && distance_from_start > required_distance_from_center

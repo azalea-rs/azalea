@@ -945,6 +945,7 @@ mod tests {
         // simulation.app.add_plugins(bevy_log::LogPlugin {
         //     level: bevy_log::Level::TRACE,
         //     filter: "".to_string(),
+        //     ..Default::default()
         // });
 
         simulation.app.world_mut().send_event(GotoEvent {
@@ -1152,5 +1153,25 @@ mod tests {
             ],
         );
         assert_simulation_reaches(&mut simulation, 80, BlockPos::new(4, 71, 12));
+    }
+
+    #[test]
+    fn test_jumps_with_more_sideways_momentum() {
+        let mut partial_chunks = PartialChunkStorage::default();
+        let mut simulation = setup_blockposgoal_simulation(
+            &mut partial_chunks,
+            BlockPos::new(0, 71, 0),
+            BlockPos::new(2, 74, 9),
+            vec![
+                BlockPos::new(0, 70, 0),
+                BlockPos::new(0, 70, 1),
+                BlockPos::new(0, 70, 2),
+                BlockPos::new(0, 71, 3),
+                BlockPos::new(0, 72, 6),
+                BlockPos::new(0, 73, 9),
+                BlockPos::new(2, 73, 9),
+            ],
+        );
+        assert_simulation_reaches(&mut simulation, 80, BlockPos::new(2, 74, 9));
     }
 }
