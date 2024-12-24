@@ -40,22 +40,34 @@ pub trait Property {
     fn try_from_block_state(state: BlockState) -> Option<Self::Value>;
 }
 
+/// The type that's used internally to represent a block state ID.
+///
+/// This should be either `u16` or `u32`. If you choose to modify it, you must
+/// also change it in `azalea-block-macros/src/lib.rs`.
+///
+/// This does not affect protocol serialization, it just allows you to make the
+/// internal type smaller if you want.
+pub type BlockStateIntegerRepr = u16;
+
 /// A representation of a state a block can be in.
 ///
 /// For example, a stone block only has one state but each possible stair
 /// rotation is a different state.
+///
+/// Note that this type is internally either a `u16` or `u32`, depending on
+/// [`BlockStateIntegerRepr`].
 #[derive(Copy, Clone, PartialEq, Eq, Default, Hash)]
 pub struct BlockState {
     /// The protocol ID for the block state. IDs may change every
     /// version, so you shouldn't hard-code them or store them in databases.
-    pub id: u32,
+    pub id: BlockStateIntegerRepr,
 }
 
 impl BlockState {
     pub const AIR: BlockState = BlockState { id: 0 };
 
     #[inline]
-    pub fn is_valid_state(state_id: u32) -> bool {
+    pub fn is_valid_state(state_id: BlockStateIntegerRepr) -> bool {
         state_id <= Self::MAX_STATE
     }
 
@@ -70,8 +82,22 @@ impl BlockState {
 impl TryFrom<u32> for BlockState {
     type Error = ();
 
-    /// Safely converts a state id to a block state.
+    /// Safely converts a u32 state id to a block state.
     fn try_from(state_id: u32) -> Result<Self, Self::Error> {
+        let state_id = state_id as BlockStateIntegerRepr;
+        if Self::is_valid_state(state_id) {
+            Ok(BlockState { id: state_id })
+        } else {
+            Err(())
+        }
+    }
+}
+impl TryFrom<u16> for BlockState {
+    type Error = ();
+
+    /// Safely converts a u16 state id to a block state.
+    fn try_from(state_id: u16) -> Result<Self, Self::Error> {
+        let state_id = state_id as BlockStateIntegerRepr;
         if Self::is_valid_state(state_id) {
             Ok(BlockState { id: state_id })
         } else {
@@ -90,7 +116,7 @@ impl AzaleaRead for BlockState {
 }
 impl AzaleaWrite for BlockState {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        u32::azalea_write_var(&self.id, buf)
+        u32::azalea_write_var(&(self.id as u32), buf)
     }
 }
 
@@ -158,12 +184,16 @@ impl From<FluidState> for BlockState {
             azalea_registry::Fluid::Empty => BlockState::AIR,
             azalea_registry::Fluid::Water | azalea_registry::Fluid::FlowingWater => {
                 BlockState::from(crate::blocks::Water {
-                    level: crate::properties::WaterLevel::from(state.height as u32),
+                    level: crate::properties::WaterLevel::from(
+                        state.height as BlockStateIntegerRepr,
+                    ),
                 })
             }
             azalea_registry::Fluid::Lava | azalea_registry::Fluid::FlowingLava => {
                 BlockState::from(crate::blocks::Lava {
-                    level: crate::properties::LavaLevel::from(state.height as u32),
+                    level: crate::properties::LavaLevel::from(
+                        state.height as BlockStateIntegerRepr,
+                    ),
                 })
             }
         }
@@ -182,7 +212,10 @@ mod tests {
 
     #[test]
     fn test_from_u32() {
-        assert_eq!(BlockState::try_from(0).unwrap(), BlockState::AIR);
+        assert_eq!(
+            BlockState::try_from(0 as BlockStateIntegerRepr).unwrap(),
+            BlockState::AIR
+        );
 
         assert!(BlockState::try_from(BlockState::MAX_STATE).is_ok());
         assert!(BlockState::try_from(BlockState::MAX_STATE + 1).is_err());

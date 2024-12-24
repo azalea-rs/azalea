@@ -19,6 +19,8 @@ use syn::{
 };
 use utils::{combinations_of, to_pascal_case};
 
+// must be the same as the type in `azalea-block/src/lib.rs`
+type BlockStateIntegerRepr = u16;
 enum PropertyType {
     /// `Axis { X, Y, Z }`
     Enum {
@@ -275,7 +277,7 @@ impl Parse for MakeBlockStates {
 }
 
 struct PropertyVariantData {
-    pub block_state_ids: Vec<u32>,
+    pub block_state_ids: Vec<BlockStateIntegerRepr>,
     pub ident: Ident,
     pub is_enum: bool,
 }
@@ -288,7 +290,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
     let mut properties_map = HashMap::new();
     let mut property_struct_names_to_names = HashMap::new();
 
-    let mut state_id: u32 = 0;
+    let mut state_id: BlockStateIntegerRepr = 0;
 
     for property in &input.property_definitions.properties {
         let property_struct_name: Ident;
@@ -339,8 +341,8 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                         #property_enum_variants
                     }
 
-                    impl From<u32> for #property_struct_name {
-                        fn from(value: u32) -> Self {
+                    impl From<crate::BlockStateIntegerRepr> for #property_struct_name {
+                        fn from(value: crate::BlockStateIntegerRepr) -> Self {
                             match value {
                                 #property_from_number_variants
                                 _ => panic!("Invalid property value: {}", value),
@@ -358,8 +360,8 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
                     pub struct #property_struct_name(pub bool);
 
-                    impl From<u32> for #property_struct_name {
-                        fn from(value: u32) -> Self {
+                    impl From<crate::BlockStateIntegerRepr> for #property_struct_name {
+                        fn from(value: crate::BlockStateIntegerRepr) -> Self {
                             match value {
                                 0 => Self(false),
                                 1 => Self(true),
@@ -583,7 +585,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         //     }
         // }
         let mut from_state_to_block_inner = quote! {};
-        let mut division = 1u32;
+        let mut division: BlockStateIntegerRepr = 1;
         for i in (0..properties_with_name.len()).rev() {
             let PropertyWithNameAndDefault {
                 property_type: property_struct_name_ident,
@@ -593,7 +595,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             } = &properties_with_name[i];
 
             let property_variants = &block_properties_vec[i];
-            let property_variants_count = property_variants.len() as u32;
+            let property_variants_count = property_variants.len() as crate::BlockStateIntegerRepr;
             let conversion_code = {
                 if &property_value_type.to_string() == "bool" {
                     assert_eq!(property_variants_count, 2);
@@ -695,7 +697,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
     let mut generated = quote! {
         impl BlockState {
             /// The highest possible block state ID.
-            pub const MAX_STATE: u32 = #last_state_id;
+            pub const MAX_STATE: crate::BlockStateIntegerRepr = #last_state_id;
 
             /// Get a property from this block state. Will be `None` if the block can't have the property.
             ///

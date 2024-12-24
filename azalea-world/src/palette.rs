@@ -1,5 +1,6 @@
 use std::io::{Cursor, Write};
 
+use azalea_block::BlockStateIntegerRepr;
 use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
 use azalea_core::math;
 use tracing::warn;
@@ -110,7 +111,7 @@ impl PalettedContainer {
     /// This function panics if the index is greater than or equal to the number
     /// of things in the storage. (So for block states, it must be less than
     /// 4096).
-    pub fn get_at_index(&self, index: usize) -> u32 {
+    pub fn get_at_index(&self, index: usize) -> BlockStateIntegerRepr {
         // first get the palette id
         let paletted_value = self.storage.get(index);
         // and then get the value from that id
@@ -118,28 +119,35 @@ impl PalettedContainer {
     }
 
     /// Returns the value at the given coordinates.
-    pub fn get(&self, x: usize, y: usize, z: usize) -> u32 {
+    pub fn get(&self, x: usize, y: usize, z: usize) -> BlockStateIntegerRepr {
         // let paletted_value = self.storage.get(self.get_index(x, y, z));
         // self.palette.value_for(paletted_value as usize)
         self.get_at_index(self.index_from_coords(x, y, z))
     }
 
     /// Sets the id at the given coordinates and return the previous id
-    pub fn get_and_set(&mut self, x: usize, y: usize, z: usize, value: u32) -> u32 {
+    pub fn get_and_set(
+        &mut self,
+        x: usize,
+        y: usize,
+        z: usize,
+        value: BlockStateIntegerRepr,
+    ) -> BlockStateIntegerRepr {
         let paletted_value = self.id_for(value);
         self.storage
-            .get_and_set(self.index_from_coords(x, y, z), paletted_value as u64) as u32
+            .get_and_set(self.index_from_coords(x, y, z), paletted_value as u64)
+            as BlockStateIntegerRepr
     }
 
     /// Sets the id at the given index and return the previous id. You probably
     /// want `.set` instead.
-    pub fn set_at_index(&mut self, index: usize, value: u32) {
+    pub fn set_at_index(&mut self, index: usize, value: BlockStateIntegerRepr) {
         let paletted_value = self.id_for(value);
         self.storage.set(index, paletted_value as u64);
     }
 
     /// Sets the id at the given coordinates and return the previous id
-    pub fn set(&mut self, x: usize, y: usize, z: usize, value: u32) {
+    pub fn set(&mut self, x: usize, y: usize, z: usize, value: BlockStateIntegerRepr) {
         self.set_at_index(self.index_from_coords(x, y, z), value);
     }
 
@@ -168,7 +176,7 @@ impl PalettedContainer {
         }
     }
 
-    fn on_resize(&mut self, bits_per_entry: u8, value: u32) -> usize {
+    fn on_resize(&mut self, bits_per_entry: u8, value: BlockStateIntegerRepr) -> usize {
         // in vanilla this is always true, but it's sometimes false in purpur servers
         // assert!(bits_per_entry <= 5, "bits_per_entry must be <= 5");
         let mut new_data = self.create_or_reuse_data(bits_per_entry);
@@ -185,7 +193,7 @@ impl PalettedContainer {
         }
     }
 
-    pub fn id_for(&mut self, value: u32) -> usize {
+    pub fn id_for(&mut self, value: BlockStateIntegerRepr) -> usize {
         match &mut self.palette {
             Palette::SingleValue(v) => {
                 if *v != value {
@@ -245,21 +253,21 @@ pub enum PaletteKind {
 #[derive(Clone, Debug)]
 pub enum Palette {
     /// ID of the corresponding entry in its global palette
-    SingleValue(u32),
+    SingleValue(BlockStateIntegerRepr),
     // in vanilla this keeps a `size` field that might be less than the length, but i'm not sure
     // it's actually needed?
-    Linear(Vec<u32>),
-    Hashmap(Vec<u32>),
+    Linear(Vec<BlockStateIntegerRepr>),
+    Hashmap(Vec<BlockStateIntegerRepr>),
     Global,
 }
 
 impl Palette {
-    pub fn value_for(&self, id: usize) -> u32 {
+    pub fn value_for(&self, id: usize) -> BlockStateIntegerRepr {
         match self {
             Palette::SingleValue(v) => *v,
             Palette::Linear(v) => v[id],
             Palette::Hashmap(v) => v.get(id).copied().unwrap_or_default(),
-            Palette::Global => id as u32,
+            Palette::Global => id as BlockStateIntegerRepr,
         }
     }
 }
@@ -301,9 +309,17 @@ impl PaletteKind {
 
     pub fn read(&self, buf: &mut Cursor<&[u8]>) -> Result<Palette, BufReadError> {
         Ok(match self {
-            PaletteKind::SingleValue => Palette::SingleValue(u32::azalea_read_var(buf)?),
-            PaletteKind::Linear => Palette::Linear(Vec::<u32>::azalea_read_var(buf)?),
-            PaletteKind::Hashmap => Palette::Hashmap(Vec::<u32>::azalea_read_var(buf)?),
+            // since they're read as varints it's actually fine to just use BlockStateIntegerRepr
+            // instead of the correct type (u32)
+            PaletteKind::SingleValue => {
+                Palette::SingleValue(BlockStateIntegerRepr::azalea_read_var(buf)?)
+            }
+            PaletteKind::Linear => {
+                Palette::Linear(Vec::<BlockStateIntegerRepr>::azalea_read_var(buf)?)
+            }
+            PaletteKind::Hashmap => {
+                Palette::Hashmap(Vec::<BlockStateIntegerRepr>::azalea_read_var(buf)?)
+            }
             PaletteKind::Global => Palette::Global,
         })
     }

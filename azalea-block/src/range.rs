@@ -3,15 +3,15 @@ use std::{
     ops::{Add, RangeInclusive},
 };
 
-use crate::BlockState;
+use crate::{BlockState, BlockStateIntegerRepr};
 
 #[derive(Debug, Clone)]
 pub struct BlockStates {
     pub set: HashSet<BlockState>,
 }
 
-impl From<RangeInclusive<u32>> for BlockStates {
-    fn from(range: RangeInclusive<u32>) -> Self {
+impl From<RangeInclusive<BlockStateIntegerRepr>> for BlockStates {
+    fn from(range: RangeInclusive<BlockStateIntegerRepr>) -> Self {
         let mut set = HashSet::with_capacity((range.end() - range.start() + 1) as usize);
         for id in range {
             set.insert(BlockState { id });

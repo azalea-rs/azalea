@@ -7,7 +7,7 @@ use std::{
     sync::{Arc, Weak},
 };
 
-use azalea_block::BlockState;
+use azalea_block::{BlockState, BlockStateIntegerRepr};
 use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
 use azalea_core::position::{BlockPos, ChunkBlockPos, ChunkPos, ChunkSectionBlockPos};
 use nohash_hasher::IntMap;
@@ -450,7 +450,7 @@ impl AzaleaRead for Section {
         let states = PalettedContainer::read_with_type(buf, &PalettedContainerKind::BlockStates)?;
 
         for i in 0..states.storage.size() {
-            if !BlockState::is_valid_state(states.storage.get(i) as u32) {
+            if !BlockState::is_valid_state(states.storage.get(i) as BlockStateIntegerRepr) {
                 return Err(BufReadError::Custom(format!(
                     "Invalid block state {} (index {i}) found in section.",
                     states.storage.get(i)

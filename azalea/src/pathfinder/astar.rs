@@ -5,6 +5,7 @@ use std::{
     time::{Duration, Instant},
 };
 
+use num_format::ToFormattedString;
 use priority_queue::PriorityQueue;
 use rustc_hash::FxHashMap;
 use tracing::{debug, trace, warn};
@@ -130,6 +131,12 @@ where
     }
 
     let best_path = determine_best_path(&best_paths, &start);
+
+    debug!(
+        "A* ran at {} nodes per second",
+        ((num_nodes as f64 / start_time.elapsed().as_secs_f64()) as u64)
+            .to_formatted_string(&num_format::Locale::en)
+    );
 
     Path {
         movements: reconstruct_path(nodes, best_path),
