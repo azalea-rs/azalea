@@ -484,7 +484,6 @@ dependencies = [
  "azalea-registry",
  "azalea-world",
  "bevy_ecs",
- "bytes",
  "flate2",
  "futures",
  "futures-lite",

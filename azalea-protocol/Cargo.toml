@@ -33,12 +33,11 @@ azalea-protocol-macros = { path = "./azalea-protocol-macros", version = "0.11.0"
 azalea-registry = { path = "../azalea-registry", version = "0.11.0" }
 azalea-world = { path = "../azalea-world", version = "0.11.0" }
 bevy_ecs = { workspace = true }
-#byteorder = { workspace = true }
-bytes = { workspace = true }
+# byteorder = { workspace = true }
 flate2 = { workspace = true }
 futures = { workspace = true }
 futures-lite = { workspace = true }
-#futures-util = { workspace = true }
+# futures-util = { workspace = true }
 serde = { workspace = true, features = ["serde_derive"] }
 serde_json = { workspace = true }
 simdnbt = { workspace = true }

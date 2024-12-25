@@ -33,12 +33,12 @@ pub struct RawConnection {
 
 #[derive(Clone)]
 struct RawConnectionReader {
-    pub incoming_packet_queue: Arc<Mutex<Vec<Vec<u8>>>>,
+    pub incoming_packet_queue: Arc<Mutex<Vec<Box<[u8]>>>>,
     pub run_schedule_sender: mpsc::UnboundedSender<()>,
 }
 #[derive(Clone)]
 struct RawConnectionWriter {
-    pub outgoing_packets_sender: mpsc::UnboundedSender<Vec<u8>>,
+    pub outgoing_packets_sender: mpsc::UnboundedSender<Box<[u8]>>,
 }
 
 #[derive(Error, Debug)]
@@ -54,7 +54,7 @@ pub enum WritePacketError {
     SendError {
         #[from]
         #[backtrace]
-        source: SendError<Vec<u8>>,
+        source: SendError<Box<[u8]>>,
     },
 }
 
@@ -93,7 +93,7 @@ impl RawConnection {
         }
     }
 
-    pub fn write_raw_packet(&self, raw_packet: Vec<u8>) -> Result<(), WritePacketError> {
+    pub fn write_raw_packet(&self, raw_packet: Box<[u8]>) -> Result<(), WritePacketError> {
         self.writer.outgoing_packets_sender.send(raw_packet)?;
         Ok(())
     }
@@ -120,7 +120,7 @@ impl RawConnection {
         !self.read_packets_task.is_finished()
     }
 
-    pub fn incoming_packet_queue(&self) -> Arc<Mutex<Vec<Vec<u8>>>> {
+    pub fn incoming_packet_queue(&self) -> Arc<Mutex<Vec<Box<[u8]>>>> {
         self.reader.incoming_packet_queue.clone()
     }
 
@@ -161,7 +161,7 @@ impl RawConnectionWriter {
     pub async fn write_task(
         self,
         mut write_conn: RawWriteConnection,
-        mut outgoing_packets_receiver: mpsc::UnboundedReceiver<Vec<u8>>,
+        mut outgoing_packets_receiver: mpsc::UnboundedReceiver<Box<[u8]>>,
     ) {
         while let Some(raw_packet) = outgoing_packets_receiver.recv().await {
             if let Err(err) = write_conn.write(&raw_packet).await {

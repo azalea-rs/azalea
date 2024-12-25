@@ -9,7 +9,7 @@
 //!
 //! See [`crate::connect::Connection`] for an example.
 
-// these two are necessary for thiserror backtraces
+// this is necessary for thiserror backtraces
 #![feature(error_generic_member_access)]
 
 use std::{fmt::Display, net::SocketAddr, str::FromStr};
@@ -111,7 +111,6 @@ impl serde::Serialize for ServerAddress {
 mod tests {
     use std::io::Cursor;
 
-    use bytes::BytesMut;
     use uuid::Uuid;
 
     use crate::{
@@ -135,11 +134,16 @@ mod tests {
             .await
             .unwrap();
 
+        assert_eq!(
+            stream,
+            [22, 0, 4, 116, 101, 115, 116, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        );
+
         let mut stream = Cursor::new(stream);
 
         let _ = read_packet::<ServerboundLoginPacket, _>(
             &mut stream,
-            &mut BytesMut::new(),
+            &mut Cursor::new(Vec::new()),
             None,
             &mut None,
         )
@@ -163,7 +167,7 @@ mod tests {
             .unwrap();
         let mut stream = Cursor::new(stream);
 
-        let mut buffer = BytesMut::new();
+        let mut buffer = Cursor::new(Vec::new());
 
         let _ = read_packet::<ServerboundLoginPacket, _>(&mut stream, &mut buffer, None, &mut None)
             .await

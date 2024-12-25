@@ -8,7 +8,6 @@ use std::net::SocketAddr;
 use azalea_auth::game_profile::GameProfile;
 use azalea_auth::sessionserver::{ClientSessionServerError, ServerSessionServerError};
 use azalea_crypto::{Aes128CfbDec, Aes128CfbEnc};
-use bytes::BytesMut;
 use thiserror::Error;
 use tokio::io::{AsyncWriteExt, BufStream};
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf, ReuniteError};
@@ -28,7 +27,7 @@ use crate::write::{serialize_packet, write_raw_packet};
 
 pub struct RawReadConnection {
     pub read_stream: OwnedReadHalf,
-    pub buffer: BytesMut,
+    pub buffer: Cursor<Vec<u8>>,
     pub compression_threshold: Option<u32>,
     pub dec_cipher: Option<Aes128CfbDec>,
 }
@@ -135,7 +134,7 @@ pub struct Connection<R: ProtocolPacket, W: ProtocolPacket> {
 }
 
 impl RawReadConnection {
-    pub async fn read(&mut self) -> Result<Vec<u8>, Box<ReadPacketError>> {
+    pub async fn read(&mut self) -> Result<Box<[u8]>, Box<ReadPacketError>> {
         read_raw_packet::<_>(
             &mut self.read_stream,
             &mut self.buffer,
@@ -145,7 +144,7 @@ impl RawReadConnection {
         .await
     }
 
-    pub fn try_read(&mut self) -> Result<Option<Vec<u8>>, Box<ReadPacketError>> {
+    pub fn try_read(&mut self) -> Result<Option<Box<[u8]>>, Box<ReadPacketError>> {
         try_read_raw_packet::<_>(
             &mut self.read_stream,
             &mut self.buffer,
@@ -190,7 +189,7 @@ where
     /// Read a packet from the stream.
     pub async fn read(&mut self) -> Result<R, Box<ReadPacketError>> {
         let raw_packet = self.raw.read().await?;
-        deserialize_packet(&mut Cursor::new(raw_packet.as_slice()))
+        deserialize_packet(&mut Cursor::new(&raw_packet))
     }
 
     /// Try to read a packet from the stream, or return Ok(None) if there's no
@@ -199,9 +198,7 @@ where
         let Some(raw_packet) = self.raw.try_read()? else {
             return Ok(None);
         };
-        Ok(Some(deserialize_packet(&mut Cursor::new(
-            raw_packet.as_slice(),
-        ))?))
+        Ok(Some(deserialize_packet(&mut Cursor::new(&raw_packet))?))
     }
 }
 impl<W> WriteConnection<W>
@@ -304,7 +301,7 @@ impl Connection<ClientboundHandshakePacket, ServerboundHandshakePacket> {
             reader: ReadConnection {
                 raw: RawReadConnection {
                     read_stream,
-                    buffer: BytesMut::new(),
+                    buffer: Cursor::new(Vec::new()),
                     compression_threshold: None,
                     dec_cipher: None,
                 },
@@ -562,7 +559,7 @@ where
             reader: ReadConnection {
                 raw: RawReadConnection {
                     read_stream,
-                    buffer: BytesMut::new(),
+                    buffer: Cursor::new(Vec::new()),
                     compression_threshold: None,
                     dec_cipher: None,
                 },

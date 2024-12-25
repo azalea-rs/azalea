@@ -31,7 +31,7 @@ where
 
 pub fn serialize_packet<P: ProtocolPacket + Debug>(
     packet: &P,
-) -> Result<Vec<u8>, PacketEncodeError> {
+) -> Result<Box<[u8]>, PacketEncodeError> {
     let mut buf = Vec::new();
     packet.id().azalea_write_var(&mut buf)?;
     packet.write(&mut buf)?;
@@ -42,7 +42,7 @@ pub fn serialize_packet<P: ProtocolPacket + Debug>(
             packet_string: format!("{packet:?}"),
         });
     }
-    Ok(buf)
+    Ok(buf.into_boxed_slice())
 }
 
 pub async fn write_raw_packet<W>(
