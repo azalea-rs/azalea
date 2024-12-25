@@ -251,11 +251,18 @@ impl SendConfigurationEvent {
 
 pub fn handle_send_packet_event(
     mut send_packet_events: EventReader<SendConfigurationEvent>,
-    mut query: Query<&mut RawConnection>,
+    mut query: Query<(&mut RawConnection, Option<&InConfigurationState>)>,
 ) {
     for event in send_packet_events.read() {
-        if let Ok(raw_conn) = query.get_mut(event.sent_by) {
-            // debug!("Sending packet: {:?}", event.packet);
+        if let Ok((raw_conn, in_configuration_state)) = query.get_mut(event.sent_by) {
+            if in_configuration_state.is_none() {
+                error!(
+                    "Tried to send a configuration packet {:?} while not in configuration state",
+                    event.packet
+                );
+                continue;
+            }
+            debug!("Sending packet: {:?}", event.packet);
             if let Err(e) = raw_conn.write_packet(event.packet.clone()) {
                 error!("Failed to send packet: {e}");
             }
