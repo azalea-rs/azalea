@@ -105,7 +105,6 @@ fn parse_frame(buffer: &mut Cursor<Vec<u8>>) -> Result<Box<[u8]>, FrameSplitterE
 
     // the length of the varint that says the length of the whole packet
     let varint_length = buffer.remaining() - buffer_copy.remaining();
-    drop(buffer_copy);
 
     buffer.advance(varint_length);
     let data =

@@ -16,6 +16,7 @@ use std::collections::VecDeque;
 use std::sync::atomic::{self, AtomicUsize};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
+use std::{cmp, thread};
 
 use astar::PathfinderTimeout;
 use azalea_client::inventory::{Inventory, InventorySet, SetSelectedHotbarSlotEvent};
@@ -35,6 +36,7 @@ use bevy_ecs::query::Changed;
 use bevy_ecs::schedule::IntoSystemConfigs;
 use bevy_tasks::{AsyncComputeTaskPool, Task};
 use futures_lite::future;
+use goals::BlockPosGoal;
 use parking_lot::RwLock;
 use rel_block_pos::RelBlockPos;
 use tracing::{debug, error, info, trace, warn};
@@ -105,7 +107,8 @@ pub struct Pathfinder {
     pub is_calculating: bool,
     pub allow_mining: bool,
 
-    pub deterministic_timeout: bool,
+    pub default_timeout: Option<PathfinderTimeout>,
+    pub max_timeout: Option<PathfinderTimeout>,
 
     pub goto_id: Arc<AtomicUsize>,
 }
@@ -138,13 +141,11 @@ pub struct GotoEvent {
     /// Whether the bot is allowed to break blocks while pathfinding.
     pub allow_mining: bool,
 
-    /// Whether the timeout should be based on number of nodes considered
-    /// instead of the time passed.
-    ///
-    /// Also see: [`PathfinderTimeout::Nodes`]
-    pub deterministic_timeout: bool,
+    /// Also see [`PathfinderTimeout::Nodes`]
+    pub default_timeout: PathfinderTimeout,
+    pub max_timeout: PathfinderTimeout,
 }
-#[derive(Event, Clone)]
+#[derive(Event, Clone, Debug)]
 pub struct PathFoundEvent {
     pub entity: Entity,
     pub start: BlockPos,
@@ -186,7 +187,8 @@ impl PathfinderClientExt for azalea_client::Client {
             goal: Arc::new(goal),
             successors_fn: moves::default_move,
             allow_mining: true,
-            deterministic_timeout: false,
+            default_timeout: PathfinderTimeout::Time(Duration::from_secs(1)),
+            max_timeout: PathfinderTimeout::Time(Duration::from_secs(5)),
         });
     }
 
@@ -198,7 +200,8 @@ impl PathfinderClientExt for azalea_client::Client {
             goal: Arc::new(goal),
             successors_fn: moves::default_move,
             allow_mining: false,
-            deterministic_timeout: false,
+            default_timeout: PathfinderTimeout::Time(Duration::from_secs(1)),
+            max_timeout: PathfinderTimeout::Time(Duration::from_secs(5)),
         });
     }
 
@@ -247,6 +250,8 @@ pub fn goto_listener(
         pathfinder.successors_fn = Some(event.successors_fn);
         pathfinder.is_calculating = true;
         pathfinder.allow_mining = event.allow_mining;
+        pathfinder.default_timeout = Some(event.default_timeout);
+        pathfinder.max_timeout = Some(event.max_timeout);
 
         let start = if let Some(executing_path) = executing_path
             && let Some(final_node) = executing_path.path.back()
@@ -279,19 +284,23 @@ pub fn goto_listener(
             None
         });
 
-        let deterministic_timeout = event.deterministic_timeout;
+        let default_timeout = event.default_timeout;
+        let max_timeout = event.max_timeout;
 
-        let task = thread_pool.spawn(calculate_path(CalculatePathOpts {
-            entity,
-            start,
-            goal,
-            successors_fn,
-            world_lock,
-            goto_id_atomic,
-            allow_mining,
-            mining_cache,
-            deterministic_timeout,
-        }));
+        let task = thread_pool.spawn(async move {
+            calculate_path(CalculatePathOpts {
+                entity,
+                start,
+                goal,
+                successors_fn,
+                world_lock,
+                goto_id_atomic,
+                allow_mining,
+                mining_cache,
+                default_timeout,
+                max_timeout,
+            })
+        });
 
         commands.entity(event.entity).insert(ComputePath(task));
     }
@@ -306,8 +315,9 @@ pub struct CalculatePathOpts {
     pub goto_id_atomic: Arc<AtomicUsize>,
     pub allow_mining: bool,
     pub mining_cache: MiningCache,
-    /// See [`GotoEvent::deterministic_timeout`]
-    pub deterministic_timeout: bool,
+    /// Also see [`GotoEvent::deterministic_timeout`]
+    pub default_timeout: PathfinderTimeout,
+    pub max_timeout: PathfinderTimeout,
 }
 
 /// Calculate the [`PathFoundEvent`] for the given pathfinder options.
@@ -318,7 +328,7 @@ pub struct CalculatePathOpts {
 /// You are expected to immediately send the `PathFoundEvent` you received after
 /// calling this function. `None` will be returned if the pathfinding was
 /// interrupted by another path calculation.
-pub async fn calculate_path(opts: CalculatePathOpts) -> Option<PathFoundEvent> {
+pub fn calculate_path(opts: CalculatePathOpts) -> Option<PathFoundEvent> {
     debug!("start: {:?}", opts.start);
 
     let goto_id = opts.goto_id_atomic.fetch_add(1, atomic::Ordering::SeqCst) + 1;
@@ -337,14 +347,10 @@ pub async fn calculate_path(opts: CalculatePathOpts) -> Option<PathFoundEvent> {
     'calculate: loop {
         let start_time = Instant::now();
 
-        let timeout = if opts.deterministic_timeout {
-            PathfinderTimeout::Nodes(if attempt_number == 0 {
-                1_000_000
-            } else {
-                5_000_000
-            })
+        let timeout = if attempt_number == 0 {
+            opts.default_timeout
         } else {
-            PathfinderTimeout::Time(Duration::from_secs(if attempt_number == 0 { 1 } else { 5 }))
+            opts.max_timeout
         };
 
         let astar::Path { movements, partial } = a_star(
@@ -364,7 +370,7 @@ pub async fn calculate_path(opts: CalculatePathOpts) -> Option<PathFoundEvent> {
                 info!("Pathfinder took {duration:?} (incomplete path)");
             }
             // wait a bit so it's not a busy loop
-            std::thread::sleep(Duration::from_millis(100));
+            thread::sleep(Duration::from_millis(100));
         } else {
             info!("Pathfinder took {duration:?}");
         }
@@ -385,7 +391,7 @@ pub async fn calculate_path(opts: CalculatePathOpts) -> Option<PathFoundEvent> {
         }
 
         if path.is_empty() && partial {
-            if attempt_number == 0 {
+            if attempt_number == 0 && opts.default_timeout != opts.max_timeout {
                 debug!("this path is empty, retrying with a higher timeout");
                 attempt_number += 1;
                 continue 'calculate;
@@ -660,10 +666,16 @@ pub fn check_node_reached(
 }
 
 pub fn check_for_path_obstruction(
-    mut query: Query<(&Pathfinder, &mut ExecutingPath, &InstanceName, &Inventory)>,
+    mut query: Query<(
+        Entity,
+        &Pathfinder,
+        &mut ExecutingPath,
+        &InstanceName,
+        &Inventory,
+    )>,
     instance_container: Res<InstanceContainer>,
 ) {
-    for (pathfinder, mut executing_path, instance_name, inventory) in &mut query {
+    for (entity, pathfinder, mut executing_path, instance_name, inventory) in &mut query {
         let Some(successors_fn) = pathfinder.successors_fn else {
             continue;
         };
@@ -693,8 +705,95 @@ pub fn check_for_path_obstruction(
                 "path obstructed at index {obstructed_index} (starting at {:?}, path: {:?})",
                 executing_path.last_reached_node, executing_path.path
             );
-            executing_path.path.truncate(obstructed_index);
-            executing_path.is_path_partial = true;
+            // if it's near the end, don't bother recalculating a patch, just truncate and
+            // mark it as partial
+            if obstructed_index + 5 > executing_path.path.len() {
+                debug!(
+                    "obstruction is near the end of the path, truncating and marking path as partial"
+                );
+                executing_path.path.truncate(obstructed_index);
+                executing_path.is_path_partial = true;
+                continue;
+            }
+
+            let Some(successors_fn) = pathfinder.successors_fn else {
+                error!("got PatchExecutingPathEvent but the bot has no successors_fn");
+                continue;
+            };
+
+            let world_lock = instance_container
+                .get(instance_name)
+                .expect("Entity tried to pathfind but the entity isn't in a valid world");
+
+            let patch_start = if obstructed_index == 0 {
+                executing_path.last_reached_node
+            } else {
+                executing_path.path[obstructed_index - 1].target
+            };
+
+            // patch up to 20 nodes
+            let patch_end_index = cmp::min(obstructed_index + 20, executing_path.path.len() - 1);
+            let patch_end = executing_path.path[patch_end_index].target;
+
+            // this doesn't override the main goal, it's just the goal for this A*
+            // calculation
+            let goal = Arc::new(BlockPosGoal(patch_end));
+
+            let goto_id_atomic = pathfinder.goto_id.clone();
+
+            let allow_mining = pathfinder.allow_mining;
+            let mining_cache = MiningCache::new(if allow_mining {
+                Some(inventory.inventory_menu.clone())
+            } else {
+                None
+            });
+
+            // the timeout is small enough that this doesn't need to be async
+            let path_found_event = calculate_path(CalculatePathOpts {
+                entity,
+                start: patch_start,
+                goal,
+                successors_fn,
+                world_lock,
+                goto_id_atomic,
+                allow_mining,
+                mining_cache,
+                default_timeout: PathfinderTimeout::Nodes(10_000),
+                max_timeout: PathfinderTimeout::Nodes(10_000),
+            });
+            debug!("obstruction patch: {path_found_event:?}");
+
+            let mut new_path = VecDeque::new();
+            if obstructed_index > 0 {
+                new_path.extend(executing_path.path.iter().take(obstructed_index).cloned());
+            }
+
+            let mut is_patch_complete = false;
+            if let Some(path_found_event) = path_found_event {
+                if let Some(found_path_patch) = path_found_event.path {
+                    if !found_path_patch.is_empty() {
+                        new_path.extend(found_path_patch);
+
+                        if !path_found_event.is_partial {
+                            new_path
+                                .extend(executing_path.path.iter().skip(patch_end_index).cloned());
+                            is_patch_complete = true;
+                            debug!("the obstruction patch is not partial");
+                        } else {
+                            debug!(
+                                "the obstruction patch is partial, throwing away rest of path :("
+                            );
+                        }
+                    }
+                }
+            } else {
+                // no path found, rip
+            }
+
+            executing_path.path = new_path;
+            if !is_patch_complete {
+                executing_path.is_path_partial = true;
+            }
         }
     }
 }
@@ -726,7 +825,10 @@ pub fn recalculate_near_end_of_path(
                     goal,
                     successors_fn,
                     allow_mining: pathfinder.allow_mining,
-                    deterministic_timeout: pathfinder.deterministic_timeout,
+                    default_timeout: pathfinder
+                        .default_timeout
+                        .expect("default_timeout should be set"),
+                    max_timeout: pathfinder.max_timeout.expect("max_timeout should be set"),
                 });
                 pathfinder.is_calculating = true;
 
@@ -823,7 +925,10 @@ pub fn recalculate_if_has_goal_but_no_path(
                     goal,
                     successors_fn: pathfinder.successors_fn.unwrap(),
                     allow_mining: pathfinder.allow_mining,
-                    deterministic_timeout: pathfinder.deterministic_timeout,
+                    default_timeout: pathfinder
+                        .default_timeout
+                        .expect("default_timeout should be set"),
+                    max_timeout: pathfinder.max_timeout.expect("max_timeout should be set"),
                 });
                 pathfinder.is_calculating = true;
             }
@@ -950,6 +1055,7 @@ mod tests {
     use azalea_world::{Chunk, ChunkStorage, PartialChunkStorage};
 
     use super::{
+        astar::PathfinderTimeout,
         goals::BlockPosGoal,
         moves,
         simulation::{SimulatedPlayerBundle, Simulation},
@@ -976,7 +1082,8 @@ mod tests {
             goal: Arc::new(BlockPosGoal(end_pos)),
             successors_fn: moves::default_move,
             allow_mining: false,
-            deterministic_timeout: true,
+            default_timeout: PathfinderTimeout::Nodes(1_000_000),
+            max_timeout: PathfinderTimeout::Nodes(5_000_000),
         });
         simulation
     }
