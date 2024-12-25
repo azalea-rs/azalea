@@ -45,22 +45,26 @@ async fn main() {
 
     thread::spawn(deadlock_detection_thread);
 
-    let account = if args.name.contains('@') {
-        Account::microsoft(&args.name).await.unwrap()
-    } else {
-        Account::offline(&args.name)
-    };
+    let join_address = args.server.clone();
 
-    let mut commands = CommandDispatcher::new();
-    register_commands(&mut commands);
-
-    let join_address = args.address.clone();
-
-    let builder = SwarmBuilder::new();
-    builder
+    let mut builder = SwarmBuilder::new()
         .set_handler(handle)
-        .set_swarm_handler(swarm_handle)
-        .add_account_with_state(account, State::new(args, commands))
+        .set_swarm_handler(swarm_handle);
+
+    for username_or_email in &args.accounts {
+        let account = if username_or_email.contains('@') {
+            Account::microsoft(&username_or_email).await.unwrap()
+        } else {
+            Account::offline(&username_or_email)
+        };
+
+        let mut commands = CommandDispatcher::new();
+        register_commands(&mut commands);
+
+        builder = builder.add_account_with_state(account, State::new(args.clone(), commands));
+    }
+
+    builder
         .join_delay(Duration::from_millis(100))
         .start(join_address)
         .await
@@ -138,7 +142,7 @@ async fn handle(bot: Client, event: azalea::Event, state: State) -> anyhow::Resu
             let (Some(username), content) = chat.split_sender_and_content() else {
                 return Ok(());
             };
-            if username != state.args.owner {
+            if username != state.args.owner_username {
                 return Ok(());
             }
 
@@ -211,29 +215,31 @@ async fn swarm_handle(
 
 #[derive(Debug, Clone, Default)]
 pub struct Args {
-    pub owner: String,
-    pub name: String,
-    pub address: String,
+    pub owner_username: String,
+    pub accounts: Vec<String>,
+    pub server: String,
     pub pathfinder_debug_particles: bool,
 }
 
 fn parse_args() -> Args {
-    let mut owner_username = None;
-    let mut bot_username = None;
-    let mut address = None;
+    let mut owner_username = "admin".to_string();
+    let mut accounts = Vec::new();
+    let mut server = "localhost".to_string();
     let mut pathfinder_debug_particles = false;
 
     let mut args = env::args().skip(1);
     while let Some(arg) = args.next() {
         match arg.as_str() {
             "--owner" | "-O" => {
-                owner_username = args.next();
+                owner_username = args.next().expect("Missing owner username");
             }
-            "--name" | "-N" => {
-                bot_username = args.next();
+            "--account" | "-A" => {
+                for account in args.next().expect("Missing account").split(',') {
+                    accounts.push(account.to_string());
+                }
             }
-            "--address" | "-A" => {
-                address = args.next();
+            "--server" | "-S" => {
+                server = args.next().expect("Missing server address");
             }
             "--pathfinder-debug-particles" | "-P" => {
                 pathfinder_debug_particles = true;
@@ -245,10 +251,14 @@ fn parse_args() -> Args {
         }
     }
 
+    if accounts.is_empty() {
+        accounts.push("azalea".to_string());
+    }
+
     Args {
-        owner: owner_username.unwrap_or_else(|| "admin".to_string()),
-        name: bot_username.unwrap_or_else(|| "azalea".to_string()),
-        address: address.unwrap_or_else(|| "localhost".to_string()),
+        owner_username,
+        accounts,
+        server,
         pathfinder_debug_particles,
     }
 }

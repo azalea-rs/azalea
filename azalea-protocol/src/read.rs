@@ -230,7 +230,7 @@ pub async fn read_packet<P: ProtocolPacket + Debug, R>(
     cipher: &mut Option<Aes128CfbDec>,
 ) -> Result<P, Box<ReadPacketError>>
 where
-    R: AsyncRead + std::marker::Unpin + std::marker::Send + std::marker::Sync,
+    R: AsyncRead + Unpin + Send + Sync,
 {
     let raw_packet = read_raw_packet(stream, buffer, compression_threshold, cipher).await?;
     let packet = deserialize_packet(&mut Cursor::new(&raw_packet))?;
@@ -265,7 +265,7 @@ pub async fn read_raw_packet<R>(
     cipher: &mut Option<Aes128CfbDec>,
 ) -> Result<Box<[u8]>, Box<ReadPacketError>>
 where
-    R: AsyncRead + std::marker::Unpin + std::marker::Send + std::marker::Sync,
+    R: AsyncRead + Unpin + Send + Sync,
 {
     loop {
         if let Some(buf) = read_raw_packet_from_buffer::<R>(buffer, compression_threshold)? {
@@ -284,7 +284,7 @@ pub fn try_read_raw_packet<R>(
     cipher: &mut Option<Aes128CfbDec>,
 ) -> Result<Option<Box<[u8]>>, Box<ReadPacketError>>
 where
-    R: AsyncRead + std::marker::Unpin + std::marker::Send + std::marker::Sync,
+    R: AsyncRead + Unpin + Send + Sync,
 {
     loop {
         if let Some(buf) = read_raw_packet_from_buffer::<R>(buffer, compression_threshold)? {
@@ -355,7 +355,7 @@ pub fn read_raw_packet_from_buffer<R>(
     compression_threshold: Option<u32>,
 ) -> Result<Option<Box<[u8]>>, Box<ReadPacketError>>
 where
-    R: AsyncRead + std::marker::Unpin + std::marker::Send + std::marker::Sync,
+    R: AsyncRead + Unpin + Send + Sync,
 {
     let Some(mut buf) = frame_splitter(buffer).map_err(ReadPacketError::from)? else {
         // no full packet yet :(

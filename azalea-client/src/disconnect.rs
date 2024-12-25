@@ -48,8 +48,12 @@ pub fn remove_components_from_disconnected_players(
         commands
             .entity(*entity)
             .remove::<JoinedClientBundle>()
+            // this makes it close the tcp connection
+            .remove::<RawConnection>()
             // swarm detects when this tx gets dropped to fire SwarmEvent::Disconnect
             .remove::<LocalPlayerEvents>();
+        // note that we don't remove the client from the ECS, so if they decide
+        // to reconnect they'll keep their state
     }
 }
 

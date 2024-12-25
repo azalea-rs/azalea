@@ -415,7 +415,7 @@ where
 
         // SwarmBuilder (self) isn't Send so we have to take all the things we need out
         // of it
-        let mut swarm_clone = swarm.clone();
+        let swarm_clone = swarm.clone();
         let join_delay = self.join_delay;
         let accounts = self.accounts.clone();
         let states = self.states.clone();
@@ -602,7 +602,7 @@ impl Swarm {
     ///
     /// Returns an `Err` if the bot could not do a handshake successfully.
     pub async fn add_with_opts<S: Component + Clone>(
-        &mut self,
+        &self,
         account: &Account,
         state: S,
         join_opts: &JoinOpts,
@@ -663,7 +663,7 @@ impl Swarm {
     /// This does exponential backoff (though very limited), starting at 5
     /// seconds and doubling up to 15 seconds.
     pub async fn add_and_retry_forever<S: Component + Clone>(
-        &mut self,
+        &self,
         account: &Account,
         state: S,
     ) -> Client {
@@ -674,7 +674,7 @@ impl Swarm {
     /// Same as [`Self::add_and_retry_forever`], but allow passing custom join
     /// options.
     pub async fn add_and_retry_forever_with_opts<S: Component + Clone>(
-        &mut self,
+        &self,
         account: &Account,
         state: S,
         opts: &JoinOpts,
