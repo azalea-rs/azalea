@@ -16,15 +16,16 @@ use parking_lot::RwLock;
 use super::{
     astar,
     mining::MiningCache,
+    rel_block_pos::RelBlockPos,
     world::{is_block_state_passable, CachedWorld},
 };
 use crate::{auto_tool::best_tool_in_hotbar_for_block, JumpEvent, LookAtEvent};
 
-type Edge = astar::Edge<BlockPos, MoveData>;
+type Edge = astar::Edge<RelBlockPos, MoveData>;
 
-pub type SuccessorsFn = fn(&mut PathfinderCtx, BlockPos);
+pub type SuccessorsFn = fn(&mut PathfinderCtx, RelBlockPos);
 
-pub fn default_move(ctx: &mut PathfinderCtx, node: BlockPos) {
+pub fn default_move(ctx: &mut PathfinderCtx, node: RelBlockPos) {
     basic::basic_move(ctx, node);
     parkour::parkour_move(ctx, node);
 }

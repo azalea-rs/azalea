@@ -5,6 +5,7 @@ use azalea::{
         astar::{self, a_star, PathfinderTimeout},
         goals::{BlockPosGoal, Goal},
         mining::MiningCache,
+        rel_block_pos::RelBlockPos,
         world::CachedWorld,
     },
     BlockPos,
@@ -124,21 +125,23 @@ fn run_pathfinder_benchmark(
 
     let (world, start, end) = generate_world(&mut partial_chunks, 4);
 
+    let origin = start;
+
     b.iter(|| {
-        let cached_world = CachedWorld::new(Arc::new(RwLock::new(world.clone().into())));
+        let cached_world = CachedWorld::new(Arc::new(RwLock::new(world.clone().into())), origin);
         let mining_cache =
             MiningCache::new(Some(Menu::Player(azalea_inventory::Player::default())));
         let goal = BlockPosGoal(end);
 
-        let successors = |pos: BlockPos| {
+        let successors = |pos: RelBlockPos| {
             azalea::pathfinder::call_successors_fn(&cached_world, &mining_cache, successors_fn, pos)
         };
 
         let astar::Path { movements, partial } = a_star(
-            start,
-            |n| goal.heuristic(n),
+            RelBlockPos::get_origin(origin),
+            |n| goal.heuristic(n.apply(origin)),
             successors,
-            |n| goal.success(n),
+            |n| goal.success(n.apply(origin)),
             PathfinderTimeout::Time(Duration::MAX),
         );
 

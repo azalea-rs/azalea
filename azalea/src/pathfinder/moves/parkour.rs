@@ -3,18 +3,18 @@ use azalea_core::{direction::CardinalDirection, position::BlockPos};
 use tracing::trace;
 
 use super::{Edge, ExecuteCtx, IsReachedCtx, MoveData, PathfinderCtx};
-use crate::pathfinder::{astar, costs::*};
+use crate::pathfinder::{astar, costs::*, rel_block_pos::RelBlockPos};
 
-pub fn parkour_move(ctx: &mut PathfinderCtx, node: BlockPos) {
+pub fn parkour_move(ctx: &mut PathfinderCtx, node: RelBlockPos) {
     parkour_forward_1_move(ctx, node);
     parkour_forward_2_move(ctx, node);
     parkour_forward_3_move(ctx, node);
 }
 
-fn parkour_forward_1_move(ctx: &mut PathfinderCtx, pos: BlockPos) {
+fn parkour_forward_1_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
     for dir in CardinalDirection::iter() {
-        let gap_offset = BlockPos::new(dir.x(), 0, dir.z());
-        let offset = BlockPos::new(dir.x() * 2, 0, dir.z() * 2);
+        let gap_offset = RelBlockPos::new(dir.x(), 0, dir.z());
+        let offset = RelBlockPos::new(dir.x() * 2, 0, dir.z() * 2);
 
         // make sure we actually have to jump
         if ctx.world.is_block_solid((pos + gap_offset).down(1)) {
@@ -63,11 +63,11 @@ fn parkour_forward_1_move(ctx: &mut PathfinderCtx, pos: BlockPos) {
     }
 }
 
-fn parkour_forward_2_move(ctx: &mut PathfinderCtx, pos: BlockPos) {
+fn parkour_forward_2_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
     'dir: for dir in CardinalDirection::iter() {
-        let gap_1_offset = BlockPos::new(dir.x(), 0, dir.z());
-        let gap_2_offset = BlockPos::new(dir.x() * 2, 0, dir.z() * 2);
-        let offset = BlockPos::new(dir.x() * 3, 0, dir.z() * 3);
+        let gap_1_offset = RelBlockPos::new(dir.x(), 0, dir.z());
+        let gap_2_offset = RelBlockPos::new(dir.x() * 2, 0, dir.z() * 2);
+        let offset = RelBlockPos::new(dir.x() * 3, 0, dir.z() * 3);
 
         // make sure we actually have to jump
         if ctx.world.is_block_solid((pos + gap_1_offset).down(1))
@@ -117,12 +117,12 @@ fn parkour_forward_2_move(ctx: &mut PathfinderCtx, pos: BlockPos) {
     }
 }
 
-fn parkour_forward_3_move(ctx: &mut PathfinderCtx, pos: BlockPos) {
+fn parkour_forward_3_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
     'dir: for dir in CardinalDirection::iter() {
-        let gap_1_offset = BlockPos::new(dir.x(), 0, dir.z());
-        let gap_2_offset = BlockPos::new(dir.x() * 2, 0, dir.z() * 2);
-        let gap_3_offset = BlockPos::new(dir.x() * 3, 0, dir.z() * 3);
-        let offset = BlockPos::new(dir.x() * 4, 0, dir.z() * 4);
+        let gap_1_offset = RelBlockPos::new(dir.x(), 0, dir.z());
+        let gap_2_offset = RelBlockPos::new(dir.x() * 2, 0, dir.z() * 2);
+        let gap_3_offset = RelBlockPos::new(dir.x() * 3, 0, dir.z() * 3);
+        let offset = RelBlockPos::new(dir.x() * 4, 0, dir.z() * 4);
 
         // make sure we actually have to jump
         if ctx.world.is_block_solid((pos + gap_1_offset).down(1))

@@ -88,7 +88,7 @@ pub enum AxisCycle {
 
 impl CardinalDirection {
     #[inline]
-    pub fn x(self) -> i32 {
+    pub fn x(self) -> i16 {
         match self {
             CardinalDirection::East => 1,
             CardinalDirection::West => -1,
@@ -96,7 +96,7 @@ impl CardinalDirection {
         }
     }
     #[inline]
-    pub fn z(self) -> i32 {
+    pub fn z(self) -> i16 {
         match self {
             CardinalDirection::South => 1,
             CardinalDirection::North => -1,

@@ -74,6 +74,7 @@ where
         num_nodes += 1;
         if success(current_node) {
             debug!("Nodes considered: {num_nodes}");
+
             return Path {
                 movements: reconstruct_path(nodes, current_node),
                 partial: false,

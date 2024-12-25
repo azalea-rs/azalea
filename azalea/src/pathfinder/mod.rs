@@ -8,6 +8,7 @@ mod debug;
 pub mod goals;
 pub mod mining;
 pub mod moves;
+pub mod rel_block_pos;
 pub mod simulation;
 pub mod world;
 
@@ -35,6 +36,7 @@ use bevy_ecs::schedule::IntoSystemConfigs;
 use bevy_tasks::{AsyncComputeTaskPool, Task};
 use futures_lite::future;
 use parking_lot::RwLock;
+use rel_block_pos::RelBlockPos;
 use tracing::{debug, error, info, trace, warn};
 
 use self::debug::debug_render_path_with_particles;
@@ -321,8 +323,9 @@ pub async fn calculate_path(opts: CalculatePathOpts) -> Option<PathFoundEvent> {
 
     let goto_id = opts.goto_id_atomic.fetch_add(1, atomic::Ordering::SeqCst) + 1;
 
-    let cached_world = CachedWorld::new(opts.world_lock);
-    let successors = |pos: BlockPos| {
+    let origin = opts.start;
+    let cached_world = CachedWorld::new(opts.world_lock, origin);
+    let successors = |pos: RelBlockPos| {
         call_successors_fn(&cached_world, &opts.mining_cache, opts.successors_fn, pos)
     };
 
@@ -345,10 +348,10 @@ pub async fn calculate_path(opts: CalculatePathOpts) -> Option<PathFoundEvent> {
         };
 
         let astar::Path { movements, partial } = a_star(
-            opts.start,
-            |n| opts.goal.heuristic(n),
+            RelBlockPos::get_origin(origin),
+            |n| opts.goal.heuristic(n.apply(origin)),
             successors,
-            |n| opts.goal.success(n),
+            |n| opts.goal.success(n.apply(origin)),
             timeout,
         );
         let end_time = Instant::now();
@@ -368,7 +371,7 @@ pub async fn calculate_path(opts: CalculatePathOpts) -> Option<PathFoundEvent> {
 
         debug!("Path:");
         for movement in &movements {
-            debug!("  {}", movement.target);
+            debug!("  {}", movement.target.apply(origin));
         }
 
         path = movements.into_iter().collect::<VecDeque<_>>();
@@ -394,10 +397,19 @@ pub async fn calculate_path(opts: CalculatePathOpts) -> Option<PathFoundEvent> {
         break;
     }
 
+    // replace the RelBlockPos types with BlockPos
+    let mapped_path = path
+        .into_iter()
+        .map(|movement| astar::Movement {
+            target: movement.target.apply(origin),
+            data: movement.data,
+        })
+        .collect();
+
     Some(PathFoundEvent {
         entity: opts.entity,
         start: opts.start,
-        path: Some(path),
+        path: Some(mapped_path),
         is_partial,
         successors_fn: opts.successors_fn,
         allow_mining: opts.allow_mining,
@@ -448,21 +460,27 @@ pub fn path_found_listener(
                     let world_lock = instance_container
                         .get(instance_name)
                         .expect("Entity tried to pathfind but the entity isn't in a valid world");
+                    let origin = event.start;
                     let successors_fn: moves::SuccessorsFn = event.successors_fn;
-                    let cached_world = CachedWorld::new(world_lock);
+                    let cached_world = CachedWorld::new(world_lock, origin);
                     let mining_cache = MiningCache::new(if event.allow_mining {
                         Some(inventory.inventory_menu.clone())
                     } else {
                         None
                     });
-                    let successors = |pos: BlockPos| {
+                    let successors = |pos: RelBlockPos| {
                         call_successors_fn(&cached_world, &mining_cache, successors_fn, pos)
                     };
 
                     if let Some(first_node_of_new_path) = path.front() {
-                        if successors(last_node_of_current_path.target)
+                        let last_target_of_current_path =
+                            RelBlockPos::from_origin(origin, last_node_of_current_path.target);
+                        let first_target_of_new_path =
+                            RelBlockPos::from_origin(origin, first_node_of_new_path.target);
+
+                        if successors(last_target_of_current_path)
                             .iter()
-                            .any(|edge| edge.movement.target == first_node_of_new_path.target)
+                            .any(|edge| edge.movement.target == first_target_of_new_path)
                         {
                             debug!("combining old and new paths");
                             debug!(
@@ -655,17 +673,19 @@ pub fn check_for_path_obstruction(
             .expect("Entity tried to pathfind but the entity isn't in a valid world");
 
         // obstruction check (the path we're executing isn't possible anymore)
-        let cached_world = CachedWorld::new(world_lock);
+        let origin = executing_path.last_reached_node;
+        let cached_world = CachedWorld::new(world_lock, origin);
         let mining_cache = MiningCache::new(if pathfinder.allow_mining {
             Some(inventory.inventory_menu.clone())
         } else {
             None
         });
         let successors =
-            |pos: BlockPos| call_successors_fn(&cached_world, &mining_cache, successors_fn, pos);
+            |pos: RelBlockPos| call_successors_fn(&cached_world, &mining_cache, successors_fn, pos);
 
         if let Some(obstructed_index) = check_path_obstructed(
-            executing_path.last_reached_node,
+            origin,
+            RelBlockPos::from_origin(origin, executing_path.last_reached_node),
             &executing_path.path,
             successors,
         ) {
@@ -873,18 +893,21 @@ pub fn stop_pathfinding_on_instance_change(
 /// Checks whether the path has been obstructed, and returns Some(index) if it
 /// has been. The index is of the first obstructed node.
 pub fn check_path_obstructed<SuccessorsFn>(
-    mut current_position: BlockPos,
+    origin: BlockPos,
+    mut current_position: RelBlockPos,
     path: &VecDeque<astar::Movement<BlockPos, moves::MoveData>>,
     successors_fn: SuccessorsFn,
 ) -> Option<usize>
 where
-    SuccessorsFn: Fn(BlockPos) -> Vec<astar::Edge<BlockPos, moves::MoveData>>,
+    SuccessorsFn: Fn(RelBlockPos) -> Vec<astar::Edge<RelBlockPos, moves::MoveData>>,
 {
     for (i, movement) in path.iter().enumerate() {
+        let movement_target = RelBlockPos::from_origin(origin, movement.target);
+
         let mut found_obstruction = false;
         for edge in successors_fn(current_position) {
-            if edge.movement.target == movement.target {
-                current_position = movement.target;
+            if edge.movement.target == movement_target {
+                current_position = movement_target;
                 found_obstruction = false;
                 break;
             } else {
@@ -903,8 +926,8 @@ pub fn call_successors_fn(
     cached_world: &CachedWorld,
     mining_cache: &MiningCache,
     successors_fn: SuccessorsFn,
-    pos: BlockPos,
-) -> Vec<astar::Edge<BlockPos, moves::MoveData>> {
+    pos: RelBlockPos,
+) -> Vec<astar::Edge<RelBlockPos, moves::MoveData>> {
     let mut edges = Vec::with_capacity(16);
     let mut ctx = PathfinderCtx {
         edges: &mut edges,

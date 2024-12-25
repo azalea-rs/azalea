@@ -11,12 +11,16 @@ use azalea_core::{
 use azalea_physics::collision::BlockWithShape;
 use azalea_world::Instance;
 use parking_lot::RwLock;
-use rustc_hash::FxHashMap;
 
-use super::mining::MiningCache;
+use super::{mining::MiningCache, rel_block_pos::RelBlockPos};
 
 /// An efficient representation of the world used for the pathfinder.
 pub struct CachedWorld {
+    /// The origin that the [`RelBlockPos`] types will be relative to. This is
+    /// for an optimization that reduces the size of the block positions
+    /// that are used by the pathfinder.
+    origin: BlockPos,
+
     min_y: i32,
     world_lock: Arc<RwLock<Instance>>,
 
@@ -27,7 +31,7 @@ pub struct CachedWorld {
 
     cached_blocks: UnsafeCell<CachedSections>,
 
-    cached_mining_costs: UnsafeCell<FxHashMap<BlockPos, f32>>,
+    cached_mining_costs: UnsafeCell<Box<[(RelBlockPos, f32)]>>,
 }
 
 #[derive(Default)]
@@ -82,15 +86,20 @@ pub struct CachedSection {
 }
 
 impl CachedWorld {
-    pub fn new(world_lock: Arc<RwLock<Instance>>) -> Self {
+    pub fn new(world_lock: Arc<RwLock<Instance>>, origin: BlockPos) -> Self {
         let min_y = world_lock.read().chunks.min_y;
         Self {
+            origin,
             min_y,
             world_lock,
             cached_chunks: Default::default(),
             last_chunk_cache_index: Default::default(),
             cached_blocks: Default::default(),
-            cached_mining_costs: Default::default(),
+            // this uses about 12mb of memory. it *really* helps though.
+            cached_mining_costs: UnsafeCell::new(
+                vec![(RelBlockPos::new(i16::MAX, i32::MAX, i16::MAX), 0.); 2usize.pow(20)]
+                    .into_boxed_slice(),
+            ),
         }
     }
 
@@ -202,7 +211,11 @@ impl CachedWorld {
         })
     }
 
-    pub fn is_block_passable(&self, pos: BlockPos) -> bool {
+    pub fn is_block_passable(&self, pos: RelBlockPos) -> bool {
+        self.is_block_pos_passable(pos.apply(self.origin))
+    }
+
+    fn is_block_pos_passable(&self, pos: BlockPos) -> bool {
         let (section_pos, section_block_pos) =
             (ChunkSectionPos::from(pos), ChunkSectionBlockPos::from(pos));
         let index = u16::from(section_block_pos) as usize;
@@ -220,7 +233,11 @@ impl CachedWorld {
         passable
     }
 
-    pub fn is_block_solid(&self, pos: BlockPos) -> bool {
+    pub fn is_block_solid(&self, pos: RelBlockPos) -> bool {
+        self.is_block_pos_solid(pos.apply(self.origin))
+    }
+
+    fn is_block_pos_solid(&self, pos: BlockPos) -> bool {
         let (section_pos, section_block_pos) =
             (ChunkSectionPos::from(pos), ChunkSectionBlockPos::from(pos));
         let index = u16::from(section_block_pos) as usize;
@@ -240,24 +257,39 @@ impl CachedWorld {
 
     /// Returns how much it costs to break this block. Returns 0 if the block is
     /// already passable.
-    pub fn cost_for_breaking_block(&self, pos: BlockPos, mining_cache: &MiningCache) -> f32 {
+    pub fn cost_for_breaking_block(&self, pos: RelBlockPos, mining_cache: &MiningCache) -> f32 {
         // SAFETY: pathfinding is single-threaded
         let cached_mining_costs = unsafe { &mut *self.cached_mining_costs.get() };
-
-        if let Some(&cost) = cached_mining_costs.get(&pos) {
-            return cost;
+        // 20 bits total:
+        // 8 bits for x, 4 bits for y, 8 bits for z
+        let hash_index =
+            (pos.x as usize & 0xff) << 12 | (pos.y as usize & 0xf) << 8 | (pos.z as usize & 0xff);
+        debug_assert!(hash_index < 1048576);
+        let &(cached_pos, potential_cost) =
+            unsafe { cached_mining_costs.get_unchecked(hash_index) };
+        if cached_pos == pos {
+            return potential_cost;
         }
 
         let cost = self.uncached_cost_for_breaking_block(pos, mining_cache);
-        cached_mining_costs.insert(pos, cost);
+        unsafe {
+            *cached_mining_costs.get_unchecked_mut(hash_index) = (pos, cost);
+        };
+
         cost
     }
 
-    fn uncached_cost_for_breaking_block(&self, pos: BlockPos, mining_cache: &MiningCache) -> f32 {
+    fn uncached_cost_for_breaking_block(
+        &self,
+        pos: RelBlockPos,
+        mining_cache: &MiningCache,
+    ) -> f32 {
         if self.is_block_passable(pos) {
             // if the block is passable then it doesn't need to be broken
             return 0.;
         }
+
+        let pos = pos.apply(self.origin);
 
         let (section_pos, section_block_pos) =
             (ChunkSectionPos::from(pos), ChunkSectionBlockPos::from(pos));
@@ -341,7 +373,7 @@ impl CachedWorld {
             mining_cost
         }) else {
             // the chunk isn't loaded
-            let cost = if self.is_block_solid(pos) {
+            let cost = if self.is_block_pos_solid(pos) {
                 // assume it's unbreakable if it's solid and out of render distance
                 f32::INFINITY
             } else {
@@ -400,22 +432,28 @@ impl CachedWorld {
     }
 
     /// Whether this block and the block above are passable
-    pub fn is_passable(&self, pos: BlockPos) -> bool {
-        self.is_block_passable(pos) && self.is_block_passable(pos.up(1))
+    pub fn is_passable(&self, pos: RelBlockPos) -> bool {
+        self.is_passable_at_block_pos(pos.apply(self.origin))
+    }
+    fn is_passable_at_block_pos(&self, pos: BlockPos) -> bool {
+        self.is_block_pos_passable(pos) && self.is_block_pos_passable(pos.up(1))
     }
 
-    pub fn cost_for_passing(&self, pos: BlockPos, mining_cache: &MiningCache) -> f32 {
+    pub fn cost_for_passing(&self, pos: RelBlockPos, mining_cache: &MiningCache) -> f32 {
         self.cost_for_breaking_block(pos, mining_cache)
             + self.cost_for_breaking_block(pos.up(1), mining_cache)
     }
 
     /// Whether we can stand in this position. Checks if the block below is
     /// solid, and that the two blocks above that are passable.
-    pub fn is_standable(&self, pos: BlockPos) -> bool {
-        self.is_block_solid(pos.down(1)) && self.is_passable(pos)
+    pub fn is_standable(&self, pos: RelBlockPos) -> bool {
+        self.is_standable_at_block_pos(pos.apply(self.origin))
+    }
+    fn is_standable_at_block_pos(&self, pos: BlockPos) -> bool {
+        self.is_block_pos_solid(pos.down(1)) && self.is_passable_at_block_pos(pos)
     }
 
-    pub fn cost_for_standing(&self, pos: BlockPos, mining_cache: &MiningCache) -> f32 {
+    pub fn cost_for_standing(&self, pos: RelBlockPos, mining_cache: &MiningCache) -> f32 {
         if !self.is_block_solid(pos.down(1)) {
             return f32::INFINITY;
         }
@@ -423,7 +461,7 @@ impl CachedWorld {
     }
 
     /// Get the amount of air blocks until the next solid block below this one.
-    pub fn fall_distance(&self, pos: BlockPos) -> u32 {
+    pub fn fall_distance(&self, pos: RelBlockPos) -> u32 {
         let mut distance = 0;
         let mut current_pos = pos.down(1);
         while self.is_block_passable(current_pos) {
@@ -512,9 +550,9 @@ mod tests {
             .chunks
             .set_block_state(&BlockPos::new(0, 1, 0), BlockState::AIR, &world);
 
-        let ctx = CachedWorld::new(Arc::new(RwLock::new(world.into())));
-        assert!(!ctx.is_block_passable(BlockPos::new(0, 0, 0)));
-        assert!(ctx.is_block_passable(BlockPos::new(0, 1, 0),));
+        let ctx = CachedWorld::new(Arc::new(RwLock::new(world.into())), BlockPos::default());
+        assert!(!ctx.is_block_pos_passable(BlockPos::new(0, 0, 0)));
+        assert!(ctx.is_block_pos_passable(BlockPos::new(0, 1, 0),));
     }
 
     #[test]
@@ -533,9 +571,9 @@ mod tests {
             .chunks
             .set_block_state(&BlockPos::new(0, 1, 0), BlockState::AIR, &world);
 
-        let ctx = CachedWorld::new(Arc::new(RwLock::new(world.into())));
-        assert!(ctx.is_block_solid(BlockPos::new(0, 0, 0)));
-        assert!(!ctx.is_block_solid(BlockPos::new(0, 1, 0)));
+        let ctx = CachedWorld::new(Arc::new(RwLock::new(world.into())), BlockPos::default());
+        assert!(ctx.is_block_pos_solid(BlockPos::new(0, 0, 0)));
+        assert!(!ctx.is_block_pos_solid(BlockPos::new(0, 1, 0)));
     }
 
     #[test]
@@ -560,9 +598,9 @@ mod tests {
             .chunks
             .set_block_state(&BlockPos::new(0, 3, 0), BlockState::AIR, &world);
 
-        let ctx = CachedWorld::new(Arc::new(RwLock::new(world.into())));
-        assert!(ctx.is_standable(BlockPos::new(0, 1, 0)));
-        assert!(!ctx.is_standable(BlockPos::new(0, 0, 0)));
-        assert!(!ctx.is_standable(BlockPos::new(0, 2, 0)));
+        let ctx = CachedWorld::new(Arc::new(RwLock::new(world.into())), BlockPos::default());
+        assert!(ctx.is_standable_at_block_pos(BlockPos::new(0, 1, 0)));
+        assert!(!ctx.is_standable_at_block_pos(BlockPos::new(0, 0, 0)));
+        assert!(!ctx.is_standable_at_block_pos(BlockPos::new(0, 2, 0)));
     }
 }

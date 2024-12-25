@@ -7,9 +7,9 @@ use azalea_core::{
 };
 
 use super::{default_is_reached, Edge, ExecuteCtx, IsReachedCtx, MoveData, PathfinderCtx};
-use crate::pathfinder::{astar, costs::*};
+use crate::pathfinder::{astar, costs::*, rel_block_pos::RelBlockPos};
 
-pub fn basic_move(ctx: &mut PathfinderCtx, node: BlockPos) {
+pub fn basic_move(ctx: &mut PathfinderCtx, node: RelBlockPos) {
     forward_move(ctx, node);
     ascend_move(ctx, node);
     descend_move(ctx, node);
@@ -18,9 +18,9 @@ pub fn basic_move(ctx: &mut PathfinderCtx, node: BlockPos) {
     downward_move(ctx, node);
 }
 
-fn forward_move(ctx: &mut PathfinderCtx, pos: BlockPos) {
+fn forward_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
     for dir in CardinalDirection::iter() {
-        let offset = BlockPos::new(dir.x(), 0, dir.z());
+        let offset = RelBlockPos::new(dir.x(), 0, dir.z());
 
         let mut cost = SPRINT_ONE_BLOCK_COST;
 
@@ -57,9 +57,9 @@ fn execute_forward_move(mut ctx: ExecuteCtx) {
     ctx.sprint(SprintDirection::Forward);
 }
 
-fn ascend_move(ctx: &mut PathfinderCtx, pos: BlockPos) {
+fn ascend_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
     for dir in CardinalDirection::iter() {
-        let offset = BlockPos::new(dir.x(), 1, dir.z());
+        let offset = RelBlockPos::new(dir.x(), 1, dir.z());
 
         let break_cost_1 = ctx
             .world
@@ -126,7 +126,7 @@ fn execute_ascend_move(mut ctx: ExecuteCtx) {
         + x_axis as f64 * (target_center.z - position.z).abs();
 
     let lateral_motion = x_axis as f64 * physics.velocity.z + z_axis as f64 * physics.velocity.x;
-    if lateral_motion > 0.1 {
+    if lateral_motion.abs() > 0.1 {
         return;
     }
 
@@ -147,9 +147,9 @@ pub fn ascend_is_reached(
     BlockPos::from(position) == target || BlockPos::from(position) == target.down(1)
 }
 
-fn descend_move(ctx: &mut PathfinderCtx, pos: BlockPos) {
+fn descend_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
     for dir in CardinalDirection::iter() {
-        let dir_delta = BlockPos::new(dir.x(), 0, dir.z());
+        let dir_delta = RelBlockPos::new(dir.x(), 0, dir.z());
         let new_horizontal_position = pos + dir_delta;
 
         let break_cost_1 = ctx
@@ -271,9 +271,9 @@ pub fn descend_is_reached(
         && (position.y - target.y as f64) < 0.5
 }
 
-fn descend_forward_1_move(ctx: &mut PathfinderCtx, pos: BlockPos) {
+fn descend_forward_1_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
     for dir in CardinalDirection::iter() {
-        let dir_delta = BlockPos::new(dir.x(), 0, dir.z());
+        let dir_delta = RelBlockPos::new(dir.x(), 0, dir.z());
         let gap_horizontal_position = pos + dir_delta;
         let new_horizontal_position = pos + dir_delta * 2;
 
@@ -323,12 +323,12 @@ fn descend_forward_1_move(ctx: &mut PathfinderCtx, pos: BlockPos) {
     }
 }
 
-fn diagonal_move(ctx: &mut PathfinderCtx, pos: BlockPos) {
+fn diagonal_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
     for dir in CardinalDirection::iter() {
         let right = dir.right();
-        let offset = BlockPos::new(dir.x() + right.x(), 0, dir.z() + right.z());
-        let left_pos = BlockPos::new(pos.x + dir.x(), pos.y, pos.z + dir.z());
-        let right_pos = BlockPos::new(pos.x + right.x(), pos.y, pos.z + right.z());
+        let offset = RelBlockPos::new(dir.x() + right.x(), 0, dir.z() + right.z());
+        let left_pos = RelBlockPos::new(pos.x + dir.x(), pos.y, pos.z + dir.z());
+        let right_pos = RelBlockPos::new(pos.x + right.x(), pos.y, pos.z + right.z());
 
         // +0.001 so it doesn't unnecessarily go diagonal sometimes
         let mut cost = SPRINT_ONE_BLOCK_COST * SQRT_2 + 0.001;
@@ -369,7 +369,7 @@ fn execute_diagonal_move(mut ctx: ExecuteCtx) {
 }
 
 /// Go directly down, usually by mining.
-fn downward_move(ctx: &mut PathfinderCtx, pos: BlockPos) {
+fn downward_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
     // make sure we land on a solid block after breaking the one below us
     if !ctx.world.is_block_solid(pos.down(2)) {
         return;
