@@ -778,7 +778,7 @@ pub fn check_for_path_obstruction(
                             new_path
                                 .extend(executing_path.path.iter().skip(patch_end_index).cloned());
                             is_patch_complete = true;
-                            debug!("the obstruction patch is not partial");
+                            debug!("the obstruction patch is not partial :)");
                         } else {
                             debug!(
                                 "the obstruction patch is partial, throwing away rest of path :("
