@@ -49,7 +49,8 @@ pub fn a_star<P, M, HeuristicFn, SuccessorsFn, SuccessFn>(
     heuristic: HeuristicFn,
     mut successors: SuccessorsFn,
     success: SuccessFn,
-    timeout: PathfinderTimeout,
+    min_timeout: PathfinderTimeout,
+    max_timeout: PathfinderTimeout,
 ) -> Path<P, M>
 where
     P: Eq + Hash + Copy + Debug,
@@ -150,14 +151,31 @@ where
 
         // check for timeout every ~10ms
         if num_nodes % 10000 == 0 {
-            let timed_out = match timeout {
+            let min_timeout_reached = match min_timeout {
                 PathfinderTimeout::Time(max_duration) => start_time.elapsed() >= max_duration,
                 PathfinderTimeout::Nodes(max_nodes) => num_nodes >= max_nodes,
             };
-            if timed_out {
-                // timeout, just return the best path we have so far
-                trace!("A* couldn't find a path in time, returning best path");
-                break;
+
+            if min_timeout_reached {
+                // means we have a non-empty path
+                if best_paths[6] != 0 {
+                    break;
+                }
+
+                if min_timeout_reached {
+                    let max_timeout_reached = match max_timeout {
+                        PathfinderTimeout::Time(max_duration) => {
+                            start_time.elapsed() >= max_duration
+                        }
+                        PathfinderTimeout::Nodes(max_nodes) => num_nodes >= max_nodes,
+                    };
+
+                    if max_timeout_reached {
+                        // timeout, we're gonna be returning an empty path :(
+                        trace!("A* couldn't find a path in time, returning best path");
+                        break;
+                    }
+                }
             }
         }
     }

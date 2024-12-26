@@ -107,7 +107,7 @@ pub struct Pathfinder {
     pub is_calculating: bool,
     pub allow_mining: bool,
 
-    pub default_timeout: Option<PathfinderTimeout>,
+    pub min_timeout: Option<PathfinderTimeout>,
     pub max_timeout: Option<PathfinderTimeout>,
 
     pub goto_id: Arc<AtomicUsize>,
@@ -142,7 +142,7 @@ pub struct GotoEvent {
     pub allow_mining: bool,
 
     /// Also see [`PathfinderTimeout::Nodes`]
-    pub default_timeout: PathfinderTimeout,
+    pub min_timeout: PathfinderTimeout,
     pub max_timeout: PathfinderTimeout,
 }
 #[derive(Event, Clone, Debug)]
@@ -187,7 +187,7 @@ impl PathfinderClientExt for azalea_client::Client {
             goal: Arc::new(goal),
             successors_fn: moves::default_move,
             allow_mining: true,
-            default_timeout: PathfinderTimeout::Time(Duration::from_secs(1)),
+            min_timeout: PathfinderTimeout::Time(Duration::from_secs(1)),
             max_timeout: PathfinderTimeout::Time(Duration::from_secs(5)),
         });
     }
@@ -200,7 +200,7 @@ impl PathfinderClientExt for azalea_client::Client {
             goal: Arc::new(goal),
             successors_fn: moves::default_move,
             allow_mining: false,
-            default_timeout: PathfinderTimeout::Time(Duration::from_secs(1)),
+            min_timeout: PathfinderTimeout::Time(Duration::from_secs(1)),
             max_timeout: PathfinderTimeout::Time(Duration::from_secs(5)),
         });
     }
@@ -250,7 +250,7 @@ pub fn goto_listener(
         pathfinder.successors_fn = Some(event.successors_fn);
         pathfinder.is_calculating = true;
         pathfinder.allow_mining = event.allow_mining;
-        pathfinder.default_timeout = Some(event.default_timeout);
+        pathfinder.min_timeout = Some(event.min_timeout);
         pathfinder.max_timeout = Some(event.max_timeout);
 
         let start = if let Some(executing_path) = executing_path
@@ -284,7 +284,7 @@ pub fn goto_listener(
             None
         });
 
-        let default_timeout = event.default_timeout;
+        let min_timeout = event.min_timeout;
         let max_timeout = event.max_timeout;
 
         let task = thread_pool.spawn(async move {
@@ -297,7 +297,7 @@ pub fn goto_listener(
                 goto_id_atomic,
                 allow_mining,
                 mining_cache,
-                default_timeout,
+                min_timeout,
                 max_timeout,
             })
         });
@@ -316,7 +316,7 @@ pub struct CalculatePathOpts {
     pub allow_mining: bool,
     pub mining_cache: MiningCache,
     /// Also see [`GotoEvent::deterministic_timeout`]
-    pub default_timeout: PathfinderTimeout,
+    pub min_timeout: PathfinderTimeout,
     pub max_timeout: PathfinderTimeout,
 }
 
@@ -344,63 +344,48 @@ pub fn calculate_path(opts: CalculatePathOpts) -> Option<PathFoundEvent> {
     let mut path;
     let mut is_partial: bool;
 
-    'calculate: loop {
-        let start_time = Instant::now();
+    let start_time = Instant::now();
 
-        let timeout = if attempt_number == 0 {
-            opts.default_timeout
+    let astar::Path { movements, partial } = a_star(
+        RelBlockPos::get_origin(origin),
+        |n| opts.goal.heuristic(n.apply(origin)),
+        successors,
+        |n| opts.goal.success(n.apply(origin)),
+        opts.min_timeout,
+        opts.max_timeout,
+    );
+    let end_time = Instant::now();
+    debug!("partial: {partial:?}");
+    let duration = end_time - start_time;
+    if partial {
+        if movements.is_empty() {
+            info!("Pathfinder took {duration:?} (empty path)");
         } else {
-            opts.max_timeout
-        };
-
-        let astar::Path { movements, partial } = a_star(
-            RelBlockPos::get_origin(origin),
-            |n| opts.goal.heuristic(n.apply(origin)),
-            successors,
-            |n| opts.goal.success(n.apply(origin)),
-            timeout,
-        );
-        let end_time = Instant::now();
-        debug!("partial: {partial:?}");
-        let duration = end_time - start_time;
-        if partial {
-            if movements.is_empty() {
-                info!("Pathfinder took {duration:?} (empty path)");
-            } else {
-                info!("Pathfinder took {duration:?} (incomplete path)");
-            }
-            // wait a bit so it's not a busy loop
-            thread::sleep(Duration::from_millis(100));
-        } else {
-            info!("Pathfinder took {duration:?}");
+            info!("Pathfinder took {duration:?} (incomplete path)");
         }
+        // wait a bit so it's not a busy loop
+        thread::sleep(Duration::from_millis(100));
+    } else {
+        info!("Pathfinder took {duration:?}");
+    }
 
-        debug!("Path:");
-        for movement in &movements {
-            debug!("  {}", movement.target.apply(origin));
-        }
+    debug!("Path:");
+    for movement in &movements {
+        debug!("  {}", movement.target.apply(origin));
+    }
 
-        path = movements.into_iter().collect::<VecDeque<_>>();
-        is_partial = partial;
+    path = movements.into_iter().collect::<VecDeque<_>>();
+    is_partial = partial;
 
-        let goto_id_now = opts.goto_id_atomic.load(atomic::Ordering::SeqCst);
-        if goto_id != goto_id_now {
-            // we must've done another goto while calculating this path, so throw it away
-            warn!("finished calculating a path, but it's outdated");
-            return None;
-        }
+    let goto_id_now = opts.goto_id_atomic.load(atomic::Ordering::SeqCst);
+    if goto_id != goto_id_now {
+        // we must've done another goto while calculating this path, so throw it away
+        warn!("finished calculating a path, but it's outdated");
+        return None;
+    }
 
-        if path.is_empty() && partial {
-            if attempt_number == 0 && opts.default_timeout != opts.max_timeout {
-                debug!("this path is empty, retrying with a higher timeout");
-                attempt_number += 1;
-                continue 'calculate;
-            } else {
-                debug!("this path is empty, giving up");
-                break 'calculate;
-            }
-        }
-        break;
+    if path.is_empty() && partial {
+        debug!("this path is empty, we might be stuck :(");
     }
 
     // replace the RelBlockPos types with BlockPos
@@ -758,7 +743,7 @@ pub fn check_for_path_obstruction(
                 goto_id_atomic,
                 allow_mining,
                 mining_cache,
-                default_timeout: PathfinderTimeout::Nodes(10_000),
+                min_timeout: PathfinderTimeout::Nodes(10_000),
                 max_timeout: PathfinderTimeout::Nodes(10_000),
             });
             debug!("obstruction patch: {path_found_event:?}");
@@ -825,9 +810,7 @@ pub fn recalculate_near_end_of_path(
                     goal,
                     successors_fn,
                     allow_mining: pathfinder.allow_mining,
-                    default_timeout: pathfinder
-                        .default_timeout
-                        .expect("default_timeout should be set"),
+                    min_timeout: pathfinder.min_timeout.expect("min_timeout should be set"),
                     max_timeout: pathfinder.max_timeout.expect("max_timeout should be set"),
                 });
                 pathfinder.is_calculating = true;
@@ -925,9 +908,7 @@ pub fn recalculate_if_has_goal_but_no_path(
                     goal,
                     successors_fn: pathfinder.successors_fn.unwrap(),
                     allow_mining: pathfinder.allow_mining,
-                    default_timeout: pathfinder
-                        .default_timeout
-                        .expect("default_timeout should be set"),
+                    min_timeout: pathfinder.min_timeout.expect("min_timeout should be set"),
                     max_timeout: pathfinder.max_timeout.expect("max_timeout should be set"),
                 });
                 pathfinder.is_calculating = true;
@@ -1082,7 +1063,7 @@ mod tests {
             goal: Arc::new(BlockPosGoal(end_pos)),
             successors_fn: moves::default_move,
             allow_mining: false,
-            default_timeout: PathfinderTimeout::Nodes(1_000_000),
+            min_timeout: PathfinderTimeout::Nodes(1_000_000),
             max_timeout: PathfinderTimeout::Nodes(5_000_000),
         });
         simulation
