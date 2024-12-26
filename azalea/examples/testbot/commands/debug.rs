@@ -4,6 +4,7 @@ use azalea::{
     brigadier::prelude::*,
     entity::{LookDirection, Position},
     interact::HitResultComponent,
+    pathfinder::{ExecutingPath, Pathfinder},
     world::MinecraftEntityId,
     BlockPos,
 };
@@ -117,4 +118,34 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
             1
         })),
     )));
+
+    commands.register(literal("pathfinderstate").executes(|ctx: &Ctx| {
+        let source = ctx.source.lock();
+        let pathfinder = source.bot.get_component::<Pathfinder>();
+        let Some(pathfinder) = pathfinder else {
+            source.reply("I don't have the Pathfinder ocmponent");
+            return 1;
+        };
+        source.reply(&format!(
+            "pathfinder.is_calculating: {}",
+            pathfinder.is_calculating
+        ));
+
+        let executing_path = source.bot.get_component::<ExecutingPath>();
+        let Some(executing_path) = executing_path else {
+            source.reply("I'm not executing a path");
+            return 1;
+        };
+        source.reply(&format!(
+            "is_path_partial: {}, path.len: {}, queued_path.len: {}",
+            executing_path.is_path_partial,
+            executing_path.path.len(),
+            if let Some(queued) = executing_path.queued_path {
+                queued.len().to_string()
+            } else {
+                "n/a".to_string()
+            },
+        ));
+        1
+    }));
 }

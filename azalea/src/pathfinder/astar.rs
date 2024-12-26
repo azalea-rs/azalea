@@ -16,7 +16,7 @@ where
     P: Eq + Hash + Copy + Debug,
 {
     pub movements: Vec<Movement<P, M>>,
-    pub partial: bool,
+    pub is_partial: bool,
 }
 
 // used for better results when timing out
@@ -90,7 +90,7 @@ where
 
             return Path {
                 movements: reconstruct_path(nodes, index),
-                partial: false,
+                is_partial: false,
             };
         }
 
@@ -190,7 +190,7 @@ where
 
     Path {
         movements: reconstruct_path(nodes, best_path),
-        partial: true,
+        is_partial: true,
     }
 }
 

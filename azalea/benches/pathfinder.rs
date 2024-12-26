@@ -137,11 +137,15 @@ fn run_pathfinder_benchmark(
             azalea::pathfinder::call_successors_fn(&cached_world, &mining_cache, successors_fn, pos)
         };
 
-        let astar::Path { movements, partial } = a_star(
+        let astar::Path {
+            movements,
+            is_partial: partial,
+        } = a_star(
             RelBlockPos::get_origin(origin),
             |n| goal.heuristic(n.apply(origin)),
             successors,
             |n| goal.success(n.apply(origin)),
+            PathfinderTimeout::Time(Duration::MAX),
             PathfinderTimeout::Time(Duration::MAX),
         );
 

@@ -13,6 +13,7 @@ pub mod simulation;
 pub mod world;
 
 use std::collections::VecDeque;
+use std::ops::RangeInclusive;
 use std::sync::atomic::{self, AtomicUsize};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
@@ -71,9 +72,9 @@ impl Plugin for PathfinderPlugin {
                 GameTick,
                 (
                     timeout_movement,
+                    check_for_path_obstruction,
                     check_node_reached,
                     tick_execute_path,
-                    check_for_path_obstruction,
                     debug_render_path_with_particles,
                     recalculate_near_end_of_path,
                     recalculate_if_has_goal_but_no_path,
@@ -115,7 +116,7 @@ pub struct Pathfinder {
 
 /// A component that's present on clients that are actively following a
 /// pathfinder path.
-#[derive(Component)]
+#[derive(Component, Clone)]
 pub struct ExecutingPath {
     pub path: VecDeque<astar::Movement<BlockPos, moves::MoveData>>,
     pub queued_path: Option<VecDeque<astar::Movement<BlockPos, moves::MoveData>>>,
@@ -257,7 +258,7 @@ pub fn goto_listener(
             && let Some(final_node) = executing_path.path.back()
         {
             // if we're currently pathfinding and got a goto event, start a little ahead
-            executing_path.path.get(20).unwrap_or(final_node).target
+            executing_path.path.get(50).unwrap_or(final_node).target
         } else {
             BlockPos::from(position)
         };
@@ -339,14 +340,14 @@ pub fn calculate_path(opts: CalculatePathOpts) -> Option<PathFoundEvent> {
         call_successors_fn(&cached_world, &opts.mining_cache, opts.successors_fn, pos)
     };
 
-    let mut attempt_number = 0;
-
-    let mut path;
-    let mut is_partial: bool;
+    let path;
 
     let start_time = Instant::now();
 
-    let astar::Path { movements, partial } = a_star(
+    let astar::Path {
+        movements,
+        is_partial,
+    } = a_star(
         RelBlockPos::get_origin(origin),
         |n| opts.goal.heuristic(n.apply(origin)),
         successors,
@@ -355,9 +356,9 @@ pub fn calculate_path(opts: CalculatePathOpts) -> Option<PathFoundEvent> {
         opts.max_timeout,
     );
     let end_time = Instant::now();
-    debug!("partial: {partial:?}");
+    debug!("partial: {is_partial:?}");
     let duration = end_time - start_time;
-    if partial {
+    if is_partial {
         if movements.is_empty() {
             info!("Pathfinder took {duration:?} (empty path)");
         } else {
@@ -375,7 +376,6 @@ pub fn calculate_path(opts: CalculatePathOpts) -> Option<PathFoundEvent> {
     }
 
     path = movements.into_iter().collect::<VecDeque<_>>();
-    is_partial = partial;
 
     let goto_id_now = opts.goto_id_atomic.load(atomic::Ordering::SeqCst);
     if goto_id != goto_id_now {
@@ -384,7 +384,7 @@ pub fn calculate_path(opts: CalculatePathOpts) -> Option<PathFoundEvent> {
         return None;
     }
 
-    if path.is_empty() && partial {
+    if path.is_empty() && is_partial {
         debug!("this path is empty, we might be stuck :(");
     }
 
@@ -521,9 +521,20 @@ pub fn path_found_listener(
 }
 
 pub fn timeout_movement(
-    mut query: Query<(&Pathfinder, &mut ExecutingPath, &Position, Option<&Mining>)>,
+    mut query: Query<(
+        Entity,
+        &mut Pathfinder,
+        &mut ExecutingPath,
+        &Position,
+        Option<&Mining>,
+        &InstanceName,
+        &Inventory,
+    )>,
+    instance_container: Res<InstanceContainer>,
 ) {
-    for (pathfinder, mut executing_path, position, mining) in &mut query {
+    for (entity, mut pathfinder, mut executing_path, position, mining, instance_name, inventory) in
+        &mut query
+    {
         // don't timeout if we're mining
         if let Some(mining) = mining {
             // also make sure we're close enough to the block that's being mined
@@ -539,18 +550,29 @@ pub fn timeout_movement(
             && !pathfinder.is_calculating
             && !executing_path.path.is_empty()
         {
-            warn!("pathfinder timeout");
-            // the path wasn't being followed anyways, so clearing it is fine
-            executing_path.path.clear();
+            warn!("pathfinder timeout, trying to patch path");
             executing_path.queued_path = None;
             executing_path.last_reached_node = BlockPos::from(position);
-            // invalidate whatever calculation we were just doing, if any
-            pathfinder.goto_id.fetch_add(1, atomic::Ordering::Relaxed);
-            // set partial to true to make sure that a recalculation will happen
-            executing_path.is_path_partial = true;
 
-            // the path will get recalculated automatically because the path is
-            // empty
+            let world_lock = instance_container
+                .get(instance_name)
+                .expect("Entity tried to pathfind but the entity isn't in a valid world");
+            let successors_fn: moves::SuccessorsFn = pathfinder.successors_fn.unwrap();
+
+            // try to fix the path without recalculating everything.
+            // (though, it'll still get fully recalculated by `recalculate_near_end_of_path`
+            // if the new path is too short)
+            patch_path(
+                0..=cmp::min(20, executing_path.path.len() - 1),
+                &mut executing_path,
+                &mut pathfinder,
+                inventory,
+                entity,
+                successors_fn,
+                world_lock,
+            );
+            // reset last_node_reached_at so we don't immediately try to patch again
+            executing_path.last_node_reached_at = Instant::now();
         }
     }
 }
@@ -653,14 +675,14 @@ pub fn check_node_reached(
 pub fn check_for_path_obstruction(
     mut query: Query<(
         Entity,
-        &Pathfinder,
+        &mut Pathfinder,
         &mut ExecutingPath,
         &InstanceName,
         &Inventory,
     )>,
     instance_container: Res<InstanceContainer>,
 ) {
-    for (entity, pathfinder, mut executing_path, instance_name, inventory) in &mut query {
+    for (entity, mut pathfinder, mut executing_path, instance_name, inventory) in &mut query {
         let Some(successors_fn) = pathfinder.successors_fn else {
             continue;
         };
@@ -710,76 +732,109 @@ pub fn check_for_path_obstruction(
                 .get(instance_name)
                 .expect("Entity tried to pathfind but the entity isn't in a valid world");
 
-            let patch_start = if obstructed_index == 0 {
-                executing_path.last_reached_node
-            } else {
-                executing_path.path[obstructed_index - 1].target
-            };
-
             // patch up to 20 nodes
             let patch_end_index = cmp::min(obstructed_index + 20, executing_path.path.len() - 1);
-            let patch_end = executing_path.path[patch_end_index].target;
 
-            // this doesn't override the main goal, it's just the goal for this A*
-            // calculation
-            let goal = Arc::new(BlockPosGoal(patch_end));
-
-            let goto_id_atomic = pathfinder.goto_id.clone();
-
-            let allow_mining = pathfinder.allow_mining;
-            let mining_cache = MiningCache::new(if allow_mining {
-                Some(inventory.inventory_menu.clone())
-            } else {
-                None
-            });
-
-            // the timeout is small enough that this doesn't need to be async
-            let path_found_event = calculate_path(CalculatePathOpts {
+            patch_path(
+                obstructed_index..=patch_end_index,
+                &mut executing_path,
+                &mut pathfinder,
+                inventory,
                 entity,
-                start: patch_start,
-                goal,
                 successors_fn,
                 world_lock,
-                goto_id_atomic,
-                allow_mining,
-                mining_cache,
-                min_timeout: PathfinderTimeout::Nodes(10_000),
-                max_timeout: PathfinderTimeout::Nodes(10_000),
-            });
-            debug!("obstruction patch: {path_found_event:?}");
+            );
+        }
+    }
+}
 
-            let mut new_path = VecDeque::new();
-            if obstructed_index > 0 {
-                new_path.extend(executing_path.path.iter().take(obstructed_index).cloned());
-            }
+/// update the given [`ExecutingPath`] to recalculate the path of the nodes in
+/// the given index range.
+///
+/// You should avoid making the range too large, since the timeout for the A*
+/// calculation is very low. About 20 nodes is a good amount.
+fn patch_path(
+    patch_nodes: RangeInclusive<usize>,
+    executing_path: &mut ExecutingPath,
+    pathfinder: &mut Pathfinder,
+    inventory: &Inventory,
+    entity: Entity,
+    successors_fn: SuccessorsFn,
+    world_lock: Arc<RwLock<azalea_world::Instance>>,
+) {
+    let patch_start = if *patch_nodes.start() == 0 {
+        executing_path.last_reached_node
+    } else {
+        executing_path.path[*patch_nodes.start() - 1].target
+    };
 
-            let mut is_patch_complete = false;
-            if let Some(path_found_event) = path_found_event {
-                if let Some(found_path_patch) = path_found_event.path {
-                    if !found_path_patch.is_empty() {
-                        new_path.extend(found_path_patch);
+    let patch_end = executing_path.path[*patch_nodes.end()].target;
 
-                        if !path_found_event.is_partial {
-                            new_path
-                                .extend(executing_path.path.iter().skip(patch_end_index).cloned());
-                            is_patch_complete = true;
-                            debug!("the obstruction patch is not partial :)");
-                        } else {
-                            debug!(
-                                "the obstruction patch is partial, throwing away rest of path :("
-                            );
-                        }
-                    }
+    // this doesn't override the main goal, it's just the goal for this A*
+    // calculation
+    let goal = Arc::new(BlockPosGoal(patch_end));
+
+    let goto_id_atomic = pathfinder.goto_id.clone();
+
+    let allow_mining = pathfinder.allow_mining;
+    let mining_cache = MiningCache::new(if allow_mining {
+        Some(inventory.inventory_menu.clone())
+    } else {
+        None
+    });
+
+    // the timeout is small enough that this doesn't need to be async
+    let path_found_event = calculate_path(CalculatePathOpts {
+        entity,
+        start: patch_start,
+        goal,
+        successors_fn,
+        world_lock,
+        goto_id_atomic,
+        allow_mining,
+        mining_cache,
+        min_timeout: PathfinderTimeout::Nodes(10_000),
+        max_timeout: PathfinderTimeout::Nodes(10_000),
+    });
+
+    // this is necessary in case we interrupted another ongoing path calculation
+    pathfinder.is_calculating = false;
+
+    debug!("obstruction patch: {path_found_event:?}");
+
+    let mut new_path = VecDeque::new();
+    if *patch_nodes.start() > 0 {
+        new_path.extend(
+            executing_path
+                .path
+                .iter()
+                .take(*patch_nodes.start())
+                .cloned(),
+        );
+    }
+
+    let mut is_patch_complete = false;
+    if let Some(path_found_event) = path_found_event {
+        if let Some(found_path_patch) = path_found_event.path {
+            if !found_path_patch.is_empty() {
+                new_path.extend(found_path_patch);
+
+                if !path_found_event.is_partial {
+                    new_path.extend(executing_path.path.iter().skip(*patch_nodes.end()).cloned());
+                    is_patch_complete = true;
+                    debug!("the patch is not partial :)");
+                } else {
+                    debug!("the patch is partial, throwing away rest of path :(");
                 }
-            } else {
-                // no path found, rip
-            }
-
-            executing_path.path = new_path;
-            if !is_patch_complete {
-                executing_path.is_path_partial = true;
             }
         }
+    } else {
+        // no path found, rip
+    }
+
+    executing_path.path = new_path;
+    if !is_patch_complete {
+        executing_path.is_path_partial = true;
     }
 }
 
@@ -795,7 +850,7 @@ pub fn recalculate_near_end_of_path(
         };
 
         // start recalculating if the path ends soon
-        if (executing_path.path.len() == 20 || executing_path.path.len() < 5)
+        if (executing_path.path.len() == 50 || executing_path.path.len() < 5)
             && !pathfinder.is_calculating
             && executing_path.is_path_partial
         {
@@ -810,7 +865,13 @@ pub fn recalculate_near_end_of_path(
                     goal,
                     successors_fn,
                     allow_mining: pathfinder.allow_mining,
-                    min_timeout: pathfinder.min_timeout.expect("min_timeout should be set"),
+                    min_timeout: if executing_path.path.len() == 50 {
+                        // we have quite some time until the node is reached, soooo we might as well
+                        // burn some cpu cycles to get a good path
+                        PathfinderTimeout::Time(Duration::from_secs(5))
+                    } else {
+                        PathfinderTimeout::Time(Duration::from_secs(1))
+                    },
                     max_timeout: pathfinder.max_timeout.expect("max_timeout should be set"),
                 });
                 pathfinder.is_calculating = true;
