@@ -35,10 +35,9 @@ derive_more = { workspace = true, features = ["deref", "deref_mut"] }
 futures = { workspace = true }
 futures-lite = { workspace = true }
 nohash-hasher = { workspace = true }
-num-format = "0.4.4"
+num-format = { workspace = true }
 num-traits = { workspace = true }
 parking_lot = { workspace = true }
-priority-queue = { workspace = true }
 rustc-hash = { workspace = true }
 serde = { workspace = true, optional = true }
 thiserror = { workspace = true }

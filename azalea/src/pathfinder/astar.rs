@@ -1,12 +1,12 @@
 use std::{
-    cmp::Reverse,
+    cmp::{self},
+    collections::BinaryHeap,
     fmt::Debug,
     hash::Hash,
     time::{Duration, Instant},
 };
 
 use num_format::ToFormattedString;
-use priority_queue::PriorityQueue;
 use rustc_hash::FxHashMap;
 use tracing::{debug, trace, warn};
 
@@ -52,8 +52,8 @@ where
 {
     let start_time = Instant::now();
 
-    let mut open_set = PriorityQueue::new();
-    open_set.push(start, Reverse(Weight(0.)));
+    let mut open_set = BinaryHeap::<WeightedNode<P>>::new();
+    open_set.push(WeightedNode(start, 0.));
     let mut nodes: FxHashMap<P, Node<P, M>> = FxHashMap::default();
     nodes.insert(
         start,
@@ -71,7 +71,7 @@ where
 
     let mut num_nodes = 0;
 
-    while let Some((current_node, _)) = open_set.pop() {
+    while let Some(WeightedNode(current_node, _)) = open_set.pop() {
         num_nodes += 1;
         if success(current_node) {
             debug!("Nodes considered: {num_nodes}");
@@ -106,7 +106,7 @@ where
                         f_score,
                     },
                 );
-                open_set.push(neighbor.movement.target, Reverse(Weight(f_score)));
+                open_set.push(WeightedNode(neighbor.movement.target, f_score));
 
                 for (coefficient_i, &coefficient) in COEFFICIENTS.iter().enumerate() {
                     let node_score = heuristic + tentative_g_score / coefficient;
@@ -118,8 +118,8 @@ where
             }
         }
 
-        // check for timeout every ~1ms
-        if num_nodes % 1000 == 0 {
+        // check for timeout every ~20ms
+        if num_nodes % 10000 == 0 {
             let timed_out = match timeout {
                 PathfinderTimeout::Time(max_duration) => start_time.elapsed() > max_duration,
                 PathfinderTimeout::Nodes(max_nodes) => num_nodes > max_nodes,
@@ -218,17 +218,17 @@ impl<P: Hash + Copy + Clone, M: Clone> Clone for Movement<P, M> {
 }
 
 #[derive(PartialEq)]
-pub struct Weight(f32);
-impl Ord for Weight {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.0
-            .partial_cmp(&other.0)
-            .unwrap_or(std::cmp::Ordering::Equal)
+pub struct WeightedNode<P: PartialEq>(P, f32);
+
+impl<P: PartialEq> Ord for WeightedNode<P> {
+    fn cmp(&self, other: &Self) -> cmp::Ordering {
+        // intentionally inverted to make the BinaryHeap a min-heap
+        other.1.partial_cmp(&self.1).unwrap_or(cmp::Ordering::Equal)
     }
 }
-impl Eq for Weight {}
-impl PartialOrd for Weight {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+impl<P: PartialEq> Eq for WeightedNode<P> {}
+impl<P: PartialEq> PartialOrd for WeightedNode<P> {
+    fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
         Some(self.cmp(other))
     }
 }
