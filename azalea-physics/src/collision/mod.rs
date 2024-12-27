@@ -4,14 +4,21 @@ mod mergers;
 mod shape;
 mod world_collisions;
 
-use std::ops::Add;
+use std::{ops::Add, sync::LazyLock};
 
-use azalea_core::{aabb::AABB, direction::Axis, math::EPSILON, position::Vec3};
-use azalea_world::{Instance, MoveEntityError};
+use azalea_block::FluidState;
+use azalea_core::{
+    aabb::AABB,
+    direction::Axis,
+    math::EPSILON,
+    position::{BlockPos, Vec3},
+};
+use azalea_world::{ChunkStorage, Instance, MoveEntityError};
 use bevy_ecs::world::Mut;
 pub use blocks::BlockWithShape;
 pub use discrete_voxel_shape::*;
 pub use shape::*;
+use tracing::warn;
 
 use self::world_collisions::get_block_collisions;
 
@@ -332,4 +339,49 @@ fn collide_with_shapes(
         y: y_movement,
         z: z_movement,
     }
+}
+
+/// Get the [`VoxelShape`] for the given fluid state.
+///
+/// The instance and position are required so it can check if the block above is
+/// also the same fluid type.
+pub fn fluid_shape(
+    fluid: &FluidState,
+    world: &ChunkStorage,
+    pos: &BlockPos,
+) -> &'static VoxelShape {
+    if fluid.amount == 9 {
+        let fluid_state_above = world.get_fluid_state(&pos.up(1)).unwrap_or_default();
+        if fluid_state_above.fluid == fluid.fluid {
+            return &BLOCK_SHAPE;
+        }
+    }
+
+    // pre-calculate these in a LazyLock so this function can return a
+    // reference instead
+
+    static FLUID_SHAPES: LazyLock<[VoxelShape; 10]> = LazyLock::new(|| {
+        [
+            calculate_shape_for_fluid(0),
+            calculate_shape_for_fluid(1),
+            calculate_shape_for_fluid(2),
+            calculate_shape_for_fluid(3),
+            calculate_shape_for_fluid(4),
+            calculate_shape_for_fluid(5),
+            calculate_shape_for_fluid(6),
+            calculate_shape_for_fluid(7),
+            calculate_shape_for_fluid(8),
+            calculate_shape_for_fluid(9),
+        ]
+    });
+
+    if fluid.amount > 9 {
+        warn!("Tried to calculate shape for fluid with height > 9: {fluid:?} at {pos}");
+        return &EMPTY_SHAPE;
+    }
+
+    &FLUID_SHAPES[fluid.amount as usize]
+}
+fn calculate_shape_for_fluid(amount: u8) -> VoxelShape {
+    box_shape(0.0, 0.0, 0.0, 1.0, (f32::from(amount) / 9.0) as f64, 1.0)
 }

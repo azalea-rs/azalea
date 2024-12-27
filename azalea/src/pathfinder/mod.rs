@@ -340,8 +340,6 @@ pub fn calculate_path(opts: CalculatePathOpts) -> Option<PathFoundEvent> {
         call_successors_fn(&cached_world, &opts.mining_cache, opts.successors_fn, pos)
     };
 
-    let path;
-
     let start_time = Instant::now();
 
     let astar::Path {
@@ -375,7 +373,7 @@ pub fn calculate_path(opts: CalculatePathOpts) -> Option<PathFoundEvent> {
         debug!("  {}", movement.target.apply(origin));
     }
 
-    path = movements.into_iter().collect::<VecDeque<_>>();
+    let path = movements.into_iter().collect::<VecDeque<_>>();
 
     let goto_id_now = opts.goto_id_atomic.load(atomic::Ordering::SeqCst);
     if goto_id != goto_id_now {
@@ -520,6 +518,7 @@ pub fn path_found_listener(
     }
 }
 
+#[allow(clippy::type_complexity)]
 pub fn timeout_movement(
     mut query: Query<(
         Entity,

@@ -20,12 +20,11 @@ pub struct ClipContext {
     // pub collision_context: EntityCollisionContext,
 }
 impl ClipContext {
-    // minecraft passes in the world and blockpos here... but it doesn't actually
-    // seem necessary?
-
     /// Get the shape of given block, using the type of shape set in
     /// [`Self::block_shape_type`].
     pub fn block_shape(&self, block_state: BlockState) -> &VoxelShape {
+        // minecraft passes in the world and blockpos to this function but it's not
+        // actually necessary. it is for fluid_shape though
         match self.block_shape_type {
             BlockShapeType::Collider => block_state.collision_shape(),
             BlockShapeType::Outline => block_state.outline_shape(),
@@ -39,6 +38,19 @@ impl ClipContext {
                     &EMPTY_SHAPE
                 }
             }
+        }
+    }
+
+    pub fn fluid_shape(
+        &self,
+        fluid_state: FluidState,
+        world: &ChunkStorage,
+        pos: &BlockPos,
+    ) -> &VoxelShape {
+        if self.fluid_pick_type.can_pick(&fluid_state) {
+            crate::collision::fluid_shape(&fluid_state, world, pos)
+        } else {
+            &EMPTY_SHAPE
         }
     }
 }
@@ -63,6 +75,17 @@ pub enum FluidPickType {
     Any,
     Water,
 }
+impl FluidPickType {
+    pub fn can_pick(&self, fluid_state: &FluidState) -> bool {
+        match self {
+            Self::None => false,
+            Self::SourceOnly => fluid_state.amount == 8,
+            Self::Any => fluid_state.fluid != azalea_registry::Fluid::Empty,
+            Self::Water => fluid_state.fluid == azalea_registry::Fluid::Water,
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct EntityCollisionContext {
     pub descending: bool,
@@ -81,15 +104,29 @@ pub fn clip(chunk_storage: &ChunkStorage, context: ClipContext) -> BlockHitResul
             let block_state = chunk_storage.get_block_state(block_pos).unwrap_or_default();
             let fluid_state = FluidState::from(block_state);
 
-            // TODO: add fluid stuff to this (see getFluidState in vanilla source)
             let block_shape = ctx.block_shape(block_state);
+            let interaction_clip = clip_with_interaction_override(
+                &ctx.from,
+                &ctx.to,
+                block_pos,
+                block_shape,
+                &block_state,
+            );
+            let fluid_shape = ctx.fluid_shape(fluid_state, chunk_storage, block_pos);
+            let fluid_clip = fluid_shape.clip(&ctx.from, &ctx.to, block_pos);
 
-            clip_with_interaction_override(&ctx.from, &ctx.to, block_pos, block_shape, &block_state)
-            // let block_distance = if let Some(block_hit_result) =
-            // block_hit_result {     context.from.distance_squared_to(&
-            // block_hit_result.location) } else {
-            //     f64::INFINITY
-            // };
+            let distance_to_interaction = interaction_clip
+                .map(|hit| ctx.from.distance_squared_to(&hit.location))
+                .unwrap_or(f64::MAX);
+            let distance_to_fluid = fluid_clip
+                .map(|hit| ctx.from.distance_squared_to(&hit.location))
+                .unwrap_or(f64::MAX);
+
+            if distance_to_interaction <= distance_to_fluid {
+                interaction_clip
+            } else {
+                fluid_clip
+            }
         },
         |context| {
             let vec = context.from - context.to;
@@ -107,9 +144,10 @@ fn clip_with_interaction_override(
     to: &Vec3,
     block_pos: &BlockPos,
     block_shape: &VoxelShape,
-    block_state: &BlockState,
+    _block_state: &BlockState,
 ) -> Option<BlockHitResult> {
     let block_hit_result = block_shape.clip(from, to, block_pos);
+
     if let Some(block_hit_result) = block_hit_result {
         // TODO: minecraft calls .getInteractionShape here
         // getInteractionShape is empty for almost every shape except cauldons,
@@ -123,9 +161,10 @@ fn clip_with_interaction_override(
                 return Some(block_hit_result.with_direction(interaction_hit_result.direction));
             }
         }
+
         Some(block_hit_result)
     } else {
-        block_hit_result
+        None
     }
 }
 

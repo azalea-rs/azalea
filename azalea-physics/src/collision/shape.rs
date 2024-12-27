@@ -413,7 +413,7 @@ impl VoxelShape {
             VoxelShape::Cube(s) => s.find_index(axis, coord),
             _ => {
                 let upper_limit = (self.shape().size(axis) + 1) as i32;
-                binary_search(0, upper_limit, &|t| coord < self.get(axis, t as usize)) - 1
+                binary_search(0, upper_limit, |t| coord < self.get(axis, t as usize)) - 1
             }
         }
     }

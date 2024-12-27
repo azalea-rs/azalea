@@ -8,7 +8,8 @@ mod range;
 use core::fmt::Debug;
 use std::{
     any::Any,
-    io::{Cursor, Write},
+    fmt,
+    io::{self, Cursor, Write},
 };
 
 use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
@@ -115,13 +116,13 @@ impl AzaleaRead for BlockState {
     }
 }
 impl AzaleaWrite for BlockState {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), io::Error> {
         u32::azalea_write_var(&(self.id as u32), buf)
     }
 }
 
-impl std::fmt::Debug for BlockState {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Debug for BlockState {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
             "BlockState(id: {}, {:?})",
@@ -134,48 +135,67 @@ impl std::fmt::Debug for BlockState {
 #[derive(Clone, Debug)]
 pub struct FluidState {
     pub fluid: azalea_registry::Fluid,
-    pub height: u8,
+    /// 0 = empty, 8 = full, 9 = max.
+    ///
+    /// 9 is meant to be used when there's another fluid block of the same type
+    /// above it, but it's usually unused by this struct.
+    pub amount: u8,
+}
+impl FluidState {
+    /// A floating point number in between 0 and 1 representing the height (as a
+    /// percentage of a full block) of the fluid.
+    pub fn height(&self) -> f32 {
+        self.amount as f32 / 9.
+    }
 }
 
 impl Default for FluidState {
     fn default() -> Self {
         Self {
             fluid: azalea_registry::Fluid::Empty,
-            height: 0,
+            amount: 0,
         }
     }
 }
 
 impl From<BlockState> for FluidState {
     fn from(state: BlockState) -> Self {
+        // note that 8 here might be treated as 9 in some cases if there's another fluid
+        // block of the same type above it
+
         if state
             .property::<crate::properties::Waterlogged>()
             .unwrap_or_default()
         {
             Self {
                 fluid: azalea_registry::Fluid::Water,
-                height: 15,
+                amount: 8,
             }
         } else {
             let block = Box::<dyn Block>::from(state);
             if let Some(water) = block.downcast_ref::<crate::blocks::Water>() {
                 Self {
                     fluid: azalea_registry::Fluid::Water,
-                    height: water.level as u8,
+                    amount: to_or_from_legacy_fluid_level(water.level as u8),
                 }
             } else if let Some(lava) = block.downcast_ref::<crate::blocks::Lava>() {
                 Self {
                     fluid: azalea_registry::Fluid::Lava,
-                    height: lava.level as u8,
+                    amount: to_or_from_legacy_fluid_level(lava.level as u8),
                 }
             } else {
                 Self {
                     fluid: azalea_registry::Fluid::Empty,
-                    height: 0,
+                    amount: 0,
                 }
             }
         }
     }
+}
+
+// see FlowingFluid.getLegacyLevel
+fn to_or_from_legacy_fluid_level(level: u8) -> u8 {
+    8_u8.saturating_sub(level)
 }
 
 impl From<FluidState> for BlockState {
@@ -185,14 +205,14 @@ impl From<FluidState> for BlockState {
             azalea_registry::Fluid::Water | azalea_registry::Fluid::FlowingWater => {
                 BlockState::from(crate::blocks::Water {
                     level: crate::properties::WaterLevel::from(
-                        state.height as BlockStateIntegerRepr,
+                        state.amount as BlockStateIntegerRepr,
                     ),
                 })
             }
             azalea_registry::Fluid::Lava | azalea_registry::Fluid::FlowingLava => {
                 BlockState::from(crate::blocks::Lava {
                     level: crate::properties::LavaLevel::from(
-                        state.height as BlockStateIntegerRepr,
+                        state.amount as BlockStateIntegerRepr,
                     ),
                 })
             }
