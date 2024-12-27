@@ -277,28 +277,25 @@ impl<P: Hash + Copy + Clone, M: Clone> Clone for Movement<P, M> {
 #[derive(PartialEq)]
 pub struct WeightedNode {
     index: usize,
+    /// The actual cost to get to this node
     g_score: f32,
+    /// Sum of the g_score and heuristic
     f_score: f32,
 }
 
 impl Ord for WeightedNode {
+    #[inline]
     fn cmp(&self, other: &Self) -> cmp::Ordering {
         // intentionally inverted to make the BinaryHeap a min-heap
-        match other
-            .f_score
-            .partial_cmp(&self.f_score)
-            .unwrap_or(cmp::Ordering::Equal)
-        {
-            cmp::Ordering::Equal => self
-                .g_score
-                .partial_cmp(&other.g_score)
-                .unwrap_or(cmp::Ordering::Equal),
+        match other.f_score.total_cmp(&self.f_score) {
+            cmp::Ordering::Equal => self.g_score.total_cmp(&other.g_score),
             s => s,
         }
     }
 }
 impl Eq for WeightedNode {}
 impl PartialOrd for WeightedNode {
+    #[inline]
     fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
         Some(self.cmp(other))
     }
