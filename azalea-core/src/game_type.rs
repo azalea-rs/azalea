@@ -1,6 +1,7 @@
 use std::io::{Cursor, Write};
 
 use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, BufReadError};
+use azalea_chat::translatable_component::TranslatableComponent;
 use tracing::debug;
 
 /// A Minecraft gamemode, like survival or creative.
@@ -51,26 +52,15 @@ impl GameMode {
         )
     }
 
-    pub fn short_name(&self) -> &'static str {
-        // TODO: these should be translated
-        // TranslatableComponent("selectWorld.gameMode." + string2)
-        match self {
-            GameMode::Survival => "Survival",
-            GameMode::Creative => "Creative",
-            GameMode::Adventure => "Adventure",
-            GameMode::Spectator => "Spectator",
-        }
+    /// The short translatable display name for the gamemode, like "Survival".
+    pub fn short_name(&self) -> TranslatableComponent {
+        TranslatableComponent::new(format!("selectWorld.gameMode.{}", self.name()), vec![])
     }
 
-    pub fn long_name(&self) -> &'static str {
-        // TODO: These should be translated TranslatableComponent("gameMode." +
-        // string2);
-        match self {
-            GameMode::Survival => "Survival Mode",
-            GameMode::Creative => "Creative Mode",
-            GameMode::Adventure => "Adventure Mode",
-            GameMode::Spectator => "Spectator Mode",
-        }
+    /// The long translatable display name for the gamemode, like "Survival
+    /// Mode".
+    pub fn long_name(&self) -> TranslatableComponent {
+        TranslatableComponent::new(format!("gameMode.{}", self.name()), vec![])
     }
 
     pub fn from_name(name: &str) -> GameMode {
@@ -80,6 +70,16 @@ impl GameMode {
             "adventure" => GameMode::Adventure,
             "spectator" => GameMode::Spectator,
             _ => panic!("Unknown game type name: {name}"),
+        }
+    }
+
+    /// The internal name for the game mode, like "survival".
+    pub fn name(&self) -> &'static str {
+        match self {
+            GameMode::Survival => "survival",
+            GameMode::Creative => "creative",
+            GameMode::Adventure => "adventure",
+            GameMode::Spectator => "spectator",
         }
     }
 }

@@ -13,10 +13,9 @@ bevy_ecs = { workspace = true, optional = true }
 nohash-hasher = { workspace = true }
 num-traits = { workspace = true }
 serde = { workspace = true, optional = true }
-#serde_json = { workspace = true }
 simdnbt = { workspace = true }
 tracing = { workspace = true }
-#uuid = { workspace = true }
+azalea-chat = { path = "../azalea-chat", version = "0.11.0" }
 
 [features]
 bevy_ecs = ["dep:bevy_ecs"]

@@ -62,7 +62,10 @@ impl Direction {
     }
 }
 
-// TODO: make azalea_block use this instead of FacingCardinal
+/// The four cardinal directions.
+///
+/// Note that azalea_block has a similar enum named `FacingCardinal` that is
+/// used for block states.
 #[derive(Clone, Copy, Debug, AzBuf, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub enum CardinalDirection {

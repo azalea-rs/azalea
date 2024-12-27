@@ -369,6 +369,7 @@ name = "azalea-core"
 version = "0.11.0+mc1.21.4"
 dependencies = [
  "azalea-buf",
+ "azalea-chat",
  "azalea-registry",
  "bevy_ecs",
  "nohash-hasher",
