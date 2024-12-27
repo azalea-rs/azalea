@@ -7,7 +7,7 @@ use std::{
     sync::{Arc, Weak},
 };
 
-use azalea_block::{BlockState, BlockStateIntegerRepr};
+use azalea_block::{BlockState, BlockStateIntegerRepr, FluidState};
 use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
 use azalea_core::position::{BlockPos, ChunkBlockPos, ChunkPos, ChunkSectionBlockPos};
 use nohash_hasher::IntMap;
@@ -300,6 +300,11 @@ impl ChunkStorage {
         let chunk = self.get(&chunk_pos)?;
         let chunk = chunk.read();
         chunk.get(&ChunkBlockPos::from(pos), self.min_y)
+    }
+
+    pub fn get_fluid_state(&self, pos: &BlockPos) -> Option<FluidState> {
+        let block_state = self.get_block_state(pos)?;
+        Some(FluidState::from(block_state))
     }
 
     pub fn set_block_state(&self, pos: &BlockPos, state: BlockState) -> Option<BlockState> {

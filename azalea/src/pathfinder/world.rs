@@ -485,7 +485,7 @@ pub fn is_block_state_passable(block: BlockState) -> bool {
         // fast path
         return true;
     }
-    if !block.is_shape_empty() {
+    if !block.is_collision_shape_empty() {
         return false;
     }
     let registry_block = azalea_registry::Block::from(block);
@@ -523,7 +523,7 @@ pub fn is_block_state_solid(block: BlockState) -> bool {
         // fast path
         return false;
     }
-    block.is_shape_full()
+    block.is_collision_shape_full()
 }
 
 #[cfg(test)]

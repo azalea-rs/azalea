@@ -47,7 +47,7 @@ pub fn get_block_collisions(world: &Instance, aabb: AABB) -> Vec<VoxelShape> {
         // suffocating
 
         // if it's a full block do a faster collision check
-        if block_state.is_shape_full() {
+        if block_state.is_collision_shape_full() {
             if !state.aabb.intersects_aabb(&AABB {
                 min_x: item.pos.x as f64,
                 min_y: item.pos.y as f64,
@@ -186,7 +186,7 @@ impl<'a> BlockCollisionsState<'a> {
             }
         }
 
-        let shape = block_state.shape();
+        let shape = block_state.collision_shape();
         self.cached_block_shapes.push((block_state, shape));
 
         shape

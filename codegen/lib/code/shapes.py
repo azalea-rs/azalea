@@ -8,8 +8,7 @@ COLLISION_BLOCKS_RS_DIR = get_dir_location(
 def generate_block_shapes(blocks_pixlyzer: dict, shapes: dict, aabbs: dict, block_states_report):
     blocks, shapes = simplify_shapes(blocks_pixlyzer, shapes, aabbs)
 
-    code = generate_block_shapes_code(
-        blocks, shapes, block_states_report)
+    code = generate_block_shapes_code(blocks, shapes, block_states_report)
     with open(COLLISION_BLOCKS_RS_DIR, 'w') as f:
         f.write(code)
 
@@ -27,8 +26,8 @@ def simplify_shapes(blocks: dict, shapes: dict, aabbs: dict):
     used_shape_ids = set()
     # determine the used shape ids
     for _block_id, block_data in blocks.items():
-        block_shapes = [state.get('collision_shape')
-                        for state in block_data['states'].values()]
+        block_shapes = {state.get('collision_shape') for state in block_data['states'].values()}
+        block_shapes.update({state.get('outline_shape') for state in block_data['states'].values()})
         for s in block_shapes:
             used_shape_ids.add(s)
 
@@ -55,10 +54,14 @@ def simplify_shapes(blocks: dict, shapes: dict, aabbs: dict):
     new_blocks = {}
     for block_id, block_data in blocks.items():
         block_id = block_id.split(':')[-1]
-        block_shapes = [state.get('collision_shape')
-                        for state in block_data['states'].values()]
-        new_blocks[block_id] = [old_id_to_new_id[shape_id]
-                                for shape_id in block_shapes]
+
+        block_collision_shapes = [state.get('collision_shape') for state in block_data['states'].values()]
+        block_outline_shapes = [state.get('outline_shape') for state in block_data['states'].values()]
+
+        new_blocks[block_id] = {
+            'collision': [old_id_to_new_id[shape_id] for shape_id in block_collision_shapes],
+            'outline': [old_id_to_new_id[shape_id] for shape_id in block_outline_shapes]
+        }
 
     return new_blocks, new_shapes
 
@@ -71,41 +74,49 @@ def generate_block_shapes_code(blocks: dict, shapes: dict, block_states_report):
         generated_shape_code += generate_code_for_shape(shape_id, shape)
 
 
-    # static SHAPES_MAP: [&LazyLock<VoxelShape>; 26644] = [&SHAPE0, &SHAPE1, &SHAPE1, ...]
+    # static COLLISION_SHAPES_MAP: [&LazyLock<VoxelShape>; 26644] = [&SHAPE0, &SHAPE1, &SHAPE1, ...]
     empty_shapes = []
     full_shapes = []
 
     # the index into this list is the block state id
-    shapes_map = []
+    collision_shapes_map = []
+    outline_shapes_map = []
 
-    for block_id, shape_ids in blocks.items():
-        if isinstance(shape_ids, int):
-            shape_ids = [shape_ids]
+    for block_id, shape_datas in blocks.items():
+        collision_shapes = shape_datas['collision']
+        outline_shapes = shape_datas['outline']
+
+        if isinstance(collision_shapes, int): collision_shapes = [collision_shapes]
+        if isinstance(outline_shapes, int): outline_shapes = [outline_shapes]
+
         block_report_data = block_states_report['minecraft:' + block_id]
 
-        for possible_state, shape_id in zip(block_report_data['states'], shape_ids):
+        for possible_state, shape_id in zip(block_report_data['states'], collision_shapes):
             block_state_id = possible_state['id']
-
-            if shape_id == 0 :
-                empty_shapes.append(block_state_id)
-            elif shape_id == 1 :
-                full_shapes.append(block_state_id)
-
-            while len(shapes_map) <= block_state_id:
+            if shape_id == 0: empty_shapes.append(block_state_id)
+            elif shape_id == 1: full_shapes.append(block_state_id)
+            while len(collision_shapes_map) <= block_state_id:
                 # default to shape 1 for missing shapes (full block)
-                shapes_map.append(1)
-            shapes_map[block_state_id] = shape_id
+                collision_shapes_map.append(1)
+            collision_shapes_map[block_state_id] = shape_id
+        for possible_state, shape_id in zip(block_report_data['states'], outline_shapes):
+            block_state_id = possible_state['id']
+            while len(outline_shapes_map) <= block_state_id:
+                # default to shape 1 for missing shapes (full block)
+                outline_shapes_map.append(1)
+            outline_shapes_map[block_state_id] = shape_id
 
-    
-
-    generated_map_code = f'static SHAPES_MAP: [&LazyLock<VoxelShape>; {len(shapes_map)}] = ['
-
+    generated_map_code = f'static COLLISION_SHAPES_MAP: [&LazyLock<VoxelShape>; {len(collision_shapes_map)}] = ['
     empty_shape_match_code = convert_ints_to_rust_ranges(empty_shapes)
     block_shape_match_code = convert_ints_to_rust_ranges(full_shapes)
-
-    for block_state_id, shape_id in enumerate(shapes_map):
+    for block_state_id, shape_id in enumerate(collision_shapes_map):
         generated_map_code += f'&SHAPE{shape_id},\n'
-    generated_map_code += '];'
+    generated_map_code += '];\n'
+
+    generated_map_code += f'static OUTLINE_SHAPES_MAP: [&LazyLock<VoxelShape>; {len(outline_shapes_map)}] = ['
+    for block_state_id, shape_id in enumerate(outline_shapes_map):
+        generated_map_code += f'&SHAPE{shape_id},\n'
+    generated_map_code += '];\n'
 
     if empty_shape_match_code == '':
         print('Error: shape 0 was not found')
@@ -126,27 +137,31 @@ use crate::collision::{{self, Shapes}};
 use azalea_block::*;
 
 pub trait BlockWithShape {{
-    fn shape(&self) -> &'static VoxelShape;
+    fn collision_shape(&self) -> &'static VoxelShape;
+    fn outline_shape(&self) -> &'static VoxelShape;
     /// Tells you whether the block has an empty shape.
     ///
     /// This is slightly more efficient than calling `shape()` and comparing against `EMPTY_SHAPE`.
-    fn is_shape_empty(&self) -> bool;
-    fn is_shape_full(&self) -> bool;
+    fn is_collision_shape_empty(&self) -> bool;
+    fn is_collision_shape_full(&self) -> bool;
 }}
 
 {generated_shape_code}
 
 
 impl BlockWithShape for BlockState {{
-    fn shape(&self) -> &'static VoxelShape {{
-        SHAPES_MAP.get(self.id as usize).unwrap_or(&&SHAPE1)
+    fn collision_shape(&self) -> &'static VoxelShape {{
+        COLLISION_SHAPES_MAP.get(self.id as usize).unwrap_or(&&SHAPE1)
+    }}
+    fn outline_shape(&self) -> &'static VoxelShape {{
+        OUTLINE_SHAPES_MAP.get(self.id as usize).unwrap_or(&&SHAPE1)
     }}
 
-    fn is_shape_empty(&self) -> bool {{
+    fn is_collision_shape_empty(&self) -> bool {{
         matches!(self.id, {empty_shape_match_code})
     }}
 
-    fn is_shape_full(&self) -> bool {{
+    fn is_collision_shape_full(&self) -> bool {{
         matches!(self.id, {block_shape_match_code})
     }}
 }}

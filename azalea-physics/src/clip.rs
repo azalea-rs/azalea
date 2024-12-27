@@ -1,4 +1,4 @@
-use azalea_block::BlockState;
+use azalea_block::{BlockState, FluidState};
 use azalea_core::{
     block_hit_result::BlockHitResult,
     direction::Direction,
@@ -9,7 +9,7 @@ use azalea_inventory::ItemStack;
 use azalea_world::ChunkStorage;
 use bevy_ecs::entity::Entity;
 
-use crate::collision::{BlockWithShape, VoxelShape};
+use crate::collision::{BlockWithShape, VoxelShape, EMPTY_SHAPE};
 
 #[derive(Debug, Clone)]
 pub struct ClipContext {
@@ -22,22 +22,37 @@ pub struct ClipContext {
 impl ClipContext {
     // minecraft passes in the world and blockpos here... but it doesn't actually
     // seem necessary?
+
+    /// Get the shape of given block, using the type of shape set in
+    /// [`Self::block_shape_type`].
     pub fn block_shape(&self, block_state: BlockState) -> &VoxelShape {
-        // TODO: implement the other shape getters
-        // (see the ClipContext.Block class in the vanilla source)
         match self.block_shape_type {
-            BlockShapeType::Collider => block_state.shape(),
-            BlockShapeType::Outline => block_state.shape(),
-            BlockShapeType::Visual => block_state.shape(),
-            BlockShapeType::FallDamageResetting => block_state.shape(),
+            BlockShapeType::Collider => block_state.collision_shape(),
+            BlockShapeType::Outline => block_state.outline_shape(),
+            BlockShapeType::Visual => block_state.collision_shape(),
+            BlockShapeType::FallDamageResetting => {
+                if azalea_registry::tags::blocks::FALL_DAMAGE_RESETTING
+                    .contains(&azalea_registry::Block::from(block_state))
+                {
+                    block_state.collision_shape()
+                } else {
+                    &EMPTY_SHAPE
+                }
+            }
         }
     }
 }
 
 #[derive(Debug, Copy, Clone)]
 pub enum BlockShapeType {
+    /// The shape that's used for collision.
     Collider,
+    /// The block outline that renders when your cursor is over a block.
     Outline,
+    /// Used by entities when considering their line of sight.
+    ///
+    /// TODO: visual block shape isn't implemented (it'll just return the
+    /// collider shape), that's correct for most blocks though
     Visual,
     FallDamageResetting,
 }
@@ -64,8 +79,11 @@ pub fn clip(chunk_storage: &ChunkStorage, context: ClipContext) -> BlockHitResul
         context,
         |ctx, block_pos| {
             let block_state = chunk_storage.get_block_state(block_pos).unwrap_or_default();
+            let fluid_state = FluidState::from(block_state);
+
             // TODO: add fluid stuff to this (see getFluidState in vanilla source)
             let block_shape = ctx.block_shape(block_state);
+
             clip_with_interaction_override(&ctx.from, &ctx.to, block_pos, block_shape, &block_state)
             // let block_distance = if let Some(block_hit_result) =
             // block_hit_result {     context.from.distance_squared_to(&
@@ -94,10 +112,9 @@ fn clip_with_interaction_override(
     let block_hit_result = block_shape.clip(from, to, block_pos);
     if let Some(block_hit_result) = block_hit_result {
         // TODO: minecraft calls .getInteractionShape here
-        // some blocks (like tall grass) have a physics shape that's different from the
-        // interaction shape, so we need to implement BlockState::interaction_shape. lol
-        // have fun
-        let interaction_shape = block_state.shape();
+        // getInteractionShape is empty for almost every shape except cauldons,
+        // compostors, hoppers, and scaffolding.
+        let interaction_shape = &*EMPTY_SHAPE;
         let interaction_hit_result = interaction_shape.clip(from, to, block_pos);
         if let Some(interaction_hit_result) = interaction_hit_result {
             if interaction_hit_result.location.distance_squared_to(from)
