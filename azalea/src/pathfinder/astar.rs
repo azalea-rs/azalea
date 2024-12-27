@@ -66,11 +66,10 @@ where
         f_score: 0.,
         index: 0,
     });
-    let mut nodes: FxIndexMap<P, Node<M>> = IndexMap::default();
+    let mut nodes: FxIndexMap<P, Node> = IndexMap::default();
     nodes.insert(
         start,
         Node {
-            movement_data: None,
             came_from: usize::MAX,
             g_score: 0.,
         },
@@ -89,7 +88,7 @@ where
             debug!("Nodes considered: {num_nodes}");
 
             return Path {
-                movements: reconstruct_path(nodes, index),
+                movements: reconstruct_path(nodes, index, successors),
                 is_partial: false,
             };
         }
@@ -115,7 +114,6 @@ where
                         neighbor_heuristic = heuristic(*e.key());
                         neighbor_index = e.index();
                         e.insert(Node {
-                            movement_data: Some(neighbor.movement.data),
                             came_from: index,
                             g_score: tentative_g_score,
                         });
@@ -127,7 +125,6 @@ where
                     neighbor_heuristic = heuristic(*e.key());
                     neighbor_index = e.index();
                     e.insert(Node {
-                        movement_data: Some(neighbor.movement.data),
                         came_from: index,
                         g_score: tentative_g_score,
                     });
@@ -189,7 +186,7 @@ where
     );
 
     Path {
-        movements: reconstruct_path(nodes, best_path),
+        movements: reconstruct_path(nodes, best_path, successors),
         is_partial: true,
     }
 }
@@ -206,32 +203,46 @@ fn determine_best_path(best_paths: [usize; 7], start: usize) -> usize {
     best_paths[0]
 }
 
-fn reconstruct_path<P, M>(
-    mut nodes: FxIndexMap<P, Node<M>>,
+fn reconstruct_path<P, M, SuccessorsFn>(
+    nodes: FxIndexMap<P, Node>,
     mut current_index: usize,
+    mut successors: SuccessorsFn,
 ) -> Vec<Movement<P, M>>
 where
     P: Eq + Hash + Copy + Debug,
+    SuccessorsFn: FnMut(P) -> Vec<Edge<P, M>>,
 {
     let mut path = Vec::new();
-    while let Some((&node_position, node)) = nodes.get_index_mut(current_index) {
+    while let Some((&node_position, node)) = nodes.get_index(current_index) {
         if node.came_from == usize::MAX {
             break;
         }
+        let came_from_position = *nodes.get_index(node.came_from).unwrap().0;
 
-        current_index = node.came_from;
+        // find the movement data for this successor, we have to do this again because
+        // we don't include the movement data in the Node (as an optimization)
+        let mut best_successor = None;
+        let mut best_successor_cost = f32::INFINITY;
+        for successor in successors(came_from_position) {
+            if successor.movement.target == node_position && successor.cost < best_successor_cost {
+                best_successor_cost = successor.cost;
+                best_successor = Some(successor);
+            }
+        }
+        let found_successor = best_successor.expect("No successor found");
 
         path.push(Movement {
             target: node_position,
-            data: node.movement_data.take().unwrap(),
+            data: found_successor.movement.data,
         });
+
+        current_index = node.came_from;
     }
     path.reverse();
     path
 }
 
-pub struct Node<M> {
-    pub movement_data: Option<M>,
+pub struct Node {
     pub came_from: usize,
     pub g_score: f32,
 }
