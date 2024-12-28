@@ -356,6 +356,10 @@ pub fn fluid_shape(
             return &BLOCK_SHAPE;
         }
     }
+    if fluid.amount > 9 {
+        warn!("Tried to calculate shape for fluid with height > 9: {fluid:?} at {pos}");
+        return &EMPTY_SHAPE;
+    }
 
     // pre-calculate these in a LazyLock so this function can return a
     // reference instead
@@ -374,11 +378,6 @@ pub fn fluid_shape(
             calculate_shape_for_fluid(9),
         ]
     });
-
-    if fluid.amount > 9 {
-        warn!("Tried to calculate shape for fluid with height > 9: {fluid:?} at {pos}");
-        return &EMPTY_SHAPE;
-    }
 
     &FLUID_SHAPES[fluid.amount as usize]
 }

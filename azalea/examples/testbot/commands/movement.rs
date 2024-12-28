@@ -3,7 +3,7 @@ use std::time::Duration;
 use azalea::{
     brigadier::prelude::*,
     entity::{EyeHeight, Position},
-    pathfinder::goals::{BlockPosGoal, XZGoal},
+    pathfinder::goals::{BlockPosGoal, RadiusGoal, XZGoal},
     prelude::*,
     BlockPos, SprintDirection, WalkDirection,
 };
@@ -41,6 +41,24 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
                     source.bot.goto(XZGoal { x, z });
                     1
                 }),
+            )))
+            .then(literal("radius").then(argument("radius", float()).then(
+                argument("x", integer()).then(argument("y", integer()).then(
+                    argument("z", integer()).executes(|ctx: &Ctx| {
+                        let source = ctx.source.lock();
+                        let radius = get_float(ctx, "radius").unwrap();
+                        let x = get_integer(ctx, "x").unwrap();
+                        let y = get_integer(ctx, "y").unwrap();
+                        let z = get_integer(ctx, "z").unwrap();
+                        println!("goto radius {radius}, position: {x} {y} {z}");
+                        source.reply("ok");
+                        source.bot.goto(RadiusGoal {
+                            pos: BlockPos::new(x, y, z).center(),
+                            radius,
+                        });
+                        1
+                    }),
+                )),
             )))
             .then(argument("x", integer()).then(argument("y", integer()).then(
                 argument("z", integer()).executes(|ctx: &Ctx| {

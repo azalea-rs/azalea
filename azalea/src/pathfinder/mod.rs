@@ -235,6 +235,7 @@ pub fn goto_listener(
         let Ok((mut pathfinder, executing_path, position, instance_name, inventory)) =
             query.get_mut(event.entity)
         else {
+            warn!("got goto event for an entity that can't pathfind");
             continue;
         };
 
@@ -243,6 +244,7 @@ pub fn goto_listener(
             pathfinder.goal = None;
             pathfinder.successors_fn = None;
             pathfinder.is_calculating = false;
+            debug!("already at goal, not pathfinding");
             continue;
         }
 
@@ -262,10 +264,16 @@ pub fn goto_listener(
         } else {
             BlockPos::from(position)
         };
-        info!(
-            "got goto, starting from {start:?} (currently at {:?})",
-            BlockPos::from(position)
-        );
+
+        if start == BlockPos::from(position) {
+            info!("got goto {:?}, starting from {start:?}", event.goal);
+        } else {
+            info!(
+                "got goto {:?}, starting from {start:?} (currently at {:?})",
+                event.goal,
+                BlockPos::from(position)
+            );
+        }
 
         let successors_fn: moves::SuccessorsFn = event.successors_fn;
 

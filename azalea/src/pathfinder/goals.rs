@@ -1,6 +1,6 @@
 //! The goals that a pathfinder can try to reach.
 
-use std::f32::consts::SQRT_2;
+use std::{f32::consts::SQRT_2, fmt::Debug};
 
 use azalea_core::position::{BlockPos, Vec3};
 use azalea_world::ChunkStorage;
@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 
 use super::costs::{COST_HEURISTIC, FALL_N_BLOCKS_COST, JUMP_ONE_BLOCK_COST};
 
-pub trait Goal {
+pub trait Goal: Debug {
     #[must_use]
     fn heuristic(&self, n: BlockPos) -> f32;
     #[must_use]
