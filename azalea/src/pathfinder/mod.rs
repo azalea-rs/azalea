@@ -142,8 +142,21 @@ pub struct GotoEvent {
     /// Whether the bot is allowed to break blocks while pathfinding.
     pub allow_mining: bool,
 
+    /// The minimum amount of time that should pass before the A* pathfinder
+    /// function can return a timeout. It may take up to [`Self::max_timeout`]
+    /// if it can't immediately find a usable path.
+    ///
+    /// A good default value for this is
+    /// `PathfinderTimeout::Time(Duration::from_secs(1))`.
+    ///
     /// Also see [`PathfinderTimeout::Nodes`]
     pub min_timeout: PathfinderTimeout,
+    /// The absolute maximum amount of time that the pathfinder function can
+    /// take to find a path. If it takes this long, it means no usable path was
+    /// found (so it might be impossible).
+    ///
+    /// A good default value for this is
+    /// `PathfinderTimeout::Time(Duration::from_secs(5))`.
     pub max_timeout: PathfinderTimeout,
 }
 #[derive(Event, Clone, Debug)]

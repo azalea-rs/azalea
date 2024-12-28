@@ -262,8 +262,9 @@ impl CachedWorld {
         let cached_mining_costs = unsafe { &mut *self.cached_mining_costs.get() };
         // 20 bits total:
         // 8 bits for x, 4 bits for y, 8 bits for z
-        let hash_index =
-            (pos.x as usize & 0xff) << 12 | (pos.y as usize & 0xf) << 8 | (pos.z as usize & 0xff);
+        let hash_index = ((pos.x as usize & 0xff) << 12)
+            | ((pos.y as usize & 0xf) << 8)
+            | (pos.z as usize & 0xff);
         debug_assert!(hash_index < 1048576);
         let &(cached_pos, potential_cost) =
             unsafe { cached_mining_costs.get_unchecked(hash_index) };

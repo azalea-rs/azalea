@@ -20,7 +20,6 @@
 //!   only have this on if the bot has operator permissions, otherwise it'll
 //!   just spam the server console unnecessarily.
 
-#![feature(async_closure)]
 #![feature(trivial_bounds)]
 
 mod commands;
@@ -53,9 +52,9 @@ async fn main() {
 
     for username_or_email in &args.accounts {
         let account = if username_or_email.contains('@') {
-            Account::microsoft(&username_or_email).await.unwrap()
+            Account::microsoft(username_or_email).await.unwrap()
         } else {
-            Account::offline(&username_or_email)
+            Account::offline(username_or_email)
         };
 
         let mut commands = CommandDispatcher::new();

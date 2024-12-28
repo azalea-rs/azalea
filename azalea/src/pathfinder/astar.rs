@@ -25,19 +25,6 @@ const COEFFICIENTS: [f32; 7] = [1.5, 2., 2.5, 3., 4., 5., 10.];
 
 const MIN_IMPROVEMENT: f32 = 0.01;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum PathfinderTimeout {
-    /// Time out after a certain duration has passed. This is a good default so
-    /// you don't waste too much time calculating a path if you're on a slow
-    /// computer.
-    Time(Duration),
-    /// Time out after this many nodes have been considered.
-    ///
-    /// This is useful as an alternative to a time limit if you're doing
-    /// something like running tests where you want consistent results.
-    Nodes(usize),
-}
-
 type FxIndexMap<K, V> = IndexMap<K, V, BuildHasherDefault<FxHasher>>;
 
 // Sources:
@@ -298,5 +285,23 @@ impl PartialOrd for WeightedNode {
     #[inline]
     fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
         Some(self.cmp(other))
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum PathfinderTimeout {
+    /// Time out after a certain duration has passed. This is a good default so
+    /// you don't waste too much time calculating a path if you're on a slow
+    /// computer.
+    Time(Duration),
+    /// Time out after this many nodes have been considered.
+    ///
+    /// This is useful as an alternative to a time limit if you're doing
+    /// something like running tests where you want consistent results.
+    Nodes(usize),
+}
+impl Default for PathfinderTimeout {
+    fn default() -> Self {
+        Self::Time(Duration::from_secs(1))
     }
 }

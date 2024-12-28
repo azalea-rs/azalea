@@ -25,9 +25,9 @@ impl AzaleaRead for BlockStateWithPosition {
         let state = BlockState::try_from(state)
             .map_err(|_| BufReadError::UnexpectedEnumVariant { id: state as i32 })?;
         let pos = ChunkSectionBlockPos {
-            x: (position_part >> 8 & 15) as u8,
+            x: ((position_part >> 8) & 15) as u8,
             y: (position_part & 15) as u8,
-            z: (position_part >> 4 & 15) as u8,
+            z: ((position_part >> 4) & 15) as u8,
         };
         Ok(BlockStateWithPosition { pos, state })
     }
@@ -35,8 +35,8 @@ impl AzaleaRead for BlockStateWithPosition {
 
 impl AzaleaWrite for BlockStateWithPosition {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        let data = (self.state.id as u64) << 12
-            | (u64::from(self.pos.x) << 8 | u64::from(self.pos.z) << 4 | u64::from(self.pos.y));
+        let data = ((self.state.id as u64) << 12)
+            | ((u64::from(self.pos.x) << 8) | (u64::from(self.pos.z) << 4) | u64::from(self.pos.y));
         u64::azalea_write_var(&data, buf)?;
         Ok(())
     }

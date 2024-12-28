@@ -8,7 +8,7 @@ pub struct RgbColor {
 impl RgbColor {
     pub fn new(r: u8, g: u8, b: u8) -> Self {
         Self {
-            value: (r as u32) << 16 | (g as u32) << 8 | b as u32,
+            value: ((r as u32) << 16) | ((g as u32) << 8) | (b as u32),
         }
     }
 
@@ -33,7 +33,7 @@ pub struct ArgbColor {
 impl ArgbColor {
     pub fn new(a: u8, r: u8, g: u8, b: u8) -> Self {
         Self {
-            value: (a as u32) << 24 | (r as u32) << 16 | (g as u32) << 8 | b as u32,
+            value: ((a as u32) << 24) | ((r as u32) << 16) | ((g as u32) << 8) | b as u32,
         }
     }
 
