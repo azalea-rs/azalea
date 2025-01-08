@@ -341,8 +341,8 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                         #property_enum_variants
                     }
 
-                    impl From<crate::BlockStateIntegerRepr> for #property_struct_name {
-                        fn from(value: crate::BlockStateIntegerRepr) -> Self {
+                    impl From<crate::block_state::BlockStateIntegerRepr> for #property_struct_name {
+                        fn from(value: crate::block_state::BlockStateIntegerRepr) -> Self {
                             match value {
                                 #property_from_number_variants
                                 _ => panic!("Invalid property value: {}", value),
@@ -360,8 +360,8 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
                     pub struct #property_struct_name(pub bool);
 
-                    impl From<crate::BlockStateIntegerRepr> for #property_struct_name {
-                        fn from(value: crate::BlockStateIntegerRepr) -> Self {
+                    impl From<crate::block_state::BlockStateIntegerRepr> for #property_struct_name {
+                        fn from(value: crate::block_state::BlockStateIntegerRepr) -> Self {
                             match value {
                                 0 => Self(false),
                                 1 => Self(true),
@@ -697,7 +697,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
     let mut generated = quote! {
         impl BlockState {
             /// The highest possible block state ID.
-            pub const MAX_STATE: crate::BlockStateIntegerRepr = #last_state_id;
+            pub const MAX_STATE: crate::block_state::BlockStateIntegerRepr = #last_state_id;
 
             /// Get a property from this block state. Will be `None` if the block can't have the property.
             ///

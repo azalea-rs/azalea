@@ -12,6 +12,7 @@ mod plugin;
 pub mod vec_delta_codec;
 
 use std::{
+    collections::HashMap,
     fmt::Debug,
     hash::{Hash, Hasher},
 };
@@ -251,7 +252,10 @@ impl Eq for LookDirection {}
 #[derive(Debug, Component, Clone, Default)]
 pub struct Physics {
     /// How fast the entity is moving.
+    ///
+    /// Sometimes referred to as the delta movement.
     pub velocity: Vec3,
+    pub vec_delta_codec: VecDeltaCodec,
 
     /// X acceleration.
     pub xxa: f32,
@@ -262,8 +266,6 @@ pub struct Physics {
 
     on_ground: bool,
     last_on_ground: bool,
-
-    pub vec_delta_codec: VecDeltaCodec,
 
     /// The width and height of the entity.
     pub dimensions: EntityDimensions,
@@ -276,12 +278,22 @@ pub struct Physics {
     pub horizontal_collision: bool,
     // pub minor_horizontal_collision: bool,
     pub vertical_collision: bool,
+
+    pub water_fluid_height: f64,
+    pub lava_fluid_height: f64,
+    pub was_touching_water: bool,
+
+    // TODO: implement fall_distance
+    pub fall_distance: f32,
+    // TODO: implement remaining_fire_ticks
+    pub remaining_fire_ticks: i32,
 }
 
 impl Physics {
     pub fn new(dimensions: EntityDimensions, pos: Vec3) -> Self {
         Self {
             velocity: Vec3::default(),
+            vec_delta_codec: VecDeltaCodec::new(pos),
 
             xxa: 0.,
             yya: 0.,
@@ -298,7 +310,12 @@ impl Physics {
             horizontal_collision: false,
             vertical_collision: false,
 
-            vec_delta_codec: VecDeltaCodec::new(pos),
+            water_fluid_height: 0.,
+            lava_fluid_height: 0.,
+            was_touching_water: false,
+
+            fall_distance: 0.,
+            remaining_fire_ticks: 0,
         }
     }
 
@@ -320,6 +337,13 @@ impl Physics {
     }
     pub fn set_last_on_ground(&mut self, last_on_ground: bool) {
         self.last_on_ground = last_on_ground;
+    }
+
+    pub fn reset_fall_distance(&mut self) {
+        self.fall_distance = 0.;
+    }
+    pub fn clear_fire(&mut self) {
+        self.remaining_fire_ticks = 0;
     }
 }
 

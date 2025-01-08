@@ -1,9 +1,9 @@
 use std::{
-    collections::HashSet,
+    collections::{hash_set, HashSet},
     ops::{Add, RangeInclusive},
 };
 
-use crate::{BlockState, BlockStateIntegerRepr};
+use crate::{block_state::BlockStateIntegerRepr, BlockState};
 
 #[derive(Debug, Clone)]
 pub struct BlockStates {
@@ -22,7 +22,7 @@ impl From<RangeInclusive<BlockStateIntegerRepr>> for BlockStates {
 
 impl IntoIterator for BlockStates {
     type Item = BlockState;
-    type IntoIter = std::collections::hash_set::IntoIter<BlockState>;
+    type IntoIter = hash_set::IntoIter<BlockState>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.set.into_iter()

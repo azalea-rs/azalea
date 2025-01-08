@@ -56,14 +56,14 @@ impl InstanceContainer {
             let existing = existing_lock.read();
             if existing.chunks.height != height {
                 error!(
-                    "Shared dimension height mismatch: {} != {}",
-                    existing.chunks.height, height,
+                    "Shared dimension height mismatch: {} != {height}",
+                    existing.chunks.height
                 );
             }
             if existing.chunks.min_y != min_y {
                 error!(
-                    "Shared world min_y mismatch: {} != {}",
-                    existing.chunks.min_y, min_y,
+                    "Shared world min_y mismatch: {} != {min_y}",
+                    existing.chunks.min_y
                 );
             }
             existing_lock.clone()

@@ -3,6 +3,7 @@
 
 pub mod clip;
 pub mod collision;
+pub mod fluids;
 
 use azalea_block::{Block, BlockState};
 use azalea_core::{
@@ -33,7 +34,13 @@ impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             GameTick,
-            (ai_step, travel)
+            (
+                fluids::update_in_water_state_and_do_fluid_pushing
+                    .before(azalea_entity::update_fluid_on_eyes),
+                fluids::update_swimming.after(azalea_entity::update_fluid_on_eyes),
+                ai_step,
+                travel,
+            )
                 .chain()
                 .in_set(PhysicsSet)
                 .after(azalea_entity::update_in_loaded_chunk),
@@ -86,6 +93,10 @@ fn travel(
 
         // TODO: slow falling effect
         // let is_falling = self.delta.y <= 0.;
+
+        let block_position = BlockPos::from(**position);
+        // LivingEntity.travel
+        let fluid_state = world.chunks.get_fluid_state(&block_position);
 
         // TODO: fluids
 
