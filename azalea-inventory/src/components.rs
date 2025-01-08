@@ -133,6 +133,8 @@ pub fn from_kind(
         DataComponentKind::Glider => Box::new(Glider::azalea_read(buf)?),
         DataComponentKind::TooltipStyle => Box::new(TooltipStyle::azalea_read(buf)?),
         DataComponentKind::DeathProtection => Box::new(DeathProtection::azalea_read(buf)?),
+        DataComponentKind::Weapon => Box::new(Weapon::azalea_read(buf)?),
+        DataComponentKind::PotionDurationScale => Box::new(PotionDurationScale::azalea_read(buf)?),
     })
 }
 
@@ -917,4 +919,22 @@ pub struct DeathProtection {
 }
 impl DataComponent for DeathProtection {
     const KIND: DataComponentKind = DataComponentKind::DeathProtection;
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct Weapon {
+    #[var]
+    pub damage_per_attack: i32,
+    pub can_disable_blocking: bool,
+}
+impl DataComponent for Weapon {
+    const KIND: DataComponentKind = DataComponentKind::Weapon;
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct PotionDurationScale {
+    pub value: f32,
+}
+impl DataComponent for PotionDurationScale {
+    const KIND: DataComponentKind = DataComponentKind::PotionDurationScale;
 }

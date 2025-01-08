@@ -3821,10 +3821,10 @@ impl Fox {
                 entity.insert(FoxInterested(bitfield & 0x8 != 0));
             }
             19 => {
-                entity.insert(TrustedId0(d.value.into_optional_uuid()?));
+                entity.insert(TrustedId0(d.value.into_optional_living_entity_reference()?));
             }
             20 => {
-                entity.insert(TrustedId1(d.value.into_optional_uuid()?));
+                entity.insert(TrustedId1(d.value.into_optional_living_entity_reference()?));
             }
             _ => {}
         }
@@ -6680,6 +6680,8 @@ impl Default for PhantomMetadataBundle {
 pub struct PigSaddle(pub bool);
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct PigBoostTime(pub i32);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct PigVariant(pub azalea_registry::PigVariant);
 #[derive(Component)]
 pub struct Pig;
 impl Pig {
@@ -6695,6 +6697,9 @@ impl Pig {
             18 => {
                 entity.insert(PigBoostTime(d.value.into_int()?));
             }
+            19 => {
+                entity.insert(PigVariant(d.value.into_pig_variant()?));
+            }
             _ => {}
         }
         Ok(())
@@ -6707,6 +6712,7 @@ pub struct PigMetadataBundle {
     parent: AbstractAnimalMetadataBundle,
     pig_saddle: PigSaddle,
     pig_boost_time: PigBoostTime,
+    pig_variant: PigVariant,
 }
 impl Default for PigMetadataBundle {
     fn default() -> Self {
@@ -6758,6 +6764,7 @@ impl Default for PigMetadataBundle {
             },
             pig_saddle: PigSaddle(false),
             pig_boost_time: PigBoostTime(0),
+            pig_variant: PigVariant(Default::default()),
         }
     }
 }
@@ -11977,7 +11984,7 @@ impl AbstractTameable {
                 entity.insert(InSittingPose(bitfield & 0x1 != 0));
             }
             18 => {
-                entity.insert(Owneruuid(d.value.into_optional_uuid()?));
+                entity.insert(Owneruuid(d.value.into_optional_living_entity_reference()?));
             }
             _ => {}
         }

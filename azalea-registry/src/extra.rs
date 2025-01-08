@@ -28,6 +28,21 @@ impl Default for WolfVariant {
 }
 
 registry! {
+enum PigVariant {
+    Temperate => "minecraft:pig",
+    Warm => "minecraft:warm_pig",
+    Cold => "minecraft:cold_pig",
+}
+}
+
+#[allow(clippy::derivable_impls)]
+impl Default for PigVariant {
+    fn default() -> Self {
+        PigVariant::Temperate
+    }
+}
+
+registry! {
 enum DimensionType {
     Overworld => "minecraft:overworld",
     Nether => "minecraft:the_nether",

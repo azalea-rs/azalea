@@ -1157,7 +1157,6 @@ pub fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::UpdateMobEffect(p) => {
                 debug!("Got update mob effect packet {p:?}");
             }
-            ClientboundGamePacket::AddExperienceOrb(_) => {}
             ClientboundGamePacket::AwardStats(_) => {}
             ClientboundGamePacket::BlockChangedAck(_) => {}
             ClientboundGamePacket::BlockDestruction(_) => {}

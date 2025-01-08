@@ -1311,6 +1311,8 @@ enum Block {
     FloweringAzalea => "minecraft:flowering_azalea",
     MossCarpet => "minecraft:moss_carpet",
     PinkPetals => "minecraft:pink_petals",
+    Wildflowers => "minecraft:wildflowers",
+    LeafLitter => "minecraft:leaf_litter",
     MossBlock => "minecraft:moss_block",
     BigDripleaf => "minecraft:big_dripleaf",
     BigDripleafStem => "minecraft:big_dripleaf_stem",
@@ -2194,6 +2196,8 @@ enum Item {
     SugarCane => "minecraft:sugar_cane",
     Kelp => "minecraft:kelp",
     PinkPetals => "minecraft:pink_petals",
+    Wildflowers => "minecraft:wildflowers",
+    LeafLitter => "minecraft:leaf_litter",
     MossCarpet => "minecraft:moss_carpet",
     MossBlock => "minecraft:moss_block",
     PaleMossCarpet => "minecraft:pale_moss_carpet",
@@ -3690,6 +3694,7 @@ enum ParticleKind {
     Infested => "minecraft:infested",
     CherryLeaves => "minecraft:cherry_leaves",
     PaleOakLeaves => "minecraft:pale_oak_leaves",
+    TintedLeaves => "minecraft:tinted_leaves",
     SculkSoul => "minecraft:sculk_soul",
     SculkCharge => "minecraft:sculk_charge",
     SculkChargePop => "minecraft:sculk_charge_pop",
@@ -4723,6 +4728,11 @@ enum SoundEvent {
     EntityIllusionerPrepareBlindness => "minecraft:entity.illusioner.prepare_blindness",
     EntityIllusionerPrepareMirror => "minecraft:entity.illusioner.prepare_mirror",
     ItemInkSacUse => "minecraft:item.ink_sac.use",
+    BlockIronBreak => "minecraft:block.iron.break",
+    BlockIronStep => "minecraft:block.iron.step",
+    BlockIronPlace => "minecraft:block.iron.place",
+    BlockIronHit => "minecraft:block.iron.hit",
+    BlockIronFall => "minecraft:block.iron.fall",
     BlockIronDoorClose => "minecraft:block.iron_door.close",
     BlockIronDoorOpen => "minecraft:block.iron_door.open",
     EntityIronGolemAttack => "minecraft:entity.iron_golem.attack",
@@ -4755,6 +4765,11 @@ enum SoundEvent {
     BlockLavaAmbient => "minecraft:block.lava.ambient",
     BlockLavaExtinguish => "minecraft:block.lava.extinguish",
     BlockLavaPop => "minecraft:block.lava.pop",
+    BlockLeafLitterBreak => "minecraft:block.leaf_litter.break",
+    BlockLeafLitterStep => "minecraft:block.leaf_litter.step",
+    BlockLeafLitterPlace => "minecraft:block.leaf_litter.place",
+    BlockLeafLitterHit => "minecraft:block.leaf_litter.hit",
+    BlockLeafLitterFall => "minecraft:block.leaf_litter.fall",
     EntityLeashKnotBreak => "minecraft:entity.leash_knot.break",
     EntityLeashKnotPlace => "minecraft:entity.leash_knot.place",
     BlockLeverClick => "minecraft:block.lever.click",
@@ -5993,6 +6008,7 @@ enum WorldgenTreeDecoratorKind {
     Beehive => "minecraft:beehive",
     AlterGround => "minecraft:alter_ground",
     AttachedToLeaves => "minecraft:attached_to_leaves",
+    PlaceOnGround => "minecraft:place_on_ground",
 }
 }
 
@@ -6217,6 +6233,7 @@ enum BlockKind {
     Lantern => "minecraft:lantern",
     LavaCauldron => "minecraft:lava_cauldron",
     LayeredCauldron => "minecraft:layered_cauldron",
+    LeafLitter => "minecraft:leaf_litter",
     Leaves => "minecraft:leaves",
     Lectern => "minecraft:lectern",
     Lever => "minecraft:lever",
@@ -6242,8 +6259,7 @@ enum BlockKind {
     Nylium => "minecraft:nylium",
     Observer => "minecraft:observer",
     Piglinwallskull => "minecraft:piglinwallskull",
-    ParticleLeaves => "minecraft:particle_leaves",
-    PinkPetals => "minecraft:pink_petals",
+    FlowerBed => "minecraft:flower_bed",
     PistonBase => "minecraft:piston_base",
     PistonHead => "minecraft:piston_head",
     PitcherCrop => "minecraft:pitcher_crop",
@@ -6467,6 +6483,7 @@ enum DataComponentKind {
     UseCooldown => "minecraft:use_cooldown",
     DamageResistant => "minecraft:damage_resistant",
     Tool => "minecraft:tool",
+    Weapon => "minecraft:weapon",
     Enchantable => "minecraft:enchantable",
     Equippable => "minecraft:equippable",
     Repairable => "minecraft:repairable",
@@ -6482,6 +6499,7 @@ enum DataComponentKind {
     ChargedProjectiles => "minecraft:charged_projectiles",
     BundleContents => "minecraft:bundle_contents",
     PotionContents => "minecraft:potion_contents",
+    PotionDurationScale => "minecraft:potion_duration_scale",
     SuspiciousStewEffects => "minecraft:suspicious_stew_effects",
     WritableBookContent => "minecraft:writable_book_content",
     WrittenBookContent => "minecraft:written_book_content",
@@ -6532,6 +6550,7 @@ enum EntitySubPredicateKind {
     Cat => "minecraft:cat",
     Frog => "minecraft:frog",
     Wolf => "minecraft:wolf",
+    Pig => "minecraft:pig",
 }
 }
 
@@ -6771,5 +6790,18 @@ enum SlotDisplay {
     SmithingTrim => "minecraft:smithing_trim",
     WithRemainder => "minecraft:with_remainder",
     Composite => "minecraft:composite",
+}
+}
+
+registry! {
+enum TicketKind {
+    Start => "minecraft:start",
+    Dragon => "minecraft:dragon",
+    PlayerLoading => "minecraft:player_loading",
+    PlayerSimulation => "minecraft:player_simulation",
+    Forced => "minecraft:forced",
+    Portal => "minecraft:portal",
+    EnderPearl => "minecraft:ender_pearl",
+    Unknown => "minecraft:unknown",
 }
 }
