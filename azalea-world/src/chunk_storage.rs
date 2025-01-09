@@ -7,7 +7,8 @@ use std::{
     sync::{Arc, Weak},
 };
 
-use azalea_block::{BlockState, BlockStateIntegerRepr, FluidState};
+use azalea_block::block_state::{BlockState, BlockStateIntegerRepr};
+use azalea_block::fluid_state::FluidState;
 use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
 use azalea_core::position::{BlockPos, ChunkBlockPos, ChunkPos, ChunkSectionBlockPos};
 use nohash_hasher::IntMap;

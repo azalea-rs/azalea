@@ -8,11 +8,12 @@ use std::{
     fmt,
     hash::Hash,
     io::{Cursor, Write},
-    ops::{Add, AddAssign, Mul, Rem, Sub},
+    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Rem, Sub},
 };
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
 
+use crate::direction::Direction;
 use crate::math;
 use crate::resource_location::ResourceLocation;
 
@@ -138,13 +139,24 @@ macro_rules! vec3_impl {
                 }
             }
         }
-
         impl Add for $name {
             type Output = $name;
 
             #[inline]
             fn add(self, rhs: Self) -> Self::Output {
                 (&self).add(&rhs)
+            }
+        }
+        impl Add<$type> for $name {
+            type Output = Self;
+
+            #[inline]
+            fn add(self, rhs: $type) -> Self::Output {
+                Self {
+                    x: self.x + rhs,
+                    y: self.y + rhs,
+                    z: self.z + rhs,
+                }
             }
         }
 
@@ -201,6 +213,35 @@ macro_rules! vec3_impl {
                     y: self.y * multiplier,
                     z: self.z * multiplier,
                 }
+            }
+        }
+        impl MulAssign<$type> for $name {
+            #[inline]
+            fn mul_assign(&mut self, multiplier: $type) {
+                self.x *= multiplier;
+                self.y *= multiplier;
+                self.z *= multiplier;
+            }
+        }
+
+        impl Div<$type> for $name {
+            type Output = Self;
+
+            #[inline]
+            fn div(self, divisor: $type) -> Self::Output {
+                Self {
+                    x: self.x / divisor,
+                    y: self.y / divisor,
+                    z: self.z / divisor,
+                }
+            }
+        }
+        impl DivAssign<$type> for $name {
+            #[inline]
+            fn div_assign(&mut self, divisor: $type) {
+                self.x /= divisor;
+                self.y /= divisor;
+                self.z /= divisor;
             }
         }
 
@@ -344,6 +385,10 @@ impl BlockPos {
             y: self.y.max(other.y),
             z: self.z.max(other.z),
         }
+    }
+
+    pub fn offset_with_direction(self, direction: Direction) -> Self {
+        self + direction.normal()
     }
 }
 

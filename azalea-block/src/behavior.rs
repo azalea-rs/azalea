@@ -4,6 +4,8 @@ pub struct BlockBehavior {
     pub destroy_time: f32,
     pub explosion_resistance: f32,
     pub requires_correct_tool_for_drops: bool,
+
+    pub force_solid: Option<bool>,
 }
 
 impl Default for BlockBehavior {
@@ -14,6 +16,7 @@ impl Default for BlockBehavior {
             destroy_time: 0.,
             explosion_resistance: 0.,
             requires_correct_tool_for_drops: false,
+            force_solid: None,
         }
     }
 }
@@ -50,6 +53,12 @@ impl BlockBehavior {
 
     pub fn requires_correct_tool_for_drops(mut self) -> Self {
         self.requires_correct_tool_for_drops = true;
+        self
+    }
+
+    // TODO: currently unused
+    pub fn force_solid(mut self, force_solid: bool) -> Self {
+        self.force_solid = Some(force_solid);
         self
     }
 }

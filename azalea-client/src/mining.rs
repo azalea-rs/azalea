@@ -1,4 +1,4 @@
-use azalea_block::{Block, BlockState, FluidState};
+use azalea_block::{fluid_state::FluidState, Block, BlockState};
 use azalea_core::{direction::Direction, game_type::GameMode, position::BlockPos, tick::GameTick};
 use azalea_entity::{mining::get_mine_progress, FluidOnEyes, Physics};
 use azalea_inventory::ItemStack;

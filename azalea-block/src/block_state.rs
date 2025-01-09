@@ -31,8 +31,14 @@ pub struct BlockState {
 }
 
 impl BlockState {
+    /// A shortcut for getting the air block state, since it always has an ID of
+    /// 0.
     pub const AIR: BlockState = BlockState { id: 0 };
 
+    /// Whether the block state is possible to exist in vanilla Minecraft.
+    ///
+    /// It's equivalent to checking that the state ID is not greater than
+    /// [`Self::MAX_STATE`].
     #[inline]
     pub fn is_valid_state(state_id: BlockStateIntegerRepr) -> bool {
         state_id <= Self::MAX_STATE

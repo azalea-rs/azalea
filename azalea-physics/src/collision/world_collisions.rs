@@ -49,12 +49,8 @@ pub fn get_block_collisions(world: &Instance, aabb: AABB) -> Vec<VoxelShape> {
         // if it's a full block do a faster collision check
         if block_state.is_collision_shape_full() {
             if !state.aabb.intersects_aabb(&AABB {
-                min_x: item.pos.x as f64,
-                min_y: item.pos.y as f64,
-                min_z: item.pos.z as f64,
-                max_x: (item.pos.x + 1) as f64,
-                max_y: (item.pos.y + 1) as f64,
-                max_z: (item.pos.z + 1) as f64,
+                min: item.pos.to_vec3_floored(),
+                max: (item.pos + 1).to_vec3_floored(),
             }) {
                 continue;
             }
@@ -95,15 +91,15 @@ pub struct BlockCollisionsState<'a> {
 impl<'a> BlockCollisionsState<'a> {
     pub fn new(world: &'a Instance, aabb: AABB) -> Self {
         let origin = BlockPos {
-            x: (aabb.min_x - EPSILON).floor() as i32 - 1,
-            y: (aabb.min_y - EPSILON).floor() as i32 - 1,
-            z: (aabb.min_z - EPSILON).floor() as i32 - 1,
+            x: (aabb.min.x - EPSILON).floor() as i32 - 1,
+            y: (aabb.min.y - EPSILON).floor() as i32 - 1,
+            z: (aabb.min.z - EPSILON).floor() as i32 - 1,
         };
 
         let end = BlockPos {
-            x: (aabb.max_x + EPSILON).floor() as i32 + 1,
-            y: (aabb.max_y + EPSILON).floor() as i32 + 1,
-            z: (aabb.max_z + EPSILON).floor() as i32 + 1,
+            x: (aabb.max.x + EPSILON).floor() as i32 + 1,
+            y: (aabb.max.y + EPSILON).floor() as i32 + 1,
+            z: (aabb.max.z + EPSILON).floor() as i32 + 1,
         };
 
         let cursor = Cursor3d::new(origin, end);

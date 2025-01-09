@@ -8,15 +8,11 @@ mod generated;
 mod range;
 
 use core::fmt::Debug;
-use std::{
-    any::Any,
-    fmt,
-    io::{self, Cursor, Write},
-};
+use std::any::Any;
 
-use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
 pub use behavior::BlockBehavior;
-use block_state::BlockState;
+// re-exported for convenience
+pub use block_state::BlockState;
 pub use generated::{blocks, properties};
 pub use range::BlockStates;
 

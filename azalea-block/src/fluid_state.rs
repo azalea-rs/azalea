@@ -1,4 +1,7 @@
-use crate::block_state::{BlockState, BlockStateIntegerRepr};
+use crate::{
+    block_state::{BlockState, BlockStateIntegerRepr},
+    Block,
+};
 
 #[derive(Clone, Debug)]
 pub struct FluidState {
@@ -12,6 +15,13 @@ pub struct FluidState {
     /// basically the opposite (0 = full, 8 = empty). You can convert between
     /// the two representations with [`to_or_from_legacy_fluid_level`].
     pub amount: u8,
+
+    /// Whether this fluid is at the max level and there's another fluid of the
+    /// same type above it.
+    ///
+    /// TODO: this is currently unused (always false), make this actually get
+    /// set (see FlowingFluid.getFlowing)
+    pub falling: bool,
 }
 impl FluidState {
     /// A floating point number in between 0 and 1 representing the height (as a
@@ -20,9 +30,28 @@ impl FluidState {
         self.amount as f32 / 9.
     }
 
-    pub fn get_flow(world: &Instance, pos: BlockPos) {
-        let _ = world;
-        let _ = pos;
+    pub fn affects_flow(&self, other: &FluidState) -> bool {
+        other.amount == 0 || self.is_same_kind(other)
+    }
+
+    pub fn is_same_kind(&self, other: &FluidState) -> bool {
+        (other.is_water() && self.is_water())
+            || (other.is_lava() && self.is_lava())
+            || (self.amount == 0 && other.amount == 0)
+    }
+
+    pub fn is_water(&self) -> bool {
+        matches!(
+            self.fluid,
+            azalea_registry::Fluid::Water | azalea_registry::Fluid::FlowingWater
+        )
+    }
+
+    pub fn is_lava(&self) -> bool {
+        matches!(
+            self.fluid,
+            azalea_registry::Fluid::Lava | azalea_registry::Fluid::FlowingLava
+        )
     }
 }
 
@@ -31,6 +60,7 @@ impl Default for FluidState {
         Self {
             fluid: azalea_registry::Fluid::Empty,
             amount: 0,
+            falling: false,
         }
     }
 }
@@ -47,6 +77,7 @@ impl From<BlockState> for FluidState {
             Self {
                 fluid: azalea_registry::Fluid::Water,
                 amount: 8,
+                falling: false,
             }
         } else {
             let block = Box::<dyn Block>::from(state);
@@ -54,16 +85,19 @@ impl From<BlockState> for FluidState {
                 Self {
                     fluid: azalea_registry::Fluid::Water,
                     amount: to_or_from_legacy_fluid_level(water.level as u8),
+                    falling: false,
                 }
             } else if let Some(lava) = block.downcast_ref::<crate::blocks::Lava>() {
                 Self {
                     fluid: azalea_registry::Fluid::Lava,
                     amount: to_or_from_legacy_fluid_level(lava.level as u8),
+                    falling: false,
                 }
             } else {
                 Self {
                     fluid: azalea_registry::Fluid::Empty,
                     amount: 0,
+                    falling: false,
                 }
             }
         }

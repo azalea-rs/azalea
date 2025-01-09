@@ -1,4 +1,4 @@
-use azalea_block::{BlockState, FluidState};
+use azalea_block::{fluid_state::FluidState, BlockState};
 use azalea_core::{
     block_hit_result::BlockHitResult,
     direction::Direction,

@@ -65,7 +65,8 @@ impl Plugin for PlayerMovePlugin {
                     (tick_controls, local_player_ai_step)
                         .chain()
                         .in_set(PhysicsSet)
-                        .before(ai_step),
+                        .before(ai_step)
+                        .before(azalea_physics::fluids::update_in_water_state_and_do_fluid_pushing),
                     send_sprinting_if_needed.after(azalea_entity::update_in_loaded_chunk),
                     send_position.after(PhysicsSet),
                 )

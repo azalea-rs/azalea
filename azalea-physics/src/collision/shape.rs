@@ -526,13 +526,6 @@ impl VoxelShape {
         movement
     }
 
-    // public VoxelShape optimize() {
-    //     VoxelShape[] var1 = new VoxelShape[]{Shapes.empty()};
-    //     this.forAllBoxes((var1x, var3, var5, var7, var9, var11) -> {
-    //         var1[0] = Shapes.joinUnoptimized(var1[0], Shapes.box(var1x, var3,
-    // var5, var7, var9, var11), BooleanOp.OR);     });
-    //     return var1[0];
-    // }
     fn optimize(&self) -> VoxelShape {
         let mut shape = EMPTY_SHAPE.clone();
         self.for_all_boxes(|var1x, var3, var5, var7, var9, var11| {
@@ -545,35 +538,10 @@ impl VoxelShape {
         shape
     }
 
-    // public void forAllBoxes(Shapes.DoubleLineConsumer var1) {
-    //     DoubleList var2 = this.getCoords(Direction.Axis.X);
-    //     DoubleList var3 = this.getCoords(Direction.Axis.Y);
-    //     DoubleList var4 = this.getCoords(Direction.Axis.Z);
-    //     this.shape.forAllBoxes((var4x, var5, var6, var7, var8, var9) -> {
-    //     var1.consume(var2.getDouble(var4x), var3.getDouble(var5),
-    // var4.getDouble(var6), var2.getDouble(var7), var3.getDouble(var8),
-    // var4.getDouble(var9));     }, true);
-    // }
     pub fn for_all_boxes(&self, mut consumer: impl FnMut(f64, f64, f64, f64, f64, f64))
     where
         Self: Sized,
     {
-        // let x_coords = self.get_coords(Axis::X);
-        // let y_coords = self.get_coords(Axis::Y);
-        // let z_coords = self.get_coords(Axis::Z);
-        // self.shape().for_all_boxes(
-        //     |var4x, var5, var6, var7, var8, var9| {
-        //         consumer(
-        //             x_coords[var4x as usize],
-        //             y_coords[var5 as usize],
-        //             z_coords[var6 as usize],
-        //             x_coords[var7 as usize],
-        //             y_coords[var8 as usize],
-        //             z_coords[var9 as usize],
-        //         )
-        //     },
-        //     true,
-        // );
         let x_coords = self.get_coords(Axis::X);
         let y_coords = self.get_coords(Axis::Y);
         let z_coords = self.get_coords(Axis::Z);
@@ -596,22 +564,26 @@ impl VoxelShape {
         let mut aabbs = Vec::new();
         self.for_all_boxes(|min_x, min_y, min_z, max_x, max_y, max_z| {
             aabbs.push(AABB {
-                min_x,
-                min_y,
-                min_z,
-                max_x,
-                max_y,
-                max_z,
+                min: Vec3::new(min_x, min_y, min_z),
+                max: Vec3::new(max_x, max_y, max_z),
             });
         });
         aabbs
+    }
+
+    pub fn bounds(&self) -> AABB {
+        assert!(!self.is_empty(), "Can't get bounds for empty shape");
+        AABB {
+            min: Vec3::new(self.min(Axis::X), self.min(Axis::Y), self.min(Axis::Z)),
+            max: Vec3::new(self.max(Axis::X), self.max(Axis::Y), self.max(Axis::Z)),
+        }
     }
 }
 
 impl From<AABB> for VoxelShape {
     fn from(aabb: AABB) -> Self {
         box_shape_unchecked(
-            aabb.min_x, aabb.min_y, aabb.min_z, aabb.max_x, aabb.max_y, aabb.max_z,
+            aabb.min.x, aabb.min.y, aabb.min.z, aabb.max.x, aabb.max.y, aabb.max.z,
         )
     }
 }

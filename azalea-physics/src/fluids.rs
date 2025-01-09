@@ -1,10 +1,16 @@
 use std::cmp;
 
-use azalea_core::position::{BlockPos, Vec3};
+use azalea_block::{fluid_state::FluidState, BlockState};
+use azalea_core::{
+    direction::Direction,
+    position::{BlockPos, Vec3},
+};
 use azalea_entity::{metadata::AbstractBoat, InLoadedChunk, LocalEntity, Physics, Position};
 use azalea_registry::{EntityKind, Fluid};
 use azalea_world::{Instance, InstanceContainer, InstanceName};
 use bevy_ecs::prelude::*;
+
+use crate::collision::legacy_blocks_motion;
 
 pub fn update_in_water_state_and_do_fluid_pushing(
     mut query: Query<
@@ -19,14 +25,20 @@ pub fn update_in_water_state_and_do_fluid_pushing(
             .expect("All entities should be in a valid world");
         let world = world_lock.read();
 
+        println!("update_in_water_state_and_do_fluid_pushing");
+
         physics.water_fluid_height = 0.;
         physics.lava_fluid_height = 0.;
 
         update_in_water_state_and_do_water_current_pushing(&mut physics, &world, &position);
-        let lava_push_factor = world
-            .registries
-            .dimension_type()
-            .map(|d| d.lava_push_factor);
+
+        println!("physics.water_fluid_height: {}", physics.water_fluid_height);
+
+        // let lava_push_factor = world
+        //     .registries
+        //     .dimension_type()
+        //     .map(|d| d.lava_push_factor);
+        // TODO
     }
 }
 fn update_in_water_state_and_do_water_current_pushing(
@@ -59,18 +71,20 @@ fn update_fluid_height_and_do_fluid_pushing(
     physics: &mut Physics,
     world: &Instance,
     checking_fluid: Fluid,
-    fluid_push_factor: f32,
+    fluid_push_factor: f64,
 ) -> bool {
     // if touching_unloaded_chunk() {
     //     return false;
     // }
 
     let checking_liquids_aabb = physics.bounding_box.deflate_all(0.001);
+
     let min_x = checking_liquids_aabb.min.x.floor() as i32;
-    let max_x = checking_liquids_aabb.max.x.ceil() as i32;
     let min_y = checking_liquids_aabb.min.y.floor() as i32;
-    let max_y = checking_liquids_aabb.max.y.ceil() as i32;
     let min_z = checking_liquids_aabb.min.z.floor() as i32;
+
+    let max_x = checking_liquids_aabb.max.x.ceil() as i32;
+    let max_y = checking_liquids_aabb.max.y.ceil() as i32;
     let max_z = checking_liquids_aabb.max.z.ceil() as i32;
 
     let mut min_height_touching = 0.;
@@ -94,14 +108,19 @@ fn update_fluid_height_and_do_fluid_pushing(
                     continue;
                 }
                 touching_fluid = true;
-                min_height_touching = f64::min(
+                min_height_touching = f64::max(
                     fluid_max_y - checking_liquids_aabb.min.y,
                     min_height_touching,
                 );
                 if !is_entity_pushable_by_fluid {
                     continue;
                 }
-                let mut additional_player_delta_for_fluid = fluid_at_cur_pos.flow();
+                let mut additional_player_delta_for_fluid =
+                    get_fluid_flow(&fluid_at_cur_pos, world, cur_pos);
+                println!(
+                    "additional_player_delta_for_fluid: {}",
+                    additional_player_delta_for_fluid
+                );
                 if min_height_touching < 0.4 {
                     additional_player_delta_for_fluid *= min_height_touching;
                 };
@@ -112,6 +131,9 @@ fn update_fluid_height_and_do_fluid_pushing(
         }
     }
 
+    println!("num_fluids_being_touched: {}", num_fluids_being_touched);
+    println!("additional_player_delta: {}", additional_player_delta);
+
     if additional_player_delta.length() > 0. {
         additional_player_delta /= num_fluids_being_touched as f64;
 
@@ -120,7 +142,7 @@ fn update_fluid_height_and_do_fluid_pushing(
         // }
 
         let player_delta = physics.velocity;
-        additionalPlayerDelta *= fluid_push_factor;
+        additional_player_delta *= fluid_push_factor;
         const MIN_PUSH: f64 = 0.003;
         const MIN_PUSH_LENGTH: f64 = MIN_PUSH * 1.5;
 
@@ -145,4 +167,109 @@ fn update_fluid_height_and_do_fluid_pushing(
 
 pub fn update_swimming() {
     // TODO: swimming
+}
+
+// FlowingFluid.getFlow
+pub fn get_fluid_flow(fluid: &FluidState, world: &Instance, pos: BlockPos) -> Vec3 {
+    let mut z_flow: f64 = 0.;
+    let mut x_flow: f64 = 0.;
+
+    for direction in Direction::HORIZONTAL {
+        let adjacent_block_pos = pos.offset_with_direction(direction);
+        let adjacent_fluid_state = world
+            .get_fluid_state(&adjacent_block_pos)
+            .unwrap_or_default();
+        if fluid.affects_flow(&adjacent_fluid_state) {
+            println!(
+                "affects flow {adjacent_block_pos} {:?}",
+                adjacent_fluid_state
+            );
+            let mut adjacent_fluid_height = adjacent_fluid_state.height();
+            let mut adjacent_height_difference: f32 = 0.;
+
+            if adjacent_fluid_height == 0. {
+                if !legacy_blocks_motion(
+                    world
+                        .get_block_state(&adjacent_block_pos)
+                        .unwrap_or_default(),
+                ) {
+                    let block_pos_below_adjacent = adjacent_block_pos.down(1);
+                    let fluid_below_adjacent = world
+                        .get_fluid_state(&block_pos_below_adjacent)
+                        .unwrap_or_default();
+
+                    if fluid.affects_flow(&fluid_below_adjacent) {
+                        adjacent_fluid_height = fluid_below_adjacent.height();
+                        if adjacent_fluid_height > 0. {
+                            adjacent_height_difference =
+                                fluid.height() - (adjacent_fluid_height - 0.8888889);
+                        }
+                    }
+                }
+            } else if adjacent_fluid_height > 0. {
+                adjacent_height_difference = fluid.height() - adjacent_fluid_height;
+            }
+
+            if adjacent_height_difference != 0. {
+                x_flow += (direction.x() as f32 * adjacent_height_difference) as f64;
+                z_flow += (direction.z() as f32 * adjacent_height_difference) as f64;
+            }
+        }
+    }
+
+    let mut flow = Vec3::new(x_flow, 0., z_flow);
+    if fluid.falling {
+        for direction in Direction::HORIZONTAL {
+            let adjacent_block_pos = pos.offset_with_direction(direction);
+            if is_solid_face(fluid, world, adjacent_block_pos, direction)
+                || is_solid_face(fluid, world, adjacent_block_pos.up(1), direction)
+            {
+                flow = flow.normalize() + Vec3::new(0., -6., 0.);
+                break;
+            }
+        }
+    }
+
+    flow.normalize()
+}
+
+// i don't really get what this is for
+fn is_solid_face(
+    fluid: &FluidState,
+    world: &Instance,
+    adjacent_pos: BlockPos,
+    direction: Direction,
+) -> bool {
+    let block_state = world.get_block_state(&adjacent_pos).unwrap_or_default();
+    let fluid_state = world.get_fluid_state(&adjacent_pos).unwrap_or_default();
+    if fluid_state.is_same_kind(fluid) {
+        return false;
+    }
+    if direction == Direction::Up {
+        return true;
+    }
+    let registry_block = azalea_registry::Block::from(block_state);
+    if matches!(
+        registry_block,
+        azalea_registry::Block::Ice | azalea_registry::Block::FrostedIce
+    ) {
+        return false;
+    }
+    is_face_sturdy(block_state, world, adjacent_pos, direction)
+}
+
+fn is_face_sturdy(
+    block_state: BlockState,
+    world: &Instance,
+    pos: BlockPos,
+    direction: Direction,
+) -> bool {
+    // TODO: this does a whole bunch of physics shape checks for waterlogged blocks
+    // that i honestly cannot be bothered to implement right now
+
+    // see BlockBehavior.isFaceSturdy in the decompiled minecraft source
+
+    // also, this probably should be in a module other than fluids.rs
+
+    false
 }
