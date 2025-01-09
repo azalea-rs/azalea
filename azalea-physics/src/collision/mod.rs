@@ -22,6 +22,7 @@ use tracing::warn;
 
 use self::world_collisions::get_block_collisions;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MoverType {
     Own,
     Player,
@@ -143,8 +144,10 @@ fn collide(movement: &Vec3, world: &Instance, physics: &azalea_entity::Physics) 
 }
 
 /// Move an entity by a given delta, checking for collisions.
+///
+/// In Mojmap, this is `Entity.move`.
 pub fn move_colliding(
-    _mover_type: &MoverType,
+    _mover_type: MoverType,
     movement: &Vec3,
     world: &Instance,
     position: &mut Mut<azalea_entity::Position>,

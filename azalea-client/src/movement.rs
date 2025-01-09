@@ -325,8 +325,8 @@ pub fn local_player_ai_step(
 ) {
     for (physics_state, mut physics, mut sprinting, mut attributes) in query.iter_mut() {
         // server ai step
-        physics.xxa = physics_state.left_impulse;
-        physics.zza = physics_state.forward_impulse;
+        physics.x_acceleration = physics_state.left_impulse;
+        physics.z_acceleration = physics_state.forward_impulse;
 
         // TODO: food data and abilities
         // let has_enough_food_to_sprint = self.food_data().food_level ||

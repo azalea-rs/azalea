@@ -38,6 +38,7 @@ impl SimulatedPlayerBundle {
             attributes: Attributes {
                 speed: AttributeInstance::new(0.1),
                 attack_speed: AttributeInstance::new(4.0),
+                water_movement_efficiency: AttributeInstance::new(0.0),
             },
             inventory: Inventory::default(),
         }

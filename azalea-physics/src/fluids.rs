@@ -25,14 +25,10 @@ pub fn update_in_water_state_and_do_fluid_pushing(
             .expect("All entities should be in a valid world");
         let world = world_lock.read();
 
-        println!("update_in_water_state_and_do_fluid_pushing");
-
         physics.water_fluid_height = 0.;
         physics.lava_fluid_height = 0.;
 
         update_in_water_state_and_do_water_current_pushing(&mut physics, &world, &position);
-
-        println!("physics.water_fluid_height: {}", physics.water_fluid_height);
 
         // let lava_push_factor = world
         //     .registries
@@ -117,10 +113,6 @@ fn update_fluid_height_and_do_fluid_pushing(
                 }
                 let mut additional_player_delta_for_fluid =
                     get_fluid_flow(&fluid_at_cur_pos, world, cur_pos);
-                println!(
-                    "additional_player_delta_for_fluid: {}",
-                    additional_player_delta_for_fluid
-                );
                 if min_height_touching < 0.4 {
                     additional_player_delta_for_fluid *= min_height_touching;
                 };
@@ -130,9 +122,6 @@ fn update_fluid_height_and_do_fluid_pushing(
             }
         }
     }
-
-    println!("num_fluids_being_touched: {}", num_fluids_being_touched);
-    println!("additional_player_delta: {}", additional_player_delta);
 
     if additional_player_delta.length() > 0. {
         additional_player_delta /= num_fluids_being_touched as f64;
@@ -180,10 +169,6 @@ pub fn get_fluid_flow(fluid: &FluidState, world: &Instance, pos: BlockPos) -> Ve
             .get_fluid_state(&adjacent_block_pos)
             .unwrap_or_default();
         if fluid.affects_flow(&adjacent_fluid_state) {
-            println!(
-                "affects flow {adjacent_block_pos} {:?}",
-                adjacent_fluid_state
-            );
             let mut adjacent_fluid_height = adjacent_fluid_state.height();
             let mut adjacent_height_difference: f32 = 0.;
 

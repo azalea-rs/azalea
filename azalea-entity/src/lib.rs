@@ -257,12 +257,14 @@ pub struct Physics {
     pub velocity: Vec3,
     pub vec_delta_codec: VecDeltaCodec,
 
-    /// X acceleration.
-    pub xxa: f32,
-    /// Y acceleration.
-    pub yya: f32,
-    /// Z acceleration.
-    pub zza: f32,
+    /// The acceleration here is the force that will be attempted to be added to
+    /// the entity's velocity next tick.
+    ///
+    /// You should typically not set this yourself, since it's controlled by how
+    /// the entity is trying to move.
+    pub x_acceleration: f32,
+    pub y_acceleration: f32,
+    pub z_acceleration: f32,
 
     on_ground: bool,
     last_on_ground: bool,
@@ -295,9 +297,9 @@ impl Physics {
             velocity: Vec3::default(),
             vec_delta_codec: VecDeltaCodec::new(pos),
 
-            xxa: 0.,
-            yya: 0.,
-            zza: 0.,
+            x_acceleration: 0.,
+            y_acceleration: 0.,
+            z_acceleration: 0.,
 
             on_ground: false,
             last_on_ground: false,
@@ -344,6 +346,14 @@ impl Physics {
     }
     pub fn clear_fire(&mut self) {
         self.remaining_fire_ticks = 0;
+    }
+
+    pub fn is_in_water(&self) -> bool {
+        self.was_touching_water
+    }
+    pub fn is_in_lava(&self) -> bool {
+        // TODO: also check `!this.firstTick &&`
+        self.lava_fluid_height > 0.
     }
 }
 
@@ -444,6 +454,7 @@ impl EntityBundle {
                 // entities have different defaults
                 speed: AttributeInstance::new(0.1),
                 attack_speed: AttributeInstance::new(4.0),
+                water_movement_efficiency: AttributeInstance::new(0.0),
             },
 
             jumping: Jumping(false),
