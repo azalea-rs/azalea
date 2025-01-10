@@ -6,7 +6,7 @@ mod world_collisions;
 
 use std::{ops::Add, sync::LazyLock};
 
-use azalea_block::FluidState;
+use azalea_block::{fluid_state::FluidState, BlockState};
 use azalea_core::{
     aabb::AABB,
     direction::Axis,
@@ -22,6 +22,7 @@ use tracing::warn;
 
 use self::world_collisions::get_block_collisions;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MoverType {
     Own,
     Player,
@@ -111,7 +112,7 @@ fn collide(movement: &Vec3, world: &Instance, physics: &azalea_entity::Physics) 
                     y: 0.,
                     z: movement.z,
                 },
-                &entity_bounding_box.move_relative(&directly_up_delta),
+                &entity_bounding_box.move_relative(directly_up_delta),
                 world,
                 entity_collisions.clone(),
             )
@@ -132,7 +133,7 @@ fn collide(movement: &Vec3, world: &Instance, physics: &azalea_entity::Physics) 
                     y: -step_to_delta.y + movement.y,
                     z: 0.,
                 },
-                &entity_bounding_box.move_relative(&step_to_delta),
+                &entity_bounding_box.move_relative(step_to_delta),
                 world,
                 entity_collisions.clone(),
             ));
@@ -143,8 +144,10 @@ fn collide(movement: &Vec3, world: &Instance, physics: &azalea_entity::Physics) 
 }
 
 /// Move an entity by a given delta, checking for collisions.
+///
+/// In Mojmap, this is `Entity.move`.
 pub fn move_colliding(
-    _mover_type: &MoverType,
+    _mover_type: MoverType,
     movement: &Vec3,
     world: &Instance,
     position: &mut Mut<azalea_entity::Position>,
@@ -296,7 +299,7 @@ fn collide_with_shapes(
     if y_movement != 0. {
         y_movement = Shapes::collide(&Axis::Y, &entity_box, collision_boxes, y_movement);
         if y_movement != 0. {
-            entity_box = entity_box.move_relative(&Vec3 {
+            entity_box = entity_box.move_relative(Vec3 {
                 x: 0.,
                 y: y_movement,
                 z: 0.,
@@ -311,7 +314,7 @@ fn collide_with_shapes(
     if more_z_movement && z_movement != 0. {
         z_movement = Shapes::collide(&Axis::Z, &entity_box, collision_boxes, z_movement);
         if z_movement != 0. {
-            entity_box = entity_box.move_relative(&Vec3 {
+            entity_box = entity_box.move_relative(Vec3 {
                 x: 0.,
                 y: 0.,
                 z: z_movement,
@@ -322,7 +325,7 @@ fn collide_with_shapes(
     if x_movement != 0. {
         x_movement = Shapes::collide(&Axis::X, &entity_box, collision_boxes, x_movement);
         if x_movement != 0. {
-            entity_box = entity_box.move_relative(&Vec3 {
+            entity_box = entity_box.move_relative(Vec3 {
                 x: x_movement,
                 y: 0.,
                 z: 0.,
@@ -352,7 +355,7 @@ pub fn fluid_shape(
 ) -> &'static VoxelShape {
     if fluid.amount == 9 {
         let fluid_state_above = world.get_fluid_state(&pos.up(1)).unwrap_or_default();
-        if fluid_state_above.fluid == fluid.fluid {
+        if fluid_state_above.kind == fluid.kind {
             return &BLOCK_SHAPE;
         }
     }
@@ -383,4 +386,29 @@ pub fn fluid_shape(
 }
 fn calculate_shape_for_fluid(amount: u8) -> VoxelShape {
     box_shape(0.0, 0.0, 0.0, 1.0, (f32::from(amount) / 9.0) as f64, 1.0)
+}
+
+/// Whether the block is treated as "motion blocking".
+///
+/// This is marked as deprecated in Minecraft.
+pub fn legacy_blocks_motion(block: BlockState) -> bool {
+    let registry_block = azalea_registry::Block::from(block);
+    legacy_calculate_solid(block)
+        && registry_block != azalea_registry::Block::Cobweb
+        && registry_block != azalea_registry::Block::BambooSapling
+}
+
+pub fn legacy_calculate_solid(block: BlockState) -> bool {
+    // force_solid has to be checked before anything else
+    let block_trait = Box::<dyn azalea_block::Block>::from(block);
+    if let Some(solid) = block_trait.behavior().force_solid {
+        return solid;
+    }
+
+    let shape = block.collision_shape();
+    if shape.is_empty() {
+        return false;
+    }
+    let bounds = shape.bounds();
+    bounds.size() >= 0.7291666666666666 || bounds.get_size(Axis::Y) >= 1.0
 }

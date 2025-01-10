@@ -18,7 +18,7 @@ _Currently supported Minecraft version: `1.21.4`._
 
 ## Features
 
--   [Accurate physics](https://github.com/azalea-rs/azalea/blob/main/azalea-physics/src/lib.rs) (but some features like entity collisions and water physics aren't yet implemented)
+-   [Accurate physics](https://github.com/azalea-rs/azalea/blob/main/azalea-physics/src/lib.rs) (but some features like entity collisions and elytras aren't yet implemented)
 -   [Pathfinder](https://azalea.matdoes.dev/azalea/pathfinder/index.html)
 -   [Swarms](https://azalea.matdoes.dev/azalea/swarm/index.html)
 -   [Breaking blocks](https://azalea.matdoes.dev/azalea/struct.Client.html#method.mine)

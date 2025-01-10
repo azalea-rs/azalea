@@ -114,7 +114,20 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
             println!("getblock xyz {x} {y} {z}");
             let block_pos = BlockPos::new(x, y, z);
             let block = source.bot.world().read().get_block_state(&block_pos);
-            source.reply(&format!("Block at {block_pos:?} is {block:?}"));
+            source.reply(&format!("Block at {block_pos} is {block:?}"));
+            1
+        })),
+    )));
+    commands.register(literal("getfluid").then(argument("x", integer()).then(
+        argument("y", integer()).then(argument("z", integer()).executes(|ctx: &Ctx| {
+            let source = ctx.source.lock();
+            let x = get_integer(ctx, "x").unwrap();
+            let y = get_integer(ctx, "y").unwrap();
+            let z = get_integer(ctx, "z").unwrap();
+            println!("getfluid xyz {x} {y} {z}");
+            let block_pos = BlockPos::new(x, y, z);
+            let block = source.bot.world().read().get_fluid_state(&block_pos);
+            source.reply(&format!("Fluid at {block_pos} is {block:?}"));
             1
         })),
     )));

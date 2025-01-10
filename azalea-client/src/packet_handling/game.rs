@@ -500,6 +500,9 @@ pub fn process_packet_events(ecs: &mut World) {
                     **position = new_pos;
                 }
 
+                // old_pos is set to the current position when we're teleported
+                physics.set_old_pos(&position);
+
                 // send the relevant packets
 
                 send_packet_events.send(SendPacketEvent::new(
@@ -853,10 +856,14 @@ pub fn process_packet_events(ecs: &mut World) {
                         if new_pos != **position {
                             **position = new_pos;
                         }
+                        let position = *position;
                         let mut look_direction = entity.get_mut::<LookDirection>().unwrap();
                         if new_look_direction != *look_direction {
                             *look_direction = new_look_direction;
                         }
+                        // old_pos is set to the current position when we're teleported
+                        let mut physics = entity.get_mut::<Physics>().unwrap();
+                        physics.set_old_pos(&position);
                     }),
                 });
 

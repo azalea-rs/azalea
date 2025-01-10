@@ -1,6 +1,8 @@
 use std::{cell::UnsafeCell, ops::RangeInclusive};
 
-use azalea_block::{properties::Waterlogged, BlockState, BlockStateIntegerRepr, BlockStates};
+use azalea_block::{
+    block_state::BlockStateIntegerRepr, properties::Waterlogged, BlockState, BlockStates,
+};
 use azalea_inventory::Menu;
 use nohash_hasher::IntMap;
 

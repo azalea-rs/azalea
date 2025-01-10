@@ -86,6 +86,25 @@ pub fn to_degrees(radians: f64) -> f64 {
     radians * 57.29577951308232
 }
 
+/// Returns either -1, 0, or 1, depending on whether the number is negative,
+/// zero, or positive.
+///
+/// This function exists because f64::signum doesn't check for 0.
+pub fn sign(num: f64) -> f64 {
+    if num == 0. {
+        0.
+    } else {
+        num.signum()
+    }
+}
+pub fn sign_as_int(num: f64) -> i32 {
+    if num == 0. {
+        0
+    } else {
+        num.signum() as i32
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

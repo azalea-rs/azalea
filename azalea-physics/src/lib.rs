@@ -3,8 +3,12 @@
 
 pub mod clip;
 pub mod collision;
+pub mod fluids;
+pub mod travel;
 
-use azalea_block::{Block, BlockState};
+use std::collections::HashSet;
+
+use azalea_block::{fluid_state::FluidState, properties, Block, BlockState};
 use azalea_core::{
     math,
     position::{BlockPos, Vec3},
@@ -22,7 +26,8 @@ use bevy_ecs::{
     system::{Query, Res},
     world::Mut,
 };
-use collision::{move_colliding, MoverType};
+use clip::box_traverse_blocks;
+use collision::{move_colliding, BlockWithShape, MoverType, VoxelShape, BLOCK_SHAPE};
 
 /// A Bevy [`SystemSet`] for running physics that makes entities do things.
 #[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
@@ -33,7 +38,15 @@ impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             GameTick,
-            (ai_step, travel)
+            (
+                fluids::update_in_water_state_and_do_fluid_pushing
+                    .before(azalea_entity::update_fluid_on_eyes),
+                update_old_position,
+                fluids::update_swimming.after(azalea_entity::update_fluid_on_eyes),
+                ai_step,
+                travel::travel,
+                apply_effects_from_blocks,
+            )
                 .chain()
                 .in_set(PhysicsSet)
                 .after(azalea_entity::update_in_loaded_chunk),
@@ -41,110 +54,9 @@ impl Plugin for PhysicsPlugin {
     }
 }
 
-/// Move the entity with the given acceleration while handling friction,
-/// gravity, collisions, and some other stuff.
-#[allow(clippy::type_complexity)]
-fn travel(
-    mut query: Query<
-        (
-            &mut Physics,
-            &mut LookDirection,
-            &mut Position,
-            Option<&Sprinting>,
-            Option<&Pose>,
-            &Attributes,
-            &InstanceName,
-            &OnClimbable,
-            &Jumping,
-        ),
-        (With<LocalEntity>, With<InLoadedChunk>),
-    >,
-    instance_container: Res<InstanceContainer>,
-) {
-    for (
-        mut physics,
-        direction,
-        position,
-        sprinting,
-        pose,
-        attributes,
-        world_name,
-        on_climbable,
-        jumping,
-    ) in &mut query
-    {
-        let Some(world_lock) = instance_container.get(world_name) else {
-            continue;
-        };
-        let world = world_lock.read();
-        // if !self.is_effective_ai() && !self.is_controlled_by_local_instance() {
-        //     // this.calculateEntityAnimation(this, this instanceof FlyingAnimal);
-        //     return;
-        // }
-
-        let gravity: f64 = 0.08;
-
-        // TODO: slow falling effect
-        // let is_falling = self.delta.y <= 0.;
-
-        // TODO: fluids
-
-        // TODO: elytra
-
-        let block_pos_below = get_block_pos_below_that_affects_movement(&position);
-
-        let block_state_below = world
-            .chunks
-            .get_block_state(&block_pos_below)
-            .unwrap_or(BlockState::AIR);
-        let block_below: Box<dyn Block> = block_state_below.into();
-        let block_friction = block_below.behavior().friction;
-
-        let inertia = if physics.on_ground() {
-            block_friction * 0.91
-        } else {
-            0.91
-        };
-
-        // this applies the current delta
-        let mut movement = handle_relative_friction_and_calculate_movement(
-            HandleRelativeFrictionAndCalculateMovementOpts {
-                block_friction,
-                world: &world,
-                physics: &mut physics,
-                direction: &direction,
-                position,
-                attributes,
-                is_sprinting: sprinting.map(|s| **s).unwrap_or(false),
-                on_climbable,
-                pose,
-                jumping,
-            },
-        );
-
-        movement.y -= gravity;
-
-        // if (this.shouldDiscardFriction()) {
-        //     this.setDeltaMovement(movement.x, yMovement, movement.z);
-        // } else {
-        //     this.setDeltaMovement(movement.x * (double)inertia, yMovement *
-        // 0.9800000190734863D, movement.z * (double)inertia); }
-
-        // if should_discard_friction(self) {
-        if false {
-            physics.velocity = movement;
-        } else {
-            physics.velocity = Vec3 {
-                x: movement.x * inertia as f64,
-                y: movement.y * 0.9800000190734863f64,
-                z: movement.z * inertia as f64,
-            };
-        }
-    }
-}
-
-/// applies air resistance, calls self.travel(), and some other random
-/// stuff.
+/// Applies air resistance and handles jumping.
+///
+/// Happens before [`travel::travel`].
 #[allow(clippy::type_complexity)]
 pub fn ai_step(
     mut query: Query<
@@ -164,6 +76,10 @@ pub fn ai_step(
         // vanilla does movement interpolation here, doesn't really matter much for a
         // bot though
 
+        if physics.no_jump_delay > 0 {
+            physics.no_jump_delay -= 1;
+        }
+
         if physics.velocity.x.abs() < 0.003 {
             physics.velocity.x = 0.;
         }
@@ -178,25 +94,219 @@ pub fn ai_step(
             if **jumping {
                 // TODO: jumping in liquids and jump delay
 
-                if physics.on_ground() {
-                    jump_from_ground(
-                        &mut physics,
-                        position,
-                        look_direction,
-                        sprinting,
-                        instance_name,
-                        &instance_container,
-                    )
+                let fluid_height = if physics.is_in_lava() {
+                    physics.lava_fluid_height
+                } else if physics.is_in_water() {
+                    physics.water_fluid_height
+                } else {
+                    0.
+                };
+
+                let in_water = physics.is_in_water() && fluid_height > 0.;
+                let fluid_jump_threshold = travel::fluid_jump_threshold();
+
+                if !in_water || physics.on_ground() && fluid_height <= fluid_jump_threshold {
+                    if !physics.is_in_lava()
+                        || physics.on_ground() && fluid_height <= fluid_jump_threshold
+                    {
+                        if physics.on_ground()
+                            || in_water
+                                && fluid_height <= fluid_jump_threshold
+                                && physics.no_jump_delay == 0
+                        {
+                            jump_from_ground(
+                                &mut physics,
+                                position,
+                                look_direction,
+                                sprinting,
+                                instance_name,
+                                &instance_container,
+                            );
+                            physics.no_jump_delay = 10;
+                        }
+                    } else {
+                        jump_in_liquid(&mut physics);
+                    }
+                } else {
+                    jump_in_liquid(&mut physics);
                 }
             }
+        } else {
+            physics.no_jump_delay = 0;
         }
 
-        physics.xxa *= 0.98;
-        physics.zza *= 0.98;
+        physics.x_acceleration *= 0.98;
+        physics.z_acceleration *= 0.98;
 
         // TODO: freezing, pushEntities, drowning damage (in their own systems,
         // after `travel`)
     }
+}
+
+fn jump_in_liquid(physics: &mut Physics) {
+    physics.velocity.y += 0.04;
+}
+
+// in minecraft, this is done as part of aiStep immediately after travel
+#[allow(clippy::type_complexity)]
+pub fn apply_effects_from_blocks(
+    mut query: Query<
+        (&mut Physics, &Position, &InstanceName),
+        (With<LocalEntity>, With<InLoadedChunk>),
+    >,
+    instance_container: Res<InstanceContainer>,
+) {
+    for (mut physics, position, world_name) in &mut query {
+        let Some(world_lock) = instance_container.get(world_name) else {
+            continue;
+        };
+        let world = world_lock.read();
+
+        // if !is_affected_by_blocks {
+        //     continue
+        // }
+
+        // if (this.onGround()) {
+        //     BlockPos var3 = this.getOnPosLegacy();
+        //     BlockState var4 = this.level().getBlockState(var3);
+        //     var4.getBlock().stepOn(this.level(), var3, var4, this);
+        //  }
+
+        // minecraft adds more entries to the list when the code is running on the
+        // server
+        let movement_this_tick = [EntityMovement {
+            from: physics.old_position,
+            to: **position,
+        }];
+
+        check_inside_blocks(&mut physics, &world, &movement_this_tick);
+    }
+}
+
+fn check_inside_blocks(
+    physics: &mut Physics,
+    world: &Instance,
+    movements: &[EntityMovement],
+) -> Vec<BlockState> {
+    let mut blocks_inside = Vec::new();
+    let mut visited_blocks = HashSet::<BlockState>::new();
+
+    for movement in movements {
+        let bounding_box_at_target = physics
+            .dimensions
+            .make_bounding_box(&movement.to)
+            .deflate_all(1.0E-5);
+
+        for traversed_block in
+            box_traverse_blocks(&movement.from, &movement.to, &bounding_box_at_target)
+        {
+            // if (!this.isAlive()) {
+            //     return;
+            // }
+
+            let traversed_block_state = world.get_block_state(&traversed_block).unwrap_or_default();
+            if traversed_block_state.is_air() {
+                continue;
+            }
+            if !visited_blocks.insert(traversed_block_state) {
+                continue;
+            }
+
+            /*
+            VoxelShape var12 = traversedBlockState.getEntityInsideCollisionShape(this.level(), traversedBlock);
+            if (var12 != Shapes.block() && !this.collidedWithShapeMovingFrom(from, to, traversedBlock, var12)) {
+               continue;
+            }
+
+            traversedBlockState.entityInside(this.level(), traversedBlock, this);
+            this.onInsideBlock(traversedBlockState);
+            */
+
+            // this is different for end portal frames and tripwire hooks, i don't think it
+            // actually matters for a client though
+            let entity_inside_collision_shape = &*BLOCK_SHAPE;
+
+            if entity_inside_collision_shape != &*BLOCK_SHAPE
+                && !collided_with_shape_moving_from(
+                    &movement.from,
+                    &movement.to,
+                    traversed_block,
+                    entity_inside_collision_shape,
+                    physics,
+                )
+            {
+                continue;
+            }
+
+            handle_entity_inside_block(world, traversed_block_state, traversed_block, physics);
+
+            blocks_inside.push(traversed_block_state);
+        }
+    }
+
+    blocks_inside
+}
+
+fn collided_with_shape_moving_from(
+    from: &Vec3,
+    to: &Vec3,
+    traversed_block: BlockPos,
+    entity_inside_collision_shape: &VoxelShape,
+    physics: &Physics,
+) -> bool {
+    let bounding_box_from = physics.dimensions.make_bounding_box(from);
+    let delta = to - from;
+    bounding_box_from.collided_along_vector(
+        delta,
+        &entity_inside_collision_shape
+            .move_relative(traversed_block.to_vec3_floored())
+            .to_aabbs(),
+    )
+}
+
+// BlockBehavior.entityInside
+fn handle_entity_inside_block(
+    world: &Instance,
+    block: BlockState,
+    block_pos: BlockPos,
+    physics: &mut Physics,
+) {
+    let registry_block = azalea_registry::Block::from(block);
+    #[allow(clippy::single_match)]
+    match registry_block {
+        azalea_registry::Block::BubbleColumn => {
+            let block_above = world.get_block_state(&block_pos.up(1)).unwrap_or_default();
+            let is_block_above_empty =
+                block_above.is_collision_shape_empty() && FluidState::from(block_above).is_empty();
+            let drag_down = block
+                .property::<properties::Drag>()
+                .expect("drag property should always be present on bubble columns");
+            let velocity = &mut physics.velocity;
+
+            if is_block_above_empty {
+                let new_y = if drag_down {
+                    f64::max(-0.9, velocity.y - 0.03)
+                } else {
+                    f64::min(1.8, velocity.y + 0.1)
+                };
+                velocity.y = new_y;
+            } else {
+                let new_y = if drag_down {
+                    f64::max(-0.3, velocity.y - 0.03)
+                } else {
+                    f64::min(0.7, velocity.y + 0.06)
+                };
+                velocity.y = new_y;
+                physics.reset_fall_distance();
+            }
+        }
+        _ => {}
+    }
+}
+
+pub struct EntityMovement {
+    pub from: Vec3,
+    pub to: Vec3,
 }
 
 pub fn jump_from_ground(
@@ -232,6 +342,12 @@ pub fn jump_from_ground(
     physics.has_impulse = true;
 }
 
+pub fn update_old_position(mut query: Query<(&mut Physics, &Position)>) {
+    for (mut physics, position) in &mut query {
+        physics.set_old_pos(position);
+    }
+}
+
 fn get_block_pos_below_that_affects_movement(position: &Position) -> BlockPos {
     BlockPos::new(
         position.x.floor() as i32,
@@ -241,7 +357,7 @@ fn get_block_pos_below_that_affects_movement(position: &Position) -> BlockPos {
     )
 }
 
-// opts for handle_relative_friction_and_calculate_movement
+/// Options for [`handle_relative_friction_and_calculate_movement`]
 struct HandleRelativeFrictionAndCalculateMovementOpts<'a> {
     block_friction: f32,
     world: &'a Instance,
@@ -254,7 +370,6 @@ struct HandleRelativeFrictionAndCalculateMovementOpts<'a> {
     pose: Option<&'a Pose>,
     jumping: &'a Jumping,
 }
-
 fn handle_relative_friction_and_calculate_movement(
     HandleRelativeFrictionAndCalculateMovementOpts {
         block_friction,
@@ -274,22 +389,22 @@ fn handle_relative_friction_and_calculate_movement(
         direction,
         get_friction_influenced_speed(physics, attributes, block_friction, is_sprinting),
         &Vec3 {
-            x: physics.xxa as f64,
-            y: physics.yya as f64,
-            z: physics.zza as f64,
+            x: physics.x_acceleration as f64,
+            y: physics.y_acceleration as f64,
+            z: physics.z_acceleration as f64,
         },
     );
 
     physics.velocity = handle_on_climbable(physics.velocity, on_climbable, &position, world, pose);
 
     move_colliding(
-        &MoverType::Own,
+        MoverType::Own,
         &physics.velocity.clone(),
         world,
         &mut position,
         physics,
     )
-    .expect("Entity should exist.");
+    .expect("Entity should exist");
     // let delta_movement = entity.delta;
     // ladders
     //   if ((entity.horizontalCollision || entity.jumping) && (entity.onClimbable()
@@ -417,370 +532,4 @@ fn jump_boost_power() -> f64 {
     //     0.
     // }
     0.
-}
-
-#[cfg(test)]
-mod tests {
-
-    use azalea_core::{position::ChunkPos, resource_location::ResourceLocation};
-    use azalea_entity::{EntityBundle, EntityPlugin};
-    use azalea_world::{Chunk, MinecraftEntityId, PartialInstance};
-    use uuid::Uuid;
-
-    use super::*;
-
-    /// You need an app to spawn entities in the world and do updates.
-    fn make_test_app() -> App {
-        let mut app = App::new();
-        app.add_plugins((PhysicsPlugin, EntityPlugin))
-            .init_resource::<InstanceContainer>();
-        app
-    }
-
-    #[test]
-    fn test_gravity() {
-        let mut app = make_test_app();
-        let world_lock = app.world_mut().resource_mut::<InstanceContainer>().insert(
-            ResourceLocation::new("minecraft:overworld"),
-            384,
-            -64,
-        );
-        let mut partial_world = PartialInstance::default();
-        // the entity has to be in a loaded chunk for physics to work
-        partial_world.chunks.set(
-            &ChunkPos { x: 0, z: 0 },
-            Some(Chunk::default()),
-            &mut world_lock.write().chunks,
-        );
-
-        let entity = app
-            .world_mut()
-            .spawn((
-                EntityBundle::new(
-                    Uuid::nil(),
-                    Vec3 {
-                        x: 0.,
-                        y: 70.,
-                        z: 0.,
-                    },
-                    azalea_registry::EntityKind::Zombie,
-                    ResourceLocation::new("minecraft:overworld"),
-                ),
-                MinecraftEntityId(0),
-                LocalEntity,
-            ))
-            .id();
-        {
-            let entity_pos = *app.world_mut().get::<Position>(entity).unwrap();
-            // y should start at 70
-            assert_eq!(entity_pos.y, 70.);
-        }
-        app.update();
-        app.world_mut().run_schedule(GameTick);
-        app.update();
-        {
-            let entity_pos = *app.world_mut().get::<Position>(entity).unwrap();
-            // delta is applied before gravity, so the first tick only sets the delta
-            assert_eq!(entity_pos.y, 70.);
-            let entity_physics = app.world_mut().get::<Physics>(entity).unwrap();
-            assert!(entity_physics.velocity.y < 0.);
-        }
-        app.world_mut().run_schedule(GameTick);
-        app.update();
-        {
-            let entity_pos = *app.world_mut().get::<Position>(entity).unwrap();
-            // the second tick applies the delta to the position, so now it should go down
-            assert!(
-                entity_pos.y < 70.,
-                "Entity y ({}) didn't go down after physics steps",
-                entity_pos.y
-            );
-        }
-    }
-    #[test]
-    fn test_collision() {
-        let mut app = make_test_app();
-        let world_lock = app.world_mut().resource_mut::<InstanceContainer>().insert(
-            ResourceLocation::new("minecraft:overworld"),
-            384,
-            -64,
-        );
-        let mut partial_world = PartialInstance::default();
-
-        partial_world.chunks.set(
-            &ChunkPos { x: 0, z: 0 },
-            Some(Chunk::default()),
-            &mut world_lock.write().chunks,
-        );
-        let entity = app
-            .world_mut()
-            .spawn((
-                EntityBundle::new(
-                    Uuid::nil(),
-                    Vec3 {
-                        x: 0.5,
-                        y: 70.,
-                        z: 0.5,
-                    },
-                    azalea_registry::EntityKind::Player,
-                    ResourceLocation::new("minecraft:overworld"),
-                ),
-                MinecraftEntityId(0),
-                LocalEntity,
-            ))
-            .id();
-        let block_state = partial_world.chunks.set_block_state(
-            &BlockPos { x: 0, y: 69, z: 0 },
-            azalea_registry::Block::Stone.into(),
-            &world_lock.write().chunks,
-        );
-        assert!(
-            block_state.is_some(),
-            "Block state should exist, if this fails that means the chunk wasn't loaded and the block didn't get placed"
-        );
-        app.update();
-        app.world_mut().run_schedule(GameTick);
-        app.update();
-        {
-            let entity_pos = *app.world_mut().get::<Position>(entity).unwrap();
-            // delta will change, but it won't move until next tick
-            assert_eq!(entity_pos.y, 70.);
-            let entity_physics = app.world_mut().get::<Physics>(entity).unwrap();
-            assert!(entity_physics.velocity.y < 0.);
-        }
-        app.world_mut().run_schedule(GameTick);
-        app.update();
-        {
-            let entity_pos = *app.world_mut().get::<Position>(entity).unwrap();
-            // the second tick applies the delta to the position, but it also does collision
-            assert_eq!(entity_pos.y, 70.);
-        }
-    }
-
-    #[test]
-    fn test_slab_collision() {
-        let mut app = make_test_app();
-        let world_lock = app.world_mut().resource_mut::<InstanceContainer>().insert(
-            ResourceLocation::new("minecraft:overworld"),
-            384,
-            -64,
-        );
-        let mut partial_world = PartialInstance::default();
-
-        partial_world.chunks.set(
-            &ChunkPos { x: 0, z: 0 },
-            Some(Chunk::default()),
-            &mut world_lock.write().chunks,
-        );
-        let entity = app
-            .world_mut()
-            .spawn((
-                EntityBundle::new(
-                    Uuid::nil(),
-                    Vec3 {
-                        x: 0.5,
-                        y: 71.,
-                        z: 0.5,
-                    },
-                    azalea_registry::EntityKind::Player,
-                    ResourceLocation::new("minecraft:overworld"),
-                ),
-                MinecraftEntityId(0),
-                LocalEntity,
-            ))
-            .id();
-        let block_state = partial_world.chunks.set_block_state(
-            &BlockPos { x: 0, y: 69, z: 0 },
-            azalea_block::blocks::StoneSlab {
-                kind: azalea_block::properties::Type::Bottom,
-                waterlogged: false,
-            }
-            .into(),
-            &world_lock.write().chunks,
-        );
-        assert!(
-            block_state.is_some(),
-            "Block state should exist, if this fails that means the chunk wasn't loaded and the block didn't get placed"
-        );
-        // do a few steps so we fall on the slab
-        for _ in 0..20 {
-            app.world_mut().run_schedule(GameTick);
-            app.update();
-        }
-        let entity_pos = app.world_mut().get::<Position>(entity).unwrap();
-        assert_eq!(entity_pos.y, 69.5);
-    }
-
-    #[test]
-    fn test_top_slab_collision() {
-        let mut app = make_test_app();
-        let world_lock = app.world_mut().resource_mut::<InstanceContainer>().insert(
-            ResourceLocation::new("minecraft:overworld"),
-            384,
-            -64,
-        );
-        let mut partial_world = PartialInstance::default();
-
-        partial_world.chunks.set(
-            &ChunkPos { x: 0, z: 0 },
-            Some(Chunk::default()),
-            &mut world_lock.write().chunks,
-        );
-        let entity = app
-            .world_mut()
-            .spawn((
-                EntityBundle::new(
-                    Uuid::nil(),
-                    Vec3 {
-                        x: 0.5,
-                        y: 71.,
-                        z: 0.5,
-                    },
-                    azalea_registry::EntityKind::Player,
-                    ResourceLocation::new("minecraft:overworld"),
-                ),
-                MinecraftEntityId(0),
-                LocalEntity,
-            ))
-            .id();
-        let block_state = world_lock.write().chunks.set_block_state(
-            &BlockPos { x: 0, y: 69, z: 0 },
-            azalea_block::blocks::StoneSlab {
-                kind: azalea_block::properties::Type::Top,
-                waterlogged: false,
-            }
-            .into(),
-        );
-        assert!(
-            block_state.is_some(),
-            "Block state should exist, if this fails that means the chunk wasn't loaded and the block didn't get placed"
-        );
-        // do a few steps so we fall on the slab
-        for _ in 0..20 {
-            app.world_mut().run_schedule(GameTick);
-            app.update();
-        }
-        let entity_pos = app.world_mut().get::<Position>(entity).unwrap();
-        assert_eq!(entity_pos.y, 70.);
-    }
-
-    #[test]
-    fn test_weird_wall_collision() {
-        let mut app = make_test_app();
-        let world_lock = app.world_mut().resource_mut::<InstanceContainer>().insert(
-            ResourceLocation::new("minecraft:overworld"),
-            384,
-            -64,
-        );
-        let mut partial_world = PartialInstance::default();
-
-        partial_world.chunks.set(
-            &ChunkPos { x: 0, z: 0 },
-            Some(Chunk::default()),
-            &mut world_lock.write().chunks,
-        );
-        let entity = app
-            .world_mut()
-            .spawn((
-                EntityBundle::new(
-                    Uuid::nil(),
-                    Vec3 {
-                        x: 0.5,
-                        y: 73.,
-                        z: 0.5,
-                    },
-                    azalea_registry::EntityKind::Player,
-                    ResourceLocation::new("minecraft:overworld"),
-                ),
-                MinecraftEntityId(0),
-                LocalEntity,
-            ))
-            .id();
-        let block_state = world_lock.write().chunks.set_block_state(
-            &BlockPos { x: 0, y: 69, z: 0 },
-            azalea_block::blocks::CobblestoneWall {
-                east: azalea_block::properties::WallEast::Low,
-                north: azalea_block::properties::WallNorth::Low,
-                south: azalea_block::properties::WallSouth::Low,
-                west: azalea_block::properties::WallWest::Low,
-                up: false,
-                waterlogged: false,
-            }
-            .into(),
-        );
-        assert!(
-            block_state.is_some(),
-            "Block state should exist, if this fails that means the chunk wasn't loaded and the block didn't get placed"
-        );
-        // do a few steps so we fall on the wall
-        for _ in 0..20 {
-            app.world_mut().run_schedule(GameTick);
-            app.update();
-        }
-
-        let entity_pos = app.world_mut().get::<Position>(entity).unwrap();
-        assert_eq!(entity_pos.y, 70.5);
-    }
-
-    #[test]
-    fn test_negative_coordinates_weird_wall_collision() {
-        let mut app = make_test_app();
-        let world_lock = app.world_mut().resource_mut::<InstanceContainer>().insert(
-            ResourceLocation::new("minecraft:overworld"),
-            384,
-            -64,
-        );
-        let mut partial_world = PartialInstance::default();
-
-        partial_world.chunks.set(
-            &ChunkPos { x: -1, z: -1 },
-            Some(Chunk::default()),
-            &mut world_lock.write().chunks,
-        );
-        let entity = app
-            .world_mut()
-            .spawn((
-                EntityBundle::new(
-                    Uuid::nil(),
-                    Vec3 {
-                        x: -7.5,
-                        y: 73.,
-                        z: -7.5,
-                    },
-                    azalea_registry::EntityKind::Player,
-                    ResourceLocation::new("minecraft:overworld"),
-                ),
-                MinecraftEntityId(0),
-                LocalEntity,
-            ))
-            .id();
-        let block_state = world_lock.write().chunks.set_block_state(
-            &BlockPos {
-                x: -8,
-                y: 69,
-                z: -8,
-            },
-            azalea_block::blocks::CobblestoneWall {
-                east: azalea_block::properties::WallEast::Low,
-                north: azalea_block::properties::WallNorth::Low,
-                south: azalea_block::properties::WallSouth::Low,
-                west: azalea_block::properties::WallWest::Low,
-                up: false,
-                waterlogged: false,
-            }
-            .into(),
-        );
-        assert!(
-            block_state.is_some(),
-            "Block state should exist, if this fails that means the chunk wasn't loaded and the block didn't get placed"
-        );
-        // do a few steps so we fall on the wall
-        for _ in 0..20 {
-            app.world_mut().run_schedule(GameTick);
-            app.update();
-        }
-
-        let entity_pos = app.world_mut().get::<Position>(entity).unwrap();
-        assert_eq!(entity_pos.y, 70.5);
-    }
 }

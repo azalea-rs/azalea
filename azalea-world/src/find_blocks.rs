@@ -1,4 +1,4 @@
-use azalea_block::{BlockState, BlockStates};
+use azalea_block::{block_state::BlockState, BlockStates};
 use azalea_core::position::{BlockPos, ChunkPos};
 
 use crate::{iterators::ChunkIterator, palette::Palette, ChunkStorage, Instance};

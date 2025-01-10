@@ -17,7 +17,7 @@ use std::{
 };
 
 pub use attributes::Attributes;
-use azalea_block::BlockState;
+use azalea_block::{fluid_state::FluidKind, BlockState};
 use azalea_buf::AzBuf;
 use azalea_core::{
     aabb::AABB,
@@ -207,8 +207,8 @@ impl From<&LastSentPosition> for BlockPos {
 
 /// A component for entities that can jump.
 ///
-/// If this is true, the entity will try to jump every tick. (It's equivalent to
-/// the space key being held in vanilla.)
+/// If this is true, the entity will try to jump every tick. It's equivalent to
+/// the space key being held in vanilla.
 #[derive(Debug, Component, Copy, Clone, Deref, DerefMut, Default)]
 pub struct Jumping(bool);
 
@@ -251,19 +251,33 @@ impl Eq for LookDirection {}
 #[derive(Debug, Component, Clone, Default)]
 pub struct Physics {
     /// How fast the entity is moving.
+    ///
+    /// Sometimes referred to as the delta movement.
     pub velocity: Vec3,
+    pub vec_delta_codec: VecDeltaCodec,
 
-    /// X acceleration.
-    pub xxa: f32,
-    /// Y acceleration.
-    pub yya: f32,
-    /// Z acceleration.
-    pub zza: f32,
+    /// The position of the entity before it moved this tick.
+    ///
+    /// This is set immediately before physics is done.
+    pub old_position: Vec3,
+
+    /// The acceleration here is the force that will be attempted to be added to
+    /// the entity's velocity next tick.
+    ///
+    /// You should typically not set this yourself, since it's controlled by how
+    /// the entity is trying to move.
+    pub x_acceleration: f32,
+    pub y_acceleration: f32,
+    pub z_acceleration: f32,
 
     on_ground: bool,
     last_on_ground: bool,
 
-    pub vec_delta_codec: VecDeltaCodec,
+    /// The number of ticks until we jump again, if the jump key is being held.
+    ///
+    /// This must be 0 for us to be able to jump. Sets to 10 when we do a jump
+    /// and sets to 0 if we're not trying to jump.
+    pub no_jump_delay: u32,
 
     /// The width and height of the entity.
     pub dimensions: EntityDimensions,
@@ -276,21 +290,35 @@ pub struct Physics {
     pub horizontal_collision: bool,
     // pub minor_horizontal_collision: bool,
     pub vertical_collision: bool,
+
+    pub water_fluid_height: f64,
+    pub lava_fluid_height: f64,
+    pub was_touching_water: bool,
+
+    // TODO: implement fall_distance
+    pub fall_distance: f32,
+    // TODO: implement remaining_fire_ticks
+    pub remaining_fire_ticks: i32,
 }
 
 impl Physics {
     pub fn new(dimensions: EntityDimensions, pos: Vec3) -> Self {
         Self {
             velocity: Vec3::default(),
+            vec_delta_codec: VecDeltaCodec::new(pos),
 
-            xxa: 0.,
-            yya: 0.,
-            zza: 0.,
+            old_position: pos,
+
+            x_acceleration: 0.,
+            y_acceleration: 0.,
+            z_acceleration: 0.,
 
             on_ground: false,
             last_on_ground: false,
 
-            bounding_box: dimensions.make_bounding_box(pos),
+            no_jump_delay: 0,
+
+            bounding_box: dimensions.make_bounding_box(&pos),
             dimensions,
 
             has_impulse: false,
@@ -298,7 +326,12 @@ impl Physics {
             horizontal_collision: false,
             vertical_collision: false,
 
-            vec_delta_codec: VecDeltaCodec::new(pos),
+            water_fluid_height: 0.,
+            lava_fluid_height: 0.,
+            was_touching_water: false,
+
+            fall_distance: 0.,
+            remaining_fire_ticks: 0,
         }
     }
 
@@ -320,6 +353,25 @@ impl Physics {
     }
     pub fn set_last_on_ground(&mut self, last_on_ground: bool) {
         self.last_on_ground = last_on_ground;
+    }
+
+    pub fn reset_fall_distance(&mut self) {
+        self.fall_distance = 0.;
+    }
+    pub fn clear_fire(&mut self) {
+        self.remaining_fire_ticks = 0;
+    }
+
+    pub fn is_in_water(&self) -> bool {
+        self.was_touching_water
+    }
+    pub fn is_in_lava(&self) -> bool {
+        // TODO: also check `!this.firstTick &&`
+        self.lava_fluid_height > 0.
+    }
+
+    pub fn set_old_pos(&mut self, pos: &Position) {
+        self.old_position = **pos;
     }
 }
 
@@ -420,10 +472,11 @@ impl EntityBundle {
                 // entities have different defaults
                 speed: AttributeInstance::new(0.1),
                 attack_speed: AttributeInstance::new(4.0),
+                water_movement_efficiency: AttributeInstance::new(0.0),
             },
 
             jumping: Jumping(false),
-            fluid_on_eyes: FluidOnEyes(azalea_registry::Fluid::Empty),
+            fluid_on_eyes: FluidOnEyes(FluidKind::Empty),
             on_climbable: OnClimbable(false),
         }
     }
@@ -444,10 +497,10 @@ pub struct PlayerBundle {
 pub struct LocalEntity;
 
 #[derive(Component, Clone, Debug, PartialEq, Deref, DerefMut)]
-pub struct FluidOnEyes(azalea_registry::Fluid);
+pub struct FluidOnEyes(FluidKind);
 
 impl FluidOnEyes {
-    pub fn new(fluid: azalea_registry::Fluid) -> Self {
+    pub fn new(fluid: FluidKind) -> Self {
         Self(fluid)
     }
 }
