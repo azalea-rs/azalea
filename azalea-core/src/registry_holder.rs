@@ -161,7 +161,7 @@ pub struct DimensionTypeElement {
 pub struct DimensionTypeElement {
     pub height: u32,
     pub min_y: i32,
-    pub ultrawarm: u8,
+    pub ultrawarm: bool,
     #[simdnbt(flatten)]
     pub _extra: HashMap<String, NbtTag>,
 }

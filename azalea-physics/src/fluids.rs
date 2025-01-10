@@ -35,7 +35,7 @@ pub fn update_in_water_state_and_do_fluid_pushing(
             .registries
             .dimension_type()
             .and_then(|d| d.map.get(instance_name).map(|d| d.ultrawarm))
-            == Some(1);
+            == Some(true);
         let lava_push_factor = if is_ultrawarm {
             0.007
         } else {
