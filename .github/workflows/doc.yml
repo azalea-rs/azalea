@@ -4,7 +4,8 @@ on:
   push:
     branches:
       - main
-      - '*.*.*'
+      # only match branches that look like Minecraft versions
+      - "*.*"
   workflow_dispatch:
 
 permissions:
@@ -53,21 +54,21 @@ jobs:
           echo "</head>" >> branches.html
           echo "<body>" >> branches.html
           echo "  <h1>Azalea Docs</h1>" >> branches.html
-          echo "  <p>Welcome to the documentation for Azalea Crate.</p>" >> branches.html
+          echo "  <p>Welcome to the documentation for Azalea.</p>" >> branches.html
           echo "  <h2>Available Versions</h2>" >> branches.html
           echo "  <ul>" >> branches.html
-          
+
           # Update branches.html with available versions
           for VERSION in $VERSIONS; do
-          echo "    <li><a href=\"https://azalea.matdoes.dev/$VERSION/index.html\">$VERSION</a></li>" >> branches.html
-            done
+            echo "    <li><a href=\"https://azalea.matdoes.dev/$VERSION/index.html\">$VERSION</a></li>" >> branches.html
+          done
 
-            echo "  </ul>" >> branches.html
-            echo "</body>" >> branches.html
-            echo "</html>" >> branches.html
+          echo "  </ul>" >> branches.html
+          echo "</body>" >> branches.html
+          echo "</html>" >> branches.html
 
-            echo "branches.html generated successfully."
-      
+          echo "branches.html generated successfully."
+
       - name: Create Index Page
         run: |
           if [ ! -f index.html ]; then
