@@ -1,45 +1,81 @@
-name: Doc
+name: Generate Documentation
 
 on:
   push:
     branches:
       - main
+      - '*.*.*'
   workflow_dispatch:
-
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
-
-concurrency:
-  group: "pages"
-  cancel-in-progress: true
 
 jobs:
   deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
+
+      - name: Install Rust Toolchain
+        uses: rs-workspace/rust-toolchain@v0.1.0
         with:
           toolchain: nightly
-      - run: cargo doc --workspace --no-deps
-      - uses: "finnp/create-file-action@master"
-        env:
-          FILE_NAME: "./target/doc/index.html"
-          FILE_DATA: '<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=''./azalea''"/></head></html>' # Redirect to default page
-    
-      - name: Setup Pages
-        uses: actions/configure-pages@v2
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v1
-        with:
-          path: './target/doc/'
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v1
+
+      - name: Generate Documentation
+        run: RUSTDOCFLAGS="--enable-index-page -Zunstable-options" cargo doc --workspace --no-deps
+
+      - name: Prepare Documentation
+        run: |
+          BRANCH_NAME=$(echo "${GITHUB_REF##*/}" | tr '/' '_')  # Get branch name safely
+          mkdir -p versioned_docs/$BRANCH_NAME
+          cp -r target/doc/* versioned_docs/$BRANCH_NAME
+
+      - name: Checkout to Docs Branch
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin docs || git checkout --orphan docs
+          git checkout docs
+          cp -r versioned_docs/* ./  # Copy docs to branch root
+          rm -rf versioned_docs  # Clean up
+          rm -rf target # Clean up
+
+      - name: Generate branches.html
+        run: |
+          VERSIONS=$(ls -d */ | sed 's#/##' | sort -r)  # Get all version directories and sort them (latest first)
+          echo "<!DOCTYPE html>" > branches.html
+          echo "<html lang=\"en\">" >> branches.html
+          echo "<head>" >> branches.html
+          echo "  <meta charset=\"UTF-8\">" >> branches.html
+          echo "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">" >> branches.html
+          echo "  <title>Azalea Docs</title>" >> branches.html
+          echo "</head>" >> branches.html
+          echo "<body>" >> branches.html
+          echo "  <h1>Azalea Docs</h1>" >> branches.html
+          echo "  <p>Welcome to the documentation for Azalea Crate.</p>" >> branches.html
+          echo "  <h2>Available Versions</h2>" >> branches.html
+          echo "  <ul>" >> branches.html
+          
+          # Update branches.html with available versions
+          for VERSION in $VERSIONS; do
+          echo "    <li><a href=\"https://azalea.matdoes.dev/$VERSION/index.html\">$VERSION</a></li>" >> branches.html
+            done
+
+            echo "  </ul>" >> branches.html
+            echo "</body>" >> branches.html
+            echo "</html>" >> branches.html
+
+            echo "branches.html generated successfully."
+      
+      - name: Create Index Page
+        run: |
+          if [ ! -f index.html ]; then
+            echo "<meta http-equiv=refresh content=0;url=main/azalea>" > index.html
+          fi
+
+      - name: Deploy Documentation to Docs Branch
+        run: |
+          git add .
+          git commit -m "Update documentation for $GITHUB_REF_NAME" || echo "No changes to commit"
+          git push origin docs
