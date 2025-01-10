@@ -381,16 +381,25 @@ impl VoxelShape {
     }
 
     #[must_use]
-    pub fn move_relative(&self, x: f64, y: f64, z: f64) -> VoxelShape {
+    pub fn move_relative(&self, delta: Vec3) -> VoxelShape {
         if self.shape().is_empty() {
             return EMPTY_SHAPE.clone();
         }
 
         VoxelShape::Array(ArrayVoxelShape::new(
             self.shape().to_owned(),
-            self.get_coords(Axis::X).iter().map(|c| c + x).collect(),
-            self.get_coords(Axis::Y).iter().map(|c| c + y).collect(),
-            self.get_coords(Axis::Z).iter().map(|c| c + z).collect(),
+            self.get_coords(Axis::X)
+                .iter()
+                .map(|c| c + delta.x)
+                .collect(),
+            self.get_coords(Axis::Y)
+                .iter()
+                .map(|c| c + delta.y)
+                .collect(),
+            self.get_coords(Axis::Z)
+                .iter()
+                .map(|c| c + delta.z)
+                .collect(),
         ))
     }
 

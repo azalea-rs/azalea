@@ -1,8 +1,7 @@
-use azalea_block::{Block, BlockState};
+use azalea_block::{fluid_state::FluidKind, Block, BlockState};
 use azalea_client::{inventory::Inventory, Client};
 use azalea_entity::{FluidOnEyes, Physics};
 use azalea_inventory::{components, ItemStack, Menu};
-use azalea_registry::Fluid;
 
 #[derive(Debug)]
 pub struct BestToolResult {
@@ -34,7 +33,12 @@ pub fn best_tool_in_hotbar_for_block(block: BlockState, menu: &Menu) -> BestTool
     let mut physics = Physics::default();
     physics.set_on_ground(true);
 
-    accurate_best_tool_in_hotbar_for_block(block, menu, &physics, &FluidOnEyes::new(Fluid::Empty))
+    accurate_best_tool_in_hotbar_for_block(
+        block,
+        menu,
+        &physics,
+        &FluidOnEyes::new(FluidKind::Empty),
+    )
 }
 
 pub fn accurate_best_tool_in_hotbar_for_block(

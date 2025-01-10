@@ -18,8 +18,8 @@ pub struct ClipPointOpts<'a> {
     pub delta: &'a Vec3,
     pub begin: f64,
     pub min_x: f64,
-    pub max_x: f64,
     pub min_z: f64,
+    pub max_x: f64,
     pub max_z: f64,
     pub result_dir: Direction,
     pub start: &'a Vec3,
@@ -27,36 +27,28 @@ pub struct ClipPointOpts<'a> {
 
 impl AABB {
     pub fn contract(&self, x: f64, y: f64, z: f64) -> AABB {
-        let mut min_x = self.min.x;
-        let mut min_y = self.min.y;
-        let mut min_z = self.min.z;
-
-        let mut max_x = self.max.x;
-        let mut max_y = self.max.y;
-        let mut max_z = self.max.z;
+        let mut min = self.min;
+        let mut max = self.max;
 
         if x < 0.0 {
-            min_x -= x;
+            min.x -= x;
         } else if x > 0.0 {
-            max_x -= x;
+            max.x -= x;
         }
 
         if y < 0.0 {
-            min_y -= y;
+            min.y -= y;
         } else if y > 0.0 {
-            max_y -= y;
+            max.y -= y;
         }
 
         if z < 0.0 {
-            min_z -= z;
+            min.z -= z;
         } else if z > 0.0 {
-            max_z -= z;
+            max.z -= z;
         }
 
-        AABB {
-            min: Vec3::new(min_x, min_y, min_z),
-            max: Vec3::new(max_x, max_y, max_z),
-        }
+        AABB { min, max }
     }
 
     pub fn expand_towards(&self, other: &Vec3) -> AABB {
@@ -167,13 +159,13 @@ impl AABB {
         })
     }
 
-    pub fn contains(&self, x: f64, y: f64, z: f64) -> bool {
-        x >= self.min.x
-            && x < self.max.x
-            && y >= self.min.y
-            && y < self.max.y
-            && z >= self.min.z
-            && z < self.max.z
+    pub fn contains(&self, point: &Vec3) -> bool {
+        point.x >= self.min.x
+            && point.x < self.max.x
+            && point.y >= self.min.y
+            && point.y < self.max.y
+            && point.z >= self.min.z
+            && point.z < self.max.z
     }
 
     pub fn size(&self) -> f64 {
@@ -202,8 +194,15 @@ impl AABB {
     pub fn clip(&self, min: &Vec3, max: &Vec3) -> Option<Vec3> {
         let mut t = 1.0;
         let delta = max - min;
-        let _dir = Self::get_direction(self, min, &mut t, None, &delta)?;
+        let _dir = Self::get_direction_aabb(self, min, &mut t, None, &delta)?;
         Some(min + &(delta * t))
+    }
+
+    pub fn clip_with_from_and_to(min: &Vec3, max: &Vec3, from: &Vec3, to: &Vec3) -> Option<Vec3> {
+        let mut t = 1.0;
+        let delta = to - from;
+        let _dir = Self::get_direction(min, max, from, &mut t, None, &delta)?;
+        Some(from + &(delta * t))
     }
 
     pub fn clip_iterable(
@@ -217,7 +216,7 @@ impl AABB {
         let delta = to - from;
 
         for aabb in boxes {
-            dir = Self::get_direction(
+            dir = Self::get_direction_aabb(
                 &aabb.move_relative(pos.to_vec3_floored()),
                 from,
                 &mut t,
@@ -236,8 +235,19 @@ impl AABB {
         })
     }
 
+    fn get_direction_aabb(
+        &self,
+        from: &Vec3,
+        t: &mut f64,
+        dir: Option<Direction>,
+        delta: &Vec3,
+    ) -> Option<Direction> {
+        AABB::get_direction(&self.min, &self.max, from, t, dir, delta)
+    }
+
     fn get_direction(
-        aabb: &AABB,
+        min: &Vec3,
+        max: &Vec3,
         from: &Vec3,
         t: &mut f64,
         mut dir: Option<Direction>,
@@ -248,11 +258,11 @@ impl AABB {
                 t,
                 approach_dir: dir,
                 delta,
-                begin: aabb.min.x,
-                min_x: aabb.min.y,
-                max_x: aabb.max.y,
-                min_z: aabb.min.z,
-                max_z: aabb.max.z,
+                begin: min.x,
+                min_x: min.y,
+                max_x: max.y,
+                min_z: min.z,
+                max_z: max.z,
                 result_dir: Direction::West,
                 start: from,
             });
@@ -261,11 +271,11 @@ impl AABB {
                 t,
                 approach_dir: dir,
                 delta,
-                begin: aabb.max.x,
-                min_x: aabb.min.y,
-                max_x: aabb.max.y,
-                min_z: aabb.min.z,
-                max_z: aabb.max.z,
+                begin: max.x,
+                min_x: min.y,
+                max_x: max.y,
+                min_z: min.z,
+                max_z: max.z,
                 result_dir: Direction::East,
                 start: from,
             });
@@ -280,11 +290,11 @@ impl AABB {
                     y: delta.z,
                     z: delta.x,
                 },
-                begin: aabb.min.y,
-                min_x: aabb.min.z,
-                max_x: aabb.max.z,
-                min_z: aabb.min.x,
-                max_z: aabb.max.x,
+                begin: min.y,
+                min_x: min.z,
+                max_x: max.z,
+                min_z: min.x,
+                max_z: max.x,
                 result_dir: Direction::Down,
                 start: &Vec3 {
                     x: from.y,
@@ -301,11 +311,11 @@ impl AABB {
                     y: delta.z,
                     z: delta.x,
                 },
-                begin: aabb.max.y,
-                min_x: aabb.min.z,
-                max_x: aabb.max.z,
-                min_z: aabb.min.x,
-                max_z: aabb.max.x,
+                begin: max.y,
+                min_x: min.z,
+                max_x: max.z,
+                min_z: min.x,
+                max_z: max.x,
                 result_dir: Direction::Up,
                 start: &Vec3 {
                     x: from.y,
@@ -324,11 +334,11 @@ impl AABB {
                     y: delta.x,
                     z: delta.y,
                 },
-                begin: aabb.min.z,
-                min_x: aabb.min.x,
-                max_x: aabb.max.x,
-                min_z: aabb.min.y,
-                max_z: aabb.max.y,
+                begin: min.z,
+                min_x: min.x,
+                max_x: max.x,
+                min_z: min.y,
+                max_z: max.y,
                 result_dir: Direction::North,
                 start: &Vec3 {
                     x: from.z,
@@ -345,11 +355,11 @@ impl AABB {
                     y: delta.x,
                     z: delta.y,
                 },
-                begin: aabb.max.z,
-                min_x: aabb.min.x,
-                max_x: aabb.max.x,
-                min_z: aabb.min.y,
-                max_z: aabb.max.y,
+                begin: max.z,
+                min_x: min.x,
+                max_x: max.x,
+                min_z: min.y,
+                max_z: max.y,
                 result_dir: Direction::South,
                 start: &Vec3 {
                     x: from.z,
@@ -417,6 +427,60 @@ impl AABB {
     }
     pub fn min(&self, axis: &Axis) -> f64 {
         axis.choose(self.min.x, self.min.y, self.min.z)
+    }
+
+    pub fn collided_along_vector(&self, vector: Vec3, boxes: &Vec<AABB>) -> bool {
+        let center = self.get_center();
+        let new_center = center + vector;
+
+        for aabb in boxes {
+            let inflated = aabb.inflate(
+                self.get_size(Axis::X) * 0.5,
+                self.get_size(Axis::Y) * 0.5,
+                self.get_size(Axis::Z) * 0.5,
+            );
+            if inflated.contains(&new_center) || inflated.contains(&center) {
+                return true;
+            }
+
+            if inflated.clip(&center, &new_center).is_some() {
+                return true;
+            }
+        }
+
+        false
+    }
+}
+
+impl BlockPos {
+    pub fn between_closed_aabb(aabb: &AABB) -> Vec<BlockPos> {
+        BlockPos::between_closed(BlockPos::from(aabb.min), BlockPos::from(aabb.max))
+    }
+
+    pub fn between_closed(min: BlockPos, max: BlockPos) -> Vec<BlockPos> {
+        assert!(min.x <= max.x);
+        assert!(min.y <= max.y);
+        assert!(min.z <= max.z);
+
+        let length_x = max.x - min.x + 1;
+        let length_y = max.y - min.y + 1;
+        let length_z = max.z - min.z + 1;
+        let volume = length_x * length_y * length_z;
+
+        let mut result = Vec::with_capacity(volume as usize);
+        for index in 0..volume {
+            let index_x = index % length_x;
+            let remaining_after_x = index / length_x;
+            let index_y = remaining_after_x % length_y;
+            let index_z = remaining_after_x / length_y;
+            result.push(BlockPos::new(
+                min.x + index_x,
+                min.y + index_y,
+                min.z + index_z,
+            ));
+        }
+
+        result
     }
 }
 

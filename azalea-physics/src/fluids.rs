@@ -1,12 +1,13 @@
-use std::cmp;
-
-use azalea_block::{fluid_state::FluidState, BlockState};
+use azalea_block::{
+    fluid_state::{FluidKind, FluidState},
+    BlockState,
+};
 use azalea_core::{
     direction::Direction,
     position::{BlockPos, Vec3},
 };
-use azalea_entity::{metadata::AbstractBoat, InLoadedChunk, LocalEntity, Physics, Position};
-use azalea_registry::{EntityKind, Fluid};
+use azalea_entity::{InLoadedChunk, LocalEntity, Physics, Position};
+use azalea_registry::Fluid;
 use azalea_world::{Instance, InstanceContainer, InstanceName};
 use bevy_ecs::prelude::*;
 
@@ -50,7 +51,7 @@ fn update_in_water_state_and_do_water_current_pushing(
     // }
 
     // updateFluidHeightAndDoFluidPushing
-    if update_fluid_height_and_do_fluid_pushing(physics, world, Fluid::Water, 0.014) {
+    if update_fluid_height_and_do_fluid_pushing(physics, world, FluidKind::Water, 0.014) {
         // if !was_touching_water && !first_tick {
         //     do_water_splash_effect();
         // }
@@ -66,7 +67,7 @@ fn update_in_water_state_and_do_water_current_pushing(
 fn update_fluid_height_and_do_fluid_pushing(
     physics: &mut Physics,
     world: &Instance,
-    checking_fluid: Fluid,
+    checking_fluid: FluidKind,
     fluid_push_factor: f64,
 ) -> bool {
     // if touching_unloaded_chunk() {
@@ -96,7 +97,7 @@ fn update_fluid_height_and_do_fluid_pushing(
                 let Some(fluid_at_cur_pos) = world.get_fluid_state(&cur_pos) else {
                     continue;
                 };
-                if fluid_at_cur_pos.fluid != checking_fluid {
+                if fluid_at_cur_pos.kind != checking_fluid {
                     continue;
                 }
                 let fluid_max_y = (cur_y as f32 + fluid_at_cur_pos.height()) as f64;
@@ -146,9 +147,9 @@ fn update_fluid_height_and_do_fluid_pushing(
     }
 
     match checking_fluid {
-        Fluid::Water => physics.water_fluid_height = min_height_touching,
-        Fluid::Lava => physics.lava_fluid_height = min_height_touching,
-        checking_fluid => panic!("unknown fluid {checking_fluid}"),
+        FluidKind::Water => physics.water_fluid_height = min_height_touching,
+        FluidKind::Lava => physics.lava_fluid_height = min_height_touching,
+        FluidKind::Empty => panic!("FluidKind::Empty should not be passed to update_fluid_height"),
     };
 
     touching_fluid

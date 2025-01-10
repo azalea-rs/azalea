@@ -3,7 +3,7 @@ mod relative_updates;
 
 use std::collections::HashSet;
 
-use azalea_block::BlockState;
+use azalea_block::{fluid_state::FluidKind, BlockState};
 use azalea_core::position::{BlockPos, ChunkPos, Vec3};
 use azalea_world::{InstanceContainer, InstanceName, MinecraftEntityId};
 use bevy_app::{App, Plugin, PreUpdate, Update};
@@ -106,9 +106,9 @@ pub fn update_fluid_on_eyes(
             .unwrap_or_default();
         let fluid_cutoff_y = (eye_block_pos.y as f32 + fluid_at_eye.height()) as f64;
         if fluid_cutoff_y > adjusted_eye_y {
-            **fluid_on_eyes = fluid_at_eye.fluid;
+            **fluid_on_eyes = fluid_at_eye.kind;
         } else {
-            **fluid_on_eyes = azalea_registry::Fluid::Empty;
+            **fluid_on_eyes = FluidKind::Empty;
         }
     }
 }
@@ -198,7 +198,7 @@ pub fn clamp_look_direction(mut query: Query<&mut LookDirection>) {
 /// Cached position in the world must be updated.
 pub fn update_bounding_box(mut query: Query<(&Position, &mut Physics), Changed<Position>>) {
     for (position, mut physics) in query.iter_mut() {
-        let bounding_box = physics.dimensions.make_bounding_box(**position);
+        let bounding_box = physics.dimensions.make_bounding_box(&position);
         physics.bounding_box = bounding_box;
     }
 }

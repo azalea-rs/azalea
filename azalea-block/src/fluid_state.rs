@@ -5,7 +5,7 @@ use crate::{
 
 #[derive(Clone, Debug)]
 pub struct FluidState {
-    pub fluid: azalea_registry::Fluid,
+    pub kind: FluidKind,
     /// 0 = empty, 8 = full, 9 = max.
     ///
     /// 9 is meant to be used when there's another fluid block of the same type
@@ -23,11 +23,29 @@ pub struct FluidState {
     /// set (see FlowingFluid.getFlowing)
     pub falling: bool,
 }
+#[derive(Default, Clone, Debug, PartialEq, Eq)]
+pub enum FluidKind {
+    #[default]
+    Empty,
+    Water,
+    Lava,
+}
 impl FluidState {
+    pub fn new_source_block(kind: FluidKind, falling: bool) -> Self {
+        Self {
+            kind,
+            amount: 8,
+            falling,
+        }
+    }
+
     /// A floating point number in between 0 and 1 representing the height (as a
     /// percentage of a full block) of the fluid.
     pub fn height(&self) -> f32 {
         self.amount as f32 / 9.
+    }
+    pub fn is_empty(&self) -> bool {
+        self.amount == 0
     }
 
     pub fn affects_flow(&self, other: &FluidState) -> bool {
@@ -35,30 +53,14 @@ impl FluidState {
     }
 
     pub fn is_same_kind(&self, other: &FluidState) -> bool {
-        (other.is_water() && self.is_water())
-            || (other.is_lava() && self.is_lava())
-            || (self.amount == 0 && other.amount == 0)
-    }
-
-    pub fn is_water(&self) -> bool {
-        matches!(
-            self.fluid,
-            azalea_registry::Fluid::Water | azalea_registry::Fluid::FlowingWater
-        )
-    }
-
-    pub fn is_lava(&self) -> bool {
-        matches!(
-            self.fluid,
-            azalea_registry::Fluid::Lava | azalea_registry::Fluid::FlowingLava
-        )
+        (other.kind == self.kind) || (self.amount == 0 && other.amount == 0)
     }
 }
 
 impl Default for FluidState {
     fn default() -> Self {
         Self {
-            fluid: azalea_registry::Fluid::Empty,
+            kind: FluidKind::Empty,
             amount: 0,
             falling: false,
         }
@@ -74,38 +76,47 @@ impl From<BlockState> for FluidState {
             .property::<crate::properties::Waterlogged>()
             .unwrap_or_default()
         {
-            Self {
-                fluid: azalea_registry::Fluid::Water,
+            return Self {
+                kind: FluidKind::Water,
                 amount: 8,
                 falling: false,
-            }
-        } else {
-            let block = Box::<dyn Block>::from(state);
-            if let Some(water) = block.downcast_ref::<crate::blocks::Water>() {
-                Self {
-                    fluid: azalea_registry::Fluid::Water,
-                    amount: to_or_from_legacy_fluid_level(water.level as u8),
-                    falling: false,
-                }
-            } else if let Some(lava) = block.downcast_ref::<crate::blocks::Lava>() {
-                Self {
-                    fluid: azalea_registry::Fluid::Lava,
-                    amount: to_or_from_legacy_fluid_level(lava.level as u8),
-                    falling: false,
-                }
-            } else {
-                Self {
-                    fluid: azalea_registry::Fluid::Empty,
-                    amount: 0,
-                    falling: false,
-                }
-            }
+            };
         }
+
+        let registry_block = azalea_registry::Block::from(state);
+        match registry_block {
+            azalea_registry::Block::Water => {
+                let level = state
+                    .property::<crate::properties::WaterLevel>()
+                    .expect("water block should always have WaterLevel");
+                return Self {
+                    kind: FluidKind::Water,
+                    amount: to_or_from_legacy_fluid_level(level as u8),
+                    falling: false,
+                };
+            }
+            azalea_registry::Block::Lava => {
+                let level = state
+                    .property::<crate::properties::LavaLevel>()
+                    .expect("lava block should always have LavaLevel");
+                return Self {
+                    kind: FluidKind::Lava,
+                    amount: to_or_from_legacy_fluid_level(level as u8),
+                    falling: false,
+                };
+            }
+            azalea_registry::Block::BubbleColumn => {
+                return Self::new_source_block(FluidKind::Water, false);
+            }
+            _ => {}
+        }
+
+        Self::default()
     }
 }
 
-/// Sometimes Minecraft represents fluids with 0 being the empty and 8 being
-/// full, and sometimes it's the opposite. You can use this function to convert
+/// Sometimes Minecraft represents fluids with 0 being empty and 8 being full,
+/// and sometimes it's the opposite. You can use this function to convert
 /// in between those two representations.
 ///
 /// You usually don't need to call this yourself, see [`FluidState`].
@@ -116,22 +127,14 @@ pub fn to_or_from_legacy_fluid_level(level: u8) -> u8 {
 
 impl From<FluidState> for BlockState {
     fn from(state: FluidState) -> Self {
-        match state.fluid {
-            azalea_registry::Fluid::Empty => BlockState::AIR,
-            azalea_registry::Fluid::Water | azalea_registry::Fluid::FlowingWater => {
-                BlockState::from(crate::blocks::Water {
-                    level: crate::properties::WaterLevel::from(
-                        state.amount as BlockStateIntegerRepr,
-                    ),
-                })
-            }
-            azalea_registry::Fluid::Lava | azalea_registry::Fluid::FlowingLava => {
-                BlockState::from(crate::blocks::Lava {
-                    level: crate::properties::LavaLevel::from(
-                        state.amount as BlockStateIntegerRepr,
-                    ),
-                })
-            }
+        match state.kind {
+            FluidKind::Empty => BlockState::AIR,
+            FluidKind::Water => BlockState::from(crate::blocks::Water {
+                level: crate::properties::WaterLevel::from(state.amount as BlockStateIntegerRepr),
+            }),
+            FluidKind::Lava => BlockState::from(crate::blocks::Lava {
+                level: crate::properties::LavaLevel::from(state.amount as BlockStateIntegerRepr),
+            }),
         }
     }
 }

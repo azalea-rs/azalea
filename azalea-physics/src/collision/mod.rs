@@ -355,7 +355,7 @@ pub fn fluid_shape(
 ) -> &'static VoxelShape {
     if fluid.amount == 9 {
         let fluid_state_above = world.get_fluid_state(&pos.up(1)).unwrap_or_default();
-        if fluid_state_above.fluid == fluid.fluid {
+        if fluid_state_above.kind == fluid.kind {
             return &BLOCK_SHAPE;
         }
     }

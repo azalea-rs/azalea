@@ -1,4 +1,4 @@
-use azalea_block::{Block, BlockBehavior};
+use azalea_block::{fluid_state::FluidKind, Block, BlockBehavior};
 use azalea_core::tier::get_item_tier;
 use azalea_registry as registry;
 
@@ -105,7 +105,7 @@ fn destroy_speed(
         base_destroy_speed *= multiplier;
     }
 
-    if registry::tags::fluids::WATER.contains(fluid_on_eyes)
+    if **fluid_on_eyes == FluidKind::Water
         && enchantments::get_enchant_level(registry::Enchantment::AquaAffinity, player_inventory)
             == 0
     {

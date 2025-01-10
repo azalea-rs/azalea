@@ -99,6 +99,7 @@ pub enum CardinalDirection {
     East,
 }
 
+/// A 3D axis like x, y, z.
 #[derive(Clone, Copy, Debug)]
 pub enum Axis {
     X = 0,

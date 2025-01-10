@@ -55,18 +55,13 @@ pub fn get_block_collisions(world: &Instance, aabb: AABB) -> Vec<VoxelShape> {
                 continue;
             }
 
-            block_collisions.push(BLOCK_SHAPE.move_relative(
-                item.pos.x as f64,
-                item.pos.y as f64,
-                item.pos.z as f64,
-            ));
+            block_collisions.push(BLOCK_SHAPE.move_relative(item.pos.to_vec3_floored()));
             continue;
         }
 
         let block_shape = state.get_block_shape(block_state);
 
-        let block_shape =
-            block_shape.move_relative(item.pos.x as f64, item.pos.y as f64, item.pos.z as f64);
+        let block_shape = block_shape.move_relative(item.pos.to_vec3_floored());
         // if the entity shape and block shape don't collide, continue
         if !Shapes::matches_anywhere(&block_shape, &state.entity_shape, |a, b| a && b) {
             continue;

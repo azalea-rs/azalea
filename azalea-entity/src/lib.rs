@@ -12,13 +12,12 @@ mod plugin;
 pub mod vec_delta_codec;
 
 use std::{
-    collections::HashMap,
     fmt::Debug,
     hash::{Hash, Hasher},
 };
 
 pub use attributes::Attributes;
-use azalea_block::BlockState;
+use azalea_block::{fluid_state::FluidKind, BlockState};
 use azalea_buf::AzBuf;
 use azalea_core::{
     aabb::AABB,
@@ -257,6 +256,11 @@ pub struct Physics {
     pub velocity: Vec3,
     pub vec_delta_codec: VecDeltaCodec,
 
+    /// The position of the entity before it moved this tick.
+    ///
+    /// This is set immediately before physics is done.
+    pub old_position: Vec3,
+
     /// The acceleration here is the force that will be attempted to be added to
     /// the entity's velocity next tick.
     ///
@@ -297,6 +301,8 @@ impl Physics {
             velocity: Vec3::default(),
             vec_delta_codec: VecDeltaCodec::new(pos),
 
+            old_position: pos,
+
             x_acceleration: 0.,
             y_acceleration: 0.,
             z_acceleration: 0.,
@@ -304,7 +310,7 @@ impl Physics {
             on_ground: false,
             last_on_ground: false,
 
-            bounding_box: dimensions.make_bounding_box(pos),
+            bounding_box: dimensions.make_bounding_box(&pos),
             dimensions,
 
             has_impulse: false,
@@ -354,6 +360,10 @@ impl Physics {
     pub fn is_in_lava(&self) -> bool {
         // TODO: also check `!this.firstTick &&`
         self.lava_fluid_height > 0.
+    }
+
+    pub fn set_old_pos(&mut self, pos: &Position) {
+        self.old_position = **pos;
     }
 }
 
@@ -458,7 +468,7 @@ impl EntityBundle {
             },
 
             jumping: Jumping(false),
-            fluid_on_eyes: FluidOnEyes(azalea_registry::Fluid::Empty),
+            fluid_on_eyes: FluidOnEyes(FluidKind::Empty),
             on_climbable: OnClimbable(false),
         }
     }
@@ -479,10 +489,10 @@ pub struct PlayerBundle {
 pub struct LocalEntity;
 
 #[derive(Component, Clone, Debug, PartialEq, Deref, DerefMut)]
-pub struct FluidOnEyes(azalea_registry::Fluid);
+pub struct FluidOnEyes(FluidKind);
 
 impl FluidOnEyes {
-    pub fn new(fluid: azalea_registry::Fluid) -> Self {
+    pub fn new(fluid: FluidKind) -> Self {
         Self(fluid)
     }
 }
