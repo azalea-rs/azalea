@@ -207,8 +207,8 @@ impl From<&LastSentPosition> for BlockPos {
 
 /// A component for entities that can jump.
 ///
-/// If this is true, the entity will try to jump every tick. (It's equivalent to
-/// the space key being held in vanilla.)
+/// If this is true, the entity will try to jump every tick. It's equivalent to
+/// the space key being held in vanilla.
 #[derive(Debug, Component, Copy, Clone, Deref, DerefMut, Default)]
 pub struct Jumping(bool);
 
@@ -273,6 +273,12 @@ pub struct Physics {
     on_ground: bool,
     last_on_ground: bool,
 
+    /// The number of ticks until we jump again, if the jump key is being held.
+    ///
+    /// This must be 0 for us to be able to jump. Sets to 10 when we do a jump
+    /// and sets to 0 if we're not trying to jump.
+    pub no_jump_delay: u32,
+
     /// The width and height of the entity.
     pub dimensions: EntityDimensions,
     /// The bounding box of the entity. This is more than just width and height,
@@ -309,6 +315,8 @@ impl Physics {
 
             on_ground: false,
             last_on_ground: false,
+
+            no_jump_delay: 0,
 
             bounding_box: dimensions.make_bounding_box(&pos),
             dimensions,

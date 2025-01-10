@@ -291,7 +291,7 @@ fn get_effective_gravity() -> f64 {
     0.08
 }
 
-fn fluid_jump_threshold() -> f64 {
+pub fn fluid_jump_threshold() -> f64 {
     // this is 0.0 for entities with an eye height lower than 0.4, but that's not
     // implemented since it's usually not relevant for players (unless the player
     // was shrunk)

@@ -77,6 +77,10 @@ pub fn ai_step(
         // vanilla does movement interpolation here, doesn't really matter much for a
         // bot though
 
+        if physics.no_jump_delay > 0 {
+            physics.no_jump_delay -= 1;
+        }
+
         if physics.velocity.x.abs() < 0.003 {
             physics.velocity.x = 0.;
         }
@@ -91,17 +95,45 @@ pub fn ai_step(
             if **jumping {
                 // TODO: jumping in liquids and jump delay
 
-                if physics.on_ground() {
-                    jump_from_ground(
-                        &mut physics,
-                        position,
-                        look_direction,
-                        sprinting,
-                        instance_name,
-                        &instance_container,
-                    )
+                let fluid_height = if physics.is_in_lava() {
+                    physics.lava_fluid_height
+                } else if physics.is_in_water() {
+                    physics.water_fluid_height
+                } else {
+                    0.
+                };
+
+                let in_water = physics.is_in_water() && fluid_height > 0.;
+                let fluid_jump_threshold = travel::fluid_jump_threshold();
+
+                if !in_water || physics.on_ground() && fluid_height <= fluid_jump_threshold {
+                    if !physics.is_in_lava()
+                        || physics.on_ground() && fluid_height <= fluid_jump_threshold
+                    {
+                        if physics.on_ground()
+                            || in_water
+                                && fluid_height <= fluid_jump_threshold
+                                && physics.no_jump_delay == 0
+                        {
+                            jump_from_ground(
+                                &mut physics,
+                                position,
+                                look_direction,
+                                sprinting,
+                                instance_name,
+                                &instance_container,
+                            );
+                            physics.no_jump_delay = 10;
+                        }
+                    } else {
+                        jump_in_liquid(&mut physics);
+                    }
+                } else {
+                    jump_in_liquid(&mut physics);
                 }
             }
+        } else {
+            physics.no_jump_delay = 0;
         }
 
         physics.x_acceleration *= 0.98;
@@ -112,38 +144,19 @@ pub fn ai_step(
     }
 }
 
+fn jump_in_liquid(physics: &mut Physics) {
+    physics.velocity.y += 0.04;
+}
+
 // in minecraft, this is done as part of aiStep immediately after travel
 pub fn apply_effects_from_blocks(
     mut query: Query<
-        (
-            &mut Physics,
-            &mut LookDirection,
-            &mut Position,
-            &mut LastSentPosition,
-            Option<&Sprinting>,
-            Option<&Pose>,
-            &Attributes,
-            &InstanceName,
-            &OnClimbable,
-            &Jumping,
-        ),
+        (&mut Physics, &Position, &InstanceName),
         (With<LocalEntity>, With<InLoadedChunk>),
     >,
     instance_container: Res<InstanceContainer>,
 ) {
-    for (
-        mut physics,
-        mut look_direction,
-        mut position,
-        mut last_sent_position,
-        sprinting,
-        pose,
-        attributes,
-        world_name,
-        on_climbable,
-        jumping,
-    ) in &mut query
-    {
+    for (mut physics, position, world_name) in &mut query {
         let Some(world_lock) = instance_container.get(world_name) else {
             continue;
         };
