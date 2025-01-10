@@ -856,7 +856,7 @@ pub fn process_packet_events(ecs: &mut World) {
                         if new_pos != **position {
                             **position = new_pos;
                         }
-                        let position = position.clone();
+                        let position = *position;
                         let mut look_direction = entity.get_mut::<LookDirection>().unwrap();
                         if new_look_direction != *look_direction {
                             *look_direction = new_look_direction;

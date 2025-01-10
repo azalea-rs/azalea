@@ -10,14 +10,13 @@ use std::collections::HashSet;
 
 use azalea_block::{fluid_state::FluidState, properties, Block, BlockState};
 use azalea_core::{
-    aabb::AABB,
     math,
     position::{BlockPos, Vec3},
     tick::GameTick,
 };
 use azalea_entity::{
-    metadata::Sprinting, move_relative, Attributes, InLoadedChunk, Jumping, LastSentPosition,
-    LocalEntity, LookDirection, OnClimbable, Physics, Pose, Position,
+    metadata::Sprinting, move_relative, Attributes, InLoadedChunk, Jumping, LocalEntity,
+    LookDirection, OnClimbable, Physics, Pose, Position,
 };
 use azalea_world::{Instance, InstanceContainer, InstanceName};
 use bevy_app::{App, Plugin};
@@ -149,6 +148,7 @@ fn jump_in_liquid(physics: &mut Physics) {
 }
 
 // in minecraft, this is done as part of aiStep immediately after travel
+#[allow(clippy::type_complexity)]
 pub fn apply_effects_from_blocks(
     mut query: Query<
         (&mut Physics, &Position, &InstanceName),
@@ -172,11 +172,12 @@ pub fn apply_effects_from_blocks(
         //     var4.getBlock().stepOn(this.level(), var3, var4, this);
         //  }
 
-        let mut movement_this_tick = Vec::<EntityMovement>::new();
-        movement_this_tick.push(EntityMovement {
+        // minecraft adds more entries to the list when the code is running on the
+        // server
+        let movement_this_tick = [EntityMovement {
             from: physics.old_position,
             to: **position,
-        });
+        }];
 
         check_inside_blocks(&mut physics, &world, &movement_this_tick);
     }
@@ -271,6 +272,7 @@ fn handle_entity_inside_block(
     physics: &mut Physics,
 ) {
     let registry_block = azalea_registry::Block::from(block);
+    #[allow(clippy::single_match)]
     match registry_block {
         azalea_registry::Block::BubbleColumn => {
             let block_above = world.get_block_state(&block_pos.up(1)).unwrap_or_default();

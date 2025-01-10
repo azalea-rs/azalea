@@ -1,7 +1,4 @@
-use crate::{
-    block_state::{BlockState, BlockStateIntegerRepr},
-    Block,
-};
+use crate::block_state::{BlockState, BlockStateIntegerRepr};
 
 #[derive(Clone, Debug)]
 pub struct FluidState {

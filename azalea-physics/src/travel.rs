@@ -72,11 +72,11 @@ pub fn travel(
                 &mut physics,
                 &direction,
                 position,
-                &attributes,
+                attributes,
                 sprinting,
-                &on_climbable,
+                on_climbable,
                 pose,
-                &jumping,
+                jumping,
                 &world,
             );
         }
@@ -84,6 +84,7 @@ pub fn travel(
 }
 
 /// The usual movement when we're not in water or using an elytra.
+#[allow(clippy::too_many_arguments)]
 fn travel_in_air(
     physics: &mut Physics,
     direction: &LookDirection,
@@ -116,9 +117,9 @@ fn travel_in_air(
     let mut movement = handle_relative_friction_and_calculate_movement(
         HandleRelativeFrictionAndCalculateMovementOpts {
             block_friction,
-            world: &world,
+            world,
             physics,
-            direction: &direction,
+            direction,
             position,
             attributes,
             is_sprinting: *sprinting,
@@ -256,15 +257,14 @@ fn get_fluid_falling_adjusted_movement(
     sprinting: Sprinting,
 ) -> Vec3 {
     if gravity != 0. && !*sprinting {
-        let new_y_velocity;
-        if moving_down
+        let new_y_velocity = if moving_down
             && (new_velocity.y - 0.005).abs() >= 0.003
             && f64::abs(new_velocity.y - gravity / 16.0) < 0.003
         {
-            new_y_velocity = -0.003;
+            -0.003
         } else {
-            new_y_velocity = new_velocity.y - gravity / 16.0;
-        }
+            new_velocity.y - gravity / 16.0
+        };
 
         Vec3 {
             x: new_velocity.x,

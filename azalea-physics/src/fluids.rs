@@ -7,12 +7,12 @@ use azalea_core::{
     position::{BlockPos, Vec3},
 };
 use azalea_entity::{InLoadedChunk, LocalEntity, Physics, Position};
-use azalea_registry::Fluid;
 use azalea_world::{Instance, InstanceContainer, InstanceName};
 use bevy_ecs::prelude::*;
 
 use crate::collision::legacy_blocks_motion;
 
+#[allow(clippy::type_complexity)]
 pub fn update_in_water_state_and_do_fluid_pushing(
     mut query: Query<
         (&mut Physics, &Position, &InstanceName),
@@ -29,19 +29,31 @@ pub fn update_in_water_state_and_do_fluid_pushing(
         physics.water_fluid_height = 0.;
         physics.lava_fluid_height = 0.;
 
-        update_in_water_state_and_do_water_current_pushing(&mut physics, &world, &position);
+        update_in_water_state_and_do_water_current_pushing(&mut physics, &world, position);
 
-        // let lava_push_factor = world
-        //     .registries
-        //     .dimension_type()
-        //     .map(|d| d.lava_push_factor);
-        // TODO
+        let is_ultrawarm = world
+            .registries
+            .dimension_type()
+            .and_then(|d| d.map.get(instance_name).and_then(|d| d.ultrawarm))
+            == Some(1);
+        let lava_push_factor = if is_ultrawarm {
+            0.007
+        } else {
+            0.0023333333333333335
+        };
+
+        update_fluid_height_and_do_fluid_pushing(
+            &mut physics,
+            &world,
+            FluidKind::Lava,
+            lava_push_factor,
+        );
     }
 }
 fn update_in_water_state_and_do_water_current_pushing(
     physics: &mut Physics,
     world: &Instance,
-    position: &Position,
+    _position: &Position,
 ) {
     // TODO: implement vehicles and boats
     // if vehicle == AbstractBoat {
@@ -237,6 +249,7 @@ fn is_solid_face(
     let registry_block = azalea_registry::Block::from(block_state);
     if matches!(
         registry_block,
+        // frosted ice is from frost walker
         azalea_registry::Block::Ice | azalea_registry::Block::FrostedIce
     ) {
         return false;
@@ -245,10 +258,10 @@ fn is_solid_face(
 }
 
 fn is_face_sturdy(
-    block_state: BlockState,
-    world: &Instance,
-    pos: BlockPos,
-    direction: Direction,
+    _block_state: BlockState,
+    _world: &Instance,
+    _pos: BlockPos,
+    _direction: Direction,
 ) -> bool {
     // TODO: this does a whole bunch of physics shape checks for waterlogged blocks
     // that i honestly cannot be bothered to implement right now

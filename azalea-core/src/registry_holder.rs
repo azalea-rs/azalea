@@ -39,6 +39,23 @@ impl RegistryHolder {
         }
     }
 
+    /// Get the dimension type registry, or `None` if it doesn't exist. You
+    /// should do some type of error handling if this returns `None`.
+    pub fn dimension_type(&self) -> Option<RegistryType<DimensionTypeElement>> {
+        let name = ResourceLocation::new("minecraft:dimension_type");
+        match self.get(&name) {
+            Some(Ok(registry)) => Some(registry),
+            Some(Err(err)) => {
+                error!(
+                    "Error deserializing dimension type registry: {err:?}\n{:?}",
+                    self.map.get(&name)
+                );
+                None
+            }
+            None => None,
+        }
+    }
+
     fn get<T: Deserialize>(
         &self,
         name: &ResourceLocation,
@@ -65,23 +82,6 @@ impl RegistryHolder {
         }
 
         Some(Ok(RegistryType { map }))
-    }
-
-    /// Get the dimension type registry, or `None` if it doesn't exist. You
-    /// should do some type of error handling if this returns `None`.
-    pub fn dimension_type(&self) -> Option<RegistryType<DimensionTypeElement>> {
-        let name = ResourceLocation::new("minecraft:dimension_type");
-        match self.get(&name) {
-            Some(Ok(registry)) => Some(registry),
-            Some(Err(err)) => {
-                error!(
-                    "Error deserializing dimension type registry: {err:?}\n{:?}",
-                    self.map.get(&name)
-                );
-                None
-            }
-            None => None,
-        }
     }
 }
 
@@ -161,6 +161,7 @@ pub struct DimensionTypeElement {
 pub struct DimensionTypeElement {
     pub height: u32,
     pub min_y: i32,
+    pub ultrawarm: Option<u8>,
     #[simdnbt(flatten)]
     pub _extra: HashMap<String, NbtTag>,
 }
