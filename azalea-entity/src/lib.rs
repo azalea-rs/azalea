@@ -449,11 +449,7 @@ impl EntityBundle {
         kind: azalea_registry::EntityKind,
         world_name: ResourceLocation,
     ) -> Self {
-        // TODO: get correct entity dimensions by having them codegen'd somewhere
-        let dimensions = EntityDimensions {
-            width: 0.6,
-            height: 1.8,
-        };
+        let dimensions = EntityDimensions::from(kind);
         let eye_height = dimensions.height * 0.85;
 
         Self {
