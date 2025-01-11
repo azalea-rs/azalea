@@ -78,9 +78,7 @@ fn debug_new_entity(query: Query<(Entity, Option<&LocalEntity>), Added<Minecraft
 /// to 0 (or less than 0). This will be present if an entity is doing the death
 /// animation.
 ///
-/// Entities that are dead can not be revived.
-/// TODO: fact check this in-game by setting an entity's health to 0 and then
-/// not 0
+/// Entities that are dead cannot be revived.
 pub fn add_dead(mut commands: Commands, query: Query<(Entity, &Health), Changed<Health>>) {
     for (entity, health) in query.iter() {
         if **health <= 0.0 {
