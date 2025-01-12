@@ -109,10 +109,8 @@ pub fn ai_step(
                     if !physics.is_in_lava()
                         || physics.on_ground() && fluid_height <= fluid_jump_threshold
                     {
-                        if physics.on_ground()
-                            || in_water
-                                && fluid_height <= fluid_jump_threshold
-                                && physics.no_jump_delay == 0
+                        if (physics.on_ground() || in_water && fluid_height <= fluid_jump_threshold)
+                            && physics.no_jump_delay == 0
                         {
                             jump_from_ground(
                                 &mut physics,

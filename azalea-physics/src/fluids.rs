@@ -23,7 +23,7 @@ pub fn update_in_water_state_and_do_fluid_pushing(
     for (mut physics, position, instance_name) in &mut query {
         let world_lock = instance_container
             .get(instance_name)
-            .expect("All entities should be in a valid world");
+            .expect("All entities with InLoadedChunk should be in a valid world");
         let world = world_lock.read();
 
         physics.water_fluid_height = 0.;

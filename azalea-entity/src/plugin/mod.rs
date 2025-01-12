@@ -4,7 +4,10 @@ mod relative_updates;
 use std::collections::HashSet;
 
 use azalea_block::{fluid_state::FluidKind, BlockState};
-use azalea_core::position::{BlockPos, ChunkPos, Vec3};
+use azalea_core::{
+    position::{BlockPos, ChunkPos, Vec3},
+    tick::GameTick,
+};
 use azalea_world::{InstanceContainer, InstanceName, MinecraftEntityId};
 use bevy_app::{App, Plugin, PreUpdate, Update};
 use bevy_ecs::prelude::*;
@@ -59,7 +62,7 @@ impl Plugin for EntityPlugin {
             ),
         )
         .add_systems(Update, update_bounding_box)
-        .add_systems(PreUpdate, update_in_loaded_chunk)
+        .add_systems(GameTick, update_in_loaded_chunk)
         .init_resource::<EntityUuidIndex>();
     }
 }
@@ -215,6 +218,7 @@ pub fn update_in_loaded_chunk(
     for (entity, instance_name, position) in &query {
         let player_chunk_pos = ChunkPos::from(position);
         let Some(instance_lock) = instance_container.get(instance_name) else {
+            commands.entity(entity).remove::<InLoadedChunk>();
             continue;
         };
 

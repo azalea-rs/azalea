@@ -363,3 +363,49 @@ fn test_negative_coordinates_weird_wall_collision() {
     let entity_pos = app.world_mut().get::<Position>(entity).unwrap();
     assert_eq!(entity_pos.y, 70.5);
 }
+
+#[test]
+fn spawn_and_unload_world() {
+    let mut app = make_test_app();
+    let world_lock = app.world_mut().resource_mut::<InstanceContainer>().insert(
+        ResourceLocation::new("minecraft:overworld"),
+        384,
+        -64,
+    );
+    let mut partial_world = PartialInstance::default();
+
+    partial_world.chunks.set(
+        &ChunkPos { x: -1, z: -1 },
+        Some(Chunk::default()),
+        &mut world_lock.write().chunks,
+    );
+    let _entity = app
+        .world_mut()
+        .spawn((
+            EntityBundle::new(
+                Uuid::nil(),
+                Vec3 {
+                    x: -7.5,
+                    y: 73.,
+                    z: -7.5,
+                },
+                azalea_registry::EntityKind::Player,
+                ResourceLocation::new("minecraft:overworld"),
+            ),
+            MinecraftEntityId(0),
+            LocalEntity,
+        ))
+        .id();
+
+    // do a tick
+    app.world_mut().run_schedule(GameTick);
+    app.update();
+
+    // now unload the partial_world and world_lock
+    drop(partial_world);
+    drop(world_lock);
+
+    // do another tick
+    app.world_mut().run_schedule(GameTick);
+    app.update();
+}
