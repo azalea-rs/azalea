@@ -305,8 +305,7 @@ pub enum AttributeModifierOperation {
 // circular dependency)
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct AttributeModifier {
-    pub uuid: Uuid,
-    pub name: String,
+    pub id: ResourceLocation,
     pub amount: f64,
     pub operation: AttributeModifierOperation,
 }
@@ -877,8 +876,12 @@ impl DataComponent for DamageResistant {
 pub struct Equippable {
     pub slot: EquipmentSlot,
     pub equip_sound: SoundEvent,
-    pub model: Option<ResourceLocation>,
-    pub allowed_entities: HolderSet<EntityKind, ResourceLocation>,
+    pub asset_id: Option<ResourceLocation>,
+    pub camera_overlay: Option<ResourceLocation>,
+    pub allowed_entities: Option<HolderSet<EntityKind, ResourceLocation>>,
+    pub dispensable: bool,
+    pub swappable: bool,
+    pub damage_on_hurt: bool,
 }
 impl DataComponent for Equippable {
     const KIND: DataComponentKind = DataComponentKind::Equippable;

@@ -14,6 +14,7 @@ azalea-chat = { path = "../azalea-chat", version = "0.11.0", features = [
 azalea-core = { path = "../azalea-core", version = "0.11.0" }
 azalea-inventory-macros = { path = "./azalea-inventory-macros", version = "0.11.0" }
 azalea-registry = { path = "../azalea-registry", version = "0.11.0" }
+indexmap = "2.7.0"
 
 simdnbt = { workspace = true }
 uuid = { workspace = true }
