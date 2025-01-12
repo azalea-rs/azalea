@@ -1,6 +1,8 @@
 //! Read packets from a stream.
 
 use std::backtrace::Backtrace;
+use std::env;
+use std::sync::LazyLock;
 use std::{
     fmt::Debug,
     io::{Cursor, Read},
@@ -367,10 +369,14 @@ where
     }
 
     if tracing::enabled!(tracing::Level::TRACE) {
-        const DO_NOT_CUT_OFF_PACKET_LOGS: bool = false;
+        static DO_NOT_CUT_OFF_PACKET_LOGS: LazyLock<bool> = LazyLock::new(|| {
+            env::var("AZALEA_DO_NOT_CUT_OFF_PACKET_LOGS")
+                .map(|s| s == "1" || s == "true")
+                .unwrap_or(false)
+        });
 
         let buf_string: String = {
-            if !DO_NOT_CUT_OFF_PACKET_LOGS && buf.len() > 500 {
+            if !*DO_NOT_CUT_OFF_PACKET_LOGS && buf.len() > 500 {
                 let cut_off_buf = &buf[..500];
                 format!("{cut_off_buf:?}...")
             } else {
