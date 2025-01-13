@@ -90,7 +90,6 @@ pub enum HolderSet<D: Registry, ResourceLocation: AzaleaRead + AzaleaWrite> {
         contents: Vec<ResourceLocation>,
     },
 }
-
 impl<D: Registry, ResourceLocation: AzaleaRead + AzaleaWrite> AzaleaRead
     for HolderSet<D, ResourceLocation>
 {
@@ -141,6 +140,55 @@ impl<D: Registry + Debug, ResourceLocation: AzaleaRead + AzaleaWrite + Debug> De
                 .field("key", key)
                 .field("contents", contents)
                 .finish(),
+        }
+    }
+}
+
+/// A reference to either a registry or a custom value (usually something with a
+/// ResourceLocation).
+pub enum Holder<R: Registry, Direct: AzaleaRead + AzaleaWrite> {
+    Reference(R),
+    Direct(Direct),
+}
+impl<R: Registry, Direct: AzaleaRead + AzaleaWrite> AzaleaRead for Holder<R, Direct> {
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let id = u32::azalea_read_var(buf)?;
+        if id == 0 {
+            Ok(Self::Direct(Direct::azalea_read(buf)?))
+        } else {
+            let Some(value) = R::from_u32(id - 1) else {
+                return Err(BufReadError::UnexpectedEnumVariant {
+                    id: (id - 1) as i32,
+                });
+            };
+            Ok(Self::Reference(value))
+        }
+    }
+}
+impl<R: Registry, Direct: AzaleaRead + AzaleaWrite> AzaleaWrite for Holder<R, Direct> {
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+        match self {
+            Self::Reference(value) => (value.to_u32() + 1).azalea_write_var(buf),
+            Self::Direct(value) => {
+                0u32.azalea_write_var(buf)?;
+                value.azalea_write(buf)
+            }
+        }
+    }
+}
+impl<R: Registry + Debug, Direct: AzaleaRead + AzaleaWrite + Debug> Debug for Holder<R, Direct> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Reference(value) => f.debug_tuple("Reference").field(value).finish(),
+            Self::Direct(value) => f.debug_tuple("Direct").field(value).finish(),
+        }
+    }
+}
+impl<R: Registry + Clone, Direct: AzaleaRead + AzaleaWrite + Clone> Clone for Holder<R, Direct> {
+    fn clone(&self) -> Self {
+        match self {
+            Self::Reference(value) => Self::Reference(value.clone()),
+            Self::Direct(value) => Self::Direct(value.clone()),
         }
     }
 }
