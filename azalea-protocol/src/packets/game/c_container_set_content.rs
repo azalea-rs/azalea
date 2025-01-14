@@ -19,7 +19,6 @@ mod tests {
     use azalea_buf::AzaleaRead;
 
     use super::ClientboundContainerSetContent;
-    use crate::packets::ProtocolPacket;
 
     #[test]
     fn test_read_write_container_set_content() {
@@ -29,7 +28,7 @@ mod tests {
             0, 0, 0, 0, 0, 0, 0, 1, 196, 6, 0, 0, 0,
         ];
         let mut buf = Cursor::new(contents.as_slice());
-        let packet = ClientboundContainerSetContent::read(&mut buf).unwrap();
+        let packet = ClientboundContainerSetContent::azalea_read(&mut buf).unwrap();
         println!("{:?}", packet);
 
         assert_eq!(buf.position(), contents.len() as u64);

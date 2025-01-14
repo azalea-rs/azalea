@@ -9,8 +9,8 @@ pub struct ServerLinkEntry {
 
 #[derive(Clone, Debug, AzBuf)]
 pub enum ServerLinkKind {
-    Known(KnownLinkKind),
     Component(FormattedText),
+    Known(KnownLinkKind),
 }
 
 #[derive(Clone, Copy, Debug, AzBuf)]

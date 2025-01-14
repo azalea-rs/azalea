@@ -18,22 +18,14 @@ impl Serialize for TextColor {
     where
         S: Serializer,
     {
-        serializer.serialize_str(
-            &self
-                .name
-                .as_ref()
-                .map(|n| n.to_ascii_lowercase())
-                .unwrap_or_else(|| self.format()),
-        )
+        serializer.serialize_str(&self.serialize())
     }
 }
 
 #[cfg(feature = "simdnbt")]
 impl simdnbt::ToNbtTag for TextColor {
     fn to_nbt_tag(self) -> simdnbt::owned::NbtTag {
-        self.name
-            .map(|n| NbtTag::String(n.to_ascii_lowercase().into()))
-            .unwrap_or_else(|| NbtTag::Int(self.value as i32))
+        NbtTag::String(self.serialize().into())
     }
 }
 
@@ -274,18 +266,22 @@ impl TextColor {
         Self { value, name }
     }
 
-    pub fn format(&self) -> String {
+    fn serialize(&self) -> String {
+        if let Some(name) = &self.name {
+            name.clone()
+        } else {
+            self.format_value()
+        }
+    }
+
+    pub fn format_value(&self) -> String {
         format!("#{:06X}", self.value)
     }
 }
 
 impl fmt::Display for TextColor {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        if let Some(name) = &self.name {
-            write!(f, "{}", name.clone())
-        } else {
-            write!(f, "{}", self.format())
-        }
+        write!(f, "{}", self.serialize())
     }
 }
 
