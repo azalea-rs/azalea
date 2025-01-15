@@ -61,20 +61,20 @@ impl EntityUuidIndex {
 }
 
 impl EntityIdIndex {
-    pub fn get(&self, id: &MinecraftEntityId) -> Option<Entity> {
-        self.entity_by_id.get(id).copied()
+    pub fn get(&self, id: MinecraftEntityId) -> Option<Entity> {
+        self.entity_by_id.get(&id).copied()
     }
 
-    pub fn contains_key(&self, id: &MinecraftEntityId) -> bool {
-        self.entity_by_id.contains_key(id)
+    pub fn contains_key(&self, id: MinecraftEntityId) -> bool {
+        self.entity_by_id.contains_key(&id)
     }
 
     pub fn insert(&mut self, id: MinecraftEntityId, entity: Entity) {
         self.entity_by_id.insert(id, entity);
     }
 
-    pub fn remove(&mut self, id: &MinecraftEntityId) -> Option<Entity> {
-        self.entity_by_id.remove(id)
+    pub fn remove(&mut self, id: MinecraftEntityId) -> Option<Entity> {
+        self.entity_by_id.remove(&id)
     }
 }
 

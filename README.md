@@ -14,11 +14,11 @@ A collection of Rust crates for making Minecraft bots, clients, and tools.
 _Currently supported Minecraft version: `25w02a`._
 
 > [!WARNING]
-> Azalea is still very unfinished, though most crates are in a somewhat useable state
+> Azalea is still unfinished, though most crates are in a useable state
 
 ## Features
 
--   [Accurate physics](https://github.com/azalea-rs/azalea/blob/main/azalea-physics/src/lib.rs) (but some features like entity collisions and water physics aren't yet implemented)
+-   [Accurate physics](https://github.com/azalea-rs/azalea/blob/main/azalea-physics/src/lib.rs) (but some features like entity collisions and elytras aren't yet implemented)
 -   [Pathfinder](https://azalea.matdoes.dev/azalea/pathfinder/index.html)
 -   [Swarms](https://azalea.matdoes.dev/azalea/swarm/index.html)
 -   [Breaking blocks](https://azalea.matdoes.dev/azalea/struct.Client.html#method.mine)

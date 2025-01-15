@@ -1,6 +1,6 @@
 use azalea_buf::AzBuf;
 
-use crate::position::Vec3;
+use crate::position::{BlockPos, Vec3};
 
 #[derive(Clone, Copy, Debug, AzBuf, Default, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
@@ -15,6 +15,14 @@ pub enum Direction {
 }
 
 impl Direction {
+    pub const HORIZONTAL: [Direction; 4] = [
+        Direction::North,
+        Direction::South,
+        Direction::West,
+        Direction::East,
+    ];
+    pub const VERTICAL: [Direction; 2] = [Direction::Down, Direction::Up];
+
     pub fn nearest(vec: Vec3) -> Direction {
         let mut best_direction = Direction::North;
         let mut best_direction_amount = 0.0;
@@ -29,7 +37,7 @@ impl Direction {
         ]
         .iter()
         {
-            let amount = dir.normal().dot(vec);
+            let amount = dir.normal_vec3().dot(vec);
             if amount > best_direction_amount {
                 best_direction = *dir;
                 best_direction_amount = amount;
@@ -39,15 +47,21 @@ impl Direction {
         best_direction
     }
 
-    pub fn normal(self) -> Vec3 {
+    #[inline]
+    pub fn normal(self) -> BlockPos {
         match self {
-            Direction::Down => Vec3::new(0.0, -1.0, 0.0),
-            Direction::Up => Vec3::new(0.0, 1.0, 0.0),
-            Direction::North => Vec3::new(0.0, 0.0, -1.0),
-            Direction::South => Vec3::new(0.0, 0.0, 1.0),
-            Direction::West => Vec3::new(-1.0, 0.0, 0.0),
-            Direction::East => Vec3::new(1.0, 0.0, 0.0),
+            Direction::Down => BlockPos::new(0, -1, 0),
+            Direction::Up => BlockPos::new(0, 1, 0),
+            Direction::North => BlockPos::new(0, 0, -1),
+            Direction::South => BlockPos::new(0, 0, 1),
+            Direction::West => BlockPos::new(-1, 0, 0),
+            Direction::East => BlockPos::new(1, 0, 0),
         }
+    }
+
+    #[inline]
+    pub fn normal_vec3(self) -> Vec3 {
+        self.normal().to_vec3_floored()
     }
 
     pub fn opposite(self) -> Direction {
@@ -59,6 +73,16 @@ impl Direction {
             Direction::West => Direction::East,
             Direction::East => Direction::West,
         }
+    }
+
+    pub fn x(self) -> i32 {
+        self.normal().x
+    }
+    pub fn y(self) -> i32 {
+        self.normal().y
+    }
+    pub fn z(self) -> i32 {
+        self.normal().z
     }
 }
 
@@ -75,6 +99,7 @@ pub enum CardinalDirection {
     East,
 }
 
+/// A 3D axis like x, y, z.
 #[derive(Clone, Copy, Debug)]
 pub enum Axis {
     X = 0,

@@ -11,6 +11,7 @@ use thiserror::Error;
 pub struct Attributes {
     pub speed: AttributeInstance,
     pub attack_speed: AttributeInstance,
+    pub water_movement_efficiency: AttributeInstance,
 }
 
 #[derive(Clone, Debug)]

@@ -19,7 +19,7 @@ def get_burger():
             f'cd {get_dir_location("__cache__")} && git clone https://github.com/mat-1/Burger && cd Burger && git pull')
 
         print('\033[92mInstalling dependencies...\033[m')
-        os.system(f'cd {get_dir_location("__cache__")}/Burger && pip install six jawa')
+        os.system(f'cd {get_dir_location("__cache__")}/Burger && python -m venv venv && venv/bin/pip install six jawa')
 
 
 def get_pixlyzer():

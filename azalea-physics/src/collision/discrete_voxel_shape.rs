@@ -238,39 +238,33 @@ impl BitSetDiscreteVoxelShape {
         var2: bool,
     ) {
         let mut var3 = BitSetDiscreteVoxelShape::from(var0);
-        for var4 in 0..var3.y_size {
-            for var5 in 0..var3.x_size {
+        for y in 0..var3.y_size {
+            for x in 0..var3.x_size {
                 let mut var6 = None;
-                for var7 in 0..=var3.z_size {
-                    if var3.is_full_wide(var5, var4, var7) {
+                for z in 0..=var3.z_size {
+                    if var3.is_full_wide(x, y, z) {
                         if var2 {
                             if var6.is_none() {
-                                var6 = Some(var7);
+                                var6 = Some(z);
                             }
                         } else {
-                            consumer(var5, var4, var7, var5 + 1, var4 + 1, var7 + 1);
+                            consumer(x, y, z, x + 1, y + 1, z + 1);
                         }
                     } else if var6.is_some() {
-                        let mut var8 = var5;
-                        let mut var9 = var4;
-                        var3.clear_z_strip(var6.unwrap(), var7, var5, var4);
-                        while var3.is_z_strip_full(var6.unwrap(), var7, var8 + 1, var4) {
-                            var3.clear_z_strip(var6.unwrap(), var7, var8 + 1, var4);
+                        let mut var8 = x;
+                        let mut var9 = y;
+                        var3.clear_z_strip(var6.unwrap(), z, x, y);
+                        while var3.is_z_strip_full(var6.unwrap(), z, var8 + 1, y) {
+                            var3.clear_z_strip(var6.unwrap(), z, var8 + 1, y);
                             var8 += 1;
                         }
-                        while var3.is_xz_rectangle_full(
-                            var5,
-                            var8 + 1,
-                            var6.unwrap(),
-                            var7,
-                            var9 + 1,
-                        ) {
-                            for var10 in var5..=var8 {
-                                var3.clear_z_strip(var6.unwrap(), var7, var10, var9 + 1);
+                        while var3.is_xz_rectangle_full(x, var8 + 1, var6.unwrap(), z, var9 + 1) {
+                            for var10 in x..=var8 {
+                                var3.clear_z_strip(var6.unwrap(), z, var10, var9 + 1);
                             }
                             var9 += 1;
                         }
-                        consumer(var5, var4, var6.unwrap(), var8 + 1, var9 + 1, var7);
+                        consumer(x, y, var6.unwrap(), var8 + 1, var9 + 1, z);
                         var6 = None;
                     }
                 }

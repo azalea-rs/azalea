@@ -1,12 +1,12 @@
 use std::{
     any::Any,
-    collections::HashMap,
     fmt,
     io::{Cursor, Write},
 };
 
 use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
 use azalea_registry::DataComponentKind;
+use indexmap::IndexMap;
 
 use crate::components::{self};
 
@@ -178,7 +178,7 @@ impl AzaleaWrite for ItemStack {
 /// and Azalea does not implement that yet.
 #[derive(Default)]
 pub struct DataComponentPatch {
-    components: HashMap<DataComponentKind, Option<Box<dyn components::EncodableDataComponent>>>,
+    components: IndexMap<DataComponentKind, Option<Box<dyn components::EncodableDataComponent>>>,
 }
 
 impl DataComponentPatch {
@@ -238,7 +238,7 @@ impl AzaleaRead for DataComponentPatch {
             return Ok(DataComponentPatch::default());
         }
 
-        let mut components = HashMap::new();
+        let mut components = IndexMap::new();
         for _ in 0..components_with_data_count {
             let component_kind = DataComponentKind::azalea_read(buf)?;
             let component_data = components::from_kind(component_kind, buf)?;
@@ -256,8 +256,8 @@ impl AzaleaRead for DataComponentPatch {
 
 impl AzaleaWrite for DataComponentPatch {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        let mut components_with_data_count = 0;
-        let mut components_without_data_count = 0;
+        let mut components_with_data_count: u32 = 0;
+        let mut components_without_data_count: u32 = 0;
         for component in self.components.values() {
             if component.is_some() {
                 components_with_data_count += 1;
@@ -269,12 +269,14 @@ impl AzaleaWrite for DataComponentPatch {
         components_with_data_count.azalea_write_var(buf)?;
         components_without_data_count.azalea_write_var(buf)?;
 
+        let mut component_buf = Vec::new();
         for (kind, component) in &self.components {
             if let Some(component) = component {
                 kind.azalea_write(buf)?;
-                let mut component_buf = Vec::new();
-                component.encode(&mut component_buf).unwrap();
-                component_buf.azalea_write(buf)?;
+
+                component_buf.clear();
+                component.encode(&mut component_buf)?;
+                buf.write_all(&component_buf)?;
             }
         }
 
@@ -290,7 +292,7 @@ impl AzaleaWrite for DataComponentPatch {
 
 impl Clone for DataComponentPatch {
     fn clone(&self) -> Self {
-        let mut components = HashMap::with_capacity(self.components.len());
+        let mut components = IndexMap::with_capacity(self.components.len());
         for (kind, component) in &self.components {
             components.insert(*kind, component.as_ref().map(|c| (*c).clone()));
         }

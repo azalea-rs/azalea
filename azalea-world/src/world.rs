@@ -5,7 +5,8 @@ use std::{
     fmt::Debug,
 };
 
-use azalea_block::{BlockState, FluidState};
+use azalea_block::fluid_state::FluidState;
+use azalea_block::BlockState;
 use azalea_core::position::{BlockPos, ChunkPos};
 use azalea_core::registry_holder::RegistryHolder;
 use bevy_ecs::{component::Component, entity::Entity};
@@ -88,8 +89,12 @@ pub struct Instance {
     /// An index of all the entities we know are in the chunks of the world
     pub entities_by_chunk: HashMap<ChunkPos, HashSet<Entity>>,
 
-    /// An index of Minecraft entity IDs to Azalea ECS entities. You should
-    /// avoid using this and instead use `azalea_entity::EntityIdIndex`
+    /// An index of Minecraft entity IDs to Azalea ECS entities.
+    ///
+    /// You should avoid using this (particularly if you're using swarms) and
+    /// instead use `azalea_entity::EntityIdIndex`, since some servers may
+    /// give different entity IDs for the same entities to different
+    /// players.
     pub entity_by_id: IntMap<MinecraftEntityId, Entity>,
 
     pub registries: RegistryHolder,

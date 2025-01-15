@@ -1,6 +1,6 @@
 use std::io::{Cursor, Write};
 
-use azalea_block::BlockStateIntegerRepr;
+use azalea_block::block_state::BlockStateIntegerRepr;
 use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
 use azalea_core::math;
 use tracing::warn;

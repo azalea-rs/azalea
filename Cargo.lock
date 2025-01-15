@@ -428,6 +428,7 @@ dependencies = [
  "azalea-core",
  "azalea-inventory-macros",
  "azalea-registry",
+ "indexmap",
  "simdnbt",
  "uuid",
 ]

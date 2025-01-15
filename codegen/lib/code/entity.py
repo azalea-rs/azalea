@@ -11,6 +11,9 @@ METADATA_RS_DIR = get_dir_location(
 DATA_RS_DIR = get_dir_location(
     '../azalea-entity/src/data.rs')
 
+DIMENSIONS_RS_DIR = get_dir_location(
+    '../azalea-entity/src/dimensions.rs')
+
 def generate_metadata_names(burger_dataserializers: dict, mappings: Mappings):
     serializer_names: list[Optional[str]] = [None] * len(burger_dataserializers)
     for burger_serializer in burger_dataserializers.values():
@@ -542,6 +545,38 @@ impl From<EntityDataValue> for UpdateMetadataError {
     with open(METADATA_RS_DIR, 'w') as f:
         f.write('\n'.join(code))
 
+def generate_entity_dimensions(burger_entities_data: dict):
+    # lines look like
+    # EntityKind::Player => EntityDimensions::new(0.6, 1.8),
+    new_match_lines = []
+    for entity_id, entity_data in burger_entities_data['entity'].items():
+        if entity_id.startswith('~'):
+            # not actually an entity
+            continue
+        variant_name: str = upper_first_letter(to_camel_case(entity_id))
+        width = entity_data['width']
+        height = entity_data['height']
+        new_match_lines.append(
+            f'        EntityKind::{variant_name} => EntityDimensions::new({width}, {height}),')
+
+    with open(DIMENSIONS_RS_DIR, 'r') as f:
+        lines = f.read().split('\n')
+    new_lines = []
+
+    in_match = False
+    for i, line in enumerate(lines):
+        if not in_match:
+            new_lines.append(line)
+            if line.strip() == 'match entity {':
+                in_match = True
+        else:
+            if line.strip() == '}':
+                new_lines.extend(new_match_lines)
+                new_lines.extend(lines[i:])
+                break
+
+    with open(DIMENSIONS_RS_DIR, 'w') as f:
+        f.write('\n'.join(new_lines))
 
 def get_entity_parents(entity_id: str, burger_entity_metadata: dict):
     parents = []
@@ -633,3 +668,4 @@ def prettify_mojang_method(mojang_method: str):
     if re.match(r'is[A-Z]', better_name):
         better_name = better_name[2:]
     return to_snake_case(better_name)
+

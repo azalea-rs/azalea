@@ -1,7 +1,13 @@
-use azalea_block::{BlockState, FluidState};
+use std::collections::HashSet;
+
+use azalea_block::{
+    fluid_state::{FluidKind, FluidState},
+    BlockState,
+};
 use azalea_core::{
+    aabb::AABB,
     block_hit_result::BlockHitResult,
-    direction::Direction,
+    direction::{Axis, Direction},
     math::{self, lerp, EPSILON},
     position::{BlockPos, Vec3},
 };
@@ -80,8 +86,8 @@ impl FluidPickType {
         match self {
             Self::None => false,
             Self::SourceOnly => fluid_state.amount == 8,
-            Self::Any => fluid_state.fluid != azalea_registry::Fluid::Empty,
-            Self::Water => fluid_state.fluid == azalea_registry::Fluid::Water,
+            Self::Any => fluid_state.kind != FluidKind::Empty,
+            Self::Water => fluid_state.kind == FluidKind::Water,
         }
     }
 }
@@ -198,22 +204,10 @@ pub fn traverse_blocks<C, T>(
 
     let vec = right_after_end - right_before_start;
 
-    /// Returns either -1, 0, or 1, depending on whether the number is negative,
-    /// zero, or positive.
-    ///
-    /// This function exists because f64::signum doesn't check for 0.
-    fn get_number_sign(num: f64) -> f64 {
-        if num == 0. {
-            0.
-        } else {
-            num.signum()
-        }
-    }
-
     let vec_sign = Vec3 {
-        x: get_number_sign(vec.x),
-        y: get_number_sign(vec.y),
-        z: get_number_sign(vec.z),
+        x: math::sign(vec.x),
+        y: math::sign(vec.y),
+        z: math::sign(vec.z),
     };
 
     #[rustfmt::skip]
@@ -267,6 +261,128 @@ pub fn traverse_blocks<C, T>(
 
         if let Some(data) = get_hit_result(&context, &current_block) {
             return data;
+        }
+    }
+}
+
+pub fn box_traverse_blocks(from: &Vec3, to: &Vec3, aabb: &AABB) -> HashSet<BlockPos> {
+    let delta = to - from;
+    let traversed_blocks = BlockPos::between_closed_aabb(aabb);
+    if delta.length_squared() < (0.99999_f32 * 0.99999) as f64 {
+        return traversed_blocks.into_iter().collect();
+    }
+
+    let mut traversed_and_collided_blocks = HashSet::new();
+    let target_min_pos = aabb.min;
+    let from_min_pos = target_min_pos - delta;
+    add_collisions_along_travel(
+        &mut traversed_and_collided_blocks,
+        from_min_pos,
+        target_min_pos,
+        *aabb,
+    );
+    traversed_and_collided_blocks.extend(traversed_blocks);
+    traversed_and_collided_blocks
+}
+
+pub fn add_collisions_along_travel(
+    collisions: &mut HashSet<BlockPos>,
+    from: Vec3,
+    to: Vec3,
+    aabb: AABB,
+) {
+    let delta = to - from;
+    let mut min_x = from.x.floor() as i32;
+    let mut min_y = from.y.floor() as i32;
+    let mut min_z = from.z.floor() as i32;
+    let direction_x = math::sign_as_int(delta.x);
+    let direction_y = math::sign_as_int(delta.y);
+    let direction_z = math::sign_as_int(delta.z);
+    let step_x = if direction_x == 0 {
+        f64::MAX
+    } else {
+        direction_x as f64 / delta.x
+    };
+    let step_y = if direction_y == 0 {
+        f64::MAX
+    } else {
+        direction_y as f64 / delta.y
+    };
+    let step_z = if direction_z == 0 {
+        f64::MAX
+    } else {
+        direction_z as f64 / delta.z
+    };
+    let mut cur_x = step_x
+        * if direction_x > 0 {
+            1. - math::fract(from.x)
+        } else {
+            math::fract(from.x)
+        };
+    let mut cur_y = step_y
+        * if direction_y > 0 {
+            1. - math::fract(from.y)
+        } else {
+            math::fract(from.y)
+        };
+    let mut cur_z = step_z
+        * if direction_z > 0 {
+            1. - math::fract(from.z)
+        } else {
+            math::fract(from.z)
+        };
+    let mut step_count = 0;
+
+    while cur_x <= 1. || cur_y <= 1. || cur_z <= 1. {
+        if cur_x < cur_y {
+            if cur_x < cur_z {
+                min_x += direction_x;
+                cur_x += step_x;
+            } else {
+                min_z += direction_z;
+                cur_z += step_z;
+            }
+        } else if cur_y < cur_z {
+            min_y += direction_y;
+            cur_y += step_y;
+        } else {
+            min_z += direction_z;
+            cur_z += step_z;
+        }
+
+        if step_count > 16 {
+            break;
+        }
+        step_count += 1;
+
+        let Some(clip_location) = AABB::clip_with_from_and_to(
+            &Vec3::new(min_x as f64, min_y as f64, min_z as f64),
+            &Vec3::new((min_x + 1) as f64, (min_y + 1) as f64, (min_z + 1) as f64),
+            &from,
+            &to,
+        ) else {
+            continue;
+        };
+
+        let initial_max_x = clip_location
+            .x
+            .clamp(min_x as f64 + 1.0E-5, min_x as f64 + 1.0 - 1.0E-5);
+        let initial_max_y = clip_location
+            .y
+            .clamp(min_y as f64 + 1.0E-5, min_y as f64 + 1.0 - 1.0E-5);
+        let initial_max_z = clip_location
+            .z
+            .clamp(min_z as f64 + 1.0E-5, min_z as f64 + 1.0 - 1.0E-5);
+        let max_x = (initial_max_x + aabb.get_size(Axis::X)).floor() as i32;
+        let max_y = (initial_max_y + aabb.get_size(Axis::Y)).floor() as i32;
+        let max_z = (initial_max_z + aabb.get_size(Axis::Z)).floor() as i32;
+
+        for x in min_x..=max_x {
+            for y in min_y..=max_y {
+                for z in min_z..=max_z {
+                    collisions.insert(BlockPos::new(x, y, z));
+                }
+            }
         }
     }
 }

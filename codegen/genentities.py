@@ -12,6 +12,7 @@ burger_data = lib.extract.get_burger_data_for_version(version_id)
 burger_entities_data = burger_data[0]['entities']
 
 lib.code.entity.generate_entity_metadata(burger_entities_data, mappings)
+lib.code.entity.generate_entity_dimensions(burger_entities_data)
 
 lib.code.utils.fmt()
 

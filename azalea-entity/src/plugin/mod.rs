@@ -3,8 +3,11 @@ mod relative_updates;
 
 use std::collections::HashSet;
 
-use azalea_block::BlockState;
-use azalea_core::position::{BlockPos, ChunkPos, Vec3};
+use azalea_block::{fluid_state::FluidKind, BlockState};
+use azalea_core::{
+    position::{BlockPos, ChunkPos, Vec3},
+    tick::GameTick,
+};
 use azalea_world::{InstanceContainer, InstanceName, MinecraftEntityId};
 use bevy_app::{App, Plugin, PreUpdate, Update};
 use bevy_ecs::prelude::*;
@@ -59,7 +62,7 @@ impl Plugin for EntityPlugin {
             ),
         )
         .add_systems(Update, update_bounding_box)
-        .add_systems(PreUpdate, update_in_loaded_chunk)
+        .add_systems(GameTick, update_in_loaded_chunk)
         .init_resource::<EntityUuidIndex>();
     }
 }
@@ -78,9 +81,7 @@ fn debug_new_entity(query: Query<(Entity, Option<&LocalEntity>), Added<Minecraft
 /// to 0 (or less than 0). This will be present if an entity is doing the death
 /// animation.
 ///
-/// Entities that are dead can not be revived.
-/// TODO: fact check this in-game by setting an entity's health to 0 and then
-/// not 0
+/// Entities that are dead cannot be revived.
 pub fn add_dead(mut commands: Commands, query: Query<(Entity, &Health), Changed<Health>>) {
     for (entity, health) in query.iter() {
         if **health <= 0.0 {
@@ -104,11 +105,11 @@ pub fn update_fluid_on_eyes(
             .read()
             .get_fluid_state(&eye_block_pos)
             .unwrap_or_default();
-        let fluid_cutoff_y = eye_block_pos.y as f64 + (fluid_at_eye.amount as f64 / 16f64);
+        let fluid_cutoff_y = (eye_block_pos.y as f32 + fluid_at_eye.height()) as f64;
         if fluid_cutoff_y > adjusted_eye_y {
-            **fluid_on_eyes = fluid_at_eye.fluid;
+            **fluid_on_eyes = fluid_at_eye.kind;
         } else {
-            **fluid_on_eyes = azalea_registry::Fluid::Empty;
+            **fluid_on_eyes = FluidKind::Empty;
         }
     }
 }
@@ -198,7 +199,7 @@ pub fn clamp_look_direction(mut query: Query<&mut LookDirection>) {
 /// Cached position in the world must be updated.
 pub fn update_bounding_box(mut query: Query<(&Position, &mut Physics), Changed<Position>>) {
     for (position, mut physics) in query.iter_mut() {
-        let bounding_box = physics.dimensions.make_bounding_box(**position);
+        let bounding_box = physics.dimensions.make_bounding_box(position);
         physics.bounding_box = bounding_box;
     }
 }
@@ -217,6 +218,7 @@ pub fn update_in_loaded_chunk(
     for (entity, instance_name, position) in &query {
         let player_chunk_pos = ChunkPos::from(position);
         let Some(instance_lock) = instance_container.get(instance_name) else {
+            commands.entity(entity).remove::<InLoadedChunk>();
             continue;
         };
 
