@@ -3030,6 +3030,7 @@ pub static REPLACEABLE_BY_MUSHROOMS: LazyLock<HashSet<Block>> = LazyLock::new(||
         Block::WarpedRoots,
         Block::NetherSprouts,
         Block::CrimsonRoots,
+        Block::LeafLitter,
         Block::JungleLeaves,
         Block::OakLeaves,
         Block::SpruceLeaves,

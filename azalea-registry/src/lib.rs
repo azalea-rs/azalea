@@ -1177,6 +1177,8 @@ enum Block {
     WarpedWallSign => "minecraft:warped_wall_sign",
     StructureBlock => "minecraft:structure_block",
     Jigsaw => "minecraft:jigsaw",
+    TestBlock => "minecraft:test_block",
+    TestInstanceBlock => "minecraft:test_instance_block",
     Composter => "minecraft:composter",
     Target => "minecraft:target",
     BeeNest => "minecraft:bee_nest",
@@ -1465,6 +1467,8 @@ enum BlockEntityKind {
     Crafter => "minecraft:crafter",
     TrialSpawner => "minecraft:trial_spawner",
     Vault => "minecraft:vault",
+    TestBlock => "minecraft:test_block",
+    TestInstanceBlock => "minecraft:test_instance_block",
 }
 }
 
@@ -1568,6 +1572,7 @@ enum CommandArgumentKind {
     ResourceOrTagKey => "minecraft:resource_or_tag_key",
     Resource => "minecraft:resource",
     ResourceKey => "minecraft:resource_key",
+    ResourceSelector => "minecraft:resource_selector",
     TemplateMirror => "minecraft:template_mirror",
     TemplateRotation => "minecraft:template_rotation",
     Heightmap => "minecraft:heightmap",
@@ -2816,6 +2821,8 @@ enum Item {
     BambooChestRaft => "minecraft:bamboo_chest_raft",
     StructureBlock => "minecraft:structure_block",
     Jigsaw => "minecraft:jigsaw",
+    TestBlock => "minecraft:test_block",
+    TestInstanceBlock => "minecraft:test_instance_block",
     TurtleHelmet => "minecraft:turtle_helmet",
     TurtleScute => "minecraft:turtle_scute",
     ArmadilloScute => "minecraft:armadillo_scute",
@@ -3500,6 +3507,7 @@ enum MemoryModuleKind {
     NearestPlayers => "minecraft:nearest_players",
     NearestVisiblePlayer => "minecraft:nearest_visible_player",
     NearestVisibleTargetablePlayer => "minecraft:nearest_visible_targetable_player",
+    NearestVisibleTargetablePlayers => "minecraft:nearest_visible_targetable_players",
     WalkTarget => "minecraft:walk_target",
     LookTarget => "minecraft:look_target",
     AttackTarget => "minecraft:attack_target",
@@ -6370,6 +6378,8 @@ enum BlockKind {
     TallGrass => "minecraft:tall_grass",
     TallSeagrass => "minecraft:tall_seagrass",
     Target => "minecraft:target",
+    Test => "minecraft:test",
+    TestInstance => "minecraft:test_instance",
     TintedGlass => "minecraft:tinted_glass",
     Tnt => "minecraft:tnt",
     TorchflowerCrop => "minecraft:torchflower_crop",
@@ -6573,6 +6583,27 @@ enum DataComponentKind {
     Bees => "minecraft:bees",
     Lock => "minecraft:lock",
     ContainerLoot => "minecraft:container_loot",
+    VillagerVariant => "minecraft:villager/variant",
+    WolfVariant => "minecraft:wolf/variant",
+    WolfCollar => "minecraft:wolf/collar",
+    FoxVariant => "minecraft:fox/variant",
+    SalmonSize => "minecraft:salmon/size",
+    ParrotVariant => "minecraft:parrot/variant",
+    TropicalFishPattern => "minecraft:tropical_fish/pattern",
+    TropicalFishBaseColor => "minecraft:tropical_fish/base_color",
+    TropicalFishPatternColor => "minecraft:tropical_fish/pattern_color",
+    MooshroomVariant => "minecraft:mooshroom/variant",
+    RabbitVariant => "minecraft:rabbit/variant",
+    PigVariant => "minecraft:pig/variant",
+    FrogVariant => "minecraft:frog/variant",
+    HorseVariant => "minecraft:horse/variant",
+    PaintingVariant => "minecraft:painting/variant",
+    LlamaVariant => "minecraft:llama/variant",
+    AxolotlVariant => "minecraft:axolotl/variant",
+    CatVariant => "minecraft:cat/variant",
+    CatCollar => "minecraft:cat/collar",
+    SheepColor => "minecraft:sheep/color",
+    ShulkerColor => "minecraft:shulker/color",
 }
 }
 
@@ -6584,21 +6615,6 @@ enum EntitySubPredicateKind {
     Slime => "minecraft:slime",
     Raider => "minecraft:raider",
     Sheep => "minecraft:sheep",
-    Axolotl => "minecraft:axolotl",
-    Fox => "minecraft:fox",
-    Mooshroom => "minecraft:mooshroom",
-    Rabbit => "minecraft:rabbit",
-    Horse => "minecraft:horse",
-    Llama => "minecraft:llama",
-    Villager => "minecraft:villager",
-    Parrot => "minecraft:parrot",
-    Salmon => "minecraft:salmon",
-    TropicalFish => "minecraft:tropical_fish",
-    Painting => "minecraft:painting",
-    Cat => "minecraft:cat",
-    Frog => "minecraft:frog",
-    Wolf => "minecraft:wolf",
-    Pig => "minecraft:pig",
 }
 }
 
@@ -6851,5 +6867,28 @@ enum TicketKind {
     Portal => "minecraft:portal",
     EnderPearl => "minecraft:ender_pearl",
     Unknown => "minecraft:unknown",
+}
+}
+
+registry! {
+enum TestEnvironmentDefinitionKind {
+    AllOf => "minecraft:all_of",
+    GameRules => "minecraft:game_rules",
+    TimeOfDay => "minecraft:time_of_day",
+    Raining => "minecraft:raining",
+    Function => "minecraft:function",
+}
+}
+
+registry! {
+enum TestFunction {
+    AlwaysPass => "minecraft:always_pass",
+}
+}
+
+registry! {
+enum TestInstanceKind {
+    BlockBased => "minecraft:block_based",
+    Function => "minecraft:function",
 }
 }

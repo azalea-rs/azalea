@@ -124,17 +124,18 @@ declare_state_packets!(GamePacket,
         tag_query, // 0x74
         take_item_entity, // 0x75
         teleport_entity, // 0x76
-        ticking_state, // 0x77
-        ticking_step, // 0x78
-        transfer, // 0x79
-        update_advancements, // 0x7A
-        update_attributes, // 0x7B
-        update_mob_effect, // 0x7C
-        update_recipes, // 0x7D
-        update_tags, // 0x7E
-        projectile_power, // 0x7F
-        custom_report_details, // 0x80
-        server_links, // 0x81
+        test_instance_block_status, // 0x77
+        ticking_state, // 0x78
+        ticking_step, // 0x79
+        transfer, // 0x7A
+        update_advancements, // 0x7B
+        update_attributes, // 0x7C
+        update_mob_effect, // 0x7D
+        update_recipes, // 0x7E
+        update_tags, // 0x7F
+        projectile_power, // 0x80
+        custom_report_details, // 0x81
+        server_links, // 0x82
     ],
     Serverbound => [
         accept_teleportation, // 0x00
@@ -194,10 +195,12 @@ declare_state_packets!(GamePacket,
         set_creative_mode_slot, // 0x36
         set_jigsaw_block, // 0x37
         set_structure_block, // 0x38
-        sign_update, // 0x39
-        swing, // 0x3A
-        teleport_to_entity, // 0x3B
-        use_item_on, // 0x3C
-        use_item, // 0x3D
+        set_test_block, // 0x39
+        sign_update, // 0x3A
+        swing, // 0x3B
+        teleport_to_entity, // 0x3C
+        test_instance_block_action, // 0x3D
+        use_item_on, // 0x3E
+        use_item, // 0x3F
     ]
 );

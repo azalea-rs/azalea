@@ -1718,6 +1718,12 @@ make_block_states! {
             NorthUp,
             SouthUp,
         },
+        "test_block_mode" => TestBlockMode {
+            Start,
+            Log,
+            Fail,
+            Accept,
+        },
         "level" => ComposterLevel {
             _0,
             _1,
@@ -4792,6 +4798,10 @@ make_block_states! {
         jigsaw => BlockBehavior::new().requires_correct_tool_for_drops().strength(-1.0, 3600000.0), {
             "orientation": Orientation::NorthUp,
         },
+        test_block => BlockBehavior::new(), {
+            "test_block_mode": TestBlockMode::Start,
+        },
+        test_instance_block => BlockBehavior::new(), {},
         composter => BlockBehavior::new().strength(0.6, 0.6), {
             "level": ComposterLevel::_0,
         },

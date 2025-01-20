@@ -1566,6 +1566,7 @@ pub fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::RecipeBookAdd(_) => {}
             ClientboundGamePacket::RecipeBookRemove(_) => {}
             ClientboundGamePacket::RecipeBookSettings(_) => {}
+            ClientboundGamePacket::TestInstanceBlockStatus(_) => {}
         }
     }
 }
