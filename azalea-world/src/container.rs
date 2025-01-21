@@ -9,7 +9,7 @@ use derive_more::{Deref, DerefMut};
 use nohash_hasher::IntMap;
 use parking_lot::RwLock;
 use rustc_hash::FxHashMap;
-use tracing::error;
+use tracing::{debug, error};
 
 use crate::{ChunkStorage, Instance};
 
@@ -43,7 +43,7 @@ impl InstanceContainer {
         self.instances.get(name).and_then(|world| world.upgrade())
     }
 
-    /// Add an empty world to the container (or not if it already exists) and
+    /// Add an empty world to the container (unless it already exists) and
     /// returns a strong reference to the world.
     #[must_use = "the world will be immediately forgotten if unused"]
     pub fn insert(
@@ -74,6 +74,7 @@ impl InstanceContainer {
                 entity_by_id: IntMap::default(),
                 registries: RegistryHolder::default(),
             }));
+            debug!("Added new instance {name}");
             self.instances.insert(name, Arc::downgrade(&world));
             world
         }

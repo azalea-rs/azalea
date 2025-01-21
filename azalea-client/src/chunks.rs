@@ -111,7 +111,10 @@ pub fn handle_receive_chunk_events(
             heightmaps,
             &mut instance.chunks,
         ) {
-            error!("Couldn't set chunk data: {e}");
+            error!(
+                "Couldn't set chunk data: {e}. World height: {}",
+                instance.chunks.height
+            );
         }
     }
 }

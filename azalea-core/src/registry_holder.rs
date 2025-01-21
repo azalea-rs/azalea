@@ -152,7 +152,7 @@ pub struct DimensionTypeElement {
     pub natural: bool,
     pub piglin_safe: bool,
     pub respawn_anchor_works: bool,
-    pub ultrawarm: bool,
+    pub ultrawarm: Option<bool>,
 }
 
 /// Dimension attributes.
@@ -161,7 +161,7 @@ pub struct DimensionTypeElement {
 pub struct DimensionTypeElement {
     pub height: u32,
     pub min_y: i32,
-    pub ultrawarm: bool,
+    pub ultrawarm: Option<bool>,
     #[simdnbt(flatten)]
     pub _extra: HashMap<String, NbtTag>,
 }

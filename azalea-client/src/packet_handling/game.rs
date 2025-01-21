@@ -253,13 +253,12 @@ pub fn process_packet_events(ecs: &mut World) {
                         continue;
                     };
 
-                    let dimension_type =
-                        ResourceLocation::new(&p.common.dimension_type.to_string());
+                    let dimension_name = ResourceLocation::new(&p.common.dimension.to_string());
 
-                    let dimension = dimension_type_element
-                        .map
-                        .get(&dimension_type)
-                        .unwrap_or_else(|| panic!("No dimension_type with name {dimension_type}"));
+                    let Some(dimension) = dimension_type_element.map.get(&dimension_name) else {
+                        error!("No dimension_type with name {dimension_name}")
+                        continue;
+                    };
 
                     // add this world to the instance_container (or don't if it's already
                     // there)
@@ -1394,17 +1393,16 @@ pub fn process_packet_events(ecs: &mut World) {
                     let Some(dimension_type_element) =
                         instance_holder.instance.read().registries.dimension_type()
                     else {
-                        error!("Server didn't send dimension type registry, can't log in");
+                        error!("Server didn't send dimension type registry, can't log in.");
                         continue;
                     };
 
-                    let dimension_type =
-                        ResourceLocation::new(&p.common.dimension_type.to_string());
+                    let dimension_name = ResourceLocation::new(&p.common.dimension.to_string());
 
-                    let dimension = dimension_type_element
-                        .map
-                        .get(&dimension_type)
-                        .unwrap_or_else(|| panic!("No dimension_type with name {dimension_type}"));
+                    let Some(dimension) = dimension_type_element.map.get(&dimension_name) else {
+                        error!("No dimension_type with name {dimension_name}");
+                        continue;
+                    };
 
                     // add this world to the instance_container (or don't if it's already
                     // there)
