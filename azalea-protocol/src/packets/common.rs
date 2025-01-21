@@ -7,7 +7,7 @@ use azalea_core::{
 
 #[derive(Clone, Debug, AzBuf)]
 pub struct CommonPlayerSpawnInfo {
-    pub dimension: azalea_registry::DimensionType,
+    pub dimension_type: azalea_registry::DimensionType,
     pub dimension: ResourceLocation,
     pub seed: i64,
     pub game_type: GameMode,
