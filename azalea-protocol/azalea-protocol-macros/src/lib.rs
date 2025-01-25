@@ -196,6 +196,8 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
     let mut serverbound_enum_contents = quote!();
     let mut clientbound_id_match_contents = quote!();
     let mut serverbound_id_match_contents = quote!();
+    let mut clientbound_name_match_contents = quote!();
+    let mut serverbound_name_match_contents = quote!();
     let mut clientbound_write_match_contents = quote!();
     let mut serverbound_write_match_contents = quote!();
     let mut clientbound_read_match_contents = quote!();
@@ -218,7 +220,10 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
             #variant_name(#module_name::#struct_name),
         });
         clientbound_id_match_contents.extend(quote! {
-            #clientbound_state_name::#variant_name(_packet) => #id,
+            #clientbound_state_name::#variant_name(..) => #id,
+        });
+        clientbound_name_match_contents.extend(quote! {
+            #clientbound_state_name::#variant_name(..) => #packet_name_litstr,
         });
         clientbound_write_match_contents.extend(quote! {
             #clientbound_state_name::#variant_name(packet) => packet.write(buf),
@@ -267,7 +272,10 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
             #variant_name(#module_name::#struct_name),
         });
         serverbound_id_match_contents.extend(quote! {
-            #serverbound_state_name::#variant_name(_packet) => #id,
+            #serverbound_state_name::#variant_name(..) => #id,
+        });
+        serverbound_name_match_contents.extend(quote! {
+            #serverbound_state_name::#variant_name(..) => #packet_name_litstr,
         });
         serverbound_write_match_contents.extend(quote! {
             #serverbound_state_name::#variant_name(packet) => packet.write(buf),
@@ -297,12 +305,18 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
         serverbound_id_match_contents.extend(quote! {
             _ => unreachable!("This enum is empty and can't exist.")
         });
+        serverbound_name_match_contents.extend(quote! {
+            _ => unreachable!("This enum is empty and can't exist.")
+        });
         serverbound_write_match_contents.extend(quote! {
             _ => unreachable!("This enum is empty and can't exist.")
         });
     }
     if !has_clientbound_packets {
         clientbound_id_match_contents.extend(quote! {
+            _ => unreachable!("This enum is empty and can't exist.")
+        });
+        clientbound_name_match_contents.extend(quote! {
             _ => unreachable!("This enum is empty and can't exist.")
         });
         clientbound_write_match_contents.extend(quote! {
@@ -335,6 +349,12 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
             fn id(&self) -> u32 {
                 match self {
                     #serverbound_id_match_contents
+                }
+            }
+
+            fn name(&self) -> &'static str {
+                match self {
+                    #serverbound_name_match_contents
                 }
             }
 
@@ -373,6 +393,12 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
             fn id(&self) -> u32 {
                 match self {
                     #clientbound_id_match_contents
+                }
+            }
+
+            fn name(&self) -> &'static str {
+                match self {
+                    #clientbound_name_match_contents
                 }
             }
 
