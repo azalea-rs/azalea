@@ -359,7 +359,7 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
     /// Change our state from login to configuration. This is the state where
     /// the server sends us the registries and resource pack and stuff.
     #[must_use]
-    pub fn configuration(self) -> Connection<ClientboundConfigPacket, ServerboundConfigPacket> {
+    pub fn config(self) -> Connection<ClientboundConfigPacket, ServerboundConfigPacket> {
         Connection::from(self)
     }
 
@@ -493,7 +493,7 @@ impl Connection<ServerboundLoginPacket, ClientboundLoginPacket> {
 
     /// Change our state back to configuration.
     #[must_use]
-    pub fn configuration(self) -> Connection<ServerboundConfigPacket, ClientboundConfigPacket> {
+    pub fn config(self) -> Connection<ServerboundConfigPacket, ClientboundConfigPacket> {
         Connection::from(self)
     }
 }
@@ -519,7 +519,14 @@ impl Connection<ClientboundConfigPacket, ServerboundConfigPacket> {
 impl Connection<ClientboundGamePacket, ServerboundGamePacket> {
     /// Change our state back to configuration.
     #[must_use]
-    pub fn configuration(self) -> Connection<ClientboundConfigPacket, ServerboundConfigPacket> {
+    pub fn config(self) -> Connection<ClientboundConfigPacket, ServerboundConfigPacket> {
+        Connection::from(self)
+    }
+}
+impl Connection<ServerboundGamePacket, ClientboundGamePacket> {
+    /// Change our state back to configuration.
+    #[must_use]
+    pub fn config(self) -> Connection<ServerboundConfigPacket, ClientboundConfigPacket> {
         Connection::from(self)
     }
 }

@@ -451,7 +451,7 @@ impl Client {
                         p.game_profile
                     );
                     conn.write(ServerboundLoginAcknowledged {}).await?;
-                    break (conn.configuration(), p.game_profile);
+                    break (conn.config(), p.game_profile);
                 }
                 ClientboundLoginPacket::LoginDisconnect(p) => {
                     debug!("Got disconnect {:?}", p);

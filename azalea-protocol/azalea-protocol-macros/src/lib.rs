@@ -364,7 +364,7 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
                 }
             }
 
-            /// Read a packet by its id, ConnectionProtocol, and flow
+            /// Read a packet by its id, ConnectionProtocol, and flow.
             fn read(
                 id: u32,
                 buf: &mut std::io::Cursor<&[u8]>,
@@ -408,7 +408,7 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
                 }
             }
 
-            /// Read a packet by its id, ConnectionProtocol, and flow
+            /// Read a packet by its id, ConnectionProtocol, and flow.
             fn read(
                 id: u32,
                 buf: &mut std::io::Cursor<&[u8]>,
@@ -420,6 +420,13 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
                     #clientbound_read_match_contents
                     _ => return Err(Box::new(crate::read::ReadPacketError::UnknownPacketId { state_name: #state_name_litstr.to_string(), id })),
                 })
+            }
+        }
+
+        impl crate::packets::Packet<#clientbound_state_name> for #clientbound_state_name {
+            /// No-op, exists so you can pass a packet enum when a Packet<> is expected.
+            fn into_variant(self) -> #clientbound_state_name {
+                self
             }
         }
     });
