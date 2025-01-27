@@ -69,7 +69,16 @@ impl PalettedContainer {
             "Bits per entry is 0 but data is not empty."
         );
 
-        let storage = match BitStorage::new(bits_per_entry.into(), size, Some(data)) {
+        let mut storage = match BitStorage::new(
+            bits_per_entry.into(),
+            size,
+            if data.is_empty() {
+                Some(vec![])
+            } else {
+                // we're going to update the data after creating the bitstorage
+                None
+            },
+        ) {
             Ok(storage) => storage,
             Err(e) => {
                 warn!("Failed to create bit storage: {:?}", e);
@@ -78,6 +87,9 @@ impl PalettedContainer {
                 ));
             }
         };
+        // minecraft does this to allow the data to have extra padding bits. most
+        // servers don't use this, but it's notably used by hypixel.
+        storage.data = data;
 
         Ok(PalettedContainer {
             bits_per_entry,

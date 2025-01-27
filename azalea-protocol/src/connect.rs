@@ -108,7 +108,7 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///                 conn.set_compression_threshold(p.compression_threshold);
 ///             }
 ///             ClientboundLoginPacket::LoginFinished(p) => {
-///                 break (conn.configuration(), p.game_profile);
+///                 break (conn.config(), p.game_profile);
 ///             }
 ///             ClientboundLoginPacket::LoginDisconnect(p) => {
 ///                 eprintln!("login disconnect: {}", p.reason);
