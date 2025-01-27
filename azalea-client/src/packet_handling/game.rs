@@ -568,10 +568,11 @@ pub fn process_packet_events(ecs: &mut World) {
                             info: info.clone(),
                         });
                     } else {
-                        warn!(
-                            "Ignoring PlayerInfoUpdate for unknown player {}",
-                            updated_info.profile.uuid
-                        );
+                        let uuid = updated_info.profile.uuid;
+                        #[cfg(debug_assertions)]
+                        warn!("Ignoring PlayerInfoUpdate for unknown player {uuid}");
+                        #[cfg(not(debug_assertions))]
+                        debug!("Ignoring PlayerInfoUpdate for unknown player {uuid}");
                     }
                 }
 
