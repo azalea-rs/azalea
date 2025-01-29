@@ -18,7 +18,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_read_write_container_set_content() {
+    fn test_read_write_hypixel_entity_data() {
         let contents = [161, 226, 1, 10, 18, 1, 20, 38, 124, 175, 198, 255];
         let mut buf = Cursor::new(contents.as_slice());
         let packet = ClientboundSetEntityData::azalea_read(&mut buf).unwrap();

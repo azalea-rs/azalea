@@ -662,7 +662,7 @@ pub struct GameProfileProperty {
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct Profile {
-    pub name: String,
+    pub name: Option<String>,
     pub id: Option<Uuid>,
     pub properties: Vec<GameProfileProperty>,
 }
