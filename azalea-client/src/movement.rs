@@ -5,7 +5,7 @@ use azalea_core::tick::GameTick;
 use azalea_entity::{metadata::Sprinting, Attributes, Jumping};
 use azalea_entity::{InLoadedChunk, LastSentPosition, LookDirection, Physics, Position};
 use azalea_physics::{ai_step, PhysicsSet};
-use azalea_protocol::packets::game::ServerboundPlayerCommand;
+use azalea_protocol::packets::game::{ServerboundPlayerCommand, ServerboundPlayerInput};
 use azalea_protocol::packets::{
     game::{
         s_move_player_pos::ServerboundMovePlayerPos,
@@ -19,6 +19,7 @@ use azalea_world::{MinecraftEntityId, MoveEntityError};
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::{Event, EventWriter};
 use bevy_ecs::schedule::SystemSet;
+use bevy_ecs::system::Commands;
 use bevy_ecs::{
     component::Component, entity::Entity, event::EventReader, query::With,
     schedule::IntoSystemConfigs, system::Query,
@@ -68,6 +69,7 @@ impl Plugin for PlayerMovePlugin {
                         .before(ai_step)
                         .before(azalea_physics::fluids::update_in_water_state_and_do_fluid_pushing),
                     send_sprinting_if_needed.after(azalea_entity::update_in_loaded_chunk),
+                    send_player_input_packet,
                     send_position.after(PhysicsSet),
                 )
                     .chain(),
@@ -247,6 +249,40 @@ pub fn send_position(
                 sent_by: entity,
                 packet,
             });
+        }
+    }
+}
+
+#[derive(Debug, Default, Component, Clone, PartialEq, Eq)]
+pub struct LastSentInput(pub ServerboundPlayerInput);
+pub fn send_player_input_packet(
+    mut query: Query<(Entity, &PhysicsState, &Jumping, Option<&LastSentInput>)>,
+    mut send_packet_events: EventWriter<SendPacketEvent>,
+    mut commands: Commands,
+) {
+    for (entity, physics_state, jumping, last_sent_input) in query.iter_mut() {
+        let input = ServerboundPlayerInput {
+            forward: physics_state.move_direction == WalkDirection::Forward,
+            backward: physics_state.move_direction == WalkDirection::Backward,
+            left: physics_state.move_direction == WalkDirection::Left,
+            right: physics_state.move_direction == WalkDirection::Right,
+            jump: **jumping,
+            // TODO: implement sneaking
+            shift: false,
+            sprint: physics_state.trying_to_sprint,
+        };
+
+        // if LastSentInput isn't present, we default to assuming we're not pressing any
+        // keys and insert it anyways every time it changes
+        let last_sent_input = last_sent_input.cloned().unwrap_or_default();
+
+        if input != last_sent_input.0 {
+            send_packet_events.send(SendPacketEvent {
+                sent_by: entity,
+                packet: input.clone().into_variant(),
+            });
+            println!("sent input packet {:?}", input);
+            commands.entity(entity).insert(LastSentInput(input));
         }
     }
 }
@@ -510,7 +546,7 @@ pub fn handle_knockback(mut query: Query<&mut Physics>, mut events: EventReader<
     }
 }
 
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum WalkDirection {
     #[default]
     None,

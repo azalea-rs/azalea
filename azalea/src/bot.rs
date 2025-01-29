@@ -43,7 +43,12 @@ impl Plugin for BotPlugin {
                     jump_listener,
                 ),
             )
-            .add_systems(GameTick, stop_jumping.after(PhysicsSet));
+            .add_systems(
+                GameTick,
+                stop_jumping
+                    .after(PhysicsSet)
+                    .after(azalea_client::movement::send_player_input_packet),
+            );
     }
 }
 

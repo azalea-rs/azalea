@@ -78,6 +78,7 @@ use crate::{
     player::retroactively_add_game_profile_component,
     raw_connection::RawConnection,
     respawn::RespawnPlugin,
+    send_client_end::TickEndPlugin,
     task_pool::TaskPoolPlugin,
     Account, PlayerInfo,
 };
@@ -927,6 +928,7 @@ impl PluginGroup for DefaultPlugins {
             .add(MinePlugin)
             .add(AttackPlugin)
             .add(ChunkPlugin)
+            .add(TickEndPlugin)
             .add(ConfigurationPlugin)
             .add(TickBroadcastPlugin);
         #[cfg(feature = "log")]

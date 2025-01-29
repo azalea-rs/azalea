@@ -27,6 +27,7 @@ pub mod ping;
 mod player;
 pub mod raw_connection;
 pub mod respawn;
+pub mod send_client_end;
 pub mod task_pool;
 
 pub use account::{Account, AccountOpts};
