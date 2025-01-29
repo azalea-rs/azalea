@@ -261,11 +261,13 @@ pub fn send_player_input_packet(
     mut commands: Commands,
 ) {
     for (entity, physics_state, jumping, last_sent_input) in query.iter_mut() {
+        let dir = physics_state.move_direction;
+        type D = WalkDirection;
         let input = ServerboundPlayerInput {
-            forward: physics_state.move_direction == WalkDirection::Forward,
-            backward: physics_state.move_direction == WalkDirection::Backward,
-            left: physics_state.move_direction == WalkDirection::Left,
-            right: physics_state.move_direction == WalkDirection::Right,
+            forward: matches!(dir, D::Forward | D::ForwardLeft | D::ForwardRight),
+            backward: matches!(dir, D::Backward | D::BackwardLeft | D::BackwardRight),
+            left: matches!(dir, D::Left | D::ForwardLeft | D::BackwardLeft),
+            right: matches!(dir, D::Right | D::ForwardRight | D::BackwardRight),
             jump: **jumping,
             // TODO: implement sneaking
             shift: false,
