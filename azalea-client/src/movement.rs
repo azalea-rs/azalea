@@ -283,7 +283,6 @@ pub fn send_player_input_packet(
                 sent_by: entity,
                 packet: input.clone().into_variant(),
             });
-            println!("sent input packet {:?}", input);
             commands.entity(entity).insert(LastSentInput(input));
         }
     }
