@@ -8,3 +8,26 @@ pub struct ClientboundSetEntityData {
     pub id: u32,
     pub packed_items: EntityMetadataItems,
 }
+
+#[cfg(test)]
+mod tests {
+    use std::io::Cursor;
+
+    use azalea_buf::AzaleaRead;
+
+    use super::*;
+
+    #[test]
+    fn test_read_write_container_set_content() {
+        let contents = [161, 226, 1, 10, 18, 1, 20, 38, 124, 175, 198, 255];
+        let mut buf = Cursor::new(contents.as_slice());
+        let packet = ClientboundSetEntityData::azalea_read(&mut buf).unwrap();
+        println!("{:?}", packet);
+
+        assert_eq!(buf.position(), contents.len() as u64);
+
+        let mut buf = Vec::new();
+        packet.write(&mut buf).unwrap();
+        assert_eq!(buf, contents);
+    }
+}
