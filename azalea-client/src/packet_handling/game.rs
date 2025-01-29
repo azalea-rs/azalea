@@ -730,7 +730,8 @@ pub fn process_packet_events(ecs: &mut World) {
                 let entity = entity_id_index.get(MinecraftEntityId(p.id));
 
                 let Some(entity) = entity else {
-                    warn!("Server sent an entity data packet for an entity id ({}) that we don't know about", p.id);
+                    // some servers like hypixel trigger this a lot :(
+                    debug!("Server sent an entity data packet for an entity id ({}) that we don't know about", p.id);
                     continue;
                 };
                 let entity_kind = *entity_kind_query.get(entity).unwrap();
@@ -964,7 +965,8 @@ pub fn process_packet_events(ecs: &mut World) {
                         }),
                     });
                 } else {
-                    warn!(
+                    // often triggered by hypixel :(
+                    debug!(
                         "Got move entity pos rot packet for unknown entity id {}",
                         p.entity_id
                     );
