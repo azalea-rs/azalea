@@ -1470,7 +1470,7 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 commands
                     .entity(player_entity)
-                    .insert(crate::client::InConfigurationState)
+                    .insert(crate::client::InConfigState)
                     .remove::<crate::JoinedClientBundle>();
 
                 system_state.apply(ecs);

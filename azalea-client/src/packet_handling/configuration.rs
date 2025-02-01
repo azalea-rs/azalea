@@ -14,7 +14,7 @@ use bevy_ecs::prelude::*;
 use bevy_ecs::system::SystemState;
 use tracing::{debug, error, warn};
 
-use crate::client::InConfigurationState;
+use crate::client::InConfigState;
 use crate::disconnect::DisconnectEvent;
 use crate::local_player::Hunger;
 use crate::packet_handling::game::KeepAliveEvent;
@@ -30,7 +30,7 @@ pub struct ConfigurationEvent {
 }
 
 pub fn send_packet_events(
-    query: Query<(Entity, &RawConnection), With<InConfigurationState>>,
+    query: Query<(Entity, &RawConnection), With<InConfigState>>,
     mut packet_events: ResMut<Events<ConfigurationEvent>>,
 ) {
     // we manually clear and send the events at the beginning of each update
@@ -110,7 +110,7 @@ pub fn process_packet_events(ecs: &mut World) {
                 let mut raw_conn = query.get_mut(player_entity).unwrap();
 
                 raw_conn
-                    .write_packet(ServerboundFinishConfiguration {})
+                    .write_packet(ServerboundFinishConfiguration)
                     .expect(
                         "we should be in the right state and encoding this packet shouldn't fail",
                     );
@@ -118,7 +118,7 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 // these components are added now that we're going to be in the Game state
                 ecs.entity_mut(player_entity)
-                    .remove::<InConfigurationState>()
+                    .remove::<InConfigState>()
                     .insert(crate::JoinedClientBundle {
                         physics_state: crate::PhysicsState::default(),
                         inventory: crate::inventory::Inventory::default(),
@@ -251,7 +251,7 @@ impl SendConfigurationEvent {
 
 pub fn handle_send_packet_event(
     mut send_packet_events: EventReader<SendConfigurationEvent>,
-    mut query: Query<(&mut RawConnection, Option<&InConfigurationState>)>,
+    mut query: Query<(&mut RawConnection, Option<&InConfigState>)>,
 ) {
     for event in send_packet_events.read() {
         if let Ok((raw_conn, in_configuration_state)) = query.get_mut(event.sent_by) {

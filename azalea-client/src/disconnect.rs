@@ -13,6 +13,7 @@ use bevy_ecs::{
     system::{Commands, Query},
 };
 use derive_more::Deref;
+use tracing::trace;
 
 use crate::{client::JoinedClientBundle, events::LocalPlayerEvents, raw_connection::RawConnection};
 
@@ -45,6 +46,7 @@ pub fn remove_components_from_disconnected_players(
     mut events: EventReader<DisconnectEvent>,
 ) {
     for DisconnectEvent { entity, .. } in events.read() {
+        trace!("Got DisconnectEvent for {entity:?}");
         commands
             .entity(*entity)
             .remove::<JoinedClientBundle>()

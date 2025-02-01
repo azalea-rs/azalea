@@ -7,6 +7,7 @@ use azalea_core::{position::Vec3, resource_location::ResourceLocation, tick::Gam
 use azalea_entity::{
     attributes::AttributeInstance, Attributes, EntityDimensions, LookDirection, Physics, Position,
 };
+use azalea_registry::EntityKind;
 use azalea_world::{ChunkStorage, Instance, InstanceContainer, MinecraftEntityId, PartialInstance};
 use bevy_app::App;
 use bevy_ecs::prelude::*;
@@ -25,16 +26,13 @@ pub struct SimulatedPlayerBundle {
 
 impl SimulatedPlayerBundle {
     pub fn new(position: Vec3) -> Self {
-        let dimensions = EntityDimensions {
-            width: 0.6,
-            height: 1.8,
-        };
+        let dimensions = EntityDimensions::from(EntityKind::Player);
 
         SimulatedPlayerBundle {
             position: Position::new(position),
             physics: Physics::new(dimensions, position),
             physics_state: PhysicsState::default(),
-            look_direction: LookDirection::new(0.0, 0.0),
+            look_direction: LookDirection::default(),
             attributes: Attributes {
                 speed: AttributeInstance::new(0.1),
                 attack_speed: AttributeInstance::new(4.0),

@@ -18,26 +18,26 @@ use tracing::error;
 /// yourself. It will do the compression and encryption for you though.
 #[derive(Component)]
 pub struct RawConnection {
-    reader: RawConnectionReader,
-    writer: RawConnectionWriter,
+    pub reader: RawConnectionReader,
+    pub writer: RawConnectionWriter,
 
     /// Packets sent to this will be sent to the server.
     /// A task that reads packets from the server. The client is disconnected
     /// when this task ends.
-    read_packets_task: tokio::task::JoinHandle<()>,
+    pub read_packets_task: tokio::task::JoinHandle<()>,
     /// A task that writes packets from the server.
-    write_packets_task: tokio::task::JoinHandle<()>,
+    pub write_packets_task: tokio::task::JoinHandle<()>,
 
-    connection_protocol: ConnectionProtocol,
+    pub connection_protocol: ConnectionProtocol,
 }
 
 #[derive(Clone)]
-struct RawConnectionReader {
+pub struct RawConnectionReader {
     pub incoming_packet_queue: Arc<Mutex<Vec<Box<[u8]>>>>,
     pub run_schedule_sender: mpsc::UnboundedSender<()>,
 }
 #[derive(Clone)]
-struct RawConnectionWriter {
+pub struct RawConnectionWriter {
     pub outgoing_packets_sender: mpsc::UnboundedSender<Box<[u8]>>,
 }
 

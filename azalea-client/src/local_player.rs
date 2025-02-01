@@ -20,14 +20,23 @@ use crate::{
 
 /// A component that keeps strong references to our [`PartialInstance`] and
 /// [`Instance`] for local players.
+///
+/// This can also act as a convenience for accessing the player's Instance since
+/// the alternative is to look up the player's [`InstanceName`] in the
+/// [`InstanceContainer`].
+///
+/// [`InstanceContainer`]: azalea_world::InstanceContainer
+/// [`InstanceName`]: azalea_world::InstanceName
 #[derive(Component, Clone)]
 pub struct InstanceHolder {
     /// The partial instance is the world this client currently has loaded. It
     /// has a limited render distance.
     pub partial_instance: Arc<RwLock<PartialInstance>>,
     /// The world is the combined [`PartialInstance`]s of all clients in the
-    /// same world. (Only relevant if you're using a shared world, i.e. a
-    /// swarm)
+    /// same world.
+    ///
+    /// This is only relevant if you're using a shared world (i.e. a
+    /// swarm).
     pub instance: Arc<RwLock<Instance>>,
 }
 
@@ -114,12 +123,16 @@ impl Default for Hunger {
 }
 
 impl InstanceHolder {
-    /// Create a new `InstanceHolder`.
-    pub fn new(entity: Entity, world: Arc<RwLock<Instance>>) -> Self {
+    /// Create a new `InstanceHolder` for the given entity.
+    ///
+    /// The partial instance will be created for you. The render distance will
+    /// be set to a default value, which you can change by creating a new
+    /// partial_instance.
+    pub fn new(entity: Entity, instance: Arc<RwLock<Instance>>) -> Self {
         let client_information = ClientInformation::default();
 
         InstanceHolder {
-            instance: world,
+            instance,
             partial_instance: Arc::new(RwLock::new(PartialInstance::new(
                 azalea_world::chunk_storage::calculate_chunk_storage_range(
                     client_information.view_distance.into(),

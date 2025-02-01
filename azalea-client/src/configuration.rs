@@ -10,7 +10,7 @@ use azalea_protocol::{
 use bevy_app::prelude::*;
 use bevy_ecs::prelude::*;
 
-use crate::{client::InConfigurationState, packet_handling::configuration::SendConfigurationEvent};
+use crate::{client::InConfigState, packet_handling::configuration::SendConfigurationEvent};
 
 pub struct ConfigurationPlugin;
 impl Plugin for ConfigurationPlugin {
@@ -18,13 +18,13 @@ impl Plugin for ConfigurationPlugin {
         app.add_systems(
             Update,
             handle_in_configuration_state
-                .after(crate::packet_handling::configuration::handle_send_packet_event),
+                .before(crate::packet_handling::configuration::handle_send_packet_event),
         );
     }
 }
 
 fn handle_in_configuration_state(
-    query: Query<(Entity, &ClientInformation), Added<InConfigurationState>>,
+    query: Query<(Entity, &ClientInformation), Added<InConfigState>>,
     mut send_packet_events: EventWriter<SendConfigurationEvent>,
 ) {
     for (entity, client_information) in query.iter() {

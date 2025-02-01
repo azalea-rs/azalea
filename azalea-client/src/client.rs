@@ -326,7 +326,7 @@ impl Client {
                 client_information: crate::ClientInformation::default(),
                 instance_holder,
             },
-            InConfigurationState,
+            InConfigState,
         ));
 
         Ok((client, rx))
@@ -757,8 +757,8 @@ pub struct JoinedClientBundle {
 
 /// A marker component for local players that are currently in the
 /// `configuration` state.
-#[derive(Component)]
-pub struct InConfigurationState;
+#[derive(Component, Clone, Debug)]
+pub struct InConfigState;
 
 pub struct AzaleaPlugin;
 impl Plugin for AzaleaPlugin {
