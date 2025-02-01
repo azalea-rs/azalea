@@ -8,14 +8,16 @@ use azalea_client::{
 };
 use azalea_core::{
     game_type::{GameMode, OptionalGameType},
-    position::Vec3,
     resource_location::ResourceLocation,
     tick::GameTick,
 };
-use azalea_entity::{metadata::Health, LocalEntity, Position};
+use azalea_entity::{
+    metadata::{Health, PlayerMetadataBundle},
+    LocalEntity,
+};
 use azalea_protocol::packets::{
     common::CommonPlayerSpawnInfo,
-    config::ClientboundFinishConfiguration,
+    config::{ClientboundFinishConfiguration, ClientboundRegistryData},
     game::{ClientboundLogin, ClientboundSetHealth},
     ConnectionProtocol, Packet, ProtocolPacket,
 };
@@ -26,6 +28,7 @@ use bevy_app::PluginGroup;
 use bevy_ecs::{prelude::*, schedule::ExecutorKind};
 use bevy_log::{tracing_subscriber, LogPlugin};
 use parking_lot::{Mutex, RwLock};
+use simdnbt::owned::{NbtCompound, NbtTag};
 use tokio::{sync::mpsc, time::sleep};
 use uuid::Uuid;
 
@@ -36,6 +39,19 @@ fn test_set_health_before_login() {
     let mut simulation = Simulation::new(ConnectionProtocol::Configuration);
     assert!(simulation.has_component::<InConfigState>());
 
+    simulation.receive_packet(ClientboundRegistryData {
+        registry_id: ResourceLocation::new("minecraft:dimension_type"),
+        entries: vec![(
+            ResourceLocation::new("minecraft:overworld"),
+            Some(NbtCompound::from_values(vec![
+                ("height".into(), NbtTag::Int(384)),
+                ("min_y".into(), NbtTag::Int(-64)),
+            ])),
+        )]
+        .into_iter()
+        .collect(),
+    });
+    simulation.tick();
     simulation.receive_packet(ClientboundFinishConfiguration);
     simulation.tick();
 
@@ -62,7 +78,7 @@ fn test_set_health_before_login() {
         do_limited_crafting: false,
         common: CommonPlayerSpawnInfo {
             dimension_type: DimensionType::Overworld,
-            dimension: ResourceLocation::new("overworld"),
+            dimension: ResourceLocation::new("minecraft:overworld"),
             seed: 0,
             game_type: GameMode::Survival,
             previous_game_type: OptionalGameType(None),
@@ -124,7 +140,7 @@ pub fn create_local_player_bundle(
         connection_protocol,
     };
 
-    let (local_player_events_sender, local_player_events_receiver) = mpsc::unbounded_channel();
+    let (local_player_events_sender, _local_player_events_receiver) = mpsc::unbounded_channel();
 
     let instance = Instance::default();
     let instance_holder = InstanceHolder::new(entity, Arc::new(RwLock::new(instance)));
@@ -135,17 +151,15 @@ pub fn create_local_player_bundle(
         game_profile: GameProfileComponent(GameProfile::new(Uuid::nil(), "azalea".to_owned())),
         client_information: ClientInformation::default(),
         instance_holder,
+        metadata: PlayerMetadataBundle::default(),
     };
+
     (
         local_player_bundle,
         outgoing_packets_receiver,
         incoming_packet_queue,
         rt,
     )
-}
-
-fn simulation_instance_name() -> ResourceLocation {
-    ResourceLocation::new("azalea:simulation")
 }
 
 fn create_simulation_app() -> App {
@@ -201,7 +215,6 @@ impl Simulation {
     pub fn receive_packet<P: ProtocolPacket + Debug>(&mut self, packet: impl Packet<P>) {
         let buf = azalea_protocol::write::serialize_packet(&packet.into_variant()).unwrap();
         self.incoming_packet_queue.lock().push(buf.into());
-        println!("added to incoming_packet_queue");
     }
 
     pub fn tick(&mut self) {
@@ -215,9 +228,6 @@ impl Simulation {
     }
     pub fn has_component<T: Component>(&self) -> bool {
         self.app.world().get::<T>(self.entity).is_some()
-    }
-    pub fn position(&self) -> Vec3 {
-        *self.component::<Position>()
     }
 }
 

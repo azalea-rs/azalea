@@ -478,13 +478,6 @@ impl EntityBundle {
     }
 }
 
-/// A bundle of the components that are always present for a player.
-#[derive(Bundle)]
-pub struct PlayerBundle {
-    pub entity: EntityBundle,
-    pub metadata: metadata::PlayerMetadataBundle,
-}
-
 /// A marker component that signifies that this entity is "local" and shouldn't
 /// be updated by other clients.
 ///

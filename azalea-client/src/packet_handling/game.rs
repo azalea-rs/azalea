@@ -14,9 +14,9 @@ use azalea_core::{
 };
 use azalea_entity::{
     indexing::{EntityIdIndex, EntityUuidIndex},
-    metadata::{apply_metadata, Health, PlayerMetadataBundle},
+    metadata::{apply_metadata, Health},
     Dead, EntityBundle, EntityKind, LastSentPosition, LoadedBy, LocalEntity, LookDirection,
-    Physics, PlayerBundle, Position, RelativeEntityUpdate,
+    Physics, Position, RelativeEntityUpdate,
 };
 use azalea_protocol::{
     packets::{
@@ -298,15 +298,12 @@ pub fn process_packet_events(ecs: &mut World) {
                     }
                     instance_holder.instance = weak_instance;
 
-                    let player_bundle = PlayerBundle {
-                        entity: EntityBundle::new(
-                            game_profile.uuid,
-                            Vec3::default(),
-                            azalea_registry::EntityKind::Player,
-                            new_instance_name,
-                        ),
-                        metadata: PlayerMetadataBundle::default(),
-                    };
+                    let entity_bundle = EntityBundle::new(
+                        game_profile.uuid,
+                        Vec3::default(),
+                        azalea_registry::EntityKind::Player,
+                        new_instance_name,
+                    );
                     let entity_id = MinecraftEntityId(p.player_id);
                     // insert our components into the ecs :)
                     commands.entity(player_entity).insert((
@@ -315,7 +312,7 @@ pub fn process_packet_events(ecs: &mut World) {
                             current: p.common.game_type,
                             previous: p.common.previous_game_type.into(),
                         },
-                        player_bundle,
+                        entity_bundle,
                     ));
 
                     azalea_entity::indexing::add_entity_to_indexes(
@@ -1433,22 +1430,19 @@ pub fn process_packet_events(ecs: &mut World) {
                     instance_holder.instance = weak_instance;
 
                     // this resets a bunch of our components like physics and stuff
-                    let player_bundle = PlayerBundle {
-                        entity: EntityBundle::new(
-                            game_profile.uuid,
-                            Vec3::default(),
-                            azalea_registry::EntityKind::Player,
-                            new_instance_name,
-                        ),
-                        metadata: PlayerMetadataBundle::default(),
-                    };
+                    let entity_bundle = EntityBundle::new(
+                        game_profile.uuid,
+                        Vec3::default(),
+                        azalea_registry::EntityKind::Player,
+                        new_instance_name,
+                    );
                     // update the local gamemode and metadata things
                     commands.entity(player_entity).insert((
                         LocalGameMode {
                             current: p.common.game_type,
                             previous: p.common.previous_game_type.into(),
                         },
-                        player_bundle,
+                        entity_bundle,
                     ));
                 }
 

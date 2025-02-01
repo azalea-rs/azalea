@@ -325,6 +325,7 @@ impl Client {
                 game_profile: GameProfileComponent(game_profile),
                 client_information: crate::ClientInformation::default(),
                 instance_holder,
+                metadata: azalea_entity::metadata::PlayerMetadataBundle::default(),
             },
             InConfigState,
         ));
@@ -729,6 +730,8 @@ pub struct LocalPlayerBundle {
     pub game_profile: GameProfileComponent,
     pub client_information: ClientInformation,
     pub instance_holder: InstanceHolder,
+
+    pub metadata: azalea_entity::metadata::PlayerMetadataBundle,
 }
 
 /// A bundle for the components that are present on a local player that is
