@@ -337,7 +337,7 @@ pub struct CalculatePathOpts {
     pub goto_id_atomic: Arc<AtomicUsize>,
     pub allow_mining: bool,
     pub mining_cache: MiningCache,
-    /// Also see [`GotoEvent::deterministic_timeout`]
+    /// Also see [`GotoEvent::min_timeout`].
     pub min_timeout: PathfinderTimeout,
     pub max_timeout: PathfinderTimeout,
 }

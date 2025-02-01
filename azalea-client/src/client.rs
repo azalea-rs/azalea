@@ -721,8 +721,7 @@ impl Client {
 /// `configuration` or `game` state.
 ///
 /// For the components that are only present in the `game` state, see
-/// [`JoinedClientBundle`] and for the ones in the `configuration` state, see
-/// [`ConfigurationClientBundle`].
+/// [`JoinedClientBundle`].
 #[derive(Bundle)]
 pub struct LocalPlayerBundle {
     pub raw_connection: RawConnection,

@@ -158,6 +158,8 @@ impl RawConnectionWriter {
     /// Consume the [`ServerboundGamePacket`] queue and actually write the
     /// packets to the server. It's like this so writing packets doesn't need to
     /// be awaited.
+    ///
+    /// [`ServerboundGamePacket`]: azalea_protocol::packets::game::ServerboundGamePacket
     pub async fn write_task(
         self,
         mut write_conn: RawWriteConnection,
