@@ -1,8 +1,8 @@
-use azalea_block::{fluid_state::FluidKind, Block, BlockBehavior};
+use azalea_block::{Block, BlockBehavior};
 use azalea_core::tier::get_item_tier;
 use azalea_registry as registry;
 
-use crate::{effects, enchantments, FluidOnEyes, Physics};
+use crate::{effects, FluidOnEyes, Physics};
 
 /// How much progress is made towards mining the block per tick, as a
 /// percentage. If this is 1 then the block gets broken instantly.
@@ -83,13 +83,14 @@ fn destroy_speed(
     let mut base_destroy_speed = base_destroy_speed(block, tool);
 
     // add efficiency enchantment
-    if base_destroy_speed > 1. {
-        let efficiency_level =
-            enchantments::get_enchant_level(registry::Enchantment::Efficiency, player_inventory);
-        if efficiency_level > 0 && tool != registry::Item::Air {
-            base_destroy_speed += (efficiency_level * efficiency_level + 1) as f32;
-        }
-    }
+    // TODO
+    // if base_destroy_speed > 1. {
+    //     let efficiency_level =
+    //         enchantments::get_enchant_level(registry::Enchantment::Efficiency,
+    // player_inventory);     if efficiency_level > 0 && tool !=
+    // registry::Item::Air {         base_destroy_speed += (efficiency_level *
+    // efficiency_level + 1) as f32;     }
+    // }
 
     if let Some(dig_speed_amplifier) = effects::get_dig_speed_amplifier() {
         base_destroy_speed *= 1. + (dig_speed_amplifier + 1) as f32 * 0.2;
@@ -105,12 +106,13 @@ fn destroy_speed(
         base_destroy_speed *= multiplier;
     }
 
-    if **fluid_on_eyes == FluidKind::Water
-        && enchantments::get_enchant_level(registry::Enchantment::AquaAffinity, player_inventory)
-            == 0
-    {
-        base_destroy_speed /= 5.;
-    }
+    // TODO
+    // if **fluid_on_eyes == FluidKind::Water
+    //     && enchantments::get_enchant_level(registry::Enchantment::AquaAffinity,
+    // player_inventory)         == 0
+    // {
+    //     base_destroy_speed /= 5.;
+    // }
 
     if !physics.on_ground {
         base_destroy_speed /= 5.;

@@ -7,6 +7,7 @@
 
 use std::{collections::HashMap, io::Cursor};
 
+use indexmap::IndexMap;
 use simdnbt::{
     owned::{NbtCompound, NbtTag},
     Deserialize, FromNbtTag, Serialize, ToNbtTag,
@@ -20,21 +21,21 @@ use crate::resource_location::ResourceLocation;
 /// This is the registry that is sent to the client upon login.
 #[derive(Default, Debug, Clone)]
 pub struct RegistryHolder {
-    pub map: HashMap<ResourceLocation, HashMap<ResourceLocation, NbtCompound>>,
+    pub map: HashMap<ResourceLocation, IndexMap<ResourceLocation, NbtCompound>>,
 }
 
 impl RegistryHolder {
     pub fn append(
         &mut self,
         id: ResourceLocation,
-        entries: HashMap<ResourceLocation, Option<NbtCompound>>,
+        entries: Vec<(ResourceLocation, Option<NbtCompound>)>,
     ) {
         let map = self.map.entry(id).or_default();
         for (key, value) in entries {
             if let Some(value) = value {
                 map.insert(key, value);
             } else {
-                map.remove(&key);
+                map.shift_remove(&key);
             }
         }
     }

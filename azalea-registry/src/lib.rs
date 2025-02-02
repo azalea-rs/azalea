@@ -3,16 +3,18 @@
 // The contents of the macros below are generated in
 // codegen/lib/code/registry.py, though the rest of the file isn't
 // auto-generated (so you can add doc comments to the registry enums if you
-// want)
+// want).
 
+mod data;
 mod extra;
 pub mod tags;
 
 use std::fmt::{self, Debug};
-use std::io::{Cursor, Write};
+use std::io::{self, Cursor, Write};
 
 use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
 use azalea_registry_macros::registry;
+pub use data::*;
 pub use extra::*;
 
 pub trait Registry: AzaleaRead + AzaleaWrite
@@ -65,7 +67,7 @@ impl<D: Registry, C: AzaleaRead + AzaleaWrite> AzaleaRead for CustomRegistry<D, 
     }
 }
 impl<D: Registry, C: AzaleaRead + AzaleaWrite> AzaleaWrite for CustomRegistry<D, C> {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), io::Error> {
         match self {
             CustomRegistry::Direct(direct_registry) => {
                 // write the id + 1
@@ -259,52 +261,6 @@ enum Attribute {
     SweepingDamageRatio => "minecraft:sweeping_damage_ratio",
     TemptRange => "minecraft:tempt_range",
     WaterMovementEfficiency => "minecraft:water_movement_efficiency",
-}
-}
-
-registry! {
-enum BannerPattern {
-    Base => "minecraft:base",
-    SquareBottomLeft => "minecraft:square_bottom_left",
-    SquareBottomRight => "minecraft:square_bottom_right",
-    SquareTopLeft => "minecraft:square_top_left",
-    SquareTopRight => "minecraft:square_top_right",
-    StripeBottom => "minecraft:stripe_bottom",
-    StripeTop => "minecraft:stripe_top",
-    StripeLeft => "minecraft:stripe_left",
-    StripeRight => "minecraft:stripe_right",
-    StripeCenter => "minecraft:stripe_center",
-    StripeMiddle => "minecraft:stripe_middle",
-    StripeDownright => "minecraft:stripe_downright",
-    StripeDownleft => "minecraft:stripe_downleft",
-    SmallStripes => "minecraft:small_stripes",
-    Cross => "minecraft:cross",
-    StraightCross => "minecraft:straight_cross",
-    TriangleBottom => "minecraft:triangle_bottom",
-    TriangleTop => "minecraft:triangle_top",
-    TrianglesBottom => "minecraft:triangles_bottom",
-    TrianglesTop => "minecraft:triangles_top",
-    DiagonalLeft => "minecraft:diagonal_left",
-    DiagonalUpRight => "minecraft:diagonal_up_right",
-    DiagonalUpLeft => "minecraft:diagonal_up_left",
-    DiagonalRight => "minecraft:diagonal_right",
-    Circle => "minecraft:circle",
-    Rhombus => "minecraft:rhombus",
-    HalfVertical => "minecraft:half_vertical",
-    HalfHorizontal => "minecraft:half_horizontal",
-    HalfVerticalRight => "minecraft:half_vertical_right",
-    HalfHorizontalBottom => "minecraft:half_horizontal_bottom",
-    Border => "minecraft:border",
-    CurlyBorder => "minecraft:curly_border",
-    Gradient => "minecraft:gradient",
-    GradientUp => "minecraft:gradient_up",
-    Bricks => "minecraft:bricks",
-    Globe => "minecraft:globe",
-    Creeper => "minecraft:creeper",
-    Skull => "minecraft:skull",
-    Flower => "minecraft:flower",
-    Mojang => "minecraft:mojang",
-    Piglin => "minecraft:piglin",
 }
 }
 
@@ -1657,53 +1613,6 @@ enum CustomStat {
 }
 
 registry! {
-enum Enchantment {
-    Protection => "minecraft:protection",
-    FireProtection => "minecraft:fire_protection",
-    FeatherFalling => "minecraft:feather_falling",
-    BlastProtection => "minecraft:blast_protection",
-    ProjectileProtection => "minecraft:projectile_protection",
-    Respiration => "minecraft:respiration",
-    AquaAffinity => "minecraft:aqua_affinity",
-    Thorns => "minecraft:thorns",
-    DepthStrider => "minecraft:depth_strider",
-    FrostWalker => "minecraft:frost_walker",
-    BindingCurse => "minecraft:binding_curse",
-    SoulSpeed => "minecraft:soul_speed",
-    SwiftSneak => "minecraft:swift_sneak",
-    Sharpness => "minecraft:sharpness",
-    Smite => "minecraft:smite",
-    BaneOfArthropods => "minecraft:bane_of_arthropods",
-    Knockback => "minecraft:knockback",
-    FireAspect => "minecraft:fire_aspect",
-    Looting => "minecraft:looting",
-    SweepingEdge => "minecraft:sweeping_edge",
-    Efficiency => "minecraft:efficiency",
-    SilkTouch => "minecraft:silk_touch",
-    Unbreaking => "minecraft:unbreaking",
-    Fortune => "minecraft:fortune",
-    Power => "minecraft:power",
-    Punch => "minecraft:punch",
-    Flame => "minecraft:flame",
-    Infinity => "minecraft:infinity",
-    LuckOfTheSea => "minecraft:luck_of_the_sea",
-    Lure => "minecraft:lure",
-    Loyalty => "minecraft:loyalty",
-    Impaling => "minecraft:impaling",
-    Riptide => "minecraft:riptide",
-    Channeling => "minecraft:channeling",
-    Multishot => "minecraft:multishot",
-    QuickCharge => "minecraft:quick_charge",
-    Piercing => "minecraft:piercing",
-    Density => "minecraft:density",
-    Breach => "minecraft:breach",
-    WindBurst => "minecraft:wind_burst",
-    Mending => "minecraft:mending",
-    VanishingCurse => "minecraft:vanishing_curse",
-}
-}
-
-registry! {
 /// An enum that contains every type of entity.
 enum EntityKind {
     AcaciaBoat => "minecraft:acacia_boat",
@@ -1958,19 +1867,6 @@ enum HeightProviderKind {
     VeryBiasedToBottom => "minecraft:very_biased_to_bottom",
     Trapezoid => "minecraft:trapezoid",
     WeightedList => "minecraft:weighted_list",
-}
-}
-
-registry! {
-enum Instrument {
-    PonderGoatHorn => "minecraft:ponder_goat_horn",
-    SingGoatHorn => "minecraft:sing_goat_horn",
-    SeekGoatHorn => "minecraft:seek_goat_horn",
-    FeelGoatHorn => "minecraft:feel_goat_horn",
-    AdmireGoatHorn => "minecraft:admire_goat_horn",
-    CallGoatHorn => "minecraft:call_goat_horn",
-    YearnGoatHorn => "minecraft:yearn_goat_horn",
-    DreamGoatHorn => "minecraft:dream_goat_horn",
 }
 }
 
@@ -3594,35 +3490,6 @@ enum MemoryModuleKind {
 }
 
 registry! {
-enum Menu {
-    Generic9x1 => "minecraft:generic_9x1",
-    Generic9x2 => "minecraft:generic_9x2",
-    Generic9x3 => "minecraft:generic_9x3",
-    Generic9x4 => "minecraft:generic_9x4",
-    Generic9x5 => "minecraft:generic_9x5",
-    Generic9x6 => "minecraft:generic_9x6",
-    Generic3x3 => "minecraft:generic_3x3",
-    Anvil => "minecraft:anvil",
-    Beacon => "minecraft:beacon",
-    BlastFurnace => "minecraft:blast_furnace",
-    BrewingStand => "minecraft:brewing_stand",
-    Crafting => "minecraft:crafting",
-    Enchantment => "minecraft:enchantment",
-    Furnace => "minecraft:furnace",
-    Grindstone => "minecraft:grindstone",
-    Hopper => "minecraft:hopper",
-    Lectern => "minecraft:lectern",
-    Loom => "minecraft:loom",
-    Merchant => "minecraft:merchant",
-    ShulkerBox => "minecraft:shulker_box",
-    Smithing => "minecraft:smithing",
-    Smoker => "minecraft:smoker",
-    CartographyTable => "minecraft:cartography_table",
-    Stonecutter => "minecraft:stonecutter",
-}
-}
-
-registry! {
 enum MobEffect {
     Speed => "minecraft:speed",
     Slowness => "minecraft:slowness",
@@ -3663,41 +3530,6 @@ enum MobEffect {
     Weaving => "minecraft:weaving",
     Oozing => "minecraft:oozing",
     Infested => "minecraft:infested",
-}
-}
-
-registry! {
-enum PaintingVariant {
-    Kebab => "minecraft:kebab",
-    Aztec => "minecraft:aztec",
-    Alban => "minecraft:alban",
-    Aztec2 => "minecraft:aztec2",
-    Bomb => "minecraft:bomb",
-    Plant => "minecraft:plant",
-    Wasteland => "minecraft:wasteland",
-    Pool => "minecraft:pool",
-    Courbet => "minecraft:courbet",
-    Sea => "minecraft:sea",
-    Sunset => "minecraft:sunset",
-    Creebet => "minecraft:creebet",
-    Wanderer => "minecraft:wanderer",
-    Graham => "minecraft:graham",
-    Match => "minecraft:match",
-    Bust => "minecraft:bust",
-    Stage => "minecraft:stage",
-    Void => "minecraft:void",
-    SkullAndRoses => "minecraft:skull_and_roses",
-    Wither => "minecraft:wither",
-    Fighters => "minecraft:fighters",
-    Pointer => "minecraft:pointer",
-    Pigscene => "minecraft:pigscene",
-    BurningSkull => "minecraft:burning_skull",
-    Skeleton => "minecraft:skeleton",
-    Earth => "minecraft:earth",
-    Wind => "minecraft:wind",
-    Water => "minecraft:water",
-    Fire => "minecraft:fire",
-    DonkeyKong => "minecraft:donkey_kong",
 }
 }
 
@@ -6059,36 +5891,6 @@ enum WorldgenTrunkPlacerKind {
 }
 
 registry! {
-enum DecoratedPotPatterns {
-    DecoratedPotSide => "minecraft:decorated_pot_side",
-    AnglerPotteryPattern => "minecraft:angler_pottery_pattern",
-    ArcherPotteryPattern => "minecraft:archer_pottery_pattern",
-    ArmsUpPotteryPattern => "minecraft:arms_up_pottery_pattern",
-    BladePotteryPattern => "minecraft:blade_pottery_pattern",
-    BrewerPotteryPattern => "minecraft:brewer_pottery_pattern",
-    BurnPotteryPattern => "minecraft:burn_pottery_pattern",
-    DangerPotteryPattern => "minecraft:danger_pottery_pattern",
-    ExplorerPotteryPattern => "minecraft:explorer_pottery_pattern",
-    FlowPotteryPattern => "minecraft:flow_pottery_pattern",
-    FriendPotteryPattern => "minecraft:friend_pottery_pattern",
-    GusterPotteryPattern => "minecraft:guster_pottery_pattern",
-    HeartPotteryPattern => "minecraft:heart_pottery_pattern",
-    HeartbreakPotteryPattern => "minecraft:heartbreak_pottery_pattern",
-    HowlPotteryPattern => "minecraft:howl_pottery_pattern",
-    MinerPotteryPattern => "minecraft:miner_pottery_pattern",
-    MournerPotteryPattern => "minecraft:mourner_pottery_pattern",
-    PlentyPotteryPattern => "minecraft:plenty_pottery_pattern",
-    PrizePotteryPattern => "minecraft:prize_pottery_pattern",
-    ScrapePotteryPattern => "minecraft:scrape_pottery_pattern",
-    SheafPotteryPattern => "minecraft:sheaf_pottery_pattern",
-    ShelterPotteryPattern => "minecraft:shelter_pottery_pattern",
-    SkullPotteryPattern => "minecraft:skull_pottery_pattern",
-    SnortPotteryPattern => "minecraft:snort_pottery_pattern",
-    DecoratedPotBase => "minecraft:decorated_pot_base",
-}
-}
-
-registry! {
 enum RuleBlockEntityModifier {
     Clear => "minecraft:clear",
     Passthrough => "minecraft:passthrough",
@@ -6470,19 +6272,6 @@ enum NumberFormatKind {
     Blank => "minecraft:blank",
     Styled => "minecraft:styled",
     Fixed => "minecraft:fixed",
-}
-}
-
-registry! {
-enum ArmorMaterial {
-    Leather => "minecraft:leather",
-    Chainmail => "minecraft:chainmail",
-    Iron => "minecraft:iron",
-    Gold => "minecraft:gold",
-    Diamond => "minecraft:diamond",
-    Turtle => "minecraft:turtle",
-    Netherite => "minecraft:netherite",
-    Armadillo => "minecraft:armadillo",
 }
 }
 

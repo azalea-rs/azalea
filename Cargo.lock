@@ -373,6 +373,7 @@ dependencies = [
  "azalea-chat",
  "azalea-registry",
  "bevy_ecs",
+ "indexmap",
  "nohash-hasher",
  "num-traits",
  "serde",

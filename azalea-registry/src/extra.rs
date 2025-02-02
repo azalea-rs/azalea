@@ -131,3 +131,51 @@ impl ChatType {
         }
     }
 }
+
+registry! {
+enum Instrument {
+    PonderGoatHorn => "minecraft:ponder_goat_horn",
+    SingGoatHorn => "minecraft:sing_goat_horn",
+    SeekGoatHorn => "minecraft:seek_goat_horn",
+    FeelGoatHorn => "minecraft:feel_goat_horn",
+    AdmireGoatHorn => "minecraft:admire_goat_horn",
+    CallGoatHorn => "minecraft:call_goat_horn",
+    YearnGoatHorn => "minecraft:yearn_goat_horn",
+    DreamGoatHorn => "minecraft:dream_goat_horn",
+}
+}
+
+registry! {
+enum PaintingVariant {
+    Kebab => "minecraft:kebab",
+    Aztec => "minecraft:aztec",
+    Alban => "minecraft:alban",
+    Aztec2 => "minecraft:aztec2",
+    Bomb => "minecraft:bomb",
+    Plant => "minecraft:plant",
+    Wasteland => "minecraft:wasteland",
+    Pool => "minecraft:pool",
+    Courbet => "minecraft:courbet",
+    Sea => "minecraft:sea",
+    Sunset => "minecraft:sunset",
+    Creebet => "minecraft:creebet",
+    Wanderer => "minecraft:wanderer",
+    Graham => "minecraft:graham",
+    Match => "minecraft:match",
+    Bust => "minecraft:bust",
+    Stage => "minecraft:stage",
+    Void => "minecraft:void",
+    SkullAndRoses => "minecraft:skull_and_roses",
+    Wither => "minecraft:wither",
+    Fighters => "minecraft:fighters",
+    Pointer => "minecraft:pointer",
+    Pigscene => "minecraft:pigscene",
+    BurningSkull => "minecraft:burning_skull",
+    Skeleton => "minecraft:skeleton",
+    Earth => "minecraft:earth",
+    Wind => "minecraft:wind",
+    Water => "minecraft:water",
+    Fire => "minecraft:fire",
+    DonkeyKong => "minecraft:donkey_kong",
+}
+}

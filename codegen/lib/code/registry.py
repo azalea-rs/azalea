@@ -9,6 +9,8 @@ def generate_registries(registries: dict):
     with open(REGISTRIES_DIR, 'r') as f:
         code = f.read().split('\n')
 
+    existing_registry_enum_names = set()
+
     for registry_name, registry in registries.items():
         # registry!(Block, {
         #     Air => "minecraft:air",
@@ -17,6 +19,8 @@ def generate_registries(registries: dict):
 
         registry_name = registry_name.split(':')[1]
         registry_enum_name = registry_name_to_enum_name(registry_name)
+
+        existing_registry_enum_names.add(registry_enum_name)
 
         registry_code = []
         registry_code.append(f'enum {registry_enum_name} {{')
@@ -46,6 +50,24 @@ def generate_registries(registries: dict):
             code.append('\n'.join(registry_code))
             code.append('}')
             code.append('')
+
+    # delete the unused registries
+    i = 0
+    while i < len(code):
+        if code[i] == 'registry! {':
+            # skip until we get to the enum line
+            while not code[i].startswith('enum '):
+                i += 1
+            enum_name = code[i].split(' ')[1]
+            if enum_name not in existing_registry_enum_names:
+                i -= 1
+                while code[i] != '}':
+                    code.pop(i)
+                code.pop(i)
+                # close the registry! block
+                code.pop(i)
+        else:
+            i += 1
 
     with open(REGISTRIES_DIR, 'w') as f:
         f.write('\n'.join(code))

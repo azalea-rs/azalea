@@ -9,7 +9,10 @@ use std::{
 
 use azalea_auth::{game_profile::GameProfile, sessionserver::ClientSessionServerError};
 use azalea_chat::FormattedText;
-use azalea_core::{position::Vec3, tick::GameTick};
+use azalea_core::{
+    data_registry::ResolvableDataRegistry, position::Vec3, resource_location::ResourceLocation,
+    tick::GameTick,
+};
 use azalea_entity::{
     indexing::{EntityIdIndex, EntityUuidIndex},
     metadata::Health,
@@ -48,6 +51,7 @@ use bevy_ecs::{
 use bevy_time::TimePlugin;
 use derive_more::Deref;
 use parking_lot::{Mutex, RwLock};
+use simdnbt::owned::NbtCompound;
 use thiserror::Error;
 use tokio::{
     sync::{broadcast, mpsc},
@@ -714,6 +718,52 @@ impl Client {
     /// This is a shortcut for `*bot.component::<TabList>()`.
     pub fn tab_list(&self) -> HashMap<Uuid, PlayerInfo> {
         self.component::<TabList>().deref().clone()
+    }
+
+    /// Call the given function with the client's [`RegistryHolder`].
+    ///
+    /// The player's instance (aka world) will be locked during this time, which
+    /// may result in a deadlock if you try to access the instance again while
+    /// in the function.
+    pub fn with_registry_holder<R>(
+        &self,
+        f: impl FnOnce(&azalea_core::registry_holder::RegistryHolder) -> R,
+    ) -> R {
+        let instance = self.world();
+        let registries = &instance.read().registries;
+        f(registries)
+    }
+
+    /// Resolve the given registry to its name.
+    ///
+    /// This is necessary for data-driven registries like [`Enchantment`].
+    ///
+    /// [`Enchantment`]: azalea_registry::Enchantment
+    pub fn resolve_registry_name(
+        &self,
+        registry: &impl ResolvableDataRegistry,
+    ) -> Option<ResourceLocation> {
+        self.with_registry_holder(|registries| registry.resolve_name(registries))
+    }
+    /// Resolve the given registry to its name and data and call the given
+    /// function with it.
+    ///
+    /// This is necessary for data-driven registries like [`Enchantment`].
+    ///
+    /// If you just want the value name, use [`Self::resolve_registry_name`]
+    /// instead.
+    ///
+    /// [`Enchantment`]: azalea_registry::Enchantment
+    pub fn with_resolved_registry<R>(
+        &self,
+        registry: impl ResolvableDataRegistry,
+        f: impl FnOnce(&ResourceLocation, &NbtCompound) -> R,
+    ) -> Option<R> {
+        self.with_registry_holder(|registries| {
+            registry
+                .resolve(registries)
+                .map(|(name, data)| f(name, data))
+        })
     }
 }
 

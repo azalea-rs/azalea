@@ -386,3 +386,9 @@ where
         Ok(Box::new(T::azalea_read(buf)?))
     }
 }
+
+impl<A: AzaleaRead, B: AzaleaRead> AzaleaRead for (A, B) {
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        Ok((A::azalea_read(buf)?, B::azalea_read(buf)?))
+    }
+}

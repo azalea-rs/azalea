@@ -16,6 +16,7 @@ serde = { workspace = true, optional = true }
 simdnbt = { workspace = true }
 tracing = { workspace = true }
 azalea-chat = { path = "../azalea-chat", version = "0.11.0" }
+indexmap = { workspace = true }
 
 [features]
 bevy_ecs = ["dep:bevy_ecs"]

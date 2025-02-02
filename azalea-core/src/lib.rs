@@ -7,6 +7,7 @@ pub mod bitset;
 pub mod block_hit_result;
 pub mod color;
 pub mod cursor3d;
+pub mod data_registry;
 pub mod delta;
 pub mod difficulty;
 pub mod direction;
