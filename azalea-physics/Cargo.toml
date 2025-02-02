@@ -1,14 +1,14 @@
 [package]
 name = "azalea-physics"
 description = "Physics for Minecraft entities."
-version = { workspace = true }
-edition = { workspace = true }
-license = { workspace = true }
-repository = { workspace = true }
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
 
 [dev-dependencies]
-bevy_time = { workspace = true }
-uuid = { workspace = true }
+bevy_time.workspace = true
+uuid.workspace = true
 
 [dependencies]
 azalea-block = { path = "../azalea-block", version = "0.11.0" }
@@ -17,7 +17,7 @@ azalea-entity = { version = "0.11.0", path = "../azalea-entity" }
 azalea-inventory = { version = "0.11.0", path = "../azalea-inventory" }
 azalea-registry = { path = "../azalea-registry", version = "0.11.0" }
 azalea-world = { path = "../azalea-world", version = "0.11.0" }
-bevy_app = { workspace = true }
-bevy_ecs = { workspace = true }
-tracing = { workspace = true }
-parking_lot = { workspace = true }
+bevy_app.workspace = true
+bevy_ecs.workspace = true
+tracing.workspace = true
+parking_lot.workspace = true

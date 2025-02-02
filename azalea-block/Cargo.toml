@@ -1,10 +1,10 @@
 [package]
 name = "azalea-block"
 description = "Representation of Minecraft block states."
-version = { workspace = true }
-edition = { workspace = true }
-license = { workspace = true }
-repository = { workspace = true }
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
 
 [dependencies]
 azalea-block-macros = { path = "./azalea-block-macros", version = "0.11.0" }

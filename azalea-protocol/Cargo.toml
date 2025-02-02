@@ -1,18 +1,18 @@
 [package]
 name = "azalea-protocol"
 description = "Send and receive Minecraft packets."
-version = { workspace = true }
-edition = { workspace = true }
-license = { workspace = true }
-repository = { workspace = true }
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
 
 [dev-dependencies]
-anyhow = { workspace = true }
-tracing = { workspace = true }
-tracing-subscriber = { workspace = true }
+anyhow.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
 
 [dependencies]
-async-recursion = { workspace = true }
+async-recursion.workspace = true
 azalea-auth = { path = "../azalea-auth", version = "0.11.0" }
 azalea-block = { path = "../azalea-block", version = "0.11.0", default-features = false }
 azalea-brigadier = { path = "../azalea-brigadier", version = "0.11.0", features = [
@@ -32,22 +32,22 @@ azalea-inventory = { path = "../azalea-inventory", version = "0.11.0" }
 azalea-protocol-macros = { path = "./azalea-protocol-macros", version = "0.11.0" }
 azalea-registry = { path = "../azalea-registry", version = "0.11.0" }
 azalea-world = { path = "../azalea-world", version = "0.11.0" }
-bevy_ecs = { workspace = true }
-# byteorder = { workspace = true }
-flate2 = { workspace = true }
-futures = { workspace = true }
-futures-lite = { workspace = true }
-# futures-util = { workspace = true }
+bevy_ecs.workspace = true
+# byteorder.workspace = true
+flate2.workspace = true
+futures.workspace = true
+futures-lite.workspace = true
+# futures-util.workspace = true
 serde = { workspace = true, features = ["serde_derive"] }
-serde_json = { workspace = true }
-simdnbt = { workspace = true }
+serde_json.workspace = true
+simdnbt.workspace = true
 socks5-impl = { workspace = true, features = ["client"] }
-thiserror = { workspace = true }
+thiserror.workspace = true
 tokio = { workspace = true, features = ["io-util", "net", "macros"] }
 tokio-util = { workspace = true, features = ["codec"] }
-tracing = { workspace = true }
+tracing.workspace = true
 hickory-resolver = { workspace = true, features = ["tokio-runtime"] }
-uuid = { workspace = true }
+uuid.workspace = true
 
 [features]
 connecting = []

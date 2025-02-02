@@ -1,19 +1,19 @@
 [package]
 name = "azalea-brigadier"
 description = "A port of Mojang's Brigadier command parsing and dispatching library."
-version = { workspace = true }
-edition = { workspace = true }
-license = { workspace = true }
-repository = { workspace = true }
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
 
 [dev-dependencies]
-bevy_app = { workspace = true }
-bevy_ecs = { workspace = true }
+bevy_app.workspace = true
+bevy_ecs.workspace = true
 
 [dependencies]
 azalea-buf = { path = "../azalea-buf", version = "0.11.0", optional = true }
 azalea-chat = { path = "../azalea-chat", version = "0.11.0", optional = true }
-parking_lot = { workspace = true }
+parking_lot.workspace = true
 
 [features]
 azalea-buf = ["dep:azalea-buf", "dep:azalea-chat", "azalea-chat/azalea-buf"]

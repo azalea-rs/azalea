@@ -76,8 +76,8 @@ fn has_correct_tool_for_drops(block: &dyn Block, tool: registry::Item) -> bool {
 fn destroy_speed(
     block: registry::Block,
     tool: registry::Item,
-    player_inventory: &azalea_inventory::Menu,
-    fluid_on_eyes: &FluidOnEyes,
+    _player_inventory: &azalea_inventory::Menu,
+    _fluid_on_eyes: &FluidOnEyes,
     physics: &Physics,
 ) -> f32 {
     let mut base_destroy_speed = base_destroy_speed(block, tool);

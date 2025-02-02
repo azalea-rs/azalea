@@ -1,10 +1,10 @@
 [package]
 name = "azalea-world"
 description = "The Minecraft world representation used in Azalea."
-version = { workspace = true }
-edition = { workspace = true }
-license = { workspace = true }
-repository = { workspace = true }
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
 
 [dev-dependencies]
 azalea-client = { path = "../azalea-client" }
@@ -17,14 +17,14 @@ azalea-core = { path = "../azalea-core", version = "0.11.0", features = [
     "bevy_ecs",
 ] }
 azalea-registry = { path = "../azalea-registry", version = "0.11.0" }
-bevy_ecs = { workspace = true }
+bevy_ecs.workspace = true
 derive_more = { workspace = true, features = ["deref", "deref_mut"] }
-nohash-hasher = { workspace = true }
-parking_lot = { workspace = true }
-rustc-hash = { workspace = true }
-simdnbt = { workspace = true }
-thiserror = { workspace = true }
-tracing = { workspace = true }
+nohash-hasher.workspace = true
+parking_lot.workspace = true
+rustc-hash.workspace = true
+simdnbt.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
 
 [[bench]]
 name = "chunks"

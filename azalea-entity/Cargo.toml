@@ -1,10 +1,10 @@
 [package]
 name = "azalea-entity"
 description = "Things related to Minecraft entities used by Azalea"
-version = { workspace = true }
-edition = { workspace = true }
-license = { workspace = true }
-repository = { workspace = true }
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
 
 [dependencies]
 azalea-block = { path = "../azalea-block", version = "0.11.0" }
@@ -16,13 +16,13 @@ azalea-core = { path = "../azalea-core", version = "0.11.0" }
 azalea-inventory = { path = "../azalea-inventory", version = "0.11.0" }
 azalea-registry = { path = "../azalea-registry", version = "0.11.0" }
 azalea-world = { path = "../azalea-world", version = "0.11.0" }
-bevy_app = { workspace = true }
-bevy_ecs = { workspace = true }
-derive_more = { workspace = true }
-enum-as-inner = { workspace = true }
-nohash-hasher = { workspace = true }
-parking_lot = { workspace = true }
-simdnbt = { workspace = true }
-thiserror = { workspace = true }
-tracing = { workspace = true }
-uuid = { workspace = true }
+bevy_app.workspace = true
+bevy_ecs.workspace = true
+derive_more.workspace = true
+enum-as-inner.workspace = true
+nohash-hasher.workspace = true
+parking_lot.workspace = true
+simdnbt.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+uuid.workspace = true
