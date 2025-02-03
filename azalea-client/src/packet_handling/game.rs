@@ -286,11 +286,10 @@ pub fn process_packet_events(ecs: &mut World) {
                         Some(player_entity),
                     );
                     {
+                        let map = instance_holder.instance.read().registries.map.clone();
                         let new_registries = &mut weak_instance.write().registries;
                         // add the registries from this instance to the weak instance
-                        for (registry_name, registry) in
-                            &instance_holder.instance.read().registries.map
-                        {
+                        for (registry_name, registry) in &map {
                             new_registries
                                 .map
                                 .insert(registry_name.clone(), registry.clone());
