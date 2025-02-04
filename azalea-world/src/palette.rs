@@ -55,6 +55,9 @@ impl PalettedContainer {
         // that it'd be global. if it's not global, then we have to calculate it
         // ourselves.
         // this almost never matters, except on some custom servers like hypixel limbo
+        // TODO: this is incorrect. we should be getting the log2 of the max blockstate
+        // or biome instead of data.len(). this code might be causing wrong data to be
+        // read. ¯\_(ツ)_/¯
         let calculated_bits_per_entry = math::ceil_log2(data.len() as u32) as u8;
         let calculated_bits_per_entry_palette_kind =
             PaletteKind::from_bits_and_type(calculated_bits_per_entry, container_type);
