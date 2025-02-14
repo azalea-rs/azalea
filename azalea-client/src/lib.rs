@@ -5,7 +5,6 @@
 //! [`azalea_protocol`]: https://docs.rs/azalea-protocol
 //! [`azalea`]: https://docs.rs/azalea
 
-#![allow(incomplete_features)]
 #![feature(error_generic_member_access)]
 
 mod account;
