@@ -717,7 +717,7 @@ impl Client {
     ///
     /// This is a shortcut for `*bot.component::<TabList>()`.
     pub fn tab_list(&self) -> HashMap<Uuid, PlayerInfo> {
-        self.component::<TabList>().deref().clone()
+        (*self.component::<TabList>()).clone()
     }
 
     /// Call the given function with the client's [`RegistryHolder`].
