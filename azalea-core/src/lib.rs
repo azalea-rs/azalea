@@ -1,6 +1,4 @@
 #![doc = include_str!("../README.md")]
-#![feature(trait_upcasting)]
-#![allow(incomplete_features)]
 
 pub mod aabb;
 pub mod bitset;

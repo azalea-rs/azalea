@@ -25,7 +25,7 @@ use tracing::{debug, error, trace, warn};
 
 use crate::{
     chat::{ChatPacket, ChatReceivedEvent},
-    chunks,
+    chunks, declare_packet_handlers,
     disconnect::DisconnectEvent,
     inventory::{
         ClientSideCloseContainerEvent, Inventory, MenuOpenedEvent, SetContainerContentEvent,
@@ -37,23 +37,6 @@ use crate::{
     raw_connection::RawConnection,
     ClientInformation, PlayerInfo,
 };
-
-macro_rules! packets {
-    (
-        $packetenum:ident,
-        $packetvar:ident,
-        $handler:ident,
-        [$($packet:path),+ $(,)?]
-    ) => {
-        paste::paste! {
-           match $packetvar.as_ref() {
-                $(
-                    $packetenum::[< $packet:camel >](p) => $handler.$packet(p),
-                )+
-            }
-        }
-    };
-}
 
 pub fn process_packet_events(ecs: &mut World) {
     let mut events_owned = Vec::<(Entity, Arc<ClientboundGamePacket>)>::new();
@@ -77,7 +60,7 @@ pub fn process_packet_events(ecs: &mut World) {
             ecs,
         };
 
-        packets!(
+        declare_packet_handlers!(
             ClientboundGamePacket,
             packet,
             handler,
@@ -321,7 +304,7 @@ impl GamePacketHandler<'_> {
                         azalea_registry::EntityKind::Player,
                         new_instance_name,
                     );
-                    let entity_id = MinecraftEntityId(p.player_id);
+                    let entity_id = p.player_id;
                     // insert our components into the ecs :)
                     commands.entity(self.player).insert((
                         entity_id,
@@ -682,7 +665,7 @@ impl GamePacketHandler<'_> {
                 let (mut entity_id_index, instance_name, tab_list) =
                     query.get_mut(self.player).unwrap();
 
-                let entity_id = MinecraftEntityId(p.id);
+                let entity_id = p.id;
 
                 let Some(instance_name) = instance_name else {
                     warn!("got add player packet but we haven't gotten a login packet yet");
@@ -759,7 +742,7 @@ impl GamePacketHandler<'_> {
         )>(self.ecs, |(mut commands, query, entity_kind_query)| {
             let (entity_id_index, instance_holder) = query.get(self.player).unwrap();
 
-            let entity = entity_id_index.get(MinecraftEntityId(p.id));
+            let entity = entity_id_index.get(p.id);
 
             let Some(entity) = entity else {
                 // some servers like hypixel trigger this a lot :(
@@ -813,7 +796,7 @@ impl GamePacketHandler<'_> {
             |(mut commands, query)| {
                 let (entity_id_index, instance_holder) = query.get(self.player).unwrap();
 
-                let Some(entity) = entity_id_index.get(MinecraftEntityId(p.id)) else {
+                let Some(entity) = entity_id_index.get(p.id) else {
                     // note that this log (and some other ones like the one in RemoveEntities)
                     // sometimes happens when killing mobs. it seems to be a vanilla bug, which is
                     // why it's a debug log instead of a warning
@@ -886,7 +869,7 @@ impl GamePacketHandler<'_> {
             |(mut commands, mut query)| {
                 let (entity_id_index, instance_holder) = query.get_mut(self.player).unwrap();
 
-                let Some(entity) = entity_id_index.get(MinecraftEntityId(p.id)) else {
+                let Some(entity) = entity_id_index.get(p.id) else {
                     warn!("Got teleport entity packet for unknown entity id {}", p.id);
                     return;
                 };
@@ -931,7 +914,7 @@ impl GamePacketHandler<'_> {
 
                 debug!("Got move entity pos packet {p:?}");
 
-                let Some(entity) = entity_id_index.get(MinecraftEntityId(p.entity_id)) else {
+                let Some(entity) = entity_id_index.get(p.entity_id) else {
                     debug!(
                         "Got move entity pos packet for unknown entity id {}",
                         p.entity_id
@@ -971,7 +954,7 @@ impl GamePacketHandler<'_> {
 
                 debug!("Got move entity pos rot packet {p:?}");
 
-                let entity = entity_id_index.get(MinecraftEntityId(p.entity_id));
+                let entity = entity_id_index.get(p.entity_id);
 
                 let Some(entity) = entity else {
                     // often triggered by hypixel :(
@@ -1023,7 +1006,7 @@ impl GamePacketHandler<'_> {
             |(mut commands, mut query)| {
                 let (entity_id_index, instance_holder) = query.get_mut(self.player).unwrap();
 
-                let entity = entity_id_index.get(MinecraftEntityId(p.entity_id));
+                let entity = entity_id_index.get(p.entity_id);
                 if let Some(entity) = entity {
                     let new_look_direction = LookDirection {
                         x_rot: (p.x_rot as i32 * 360) as f32 / 256.,
@@ -1053,25 +1036,6 @@ impl GamePacketHandler<'_> {
         );
     }
     pub fn keep_alive(&mut self, p: &ClientboundKeepAlive) {
-        /*
-        debug!("Got keep alive packet {p:?} for {player_entity:?}");
-
-        let mut system_state: SystemState<(
-            EventWriter<KeepAliveEvent>,
-            EventWriter<SendPacketEvent>,
-        )> = SystemState::new(ecs);
-        let (mut keepalive_events, mut send_packet_events) = system_state.get_mut(ecs);
-
-        keepalive_events.send(KeepAliveEvent {
-            entity: player_entity,
-            id: p.id,
-        });
-        send_packet_events.send(SendPacketEvent::new(
-            player_entity,
-            ServerboundKeepAlive { id: p.id },
-        ));
-        */
-
         debug!("Got keep alive packet {p:?} for {:?}", self.player);
 
         as_system::<(EventWriter<KeepAliveEvent>, EventWriter<SendPacketEvent>)>(
@@ -1101,7 +1065,7 @@ impl GamePacketHandler<'_> {
                 };
 
                 for &id in &p.entity_ids {
-                    let Some(entity) = entity_id_index.remove(MinecraftEntityId(id)) else {
+                    let Some(entity) = entity_id_index.remove(id) else {
                         debug!("Tried to remove entity with id {id} but it wasn't in the EntityIdIndex");
                         continue;
                     };
@@ -1417,7 +1381,7 @@ impl GamePacketHandler<'_> {
         )>(self.ecs, |(mut commands, mut query, mut events)| {
             let (entity_id, dead) = query.get_mut(self.player).unwrap();
 
-            if **entity_id == p.player_id && dead.is_none() {
+            if *entity_id == p.player_id && dead.is_none() {
                 commands.entity(self.player).insert(Dead);
                 events.send(DeathEvent {
                     entity: self.player,
@@ -1551,7 +1515,7 @@ impl GamePacketHandler<'_> {
             |(mut commands, mut query)| {
                 let (entity_id_index, instance_holder) = query.get_mut(self.player).unwrap();
 
-                let Some(entity) = entity_id_index.get(MinecraftEntityId(p.id)) else {
+                let Some(entity) = entity_id_index.get(p.id) else {
                     debug!("Got teleport entity packet for unknown entity id {}", p.id);
                     return;
                 };

@@ -1,8 +1,10 @@
 use azalea_buf::AzBuf;
 use azalea_protocol_macros::ClientboundGamePacket;
+use azalea_world::MinecraftEntityId;
 
 #[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
 pub struct ClientboundProjectilePower {
-    pub id: u32,
+    #[var]
+    pub id: MinecraftEntityId,
     pub acceleration_power: f64,
 }

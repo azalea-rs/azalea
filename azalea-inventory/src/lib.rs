@@ -1,4 +1,4 @@
-#![feature(trait_upcasting)]
+
 
 /// Representations of various inventory data structures in Minecraft.
 pub mod components;

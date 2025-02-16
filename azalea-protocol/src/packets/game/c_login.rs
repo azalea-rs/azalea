@@ -1,6 +1,7 @@
 use azalea_buf::AzBuf;
 use azalea_core::resource_location::ResourceLocation;
 use azalea_protocol_macros::ClientboundGamePacket;
+use azalea_world::MinecraftEntityId;
 
 use crate::packets::common::CommonPlayerSpawnInfo;
 
@@ -10,7 +11,7 @@ use crate::packets::common::CommonPlayerSpawnInfo;
 /// world, and the registry.
 #[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
 pub struct ClientboundLogin {
-    pub player_id: u32,
+    pub player_id: MinecraftEntityId,
     pub hardcore: bool,
     pub levels: Vec<ResourceLocation>,
     #[var]

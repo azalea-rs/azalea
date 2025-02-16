@@ -4,11 +4,12 @@ use azalea_buf::{AzBuf, BufReadError};
 use azalea_buf::{AzaleaRead, AzaleaWrite};
 use azalea_inventory::ItemStack;
 use azalea_protocol_macros::ClientboundGamePacket;
+use azalea_world::MinecraftEntityId;
 
 #[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
 pub struct ClientboundSetEquipment {
     #[var]
-    pub entity_id: u32,
+    pub entity_id: MinecraftEntityId,
     pub slots: EquipmentSlots,
 }
 

@@ -1,11 +1,12 @@
 use azalea_buf::AzBuf;
 use azalea_core::position::Vec3;
 use azalea_protocol_macros::ClientboundGamePacket;
+use azalea_world::MinecraftEntityId;
 
 #[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
 pub struct ClientboundMoveMinecartAlongTrack {
     #[var]
-    pub entity_id: u32,
+    pub entity_id: MinecraftEntityId,
     pub lerp_steps: Vec<MinecartStep>,
 }
 

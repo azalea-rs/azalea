@@ -79,3 +79,21 @@ impl Plugin for PacketHandlerPlugin {
         .add_event::<SendLoginPacketEvent>();
     }
 }
+
+#[macro_export]
+macro_rules! declare_packet_handlers {
+    (
+        $packetenum:ident,
+        $packetvar:ident,
+        $handler:ident,
+        [$($packet:path),+ $(,)?]
+    ) => {
+        paste::paste! {
+           match $packetvar.as_ref() {
+                $(
+                    $packetenum::[< $packet:camel >](p) => $handler.$packet(p),
+                )+
+            }
+        }
+    };
+}
