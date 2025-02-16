@@ -23,8 +23,8 @@ use tokio::sync::mpsc;
 use crate::{
     chat::{ChatPacket, ChatReceivedEvent},
     disconnect::DisconnectEvent,
-    packet_handling::game::{
-        AddPlayerEvent, DeathEvent, KeepAliveEvent, PacketEvent, RemovePlayerEvent,
+    packet::game::{
+        AddPlayerEvent, DeathEvent, KeepAliveEvent, ReceivePacketEvent, RemovePlayerEvent,
         UpdatePlayerEvent,
     },
     PlayerInfo,
@@ -130,7 +130,7 @@ impl Plugin for EventPlugin {
         )
         .add_systems(
             PreUpdate,
-            init_listener.before(crate::packet_handling::game::process_packet_events),
+            init_listener.before(crate::packet::game::process_packet_events),
         )
         .add_systems(GameTick, tick_listener);
     }
@@ -166,7 +166,10 @@ pub fn tick_listener(query: Query<&LocalPlayerEvents, With<InstanceName>>) {
     }
 }
 
-pub fn packet_listener(query: Query<&LocalPlayerEvents>, mut events: EventReader<PacketEvent>) {
+pub fn packet_listener(
+    query: Query<&LocalPlayerEvents>,
+    mut events: EventReader<ReceivePacketEvent>,
+) {
     for event in events.read() {
         let local_player_events = query
             .get(event.entity)

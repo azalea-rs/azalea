@@ -27,7 +27,7 @@ use tracing::warn;
 
 use crate::{
     local_player::PlayerAbilities,
-    packet_handling::game::{handle_send_packet_event, SendPacketEvent},
+    packet::game::{handle_sendpacketevent, SendPacketEvent},
     respawn::perform_respawn,
     Client,
 };
@@ -48,7 +48,7 @@ impl Plugin for InventoryPlugin {
                     handle_menu_opened_event,
                     handle_set_container_content_event,
                     handle_container_click_event,
-                    handle_container_close_event.before(handle_send_packet_event),
+                    handle_container_close_event.before(handle_sendpacketevent),
                     handle_client_side_close_container_event,
                 )
                     .chain()

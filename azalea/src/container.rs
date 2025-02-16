@@ -3,7 +3,7 @@ use std::fmt::Formatter;
 
 use azalea_client::{
     inventory::{CloseContainerEvent, ContainerClickEvent, Inventory},
-    packet_handling::game::PacketEvent,
+    packet::game::ReceivePacketEvent,
     Client,
 };
 use azalea_core::position::BlockPos;
@@ -234,7 +234,7 @@ impl ContainerHandle {
 #[derive(Component, Debug)]
 pub struct WaitingForInventoryOpen;
 
-fn handle_menu_opened_event(mut commands: Commands, mut events: EventReader<PacketEvent>) {
+fn handle_menu_opened_event(mut commands: Commands, mut events: EventReader<ReceivePacketEvent>) {
     for event in events.read() {
         if let ClientboundGamePacket::ContainerSetContent { .. } = event.packet.as_ref() {
             commands

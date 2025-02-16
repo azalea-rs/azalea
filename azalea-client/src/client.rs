@@ -75,7 +75,7 @@ use crate::{
     },
     mining::{self, MinePlugin},
     movement::{LastSentLookDirection, PhysicsState, PlayerMovePlugin},
-    packet_handling::{
+    packet::{
         login::{self, LoginSendPacketQueue},
         PacketHandlerPlugin,
     },

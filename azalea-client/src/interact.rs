@@ -35,7 +35,7 @@ use crate::{
     inventory::{Inventory, InventorySet},
     local_player::{LocalGameMode, PermissionLevel, PlayerAbilities},
     movement::MoveEventsSet,
-    packet_handling::game::{handle_send_packet_event, SendPacketEvent},
+    packet::game::{handle_sendpacketevent, SendPacketEvent},
     respawn::perform_respawn,
     Client,
 };
@@ -54,7 +54,7 @@ impl Plugin for InteractPlugin {
                         handle_block_interact_event,
                         handle_swing_arm_event,
                     )
-                        .before(handle_send_packet_event)
+                        .before(handle_sendpacketevent)
                         .after(InventorySet)
                         .after(perform_respawn)
                         .after(handle_attack_event)

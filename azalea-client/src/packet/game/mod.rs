@@ -1,11 +1,7 @@
-use std::{
-    collections::HashSet,
-    io::Cursor,
-    ops::Add,
-    sync::{Arc, Weak},
-};
+mod events;
 
-use azalea_chat::FormattedText;
+use std::{collections::HashSet, io::Cursor, ops::Add, sync::Arc};
+
 use azalea_core::{
     game_type::GameMode,
     math,
@@ -18,18 +14,14 @@ use azalea_entity::{
     Dead, EntityBundle, EntityKind, LastSentPosition, LoadedBy, LocalEntity, LookDirection,
     Physics, Position, RelativeEntityUpdate,
 };
-use azalea_protocol::{
-    packets::{game::*, Packet},
-    read::deserialize_packet,
-};
-use azalea_world::{Instance, InstanceContainer, InstanceName, MinecraftEntityId, PartialInstance};
+use azalea_protocol::{packets::game::*, read::deserialize_packet};
+use azalea_world::{InstanceContainer, InstanceName, MinecraftEntityId, PartialInstance};
 use bevy_ecs::{
     prelude::*,
     system::{SystemParam, SystemState},
 };
-use parking_lot::RwLock;
+pub use events::*;
 use tracing::{debug, error, trace, warn};
-use uuid::Uuid;
 
 use crate::{
     chat::{ChatPacket, ChatReceivedEvent},
@@ -46,141 +38,30 @@ use crate::{
     ClientInformation, PlayerInfo,
 };
 
-/// An event that's sent when we receive a packet.
-/// ```
-/// # use azalea_client::packet_handling::game::PacketEvent;
-/// # use azalea_protocol::packets::game::ClientboundGamePacket;
-/// # use bevy_ecs::event::EventReader;
-///
-/// fn handle_packets(mut events: EventReader<PacketEvent>) {
-///     for PacketEvent {
-///         entity,
-///         packet,
-///     } in events.read() {
-///         match packet.as_ref() {
-///             ClientboundGamePacket::LevelParticles(p) => {
-///                 // ...
-///             }
-///             _ => {}
-///         }
-///     }
-/// }
-/// ```
-#[derive(Event, Debug, Clone)]
-pub struct PacketEvent {
-    /// The client entity that received the packet.
-    pub entity: Entity,
-    /// The packet that was actually received.
-    pub packet: Arc<ClientboundGamePacket>,
-}
-
-/// A player joined the game (or more specifically, was added to the tab
-/// list of a local player).
-#[derive(Event, Debug, Clone)]
-pub struct AddPlayerEvent {
-    /// The local player entity that received this event.
-    pub entity: Entity,
-    pub info: PlayerInfo,
-}
-/// A player left the game (or maybe is still in the game and was just
-/// removed from the tab list of a local player).
-#[derive(Event, Debug, Clone)]
-pub struct RemovePlayerEvent {
-    /// The local player entity that received this event.
-    pub entity: Entity,
-    pub info: PlayerInfo,
-}
-/// A player was updated in the tab list of a local player (gamemode, display
-/// name, or latency changed).
-#[derive(Event, Debug, Clone)]
-pub struct UpdatePlayerEvent {
-    /// The local player entity that received this event.
-    pub entity: Entity,
-    pub info: PlayerInfo,
-}
-
-/// Event for when an entity dies. dies. If it's a local player and there's a
-/// reason in the death screen, the [`ClientboundPlayerCombatKill`] will
-/// be included.
-#[derive(Event, Debug, Clone)]
-pub struct DeathEvent {
-    pub entity: Entity,
-    pub packet: Option<ClientboundPlayerCombatKill>,
-}
-
-/// A KeepAlive packet is sent from the server to verify that the client is
-/// still connected.
-#[derive(Event, Debug, Clone)]
-pub struct KeepAliveEvent {
-    pub entity: Entity,
-    /// The ID of the keepalive. This is an arbitrary number, but vanilla
-    /// servers use the time to generate this.
-    pub id: u64,
-}
-
-#[derive(Event, Debug, Clone)]
-pub struct ResourcePackEvent {
-    pub entity: Entity,
-    /// The random ID for this request to download the resource pack. The packet
-    /// for replying to a resource pack push must contain the same ID.
-    pub id: Uuid,
-    pub url: String,
-    pub hash: String,
-    pub required: bool,
-    pub prompt: Option<FormattedText>,
-}
-
-/// An instance (aka world, dimension) was loaded by a client.
-///
-/// Since the instance is given to you as a weak reference, it won't be able to
-/// be `upgrade`d if all local players leave it.
-#[derive(Event, Debug, Clone)]
-pub struct InstanceLoadedEvent {
-    pub entity: Entity,
-    pub name: ResourceLocation,
-    pub instance: Weak<RwLock<Instance>>,
-}
-
-pub fn send_packet_events(
-    query: Query<(Entity, &RawConnection), With<LocalEntity>>,
-    mut packet_events: ResMut<Events<PacketEvent>>,
-) {
-    // we manually clear and send the events at the beginning of each update
-    // since otherwise it'd cause issues with events in process_packet_events
-    // running twice
-    packet_events.clear();
-    for (player_entity, raw_connection) in &query {
-        let packets_lock = raw_connection.incoming_packet_queue();
-        let mut packets = packets_lock.lock();
-        if !packets.is_empty() {
-            for raw_packet in packets.iter() {
-                let packet =
-                    match deserialize_packet::<ClientboundGamePacket>(&mut Cursor::new(raw_packet))
-                    {
-                        Ok(packet) => packet,
-                        Err(err) => {
-                            error!("failed to read packet: {err:?}");
-                            debug!("packet bytes: {raw_packet:?}");
-                            continue;
-                        }
-                    };
-                packet_events.send(PacketEvent {
-                    entity: player_entity,
-                    packet: Arc::new(packet),
-                });
+macro_rules! packets {
+    (
+        $packetenum:ident,
+        $packetvar:ident,
+        $handler:ident,
+        [$($packet:path),+ $(,)?]
+    ) => {
+        paste::paste! {
+           match $packetvar.as_ref() {
+                $(
+                    $packetenum::[< $packet:camel >](p) => $handler.$packet(p),
+                )+
             }
-            // clear the packets right after we read them
-            packets.clear();
         }
-    }
+    };
 }
 
 pub fn process_packet_events(ecs: &mut World) {
     let mut events_owned = Vec::<(Entity, Arc<ClientboundGamePacket>)>::new();
+
     {
-        let mut system_state = SystemState::<EventReader<PacketEvent>>::new(ecs);
+        let mut system_state = SystemState::<EventReader<ReceivePacketEvent>>::new(ecs);
         let mut events = system_state.get_mut(ecs);
-        for PacketEvent {
+        for ReceivePacketEvent {
             entity: player_entity,
             packet,
         } in events.read()
@@ -189,168 +70,156 @@ pub fn process_packet_events(ecs: &mut World) {
             events_owned.push((*player_entity, packet.clone()));
         }
     }
-    for (player_entity, packet) in events_owned {
-        let packet_clone = packet.clone();
-        let packet_ref = packet_clone.as_ref();
 
+    for (player_entity, packet) in events_owned {
         let mut handler = GamePacketHandler {
             player: player_entity,
             ecs,
         };
 
-        match packet_ref {
-            ClientboundGamePacket::Login(p) => handler.handle_login(p),
-            ClientboundGamePacket::SetChunkCacheRadius(p) => {
-                handler.handle_set_chunk_cache_radius(p)
-            }
-            ClientboundGamePacket::ChunkBatchStart(p) => handler.handle_chunk_batch_start(p),
-            ClientboundGamePacket::ChunkBatchFinished(p) => handler.handle_chunk_batch_finished(p),
-            ClientboundGamePacket::CustomPayload(p) => handler.handle_custom_payload(p),
-            ClientboundGamePacket::ChangeDifficulty(p) => handler.handle_change_difficulty(p),
-            ClientboundGamePacket::Commands(p) => handler.handle_commands(p),
-            ClientboundGamePacket::PlayerAbilities(p) => handler.handle_player_abilities(p),
-            ClientboundGamePacket::SetCursorItem(p) => handler.handle_set_cursor_item(p),
-            ClientboundGamePacket::UpdateTags(p) => handler.handle_update_tags(p),
-            ClientboundGamePacket::Disconnect(p) => handler.handle_disconnect(p),
-            ClientboundGamePacket::UpdateRecipes(p) => handler.handle_update_recipes(p),
-            ClientboundGamePacket::EntityEvent(p) => handler.handle_entity_event(p),
-            ClientboundGamePacket::PlayerPosition(p) => handler.handle_player_position(p),
-            ClientboundGamePacket::PlayerInfoUpdate(p) => handler.handle_player_info_update(p),
-            ClientboundGamePacket::PlayerInfoRemove(p) => handler.handle_player_info_remove(p),
-            ClientboundGamePacket::SetChunkCacheCenter(p) => {
-                handler.handle_set_chunk_cache_center(p)
-            }
-            ClientboundGamePacket::ChunksBiomes(_) => {}
-            ClientboundGamePacket::LightUpdate(p) => handler.handle_light_update(p),
-            ClientboundGamePacket::LevelChunkWithLight(p) => {
-                handler.handle_level_chunk_with_light(p)
-            }
-            ClientboundGamePacket::AddEntity(p) => handler.handle_add_entity(p),
-            ClientboundGamePacket::SetEntityData(p) => handler.handle_set_entity_data(p),
-            ClientboundGamePacket::UpdateAttributes(p) => handler.handle_update_attributes(p),
-            ClientboundGamePacket::SetEntityMotion(p) => handler.handle_set_entity_motion(p),
-            ClientboundGamePacket::SetEntityLink(p) => handler.handle_set_entity_link(p),
-            ClientboundGamePacket::InitializeBorder(p) => handler.handle_initialize_border(p),
-            ClientboundGamePacket::SetTime(p) => handler.handle_set_time(p),
-            ClientboundGamePacket::SetDefaultSpawnPosition(p) => {
-                handler.handle_set_default_spawn_position(p)
-            }
-            ClientboundGamePacket::SetHealth(p) => handler.handle_set_health(p),
-            ClientboundGamePacket::SetExperience(p) => handler.handle_set_experience(p),
-            ClientboundGamePacket::TeleportEntity(p) => handler.handle_teleport_entity(p),
-            ClientboundGamePacket::UpdateAdvancements(p) => handler.handle_update_advancements(p),
-            ClientboundGamePacket::RotateHead(p) => handler.handle_rotate_head(p),
-            ClientboundGamePacket::MoveEntityPos(p) => handler.handle_move_entity_pos(p),
-            ClientboundGamePacket::MoveEntityPosRot(p) => handler.handle_move_entity_pos_rot(p),
-            ClientboundGamePacket::MoveEntityRot(p) => handler.handle_move_entity_rot(p),
-            ClientboundGamePacket::KeepAlive(p) => handler.handle_keep_alive(p),
-            ClientboundGamePacket::RemoveEntities(p) => handler.handle_remove_entities(p),
-            ClientboundGamePacket::PlayerChat(p) => handler.handle_player_chat(p),
-            ClientboundGamePacket::SystemChat(p) => handler.handle_system_chat(p),
-            ClientboundGamePacket::DisguisedChat(p) => handler.handle_disguised_chat(p),
-            ClientboundGamePacket::Sound(_) => {}
-            ClientboundGamePacket::LevelEvent(p) => handler.handle_level_event(p),
-            ClientboundGamePacket::BlockUpdate(p) => handler.handle_block_update(p),
-            ClientboundGamePacket::Animate(p) => handler.handle_animate(p),
-            ClientboundGamePacket::SectionBlocksUpdate(p) => {
-                handler.handle_section_blocks_update(p)
-            }
-            ClientboundGamePacket::GameEvent(p) => handler.handle_game_event(p),
-            ClientboundGamePacket::LevelParticles(p) => handler.handle_level_particles(p),
-            ClientboundGamePacket::ServerData(p) => handler.handle_server_data(p),
-            ClientboundGamePacket::SetEquipment(p) => handler.handle_set_equipment(p),
-            ClientboundGamePacket::UpdateMobEffect(p) => handler.handle_update_mob_effect(p),
-            ClientboundGamePacket::AddExperienceOrb(_) => {}
-            ClientboundGamePacket::AwardStats(_) => {}
-            ClientboundGamePacket::BlockChangedAck(_) => {}
-            ClientboundGamePacket::BlockDestruction(_) => {}
-            ClientboundGamePacket::BlockEntityData(_) => {}
-            ClientboundGamePacket::BlockEvent(p) => handler.handle_block_event(p),
-            ClientboundGamePacket::BossEvent(_) => {}
-            ClientboundGamePacket::CommandSuggestions(_) => {}
-            ClientboundGamePacket::ContainerSetContent(p) => {
-                handler.handle_container_set_content(p)
-            }
-            ClientboundGamePacket::ContainerSetData(p) => handler.handle_container_set_data(p),
-            ClientboundGamePacket::ContainerSetSlot(p) => handler.handle_container_set_slot(p),
-            ClientboundGamePacket::ContainerClose(p) => handler.handle_container_close(p),
-            ClientboundGamePacket::Cooldown(_) => {}
-            ClientboundGamePacket::CustomChatCompletions(_) => {}
-            ClientboundGamePacket::DeleteChat(_) => {}
-            ClientboundGamePacket::Explode(p) => handler.handle_explode(p),
-            ClientboundGamePacket::ForgetLevelChunk(p) => handler.handle_forget_level_chunk(p),
-            ClientboundGamePacket::HorseScreenOpen(_) => {}
-            ClientboundGamePacket::MapItemData(_) => {}
-            ClientboundGamePacket::MerchantOffers(_) => {}
-            ClientboundGamePacket::MoveVehicle(_) => {}
-            ClientboundGamePacket::OpenBook(_) => {}
-            ClientboundGamePacket::OpenScreen(p) => handler.handle_open_screen(p),
-            ClientboundGamePacket::OpenSignEditor(_) => {}
-            ClientboundGamePacket::Ping(p) => handler.handle_ping(p),
-            ClientboundGamePacket::PlaceGhostRecipe(_) => {}
-            ClientboundGamePacket::PlayerCombatEnd(_) => {}
-            ClientboundGamePacket::PlayerCombatEnter(_) => {}
-            ClientboundGamePacket::PlayerCombatKill(p) => handler.handle_player_combat_kill(p),
-            ClientboundGamePacket::PlayerLookAt(_) => {}
-            ClientboundGamePacket::RemoveMobEffect(_) => {}
-            ClientboundGamePacket::ResourcePackPush(p) => handler.handle_resource_pack_push(p),
-            ClientboundGamePacket::ResourcePackPop(_) => {}
-            ClientboundGamePacket::Respawn(p) => handler.handle_respawn(p),
-            ClientboundGamePacket::StartConfiguration(p) => handler.handle_start_configuration(p),
-            ClientboundGamePacket::EntityPositionSync(p) => handler.handle_entity_position_sync(p),
-
-            ClientboundGamePacket::SelectAdvancementsTab(_) => {}
-            ClientboundGamePacket::SetActionBarText(_) => {}
-            ClientboundGamePacket::SetBorderCenter(_) => {}
-            ClientboundGamePacket::SetBorderLerpSize(_) => {}
-            ClientboundGamePacket::SetBorderSize(_) => {}
-            ClientboundGamePacket::SetBorderWarningDelay(_) => {}
-            ClientboundGamePacket::SetBorderWarningDistance(_) => {}
-            ClientboundGamePacket::SetCamera(_) => {}
-            ClientboundGamePacket::SetDisplayObjective(_) => {}
-            ClientboundGamePacket::SetObjective(_) => {}
-            ClientboundGamePacket::SetPassengers(_) => {}
-            ClientboundGamePacket::SetPlayerTeam(_) => {}
-            ClientboundGamePacket::SetScore(_) => {}
-            ClientboundGamePacket::SetSimulationDistance(_) => {}
-            ClientboundGamePacket::SetSubtitleText(_) => {}
-            ClientboundGamePacket::SetTitleText(_) => {}
-            ClientboundGamePacket::SetTitlesAnimation(_) => {}
-            ClientboundGamePacket::ClearTitles(_) => {}
-            ClientboundGamePacket::SoundEntity(_) => {}
-            ClientboundGamePacket::StopSound(_) => {}
-            ClientboundGamePacket::TabList(_) => {}
-            ClientboundGamePacket::TagQuery(_) => {}
-            ClientboundGamePacket::TakeItemEntity(_) => {}
-            ClientboundGamePacket::BundleDelimiter(_) => {}
-            ClientboundGamePacket::DamageEvent(_) => {}
-            ClientboundGamePacket::HurtAnimation(_) => {}
-
-            ClientboundGamePacket::TickingState(_) => {}
-            ClientboundGamePacket::TickingStep(_) => {}
-
-            ClientboundGamePacket::ResetScore(_) => {}
-            ClientboundGamePacket::CookieRequest(_) => {}
-            ClientboundGamePacket::DebugSample(_) => {}
-            ClientboundGamePacket::PongResponse(_) => {}
-            ClientboundGamePacket::StoreCookie(_) => {}
-            ClientboundGamePacket::Transfer(_) => {}
-            ClientboundGamePacket::MoveMinecartAlongTrack(_) => {}
-            ClientboundGamePacket::SetHeldSlot(_) => {}
-            ClientboundGamePacket::SetPlayerInventory(_) => {}
-            ClientboundGamePacket::ProjectilePower(_) => {}
-            ClientboundGamePacket::CustomReportDetails(_) => {}
-            ClientboundGamePacket::ServerLinks(_) => {}
-            ClientboundGamePacket::PlayerRotation(_) => {}
-            ClientboundGamePacket::RecipeBookAdd(_) => {}
-            ClientboundGamePacket::RecipeBookRemove(_) => {}
-            ClientboundGamePacket::RecipeBookSettings(_) => {}
-        }
+        packets!(
+            ClientboundGamePacket,
+            packet,
+            handler,
+            [
+                login,
+                set_chunk_cache_radius,
+                chunk_batch_start,
+                chunk_batch_finished,
+                custom_payload,
+                change_difficulty,
+                commands,
+                player_abilities,
+                set_cursor_item,
+                update_tags,
+                disconnect,
+                update_recipes,
+                entity_event,
+                player_position,
+                player_info_update,
+                player_info_remove,
+                set_chunk_cache_center,
+                chunks_biomes,
+                light_update,
+                level_chunk_with_light,
+                add_entity,
+                set_entity_data,
+                update_attributes,
+                set_entity_motion,
+                set_entity_link,
+                initialize_border,
+                set_time,
+                set_default_spawn_position,
+                set_health,
+                set_experience,
+                teleport_entity,
+                update_advancements,
+                rotate_head,
+                move_entity_pos,
+                move_entity_pos_rot,
+                move_entity_rot,
+                keep_alive,
+                remove_entities,
+                player_chat,
+                system_chat,
+                disguised_chat,
+                sound,
+                level_event,
+                block_update,
+                animate,
+                section_blocks_update,
+                game_event,
+                level_particles,
+                server_data,
+                set_equipment,
+                update_mob_effect,
+                add_experience_orb,
+                award_stats,
+                block_changed_ack,
+                block_destruction,
+                block_entity_data,
+                block_event,
+                boss_event,
+                command_suggestions,
+                container_set_content,
+                container_set_data,
+                container_set_slot,
+                container_close,
+                cooldown,
+                custom_chat_completions,
+                delete_chat,
+                explode,
+                forget_level_chunk,
+                horse_screen_open,
+                map_item_data,
+                merchant_offers,
+                move_vehicle,
+                open_book,
+                open_screen,
+                open_sign_editor,
+                ping,
+                place_ghost_recipe,
+                player_combat_end,
+                player_combat_enter,
+                player_combat_kill,
+                player_look_at,
+                remove_mob_effect,
+                resource_pack_push,
+                resource_pack_pop,
+                respawn,
+                start_configuration,
+                entity_position_sync,
+                select_advancements_tab,
+                set_action_bar_text,
+                set_border_center,
+                set_border_lerp_size,
+                set_border_size,
+                set_border_warning_delay,
+                set_border_warning_distance,
+                set_camera,
+                set_display_objective,
+                set_objective,
+                set_passengers,
+                set_player_team,
+                set_score,
+                set_simulation_distance,
+                set_subtitle_text,
+                set_title_text,
+                set_titles_animation,
+                clear_titles,
+                sound_entity,
+                stop_sound,
+                tab_list,
+                tag_query,
+                take_item_entity,
+                bundle_delimiter,
+                damage_event,
+                hurt_animation,
+                ticking_state,
+                ticking_step,
+                reset_score,
+                cookie_request,
+                debug_sample,
+                pong_response,
+                store_cookie,
+                transfer,
+                move_minecart_along_track,
+                set_held_slot,
+                set_player_inventory,
+                projectile_power,
+                custom_report_details,
+                server_links,
+                player_rotation,
+                recipe_book_add,
+                recipe_book_remove,
+                recipe_book_settings,
+            ]
+        );
     }
 }
 
 impl GamePacketHandler<'_> {
-    pub fn handle_login(&mut self, p: &ClientboundLogin) {
+    pub fn login(&mut self, p: &ClientboundLogin) {
         debug!("Got login packet");
 
         as_system::<(
@@ -497,11 +366,11 @@ impl GamePacketHandler<'_> {
         );
     }
 
-    pub fn handle_set_chunk_cache_radius(&mut self, p: &ClientboundSetChunkCacheRadius) {
+    pub fn set_chunk_cache_radius(&mut self, p: &ClientboundSetChunkCacheRadius) {
         debug!("Got set chunk cache radius packet {p:?}");
     }
 
-    pub fn handle_chunk_batch_start(&mut self, _p: &ClientboundChunkBatchStart) {
+    pub fn chunk_batch_start(&mut self, _p: &ClientboundChunkBatchStart) {
         // the packet is empty, it's just a marker to tell us when the batch starts and
         // ends
         debug!("Got chunk batch start");
@@ -513,7 +382,7 @@ impl GamePacketHandler<'_> {
         });
     }
 
-    pub fn handle_chunk_batch_finished(&mut self, p: &ClientboundChunkBatchFinished) {
+    pub fn chunk_batch_finished(&mut self, p: &ClientboundChunkBatchFinished) {
         debug!("Got chunk batch finished {p:?}");
 
         as_system::<EventWriter<_>>(self.ecs, |mut events| {
@@ -524,19 +393,19 @@ impl GamePacketHandler<'_> {
         });
     }
 
-    pub fn handle_custom_payload(&mut self, p: &ClientboundCustomPayload) {
+    pub fn custom_payload(&mut self, p: &ClientboundCustomPayload) {
         debug!("Got custom payload packet {p:?}");
     }
 
-    pub fn handle_change_difficulty(&mut self, p: &ClientboundChangeDifficulty) {
+    pub fn change_difficulty(&mut self, p: &ClientboundChangeDifficulty) {
         debug!("Got difficulty packet {p:?}");
     }
 
-    pub fn handle_commands(&mut self, _p: &ClientboundCommands) {
+    pub fn commands(&mut self, _p: &ClientboundCommands) {
         debug!("Got declare commands packet");
     }
 
-    pub fn handle_player_abilities(&mut self, p: &ClientboundPlayerAbilities) {
+    pub fn player_abilities(&mut self, p: &ClientboundPlayerAbilities) {
         debug!("Got player abilities packet {p:?}");
 
         as_system::<Query<&mut PlayerAbilities>>(self.ecs, |mut query| {
@@ -546,15 +415,15 @@ impl GamePacketHandler<'_> {
         });
     }
 
-    pub fn handle_set_cursor_item(&mut self, p: &ClientboundSetCursorItem) {
+    pub fn set_cursor_item(&mut self, p: &ClientboundSetCursorItem) {
         debug!("Got set cursor item packet {p:?}");
     }
 
-    pub fn handle_update_tags(&mut self, _p: &ClientboundUpdateTags) {
+    pub fn update_tags(&mut self, _p: &ClientboundUpdateTags) {
         debug!("Got update tags packet");
     }
 
-    pub fn handle_disconnect(&mut self, p: &ClientboundDisconnect) {
+    pub fn disconnect(&mut self, p: &ClientboundDisconnect) {
         warn!("Got disconnect packet {p:?}");
 
         as_system::<EventWriter<_>>(self.ecs, |mut events| {
@@ -565,15 +434,15 @@ impl GamePacketHandler<'_> {
         });
     }
 
-    pub fn handle_update_recipes(&mut self, _p: &ClientboundUpdateRecipes) {
+    pub fn update_recipes(&mut self, _p: &ClientboundUpdateRecipes) {
         debug!("Got update recipes packet");
     }
 
-    pub fn handle_entity_event(&mut self, _p: &ClientboundEntityEvent) {
+    pub fn entity_event(&mut self, _p: &ClientboundEntityEvent) {
         // debug!("Got entity event packet {p:?}");
     }
 
-    pub fn handle_player_position(&mut self, p: &ClientboundPlayerPosition) {
+    pub fn player_position(&mut self, p: &ClientboundPlayerPosition) {
         debug!("Got player position packet {p:?}");
 
         as_system::<(
@@ -675,7 +544,7 @@ impl GamePacketHandler<'_> {
         });
     }
 
-    pub fn handle_player_info_update(&mut self, p: &ClientboundPlayerInfoUpdate) {
+    pub fn player_info_update(&mut self, p: &ClientboundPlayerInfoUpdate) {
         debug!("Got player info packet {p:?}");
 
         as_system::<(
@@ -735,7 +604,7 @@ impl GamePacketHandler<'_> {
         );
     }
 
-    pub fn handle_player_info_remove(&mut self, p: &ClientboundPlayerInfoRemove) {
+    pub fn player_info_remove(&mut self, p: &ClientboundPlayerInfoRemove) {
         debug!("Got chunk cache center packet {p:?}");
 
         as_system::<(
@@ -760,7 +629,7 @@ impl GamePacketHandler<'_> {
         );
     }
 
-    pub fn handle_set_chunk_cache_center(&mut self, p: &ClientboundSetChunkCacheCenter) {
+    pub fn set_chunk_cache_center(&mut self, p: &ClientboundSetChunkCacheCenter) {
         debug!("Got chunk cache center packet {p:?}");
 
         as_system::<Query<&mut InstanceHolder>>(self.ecs, |mut query| {
@@ -773,11 +642,13 @@ impl GamePacketHandler<'_> {
         });
     }
 
-    pub fn handle_light_update(&mut self, _p: &ClientboundLightUpdate) {
+    pub fn chunks_biomes(&mut self, _p: &ClientboundChunksBiomes) {}
+
+    pub fn light_update(&mut self, _p: &ClientboundLightUpdate) {
         // debug!("Got light update packet {p:?}");
     }
 
-    pub fn handle_level_chunk_with_light(&mut self, p: &ClientboundLevelChunkWithLight) {
+    pub fn level_chunk_with_light(&mut self, p: &ClientboundLevelChunkWithLight) {
         debug!("Got chunk with light packet {} {}", p.x, p.z);
 
         as_system::<EventWriter<_>>(self.ecs, |mut events| {
@@ -788,7 +659,7 @@ impl GamePacketHandler<'_> {
         });
     }
 
-    pub fn handle_add_entity(&mut self, p: &ClientboundAddEntity) {
+    pub fn add_entity(&mut self, p: &ClientboundAddEntity) {
         debug!("Got add entity packet {p:?}");
 
         as_system::<(
@@ -878,7 +749,7 @@ impl GamePacketHandler<'_> {
         );
     }
 
-    pub fn handle_set_entity_data(&mut self, p: &ClientboundSetEntityData) {
+    pub fn set_entity_data(&mut self, p: &ClientboundSetEntityData) {
         debug!("Got set entity data packet {p:?}");
 
         as_system::<(
@@ -924,11 +795,11 @@ impl GamePacketHandler<'_> {
         });
     }
 
-    pub fn handle_update_attributes(&mut self, _p: &ClientboundUpdateAttributes) {
+    pub fn update_attributes(&mut self, _p: &ClientboundUpdateAttributes) {
         // debug!("Got update attributes packet {p:?}");
     }
 
-    pub fn handle_set_entity_motion(&mut self, p: &ClientboundSetEntityMotion) {
+    pub fn set_entity_motion(&mut self, p: &ClientboundSetEntityMotion) {
         // vanilla servers use this packet for knockback, but note that the Explode
         // packet is also sometimes used by servers for knockback
 
@@ -969,23 +840,23 @@ impl GamePacketHandler<'_> {
         );
     }
 
-    pub fn handle_set_entity_link(&mut self, p: &ClientboundSetEntityLink) {
+    pub fn set_entity_link(&mut self, p: &ClientboundSetEntityLink) {
         debug!("Got set entity link packet {p:?}");
     }
 
-    pub fn handle_initialize_border(&mut self, p: &ClientboundInitializeBorder) {
+    pub fn initialize_border(&mut self, p: &ClientboundInitializeBorder) {
         debug!("Got initialize border packet {p:?}");
     }
 
-    pub fn handle_set_time(&mut self, _p: &ClientboundSetTime) {
+    pub fn set_time(&mut self, _p: &ClientboundSetTime) {
         // debug!("Got set time packet {p:?}");
     }
 
-    pub fn handle_set_default_spawn_position(&mut self, p: &ClientboundSetDefaultSpawnPosition) {
+    pub fn set_default_spawn_position(&mut self, p: &ClientboundSetDefaultSpawnPosition) {
         debug!("Got set default spawn position packet {p:?}");
     }
 
-    pub fn handle_set_health(&mut self, p: &ClientboundSetHealth) {
+    pub fn set_health(&mut self, p: &ClientboundSetHealth) {
         debug!("Got set health packet {p:?}");
 
         as_system::<Query<(&mut Health, &mut Hunger)>>(self.ecs, |mut query| {
@@ -1000,11 +871,11 @@ impl GamePacketHandler<'_> {
         });
     }
 
-    pub fn handle_set_experience(&mut self, p: &ClientboundSetExperience) {
+    pub fn set_experience(&mut self, p: &ClientboundSetExperience) {
         debug!("Got set experience packet {p:?}");
     }
 
-    pub fn handle_teleport_entity(&mut self, p: &ClientboundTeleportEntity) {
+    pub fn teleport_entity(&mut self, p: &ClientboundTeleportEntity) {
         as_system::<(Commands, Query<(&EntityIdIndex, &InstanceHolder)>)>(
             self.ecs,
             |(mut commands, mut query)| {
@@ -1041,13 +912,13 @@ impl GamePacketHandler<'_> {
         );
     }
 
-    pub fn handle_update_advancements(&mut self, p: &ClientboundUpdateAdvancements) {
+    pub fn update_advancements(&mut self, p: &ClientboundUpdateAdvancements) {
         debug!("Got update advancements packet {p:?}");
     }
 
-    pub fn handle_rotate_head(&mut self, _p: &ClientboundRotateHead) {}
+    pub fn rotate_head(&mut self, _p: &ClientboundRotateHead) {}
 
-    pub fn handle_move_entity_pos(&mut self, p: &ClientboundMoveEntityPos) {
+    pub fn move_entity_pos(&mut self, p: &ClientboundMoveEntityPos) {
         as_system::<(Commands, Query<(&EntityIdIndex, &InstanceHolder)>)>(
             self.ecs,
             |(mut commands, mut query)| {
@@ -1087,7 +958,7 @@ impl GamePacketHandler<'_> {
         );
     }
 
-    pub fn handle_move_entity_pos_rot(&mut self, p: &ClientboundMoveEntityPosRot) {
+    pub fn move_entity_pos_rot(&mut self, p: &ClientboundMoveEntityPosRot) {
         as_system::<(Commands, Query<(&EntityIdIndex, &InstanceHolder)>)>(
             self.ecs,
             |(mut commands, mut query)| {
@@ -1141,7 +1012,7 @@ impl GamePacketHandler<'_> {
         );
     }
 
-    pub fn handle_move_entity_rot(&mut self, p: &ClientboundMoveEntityRot) {
+    pub fn move_entity_rot(&mut self, p: &ClientboundMoveEntityRot) {
         as_system::<(Commands, Query<(&EntityIdIndex, &InstanceHolder)>)>(
             self.ecs,
             |(mut commands, mut query)| {
@@ -1176,7 +1047,7 @@ impl GamePacketHandler<'_> {
             },
         );
     }
-    pub fn handle_keep_alive(&mut self, p: &ClientboundKeepAlive) {
+    pub fn keep_alive(&mut self, p: &ClientboundKeepAlive) {
         /*
         debug!("Got keep alive packet {p:?} for {player_entity:?}");
 
@@ -1213,7 +1084,7 @@ impl GamePacketHandler<'_> {
         );
     }
 
-    pub fn handle_remove_entities(&mut self, p: &ClientboundRemoveEntities) {
+    pub fn remove_entities(&mut self, p: &ClientboundRemoveEntities) {
         debug!("Got remove entities packet {p:?}");
 
         as_system::<(Query<&mut EntityIdIndex>, Query<&mut LoadedBy>)>(
@@ -1247,7 +1118,7 @@ impl GamePacketHandler<'_> {
             },
         );
     }
-    pub fn handle_player_chat(&mut self, p: &ClientboundPlayerChat) {
+    pub fn player_chat(&mut self, p: &ClientboundPlayerChat) {
         debug!("Got player chat packet {p:?}");
 
         as_system::<EventWriter<_>>(self.ecs, |mut events| {
@@ -1258,7 +1129,7 @@ impl GamePacketHandler<'_> {
         });
     }
 
-    pub fn handle_system_chat(&mut self, p: &ClientboundSystemChat) {
+    pub fn system_chat(&mut self, p: &ClientboundSystemChat) {
         debug!("Got system chat packet {p:?}");
 
         as_system::<EventWriter<_>>(self.ecs, |mut events| {
@@ -1269,7 +1140,7 @@ impl GamePacketHandler<'_> {
         });
     }
 
-    pub fn handle_disguised_chat(&mut self, p: &ClientboundDisguisedChat) {
+    pub fn disguised_chat(&mut self, p: &ClientboundDisguisedChat) {
         debug!("Got disguised chat packet {p:?}");
 
         as_system::<EventWriter<_>>(self.ecs, |mut events| {
@@ -1280,11 +1151,13 @@ impl GamePacketHandler<'_> {
         });
     }
 
-    pub fn handle_level_event(&mut self, p: &ClientboundLevelEvent) {
+    pub fn sound(&mut self, _p: &ClientboundSound) {}
+
+    pub fn level_event(&mut self, p: &ClientboundLevelEvent) {
         debug!("Got level event packet {p:?}");
     }
 
-    pub fn handle_block_update(&mut self, p: &ClientboundBlockUpdate) {
+    pub fn block_update(&mut self, p: &ClientboundBlockUpdate) {
         debug!("Got block update packet {p:?}");
 
         as_system::<Query<&mut InstanceHolder>>(self.ecs, |mut query| {
@@ -1296,11 +1169,11 @@ impl GamePacketHandler<'_> {
         });
     }
 
-    pub fn handle_animate(&mut self, p: &ClientboundAnimate) {
+    pub fn animate(&mut self, p: &ClientboundAnimate) {
         debug!("Got animate packet {p:?}");
     }
 
-    pub fn handle_section_blocks_update(&mut self, p: &ClientboundSectionBlocksUpdate) {
+    pub fn section_blocks_update(&mut self, p: &ClientboundSectionBlocksUpdate) {
         debug!("Got section blocks update packet {p:?}");
 
         as_system::<Query<&mut InstanceHolder>>(self.ecs, |mut query| {
@@ -1314,7 +1187,7 @@ impl GamePacketHandler<'_> {
         });
     }
 
-    pub fn handle_game_event(&mut self, p: &ClientboundGameEvent) {
+    pub fn game_event(&mut self, p: &ClientboundGameEvent) {
         use azalea_protocol::packets::game::c_game_event::EventType;
 
         debug!("Got game event packet {p:?}");
@@ -1333,27 +1206,41 @@ impl GamePacketHandler<'_> {
         }
     }
 
-    pub fn handle_level_particles(&mut self, p: &ClientboundLevelParticles) {
+    pub fn level_particles(&mut self, p: &ClientboundLevelParticles) {
         debug!("Got level particles packet {p:?}");
     }
 
-    pub fn handle_server_data(&mut self, p: &ClientboundServerData) {
+    pub fn server_data(&mut self, p: &ClientboundServerData) {
         debug!("Got server data packet {p:?}");
     }
 
-    pub fn handle_set_equipment(&mut self, p: &ClientboundSetEquipment) {
+    pub fn set_equipment(&mut self, p: &ClientboundSetEquipment) {
         debug!("Got set equipment packet {p:?}");
     }
 
-    pub fn handle_update_mob_effect(&mut self, p: &ClientboundUpdateMobEffect) {
+    pub fn update_mob_effect(&mut self, p: &ClientboundUpdateMobEffect) {
         debug!("Got update mob effect packet {p:?}");
     }
 
-    pub fn handle_block_event(&mut self, p: &ClientboundBlockEvent) {
+    pub fn add_experience_orb(&mut self, _p: &ClientboundAddExperienceOrb) {}
+
+    pub fn award_stats(&mut self, _p: &ClientboundAwardStats) {}
+
+    pub fn block_changed_ack(&mut self, _p: &ClientboundBlockChangedAck) {}
+
+    pub fn block_destruction(&mut self, _p: &ClientboundBlockDestruction) {}
+
+    pub fn block_entity_data(&mut self, _p: &ClientboundBlockEntityData) {}
+
+    pub fn block_event(&mut self, p: &ClientboundBlockEvent) {
         debug!("Got block event packet {p:?}");
     }
 
-    pub fn handle_container_set_content(&mut self, p: &ClientboundContainerSetContent) {
+    pub fn boss_event(&mut self, _p: &ClientboundBossEvent) {}
+
+    pub fn command_suggestions(&mut self, _p: &ClientboundCommandSuggestions) {}
+
+    pub fn container_set_content(&mut self, p: &ClientboundContainerSetContent) {
         debug!("Got container set content packet {p:?}");
 
         as_system::<(Query<&mut Inventory>, EventWriter<_>)>(
@@ -1380,7 +1267,7 @@ impl GamePacketHandler<'_> {
         );
     }
 
-    pub fn handle_container_set_data(&mut self, p: &ClientboundContainerSetData) {
+    pub fn container_set_data(&mut self, p: &ClientboundContainerSetData) {
         debug!("Got container set data packet {p:?}");
 
         // TODO: handle ContainerSetData packet
@@ -1393,7 +1280,7 @@ impl GamePacketHandler<'_> {
         // });
     }
 
-    pub fn handle_container_set_slot(&mut self, p: &ClientboundContainerSetSlot) {
+    pub fn container_set_slot(&mut self, p: &ClientboundContainerSetSlot) {
         debug!("Got container set slot packet {p:?}");
 
         as_system::<Query<&mut Inventory>>(self.ecs, |mut query| {
@@ -1429,7 +1316,7 @@ impl GamePacketHandler<'_> {
         });
     }
 
-    pub fn handle_container_close(&mut self, p: &ClientboundContainerClose) {
+    pub fn container_close(&mut self, p: &ClientboundContainerClose) {
         // there's a container_id field in the packet, but minecraft doesn't actually
         // check it
 
@@ -1442,7 +1329,13 @@ impl GamePacketHandler<'_> {
         });
     }
 
-    pub fn handle_explode(&mut self, p: &ClientboundExplode) {
+    pub fn cooldown(&mut self, _p: &ClientboundCooldown) {}
+
+    pub fn custom_chat_completions(&mut self, _p: &ClientboundCustomChatCompletions) {}
+
+    pub fn delete_chat(&mut self, _p: &ClientboundDeleteChat) {}
+
+    pub fn explode(&mut self, p: &ClientboundExplode) {
         trace!("Got explode packet {p:?}");
 
         as_system::<EventWriter<_>>(self.ecs, |mut knockback_events| {
@@ -1455,7 +1348,7 @@ impl GamePacketHandler<'_> {
         });
     }
 
-    pub fn handle_forget_level_chunk(&mut self, p: &ClientboundForgetLevelChunk) {
+    pub fn forget_level_chunk(&mut self, p: &ClientboundForgetLevelChunk) {
         debug!("Got forget level chunk packet {p:?}");
 
         as_system::<Query<&mut InstanceHolder>>(self.ecs, |mut query| {
@@ -1467,7 +1360,17 @@ impl GamePacketHandler<'_> {
         });
     }
 
-    pub fn handle_open_screen(&mut self, p: &ClientboundOpenScreen) {
+    pub fn horse_screen_open(&mut self, _p: &ClientboundHorseScreenOpen) {}
+
+    pub fn map_item_data(&mut self, _p: &ClientboundMapItemData) {}
+
+    pub fn merchant_offers(&mut self, _p: &ClientboundMerchantOffers) {}
+
+    pub fn move_vehicle(&mut self, _p: &ClientboundMoveVehicle) {}
+
+    pub fn open_book(&mut self, _p: &ClientboundOpenBook) {}
+
+    pub fn open_screen(&mut self, p: &ClientboundOpenScreen) {
         debug!("Got open screen packet {p:?}");
 
         as_system::<EventWriter<_>>(self.ecs, |mut events| {
@@ -1480,7 +1383,9 @@ impl GamePacketHandler<'_> {
         });
     }
 
-    pub fn handle_ping(&mut self, p: &ClientboundPing) {
+    pub fn open_sign_editor(&mut self, _p: &ClientboundOpenSignEditor) {}
+
+    pub fn ping(&mut self, p: &ClientboundPing) {
         debug!("Got ping packet {p:?}");
 
         as_system::<EventWriter<_>>(self.ecs, |mut events| {
@@ -1491,7 +1396,13 @@ impl GamePacketHandler<'_> {
         });
     }
 
-    pub fn handle_player_combat_kill(&mut self, p: &ClientboundPlayerCombatKill) {
+    pub fn place_ghost_recipe(&mut self, _p: &ClientboundPlaceGhostRecipe) {}
+
+    pub fn player_combat_end(&mut self, _p: &ClientboundPlayerCombatEnd) {}
+
+    pub fn player_combat_enter(&mut self, _p: &ClientboundPlayerCombatEnter) {}
+
+    pub fn player_combat_kill(&mut self, p: &ClientboundPlayerCombatKill) {
         debug!("Got player kill packet {p:?}");
 
         as_system::<(
@@ -1511,7 +1422,11 @@ impl GamePacketHandler<'_> {
         });
     }
 
-    pub fn handle_resource_pack_push(&mut self, p: &ClientboundResourcePackPush) {
+    pub fn player_look_at(&mut self, _p: &ClientboundPlayerLookAt) {}
+
+    pub fn remove_mob_effect(&mut self, _p: &ClientboundRemoveMobEffect) {}
+
+    pub fn resource_pack_push(&mut self, p: &ClientboundResourcePackPush) {
         debug!("Got resource pack packet {p:?}");
 
         as_system::<EventWriter<_>>(self.ecs, |mut events| {
@@ -1526,7 +1441,9 @@ impl GamePacketHandler<'_> {
         });
     }
 
-    pub fn handle_respawn(&mut self, p: &ClientboundRespawn) {
+    pub fn resource_pack_pop(&mut self, _p: &ClientboundResourcePackPop) {}
+
+    pub fn respawn(&mut self, p: &ClientboundRespawn) {
         debug!("Got respawn packet {p:?}");
 
         as_system::<(
@@ -1609,7 +1526,7 @@ impl GamePacketHandler<'_> {
         )
     }
 
-    pub fn handle_start_configuration(&mut self, _p: &ClientboundStartConfiguration) {
+    pub fn start_configuration(&mut self, _p: &ClientboundStartConfiguration) {
         as_system::<(Commands, EventWriter<_>)>(self.ecs, |(mut commands, mut events)| {
             events.send(SendPacketEvent::new(
                 self.player,
@@ -1623,7 +1540,7 @@ impl GamePacketHandler<'_> {
         });
     }
 
-    pub fn handle_entity_position_sync(&mut self, p: &ClientboundEntityPositionSync) {
+    pub fn entity_position_sync(&mut self, p: &ClientboundEntityPositionSync) {
         as_system::<(Commands, Query<(&EntityIdIndex, &InstanceHolder)>)>(
             self.ecs,
             |(mut commands, mut query)| {
@@ -1666,6 +1583,51 @@ impl GamePacketHandler<'_> {
             },
         );
     }
+
+    pub fn select_advancements_tab(&mut self, _p: &ClientboundSelectAdvancementsTab) {}
+    pub fn set_action_bar_text(&mut self, _p: &ClientboundSetActionBarText) {}
+    pub fn set_border_center(&mut self, _p: &ClientboundSetBorderCenter) {}
+    pub fn set_border_lerp_size(&mut self, _p: &ClientboundSetBorderLerpSize) {}
+    pub fn set_border_size(&mut self, _p: &ClientboundSetBorderSize) {}
+    pub fn set_border_warning_delay(&mut self, _p: &ClientboundSetBorderWarningDelay) {}
+    pub fn set_border_warning_distance(&mut self, _p: &ClientboundSetBorderWarningDistance) {}
+    pub fn set_camera(&mut self, _p: &ClientboundSetCamera) {}
+    pub fn set_display_objective(&mut self, _p: &ClientboundSetDisplayObjective) {}
+    pub fn set_objective(&mut self, _p: &ClientboundSetObjective) {}
+    pub fn set_passengers(&mut self, _p: &ClientboundSetPassengers) {}
+    pub fn set_player_team(&mut self, _p: &ClientboundSetPlayerTeam) {}
+    pub fn set_score(&mut self, _p: &ClientboundSetScore) {}
+    pub fn set_simulation_distance(&mut self, _p: &ClientboundSetSimulationDistance) {}
+    pub fn set_subtitle_text(&mut self, _p: &ClientboundSetSubtitleText) {}
+    pub fn set_title_text(&mut self, _p: &ClientboundSetTitleText) {}
+    pub fn set_titles_animation(&mut self, _p: &ClientboundSetTitlesAnimation) {}
+    pub fn clear_titles(&mut self, _p: &ClientboundClearTitles) {}
+    pub fn sound_entity(&mut self, _p: &ClientboundSoundEntity) {}
+    pub fn stop_sound(&mut self, _p: &ClientboundStopSound) {}
+    pub fn tab_list(&mut self, _p: &ClientboundTabList) {}
+    pub fn tag_query(&mut self, _p: &ClientboundTagQuery) {}
+    pub fn take_item_entity(&mut self, _p: &ClientboundTakeItemEntity) {}
+    pub fn bundle_delimiter(&mut self, _p: &ClientboundBundleDelimiter) {}
+    pub fn damage_event(&mut self, _p: &ClientboundDamageEvent) {}
+    pub fn hurt_animation(&mut self, _p: &ClientboundHurtAnimation) {}
+    pub fn ticking_state(&mut self, _p: &ClientboundTickingState) {}
+    pub fn ticking_step(&mut self, _p: &ClientboundTickingStep) {}
+    pub fn reset_score(&mut self, _p: &ClientboundResetScore) {}
+    pub fn cookie_request(&mut self, _p: &ClientboundCookieRequest) {}
+    pub fn debug_sample(&mut self, _p: &ClientboundDebugSample) {}
+    pub fn pong_response(&mut self, _p: &ClientboundPongResponse) {}
+    pub fn store_cookie(&mut self, _p: &ClientboundStoreCookie) {}
+    pub fn transfer(&mut self, _p: &ClientboundTransfer) {}
+    pub fn move_minecart_along_track(&mut self, _p: &ClientboundMoveMinecartAlongTrack) {}
+    pub fn set_held_slot(&mut self, _p: &ClientboundSetHeldSlot) {}
+    pub fn set_player_inventory(&mut self, _p: &ClientboundSetPlayerInventory) {}
+    pub fn projectile_power(&mut self, _p: &ClientboundProjectilePower) {}
+    pub fn custom_report_details(&mut self, _p: &ClientboundCustomReportDetails) {}
+    pub fn server_links(&mut self, _p: &ClientboundServerLinks) {}
+    pub fn player_rotation(&mut self, _p: &ClientboundPlayerRotation) {}
+    pub fn recipe_book_add(&mut self, _p: &ClientboundRecipeBookAdd) {}
+    pub fn recipe_book_remove(&mut self, _p: &ClientboundRecipeBookRemove) {}
+    pub fn recipe_book_settings(&mut self, _p: &ClientboundRecipeBookSettings) {}
 }
 
 pub struct GamePacketHandler<'a> {
@@ -1683,20 +1645,7 @@ where
     system_state.apply(ecs);
 }
 
-/// An event for sending a packet to the server while we're in the `game` state.
-#[derive(Event)]
-pub struct SendPacketEvent {
-    pub sent_by: Entity,
-    pub packet: ServerboundGamePacket,
-}
-impl SendPacketEvent {
-    pub fn new(sent_by: Entity, packet: impl Packet<ServerboundGamePacket>) -> Self {
-        let packet = packet.into_variant();
-        Self { sent_by, packet }
-    }
-}
-
-pub fn handle_send_packet_event(
+pub fn handle_sendpacketevent(
     mut send_packet_events: EventReader<SendPacketEvent>,
     mut query: Query<&mut RawConnection>,
 ) {
@@ -1706,6 +1655,40 @@ pub fn handle_send_packet_event(
             if let Err(e) = raw_connection.write_packet(event.packet.clone()) {
                 error!("Failed to send packet: {e}");
             }
+        }
+    }
+}
+
+pub fn send_receivepacketevent(
+    query: Query<(Entity, &RawConnection), With<LocalEntity>>,
+    mut packet_events: ResMut<Events<ReceivePacketEvent>>,
+) {
+    // we manually clear and send the events at the beginning of each update
+    // since otherwise it'd cause issues with events in process_packet_events
+    // running twice
+    packet_events.clear();
+    for (player_entity, raw_connection) in &query {
+        let packets_lock = raw_connection.incoming_packet_queue();
+        let mut packets = packets_lock.lock();
+        if !packets.is_empty() {
+            for raw_packet in packets.iter() {
+                let packet =
+                    match deserialize_packet::<ClientboundGamePacket>(&mut Cursor::new(raw_packet))
+                    {
+                        Ok(packet) => packet,
+                        Err(err) => {
+                            error!("failed to read packet: {err:?}");
+                            debug!("packet bytes: {raw_packet:?}");
+                            continue;
+                        }
+                    };
+                packet_events.send(ReceivePacketEvent {
+                    entity: player_entity,
+                    packet: Arc::new(packet),
+                });
+            }
+            // clear the packets right after we read them
+            packets.clear();
         }
     }
 }

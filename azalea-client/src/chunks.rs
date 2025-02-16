@@ -21,7 +21,7 @@ use tracing::{error, trace};
 use crate::{
     interact::handle_block_interact_event,
     inventory::InventorySet,
-    packet_handling::game::{handle_send_packet_event, SendPacketEvent},
+    packet::game::{handle_sendpacketevent, SendPacketEvent},
     respawn::perform_respawn,
     InstanceHolder,
 };
@@ -37,7 +37,7 @@ impl Plugin for ChunkPlugin {
                 handle_chunk_batch_finished_event,
             )
                 .chain()
-                .before(handle_send_packet_event)
+                .before(handle_sendpacketevent)
                 .before(InventorySet)
                 .before(handle_block_interact_event)
                 .before(perform_respawn),

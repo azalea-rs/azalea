@@ -22,7 +22,7 @@ pub mod inventory;
 mod local_player;
 pub mod mining;
 pub mod movement;
-pub mod packet_handling;
+pub mod packet;
 pub mod ping;
 mod player;
 pub mod raw_connection;

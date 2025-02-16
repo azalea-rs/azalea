@@ -35,7 +35,10 @@ impl Plugin for PacketHandlerPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             First,
-            (game::send_packet_events, configuration::send_packet_events),
+            (
+                game::send_receivepacketevent,
+                configuration::send_packet_events,
+            ),
         )
         .add_systems(
             PreUpdate,
@@ -53,14 +56,14 @@ impl Plugin for PacketHandlerPlugin {
             (
                 (
                     configuration::handle_send_packet_event,
-                    game::handle_send_packet_event,
+                    game::handle_sendpacketevent,
                 )
                     .chain(),
                 death_event_on_0_health.before(death_listener),
             ),
         )
         // we do this instead of add_event so we can handle the events ourselves
-        .init_resource::<Events<game::PacketEvent>>()
+        .init_resource::<Events<game::ReceivePacketEvent>>()
         .init_resource::<Events<configuration::ConfigurationEvent>>()
         .add_event::<game::SendPacketEvent>()
         .add_event::<configuration::SendConfigurationEvent>()

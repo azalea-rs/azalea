@@ -27,7 +27,7 @@ use uuid::Uuid;
 
 use crate::{
     client::Client,
-    packet_handling::game::{handle_send_packet_event, SendPacketEvent},
+    packet::game::{handle_sendpacketevent, SendPacketEvent},
 };
 
 /// A chat packet, either a system message or a chat message.
@@ -190,7 +190,7 @@ impl Plugin for ChatPlugin {
                 Update,
                 (
                     handle_send_chat_event,
-                    handle_send_chat_kind_event.after(handle_send_packet_event),
+                    handle_send_chat_kind_event.after(handle_sendpacketevent),
                 )
                     .chain(),
             );

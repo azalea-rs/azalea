@@ -17,7 +17,7 @@ use tracing::{debug, error, warn};
 use crate::client::InConfigState;
 use crate::disconnect::DisconnectEvent;
 use crate::local_player::Hunger;
-use crate::packet_handling::game::KeepAliveEvent;
+use crate::packet::game::KeepAliveEvent;
 use crate::raw_connection::RawConnection;
 use crate::InstanceHolder;
 

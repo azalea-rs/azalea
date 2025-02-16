@@ -8,7 +8,7 @@ use azalea_world::InstanceName;
 use bevy_app::{App, Plugin};
 use bevy_ecs::prelude::*;
 
-use crate::{mining::MiningSet, packet_handling::game::SendPacketEvent};
+use crate::{mining::MiningSet, packet::game::SendPacketEvent};
 
 /// A plugin that makes clients send a [`ServerboundClientTickEnd`] packet every
 /// tick.

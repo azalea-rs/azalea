@@ -17,7 +17,7 @@ use crate::{
     inventory::{Inventory, InventorySet},
     local_player::{LocalGameMode, PermissionLevel, PlayerAbilities},
     movement::MoveEventsSet,
-    packet_handling::game::SendPacketEvent,
+    packet::game::SendPacketEvent,
     Client,
 };
 

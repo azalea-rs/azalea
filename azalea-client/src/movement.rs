@@ -27,7 +27,7 @@ use bevy_ecs::{
 use thiserror::Error;
 
 use crate::client::Client;
-use crate::packet_handling::game::SendPacketEvent;
+use crate::packet::game::SendPacketEvent;
 
 #[derive(Error, Debug)]
 pub enum MovePlayerError {

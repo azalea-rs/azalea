@@ -12,7 +12,7 @@ use derive_more::{Deref, DerefMut};
 
 use crate::{
     interact::SwingArmEvent, local_player::LocalGameMode, movement::MoveEventsSet,
-    packet_handling::game::SendPacketEvent, respawn::perform_respawn, Client,
+    packet::game::SendPacketEvent, respawn::perform_respawn, Client,
 };
 
 pub struct AttackPlugin;

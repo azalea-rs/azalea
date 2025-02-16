@@ -2,7 +2,7 @@
 
 use std::sync::Arc;
 
-use azalea_client::{inventory::Inventory, packet_handling::game::SendPacketEvent, PhysicsState};
+use azalea_client::{inventory::Inventory, packet::game::SendPacketEvent, PhysicsState};
 use azalea_core::{position::Vec3, resource_location::ResourceLocation, tick::GameTick};
 use azalea_entity::{
     attributes::AttributeInstance, Attributes, EntityDimensions, LookDirection, Physics, Position,
