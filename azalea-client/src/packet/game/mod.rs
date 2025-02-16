@@ -750,13 +750,14 @@ impl GamePacketHandler<'_> {
     }
 
     pub fn set_entity_data(&mut self, p: &ClientboundSetEntityData) {
-        debug!("Got set entity data packet {p:?}");
-
         as_system::<(
             Commands,
-            Query<(&EntityIdIndex, &InstanceHolder, Option<&EntityKind>)>,
-        )>(self.ecs, |(mut commands, query)| {
-            let (entity_id_index, instance_holder, entity_kind) = query.get(self.player).unwrap();
+            Query<(&EntityIdIndex, &InstanceHolder)>,
+            // this is a separate query since it's applied on the entity id that's being updated
+            // instead of the player that received the packet
+            Query<&EntityKind>,
+        )>(self.ecs, |(mut commands, query, entity_kind_query)| {
+            let (entity_id_index, instance_holder) = query.get(self.player).unwrap();
 
             let entity = entity_id_index.get(MinecraftEntityId(p.id));
 
@@ -768,8 +769,12 @@ impl GamePacketHandler<'_> {
                 );
                 return;
             };
-            let entity_kind =
-                *entity_kind.expect("EntityKind component should always be present for entities");
+
+            let entity_kind = *entity_kind_query
+                .get(entity)
+                .expect("EntityKind component should always be present for entities");
+
+            debug!("Got set entity data packet {p:?} for entity of kind {entity_kind:?}");
 
             let packed_items = p.packed_items.clone().to_vec();
 
