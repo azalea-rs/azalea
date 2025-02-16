@@ -22,7 +22,7 @@ use azalea_protocol::packets::{
     ConnectionProtocol, Packet, ProtocolPacket,
 };
 use azalea_registry::DimensionType;
-use azalea_world::Instance;
+use azalea_world::{Instance, MinecraftEntityId};
 use bevy_app::App;
 use bevy_app::PluginGroup;
 use bevy_ecs::{prelude::*, schedule::ExecutorKind};
@@ -67,7 +67,7 @@ fn test_set_health_before_login() {
     assert_eq!(*simulation.component::<Health>(), 15.);
 
     simulation.receive_packet(ClientboundLogin {
-        player_id: 0,
+        player_id: MinecraftEntityId(0),
         hardcore: false,
         levels: vec![],
         max_players: 20,

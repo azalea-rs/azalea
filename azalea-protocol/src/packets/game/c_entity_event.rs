@@ -1,8 +1,9 @@
 use azalea_buf::AzBuf;
 use azalea_protocol_macros::ClientboundGamePacket;
+use azalea_world::MinecraftEntityId;
 
 #[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
 pub struct ClientboundEntityEvent {
-    pub entity_id: u32,
+    pub entity_id: MinecraftEntityId,
     pub event_id: u8,
 }

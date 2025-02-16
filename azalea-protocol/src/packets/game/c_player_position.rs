@@ -5,6 +5,7 @@ use crate::common::movements::{PositionMoveRotation, RelativeMovements};
 
 #[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
 pub struct ClientboundPlayerPosition {
+    /// The teleport ID.
     #[var]
     pub id: u32,
     pub change: PositionMoveRotation,

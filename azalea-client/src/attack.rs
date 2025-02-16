@@ -86,7 +86,7 @@ pub fn handle_attack_event(
         send_packet_events.send(SendPacketEvent::new(
             event.entity,
             ServerboundInteract {
-                entity_id: *event.target,
+                entity_id: event.target,
                 action: s_interact::ActionType::Attack,
                 using_secondary_action: **sneaking,
             },

@@ -301,7 +301,7 @@ pub fn process_packet_events(ecs: &mut World) {
                         azalea_registry::EntityKind::Player,
                         new_instance_name,
                     );
-                    let entity_id = MinecraftEntityId(p.player_id);
+                    let entity_id = p.player_id;
                     // insert our components into the ecs :)
                     commands.entity(player_entity).insert((
                         entity_id,
@@ -643,7 +643,7 @@ pub fn process_packet_events(ecs: &mut World) {
                 let (mut entity_id_index, instance_name, tab_list) =
                     query.get_mut(player_entity).unwrap();
 
-                let entity_id = MinecraftEntityId(p.id);
+                let entity_id = p.id;
 
                 let Some(instance_name) = instance_name else {
                     warn!("got add player packet but we haven't gotten a login packet yet");
@@ -721,7 +721,7 @@ pub fn process_packet_events(ecs: &mut World) {
                 let (mut commands, mut query, entity_kind_query) = system_state.get_mut(ecs);
                 let (entity_id_index, instance_holder) = query.get_mut(player_entity).unwrap();
 
-                let entity = entity_id_index.get(MinecraftEntityId(p.id));
+                let entity = entity_id_index.get(p.id);
 
                 let Some(entity) = entity else {
                     // some servers like hypixel trigger this a lot :(
@@ -768,7 +768,7 @@ pub fn process_packet_events(ecs: &mut World) {
                 let (mut commands, mut query) = system_state.get_mut(ecs);
                 let (entity_id_index, instance_holder) = query.get_mut(player_entity).unwrap();
 
-                let Some(entity) = entity_id_index.get(MinecraftEntityId(p.id)) else {
+                let Some(entity) = entity_id_index.get(p.id) else {
                     // note that this log (and some other ones like the one in RemoveEntities)
                     // sometimes happens when killing mobs. it seems to be a vanilla bug, which is
                     // why it's a debug log instead of a warning
@@ -837,7 +837,7 @@ pub fn process_packet_events(ecs: &mut World) {
                 let (mut commands, mut query) = system_state.get_mut(ecs);
                 let (entity_id_index, instance_holder) = query.get_mut(player_entity).unwrap();
 
-                let Some(entity) = entity_id_index.get(MinecraftEntityId(p.id)) else {
+                let Some(entity) = entity_id_index.get(p.id) else {
                     warn!("Got teleport entity packet for unknown entity id {}", p.id);
                     continue;
                 };
@@ -883,7 +883,7 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 debug!("Got move entity pos packet {p:?}");
 
-                let Some(entity) = entity_id_index.get(MinecraftEntityId(p.entity_id)) else {
+                let Some(entity) = entity_id_index.get(p.entity_id) else {
                     debug!(
                         "Got move entity pos packet for unknown entity id {}",
                         p.entity_id
@@ -924,7 +924,7 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 debug!("Got move entity pos rot packet {p:?}");
 
-                let entity = entity_id_index.get(MinecraftEntityId(p.entity_id));
+                let entity = entity_id_index.get(p.entity_id);
 
                 if let Some(entity) = entity {
                     let new_delta = p.delta.clone();
@@ -977,7 +977,7 @@ pub fn process_packet_events(ecs: &mut World) {
                 let (mut commands, mut query) = system_state.get_mut(ecs);
                 let (entity_id_index, instance_holder) = query.get_mut(player_entity).unwrap();
 
-                let entity = entity_id_index.get(MinecraftEntityId(p.entity_id));
+                let entity = entity_id_index.get(p.entity_id);
 
                 if let Some(entity) = entity {
                     let new_look_direction = LookDirection {
@@ -1040,7 +1040,7 @@ pub fn process_packet_events(ecs: &mut World) {
                 };
 
                 for &id in &p.entity_ids {
-                    let Some(entity) = entity_id_index.remove(MinecraftEntityId(id)) else {
+                    let Some(entity) = entity_id_index.remove(id) else {
                         debug!("Tried to remove entity with id {id} but it wasn't in the EntityIdIndex");
                         continue;
                     };
@@ -1334,7 +1334,7 @@ pub fn process_packet_events(ecs: &mut World) {
                 let (mut commands, mut query, mut death_events) = system_state.get_mut(ecs);
                 let (entity_id, dead) = query.get_mut(player_entity).unwrap();
 
-                if **entity_id == p.player_id && dead.is_none() {
+                if *entity_id == p.player_id && dead.is_none() {
                     commands.entity(player_entity).insert(Dead);
                     death_events.send(DeathEvent {
                         entity: player_entity,
@@ -1475,7 +1475,7 @@ pub fn process_packet_events(ecs: &mut World) {
                 let (mut commands, mut query) = system_state.get_mut(ecs);
                 let (entity_id_index, instance_holder) = query.get_mut(player_entity).unwrap();
 
-                let Some(entity) = entity_id_index.get(MinecraftEntityId(p.id)) else {
+                let Some(entity) = entity_id_index.get(p.id) else {
                     debug!("Got teleport entity packet for unknown entity id {}", p.id);
                     continue;
                 };

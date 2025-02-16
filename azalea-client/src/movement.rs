@@ -303,7 +303,7 @@ fn send_sprinting_if_needed(
             send_packet_events.send(SendPacketEvent::new(
                 entity,
                 ServerboundPlayerCommand {
-                    id: **minecraft_entity_id,
+                    id: *minecraft_entity_id,
                     action: sprinting_action,
                     data: 0,
                 },
