@@ -19,20 +19,14 @@ use azalea_entity::{
     Physics, Position, RelativeEntityUpdate,
 };
 use azalea_protocol::{
-    packets::{
-        game::{
-            c_player_combat_kill::ClientboundPlayerCombatKill,
-            s_accept_teleportation::ServerboundAcceptTeleportation,
-            s_configuration_acknowledged::ServerboundConfigurationAcknowledged,
-            s_keep_alive::ServerboundKeepAlive, s_move_player_pos_rot::ServerboundMovePlayerPosRot,
-            s_pong::ServerboundPong, ClientboundGamePacket, ServerboundGamePacket,
-        },
-        Packet,
-    },
+    packets::{game::*, Packet},
     read::deserialize_packet,
 };
 use azalea_world::{Instance, InstanceContainer, InstanceName, MinecraftEntityId, PartialInstance};
-use bevy_ecs::{prelude::*, system::SystemState};
+use bevy_ecs::{
+    prelude::*,
+    system::{SystemParam, SystemState},
+};
 use parking_lot::RwLock;
 use tracing::{debug, error, trace, warn};
 use uuid::Uuid;
@@ -198,6 +192,12 @@ pub fn process_packet_events(ecs: &mut World) {
     for (player_entity, packet) in events_owned {
         let packet_clone = packet.clone();
         let packet_ref = packet_clone.as_ref();
+
+        let mut handler = GamePacketHandler {
+            player: player_entity,
+            ecs,
+        };
+
         match packet_ref {
             ClientboundGamePacket::Login(p) => {
                 debug!("Got login packet");
@@ -1072,446 +1072,58 @@ pub fn process_packet_events(ecs: &mut World) {
                     packet: ChatPacket::Player(Arc::new(p.clone())),
                 });
             }
-            ClientboundGamePacket::SystemChat(p) => {
-                debug!("Got system chat packet {p:?}");
-
-                let mut system_state: SystemState<EventWriter<ChatReceivedEvent>> =
-                    SystemState::new(ecs);
-                let mut chat_events = system_state.get_mut(ecs);
-
-                chat_events.send(ChatReceivedEvent {
-                    entity: player_entity,
-                    packet: ChatPacket::System(Arc::new(p.clone())),
-                });
-            }
-            ClientboundGamePacket::DisguisedChat(p) => {
-                debug!("Got disguised chat packet {p:?}");
-
-                let mut system_state: SystemState<EventWriter<ChatReceivedEvent>> =
-                    SystemState::new(ecs);
-                let mut chat_events = system_state.get_mut(ecs);
-
-                chat_events.send(ChatReceivedEvent {
-                    entity: player_entity,
-                    packet: ChatPacket::Disguised(Arc::new(p.clone())),
-                });
-            }
-            ClientboundGamePacket::Sound(_p) => {
-                // debug!("Got sound packet {p:?}");
-            }
-            ClientboundGamePacket::LevelEvent(p) => {
-                debug!("Got level event packet {p:?}");
-            }
-            ClientboundGamePacket::BlockUpdate(p) => {
-                debug!("Got block update packet {p:?}");
-
-                let mut system_state: SystemState<Query<&mut InstanceHolder>> =
-                    SystemState::new(ecs);
-                let mut query = system_state.get_mut(ecs);
-                let local_player = query.get_mut(player_entity).unwrap();
-
-                let world = local_player.instance.write();
-
-                world.chunks.set_block_state(&p.pos, p.block_state);
-            }
-            ClientboundGamePacket::Animate(p) => {
-                debug!("Got animate packet {p:?}");
-            }
+            ClientboundGamePacket::SystemChat(p) => handler.handle_system_chat(p),
+            ClientboundGamePacket::DisguisedChat(p) => handler.handle_disguised_chat(p),
+            ClientboundGamePacket::Sound(_) => {}
+            ClientboundGamePacket::LevelEvent(p) => handler.handle_level_event(p),
+            ClientboundGamePacket::BlockUpdate(p) => handler.handle_block_update(p),
+            ClientboundGamePacket::Animate(p) => handler.handle_animate(p),
             ClientboundGamePacket::SectionBlocksUpdate(p) => {
-                debug!("Got section blocks update packet {p:?}");
-                let mut system_state: SystemState<Query<&mut InstanceHolder>> =
-                    SystemState::new(ecs);
-                let mut query = system_state.get_mut(ecs);
-                let local_player = query.get_mut(player_entity).unwrap();
-
-                let world = local_player.instance.write();
-
-                for state in &p.states {
-                    world
-                        .chunks
-                        .set_block_state(&(p.section_pos + state.pos), state.state);
-                }
+                handler.handle_section_blocks_update(p)
             }
-            ClientboundGamePacket::GameEvent(p) => {
-                use azalea_protocol::packets::game::c_game_event::EventType;
-
-                debug!("Got game event packet {p:?}");
-
-                #[allow(clippy::single_match)]
-                match p.event {
-                    EventType::ChangeGameMode => {
-                        let mut system_state: SystemState<Query<&mut LocalGameMode>> =
-                            SystemState::new(ecs);
-                        let mut query = system_state.get_mut(ecs);
-                        let mut local_game_mode = query.get_mut(player_entity).unwrap();
-                        if let Some(new_game_mode) = GameMode::from_id(p.param as u8) {
-                            local_game_mode.current = new_game_mode;
-                        }
-                    }
-                    _ => {}
-                }
-            }
-            ClientboundGamePacket::LevelParticles(p) => {
-                debug!("Got level particles packet {p:?}");
-            }
-            ClientboundGamePacket::ServerData(p) => {
-                debug!("Got server data packet {p:?}");
-            }
-            ClientboundGamePacket::SetEquipment(p) => {
-                debug!("Got set equipment packet {p:?}");
-            }
-            ClientboundGamePacket::UpdateMobEffect(p) => {
-                debug!("Got update mob effect packet {p:?}");
-            }
+            ClientboundGamePacket::GameEvent(p) => handler.handle_game_event(p),
+            ClientboundGamePacket::LevelParticles(p) => handler.handle_level_particles(p),
+            ClientboundGamePacket::ServerData(p) => handler.handle_server_data(p),
+            ClientboundGamePacket::SetEquipment(p) => handler.handle_set_equipment(p),
+            ClientboundGamePacket::UpdateMobEffect(p) => handler.handle_update_mob_effect(p),
             ClientboundGamePacket::AddExperienceOrb(_) => {}
             ClientboundGamePacket::AwardStats(_) => {}
             ClientboundGamePacket::BlockChangedAck(_) => {}
             ClientboundGamePacket::BlockDestruction(_) => {}
             ClientboundGamePacket::BlockEntityData(_) => {}
-            ClientboundGamePacket::BlockEvent(p) => {
-                debug!("Got block event packet {p:?}");
-            }
+            ClientboundGamePacket::BlockEvent(p) => handler.handle_block_event(p),
             ClientboundGamePacket::BossEvent(_) => {}
             ClientboundGamePacket::CommandSuggestions(_) => {}
             ClientboundGamePacket::ContainerSetContent(p) => {
-                debug!("Got container set content packet {p:?}");
-
-                let mut system_state: SystemState<(
-                    Query<&mut Inventory>,
-                    EventWriter<SetContainerContentEvent>,
-                )> = SystemState::new(ecs);
-                let (mut query, mut events) = system_state.get_mut(ecs);
-                let mut inventory = query.get_mut(player_entity).unwrap();
-
-                // container id 0 is always the player's inventory
-                if p.container_id == 0 {
-                    // this is just so it has the same type as the `else` block
-                    for (i, slot) in p.items.iter().enumerate() {
-                        if let Some(slot_mut) = inventory.inventory_menu.slot_mut(i) {
-                            *slot_mut = slot.clone();
-                        }
-                    }
-                } else {
-                    events.send(SetContainerContentEvent {
-                        entity: player_entity,
-                        slots: p.items.clone(),
-                        container_id: p.container_id,
-                    });
-                }
+                handler.handle_container_set_content(p)
             }
-            ClientboundGamePacket::ContainerSetData(p) => {
-                debug!("Got container set data packet {p:?}");
-                // let mut system_state: SystemState<Query<&mut
-                // InventoryComponent>> =
-                //     SystemState::new(ecs);
-                // let mut query = system_state.get_mut(ecs);
-                // let mut inventory =
-                // query.get_mut(player_entity).unwrap();
-
-                // TODO: handle ContainerSetData packet
-                // this is used for various things like the furnace progress
-                // bar
-                // see https://wiki.vg/Protocol#Set_Container_Property
-            }
-            ClientboundGamePacket::ContainerSetSlot(p) => {
-                debug!("Got container set slot packet {p:?}");
-
-                let mut system_state: SystemState<Query<&mut Inventory>> = SystemState::new(ecs);
-                let mut query = system_state.get_mut(ecs);
-                let mut inventory = query.get_mut(player_entity).unwrap();
-
-                if p.container_id == -1 {
-                    // -1 means carried item
-                    inventory.carried = p.item_stack.clone();
-                } else if p.container_id == -2 {
-                    if let Some(slot) = inventory.inventory_menu.slot_mut(p.slot.into()) {
-                        *slot = p.item_stack.clone();
-                    }
-                } else {
-                    let is_creative_mode_and_inventory_closed = false;
-                    // technically minecraft has slightly different behavior here if you're in
-                    // creative mode and have your inventory open
-                    if p.container_id == 0
-                        && azalea_inventory::Player::is_hotbar_slot(p.slot.into())
-                    {
-                        // minecraft also sets a "pop time" here which is used for an animation
-                        // but that's not really necessary
-                        if let Some(slot) = inventory.inventory_menu.slot_mut(p.slot.into()) {
-                            *slot = p.item_stack.clone();
-                        }
-                    } else if p.container_id == inventory.id
-                        && (p.container_id != 0 || !is_creative_mode_and_inventory_closed)
-                    {
-                        // var2.containerMenu.setItem(var4, var1.getStateId(), var3);
-                        if let Some(slot) = inventory.menu_mut().slot_mut(p.slot.into()) {
-                            *slot = p.item_stack.clone();
-                            inventory.state_id = p.state_id;
-                        }
-                    }
-                }
-            }
-            ClientboundGamePacket::ContainerClose(_p) => {
-                // there's p.container_id but minecraft doesn't actually check it
-                let mut system_state: SystemState<EventWriter<ClientSideCloseContainerEvent>> =
-                    SystemState::new(ecs);
-                let mut client_side_close_container_events = system_state.get_mut(ecs);
-                client_side_close_container_events.send(ClientSideCloseContainerEvent {
-                    entity: player_entity,
-                });
-            }
+            ClientboundGamePacket::ContainerSetData(p) => handler.handle_container_set_data(p),
+            ClientboundGamePacket::ContainerSetSlot(p) => handler.handle_container_set_slot(p),
+            ClientboundGamePacket::ContainerClose(p) => handler.handle_container_close(p),
             ClientboundGamePacket::Cooldown(_) => {}
             ClientboundGamePacket::CustomChatCompletions(_) => {}
             ClientboundGamePacket::DeleteChat(_) => {}
-            ClientboundGamePacket::Explode(p) => {
-                trace!("Got explode packet {p:?}");
-                if let Some(knockback) = p.knockback {
-                    let mut system_state: SystemState<EventWriter<KnockbackEvent>> =
-                        SystemState::new(ecs);
-                    let mut knockback_events = system_state.get_mut(ecs);
-
-                    knockback_events.send(KnockbackEvent {
-                        entity: player_entity,
-                        knockback: KnockbackType::Set(knockback),
-                    });
-
-                    system_state.apply(ecs);
-                }
-            }
-            ClientboundGamePacket::ForgetLevelChunk(p) => {
-                debug!("Got forget level chunk packet {p:?}");
-
-                let mut system_state: SystemState<Query<&mut InstanceHolder>> =
-                    SystemState::new(ecs);
-                let mut query = system_state.get_mut(ecs);
-                let local_player = query.get_mut(player_entity).unwrap();
-
-                let mut partial_instance = local_player.partial_instance.write();
-
-                partial_instance.chunks.limited_set(&p.pos, None);
-            }
+            ClientboundGamePacket::Explode(p) => handler.handle_explode(p),
+            ClientboundGamePacket::ForgetLevelChunk(p) => handler.handle_forget_level_chunk(p),
             ClientboundGamePacket::HorseScreenOpen(_) => {}
             ClientboundGamePacket::MapItemData(_) => {}
             ClientboundGamePacket::MerchantOffers(_) => {}
             ClientboundGamePacket::MoveVehicle(_) => {}
             ClientboundGamePacket::OpenBook(_) => {}
-            ClientboundGamePacket::OpenScreen(p) => {
-                debug!("Got open screen packet {p:?}");
-                let mut system_state: SystemState<EventWriter<MenuOpenedEvent>> =
-                    SystemState::new(ecs);
-                let mut menu_opened_events = system_state.get_mut(ecs);
-                menu_opened_events.send(MenuOpenedEvent {
-                    entity: player_entity,
-                    window_id: p.container_id,
-                    menu_type: p.menu_type,
-                    title: p.title.to_owned(),
-                });
-            }
+            ClientboundGamePacket::OpenScreen(p) => handler.handle_open_screen(p),
             ClientboundGamePacket::OpenSignEditor(_) => {}
-            ClientboundGamePacket::Ping(p) => {
-                debug!("Got ping packet {p:?}");
-
-                let mut system_state: SystemState<EventWriter<SendPacketEvent>> =
-                    SystemState::new(ecs);
-                let mut send_packet_events = system_state.get_mut(ecs);
-
-                send_packet_events.send(SendPacketEvent::new(
-                    player_entity,
-                    ServerboundPong { id: p.id },
-                ));
-            }
+            ClientboundGamePacket::Ping(p) => handler.handle_ping(p),
             ClientboundGamePacket::PlaceGhostRecipe(_) => {}
             ClientboundGamePacket::PlayerCombatEnd(_) => {}
             ClientboundGamePacket::PlayerCombatEnter(_) => {}
-            ClientboundGamePacket::PlayerCombatKill(p) => {
-                debug!("Got player kill packet {p:?}");
-
-                #[allow(clippy::type_complexity)]
-                let mut system_state: SystemState<(
-                    Commands,
-                    Query<(&MinecraftEntityId, Option<&Dead>)>,
-                    EventWriter<DeathEvent>,
-                )> = SystemState::new(ecs);
-                let (mut commands, mut query, mut death_events) = system_state.get_mut(ecs);
-                let (entity_id, dead) = query.get_mut(player_entity).unwrap();
-
-                if **entity_id == p.player_id && dead.is_none() {
-                    commands.entity(player_entity).insert(Dead);
-                    death_events.send(DeathEvent {
-                        entity: player_entity,
-                        packet: Some(p.clone()),
-                    });
-                }
-
-                system_state.apply(ecs);
-            }
+            ClientboundGamePacket::PlayerCombatKill(p) => handler.handle_player_combat_kill(p),
             ClientboundGamePacket::PlayerLookAt(_) => {}
             ClientboundGamePacket::RemoveMobEffect(_) => {}
-            ClientboundGamePacket::ResourcePackPush(p) => {
-                debug!("Got resource pack packet {p:?}");
-
-                let mut system_state: SystemState<EventWriter<ResourcePackEvent>> =
-                    SystemState::new(ecs);
-                let mut resource_pack_events = system_state.get_mut(ecs);
-
-                resource_pack_events.send(ResourcePackEvent {
-                    entity: player_entity,
-                    id: p.id,
-                    url: p.url.to_owned(),
-                    hash: p.hash.to_owned(),
-                    required: p.required,
-                    prompt: p.prompt.to_owned(),
-                });
-
-                system_state.apply(ecs);
-            }
+            ClientboundGamePacket::ResourcePackPush(p) => handler.handle_resource_pack_push(p),
             ClientboundGamePacket::ResourcePackPop(_) => {}
-            ClientboundGamePacket::Respawn(p) => {
-                debug!("Got respawn packet {p:?}");
-
-                #[allow(clippy::type_complexity)]
-                let mut system_state: SystemState<(
-                    Commands,
-                    Query<(
-                        &mut InstanceHolder,
-                        &GameProfileComponent,
-                        &ClientInformation,
-                    )>,
-                    EventWriter<InstanceLoadedEvent>,
-                    ResMut<InstanceContainer>,
-                )> = SystemState::new(ecs);
-                let (mut commands, mut query, mut instance_loaded_events, mut instance_container) =
-                    system_state.get_mut(ecs);
-                let (mut instance_holder, game_profile, client_information) =
-                    query.get_mut(player_entity).unwrap();
-
-                {
-                    let new_instance_name = p.common.dimension.clone();
-
-                    let Some(dimension_type_element) =
-                        instance_holder.instance.read().registries.dimension_type()
-                    else {
-                        error!("Server didn't send dimension type registry, can't log in.");
-                        continue;
-                    };
-
-                    let dimension_name = ResourceLocation::new(&p.common.dimension.to_string());
-
-                    let Some(dimension) = dimension_type_element.map.get(&dimension_name) else {
-                        error!("No dimension_type with name {dimension_name}");
-                        continue;
-                    };
-
-                    // add this world to the instance_container (or don't if it's already
-                    // there)
-                    let weak_instance = instance_container.insert(
-                        new_instance_name.clone(),
-                        dimension.height,
-                        dimension.min_y,
-                    );
-                    instance_loaded_events.send(InstanceLoadedEvent {
-                        entity: player_entity,
-                        name: new_instance_name.clone(),
-                        instance: Arc::downgrade(&weak_instance),
-                    });
-
-                    // set the partial_world to an empty world
-                    // (when we add chunks or entities those will be in the
-                    // instance_container)
-
-                    *instance_holder.partial_instance.write() = PartialInstance::new(
-                        azalea_world::chunk_storage::calculate_chunk_storage_range(
-                            client_information.view_distance.into(),
-                        ),
-                        Some(player_entity),
-                    );
-                    instance_holder.instance = weak_instance;
-
-                    // this resets a bunch of our components like physics and stuff
-                    let entity_bundle = EntityBundle::new(
-                        game_profile.uuid,
-                        Vec3::default(),
-                        azalea_registry::EntityKind::Player,
-                        new_instance_name,
-                    );
-                    // update the local gamemode and metadata things
-                    commands.entity(player_entity).insert((
-                        LocalGameMode {
-                            current: p.common.game_type,
-                            previous: p.common.previous_game_type.into(),
-                        },
-                        entity_bundle,
-                    ));
-                }
-
-                // Remove the Dead marker component from the player.
-                commands.entity(player_entity).remove::<Dead>();
-
-                system_state.apply(ecs);
-            }
-
-            ClientboundGamePacket::StartConfiguration(_p) => {
-                let mut system_state: SystemState<(Commands, EventWriter<SendPacketEvent>)> =
-                    SystemState::new(ecs);
-                let (mut commands, mut packet_events) = system_state.get_mut(ecs);
-
-                packet_events.send(SendPacketEvent::new(
-                    player_entity,
-                    ServerboundConfigurationAcknowledged {},
-                ));
-
-                commands
-                    .entity(player_entity)
-                    .insert(crate::client::InConfigState)
-                    .remove::<crate::JoinedClientBundle>();
-
-                system_state.apply(ecs);
-            }
-
-            ClientboundGamePacket::EntityPositionSync(p) => {
-                let mut system_state: SystemState<(
-                    Commands,
-                    Query<(&EntityIdIndex, &InstanceHolder)>,
-                )> = SystemState::new(ecs);
-                let (mut commands, mut query) = system_state.get_mut(ecs);
-                let (entity_id_index, instance_holder) = query.get_mut(player_entity).unwrap();
-
-                let Some(entity) = entity_id_index.get(MinecraftEntityId(p.id)) else {
-                    debug!("Got teleport entity packet for unknown entity id {}", p.id);
-                    continue;
-                };
-
-                let new_position = p.values.pos;
-                let new_on_ground = p.on_ground;
-                let new_look_direction = p.values.look_direction;
-
-                commands.entity(entity).queue(RelativeEntityUpdate {
-                    partial_world: instance_holder.partial_instance.clone(),
-                    update: Box::new(move |entity_mut| {
-                        let is_local_entity = entity_mut.get::<LocalEntity>().is_some();
-                        let mut physics = entity_mut.get_mut::<Physics>().unwrap();
-
-                        physics.vec_delta_codec.set_base(new_position);
-
-                        if is_local_entity {
-                            debug!("Ignoring entity position sync packet for local player");
-                            return;
-                        }
-
-                        physics.set_on_ground(new_on_ground);
-
-                        let mut last_sent_position =
-                            entity_mut.get_mut::<LastSentPosition>().unwrap();
-                        **last_sent_position = new_position;
-                        let mut position = entity_mut.get_mut::<Position>().unwrap();
-                        **position = new_position;
-
-                        let mut look_direction = entity_mut.get_mut::<LookDirection>().unwrap();
-                        *look_direction = new_look_direction;
-                    }),
-                });
-
-                system_state.apply(ecs);
-            }
+            ClientboundGamePacket::Respawn(p) => handler.handle_respawn(p),
+            ClientboundGamePacket::StartConfiguration(p) => handler.handle_start_configuration(p),
+            ClientboundGamePacket::EntityPositionSync(p) => handler.handle_entity_position_sync(p),
 
             ClientboundGamePacket::SelectAdvancementsTab(_) => {}
             ClientboundGamePacket::SetActionBarText(_) => {}
@@ -1561,6 +1173,432 @@ pub fn process_packet_events(ecs: &mut World) {
             ClientboundGamePacket::RecipeBookSettings(_) => {}
         }
     }
+}
+
+impl GamePacketHandler<'_> {
+    pub fn handle_system_chat(&mut self, p: &ClientboundSystemChat) {
+        debug!("Got system chat packet {p:?}");
+
+        as_system::<EventWriter<_>>(self.ecs, |mut events| {
+            events.send(ChatReceivedEvent {
+                entity: self.player,
+                packet: ChatPacket::System(Arc::new(p.clone())),
+            });
+        });
+    }
+
+    pub fn handle_disguised_chat(&mut self, p: &ClientboundDisguisedChat) {
+        debug!("Got disguised chat packet {p:?}");
+
+        as_system::<EventWriter<_>>(self.ecs, |mut events| {
+            events.send(ChatReceivedEvent {
+                entity: self.player,
+                packet: ChatPacket::Disguised(Arc::new(p.clone())),
+            });
+        });
+    }
+
+    pub fn handle_level_event(&mut self, p: &ClientboundLevelEvent) {
+        debug!("Got level event packet {p:?}");
+    }
+
+    pub fn handle_block_update(&mut self, p: &ClientboundBlockUpdate) {
+        debug!("Got block update packet {p:?}");
+
+        as_system::<Query<&mut InstanceHolder>>(self.ecs, |mut query| {
+            let local_player = query.get_mut(self.player).unwrap();
+
+            let world = local_player.instance.write();
+
+            world.chunks.set_block_state(&p.pos, p.block_state);
+        });
+    }
+
+    pub fn handle_animate(&mut self, p: &ClientboundAnimate) {
+        debug!("Got animate packet {p:?}");
+    }
+
+    pub fn handle_section_blocks_update(&mut self, p: &ClientboundSectionBlocksUpdate) {
+        debug!("Got section blocks update packet {p:?}");
+
+        as_system::<Query<&mut InstanceHolder>>(self.ecs, |mut query| {
+            let local_player = query.get_mut(self.player).unwrap();
+            let world = local_player.instance.write();
+            for state in &p.states {
+                world
+                    .chunks
+                    .set_block_state(&(p.section_pos + state.pos), state.state);
+            }
+        });
+    }
+
+    pub fn handle_game_event(&mut self, p: &ClientboundGameEvent) {
+        use azalea_protocol::packets::game::c_game_event::EventType;
+
+        debug!("Got game event packet {p:?}");
+
+        #[allow(clippy::single_match)]
+        match p.event {
+            EventType::ChangeGameMode => {
+                as_system::<Query<&mut LocalGameMode>>(self.ecs, |mut query| {
+                    let mut local_game_mode = query.get_mut(self.player).unwrap();
+                    if let Some(new_game_mode) = GameMode::from_id(p.param as u8) {
+                        local_game_mode.current = new_game_mode;
+                    }
+                });
+            }
+            _ => {}
+        }
+    }
+
+    pub fn handle_level_particles(&mut self, p: &ClientboundLevelParticles) {
+        debug!("Got level particles packet {p:?}");
+    }
+
+    pub fn handle_server_data(&mut self, p: &ClientboundServerData) {
+        debug!("Got server data packet {p:?}");
+    }
+
+    pub fn handle_set_equipment(&mut self, p: &ClientboundSetEquipment) {
+        debug!("Got set equipment packet {p:?}");
+    }
+
+    pub fn handle_update_mob_effect(&mut self, p: &ClientboundUpdateMobEffect) {
+        debug!("Got update mob effect packet {p:?}");
+    }
+
+    pub fn handle_block_event(&mut self, p: &ClientboundBlockEvent) {
+        debug!("Got block event packet {p:?}");
+    }
+
+    pub fn handle_container_set_content(&mut self, p: &ClientboundContainerSetContent) {
+        debug!("Got container set content packet {p:?}");
+
+        as_system::<(Query<&mut Inventory>, EventWriter<_>)>(
+            self.ecs,
+            |(mut query, mut events)| {
+                let mut inventory = query.get_mut(self.player).unwrap();
+
+                // container id 0 is always the player's inventory
+                if p.container_id == 0 {
+                    // this is just so it has the same type as the `else` block
+                    for (i, slot) in p.items.iter().enumerate() {
+                        if let Some(slot_mut) = inventory.inventory_menu.slot_mut(i) {
+                            *slot_mut = slot.clone();
+                        }
+                    }
+                } else {
+                    events.send(SetContainerContentEvent {
+                        entity: self.player,
+                        slots: p.items.clone(),
+                        container_id: p.container_id,
+                    });
+                }
+            },
+        );
+    }
+
+    pub fn handle_container_set_data(&mut self, p: &ClientboundContainerSetData) {
+        debug!("Got container set data packet {p:?}");
+
+        // TODO: handle ContainerSetData packet
+        // this is used for various things like the furnace progress
+        // bar
+        // see https://wiki.vg/Protocol#Set_Container_Property
+
+        // as_system::<Query<&mut Inventory>>(self.ecs, |mut query| {
+        //     let inventory = query.get_mut(self.player).unwrap();
+        // });
+    }
+
+    pub fn handle_container_set_slot(&mut self, p: &ClientboundContainerSetSlot) {
+        debug!("Got container set slot packet {p:?}");
+
+        as_system::<Query<&mut Inventory>>(self.ecs, |mut query| {
+            let mut inventory = query.get_mut(self.player).unwrap();
+
+            if p.container_id == -1 {
+                // -1 means carried item
+                inventory.carried = p.item_stack.clone();
+            } else if p.container_id == -2 {
+                if let Some(slot) = inventory.inventory_menu.slot_mut(p.slot.into()) {
+                    *slot = p.item_stack.clone();
+                }
+            } else {
+                let is_creative_mode_and_inventory_closed = false;
+                // technically minecraft has slightly different behavior here if you're in
+                // creative mode and have your inventory open
+                if p.container_id == 0 && azalea_inventory::Player::is_hotbar_slot(p.slot.into()) {
+                    // minecraft also sets a "pop time" here which is used for an animation
+                    // but that's not really necessary
+                    if let Some(slot) = inventory.inventory_menu.slot_mut(p.slot.into()) {
+                        *slot = p.item_stack.clone();
+                    }
+                } else if p.container_id == inventory.id
+                    && (p.container_id != 0 || !is_creative_mode_and_inventory_closed)
+                {
+                    // var2.containerMenu.setItem(var4, var1.getStateId(), var3);
+                    if let Some(slot) = inventory.menu_mut().slot_mut(p.slot.into()) {
+                        *slot = p.item_stack.clone();
+                        inventory.state_id = p.state_id;
+                    }
+                }
+            }
+        });
+    }
+
+    pub fn handle_container_close(&mut self, p: &ClientboundContainerClose) {
+        // there's a container_id field in the packet, but minecraft doesn't actually
+        // check it
+
+        debug!("Got container close packet {p:?}");
+
+        as_system::<EventWriter<_>>(self.ecs, |mut events| {
+            events.send(ClientSideCloseContainerEvent {
+                entity: self.player,
+            });
+        });
+    }
+
+    pub fn handle_explode(&mut self, p: &ClientboundExplode) {
+        trace!("Got explode packet {p:?}");
+
+        as_system::<EventWriter<_>>(self.ecs, |mut knockback_events| {
+            if let Some(knockback) = p.knockback {
+                knockback_events.send(KnockbackEvent {
+                    entity: self.player,
+                    knockback: KnockbackType::Set(knockback),
+                });
+            }
+        });
+    }
+
+    pub fn handle_forget_level_chunk(&mut self, p: &ClientboundForgetLevelChunk) {
+        debug!("Got forget level chunk packet {p:?}");
+
+        as_system::<Query<&mut InstanceHolder>>(self.ecs, |mut query| {
+            let local_player = query.get_mut(self.player).unwrap();
+
+            let mut partial_instance = local_player.partial_instance.write();
+
+            partial_instance.chunks.limited_set(&p.pos, None);
+        });
+    }
+
+    pub fn handle_open_screen(&mut self, p: &ClientboundOpenScreen) {
+        debug!("Got open screen packet {p:?}");
+
+        as_system::<EventWriter<_>>(self.ecs, |mut events| {
+            events.send(MenuOpenedEvent {
+                entity: self.player,
+                window_id: p.container_id,
+                menu_type: p.menu_type,
+                title: p.title.to_owned(),
+            });
+        });
+    }
+
+    pub fn handle_ping(&mut self, p: &ClientboundPing) {
+        debug!("Got ping packet {p:?}");
+
+        as_system::<EventWriter<_>>(self.ecs, |mut events| {
+            events.send(SendPacketEvent::new(
+                self.player,
+                ServerboundPong { id: p.id },
+            ));
+        });
+    }
+
+    pub fn handle_player_combat_kill(&mut self, p: &ClientboundPlayerCombatKill) {
+        debug!("Got player kill packet {p:?}");
+
+        as_system::<(
+            Commands,
+            Query<(&MinecraftEntityId, Option<&Dead>)>,
+            EventWriter<_>,
+        )>(self.ecs, |(mut commands, mut query, mut events)| {
+            let (entity_id, dead) = query.get_mut(self.player).unwrap();
+
+            if **entity_id == p.player_id && dead.is_none() {
+                commands.entity(self.player).insert(Dead);
+                events.send(DeathEvent {
+                    entity: self.player,
+                    packet: Some(p.clone()),
+                });
+            }
+        });
+    }
+
+    pub fn handle_resource_pack_push(&mut self, p: &ClientboundResourcePackPush) {
+        debug!("Got resource pack packet {p:?}");
+
+        as_system::<EventWriter<_>>(self.ecs, |mut events| {
+            events.send(ResourcePackEvent {
+                entity: self.player,
+                id: p.id,
+                url: p.url.to_owned(),
+                hash: p.hash.to_owned(),
+                required: p.required,
+                prompt: p.prompt.to_owned(),
+            });
+        });
+    }
+
+    pub fn handle_respawn(&mut self, p: &ClientboundRespawn) {
+        debug!("Got respawn packet {p:?}");
+
+        as_system::<(
+            Commands,
+            Query<(
+                &mut InstanceHolder,
+                &GameProfileComponent,
+                &ClientInformation,
+            )>,
+            EventWriter<_>,
+            ResMut<InstanceContainer>,
+        )>(
+            self.ecs,
+            |(mut commands, mut query, mut events, mut instance_container)| {
+                let (mut instance_holder, game_profile, client_information) =
+                    query.get_mut(self.player).unwrap();
+
+                {
+                    let new_instance_name = p.common.dimension.clone();
+
+                    let Some(dimension_type_element) =
+                        instance_holder.instance.read().registries.dimension_type()
+                    else {
+                        error!("Server didn't send dimension type registry, can't log in.");
+                        return;
+                    };
+
+                    let dimension_name = ResourceLocation::new(&p.common.dimension.to_string());
+
+                    let Some(dimension) = dimension_type_element.map.get(&dimension_name) else {
+                        error!("No dimension_type with name {dimension_name}");
+                        return;
+                    };
+
+                    // add this world to the instance_container (or don't if it's already
+                    // there)
+                    let weak_instance = instance_container.insert(
+                        new_instance_name.clone(),
+                        dimension.height,
+                        dimension.min_y,
+                    );
+                    events.send(InstanceLoadedEvent {
+                        entity: self.player,
+                        name: new_instance_name.clone(),
+                        instance: Arc::downgrade(&weak_instance),
+                    });
+
+                    // set the partial_world to an empty world
+                    // (when we add chunks or entities those will be in the
+                    // instance_container)
+
+                    *instance_holder.partial_instance.write() = PartialInstance::new(
+                        azalea_world::chunk_storage::calculate_chunk_storage_range(
+                            client_information.view_distance.into(),
+                        ),
+                        Some(self.player),
+                    );
+                    instance_holder.instance = weak_instance;
+
+                    // this resets a bunch of our components like physics and stuff
+                    let entity_bundle = EntityBundle::new(
+                        game_profile.uuid,
+                        Vec3::default(),
+                        azalea_registry::EntityKind::Player,
+                        new_instance_name,
+                    );
+                    // update the local gamemode and metadata things
+                    commands.entity(self.player).insert((
+                        LocalGameMode {
+                            current: p.common.game_type,
+                            previous: p.common.previous_game_type.into(),
+                        },
+                        entity_bundle,
+                    ));
+                }
+
+                // Remove the Dead marker component from the player.
+                commands.entity(self.player).remove::<Dead>();
+            },
+        )
+    }
+
+    pub fn handle_start_configuration(&mut self, _p: &ClientboundStartConfiguration) {
+        as_system::<(Commands, EventWriter<_>)>(self.ecs, |(mut commands, mut events)| {
+            events.send(SendPacketEvent::new(
+                self.player,
+                ServerboundConfigurationAcknowledged {},
+            ));
+
+            commands
+                .entity(self.player)
+                .insert(crate::client::InConfigState)
+                .remove::<crate::JoinedClientBundle>();
+        });
+    }
+
+    pub fn handle_entity_position_sync(&mut self, p: &ClientboundEntityPositionSync) {
+        as_system::<(Commands, Query<(&EntityIdIndex, &InstanceHolder)>)>(
+            self.ecs,
+            |(mut commands, mut query)| {
+                let (entity_id_index, instance_holder) = query.get_mut(self.player).unwrap();
+
+                let Some(entity) = entity_id_index.get(MinecraftEntityId(p.id)) else {
+                    debug!("Got teleport entity packet for unknown entity id {}", p.id);
+                    return;
+                };
+
+                let new_position = p.values.pos;
+                let new_on_ground = p.on_ground;
+                let new_look_direction = p.values.look_direction;
+
+                commands.entity(entity).queue(RelativeEntityUpdate {
+                    partial_world: instance_holder.partial_instance.clone(),
+                    update: Box::new(move |entity_mut| {
+                        let is_local_entity = entity_mut.get::<LocalEntity>().is_some();
+                        let mut physics = entity_mut.get_mut::<Physics>().unwrap();
+
+                        physics.vec_delta_codec.set_base(new_position);
+
+                        if is_local_entity {
+                            debug!("Ignoring entity position sync packet for local player");
+                            return;
+                        }
+
+                        physics.set_on_ground(new_on_ground);
+
+                        let mut last_sent_position =
+                            entity_mut.get_mut::<LastSentPosition>().unwrap();
+                        **last_sent_position = new_position;
+                        let mut position = entity_mut.get_mut::<Position>().unwrap();
+                        **position = new_position;
+
+                        let mut look_direction = entity_mut.get_mut::<LookDirection>().unwrap();
+                        *look_direction = new_look_direction;
+                    }),
+                });
+            },
+        );
+    }
+}
+
+pub struct GamePacketHandler<'a> {
+    pub ecs: &'a mut World,
+    pub player: Entity,
+}
+
+pub fn as_system<T>(ecs: &mut World, f: impl FnOnce(T::Item<'_, '_>))
+where
+    T: SystemParam + 'static,
+{
+    let mut system_state = SystemState::<T>::new(ecs);
+    let values = system_state.get_mut(ecs);
+    f(values);
+    system_state.apply(ecs);
 }
 
 /// An event for sending a packet to the server while we're in the `game` state.
