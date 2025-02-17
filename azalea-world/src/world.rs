@@ -14,6 +14,8 @@ use azalea_core::registry_holder::RegistryHolder;
 use bevy_ecs::{component::Component, entity::Entity};
 use derive_more::{Deref, DerefMut};
 use nohash_hasher::IntMap;
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 
 use crate::{ChunkStorage, PartialChunkStorage};
 
@@ -57,7 +59,8 @@ impl PartialInstance {
 /// `#[var]` attribute.
 ///
 /// [`Entity`]: bevy_ecs::entity::Entity
-#[derive(Component, Copy, Clone, Debug, PartialEq, Eq, Deref, DerefMut)]
+#[derive(Component, Copy, Clone, Debug, Default, PartialEq, Eq, Deref, DerefMut)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 pub struct MinecraftEntityId(pub i32);
 
 impl Hash for MinecraftEntityId {

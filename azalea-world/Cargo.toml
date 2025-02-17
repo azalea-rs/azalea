@@ -13,18 +13,20 @@ criterion = "0.5.1"
 [dependencies]
 azalea-block = { path = "../azalea-block", default-features = false, version = "0.11.0" }
 azalea-buf = { path = "../azalea-buf", version = "0.11.0" }
-azalea-core = { path = "../azalea-core", version = "0.11.0", features = [
-    "bevy_ecs",
-] }
+azalea-core = { path = "../azalea-core", version = "0.11.0", features = ["bevy_ecs"] }
 azalea-registry = { path = "../azalea-registry", version = "0.11.0" }
 bevy_ecs.workspace = true
 derive_more = { workspace = true, features = ["deref", "deref_mut"] }
 nohash-hasher.workspace = true
 parking_lot.workspace = true
 rustc-hash.workspace = true
+serde = { workspace = true, optional = true }
 simdnbt.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
+
+[features]
+serde = ["dep:serde"]
 
 [[bench]]
 name = "chunks"
