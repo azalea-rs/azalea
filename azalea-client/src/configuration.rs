@@ -10,28 +10,27 @@ use azalea_protocol::{
 use bevy_app::prelude::*;
 use bevy_ecs::prelude::*;
 
-use crate::{client::InConfigState, packet::configuration::SendConfigurationEvent};
+use crate::{client::InConfigState, packet::config::SendConfigPacketEvent};
 
 pub struct ConfigurationPlugin;
 impl Plugin for ConfigurationPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            handle_in_configuration_state
-                .before(crate::packet::configuration::handle_send_packet_event),
+            handle_in_configuration_state.before(crate::packet::config::handle_send_packet_event),
         );
     }
 }
 
 fn handle_in_configuration_state(
     query: Query<(Entity, &ClientInformation), Added<InConfigState>>,
-    mut send_packet_events: EventWriter<SendConfigurationEvent>,
+    mut send_packet_events: EventWriter<SendConfigPacketEvent>,
 ) {
     for (entity, client_information) in query.iter() {
         let mut brand_data = Vec::new();
         // they don't have to know :)
         "vanilla".azalea_write(&mut brand_data).unwrap();
-        send_packet_events.send(SendConfigurationEvent::new(
+        send_packet_events.send(SendConfigPacketEvent::new(
             entity,
             ServerboundCustomPayload {
                 identifier: ResourceLocation::new("brand"),
@@ -39,7 +38,7 @@ fn handle_in_configuration_state(
             },
         ));
 
-        send_packet_events.send(SendConfigurationEvent::new(
+        send_packet_events.send(SendConfigPacketEvent::new(
             entity,
             ServerboundClientInformation {
                 information: client_information.clone(),

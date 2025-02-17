@@ -1,6 +1,6 @@
 mod events;
 
-use std::{collections::HashSet, io::Cursor, ops::Add, sync::Arc};
+use std::{collections::HashSet, ops::Add, sync::Arc};
 
 use azalea_core::{
     game_type::GameMode,
@@ -14,12 +14,9 @@ use azalea_entity::{
     Dead, EntityBundle, EntityKind, LastSentPosition, LoadedBy, LocalEntity, LookDirection,
     Physics, Position, RelativeEntityUpdate,
 };
-use azalea_protocol::{packets::game::*, read::deserialize_packet};
+use azalea_protocol::packets::game::*;
 use azalea_world::{InstanceContainer, InstanceName, MinecraftEntityId, PartialInstance};
-use bevy_ecs::{
-    prelude::*,
-    system::{SystemParam, SystemState},
-};
+use bevy_ecs::{prelude::*, system::SystemState};
 pub use events::*;
 use tracing::{debug, error, trace, warn};
 
@@ -34,7 +31,7 @@ use crate::{
         GameProfileComponent, Hunger, InstanceHolder, LocalGameMode, PlayerAbilities, TabList,
     },
     movement::{KnockbackEvent, KnockbackType},
-    raw_connection::RawConnection,
+    packet::as_system,
     ClientInformation, PlayerInfo,
 };
 
@@ -62,7 +59,7 @@ pub fn process_packet_events(ecs: &mut World) {
 
         declare_packet_handlers!(
             ClientboundGamePacket,
-            packet,
+            packet.as_ref(),
             handler,
             [
                 login,
@@ -201,6 +198,10 @@ pub fn process_packet_events(ecs: &mut World) {
     }
 }
 
+pub struct GamePacketHandler<'a> {
+    pub ecs: &'a mut World,
+    pub player: Entity,
+}
 impl GamePacketHandler<'_> {
     pub fn login(&mut self, p: &ClientboundLogin) {
         debug!("Got login packet");
@@ -811,9 +812,9 @@ impl GamePacketHandler<'_> {
                 // multiple times when in swarms
 
                 let knockback = KnockbackType::Set(Vec3 {
-                    x: p.xa as f64 / 8000.,
-                    y: p.ya as f64 / 8000.,
-                    z: p.za as f64 / 8000.,
+                    x: p.delta.xa as f64 / 8000.,
+                    y: p.delta.ya as f64 / 8000.,
+                    z: p.delta.za as f64 / 8000.,
                 });
 
                 commands.entity(entity).queue(RelativeEntityUpdate {
@@ -1597,67 +1598,4 @@ impl GamePacketHandler<'_> {
     pub fn recipe_book_add(&mut self, _p: &ClientboundRecipeBookAdd) {}
     pub fn recipe_book_remove(&mut self, _p: &ClientboundRecipeBookRemove) {}
     pub fn recipe_book_settings(&mut self, _p: &ClientboundRecipeBookSettings) {}
-}
-
-pub struct GamePacketHandler<'a> {
-    pub ecs: &'a mut World,
-    pub player: Entity,
-}
-
-pub fn as_system<T>(ecs: &mut World, f: impl FnOnce(T::Item<'_, '_>))
-where
-    T: SystemParam + 'static,
-{
-    let mut system_state = SystemState::<T>::new(ecs);
-    let values = system_state.get_mut(ecs);
-    f(values);
-    system_state.apply(ecs);
-}
-
-pub fn handle_sendpacketevent(
-    mut send_packet_events: EventReader<SendPacketEvent>,
-    mut query: Query<&mut RawConnection>,
-) {
-    for event in send_packet_events.read() {
-        if let Ok(raw_connection) = query.get_mut(event.sent_by) {
-            // debug!("Sending packet: {:?}", event.packet);
-            if let Err(e) = raw_connection.write_packet(event.packet.clone()) {
-                error!("Failed to send packet: {e}");
-            }
-        }
-    }
-}
-
-pub fn send_receivepacketevent(
-    query: Query<(Entity, &RawConnection), With<LocalEntity>>,
-    mut packet_events: ResMut<Events<ReceivePacketEvent>>,
-) {
-    // we manually clear and send the events at the beginning of each update
-    // since otherwise it'd cause issues with events in process_packet_events
-    // running twice
-    packet_events.clear();
-    for (player_entity, raw_connection) in &query {
-        let packets_lock = raw_connection.incoming_packet_queue();
-        let mut packets = packets_lock.lock();
-        if !packets.is_empty() {
-            for raw_packet in packets.iter() {
-                let packet =
-                    match deserialize_packet::<ClientboundGamePacket>(&mut Cursor::new(raw_packet))
-                    {
-                        Ok(packet) => packet,
-                        Err(err) => {
-                            error!("failed to read packet: {err:?}");
-                            debug!("packet bytes: {raw_packet:?}");
-                            continue;
-                        }
-                    };
-                packet_events.send(ReceivePacketEvent {
-                    entity: player_entity,
-                    packet: Arc::new(packet),
-                });
-            }
-            // clear the packets right after we read them
-            packets.clear();
-        }
-    }
 }

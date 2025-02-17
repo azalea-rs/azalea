@@ -1,17 +1,25 @@
-use std::sync::{Arc, Weak};
+use std::{
+    io::Cursor,
+    sync::{Arc, Weak},
+};
 
 use azalea_chat::FormattedText;
 use azalea_core::resource_location::ResourceLocation;
-use azalea_protocol::packets::{
-    game::{ClientboundGamePacket, ClientboundPlayerCombatKill, ServerboundGamePacket},
-    Packet,
+use azalea_entity::LocalEntity;
+use azalea_protocol::{
+    packets::{
+        game::{ClientboundGamePacket, ClientboundPlayerCombatKill, ServerboundGamePacket},
+        Packet,
+    },
+    read::deserialize_packet,
 };
 use azalea_world::Instance;
-use bevy_ecs::{entity::Entity, event::Event};
+use bevy_ecs::prelude::*;
 use parking_lot::RwLock;
+use tracing::{debug, error};
 use uuid::Uuid;
 
-use crate::PlayerInfo;
+use crate::{raw_connection::RawConnection, PlayerInfo};
 
 /// An event that's sent when we receive a packet.
 /// ```
@@ -51,6 +59,54 @@ impl SendPacketEvent {
     pub fn new(sent_by: Entity, packet: impl Packet<ServerboundGamePacket>) -> Self {
         let packet = packet.into_variant();
         Self { sent_by, packet }
+    }
+}
+
+pub fn handle_sendpacketevent(
+    mut send_packet_events: EventReader<SendPacketEvent>,
+    mut query: Query<&mut RawConnection>,
+) {
+    for event in send_packet_events.read() {
+        if let Ok(raw_connection) = query.get_mut(event.sent_by) {
+            // debug!("Sending packet: {:?}", event.packet);
+            if let Err(e) = raw_connection.write_packet(event.packet.clone()) {
+                error!("Failed to send packet: {e}");
+            }
+        }
+    }
+}
+
+pub fn send_receivepacketevent(
+    query: Query<(Entity, &RawConnection), With<LocalEntity>>,
+    mut packet_events: ResMut<Events<ReceivePacketEvent>>,
+) {
+    // we manually clear and send the events at the beginning of each update
+    // since otherwise it'd cause issues with events in process_packet_events
+    // running twice
+    packet_events.clear();
+    for (player_entity, raw_connection) in &query {
+        let packets_lock = raw_connection.incoming_packet_queue();
+        let mut packets = packets_lock.lock();
+        if !packets.is_empty() {
+            for raw_packet in packets.iter() {
+                let packet =
+                    match deserialize_packet::<ClientboundGamePacket>(&mut Cursor::new(raw_packet))
+                    {
+                        Ok(packet) => packet,
+                        Err(err) => {
+                            error!("failed to read packet: {err:?}");
+                            debug!("packet bytes: {raw_packet:?}");
+                            continue;
+                        }
+                    };
+                packet_events.send(ReceivePacketEvent {
+                    entity: player_entity,
+                    packet: Arc::new(packet),
+                });
+            }
+            // clear the packets right after we read them
+            packets.clear();
+        }
     }
 }
 

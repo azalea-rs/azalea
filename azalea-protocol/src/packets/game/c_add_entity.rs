@@ -1,5 +1,5 @@
 use azalea_buf::AzBuf;
-use azalea_core::{position::Vec3, resource_location::ResourceLocation};
+use azalea_core::{delta::PositionDelta8, position::Vec3, resource_location::ResourceLocation};
 use azalea_entity::{metadata::apply_default_metadata, EntityBundle};
 use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_world::MinecraftEntityId;
@@ -18,9 +18,7 @@ pub struct ClientboundAddEntity {
     pub y_head_rot: i8,
     #[var]
     pub data: u32,
-    pub x_vel: i16,
-    pub y_vel: i16,
-    pub z_vel: i16,
+    pub velocity: PositionDelta8,
 }
 
 impl ClientboundAddEntity {
