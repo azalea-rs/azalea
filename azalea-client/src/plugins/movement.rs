@@ -47,9 +47,9 @@ impl From<MoveEntityError> for MovePlayerError {
     }
 }
 
-pub struct PlayerMovePlugin;
+pub struct MovementPlugin;
 
-impl Plugin for PlayerMovePlugin {
+impl Plugin for MovementPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<StartWalkEvent>()
             .add_event::<StartSprintEvent>()

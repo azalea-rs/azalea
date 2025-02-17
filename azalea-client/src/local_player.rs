@@ -2,7 +2,6 @@ use std::{collections::HashMap, io, sync::Arc};
 
 use azalea_auth::game_profile::GameProfile;
 use azalea_core::game_type::GameMode;
-use azalea_entity::Dead;
 use azalea_protocol::packets::game::c_player_abilities::ClientboundPlayerAbilities;
 use azalea_world::{Instance, PartialInstance};
 use bevy_ecs::{component::Component, prelude::*};
@@ -13,10 +12,8 @@ use tokio::sync::mpsc;
 use tracing::error;
 use uuid::Uuid;
 
-use crate::{
-    events::{Event as AzaleaEvent, LocalPlayerEvents},
-    ClientInformation, PlayerInfo,
-};
+use crate::Event as AzaleaEvent;
+use crate::{ClientInformation, PlayerInfo};
 
 /// A component that keeps strong references to our [`PartialInstance`] and
 /// [`Instance`] for local players.
@@ -140,13 +137,6 @@ impl InstanceHolder {
                 Some(entity),
             ))),
         }
-    }
-}
-
-/// Send the "Death" event for [`LocalEntity`]s that died with no reason.
-pub fn death_event(query: Query<&LocalPlayerEvents, Added<Dead>>) {
-    for local_player_events in &query {
-        local_player_events.send(AzaleaEvent::Death(None)).unwrap();
     }
 }
 

@@ -12,8 +12,8 @@ use bevy_ecs::prelude::*;
 
 use crate::{client::InConfigState, packet::config::SendConfigPacketEvent};
 
-pub struct ConfigurationPlugin;
-impl Plugin for ConfigurationPlugin {
+pub struct BrandPlugin;
+impl Plugin for BrandPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
@@ -22,13 +22,14 @@ impl Plugin for ConfigurationPlugin {
     }
 }
 
-fn handle_in_configuration_state(
+pub fn handle_in_configuration_state(
     query: Query<(Entity, &ClientInformation), Added<InConfigState>>,
     mut send_packet_events: EventWriter<SendConfigPacketEvent>,
 ) {
     for (entity, client_information) in query.iter() {
         let mut brand_data = Vec::new();
-        // they don't have to know :)
+        // azalea pretends to be vanilla everywhere else so it makes sense to lie here
+        // too
         "vanilla".azalea_write(&mut brand_data).unwrap();
         send_packet_events.send(SendConfigPacketEvent::new(
             entity,

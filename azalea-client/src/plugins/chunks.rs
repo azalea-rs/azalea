@@ -26,8 +26,8 @@ use crate::{
     InstanceHolder,
 };
 
-pub struct ChunkPlugin;
-impl Plugin for ChunkPlugin {
+pub struct ChunksPlugin;
+impl Plugin for ChunksPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,

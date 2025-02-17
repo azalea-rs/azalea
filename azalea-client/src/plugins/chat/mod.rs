@@ -1,20 +1,13 @@
 //! Implementations of chat-related features.
 
-use std::{
-    sync::Arc,
-    time::{SystemTime, UNIX_EPOCH},
-};
+pub mod handler;
+
+use std::sync::Arc;
 
 use azalea_chat::FormattedText;
-use azalea_protocol::packets::{
-    game::{
-        c_disguised_chat::ClientboundDisguisedChat,
-        c_player_chat::ClientboundPlayerChat,
-        c_system_chat::ClientboundSystemChat,
-        s_chat::{LastSeenMessagesUpdate, ServerboundChat},
-        s_chat_command::ServerboundChatCommand,
-    },
-    Packet,
+use azalea_protocol::packets::game::{
+    c_disguised_chat::ClientboundDisguisedChat, c_player_chat::ClientboundPlayerChat,
+    c_system_chat::ClientboundSystemChat,
 };
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::{
@@ -23,12 +16,27 @@ use bevy_ecs::{
     prelude::Event,
     schedule::IntoSystemConfigs,
 };
+use handler::{handle_send_chat_kind_event, SendChatKindEvent};
 use uuid::Uuid;
 
-use crate::{
-    client::Client,
-    packet::game::{handle_sendpacketevent, SendPacketEvent},
-};
+use crate::{client::Client, packet::game::handle_sendpacketevent};
+
+pub struct ChatPlugin;
+impl Plugin for ChatPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_event::<SendChatEvent>()
+            .add_event::<SendChatKindEvent>()
+            .add_event::<ChatReceivedEvent>()
+            .add_systems(
+                Update,
+                (
+                    handle_send_chat_event,
+                    handle_send_chat_kind_event.after(handle_sendpacketevent),
+                )
+                    .chain(),
+            );
+    }
+}
 
 /// A chat packet, either a system message or a chat message.
 #[derive(Debug, Clone, PartialEq)]
@@ -180,23 +188,6 @@ impl Client {
     }
 }
 
-pub struct ChatPlugin;
-impl Plugin for ChatPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_event::<SendChatEvent>()
-            .add_event::<SendChatKindEvent>()
-            .add_event::<ChatReceivedEvent>()
-            .add_systems(
-                Update,
-                (
-                    handle_send_chat_event,
-                    handle_send_chat_kind_event.after(handle_sendpacketevent),
-                )
-                    .chain(),
-            );
-    }
-}
-
 /// A client received a chat message packet.
 #[derive(Event, Debug, Clone)]
 pub struct ChatReceivedEvent {
@@ -232,61 +223,10 @@ pub fn handle_send_chat_event(
     }
 }
 
-/// Send a chat packet to the server of a specific kind (chat message or
-/// command). Usually you just want [`SendChatEvent`] instead.
-///
-/// Usually setting the kind to `Message` will make it send a chat message even
-/// if it starts with a slash, but some server implementations will always do a
-/// command if it starts with a slash.
-///
-/// If you're wondering why this isn't two separate events, it's so ordering is
-/// preserved if multiple chat messages and commands are sent at the same time.
-#[derive(Event)]
-pub struct SendChatKindEvent {
-    pub entity: Entity,
-    pub content: String,
-    pub kind: ChatKind,
-}
-
 /// A kind of chat packet, either a chat message or a command.
 pub enum ChatKind {
     Message,
     Command,
-}
-
-pub fn handle_send_chat_kind_event(
-    mut events: EventReader<SendChatKindEvent>,
-    mut send_packet_events: EventWriter<SendPacketEvent>,
-) {
-    for event in events.read() {
-        let content = event
-            .content
-            .chars()
-            .filter(|c| !matches!(c, '\x00'..='\x1F' | '\x7F' | '§'))
-            .take(256)
-            .collect::<String>();
-        let packet = match event.kind {
-            ChatKind::Message => ServerboundChat {
-                message: content,
-                timestamp: SystemTime::now()
-                    .duration_since(UNIX_EPOCH)
-                    .expect("Time shouldn't be before epoch")
-                    .as_millis()
-                    .try_into()
-                    .expect("Instant should fit into a u64"),
-                salt: azalea_crypto::make_salt(),
-                signature: None,
-                last_seen_messages: LastSeenMessagesUpdate::default(),
-            }
-            .into_variant(),
-            ChatKind::Command => {
-                // TODO: chat signing
-                ServerboundChatCommand { command: content }.into_variant()
-            }
-        };
-
-        send_packet_events.send(SendPacketEvent::new(event.entity, packet));
-    }
 }
 
 // TODO

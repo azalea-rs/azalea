@@ -18,7 +18,7 @@ pub mod config;
 pub mod game;
 pub mod login;
 
-pub struct PacketHandlerPlugin;
+pub struct PacketPlugin;
 
 pub fn death_event_on_0_health(
     query: Query<(Entity, &Health), Changed<Health>>,
@@ -34,7 +34,7 @@ pub fn death_event_on_0_health(
     }
 }
 
-impl Plugin for PacketHandlerPlugin {
+impl Plugin for PacketPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             First,
