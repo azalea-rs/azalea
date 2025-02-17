@@ -100,6 +100,13 @@ pub struct PermissionLevel(pub u8);
 ///     println!("- {} ({}ms)", player_info.profile.name, player_info.latency);
 /// }
 /// # }
+/// ```
+///
+/// For convenience, `TabList` is also a resource in the ECS.
+/// It's set to be the same as the tab list for the last client whose tab list
+/// was updated.
+/// This means you should avoid using `TabList` as a resource unless you know
+/// all of your clients will have the same tab list.
 #[derive(Component, Resource, Clone, Debug, Deref, DerefMut, Default)]
 pub struct TabList(HashMap<Uuid, PlayerInfo>);
 
