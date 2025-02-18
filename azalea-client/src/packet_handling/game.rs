@@ -253,7 +253,8 @@ pub fn process_packet_events(ecs: &mut World) {
                         continue;
                     };
 
-                    let dimension_name = ResourceLocation::new(&p.common.dimension.to_string());
+                    let dimension_name =
+                        ResourceLocation::new(&p.common.dimension_type.to_string());
 
                     let Some(dimension) = dimension_type_element.map.get(&dimension_name) else {
                         error!("No dimension_type with name {dimension_name}");
@@ -1394,7 +1395,8 @@ pub fn process_packet_events(ecs: &mut World) {
                         continue;
                     };
 
-                    let dimension_name = ResourceLocation::new(&p.common.dimension.to_string());
+                    let dimension_name =
+                        ResourceLocation::new(&p.common.dimension_type.to_string());
 
                     let Some(dimension) = dimension_type_element.map.get(&dimension_name) else {
                         error!("No dimension_type with name {dimension_name}");
