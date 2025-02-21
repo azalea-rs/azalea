@@ -56,6 +56,7 @@ impl Simulation {
 
         tick_app(&mut app);
 
+        #[allow(clippy::single_match)]
         match initial_connection_protocol {
             ConnectionProtocol::Configuration => {
                 app.world_mut().entity_mut(entity).insert(InConfigState);
@@ -75,7 +76,7 @@ impl Simulation {
 
     pub fn receive_packet<P: ProtocolPacket + Debug>(&mut self, packet: impl Packet<P>) {
         let buf = azalea_protocol::write::serialize_packet(&packet.into_variant()).unwrap();
-        self.incoming_packet_queue.lock().push(buf.into());
+        self.incoming_packet_queue.lock().push(buf);
     }
 
     pub fn tick(&mut self) {
@@ -100,6 +101,7 @@ impl Simulation {
     }
 }
 
+#[allow(clippy::type_complexity)]
 fn create_local_player_bundle(
     entity: Entity,
     connection_protocol: ConnectionProtocol,

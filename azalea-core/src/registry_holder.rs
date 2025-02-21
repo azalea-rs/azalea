@@ -19,6 +19,11 @@ use crate::resource_location::ResourceLocation;
 /// The base of the registry.
 ///
 /// This is the registry that is sent to the client upon login.
+///
+/// Note that `azalea-client` stores registries per-world instead of per-client
+/// like you might expect. This is an optimization for swarms to reduce memory
+/// usage, since registries are expected to be the same for every client in a
+/// world.
 #[derive(Default, Debug, Clone)]
 pub struct RegistryHolder {
     pub map: HashMap<ResourceLocation, IndexMap<ResourceLocation, NbtCompound>>,

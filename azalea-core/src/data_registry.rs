@@ -24,9 +24,9 @@ pub trait ResolvableDataRegistry: DataRegistry {
         Some(resolved)
     }
 
-    fn resolve_and_deserialize<'a, T: simdnbt::Deserialize>(
+    fn resolve_and_deserialize<T: simdnbt::Deserialize>(
         &self,
-        registries: &'a RegistryHolder,
+        registries: &RegistryHolder,
     ) -> Option<Result<(ResourceLocation, T), simdnbt::DeserializeError>> {
         let (name, value) = self.resolve(registries)?;
 
