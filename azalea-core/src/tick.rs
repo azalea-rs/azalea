@@ -4,5 +4,7 @@ use bevy_ecs::schedule::ScheduleLabel;
 ///
 /// Many client systems run on this schedule, the most important one being
 /// physics.
+///
+/// This schedule runs either zero or one times after every Bevy `Update`.
 #[derive(ScheduleLabel, Hash, Copy, Clone, Debug, Default, Eq, PartialEq)]
 pub struct GameTick;

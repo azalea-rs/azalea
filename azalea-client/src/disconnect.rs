@@ -1,7 +1,7 @@
 //! Disconnect a client from the server.
 
 use azalea_chat::FormattedText;
-use azalea_entity::LocalEntity;
+use azalea_entity::{EntityBundle, LocalEntity};
 use bevy_app::{App, Plugin, PostUpdate};
 use bevy_ecs::{
     component::Component,
@@ -50,6 +50,7 @@ pub fn remove_components_from_disconnected_players(
         commands
             .entity(*entity)
             .remove::<JoinedClientBundle>()
+            .remove::<EntityBundle>()
             // this makes it close the tcp connection
             .remove::<RawConnection>()
             // swarm detects when this tx gets dropped to fire SwarmEvent::Disconnect

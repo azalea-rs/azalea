@@ -869,6 +869,7 @@ async fn run_schedule_loop(
         let mut ecs = ecs.lock();
 
         // if last tick is None or more than 50ms ago, run the GameTick schedule
+        ecs.run_schedule(outer_schedule_label);
         if last_tick
             .map(|last_tick| last_tick.elapsed() > Duration::from_millis(50))
             .unwrap_or(true)
@@ -880,8 +881,6 @@ async fn run_schedule_loop(
             }
             ecs.run_schedule(GameTick);
         }
-
-        ecs.run_schedule(outer_schedule_label);
 
         ecs.clear_trackers();
     }
