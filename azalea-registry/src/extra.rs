@@ -30,9 +30,9 @@ impl Default for WolfVariant {
 registry! {
 enum DimensionType {
     Overworld => "minecraft:overworld",
-    Nether => "minecraft:the_nether",
-    End => "minecraft:the_end",
     OverworldCaves => "minecraft:overworld_caves",
+    End => "minecraft:the_end",
+    Nether => "minecraft:the_nether",
 }
 }
 
