@@ -22,3 +22,20 @@ impl DataRegistry for Enchantment {
         self.id
     }
 }
+
+#[derive(Debug, Clone, Copy, AzBuf, PartialEq, Eq, Hash)]
+pub struct DimensionType {
+    #[var]
+    id: u32,
+}
+impl DimensionType {
+    pub fn new_raw(id: u32) -> Self {
+        Self { id }
+    }
+}
+impl DataRegistry for DimensionType {
+    const NAME: &'static str = "dimension_type";
+    fn protocol_id(&self) -> u32 {
+        self.id
+    }
+}

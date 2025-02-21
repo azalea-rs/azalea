@@ -28,15 +28,6 @@ impl Default for WolfVariant {
 }
 
 registry! {
-enum DimensionType {
-    Overworld => "minecraft:overworld",
-    Nether => "minecraft:the_nether",
-    End => "minecraft:the_end",
-    OverworldCaves => "minecraft:overworld_caves",
-}
-}
-
-registry! {
 enum TrimMaterial {
     Quartz => "minecraft:quartz",
     Iron => "minecraft:iron",

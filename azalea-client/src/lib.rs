@@ -29,6 +29,9 @@ pub mod respawn;
 pub mod send_client_end;
 pub mod task_pool;
 
+#[doc(hidden)]
+pub mod test_simulation;
+
 pub use account::{Account, AccountOpts};
 pub use azalea_protocol::common::client_information::ClientInformation;
 pub use client::{
