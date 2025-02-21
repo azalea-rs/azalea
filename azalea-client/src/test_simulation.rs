@@ -18,9 +18,7 @@ use azalea_registry::DimensionType;
 use azalea_world::palette::{PalettedContainer, PalettedContainerKind};
 use azalea_world::{Chunk, Instance, MinecraftEntityId, Section};
 use bevy_app::App;
-use bevy_app::PluginGroup;
 use bevy_ecs::{prelude::*, schedule::ExecutorKind};
-use bevy_log::LogPlugin;
 use parking_lot::{Mutex, RwLock};
 use simdnbt::owned::Nbt;
 use tokio::{sync::mpsc, time::sleep};
@@ -170,7 +168,12 @@ fn create_local_player_bundle(
 
 fn create_simulation_app() -> App {
     let mut app = App::new();
-    app.add_plugins(crate::DefaultPlugins.build().disable::<LogPlugin>());
+
+    #[cfg(feature = "log")]
+    app.add_plugins(
+        bevy_app::PluginGroup::build(crate::DefaultPlugins).disable::<bevy_log::LogPlugin>(),
+    );
+
     app.edit_schedule(bevy_app::Main, |schedule| {
         // makes test results more reproducible
         schedule.set_executor_kind(ExecutorKind::SingleThreaded);
