@@ -13,8 +13,8 @@
 //!
 //! - `--owner` or `-O`: The username of the player who owns the bot. The bot
 //!   will ignore commands from other players.
-//! - `--name` or `-N`: The username or email of the bot.
-//! - `--address` or `-A`: The address of the server to join.
+//! - `--account` or `-A`: The username or email of the bot.
+//! - `--server` or `-S`: The address of the server to join.
 //! - `--pathfinder-debug-particles` or `-P`: Whether the bot should run
 //!   /particle a ton of times to show where it's pathfinding to. You should
 //!   only have this on if the bot has operator permissions, otherwise it'll
