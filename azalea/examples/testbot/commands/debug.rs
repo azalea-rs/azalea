@@ -197,6 +197,8 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
                 .unwrap();
             }
 
+            writeln!(report).unwrap();
+
             for (info, _) in ecs.iter_resources() {
                 writeln!(report, "Resource: {}", info.name()).unwrap();
                 writeln!(report, "- Size: {} bytes", info.layout().size()).unwrap();

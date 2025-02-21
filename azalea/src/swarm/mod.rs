@@ -409,6 +409,7 @@ where
         {
             let mut ecs = ecs_lock.lock();
             ecs.insert_resource(swarm.clone());
+            ecs.insert_resource(self.swarm_state.clone());
             ecs.run_schedule(main_schedule_label);
             ecs.clear_trackers();
         }

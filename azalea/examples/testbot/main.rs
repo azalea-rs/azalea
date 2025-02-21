@@ -57,14 +57,18 @@ async fn main() {
             Account::offline(username_or_email)
         };
 
-        let mut commands = CommandDispatcher::new();
-        register_commands(&mut commands);
-
-        builder = builder.add_account_with_state(account, State::new(args.clone(), commands));
+        builder = builder.add_account_with_state(account, State::new());
     }
+
+    let mut commands = CommandDispatcher::new();
+    register_commands(&mut commands);
 
     builder
         .join_delay(Duration::from_millis(100))
+        .set_swarm_state(SwarmState {
+            args,
+            commands: Arc::new(commands),
+        })
         .start(join_address)
         .await
         .unwrap();
@@ -102,17 +106,13 @@ pub enum BotTask {
 
 #[derive(Component, Clone, Default)]
 pub struct State {
-    pub args: Args,
-    pub commands: Arc<CommandDispatcher<Mutex<CommandSource>>>,
     pub killaura: bool,
     pub task: Arc<Mutex<BotTask>>,
 }
 
 impl State {
-    fn new(args: Args, commands: CommandDispatcher<Mutex<CommandSource>>) -> Self {
+    fn new() -> Self {
         Self {
-            args,
-            commands: Arc::new(commands),
             killaura: true,
             task: Arc::new(Mutex::new(BotTask::None)),
         }
@@ -120,9 +120,14 @@ impl State {
 }
 
 #[derive(Resource, Default, Clone)]
-struct SwarmState;
+struct SwarmState {
+    pub args: Args,
+    pub commands: Arc<CommandDispatcher<Mutex<CommandSource>>>,
+}
 
 async fn handle(bot: Client, event: azalea::Event, state: State) -> anyhow::Result<()> {
+    let swarm = bot.resource::<SwarmState>();
+
     match event {
         azalea::Event::Init => {
             bot.set_client_information(ClientInformation {
@@ -130,7 +135,7 @@ async fn handle(bot: Client, event: azalea::Event, state: State) -> anyhow::Resu
                 ..Default::default()
             })
             .await?;
-            if state.args.pathfinder_debug_particles {
+            if swarm.args.pathfinder_debug_particles {
                 bot.ecs
                     .lock()
                     .entity_mut(bot.entity)
@@ -141,7 +146,7 @@ async fn handle(bot: Client, event: azalea::Event, state: State) -> anyhow::Resu
             let (Some(username), content) = chat.split_sender_and_content() else {
                 return Ok(());
             };
-            if username != state.args.owner_username {
+            if username != swarm.args.owner_username {
                 return Ok(());
             }
 
@@ -153,7 +158,7 @@ async fn handle(bot: Client, event: azalea::Event, state: State) -> anyhow::Resu
                 content.strip_prefix('!').map(|s| s.to_owned())
             };
             if let Some(command) = command {
-                match state.commands.execute(
+                match swarm.commands.execute(
                     command,
                     Mutex::new(CommandSource {
                         bot: bot.clone(),

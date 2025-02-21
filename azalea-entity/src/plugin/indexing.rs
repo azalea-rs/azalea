@@ -155,8 +155,8 @@ pub fn remove_despawned_entities_from_indexes(
         Changed<LoadedBy>,
     >,
 ) {
-    for (entity, uuid, minecraft_id, position, world_name, loaded_by) in &query {
-        let Some(instance_lock) = instance_container.get(world_name) else {
+    for (entity, uuid, minecraft_id, position, instance_name, loaded_by) in &query {
+        let Some(instance_lock) = instance_container.get(instance_name) else {
             // the instance isn't even loaded by us, so we can safely delete the entity
             debug!(
                 "Despawned entity {entity:?} because it's in an instance that isn't loaded anymore"

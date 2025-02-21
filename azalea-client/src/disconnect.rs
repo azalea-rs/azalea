@@ -47,6 +47,7 @@ pub struct DisconnectEvent {
 pub fn remove_components_from_disconnected_players(
     mut commands: Commands,
     mut events: EventReader<DisconnectEvent>,
+    mut loaded_by_query: Query<&mut azalea_entity::LoadedBy>,
 ) {
     for DisconnectEvent { entity, .. } in events.read() {
         trace!("Got DisconnectEvent for {entity:?}");
@@ -62,6 +63,13 @@ pub fn remove_components_from_disconnected_players(
             .remove::<LocalPlayerEvents>();
         // note that we don't remove the client from the ECS, so if they decide
         // to reconnect they'll keep their state
+
+        // now we have to remove ourselves from the LoadedBy for every entity.
+        // in theory this could be inefficient if we have massive swarms... but in
+        // practice this is fine.
+        for mut loaded_by in &mut loaded_by_query.iter_mut() {
+            loaded_by.remove(entity);
+        }
     }
 }
 

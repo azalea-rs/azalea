@@ -555,6 +555,11 @@ impl Client {
         self.query::<Option<&T>>(&mut self.ecs.lock()).cloned()
     }
 
+    /// Get a resource from the ECS. This will clone the resource and return it.
+    pub fn resource<T: Resource + Clone>(&self) -> T {
+        self.ecs.lock().resource::<T>().clone()
+    }
+
     /// Get a required component for this client and call the given function.
     ///
     /// Similar to [`Self::component`], but doesn't clone the component since
