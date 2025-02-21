@@ -6,6 +6,7 @@ use super::c_light_update::ClientboundLightUpdatePacketData;
 
 #[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
 pub struct ClientboundLevelChunkWithLight {
+    // this can't be a ChunkPos since that reads z first and then x
     pub x: i32,
     pub z: i32,
     pub chunk_data: ClientboundLevelChunkPacketData,

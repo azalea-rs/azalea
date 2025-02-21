@@ -246,17 +246,10 @@ pub fn process_packet_events(ecs: &mut World) {
                             .insert(InstanceName(new_instance_name.clone()));
                     }
 
-                    let Some(dimension_type_element) =
-                        instance_holder.instance.read().registries.dimension_type()
+                    let Some((_dimension_type, dimension_data)) = p
+                        .common
+                        .dimension_type(&instance_holder.instance.read().registries)
                     else {
-                        error!("Server didn't send dimension type registry, can't log in");
-                        continue;
-                    };
-
-                    let dimension_name = ResourceLocation::new(&p.common.dimension.to_string());
-
-                    let Some(dimension) = dimension_type_element.map.get(&dimension_name) else {
-                        error!("No dimension_type with name {dimension_name}");
                         continue;
                     };
 
@@ -264,8 +257,9 @@ pub fn process_packet_events(ecs: &mut World) {
                     // there)
                     let weak_instance = instance_container.insert(
                         new_instance_name.clone(),
-                        dimension.height,
-                        dimension.min_y,
+                        dimension_data.height,
+                        dimension_data.min_y,
+                        &instance_holder.instance.read().registries,
                     );
                     instance_loaded_events.send(InstanceLoadedEvent {
                         entity: player_entity,
@@ -1387,17 +1381,10 @@ pub fn process_packet_events(ecs: &mut World) {
                 {
                     let new_instance_name = p.common.dimension.clone();
 
-                    let Some(dimension_type_element) =
-                        instance_holder.instance.read().registries.dimension_type()
+                    let Some((_dimension_type, dimension_data)) = p
+                        .common
+                        .dimension_type(&instance_holder.instance.read().registries)
                     else {
-                        error!("Server didn't send dimension type registry, can't log in.");
-                        continue;
-                    };
-
-                    let dimension_name = ResourceLocation::new(&p.common.dimension.to_string());
-
-                    let Some(dimension) = dimension_type_element.map.get(&dimension_name) else {
-                        error!("No dimension_type with name {dimension_name}");
                         continue;
                     };
 
@@ -1405,8 +1392,9 @@ pub fn process_packet_events(ecs: &mut World) {
                     // there)
                     let weak_instance = instance_container.insert(
                         new_instance_name.clone(),
-                        dimension.height,
-                        dimension.min_y,
+                        dimension_data.height,
+                        dimension_data.min_y,
+                        &instance_holder.instance.read().registries,
                     );
                     instance_loaded_events.send(InstanceLoadedEvent {
                         entity: player_entity,
