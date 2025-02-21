@@ -604,7 +604,7 @@ pub fn process_packet_events(ecs: &mut World) {
                 // debug!("Got light update packet {p:?}");
             }
             ClientboundGamePacket::LevelChunkWithLight(p) => {
-                debug!("Got chunk with light packet {:?}", p.pos);
+                debug!("Got chunk with light packet {} {}", p.x, p.z);
 
                 let mut system_state: SystemState<EventWriter<chunks::ReceiveChunkEvent>> =
                     SystemState::new(ecs);

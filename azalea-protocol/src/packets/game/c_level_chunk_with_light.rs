@@ -1,5 +1,4 @@
 use azalea_buf::AzBuf;
-use azalea_core::position::ChunkPos;
 use azalea_protocol_macros::ClientboundGamePacket;
 use simdnbt::owned::Nbt;
 
@@ -7,7 +6,9 @@ use super::c_light_update::ClientboundLightUpdatePacketData;
 
 #[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
 pub struct ClientboundLevelChunkWithLight {
-    pub pos: ChunkPos,
+    // this can't be a ChunkPos since that reads z first and then x
+    pub x: i32,
+    pub z: i32,
     pub chunk_data: ClientboundLevelChunkPacketData,
     pub light_data: ClientboundLightUpdatePacketData,
 }

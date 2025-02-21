@@ -8,6 +8,7 @@ use std::{
     time::{Duration, Instant},
 };
 
+use azalea_core::position::ChunkPos;
 use azalea_protocol::packets::game::{
     c_level_chunk_with_light::ClientboundLevelChunkWithLight,
     s_chunk_batch_received::ServerboundChunkBatchReceived,
@@ -75,7 +76,7 @@ pub fn handle_receive_chunk_events(
     mut query: Query<&mut InstanceHolder>,
 ) {
     for event in events.read() {
-        let pos = event.packet.pos;
+        let pos = ChunkPos::new(event.packet.x, event.packet.z);
 
         let local_player = query.get_mut(event.entity).unwrap();
 

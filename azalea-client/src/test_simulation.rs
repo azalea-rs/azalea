@@ -253,7 +253,8 @@ pub fn make_basic_empty_chunk(
     sections.azalea_write(&mut chunk_bytes).unwrap();
 
     ClientboundLevelChunkWithLight {
-        pos,
+        x: pos.x,
+        z: pos.z,
         chunk_data: ClientboundLevelChunkPacketData {
             heightmaps: Nbt::None,
             data: chunk_bytes,
