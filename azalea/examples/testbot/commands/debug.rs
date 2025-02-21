@@ -1,5 +1,7 @@
 //! Commands for debugging and getting the current state of the bot.
 
+use std::{env, fs::File, io::Write, thread, time::Duration};
+
 use azalea::{
     brigadier::prelude::*,
     entity::{LookDirection, Position},
@@ -159,6 +161,50 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
                 "n/a".to_string()
             },
         ));
+        1
+    }));
+
+    commands.register(literal("debugecsleak").executes(|ctx: &Ctx| {
+        let source = ctx.source.lock();
+
+        source.reply("Ok!");
+        source.bot.disconnect();
+
+        let ecs = source.bot.ecs.clone();
+        thread::spawn(move || {
+            thread::sleep(Duration::from_secs(1));
+            // dump the ecs
+
+            let ecs = ecs.lock();
+
+            let report_path = env::temp_dir().join("azalea-ecs-leak-report.txt");
+            let mut report = File::create(&report_path).unwrap();
+
+            for entity in ecs.iter_entities() {
+                writeln!(report, "Entity: {}", entity.id()).unwrap();
+                let archetype = entity.archetype();
+                let component_count = archetype.component_count();
+
+                let component_names = archetype
+                    .components()
+                    .map(|c| ecs.components().get_info(c).unwrap().name())
+                    .collect::<Vec<_>>();
+                writeln!(
+                    report,
+                    "- {component_count} components: {}",
+                    component_names.join(", ")
+                )
+                .unwrap();
+            }
+
+            for (info, _) in ecs.iter_resources() {
+                writeln!(report, "Resource: {}", info.name()).unwrap();
+                writeln!(report, "- Size: {} bytes", info.layout().size()).unwrap();
+            }
+
+            println!("\x1b[1mWrote report to {}\x1b[m", report_path.display());
+        });
+
         1
     }));
 }

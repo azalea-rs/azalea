@@ -116,7 +116,7 @@ fn parse_frame(buffer: &mut Cursor<Vec<u8>>) -> Result<Box<[u8]>, FrameSplitterE
     if buffer.position() == buffer.get_ref().len() as u64 {
         // reset the inner vec once we've reached the end of the buffer so we don't keep
         // leaking memory
-        *buffer.get_mut() = Vec::new();
+        buffer.get_mut().clear();
         buffer.set_position(0);
     }
 

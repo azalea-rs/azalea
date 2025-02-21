@@ -1,7 +1,7 @@
 //! Disconnect a client from the server.
 
 use azalea_chat::FormattedText;
-use azalea_entity::{EntityBundle, LocalEntity};
+use azalea_entity::{metadata::PlayerMetadataBundle, EntityBundle, LocalEntity};
 use bevy_app::{App, Plugin, PostUpdate};
 use bevy_ecs::{
     component::Component,
@@ -15,7 +15,10 @@ use bevy_ecs::{
 use derive_more::Deref;
 use tracing::trace;
 
-use crate::{client::JoinedClientBundle, events::LocalPlayerEvents, raw_connection::RawConnection};
+use crate::{
+    client::JoinedClientBundle, events::LocalPlayerEvents, raw_connection::RawConnection,
+    InstanceHolder,
+};
 
 pub struct DisconnectPlugin;
 impl Plugin for DisconnectPlugin {
@@ -39,8 +42,8 @@ pub struct DisconnectEvent {
     pub reason: Option<FormattedText>,
 }
 
-/// System that removes the [`JoinedClientBundle`] from the entity when it
-/// receives a [`DisconnectEvent`].
+/// A system that removes the several components from our clients when they get
+/// a [`DisconnectEvent`].
 pub fn remove_components_from_disconnected_players(
     mut commands: Commands,
     mut events: EventReader<DisconnectEvent>,
@@ -51,6 +54,8 @@ pub fn remove_components_from_disconnected_players(
             .entity(*entity)
             .remove::<JoinedClientBundle>()
             .remove::<EntityBundle>()
+            .remove::<InstanceHolder>()
+            .remove::<PlayerMetadataBundle>()
             // this makes it close the tcp connection
             .remove::<RawConnection>()
             // swarm detects when this tx gets dropped to fire SwarmEvent::Disconnect
