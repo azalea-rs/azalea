@@ -432,6 +432,7 @@ dependencies = [
  "azalea-registry",
  "indexmap",
  "simdnbt",
+ "tracing",
  "uuid",
 ]
 

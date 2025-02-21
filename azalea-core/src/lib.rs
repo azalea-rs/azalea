@@ -9,6 +9,7 @@ pub mod data_registry;
 pub mod delta;
 pub mod difficulty;
 pub mod direction;
+pub mod filterable;
 pub mod game_type;
 pub mod math;
 pub mod objectives;
