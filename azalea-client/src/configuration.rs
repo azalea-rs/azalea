@@ -11,10 +11,7 @@ use bevy_app::prelude::*;
 use bevy_ecs::prelude::*;
 use tracing::{debug, warn};
 
-use crate::{
-    client::InConfigState,
-    packet_handling::{configuration::SendConfigurationEvent, login::InLoginState},
-};
+use crate::packet_handling::{configuration::SendConfigurationEvent, login::InLoginState};
 
 pub struct ConfigurationPlugin;
 impl Plugin for ConfigurationPlugin {
