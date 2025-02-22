@@ -76,7 +76,7 @@ use crate::{
     mining::{self, MinePlugin},
     movement::{LastSentLookDirection, PhysicsState, PlayerMovePlugin},
     packet_handling::{
-        login::{self, LoginSendPacketQueue},
+        login::{self, InLoginState, LoginSendPacketQueue},
         PacketHandlerPlugin,
     },
     player::retroactively_add_game_profile_component,
@@ -371,6 +371,7 @@ impl Client {
         ecs_lock.lock().entity_mut(entity).insert((
             LoginSendPacketQueue { tx: ecs_packets_tx },
             login::IgnoreQueryIds::default(),
+            InLoginState,
         ));
 
         // login
@@ -457,6 +458,7 @@ impl Client {
                         p.game_profile
                     );
                     conn.write(ServerboundLoginAcknowledged {}).await?;
+
                     break (conn.config(), p.game_profile);
                 }
                 ClientboundLoginPacket::LoginDisconnect(p) => {
@@ -485,7 +487,8 @@ impl Client {
             .lock()
             .entity_mut(entity)
             .remove::<login::IgnoreQueryIds>()
-            .remove::<LoginSendPacketQueue>();
+            .remove::<LoginSendPacketQueue>()
+            .remove::<InLoginState>();
 
         Ok((conn, profile))
     }

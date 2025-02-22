@@ -48,6 +48,11 @@ pub struct LoginSendPacketQueue {
     pub tx: mpsc::UnboundedSender<ServerboundLoginPacket>,
 }
 
+/// A marker component for local players that are currently in the
+/// `login` state.
+#[derive(Component, Clone, Debug)]
+pub struct InLoginState;
+
 pub fn handle_send_packet_event(
     mut send_packet_events: EventReader<SendLoginPacketEvent>,
     mut query: Query<&mut LoginSendPacketQueue>,
