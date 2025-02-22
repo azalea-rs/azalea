@@ -1,6 +1,6 @@
 use std::cmp::{self, Ordering};
 
-use azalea_core::math::{gcd, lcm, EPSILON};
+use azalea_core::math::{EPSILON, gcd, lcm};
 
 use super::CubePointRange;
 

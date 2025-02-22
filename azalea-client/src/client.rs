@@ -14,29 +14,29 @@ use azalea_core::{
     tick::GameTick,
 };
 use azalea_entity::{
+    EntityPlugin, EntityUpdateSet, EyeHeight, LocalEntity, Position,
     indexing::{EntityIdIndex, EntityUuidIndex},
     metadata::Health,
-    EntityPlugin, EntityUpdateSet, EyeHeight, LocalEntity, Position,
 };
 use azalea_physics::PhysicsPlugin;
 use azalea_protocol::{
+    ServerAddress,
     common::client_information::ClientInformation,
     connect::{Connection, ConnectionError, Proxy},
     packets::{
-        self,
+        self, ClientIntention, ConnectionProtocol, PROTOCOL_VERSION, Packet,
         config::{ClientboundConfigPacket, ServerboundConfigPacket},
         game::ServerboundGamePacket,
         handshake::{
-            s_intention::ServerboundIntention, ClientboundHandshakePacket,
-            ServerboundHandshakePacket,
+            ClientboundHandshakePacket, ServerboundHandshakePacket,
+            s_intention::ServerboundIntention,
         },
         login::{
-            s_hello::ServerboundHello, s_key::ServerboundKey,
-            s_login_acknowledged::ServerboundLoginAcknowledged, ClientboundLoginPacket,
+            ClientboundLoginPacket, s_hello::ServerboundHello, s_key::ServerboundKey,
+            s_login_acknowledged::ServerboundLoginAcknowledged,
         },
-        ClientIntention, ConnectionProtocol, Packet, PROTOCOL_VERSION,
     },
-    resolver, ServerAddress,
+    resolver,
 };
 use azalea_world::{Instance, InstanceContainer, InstanceName, PartialInstance};
 use bevy_app::{App, Plugin, PluginGroup, PluginGroupBuilder, Update};
@@ -61,6 +61,7 @@ use tracing::{debug, error};
 use uuid::Uuid;
 
 use crate::{
+    Account, PlayerInfo,
     attack::{self, AttackPlugin},
     chat::ChatPlugin,
     chunks::{ChunkBatchInfo, ChunkPlugin},
@@ -70,21 +71,20 @@ use crate::{
     interact::{CurrentSequenceNumber, InteractPlugin},
     inventory::{Inventory, InventoryPlugin},
     local_player::{
-        death_event, GameProfileComponent, Hunger, InstanceHolder, PermissionLevel,
-        PlayerAbilities, TabList,
+        GameProfileComponent, Hunger, InstanceHolder, PermissionLevel, PlayerAbilities, TabList,
+        death_event,
     },
     mining::{self, MinePlugin},
     movement::{LastSentLookDirection, PhysicsState, PlayerMovePlugin},
     packet_handling::{
-        login::{self, InLoginState, LoginSendPacketQueue},
         PacketHandlerPlugin,
+        login::{self, InLoginState, LoginSendPacketQueue},
     },
     player::retroactively_add_game_profile_component,
     raw_connection::RawConnection,
     respawn::RespawnPlugin,
     send_client_end::TickEndPlugin,
     task_pool::TaskPoolPlugin,
-    Account, PlayerInfo,
 };
 
 /// `Client` has the things that a user interacting with the library will want.

@@ -25,9 +25,9 @@ use tokio::{sync::mpsc, time::sleep};
 use uuid::Uuid;
 
 use crate::{
+    ClientInformation, GameProfileComponent, InConfigState, InstanceHolder, LocalPlayerBundle,
     events::LocalPlayerEvents,
     raw_connection::{RawConnection, RawConnectionReader, RawConnectionWriter},
-    ClientInformation, GameProfileComponent, InConfigState, InstanceHolder, LocalPlayerBundle,
 };
 
 /// A way to simulate a client in a server, used for some internal tests.

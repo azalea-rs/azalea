@@ -1,10 +1,10 @@
-use azalea_client::{test_simulation::*, InConfigState};
+use azalea_client::{InConfigState, test_simulation::*};
 use azalea_core::{position::ChunkPos, resource_location::ResourceLocation};
-use azalea_entity::{metadata::Health, LocalEntity};
+use azalea_entity::{LocalEntity, metadata::Health};
 use azalea_protocol::packets::{
+    ConnectionProtocol,
     config::{ClientboundFinishConfiguration, ClientboundRegistryData},
     game::ClientboundSetHealth,
-    ConnectionProtocol,
 };
 use azalea_registry::DimensionType;
 use azalea_world::InstanceName;

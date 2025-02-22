@@ -1,5 +1,5 @@
 use azalea_crypto::{create_cipher, decrypt_packet, encrypt_packet};
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, criterion_group, criterion_main};
 
 fn bench(c: &mut Criterion) {
     let (mut enc, dec) = create_cipher(b"0123456789abcdef");

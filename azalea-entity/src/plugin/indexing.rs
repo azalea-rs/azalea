@@ -181,19 +181,24 @@ pub fn remove_despawned_entities_from_indexes(
 
         // remove the entity from the chunk index
         let chunk = ChunkPos::from(*position);
-        if let Some(entities_in_chunk) = instance.entities_by_chunk.get_mut(&chunk) {
-            if entities_in_chunk.remove(&entity) {
-                // remove the chunk if there's no entities in it anymore
-                if entities_in_chunk.is_empty() {
-                    instance.entities_by_chunk.remove(&chunk);
+        match instance.entities_by_chunk.get_mut(&chunk) {
+            Some(entities_in_chunk) => {
+                if entities_in_chunk.remove(&entity) {
+                    // remove the chunk if there's no entities in it anymore
+                    if entities_in_chunk.is_empty() {
+                        instance.entities_by_chunk.remove(&chunk);
+                    }
+                } else {
+                    warn!(
+                        "Tried to remove entity {entity:?} from chunk {chunk:?} but the entity was not there."
+                    );
                 }
-            } else {
-                warn!(
-                    "Tried to remove entity {entity:?} from chunk {chunk:?} but the entity was not there."
+            }
+            _ => {
+                debug!(
+                    "Tried to remove entity {entity:?} from chunk {chunk:?} but the chunk was not found."
                 );
             }
-        } else {
-            debug!("Tried to remove entity {entity:?} from chunk {chunk:?} but the chunk was not found.");
         }
         // remove it from the uuid index
         if entity_uuid_index.entity_by_uuid.remove(uuid).is_none() {

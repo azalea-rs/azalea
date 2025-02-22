@@ -1,11 +1,11 @@
 use std::time::Duration;
 
 use azalea::{
+    BlockPos, SprintDirection, WalkDirection,
     brigadier::prelude::*,
     entity::{EyeHeight, Position},
     pathfinder::goals::{BlockPosGoal, RadiusGoal, XZGoal},
     prelude::*,
-    BlockPos, SprintDirection, WalkDirection,
 };
 use parking_lot::Mutex;
 

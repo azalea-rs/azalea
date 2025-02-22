@@ -1,13 +1,13 @@
 use std::f64::consts::PI;
 
+use azalea_client::TickBroadcast;
 use azalea_client::interact::SwingArmEvent;
 use azalea_client::mining::Mining;
-use azalea_client::TickBroadcast;
 use azalea_core::position::{BlockPos, Vec3};
 use azalea_core::tick::GameTick;
 use azalea_entity::{
-    clamp_look_direction, metadata::Player, EyeHeight, Jumping, LocalEntity, LookDirection,
-    Position,
+    EyeHeight, Jumping, LocalEntity, LookDirection, Position, clamp_look_direction,
+    metadata::Player,
 };
 use azalea_physics::PhysicsSet;
 use bevy_app::Update;
@@ -185,8 +185,7 @@ fn look_at_listener(
                 direction_looking_at(&position.up(eye_height.into()), &event.position);
             trace!(
                 "look at {:?} (currently at {:?})",
-                event.position,
-                **position
+                event.position, **position
             );
             *look_direction = new_look_direction;
         }

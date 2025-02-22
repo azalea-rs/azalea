@@ -1,21 +1,21 @@
 use std::{hint::black_box, sync::Arc, time::Duration};
 
 use azalea::{
+    BlockPos,
     pathfinder::{
-        astar::{self, a_star, PathfinderTimeout},
+        astar::{self, PathfinderTimeout, a_star},
         goals::{BlockPosGoal, Goal},
         mining::MiningCache,
         rel_block_pos::RelBlockPos,
         world::CachedWorld,
     },
-    BlockPos,
 };
 use azalea_core::position::{ChunkBlockPos, ChunkPos};
 use azalea_inventory::Menu;
 use azalea_world::{Chunk, ChunkStorage, PartialChunkStorage};
-use criterion::{criterion_group, criterion_main, Bencher, Criterion};
+use criterion::{Bencher, Criterion, criterion_group, criterion_main};
 use parking_lot::RwLock;
-use rand::{rngs::StdRng, Rng, SeedableRng};
+use rand::{Rng, SeedableRng, rngs::StdRng};
 
 #[allow(dead_code)]
 fn generate_bedrock_world(

@@ -5,8 +5,8 @@ use std::marker::PhantomData;
 use bevy_app::{App, Last, Plugin};
 use bevy_ecs::system::{NonSend, Resource};
 use bevy_tasks::{
-    tick_global_task_pools_on_main_thread, AsyncComputeTaskPool, ComputeTaskPool, IoTaskPool,
-    TaskPoolBuilder,
+    AsyncComputeTaskPool, ComputeTaskPool, IoTaskPool, TaskPoolBuilder,
+    tick_global_task_pools_on_main_thread,
 };
 
 /// Setup of default task pools: `AsyncComputeTaskPool`, `ComputeTaskPool`,

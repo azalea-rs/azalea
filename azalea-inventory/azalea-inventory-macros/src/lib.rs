@@ -8,7 +8,7 @@ use parse_macro::{DeclareMenus, Field};
 use proc_macro::TokenStream;
 use proc_macro2::Span;
 use quote::quote;
-use syn::{parse_macro_input, Ident};
+use syn::{Ident, parse_macro_input};
 
 #[proc_macro]
 pub fn declare_menus(input: TokenStream) -> TokenStream {

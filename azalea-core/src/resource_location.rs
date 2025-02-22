@@ -8,8 +8,8 @@ use std::{
 
 use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
 #[cfg(feature = "serde")]
-use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
-use simdnbt::{owned::NbtTag, FromNbtTag, ToNbtTag};
+use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
+use simdnbt::{FromNbtTag, ToNbtTag, owned::NbtTag};
 
 #[derive(Hash, Clone, PartialEq, Eq)]
 pub struct ResourceLocation {

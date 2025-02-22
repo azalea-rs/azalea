@@ -3,14 +3,14 @@ use std::ops::RangeInclusive;
 use azalea_buf::AzBuf;
 
 use crate::{
-    item::MaxStackSizeExt, AnvilMenuLocation, BeaconMenuLocation, BlastFurnaceMenuLocation,
-    BrewingStandMenuLocation, CartographyTableMenuLocation, Crafter3x3MenuLocation,
-    CraftingMenuLocation, EnchantmentMenuLocation, FurnaceMenuLocation, Generic3x3MenuLocation,
-    Generic9x1MenuLocation, Generic9x2MenuLocation, Generic9x3MenuLocation, Generic9x4MenuLocation,
-    Generic9x5MenuLocation, Generic9x6MenuLocation, GrindstoneMenuLocation, HopperMenuLocation,
-    ItemStack, ItemStackData, LecternMenuLocation, LoomMenuLocation, Menu, MenuLocation,
-    MerchantMenuLocation, Player, PlayerMenuLocation, ShulkerBoxMenuLocation, SmithingMenuLocation,
-    SmokerMenuLocation, StonecutterMenuLocation,
+    AnvilMenuLocation, BeaconMenuLocation, BlastFurnaceMenuLocation, BrewingStandMenuLocation,
+    CartographyTableMenuLocation, Crafter3x3MenuLocation, CraftingMenuLocation,
+    EnchantmentMenuLocation, FurnaceMenuLocation, Generic3x3MenuLocation, Generic9x1MenuLocation,
+    Generic9x2MenuLocation, Generic9x3MenuLocation, Generic9x4MenuLocation, Generic9x5MenuLocation,
+    Generic9x6MenuLocation, GrindstoneMenuLocation, HopperMenuLocation, ItemStack, ItemStackData,
+    LecternMenuLocation, LoomMenuLocation, Menu, MenuLocation, MerchantMenuLocation, Player,
+    PlayerMenuLocation, ShulkerBoxMenuLocation, SmithingMenuLocation, SmokerMenuLocation,
+    StonecutterMenuLocation, item::MaxStackSizeExt,
 };
 
 #[derive(Debug, Clone)]

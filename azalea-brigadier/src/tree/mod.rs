@@ -292,18 +292,27 @@ impl<S> PartialEq for CommandNode<S> {
             }
         }
 
-        if let Some(selfexecutes) = &self.command {
-            // idk how to do this better since we can't compare `dyn Fn`s
-            if let Some(otherexecutes) = &other.command {
-                #[allow(ambiguous_wide_pointer_comparisons)]
-                if !Arc::ptr_eq(selfexecutes, otherexecutes) {
+        match &self.command {
+            Some(selfexecutes) => {
+                // idk how to do this better since we can't compare `dyn Fn`s
+                match &other.command {
+                    Some(otherexecutes) =>
+                    {
+                        #[allow(ambiguous_wide_pointer_comparisons)]
+                        if !Arc::ptr_eq(selfexecutes, otherexecutes) {
+                            return false;
+                        }
+                    }
+                    _ => {
+                        return false;
+                    }
+                }
+            }
+            _ => {
+                if other.command.is_some() {
                     return false;
                 }
-            } else {
-                return false;
             }
-        } else if other.command.is_some() {
-            return false;
         }
         true
     }

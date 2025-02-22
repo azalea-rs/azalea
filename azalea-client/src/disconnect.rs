@@ -1,7 +1,7 @@
 //! Disconnect a client from the server.
 
 use azalea_chat::FormattedText;
-use azalea_entity::{metadata::PlayerMetadataBundle, EntityBundle, LocalEntity};
+use azalea_entity::{EntityBundle, LocalEntity, metadata::PlayerMetadataBundle};
 use bevy_app::{App, Plugin, PostUpdate};
 use bevy_ecs::{
     component::Component,
@@ -16,8 +16,8 @@ use derive_more::Deref;
 use tracing::trace;
 
 use crate::{
-    client::JoinedClientBundle, events::LocalPlayerEvents, raw_connection::RawConnection,
-    InstanceHolder,
+    InstanceHolder, client::JoinedClientBundle, events::LocalPlayerEvents,
+    raw_connection::RawConnection,
 };
 
 pub struct DisconnectPlugin;

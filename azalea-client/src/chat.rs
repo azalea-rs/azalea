@@ -7,6 +7,7 @@ use std::{
 
 use azalea_chat::FormattedText;
 use azalea_protocol::packets::{
+    Packet,
     game::{
         c_disguised_chat::ClientboundDisguisedChat,
         c_player_chat::ClientboundPlayerChat,
@@ -14,7 +15,6 @@ use azalea_protocol::packets::{
         s_chat::{LastSeenMessagesUpdate, ServerboundChat},
         s_chat_command::ServerboundChatCommand,
     },
-    Packet,
 };
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::{
@@ -27,7 +27,7 @@ use uuid::Uuid;
 
 use crate::{
     client::Client,
-    packet_handling::game::{handle_send_packet_event, SendPacketEvent},
+    packet_handling::game::{SendPacketEvent, handle_send_packet_event},
 };
 
 /// A chat packet, either a system message or a chat message.

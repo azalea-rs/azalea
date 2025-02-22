@@ -4,11 +4,11 @@
 use std::{collections::HashSet, sync::Arc};
 
 use azalea_protocol::packets::{
-    login::{
-        s_custom_query_answer::ServerboundCustomQueryAnswer, ClientboundLoginPacket,
-        ServerboundLoginPacket,
-    },
     Packet,
+    login::{
+        ClientboundLoginPacket, ServerboundLoginPacket,
+        s_custom_query_answer::ServerboundCustomQueryAnswer,
+    },
 };
 use bevy_ecs::{prelude::*, system::SystemState};
 use derive_more::{Deref, DerefMut};

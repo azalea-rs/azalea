@@ -6,7 +6,7 @@ mod world_collisions;
 
 use std::{ops::Add, sync::LazyLock};
 
-use azalea_block::{fluid_state::FluidState, BlockState};
+use azalea_block::{BlockState, fluid_state::FluidState};
 use azalea_core::{
     aabb::AABB,
     direction::Axis,

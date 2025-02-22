@@ -556,21 +556,31 @@ mod tests {
             Some(Chunk::default()),
             &mut chunk_storage,
         );
-        assert!(chunk_storage
-            .get_block_state(&BlockPos { x: 0, y: 319, z: 0 })
-            .is_some());
-        assert!(chunk_storage
-            .get_block_state(&BlockPos { x: 0, y: 320, z: 0 })
-            .is_none());
-        assert!(chunk_storage
-            .get_block_state(&BlockPos { x: 0, y: 338, z: 0 })
-            .is_none());
-        assert!(chunk_storage
-            .get_block_state(&BlockPos { x: 0, y: -64, z: 0 })
-            .is_some());
-        assert!(chunk_storage
-            .get_block_state(&BlockPos { x: 0, y: -65, z: 0 })
-            .is_none());
+        assert!(
+            chunk_storage
+                .get_block_state(&BlockPos { x: 0, y: 319, z: 0 })
+                .is_some()
+        );
+        assert!(
+            chunk_storage
+                .get_block_state(&BlockPos { x: 0, y: 320, z: 0 })
+                .is_none()
+        );
+        assert!(
+            chunk_storage
+                .get_block_state(&BlockPos { x: 0, y: 338, z: 0 })
+                .is_none()
+        );
+        assert!(
+            chunk_storage
+                .get_block_state(&BlockPos { x: 0, y: -64, z: 0 })
+                .is_some()
+        );
+        assert!(
+            chunk_storage
+                .get_block_state(&BlockPos { x: 0, y: -65, z: 0 })
+                .is_none()
+        );
     }
 
     #[test]

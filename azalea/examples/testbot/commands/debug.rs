@@ -3,12 +3,12 @@
 use std::{env, fs::File, io::Write, thread, time::Duration};
 
 use azalea::{
+    BlockPos,
     brigadier::prelude::*,
     entity::{LookDirection, Position},
     interact::HitResultComponent,
     pathfinder::{ExecutingPath, Pathfinder},
     world::MinecraftEntityId,
-    BlockPos,
 };
 use parking_lot::Mutex;
 

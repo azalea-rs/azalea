@@ -2,9 +2,9 @@
 
 use std::sync::Arc;
 
-use azalea::{prelude::*, BlockPos};
-use azalea_inventory::operations::QuickMoveClick;
+use azalea::{BlockPos, prelude::*};
 use azalea_inventory::ItemStack;
+use azalea_inventory::operations::QuickMoveClick;
 use parking_lot::Mutex;
 
 #[tokio::main]

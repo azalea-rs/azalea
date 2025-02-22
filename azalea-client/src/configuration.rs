@@ -44,7 +44,9 @@ fn handle_end_login_state(
         let client_information = match query.get(entity).ok() {
             Some(i) => i,
             None => {
-                warn!("ClientInformation component was not set before leaving login state, using a default");
+                warn!(
+                    "ClientInformation component was not set before leaving login state, using a default"
+                );
                 &ClientInformation::default()
             }
         };

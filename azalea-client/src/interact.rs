@@ -8,9 +8,9 @@ use azalea_core::{
     position::{BlockPos, Vec3},
 };
 use azalea_entity::{
-    clamp_look_direction, view_vector, Attributes, EyeHeight, LocalEntity, LookDirection, Position,
+    Attributes, EyeHeight, LocalEntity, LookDirection, Position, clamp_look_direction, view_vector,
 };
-use azalea_inventory::{components, ItemStack, ItemStackData};
+use azalea_inventory::{ItemStack, ItemStackData, components};
 use azalea_physics::clip::{BlockShapeType, ClipContext, FluidPickType};
 use azalea_protocol::packets::game::{
     s_interact::InteractionHand,
@@ -31,13 +31,13 @@ use derive_more::{Deref, DerefMut};
 use tracing::warn;
 
 use crate::{
+    Client,
     attack::handle_attack_event,
     inventory::{Inventory, InventorySet},
     local_player::{LocalGameMode, PermissionLevel, PlayerAbilities},
     movement::MoveEventsSet,
-    packet_handling::game::{handle_send_packet_event, SendPacketEvent},
+    packet_handling::game::{SendPacketEvent, handle_send_packet_event},
     respawn::perform_respawn,
-    Client,
 };
 
 /// A plugin that allows clients to interact with blocks in the world.
@@ -245,15 +245,16 @@ pub fn check_is_interaction_restricted(
             // way of modifying that
 
             let held_item = inventory.held_item();
-            if let ItemStack::Present(item) = &held_item {
-                let block = instance.chunks.get_block_state(block_pos);
-                let Some(block) = block else {
-                    // block isn't loaded so just say that it is restricted
-                    return true;
-                };
-                check_block_can_be_broken_by_item_in_adventure_mode(item, &block)
-            } else {
-                true
+            match &held_item {
+                ItemStack::Present(item) => {
+                    let block = instance.chunks.get_block_state(block_pos);
+                    let Some(block) = block else {
+                        // block isn't loaded so just say that it is restricted
+                        return true;
+                    };
+                    check_block_can_be_broken_by_item_in_adventure_mode(item, &block)
+                }
+                _ => true,
             }
         }
         GameMode::Spectator => true,

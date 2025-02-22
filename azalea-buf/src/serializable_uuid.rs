@@ -2,7 +2,7 @@ use std::io::{Cursor, Write};
 
 use uuid::Uuid;
 
-use crate::{read::BufReadError, AzaleaRead, AzaleaWrite};
+use crate::{AzaleaRead, AzaleaWrite, read::BufReadError};
 
 pub trait SerializableUuid {
     fn to_int_array(&self) -> [u32; 4];

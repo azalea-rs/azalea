@@ -3,7 +3,7 @@ mod relative_updates;
 
 use std::collections::HashSet;
 
-use azalea_block::{fluid_state::FluidKind, BlockState};
+use azalea_block::{BlockState, fluid_state::FluidKind};
 use azalea_core::{
     position::{BlockPos, ChunkPos, Vec3},
     tick::GameTick,
@@ -17,8 +17,8 @@ pub use relative_updates::RelativeEntityUpdate;
 use tracing::debug;
 
 use crate::{
-    metadata::Health, Dead, EyeHeight, FluidOnEyes, LocalEntity, LookDirection, OnClimbable,
-    Physics, Position,
+    Dead, EyeHeight, FluidOnEyes, LocalEntity, LookDirection, OnClimbable, Physics, Position,
+    metadata::Health,
 };
 
 /// A Bevy [`SystemSet`] for various types of entity updates.

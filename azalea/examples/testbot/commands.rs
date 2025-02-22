@@ -2,12 +2,12 @@ pub mod combat;
 pub mod debug;
 pub mod movement;
 
+use azalea::Client;
+use azalea::GameProfileComponent;
 use azalea::brigadier::prelude::*;
 use azalea::chat::ChatPacket;
 use azalea::ecs::prelude::*;
 use azalea::entity::metadata::Player;
-use azalea::Client;
-use azalea::GameProfileComponent;
 use parking_lot::Mutex;
 
 use crate::State;

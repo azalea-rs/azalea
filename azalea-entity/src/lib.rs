@@ -17,7 +17,7 @@ use std::{
 };
 
 pub use attributes::Attributes;
-use azalea_block::{fluid_state::FluidKind, BlockState};
+use azalea_block::{BlockState, fluid_state::FluidKind};
 use azalea_buf::AzBuf;
 use azalea_core::{
     aabb::AABB,

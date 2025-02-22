@@ -29,13 +29,13 @@ use std::time::Duration;
 use std::{env, process};
 use std::{sync::Arc, thread};
 
+use azalea::ClientInformation;
 use azalea::brigadier::command_dispatcher::CommandDispatcher;
 use azalea::ecs::prelude::*;
 use azalea::pathfinder::PathfinderDebugParticles;
 use azalea::prelude::*;
 use azalea::swarm::prelude::*;
-use azalea::ClientInformation;
-use commands::{register_commands, CommandSource};
+use commands::{CommandSource, register_commands};
 use parking_lot::Mutex;
 
 #[tokio::main]

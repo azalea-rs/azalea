@@ -19,11 +19,11 @@ use simdnbt::owned::BaseNbt;
 use tracing::{error, trace};
 
 use crate::{
+    InstanceHolder,
     interact::handle_block_interact_event,
     inventory::InventorySet,
-    packet_handling::game::{handle_send_packet_event, SendPacketEvent},
+    packet_handling::game::{SendPacketEvent, handle_send_packet_event},
     respawn::perform_respawn,
-    InstanceHolder,
 };
 
 pub struct ChunkPlugin;

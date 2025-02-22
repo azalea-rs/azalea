@@ -2,7 +2,7 @@ use azalea_block::{Block, BlockBehavior};
 use azalea_core::tier::get_item_tier;
 use azalea_registry as registry;
 
-use crate::{effects, FluidOnEyes, Physics};
+use crate::{FluidOnEyes, Physics, effects};
 
 /// How much progress is made towards mining the block per tick, as a
 /// percentage. If this is 1 then the block gets broken instantly.

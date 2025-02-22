@@ -1,8 +1,8 @@
 use std::fmt::Display;
 
-use serde::{ser::SerializeMap, Serialize, Serializer, __private::ser::FlatMapSerializer};
+use serde::{__private::ser::FlatMapSerializer, Serialize, Serializer, ser::SerializeMap};
 
-use crate::{base_component::BaseComponent, style::ChatFormatting, FormattedText};
+use crate::{FormattedText, base_component::BaseComponent, style::ChatFormatting};
 
 /// A component that contains text that's the same in all locales.
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]

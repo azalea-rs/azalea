@@ -42,10 +42,9 @@ where
     }
     fn eq(&self, other: Box<dyn EncodableDataComponent>) -> bool {
         let other_any: Box<dyn Any> = other;
-        if let Some(other) = other_any.downcast_ref::<T>() {
-            self == other
-        } else {
-            false
+        match other_any.downcast_ref::<T>() {
+            Some(other) => self == other,
+            _ => false,
         }
     }
 }

@@ -1,21 +1,21 @@
 use std::collections::HashSet;
 
 use azalea_block::{
-    fluid_state::{FluidKind, FluidState},
     BlockState,
+    fluid_state::{FluidKind, FluidState},
 };
 use azalea_core::{
     aabb::AABB,
     block_hit_result::BlockHitResult,
     direction::{Axis, Direction},
-    math::{self, lerp, EPSILON},
+    math::{self, EPSILON, lerp},
     position::{BlockPos, Vec3},
 };
 use azalea_inventory::ItemStack;
 use azalea_world::ChunkStorage;
 use bevy_ecs::entity::Entity;
 
-use crate::collision::{BlockWithShape, VoxelShape, EMPTY_SHAPE};
+use crate::collision::{BlockWithShape, EMPTY_SHAPE, VoxelShape};
 
 #[derive(Debug, Clone)]
 pub struct ClipContext {

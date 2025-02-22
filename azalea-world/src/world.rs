@@ -6,8 +6,8 @@ use std::{
     fmt::Debug,
 };
 
-use azalea_block::fluid_state::FluidState;
 use azalea_block::BlockState;
+use azalea_block::fluid_state::FluidState;
 use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
 use azalea_core::position::{BlockPos, ChunkPos};
 use azalea_core::registry_holder::RegistryHolder;

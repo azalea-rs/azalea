@@ -2,18 +2,18 @@ use std::backtrace::Backtrace;
 
 use azalea_core::position::Vec3;
 use azalea_core::tick::GameTick;
-use azalea_entity::{metadata::Sprinting, Attributes, Jumping};
+use azalea_entity::{Attributes, Jumping, metadata::Sprinting};
 use azalea_entity::{InLoadedChunk, LastSentPosition, LookDirection, Physics, Position};
-use azalea_physics::{ai_step, PhysicsSet};
+use azalea_physics::{PhysicsSet, ai_step};
 use azalea_protocol::packets::game::{ServerboundPlayerCommand, ServerboundPlayerInput};
 use azalea_protocol::packets::{
+    Packet,
     game::{
         s_move_player_pos::ServerboundMovePlayerPos,
         s_move_player_pos_rot::ServerboundMovePlayerPosRot,
         s_move_player_rot::ServerboundMovePlayerRot,
         s_move_player_status_only::ServerboundMovePlayerStatusOnly,
     },
-    Packet,
 };
 use azalea_world::{MinecraftEntityId, MoveEntityError};
 use bevy_app::{App, Plugin, Update};

@@ -8,15 +8,15 @@ pub mod travel;
 
 use std::collections::HashSet;
 
-use azalea_block::{fluid_state::FluidState, properties, Block, BlockState};
+use azalea_block::{Block, BlockState, fluid_state::FluidState, properties};
 use azalea_core::{
     math,
     position::{BlockPos, Vec3},
     tick::GameTick,
 };
 use azalea_entity::{
-    metadata::Sprinting, move_relative, Attributes, InLoadedChunk, Jumping, LocalEntity,
-    LookDirection, OnClimbable, Physics, Pose, Position,
+    Attributes, InLoadedChunk, Jumping, LocalEntity, LookDirection, OnClimbable, Physics, Pose,
+    Position, metadata::Sprinting, move_relative,
 };
 use azalea_world::{Instance, InstanceContainer, InstanceName};
 use bevy_app::{App, Plugin};
@@ -27,7 +27,7 @@ use bevy_ecs::{
     world::Mut,
 };
 use clip::box_traverse_blocks;
-use collision::{move_colliding, BlockWithShape, MoverType, VoxelShape, BLOCK_SHAPE};
+use collision::{BLOCK_SHAPE, BlockWithShape, MoverType, VoxelShape, move_colliding};
 
 /// A Bevy [`SystemSet`] for running physics that makes entities do things.
 #[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
@@ -476,11 +476,7 @@ fn get_friction_influenced_speed(
         speed * (0.216f32 / (friction * friction * friction))
     } else {
         // entity.flying_speed
-        if is_sprinting {
-            0.025999999f32
-        } else {
-            0.02
-        }
+        if is_sprinting { 0.025999999f32 } else { 0.02 }
     }
 }
 

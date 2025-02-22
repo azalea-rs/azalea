@@ -9,14 +9,14 @@ pub mod prelude;
 use std::{collections::HashMap, future::Future, net::SocketAddr, sync::Arc, time::Duration};
 
 use azalea_client::{
-    chat::ChatPacket, start_ecs_runner, Account, Client, DefaultPlugins, Event, JoinError,
-    StartClientOpts,
+    Account, Client, DefaultPlugins, Event, JoinError, StartClientOpts, chat::ChatPacket,
+    start_ecs_runner,
 };
-use azalea_protocol::{resolver, ServerAddress};
+use azalea_protocol::{ServerAddress, resolver};
 use azalea_world::InstanceContainer;
 use bevy_app::{App, PluginGroup, PluginGroupBuilder, Plugins};
 use bevy_ecs::{component::Component, entity::Entity, system::Resource, world::World};
-use futures::future::{join_all, BoxFuture};
+use futures::future::{BoxFuture, join_all};
 use parking_lot::{Mutex, RwLock};
 use tokio::sync::mpsc;
 use tracing::{debug, error};
@@ -692,14 +692,17 @@ impl Swarm {
                         .min(Duration::from_secs(15));
                     let username = account.username.clone();
 
-                    if let JoinError::Disconnect { reason } = &e {
-                        error!(
-                            "Error joining as {username}, server says: \"{reason}\". Waiting {delay:?} and trying again."
-                        );
-                    } else {
-                        error!(
-                            "Error joining as {username}: {e}. Waiting {delay:?} and trying again."
-                        );
+                    match &e {
+                        JoinError::Disconnect { reason } => {
+                            error!(
+                                "Error joining as {username}, server says: \"{reason}\". Waiting {delay:?} and trying again."
+                            );
+                        }
+                        _ => {
+                            error!(
+                                "Error joining as {username}: {e}. Waiting {delay:?} and trying again."
+                            );
+                        }
                     }
 
                     tokio::time::sleep(delay).await;

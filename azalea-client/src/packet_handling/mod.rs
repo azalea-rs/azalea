@@ -1,4 +1,4 @@
-use azalea_entity::{metadata::Health, EntityUpdateSet};
+use azalea_entity::{EntityUpdateSet, metadata::Health};
 use bevy_app::{App, First, Plugin, PreUpdate, Update};
 use bevy_ecs::prelude::*;
 

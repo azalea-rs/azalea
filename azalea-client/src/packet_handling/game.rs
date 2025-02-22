@@ -13,21 +13,22 @@ use azalea_core::{
     resource_location::ResourceLocation,
 };
 use azalea_entity::{
-    indexing::{EntityIdIndex, EntityUuidIndex},
-    metadata::{apply_metadata, Health},
     Dead, EntityBundle, EntityKind, LastSentPosition, LoadedBy, LocalEntity, LookDirection,
     Physics, Position, RelativeEntityUpdate,
+    indexing::{EntityIdIndex, EntityUuidIndex},
+    metadata::{Health, apply_metadata},
 };
 use azalea_protocol::{
     packets::{
+        Packet,
         game::{
+            ClientboundGamePacket, ServerboundGamePacket,
             c_player_combat_kill::ClientboundPlayerCombatKill,
             s_accept_teleportation::ServerboundAcceptTeleportation,
             s_configuration_acknowledged::ServerboundConfigurationAcknowledged,
             s_keep_alive::ServerboundKeepAlive, s_move_player_pos_rot::ServerboundMovePlayerPosRot,
-            s_pong::ServerboundPong, ClientboundGamePacket, ServerboundGamePacket,
+            s_pong::ServerboundPong,
         },
-        Packet,
     },
     read::deserialize_packet,
 };
@@ -38,6 +39,7 @@ use tracing::{debug, error, trace, warn};
 use uuid::Uuid;
 
 use crate::{
+    ClientInformation, PlayerInfo,
     chat::{ChatPacket, ChatReceivedEvent},
     chunks,
     disconnect::DisconnectEvent,
@@ -49,7 +51,6 @@ use crate::{
     },
     movement::{KnockbackEvent, KnockbackType},
     raw_connection::RawConnection,
-    ClientInformation, PlayerInfo,
 };
 
 /// An event that's sent when we receive a packet.
@@ -427,11 +428,7 @@ pub fn process_packet_events(ecs: &mut World) {
                 **last_sent_position = **position;
 
                 fn apply_change<T: Add<Output = T>>(base: T, condition: bool, change: T) -> T {
-                    if condition {
-                        base + change
-                    } else {
-                        change
-                    }
+                    if condition { base + change } else { change }
                 }
 
                 let new_x = apply_change(position.x, p.relative.x, p.change.pos.x);
@@ -655,9 +652,13 @@ pub fn process_packet_events(ecs: &mut World) {
                         let entity_in_ecs = entity_query.get(ecs_entity).is_ok();
 
                         if entity_in_ecs {
-                            error!("LoadedBy for entity {entity_id:?} ({ecs_entity:?}) isn't in the ecs, but the entity is in entity_by_id");
+                            error!(
+                                "LoadedBy for entity {entity_id:?} ({ecs_entity:?}) isn't in the ecs, but the entity is in entity_by_id"
+                            );
                         } else {
-                            error!("Entity {entity_id:?} ({ecs_entity:?}) isn't in the ecs, but the entity is in entity_by_id");
+                            error!(
+                                "Entity {entity_id:?} ({ecs_entity:?}) isn't in the ecs, but the entity is in entity_by_id"
+                            );
                         }
                         continue;
                     };
@@ -719,7 +720,10 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 let Some(entity) = entity else {
                     // some servers like hypixel trigger this a lot :(
-                    debug!("Server sent an entity data packet for an entity id ({}) that we don't know about", p.id);
+                    debug!(
+                        "Server sent an entity data packet for an entity id ({}) that we don't know about",
+                        p.id
+                    );
                     continue;
                 };
                 let entity_kind = *entity_kind_query.get(entity).unwrap();
@@ -1035,7 +1039,9 @@ pub fn process_packet_events(ecs: &mut World) {
 
                 for &id in &p.entity_ids {
                     let Some(entity) = entity_id_index.remove(id) else {
-                        debug!("Tried to remove entity with id {id} but it wasn't in the EntityIdIndex");
+                        debug!(
+                            "Tried to remove entity with id {id} but it wasn't in the EntityIdIndex"
+                        );
                         continue;
                     };
                     let Ok(mut loaded_by) = entity_query.get_mut(entity) else {

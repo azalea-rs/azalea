@@ -2,7 +2,7 @@ use std::{collections::HashMap, fmt, sync::LazyLock};
 
 #[cfg(feature = "azalea-buf")]
 use azalea_buf::AzBuf;
-use serde::{ser::SerializeStruct, Serialize, Serializer};
+use serde::{Serialize, Serializer, ser::SerializeStruct};
 use serde_json::Value;
 #[cfg(feature = "simdnbt")]
 use simdnbt::owned::{NbtCompound, NbtTag};
@@ -334,10 +334,15 @@ fn simdnbt_serialize_field(
     default: impl simdnbt::ToNbtTag,
     reset: bool,
 ) {
-    if let Some(value) = value {
-        compound.insert(name, value);
-    } else if reset {
-        compound.insert(name, default);
+    match value {
+        Some(value) => {
+            compound.insert(name, value);
+        }
+        _ => {
+            if reset {
+                compound.insert(name, default);
+            }
+        }
     }
 }
 

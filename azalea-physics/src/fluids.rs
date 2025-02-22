@@ -1,6 +1,6 @@
 use azalea_block::{
-    fluid_state::{FluidKind, FluidState},
     BlockState,
+    fluid_state::{FluidKind, FluidState},
 };
 use azalea_core::{
     direction::Direction,

@@ -5,7 +5,7 @@ use std::{
 
 use byteorder::{BigEndian, WriteBytesExt};
 
-use super::{UnsizedByteArray, MAX_STRING_LENGTH};
+use super::{MAX_STRING_LENGTH, UnsizedByteArray};
 
 fn write_utf_with_len(buf: &mut impl Write, string: &str, len: usize) -> Result<(), io::Error> {
     if string.len() > len {

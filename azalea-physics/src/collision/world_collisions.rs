@@ -9,8 +9,8 @@ use azalea_core::{
 use azalea_world::{Chunk, Instance};
 use parking_lot::RwLock;
 
-use super::{Shapes, BLOCK_SHAPE};
-use crate::collision::{BlockWithShape, VoxelShape, AABB};
+use super::{BLOCK_SHAPE, Shapes};
+use crate::collision::{AABB, BlockWithShape, VoxelShape};
 
 pub fn get_block_collisions(world: &Instance, aabb: AABB) -> Vec<VoxelShape> {
     let mut state = BlockCollisionsState::new(world, aabb);
@@ -27,12 +27,11 @@ pub fn get_block_collisions(world: &Instance, aabb: AABB) -> Vec<VoxelShape> {
 
         let item_chunk_pos = ChunkPos::from(item.pos);
         let block_state: BlockState = if item_chunk_pos == initial_chunk_pos {
-            if let Some(initial_chunk) = &initial_chunk {
-                initial_chunk
+            match &initial_chunk {
+                Some(initial_chunk) => initial_chunk
                     .get(&ChunkBlockPos::from(item.pos), state.world.chunks.min_y)
-                    .unwrap_or(BlockState::AIR)
-            } else {
-                BlockState::AIR
+                    .unwrap_or(BlockState::AIR),
+                _ => BlockState::AIR,
             }
         } else {
             state.get_block_state(item.pos)

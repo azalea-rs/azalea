@@ -2,8 +2,8 @@
 
 use std::sync::Arc;
 
-use azalea_auth::certs::{Certificates, FetchCertificatesError};
 use azalea_auth::AccessTokenResponse;
+use azalea_auth::certs::{Certificates, FetchCertificatesError};
 use bevy_ecs::component::Component;
 use parking_lot::Mutex;
 use thiserror::Error;

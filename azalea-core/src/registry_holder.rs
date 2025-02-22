@@ -9,8 +9,8 @@ use std::{collections::HashMap, io::Cursor};
 
 use indexmap::IndexMap;
 use simdnbt::{
-    owned::{NbtCompound, NbtTag},
     Deserialize, FromNbtTag, Serialize, ToNbtTag,
+    owned::{NbtCompound, NbtTag},
 };
 use tracing::error;
 

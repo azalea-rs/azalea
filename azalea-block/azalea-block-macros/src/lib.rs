@@ -9,13 +9,13 @@ use proc_macro::TokenStream;
 use proc_macro2::TokenTree;
 use quote::quote;
 use syn::{
-    braced,
+    Expr, Ident, LitStr, Token, braced,
     ext::IdentExt,
     parenthesized,
     parse::{Parse, ParseStream, Result},
     parse_macro_input,
     punctuated::Punctuated,
-    token, Expr, Ident, LitStr, Token,
+    token,
 };
 use utils::{combinations_of, to_pascal_case};
 
@@ -511,13 +511,13 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                     Ident::new(&combination[i].to_string(), proc_macro2::Span::call_site());
 
                 // this terrible code just gets the property default as a string
-                let property_default_as_string = if let TokenTree::Ident(ident) =
-                    property.default.clone().into_iter().last().unwrap()
-                {
-                    ident.to_string()
-                } else {
-                    panic!()
-                };
+                let property_default_as_string =
+                    match property.default.clone().into_iter().last().unwrap() {
+                        TokenTree::Ident(ident) => ident.to_string(),
+                        _ => {
+                            panic!()
+                        }
+                    };
                 if property_default_as_string != combination[i] {
                     is_default = false;
                 }
@@ -565,15 +565,16 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         let Some(default_state_id) = default_state_id else {
             let defaults = properties_with_name
                 .iter()
-                .map(|p| {
-                    if let TokenTree::Ident(i) = p.default.clone().into_iter().last().unwrap() {
-                        i.to_string()
-                    } else {
+                .map(|p| match p.default.clone().into_iter().last().unwrap() {
+                    TokenTree::Ident(i) => i.to_string(),
+                    _ => {
                         panic!()
                     }
                 })
                 .collect::<Vec<_>>();
-            panic!("Couldn't get default state id for {block_name_pascal_case}, combinations={block_properties_vec:?}, defaults={defaults:?}")
+            panic!(
+                "Couldn't get default state id for {block_name_pascal_case}, combinations={block_properties_vec:?}, defaults={defaults:?}"
+            )
         };
 
         // 7035..=7058 => {

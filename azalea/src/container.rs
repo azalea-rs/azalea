@@ -2,12 +2,12 @@ use std::fmt::Debug;
 use std::fmt::Formatter;
 
 use azalea_client::{
+    Client,
     inventory::{CloseContainerEvent, ContainerClickEvent, Inventory},
     packet_handling::game::PacketEvent,
-    Client,
 };
 use azalea_core::position::BlockPos;
-use azalea_inventory::{operations::ClickOperation, ItemStack, Menu};
+use azalea_inventory::{ItemStack, Menu, operations::ClickOperation};
 use azalea_protocol::packets::game::ClientboundGamePacket;
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::{component::Component, prelude::EventReader, system::Commands};

@@ -14,8 +14,8 @@ use tracing::error;
 use uuid::Uuid;
 
 use crate::{
-    events::{Event as AzaleaEvent, LocalPlayerEvents},
     ClientInformation, PlayerInfo,
+    events::{Event as AzaleaEvent, LocalPlayerEvents},
 };
 
 /// A component that keeps strong references to our [`PartialInstance`] and

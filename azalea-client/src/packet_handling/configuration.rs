@@ -14,12 +14,12 @@ use bevy_ecs::prelude::*;
 use bevy_ecs::system::SystemState;
 use tracing::{debug, error, warn};
 
+use crate::InstanceHolder;
 use crate::client::InConfigState;
 use crate::disconnect::DisconnectEvent;
 use crate::local_player::Hunger;
 use crate::packet_handling::game::KeepAliveEvent;
 use crate::raw_connection::RawConnection;
-use crate::InstanceHolder;
 
 #[derive(Event, Debug, Clone)]
 pub struct ConfigurationEvent {
