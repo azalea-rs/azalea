@@ -19,7 +19,7 @@ use bevy_ecs::{component::Component, entity::Entity, system::Resource, world::Wo
 use futures::future::{join_all, BoxFuture};
 use parking_lot::{Mutex, RwLock};
 use tokio::sync::mpsc;
-use tracing::error;
+use tracing::{debug, error};
 
 use crate::{BoxHandleFn, DefaultBotPlugins, HandleFn, JoinOpts, NoState, StartError};
 
@@ -361,6 +361,8 @@ where
             self.states.len(),
             "There must be exactly one state per bot."
         );
+
+        debug!("Starting Azalea {}", env!("CARGO_PKG_VERSION"));
 
         // convert the TryInto<ServerAddress> into a ServerAddress
         let address = match address.try_into() {

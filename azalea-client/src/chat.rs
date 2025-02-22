@@ -153,6 +153,9 @@ impl Client {
 
     /// Send a command packet to the server. The `command` argument should not
     /// include the slash at the front.
+    ///
+    /// You can also just use [`Client::chat`] and start your message with a `/`
+    /// to send a command.
     pub fn send_command_packet(&self, command: &str) {
         self.ecs.lock().send_event(SendChatKindEvent {
             entity: self.entity,
@@ -165,8 +168,8 @@ impl Client {
     /// Send a message in chat.
     ///
     /// ```rust,no_run
-    /// # use azalea_client::{Client, Event};
-    /// # async fn handle(bot: Client, event: Event) -> anyhow::Result<()> {
+    /// # use azalea_client::Client;
+    /// # async fn example(bot: Client) -> anyhow::Result<()> {
     /// bot.chat("Hello, world!");
     /// # Ok(())
     /// # }
