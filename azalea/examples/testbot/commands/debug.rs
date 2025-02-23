@@ -172,6 +172,9 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
         let source = ctx.source.lock();
 
         source.reply("Ok!");
+
+
+
         source.bot.disconnect();
 
         let ecs = source.bot.ecs.clone();
@@ -180,6 +183,8 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
             // dump the ecs
 
             let ecs = ecs.lock();
+
+
 
             let report_path = env::temp_dir().join("azalea-ecs-leak-report.txt");
             let mut report = File::create(&report_path).unwrap();
@@ -203,6 +208,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
 
             writeln!(report).unwrap();
 
+
             for (info, _) in ecs.iter_resources() {
                 let name = info.name();
                 writeln!(report, "Resource: {name}").unwrap();
@@ -212,6 +218,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
                 match name {
                     "azalea_world::container::InstanceContainer" => {
                         let instance_container = ecs.resource::<InstanceContainer>();
+
                         for (instance_name, instance) in &instance_container.instances {
                             writeln!(report, "- Name: {}", instance_name).unwrap();
                             writeln!(report, "- Reference count: {}", instance.strong_count())

@@ -2,15 +2,15 @@ use std::io::Cursor;
 
 use azalea_protocol::{
     packets::{
-        config::{ClientboundConfigPacket, ServerboundConfigPacket},
         Packet,
+        config::{ClientboundConfigPacket, ServerboundConfigPacket},
     },
     read::deserialize_packet,
 };
 use bevy_ecs::prelude::*;
 use tracing::{debug, error};
 
-use crate::{raw_connection::RawConnection, InConfigState};
+use crate::{InConfigState, raw_connection::RawConnection};
 
 #[derive(Event, Debug, Clone)]
 pub struct ReceiveConfigPacketEvent {

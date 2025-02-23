@@ -199,6 +199,11 @@ impl<T: AzaleaRead> AzaleaRead for Vec<T> {
         Ok(contents)
     }
 }
+impl<T: AzaleaRead> AzaleaRead for Box<[T]> {
+    default fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        Vec::<T>::azalea_read(buf).map(Vec::into_boxed_slice)
+    }
+}
 impl<T: AzaleaRead> AzaleaReadLimited for Vec<T> {
     fn azalea_read_limited(buf: &mut Cursor<&[u8]>, limit: usize) -> Result<Self, BufReadError> {
         let length = u32::azalea_read_var(buf)? as usize;
@@ -214,6 +219,11 @@ impl<T: AzaleaRead> AzaleaReadLimited for Vec<T> {
             contents.push(T::azalea_read(buf)?);
         }
         Ok(contents)
+    }
+}
+impl<T: AzaleaRead> AzaleaReadLimited for Box<[T]> {
+    fn azalea_read_limited(buf: &mut Cursor<&[u8]>, limit: usize) -> Result<Self, BufReadError> {
+        Vec::<T>::azalea_read_limited(buf, limit).map(Vec::into_boxed_slice)
     }
 }
 
@@ -295,6 +305,11 @@ impl<T: AzaleaReadVar> AzaleaReadVar for Vec<T> {
             contents.push(T::azalea_read_var(buf)?);
         }
         Ok(contents)
+    }
+}
+impl<T: AzaleaReadVar> AzaleaReadVar for Box<[T]> {
+    fn azalea_read_var(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        Vec::<T>::azalea_read_var(buf).map(Vec::into_boxed_slice)
     }
 }
 

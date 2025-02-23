@@ -46,6 +46,17 @@ pub struct RelativeEntityUpdate {
     // a function that takes the entity and updates it
     pub update: Box<dyn FnOnce(&mut EntityWorldMut) + Send + Sync>,
 }
+impl RelativeEntityUpdate {
+    pub fn new(
+        partial_world: Arc<RwLock<PartialInstance>>,
+        update: impl FnOnce(&mut EntityWorldMut) + Send + Sync + 'static,
+    ) -> Self {
+        Self {
+            partial_world,
+            update: Box::new(update),
+        }
+    }
+}
 
 /// A component that counts the number of times this entity has been modified.
 /// This is used for making sure two clients don't do the same relative update

@@ -6,6 +6,7 @@
 //! [`azalea`]: https://docs.rs/azalea
 
 #![feature(error_generic_member_access)]
+#![feature(never_type)]
 
 mod account;
 mod client;

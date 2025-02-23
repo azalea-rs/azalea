@@ -752,9 +752,9 @@ impl GamePacketHandler<'_> {
 
             // we use RelativeEntityUpdate because it makes sure changes aren't made
             // multiple times
-            commands.entity(entity).queue(RelativeEntityUpdate {
-                partial_world: instance_holder.partial_instance.clone(),
-                update: Box::new(move |entity| {
+            commands.entity(entity).queue(RelativeEntityUpdate::new(
+                instance_holder.partial_instance.clone(),
+                move |entity| {
                     let entity_id = entity.id();
                     entity.world_scope(|world| {
                         let mut commands_system_state = SystemState::<Commands>::new(world);
@@ -767,8 +767,8 @@ impl GamePacketHandler<'_> {
                         }
                         commands_system_state.apply(world);
                     });
-                }),
-            });
+                },
+            ));
         });
     }
 
@@ -805,14 +805,14 @@ impl GamePacketHandler<'_> {
                     z: p.delta.za as f64 / 8000.,
                 });
 
-                commands.entity(entity).queue(RelativeEntityUpdate {
-                    partial_world: instance_holder.partial_instance.clone(),
-                    update: Box::new(move |entity_mut| {
+                commands.entity(entity).queue(RelativeEntityUpdate::new(
+                    instance_holder.partial_instance.clone(),
+                    move |entity_mut| {
                         entity_mut.world_scope(|world| {
                             world.send_event(KnockbackEvent { entity, knockback })
                         });
-                    }),
-                });
+                    },
+                ));
             },
         );
     }
@@ -868,9 +868,9 @@ impl GamePacketHandler<'_> {
                     x_rot: (p.change.look_direction.x_rot as i32 * 360) as f32 / 256.,
                     y_rot: (p.change.look_direction.y_rot as i32 * 360) as f32 / 256.,
                 };
-                commands.entity(entity).queue(RelativeEntityUpdate {
-                    partial_world: instance_holder.partial_instance.clone(),
-                    update: Box::new(move |entity| {
+                commands.entity(entity).queue(RelativeEntityUpdate::new(
+                    instance_holder.partial_instance.clone(),
+                    move |entity| {
                         let mut position = entity.get_mut::<Position>().unwrap();
                         if new_pos != **position {
                             **position = new_pos;
@@ -883,8 +883,8 @@ impl GamePacketHandler<'_> {
                         // old_pos is set to the current position when we're teleported
                         let mut physics = entity.get_mut::<Physics>().unwrap();
                         physics.set_old_pos(&position);
-                    }),
-                });
+                    },
+                ));
             },
         );
     }
@@ -913,9 +913,9 @@ impl GamePacketHandler<'_> {
 
                 let new_delta = p.delta.clone();
                 let new_on_ground = p.on_ground;
-                commands.entity(entity).queue(RelativeEntityUpdate {
-                    partial_world: instance_holder.partial_instance.clone(),
-                    update: Box::new(move |entity_mut| {
+                commands.entity(entity).queue(RelativeEntityUpdate::new(
+                    instance_holder.partial_instance.clone(),
+                    move |entity_mut| {
                         let mut physics = entity_mut.get_mut::<Physics>().unwrap();
                         let new_pos = physics.vec_delta_codec.decode(
                             new_delta.xa as i64,
@@ -929,8 +929,8 @@ impl GamePacketHandler<'_> {
                         if new_pos != **position {
                             **position = new_pos;
                         }
-                    }),
-                });
+                    },
+                ));
             },
         );
     }
@@ -962,9 +962,9 @@ impl GamePacketHandler<'_> {
 
                 let new_on_ground = p.on_ground;
 
-                commands.entity(entity).queue(RelativeEntityUpdate {
-                    partial_world: instance_holder.partial_instance.clone(),
-                    update: Box::new(move |entity_mut| {
+                commands.entity(entity).queue(RelativeEntityUpdate::new(
+                    instance_holder.partial_instance.clone(),
+                    move |entity_mut| {
                         let mut physics = entity_mut.get_mut::<Physics>().unwrap();
                         let new_pos = physics.vec_delta_codec.decode(
                             new_delta.xa as i64,
@@ -983,8 +983,8 @@ impl GamePacketHandler<'_> {
                         if new_look_direction != *look_direction {
                             *look_direction = new_look_direction;
                         }
-                    }),
-                });
+                    },
+                ));
             },
         );
     }
@@ -1003,9 +1003,9 @@ impl GamePacketHandler<'_> {
                     };
                     let new_on_ground = p.on_ground;
 
-                    commands.entity(entity).queue(RelativeEntityUpdate {
-                        partial_world: instance_holder.partial_instance.clone(),
-                        update: Box::new(move |entity_mut| {
+                    commands.entity(entity).queue(RelativeEntityUpdate::new(
+                        instance_holder.partial_instance.clone(),
+                        move |entity_mut| {
                             let mut physics = entity_mut.get_mut::<Physics>().unwrap();
                             physics.set_on_ground(new_on_ground);
 
@@ -1013,8 +1013,8 @@ impl GamePacketHandler<'_> {
                             if new_look_direction != *look_direction {
                                 *look_direction = new_look_direction;
                             }
-                        }),
-                    });
+                        },
+                    ));
                 } else {
                     warn!(
                         "Got move entity rot packet for unknown entity id {}",
@@ -1507,9 +1507,9 @@ impl GamePacketHandler<'_> {
                 let new_on_ground = p.on_ground;
                 let new_look_direction = p.values.look_direction;
 
-                commands.entity(entity).queue(RelativeEntityUpdate {
-                    partial_world: instance_holder.partial_instance.clone(),
-                    update: Box::new(move |entity_mut| {
+                commands.entity(entity).queue(RelativeEntityUpdate::new(
+                    instance_holder.partial_instance.clone(),
+                    move |entity_mut| {
                         let is_local_entity = entity_mut.get::<LocalEntity>().is_some();
                         let mut physics = entity_mut.get_mut::<Physics>().unwrap();
 
@@ -1530,8 +1530,8 @@ impl GamePacketHandler<'_> {
 
                         let mut look_direction = entity_mut.get_mut::<LookDirection>().unwrap();
                         *look_direction = new_look_direction;
-                    }),
-                });
+                    },
+                ));
             },
         );
     }

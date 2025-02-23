@@ -1,8 +1,8 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use azalea_protocol::packets::{
-    game::{s_chat::LastSeenMessagesUpdate, ServerboundChat, ServerboundChatCommand},
     Packet,
+    game::{ServerboundChat, ServerboundChatCommand, s_chat::LastSeenMessagesUpdate},
 };
 use bevy_ecs::prelude::*;
 

@@ -72,7 +72,7 @@ const MAGIC: [(i32, i32, i32); 64] = [
 /// A compact list of integers with the given number of bits per entry.
 #[derive(Clone, Debug, Default)]
 pub struct BitStorage {
-    pub data: Vec<u64>,
+    pub data: Box<[u64]>,
     bits: usize,
     mask: u64,
     size: usize,
@@ -106,7 +106,7 @@ impl BitStorage {
             // 0 bit storage
             if data.is_empty() {
                 return Ok(BitStorage {
-                    data: Vec::new(),
+                    data: Box::new([]),
                     bits,
                     size,
                     ..Default::default()
@@ -136,7 +136,7 @@ impl BitStorage {
         };
 
         Ok(BitStorage {
-            data: using_data,
+            data: using_data.into(),
             bits,
             mask,
             size,

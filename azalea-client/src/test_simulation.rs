@@ -21,6 +21,7 @@ use bevy_app::App;
 use bevy_ecs::{prelude::*, schedule::ExecutorKind};
 use parking_lot::{Mutex, RwLock};
 use simdnbt::owned::Nbt;
+use tokio::task::JoinHandle;
 use tokio::{sync::mpsc, time::sleep};
 use uuid::Uuid;
 
@@ -39,14 +40,14 @@ pub struct Simulation {
     pub rt: tokio::runtime::Runtime,
 
     pub incoming_packet_queue: Arc<Mutex<Vec<Box<[u8]>>>>,
-    pub outgoing_packets_receiver: mpsc::UnboundedReceiver<Box<[u8]>>,
+    pub clear_outgoing_packets_receiver_task: JoinHandle<!>,
 }
 
 impl Simulation {
     pub fn new(initial_connection_protocol: ConnectionProtocol) -> Self {
         let mut app = create_simulation_app();
         let mut entity = app.world_mut().spawn_empty();
-        let (player, outgoing_packets_receiver, incoming_packet_queue, rt) =
+        let (player, clear_outgoing_packets_receiver_task, incoming_packet_queue, rt) =
             create_local_player_bundle(entity.id(), initial_connection_protocol);
         entity.insert(player);
 
@@ -68,7 +69,7 @@ impl Simulation {
             entity,
             rt,
             incoming_packet_queue,
-            outgoing_packets_receiver,
+            clear_outgoing_packets_receiver_task,
         }
     }
 
@@ -105,14 +106,14 @@ fn create_local_player_bundle(
     connection_protocol: ConnectionProtocol,
 ) -> (
     LocalPlayerBundle,
-    mpsc::UnboundedReceiver<Box<[u8]>>,
+    JoinHandle<!>,
     Arc<Mutex<Vec<Box<[u8]>>>>,
     tokio::runtime::Runtime,
 ) {
     // unused since we'll trigger ticks ourselves
-    let (run_schedule_sender, _run_schedule_receiver) = tokio::sync::mpsc::unbounded_channel();
+    let (run_schedule_sender, _run_schedule_receiver) = mpsc::unbounded_channel();
 
-    let (outgoing_packets_sender, outgoing_packets_receiver) = mpsc::unbounded_channel();
+    let (outgoing_packets_sender, mut outgoing_packets_receiver) = mpsc::unbounded_channel();
     let incoming_packet_queue = Arc::new(Mutex::new(Vec::new()));
     let reader = RawConnectionReader {
         incoming_packet_queue: incoming_packet_queue.clone(),
@@ -133,6 +134,12 @@ fn create_local_player_bundle(
     let write_packets_task = rt.spawn(async {
         loop {
             sleep(Duration::from_secs(60)).await;
+        }
+    });
+
+    let clear_outgoing_packets_receiver_task = rt.spawn(async move {
+        loop {
+            let _ = outgoing_packets_receiver.recv().await;
         }
     });
 
@@ -160,7 +167,7 @@ fn create_local_player_bundle(
 
     (
         local_player_bundle,
-        outgoing_packets_receiver,
+        clear_outgoing_packets_receiver_task,
         incoming_packet_queue,
         rt,
     )

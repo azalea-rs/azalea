@@ -31,7 +31,7 @@ pub struct PartialChunkStorage {
     chunk_radius: u32,
     view_range: u32,
     // chunks is a list of size chunk_radius * chunk_radius
-    chunks: Vec<Option<Arc<RwLock<Chunk>>>>,
+    chunks: Box<[Option<Arc<RwLock<Chunk>>>]>,
 }
 
 /// A storage for chunks where they're only stored weakly, so if they're not
@@ -50,7 +50,7 @@ pub struct ChunkStorage {
 /// coordinate.
 #[derive(Debug)]
 pub struct Chunk {
-    pub sections: Vec<Section>,
+    pub sections: Box<[Section]>,
     /// Heightmaps are used for identifying the surface blocks in a chunk.
     /// Usually for clients only `WorldSurface` and `MotionBlocking` are
     /// present.
@@ -84,7 +84,7 @@ impl Default for Section {
 impl Default for Chunk {
     fn default() -> Self {
         Chunk {
-            sections: vec![Section::default(); (384 / 16) as usize],
+            sections: vec![Section::default(); (384 / 16) as usize].into(),
             heightmaps: HashMap::new(),
         }
     }
@@ -97,7 +97,7 @@ impl PartialChunkStorage {
             view_center: ChunkPos::new(0, 0),
             chunk_radius,
             view_range,
-            chunks: vec![None; (view_range * view_range) as usize],
+            chunks: vec![None; (view_range * view_range) as usize].into(),
         }
     }
 
@@ -341,6 +341,7 @@ impl Chunk {
             let section = Section::azalea_read(buf)?;
             sections.push(section);
         }
+        let sections = sections.into_boxed_slice();
 
         let mut heightmaps = HashMap::new();
         for (name, heightmap) in heightmaps_nbt.iter() {

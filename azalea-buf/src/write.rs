@@ -64,6 +64,11 @@ impl<T: AzaleaWrite> AzaleaWrite for Vec<T> {
         self[..].azalea_write(buf)
     }
 }
+impl<T: AzaleaWrite> AzaleaWrite for Box<[T]> {
+    default fn azalea_write(&self, buf: &mut impl Write) -> Result<(), io::Error> {
+        self[..].azalea_write(buf)
+    }
+}
 
 impl<T: AzaleaWrite> AzaleaWrite for [T] {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), io::Error> {
@@ -167,13 +172,23 @@ impl AzaleaWriteVar for u16 {
     }
 }
 
-impl<T: AzaleaWriteVar> AzaleaWriteVar for Vec<T> {
+impl<T: AzaleaWriteVar> AzaleaWriteVar for [T] {
     fn azalea_write_var(&self, buf: &mut impl Write) -> Result<(), io::Error> {
         u32::azalea_write_var(&(self.len() as u32), buf)?;
         for i in self {
             i.azalea_write_var(buf)?;
         }
         Ok(())
+    }
+}
+impl<T: AzaleaWriteVar> AzaleaWriteVar for Vec<T> {
+    fn azalea_write_var(&self, buf: &mut impl Write) -> Result<(), io::Error> {
+        self[..].azalea_write_var(buf)
+    }
+}
+impl<T: AzaleaWriteVar> AzaleaWriteVar for Box<[T]> {
+    fn azalea_write_var(&self, buf: &mut impl Write) -> Result<(), io::Error> {
+        self[..].azalea_write_var(buf)
     }
 }
 

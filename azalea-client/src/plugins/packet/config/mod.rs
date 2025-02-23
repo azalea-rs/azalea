@@ -1,7 +1,7 @@
 mod events;
 
-use azalea_protocol::packets::config::*;
 use azalea_protocol::packets::ConnectionProtocol;
+use azalea_protocol::packets::config::*;
 use bevy_ecs::prelude::*;
 use bevy_ecs::system::SystemState;
 pub use events::*;
@@ -12,7 +12,7 @@ use crate::client::InConfigState;
 use crate::disconnect::DisconnectEvent;
 use crate::packet::game::KeepAliveEvent;
 use crate::raw_connection::RawConnection;
-use crate::{declare_packet_handlers, InstanceHolder};
+use crate::{InstanceHolder, declare_packet_handlers};
 
 pub fn process_packet_events(ecs: &mut World) {
     let mut events_owned = Vec::new();

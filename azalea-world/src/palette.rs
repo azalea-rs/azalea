@@ -49,7 +49,7 @@ impl PalettedContainer {
         let palette_type = PaletteKind::from_bits_and_type(server_bits_per_entry, container_type);
         let palette = palette_type.read(buf)?;
         let size = container_type.size();
-        let data = Vec::<u64>::azalea_read(buf)?;
+        let data = Box::<[u64]>::azalea_read(buf)?;
 
         // we can only trust the bits per entry that we're sent if there's enough data
         // that it'd be global. if it's not global, then we have to calculate it
