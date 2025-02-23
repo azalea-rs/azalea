@@ -288,21 +288,16 @@ impl<S> CommandDispatcher<S> {
                             next.push(child.copy_for(context.source.clone()));
                         }
                     }
-                } else {
-                    match &context.command {
-                        Some(context_command) => {
-                            found_command = true;
+                } else if let Some(context_command) = &context.command {
+                    found_command = true;
 
-                            let value = context_command(context);
-                            result += value;
-                            // consumer.on_command_complete(context, true, value);
-                            successful_forks += 1;
+                    let value = context_command(context);
+                    result += value;
+                    // consumer.on_command_complete(context, true, value);
+                    successful_forks += 1;
 
-                            // TODO: allow context_command to error and handle
-                            // those errors
-                        }
-                        _ => {}
-                    }
+                    // TODO: allow context_command to error and handle
+                    // those errors
                 }
             }
 
