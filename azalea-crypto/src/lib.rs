@@ -4,10 +4,10 @@ mod signing;
 
 use aes::cipher::inout::InOutBuf;
 use aes::{
-    cipher::{BlockDecryptMut, BlockEncryptMut, KeyIvInit},
     Aes128,
+    cipher::{BlockDecryptMut, BlockEncryptMut, KeyIvInit},
 };
-use rand::{rngs::OsRng, RngCore};
+use rand::{RngCore, rngs::OsRng};
 use sha1::{Digest, Sha1};
 pub use signing::*;
 

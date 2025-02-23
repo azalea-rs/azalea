@@ -1,4 +1,4 @@
-use azalea_client::{chat::SendChatEvent, InstanceHolder};
+use azalea_client::{InstanceHolder, chat::SendChatEvent};
 use azalea_core::position::Vec3;
 use bevy_ecs::prelude::*;
 
@@ -89,16 +89,16 @@ pub fn debug_render_path_with_particles(
                     z: start_vec3.z + (end_vec3.z - start_vec3.z) * percent,
                 };
                 let particle_command = format!(
-                "/particle dust{{color:[{r},{g},{b}],scale:{size}}} {start_x} {start_y} {start_z} {delta_x} {delta_y} {delta_z} 0 {count}",
-                size = 1,
-                start_x = pos.x,
-                start_y = pos.y,
-                start_z = pos.z,
-                delta_x = 0,
-                delta_y = 0,
-                delta_z = 0,
-                count = 1
-            );
+                    "/particle dust{{color:[{r},{g},{b}],scale:{size}}} {start_x} {start_y} {start_z} {delta_x} {delta_y} {delta_z} 0 {count}",
+                    size = 1,
+                    start_x = pos.x,
+                    start_y = pos.y,
+                    start_z = pos.z,
+                    delta_x = 0,
+                    delta_y = 0,
+                    delta_z = 0,
+                    count = 1
+                );
                 chat_events.send(SendChatEvent {
                     entity,
                     content: particle_command,

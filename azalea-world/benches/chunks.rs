@@ -2,7 +2,7 @@ use std::hint::black_box;
 
 use azalea_core::position::ChunkBlockPos;
 use azalea_world::{BitStorage, Chunk};
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, criterion_group, criterion_main};
 
 fn bench_chunks(c: &mut Criterion) {
     c.bench_function("Chunk::set", |b| {

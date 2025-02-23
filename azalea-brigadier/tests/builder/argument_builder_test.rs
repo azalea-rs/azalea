@@ -10,11 +10,13 @@ fn test_arguments() {
     let builder = builder.then(argument.clone());
     assert_eq!(builder.arguments().children.len(), 1);
     let built_argument = Rc::new(argument.build());
-    assert!(builder
-        .arguments()
-        .children
-        .values()
-        .any(|e| *e.read() == *built_argument));
+    assert!(
+        builder
+            .arguments()
+            .children
+            .values()
+            .any(|e| *e.read() == *built_argument)
+    );
 }
 
 //     @Test

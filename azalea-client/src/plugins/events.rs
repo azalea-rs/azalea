@@ -7,7 +7,7 @@ use azalea_chat::FormattedText;
 use azalea_core::tick::GameTick;
 use azalea_entity::Dead;
 use azalea_protocol::packets::game::{
-    c_player_combat_kill::ClientboundPlayerCombatKill, ClientboundGamePacket,
+    ClientboundGamePacket, c_player_combat_kill::ClientboundPlayerCombatKill,
 };
 use azalea_world::{InstanceName, MinecraftEntityId};
 use bevy_app::{App, Plugin, PreUpdate, Update};
@@ -22,13 +22,13 @@ use derive_more::{Deref, DerefMut};
 use tokio::sync::mpsc;
 
 use crate::{
+    PlayerInfo,
     chat::{ChatPacket, ChatReceivedEvent},
     disconnect::DisconnectEvent,
     packet::game::{
         AddPlayerEvent, DeathEvent, KeepAliveEvent, ReceivePacketEvent, RemovePlayerEvent,
         UpdatePlayerEvent,
     },
-    PlayerInfo,
 };
 
 // (for contributors):

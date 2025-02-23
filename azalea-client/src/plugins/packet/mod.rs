@@ -1,4 +1,4 @@
-use azalea_entity::{metadata::Health, EntityUpdateSet};
+use azalea_entity::{EntityUpdateSet, metadata::Health};
 use bevy_app::{App, First, Plugin, PreUpdate, Update};
 use bevy_ecs::{
     prelude::*,
@@ -56,7 +56,7 @@ impl Plugin for PacketPlugin {
             (
                 (
                     config::handle_send_packet_event,
-                    game::handle_sendpacketevent,
+                    game::handle_outgoing_packets,
                 )
                     .chain(),
                 death_event_on_0_health.before(death_listener),

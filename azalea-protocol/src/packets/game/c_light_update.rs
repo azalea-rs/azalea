@@ -11,7 +11,7 @@ pub struct ClientboundLightUpdate {
     pub light_data: ClientboundLightUpdatePacketData,
 }
 
-#[derive(Clone, Debug, AzBuf)]
+#[derive(Clone, Debug, AzBuf, Default)]
 pub struct ClientboundLightUpdatePacketData {
     pub sky_y_mask: BitSet,
     pub block_y_mask: BitSet,

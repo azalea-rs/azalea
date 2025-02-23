@@ -16,10 +16,11 @@ use bevy_ecs::{
     prelude::Event,
     schedule::IntoSystemConfigs,
 };
-use handler::{handle_send_chat_kind_event, SendChatKindEvent};
+use handler::{SendChatKindEvent, handle_send_chat_kind_event};
 use uuid::Uuid;
 
-use crate::{client::Client, packet::game::handle_sendpacketevent};
+use super::packet::game::handle_outgoing_packets;
+use crate::client::Client;
 
 pub struct ChatPlugin;
 impl Plugin for ChatPlugin {
@@ -31,7 +32,7 @@ impl Plugin for ChatPlugin {
                 Update,
                 (
                     handle_send_chat_event,
-                    handle_send_chat_kind_event.after(handle_sendpacketevent),
+                    handle_send_chat_kind_event.after(handle_outgoing_packets),
                 )
                     .chain(),
             );
@@ -161,6 +162,9 @@ impl Client {
 
     /// Send a command packet to the server. The `command` argument should not
     /// include the slash at the front.
+    ///
+    /// You can also just use [`Client::chat`] and start your message with a `/`
+    /// to send a command.
     pub fn send_command_packet(&self, command: &str) {
         self.ecs.lock().send_event(SendChatKindEvent {
             entity: self.entity,
@@ -173,8 +177,8 @@ impl Client {
     /// Send a message in chat.
     ///
     /// ```rust,no_run
-    /// # use azalea_client::{Client, Event};
-    /// # async fn handle(bot: Client, event: Event) -> anyhow::Result<()> {
+    /// # use azalea_client::Client;
+    /// # async fn example(bot: Client) -> anyhow::Result<()> {
     /// bot.chat("Hello, world!");
     /// # Ok(())
     /// # }

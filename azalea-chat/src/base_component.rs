@@ -1,6 +1,6 @@
 use serde::Serialize;
 
-use crate::{style::Style, FormattedText};
+use crate::{FormattedText, style::Style};
 
 #[derive(Clone, Debug, PartialEq, Serialize, Eq, Hash)]
 pub struct BaseComponent {

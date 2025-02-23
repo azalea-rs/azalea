@@ -37,9 +37,9 @@ pub use bevy_app as app;
 pub use bevy_ecs as ecs;
 pub use bot::*;
 use ecs::component::Component;
-use futures::{future::BoxFuture, Future};
+use futures::{Future, future::BoxFuture};
 use protocol::connect::Proxy;
-use protocol::{resolver::ResolverError, ServerAddress};
+use protocol::{ServerAddress, resolver::ResolverError};
 use swarm::SwarmBuilder;
 use thiserror::Error;
 

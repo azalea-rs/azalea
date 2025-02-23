@@ -1,16 +1,16 @@
 use azalea_block::{Block, BlockState};
 use azalea_core::{aabb::AABB, position::Vec3};
 use azalea_entity::{
-    metadata::Sprinting, move_relative, Attributes, InLoadedChunk, Jumping, LocalEntity,
-    LookDirection, OnClimbable, Physics, Pose, Position,
+    Attributes, InLoadedChunk, Jumping, LocalEntity, LookDirection, OnClimbable, Physics, Pose,
+    Position, metadata::Sprinting, move_relative,
 };
 use azalea_world::{Instance, InstanceContainer, InstanceName};
 use bevy_ecs::prelude::*;
 
 use crate::{
-    collision::{move_colliding, MoverType},
-    get_block_pos_below_that_affects_movement, handle_relative_friction_and_calculate_movement,
     HandleRelativeFrictionAndCalculateMovementOpts,
+    collision::{MoverType, move_colliding},
+    get_block_pos_below_that_affects_movement, handle_relative_friction_and_calculate_movement,
 };
 
 /// Move the entity with the given acceleration while handling friction,

@@ -7,7 +7,7 @@ use std::{
 
 use azalea_buf::AzaleaWriteVar;
 use azalea_crypto::Aes128CfbEnc;
-use flate2::{bufread::ZlibEncoder, Compression};
+use flate2::{Compression, bufread::ZlibEncoder};
 use thiserror::Error;
 use tokio::io::{AsyncWrite, AsyncWriteExt};
 use tracing::trace;

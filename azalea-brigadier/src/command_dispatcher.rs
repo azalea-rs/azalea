@@ -108,23 +108,30 @@ impl<S> CommandDispatcher<S> {
                 1
             }) {
                 reader.skip();
-                if let Some(redirect) = &child.read().redirect {
-                    let child_context =
-                        CommandContextBuilder::new(self, source, redirect.clone(), reader.cursor);
-                    let parse = self
-                        .parse_nodes(redirect, &reader, child_context)
-                        .expect("Parsing nodes failed");
-                    context.with_child(Rc::new(parse.context));
-                    return Ok(ParseResults {
-                        context,
-                        reader: parse.reader,
-                        exceptions: parse.exceptions,
-                    });
-                } else {
-                    let parse = self
-                        .parse_nodes(&child, &reader, context)
-                        .expect("Parsing nodes failed");
-                    potentials.push(parse);
+                match &child.read().redirect {
+                    Some(redirect) => {
+                        let child_context = CommandContextBuilder::new(
+                            self,
+                            source,
+                            redirect.clone(),
+                            reader.cursor,
+                        );
+                        let parse = self
+                            .parse_nodes(redirect, &reader, child_context)
+                            .expect("Parsing nodes failed");
+                        context.with_child(Rc::new(parse.context));
+                        return Ok(ParseResults {
+                            context,
+                            reader: parse.reader,
+                            exceptions: parse.exceptions,
+                        });
+                    }
+                    _ => {
+                        let parse = self
+                            .parse_nodes(&child, &reader, context)
+                            .expect("Parsing nodes failed");
+                        potentials.push(parse);
+                    }
                 }
             } else {
                 potentials.push(ParseResults {
@@ -215,11 +222,14 @@ impl<S> CommandDispatcher<S> {
     pub fn find_node(&self, path: &[&str]) -> Option<Arc<RwLock<CommandNode<S>>>> {
         let mut node = self.root.clone();
         for name in path {
-            if let Some(child) = node.clone().read().child(name) {
-                node = child;
-            } else {
-                return None;
-            }
+            match node.clone().read().child(name) {
+                Some(child) => {
+                    node = child;
+                }
+                _ => {
+                    return None;
+                }
+            };
         }
         Some(node)
     }
@@ -258,31 +268,41 @@ impl<S> CommandDispatcher<S> {
                         let modifier = &context.modifier;
                         if let Some(modifier) = modifier {
                             let results = modifier(context);
-                            if let Ok(results) = results {
-                                if !results.is_empty() {
-                                    next.extend(results.iter().map(|s| child.copy_for(s.clone())));
+                            match results {
+                                Ok(results) => {
+                                    if !results.is_empty() {
+                                        next.extend(
+                                            results.iter().map(|s| child.copy_for(s.clone())),
+                                        );
+                                    }
                                 }
-                            } else {
-                                // TODO
-                                // self.consumer.on_command_complete(context, false, 0);
-                                if !forked {
-                                    return Err(results.err().unwrap());
+                                _ => {
+                                    // TODO
+                                    // self.consumer.on_command_complete(context, false, 0);
+                                    if !forked {
+                                        return Err(results.err().unwrap());
+                                    }
                                 }
                             }
                         } else {
                             next.push(child.copy_for(context.source.clone()));
                         }
                     }
-                } else if let Some(context_command) = &context.command {
-                    found_command = true;
+                } else {
+                    match &context.command {
+                        Some(context_command) => {
+                            found_command = true;
 
-                    let value = context_command(context);
-                    result += value;
-                    // consumer.on_command_complete(context, true, value);
-                    successful_forks += 1;
+                            let value = context_command(context);
+                            result += value;
+                            // consumer.on_command_complete(context, true, value);
+                            successful_forks += 1;
 
-                    // TODO: allow context_command to error and handle those
-                    // errors
+                            // TODO: allow context_command to error and handle
+                            // those errors
+                        }
+                        _ => {}
+                    }
                 }
             }
 
@@ -332,32 +352,35 @@ impl<S> CommandDispatcher<S> {
         if node.command.is_some() {
             result.push(prefix.to_owned());
         }
-        if let Some(redirect) = &node.redirect {
-            let redirect = if redirect.data_ptr() == self.root.data_ptr() {
-                "...".to_string()
-            } else {
-                format!("-> {}", redirect.read().usage_text())
-            };
-            if prefix.is_empty() {
-                result.push(format!("{} {redirect}", node.usage_text()));
-            } else {
-                result.push(format!("{prefix} {redirect}"));
+        match &node.redirect {
+            Some(redirect) => {
+                let redirect = if redirect.data_ptr() == self.root.data_ptr() {
+                    "...".to_string()
+                } else {
+                    format!("-> {}", redirect.read().usage_text())
+                };
+                if prefix.is_empty() {
+                    result.push(format!("{} {redirect}", node.usage_text()));
+                } else {
+                    result.push(format!("{prefix} {redirect}"));
+                }
             }
-        } else {
-            for child in node.children.values() {
-                let child = child.read();
-                self.get_all_usage_recursive(
-                    &child,
-                    source,
-                    result,
-                    if prefix.is_empty() {
-                        child.usage_text()
-                    } else {
-                        format!("{prefix} {}", child.usage_text())
-                    }
-                    .as_str(),
-                    restricted,
-                );
+            _ => {
+                for child in node.children.values() {
+                    let child = child.read();
+                    self.get_all_usage_recursive(
+                        &child,
+                        source,
+                        result,
+                        if prefix.is_empty() {
+                            child.usage_text()
+                        } else {
+                            format!("{prefix} {}", child.usage_text())
+                        }
+                        .as_str(),
+                        restricted,
+                    );
+                }
             }
         }
     }

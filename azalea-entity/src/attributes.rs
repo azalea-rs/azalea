@@ -1,6 +1,6 @@
 //! See <https://minecraft.fandom.com/wiki/Attribute>.
 
-use std::collections::{hash_map, HashMap};
+use std::collections::{HashMap, hash_map};
 
 use azalea_buf::AzBuf;
 use azalea_core::resource_location::ResourceLocation;

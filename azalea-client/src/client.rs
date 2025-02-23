@@ -14,29 +14,29 @@ use azalea_core::{
     tick::GameTick,
 };
 use azalea_entity::{
+    EntityPlugin, EntityUpdateSet, EyeHeight, LocalEntity, Position,
     indexing::{EntityIdIndex, EntityUuidIndex},
     metadata::Health,
-    EntityPlugin, EntityUpdateSet, EyeHeight, LocalEntity, Position,
 };
 use azalea_physics::PhysicsPlugin;
 use azalea_protocol::{
+    ServerAddress,
     common::client_information::ClientInformation,
     connect::{Connection, ConnectionError, Proxy},
     packets::{
-        self,
+        self, ClientIntention, ConnectionProtocol, PROTOCOL_VERSION, Packet,
         config::{ClientboundConfigPacket, ServerboundConfigPacket},
         game::ServerboundGamePacket,
         handshake::{
-            s_intention::ServerboundIntention, ClientboundHandshakePacket,
-            ServerboundHandshakePacket,
+            ClientboundHandshakePacket, ServerboundHandshakePacket,
+            s_intention::ServerboundIntention,
         },
         login::{
-            s_hello::ServerboundHello, s_key::ServerboundKey,
-            s_login_acknowledged::ServerboundLoginAcknowledged, ClientboundLoginPacket,
+            ClientboundLoginPacket, s_hello::ServerboundHello, s_key::ServerboundKey,
+            s_login_acknowledged::ServerboundLoginAcknowledged,
         },
-        ClientIntention, ConnectionProtocol, Packet, PROTOCOL_VERSION,
     },
-    resolver, ServerAddress,
+    resolver,
 };
 use azalea_world::{Instance, InstanceContainer, InstanceName, PartialInstance};
 use bevy_app::{App, Plugin, PluginGroup, PluginGroupBuilder, Update};
@@ -61,6 +61,7 @@ use tracing::{debug, error};
 use uuid::Uuid;
 
 use crate::{
+    Account, PlayerInfo,
     attack::{self, AttackPlugin},
     brand::BrandPlugin,
     chat::ChatPlugin,
@@ -75,15 +76,14 @@ use crate::{
     mining::{self, MiningPlugin},
     movement::{LastSentLookDirection, MovementPlugin, PhysicsState},
     packet::{
-        login::{self, LoginSendPacketQueue},
         PacketPlugin,
+        login::{self, InLoginState, LoginSendPacketQueue},
     },
     player::retroactively_add_game_profile_component,
     raw_connection::RawConnection,
     respawn::RespawnPlugin,
     task_pool::TaskPoolPlugin,
     tick_end::TickEndPlugin,
-    Account, PlayerInfo,
 };
 
 /// `Client` has the things that a user interacting with the library will want.
@@ -369,7 +369,8 @@ impl Client {
         let (ecs_packets_tx, mut ecs_packets_rx) = mpsc::unbounded_channel();
         ecs_lock.lock().entity_mut(entity).insert((
             LoginSendPacketQueue { tx: ecs_packets_tx },
-            login::IgnoreQueryIds::default(),
+            crate::packet::login::IgnoreQueryIds::default(),
+            InLoginState,
         ));
 
         // login
@@ -456,6 +457,7 @@ impl Client {
                         p.game_profile
                     );
                     conn.write(ServerboundLoginAcknowledged {}).await?;
+
                     break (conn.config(), p.game_profile);
                 }
                 ClientboundLoginPacket::LoginDisconnect(p) => {
@@ -465,7 +467,7 @@ impl Client {
                 ClientboundLoginPacket::CustomQuery(p) => {
                     debug!("Got custom query {:?}", p);
                     // replying to custom query is done in
-                    // packet_handling::login::process_packet_events
+                    // packet::login::process_packet_events
                 }
                 ClientboundLoginPacket::CookieRequest(p) => {
                     debug!("Got cookie request {:?}", p);
@@ -484,7 +486,8 @@ impl Client {
             .lock()
             .entity_mut(entity)
             .remove::<login::IgnoreQueryIds>()
-            .remove::<LoginSendPacketQueue>();
+            .remove::<LoginSendPacketQueue>()
+            .remove::<InLoginState>();
 
         Ok((conn, profile))
     }
@@ -552,6 +555,11 @@ impl Client {
     /// You may also have to use [`Self::ecs`] and [`Self::query`] directly.
     pub fn get_component<T: Component + Clone>(&self) -> Option<T> {
         self.query::<Option<&T>>(&mut self.ecs.lock()).cloned()
+    }
+
+    /// Get a resource from the ECS. This will clone the resource and return it.
+    pub fn resource<T: Resource + Clone>(&self) -> T {
+        self.ecs.lock().resource::<T>().clone()
     }
 
     /// Get a required component for this client and call the given function.
@@ -866,6 +874,7 @@ async fn run_schedule_loop(
         let mut ecs = ecs.lock();
 
         // if last tick is None or more than 50ms ago, run the GameTick schedule
+        ecs.run_schedule(outer_schedule_label);
         if last_tick
             .map(|last_tick| last_tick.elapsed() > Duration::from_millis(50))
             .unwrap_or(true)
@@ -877,8 +886,6 @@ async fn run_schedule_loop(
             }
             ecs.run_schedule(GameTick);
         }
-
-        ecs.run_schedule(outer_schedule_label);
 
         ecs.clear_trackers();
     }

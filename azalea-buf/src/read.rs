@@ -3,13 +3,14 @@ use std::{
     collections::HashMap,
     hash::Hash,
     io::{Cursor, Read},
+    sync::Arc,
 };
 
-use byteorder::{ReadBytesExt, BE};
+use byteorder::{BE, ReadBytesExt};
 use thiserror::Error;
 use tracing::warn;
 
-use super::{UnsizedByteArray, MAX_STRING_LENGTH};
+use super::{MAX_STRING_LENGTH, UnsizedByteArray};
 
 #[derive(Error, Debug)]
 pub enum BufReadError {
@@ -19,8 +20,12 @@ pub enum BufReadError {
     InvalidVarLong,
     #[error("Error reading bytes")]
     CouldNotReadBytes,
-    #[error("The received encoded string buffer length is longer than maximum allowed ({length} > {max_length})")]
+    #[error(
+        "The received encoded string buffer length is longer than maximum allowed ({length} > {max_length})"
+    )]
     StringLengthTooLong { length: u32, max_length: u32 },
+    #[error("The received Vec length is longer than maximum allowed ({length} > {max_length})")]
+    VecLengthTooLong { length: u32, max_length: u32 },
     #[error("{source}")]
     Io {
         #[from]
@@ -183,10 +188,27 @@ impl AzaleaRead for UnsizedByteArray {
     }
 }
 
-impl<T: AzaleaRead + Send> AzaleaRead for Vec<T> {
+impl<T: AzaleaRead> AzaleaRead for Vec<T> {
     default fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let length = u32::azalea_read_var(buf)? as usize;
         // we limit the capacity to not get exploited into allocating a bunch
+        let mut contents = Vec::with_capacity(usize::min(length, 65536));
+        for _ in 0..length {
+            contents.push(T::azalea_read(buf)?);
+        }
+        Ok(contents)
+    }
+}
+impl<T: AzaleaRead> AzaleaReadLimited for Vec<T> {
+    fn azalea_read_limited(buf: &mut Cursor<&[u8]>, limit: usize) -> Result<Self, BufReadError> {
+        let length = u32::azalea_read_var(buf)? as usize;
+        if length > limit {
+            return Err(BufReadError::VecLengthTooLong {
+                length: length as u32,
+                max_length: limit as u32,
+            });
+        }
+
         let mut contents = Vec::with_capacity(usize::min(length, 65536));
         for _ in 0..length {
             contents.push(T::azalea_read(buf)?);
@@ -343,6 +365,16 @@ impl<T: AzaleaReadVar> AzaleaReadVar for Option<T> {
         })
     }
 }
+impl<T: AzaleaReadLimited> AzaleaReadLimited for Option<T> {
+    fn azalea_read_limited(buf: &mut Cursor<&[u8]>, limit: usize) -> Result<Self, BufReadError> {
+        let present = bool::azalea_read(buf)?;
+        Ok(if present {
+            Some(T::azalea_read_limited(buf, limit)?)
+        } else {
+            None
+        })
+    }
+}
 
 // [String; 4]
 impl<T: AzaleaRead, const N: usize> AzaleaRead for [T; N] {
@@ -390,5 +422,11 @@ where
 impl<A: AzaleaRead, B: AzaleaRead> AzaleaRead for (A, B) {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok((A::azalea_read(buf)?, B::azalea_read(buf)?))
+    }
+}
+
+impl<T: AzaleaRead> AzaleaRead for Arc<T> {
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        Ok(Arc::new(T::azalea_read(buf)?))
     }
 }

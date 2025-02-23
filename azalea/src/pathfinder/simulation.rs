@@ -2,10 +2,10 @@
 
 use std::sync::Arc;
 
-use azalea_client::{inventory::Inventory, packet::game::SendPacketEvent, PhysicsState};
+use azalea_client::{PhysicsState, inventory::Inventory, packet::game::SendPacketEvent};
 use azalea_core::{position::Vec3, resource_location::ResourceLocation, tick::GameTick};
 use azalea_entity::{
-    attributes::AttributeInstance, Attributes, EntityDimensions, LookDirection, Physics, Position,
+    Attributes, EntityDimensions, LookDirection, Physics, Position, attributes::AttributeInstance,
 };
 use azalea_registry::EntityKind;
 use azalea_world::{ChunkStorage, Instance, InstanceContainer, MinecraftEntityId, PartialInstance};
@@ -87,7 +87,7 @@ fn create_simulation_instance(chunks: ChunkStorage) -> (App, Arc<RwLock<Instance
 fn create_simulation_player_complete_bundle(
     instance: Arc<RwLock<Instance>>,
     player: &SimulatedPlayerBundle,
-) -> impl Bundle {
+) -> impl Bundle + use<> {
     let instance_name = simulation_instance_name();
 
     (

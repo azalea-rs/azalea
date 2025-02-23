@@ -3,12 +3,12 @@ use std::{cmp, num::NonZeroU32, sync::LazyLock};
 use azalea_core::{
     block_hit_result::BlockHitResult,
     direction::{Axis, AxisCycle, Direction},
-    math::{binary_search, EPSILON},
+    math::{EPSILON, binary_search},
     position::{BlockPos, Vec3},
 };
 
 use super::mergers::IndexMerger;
-use crate::collision::{BitSetDiscreteVoxelShape, DiscreteVoxelShape, AABB};
+use crate::collision::{AABB, BitSetDiscreteVoxelShape, DiscreteVoxelShape};
 
 pub struct Shapes;
 

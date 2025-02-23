@@ -2,7 +2,7 @@ use std::{fmt::Display, sync::LazyLock};
 
 #[cfg(feature = "azalea-buf")]
 use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
-use serde::{de, Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, de};
 #[cfg(feature = "simdnbt")]
 use simdnbt::{Deserialize as _, FromNbtTag as _, Serialize as _};
 use tracing::{debug, trace, warn};
@@ -371,7 +371,9 @@ impl FormattedText {
                             } else if let Some(s) = primitive.string() {
                                 with_array.push(StringOrComponent::String(s.to_string()));
                             } else {
-                                warn!("couldn't parse {item:?} as FormattedText because it has a disallowed primitive");
+                                warn!(
+                                    "couldn't parse {item:?} as FormattedText because it has a disallowed primitive"
+                                );
                                 with_array.push(StringOrComponent::String("?".to_string()));
                             }
                         } else if let Some(c) = FormattedText::from_nbt_compound(item) {
@@ -392,7 +394,9 @@ impl FormattedText {
                         }
                     }
                 } else {
-                    warn!("couldn't parse {with:?} as FormattedText because it's not a list of compounds");
+                    warn!(
+                        "couldn't parse {with:?} as FormattedText because it's not a list of compounds"
+                    );
                     return None;
                 }
                 component =
@@ -456,12 +460,11 @@ impl From<&simdnbt::Mutf8Str> for FormattedText {
 impl AzaleaRead for FormattedText {
     fn azalea_read(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let nbt = simdnbt::borrow::read_optional_tag(buf)?;
-        if let Some(nbt) = nbt {
-            FormattedText::from_nbt_tag(nbt.as_tag()).ok_or(BufReadError::Custom(
+        match nbt {
+            Some(nbt) => FormattedText::from_nbt_tag(nbt.as_tag()).ok_or(BufReadError::Custom(
                 "couldn't convert nbt to chat message".to_owned(),
-            ))
-        } else {
-            Ok(FormattedText::default())
+            )),
+            _ => Ok(FormattedText::default()),
         }
     }
 }

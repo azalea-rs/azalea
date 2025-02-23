@@ -1,11 +1,12 @@
 use std::{
     collections::HashMap,
     io::{self, Write},
+    sync::Arc,
 };
 
 use byteorder::{BigEndian, WriteBytesExt};
 
-use super::{UnsizedByteArray, MAX_STRING_LENGTH};
+use super::{MAX_STRING_LENGTH, UnsizedByteArray};
 
 fn write_utf_with_len(buf: &mut impl Write, string: &str, len: usize) -> Result<(), io::Error> {
     if string.len() > len {
@@ -296,5 +297,11 @@ impl<A: AzaleaWrite, B: AzaleaWrite> AzaleaWrite for (A, B) {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), io::Error> {
         self.0.azalea_write(buf)?;
         self.1.azalea_write(buf)
+    }
+}
+
+impl<T: AzaleaWrite> AzaleaWrite for Arc<T> {
+    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), io::Error> {
+        T::azalea_write(&**self, buf)
     }
 }

@@ -8,8 +8,8 @@ use azalea_core::resource_location::ResourceLocation;
 use azalea_entity::LocalEntity;
 use azalea_protocol::{
     packets::{
-        game::{ClientboundGamePacket, ClientboundPlayerCombatKill, ServerboundGamePacket},
         Packet,
+        game::{ClientboundGamePacket, ClientboundPlayerCombatKill, ServerboundGamePacket},
     },
     read::deserialize_packet,
 };
@@ -19,7 +19,7 @@ use parking_lot::RwLock;
 use tracing::{debug, error};
 use uuid::Uuid;
 
-use crate::{raw_connection::RawConnection, PlayerInfo};
+use crate::{PlayerInfo, raw_connection::RawConnection};
 
 /// An event that's sent when we receive a packet.
 /// ```
@@ -62,7 +62,7 @@ impl SendPacketEvent {
     }
 }
 
-pub fn handle_sendpacketevent(
+pub fn handle_outgoing_packets(
     mut send_packet_events: EventReader<SendPacketEvent>,
     mut query: Query<&mut RawConnection>,
 ) {

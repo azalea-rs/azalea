@@ -6,13 +6,12 @@ use azalea_core::{
     game_type::GameMode,
     math,
     position::{ChunkPos, Vec3},
-    resource_location::ResourceLocation,
 };
 use azalea_entity::{
-    indexing::{EntityIdIndex, EntityUuidIndex},
-    metadata::{apply_metadata, Health},
     Dead, EntityBundle, EntityKind, LastSentPosition, LoadedBy, LocalEntity, LookDirection,
     Physics, Position, RelativeEntityUpdate,
+    indexing::{EntityIdIndex, EntityUuidIndex},
+    metadata::{Health, apply_metadata},
 };
 use azalea_protocol::packets::game::*;
 use azalea_world::{InstanceContainer, InstanceName, MinecraftEntityId, PartialInstance};
@@ -21,6 +20,7 @@ pub use events::*;
 use tracing::{debug, error, trace, warn};
 
 use crate::{
+    ClientInformation, PlayerInfo,
     chat::{ChatPacket, ChatReceivedEvent},
     chunks, declare_packet_handlers,
     disconnect::DisconnectEvent,
@@ -32,7 +32,6 @@ use crate::{
     },
     movement::{KnockbackEvent, KnockbackType},
     packet::as_system,
-    ClientInformation, PlayerInfo,
 };
 
 pub fn process_packet_events(ecs: &mut World) {
@@ -239,100 +238,92 @@ impl GamePacketHandler<'_> {
                     mut instance_holder,
                 ) = query.get_mut(self.player).unwrap();
 
+                let new_instance_name = p.common.dimension.clone();
+
+                if let Some(mut instance_name) = instance_name {
+                    *instance_name = instance_name.clone();
+                } else {
+                    commands
+                        .entity(self.player)
+                        .insert(InstanceName(new_instance_name.clone()));
+                }
+
+                let Some((_dimension_type, dimension_data)) = p
+                    .common
+                    .dimension_type(&instance_holder.instance.read().registries)
+                else {
+                    return;
+                };
+
+                // add this world to the instance_container (or don't if it's already
+                // there)
+                let weak_instance = instance_container.insert(
+                    new_instance_name.clone(),
+                    dimension_data.height,
+                    dimension_data.min_y,
+                    &instance_holder.instance.read().registries,
+                );
+                instance_loaded_events.send(InstanceLoadedEvent {
+                    entity: self.player,
+                    name: new_instance_name.clone(),
+                    instance: Arc::downgrade(&weak_instance),
+                });
+
+                // set the partial_world to an empty world
+                // (when we add chunks or entities those will be in the
+                // instance_container)
+
+                *instance_holder.partial_instance.write() = PartialInstance::new(
+                    azalea_world::chunk_storage::calculate_chunk_storage_range(
+                        client_information.view_distance.into(),
+                    ),
+                    // this argument makes it so other clients don't update this player entity
+                    // in a shared instance
+                    Some(self.player),
+                );
                 {
-                    let new_instance_name = p.common.dimension.clone();
-
-                    if let Some(mut instance_name) = instance_name {
-                        *instance_name = instance_name.clone();
-                    } else {
-                        commands
-                            .entity(self.player)
-                            .insert(InstanceName(new_instance_name.clone()));
+                    let map = instance_holder.instance.read().registries.map.clone();
+                    let new_registries = &mut weak_instance.write().registries;
+                    // add the registries from this instance to the weak instance
+                    for (registry_name, registry) in map {
+                        new_registries.map.insert(registry_name, registry);
                     }
+                }
+                instance_holder.instance = weak_instance;
 
-                    let Some(dimension_type_element) =
-                        instance_holder.instance.read().registries.dimension_type()
-                    else {
-                        error!("Server didn't send dimension type registry, can't log in");
-                        return;
-                    };
+                let entity_bundle = EntityBundle::new(
+                    game_profile.uuid,
+                    Vec3::default(),
+                    azalea_registry::EntityKind::Player,
+                    new_instance_name,
+                );
+                let entity_id = p.player_id;
+                // insert our components into the ecs :)
+                commands.entity(self.player).insert((
+                    entity_id,
+                    LocalGameMode {
+                        current: p.common.game_type,
+                        previous: p.common.previous_game_type.into(),
+                    },
+                    entity_bundle,
+                ));
 
-                    let dimension_name = ResourceLocation::new(&p.common.dimension.to_string());
+                azalea_entity::indexing::add_entity_to_indexes(
+                    entity_id,
+                    self.player,
+                    Some(game_profile.uuid),
+                    &mut entity_id_index,
+                    &mut entity_uuid_index,
+                    &mut instance_holder.instance.write(),
+                );
 
-                    let Some(dimension) = dimension_type_element.map.get(&dimension_name) else {
-                        error!("No dimension_type with name {dimension_name}");
-                        return;
-                    };
-
-                    // add this world to the instance_container (or don't if it's already
-                    // there)
-                    let weak_instance = instance_container.insert(
-                        new_instance_name.clone(),
-                        dimension.height,
-                        dimension.min_y,
-                    );
-                    instance_loaded_events.send(InstanceLoadedEvent {
-                        entity: self.player,
-                        name: new_instance_name.clone(),
-                        instance: Arc::downgrade(&weak_instance),
-                    });
-
-                    // set the partial_world to an empty world
-                    // (when we add chunks or entities those will be in the
-                    // instance_container)
-
-                    *instance_holder.partial_instance.write() = PartialInstance::new(
-                        azalea_world::chunk_storage::calculate_chunk_storage_range(
-                            client_information.view_distance.into(),
-                        ),
-                        // this argument makes it so other clients don't update this player entity
-                        // in a shared instance
-                        Some(self.player),
-                    );
-                    {
-                        let map = instance_holder.instance.read().registries.map.clone();
-                        let new_registries = &mut weak_instance.write().registries;
-                        // add the registries from this instance to the weak instance
-                        for (registry_name, registry) in map {
-                            new_registries.map.insert(registry_name, registry);
-                        }
-                    }
-                    instance_holder.instance = weak_instance;
-
-                    let entity_bundle = EntityBundle::new(
-                        game_profile.uuid,
-                        Vec3::default(),
-                        azalea_registry::EntityKind::Player,
-                        new_instance_name,
-                    );
-                    let entity_id = p.player_id;
-                    // insert our components into the ecs :)
-                    commands.entity(self.player).insert((
-                        entity_id,
-                        LocalGameMode {
-                            current: p.common.game_type,
-                            previous: p.common.previous_game_type.into(),
-                        },
-                        entity_bundle,
-                    ));
-
-                    azalea_entity::indexing::add_entity_to_indexes(
-                        entity_id,
-                        self.player,
-                        Some(game_profile.uuid),
-                        &mut entity_id_index,
-                        &mut entity_uuid_index,
-                        &mut instance_holder.instance.write(),
-                    );
-
-                    // update or insert loaded_by
-                    if let Some(mut loaded_by) = loaded_by {
-                        loaded_by.insert(self.player);
-                    } else {
-                        commands
-                            .entity(self.player)
-                            .insert(LoadedBy(HashSet::from_iter(vec![self.player])));
-                    }
+                // update or insert loaded_by
+                if let Some(mut loaded_by) = loaded_by {
+                    loaded_by.insert(self.player);
+                } else {
+                    commands
+                        .entity(self.player)
+                        .insert(LoadedBy(HashSet::from_iter(vec![self.player])));
                 }
 
                 // send the client information that we have set
@@ -340,11 +331,8 @@ impl GamePacketHandler<'_> {
                     "Sending client information because login: {:?}",
                     client_information
                 );
-                send_packet_events.send(SendPacketEvent::new(
-                    self.player,
-                    ServerboundClientInformation {
-                        information: client_information.clone(),
-                    },
+                send_packet_events.send(SendPacketEvent::new(self.player,
+                    azalea_protocol::packets::game::s_client_information::ServerboundClientInformation { information: client_information.clone() },
                 ));
             },
         );
@@ -447,11 +435,7 @@ impl GamePacketHandler<'_> {
             **last_sent_position = **position;
 
             fn apply_change<T: Add<Output = T>>(base: T, condition: bool, change: T) -> T {
-                if condition {
-                    base + change
-                } else {
-                    change
-                }
+                if condition { base + change } else { change }
             }
 
             let new_x = apply_change(position.x, p.relative.x, p.change.pos.x);
@@ -684,9 +668,13 @@ impl GamePacketHandler<'_> {
                         let entity_in_ecs = entity_query.get(ecs_entity).is_ok();
 
                         if entity_in_ecs {
-                            error!("LoadedBy for entity {entity_id:?} ({ecs_entity:?}) isn't in the ecs, but the entity is in entity_by_id");
+                            error!(
+                                "LoadedBy for entity {entity_id:?} ({ecs_entity:?}) isn't in the ecs, but the entity is in entity_by_id"
+                            );
                         } else {
-                            error!("Entity {entity_id:?} ({ecs_entity:?}) isn't in the ecs, but the entity is in entity_by_id");
+                            error!(
+                                "Entity {entity_id:?} ({ecs_entity:?}) isn't in the ecs, but the entity is in entity_by_id"
+                            );
                         }
                         return;
                     };
@@ -1067,7 +1055,9 @@ impl GamePacketHandler<'_> {
 
                 for &id in &p.entity_ids {
                     let Some(entity) = entity_id_index.remove(id) else {
-                        debug!("Tried to remove entity with id {id} but it wasn't in the EntityIdIndex");
+                        debug!(
+                            "Tried to remove entity with id {id} but it wasn't in the EntityIdIndex"
+                        );
                         continue;
                     };
                     let Ok(mut loaded_by) = entity_query.get_mut(entity) else {
@@ -1431,64 +1421,56 @@ impl GamePacketHandler<'_> {
                 let (mut instance_holder, game_profile, client_information) =
                     query.get_mut(self.player).unwrap();
 
-                {
-                    let new_instance_name = p.common.dimension.clone();
+                let new_instance_name = p.common.dimension.clone();
 
-                    let Some(dimension_type_element) =
-                        instance_holder.instance.read().registries.dimension_type()
-                    else {
-                        error!("Server didn't send dimension type registry, can't log in.");
-                        return;
-                    };
+                let Some((_dimension_type, dimension_data)) = p
+                    .common
+                    .dimension_type(&instance_holder.instance.read().registries)
+                else {
+                    return;
+                };
 
-                    let dimension_name = ResourceLocation::new(&p.common.dimension.to_string());
+                // add this world to the instance_container (or don't if it's already
+                // there)
+                let weak_instance = instance_container.insert(
+                    new_instance_name.clone(),
+                    dimension_data.height,
+                    dimension_data.min_y,
+                    &instance_holder.instance.read().registries,
+                );
+                events.send(InstanceLoadedEvent {
+                    entity: self.player,
+                    name: new_instance_name.clone(),
+                    instance: Arc::downgrade(&weak_instance),
+                });
 
-                    let Some(dimension) = dimension_type_element.map.get(&dimension_name) else {
-                        error!("No dimension_type with name {dimension_name}");
-                        return;
-                    };
+                // set the partial_world to an empty world
+                // (when we add chunks or entities those will be in the
+                // instance_container)
 
-                    // add this world to the instance_container (or don't if it's already
-                    // there)
-                    let weak_instance = instance_container.insert(
-                        new_instance_name.clone(),
-                        dimension.height,
-                        dimension.min_y,
-                    );
-                    events.send(InstanceLoadedEvent {
-                        entity: self.player,
-                        name: new_instance_name.clone(),
-                        instance: Arc::downgrade(&weak_instance),
-                    });
+                *instance_holder.partial_instance.write() = PartialInstance::new(
+                    azalea_world::chunk_storage::calculate_chunk_storage_range(
+                        client_information.view_distance.into(),
+                    ),
+                    Some(self.player),
+                );
+                instance_holder.instance = weak_instance;
 
-                    // set the partial_world to an empty world
-                    // (when we add chunks or entities those will be in the
-                    // instance_container)
-
-                    *instance_holder.partial_instance.write() = PartialInstance::new(
-                        azalea_world::chunk_storage::calculate_chunk_storage_range(
-                            client_information.view_distance.into(),
-                        ),
-                        Some(self.player),
-                    );
-                    instance_holder.instance = weak_instance;
-
-                    // this resets a bunch of our components like physics and stuff
-                    let entity_bundle = EntityBundle::new(
-                        game_profile.uuid,
-                        Vec3::default(),
-                        azalea_registry::EntityKind::Player,
-                        new_instance_name,
-                    );
-                    // update the local gamemode and metadata things
-                    commands.entity(self.player).insert((
-                        LocalGameMode {
-                            current: p.common.game_type,
-                            previous: p.common.previous_game_type.into(),
-                        },
-                        entity_bundle,
-                    ));
-                }
+                // this resets a bunch of our components like physics and stuff
+                let entity_bundle = EntityBundle::new(
+                    game_profile.uuid,
+                    Vec3::default(),
+                    azalea_registry::EntityKind::Player,
+                    new_instance_name,
+                );
+                // update the local gamemode and metadata things
+                commands.entity(self.player).insert((
+                    LocalGameMode {
+                        current: p.common.game_type,
+                        previous: p.common.previous_game_type.into(),
+                    },
+                    entity_bundle,
+                ));
 
                 // Remove the Dead marker component from the player.
                 commands.entity(self.player).remove::<Dead>();

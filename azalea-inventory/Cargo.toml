@@ -17,4 +17,5 @@ azalea-registry = { path = "../azalea-registry", version = "0.11.0" }
 indexmap.workspace = true
 
 simdnbt.workspace = true
+tracing.workspace = true
 uuid.workspace = true

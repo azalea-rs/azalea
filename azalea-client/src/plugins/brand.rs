@@ -9,24 +9,27 @@ use azalea_protocol::{
 };
 use bevy_app::prelude::*;
 use bevy_ecs::prelude::*;
+use tracing::{debug, warn};
 
-use crate::{client::InConfigState, packet::config::SendConfigPacketEvent};
+use super::packet::config::SendConfigPacketEvent;
+use crate::packet::login::InLoginState;
 
 pub struct BrandPlugin;
 impl Plugin for BrandPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            handle_in_configuration_state.before(crate::packet::config::handle_send_packet_event),
+            handle_end_login_state.before(crate::packet::config::handle_send_packet_event),
         );
     }
 }
 
-pub fn handle_in_configuration_state(
-    query: Query<(Entity, &ClientInformation), Added<InConfigState>>,
+fn handle_end_login_state(
+    mut removed: RemovedComponents<InLoginState>,
+    query: Query<&ClientInformation>,
     mut send_packet_events: EventWriter<SendConfigPacketEvent>,
 ) {
-    for (entity, client_information) in query.iter() {
+    for entity in removed.read() {
         let mut brand_data = Vec::new();
         // azalea pretends to be vanilla everywhere else so it makes sense to lie here
         // too
@@ -39,6 +42,17 @@ pub fn handle_in_configuration_state(
             },
         ));
 
+        let client_information = match query.get(entity).ok() {
+            Some(i) => i,
+            None => {
+                warn!(
+                    "ClientInformation component was not set before leaving login state, using a default"
+                );
+                &ClientInformation::default()
+            }
+        };
+
+        debug!("Writing ClientInformation while in config state: {client_information:?}");
         send_packet_events.send(SendConfigPacketEvent::new(
             entity,
             ServerboundClientInformation {

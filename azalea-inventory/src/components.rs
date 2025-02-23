@@ -3,12 +3,15 @@ use std::{any::Any, collections::HashMap, io::Cursor};
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
 use azalea_chat::FormattedText;
-use azalea_core::{position::GlobalPos, resource_location::ResourceLocation};
+use azalea_core::{
+    filterable::Filterable, position::GlobalPos, resource_location::ResourceLocation,
+};
 use azalea_registry::{
     Attribute, Block, ConsumeEffectKind, DataComponentKind, Enchantment, EntityKind, HolderSet,
     Item, MobEffect, Potion, SoundEvent, TrimMaterial, TrimPattern,
 };
 use simdnbt::owned::{Nbt, NbtCompound};
+use tracing::trace;
 use uuid::Uuid;
 
 use crate::ItemStack;
@@ -39,10 +42,9 @@ where
     }
     fn eq(&self, other: Box<dyn EncodableDataComponent>) -> bool {
         let other_any: Box<dyn Any> = other;
-        if let Some(other) = other_any.downcast_ref::<T>() {
-            self == other
-        } else {
-            false
+        match other_any.downcast_ref::<T>() {
+            Some(other) => self == other,
+            _ => false,
         }
     }
 }
@@ -53,6 +55,8 @@ pub fn from_kind(
 ) -> Result<Box<dyn EncodableDataComponent>, BufReadError> {
     // if this is causing a compile-time error, look at DataComponents.java in the
     // decompiled vanilla code to see how to implement new components
+
+    trace!("Reading data component {kind}");
 
     // note that this match statement is updated by genitemcomponents.py
     Ok(match kind {
@@ -328,8 +332,10 @@ impl DataComponent for AttributeModifiers {
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct CustomModelData {
-    #[var]
-    pub value: i32,
+    pub floats: Vec<f32>,
+    pub flags: Vec<bool>,
+    pub strings: Vec<String>,
+    pub colors: Vec<i32>,
 }
 impl DataComponent for CustomModelData {
     const KIND: DataComponentKind = DataComponentKind::CustomModelData;
@@ -535,13 +541,15 @@ impl DataComponent for WritableBookContent {
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct WrittenBookContent {
-    pub title: String,
+    #[limit(32)]
+    pub title: Filterable<String>,
     pub author: String,
     #[var]
     pub generation: i32,
-    pub pages: Vec<FormattedText>,
+    pub pages: Vec<Filterable<FormattedText>>,
     pub resolved: bool,
 }
+
 impl DataComponent for WrittenBookContent {
     const KIND: DataComponentKind = DataComponentKind::WrittenBookContent;
 }

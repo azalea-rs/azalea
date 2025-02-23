@@ -1,7 +1,7 @@
-use azalea_block::{block_state::BlockState, BlockStates};
+use azalea_block::{BlockStates, block_state::BlockState};
 use azalea_core::position::{BlockPos, ChunkPos};
 
-use crate::{iterators::ChunkIterator, palette::Palette, ChunkStorage, Instance};
+use crate::{ChunkStorage, Instance, iterators::ChunkIterator, palette::Palette};
 
 fn palette_maybe_has_block(palette: &Palette, block_states: &BlockStates) -> bool {
     match &palette {

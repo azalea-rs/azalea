@@ -448,6 +448,7 @@ impl AzaleaRead for Section {
         let block_count = u16::azalea_read(buf)?;
 
         // this is commented out because the vanilla server is wrong
+        // ^ this comment was written ages ago. needs more investigation.
         // assert!(
         //     block_count <= 16 * 16 * 16,
         //     "A section has more blocks than what should be possible. This is a bug!"
@@ -556,21 +557,31 @@ mod tests {
             Some(Chunk::default()),
             &mut chunk_storage,
         );
-        assert!(chunk_storage
-            .get_block_state(&BlockPos { x: 0, y: 319, z: 0 })
-            .is_some());
-        assert!(chunk_storage
-            .get_block_state(&BlockPos { x: 0, y: 320, z: 0 })
-            .is_none());
-        assert!(chunk_storage
-            .get_block_state(&BlockPos { x: 0, y: 338, z: 0 })
-            .is_none());
-        assert!(chunk_storage
-            .get_block_state(&BlockPos { x: 0, y: -64, z: 0 })
-            .is_some());
-        assert!(chunk_storage
-            .get_block_state(&BlockPos { x: 0, y: -65, z: 0 })
-            .is_none());
+        assert!(
+            chunk_storage
+                .get_block_state(&BlockPos { x: 0, y: 319, z: 0 })
+                .is_some()
+        );
+        assert!(
+            chunk_storage
+                .get_block_state(&BlockPos { x: 0, y: 320, z: 0 })
+                .is_none()
+        );
+        assert!(
+            chunk_storage
+                .get_block_state(&BlockPos { x: 0, y: 338, z: 0 })
+                .is_none()
+        );
+        assert!(
+            chunk_storage
+                .get_block_state(&BlockPos { x: 0, y: -64, z: 0 })
+                .is_some()
+        );
+        assert!(
+            chunk_storage
+                .get_block_state(&BlockPos { x: 0, y: -65, z: 0 })
+                .is_none()
+        );
     }
 
     #[test]

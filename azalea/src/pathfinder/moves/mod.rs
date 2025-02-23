@@ -4,8 +4,8 @@ pub mod parkour;
 use std::{fmt::Debug, sync::Arc};
 
 use azalea_client::{
-    inventory::SetSelectedHotbarSlotEvent, mining::StartMiningBlockEvent, SprintDirection,
-    StartSprintEvent, StartWalkEvent, WalkDirection,
+    SprintDirection, StartSprintEvent, StartWalkEvent, WalkDirection,
+    inventory::SetSelectedHotbarSlotEvent, mining::StartMiningBlockEvent,
 };
 use azalea_core::position::{BlockPos, Vec3};
 use azalea_inventory::Menu;
@@ -17,9 +17,9 @@ use super::{
     astar,
     mining::MiningCache,
     rel_block_pos::RelBlockPos,
-    world::{is_block_state_passable, CachedWorld},
+    world::{CachedWorld, is_block_state_passable},
 };
-use crate::{auto_tool::best_tool_in_hotbar_for_block, JumpEvent, LookAtEvent};
+use crate::{JumpEvent, LookAtEvent, auto_tool::best_tool_in_hotbar_for_block};
 
 type Edge = astar::Edge<RelBlockPos, MoveData>;
 

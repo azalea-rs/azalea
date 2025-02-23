@@ -2,7 +2,7 @@ use std::{any::Any, collections::HashMap, fmt::Debug, rc::Rc, sync::Arc};
 
 use parking_lot::RwLock;
 
-use super::{parsed_command_node::ParsedCommandNode, string_range::StringRange, ParsedArgument};
+use super::{ParsedArgument, parsed_command_node::ParsedCommandNode, string_range::StringRange};
 use crate::{
     modifier::RedirectModifier,
     tree::{Command, CommandNode},
