@@ -111,7 +111,7 @@ fn create_local_player_bundle(
     tokio::runtime::Runtime,
 ) {
     // unused since we'll trigger ticks ourselves
-    let (run_schedule_sender, _run_schedule_receiver) = mpsc::unbounded_channel();
+    let (run_schedule_sender, _run_schedule_receiver) = mpsc::channel(1);
 
     let (outgoing_packets_sender, mut outgoing_packets_receiver) = mpsc::unbounded_channel();
     let incoming_packet_queue = Arc::new(Mutex::new(Vec::new()));

@@ -10,7 +10,10 @@ use azalea_protocol::{
 use bevy_ecs::prelude::*;
 use parking_lot::Mutex;
 use thiserror::Error;
-use tokio::sync::mpsc::{self, error::SendError};
+use tokio::sync::mpsc::{
+    self,
+    error::{SendError, TrySendError},
+};
 use tracing::error;
 
 /// A component for clients that can read and write packets to the server. This
@@ -34,7 +37,7 @@ pub struct RawConnection {
 #[derive(Clone)]
 pub struct RawConnectionReader {
     pub incoming_packet_queue: Arc<Mutex<Vec<Box<[u8]>>>>,
-    pub run_schedule_sender: mpsc::UnboundedSender<()>,
+    pub run_schedule_sender: mpsc::Sender<()>,
 }
 #[derive(Clone)]
 pub struct RawConnectionWriter {
@@ -60,7 +63,7 @@ pub enum WritePacketError {
 
 impl RawConnection {
     pub fn new(
-        run_schedule_sender: mpsc::UnboundedSender<()>,
+        run_schedule_sender: mpsc::Sender<()>,
         connection_protocol: ConnectionProtocol,
         raw_read_connection: RawReadConnection,
         raw_write_connection: RawWriteConnection,
@@ -145,6 +148,9 @@ impl RawConnectionReader {
                     let mut incoming_packet_queue = self.incoming_packet_queue.lock();
 
                     incoming_packet_queue.push(raw_packet);
+                    // this makes it so packets received at the same time are guaranteed to be
+                    // handled in the same tick. this is also an attempt at making it so we can't
+                    // receive any packets in the ticks/updates after being disconnected.
                     loop {
                         let raw_packet = match read_conn.try_read() {
                             Ok(p) => p,
@@ -158,7 +164,7 @@ impl RawConnectionReader {
                     }
 
                     // tell the client to run all the systems
-                    if self.run_schedule_sender.send(()).is_err() {
+                    if self.run_schedule_sender.try_send(()) == Err(TrySendError::Closed(())) {
                         // the client was dropped
                         break;
                     }

@@ -45,7 +45,7 @@ pub struct Swarm {
     bots_tx: mpsc::UnboundedSender<(Option<Event>, Client)>,
     swarm_tx: mpsc::UnboundedSender<SwarmEvent>,
 
-    run_schedule_sender: mpsc::UnboundedSender<()>,
+    run_schedule_sender: mpsc::Sender<()>,
 }
 
 /// Create a new [`Swarm`].
@@ -385,7 +385,7 @@ where
 
         swarm_tx.send(SwarmEvent::Init).unwrap();
 
-        let (run_schedule_sender, run_schedule_receiver) = mpsc::unbounded_channel();
+        let (run_schedule_sender, run_schedule_receiver) = mpsc::channel(1);
 
         let main_schedule_label = self.app.main().update_schedule.unwrap();
 

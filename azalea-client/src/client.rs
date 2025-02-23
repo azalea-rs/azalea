@@ -54,7 +54,10 @@ use parking_lot::{Mutex, RwLock};
 use simdnbt::owned::NbtCompound;
 use thiserror::Error;
 use tokio::{
-    sync::{broadcast, mpsc},
+    sync::{
+        broadcast,
+        mpsc::{self, error::TrySendError},
+    },
     time,
 };
 use tracing::{debug, error};
@@ -115,7 +118,7 @@ pub struct Client {
     pub ecs: Arc<Mutex<World>>,
 
     /// Use this to force the client to run the schedule outside of a tick.
-    pub run_schedule_sender: mpsc::UnboundedSender<()>,
+    pub run_schedule_sender: mpsc::Sender<()>,
 }
 
 /// An error that happened while joining the server.
@@ -145,7 +148,7 @@ pub struct StartClientOpts<'a> {
     pub address: &'a ServerAddress,
     pub resolved_address: &'a SocketAddr,
     pub proxy: Option<Proxy>,
-    pub run_schedule_sender: mpsc::UnboundedSender<()>,
+    pub run_schedule_sender: mpsc::Sender<()>,
 }
 
 impl<'a> StartClientOpts<'a> {
@@ -155,7 +158,7 @@ impl<'a> StartClientOpts<'a> {
         resolved_address: &'a SocketAddr,
     ) -> StartClientOpts<'a> {
         // An event that causes the schedule to run. This is only used internally.
-        let (run_schedule_sender, run_schedule_receiver) = mpsc::unbounded_channel();
+        let (run_schedule_sender, run_schedule_receiver) = mpsc::channel(1);
 
         let mut app = App::new();
         app.add_plugins(DefaultPlugins);
@@ -187,7 +190,7 @@ impl Client {
         profile: GameProfile,
         entity: Entity,
         ecs: Arc<Mutex<World>>,
-        run_schedule_sender: mpsc::UnboundedSender<()>,
+        run_schedule_sender: mpsc::Sender<()>,
     ) -> Self {
         Self {
             profile,
@@ -841,8 +844,8 @@ impl Plugin for AzaleaPlugin {
 #[doc(hidden)]
 pub fn start_ecs_runner(
     mut app: App,
-    run_schedule_receiver: mpsc::UnboundedReceiver<()>,
-    run_schedule_sender: mpsc::UnboundedSender<()>,
+    run_schedule_receiver: mpsc::Receiver<()>,
+    run_schedule_sender: mpsc::Sender<()>,
 ) -> Arc<Mutex<World>> {
     // all resources should have been added by now so we can take the ecs from the
     // app
@@ -861,13 +864,10 @@ pub fn start_ecs_runner(
 async fn run_schedule_loop(
     ecs: Arc<Mutex<World>>,
     outer_schedule_label: InternedScheduleLabel,
-    mut run_schedule_receiver: mpsc::UnboundedReceiver<()>,
+    mut run_schedule_receiver: mpsc::Receiver<()>,
 ) {
     let mut last_tick: Option<Instant> = None;
     loop {
-        // get rid of any queued events
-        while let Ok(()) = run_schedule_receiver.try_recv() {}
-
         // whenever we get an event from run_schedule_receiver, run the schedule
         run_schedule_receiver.recv().await;
 
@@ -893,15 +893,15 @@ async fn run_schedule_loop(
 
 /// Send an event to run the schedule every 50 milliseconds. It will stop when
 /// the receiver is dropped.
-pub async fn tick_run_schedule_loop(run_schedule_sender: mpsc::UnboundedSender<()>) {
-    let mut game_tick_interval = time::interval(time::Duration::from_millis(50));
+pub async fn tick_run_schedule_loop(run_schedule_sender: mpsc::Sender<()>) {
+    let mut game_tick_interval = time::interval(Duration::from_millis(50));
     // TODO: Minecraft bursts up to 10 ticks and then skips, we should too
     game_tick_interval.set_missed_tick_behavior(time::MissedTickBehavior::Burst);
 
     loop {
         game_tick_interval.tick().await;
-        if let Err(e) = run_schedule_sender.send(()) {
-            println!("tick_run_schedule_loop error: {e}");
+        if let Err(TrySendError::Closed(())) = run_schedule_sender.try_send(()) {
+            error!("tick_run_schedule_loop failed because run_schedule_sender was closed");
             // the sender is closed so end the task
             return;
         }

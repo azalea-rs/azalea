@@ -157,7 +157,7 @@ impl Client {
             content: message.to_string(),
             kind: ChatKind::Message,
         });
-        self.run_schedule_sender.send(()).unwrap();
+        let _ = self.run_schedule_sender.try_send(());
     }
 
     /// Send a command packet to the server. The `command` argument should not
@@ -171,7 +171,7 @@ impl Client {
             content: command.to_string(),
             kind: ChatKind::Command,
         });
-        self.run_schedule_sender.send(()).unwrap();
+        let _ = self.run_schedule_sender.try_send(());
     }
 
     /// Send a message in chat.
@@ -188,7 +188,7 @@ impl Client {
             entity: self.entity,
             content: content.to_string(),
         });
-        self.run_schedule_sender.send(()).unwrap();
+        let _ = self.run_schedule_sender.try_send(());
     }
 }
 
