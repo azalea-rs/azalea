@@ -1,6 +1,9 @@
 use azalea_entity::{EntityUpdateSet, metadata::Health};
 use bevy_app::{App, First, Plugin, PreUpdate, Update};
-use bevy_ecs::prelude::*;
+use bevy_ecs::{
+    prelude::*,
+    system::{SystemParam, SystemState},
+};
 
 use self::{
     game::{
@@ -11,11 +14,11 @@ use self::{
 };
 use crate::{chat::ChatReceivedEvent, events::death_listener};
 
-pub mod configuration;
+pub mod config;
 pub mod game;
 pub mod login;
 
-pub struct PacketHandlerPlugin;
+pub struct PacketPlugin;
 
 pub fn death_event_on_0_health(
     query: Query<(Entity, &Health), Changed<Health>>,
@@ -31,11 +34,11 @@ pub fn death_event_on_0_health(
     }
 }
 
-impl Plugin for PacketHandlerPlugin {
+impl Plugin for PacketPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             First,
-            (game::send_packet_events, configuration::send_packet_events),
+            (game::send_receivepacketevent, config::send_packet_events),
         )
         .add_systems(
             PreUpdate,
@@ -43,7 +46,7 @@ impl Plugin for PacketHandlerPlugin {
                 game::process_packet_events
                     // we want to index and deindex right after
                     .before(EntityUpdateSet::Deindex),
-                configuration::process_packet_events,
+                config::process_packet_events,
                 login::handle_send_packet_event,
                 login::process_packet_events,
             ),
@@ -52,18 +55,18 @@ impl Plugin for PacketHandlerPlugin {
             Update,
             (
                 (
-                    configuration::handle_send_packet_event,
-                    game::handle_send_packet_event,
+                    config::handle_send_packet_event,
+                    game::handle_outgoing_packets,
                 )
                     .chain(),
                 death_event_on_0_health.before(death_listener),
             ),
         )
         // we do this instead of add_event so we can handle the events ourselves
-        .init_resource::<Events<game::PacketEvent>>()
-        .init_resource::<Events<configuration::ConfigurationEvent>>()
+        .init_resource::<Events<game::ReceivePacketEvent>>()
+        .init_resource::<Events<config::ReceiveConfigPacketEvent>>()
         .add_event::<game::SendPacketEvent>()
-        .add_event::<configuration::SendConfigurationEvent>()
+        .add_event::<config::SendConfigPacketEvent>()
         .add_event::<AddPlayerEvent>()
         .add_event::<RemovePlayerEvent>()
         .add_event::<UpdatePlayerEvent>()
@@ -75,4 +78,32 @@ impl Plugin for PacketHandlerPlugin {
         .add_event::<LoginPacketEvent>()
         .add_event::<SendLoginPacketEvent>();
     }
+}
+
+#[macro_export]
+macro_rules! declare_packet_handlers {
+    (
+        $packetenum:ident,
+        $packetvar:expr,
+        $handler:ident,
+        [$($packet:path),+ $(,)?]
+    ) => {
+        paste::paste! {
+           match $packetvar {
+                $(
+                    $packetenum::[< $packet:camel >](p) => $handler.$packet(p),
+                )+
+            }
+        }
+    };
+}
+
+pub(crate) fn as_system<T>(ecs: &mut World, f: impl FnOnce(T::Item<'_, '_>))
+where
+    T: SystemParam + 'static,
+{
+    let mut system_state = SystemState::<T>::new(ecs);
+    let values = system_state.get_mut(ecs);
+    f(values);
+    system_state.apply(ecs);
 }

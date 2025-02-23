@@ -8,7 +8,7 @@ use azalea::{
     chunks::ReceiveChunkEvent,
     entity::{LookDirection, Position},
     interact::HitResultComponent,
-    packet_handling::game,
+    packet::game,
     pathfinder::{ExecutingPath, Pathfinder},
     world::MinecraftEntityId,
 };
@@ -240,8 +240,8 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
                             }
                         }
                     }
-                    "bevy_ecs::event::collections::Events<azalea_client::packet_handling::game::PacketEvent>" => {
-                        let events = ecs.resource::<Events<game::PacketEvent>>();
+                    "bevy_ecs::event::collections::Events<azalea_client::packet::game::ReceivePacketEvent>" => {
+                        let events = ecs.resource::<Events<game::ReceivePacketEvent>>();
                         writeln!(report, "- Event count: {}", events.len()).unwrap();
                     }
                     "bevy_ecs::event::collections::Events<azalea_client::chunks::ReceiveChunkEvent>" => {

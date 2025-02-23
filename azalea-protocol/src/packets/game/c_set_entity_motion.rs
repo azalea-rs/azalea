@@ -1,4 +1,5 @@
 use azalea_buf::AzBuf;
+use azalea_core::delta::PositionDelta8;
 use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_world::MinecraftEntityId;
 
@@ -6,7 +7,5 @@ use azalea_world::MinecraftEntityId;
 pub struct ClientboundSetEntityMotion {
     #[var]
     pub id: MinecraftEntityId,
-    pub xa: i16,
-    pub ya: i16,
-    pub za: i16,
+    pub delta: PositionDelta8,
 }

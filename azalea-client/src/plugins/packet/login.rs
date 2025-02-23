@@ -20,7 +20,7 @@ use tracing::error;
 
 /// An event that's sent when we receive a login packet from the server. Note
 /// that if you want to handle this in a system, you must add
-/// `.before(azalea::packet_handling::login::process_packet_events)` to it
+/// `.before(azalea::packet::login::process_packet_events)` to it
 /// because that system clears the events.
 #[derive(Event, Debug, Clone)]
 pub struct LoginPacketEvent {

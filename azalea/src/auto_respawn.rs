@@ -1,5 +1,5 @@
 use azalea_client::{
-    packet_handling::{death_event_on_0_health, game::DeathEvent},
+    packet::{death_event_on_0_health, game::DeathEvent},
     respawn::{PerformRespawnEvent, perform_respawn},
 };
 use bevy_app::Update;

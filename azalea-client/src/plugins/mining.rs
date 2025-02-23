@@ -18,12 +18,12 @@ use crate::{
     inventory::{Inventory, InventorySet},
     local_player::{LocalGameMode, PermissionLevel, PlayerAbilities},
     movement::MoveEventsSet,
-    packet_handling::game::SendPacketEvent,
+    packet::game::SendPacketEvent,
 };
 
 /// A plugin that allows clients to break blocks in the world.
-pub struct MinePlugin;
-impl Plugin for MinePlugin {
+pub struct MiningPlugin;
+impl Plugin for MiningPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<StartMiningBlockEvent>()
             .add_event::<StartMiningBlockWithDirectionEvent>()
@@ -59,6 +59,7 @@ impl Plugin for MinePlugin {
     }
 }
 
+/// The Bevy system set for things related to mining.
 #[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
 pub struct MiningSet;
 

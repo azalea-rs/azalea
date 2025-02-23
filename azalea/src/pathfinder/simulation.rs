@@ -2,7 +2,7 @@
 
 use std::sync::Arc;
 
-use azalea_client::{PhysicsState, inventory::Inventory, packet_handling::game::SendPacketEvent};
+use azalea_client::{PhysicsState, inventory::Inventory, packet::game::SendPacketEvent};
 use azalea_core::{position::Vec3, resource_location::ResourceLocation, tick::GameTick};
 use azalea_entity::{
     Attributes, EntityDimensions, LookDirection, Physics, Position, attributes::AttributeInstance,
@@ -60,13 +60,13 @@ fn create_simulation_instance(chunks: ChunkStorage) -> (App, Arc<RwLock<Instance
     app.add_plugins((
         azalea_physics::PhysicsPlugin,
         azalea_entity::EntityPlugin,
-        azalea_client::movement::PlayerMovePlugin,
+        azalea_client::movement::MovementPlugin,
         super::PathfinderPlugin,
         crate::BotPlugin,
         azalea_client::task_pool::TaskPoolPlugin::default(),
         // for mining
         azalea_client::inventory::InventoryPlugin,
-        azalea_client::mining::MinePlugin,
+        azalea_client::mining::MiningPlugin,
         azalea_client::interact::InteractPlugin,
     ))
     .insert_resource(InstanceContainer {

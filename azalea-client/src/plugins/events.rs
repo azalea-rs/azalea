@@ -5,6 +5,7 @@ use std::sync::Arc;
 
 use azalea_chat::FormattedText;
 use azalea_core::tick::GameTick;
+use azalea_entity::Dead;
 use azalea_protocol::packets::game::{
     ClientboundGamePacket, c_player_combat_kill::ClientboundPlayerCombatKill,
 };
@@ -24,28 +25,33 @@ use crate::{
     PlayerInfo,
     chat::{ChatPacket, ChatReceivedEvent},
     disconnect::DisconnectEvent,
-    packet_handling::game::{
-        AddPlayerEvent, DeathEvent, KeepAliveEvent, PacketEvent, RemovePlayerEvent,
+    packet::game::{
+        AddPlayerEvent, DeathEvent, KeepAliveEvent, ReceivePacketEvent, RemovePlayerEvent,
         UpdatePlayerEvent,
     },
 };
 
 // (for contributors):
 // HOW TO ADD A NEW (packet based) EVENT:
-// - make a struct that contains an entity field and a data field (look in
-//   packet_handling.rs for examples, also you should end the struct name with
-//   "Event")
-// - the entity field is the local player entity that's receiving the event
-// - in packet_handling, you always have a variable called player_entity that
-//   you can use
-// - add the event struct in the `impl Plugin for PacketHandlerPlugin`
-// - to get the event writer, you have to get an
-//   EventWriter<SomethingHappenedEvent> from the SystemState (the convention is
-//   to end your variable with the word "events", like "something_events")
+// - Add it as an ECS event first:
+//     - Make a struct that contains an entity field and some data fields (look
+//       in packet/game/events.rs for examples. These structs should always have
+//       their names end with "Event".
+//         - (the `entity` field is the local player entity that's receiving the
+//           event)
+//     - In the GamePacketHandler, you always have a `player` field that you can
+//       use.
+//     - Add the event struct in PacketPlugin::build
+//         - (in the `impl Plugin for PacketPlugin`)
+//     - To get the event writer, you have to get an EventWriter<ThingEvent>.
+//       Look at other packets in packet/game/mod.rs for examples.
 //
-// - then here in this file, add it to the Event enum
-// - and make an event listener system/function like the other ones and put the
-//   function in the `impl Plugin for EventPlugin`
+// At this point, you've created a new ECS event. That's annoying for bots to
+// use though, so you might wanna add it to the Event enum too:
+//     - In this file, add a new variant to that Event enum with the same name
+//       as your event (without the "Event" suffix).
+//     - Create a new system function like the other ones here, and put that
+//       system function in the `impl Plugin for EventsPlugin`
 
 /// Something that happened in-game, such as a tick passing or chat message
 /// being sent.
@@ -111,8 +117,8 @@ pub enum Event {
 #[derive(Component, Deref, DerefMut)]
 pub struct LocalPlayerEvents(pub mpsc::UnboundedSender<Event>);
 
-pub struct EventPlugin;
-impl Plugin for EventPlugin {
+pub struct EventsPlugin;
+impl Plugin for EventsPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
@@ -130,7 +136,7 @@ impl Plugin for EventPlugin {
         )
         .add_systems(
             PreUpdate,
-            init_listener.before(crate::packet_handling::game::process_packet_events),
+            init_listener.before(crate::packet::game::process_packet_events),
         )
         .add_systems(GameTick, tick_listener);
     }
@@ -166,7 +172,10 @@ pub fn tick_listener(query: Query<&LocalPlayerEvents, With<InstanceName>>) {
     }
 }
 
-pub fn packet_listener(query: Query<&LocalPlayerEvents>, mut events: EventReader<PacketEvent>) {
+pub fn packet_listener(
+    query: Query<&LocalPlayerEvents>,
+    mut events: EventReader<ReceivePacketEvent>,
+) {
     for event in events.read() {
         let local_player_events = query
             .get(event.entity)
@@ -216,6 +225,13 @@ pub fn death_listener(query: Query<&LocalPlayerEvents>, mut events: EventReader<
         if let Ok(local_player_events) = query.get(event.entity) {
             let _ = local_player_events.send(Event::Death(event.packet.clone().map(|p| p.into())));
         }
+    }
+}
+
+/// Send the "Death" event for [`LocalEntity`]s that died with no reason.
+pub fn dead_component_listener(query: Query<&LocalPlayerEvents, Added<Dead>>) {
+    for local_player_events in &query {
+        local_player_events.send(Event::Death(None)).unwrap();
     }
 }
 

@@ -11,15 +11,15 @@ use bevy_app::prelude::*;
 use bevy_ecs::prelude::*;
 use tracing::{debug, warn};
 
-use crate::packet_handling::{configuration::SendConfigurationEvent, login::InLoginState};
+use super::packet::config::SendConfigPacketEvent;
+use crate::packet::login::InLoginState;
 
-pub struct ConfigurationPlugin;
-impl Plugin for ConfigurationPlugin {
+pub struct BrandPlugin;
+impl Plugin for BrandPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            handle_end_login_state
-                .before(crate::packet_handling::configuration::handle_send_packet_event),
+            handle_end_login_state.before(crate::packet::config::handle_send_packet_event),
         );
     }
 }
@@ -27,13 +27,14 @@ impl Plugin for ConfigurationPlugin {
 fn handle_end_login_state(
     mut removed: RemovedComponents<InLoginState>,
     query: Query<&ClientInformation>,
-    mut send_packet_events: EventWriter<SendConfigurationEvent>,
+    mut send_packet_events: EventWriter<SendConfigPacketEvent>,
 ) {
     for entity in removed.read() {
         let mut brand_data = Vec::new();
-        // they don't have to know :)
+        // azalea pretends to be vanilla everywhere else so it makes sense to lie here
+        // too
         "vanilla".azalea_write(&mut brand_data).unwrap();
-        send_packet_events.send(SendConfigurationEvent::new(
+        send_packet_events.send(SendConfigPacketEvent::new(
             entity,
             ServerboundCustomPayload {
                 identifier: ResourceLocation::new("brand"),
@@ -52,7 +53,7 @@ fn handle_end_login_state(
         };
 
         debug!("Writing ClientInformation while in config state: {client_information:?}");
-        send_packet_events.send(SendConfigurationEvent::new(
+        send_packet_events.send(SendConfigPacketEvent::new(
             entity,
             ServerboundClientInformation {
                 information: client_information.clone(),

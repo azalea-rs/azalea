@@ -8,7 +8,7 @@ use bevy_ecs::{
 };
 use uuid::Uuid;
 
-use crate::{GameProfileComponent, packet_handling::game::AddPlayerEvent};
+use crate::{GameProfileComponent, packet::game::AddPlayerEvent};
 
 /// A player in the tab list.
 #[derive(Debug, Clone)]

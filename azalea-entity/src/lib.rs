@@ -482,7 +482,7 @@ impl EntityBundle {
 /// be updated by other clients.
 ///
 /// If this is for a client then all of our clients will have this.
-#[derive(Component, Clone, Debug)]
+#[derive(Component, Clone, Debug, Default)]
 pub struct LocalEntity;
 
 #[derive(Component, Clone, Debug, PartialEq, Deref, DerefMut)]

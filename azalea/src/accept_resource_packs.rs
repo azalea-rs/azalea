@@ -1,7 +1,7 @@
 use azalea_client::chunks::handle_chunk_batch_finished_event;
 use azalea_client::inventory::InventorySet;
-use azalea_client::packet_handling::game::SendPacketEvent;
-use azalea_client::packet_handling::{death_event_on_0_health, game::ResourcePackEvent};
+use azalea_client::packet::game::SendPacketEvent;
+use azalea_client::packet::{death_event_on_0_health, game::ResourcePackEvent};
 use azalea_client::respawn::perform_respawn;
 use azalea_protocol::packets::game::s_resource_pack::{self, ServerboundResourcePack};
 use bevy_app::Update;

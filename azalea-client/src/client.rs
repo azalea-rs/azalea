@@ -63,28 +63,27 @@ use uuid::Uuid;
 use crate::{
     Account, PlayerInfo,
     attack::{self, AttackPlugin},
+    brand::BrandPlugin,
     chat::ChatPlugin,
-    chunks::{ChunkBatchInfo, ChunkPlugin},
-    configuration::ConfigurationPlugin,
+    chunks::{ChunkBatchInfo, ChunksPlugin},
     disconnect::{DisconnectEvent, DisconnectPlugin},
-    events::{Event, EventPlugin, LocalPlayerEvents},
+    events::{Event, EventsPlugin, LocalPlayerEvents},
     interact::{CurrentSequenceNumber, InteractPlugin},
     inventory::{Inventory, InventoryPlugin},
     local_player::{
         GameProfileComponent, Hunger, InstanceHolder, PermissionLevel, PlayerAbilities, TabList,
-        death_event,
     },
-    mining::{self, MinePlugin},
-    movement::{LastSentLookDirection, PhysicsState, PlayerMovePlugin},
-    packet_handling::{
-        PacketHandlerPlugin,
+    mining::{self, MiningPlugin},
+    movement::{LastSentLookDirection, MovementPlugin, PhysicsState},
+    packet::{
+        PacketPlugin,
         login::{self, InLoginState, LoginSendPacketQueue},
     },
     player::retroactively_add_game_profile_component,
     raw_connection::RawConnection,
     respawn::RespawnPlugin,
-    send_client_end::TickEndPlugin,
     task_pool::TaskPoolPlugin,
+    tick_end::TickEndPlugin,
 };
 
 /// `Client` has the things that a user interacting with the library will want.
@@ -370,7 +369,7 @@ impl Client {
         let (ecs_packets_tx, mut ecs_packets_rx) = mpsc::unbounded_channel();
         ecs_lock.lock().entity_mut(entity).insert((
             LoginSendPacketQueue { tx: ecs_packets_tx },
-            login::IgnoreQueryIds::default(),
+            crate::packet::login::IgnoreQueryIds::default(),
             InLoginState,
         ));
 
@@ -468,7 +467,7 @@ impl Client {
                 ClientboundLoginPacket::CustomQuery(p) => {
                     debug!("Got custom query {:?}", p);
                     // replying to custom query is done in
-                    // packet_handling::login::process_packet_events
+                    // packet::login::process_packet_events
                 }
                 ClientboundLoginPacket::CookieRequest(p) => {
                     debug!("Got cookie request {:?}", p);
@@ -794,7 +793,7 @@ pub struct LocalPlayerBundle {
 /// A bundle for the components that are present on a local player that is
 /// currently in the `game` protocol state. If you want to filter for this, just
 /// use [`LocalEntity`].
-#[derive(Bundle)]
+#[derive(Bundle, Default)]
 pub struct JoinedClientBundle {
     // note that InstanceHolder isn't here because it's set slightly before we fully join the world
     pub physics_state: PhysicsState,
@@ -826,8 +825,6 @@ impl Plugin for AzaleaPlugin {
         app.add_systems(
             Update,
             (
-                // fire the Death event when the player dies.
-                death_event,
                 // add GameProfileComponent when we get an AddPlayerEvent
                 retroactively_add_game_profile_component.after(EntityUpdateSet::Index),
             ),
@@ -972,23 +969,23 @@ impl PluginGroup for DefaultPlugins {
         let mut group = PluginGroupBuilder::start::<Self>()
             .add(AmbiguityLoggerPlugin)
             .add(TimePlugin)
-            .add(PacketHandlerPlugin)
+            .add(PacketPlugin)
             .add(AzaleaPlugin)
             .add(EntityPlugin)
             .add(PhysicsPlugin)
-            .add(EventPlugin)
+            .add(EventsPlugin)
             .add(TaskPoolPlugin::default())
             .add(InventoryPlugin)
             .add(ChatPlugin)
             .add(DisconnectPlugin)
-            .add(PlayerMovePlugin)
+            .add(MovementPlugin)
             .add(InteractPlugin)
             .add(RespawnPlugin)
-            .add(MinePlugin)
+            .add(MiningPlugin)
             .add(AttackPlugin)
-            .add(ChunkPlugin)
+            .add(ChunksPlugin)
             .add(TickEndPlugin)
-            .add(ConfigurationPlugin)
+            .add(BrandPlugin)
             .add(TickBroadcastPlugin);
         #[cfg(feature = "log")]
         {
