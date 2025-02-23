@@ -3,6 +3,7 @@ use std::{
     collections::HashMap,
     hash::Hash,
     io::{Cursor, Read},
+    sync::Arc,
 };
 
 use byteorder::{BE, ReadBytesExt};
@@ -421,5 +422,11 @@ where
 impl<A: AzaleaRead, B: AzaleaRead> AzaleaRead for (A, B) {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok((A::azalea_read(buf)?, B::azalea_read(buf)?))
+    }
+}
+
+impl<T: AzaleaRead> AzaleaRead for Arc<T> {
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        Ok(Arc::new(T::azalea_read(buf)?))
     }
 }

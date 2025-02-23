@@ -5,11 +5,15 @@ use std::{env, fs::File, io::Write, thread, time::Duration};
 use azalea::{
     BlockPos,
     brigadier::prelude::*,
+    chunks::ReceiveChunkEvent,
     entity::{LookDirection, Position},
     interact::HitResultComponent,
+    packet_handling::game,
     pathfinder::{ExecutingPath, Pathfinder},
     world::MinecraftEntityId,
 };
+use azalea_world::InstanceContainer;
+use bevy_ecs::event::Events;
 use parking_lot::Mutex;
 
 use super::{CommandSource, Ctx};
@@ -200,11 +204,71 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
             writeln!(report).unwrap();
 
             for (info, _) in ecs.iter_resources() {
-                writeln!(report, "Resource: {}", info.name()).unwrap();
-                writeln!(report, "- Size: {} bytes", info.layout().size()).unwrap();
+                let name = info.name();
+                writeln!(report, "Resource: {name}").unwrap();
+                // writeln!(report, "- Size: {} bytes",
+                // info.layout().size()).unwrap();
+
+                match name {
+                    "azalea_world::container::InstanceContainer" => {
+                        let instance_container = ecs.resource::<InstanceContainer>();
+                        for (instance_name, instance) in &instance_container.instances {
+                            writeln!(report, "- Name: {}", instance_name).unwrap();
+                            writeln!(report, "- Reference count: {}", instance.strong_count())
+                                .unwrap();
+                            if let Some(instance) = instance.upgrade() {
+                                let instance = instance.read();
+                                let strong_chunks = instance
+                                    .chunks
+                                    .map
+                                    .iter()
+                                    .filter(|(_, v)| v.strong_count() > 0)
+                                    .count();
+                                writeln!(
+                                    report,
+                                    "- Chunks: {} strongly referenced, {} in map",
+                                    strong_chunks,
+                                    instance.chunks.map.len()
+                                )
+                                .unwrap();
+                                writeln!(
+                                    report,
+                                    "- Entities: {}",
+                                    instance.entities_by_chunk.len()
+                                )
+                                .unwrap();
+                            }
+                        }
+                    }
+                    "bevy_ecs::event::collections::Events<azalea_client::packet_handling::game::PacketEvent>" => {
+                        let events = ecs.resource::<Events<game::PacketEvent>>();
+                        writeln!(report, "- Event count: {}", events.len()).unwrap();
+                    }
+                    "bevy_ecs::event::collections::Events<azalea_client::chunks::ReceiveChunkEvent>" => {
+                        let events = ecs.resource::<Events<ReceiveChunkEvent>>();
+                        writeln!(report, "- Event count: {}", events.len()).unwrap();
+                    }
+
+                    _ => {}
+                }
             }
 
             println!("\x1b[1mWrote report to {}\x1b[m", report_path.display());
+        });
+
+        1
+    }));
+
+    commands.register(literal("exit").executes(|ctx: &Ctx| {
+        let source = ctx.source.lock();
+        source.reply("bye!");
+
+        source.bot.disconnect();
+
+        thread::spawn(move || {
+            thread::sleep(Duration::from_secs(1));
+
+            std::process::exit(0);
         });
 
         1

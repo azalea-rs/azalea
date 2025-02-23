@@ -448,6 +448,7 @@ impl AzaleaRead for Section {
         let block_count = u16::azalea_read(buf)?;
 
         // this is commented out because the vanilla server is wrong
+        // ^ this comment was written ages ago. needs more investigation.
         // assert!(
         //     block_count <= 16 * 16 * 16,
         //     "A section has more blocks than what should be possible. This is a bug!"

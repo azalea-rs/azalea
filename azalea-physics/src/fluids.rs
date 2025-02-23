@@ -5,6 +5,7 @@ use azalea_block::{
 use azalea_core::{
     direction::Direction,
     position::{BlockPos, Vec3},
+    resource_location::ResourceLocation,
 };
 use azalea_entity::{InLoadedChunk, LocalEntity, Physics, Position};
 use azalea_world::{Instance, InstanceContainer, InstanceName};
@@ -31,11 +32,18 @@ pub fn update_in_water_state_and_do_fluid_pushing(
 
         update_in_water_state_and_do_water_current_pushing(&mut physics, &world, position);
 
+        // right now doing registries.dimension_type() clones the entire registry which
+        // is very inefficient, so for now we're doing this instead
+
         let is_ultrawarm = world
             .registries
-            .dimension_type()
-            .and_then(|d| d.map.get(instance_name).map(|d| d.ultrawarm))
-            == Some(Some(true));
+            .map
+            .get(&ResourceLocation::new("minecraft:dimension_type"))
+            .and_then(|d| {
+                d.get(&**instance_name)
+                    .map(|d| d.byte("ultrawarm") != Some(0))
+            })
+            .unwrap_or_default();
         let lava_push_factor = if is_ultrawarm {
             0.007
         } else {

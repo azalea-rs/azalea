@@ -80,6 +80,7 @@ hickory-resolver = { version = "0.24.3", default-features = false }
 uuid = "1.12.1"
 num-format = "0.4.4"
 indexmap = "2.7.1"
+compact_str = "0.8.1"
 
 # --- Profile Settings ---
 

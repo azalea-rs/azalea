@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use azalea_buf::AzBuf;
 use azalea_protocol_macros::ClientboundGamePacket;
 use simdnbt::owned::Nbt;
@@ -16,8 +18,14 @@ pub struct ClientboundLevelChunkWithLight {
 #[derive(Clone, Debug, AzBuf)]
 pub struct ClientboundLevelChunkPacketData {
     pub heightmaps: Nbt,
-    // we can't parse the data in azalea-protocol because it depends on context from other packets
-    pub data: Vec<u8>,
+    /// The raw chunk sections.
+    ///
+    /// We can't parse the data in azalea-protocol because it depends on context
+    /// from other packets
+    ///
+    /// This is an Arc because it's often very big and we want it to be cheap to
+    /// clone.
+    pub data: Arc<Vec<u8>>,
     pub block_entities: Vec<BlockEntity>,
 }
 
