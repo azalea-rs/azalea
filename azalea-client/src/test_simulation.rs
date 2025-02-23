@@ -264,7 +264,7 @@ pub fn make_basic_empty_chunk(
         z: pos.z,
         chunk_data: ClientboundLevelChunkPacketData {
             heightmaps: Nbt::None,
-            data: chunk_bytes.into(),
+            data: Arc::new(chunk_bytes.into()),
             block_entities: vec![],
         },
         light_data: ClientboundLightUpdatePacketData::default(),

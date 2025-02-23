@@ -353,7 +353,7 @@ impl Chunk {
                 warn!("Heightmap {name} is not a long array");
                 continue;
             };
-            let data: Vec<u64> = data.iter().map(|x| *x as u64).collect();
+            let data: Box<[u64]> = data.iter().map(|x| *x as u64).collect();
             let heightmap = Heightmap::new(kind, dimension_height, min_y, data);
             heightmaps.insert(kind, heightmap);
         }

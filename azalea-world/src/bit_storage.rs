@@ -101,7 +101,11 @@ impl Error for BitStorageError {}
 impl BitStorage {
     /// Create a new BitStorage with the given number of bits per entry.
     /// `size` is the number of entries in the BitStorage.
-    pub fn new(bits: usize, size: usize, data: Option<Vec<u64>>) -> Result<Self, BitStorageError> {
+    pub fn new(
+        bits: usize,
+        size: usize,
+        data: Option<Box<[u64]>>,
+    ) -> Result<Self, BitStorageError> {
         if let Some(data) = &data {
             // 0 bit storage
             if data.is_empty() {
@@ -132,11 +136,11 @@ impl BitStorage {
             }
             data
         } else {
-            vec![0; calculated_length]
+            vec![0; calculated_length].into()
         };
 
         Ok(BitStorage {
-            data: using_data.into(),
+            data: using_data,
             bits,
             mask,
             size,
@@ -252,7 +256,7 @@ mod tests {
             1, 2, 2, 3, 4, 4, 5, 6, 6, 4, 8, 0, 7, 4, 3, 13, 15, 16, 9, 14, 10, 12, 0, 2,
         ];
         let compact_data: [u64; 2] = [0x0020863148418841, 0x01018A7260F68C87];
-        let storage = BitStorage::new(5, data.len(), Some(compact_data.to_vec())).unwrap();
+        let storage = BitStorage::new(5, data.len(), Some(Box::new(compact_data))).unwrap();
 
         for (i, expected) in data.iter().enumerate() {
             assert_eq!(storage.get(i), *expected);

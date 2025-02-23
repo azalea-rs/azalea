@@ -25,7 +25,7 @@ pub struct ClientboundLevelChunkPacketData {
     ///
     /// This is an Arc because it's often very big and we want it to be cheap to
     /// clone.
-    pub data: Arc<Vec<u8>>,
+    pub data: Arc<Box<[u8]>>,
     pub block_entities: Vec<BlockEntity>,
 }
 

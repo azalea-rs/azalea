@@ -56,7 +56,7 @@ impl HeightmapKind {
 }
 
 impl Heightmap {
-    pub fn new(kind: HeightmapKind, dimension_height: u32, min_y: i32, data: Vec<u64>) -> Self {
+    pub fn new(kind: HeightmapKind, dimension_height: u32, min_y: i32, data: Box<[u64]>) -> Self {
         let bits = math::ceil_log2(dimension_height + 1);
         let data = BitStorage::new(bits as usize, 16 * 16, Some(data)).unwrap();
         Self { kind, data, min_y }

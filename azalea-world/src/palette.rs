@@ -31,7 +31,7 @@ impl PalettedContainer {
     pub fn new(container_type: PalettedContainerKind) -> Self {
         let palette = Palette::SingleValue(0);
         let size = container_type.size();
-        let storage = BitStorage::new(0, size, Some(vec![])).unwrap();
+        let storage = BitStorage::new(0, size, Some(Box::new([]))).unwrap();
 
         PalettedContainer {
             bits_per_entry: 0,
@@ -76,7 +76,7 @@ impl PalettedContainer {
             bits_per_entry.into(),
             size,
             if data.is_empty() {
-                Some(vec![])
+                Some(Box::new([]))
             } else {
                 // we're going to update the data after creating the bitstorage
                 None
