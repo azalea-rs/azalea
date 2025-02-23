@@ -1,7 +1,7 @@
 //! Connect to remote servers/clients.
 
 use std::fmt::Debug;
-use std::io::Cursor;
+use std::io::{self, Cursor};
 use std::marker::PhantomData;
 use std::net::SocketAddr;
 
@@ -155,7 +155,7 @@ impl RawReadConnection {
 }
 
 impl RawWriteConnection {
-    pub async fn write(&mut self, packet: &[u8]) -> std::io::Result<()> {
+    pub async fn write(&mut self, packet: &[u8]) -> io::Result<()> {
         if let Err(e) = write_raw_packet(
             packet,
             &mut self.write_stream,
@@ -165,7 +165,7 @@ impl RawWriteConnection {
         .await
         {
             // detect broken pipe
-            if e.kind() == std::io::ErrorKind::BrokenPipe {
+            if e.kind() == io::ErrorKind::BrokenPipe {
                 info!("Broken pipe, shutting down connection.");
                 if let Err(e) = self.shutdown().await {
                     error!("Couldn't shut down: {}", e);
@@ -177,7 +177,7 @@ impl RawWriteConnection {
     }
 
     /// End the connection.
-    pub async fn shutdown(&mut self) -> std::io::Result<()> {
+    pub async fn shutdown(&mut self) -> io::Result<()> {
         self.write_stream.shutdown().await
     }
 }
@@ -206,12 +206,12 @@ where
     W: ProtocolPacket + Debug,
 {
     /// Write a packet to the server.
-    pub async fn write(&mut self, packet: W) -> std::io::Result<()> {
+    pub async fn write(&mut self, packet: W) -> io::Result<()> {
         self.raw.write(&serialize_packet(&packet).unwrap()).await
     }
 
     /// End the connection.
-    pub async fn shutdown(&mut self) -> std::io::Result<()> {
+    pub async fn shutdown(&mut self) -> io::Result<()> {
         self.raw.shutdown().await
     }
 }
@@ -233,7 +233,7 @@ where
     }
 
     /// Write a packet to the other side of the connection.
-    pub async fn write(&mut self, packet: impl crate::packets::Packet<W>) -> std::io::Result<()> {
+    pub async fn write(&mut self, packet: impl crate::packets::Packet<W>) -> io::Result<()> {
         let packet = packet.into_variant();
         self.writer.write(packet).await
     }
@@ -248,7 +248,7 @@ where
 #[derive(Error, Debug)]
 pub enum ConnectionError {
     #[error("{0}")]
-    Io(#[from] std::io::Error),
+    Io(#[from] io::Error),
 }
 
 use socks5_impl::protocol::UserKey;
@@ -287,7 +287,7 @@ impl Connection<ClientboundHandshakePacket, ServerboundHandshakePacket> {
 
         let _ = socks5_impl::client::connect(&mut stream, address, proxy.auth)
             .await
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
+            .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
 
         Self::new_from_stream(stream.into_inner()).await
     }

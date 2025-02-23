@@ -133,21 +133,39 @@ impl RawConnectionReader {
     /// Loop that reads from the connection and adds the packets to the queue +
     /// runs the schedule.
     pub async fn read_task(self, mut read_conn: RawReadConnection) {
+        fn log_for_error(error: &ReadPacketError) {
+            if !matches!(*error, ReadPacketError::ConnectionClosed) {
+                error!("Error reading packet from Client: {error:?}");
+            }
+        }
+
         loop {
             match read_conn.read().await {
                 Ok(raw_packet) => {
-                    self.incoming_packet_queue.lock().push(raw_packet);
+                    let mut incoming_packet_queue = self.incoming_packet_queue.lock();
+
+                    incoming_packet_queue.push(raw_packet);
+                    loop {
+                        let raw_packet = match read_conn.try_read() {
+                            Ok(p) => p,
+                            Err(err) => {
+                                log_for_error(&err);
+                                return;
+                            }
+                        };
+                        let Some(raw_packet) = raw_packet else { break };
+                        incoming_packet_queue.push(raw_packet);
+                    }
+
                     // tell the client to run all the systems
                     if self.run_schedule_sender.send(()).is_err() {
                         // the client was dropped
                         break;
                     }
                 }
-                Err(error) => {
-                    if !matches!(*error, ReadPacketError::ConnectionClosed) {
-                        error!("Error reading packet from Client: {error:?}");
-                    }
-                    break;
+                Err(err) => {
+                    log_for_error(&err);
+                    return;
                 }
             }
         }
