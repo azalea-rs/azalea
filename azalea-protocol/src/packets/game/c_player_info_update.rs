@@ -80,7 +80,7 @@ impl AzaleaRead for ClientboundPlayerInfoUpdate {
             if actions.add_player {
                 let action = AddPlayerAction::azalea_read(buf)?;
                 entry.profile.name = action.name;
-                entry.profile.properties = action.properties;
+                entry.profile.properties = action.properties.into();
             }
             if actions.initialize_chat {
                 let action = InitializeChatAction::azalea_read(buf)?;
@@ -129,7 +129,7 @@ impl AzaleaWrite for ClientboundPlayerInfoUpdate {
             if self.actions.add_player {
                 AddPlayerAction {
                     name: entry.profile.name.clone(),
-                    properties: entry.profile.properties.clone(),
+                    properties: (*entry.profile.properties).clone(),
                 }
                 .azalea_write(buf)?;
             }

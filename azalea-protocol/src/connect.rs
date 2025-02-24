@@ -243,6 +243,15 @@ where
     pub fn into_split(self) -> (ReadConnection<R>, WriteConnection<W>) {
         (self.reader, self.writer)
     }
+
+    /// Split the reader and writer into the state-agnostic
+    /// [`RawReadConnection`] and [`RawWriteConnection`] types.
+    ///
+    /// This is meant to help with some types of proxies.
+    #[must_use]
+    pub fn into_split_raw(self) -> (RawReadConnection, RawWriteConnection) {
+        (self.reader.raw, self.writer.raw)
+    }
 }
 
 #[derive(Error, Debug)]

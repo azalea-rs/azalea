@@ -35,7 +35,7 @@ pub mod write;
 /// assert_eq!(addr.host, "localhost");
 /// assert_eq!(addr.port, 25565);
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ServerAddress {
     pub host: String,
     pub port: u16,

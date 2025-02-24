@@ -334,6 +334,8 @@ impl Client {
                 metadata: azalea_entity::metadata::PlayerMetadataBundle::default(),
             },
             InConfigState,
+            // this component is never removed
+            LocalEntity,
         ));
 
         Ok((client, rx))
@@ -813,8 +815,6 @@ pub struct JoinedClientBundle {
 
     pub mining: mining::MineBundle,
     pub attack: attack::AttackBundle,
-
-    pub _local_entity: LocalEntity,
 }
 
 /// A marker component for local players that are currently in the
