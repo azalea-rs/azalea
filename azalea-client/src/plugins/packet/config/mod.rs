@@ -1,5 +1,6 @@
 mod events;
 
+use azalea_entity::LocalEntity;
 use azalea_protocol::packets::ConnectionProtocol;
 use azalea_protocol::packets::config::*;
 use bevy_ecs::prelude::*;
@@ -108,7 +109,12 @@ impl ConfigPacketHandler<'_> {
                 commands
                     .entity(self.player)
                     .remove::<InConfigState>()
-                    .insert(crate::JoinedClientBundle::default());
+                    .insert((
+                        crate::JoinedClientBundle::default(),
+                        // localentity should already be added, but in case the user forgot or
+                        // something we also add it here
+                        LocalEntity,
+                    ));
             },
         );
     }
