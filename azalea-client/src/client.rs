@@ -796,8 +796,8 @@ pub struct LocalPlayerBundle {
 }
 
 /// A bundle for the components that are present on a local player that is
-/// currently in the `game` protocol state. If you want to filter for this, just
-/// use [`LocalEntity`].
+/// currently in the `game` protocol state. If you want to filter for this, use
+/// [`InGameState`].
 #[derive(Bundle, Default)]
 pub struct JoinedClientBundle {
     // note that InstanceHolder isn't here because it's set slightly before we fully join the world
