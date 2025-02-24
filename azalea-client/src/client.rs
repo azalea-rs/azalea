@@ -815,11 +815,17 @@ pub struct JoinedClientBundle {
 
     pub mining: mining::MineBundle,
     pub attack: attack::AttackBundle,
+
+    pub in_game_state: InGameState,
 }
 
 /// A marker component for local players that are currently in the
+/// `game` state.
+#[derive(Component, Clone, Debug, Default)]
+pub struct InGameState;
+/// A marker component for local players that are currently in the
 /// `configuration` state.
-#[derive(Component, Clone, Debug)]
+#[derive(Component, Clone, Debug, Default)]
 pub struct InConfigState;
 
 pub struct AzaleaPlugin;

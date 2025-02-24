@@ -5,7 +5,6 @@ use std::{
 
 use azalea_chat::FormattedText;
 use azalea_core::resource_location::ResourceLocation;
-use azalea_entity::LocalEntity;
 use azalea_protocol::{
     packets::{
         Packet,
@@ -19,7 +18,7 @@ use parking_lot::RwLock;
 use tracing::{debug, error};
 use uuid::Uuid;
 
-use crate::{PlayerInfo, raw_connection::RawConnection};
+use crate::{PlayerInfo, client::InGameState, raw_connection::RawConnection};
 
 /// An event that's sent when we receive a packet.
 /// ```
@@ -77,7 +76,7 @@ pub fn handle_outgoing_packets(
 }
 
 pub fn send_receivepacketevent(
-    query: Query<(Entity, &RawConnection), With<LocalEntity>>,
+    query: Query<(Entity, &RawConnection), With<InGameState>>,
     mut packet_events: ResMut<Events<ReceivePacketEvent>>,
 ) {
     // we manually clear and send the events at the beginning of each update

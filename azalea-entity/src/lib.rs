@@ -482,6 +482,8 @@ impl EntityBundle {
 /// be updated by other clients.
 ///
 /// If this is for a client then all of our clients will have this.
+///
+/// This component is not removed from clients when they disconnect.
 #[derive(Component, Clone, Debug, Default)]
 pub struct LocalEntity;
 

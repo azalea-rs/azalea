@@ -749,7 +749,7 @@ impl GamePacketHandler<'_> {
                 );
                 return;
             };
-            let entity_kind = *entity_kind;
+            let entity_kind = **entity_kind;
 
             debug!("Got set entity data packet {p:?} for entity of kind {entity_kind:?}");
 
@@ -766,7 +766,7 @@ impl GamePacketHandler<'_> {
                         let mut commands = commands_system_state.get_mut(world);
                         let mut entity_commands = commands.entity(entity_id);
                         if let Err(e) =
-                            apply_metadata(&mut entity_commands, *entity_kind, packed_items)
+                            apply_metadata(&mut entity_commands, entity_kind, packed_items)
                         {
                             warn!("{e}");
                         }
