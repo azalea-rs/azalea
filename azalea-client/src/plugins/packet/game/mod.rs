@@ -749,6 +749,7 @@ impl GamePacketHandler<'_> {
                 );
                 return;
             };
+            let entity_kind = *entity_kind;
 
             debug!("Got set entity data packet {p:?} for entity of kind {entity_kind:?}");
 
