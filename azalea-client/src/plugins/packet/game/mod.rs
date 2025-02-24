@@ -742,9 +742,13 @@ impl GamePacketHandler<'_> {
                 return;
             };
 
-            let entity_kind = *entity_kind_query
-                .get(entity)
-                .expect("EntityKind component should always be present for entities");
+            let Ok(entity_kind) = entity_kind_query.get(entity) else {
+                debug!(
+                    "Server sent an entity data packet for an entity id ({}) that we have indexed as {entity} but they don't have EntityKind. Maybe a second local client that just disconnected?",
+                    p.id
+                );
+                return;
+            };
 
             debug!("Got set entity data packet {p:?} for entity of kind {entity_kind:?}");
 
