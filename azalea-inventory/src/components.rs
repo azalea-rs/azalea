@@ -70,10 +70,6 @@ pub fn from_kind(
         DataComponentKind::CanBreak => Box::new(CanBreak::azalea_read(buf)?),
         DataComponentKind::AttributeModifiers => Box::new(AttributeModifiers::azalea_read(buf)?),
         DataComponentKind::CustomModelData => Box::new(CustomModelData::azalea_read(buf)?),
-        DataComponentKind::HideAdditionalTooltip => {
-            Box::new(HideAdditionalTooltip::azalea_read(buf)?)
-        }
-        DataComponentKind::HideTooltip => Box::new(HideTooltip::azalea_read(buf)?),
         DataComponentKind::RepairCost => Box::new(RepairCost::azalea_read(buf)?),
         DataComponentKind::CreativeSlotLock => Box::new(CreativeSlotLock::azalea_read(buf)?),
         DataComponentKind::EnchantmentGlintOverride => {
@@ -160,6 +156,18 @@ pub fn from_kind(
         DataComponentKind::CatCollar => Box::new(CatCollar::azalea_read(buf)?),
         DataComponentKind::SheepColor => Box::new(SheepColor::azalea_read(buf)?),
         DataComponentKind::ShulkerColor => Box::new(ShulkerColor::azalea_read(buf)?),
+        DataComponentKind::TooltipDisplay => Box::new(TooltipDisplay::azalea_read(buf)?),
+        DataComponentKind::BlocksAttacks => Box::new(BlocksAttacks::azalea_read(buf)?),
+        DataComponentKind::ProvidesTrimMaterial => {
+            Box::new(ProvidesTrimMaterial::azalea_read(buf)?)
+        }
+        DataComponentKind::ProvidesBannerPatterns => {
+            Box::new(ProvidesBannerPatterns::azalea_read(buf)?)
+        }
+        DataComponentKind::BreakSound => Box::new(BreakSound::azalea_read(buf)?),
+        DataComponentKind::WolfSoundVariant => Box::new(WolfSoundVariant::azalea_read(buf)?),
+        DataComponentKind::CowVariant => Box::new(CowVariant::azalea_read(buf)?),
+        DataComponentKind::ChickenVariant => Box::new(ChickenVariant::azalea_read(buf)?),
     })
 }
 
@@ -360,18 +368,6 @@ pub struct CustomModelData {
 }
 impl DataComponent for CustomModelData {
     const KIND: DataComponentKind = DataComponentKind::CustomModelData;
-}
-
-#[derive(Clone, PartialEq, AzBuf)]
-pub struct HideAdditionalTooltip;
-impl DataComponent for HideAdditionalTooltip {
-    const KIND: DataComponentKind = DataComponentKind::HideAdditionalTooltip;
-}
-
-#[derive(Clone, PartialEq, AzBuf)]
-pub struct HideTooltip;
-impl DataComponent for HideTooltip {
-    const KIND: DataComponentKind = DataComponentKind::HideTooltip;
 }
 
 #[derive(Clone, PartialEq, AzBuf)]
@@ -1146,4 +1142,68 @@ pub struct ShulkerColor {
 }
 impl DataComponent for ShulkerColor {
     const KIND: DataComponentKind = DataComponentKind::ShulkerColor;
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct TooltipDisplay {
+    pub todo: todo!(), // see DataComponents.java
+}
+impl DataComponent for TooltipDisplay {
+    const KIND: DataComponentKind = DataComponentKind::TooltipDisplay;
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct BlocksAttacks {
+    pub todo: todo!(), // see DataComponents.java
+}
+impl DataComponent for BlocksAttacks {
+    const KIND: DataComponentKind = DataComponentKind::BlocksAttacks;
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct ProvidesTrimMaterial {
+    pub todo: todo!(), // see DataComponents.java
+}
+impl DataComponent for ProvidesTrimMaterial {
+    const KIND: DataComponentKind = DataComponentKind::ProvidesTrimMaterial;
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct ProvidesBannerPatterns {
+    pub todo: todo!(), // see DataComponents.java
+}
+impl DataComponent for ProvidesBannerPatterns {
+    const KIND: DataComponentKind = DataComponentKind::ProvidesBannerPatterns;
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct BreakSound {
+    pub todo: todo!(), // see DataComponents.java
+}
+impl DataComponent for BreakSound {
+    const KIND: DataComponentKind = DataComponentKind::BreakSound;
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct WolfSoundVariant {
+    pub todo: todo!(), // see DataComponents.java
+}
+impl DataComponent for WolfSoundVariant {
+    const KIND: DataComponentKind = DataComponentKind::WolfSoundVariant;
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct CowVariant {
+    pub todo: todo!(), // see DataComponents.java
+}
+impl DataComponent for CowVariant {
+    const KIND: DataComponentKind = DataComponentKind::CowVariant;
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct ChickenVariant {
+    pub todo: todo!(), // see DataComponents.java
+}
+impl DataComponent for ChickenVariant {
+    const KIND: DataComponentKind = DataComponentKind::ChickenVariant;
 }

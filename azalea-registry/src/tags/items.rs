@@ -111,6 +111,7 @@ pub static BEE_FOOD: LazyLock<HashSet<Item>> = LazyLock::new(|| {
         Item::Wildflowers,
         Item::ChorusFlower,
         Item::SporeBlossom,
+        Item::CactusFlower,
     ])
 });
 pub static BIRCH_LOGS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
@@ -563,6 +564,8 @@ pub static DYEABLE: LazyLock<HashSet<Item>> = LazyLock::new(|| {
         Item::WolfArmor,
     ])
 });
+pub static EGGS: LazyLock<HashSet<Item>> =
+    LazyLock::new(|| HashSet::from_iter(vec![Item::Egg, Item::BlueEgg, Item::BrownEgg]));
 pub static EMERALD_ORES: LazyLock<HashSet<Item>> =
     LazyLock::new(|| HashSet::from_iter(vec![Item::EmeraldOre, Item::DeepslateEmeraldOre]));
 pub static ENCHANTABLE_ARMOR: LazyLock<HashSet<Item>> = LazyLock::new(|| {

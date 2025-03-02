@@ -1890,11 +1890,9 @@ impl Default for CherryChestBoatMetadataBundle {
 }
 
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct DisplayBlock(pub i32);
+pub struct CustomDisplayBlock(pub azalea_block::BlockState);
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct DisplayOffset(pub i32);
-#[derive(Component, Deref, DerefMut, Clone)]
-pub struct CustomDisplay(pub bool);
 #[derive(Component)]
 pub struct ChestMinecart;
 impl ChestMinecart {
@@ -1903,7 +1901,7 @@ impl ChestMinecart {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=13 => AbstractMinecart::apply_metadata(entity, d)?,
+            0..=12 => AbstractMinecart::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -1944,14 +1942,15 @@ impl Default for ChestMinecartMetadataBundle {
                     hurtdir: Hurtdir(1),
                     damage: Damage(0.0),
                 },
-                display_block: DisplayBlock(Default::default()),
-                display_offset: DisplayOffset(6),
-                custom_display: CustomDisplay(false),
+                custom_display_block: CustomDisplayBlock(azalea_block::BlockState::AIR),
+                display_offset: DisplayOffset(Default::default()),
             },
         }
     }
 }
 
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct ChickenVariant(pub azalea_registry::PigVariant);
 #[derive(Component)]
 pub struct Chicken;
 impl Chicken {
@@ -1961,6 +1960,9 @@ impl Chicken {
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
+            17 => {
+                entity.insert(ChickenVariant(d.value.into_pig_variant()?));
+            }
             _ => {}
         }
         Ok(())
@@ -1971,6 +1973,7 @@ impl Chicken {
 pub struct ChickenMetadataBundle {
     _marker: Chicken,
     parent: AbstractAnimalMetadataBundle,
+    chicken_variant: ChickenVariant,
 }
 impl Default for ChickenMetadataBundle {
     fn default() -> Self {
@@ -2020,6 +2023,7 @@ impl Default for ChickenMetadataBundle {
                     abstract_ageable_baby: AbstractAgeableBaby(false),
                 },
             },
+            chicken_variant: ChickenVariant(Default::default()),
         }
     }
 }
@@ -2107,11 +2111,11 @@ impl CommandBlockMinecart {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=13 => AbstractMinecart::apply_metadata(entity, d)?,
-            14 => {
+            0..=12 => AbstractMinecart::apply_metadata(entity, d)?,
+            13 => {
                 entity.insert(CommandName(d.value.into_string()?));
             }
-            15 => {
+            14 => {
                 entity.insert(LastOutput(d.value.into_formatted_text()?));
             }
             _ => {}
@@ -2156,9 +2160,8 @@ impl Default for CommandBlockMinecartMetadataBundle {
                     hurtdir: Hurtdir(1),
                     damage: Damage(0.0),
                 },
-                display_block: DisplayBlock(Default::default()),
-                display_offset: DisplayOffset(6),
-                custom_display: CustomDisplay(false),
+                custom_display_block: CustomDisplayBlock(azalea_block::BlockState::AIR),
+                display_offset: DisplayOffset(Default::default()),
             },
             command_name: CommandName("".to_string()),
             last_output: LastOutput(Default::default()),
@@ -2166,6 +2169,8 @@ impl Default for CommandBlockMinecartMetadataBundle {
     }
 }
 
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct CowVariant(pub azalea_registry::ChickenVariant);
 #[derive(Component)]
 pub struct Cow;
 impl Cow {
@@ -2175,6 +2180,9 @@ impl Cow {
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
             0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
+            17 => {
+                entity.insert(CowVariant(d.value.into_chicken_variant()?));
+            }
             _ => {}
         }
         Ok(())
@@ -2185,6 +2193,7 @@ impl Cow {
 pub struct CowMetadataBundle {
     _marker: Cow,
     parent: AbstractAnimalMetadataBundle,
+    cow_variant: CowVariant,
 }
 impl Default for CowMetadataBundle {
     fn default() -> Self {
@@ -2234,6 +2243,7 @@ impl Default for CowMetadataBundle {
                     abstract_ageable_baby: AbstractAgeableBaby(false),
                 },
             },
+            cow_variant: CowVariant(Default::default()),
         }
     }
 }
@@ -2245,7 +2255,7 @@ pub struct IsActive(pub bool);
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct IsTearingDown(pub bool);
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct CreakingHomePos(pub Option<BlockPos>);
+pub struct HomePos(pub Option<BlockPos>);
 #[derive(Component)]
 pub struct Creaking;
 impl Creaking {
@@ -2265,7 +2275,7 @@ impl Creaking {
                 entity.insert(IsTearingDown(d.value.into_boolean()?));
             }
             19 => {
-                entity.insert(CreakingHomePos(d.value.into_optional_block_pos()?));
+                entity.insert(HomePos(d.value.into_optional_block_pos()?));
             }
             _ => {}
         }
@@ -2280,7 +2290,7 @@ pub struct CreakingMetadataBundle {
     can_move: CanMove,
     is_active: IsActive,
     is_tearing_down: IsTearingDown,
-    creaking_home_pos: CreakingHomePos,
+    home_pos: HomePos,
 }
 impl Default for CreakingMetadataBundle {
     fn default() -> Self {
@@ -2329,7 +2339,7 @@ impl Default for CreakingMetadataBundle {
             can_move: CanMove(true),
             is_active: IsActive(false),
             is_tearing_down: IsTearingDown(false),
-            creaking_home_pos: CreakingHomePos(None),
+            home_pos: HomePos(None),
         }
     }
 }
@@ -2538,8 +2548,6 @@ impl Default for DarkOakChestBoatMetadataBundle {
 }
 
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct TreasurePos(pub BlockPos);
-#[derive(Component, Deref, DerefMut, Clone)]
 pub struct GotFish(pub bool);
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct MoistnessLevel(pub i32);
@@ -2553,12 +2561,9 @@ impl Dolphin {
         match d.index {
             0..=16 => AbstractAgeable::apply_metadata(entity, d)?,
             17 => {
-                entity.insert(TreasurePos(d.value.into_block_pos()?));
-            }
-            18 => {
                 entity.insert(GotFish(d.value.into_boolean()?));
             }
-            19 => {
+            18 => {
                 entity.insert(MoistnessLevel(d.value.into_int()?));
             }
             _ => {}
@@ -2571,7 +2576,6 @@ impl Dolphin {
 pub struct DolphinMetadataBundle {
     _marker: Dolphin,
     parent: AbstractAgeableMetadataBundle,
-    treasure_pos: TreasurePos,
     got_fish: GotFish,
     moistness_level: MoistnessLevel,
 }
@@ -2620,7 +2624,6 @@ impl Default for DolphinMetadataBundle {
                 },
                 abstract_ageable_baby: AbstractAgeableBaby(false),
             },
-            treasure_pos: TreasurePos(BlockPos::new(0, 0, 0)),
             got_fish: GotFish(false),
             moistness_level: MoistnessLevel(2400),
         }
@@ -3931,7 +3934,7 @@ impl Default for FoxMetadataBundle {
                     abstract_ageable_baby: AbstractAgeableBaby(false),
                 },
             },
-            fox_kind: FoxKind(0),
+            fox_kind: FoxKind(Default::default()),
             fox_sitting: FoxSitting(false),
             faceplanted: Faceplanted(false),
             defending: Defending(false),
@@ -3946,7 +3949,7 @@ impl Default for FoxMetadataBundle {
 }
 
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct FrogVariant(pub azalea_registry::FrogVariant);
+pub struct FrogVariant(pub azalea_registry::WolfSoundVariant);
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct TongueTarget(pub OptionalUnsignedInt);
 #[derive(Component)]
@@ -3959,7 +3962,7 @@ impl Frog {
         match d.index {
             0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
             17 => {
-                entity.insert(FrogVariant(d.value.into_frog_variant()?));
+                entity.insert(FrogVariant(d.value.into_wolf_sound_variant()?));
             }
             18 => {
                 entity.insert(TongueTarget(d.value.into_optional_unsigned_int()?));
@@ -4025,7 +4028,7 @@ impl Default for FrogMetadataBundle {
                     abstract_ageable_baby: AbstractAgeableBaby(false),
                 },
             },
-            frog_variant: FrogVariant(azalea_registry::FrogVariant::Temperate),
+            frog_variant: FrogVariant(Default::default()),
             tongue_target: TongueTarget(OptionalUnsignedInt(None)),
         }
     }
@@ -4041,8 +4044,8 @@ impl FurnaceMinecart {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=13 => AbstractMinecart::apply_metadata(entity, d)?,
-            14 => {
+            0..=12 => AbstractMinecart::apply_metadata(entity, d)?,
+            13 => {
                 entity.insert(Fuel(d.value.into_boolean()?));
             }
             _ => {}
@@ -4086,9 +4089,8 @@ impl Default for FurnaceMinecartMetadataBundle {
                     hurtdir: Hurtdir(1),
                     damage: Damage(0.0),
                 },
-                display_block: DisplayBlock(Default::default()),
-                display_offset: DisplayOffset(6),
-                custom_display: CustomDisplay(false),
+                custom_display_block: CustomDisplayBlock(azalea_block::BlockState::AIR),
+                display_offset: DisplayOffset(Default::default()),
             },
             fuel: Fuel(false),
         }
@@ -4623,7 +4625,7 @@ impl HopperMinecart {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=13 => AbstractMinecart::apply_metadata(entity, d)?,
+            0..=12 => AbstractMinecart::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -4664,9 +4666,8 @@ impl Default for HopperMinecartMetadataBundle {
                     hurtdir: Hurtdir(1),
                     damage: Damage(0.0),
                 },
-                display_block: DisplayBlock(Default::default()),
-                display_offset: DisplayOffset(6),
-                custom_display: CustomDisplay(false),
+                custom_display_block: CustomDisplayBlock(azalea_block::BlockState::AIR),
+                display_offset: DisplayOffset(Default::default()),
             },
         }
     }
@@ -5454,6 +5455,57 @@ impl Default for LightningBoltMetadataBundle {
     }
 }
 
+#[derive(Component)]
+pub struct LingeringPotion;
+impl LingeringPotion {
+    pub fn apply_metadata(
+        entity: &mut bevy_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=8 => AbstractThrownItemProjectile::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct LingeringPotionMetadataBundle {
+    _marker: LingeringPotion,
+    parent: AbstractThrownItemProjectileMetadataBundle,
+}
+impl Default for LingeringPotionMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: LingeringPotion,
+            parent: AbstractThrownItemProjectileMetadataBundle {
+                _marker: AbstractThrownItemProjectile,
+                parent: AbstractEntityMetadataBundle {
+                    _marker: AbstractEntity,
+                    on_fire: OnFire(false),
+                    shift_key_down: ShiftKeyDown(false),
+                    sprinting: Sprinting(false),
+                    swimming: Swimming(false),
+                    currently_glowing: CurrentlyGlowing(false),
+                    invisible: Invisible(false),
+                    fall_flying: FallFlying(false),
+                    air_supply: AirSupply(Default::default()),
+                    custom_name: CustomName(Default::default()),
+                    custom_name_visible: CustomNameVisible(Default::default()),
+                    silent: Silent(Default::default()),
+                    no_gravity: NoGravity(Default::default()),
+                    pose: Pose::default(),
+                    ticks_frozen: TicksFrozen(Default::default()),
+                },
+                abstract_thrown_item_projectile_item_stack: AbstractThrownItemProjectileItemStack(
+                    Default::default(),
+                ),
+            },
+        }
+    }
+}
+
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct Strength(pub i32);
 #[derive(Component, Deref, DerefMut, Clone)]
@@ -5833,7 +5885,7 @@ impl Minecart {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=13 => AbstractMinecart::apply_metadata(entity, d)?,
+            0..=12 => AbstractMinecart::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -5874,9 +5926,8 @@ impl Default for MinecartMetadataBundle {
                     hurtdir: Hurtdir(1),
                     damage: Damage(0.0),
                 },
-                display_block: DisplayBlock(Default::default()),
-                display_offset: DisplayOffset(6),
-                custom_display: CustomDisplay(false),
+                custom_display_block: CustomDisplayBlock(azalea_block::BlockState::AIR),
+                display_offset: DisplayOffset(Default::default()),
             },
         }
     }
@@ -5892,7 +5943,7 @@ impl Mooshroom {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=16 => Cow::apply_metadata(entity, d)?,
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
             17 => {
                 entity.insert(MooshroomKind(d.value.into_int()?));
             }
@@ -5905,58 +5956,55 @@ impl Mooshroom {
 #[derive(Bundle)]
 pub struct MooshroomMetadataBundle {
     _marker: Mooshroom,
-    parent: CowMetadataBundle,
+    parent: AbstractAnimalMetadataBundle,
     mooshroom_kind: MooshroomKind,
 }
 impl Default for MooshroomMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Mooshroom,
-            parent: CowMetadataBundle {
-                _marker: Cow,
-                parent: AbstractAnimalMetadataBundle {
-                    _marker: AbstractAnimal,
-                    parent: AbstractAgeableMetadataBundle {
-                        _marker: AbstractAgeable,
-                        parent: AbstractCreatureMetadataBundle {
-                            _marker: AbstractCreature,
-                            parent: AbstractInsentientMetadataBundle {
-                                _marker: AbstractInsentient,
-                                parent: AbstractLivingMetadataBundle {
-                                    _marker: AbstractLiving,
-                                    parent: AbstractEntityMetadataBundle {
-                                        _marker: AbstractEntity,
-                                        on_fire: OnFire(false),
-                                        shift_key_down: ShiftKeyDown(false),
-                                        sprinting: Sprinting(false),
-                                        swimming: Swimming(false),
-                                        currently_glowing: CurrentlyGlowing(false),
-                                        invisible: Invisible(false),
-                                        fall_flying: FallFlying(false),
-                                        air_supply: AirSupply(Default::default()),
-                                        custom_name: CustomName(Default::default()),
-                                        custom_name_visible: CustomNameVisible(Default::default()),
-                                        silent: Silent(Default::default()),
-                                        no_gravity: NoGravity(Default::default()),
-                                        pose: Pose::default(),
-                                        ticks_frozen: TicksFrozen(Default::default()),
-                                    },
-                                    auto_spin_attack: AutoSpinAttack(false),
-                                    abstract_living_using_item: AbstractLivingUsingItem(false),
-                                    health: Health(1.0),
-                                    effect_particles: EffectParticles(Default::default()),
-                                    effect_ambience: EffectAmbience(false),
-                                    arrow_count: ArrowCount(0),
-                                    stinger_count: StingerCount(0),
-                                    sleeping_pos: SleepingPos(None),
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(Default::default()),
+                                    custom_name_visible: CustomNameVisible(Default::default()),
+                                    silent: Silent(Default::default()),
+                                    no_gravity: NoGravity(Default::default()),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(Default::default()),
                                 },
-                                no_ai: NoAi(false),
-                                left_handed: LeftHanded(false),
-                                aggressive: Aggressive(false),
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                effect_particles: EffectParticles(Default::default()),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
                             },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
                         },
-                        abstract_ageable_baby: AbstractAgeableBaby(false),
                     },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
                 },
             },
             mooshroom_kind: MooshroomKind(Default::default()),
@@ -6670,7 +6718,7 @@ impl Default for ParrotMetadataBundle {
                 in_sitting_pose: InSittingPose(false),
                 owneruuid: Owneruuid(None),
             },
-            parrot_variant: ParrotVariant(0),
+            parrot_variant: ParrotVariant(Default::default()),
         }
     }
 }
@@ -6747,7 +6795,7 @@ impl Default for PhantomMetadataBundle {
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct PigBoostTime(pub i32);
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct PigVariant(pub azalea_registry::PigVariant);
+pub struct PigVariant(pub azalea_registry::FrogVariant);
 #[derive(Component)]
 pub struct Pig;
 impl Pig {
@@ -6761,7 +6809,7 @@ impl Pig {
                 entity.insert(PigBoostTime(d.value.into_int()?));
             }
             18 => {
-                entity.insert(PigVariant(d.value.into_pig_variant()?));
+                entity.insert(PigVariant(d.value.into_frog_variant()?));
             }
             _ => {}
         }
@@ -6825,7 +6873,7 @@ impl Default for PigMetadataBundle {
                 },
             },
             pig_boost_time: PigBoostTime(0),
-            pig_variant: PigVariant(Default::default()),
+            pig_variant: PigVariant(azalea_registry::FrogVariant::Temperate),
         }
     }
 }
@@ -7249,57 +7297,6 @@ impl Default for PolarBearMetadataBundle {
                 },
             },
             polar_bear_standing: PolarBearStanding(false),
-        }
-    }
-}
-
-#[derive(Component)]
-pub struct Potion;
-impl Potion {
-    pub fn apply_metadata(
-        entity: &mut bevy_ecs::system::EntityCommands,
-        d: EntityDataItem,
-    ) -> Result<(), UpdateMetadataError> {
-        match d.index {
-            0..=8 => AbstractThrownItemProjectile::apply_metadata(entity, d)?,
-            _ => {}
-        }
-        Ok(())
-    }
-}
-
-#[derive(Bundle)]
-pub struct PotionMetadataBundle {
-    _marker: Potion,
-    parent: AbstractThrownItemProjectileMetadataBundle,
-}
-impl Default for PotionMetadataBundle {
-    fn default() -> Self {
-        Self {
-            _marker: Potion,
-            parent: AbstractThrownItemProjectileMetadataBundle {
-                _marker: AbstractThrownItemProjectile,
-                parent: AbstractEntityMetadataBundle {
-                    _marker: AbstractEntity,
-                    on_fire: OnFire(false),
-                    shift_key_down: ShiftKeyDown(false),
-                    sprinting: Sprinting(false),
-                    swimming: Swimming(false),
-                    currently_glowing: CurrentlyGlowing(false),
-                    invisible: Invisible(false),
-                    fall_flying: FallFlying(false),
-                    air_supply: AirSupply(Default::default()),
-                    custom_name: CustomName(Default::default()),
-                    custom_name_visible: CustomNameVisible(Default::default()),
-                    silent: Silent(Default::default()),
-                    no_gravity: NoGravity(Default::default()),
-                    pose: Pose::default(),
-                    ticks_frozen: TicksFrozen(Default::default()),
-                },
-                abstract_thrown_item_projectile_item_stack: AbstractThrownItemProjectileItemStack(
-                    Default::default(),
-                ),
-            },
         }
     }
 }
@@ -8380,7 +8377,7 @@ impl SpawnerMinecart {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=13 => AbstractMinecart::apply_metadata(entity, d)?,
+            0..=12 => AbstractMinecart::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -8421,9 +8418,8 @@ impl Default for SpawnerMinecartMetadataBundle {
                     hurtdir: Hurtdir(1),
                     damage: Damage(0.0),
                 },
-                display_block: DisplayBlock(Default::default()),
-                display_offset: DisplayOffset(6),
-                custom_display: CustomDisplay(false),
+                custom_display_block: CustomDisplayBlock(azalea_block::BlockState::AIR),
+                display_offset: DisplayOffset(Default::default()),
             },
         }
     }
@@ -8551,6 +8547,57 @@ impl Default for SpiderMetadataBundle {
                 },
             },
             climbing: Climbing(false),
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct SplashPotion;
+impl SplashPotion {
+    pub fn apply_metadata(
+        entity: &mut bevy_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=8 => AbstractThrownItemProjectile::apply_metadata(entity, d)?,
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct SplashPotionMetadataBundle {
+    _marker: SplashPotion,
+    parent: AbstractThrownItemProjectileMetadataBundle,
+}
+impl Default for SplashPotionMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: SplashPotion,
+            parent: AbstractThrownItemProjectileMetadataBundle {
+                _marker: AbstractThrownItemProjectile,
+                parent: AbstractEntityMetadataBundle {
+                    _marker: AbstractEntity,
+                    on_fire: OnFire(false),
+                    shift_key_down: ShiftKeyDown(false),
+                    sprinting: Sprinting(false),
+                    swimming: Swimming(false),
+                    currently_glowing: CurrentlyGlowing(false),
+                    invisible: Invisible(false),
+                    fall_flying: FallFlying(false),
+                    air_supply: AirSupply(Default::default()),
+                    custom_name: CustomName(Default::default()),
+                    custom_name_visible: CustomNameVisible(Default::default()),
+                    silent: Silent(Default::default()),
+                    no_gravity: NoGravity(Default::default()),
+                    pose: Pose::default(),
+                    ticks_frozen: TicksFrozen(Default::default()),
+                },
+                abstract_thrown_item_projectile_item_stack: AbstractThrownItemProjectileItemStack(
+                    Default::default(),
+                ),
+            },
         }
     }
 }
@@ -9148,7 +9195,7 @@ impl TntMinecart {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=13 => AbstractMinecart::apply_metadata(entity, d)?,
+            0..=12 => AbstractMinecart::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -9189,9 +9236,8 @@ impl Default for TntMinecartMetadataBundle {
                     hurtdir: Hurtdir(1),
                     damage: Damage(0.0),
                 },
-                display_block: DisplayBlock(Default::default()),
-                display_offset: DisplayOffset(6),
-                custom_display: CustomDisplay(false),
+                custom_display_block: CustomDisplayBlock(azalea_block::BlockState::AIR),
+                display_offset: DisplayOffset(Default::default()),
             },
         }
     }
@@ -9432,17 +9478,9 @@ impl Default for TropicalFishMetadataBundle {
 }
 
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct TurtleHomePos(pub BlockPos);
-#[derive(Component, Deref, DerefMut, Clone)]
 pub struct HasEgg(pub bool);
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct LayingEgg(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
-pub struct TravelPos(pub BlockPos);
-#[derive(Component, Deref, DerefMut, Clone)]
-pub struct GoingHome(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
-pub struct Travelling(pub bool);
 #[derive(Component)]
 pub struct Turtle;
 impl Turtle {
@@ -9453,22 +9491,10 @@ impl Turtle {
         match d.index {
             0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
             17 => {
-                entity.insert(TurtleHomePos(d.value.into_block_pos()?));
-            }
-            18 => {
                 entity.insert(HasEgg(d.value.into_boolean()?));
             }
-            19 => {
+            18 => {
                 entity.insert(LayingEgg(d.value.into_boolean()?));
-            }
-            20 => {
-                entity.insert(TravelPos(d.value.into_block_pos()?));
-            }
-            21 => {
-                entity.insert(GoingHome(d.value.into_boolean()?));
-            }
-            22 => {
-                entity.insert(Travelling(d.value.into_boolean()?));
             }
             _ => {}
         }
@@ -9480,12 +9506,8 @@ impl Turtle {
 pub struct TurtleMetadataBundle {
     _marker: Turtle,
     parent: AbstractAnimalMetadataBundle,
-    turtle_home_pos: TurtleHomePos,
     has_egg: HasEgg,
     laying_egg: LayingEgg,
-    travel_pos: TravelPos,
-    going_home: GoingHome,
-    travelling: Travelling,
 }
 impl Default for TurtleMetadataBundle {
     fn default() -> Self {
@@ -9535,12 +9557,8 @@ impl Default for TurtleMetadataBundle {
                     abstract_ageable_baby: AbstractAgeableBaby(false),
                 },
             },
-            turtle_home_pos: TurtleHomePos(BlockPos::new(0, 0, 0)),
             has_egg: HasEgg(false),
             laying_egg: LayingEgg(false),
-            travel_pos: TravelPos(BlockPos::new(0, 0, 0)),
-            going_home: GoingHome(false),
-            travelling: Travelling(false),
         }
     }
 }
@@ -10273,7 +10291,9 @@ pub struct WolfCollarColor(pub i32);
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct WolfRemainingAngerTime(pub i32);
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct WolfVariant(pub azalea_registry::WolfVariant);
+pub struct WolfVariant(pub azalea_registry::CowVariant);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct SoundVariant(pub azalea_registry::WolfVariant);
 #[derive(Component)]
 pub struct Wolf;
 impl Wolf {
@@ -10293,7 +10313,10 @@ impl Wolf {
                 entity.insert(WolfRemainingAngerTime(d.value.into_int()?));
             }
             22 => {
-                entity.insert(WolfVariant(d.value.into_wolf_variant()?));
+                entity.insert(WolfVariant(d.value.into_cow_variant()?));
+            }
+            23 => {
+                entity.insert(SoundVariant(d.value.into_wolf_variant()?));
             }
             _ => {}
         }
@@ -10309,6 +10332,7 @@ pub struct WolfMetadataBundle {
     wolf_collar_color: WolfCollarColor,
     wolf_remaining_anger_time: WolfRemainingAngerTime,
     wolf_variant: WolfVariant,
+    sound_variant: SoundVariant,
 }
 impl Default for WolfMetadataBundle {
     fn default() -> Self {
@@ -10368,6 +10392,7 @@ impl Default for WolfMetadataBundle {
             wolf_collar_color: WolfCollarColor(Default::default()),
             wolf_remaining_anger_time: WolfRemainingAngerTime(0),
             wolf_variant: WolfVariant(Default::default()),
+            sound_variant: SoundVariant(Default::default()),
         }
     }
 }
@@ -11735,13 +11760,10 @@ impl AbstractMinecart {
         match d.index {
             0..=10 => AbstractVehicle::apply_metadata(entity, d)?,
             11 => {
-                entity.insert(DisplayBlock(d.value.into_int()?));
+                entity.insert(CustomDisplayBlock(d.value.into_optional_block_state()?));
             }
             12 => {
                 entity.insert(DisplayOffset(d.value.into_int()?));
-            }
-            13 => {
-                entity.insert(CustomDisplay(d.value.into_boolean()?));
             }
             _ => {}
         }
@@ -11753,9 +11775,8 @@ impl AbstractMinecart {
 pub struct AbstractMinecartMetadataBundle {
     _marker: AbstractMinecart,
     parent: AbstractVehicleMetadataBundle,
-    display_block: DisplayBlock,
+    custom_display_block: CustomDisplayBlock,
     display_offset: DisplayOffset,
-    custom_display: CustomDisplay,
 }
 impl Default for AbstractMinecartMetadataBundle {
     fn default() -> Self {
@@ -11784,9 +11805,8 @@ impl Default for AbstractMinecartMetadataBundle {
                 hurtdir: Hurtdir(1),
                 damage: Damage(0.0),
             },
-            display_block: DisplayBlock(Default::default()),
-            display_offset: DisplayOffset(6),
-            custom_display: CustomDisplay(false),
+            custom_display_block: CustomDisplayBlock(azalea_block::BlockState::AIR),
+            display_offset: DisplayOffset(Default::default()),
         }
     }
 }
@@ -12739,6 +12759,11 @@ pub fn apply_metadata(
                 LightningBolt::apply_metadata(entity, d)?;
             }
         }
+        azalea_registry::EntityKind::LingeringPotion => {
+            for d in items {
+                LingeringPotion::apply_metadata(entity, d)?;
+            }
+        }
         azalea_registry::EntityKind::Llama => {
             for d in items {
                 Llama::apply_metadata(entity, d)?;
@@ -12864,11 +12889,6 @@ pub fn apply_metadata(
                 PolarBear::apply_metadata(entity, d)?;
             }
         }
-        azalea_registry::EntityKind::Potion => {
-            for d in items {
-                Potion::apply_metadata(entity, d)?;
-            }
-        }
         azalea_registry::EntityKind::Pufferfish => {
             for d in items {
                 Pufferfish::apply_metadata(entity, d)?;
@@ -12957,6 +12977,11 @@ pub fn apply_metadata(
         azalea_registry::EntityKind::Spider => {
             for d in items {
                 Spider::apply_metadata(entity, d)?;
+            }
+        }
+        azalea_registry::EntityKind::SplashPotion => {
+            for d in items {
+                SplashPotion::apply_metadata(entity, d)?;
             }
         }
         azalea_registry::EntityKind::SpruceBoat => {
@@ -13341,6 +13366,9 @@ pub fn apply_default_metadata(
         azalea_registry::EntityKind::LightningBolt => {
             entity.insert(LightningBoltMetadataBundle::default());
         }
+        azalea_registry::EntityKind::LingeringPotion => {
+            entity.insert(LingeringPotionMetadataBundle::default());
+        }
         azalea_registry::EntityKind::Llama => {
             entity.insert(LlamaMetadataBundle::default());
         }
@@ -13416,9 +13444,6 @@ pub fn apply_default_metadata(
         azalea_registry::EntityKind::PolarBear => {
             entity.insert(PolarBearMetadataBundle::default());
         }
-        azalea_registry::EntityKind::Potion => {
-            entity.insert(PotionMetadataBundle::default());
-        }
         azalea_registry::EntityKind::Pufferfish => {
             entity.insert(PufferfishMetadataBundle::default());
         }
@@ -13472,6 +13497,9 @@ pub fn apply_default_metadata(
         }
         azalea_registry::EntityKind::Spider => {
             entity.insert(SpiderMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::SplashPotion => {
+            entity.insert(SplashPotionMetadataBundle::default());
         }
         azalea_registry::EntityKind::SpruceBoat => {
             entity.insert(SpruceBoatMetadataBundle::default());

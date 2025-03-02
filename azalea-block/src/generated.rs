@@ -1698,7 +1698,7 @@ make_block_states! {
             _14,
             _15,
         },
-        "mode" => Mode {
+        "mode" => StructureMode {
             Save,
             Load,
             Corner,
@@ -1718,7 +1718,7 @@ make_block_states! {
             NorthUp,
             SouthUp,
         },
-        "test_block_mode" => TestBlockMode {
+        "mode" => TestMode {
             Start,
             Log,
             Fail,
@@ -2378,6 +2378,9 @@ make_block_states! {
         short_grass => BlockBehavior::new(), {},
         fern => BlockBehavior::new(), {},
         dead_bush => BlockBehavior::new(), {},
+        bush => BlockBehavior::new(), {},
+        short_dry_grass => BlockBehavior::new(), {},
+        tall_dry_grass => BlockBehavior::new(), {},
         seagrass => BlockBehavior::new(), {},
         tall_seagrass => BlockBehavior::new(), {
             "half": Half::Lower,
@@ -2776,6 +2779,7 @@ make_block_states! {
         cactus => BlockBehavior::new().strength(0.4, 0.4), {
             "age": CactusAge::_0,
         },
+        cactus_flower => BlockBehavior::new(), {},
         clay => BlockBehavior::new().strength(0.6, 0.6), {},
         sugar_cane => BlockBehavior::new(), {
             "age": SugarCaneAge::_0,
@@ -4793,13 +4797,13 @@ make_block_states! {
             "waterlogged": Waterlogged(false),
         },
         structure_block => BlockBehavior::new().requires_correct_tool_for_drops().strength(-1.0, 3600000.0), {
-            "mode": Mode::Load,
+            "mode": StructureMode::Load,
         },
         jigsaw => BlockBehavior::new().requires_correct_tool_for_drops().strength(-1.0, 3600000.0), {
             "orientation": Orientation::NorthUp,
         },
         test_block => BlockBehavior::new(), {
-            "test_block_mode": TestBlockMode::Start,
+            "mode": TestMode::Start,
         },
         test_instance_block => BlockBehavior::new(), {},
         composter => BlockBehavior::new().strength(0.6, 0.6), {
@@ -5612,5 +5616,6 @@ make_block_states! {
         closed_eyeblossom => BlockBehavior::new(), {},
         potted_open_eyeblossom => BlockBehavior::new(), {},
         potted_closed_eyeblossom => BlockBehavior::new(), {},
+        firefly_bush => BlockBehavior::new(), {},
     }
 }

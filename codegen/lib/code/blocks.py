@@ -31,8 +31,7 @@ def generate_blocks(blocks_report: dict, pixlyzer_block_datas: dict, ordered_blo
         for property_id in list(block_data_report.get('properties', {}).keys()):
             property_variants = block_data_report['properties'][property_id]
 
-            property_struct_name = get_property_struct_name(
-                block_id, property_id, property_variants)
+            property_struct_name = get_property_struct_name(block_id, property_id, property_variants)
 
             if property_struct_name in properties:
                 if not properties[property_struct_name] == property_variants:
@@ -181,6 +180,10 @@ def get_property_struct_name(block_id: str, property_id: str, property_variants:
         return 'TrialSpawnerState'
     if property_variants == ['inactive', 'active', 'unlocking', 'ejecting']:
         return 'VaultState'
+    if property_variants == ['start', 'log', 'fail', 'accept']:
+        return 'TestMode'
+    if property_variants == ['save', 'load', 'corner', 'data']:
+        return 'StructureMode'
     if 'harp' in property_variants and 'didgeridoo' in property_variants:
         return 'Sound'
     if is_list_of_string_integers(property_variants):

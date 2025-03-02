@@ -363,6 +363,7 @@ pub static BEE_ATTRACTIVE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
         Block::Wildflowers,
         Block::ChorusFlower,
         Block::SporeBlossom,
+        Block::CactusFlower,
     ])
 });
 pub static BEE_GROWABLES: LazyLock<HashSet<Block>> = LazyLock::new(|| {
@@ -448,6 +449,14 @@ pub static CAMEL_SAND_STEP_SOUND_BLOCKS: LazyLock<HashSet<Block>> = LazyLock::ne
         Block::GreenConcretePowder,
         Block::RedConcretePowder,
         Block::BlackConcretePowder,
+    ])
+});
+pub static CAMELS_SPAWNABLE_ON: LazyLock<HashSet<Block>> = LazyLock::new(|| {
+    HashSet::from_iter(vec![
+        Block::Sand,
+        Block::RedSand,
+        Block::SuspiciousSand,
+        Block::SuspiciousSand,
     ])
 });
 pub static CAMPFIRES: LazyLock<HashSet<Block>> =
@@ -753,41 +762,6 @@ pub static DARK_OAK_LOGS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
         Block::StrippedDarkOakWood,
     ])
 });
-pub static DEAD_BUSH_MAY_PLACE_ON: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
-        Block::Sand,
-        Block::RedSand,
-        Block::SuspiciousSand,
-        Block::SuspiciousSand,
-        Block::Terracotta,
-        Block::WhiteTerracotta,
-        Block::OrangeTerracotta,
-        Block::MagentaTerracotta,
-        Block::LightBlueTerracotta,
-        Block::YellowTerracotta,
-        Block::LimeTerracotta,
-        Block::PinkTerracotta,
-        Block::GrayTerracotta,
-        Block::LightGrayTerracotta,
-        Block::CyanTerracotta,
-        Block::PurpleTerracotta,
-        Block::BlueTerracotta,
-        Block::BrownTerracotta,
-        Block::GreenTerracotta,
-        Block::RedTerracotta,
-        Block::BlackTerracotta,
-        Block::Dirt,
-        Block::GrassBlock,
-        Block::Podzol,
-        Block::CoarseDirt,
-        Block::Mycelium,
-        Block::RootedDirt,
-        Block::MossBlock,
-        Block::PaleMossBlock,
-        Block::Mud,
-        Block::MuddyMangroveRoots,
-    ])
-});
 pub static DEEPSLATE_ORE_REPLACEABLES: LazyLock<HashSet<Block>> =
     LazyLock::new(|| HashSet::from_iter(vec![Block::Deepslate, Block::Tuff]));
 pub static DIAMOND_ORES: LazyLock<HashSet<Block>> =
@@ -852,6 +826,8 @@ pub static DRAGON_IMMUNE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
         Block::IronBars,
         Block::RespawnAnchor,
         Block::ReinforcedDeepslate,
+        Block::TestBlock,
+        Block::TestInstanceBlock,
     ])
 });
 pub static DRAGON_TRANSPARENT: LazyLock<HashSet<Block>> =
@@ -866,6 +842,50 @@ pub static DRIPSTONE_REPLACEABLE_BLOCKS: LazyLock<HashSet<Block>> = LazyLock::ne
         Block::Deepslate,
     ])
 });
+pub static DRY_VEGETATION_MAY_PLACE_ON: LazyLock<HashSet<Block>> = LazyLock::new(|| {
+    HashSet::from_iter(vec![
+        Block::Farmland,
+        Block::Sand,
+        Block::RedSand,
+        Block::SuspiciousSand,
+        Block::SuspiciousSand,
+        Block::Terracotta,
+        Block::WhiteTerracotta,
+        Block::OrangeTerracotta,
+        Block::MagentaTerracotta,
+        Block::LightBlueTerracotta,
+        Block::YellowTerracotta,
+        Block::LimeTerracotta,
+        Block::PinkTerracotta,
+        Block::GrayTerracotta,
+        Block::LightGrayTerracotta,
+        Block::CyanTerracotta,
+        Block::PurpleTerracotta,
+        Block::BlueTerracotta,
+        Block::BrownTerracotta,
+        Block::GreenTerracotta,
+        Block::RedTerracotta,
+        Block::BlackTerracotta,
+        Block::Dirt,
+        Block::GrassBlock,
+        Block::Podzol,
+        Block::CoarseDirt,
+        Block::Mycelium,
+        Block::RootedDirt,
+        Block::MossBlock,
+        Block::PaleMossBlock,
+        Block::Mud,
+        Block::MuddyMangroveRoots,
+    ])
+});
+pub static EDIBLE_FOR_SHEEP: LazyLock<HashSet<Block>> = LazyLock::new(|| {
+    HashSet::from_iter(vec![
+        Block::ShortGrass,
+        Block::ShortDryGrass,
+        Block::TallDryGrass,
+        Block::Fern,
+    ])
+});
 pub static EMERALD_ORES: LazyLock<HashSet<Block>> =
     LazyLock::new(|| HashSet::from_iter(vec![Block::EmeraldOre, Block::DeepslateEmeraldOre]));
 pub static ENCHANTMENT_POWER_PROVIDER: LazyLock<HashSet<Block>> =
@@ -878,6 +898,9 @@ pub static ENCHANTMENT_POWER_TRANSMITTER: LazyLock<HashSet<Block>> = LazyLock::n
         Block::ShortGrass,
         Block::Fern,
         Block::DeadBush,
+        Block::Bush,
+        Block::ShortDryGrass,
+        Block::TallDryGrass,
         Block::Seagrass,
         Block::TallSeagrass,
         Block::Fire,
@@ -896,6 +919,7 @@ pub static ENCHANTMENT_POWER_TRANSMITTER: LazyLock<HashSet<Block>> = LazyLock::n
         Block::WarpedRoots,
         Block::NetherSprouts,
         Block::CrimsonRoots,
+        Block::LeafLitter,
         Block::HangingRoots,
     ])
 });
@@ -1064,6 +1088,7 @@ pub static FLOWERS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
         Block::Wildflowers,
         Block::ChorusFlower,
         Block::SporeBlossom,
+        Block::CactusFlower,
         Block::Dandelion,
         Block::OpenEyeblossom,
         Block::Poppy,
@@ -2920,6 +2945,29 @@ pub static PLANKS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
         Block::CherryPlanks,
     ])
 });
+pub static PLAYS_AMBIENT_DESERT_BLOCK_SOUNDS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
+    HashSet::from_iter(vec![
+        Block::Sand,
+        Block::RedSand,
+        Block::Terracotta,
+        Block::WhiteTerracotta,
+        Block::OrangeTerracotta,
+        Block::MagentaTerracotta,
+        Block::LightBlueTerracotta,
+        Block::YellowTerracotta,
+        Block::LimeTerracotta,
+        Block::PinkTerracotta,
+        Block::GrayTerracotta,
+        Block::LightGrayTerracotta,
+        Block::CyanTerracotta,
+        Block::PurpleTerracotta,
+        Block::BlueTerracotta,
+        Block::BrownTerracotta,
+        Block::GreenTerracotta,
+        Block::RedTerracotta,
+        Block::BlackTerracotta,
+    ])
+});
 pub static POLAR_BEARS_SPAWNABLE_ON_ALTERNATE: LazyLock<HashSet<Block>> =
     LazyLock::new(|| HashSet::from_iter(vec![Block::Ice]));
 pub static PORTALS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
@@ -2983,6 +3031,9 @@ pub static REPLACEABLE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
         Block::ShortGrass,
         Block::Fern,
         Block::DeadBush,
+        Block::Bush,
+        Block::ShortDryGrass,
+        Block::TallDryGrass,
         Block::Seagrass,
         Block::TallSeagrass,
         Block::Fire,
@@ -3001,6 +3052,7 @@ pub static REPLACEABLE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
         Block::WarpedRoots,
         Block::NetherSprouts,
         Block::CrimsonRoots,
+        Block::LeafLitter,
         Block::HangingRoots,
     ])
 });
@@ -3031,6 +3083,10 @@ pub static REPLACEABLE_BY_MUSHROOMS: LazyLock<HashSet<Block>> = LazyLock::new(||
         Block::NetherSprouts,
         Block::CrimsonRoots,
         Block::LeafLitter,
+        Block::ShortDryGrass,
+        Block::TallDryGrass,
+        Block::Bush,
+        Block::FireflyBush,
         Block::JungleLeaves,
         Block::OakLeaves,
         Block::SpruceLeaves,
@@ -3079,10 +3135,14 @@ pub static REPLACEABLE_BY_TREES: LazyLock<HashSet<Block>> = LazyLock::new(|| {
         Block::Water,
         Block::Seagrass,
         Block::TallSeagrass,
+        Block::Bush,
+        Block::FireflyBush,
         Block::WarpedRoots,
         Block::NetherSprouts,
         Block::CrimsonRoots,
         Block::LeafLitter,
+        Block::ShortDryGrass,
+        Block::TallDryGrass,
         Block::JungleLeaves,
         Block::OakLeaves,
         Block::SpruceLeaves,
@@ -3744,6 +3804,7 @@ pub static WALL_POST_OVERRIDE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
         Block::SoulTorch,
         Block::RedstoneTorch,
         Block::Tripwire,
+        Block::CactusFlower,
         Block::WhiteBanner,
         Block::OrangeBanner,
         Block::MagentaBanner,
@@ -3889,6 +3950,8 @@ pub static WITHER_IMMUNE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
         Block::MovingPiston,
         Block::Light,
         Block::ReinforcedDeepslate,
+        Block::TestBlock,
+        Block::TestInstanceBlock,
     ])
 });
 pub static WITHER_SUMMON_BASE_BLOCKS: LazyLock<HashSet<Block>> =
