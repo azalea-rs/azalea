@@ -55,7 +55,7 @@ pub fn handle_send_packet_event(
     }
 }
 
-pub fn send_packet_events(
+pub fn emit_receive_config_packet_events(
     query: Query<(Entity, &RawConnection), With<InConfigState>>,
     mut packet_events: ResMut<Events<ReceiveConfigPacketEvent>>,
 ) {
@@ -67,7 +67,9 @@ pub fn send_packet_events(
         let packets_lock = raw_conn.incoming_packet_queue();
         let mut packets = packets_lock.lock();
         if !packets.is_empty() {
+            let mut packets_read = 0;
             for raw_packet in packets.iter() {
+                packets_read += 1;
                 let packet = match deserialize_packet::<ClientboundConfigPacket>(&mut Cursor::new(
                     raw_packet,
                 )) {
@@ -78,13 +80,32 @@ pub fn send_packet_events(
                         continue;
                     }
                 };
+
+                let should_interrupt = packet_interrupts(&packet);
+
                 packet_events.send(ReceiveConfigPacketEvent {
                     entity: player_entity,
                     packet,
                 });
+
+                if should_interrupt {
+                    break;
+                }
             }
-            // clear the packets right after we read them
-            packets.clear();
+            packets.drain(0..packets_read);
         }
     }
+}
+
+/// Whether the given packet should make us stop deserializing the received
+/// packets until next update.
+///
+/// This is used for packets that can switch the client state.
+fn packet_interrupts(packet: &ClientboundConfigPacket) -> bool {
+    matches!(
+        packet,
+        ClientboundConfigPacket::FinishConfiguration(_)
+            | ClientboundConfigPacket::Disconnect(_)
+            | ClientboundConfigPacket::Transfer(_)
+    )
 }

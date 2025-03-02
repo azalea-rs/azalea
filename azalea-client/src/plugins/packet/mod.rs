@@ -38,7 +38,10 @@ impl Plugin for PacketPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             First,
-            (game::send_receivepacketevent, config::send_packet_events),
+            (
+                game::emit_receive_packet_events,
+                config::emit_receive_config_packet_events,
+            ),
         )
         .add_systems(
             PreUpdate,

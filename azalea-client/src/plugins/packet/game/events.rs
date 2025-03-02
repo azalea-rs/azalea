@@ -75,7 +75,7 @@ pub fn handle_outgoing_packets(
     }
 }
 
-pub fn send_receivepacketevent(
+pub fn emit_receive_packet_events(
     query: Query<(Entity, &RawConnection), With<InGameState>>,
     mut packet_events: ResMut<Events<ReceivePacketEvent>>,
 ) {
@@ -87,7 +87,9 @@ pub fn send_receivepacketevent(
         let packets_lock = raw_connection.incoming_packet_queue();
         let mut packets = packets_lock.lock();
         if !packets.is_empty() {
+            let mut packets_read = 0;
             for raw_packet in packets.iter() {
+                packets_read += 1;
                 let packet =
                     match deserialize_packet::<ClientboundGamePacket>(&mut Cursor::new(raw_packet))
                     {
@@ -98,15 +100,34 @@ pub fn send_receivepacketevent(
                             continue;
                         }
                     };
+
+                let should_interrupt = packet_interrupts(&packet);
+
                 packet_events.send(ReceivePacketEvent {
                     entity: player_entity,
                     packet: Arc::new(packet),
                 });
+
+                if should_interrupt {
+                    break;
+                }
             }
-            // clear the packets right after we read them
-            packets.clear();
+            packets.drain(0..packets_read);
         }
     }
+}
+
+/// Whether the given packet should make us stop deserializing the received
+/// packets until next update.
+///
+/// This is used for packets that can switch the client state.
+fn packet_interrupts(packet: &ClientboundGamePacket) -> bool {
+    matches!(
+        packet,
+        ClientboundGamePacket::StartConfiguration(_)
+            | ClientboundGamePacket::Disconnect(_)
+            | ClientboundGamePacket::Transfer(_)
+    )
 }
 
 /// A player joined the game (or more specifically, was added to the tab

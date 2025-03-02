@@ -23,8 +23,8 @@ pub mod test_simulation;
 pub use account::{Account, AccountOpts};
 pub use azalea_protocol::common::client_information::ClientInformation;
 pub use client::{
-    Client, DefaultPlugins, InConfigState, JoinError, JoinedClientBundle, LocalPlayerBundle,
-    StartClientOpts, TickBroadcast, start_ecs_runner,
+    Client, DefaultPlugins, InConfigState, InGameState, JoinError, JoinedClientBundle,
+    LocalPlayerBundle, StartClientOpts, TickBroadcast, start_ecs_runner,
 };
 pub use events::Event;
 pub use local_player::{GameProfileComponent, Hunger, InstanceHolder, TabList};

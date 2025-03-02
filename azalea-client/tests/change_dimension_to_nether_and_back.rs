@@ -1,10 +1,9 @@
-use azalea_client::{InConfigState, test_simulation::*};
+use azalea_client::{InConfigState, InGameState, test_simulation::*};
 use azalea_core::{position::ChunkPos, resource_location::ResourceLocation};
-use azalea_entity::{LocalEntity, metadata::Health};
+use azalea_entity::LocalEntity;
 use azalea_protocol::packets::{
     ConnectionProtocol,
     config::{ClientboundFinishConfiguration, ClientboundRegistryData},
-    game::ClientboundSetHealth,
 };
 use azalea_registry::DimensionType;
 use azalea_world::InstanceName;
@@ -17,6 +16,7 @@ fn test_change_dimension_to_nether_and_back() {
 
     let mut simulation = Simulation::new(ConnectionProtocol::Configuration);
     assert!(simulation.has_component::<InConfigState>());
+    assert!(!simulation.has_component::<InGameState>());
 
     simulation.receive_packet(ClientboundRegistryData {
         registry_id: ResourceLocation::new("minecraft:dimension_type"),
@@ -53,15 +53,8 @@ fn test_change_dimension_to_nether_and_back() {
     simulation.tick();
 
     assert!(!simulation.has_component::<InConfigState>());
+    assert!(simulation.has_component::<InGameState>());
     assert!(simulation.has_component::<LocalEntity>());
-
-    simulation.receive_packet(ClientboundSetHealth {
-        health: 15.,
-        food: 20,
-        saturation: 20.,
-    });
-    simulation.tick();
-    assert_eq!(*simulation.component::<Health>(), 15.);
 
     //
     // OVERWORLD
