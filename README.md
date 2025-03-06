@@ -8,7 +8,6 @@ A collection of Rust crates for making Minecraft bots, clients, and tools.
     <img src="https://github.com/azalea-rs/azalea/assets/27899617/b98a42df-5cf0-4d1f-ae7c-ecca333e3cab" alt="Azalea" height="200">
 </p>
 
-
 <!-- The line below is automatically read and updated by the migrate script, so don't change it manually. -->
 
 _Currently supported Minecraft version: `1.21.4`._
@@ -49,18 +48,23 @@ If you'd like to chat about Azalea, you can join the Matrix space at [#azalea:ma
 -   Bedrock edition.
 -   Graphics.
 
-## Branches
+## Real-world bots using Azalea
 
-There are several branches in the Azalea repository that target older Minecraft versions.
-Most of them are severely outdated compared to the latest version of Azalea.
-If you'd like to update them or add more, please open a PR.
+Here's an incomplete list of bots built using Azalea, primarily intended as a reference in addition to the existing documentation and examples:
 
--   [1.21.2-1.21.3](https://github.com/azalea-rs/azalea/tree/1.21.3)
--   [1.21-1.21.1](https://github.com/azalea-rs/azalea/tree/1.21.1)
--   [1.20.5-1.20.6](https://github.com/azalea-rs/azalea/tree/1.20.6)
--   [1.20.4](https://github.com/azalea-rs/azalea/tree/1.20.4)
--   [1.20.2](https://github.com/azalea-rs/azalea/tree/1.20.2)
--   [1.20-1.20.1](https://github.com/azalea-rs/azalea/tree/1.20.1)
--   [1.19.4](https://github.com/azalea-rs/azalea/tree/1.19.4)
--   [1.19.3](https://github.com/azalea-rs/azalea/tree/1.19.3)
--   [1.19.2](https://github.com/azalea-rs/azalea/tree/1.19.2)
+-   [ShayBox/ShaysBot](https://github.com/ShayBox/ShaysBot) - Pearl statis bot featuring a Discord bot, an HTTP API, and more.
+-   [EnderKill98/statis-bot](https://github.com/EnderKill98/stasis-bot) - This bot can automatically detect thrown pearls and later walk there and pull them for you.
+-   [as1100k/aether](https://github.com/as1100k/aether) - Collection of Minecraft bots and plugins.
+-   [mat-1/potato-bot-2](https://github.com/mat-1/potato-bot-2) - Hardened Discord chat bridge created for the LiveOverflow SMP.
+-   [ErrorNoInternet/ErrorNoWatcher](https://github.com/ErrorNoInternet/ErrorNoWatcher) - A Minecraft bot with Lua scripting support.
+
+You can see more projects built with Azalea in the [GitHub dependency graph](https://github.com/azalea-rs/azalea/network/dependents).
+
+## Plugins
+
+Azalea has support for Bevy plugins, which can significantly alter its functionality. Here's some plugins you may find useful:
+
+-   [azalea-rs/azalea-viaversion](https://github.com/azalea-rs/azalea-viaversion) - Multi-version compatibility for your Azalea bots using ViaProxy.
+-   [azalea-rs/azalea-hax](https://github.com/azalea-rs/azalea-hax) - Anti-knockback.
+
+If you've created your own plugin for Azalea, please create a PR to add it to this list :).
