@@ -206,6 +206,9 @@ pub fn update_bounding_box(mut query: Query<(&Position, &mut Physics), Changed<P
 
 /// Marks an entity that's in a loaded chunk. This is updated at the beginning
 /// of every tick.
+///
+/// Internally, this is only used for player physics. Not to be confused with
+/// the somewhat similarly named [`LoadedBy`].
 #[derive(Component, Clone, Debug, Copy)]
 pub struct InLoadedChunk;
 

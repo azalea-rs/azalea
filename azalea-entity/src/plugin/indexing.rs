@@ -7,7 +7,7 @@ use azalea_world::{Instance, InstanceContainer, InstanceName, MinecraftEntityId}
 use bevy_ecs::{
     component::Component,
     entity::Entity,
-    query::{Added, Changed},
+    query::{Added, Changed, Without},
     system::{Commands, Query, Res, ResMut, Resource},
 };
 use derive_more::{Deref, DerefMut};
@@ -16,7 +16,7 @@ use tracing::{debug, warn};
 use uuid::Uuid;
 
 use super::LoadedBy;
-use crate::{EntityUuid, Position};
+use crate::{EntityUuid, LocalEntity, Position};
 
 #[derive(Resource, Default)]
 pub struct EntityUuidIndex {
@@ -152,7 +152,7 @@ pub fn remove_despawned_entities_from_indexes(
             &InstanceName,
             &LoadedBy,
         ),
-        Changed<LoadedBy>,
+        (Changed<LoadedBy>, Without<LocalEntity>),
     >,
 ) {
     for (entity, uuid, minecraft_id, position, instance_name, loaded_by) in &query {

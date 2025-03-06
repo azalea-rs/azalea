@@ -97,6 +97,11 @@ impl Display for MinecraftEntityId {
         write!(f, "eid({})", self.0)
     }
 }
+impl From<i32> for MinecraftEntityId {
+    fn from(id: i32) -> Self {
+        Self(id)
+    }
+}
 
 /// Keep track of certain metadatas that are only relevant for this partial
 /// world.

@@ -207,18 +207,22 @@ impl GamePacketHandler<'_> {
 
         as_system::<(
             Commands,
-            Query<(
-                &GameProfileComponent,
-                &ClientInformation,
-                Option<&mut InstanceName>,
-                Option<&mut LoadedBy>,
-                &mut EntityIdIndex,
-                &mut InstanceHolder,
-            )>,
+            Query<
+                (
+                    &GameProfileComponent,
+                    &ClientInformation,
+                    Option<&mut InstanceName>,
+                    Option<&mut LoadedBy>,
+                    &mut EntityIdIndex,
+                    &mut InstanceHolder,
+                ),
+                With<LocalEntity>,
+            >,
             EventWriter<InstanceLoadedEvent>,
             ResMut<InstanceContainer>,
             ResMut<EntityUuidIndex>,
             EventWriter<SendPacketEvent>,
+            Query<&mut LoadedBy, Without<LocalEntity>>,
         )>(
             self.ecs,
             |(
@@ -228,6 +232,7 @@ impl GamePacketHandler<'_> {
                 mut instance_container,
                 mut entity_uuid_index,
                 mut send_packet_events,
+                mut loaded_by_query,
             )| {
                 let (
                     game_profile,
@@ -316,6 +321,11 @@ impl GamePacketHandler<'_> {
                     &mut entity_uuid_index,
                     &mut instance_holder.instance.write(),
                 );
+
+                // every entity is now unloaded by this player
+                for mut loaded_by in &mut loaded_by_query.iter_mut() {
+                    loaded_by.remove(&self.player);
+                }
 
                 // update or insert loaded_by
                 if let Some(mut loaded_by) = loaded_by {
@@ -1413,16 +1423,20 @@ impl GamePacketHandler<'_> {
 
         as_system::<(
             Commands,
-            Query<(
-                &mut InstanceHolder,
-                &GameProfileComponent,
-                &ClientInformation,
-            )>,
+            Query<
+                (
+                    &mut InstanceHolder,
+                    &GameProfileComponent,
+                    &ClientInformation,
+                ),
+                With<LocalEntity>,
+            >,
             EventWriter<_>,
             ResMut<InstanceContainer>,
+            Query<&mut LoadedBy, Without<LocalEntity>>,
         )>(
             self.ecs,
-            |(mut commands, mut query, mut events, mut instance_container)| {
+            |(mut commands, mut query, mut events, mut instance_container, mut loaded_by_query)| {
                 let (mut instance_holder, game_profile, client_information) =
                     query.get_mut(self.player).unwrap();
 
@@ -1460,6 +1474,11 @@ impl GamePacketHandler<'_> {
                     Some(self.player),
                 );
                 instance_holder.instance = weak_instance;
+
+                // every entity is now unloaded by this player
+                for mut loaded_by in &mut loaded_by_query.iter_mut() {
+                    loaded_by.remove(&self.player);
+                }
 
                 // this resets a bunch of our components like physics and stuff
                 let entity_bundle = EntityBundle::new(
