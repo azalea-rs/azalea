@@ -1514,7 +1514,8 @@ impl GamePacketHandler<'_> {
             commands
                 .entity(self.player)
                 .insert(crate::client::InConfigState)
-                .remove::<crate::JoinedClientBundle>();
+                .remove::<crate::JoinedClientBundle>()
+                .remove::<EntityBundle>();
         });
     }
 

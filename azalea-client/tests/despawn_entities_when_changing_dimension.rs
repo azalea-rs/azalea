@@ -1,18 +1,17 @@
-use azalea_client::{InConfigState, InGameState, test_simulation::*};
+use azalea_client::test_simulation::*;
 use azalea_core::{
     delta::PositionDelta8,
     position::{ChunkPos, Vec3},
     resource_location::ResourceLocation,
 };
-use azalea_entity::{LocalEntity, metadata::Cow};
+use azalea_entity::metadata::Cow;
 use azalea_protocol::packets::{
     ConnectionProtocol,
     config::{ClientboundFinishConfiguration, ClientboundRegistryData},
     game::ClientboundAddEntity,
 };
 use azalea_registry::DimensionType;
-use azalea_world::InstanceName;
-use bevy_ecs::{entity::Entity, query::With};
+use bevy_ecs::query::With;
 use bevy_log::tracing_subscriber;
 use simdnbt::owned::{NbtCompound, NbtTag};
 use uuid::Uuid;
