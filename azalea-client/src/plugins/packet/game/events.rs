@@ -63,10 +63,18 @@ impl SendPacketEvent {
 
 pub fn handle_outgoing_packets(
     mut send_packet_events: EventReader<SendPacketEvent>,
-    mut query: Query<&mut RawConnection>,
+    mut query: Query<(&mut RawConnection, Option<&InGameState>)>,
 ) {
     for event in send_packet_events.read() {
-        if let Ok(raw_connection) = query.get_mut(event.sent_by) {
+        if let Ok((raw_connection, in_game_state)) = query.get_mut(event.sent_by) {
+            if in_game_state.is_none() {
+                error!(
+                    "Tried to send a game packet {:?} while not in game state",
+                    event.packet
+                );
+                continue;
+            }
+
             // debug!("Sending packet: {:?}", event.packet);
             if let Err(e) = raw_connection.write_packet(event.packet.clone()) {
                 error!("Failed to send packet: {e}");

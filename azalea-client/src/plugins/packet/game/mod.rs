@@ -1503,10 +1503,12 @@ impl GamePacketHandler<'_> {
     }
 
     pub fn start_configuration(&mut self, _p: &ClientboundStartConfiguration) {
+        debug!("Got start configuration packet");
+
         as_system::<(Commands, EventWriter<_>)>(self.ecs, |(mut commands, mut events)| {
             events.send(SendPacketEvent::new(
                 self.player,
-                ServerboundConfigurationAcknowledged {},
+                ServerboundConfigurationAcknowledged,
             ));
 
             commands
