@@ -140,7 +140,8 @@ impl FormattedText {
 
         for component in self.clone().into_iter() {
             let component_style = &component.get_base().style;
-            // Calculate the effective style by merging the running style with the component's style.
+            // Calculate the effective style by merging the running style with the
+            // component's style.
             let effective_style = running_style.merged_with(component_style);
             let style_string = effective_style.get_html_style();
 
@@ -151,7 +152,8 @@ impl FormattedText {
                     Ok(text) => text.to_string(),
                     Err(_) => c.key.to_string(),
                 },
-            }.replace("\n", "<br>");
+            }
+            .replace("\n", "<br>");
 
             // Append the styled span for this component.
             html_output.push_str(&format!(
@@ -170,8 +172,6 @@ impl FormattedText {
 
         html_output
     }
-
-
 }
 
 impl IntoIterator for FormattedText {
