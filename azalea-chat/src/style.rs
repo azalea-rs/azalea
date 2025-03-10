@@ -560,7 +560,8 @@ impl Style {
     }
 
     /// Returns a new style that is a merge of self and other.
-    /// For any field that `other` does not specify (is None), self’s value is used.
+    /// For any field that `other` does not specify (is None), self’s value is
+    /// used.
     pub fn merged_with(&self, other: &Style) -> Style {
         Style {
             color: other.color.clone().or(self.color.clone()),
@@ -597,16 +598,32 @@ impl Style {
             style.push_str(&format!("color: {};", color.format_value()));
         }
         if let Some(bold) = self.bold {
-            style.push_str(&format!("font-weight: {};", if bold { "bold" } else { "normal" }));
+            style.push_str(&format!(
+                "font-weight: {};",
+                if bold { "bold" } else { "normal" }
+            ));
         }
         if let Some(italic) = self.italic {
-            style.push_str(&format!("font-style: {};", if italic { "italic" } else { "normal" }));
+            style.push_str(&format!(
+                "font-style: {};",
+                if italic { "italic" } else { "normal" }
+            ));
         }
         if let Some(underlined) = self.underlined {
-            style.push_str(&format!("text-decoration: {};", if underlined { "underline" } else { "none" }));
+            style.push_str(&format!(
+                "text-decoration: {};",
+                if underlined { "underline" } else { "none" }
+            ));
         }
         if let Some(strikethrough) = self.strikethrough {
-            style.push_str(&format!("text-decoration: {};", if strikethrough { "line-through" } else { "none" }));
+            style.push_str(&format!(
+                "text-decoration: {};",
+                if strikethrough {
+                    "line-through"
+                } else {
+                    "none"
+                }
+            ));
         }
         if let Some(obfuscated) = self.obfuscated {
             if obfuscated {
