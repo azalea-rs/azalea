@@ -559,6 +559,20 @@ impl Style {
         }
     }
 
+    /// Returns a new style that is a merge of self and other.
+    /// For any field that `other` does not specify (is None), self’s value is used.
+    pub fn merged_with(&self, other: &Style) -> Style {
+        Style {
+            color: other.color.clone().or(self.color.clone()),
+            bold: other.bold.or(self.bold),
+            italic: other.italic.or(self.italic),
+            underlined: other.underlined.or(self.underlined),
+            strikethrough: other.strikethrough.or(self.strikethrough),
+            obfuscated: other.obfuscated.or(self.obfuscated),
+            reset: other.reset, // if reset is true in the new style, that takes precedence
+        }
+    }
+
     /// Apply a ChatFormatting to this style
     pub fn apply_formatting(&mut self, formatting: &ChatFormatting) {
         match *formatting {
@@ -575,6 +589,32 @@ impl Style {
                 }
             }
         }
+    }
+
+    pub fn get_html_style(&self) -> String {
+        let mut style = String::new();
+        if let Some(color) = &self.color {
+            style.push_str(&format!("color: {};", color.format_value()));
+        }
+        if let Some(bold) = self.bold {
+            style.push_str(&format!("font-weight: {};", if bold { "bold" } else { "normal" }));
+        }
+        if let Some(italic) = self.italic {
+            style.push_str(&format!("font-style: {};", if italic { "italic" } else { "normal" }));
+        }
+        if let Some(underlined) = self.underlined {
+            style.push_str(&format!("text-decoration: {};", if underlined { "underline" } else { "none" }));
+        }
+        if let Some(strikethrough) = self.strikethrough {
+            style.push_str(&format!("text-decoration: {};", if strikethrough { "line-through" } else { "none" }));
+        }
+        if let Some(obfuscated) = self.obfuscated {
+            if obfuscated {
+                style.push_str("filter: blur(2px);");
+            }
+        }
+
+        style
     }
 }
 

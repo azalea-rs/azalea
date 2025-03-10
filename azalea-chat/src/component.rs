@@ -107,7 +107,10 @@ impl FormattedText {
         for component in self.clone().into_iter() {
             let component_text = match &component {
                 Self::Text(c) => c.text.to_string(),
-                Self::Translatable(c) => c.to_string(),
+                Self::Translatable(c) => match c.read() {
+                    Ok(c) => c.to_string(),
+                    Err(_) => c.key.to_string(),
+                },
             };
 
             let component_style = &component.get_base().style;
@@ -125,6 +128,50 @@ impl FormattedText {
 
         built_string
     }
+
+    pub fn to_html(&self) -> String {
+        // default the default_style to white if it's not set
+        self.to_html_with_custom_style(&DEFAULT_STYLE)
+    }
+
+    pub fn to_html_with_custom_style(&self, default_style: &Style) -> String {
+        let mut html_output = String::new();
+        let mut running_style = default_style.clone();
+
+        for component in self.clone().into_iter() {
+            let component_style = &component.get_base().style;
+            // Calculate the effective style by merging the running style with the component's style.
+            let effective_style = running_style.merged_with(component_style);
+            let style_string = effective_style.get_html_style();
+
+            // Get the component text and replace newlines with <br>
+            let component_text = match &component {
+                Self::Text(c) => c.text.to_string(),
+                Self::Translatable(c) => match c.read() {
+                    Ok(text) => text.to_string(),
+                    Err(_) => c.key.to_string(),
+                },
+            }.replace("\n", "<br>");
+
+            // Append the styled span for this component.
+            html_output.push_str(&format!(
+                "<span style=\"{}\">{}</span>",
+                style_string, component_text
+            ));
+
+            // Update the running style:
+            // If the component requests a reset, revert to default.
+            if component_style.reset {
+                running_style = default_style.clone();
+            } else {
+                running_style.apply(component_style);
+            }
+        }
+
+        html_output
+    }
+
+
 }
 
 impl IntoIterator for FormattedText {
