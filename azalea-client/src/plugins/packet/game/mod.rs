@@ -1248,7 +1248,7 @@ impl GamePacketHandler<'_> {
         // TODO: handle ContainerSetData packet
         // this is used for various things like the furnace progress
         // bar
-        // see https://wiki.vg/Protocol#Set_Container_Property
+        // see https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Protocol#Set_Container_Property
 
         // as_system::<Query<&mut Inventory>>(self.ecs, |mut query| {
         //     let inventory = query.get_mut(self.player).unwrap();
