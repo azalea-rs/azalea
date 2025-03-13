@@ -1,5 +1,5 @@
 use azalea_buf::AzBuf;
-use azalea_core::resource_location::ResourceLocation;
+use azalea_core::sound::CustomSound;
 use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_registry::SoundEvent;
 
@@ -14,12 +14,6 @@ pub struct ClientboundSound {
     pub volume: f32,
     pub pitch: f32,
     pub seed: u64,
-}
-
-#[derive(Clone, Debug, AzBuf)]
-pub struct CustomSound {
-    pub location: ResourceLocation,
-    pub fixed_range: Option<f32>,
 }
 
 #[derive(AzBuf, Clone, Copy, Debug)]

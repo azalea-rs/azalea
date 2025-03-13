@@ -194,6 +194,17 @@ impl<R: Registry + Clone, Direct: AzaleaRead + AzaleaWrite + Clone> Clone for Ho
         }
     }
 }
+impl<R: Registry + PartialEq, Direct: AzaleaRead + AzaleaWrite + PartialEq> PartialEq
+    for Holder<R, Direct>
+{
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::Reference(a), Self::Reference(b)) => a == b,
+            (Self::Direct(a), Self::Direct(b)) => a == b,
+            _ => false,
+        }
+    }
+}
 
 registry! {
 /// The AI code that's currently being executed for the entity.
@@ -3832,6 +3843,10 @@ enum SensorKind {
 }
 
 registry! {
+/// A known type of sound in Minecraft.
+///
+/// If you need to support custom sounds from resource packs, you should use
+/// `azalea_registry::Holder<SoundEvent, azalea_core::sound::CustomSound>` instead.
 enum SoundEvent {
     EntityAllayAmbientWithItem => "minecraft:entity.allay.ambient_with_item",
     EntityAllayAmbientWithoutItem => "minecraft:entity.allay.ambient_without_item",

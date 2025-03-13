@@ -80,3 +80,22 @@ impl EquipmentSlot {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_hypixel_set_equipment() {
+        let mut cursor = Cursor::new(
+            [
+                230, 25, 0, 1, 224, 6, 2, 0, 3, 0, 22, 79, 0, 0, 0, 3, 0, 0, 0, 0, 0,
+            ]
+            .as_slice(),
+        );
+
+        let packet = ClientboundSetEquipment::azalea_read(&mut cursor).unwrap();
+        println!("packet {packet:?}");
+        assert_eq!(cursor.position(), cursor.get_ref().len() as u64);
+    }
+}

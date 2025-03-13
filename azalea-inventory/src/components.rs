@@ -5,6 +5,7 @@ use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
 use azalea_chat::FormattedText;
 use azalea_core::{
     filterable::Filterable, position::GlobalPos, resource_location::ResourceLocation,
+    sound::CustomSound,
 };
 use azalea_registry::{
     Attribute, Block, ConsumeEffectKind, DataComponentKind, Enchantment, EntityKind, HolderSet,
@@ -14,7 +15,7 @@ use simdnbt::owned::{Nbt, NbtCompound};
 use tracing::trace;
 use uuid::Uuid;
 
-use crate::ItemStack;
+use crate::{ItemStack, item::consume_effect::ConsumeEffect};
 
 pub trait DataComponent: Send + Sync + Any {
     const KIND: DataComponentKind;
@@ -800,9 +801,9 @@ impl DataComponent for JukeboxPlayable {
 pub struct Consumable {
     pub consume_seconds: f32,
     pub animation: ItemUseAnimation,
-    pub sound: SoundEvent,
+    pub sound: azalea_registry::Holder<SoundEvent, CustomSound>,
     pub has_consume_particles: bool,
-    pub on_consuime_effects: Vec<ConsumeEffectKind>,
+    pub on_consume_effects: Vec<ConsumeEffect>,
 }
 impl DataComponent for Consumable {
     const KIND: DataComponentKind = DataComponentKind::Consumable;

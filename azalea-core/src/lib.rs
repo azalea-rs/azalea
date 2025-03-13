@@ -16,6 +16,7 @@ pub mod objectives;
 pub mod position;
 pub mod registry_holder;
 pub mod resource_location;
+pub mod sound;
 #[cfg(feature = "bevy_ecs")]
 pub mod tick;
 pub mod tier;
