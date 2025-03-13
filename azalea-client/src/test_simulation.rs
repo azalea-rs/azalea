@@ -2,29 +2,32 @@ use std::{fmt::Debug, sync::Arc, time::Duration};
 
 use azalea_auth::game_profile::GameProfile;
 use azalea_buf::AzaleaWrite;
+use azalea_core::delta::PositionDelta8;
 use azalea_core::game_type::{GameMode, OptionalGameType};
-use azalea_core::position::ChunkPos;
+use azalea_core::position::{ChunkPos, Vec3};
 use azalea_core::resource_location::ResourceLocation;
 use azalea_core::tick::GameTick;
 use azalea_entity::metadata::PlayerMetadataBundle;
 use azalea_protocol::packets::common::CommonPlayerSpawnInfo;
+use azalea_protocol::packets::config::{ClientboundFinishConfiguration, ClientboundRegistryData};
 use azalea_protocol::packets::game::c_level_chunk_with_light::ClientboundLevelChunkPacketData;
 use azalea_protocol::packets::game::c_light_update::ClientboundLightUpdatePacketData;
 use azalea_protocol::packets::game::{
-    ClientboundLevelChunkWithLight, ClientboundLogin, ClientboundRespawn,
+    ClientboundAddEntity, ClientboundLevelChunkWithLight, ClientboundLogin, ClientboundRespawn,
 };
 use azalea_protocol::packets::{ConnectionProtocol, Packet, ProtocolPacket};
-use azalea_registry::DimensionType;
+use azalea_registry::{DimensionType, EntityKind};
 use azalea_world::palette::{PalettedContainer, PalettedContainerKind};
 use azalea_world::{Chunk, Instance, MinecraftEntityId, Section};
 use bevy_app::App;
 use bevy_ecs::{prelude::*, schedule::ExecutorKind};
 use parking_lot::{Mutex, RwLock};
-use simdnbt::owned::Nbt;
+use simdnbt::owned::{Nbt, NbtCompound, NbtTag};
 use tokio::task::JoinHandle;
 use tokio::{sync::mpsc, time::sleep};
 use uuid::Uuid;
 
+use crate::disconnect::DisconnectEvent;
 use crate::{
     ClientInformation, GameProfileComponent, InConfigState, InstanceHolder, LocalPlayerBundle,
     events::LocalPlayerEvents,
@@ -48,29 +51,49 @@ impl Simulation {
         let mut app = create_simulation_app();
         let mut entity = app.world_mut().spawn_empty();
         let (player, clear_outgoing_packets_receiver_task, incoming_packet_queue, rt) =
-            create_local_player_bundle(entity.id(), initial_connection_protocol);
+            create_local_player_bundle(entity.id(), ConnectionProtocol::Configuration);
         entity.insert(player);
 
         let entity = entity.id();
 
         tick_app(&mut app);
 
-        #[allow(clippy::single_match)]
-        match initial_connection_protocol {
-            ConnectionProtocol::Configuration => {
-                app.world_mut().entity_mut(entity).insert(InConfigState);
-                tick_app(&mut app);
-            }
-            _ => {}
-        }
+        // start in the config state
+        app.world_mut().entity_mut(entity).insert(InConfigState);
+        tick_app(&mut app);
 
-        Self {
+        let mut simulation = Self {
             app,
             entity,
             rt,
             incoming_packet_queue,
             clear_outgoing_packets_receiver_task,
+        };
+
+        #[allow(clippy::single_match)]
+        match initial_connection_protocol {
+            ConnectionProtocol::Configuration => {}
+            ConnectionProtocol::Game => {
+                simulation.receive_packet(ClientboundRegistryData {
+                    registry_id: ResourceLocation::new("minecraft:dimension_type"),
+                    entries: vec![(
+                        ResourceLocation::new("minecraft:overworld"),
+                        Some(NbtCompound::from_values(vec![
+                            ("height".into(), NbtTag::Int(384)),
+                            ("min_y".into(), NbtTag::Int(-64)),
+                        ])),
+                    )]
+                    .into_iter()
+                    .collect(),
+                });
+
+                simulation.receive_packet(ClientboundFinishConfiguration);
+                simulation.tick();
+            }
+            _ => unimplemented!("unsupported ConnectionProtocol {initial_connection_protocol:?}"),
         }
+
+        simulation
     }
 
     pub fn receive_packet<P: ProtocolPacket + Debug>(&mut self, packet: impl Packet<P>) {
@@ -97,6 +120,14 @@ impl Simulation {
             .read()
             .chunks
             .get(&chunk_pos)
+    }
+
+    pub fn disconnect(&mut self) {
+        // send DisconnectEvent
+        self.app.world_mut().send_event(DisconnectEvent {
+            entity: self.entity,
+            reason: None,
+        });
     }
 }
 
@@ -268,5 +299,23 @@ pub fn make_basic_empty_chunk(
             block_entities: vec![],
         },
         light_data: ClientboundLightUpdatePacketData::default(),
+    }
+}
+
+pub fn make_basic_add_entity(
+    entity_type: EntityKind,
+    id: i32,
+    position: impl Into<Vec3>,
+) -> ClientboundAddEntity {
+    ClientboundAddEntity {
+        id: id.into(),
+        uuid: Uuid::from_u128(1234),
+        entity_type,
+        position: position.into(),
+        x_rot: 0,
+        y_rot: 0,
+        y_head_rot: 0,
+        data: 0,
+        velocity: PositionDelta8::default(),
     }
 }

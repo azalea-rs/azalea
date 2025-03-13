@@ -23,19 +23,6 @@ pub struct EntityUuidIndex {
     /// An index of entities by their UUIDs
     entity_by_uuid: HashMap<Uuid, Entity>,
 }
-
-/// An index of Minecraft entity IDs to Azalea ECS entities. This is a
-/// `Component` so local players can keep track of entity IDs independently from
-/// the instance.
-///
-/// If you need a per-instance instead of per-client version of this, you can
-/// use [`Instance::entity_by_id`].
-#[derive(Component, Default)]
-pub struct EntityIdIndex {
-    /// An index of entities by their MinecraftEntityId
-    entity_by_id: IntMap<MinecraftEntityId, Entity>,
-}
-
 impl EntityUuidIndex {
     pub fn new() -> Self {
         Self {
@@ -60,6 +47,19 @@ impl EntityUuidIndex {
     }
 }
 
+/// An index of Minecraft entity IDs to Azalea ECS entities. This is a
+/// `Component` so local players can keep track of entity IDs independently from
+/// the instance.
+///
+/// If you need a per-instance instead of per-client version of this, you can
+/// use [`Instance::entity_by_id`].
+#[derive(Component, Default)]
+pub struct EntityIdIndex {
+    /// An index of entities by their MinecraftEntityId
+    entity_by_id: IntMap<MinecraftEntityId, Entity>,
+    id_by_entity: HashMap<Entity, MinecraftEntityId>,
+}
+
 impl EntityIdIndex {
     pub fn get(&self, id: MinecraftEntityId) -> Option<Entity> {
         self.entity_by_id.get(&id).copied()
@@ -68,13 +68,31 @@ impl EntityIdIndex {
     pub fn contains_key(&self, id: MinecraftEntityId) -> bool {
         self.entity_by_id.contains_key(&id)
     }
+    pub fn contains_ecs_entity(&self, id: Entity) -> bool {
+        self.id_by_entity.contains_key(&id)
+    }
 
     pub fn insert(&mut self, id: MinecraftEntityId, entity: Entity) {
         self.entity_by_id.insert(id, entity);
+        self.id_by_entity.insert(entity, id);
     }
 
     pub fn remove(&mut self, id: MinecraftEntityId) -> Option<Entity> {
-        self.entity_by_id.remove(&id)
+        if let Some(entity) = self.entity_by_id.remove(&id) {
+            self.id_by_entity.remove(&entity);
+            Some(entity)
+        } else {
+            None
+        }
+    }
+
+    pub fn remove_by_ecs_entity(&mut self, entity: Entity) -> Option<MinecraftEntityId> {
+        if let Some(id) = self.id_by_entity.remove(&entity) {
+            self.entity_by_id.remove(&id);
+            Some(id)
+        } else {
+            None
+        }
     }
 }
 
@@ -154,6 +172,7 @@ pub fn remove_despawned_entities_from_indexes(
         ),
         (Changed<LoadedBy>, Without<LocalEntity>),
     >,
+    mut entity_id_index_query: Query<&mut EntityIdIndex>,
 ) {
     for (entity, uuid, minecraft_id, position, instance_name, loaded_by) in &query {
         let Some(instance_lock) = instance_container.get(instance_name) else {
@@ -207,6 +226,16 @@ pub fn remove_despawned_entities_from_indexes(
         if instance.entity_by_id.remove(minecraft_id).is_none() {
             warn!("Tried to remove entity {entity:?} from the id index but it was not there.");
         }
+
+        // remove it from every client's EntityIdIndex
+        for mut entity_id_index in entity_id_index_query.iter_mut() {
+            if entity_id_index.remove_by_ecs_entity(entity).is_none() {
+                debug!(
+                    "Tried to remove entity {entity:?} from the id index but it was not there. This may be expected if you're in a shared instance."
+                );
+            }
+        }
+
         // and now remove the entity from the ecs
         commands.entity(entity).despawn();
         debug!("Despawned entity {entity:?} because it was not loaded by anything.");

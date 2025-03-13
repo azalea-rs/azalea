@@ -2,7 +2,7 @@ use azalea_client::{InConfigState, InGameState, test_simulation::*};
 use azalea_core::{position::ChunkPos, resource_location::ResourceLocation};
 use azalea_entity::LocalEntity;
 use azalea_protocol::packets::{
-    ConnectionProtocol,
+    ConnectionProtocol, Packet,
     config::{ClientboundFinishConfiguration, ClientboundRegistryData},
 };
 use azalea_registry::DimensionType;
@@ -12,6 +12,21 @@ use simdnbt::owned::{NbtCompound, NbtTag};
 
 #[test]
 fn test_change_dimension_to_nether_and_back() {
+    generic_test_change_dimension_to_nether_and_back(true);
+    generic_test_change_dimension_to_nether_and_back(false);
+}
+
+fn generic_test_change_dimension_to_nether_and_back(using_respawn: bool) {
+    let make_basic_login_or_respawn_packet = if using_respawn {
+        |dimension: DimensionType, instance_name: ResourceLocation| {
+            make_basic_respawn_packet(dimension, instance_name).into_variant()
+        }
+    } else {
+        |dimension: DimensionType, instance_name: ResourceLocation| {
+            make_basic_login_packet(dimension, instance_name).into_variant()
+        }
+    };
+
     let _ = tracing_subscriber::fmt::try_init();
 
     let mut simulation = Simulation::new(ConnectionProtocol::Configuration);
@@ -83,7 +98,7 @@ fn test_change_dimension_to_nether_and_back() {
     // NETHER
     //
 
-    simulation.receive_packet(make_basic_respawn_packet(
+    simulation.receive_packet(make_basic_login_or_respawn_packet(
         DimensionType::new_raw(2), // nether
         ResourceLocation::new("azalea:b"),
     ));
@@ -105,7 +120,7 @@ fn test_change_dimension_to_nether_and_back() {
     simulation
         .chunk(ChunkPos::new(0, 0))
         .expect("chunk should exist");
-    simulation.receive_packet(make_basic_respawn_packet(
+    simulation.receive_packet(make_basic_login_or_respawn_packet(
         DimensionType::new_raw(2), // nether
         ResourceLocation::new("minecraft:nether"),
     ));

@@ -1,20 +1,14 @@
 use azalea_client::test_simulation::*;
-use azalea_core::{
-    delta::PositionDelta8,
-    position::{ChunkPos, Vec3},
-    resource_location::ResourceLocation,
-};
+use azalea_core::{position::ChunkPos, resource_location::ResourceLocation};
 use azalea_entity::metadata::Cow;
 use azalea_protocol::packets::{
     ConnectionProtocol,
     config::{ClientboundFinishConfiguration, ClientboundRegistryData},
-    game::ClientboundAddEntity,
 };
-use azalea_registry::DimensionType;
+use azalea_registry::{DimensionType, EntityKind};
 use bevy_ecs::query::With;
 use bevy_log::tracing_subscriber;
 use simdnbt::owned::{NbtCompound, NbtTag};
-use uuid::Uuid;
 
 #[test]
 fn test_despawn_entities_when_changing_dimension() {
@@ -59,17 +53,7 @@ fn test_despawn_entities_when_changing_dimension() {
     simulation.receive_packet(make_basic_empty_chunk(ChunkPos::new(0, 0), (384 + 64) / 16));
     simulation.tick();
     // spawn a cow
-    simulation.receive_packet(ClientboundAddEntity {
-        id: 123.into(),
-        uuid: Uuid::from_u128(1234),
-        entity_type: azalea_registry::EntityKind::Cow,
-        position: Vec3::new(0., 64., 0.),
-        x_rot: 0,
-        y_rot: 0,
-        y_head_rot: 0,
-        data: 0,
-        velocity: PositionDelta8::default(),
-    });
+    simulation.receive_packet(make_basic_add_entity(EntityKind::Cow, 123, (0.5, 64., 0.5)));
     simulation.tick();
     // make sure it's spawned
     let mut cow_query = simulation.app.world_mut().query_filtered::<(), With<Cow>>();

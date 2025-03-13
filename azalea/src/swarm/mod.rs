@@ -698,9 +698,32 @@ impl Swarm {
     ) {
         while let Some(event) = rx.recv().await {
             if rx.len() > 1_000 {
-                static WARNED: AtomicBool = AtomicBool::new(false);
-                if !WARNED.swap(true, atomic::Ordering::Relaxed) {
+                static WARNED_1_000: AtomicBool = AtomicBool::new(false);
+                if !WARNED_1_000.swap(true, atomic::Ordering::Relaxed) {
                     warn!("the client's Event channel has more than 1000 items!")
+                }
+
+                if rx.len() > 10_000 {
+                    static WARNED_10_000: AtomicBool = AtomicBool::new(false);
+                    if !WARNED_10_000.swap(true, atomic::Ordering::Relaxed) {
+                        warn!("the client's Event channel has more than 10,000 items!!")
+                    }
+
+                    if rx.len() > 100_000 {
+                        static WARNED_100_000: AtomicBool = AtomicBool::new(false);
+                        if !WARNED_100_000.swap(true, atomic::Ordering::Relaxed) {
+                            warn!("the client's Event channel has more than 100,000 items!!!")
+                        }
+
+                        if rx.len() > 1_000_000 {
+                            static WARNED_1_000_000: AtomicBool = AtomicBool::new(false);
+                            if !WARNED_1_000_000.swap(true, atomic::Ordering::Relaxed) {
+                                warn!(
+                                    "the client's Event channel has more than 1,000,000 items!!!! i sincerely hope no one ever sees this warning"
+                                )
+                            }
+                        }
+                    }
                 }
             }
 
