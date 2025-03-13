@@ -512,6 +512,7 @@ pub struct PotionContents {
     pub potion: Option<Potion>,
     pub custom_color: Option<i32>,
     pub custom_effects: Vec<MobEffectInstance>,
+    pub custom_name: Option<String>,
 }
 impl DataComponent for PotionContents {
     const KIND: DataComponentKind = DataComponentKind::PotionContents;
