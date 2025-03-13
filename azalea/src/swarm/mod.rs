@@ -35,6 +35,8 @@ use crate::{BoxHandleFn, DefaultBotPlugins, HandleFn, JoinOpts, NoState, StartEr
 /// A swarm is a way to conveniently control many bots at once, while also
 /// being able to control bots at an individual level when desired.
 ///
+/// It can safely be cloned, so there should be no need to wrap them in a Mutex.
+///
 /// Swarms are created from [`SwarmBuilder`].
 ///
 /// Clients can be added to the swarm later via [`Swarm::add`], and can be

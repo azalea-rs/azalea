@@ -224,7 +224,9 @@ pub fn remove_despawned_entities_from_indexes(
             warn!("Tried to remove entity {entity:?} from the uuid index but it was not there.");
         }
         if instance.entity_by_id.remove(minecraft_id).is_none() {
-            warn!("Tried to remove entity {entity:?} from the id index but it was not there.");
+            debug!(
+                "Tried to remove entity {entity:?} from the id index but it was not there. This may be expected if you're in a shared instance."
+            );
         }
 
         // remove it from every client's EntityIdIndex
