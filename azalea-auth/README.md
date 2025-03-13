@@ -24,4 +24,4 @@ async fn main() {
 }
 ```
 
-Thanks to [wiki.vg contributors](https://wiki.vg/Microsoft_Authentication_Scheme), [Overhash](https://gist.github.com/OverHash/a71b32846612ba09d8f79c9d775bfadf), and [prismarine-auth contributors](https://github.com/PrismarineJS/prismarine-auth).
+Thanks to [wiki contributors](https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Microsoft_Authentication_Scheme), [Overhash](https://gist.github.com/OverHash/a71b32846612ba09d8f79c9d775bfadf), and [prismarine-auth contributors](https://github.com/PrismarineJS/prismarine-auth).
