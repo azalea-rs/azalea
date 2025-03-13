@@ -12,6 +12,7 @@ use super::as_system;
 use crate::client::InConfigState;
 use crate::disconnect::DisconnectEvent;
 use crate::packet::game::KeepAliveEvent;
+use crate::packet::game::ResourcePackEvent;
 use crate::raw_connection::RawConnection;
 use crate::{InstanceHolder, declare_packet_handlers};
 
@@ -151,16 +152,15 @@ impl ConfigPacketHandler<'_> {
     pub fn resource_pack_push(&mut self, p: ClientboundResourcePackPush) {
         debug!("Got resource pack push packet {p:?}");
 
-        as_system::<Query<&RawConnection>>(self.ecs, |query| {
-            let raw_conn = query.get(self.player).unwrap();
-
-            // always accept resource pack
-            raw_conn
-                .write_packet(ServerboundResourcePack {
-                    id: p.id,
-                    action: s_resource_pack::Action::Accepted,
-                })
-                .unwrap();
+        as_system::<EventWriter<_>>(self.ecs, |mut events| {
+            events.send(ResourcePackEvent {
+                entity: self.player,
+                id: p.id,
+                url: p.url.to_owned(),
+                hash: p.hash.to_owned(),
+                required: p.required,
+                prompt: p.prompt.to_owned(),
+            });
         });
     }
 
