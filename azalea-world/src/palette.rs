@@ -2,7 +2,6 @@ use std::io::{Cursor, Write};
 
 use azalea_block::block_state::BlockStateIntegerRepr;
 use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
-use azalea_core::math;
 use tracing::warn;
 
 use crate::BitStorage;
@@ -45,37 +44,15 @@ impl PalettedContainer {
         buf: &mut Cursor<&[u8]>,
         container_type: &'static PalettedContainerKind,
     ) -> Result<Self, BufReadError> {
-        let server_bits_per_entry = u8::azalea_read(buf)?;
-        let palette_type = PaletteKind::from_bits_and_type(server_bits_per_entry, container_type);
+        let bits_per_entry = u8::azalea_read(buf)?;
+        let palette_type = PaletteKind::from_bits_and_type(bits_per_entry, container_type);
         let palette = palette_type.read(buf)?;
         let size = container_type.size();
-        let data = Box::<[u64]>::azalea_read(buf)?;
-
-        // we can only trust the bits per entry that we're sent if there's enough data
-        // that it'd be global. if it's not global, then we have to calculate it
-        // ourselves.
-        // this almost never matters, except on some custom servers like hypixel limbo
-        // TODO: this is incorrect. we should be getting the log2 of the max blockstate
-        // or biome instead of data.len(). this code might be causing wrong data to be
-        // read. ¯\_(ツ)_/¯
-        let calculated_bits_per_entry = math::ceil_log2(data.len() as u32) as u8;
-        let calculated_bits_per_entry_palette_kind =
-            PaletteKind::from_bits_and_type(calculated_bits_per_entry, container_type);
-        let bits_per_entry = if calculated_bits_per_entry_palette_kind == PaletteKind::Global {
-            server_bits_per_entry
-        } else {
-            calculated_bits_per_entry
-        };
-
-        debug_assert!(
-            bits_per_entry != 0 || data.is_empty(),
-            "Bits per entry is 0 but data is not empty."
-        );
 
         let mut storage = match BitStorage::new(
-            bits_per_entry.into(),
+            bits_per_entry as usize,
             size,
-            if data.is_empty() {
+            if bits_per_entry == 0 {
                 Some(Box::new([]))
             } else {
                 // we're going to update the data after creating the bitstorage
@@ -90,9 +67,11 @@ impl PalettedContainer {
                 ));
             }
         };
-        // minecraft does this to allow the data to have extra padding bits. most
-        // servers don't use this, but it's notably used by hypixel.
-        storage.data = data;
+
+        // now read the data
+        for i in 0..storage.data.len() {
+            storage.data[i] = u64::azalea_read(buf)?;
+        }
 
         Ok(PalettedContainer {
             bits_per_entry,

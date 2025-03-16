@@ -1,6 +1,7 @@
 use std::{fmt::Display, str::FromStr};
 
 use azalea_block::BlockState;
+use azalea_buf::AzBuf;
 use azalea_core::{math, position::ChunkBlockPos};
 use azalea_registry::tags::blocks::LEAVES;
 
@@ -8,7 +9,7 @@ use crate::{BitStorage, Section, chunk_storage::get_block_state_from_sections};
 
 // (wg stands for worldgen)
 
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, AzBuf)]
 pub enum HeightmapKind {
     WorldSurfaceWg,
     WorldSurface,

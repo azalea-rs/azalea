@@ -991,6 +991,40 @@ pub static FISHES: LazyLock<HashSet<Item>> = LazyLock::new(|| {
         Item::TropicalFish,
     ])
 });
+pub static FLOWERS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
+    HashSet::from_iter(vec![
+        Item::Sunflower,
+        Item::Lilac,
+        Item::Peony,
+        Item::RoseBush,
+        Item::PitcherPlant,
+        Item::FloweringAzaleaLeaves,
+        Item::FloweringAzalea,
+        Item::MangrovePropagule,
+        Item::CherryLeaves,
+        Item::PinkPetals,
+        Item::Wildflowers,
+        Item::ChorusFlower,
+        Item::SporeBlossom,
+        Item::CactusFlower,
+        Item::Dandelion,
+        Item::OpenEyeblossom,
+        Item::Poppy,
+        Item::BlueOrchid,
+        Item::Allium,
+        Item::AzureBluet,
+        Item::RedTulip,
+        Item::OrangeTulip,
+        Item::WhiteTulip,
+        Item::PinkTulip,
+        Item::OxeyeDaisy,
+        Item::Cornflower,
+        Item::LilyOfTheValley,
+        Item::WitherRose,
+        Item::Torchflower,
+        Item::ClosedEyeblossom,
+    ])
+});
 pub static FOOT_ARMOR: LazyLock<HashSet<Item>> = LazyLock::new(|| {
     HashSet::from_iter(vec![
         Item::LeatherBoots,

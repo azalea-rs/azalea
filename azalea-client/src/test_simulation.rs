@@ -22,7 +22,7 @@ use azalea_world::{Chunk, Instance, MinecraftEntityId, Section};
 use bevy_app::App;
 use bevy_ecs::{prelude::*, schedule::ExecutorKind};
 use parking_lot::{Mutex, RwLock};
-use simdnbt::owned::{Nbt, NbtCompound, NbtTag};
+use simdnbt::owned::{NbtCompound, NbtTag};
 use tokio::task::JoinHandle;
 use tokio::{sync::mpsc, time::sleep};
 use uuid::Uuid;
@@ -294,7 +294,7 @@ pub fn make_basic_empty_chunk(
         x: pos.x,
         z: pos.z,
         chunk_data: ClientboundLevelChunkPacketData {
-            heightmaps: Nbt::None,
+            heightmaps: Default::default(),
             data: Arc::new(chunk_bytes.into()),
             block_entities: vec![],
         },

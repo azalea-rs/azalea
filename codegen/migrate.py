@@ -49,7 +49,7 @@ new_block_states_report = lib.extract.get_block_states_report(new_version_id)
 new_registries = lib.extract.get_registries_report(new_version_id)
 new_ordered_blocks = lib.code.blocks.get_ordered_blocks(new_registries)
 lib.code.blocks.generate_blocks(
-    new_block_states_report, new_pixlyzer_block_datas, new_ordered_blocks)
+    new_block_states_report, new_pixlyzer_block_datas, new_ordered_blocks, new_burger_data)
 lib.code.shapes.generate_block_shapes(
     new_pixlyzer_block_datas, new_shape_datas['shapes'], new_shape_datas['aabbs'], new_block_states_report)
 

@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use azalea_buf::AzBuf;
 use azalea_protocol_macros::ClientboundGamePacket;
+use azalea_world::heightmap::HeightmapKind;
 use simdnbt::owned::Nbt;
 
 use super::c_light_update::ClientboundLightUpdatePacketData;
@@ -17,7 +18,7 @@ pub struct ClientboundLevelChunkWithLight {
 
 #[derive(Clone, Debug, AzBuf)]
 pub struct ClientboundLevelChunkPacketData {
-    pub heightmaps: Nbt,
+    pub heightmaps: Vec<(HeightmapKind, Box<[u64]>)>,
     /// The raw chunk sections.
     ///
     /// We can't parse the data in azalea-protocol because it depends on context
