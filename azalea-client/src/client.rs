@@ -737,6 +737,8 @@ impl Client {
     /// The player's instance (aka world) will be locked during this time, which
     /// may result in a deadlock if you try to access the instance again while
     /// in the function.
+    ///
+    /// [`RegistryHolder`]: azalea_core::registry_holder::RegistryHolder
     pub fn with_registry_holder<R>(
         &self,
         f: impl FnOnce(&azalea_core::registry_holder::RegistryHolder) -> R,

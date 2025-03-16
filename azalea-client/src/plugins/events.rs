@@ -229,6 +229,8 @@ pub fn death_listener(query: Query<&LocalPlayerEvents>, mut events: EventReader<
 }
 
 /// Send the "Death" event for [`LocalEntity`]s that died with no reason.
+///
+/// [`LocalEntity`]: azalea_entity::LocalEntity
 pub fn dead_component_listener(query: Query<&LocalPlayerEvents, Added<Dead>>) {
     for local_player_events in &query {
         local_player_events.send(Event::Death(None)).unwrap();

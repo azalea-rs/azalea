@@ -18,6 +18,8 @@ use crate::packet::game::SendPacketEvent;
 ///
 /// If you're wondering why this isn't two separate events, it's so ordering is
 /// preserved if multiple chat messages and commands are sent at the same time.
+///
+/// [`SendChatEvent`]: super::SendChatEvent
 #[derive(Event)]
 pub struct SendChatKindEvent {
     pub entity: Entity,
