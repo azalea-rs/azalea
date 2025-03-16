@@ -194,7 +194,7 @@ impl Shapes {
     }
 
     /// Check if the op is true anywhere when joining the two shapes
-    /// vanilla calls this joinIsNotEmpty
+    /// vanilla calls this joinIsNotEmpty (join_is_not_empty).
     pub fn matches_anywhere(
         a: &VoxelShape,
         b: &VoxelShape,
@@ -574,11 +574,16 @@ impl VoxelShape {
     }
 }
 
-impl From<AABB> for VoxelShape {
-    fn from(aabb: AABB) -> Self {
+impl From<&AABB> for VoxelShape {
+    fn from(aabb: &AABB) -> Self {
         box_shape(
             aabb.min.x, aabb.min.y, aabb.min.z, aabb.max.x, aabb.max.y, aabb.max.z,
         )
+    }
+}
+impl From<AABB> for VoxelShape {
+    fn from(aabb: AABB) -> Self {
+        VoxelShape::from(&aabb)
     }
 }
 

@@ -90,44 +90,40 @@ pub fn ai_step(
             physics.velocity.z = 0.;
         }
 
-        if let Some(jumping) = jumping {
-            if **jumping {
-                // TODO: jumping in liquids and jump delay
+        if jumping == Some(&Jumping(true)) {
+            let fluid_height = if physics.is_in_lava() {
+                physics.lava_fluid_height
+            } else if physics.is_in_water() {
+                physics.water_fluid_height
+            } else {
+                0.
+            };
 
-                let fluid_height = if physics.is_in_lava() {
-                    physics.lava_fluid_height
-                } else if physics.is_in_water() {
-                    physics.water_fluid_height
-                } else {
-                    0.
-                };
+            let in_water = physics.is_in_water() && fluid_height > 0.;
+            let fluid_jump_threshold = travel::fluid_jump_threshold();
 
-                let in_water = physics.is_in_water() && fluid_height > 0.;
-                let fluid_jump_threshold = travel::fluid_jump_threshold();
-
-                if !in_water || physics.on_ground() && fluid_height <= fluid_jump_threshold {
-                    if !physics.is_in_lava()
-                        || physics.on_ground() && fluid_height <= fluid_jump_threshold
+            if !in_water || physics.on_ground() && fluid_height <= fluid_jump_threshold {
+                if !physics.is_in_lava()
+                    || physics.on_ground() && fluid_height <= fluid_jump_threshold
+                {
+                    if (physics.on_ground() || in_water && fluid_height <= fluid_jump_threshold)
+                        && physics.no_jump_delay == 0
                     {
-                        if (physics.on_ground() || in_water && fluid_height <= fluid_jump_threshold)
-                            && physics.no_jump_delay == 0
-                        {
-                            jump_from_ground(
-                                &mut physics,
-                                position,
-                                look_direction,
-                                sprinting,
-                                instance_name,
-                                &instance_container,
-                            );
-                            physics.no_jump_delay = 10;
-                        }
-                    } else {
-                        jump_in_liquid(&mut physics);
+                        jump_from_ground(
+                            &mut physics,
+                            position,
+                            look_direction,
+                            sprinting,
+                            instance_name,
+                            &instance_container,
+                        );
+                        physics.no_jump_delay = 10;
                     }
                 } else {
                     jump_in_liquid(&mut physics);
                 }
+            } else {
+                jump_in_liquid(&mut physics);
             }
         } else {
             physics.no_jump_delay = 0;
@@ -417,7 +413,6 @@ fn handle_relative_friction_and_calculate_movement(
             .unwrap_or_default()
             .into();
 
-        // TODO: powdered snow
         if **on_climbable || block_at_feet == azalea_registry::Block::PowderSnow {
             physics.velocity.y = 0.2;
         }

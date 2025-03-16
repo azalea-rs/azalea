@@ -1,8 +1,9 @@
 mod blocks;
 mod discrete_voxel_shape;
+pub mod entity_collisions;
 mod mergers;
 mod shape;
-mod world_collisions;
+pub mod world_collisions;
 
 use std::{ops::Add, sync::LazyLock};
 
@@ -279,7 +280,7 @@ fn collide_bounding_box(
     // TODO: world border
 
     let block_collisions =
-        get_block_collisions(world, entity_bounding_box.expand_towards(movement));
+        get_block_collisions(world, &entity_bounding_box.expand_towards(movement));
     collision_boxes.extend(block_collisions);
     collide_with_shapes(movement, *entity_bounding_box, &collision_boxes)
 }
@@ -392,6 +393,11 @@ fn calculate_shape_for_fluid(amount: u8) -> VoxelShape {
 ///
 /// This is marked as deprecated in Minecraft.
 pub fn legacy_blocks_motion(block: BlockState) -> bool {
+    if block == BlockState::AIR {
+        // fast path
+        return false;
+    }
+
     let registry_block = azalea_registry::Block::from(block);
     legacy_calculate_solid(block)
         && registry_block != azalea_registry::Block::Cobweb

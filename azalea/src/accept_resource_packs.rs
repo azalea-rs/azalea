@@ -1,7 +1,7 @@
 use azalea_client::InConfigState;
 use azalea_client::chunks::handle_chunk_batch_finished_event;
 use azalea_client::inventory::InventorySet;
-use azalea_client::packet::config::SendConfigPacketEvent;
+use azalea_client::packet::config::{SendConfigPacketEvent, handle_send_packet_event};
 use azalea_client::packet::game::SendPacketEvent;
 use azalea_client::packet::{death_event_on_0_health, game::ResourcePackEvent};
 use azalea_client::respawn::perform_respawn;
@@ -23,7 +23,9 @@ impl Plugin for AcceptResourcePacksPlugin {
                 .before(perform_respawn)
                 .after(death_event_on_0_health)
                 .after(handle_chunk_batch_finished_event)
-                .after(InventorySet),
+                .after(InventorySet)
+                .before(handle_send_packet_event)
+                .after(azalea_client::brand::handle_end_login_state),
         );
     }
 }

@@ -24,7 +24,7 @@ impl Plugin for BrandPlugin {
     }
 }
 
-fn handle_end_login_state(
+pub fn handle_end_login_state(
     mut removed: RemovedComponents<InLoginState>,
     query: Query<&ClientInformation>,
     mut send_packet_events: EventWriter<SendConfigPacketEvent>,
