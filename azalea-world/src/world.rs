@@ -102,6 +102,11 @@ impl From<i32> for MinecraftEntityId {
         Self(id)
     }
 }
+impl From<u32> for MinecraftEntityId {
+    fn from(id: u32) -> Self {
+        Self(id as i32)
+    }
+}
 
 /// Keep track of certain metadatas that are only relevant for this partial
 /// world.
