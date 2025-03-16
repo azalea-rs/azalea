@@ -83,6 +83,8 @@ pub fn travel(
             );
         } else {
             travel_in_air(
+                &world,
+                entity,
                 &mut physics,
                 &direction,
                 position,
@@ -91,7 +93,8 @@ pub fn travel(
                 on_climbable,
                 pose,
                 jumping,
-                &world,
+                &physics_query,
+                &collidable_entity_query,
             );
         }
     }
@@ -100,6 +103,8 @@ pub fn travel(
 /// The usual movement when we're not in water or using an elytra.
 #[allow(clippy::too_many_arguments)]
 fn travel_in_air(
+    world: &Instance,
+    entity: Entity,
     physics: &mut Physics,
     direction: &LookDirection,
     position: Mut<Position>,
@@ -108,7 +113,8 @@ fn travel_in_air(
     on_climbable: &OnClimbable,
     pose: Option<&Pose>,
     jumping: &Jumping,
-    world: &Instance,
+    physics_query: &PhysicsQuery,
+    collidable_entity_query: &CollidableEntityQuery,
 ) {
     let gravity = get_effective_gravity();
 
@@ -140,6 +146,9 @@ fn travel_in_air(
             on_climbable,
             pose,
             jumping,
+            entity,
+            physics_query,
+            collidable_entity_query,
         },
     );
 
@@ -210,6 +219,9 @@ fn travel_in_fluid(
             world,
             &mut position,
             physics,
+            Some(entity),
+            physics_query,
+            collidable_entity_query,
         )
         .expect("Entity should exist");
 
@@ -231,6 +243,9 @@ fn travel_in_fluid(
             world,
             &mut position,
             physics,
+            Some(entity),
+            physics_query,
+            collidable_entity_query,
         )
         .expect("Entity should exist");
 

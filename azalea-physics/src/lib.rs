@@ -21,13 +21,18 @@ use azalea_entity::{
 use azalea_world::{Instance, InstanceContainer, InstanceName};
 use bevy_app::{App, Plugin};
 use bevy_ecs::{
+    entity::Entity,
     query::With,
     schedule::{IntoSystemConfigs, SystemSet},
     system::{Query, Res},
     world::Mut,
 };
 use clip::box_traverse_blocks;
-use collision::{BLOCK_SHAPE, BlockWithShape, MoverType, VoxelShape, move_colliding};
+use collision::{
+    BLOCK_SHAPE, BlockWithShape, MoverType, VoxelShape,
+    entity_collisions::{CollidableEntityQuery, PhysicsQuery},
+    move_colliding,
+};
 
 /// A Bevy [`SystemSet`] for running physics that makes entities do things.
 #[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
@@ -352,7 +357,7 @@ fn get_block_pos_below_that_affects_movement(position: &Position) -> BlockPos {
 }
 
 /// Options for [`handle_relative_friction_and_calculate_movement`]
-struct HandleRelativeFrictionAndCalculateMovementOpts<'a> {
+struct HandleRelativeFrictionAndCalculateMovementOpts<'a, 'b, 'world, 'state> {
     block_friction: f32,
     world: &'a Instance,
     physics: &'a mut Physics,
@@ -363,6 +368,9 @@ struct HandleRelativeFrictionAndCalculateMovementOpts<'a> {
     on_climbable: &'a OnClimbable,
     pose: Option<&'a Pose>,
     jumping: &'a Jumping,
+    entity: Entity,
+    physics_query: &'a PhysicsQuery<'world, 'state, 'b>,
+    collidable_entity_query: &'a CollidableEntityQuery<'world, 'state>,
 }
 fn handle_relative_friction_and_calculate_movement(
     HandleRelativeFrictionAndCalculateMovementOpts {
@@ -376,7 +384,10 @@ fn handle_relative_friction_and_calculate_movement(
         on_climbable,
         pose,
         jumping,
-    }: HandleRelativeFrictionAndCalculateMovementOpts<'_>,
+        entity,
+        physics_query,
+        collidable_entity_query,
+    }: HandleRelativeFrictionAndCalculateMovementOpts<'_, '_, '_, '_>,
 ) -> Vec3 {
     move_relative(
         physics,
@@ -397,6 +408,9 @@ fn handle_relative_friction_and_calculate_movement(
         world,
         &mut position,
         physics,
+        Some(entity),
+        physics_query,
+        collidable_entity_query,
     )
     .expect("Entity should exist");
     // let delta_movement = entity.delta;

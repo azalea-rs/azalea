@@ -125,6 +125,16 @@ macro_rules! vec3_impl {
                     z: self.z,
                 }
             }
+
+            pub fn with_x(&self, x: $type) -> Self {
+                Self { x, ..*self }
+            }
+            pub fn with_y(&self, y: $type) -> Self {
+                Self { y, ..*self }
+            }
+            pub fn with_z(&self, z: $type) -> Self {
+                Self { z, ..*self }
+            }
         }
 
         impl Add for &$name {
