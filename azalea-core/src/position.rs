@@ -309,6 +309,21 @@ impl Vec3 {
         let z = self.z * (x_delta as f64) - self.x * (y_delta as f64);
         Vec3 { x, y, z }
     }
+
+    pub fn to_block_pos_floor(&self) -> BlockPos {
+        BlockPos {
+            x: self.x.floor() as i32,
+            y: self.y.floor() as i32,
+            z: self.z.floor() as i32,
+        }
+    }
+    pub fn to_block_pos_ceil(&self) -> BlockPos {
+        BlockPos {
+            x: self.x.ceil() as i32,
+            y: self.y.ceil() as i32,
+            z: self.z.ceil() as i32,
+        }
+    }
 }
 
 /// The coordinates of a block in the world. For entities (if the coordinate
@@ -598,6 +613,16 @@ impl From<&BlockPos> for ChunkSectionPos {
 impl From<ChunkSectionPos> for ChunkPos {
     fn from(pos: ChunkSectionPos) -> Self {
         ChunkPos { x: pos.x, z: pos.z }
+    }
+}
+impl From<&Vec3> for ChunkSectionPos {
+    fn from(pos: &Vec3) -> Self {
+        ChunkSectionPos::from(&BlockPos::from(pos))
+    }
+}
+impl From<Vec3> for ChunkSectionPos {
+    fn from(pos: Vec3) -> Self {
+        ChunkSectionPos::from(&pos)
     }
 }
 

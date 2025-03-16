@@ -209,8 +209,8 @@ impl From<&LastSentPosition> for BlockPos {
 ///
 /// If this is true, the entity will try to jump every tick. It's equivalent to
 /// the space key being held in vanilla.
-#[derive(Debug, Component, Copy, Clone, Deref, DerefMut, Default)]
-pub struct Jumping(bool);
+#[derive(Debug, Component, Copy, Clone, Deref, DerefMut, Default, PartialEq, Eq)]
+pub struct Jumping(pub bool);
 
 /// A component that contains the direction an entity is looking.
 #[derive(Debug, Component, Copy, Clone, Default, PartialEq, AzBuf)]

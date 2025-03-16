@@ -1,7 +1,7 @@
 # Extracting data from the Minecraft jars
 
 from typing import TYPE_CHECKING
-from lib.download import get_server_jar, get_burger, get_client_jar, get_pixlyzer, get_yarn_data, get_fabric_api_versions, get_fabric_loader_versions
+from lib.download import get_mappings_for_version, get_server_jar, get_burger, get_client_jar, get_pixlyzer, get_yarn_data, get_fabric_api_versions, get_fabric_loader_versions
 from lib.utils import get_dir_location, to_camel_case, upper_first_letter
 from zipfile import ZipFile
 import subprocess
@@ -53,19 +53,8 @@ python_command = None
 
 
 def determine_python_command():
-    global python_command
-    if python_command:
-        return python_command
-
-    def try_python_command(version):
-        return os.system(f'{version} --version') == 0
-
-    for version in (sys.executable, 'python3.9', 'python3.8', 'python3', 'python'):
-        if try_python_command(version):
-            python_command = version
-            return version
-    raise Exception(
-        'Couldn\'t determine python command to use to run burger with!')
+    return 'venv/bin/python'
+    
 
 
 def run_python_command_and_download_deps(command):
@@ -105,10 +94,14 @@ def get_burger_data_for_version(version_id: str):
     if not os.path.exists(get_dir_location(f'__cache__/burger-{version_id}.json')):
         get_burger()
         get_client_jar(version_id)
+        get_mappings_for_version(version_id)
 
         print('\033[92mRunning Burger...\033[m')
         run_python_command_and_download_deps(
-            f'cd {get_dir_location("__cache__/Burger")} && {determine_python_command()} munch.py {get_dir_location("__cache__")}/client-{version_id}.jar --output {get_dir_location("__cache__")}/burger-{version_id}.json'
+            f'cd {get_dir_location("__cache__/Burger")} && '\
+            f'{determine_python_command()} munch.py {get_dir_location("__cache__")}/client-{version_id}.jar '\
+            f'--output {get_dir_location("__cache__")}/burger-{version_id}.json '\
+            f'--mappings {get_dir_location("__cache__")}/mappings-{version_id}.txt'
         )
     with open(get_dir_location(f'__cache__/burger-{version_id}.json'), 'r') as f:
         return json.load(f)

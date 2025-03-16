@@ -56,7 +56,6 @@ impl BlockBehavior {
         self
     }
 
-    // TODO: currently unused
     pub fn force_solid(mut self, force_solid: bool) -> Self {
         self.force_solid = Some(force_solid);
         self
