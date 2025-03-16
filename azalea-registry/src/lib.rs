@@ -158,10 +158,9 @@ impl<R: Registry, Direct: AzaleaRead + AzaleaWrite> AzaleaRead for Holder<R, Dir
         if id == 0 {
             Ok(Self::Direct(Direct::azalea_read(buf)?))
         } else {
-            let Some(value) = R::from_u32(id - 1) else {
-                return Err(BufReadError::UnexpectedEnumVariant {
-                    id: (id - 1) as i32,
-                });
+            let id = id - 1;
+            let Some(value) = R::from_u32(id) else {
+                return Err(BufReadError::UnexpectedEnumVariant { id: id as i32 });
             };
             Ok(Self::Reference(value))
         }

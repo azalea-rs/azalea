@@ -6,7 +6,7 @@ use azalea_protocol::packets::{
     config::{ClientboundFinishConfiguration, ClientboundRegistryData},
     game::ClientboundSetHealth,
 };
-use azalea_registry::DimensionType;
+use azalea_registry::{DataRegistry, DimensionType};
 use bevy_log::tracing_subscriber;
 use simdnbt::owned::{NbtCompound, NbtTag};
 

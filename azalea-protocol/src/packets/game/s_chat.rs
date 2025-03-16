@@ -5,6 +5,7 @@ use azalea_protocol_macros::ServerboundGamePacket;
 
 #[derive(Clone, Debug, AzBuf, ServerboundGamePacket)]
 pub struct ServerboundChat {
+    #[limit(256)]
     pub message: String,
     pub timestamp: u64,
     pub salt: u64,
@@ -15,6 +16,7 @@ pub struct ServerboundChat {
 #[derive(Clone, Debug, AzBuf, Default)]
 pub struct LastSeenMessagesUpdate {
     #[var]
-    pub messages: u32,
+    pub offset: u32,
     pub acknowledged: FixedBitSet<{ 20_usize.div_ceil(8) }>,
+    pub checksum: u8,
 }

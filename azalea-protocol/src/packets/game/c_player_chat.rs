@@ -2,17 +2,20 @@ use std::io::{Cursor, Write};
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
 use azalea_chat::{
-    translatable_component::{StringOrComponent, TranslatableComponent},
     FormattedText,
+    translatable_component::{StringOrComponent, TranslatableComponent},
 };
 use azalea_core::bitset::BitSet;
 use azalea_crypto::MessageSignature;
 use azalea_protocol_macros::ClientboundGamePacket;
-use azalea_registry::{ChatType, OptionalRegistry};
+use azalea_registry::Holder;
+use simdnbt::owned::NbtCompound;
 use uuid::Uuid;
 
 #[derive(Clone, Debug, AzBuf, ClientboundGamePacket, PartialEq)]
 pub struct ClientboundPlayerChat {
+    #[var]
+    pub global_index: u32,
     pub sender: Uuid,
     #[var]
     pub index: u32,
@@ -52,34 +55,30 @@ pub enum FilterMask {
     PartiallyFiltered(BitSet),
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, AzBuf)]
 pub struct ChatTypeBound {
-    pub chat_type: ChatType,
+    pub chat_type: Holder<azalea_registry::ChatType, DirectChatType>,
     pub name: FormattedText,
     pub target_name: Option<FormattedText>,
 }
-impl AzaleaRead for ChatTypeBound {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let Some(chat_type) = OptionalRegistry::<ChatType>::azalea_read(buf)?.0 else {
-            return Err(BufReadError::Custom("ChatType cannot be None".to_owned()));
-        };
-        let name = FormattedText::azalea_read(buf)?;
-        let target_name = Option::<FormattedText>::azalea_read(buf)?;
 
-        Ok(ChatTypeBound {
-            chat_type,
-            name,
-            target_name,
-        })
-    }
+#[derive(Clone, Debug, PartialEq, AzBuf)]
+pub struct DirectChatType {
+    pub chat: ChatTypeDecoration,
+    pub narration: ChatTypeDecoration,
 }
-impl AzaleaWrite for ChatTypeBound {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        OptionalRegistry(Some(self.chat_type)).azalea_write(buf)?;
-        self.name.azalea_write(buf)?;
-        self.target_name.azalea_write(buf)?;
-        Ok(())
-    }
+#[derive(Clone, Debug, PartialEq, AzBuf)]
+pub struct ChatTypeDecoration {
+    pub translation_key: String,
+    pub parameters: Vec<ChatTypeDecorationParameter>,
+    pub style: NbtCompound,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, AzBuf)]
+pub enum ChatTypeDecorationParameter {
+    Sender = 0,
+    Target = 1,
+    Content = 2,
 }
 
 // must be in Client
@@ -106,8 +105,6 @@ impl ClientboundPlayerChat {
         let content = self.content();
         let target = self.chat_type.target_name.clone();
 
-        let translation_key = self.chat_type.chat_type.chat_translation_key();
-
         let mut args = vec![
             StringOrComponent::FormattedText(sender),
             StringOrComponent::FormattedText(content),
@@ -116,9 +113,19 @@ impl ClientboundPlayerChat {
             args.push(StringOrComponent::FormattedText(target));
         }
 
+        let translation_key = self.chat_type.translation_key();
         let component = TranslatableComponent::new(translation_key.to_string(), args);
 
         FormattedText::Translatable(component)
+    }
+}
+
+impl ChatTypeBound {
+    pub fn translation_key<'a>(&'a self) -> &'a str {
+        match &self.chat_type {
+            Holder::Reference(r) => r.chat_translation_key(),
+            Holder::Direct(d) => d.chat.translation_key.as_str(),
+        }
     }
 }
 

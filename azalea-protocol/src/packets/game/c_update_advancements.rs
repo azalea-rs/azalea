@@ -162,6 +162,7 @@ mod tests {
             )]
             .into_iter()
             .collect(),
+            show_advancements: false,
         };
 
         let mut data = Vec::new();
