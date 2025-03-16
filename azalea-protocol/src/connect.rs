@@ -296,7 +296,7 @@ impl Connection<ClientboundHandshakePacket, ServerboundHandshakePacket> {
 
         let _ = socks5_impl::client::connect(&mut stream, address, proxy.auth)
             .await
-            .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+            .map_err(io::Error::other)?;
 
         Self::new_from_stream(stream.into_inner()).await
     }

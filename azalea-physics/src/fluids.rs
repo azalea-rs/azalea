@@ -186,7 +186,7 @@ pub fn get_fluid_flow(fluid: &FluidState, world: &Instance, pos: BlockPos) -> Ve
     let mut z_flow: f64 = 0.;
     let mut x_flow: f64 = 0.;
 
-    println!("current fluid height: {}", fluid.height());
+    let cur_fluid_height = fluid.height();
 
     for direction in Direction::HORIZONTAL {
         let adjacent_block_pos = pos.offset_with_direction(direction);
@@ -196,45 +196,36 @@ pub fn get_fluid_flow(fluid: &FluidState, world: &Instance, pos: BlockPos) -> Ve
             .unwrap_or_default();
         let adjacent_fluid_state = FluidState::from(adjacent_block_state);
 
-        if fluid.affects_flow(&adjacent_fluid_state) {
-            let mut adjacent_fluid_height = adjacent_fluid_state.height();
-            let mut adjacent_height_difference: f32 = 0.;
+        if !fluid.affects_flow(&adjacent_fluid_state) {
+            continue;
+        };
+        let mut adjacent_fluid_height = adjacent_fluid_state.height();
+        let mut adjacent_height_difference: f32 = 0.;
 
-            if adjacent_fluid_height == 0. {
-                if !legacy_blocks_motion(adjacent_block_state) {
-                    let block_pos_below_adjacent = adjacent_block_pos.down(1);
-                    let fluid_below_adjacent = world
-                        .get_fluid_state(&block_pos_below_adjacent)
-                        .unwrap_or_default();
+        if adjacent_fluid_height == 0. {
+            if !legacy_blocks_motion(adjacent_block_state) {
+                let block_pos_below_adjacent = adjacent_block_pos.down(1);
+                let fluid_below_adjacent = world
+                    .get_fluid_state(&block_pos_below_adjacent)
+                    .unwrap_or_default();
 
-                    if fluid.affects_flow(&fluid_below_adjacent) {
-                        adjacent_fluid_height = fluid_below_adjacent.height();
-                        if adjacent_fluid_height > 0. {
-                            adjacent_height_difference =
-                                fluid.height() - (adjacent_fluid_height - 0.8888889);
-                        }
+                if fluid.affects_flow(&fluid_below_adjacent) {
+                    adjacent_fluid_height = fluid_below_adjacent.height();
+                    if adjacent_fluid_height > 0. {
+                        adjacent_height_difference =
+                            cur_fluid_height - (adjacent_fluid_height - 0.8888889);
                     }
                 }
-            } else if adjacent_fluid_height > 0. {
-                adjacent_height_difference = fluid.height() - adjacent_fluid_height;
             }
+        } else if adjacent_fluid_height > 0. {
+            adjacent_height_difference = cur_fluid_height - adjacent_fluid_height;
+        }
 
-            println!(
-                "our fluid height: {}, adjacent fluid height: {adjacent_fluid_height}",
-                fluid.height()
-            );
-            println!(
-                "{direction:?} adjacent_height_difference: {adjacent_height_difference}, {adjacent_fluid_state:?}"
-            );
-
-            if adjacent_height_difference != 0. {
-                x_flow += (direction.x() as f32 * adjacent_height_difference) as f64;
-                z_flow += (direction.z() as f32 * adjacent_height_difference) as f64;
-            }
+        if adjacent_height_difference != 0. {
+            x_flow += (direction.x() as f32 * adjacent_height_difference) as f64;
+            z_flow += (direction.z() as f32 * adjacent_height_difference) as f64;
         }
     }
-
-    println!("x_flow: {x_flow}, z_flow: {z_flow}");
 
     let mut flow = Vec3::new(x_flow, 0., z_flow);
     if fluid.falling {

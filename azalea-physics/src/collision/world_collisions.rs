@@ -256,7 +256,7 @@ impl EntityCollisionContext {
     }
 
     pub fn can_stand_on_fluid(&self, above: &FluidState, target: &FluidState) -> bool {
-        self.can_stand_on_fluid_predicate.matches(&target) && !above.is_same_kind(target)
+        self.can_stand_on_fluid_predicate.matches(target) && !above.is_same_kind(target)
     }
 }
 

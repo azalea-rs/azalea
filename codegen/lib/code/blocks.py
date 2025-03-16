@@ -12,12 +12,14 @@ BLOCKS_RS_DIR = get_dir_location('../azalea-block/src/generated.rs')
 # - Block: Has properties and states.
 
 
-def generate_blocks(blocks_report: dict, pixlyzer_block_datas: dict, ordered_blocks: list[str]):
+def generate_blocks(blocks_report: dict, pixlyzer_block_datas: dict, ordered_blocks: list[str], burger_data: dict):
     with open(BLOCKS_RS_DIR, 'r') as f:
         existing_code = f.read().splitlines()
 
     new_make_block_states_macro_code = []
     new_make_block_states_macro_code.append('make_block_states! {')
+
+    burger_block_datas = burger_data[0]['blocks']['block']
 
     # Find properties
     properties = {}
@@ -77,6 +79,7 @@ def generate_blocks(blocks_report: dict, pixlyzer_block_datas: dict, ordered_blo
     for block_id in ordered_blocks:
         block_data_report = blocks_report['minecraft:' + block_id]
         block_data_pixlyzer = pixlyzer_block_datas.get(f'minecraft:{block_id}', {})
+        block_data_burger = burger_block_datas.get(block_id, {})
 
         default_property_variants: dict[str, str] = {}
         for state in block_data_report['states']:
@@ -129,6 +132,14 @@ def generate_blocks(blocks_report: dict, pixlyzer_block_datas: dict, ordered_blo
         friction = block_data_pixlyzer.get('friction')
         if friction != None:
             behavior_constructor += f'.friction({friction})'
+        
+        force_solid = None
+        if block_data_burger.get('force_solid_on'):
+            force_solid = 'true'
+        elif block_data_burger.get('force_solid_off'):
+            force_solid = 'false'
+        if force_solid != None:
+            behavior_constructor += f'.force_solid({force_solid})'
 
         # TODO: use burger to generate the blockbehavior
         new_make_block_states_macro_code.append(

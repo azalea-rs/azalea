@@ -17,9 +17,9 @@ pub enum Direction {
 impl Direction {
     pub const HORIZONTAL: [Direction; 4] = [
         Direction::North,
+        Direction::East,
         Direction::South,
         Direction::West,
-        Direction::East,
     ];
     pub const VERTICAL: [Direction; 2] = [Direction::Down, Direction::Up];
 

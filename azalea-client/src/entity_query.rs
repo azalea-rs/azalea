@@ -106,9 +106,7 @@ where
     fn find(&self, ecs_lock: Arc<Mutex<World>>) -> Option<Entity> {
         let mut ecs = ecs_lock.lock();
         let mut query = ecs.query_filtered::<(Entity, Q), Filter>();
-        let entity = query.iter(&ecs).find(|(_, q)| (self)(q)).map(|(e, _)| e);
-
-        entity
+        query.iter(&ecs).find(|(_, q)| (self)(q)).map(|(e, _)| e)
     }
 }
 

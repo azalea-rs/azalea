@@ -51,7 +51,7 @@ impl Vec3 {
 
     pub fn normalize(&self) -> Vec3 {
         let length = f64::sqrt(self.x * self.x + self.y * self.y + self.z * self.z);
-        if length < 1e-4 {
+        if length < 1e-5 {
             return Vec3::ZERO;
         }
         Vec3 {

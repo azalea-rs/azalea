@@ -163,6 +163,7 @@ fn travel_in_air(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn travel_in_fluid(
     world: &Instance,
     entity: Entity,
@@ -202,8 +203,6 @@ fn travel_in_fluid(
         //     waterMovementSpeed = 0.96F;
         // }
 
-        println!("travel in fluid");
-
         move_relative(physics, direction, speed, &acceleration);
         move_colliding(
             MoverType::Own,
@@ -225,8 +224,6 @@ fn travel_in_fluid(
         physics.velocity =
             get_fluid_falling_adjusted_movement(gravity, moving_down, new_velocity, sprinting);
     } else {
-        println!("in lava");
-
         move_relative(physics, direction, 0.02, &acceleration);
         move_colliding(
             MoverType::Own,
@@ -269,7 +266,6 @@ fn travel_in_fluid(
             velocity.up(0.6).down(position.y).up(y),
         )
     {
-        println!("horizontal collision, setting y velocity");
         physics.velocity.y = 0.3;
     }
 }
@@ -311,12 +307,9 @@ fn is_free(
 ) -> bool {
     let bounding_box = bounding_box.move_relative(delta);
 
-    // this.level().noCollision(this, var1) &&
-    // !this.level().containsAnyLiquid(var1);
-
     no_collision(
         world,
-        source_entity,
+        Some(source_entity),
         physics_query,
         collidable_entity_query,
         entity_physics,
@@ -327,7 +320,7 @@ fn is_free(
 
 fn no_collision(
     world: &Instance,
-    source_entity: Entity,
+    source_entity: Option<Entity>,
     physics_query: &PhysicsQuery,
     collidable_entity_query: &CollidableEntityQuery,
     entity_physics: &mut Physics,
@@ -349,18 +342,16 @@ fn no_collision(
     if !get_entity_collisions(
         world,
         aabb,
-        Some(source_entity),
+        source_entity,
         physics_query,
         collidable_entity_query,
     )
     .is_empty()
     {
-        return false;
-    }
-    // else if entity is none {
-    //     return true;
-    // }
-    else {
+        false
+    } else if source_entity.is_none() {
+        true
+    } else {
         let collision = border_collision(entity_physics, aabb);
         if let Some(collision) = collision {
             // !Shapes.joinIsNotEmpty(collision, Shapes.create(aabb), BooleanOp.AND);

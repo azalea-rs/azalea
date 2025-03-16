@@ -1,24 +1,3 @@
-// default List<VoxelShape> getEntityCollisions(@Nullable Entity entity, AABB
-// aabb) {     if (aabb.getSize() < 1.0E-7) {
-//        return List.of();
-//     } else {
-//        Predicate var3 = entity == null ? EntitySelector.CAN_BE_COLLIDED_WITH
-//              : EntitySelector.NO_SPECTATORS.and(entity::canCollideWith);
-//        List var4 = this.getEntities(entity, aabb.inflate(1.0E-7), var3);
-//        if (var4.isEmpty()) {
-//           return List.of();
-//        } else {
-//           Builder var5 = ImmutableList.builderWithExpectedSize(var4.size());
-
-//           for (Entity var7 : var4) {
-//              var5.add(Shapes.create(var7.getBoundingBox()));
-//           }
-
-//           return var5.build();
-//        }
-//     }
-//  }
-
 use azalea_core::aabb::AABB;
 use azalea_entity::{
     LocalEntity, Physics,
