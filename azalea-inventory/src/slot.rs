@@ -310,21 +310,24 @@ impl PartialEq for DataComponentPatch {
             return false;
         }
         for (kind, component) in &self.components {
-            if let Some(other_component) = other.components.get(kind) {
-                // we can't use PartialEq, but we can use our own eq method
-                if let Some(component) = component {
-                    if let Some(other_component) = other_component {
-                        if !component.eq((*other_component).clone()) {
+            match other.components.get(kind) {
+                Some(other_component) => {
+                    // we can't use PartialEq, but we can use our own eq method
+                    if let Some(component) = component {
+                        if let Some(other_component) = other_component {
+                            if !component.eq((*other_component).clone()) {
+                                return false;
+                            }
+                        } else {
                             return false;
                         }
-                    } else {
+                    } else if other_component.is_some() {
                         return false;
                     }
-                } else if other_component.is_some() {
+                }
+                _ => {
                     return false;
                 }
-            } else {
-                return false;
             }
         }
         true

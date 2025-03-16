@@ -10,7 +10,10 @@ use azalea_protocol::{
 use bevy_ecs::prelude::*;
 use parking_lot::Mutex;
 use thiserror::Error;
-use tokio::sync::mpsc::{self, error::SendError};
+use tokio::sync::mpsc::{
+    self,
+    error::{SendError, TrySendError},
+};
 use tracing::error;
 
 /// A component for clients that can read and write packets to the server. This
@@ -18,26 +21,26 @@ use tracing::error;
 /// yourself. It will do the compression and encryption for you though.
 #[derive(Component)]
 pub struct RawConnection {
-    reader: RawConnectionReader,
-    writer: RawConnectionWriter,
+    pub reader: RawConnectionReader,
+    pub writer: RawConnectionWriter,
 
     /// Packets sent to this will be sent to the server.
     /// A task that reads packets from the server. The client is disconnected
     /// when this task ends.
-    read_packets_task: tokio::task::JoinHandle<()>,
+    pub read_packets_task: tokio::task::JoinHandle<()>,
     /// A task that writes packets from the server.
-    write_packets_task: tokio::task::JoinHandle<()>,
+    pub write_packets_task: tokio::task::JoinHandle<()>,
 
-    connection_protocol: ConnectionProtocol,
+    pub connection_protocol: ConnectionProtocol,
 }
 
 #[derive(Clone)]
-struct RawConnectionReader {
+pub struct RawConnectionReader {
     pub incoming_packet_queue: Arc<Mutex<Vec<Box<[u8]>>>>,
-    pub run_schedule_sender: mpsc::UnboundedSender<()>,
+    pub run_schedule_sender: mpsc::Sender<()>,
 }
 #[derive(Clone)]
-struct RawConnectionWriter {
+pub struct RawConnectionWriter {
     pub outgoing_packets_sender: mpsc::UnboundedSender<Box<[u8]>>,
 }
 
@@ -60,7 +63,7 @@ pub enum WritePacketError {
 
 impl RawConnection {
     pub fn new(
-        run_schedule_sender: mpsc::UnboundedSender<()>,
+        run_schedule_sender: mpsc::Sender<()>,
         connection_protocol: ConnectionProtocol,
         raw_read_connection: RawReadConnection,
         raw_write_connection: RawWriteConnection,
@@ -133,21 +136,42 @@ impl RawConnectionReader {
     /// Loop that reads from the connection and adds the packets to the queue +
     /// runs the schedule.
     pub async fn read_task(self, mut read_conn: RawReadConnection) {
+        fn log_for_error(error: &ReadPacketError) {
+            if !matches!(*error, ReadPacketError::ConnectionClosed) {
+                error!("Error reading packet from Client: {error:?}");
+            }
+        }
+
         loop {
             match read_conn.read().await {
                 Ok(raw_packet) => {
-                    self.incoming_packet_queue.lock().push(raw_packet);
+                    let mut incoming_packet_queue = self.incoming_packet_queue.lock();
+
+                    incoming_packet_queue.push(raw_packet);
+                    // this makes it so packets received at the same time are guaranteed to be
+                    // handled in the same tick. this is also an attempt at making it so we can't
+                    // receive any packets in the ticks/updates after being disconnected.
+                    loop {
+                        let raw_packet = match read_conn.try_read() {
+                            Ok(p) => p,
+                            Err(err) => {
+                                log_for_error(&err);
+                                return;
+                            }
+                        };
+                        let Some(raw_packet) = raw_packet else { break };
+                        incoming_packet_queue.push(raw_packet);
+                    }
+
                     // tell the client to run all the systems
-                    if self.run_schedule_sender.send(()).is_err() {
+                    if self.run_schedule_sender.try_send(()) == Err(TrySendError::Closed(())) {
                         // the client was dropped
                         break;
                     }
                 }
-                Err(error) => {
-                    if !matches!(*error, ReadPacketError::ConnectionClosed) {
-                        error!("Error reading packet from Client: {error:?}");
-                    }
-                    break;
+                Err(err) => {
+                    log_for_error(&err);
+                    return;
                 }
             }
         }
@@ -158,6 +182,8 @@ impl RawConnectionWriter {
     /// Consume the [`ServerboundGamePacket`] queue and actually write the
     /// packets to the server. It's like this so writing packets doesn't need to
     /// be awaited.
+    ///
+    /// [`ServerboundGamePacket`]: azalea_protocol::packets::game::ServerboundGamePacket
     pub async fn write_task(
         self,
         mut write_conn: RawWriteConnection,

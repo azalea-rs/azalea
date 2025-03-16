@@ -3,8 +3,8 @@ use std::{collections::HashMap, fmt::Debug, rc::Rc, sync::Arc};
 use parking_lot::RwLock;
 
 use super::{
-    command_context::CommandContext, parsed_command_node::ParsedCommandNode,
-    string_range::StringRange, suggestion_context::SuggestionContext, ParsedArgument,
+    ParsedArgument, command_context::CommandContext, parsed_command_node::ParsedCommandNode,
+    string_range::StringRange, suggestion_context::SuggestionContext,
 };
 use crate::{
     command_dispatcher::CommandDispatcher,
@@ -107,18 +107,18 @@ impl<'a, S> CommandContextBuilder<'a, S> {
         }
 
         if self.range.end() < cursor {
-            if let Some(child) = &self.child {
-                child.find_suggestion_context(cursor)
-            } else if let Some(last) = self.nodes.last() {
-                SuggestionContext {
-                    parent: Arc::clone(&last.node),
-                    start_pos: last.range.end() + 1,
-                }
-            } else {
-                SuggestionContext {
-                    parent: Arc::clone(&self.root),
-                    start_pos: self.range.start(),
-                }
+            match &self.child {
+                Some(child) => child.find_suggestion_context(cursor),
+                _ => match self.nodes.last() {
+                    Some(last) => SuggestionContext {
+                        parent: Arc::clone(&last.node),
+                        start_pos: last.range.end() + 1,
+                    },
+                    _ => SuggestionContext {
+                        parent: Arc::clone(&self.root),
+                        start_pos: self.range.start(),
+                    },
+                },
             }
         } else {
             let mut prev = &self.root;

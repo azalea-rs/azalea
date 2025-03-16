@@ -1,6 +1,6 @@
-use azalea_block::{fluid_state::FluidState, Block, BlockState};
+use azalea_block::{Block, BlockState, fluid_state::FluidState};
 use azalea_core::{direction::Direction, game_type::GameMode, position::BlockPos, tick::GameTick};
-use azalea_entity::{mining::get_mine_progress, FluidOnEyes, Physics};
+use azalea_entity::{FluidOnEyes, Physics, mining::get_mine_progress};
 use azalea_inventory::ItemStack;
 use azalea_physics::PhysicsSet;
 use azalea_protocol::packets::game::s_player_action::{self, ServerboundPlayerAction};
@@ -10,20 +10,20 @@ use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
 
 use crate::{
+    Client,
     interact::{
-        can_use_game_master_blocks, check_is_interaction_restricted, CurrentSequenceNumber,
-        HitResultComponent, SwingArmEvent,
+        CurrentSequenceNumber, HitResultComponent, SwingArmEvent, can_use_game_master_blocks,
+        check_is_interaction_restricted,
     },
     inventory::{Inventory, InventorySet},
     local_player::{LocalGameMode, PermissionLevel, PlayerAbilities},
     movement::MoveEventsSet,
-    packet_handling::game::SendPacketEvent,
-    Client,
+    packet::game::SendPacketEvent,
 };
 
 /// A plugin that allows clients to break blocks in the world.
-pub struct MinePlugin;
-impl Plugin for MinePlugin {
+pub struct MiningPlugin;
+impl Plugin for MiningPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<StartMiningBlockEvent>()
             .add_event::<StartMiningBlockWithDirectionEvent>()
@@ -59,6 +59,7 @@ impl Plugin for MinePlugin {
     }
 }
 
+/// The Bevy system set for things related to mining.
 #[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
 pub struct MiningSet;
 

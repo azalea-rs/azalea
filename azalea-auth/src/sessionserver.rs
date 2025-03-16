@@ -159,7 +159,7 @@ pub async fn serverside_auth(
         StatusCode::FORBIDDEN => {
             return Err(ServerSessionServerError::Unknown(
                 res.json::<ForbiddenError>().await?.error,
-            ))
+            ));
         }
         status_code => {
             // log the headers

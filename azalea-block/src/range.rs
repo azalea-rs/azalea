@@ -1,9 +1,9 @@
 use std::{
-    collections::{hash_set, HashSet},
+    collections::{HashSet, hash_set},
     ops::{Add, RangeInclusive},
 };
 
-use crate::{block_state::BlockStateIntegerRepr, BlockState};
+use crate::{BlockState, block_state::BlockStateIntegerRepr};
 
 #[derive(Debug, Clone)]
 pub struct BlockStates {

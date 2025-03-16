@@ -1,6 +1,6 @@
 use azalea::{
     ecs::prelude::*,
-    entity::{metadata::AbstractMonster, Dead, LocalEntity, Position},
+    entity::{Dead, LocalEntity, Position, metadata::AbstractMonster},
     prelude::*,
     world::{InstanceName, MinecraftEntityId},
 };

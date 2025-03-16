@@ -1,11 +1,10 @@
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{
-    braced,
+    Attribute, Ident, LitStr, Token, braced,
     parse::{Parse, ParseStream, Result},
     parse_macro_input,
     punctuated::Punctuated,
-    Attribute, Ident, LitStr, Token,
 };
 
 struct Registry {

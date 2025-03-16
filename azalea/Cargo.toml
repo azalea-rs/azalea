@@ -1,18 +1,18 @@
 [package]
 name = "azalea"
 description = "A framework for creating Minecraft bots."
-version = { workspace = true }
-edition = { workspace = true }
-license = { workspace = true }
-repository = { workspace = true }
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
 
 [package.metadata.release]
 pre-release-replacements = [
-  { file = "README.md", search = "`azalea = \"[a-z0-9\\.-]+\"`", replace = "`azalea = \"{{version}}\"`" },
+    { file = "README.md", search = "`azalea = \"[a-z0-9\\.-]+\"`", replace = "`azalea = \"{{version}}\"`" },
 ]
 
 [dependencies]
-#async-trait = { workspace = true }
+#async-trait.workspace = true
 azalea-auth = { version = "0.11.0", path = "../azalea-auth" }
 azalea-block = { version = "0.11.0", path = "../azalea-block" }
 azalea-brigadier = { version = "0.11.0", path = "../azalea-brigadier" }
@@ -26,37 +26,42 @@ azalea-physics = { version = "0.11.0", path = "../azalea-physics" }
 azalea-protocol = { version = "0.11.0", path = "../azalea-protocol" }
 azalea-registry = { version = "0.11.0", path = "../azalea-registry" }
 azalea-world = { version = "0.11.0", path = "../azalea-world" }
-bevy_app = { workspace = true }
-bevy_ecs = { workspace = true }
-bevy_log = { workspace = true }
+bevy_app.workspace = true
+bevy_ecs.workspace = true
+bevy_log.workspace = true
 bevy_tasks = { workspace = true, features = ["multi_threaded"] }
-# bevy_time = { workspace = true }
+# bevy_time.workspace = true
 derive_more = { workspace = true, features = ["deref", "deref_mut"] }
-futures = { workspace = true }
-futures-lite = { workspace = true }
-indexmap = "2.7.0"
-nohash-hasher = { workspace = true }
-num-format = { workspace = true }
-num-traits = { workspace = true }
-parking_lot = { workspace = true }
-rustc-hash = { workspace = true }
+futures.workspace = true
+futures-lite.workspace = true
+indexmap.workspace = true
+nohash-hasher.workspace = true
+num-format.workspace = true
+num-traits.workspace = true
+parking_lot.workspace = true
+rustc-hash.workspace = true
 serde = { workspace = true, optional = true }
-thiserror = { workspace = true }
-tokio = { workspace = true }
-tracing = { workspace = true }
-uuid = { workspace = true }
+thiserror.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+uuid.workspace = true
 
 [dev-dependencies]
-criterion = { workspace = true }
+criterion.workspace = true
 parking_lot = { workspace = true, features = ["deadlock_detection"] }
-rand = { workspace = true }
-anyhow = { workspace = true }
+rand.workspace = true
+anyhow.workspace = true
 
 [features]
 default = ["log", "serde"]
 # enables bevy_log::LogPlugin by default
 log = ["azalea-client/log"]
-serde = ["dep:serde"]
+serde = [
+    "dep:serde",
+    "azalea-core/serde",
+    "azalea-registry/serde",
+    "azalea-world/serde",
+]
 
 [[bench]]
 name = "pathfinder"

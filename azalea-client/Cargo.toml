@@ -1,10 +1,10 @@
 [package]
 name = "azalea-client"
 description = "A headless Minecraft client."
-version = { workspace = true }
-edition = { workspace = true }
-license = { workspace = true }
-repository = { workspace = true }
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
 
 [dependencies]
 azalea-auth = { path = "../azalea-auth", version = "0.11.0" }
@@ -19,24 +19,25 @@ azalea-physics = { path = "../azalea-physics", version = "0.11.0" }
 azalea-protocol = { path = "../azalea-protocol", version = "0.11.0" }
 azalea-registry = { path = "../azalea-registry", version = "0.11.0" }
 azalea-world = { path = "../azalea-world", version = "0.11.0" }
-bevy_app = { workspace = true }
-bevy_ecs = { workspace = true }
+bevy_app.workspace = true
+bevy_ecs.workspace = true
 bevy_log = { workspace = true, optional = true }
-bevy_tasks = { workspace = true }
-bevy_time = { workspace = true }
+bevy_tasks.workspace = true
+bevy_time.workspace = true
 derive_more = { workspace = true, features = ["deref", "deref_mut"] }
-minecraft_folder_path = { workspace = true }
-parking_lot = { workspace = true }
-regex = { workspace = true }
-reqwest = { workspace = true }
-simdnbt = { workspace = true }
-thiserror = { workspace = true }
+minecraft_folder_path.workspace = true
+parking_lot.workspace = true
+paste.workspace = true
+regex.workspace = true
+reqwest.workspace = true
+simdnbt.workspace = true
+thiserror.workspace = true
 tokio = { workspace = true, features = ["sync"] }
-tracing = { workspace = true }
-uuid = { workspace = true }
+tracing.workspace = true
+uuid.workspace = true
 
 [dev-dependencies]
-anyhow = { workspace = true }
+anyhow.workspace = true
 
 [features]
 default = ["log"]

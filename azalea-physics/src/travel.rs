@@ -1,16 +1,23 @@
-use azalea_block::{Block, BlockState};
-use azalea_core::{aabb::AABB, position::Vec3};
+use azalea_block::{Block, BlockState, fluid_state::FluidState};
+use azalea_core::{
+    aabb::AABB,
+    position::{BlockPos, Vec3},
+};
 use azalea_entity::{
-    metadata::Sprinting, move_relative, Attributes, InLoadedChunk, Jumping, LocalEntity,
-    LookDirection, OnClimbable, Physics, Pose, Position,
+    Attributes, InLoadedChunk, Jumping, LocalEntity, LookDirection, OnClimbable, Physics, Pose,
+    Position, metadata::Sprinting, move_relative,
 };
 use azalea_world::{Instance, InstanceContainer, InstanceName};
 use bevy_ecs::prelude::*;
 
 use crate::{
-    collision::{move_colliding, MoverType},
-    get_block_pos_below_that_affects_movement, handle_relative_friction_and_calculate_movement,
     HandleRelativeFrictionAndCalculateMovementOpts,
+    collision::{
+        MoverType, Shapes,
+        entity_collisions::{CollidableEntityQuery, PhysicsQuery, get_entity_collisions},
+        move_colliding,
+    },
+    get_block_pos_below_that_affects_movement, handle_relative_friction_and_calculate_movement,
 };
 
 /// Move the entity with the given acceleration while handling friction,
@@ -19,6 +26,7 @@ use crate::{
 pub fn travel(
     mut query: Query<
         (
+            Entity,
             &mut Physics,
             &mut LookDirection,
             &mut Position,
@@ -32,8 +40,11 @@ pub fn travel(
         (With<LocalEntity>, With<InLoadedChunk>),
     >,
     instance_container: Res<InstanceContainer>,
+    physics_query: PhysicsQuery,
+    collidable_entity_query: CollidableEntityQuery,
 ) {
     for (
+        entity,
         mut physics,
         direction,
         position,
@@ -59,16 +70,21 @@ pub fn travel(
             // !this.canStandOnFluid(fluidAtBlock)` here but it doesn't matter
             // for players
             travel_in_fluid(
+                &world,
+                entity,
                 &mut physics,
                 &direction,
                 position,
                 attributes,
                 sprinting,
                 on_climbable,
-                &world,
+                &physics_query,
+                &collidable_entity_query,
             );
         } else {
             travel_in_air(
+                &world,
+                entity,
                 &mut physics,
                 &direction,
                 position,
@@ -77,7 +93,8 @@ pub fn travel(
                 on_climbable,
                 pose,
                 jumping,
-                &world,
+                &physics_query,
+                &collidable_entity_query,
             );
         }
     }
@@ -86,6 +103,8 @@ pub fn travel(
 /// The usual movement when we're not in water or using an elytra.
 #[allow(clippy::too_many_arguments)]
 fn travel_in_air(
+    world: &Instance,
+    entity: Entity,
     physics: &mut Physics,
     direction: &LookDirection,
     position: Mut<Position>,
@@ -94,7 +113,8 @@ fn travel_in_air(
     on_climbable: &OnClimbable,
     pose: Option<&Pose>,
     jumping: &Jumping,
-    world: &Instance,
+    physics_query: &PhysicsQuery,
+    collidable_entity_query: &CollidableEntityQuery,
 ) {
     let gravity = get_effective_gravity();
 
@@ -126,6 +146,9 @@ fn travel_in_air(
             on_climbable,
             pose,
             jumping,
+            entity,
+            physics_query,
+            collidable_entity_query,
         },
     );
 
@@ -149,14 +172,18 @@ fn travel_in_air(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn travel_in_fluid(
+    world: &Instance,
+    entity: Entity,
     physics: &mut Physics,
     direction: &LookDirection,
     mut position: Mut<Position>,
     attributes: &Attributes,
     sprinting: Sprinting,
     on_climbable: &OnClimbable,
-    world: &Instance,
+    physics_query: &PhysicsQuery,
+    collidable_entity_query: &CollidableEntityQuery,
 ) {
     let moving_down = physics.velocity.y <= 0.;
     let y = position.y;
@@ -192,6 +219,9 @@ fn travel_in_fluid(
             world,
             &mut position,
             physics,
+            Some(entity),
+            physics_query,
+            collidable_entity_query,
         )
         .expect("Entity should exist");
 
@@ -213,6 +243,9 @@ fn travel_in_fluid(
             world,
             &mut position,
             physics,
+            Some(entity),
+            physics_query,
+            collidable_entity_query,
         )
         .expect("Entity should exist");
 
@@ -239,11 +272,13 @@ fn travel_in_fluid(
     let velocity = physics.velocity;
     if physics.horizontal_collision
         && is_free(
-            physics.bounding_box,
             world,
-            velocity.x,
-            velocity.y + 0.6 - position.y + y,
-            velocity.z,
+            entity,
+            physics_query,
+            collidable_entity_query,
+            physics,
+            physics.bounding_box,
+            velocity.up(0.6).down(position.y).up(y),
         )
     {
         physics.velocity.y = 0.3;
@@ -276,14 +311,97 @@ fn get_fluid_falling_adjusted_movement(
     }
 }
 
-fn is_free(bounding_box: AABB, world: &Instance, x: f64, y: f64, z: f64) -> bool {
-    // let bounding_box = bounding_box.move_relative(Vec3::new(x, y, z));
+fn is_free(
+    world: &Instance,
+    source_entity: Entity,
+    physics_query: &PhysicsQuery,
+    collidable_entity_query: &CollidableEntityQuery,
+    entity_physics: &mut Physics,
+    bounding_box: AABB,
+    delta: Vec3,
+) -> bool {
+    let bounding_box = bounding_box.move_relative(delta);
 
-    let _ = (bounding_box, world, x, y, z);
+    no_collision(
+        world,
+        Some(source_entity),
+        physics_query,
+        collidable_entity_query,
+        entity_physics,
+        &bounding_box,
+        false,
+    ) && !contains_any_liquid(world, bounding_box)
+}
 
-    // TODO: implement this, see Entity.isFree
+fn no_collision(
+    world: &Instance,
+    source_entity: Option<Entity>,
+    physics_query: &PhysicsQuery,
+    collidable_entity_query: &CollidableEntityQuery,
+    entity_physics: &mut Physics,
+    aabb: &AABB,
+    include_liquid_collisions: bool,
+) -> bool {
+    let collisions = if include_liquid_collisions {
+        crate::collision::world_collisions::get_block_and_liquid_collisions(world, aabb)
+    } else {
+        crate::collision::world_collisions::get_block_collisions(world, aabb)
+    };
 
-    true
+    for collision in collisions {
+        if !collision.is_empty() {
+            return false;
+        }
+    }
+
+    if !get_entity_collisions(
+        world,
+        aabb,
+        source_entity,
+        physics_query,
+        collidable_entity_query,
+    )
+    .is_empty()
+    {
+        false
+    } else if source_entity.is_none() {
+        true
+    } else {
+        let collision = border_collision(entity_physics, aabb);
+        if let Some(collision) = collision {
+            // !Shapes.joinIsNotEmpty(collision, Shapes.create(aabb), BooleanOp.AND);
+            !Shapes::matches_anywhere(&collision.into(), &aabb.into(), |a, b| a && b)
+        } else {
+            true
+        }
+    }
+}
+
+fn border_collision(_entity_physics: &Physics, _aabb: &AABB) -> Option<AABB> {
+    // TODO: implement world border, see CollisionGetter.borderCollision
+
+    None
+}
+
+fn contains_any_liquid(world: &Instance, bounding_box: AABB) -> bool {
+    let min = bounding_box.min.to_block_pos_floor();
+    let max = bounding_box.max.to_block_pos_ceil();
+
+    for x in min.x..max.x {
+        for y in min.y..max.y {
+            for z in min.z..max.z {
+                let block_state = world
+                    .chunks
+                    .get_block_state(&BlockPos::new(x, y, z))
+                    .unwrap_or_default();
+                if !FluidState::from(block_state).is_empty() {
+                    return true;
+                }
+            }
+        }
+    }
+
+    false
 }
 
 fn get_effective_gravity() -> f64 {

@@ -2,7 +2,7 @@ use std::hint::black_box;
 
 use azalea::pathfinder::mining::MiningCache;
 pub use azalea_registry as registry;
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, criterion_group, criterion_main};
 
 fn benchmark(c: &mut Criterion) {
     let mining_cache = MiningCache::new(None);

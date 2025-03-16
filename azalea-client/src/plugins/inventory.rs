@@ -25,11 +25,9 @@ use bevy_ecs::{
 };
 use tracing::warn;
 
+use super::packet::game::handle_outgoing_packets;
 use crate::{
-    local_player::PlayerAbilities,
-    packet_handling::game::{handle_send_packet_event, SendPacketEvent},
-    respawn::perform_respawn,
-    Client,
+    Client, local_player::PlayerAbilities, packet::game::SendPacketEvent, respawn::perform_respawn,
 };
 
 pub struct InventoryPlugin;
@@ -48,7 +46,7 @@ impl Plugin for InventoryPlugin {
                     handle_menu_opened_event,
                     handle_set_container_content_event,
                     handle_container_click_event,
-                    handle_container_close_event.before(handle_send_packet_event),
+                    handle_container_close_event.before(handle_outgoing_packets),
                     handle_client_side_close_container_event,
                 )
                     .chain()
@@ -124,10 +122,9 @@ impl Inventory {
     ///
     /// Use [`Self::menu_mut`] if you need a mutable reference.
     pub fn menu(&self) -> &azalea_inventory::Menu {
-        if let Some(menu) = &self.container_menu {
-            menu
-        } else {
-            &self.inventory_menu
+        match &self.container_menu {
+            Some(menu) => menu,
+            _ => &self.inventory_menu,
         }
     }
 
@@ -137,10 +134,9 @@ impl Inventory {
     ///
     /// Use [`Self::menu`] if you don't need a mutable reference.
     pub fn menu_mut(&mut self) -> &mut azalea_inventory::Menu {
-        if let Some(menu) = &mut self.container_menu {
-            menu
-        } else {
-            &mut self.inventory_menu
+        match &mut self.container_menu {
+            Some(menu) => menu,
+            _ => &mut self.inventory_menu,
         }
     }
 
@@ -286,10 +282,9 @@ impl Inventory {
                         carried_count -= new_carried.count - slot_item_count;
                         // we have to inline self.menu_mut() here to avoid the borrow checker
                         // complaining
-                        let menu = if let Some(menu) = &mut self.container_menu {
-                            menu
-                        } else {
-                            &mut self.inventory_menu
+                        let menu = match &mut self.container_menu {
+                            Some(menu) => menu,
+                            _ => &mut self.inventory_menu,
                         };
                         *menu.slot_mut(slot_index as usize).unwrap() =
                             ItemStack::Present(new_carried);

@@ -44,6 +44,12 @@ where
 {
     fn id(&self) -> u32;
 
+    /// Returns Mojang's resource name for the packet.
+    ///
+    /// This doesn't include the "minecraft:" prefix, it just returns a string
+    /// like `pong`.
+    fn name(&self) -> &'static str;
+
     /// Read a packet by its id, `ConnectionProtocol`, and flow
     fn read(id: u32, buf: &mut Cursor<&[u8]>) -> Result<Self, Box<ReadPacketError>>;
 

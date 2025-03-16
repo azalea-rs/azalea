@@ -8,26 +8,31 @@ pub mod travel;
 
 use std::collections::HashSet;
 
-use azalea_block::{fluid_state::FluidState, properties, Block, BlockState};
+use azalea_block::{Block, BlockState, fluid_state::FluidState, properties};
 use azalea_core::{
     math,
     position::{BlockPos, Vec3},
     tick::GameTick,
 };
 use azalea_entity::{
-    metadata::Sprinting, move_relative, Attributes, InLoadedChunk, Jumping, LocalEntity,
-    LookDirection, OnClimbable, Physics, Pose, Position,
+    Attributes, InLoadedChunk, Jumping, LocalEntity, LookDirection, OnClimbable, Physics, Pose,
+    Position, metadata::Sprinting, move_relative,
 };
 use azalea_world::{Instance, InstanceContainer, InstanceName};
 use bevy_app::{App, Plugin};
 use bevy_ecs::{
+    entity::Entity,
     query::With,
     schedule::{IntoSystemConfigs, SystemSet},
     system::{Query, Res},
     world::Mut,
 };
 use clip::box_traverse_blocks;
-use collision::{move_colliding, BlockWithShape, MoverType, VoxelShape, BLOCK_SHAPE};
+use collision::{
+    BLOCK_SHAPE, BlockWithShape, MoverType, VoxelShape,
+    entity_collisions::{CollidableEntityQuery, PhysicsQuery},
+    move_colliding,
+};
 
 /// A Bevy [`SystemSet`] for running physics that makes entities do things.
 #[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
@@ -90,44 +95,40 @@ pub fn ai_step(
             physics.velocity.z = 0.;
         }
 
-        if let Some(jumping) = jumping {
-            if **jumping {
-                // TODO: jumping in liquids and jump delay
+        if jumping == Some(&Jumping(true)) {
+            let fluid_height = if physics.is_in_lava() {
+                physics.lava_fluid_height
+            } else if physics.is_in_water() {
+                physics.water_fluid_height
+            } else {
+                0.
+            };
 
-                let fluid_height = if physics.is_in_lava() {
-                    physics.lava_fluid_height
-                } else if physics.is_in_water() {
-                    physics.water_fluid_height
-                } else {
-                    0.
-                };
+            let in_water = physics.is_in_water() && fluid_height > 0.;
+            let fluid_jump_threshold = travel::fluid_jump_threshold();
 
-                let in_water = physics.is_in_water() && fluid_height > 0.;
-                let fluid_jump_threshold = travel::fluid_jump_threshold();
-
-                if !in_water || physics.on_ground() && fluid_height <= fluid_jump_threshold {
-                    if !physics.is_in_lava()
-                        || physics.on_ground() && fluid_height <= fluid_jump_threshold
+            if !in_water || physics.on_ground() && fluid_height <= fluid_jump_threshold {
+                if !physics.is_in_lava()
+                    || physics.on_ground() && fluid_height <= fluid_jump_threshold
+                {
+                    if (physics.on_ground() || in_water && fluid_height <= fluid_jump_threshold)
+                        && physics.no_jump_delay == 0
                     {
-                        if (physics.on_ground() || in_water && fluid_height <= fluid_jump_threshold)
-                            && physics.no_jump_delay == 0
-                        {
-                            jump_from_ground(
-                                &mut physics,
-                                position,
-                                look_direction,
-                                sprinting,
-                                instance_name,
-                                &instance_container,
-                            );
-                            physics.no_jump_delay = 10;
-                        }
-                    } else {
-                        jump_in_liquid(&mut physics);
+                        jump_from_ground(
+                            &mut physics,
+                            position,
+                            look_direction,
+                            sprinting,
+                            instance_name,
+                            &instance_container,
+                        );
+                        physics.no_jump_delay = 10;
                     }
                 } else {
                     jump_in_liquid(&mut physics);
                 }
+            } else {
+                jump_in_liquid(&mut physics);
             }
         } else {
             physics.no_jump_delay = 0;
@@ -356,7 +357,7 @@ fn get_block_pos_below_that_affects_movement(position: &Position) -> BlockPos {
 }
 
 /// Options for [`handle_relative_friction_and_calculate_movement`]
-struct HandleRelativeFrictionAndCalculateMovementOpts<'a> {
+struct HandleRelativeFrictionAndCalculateMovementOpts<'a, 'b, 'world, 'state> {
     block_friction: f32,
     world: &'a Instance,
     physics: &'a mut Physics,
@@ -367,6 +368,9 @@ struct HandleRelativeFrictionAndCalculateMovementOpts<'a> {
     on_climbable: &'a OnClimbable,
     pose: Option<&'a Pose>,
     jumping: &'a Jumping,
+    entity: Entity,
+    physics_query: &'a PhysicsQuery<'world, 'state, 'b>,
+    collidable_entity_query: &'a CollidableEntityQuery<'world, 'state>,
 }
 fn handle_relative_friction_and_calculate_movement(
     HandleRelativeFrictionAndCalculateMovementOpts {
@@ -380,7 +384,10 @@ fn handle_relative_friction_and_calculate_movement(
         on_climbable,
         pose,
         jumping,
-    }: HandleRelativeFrictionAndCalculateMovementOpts<'_>,
+        entity,
+        physics_query,
+        collidable_entity_query,
+    }: HandleRelativeFrictionAndCalculateMovementOpts<'_, '_, '_, '_>,
 ) -> Vec3 {
     move_relative(
         physics,
@@ -401,6 +408,9 @@ fn handle_relative_friction_and_calculate_movement(
         world,
         &mut position,
         physics,
+        Some(entity),
+        physics_query,
+        collidable_entity_query,
     )
     .expect("Entity should exist");
     // let delta_movement = entity.delta;
@@ -417,7 +427,6 @@ fn handle_relative_friction_and_calculate_movement(
             .unwrap_or_default()
             .into();
 
-        // TODO: powdered snow
         if **on_climbable || block_at_feet == azalea_registry::Block::PowderSnow {
             physics.velocity.y = 0.2;
         }
@@ -476,11 +485,7 @@ fn get_friction_influenced_speed(
         speed * (0.216f32 / (friction * friction * friction))
     } else {
         // entity.flying_speed
-        if is_sprinting {
-            0.025999999f32
-        } else {
-            0.02
-        }
+        if is_sprinting { 0.025999999f32 } else { 0.02 }
     }
 }
 

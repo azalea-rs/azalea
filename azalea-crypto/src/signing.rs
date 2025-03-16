@@ -2,8 +2,8 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use azalea_buf::{AzBuf, AzaleaWrite};
 use rsa::{
-    signature::{RandomizedSigner, SignatureEncoding},
     RsaPrivateKey,
+    signature::{RandomizedSigner, SignatureEncoding},
 };
 use sha2::Sha256;
 use uuid::Uuid;

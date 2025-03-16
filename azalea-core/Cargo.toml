@@ -1,21 +1,22 @@
 [package]
 name = "azalea-core"
 description = "Miscellaneous things in Azalea."
-version = { workspace = true }
-edition = { workspace = true }
-license = { workspace = true }
-repository = { workspace = true }
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
 
 [dependencies]
 azalea-buf = { path = "../azalea-buf", version = "0.11.0" }
 azalea-registry = { path = "../azalea-registry", version = "0.11.0" }
 bevy_ecs = { workspace = true, optional = true }
-nohash-hasher = { workspace = true }
-num-traits = { workspace = true }
+nohash-hasher.workspace = true
+num-traits.workspace = true
 serde = { workspace = true, optional = true }
-simdnbt = { workspace = true }
-tracing = { workspace = true }
+simdnbt.workspace = true
+tracing.workspace = true
 azalea-chat = { path = "../azalea-chat", version = "0.11.0" }
+indexmap.workspace = true
 
 [features]
 bevy_ecs = ["dep:bevy_ecs"]

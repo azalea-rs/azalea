@@ -31,7 +31,7 @@ impl PalettedContainer {
     pub fn new(container_type: PalettedContainerKind) -> Self {
         let palette = Palette::SingleValue(0);
         let size = container_type.size();
-        let storage = BitStorage::new(0, size, Some(vec![])).unwrap();
+        let storage = BitStorage::new(0, size, Some(Box::new([]))).unwrap();
 
         PalettedContainer {
             bits_per_entry: 0,
@@ -49,12 +49,15 @@ impl PalettedContainer {
         let palette_type = PaletteKind::from_bits_and_type(server_bits_per_entry, container_type);
         let palette = palette_type.read(buf)?;
         let size = container_type.size();
-        let data = Vec::<u64>::azalea_read(buf)?;
+        let data = Box::<[u64]>::azalea_read(buf)?;
 
         // we can only trust the bits per entry that we're sent if there's enough data
         // that it'd be global. if it's not global, then we have to calculate it
         // ourselves.
         // this almost never matters, except on some custom servers like hypixel limbo
+        // TODO: this is incorrect. we should be getting the log2 of the max blockstate
+        // or biome instead of data.len(). this code might be causing wrong data to be
+        // read. ¯\_(ツ)_/¯
         let calculated_bits_per_entry = math::ceil_log2(data.len() as u32) as u8;
         let calculated_bits_per_entry_palette_kind =
             PaletteKind::from_bits_and_type(calculated_bits_per_entry, container_type);
@@ -69,7 +72,16 @@ impl PalettedContainer {
             "Bits per entry is 0 but data is not empty."
         );
 
-        let storage = match BitStorage::new(bits_per_entry.into(), size, Some(data)) {
+        let mut storage = match BitStorage::new(
+            bits_per_entry.into(),
+            size,
+            if data.is_empty() {
+                Some(Box::new([]))
+            } else {
+                // we're going to update the data after creating the bitstorage
+                None
+            },
+        ) {
             Ok(storage) => storage,
             Err(e) => {
                 warn!("Failed to create bit storage: {:?}", e);
@@ -78,6 +90,9 @@ impl PalettedContainer {
                 ));
             }
         };
+        // minecraft does this to allow the data to have extra padding bits. most
+        // servers don't use this, but it's notably used by hypixel.
+        storage.data = data;
 
         Ok(PalettedContainer {
             bits_per_entry,

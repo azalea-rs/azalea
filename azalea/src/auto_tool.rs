@@ -1,7 +1,7 @@
-use azalea_block::{fluid_state::FluidKind, Block, BlockState};
-use azalea_client::{inventory::Inventory, Client};
+use azalea_block::{Block, BlockState, fluid_state::FluidKind};
+use azalea_client::{Client, inventory::Inventory};
 use azalea_entity::{FluidOnEyes, Physics};
-use azalea_inventory::{components, ItemStack, Menu};
+use azalea_inventory::{ItemStack, Menu, components};
 
 #[derive(Debug)]
 pub struct BestToolResult {

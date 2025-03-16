@@ -8,32 +8,6 @@ use crate::Registry;
 
 registry! {
 #[derive(Default)]
-enum WolfVariant {
-    #[default]
-    Pale => "minecraft:wolf",
-    Spotted => "minecraft:wolf_spotted",
-    Snowy => "minecraft:wolf_snowy",
-    Black => "minecraft:wolf_black",
-    Ashen => "minecraft:wolf_ashen",
-    Rusty => "minecraft:wolf_rusty",
-    Woods => "minecraft:wolf_woods",
-    Chestnut => "minecraft:wolf_chestnut",
-    Striped => "minecraft:wolf_striped",
-}
-}
-
-registry! {
-#[derive(Default)]
-enum PigVariant {
-    #[default]
-    Temperate => "minecraft:pig",
-    Warm => "minecraft:warm_pig",
-    Cold => "minecraft:cold_pig",
-}
-}
-
-registry! {
-#[derive(Default)]
 enum FoxVariant {
     #[default]
     Red => "minecraft:red",
@@ -108,15 +82,6 @@ enum AxolotlVariant {
     Gold => "minecraft:gold",
     Cyan => "minecraft:cyan",
     Blue => "minecraft:blue",
-}
-}
-
-registry! {
-enum DimensionType {
-    Overworld => "minecraft:overworld",
-    Nether => "minecraft:the_nether",
-    End => "minecraft:the_end",
-    OverworldCaves => "minecraft:overworld_caves",
 }
 }
 
@@ -214,4 +179,17 @@ impl ChatType {
             _ => "chat.type.text.narrate",
         }
     }
+}
+
+registry! {
+enum Instrument {
+    PonderGoatHorn => "minecraft:ponder_goat_horn",
+    SingGoatHorn => "minecraft:sing_goat_horn",
+    SeekGoatHorn => "minecraft:seek_goat_horn",
+    FeelGoatHorn => "minecraft:feel_goat_horn",
+    AdmireGoatHorn => "minecraft:admire_goat_horn",
+    CallGoatHorn => "minecraft:call_goat_horn",
+    YearnGoatHorn => "minecraft:yearn_goat_horn",
+    DreamGoatHorn => "minecraft:dream_goat_horn",
+}
 }

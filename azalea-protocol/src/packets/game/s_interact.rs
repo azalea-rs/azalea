@@ -3,13 +3,14 @@ use std::io::{Cursor, Write};
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar};
 use azalea_core::position::Vec3;
 use azalea_protocol_macros::ServerboundGamePacket;
+use azalea_world::MinecraftEntityId;
 
 use crate::packets::BufReadError;
 
 #[derive(Clone, Debug, AzBuf, ServerboundGamePacket)]
 pub struct ServerboundInteract {
     #[var]
-    pub entity_id: u32,
+    pub entity_id: MinecraftEntityId,
     pub action: ActionType,
     /// Whether the player is sneaking
     pub using_secondary_action: bool,

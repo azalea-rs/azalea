@@ -17,3 +17,6 @@ perf.data.old
 heaptrack.*
 
 rustc-ice-*
+
+# not created by azalea itself, sometimes used for debugging since the docs specifically mentions using azalea.log
+azalea.log

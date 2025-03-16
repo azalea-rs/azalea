@@ -2,11 +2,12 @@
 
 use std::sync::Arc;
 
-use azalea_client::{inventory::Inventory, packet_handling::game::SendPacketEvent, PhysicsState};
+use azalea_client::{PhysicsState, inventory::Inventory, packet::game::SendPacketEvent};
 use azalea_core::{position::Vec3, resource_location::ResourceLocation, tick::GameTick};
 use azalea_entity::{
-    attributes::AttributeInstance, Attributes, EntityDimensions, LookDirection, Physics, Position,
+    Attributes, EntityDimensions, LookDirection, Physics, Position, attributes::AttributeInstance,
 };
+use azalea_registry::EntityKind;
 use azalea_world::{ChunkStorage, Instance, InstanceContainer, MinecraftEntityId, PartialInstance};
 use bevy_app::App;
 use bevy_ecs::prelude::*;
@@ -25,16 +26,13 @@ pub struct SimulatedPlayerBundle {
 
 impl SimulatedPlayerBundle {
     pub fn new(position: Vec3) -> Self {
-        let dimensions = EntityDimensions {
-            width: 0.6,
-            height: 1.8,
-        };
+        let dimensions = EntityDimensions::from(EntityKind::Player);
 
         SimulatedPlayerBundle {
             position: Position::new(position),
             physics: Physics::new(dimensions, position),
             physics_state: PhysicsState::default(),
-            look_direction: LookDirection::new(0.0, 0.0),
+            look_direction: LookDirection::default(),
             attributes: Attributes {
                 speed: AttributeInstance::new(0.1),
                 attack_speed: AttributeInstance::new(4.0),
@@ -62,13 +60,13 @@ fn create_simulation_instance(chunks: ChunkStorage) -> (App, Arc<RwLock<Instance
     app.add_plugins((
         azalea_physics::PhysicsPlugin,
         azalea_entity::EntityPlugin,
-        azalea_client::movement::PlayerMovePlugin,
+        azalea_client::movement::MovementPlugin,
         super::PathfinderPlugin,
         crate::BotPlugin,
         azalea_client::task_pool::TaskPoolPlugin::default(),
         // for mining
         azalea_client::inventory::InventoryPlugin,
-        azalea_client::mining::MinePlugin,
+        azalea_client::mining::MiningPlugin,
         azalea_client::interact::InteractPlugin,
     ))
     .insert_resource(InstanceContainer {
@@ -89,7 +87,7 @@ fn create_simulation_instance(chunks: ChunkStorage) -> (App, Arc<RwLock<Instance
 fn create_simulation_player_complete_bundle(
     instance: Arc<RwLock<Instance>>,
     player: &SimulatedPlayerBundle,
-) -> impl Bundle {
+) -> impl Bundle + use<> {
     let instance_name = simulation_instance_name();
 
     (

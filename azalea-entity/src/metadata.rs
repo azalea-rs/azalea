@@ -9,6 +9,7 @@ use azalea_core::{
     position::{BlockPos, Vec3},
 };
 use azalea_inventory::ItemStack;
+use azalea_registry::DataRegistry;
 use bevy_ecs::{bundle::Bundle, component::Component};
 use derive_more::{Deref, DerefMut};
 use thiserror::Error;
@@ -1693,7 +1694,7 @@ impl Default for CatMetadataBundle {
                 in_sitting_pose: InSittingPose(false),
                 owneruuid: Owneruuid(None),
             },
-            cat_variant: CatVariant(azalea_registry::CatVariant::Tabby),
+            cat_variant: CatVariant(azalea_registry::CatVariant::new_raw(0)),
             is_lying: IsLying(false),
             relax_state_one: RelaxStateOne(false),
             cat_collar_color: CatCollarColor(Default::default()),
@@ -2023,7 +2024,7 @@ impl Default for ChickenMetadataBundle {
                     abstract_ageable_baby: AbstractAgeableBaby(false),
                 },
             },
-            chicken_variant: ChickenVariant(Default::default()),
+            chicken_variant: ChickenVariant(azalea_registry::PigVariant::new_raw(0)),
         }
     }
 }
@@ -2243,7 +2244,7 @@ impl Default for CowMetadataBundle {
                     abstract_ageable_baby: AbstractAgeableBaby(false),
                 },
             },
-            cow_variant: CowVariant(Default::default()),
+            cow_variant: CowVariant(azalea_registry::ChickenVariant::new_raw(0)),
         }
     }
 }
@@ -4028,7 +4029,7 @@ impl Default for FrogMetadataBundle {
                     abstract_ageable_baby: AbstractAgeableBaby(false),
                 },
             },
-            frog_variant: FrogVariant(Default::default()),
+            frog_variant: FrogVariant(azalea_registry::WolfSoundVariant::new_raw(0)),
             tongue_target: TongueTarget(OptionalUnsignedInt(None)),
         }
     }
@@ -6389,7 +6390,7 @@ impl Default for PaintingMetadataBundle {
                 pose: Pose::default(),
                 ticks_frozen: TicksFrozen(Default::default()),
             },
-            painting_variant: PaintingVariant(azalea_registry::PaintingVariant::Kebab),
+            painting_variant: PaintingVariant(azalea_registry::PaintingVariant::new_raw(0)),
         }
     }
 }
@@ -6873,7 +6874,7 @@ impl Default for PigMetadataBundle {
                 },
             },
             pig_boost_time: PigBoostTime(0),
-            pig_variant: PigVariant(azalea_registry::FrogVariant::Temperate),
+            pig_variant: PigVariant(azalea_registry::FrogVariant::new_raw(0)),
         }
     }
 }
@@ -10391,8 +10392,8 @@ impl Default for WolfMetadataBundle {
             wolf_interested: WolfInterested(false),
             wolf_collar_color: WolfCollarColor(Default::default()),
             wolf_remaining_anger_time: WolfRemainingAngerTime(0),
-            wolf_variant: WolfVariant(Default::default()),
-            sound_variant: SoundVariant(Default::default()),
+            wolf_variant: WolfVariant(azalea_registry::CowVariant::new_raw(0)),
+            sound_variant: SoundVariant(azalea_registry::WolfVariant::new_raw(0)),
         }
     }
 }

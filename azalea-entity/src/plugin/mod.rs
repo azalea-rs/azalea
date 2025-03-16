@@ -3,7 +3,7 @@ mod relative_updates;
 
 use std::collections::HashSet;
 
-use azalea_block::{fluid_state::FluidKind, BlockState};
+use azalea_block::{BlockState, fluid_state::FluidKind};
 use azalea_core::{
     position::{BlockPos, ChunkPos, Vec3},
     tick::GameTick,
@@ -17,8 +17,8 @@ pub use relative_updates::RelativeEntityUpdate;
 use tracing::debug;
 
 use crate::{
-    metadata::Health, Dead, EyeHeight, FluidOnEyes, LocalEntity, LookDirection, OnClimbable,
-    Physics, Position,
+    Dead, EyeHeight, FluidOnEyes, LocalEntity, LookDirection, OnClimbable, Physics, Position,
+    metadata::Health,
 };
 
 /// A Bevy [`SystemSet`] for various types of entity updates.
@@ -168,10 +168,10 @@ fn is_trapdoor_useable_as_ladder(
     }
     // and the ladder must be facing the same direction as the trapdoor
     let ladder_facing = block_below
-        .property::<azalea_block::properties::Facing>()
+        .property::<azalea_block::properties::FacingCardinal>()
         .expect("ladder block must have facing property");
     let trapdoor_facing = block_state
-        .property::<azalea_block::properties::Facing>()
+        .property::<azalea_block::properties::FacingCardinal>()
         .expect("trapdoor block must have facing property");
     if ladder_facing != trapdoor_facing {
         return false;
@@ -206,6 +206,9 @@ pub fn update_bounding_box(mut query: Query<(&Position, &mut Physics), Changed<P
 
 /// Marks an entity that's in a loaded chunk. This is updated at the beginning
 /// of every tick.
+///
+/// Internally, this is only used for player physics. Not to be confused with
+/// the somewhat similarly named [`LoadedBy`].
 #[derive(Component, Clone, Debug, Copy)]
 pub struct InLoadedChunk;
 
@@ -228,5 +231,63 @@ pub fn update_in_loaded_chunk(
         } else {
             commands.entity(entity).remove::<InLoadedChunk>();
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use azalea_block::{
+        blocks::{Ladder, OakTrapdoor},
+        properties::{FacingCardinal, TopBottom},
+    };
+    use azalea_core::position::{BlockPos, ChunkPos};
+    use azalea_world::{Chunk, ChunkStorage, Instance, PartialInstance};
+
+    use super::is_trapdoor_useable_as_ladder;
+
+    #[test]
+    fn test_is_trapdoor_useable_as_ladder() {
+        let mut partial_instance = PartialInstance::default();
+        let mut chunks = ChunkStorage::default();
+        partial_instance.chunks.set(
+            &ChunkPos { x: 0, z: 0 },
+            Some(Chunk::default()),
+            &mut chunks,
+        );
+        partial_instance.chunks.set_block_state(
+            &BlockPos::new(0, 0, 0),
+            azalea_registry::Block::Stone.into(),
+            &chunks,
+        );
+
+        let ladder = Ladder {
+            facing: FacingCardinal::East,
+            waterlogged: false,
+        };
+        partial_instance
+            .chunks
+            .set_block_state(&BlockPos::new(0, 0, 0), ladder.into(), &chunks);
+
+        let trapdoor = OakTrapdoor {
+            facing: FacingCardinal::East,
+            half: TopBottom::Bottom,
+            open: true,
+            powered: false,
+            waterlogged: false,
+        };
+        partial_instance
+            .chunks
+            .set_block_state(&BlockPos::new(0, 1, 0), trapdoor.into(), &chunks);
+
+        let instance = Instance::from(chunks);
+        let trapdoor_matches_ladder = is_trapdoor_useable_as_ladder(
+            instance
+                .get_block_state(&BlockPos::new(0, 1, 0))
+                .unwrap_or_default(),
+            BlockPos::new(0, 1, 0),
+            &instance,
+        );
+
+        assert!(trapdoor_matches_ladder);
     }
 }

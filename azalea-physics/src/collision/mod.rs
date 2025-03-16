@@ -1,12 +1,13 @@
 mod blocks;
 mod discrete_voxel_shape;
+pub mod entity_collisions;
 mod mergers;
 mod shape;
-mod world_collisions;
+pub mod world_collisions;
 
 use std::{ops::Add, sync::LazyLock};
 
-use azalea_block::{fluid_state::FluidState, BlockState};
+use azalea_block::{BlockState, fluid_state::FluidState};
 use azalea_core::{
     aabb::AABB,
     direction::Axis,
@@ -14,9 +15,10 @@ use azalea_core::{
     position::{BlockPos, Vec3},
 };
 use azalea_world::{ChunkStorage, Instance, MoveEntityError};
-use bevy_ecs::world::Mut;
+use bevy_ecs::{entity::Entity, world::Mut};
 pub use blocks::BlockWithShape;
 pub use discrete_voxel_shape::*;
+use entity_collisions::{CollidableEntityQuery, PhysicsQuery, get_entity_collisions};
 pub use shape::*;
 use tracing::warn;
 
@@ -31,50 +33,27 @@ pub enum MoverType {
     Shulker,
 }
 
-// private Vec3 collide(Vec3 var1) {
-//     AABB var2 = this.getBoundingBox();
-//     List var3 = this.level.getEntityCollisions(this,
-// var2.expandTowards(var1));     Vec3 var4 = var1.lengthSqr() == 0.0D ?
-// var1 : collideBoundingBox(this, var1, var2, this.level, var3);
-//     boolean var5 = var1.x != var4.x;
-//     boolean var6 = var1.y != var4.y;
-//     boolean var7 = var1.z != var4.z;
-//     boolean var8 = this.onGround || var6 && var1.y < 0.0D;
-//     if (this.maxUpStep > 0.0F && var8 && (var5 || var7)) {
-//        Vec3 var9 = collideBoundingBox(this, new Vec3(var1.x,
-// (double)this.maxUpStep, var1.z), var2, this.level, var3);        Vec3
-// var10 = collideBoundingBox(this, new Vec3(0.0D, (double)this.maxUpStep,
-// 0.0D), var2.expandTowards(var1.x, 0.0D, var1.z), this.level, var3);
-//        if (var10.y < (double)this.maxUpStep) {
-//           Vec3 var11 = collideBoundingBox(this, new Vec3(var1.x, 0.0D,
-// var1.z), var2.move(var10), this.level, var3).add(var10);           if
-// (var11.horizontalDistanceSqr() > var9.horizontalDistanceSqr()) {
-//              var9 = var11;
-//           }
-//        }
-
-//        if (var9.horizontalDistanceSqr() > var4.horizontalDistanceSqr()) {
-//           return var9.add(collideBoundingBox(this, new Vec3(0.0D, -var9.y +
-// var1.y, 0.0D), var2.move(var9), this.level, var3));        }
-//     }
-
-//     return var4;
-// }
-fn collide(movement: &Vec3, world: &Instance, physics: &azalea_entity::Physics) -> Vec3 {
+// Entity.collide
+fn collide(
+    movement: &Vec3,
+    world: &Instance,
+    physics: &azalea_entity::Physics,
+    source_entity: Option<Entity>,
+    physics_query: &PhysicsQuery,
+    collidable_entity_query: &CollidableEntityQuery,
+) -> Vec3 {
     let entity_bounding_box = physics.bounding_box;
-    // TODO: get_entity_collisions
-    // let entity_collisions = world.get_entity_collisions(self,
-    // entity_bounding_box.expand_towards(movement));
-    let entity_collisions = Vec::new();
+    let entity_collisions = get_entity_collisions(
+        world,
+        &entity_bounding_box.expand_towards(movement),
+        source_entity,
+        physics_query,
+        collidable_entity_query,
+    );
     let collided_delta = if movement.length_squared() == 0.0 {
         *movement
     } else {
-        collide_bounding_box(
-            movement,
-            &entity_bounding_box,
-            world,
-            entity_collisions.clone(),
-        )
+        collide_bounding_box(movement, &entity_bounding_box, world, &entity_collisions)
     };
 
     let x_collision = movement.x != collided_delta.x;
@@ -86,35 +65,23 @@ fn collide(movement: &Vec3, world: &Instance, physics: &azalea_entity::Physics) 
     let max_up_step = 0.6;
     if max_up_step > 0. && on_ground && (x_collision || z_collision) {
         let mut step_to_delta = collide_bounding_box(
-            &Vec3 {
-                x: movement.x,
-                y: max_up_step,
-                z: movement.z,
-            },
+            &movement.with_y(max_up_step),
             &entity_bounding_box,
             world,
-            entity_collisions.clone(),
+            &entity_collisions,
         );
         let directly_up_delta = collide_bounding_box(
-            &Vec3 {
-                x: 0.,
-                y: max_up_step,
-                z: 0.,
-            },
+            &Vec3::ZERO.with_y(max_up_step),
             &entity_bounding_box.expand_towards(&Vec3::new(movement.x, 0., movement.z)),
             world,
-            entity_collisions.clone(),
+            &entity_collisions,
         );
         if directly_up_delta.y < max_up_step {
             let target_movement = collide_bounding_box(
-                &Vec3 {
-                    x: movement.x,
-                    y: 0.,
-                    z: movement.z,
-                },
+                &movement.with_y(0.),
                 &entity_bounding_box.move_relative(directly_up_delta),
                 world,
-                entity_collisions.clone(),
+                &entity_collisions,
             )
             .add(directly_up_delta);
             if target_movement.horizontal_distance_squared()
@@ -128,14 +95,10 @@ fn collide(movement: &Vec3, world: &Instance, physics: &azalea_entity::Physics) 
             > collided_delta.horizontal_distance_squared()
         {
             return step_to_delta.add(collide_bounding_box(
-                &Vec3 {
-                    x: 0.,
-                    y: -step_to_delta.y + movement.y,
-                    z: 0.,
-                },
+                &Vec3::ZERO.with_y(-step_to_delta.y + movement.y),
                 &entity_bounding_box.move_relative(step_to_delta),
                 world,
-                entity_collisions.clone(),
+                &entity_collisions,
             ));
         }
     }
@@ -146,12 +109,16 @@ fn collide(movement: &Vec3, world: &Instance, physics: &azalea_entity::Physics) 
 /// Move an entity by a given delta, checking for collisions.
 ///
 /// In Mojmap, this is `Entity.move`.
+#[allow(clippy::too_many_arguments)]
 pub fn move_colliding(
     _mover_type: MoverType,
     movement: &Vec3,
     world: &Instance,
     position: &mut Mut<azalea_entity::Position>,
     physics: &mut azalea_entity::Physics,
+    source_entity: Option<Entity>,
+    physics_query: &PhysicsQuery,
+    collidable_entity_query: &CollidableEntityQuery,
 ) -> Result<(), MoveEntityError> {
     // TODO: do all these
 
@@ -174,7 +141,14 @@ pub fn move_colliding(
 
     // movement = this.maybeBackOffFromEdge(movement, moverType);
 
-    let collide_result = collide(movement, world, physics);
+    let collide_result = collide(
+        movement,
+        world,
+        physics,
+        source_entity,
+        physics_query,
+        collidable_entity_query,
+    );
 
     let move_distance = collide_result.length_squared();
 
@@ -268,18 +242,18 @@ fn collide_bounding_box(
     movement: &Vec3,
     entity_bounding_box: &AABB,
     world: &Instance,
-    entity_collisions: Vec<VoxelShape>,
+    entity_collisions: &[VoxelShape],
 ) -> Vec3 {
     let mut collision_boxes: Vec<VoxelShape> = Vec::with_capacity(entity_collisions.len() + 1);
 
     if !entity_collisions.is_empty() {
-        collision_boxes.extend(entity_collisions);
+        collision_boxes.extend_from_slice(entity_collisions);
     }
 
     // TODO: world border
 
     let block_collisions =
-        get_block_collisions(world, entity_bounding_box.expand_towards(movement));
+        get_block_collisions(world, &entity_bounding_box.expand_towards(movement));
     collision_boxes.extend(block_collisions);
     collide_with_shapes(movement, *entity_bounding_box, &collision_boxes)
 }
@@ -392,6 +366,11 @@ fn calculate_shape_for_fluid(amount: u8) -> VoxelShape {
 ///
 /// This is marked as deprecated in Minecraft.
 pub fn legacy_blocks_motion(block: BlockState) -> bool {
+    if block == BlockState::AIR {
+        // fast path
+        return false;
+    }
+
     let registry_block = azalea_registry::Block::from(block);
     legacy_calculate_solid(block)
         && registry_block != azalea_registry::Block::Cobweb

@@ -1,25 +1,32 @@
 use azalea_buf::AzBuf;
-use azalea_core::{position::Vec3, resource_location::ResourceLocation};
-use azalea_entity::{metadata::apply_default_metadata, EntityBundle};
+use azalea_core::{delta::PositionDelta8, position::Vec3, resource_location::ResourceLocation};
+use azalea_entity::{EntityBundle, metadata::apply_default_metadata};
 use azalea_protocol_macros::ClientboundGamePacket;
+use azalea_world::MinecraftEntityId;
 use uuid::Uuid;
 
 #[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
 pub struct ClientboundAddEntity {
-    /// The id of the entity.
+    /// The numeric ID of the entity being added to the world.
     #[var]
-    pub id: u32,
+    pub id: MinecraftEntityId,
     pub uuid: Uuid,
     pub entity_type: azalea_registry::EntityKind,
     pub position: Vec3,
     pub x_rot: i8,
     pub y_rot: i8,
     pub y_head_rot: i8,
+    /// The entity's "object data". This is unused for most entities.
+    ///
+    /// Projectiles and fishing hooks treat this as an entity ID, which you're
+    /// encouraged to use [`MinecraftEntityId::from`] for. Other entities may
+    /// treat it as a block state or enum variant.
+    ///
+    /// See [the wiki](https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Object_Data)
+    /// for more information about this field.
     #[var]
     pub data: u32,
-    pub x_vel: i16,
-    pub y_vel: i16,
-    pub z_vel: i16,
+    pub velocity: PositionDelta8,
 }
 
 impl ClientboundAddEntity {

@@ -1,9 +1,9 @@
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{
-    bracketed,
+    DeriveInput, Ident, Token, bracketed,
     parse::{Parse, ParseStream, Result},
-    parse_macro_input, DeriveInput, Ident, Token,
+    parse_macro_input,
 };
 
 fn as_packet_derive(input: TokenStream, state: proc_macro2::TokenStream) -> TokenStream {
@@ -196,6 +196,8 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
     let mut serverbound_enum_contents = quote!();
     let mut clientbound_id_match_contents = quote!();
     let mut serverbound_id_match_contents = quote!();
+    let mut clientbound_name_match_contents = quote!();
+    let mut serverbound_name_match_contents = quote!();
     let mut clientbound_write_match_contents = quote!();
     let mut serverbound_write_match_contents = quote!();
     let mut clientbound_read_match_contents = quote!();
@@ -218,7 +220,10 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
             #variant_name(#module_name::#struct_name),
         });
         clientbound_id_match_contents.extend(quote! {
-            #clientbound_state_name::#variant_name(_packet) => #id,
+            #clientbound_state_name::#variant_name(..) => #id,
+        });
+        clientbound_name_match_contents.extend(quote! {
+            #clientbound_state_name::#variant_name(..) => #packet_name_litstr,
         });
         clientbound_write_match_contents.extend(quote! {
             #clientbound_state_name::#variant_name(packet) => packet.write(buf),
@@ -267,7 +272,10 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
             #variant_name(#module_name::#struct_name),
         });
         serverbound_id_match_contents.extend(quote! {
-            #serverbound_state_name::#variant_name(_packet) => #id,
+            #serverbound_state_name::#variant_name(..) => #id,
+        });
+        serverbound_name_match_contents.extend(quote! {
+            #serverbound_state_name::#variant_name(..) => #packet_name_litstr,
         });
         serverbound_write_match_contents.extend(quote! {
             #serverbound_state_name::#variant_name(packet) => packet.write(buf),
@@ -297,12 +305,18 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
         serverbound_id_match_contents.extend(quote! {
             _ => unreachable!("This enum is empty and can't exist.")
         });
+        serverbound_name_match_contents.extend(quote! {
+            _ => unreachable!("This enum is empty and can't exist.")
+        });
         serverbound_write_match_contents.extend(quote! {
             _ => unreachable!("This enum is empty and can't exist.")
         });
     }
     if !has_clientbound_packets {
         clientbound_id_match_contents.extend(quote! {
+            _ => unreachable!("This enum is empty and can't exist.")
+        });
+        clientbound_name_match_contents.extend(quote! {
             _ => unreachable!("This enum is empty and can't exist.")
         });
         clientbound_write_match_contents.extend(quote! {
@@ -338,13 +352,19 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
                 }
             }
 
+            fn name(&self) -> &'static str {
+                match self {
+                    #serverbound_name_match_contents
+                }
+            }
+
             fn write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
                 match self {
                     #serverbound_write_match_contents
                 }
             }
 
-            /// Read a packet by its id, ConnectionProtocol, and flow
+            /// Read a packet by its id, ConnectionProtocol, and flow.
             fn read(
                 id: u32,
                 buf: &mut std::io::Cursor<&[u8]>,
@@ -376,13 +396,19 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
                 }
             }
 
+            fn name(&self) -> &'static str {
+                match self {
+                    #clientbound_name_match_contents
+                }
+            }
+
             fn write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
                 match self {
                     #clientbound_write_match_contents
                 }
             }
 
-            /// Read a packet by its id, ConnectionProtocol, and flow
+            /// Read a packet by its id, ConnectionProtocol, and flow.
             fn read(
                 id: u32,
                 buf: &mut std::io::Cursor<&[u8]>,
@@ -394,6 +420,13 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
                     #clientbound_read_match_contents
                     _ => return Err(Box::new(crate::read::ReadPacketError::UnknownPacketId { state_name: #state_name_litstr.to_string(), id })),
                 })
+            }
+        }
+
+        impl crate::packets::Packet<#clientbound_state_name> for #clientbound_state_name {
+            /// No-op, exists so you can pass a packet enum when a Packet<> is expected.
+            fn into_variant(self) -> #clientbound_state_name {
+                self
             }
         }
     });

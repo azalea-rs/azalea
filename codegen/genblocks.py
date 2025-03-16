@@ -13,13 +13,14 @@ def generate(version_id):
         '1.20.3-pre4', 'shapes')
     pixlyzer_block_datas = lib.extract.get_pixlyzer_data(
         '1.20.3-pre4', 'blocks')
+    burger_data = lib.extract.get_burger_data_for_version(version_id)
 
     block_states_report = lib.extract.get_block_states_report(version_id)
     registries = lib.extract.get_registries_report(version_id)
     ordered_blocks = lib.code.blocks.get_ordered_blocks(registries)
 
     lib.code.blocks.generate_blocks(
-        block_states_report, pixlyzer_block_datas, ordered_blocks)
+        block_states_report, pixlyzer_block_datas, ordered_blocks, burger_data)
 
     lib.code.shapes.generate_block_shapes(
         pixlyzer_block_datas, shape_datas['shapes'], shape_datas['aabbs'], block_states_report)

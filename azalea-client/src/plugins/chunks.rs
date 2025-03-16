@@ -18,16 +18,14 @@ use bevy_ecs::prelude::*;
 use simdnbt::owned::BaseNbt;
 use tracing::{error, trace};
 
+use super::packet::game::handle_outgoing_packets;
 use crate::{
-    interact::handle_block_interact_event,
-    inventory::InventorySet,
-    packet_handling::game::{handle_send_packet_event, SendPacketEvent},
-    respawn::perform_respawn,
-    InstanceHolder,
+    InstanceHolder, interact::handle_block_interact_event, inventory::InventorySet,
+    packet::game::SendPacketEvent, respawn::perform_respawn,
 };
 
-pub struct ChunkPlugin;
-impl Plugin for ChunkPlugin {
+pub struct ChunksPlugin;
+impl Plugin for ChunksPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
@@ -37,7 +35,7 @@ impl Plugin for ChunkPlugin {
                 handle_chunk_batch_finished_event,
             )
                 .chain()
-                .before(handle_send_packet_event)
+                .before(handle_outgoing_packets)
                 .before(InventorySet)
                 .before(handle_block_interact_event)
                 .before(perform_respawn),
@@ -111,7 +109,10 @@ pub fn handle_receive_chunk_events(
             heightmaps,
             &mut instance.chunks,
         ) {
-            error!("Couldn't set chunk data: {e}");
+            error!(
+                "Couldn't set chunk data: {e}. World height: {}",
+                instance.chunks.height
+            );
         }
     }
 }

@@ -360,7 +360,7 @@ pub async fn get_ms_auth_token(
         tokio::time::sleep(std::time::Duration::from_secs(res.interval)).await;
 
         trace!("Polling to check if user has logged in...");
-        if let Ok(access_token_response) = client
+        let res = client
             .post(format!(
                 "https://login.live.com/oauth20_token.srf?client_id={client_id}"
             ))
@@ -372,8 +372,8 @@ pub async fn get_ms_auth_token(
             .send()
             .await?
             .json::<AccessTokenResponse>()
-            .await
-        {
+            .await;
+        if let Ok(access_token_response) = res {
             trace!("access_token_response: {:?}", access_token_response);
             let expires_at = SystemTime::now()
                 + std::time::Duration::from_secs(access_token_response.expires_in);

@@ -1,10 +1,10 @@
 [package]
 name = "azalea-chat"
 description = "Parse Minecraft chat messages."
-version = { workspace = true }
-edition = { workspace = true }
-license = { workspace = true }
-repository = { workspace = true }
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
 
 [features]
 default = []
@@ -19,6 +19,6 @@ azalea-buf = { path = "../azalea-buf", version = "0.11.0", optional = true, feat
 azalea-language = { path = "../azalea-language", version = "0.11.0" }
 azalea-registry = { path = "../azalea-registry", version = "0.11.0", optional = true }
 serde = { workspace = true, features = ["derive"] }
-serde_json = { workspace = true }
+serde_json.workspace = true
 simdnbt = { workspace = true, optional = true }
-tracing = { workspace = true }
+tracing.workspace = true

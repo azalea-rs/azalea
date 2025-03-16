@@ -1,12 +1,20 @@
+use std::sync::Arc;
+
+use azalea_block::{
+    BlockState, block_state::BlockStateIntegerRepr, fluid_state::to_or_from_legacy_fluid_level,
+    properties::WaterLevel,
+};
 use azalea_core::{
     position::{BlockPos, ChunkPos, Vec3},
+    registry_holder::RegistryHolder,
     resource_location::ResourceLocation,
     tick::GameTick,
 };
 use azalea_entity::{EntityBundle, EntityPlugin, LocalEntity, Physics, Position};
 use azalea_physics::PhysicsPlugin;
-use azalea_world::{Chunk, InstanceContainer, MinecraftEntityId, PartialInstance};
+use azalea_world::{Chunk, Instance, InstanceContainer, MinecraftEntityId, PartialInstance};
 use bevy_app::App;
+use parking_lot::RwLock;
 use uuid::Uuid;
 
 /// You need an app to spawn entities in the world and do updates.
@@ -17,14 +25,19 @@ fn make_test_app() -> App {
     app
 }
 
-#[test]
-fn test_gravity() {
-    let mut app = make_test_app();
-    let world_lock = app.world_mut().resource_mut::<InstanceContainer>().insert(
+pub fn insert_overworld(app: &mut App) -> Arc<RwLock<Instance>> {
+    app.world_mut().resource_mut::<InstanceContainer>().insert(
         ResourceLocation::new("minecraft:overworld"),
         384,
         -64,
-    );
+        &RegistryHolder::default(),
+    )
+}
+
+#[test]
+fn test_gravity() {
+    let mut app = make_test_app();
+    let world_lock = insert_overworld(&mut app);
     let mut partial_world = PartialInstance::default();
     // the entity has to be in a loaded chunk for physics to work
     partial_world.chunks.set(
@@ -80,11 +93,7 @@ fn test_gravity() {
 #[test]
 fn test_collision() {
     let mut app = make_test_app();
-    let world_lock = app.world_mut().resource_mut::<InstanceContainer>().insert(
-        ResourceLocation::new("minecraft:overworld"),
-        384,
-        -64,
-    );
+    let world_lock = insert_overworld(&mut app);
     let mut partial_world = PartialInstance::default();
 
     partial_world.chunks.set(
@@ -140,11 +149,7 @@ fn test_collision() {
 #[test]
 fn test_slab_collision() {
     let mut app = make_test_app();
-    let world_lock = app.world_mut().resource_mut::<InstanceContainer>().insert(
-        ResourceLocation::new("minecraft:overworld"),
-        384,
-        -64,
-    );
+    let world_lock = insert_overworld(&mut app);
     let mut partial_world = PartialInstance::default();
 
     partial_world.chunks.set(
@@ -194,11 +199,7 @@ fn test_slab_collision() {
 #[test]
 fn test_top_slab_collision() {
     let mut app = make_test_app();
-    let world_lock = app.world_mut().resource_mut::<InstanceContainer>().insert(
-        ResourceLocation::new("minecraft:overworld"),
-        384,
-        -64,
-    );
+    let world_lock = insert_overworld(&mut app);
     let mut partial_world = PartialInstance::default();
 
     partial_world.chunks.set(
@@ -251,6 +252,7 @@ fn test_weird_wall_collision() {
         ResourceLocation::new("minecraft:overworld"),
         384,
         -64,
+        &RegistryHolder::default(),
     );
     let mut partial_world = PartialInstance::default();
 
@@ -309,6 +311,7 @@ fn test_negative_coordinates_weird_wall_collision() {
         ResourceLocation::new("minecraft:overworld"),
         384,
         -64,
+        &RegistryHolder::default(),
     );
     let mut partial_world = PartialInstance::default();
 
@@ -371,6 +374,7 @@ fn spawn_and_unload_world() {
         ResourceLocation::new("minecraft:overworld"),
         384,
         -64,
+        &RegistryHolder::default(),
     );
     let mut partial_world = PartialInstance::default();
 
@@ -408,4 +412,138 @@ fn spawn_and_unload_world() {
     // do another tick
     app.world_mut().run_schedule(GameTick);
     app.update();
+}
+
+#[test]
+fn test_afk_pool() {
+    let mut app = make_test_app();
+    let world_lock = insert_overworld(&mut app);
+    let mut partial_world = PartialInstance::default();
+
+    partial_world.chunks.set(
+        &ChunkPos { x: 0, z: 0 },
+        Some(Chunk::default()),
+        &mut world_lock.write().chunks,
+    );
+    let setblock = |x: i32, y: i32, z: i32, b: BlockState| {
+        world_lock
+            .write()
+            .chunks
+            .set_block_state(&BlockPos { x, y, z }, b);
+    };
+
+    let stone = azalea_block::blocks::Stone {}.into();
+    let sign = azalea_block::blocks::OakSign {
+        rotation: azalea_block::properties::OakSignRotation::_0,
+        waterlogged: false,
+    }
+    .into();
+    let water = |level: u8| {
+        BlockState::from(azalea_block::blocks::Water {
+            level: WaterLevel::from(to_or_from_legacy_fluid_level(level) as BlockStateIntegerRepr),
+        })
+    };
+
+    let mut y = 69;
+
+    // first layer
+    {
+        setblock(1, y, 1, stone);
+        setblock(2, y, 1, stone);
+        setblock(3, y, 1, stone);
+        setblock(3, y, 2, stone);
+        setblock(3, y, 3, stone);
+        setblock(2, y, 3, stone);
+        setblock(1, y, 3, stone);
+        setblock(1, y, 2, stone);
+    }
+    // second layer
+    y += 1;
+    {
+        setblock(1, y, 0, stone);
+        setblock(2, y, 0, stone);
+        setblock(3, y, 0, stone);
+
+        setblock(0, y, 1, stone);
+        setblock(0, y, 2, stone);
+        setblock(0, y, 3, stone);
+
+        setblock(1, y, 4, stone);
+        setblock(2, y, 4, stone);
+        setblock(3, y, 4, stone);
+
+        setblock(4, y, 1, stone);
+        setblock(4, y, 2, stone);
+        setblock(4, y, 3, stone);
+
+        // middle block
+        setblock(2, y, 2, stone);
+
+        // sign
+        setblock(1, y, 1, sign);
+
+        // water
+        setblock(1, y, 2, water(8));
+        setblock(1, y, 3, water(7));
+        setblock(2, y, 3, water(6));
+        setblock(3, y, 3, water(5));
+        setblock(3, y, 2, water(4));
+        setblock(3, y, 1, water(3));
+        setblock(2, y, 1, water(2));
+    }
+    // third layer
+    y += 1;
+    {
+        setblock(1, y, 1, water(8));
+        setblock(2, y, 1, sign);
+    }
+
+    let entity = app
+        .world_mut()
+        .spawn((
+            EntityBundle::new(
+                Uuid::nil(),
+                Vec3 {
+                    x: 3.5,
+                    y: 70.,
+                    z: 1.5,
+                },
+                azalea_registry::EntityKind::Player,
+                ResourceLocation::new("minecraft:overworld"),
+            ),
+            MinecraftEntityId(0),
+            LocalEntity,
+        ))
+        .id();
+
+    let mut blocks_visited = Vec::new();
+    let mut loops_done = 0;
+
+    for _ in 0..300 {
+        app.world_mut().run_schedule(GameTick);
+        app.update();
+
+        let entity_pos = app.world_mut().get::<Position>(entity).unwrap();
+        let entity_block_pos = BlockPos::from(entity_pos);
+
+        if !blocks_visited.contains(&entity_block_pos) {
+            blocks_visited.push(entity_block_pos);
+
+            if blocks_visited.len() == 8 {
+                loops_done += 1;
+                blocks_visited.clear();
+            }
+        }
+    }
+
+    assert_eq!(
+        blocks_visited.into_iter().collect::<Vec<_>>(),
+        vec![
+            BlockPos::new(3, 70, 2),
+            BlockPos::new(3, 70, 1),
+            BlockPos::new(2, 70, 1),
+            BlockPos::new(1, 70, 1),
+        ]
+    );
+    assert_eq!(loops_done, 1);
 }

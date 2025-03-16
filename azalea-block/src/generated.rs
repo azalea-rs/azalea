@@ -2374,7 +2374,7 @@ make_block_states! {
             "extended": Extended(false),
             "facing": FacingCubic::North,
         },
-        cobweb => BlockBehavior::new().requires_correct_tool_for_drops().strength(4.0, 4.0), {},
+        cobweb => BlockBehavior::new().requires_correct_tool_for_drops().strength(4.0, 4.0).force_solid(true), {},
         short_grass => BlockBehavior::new(), {},
         fern => BlockBehavior::new(), {},
         dead_bush => BlockBehavior::new(), {},
@@ -2410,7 +2410,7 @@ make_block_states! {
         green_wool => BlockBehavior::new().strength(0.8, 0.8), {},
         red_wool => BlockBehavior::new().strength(0.8, 0.8), {},
         black_wool => BlockBehavior::new().strength(0.8, 0.8), {},
-        moving_piston => BlockBehavior::new().destroy_time(-1.0), {
+        moving_piston => BlockBehavior::new().destroy_time(-1.0).force_solid(true), {
             "type": PistonType::Normal,
             "facing": FacingCubic::North,
         },
@@ -2499,43 +2499,43 @@ make_block_states! {
             "facing": FacingCardinal::North,
             "lit": Lit(false),
         },
-        oak_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        oak_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "rotation": OakSignRotation::_0,
             "waterlogged": Waterlogged(false),
         },
-        spruce_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        spruce_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "rotation": SpruceSignRotation::_0,
             "waterlogged": Waterlogged(false),
         },
-        birch_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        birch_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "rotation": BirchSignRotation::_0,
             "waterlogged": Waterlogged(false),
         },
-        acacia_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        acacia_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "rotation": AcaciaSignRotation::_0,
             "waterlogged": Waterlogged(false),
         },
-        cherry_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        cherry_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "rotation": CherrySignRotation::_0,
             "waterlogged": Waterlogged(false),
         },
-        jungle_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        jungle_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "rotation": JungleSignRotation::_0,
             "waterlogged": Waterlogged(false),
         },
-        dark_oak_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        dark_oak_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "rotation": DarkOakSignRotation::_0,
             "waterlogged": Waterlogged(false),
         },
-        pale_oak_sign => BlockBehavior::new(), {
+        pale_oak_sign => BlockBehavior::new().force_solid(true), {
             "rotation": PaleOakSignRotation::_0,
             "waterlogged": Waterlogged(false),
         },
-        mangrove_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        mangrove_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "rotation": MangroveSignRotation::_0,
             "waterlogged": Waterlogged(false),
         },
-        bamboo_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        bamboo_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "rotation": BambooSignRotation::_0,
             "waterlogged": Waterlogged(false),
         },
@@ -2546,7 +2546,7 @@ make_block_states! {
             "open": Open(false),
             "powered": Powered(false),
         },
-        ladder => BlockBehavior::new().strength(0.4, 0.4), {
+        ladder => BlockBehavior::new().strength(0.4, 0.4).force_solid(false), {
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
@@ -2560,151 +2560,151 @@ make_block_states! {
             "shape": StairShape::Straight,
             "waterlogged": Waterlogged(false),
         },
-        oak_wall_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        oak_wall_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
-        spruce_wall_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        spruce_wall_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
-        birch_wall_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        birch_wall_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
-        acacia_wall_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        acacia_wall_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
-        cherry_wall_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        cherry_wall_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
-        jungle_wall_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        jungle_wall_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
-        dark_oak_wall_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        dark_oak_wall_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
-        pale_oak_wall_sign => BlockBehavior::new(), {
+        pale_oak_wall_sign => BlockBehavior::new().force_solid(true), {
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
-        mangrove_wall_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        mangrove_wall_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
-        bamboo_wall_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        bamboo_wall_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
-        oak_hanging_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        oak_hanging_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "attached": Attached(false),
             "rotation": OakHangingSignRotation::_0,
             "waterlogged": Waterlogged(false),
         },
-        spruce_hanging_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        spruce_hanging_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "attached": Attached(false),
             "rotation": SpruceHangingSignRotation::_0,
             "waterlogged": Waterlogged(false),
         },
-        birch_hanging_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        birch_hanging_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "attached": Attached(false),
             "rotation": BirchHangingSignRotation::_0,
             "waterlogged": Waterlogged(false),
         },
-        acacia_hanging_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        acacia_hanging_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "attached": Attached(false),
             "rotation": AcaciaHangingSignRotation::_0,
             "waterlogged": Waterlogged(false),
         },
-        cherry_hanging_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        cherry_hanging_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "attached": Attached(false),
             "rotation": CherryHangingSignRotation::_0,
             "waterlogged": Waterlogged(false),
         },
-        jungle_hanging_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        jungle_hanging_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "attached": Attached(false),
             "rotation": JungleHangingSignRotation::_0,
             "waterlogged": Waterlogged(false),
         },
-        dark_oak_hanging_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        dark_oak_hanging_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "attached": Attached(false),
             "rotation": DarkOakHangingSignRotation::_0,
             "waterlogged": Waterlogged(false),
         },
-        pale_oak_hanging_sign => BlockBehavior::new(), {
+        pale_oak_hanging_sign => BlockBehavior::new().force_solid(true), {
             "attached": Attached(false),
             "rotation": PaleOakHangingSignRotation::_0,
             "waterlogged": Waterlogged(false),
         },
-        crimson_hanging_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        crimson_hanging_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "attached": Attached(false),
             "rotation": CrimsonHangingSignRotation::_0,
             "waterlogged": Waterlogged(false),
         },
-        warped_hanging_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        warped_hanging_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "attached": Attached(false),
             "rotation": WarpedHangingSignRotation::_0,
             "waterlogged": Waterlogged(false),
         },
-        mangrove_hanging_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        mangrove_hanging_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "attached": Attached(false),
             "rotation": MangroveHangingSignRotation::_0,
             "waterlogged": Waterlogged(false),
         },
-        bamboo_hanging_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        bamboo_hanging_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "attached": Attached(false),
             "rotation": BambooHangingSignRotation::_0,
             "waterlogged": Waterlogged(false),
         },
-        oak_wall_hanging_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        oak_wall_hanging_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
-        spruce_wall_hanging_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        spruce_wall_hanging_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
-        birch_wall_hanging_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        birch_wall_hanging_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
-        acacia_wall_hanging_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        acacia_wall_hanging_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
-        cherry_wall_hanging_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        cherry_wall_hanging_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
-        jungle_wall_hanging_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        jungle_wall_hanging_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
-        dark_oak_wall_hanging_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        dark_oak_wall_hanging_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
-        pale_oak_wall_hanging_sign => BlockBehavior::new(), {
+        pale_oak_wall_hanging_sign => BlockBehavior::new().force_solid(true), {
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
-        mangrove_wall_hanging_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        mangrove_wall_hanging_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
-        crimson_wall_hanging_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        crimson_wall_hanging_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
-        warped_wall_hanging_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        warped_wall_hanging_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
-        bamboo_wall_hanging_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        bamboo_wall_hanging_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
@@ -2713,7 +2713,7 @@ make_block_states! {
             "facing": FacingCardinal::North,
             "powered": Powered(false),
         },
-        stone_pressure_plate => BlockBehavior::new().requires_correct_tool_for_drops().strength(0.5, 0.5), {
+        stone_pressure_plate => BlockBehavior::new().requires_correct_tool_for_drops().strength(0.5, 0.5).force_solid(true), {
             "powered": Powered(false),
         },
         iron_door => BlockBehavior::new().requires_correct_tool_for_drops().strength(5.0, 5.0), {
@@ -2723,34 +2723,34 @@ make_block_states! {
             "open": Open(false),
             "powered": Powered(false),
         },
-        oak_pressure_plate => BlockBehavior::new().strength(0.5, 0.5), {
+        oak_pressure_plate => BlockBehavior::new().strength(0.5, 0.5).force_solid(true), {
             "powered": Powered(false),
         },
-        spruce_pressure_plate => BlockBehavior::new().strength(0.5, 0.5), {
+        spruce_pressure_plate => BlockBehavior::new().strength(0.5, 0.5).force_solid(true), {
             "powered": Powered(false),
         },
-        birch_pressure_plate => BlockBehavior::new().strength(0.5, 0.5), {
+        birch_pressure_plate => BlockBehavior::new().strength(0.5, 0.5).force_solid(true), {
             "powered": Powered(false),
         },
-        jungle_pressure_plate => BlockBehavior::new().strength(0.5, 0.5), {
+        jungle_pressure_plate => BlockBehavior::new().strength(0.5, 0.5).force_solid(true), {
             "powered": Powered(false),
         },
-        acacia_pressure_plate => BlockBehavior::new().strength(0.5, 0.5), {
+        acacia_pressure_plate => BlockBehavior::new().strength(0.5, 0.5).force_solid(true), {
             "powered": Powered(false),
         },
-        cherry_pressure_plate => BlockBehavior::new().strength(0.5, 0.5), {
+        cherry_pressure_plate => BlockBehavior::new().strength(0.5, 0.5).force_solid(true), {
             "powered": Powered(false),
         },
-        dark_oak_pressure_plate => BlockBehavior::new().strength(0.5, 0.5), {
+        dark_oak_pressure_plate => BlockBehavior::new().strength(0.5, 0.5).force_solid(true), {
             "powered": Powered(false),
         },
-        pale_oak_pressure_plate => BlockBehavior::new(), {
+        pale_oak_pressure_plate => BlockBehavior::new().force_solid(true), {
             "powered": Powered(false),
         },
-        mangrove_pressure_plate => BlockBehavior::new().strength(0.5, 0.5), {
+        mangrove_pressure_plate => BlockBehavior::new().strength(0.5, 0.5).force_solid(true), {
             "powered": Powered(false),
         },
-        bamboo_pressure_plate => BlockBehavior::new().strength(0.5, 0.5), {
+        bamboo_pressure_plate => BlockBehavior::new().strength(0.5, 0.5).force_solid(true), {
             "powered": Powered(false),
         },
         redstone_ore => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 3.0), {
@@ -2771,7 +2771,7 @@ make_block_states! {
             "facing": FacingCardinal::North,
             "powered": Powered(false),
         },
-        snow => BlockBehavior::new().requires_correct_tool_for_drops().strength(0.1, 0.1), {
+        snow => BlockBehavior::new().requires_correct_tool_for_drops().strength(0.1, 0.1).force_solid(false), {
             "layers": SnowLayers::_1,
         },
         ice => BlockBehavior::new().strength(0.5, 0.5).friction(0.98), {},
@@ -2787,7 +2787,7 @@ make_block_states! {
         jukebox => BlockBehavior::new().strength(2.0, 6.0), {
             "has_record": HasRecord(false),
         },
-        oak_fence => BlockBehavior::new().strength(2.0, 3.0), {
+        oak_fence => BlockBehavior::new().strength(2.0, 3.0).force_solid(true), {
             "east": East(false),
             "north": North(false),
             "south": South(false),
@@ -2817,7 +2817,7 @@ make_block_states! {
         jack_o_lantern => BlockBehavior::new().strength(1.0, 1.0), {
             "facing": FacingCardinal::North,
         },
-        cake => BlockBehavior::new().strength(0.5, 0.5), {
+        cake => BlockBehavior::new().strength(0.5, 0.5).force_solid(true), {
             "bites": CakeBites::_0,
         },
         repeater => BlockBehavior::new(), {
@@ -2955,7 +2955,7 @@ make_block_states! {
             "waterlogged": Waterlogged(false),
             "west": West(false),
         },
-        chain => BlockBehavior::new().requires_correct_tool_for_drops().strength(5.0, 6.0), {
+        chain => BlockBehavior::new().requires_correct_tool_for_drops().strength(5.0, 6.0).force_solid(true), {
             "axis": Axis::Y,
             "waterlogged": Waterlogged(false),
         },
@@ -3005,7 +3005,7 @@ make_block_states! {
             "waterlogged": Waterlogged(false),
             "west": West(false),
         },
-        oak_fence_gate => BlockBehavior::new().strength(2.0, 3.0), {
+        oak_fence_gate => BlockBehavior::new().strength(2.0, 3.0).force_solid(true), {
             "facing": FacingCardinal::North,
             "in_wall": InWall(false),
             "open": Open(false),
@@ -3149,7 +3149,7 @@ make_block_states! {
             "facing": FacingCubic::North,
         },
         beacon => BlockBehavior::new().strength(3.0, 3.0), {},
-        cobblestone_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {
+        cobblestone_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0).force_solid(true), {
             "east": WallEast::None,
             "north": WallNorth::None,
             "south": WallSouth::None,
@@ -3157,7 +3157,7 @@ make_block_states! {
             "waterlogged": Waterlogged(false),
             "west": WallWest::None,
         },
-        mossy_cobblestone_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {
+        mossy_cobblestone_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0).force_solid(true), {
             "east": WallEast::None,
             "north": WallNorth::None,
             "south": WallSouth::None,
@@ -3320,10 +3320,10 @@ make_block_states! {
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
-        light_weighted_pressure_plate => BlockBehavior::new().requires_correct_tool_for_drops().strength(0.5, 0.5), {
+        light_weighted_pressure_plate => BlockBehavior::new().requires_correct_tool_for_drops().strength(0.5, 0.5).force_solid(true), {
             "power": LightWeightedPressurePlatePower::_0,
         },
-        heavy_weighted_pressure_plate => BlockBehavior::new().requires_correct_tool_for_drops().strength(0.5, 0.5), {
+        heavy_weighted_pressure_plate => BlockBehavior::new().requires_correct_tool_for_drops().strength(0.5, 0.5).force_solid(true), {
             "power": HeavyWeightedPressurePlatePower::_0,
         },
         comparator => BlockBehavior::new(), {
@@ -3620,100 +3620,100 @@ make_block_states! {
         large_fern => BlockBehavior::new(), {
             "half": Half::Lower,
         },
-        white_banner => BlockBehavior::new().strength(1.0, 1.0), {
+        white_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "rotation": WhiteBannerRotation::_0,
         },
-        orange_banner => BlockBehavior::new().strength(1.0, 1.0), {
+        orange_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "rotation": OrangeBannerRotation::_0,
         },
-        magenta_banner => BlockBehavior::new().strength(1.0, 1.0), {
+        magenta_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "rotation": MagentaBannerRotation::_0,
         },
-        light_blue_banner => BlockBehavior::new().strength(1.0, 1.0), {
+        light_blue_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "rotation": LightBlueBannerRotation::_0,
         },
-        yellow_banner => BlockBehavior::new().strength(1.0, 1.0), {
+        yellow_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "rotation": YellowBannerRotation::_0,
         },
-        lime_banner => BlockBehavior::new().strength(1.0, 1.0), {
+        lime_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "rotation": LimeBannerRotation::_0,
         },
-        pink_banner => BlockBehavior::new().strength(1.0, 1.0), {
+        pink_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "rotation": PinkBannerRotation::_0,
         },
-        gray_banner => BlockBehavior::new().strength(1.0, 1.0), {
+        gray_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "rotation": GrayBannerRotation::_0,
         },
-        light_gray_banner => BlockBehavior::new().strength(1.0, 1.0), {
+        light_gray_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "rotation": LightGrayBannerRotation::_0,
         },
-        cyan_banner => BlockBehavior::new().strength(1.0, 1.0), {
+        cyan_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "rotation": CyanBannerRotation::_0,
         },
-        purple_banner => BlockBehavior::new().strength(1.0, 1.0), {
+        purple_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "rotation": PurpleBannerRotation::_0,
         },
-        blue_banner => BlockBehavior::new().strength(1.0, 1.0), {
+        blue_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "rotation": BlueBannerRotation::_0,
         },
-        brown_banner => BlockBehavior::new().strength(1.0, 1.0), {
+        brown_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "rotation": BrownBannerRotation::_0,
         },
-        green_banner => BlockBehavior::new().strength(1.0, 1.0), {
+        green_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "rotation": GreenBannerRotation::_0,
         },
-        red_banner => BlockBehavior::new().strength(1.0, 1.0), {
+        red_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "rotation": RedBannerRotation::_0,
         },
-        black_banner => BlockBehavior::new().strength(1.0, 1.0), {
+        black_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "rotation": BlackBannerRotation::_0,
         },
-        white_wall_banner => BlockBehavior::new().strength(1.0, 1.0), {
+        white_wall_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "facing": FacingCardinal::North,
         },
-        orange_wall_banner => BlockBehavior::new().strength(1.0, 1.0), {
+        orange_wall_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "facing": FacingCardinal::North,
         },
-        magenta_wall_banner => BlockBehavior::new().strength(1.0, 1.0), {
+        magenta_wall_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "facing": FacingCardinal::North,
         },
-        light_blue_wall_banner => BlockBehavior::new().strength(1.0, 1.0), {
+        light_blue_wall_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "facing": FacingCardinal::North,
         },
-        yellow_wall_banner => BlockBehavior::new().strength(1.0, 1.0), {
+        yellow_wall_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "facing": FacingCardinal::North,
         },
-        lime_wall_banner => BlockBehavior::new().strength(1.0, 1.0), {
+        lime_wall_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "facing": FacingCardinal::North,
         },
-        pink_wall_banner => BlockBehavior::new().strength(1.0, 1.0), {
+        pink_wall_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "facing": FacingCardinal::North,
         },
-        gray_wall_banner => BlockBehavior::new().strength(1.0, 1.0), {
+        gray_wall_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "facing": FacingCardinal::North,
         },
-        light_gray_wall_banner => BlockBehavior::new().strength(1.0, 1.0), {
+        light_gray_wall_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "facing": FacingCardinal::North,
         },
-        cyan_wall_banner => BlockBehavior::new().strength(1.0, 1.0), {
+        cyan_wall_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "facing": FacingCardinal::North,
         },
-        purple_wall_banner => BlockBehavior::new().strength(1.0, 1.0), {
+        purple_wall_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "facing": FacingCardinal::North,
         },
-        blue_wall_banner => BlockBehavior::new().strength(1.0, 1.0), {
+        blue_wall_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "facing": FacingCardinal::North,
         },
-        brown_wall_banner => BlockBehavior::new().strength(1.0, 1.0), {
+        brown_wall_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "facing": FacingCardinal::North,
         },
-        green_wall_banner => BlockBehavior::new().strength(1.0, 1.0), {
+        green_wall_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "facing": FacingCardinal::North,
         },
-        red_wall_banner => BlockBehavior::new().strength(1.0, 1.0), {
+        red_wall_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "facing": FacingCardinal::North,
         },
-        black_wall_banner => BlockBehavior::new().strength(1.0, 1.0), {
+        black_wall_banner => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "facing": FacingCardinal::North,
         },
         red_sandstone => BlockBehavior::new().requires_correct_tool_for_drops().strength(0.8, 0.8), {},
@@ -3829,55 +3829,55 @@ make_block_states! {
         smooth_sandstone => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {},
         smooth_quartz => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {},
         smooth_red_sandstone => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {},
-        spruce_fence_gate => BlockBehavior::new().strength(2.0, 3.0), {
+        spruce_fence_gate => BlockBehavior::new().strength(2.0, 3.0).force_solid(true), {
             "facing": FacingCardinal::North,
             "in_wall": InWall(false),
             "open": Open(false),
             "powered": Powered(false),
         },
-        birch_fence_gate => BlockBehavior::new().strength(2.0, 3.0), {
+        birch_fence_gate => BlockBehavior::new().strength(2.0, 3.0).force_solid(true), {
             "facing": FacingCardinal::North,
             "in_wall": InWall(false),
             "open": Open(false),
             "powered": Powered(false),
         },
-        jungle_fence_gate => BlockBehavior::new().strength(2.0, 3.0), {
+        jungle_fence_gate => BlockBehavior::new().strength(2.0, 3.0).force_solid(true), {
             "facing": FacingCardinal::North,
             "in_wall": InWall(false),
             "open": Open(false),
             "powered": Powered(false),
         },
-        acacia_fence_gate => BlockBehavior::new().strength(2.0, 3.0), {
+        acacia_fence_gate => BlockBehavior::new().strength(2.0, 3.0).force_solid(true), {
             "facing": FacingCardinal::North,
             "in_wall": InWall(false),
             "open": Open(false),
             "powered": Powered(false),
         },
-        cherry_fence_gate => BlockBehavior::new().strength(2.0, 3.0), {
+        cherry_fence_gate => BlockBehavior::new().strength(2.0, 3.0).force_solid(true), {
             "facing": FacingCardinal::North,
             "in_wall": InWall(false),
             "open": Open(false),
             "powered": Powered(false),
         },
-        dark_oak_fence_gate => BlockBehavior::new().strength(2.0, 3.0), {
+        dark_oak_fence_gate => BlockBehavior::new().strength(2.0, 3.0).force_solid(true), {
             "facing": FacingCardinal::North,
             "in_wall": InWall(false),
             "open": Open(false),
             "powered": Powered(false),
         },
-        pale_oak_fence_gate => BlockBehavior::new(), {
+        pale_oak_fence_gate => BlockBehavior::new().force_solid(true), {
             "facing": FacingCardinal::North,
             "in_wall": InWall(false),
             "open": Open(false),
             "powered": Powered(false),
         },
-        mangrove_fence_gate => BlockBehavior::new().strength(2.0, 3.0), {
+        mangrove_fence_gate => BlockBehavior::new().strength(2.0, 3.0).force_solid(true), {
             "facing": FacingCardinal::North,
             "in_wall": InWall(false),
             "open": Open(false),
             "powered": Powered(false),
         },
-        bamboo_fence_gate => BlockBehavior::new().strength(2.0, 3.0), {
+        bamboo_fence_gate => BlockBehavior::new().strength(2.0, 3.0).force_solid(true), {
             "facing": FacingCardinal::North,
             "in_wall": InWall(false),
             "open": Open(false),
@@ -4009,10 +4009,10 @@ make_block_states! {
             "open": Open(false),
             "powered": Powered(false),
         },
-        end_rod => BlockBehavior::new(), {
+        end_rod => BlockBehavior::new().force_solid(false), {
             "facing": FacingCubic::Up,
         },
-        chorus_plant => BlockBehavior::new().strength(0.4, 0.4), {
+        chorus_plant => BlockBehavior::new().strength(0.4, 0.4).force_solid(false), {
             "down": Down(false),
             "east": East(false),
             "north": North(false),
@@ -4020,7 +4020,7 @@ make_block_states! {
             "up": Up(false),
             "west": West(false),
         },
-        chorus_flower => BlockBehavior::new().strength(0.4, 0.4), {
+        chorus_flower => BlockBehavior::new().strength(0.4, 0.4).force_solid(false), {
             "age": ChorusFlowerAge::_0,
         },
         purpur_block => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {},
@@ -4071,55 +4071,55 @@ make_block_states! {
             "facing": FacingCubic::South,
             "powered": Powered(false),
         },
-        shulker_box => BlockBehavior::new().strength(2.0, 2.0), {
+        shulker_box => BlockBehavior::new().strength(2.0, 2.0).force_solid(true), {
             "facing": FacingCubic::Up,
         },
-        white_shulker_box => BlockBehavior::new().strength(2.0, 2.0), {
+        white_shulker_box => BlockBehavior::new().strength(2.0, 2.0).force_solid(true), {
             "facing": FacingCubic::Up,
         },
-        orange_shulker_box => BlockBehavior::new().strength(2.0, 2.0), {
+        orange_shulker_box => BlockBehavior::new().strength(2.0, 2.0).force_solid(true), {
             "facing": FacingCubic::Up,
         },
-        magenta_shulker_box => BlockBehavior::new().strength(2.0, 2.0), {
+        magenta_shulker_box => BlockBehavior::new().strength(2.0, 2.0).force_solid(true), {
             "facing": FacingCubic::Up,
         },
-        light_blue_shulker_box => BlockBehavior::new().strength(2.0, 2.0), {
+        light_blue_shulker_box => BlockBehavior::new().strength(2.0, 2.0).force_solid(true), {
             "facing": FacingCubic::Up,
         },
-        yellow_shulker_box => BlockBehavior::new().strength(2.0, 2.0), {
+        yellow_shulker_box => BlockBehavior::new().strength(2.0, 2.0).force_solid(true), {
             "facing": FacingCubic::Up,
         },
-        lime_shulker_box => BlockBehavior::new().strength(2.0, 2.0), {
+        lime_shulker_box => BlockBehavior::new().strength(2.0, 2.0).force_solid(true), {
             "facing": FacingCubic::Up,
         },
-        pink_shulker_box => BlockBehavior::new().strength(2.0, 2.0), {
+        pink_shulker_box => BlockBehavior::new().strength(2.0, 2.0).force_solid(true), {
             "facing": FacingCubic::Up,
         },
-        gray_shulker_box => BlockBehavior::new().strength(2.0, 2.0), {
+        gray_shulker_box => BlockBehavior::new().strength(2.0, 2.0).force_solid(true), {
             "facing": FacingCubic::Up,
         },
-        light_gray_shulker_box => BlockBehavior::new().strength(2.0, 2.0), {
+        light_gray_shulker_box => BlockBehavior::new().strength(2.0, 2.0).force_solid(true), {
             "facing": FacingCubic::Up,
         },
-        cyan_shulker_box => BlockBehavior::new().strength(2.0, 2.0), {
+        cyan_shulker_box => BlockBehavior::new().strength(2.0, 2.0).force_solid(true), {
             "facing": FacingCubic::Up,
         },
-        purple_shulker_box => BlockBehavior::new().strength(2.0, 2.0), {
+        purple_shulker_box => BlockBehavior::new().strength(2.0, 2.0).force_solid(true), {
             "facing": FacingCubic::Up,
         },
-        blue_shulker_box => BlockBehavior::new().strength(2.0, 2.0), {
+        blue_shulker_box => BlockBehavior::new().strength(2.0, 2.0).force_solid(true), {
             "facing": FacingCubic::Up,
         },
-        brown_shulker_box => BlockBehavior::new().strength(2.0, 2.0), {
+        brown_shulker_box => BlockBehavior::new().strength(2.0, 2.0).force_solid(true), {
             "facing": FacingCubic::Up,
         },
-        green_shulker_box => BlockBehavior::new().strength(2.0, 2.0), {
+        green_shulker_box => BlockBehavior::new().strength(2.0, 2.0).force_solid(true), {
             "facing": FacingCubic::Up,
         },
-        red_shulker_box => BlockBehavior::new().strength(2.0, 2.0), {
+        red_shulker_box => BlockBehavior::new().strength(2.0, 2.0).force_solid(true), {
             "facing": FacingCubic::Up,
         },
-        black_shulker_box => BlockBehavior::new().strength(2.0, 2.0), {
+        black_shulker_box => BlockBehavior::new().strength(2.0, 2.0).force_solid(true), {
             "facing": FacingCubic::Up,
         },
         white_glazed_terracotta => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.4, 1.4), {
@@ -4207,36 +4207,36 @@ make_block_states! {
         },
         kelp_plant => BlockBehavior::new(), {},
         dried_kelp_block => BlockBehavior::new().strength(0.5, 2.5), {},
-        turtle_egg => BlockBehavior::new().strength(0.5, 0.5), {
+        turtle_egg => BlockBehavior::new().strength(0.5, 0.5).force_solid(true), {
             "eggs": TurtleEggEggs::_1,
             "hatch": TurtleEggHatch::_0,
         },
         sniffer_egg => BlockBehavior::new().strength(0.5, 0.5), {
             "hatch": SnifferEggHatch::_0,
         },
-        dead_tube_coral_block => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {},
-        dead_brain_coral_block => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {},
-        dead_bubble_coral_block => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {},
-        dead_fire_coral_block => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {},
-        dead_horn_coral_block => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {},
+        dead_tube_coral_block => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0).force_solid(true), {},
+        dead_brain_coral_block => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0).force_solid(true), {},
+        dead_bubble_coral_block => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0).force_solid(true), {},
+        dead_fire_coral_block => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0).force_solid(true), {},
+        dead_horn_coral_block => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0).force_solid(true), {},
         tube_coral_block => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {},
         brain_coral_block => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {},
         bubble_coral_block => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {},
         fire_coral_block => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {},
         horn_coral_block => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {},
-        dead_tube_coral => BlockBehavior::new().requires_correct_tool_for_drops(), {
+        dead_tube_coral => BlockBehavior::new().requires_correct_tool_for_drops().force_solid(true), {
             "waterlogged": Waterlogged(true),
         },
-        dead_brain_coral => BlockBehavior::new().requires_correct_tool_for_drops(), {
+        dead_brain_coral => BlockBehavior::new().requires_correct_tool_for_drops().force_solid(true), {
             "waterlogged": Waterlogged(true),
         },
-        dead_bubble_coral => BlockBehavior::new().requires_correct_tool_for_drops(), {
+        dead_bubble_coral => BlockBehavior::new().requires_correct_tool_for_drops().force_solid(true), {
             "waterlogged": Waterlogged(true),
         },
-        dead_fire_coral => BlockBehavior::new().requires_correct_tool_for_drops(), {
+        dead_fire_coral => BlockBehavior::new().requires_correct_tool_for_drops().force_solid(true), {
             "waterlogged": Waterlogged(true),
         },
-        dead_horn_coral => BlockBehavior::new().requires_correct_tool_for_drops(), {
+        dead_horn_coral => BlockBehavior::new().requires_correct_tool_for_drops().force_solid(true), {
             "waterlogged": Waterlogged(true),
         },
         tube_coral => BlockBehavior::new(), {
@@ -4254,19 +4254,19 @@ make_block_states! {
         horn_coral => BlockBehavior::new(), {
             "waterlogged": Waterlogged(true),
         },
-        dead_tube_coral_fan => BlockBehavior::new().requires_correct_tool_for_drops(), {
+        dead_tube_coral_fan => BlockBehavior::new().requires_correct_tool_for_drops().force_solid(true), {
             "waterlogged": Waterlogged(true),
         },
-        dead_brain_coral_fan => BlockBehavior::new().requires_correct_tool_for_drops(), {
+        dead_brain_coral_fan => BlockBehavior::new().requires_correct_tool_for_drops().force_solid(true), {
             "waterlogged": Waterlogged(true),
         },
-        dead_bubble_coral_fan => BlockBehavior::new().requires_correct_tool_for_drops(), {
+        dead_bubble_coral_fan => BlockBehavior::new().requires_correct_tool_for_drops().force_solid(true), {
             "waterlogged": Waterlogged(true),
         },
-        dead_fire_coral_fan => BlockBehavior::new().requires_correct_tool_for_drops(), {
+        dead_fire_coral_fan => BlockBehavior::new().requires_correct_tool_for_drops().force_solid(true), {
             "waterlogged": Waterlogged(true),
         },
-        dead_horn_coral_fan => BlockBehavior::new().requires_correct_tool_for_drops(), {
+        dead_horn_coral_fan => BlockBehavior::new().requires_correct_tool_for_drops().force_solid(true), {
             "waterlogged": Waterlogged(true),
         },
         tube_coral_fan => BlockBehavior::new(), {
@@ -4284,23 +4284,23 @@ make_block_states! {
         horn_coral_fan => BlockBehavior::new(), {
             "waterlogged": Waterlogged(true),
         },
-        dead_tube_coral_wall_fan => BlockBehavior::new().requires_correct_tool_for_drops(), {
+        dead_tube_coral_wall_fan => BlockBehavior::new().requires_correct_tool_for_drops().force_solid(true), {
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(true),
         },
-        dead_brain_coral_wall_fan => BlockBehavior::new().requires_correct_tool_for_drops(), {
+        dead_brain_coral_wall_fan => BlockBehavior::new().requires_correct_tool_for_drops().force_solid(true), {
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(true),
         },
-        dead_bubble_coral_wall_fan => BlockBehavior::new().requires_correct_tool_for_drops(), {
+        dead_bubble_coral_wall_fan => BlockBehavior::new().requires_correct_tool_for_drops().force_solid(true), {
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(true),
         },
-        dead_fire_coral_wall_fan => BlockBehavior::new().requires_correct_tool_for_drops(), {
+        dead_fire_coral_wall_fan => BlockBehavior::new().requires_correct_tool_for_drops().force_solid(true), {
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(true),
         },
-        dead_horn_coral_wall_fan => BlockBehavior::new().requires_correct_tool_for_drops(), {
+        dead_horn_coral_wall_fan => BlockBehavior::new().requires_correct_tool_for_drops().force_solid(true), {
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(true),
         },
@@ -4329,11 +4329,11 @@ make_block_states! {
             "waterlogged": Waterlogged(true),
         },
         blue_ice => BlockBehavior::new().strength(2.8, 2.8).friction(0.989), {},
-        conduit => BlockBehavior::new().strength(3.0, 3.0), {
+        conduit => BlockBehavior::new().strength(3.0, 3.0).force_solid(true), {
             "waterlogged": Waterlogged(true),
         },
-        bamboo_sapling => BlockBehavior::new().strength(1.0, 1.0), {},
-        bamboo => BlockBehavior::new().strength(1.0, 1.0), {
+        bamboo_sapling => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {},
+        bamboo => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "age": BambooAge::_0,
             "leaves": Leaves::None,
             "stage": BambooStage::_0,
@@ -4480,7 +4480,7 @@ make_block_states! {
             "type": Type::Bottom,
             "waterlogged": Waterlogged(false),
         },
-        brick_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {
+        brick_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0).force_solid(true), {
             "east": WallEast::None,
             "north": WallNorth::None,
             "south": WallSouth::None,
@@ -4488,7 +4488,7 @@ make_block_states! {
             "waterlogged": Waterlogged(false),
             "west": WallWest::None,
         },
-        prismarine_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {
+        prismarine_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0).force_solid(true), {
             "east": WallEast::None,
             "north": WallNorth::None,
             "south": WallSouth::None,
@@ -4496,7 +4496,7 @@ make_block_states! {
             "waterlogged": Waterlogged(false),
             "west": WallWest::None,
         },
-        red_sandstone_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(0.8, 0.8), {
+        red_sandstone_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(0.8, 0.8).force_solid(true), {
             "east": WallEast::None,
             "north": WallNorth::None,
             "south": WallSouth::None,
@@ -4504,7 +4504,7 @@ make_block_states! {
             "waterlogged": Waterlogged(false),
             "west": WallWest::None,
         },
-        mossy_stone_brick_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {
+        mossy_stone_brick_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0).force_solid(true), {
             "east": WallEast::None,
             "north": WallNorth::None,
             "south": WallSouth::None,
@@ -4512,7 +4512,7 @@ make_block_states! {
             "waterlogged": Waterlogged(false),
             "west": WallWest::None,
         },
-        granite_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {
+        granite_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0).force_solid(true), {
             "east": WallEast::None,
             "north": WallNorth::None,
             "south": WallSouth::None,
@@ -4520,7 +4520,7 @@ make_block_states! {
             "waterlogged": Waterlogged(false),
             "west": WallWest::None,
         },
-        stone_brick_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {
+        stone_brick_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0).force_solid(true), {
             "east": WallEast::None,
             "north": WallNorth::None,
             "south": WallSouth::None,
@@ -4528,7 +4528,7 @@ make_block_states! {
             "waterlogged": Waterlogged(false),
             "west": WallWest::None,
         },
-        mud_brick_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 3.0), {
+        mud_brick_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 3.0).force_solid(true), {
             "east": WallEast::None,
             "north": WallNorth::None,
             "south": WallSouth::None,
@@ -4536,7 +4536,7 @@ make_block_states! {
             "waterlogged": Waterlogged(false),
             "west": WallWest::None,
         },
-        nether_brick_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {
+        nether_brick_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0).force_solid(true), {
             "east": WallEast::None,
             "north": WallNorth::None,
             "south": WallSouth::None,
@@ -4544,7 +4544,7 @@ make_block_states! {
             "waterlogged": Waterlogged(false),
             "west": WallWest::None,
         },
-        andesite_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {
+        andesite_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0).force_solid(true), {
             "east": WallEast::None,
             "north": WallNorth::None,
             "south": WallSouth::None,
@@ -4552,7 +4552,7 @@ make_block_states! {
             "waterlogged": Waterlogged(false),
             "west": WallWest::None,
         },
-        red_nether_brick_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {
+        red_nether_brick_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0).force_solid(true), {
             "east": WallEast::None,
             "north": WallNorth::None,
             "south": WallSouth::None,
@@ -4560,7 +4560,7 @@ make_block_states! {
             "waterlogged": Waterlogged(false),
             "west": WallWest::None,
         },
-        sandstone_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(0.8, 0.8), {
+        sandstone_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(0.8, 0.8).force_solid(true), {
             "east": WallEast::None,
             "north": WallNorth::None,
             "south": WallSouth::None,
@@ -4568,7 +4568,7 @@ make_block_states! {
             "waterlogged": Waterlogged(false),
             "west": WallWest::None,
         },
-        end_stone_brick_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 9.0), {
+        end_stone_brick_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 9.0).force_solid(true), {
             "east": WallEast::None,
             "north": WallNorth::None,
             "south": WallSouth::None,
@@ -4576,7 +4576,7 @@ make_block_states! {
             "waterlogged": Waterlogged(false),
             "west": WallWest::None,
         },
-        diorite_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {
+        diorite_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0).force_solid(true), {
             "east": WallEast::None,
             "north": WallNorth::None,
             "south": WallSouth::None,
@@ -4619,16 +4619,16 @@ make_block_states! {
         stonecutter => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.5, 3.5), {
             "facing": FacingCardinal::North,
         },
-        bell => BlockBehavior::new().requires_correct_tool_for_drops().strength(5.0, 5.0), {
+        bell => BlockBehavior::new().requires_correct_tool_for_drops().strength(5.0, 5.0).force_solid(true), {
             "attachment": Attachment::Floor,
             "facing": FacingCardinal::North,
             "powered": Powered(false),
         },
-        lantern => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.5, 3.5), {
+        lantern => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.5, 3.5).force_solid(true), {
             "hanging": Hanging(false),
             "waterlogged": Waterlogged(false),
         },
-        soul_lantern => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.5, 3.5), {
+        soul_lantern => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.5, 3.5).force_solid(true), {
             "hanging": Hanging(false),
             "waterlogged": Waterlogged(false),
         },
@@ -4698,10 +4698,10 @@ make_block_states! {
             "type": Type::Bottom,
             "waterlogged": Waterlogged(false),
         },
-        crimson_pressure_plate => BlockBehavior::new().strength(0.5, 0.5), {
+        crimson_pressure_plate => BlockBehavior::new().strength(0.5, 0.5).force_solid(true), {
             "powered": Powered(false),
         },
-        warped_pressure_plate => BlockBehavior::new().strength(0.5, 0.5), {
+        warped_pressure_plate => BlockBehavior::new().strength(0.5, 0.5).force_solid(true), {
             "powered": Powered(false),
         },
         crimson_fence => BlockBehavior::new().strength(2.0, 3.0), {
@@ -4732,13 +4732,13 @@ make_block_states! {
             "powered": Powered(false),
             "waterlogged": Waterlogged(false),
         },
-        crimson_fence_gate => BlockBehavior::new().strength(2.0, 3.0), {
+        crimson_fence_gate => BlockBehavior::new().strength(2.0, 3.0).force_solid(true), {
             "facing": FacingCardinal::North,
             "in_wall": InWall(false),
             "open": Open(false),
             "powered": Powered(false),
         },
-        warped_fence_gate => BlockBehavior::new().strength(2.0, 3.0), {
+        warped_fence_gate => BlockBehavior::new().strength(2.0, 3.0).force_solid(true), {
             "facing": FacingCardinal::North,
             "in_wall": InWall(false),
             "open": Open(false),
@@ -4780,19 +4780,19 @@ make_block_states! {
             "open": Open(false),
             "powered": Powered(false),
         },
-        crimson_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        crimson_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "rotation": CrimsonSignRotation::_0,
             "waterlogged": Waterlogged(false),
         },
-        warped_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        warped_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "rotation": WarpedSignRotation::_0,
             "waterlogged": Waterlogged(false),
         },
-        crimson_wall_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        crimson_wall_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
-        warped_wall_sign => BlockBehavior::new().strength(1.0, 1.0), {
+        warped_wall_sign => BlockBehavior::new().strength(1.0, 1.0).force_solid(true), {
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
@@ -4840,7 +4840,7 @@ make_block_states! {
             "shape": StairShape::Straight,
             "waterlogged": Waterlogged(false),
         },
-        blackstone_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {
+        blackstone_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0).force_solid(true), {
             "east": WallEast::None,
             "north": WallNorth::None,
             "south": WallSouth::None,
@@ -4866,7 +4866,7 @@ make_block_states! {
             "shape": StairShape::Straight,
             "waterlogged": Waterlogged(false),
         },
-        polished_blackstone_brick_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {
+        polished_blackstone_brick_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0).force_solid(true), {
             "east": WallEast::None,
             "north": WallNorth::None,
             "south": WallSouth::None,
@@ -4885,7 +4885,7 @@ make_block_states! {
             "type": Type::Bottom,
             "waterlogged": Waterlogged(false),
         },
-        polished_blackstone_pressure_plate => BlockBehavior::new().requires_correct_tool_for_drops().strength(0.5, 0.5), {
+        polished_blackstone_pressure_plate => BlockBehavior::new().requires_correct_tool_for_drops().strength(0.5, 0.5).force_solid(true), {
             "powered": Powered(false),
         },
         polished_blackstone_button => BlockBehavior::new().strength(0.5, 0.5), {
@@ -4893,7 +4893,7 @@ make_block_states! {
             "facing": FacingCardinal::North,
             "powered": Powered(false),
         },
-        polished_blackstone_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {
+        polished_blackstone_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0).force_solid(true), {
             "east": WallEast::None,
             "north": WallNorth::None,
             "south": WallSouth::None,
@@ -5042,7 +5042,7 @@ make_block_states! {
         },
         amethyst_block => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 1.5), {},
         budding_amethyst => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 1.5), {},
-        amethyst_cluster => BlockBehavior::new().strength(1.5, 1.5), {
+        amethyst_cluster => BlockBehavior::new().strength(1.5, 1.5).force_solid(true), {
             "facing": FacingCubic::Up,
             "waterlogged": Waterlogged(false),
         },
@@ -5069,7 +5069,7 @@ make_block_states! {
             "shape": StairShape::Straight,
             "waterlogged": Waterlogged(false),
         },
-        tuff_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {
+        tuff_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0).force_solid(true), {
             "east": WallEast::None,
             "north": WallNorth::None,
             "south": WallSouth::None,
@@ -5088,7 +5088,7 @@ make_block_states! {
             "shape": StairShape::Straight,
             "waterlogged": Waterlogged(false),
         },
-        polished_tuff_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {
+        polished_tuff_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0).force_solid(true), {
             "east": WallEast::None,
             "north": WallNorth::None,
             "south": WallSouth::None,
@@ -5108,7 +5108,7 @@ make_block_states! {
             "shape": StairShape::Straight,
             "waterlogged": Waterlogged(false),
         },
-        tuff_brick_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0), {
+        tuff_brick_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0).force_solid(true), {
             "east": WallEast::None,
             "north": WallNorth::None,
             "south": WallSouth::None,
@@ -5132,7 +5132,7 @@ make_block_states! {
             "waterlogged": Waterlogged(false),
         },
         sculk => BlockBehavior::new().strength(0.2, 0.2), {},
-        sculk_vein => BlockBehavior::new().strength(0.2, 0.2), {
+        sculk_vein => BlockBehavior::new().strength(0.2, 0.2).force_solid(true), {
             "down": Down(false),
             "east": East(false),
             "north": North(false),
@@ -5423,12 +5423,12 @@ make_block_states! {
             "lit": Lit(false),
             "powered": Powered(false),
         },
-        lightning_rod => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
+        lightning_rod => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0).force_solid(true), {
             "facing": FacingCubic::Up,
             "powered": Powered(false),
             "waterlogged": Waterlogged(false),
         },
-        pointed_dripstone => BlockBehavior::new().strength(1.5, 3.0), {
+        pointed_dripstone => BlockBehavior::new().strength(1.5, 3.0).force_solid(true), {
             "thickness": Thickness::Tip,
             "vertical_direction": VerticalDirection::Up,
             "waterlogged": Waterlogged(false),
@@ -5442,8 +5442,8 @@ make_block_states! {
             "berries": Berries(false),
         },
         spore_blossom => BlockBehavior::new(), {},
-        azalea => BlockBehavior::new(), {},
-        flowering_azalea => BlockBehavior::new(), {},
+        azalea => BlockBehavior::new().force_solid(false), {},
+        flowering_azalea => BlockBehavior::new().force_solid(false), {},
         moss_carpet => BlockBehavior::new().strength(0.1, 0.1), {},
         pink_petals => BlockBehavior::new(), {
             "facing": FacingCardinal::North,
@@ -5458,7 +5458,7 @@ make_block_states! {
             "segment_amount": LeafLitterSegmentAmount::_1,
         },
         moss_block => BlockBehavior::new().strength(0.1, 0.1), {},
-        big_dripleaf => BlockBehavior::new().strength(0.1, 0.1), {
+        big_dripleaf => BlockBehavior::new().strength(0.1, 0.1).force_solid(false), {
             "facing": FacingCardinal::North,
             "tilt": Tilt::None,
             "waterlogged": Waterlogged(false),
@@ -5491,7 +5491,7 @@ make_block_states! {
             "type": Type::Bottom,
             "waterlogged": Waterlogged(false),
         },
-        cobbled_deepslate_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.5, 6.0), {
+        cobbled_deepslate_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.5, 6.0).force_solid(true), {
             "east": WallEast::None,
             "north": WallNorth::None,
             "south": WallSouth::None,
@@ -5510,7 +5510,7 @@ make_block_states! {
             "type": Type::Bottom,
             "waterlogged": Waterlogged(false),
         },
-        polished_deepslate_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.5, 6.0), {
+        polished_deepslate_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.5, 6.0).force_solid(true), {
             "east": WallEast::None,
             "north": WallNorth::None,
             "south": WallSouth::None,
@@ -5529,7 +5529,7 @@ make_block_states! {
             "type": Type::Bottom,
             "waterlogged": Waterlogged(false),
         },
-        deepslate_tile_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.5, 6.0), {
+        deepslate_tile_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.5, 6.0).force_solid(true), {
             "east": WallEast::None,
             "north": WallNorth::None,
             "south": WallSouth::None,
@@ -5548,7 +5548,7 @@ make_block_states! {
             "type": Type::Bottom,
             "waterlogged": Waterlogged(false),
         },
-        deepslate_brick_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.5, 6.0), {
+        deepslate_brick_wall => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.5, 6.0).force_solid(true), {
             "east": WallEast::None,
             "north": WallNorth::None,
             "south": WallSouth::None,

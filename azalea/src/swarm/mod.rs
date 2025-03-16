@@ -6,25 +6,36 @@ mod chat;
 mod events;
 pub mod prelude;
 
-use std::{collections::HashMap, future::Future, net::SocketAddr, sync::Arc, time::Duration};
+use std::{
+    collections::{HashMap, hash_map},
+    future::Future,
+    net::SocketAddr,
+    sync::{
+        Arc,
+        atomic::{self, AtomicBool},
+    },
+    time::Duration,
+};
 
 use azalea_client::{
-    chat::ChatPacket, start_ecs_runner, Account, Client, DefaultPlugins, Event, JoinError,
-    StartClientOpts,
+    Account, Client, DefaultPlugins, Event, JoinError, StartClientOpts, chat::ChatPacket,
+    start_ecs_runner,
 };
-use azalea_protocol::{resolver, ServerAddress};
+use azalea_protocol::{ServerAddress, resolver};
 use azalea_world::InstanceContainer;
 use bevy_app::{App, PluginGroup, PluginGroupBuilder, Plugins};
 use bevy_ecs::{component::Component, entity::Entity, system::Resource, world::World};
-use futures::future::{join_all, BoxFuture};
+use futures::future::{BoxFuture, join_all};
 use parking_lot::{Mutex, RwLock};
 use tokio::sync::mpsc;
-use tracing::error;
+use tracing::{debug, error, warn};
 
 use crate::{BoxHandleFn, DefaultBotPlugins, HandleFn, JoinOpts, NoState, StartError};
 
 /// A swarm is a way to conveniently control many bots at once, while also
 /// being able to control bots at an individual level when desired.
+///
+/// It can safely be cloned, so there should be no need to wrap them in a Mutex.
 ///
 /// Swarms are created from [`SwarmBuilder`].
 ///
@@ -45,7 +56,7 @@ pub struct Swarm {
     bots_tx: mpsc::UnboundedSender<(Option<Event>, Client)>,
     swarm_tx: mpsc::UnboundedSender<SwarmEvent>,
 
-    run_schedule_sender: mpsc::UnboundedSender<()>,
+    run_schedule_sender: mpsc::Sender<()>,
 }
 
 /// Create a new [`Swarm`].
@@ -362,6 +373,8 @@ where
             "There must be exactly one state per bot."
         );
 
+        debug!("Starting Azalea {}", env!("CARGO_PKG_VERSION"));
+
         // convert the TryInto<ServerAddress> into a ServerAddress
         let address = match address.try_into() {
             Ok(address) => address,
@@ -383,7 +396,7 @@ where
 
         swarm_tx.send(SwarmEvent::Init).unwrap();
 
-        let (run_schedule_sender, run_schedule_receiver) = mpsc::unbounded_channel();
+        let (run_schedule_sender, run_schedule_receiver) = mpsc::channel(1);
 
         let main_schedule_label = self.app.main().update_schedule.unwrap();
 
@@ -409,6 +422,7 @@ where
         {
             let mut ecs = ecs_lock.lock();
             ecs.insert_resource(swarm.clone());
+            ecs.insert_resource(self.swarm_state.clone());
             ecs.run_schedule(main_schedule_label);
             ecs.clear_trackers();
         }
@@ -468,8 +482,23 @@ where
 
         // bot events
         while let Some((Some(first_event), first_bot)) = bots_rx.recv().await {
+            if bots_rx.len() > 1_000 {
+                static WARNED: AtomicBool = AtomicBool::new(false);
+                if !WARNED.swap(true, atomic::Ordering::Relaxed) {
+                    warn!("the Client Event channel has more than 1000 items!")
+                }
+            }
+
             if let Some(handler) = &self.handler {
-                let first_bot_state = first_bot.component::<S>();
+                let ecs_mutex = first_bot.ecs.clone();
+                let mut ecs = ecs_mutex.lock();
+                let Some(first_bot_state) = first_bot.query::<Option<&S>>(&mut ecs).cloned() else {
+                    error!(
+                        "the first bot ({} / {}) is missing the required state component! none of the client handler functions will be called.",
+                        first_bot.profile.name, first_bot.entity
+                    );
+                    continue;
+                };
                 let first_bot_entity = first_bot.entity;
 
                 tokio::spawn((handler)(first_bot, first_event, first_bot_state.clone()));
@@ -478,9 +507,19 @@ where
                 let mut states = HashMap::new();
                 states.insert(first_bot_entity, first_bot_state);
                 while let Ok((Some(event), bot)) = bots_rx.try_recv() {
-                    let state = states
-                        .entry(bot.entity)
-                        .or_insert_with(|| bot.component::<S>().clone());
+                    let state = match states.entry(bot.entity) {
+                        hash_map::Entry::Occupied(e) => e.into_mut(),
+                        hash_map::Entry::Vacant(e) => {
+                            let Some(state) = bot.query::<Option<&S>>(&mut ecs).cloned() else {
+                                error!(
+                                    "one of our bots ({} / {}) is missing the required state component! its client handler function will not be called.",
+                                    bot.profile.name, bot.entity
+                                );
+                                continue;
+                            };
+                            e.insert(state)
+                        }
+                    };
                     tokio::spawn((handler)(bot, event, state.clone()));
                 }
             }
@@ -607,6 +646,8 @@ impl Swarm {
         state: S,
         join_opts: &JoinOpts,
     ) -> Result<Client, JoinError> {
+        debug!("add_with_opts called for account {}", account.username);
+
         let address = join_opts
             .custom_address
             .clone()
@@ -615,7 +656,7 @@ impl Swarm {
             .custom_resolved_address
             .unwrap_or_else(|| *self.resolved_address.read());
 
-        let (bot, mut rx) = Client::start_client(StartClientOpts {
+        let (bot, rx) = Client::start_client(StartClientOpts {
             ecs_lock: self.ecs_lock.clone(),
             account,
             address: &address,
@@ -637,24 +678,72 @@ impl Swarm {
         let cloned_bot = bot.clone();
         let swarm_tx = self.swarm_tx.clone();
         let join_opts = join_opts.clone();
-        tokio::spawn(async move {
-            while let Some(event) = rx.recv().await {
-                // we can't handle events here (since we can't copy the handler),
-                // they're handled above in SwarmBuilder::start
-                if let Err(e) = cloned_bots_tx.send((Some(event), cloned_bot.clone())) {
-                    error!("Error sending event to swarm: {e}");
-                }
-            }
-            cloned_bots.lock().remove(&bot.entity);
-            let account = cloned_bot
-                .get_component::<Account>()
-                .expect("bot is missing required Account component");
-            swarm_tx
-                .send(SwarmEvent::Disconnect(Box::new(account), join_opts))
-                .unwrap();
-        });
+        tokio::spawn(Self::event_copying_task(
+            rx,
+            cloned_bots,
+            cloned_bots_tx,
+            cloned_bot,
+            swarm_tx,
+            join_opts,
+        ));
 
         Ok(bot)
+    }
+
+    async fn event_copying_task(
+        mut rx: mpsc::UnboundedReceiver<Event>,
+        cloned_bots: Arc<Mutex<HashMap<Entity, Client>>>,
+        cloned_bots_tx: mpsc::UnboundedSender<(Option<Event>, Client)>,
+        cloned_bot: Client,
+        swarm_tx: mpsc::UnboundedSender<SwarmEvent>,
+        join_opts: JoinOpts,
+    ) {
+        while let Some(event) = rx.recv().await {
+            if rx.len() > 1_000 {
+                static WARNED_1_000: AtomicBool = AtomicBool::new(false);
+                if !WARNED_1_000.swap(true, atomic::Ordering::Relaxed) {
+                    warn!("the client's Event channel has more than 1000 items!")
+                }
+
+                if rx.len() > 10_000 {
+                    static WARNED_10_000: AtomicBool = AtomicBool::new(false);
+                    if !WARNED_10_000.swap(true, atomic::Ordering::Relaxed) {
+                        warn!("the client's Event channel has more than 10,000 items!!")
+                    }
+
+                    if rx.len() > 100_000 {
+                        static WARNED_100_000: AtomicBool = AtomicBool::new(false);
+                        if !WARNED_100_000.swap(true, atomic::Ordering::Relaxed) {
+                            warn!("the client's Event channel has more than 100,000 items!!!")
+                        }
+
+                        if rx.len() > 1_000_000 {
+                            static WARNED_1_000_000: AtomicBool = AtomicBool::new(false);
+                            if !WARNED_1_000_000.swap(true, atomic::Ordering::Relaxed) {
+                                warn!(
+                                    "the client's Event channel has more than 1,000,000 items!!!! i sincerely hope no one ever sees this warning"
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            // we can't handle events here (since we can't copy the handler),
+            // they're handled above in SwarmBuilder::start
+            if let Err(e) = cloned_bots_tx.send((Some(event), cloned_bot.clone())) {
+                error!("Error sending event to swarm: {e}");
+            }
+        }
+        debug!("client sender ended, removing from cloned_bots and sending SwarmEvent::Disconnect");
+
+        cloned_bots.lock().remove(&cloned_bot.entity);
+        let account = cloned_bot
+            .get_component::<Account>()
+            .expect("bot is missing required Account component");
+        swarm_tx
+            .send(SwarmEvent::Disconnect(Box::new(account), join_opts))
+            .unwrap();
     }
 
     /// Add a new account to the swarm, retrying if it couldn't join. This will
@@ -689,14 +778,17 @@ impl Swarm {
                         .min(Duration::from_secs(15));
                     let username = account.username.clone();
 
-                    if let JoinError::Disconnect { reason } = &e {
-                        error!(
-                            "Error joining as {username}, server says: \"{reason}\". Waiting {delay:?} and trying again."
-                        );
-                    } else {
-                        error!(
-                            "Error joining as {username}: {e}. Waiting {delay:?} and trying again."
-                        );
+                    match &e {
+                        JoinError::Disconnect { reason } => {
+                            error!(
+                                "Error joining as {username}, server says: \"{reason}\". Waiting {delay:?} and trying again."
+                            );
+                        }
+                        _ => {
+                            error!(
+                                "Error joining as {username}: {e}. Waiting {delay:?} and trying again."
+                            );
+                        }
                     }
 
                     tokio::time::sleep(delay).await;

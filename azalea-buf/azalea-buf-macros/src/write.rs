@@ -1,6 +1,6 @@
 use proc_macro2::Span;
-use quote::{quote, ToTokens};
-use syn::{punctuated::Punctuated, token::Comma, Data, Field, FieldsNamed, Ident};
+use quote::{ToTokens, quote};
+use syn::{Data, Field, FieldsNamed, Ident, punctuated::Punctuated, token::Comma};
 
 fn write_named_fields(
     named: &Punctuated<Field, Comma>,

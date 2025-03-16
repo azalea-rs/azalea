@@ -5,7 +5,7 @@ use azalea_buf::{AzaleaRead, AzaleaWrite};
 use azalea_core::bitset::FixedBitSet;
 use azalea_protocol_macros::ServerboundGamePacket;
 
-#[derive(Clone, Debug, ServerboundGamePacket)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, ServerboundGamePacket)]
 pub struct ServerboundPlayerInput {
     pub forward: bool,
     pub backward: bool,

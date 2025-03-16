@@ -1,26 +1,26 @@
 [package]
 name = "azalea-auth"
 description = "A port of Mojang's Authlib and launcher authentication."
-version = { workspace = true }
-edition = { workspace = true }
-license = { workspace = true }
-repository = { workspace = true }
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
 
 [dependencies]
 azalea-buf = { path = "../azalea-buf", version = "0.11.0" }
 azalea-crypto = { path = "../azalea-crypto", version = "0.11.0" }
-base64 = { workspace = true }
+base64.workspace = true
 chrono = { workspace = true, features = ["serde"] }
-md-5 = { workspace = true }
+md-5.workspace = true
 reqwest = { workspace = true, features = ["json", "rustls-tls"] }
-rsa = { workspace = true }
+rsa.workspace = true
 serde = { workspace = true, features = ["derive"] }
-serde_json = { workspace = true }
-thiserror = { workspace = true }
+serde_json.workspace = true
+thiserror.workspace = true
 tokio = { workspace = true, features = ["fs"] }
-tracing = { workspace = true }
+tracing.workspace = true
 uuid = { workspace = true, features = ["serde", "v3"] }
 
 [dev-dependencies]
-env_logger = { workspace = true }
+env_logger.workspace = true
 tokio = { workspace = true, features = ["full"] }

@@ -1,17 +1,21 @@
-use std::fmt::Formatter;
+use std::fmt::{self, Display, Formatter};
 use std::hash::{Hash, Hasher};
+use std::io::{self, Cursor};
 use std::{
     collections::{HashMap, HashSet},
     fmt::Debug,
 };
 
-use azalea_block::fluid_state::FluidState;
 use azalea_block::BlockState;
+use azalea_block::fluid_state::FluidState;
+use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
 use azalea_core::position::{BlockPos, ChunkPos};
 use azalea_core::registry_holder::RegistryHolder;
 use bevy_ecs::{component::Component, entity::Entity};
 use derive_more::{Deref, DerefMut};
 use nohash_hasher::IntMap;
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 
 use crate::{ChunkStorage, PartialChunkStorage};
 
@@ -39,19 +43,70 @@ impl PartialInstance {
     }
 }
 
-/// An entity ID used by Minecraft. These are not guaranteed to be unique in
-/// shared worlds, that's what [`Entity`] is for.
+/// An entity ID used by Minecraft.
+///
+/// These IDs are picked by the server. Some server softwares (like Bungeecord)
+/// may pick entity IDs per-player, so you should avoid relying on them for
+/// identifying IDs (especially if you're using a shared world -- i.e. a swarm).
+///
+/// You might find [`Entity`] more useful, since that's an ID decided by us that
+/// is likely to be correct across shared worlds. You could also use the
+/// `EntityUuid` from `azalea_entity`, that one is unlikely to change even
+/// across server restarts.
+///
+/// This serializes as a i32. Usually it's a VarInt in the protocol, but not
+/// always. If you do need it to serialize as a VarInt, make sure to use use the
+/// `#[var]` attribute.
 ///
 /// [`Entity`]: bevy_ecs::entity::Entity
-#[derive(Component, Copy, Clone, Debug, PartialEq, Eq, Deref, DerefMut)]
-pub struct MinecraftEntityId(pub u32);
+#[derive(Component, Copy, Clone, Debug, Default, PartialEq, Eq, Deref, DerefMut)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+pub struct MinecraftEntityId(pub i32);
 
 impl Hash for MinecraftEntityId {
     fn hash<H: Hasher>(&self, hasher: &mut H) {
-        hasher.write_u32(self.0);
+        hasher.write_i32(self.0);
     }
 }
 impl nohash_hasher::IsEnabled for MinecraftEntityId {}
+
+// we can't have the default be #[var] because mojang doesn't use varints for
+// entities sometimes :(
+impl AzaleaRead for MinecraftEntityId {
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        i32::azalea_read(buf).map(MinecraftEntityId)
+    }
+}
+impl AzaleaWrite for MinecraftEntityId {
+    fn azalea_write(&self, buf: &mut impl io::Write) -> Result<(), io::Error> {
+        i32::azalea_write(&self.0, buf)
+    }
+}
+impl AzaleaReadVar for MinecraftEntityId {
+    fn azalea_read_var(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        i32::azalea_read_var(buf).map(MinecraftEntityId)
+    }
+}
+impl AzaleaWriteVar for MinecraftEntityId {
+    fn azalea_write_var(&self, buf: &mut impl io::Write) -> Result<(), io::Error> {
+        i32::azalea_write_var(&self.0, buf)
+    }
+}
+impl Display for MinecraftEntityId {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "eid({})", self.0)
+    }
+}
+impl From<i32> for MinecraftEntityId {
+    fn from(id: i32) -> Self {
+        Self(id)
+    }
+}
+impl From<u32> for MinecraftEntityId {
+    fn from(id: u32) -> Self {
+        Self(id as i32)
+    }
+}
 
 /// Keep track of certain metadatas that are only relevant for this partial
 /// world.

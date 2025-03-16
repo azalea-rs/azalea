@@ -2,23 +2,24 @@ use std::backtrace::Backtrace;
 
 use azalea_core::position::Vec3;
 use azalea_core::tick::GameTick;
-use azalea_entity::{metadata::Sprinting, Attributes, Jumping};
+use azalea_entity::{Attributes, Jumping, metadata::Sprinting};
 use azalea_entity::{InLoadedChunk, LastSentPosition, LookDirection, Physics, Position};
-use azalea_physics::{ai_step, PhysicsSet};
-use azalea_protocol::packets::game::ServerboundPlayerCommand;
+use azalea_physics::{PhysicsSet, ai_step};
+use azalea_protocol::packets::game::{ServerboundPlayerCommand, ServerboundPlayerInput};
 use azalea_protocol::packets::{
+    Packet,
     game::{
         s_move_player_pos::ServerboundMovePlayerPos,
         s_move_player_pos_rot::ServerboundMovePlayerPosRot,
         s_move_player_rot::ServerboundMovePlayerRot,
         s_move_player_status_only::ServerboundMovePlayerStatusOnly,
     },
-    Packet,
 };
 use azalea_world::{MinecraftEntityId, MoveEntityError};
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::{Event, EventWriter};
 use bevy_ecs::schedule::SystemSet;
+use bevy_ecs::system::Commands;
 use bevy_ecs::{
     component::Component, entity::Entity, event::EventReader, query::With,
     schedule::IntoSystemConfigs, system::Query,
@@ -26,7 +27,7 @@ use bevy_ecs::{
 use thiserror::Error;
 
 use crate::client::Client;
-use crate::packet_handling::game::SendPacketEvent;
+use crate::packet::game::SendPacketEvent;
 
 #[derive(Error, Debug)]
 pub enum MovePlayerError {
@@ -46,9 +47,9 @@ impl From<MoveEntityError> for MovePlayerError {
     }
 }
 
-pub struct PlayerMovePlugin;
+pub struct MovementPlugin;
 
-impl Plugin for PlayerMovePlugin {
+impl Plugin for MovementPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<StartWalkEvent>()
             .add_event::<StartSprintEvent>()
@@ -68,6 +69,7 @@ impl Plugin for PlayerMovePlugin {
                         .before(ai_step)
                         .before(azalea_physics::fluids::update_in_water_state_and_do_fluid_pushing),
                     send_sprinting_if_needed.after(azalea_entity::update_in_loaded_chunk),
+                    send_player_input_packet,
                     send_position.after(PhysicsSet),
                 )
                     .chain(),
@@ -251,6 +253,41 @@ pub fn send_position(
     }
 }
 
+#[derive(Debug, Default, Component, Clone, PartialEq, Eq)]
+pub struct LastSentInput(pub ServerboundPlayerInput);
+pub fn send_player_input_packet(
+    mut query: Query<(Entity, &PhysicsState, &Jumping, Option<&LastSentInput>)>,
+    mut send_packet_events: EventWriter<SendPacketEvent>,
+    mut commands: Commands,
+) {
+    for (entity, physics_state, jumping, last_sent_input) in query.iter_mut() {
+        let dir = physics_state.move_direction;
+        type D = WalkDirection;
+        let input = ServerboundPlayerInput {
+            forward: matches!(dir, D::Forward | D::ForwardLeft | D::ForwardRight),
+            backward: matches!(dir, D::Backward | D::BackwardLeft | D::BackwardRight),
+            left: matches!(dir, D::Left | D::ForwardLeft | D::BackwardLeft),
+            right: matches!(dir, D::Right | D::ForwardRight | D::BackwardRight),
+            jump: **jumping,
+            // TODO: implement sneaking
+            shift: false,
+            sprint: physics_state.trying_to_sprint,
+        };
+
+        // if LastSentInput isn't present, we default to assuming we're not pressing any
+        // keys and insert it anyways every time it changes
+        let last_sent_input = last_sent_input.cloned().unwrap_or_default();
+
+        if input != last_sent_input.0 {
+            send_packet_events.send(SendPacketEvent {
+                sent_by: entity,
+                packet: input.clone().into_variant(),
+            });
+            commands.entity(entity).insert(LastSentInput(input));
+        }
+    }
+}
+
 fn send_sprinting_if_needed(
     mut query: Query<(Entity, &MinecraftEntityId, &Sprinting, &mut PhysicsState)>,
     mut send_packet_events: EventWriter<SendPacketEvent>,
@@ -266,7 +303,7 @@ fn send_sprinting_if_needed(
             send_packet_events.send(SendPacketEvent::new(
                 entity,
                 ServerboundPlayerCommand {
-                    id: **minecraft_entity_id,
+                    id: *minecraft_entity_id,
                     action: sprinting_action,
                     data: 0,
                 },
@@ -510,7 +547,7 @@ pub fn handle_knockback(mut query: Query<&mut Physics>, mut events: EventReader<
     }
 }
 
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum WalkDirection {
     #[default]
     None,

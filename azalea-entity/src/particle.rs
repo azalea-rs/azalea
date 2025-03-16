@@ -8,7 +8,7 @@ use bevy_ecs::component::Component;
 // the order of this enum must be kept in sync with ParticleKind, otherwise
 // we get errors parsing particles.
 /// A [`ParticleKind`] with data potentially attached to it.
-#[derive(Component, Clone, Debug, AzBuf, Default)]
+#[derive(Component, Clone, Debug, AzBuf)]
 pub enum Particle {
     AngryVillager,
     Block(BlockParticle),
@@ -30,8 +30,7 @@ pub enum Particle {
     EnchantedHit,
     Enchant,
     EndRod,
-    #[default]
-    EntityEffect,
+    EntityEffect(ColorParticle),
     ExplosionEmitter,
     Explosion,
     Gust,
@@ -124,6 +123,7 @@ pub enum Particle {
     RaidOmen,
     TrialOmen,
     BlockCrumble,
+    Firefly,
 }
 
 impl From<ParticleKind> for Particle {
@@ -155,7 +155,7 @@ impl From<ParticleKind> for Particle {
             ParticleKind::EnchantedHit => Self::EnchantedHit,
             ParticleKind::Enchant => Self::Enchant,
             ParticleKind::EndRod => Self::EndRod,
-            ParticleKind::EntityEffect => Self::EntityEffect,
+            ParticleKind::EntityEffect => Self::EntityEffect(ColorParticle::default()),
             ParticleKind::ExplosionEmitter => Self::ExplosionEmitter,
             ParticleKind::Explosion => Self::Explosion,
             ParticleKind::Gust => Self::Gust,
@@ -248,7 +248,14 @@ impl From<ParticleKind> for Particle {
             ParticleKind::TrialOmen => Self::TrialOmen,
             ParticleKind::Trail => Self::Trail,
             ParticleKind::BlockCrumble => Self::BlockCrumble,
+            ParticleKind::Firefly => Self::Firefly,
         }
+    }
+}
+
+impl Default for Particle {
+    fn default() -> Self {
+        Self::EntityEffect(ColorParticle::default())
     }
 }
 
@@ -269,6 +276,11 @@ pub struct DustColorTransitionParticle {
     pub to: RgbColor,
     /// The scale, will be clamped between 0.01 and 4.
     pub scale: f32,
+}
+
+#[derive(Debug, Clone, AzBuf, Default)]
+pub struct ColorParticle {
+    pub color: RgbColor,
 }
 
 #[derive(Debug, Clone, AzBuf, Default)]

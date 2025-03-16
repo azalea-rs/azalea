@@ -7,9 +7,10 @@
 
 use std::{collections::HashMap, io::Cursor};
 
+use indexmap::IndexMap;
 use simdnbt::{
-    owned::{NbtCompound, NbtTag},
     Deserialize, FromNbtTag, Serialize, ToNbtTag,
+    owned::{NbtCompound, NbtTag},
 };
 use tracing::error;
 
@@ -18,23 +19,28 @@ use crate::resource_location::ResourceLocation;
 /// The base of the registry.
 ///
 /// This is the registry that is sent to the client upon login.
+///
+/// Note that `azalea-client` stores registries per-world instead of per-client
+/// like you might expect. This is an optimization for swarms to reduce memory
+/// usage, since registries are expected to be the same for every client in a
+/// world.
 #[derive(Default, Debug, Clone)]
 pub struct RegistryHolder {
-    pub map: HashMap<ResourceLocation, HashMap<ResourceLocation, NbtCompound>>,
+    pub map: HashMap<ResourceLocation, IndexMap<ResourceLocation, NbtCompound>>,
 }
 
 impl RegistryHolder {
     pub fn append(
         &mut self,
         id: ResourceLocation,
-        entries: HashMap<ResourceLocation, Option<NbtCompound>>,
+        entries: Vec<(ResourceLocation, Option<NbtCompound>)>,
     ) {
         let map = self.map.entry(id).or_default();
         for (key, value) in entries {
             if let Some(value) = value {
                 map.insert(key, value);
             } else {
-                map.remove(&key);
+                map.shift_remove(&key);
             }
         }
     }
@@ -152,7 +158,7 @@ pub struct DimensionTypeElement {
     pub natural: bool,
     pub piglin_safe: bool,
     pub respawn_anchor_works: bool,
-    pub ultrawarm: bool,
+    pub ultrawarm: Option<bool>,
 }
 
 /// Dimension attributes.
@@ -161,7 +167,7 @@ pub struct DimensionTypeElement {
 pub struct DimensionTypeElement {
     pub height: u32,
     pub min_y: i32,
-    pub ultrawarm: bool,
+    pub ultrawarm: Option<bool>,
     #[simdnbt(flatten)]
     pub _extra: HashMap<String, NbtTag>,
 }

@@ -2,7 +2,8 @@ use azalea_protocol::packets::game::s_client_command::{self, ServerboundClientCo
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 
-use crate::packet_handling::game::{handle_send_packet_event, SendPacketEvent};
+use super::packet::game::handle_outgoing_packets;
+use crate::packet::game::SendPacketEvent;
 
 /// Tell the server that we're respawning.
 #[derive(Event, Debug, Clone)]
@@ -15,7 +16,7 @@ pub struct RespawnPlugin;
 impl Plugin for RespawnPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<PerformRespawnEvent>()
-            .add_systems(Update, perform_respawn.before(handle_send_packet_event));
+            .add_systems(Update, perform_respawn.before(handle_outgoing_packets));
     }
 }
 

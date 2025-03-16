@@ -17,7 +17,7 @@ use std::{
 };
 
 pub use attributes::Attributes;
-use azalea_block::{fluid_state::FluidKind, BlockState};
+use azalea_block::{BlockState, fluid_state::FluidKind};
 use azalea_buf::AzBuf;
 use azalea_core::{
     aabb::AABB,
@@ -209,8 +209,8 @@ impl From<&LastSentPosition> for BlockPos {
 ///
 /// If this is true, the entity will try to jump every tick. It's equivalent to
 /// the space key being held in vanilla.
-#[derive(Debug, Component, Copy, Clone, Deref, DerefMut, Default)]
-pub struct Jumping(bool);
+#[derive(Debug, Component, Copy, Clone, Deref, DerefMut, Default, PartialEq, Eq)]
+pub struct Jumping(pub bool);
 
 /// A component that contains the direction an entity is looking.
 #[derive(Debug, Component, Copy, Clone, Default, PartialEq, AzBuf)]
@@ -478,18 +478,13 @@ impl EntityBundle {
     }
 }
 
-/// A bundle of the components that are always present for a player.
-#[derive(Bundle)]
-pub struct PlayerBundle {
-    pub entity: EntityBundle,
-    pub metadata: metadata::PlayerMetadataBundle,
-}
-
 /// A marker component that signifies that this entity is "local" and shouldn't
 /// be updated by other clients.
 ///
 /// If this is for a client then all of our clients will have this.
-#[derive(Component, Clone)]
+///
+/// This component is not removed from clients when they disconnect.
+#[derive(Component, Clone, Debug, Default)]
 pub struct LocalEntity;
 
 #[derive(Component, Clone, Debug, PartialEq, Deref, DerefMut)]

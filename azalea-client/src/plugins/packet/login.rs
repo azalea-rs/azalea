@@ -4,11 +4,11 @@
 use std::{collections::HashSet, sync::Arc};
 
 use azalea_protocol::packets::{
-    login::{
-        s_custom_query_answer::ServerboundCustomQueryAnswer, ClientboundLoginPacket,
-        ServerboundLoginPacket,
-    },
     Packet,
+    login::{
+        ClientboundLoginPacket, ServerboundLoginPacket,
+        s_custom_query_answer::ServerboundCustomQueryAnswer,
+    },
 };
 use bevy_ecs::{prelude::*, system::SystemState};
 use derive_more::{Deref, DerefMut};
@@ -20,7 +20,7 @@ use tracing::error;
 
 /// An event that's sent when we receive a login packet from the server. Note
 /// that if you want to handle this in a system, you must add
-/// `.before(azalea::packet_handling::login::process_packet_events)` to it
+/// `.before(azalea::packet::login::process_packet_events)` to it
 /// because that system clears the events.
 #[derive(Event, Debug, Clone)]
 pub struct LoginPacketEvent {
@@ -47,6 +47,11 @@ impl SendLoginPacketEvent {
 pub struct LoginSendPacketQueue {
     pub tx: mpsc::UnboundedSender<ServerboundLoginPacket>,
 }
+
+/// A marker component for local players that are currently in the
+/// `login` state.
+#[derive(Component, Clone, Debug)]
+pub struct InLoginState;
 
 pub fn handle_send_packet_event(
     mut send_packet_events: EventReader<SendLoginPacketEvent>,

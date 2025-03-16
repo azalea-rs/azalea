@@ -3,15 +3,20 @@ use std::{any::Any, collections::HashMap, io::Cursor};
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
 use azalea_chat::FormattedText;
-use azalea_core::{position::GlobalPos, resource_location::ResourceLocation};
+use azalea_core::{
+    filterable::Filterable, position::GlobalPos, resource_location::ResourceLocation,
+    sound::CustomSound,
+};
 use azalea_registry::{
-    self as registry, Attribute, Block, ConsumeEffectKind, DataComponentKind, Enchantment,
-    EntityKind, HolderSet, Item, MobEffect, Potion, SoundEvent, TrimMaterial, TrimPattern,
+    self as registry, Attribute, Block, ConsumeEffectKind, DamageKind, DataComponentKind,
+    Enchantment, EntityKind, Holder, HolderSet, Item, MobEffect, Potion, SoundEvent, TrimMaterial,
+    TrimPattern,
 };
 use simdnbt::owned::{Nbt, NbtCompound};
+use tracing::trace;
 use uuid::Uuid;
 
-use crate::ItemStack;
+use crate::{ItemStack, item::consume_effect::ConsumeEffect};
 
 pub trait DataComponent: Send + Sync + Any {
     const KIND: DataComponentKind;
@@ -39,10 +44,9 @@ where
     }
     fn eq(&self, other: Box<dyn EncodableDataComponent>) -> bool {
         let other_any: Box<dyn Any> = other;
-        if let Some(other) = other_any.downcast_ref::<T>() {
-            self == other
-        } else {
-            false
+        match other_any.downcast_ref::<T>() {
+            Some(other) => self == other,
+            _ => false,
         }
     }
 }
@@ -53,6 +57,8 @@ pub fn from_kind(
 ) -> Result<Box<dyn EncodableDataComponent>, BufReadError> {
     // if this is causing a compile-time error, look at DataComponents.java in the
     // decompiled vanilla code to see how to implement new components
+
+    trace!("Reading data component {kind}");
 
     // note that this match statement is updated by genitemcomponents.py
     Ok(match kind {
@@ -363,8 +369,10 @@ impl DataComponent for AttributeModifiers {
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct CustomModelData {
-    #[var]
-    pub value: i32,
+    pub floats: Vec<f32>,
+    pub flags: Vec<bool>,
+    pub strings: Vec<String>,
+    pub colors: Vec<i32>,
 }
 impl DataComponent for CustomModelData {
     const KIND: DataComponentKind = DataComponentKind::CustomModelData;
@@ -528,6 +536,7 @@ pub struct PotionContents {
     pub potion: Option<Potion>,
     pub custom_color: Option<i32>,
     pub custom_effects: Vec<MobEffectInstance>,
+    pub custom_name: Option<String>,
 }
 impl DataComponent for PotionContents {
     const KIND: DataComponentKind = DataComponentKind::PotionContents;
@@ -558,13 +567,15 @@ impl DataComponent for WritableBookContent {
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct WrittenBookContent {
-    pub title: String,
+    #[limit(32)]
+    pub title: Filterable<String>,
     pub author: String,
     #[var]
     pub generation: i32,
-    pub pages: Vec<FormattedText>,
+    pub pages: Vec<Filterable<FormattedText>>,
     pub resolved: bool,
 }
+
 impl DataComponent for WrittenBookContent {
     const KIND: DataComponentKind = DataComponentKind::WrittenBookContent;
 }
@@ -685,7 +696,7 @@ pub struct GameProfileProperty {
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct Profile {
-    pub name: String,
+    pub name: Option<String>,
     pub id: Option<Uuid>,
     pub properties: Vec<GameProfileProperty>,
 }
@@ -815,9 +826,9 @@ impl DataComponent for JukeboxPlayable {
 pub struct Consumable {
     pub consume_seconds: f32,
     pub animation: ItemUseAnimation,
-    pub sound: SoundEvent,
+    pub sound: azalea_registry::Holder<SoundEvent, CustomSound>,
     pub has_consume_particles: bool,
-    pub on_consuime_effects: Vec<ConsumeEffectKind>,
+    pub on_consume_effects: Vec<ConsumeEffect>,
 }
 impl DataComponent for Consumable {
     const KIND: DataComponentKind = DataComponentKind::Consumable;
@@ -1146,7 +1157,8 @@ impl DataComponent for ShulkerColor {
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct TooltipDisplay {
-    pub todo: todo!(), // see DataComponents.java
+    pub hide_tooltip: bool,
+    pub hidden_components: Vec<DataComponentKind>,
 }
 impl DataComponent for TooltipDisplay {
     const KIND: DataComponentKind = DataComponentKind::TooltipDisplay;
@@ -1154,23 +1166,58 @@ impl DataComponent for TooltipDisplay {
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct BlocksAttacks {
-    pub todo: todo!(), // see DataComponents.java
+    pub block_delay_seconds: f32,
+    pub disable_cooldown_scale: f32,
+    pub damage_reductions: Vec<DamageReduction>,
+    pub item_damage: ItemDamageFunction,
+    pub bypassed_by: Option<ResourceLocation>,
+    pub block_sound: Option<azalea_registry::Holder<SoundEvent, CustomSound>>,
+    pub disable_sound: Option<azalea_registry::Holder<SoundEvent, CustomSound>>,
 }
 impl DataComponent for BlocksAttacks {
     const KIND: DataComponentKind = DataComponentKind::BlocksAttacks;
 }
 
 #[derive(Clone, PartialEq, AzBuf)]
-pub struct ProvidesTrimMaterial {
-    pub todo: todo!(), // see DataComponents.java
+pub struct DamageReduction {
+    pub horizontal_blocking_angle: f32,
+    pub kind: Option<HolderSet<DamageKind, ResourceLocation>>,
+}
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct ItemDamageFunction {
+    pub threshold: f32,
+    pub base: f32,
+    pub factor: f32,
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub enum ProvidesTrimMaterial {
+    Holder(Holder<TrimMaterial, DirectTrimMaterial>),
+    Registry(TrimMaterial),
 }
 impl DataComponent for ProvidesTrimMaterial {
     const KIND: DataComponentKind = DataComponentKind::ProvidesTrimMaterial;
 }
 
 #[derive(Clone, PartialEq, AzBuf)]
+pub struct DirectTrimMaterial {
+    pub assets: MaterialAssetGroup,
+    pub description: FormattedText,
+}
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct MaterialAssetGroup {
+    pub base: AssetInfo,
+    pub overrides: Vec<(ResourceLocation, AssetInfo)>,
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct AssetInfo {
+    pub suffix: String,
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
 pub struct ProvidesBannerPatterns {
-    pub todo: todo!(), // see DataComponents.java
+    pub key: ResourceLocation,
 }
 impl DataComponent for ProvidesBannerPatterns {
     const KIND: DataComponentKind = DataComponentKind::ProvidesBannerPatterns;
@@ -1178,7 +1225,7 @@ impl DataComponent for ProvidesBannerPatterns {
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct BreakSound {
-    pub todo: todo!(), // see DataComponents.java
+    pub sound: azalea_registry::Holder<SoundEvent, CustomSound>,
 }
 impl DataComponent for BreakSound {
     const KIND: DataComponentKind = DataComponentKind::BreakSound;
@@ -1186,7 +1233,7 @@ impl DataComponent for BreakSound {
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct WolfSoundVariant {
-    pub todo: todo!(), // see DataComponents.java
+    pub variant: azalea_registry::WolfSoundVariant,
 }
 impl DataComponent for WolfSoundVariant {
     const KIND: DataComponentKind = DataComponentKind::WolfSoundVariant;
@@ -1194,7 +1241,7 @@ impl DataComponent for WolfSoundVariant {
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct CowVariant {
-    pub todo: todo!(), // see DataComponents.java
+    pub variant: azalea_registry::CowVariant,
 }
 impl DataComponent for CowVariant {
     const KIND: DataComponentKind = DataComponentKind::CowVariant;
@@ -1202,7 +1249,7 @@ impl DataComponent for CowVariant {
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct ChickenVariant {
-    pub todo: todo!(), // see DataComponents.java
+    pub variant: azalea_registry::ChickenVariant,
 }
 impl DataComponent for ChickenVariant {
     const KIND: DataComponentKind = DataComponentKind::ChickenVariant;

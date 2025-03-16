@@ -3,12 +3,12 @@ use std::{cmp, num::NonZeroU32, sync::LazyLock};
 use azalea_core::{
     block_hit_result::BlockHitResult,
     direction::{Axis, AxisCycle, Direction},
-    math::{binary_search, EPSILON},
+    math::{EPSILON, binary_search},
     position::{BlockPos, Vec3},
 };
 
 use super::mergers::IndexMerger;
-use crate::collision::{BitSetDiscreteVoxelShape, DiscreteVoxelShape, AABB};
+use crate::collision::{AABB, BitSetDiscreteVoxelShape, DiscreteVoxelShape};
 
 pub struct Shapes;
 
@@ -26,24 +26,9 @@ pub fn box_shape(
     max_y: f64,
     max_z: f64,
 ) -> VoxelShape {
-    assert!(min_x >= 0., "min_x must be >= 0 but was {min_x}");
-    assert!(min_y >= 0.);
-    assert!(min_z >= 0.);
-    assert!(max_x >= 0.);
-    assert!(max_y >= 0.);
-    assert!(max_z >= 0.);
+    // we don't check for the numbers being out of bounds because some blocks are
+    // weird and are outside 0-1
 
-    box_shape_unchecked(min_x, min_y, min_z, max_x, max_y, max_z)
-}
-
-pub fn box_shape_unchecked(
-    min_x: f64,
-    min_y: f64,
-    min_z: f64,
-    max_x: f64,
-    max_y: f64,
-    max_z: f64,
-) -> VoxelShape {
     if max_x - min_x < EPSILON && max_y - min_y < EPSILON && max_z - min_z < EPSILON {
         return EMPTY_SHAPE.clone();
     }
@@ -209,7 +194,7 @@ impl Shapes {
     }
 
     /// Check if the op is true anywhere when joining the two shapes
-    /// vanilla calls this joinIsNotEmpty
+    /// vanilla calls this joinIsNotEmpty (join_is_not_empty).
     pub fn matches_anywhere(
         a: &VoxelShape,
         b: &VoxelShape,
@@ -589,11 +574,16 @@ impl VoxelShape {
     }
 }
 
-impl From<AABB> for VoxelShape {
-    fn from(aabb: AABB) -> Self {
-        box_shape_unchecked(
+impl From<&AABB> for VoxelShape {
+    fn from(aabb: &AABB) -> Self {
+        box_shape(
             aabb.min.x, aabb.min.y, aabb.min.z, aabb.max.x, aabb.max.y, aabb.max.z,
         )
+    }
+}
+impl From<AABB> for VoxelShape {
+    fn from(aabb: AABB) -> Self {
+        VoxelShape::from(&aabb)
     }
 }
 

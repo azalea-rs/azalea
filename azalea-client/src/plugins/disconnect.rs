@@ -1,7 +1,7 @@
 //! Disconnect a client from the server.
 
 use azalea_chat::FormattedText;
-use azalea_entity::LocalEntity;
+use azalea_entity::{EntityBundle, InLoadedChunk, LocalEntity, metadata::PlayerMetadataBundle};
 use bevy_app::{App, Plugin, PostUpdate};
 use bevy_ecs::{
     component::Component,
@@ -13,8 +13,12 @@ use bevy_ecs::{
     system::{Commands, Query},
 };
 use derive_more::Deref;
+use tracing::trace;
 
-use crate::{client::JoinedClientBundle, events::LocalPlayerEvents, raw_connection::RawConnection};
+use crate::{
+    InstanceHolder, client::JoinedClientBundle, events::LocalPlayerEvents,
+    raw_connection::RawConnection,
+};
 
 pub struct DisconnectPlugin;
 impl Plugin for DisconnectPlugin {
@@ -38,22 +42,35 @@ pub struct DisconnectEvent {
     pub reason: Option<FormattedText>,
 }
 
-/// System that removes the [`JoinedClientBundle`] from the entity when it
-/// receives a [`DisconnectEvent`].
+/// A system that removes the several components from our clients when they get
+/// a [`DisconnectEvent`].
 pub fn remove_components_from_disconnected_players(
     mut commands: Commands,
     mut events: EventReader<DisconnectEvent>,
+    mut loaded_by_query: Query<&mut azalea_entity::LoadedBy>,
 ) {
     for DisconnectEvent { entity, .. } in events.read() {
+        trace!("Got DisconnectEvent for {entity:?}");
         commands
             .entity(*entity)
             .remove::<JoinedClientBundle>()
+            .remove::<EntityBundle>()
+            .remove::<InstanceHolder>()
+            .remove::<PlayerMetadataBundle>()
+            .remove::<InLoadedChunk>()
             // this makes it close the tcp connection
             .remove::<RawConnection>()
             // swarm detects when this tx gets dropped to fire SwarmEvent::Disconnect
             .remove::<LocalPlayerEvents>();
         // note that we don't remove the client from the ECS, so if they decide
         // to reconnect they'll keep their state
+
+        // now we have to remove ourselves from the LoadedBy for every entity.
+        // in theory this could be inefficient if we have massive swarms... but in
+        // practice this is fine.
+        for mut loaded_by in &mut loaded_by_query.iter_mut() {
+            loaded_by.remove(entity);
+        }
     }
 }
 

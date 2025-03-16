@@ -3,19 +3,20 @@
 use std::io;
 
 use azalea_protocol::{
+    ServerAddress,
     connect::{Connection, ConnectionError, Proxy},
     packets::{
+        ClientIntention, PROTOCOL_VERSION,
         handshake::{
-            s_intention::ServerboundIntention, ClientboundHandshakePacket,
-            ServerboundHandshakePacket,
+            ClientboundHandshakePacket, ServerboundHandshakePacket,
+            s_intention::ServerboundIntention,
         },
         status::{
-            c_status_response::ClientboundStatusResponse,
-            s_status_request::ServerboundStatusRequest, ClientboundStatusPacket,
+            ClientboundStatusPacket, c_status_response::ClientboundStatusResponse,
+            s_status_request::ServerboundStatusRequest,
         },
-        ClientIntention, PROTOCOL_VERSION,
     },
-    resolver, ServerAddress,
+    resolver,
 };
 use thiserror::Error;
 

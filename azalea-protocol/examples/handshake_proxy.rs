@@ -6,17 +6,17 @@ use std::{error::Error, sync::LazyLock};
 use azalea_protocol::{
     connect::Connection,
     packets::{
+        ClientIntention, PROTOCOL_VERSION, VERSION_NAME,
         handshake::{
-            s_intention::ServerboundIntention, ClientboundHandshakePacket,
-            ServerboundHandshakePacket,
+            ClientboundHandshakePacket, ServerboundHandshakePacket,
+            s_intention::ServerboundIntention,
         },
-        login::{s_hello::ServerboundHello, ServerboundLoginPacket},
+        login::{ServerboundLoginPacket, s_hello::ServerboundHello},
         status::{
+            ServerboundStatusPacket,
             c_pong_response::ClientboundPongResponse,
             c_status_response::{ClientboundStatusResponse, Players, Version},
-            ServerboundStatusPacket,
         },
-        ClientIntention, PROTOCOL_VERSION, VERSION_NAME,
     },
     read::ReadPacketError,
 };

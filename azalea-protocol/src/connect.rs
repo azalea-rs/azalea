@@ -1,7 +1,7 @@
 //! Connect to remote servers/clients.
 
 use std::fmt::Debug;
-use std::io::Cursor;
+use std::io::{self, Cursor};
 use std::marker::PhantomData;
 use std::net::SocketAddr;
 
@@ -10,19 +10,19 @@ use azalea_auth::sessionserver::{ClientSessionServerError, ServerSessionServerEr
 use azalea_crypto::{Aes128CfbDec, Aes128CfbEnc};
 use thiserror::Error;
 use tokio::io::{AsyncWriteExt, BufStream};
-use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf, ReuniteError};
 use tokio::net::TcpStream;
+use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf, ReuniteError};
 use tracing::{error, info};
 use uuid::Uuid;
 
+use crate::packets::ProtocolPacket;
 use crate::packets::config::{ClientboundConfigPacket, ServerboundConfigPacket};
 use crate::packets::game::{ClientboundGamePacket, ServerboundGamePacket};
 use crate::packets::handshake::{ClientboundHandshakePacket, ServerboundHandshakePacket};
 use crate::packets::login::c_hello::ClientboundHello;
 use crate::packets::login::{ClientboundLoginPacket, ServerboundLoginPacket};
 use crate::packets::status::{ClientboundStatusPacket, ServerboundStatusPacket};
-use crate::packets::ProtocolPacket;
-use crate::read::{deserialize_packet, read_raw_packet, try_read_raw_packet, ReadPacketError};
+use crate::read::{ReadPacketError, deserialize_packet, read_raw_packet, try_read_raw_packet};
 use crate::write::{serialize_packet, write_raw_packet};
 
 pub struct RawReadConnection {
@@ -108,7 +108,7 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///                 conn.set_compression_threshold(p.compression_threshold);
 ///             }
 ///             ClientboundLoginPacket::LoginFinished(p) => {
-///                 break (conn.configuration(), p.game_profile);
+///                 break (conn.config(), p.game_profile);
 ///             }
 ///             ClientboundLoginPacket::LoginDisconnect(p) => {
 ///                 eprintln!("login disconnect: {}", p.reason);
@@ -155,7 +155,7 @@ impl RawReadConnection {
 }
 
 impl RawWriteConnection {
-    pub async fn write(&mut self, packet: &[u8]) -> std::io::Result<()> {
+    pub async fn write(&mut self, packet: &[u8]) -> io::Result<()> {
         if let Err(e) = write_raw_packet(
             packet,
             &mut self.write_stream,
@@ -165,7 +165,7 @@ impl RawWriteConnection {
         .await
         {
             // detect broken pipe
-            if e.kind() == std::io::ErrorKind::BrokenPipe {
+            if e.kind() == io::ErrorKind::BrokenPipe {
                 info!("Broken pipe, shutting down connection.");
                 if let Err(e) = self.shutdown().await {
                     error!("Couldn't shut down: {}", e);
@@ -177,7 +177,7 @@ impl RawWriteConnection {
     }
 
     /// End the connection.
-    pub async fn shutdown(&mut self) -> std::io::Result<()> {
+    pub async fn shutdown(&mut self) -> io::Result<()> {
         self.write_stream.shutdown().await
     }
 }
@@ -206,12 +206,12 @@ where
     W: ProtocolPacket + Debug,
 {
     /// Write a packet to the server.
-    pub async fn write(&mut self, packet: W) -> std::io::Result<()> {
+    pub async fn write(&mut self, packet: W) -> io::Result<()> {
         self.raw.write(&serialize_packet(&packet).unwrap()).await
     }
 
     /// End the connection.
-    pub async fn shutdown(&mut self) -> std::io::Result<()> {
+    pub async fn shutdown(&mut self) -> io::Result<()> {
         self.raw.shutdown().await
     }
 }
@@ -233,7 +233,7 @@ where
     }
 
     /// Write a packet to the other side of the connection.
-    pub async fn write(&mut self, packet: impl crate::packets::Packet<W>) -> std::io::Result<()> {
+    pub async fn write(&mut self, packet: impl crate::packets::Packet<W>) -> io::Result<()> {
         let packet = packet.into_variant();
         self.writer.write(packet).await
     }
@@ -243,12 +243,21 @@ where
     pub fn into_split(self) -> (ReadConnection<R>, WriteConnection<W>) {
         (self.reader, self.writer)
     }
+
+    /// Split the reader and writer into the state-agnostic
+    /// [`RawReadConnection`] and [`RawWriteConnection`] types.
+    ///
+    /// This is meant to help with some types of proxies.
+    #[must_use]
+    pub fn into_split_raw(self) -> (RawReadConnection, RawWriteConnection) {
+        (self.reader.raw, self.writer.raw)
+    }
 }
 
 #[derive(Error, Debug)]
 pub enum ConnectionError {
     #[error("{0}")]
-    Io(#[from] std::io::Error),
+    Io(#[from] io::Error),
 }
 
 use socks5_impl::protocol::UserKey;
@@ -287,7 +296,7 @@ impl Connection<ClientboundHandshakePacket, ServerboundHandshakePacket> {
 
         let _ = socks5_impl::client::connect(&mut stream, address, proxy.auth)
             .await
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
+            .map_err(io::Error::other)?;
 
         Self::new_from_stream(stream.into_inner()).await
     }
@@ -359,7 +368,7 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
     /// Change our state from login to configuration. This is the state where
     /// the server sends us the registries and resource pack and stuff.
     #[must_use]
-    pub fn configuration(self) -> Connection<ClientboundConfigPacket, ServerboundConfigPacket> {
+    pub fn config(self) -> Connection<ClientboundConfigPacket, ServerboundConfigPacket> {
         Connection::from(self)
     }
 
@@ -493,7 +502,7 @@ impl Connection<ServerboundLoginPacket, ClientboundLoginPacket> {
 
     /// Change our state back to configuration.
     #[must_use]
-    pub fn configuration(self) -> Connection<ServerboundConfigPacket, ClientboundConfigPacket> {
+    pub fn config(self) -> Connection<ServerboundConfigPacket, ClientboundConfigPacket> {
         Connection::from(self)
     }
 }
@@ -519,7 +528,14 @@ impl Connection<ClientboundConfigPacket, ServerboundConfigPacket> {
 impl Connection<ClientboundGamePacket, ServerboundGamePacket> {
     /// Change our state back to configuration.
     #[must_use]
-    pub fn configuration(self) -> Connection<ClientboundConfigPacket, ServerboundConfigPacket> {
+    pub fn config(self) -> Connection<ClientboundConfigPacket, ServerboundConfigPacket> {
+        Connection::from(self)
+    }
+}
+impl Connection<ServerboundGamePacket, ClientboundGamePacket> {
+    /// Change our state back to configuration.
+    #[must_use]
+    pub fn config(self) -> Connection<ServerboundConfigPacket, ClientboundConfigPacket> {
         Connection::from(self)
     }
 }

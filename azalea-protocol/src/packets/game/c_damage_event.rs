@@ -1,13 +1,14 @@
 use std::io::{Cursor, Write};
 
-use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWriteVar, AzaleaWrite};
+use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar};
 use azalea_core::position::Vec3;
 use azalea_protocol_macros::ClientboundGamePacket;
+use azalea_world::MinecraftEntityId;
 
 #[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
 pub struct ClientboundDamageEvent {
     #[var]
-    pub entity_id: u32,
+    pub entity_id: MinecraftEntityId,
     #[var]
     pub source_type_id: u32,
     pub source_cause_id: OptionalEntityId,

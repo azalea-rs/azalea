@@ -93,7 +93,7 @@ Azalea uses several relatively complex features of Rust, which may make debuggin
 
 One of the most useful tools for debugging issues is logging. The default log level is `info`, but you can make it show more or less information by changing the log level. Enabling logging is done with `RUST_LOG=debug cargo run` on Linux/bash or `set RUST_LOG=debug && cargo run` on Windows. The log levels are `trace`, `debug`, `info`, `warn`, and `error`, in ascending priority.
 
-If it's a crash/panic and you believe it has to do with parsing a packet, you might want to set the level to `trace` since that'll make it show the first few hundred bytes of every packet received. This may produce a lot of logs, so pipe it into a file with `&> azalea.log` (on Linux).
+If it's a crash/panic and you believe it has to do with parsing a packet, you might want to set the level to `trace` since that'll make it show the first few hundred bytes of every packet received. This may produce a lot of logs, so use a command like `RUST_LOG=trace NO_COLOR=1 cargo run &> azalea.log` to nicely pipe it into a file (on Linux).
 
 Note: If you get a `SetLoggerError`, it's because you have multiple loggers. Azalea comes with a logger by default, see [`bevy_log`] for more information. You can disable the default logging plugin by disabling the `log` feature.
 

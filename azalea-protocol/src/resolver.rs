@@ -4,8 +4,8 @@ use std::net::{IpAddr, SocketAddr};
 
 use async_recursion::async_recursion;
 use hickory_resolver::{
-    config::{ResolverConfig, ResolverOpts},
     Name, TokioAsyncResolver,
+    config::{ResolverConfig, ResolverOpts},
 };
 use thiserror::Error;
 

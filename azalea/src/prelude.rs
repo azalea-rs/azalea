@@ -8,6 +8,6 @@ pub use azalea_core::tick::GameTick;
 pub use crate::ecs as bevy_ecs;
 pub use crate::ecs::{component::Component, system::Resource};
 pub use crate::{
-    bot::BotClientExt, container::ContainerClientExt, pathfinder::PathfinderClientExt,
-    ClientBuilder,
+    ClientBuilder, bot::BotClientExt, container::ContainerClientExt,
+    pathfinder::PathfinderClientExt,
 };

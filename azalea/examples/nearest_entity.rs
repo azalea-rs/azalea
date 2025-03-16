@@ -1,5 +1,5 @@
-use azalea::nearest_entity::EntityFinder;
 use azalea::ClientBuilder;
+use azalea::nearest_entity::EntityFinder;
 use azalea::{Bot, LookAtEvent};
 use azalea_client::Account;
 use azalea_core::tick::GameTick;

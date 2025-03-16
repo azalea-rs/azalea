@@ -1,19 +1,19 @@
 [package]
 name = "azalea-buf"
 description = "Serialize and deserialize buffers from Minecraft."
-version = { workspace = true }
-edition = { workspace = true }
-license = { workspace = true }
-repository = { workspace = true }
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
 
 [dependencies]
 azalea-buf-macros = { path = "./azalea-buf-macros", version = "0.11.0" }
-byteorder = { workspace = true }
+byteorder.workspace = true
 serde_json = { workspace = true, optional = true }
-simdnbt = { workspace = true }
-thiserror = { workspace = true }
-tracing = { workspace = true }
-uuid = { workspace = true }
+simdnbt.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+uuid.workspace = true
 
 [features]
 serde_json = ["dep:serde_json"]

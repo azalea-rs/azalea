@@ -35,7 +35,7 @@ pub mod write;
 /// assert_eq!(addr.host, "localhost");
 /// assert_eq!(addr.port, 25565);
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ServerAddress {
     pub host: String,
     pub port: u16,
@@ -115,9 +115,9 @@ mod tests {
 
     use crate::{
         packets::{
-            game::s_chat::{LastSeenMessagesUpdate, ServerboundChat},
-            login::{s_hello::ServerboundHello, ServerboundLoginPacket},
             Packet,
+            game::s_chat::{LastSeenMessagesUpdate, ServerboundChat},
+            login::{ServerboundLoginPacket, s_hello::ServerboundHello},
         },
         read::{compression_decoder, read_packet},
         write::{compression_encoder, serialize_packet, write_packet},
@@ -136,7 +136,9 @@ mod tests {
 
         assert_eq!(
             stream,
-            [22, 0, 4, 116, 101, 115, 116, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+            [
+                22, 0, 4, 116, 101, 115, 116, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+            ]
         );
 
         let mut stream = Cursor::new(stream);

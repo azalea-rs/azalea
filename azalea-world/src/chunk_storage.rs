@@ -31,7 +31,7 @@ pub struct PartialChunkStorage {
     chunk_radius: u32,
     view_range: u32,
     // chunks is a list of size chunk_radius * chunk_radius
-    chunks: Vec<Option<Arc<RwLock<Chunk>>>>,
+    chunks: Box<[Option<Arc<RwLock<Chunk>>>]>,
 }
 
 /// A storage for chunks where they're only stored weakly, so if they're not
@@ -50,7 +50,7 @@ pub struct ChunkStorage {
 /// coordinate.
 #[derive(Debug)]
 pub struct Chunk {
-    pub sections: Vec<Section>,
+    pub sections: Box<[Section]>,
     /// Heightmaps are used for identifying the surface blocks in a chunk.
     /// Usually for clients only `WorldSurface` and `MotionBlocking` are
     /// present.
@@ -84,7 +84,7 @@ impl Default for Section {
 impl Default for Chunk {
     fn default() -> Self {
         Chunk {
-            sections: vec![Section::default(); (384 / 16) as usize],
+            sections: vec![Section::default(); (384 / 16) as usize].into(),
             heightmaps: HashMap::new(),
         }
     }
@@ -97,7 +97,7 @@ impl PartialChunkStorage {
             view_center: ChunkPos::new(0, 0),
             chunk_radius,
             view_range,
-            chunks: vec![None; (view_range * view_range) as usize],
+            chunks: vec![None; (view_range * view_range) as usize].into(),
         }
     }
 
@@ -341,6 +341,7 @@ impl Chunk {
             let section = Section::azalea_read(buf)?;
             sections.push(section);
         }
+        let sections = sections.into_boxed_slice();
 
         let mut heightmaps = HashMap::new();
         for (name, heightmap) in heightmaps_nbt.iter() {
@@ -352,7 +353,7 @@ impl Chunk {
                 warn!("Heightmap {name} is not a long array");
                 continue;
             };
-            let data: Vec<u64> = data.iter().map(|x| *x as u64).collect();
+            let data: Box<[u64]> = data.iter().map(|x| *x as u64).collect();
             let heightmap = Heightmap::new(kind, dimension_height, min_y, data);
             heightmaps.insert(kind, heightmap);
         }
@@ -448,6 +449,7 @@ impl AzaleaRead for Section {
         let block_count = u16::azalea_read(buf)?;
 
         // this is commented out because the vanilla server is wrong
+        // ^ this comment was written ages ago. needs more investigation.
         // assert!(
         //     block_count <= 16 * 16 * 16,
         //     "A section has more blocks than what should be possible. This is a bug!"
@@ -556,21 +558,31 @@ mod tests {
             Some(Chunk::default()),
             &mut chunk_storage,
         );
-        assert!(chunk_storage
-            .get_block_state(&BlockPos { x: 0, y: 319, z: 0 })
-            .is_some());
-        assert!(chunk_storage
-            .get_block_state(&BlockPos { x: 0, y: 320, z: 0 })
-            .is_none());
-        assert!(chunk_storage
-            .get_block_state(&BlockPos { x: 0, y: 338, z: 0 })
-            .is_none());
-        assert!(chunk_storage
-            .get_block_state(&BlockPos { x: 0, y: -64, z: 0 })
-            .is_some());
-        assert!(chunk_storage
-            .get_block_state(&BlockPos { x: 0, y: -65, z: 0 })
-            .is_none());
+        assert!(
+            chunk_storage
+                .get_block_state(&BlockPos { x: 0, y: 319, z: 0 })
+                .is_some()
+        );
+        assert!(
+            chunk_storage
+                .get_block_state(&BlockPos { x: 0, y: 320, z: 0 })
+                .is_none()
+        );
+        assert!(
+            chunk_storage
+                .get_block_state(&BlockPos { x: 0, y: 338, z: 0 })
+                .is_none()
+        );
+        assert!(
+            chunk_storage
+                .get_block_state(&BlockPos { x: 0, y: -64, z: 0 })
+                .is_some()
+        );
+        assert!(
+            chunk_storage
+                .get_block_state(&BlockPos { x: 0, y: -65, z: 0 })
+                .is_none()
+        );
     }
 
     #[test]

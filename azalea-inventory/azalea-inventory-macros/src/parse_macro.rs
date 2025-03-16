@@ -1,7 +1,6 @@
 use syn::{
-    braced,
+    Ident, LitInt, Token, braced,
     parse::{Parse, ParseStream, Result},
-    Ident, LitInt, Token,
 };
 
 /// An identifier, colon, and number

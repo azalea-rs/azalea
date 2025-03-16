@@ -2,7 +2,6 @@ use std::{collections::HashMap, io, sync::Arc};
 
 use azalea_auth::game_profile::GameProfile;
 use azalea_core::game_type::GameMode;
-use azalea_entity::Dead;
 use azalea_protocol::packets::game::c_player_abilities::ClientboundPlayerAbilities;
 use azalea_world::{Instance, PartialInstance};
 use bevy_ecs::{component::Component, prelude::*};
@@ -13,21 +12,27 @@ use tokio::sync::mpsc;
 use tracing::error;
 use uuid::Uuid;
 
-use crate::{
-    events::{Event as AzaleaEvent, LocalPlayerEvents},
-    ClientInformation, PlayerInfo,
-};
+use crate::{ClientInformation, PlayerInfo, events::Event as AzaleaEvent};
 
 /// A component that keeps strong references to our [`PartialInstance`] and
 /// [`Instance`] for local players.
+///
+/// This can also act as a convenience for accessing the player's Instance since
+/// the alternative is to look up the player's [`InstanceName`] in the
+/// [`InstanceContainer`].
+///
+/// [`InstanceContainer`]: azalea_world::InstanceContainer
+/// [`InstanceName`]: azalea_world::InstanceName
 #[derive(Component, Clone)]
 pub struct InstanceHolder {
     /// The partial instance is the world this client currently has loaded. It
     /// has a limited render distance.
     pub partial_instance: Arc<RwLock<PartialInstance>>,
     /// The world is the combined [`PartialInstance`]s of all clients in the
-    /// same world. (Only relevant if you're using a shared world, i.e. a
-    /// swarm)
+    /// same world.
+    ///
+    /// This is only relevant if you're using a shared world (i.e. a
+    /// swarm).
     pub instance: Arc<RwLock<Instance>>,
 }
 
@@ -91,6 +96,13 @@ pub struct PermissionLevel(pub u8);
 ///     println!("- {} ({}ms)", player_info.profile.name, player_info.latency);
 /// }
 /// # }
+/// ```
+///
+/// For convenience, `TabList` is also a resource in the ECS.
+/// It's set to be the same as the tab list for the last client whose tab list
+/// was updated.
+/// This means you should avoid using `TabList` as a resource unless you know
+/// all of your clients will have the same tab list.
 #[derive(Component, Resource, Clone, Debug, Deref, DerefMut, Default)]
 pub struct TabList(HashMap<Uuid, PlayerInfo>);
 
@@ -114,12 +126,16 @@ impl Default for Hunger {
 }
 
 impl InstanceHolder {
-    /// Create a new `InstanceHolder`.
-    pub fn new(entity: Entity, world: Arc<RwLock<Instance>>) -> Self {
+    /// Create a new `InstanceHolder` for the given entity.
+    ///
+    /// The partial instance will be created for you. The render distance will
+    /// be set to a default value, which you can change by creating a new
+    /// partial_instance.
+    pub fn new(entity: Entity, instance: Arc<RwLock<Instance>>) -> Self {
         let client_information = ClientInformation::default();
 
         InstanceHolder {
-            instance: world,
+            instance,
             partial_instance: Arc::new(RwLock::new(PartialInstance::new(
                 azalea_world::chunk_storage::calculate_chunk_storage_range(
                     client_information.view_distance.into(),
@@ -127,13 +143,6 @@ impl InstanceHolder {
                 Some(entity),
             ))),
         }
-    }
-}
-
-/// Send the "Death" event for [`LocalEntity`]s that died with no reason.
-pub fn death_event(query: Query<&LocalPlayerEvents, Added<Dead>>) {
-    for local_player_events in &query {
-        local_player_events.send(AzaleaEvent::Death(None)).unwrap();
     }
 }
 

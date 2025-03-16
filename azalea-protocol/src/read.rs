@@ -116,7 +116,14 @@ fn parse_frame(buffer: &mut Cursor<Vec<u8>>) -> Result<Box<[u8]>, FrameSplitterE
     if buffer.position() == buffer.get_ref().len() as u64 {
         // reset the inner vec once we've reached the end of the buffer so we don't keep
         // leaking memory
-        *buffer.get_mut() = Vec::new();
+        buffer.get_mut().clear();
+
+        // we just cap the capacity to 64KB instead of resetting it to save some
+        // allocations.
+        // and the reason we bother capping it at all is to avoid wasting memory if we
+        // get a big packet once and then never again.
+        buffer.get_mut().shrink_to(1024 * 64);
+
         buffer.set_position(0);
     }
 

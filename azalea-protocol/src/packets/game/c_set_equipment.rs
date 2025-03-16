@@ -4,11 +4,12 @@ use azalea_buf::{AzBuf, BufReadError};
 use azalea_buf::{AzaleaRead, AzaleaWrite};
 use azalea_inventory::ItemStack;
 use azalea_protocol_macros::ClientboundGamePacket;
+use azalea_world::MinecraftEntityId;
 
 #[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
 pub struct ClientboundSetEquipment {
     #[var]
-    pub entity_id: u32,
+    pub entity_id: MinecraftEntityId,
     pub slots: EquipmentSlots,
 }
 
@@ -77,5 +78,24 @@ impl EquipmentSlot {
             5 => Some(EquipmentSlot::Head),
             _ => None,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_hypixel_set_equipment() {
+        let mut cursor = Cursor::new(
+            [
+                230, 25, 0, 1, 224, 6, 2, 0, 3, 0, 22, 79, 0, 0, 0, 3, 0, 0, 0, 0, 0,
+            ]
+            .as_slice(),
+        );
+
+        let packet = ClientboundSetEquipment::azalea_read(&mut cursor).unwrap();
+        println!("packet {packet:?}");
+        assert_eq!(cursor.position(), cursor.get_ref().len() as u64);
     }
 }

@@ -1,5 +1,4 @@
 #![doc = include_str!("../README.md")]
-#![feature(trait_upcasting)]
 
 mod behavior;
 pub mod block_state;

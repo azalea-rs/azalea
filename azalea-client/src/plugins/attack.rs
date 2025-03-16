@@ -1,7 +1,8 @@
 use azalea_core::{game_type::GameMode, tick::GameTick};
 use azalea_entity::{
+    Attributes, Physics,
     metadata::{ShiftKeyDown, Sprinting},
-    update_bounding_box, Attributes, Physics,
+    update_bounding_box,
 };
 use azalea_physics::PhysicsSet;
 use azalea_protocol::packets::game::s_interact::{self, ServerboundInteract};
@@ -10,9 +11,10 @@ use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
 
+use super::packet::game::SendPacketEvent;
 use crate::{
-    interact::SwingArmEvent, local_player::LocalGameMode, movement::MoveEventsSet,
-    packet_handling::game::SendPacketEvent, respawn::perform_respawn, Client,
+    Client, interact::SwingArmEvent, local_player::LocalGameMode, movement::MoveEventsSet,
+    respawn::perform_respawn,
 };
 
 pub struct AttackPlugin;
@@ -86,7 +88,7 @@ pub fn handle_attack_event(
         send_packet_events.send(SendPacketEvent::new(
             event.entity,
             ServerboundInteract {
-                entity_id: *event.target,
+                entity_id: event.target,
                 action: s_interact::ActionType::Attack,
                 using_secondary_action: **sneaking,
             },

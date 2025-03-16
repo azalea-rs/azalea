@@ -1,21 +1,19 @@
 use std::collections::HashSet;
 
 use azalea_block::{
-    fluid_state::{FluidKind, FluidState},
     BlockState,
+    fluid_state::{FluidKind, FluidState},
 };
 use azalea_core::{
     aabb::AABB,
     block_hit_result::BlockHitResult,
     direction::{Axis, Direction},
-    math::{self, lerp, EPSILON},
+    math::{self, EPSILON, lerp},
     position::{BlockPos, Vec3},
 };
-use azalea_inventory::ItemStack;
 use azalea_world::ChunkStorage;
-use bevy_ecs::entity::Entity;
 
-use crate::collision::{BlockWithShape, VoxelShape, EMPTY_SHAPE};
+use crate::collision::{BlockWithShape, EMPTY_SHAPE, VoxelShape};
 
 #[derive(Debug, Clone)]
 pub struct ClipContext {
@@ -90,15 +88,6 @@ impl FluidPickType {
             Self::Water => fluid_state.kind == FluidKind::Water,
         }
     }
-}
-
-#[derive(Debug, Clone)]
-pub struct EntityCollisionContext {
-    pub descending: bool,
-    pub entity_bottom: f64,
-    pub held_item: ItemStack,
-    // pub can_stand_on_fluid: Box<dyn Fn(&FluidState) -> bool>,
-    pub entity: Entity,
 }
 
 pub fn clip(chunk_storage: &ChunkStorage, context: ClipContext) -> BlockHitResult {

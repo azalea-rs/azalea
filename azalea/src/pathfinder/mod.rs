@@ -14,8 +14,8 @@ pub mod world;
 
 use std::collections::VecDeque;
 use std::ops::RangeInclusive;
-use std::sync::atomic::{self, AtomicUsize};
 use std::sync::Arc;
+use std::sync::atomic::{self, AtomicUsize};
 use std::time::{Duration, Instant};
 use std::{cmp, thread};
 
@@ -26,8 +26,8 @@ use azalea_client::movement::MoveEventsSet;
 use azalea_client::{InstanceHolder, StartSprintEvent, StartWalkEvent};
 use azalea_core::position::BlockPos;
 use azalea_core::tick::GameTick;
-use azalea_entity::metadata::Player;
 use azalea_entity::LocalEntity;
+use azalea_entity::metadata::Player;
 use azalea_entity::{Physics, Position};
 use azalea_physics::PhysicsSet;
 use azalea_world::{InstanceContainer, InstanceName};
@@ -42,11 +42,12 @@ use parking_lot::RwLock;
 use rel_block_pos::RelBlockPos;
 use tracing::{debug, error, info, trace, warn};
 
-use self::debug::debug_render_path_with_particles;
 pub use self::debug::PathfinderDebugParticles;
+use self::debug::debug_render_path_with_particles;
 use self::goals::Goal;
 use self::mining::MiningCache;
 use self::moves::{ExecuteCtx, IsReachedCtx, SuccessorsFn};
+use crate::WalkDirection;
 use crate::app::{App, Plugin};
 use crate::bot::{JumpEvent, LookAtEvent};
 use crate::ecs::{
@@ -57,7 +58,6 @@ use crate::ecs::{
     system::{Commands, Query, Res},
 };
 use crate::pathfinder::{astar::a_star, moves::PathfinderCtx, world::CachedWorld};
-use crate::WalkDirection;
 
 #[derive(Clone, Default)]
 pub struct PathfinderPlugin;
@@ -337,7 +337,7 @@ pub struct CalculatePathOpts {
     pub goto_id_atomic: Arc<AtomicUsize>,
     pub allow_mining: bool,
     pub mining_cache: MiningCache,
-    /// Also see [`GotoEvent::deterministic_timeout`]
+    /// Also see [`GotoEvent::min_timeout`].
     pub min_timeout: PathfinderTimeout,
     pub max_timeout: PathfinderTimeout,
 }
@@ -874,54 +874,62 @@ pub fn recalculate_near_end_of_path(
             && !pathfinder.is_calculating
             && executing_path.is_path_partial
         {
-            if let Some(goal) = pathfinder.goal.as_ref().cloned() {
-                debug!("Recalculating path because it's empty or ends soon");
-                debug!(
-                    "recalculate_near_end_of_path executing_path.is_path_partial: {}",
-                    executing_path.is_path_partial
-                );
-                goto_events.send(GotoEvent {
-                    entity,
-                    goal,
-                    successors_fn,
-                    allow_mining: pathfinder.allow_mining,
-                    min_timeout: if executing_path.path.len() == 50 {
-                        // we have quite some time until the node is reached, soooo we might as well
-                        // burn some cpu cycles to get a good path
-                        PathfinderTimeout::Time(Duration::from_secs(5))
-                    } else {
-                        PathfinderTimeout::Time(Duration::from_secs(1))
-                    },
-                    max_timeout: pathfinder.max_timeout.expect("max_timeout should be set"),
-                });
-                pathfinder.is_calculating = true;
+            match pathfinder.goal.as_ref().cloned() {
+                Some(goal) => {
+                    debug!("Recalculating path because it's empty or ends soon");
+                    debug!(
+                        "recalculate_near_end_of_path executing_path.is_path_partial: {}",
+                        executing_path.is_path_partial
+                    );
+                    goto_events.send(GotoEvent {
+                        entity,
+                        goal,
+                        successors_fn,
+                        allow_mining: pathfinder.allow_mining,
+                        min_timeout: if executing_path.path.len() == 50 {
+                            // we have quite some time until the node is reached, soooo we might as
+                            // well burn some cpu cycles to get a good
+                            // path
+                            PathfinderTimeout::Time(Duration::from_secs(5))
+                        } else {
+                            PathfinderTimeout::Time(Duration::from_secs(1))
+                        },
+                        max_timeout: pathfinder.max_timeout.expect("max_timeout should be set"),
+                    });
+                    pathfinder.is_calculating = true;
 
-                if executing_path.path.is_empty() {
-                    if let Some(new_path) = executing_path.queued_path.take() {
-                        executing_path.path = new_path;
-                        if executing_path.path.is_empty() {
-                            info!("the path we just swapped to was empty, so reached end of path");
+                    if executing_path.path.is_empty() {
+                        if let Some(new_path) = executing_path.queued_path.take() {
+                            executing_path.path = new_path;
+                            if executing_path.path.is_empty() {
+                                info!(
+                                    "the path we just swapped to was empty, so reached end of path"
+                                );
+                                walk_events.send(StartWalkEvent {
+                                    entity,
+                                    direction: WalkDirection::None,
+                                });
+                                commands.entity(entity).remove::<ExecutingPath>();
+                                break;
+                            }
+                        } else {
                             walk_events.send(StartWalkEvent {
                                 entity,
                                 direction: WalkDirection::None,
                             });
                             commands.entity(entity).remove::<ExecutingPath>();
-                            break;
                         }
-                    } else {
+                    }
+                }
+                _ => {
+                    if executing_path.path.is_empty() {
+                        // idk when this can happen but stop moving just in case
                         walk_events.send(StartWalkEvent {
                             entity,
                             direction: WalkDirection::None,
                         });
-                        commands.entity(entity).remove::<ExecutingPath>();
                     }
                 }
-            } else if executing_path.path.is_empty() {
-                // idk when this can happen but stop moving just in case
-                walk_events.send(StartWalkEvent {
-                    entity,
-                    direction: WalkDirection::None,
-                });
             }
         }
     }
@@ -968,8 +976,7 @@ pub fn tick_execute_path(
             };
             trace!(
                 "executing move, position: {}, last_reached_node: {}",
-                **position,
-                executing_path.last_reached_node
+                **position, executing_path.last_reached_node
             );
             (movement.data.execute)(ctx);
         }
@@ -1117,11 +1124,11 @@ mod tests {
     use azalea_world::{Chunk, ChunkStorage, PartialChunkStorage};
 
     use super::{
+        GotoEvent,
         astar::PathfinderTimeout,
         goals::BlockPosGoal,
         moves,
         simulation::{SimulatedPlayerBundle, Simulation},
-        GotoEvent,
     };
 
     fn setup_blockposgoal_simulation(

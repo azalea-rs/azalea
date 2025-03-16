@@ -1,13 +1,13 @@
 use std::fmt::Debug;
 use std::fmt::Formatter;
 
+use azalea_client::packet::game::ReceivePacketEvent;
 use azalea_client::{
-    inventory::{CloseContainerEvent, ContainerClickEvent, Inventory},
-    packet_handling::game::PacketEvent,
     Client,
+    inventory::{CloseContainerEvent, ContainerClickEvent, Inventory},
 };
 use azalea_core::position::BlockPos;
-use azalea_inventory::{operations::ClickOperation, ItemStack, Menu};
+use azalea_inventory::{ItemStack, Menu, operations::ClickOperation};
 use azalea_protocol::packets::game::ClientboundGamePacket;
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::{component::Component, prelude::EventReader, system::Commands};
@@ -234,7 +234,7 @@ impl ContainerHandle {
 #[derive(Component, Debug)]
 pub struct WaitingForInventoryOpen;
 
-fn handle_menu_opened_event(mut commands: Commands, mut events: EventReader<PacketEvent>) {
+fn handle_menu_opened_event(mut commands: Commands, mut events: EventReader<ReceivePacketEvent>) {
     for event in events.read() {
         if let ClientboundGamePacket::ContainerSetContent { .. } = event.packet.as_ref() {
             commands

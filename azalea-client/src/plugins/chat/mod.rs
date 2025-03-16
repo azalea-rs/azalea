@@ -1,20 +1,13 @@
 //! Implementations of chat-related features.
 
-use std::{
-    sync::Arc,
-    time::{SystemTime, UNIX_EPOCH},
-};
+pub mod handler;
+
+use std::sync::Arc;
 
 use azalea_chat::FormattedText;
-use azalea_protocol::packets::{
-    game::{
-        c_disguised_chat::ClientboundDisguisedChat,
-        c_player_chat::ClientboundPlayerChat,
-        c_system_chat::ClientboundSystemChat,
-        s_chat::{LastSeenMessagesUpdate, ServerboundChat},
-        s_chat_command::ServerboundChatCommand,
-    },
-    Packet,
+use azalea_protocol::packets::game::{
+    c_disguised_chat::ClientboundDisguisedChat, c_player_chat::ClientboundPlayerChat,
+    c_system_chat::ClientboundSystemChat,
 };
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::{
@@ -23,12 +16,28 @@ use bevy_ecs::{
     prelude::Event,
     schedule::IntoSystemConfigs,
 };
+use handler::{SendChatKindEvent, handle_send_chat_kind_event};
 use uuid::Uuid;
 
-use crate::{
-    client::Client,
-    packet_handling::game::{handle_send_packet_event, SendPacketEvent},
-};
+use super::packet::game::handle_outgoing_packets;
+use crate::client::Client;
+
+pub struct ChatPlugin;
+impl Plugin for ChatPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_event::<SendChatEvent>()
+            .add_event::<SendChatKindEvent>()
+            .add_event::<ChatReceivedEvent>()
+            .add_systems(
+                Update,
+                (
+                    handle_send_chat_event,
+                    handle_send_chat_kind_event.after(handle_outgoing_packets),
+                )
+                    .chain(),
+            );
+    }
+}
 
 /// A chat packet, either a system message or a chat message.
 #[derive(Debug, Clone, PartialEq)]
@@ -148,25 +157,28 @@ impl Client {
             content: message.to_string(),
             kind: ChatKind::Message,
         });
-        self.run_schedule_sender.send(()).unwrap();
+        let _ = self.run_schedule_sender.try_send(());
     }
 
     /// Send a command packet to the server. The `command` argument should not
     /// include the slash at the front.
+    ///
+    /// You can also just use [`Client::chat`] and start your message with a `/`
+    /// to send a command.
     pub fn send_command_packet(&self, command: &str) {
         self.ecs.lock().send_event(SendChatKindEvent {
             entity: self.entity,
             content: command.to_string(),
             kind: ChatKind::Command,
         });
-        self.run_schedule_sender.send(()).unwrap();
+        let _ = self.run_schedule_sender.try_send(());
     }
 
     /// Send a message in chat.
     ///
     /// ```rust,no_run
-    /// # use azalea_client::{Client, Event};
-    /// # async fn handle(bot: Client, event: Event) -> anyhow::Result<()> {
+    /// # use azalea_client::Client;
+    /// # async fn example(bot: Client) -> anyhow::Result<()> {
     /// bot.chat("Hello, world!");
     /// # Ok(())
     /// # }
@@ -176,24 +188,7 @@ impl Client {
             entity: self.entity,
             content: content.to_string(),
         });
-        self.run_schedule_sender.send(()).unwrap();
-    }
-}
-
-pub struct ChatPlugin;
-impl Plugin for ChatPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_event::<SendChatEvent>()
-            .add_event::<SendChatKindEvent>()
-            .add_event::<ChatReceivedEvent>()
-            .add_systems(
-                Update,
-                (
-                    handle_send_chat_event,
-                    handle_send_chat_kind_event.after(handle_send_packet_event),
-                )
-                    .chain(),
-            );
+        let _ = self.run_schedule_sender.try_send(());
     }
 }
 
@@ -232,61 +227,10 @@ pub fn handle_send_chat_event(
     }
 }
 
-/// Send a chat packet to the server of a specific kind (chat message or
-/// command). Usually you just want [`SendChatEvent`] instead.
-///
-/// Usually setting the kind to `Message` will make it send a chat message even
-/// if it starts with a slash, but some server implementations will always do a
-/// command if it starts with a slash.
-///
-/// If you're wondering why this isn't two separate events, it's so ordering is
-/// preserved if multiple chat messages and commands are sent at the same time.
-#[derive(Event)]
-pub struct SendChatKindEvent {
-    pub entity: Entity,
-    pub content: String,
-    pub kind: ChatKind,
-}
-
 /// A kind of chat packet, either a chat message or a command.
 pub enum ChatKind {
     Message,
     Command,
-}
-
-pub fn handle_send_chat_kind_event(
-    mut events: EventReader<SendChatKindEvent>,
-    mut send_packet_events: EventWriter<SendPacketEvent>,
-) {
-    for event in events.read() {
-        let content = event
-            .content
-            .chars()
-            .filter(|c| !matches!(c, '\x00'..='\x1F' | '\x7F' | '§'))
-            .take(256)
-            .collect::<String>();
-        let packet = match event.kind {
-            ChatKind::Message => ServerboundChat {
-                message: content,
-                timestamp: SystemTime::now()
-                    .duration_since(UNIX_EPOCH)
-                    .expect("Time shouldn't be before epoch")
-                    .as_millis()
-                    .try_into()
-                    .expect("Instant should fit into a u64"),
-                salt: azalea_crypto::make_salt(),
-                signature: None,
-                last_seen_messages: LastSeenMessagesUpdate::default(),
-            }
-            .into_variant(),
-            ChatKind::Command => {
-                // TODO: chat signing
-                ServerboundChatCommand { command: content }.into_variant()
-            }
-        };
-
-        send_packet_events.send(SendPacketEvent::new(event.entity, packet));
-    }
 }
 
 // TODO

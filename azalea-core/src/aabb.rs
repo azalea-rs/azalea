@@ -26,26 +26,26 @@ pub struct ClipPointOpts<'a> {
 }
 
 impl AABB {
-    pub fn contract(&self, x: f64, y: f64, z: f64) -> AABB {
+    pub fn contract(&self, amount: Vec3) -> AABB {
         let mut min = self.min;
         let mut max = self.max;
 
-        if x < 0.0 {
-            min.x -= x;
-        } else if x > 0.0 {
-            max.x -= x;
+        if amount.x < 0.0 {
+            min.x -= amount.x;
+        } else if amount.x > 0.0 {
+            max.x -= amount.x;
         }
 
-        if y < 0.0 {
-            min.y -= y;
-        } else if y > 0.0 {
-            max.y -= y;
+        if amount.y < 0.0 {
+            min.y -= amount.y;
+        } else if amount.y > 0.0 {
+            max.y -= amount.y;
         }
 
-        if z < 0.0 {
-            min.z -= z;
-        } else if z > 0.0 {
-            max.z -= z;
+        if amount.z < 0.0 {
+            min.z -= amount.z;
+        } else if amount.z > 0.0 {
+            max.z -= amount.z;
         }
 
         AABB { min, max }
@@ -84,19 +84,22 @@ impl AABB {
         }
     }
 
-    pub fn inflate(&self, x: f64, y: f64, z: f64) -> AABB {
-        let min_x = self.min.x - x;
-        let min_y = self.min.y - y;
-        let min_z = self.min.z - z;
+    pub fn inflate(&self, amount: Vec3) -> AABB {
+        let min_x = self.min.x - amount.x;
+        let min_y = self.min.y - amount.y;
+        let min_z = self.min.z - amount.z;
 
-        let max_x = self.max.x + x;
-        let max_y = self.max.y + y;
-        let max_z = self.max.z + z;
+        let max_x = self.max.x + amount.x;
+        let max_y = self.max.y + amount.y;
+        let max_z = self.max.z + amount.z;
 
         AABB {
             min: Vec3::new(min_x, min_y, min_z),
             max: Vec3::new(max_x, max_y, max_z),
         }
+    }
+    pub fn inflate_all(&self, amount: f64) -> AABB {
+        self.inflate(Vec3::new(amount, amount, amount))
     }
 
     pub fn intersect(&self, other: &AABB) -> AABB {
@@ -144,17 +147,17 @@ impl AABB {
             && self.min.z < other.max.z
             && self.max.z > other.min.z
     }
-    pub fn intersects_vec3(&self, other: &Vec3, other2: &Vec3) -> bool {
+    pub fn intersects_vec3(&self, corner1: &Vec3, corner2: &Vec3) -> bool {
         self.intersects_aabb(&AABB {
             min: Vec3::new(
-                other.x.min(other2.x),
-                other.y.min(other2.y),
-                other.z.min(other2.z),
+                corner1.x.min(corner2.x),
+                corner1.y.min(corner2.y),
+                corner1.z.min(corner2.z),
             ),
             max: Vec3::new(
-                other.x.max(other2.x),
-                other.y.max(other2.y),
-                other.z.max(other2.z),
+                corner1.x.max(corner2.x),
+                corner1.y.max(corner2.y),
+                corner1.z.max(corner2.z),
             ),
         })
     }
@@ -183,12 +186,11 @@ impl AABB {
         )
     }
 
-    pub fn deflate(&mut self, x: f64, y: f64, z: f64) -> AABB {
-        self.inflate(-x, -y, -z)
+    pub fn deflate(&self, amount: Vec3) -> AABB {
+        self.inflate(Vec3::new(-amount.x, -amount.y, -amount.z))
     }
-
-    pub fn deflate_all(&mut self, amount: f64) -> AABB {
-        self.deflate(amount, amount, amount)
+    pub fn deflate_all(&self, amount: f64) -> AABB {
+        self.deflate(Vec3::new(amount, amount, amount))
     }
 
     pub fn clip(&self, min: &Vec3, max: &Vec3) -> Option<Vec3> {
@@ -434,11 +436,11 @@ impl AABB {
         let new_center = center + vector;
 
         for aabb in boxes {
-            let inflated = aabb.inflate(
+            let inflated = aabb.inflate(Vec3::new(
                 self.get_size(Axis::X) * 0.5,
                 self.get_size(Axis::Y) * 0.5,
                 self.get_size(Axis::Z) * 0.5,
-            );
+            ));
             if inflated.contains(&new_center) || inflated.contains(&center) {
                 return true;
             }

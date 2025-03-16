@@ -1,10 +1,10 @@
 use azalea::{
-    pathfinder::simulation::{SimulatedPlayerBundle, SimulationSet},
     Vec3,
+    pathfinder::simulation::{SimulatedPlayerBundle, SimulationSet},
 };
 use azalea_core::position::{ChunkBlockPos, ChunkPos};
 use azalea_world::{Chunk, ChunkStorage, PartialChunkStorage};
-use criterion::{criterion_group, criterion_main, Bencher, Criterion};
+use criterion::{Bencher, Criterion, criterion_group, criterion_main};
 
 #[allow(dead_code)]
 fn generate_world(partial_chunks: &mut PartialChunkStorage, size: u32) -> ChunkStorage {

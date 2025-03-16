@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
 use azalea_buf::AzBuf;
 use serde::{Deserialize, Serialize};
@@ -10,7 +10,7 @@ pub struct GameProfile {
     pub uuid: Uuid,
     /// The username of the player.
     pub name: String,
-    pub properties: HashMap<String, ProfilePropertyValue>,
+    pub properties: Arc<HashMap<String, ProfilePropertyValue>>,
 }
 
 impl GameProfile {
@@ -18,7 +18,7 @@ impl GameProfile {
         GameProfile {
             uuid,
             name,
-            properties: HashMap::new(),
+            properties: Arc::new(HashMap::new()),
         }
     }
 }
@@ -38,7 +38,7 @@ impl From<SerializableGameProfile> for GameProfile {
         Self {
             uuid: value.id,
             name: value.name,
-            properties,
+            properties: Arc::new(properties),
         }
     }
 }
@@ -59,11 +59,11 @@ pub struct SerializableGameProfile {
 impl From<GameProfile> for SerializableGameProfile {
     fn from(value: GameProfile) -> Self {
         let mut properties = Vec::new();
-        for (key, value) in value.properties {
+        for (key, value) in &*value.properties {
             properties.push(SerializableProfilePropertyValue {
-                name: key,
-                value: value.value,
-                signature: value.signature,
+                name: key.clone(),
+                value: value.value.clone(),
+                signature: value.signature.clone(),
             });
         }
         Self {
@@ -114,7 +114,7 @@ mod tests {
                             signature: Some("zxcv".to_string()),
                         },
                     );
-                    map
+                    map.into()
                 },
             }
         );

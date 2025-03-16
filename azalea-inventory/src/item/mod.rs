@@ -1,3 +1,5 @@
+pub mod consume_effect;
+
 pub trait MaxStackSizeExt {
     /// Get the maximum stack size for this item.
     ///
