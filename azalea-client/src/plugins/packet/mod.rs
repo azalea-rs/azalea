@@ -54,11 +54,12 @@ impl Plugin for PacketPlugin {
                 login::process_packet_events,
             ),
         )
+        .add_observer(game::handle_outgoing_packets_observer)
         .add_systems(
             Update,
             (
                 (
-                    config::handle_send_packet_event,
+                    config::handle_outgoing_packets,
                     game::handle_outgoing_packets,
                 )
                     .chain(),

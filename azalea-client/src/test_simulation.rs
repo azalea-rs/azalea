@@ -113,6 +113,15 @@ impl Simulation {
     pub fn has_component<T: Component>(&self) -> bool {
         self.app.world().get::<T>(self.entity).is_some()
     }
+    pub fn resource<T: Resource + Clone>(&self) -> T {
+        self.app.world().get_resource::<T>().unwrap().clone()
+    }
+    pub fn with_resource<T: Resource>(&self, f: impl FnOnce(&T)) {
+        f(self.app.world().get_resource::<T>().unwrap());
+    }
+    pub fn with_resource_mut<T: Resource>(&mut self, f: impl FnOnce(Mut<T>)) {
+        f(self.app.world_mut().get_resource_mut::<T>().unwrap());
+    }
 
     pub fn chunk(&self, chunk_pos: ChunkPos) -> Option<Arc<RwLock<Chunk>>> {
         self.component::<InstanceHolder>()

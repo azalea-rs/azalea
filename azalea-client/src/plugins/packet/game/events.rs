@@ -49,7 +49,7 @@ pub struct ReceivePacketEvent {
 }
 
 /// An event for sending a packet to the server while we're in the `game` state.
-#[derive(Event)]
+#[derive(Event, Clone, Debug)]
 pub struct SendPacketEvent {
     pub sent_by: Entity,
     pub packet: ServerboundGamePacket,
@@ -61,25 +61,33 @@ impl SendPacketEvent {
     }
 }
 
-pub fn handle_outgoing_packets(
-    mut send_packet_events: EventReader<SendPacketEvent>,
+pub fn handle_outgoing_packets_observer(
+    trigger: Trigger<SendPacketEvent>,
     mut query: Query<(&mut RawConnection, Option<&InGameState>)>,
 ) {
-    for event in send_packet_events.read() {
-        if let Ok((raw_connection, in_game_state)) = query.get_mut(event.sent_by) {
-            if in_game_state.is_none() {
-                error!(
-                    "Tried to send a game packet {:?} while not in game state",
-                    event.packet
-                );
-                continue;
-            }
+    let event = trigger.event();
 
-            // debug!("Sending packet: {:?}", event.packet);
-            if let Err(e) = raw_connection.write_packet(event.packet.clone()) {
-                error!("Failed to send packet: {e}");
-            }
+    if let Ok((raw_connection, in_game_state)) = query.get_mut(event.sent_by) {
+        if in_game_state.is_none() {
+            error!(
+                "Tried to send a game packet {:?} while not in game state",
+                event.packet
+            );
+            return;
         }
+
+        // debug!("Sending packet: {:?}", event.packet);
+        if let Err(e) = raw_connection.write_packet(event.packet.clone()) {
+            error!("Failed to send packet: {e}");
+        }
+    }
+}
+
+/// A system that converts [`SendPacketEvent`] events into triggers so they get
+/// received by [`handle_outgoing_packets_observer`].
+pub fn handle_outgoing_packets(mut commands: Commands, mut events: EventReader<SendPacketEvent>) {
+    for event in events.read() {
+        commands.trigger(event.clone());
     }
 }
 

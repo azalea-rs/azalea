@@ -22,7 +22,7 @@ use bevy_app::{App, Plugin, Update};
 use bevy_ecs::{
     component::Component,
     entity::Entity,
-    event::{Event, EventReader, EventWriter},
+    event::{Event, EventReader},
     query::{Changed, With},
     schedule::IntoSystemConfigs,
     system::{Commands, Query, Res},
@@ -112,7 +112,7 @@ pub struct HitResultComponent(BlockHitResult);
 pub fn handle_block_interact_event(
     mut events: EventReader<BlockInteractEvent>,
     mut query: Query<(Entity, &mut CurrentSequenceNumber, &HitResultComponent)>,
-    mut send_packet_events: EventWriter<SendPacketEvent>,
+    mut commands: Commands,
 ) {
     for event in events.read() {
         let Ok((entity, mut sequence_number, hit_result)) = query.get_mut(event.entity) else {
@@ -150,7 +150,7 @@ pub fn handle_block_interact_event(
             }
         };
 
-        send_packet_events.send(SendPacketEvent::new(
+        commands.trigger(SendPacketEvent::new(
             entity,
             ServerboundUseItemOn {
                 hand: InteractionHand::MainHand,
@@ -299,12 +299,9 @@ pub fn can_use_game_master_blocks(
 pub struct SwingArmEvent {
     pub entity: Entity,
 }
-pub fn handle_swing_arm_event(
-    mut events: EventReader<SwingArmEvent>,
-    mut send_packet_events: EventWriter<SendPacketEvent>,
-) {
+pub fn handle_swing_arm_event(mut events: EventReader<SwingArmEvent>, mut commands: Commands) {
     for event in events.read() {
-        send_packet_events.send(SendPacketEvent::new(
+        commands.trigger(SendPacketEvent::new(
             event.entity,
             ServerboundSwing {
                 hand: InteractionHand::MainHand,

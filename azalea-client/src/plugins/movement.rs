@@ -17,7 +17,7 @@ use azalea_protocol::packets::{
 };
 use azalea_world::{MinecraftEntityId, MoveEntityError};
 use bevy_app::{App, Plugin, Update};
-use bevy_ecs::prelude::{Event, EventWriter};
+use bevy_ecs::prelude::Event;
 use bevy_ecs::schedule::SystemSet;
 use bevy_ecs::system::Commands;
 use bevy_ecs::{
@@ -158,7 +158,7 @@ pub fn send_position(
         ),
         With<InLoadedChunk>,
     >,
-    mut send_packet_events: EventWriter<SendPacketEvent>,
+    mut commands: Commands,
 ) {
     for (
         entity,
@@ -245,7 +245,7 @@ pub fn send_position(
         };
 
         if let Some(packet) = packet {
-            send_packet_events.send(SendPacketEvent {
+            commands.trigger(SendPacketEvent {
                 sent_by: entity,
                 packet,
             });
@@ -257,7 +257,6 @@ pub fn send_position(
 pub struct LastSentInput(pub ServerboundPlayerInput);
 pub fn send_player_input_packet(
     mut query: Query<(Entity, &PhysicsState, &Jumping, Option<&LastSentInput>)>,
-    mut send_packet_events: EventWriter<SendPacketEvent>,
     mut commands: Commands,
 ) {
     for (entity, physics_state, jumping, last_sent_input) in query.iter_mut() {
@@ -279,7 +278,7 @@ pub fn send_player_input_packet(
         let last_sent_input = last_sent_input.cloned().unwrap_or_default();
 
         if input != last_sent_input.0 {
-            send_packet_events.send(SendPacketEvent {
+            commands.trigger(SendPacketEvent {
                 sent_by: entity,
                 packet: input.clone().into_variant(),
             });
@@ -290,7 +289,7 @@ pub fn send_player_input_packet(
 
 fn send_sprinting_if_needed(
     mut query: Query<(Entity, &MinecraftEntityId, &Sprinting, &mut PhysicsState)>,
-    mut send_packet_events: EventWriter<SendPacketEvent>,
+    mut commands: Commands,
 ) {
     for (entity, minecraft_entity_id, sprinting, mut physics_state) in query.iter_mut() {
         let was_sprinting = physics_state.was_sprinting;
@@ -300,7 +299,7 @@ fn send_sprinting_if_needed(
             } else {
                 azalea_protocol::packets::game::s_player_command::Action::StopSprinting
             };
-            send_packet_events.send(SendPacketEvent::new(
+            commands.trigger(SendPacketEvent::new(
                 entity,
                 ServerboundPlayerCommand {
                     id: *minecraft_entity_id,

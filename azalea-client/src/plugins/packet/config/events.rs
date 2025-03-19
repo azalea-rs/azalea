@@ -34,7 +34,7 @@ impl SendConfigPacketEvent {
     }
 }
 
-pub fn handle_send_packet_event(
+pub fn handle_outgoing_packets(
     mut send_packet_events: EventReader<SendConfigPacketEvent>,
     mut query: Query<(&mut RawConnection, Option<&InConfigState>)>,
 ) {

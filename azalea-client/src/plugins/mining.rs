@@ -186,7 +186,7 @@ pub struct StartMiningBlockWithDirectionEvent {
 fn handle_start_mining_block_with_direction_event(
     mut events: EventReader<StartMiningBlockWithDirectionEvent>,
     mut finish_mining_events: EventWriter<FinishMiningBlockEvent>,
-    mut send_packet_events: EventWriter<SendPacketEvent>,
+    mut commands: Commands,
     mut attack_block_events: EventWriter<AttackBlockEvent>,
     mut mine_block_progress_events: EventWriter<MineBlockProgressEvent>,
     mut query: Query<(
@@ -204,7 +204,6 @@ fn handle_start_mining_block_with_direction_event(
         &mut MineBlockPos,
     )>,
     instances: Res<InstanceContainer>,
-    mut commands: Commands,
 ) {
     for event in events.read() {
         let (
@@ -252,7 +251,7 @@ fn handle_start_mining_block_with_direction_event(
         {
             if mining.is_some() {
                 // send a packet to stop mining since we just changed target
-                send_packet_events.send(SendPacketEvent::new(
+                commands.trigger(SendPacketEvent::new(
                     event.entity,
                     ServerboundPlayerAction {
                         action: s_player_action::Action::AbortDestroyBlock,
@@ -324,7 +323,7 @@ fn handle_start_mining_block_with_direction_event(
                 });
             }
 
-            send_packet_events.send(SendPacketEvent::new(
+            commands.trigger(SendPacketEvent::new(
                 event.entity,
                 ServerboundPlayerAction {
                     action: s_player_action::Action::StartDestroyBlock,
@@ -483,17 +482,16 @@ pub struct StopMiningBlockEvent {
 }
 pub fn handle_stop_mining_block_event(
     mut events: EventReader<StopMiningBlockEvent>,
-    mut send_packet_events: EventWriter<SendPacketEvent>,
+    mut commands: Commands,
     mut mine_block_progress_events: EventWriter<MineBlockProgressEvent>,
     mut query: Query<(&mut Mining, &MineBlockPos, &mut MineProgress)>,
-    mut commands: Commands,
 ) {
     for event in events.read() {
         let (mut _mining, mine_block_pos, mut mine_progress) = query.get_mut(event.entity).unwrap();
 
         let mine_block_pos =
             mine_block_pos.expect("IsMining is true so MineBlockPos must be present");
-        send_packet_events.send(SendPacketEvent::new(
+        commands.trigger(SendPacketEvent::new(
             event.entity,
             ServerboundPlayerAction {
                 action: s_player_action::Action::AbortDestroyBlock,
@@ -529,13 +527,12 @@ pub fn continue_mining_block(
         &mut MineTicks,
         &mut CurrentSequenceNumber,
     )>,
-    mut send_packet_events: EventWriter<SendPacketEvent>,
+    mut commands: Commands,
     mut mine_block_progress_events: EventWriter<MineBlockProgressEvent>,
     mut finish_mining_events: EventWriter<FinishMiningBlockEvent>,
     mut start_mining_events: EventWriter<StartMiningBlockWithDirectionEvent>,
     mut swing_arm_events: EventWriter<SwingArmEvent>,
     instances: Res<InstanceContainer>,
-    mut commands: Commands,
 ) {
     for (
         entity,
@@ -566,7 +563,7 @@ pub fn continue_mining_block(
                 position: mining.pos,
             });
             *sequence_number += 1;
-            send_packet_events.send(SendPacketEvent::new(
+            commands.trigger(SendPacketEvent::new(
                 entity,
                 ServerboundPlayerAction {
                     action: s_player_action::Action::StartDestroyBlock,
@@ -611,7 +608,7 @@ pub fn continue_mining_block(
                     entity,
                     position: mining.pos,
                 });
-                send_packet_events.send(SendPacketEvent::new(
+                commands.trigger(SendPacketEvent::new(
                     entity,
                     ServerboundPlayerAction {
                         action: s_player_action::Action::StopDestroyBlock,

@@ -21,7 +21,7 @@ use bevy_ecs::{
     event::EventReader,
     prelude::{Event, EventWriter},
     schedule::{IntoSystemConfigs, SystemSet},
-    system::Query,
+    system::{Commands, Query},
 };
 use tracing::warn;
 
@@ -610,7 +610,7 @@ fn handle_container_close_event(
     query: Query<(Entity, &Inventory)>,
     mut events: EventReader<CloseContainerEvent>,
     mut client_side_events: EventWriter<ClientSideCloseContainerEvent>,
-    mut send_packet_events: EventWriter<SendPacketEvent>,
+    mut commands: Commands,
 ) {
     for event in events.read() {
         let (entity, inventory) = query.get(event.entity).unwrap();
@@ -622,7 +622,7 @@ fn handle_container_close_event(
             continue;
         }
 
-        send_packet_events.send(SendPacketEvent::new(
+        commands.trigger(SendPacketEvent::new(
             entity,
             ServerboundContainerClose {
                 container_id: inventory.id,
@@ -662,7 +662,7 @@ pub struct ContainerClickEvent {
 pub fn handle_container_click_event(
     mut query: Query<(Entity, &mut Inventory)>,
     mut events: EventReader<ContainerClickEvent>,
-    mut send_packet_events: EventWriter<SendPacketEvent>,
+    mut commands: Commands,
 ) {
     for event in events.read() {
         let (entity, mut inventory) = query.get_mut(event.entity).unwrap();
@@ -689,7 +689,7 @@ pub fn handle_container_click_event(
             }
         }
 
-        send_packet_events.send(SendPacketEvent::new(
+        commands.trigger(SendPacketEvent::new(
             entity,
             ServerboundContainerClick {
                 container_id: event.window_id,
@@ -744,7 +744,7 @@ pub struct SetSelectedHotbarSlotEvent {
 }
 fn handle_set_selected_hotbar_slot_event(
     mut events: EventReader<SetSelectedHotbarSlotEvent>,
-    mut send_packet_events: EventWriter<SendPacketEvent>,
+    mut commands: Commands,
     mut query: Query<&mut Inventory>,
 ) {
     for event in events.read() {
@@ -756,7 +756,7 @@ fn handle_set_selected_hotbar_slot_event(
         }
 
         inventory.selected_hotbar_slot = event.slot;
-        send_packet_events.send(SendPacketEvent::new(
+        commands.trigger(SendPacketEvent::new(
             event.entity,
             ServerboundSetCarriedItem {
                 slot: event.slot as u16,
