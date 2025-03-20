@@ -1482,7 +1482,7 @@ impl GamePacketHandler<'_> {
                 // this resets a bunch of our components like physics and stuff
                 let entity_bundle = EntityBundle::new(
                     game_profile.uuid,
-                    Vec3::default(),
+                    Vec3::ZERO,
                     azalea_registry::EntityKind::Player,
                     new_instance_name,
                 );
