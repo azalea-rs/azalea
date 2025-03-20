@@ -140,8 +140,11 @@ impl Debug for EntityUuid {
 
 /// The position of the entity right now.
 ///
-/// You are free to change this; there's systems that update the indexes
-/// automatically.
+/// You are free to change the value of this component; there's systems that
+/// update the indexes automatically.
+///
+/// Its value is set to a default of [`Vec3::ZERO`] when it receives the login
+/// packet, its true position may be set ticks later.
 #[derive(Component, Clone, Copy, Debug, Default, PartialEq, Deref, DerefMut)]
 pub struct Position(Vec3);
 impl Position {

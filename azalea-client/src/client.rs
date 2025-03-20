@@ -683,6 +683,10 @@ impl Client {
     /// Get the position of this client.
     ///
     /// This is a shortcut for `Vec3::from(&bot.component::<Position>())`.
+    ///
+    /// Note that this value is given a default of [`Vec3::ZERO`] when it
+    /// receives the login packet, its true position may be set ticks
+    /// later.
     pub fn position(&self) -> Vec3 {
         Vec3::from(&self.component::<Position>())
     }
