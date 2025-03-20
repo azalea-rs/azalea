@@ -67,6 +67,48 @@ impl FormattedText {
         }
     }
 
+    pub fn to_custom_format<F, S>(
+        &self,
+        mut style_formatter: F,
+        mut text_formatter: S,
+        default_style: &Style,
+    ) -> String
+    where
+        F: FnMut(&Style, &Style, &Style) -> (String, String),
+        S: FnMut(&str) -> String,
+    {
+        let mut output = String::new();
+        let mut running_style = Style::default();
+
+        for component in self.clone().into_iter() {
+            let component_text = match &component {
+                Self::Text(c) => c.text.to_string(),
+                Self::Translatable(c) => match c.read() {
+                    Ok(c) => c.to_string(),
+                    Err(_) => c.key.to_string(),
+                },
+            };
+
+            let component_style = &component.get_base().style;
+
+            let formatted_style = style_formatter(&running_style, component_style, default_style);
+            let formatted_text = text_formatter(&component_text);
+
+            output.push_str(&formatted_style.0);
+            output.push_str(&formatted_text);
+            output.push_str(&formatted_style.1);
+
+            // Reset running style if required
+            if component_style.reset {
+                running_style = default_style.clone();
+            } else {
+                running_style.apply(component_style);
+            }
+        }
+
+        output
+    }
+
     /// Convert this component into an
     /// [ANSI string](https://en.wikipedia.org/wiki/ANSI_escape_code), so you
     /// can print it to your terminal and get styling.
@@ -89,88 +131,28 @@ impl FormattedText {
     /// println!("{}", component.to_ansi());
     /// ```
     pub fn to_ansi(&self) -> String {
-        // default the default_style to white if it's not set
-        self.to_ansi_with_custom_style(&DEFAULT_STYLE)
-    }
+        let mut result = self.to_custom_format(
+            |running, new, default| (running.compare_ansi(new, &default), "".to_owned()),
+            |text| text.to_string(),
+            &DEFAULT_STYLE,
+        );
 
-    /// Convert this component into an
-    /// [ANSI string](https://en.wikipedia.org/wiki/ANSI_escape_code).
-    ///
-    /// This is the same as [`FormattedText::to_ansi`], but you can specify a
-    /// default [`Style`] to use.
-    pub fn to_ansi_with_custom_style(&self, default_style: &Style) -> String {
-        // this contains the final string will all the ansi escape codes
-        let mut built_string = String::new();
-        // this style will update as we visit components
-        let mut running_style = Style::default();
-
-        for component in self.clone().into_iter() {
-            let component_text = match &component {
-                Self::Text(c) => c.text.to_string(),
-                Self::Translatable(c) => match c.read() {
-                    Ok(c) => c.to_string(),
-                    Err(_) => c.key.to_string(),
-                },
-            };
-
-            let component_style = &component.get_base().style;
-
-            let ansi_text = running_style.compare_ansi(component_style, default_style);
-            built_string.push_str(&ansi_text);
-            built_string.push_str(&component_text);
-
-            running_style.apply(component_style);
+        if !result.is_empty() {
+            result.push_str("\u{1b}[m");
         }
 
-        if !running_style.is_empty() {
-            built_string.push_str("\u{1b}[m");
-        }
-
-        built_string
+        result
     }
 
     pub fn to_html(&self) -> String {
-        // default the default_style to white if it's not set
-        self.to_html_with_custom_style(&DEFAULT_STYLE)
-    }
+        let result = self.to_custom_format(
+            |_, new, _| (format!("<span style=\"{}\">", new.get_html_style()), "</span>".to_owned()),
+            |text| text.replace("\n", "<br>"),
+            &DEFAULT_STYLE,
+        );
 
-    pub fn to_html_with_custom_style(&self, default_style: &Style) -> String {
-        let mut html_output = String::new();
-        let mut running_style = default_style.clone();
-
-        for component in self.clone().into_iter() {
-            let component_style = &component.get_base().style;
-            // Calculate the effective style by merging the running style with the
-            // component's style.
-            let effective_style = running_style.merged_with(component_style);
-            let style_string = effective_style.get_html_style();
-
-            // Get the component text and replace newlines with <br>
-            let component_text = match &component {
-                Self::Text(c) => c.text.to_string(),
-                Self::Translatable(c) => match c.read() {
-                    Ok(text) => text.to_string(),
-                    Err(_) => c.key.to_string(),
-                },
-            }
-            .replace("\n", "<br>");
-
-            // Append the styled span for this component.
-            html_output.push_str(&format!(
-                "<span style=\"{}\">{}</span>",
-                style_string, component_text
-            ));
-
-            // Update the running style:
-            // If the component requests a reset, revert to default.
-            if component_style.reset {
-                running_style = default_style.clone();
-            } else {
-                running_style.apply(component_style);
-            }
-        }
-
-        html_output
+        // Ensure proper closing of opened spans
+        result
     }
 }
 
