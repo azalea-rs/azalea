@@ -2,7 +2,7 @@ use azalea_client::test_simulation::*;
 use azalea_core::{position::ChunkPos, resource_location::ResourceLocation};
 use azalea_entity::metadata::Cow;
 use azalea_protocol::packets::{ConnectionProtocol, game::ClientboundMoveEntityRot};
-use azalea_registry::{DimensionType, EntityKind};
+use azalea_registry::{DataRegistry, DimensionType, EntityKind};
 use azalea_world::MinecraftEntityId;
 use bevy_ecs::query::With;
 use bevy_log::tracing_subscriber;

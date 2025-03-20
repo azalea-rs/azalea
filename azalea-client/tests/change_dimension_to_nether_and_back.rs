@@ -5,7 +5,7 @@ use azalea_protocol::packets::{
     ConnectionProtocol, Packet,
     config::{ClientboundFinishConfiguration, ClientboundRegistryData},
 };
-use azalea_registry::DimensionType;
+use azalea_registry::{DataRegistry, DimensionType};
 use azalea_world::InstanceName;
 use bevy_log::tracing_subscriber;
 use simdnbt::owned::{NbtCompound, NbtTag};

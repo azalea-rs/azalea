@@ -1,3 +1,4 @@
+import lib.code.item_components
 import lib.code.inventory
 import lib.code.language
 import lib.code.registry
@@ -48,7 +49,7 @@ new_block_states_report = lib.extract.get_block_states_report(new_version_id)
 new_registries = lib.extract.get_registries_report(new_version_id)
 new_ordered_blocks = lib.code.blocks.get_ordered_blocks(new_registries)
 lib.code.blocks.generate_blocks(
-    new_block_states_report, new_pixlyzer_block_datas, new_ordered_blocks)
+    new_block_states_report, new_pixlyzer_block_datas, new_ordered_blocks, new_burger_data)
 lib.code.shapes.generate_block_shapes(
     new_pixlyzer_block_datas, new_shape_datas['shapes'], new_shape_datas['aabbs'], new_block_states_report)
 
@@ -60,9 +61,12 @@ print('Generating registries...')
 import genregistries
 genregistries.generate(new_version_id)
 
-# print('Generating entity metadata...')
+print('Generating entity metadata...')
 burger_entities_data = new_burger_data[0]['entities']
 lib.code.entity.generate_entity_metadata(burger_entities_data, new_mappings)
+
+print('Generating item components...')
+lib.code.item_components.generate(new_version_id)
 
 print('Finishing touches, setting version in README and formatting code...')
 lib.code.version.set_version_id(new_version_id)

@@ -4,7 +4,6 @@
 
 use std::{
     io::Cursor,
-    ops::Deref,
     time::{Duration, Instant},
 };
 
@@ -15,7 +14,6 @@ use azalea_protocol::packets::game::{
 };
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
-use simdnbt::owned::BaseNbt;
 use tracing::{error, trace};
 
 use super::packet::game::handle_outgoing_packets;
@@ -98,10 +96,7 @@ pub fn handle_receive_chunk_events(
             }
         }
 
-        let heightmaps_nbt = &event.packet.chunk_data.heightmaps;
-        // necessary to make the unwrap_or work
-        let empty_nbt = BaseNbt::default();
-        let heightmaps = heightmaps_nbt.unwrap_or(&empty_nbt).deref();
+        let heightmaps = &event.packet.chunk_data.heightmaps;
 
         if let Err(e) = partial_instance.chunks.replace_with_packet_data(
             &pos,

@@ -85,8 +85,7 @@ def run_python_command_and_download_deps(command):
             break
         missing_lib = regex_match.group(1)
         print('Missing required lib:', missing_lib)
-        os.system(
-            f'{determine_python_command()} -m pip install {missing_lib}')
+        subprocess.run(f'venv/bin/pip install {missing_lib}', cwd=os.path.dirname(os.path.dirname(__file__)))
     print('ok')
 
 
@@ -99,7 +98,7 @@ def get_burger_data_for_version(version_id: str):
         print('\033[92mRunning Burger...\033[m')
         run_python_command_and_download_deps(
             f'cd {get_dir_location("__cache__/Burger")} && '\
-            f'{determine_python_command()} munch.py {get_dir_location("__cache__")}/client-{version_id}.jar '\
+            f'venv/bin/python munch.py {get_dir_location("__cache__")}/client-{version_id}.jar '\
             f'--output {get_dir_location("__cache__")}/burger-{version_id}.json '\
             f'--mappings {get_dir_location("__cache__")}/mappings-{version_id}.txt'
         )

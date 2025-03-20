@@ -108,8 +108,10 @@ pub static BEE_FOOD: LazyLock<HashSet<Item>> = LazyLock::new(|| {
         Item::MangrovePropagule,
         Item::CherryLeaves,
         Item::PinkPetals,
+        Item::Wildflowers,
         Item::ChorusFlower,
         Item::SporeBlossom,
+        Item::CactusFlower,
     ])
 });
 pub static BIRCH_LOGS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
@@ -144,6 +146,8 @@ pub static BOATS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
         Item::CherryChestBoat,
     ])
 });
+pub static BOOK_CLONING_TARGET: LazyLock<HashSet<Item>> =
+    LazyLock::new(|| HashSet::from_iter(vec![Item::WritableBook]));
 pub static BOOKSHELF_BOOKS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
     HashSet::from_iter(vec![
         Item::Book,
@@ -560,6 +564,8 @@ pub static DYEABLE: LazyLock<HashSet<Item>> = LazyLock::new(|| {
         Item::WolfArmor,
     ])
 });
+pub static EGGS: LazyLock<HashSet<Item>> =
+    LazyLock::new(|| HashSet::from_iter(vec![Item::Egg, Item::BlueEgg, Item::BrownEgg]));
 pub static EMERALD_ORES: LazyLock<HashSet<Item>> =
     LazyLock::new(|| HashSet::from_iter(vec![Item::EmeraldOre, Item::DeepslateEmeraldOre]));
 pub static ENCHANTABLE_ARMOR: LazyLock<HashSet<Item>> = LazyLock::new(|| {
@@ -983,6 +989,40 @@ pub static FISHES: LazyLock<HashSet<Item>> = LazyLock::new(|| {
         Item::CookedSalmon,
         Item::Pufferfish,
         Item::TropicalFish,
+    ])
+});
+pub static FLOWERS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
+    HashSet::from_iter(vec![
+        Item::Sunflower,
+        Item::Lilac,
+        Item::Peony,
+        Item::RoseBush,
+        Item::PitcherPlant,
+        Item::FloweringAzaleaLeaves,
+        Item::FloweringAzalea,
+        Item::MangrovePropagule,
+        Item::CherryLeaves,
+        Item::PinkPetals,
+        Item::Wildflowers,
+        Item::ChorusFlower,
+        Item::SporeBlossom,
+        Item::CactusFlower,
+        Item::Dandelion,
+        Item::OpenEyeblossom,
+        Item::Poppy,
+        Item::BlueOrchid,
+        Item::Allium,
+        Item::AzureBluet,
+        Item::RedTulip,
+        Item::OrangeTulip,
+        Item::WhiteTulip,
+        Item::PinkTulip,
+        Item::OxeyeDaisy,
+        Item::Cornflower,
+        Item::LilyOfTheValley,
+        Item::WitherRose,
+        Item::Torchflower,
+        Item::ClosedEyeblossom,
     ])
 });
 pub static FOOT_ARMOR: LazyLock<HashSet<Item>> = LazyLock::new(|| {

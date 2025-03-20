@@ -8,8 +8,9 @@ use azalea_core::{
     sound::CustomSound,
 };
 use azalea_registry::{
-    Attribute, Block, ConsumeEffectKind, DataComponentKind, Enchantment, EntityKind, HolderSet,
-    Item, MobEffect, Potion, SoundEvent, TrimMaterial, TrimPattern,
+    self as registry, Attribute, Block, ConsumeEffectKind, DamageKind, DataComponentKind,
+    Enchantment, EntityKind, Holder, HolderSet, Item, MobEffect, Potion, SoundEvent, TrimMaterial,
+    TrimPattern,
 };
 use simdnbt::owned::{Nbt, NbtCompound};
 use tracing::trace;
@@ -51,7 +52,7 @@ where
 }
 
 pub fn from_kind(
-    kind: azalea_registry::DataComponentKind,
+    kind: registry::DataComponentKind,
     buf: &mut Cursor<&[u8]>,
 ) -> Result<Box<dyn EncodableDataComponent>, BufReadError> {
     // if this is causing a compile-time error, look at DataComponents.java in the
@@ -75,10 +76,6 @@ pub fn from_kind(
         DataComponentKind::CanBreak => Box::new(CanBreak::azalea_read(buf)?),
         DataComponentKind::AttributeModifiers => Box::new(AttributeModifiers::azalea_read(buf)?),
         DataComponentKind::CustomModelData => Box::new(CustomModelData::azalea_read(buf)?),
-        DataComponentKind::HideAdditionalTooltip => {
-            Box::new(HideAdditionalTooltip::azalea_read(buf)?)
-        }
-        DataComponentKind::HideTooltip => Box::new(HideTooltip::azalea_read(buf)?),
         DataComponentKind::RepairCost => Box::new(RepairCost::azalea_read(buf)?),
         DataComponentKind::CreativeSlotLock => Box::new(CreativeSlotLock::azalea_read(buf)?),
         DataComponentKind::EnchantmentGlintOverride => {
@@ -138,6 +135,45 @@ pub fn from_kind(
         DataComponentKind::Glider => Box::new(Glider::azalea_read(buf)?),
         DataComponentKind::TooltipStyle => Box::new(TooltipStyle::azalea_read(buf)?),
         DataComponentKind::DeathProtection => Box::new(DeathProtection::azalea_read(buf)?),
+        DataComponentKind::Weapon => Box::new(Weapon::azalea_read(buf)?),
+        DataComponentKind::PotionDurationScale => Box::new(PotionDurationScale::azalea_read(buf)?),
+        DataComponentKind::VillagerVariant => Box::new(VillagerVariant::azalea_read(buf)?),
+        DataComponentKind::WolfVariant => Box::new(WolfVariant::azalea_read(buf)?),
+        DataComponentKind::WolfCollar => Box::new(WolfCollar::azalea_read(buf)?),
+        DataComponentKind::FoxVariant => Box::new(FoxVariant::azalea_read(buf)?),
+        DataComponentKind::SalmonSize => Box::new(SalmonSize::azalea_read(buf)?),
+        DataComponentKind::ParrotVariant => Box::new(ParrotVariant::azalea_read(buf)?),
+        DataComponentKind::TropicalFishPattern => Box::new(TropicalFishPattern::azalea_read(buf)?),
+        DataComponentKind::TropicalFishBaseColor => {
+            Box::new(TropicalFishBaseColor::azalea_read(buf)?)
+        }
+        DataComponentKind::TropicalFishPatternColor => {
+            Box::new(TropicalFishPatternColor::azalea_read(buf)?)
+        }
+        DataComponentKind::MooshroomVariant => Box::new(MooshroomVariant::azalea_read(buf)?),
+        DataComponentKind::RabbitVariant => Box::new(RabbitVariant::azalea_read(buf)?),
+        DataComponentKind::PigVariant => Box::new(PigVariant::azalea_read(buf)?),
+        DataComponentKind::FrogVariant => Box::new(FrogVariant::azalea_read(buf)?),
+        DataComponentKind::HorseVariant => Box::new(HorseVariant::azalea_read(buf)?),
+        DataComponentKind::PaintingVariant => Box::new(PaintingVariant::azalea_read(buf)?),
+        DataComponentKind::LlamaVariant => Box::new(LlamaVariant::azalea_read(buf)?),
+        DataComponentKind::AxolotlVariant => Box::new(AxolotlVariant::azalea_read(buf)?),
+        DataComponentKind::CatVariant => Box::new(CatVariant::azalea_read(buf)?),
+        DataComponentKind::CatCollar => Box::new(CatCollar::azalea_read(buf)?),
+        DataComponentKind::SheepColor => Box::new(SheepColor::azalea_read(buf)?),
+        DataComponentKind::ShulkerColor => Box::new(ShulkerColor::azalea_read(buf)?),
+        DataComponentKind::TooltipDisplay => Box::new(TooltipDisplay::azalea_read(buf)?),
+        DataComponentKind::BlocksAttacks => Box::new(BlocksAttacks::azalea_read(buf)?),
+        DataComponentKind::ProvidesTrimMaterial => {
+            Box::new(ProvidesTrimMaterial::azalea_read(buf)?)
+        }
+        DataComponentKind::ProvidesBannerPatterns => {
+            Box::new(ProvidesBannerPatterns::azalea_read(buf)?)
+        }
+        DataComponentKind::BreakSound => Box::new(BreakSound::azalea_read(buf)?),
+        DataComponentKind::WolfSoundVariant => Box::new(WolfSoundVariant::azalea_read(buf)?),
+        DataComponentKind::CowVariant => Box::new(CowVariant::azalea_read(buf)?),
+        DataComponentKind::ChickenVariant => Box::new(ChickenVariant::azalea_read(buf)?),
     })
 }
 
@@ -340,18 +376,6 @@ pub struct CustomModelData {
 }
 impl DataComponent for CustomModelData {
     const KIND: DataComponentKind = DataComponentKind::CustomModelData;
-}
-
-#[derive(Clone, PartialEq, AzBuf)]
-pub struct HideAdditionalTooltip;
-impl DataComponent for HideAdditionalTooltip {
-    const KIND: DataComponentKind = DataComponentKind::HideAdditionalTooltip;
-}
-
-#[derive(Clone, PartialEq, AzBuf)]
-pub struct HideTooltip;
-impl DataComponent for HideTooltip {
-    const KIND: DataComponentKind = DataComponentKind::HideTooltip;
 }
 
 #[derive(Clone, PartialEq, AzBuf)]
@@ -600,7 +624,7 @@ impl DataComponent for BlockEntityData {
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct Instrument {
-    pub instrument: azalea_registry::Instrument,
+    pub instrument: registry::Instrument,
 }
 impl DataComponent for Instrument {
     const KIND: DataComponentKind = DataComponentKind::Instrument;
@@ -791,7 +815,7 @@ impl DataComponent for ContainerLoot {
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct JukeboxPlayable {
-    pub song: azalea_registry::JukeboxSong,
+    pub song: registry::JukeboxSong,
     pub show_in_tooltip: bool,
 }
 impl DataComponent for JukeboxPlayable {
@@ -930,4 +954,303 @@ pub struct DeathProtection {
 }
 impl DataComponent for DeathProtection {
     const KIND: DataComponentKind = DataComponentKind::DeathProtection;
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct Weapon {
+    #[var]
+    pub damage_per_attack: i32,
+    pub can_disable_blocking: bool,
+}
+impl DataComponent for Weapon {
+    const KIND: DataComponentKind = DataComponentKind::Weapon;
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct PotionDurationScale {
+    pub value: f32,
+}
+impl DataComponent for PotionDurationScale {
+    const KIND: DataComponentKind = DataComponentKind::PotionDurationScale;
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct VillagerVariant {
+    pub variant: registry::VillagerKind,
+}
+impl DataComponent for VillagerVariant {
+    const KIND: DataComponentKind = DataComponentKind::VillagerVariant;
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct WolfVariant {
+    pub variant: registry::WolfVariant,
+}
+impl DataComponent for WolfVariant {
+    const KIND: DataComponentKind = DataComponentKind::WolfVariant;
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct WolfCollar {
+    pub color: DyeColor,
+}
+impl DataComponent for WolfCollar {
+    const KIND: DataComponentKind = DataComponentKind::WolfCollar;
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct FoxVariant {
+    pub variant: registry::FoxVariant,
+}
+impl DataComponent for FoxVariant {
+    const KIND: DataComponentKind = DataComponentKind::FoxVariant;
+}
+
+#[derive(Clone, Copy, PartialEq, AzBuf)]
+pub enum SalmonSize {
+    Small,
+    Medium,
+    Large,
+}
+impl DataComponent for SalmonSize {
+    const KIND: DataComponentKind = DataComponentKind::SalmonSize;
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct ParrotVariant {
+    pub variant: registry::ParrotVariant,
+}
+impl DataComponent for ParrotVariant {
+    const KIND: DataComponentKind = DataComponentKind::ParrotVariant;
+}
+
+#[derive(Clone, Copy, PartialEq, AzBuf)]
+pub enum TropicalFishPattern {
+    Kob,
+    Sunstreak,
+    Snooper,
+    Dasher,
+    Brinely,
+    Spotty,
+    Flopper,
+    Stripey,
+    Glitter,
+    Blockfish,
+    Betty,
+    Clayfish,
+}
+impl DataComponent for TropicalFishPattern {
+    const KIND: DataComponentKind = DataComponentKind::TropicalFishPattern;
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct TropicalFishBaseColor {
+    pub color: DyeColor,
+}
+impl DataComponent for TropicalFishBaseColor {
+    const KIND: DataComponentKind = DataComponentKind::TropicalFishBaseColor;
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct TropicalFishPatternColor {
+    pub color: DyeColor,
+}
+impl DataComponent for TropicalFishPatternColor {
+    const KIND: DataComponentKind = DataComponentKind::TropicalFishPatternColor;
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct MooshroomVariant {
+    pub variant: registry::MooshroomVariant,
+}
+impl DataComponent for MooshroomVariant {
+    const KIND: DataComponentKind = DataComponentKind::MooshroomVariant;
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct RabbitVariant {
+    pub variant: registry::RabbitVariant,
+}
+impl DataComponent for RabbitVariant {
+    const KIND: DataComponentKind = DataComponentKind::RabbitVariant;
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct PigVariant {
+    pub variant: registry::PigVariant,
+}
+impl DataComponent for PigVariant {
+    const KIND: DataComponentKind = DataComponentKind::PigVariant;
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct FrogVariant {
+    pub variant: registry::FrogVariant,
+}
+impl DataComponent for FrogVariant {
+    const KIND: DataComponentKind = DataComponentKind::FrogVariant;
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct HorseVariant {
+    pub variant: registry::HorseVariant,
+}
+impl DataComponent for HorseVariant {
+    const KIND: DataComponentKind = DataComponentKind::HorseVariant;
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct PaintingVariant {
+    pub variant: registry::PaintingVariant,
+}
+impl DataComponent for PaintingVariant {
+    const KIND: DataComponentKind = DataComponentKind::PaintingVariant;
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct LlamaVariant {
+    pub variant: registry::LlamaVariant,
+}
+impl DataComponent for LlamaVariant {
+    const KIND: DataComponentKind = DataComponentKind::LlamaVariant;
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct AxolotlVariant {
+    pub variant: registry::AxolotlVariant,
+}
+impl DataComponent for AxolotlVariant {
+    const KIND: DataComponentKind = DataComponentKind::AxolotlVariant;
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct CatVariant {
+    pub variant: registry::CatVariant,
+}
+impl DataComponent for CatVariant {
+    const KIND: DataComponentKind = DataComponentKind::CatVariant;
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct CatCollar {
+    pub color: DyeColor,
+}
+impl DataComponent for CatCollar {
+    const KIND: DataComponentKind = DataComponentKind::CatCollar;
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct SheepColor {
+    pub color: DyeColor,
+}
+impl DataComponent for SheepColor {
+    const KIND: DataComponentKind = DataComponentKind::SheepColor;
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct ShulkerColor {
+    pub color: DyeColor,
+}
+impl DataComponent for ShulkerColor {
+    const KIND: DataComponentKind = DataComponentKind::ShulkerColor;
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct TooltipDisplay {
+    pub hide_tooltip: bool,
+    pub hidden_components: Vec<DataComponentKind>,
+}
+impl DataComponent for TooltipDisplay {
+    const KIND: DataComponentKind = DataComponentKind::TooltipDisplay;
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct BlocksAttacks {
+    pub block_delay_seconds: f32,
+    pub disable_cooldown_scale: f32,
+    pub damage_reductions: Vec<DamageReduction>,
+    pub item_damage: ItemDamageFunction,
+    pub bypassed_by: Option<ResourceLocation>,
+    pub block_sound: Option<azalea_registry::Holder<SoundEvent, CustomSound>>,
+    pub disable_sound: Option<azalea_registry::Holder<SoundEvent, CustomSound>>,
+}
+impl DataComponent for BlocksAttacks {
+    const KIND: DataComponentKind = DataComponentKind::BlocksAttacks;
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct DamageReduction {
+    pub horizontal_blocking_angle: f32,
+    pub kind: Option<HolderSet<DamageKind, ResourceLocation>>,
+}
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct ItemDamageFunction {
+    pub threshold: f32,
+    pub base: f32,
+    pub factor: f32,
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub enum ProvidesTrimMaterial {
+    Holder(Holder<TrimMaterial, DirectTrimMaterial>),
+    Registry(TrimMaterial),
+}
+impl DataComponent for ProvidesTrimMaterial {
+    const KIND: DataComponentKind = DataComponentKind::ProvidesTrimMaterial;
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct DirectTrimMaterial {
+    pub assets: MaterialAssetGroup,
+    pub description: FormattedText,
+}
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct MaterialAssetGroup {
+    pub base: AssetInfo,
+    pub overrides: Vec<(ResourceLocation, AssetInfo)>,
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct AssetInfo {
+    pub suffix: String,
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct ProvidesBannerPatterns {
+    pub key: ResourceLocation,
+}
+impl DataComponent for ProvidesBannerPatterns {
+    const KIND: DataComponentKind = DataComponentKind::ProvidesBannerPatterns;
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct BreakSound {
+    pub sound: azalea_registry::Holder<SoundEvent, CustomSound>,
+}
+impl DataComponent for BreakSound {
+    const KIND: DataComponentKind = DataComponentKind::BreakSound;
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct WolfSoundVariant {
+    pub variant: azalea_registry::WolfSoundVariant,
+}
+impl DataComponent for WolfSoundVariant {
+    const KIND: DataComponentKind = DataComponentKind::WolfSoundVariant;
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct CowVariant {
+    pub variant: azalea_registry::CowVariant,
+}
+impl DataComponent for CowVariant {
+    const KIND: DataComponentKind = DataComponentKind::CowVariant;
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct ChickenVariant {
+    pub variant: azalea_registry::ChickenVariant,
+}
+impl DataComponent for ChickenVariant {
+    const KIND: DataComponentKind = DataComponentKind::ChickenVariant;
 }

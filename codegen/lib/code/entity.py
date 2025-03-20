@@ -103,22 +103,23 @@ def generate_entity_metadata(burger_entities_data: dict, mappings: Mappings):
 // This file is generated from codegen/lib/code/entity.py.
 // Don't change it manually!
 
-use crate::particle::Particle;
-
-use super::{
-    ArmadilloStateKind, EntityDataItem, EntityDataValue, OptionalUnsignedInt, Pose, Quaternion,
-    Rotations, SnifferStateKind, VillagerData,
-};
 use azalea_chat::FormattedText;
 use azalea_core::{
     direction::Direction,
     position::{BlockPos, Vec3},
 };
 use azalea_inventory::ItemStack;
+use azalea_registry::DataRegistry;
 use bevy_ecs::{bundle::Bundle, component::Component};
 use derive_more::{Deref, DerefMut};
 use thiserror::Error;
 use uuid::Uuid;
+
+use super::{
+    ArmadilloStateKind, EntityDataItem, EntityDataValue, OptionalUnsignedInt, Pose, Quaternion,
+    Rotations, SnifferStateKind, VillagerData,
+};
+use crate::particle::Particle;
 
 #[derive(Error, Debug)]
 pub enum UpdateMetadataError {
@@ -410,12 +411,15 @@ impl From<EntityDataValue> for UpdateMetadataError {
                         # some types don't have Default implemented
                         if type_name == 'CompoundTag':
                             default = 'simdnbt::owned::NbtCompound::default()'
-                        elif type_name == 'CatVariant':
-                            default = 'azalea_registry::CatVariant::Tabby'
-                        elif type_name == 'PaintingVariant':
-                            default = 'azalea_registry::PaintingVariant::Kebab'
-                        elif type_name == 'FrogVariant':
-                            default = 'azalea_registry::FrogVariant::Temperate'
+                        # elif type_name == 'CatVariant':
+                        #     # TODO: the default should be Tabby but we don't have a way to get that from here
+                        #     default = 'azalea_registry::CatVariant::new_raw(0)'
+                        # elif type_name == 'PaintingVariant':
+                        #     default = 'azalea_registry::PaintingVariant::Kebab'
+                        # elif type_name == 'FrogVariant':
+                        #     default = 'azalea_registry::FrogVariant::Temperate'
+                        elif type_name.endswith('Variant'):
+                            default = f'azalea_registry::{type_name}::new_raw(0)'
                         elif type_name == 'VillagerData':
                             default = 'VillagerData { kind: azalea_registry::VillagerKind::Plains, profession: azalea_registry::VillagerProfession::None, level: 0 }'
                         else:
@@ -430,7 +434,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
                             default = f'BlockPos::new{default}'
                         elif type_name == 'OptionalBlockPos':  # Option<BlockPos>
                             default = f'Some(BlockPos::new{default})' if default != 'Empty' else 'None'
-                        elif type_name == 'OptionalUuid':
+                        elif type_name == 'OptionalLivingEntityReference':
                             default = f'Some(uuid::uuid!({default}))' if default != 'Empty' else 'None'
                         elif type_name == 'OptionalUnsignedInt':
                             default = f'OptionalUnsignedInt(Some({default}))' if default != 'Empty' else 'OptionalUnsignedInt(None)'
