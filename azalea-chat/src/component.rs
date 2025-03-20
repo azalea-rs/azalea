@@ -67,15 +67,17 @@ impl FormattedText {
         }
     }
 
-    pub fn to_custom_format<F, S>(
+    pub fn to_custom_format<F, S, C>(
         &self,
         mut style_formatter: F,
         mut text_formatter: S,
+        mut cleanup_formatter: C,
         default_style: &Style,
     ) -> String
     where
         F: FnMut(&Style, &Style, &Style) -> (String, String),
         S: FnMut(&str) -> String,
+        C: FnMut(&Style) -> String,
     {
         let mut output = String::new();
         let mut running_style = Style::default();
@@ -106,6 +108,8 @@ impl FormattedText {
             }
         }
 
+        output.push_str(&cleanup_formatter(&running_style));
+
         output
     }
 
@@ -131,17 +135,12 @@ impl FormattedText {
     /// println!("{}", component.to_ansi());
     /// ```
     pub fn to_ansi(&self) -> String {
-        let mut result = self.to_custom_format(
+        self.to_custom_format(
             |running, new, default| (running.compare_ansi(new, default), "".to_owned()),
             |text| text.to_string(),
+            |style| if !style.is_empty() { "\u{1b}[m" } else { "" }.to_string(),
             &DEFAULT_STYLE,
-        );
-
-        if !result.is_empty() {
-            result.push_str("\u{1b}[m");
-        }
-
-        result
+        )
     }
 
     pub fn to_html(&self) -> String {
@@ -153,6 +152,7 @@ impl FormattedText {
                 )
             },
             |text| text.replace("\n", "<br>"),
+            |_| "".to_string(),
             &DEFAULT_STYLE,
         )
     }
