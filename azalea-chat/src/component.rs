@@ -132,7 +132,7 @@ impl FormattedText {
     /// ```
     pub fn to_ansi(&self) -> String {
         let mut result = self.to_custom_format(
-            |running, new, default| (running.compare_ansi(new, &default), "".to_owned()),
+            |running, new, default| (running.compare_ansi(new, default), "".to_owned()),
             |text| text.to_string(),
             &DEFAULT_STYLE,
         );
@@ -145,14 +145,16 @@ impl FormattedText {
     }
 
     pub fn to_html(&self) -> String {
-        let result = self.to_custom_format(
-            |_, new, _| (format!("<span style=\"{}\">", new.get_html_style()), "</span>".to_owned()),
+        self.to_custom_format(
+            |_, new, _| {
+                (
+                    format!("<span style=\"{}\">", new.get_html_style()),
+                    "</span>".to_owned(),
+                )
+            },
             |text| text.replace("\n", "<br>"),
             &DEFAULT_STYLE,
-        );
-
-        // Ensure proper closing of opened spans
-        result
+        )
     }
 }
 
