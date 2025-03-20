@@ -539,6 +539,7 @@ impl Default for SwarmBuilder<NoState, NoSwarmState, (), ()> {
 
 /// An event about something that doesn't have to do with a single bot.
 #[derive(Clone, Debug)]
+#[non_exhaustive]
 pub enum SwarmEvent {
     /// All the bots in the swarm have successfully joined the server.
     Login,

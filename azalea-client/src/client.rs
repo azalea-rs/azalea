@@ -688,7 +688,11 @@ impl Client {
     /// receives the login packet, its true position may be set ticks
     /// later.
     pub fn position(&self) -> Vec3 {
-        Vec3::from(&self.component::<Position>())
+        Vec3::from(
+            &self
+                .get_component::<Position>()
+                .expect("the client's position hasn't been initialized yet"),
+        )
     }
 
     /// Get the position of this client's eyes.

@@ -60,6 +60,7 @@ use crate::{
 /// Note: Events are sent before they're processed, so for example game ticks
 /// happen at the beginning of a tick before anything has happened.
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub enum Event {
     /// Happens right after the bot switches into the Game state, but before
     /// it's actually spawned. This can be useful for setting the client
@@ -72,8 +73,8 @@ pub enum Event {
     /// Fired when we receive a login packet, which is after [`Event::Init`] but
     /// before [`Event::Spawn`]. You usually want [`Event::Spawn`] instead.
     ///
-    /// Your position will be [`Vec3::ZERO`] immediately after you receive this
-    /// packet, but it'll be ready by the time you get [`Event::Spawn`].
+    /// Your position may be [`Vec3::ZERO`] immediately after you receive this
+    /// event, but it'll be ready by the time you get [`Event::Spawn`].
     ///
     /// [`Vec3::ZERO`]: azalea_core::position::Vec3::ZERO
     Login,
