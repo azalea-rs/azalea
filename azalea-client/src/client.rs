@@ -39,7 +39,7 @@ use azalea_protocol::{
     resolver,
 };
 use azalea_world::{Instance, InstanceContainer, InstanceName, PartialInstance};
-use bevy_app::{App, Plugin, PluginGroup, PluginGroupBuilder, Update};
+use bevy_app::{App, Plugin, PluginGroup, PluginGroupBuilder, PluginsState, Update};
 use bevy_ecs::{
     bundle::Bundle,
     component::Component,
@@ -60,7 +60,7 @@ use tokio::{
     },
     time,
 };
-use tracing::{debug, error};
+use tracing::{debug, error, info};
 use uuid::Uuid;
 
 use crate::{
@@ -863,6 +863,14 @@ pub fn start_ecs_runner(
     run_schedule_receiver: mpsc::Receiver<()>,
     run_schedule_sender: mpsc::Sender<()>,
 ) -> Arc<Mutex<World>> {
+    // Wait for plugins to load
+    if app.plugins_state() == PluginsState::Adding {
+        info!("Waiting for plugins to load ...");
+        while matches!(app.plugins_state(), PluginsState::Adding) {}
+    }
+    // Finish adding the plugins
+    app.finish();
+
     // all resources should have been added by now so we can take the ecs from the
     // app
     let ecs = Arc::new(Mutex::new(std::mem::take(app.world_mut())));
