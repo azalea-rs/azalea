@@ -39,11 +39,12 @@ use azalea_protocol::{
     resolver,
 };
 use azalea_world::{Instance, InstanceContainer, InstanceName, PartialInstance};
-use bevy_app::{App, Plugin, PluginGroup, PluginGroupBuilder, PluginsState, Update};
+use bevy_app::{App, AppExit, Plugin, PluginGroup, PluginGroupBuilder, PluginsState, Update};
 use bevy_ecs::{
     bundle::Bundle,
     component::Component,
     entity::Entity,
+    event::Events,
     schedule::{InternedScheduleLabel, IntoSystemConfigs, LogLevel, ScheduleBuildSettings},
     system::{ResMut, Resource},
     world::World,
@@ -868,8 +869,9 @@ pub fn start_ecs_runner(
         info!("Waiting for plugins to load ...");
         while matches!(app.plugins_state(), PluginsState::Adding) {}
     }
-    // Finish adding the plugins
+    // Finish adding plugins and cleanup
     app.finish();
+    app.cleanup();
 
     // all resources should have been added by now so we can take the ecs from the
     // app
