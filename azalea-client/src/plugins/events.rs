@@ -178,6 +178,7 @@ pub fn login_listener(query: Query<&LocalPlayerEvents, Added<MinecraftEntityId>>
 /// sending the event twice for the same client.
 #[derive(Component)]
 pub struct SentSpawnEvent;
+#[allow(clippy::type_complexity)]
 pub fn spawn_listener(
     query: Query<(Entity, &LocalPlayerEvents), (Added<InLoadedChunk>, Without<SentSpawnEvent>)>,
     mut commands: Commands,
