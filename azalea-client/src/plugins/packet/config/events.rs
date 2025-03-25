@@ -109,3 +109,13 @@ fn packet_interrupts(packet: &ClientboundConfigPacket) -> bool {
             | ClientboundConfigPacket::Transfer(_)
     )
 }
+
+/// A Bevy trigger that's sent when our client receives a [`ClientboundPing`]
+/// packet in the config state.
+///
+/// See [`PingEvent`] for more information.
+///
+/// [`ClientboundPing`]: azalea_protocol::packets::config::ClientboundPing
+/// [`PingEvent`]: crate::packet::game::PingEvent
+#[derive(Event, Debug, Clone)]
+pub struct ConfigPingEvent(pub azalea_protocol::packets::config::ClientboundPing);

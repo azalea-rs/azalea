@@ -212,3 +212,21 @@ pub struct InstanceLoadedEvent {
     pub name: ResourceLocation,
     pub instance: Weak<RwLock<Instance>>,
 }
+
+/// A Bevy trigger that's sent when our client receives a [`ClientboundPing`]
+/// packet in the game state.
+///
+/// Also see [`ConfigPingEvent`] which is used for the config state.
+///
+/// This is not an event and can't be listened to from a normal system,
+///so  `EventReader<PingEvent>` will not work.
+///
+/// To use it, add your "system" with `add_observer` instead of `add_systems`
+/// and use `Trigger<PingEvent>` instead of `EventReader`.
+///
+/// The client Entity that received the packet will be attached to the trigger.
+///
+/// [`ClientboundPing`]: azalea_protocol::packets::game::ClientboundPing
+/// [`ConfigPingEvent`]: crate::packet::config::ConfigPingEvent
+#[derive(Event, Debug, Clone)]
+pub struct PingEvent(pub azalea_protocol::packets::game::ClientboundPing);

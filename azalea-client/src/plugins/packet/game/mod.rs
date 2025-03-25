@@ -1363,10 +1363,7 @@ impl GamePacketHandler<'_> {
         debug!("Got ping packet {p:?}");
 
         as_system::<Commands>(self.ecs, |mut commands| {
-            commands.trigger(SendPacketEvent::new(
-                self.player,
-                ServerboundPong { id: p.id },
-            ));
+            commands.trigger_targets(PingEvent(p.clone()), self.player);
         });
     }
 

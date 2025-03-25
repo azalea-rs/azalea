@@ -191,10 +191,9 @@ pub fn spawn_listener(
 
 pub fn chat_listener(query: Query<&LocalPlayerEvents>, mut events: EventReader<ChatReceivedEvent>) {
     for event in events.read() {
-        let local_player_events = query
-            .get(event.entity)
-            .expect("Non-local entities shouldn't be able to receive chat events");
-        let _ = local_player_events.send(Event::Chat(event.packet.clone()));
+        if let Ok(local_player_events) = query.get(event.entity) {
+            let _ = local_player_events.send(Event::Chat(event.packet.clone()));
+        }
     }
 }
 
@@ -210,10 +209,9 @@ pub fn packet_listener(
     mut events: EventReader<ReceivePacketEvent>,
 ) {
     for event in events.read() {
-        let local_player_events = query
-            .get(event.entity)
-            .expect("Non-local entities shouldn't be able to receive packet events");
-        let _ = local_player_events.send(Event::Packet(event.packet.clone()));
+        if let Ok(local_player_events) = query.get(event.entity) {
+            let _ = local_player_events.send(Event::Packet(event.packet.clone()));
+        }
     }
 }
 

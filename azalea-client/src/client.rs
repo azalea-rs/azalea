@@ -84,6 +84,7 @@ use crate::{
         login::{self, InLoginState, LoginSendPacketQueue},
     },
     player::retroactively_add_game_profile_component,
+    pong::PongPlugin,
     raw_connection::RawConnection,
     respawn::RespawnPlugin,
     task_pool::TaskPoolPlugin,
@@ -1035,7 +1036,8 @@ impl PluginGroup for DefaultPlugins {
             .add(ChunksPlugin)
             .add(TickEndPlugin)
             .add(BrandPlugin)
-            .add(TickBroadcastPlugin);
+            .add(TickBroadcastPlugin)
+            .add(PongPlugin);
         #[cfg(feature = "log")]
         {
             group = group.add(bevy_log::LogPlugin::default());
