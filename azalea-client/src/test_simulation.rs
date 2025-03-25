@@ -30,7 +30,6 @@ use uuid::Uuid;
 use crate::disconnect::DisconnectEvent;
 use crate::{
     ClientInformation, GameProfileComponent, InConfigState, InstanceHolder, LocalPlayerBundle,
-    events::LocalPlayerEvents,
     raw_connection::{RawConnection, RawConnectionReader, RawConnectionWriter},
 };
 
@@ -113,6 +112,15 @@ impl Simulation {
     pub fn has_component<T: Component>(&self) -> bool {
         self.app.world().get::<T>(self.entity).is_some()
     }
+    pub fn resource<T: Resource + Clone>(&self) -> T {
+        self.app.world().get_resource::<T>().unwrap().clone()
+    }
+    pub fn with_resource<T: Resource>(&self, f: impl FnOnce(&T)) {
+        f(self.app.world().get_resource::<T>().unwrap());
+    }
+    pub fn with_resource_mut<T: Resource>(&mut self, f: impl FnOnce(Mut<T>)) {
+        f(self.app.world_mut().get_resource_mut::<T>().unwrap());
+    }
 
     pub fn chunk(&self, chunk_pos: ChunkPos) -> Option<Arc<RwLock<Chunk>>> {
         self.component::<InstanceHolder>()
@@ -182,14 +190,11 @@ fn create_local_player_bundle(
         connection_protocol,
     };
 
-    let (local_player_events_sender, _local_player_events_receiver) = mpsc::unbounded_channel();
-
     let instance = Instance::default();
     let instance_holder = InstanceHolder::new(entity, Arc::new(RwLock::new(instance)));
 
     let local_player_bundle = LocalPlayerBundle {
         raw_connection,
-        local_player_events: LocalPlayerEvents(local_player_events_sender),
         game_profile: GameProfileComponent(GameProfile::new(Uuid::nil(), "azalea".to_owned())),
         client_information: ClientInformation::default(),
         instance_holder,

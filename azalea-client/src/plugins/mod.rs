@@ -9,6 +9,7 @@ pub mod inventory;
 pub mod mining;
 pub mod movement;
 pub mod packet;
+pub mod pong;
 pub mod respawn;
 pub mod task_pool;
 pub mod tick_end;

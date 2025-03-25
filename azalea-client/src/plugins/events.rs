@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use azalea_chat::FormattedText;
 use azalea_core::tick::GameTick;
-use azalea_entity::Dead;
+use azalea_entity::{Dead, InLoadedChunk};
 use azalea_protocol::packets::game::{
     ClientboundGamePacket, c_player_combat_kill::ClientboundPlayerCombatKill,
 };
@@ -13,10 +13,11 @@ use azalea_world::{InstanceName, MinecraftEntityId};
 use bevy_app::{App, Plugin, PreUpdate, Update};
 use bevy_ecs::{
     component::Component,
+    entity::Entity,
     event::EventReader,
-    query::{Added, With},
+    query::{Added, With, Without},
     schedule::IntoSystemConfigs,
-    system::Query,
+    system::{Commands, Query},
 };
 use derive_more::{Deref, DerefMut};
 use tokio::sync::mpsc;
@@ -59,17 +60,30 @@ use crate::{
 /// Note: Events are sent before they're processed, so for example game ticks
 /// happen at the beginning of a tick before anything has happened.
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub enum Event {
     /// Happens right after the bot switches into the Game state, but before
     /// it's actually spawned. This can be useful for setting the client
     /// information with `Client::set_client_information`, so the packet
     /// doesn't have to be sent twice.
     ///
-    /// You may want to use [`Event::Login`] instead to wait for the bot to be
+    /// You may want to use [`Event::Spawn`] instead to wait for the bot to be
     /// in the world.
     Init,
-    /// The client is now in the world. Fired when we receive a login packet.
+    /// Fired when we receive a login packet, which is after [`Event::Init`] but
+    /// before [`Event::Spawn`]. You usually want [`Event::Spawn`] instead.
+    ///
+    /// Your position may be [`Vec3::ZERO`] immediately after you receive this
+    /// event, but it'll be ready by the time you get [`Event::Spawn`].
+    ///
+    /// [`Vec3::ZERO`]: azalea_core::position::Vec3::ZERO
     Login,
+    /// Fired when the player fully spawns into the world and is ready to
+    /// interact with it.
+    ///
+    /// This is usually the event you should listen for when waiting for the bot
+    /// to be ready.
+    Spawn,
     /// A chat message was sent in the game chat.
     Chat(ChatPacket),
     /// Happens 20 times per second, but only when the world is loaded.
@@ -125,6 +139,7 @@ impl Plugin for EventsPlugin {
             (
                 chat_listener,
                 login_listener,
+                spawn_listener,
                 packet_listener,
                 add_player_listener,
                 update_player_listener,
@@ -156,12 +171,29 @@ pub fn login_listener(query: Query<&LocalPlayerEvents, Added<MinecraftEntityId>>
     }
 }
 
+/// A unit struct component that indicates that the entity has sent
+/// [`Event::Spawn`].
+///
+/// This is just used internally by the [`spawn_listener`] system to avoid
+/// sending the event twice for the same client.
+#[derive(Component)]
+pub struct SentSpawnEvent;
+#[allow(clippy::type_complexity)]
+pub fn spawn_listener(
+    query: Query<(Entity, &LocalPlayerEvents), (Added<InLoadedChunk>, Without<SentSpawnEvent>)>,
+    mut commands: Commands,
+) {
+    for (entity, local_player_events) in &query {
+        let _ = local_player_events.send(Event::Spawn);
+        commands.entity(entity).insert(SentSpawnEvent);
+    }
+}
+
 pub fn chat_listener(query: Query<&LocalPlayerEvents>, mut events: EventReader<ChatReceivedEvent>) {
     for event in events.read() {
-        let local_player_events = query
-            .get(event.entity)
-            .expect("Non-local entities shouldn't be able to receive chat events");
-        let _ = local_player_events.send(Event::Chat(event.packet.clone()));
+        if let Ok(local_player_events) = query.get(event.entity) {
+            let _ = local_player_events.send(Event::Chat(event.packet.clone()));
+        }
     }
 }
 
@@ -177,10 +209,9 @@ pub fn packet_listener(
     mut events: EventReader<ReceivePacketEvent>,
 ) {
     for event in events.read() {
-        let local_player_events = query
-            .get(event.entity)
-            .expect("Non-local entities shouldn't be able to receive packet events");
-        let _ = local_player_events.send(Event::Packet(event.packet.clone()));
+        if let Ok(local_player_events) = query.get(event.entity) {
+            let _ = local_player_events.send(Event::Packet(event.packet.clone()));
+        }
     }
 }
 

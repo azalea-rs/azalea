@@ -4,6 +4,7 @@ use std::{
     io,
     net::SocketAddr,
     sync::Arc,
+    thread,
     time::{Duration, Instant},
 };
 
@@ -39,7 +40,7 @@ use azalea_protocol::{
     resolver,
 };
 use azalea_world::{Instance, InstanceContainer, InstanceName, PartialInstance};
-use bevy_app::{App, Plugin, PluginGroup, PluginGroupBuilder, Update};
+use bevy_app::{App, Plugin, PluginGroup, PluginGroupBuilder, PluginsState, Update};
 use bevy_ecs::{
     bundle::Bundle,
     component::Component,
@@ -60,7 +61,7 @@ use tokio::{
     },
     time,
 };
-use tracing::{debug, error};
+use tracing::{debug, error, info};
 use uuid::Uuid;
 
 use crate::{
@@ -83,6 +84,7 @@ use crate::{
         login::{self, InLoginState, LoginSendPacketQueue},
     },
     player::retroactively_add_game_profile_component,
+    pong::PongPlugin,
     raw_connection::RawConnection,
     respawn::RespawnPlugin,
     task_pool::TaskPoolPlugin,
@@ -149,6 +151,7 @@ pub struct StartClientOpts<'a> {
     pub resolved_address: &'a SocketAddr,
     pub proxy: Option<Proxy>,
     pub run_schedule_sender: mpsc::Sender<()>,
+    pub event_sender: Option<mpsc::UnboundedSender<Event>>,
 }
 
 impl<'a> StartClientOpts<'a> {
@@ -156,6 +159,7 @@ impl<'a> StartClientOpts<'a> {
         account: &'a Account,
         address: &'a ServerAddress,
         resolved_address: &'a SocketAddr,
+        event_sender: Option<mpsc::UnboundedSender<Event>>,
     ) -> StartClientOpts<'a> {
         // An event that causes the schedule to run. This is only used internally.
         let (run_schedule_sender, run_schedule_receiver) = mpsc::channel(1);
@@ -172,6 +176,7 @@ impl<'a> StartClientOpts<'a> {
             resolved_address,
             proxy: None,
             run_schedule_sender,
+            event_sender,
         }
     }
 
@@ -229,8 +234,16 @@ impl Client {
     ) -> Result<(Self, mpsc::UnboundedReceiver<Event>), JoinError> {
         let address: ServerAddress = address.try_into().map_err(|_| JoinError::InvalidAddress)?;
         let resolved_address = resolver::resolve_address(&address).await?;
+        let (tx, rx) = mpsc::unbounded_channel();
 
-        Self::start_client(StartClientOpts::new(account, &address, &resolved_address)).await
+        let client = Self::start_client(StartClientOpts::new(
+            account,
+            &address,
+            &resolved_address,
+            Some(tx),
+        ))
+        .await?;
+        Ok((client, rx))
     }
 
     pub async fn join_with_proxy(
@@ -240,9 +253,13 @@ impl Client {
     ) -> Result<(Self, mpsc::UnboundedReceiver<Event>), JoinError> {
         let address: ServerAddress = address.try_into().map_err(|_| JoinError::InvalidAddress)?;
         let resolved_address = resolver::resolve_address(&address).await?;
+        let (tx, rx) = mpsc::unbounded_channel();
 
-        Self::start_client(StartClientOpts::new(account, &address, &resolved_address).proxy(proxy))
-            .await
+        let client = Self::start_client(
+            StartClientOpts::new(account, &address, &resolved_address, Some(tx)).proxy(proxy),
+        )
+        .await?;
+        Ok((client, rx))
     }
 
     /// Create a [`Client`] when you already have the ECS made with
@@ -255,8 +272,9 @@ impl Client {
             resolved_address,
             proxy,
             run_schedule_sender,
+            event_sender,
         }: StartClientOpts<'_>,
-    ) -> Result<(Self, mpsc::UnboundedReceiver<Event>), JoinError> {
+    ) -> Result<Self, JoinError> {
         // check if an entity with our uuid already exists in the ecs and if so then
         // just use that
         let entity = {
@@ -298,8 +316,6 @@ impl Client {
 
         // we did the handshake, so now we're connected to the server
 
-        let (tx, rx) = mpsc::unbounded_channel();
-
         let mut ecs = ecs_lock.lock();
 
         // we got the ConfigurationConnection, so the client is now connected :)
@@ -318,7 +334,8 @@ impl Client {
             Arc::new(RwLock::new(instance)),
         );
 
-        ecs.entity_mut(entity).insert((
+        let mut entity = ecs.entity_mut(entity);
+        entity.insert((
             // these stay when we switch to the game state
             LocalPlayerBundle {
                 raw_connection: RawConnection::new(
@@ -327,7 +344,6 @@ impl Client {
                     read_conn,
                     write_conn,
                 ),
-                local_player_events: LocalPlayerEvents(tx),
                 game_profile: GameProfileComponent(game_profile),
                 client_information: crate::ClientInformation::default(),
                 instance_holder,
@@ -337,8 +353,12 @@ impl Client {
             // this component is never removed
             LocalEntity,
         ));
+        if let Some(event_sender) = event_sender {
+            // this is optional so we don't leak memory in case the user
+            entity.insert(LocalPlayerEvents(event_sender));
+        }
 
-        Ok((client, rx))
+        Ok(client)
     }
 
     /// Do a handshake with the server and get to the game state from the
@@ -683,8 +703,16 @@ impl Client {
     /// Get the position of this client.
     ///
     /// This is a shortcut for `Vec3::from(&bot.component::<Position>())`.
+    ///
+    /// Note that this value is given a default of [`Vec3::ZERO`] when it
+    /// receives the login packet, its true position may be set ticks
+    /// later.
     pub fn position(&self) -> Vec3 {
-        Vec3::from(&self.component::<Position>())
+        Vec3::from(
+            &self
+                .get_component::<Position>()
+                .expect("the client's position hasn't been initialized yet"),
+        )
     }
 
     /// Get the position of this client's eyes.
@@ -789,7 +817,6 @@ impl Client {
 #[derive(Bundle)]
 pub struct LocalPlayerBundle {
     pub raw_connection: RawConnection,
-    pub local_player_events: LocalPlayerEvents,
     pub game_profile: GameProfileComponent,
     pub client_information: ClientInformation,
     pub instance_holder: InstanceHolder,
@@ -855,6 +882,21 @@ pub fn start_ecs_runner(
     run_schedule_receiver: mpsc::Receiver<()>,
     run_schedule_sender: mpsc::Sender<()>,
 ) -> Arc<Mutex<World>> {
+    // this block is based on Bevy's default runner:
+    // https://github.com/bevyengine/bevy/blob/390877cdae7a17095a75c8f9f1b4241fe5047e83/crates/bevy_app/src/schedule_runner.rs#L77-L85
+    if app.plugins_state() != PluginsState::Cleaned {
+        // Wait for plugins to load
+        if app.plugins_state() == PluginsState::Adding {
+            info!("Waiting for plugins to load ...");
+            while app.plugins_state() == PluginsState::Adding {
+                thread::yield_now();
+            }
+        }
+        // Finish adding plugins and cleanup
+        app.finish();
+        app.cleanup();
+    }
+
     // all resources should have been added by now so we can take the ecs from the
     // app
     let ecs = Arc::new(Mutex::new(std::mem::take(app.world_mut())));
@@ -994,7 +1036,8 @@ impl PluginGroup for DefaultPlugins {
             .add(ChunksPlugin)
             .add(TickEndPlugin)
             .add(BrandPlugin)
-            .add(TickBroadcastPlugin);
+            .add(TickBroadcastPlugin)
+            .add(PongPlugin);
         #[cfg(feature = "log")]
         {
             group = group.add(bevy_log::LogPlugin::default());

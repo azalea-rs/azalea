@@ -50,7 +50,7 @@ pub fn move_relative(
 pub fn input_vector(direction: &LookDirection, speed: f32, acceleration: &Vec3) -> Vec3 {
     let distance = acceleration.length_squared();
     if distance < 1.0E-7 {
-        return Vec3::default();
+        return Vec3::ZERO;
     }
     let acceleration = if distance > 1.0 {
         acceleration.normalize()
@@ -140,8 +140,11 @@ impl Debug for EntityUuid {
 
 /// The position of the entity right now.
 ///
-/// You are free to change this; there's systems that update the indexes
-/// automatically.
+/// You are free to change the value of this component; there's systems that
+/// update the indexes automatically.
+///
+/// Its value is set to a default of [`Vec3::ZERO`] when it receives the login
+/// packet, its true position may be set ticks later.
 #[derive(Component, Clone, Copy, Debug, Default, PartialEq, Deref, DerefMut)]
 pub struct Position(Vec3);
 impl Position {
@@ -304,7 +307,7 @@ pub struct Physics {
 impl Physics {
     pub fn new(dimensions: EntityDimensions, pos: Vec3) -> Self {
         Self {
-            velocity: Vec3::default(),
+            velocity: Vec3::ZERO,
             vec_delta_codec: VecDeltaCodec::new(pos),
 
             old_position: pos,

@@ -142,10 +142,8 @@ impl ConfigPacketHandler<'_> {
     pub fn ping(&mut self, p: ClientboundPing) {
         debug!("Got ping packet (in configuration) {p:?}");
 
-        as_system::<Query<&RawConnection>>(self.ecs, |query| {
-            let raw_conn = query.get(self.player).unwrap();
-
-            raw_conn.write_packet(ServerboundPong { id: p.id }).unwrap();
+        as_system::<Commands>(self.ecs, |mut commands| {
+            commands.trigger_targets(ConfigPingEvent(p), self.player);
         });
     }
 

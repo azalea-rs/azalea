@@ -19,7 +19,7 @@ impl Plugin for BrandPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            handle_end_login_state.before(crate::packet::config::handle_send_packet_event),
+            handle_end_login_state.before(crate::packet::config::handle_outgoing_packets),
         );
     }
 }

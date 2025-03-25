@@ -29,7 +29,7 @@ pub struct SendChatKindEvent {
 
 pub fn handle_send_chat_kind_event(
     mut events: EventReader<SendChatKindEvent>,
-    mut send_packet_events: EventWriter<SendPacketEvent>,
+    mut commands: Commands,
 ) {
     for event in events.read() {
         let content = event
@@ -58,6 +58,6 @@ pub fn handle_send_chat_kind_event(
             }
         };
 
-        send_packet_events.send(SendPacketEvent::new(event.entity, packet));
+        commands.trigger(SendPacketEvent::new(event.entity, packet));
     }
 }

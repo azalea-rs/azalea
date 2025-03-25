@@ -109,7 +109,7 @@ fn update_fluid_height_and_do_fluid_pushing(
     let mut min_height_touching = 0.;
     let is_entity_pushable_by_fluid = true;
     let mut touching_fluid = false;
-    let mut additional_player_delta = Vec3::default();
+    let mut additional_player_delta = Vec3::ZERO;
     let mut num_fluids_being_touched = 0;
 
     for cur_x in min_x..max_x {

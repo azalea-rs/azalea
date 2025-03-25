@@ -20,12 +20,9 @@ impl Plugin for RespawnPlugin {
     }
 }
 
-pub fn perform_respawn(
-    mut events: EventReader<PerformRespawnEvent>,
-    mut send_packets: EventWriter<SendPacketEvent>,
-) {
+pub fn perform_respawn(mut events: EventReader<PerformRespawnEvent>, mut commands: Commands) {
     for event in events.read() {
-        send_packets.send(SendPacketEvent::new(
+        commands.trigger(SendPacketEvent::new(
             event.entity,
             ServerboundClientCommand {
                 action: s_client_command::Action::PerformRespawn,

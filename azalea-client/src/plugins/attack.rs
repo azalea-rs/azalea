@@ -75,7 +75,7 @@ pub fn handle_attack_event(
         &mut Sprinting,
         &mut ShiftKeyDown,
     )>,
-    mut send_packet_events: EventWriter<SendPacketEvent>,
+    mut commands: Commands,
     mut swing_arm_event: EventWriter<SwingArmEvent>,
 ) {
     for event in events.read() {
@@ -85,7 +85,7 @@ pub fn handle_attack_event(
         swing_arm_event.send(SwingArmEvent {
             entity: event.entity,
         });
-        send_packet_events.send(SendPacketEvent::new(
+        commands.trigger(SendPacketEvent::new(
             event.entity,
             ServerboundInteract {
                 entity_id: event.target,

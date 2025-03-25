@@ -223,7 +223,6 @@ impl GamePacketHandler<'_> {
             EventWriter<InstanceLoadedEvent>,
             ResMut<InstanceContainer>,
             ResMut<EntityUuidIndex>,
-            EventWriter<SendPacketEvent>,
             Query<&mut LoadedBy, Without<LocalEntity>>,
         )>(
             self.ecs,
@@ -233,7 +232,6 @@ impl GamePacketHandler<'_> {
                 mut instance_loaded_events,
                 mut instance_container,
                 mut entity_uuid_index,
-                mut send_packet_events,
                 mut loaded_by_query,
             )| {
                 let (
@@ -300,7 +298,7 @@ impl GamePacketHandler<'_> {
 
                 let entity_bundle = EntityBundle::new(
                     game_profile.uuid,
-                    Vec3::default(),
+                    Vec3::ZERO,
                     azalea_registry::EntityKind::Player,
                     new_instance_name,
                 );
@@ -343,7 +341,7 @@ impl GamePacketHandler<'_> {
                     "Sending client information because login: {:?}",
                     client_information
                 );
-                send_packet_events.send(SendPacketEvent::new(self.player,
+                commands.trigger(SendPacketEvent::new(self.player,
                     azalea_protocol::packets::game::s_client_information::ServerboundClientInformation { information: client_information.clone() },
                 ));
             },
@@ -436,8 +434,8 @@ impl GamePacketHandler<'_> {
                 &mut Position,
                 &mut LastSentPosition,
             )>,
-            EventWriter<SendPacketEvent>,
-        )>(self.ecs, |(mut query, mut send_packet_events)| {
+            Commands,
+        )>(self.ecs, |(mut query, mut commands)| {
             let Ok((mut physics, mut direction, mut position, mut last_sent_position)) =
                 query.get_mut(self.player)
             else {
@@ -508,11 +506,11 @@ impl GamePacketHandler<'_> {
 
             // send the relevant packets
 
-            send_packet_events.send(SendPacketEvent::new(
+            commands.trigger(SendPacketEvent::new(
                 self.player,
                 ServerboundAcceptTeleportation { id: p.id },
             ));
-            send_packet_events.send(SendPacketEvent::new(
+            commands.trigger(SendPacketEvent::new(
                 self.player,
                 ServerboundMovePlayerPosRot {
                     pos: new_pos,
@@ -1044,14 +1042,14 @@ impl GamePacketHandler<'_> {
     pub fn keep_alive(&mut self, p: &ClientboundKeepAlive) {
         debug!("Got keep alive packet {p:?} for {:?}", self.player);
 
-        as_system::<(EventWriter<KeepAliveEvent>, EventWriter<SendPacketEvent>)>(
+        as_system::<(EventWriter<KeepAliveEvent>, Commands)>(
             self.ecs,
-            |(mut keepalive_events, mut send_packet_events)| {
+            |(mut keepalive_events, mut commands)| {
                 keepalive_events.send(KeepAliveEvent {
                     entity: self.player,
                     id: p.id,
                 });
-                send_packet_events.send(SendPacketEvent::new(
+                commands.trigger(SendPacketEvent::new(
                     self.player,
                     ServerboundKeepAlive { id: p.id },
                 ));
@@ -1363,11 +1361,8 @@ impl GamePacketHandler<'_> {
     pub fn ping(&mut self, p: &ClientboundPing) {
         debug!("Got ping packet {p:?}");
 
-        as_system::<EventWriter<_>>(self.ecs, |mut events| {
-            events.send(SendPacketEvent::new(
-                self.player,
-                ServerboundPong { id: p.id },
-            ));
+        as_system::<Commands>(self.ecs, |mut commands| {
+            commands.trigger_targets(PingEvent(p.clone()), self.player);
         });
     }
 
@@ -1483,7 +1478,7 @@ impl GamePacketHandler<'_> {
                 // this resets a bunch of our components like physics and stuff
                 let entity_bundle = EntityBundle::new(
                     game_profile.uuid,
-                    Vec3::default(),
+                    Vec3::ZERO,
                     azalea_registry::EntityKind::Player,
                     new_instance_name,
                 );

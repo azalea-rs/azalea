@@ -28,9 +28,9 @@ impl Plugin for TickEndPlugin {
 
 pub fn game_tick_packet(
     query: Query<Entity, (With<LocalEntity>, With<InstanceName>)>,
-    mut send_packets: EventWriter<SendPacketEvent>,
+    mut commands: Commands,
 ) {
     for entity in query.iter() {
-        send_packets.send(SendPacketEvent::new(entity, ServerboundClientTickEnd));
+        commands.trigger(SendPacketEvent::new(entity, ServerboundClientTickEnd));
     }
 }
