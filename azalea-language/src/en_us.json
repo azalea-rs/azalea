@@ -5214,7 +5214,7 @@
   "mount.onboard": "Press %1$s to Dismount",
   "multiplayer.applyingPack": "Applying resource pack",
   "multiplayer.disconnect.authservers_down": "Authentication servers are down. Please try again later, sorry!",
-  "multiplayer.disconnect.bad_chat_index": "Received missed or reordered chat message from server",
+  "multiplayer.disconnect.bad_chat_index": "Detected missed or reordered chat message from server",
   "multiplayer.disconnect.banned": "You are banned from this server",
   "multiplayer.disconnect.banned_ip.expiration": "\nYour ban will be removed on %s",
   "multiplayer.disconnect.banned_ip.reason": "Your IP address is banned from this server.\nReason: %s",
