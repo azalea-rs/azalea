@@ -4,6 +4,7 @@ use std::{
     io,
     net::SocketAddr,
     sync::Arc,
+    thread,
     time::{Duration, Instant},
 };
 
@@ -39,7 +40,7 @@ use azalea_protocol::{
     resolver,
 };
 use azalea_world::{Instance, InstanceContainer, InstanceName, PartialInstance};
-use bevy_app::{App, Plugin, PluginGroup, PluginGroupBuilder, Update};
+use bevy_app::{App, Plugin, PluginGroup, PluginGroupBuilder, PluginsState, Update};
 use bevy_ecs::{
     bundle::Bundle,
     component::Component,
@@ -60,7 +61,7 @@ use tokio::{
     },
     time,
 };
-use tracing::{debug, error};
+use tracing::{debug, error, info};
 use uuid::Uuid;
 
 use crate::{
@@ -880,6 +881,21 @@ pub fn start_ecs_runner(
     run_schedule_receiver: mpsc::Receiver<()>,
     run_schedule_sender: mpsc::Sender<()>,
 ) -> Arc<Mutex<World>> {
+    // this block is based on Bevy's default runner:
+    // https://github.com/bevyengine/bevy/blob/390877cdae7a17095a75c8f9f1b4241fe5047e83/crates/bevy_app/src/schedule_runner.rs#L77-L85
+    if app.plugins_state() != PluginsState::Cleaned {
+        // Wait for plugins to load
+        if app.plugins_state() == PluginsState::Adding {
+            info!("Waiting for plugins to load ...");
+            while app.plugins_state() == PluginsState::Adding {
+                thread::yield_now();
+            }
+        }
+        // Finish adding plugins and cleanup
+        app.finish();
+        app.cleanup();
+    }
+
     // all resources should have been added by now so we can take the ecs from the
     // app
     let ecs = Arc::new(Mutex::new(std::mem::take(app.world_mut())));
