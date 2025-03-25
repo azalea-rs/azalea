@@ -657,13 +657,16 @@ impl Swarm {
             .custom_resolved_address
             .unwrap_or_else(|| *self.resolved_address.read());
 
-        let (bot, rx) = Client::start_client(StartClientOpts {
+        let (tx, rx) = mpsc::unbounded_channel();
+
+        let bot = Client::start_client(StartClientOpts {
             ecs_lock: self.ecs_lock.clone(),
             account,
             address: &address,
             resolved_address: &resolved_address,
             proxy: join_opts.proxy.clone(),
             run_schedule_sender: self.run_schedule_sender.clone(),
+            event_sender: Some(tx),
         })
         .await?;
         // add the state to the client

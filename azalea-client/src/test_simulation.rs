@@ -30,7 +30,6 @@ use uuid::Uuid;
 use crate::disconnect::DisconnectEvent;
 use crate::{
     ClientInformation, GameProfileComponent, InConfigState, InstanceHolder, LocalPlayerBundle,
-    events::LocalPlayerEvents,
     raw_connection::{RawConnection, RawConnectionReader, RawConnectionWriter},
 };
 
@@ -191,14 +190,11 @@ fn create_local_player_bundle(
         connection_protocol,
     };
 
-    let (local_player_events_sender, _local_player_events_receiver) = mpsc::unbounded_channel();
-
     let instance = Instance::default();
     let instance_holder = InstanceHolder::new(entity, Arc::new(RwLock::new(instance)));
 
     let local_player_bundle = LocalPlayerBundle {
         raw_connection,
-        local_player_events: LocalPlayerEvents(local_player_events_sender),
         game_profile: GameProfileComponent(GameProfile::new(Uuid::nil(), "azalea".to_owned())),
         client_information: ClientInformation::default(),
         instance_holder,

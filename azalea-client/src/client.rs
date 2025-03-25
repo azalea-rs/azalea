@@ -149,6 +149,7 @@ pub struct StartClientOpts<'a> {
     pub resolved_address: &'a SocketAddr,
     pub proxy: Option<Proxy>,
     pub run_schedule_sender: mpsc::Sender<()>,
+    pub event_sender: Option<mpsc::UnboundedSender<Event>>,
 }
 
 impl<'a> StartClientOpts<'a> {
@@ -156,6 +157,7 @@ impl<'a> StartClientOpts<'a> {
         account: &'a Account,
         address: &'a ServerAddress,
         resolved_address: &'a SocketAddr,
+        event_sender: Option<mpsc::UnboundedSender<Event>>,
     ) -> StartClientOpts<'a> {
         // An event that causes the schedule to run. This is only used internally.
         let (run_schedule_sender, run_schedule_receiver) = mpsc::channel(1);
@@ -172,6 +174,7 @@ impl<'a> StartClientOpts<'a> {
             resolved_address,
             proxy: None,
             run_schedule_sender,
+            event_sender,
         }
     }
 
@@ -229,8 +232,16 @@ impl Client {
     ) -> Result<(Self, mpsc::UnboundedReceiver<Event>), JoinError> {
         let address: ServerAddress = address.try_into().map_err(|_| JoinError::InvalidAddress)?;
         let resolved_address = resolver::resolve_address(&address).await?;
+        let (tx, rx) = mpsc::unbounded_channel();
 
-        Self::start_client(StartClientOpts::new(account, &address, &resolved_address)).await
+        let client = Self::start_client(StartClientOpts::new(
+            account,
+            &address,
+            &resolved_address,
+            Some(tx),
+        ))
+        .await?;
+        Ok((client, rx))
     }
 
     pub async fn join_with_proxy(
@@ -240,9 +251,13 @@ impl Client {
     ) -> Result<(Self, mpsc::UnboundedReceiver<Event>), JoinError> {
         let address: ServerAddress = address.try_into().map_err(|_| JoinError::InvalidAddress)?;
         let resolved_address = resolver::resolve_address(&address).await?;
+        let (tx, rx) = mpsc::unbounded_channel();
 
-        Self::start_client(StartClientOpts::new(account, &address, &resolved_address).proxy(proxy))
-            .await
+        let client = Self::start_client(
+            StartClientOpts::new(account, &address, &resolved_address, Some(tx)).proxy(proxy),
+        )
+        .await?;
+        Ok((client, rx))
     }
 
     /// Create a [`Client`] when you already have the ECS made with
@@ -255,8 +270,9 @@ impl Client {
             resolved_address,
             proxy,
             run_schedule_sender,
+            event_sender,
         }: StartClientOpts<'_>,
-    ) -> Result<(Self, mpsc::UnboundedReceiver<Event>), JoinError> {
+    ) -> Result<Self, JoinError> {
         // check if an entity with our uuid already exists in the ecs and if so then
         // just use that
         let entity = {
@@ -298,8 +314,6 @@ impl Client {
 
         // we did the handshake, so now we're connected to the server
 
-        let (tx, rx) = mpsc::unbounded_channel();
-
         let mut ecs = ecs_lock.lock();
 
         // we got the ConfigurationConnection, so the client is now connected :)
@@ -318,7 +332,8 @@ impl Client {
             Arc::new(RwLock::new(instance)),
         );
 
-        ecs.entity_mut(entity).insert((
+        let mut entity = ecs.entity_mut(entity);
+        entity.insert((
             // these stay when we switch to the game state
             LocalPlayerBundle {
                 raw_connection: RawConnection::new(
@@ -327,7 +342,6 @@ impl Client {
                     read_conn,
                     write_conn,
                 ),
-                local_player_events: LocalPlayerEvents(tx),
                 game_profile: GameProfileComponent(game_profile),
                 client_information: crate::ClientInformation::default(),
                 instance_holder,
@@ -337,8 +351,12 @@ impl Client {
             // this component is never removed
             LocalEntity,
         ));
+        if let Some(event_sender) = event_sender {
+            // this is optional so we don't leak memory in case the user
+            entity.insert(LocalPlayerEvents(event_sender));
+        }
 
-        Ok((client, rx))
+        Ok(client)
     }
 
     /// Do a handshake with the server and get to the game state from the
@@ -797,7 +815,6 @@ impl Client {
 #[derive(Bundle)]
 pub struct LocalPlayerBundle {
     pub raw_connection: RawConnection,
-    pub local_player_events: LocalPlayerEvents,
     pub game_profile: GameProfileComponent,
     pub client_information: ClientInformation,
     pub instance_holder: InstanceHolder,
