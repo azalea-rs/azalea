@@ -57,6 +57,7 @@ pub fn process_packet_events(ecs: &mut World) {
             ecs,
         };
 
+        // the order of these doesn't matter, that's decided by the protocol library
         declare_packet_handlers!(
             ClientboundGamePacket,
             packet.as_ref(),
@@ -113,7 +114,6 @@ pub fn process_packet_events(ecs: &mut World) {
                 server_data,
                 set_equipment,
                 update_mob_effect,
-                add_experience_orb,
                 award_stats,
                 block_changed_ack,
                 block_destruction,
@@ -193,6 +193,7 @@ pub fn process_packet_events(ecs: &mut World) {
                 recipe_book_add,
                 recipe_book_remove,
                 recipe_book_settings,
+                test_instance_block_status,
             ]
         );
     }
@@ -1196,8 +1197,6 @@ impl GamePacketHandler<'_> {
         debug!("Got update mob effect packet {p:?}");
     }
 
-    pub fn add_experience_orb(&mut self, _p: &ClientboundAddExperienceOrb) {}
-
     pub fn award_stats(&mut self, _p: &ClientboundAwardStats) {}
 
     pub fn block_changed_ack(&mut self, _p: &ClientboundBlockChangedAck) {}
@@ -1601,4 +1600,5 @@ impl GamePacketHandler<'_> {
     pub fn recipe_book_add(&mut self, _p: &ClientboundRecipeBookAdd) {}
     pub fn recipe_book_remove(&mut self, _p: &ClientboundRecipeBookRemove) {}
     pub fn recipe_book_settings(&mut self, _p: &ClientboundRecipeBookSettings) {}
+    pub fn test_instance_block_status(&mut self, _p: &ClientboundTestInstanceBlockStatus) {}
 }

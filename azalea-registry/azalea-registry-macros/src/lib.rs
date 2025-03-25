@@ -7,24 +7,28 @@ use syn::{
     punctuated::Punctuated,
 };
 
-struct RegistryItem {
-    name: Ident,
-    id: String,
-}
-
 struct Registry {
     name: Ident,
     items: Vec<RegistryItem>,
-    attributes: Vec<Attribute>,
+    attrs: Vec<Attribute>,
+}
+
+struct RegistryItem {
+    attrs: Vec<Attribute>,
+    name: Ident,
+    id: String,
 }
 
 impl Parse for RegistryItem {
     // Air => "minecraft:air"
     fn parse(input: ParseStream) -> Result<Self> {
+        // parse annotations like #[default]
+        let attrs = input.call(Attribute::parse_outer).unwrap_or_default();
+
         let name = input.parse()?;
         input.parse::<Token![=>]>()?;
         let id = input.parse::<LitStr>()?.value();
-        Ok(RegistryItem { name, id })
+        Ok(RegistryItem { attrs, name, id })
     }
 }
 
@@ -36,7 +40,7 @@ impl Parse for Registry {
         // }
 
         // this also includes docs
-        let attributes = input.call(Attribute::parse_outer).unwrap_or_default();
+        let attrs = input.call(Attribute::parse_outer).unwrap_or_default();
 
         input.parse::<Token![enum]>()?;
         let name = input.parse()?;
@@ -48,7 +52,7 @@ impl Parse for Registry {
         Ok(Registry {
             name,
             items: items.into_iter().collect(),
-            attributes,
+            attrs,
         })
     }
 }
@@ -65,13 +69,15 @@ pub fn registry(input: TokenStream) -> TokenStream {
     // }
     let mut enum_items = quote! {};
     for (i, item) in input.items.iter().enumerate() {
+        let attrs = &item.attrs;
         let name = &item.name;
         let protocol_id = i as u32;
         enum_items.extend(quote! {
+            #(#attrs)*
             #name = #protocol_id,
         });
     }
-    let attributes = input.attributes;
+    let attributes = input.attrs;
     generated.extend(quote! {
         #(#attributes)*
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, azalea_buf::AzBuf, simdnbt::ToNbtTag, simdnbt::FromNbtTag)]

@@ -1,7 +1,7 @@
 use azalea_client::{InConfigState, packet::game::SendPacketEvent, test_simulation::*};
 use azalea_core::resource_location::ResourceLocation;
 use azalea_protocol::packets::{ConnectionProtocol, game::ClientboundStartConfiguration};
-use azalea_registry::DimensionType;
+use azalea_registry::{DataRegistry, DimensionType};
 use azalea_world::InstanceName;
 use bevy_ecs::event::Events;
 use bevy_log::tracing_subscriber;

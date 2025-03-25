@@ -13,6 +13,7 @@ pub struct ClientboundUpdateAdvancements {
     pub added: Vec<AdvancementHolder>,
     pub removed: Vec<ResourceLocation>,
     pub progress: HashMap<ResourceLocation, AdvancementProgress>,
+    pub show_advancements: bool,
 }
 
 #[derive(Clone, Debug, AzBuf)]
@@ -161,6 +162,7 @@ mod tests {
             )]
             .into_iter()
             .collect(),
+            show_advancements: false,
         };
 
         let mut data = Vec::new();

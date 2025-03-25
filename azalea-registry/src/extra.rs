@@ -7,24 +7,82 @@ use azalea_registry_macros::registry;
 use crate::Registry;
 
 registry! {
-enum WolfVariant {
-    Pale => "minecraft:wolf",
-    Spotted => "minecraft:wolf_spotted",
-    Snowy => "minecraft:wolf_snowy",
-    Black => "minecraft:wolf_black",
-    Ashen => "minecraft:wolf_ashen",
-    Rusty => "minecraft:wolf_rusty",
-    Woods => "minecraft:wolf_woods",
-    Chestnut => "minecraft:wolf_chestnut",
-    Striped => "minecraft:wolf_striped",
+#[derive(Default)]
+enum FoxVariant {
+    #[default]
+    Red => "minecraft:red",
+    Snow => "minecraft:snow",
 }
 }
 
-#[allow(clippy::derivable_impls)]
-impl Default for WolfVariant {
-    fn default() -> Self {
-        WolfVariant::Pale
-    }
+registry! {
+enum ParrotVariant {
+    RedBlue => "minecraft:red_blue",
+    Blue => "minecraft:blue",
+    Green => "minecraft:green",
+    YellowBlue => "minecraft:yellow_blue",
+    Gray => "minecraft:gray",
+}
+}
+
+registry! {
+#[derive(Default)]
+enum MooshroomVariant {
+    #[default]
+    Red => "minecraft:red",
+    Brown => "minecraft:brown",
+}
+}
+
+registry! {
+#[derive(Default)]
+enum RabbitVariant {
+    #[default]
+    Brown => "minecraft:brown",
+    White => "minecraft:white",
+    Black => "minecraft:black",
+    WhiteSplotched => "minecraft:white_splotched",
+    Gold => "minecraft:gold",
+    Salt => "minecraft:salt",
+    Evil => "minecraft:evil",
+}
+}
+
+registry! {
+#[derive(Default)]
+enum HorseVariant {
+    #[default]
+    White => "minecraft:white",
+    Creamy => "minecraft:creamy",
+    Chestnut => "minecraft:chestnut",
+    Brown => "minecraft:brown",
+    Black => "minecraft:black",
+    Gray => "minecraft:gray",
+    DarkBrown => "minecraft:dark_brown",
+}
+}
+
+registry! {
+#[derive(Default)]
+enum LlamaVariant {
+    #[default]
+    Creamy => "minecraft:creamy",
+    White => "minecraft:white",
+    Brown => "minecraft:brown",
+    Gray => "minecraft:gray",
+}
+}
+
+registry! {
+#[derive(Default)]
+enum AxolotlVariant {
+    #[default]
+    Lucy => "minecraft:lucy",
+    Wild => "minecraft:wild",
+    Gold => "minecraft:gold",
+    Cyan => "minecraft:cyan",
+    Blue => "minecraft:blue",
+}
 }
 
 registry! {
@@ -133,40 +191,5 @@ enum Instrument {
     CallGoatHorn => "minecraft:call_goat_horn",
     YearnGoatHorn => "minecraft:yearn_goat_horn",
     DreamGoatHorn => "minecraft:dream_goat_horn",
-}
-}
-
-registry! {
-enum PaintingVariant {
-    Kebab => "minecraft:kebab",
-    Aztec => "minecraft:aztec",
-    Alban => "minecraft:alban",
-    Aztec2 => "minecraft:aztec2",
-    Bomb => "minecraft:bomb",
-    Plant => "minecraft:plant",
-    Wasteland => "minecraft:wasteland",
-    Pool => "minecraft:pool",
-    Courbet => "minecraft:courbet",
-    Sea => "minecraft:sea",
-    Sunset => "minecraft:sunset",
-    Creebet => "minecraft:creebet",
-    Wanderer => "minecraft:wanderer",
-    Graham => "minecraft:graham",
-    Match => "minecraft:match",
-    Bust => "minecraft:bust",
-    Stage => "minecraft:stage",
-    Void => "minecraft:void",
-    SkullAndRoses => "minecraft:skull_and_roses",
-    Wither => "minecraft:wither",
-    Fighters => "minecraft:fighters",
-    Pointer => "minecraft:pointer",
-    Pigscene => "minecraft:pigscene",
-    BurningSkull => "minecraft:burning_skull",
-    Skeleton => "minecraft:skeleton",
-    Earth => "minecraft:earth",
-    Wind => "minecraft:wind",
-    Water => "minecraft:water",
-    Fire => "minecraft:fire",
-    DonkeyKong => "minecraft:donkey_kong",
 }
 }

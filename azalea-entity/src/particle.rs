@@ -45,6 +45,7 @@ pub enum Particle {
     Infested,
     CherryLeaves,
     PaleOakLeaves,
+    TintedLeaves,
     SculkSoul,
     SculkCharge(SculkChargeParticle),
     SculkChargePop,
@@ -122,6 +123,7 @@ pub enum Particle {
     RaidOmen,
     TrialOmen,
     BlockCrumble,
+    Firefly,
 }
 
 impl From<ParticleKind> for Particle {
@@ -164,6 +166,7 @@ impl From<ParticleKind> for Particle {
             ParticleKind::Flame => Self::Flame,
             ParticleKind::CherryLeaves => Self::CherryLeaves,
             ParticleKind::PaleOakLeaves => Self::PaleOakLeaves,
+            ParticleKind::TintedLeaves => Self::TintedLeaves,
             ParticleKind::SculkSoul => Self::SculkSoul,
             ParticleKind::SculkCharge => Self::SculkCharge(SculkChargeParticle::default()),
             ParticleKind::SculkChargePop => Self::SculkChargePop,
@@ -245,6 +248,7 @@ impl From<ParticleKind> for Particle {
             ParticleKind::TrialOmen => Self::TrialOmen,
             ParticleKind::Trail => Self::Trail,
             ParticleKind::BlockCrumble => Self::BlockCrumble,
+            ParticleKind::Firefly => Self::Firefly,
         }
     }
 }

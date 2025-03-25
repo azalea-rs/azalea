@@ -1,5 +1,4 @@
 use std::collections::hash_map::Entry;
-use std::str::FromStr;
 use std::{
     collections::HashMap,
     fmt::Debug,
@@ -13,7 +12,6 @@ use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
 use azalea_core::position::{BlockPos, ChunkBlockPos, ChunkPos, ChunkSectionBlockPos};
 use nohash_hasher::IntMap;
 use parking_lot::RwLock;
-use simdnbt::owned::NbtCompound;
 use tracing::{debug, trace, warn};
 
 use crate::heightmap::Heightmap;
@@ -177,7 +175,7 @@ impl PartialChunkStorage {
         &mut self,
         pos: &ChunkPos,
         data: &mut Cursor<&[u8]>,
-        heightmaps: &NbtCompound,
+        heightmaps: &[(HeightmapKind, Box<[u64]>)],
         chunk_storage: &mut ChunkStorage,
     ) -> Result<(), BufReadError> {
         debug!("Replacing chunk at {:?}", pos);
@@ -333,7 +331,7 @@ impl Chunk {
         buf: &mut Cursor<&[u8]>,
         dimension_height: u32,
         min_y: i32,
-        heightmaps_nbt: &NbtCompound,
+        heightmaps_data: &[(HeightmapKind, Box<[u64]>)],
     ) -> Result<Self, BufReadError> {
         let section_count = dimension_height / SECTION_HEIGHT;
         let mut sections = Vec::with_capacity(section_count as usize);
@@ -344,18 +342,10 @@ impl Chunk {
         let sections = sections.into_boxed_slice();
 
         let mut heightmaps = HashMap::new();
-        for (name, heightmap) in heightmaps_nbt.iter() {
-            let Ok(kind) = HeightmapKind::from_str(&name.to_str()) else {
-                warn!("Unknown heightmap kind: {name}");
-                continue;
-            };
-            let Some(data) = heightmap.long_array() else {
-                warn!("Heightmap {name} is not a long array");
-                continue;
-            };
+        for (kind, data) in heightmaps_data {
             let data: Box<[u64]> = data.iter().map(|x| *x as u64).collect();
-            let heightmap = Heightmap::new(kind, dimension_height, min_y, data);
-            heightmaps.insert(kind, heightmap);
+            let heightmap = Heightmap::new(*kind, dimension_height, min_y, data);
+            heightmaps.insert(*kind, heightmap);
         }
 
         Ok(Chunk {
@@ -449,7 +439,7 @@ impl AzaleaRead for Section {
         let block_count = u16::azalea_read(buf)?;
 
         // this is commented out because the vanilla server is wrong
-        // ^ this comment was written ages ago. needs more investigation.
+        // TODO: ^ this comment was written ages ago. needs more investigation.
         // assert!(
         //     block_count <= 16 * 16 * 16,
         //     "A section has more blocks than what should be possible. This is a bug!"
