@@ -213,19 +213,10 @@ impl DataComponent for Damage {
     const KIND: DataComponentKind = DataComponentKind::Damage;
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
-pub struct Unbreakable {
-    pub show_in_tooltip: bool,
-}
+#[derive(Clone, PartialEq, Default, AzBuf)]
+pub struct Unbreakable;
 impl DataComponent for Unbreakable {
     const KIND: DataComponentKind = DataComponentKind::Unbreakable;
-}
-impl Default for Unbreakable {
-    fn default() -> Self {
-        Self {
-            show_in_tooltip: true,
-        }
-    }
 }
 
 #[derive(Clone, PartialEq, AzBuf)]
@@ -268,7 +259,6 @@ impl DataComponent for Rarity {
 pub struct Enchantments {
     #[var]
     pub levels: HashMap<Enchantment, u32>,
-    pub show_in_tooltip: bool,
 }
 impl DataComponent for Enchantments {
     const KIND: DataComponentKind = DataComponentKind::Enchantments;
@@ -301,7 +291,6 @@ pub struct BlockPredicate {
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct AdventureModePredicate {
     pub predicates: Vec<BlockPredicate>,
-    pub show_in_tooltip: bool,
 }
 
 #[derive(Clone, PartialEq, AzBuf)]
@@ -361,7 +350,6 @@ pub struct AttributeModifiersEntry {
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct AttributeModifiers {
     pub modifiers: Vec<AttributeModifiersEntry>,
-    pub show_in_tooltip: bool,
 }
 impl DataComponent for AttributeModifiers {
     const KIND: DataComponentKind = DataComponentKind::AttributeModifiers;
@@ -466,7 +454,6 @@ impl DataComponent for Tool {
 pub struct StoredEnchantments {
     #[var]
     pub enchantments: HashMap<Enchantment, i32>,
-    pub show_in_tooltip: bool,
 }
 impl DataComponent for StoredEnchantments {
     const KIND: DataComponentKind = DataComponentKind::StoredEnchantments;
@@ -475,7 +462,6 @@ impl DataComponent for StoredEnchantments {
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct DyedColor {
     pub rgb: i32,
-    pub show_in_tooltip: bool,
 }
 impl DataComponent for DyedColor {
     const KIND: DataComponentKind = DataComponentKind::DyedColor;
@@ -584,7 +570,6 @@ impl DataComponent for WrittenBookContent {
 pub struct Trim {
     pub material: TrimMaterial,
     pub pattern: TrimPattern,
-    pub show_in_tooltip: bool,
 }
 impl DataComponent for Trim {
     const KIND: DataComponentKind = DataComponentKind::Trim;
@@ -816,7 +801,6 @@ impl DataComponent for ContainerLoot {
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct JukeboxPlayable {
     pub song: registry::JukeboxSong,
-    pub show_in_tooltip: bool,
 }
 impl DataComponent for JukeboxPlayable {
     const KIND: DataComponentKind = DataComponentKind::JukeboxPlayable;
