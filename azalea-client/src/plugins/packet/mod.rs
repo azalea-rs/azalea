@@ -55,6 +55,7 @@ impl Plugin for PacketPlugin {
             ),
         )
         .add_observer(game::handle_outgoing_packets_observer)
+        .add_observer(config::handle_outgoing_packets_observer)
         .add_systems(
             Update,
             (

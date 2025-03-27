@@ -121,7 +121,7 @@ impl ClientboundPlayerChat {
 }
 
 impl ChatTypeBound {
-    pub fn translation_key<'a>(&'a self) -> &'a str {
+    pub fn translation_key(&self) -> &str {
         match &self.chat_type {
             Holder::Reference(r) => r.chat_translation_key(),
             Holder::Direct(d) => d.chat.translation_key.as_str(),

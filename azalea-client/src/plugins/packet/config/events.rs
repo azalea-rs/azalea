@@ -22,7 +22,7 @@ pub struct ReceiveConfigPacketEvent {
 
 /// An event for sending a packet to the server while we're in the
 /// `configuration` state.
-#[derive(Event)]
+#[derive(Event, Clone)]
 pub struct SendConfigPacketEvent {
     pub sent_by: Entity,
     pub packet: ServerboundConfigPacket,
@@ -34,24 +34,33 @@ impl SendConfigPacketEvent {
     }
 }
 
-pub fn handle_outgoing_packets(
-    mut send_packet_events: EventReader<SendConfigPacketEvent>,
+pub fn handle_outgoing_packets_observer(
+    trigger: Trigger<SendConfigPacketEvent>,
     mut query: Query<(&mut RawConnection, Option<&InConfigState>)>,
 ) {
-    for event in send_packet_events.read() {
-        if let Ok((raw_conn, in_configuration_state)) = query.get_mut(event.sent_by) {
-            if in_configuration_state.is_none() {
-                error!(
-                    "Tried to send a configuration packet {:?} while not in configuration state",
-                    event.packet
-                );
-                continue;
-            }
-            debug!("Sending packet: {:?}", event.packet);
-            if let Err(e) = raw_conn.write_packet(event.packet.clone()) {
-                error!("Failed to send packet: {e}");
-            }
+    let event = trigger.event();
+    if let Ok((raw_conn, in_configuration_state)) = query.get_mut(event.sent_by) {
+        if in_configuration_state.is_none() {
+            error!(
+                "Tried to send a configuration packet {:?} while not in configuration state",
+                event.packet
+            );
+            return;
         }
+        debug!("Sending packet: {:?}", event.packet);
+        if let Err(e) = raw_conn.write_packet(event.packet.clone()) {
+            error!("Failed to send packet: {e}");
+        }
+    }
+}
+/// A system that converts [`SendConfigPacketEvent`] events into triggers so
+/// they get received by [`handle_outgoing_packets_observer`].
+pub fn handle_outgoing_packets(
+    mut commands: Commands,
+    mut events: EventReader<SendConfigPacketEvent>,
+) {
+    for event in events.read() {
+        commands.trigger(event.clone());
     }
 }
 

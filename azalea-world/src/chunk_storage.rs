@@ -343,7 +343,7 @@ impl Chunk {
 
         let mut heightmaps = HashMap::new();
         for (kind, data) in heightmaps_data {
-            let data: Box<[u64]> = data.iter().map(|x| *x as u64).collect();
+            let data: Box<[u64]> = data.iter().copied().collect();
             let heightmap = Heightmap::new(*kind, dimension_height, min_y, data);
             heightmaps.insert(*kind, heightmap);
         }
