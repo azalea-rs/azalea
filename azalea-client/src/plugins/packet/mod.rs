@@ -1,4 +1,4 @@
-use azalea_entity::{EntityUpdateSet, metadata::Health};
+use azalea_entity::metadata::Health;
 use bevy_app::{App, First, Plugin, PreUpdate, Update};
 use bevy_ecs::{
     prelude::*,
@@ -46,9 +46,7 @@ impl Plugin for PacketPlugin {
         .add_systems(
             PreUpdate,
             (
-                game::process_packet_events
-                    // we want to index and deindex right after
-                    .before(EntityUpdateSet::Deindex),
+                game::process_packet_events,
                 config::process_packet_events,
                 login::handle_send_packet_event,
                 login::process_packet_events,

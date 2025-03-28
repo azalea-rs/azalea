@@ -703,7 +703,10 @@ impl GamePacketHandler<'_> {
                 let mut spawned =
                     commands.spawn((entity_id, LoadedBy(HashSet::from([self.player])), bundle));
                 let ecs_entity: Entity = spawned.id();
-                debug!("spawned entity {ecs_entity:?} with id {entity_id:?}");
+                debug!(
+                    "spawned entity {ecs_entity:?} with id {entity_id:?} at {pos:?}",
+                    pos = p.position
+                );
 
                 azalea_entity::indexing::add_entity_to_indexes(
                     entity_id,
@@ -918,11 +921,9 @@ impl GamePacketHandler<'_> {
 
                 debug!("Got move entity pos packet {p:?}");
 
-                let Some(entity) = entity_id_index.get(p.entity_id) else {
-                    debug!(
-                        "Got move entity pos packet for unknown entity id {}",
-                        p.entity_id
-                    );
+                let entity_id = p.entity_id;
+                let Some(entity) = entity_id_index.get(entity_id) else {
+                    debug!("Got move entity pos packet for unknown entity id {entity_id}");
                     return;
                 };
 
@@ -944,6 +945,11 @@ impl GamePacketHandler<'_> {
                         if new_pos != **position {
                             **position = new_pos;
                         }
+
+                        trace!(
+                            "Applied movement update for {entity_id} / {entity}",
+                            entity = entity_mut.id()
+                        );
                     },
                 ));
             },
@@ -1071,7 +1077,7 @@ impl GamePacketHandler<'_> {
                 for &id in &p.entity_ids {
                     let Some(entity) = entity_id_index.remove(id) else {
                         debug!(
-                            "Tried to remove entity with id {id} but it wasn't in the EntityIdIndex"
+                            "Tried to remove entity with id {id} but it wasn't in the EntityIdIndex. This may be expected on certain server setups (like if they're using VeryManyPlayers)."
                         );
                         continue;
                     };
@@ -1082,7 +1088,7 @@ impl GamePacketHandler<'_> {
                         continue;
                     };
 
-                    // the [`remove_despawned_entities_from_indexes`] system will despawn the entity
+                    // the `remove_despawned_entities_from_indexes` system will despawn the entity
                     // if it's not loaded by anything anymore
 
                     // also we can't just ecs.despawn because if we're in a swarm then the entity

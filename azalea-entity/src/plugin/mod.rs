@@ -9,7 +9,7 @@ use azalea_core::{
     tick::GameTick,
 };
 use azalea_world::{InstanceContainer, InstanceName, MinecraftEntityId};
-use bevy_app::{App, Plugin, PreUpdate, Update};
+use bevy_app::{App, Plugin, PostUpdate, Update};
 use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
 use indexing::EntityUuidIndex;
@@ -39,7 +39,7 @@ impl Plugin for EntityPlugin {
         // modified during update
         // despawned post-update (done by this plugin)
         app.add_systems(
-            PreUpdate,
+            PostUpdate,
             indexing::remove_despawned_entities_from_indexes.in_set(EntityUpdateSet::Deindex),
         )
         .add_systems(

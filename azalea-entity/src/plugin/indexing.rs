@@ -1,6 +1,9 @@
 //! Stuff related to entity indexes and keeping track of entities in the world.
 
-use std::{collections::HashMap, fmt::Debug};
+use std::{
+    collections::{HashMap, HashSet},
+    fmt::Debug,
+};
 
 use azalea_core::position::ChunkPos;
 use azalea_world::{Instance, InstanceContainer, InstanceName, MinecraftEntityId};
@@ -12,7 +15,7 @@ use bevy_ecs::{
 };
 use derive_more::{Deref, DerefMut};
 use nohash_hasher::IntMap;
-use tracing::{debug, warn};
+use tracing::{debug, trace, warn};
 use uuid::Uuid;
 
 use super::LoadedBy;
@@ -75,22 +78,39 @@ impl EntityIdIndex {
     pub fn insert(&mut self, id: MinecraftEntityId, entity: Entity) {
         self.entity_by_id.insert(id, entity);
         self.id_by_entity.insert(entity, id);
+        trace!("Inserted {id} -> {entity:?} into a client's EntityIdIndex");
     }
 
     pub fn remove(&mut self, id: MinecraftEntityId) -> Option<Entity> {
         if let Some(entity) = self.entity_by_id.remove(&id) {
+            trace!(
+                "Removed {id} -> {entity:?} from a client's EntityIdIndex (using EntityIdIndex::remove)"
+            );
             self.id_by_entity.remove(&entity);
             Some(entity)
         } else {
+            trace!(
+                "Failed to remove {id} from a client's EntityIdIndex (using EntityIdIndex::remove)"
+            );
             None
         }
     }
 
     pub fn remove_by_ecs_entity(&mut self, entity: Entity) -> Option<MinecraftEntityId> {
         if let Some(id) = self.id_by_entity.remove(&entity) {
+            trace!(
+                "Removed {id} -> {entity:?} from a client's EntityIdIndex (using EntityIdIndex::remove_by_ecs_entity)."
+            );
             self.entity_by_id.remove(&id);
             Some(id)
         } else {
+            // this is expected to happen when despawning entities if it was already
+            // despawned for another reason (like because the client received a
+            // remove_entities packet, or if we're in a shared instance where entity ids are
+            // different for each client)
+            trace!(
+                "Failed to remove {entity:?} from a client's EntityIdIndex (using EntityIdIndex::remove_by_ecs_entity). This may be expected behavior."
+            );
             None
         }
     }
@@ -132,6 +152,7 @@ pub fn update_entity_chunk_positions(
                     .entry(new_chunk)
                     .or_default()
                     .insert(entity);
+                trace!("Entity {entity:?} moved from {old_chunk:?} to {new_chunk:?}");
             }
         }
     }
@@ -208,9 +229,22 @@ pub fn remove_despawned_entities_from_indexes(
                         instance.entities_by_chunk.remove(&chunk);
                     }
                 } else {
-                    warn!(
-                        "Tried to remove entity {entity:?} from chunk {chunk:?} but the entity was not there."
-                    );
+                    // search all the other chunks for it :(
+                    let mut found_in_other_chunks = HashSet::new();
+                    for (other_chunk, entities_in_other_chunk) in &mut instance.entities_by_chunk {
+                        if entities_in_other_chunk.remove(&entity) {
+                            found_in_other_chunks.insert(other_chunk);
+                        }
+                    }
+                    if found_in_other_chunks.is_empty() {
+                        warn!(
+                            "Tried to remove entity {entity:?} from chunk {chunk:?} but the entity was not there or in any other chunks."
+                        );
+                    } else {
+                        warn!(
+                            "Tried to remove entity {entity:?} from chunk {chunk:?} but the entity was not there. Found in and removed from other chunk(s): {found_in_other_chunks:?}"
+                        );
+                    }
                 }
             }
             _ => {
@@ -225,17 +259,13 @@ pub fn remove_despawned_entities_from_indexes(
         }
         if instance.entity_by_id.remove(minecraft_id).is_none() {
             debug!(
-                "Tried to remove entity {entity:?} from the id index but it was not there. This may be expected if you're in a shared instance."
+                "Tried to remove entity {entity:?} from the per-instance entity id index but it was not there. This may be expected if you're in a shared instance."
             );
         }
 
         // remove it from every client's EntityIdIndex
         for mut entity_id_index in entity_id_index_query.iter_mut() {
-            if entity_id_index.remove_by_ecs_entity(entity).is_none() {
-                debug!(
-                    "Tried to remove entity {entity:?} from the id index but it was not there. This may be expected if you're in a shared instance."
-                );
-            }
+            entity_id_index.remove_by_ecs_entity(entity);
         }
 
         // and now remove the entity from the ecs
