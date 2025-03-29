@@ -178,7 +178,8 @@ impl AzaleaWrite for ItemStack {
 /// and Azalea does not implement that yet.
 #[derive(Default)]
 pub struct DataComponentPatch {
-    components: IndexMap<DataComponentKind, Option<Box<dyn components::EncodableDataComponent>>>,
+    pub components:
+        IndexMap<DataComponentKind, Option<Box<dyn components::EncodableDataComponent>>>,
 }
 
 impl DataComponentPatch {

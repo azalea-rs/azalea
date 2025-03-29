@@ -10,7 +10,8 @@ use azalea_inventory::{
     },
 };
 use azalea_protocol::packets::game::{
-    s_container_click::ServerboundContainerClick, s_container_close::ServerboundContainerClose,
+    s_container_click::{HashedStack, ServerboundContainerClick},
+    s_container_close::ServerboundContainerClose,
     s_set_carried_item::ServerboundSetCarriedItem,
 };
 use azalea_registry::MenuKind;
@@ -23,7 +24,7 @@ use bevy_ecs::{
     schedule::{IntoSystemConfigs, SystemSet},
     system::{Commands, Query},
 };
-use tracing::warn;
+use tracing::{error, warn};
 
 use super::packet::game::handle_outgoing_packets;
 use crate::{
@@ -667,8 +668,8 @@ pub fn handle_container_click_event(
     for event in events.read() {
         let (entity, mut inventory) = query.get_mut(event.entity).unwrap();
         if inventory.id != event.window_id {
-            warn!(
-                "Tried to click container with ID {}, but the current container ID is {}",
+            error!(
+                "Tried to click container with ID {}, but the current container ID is {}. Click packet won't be sent.",
                 event.window_id, inventory.id
             );
             continue;
@@ -681,11 +682,11 @@ pub fn handle_container_click_event(
 
         // see which slots changed after clicking and put them in the hashmap
         // the server uses this to check if we desynced
-        let mut changed_slots: HashMap<u16, ItemStack> = HashMap::new();
+        let mut changed_slots: HashMap<u16, HashedStack> = HashMap::new();
         for (slot_index, old_slot) in old_slots.iter().enumerate() {
             let new_slot = &menu.slots()[slot_index];
             if old_slot != new_slot {
-                changed_slots.insert(slot_index as u16, new_slot.clone());
+                changed_slots.insert(slot_index as u16, HashedStack::from(new_slot));
             }
         }
 
@@ -721,7 +722,7 @@ fn handle_set_container_content_event(
 
         if event.container_id != inventory.id {
             warn!(
-                "Tried to set container content with ID {}, but the current container ID is {}",
+                "Got SetContainerContentEvent for container with ID {}, but the current container ID is {}",
                 event.container_id, inventory.id
             );
             continue;

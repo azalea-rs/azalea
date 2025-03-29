@@ -492,6 +492,7 @@ dependencies = [
  "azalea-registry",
  "azalea-world",
  "bevy_ecs",
+ "crc32fast",
  "flate2",
  "futures",
  "futures-lite",

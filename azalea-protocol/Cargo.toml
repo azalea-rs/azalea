@@ -48,8 +48,10 @@ tokio-util = { workspace = true, features = ["codec"] }
 tracing.workspace = true
 hickory-resolver = { workspace = true, features = ["tokio-runtime"] }
 uuid.workspace = true
+crc32fast = { workspace = true, optional = true }
 
 [features]
 connecting = []
 default = ["packets"]
-packets = ["connecting", "dep:azalea-core"]
+packets = ["connecting", "dep:azalea-core", "crc32"]
+crc32 = ["crc32fast"]

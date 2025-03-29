@@ -9,13 +9,16 @@ use syn::{
 fn as_packet_derive(input: TokenStream, state: proc_macro2::TokenStream) -> TokenStream {
     let DeriveInput { ident, data, .. } = parse_macro_input!(input);
 
+    // technically it would still work with enums and non-named structs but for
+    // consistency in the api it's nicer if they are all just structs, which is why
+    // we enforce this here
     let syn::Data::Struct(syn::DataStruct { fields, .. }) = &data else {
         panic!("#[derive(*Packet)] can only be used on structs")
     };
-
     let (syn::Fields::Named(_) | syn::Fields::Unit) = fields else {
         panic!("#[derive(*Packet)] can only be used on structs with named fields")
     };
+
     let variant_name = variant_name_from(&ident);
 
     let contents = quote! {
