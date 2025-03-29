@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use azalea_buf::AzBuf;
-use azalea_inventory::{operations::ClickType, ItemStack};
+use azalea_inventory::{ItemStack, operations::ClickType};
 use azalea_protocol_macros::ServerboundGamePacket;
 
 #[derive(Clone, Debug, AzBuf, ServerboundGamePacket)]

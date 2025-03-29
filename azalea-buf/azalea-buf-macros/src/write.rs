@@ -2,41 +2,6 @@ use proc_macro2::Span;
 use quote::{ToTokens, quote};
 use syn::{Data, Field, FieldsNamed, Ident, punctuated::Punctuated, token::Comma};
 
-fn write_named_fields(
-    named: &Punctuated<Field, Comma>,
-    ident_name: Option<&Ident>,
-) -> proc_macro2::TokenStream {
-    let write_fields = named.iter().map(|f| {
-        let field_name = &f.ident;
-        let field_type = &f.ty;
-        let ident_dot_field = match ident_name {
-            Some(ident) => quote! { &#ident.#field_name },
-            None => quote! { #field_name },
-        };
-        // do a different buf.write_* for each field depending on the type
-        // if it's a string, use buf.write_string
-        match field_type {
-            syn::Type::Path(_) | syn::Type::Array(_) => {
-                if f.attrs.iter().any(|attr| attr.path().is_ident("var")) {
-                    quote! {
-                        azalea_buf::AzaleaWriteVar::azalea_write_var(#ident_dot_field, buf)?;
-                    }
-                } else {
-                    quote! {
-                        azalea_buf::AzaleaWrite::azalea_write(#ident_dot_field, buf)?;
-                    }
-                }
-            }
-            _ => panic!(
-                "Error writing field {}: {}",
-                field_name.clone().unwrap(),
-                field_type.to_token_stream()
-            ),
-        }
-    });
-    quote! { #(#write_fields)* }
-}
-
 pub fn create_impl_azaleawrite(ident: &Ident, data: &Data) -> proc_macro2::TokenStream {
     match data {
         syn::Data::Struct(syn::DataStruct { fields, .. }) => match fields {
@@ -62,8 +27,17 @@ pub fn create_impl_azaleawrite(ident: &Ident, data: &Data) -> proc_macro2::Token
                     }
                 }
             }
-            _ => {
-                panic!("#[derive(AzBuf)] can only be used on structs with named fields")
+            syn::Fields::Unnamed(fields) => {
+                let write_fields = write_unnamed_fields(&fields.unnamed);
+
+                quote! {
+                    impl azalea_buf::AzaleaWrite for #ident {
+                        fn azalea_write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
+                            #write_fields
+                            Ok(())
+                        }
+                    }
+                }
             }
         },
         syn::Data::Enum(syn::DataEnum { variants, .. }) => {
@@ -198,5 +172,58 @@ pub fn create_impl_azaleawrite(ident: &Ident, data: &Data) -> proc_macro2::Token
             }
         }
         _ => panic!("#[derive(AzBuf)] can only be used on structs"),
+    }
+}
+
+fn write_named_fields(
+    named: &Punctuated<Field, Comma>,
+    ident_name: Option<&Ident>,
+) -> proc_macro2::TokenStream {
+    let write_fields = named.iter().map(|f| {
+        let field_name = &f.ident;
+        let ident_dot_field = match ident_name {
+            Some(ident) => quote! { &#ident.#field_name },
+            None => quote! { #field_name },
+        };
+
+        make_write_call(f, ident_dot_field)
+    });
+    quote! { #(#write_fields)* }
+}
+
+fn write_unnamed_fields(named: &Punctuated<Field, Comma>) -> proc_macro2::TokenStream {
+    let write_fields = named.iter().enumerate().map(|(i, f)| {
+        let i_literal = syn::Index::from(i);
+        let ident_dot_field = quote! { &self.#i_literal };
+
+        make_write_call(f, ident_dot_field)
+    });
+    quote! { #(#write_fields)* }
+}
+
+fn make_write_call(
+    f: &Field,
+    ident_dot_field: proc_macro2::TokenStream,
+) -> proc_macro2::TokenStream {
+    let field_type = &f.ty;
+    // do a different buf.write_* for each field depending on the type
+    // if it's a string, use buf.write_string
+    match field_type {
+        syn::Type::Path(_) | syn::Type::Array(_) => {
+            if f.attrs.iter().any(|attr| attr.path().is_ident("var")) {
+                quote! {
+                    azalea_buf::AzaleaWriteVar::azalea_write_var(#ident_dot_field, buf)?;
+                }
+            } else {
+                quote! {
+                    azalea_buf::AzaleaWrite::azalea_write(#ident_dot_field, buf)?;
+                }
+            }
+        }
+        _ => panic!(
+            "Error writing field {:?}: {}",
+            f.ident,
+            field_type.to_token_stream()
+        ),
     }
 }
