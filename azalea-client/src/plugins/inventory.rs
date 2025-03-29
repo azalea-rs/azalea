@@ -699,7 +699,7 @@ pub fn handle_container_click_event(
                 button_num: event.operation.button_num(),
                 click_type: event.operation.click_type(),
                 changed_slots,
-                carried_item: inventory.carried.clone(),
+                carried_item: (&inventory.carried).into(),
             },
         ));
     }
