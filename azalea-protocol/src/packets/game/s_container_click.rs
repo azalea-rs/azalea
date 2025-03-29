@@ -14,7 +14,7 @@ pub struct ServerboundContainerClick {
     pub button_num: u8,
     pub click_type: ClickType,
     pub changed_slots: HashMap<u16, HashedStack>,
-    pub carried_item: ItemStack,
+    pub carried_item: HashedStack,
 }
 
 /// Similar to an [`ItemStack`] but only carrying a CRC32 hash of the value of
