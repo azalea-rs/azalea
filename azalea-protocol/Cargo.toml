@@ -54,4 +54,4 @@ crc32fast = { workspace = true, optional = true }
 connecting = []
 default = ["packets"]
 packets = ["connecting", "dep:azalea-core", "crc32"]
-crc32 = ["crc32fast"]
+crc32 = ["dep:crc32fast"]
