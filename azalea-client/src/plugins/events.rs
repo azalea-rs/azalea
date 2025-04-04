@@ -76,13 +76,19 @@ pub enum Event {
     /// Your position may be [`Vec3::ZERO`] immediately after you receive this
     /// event, but it'll be ready by the time you get [`Event::Spawn`].
     ///
+    /// It's possible for this event to be sent multiple times per client if a
+    /// server sends multiple login packets (like when switching worlds).
+    ///
     /// [`Vec3::ZERO`]: azalea_core::position::Vec3::ZERO
     Login,
-    /// Fired when the player fully spawns into the world and is ready to
-    /// interact with it.
+    /// Fired when the player fully spawns into the world (is in a loaded chunk)
+    /// and is ready to interact with it.
     ///
     /// This is usually the event you should listen for when waiting for the bot
     /// to be ready.
+    ///
+    /// This event will be sent every time the client respawns or switches
+    /// worlds, as long as the server sends chunks to the client.
     Spawn,
     /// A chat message was sent in the game chat.
     Chat(ChatPacket),
@@ -165,9 +171,13 @@ pub fn init_listener(query: Query<&LocalPlayerEvents, Added<LocalPlayerEvents>>)
 }
 
 // when MinecraftEntityId is added, it means the player is now in the world
-pub fn login_listener(query: Query<&LocalPlayerEvents, Added<MinecraftEntityId>>) {
-    for local_player_events in &query {
+pub fn login_listener(
+    query: Query<(Entity, &LocalPlayerEvents), Added<MinecraftEntityId>>,
+    mut commands: Commands,
+) {
+    for (entity, local_player_events) in &query {
         let _ = local_player_events.send(Event::Login);
+        commands.entity(entity).remove::<SentSpawnEvent>();
     }
 }
 
@@ -175,7 +185,8 @@ pub fn login_listener(query: Query<&LocalPlayerEvents, Added<MinecraftEntityId>>
 /// [`Event::Spawn`].
 ///
 /// This is just used internally by the [`spawn_listener`] system to avoid
-/// sending the event twice for the same client.
+/// sending the event twice if we stop being in an unloaded chunk. It's removed
+/// when we receive a login packet.
 #[derive(Component)]
 pub struct SentSpawnEvent;
 #[allow(clippy::type_complexity)]
