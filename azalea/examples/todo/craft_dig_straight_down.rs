@@ -1,7 +1,8 @@
+use std::sync::Arc;
+
 use azalea::pathfinder;
 use azalea::prelude::*;
 use parking_lot::Mutex;
-use std::sync::Arc;
 
 #[derive(Default, Clone, Component)]
 struct State {
@@ -23,7 +24,7 @@ async fn main() {
 async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
     match event {
         Event::Chat(m) => {
-            if m.username() == Some(bot.profile.name) {
+            if m.sender() == Some(bot.profile.name) {
                 return Ok(());
             };
             if m.content() == "go" {

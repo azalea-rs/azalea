@@ -103,14 +103,14 @@ impl ChatPacket {
     /// Get the username of the sender of the message. If it's not a
     /// player-sent chat message or the sender couldn't be determined, this
     /// will be None.
-    pub fn username(&self) -> Option<String> {
+    pub fn sender(&self) -> Option<String> {
         self.split_sender_and_content().0
     }
 
     /// Get the UUID of the sender of the message. If it's not a
     /// player-sent chat message, this will be None (this is sometimes the case
     /// when a server uses a plugin to modify chat messages).
-    pub fn uuid(&self) -> Option<Uuid> {
+    pub fn sender_uuid(&self) -> Option<Uuid> {
         match self {
             ChatPacket::System(_) => None,
             ChatPacket::Player(m) => Some(m.sender),
