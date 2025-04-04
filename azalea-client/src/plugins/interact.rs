@@ -31,7 +31,6 @@ use bevy_ecs::{
 use derive_more::{Deref, DerefMut};
 use tracing::warn;
 
-use super::packet::game::handle_outgoing_packets;
 use crate::{
     Client,
     attack::handle_attack_event,
@@ -56,7 +55,6 @@ impl Plugin for InteractPlugin {
                         handle_block_interact_event,
                         handle_swing_arm_event,
                     )
-                        .before(handle_outgoing_packets)
                         .after(InventorySet)
                         .after(perform_respawn)
                         .after(handle_attack_event)

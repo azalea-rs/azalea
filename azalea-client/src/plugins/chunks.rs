@@ -16,7 +16,6 @@ use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 use tracing::{error, trace};
 
-use super::packet::game::handle_outgoing_packets;
 use crate::{
     InstanceHolder, interact::handle_block_interact_event, inventory::InventorySet,
     packet::game::SendPacketEvent, respawn::perform_respawn,
@@ -33,7 +32,6 @@ impl Plugin for ChunksPlugin {
                 handle_chunk_batch_finished_event,
             )
                 .chain()
-                .before(handle_outgoing_packets)
                 .before(InventorySet)
                 .before(handle_block_interact_event)
                 .before(perform_respawn),

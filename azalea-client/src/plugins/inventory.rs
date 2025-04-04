@@ -26,7 +26,6 @@ use bevy_ecs::{
 };
 use tracing::{error, warn};
 
-use super::packet::game::handle_outgoing_packets;
 use crate::{
     Client, local_player::PlayerAbilities, packet::game::SendPacketEvent, respawn::perform_respawn,
 };
@@ -47,7 +46,7 @@ impl Plugin for InventoryPlugin {
                     handle_menu_opened_event,
                     handle_set_container_content_event,
                     handle_container_click_event,
-                    handle_container_close_event.before(handle_outgoing_packets),
+                    handle_container_close_event,
                     handle_client_side_close_container_event,
                 )
                     .chain()

@@ -1,7 +1,7 @@
 use azalea_client::InConfigState;
 use azalea_client::chunks::handle_chunk_batch_finished_event;
 use azalea_client::inventory::InventorySet;
-use azalea_client::packet::config::{SendConfigPacketEvent, handle_outgoing_packets};
+use azalea_client::packet::config::SendConfigPacketEvent;
 use azalea_client::packet::game::SendPacketEvent;
 use azalea_client::packet::{death_event_on_0_health, game::ResourcePackEvent};
 use azalea_client::respawn::perform_respawn;
@@ -24,7 +24,6 @@ impl Plugin for AcceptResourcePacksPlugin {
                 .after(death_event_on_0_health)
                 .after(handle_chunk_batch_finished_event)
                 .after(InventorySet)
-                .before(handle_outgoing_packets)
                 .after(azalea_client::brand::handle_end_login_state),
         );
     }
@@ -33,7 +32,6 @@ impl Plugin for AcceptResourcePacksPlugin {
 fn accept_resource_pack(
     mut events: EventReader<ResourcePackEvent>,
     mut commands: Commands,
-    mut send_config_packet_events: EventWriter<SendConfigPacketEvent>,
     query_in_config_state: Query<Option<&InConfigState>>,
 ) {
     for event in events.read() {
@@ -42,14 +40,14 @@ fn accept_resource_pack(
         };
 
         if in_config_state_option.is_some() {
-            send_config_packet_events.send(SendConfigPacketEvent::new(
+            commands.trigger(SendConfigPacketEvent::new(
                 event.entity,
                 config::ServerboundResourcePack {
                     id: event.id,
                     action: config::s_resource_pack::Action::Accepted,
                 },
             ));
-            send_config_packet_events.send(SendConfigPacketEvent::new(
+            commands.trigger(SendConfigPacketEvent::new(
                 event.entity,
                 config::ServerboundResourcePack {
                     id: event.id,

@@ -19,7 +19,6 @@ use bevy_ecs::{
 use handler::{SendChatKindEvent, handle_send_chat_kind_event};
 use uuid::Uuid;
 
-use super::packet::game::handle_outgoing_packets;
 use crate::client::Client;
 
 pub struct ChatPlugin;
@@ -30,11 +29,7 @@ impl Plugin for ChatPlugin {
             .add_event::<ChatReceivedEvent>()
             .add_systems(
                 Update,
-                (
-                    handle_send_chat_event,
-                    handle_send_chat_kind_event.after(handle_outgoing_packets),
-                )
-                    .chain(),
+                (handle_send_chat_event, handle_send_chat_kind_event).chain(),
             );
     }
 }

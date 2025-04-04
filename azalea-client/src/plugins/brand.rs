@@ -17,24 +17,21 @@ use crate::packet::login::InLoginState;
 pub struct BrandPlugin;
 impl Plugin for BrandPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
-            Update,
-            handle_end_login_state.before(crate::packet::config::handle_outgoing_packets),
-        );
+        app.add_systems(Update, handle_end_login_state);
     }
 }
 
 pub fn handle_end_login_state(
+    mut commands: Commands,
     mut removed: RemovedComponents<InLoginState>,
     query: Query<&ClientInformation>,
-    mut send_packet_events: EventWriter<SendConfigPacketEvent>,
 ) {
     for entity in removed.read() {
         let mut brand_data = Vec::new();
         // azalea pretends to be vanilla everywhere else so it makes sense to lie here
         // too
         "vanilla".azalea_write(&mut brand_data).unwrap();
-        send_packet_events.send(SendConfigPacketEvent::new(
+        commands.trigger(SendConfigPacketEvent::new(
             entity,
             ServerboundCustomPayload {
                 identifier: ResourceLocation::new("brand"),
@@ -53,7 +50,7 @@ pub fn handle_end_login_state(
         };
 
         debug!("Writing ClientInformation while in config state: {client_information:?}");
-        send_packet_events.send(SendConfigPacketEvent::new(
+        commands.trigger(SendConfigPacketEvent::new(
             entity,
             ServerboundClientInformation {
                 information: client_information.clone(),
