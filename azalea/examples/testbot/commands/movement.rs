@@ -115,7 +115,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
                         get_integer(ctx, "z").unwrap(),
                     );
                     println!("{:?}", pos);
-                    let mut source = ctx.source.lock();
+                    let source = ctx.source.lock();
                     source.bot.look_at(pos.center());
                     1
                 }),
@@ -126,7 +126,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
         literal("walk").then(argument("seconds", float()).executes(|ctx: &Ctx| {
             let mut seconds = get_float(ctx, "seconds").unwrap();
             let source = ctx.source.lock();
-            let mut bot = source.bot.clone();
+            let bot = source.bot.clone();
 
             if seconds < 0. {
                 bot.walk(WalkDirection::Backward);
@@ -147,7 +147,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
         literal("sprint").then(argument("seconds", float()).executes(|ctx: &Ctx| {
             let seconds = get_float(ctx, "seconds").unwrap();
             let source = ctx.source.lock();
-            let mut bot = source.bot.clone();
+            let bot = source.bot.clone();
             bot.sprint(SprintDirection::Forward);
             tokio::spawn(async move {
                 tokio::time::sleep(Duration::from_secs_f32(seconds)).await;
@@ -159,25 +159,25 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
     );
 
     commands.register(literal("north").executes(|ctx: &Ctx| {
-        let mut source = ctx.source.lock();
+        let source = ctx.source.lock();
         source.bot.set_direction(180., 0.);
         source.reply("ok");
         1
     }));
     commands.register(literal("south").executes(|ctx: &Ctx| {
-        let mut source = ctx.source.lock();
+        let source = ctx.source.lock();
         source.bot.set_direction(0., 0.);
         source.reply("ok");
         1
     }));
     commands.register(literal("east").executes(|ctx: &Ctx| {
-        let mut source = ctx.source.lock();
+        let source = ctx.source.lock();
         source.bot.set_direction(-90., 0.);
         source.reply("ok");
         1
     }));
     commands.register(literal("west").executes(|ctx: &Ctx| {
-        let mut source = ctx.source.lock();
+        let source = ctx.source.lock();
         source.bot.set_direction(90., 0.);
         source.reply("ok");
         1
@@ -185,14 +185,14 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
     commands.register(
         literal("jump")
             .executes(|ctx: &Ctx| {
-                let mut source = ctx.source.lock();
+                let source = ctx.source.lock();
                 source.bot.jump();
                 source.reply("ok");
                 1
             })
             .then(argument("enabled", bool()).executes(|ctx: &Ctx| {
                 let jumping = get_bool(ctx, "enabled").unwrap();
-                let mut source = ctx.source.lock();
+                let source = ctx.source.lock();
                 source.bot.set_jumping(jumping);
                 1
             })),

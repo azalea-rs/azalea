@@ -64,7 +64,7 @@ impl Plugin for MiningPlugin {
 pub struct MiningSet;
 
 impl Client {
-    pub fn start_mining(&mut self, position: BlockPos) {
+    pub fn start_mining(&self, position: BlockPos) {
         self.ecs.lock().send_event(StartMiningBlockEvent {
             entity: self.entity,
             position,

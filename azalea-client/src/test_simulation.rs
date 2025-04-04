@@ -95,7 +95,7 @@ impl Simulation {
         simulation
     }
 
-    pub fn receive_packet<P: ProtocolPacket + Debug>(&mut self, packet: impl Packet<P>) {
+    pub fn receive_packet<P: ProtocolPacket + Debug>(&self, packet: impl Packet<P>) {
         let buf = azalea_protocol::write::serialize_packet(&packet.into_variant()).unwrap();
         self.incoming_packet_queue.lock().push(buf);
     }

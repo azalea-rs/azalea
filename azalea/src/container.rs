@@ -24,10 +24,10 @@ impl Plugin for ContainerPlugin {
 
 pub trait ContainerClientExt {
     fn open_container_at(
-        &mut self,
+        &self,
         pos: BlockPos,
     ) -> impl Future<Output = Option<ContainerHandle>> + Send;
-    fn open_inventory(&mut self) -> Option<ContainerHandle>;
+    fn open_inventory(&self) -> Option<ContainerHandle>;
     fn get_open_container(&self) -> Option<ContainerHandleRef>;
 }
 
@@ -49,7 +49,7 @@ impl ContainerClientExt for Client {
     /// let container = bot.open_container_at(target_pos).await;
     /// # }
     /// ```
-    async fn open_container_at(&mut self, pos: BlockPos) -> Option<ContainerHandle> {
+    async fn open_container_at(&self, pos: BlockPos) -> Option<ContainerHandle> {
         self.ecs
             .lock()
             .entity_mut(self.entity)
@@ -83,7 +83,7 @@ impl ContainerClientExt for Client {
     /// If you just want to get the items in the player's inventory without
     /// sending any packets, use [`Client::menu`], [`Menu::player_slots_range`],
     /// and [`Menu::slots`].
-    fn open_inventory(&mut self) -> Option<ContainerHandle> {
+    fn open_inventory(&self) -> Option<ContainerHandle> {
         let ecs = self.ecs.lock();
         let inventory = ecs.get::<Inventory>(self.entity).expect("no inventory");
 

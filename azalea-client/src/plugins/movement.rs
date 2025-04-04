@@ -86,7 +86,7 @@ impl Client {
     ///
     /// If you're making a realistic client, calling this function every tick is
     /// recommended.
-    pub fn set_jumping(&mut self, jumping: bool) {
+    pub fn set_jumping(&self, jumping: bool) {
         let mut ecs = self.ecs.lock();
         let mut jumping_mut = self.query::<&mut Jumping>(&mut ecs);
         **jumping_mut = jumping;
@@ -101,7 +101,7 @@ impl Client {
     /// side), `x_rot` is pitch (looking up and down). You can get these
     /// numbers from the vanilla f3 screen.
     /// `y_rot` goes from -180 to 180, and `x_rot` goes from -90 to 90.
-    pub fn set_direction(&mut self, y_rot: f32, x_rot: f32) {
+    pub fn set_direction(&self, y_rot: f32, x_rot: f32) {
         let mut ecs = self.ecs.lock();
         let mut look_direction = self.query::<&mut LookDirection>(&mut ecs);
 
@@ -406,7 +406,7 @@ impl Client {
     /// bot.walk(WalkDirection::None);
     /// # }
     /// ```
-    pub fn walk(&mut self, direction: WalkDirection) {
+    pub fn walk(&self, direction: WalkDirection) {
         let mut ecs = self.ecs.lock();
         ecs.send_event(StartWalkEvent {
             entity: self.entity,
@@ -429,7 +429,7 @@ impl Client {
     /// bot.walk(WalkDirection::None);
     /// # }
     /// ```
-    pub fn sprint(&mut self, direction: SprintDirection) {
+    pub fn sprint(&self, direction: SprintDirection) {
         let mut ecs = self.ecs.lock();
         ecs.send_event(StartSprintEvent {
             entity: self.entity,

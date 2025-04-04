@@ -75,7 +75,7 @@ impl Client {
     ///
     /// Note that this may trigger anticheats as it doesn't take into account
     /// whether you're actually looking at the block.
-    pub fn block_interact(&mut self, position: BlockPos) {
+    pub fn block_interact(&self, position: BlockPos) {
         self.ecs.lock().send_event(BlockInteractEvent {
             entity: self.entity,
             position,

@@ -81,27 +81,27 @@ fn stop_jumping(mut query: Query<(&mut Jumping, &mut Bot)>) {
 
 pub trait BotClientExt {
     /// Queue a jump for the next tick.
-    fn jump(&mut self);
+    fn jump(&self);
     /// Turn the bot's head to look at the coordinate in the world.
-    fn look_at(&mut self, pos: Vec3);
+    fn look_at(&self, pos: Vec3);
     /// Get a receiver that will receive a message every tick.
     fn get_tick_broadcaster(&self) -> tokio::sync::broadcast::Receiver<()>;
     /// Mine a block. This won't turn the bot's head towards the block, so if
     /// that's necessary you'll have to do that yourself with [`look_at`].
     ///
     /// [`look_at`]: crate::prelude::BotClientExt::look_at
-    fn mine(&mut self, position: BlockPos) -> impl Future<Output = ()> + Send;
+    fn mine(&self, position: BlockPos) -> impl Future<Output = ()> + Send;
 }
 
 impl BotClientExt for azalea_client::Client {
-    fn jump(&mut self) {
+    fn jump(&self) {
         let mut ecs = self.ecs.lock();
         ecs.send_event(JumpEvent {
             entity: self.entity,
         });
     }
 
-    fn look_at(&mut self, position: Vec3) {
+    fn look_at(&self, position: Vec3) {
         let mut ecs = self.ecs.lock();
         ecs.send_event(LookAtEvent {
             entity: self.entity,
@@ -133,7 +133,7 @@ impl BotClientExt for azalea_client::Client {
         tick_broadcast.subscribe()
     }
 
-    async fn mine(&mut self, position: BlockPos) {
+    async fn mine(&self, position: BlockPos) {
         self.start_mining(position);
         // vanilla sends an extra swing arm packet when we start mining
         self.ecs.lock().send_event(SwingArmEvent {

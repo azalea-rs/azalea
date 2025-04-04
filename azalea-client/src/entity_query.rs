@@ -60,7 +60,7 @@ impl Client {
     ///
     /// [`Entity`]: bevy_ecs::entity::Entity
     pub fn entity_by<F: QueryFilter, Q: QueryData>(
-        &mut self,
+        &self,
         predicate: impl EntityPredicate<Q, F>,
     ) -> Option<Entity> {
         predicate.find(self.ecs.clone())
@@ -71,7 +71,7 @@ impl Client {
     ///
     /// If you're trying to get a component for this client, use
     /// [`Self::component`].
-    pub fn entity_component<Q: Component + Clone>(&mut self, entity: Entity) -> Q {
+    pub fn entity_component<Q: Component + Clone>(&self, entity: Entity) -> Q {
         let mut ecs = self.ecs.lock();
         let mut q = ecs.query::<&Q>();
         let components = q.get(&ecs, entity).unwrap_or_else(|_| {
@@ -86,7 +86,7 @@ impl Client {
     /// Get a component from an entity, if it exists. This is similar to
     /// [`Self::entity_component`] but returns an `Option` instead of panicking
     /// if the component isn't present.
-    pub fn get_entity_component<Q: Component + Clone>(&mut self, entity: Entity) -> Option<Q> {
+    pub fn get_entity_component<Q: Component + Clone>(&self, entity: Entity) -> Option<Q> {
         let mut ecs = self.ecs.lock();
         let mut q = ecs.query::<&Q>();
         let components = q.get(&ecs, entity).ok();

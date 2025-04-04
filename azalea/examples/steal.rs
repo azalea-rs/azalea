@@ -24,7 +24,7 @@ struct State {
     pub checked_chests: Arc<Mutex<Vec<BlockPos>>>,
 }
 
-async fn handle(mut bot: Client, event: Event, state: State) -> anyhow::Result<()> {
+async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
     if let Event::Chat(m) = event {
         if m.sender() == Some(bot.profile.name.clone()) {
             return Ok(());

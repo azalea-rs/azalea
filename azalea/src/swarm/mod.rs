@@ -627,7 +627,7 @@ impl Swarm {
     ///
     /// Returns an `Err` if the bot could not do a handshake successfully.
     pub async fn add<S: Component + Clone>(
-        &mut self,
+        &self,
         account: &Account,
         state: S,
     ) -> Result<Client, JoinError> {

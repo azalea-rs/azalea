@@ -7,7 +7,7 @@ use azalea::{
 
 use crate::State;
 
-pub fn tick(mut bot: Client, state: State) -> anyhow::Result<()> {
+pub fn tick(bot: Client, state: State) -> anyhow::Result<()> {
     if !state.killaura {
         return Ok(());
     }
