@@ -23,6 +23,7 @@ use bevy_ecs::{
     component::Component,
     entity::Entity,
     event::{Event, EventReader},
+    observer::Trigger,
     query::{Changed, With},
     schedule::IntoSystemConfigs,
     system::{Commands, Query, Res},
@@ -64,7 +65,8 @@ impl Plugin for InteractPlugin {
                         .after(InventorySet)
                         .after(MoveEventsSet),
                 ),
-            );
+            )
+            .add_observer(handle_swing_arm_trigger);
     }
 }
 
@@ -295,18 +297,21 @@ pub fn can_use_game_master_blocks(
 
 /// Swing your arm. This is purely a visual effect and won't interact with
 /// anything in the world.
-#[derive(Event)]
+#[derive(Event, Clone, Debug)]
 pub struct SwingArmEvent {
     pub entity: Entity,
 }
+pub fn handle_swing_arm_trigger(trigger: Trigger<SwingArmEvent>, mut commands: Commands) {
+    commands.trigger(SendPacketEvent::new(
+        trigger.event().entity,
+        ServerboundSwing {
+            hand: InteractionHand::MainHand,
+        },
+    ));
+}
 pub fn handle_swing_arm_event(mut events: EventReader<SwingArmEvent>, mut commands: Commands) {
     for event in events.read() {
-        commands.trigger(SendPacketEvent::new(
-            event.entity,
-            ServerboundSwing {
-                hand: InteractionHand::MainHand,
-            },
-        ));
+        commands.trigger(event.clone());
     }
 }
 

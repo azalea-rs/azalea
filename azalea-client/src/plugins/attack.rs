@@ -33,6 +33,7 @@ impl Plugin for AttackPlugin {
                 (
                     increment_ticks_since_last_attack,
                     update_attack_strength_scale.after(PhysicsSet),
+                    handle_attack_queued.before(super::tick_end::game_tick_packet),
                 )
                     .chain(),
             );
@@ -61,38 +62,45 @@ impl Client {
     }
 }
 
-#[derive(Event)]
-pub struct AttackEvent {
-    pub entity: Entity,
+/// A component that indicates that this client will be attacking the given
+/// entity next tick.
+#[derive(Component, Clone, Debug)]
+struct AttackQueued {
     pub target: MinecraftEntityId,
 }
-pub fn handle_attack_event(
-    mut events: EventReader<AttackEvent>,
+fn handle_attack_queued(
+    mut commands: Commands,
     mut query: Query<(
+        Entity,
+        &AttackQueued,
         &LocalGameMode,
         &mut TicksSinceLastAttack,
         &mut Physics,
         &mut Sprinting,
-        &mut ShiftKeyDown,
+        &ShiftKeyDown,
     )>,
-    mut commands: Commands,
-    mut swing_arm_event: EventWriter<SwingArmEvent>,
 ) {
-    for event in events.read() {
-        let (game_mode, mut ticks_since_last_attack, mut physics, mut sprinting, sneaking) =
-            query.get_mut(event.entity).unwrap();
+    for (
+        entity,
+        attack_queued,
+        game_mode,
+        mut ticks_since_last_attack,
+        mut physics,
+        mut sprinting,
+        sneaking,
+    ) in &mut query
+    {
+        commands.entity(entity).remove::<AttackQueued>();
 
-        swing_arm_event.send(SwingArmEvent {
-            entity: event.entity,
-        });
         commands.trigger(SendPacketEvent::new(
-            event.entity,
+            entity,
             ServerboundInteract {
-                entity_id: event.target,
+                entity_id: attack_queued.target,
                 action: s_interact::ActionType::Attack,
                 using_secondary_action: **sneaking,
             },
         ));
+        commands.trigger(SwingArmEvent { entity });
 
         // we can't attack if we're in spectator mode but it still sends the attack
         // packet
@@ -104,6 +112,22 @@ pub fn handle_attack_event(
 
         physics.velocity = physics.velocity.multiply(0.6, 1.0, 0.6);
         **sprinting = false;
+    }
+}
+
+/// Queues up an attack packet for next tick by inserting the [`AttackQueued`]
+/// component to our client.
+#[derive(Event)]
+pub struct AttackEvent {
+    /// Our client entity that will send the packets to attack.
+    pub entity: Entity,
+    pub target: MinecraftEntityId,
+}
+pub fn handle_attack_event(mut events: EventReader<AttackEvent>, mut commands: Commands) {
+    for event in events.read() {
+        commands.entity(event.entity).insert(AttackQueued {
+            target: event.target,
+        });
     }
 }
 
