@@ -425,7 +425,10 @@ impl Client {
             match packet {
                 ClientboundLoginPacket::Hello(p) => {
                     debug!("Got encryption request");
-                    let e = azalea_crypto::encrypt(&p.public_key, &p.challenge).unwrap();
+                    let Ok(e) = azalea_crypto::encrypt(&p.public_key, &p.challenge) else {
+                        error!("Failed to encrypt the challenge from the server for {p:?}");
+                        continue;
+                    };
 
                     if let Some(access_token) = &account.access_token {
                         // keep track of the number of times we tried
