@@ -64,11 +64,14 @@ pub struct EntityIdIndex {
 }
 
 impl EntityIdIndex {
-    pub fn get(&self, id: MinecraftEntityId) -> Option<Entity> {
+    pub fn get_by_minecraft_entity(&self, id: MinecraftEntityId) -> Option<Entity> {
         self.entity_by_id.get(&id).copied()
     }
+    pub fn get_by_ecs_entity(&self, entity: Entity) -> Option<MinecraftEntityId> {
+        self.id_by_entity.get(&entity).copied()
+    }
 
-    pub fn contains_key(&self, id: MinecraftEntityId) -> bool {
+    pub fn contains_minecraft_entity(&self, id: MinecraftEntityId) -> bool {
         self.entity_by_id.contains_key(&id)
     }
     pub fn contains_ecs_entity(&self, id: Entity) -> bool {
@@ -81,7 +84,7 @@ impl EntityIdIndex {
         trace!("Inserted {id} -> {entity:?} into a client's EntityIdIndex");
     }
 
-    pub fn remove(&mut self, id: MinecraftEntityId) -> Option<Entity> {
+    pub fn remove_by_minecraft_entity(&mut self, id: MinecraftEntityId) -> Option<Entity> {
         if let Some(entity) = self.entity_by_id.remove(&id) {
             trace!(
                 "Removed {id} -> {entity:?} from a client's EntityIdIndex (using EntityIdIndex::remove)"

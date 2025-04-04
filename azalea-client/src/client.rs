@@ -39,7 +39,7 @@ use azalea_protocol::{
     },
     resolver,
 };
-use azalea_world::{Instance, InstanceContainer, InstanceName, PartialInstance};
+use azalea_world::{Instance, InstanceContainer, InstanceName, MinecraftEntityId, PartialInstance};
 use bevy_app::{App, Plugin, PluginGroup, PluginGroupBuilder, PluginsState, Update};
 use bevy_ecs::{
     bundle::Bundle,
@@ -587,6 +587,20 @@ impl Client {
         self.ecs.lock().resource::<T>().clone()
     }
 
+    /// Get a required ECS resource and call the given function with it.
+    pub fn map_resource<T: Resource, R>(&self, f: impl FnOnce(&T) -> R) -> R {
+        let ecs = self.ecs.lock();
+        let value = ecs.resource::<T>();
+        f(value)
+    }
+
+    /// Get an optional ECS resource and call the given function with it.
+    pub fn map_get_resource<T: Resource, R>(&self, f: impl FnOnce(Option<&T>) -> R) -> R {
+        let ecs = self.ecs.lock();
+        let value = ecs.get_resource::<T>();
+        f(value)
+    }
+
     /// Get a required component for this client and call the given function.
     ///
     /// Similar to [`Self::component`], but doesn't clone the component since
@@ -758,6 +772,37 @@ impl Client {
     /// This is a shortcut for `*bot.component::<TabList>()`.
     pub fn tab_list(&self) -> HashMap<Uuid, PlayerInfo> {
         (*self.component::<TabList>()).clone()
+    }
+
+    /// A convenience function to get the Minecraft Uuid of a player by their
+    /// username, if they're present in the tab list.
+    ///
+    /// You can chain this with [`Client::entity_by_uuid`] to get the ECS
+    /// `Entity` for the player.
+    pub fn player_uuid_by_username(&self, username: &str) -> Option<Uuid> {
+        self.tab_list()
+            .values()
+            .find(|player| player.profile.name == username)
+            .map(|player| player.profile.uuid)
+    }
+
+    /// Get an ECS `Entity` in the world by its Minecraft UUID, if it's within
+    /// render distance.
+    pub fn entity_by_uuid(&self, uuid: Uuid) -> Option<Entity> {
+        self.map_resource::<EntityUuidIndex, _>(|entity_uuid_index| entity_uuid_index.get(&uuid))
+    }
+
+    /// Convert an ECS `Entity` to a [`MinecraftEntityId`].
+    pub fn minecraft_entity_by_ecs_entity(&self, entity: Entity) -> Option<MinecraftEntityId> {
+        self.map_component::<EntityIdIndex, _>(|entity_id_index| {
+            entity_id_index.get_by_ecs_entity(entity)
+        })
+    }
+    /// Convert a [`MinecraftEntityId`] to an ECS `Entity`.
+    pub fn ecs_entity_by_minecraft_entity(&self, entity: MinecraftEntityId) -> Option<Entity> {
+        self.map_component::<EntityIdIndex, _>(|entity_id_index| {
+            entity_id_index.get_by_minecraft_entity(entity)
+        })
     }
 
     /// Call the given function with the client's [`RegistryHolder`].

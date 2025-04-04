@@ -744,7 +744,7 @@ impl GamePacketHandler<'_> {
         )>(self.ecs, |(mut commands, query, entity_kind_query)| {
             let (entity_id_index, instance_holder) = query.get(self.player).unwrap();
 
-            let entity = entity_id_index.get(p.id);
+            let entity = entity_id_index.get_by_minecraft_entity(p.id);
 
             let Some(entity) = entity else {
                 // some servers like hypixel trigger this a lot :(
@@ -803,7 +803,7 @@ impl GamePacketHandler<'_> {
             |(mut commands, query)| {
                 let (entity_id_index, instance_holder) = query.get(self.player).unwrap();
 
-                let Some(entity) = entity_id_index.get(p.id) else {
+                let Some(entity) = entity_id_index.get_by_minecraft_entity(p.id) else {
                     // note that this log (and some other ones like the one in RemoveEntities)
                     // sometimes happens when killing mobs. it seems to be a vanilla bug, which is
                     // why it's a debug log instead of a warning
@@ -876,7 +876,7 @@ impl GamePacketHandler<'_> {
             |(mut commands, mut query)| {
                 let (entity_id_index, instance_holder) = query.get_mut(self.player).unwrap();
 
-                let Some(entity) = entity_id_index.get(p.id) else {
+                let Some(entity) = entity_id_index.get_by_minecraft_entity(p.id) else {
                     warn!("Got teleport entity packet for unknown entity id {}", p.id);
                     return;
                 };
@@ -922,7 +922,7 @@ impl GamePacketHandler<'_> {
                 debug!("Got move entity pos packet {p:?}");
 
                 let entity_id = p.entity_id;
-                let Some(entity) = entity_id_index.get(entity_id) else {
+                let Some(entity) = entity_id_index.get_by_minecraft_entity(entity_id) else {
                     debug!("Got move entity pos packet for unknown entity id {entity_id}");
                     return;
                 };
@@ -964,7 +964,7 @@ impl GamePacketHandler<'_> {
 
                 debug!("Got move entity pos rot packet {p:?}");
 
-                let entity = entity_id_index.get(p.entity_id);
+                let entity = entity_id_index.get_by_minecraft_entity(p.entity_id);
 
                 let Some(entity) = entity else {
                     // often triggered by hypixel :(
@@ -1016,7 +1016,7 @@ impl GamePacketHandler<'_> {
             |(mut commands, mut query)| {
                 let (entity_id_index, instance_holder) = query.get_mut(self.player).unwrap();
 
-                let entity = entity_id_index.get(p.entity_id);
+                let entity = entity_id_index.get_by_minecraft_entity(p.entity_id);
                 if let Some(entity) = entity {
                     let new_look_direction = LookDirection {
                         x_rot: (p.x_rot as i32 * 360) as f32 / 256.,
@@ -1075,7 +1075,7 @@ impl GamePacketHandler<'_> {
                 };
 
                 for &id in &p.entity_ids {
-                    let Some(entity) = entity_id_index.remove(id) else {
+                    let Some(entity) = entity_id_index.remove_by_minecraft_entity(id) else {
                         debug!(
                             "Tried to remove entity with id {id} but it wasn't in the EntityIdIndex. This may be expected on certain server setups (like if they're using VeryManyPlayers)."
                         );
@@ -1524,7 +1524,7 @@ impl GamePacketHandler<'_> {
             |(mut commands, mut query)| {
                 let (entity_id_index, instance_holder) = query.get_mut(self.player).unwrap();
 
-                let Some(entity) = entity_id_index.get(p.id) else {
+                let Some(entity) = entity_id_index.get_by_minecraft_entity(p.id) else {
                     debug!("Got teleport entity packet for unknown entity id {}", p.id);
                     return;
                 };

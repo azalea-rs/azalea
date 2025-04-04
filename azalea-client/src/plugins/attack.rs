@@ -41,7 +41,7 @@ impl Plugin for AttackPlugin {
 
 impl Client {
     /// Attack the entity with the given id.
-    pub fn attack(&mut self, entity_id: MinecraftEntityId) {
+    pub fn attack(&self, entity_id: MinecraftEntityId) {
         self.ecs.lock().send_event(AttackEvent {
             entity: self.entity,
             target: entity_id,
