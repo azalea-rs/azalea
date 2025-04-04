@@ -287,7 +287,7 @@ pub fn send_player_input_packet(
     }
 }
 
-fn send_sprinting_if_needed(
+pub fn send_sprinting_if_needed(
     mut query: Query<(Entity, &MinecraftEntityId, &Sprinting, &mut PhysicsState)>,
     mut commands: Commands,
 ) {

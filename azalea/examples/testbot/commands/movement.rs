@@ -77,7 +77,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
     commands.register(literal("down").executes(|ctx: &Ctx| {
         let source = ctx.source.clone();
         tokio::spawn(async move {
-            let mut bot = source.lock().bot.clone();
+            let bot = source.lock().bot.clone();
             let position = BlockPos::from(bot.position());
             source.lock().reply("mining...");
             bot.mine(position.down(1)).await;

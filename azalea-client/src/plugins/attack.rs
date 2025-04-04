@@ -33,7 +33,9 @@ impl Plugin for AttackPlugin {
                 (
                     increment_ticks_since_last_attack,
                     update_attack_strength_scale.after(PhysicsSet),
-                    handle_attack_queued.before(super::tick_end::game_tick_packet),
+                    handle_attack_queued
+                        .before(super::tick_end::game_tick_packet)
+                        .after(super::movement::send_sprinting_if_needed),
                 )
                     .chain(),
             );
