@@ -495,7 +495,8 @@ where
                 let Some(first_bot_state) = first_bot.query::<Option<&S>>(&mut ecs).cloned() else {
                     error!(
                         "the first bot ({} / {}) is missing the required state component! none of the client handler functions will be called.",
-                        first_bot.profile.name, first_bot.entity
+                        first_bot.username(),
+                        first_bot.entity
                     );
                     continue;
                 };
@@ -513,7 +514,8 @@ where
                             let Some(state) = bot.query::<Option<&S>>(&mut ecs).cloned() else {
                                 error!(
                                     "one of our bots ({} / {}) is missing the required state component! its client handler function will not be called.",
-                                    bot.profile.name, bot.entity
+                                    bot.username(),
+                                    bot.entity
                                 );
                                 continue;
                             };

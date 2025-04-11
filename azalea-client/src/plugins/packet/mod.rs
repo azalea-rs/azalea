@@ -1,16 +1,13 @@
 use azalea_entity::metadata::Health;
-use bevy_app::{App, First, Plugin, PreUpdate, Update};
+use bevy_app::{App, Plugin, Update};
 use bevy_ecs::{
     prelude::*,
     system::{SystemParam, SystemState},
 };
 
-use self::{
-    game::{
-        AddPlayerEvent, DeathEvent, InstanceLoadedEvent, KeepAliveEvent, RemovePlayerEvent,
-        ResourcePackEvent, UpdatePlayerEvent,
-    },
-    login::{LoginPacketEvent, SendLoginPacketEvent},
+use self::game::{
+    AddPlayerEvent, DeathEvent, InstanceLoadedEvent, KeepAliveEvent, RemovePlayerEvent,
+    ResourcePackEvent, UpdatePlayerEvent,
 };
 use crate::{chat::ChatReceivedEvent, events::death_listener};
 
@@ -36,50 +33,35 @@ pub fn death_event_on_0_health(
 
 impl Plugin for PacketPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
-            First,
-            (
-                game::emit_receive_packet_events,
-                config::emit_receive_config_packet_events,
-            ),
-        )
-        .add_systems(
-            PreUpdate,
-            (
-                game::process_packet_events,
-                config::process_packet_events,
-                login::handle_send_packet_event,
-                login::process_packet_events,
-            ),
-        )
-        .add_observer(game::handle_outgoing_packets_observer)
-        .add_observer(config::handle_outgoing_packets_observer)
-        .add_systems(
-            Update,
-            (
+        app.add_observer(game::handle_outgoing_packets_observer)
+            .add_observer(config::handle_outgoing_packets_observer)
+            .add_systems(
+                Update,
                 (
-                    config::handle_outgoing_packets,
-                    game::handle_outgoing_packets,
-                )
-                    .chain(),
-                death_event_on_0_health.before(death_listener),
-            ),
-        )
-        // we do this instead of add_event so we can handle the events ourselves
-        .init_resource::<Events<game::ReceivePacketEvent>>()
-        .init_resource::<Events<config::ReceiveConfigPacketEvent>>()
-        .add_event::<game::SendPacketEvent>()
-        .add_event::<config::SendConfigPacketEvent>()
-        .add_event::<AddPlayerEvent>()
-        .add_event::<RemovePlayerEvent>()
-        .add_event::<UpdatePlayerEvent>()
-        .add_event::<ChatReceivedEvent>()
-        .add_event::<DeathEvent>()
-        .add_event::<KeepAliveEvent>()
-        .add_event::<ResourcePackEvent>()
-        .add_event::<InstanceLoadedEvent>()
-        .add_event::<LoginPacketEvent>()
-        .add_event::<SendLoginPacketEvent>();
+                    (
+                        config::handle_outgoing_packets,
+                        game::handle_outgoing_packets,
+                    )
+                        .chain(),
+                    death_event_on_0_health.before(death_listener),
+                ),
+            )
+            .add_event::<game::ReceiveGamePacketEvent>()
+            .add_event::<config::ReceiveConfigPacketEvent>()
+            .add_event::<login::ReceiveLoginPacketEvent>()
+            //
+            .add_event::<game::SendPacketEvent>()
+            .add_event::<config::SendConfigPacketEvent>()
+            .add_event::<login::SendLoginPacketEvent>()
+            //
+            .add_event::<AddPlayerEvent>()
+            .add_event::<RemovePlayerEvent>()
+            .add_event::<UpdatePlayerEvent>()
+            .add_event::<ChatReceivedEvent>()
+            .add_event::<DeathEvent>()
+            .add_event::<KeepAliveEvent>()
+            .add_event::<ResourcePackEvent>()
+            .add_event::<InstanceLoadedEvent>();
     }
 }
 

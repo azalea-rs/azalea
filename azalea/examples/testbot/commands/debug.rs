@@ -248,7 +248,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
                         }
                     }
                     "bevy_ecs::event::collections::Events<azalea_client::packet::game::ReceivePacketEvent>" => {
-                        let events = ecs.resource::<Events<game::ReceivePacketEvent>>();
+                        let events = ecs.resource::<Events<game::ReceiveGamePacketEvent>>();
                         writeln!(report, "- Event count: {}", events.len()).unwrap();
                     }
                     "bevy_ecs::event::collections::Events<azalea_client::chunks::ReceiveChunkEvent>" => {

@@ -15,7 +15,7 @@ use uuid::Uuid;
 /// To join a server using this account, use [`Client::join`] or
 /// [`azalea::ClientBuilder`].
 ///
-/// Note that this is also a component that our clients have.
+/// This is also an ECS component that is present on our client entities.
 ///
 /// # Examples
 ///

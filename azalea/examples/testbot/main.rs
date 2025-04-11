@@ -134,7 +134,7 @@ async fn handle(bot: Client, event: azalea::Event, state: State) -> anyhow::Resu
                 view_distance: 32,
                 ..Default::default()
             })
-            .await?;
+            .await;
             if swarm.args.pathfinder_debug_particles {
                 bot.ecs
                     .lock()

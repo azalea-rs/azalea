@@ -1,6 +1,5 @@
-use std::{fmt::Debug, sync::Arc, time::Duration};
+use std::{fmt::Debug, sync::Arc};
 
-use azalea_auth::game_profile::GameProfile;
 use azalea_buf::AzaleaWrite;
 use azalea_core::delta::PositionDelta8;
 use azalea_core::game_type::{GameMode, OptionalGameType};
@@ -21,17 +20,13 @@ use azalea_world::palette::{PalettedContainer, PalettedContainerKind};
 use azalea_world::{Chunk, Instance, MinecraftEntityId, Section};
 use bevy_app::App;
 use bevy_ecs::{prelude::*, schedule::ExecutorKind};
-use parking_lot::{Mutex, RwLock};
+use parking_lot::RwLock;
 use simdnbt::owned::{NbtCompound, NbtTag};
-use tokio::task::JoinHandle;
-use tokio::{sync::mpsc, time::sleep};
 use uuid::Uuid;
 
+use crate::connection::RawConnection;
 use crate::disconnect::DisconnectEvent;
-use crate::{
-    ClientInformation, GameProfileComponent, InConfigState, InstanceHolder, LocalPlayerBundle,
-    raw_connection::{RawConnection, RawConnectionReader, RawConnectionWriter},
-};
+use crate::{ClientInformation, InConfigState, InstanceHolder, LocalPlayerBundle};
 
 /// A way to simulate a client in a server, used for some internal tests.
 pub struct Simulation {
@@ -40,16 +35,13 @@ pub struct Simulation {
 
     // the runtime needs to be kept around for the tasks to be considered alive
     pub rt: tokio::runtime::Runtime,
-
-    pub incoming_packet_queue: Arc<Mutex<Vec<Box<[u8]>>>>,
-    pub clear_outgoing_packets_receiver_task: JoinHandle<!>,
 }
 
 impl Simulation {
     pub fn new(initial_connection_protocol: ConnectionProtocol) -> Self {
         let mut app = create_simulation_app();
         let mut entity = app.world_mut().spawn_empty();
-        let (player, clear_outgoing_packets_receiver_task, incoming_packet_queue, rt) =
+        let (player, rt) =
             create_local_player_bundle(entity.id(), ConnectionProtocol::Configuration);
         entity.insert(player);
 
@@ -61,13 +53,7 @@ impl Simulation {
         app.world_mut().entity_mut(entity).insert(InConfigState);
         tick_app(&mut app);
 
-        let mut simulation = Self {
-            app,
-            entity,
-            rt,
-            incoming_packet_queue,
-            clear_outgoing_packets_receiver_task,
-        };
+        let mut simulation = Self { app, entity, rt };
 
         #[allow(clippy::single_match)]
         match initial_connection_protocol {
@@ -95,9 +81,11 @@ impl Simulation {
         simulation
     }
 
-    pub fn receive_packet<P: ProtocolPacket + Debug>(&self, packet: impl Packet<P>) {
+    pub fn receive_packet<P: ProtocolPacket + Debug>(&mut self, packet: impl Packet<P>) {
         let buf = azalea_protocol::write::serialize_packet(&packet.into_variant()).unwrap();
-        self.incoming_packet_queue.lock().push(buf);
+        self.with_component_mut::<RawConnection>(|raw_conn| {
+            raw_conn.injected_clientbound_packets.push(buf.clone());
+        });
     }
 
     pub fn tick(&mut self) {
@@ -111,6 +99,14 @@ impl Simulation {
     }
     pub fn has_component<T: Component>(&self) -> bool {
         self.app.world().get::<T>(self.entity).is_some()
+    }
+    pub fn with_component_mut<T: Component>(&mut self, f: impl FnOnce(&mut T)) {
+        f(&mut self
+            .app
+            .world_mut()
+            .entity_mut(self.entity)
+            .get_mut::<T>()
+            .unwrap());
     }
     pub fn resource<T: Resource + Clone>(&self) -> T {
         self.app.world().get_resource::<T>().unwrap().clone()
@@ -143,70 +139,24 @@ impl Simulation {
 fn create_local_player_bundle(
     entity: Entity,
     connection_protocol: ConnectionProtocol,
-) -> (
-    LocalPlayerBundle,
-    JoinHandle<!>,
-    Arc<Mutex<Vec<Box<[u8]>>>>,
-    tokio::runtime::Runtime,
-) {
+) -> (LocalPlayerBundle, tokio::runtime::Runtime) {
     // unused since we'll trigger ticks ourselves
-    let (run_schedule_sender, _run_schedule_receiver) = mpsc::channel(1);
-
-    let (outgoing_packets_sender, mut outgoing_packets_receiver) = mpsc::unbounded_channel();
-    let incoming_packet_queue = Arc::new(Mutex::new(Vec::new()));
-    let reader = RawConnectionReader {
-        incoming_packet_queue: incoming_packet_queue.clone(),
-        run_schedule_sender,
-    };
-    let writer = RawConnectionWriter {
-        outgoing_packets_sender,
-    };
 
     let rt = tokio::runtime::Runtime::new().unwrap();
 
-    // the tasks can't die since that would make us send a DisconnectEvent
-    let read_packets_task = rt.spawn(async {
-        loop {
-            sleep(Duration::from_secs(60)).await;
-        }
-    });
-    let write_packets_task = rt.spawn(async {
-        loop {
-            sleep(Duration::from_secs(60)).await;
-        }
-    });
-
-    let clear_outgoing_packets_receiver_task = rt.spawn(async move {
-        loop {
-            let _ = outgoing_packets_receiver.recv().await;
-        }
-    });
-
-    let raw_connection = RawConnection {
-        reader,
-        writer,
-        read_packets_task,
-        write_packets_task,
-        connection_protocol,
-    };
+    let raw_connection = RawConnection::new_networkless(connection_protocol);
 
     let instance = Instance::default();
     let instance_holder = InstanceHolder::new(entity, Arc::new(RwLock::new(instance)));
 
     let local_player_bundle = LocalPlayerBundle {
         raw_connection,
-        game_profile: GameProfileComponent(GameProfile::new(Uuid::nil(), "azalea".to_owned())),
         client_information: ClientInformation::default(),
         instance_holder,
         metadata: PlayerMetadataBundle::default(),
     };
 
-    (
-        local_player_bundle,
-        clear_outgoing_packets_receiver_task,
-        incoming_packet_queue,
-        rt,
-    )
+    (local_player_bundle, rt)
 }
 
 fn create_simulation_app() -> App {

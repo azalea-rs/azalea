@@ -1,24 +1,18 @@
-use std::{
-    io::Cursor,
-    sync::{Arc, Weak},
-};
+use std::sync::{Arc, Weak};
 
 use azalea_chat::FormattedText;
 use azalea_core::resource_location::ResourceLocation;
-use azalea_protocol::{
-    packets::{
-        Packet,
-        game::{ClientboundGamePacket, ClientboundPlayerCombatKill, ServerboundGamePacket},
-    },
-    read::deserialize_packet,
+use azalea_protocol::packets::{
+    Packet,
+    game::{ClientboundGamePacket, ClientboundPlayerCombatKill, ServerboundGamePacket},
 };
 use azalea_world::Instance;
 use bevy_ecs::prelude::*;
 use parking_lot::RwLock;
-use tracing::{debug, error};
+use tracing::error;
 use uuid::Uuid;
 
-use crate::{PlayerInfo, client::InGameState, raw_connection::RawConnection};
+use crate::{PlayerInfo, client::InGameState, connection::RawConnection};
 
 /// An event that's sent when we receive a packet.
 /// ```
@@ -41,7 +35,7 @@ use crate::{PlayerInfo, client::InGameState, raw_connection::RawConnection};
 /// }
 /// ```
 #[derive(Event, Debug, Clone)]
-pub struct ReceivePacketEvent {
+pub struct ReceiveGamePacketEvent {
     /// The client entity that received the packet.
     pub entity: Entity,
     /// The packet that was actually received.
@@ -67,7 +61,7 @@ pub fn handle_outgoing_packets_observer(
 ) {
     let event = trigger.event();
 
-    if let Ok((raw_connection, in_game_state)) = query.get_mut(event.sent_by) {
+    if let Ok((mut raw_connection, in_game_state)) = query.get_mut(event.sent_by) {
         if in_game_state.is_none() {
             error!(
                 "Tried to send a game packet {:?} while not in game state",
@@ -77,7 +71,7 @@ pub fn handle_outgoing_packets_observer(
         }
 
         // debug!("Sending packet: {:?}", event.packet);
-        if let Err(e) = raw_connection.write_packet(event.packet.clone()) {
+        if let Err(e) = raw_connection.write(event.packet.clone()) {
             error!("Failed to send packet: {e}");
         }
     }
@@ -89,61 +83,6 @@ pub fn handle_outgoing_packets(mut commands: Commands, mut events: EventReader<S
     for event in events.read() {
         commands.trigger(event.clone());
     }
-}
-
-pub fn emit_receive_packet_events(
-    query: Query<(Entity, &RawConnection), With<InGameState>>,
-    mut packet_events: ResMut<Events<ReceivePacketEvent>>,
-) {
-    // we manually clear and send the events at the beginning of each update
-    // since otherwise it'd cause issues with events in process_packet_events
-    // running twice
-    packet_events.clear();
-    for (player_entity, raw_connection) in &query {
-        let packets_lock = raw_connection.incoming_packet_queue();
-        let mut packets = packets_lock.lock();
-        if !packets.is_empty() {
-            let mut packets_read = 0;
-            for raw_packet in packets.iter() {
-                packets_read += 1;
-                let packet =
-                    match deserialize_packet::<ClientboundGamePacket>(&mut Cursor::new(raw_packet))
-                    {
-                        Ok(packet) => packet,
-                        Err(err) => {
-                            error!("failed to read packet: {err:?}");
-                            debug!("packet bytes: {raw_packet:?}");
-                            continue;
-                        }
-                    };
-
-                let should_interrupt = packet_interrupts(&packet);
-
-                packet_events.send(ReceivePacketEvent {
-                    entity: player_entity,
-                    packet: Arc::new(packet),
-                });
-
-                if should_interrupt {
-                    break;
-                }
-            }
-            packets.drain(0..packets_read);
-        }
-    }
-}
-
-/// Whether the given packet should make us stop deserializing the received
-/// packets until next update.
-///
-/// This is used for packets that can switch the client state.
-fn packet_interrupts(packet: &ClientboundGamePacket) -> bool {
-    matches!(
-        packet,
-        ClientboundGamePacket::StartConfiguration(_)
-            | ClientboundGamePacket::Disconnect(_)
-            | ClientboundGamePacket::Transfer(_)
-    )
 }
 
 /// A player joined the game (or more specifically, was added to the tab

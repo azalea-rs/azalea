@@ -39,7 +39,7 @@ impl AzaleaWriteVar for i32 {
         let mut buffer = [0];
         let mut value = *self;
         if value == 0 {
-            buf.write_all(&buffer).unwrap();
+            buf.write_all(&buffer)?;
         }
         while value != 0 {
             buffer[0] = (value & 0b0111_1111) as u8;

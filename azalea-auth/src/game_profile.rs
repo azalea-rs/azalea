@@ -10,6 +10,7 @@ pub struct GameProfile {
     pub uuid: Uuid,
     /// The username of the player.
     pub name: String,
+    // this is an arc to make GameProfile cheaper to clone when the properties are big
     pub properties: Arc<HashMap<String, ProfilePropertyValue>>,
 }
 

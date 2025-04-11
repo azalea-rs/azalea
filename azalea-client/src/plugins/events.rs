@@ -27,7 +27,7 @@ use crate::{
     chat::{ChatPacket, ChatReceivedEvent},
     disconnect::DisconnectEvent,
     packet::game::{
-        AddPlayerEvent, DeathEvent, KeepAliveEvent, ReceivePacketEvent, RemovePlayerEvent,
+        AddPlayerEvent, DeathEvent, KeepAliveEvent, ReceiveGamePacketEvent, RemovePlayerEvent,
         UpdatePlayerEvent,
     },
 };
@@ -157,7 +157,7 @@ impl Plugin for EventsPlugin {
         )
         .add_systems(
             PreUpdate,
-            init_listener.before(crate::packet::game::process_packet_events),
+            init_listener.before(super::connection::read_packets),
         )
         .add_systems(GameTick, tick_listener);
     }
@@ -217,7 +217,7 @@ pub fn tick_listener(query: Query<&LocalPlayerEvents, With<InstanceName>>) {
 
 pub fn packet_listener(
     query: Query<&LocalPlayerEvents>,
-    mut events: EventReader<ReceivePacketEvent>,
+    mut events: EventReader<ReceiveGamePacketEvent>,
 ) {
     for event in events.read() {
         if let Ok(local_player_events) = query.get(event.entity) {
