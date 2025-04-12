@@ -26,7 +26,7 @@ struct State {
 
 async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
     if let Event::Chat(m) = event {
-        if m.sender() == Some(bot.profile().name.clone()) {
+        if m.sender() == Some(bot.username()) {
             return Ok(());
         };
         if m.content() != "go" {

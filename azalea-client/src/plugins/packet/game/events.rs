@@ -16,12 +16,12 @@ use crate::{PlayerInfo, client::InGameState, connection::RawConnection};
 
 /// An event that's sent when we receive a packet.
 /// ```
-/// # use azalea_client::packet::game::ReceivePacketEvent;
+/// # use azalea_client::packet::game::ReceiveGamePacketEvent;
 /// # use azalea_protocol::packets::game::ClientboundGamePacket;
 /// # use bevy_ecs::event::EventReader;
 ///
-/// fn handle_packets(mut events: EventReader<ReceivePacketEvent>) {
-///     for ReceivePacketEvent {
+/// fn handle_packets(mut events: EventReader<ReceiveGamePacketEvent>) {
+///     for ReceiveGamePacketEvent {
 ///         entity,
 ///         packet,
 ///     } in events.read() {

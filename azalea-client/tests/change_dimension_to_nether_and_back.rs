@@ -12,6 +12,8 @@ use simdnbt::owned::{NbtCompound, NbtTag};
 
 #[test]
 fn test_change_dimension_to_nether_and_back() {
+    let _ = tracing_subscriber::fmt().try_init();
+
     generic_test_change_dimension_to_nether_and_back(true);
     generic_test_change_dimension_to_nether_and_back(false);
 }
@@ -32,6 +34,8 @@ fn generic_test_change_dimension_to_nether_and_back(using_respawn: bool) {
     let mut simulation = Simulation::new(ConnectionProtocol::Configuration);
     assert!(simulation.has_component::<InConfigState>());
     assert!(!simulation.has_component::<InGameState>());
+
+    println!("meow 1");
 
     simulation.receive_packet(ClientboundRegistryData {
         registry_id: ResourceLocation::new("minecraft:dimension_type"),
@@ -67,6 +71,8 @@ fn generic_test_change_dimension_to_nether_and_back(using_respawn: bool) {
     simulation.receive_packet(ClientboundFinishConfiguration);
     simulation.tick();
 
+    println!("meow 2");
+
     assert!(!simulation.has_component::<InConfigState>());
     assert!(simulation.has_component::<InGameState>());
     assert!(simulation.has_component::<LocalEntity>());
@@ -80,6 +86,8 @@ fn generic_test_change_dimension_to_nether_and_back(using_respawn: bool) {
         ResourceLocation::new("azalea:a"),
     ));
     simulation.tick();
+
+    println!("meow 3");
 
     assert_eq!(
         *simulation.component::<InstanceName>(),

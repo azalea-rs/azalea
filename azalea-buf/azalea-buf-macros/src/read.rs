@@ -175,15 +175,13 @@ fn read_named_fields(
 }
 
 fn read_unnamed_fields(unnamed: &Punctuated<Field, Comma>) -> Vec<proc_macro2::TokenStream> {
-    let read_fields = unnamed
+    unnamed
         .iter()
         .map(|f| {
             let reader_call = get_reader_call(f);
             quote! { #reader_call }
         })
-        .collect::<Vec<_>>();
-
-    read_fields
+        .collect::<Vec<_>>()
 }
 
 fn get_reader_call(f: &Field) -> proc_macro2::TokenStream {
@@ -210,7 +208,7 @@ fn get_reader_call(f: &Field) -> proc_macro2::TokenStream {
 
     // do a different buf.write_* for each field depending on the type
     // if it's a string, use buf.write_string
-    let reader_call = match field_type {
+    match field_type {
         syn::Type::Path(_) | syn::Type::Array(_) => {
             if is_variable_length {
                 quote! {
@@ -231,7 +229,5 @@ fn get_reader_call(f: &Field) -> proc_macro2::TokenStream {
             f.ident.clone(),
             field_type.to_token_stream()
         ),
-    };
-
-    reader_call
+    }
 }

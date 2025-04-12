@@ -1,5 +1,6 @@
 use std::{fmt::Debug, sync::Arc};
 
+use azalea_auth::game_profile::GameProfile;
 use azalea_buf::AzaleaWrite;
 use azalea_core::delta::PositionDelta8;
 use azalea_core::game_type::{GameMode, OptionalGameType};
@@ -26,7 +27,9 @@ use uuid::Uuid;
 
 use crate::connection::RawConnection;
 use crate::disconnect::DisconnectEvent;
-use crate::{ClientInformation, InConfigState, InstanceHolder, LocalPlayerBundle};
+use crate::{
+    ClientInformation, GameProfileComponent, InConfigState, InstanceHolder, LocalPlayerBundle,
+};
 
 /// A way to simulate a client in a server, used for some internal tests.
 pub struct Simulation {
@@ -50,7 +53,13 @@ impl Simulation {
         tick_app(&mut app);
 
         // start in the config state
-        app.world_mut().entity_mut(entity).insert(InConfigState);
+        app.world_mut().entity_mut(entity).insert((
+            InConfigState,
+            GameProfileComponent(GameProfile::new(
+                Uuid::from_u128(1234),
+                "azalea".to_string(),
+            )),
+        ));
         tick_app(&mut app);
 
         let mut simulation = Self { app, entity, rt };
@@ -84,7 +93,7 @@ impl Simulation {
     pub fn receive_packet<P: ProtocolPacket + Debug>(&mut self, packet: impl Packet<P>) {
         let buf = azalea_protocol::write::serialize_packet(&packet.into_variant()).unwrap();
         self.with_component_mut::<RawConnection>(|raw_conn| {
-            raw_conn.injected_clientbound_packets.push(buf.clone());
+            raw_conn.injected_clientbound_packets.push(buf);
         });
     }
 

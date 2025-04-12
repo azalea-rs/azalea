@@ -507,7 +507,7 @@ impl Client {
     ///     view_distance: 2,
     ///     ..Default::default()
     /// })
-    /// .await?;
+    /// .await;
     /// # Ok(())
     /// # }
     /// ```

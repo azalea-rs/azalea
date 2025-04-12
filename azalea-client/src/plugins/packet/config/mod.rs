@@ -89,8 +89,8 @@ impl ConfigPacketHandler<'_> {
         });
     }
 
-    pub fn finish_configuration(&mut self, p: &ClientboundFinishConfiguration) {
-        debug!("got FinishConfiguration packet: {p:?}");
+    pub fn finish_configuration(&mut self, _p: &ClientboundFinishConfiguration) {
+        debug!("got FinishConfiguration packet");
 
         as_system::<(Commands, Query<&mut RawConnection>)>(
             self.ecs,

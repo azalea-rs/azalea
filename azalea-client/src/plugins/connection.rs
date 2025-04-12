@@ -67,10 +67,6 @@ pub fn read_packets(ecs: &mut World) {
 
             trace!("Received injected packet with bytes: {raw_packet:?}");
             handle_raw_packet(ecs, &raw_packet, entity, state, &mut queued_packet_events).unwrap();
-
-            // update the state and for the client
-            let (_, mut raw_conn_component) = entity_and_conn_query.get_mut(ecs, entity).unwrap();
-            raw_conn_component.state = state;
         }
     }
 
