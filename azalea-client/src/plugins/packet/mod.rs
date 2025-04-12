@@ -5,10 +5,7 @@ use bevy_ecs::{
     system::{SystemParam, SystemState},
 };
 
-use self::game::{
-    AddPlayerEvent, DeathEvent, InstanceLoadedEvent, KeepAliveEvent, RemovePlayerEvent,
-    ResourcePackEvent, UpdatePlayerEvent,
-};
+use self::game::DeathEvent;
 use crate::{chat::ChatReceivedEvent, events::death_listener};
 
 pub mod config;
@@ -56,14 +53,15 @@ impl Plugin for PacketPlugin {
             .add_event::<config::SendConfigPacketEvent>()
             .add_event::<login::SendLoginPacketEvent>()
             //
-            .add_event::<AddPlayerEvent>()
-            .add_event::<RemovePlayerEvent>()
-            .add_event::<UpdatePlayerEvent>()
+            .add_event::<game::AddPlayerEvent>()
+            .add_event::<game::RemovePlayerEvent>()
+            .add_event::<game::UpdatePlayerEvent>()
             .add_event::<ChatReceivedEvent>()
-            .add_event::<DeathEvent>()
-            .add_event::<KeepAliveEvent>()
-            .add_event::<ResourcePackEvent>()
-            .add_event::<InstanceLoadedEvent>();
+            .add_event::<game::DeathEvent>()
+            .add_event::<game::KeepAliveEvent>()
+            .add_event::<game::ResourcePackEvent>()
+            .add_event::<game::InstanceLoadedEvent>()
+            .add_event::<login::ReceiveCustomQueryEvent>();
     }
 }
 

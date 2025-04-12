@@ -319,10 +319,7 @@ impl Client {
         }
 
         as_system::<Commands>(&mut ecs_lock.lock(), |mut commands| {
-            commands.entity(entity).insert((
-                crate::packet::login::IgnoreQueryIds::default(),
-                InLoginState,
-            ));
+            commands.entity(entity).insert((InLoginState,));
             commands.trigger(SendLoginPacketEvent::new(
                 entity,
                 ServerboundHello {

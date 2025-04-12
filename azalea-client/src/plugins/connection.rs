@@ -29,7 +29,7 @@ use crate::packet::{config, game, login};
 pub struct ConnectionPlugin;
 impl Plugin for ConnectionPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(PreUpdate, read_packets);
+        app.add_systems(PreUpdate, (read_packets, poll_all_writer_tasks).chain());
     }
 }
 
@@ -103,16 +103,20 @@ pub fn read_packets(ecs: &mut World) {
                 }
             }
         }
-
-        let mut net_conn = conn_query.get_mut(ecs, entity).unwrap();
-        if let Some(net_conn) = &mut net_conn.network {
-            // this needs to be done at some point every update, so we do it here right
-            // after the handlers are called
-            net_conn.poll_writer();
-        }
     }
 
     queued_packet_events.send_events(ecs);
+}
+
+fn poll_all_writer_tasks(mut conn_query: Query<&mut RawConnection>) {
+    for mut conn in conn_query.iter_mut() {
+        if let Some(net_conn) = &mut conn.network {
+            // this needs to be done at some point every update to make sure packets are
+            // actually sent to the network
+
+            net_conn.poll_writer();
+        }
+    }
 }
 
 #[derive(Default)]
@@ -326,7 +330,6 @@ async fn write_task(
     mut write_half: OwnedWriteHalf,
 ) {
     while let Some(network_packet) = network_packet_writer_rx.recv().await {
-        trace!("writing encoded raw packet");
         if let Err(e) = write_half.write_all(&network_packet).await {
             debug!("Error writing packet to server: {e}");
             break;

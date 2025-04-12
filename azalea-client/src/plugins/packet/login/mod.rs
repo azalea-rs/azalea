@@ -10,8 +10,7 @@ use azalea_protocol::packets::{
     login::{
         ClientboundCookieRequest, ClientboundCustomQuery, ClientboundHello,
         ClientboundLoginCompression, ClientboundLoginDisconnect, ClientboundLoginFinished,
-        ClientboundLoginPacket, ServerboundCookieResponse, ServerboundCustomQueryAnswer,
-        ServerboundLoginAcknowledged,
+        ClientboundLoginPacket, ServerboundCookieResponse, ServerboundLoginAcknowledged,
     },
 };
 use bevy_ecs::prelude::*;
@@ -47,11 +46,6 @@ pub fn process_packet(ecs: &mut World, player: Entity, packet: &ClientboundLogin
 /// `login` state.
 #[derive(Component, Clone, Debug)]
 pub struct InLoginState;
-
-/// Plugins can add to this set if they want to handle a custom query packet
-/// themselves. This component removed after the login state ends.
-#[derive(Component, Default, Debug, Deref, DerefMut)]
-pub struct IgnoreQueryIds(HashSet<u32>);
 
 pub struct LoginPacketHandler<'a> {
     pub ecs: &'a mut World,
@@ -103,7 +97,6 @@ impl LoginPacketHandler<'_> {
 
                 commands
                     .entity(self.player)
-                    .remove::<IgnoreQueryIds>()
                     .remove::<InLoginState>()
                     .insert(InConfigState)
                     .insert(GameProfileComponent(p.game_profile.clone()));
@@ -130,21 +123,12 @@ impl LoginPacketHandler<'_> {
     pub fn custom_query(&mut self, p: &ClientboundCustomQuery) {
         debug!("Got custom query {p:?}");
 
-        as_system::<(Commands, Query<&IgnoreQueryIds>)>(self.ecs, |(mut commands, query)| {
-            let ignore_query_ids = query.get(self.player).ok().map(|x| x.0.clone());
-            if let Some(ignore_query_ids) = ignore_query_ids {
-                if ignore_query_ids.contains(&p.transaction_id) {
-                    return;
-                }
-            }
-
-            commands.trigger(SendLoginPacketEvent::new(
-                self.player,
-                ServerboundCustomQueryAnswer {
-                    transaction_id: p.transaction_id,
-                    data: None,
-                },
-            ));
+        as_system::<EventWriter<ReceiveCustomQueryEvent>>(self.ecs, |mut events| {
+            events.send(ReceiveCustomQueryEvent {
+                entity: self.player,
+                packet: p.clone(),
+                disabled: false,
+            });
         });
     }
     pub fn cookie_request(&mut self, p: &ClientboundCookieRequest) {

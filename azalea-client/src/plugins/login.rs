@@ -1,18 +1,24 @@
 use azalea_auth::sessionserver::ClientSessionServerError;
-use azalea_protocol::packets::login::{ClientboundHello, ServerboundKey};
+use azalea_protocol::packets::login::{
+    ClientboundHello, ServerboundCustomQueryAnswer, ServerboundKey,
+};
 use bevy_app::prelude::*;
 use bevy_ecs::prelude::*;
 use bevy_tasks::{IoTaskPool, Task, futures_lite::future};
-use tracing::{debug, error};
+use tracing::{debug, error, trace};
 
-use super::{connection::RawConnection, packet::login::ReceiveHelloEvent};
+use super::{
+    connection::RawConnection,
+    packet::login::{ReceiveCustomQueryEvent, ReceiveHelloEvent, SendLoginPacketEvent},
+};
 use crate::{Account, JoinError};
 
+/// Some systems that run during the `login` state.
 pub struct LoginPlugin;
 impl Plugin for LoginPlugin {
     fn build(&self, app: &mut App) {
         app.add_observer(handle_receive_hello_event)
-            .add_systems(Update, poll_auth_task);
+            .add_systems(Update, (poll_auth_task, reply_to_custom_queries));
     }
 }
 
@@ -123,4 +129,24 @@ pub async fn auth_with_account(
     }
 
     Ok((key_packet, private_key))
+}
+
+pub fn reply_to_custom_queries(
+    mut commands: Commands,
+    mut events: EventReader<ReceiveCustomQueryEvent>,
+) {
+    for event in events.read() {
+        trace!("Maybe replying to custom query: {event:?}");
+        if event.disabled {
+            continue;
+        }
+
+        commands.trigger(SendLoginPacketEvent::new(
+            event.entity,
+            ServerboundCustomQueryAnswer {
+                transaction_id: event.packet.transaction_id,
+                data: None,
+            },
+        ));
+    }
 }

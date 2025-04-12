@@ -2,7 +2,9 @@ use std::sync::Arc;
 
 use azalea_protocol::packets::{
     Packet,
-    login::{ClientboundHello, ClientboundLoginPacket, ServerboundLoginPacket},
+    login::{
+        ClientboundCustomQuery, ClientboundHello, ClientboundLoginPacket, ServerboundLoginPacket,
+    },
 };
 use bevy_ecs::prelude::*;
 use tracing::{debug, error};
@@ -18,14 +20,27 @@ pub struct ReceiveLoginPacketEvent {
     pub packet: Arc<ClientboundLoginPacket>,
 }
 
-#[derive(Event)]
+#[derive(Event, Debug, Clone)]
 pub struct ReceiveHelloEvent {
     pub account: Account,
     pub packet: ClientboundHello,
 }
 
+#[derive(Event, Debug, Clone)]
+pub struct ReceiveCustomQueryEvent {
+    /// The client entity that received the packet.
+    pub entity: Entity,
+    pub packet: ClientboundCustomQuery,
+    /// A system can set this to `true` to make Azalea not reply to the query.
+    /// You must make sure you modify this before the
+    /// [`reply_to_custom_queries`] system runs.
+    ///
+    /// [`reply_to_custom_queries`]: crate::login::reply_to_custom_queries
+    pub disabled: bool,
+}
+
 /// Event for sending a login packet to the server.
-#[derive(Event, Clone)]
+#[derive(Event, Debug, Clone)]
 pub struct SendLoginPacketEvent {
     pub sent_by: Entity,
     pub packet: ServerboundLoginPacket,
