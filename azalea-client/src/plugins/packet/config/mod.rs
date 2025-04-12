@@ -24,7 +24,7 @@ pub fn process_raw_packet(
     player: Entity,
     raw_packet: &[u8],
 ) -> Result<(), Box<ReadPacketError>> {
-    let packet = deserialize_packet(&mut Cursor::new(&raw_packet))?;
+    let packet = deserialize_packet(&mut Cursor::new(raw_packet))?;
     process_packet(ecs, player, &packet);
     Ok(())
 }

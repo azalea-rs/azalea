@@ -46,13 +46,10 @@ use parking_lot::{Mutex, RwLock};
 use simdnbt::owned::NbtCompound;
 use thiserror::Error;
 use tokio::{
-    sync::{
-        broadcast,
-        mpsc::{self, error::TrySendError},
-    },
+    sync::{broadcast, mpsc},
     time,
 };
-use tracing::{debug, error, info};
+use tracing::{debug, error, info, warn};
 use uuid::Uuid;
 
 use crate::{
@@ -95,9 +92,6 @@ pub struct Client {
     /// directly. Note that if you're using a shared world (i.e. a swarm), this
     /// will contain all entities in all worlds.
     pub ecs: Arc<Mutex<World>>,
-
-    /// Use this to force the client to run the schedule outside of a tick.
-    pub run_schedule_sender: mpsc::Sender<()>,
 }
 
 /// An error that happened while joining the server.
@@ -129,7 +123,6 @@ pub struct StartClientOpts<'a> {
     pub address: &'a ServerAddress,
     pub resolved_address: &'a SocketAddr,
     pub proxy: Option<Proxy>,
-    pub run_schedule_sender: mpsc::Sender<()>,
     pub event_sender: Option<mpsc::UnboundedSender<Event>>,
 }
 
@@ -140,13 +133,10 @@ impl<'a> StartClientOpts<'a> {
         resolved_address: &'a SocketAddr,
         event_sender: Option<mpsc::UnboundedSender<Event>>,
     ) -> StartClientOpts<'a> {
-        // An event that causes the schedule to run. This is only used internally.
-        let (run_schedule_sender, run_schedule_receiver) = mpsc::channel(1);
-
         let mut app = App::new();
         app.add_plugins(DefaultPlugins);
 
-        let ecs_lock = start_ecs_runner(app, run_schedule_receiver, run_schedule_sender.clone());
+        let ecs_lock = start_ecs_runner(app);
 
         Self {
             ecs_lock,
@@ -154,7 +144,6 @@ impl<'a> StartClientOpts<'a> {
             address,
             resolved_address,
             proxy: None,
-            run_schedule_sender,
             event_sender,
         }
     }
@@ -170,18 +159,12 @@ impl Client {
     /// World, and schedule runner function.
     /// You should only use this if you want to change these fields from the
     /// defaults, otherwise use [`Client::join`].
-    pub fn new(
-        entity: Entity,
-        ecs: Arc<Mutex<World>>,
-        run_schedule_sender: mpsc::Sender<()>,
-    ) -> Self {
+    pub fn new(entity: Entity, ecs: Arc<Mutex<World>>) -> Self {
         Self {
             // default our id to 0, it'll be set later
             entity,
 
             ecs,
-
-            run_schedule_sender,
         }
     }
 
@@ -248,7 +231,6 @@ impl Client {
             address,
             resolved_address,
             proxy,
-            run_schedule_sender,
             event_sender,
         }: StartClientOpts<'_>,
     ) -> Result<Self, JoinError> {
@@ -352,7 +334,7 @@ impl Client {
             ))
         });
 
-        let client = Client::new(entity, ecs_lock.clone(), run_schedule_sender.clone());
+        let client = Client::new(entity, ecs_lock.clone());
         Ok(client)
     }
 
@@ -769,11 +751,7 @@ impl Plugin for AzaleaPlugin {
 /// You can create your app with `App::new()`, but don't forget to add
 /// [`DefaultPlugins`].
 #[doc(hidden)]
-pub fn start_ecs_runner(
-    mut app: App,
-    run_schedule_receiver: mpsc::Receiver<()>,
-    run_schedule_sender: mpsc::Sender<()>,
-) -> Arc<Mutex<World>> {
+pub fn start_ecs_runner(mut app: App) -> Arc<Mutex<World>> {
     // this block is based on Bevy's default runner:
     // https://github.com/bevyengine/bevy/blob/390877cdae7a17095a75c8f9f1b4241fe5047e83/crates/bevy_app/src/schedule_runner.rs#L77-L85
     if app.plugins_state() != PluginsState::Cleaned {
@@ -796,57 +774,59 @@ pub fn start_ecs_runner(
     tokio::spawn(run_schedule_loop(
         ecs.clone(),
         *app.main().update_schedule.as_ref().unwrap(),
-        run_schedule_receiver,
     ));
-    tokio::spawn(tick_run_schedule_loop(run_schedule_sender));
 
     ecs
 }
 
-async fn run_schedule_loop(
-    ecs: Arc<Mutex<World>>,
-    outer_schedule_label: InternedScheduleLabel,
-    mut run_schedule_receiver: mpsc::Receiver<()>,
-) {
+async fn run_schedule_loop(ecs: Arc<Mutex<World>>, outer_schedule_label: InternedScheduleLabel) {
+    let mut last_update: Option<Instant> = None;
     let mut last_tick: Option<Instant> = None;
+
+    // azalea runs the Update schedule at most 60 times per second to simulate
+    // framerate. unlike vanilla though, we also only handle packets during Updates
+    // due to everything running in ecs systems.
+    const UPDATE_DURATION_TARGET: Duration = Duration::from_micros(1_000_000 / 60);
+    // minecraft runs at 20 tps
+    const GAME_TICK_DURATION_TARGET: Duration = Duration::from_micros(1_000_000 / 20);
+
     loop {
-        // whenever we get an event from run_schedule_receiver, run the schedule
-        run_schedule_receiver.recv().await;
+        // sleep until the next update if necessary
+        let now = Instant::now();
+        if let Some(last_update) = last_update {
+            let elapsed = now.duration_since(last_update);
+            if elapsed < UPDATE_DURATION_TARGET {
+                time::sleep(UPDATE_DURATION_TARGET - elapsed).await;
+            }
+        }
+        last_update = Some(now);
 
         let mut ecs = ecs.lock();
 
         // if last tick is None or more than 50ms ago, run the GameTick schedule
         ecs.run_schedule(outer_schedule_label);
         if last_tick
-            .map(|last_tick| last_tick.elapsed() > Duration::from_millis(50))
+            .map(|last_tick| last_tick.elapsed() > GAME_TICK_DURATION_TARGET)
             .unwrap_or(true)
         {
             if let Some(last_tick) = &mut last_tick {
-                *last_tick += Duration::from_millis(50);
+                *last_tick += GAME_TICK_DURATION_TARGET;
+
+                // if we're more than 10 ticks behind, set last_tick to now.
+                // vanilla doesn't do it in exactly the same way but it shouldn't really matter
+                if (now - *last_tick) > GAME_TICK_DURATION_TARGET * 10 {
+                    warn!(
+                        "GameTick is more than 10 ticks behind, skipping ticks so we don't have to burst too much"
+                    );
+                    *last_tick = now;
+                }
             } else {
-                last_tick = Some(Instant::now());
+                last_tick = Some(now);
             }
             ecs.run_schedule(GameTick);
         }
 
         ecs.clear_trackers();
-    }
-}
-
-/// Send an event to run the schedule every 50 milliseconds. It will stop when
-/// the receiver is dropped.
-pub async fn tick_run_schedule_loop(run_schedule_sender: mpsc::Sender<()>) {
-    let mut game_tick_interval = time::interval(Duration::from_millis(50));
-    // TODO: Minecraft bursts up to 10 ticks and then skips, we should too
-    game_tick_interval.set_missed_tick_behavior(time::MissedTickBehavior::Burst);
-
-    loop {
-        game_tick_interval.tick().await;
-        if let Err(TrySendError::Closed(())) = run_schedule_sender.try_send(()) {
-            error!("tick_run_schedule_loop failed because run_schedule_sender was closed");
-            // the sender is closed so end the task
-            return;
-        }
     }
 }
 

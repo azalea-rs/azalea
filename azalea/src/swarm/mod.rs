@@ -55,8 +55,6 @@ pub struct Swarm {
 
     bots_tx: mpsc::UnboundedSender<(Option<Event>, Client)>,
     swarm_tx: mpsc::UnboundedSender<SwarmEvent>,
-
-    run_schedule_sender: mpsc::Sender<()>,
 }
 
 /// Create a new [`Swarm`].
@@ -396,12 +394,9 @@ where
 
         swarm_tx.send(SwarmEvent::Init).unwrap();
 
-        let (run_schedule_sender, run_schedule_receiver) = mpsc::channel(1);
-
         let main_schedule_label = self.app.main().update_schedule.unwrap();
 
-        let ecs_lock =
-            start_ecs_runner(self.app, run_schedule_receiver, run_schedule_sender.clone());
+        let ecs_lock = start_ecs_runner(self.app);
 
         let swarm = Swarm {
             ecs_lock: ecs_lock.clone(),
@@ -414,8 +409,6 @@ where
             bots_tx,
 
             swarm_tx: swarm_tx.clone(),
-
-            run_schedule_sender,
         };
 
         // run the main schedule so the startup systems run
@@ -667,7 +660,6 @@ impl Swarm {
             address: &address,
             resolved_address: &resolved_address,
             proxy: join_opts.proxy.clone(),
-            run_schedule_sender: self.run_schedule_sender.clone(),
             event_sender: Some(tx),
         })
         .await?;
