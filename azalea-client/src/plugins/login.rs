@@ -3,7 +3,7 @@ use azalea_protocol::packets::login::{ClientboundHello, ServerboundKey};
 use bevy_app::prelude::*;
 use bevy_ecs::prelude::*;
 use bevy_tasks::{IoTaskPool, Task, futures_lite::future};
-use tracing::error;
+use tracing::{debug, error};
 
 use super::{connection::RawConnection, packet::login::ReceiveHelloEvent};
 use crate::{Account, JoinError};
@@ -33,6 +33,7 @@ fn poll_auth_task(
 ) {
     for (entity, mut auth_task, mut raw_conn) in query.iter_mut() {
         if let Some(poll_res) = future::block_on(future::poll_once(&mut auth_task.0)) {
+            debug!("Finished auth");
             commands.entity(entity).remove::<AuthTask>();
             match poll_res {
                 Ok((packet, private_key)) => {

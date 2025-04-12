@@ -35,12 +35,14 @@ impl Plugin for PacketPlugin {
     fn build(&self, app: &mut App) {
         app.add_observer(game::handle_outgoing_packets_observer)
             .add_observer(config::handle_outgoing_packets_observer)
+            .add_observer(login::handle_outgoing_packets_observer)
             .add_systems(
                 Update,
                 (
                     (
                         config::handle_outgoing_packets,
                         game::handle_outgoing_packets,
+                        login::handle_outgoing_packets,
                     )
                         .chain(),
                     death_event_on_0_health.before(death_listener),

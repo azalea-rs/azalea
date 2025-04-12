@@ -70,7 +70,7 @@ pub fn handle_outgoing_packets_observer(
             return;
         }
 
-        // debug!("Sending packet: {:?}", event.packet);
+        // debug!("Sending game packet: {:?}", event.packet);
         if let Err(e) = raw_connection.write(event.packet.clone()) {
             error!("Failed to send packet: {e}");
         }

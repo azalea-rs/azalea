@@ -6,12 +6,12 @@ mod events;
 use std::collections::HashSet;
 
 use azalea_protocol::packets::{
-    ConnectionProtocol, Packet,
+    ConnectionProtocol,
     login::{
         ClientboundCookieRequest, ClientboundCustomQuery, ClientboundHello,
         ClientboundLoginCompression, ClientboundLoginDisconnect, ClientboundLoginFinished,
         ClientboundLoginPacket, ServerboundCookieResponse, ServerboundCustomQueryAnswer,
-        ServerboundLoginAcknowledged, ServerboundLoginPacket,
+        ServerboundLoginAcknowledged,
     },
 };
 use bevy_ecs::prelude::*;
@@ -21,23 +21,12 @@ use tracing::{debug, error};
 
 use super::as_system;
 use crate::{
-    Account, GameProfileComponent, InConfigState, connection::NetworkConnection,
+    Account, GameProfileComponent, InConfigState, connection::RawConnection,
     declare_packet_handlers, disconnect::DisconnectEvent,
 };
 
-pub fn process_packet(
-    ecs: &mut World,
-    player: Entity,
-    packet: &ClientboundLoginPacket,
-    state: &mut ConnectionProtocol,
-    net_conn: Option<&mut NetworkConnection>,
-) {
-    let mut handler = LoginPacketHandler {
-        player,
-        ecs,
-        state,
-        net_conn,
-    };
+pub fn process_packet(ecs: &mut World, player: Entity, packet: &ClientboundLoginPacket) {
+    let mut handler = LoginPacketHandler { player, ecs };
 
     declare_packet_handlers!(
         ClientboundLoginPacket,
@@ -54,19 +43,6 @@ pub fn process_packet(
     );
 }
 
-/// Event for sending a login packet to the server.
-#[derive(Event)]
-pub struct SendLoginPacketEvent {
-    pub entity: Entity,
-    pub packet: ServerboundLoginPacket,
-}
-impl SendLoginPacketEvent {
-    pub fn new(entity: Entity, packet: impl Packet<ServerboundLoginPacket>) -> Self {
-        let packet = packet.into_variant();
-        Self { entity, packet }
-    }
-}
-
 /// A marker component for local players that are currently in the
 /// `login` state.
 #[derive(Component, Clone, Debug)]
@@ -80,8 +56,6 @@ pub struct IgnoreQueryIds(HashSet<u32>);
 pub struct LoginPacketHandler<'a> {
     pub ecs: &'a mut World,
     pub player: Entity,
-    pub state: &'a mut ConnectionProtocol,
-    pub net_conn: Option<&'a mut NetworkConnection>,
 }
 impl LoginPacketHandler<'_> {
     pub fn hello(&mut self, p: &ClientboundHello) {
@@ -115,32 +89,43 @@ impl LoginPacketHandler<'_> {
     }
     pub fn login_finished(&mut self, p: &ClientboundLoginFinished) {
         debug!(
-            "Got profile {:?}. handshake is finished and we're now switching to the configuration state",
+            "Got profile {:?}. login is finished and we're now switching to the config state",
             p.game_profile
         );
 
-        as_system::<Commands>(self.ecs, |mut commands| {
-            commands.trigger(SendLoginPacketEvent::new(
-                self.player,
-                ServerboundLoginAcknowledged,
-            ));
+        as_system::<(Commands, Query<&mut RawConnection>)>(
+            self.ecs,
+            |(mut commands, mut query)| {
+                commands.trigger(SendLoginPacketEvent::new(
+                    self.player,
+                    ServerboundLoginAcknowledged,
+                ));
 
-            commands
-                .entity(self.player)
-                .remove::<IgnoreQueryIds>()
-                .remove::<InLoginState>()
-                .insert(InConfigState)
-                .insert(GameProfileComponent(p.game_profile.clone()));
-        });
+                commands
+                    .entity(self.player)
+                    .remove::<IgnoreQueryIds>()
+                    .remove::<InLoginState>()
+                    .insert(InConfigState)
+                    .insert(GameProfileComponent(p.game_profile.clone()));
 
-        // break (conn.config(), p.game_profile);
+                let mut conn = query
+                    .get_mut(self.player)
+                    .expect("RawConnection component should be present when receiving packets");
+                conn.state = ConnectionProtocol::Configuration;
+            },
+        );
     }
     pub fn login_compression(&mut self, p: &ClientboundLoginCompression) {
         debug!("Got compression request {p:?}");
 
-        if let Some(net_conn) = &mut self.net_conn {
-            net_conn.set_compression_threshold(Some(p.compression_threshold as u32));
-        }
+        as_system::<Query<&mut RawConnection>>(self.ecs, |mut query| {
+            let mut conn = query
+                .get_mut(self.player)
+                .expect("RawConnection component should be present when receiving packets");
+            if let Some(net_conn) = &mut conn.net_conn() {
+                net_conn.set_compression_threshold(Some(p.compression_threshold as u32));
+            }
+        })
     }
     pub fn custom_query(&mut self, p: &ClientboundCustomQuery) {
         debug!("Got custom query {p:?}");

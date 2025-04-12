@@ -26,11 +26,8 @@ use azalea_protocol::{
     packets::{
         self, ClientIntention, ConnectionProtocol, PROTOCOL_VERSION, Packet,
         game::{self, ServerboundGamePacket},
-        handshake::{
-            ClientboundHandshakePacket, ServerboundHandshakePacket,
-            s_intention::ServerboundIntention,
-        },
-        login::{ClientboundLoginPacket, ServerboundLoginPacket, s_hello::ServerboundHello},
+        handshake::s_intention::ServerboundIntention,
+        login::s_hello::ServerboundHello,
     },
     resolver,
 };
@@ -276,6 +273,7 @@ impl Client {
 
             let mut entity_mut = ecs.entity_mut(entity);
             entity_mut.insert((
+                InLoginState,
                 // add the Account to the entity now so plugins can access it earlier
                 account.to_owned(),
                 // localentity is always present for our clients, even if we're not actually logged
@@ -291,12 +289,21 @@ impl Client {
             entity
         };
 
-        let conn = if let Some(proxy) = proxy {
+        let mut conn = if let Some(proxy) = proxy {
             Connection::new_with_proxy(resolved_address, proxy).await?
         } else {
             Connection::new(resolved_address).await?
         };
-        let conn = Self::handshake(ecs_lock.clone(), entity, conn, account, address).await?;
+        debug!("Created connection to {resolved_address:?}");
+
+        conn.write(ServerboundIntention {
+            protocol_version: PROTOCOL_VERSION,
+            hostname: address.host.clone(),
+            port: address.port,
+            intention: ClientIntention::Login,
+        })
+        .await?;
+        let conn = conn.login();
 
         let (read_conn, write_conn) = conn.into_split();
         let (read_conn, write_conn) = (read_conn.raw, write_conn.raw);
@@ -326,37 +333,8 @@ impl Client {
                     instance_holder,
                     metadata: azalea_entity::metadata::PlayerMetadataBundle::default(),
                 },
-                InConfigState,
-                // this component is never removed
-                LocalEntity,
             ));
         }
-
-        let client = Client::new(entity, ecs_lock.clone(), run_schedule_sender.clone());
-        Ok(client)
-    }
-
-    /// Do a handshake with the server and get to the game state from the
-    /// initial handshake state.
-    ///
-    /// This will also automatically refresh the account's access token if
-    /// it's expired.
-    pub async fn handshake(
-        ecs_lock: Arc<Mutex<World>>,
-        entity: Entity,
-        mut conn: Connection<ClientboundHandshakePacket, ServerboundHandshakePacket>,
-        account: &Account,
-        address: &ServerAddress,
-    ) -> Result<Connection<ClientboundLoginPacket, ServerboundLoginPacket>, JoinError> {
-        // handshake
-        conn.write(ServerboundIntention {
-            protocol_version: PROTOCOL_VERSION,
-            hostname: address.host.clone(),
-            port: address.port,
-            intention: ClientIntention::Login,
-        })
-        .await?;
-        let conn = conn.login();
 
         as_system::<Commands>(&mut ecs_lock.lock(), |mut commands| {
             commands.entity(entity).insert((
@@ -374,7 +352,8 @@ impl Client {
             ))
         });
 
-        Ok(conn)
+        let client = Client::new(entity, ecs_lock.clone(), run_schedule_sender.clone());
+        Ok(client)
     }
 
     /// Write a packet directly to the server.

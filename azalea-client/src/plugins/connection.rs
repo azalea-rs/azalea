@@ -19,7 +19,7 @@ use tokio::{
     net::tcp::OwnedWriteHalf,
     sync::mpsc::{self},
 };
-use tracing::{debug, error};
+use tracing::{debug, error, trace};
 
 use super::packet::{
     config::ReceiveConfigPacketEvent, game::ReceiveGamePacketEvent, login::ReceiveLoginPacketEvent,
@@ -35,63 +35,59 @@ impl Plugin for ConnectionPlugin {
 
 pub fn read_packets(ecs: &mut World) {
     // receive_game_packet_events: EventWriter<ReceiveGamePacketEvent>,
-    let mut query = ecs.query::<(Entity, &mut RawConnection)>();
+    let mut entity_and_conn_query = ecs.query::<(Entity, &mut RawConnection)>();
+    let mut conn_query = ecs.query::<&mut RawConnection>();
 
     let mut entities_handling_packets = Vec::new();
     let mut entities_with_injected_packets = Vec::new();
-    for (entity, mut raw_conn) in query.iter_mut(ecs) {
-        let state = raw_conn.state;
-
+    for (entity, mut raw_conn) in entity_and_conn_query.iter_mut(ecs) {
         if !raw_conn.injected_clientbound_packets.is_empty() {
             entities_with_injected_packets.push((
                 entity,
-                state,
                 mem::take(&mut raw_conn.injected_clientbound_packets),
             ));
         }
 
-        let Some(net_conn) = raw_conn.network.take() else {
-            // means it's a networkless connection
+        if raw_conn.network.is_none() {
+            // no network connection, don't bother with the normal packet handling
             continue;
-        };
-        entities_handling_packets.push((entity, state, net_conn));
+        }
+
+        entities_handling_packets.push(entity);
     }
 
     let mut queued_packet_events = QueuedPacketEvents::default();
 
     // handle injected packets, see the comment on
     // RawConnection::injected_clientbound_packets for more info
-    for (entity, mut state, raw_packets) in entities_with_injected_packets {
+    for (entity, raw_packets) in entities_with_injected_packets {
         for raw_packet in raw_packets {
-            handle_raw_packet(
-                ecs,
-                &raw_packet,
-                entity,
-                &mut state,
-                None,
-                &mut queued_packet_events,
-            )
-            .unwrap();
+            let conn = conn_query.get(ecs, entity).unwrap();
+            let state = conn.state;
+
+            trace!("Received injected packet with bytes: {raw_packet:?}");
+            handle_raw_packet(ecs, &raw_packet, entity, state, &mut queued_packet_events).unwrap();
 
             // update the state and for the client
-            let (_, mut raw_conn_component) = query.get_mut(ecs, entity).unwrap();
+            let (_, mut raw_conn_component) = entity_and_conn_query.get_mut(ecs, entity).unwrap();
             raw_conn_component.state = state;
         }
     }
 
-    // we pass the mutable state and net_conn into the handlers so they're allowed
-    // to mutate it
-    for (entity, mut state, mut net_conn) in entities_handling_packets {
+    for entity in entities_handling_packets {
         loop {
-            match net_conn.reader.try_read() {
+            let mut conn = conn_query.get_mut(ecs, entity).unwrap();
+            let net_conn = conn.net_conn().unwrap();
+            let read_res = net_conn.reader.try_read();
+            let state = conn.state;
+            match read_res {
                 Ok(Some(raw_packet)) => {
                     let raw_packet = Arc::<[u8]>::from(raw_packet);
                     if let Err(e) = handle_raw_packet(
                         ecs,
                         &raw_packet,
                         entity,
-                        &mut state,
-                        Some(&mut net_conn),
+                        state,
                         &mut queued_packet_events,
                     ) {
                         error!("Error reading packet: {e}");
@@ -108,14 +104,12 @@ pub fn read_packets(ecs: &mut World) {
             }
         }
 
-        // this needs to be done at some point every update, so we do it here right
-        // after the handlers are called
-        net_conn.poll_writer();
-
-        // update the state and network connections for the client
-        let (_, mut raw_conn_component) = query.get_mut(ecs, entity).unwrap();
-        raw_conn_component.state = state;
-        raw_conn_component.network = Some(net_conn);
+        let mut net_conn = conn_query.get_mut(ecs, entity).unwrap();
+        if let Some(net_conn) = &mut net_conn.network {
+            // this needs to be done at some point every update, so we do it here right
+            // after the handlers are called
+            net_conn.poll_writer();
+        }
     }
 
     queued_packet_events.send_events(ecs);
@@ -217,9 +211,11 @@ impl RawConnection {
         packet: impl Packet<P>,
     ) -> Result<(), WritePacketError> {
         if let Some(network) = &mut self.network {
-            let packet = packet.into_variant();
-            let raw_packet = serialize_packet(&packet)?;
-            network.write_raw(&raw_packet)?;
+            network.write(packet)?;
+        } else {
+            debug!(
+                "tried to write packet to the network but there is no NetworkConnection. if you're trying to send a packet from the handler function, use self.write instead"
+            );
         }
         Ok(())
     }
@@ -233,8 +229,7 @@ pub fn handle_raw_packet(
     ecs: &mut World,
     raw_packet: &[u8],
     entity: Entity,
-    state: &mut ConnectionProtocol,
-    net_conn: Option<&mut NetworkConnection>,
+    state: ConnectionProtocol,
     queued_packet_events: &mut QueuedPacketEvents,
 ) -> Result<(), Box<ReadPacketError>> {
     let stream = &mut Cursor::new(raw_packet);
@@ -244,6 +239,7 @@ pub fn handle_raw_packet(
         }
         ConnectionProtocol::Game => {
             let packet = Arc::new(deserialize_packet::<ClientboundGamePacket>(stream)?);
+            trace!("Packet: {packet:?}");
             game::process_packet(ecs, entity, packet.as_ref());
             queued_packet_events
                 .game
@@ -254,13 +250,15 @@ pub fn handle_raw_packet(
         }
         ConnectionProtocol::Login => {
             let packet = Arc::new(deserialize_packet::<ClientboundLoginPacket>(stream)?);
-            login::process_packet(ecs, entity, &packet, state, net_conn);
+            trace!("Packet: {packet:?}");
+            login::process_packet(ecs, entity, &packet);
             queued_packet_events
                 .login
                 .push(ReceiveLoginPacketEvent { entity, packet });
         }
         ConnectionProtocol::Configuration => {
             let packet = Arc::new(deserialize_packet::<ClientboundConfigPacket>(stream)?);
+            trace!("Packet: {packet:?}");
             config::process_packet(ecs, entity, &packet);
             queued_packet_events
                 .config
@@ -283,6 +281,17 @@ pub struct NetworkConnection {
     network_packet_writer_tx: mpsc::UnboundedSender<Box<[u8]>>,
 }
 impl NetworkConnection {
+    pub fn write<P: ProtocolPacket + Debug>(
+        &mut self,
+        packet: impl Packet<P>,
+    ) -> Result<(), WritePacketError> {
+        let packet = packet.into_variant();
+        let raw_packet = serialize_packet(&packet)?;
+        self.write_raw(&raw_packet)?;
+
+        Ok(())
+    }
+
     pub fn write_raw(&mut self, raw_packet: &[u8]) -> Result<(), WritePacketError> {
         let network_packet = azalea_protocol::write::encode_to_network_packet(
             raw_packet,
@@ -299,11 +308,13 @@ impl NetworkConnection {
     }
 
     pub fn set_compression_threshold(&mut self, threshold: Option<u32>) {
+        trace!("Set compression threshold to {threshold:?}");
         self.reader.compression_threshold = threshold;
     }
     /// Set the encryption key that is used to encrypt and decrypt packets. It's
     /// the same for both reading and writing.
     pub fn set_encryption_key(&mut self, key: [u8; 16]) {
+        trace!("Enabled protocol encryption");
         let (enc_cipher, dec_cipher) = azalea_crypto::create_cipher(&key);
         self.reader.dec_cipher = Some(dec_cipher);
         self.enc_cipher = Some(enc_cipher);
@@ -315,11 +326,13 @@ async fn write_task(
     mut write_half: OwnedWriteHalf,
 ) {
     while let Some(network_packet) = network_packet_writer_rx.recv().await {
+        trace!("writing encoded raw packet");
         if let Err(e) = write_half.write_all(&network_packet).await {
             debug!("Error writing packet to server: {e}");
             break;
         };
     }
+    trace!("write task is done");
 }
 
 #[derive(Error, Debug)]
