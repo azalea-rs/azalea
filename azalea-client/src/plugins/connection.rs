@@ -66,7 +66,11 @@ pub fn read_packets(ecs: &mut World) {
             let state = conn.state;
 
             trace!("Received injected packet with bytes: {raw_packet:?}");
-            handle_raw_packet(ecs, &raw_packet, entity, state, &mut queued_packet_events).unwrap();
+            if let Err(e) =
+                handle_raw_packet(ecs, &raw_packet, entity, state, &mut queued_packet_events)
+            {
+                error!("Error reading injected packet: {e}");
+            }
         }
     }
 

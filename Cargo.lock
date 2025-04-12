@@ -161,6 +161,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "async-compat"
+version = "0.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7bab94bde396a3f7b4962e396fdad640e241ed797d4d8d77fc8c237d14c58fc0"
+dependencies = [
+ "futures-core",
+ "futures-io",
+ "once_cell",
+ "pin-project-lite",
+ "tokio",
+]
+
+[[package]]
 name = "async-executor"
 version = "1.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -336,6 +349,7 @@ name = "azalea-client"
 version = "0.11.0+mc1.21.5"
 dependencies = [
  "anyhow",
+ "async-compat",
  "azalea-auth",
  "azalea-block",
  "azalea-buf",

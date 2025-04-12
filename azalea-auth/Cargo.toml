@@ -12,7 +12,10 @@ azalea-crypto = { path = "../azalea-crypto", version = "0.11.0" }
 base64.workspace = true
 chrono = { workspace = true, features = ["serde"] }
 md-5.workspace = true
-reqwest = { workspace = true, features = ["json", "rustls-tls"] }
+reqwest = { workspace = true, default-features = false, features = [
+    "json",
+    "rustls-tls",
+] }
 rsa.workspace = true
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true

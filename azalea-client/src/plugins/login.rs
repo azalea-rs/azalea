@@ -90,13 +90,18 @@ pub async fn auth_with_account(
             .uuid
             .expect("Uuid must be present if access token is present.");
 
-        azalea_auth::sessionserver::join(
-            &access_token,
-            &packet.public_key,
-            &private_key,
-            uuid,
-            &packet.server_id,
-        )
+        // this is necessary since reqwest usually depends on tokio and we're using
+        // `futures` here
+        async_compat::Compat::new(async {
+            azalea_auth::sessionserver::join(
+                &access_token,
+                &packet.public_key,
+                &private_key,
+                uuid,
+                &packet.server_id,
+            )
+            .await
+        })
         .await
     } {
         if attempts >= 2 {
