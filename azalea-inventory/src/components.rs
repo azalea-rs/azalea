@@ -607,12 +607,21 @@ impl DataComponent for BlockEntityData {
     const KIND: DataComponentKind = DataComponentKind::BlockEntityData;
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
-pub struct Instrument {
-    pub instrument: registry::Instrument,
+#[derive(Clone, PartialEq, Debug, AzBuf)]
+pub enum Instrument {
+    Registry(registry::Instrument),
+    Holder(Holder<registry::Instrument, InstrumentData>),
 }
 impl DataComponent for Instrument {
     const KIND: DataComponentKind = DataComponentKind::Instrument;
+}
+
+#[derive(Clone, PartialEq, Debug, AzBuf)]
+pub struct InstrumentData {
+    pub sound_event: Holder<SoundEvent, azalea_core::sound::CustomSound>,
+    pub use_duration: f32,
+    pub range: f32,
+    pub description: FormattedText,
 }
 
 #[derive(Clone, PartialEq, AzBuf)]
@@ -799,11 +808,20 @@ impl DataComponent for ContainerLoot {
 }
 
 #[derive(Clone, PartialEq, AzBuf)]
-pub struct JukeboxPlayable {
-    pub song: registry::JukeboxSong,
+pub enum JukeboxPlayable {
+    Registry(registry::JukeboxSong),
+    Direct(Holder<registry::JukeboxSong, JukeboxSongData>),
 }
 impl DataComponent for JukeboxPlayable {
     const KIND: DataComponentKind = DataComponentKind::JukeboxPlayable;
+}
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct JukeboxSongData {
+    pub sound_event: Holder<SoundEvent, CustomSound>,
+    pub description: FormattedText,
+    pub length_in_seconds: f32,
+    #[var]
+    pub comparator_output: i32,
 }
 
 #[derive(Clone, PartialEq, AzBuf)]
@@ -1085,10 +1103,20 @@ impl DataComponent for HorseVariant {
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct PaintingVariant {
-    pub variant: registry::PaintingVariant,
+    pub variant: Holder<registry::PaintingVariant, PaintingVariantData>,
 }
 impl DataComponent for PaintingVariant {
     const KIND: DataComponentKind = DataComponentKind::PaintingVariant;
+}
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct PaintingVariantData {
+    #[var]
+    pub width: i32,
+    #[var]
+    pub height: i32,
+    pub asset_id: ResourceLocation,
+    pub title: Option<FormattedText>,
+    pub author: Option<FormattedText>,
 }
 
 #[derive(Clone, PartialEq, AzBuf)]
@@ -1166,6 +1194,8 @@ impl DataComponent for BlocksAttacks {
 pub struct DamageReduction {
     pub horizontal_blocking_angle: f32,
     pub kind: Option<HolderSet<DamageKind, ResourceLocation>>,
+    pub base: f32,
+    pub factor: f32,
 }
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct ItemDamageFunction {
