@@ -115,7 +115,7 @@ pub fn update_fluid_on_eyes(
 }
 
 pub fn update_on_climbable(
-    mut query: Query<(&mut OnClimbable, &Position, &InstanceName)>,
+    mut query: Query<(&mut OnClimbable, &Position, &InstanceName), With<LocalEntity>>,
     instance_container: Res<InstanceContainer>,
 ) {
     for (mut on_climbable, position, instance_name) in query.iter_mut() {
