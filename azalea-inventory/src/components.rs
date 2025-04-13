@@ -1262,9 +1262,15 @@ impl DataComponent for CowVariant {
 }
 
 #[derive(Clone, PartialEq, AzBuf)]
-pub struct ChickenVariant {
-    pub variant: azalea_registry::ChickenVariant,
+pub enum ChickenVariant {
+    Registry(azalea_registry::ChickenVariant),
+    Direct(ChickenVariantData),
 }
 impl DataComponent for ChickenVariant {
     const KIND: DataComponentKind = DataComponentKind::ChickenVariant;
+}
+#[derive(Clone, PartialEq, AzBuf)]
+pub struct ChickenVariantData {
+    // not a typo, as of 1.21.5 chicken variants do actually seem to be encoded like this
+    pub registry: azalea_registry::ChickenVariant,
 }
