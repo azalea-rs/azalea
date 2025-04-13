@@ -3,8 +3,6 @@
 
 mod events;
 
-use std::collections::HashSet;
-
 use azalea_protocol::packets::{
     ConnectionProtocol,
     login::{
@@ -14,7 +12,6 @@ use azalea_protocol::packets::{
     },
 };
 use bevy_ecs::prelude::*;
-use derive_more::{Deref, DerefMut};
 pub use events::*;
 use tracing::{debug, error};
 
