@@ -7,6 +7,6 @@ license.workspace = true
 repository.workspace = true
 
 [dependencies]
-azalea-block-macros = { path = "./azalea-block-macros", version = "0.12.0" }
-azalea-buf = { path = "../azalea-buf", version = "0.12.0" }
-azalea-registry = { path = "../azalea-registry", version = "0.12.0" }
+azalea-block-macros = { path = "./azalea-block-macros", version = "0.11.0" }
+azalea-buf = { path = "../azalea-buf", version = "0.11.0" }
+azalea-registry = { path = "../azalea-registry", version = "0.11.0" }
