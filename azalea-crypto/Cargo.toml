@@ -11,7 +11,7 @@ criterion.workspace = true
 
 [dependencies]
 aes.workspace = true
-azalea-buf = { path = "../azalea-buf", version = "0.11.0" }
+azalea-buf = { path = "../azalea-buf", version = "0.12.0" }
 cfb8.workspace = true
 num-bigint.workspace = true
 rand = { workspace = true, features = ["getrandom"] }
