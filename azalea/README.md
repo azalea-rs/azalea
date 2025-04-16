@@ -9,13 +9,12 @@ First, install Rust nightly with `rustup install nightly` and `rustup default ni
 
 Then, use one of the following commands to add Azalea to your project:
 
--   Latest bleeding-edge version (recommended): `cargo add azalea --git=https://github.com/azalea-rs/azalea`\
+-   Latest bleeding-edge version (recommended): `cargo add azalea --git=https://github.com/azalea-rs/azalea`
 -   Latest "stable" release: `cargo add azalea`
 
 ## Optimization
 
-For faster compile times, make a `.cargo/config.toml` file in your project
-and copy
+For faster compile times, create a `.cargo/config.toml` file in your project and copy
 [this file](https://github.com/azalea-rs/azalea/blob/main/.cargo/config_fast_builds)
 into it. You may have to install the LLD linker.
 

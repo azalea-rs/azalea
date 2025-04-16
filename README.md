@@ -24,6 +24,7 @@ _Currently supported Minecraft version: `1.21.5`._
 -   [Block interactions & building](https://azalea.matdoes.dev/azalea/struct.Client.html#method.block_interact) (this doesn't predict the block interactions/placement on the client yet but it's usually fine)
 -   [Inventories](https://azalea.matdoes.dev/azalea/struct.Client.html#impl-ContainerClientExt-for-Client)
 -   [Attacking entities](https://azalea.matdoes.dev/azalea/struct.Client.html#method.attack) (but you can't get the entity at the crosshair yet)
+-   [Plugins system](#plugins)
 
 ## Docs
 
