@@ -116,7 +116,10 @@ impl Instance {
     /// Find all the coordinates of a block in the world.
     ///
     /// This returns an iterator that yields the [`BlockPos`]s of blocks that
-    /// are in the given block states. It's sorted by `x+y+z`.
+    /// are in the given block states.
+    ///
+    /// Note that this is sorted by `x+y+z` and not `x^2+y^2+z^2` for
+    /// optimization purposes.
     pub fn find_blocks<'a>(
         &'a self,
         nearest_to: impl Into<BlockPos>,

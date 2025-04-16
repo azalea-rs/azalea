@@ -42,9 +42,10 @@ You can just replace these with `azalea` in your code since everything from `aza
 ```rust,no_run
 //! A bot that logs chat messages sent in the server to the console.
 
+use std::sync::Arc;
+
 use azalea::prelude::*;
 use parking_lot::Mutex;
-use std::sync::Arc;
 
 #[tokio::main]
 async fn main() {
@@ -59,12 +60,15 @@ async fn main() {
 }
 
 #[derive(Default, Clone, Component)]
-pub struct State {}
+pub struct State {
+    pub messages_received: Arc<Mutex<usize>>
+}
 
 async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
     match event {
         Event::Chat(m) => {
             println!("{}", m.message().to_ansi());
+            *state.messages_received.lock() += 1;
         }
         _ => {}
     }

@@ -12,4 +12,5 @@ pub mod packet;
 pub mod pong;
 pub mod respawn;
 pub mod task_pool;
+pub mod tick_broadcast;
 pub mod tick_end;

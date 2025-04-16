@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 
 use super::costs::{COST_HEURISTIC, FALL_N_BLOCKS_COST, JUMP_ONE_BLOCK_COST};
 
-pub trait Goal: Debug {
+pub trait Goal: Debug + Send + Sync {
     #[must_use]
     fn heuristic(&self, n: BlockPos) -> f32;
     #[must_use]
@@ -99,6 +99,11 @@ impl Goal for YGoal {
 pub struct RadiusGoal {
     pub pos: Vec3,
     pub radius: f32,
+}
+impl RadiusGoal {
+    pub fn new(pos: Vec3, radius: f32) -> Self {
+        Self { pos, radius }
+    }
 }
 impl Goal for RadiusGoal {
     fn heuristic(&self, n: BlockPos) -> f32 {
