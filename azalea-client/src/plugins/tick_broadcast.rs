@@ -10,7 +10,7 @@ use tokio::sync::broadcast;
 /// This is useful for running code every schedule from async user code.
 ///
 /// ```
-/// use azalea_client::TickBroadcast;
+/// use azalea_client::tick_broadcast::TickBroadcast;
 /// # async fn example(client: azalea_client::Client) {
 /// let mut receiver = {
 ///     let ecs = client.ecs.lock();
@@ -24,6 +24,10 @@ use tokio::sync::broadcast;
 /// ```
 #[derive(Resource, Deref)]
 pub struct TickBroadcast(broadcast::Sender<()>);
+/// A resource that contains a [`broadcast::Sender`] that will be sent every
+/// Azalea ECS Update.
+///
+/// Also see [`TickBroadcast`].
 #[derive(Resource, Deref)]
 pub struct UpdateBroadcast(broadcast::Sender<()>);
 

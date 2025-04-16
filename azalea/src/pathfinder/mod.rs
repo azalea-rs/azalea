@@ -195,7 +195,7 @@ impl PathfinderClientExt for azalea_client::Client {
     /// ```
     /// # use azalea::prelude::*;
     /// # use azalea::{BlockPos, pathfinder::goals::BlockPosGoal};
-    /// # fn example(bot: &Client) {
+    /// # async fn example(bot: &Client) {
     /// bot.goto(BlockPosGoal(BlockPos::new(0, 70, 0))).await;
     /// # }
     /// ```
