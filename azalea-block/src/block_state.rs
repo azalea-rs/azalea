@@ -1,6 +1,5 @@
 use std::{
     fmt::{self, Debug},
-    hint::assert_unchecked,
     io::{self, Cursor, Write},
 };
 
