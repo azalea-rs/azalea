@@ -126,7 +126,11 @@ fn poll_all_writer_tasks(mut conn_query: Query<&mut RawConnection>) {
             // this needs to be done at some point every update to make sure packets are
             // actually sent to the network
 
-            net_conn.poll_writer();
+            if net_conn.poll_writer().is_some() {
+                // means the writer task ended
+                conn.network = None;
+                conn.is_alive = false;
+            }
         }
     }
 }
@@ -319,9 +323,11 @@ impl NetworkConnection {
         Ok(())
     }
 
-    pub fn poll_writer(&mut self) {
+    /// Makes sure packets get sent and returns Some(()) if the connection has
+    /// closed.
+    pub fn poll_writer(&mut self) -> Option<()> {
         let poll_once_res = future::poll_once(&mut self.writer_task);
-        future::block_on(poll_once_res);
+        future::block_on(poll_once_res)
     }
 
     pub fn set_compression_threshold(&mut self, threshold: Option<u32>) {
@@ -348,6 +354,7 @@ async fn write_task(
             break;
         };
     }
+
     trace!("write task is done");
 }
 

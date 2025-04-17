@@ -485,7 +485,8 @@ where
             if let Some(handler) = &self.handler {
                 let ecs_mutex = first_bot.ecs.clone();
                 let mut ecs = ecs_mutex.lock();
-                let Some(first_bot_state) = first_bot.query::<Option<&S>>(&mut ecs).cloned() else {
+                let mut query = ecs.query::<Option<&S>>();
+                let Ok(Some(first_bot_state)) = query.get(&mut ecs, first_bot.entity) else {
                     error!(
                         "the first bot ({} / {}) is missing the required state component! none of the client handler functions will be called.",
                         first_bot.username(),
@@ -494,6 +495,7 @@ where
                     continue;
                 };
                 let first_bot_entity = first_bot.entity;
+                let first_bot_state = first_bot_state.clone();
 
                 tokio::spawn((handler)(first_bot, first_event, first_bot_state.clone()));
 
@@ -504,7 +506,7 @@ where
                     let state = match states.entry(bot.entity) {
                         hash_map::Entry::Occupied(e) => e.into_mut(),
                         hash_map::Entry::Vacant(e) => {
-                            let Some(state) = bot.query::<Option<&S>>(&mut ecs).cloned() else {
+                            let Ok(Some(state)) = query.get(&mut ecs, bot.entity) else {
                                 error!(
                                     "one of our bots ({} / {}) is missing the required state component! its client handler function will not be called.",
                                     bot.username(),
@@ -512,6 +514,7 @@ where
                                 );
                                 continue;
                             };
+                            let state = state.clone();
                             e.insert(state)
                         }
                     };
