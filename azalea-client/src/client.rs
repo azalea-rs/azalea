@@ -38,15 +38,14 @@ use bevy_ecs::{
     component::Component,
     entity::Entity,
     schedule::{InternedScheduleLabel, IntoSystemConfigs, LogLevel, ScheduleBuildSettings},
-    system::{Commands, ResMut, Resource},
+    system::{Commands, Resource},
     world::World,
 };
-use derive_more::Deref;
 use parking_lot::{Mutex, RwLock};
 use simdnbt::owned::NbtCompound;
 use thiserror::Error;
 use tokio::{
-    sync::{broadcast, mpsc},
+    sync::mpsc::{self},
     time,
 };
 use tracing::{debug, error, info, warn};
@@ -824,39 +823,6 @@ async fn run_schedule_loop(ecs: Arc<Mutex<World>>, outer_schedule_label: Interne
         }
 
         ecs.clear_trackers();
-    }
-}
-
-/// A resource that contains a [`broadcast::Sender`] that will be sent every
-/// Minecraft tick.
-///
-/// This is useful for running code every schedule from async user code.
-///
-/// ```
-/// use azalea_client::TickBroadcast;
-/// # async fn example(client: azalea_client::Client) {
-/// let mut receiver = {
-///     let ecs = client.ecs.lock();
-///     let tick_broadcast = ecs.resource::<TickBroadcast>();
-///     tick_broadcast.subscribe()
-/// };
-/// while receiver.recv().await.is_ok() {
-///     // do something
-/// }
-/// # }
-/// ```
-#[derive(Resource, Deref)]
-pub struct TickBroadcast(broadcast::Sender<()>);
-
-pub fn send_tick_broadcast(tick_broadcast: ResMut<TickBroadcast>) {
-    let _ = tick_broadcast.0.send(());
-}
-/// A plugin that makes the [`RanScheduleBroadcast`] resource available.
-pub struct TickBroadcastPlugin;
-impl Plugin for TickBroadcastPlugin {
-    fn build(&self, app: &mut App) {
-        app.insert_resource(TickBroadcast(broadcast::channel(1).0))
-            .add_systems(GameTick, send_tick_broadcast);
     }
 }
 

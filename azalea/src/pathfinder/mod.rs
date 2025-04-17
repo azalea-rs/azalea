@@ -47,7 +47,6 @@ use self::debug::debug_render_path_with_particles;
 use self::goals::Goal;
 use self::mining::MiningCache;
 use self::moves::{ExecuteCtx, IsReachedCtx, SuccessorsFn};
-use crate::WalkDirection;
 use crate::app::{App, Plugin};
 use crate::bot::{JumpEvent, LookAtEvent};
 use crate::ecs::{
@@ -58,6 +57,7 @@ use crate::ecs::{
     system::{Commands, Query, Res},
 };
 use crate::pathfinder::{astar::a_star, moves::PathfinderCtx, world::CachedWorld};
+use crate::{BotClientExt, WalkDirection};
 
 #[derive(Clone, Default)]
 pub struct PathfinderPlugin;
@@ -103,7 +103,7 @@ impl Plugin for PathfinderPlugin {
 /// A component that makes this client able to pathfind.
 #[derive(Component, Default, Clone)]
 pub struct Pathfinder {
-    pub goal: Option<Arc<dyn Goal + Send + Sync>>,
+    pub goal: Option<Arc<dyn Goal>>,
     pub successors_fn: Option<SuccessorsFn>,
     pub is_calculating: bool,
     pub allow_mining: bool,
@@ -134,7 +134,7 @@ pub struct ExecutingPath {
 pub struct GotoEvent {
     /// The local bot entity that will do the pathfinding and execute the path.
     pub entity: Entity,
-    pub goal: Arc<dyn Goal + Send + Sync>,
+    pub goal: Arc<dyn Goal>,
     /// The function that's used for checking what moves are possible. Usually
     /// `pathfinder::moves::default_move`
     pub successors_fn: SuccessorsFn,
@@ -180,22 +180,40 @@ pub fn add_default_pathfinder(
 }
 
 pub trait PathfinderClientExt {
-    fn goto(&self, goal: impl Goal + Send + Sync + 'static);
-    fn goto_without_mining(&self, goal: impl Goal + Send + Sync + 'static);
+    fn goto(&self, goal: impl Goal + 'static) -> impl Future<Output = ()>;
+    fn start_goto(&self, goal: impl Goal + 'static);
+    fn start_goto_without_mining(&self, goal: impl Goal + 'static);
     fn stop_pathfinding(&self);
+    fn wait_until_goto_target_reached(&self) -> impl Future<Output = ()>;
+    fn is_goto_target_reached(&self) -> bool;
 }
 
 impl PathfinderClientExt for azalea_client::Client {
+    /// Pathfind to the given goal and wait until either the target is reached
+    /// or the pathfinding is canceled.
+    ///
+    /// ```
+    /// # use azalea::prelude::*;
+    /// # use azalea::{BlockPos, pathfinder::goals::BlockPosGoal};
+    /// # async fn example(bot: &Client) {
+    /// bot.goto(BlockPosGoal(BlockPos::new(0, 70, 0))).await;
+    /// # }
+    /// ```
+    async fn goto(&self, goal: impl Goal + 'static) {
+        self.start_goto(goal);
+        self.wait_until_goto_target_reached().await;
+    }
+
     /// Start pathfinding to a given goal.
     ///
     /// ```
     /// # use azalea::prelude::*;
     /// # use azalea::{BlockPos, pathfinder::goals::BlockPosGoal};
     /// # fn example(bot: &Client) {
-    /// bot.goto(BlockPosGoal(BlockPos::new(0, 70, 0)));
+    /// bot.start_goto(BlockPosGoal(BlockPos::new(0, 70, 0)));
     /// # }
     /// ```
-    fn goto(&self, goal: impl Goal + Send + Sync + 'static) {
+    fn start_goto(&self, goal: impl Goal + 'static) {
         self.ecs.lock().send_event(GotoEvent {
             entity: self.entity,
             goal: Arc::new(goal),
@@ -206,9 +224,9 @@ impl PathfinderClientExt for azalea_client::Client {
         });
     }
 
-    /// Same as [`goto`](Self::goto). but the bot won't break any blocks while
-    /// executing the path.
-    fn goto_without_mining(&self, goal: impl Goal + Send + Sync + 'static) {
+    /// Same as [`start_goto`](Self::start_goto). but the bot won't break any
+    /// blocks while executing the path.
+    fn start_goto_without_mining(&self, goal: impl Goal + 'static) {
         self.ecs.lock().send_event(GotoEvent {
             entity: self.entity,
             goal: Arc::new(goal),
@@ -224,6 +242,26 @@ impl PathfinderClientExt for azalea_client::Client {
             entity: self.entity,
             force: false,
         });
+    }
+
+    /// Waits forever until the bot no longer has a pathfinder goal.
+    async fn wait_until_goto_target_reached(&self) {
+        // we do this to make sure the event got handled before we start checking
+        // is_goto_target_reached
+        self.wait_one_update().await;
+
+        let mut tick_broadcaster = self.get_tick_broadcaster();
+        while !self.is_goto_target_reached() {
+            // check every tick
+            tick_broadcaster.recv().await.unwrap();
+        }
+    }
+
+    fn is_goto_target_reached(&self) -> bool {
+        self.map_get_component::<Pathfinder, _>(|p| {
+            p.map(|p| p.goal.is_none() && !p.is_calculating)
+                .unwrap_or(true)
+        })
     }
 }
 
@@ -331,7 +369,7 @@ pub fn goto_listener(
 pub struct CalculatePathOpts {
     pub entity: Entity,
     pub start: BlockPos,
-    pub goal: Arc<dyn Goal + Send + Sync>,
+    pub goal: Arc<dyn Goal>,
     pub successors_fn: SuccessorsFn,
     pub world_lock: Arc<RwLock<azalea_world::Instance>>,
     pub goto_id_atomic: Arc<AtomicUsize>,

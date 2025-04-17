@@ -158,7 +158,7 @@ pub fn deserialize_packet<P: ProtocolPacket + Debug>(
 // this is always true in multiplayer, false in singleplayer
 static VALIDATE_DECOMPRESSED: bool = true;
 
-pub static MAXIMUM_UNCOMPRESSED_LENGTH: u32 = 2_097_152;
+pub static MAXIMUM_UNCOMPRESSED_LENGTH: u32 = 8_388_608;
 
 #[derive(Error, Debug)]
 pub enum DecompressionError {

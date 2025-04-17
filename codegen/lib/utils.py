@@ -10,7 +10,7 @@ def to_snake_case(name: str):
 
 
 def to_camel_case(name: str):
-    s = re.sub('[_ ](\w)', lambda m: m.group(1).upper(),
+    s = re.sub(r'[_ ](\w)', lambda m: m.group(1).upper(),
                name.replace('.', '_').replace('/', '_'))
     s = upper_first_letter(s)
     # if the first character is a number, we need to add an underscore

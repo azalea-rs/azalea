@@ -19,7 +19,7 @@ use tokio::{
     net::tcp::OwnedWriteHalf,
     sync::mpsc::{self},
 };
-use tracing::{debug, error, trace};
+use tracing::{debug, error, info, trace};
 
 use super::packet::{
     config::ReceiveConfigPacketEvent, game::ReceiveGamePacketEvent, login::ReceiveLoginPacketEvent,
@@ -99,6 +99,18 @@ pub fn read_packets(ecs: &mut World) {
                 }
                 Err(err) => {
                     log_for_error(&err);
+
+                    if matches!(
+                        &*err,
+                        ReadPacketError::IoError { .. } | ReadPacketError::ConnectionClosed
+                    ) {
+                        info!("Server closed connection");
+                        // ungraceful disconnect :(
+                        conn.network = None;
+                        // setting this will make us send a DisconnectEvent
+                        conn.is_alive = false;
+                    }
+
                     break;
                 }
             }
@@ -308,7 +320,8 @@ impl NetworkConnection {
     }
 
     pub fn poll_writer(&mut self) {
-        future::block_on(future::poll_once(&mut self.writer_task));
+        let poll_once_res = future::poll_once(&mut self.writer_task);
+        future::block_on(poll_once_res);
     }
 
     pub fn set_compression_threshold(&mut self, threshold: Option<u32>) {

@@ -1,8 +1,8 @@
 use std::f64::consts::PI;
 
-use azalea_client::TickBroadcast;
 use azalea_client::interact::SwingArmEvent;
 use azalea_client::mining::Mining;
+use azalea_client::tick_broadcast::{TickBroadcast, UpdateBroadcast};
 use azalea_core::position::{BlockPos, Vec3};
 use azalea_core::tick::GameTick;
 use azalea_entity::{
@@ -86,6 +86,12 @@ pub trait BotClientExt {
     fn look_at(&self, pos: Vec3);
     /// Get a receiver that will receive a message every tick.
     fn get_tick_broadcaster(&self) -> tokio::sync::broadcast::Receiver<()>;
+    /// Get a receiver that will receive a message every ECS Update.
+    fn get_update_broadcaster(&self) -> tokio::sync::broadcast::Receiver<()>;
+    /// Wait for one tick.
+    fn wait_one_tick(&self) -> impl Future<Output = ()> + Send;
+    /// Wait for one ECS Update.
+    fn wait_one_update(&self) -> impl Future<Output = ()> + Send;
     /// Mine a block. This won't turn the bot's head towards the block, so if
     /// that's necessary you'll have to do that yourself with [`look_at`].
     ///
@@ -131,6 +137,38 @@ impl BotClientExt for azalea_client::Client {
         let ecs = self.ecs.lock();
         let tick_broadcast = ecs.resource::<TickBroadcast>();
         tick_broadcast.subscribe()
+    }
+
+    /// Returns a Receiver that receives a message every ECS Update.
+    ///
+    /// ECS Updates happen at least at the frequency of game ticks, usually
+    /// faster.
+    ///
+    /// This is useful if you're sending an ECS event and want to make sure it's
+    /// been handled before continuing.
+    fn get_update_broadcaster(&self) -> tokio::sync::broadcast::Receiver<()> {
+        let ecs = self.ecs.lock();
+        let update_broadcast = ecs.resource::<UpdateBroadcast>();
+        update_broadcast.subscribe()
+    }
+
+    /// Wait for one tick using [`Self::get_tick_broadcaster`].
+    ///
+    /// If you're going to run this in a loop, you may want to use that function
+    /// instead and use the `Receiver` from it as it'll be more efficient.
+    async fn wait_one_tick(&self) {
+        let mut receiver = self.get_tick_broadcaster();
+        // wait for the next tick
+        let _ = receiver.recv().await;
+    }
+    /// Waits for one ECS Update using [`Self::get_update_broadcaster`].
+    ///
+    /// If you're going to run this in a loop, you may want to use that function
+    /// instead and use the `Receiver` from it as it'll be more efficient.
+    async fn wait_one_update(&self) {
+        let mut receiver = self.get_update_broadcaster();
+        // wait for the next tick
+        let _ = receiver.recv().await;
     }
 
     async fn mine(&self, position: BlockPos) {

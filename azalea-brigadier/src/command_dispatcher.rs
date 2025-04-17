@@ -1,7 +1,7 @@
 use std::{
     cmp::Ordering,
     collections::{HashMap, HashSet},
-    mem,
+    mem, ptr,
     rc::Rc,
     sync::Arc,
 };
@@ -349,7 +349,7 @@ impl<S> CommandDispatcher<S> {
         }
         match &node.redirect {
             Some(redirect) => {
-                let redirect = if std::ptr::eq(redirect.data_ptr(), self.root.data_ptr()) {
+                let redirect = if ptr::eq(redirect.data_ptr(), self.root.data_ptr()) {
                     "...".to_string()
                 } else {
                     format!("-> {}", redirect.read().usage_text())
@@ -427,7 +427,7 @@ impl<S> CommandDispatcher<S> {
         }
 
         if let Some(redirect) = &node.redirect {
-            let redirect = if std::ptr::eq(redirect.data_ptr(), self.root.data_ptr()) {
+            let redirect = if ptr::eq(redirect.data_ptr(), self.root.data_ptr()) {
                 "...".to_string()
             } else {
                 format!("-> {}", redirect.read().usage_text())

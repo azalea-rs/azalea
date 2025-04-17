@@ -28,7 +28,9 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
                     return 0;
                 };
                 source.reply("ok");
-                source.bot.goto(BlockPosGoal(BlockPos::from(position)));
+                source
+                    .bot
+                    .start_goto(BlockPosGoal(BlockPos::from(position)));
                 1
             })
             .then(literal("xz").then(argument("x", integer()).then(
@@ -38,7 +40,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
                     let z = get_integer(ctx, "z").unwrap();
                     println!("goto xz {x} {z}");
                     source.reply("ok");
-                    source.bot.goto(XZGoal { x, z });
+                    source.bot.start_goto(XZGoal { x, z });
                     1
                 }),
             )))
@@ -52,7 +54,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
                         let z = get_integer(ctx, "z").unwrap();
                         println!("goto radius {radius}, position: {x} {y} {z}");
                         source.reply("ok");
-                        source.bot.goto(RadiusGoal {
+                        source.bot.start_goto(RadiusGoal {
                             pos: BlockPos::new(x, y, z).center(),
                             radius,
                         });
@@ -68,7 +70,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
                     let z = get_integer(ctx, "z").unwrap();
                     println!("goto xyz {x} {y} {z}");
                     source.reply("ok");
-                    source.bot.goto(BlockPosGoal(BlockPos::new(x, y, z)));
+                    source.bot.start_goto(BlockPosGoal(BlockPos::new(x, y, z)));
                     1
                 }),
             ))),

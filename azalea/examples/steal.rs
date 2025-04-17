@@ -2,6 +2,7 @@
 
 use std::sync::Arc;
 
+use azalea::pathfinder::goals::RadiusGoal;
 use azalea::{BlockPos, prelude::*};
 use azalea_inventory::ItemStack;
 use azalea_inventory::operations::QuickMoveClick;
@@ -21,6 +22,7 @@ async fn main() {
 
 #[derive(Default, Clone, Component)]
 struct State {
+    pub is_stealing: Arc<Mutex<bool>>,
     pub checked_chests: Arc<Mutex<Vec<BlockPos>>>,
 }
 
@@ -32,43 +34,64 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
         if m.content() != "go" {
             return Ok(());
         }
-        {
-            state.checked_chests.lock().clear();
-        }
 
+        steal(bot, state).await?;
+    }
+
+    Ok(())
+}
+
+async fn steal(bot: Client, state: State) -> anyhow::Result<()> {
+    {
+        let mut is_stealing = state.is_stealing.lock();
+        if *is_stealing {
+            bot.chat("Already stealing");
+            return Ok(());
+        }
+        *is_stealing = true;
+    }
+
+    state.checked_chests.lock().clear();
+
+    loop {
         let chest_block = bot
             .world()
             .read()
-            .find_block(bot.position(), &azalea::registry::Block::Chest.into());
-        // TODO: update this when find_blocks is implemented
+            .find_blocks(bot.position(), &azalea::registry::Block::Chest.into())
+            .filter(
+                // filter for chests that haven't been checked
+                |block_pos| !state.checked_chests.lock().contains(&block_pos),
+            )
+            .next();
         let Some(chest_block) = chest_block else {
-            bot.chat("No chest found");
-            return Ok(());
-        };
-        // bot.goto(BlockPosGoal(chest_block));
-        let Some(chest) = bot.open_container_at(chest_block).await else {
-            println!("Couldn't open chest");
-            return Ok(());
+            break;
         };
 
-        println!("Getting contents");
-        for (index, slot) in chest
-            .contents()
-            .expect("we just opened the chest")
-            .iter()
-            .enumerate()
-        {
+        state.checked_chests.lock().push(chest_block);
+
+        bot.goto(RadiusGoal::new(chest_block.center(), 3.)).await;
+
+        let Some(chest) = bot.open_container_at(chest_block).await else {
+            println!("Couldn't open chest at {chest_block:?}");
+            continue;
+        };
+
+        println!("Getting contents of chest at {chest_block:?}");
+        for (index, slot) in chest.contents().unwrap_or_default().iter().enumerate() {
             println!("Checking slot {index}: {slot:?}");
-            if let ItemStack::Present(item) = slot {
-                if item.kind == azalea::registry::Item::Diamond {
-                    println!("clicking slot ^");
-                    chest.click(QuickMoveClick::Left { slot: index as u16 });
-                }
+            let ItemStack::Present(item) = slot else {
+                continue;
+            };
+            if item.kind == azalea::registry::Item::Diamond {
+                println!("clicking slot ^");
+                chest.click(QuickMoveClick::Left { slot: index as u16 });
             }
         }
-
-        println!("Done");
     }
+
+    bot.chat("Done");
+
+    *state.is_stealing.lock() = false;
 
     Ok(())
 }

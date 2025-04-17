@@ -16,6 +16,7 @@ pub mod packet;
 pub mod pong;
 pub mod respawn;
 pub mod task_pool;
+pub mod tick_broadcast;
 pub mod tick_end;
 
 /// This plugin group will add all the default plugins necessary for Azalea to
@@ -45,7 +46,7 @@ impl PluginGroup for DefaultPlugins {
             .add(chunks::ChunksPlugin)
             .add(tick_end::TickEndPlugin)
             .add(brand::BrandPlugin)
-            .add(crate::client::TickBroadcastPlugin)
+            .add(tick_broadcast::TickBroadcastPlugin)
             .add(pong::PongPlugin)
             .add(connection::ConnectionPlugin)
             .add(login::LoginPlugin);

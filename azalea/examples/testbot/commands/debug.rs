@@ -25,6 +25,12 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
         1
     }));
 
+    commands.register(literal("disconnect").executes(|ctx: &Ctx| {
+        let source = ctx.source.lock();
+        source.bot.disconnect();
+        1
+    }));
+
     commands.register(literal("whereami").executes(|ctx: &Ctx| {
         let mut source = ctx.source.lock();
         let Some(entity) = source.entity() else {

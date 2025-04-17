@@ -552,7 +552,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             from_block_to_state_match_inner.extend(quote! {
                 #block_struct_name {
                     #from_block_to_state_combination_match_inner
-                } => BlockState { id: #state_id },
+                } => BlockState::new_const(#state_id),
             });
 
             if is_default {
@@ -626,7 +626,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             azalea_registry::Block::#block_name_pascal_case => Box::new(#block_struct_name::default()),
         });
         from_registry_block_to_blockstate_match.extend(quote! {
-            azalea_registry::Block::#block_name_pascal_case => BlockState { id: #default_state_id },
+            azalea_registry::Block::#block_name_pascal_case => BlockState::new_const(#default_state_id),
         });
         from_registry_block_to_blockstates_match.extend(quote! {
             azalea_registry::Block::#block_name_pascal_case => BlockStates::from(#first_state_id..=#last_state_id),
@@ -646,7 +646,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         let block_id = block.name.to_string();
 
         let from_block_to_state_match = if block.properties_and_defaults.is_empty() {
-            quote! { BlockState { id: #first_state_id } }
+            quote! { BlockState::new_const(#first_state_id) }
         } else {
             quote! {
                 match self {
@@ -762,7 +762,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 type Value = #value;
 
                 fn try_from_block_state(block_state: BlockState) -> Option<Self::Value> {
-                    match block_state.id {
+                    match block_state.id() {
                         #enum_inner_generated
                         _ => None
                     }
@@ -788,7 +788,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
 
             impl From<BlockState> for Box<dyn Block> {
                 fn from(block_state: BlockState) -> Self {
-                    let b = block_state.id;
+                    let b = block_state.id();
                     match b {
                         #from_state_to_block_match
                         _ => panic!("Invalid block state: {}", b),

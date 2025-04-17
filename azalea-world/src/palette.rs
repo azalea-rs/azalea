@@ -1,7 +1,7 @@
 use std::io::{Cursor, Write};
 
-use azalea_block::block_state::BlockStateIntegerRepr;
-use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
+use azalea_block::BlockState;
+use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
 use tracing::warn;
 
 use crate::BitStorage;
@@ -28,7 +28,7 @@ pub struct PalettedContainer {
 
 impl PalettedContainer {
     pub fn new(container_type: PalettedContainerKind) -> Self {
-        let palette = Palette::SingleValue(0);
+        let palette = Palette::SingleValue(BlockState::AIR);
         let size = container_type.size();
         let storage = BitStorage::new(0, size, Some(Box::new([]))).unwrap();
 
@@ -105,7 +105,7 @@ impl PalettedContainer {
     /// This function panics if the index is greater than or equal to the number
     /// of things in the storage. (So for block states, it must be less than
     /// 4096).
-    pub fn get_at_index(&self, index: usize) -> BlockStateIntegerRepr {
+    pub fn get_at_index(&self, index: usize) -> BlockState {
         // first get the palette id
         let paletted_value = self.storage.get(index);
         // and then get the value from that id
@@ -113,35 +113,39 @@ impl PalettedContainer {
     }
 
     /// Returns the value at the given coordinates.
-    pub fn get(&self, x: usize, y: usize, z: usize) -> BlockStateIntegerRepr {
+    pub fn get(&self, x: usize, y: usize, z: usize) -> BlockState {
         // let paletted_value = self.storage.get(self.get_index(x, y, z));
         // self.palette.value_for(paletted_value as usize)
         self.get_at_index(self.index_from_coords(x, y, z))
     }
 
     /// Sets the id at the given coordinates and return the previous id
-    pub fn get_and_set(
-        &mut self,
-        x: usize,
-        y: usize,
-        z: usize,
-        value: BlockStateIntegerRepr,
-    ) -> BlockStateIntegerRepr {
+    pub fn get_and_set(&mut self, x: usize, y: usize, z: usize, value: BlockState) -> BlockState {
         let paletted_value = self.id_for(value);
-        self.storage
-            .get_and_set(self.index_from_coords(x, y, z), paletted_value as u64)
-            as BlockStateIntegerRepr
+        let block_state_id = self
+            .storage
+            .get_and_set(self.index_from_coords(x, y, z), paletted_value as u64);
+        // error in debug mode
+        #[cfg(debug_assertions)]
+        if block_state_id > BlockState::MAX_STATE.into() {
+            warn!(
+                "Old block state from get_and_set {block_state_id} was greater than max state {}",
+                BlockState::MAX_STATE
+            );
+        }
+
+        BlockState::try_from(block_state_id as u32).unwrap_or_default()
     }
 
     /// Sets the id at the given index and return the previous id. You probably
     /// want `.set` instead.
-    pub fn set_at_index(&mut self, index: usize, value: BlockStateIntegerRepr) {
+    pub fn set_at_index(&mut self, index: usize, value: BlockState) {
         let paletted_value = self.id_for(value);
         self.storage.set(index, paletted_value as u64);
     }
 
     /// Sets the id at the given coordinates and return the previous id
-    pub fn set(&mut self, x: usize, y: usize, z: usize, value: BlockStateIntegerRepr) {
+    pub fn set(&mut self, x: usize, y: usize, z: usize, value: BlockState) {
         self.set_at_index(self.index_from_coords(x, y, z), value);
     }
 
@@ -170,7 +174,7 @@ impl PalettedContainer {
         }
     }
 
-    fn on_resize(&mut self, bits_per_entry: u8, value: BlockStateIntegerRepr) -> usize {
+    fn on_resize(&mut self, bits_per_entry: u8, value: BlockState) -> usize {
         // in vanilla this is always true, but it's sometimes false in purpur servers
         // assert!(bits_per_entry <= 5, "bits_per_entry must be <= 5");
         let mut new_data = self.create_or_reuse_data(bits_per_entry);
@@ -187,7 +191,7 @@ impl PalettedContainer {
         }
     }
 
-    pub fn id_for(&mut self, value: BlockStateIntegerRepr) -> usize {
+    pub fn id_for(&mut self, value: BlockState) -> usize {
         match &mut self.palette {
             Palette::SingleValue(v) => {
                 if *v != value {
@@ -209,7 +213,8 @@ impl PalettedContainer {
                 }
             }
             Palette::Hashmap(palette) => {
-                // TODO? vanilla keeps this in memory as a hashmap, but also i don't care
+                // TODO? vanilla keeps this in memory as a hashmap, but it should be benchmarked
+                // before changing it
                 if let Some(index) = palette.iter().position(|v| *v == value) {
                     return index;
                 }
@@ -221,7 +226,7 @@ impl PalettedContainer {
                     self.on_resize(self.bits_per_entry + 1, value)
                 }
             }
-            Palette::Global => value as usize,
+            Palette::Global => value.id() as usize,
         }
     }
 }
@@ -247,21 +252,21 @@ pub enum PaletteKind {
 #[derive(Clone, Debug)]
 pub enum Palette {
     /// ID of the corresponding entry in its global palette
-    SingleValue(BlockStateIntegerRepr),
+    SingleValue(BlockState),
     // in vanilla this keeps a `size` field that might be less than the length, but i'm not sure
     // it's actually needed?
-    Linear(Vec<BlockStateIntegerRepr>),
-    Hashmap(Vec<BlockStateIntegerRepr>),
+    Linear(Vec<BlockState>),
+    Hashmap(Vec<BlockState>),
     Global,
 }
 
 impl Palette {
-    pub fn value_for(&self, id: usize) -> BlockStateIntegerRepr {
+    pub fn value_for(&self, id: usize) -> BlockState {
         match self {
             Palette::SingleValue(v) => *v,
-            Palette::Linear(v) => v[id],
+            Palette::Linear(v) => v.get(id).copied().unwrap_or_default(),
             Palette::Hashmap(v) => v.get(id).copied().unwrap_or_default(),
-            Palette::Global => id as BlockStateIntegerRepr,
+            Palette::Global => BlockState::try_from(id as u32).unwrap_or_default(),
         }
     }
 }
@@ -270,13 +275,13 @@ impl AzaleaWrite for Palette {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
         match self {
             Palette::SingleValue(value) => {
-                value.azalea_write_var(buf)?;
+                value.azalea_write(buf)?;
             }
             Palette::Linear(values) => {
-                values.azalea_write_var(buf)?;
+                values.azalea_write(buf)?;
             }
             Palette::Hashmap(values) => {
-                values.azalea_write_var(buf)?;
+                values.azalea_write(buf)?;
             }
             Palette::Global => {}
         }
@@ -305,22 +310,16 @@ impl PaletteKind {
         Ok(match self {
             // since they're read as varints it's actually fine to just use BlockStateIntegerRepr
             // instead of the correct type (u32)
-            PaletteKind::SingleValue => {
-                Palette::SingleValue(BlockStateIntegerRepr::azalea_read_var(buf)?)
-            }
-            PaletteKind::Linear => {
-                Palette::Linear(Vec::<BlockStateIntegerRepr>::azalea_read_var(buf)?)
-            }
-            PaletteKind::Hashmap => {
-                Palette::Hashmap(Vec::<BlockStateIntegerRepr>::azalea_read_var(buf)?)
-            }
+            PaletteKind::SingleValue => Palette::SingleValue(BlockState::azalea_read(buf)?),
+            PaletteKind::Linear => Palette::Linear(Vec::<BlockState>::azalea_read(buf)?),
+            PaletteKind::Hashmap => Palette::Hashmap(Vec::<BlockState>::azalea_read(buf)?),
             PaletteKind::Global => Palette::Global,
         })
     }
 
     pub fn as_empty_palette(&self) -> Palette {
         match self {
-            PaletteKind::SingleValue => Palette::SingleValue(0),
+            PaletteKind::SingleValue => Palette::SingleValue(BlockState::AIR),
             PaletteKind::Linear => Palette::Linear(Vec::new()),
             PaletteKind::Hashmap => Palette::Hashmap(Vec::new()),
             PaletteKind::Global => Palette::Global,
@@ -361,13 +360,14 @@ mod tests {
         let mut palette_container = PalettedContainer::new(PalettedContainerKind::BlockStates);
 
         assert_eq!(palette_container.bits_per_entry, 0);
-        assert_eq!(palette_container.get_at_index(0), 0);
+        assert_eq!(palette_container.get_at_index(0), BlockState::AIR);
         assert_eq!(
             PaletteKind::from(&palette_container.palette),
             PaletteKind::SingleValue
         );
-        palette_container.set_at_index(0, 1);
-        assert_eq!(palette_container.get_at_index(0), 1);
+        let block_state_1 = BlockState::try_from(1_u32).unwrap();
+        palette_container.set_at_index(0, block_state_1);
+        assert_eq!(palette_container.get_at_index(0), block_state_1);
         assert_eq!(
             PaletteKind::from(&palette_container.palette),
             PaletteKind::Linear
@@ -378,34 +378,38 @@ mod tests {
     fn test_resize_0_bits_to_5() {
         let mut palette_container = PalettedContainer::new(PalettedContainerKind::BlockStates);
 
-        palette_container.set_at_index(0, 0); // 0 bits
+        let set = |pc: &mut PalettedContainer, i, v: u32| {
+            pc.set_at_index(i, BlockState::try_from(v).unwrap());
+        };
+
+        set(&mut palette_container, 0, 0); // 0 bits
         assert_eq!(palette_container.bits_per_entry, 0);
 
-        palette_container.set_at_index(1, 1); // 1 bit
+        set(&mut palette_container, 1, 1); // 1 bit
         assert_eq!(palette_container.bits_per_entry, 1);
 
-        palette_container.set_at_index(2, 2); // 2 bits
+        set(&mut palette_container, 2, 2); // 2 bits
         assert_eq!(palette_container.bits_per_entry, 2);
-        palette_container.set_at_index(3, 3);
+        set(&mut palette_container, 3, 3);
 
-        palette_container.set_at_index(4, 4); // 3 bits
+        set(&mut palette_container, 4, 4); // 3 bits
         assert_eq!(palette_container.bits_per_entry, 3);
-        palette_container.set_at_index(5, 5);
-        palette_container.set_at_index(6, 6);
-        palette_container.set_at_index(7, 7);
+        set(&mut palette_container, 5, 5);
+        set(&mut palette_container, 6, 6);
+        set(&mut palette_container, 7, 7);
 
-        palette_container.set_at_index(8, 8); // 4 bits
+        set(&mut palette_container, 8, 8); // 4 bits
         assert_eq!(palette_container.bits_per_entry, 4);
-        palette_container.set_at_index(9, 9);
-        palette_container.set_at_index(10, 10);
-        palette_container.set_at_index(11, 11);
-        palette_container.set_at_index(12, 12);
-        palette_container.set_at_index(13, 13);
-        palette_container.set_at_index(14, 14);
-        palette_container.set_at_index(15, 15);
+        set(&mut palette_container, 9, 9);
+        set(&mut palette_container, 10, 10);
+        set(&mut palette_container, 11, 11);
+        set(&mut palette_container, 12, 12);
+        set(&mut palette_container, 13, 13);
+        set(&mut palette_container, 14, 14);
+        set(&mut palette_container, 15, 15);
         assert_eq!(palette_container.bits_per_entry, 4);
 
-        palette_container.set_at_index(16, 16); // 5 bits
+        set(&mut palette_container, 16, 16); // 5 bits
         assert_eq!(palette_container.bits_per_entry, 5);
     }
 
