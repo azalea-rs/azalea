@@ -24,7 +24,7 @@ pub struct PlayerInfoEntry {
     pub listed: bool,
     pub latency: i32,
     pub game_mode: GameMode,
-    pub display_name: Option<FormattedText>,
+    pub display_name: Option<Box<FormattedText>>,
     pub list_order: i32,
     pub update_hat: bool,
     pub chat_session: Option<RemoteChatSessionData>,
@@ -54,7 +54,7 @@ pub struct UpdateLatencyAction {
 }
 #[derive(Clone, Debug, AzBuf)]
 pub struct UpdateDisplayNameAction {
-    pub display_name: Option<FormattedText>,
+    pub display_name: Option<Box<FormattedText>>,
 }
 #[derive(Clone, Debug, AzBuf)]
 pub struct UpdateHatAction {

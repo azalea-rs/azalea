@@ -26,7 +26,7 @@ pub struct PlayerInfo {
     /// The player's display name in the tab list, but only if it's different
     /// from the player's normal username. Use `player_info.profile.name` to get
     /// the player's actual username.
-    pub display_name: Option<FormattedText>,
+    pub display_name: Option<Box<FormattedText>>,
 }
 
 /// Add a [`GameProfileComponent`] when an [`AddPlayerEvent`] is received.
