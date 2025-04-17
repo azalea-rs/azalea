@@ -16,8 +16,8 @@ use derive_more::Deref;
 use tracing::trace;
 
 use crate::{
-    InstanceHolder, client::JoinedClientBundle, events::LocalPlayerEvents,
-    raw_connection::RawConnection,
+    InstanceHolder, client::JoinedClientBundle, connection::RawConnection,
+    events::LocalPlayerEvents,
 };
 
 pub struct DisconnectPlugin;

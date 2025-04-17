@@ -285,6 +285,8 @@ where
         buffer.get_mut().extend_from_slice(&bytes);
     }
 }
+/// Read a packet from the stream, then if necessary decrypt it, decompress
+/// it, and split it.
 pub fn try_read_raw_packet<R>(
     stream: &mut R,
     buffer: &mut Cursor<Vec<u8>>,

@@ -344,8 +344,9 @@ impl Connection<ClientboundHandshakePacket, ServerboundHandshakePacket> {
 
 impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
     /// Set our compression threshold, i.e. the maximum size that a packet is
-    /// allowed to be without getting compressed. If you set it to less than 0
-    /// then compression gets disabled.
+    /// allowed to be without getting compressed. Setting it to 0 means every
+    /// packet will be compressed. If you set it to less than 0,
+    /// then compression is disabled.
     pub fn set_compression_threshold(&mut self, threshold: i32) {
         // if you pass a threshold of less than 0, compression is disabled
         if threshold >= 0 {

@@ -54,6 +54,15 @@ pub async fn write_raw_packet<W>(
 where
     W: AsyncWrite + Unpin + Send,
 {
+    let network_packet = encode_to_network_packet(raw_packet, compression_threshold, cipher);
+    stream.write_all(&network_packet).await
+}
+
+pub fn encode_to_network_packet(
+    raw_packet: &[u8],
+    compression_threshold: Option<u32>,
+    cipher: &mut Option<Aes128CfbEnc>,
+) -> Vec<u8> {
     trace!("Writing raw packet: {raw_packet:?}");
     let mut raw_packet = raw_packet.to_vec();
     if let Some(threshold) = compression_threshold {
@@ -64,7 +73,7 @@ where
     if let Some(cipher) = cipher {
         azalea_crypto::encrypt_packet(cipher, &mut raw_packet);
     }
-    stream.write_all(&raw_packet).await
+    raw_packet
 }
 
 pub fn compression_encoder(

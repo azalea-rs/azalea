@@ -8,84 +8,69 @@ use std::{
     time::{Duration, Instant},
 };
 
-use azalea_auth::{game_profile::GameProfile, sessionserver::ClientSessionServerError};
+use azalea_auth::game_profile::GameProfile;
 use azalea_chat::FormattedText;
 use azalea_core::{
     data_registry::ResolvableDataRegistry, position::Vec3, resource_location::ResourceLocation,
     tick::GameTick,
 };
 use azalea_entity::{
-    EntityPlugin, EntityUpdateSet, EyeHeight, LocalEntity, Position,
+    EntityUpdateSet, EyeHeight, LocalEntity, Position,
     indexing::{EntityIdIndex, EntityUuidIndex},
     metadata::Health,
 };
-use azalea_physics::PhysicsPlugin;
 use azalea_protocol::{
     ServerAddress,
     common::client_information::ClientInformation,
     connect::{Connection, ConnectionError, Proxy},
     packets::{
         self, ClientIntention, ConnectionProtocol, PROTOCOL_VERSION, Packet,
-        config::{ClientboundConfigPacket, ServerboundConfigPacket},
-        game::ServerboundGamePacket,
-        handshake::{
-            ClientboundHandshakePacket, ServerboundHandshakePacket,
-            s_intention::ServerboundIntention,
-        },
-        login::{
-            ClientboundLoginPacket, s_hello::ServerboundHello, s_key::ServerboundKey,
-            s_login_acknowledged::ServerboundLoginAcknowledged,
-        },
+        game::{self, ServerboundGamePacket},
+        handshake::s_intention::ServerboundIntention,
+        login::s_hello::ServerboundHello,
     },
     resolver,
 };
 use azalea_world::{Instance, InstanceContainer, InstanceName, MinecraftEntityId, PartialInstance};
-use bevy_app::{App, Plugin, PluginGroup, PluginGroupBuilder, PluginsState, Update};
+use bevy_app::{App, Plugin, PluginsState, Update};
 use bevy_ecs::{
     bundle::Bundle,
     component::Component,
     entity::Entity,
     schedule::{InternedScheduleLabel, IntoSystemConfigs, LogLevel, ScheduleBuildSettings},
-    system::Resource,
+    system::{Commands, Resource},
     world::World,
 };
-use bevy_time::TimePlugin;
 use parking_lot::{Mutex, RwLock};
 use simdnbt::owned::NbtCompound;
 use thiserror::Error;
 use tokio::{
-    sync::mpsc::{self, error::TrySendError},
+    sync::mpsc::{self},
     time,
 };
-use tracing::{debug, error, info};
+use tracing::{debug, error, info, warn};
 use uuid::Uuid;
 
 use crate::{
-    Account, PlayerInfo,
-    attack::{self, AttackPlugin},
-    brand::BrandPlugin,
-    chat::ChatPlugin,
-    chunks::{ChunkBatchInfo, ChunksPlugin},
-    disconnect::{DisconnectEvent, DisconnectPlugin},
-    events::{Event, EventsPlugin, LocalPlayerEvents},
-    interact::{CurrentSequenceNumber, InteractPlugin},
-    inventory::{Inventory, InventoryPlugin},
+    Account, DefaultPlugins, PlayerInfo,
+    attack::{self},
+    chunks::ChunkBatchInfo,
+    connection::RawConnection,
+    disconnect::DisconnectEvent,
+    events::{Event, LocalPlayerEvents},
+    interact::CurrentSequenceNumber,
+    inventory::Inventory,
     local_player::{
         GameProfileComponent, Hunger, InstanceHolder, PermissionLevel, PlayerAbilities, TabList,
     },
-    mining::{self, MiningPlugin},
-    movement::{LastSentLookDirection, MovementPlugin, PhysicsState},
+    mining::{self},
+    movement::{LastSentLookDirection, PhysicsState},
     packet::{
-        PacketPlugin,
-        login::{self, InLoginState, LoginSendPacketQueue},
+        as_system,
+        game::SendPacketEvent,
+        login::{InLoginState, SendLoginPacketEvent},
     },
     player::retroactively_add_game_profile_component,
-    pong::PongPlugin,
-    raw_connection::RawConnection,
-    respawn::RespawnPlugin,
-    task_pool::TaskPoolPlugin,
-    tick_broadcast::TickBroadcastPlugin,
-    tick_end::TickEndPlugin,
 };
 
 /// `Client` has the things that a user interacting with the library will want.
@@ -99,15 +84,6 @@ use crate::{
 /// [`azalea::ClientBuilder`]: https://docs.rs/azalea/latest/azalea/struct.ClientBuilder.html
 #[derive(Clone)]
 pub struct Client {
-    /// The [`GameProfile`] for our client. This contains your username, UUID,
-    /// and skin data.
-    ///
-    /// This is immutable; the server cannot change it. To get the username and
-    /// skin the server chose for you, get your player from the [`TabList`]
-    /// component.
-    ///
-    /// This as also available from the ECS as [`GameProfileComponent`].
-    pub profile: GameProfile,
     /// The entity for this client in the ECS.
     pub entity: Entity,
 
@@ -115,9 +91,6 @@ pub struct Client {
     /// directly. Note that if you're using a shared world (i.e. a swarm), this
     /// will contain all entities in all worlds.
     pub ecs: Arc<Mutex<World>>,
-
-    /// Use this to force the client to run the schedule outside of a tick.
-    pub run_schedule_sender: mpsc::Sender<()>,
 }
 
 /// An error that happened while joining the server.
@@ -131,6 +104,8 @@ pub enum JoinError {
     ReadPacket(#[from] Box<azalea_protocol::read::ReadPacketError>),
     #[error("{0}")]
     Io(#[from] io::Error),
+    #[error("Failed to encrypt the challenge from the server for {0:?}")]
+    EncryptionError(packets::login::ClientboundHello),
     #[error("{0}")]
     SessionServer(#[from] azalea_auth::sessionserver::ClientSessionServerError),
     #[error("The given address could not be parsed into a ServerAddress")]
@@ -147,7 +122,6 @@ pub struct StartClientOpts<'a> {
     pub address: &'a ServerAddress,
     pub resolved_address: &'a SocketAddr,
     pub proxy: Option<Proxy>,
-    pub run_schedule_sender: mpsc::Sender<()>,
     pub event_sender: Option<mpsc::UnboundedSender<Event>>,
 }
 
@@ -158,13 +132,10 @@ impl<'a> StartClientOpts<'a> {
         resolved_address: &'a SocketAddr,
         event_sender: Option<mpsc::UnboundedSender<Event>>,
     ) -> StartClientOpts<'a> {
-        // An event that causes the schedule to run. This is only used internally.
-        let (run_schedule_sender, run_schedule_receiver) = mpsc::channel(1);
-
         let mut app = App::new();
         app.add_plugins(DefaultPlugins);
 
-        let ecs_lock = start_ecs_runner(app, run_schedule_receiver, run_schedule_sender.clone());
+        let ecs_lock = start_ecs_runner(app);
 
         Self {
             ecs_lock,
@@ -172,7 +143,6 @@ impl<'a> StartClientOpts<'a> {
             address,
             resolved_address,
             proxy: None,
-            run_schedule_sender,
             event_sender,
         }
     }
@@ -188,20 +158,12 @@ impl Client {
     /// World, and schedule runner function.
     /// You should only use this if you want to change these fields from the
     /// defaults, otherwise use [`Client::join`].
-    pub fn new(
-        profile: GameProfile,
-        entity: Entity,
-        ecs: Arc<Mutex<World>>,
-        run_schedule_sender: mpsc::Sender<()>,
-    ) -> Self {
+    pub fn new(entity: Entity, ecs: Arc<Mutex<World>>) -> Self {
         Self {
-            profile,
             // default our id to 0, it'll be set later
             entity,
 
             ecs,
-
-            run_schedule_sender,
         }
     }
 
@@ -268,7 +230,6 @@ impl Client {
             address,
             resolved_address,
             proxy,
-            run_schedule_sender,
             event_sender,
         }: StartClientOpts<'_>,
     ) -> Result<Self, JoinError> {
@@ -291,92 +252,31 @@ impl Client {
                 entity
             };
 
-            // add the Account to the entity now so plugins can access it earlier
-            ecs.entity_mut(entity).insert(account.to_owned());
+            let mut entity_mut = ecs.entity_mut(entity);
+            entity_mut.insert((
+                InLoginState,
+                // add the Account to the entity now so plugins can access it earlier
+                account.to_owned(),
+                // localentity is always present for our clients, even if we're not actually logged
+                // in
+                LocalEntity,
+            ));
+            if let Some(event_sender) = event_sender {
+                // this is optional so we don't leak memory in case the user doesn't want to
+                // handle receiving packets
+                entity_mut.insert(LocalPlayerEvents(event_sender));
+            }
 
             entity
         };
 
-        let conn = if let Some(proxy) = proxy {
+        let mut conn = if let Some(proxy) = proxy {
             Connection::new_with_proxy(resolved_address, proxy).await?
         } else {
             Connection::new(resolved_address).await?
         };
-        let (conn, game_profile) =
-            Self::handshake(ecs_lock.clone(), entity, conn, account, address).await?;
+        debug!("Created connection to {resolved_address:?}");
 
-        // note that we send the proper packets in
-        // crate::configuration::handle_in_configuration_state
-
-        let (read_conn, write_conn) = conn.into_split();
-        let (read_conn, write_conn) = (read_conn.raw, write_conn.raw);
-
-        // we did the handshake, so now we're connected to the server
-
-        let mut ecs = ecs_lock.lock();
-
-        // we got the ConfigurationConnection, so the client is now connected :)
-        let client = Client::new(
-            game_profile.clone(),
-            entity,
-            ecs_lock.clone(),
-            run_schedule_sender.clone(),
-        );
-
-        let instance = Instance::default();
-        let instance_holder = crate::local_player::InstanceHolder::new(
-            entity,
-            // default to an empty world, it'll be set correctly later when we
-            // get the login packet
-            Arc::new(RwLock::new(instance)),
-        );
-
-        let mut entity = ecs.entity_mut(entity);
-        entity.insert((
-            // these stay when we switch to the game state
-            LocalPlayerBundle {
-                raw_connection: RawConnection::new(
-                    run_schedule_sender,
-                    ConnectionProtocol::Configuration,
-                    read_conn,
-                    write_conn,
-                ),
-                game_profile: GameProfileComponent(game_profile),
-                client_information: crate::ClientInformation::default(),
-                instance_holder,
-                metadata: azalea_entity::metadata::PlayerMetadataBundle::default(),
-            },
-            InConfigState,
-            // this component is never removed
-            LocalEntity,
-        ));
-        if let Some(event_sender) = event_sender {
-            // this is optional so we don't leak memory in case the user
-            entity.insert(LocalPlayerEvents(event_sender));
-        }
-
-        Ok(client)
-    }
-
-    /// Do a handshake with the server and get to the game state from the
-    /// initial handshake state.
-    ///
-    /// This will also automatically refresh the account's access token if
-    /// it's expired.
-    pub async fn handshake(
-        ecs_lock: Arc<Mutex<World>>,
-        entity: Entity,
-        mut conn: Connection<ClientboundHandshakePacket, ServerboundHandshakePacket>,
-        account: &Account,
-        address: &ServerAddress,
-    ) -> Result<
-        (
-            Connection<ClientboundConfigPacket, ServerboundConfigPacket>,
-            GameProfile,
-        ),
-        JoinError,
-    > {
-        // handshake
         conn.write(ServerboundIntention {
             protocol_version: PROTOCOL_VERSION,
             hostname: address.host.clone(),
@@ -384,147 +284,63 @@ impl Client {
             intention: ClientIntention::Login,
         })
         .await?;
-        let mut conn = conn.login();
+        let conn = conn.login();
 
-        // this makes it so plugins can send an `SendLoginPacketEvent` event to the ecs
-        // and we'll send it to the server
-        let (ecs_packets_tx, mut ecs_packets_rx) = mpsc::unbounded_channel();
-        ecs_lock.lock().entity_mut(entity).insert((
-            LoginSendPacketQueue { tx: ecs_packets_tx },
-            crate::packet::login::IgnoreQueryIds::default(),
-            InLoginState,
-        ));
+        let (read_conn, write_conn) = conn.into_split();
+        let (read_conn, write_conn) = (read_conn.raw, write_conn.raw);
 
-        // login
-        conn.write(ServerboundHello {
-            name: account.username.clone(),
-            // TODO: pretty sure this should generate an offline-mode uuid instead of just
-            // Uuid::default()
-            profile_id: account.uuid.unwrap_or_default(),
-        })
-        .await?;
+        // insert the client into the ecs so it finishes logging in
+        {
+            let mut ecs = ecs_lock.lock();
 
-        let (conn, profile) = loop {
-            let packet = tokio::select! {
-                packet = conn.read() => packet?,
-                Some(packet) = ecs_packets_rx.recv() => {
-                    // write this packet to the server
-                    conn.write(packet).await?;
-                    continue;
-                }
-            };
-
-            ecs_lock.lock().send_event(login::LoginPacketEvent {
+            let instance = Instance::default();
+            let instance_holder = crate::local_player::InstanceHolder::new(
                 entity,
-                packet: Arc::new(packet.clone()),
-            });
+                // default to an empty world, it'll be set correctly later when we
+                // get the login packet
+                Arc::new(RwLock::new(instance)),
+            );
 
-            match packet {
-                ClientboundLoginPacket::Hello(p) => {
-                    debug!("Got encryption request");
-                    let Ok(e) = azalea_crypto::encrypt(&p.public_key, &p.challenge) else {
-                        error!("Failed to encrypt the challenge from the server for {p:?}");
-                        continue;
-                    };
+            let mut entity = ecs.entity_mut(entity);
+            entity.insert((
+                // these stay when we switch to the game state
+                LocalPlayerBundle {
+                    raw_connection: RawConnection::new(
+                        read_conn,
+                        write_conn,
+                        ConnectionProtocol::Login,
+                    ),
+                    client_information: crate::ClientInformation::default(),
+                    instance_holder,
+                    metadata: azalea_entity::metadata::PlayerMetadataBundle::default(),
+                },
+            ));
+        }
 
-                    if let Some(access_token) = &account.access_token {
-                        // keep track of the number of times we tried
-                        // authenticating so we can give up after too many
-                        let mut attempts: usize = 1;
+        as_system::<Commands>(&mut ecs_lock.lock(), |mut commands| {
+            commands.entity(entity).insert((InLoginState,));
+            commands.trigger(SendLoginPacketEvent::new(
+                entity,
+                ServerboundHello {
+                    name: account.username.clone(),
+                    // TODO: pretty sure this should generate an offline-mode uuid instead of just
+                    // Uuid::default()
+                    profile_id: account.uuid.unwrap_or_default(),
+                },
+            ))
+        });
 
-                        while let Err(e) = {
-                            let access_token = access_token.lock().clone();
-                            conn.authenticate(
-                                &access_token,
-                                &account
-                                    .uuid
-                                    .expect("Uuid must be present if access token is present."),
-                                e.secret_key,
-                                &p,
-                            )
-                            .await
-                        } {
-                            if attempts >= 2 {
-                                // if this is the second attempt and we failed
-                                // both times, give up
-                                return Err(e.into());
-                            }
-                            if matches!(
-                                e,
-                                ClientSessionServerError::InvalidSession
-                                    | ClientSessionServerError::ForbiddenOperation
-                            ) {
-                                // uh oh, we got an invalid session and have
-                                // to reauthenticate now
-                                account.refresh().await?;
-                            } else {
-                                return Err(e.into());
-                            }
-                            attempts += 1;
-                        }
-                    }
-
-                    conn.write(ServerboundKey {
-                        key_bytes: e.encrypted_public_key,
-                        encrypted_challenge: e.encrypted_challenge,
-                    })
-                    .await?;
-
-                    conn.set_encryption_key(e.secret_key);
-                }
-                ClientboundLoginPacket::LoginCompression(p) => {
-                    debug!("Got compression request {:?}", p.compression_threshold);
-                    conn.set_compression_threshold(p.compression_threshold);
-                }
-                ClientboundLoginPacket::LoginFinished(p) => {
-                    debug!(
-                        "Got profile {:?}. handshake is finished and we're now switching to the configuration state",
-                        p.game_profile
-                    );
-                    conn.write(ServerboundLoginAcknowledged {}).await?;
-
-                    break (conn.config(), p.game_profile);
-                }
-                ClientboundLoginPacket::LoginDisconnect(p) => {
-                    debug!("Got disconnect {:?}", p);
-                    return Err(JoinError::Disconnect { reason: p.reason });
-                }
-                ClientboundLoginPacket::CustomQuery(p) => {
-                    debug!("Got custom query {:?}", p);
-                    // replying to custom query is done in
-                    // packet::login::process_packet_events
-                }
-                ClientboundLoginPacket::CookieRequest(p) => {
-                    debug!("Got cookie request {:?}", p);
-
-                    conn.write(packets::login::ServerboundCookieResponse {
-                        key: p.key,
-                        // cookies aren't implemented
-                        payload: None,
-                    })
-                    .await?;
-                }
-            }
-        };
-
-        ecs_lock
-            .lock()
-            .entity_mut(entity)
-            .remove::<login::IgnoreQueryIds>()
-            .remove::<LoginSendPacketQueue>()
-            .remove::<InLoginState>();
-
-        Ok((conn, profile))
+        let client = Client::new(entity, ecs_lock.clone());
+        Ok(client)
     }
 
     /// Write a packet directly to the server.
-    pub fn write_packet(
-        &self,
-        packet: impl Packet<ServerboundGamePacket>,
-    ) -> Result<(), crate::raw_connection::WritePacketError> {
+    pub fn write_packet(&self, packet: impl Packet<ServerboundGamePacket>) {
         let packet = packet.into_variant();
-        self.raw_connection_mut(&mut self.ecs.lock())
-            .write_packet(packet)
+        self.ecs
+            .lock()
+            .commands()
+            .trigger(SendPacketEvent::new(self.entity, packet));
     }
 
     /// Disconnect this client from the server by ending all tasks.
@@ -687,14 +503,11 @@ impl Client {
     ///     view_distance: 2,
     ///     ..Default::default()
     /// })
-    /// .await?;
+    /// .await;
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn set_client_information(
-        &self,
-        client_information: ClientInformation,
-    ) -> Result<(), crate::raw_connection::WritePacketError> {
+    pub async fn set_client_information(&self, client_information: ClientInformation) {
         {
             let mut ecs = self.ecs.lock();
             let mut client_information_mut = self.query::<&mut ClientInformation>(&mut ecs);
@@ -706,10 +519,10 @@ impl Client {
                 "Sending client information (already logged in): {:?}",
                 client_information
             );
-            self.write_packet(azalea_protocol::packets::game::s_client_information::ServerboundClientInformation { information: client_information.clone() })?;
+            self.write_packet(game::s_client_information::ServerboundClientInformation {
+                client_information,
+            });
         }
-
-        Ok(())
     }
 }
 
@@ -757,14 +570,14 @@ impl Client {
     /// This is a shortcut for
     /// `bot.component::<GameProfileComponent>().name.to_owned()`.
     pub fn username(&self) -> String {
-        self.component::<GameProfileComponent>().name.to_owned()
+        self.profile().name.to_owned()
     }
 
     /// Get the Minecraft UUID of this client.
     ///
     /// This is a shortcut for `bot.component::<GameProfileComponent>().uuid`.
     pub fn uuid(&self) -> Uuid {
-        self.component::<GameProfileComponent>().uuid
+        self.profile().uuid
     }
 
     /// Get a map of player UUIDs to their information in the tab list.
@@ -772,6 +585,19 @@ impl Client {
     /// This is a shortcut for `*bot.component::<TabList>()`.
     pub fn tab_list(&self) -> HashMap<Uuid, PlayerInfo> {
         (*self.component::<TabList>()).clone()
+    }
+
+    /// Returns the [`GameProfile`] for our client. This contains your username,
+    /// UUID, and skin data.
+    ///
+    /// These values are set by the server upon login, which means they might
+    /// not match up with your actual game profile. Also, note that the username
+    /// and skin that gets displayed in-game will actually be the ones from
+    /// the tab list, which you can get from [`Self::tab_list`].
+    ///
+    /// This as also available from the ECS as [`GameProfileComponent`].
+    pub fn profile(&self) -> GameProfile {
+        (*self.component::<GameProfileComponent>()).clone()
     }
 
     /// A convenience function to get the Minecraft Uuid of a player by their
@@ -854,15 +680,14 @@ impl Client {
     }
 }
 
-/// The bundle of components that's shared when we're either in the
-/// `configuration` or `game` state.
+/// A bundle of components that's inserted right when we switch to the `login`
+/// state and stay present on our clients until we disconnect.
 ///
 /// For the components that are only present in the `game` state, see
 /// [`JoinedClientBundle`].
 #[derive(Bundle)]
 pub struct LocalPlayerBundle {
     pub raw_connection: RawConnection,
-    pub game_profile: GameProfileComponent,
     pub client_information: ClientInformation,
     pub instance_holder: InstanceHolder,
 
@@ -922,11 +747,7 @@ impl Plugin for AzaleaPlugin {
 /// You can create your app with `App::new()`, but don't forget to add
 /// [`DefaultPlugins`].
 #[doc(hidden)]
-pub fn start_ecs_runner(
-    mut app: App,
-    run_schedule_receiver: mpsc::Receiver<()>,
-    run_schedule_sender: mpsc::Sender<()>,
-) -> Arc<Mutex<World>> {
+pub fn start_ecs_runner(mut app: App) -> Arc<Mutex<World>> {
     // this block is based on Bevy's default runner:
     // https://github.com/bevyengine/bevy/blob/390877cdae7a17095a75c8f9f1b4241fe5047e83/crates/bevy_app/src/schedule_runner.rs#L77-L85
     if app.plugins_state() != PluginsState::Cleaned {
@@ -949,57 +770,59 @@ pub fn start_ecs_runner(
     tokio::spawn(run_schedule_loop(
         ecs.clone(),
         *app.main().update_schedule.as_ref().unwrap(),
-        run_schedule_receiver,
     ));
-    tokio::spawn(tick_run_schedule_loop(run_schedule_sender));
 
     ecs
 }
 
-async fn run_schedule_loop(
-    ecs: Arc<Mutex<World>>,
-    outer_schedule_label: InternedScheduleLabel,
-    mut run_schedule_receiver: mpsc::Receiver<()>,
-) {
+async fn run_schedule_loop(ecs: Arc<Mutex<World>>, outer_schedule_label: InternedScheduleLabel) {
+    let mut last_update: Option<Instant> = None;
     let mut last_tick: Option<Instant> = None;
+
+    // azalea runs the Update schedule at most 60 times per second to simulate
+    // framerate. unlike vanilla though, we also only handle packets during Updates
+    // due to everything running in ecs systems.
+    const UPDATE_DURATION_TARGET: Duration = Duration::from_micros(1_000_000 / 60);
+    // minecraft runs at 20 tps
+    const GAME_TICK_DURATION_TARGET: Duration = Duration::from_micros(1_000_000 / 20);
+
     loop {
-        // whenever we get an event from run_schedule_receiver, run the schedule
-        run_schedule_receiver.recv().await;
+        // sleep until the next update if necessary
+        let now = Instant::now();
+        if let Some(last_update) = last_update {
+            let elapsed = now.duration_since(last_update);
+            if elapsed < UPDATE_DURATION_TARGET {
+                time::sleep(UPDATE_DURATION_TARGET - elapsed).await;
+            }
+        }
+        last_update = Some(now);
 
         let mut ecs = ecs.lock();
 
         // if last tick is None or more than 50ms ago, run the GameTick schedule
         ecs.run_schedule(outer_schedule_label);
         if last_tick
-            .map(|last_tick| last_tick.elapsed() > Duration::from_millis(50))
+            .map(|last_tick| last_tick.elapsed() > GAME_TICK_DURATION_TARGET)
             .unwrap_or(true)
         {
             if let Some(last_tick) = &mut last_tick {
-                *last_tick += Duration::from_millis(50);
+                *last_tick += GAME_TICK_DURATION_TARGET;
+
+                // if we're more than 10 ticks behind, set last_tick to now.
+                // vanilla doesn't do it in exactly the same way but it shouldn't really matter
+                if (now - *last_tick) > GAME_TICK_DURATION_TARGET * 10 {
+                    warn!(
+                        "GameTick is more than 10 ticks behind, skipping ticks so we don't have to burst too much"
+                    );
+                    *last_tick = now;
+                }
             } else {
-                last_tick = Some(Instant::now());
+                last_tick = Some(now);
             }
             ecs.run_schedule(GameTick);
         }
 
         ecs.clear_trackers();
-    }
-}
-
-/// Send an event to run the schedule every 50 milliseconds. It will stop when
-/// the receiver is dropped.
-pub async fn tick_run_schedule_loop(run_schedule_sender: mpsc::Sender<()>) {
-    let mut game_tick_interval = time::interval(Duration::from_millis(50));
-    // TODO: Minecraft bursts up to 10 ticks and then skips, we should too
-    game_tick_interval.set_missed_tick_behavior(time::MissedTickBehavior::Burst);
-
-    loop {
-        game_tick_interval.tick().await;
-        if let Err(TrySendError::Closed(())) = run_schedule_sender.try_send(()) {
-            error!("tick_run_schedule_loop failed because run_schedule_sender was closed");
-            // the sender is closed so end the task
-            return;
-        }
     }
 }
 
@@ -1018,42 +841,5 @@ impl Plugin for AmbiguityLoggerPlugin {
                 ..Default::default()
             });
         });
-    }
-}
-
-/// This plugin group will add all the default plugins necessary for Azalea to
-/// work.
-pub struct DefaultPlugins;
-
-impl PluginGroup for DefaultPlugins {
-    fn build(self) -> PluginGroupBuilder {
-        #[allow(unused_mut)]
-        let mut group = PluginGroupBuilder::start::<Self>()
-            .add(AmbiguityLoggerPlugin)
-            .add(TimePlugin)
-            .add(PacketPlugin)
-            .add(AzaleaPlugin)
-            .add(EntityPlugin)
-            .add(PhysicsPlugin)
-            .add(EventsPlugin)
-            .add(TaskPoolPlugin::default())
-            .add(InventoryPlugin)
-            .add(ChatPlugin)
-            .add(DisconnectPlugin)
-            .add(MovementPlugin)
-            .add(InteractPlugin)
-            .add(RespawnPlugin)
-            .add(MiningPlugin)
-            .add(AttackPlugin)
-            .add(ChunksPlugin)
-            .add(TickEndPlugin)
-            .add(BrandPlugin)
-            .add(TickBroadcastPlugin)
-            .add(PongPlugin);
-        #[cfg(feature = "log")]
-        {
-            group = group.add(bevy_log::LogPlugin::default());
-        }
-        group
     }
 }

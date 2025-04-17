@@ -24,7 +24,7 @@ async fn main() {
 async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
     match event {
         Event::Chat(m) => {
-            if m.sender() == Some(bot.profile.name) {
+            if m.sender() == Some(bot.username()) {
                 return Ok(());
             };
             if m.content() == "go" {

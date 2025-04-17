@@ -15,7 +15,6 @@ mod local_player;
 pub mod ping;
 mod player;
 mod plugins;
-pub mod raw_connection;
 
 #[doc(hidden)]
 pub mod test_simulation;
@@ -23,8 +22,8 @@ pub mod test_simulation;
 pub use account::{Account, AccountOpts};
 pub use azalea_protocol::common::client_information::ClientInformation;
 pub use client::{
-    Client, DefaultPlugins, InConfigState, InGameState, JoinError, JoinedClientBundle,
-    LocalPlayerBundle, StartClientOpts, start_ecs_runner,
+    Client, InConfigState, InGameState, JoinError, JoinedClientBundle, LocalPlayerBundle,
+    StartClientOpts, start_ecs_runner,
 };
 pub use events::Event;
 pub use local_player::{GameProfileComponent, Hunger, InstanceHolder, TabList};
