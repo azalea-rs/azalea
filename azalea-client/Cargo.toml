@@ -41,6 +41,7 @@ uuid.workspace = true
 anyhow.workspace = true
 
 [features]
-default = ["log"]
+default = ["log", "packet-event"]
 # enables bevy_log::LogPlugin by default
 log = ["bevy_log"]
+packet-event = []

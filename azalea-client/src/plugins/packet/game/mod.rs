@@ -532,7 +532,7 @@ impl GamePacketHandler<'_> {
                         tab_list.insert(updated_info.profile.uuid, info.clone());
                         add_player_events.send(AddPlayerEvent {
                             entity: self.player,
-                            info: info.clone(),
+                            info,
                         });
                     } else if let Some(info) = tab_list.get_mut(&updated_info.profile.uuid) {
                         // `else if` because the block for add_player above

@@ -6,9 +6,7 @@ use std::sync::Arc;
 use azalea_chat::FormattedText;
 use azalea_core::tick::GameTick;
 use azalea_entity::{Dead, InLoadedChunk};
-use azalea_protocol::packets::game::{
-    ClientboundGamePacket, c_player_combat_kill::ClientboundPlayerCombatKill,
-};
+use azalea_protocol::packets::game::c_player_combat_kill::ClientboundPlayerCombatKill;
 use azalea_world::{InstanceName, MinecraftEntityId};
 use bevy_app::{App, Plugin, PreUpdate, Update};
 use bevy_ecs::{
@@ -27,8 +25,7 @@ use crate::{
     chat::{ChatPacket, ChatReceivedEvent},
     disconnect::DisconnectEvent,
     packet::game::{
-        AddPlayerEvent, DeathEvent, KeepAliveEvent, ReceiveGamePacketEvent, RemovePlayerEvent,
-        UpdatePlayerEvent,
+        AddPlayerEvent, DeathEvent, KeepAliveEvent, RemovePlayerEvent, UpdatePlayerEvent,
     },
 };
 
@@ -94,6 +91,7 @@ pub enum Event {
     Chat(ChatPacket),
     /// Happens 20 times per second, but only when the world is loaded.
     Tick,
+    #[cfg(feature = "packet-event")]
     /// We received a packet from the server.
     ///
     /// ```
@@ -111,7 +109,7 @@ pub enum Event {
     /// # }
     /// # }
     /// ```
-    Packet(Arc<ClientboundGamePacket>),
+    Packet(Arc<azalea_protocol::packets::game::ClientboundGamePacket>),
     /// A player joined the game (or more specifically, was added to the tab
     /// list).
     AddPlayer(PlayerInfo),
@@ -146,6 +144,7 @@ impl Plugin for EventsPlugin {
                 chat_listener,
                 login_listener,
                 spawn_listener,
+                #[cfg(feature = "packet-event")]
                 packet_listener,
                 add_player_listener,
                 update_player_listener,
@@ -215,9 +214,10 @@ pub fn tick_listener(query: Query<&LocalPlayerEvents, With<InstanceName>>) {
     }
 }
 
+#[cfg(feature = "packet-event")]
 pub fn packet_listener(
     query: Query<&LocalPlayerEvents>,
-    mut events: EventReader<ReceiveGamePacketEvent>,
+    mut events: EventReader<super::packet::game::ReceiveGamePacketEvent>,
 ) {
     for event in events.read() {
         if let Ok(local_player_events) = query.get(event.entity) {

@@ -53,7 +53,7 @@ rand.workspace = true
 anyhow.workspace = true
 
 [features]
-default = ["log", "serde"]
+default = ["log", "serde", "packet-event"]
 # enables bevy_log::LogPlugin by default
 log = ["azalea-client/log"]
 serde = [
@@ -62,6 +62,7 @@ serde = [
     "azalea-registry/serde",
     "azalea-world/serde",
 ]
+packet-event = ["azalea-client/packet-event"]
 
 [[bench]]
 name = "pathfinder"
