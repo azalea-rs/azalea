@@ -476,25 +476,18 @@ impl AzaleaWrite for Section {
 
 impl Section {
     pub fn get(&self, pos: ChunkSectionBlockPos) -> BlockState {
-        // TODO: use the unsafe method and do the check earlier
-        let state = self
-            .states
-            .get(pos.x as usize, pos.y as usize, pos.z as usize);
-        // if there's an unknown block assume it's air
-        BlockState::try_from(state).unwrap_or(BlockState::AIR)
+        self.states
+            .get(pos.x as usize, pos.y as usize, pos.z as usize)
     }
 
     pub fn get_and_set(&mut self, pos: ChunkSectionBlockPos, state: BlockState) -> BlockState {
-        let previous_state =
-            self.states
-                .get_and_set(pos.x as usize, pos.y as usize, pos.z as usize, state.id);
-        // if there's an unknown block assume it's air
-        BlockState::try_from(previous_state).unwrap_or(BlockState::AIR)
+        self.states
+            .get_and_set(pos.x as usize, pos.y as usize, pos.z as usize, state)
     }
 
     pub fn set(&mut self, pos: ChunkSectionBlockPos, state: BlockState) {
         self.states
-            .set(pos.x as usize, pos.y as usize, pos.z as usize, state.id);
+            .set(pos.x as usize, pos.y as usize, pos.z as usize, state);
     }
 }
 

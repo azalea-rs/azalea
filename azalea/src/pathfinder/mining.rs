@@ -27,16 +27,16 @@ impl MiningCache {
         let mut water_block_state_range_min = BlockStateIntegerRepr::MAX;
         let mut water_block_state_range_max = BlockStateIntegerRepr::MIN;
         for state in water_block_states {
-            water_block_state_range_min = water_block_state_range_min.min(state.id);
-            water_block_state_range_max = water_block_state_range_max.max(state.id);
+            water_block_state_range_min = water_block_state_range_min.min(state.id());
+            water_block_state_range_max = water_block_state_range_max.max(state.id());
         }
         let water_block_state_range = water_block_state_range_min..=water_block_state_range_max;
 
         let mut lava_block_state_range_min = BlockStateIntegerRepr::MAX;
         let mut lava_block_state_range_max = BlockStateIntegerRepr::MIN;
         for state in lava_block_states {
-            lava_block_state_range_min = lava_block_state_range_min.min(state.id);
-            lava_block_state_range_max = lava_block_state_range_max.max(state.id);
+            lava_block_state_range_min = lava_block_state_range_min.min(state.id());
+            lava_block_state_range_max = lava_block_state_range_max.max(state.id());
         }
         let lava_block_state_range = lava_block_state_range_min..=lava_block_state_range_max;
 
@@ -65,7 +65,7 @@ impl MiningCache {
             azalea_registry::Block::RedConcretePowder.into(),
             azalea_registry::Block::BlackConcretePowder.into(),
         ];
-        falling_blocks.sort_unstable_by_key(|block| block.id);
+        falling_blocks.sort_unstable_by_key(|block| block.id());
 
         Self {
             block_state_id_costs: UnsafeCell::new(IntMap::default()),
@@ -84,7 +84,7 @@ impl MiningCache {
         // SAFETY: mining is single-threaded, so this is safe
         let block_state_id_costs = unsafe { &mut *self.block_state_id_costs.get() };
 
-        if let Some(cost) = block_state_id_costs.get(&block.id) {
+        if let Some(cost) = block_state_id_costs.get(&block.id()) {
             *cost
         } else {
             let best_tool_result = best_tool_in_hotbar_for_block(block, inventory_menu);
@@ -92,7 +92,7 @@ impl MiningCache {
 
             cost += BLOCK_BREAK_ADDITIONAL_PENALTY;
 
-            block_state_id_costs.insert(block.id, cost);
+            block_state_id_costs.insert(block.id(), cost);
             cost
         }
     }
@@ -101,14 +101,14 @@ impl MiningCache {
         // this already runs in about 1 nanosecond, so if you wanna try optimizing it at
         // least run the benchmarks (in benches/checks.rs)
 
-        self.water_block_state_range.contains(&block.id)
-            || self.lava_block_state_range.contains(&block.id)
+        self.water_block_state_range.contains(&block.id())
+            || self.lava_block_state_range.contains(&block.id())
             || is_waterlogged(block)
     }
 
     pub fn is_falling_block(&self, block: BlockState) -> bool {
         self.falling_blocks
-            .binary_search_by_key(&block.id, |block| block.id)
+            .binary_search_by_key(&block.id(), |block| block.id())
             .is_ok()
     }
 }

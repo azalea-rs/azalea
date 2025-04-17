@@ -1,5 +1,6 @@
 use std::{
     fmt::{self, Debug},
+    hint::assert_unchecked,
     io::{self, Cursor, Write},
 };
 
@@ -27,7 +28,7 @@ pub type BlockStateIntegerRepr = u16;
 pub struct BlockState {
     /// The protocol ID for the block state. IDs may change every
     /// version, so you shouldn't hard-code them or store them in databases.
-    pub id: BlockStateIntegerRepr,
+    id: BlockStateIntegerRepr,
 }
 
 impl BlockState {
@@ -35,12 +36,21 @@ impl BlockState {
     /// 0.
     pub const AIR: BlockState = BlockState { id: 0 };
 
+    /// Create a new BlockState and panic if the block is not a valid state.
+    ///
+    /// You should probably use [`BlockState::try_from`] instead.
+    #[inline]
+    pub(crate) const fn new_const(id: BlockStateIntegerRepr) -> Self {
+        assert!(Self::is_valid_state(id));
+        Self { id }
+    }
+
     /// Whether the block state is possible to exist in vanilla Minecraft.
     ///
     /// It's equivalent to checking that the state ID is not greater than
     /// [`Self::MAX_STATE`].
     #[inline]
-    pub fn is_valid_state(state_id: BlockStateIntegerRepr) -> bool {
+    pub const fn is_valid_state(state_id: BlockStateIntegerRepr) -> bool {
         state_id <= Self::MAX_STATE
     }
 
@@ -49,6 +59,13 @@ impl BlockState {
     #[inline]
     pub fn is_air(&self) -> bool {
         self == &Self::AIR
+    }
+
+    /// Returns the protocol ID for the block state. IDs may change every
+    /// version, so you shouldn't hard-code them or store them in databases.
+    #[inline]
+    pub const fn id(&self) -> BlockStateIntegerRepr {
+        self.id
     }
 }
 

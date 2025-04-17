@@ -14,7 +14,7 @@ impl From<RangeInclusive<BlockStateIntegerRepr>> for BlockStates {
     fn from(range: RangeInclusive<BlockStateIntegerRepr>) -> Self {
         let mut set = HashSet::with_capacity((range.end() - range.start() + 1) as usize);
         for id in range {
-            set.insert(BlockState { id });
+            set.insert(BlockState::try_from(id).unwrap_or_default());
         }
         Self { set }
     }

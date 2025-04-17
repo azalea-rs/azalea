@@ -151,18 +151,18 @@ pub trait BlockWithShape {{
 
 impl BlockWithShape for BlockState {{
     fn collision_shape(&self) -> &'static VoxelShape {{
-        COLLISION_SHAPES_MAP.get(self.id as usize).unwrap_or(&&SHAPE1)
+        COLLISION_SHAPES_MAP.get(self.id() as usize).unwrap_or(&&SHAPE1)
     }}
     fn outline_shape(&self) -> &'static VoxelShape {{
-        OUTLINE_SHAPES_MAP.get(self.id as usize).unwrap_or(&&SHAPE1)
+        OUTLINE_SHAPES_MAP.get(self.id() as usize).unwrap_or(&&SHAPE1)
     }}
 
     fn is_collision_shape_empty(&self) -> bool {{
-        matches!(self.id, {empty_shape_match_code})
+        matches!(self.id(), {empty_shape_match_code})
     }}
 
     fn is_collision_shape_full(&self) -> bool {{
-        matches!(self.id, {block_shape_match_code})
+        matches!(self.id(), {block_shape_match_code})
     }}
 }}
 

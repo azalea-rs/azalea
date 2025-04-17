@@ -194,8 +194,7 @@ impl CachedWorld {
             let mut passable_bitset = FixedBitSet::<{ 4096_usize.div_ceil(8) }>::new();
             let mut solid_bitset = FixedBitSet::<{ 4096_usize.div_ceil(8) }>::new();
             for i in 0..4096 {
-                let block_state_id = section.get_at_index(i);
-                let block_state = BlockState::try_from(block_state_id).unwrap_or(BlockState::AIR);
+                let block_state = section.get_at_index(i);
                 if is_block_state_passable(block_state) {
                     passable_bitset.set(i);
                 }
@@ -304,9 +303,7 @@ impl CachedWorld {
         let west_is_in_same_section = section_block_pos.x != 0;
 
         let Some(mining_cost) = self.with_section(section_pos, |section| {
-            let block_state =
-                BlockState::try_from(section.get_at_index(u16::from(section_block_pos) as usize))
-                    .unwrap_or_default();
+            let block_state = section.get_at_index(u16::from(section_block_pos) as usize);
             let mining_cost = mining_cache.cost_for(block_state);
 
             if mining_cost == f32::INFINITY {
@@ -316,10 +313,7 @@ impl CachedWorld {
 
             // if there's a falling block or liquid above this block, abort
             if up_is_in_same_section {
-                let up_block = BlockState::try_from(
-                    section.get_at_index(u16::from(section_block_pos.up(1)) as usize),
-                )
-                .unwrap_or_default();
+                let up_block = section.get_at_index(u16::from(section_block_pos.up(1)) as usize);
                 if mining_cache.is_liquid(up_block) || mining_cache.is_falling_block(up_block) {
                     return f32::INFINITY;
                 }
@@ -327,10 +321,8 @@ impl CachedWorld {
 
             // if there's a liquid to the north of this block, abort
             if north_is_in_same_section {
-                let north_block = BlockState::try_from(
-                    section.get_at_index(u16::from(section_block_pos.north(1)) as usize),
-                )
-                .unwrap_or_default();
+                let north_block =
+                    section.get_at_index(u16::from(section_block_pos.north(1)) as usize);
                 if mining_cache.is_liquid(north_block) {
                     return f32::INFINITY;
                 }
@@ -338,10 +330,8 @@ impl CachedWorld {
 
             // liquid to the east
             if east_is_in_same_section {
-                let east_block = BlockState::try_from(
-                    section.get_at_index(u16::from(section_block_pos.east(1)) as usize),
-                )
-                .unwrap_or_default();
+                let east_block =
+                    section.get_at_index(u16::from(section_block_pos.east(1)) as usize);
                 if mining_cache.is_liquid(east_block) {
                     return f32::INFINITY;
                 }
@@ -349,10 +339,8 @@ impl CachedWorld {
 
             // liquid to the south
             if south_is_in_same_section {
-                let south_block = BlockState::try_from(
-                    section.get_at_index(u16::from(section_block_pos.south(1)) as usize),
-                )
-                .unwrap_or_default();
+                let south_block =
+                    section.get_at_index(u16::from(section_block_pos.south(1)) as usize);
                 if mining_cache.is_liquid(south_block) {
                     return f32::INFINITY;
                 }
@@ -360,10 +348,8 @@ impl CachedWorld {
 
             // liquid to the west
             if west_is_in_same_section {
-                let west_block = BlockState::try_from(
-                    section.get_at_index(u16::from(section_block_pos.west(1)) as usize),
-                )
-                .unwrap_or_default();
+                let west_block =
+                    section.get_at_index(u16::from(section_block_pos.west(1)) as usize);
                 if mining_cache.is_liquid(west_block) {
                     return f32::INFINITY;
                 }
@@ -391,10 +377,7 @@ impl CachedWorld {
         let check_should_avoid_this_block = |pos: BlockPos, check: &dyn Fn(BlockState) -> bool| {
             let block_state = self
                 .with_section(ChunkSectionPos::from(pos), |section| {
-                    BlockState::try_from(
-                        section.get_at_index(u16::from(ChunkSectionBlockPos::from(pos)) as usize),
-                    )
-                    .unwrap_or_default()
+                    section.get_at_index(u16::from(ChunkSectionBlockPos::from(pos)) as usize)
                 })
                 .unwrap_or_default();
             check(block_state)

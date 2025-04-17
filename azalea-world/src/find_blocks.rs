@@ -1,17 +1,13 @@
-use azalea_block::{BlockStates, block_state::BlockState};
+use azalea_block::BlockStates;
 use azalea_core::position::{BlockPos, ChunkPos};
 
 use crate::{ChunkStorage, Instance, iterators::ChunkIterator, palette::Palette};
 
 fn palette_maybe_has_block(palette: &Palette, block_states: &BlockStates) -> bool {
     match &palette {
-        Palette::SingleValue(id) => block_states.contains(&BlockState { id: *id }),
-        Palette::Linear(ids) => ids
-            .iter()
-            .any(|&id| block_states.contains(&BlockState { id })),
-        Palette::Hashmap(ids) => ids
-            .iter()
-            .any(|&id| block_states.contains(&BlockState { id })),
+        Palette::SingleValue(id) => block_states.contains(id),
+        Palette::Linear(ids) => ids.iter().any(|id| block_states.contains(id)),
+        Palette::Hashmap(ids) => ids.iter().any(|id| block_states.contains(id)),
         Palette::Global => true,
     }
 }
@@ -62,7 +58,6 @@ impl Instance {
 
                 for i in 0..4096 {
                     let block_state = section.states.get_at_index(i);
-                    let block_state = BlockState { id: block_state };
 
                     if block_states.contains(&block_state) {
                         let (section_x, section_y, section_z) = section.states.coords_from_index(i);
@@ -190,7 +185,6 @@ impl Iterator for FindBlocks<'_> {
 
                 for i in 0..4096 {
                     let block_state = section.states.get_at_index(i);
-                    let block_state = BlockState { id: block_state };
 
                     if self.block_states.contains(&block_state) {
                         let (section_x, section_y, section_z) = section.states.coords_from_index(i);
