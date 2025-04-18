@@ -2902,29 +2902,6 @@ pub static PLANKS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
         Block::CherryPlanks,
     ])
 });
-pub static PLAYS_AMBIENT_DESERT_BLOCK_SOUNDS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
-        Block::Sand,
-        Block::RedSand,
-        Block::Terracotta,
-        Block::WhiteTerracotta,
-        Block::OrangeTerracotta,
-        Block::MagentaTerracotta,
-        Block::LightBlueTerracotta,
-        Block::YellowTerracotta,
-        Block::LimeTerracotta,
-        Block::PinkTerracotta,
-        Block::GrayTerracotta,
-        Block::LightGrayTerracotta,
-        Block::CyanTerracotta,
-        Block::PurpleTerracotta,
-        Block::BlueTerracotta,
-        Block::BrownTerracotta,
-        Block::GreenTerracotta,
-        Block::RedTerracotta,
-        Block::BlackTerracotta,
-    ])
-});
 pub static POLAR_BEARS_SPAWNABLE_ON_ALTERNATE: LazyLock<HashSet<Block>> =
     LazyLock::new(|| HashSet::from_iter(vec![Block::Ice]));
 pub static PORTALS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
@@ -3637,6 +3614,32 @@ pub static TRAPDOORS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
         Block::CherryTrapdoor,
     ])
 });
+pub static TRIGGERS_AMBIENT_DESERT_DRY_VEGETATION_BLOCK_SOUNDS: LazyLock<HashSet<Block>> =
+    LazyLock::new(|| {
+        HashSet::from_iter(vec![
+            Block::Sand,
+            Block::RedSand,
+            Block::Terracotta,
+            Block::WhiteTerracotta,
+            Block::OrangeTerracotta,
+            Block::MagentaTerracotta,
+            Block::LightBlueTerracotta,
+            Block::YellowTerracotta,
+            Block::LimeTerracotta,
+            Block::PinkTerracotta,
+            Block::GrayTerracotta,
+            Block::LightGrayTerracotta,
+            Block::CyanTerracotta,
+            Block::PurpleTerracotta,
+            Block::BlueTerracotta,
+            Block::BrownTerracotta,
+            Block::GreenTerracotta,
+            Block::RedTerracotta,
+            Block::BlackTerracotta,
+        ])
+    });
+pub static TRIGGERS_AMBIENT_DESERT_SAND_BLOCK_SOUNDS: LazyLock<HashSet<Block>> =
+    LazyLock::new(|| HashSet::from_iter(vec![Block::Sand, Block::RedSand]));
 pub static UNDERWATER_BONEMEALS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     HashSet::from_iter(vec![
         Block::Seagrass,

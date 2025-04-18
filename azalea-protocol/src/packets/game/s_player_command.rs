@@ -13,13 +13,11 @@ pub struct ServerboundPlayerCommand {
 
 #[derive(AzBuf, Clone, Copy, Debug)]
 pub enum Action {
-    PressShiftKey = 0,
-    ReleaseShiftKey = 1,
-    StopSleeping = 2,
-    StartSprinting = 3,
-    StopSprinting = 4,
-    StartRidingJump = 5,
-    StopRidingJump = 6,
-    OpenInventory = 7,
-    StartFallFlying = 8,
+    StopSleeping,
+    StartSprinting,
+    StopSprinting,
+    StartRidingJump,
+    StopRidingJump,
+    OpenInventory,
+    StartFallFlying,
 }

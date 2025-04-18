@@ -1561,6 +1561,12 @@ make_block_states! {
             _1,
             _2,
         },
+        "hydration" => DriedGhastHydration {
+            _0,
+            _1,
+            _2,
+            _3,
+        },
         "pickles" => SeaPicklePickles {
             _1,
             _2,
@@ -4213,6 +4219,11 @@ make_block_states! {
         },
         sniffer_egg => BlockBehavior::new().strength(0.5, 0.5), {
             "hatch": SnifferEggHatch::_0,
+        },
+        dried_ghast => BlockBehavior::new(), {
+            "facing": FacingCardinal::North,
+            "hydration": DriedGhastHydration::_0,
+            "waterlogged": Waterlogged(false),
         },
         dead_tube_coral_block => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0).force_solid(true), {},
         dead_brain_coral_block => BlockBehavior::new().requires_correct_tool_for_drops().strength(1.5, 6.0).force_solid(true), {},
