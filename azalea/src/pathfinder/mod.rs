@@ -40,6 +40,7 @@ use futures_lite::future;
 use goals::BlockPosGoal;
 use parking_lot::RwLock;
 use rel_block_pos::RelBlockPos;
+use tokio::sync::broadcast::error::RecvError;
 use tracing::{debug, error, info, trace, warn};
 
 pub use self::debug::PathfinderDebugParticles;
@@ -253,7 +254,11 @@ impl PathfinderClientExt for azalea_client::Client {
         let mut tick_broadcaster = self.get_tick_broadcaster();
         while !self.is_goto_target_reached() {
             // check every tick
-            tick_broadcaster.recv().await.unwrap();
+            match tick_broadcaster.recv().await {
+                Ok(_) => (),
+                Err(RecvError::Closed) => return,
+                Err(err) => eprintln!("{err}"),
+            };
         }
     }
 
