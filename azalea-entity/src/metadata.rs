@@ -4282,7 +4282,7 @@ impl Default for GlowItemFrameMetadataBundle {
                     pose: Pose::default(),
                     ticks_frozen: TicksFrozen(Default::default()),
                 },
-                item_frame_item: ItemFrameItem(ItemStack::Empty),
+                item_frame_item: ItemFrameItem(Default::default()),
                 rotation: Rotation(0),
             },
         }
@@ -4535,6 +4535,85 @@ impl Default for GuardianMetadataBundle {
             },
             moving: Moving(false),
             attack_target: AttackTarget(0),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct IsLeashHolder(pub bool);
+#[derive(Component)]
+pub struct HappyGhast;
+impl HappyGhast {
+    pub fn apply_metadata(
+        entity: &mut bevy_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
+            17 => {
+                entity.insert(IsLeashHolder(d.value.into_boolean()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct HappyGhastMetadataBundle {
+    _marker: HappyGhast,
+    parent: AbstractAnimalMetadataBundle,
+    is_leash_holder: IsLeashHolder,
+}
+impl Default for HappyGhastMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: HappyGhast,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(Default::default()),
+                                    custom_name_visible: CustomNameVisible(Default::default()),
+                                    silent: Silent(Default::default()),
+                                    no_gravity: NoGravity(Default::default()),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(Default::default()),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                effect_particles: EffectParticles(Default::default()),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
+            is_leash_holder: IsLeashHolder(false),
         }
     }
 }
@@ -5096,7 +5175,7 @@ impl Default for ItemMetadataBundle {
                 pose: Pose::default(),
                 ticks_frozen: TicksFrozen(Default::default()),
             },
-            item_item: ItemItem(ItemStack::Empty),
+            item_item: ItemItem(Default::default()),
         }
     }
 }
@@ -5191,7 +5270,7 @@ impl Default for ItemDisplayMetadataBundle {
                 abstract_display_height: AbstractDisplayHeight(0.0),
                 glow_color_override: GlowColorOverride(-1),
             },
-            item_display_item_stack: ItemDisplayItemStack(ItemStack::Empty),
+            item_display_item_stack: ItemDisplayItemStack(Default::default()),
             item_display_item_display: ItemDisplayItemDisplay(Default::default()),
         }
     }
@@ -5246,7 +5325,7 @@ impl Default for ItemFrameMetadataBundle {
                 pose: Pose::default(),
                 ticks_frozen: TicksFrozen(Default::default()),
             },
-            item_frame_item: ItemFrameItem(ItemStack::Empty),
+            item_frame_item: ItemFrameItem(Default::default()),
             rotation: Rotation(0),
         }
     }
@@ -6338,7 +6417,7 @@ impl Default for OminousItemSpawnerMetadataBundle {
                 pose: Pose::default(),
                 ticks_frozen: TicksFrozen(Default::default()),
             },
-            ominous_item_spawner_item: OminousItemSpawnerItem(ItemStack::Empty),
+            ominous_item_spawner_item: OminousItemSpawnerItem(Default::default()),
         }
     }
 }
@@ -12690,6 +12769,11 @@ pub fn apply_metadata(
                 Guardian::apply_metadata(entity, d)?;
             }
         }
+        azalea_registry::EntityKind::HappyGhast => {
+            for d in items {
+                HappyGhast::apply_metadata(entity, d)?;
+            }
+        }
         azalea_registry::EntityKind::Hoglin => {
             for d in items {
                 Hoglin::apply_metadata(entity, d)?;
@@ -13324,6 +13408,9 @@ pub fn apply_default_metadata(
         }
         azalea_registry::EntityKind::Guardian => {
             entity.insert(GuardianMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::HappyGhast => {
+            entity.insert(HappyGhastMetadataBundle::default());
         }
         azalea_registry::EntityKind::Hoglin => {
             entity.insert(HoglinMetadataBundle::default());
