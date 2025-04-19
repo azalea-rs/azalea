@@ -4,7 +4,7 @@
 
 pub mod astar;
 pub mod costs;
-mod debug;
+pub mod debug;
 pub mod goals;
 pub mod mining;
 pub mod moves;
@@ -43,7 +43,6 @@ use rel_block_pos::RelBlockPos;
 use tokio::sync::broadcast::error::RecvError;
 use tracing::{debug, error, info, trace, warn};
 
-pub use self::debug::PathfinderDebugParticles;
 use self::debug::debug_render_path_with_particles;
 use self::goals::Goal;
 use self::mining::MiningCache;

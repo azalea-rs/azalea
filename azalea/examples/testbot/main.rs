@@ -32,7 +32,7 @@ use std::{sync::Arc, thread};
 use azalea::ClientInformation;
 use azalea::brigadier::command_dispatcher::CommandDispatcher;
 use azalea::ecs::prelude::*;
-use azalea::pathfinder::PathfinderDebugParticles;
+use azalea::pathfinder::debug::PathfinderDebugParticles;
 use azalea::prelude::*;
 use azalea::swarm::prelude::*;
 use commands::{CommandSource, register_commands};
