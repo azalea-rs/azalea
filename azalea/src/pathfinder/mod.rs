@@ -257,7 +257,7 @@ impl PathfinderClientExt for azalea_client::Client {
             match tick_broadcaster.recv().await {
                 Ok(_) => (),
                 Err(RecvError::Closed) => return,
-                Err(err) => eprintln!("{err}"),
+                Err(err) => warn!("{err}"),
             };
         }
     }
