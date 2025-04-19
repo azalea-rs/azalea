@@ -486,7 +486,7 @@ where
                 let ecs_mutex = first_bot.ecs.clone();
                 let mut ecs = ecs_mutex.lock();
                 let mut query = ecs.query::<Option<&S>>();
-                let Ok(Some(first_bot_state)) = query.get(&mut ecs, first_bot.entity) else {
+                let Ok(Some(first_bot_state)) = query.get(&ecs, first_bot.entity) else {
                     error!(
                         "the first bot ({} / {}) is missing the required state component! none of the client handler functions will be called.",
                         first_bot.username(),
@@ -506,7 +506,7 @@ where
                     let state = match states.entry(bot.entity) {
                         hash_map::Entry::Occupied(e) => e.into_mut(),
                         hash_map::Entry::Vacant(e) => {
-                            let Ok(Some(state)) = query.get(&mut ecs, bot.entity) else {
+                            let Ok(Some(state)) = query.get(&ecs, bot.entity) else {
                                 error!(
                                     "one of our bots ({} / {}) is missing the required state component! its client handler function will not be called.",
                                     bot.username(),
