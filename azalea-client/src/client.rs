@@ -323,9 +323,7 @@ impl Client {
                 entity,
                 ServerboundHello {
                     name: account.username.clone(),
-                    // TODO: pretty sure this should generate an offline-mode uuid instead of just
-                    // Uuid::default()
-                    profile_id: account.uuid.unwrap_or_default(),
+                    profile_id: account.uuid_or_offline(),
                 },
             ))
         });
