@@ -58,7 +58,7 @@ use crate::{
     events::Event,
     interact::CurrentSequenceNumber,
     inventory::Inventory,
-    join::{StartJoinCallback, StartJoinServerEvent},
+    join::{ConnectOpts, StartJoinCallback, StartJoinServerEvent},
     local_player::{
         GameProfileComponent, Hunger, InstanceHolder, PermissionLevel, PlayerAbilities, TabList,
     },
@@ -114,9 +114,7 @@ pub enum JoinError {
 pub struct StartClientOpts<'a> {
     pub ecs_lock: Arc<Mutex<World>>,
     pub account: &'a Account,
-    pub address: &'a ServerAddress,
-    pub resolved_address: &'a SocketAddr,
-    pub proxy: Option<Proxy>,
+    pub connect_opts: ConnectOpts,
     pub event_sender: Option<mpsc::UnboundedSender<Event>>,
 }
 
@@ -124,7 +122,7 @@ impl<'a> StartClientOpts<'a> {
     pub fn new(
         account: &'a Account,
         address: &'a ServerAddress,
-        resolved_address: &'a SocketAddr,
+        resolved_address: SocketAddr,
         event_sender: Option<mpsc::UnboundedSender<Event>>,
     ) -> StartClientOpts<'a> {
         let mut app = App::new();
@@ -135,15 +133,17 @@ impl<'a> StartClientOpts<'a> {
         Self {
             ecs_lock,
             account,
-            address,
-            resolved_address,
-            proxy: None,
+            connect_opts: ConnectOpts {
+                address: address.clone(),
+                resolved_address,
+                proxy: None,
+            },
             event_sender,
         }
     }
 
     pub fn proxy(mut self, proxy: Proxy) -> Self {
-        self.proxy = Some(proxy);
+        self.connect_opts.proxy = Some(proxy);
         self
     }
 }
@@ -193,7 +193,7 @@ impl Client {
         let client = Self::start_client(StartClientOpts::new(
             account,
             &address,
-            &resolved_address,
+            resolved_address,
             Some(tx),
         ))
         .await?;
@@ -210,7 +210,7 @@ impl Client {
         let (tx, rx) = mpsc::unbounded_channel();
 
         let client = Self::start_client(
-            StartClientOpts::new(account, &address, &resolved_address, Some(tx)).proxy(proxy),
+            StartClientOpts::new(account, &address, resolved_address, Some(tx)).proxy(proxy),
         )
         .await?;
         Ok((client, rx))
@@ -222,9 +222,7 @@ impl Client {
         StartClientOpts {
             ecs_lock,
             account,
-            address,
-            resolved_address,
-            proxy,
+            connect_opts,
             event_sender,
         }: StartClientOpts<'_>,
     ) -> Result<Self, JoinError> {
@@ -237,9 +235,7 @@ impl Client {
             let mut ecs = ecs_lock.lock();
             ecs.send_event(StartJoinServerEvent {
                 account: account.clone(),
-                address: address.clone(),
-                resolved_address: *resolved_address,
-                proxy,
+                connect_opts,
                 event_sender: event_sender.clone(),
                 start_join_callback_tx: Some(StartJoinCallback(start_join_callback_tx)),
             });

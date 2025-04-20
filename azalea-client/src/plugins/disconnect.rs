@@ -15,10 +15,7 @@ use bevy_ecs::{
 use derive_more::Deref;
 use tracing::trace;
 
-use crate::{
-    InstanceHolder, client::JoinedClientBundle, connection::RawConnection,
-    events::LocalPlayerEvents,
-};
+use crate::{InstanceHolder, client::JoinedClientBundle, connection::RawConnection};
 
 pub struct DisconnectPlugin;
 impl Plugin for DisconnectPlugin {
@@ -35,7 +32,16 @@ impl Plugin for DisconnectPlugin {
     }
 }
 
-/// An event sent when a client is getting disconnected.
+/// An event sent when a client got disconnected from the server.
+///
+/// If the client was kicked with a reason, that reason will be present in the
+/// [`reason`](DisconnectEvent::reason) field.
+///
+/// This event won't be sent if creating the initial connection to the server
+/// failed, for that see [`ConnectionFailedEvent`].
+///
+/// [`ConnectionFailedEvent`]: crate::join::ConnectionFailedEvent
+
 #[derive(Event)]
 pub struct DisconnectEvent {
     pub entity: Entity,
@@ -59,9 +65,7 @@ pub fn remove_components_from_disconnected_players(
             .remove::<PlayerMetadataBundle>()
             .remove::<InLoadedChunk>()
             // this makes it close the tcp connection
-            .remove::<RawConnection>()
-            // swarm detects when this tx gets dropped to fire SwarmEvent::Disconnect
-            .remove::<LocalPlayerEvents>();
+            .remove::<RawConnection>();
         // note that we don't remove the client from the ECS, so if they decide
         // to reconnect they'll keep their state
 

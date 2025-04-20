@@ -19,7 +19,7 @@ use std::{
 
 use azalea_client::{
     Account, Client, DefaultPlugins, Event, JoinError, StartClientOpts, chat::ChatPacket,
-    start_ecs_runner,
+    join::ConnectOpts, start_ecs_runner,
 };
 use azalea_protocol::{ServerAddress, resolver};
 use azalea_world::InstanceContainer;
@@ -654,15 +654,18 @@ impl Swarm {
         let resolved_address = join_opts
             .custom_resolved_address
             .unwrap_or_else(|| *self.resolved_address.read());
+        let proxy = join_opts.proxy.clone();
 
         let (tx, rx) = mpsc::unbounded_channel();
 
         let bot = Client::start_client(StartClientOpts {
             ecs_lock: self.ecs_lock.clone(),
             account,
-            address: &address,
-            resolved_address: &resolved_address,
-            proxy: join_opts.proxy.clone(),
+            connect_opts: ConnectOpts {
+                address,
+                resolved_address,
+                proxy,
+            },
             event_sender: Some(tx),
         })
         .await?;
@@ -730,10 +733,21 @@ impl Swarm {
                 }
             }
 
+            if let Event::Disconnect(_) = event {
+                //
+            }
+
             // we can't handle events here (since we can't copy the handler),
             // they're handled above in SwarmBuilder::start
             if let Err(e) = cloned_bots_tx.send((Some(event), cloned_bot.clone())) {
                 error!("Error sending event to swarm: {e}");
+
+                let account = cloned_bot
+                    .get_component::<Account>()
+                    .expect("bot is missing required Account component");
+                swarm_tx
+                    .send(SwarmEvent::Disconnect(Box::new(account), join_opts.clone()))
+                    .unwrap();
             }
         }
         debug!("client sender ended, removing from cloned_bots and sending SwarmEvent::Disconnect");

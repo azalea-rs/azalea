@@ -1,0 +1,111 @@
+//! Auto-reconnect to the server when the client is kicked.
+//!
+//! This is enabled by default.
+
+use std::time::{Duration, Instant};
+
+use bevy_app::prelude::*;
+use bevy_ecs::prelude::*;
+
+use super::{
+    disconnect::DisconnectEvent,
+    events::LocalPlayerEvents,
+    join::{ConnectOpts, StartJoinServerEvent},
+};
+use crate::Account;
+
+pub struct AutoReconnectPlugin;
+impl Plugin for AutoReconnectPlugin {
+    fn build(&self, app: &mut App) {
+        app.insert_resource(AutoReconnectDelay::new(Duration::from_secs(5)))
+            .add_systems(
+                Update,
+                (start_rejoin_on_disconnect, rejoin_after_delay)
+                    .chain()
+                    .before(super::join::handle_start_join_server_event),
+            );
+    }
+}
+
+pub fn start_rejoin_on_disconnect(
+    mut commands: Commands,
+    mut events: EventReader<DisconnectEvent>,
+    auto_reconnect_delay_res: Option<Res<AutoReconnectDelay>>,
+    auto_reconnect_delay_query: Query<&AutoReconnectDelay>,
+) {
+    for event in events.read() {
+        let delay = if let Ok(c) = auto_reconnect_delay_query.get(event.entity) {
+            c.delay
+        } else if let Some(r) = &auto_reconnect_delay_res {
+            r.delay
+        } else {
+            // no auto reconnect
+            continue;
+        };
+
+        let reconnect_after = Instant::now() + delay;
+        commands
+            .entity(event.entity)
+            .insert(InternalReconnectAfter {
+                instant: reconnect_after,
+            });
+    }
+}
+
+pub fn rejoin_after_delay(
+    mut commands: Commands,
+    mut join_events: EventWriter<StartJoinServerEvent>,
+    query: Query<(
+        Entity,
+        &InternalReconnectAfter,
+        &Account,
+        &ConnectOpts,
+        Option<&LocalPlayerEvents>,
+    )>,
+) {
+    for (entity, reconnect_after, account, connect_opts, local_player_events) in query.iter() {
+        if Instant::now() >= reconnect_after.instant {
+            // don't keep trying to reconnect
+            commands.entity(entity).remove::<InternalReconnectAfter>();
+
+            // our Entity will be reused since the account has the same uuid
+            join_events.send(StartJoinServerEvent {
+                account: account.clone(),
+                connect_opts: connect_opts.clone(),
+                // not actually necessary since we're reusing the same entity and LocalPlayerEvents
+                // isn't removed, but this is more readable and just in case it's changed in the
+                // future
+                event_sender: local_player_events.map(|e| e.0.clone()),
+                start_join_callback_tx: None,
+            });
+        }
+    }
+}
+
+/// A resource *and* component that indicates how long to wait before
+/// reconnecting when we're kicked.
+///
+/// Initially, it's a resource in the ECS set to 5 seconds. You can modify
+/// the resource to update the global reconnect delay, or insert it as a
+/// component to set the individual delay for a single client.
+///
+/// You can also remove this resource from the ECS to disable the default
+/// auto-reconnecting behavior. Inserting the resource/component again will not
+/// make clients that were already disconnected automatically reconnect.
+#[derive(Resource, Component, Debug, Clone)]
+pub struct AutoReconnectDelay {
+    pub delay: Duration,
+}
+impl AutoReconnectDelay {
+    pub fn new(delay: Duration) -> Self {
+        Self { delay }
+    }
+}
+
+/// This is inserted when we're disconnected and indicates when we'll reconnect.
+///
+/// This is set based on [`AutoReconnectDelay`].
+#[derive(Component, Debug, Clone)]
+pub struct InternalReconnectAfter {
+    pub instant: Instant,
+}
