@@ -262,6 +262,7 @@ pub enum ConnectionError {
 
 use socks5_impl::protocol::UserKey;
 
+/// An address and authentication method for connecting to a Socks5 proxy.
 #[derive(Debug, Clone)]
 pub struct Proxy {
     pub addr: SocketAddr,

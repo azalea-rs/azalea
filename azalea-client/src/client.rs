@@ -15,19 +15,17 @@ use azalea_core::{
     tick::GameTick,
 };
 use azalea_entity::{
-    EntityUpdateSet, EyeHeight, LocalEntity, Position,
+    EntityUpdateSet, EyeHeight, Position,
     indexing::{EntityIdIndex, EntityUuidIndex},
     metadata::Health,
 };
 use azalea_protocol::{
     ServerAddress,
     common::client_information::ClientInformation,
-    connect::{Connection, ConnectionError, Proxy},
+    connect::{ConnectionError, Proxy},
     packets::{
-        self, ClientIntention, ConnectionProtocol, PROTOCOL_VERSION, Packet,
+        self, Packet,
         game::{self, ServerboundGamePacket},
-        handshake::s_intention::ServerboundIntention,
-        login::s_hello::ServerboundHello,
     },
     resolver,
 };
@@ -38,7 +36,7 @@ use bevy_ecs::{
     component::Component,
     entity::Entity,
     schedule::{InternedScheduleLabel, IntoSystemConfigs, LogLevel, ScheduleBuildSettings},
-    system::{Commands, Resource},
+    system::Resource,
     world::World,
 };
 use parking_lot::{Mutex, RwLock};
@@ -57,19 +55,16 @@ use crate::{
     chunks::ChunkBatchInfo,
     connection::RawConnection,
     disconnect::DisconnectEvent,
-    events::{Event, LocalPlayerEvents},
+    events::Event,
     interact::CurrentSequenceNumber,
     inventory::Inventory,
+    join::{StartJoinCallback, StartJoinServerEvent},
     local_player::{
         GameProfileComponent, Hunger, InstanceHolder, PermissionLevel, PlayerAbilities, TabList,
     },
     mining::{self},
     movement::{LastSentLookDirection, PhysicsState},
-    packet::{
-        as_system,
-        game::SendPacketEvent,
-        login::{InLoginState, SendLoginPacketEvent},
-    },
+    packet::game::SendPacketEvent,
     player::retroactively_add_game_profile_component,
 };
 
@@ -233,100 +228,26 @@ impl Client {
             event_sender,
         }: StartClientOpts<'_>,
     ) -> Result<Self, JoinError> {
-        // check if an entity with our uuid already exists in the ecs and if so then
-        // just use that
-        let entity = {
-            let mut ecs = ecs_lock.lock();
+        // send a StartJoinServerEvent
 
-            let entity_uuid_index = ecs.resource::<EntityUuidIndex>();
-            let uuid = account.uuid_or_offline();
-            let entity = if let Some(entity) = entity_uuid_index.get(&account.uuid_or_offline()) {
-                debug!("Reusing entity {entity:?} for client");
-                entity
-            } else {
-                let entity = ecs.spawn_empty().id();
-                debug!("Created new entity {entity:?} for client");
-                // add to the uuid index
-                let mut entity_uuid_index = ecs.resource_mut::<EntityUuidIndex>();
-                entity_uuid_index.insert(uuid, entity);
-                entity
-            };
+        let (start_join_callback_tx, mut start_join_callback_rx) =
+            mpsc::unbounded_channel::<Result<Entity, JoinError>>();
 
-            let mut entity_mut = ecs.entity_mut(entity);
-            entity_mut.insert((
-                InLoginState,
-                // add the Account to the entity now so plugins can access it earlier
-                account.to_owned(),
-                // localentity is always present for our clients, even if we're not actually logged
-                // in
-                LocalEntity,
-            ));
-            if let Some(event_sender) = event_sender {
-                // this is optional so we don't leak memory in case the user doesn't want to
-                // handle receiving packets
-                entity_mut.insert(LocalPlayerEvents(event_sender));
-            }
-
-            entity
-        };
-
-        let mut conn = if let Some(proxy) = proxy {
-            Connection::new_with_proxy(resolved_address, proxy).await?
-        } else {
-            Connection::new(resolved_address).await?
-        };
-        debug!("Created connection to {resolved_address:?}");
-
-        conn.write(ServerboundIntention {
-            protocol_version: PROTOCOL_VERSION,
-            hostname: address.host.clone(),
-            port: address.port,
-            intention: ClientIntention::Login,
-        })
-        .await?;
-        let conn = conn.login();
-
-        let (read_conn, write_conn) = conn.into_split();
-        let (read_conn, write_conn) = (read_conn.raw, write_conn.raw);
-
-        // insert the client into the ecs so it finishes logging in
         {
             let mut ecs = ecs_lock.lock();
-
-            let instance = Instance::default();
-            let instance_holder = crate::local_player::InstanceHolder::new(
-                entity,
-                // default to an empty world, it'll be set correctly later when we
-                // get the login packet
-                Arc::new(RwLock::new(instance)),
-            );
-
-            let mut entity = ecs.entity_mut(entity);
-            entity.insert((
-                // these stay when we switch to the game state
-                LocalPlayerBundle {
-                    raw_connection: RawConnection::new(
-                        read_conn,
-                        write_conn,
-                        ConnectionProtocol::Login,
-                    ),
-                    client_information: crate::ClientInformation::default(),
-                    instance_holder,
-                    metadata: azalea_entity::metadata::PlayerMetadataBundle::default(),
-                },
-            ));
+            ecs.send_event(StartJoinServerEvent {
+                account: account.clone(),
+                address: address.clone(),
+                resolved_address: *resolved_address,
+                proxy,
+                event_sender: event_sender.clone(),
+                start_join_callback_tx: Some(StartJoinCallback(start_join_callback_tx)),
+            });
         }
 
-        as_system::<Commands>(&mut ecs_lock.lock(), |mut commands| {
-            commands.entity(entity).insert((InLoginState,));
-            commands.trigger(SendLoginPacketEvent::new(
-                entity,
-                ServerboundHello {
-                    name: account.username.clone(),
-                    profile_id: account.uuid_or_offline(),
-                },
-            ))
-        });
+        let entity = start_join_callback_rx.recv().await.expect(
+            "StartJoinCallback should not be dropped before sending a message, this is a bug in Azalea",
+        )?;
 
         let client = Client::new(entity, ecs_lock.clone());
         Ok(client)
@@ -732,7 +653,9 @@ impl Plugin for AzaleaPlugin {
             Update,
             (
                 // add GameProfileComponent when we get an AddPlayerEvent
-                retroactively_add_game_profile_component.after(EntityUpdateSet::Index),
+                retroactively_add_game_profile_component
+                    .after(EntityUpdateSet::Index)
+                    .after(crate::join::handle_start_join_server_event),
             ),
         )
         .init_resource::<InstanceContainer>()
