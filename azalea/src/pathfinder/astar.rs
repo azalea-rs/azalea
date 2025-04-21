@@ -66,6 +66,7 @@ where
     let mut best_path_scores: [f32; 7] = [heuristic(start); 7];
 
     let mut num_nodes = 0;
+    let mut num_movements = 0;
 
     while let Some(WeightedNode { index, g_score, .. }) = open_set.pop() {
         num_nodes += 1;
@@ -94,6 +95,7 @@ where
             if tentative_g_score - g_score < MIN_IMPROVEMENT {
                 continue;
             }
+            num_movements += 1;
 
             match nodes.entry(neighbor.movement.target) {
                 indexmap::map::Entry::Occupied(mut e) => {
@@ -166,10 +168,13 @@ where
 
     let best_path = determine_best_path(best_paths, 0);
 
+    let elapsed_seconds = start_time.elapsed().as_secs_f64();
+    let nodes_per_second = (num_nodes as f64 / elapsed_seconds) as u64;
+    let num_movements_per_second = (num_movements as f64 / elapsed_seconds) as u64;
     debug!(
-        "A* ran at {} nodes per second",
-        ((num_nodes as f64 / start_time.elapsed().as_secs_f64()) as u64)
-            .to_formatted_string(&num_format::Locale::en)
+        "A* ran at {} nodes per second and {} movements per second",
+        nodes_per_second.to_formatted_string(&num_format::Locale::en),
+        num_movements_per_second.to_formatted_string(&num_format::Locale::en),
     );
 
     Path {
@@ -262,22 +267,38 @@ impl<P: Hash + Copy + Clone, M: Clone> Clone for Movement<P, M> {
 }
 
 #[derive(PartialEq)]
+#[repr(C)]
 pub struct WeightedNode {
-    index: usize,
-    /// The actual cost to get to this node
-    g_score: f32,
     /// Sum of the g_score and heuristic
-    f_score: f32,
+    pub f_score: f32,
+    /// The actual cost to get to this node
+    pub g_score: f32,
+    pub index: usize,
 }
 
 impl Ord for WeightedNode {
     #[inline]
     fn cmp(&self, other: &Self) -> cmp::Ordering {
-        // intentionally inverted to make the BinaryHeap a min-heap
-        match other.f_score.total_cmp(&self.f_score) {
-            cmp::Ordering::Equal => self.g_score.total_cmp(&other.g_score),
-            s => s,
+        // we compare bits instead of floats because it's faster. this is the same as
+        // f32::total_cmp as long as the numbers aren't negative
+
+        debug_assert!(self.f_score >= 0.0);
+        debug_assert!(other.f_score >= 0.0);
+        debug_assert!(self.g_score >= 0.0);
+        debug_assert!(other.g_score >= 0.0);
+
+        let self_f_score = self.f_score.to_bits() as i32;
+        let other_f_score = other.f_score.to_bits() as i32;
+
+        if self_f_score == other_f_score {
+            let self_g_score = self.g_score.to_bits() as i32;
+            let other_g_score = other.g_score.to_bits() as i32;
+
+            return self_g_score.cmp(&other_g_score);
         }
+
+        // intentionally inverted to make the BinaryHeap a min-heap
+        other_f_score.cmp(&self_f_score)
     }
 }
 impl Eq for WeightedNode {}
@@ -303,5 +324,39 @@ pub enum PathfinderTimeout {
 impl Default for PathfinderTimeout {
     fn default() -> Self {
         Self::Time(Duration::from_secs(1))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn weighted_node(f: f32, g: f32) -> WeightedNode {
+        WeightedNode {
+            f_score: f,
+            g_score: g,
+            index: 0,
+        }
+    }
+
+    #[test]
+    fn test_weighted_node_eq() {
+        let a = weighted_node(0., 0.);
+        let b = weighted_node(0., 0.);
+        assert!(a == b);
+    }
+    #[test]
+    fn test_weighted_node_le() {
+        let a = weighted_node(1., 0.);
+        let b = weighted_node(0., 0.);
+        assert_eq!(a.cmp(&b), cmp::Ordering::Less);
+        assert!(a.le(&b));
+    }
+    #[test]
+    fn test_weighted_node_le_g() {
+        let a = weighted_node(0., 1.);
+        let b = weighted_node(0., 0.);
+        assert_eq!(a.cmp(&b), cmp::Ordering::Greater);
+        assert!(!a.le(&b));
     }
 }
