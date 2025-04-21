@@ -107,20 +107,20 @@ pub enum JoinError {
     Disconnect { reason: FormattedText },
 }
 
-pub struct StartClientOpts<'a> {
+pub struct StartClientOpts {
     pub ecs_lock: Arc<Mutex<World>>,
-    pub account: &'a Account,
+    pub account: Account,
     pub connect_opts: ConnectOpts,
     pub event_sender: Option<mpsc::UnboundedSender<Event>>,
 }
 
-impl<'a> StartClientOpts<'a> {
+impl StartClientOpts {
     pub fn new(
-        account: &'a Account,
-        address: &'a ServerAddress,
+        account: Account,
+        address: ServerAddress,
         resolved_address: SocketAddr,
         event_sender: Option<mpsc::UnboundedSender<Event>>,
-    ) -> StartClientOpts<'a> {
+    ) -> StartClientOpts {
         let mut app = App::new();
         app.add_plugins(DefaultPlugins);
 
@@ -131,7 +131,7 @@ impl<'a> StartClientOpts<'a> {
             ecs_lock,
             account,
             connect_opts: ConnectOpts {
-                address: address.clone(),
+                address,
                 resolved_address,
                 proxy: None,
             },
@@ -180,7 +180,7 @@ impl Client {
     /// }
     /// ```
     pub async fn join(
-        account: &Account,
+        account: Account,
         address: impl TryInto<ServerAddress>,
     ) -> Result<(Self, mpsc::UnboundedReceiver<Event>), JoinError> {
         let address: ServerAddress = address.try_into().map_err(|_| JoinError::InvalidAddress)?;
@@ -189,7 +189,7 @@ impl Client {
 
         let client = Self::start_client(StartClientOpts::new(
             account,
-            &address,
+            address,
             resolved_address,
             Some(tx),
         ))
@@ -198,7 +198,7 @@ impl Client {
     }
 
     pub async fn join_with_proxy(
-        account: &Account,
+        account: Account,
         address: impl TryInto<ServerAddress>,
         proxy: Proxy,
     ) -> Result<(Self, mpsc::UnboundedReceiver<Event>), JoinError> {
@@ -207,7 +207,7 @@ impl Client {
         let (tx, rx) = mpsc::unbounded_channel();
 
         let client = Self::start_client(
-            StartClientOpts::new(account, &address, resolved_address, Some(tx)).proxy(proxy),
+            StartClientOpts::new(account, address, resolved_address, Some(tx)).proxy(proxy),
         )
         .await?;
         Ok((client, rx))
@@ -221,22 +221,19 @@ impl Client {
             account,
             connect_opts,
             event_sender,
-        }: StartClientOpts<'_>,
+        }: StartClientOpts,
     ) -> Result<Self, JoinError> {
         // send a StartJoinServerEvent
 
         let (start_join_callback_tx, mut start_join_callback_rx) =
             mpsc::unbounded_channel::<Result<Entity, JoinError>>();
 
-        {
-            let mut ecs = ecs_lock.lock();
-            ecs.send_event(StartJoinServerEvent {
-                account: account.clone(),
-                connect_opts,
-                event_sender: event_sender.clone(),
-                start_join_callback_tx: Some(StartJoinCallback(start_join_callback_tx)),
-            });
-        }
+        ecs_lock.lock().send_event(StartJoinServerEvent {
+            account,
+            connect_opts,
+            event_sender,
+            start_join_callback_tx: Some(StartJoinCallback(start_join_callback_tx)),
+        });
 
         let entity = start_join_callback_rx.recv().await.expect(
             "StartJoinCallback should not be dropped before sending a message, this is a bug in Azalea",

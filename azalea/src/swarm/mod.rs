@@ -45,8 +45,6 @@ use crate::{BoxHandleFn, DefaultBotPlugins, HandleFn, JoinOpts, NoState, StartEr
 pub struct Swarm {
     pub ecs_lock: Arc<Mutex<World>>,
 
-    bots: Arc<Mutex<HashMap<Entity, Client>>>,
-
     // the address is public and mutable so plugins can change it
     pub resolved_address: Arc<RwLock<SocketAddr>>,
     pub address: Arc<RwLock<ServerAddress>>,
@@ -400,7 +398,6 @@ where
 
         let swarm = Swarm {
             ecs_lock: ecs_lock.clone(),
-            bots: Arc::new(Mutex::new(HashMap::new())),
 
             resolved_address: Arc::new(RwLock::new(resolved_address)),
             address: Arc::new(RwLock::new(address)),
@@ -679,20 +676,11 @@ impl Swarm {
             ecs.entity_mut(bot.entity).insert(state);
         }
 
-        self.bots.lock().insert(bot.entity, bot.clone());
-
-        let cloned_bots = self.bots.clone();
-        let cloned_bots_tx = self.bots_tx.clone();
         let cloned_bot = bot.clone();
         let swarm_tx = self.swarm_tx.clone();
         let join_opts = join_opts.clone();
         tokio::spawn(Self::event_copying_task(
-            rx,
-            cloned_bots,
-            cloned_bots_tx,
-            cloned_bot,
-            swarm_tx,
-            join_opts,
+            rx, cloned_bot, swarm_tx, join_opts,
         ));
 
         Ok(bot)
@@ -700,8 +688,6 @@ impl Swarm {
 
     async fn event_copying_task(
         mut rx: mpsc::UnboundedReceiver<Event>,
-        cloned_bots: Arc<Mutex<HashMap<Entity, Client>>>,
-        cloned_bots_tx: mpsc::UnboundedSender<(Option<Event>, Client)>,
         cloned_bot: Client,
         swarm_tx: mpsc::UnboundedSender<SwarmEvent>,
         join_opts: JoinOpts,
