@@ -1554,7 +1554,9 @@ impl GamePacketHandler<'_> {
     pub fn set_display_objective(&mut self, _p: &ClientboundSetDisplayObjective) {}
     pub fn set_objective(&mut self, _p: &ClientboundSetObjective) {}
     pub fn set_passengers(&mut self, _p: &ClientboundSetPassengers) {}
-    pub fn set_player_team(&mut self, _p: &ClientboundSetPlayerTeam) {}
+    pub fn set_player_team(&mut self, p: &ClientboundSetPlayerTeam) {
+        debug!("Got set player team packet {p:?}");
+    }
     pub fn set_score(&mut self, _p: &ClientboundSetScore) {}
     pub fn set_simulation_distance(&mut self, _p: &ClientboundSetSimulationDistance) {}
     pub fn set_subtitle_text(&mut self, _p: &ClientboundSetSubtitleText) {}
