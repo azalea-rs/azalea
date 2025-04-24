@@ -96,12 +96,12 @@ impl ConfigPacketHandler<'_> {
             self.ecs,
             |(mut commands, mut query)| {
                 let mut raw_conn = query.get_mut(self.player).unwrap();
+                raw_conn.state = ConnectionProtocol::Game;
 
                 commands.trigger(SendConfigPacketEvent::new(
                     self.player,
                     ServerboundFinishConfiguration,
                 ));
-                raw_conn.state = ConnectionProtocol::Game;
 
                 // these components are added now that we're going to be in the Game state
                 commands

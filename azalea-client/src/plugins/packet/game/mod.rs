@@ -13,7 +13,7 @@ use azalea_entity::{
     indexing::{EntityIdIndex, EntityUuidIndex},
     metadata::{Health, apply_metadata},
 };
-use azalea_protocol::packets::game::*;
+use azalea_protocol::packets::{ConnectionProtocol, game::*};
 use azalea_world::{InstanceContainer, InstanceName, MinecraftEntityId, PartialInstance};
 use bevy_ecs::{prelude::*, system::SystemState};
 pub use events::*;
@@ -22,7 +22,9 @@ use tracing::{debug, error, trace, warn};
 use crate::{
     ClientInformation, PlayerInfo,
     chat::{ChatPacket, ChatReceivedEvent},
-    chunks, declare_packet_handlers,
+    chunks,
+    connection::RawConnection,
+    declare_packet_handlers,
     disconnect::DisconnectEvent,
     inventory::{
         ClientSideCloseContainerEvent, Inventory, MenuOpenedEvent, SetContainerContentEvent,
@@ -1485,18 +1487,27 @@ impl GamePacketHandler<'_> {
     pub fn start_configuration(&mut self, _p: &ClientboundStartConfiguration) {
         debug!("Got start configuration packet");
 
-        as_system::<Commands>(self.ecs, |mut commands| {
-            commands.trigger(SendPacketEvent::new(
-                self.player,
-                ServerboundConfigurationAcknowledged,
-            ));
+        as_system::<(Commands, Query<&mut RawConnection>)>(
+            self.ecs,
+            |(mut commands, mut query)| {
+                let Some(mut raw_conn) = query.get_mut(self.player).ok() else {
+                    warn!("Got start configuration packet but player doesn't have a RawConnection");
+                    return;
+                };
+                raw_conn.state = ConnectionProtocol::Configuration;
 
-            commands
-                .entity(self.player)
-                .insert(crate::client::InConfigState)
-                .remove::<crate::JoinedClientBundle>()
-                .remove::<EntityBundle>();
-        });
+                commands.trigger(SendPacketEvent::new(
+                    self.player,
+                    ServerboundConfigurationAcknowledged,
+                ));
+
+                commands
+                    .entity(self.player)
+                    .insert(crate::client::InConfigState)
+                    .remove::<crate::JoinedClientBundle>()
+                    .remove::<EntityBundle>();
+            },
+        );
     }
 
     pub fn entity_position_sync(&mut self, p: &ClientboundEntityPositionSync) {
