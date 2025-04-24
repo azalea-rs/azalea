@@ -46,7 +46,7 @@ thiserror.workspace = true
 tokio = { workspace = true, features = ["io-util", "net", "macros"] }
 tokio-util = { workspace = true, features = ["codec"] }
 tracing.workspace = true
-hickory-resolver = { workspace = true, features = ["tokio"] }
+hickory-resolver = { workspace = true, features = ["tokio", "system-config"] }
 uuid.workspace = true
 crc32fast = { workspace = true, optional = true }
 
