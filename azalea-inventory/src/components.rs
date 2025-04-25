@@ -809,7 +809,7 @@ impl DataComponent for ContainerLoot {
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub enum JukeboxPlayable {
-    Registry(registry::JukeboxSong),
+    Referenced(ResourceLocation),
     Direct(Holder<registry::JukeboxSong, JukeboxSongData>),
 }
 impl DataComponent for JukeboxPlayable {
@@ -1206,8 +1206,8 @@ pub struct ItemDamageFunction {
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub enum ProvidesTrimMaterial {
-    Holder(Holder<TrimMaterial, DirectTrimMaterial>),
-    Registry(TrimMaterial),
+    Referenced(ResourceLocation),
+    Direct(Holder<TrimMaterial, DirectTrimMaterial>),
 }
 impl DataComponent for ProvidesTrimMaterial {
     const KIND: DataComponentKind = DataComponentKind::ProvidesTrimMaterial;
@@ -1263,7 +1263,7 @@ impl DataComponent for CowVariant {
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub enum ChickenVariant {
-    Registry(azalea_registry::ChickenVariant),
+    Referenced(ResourceLocation),
     Direct(ChickenVariantData),
 }
 impl DataComponent for ChickenVariant {
@@ -1271,6 +1271,5 @@ impl DataComponent for ChickenVariant {
 }
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct ChickenVariantData {
-    // not a typo, as of 1.21.5 chicken variants do actually seem to be encoded like this
     pub registry: azalea_registry::ChickenVariant,
 }
