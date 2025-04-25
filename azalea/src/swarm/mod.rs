@@ -396,7 +396,7 @@ where
 
         let main_schedule_label = self.app.main().update_schedule.unwrap();
 
-        let ecs_lock = start_ecs_runner(self.app);
+        let (ecs_lock, start_running_systems) = start_ecs_runner(self.app);
 
         let swarm = Swarm {
             ecs_lock: ecs_lock.clone(),
@@ -419,6 +419,10 @@ where
             ecs.run_schedule(main_schedule_label);
             ecs.clear_trackers();
         }
+
+        // only do this after we inserted the Swarm and state resources to avoid errors
+        // where Res<Swarm> is inaccessible
+        start_running_systems();
 
         // SwarmBuilder (self) isn't Send so we have to take all the things we need out
         // of it
