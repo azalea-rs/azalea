@@ -13,7 +13,7 @@ use bevy_ecs::{
     system::{Commands, Query},
 };
 use derive_more::Deref;
-use tracing::{info, trace};
+use tracing::info;
 
 use crate::{
     InstanceHolder, client::JoinedClientBundle, connection::RawConnection,
