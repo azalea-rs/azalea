@@ -176,6 +176,7 @@ pub fn process_packet(ecs: &mut World, player: Entity, packet: &ClientboundGameP
             recipe_book_remove,
             recipe_book_settings,
             test_instance_block_status,
+            waypoint,
         ]
     );
 }
@@ -1601,4 +1602,5 @@ impl GamePacketHandler<'_> {
     pub fn recipe_book_remove(&mut self, _p: &ClientboundRecipeBookRemove) {}
     pub fn recipe_book_settings(&mut self, _p: &ClientboundRecipeBookSettings) {}
     pub fn test_instance_block_status(&mut self, _p: &ClientboundTestInstanceBlockStatus) {}
+    pub fn waypoint(&mut self, _p: &ClientboundWaypoint) {}
 }

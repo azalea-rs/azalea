@@ -136,6 +136,7 @@ declare_state_packets!(GamePacket,
         projectile_power, // 0x80
         custom_report_details, // 0x81
         server_links, // 0x82
+        waypoint, // 0x83
     ],
     Serverbound => [
         accept_teleportation, // 0x00
