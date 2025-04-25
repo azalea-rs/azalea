@@ -68,7 +68,7 @@ pub struct ExecuteCtx<'w1, 'w2, 'w3, 'w4, 'w5, 'w6, 'a> {
 
 impl ExecuteCtx<'_, '_, '_, '_, '_, '_, '_> {
     pub fn look_at(&mut self, position: Vec3) {
-        self.look_at_events.send(LookAtEvent {
+        self.look_at_events.write(LookAtEvent {
             entity: self.entity,
             position: Vec3 {
                 x: position.x,
@@ -80,28 +80,28 @@ impl ExecuteCtx<'_, '_, '_, '_, '_, '_, '_> {
     }
 
     pub fn look_at_exact(&mut self, position: Vec3) {
-        self.look_at_events.send(LookAtEvent {
+        self.look_at_events.write(LookAtEvent {
             entity: self.entity,
             position,
         });
     }
 
     pub fn sprint(&mut self, direction: SprintDirection) {
-        self.sprint_events.send(StartSprintEvent {
+        self.sprint_events.write(StartSprintEvent {
             entity: self.entity,
             direction,
         });
     }
 
     pub fn walk(&mut self, direction: WalkDirection) {
-        self.walk_events.send(StartWalkEvent {
+        self.walk_events.write(StartWalkEvent {
             entity: self.entity,
             direction,
         });
     }
 
     pub fn jump(&mut self) {
-        self.jump_events.send(JumpEvent {
+        self.jump_events.write(JumpEvent {
             entity: self.entity,
         });
     }
@@ -137,7 +137,7 @@ impl ExecuteCtx<'_, '_, '_, '_, '_, '_, '_> {
         let best_tool_result = best_tool_in_hotbar_for_block(block_state, &self.menu);
 
         self.set_selected_hotbar_slot_events
-            .send(SetSelectedHotbarSlotEvent {
+            .write(SetSelectedHotbarSlotEvent {
                 entity: self.entity,
                 slot: best_tool_result.index as u8,
             });
@@ -146,7 +146,7 @@ impl ExecuteCtx<'_, '_, '_, '_, '_, '_, '_> {
 
         self.walk(WalkDirection::None);
         self.look_at_exact(block.center());
-        self.start_mining_events.send(StartMiningBlockEvent {
+        self.start_mining_events.write(StartMiningBlockEvent {
             entity: self.entity,
             position: block,
         });

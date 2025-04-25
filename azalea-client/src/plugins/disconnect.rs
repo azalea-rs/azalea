@@ -3,15 +3,7 @@
 use azalea_chat::FormattedText;
 use azalea_entity::{EntityBundle, InLoadedChunk, LocalEntity, metadata::PlayerMetadataBundle};
 use bevy_app::{App, Plugin, PostUpdate};
-use bevy_ecs::{
-    component::Component,
-    entity::Entity,
-    event::{EventReader, EventWriter},
-    prelude::Event,
-    query::{Changed, With},
-    schedule::IntoSystemConfigs,
-    system::{Commands, Query},
-};
+use bevy_ecs::prelude::*;
 use derive_more::Deref;
 use tracing::info;
 
@@ -101,7 +93,7 @@ fn disconnect_on_connection_dead(
 ) {
     for (entity, &is_connection_alive) in &query {
         if !*is_connection_alive {
-            disconnect_events.send(DisconnectEvent {
+            disconnect_events.write(DisconnectEvent {
                 entity,
                 reason: None,
             });

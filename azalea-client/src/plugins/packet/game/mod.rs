@@ -249,7 +249,7 @@ impl GamePacketHandler<'_> {
                     dimension_data.min_y,
                     &instance_holder.instance.read().registries,
                 );
-                instance_loaded_events.send(InstanceLoadedEvent {
+                instance_loaded_events.write(InstanceLoadedEvent {
                     entity: self.player,
                     name: new_instance_name.clone(),
                     instance: Arc::downgrade(&weak_instance),
@@ -339,7 +339,7 @@ impl GamePacketHandler<'_> {
         debug!("Got chunk batch start");
 
         as_system::<EventWriter<_>>(self.ecs, |mut events| {
-            events.send(chunks::ChunkBatchStartEvent {
+            events.write(chunks::ChunkBatchStartEvent {
                 entity: self.player,
             });
         });
@@ -349,7 +349,7 @@ impl GamePacketHandler<'_> {
         debug!("Got chunk batch finished {p:?}");
 
         as_system::<EventWriter<_>>(self.ecs, |mut events| {
-            events.send(chunks::ChunkBatchFinishedEvent {
+            events.write(chunks::ChunkBatchFinishedEvent {
                 entity: self.player,
                 batch_size: p.batch_size,
             });
@@ -390,7 +390,7 @@ impl GamePacketHandler<'_> {
         warn!("Got disconnect packet {p:?}");
 
         as_system::<EventWriter<_>>(self.ecs, |mut events| {
-            events.send(DisconnectEvent {
+            events.write(DisconnectEvent {
                 entity: self.player,
                 reason: Some(p.reason.clone()),
             });
@@ -532,7 +532,7 @@ impl GamePacketHandler<'_> {
                             display_name: updated_info.display_name.clone(),
                         };
                         tab_list.insert(updated_info.profile.uuid, info.clone());
-                        add_player_events.send(AddPlayerEvent {
+                        add_player_events.write(AddPlayerEvent {
                             entity: self.player,
                             info,
                         });
@@ -548,7 +548,7 @@ impl GamePacketHandler<'_> {
                         if p.actions.update_display_name {
                             info.display_name.clone_from(&updated_info.display_name);
                         }
-                        update_player_events.send(UpdatePlayerEvent {
+                        update_player_events.write(UpdatePlayerEvent {
                             entity: self.player,
                             info: info.clone(),
                         });
@@ -577,7 +577,7 @@ impl GamePacketHandler<'_> {
 
                 for uuid in &p.profile_ids {
                     if let Some(info) = tab_list.remove(uuid) {
-                        remove_player_events.send(RemovePlayerEvent {
+                        remove_player_events.write(RemovePlayerEvent {
                             entity: self.player,
                             info,
                         });
@@ -611,7 +611,7 @@ impl GamePacketHandler<'_> {
         debug!("Got chunk with light packet {} {}", p.x, p.z);
 
         as_system::<EventWriter<_>>(self.ecs, |mut events| {
-            events.send(chunks::ReceiveChunkEvent {
+            events.write(chunks::ReceiveChunkEvent {
                 entity: self.player,
                 packet: p.clone(),
             });
@@ -1032,7 +1032,7 @@ impl GamePacketHandler<'_> {
         as_system::<(EventWriter<KeepAliveEvent>, Commands)>(
             self.ecs,
             |(mut keepalive_events, mut commands)| {
-                keepalive_events.send(KeepAliveEvent {
+                keepalive_events.write(KeepAliveEvent {
                     entity: self.player,
                     id: p.id,
                 });
@@ -1084,7 +1084,7 @@ impl GamePacketHandler<'_> {
         debug!("Got player chat packet {p:?}");
 
         as_system::<EventWriter<_>>(self.ecs, |mut events| {
-            events.send(ChatReceivedEvent {
+            events.write(ChatReceivedEvent {
                 entity: self.player,
                 packet: ChatPacket::Player(Arc::new(p.clone())),
             });
@@ -1095,7 +1095,7 @@ impl GamePacketHandler<'_> {
         debug!("Got system chat packet {p:?}");
 
         as_system::<EventWriter<_>>(self.ecs, |mut events| {
-            events.send(ChatReceivedEvent {
+            events.write(ChatReceivedEvent {
                 entity: self.player,
                 packet: ChatPacket::System(Arc::new(p.clone())),
             });
@@ -1106,7 +1106,7 @@ impl GamePacketHandler<'_> {
         debug!("Got disguised chat packet {p:?}");
 
         as_system::<EventWriter<_>>(self.ecs, |mut events| {
-            events.send(ChatReceivedEvent {
+            events.write(ChatReceivedEvent {
                 entity: self.player,
                 packet: ChatPacket::Disguised(Arc::new(p.clone())),
             });
@@ -1217,7 +1217,7 @@ impl GamePacketHandler<'_> {
                         }
                     }
                 } else {
-                    events.send(SetContainerContentEvent {
+                    events.write(SetContainerContentEvent {
                         entity: self.player,
                         slots: p.items.clone(),
                         container_id: p.container_id,
@@ -1283,7 +1283,7 @@ impl GamePacketHandler<'_> {
         debug!("Got container close packet {p:?}");
 
         as_system::<EventWriter<_>>(self.ecs, |mut events| {
-            events.send(ClientSideCloseContainerEvent {
+            events.write(ClientSideCloseContainerEvent {
                 entity: self.player,
             });
         });
@@ -1300,7 +1300,7 @@ impl GamePacketHandler<'_> {
 
         as_system::<EventWriter<_>>(self.ecs, |mut knockback_events| {
             if let Some(knockback) = p.knockback {
-                knockback_events.send(KnockbackEvent {
+                knockback_events.write(KnockbackEvent {
                     entity: self.player,
                     knockback: KnockbackType::Set(knockback),
                 });
@@ -1334,7 +1334,7 @@ impl GamePacketHandler<'_> {
         debug!("Got open screen packet {p:?}");
 
         as_system::<EventWriter<_>>(self.ecs, |mut events| {
-            events.send(MenuOpenedEvent {
+            events.write(MenuOpenedEvent {
                 entity: self.player,
                 window_id: p.container_id,
                 menu_type: p.menu_type,
@@ -1371,7 +1371,7 @@ impl GamePacketHandler<'_> {
 
             if *entity_id == p.player_id && dead.is_none() {
                 commands.entity(self.player).insert(Dead);
-                events.send(DeathEvent {
+                events.write(DeathEvent {
                     entity: self.player,
                     packet: Some(p.clone()),
                 });
@@ -1387,7 +1387,7 @@ impl GamePacketHandler<'_> {
         debug!("Got resource pack packet {p:?}");
 
         as_system::<EventWriter<_>>(self.ecs, |mut events| {
-            events.send(ResourcePackEvent {
+            events.write(ResourcePackEvent {
                 entity: self.player,
                 id: p.id,
                 url: p.url.to_owned(),
@@ -1439,7 +1439,7 @@ impl GamePacketHandler<'_> {
                     dimension_data.min_y,
                     &instance_holder.instance.read().registries,
                 );
-                events.send(InstanceLoadedEvent {
+                events.write(InstanceLoadedEvent {
                     entity: self.player,
                     name: new_instance_name.clone(),
                     instance: Arc::downgrade(&weak_instance),

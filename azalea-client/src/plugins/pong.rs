@@ -24,14 +24,14 @@ impl Plugin for PongPlugin {
 
 pub fn reply_to_game_ping(trigger: Trigger<PingEvent>, mut commands: Commands) {
     commands.trigger(SendPacketEvent::new(
-        trigger.entity(),
+        trigger.target(),
         azalea_protocol::packets::game::ServerboundPong { id: trigger.0.id },
     ));
 }
 
 pub fn reply_to_config_ping(trigger: Trigger<ConfigPingEvent>, mut commands: Commands) {
     commands.trigger(SendConfigPacketEvent::new(
-        trigger.entity(),
+        trigger.target(),
         azalea_protocol::packets::config::ServerboundPong { id: trigger.0.id },
     ));
 }

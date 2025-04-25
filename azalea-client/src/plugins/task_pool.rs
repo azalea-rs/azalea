@@ -3,7 +3,7 @@
 use std::marker::PhantomData;
 
 use bevy_app::{App, Last, Plugin};
-use bevy_ecs::system::{NonSend, Resource};
+use bevy_ecs::prelude::*;
 use bevy_tasks::{
     AsyncComputeTaskPool, ComputeTaskPool, IoTaskPool, TaskPoolBuilder,
     tick_global_task_pools_on_main_thread,

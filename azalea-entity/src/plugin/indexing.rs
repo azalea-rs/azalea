@@ -7,12 +7,7 @@ use std::{
 
 use azalea_core::position::ChunkPos;
 use azalea_world::{Instance, InstanceContainer, InstanceName, MinecraftEntityId};
-use bevy_ecs::{
-    component::Component,
-    entity::Entity,
-    query::{Added, Changed, Without},
-    system::{Commands, Query, Res, ResMut, Resource},
-};
+use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
 use nohash_hasher::IntMap;
 use tracing::{debug, trace, warn};

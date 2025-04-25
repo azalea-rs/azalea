@@ -82,7 +82,7 @@ impl ConfigPacketHandler<'_> {
     pub fn disconnect(&mut self, p: &ClientboundDisconnect) {
         warn!("Got disconnect packet {p:?}");
         as_system::<EventWriter<_>>(self.ecs, |mut events| {
-            events.send(DisconnectEvent {
+            events.write(DisconnectEvent {
                 entity: self.player,
                 reason: Some(p.reason.clone()),
             });
@@ -124,7 +124,7 @@ impl ConfigPacketHandler<'_> {
         );
 
         as_system::<(Commands, EventWriter<_>)>(self.ecs, |(mut commands, mut events)| {
-            events.send(KeepAliveEvent {
+            events.write(KeepAliveEvent {
                 entity: self.player,
                 id: p.id,
             });
@@ -147,7 +147,7 @@ impl ConfigPacketHandler<'_> {
         debug!("Got resource pack push packet {p:?}");
 
         as_system::<EventWriter<_>>(self.ecs, |mut events| {
-            events.send(ResourcePackEvent {
+            events.write(ResourcePackEvent {
                 entity: self.player,
                 id: p.id,
                 url: p.url.to_owned(),

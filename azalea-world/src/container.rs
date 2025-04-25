@@ -4,7 +4,7 @@ use std::{
 };
 
 use azalea_core::{registry_holder::RegistryHolder, resource_location::ResourceLocation};
-use bevy_ecs::{component::Component, system::Resource};
+use bevy_ecs::{component::Component, resource::Resource};
 use derive_more::{Deref, DerefMut};
 use nohash_hasher::IntMap;
 use parking_lot::RwLock;

@@ -7,12 +7,7 @@ use azalea_brigadier::{
     context::CommandContext,
 };
 use bevy_app::App;
-use bevy_ecs::{
-    component::Component,
-    query::With,
-    system::{Query, Resource, RunSystemOnce},
-    world::{FromWorld, World},
-};
+use bevy_ecs::{prelude::*, system::RunSystemOnce};
 use parking_lot::Mutex;
 
 #[test]

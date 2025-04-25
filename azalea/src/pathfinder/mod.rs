@@ -32,9 +32,7 @@ use azalea_entity::{Physics, Position};
 use azalea_physics::PhysicsSet;
 use azalea_world::{InstanceContainer, InstanceName};
 use bevy_app::{PreUpdate, Update};
-use bevy_ecs::prelude::Event;
-use bevy_ecs::query::Changed;
-use bevy_ecs::schedule::IntoSystemConfigs;
+use bevy_ecs::prelude::*;
 use bevy_tasks::{AsyncComputeTaskPool, Task};
 use futures_lite::future;
 use goals::BlockPosGoal;
@@ -477,7 +475,7 @@ pub fn handle_tasks(
     for (entity, mut task) in &mut transform_tasks {
         if let Some(optional_path_found_event) = future::block_on(future::poll_once(&mut task.0)) {
             if let Some(path_found_event) = optional_path_found_event {
-                path_found_events.send(path_found_event);
+                path_found_events.write(path_found_event);
             }
 
             // Task is complete, so remove task component from entity
@@ -698,7 +696,7 @@ pub fn check_node_reached(
 
                         if executing_path.path.is_empty() {
                             info!("the path we just swapped to was empty, so reached end of path");
-                            walk_events.send(StartWalkEvent {
+                            walk_events.write(StartWalkEvent {
                                 entity,
                                 direction: WalkDirection::None,
                             });
@@ -712,7 +710,7 @@ pub fn check_node_reached(
 
                     if executing_path.path.is_empty() {
                         debug!("pathfinder path is now empty");
-                        walk_events.send(StartWalkEvent {
+                        walk_events.write(StartWalkEvent {
                             entity,
                             direction: WalkDirection::None,
                         });
@@ -923,7 +921,7 @@ pub fn recalculate_near_end_of_path(
                         "recalculate_near_end_of_path executing_path.is_path_partial: {}",
                         executing_path.is_path_partial
                     );
-                    goto_events.send(GotoEvent {
+                    goto_events.write(GotoEvent {
                         entity,
                         goal,
                         successors_fn,
@@ -947,7 +945,7 @@ pub fn recalculate_near_end_of_path(
                                 info!(
                                     "the path we just swapped to was empty, so reached end of path"
                                 );
-                                walk_events.send(StartWalkEvent {
+                                walk_events.write(StartWalkEvent {
                                     entity,
                                     direction: WalkDirection::None,
                                 });
@@ -955,7 +953,7 @@ pub fn recalculate_near_end_of_path(
                                 break;
                             }
                         } else {
-                            walk_events.send(StartWalkEvent {
+                            walk_events.write(StartWalkEvent {
                                 entity,
                                 direction: WalkDirection::None,
                             });
@@ -966,7 +964,7 @@ pub fn recalculate_near_end_of_path(
                 _ => {
                     if executing_path.path.is_empty() {
                         // idk when this can happen but stop moving just in case
-                        walk_events.send(StartWalkEvent {
+                        walk_events.write(StartWalkEvent {
                             entity,
                             direction: WalkDirection::None,
                         });
@@ -1033,7 +1031,7 @@ pub fn recalculate_if_has_goal_but_no_path(
         if pathfinder.goal.is_some() && !pathfinder.is_calculating {
             if let Some(goal) = pathfinder.goal.as_ref().cloned() {
                 debug!("Recalculating path because it has a goal but no ExecutingPath");
-                goto_events.send(GotoEvent {
+                goto_events.write(GotoEvent {
                     entity,
                     goal,
                     successors_fn: pathfinder.successors_fn.unwrap(),
@@ -1081,7 +1079,7 @@ pub fn handle_stop_pathfinding_event(
         }
 
         if executing_path.path.is_empty() {
-            walk_events.send(StartWalkEvent {
+            walk_events.write(StartWalkEvent {
                 entity: event.entity,
                 direction: WalkDirection::None,
             });
@@ -1098,7 +1096,7 @@ pub fn stop_pathfinding_on_instance_change(
         if !executing_path.path.is_empty() {
             debug!("instance changed, clearing path");
             executing_path.path.clear();
-            stop_pathfinding_events.send(StopPathfindingEvent {
+            stop_pathfinding_events.write(StopPathfindingEvent {
                 entity,
                 force: true,
             });

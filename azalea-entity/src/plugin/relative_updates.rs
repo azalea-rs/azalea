@@ -18,12 +18,7 @@
 use std::sync::Arc;
 
 use azalea_world::{MinecraftEntityId, PartialInstance};
-use bevy_ecs::{
-    prelude::{Component, Entity},
-    query::With,
-    system::{EntityCommand, Query},
-    world::{EntityWorldMut, World},
-};
+use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
 use parking_lot::RwLock;
 use tracing::warn;
@@ -68,19 +63,17 @@ impl RelativeEntityUpdate {
 pub struct UpdatesReceived(u32);
 
 impl EntityCommand for RelativeEntityUpdate {
-    fn apply(self, entity: Entity, world: &mut World) {
+    fn apply(self, mut entity: EntityWorldMut) {
         let partial_entity_infos = &mut self.partial_world.write().entity_infos;
 
-        let mut entity_mut = world.entity_mut(entity);
-
-        if Some(entity) == partial_entity_infos.owner_entity {
+        if Some(entity.id()) == partial_entity_infos.owner_entity {
             // if the entity owns this partial world, it's always allowed to update itself
-            (self.update)(&mut entity_mut);
+            (self.update)(&mut entity);
             return;
         };
 
-        let entity_id = *entity_mut.get::<MinecraftEntityId>().unwrap();
-        if entity_mut.contains::<LocalEntity>() {
+        let entity_id = *entity.get::<MinecraftEntityId>().unwrap();
+        if entity.contains::<LocalEntity>() {
             // a client tried to update another client, which isn't allowed
             return;
         }
@@ -90,7 +83,7 @@ impl EntityCommand for RelativeEntityUpdate {
             .get(&entity_id)
             .copied();
 
-        let can_update = if let Some(updates_received) = entity_mut.get::<UpdatesReceived>() {
+        let can_update = if let Some(updates_received) = entity.get::<UpdatesReceived>() {
             this_client_updates_received.unwrap_or(1) == **updates_received
         } else {
             // no UpdatesReceived means the entity was just spawned
@@ -102,9 +95,8 @@ impl EntityCommand for RelativeEntityUpdate {
                 .updates_received
                 .insert(entity_id, new_updates_received);
 
-            entity_mut.insert(UpdatesReceived(new_updates_received));
+            entity.insert(UpdatesReceived(new_updates_received));
 
-            let mut entity = world.entity_mut(entity);
             (self.update)(&mut entity);
         }
     }

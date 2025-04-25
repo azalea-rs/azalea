@@ -24,7 +24,7 @@ use azalea_client::{
 use azalea_protocol::{ServerAddress, resolver};
 use azalea_world::InstanceContainer;
 use bevy_app::{App, PluginGroup, PluginGroupBuilder, Plugins};
-use bevy_ecs::{component::Component, entity::Entity, system::Resource, world::World};
+use bevy_ecs::prelude::*;
 use futures::future::{BoxFuture, join_all};
 use parking_lot::{Mutex, RwLock};
 use tokio::sync::mpsc;

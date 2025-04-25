@@ -10,12 +10,7 @@ use azalea_protocol::packets::game::{
     c_system_chat::ClientboundSystemChat,
 };
 use bevy_app::{App, Plugin, Update};
-use bevy_ecs::{
-    entity::Entity,
-    event::{EventReader, EventWriter},
-    prelude::Event,
-    schedule::IntoSystemConfigs,
-};
+use bevy_ecs::prelude::*;
 use handler::{SendChatKindEvent, handle_send_chat_kind_event};
 use uuid::Uuid;
 
@@ -204,13 +199,13 @@ pub fn handle_send_chat_event(
 ) {
     for event in events.read() {
         if event.content.starts_with('/') {
-            send_chat_kind_events.send(SendChatKindEvent {
+            send_chat_kind_events.write(SendChatKindEvent {
                 entity: event.entity,
                 content: event.content[1..].to_string(),
                 kind: ChatKind::Command,
             });
         } else {
-            send_chat_kind_events.send(SendChatKindEvent {
+            send_chat_kind_events.write(SendChatKindEvent {
                 entity: event.entity,
                 content: event.content.clone(),
                 kind: ChatKind::Message,

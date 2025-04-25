@@ -9,14 +9,7 @@ use azalea_entity::{Dead, InLoadedChunk};
 use azalea_protocol::packets::game::c_player_combat_kill::ClientboundPlayerCombatKill;
 use azalea_world::{InstanceName, MinecraftEntityId};
 use bevy_app::{App, Plugin, PreUpdate, Update};
-use bevy_ecs::{
-    component::Component,
-    entity::Entity,
-    event::EventReader,
-    query::{Added, With, Without},
-    schedule::IntoSystemConfigs,
-    system::{Commands, Query},
-};
+use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
 use tokio::sync::mpsc;
 

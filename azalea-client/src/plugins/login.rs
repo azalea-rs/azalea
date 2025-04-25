@@ -27,7 +27,7 @@ fn handle_receive_hello_event(trigger: Trigger<ReceiveHelloEvent>, mut commands:
 
     let account = trigger.account.clone();
     let packet = trigger.packet.clone();
-    let player = trigger.entity();
+    let player = trigger.target();
 
     let task = task_pool.spawn(auth_with_account(account, packet));
     commands.entity(player).insert(AuthTask(task));

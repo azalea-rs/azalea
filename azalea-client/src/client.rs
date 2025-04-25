@@ -32,12 +32,8 @@ use azalea_protocol::{
 use azalea_world::{Instance, InstanceContainer, InstanceName, MinecraftEntityId, PartialInstance};
 use bevy_app::{App, Plugin, PluginsState, Update};
 use bevy_ecs::{
-    bundle::Bundle,
-    component::Component,
-    entity::Entity,
-    schedule::{InternedScheduleLabel, IntoSystemConfigs, LogLevel, ScheduleBuildSettings},
-    system::Resource,
-    world::World,
+    prelude::*,
+    schedule::{InternedScheduleLabel, LogLevel, ScheduleBuildSettings},
 };
 use parking_lot::{Mutex, RwLock};
 use simdnbt::owned::NbtCompound;

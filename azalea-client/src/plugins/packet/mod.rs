@@ -20,7 +20,7 @@ pub fn death_event_on_0_health(
 ) {
     for (entity, health) in query.iter() {
         if **health == 0. {
-            death_events.send(DeathEvent {
+            death_events.write(DeathEvent {
                 entity,
                 packet: None,
             });

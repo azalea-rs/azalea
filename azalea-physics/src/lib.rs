@@ -20,13 +20,7 @@ use azalea_entity::{
 };
 use azalea_world::{Instance, InstanceContainer, InstanceName};
 use bevy_app::{App, Plugin};
-use bevy_ecs::{
-    entity::Entity,
-    query::With,
-    schedule::{IntoSystemConfigs, SystemSet},
-    system::{Query, Res},
-    world::Mut,
-};
+use bevy_ecs::prelude::*;
 use clip::box_traverse_blocks;
 use collision::{
     BLOCK_SHAPE, BlockWithShape, MoverType, VoxelShape,
