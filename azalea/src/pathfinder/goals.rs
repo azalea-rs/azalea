@@ -194,6 +194,7 @@ impl<T: Goal> Goal for AndGoals<T> {
 #[derive(Clone, Debug)]
 pub struct ReachBlockPosGoal {
     pub pos: BlockPos,
+    pub distance: f32,
     pub chunk_storage: ChunkStorage,
 }
 impl Goal for ReachBlockPosGoal {
@@ -202,8 +203,8 @@ impl Goal for ReachBlockPosGoal {
     }
     fn success(&self, n: BlockPos) -> bool {
         // only do the expensive check if we're close enough
-        let max_pick_range = 6;
-        let actual_pick_range = 4.5;
+        let max_pick_range = (self.distance + 2.).ceil() as i32;
+        let actual_pick_range = self.distance.into();
 
         let distance = (self.pos - n).length_squared();
         if distance > max_pick_range * max_pick_range {
