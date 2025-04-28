@@ -146,7 +146,7 @@ mod tests {
     use crate::style::Ansi;
 
     #[test]
-    fn test_hypixel_motd() {
+    fn test_hypixel_motd_ansi() {
         let component =
             TextComponent::new("§aHypixel Network  §c[1.8-1.18]\n§b§lHAPPY HOLIDAYS".to_string())
                 .get();
@@ -159,6 +159,24 @@ mod tests {
                 AQUA = Ansi::rgb(ChatFormatting::Aqua.color().unwrap()),
                 BOLD = Ansi::BOLD,
                 RESET = Ansi::RESET
+            )
+        );
+    }
+
+    #[test]
+    fn test_hypixel_motd_html() {
+        let component =
+            TextComponent::new("§aHypixel Network  §c[1.8-1.18]\n§b§lHAPPY HOLIDAYS".to_string())
+                .get();
+
+        assert_eq!(
+            component.to_html(),
+            format!(
+                "{GREEN}Hypixel Network  {END_SPAN}{RED}[1.8-1.18]<br>{END_SPAN}{BOLD_AQUA}HAPPY HOLIDAYS{END_SPAN}",
+                END_SPAN = "</span>",
+                GREEN = "<span style=\"color: #55FF55;\">",
+                RED = "<span style=\"color: #FF5555;\">",
+                BOLD_AQUA = "<span style=\"color: #55FFFF;font-weight: bold;\">",
             )
         );
     }
