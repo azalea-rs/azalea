@@ -71,7 +71,8 @@ impl FormattedText {
     /// closures to drive styling, text transformation, and final cleanup.
     ///
     /// # Type params
-    /// - `F`: `(running, component, default) -> (prefix, suffix)` for per-component styling
+    /// - `F`: `(running, component, default) -> (prefix, suffix)` for
+    ///   per-component styling
     /// - `S`: `&str -> String` for text tweaks (escaping, mapping, etc.)
     /// - `C`: `&final_running_style -> String` for any trailing cleanup
     ///
@@ -151,7 +152,6 @@ impl FormattedText {
         output
     }
 
-
     /// Convert this component into an
     /// [ANSI string](https://en.wikipedia.org/wiki/ANSI_escape_code).
     ///
@@ -195,11 +195,20 @@ impl FormattedText {
         self.to_custom_format(
             |running, new, _| {
                 (
-                    format!("<span style=\"{}\">", running.merged_with(new).get_html_style()),
+                    format!(
+                        "<span style=\"{}\">",
+                        running.merged_with(new).get_html_style()
+                    ),
                     "</span>".to_owned(),
                 )
             },
-            |text| text.replace("<", "&lt;").replace("\n", "<br>"),
+            |text| {
+                text.replace("&", "&amp;")
+                    .replace("<", "&lt;")
+                    // usually unnecessary but good for compatibility
+                    .replace(">", "&gt;")
+                    .replace("\n", "<br>")
+            },
             |_| "".to_string(),
             &DEFAULT_STYLE,
         )

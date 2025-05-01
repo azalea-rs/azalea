@@ -182,6 +182,21 @@ mod tests {
     }
 
     #[test]
+    fn test_xss_html() {
+        let component = TextComponent::new("§a<b>&\n§b</b>".to_string()).get();
+
+        assert_eq!(
+            component.to_html(),
+            format!(
+                "{GREEN}&lt;b&gt;&amp;<br>{END_SPAN}{AQUA}&lt;/b&gt;{END_SPAN}",
+                END_SPAN = "</span>",
+                GREEN = "<span style=\"color: #55FF55;\">",
+                AQUA = "<span style=\"color: #55FFFF;\">",
+            )
+        );
+    }
+
+    #[test]
     fn test_legacy_color_code_to_component() {
         let component = TextComponent::new("§lHello §r§1w§2o§3r§4l§5d".to_string()).get();
         assert_eq!(
