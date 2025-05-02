@@ -10,7 +10,7 @@ use bevy_ecs::prelude::*;
 use super::{
     disconnect::DisconnectEvent,
     events::LocalPlayerEvents,
-    join::{ConnectOpts, StartJoinServerEvent},
+    join::{ConnectOpts, ConnectionFailedEvent, StartJoinServerEvent},
 };
 use crate::Account;
 
@@ -39,26 +39,43 @@ impl Plugin for AutoReconnectPlugin {
 
 pub fn start_rejoin_on_disconnect(
     mut commands: Commands,
-    mut events: EventReader<DisconnectEvent>,
+    mut disconnect_events: EventReader<DisconnectEvent>,
+    mut connection_failed_events: EventReader<ConnectionFailedEvent>,
     auto_reconnect_delay_res: Option<Res<AutoReconnectDelay>>,
     auto_reconnect_delay_query: Query<&AutoReconnectDelay>,
 ) {
-    for event in events.read() {
-        let delay = if let Ok(c) = auto_reconnect_delay_query.get(event.entity) {
-            c.delay
-        } else if let Some(r) = &auto_reconnect_delay_res {
-            r.delay
-        } else {
+    for entity in disconnect_events
+        .read()
+        .map(|e| e.entity)
+        .chain(connection_failed_events.read().map(|e| e.entity))
+    {
+        let Some(delay) = get_delay(
+            &auto_reconnect_delay_res,
+            auto_reconnect_delay_query,
+            entity,
+        ) else {
             // no auto reconnect
             continue;
         };
 
         let reconnect_after = Instant::now() + delay;
-        commands
-            .entity(event.entity)
-            .insert(InternalReconnectAfter {
-                instant: reconnect_after,
-            });
+        commands.entity(entity).insert(InternalReconnectAfter {
+            instant: reconnect_after,
+        });
+    }
+}
+
+fn get_delay(
+    auto_reconnect_delay_res: &Option<Res<AutoReconnectDelay>>,
+    auto_reconnect_delay_query: Query<&AutoReconnectDelay>,
+    entity: Entity,
+) -> Option<Duration> {
+    if let Ok(c) = auto_reconnect_delay_query.get(entity) {
+        Some(c.delay)
+    } else if let Some(r) = &auto_reconnect_delay_res {
+        Some(r.delay)
+    } else {
+        None
     }
 }
 
