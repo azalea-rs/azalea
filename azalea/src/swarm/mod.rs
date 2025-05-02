@@ -602,8 +602,12 @@ pub enum SwarmEvent {
     Init,
     /// A bot got disconnected from the server.
     ///
-    /// You can implement an auto-reconnect by calling [`Swarm::add_with_opts`]
-    /// with the account and options from this event.
+    /// If you'd like to implement special auto-reconnect behavior beyond what's
+    /// built-in, you can disable that with [`SwarmBuilder::reconnect_delay`]
+    /// and then call [`Swarm::add_with_opts`] with the account and options
+    /// from this event.
+    ///
+    /// [`SwarmBuilder::reconnect_delay`]: crate::swarm::SwarmBuilder::reconnect_after
     Disconnect(Box<Account>, JoinOpts),
     /// At least one bot received a chat message.
     Chat(ChatPacket),
