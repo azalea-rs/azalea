@@ -173,7 +173,7 @@ impl Client {
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     ///     let account = Account::offline("bot");
-    ///     let (client, rx) = Client::join(&account, "localhost").await?;
+    ///     let (client, rx) = Client::join(account, "localhost").await?;
     ///     client.chat("Hello, world!");
     ///     client.disconnect();
     ///     Ok(())
