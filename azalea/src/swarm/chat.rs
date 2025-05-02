@@ -20,12 +20,7 @@ use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::Event;
 
 use super::{Swarm, SwarmEvent};
-use crate::ecs::{
-    component::Component,
-    event::{EventReader, EventWriter},
-    schedule::IntoSystemConfigs,
-    system::{Commands, Query, Res, ResMut, Resource},
-};
+use crate::ecs::prelude::*;
 
 #[derive(Clone)]
 pub struct SwarmChatPlugin;
@@ -99,7 +94,7 @@ fn chat_listener(
 
         if !found {
             // didn't find the message, so fire the swarm event and add to the queue
-            new_chat_messages_events.send(NewChatMessageEvent(event.packet.clone()));
+            new_chat_messages_events.write(NewChatMessageEvent(event.packet.clone()));
             global_chat_state.chat_queue.push_back(event.packet.clone());
             client_chat_index =
                 global_chat_state.chat_queue.len() + global_chat_state.chat_min_index;

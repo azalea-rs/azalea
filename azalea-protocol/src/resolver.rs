@@ -3,9 +3,7 @@
 use std::net::{IpAddr, SocketAddr};
 
 use async_recursion::async_recursion;
-use hickory_resolver::{
-    Name, TokioResolver, config::ResolverConfig, name_server::TokioConnectionProvider,
-};
+use hickory_resolver::{Name, TokioResolver, name_server::TokioConnectionProvider};
 use thiserror::Error;
 
 use crate::ServerAddress;
@@ -31,11 +29,9 @@ pub async fn resolve_address(address: &ServerAddress) -> Result<SocketAddr, Reso
     // we specify Cloudflare instead of the default resolver because
     // hickory_resolver has an issue on Windows where it's really slow using the
     // default resolver
-    let resolver = TokioResolver::builder_with_config(
-        ResolverConfig::cloudflare(),
-        TokioConnectionProvider::default(),
-    )
-    .build();
+    let resolver = TokioResolver::builder(TokioConnectionProvider::default())
+        .unwrap()
+        .build();
 
     // first, we do a srv lookup for _minecraft._tcp.<host>
     let srv_redirect_result = resolver

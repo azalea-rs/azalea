@@ -20,6 +20,7 @@ use azalea_registry::{DimensionType, EntityKind};
 use azalea_world::palette::{PalettedContainer, PalettedContainerKind};
 use azalea_world::{Chunk, Instance, MinecraftEntityId, Section};
 use bevy_app::App;
+use bevy_ecs::component::Mutable;
 use bevy_ecs::{prelude::*, schedule::ExecutorKind};
 use parking_lot::RwLock;
 use simdnbt::owned::{NbtCompound, NbtTag};
@@ -100,6 +101,11 @@ impl Simulation {
     pub fn tick(&mut self) {
         tick_app(&mut self.app);
     }
+
+    pub fn minecraft_entity_id(&self) -> MinecraftEntityId {
+        self.component::<MinecraftEntityId>()
+    }
+
     pub fn component<T: Component + Clone>(&self) -> T {
         self.app.world().get::<T>(self.entity).unwrap().clone()
     }
@@ -109,7 +115,10 @@ impl Simulation {
     pub fn has_component<T: Component>(&self) -> bool {
         self.app.world().get::<T>(self.entity).is_some()
     }
-    pub fn with_component_mut<T: Component>(&mut self, f: impl FnOnce(&mut T)) {
+    pub fn with_component_mut<T: Component<Mutability = Mutable>>(
+        &mut self,
+        f: impl FnOnce(&mut T),
+    ) {
         f(&mut self
             .app
             .world_mut()

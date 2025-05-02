@@ -3,17 +3,9 @@
 use azalea_chat::FormattedText;
 use azalea_entity::{EntityBundle, InLoadedChunk, LocalEntity, metadata::PlayerMetadataBundle};
 use bevy_app::{App, Plugin, PostUpdate};
-use bevy_ecs::{
-    component::Component,
-    entity::Entity,
-    event::{EventReader, EventWriter},
-    prelude::Event,
-    query::{Changed, With},
-    schedule::IntoSystemConfigs,
-    system::{Commands, Query},
-};
+use bevy_ecs::prelude::*;
 use derive_more::Deref;
-use tracing::trace;
+use tracing::info;
 
 use crate::{InstanceHolder, client::JoinedClientBundle, connection::RawConnection};
 
@@ -55,8 +47,15 @@ pub fn remove_components_from_disconnected_players(
     mut events: EventReader<DisconnectEvent>,
     mut loaded_by_query: Query<&mut azalea_entity::LoadedBy>,
 ) {
-    for DisconnectEvent { entity, .. } in events.read() {
-        trace!("Got DisconnectEvent for {entity:?}");
+    for DisconnectEvent { entity, reason } in events.read() {
+        info!(
+            "A client {entity:?} was disconnected{}",
+            if let Some(reason) = reason {
+                format!(": {reason}")
+            } else {
+                "".to_string()
+            }
+        );
         commands
             .entity(*entity)
             .remove::<JoinedClientBundle>()
@@ -98,7 +97,7 @@ fn disconnect_on_connection_dead(
 ) {
     for (entity, &is_connection_alive) in &query {
         if !*is_connection_alive {
-            disconnect_events.send(DisconnectEvent {
+            disconnect_events.write(DisconnectEvent {
                 entity,
                 reason: None,
             });

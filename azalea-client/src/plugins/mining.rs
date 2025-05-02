@@ -127,12 +127,12 @@ fn handle_auto_mine(
             ))
             && !hit_result_component.miss
         {
-            start_mining_block_event.send(StartMiningBlockEvent {
+            start_mining_block_event.write(StartMiningBlockEvent {
                 entity,
                 position: block_pos,
             });
         } else if mining.is_some() && hit_result_component.miss {
-            stop_mining_block_event.send(StopMiningBlockEvent { entity });
+            stop_mining_block_event.write(StopMiningBlockEvent { entity });
         }
     }
 }
@@ -168,7 +168,7 @@ fn handle_start_mining_block_event(
             // we're not looking at the block, arbitrary direction
             Direction::Down
         };
-        start_mining_events.send(StartMiningBlockWithDirectionEvent {
+        start_mining_events.write(StartMiningBlockWithDirectionEvent {
             entity: event.entity,
             position: event.position,
             direction,
@@ -236,7 +236,7 @@ fn handle_start_mining_block_with_direction_event(
 
         if game_mode.current == GameMode::Creative {
             *sequence_number += 1;
-            finish_mining_events.send(FinishMiningBlockEvent {
+            finish_mining_events.write(FinishMiningBlockEvent {
                 entity: event.entity,
                 position: event.position,
             });
@@ -283,7 +283,7 @@ fn handle_start_mining_block_with_direction_event(
 
             if block_is_solid && **mine_progress == 0. {
                 // interact with the block (like note block left click) here
-                attack_block_events.send(AttackBlockEvent {
+                attack_block_events.write(AttackBlockEvent {
                     entity: event.entity,
                     position: event.position,
                 });
@@ -303,7 +303,7 @@ fn handle_start_mining_block_with_direction_event(
                 ) >= 1.
             {
                 // block was broken instantly
-                finish_mining_events.send(FinishMiningBlockEvent {
+                finish_mining_events.write(FinishMiningBlockEvent {
                     entity: event.entity,
                     position: event.position,
                 });
@@ -316,7 +316,7 @@ fn handle_start_mining_block_with_direction_event(
                 **current_mining_item = held_item;
                 **mine_progress = 0.;
                 **mine_ticks = 0.;
-                mine_block_progress_events.send(MineBlockProgressEvent {
+                mine_block_progress_events.write(MineBlockProgressEvent {
                     entity: event.entity,
                     position: event.position,
                     destroy_stage: mine_progress.destroy_stage(),
@@ -502,7 +502,7 @@ pub fn handle_stop_mining_block_event(
         ));
         commands.entity(event.entity).remove::<Mining>();
         **mine_progress = 0.;
-        mine_block_progress_events.send(MineBlockProgressEvent {
+        mine_block_progress_events.write(MineBlockProgressEvent {
             entity: event.entity,
             position: mine_block_pos,
             destroy_stage: None,
@@ -558,7 +558,7 @@ pub fn continue_mining_block(
         if game_mode.current == GameMode::Creative {
             // TODO: worldborder check
             **mine_delay = 5;
-            finish_mining_events.send(FinishMiningBlockEvent {
+            finish_mining_events.write(FinishMiningBlockEvent {
                 entity,
                 position: mining.pos,
             });
@@ -572,7 +572,7 @@ pub fn continue_mining_block(
                     sequence: **sequence_number,
                 },
             ));
-            swing_arm_events.send(SwingArmEvent { entity });
+            swing_arm_events.write(SwingArmEvent { entity });
         } else if is_same_mining_target(
             mining.pos,
             inventory,
@@ -604,7 +604,7 @@ pub fn continue_mining_block(
             if **mine_progress >= 1. {
                 commands.entity(entity).remove::<Mining>();
                 *sequence_number += 1;
-                finish_mining_events.send(FinishMiningBlockEvent {
+                finish_mining_events.write(FinishMiningBlockEvent {
                     entity,
                     position: mining.pos,
                 });
@@ -622,20 +622,20 @@ pub fn continue_mining_block(
                 **mine_delay = 0;
             }
 
-            mine_block_progress_events.send(MineBlockProgressEvent {
+            mine_block_progress_events.write(MineBlockProgressEvent {
                 entity,
                 position: mining.pos,
                 destroy_stage: mine_progress.destroy_stage(),
             });
-            swing_arm_events.send(SwingArmEvent { entity });
+            swing_arm_events.write(SwingArmEvent { entity });
         } else {
-            start_mining_events.send(StartMiningBlockWithDirectionEvent {
+            start_mining_events.write(StartMiningBlockWithDirectionEvent {
                 entity,
                 position: mining.pos,
                 direction: mining.dir,
             });
         }
 
-        swing_arm_events.send(SwingArmEvent { entity });
+        swing_arm_events.write(SwingArmEvent { entity });
     }
 }

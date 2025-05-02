@@ -8,4 +8,4 @@ pub mod style;
 pub mod text_component;
 pub mod translatable_component;
 
-pub use component::FormattedText;
+pub use component::{FormattedText, DEFAULT_STYLE};

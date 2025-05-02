@@ -26,12 +26,14 @@ fn make_test_app() -> App {
 }
 
 pub fn insert_overworld(app: &mut App) -> Arc<RwLock<Instance>> {
-    app.world_mut().resource_mut::<InstanceContainer>().insert(
-        ResourceLocation::new("minecraft:overworld"),
-        384,
-        -64,
-        &RegistryHolder::default(),
-    )
+    app.world_mut()
+        .resource_mut::<InstanceContainer>()
+        .get_or_insert(
+            ResourceLocation::new("minecraft:overworld"),
+            384,
+            -64,
+            &RegistryHolder::default(),
+        )
 }
 
 #[test]
@@ -248,12 +250,15 @@ fn test_top_slab_collision() {
 #[test]
 fn test_weird_wall_collision() {
     let mut app = make_test_app();
-    let world_lock = app.world_mut().resource_mut::<InstanceContainer>().insert(
-        ResourceLocation::new("minecraft:overworld"),
-        384,
-        -64,
-        &RegistryHolder::default(),
-    );
+    let world_lock = app
+        .world_mut()
+        .resource_mut::<InstanceContainer>()
+        .get_or_insert(
+            ResourceLocation::new("minecraft:overworld"),
+            384,
+            -64,
+            &RegistryHolder::default(),
+        );
     let mut partial_world = PartialInstance::default();
 
     partial_world.chunks.set(
@@ -307,12 +312,15 @@ fn test_weird_wall_collision() {
 #[test]
 fn test_negative_coordinates_weird_wall_collision() {
     let mut app = make_test_app();
-    let world_lock = app.world_mut().resource_mut::<InstanceContainer>().insert(
-        ResourceLocation::new("minecraft:overworld"),
-        384,
-        -64,
-        &RegistryHolder::default(),
-    );
+    let world_lock = app
+        .world_mut()
+        .resource_mut::<InstanceContainer>()
+        .get_or_insert(
+            ResourceLocation::new("minecraft:overworld"),
+            384,
+            -64,
+            &RegistryHolder::default(),
+        );
     let mut partial_world = PartialInstance::default();
 
     partial_world.chunks.set(
@@ -370,12 +378,15 @@ fn test_negative_coordinates_weird_wall_collision() {
 #[test]
 fn spawn_and_unload_world() {
     let mut app = make_test_app();
-    let world_lock = app.world_mut().resource_mut::<InstanceContainer>().insert(
-        ResourceLocation::new("minecraft:overworld"),
-        384,
-        -64,
-        &RegistryHolder::default(),
-    );
+    let world_lock = app
+        .world_mut()
+        .resource_mut::<InstanceContainer>()
+        .get_or_insert(
+            ResourceLocation::new("minecraft:overworld"),
+            384,
+            -64,
+            &RegistryHolder::default(),
+        );
     let mut partial_world = PartialInstance::default();
 
     partial_world.chunks.set(

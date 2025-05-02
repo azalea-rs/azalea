@@ -7,12 +7,7 @@ use std::{
 
 use azalea_core::position::ChunkPos;
 use azalea_world::{Instance, InstanceContainer, InstanceName, MinecraftEntityId};
-use bevy_ecs::{
-    component::Component,
-    entity::Entity,
-    query::{Added, Changed, Without},
-    system::{Commands, Query, Res, ResMut, Resource},
-};
+use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
 use nohash_hasher::IntMap;
 use tracing::{debug, trace, warn};
@@ -136,8 +131,9 @@ pub fn update_entity_chunk_positions(
     mut query: Query<(Entity, &Position, &InstanceName, &mut EntityChunkPos), Changed<Position>>,
     instance_container: Res<InstanceContainer>,
 ) {
-    for (entity, pos, world_name, mut entity_chunk_pos) in query.iter_mut() {
-        let instance_lock = instance_container.get(world_name).unwrap();
+    for (entity, pos, instance_name, mut entity_chunk_pos) in query.iter_mut() {
+        // TODO: move this inside of the if statement so it's not called as often
+        let instance_lock = instance_container.get(instance_name).unwrap();
         let mut instance = instance_lock.write();
 
         let old_chunk = **entity_chunk_pos;

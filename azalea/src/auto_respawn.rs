@@ -26,7 +26,7 @@ fn auto_respawn(
     mut perform_respawn_events: EventWriter<PerformRespawnEvent>,
 ) {
     for event in events.read() {
-        perform_respawn_events.send(PerformRespawnEvent {
+        perform_respawn_events.write(PerformRespawnEvent {
             entity: event.entity,
         });
     }

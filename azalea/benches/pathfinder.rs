@@ -3,7 +3,7 @@ use std::{hint::black_box, sync::Arc, time::Duration};
 use azalea::{
     BlockPos,
     pathfinder::{
-        astar::{self, PathfinderTimeout, a_star},
+        astar::{self, PathfinderTimeout, WeightedNode, a_star},
         goals::{BlockPosGoal, Goal},
         mining::MiningCache,
         rel_block_pos::RelBlockPos,
@@ -165,6 +165,55 @@ fn bench_pathfinder(c: &mut Criterion) {
         run_pathfinder_benchmark(b, generate_mining_world);
     });
     slow_group.finish();
+
+    c.bench_function("weighted_node_le g_score", |b| {
+        b.iter(|| {
+            WeightedNode::le(
+                &black_box(WeightedNode {
+                    index: 0,
+                    g_score: 1.,
+                    f_score: 0.,
+                }),
+                &black_box(WeightedNode {
+                    index: 0,
+                    g_score: 0.,
+                    f_score: 0.,
+                }),
+            )
+        });
+    });
+    c.bench_function("weighted_node_le f_score", |b| {
+        b.iter(|| {
+            WeightedNode::le(
+                &black_box(WeightedNode {
+                    index: 0,
+                    g_score: 0.,
+                    f_score: 1.,
+                }),
+                &black_box(WeightedNode {
+                    index: 0,
+                    g_score: 0.,
+                    f_score: 0.,
+                }),
+            )
+        });
+    });
+    c.bench_function("weighted_node_le eq", |b| {
+        b.iter(|| {
+            WeightedNode::le(
+                &black_box(WeightedNode {
+                    index: 0,
+                    g_score: 0.,
+                    f_score: 0.,
+                }),
+                &black_box(WeightedNode {
+                    index: 0,
+                    g_score: 0.,
+                    f_score: 0.,
+                }),
+            )
+        });
+    });
 }
 
 criterion_group!(benches, bench_pathfinder);

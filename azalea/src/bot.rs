@@ -11,8 +11,7 @@ use azalea_entity::{
 };
 use azalea_physics::PhysicsSet;
 use bevy_app::Update;
-use bevy_ecs::prelude::Event;
-use bevy_ecs::schedule::IntoSystemConfigs;
+use bevy_ecs::prelude::*;
 use futures_lite::Future;
 use tracing::trace;
 

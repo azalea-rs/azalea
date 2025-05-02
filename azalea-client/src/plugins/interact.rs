@@ -19,15 +19,7 @@ use azalea_protocol::packets::game::{
 };
 use azalea_world::{Instance, InstanceContainer, InstanceName};
 use bevy_app::{App, Plugin, Update};
-use bevy_ecs::{
-    component::Component,
-    entity::Entity,
-    event::{Event, EventReader},
-    observer::Trigger,
-    query::{Changed, With},
-    schedule::IntoSystemConfigs,
-    system::{Commands, Query, Res},
-};
+use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
 use tracing::warn;
 

@@ -67,7 +67,7 @@ pub struct ChunkBatchFinishedEvent {
 
 pub fn handle_receive_chunk_events(
     mut events: EventReader<ReceiveChunkEvent>,
-    mut query: Query<&mut InstanceHolder>,
+    mut query: Query<&InstanceHolder>,
 ) {
     for event in events.read() {
         let pos = ChunkPos::new(event.packet.x, event.packet.z);

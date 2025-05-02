@@ -16,14 +16,7 @@ use azalea_protocol::packets::game::{
 };
 use azalea_registry::MenuKind;
 use bevy_app::{App, Plugin, Update};
-use bevy_ecs::{
-    component::Component,
-    entity::Entity,
-    event::EventReader,
-    prelude::{Event, EventWriter},
-    schedule::{IntoSystemConfigs, SystemSet},
-    system::{Commands, Query},
-};
+use bevy_ecs::prelude::*;
 use tracing::{error, warn};
 
 use crate::{
@@ -628,7 +621,7 @@ fn handle_container_close_event(
                 container_id: inventory.id,
             },
         ));
-        client_side_events.send(ClientSideCloseContainerEvent {
+        client_side_events.write(ClientSideCloseContainerEvent {
             entity: event.entity,
         });
     }

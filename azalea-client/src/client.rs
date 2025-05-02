@@ -1,7 +1,7 @@
 use std::{
     collections::HashMap,
     fmt::Debug,
-    io,
+    io, mem,
     net::SocketAddr,
     sync::Arc,
     thread,
@@ -32,12 +32,8 @@ use azalea_protocol::{
 use azalea_world::{Instance, InstanceContainer, InstanceName, MinecraftEntityId, PartialInstance};
 use bevy_app::{App, Plugin, PluginsState, Update};
 use bevy_ecs::{
-    bundle::Bundle,
-    component::Component,
-    entity::Entity,
-    schedule::{InternedScheduleLabel, IntoSystemConfigs, LogLevel, ScheduleBuildSettings},
-    system::Resource,
-    world::World,
+    prelude::*,
+    schedule::{InternedScheduleLabel, LogLevel, ScheduleBuildSettings},
 };
 use parking_lot::{Mutex, RwLock};
 use simdnbt::owned::NbtCompound;
@@ -128,7 +124,8 @@ impl<'a> StartClientOpts<'a> {
         let mut app = App::new();
         app.add_plugins(DefaultPlugins);
 
-        let ecs_lock = start_ecs_runner(app);
+        let (ecs_lock, start_running_systems) = start_ecs_runner(app);
+        start_running_systems();
 
         Self {
             ecs_lock,
@@ -659,12 +656,14 @@ impl Plugin for AzaleaPlugin {
     }
 }
 
-/// Start running the ECS loop!
+/// Create the ECS world, and return a function that begins running systems.
+/// This exists to allow you to make last-millisecond updates to the world
+/// before any systems start running.
 ///
 /// You can create your app with `App::new()`, but don't forget to add
 /// [`DefaultPlugins`].
 #[doc(hidden)]
-pub fn start_ecs_runner(mut app: App) -> Arc<Mutex<World>> {
+pub fn start_ecs_runner(mut app: App) -> (Arc<Mutex<World>>, impl FnOnce()) {
     // this block is based on Bevy's default runner:
     // https://github.com/bevyengine/bevy/blob/390877cdae7a17095a75c8f9f1b4241fe5047e83/crates/bevy_app/src/schedule_runner.rs#L77-L85
     if app.plugins_state() != PluginsState::Cleaned {
@@ -682,14 +681,15 @@ pub fn start_ecs_runner(mut app: App) -> Arc<Mutex<World>> {
 
     // all resources should have been added by now so we can take the ecs from the
     // app
-    let ecs = Arc::new(Mutex::new(std::mem::take(app.world_mut())));
+    let ecs = Arc::new(Mutex::new(mem::take(app.world_mut())));
 
-    tokio::spawn(run_schedule_loop(
-        ecs.clone(),
-        *app.main().update_schedule.as_ref().unwrap(),
-    ));
+    let ecs_clone = ecs.clone();
+    let outer_schedule_label = *app.main().update_schedule.as_ref().unwrap();
+    let start_running_systems = move || {
+        tokio::spawn(run_schedule_loop(ecs_clone, outer_schedule_label));
+    };
 
-    ecs
+    (ecs, start_running_systems)
 }
 
 async fn run_schedule_loop(ecs: Arc<Mutex<World>>, outer_schedule_label: InternedScheduleLabel) {

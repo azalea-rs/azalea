@@ -72,7 +72,7 @@ impl LoginPacketHandler<'_> {
         debug!("Got disconnect {:?}", p);
 
         as_system::<EventWriter<_>>(self.ecs, |mut events| {
-            events.send(DisconnectEvent {
+            events.write(DisconnectEvent {
                 entity: self.player,
                 reason: Some(p.reason.clone()),
             });
@@ -121,7 +121,7 @@ impl LoginPacketHandler<'_> {
         debug!("Got custom query {p:?}");
 
         as_system::<EventWriter<ReceiveCustomQueryEvent>>(self.ecs, |mut events| {
-            events.send(ReceiveCustomQueryEvent {
+            events.write(ReceiveCustomQueryEvent {
                 entity: self.player,
                 packet: p.clone(),
                 disabled: false,

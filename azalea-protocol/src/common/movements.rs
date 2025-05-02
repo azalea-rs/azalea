@@ -16,7 +16,7 @@ pub struct PositionMoveRotation {
     pub look_direction: LookDirection,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct RelativeMovements {
     pub x: bool,
     pub y: bool,

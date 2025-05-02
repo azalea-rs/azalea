@@ -35,7 +35,8 @@ impl Plugin for AttackPlugin {
                     update_attack_strength_scale.after(PhysicsSet),
                     handle_attack_queued
                         .before(super::tick_end::game_tick_packet)
-                        .after(super::movement::send_sprinting_if_needed),
+                        .after(super::movement::send_sprinting_if_needed)
+                        .before(super::movement::send_position),
                 )
                     .chain(),
             );

@@ -38,5 +38,5 @@ fn check_ready(
 
     // all the players are in the world, so we're ready
     **is_swarm_ready = true;
-    ready_events.send(SwarmReadyEvent);
+    ready_events.write(SwarmReadyEvent);
 }

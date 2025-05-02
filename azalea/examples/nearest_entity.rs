@@ -48,7 +48,7 @@ fn look_at_everything(
             look_target.y += **eye_height as f64;
         }
 
-        look_at_event.send(LookAtEvent {
+        look_at_event.write(LookAtEvent {
             entity: bot_id,
             position: look_target,
         });
