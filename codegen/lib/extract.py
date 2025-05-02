@@ -1,7 +1,7 @@
 # Extracting data from the Minecraft jars
 
 from typing import TYPE_CHECKING
-from lib.download import get_mappings_for_version, get_server_jar, get_burger, get_client_jar, get_pixlyzer, get_yarn_data, get_fabric_api_versions, get_fabric_loader_versions
+from lib.download import get_mappings_for_version, get_pumpkin_extractor, get_server_jar, get_burger, get_client_jar
 from lib.utils import get_dir_location, to_camel_case, upper_first_letter
 from zipfile import ZipFile
 import subprocess
@@ -106,144 +106,49 @@ def get_burger_data_for_version(version_id: str):
         return json.load(f)
 
 
-def get_pixlyzer_data(version_id: str, category: str):
-    '''
-    Gets data from Pixlyzer. Note that this requires Yarn to release updates first.
-    '''
+def get_pumpkin_data(version_id: str, category: str):
+    assert '/' not in version_id
+    assert '\\' not in version_id
+    target_parent_dir = get_dir_location(f'__cache__/pumpkin-{version_id}')
+    category_dir = f'{target_parent_dir}/{category}.json'
 
-    target_dir = get_dir_location(f'__cache__/pixlyzer-{version_id}')
+    if os.path.exists(category_dir):
+        with open(category_dir, 'r') as f:
+            return json.load(f)
 
-    # TODO: right now this False is hard-coded, it should retry with this
-    # enabled if # initially getting the data fails
-    if True or (os.path.exists(target_dir) and not os.path.exists(f'{target_dir}/{category}.min.json')):
-        print('Downloading', category, 'from pixlyzer-data.')
-        data = requests.get(f'https://gitlab.com/Bixilon/pixlyzer-data/-/raw/master/version/{version_id}/{category}.min.json?inline=false').text
-        try:
-            os.mkdir(target_dir)
-        except:
-            pass
-        with open(f'{target_dir}/{category}.min.json', 'w') as f:
-            f.write(data)
-        return json.loads(data)
+    pumpkin_dir = get_pumpkin_extractor()
+    os.makedirs(f'{pumpkin_dir}/run', exist_ok=True)
+    with open(f'{pumpkin_dir}/run/eula.txt', 'w') as f:
+        f.write('eula=true')
 
-    if not os.path.exists(target_dir):
-        pixlyzer_dir = get_pixlyzer()
+    # run ./gradlew runServer until it logs "(pumpkin_extractor) Done"
+    p = subprocess.Popen(
+        f'cd {pumpkin_dir} && ./gradlew runServer',
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        shell=True
+    )
 
-        # for some reason pixlyzer doesn't work right unless the mvn clean
-        # instruction looks like that
-        # and pixlyzer.py doesn't do it right
+    while True:
+        data = p.stdout.readline().decode()
+        print('>' + data, end='', flush=True)
+        if '[Server thread/INFO] (pumpkin_extractor) Done' in data:
+            print('Pumpkin extractor done')
+            break
+        if data == b'':
+            break
 
-        # map jar + download dependencies
-        run_python_command_and_download_deps(
-            f'cd {pixlyzer_dir}/wrapper && {determine_python_command()} PixLyzer.py --only-version={version_id} --dont-compile --only-map'
-        )
-        # update the pom.xml <dependencies>
-        # list directories in pixlyzer/wrapper/data/data/dependencies/libraries
-        pom_xml_dependencies = '''<dependency>
-            <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-test-junit</artifactId>
-            <version>1.7.21</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-stdlib-jdk8</artifactId>
-            <version>1.7.21</version>
-        </dependency>
+    p.terminate()
 
-        <dependency>
-            <groupId>net.minecraft</groupId>
-            <artifactId>client</artifactId>
-            <version>${minecraft.version}</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/wrapper/data/data/${minecraft.version}_yarn/${minecraft.version}-exhibitionism.jar</systemPath>
-        </dependency>
-        <dependency>
-            <groupId>de.bixilon</groupId>
-            <artifactId>mbf-kotlin</artifactId>
-            <version>0.2.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.objenesis</groupId>
-            <artifactId>objenesis</artifactId>
-            <version>3.3</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>3.12.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>2.14.0</version>
-        </dependency>
-        <dependency>
-            <groupId>de.bixilon</groupId>
-            <artifactId>kutil</artifactId>
-            <version>1.17.1</version>
-        </dependency>'''
-        # walk dir f'{pixlyzer_dir}/wrapper/data/data/dependencies/libraries'
-        for root, dirs, files in os.walk(f'{pixlyzer_dir}/wrapper/data/data/dependencies/libraries'):
-            for file in files:
-                full_path = os.path.join(
-                    root.replace('\\', '/').replace(
-                        f'{pixlyzer_dir}/wrapper/data/data/dependencies/libraries/'.replace('\\', '/'), ''),
-                    file
-                ).replace('\\', '/')
-                print(full_path)
-                if not full_path.endswith('.jar'):
-                    continue
-                split_path = full_path.split('/')
-                group = ''
-                for group_index in range(0, len(split_path) - 3):
-                    group += split_path[group_index] + '.'
-                if group.endswith('.'):
-                    group = group[:-1]
-                artifact = split_path[-3]
-                version = split_path[-2]
-                path = '${project.basedir}/wrapper/data/data/dependencies/libraries/' + full_path
-                pom_xml_dependencies += """
-                    <dependency>
-                        <groupId>""" + group + """</groupId>
-                        <artifactId>""" + artifact + """</artifactId>
-                        <version>""" + version + """</version>
-                        <scope>system</scope>
-                        <systemPath>""" + path + """</systemPath>
-                    </dependency>
-                    """
-        print('pom_xml_dependencies', pom_xml_dependencies)
-        assert pom_xml_dependencies != ''
-        pom_xml = open(f'{pixlyzer_dir}/pom.xml', 'r').read()
-        pom_xml = re.sub(
-            r'<dependencies>.*?</dependencies>', f'<dependencies>{pom_xml_dependencies}</dependencies>', pom_xml, flags=re.DOTALL)
-        pom_xml = re.sub(
-            r'<minecraft\.version>.*?</minecraft\.version>', f'<minecraft.version>{version_id}</minecraft.version>', pom_xml, flags=re.DOTALL)
-        open(f'{pixlyzer_dir}/pom.xml', 'w').write(pom_xml)
+    # move the run/pumpkin_extractor_output directory to target_parent_dir
+    # delete target_parent_dir if it's empty
+    if os.path.exists(target_parent_dir):
+        os.rmdir(target_parent_dir)
+    os.rename(f'{pumpkin_dir}/run/pumpkin_extractor_output', target_parent_dir)
 
-        # compile
-        os.system(
-            f'cd {pixlyzer_dir} && mvn clean -Dmaven.repo.local=. verify')
-        # run pixlyzer.py again lol
-        run_python_command_and_download_deps(
-            f'cd {pixlyzer_dir}/wrapper && {determine_python_command()} PixLyzer.py --only-version={version_id} --no-compile'
-        )
-
-        source_dir = get_dir_location(
-            f'{pixlyzer_dir}/wrapper/data/version/{version_id}')
-
-        if not os.path.exists(source_dir):
-            print('PixLyzer failed, no output!')
-            exit()
-        if os.path.exists(target_dir):
-            os.unlink(target_dir)
-        os.rename(
-            source_dir,
-            target_dir
-        )
-
-    with open(f'{target_dir}/{category}.min.json', 'r') as f:
+    with open(category_dir, 'r') as f:
         return json.load(f)
+
 
 def get_file_from_jar(version_id: str, file_dir: str):
     get_client_jar(version_id)
