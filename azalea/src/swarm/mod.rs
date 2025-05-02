@@ -18,8 +18,11 @@ use std::{
 };
 
 use azalea_client::{
-    Account, Client, DefaultPlugins, Event, JoinError, StartClientOpts, chat::ChatPacket,
-    join::ConnectOpts, start_ecs_runner,
+    Account, Client, DefaultPlugins, Event, JoinError, StartClientOpts,
+    auto_reconnect::{AutoReconnectDelay, DEFAULT_RECONNECT_DELAY},
+    chat::ChatPacket,
+    join::ConnectOpts,
+    start_ecs_runner,
 };
 use azalea_entity::LocalEntity;
 use azalea_protocol::{ServerAddress, resolver};
@@ -90,7 +93,11 @@ where
     /// None to have every bot connect at the same time. None is different than
     /// a duration of 0, since if a duration is present the bots will wait for
     /// the previous one to be ready.
-    pub(crate) join_delay: Option<std::time::Duration>,
+    pub(crate) join_delay: Option<Duration>,
+
+    /// The default reconnection delay for our bots. This will change the value
+    /// of the `AutoReconnectDelay` resource.
+    pub(crate) reconnect_after: Option<Duration>,
 }
 impl SwarmBuilder<NoState, NoSwarmState, (), ()> {
     /// Start creating the swarm.
@@ -139,6 +146,7 @@ impl SwarmBuilder<NoState, NoSwarmState, (), ()> {
             handler: None,
             swarm_handler: None,
             join_delay: None,
+            reconnect_after: Some(DEFAULT_RECONNECT_DELAY),
         }
     }
 }
@@ -257,6 +265,7 @@ where
                 Box::pin(handler(swarm, event, state))
             })),
             join_delay: self.join_delay,
+            reconnect_after: self.reconnect_after,
         }
     }
 }
@@ -352,8 +361,22 @@ where
     /// field, however, the bots will wait for the previous one to have
     /// connected and *then* they'll wait the given duration.
     #[must_use]
-    pub fn join_delay(mut self, delay: std::time::Duration) -> Self {
+    pub fn join_delay(mut self, delay: Duration) -> Self {
         self.join_delay = Some(delay);
+        self
+    }
+
+    /// Configures the auto-reconnection behavior for our bots.
+    ///
+    /// If this is `Some`, then it'll set the default reconnection delay for our
+    /// bots (how long they'll wait after being kicked before they try
+    /// rejoining). if it's `None`, then auto-reconnecting will be disabled.
+    ///
+    /// If this function isn't called, then our clients will reconnect after
+    /// [`DEFAULT_RECONNECT_DELAY`].
+    #[must_use]
+    pub fn reconnect_after(mut self, delay: impl Into<Option<Duration>>) -> Self {
+        self.reconnect_after = delay.into();
         self
     }
 
@@ -432,6 +455,13 @@ where
             let mut ecs = ecs_lock.lock();
             ecs.insert_resource(swarm.clone());
             ecs.insert_resource(self.swarm_state.clone());
+            if let Some(reconnect_after) = self.reconnect_after {
+                ecs.insert_resource(AutoReconnectDelay {
+                    delay: reconnect_after,
+                });
+            } else {
+                ecs.remove_resource::<AutoReconnectDelay>();
+            }
             ecs.run_schedule(main_schedule_label);
             ecs.clear_trackers();
         }

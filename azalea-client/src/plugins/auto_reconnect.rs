@@ -1,6 +1,6 @@
 //! Auto-reconnect to the server when the client is kicked.
 //!
-//! This is enabled by default.
+//! See [`AutoReconnectPlugin`] for more information.
 
 use std::time::{Duration, Instant};
 
@@ -14,10 +14,20 @@ use super::{
 };
 use crate::Account;
 
+/// The default delay that Azalea will use for reconnecting our clients. See
+/// [`AutoReconnectPlugin`] for more information.
+pub const DEFAULT_RECONNECT_DELAY: Duration = Duration::from_secs(5);
+
+/// A default plugin that makes clients automatically rejoin the server when
+/// they're disconnected. The reconnect delay is configurable globally or
+/// per-client with the [`AutoReconnectDelay`] resource/component. Auto
+/// reconnecting can be disabled by removing the resource from the ECS.
+///
+/// The delay defaults to [`DEFAULT_RECONNECT_DELAY`].
 pub struct AutoReconnectPlugin;
 impl Plugin for AutoReconnectPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(AutoReconnectDelay::new(Duration::from_secs(5)))
+        app.insert_resource(AutoReconnectDelay::new(DEFAULT_RECONNECT_DELAY))
             .add_systems(
                 Update,
                 (start_rejoin_on_disconnect, rejoin_after_delay)

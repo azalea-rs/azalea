@@ -14,6 +14,7 @@ pub mod prelude;
 pub mod swarm;
 
 use std::net::SocketAddr;
+use std::time::Duration;
 
 use app::Plugins;
 pub use azalea_auth as auth;
@@ -171,6 +172,22 @@ where
     #[must_use]
     pub fn add_plugins<M>(mut self, plugins: impl Plugins<M>) -> Self {
         self.swarm = self.swarm.add_plugins(plugins);
+        self
+    }
+
+    /// Configures the auto-reconnection behavior for our bot.
+    ///
+    /// If this is `Some`, then it'll set the default reconnection delay for our
+    /// bot (how long it'll wait after being kicked before it tries
+    /// rejoining). if it's `None`, then auto-reconnecting will be disabled.
+    ///
+    /// If this function isn't called, then our client will reconnect after
+    /// [`DEFAULT_RECONNECT_DELAY`].
+    ///
+    /// [`DEFAULT_RECONNECT_DELAY`]: azalea_client::auto_reconnect::DEFAULT_RECONNECT_DELAY
+    #[must_use]
+    pub fn reconnect_after(mut self, delay: impl Into<Option<Duration>>) -> Self {
+        self.swarm.reconnect_after = delay.into();
         self
     }
 
