@@ -34,7 +34,7 @@ impl Plugin for JoinPlugin {
             .add_systems(
                 Update,
                 (
-                    handle_start_join_server_event,
+                    handle_start_join_server_event.before(super::login::poll_auth_task),
                     poll_create_connection_task,
                     handle_connection_failed_events,
                 )
@@ -44,6 +44,9 @@ impl Plugin for JoinPlugin {
 }
 
 /// An event to make a client join the server and be added to our swarm.
+///
+/// This won't do anything if a client with the Account UUID is already
+/// connected to the server.
 #[derive(Event, Debug)]
 pub struct StartJoinServerEvent {
     pub account: Account,
@@ -85,11 +88,30 @@ pub fn handle_start_join_server_event(
     mut commands: Commands,
     mut events: EventReader<StartJoinServerEvent>,
     mut entity_uuid_index: ResMut<EntityUuidIndex>,
+    connection_query: Query<&RawConnection>,
 ) {
     for event in events.read() {
         let uuid = event.account.uuid_or_offline();
         let entity = if let Some(entity) = entity_uuid_index.get(&uuid) {
             debug!("Reusing entity {entity:?} for client");
+
+            // check if it's already connected
+            if let Ok(conn) = connection_query.get(entity) {
+                if conn.is_alive() {
+                    if let Some(start_join_callback_tx) = &event.start_join_callback_tx {
+                        warn!(
+                            "Received StartJoinServerEvent for {entity:?} but it's already connected. Ignoring the event but replying with Ok."
+                        );
+                        let _ = start_join_callback_tx.0.send(Ok(entity));
+                    } else {
+                        warn!(
+                            "Received StartJoinServerEvent for {entity:?} but it's already connected. Ignoring the event."
+                        );
+                    }
+                    return;
+                }
+            }
+
             entity
         } else {
             let entity = commands.spawn_empty().id();
@@ -100,6 +122,7 @@ pub fn handle_start_join_server_event(
         };
 
         let mut entity_mut = commands.entity(entity);
+
         entity_mut.insert((
             // add the Account to the entity now so plugins can access it earlier
             event.account.to_owned(),

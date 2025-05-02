@@ -33,7 +33,7 @@ fn handle_receive_hello_event(trigger: Trigger<ReceiveHelloEvent>, mut commands:
     commands.entity(player).insert(AuthTask(task));
 }
 
-fn poll_auth_task(
+pub fn poll_auth_task(
     mut commands: Commands,
     mut query: Query<(Entity, &mut AuthTask, &mut RawConnection)>,
 ) {
