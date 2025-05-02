@@ -7,10 +7,7 @@ use bevy_ecs::prelude::*;
 use derive_more::Deref;
 use tracing::info;
 
-use crate::{
-    InstanceHolder, client::JoinedClientBundle, connection::RawConnection,
-    events::LocalPlayerEvents,
-};
+use crate::{InstanceHolder, client::JoinedClientBundle, connection::RawConnection};
 
 pub struct DisconnectPlugin;
 impl Plugin for DisconnectPlugin {
@@ -19,15 +16,28 @@ impl Plugin for DisconnectPlugin {
             PostUpdate,
             (
                 update_read_packets_task_running_component,
-                disconnect_on_connection_dead,
                 remove_components_from_disconnected_players,
+                // this happens after `remove_components_from_disconnected_players` since that
+                // system removes `IsConnectionAlive`, which ensures that
+                // `DisconnectEvent` won't get called again from
+                // `disconnect_on_connection_dead`
+                disconnect_on_connection_dead,
             )
                 .chain(),
         );
     }
 }
 
-/// An event sent when a client is getting disconnected.
+/// An event sent when a client got disconnected from the server.
+///
+/// If the client was kicked with a reason, that reason will be present in the
+/// [`reason`](DisconnectEvent::reason) field.
+///
+/// This event won't be sent if creating the initial connection to the server
+/// failed, for that see [`ConnectionFailedEvent`].
+///
+/// [`ConnectionFailedEvent`]: crate::join::ConnectionFailedEvent
+
 #[derive(Event)]
 pub struct DisconnectEvent {
     pub entity: Entity,
@@ -59,8 +69,8 @@ pub fn remove_components_from_disconnected_players(
             .remove::<InLoadedChunk>()
             // this makes it close the tcp connection
             .remove::<RawConnection>()
-            // swarm detects when this tx gets dropped to fire SwarmEvent::Disconnect
-            .remove::<LocalPlayerEvents>();
+            // this makes it not send DisconnectEvent again
+            .remove::<IsConnectionAlive>();
         // note that we don't remove the client from the ECS, so if they decide
         // to reconnect they'll keep their state
 

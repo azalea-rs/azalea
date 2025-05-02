@@ -1,6 +1,7 @@
 use bevy_app::{PluginGroup, PluginGroupBuilder};
 
 pub mod attack;
+pub mod auto_reconnect;
 pub mod brand;
 pub mod chat;
 pub mod chunks;
@@ -51,7 +52,8 @@ impl PluginGroup for DefaultPlugins {
             .add(pong::PongPlugin)
             .add(connection::ConnectionPlugin)
             .add(login::LoginPlugin)
-            .add(join::JoinPlugin);
+            .add(join::JoinPlugin)
+            .add(auto_reconnect::AutoReconnectPlugin);
         #[cfg(feature = "log")]
         {
             group = group.add(bevy_log::LogPlugin::default());

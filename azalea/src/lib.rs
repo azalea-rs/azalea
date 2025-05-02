@@ -14,6 +14,7 @@ pub mod prelude;
 pub mod swarm;
 
 use std::net::SocketAddr;
+use std::time::Duration;
 
 use app::Plugins;
 pub use azalea_auth as auth;
@@ -126,7 +127,12 @@ impl ClientBuilder<NoState, ()> {
     /// Set the function that's called every time a bot receives an [`Event`].
     /// This is the way to handle normal per-bot events.
     ///
-    /// Currently you can have up to one client handler.
+    /// Currently, you can have up to one client handler.
+    ///
+    /// Note that if you're creating clients directly from the ECS using
+    /// [`StartJoinServerEvent`] and the client wasn't already in the ECS, then
+    /// the handler function won't be called for that client. This shouldn't be
+    /// a concern for most bots, though.
     ///
     /// ```
     /// # use azalea::prelude::*;
@@ -139,6 +145,8 @@ impl ClientBuilder<NoState, ()> {
     ///     Ok(())
     /// }
     /// ```
+    ///
+    /// [`StartJoinServerEvent`]: azalea_client::join::StartJoinServerEvent
     #[must_use]
     pub fn set_handler<S, Fut, R>(self, handler: HandleFn<S, Fut>) -> ClientBuilder<S, R>
     where
@@ -166,6 +174,22 @@ where
     #[must_use]
     pub fn add_plugins<M>(mut self, plugins: impl Plugins<M>) -> Self {
         self.swarm = self.swarm.add_plugins(plugins);
+        self
+    }
+
+    /// Configures the auto-reconnection behavior for our bot.
+    ///
+    /// If this is `Some`, then it'll set the default reconnection delay for our
+    /// bot (how long it'll wait after being kicked before it tries
+    /// rejoining). if it's `None`, then auto-reconnecting will be disabled.
+    ///
+    /// If this function isn't called, then our client will reconnect after
+    /// [`DEFAULT_RECONNECT_DELAY`].
+    ///
+    /// [`DEFAULT_RECONNECT_DELAY`]: azalea_client::auto_reconnect::DEFAULT_RECONNECT_DELAY
+    #[must_use]
+    pub fn reconnect_after(mut self, delay: impl Into<Option<Duration>>) -> Self {
+        self.swarm.reconnect_after = delay.into();
         self
     }
 

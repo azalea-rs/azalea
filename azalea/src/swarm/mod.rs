@@ -19,9 +19,13 @@ use std::{
 };
 
 use azalea_client::{
-    Account, Client, DefaultPlugins, Event, JoinError, StartClientOpts, chat::ChatPacket,
+    Account, Client, DefaultPlugins, Event, JoinError, StartClientOpts,
+    auto_reconnect::{AutoReconnectDelay, DEFAULT_RECONNECT_DELAY},
+    chat::ChatPacket,
+    join::ConnectOpts,
     start_ecs_runner,
 };
+use azalea_entity::LocalEntity;
 use azalea_protocol::{ServerAddress, resolver};
 use azalea_world::InstanceContainer;
 use bevy_app::{App, PluginGroup, PluginGroupBuilder, Plugins, SubApp};
@@ -46,15 +50,15 @@ use crate::{BoxHandleFn, DefaultBotPlugins, HandleFn, JoinOpts, NoState, StartEr
 pub struct Swarm {
     pub ecs_lock: Arc<Mutex<World>>,
 
-    bots: Arc<Mutex<HashMap<Entity, Client>>>,
-
     // the address is public and mutable so plugins can change it
     pub resolved_address: Arc<RwLock<SocketAddr>>,
     pub address: Arc<RwLock<ServerAddress>>,
 
     pub instance_container: Arc<RwLock<InstanceContainer>>,
 
+    /// This is used internally to make the client handler function work.
     bots_tx: mpsc::UnboundedSender<(Option<Event>, Client)>,
+    /// This is used internally to make the swarm handler function work.
     swarm_tx: mpsc::UnboundedSender<SwarmEvent>,
 }
 
@@ -92,7 +96,11 @@ where
     /// None to have every bot connect at the same time. None is different than
     /// a duration of 0, since if a duration is present the bots will wait for
     /// the previous one to be ready.
-    pub(crate) join_delay: Option<std::time::Duration>,
+    pub(crate) join_delay: Option<Duration>,
+
+    /// The default reconnection delay for our bots. This will change the value
+    /// of the `AutoReconnectDelay` resource.
+    pub(crate) reconnect_after: Option<Duration>,
 }
 impl SwarmBuilder<NoState, NoSwarmState, (), ()> {
     /// Start creating the swarm.
@@ -144,6 +152,7 @@ impl SwarmBuilder<NoState, NoSwarmState, (), ()> {
             handler: None,
             swarm_handler: None,
             join_delay: None,
+            reconnect_after: Some(DEFAULT_RECONNECT_DELAY),
         }
     }
 }
@@ -156,6 +165,12 @@ where
     /// This is the way to handle normal per-bot events.
     ///
     /// Currently you can have up to one handler.
+    ///
+    /// Note that if you're creating clients directly from the ECS using
+    /// [`StartJoinServerEvent`] and the client wasn't already in the ECS, then
+    /// the handler function won't be called for that client. This also applies
+    /// to [`SwarmBuilder::set_swarm_handler`]. This shouldn't be a concern for
+    /// most bots, though.
     ///
     /// ```
     /// # use azalea::{prelude::*, swarm::prelude::*};
@@ -178,6 +193,8 @@ where
     /// #     Ok(())
     /// # }
     /// ```
+    ///
+    /// [`StartJoinServerEvent`]: azalea_client::join::StartJoinServerEvent
     #[must_use]
     pub fn set_handler<S, Fut, R>(self, handler: HandleFn<S, Fut>) -> SwarmBuilder<S, SS, R, SR>
     where
@@ -205,6 +222,12 @@ where
     ///
     /// Currently you can have up to one swarm handler.
     ///
+    /// Note that if you're creating clients directly from the ECS using
+    /// [`StartJoinServerEvent`] and the client wasn't already in the ECS, then
+    /// this handler function won't be called for that client. This also applies
+    /// to [`SwarmBuilder::set_handler`]. This shouldn't be a concern for
+    /// most bots, though.
+    ///
     /// ```
     /// # use azalea::{prelude::*, swarm::prelude::*};
     /// # let swarm_builder = SwarmBuilder::new().set_handler(handle);
@@ -227,6 +250,8 @@ where
     ///     Ok(())
     /// }
     /// ```
+    ///
+    /// [`StartJoinServerEvent`]: azalea_client::join::StartJoinServerEvent
     #[must_use]
     pub fn set_swarm_handler<SS, Fut, SR>(
         self,
@@ -246,6 +271,7 @@ where
                 Box::pin(handler(swarm, event, state))
             })),
             join_delay: self.join_delay,
+            reconnect_after: self.reconnect_after,
         }
     }
 }
@@ -341,8 +367,22 @@ where
     /// field, however, the bots will wait for the previous one to have
     /// connected and *then* they'll wait the given duration.
     #[must_use]
-    pub fn join_delay(mut self, delay: std::time::Duration) -> Self {
+    pub fn join_delay(mut self, delay: Duration) -> Self {
         self.join_delay = Some(delay);
+        self
+    }
+
+    /// Configures the auto-reconnection behavior for our bots.
+    ///
+    /// If this is `Some`, then it'll set the default reconnection delay for our
+    /// bots (how long they'll wait after being kicked before they try
+    /// rejoining). if it's `None`, then auto-reconnecting will be disabled.
+    ///
+    /// If this function isn't called, then our clients will reconnect after
+    /// [`DEFAULT_RECONNECT_DELAY`].
+    #[must_use]
+    pub fn reconnect_after(mut self, delay: impl Into<Option<Duration>>) -> Self {
+        self.reconnect_after = delay.into();
         self
     }
 
@@ -406,7 +446,6 @@ where
 
         let swarm = Swarm {
             ecs_lock: ecs_lock.clone(),
-            bots: Arc::new(Mutex::new(HashMap::new())),
 
             resolved_address: Arc::new(RwLock::new(resolved_address)),
             address: Arc::new(RwLock::new(address)),
@@ -422,6 +461,13 @@ where
             let mut ecs = ecs_lock.lock();
             ecs.insert_resource(swarm.clone());
             ecs.insert_resource(self.swarm_state.clone());
+            if let Some(reconnect_after) = self.reconnect_after {
+                ecs.insert_resource(AutoReconnectDelay {
+                    delay: reconnect_after,
+                });
+            } else {
+                ecs.remove_resource::<AutoReconnectDelay>();
+            }
             ecs.run_schedule(main_schedule_label);
             ecs.clear_trackers();
         }
@@ -556,8 +602,12 @@ pub enum SwarmEvent {
     Init,
     /// A bot got disconnected from the server.
     ///
-    /// You can implement an auto-reconnect by calling [`Swarm::add_with_opts`]
-    /// with the account and options from this event.
+    /// If you'd like to implement special auto-reconnect behavior beyond what's
+    /// built-in, you can disable that with [`SwarmBuilder::reconnect_delay`]
+    /// and then call [`Swarm::add_with_opts`] with the account and options
+    /// from this event.
+    ///
+    /// [`SwarmBuilder::reconnect_delay`]: crate::swarm::SwarmBuilder::reconnect_after
     Disconnect(Box<Account>, JoinOpts),
     /// At least one bot received a chat message.
     Chat(ChatPacket),
@@ -664,15 +714,18 @@ impl Swarm {
         let resolved_address = join_opts
             .custom_resolved_address
             .unwrap_or_else(|| *self.resolved_address.read());
+        let proxy = join_opts.proxy.clone();
 
         let (tx, rx) = mpsc::unbounded_channel();
 
         let bot = Client::start_client(StartClientOpts {
             ecs_lock: self.ecs_lock.clone(),
-            account,
-            address: &address,
-            resolved_address: &resolved_address,
-            proxy: join_opts.proxy.clone(),
+            account: account.clone(),
+            connect_opts: ConnectOpts {
+                address,
+                resolved_address,
+                proxy,
+            },
             event_sender: Some(tx),
         })
         .await?;
@@ -682,31 +735,25 @@ impl Swarm {
             ecs.entity_mut(bot.entity).insert(state);
         }
 
-        self.bots.lock().insert(bot.entity, bot.clone());
-
-        let cloned_bots = self.bots.clone();
-        let cloned_bots_tx = self.bots_tx.clone();
         let cloned_bot = bot.clone();
         let swarm_tx = self.swarm_tx.clone();
+        let bots_tx = self.bots_tx.clone();
+
         let join_opts = join_opts.clone();
         tokio::spawn(Self::event_copying_task(
-            rx,
-            cloned_bots,
-            cloned_bots_tx,
-            cloned_bot,
-            swarm_tx,
-            join_opts,
+            rx, swarm_tx, bots_tx, cloned_bot, join_opts,
         ));
 
         Ok(bot)
     }
 
+    /// Copy the events from a client's receiver into bots_tx, until the bot is
+    /// removed from the ECS.
     async fn event_copying_task(
         mut rx: mpsc::UnboundedReceiver<Event>,
-        cloned_bots: Arc<Mutex<HashMap<Entity, Client>>>,
-        cloned_bots_tx: mpsc::UnboundedSender<(Option<Event>, Client)>,
-        cloned_bot: Client,
         swarm_tx: mpsc::UnboundedSender<SwarmEvent>,
+        bots_tx: mpsc::UnboundedSender<(Option<Event>, Client)>,
+        bot: Client,
         join_opts: JoinOpts,
     ) {
         while let Some(event) = rx.recv().await {
@@ -740,21 +787,33 @@ impl Swarm {
                 }
             }
 
+            if let Event::Disconnect(_) = event {
+                debug!(
+                    "sending SwarmEvent::Disconnect due to receiving an Event::Disconnect from client {}",
+                    bot.entity
+                );
+                let account = bot
+                    .get_component::<Account>()
+                    .expect("bot is missing required Account component");
+                swarm_tx
+                    .send(SwarmEvent::Disconnect(Box::new(account), join_opts.clone()))
+                    .unwrap();
+            }
+
             // we can't handle events here (since we can't copy the handler),
             // they're handled above in SwarmBuilder::start
-            if let Err(e) = cloned_bots_tx.send((Some(event), cloned_bot.clone())) {
-                error!("Error sending event to swarm: {e}");
+            if let Err(e) = bots_tx.send((Some(event), bot.clone())) {
+                error!(
+                    "Error sending event to swarm, aborting event_copying_task for {}: {e}",
+                    bot.entity
+                );
+                break;
             }
         }
-        debug!("client sender ended, removing from cloned_bots and sending SwarmEvent::Disconnect");
-
-        cloned_bots.lock().remove(&cloned_bot.entity);
-        let account = cloned_bot
-            .get_component::<Account>()
-            .expect("bot is missing required Account component");
-        swarm_tx
-            .send(SwarmEvent::Disconnect(Box::new(account), join_opts))
-            .unwrap();
+        debug!(
+            "client sender ended for {}, this won't trigger SwarmEvent::Disconnect unless the client already sent its own disconnect event",
+            bot.entity
+        );
     }
 
     /// Add a new account to the swarm, retrying if it couldn't join. This will
@@ -807,6 +866,17 @@ impl Swarm {
             }
         }
     }
+
+    /// Get an array of ECS [`Entity`]s for all [`LocalEntity`]s in our world.
+    /// This will include clients that were disconnected without being removed
+    /// from the ECS.
+    ///
+    /// [`LocalEntity`]: azalea_entity::LocalEntity
+    pub fn client_entities(&self) -> Box<[Entity]> {
+        let mut ecs = self.ecs_lock.lock();
+        let mut query = ecs.query_filtered::<Entity, With<LocalEntity>>();
+        query.iter(&ecs).collect::<Box<[Entity]>>()
+    }
 }
 
 impl IntoIterator for Swarm {
@@ -827,11 +897,12 @@ impl IntoIterator for Swarm {
     /// # }
     /// ```
     fn into_iter(self) -> Self::IntoIter {
-        self.bots
-            .lock()
-            .clone()
-            .into_values()
-            .collect::<Vec<_>>()
+        let client_entities = self.client_entities();
+
+        client_entities
+            .into_iter()
+            .map(|entity| Client::new(entity, self.ecs_lock.clone()))
+            .collect::<Box<[Client]>>()
             .into_iter()
     }
 }
