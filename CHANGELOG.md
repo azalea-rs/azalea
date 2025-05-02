@@ -20,8 +20,8 @@ write down most non-trivial breaking changes.
 
 ### Changed
 
-- [BREAKING] `Client::goto` is now async and resolves when the client reaches its destination. `Client::start_goto` should be used if the old behavior is undesired.
-- [BREAKING] The `BlockState::id` is now private, use `.id()` instead.
+- [BREAKING] `Client::goto` is now async and completes when the client reaches its destination. `Client::start_goto` should be used if the old behavior is undesired.
+- [BREAKING] The `BlockState::id` field is now private, use `.id()` instead.
 - [BREAKING] Update to [Bevy 0.16](https://bevyengine.org/news/bevy-0-16/).
 - [BREAKING] Rename `InstanceContainer::insert` to `get_or_insert`.
 - ClientBuilder and SwarmBuilder are now Send.
