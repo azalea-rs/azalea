@@ -9,6 +9,7 @@ pub mod prelude;
 use std::{
     collections::{HashMap, hash_map},
     future::Future,
+    mem,
     net::SocketAddr,
     sync::{
         Arc,
@@ -23,7 +24,7 @@ use azalea_client::{
 };
 use azalea_protocol::{ServerAddress, resolver};
 use azalea_world::InstanceContainer;
-use bevy_app::{App, PluginGroup, PluginGroupBuilder, Plugins};
+use bevy_app::{App, PluginGroup, PluginGroupBuilder, Plugins, SubApp};
 use bevy_ecs::prelude::*;
 use futures::future::{BoxFuture, join_all};
 use parking_lot::{Mutex, RwLock};
@@ -70,8 +71,10 @@ pub struct SwarmBuilder<S, SS, R, SR>
 where
     S: Send + Sync + Clone + Component + 'static,
     SS: Default + Send + Sync + Clone + Resource + 'static,
+    Self: Send,
 {
-    pub(crate) app: App,
+    // SubApp is used instead of App to make it Send
+    pub(crate) app: SubApp,
     /// The accounts and proxies that are going to join the server.
     pub(crate) accounts: Vec<(Account, JoinOpts)>,
     /// The individual bot states. This must be the same length as `accounts`,
@@ -131,7 +134,10 @@ impl SwarmBuilder<NoState, NoSwarmState, (), ()> {
         SwarmBuilder {
             // we create the app here so plugins can add onto it.
             // the schedules won't run until [`Self::start`] is called.
-            app: App::new(),
+
+            // `App::new()` is used instead of `SubApp::new()` so the necessary resources are
+            // initialized
+            app: mem::take(App::new().main_mut()),
             accounts: Vec::new(),
             states: Vec::new(),
             swarm_state: NoSwarmState,
@@ -361,7 +367,7 @@ where
     /// Do the same as [`Self::start`], but allow passing in default join
     /// options for the bots.
     pub async fn start_with_default_opts(
-        self,
+        mut self,
         address: impl TryInto<ServerAddress>,
         default_join_opts: JoinOpts,
     ) -> Result<!, StartError> {
@@ -394,9 +400,9 @@ where
 
         swarm_tx.send(SwarmEvent::Init).unwrap();
 
-        let main_schedule_label = self.app.main().update_schedule.unwrap();
+        let main_schedule_label = self.app.update_schedule.unwrap();
 
-        let (ecs_lock, start_running_systems) = start_ecs_runner(self.app);
+        let (ecs_lock, start_running_systems) = start_ecs_runner(&mut self.app);
 
         let swarm = Swarm {
             ecs_lock: ecs_lock.clone(),
@@ -559,7 +565,7 @@ pub enum SwarmEvent {
 
 pub type SwarmHandleFn<SS, Fut> = fn(Swarm, SwarmEvent, SS) -> Fut;
 pub type BoxSwarmHandleFn<SS, R> =
-    Box<dyn Fn(Swarm, SwarmEvent, SS) -> BoxFuture<'static, R> + Send>;
+    Box<dyn Fn(Swarm, SwarmEvent, SS) -> BoxFuture<'static, R> + Send + Sync>;
 
 /// Make a bot [`Swarm`].
 ///

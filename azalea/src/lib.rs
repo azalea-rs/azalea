@@ -43,7 +43,8 @@ use protocol::{ServerAddress, resolver::ResolverError};
 use swarm::SwarmBuilder;
 use thiserror::Error;
 
-pub type BoxHandleFn<S, R> = Box<dyn Fn(Client, azalea_client::Event, S) -> BoxFuture<'static, R>>;
+pub type BoxHandleFn<S, R> =
+    Box<dyn Fn(Client, azalea_client::Event, S) -> BoxFuture<'static, R> + Send>;
 pub type HandleFn<S, Fut> = fn(Client, azalea_client::Event, S) -> Fut;
 
 #[derive(Error, Debug)]
@@ -76,6 +77,7 @@ pub struct ClientBuilder<S, R>
 where
     S: Default + Send + Sync + Clone + Component + 'static,
     R: Send + 'static,
+    Self: Send,
 {
     /// Internally, ClientBuilder is just a wrapper over SwarmBuilder since it's
     /// technically just a subset of it so we can avoid duplicating code this
