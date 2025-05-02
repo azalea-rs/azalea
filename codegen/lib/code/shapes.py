@@ -5,63 +5,68 @@ COLLISION_BLOCKS_RS_DIR = get_dir_location(
     '../azalea-physics/src/collision/blocks.rs')
 
 
-def generate_block_shapes(blocks_pixlyzer: dict, shapes: dict, aabbs: dict, block_states_report):
-    blocks, shapes = simplify_shapes(blocks_pixlyzer, shapes, aabbs)
+def generate_block_shapes(pumpkin_block_datas: dict, block_states_report):
+    blocks, shapes = simplify_shapes(pumpkin_block_datas)
 
     code = generate_block_shapes_code(blocks, shapes, block_states_report)
     with open(COLLISION_BLOCKS_RS_DIR, 'w') as f:
         f.write(code)
 
 
-def simplify_shapes(blocks: dict, shapes: dict, aabbs: dict):
-    new_id_increment = 0
-
-    new_shapes = {}
-    old_id_to_new_id = {}
-
-    old_id_to_new_id[None] = 0
-    new_shapes[0] = ()
-    new_id_increment += 1
-
-    used_shape_ids = set()
-    # determine the used shape ids
-    for _block_id, block_data in blocks.items():
-        block_shapes = {state.get('collision_shape') for state in block_data['states'].values()}
-        block_shapes.update({state.get('outline_shape') for state in block_data['states'].values()})
-        for s in block_shapes:
-            used_shape_ids.add(s)
-
-    for shape_id, shape in enumerate(shapes):
-        if shape_id not in used_shape_ids: continue
-        # pixlyzer gives us shapes as an index or list of indexes into the
-        # aabbs list
-        # and aabbs look like { "from": number or [x, y, z], "to": (number or vec3) }
-        # convert them to [x1, y1, z1, x2, y2, z2]
-        shape = [shape] if isinstance(shape, int) else shape
-        shape = [aabbs[shape_aabb] for shape_aabb in shape]
-        shape = tuple([(
-            (tuple(part['from']) if isinstance(
-                part['from'], list) else ((part['from'],)*3))
-            + (tuple(part['to']) if isinstance(part['to'], list)
-               else ((part['to'],)*3))
-        ) for part in shape])
-
-        old_id_to_new_id[shape_id] = new_id_increment
-        new_shapes[new_id_increment] = shape
-        new_id_increment += 1
-
-    # now map the blocks to the new shape ids
+def simplify_shapes(blocks: dict) -> tuple[dict, dict]:
+    '''
+    Returns new_blocks and new_shapes,
+    where new_blocks is like { grass_block: { collision: [1, 1], outline: [1, 1] } }
+    and new_shapes is like { 1: [ [0, 0, 0, 1, 1, 1] ] }
+    '''
     new_blocks = {}
-    for block_id, block_data in blocks.items():
-        block_id = block_id.split(':')[-1]
+    new_shapes = {}
 
-        block_collision_shapes = [state.get('collision_shape') for state in block_data['states'].values()]
-        block_outline_shapes = [state.get('outline_shape') for state in block_data['states'].values()]
+    all_shapes_ids = {}
+
+    for block_data in blocks['blocks']:
+        new_block_collision_shapes = []
+        new_block_outline_shapes = []
+
+        for state in block_data['states']:
+            collision_shape = []
+            for box_id in state['collision_shapes']:
+                box = blocks['shapes'][box_id]
+                collision_shape.append(
+                    tuple(box['min'] + box['max'])
+                )
+            outline_shape = []
+            for box_id in state['outline_shapes']:
+                box = blocks['shapes'][box_id]
+                outline_shape.append(
+                    tuple(box['min'] + box['max'])
+                )
+
+            collision_shape = tuple(collision_shape)
+            outline_shape = tuple(outline_shape)
+
+            if collision_shape in all_shapes_ids:
+                collision_shape_id = all_shapes_ids[collision_shape]
+            else:
+                collision_shape_id = len(all_shapes_ids)
+                all_shapes_ids[collision_shape] = collision_shape_id
+                new_shapes[collision_shape_id] = collision_shape
+            if outline_shape in all_shapes_ids:
+                outline_shape_id = all_shapes_ids[outline_shape]
+            else:
+                outline_shape_id = len(all_shapes_ids)
+                all_shapes_ids[outline_shape] = outline_shape_id
+                new_shapes[outline_shape_id] = outline_shape
+
+            block_id = block_data['name']
+            new_block_collision_shapes.append(collision_shape_id)
+            new_block_outline_shapes.append(outline_shape_id)
 
         new_blocks[block_id] = {
-            'collision': [old_id_to_new_id[shape_id] for shape_id in block_collision_shapes],
-            'outline': [old_id_to_new_id[shape_id] for shape_id in block_outline_shapes]
+            'collision': new_block_collision_shapes,
+            'outline': new_block_outline_shapes
         }
+
 
     return new_blocks, new_shapes
 

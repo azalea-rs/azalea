@@ -42,6 +42,6 @@ At the time of writing, the following data generators are used:
 
 -   [Vanilla data generator](https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Data_Generators)
 -   [Burger](https://github.com/mat-1/Burger)
--   [PixLyzer](https://gitlab.bixilon.de/bixilon/pixlyzer)
+-   [Pumpkin Extractor](https://github.com/Pumpkin-MC/Extractor)
 
 Some things can be obtained from multiple generators. You should prefer them by the order above (the vanilla generator is the most reliable).
