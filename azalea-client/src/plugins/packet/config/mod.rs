@@ -64,7 +64,7 @@ pub struct ConfigPacketHandler<'a> {
 }
 impl ConfigPacketHandler<'_> {
     pub fn registry_data(&mut self, p: &ClientboundRegistryData) {
-        as_system::<Query<&mut InstanceHolder>>(self.ecs, |mut query| {
+        as_system::<Query<&InstanceHolder>>(self.ecs, |mut query| {
             let instance_holder = query.get_mut(self.player).unwrap();
             let mut instance = instance_holder.instance.write();
 

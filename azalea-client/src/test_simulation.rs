@@ -101,6 +101,11 @@ impl Simulation {
     pub fn tick(&mut self) {
         tick_app(&mut self.app);
     }
+
+    pub fn minecraft_entity_id(&self) -> MinecraftEntityId {
+        self.component::<MinecraftEntityId>()
+    }
+
     pub fn component<T: Component + Clone>(&self) -> T {
         self.app.world().get::<T>(self.entity).unwrap().clone()
     }

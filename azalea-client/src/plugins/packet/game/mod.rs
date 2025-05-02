@@ -227,7 +227,7 @@ impl GamePacketHandler<'_> {
                 let new_instance_name = p.common.dimension.clone();
 
                 if let Some(mut instance_name) = instance_name {
-                    *instance_name = instance_name.clone();
+                    **instance_name = new_instance_name.clone();
                 } else {
                     commands
                         .entity(self.player)
@@ -243,7 +243,7 @@ impl GamePacketHandler<'_> {
 
                 // add this world to the instance_container (or don't if it's already
                 // there)
-                let weak_instance = instance_container.insert(
+                let weak_instance = instance_container.get_or_insert(
                     new_instance_name.clone(),
                     dimension_data.height,
                     dimension_data.min_y,
@@ -591,7 +591,7 @@ impl GamePacketHandler<'_> {
     pub fn set_chunk_cache_center(&mut self, p: &ClientboundSetChunkCacheCenter) {
         debug!("Got chunk cache center packet {p:?}");
 
-        as_system::<Query<&mut InstanceHolder>>(self.ecs, |mut query| {
+        as_system::<Query<&InstanceHolder>>(self.ecs, |mut query| {
             let instance_holder = query.get_mut(self.player).unwrap();
             let mut partial_world = instance_holder.partial_instance.write();
 
@@ -1122,7 +1122,7 @@ impl GamePacketHandler<'_> {
     pub fn block_update(&mut self, p: &ClientboundBlockUpdate) {
         debug!("Got block update packet {p:?}");
 
-        as_system::<Query<&mut InstanceHolder>>(self.ecs, |mut query| {
+        as_system::<Query<&InstanceHolder>>(self.ecs, |mut query| {
             let local_player = query.get_mut(self.player).unwrap();
 
             let world = local_player.instance.write();
@@ -1138,7 +1138,7 @@ impl GamePacketHandler<'_> {
     pub fn section_blocks_update(&mut self, p: &ClientboundSectionBlocksUpdate) {
         debug!("Got section blocks update packet {p:?}");
 
-        as_system::<Query<&mut InstanceHolder>>(self.ecs, |mut query| {
+        as_system::<Query<&InstanceHolder>>(self.ecs, |mut query| {
             let local_player = query.get_mut(self.player).unwrap();
             let world = local_player.instance.write();
             for state in &p.states {
@@ -1311,7 +1311,7 @@ impl GamePacketHandler<'_> {
     pub fn forget_level_chunk(&mut self, p: &ClientboundForgetLevelChunk) {
         debug!("Got forget level chunk packet {p:?}");
 
-        as_system::<Query<&mut InstanceHolder>>(self.ecs, |mut query| {
+        as_system::<Query<&InstanceHolder>>(self.ecs, |mut query| {
             let local_player = query.get_mut(self.player).unwrap();
 
             let mut partial_instance = local_player.partial_instance.write();
@@ -1410,6 +1410,7 @@ impl GamePacketHandler<'_> {
                     &mut InstanceHolder,
                     &GameProfileComponent,
                     &ClientInformation,
+                    Option<&mut InstanceName>,
                 ),
                 With<LocalEntity>,
             >,
@@ -1419,10 +1420,18 @@ impl GamePacketHandler<'_> {
         )>(
             self.ecs,
             |(mut commands, mut query, mut events, mut instance_container, mut loaded_by_query)| {
-                let (mut instance_holder, game_profile, client_information) =
+                let (mut instance_holder, game_profile, client_information, instance_name) =
                     query.get_mut(self.player).unwrap();
 
                 let new_instance_name = p.common.dimension.clone();
+
+                if let Some(mut instance_name) = instance_name {
+                    **instance_name = new_instance_name.clone();
+                } else {
+                    commands
+                        .entity(self.player)
+                        .insert(InstanceName(new_instance_name.clone()));
+                }
 
                 let Some((_dimension_type, dimension_data)) = p
                     .common
@@ -1433,7 +1442,7 @@ impl GamePacketHandler<'_> {
 
                 // add this world to the instance_container (or don't if it's already
                 // there)
-                let weak_instance = instance_container.insert(
+                let weak_instance = instance_container.get_or_insert(
                     new_instance_name.clone(),
                     dimension_data.height,
                     dimension_data.min_y,

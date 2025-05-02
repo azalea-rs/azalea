@@ -46,7 +46,7 @@ impl InstanceContainer {
     /// Add an empty world to the container (unless it already exists) and
     /// returns a strong reference to the world.
     #[must_use = "the world will be immediately forgotten if unused"]
-    pub fn insert(
+    pub fn get_or_insert(
         &mut self,
         name: ResourceLocation,
         height: u32,
