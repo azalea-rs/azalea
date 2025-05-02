@@ -177,7 +177,7 @@ pub fn poll_create_connection_task(
                 Ok(conn) => conn,
                 Err(error) => {
                     warn!("failed to create connection: {error}");
-                    connection_failed_events.send(ConnectionFailedEvent { entity, error });
+                    connection_failed_events.write(ConnectionFailedEvent { entity, error });
                     return;
                 }
             };

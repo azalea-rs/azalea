@@ -69,7 +69,7 @@ pub fn rejoin_after_delay(
             commands.entity(entity).remove::<InternalReconnectAfter>();
 
             // our Entity will be reused since the account has the same uuid
-            join_events.send(StartJoinServerEvent {
+            join_events.write(StartJoinServerEvent {
                 account: account.clone(),
                 connect_opts: connect_opts.clone(),
                 // not actually necessary since we're reusing the same entity and LocalPlayerEvents
