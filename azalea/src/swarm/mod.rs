@@ -21,6 +21,7 @@ use azalea_client::{
     Account, Client, DefaultPlugins, Event, JoinError, StartClientOpts, chat::ChatPacket,
     join::ConnectOpts, start_ecs_runner,
 };
+use azalea_entity::LocalEntity;
 use azalea_protocol::{ServerAddress, resolver};
 use azalea_world::InstanceContainer;
 use bevy_app::{App, PluginGroup, PluginGroupBuilder, Plugins};
@@ -51,7 +52,9 @@ pub struct Swarm {
 
     pub instance_container: Arc<RwLock<InstanceContainer>>,
 
+    /// This is used internally to make the client handler function work.
     bots_tx: mpsc::UnboundedSender<(Option<Event>, Client)>,
+    /// This is used internally to make the swarm handler function work.
     swarm_tx: mpsc::UnboundedSender<SwarmEvent>,
 }
 
@@ -149,6 +152,12 @@ where
     ///
     /// Currently you can have up to one handler.
     ///
+    /// Note that if you're creating clients directly from the ECS using
+    /// [`StartJoinServerEvent`] and the client wasn't already in the ECS, then
+    /// the handler function won't be called for that client. This also applies
+    /// to [`SwarmBuilder::set_swarm_handler`]. This shouldn't be a concern for
+    /// most bots, though.
+    ///
     /// ```
     /// # use azalea::{prelude::*, swarm::prelude::*};
     /// # let swarm_builder = SwarmBuilder::new().set_swarm_handler(swarm_handle);
@@ -170,6 +179,8 @@ where
     /// #     Ok(())
     /// # }
     /// ```
+    ///
+    /// [`StartJoinServerEvent`]: azalea_client::join::StartJoinServerEvent
     #[must_use]
     pub fn set_handler<S, Fut, R>(self, handler: HandleFn<S, Fut>) -> SwarmBuilder<S, SS, R, SR>
     where
@@ -197,6 +208,12 @@ where
     ///
     /// Currently you can have up to one swarm handler.
     ///
+    /// Note that if you're creating clients directly from the ECS using
+    /// [`StartJoinServerEvent`] and the client wasn't already in the ECS, then
+    /// this handler function won't be called for that client. This also applies
+    /// to [`SwarmBuilder::set_handler`]. This shouldn't be a concern for
+    /// most bots, though.
+    ///
     /// ```
     /// # use azalea::{prelude::*, swarm::prelude::*};
     /// # let swarm_builder = SwarmBuilder::new().set_handler(handle);
@@ -219,6 +236,8 @@ where
     ///     Ok(())
     /// }
     /// ```
+    ///
+    /// [`StartJoinServerEvent`]: azalea_client::join::StartJoinServerEvent
     #[must_use]
     pub fn set_swarm_handler<SS, Fut, SR>(
         self,
@@ -661,7 +680,7 @@ impl Swarm {
 
         let bot = Client::start_client(StartClientOpts {
             ecs_lock: self.ecs_lock.clone(),
-            account,
+            account: account.clone(),
             connect_opts: ConnectOpts {
                 address,
                 resolved_address,
@@ -678,18 +697,23 @@ impl Swarm {
 
         let cloned_bot = bot.clone();
         let swarm_tx = self.swarm_tx.clone();
+        let bots_tx = self.bots_tx.clone();
+
         let join_opts = join_opts.clone();
         tokio::spawn(Self::event_copying_task(
-            rx, cloned_bot, swarm_tx, join_opts,
+            rx, swarm_tx, bots_tx, cloned_bot, join_opts,
         ));
 
         Ok(bot)
     }
 
+    /// Copy the events from a client's receiver into bots_tx, until the bot is
+    /// removed from the ECS.
     async fn event_copying_task(
         mut rx: mpsc::UnboundedReceiver<Event>,
-        cloned_bot: Client,
         swarm_tx: mpsc::UnboundedSender<SwarmEvent>,
+        bots_tx: mpsc::UnboundedSender<(Option<Event>, Client)>,
+        bot: Client,
         join_opts: JoinOpts,
     ) {
         while let Some(event) = rx.recv().await {
@@ -724,31 +748,32 @@ impl Swarm {
             }
 
             if let Event::Disconnect(_) = event {
-                //
-            }
-
-            // we can't handle events here (since we can't copy the handler),
-            // they're handled above in SwarmBuilder::start
-            if let Err(e) = cloned_bots_tx.send((Some(event), cloned_bot.clone())) {
-                error!("Error sending event to swarm: {e}");
-
-                let account = cloned_bot
+                debug!(
+                    "sending SwarmEvent::Disconnect due to receiving an Event::Disconnect from client {}",
+                    bot.entity
+                );
+                let account = bot
                     .get_component::<Account>()
                     .expect("bot is missing required Account component");
                 swarm_tx
                     .send(SwarmEvent::Disconnect(Box::new(account), join_opts.clone()))
                     .unwrap();
             }
-        }
-        debug!("client sender ended, removing from cloned_bots and sending SwarmEvent::Disconnect");
 
-        cloned_bots.lock().remove(&cloned_bot.entity);
-        let account = cloned_bot
-            .get_component::<Account>()
-            .expect("bot is missing required Account component");
-        swarm_tx
-            .send(SwarmEvent::Disconnect(Box::new(account), join_opts))
-            .unwrap();
+            // we can't handle events here (since we can't copy the handler),
+            // they're handled above in SwarmBuilder::start
+            if let Err(e) = bots_tx.send((Some(event), bot.clone())) {
+                error!(
+                    "Error sending event to swarm, aborting event_copying_task for {}: {e}",
+                    bot.entity
+                );
+                break;
+            }
+        }
+        debug!(
+            "client sender ended for {}, this won't trigger SwarmEvent::Disconnect unless the client already sent its own disconnect event",
+            bot.entity
+        );
     }
 
     /// Add a new account to the swarm, retrying if it couldn't join. This will
@@ -801,6 +826,17 @@ impl Swarm {
             }
         }
     }
+
+    /// Get an array of ECS [`Entity`]s for all [`LocalEntity`]s in our world.
+    /// This will include clients that were disconnected without being removed
+    /// from the ECS.
+    ///
+    /// [`LocalEntity`]: azalea_entity::LocalEntity
+    pub fn client_entities(&self) -> Box<[Entity]> {
+        let mut ecs = self.ecs_lock.lock();
+        let mut query = ecs.query_filtered::<Entity, With<LocalEntity>>();
+        query.iter(&ecs).collect::<Box<[Entity]>>()
+    }
 }
 
 impl IntoIterator for Swarm {
@@ -821,11 +857,12 @@ impl IntoIterator for Swarm {
     /// # }
     /// ```
     fn into_iter(self) -> Self::IntoIter {
-        self.bots
-            .lock()
-            .clone()
-            .into_values()
-            .collect::<Vec<_>>()
+        let client_entities = self.client_entities();
+
+        client_entities
+            .into_iter()
+            .map(|entity| Client::new(entity, self.ecs_lock.clone()))
+            .collect::<Box<[Client]>>()
             .into_iter()
     }
 }

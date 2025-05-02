@@ -124,7 +124,12 @@ impl ClientBuilder<NoState, ()> {
     /// Set the function that's called every time a bot receives an [`Event`].
     /// This is the way to handle normal per-bot events.
     ///
-    /// Currently you can have up to one client handler.
+    /// Currently, you can have up to one client handler.
+    ///
+    /// Note that if you're creating clients directly from the ECS using
+    /// [`StartJoinServerEvent`] and the client wasn't already in the ECS, then
+    /// the handler function won't be called for that client. This shouldn't be
+    /// a concern for most bots, though.
     ///
     /// ```
     /// # use azalea::prelude::*;
@@ -137,6 +142,8 @@ impl ClientBuilder<NoState, ()> {
     ///     Ok(())
     /// }
     /// ```
+    ///
+    /// [`StartJoinServerEvent`]: azalea_client::join::StartJoinServerEvent
     #[must_use]
     pub fn set_handler<S, Fut, R>(self, handler: HandleFn<S, Fut>) -> ClientBuilder<S, R>
     where

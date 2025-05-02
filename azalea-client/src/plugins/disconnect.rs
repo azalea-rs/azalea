@@ -16,8 +16,12 @@ impl Plugin for DisconnectPlugin {
             PostUpdate,
             (
                 update_read_packets_task_running_component,
-                disconnect_on_connection_dead,
                 remove_components_from_disconnected_players,
+                // this happens after `remove_components_from_disconnected_players` since that
+                // system removes `IsConnectionAlive`, which ensures that
+                // `DisconnectEvent` won't get called again from
+                // `disconnect_on_connection_dead`
+                disconnect_on_connection_dead,
             )
                 .chain(),
         );
@@ -64,7 +68,9 @@ pub fn remove_components_from_disconnected_players(
             .remove::<PlayerMetadataBundle>()
             .remove::<InLoadedChunk>()
             // this makes it close the tcp connection
-            .remove::<RawConnection>();
+            .remove::<RawConnection>()
+            // this makes it not send DisconnectEvent again
+            .remove::<IsConnectionAlive>();
         // note that we don't remove the client from the ECS, so if they decide
         // to reconnect they'll keep their state
 

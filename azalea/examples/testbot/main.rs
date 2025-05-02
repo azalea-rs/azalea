@@ -194,7 +194,7 @@ async fn handle(bot: Client, event: azalea::Event, state: State) -> anyhow::Resu
 }
 async fn swarm_handle(_swarm: Swarm, event: SwarmEvent, _state: SwarmState) -> anyhow::Result<()> {
     match &event {
-        SwarmEvent::Disconnect(account, join_opts) => {
+        SwarmEvent::Disconnect(account, _) => {
             println!("bot got kicked! {}", account.username);
         }
         SwarmEvent::Chat(chat) => {
