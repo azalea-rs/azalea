@@ -17,7 +17,7 @@ write down most non-trivial breaking changes.
 - azalea and azalea-client now have a `packet-event` feature, which can be disabled for efficiency if you're not using `Event::Packet`.
 - `StartJoinServerEvent` can now be used to join servers exclusively from the ECS without a Tokio runtime.
 - `FormattedText::to_html` and `FormattedText::to_custom_format`.
-- [BREAKING] Add auto-reconnecting, which is enabled by default (and thus could conflict with manually implemented auto-reconnects).
+- Add auto-reconnecting which is enabled by default.
 
 ### Changed
 
