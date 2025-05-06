@@ -74,7 +74,7 @@ tokio = "1.44.2"
 tokio-util = "0.7.15"
 tracing = "0.1.41"
 tracing-subscriber = "0.3.19"
-hickory-resolver = { version = "0.26.0-alpha.1", default-features = false, git = "https://github.com/hickory-dns/hickory-dns", rev = "8f63f58fccfe2e643d6ff17c800ce9e27e770b62" }
+hickory-resolver = "0.25.2"
 uuid = "1.16"
 num-format = "0.4.4"
 indexmap = "2.9.0"

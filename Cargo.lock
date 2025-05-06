@@ -1621,8 +1621,9 @@ checksum = "fbd780fe5cc30f81464441920d82ac8740e2e46b29a6fad543ddd075229ce37e"
 
 [[package]]
 name = "hickory-proto"
-version = "0.26.0-alpha.1"
-source = "git+https://github.com/hickory-dns/hickory-dns?rev=8f63f58fccfe2e643d6ff17c800ce9e27e770b62#8f63f58fccfe2e643d6ff17c800ce9e27e770b62"
+version = "0.25.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f8a6fe56c0038198998a6f217ca4e7ef3a5e51f46163bd6dd60b5c71ca6c6502"
 dependencies = [
  "async-trait",
  "cfg-if",
@@ -1645,8 +1646,9 @@ dependencies = [
 
 [[package]]
 name = "hickory-resolver"
-version = "0.26.0-alpha.1"
-source = "git+https://github.com/hickory-dns/hickory-dns?rev=8f63f58fccfe2e643d6ff17c800ce9e27e770b62#8f63f58fccfe2e643d6ff17c800ce9e27e770b62"
+version = "0.25.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dc62a9a99b0bfb44d2ab95a7208ac952d31060efc16241c87eaf36406fecf87a"
 dependencies = [
  "cfg-if",
  "futures-util",
