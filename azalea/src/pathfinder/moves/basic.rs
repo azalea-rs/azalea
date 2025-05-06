@@ -1,5 +1,6 @@
 use std::f32::consts::SQRT_2;
 
+use azalea_block::{BlockState, properties};
 use azalea_client::{SprintDirection, WalkDirection};
 use azalea_core::{
     direction::CardinalDirection,
@@ -58,7 +59,34 @@ fn execute_forward_move(mut ctx: ExecuteCtx) {
 }
 
 fn ascend_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
+    // the block we're standing on must be solid (so we don't try to ascend from a
+    // bottom slab to a normal block in a way that's not possible)
+
+    let is_unusual_shape = !ctx.world.is_block_solid(pos.down(1));
+    let mut stair_facing = None;
+
+    if is_unusual_shape {
+        // this is potentially expensive but it's rare enough that it shouldn't matter
+        // much
+        let block_below = ctx.world.get_block_state(pos.down(1));
+
+        let Some(found_stair_facing) = validate_stair_and_get_facing(block_below) else {
+            // return if it's not a stair or it's not facing the right way (like, if it's
+            // upside down or something)
+            return;
+        };
+
+        stair_facing = Some(found_stair_facing);
+    }
+
     for dir in CardinalDirection::iter() {
+        if let Some(stair_facing) = stair_facing {
+            let expected_stair_facing = cardinal_direction_to_facing_property(dir);
+            if stair_facing != expected_stair_facing {
+                continue;
+            }
+        }
+
         let offset = RelBlockPos::new(dir.x(), 1, dir.z());
 
         let break_cost_1 = ctx
@@ -134,6 +162,24 @@ fn execute_ascend_move(mut ctx: ExecuteCtx) {
         return;
     }
 
+    // if the target block is a stair that's facing in the direction we're going, we
+    // shouldn't jump
+    let block_below_target = ctx.get_block_state(target.down(1));
+    if let Some(stair_facing) = validate_stair_and_get_facing(block_below_target) {
+        let expected_stair_facing = match (x_axis, z_axis) {
+            (0, 1) => Some(properties::FacingCardinal::North),
+            (1, 0) => Some(properties::FacingCardinal::East),
+            (0, -1) => Some(properties::FacingCardinal::South),
+            (-1, 0) => Some(properties::FacingCardinal::West),
+            _ => None,
+        };
+        if let Some(expected_stair_facing) = expected_stair_facing {
+            if stair_facing == expected_stair_facing {
+                return;
+            }
+        }
+    }
+
     if BlockPos::from(position) == start {
         // only jump if the target is more than 0.5 blocks above us
         if target.y as f64 - position.y > 0.5 {
@@ -148,6 +194,23 @@ pub fn ascend_is_reached(
     }: IsReachedCtx,
 ) -> bool {
     BlockPos::from(position) == target || BlockPos::from(position) == target.down(1)
+}
+
+fn validate_stair_and_get_facing(block_state: BlockState) -> Option<properties::FacingCardinal> {
+    let top_bottom = block_state.property::<properties::TopBottom>();
+    if top_bottom != Some(properties::TopBottom::Bottom) {
+        return None;
+    }
+
+    block_state.property::<properties::FacingCardinal>()
+}
+fn cardinal_direction_to_facing_property(dir: CardinalDirection) -> properties::FacingCardinal {
+    match dir {
+        CardinalDirection::North => properties::FacingCardinal::North,
+        CardinalDirection::East => properties::FacingCardinal::East,
+        CardinalDirection::South => properties::FacingCardinal::South,
+        CardinalDirection::West => properties::FacingCardinal::West,
+    }
 }
 
 fn descend_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {

@@ -3,6 +3,7 @@ pub mod parkour;
 
 use std::{fmt::Debug, sync::Arc};
 
+use azalea_block::BlockState;
 use azalea_client::{
     SprintDirection, StartSprintEvent, StartWalkEvent, WalkDirection,
     inventory::SetSelectedHotbarSlotEvent, mining::StartMiningBlockEvent,
@@ -174,6 +175,13 @@ impl ExecuteCtx<'_, '_, '_, '_, '_, '_, '_> {
         } else {
             false
         }
+    }
+
+    pub fn get_block_state(&self, block: BlockPos) -> BlockState {
+        self.instance
+            .read()
+            .get_block_state(&block)
+            .unwrap_or_default()
     }
 }
 

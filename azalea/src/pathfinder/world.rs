@@ -3,7 +3,7 @@ use std::{
     sync::Arc,
 };
 
-use azalea_block::BlockState;
+use azalea_block::{BlockState, properties};
 use azalea_core::{
     bitset::FixedBitSet,
     position::{BlockPos, ChunkPos, ChunkSectionBlockPos, ChunkSectionPos},
@@ -239,6 +239,21 @@ impl CachedWorld {
         let passable = cached.passable_bitset.index(index);
         cached_blocks.insert(cached);
         passable
+    }
+
+    /// Get the block state at the given position. This is relatively slow, so
+    /// you should avoid it whenever possible.
+    pub fn get_block_state(&self, pos: RelBlockPos) -> BlockState {
+        self.get_block_state_at_pos(pos.apply(self.origin))
+    }
+
+    fn get_block_state_at_pos(&self, pos: BlockPos) -> BlockState {
+        let (section_pos, section_block_pos) =
+            (ChunkSectionPos::from(pos), ChunkSectionBlockPos::from(pos));
+        let index = u16::from(section_block_pos) as usize;
+
+        self.with_section(section_pos, |section| section.get_at_index(index))
+            .unwrap_or_default()
     }
 
     pub fn is_block_solid(&self, pos: RelBlockPos) -> bool {
@@ -487,6 +502,10 @@ impl CachedWorld {
         }
         distance
     }
+
+    pub fn origin(&self) -> BlockPos {
+        self.origin
+    }
 }
 
 /// whether this block is passable
@@ -537,7 +556,19 @@ pub fn is_block_state_solid(block: BlockState) -> bool {
         // fast path
         return false;
     }
-    block.is_collision_shape_full()
+    if block.is_collision_shape_full() {
+        return true;
+    }
+
+    if matches!(
+        block.property::<properties::Type>(),
+        Some(properties::Type::Top | properties::Type::Double)
+    ) {
+        // top slabs
+        return true;
+    }
+
+    false
 }
 
 pub fn is_block_state_standable(block: BlockState) -> bool {
