@@ -6,6 +6,11 @@ use super::{Edge, ExecuteCtx, IsReachedCtx, MoveData, PathfinderCtx};
 use crate::pathfinder::{astar, costs::*, rel_block_pos::RelBlockPos};
 
 pub fn parkour_move(ctx: &mut PathfinderCtx, node: RelBlockPos) {
+    if !ctx.world.is_block_solid(node.down(1)) {
+        // we can only parkour from solid blocks (not just standable blocks like slabs)
+        return;
+    }
+
     parkour_forward_1_move(ctx, node);
     parkour_forward_2_move(ctx, node);
     parkour_forward_3_move(ctx, node);
@@ -232,9 +237,18 @@ fn execute_parkour_move(mut ctx: ExecuteCtx) {
 #[must_use]
 pub fn parkour_is_reached(
     IsReachedCtx {
-        position, target, ..
+        position,
+        target,
+        physics,
+        ..
     }: IsReachedCtx,
 ) -> bool {
     // 0.094 and not 0 for lilypads
-    BlockPos::from(position) == target && (position.y - target.y as f64) < 0.094
+    if BlockPos::from(position) == target && (position.y - target.y as f64) < 0.094 {
+        return true;
+    }
+
+    // this is to make it handle things like slabs correctly, if we're on the block
+    // below the target but on_ground
+    BlockPos::from(position).up(1) == target && physics.on_ground()
 }

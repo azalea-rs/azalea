@@ -135,7 +135,10 @@ fn execute_ascend_move(mut ctx: ExecuteCtx) {
     }
 
     if BlockPos::from(position) == start {
-        ctx.jump();
+        // only jump if the target is more than 0.5 blocks above us
+        if target.y as f64 - position.y > 0.5 {
+            ctx.jump();
+        }
     }
 }
 #[must_use]

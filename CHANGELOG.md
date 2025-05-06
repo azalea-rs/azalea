@@ -18,6 +18,7 @@ write down most non-trivial breaking changes.
 - `StartJoinServerEvent` can now be used to join servers exclusively from the ECS without a Tokio runtime.
 - `FormattedText::to_html` and `FormattedText::to_custom_format`.
 - Add auto-reconnecting which is enabled by default.
+- The pathfinder no longer avoids slabs, stairs, and dirt path blocks.
 
 ### Changed
 

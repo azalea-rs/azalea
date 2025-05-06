@@ -81,8 +81,12 @@ impl CachedSections {
 
 pub struct CachedSection {
     pub pos: ChunkSectionPos,
+    /// Blocks that we can fully pass through (like air).
     pub passable_bitset: FixedBitSet<{ 4096_usize.div_ceil(8) }>,
+    /// Blocks that we can stand on and do parkour from.
     pub solid_bitset: FixedBitSet<{ 4096_usize.div_ceil(8) }>,
+    /// Blocks that we can stand on but might not be able to parkour from.
+    pub standable_bitset: FixedBitSet<{ 4096_usize.div_ceil(8) }>,
 }
 
 impl CachedWorld {
@@ -193,6 +197,7 @@ impl CachedWorld {
         self.with_section(section_pos, |section| {
             let mut passable_bitset = FixedBitSet::<{ 4096_usize.div_ceil(8) }>::new();
             let mut solid_bitset = FixedBitSet::<{ 4096_usize.div_ceil(8) }>::new();
+            let mut standable_bitset = FixedBitSet::<{ 4096_usize.div_ceil(8) }>::new();
             for i in 0..4096 {
                 let block_state = section.get_at_index(i);
                 if is_block_state_passable(block_state) {
@@ -201,11 +206,15 @@ impl CachedWorld {
                 if is_block_state_solid(block_state) {
                     solid_bitset.set(i);
                 }
+                if is_block_state_standable(block_state) {
+                    standable_bitset.set(i);
+                }
             }
             CachedSection {
                 pos: section_pos,
                 passable_bitset,
                 solid_bitset,
+                standable_bitset,
             }
         })
     }
@@ -235,6 +244,9 @@ impl CachedWorld {
     pub fn is_block_solid(&self, pos: RelBlockPos) -> bool {
         self.is_block_pos_solid(pos.apply(self.origin))
     }
+    pub fn is_block_standable(&self, pos: RelBlockPos) -> bool {
+        self.is_block_pos_standable(pos.apply(self.origin))
+    }
 
     fn is_block_pos_solid(&self, pos: BlockPos) -> bool {
         let (section_pos, section_block_pos) =
@@ -250,6 +262,23 @@ impl CachedWorld {
             return false;
         };
         let solid = cached.solid_bitset.index(index);
+        cached_blocks.insert(cached);
+        solid
+    }
+    fn is_block_pos_standable(&self, pos: BlockPos) -> bool {
+        let (section_pos, section_block_pos) =
+            (ChunkSectionPos::from(pos), ChunkSectionBlockPos::from(pos));
+        let index = u16::from(section_block_pos) as usize;
+        // SAFETY: we're only accessing this from one thread
+        let cached_blocks = unsafe { &mut *self.cached_blocks.get() };
+        if let Some(cached) = cached_blocks.get_mut(section_pos) {
+            return cached.standable_bitset.index(index);
+        }
+
+        let Some(cached) = self.calculate_bitsets_for_section(section_pos) else {
+            return false;
+        };
+        let solid = cached.standable_bitset.index(index);
         cached_blocks.insert(cached);
         solid
     }
@@ -434,11 +463,11 @@ impl CachedWorld {
         self.is_standable_at_block_pos(pos.apply(self.origin))
     }
     fn is_standable_at_block_pos(&self, pos: BlockPos) -> bool {
-        self.is_block_pos_solid(pos.down(1)) && self.is_passable_at_block_pos(pos)
+        self.is_block_pos_standable(pos.down(1)) && self.is_passable_at_block_pos(pos)
     }
 
     pub fn cost_for_standing(&self, pos: RelBlockPos, mining_cache: &MiningCache) -> f32 {
-        if !self.is_block_solid(pos.down(1)) {
+        if !self.is_block_standable(pos.down(1)) {
             return f32::INFINITY;
         }
         self.cost_for_passing(pos, mining_cache)
@@ -501,13 +530,37 @@ pub fn is_block_state_passable(block: BlockState) -> bool {
     true
 }
 
-/// whether this block has a solid hitbox (i.e. we can stand on it)
+/// whether this block has a solid hitbox at the top (i.e. we can stand on it
+/// and do parkour from it)
 pub fn is_block_state_solid(block: BlockState) -> bool {
     if block.is_air() {
         // fast path
         return false;
     }
     block.is_collision_shape_full()
+}
+
+pub fn is_block_state_standable(block: BlockState) -> bool {
+    if block.is_air() {
+        // fast path
+        return false;
+    }
+    if block.is_collision_shape_full() {
+        return true;
+    }
+
+    let registry_block = azalea_registry::Block::from(block);
+    if azalea_registry::tags::blocks::SLABS.contains(&registry_block)
+        || azalea_registry::tags::blocks::STAIRS.contains(&registry_block)
+    {
+        return true;
+    }
+
+    if registry_block == azalea_registry::Block::DirtPath {
+        return true;
+    }
+
+    false
 }
 
 #[cfg(test)]
