@@ -26,7 +26,7 @@ const SECTION_HEIGHT: u32 = 16;
 pub struct PartialChunkStorage {
     /// The center of the view, i.e. the chunk the player is currently in.
     view_center: ChunkPos,
-    chunk_radius: u32,
+    pub(crate) chunk_radius: u32,
     view_range: u32,
     // chunks is a list of size chunk_radius * chunk_radius
     chunks: Box<[Option<Arc<RwLock<Chunk>>>]>,

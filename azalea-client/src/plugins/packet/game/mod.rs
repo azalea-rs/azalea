@@ -1496,10 +1496,11 @@ impl GamePacketHandler<'_> {
     pub fn start_configuration(&mut self, _p: &ClientboundStartConfiguration) {
         debug!("Got start configuration packet");
 
-        as_system::<(Commands, Query<&mut RawConnection>)>(
+        as_system::<(Commands, Query<(&mut RawConnection, &mut InstanceHolder)>)>(
             self.ecs,
             |(mut commands, mut query)| {
-                let Some(mut raw_conn) = query.get_mut(self.player).ok() else {
+                let Some((mut raw_conn, mut instance_holder)) = query.get_mut(self.player).ok()
+                else {
                     warn!("Got start configuration packet but player doesn't have a RawConnection");
                     return;
                 };
@@ -1515,6 +1516,8 @@ impl GamePacketHandler<'_> {
                     .insert(crate::client::InConfigState)
                     .remove::<crate::JoinedClientBundle>()
                     .remove::<EntityBundle>();
+
+                instance_holder.reset();
             },
         );
     }
