@@ -324,6 +324,7 @@ pub fn descend_is_reached(
         target,
         start,
         position,
+        physics,
         ..
     }: IsReachedCtx,
 ) -> bool {
@@ -333,8 +334,14 @@ pub fn descend_is_reached(
         start.z + (target.z - start.z) * 2,
     );
 
-    (BlockPos::from(position) == target || BlockPos::from(position) == dest_ahead)
-        && (position.y - target.y as f64) < 0.5
+    if BlockPos::from(position) == target || BlockPos::from(position) == dest_ahead {
+        if (position.y - target.y as f64) < 0.5 {
+            return true;
+        }
+    } else if BlockPos::from(position).up(1) == target && physics.on_ground() {
+        return true;
+    }
+    false
 }
 
 fn descend_forward_1_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
