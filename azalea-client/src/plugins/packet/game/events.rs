@@ -9,7 +9,7 @@ use azalea_protocol::packets::{
 use azalea_world::Instance;
 use bevy_ecs::prelude::*;
 use parking_lot::RwLock;
-use tracing::error;
+use tracing::{error, trace};
 use uuid::Uuid;
 
 use crate::{PlayerInfo, client::InGameState, connection::RawConnection};
@@ -60,6 +60,7 @@ pub fn handle_outgoing_packets_observer(
     mut query: Query<(&mut RawConnection, Option<&InGameState>)>,
 ) {
     let event = trigger.event();
+    trace!("Sending game packet: {:?}", event.packet);
 
     if let Ok((mut raw_connection, in_game_state)) = query.get_mut(event.sent_by) {
         if in_game_state.is_none() {

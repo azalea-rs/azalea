@@ -36,3 +36,4 @@ write down most non-trivial breaking changes.
 - Update the `InstanceName` component correctly when we receive a respawn or second login packet.
 - Block shapes and some properties were using data from `1.20.3-pre4` due to using an old data generator (Pixlyzer), which has now been replaced with the data generator from [Pumpkin](https://github.com/Pumpkin-MC/Extractor).
 - No more chunk errors when the client joins another world with the same name but different height.
+- Mining now cancels correctly and doesn't flag Grim.

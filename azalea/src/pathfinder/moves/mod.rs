@@ -166,6 +166,7 @@ impl ExecuteCtx<'_, '_, '_, '_, '_, '_, '_> {
 
         if self.should_mine(block) {
             if at_start_position {
+                self.look_at(block.center());
                 self.mine(block);
             } else {
                 self.look_at(self.start.center());

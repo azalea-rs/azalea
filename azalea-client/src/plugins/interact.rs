@@ -98,6 +98,7 @@ impl AddAssign<u32> for CurrentSequenceNumber {
 }
 
 /// A component that contains the block that the player is currently looking at.
+#[doc(alias("looking at", "looking at block", "crosshair"))]
 #[derive(Component, Clone, Debug, Deref, DerefMut)]
 pub struct HitResultComponent(BlockHitResult);
 

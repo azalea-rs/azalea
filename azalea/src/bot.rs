@@ -1,6 +1,5 @@
 use std::f64::consts::PI;
 
-use azalea_client::interact::SwingArmEvent;
 use azalea_client::mining::Mining;
 use azalea_client::tick_broadcast::{TickBroadcast, UpdateBroadcast};
 use azalea_core::position::{BlockPos, Vec3};
@@ -172,10 +171,6 @@ impl BotClientExt for azalea_client::Client {
 
     async fn mine(&self, position: BlockPos) {
         self.start_mining(position);
-        // vanilla sends an extra swing arm packet when we start mining
-        self.ecs.lock().send_event(SwingArmEvent {
-            entity: self.entity,
-        });
 
         let mut receiver = self.get_tick_broadcaster();
         while receiver.recv().await.is_ok() {
