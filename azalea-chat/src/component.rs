@@ -529,8 +529,9 @@ impl FormattedText {
             component.append(FormattedText::from_nbt_tag(extra)?);
         }
 
-        let style = Style::from_compound(compound).ok()?;
-        component.get_base_mut().style = style;
+        let base_style = Style::from_compound(compound).ok()?;
+        let new_style = &mut component.get_base_mut().style;
+        *new_style = new_style.merged_with(&base_style);
 
         Some(component)
     }
