@@ -161,8 +161,8 @@ impl<SS, SR> SwarmBuilder<NoState, SS, (), SR>
 where
     SS: Default + Send + Sync + Clone + Resource + 'static,
 {
-    /// Set the function that's called every time a bot receives an [`Event`].
-    /// This is the way to handle normal per-bot events.
+    /// Set the function that's called every time a bot receives an
+    /// [`enum@Event`]. This is the way to handle normal per-bot events.
     ///
     /// Currently you can have up to one handler.
     ///

@@ -37,7 +37,8 @@ pub fn send_tick_broadcast(tick_broadcast: ResMut<TickBroadcast>) {
 pub fn send_update_broadcast(update_broadcast: ResMut<UpdateBroadcast>) {
     let _ = update_broadcast.0.send(());
 }
-/// A plugin that makes the [`RanScheduleBroadcast`] resource available.
+/// A plugin that makes the [`UpdateBroadcast`] and [`TickBroadcast`] resources
+/// available.
 pub struct TickBroadcastPlugin;
 impl Plugin for TickBroadcastPlugin {
     fn build(&self, app: &mut App) {

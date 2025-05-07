@@ -1,5 +1,5 @@
-//! Defines the [`Event`] enum and makes those events trigger when they're sent
-//! in the ECS.
+//! Defines the [`enum@Event`] enum and makes those events trigger when they're
+//! sent in the ECS.
 
 use std::sync::Arc;
 
