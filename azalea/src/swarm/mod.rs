@@ -112,21 +112,22 @@ impl SwarmBuilder<NoState, NoSwarmState, (), ()> {
             .add_plugins(DefaultSwarmPlugins)
     }
 
-    /// [`Self::new`] but without adding the plugins by default. This is useful
-    /// if you want to disable a default plugin.
+    /// [`Self::new`] but without adding the plugins by default.
+    ///
+    /// This is useful if you want to disable a default plugin. This also exists
+    /// for `ClientBuilder`, see [`ClientBuilder::new_without_plugins`].
     ///
     /// You **must** add [`DefaultPlugins`], [`DefaultBotPlugins`], and
     /// [`DefaultSwarmPlugins`] to this.
     ///
     /// ```
     /// # use azalea::{prelude::*, swarm::prelude::*};
-    /// use azalea::{app::PluginGroup, DefaultBotPlugins, DefaultPlugins, swarm::{DefaultSwarmPlugins}};
-    /// use bevy_log::LogPlugin;
+    /// use azalea::app::PluginGroup;
     ///
     /// let swarm_builder = SwarmBuilder::new_without_plugins()
-    ///     .add_plugins(DefaultPlugins.build().disable::<LogPlugin>())
-    ///     .add_plugins(DefaultBotPlugins)
-    ///     .add_plugins(DefaultSwarmPlugins);
+    ///     .add_plugins(azalea::DefaultPlugins.build().disable::<azalea::chat_signing::ChatSigningPlugin>())
+    ///     .add_plugins(azalea::DefaultBotPlugins)
+    ///     .add_plugins(azalea::swarm::DefaultSwarmPlugins);
     /// # swarm_builder.set_handler(handle).set_swarm_handler(swarm_handle);
     /// # #[derive(Component, Resource, Clone, Default)]
     /// # pub struct State;
@@ -137,6 +138,8 @@ impl SwarmBuilder<NoState, NoSwarmState, (), ()> {
     /// #     Ok(())
     /// # }
     /// ```
+    ///
+    /// [`ClientBuilder::new_without_plugins`]: crate::ClientBuilder::new_without_plugins
     #[must_use]
     pub fn new_without_plugins() -> Self {
         SwarmBuilder {
@@ -355,6 +358,9 @@ where
     }
 
     /// Add one or more plugins to this swarm.
+    ///
+    /// See [`Self::new_without_plugins`] to learn how to disable default
+    /// plugins.
     #[must_use]
     pub fn add_plugins<M>(mut self, plugins: impl Plugins<M>) -> Self {
         self.app.add_plugins(plugins);

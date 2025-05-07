@@ -94,8 +94,10 @@ impl ClientBuilder<NoState, ()> {
             .add_plugins(DefaultBotPlugins)
     }
 
-    /// [`Self::new`] but without adding the plugins by default. This is useful
-    /// if you want to disable a default plugin.
+    /// [`Self::new`] but without adding the plugins by default.
+    ///
+    /// This is useful if you want to disable a default plugin. This also exists
+    /// for swarms, see [`SwarmBuilder::new_without_plugins`].
     ///
     /// Note that you can also disable `LogPlugin` by disabling the `log`
     /// feature.
@@ -104,12 +106,11 @@ impl ClientBuilder<NoState, ()> {
     ///
     /// ```
     /// # use azalea::prelude::*;
-    /// use azalea::{app::PluginGroup, DefaultBotPlugins, DefaultPlugins};
-    /// use bevy_log::LogPlugin;
+    /// use azalea::app::PluginGroup;
     ///
     /// let client_builder = ClientBuilder::new_without_plugins()
-    ///     .add_plugins(DefaultPlugins.build().disable::<LogPlugin>())
-    ///     .add_plugins(DefaultBotPlugins);
+    ///     .add_plugins(azalea::DefaultPlugins.build().disable::<azalea::chat_signing::ChatSigningPlugin>())
+    ///     .add_plugins(azalea::DefaultBotPlugins);
     /// # client_builder.set_handler(handle);
     /// # #[derive(Component, Clone, Default)]
     /// # pub struct State;
@@ -171,6 +172,9 @@ where
         self
     }
     /// Add a group of plugins to the client.
+    ///
+    /// See [`Self::new_without_plugins`] to learn how to disable default
+    /// plugins.
     #[must_use]
     pub fn add_plugins<M>(mut self, plugins: impl Plugins<M>) -> Self {
         self.swarm = self.swarm.add_plugins(plugins);
