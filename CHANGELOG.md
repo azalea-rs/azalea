@@ -19,6 +19,7 @@ write down most non-trivial breaking changes.
 - `FormattedText::to_html` and `FormattedText::to_custom_format`.
 - Add auto-reconnecting which is enabled by default.
 - The pathfinder no longer avoids slabs, stairs, and dirt path blocks.
+- Non-standard legacy hex colors like `§#ff0000` are now supported in azalea-chat.
 
 ### Changed
 
@@ -37,3 +38,4 @@ write down most non-trivial breaking changes.
 - Block shapes and some properties were using data from `1.20.3-pre4` due to using an old data generator (Pixlyzer), which has now been replaced with the data generator from [Pumpkin](https://github.com/Pumpkin-MC/Extractor).
 - No more chunk errors when the client joins another world with the same name but different height.
 - Mining now cancels correctly and doesn't flag Grim.
+- azalea-chat now handles legacy color codes correctly when parsing from NBT.
