@@ -360,6 +360,7 @@ dependencies = [
  "bevy_log",
  "bevy_tasks",
  "bevy_time",
+ "chrono",
  "derive_more 2.0.1",
  "minecraft_folder_path",
  "parking_lot",

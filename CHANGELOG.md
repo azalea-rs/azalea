@@ -17,6 +17,7 @@ is breaking anyways, semantic versioning is not followed.
 - Add auto-reconnecting which is enabled by default.
 - The pathfinder no longer avoids slabs, stairs, and dirt path blocks.
 - Non-standard legacy hex colors like `§#ff0000` are now supported in azalea-chat.
+- Chat signing.
 
 ### Changed
 

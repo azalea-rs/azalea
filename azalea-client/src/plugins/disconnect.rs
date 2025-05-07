@@ -7,7 +7,7 @@ use bevy_ecs::prelude::*;
 use derive_more::Deref;
 use tracing::info;
 
-use crate::{InstanceHolder, client::JoinedClientBundle, connection::RawConnection};
+use crate::{InstanceHolder, chat_signing, client::JoinedClientBundle, connection::RawConnection};
 
 pub struct DisconnectPlugin;
 impl Plugin for DisconnectPlugin {
@@ -70,7 +70,9 @@ pub fn remove_components_from_disconnected_players(
             // this makes it close the tcp connection
             .remove::<RawConnection>()
             // this makes it not send DisconnectEvent again
-            .remove::<IsConnectionAlive>();
+            .remove::<IsConnectionAlive>()
+            // resend our chat signing certs next time
+            .remove::<chat_signing::ChatSigningSession>();
         // note that we don't remove the client from the ECS, so if they decide
         // to reconnect they'll keep their state
 

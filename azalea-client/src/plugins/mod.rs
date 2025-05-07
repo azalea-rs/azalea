@@ -4,6 +4,7 @@ pub mod attack;
 pub mod auto_reconnect;
 pub mod brand;
 pub mod chat;
+pub mod chat_signing;
 pub mod chunks;
 pub mod connection;
 pub mod disconnect;
@@ -53,7 +54,8 @@ impl PluginGroup for DefaultPlugins {
             .add(connection::ConnectionPlugin)
             .add(login::LoginPlugin)
             .add(join::JoinPlugin)
-            .add(auto_reconnect::AutoReconnectPlugin);
+            .add(auto_reconnect::AutoReconnectPlugin)
+            .add(chat_signing::ChatSigningPlugin);
         #[cfg(feature = "log")]
         {
             group = group.add(bevy_log::LogPlugin::default());

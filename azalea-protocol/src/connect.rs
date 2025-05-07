@@ -278,7 +278,7 @@ impl Display for Proxy {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "socks5://")?;
         if let Some(auth) = &self.auth {
-            write!(f, "{}@", auth)?;
+            write!(f, "{auth}@")?;
         }
         write!(f, "{}", self.addr)
     }
