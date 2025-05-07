@@ -39,8 +39,8 @@ pub fn tick(bot: Client, state: State) -> anyhow::Result<()> {
         }
     }
     if let Some(nearest_entity) = nearest_entity {
-        println!("attacking {:?}", nearest_entity);
-        println!("distance {:?}", nearest_distance);
+        println!("attacking {nearest_entity:?}");
+        println!("distance {nearest_distance:?}");
         bot.attack(nearest_entity);
     }
 

@@ -95,11 +95,11 @@ pub fn accurate_best_tool_in_hotbar_for_block(
                 }
             }
         }
-        if let Some(this_item_speed) = this_item_speed {
-            if this_item_speed > best_speed {
-                best_slot = Some(i);
-                best_speed = this_item_speed;
-            }
+        if let Some(this_item_speed) = this_item_speed
+            && this_item_speed > best_speed
+        {
+            best_slot = Some(i);
+            best_speed = this_item_speed;
         }
     }
 

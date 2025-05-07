@@ -116,7 +116,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
                         get_integer(ctx, "y").unwrap(),
                         get_integer(ctx, "z").unwrap(),
                     );
-                    println!("{:?}", pos);
+                    println!("{pos:?}");
                     let source = ctx.source.lock();
                     source.bot.look_at(pos.center());
                     1

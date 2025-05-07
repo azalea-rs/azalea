@@ -715,12 +715,12 @@ pub fn check_node_reached(
                             direction: WalkDirection::None,
                         });
                         commands.entity(entity).remove::<ExecutingPath>();
-                        if let Some(goal) = pathfinder.goal.clone() {
-                            if goal.success(movement.target) {
-                                info!("goal was reached!");
-                                pathfinder.goal = None;
-                                pathfinder.successors_fn = None;
-                            }
+                        if let Some(goal) = pathfinder.goal.clone()
+                            && goal.success(movement.target)
+                        {
+                            info!("goal was reached!");
+                            pathfinder.goal = None;
+                            pathfinder.successors_fn = None;
                         }
                     }
 
@@ -875,17 +875,17 @@ fn patch_path(
 
     let mut is_patch_complete = false;
     if let Some(path_found_event) = path_found_event {
-        if let Some(found_path_patch) = path_found_event.path {
-            if !found_path_patch.is_empty() {
-                new_path.extend(found_path_patch);
+        if let Some(found_path_patch) = path_found_event.path
+            && !found_path_patch.is_empty()
+        {
+            new_path.extend(found_path_patch);
 
-                if !path_found_event.is_partial {
-                    new_path.extend(executing_path.path.iter().skip(*patch_nodes.end()).cloned());
-                    is_patch_complete = true;
-                    debug!("the patch is not partial :)");
-                } else {
-                    debug!("the patch is partial, throwing away rest of path :(");
-                }
+            if !path_found_event.is_partial {
+                new_path.extend(executing_path.path.iter().skip(*patch_nodes.end()).cloned());
+                is_patch_complete = true;
+                debug!("the patch is not partial :)");
+            } else {
+                debug!("the patch is partial, throwing away rest of path :(");
             }
         }
     } else {
@@ -1028,19 +1028,20 @@ pub fn recalculate_if_has_goal_but_no_path(
     mut goto_events: EventWriter<GotoEvent>,
 ) {
     for (entity, mut pathfinder) in &mut query {
-        if pathfinder.goal.is_some() && !pathfinder.is_calculating {
-            if let Some(goal) = pathfinder.goal.as_ref().cloned() {
-                debug!("Recalculating path because it has a goal but no ExecutingPath");
-                goto_events.write(GotoEvent {
-                    entity,
-                    goal,
-                    successors_fn: pathfinder.successors_fn.unwrap(),
-                    allow_mining: pathfinder.allow_mining,
-                    min_timeout: pathfinder.min_timeout.expect("min_timeout should be set"),
-                    max_timeout: pathfinder.max_timeout.expect("max_timeout should be set"),
-                });
-                pathfinder.is_calculating = true;
-            }
+        if pathfinder.goal.is_some()
+            && !pathfinder.is_calculating
+            && let Some(goal) = pathfinder.goal.as_ref().cloned()
+        {
+            debug!("Recalculating path because it has a goal but no ExecutingPath");
+            goto_events.write(GotoEvent {
+                entity,
+                goal,
+                successors_fn: pathfinder.successors_fn.unwrap(),
+                allow_mining: pathfinder.allow_mining,
+                min_timeout: pathfinder.min_timeout.expect("min_timeout should be set"),
+                max_timeout: pathfinder.max_timeout.expect("max_timeout should be set"),
+            });
+            pathfinder.is_calculating = true;
         }
     }
 }

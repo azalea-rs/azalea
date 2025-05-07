@@ -226,7 +226,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
                         let instance_container = ecs.resource::<InstanceContainer>();
 
                         for (instance_name, instance) in &instance_container.instances {
-                            writeln!(report, "- Name: {}", instance_name).unwrap();
+                            writeln!(report, "- Name: {instance_name}").unwrap();
                             writeln!(report, "- Reference count: {}", instance.strong_count())
                                 .unwrap();
                             if let Some(instance) = instance.upgrade() {

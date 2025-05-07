@@ -72,10 +72,8 @@ fn get_delay(
 ) -> Option<Duration> {
     if let Ok(c) = auto_reconnect_delay_query.get(entity) {
         Some(c.delay)
-    } else if let Some(r) = &auto_reconnect_delay_res {
-        Some(r.delay)
     } else {
-        None
+        auto_reconnect_delay_res.as_ref().map(|r| r.delay)
     }
 }
 

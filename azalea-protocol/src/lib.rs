@@ -197,7 +197,7 @@ mod tests {
 
         let buf = compression_encoder(&buf, compression_threshold).unwrap();
 
-        println!("{:?}", buf);
+        println!("{buf:?}");
 
         compression_decoder(&mut Cursor::new(&buf), compression_threshold).unwrap();
     }

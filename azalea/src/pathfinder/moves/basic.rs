@@ -173,10 +173,10 @@ fn execute_ascend_move(mut ctx: ExecuteCtx) {
             (-1, 0) => Some(properties::FacingCardinal::West),
             _ => None,
         };
-        if let Some(expected_stair_facing) = expected_stair_facing {
-            if stair_facing == expected_stair_facing {
-                return;
-            }
+        if let Some(expected_stair_facing) = expected_stair_facing
+            && stair_facing == expected_stair_facing
+        {
+            return;
         }
     }
 

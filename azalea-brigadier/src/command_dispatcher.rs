@@ -467,7 +467,7 @@ impl<S> CommandDispatcher<S> {
                     Ordering::Equal => {
                         let usage = child_usage.into_iter().next().unwrap();
                         let usage = if child_optional {
-                            format!("[{}]", usage)
+                            format!("[{usage}]")
                         } else {
                             usage
                         };

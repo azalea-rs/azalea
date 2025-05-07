@@ -152,8 +152,10 @@ impl InstanceHolder {
     pub fn reset(&mut self) {
         let registries = self.instance.read().registries.clone();
 
-        let mut new_instance = Instance::default();
-        new_instance.registries = registries;
+        let new_instance = Instance {
+            registries,
+            ..Default::default()
+        };
         self.instance = Arc::new(RwLock::new(new_instance));
 
         self.partial_instance.write().reset();

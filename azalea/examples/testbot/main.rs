@@ -241,7 +241,7 @@ fn parse_args() -> Args {
                 pathfinder_debug_particles = true;
             }
             _ => {
-                eprintln!("Unknown argument: {}", arg);
+                eprintln!("Unknown argument: {arg}");
                 process::exit(1);
             }
         }

@@ -63,7 +63,7 @@ mod tests {
         ];
         let mut buf = Cursor::new(contents.as_slice());
         let packet = ClientboundSetPlayerTeam::azalea_read(&mut buf).unwrap();
-        println!("{:?}", packet);
+        println!("{packet:?}");
 
         assert_eq!(buf.position(), contents.len() as u64);
     }

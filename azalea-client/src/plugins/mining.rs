@@ -580,7 +580,7 @@ pub fn continue_mining_block(
             let instance = instance_lock.read();
             let target_block_state = instance.get_block_state(&mining.pos).unwrap_or_default();
 
-            println!("target_block_state: {:?}", target_block_state);
+            println!("target_block_state: {target_block_state:?}");
 
             if target_block_state.is_air() {
                 commands.entity(entity).remove::<Mining>();

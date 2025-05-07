@@ -47,10 +47,10 @@ impl CachedSections {
         if let Some(last_item) = self.sections.get(self.last_index) {
             if last_item.pos == pos {
                 return Some(&mut self.sections[self.last_index]);
-            } else if let Some(second_last_item) = self.sections.get(self.second_last_index) {
-                if second_last_item.pos == pos {
-                    return Some(&mut self.sections[self.second_last_index]);
-                }
+            } else if let Some(second_last_item) = self.sections.get(self.second_last_index)
+                && second_last_item.pos == pos
+            {
+                return Some(&mut self.sections[self.second_last_index]);
             }
         }
 
@@ -134,17 +134,17 @@ impl CachedWorld {
 
         // optimization: avoid doing the iter lookup if the last chunk we looked up is
         // the same
-        if let Some(last_chunk_cache_index) = *self.last_chunk_cache_index.borrow() {
-            if cached_chunks[last_chunk_cache_index].0 == chunk_pos {
-                // don't bother with the iter lookup
-                let sections = &cached_chunks[last_chunk_cache_index].1;
-                if section_index >= sections.len() {
-                    // y position is out of bounds
-                    return None;
-                };
-                let section: &azalea_world::palette::PalettedContainer = &sections[section_index];
-                return Some(f(section));
-            }
+        if let Some(last_chunk_cache_index) = *self.last_chunk_cache_index.borrow()
+            && cached_chunks[last_chunk_cache_index].0 == chunk_pos
+        {
+            // don't bother with the iter lookup
+            let sections = &cached_chunks[last_chunk_cache_index].1;
+            if section_index >= sections.len() {
+                // y position is out of bounds
+                return None;
+            };
+            let section: &azalea_world::palette::PalettedContainer = &sections[section_index];
+            return Some(f(section));
         }
 
         // get section from cache
