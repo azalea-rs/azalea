@@ -705,7 +705,10 @@ impl Swarm {
         state: S,
         join_opts: &JoinOpts,
     ) -> Result<Client, JoinError> {
-        debug!("add_with_opts called for account {}", account.username);
+        debug!(
+            "add_with_opts called for account {} with opts {join_opts:?}",
+            account.username
+        );
 
         let address = join_opts
             .custom_address
