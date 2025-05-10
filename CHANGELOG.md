@@ -25,7 +25,8 @@ is breaking anyways, semantic versioning is not followed.
 - [BREAKING] The `BlockState::id` field is now private, use `.id()` instead.
 - [BREAKING] Update to [Bevy 0.16](https://bevyengine.org/news/bevy-0-16/).
 - [BREAKING] Rename `InstanceContainer::insert` to `get_or_insert`.
-- ClientBuilder and SwarmBuilder are now Send.
+- [BREAKING] Replace `BlockInteractEvent` with the more general-purpose `StartUseItemEvent`, and add `client.start_use_item()`.
+- `ClientBuilder` and `SwarmBuilder` are now Send.
 
 ### Fixed
 

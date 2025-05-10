@@ -1,8 +1,8 @@
 use std::{cmp, num::NonZeroU32, sync::LazyLock};
 
 use azalea_core::{
-    block_hit_result::BlockHitResult,
     direction::{Axis, AxisCycle, Direction},
+    hit_result::BlockHitResult,
     math::{EPSILON, binary_search},
     position::{BlockPos, Vec3},
 };

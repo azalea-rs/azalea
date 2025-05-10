@@ -104,10 +104,10 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
 
         let hit_result = *source.bot.component::<HitResultComponent>();
 
-        if hit_result.miss {
+        let Some(hit_result) = hit_result.as_block_hit_result_if_not_miss() else {
             source.reply("I'm not looking at anything");
             return 1;
-        }
+        };
 
         let block_pos = hit_result.block_pos;
         let block = source.bot.world().read().get_block_state(&block_pos);
@@ -171,6 +171,13 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
                 "n/a".to_string()
             },
         ));
+        1
+    }));
+
+    commands.register(literal("startuseitem").executes(|ctx: &Ctx| {
+        let source = ctx.source.lock();
+        source.bot.start_use_item();
+        source.reply("Ok!");
         1
     }));
 

@@ -39,7 +39,8 @@ impl Plugin for MiningPlugin {
                     handle_mining_queued,
                 )
                     .chain()
-                    .before(PhysicsSet),
+                    .before(PhysicsSet)
+                    .in_set(MiningSet),
             )
             .add_systems(
                 Update,
@@ -56,7 +57,7 @@ impl Plugin for MiningPlugin {
                     .after(azalea_entity::update_fluid_on_eyes)
                     .after(crate::interact::update_hit_result_component)
                     .after(crate::attack::handle_attack_event)
-                    .after(crate::interact::handle_block_interact_event)
+                    .after(crate::interact::handle_start_use_item_queued)
                     .before(crate::interact::handle_swing_arm_event),
             );
     }
@@ -121,22 +122,25 @@ fn handle_auto_mine(
         current_mining_item,
     ) in &mut query.iter_mut()
     {
-        let block_pos = hit_result_component.block_pos;
+        let block_pos = hit_result_component
+            .as_block_hit_result_if_not_miss()
+            .map(|b| b.block_pos);
 
-        if (mining.is_none()
-            || !is_same_mining_target(
-                block_pos,
-                inventory,
-                current_mining_pos,
-                current_mining_item,
-            ))
-            && !hit_result_component.miss
+        // start mining if we're looking at a block and we're not already mining it
+        if let Some(block_pos) = block_pos
+            && (mining.is_none()
+                || !is_same_mining_target(
+                    block_pos,
+                    inventory,
+                    current_mining_pos,
+                    current_mining_item,
+                ))
         {
             start_mining_block_event.write(StartMiningBlockEvent {
                 entity,
                 position: block_pos,
             });
-        } else if mining.is_some() && hit_result_component.miss {
+        } else if mining.is_some() && hit_result_component.is_miss() {
             stop_mining_block_event.write(StopMiningBlockEvent { entity });
         }
     }
@@ -166,9 +170,11 @@ fn handle_start_mining_block_event(
 ) {
     for event in events.read() {
         let hit_result = query.get_mut(event.entity).unwrap();
-        let direction = if hit_result.block_pos == event.position {
+        let direction = if let Some(block_hit_result) = hit_result.as_block_hit_result_if_not_miss()
+            && block_hit_result.block_pos == event.position
+        {
             // we're looking at the block
-            hit_result.direction
+            block_hit_result.direction
         } else {
             // we're not looking at the block, arbitrary direction
             Direction::Down
@@ -241,7 +247,6 @@ fn handle_mining_queued(
         // is outside of the worldborder
 
         if game_mode.current == GameMode::Creative {
-            *sequence_number += 1;
             finish_mining_events.write(FinishMiningBlockEvent {
                 entity,
                 position: mining_queued.position,
@@ -318,14 +323,13 @@ fn handle_mining_queued(
                 });
             }
 
-            *sequence_number += 1;
             commands.trigger(SendPacketEvent::new(
                 entity,
                 ServerboundPlayerAction {
                     action: s_player_action::Action::StartDestroyBlock,
                     pos: mining_queued.position,
                     direction: mining_queued.direction,
-                    sequence: **sequence_number,
+                    sequence: sequence_number.get_and_increment(),
                 },
             ));
             commands.trigger(SwingArmEvent { entity });
@@ -558,14 +562,13 @@ pub fn continue_mining_block(
                 entity,
                 position: mining.pos,
             });
-            *sequence_number += 1;
             commands.trigger(SendPacketEvent::new(
                 entity,
                 ServerboundPlayerAction {
                     action: s_player_action::Action::StartDestroyBlock,
                     pos: mining.pos,
                     direction: mining.dir,
-                    sequence: **sequence_number,
+                    sequence: sequence_number.get_and_increment(),
                 },
             ));
             commands.trigger(SwingArmEvent { entity });
@@ -602,7 +605,6 @@ pub fn continue_mining_block(
 
             if **mine_progress >= 1. {
                 commands.entity(entity).remove::<Mining>();
-                *sequence_number += 1;
                 println!("finished mining block at {:?}", mining.pos);
                 finish_mining_events.write(FinishMiningBlockEvent {
                     entity,
@@ -614,7 +616,7 @@ pub fn continue_mining_block(
                         action: s_player_action::Action::StopDestroyBlock,
                         pos: mining.pos,
                         direction: mining.dir,
-                        sequence: **sequence_number,
+                        sequence: sequence_number.get_and_increment(),
                     },
                 ));
                 **mine_progress = 0.;
@@ -638,16 +640,16 @@ pub fn continue_mining_block(
     }
 }
 
-fn update_mining_component(
+pub fn update_mining_component(
     mut commands: Commands,
     mut query: Query<(Entity, &mut Mining, &HitResultComponent)>,
 ) {
     for (entity, mut mining, hit_result_component) in &mut query.iter_mut() {
-        if hit_result_component.miss {
-            commands.entity(entity).remove::<Mining>();
+        if let Some(block_hit_result) = hit_result_component.as_block_hit_result_if_not_miss() {
+            mining.pos = block_hit_result.block_pos;
+            mining.dir = block_hit_result.direction;
         } else {
-            mining.pos = hit_result_component.block_pos;
-            mining.dir = hit_result_component.direction;
+            commands.entity(entity).remove::<Mining>();
         }
     }
 }

@@ -1,6 +1,6 @@
 use crate::{
-    block_hit_result::BlockHitResult,
     direction::{Axis, Direction},
+    hit_result::BlockHitResult,
     math::EPSILON,
     position::{BlockPos, Vec3},
 };

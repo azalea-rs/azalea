@@ -80,8 +80,9 @@ impl AzaleaRead for ActionType {
     }
 }
 
-#[derive(AzBuf, Clone, Copy, Debug)]
+#[derive(AzBuf, Clone, Copy, Debug, Default)]
 pub enum InteractionHand {
+    #[default]
     MainHand = 0,
     OffHand = 1,
 }

@@ -212,7 +212,7 @@ impl Goal for ReachBlockPosGoal {
 
         let eye_position = n.to_vec3_floored() + Vec3::new(0.5, 1.62, 0.5);
         let look_direction = crate::direction_looking_at(&eye_position, &self.pos.center());
-        let block_hit_result = azalea_client::interact::pick(
+        let block_hit_result = azalea_client::interact::pick_block(
             &look_direction,
             &eye_position,
             &self.chunk_storage,

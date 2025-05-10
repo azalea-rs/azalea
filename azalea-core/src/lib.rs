@@ -2,7 +2,6 @@
 
 pub mod aabb;
 pub mod bitset;
-pub mod block_hit_result;
 pub mod color;
 pub mod cursor3d;
 pub mod data_registry;
@@ -11,6 +10,7 @@ pub mod difficulty;
 pub mod direction;
 pub mod filterable;
 pub mod game_type;
+pub mod hit_result;
 pub mod math;
 pub mod objectives;
 pub mod position;

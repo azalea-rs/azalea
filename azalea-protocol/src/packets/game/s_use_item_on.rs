@@ -3,6 +3,7 @@ use std::io::{Cursor, Write};
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
 use azalea_core::{
     direction::Direction,
+    hit_result::BlockHitResult,
     position::{BlockPos, Vec3},
 };
 use azalea_protocol_macros::ServerboundGamePacket;
@@ -75,5 +76,21 @@ impl AzaleaRead for BlockHit {
             inside,
             world_border,
         })
+    }
+}
+
+impl From<BlockHitResult> for BlockHit {
+    /// Converts a [`BlockHitResult`] to a [`BlockHit`].
+    ///
+    /// The only difference is that the `miss` field is not present in
+    /// [`BlockHit`].
+    fn from(hit_result: BlockHitResult) -> Self {
+        Self {
+            block_pos: hit_result.block_pos,
+            direction: hit_result.direction,
+            location: hit_result.location,
+            inside: hit_result.inside,
+            world_border: hit_result.world_border,
+        }
     }
 }

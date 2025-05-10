@@ -6,8 +6,8 @@ use azalea_block::{
 };
 use azalea_core::{
     aabb::AABB,
-    block_hit_result::BlockHitResult,
     direction::{Axis, Direction},
+    hit_result::BlockHitResult,
     math::{self, EPSILON, lerp},
     position::{BlockPos, Vec3},
 };

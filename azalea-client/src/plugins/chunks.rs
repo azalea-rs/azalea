@@ -17,7 +17,7 @@ use bevy_ecs::prelude::*;
 use tracing::{error, trace};
 
 use crate::{
-    InstanceHolder, interact::handle_block_interact_event, inventory::InventorySet,
+    InstanceHolder, interact::handle_start_use_item_queued, inventory::InventorySet,
     packet::game::SendPacketEvent, respawn::perform_respawn,
 };
 
@@ -33,7 +33,7 @@ impl Plugin for ChunksPlugin {
             )
                 .chain()
                 .before(InventorySet)
-                .before(handle_block_interact_event)
+                .before(handle_start_use_item_queued)
                 .before(perform_respawn),
         )
         .add_event::<ReceiveChunkEvent>()
