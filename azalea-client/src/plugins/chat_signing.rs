@@ -12,7 +12,7 @@ use chrono::Utc;
 use tracing::{debug, error};
 use uuid::Uuid;
 
-use super::{chat, packet::game::SendPacketEvent};
+use super::{chat, login::IsAuthenticated, packet::game::SendPacketEvent};
 use crate::{Account, InGameState};
 
 pub struct ChatSigningPlugin;
@@ -149,7 +149,7 @@ pub struct QueuedCertsToSend {
 
 pub fn handle_queued_certs_to_send(
     mut commands: Commands,
-    query: Query<(Entity, &QueuedCertsToSend)>,
+    query: Query<(Entity, &QueuedCertsToSend), With<IsAuthenticated>>,
 ) {
     for (entity, queued_certs) in &query {
         let certs = &queued_certs.certs;

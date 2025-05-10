@@ -33,6 +33,11 @@ fn handle_receive_hello_event(trigger: Trigger<ReceiveHelloEvent>, mut commands:
     commands.entity(player).insert(AuthTask(task));
 }
 
+/// A marker component on our clients that indicates that the server is
+/// online-mode and the client has authenticated their join with Mojang.
+#[derive(Component)]
+pub struct IsAuthenticated;
+
 pub fn poll_auth_task(
     mut commands: Commands,
     mut query: Query<(Entity, &mut AuthTask, &mut RawConnection)>,
@@ -40,7 +45,10 @@ pub fn poll_auth_task(
     for (entity, mut auth_task, mut raw_conn) in query.iter_mut() {
         if let Some(poll_res) = future::block_on(future::poll_once(&mut auth_task.0)) {
             debug!("Finished auth");
-            commands.entity(entity).remove::<AuthTask>();
+            commands
+                .entity(entity)
+                .remove::<AuthTask>()
+                .insert(IsAuthenticated);
             match poll_res {
                 Ok((packet, private_key)) => {
                     // we use this instead of SendLoginPacketEvent to ensure that it's sent right

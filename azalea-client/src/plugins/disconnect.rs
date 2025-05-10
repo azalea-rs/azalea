@@ -7,6 +7,7 @@ use bevy_ecs::prelude::*;
 use derive_more::Deref;
 use tracing::info;
 
+use super::login::IsAuthenticated;
 use crate::{InstanceHolder, chat_signing, client::JoinedClientBundle, connection::RawConnection};
 
 pub struct DisconnectPlugin;
@@ -44,6 +45,27 @@ pub struct DisconnectEvent {
     pub reason: Option<FormattedText>,
 }
 
+/// A bundle of components that are removed when a client disconnects.
+///
+/// This shouldn't be used for inserts because not all of the components should
+/// always be present.
+#[derive(Bundle)]
+pub struct RemoveOnDisconnectBundle {
+    pub joined_client: JoinedClientBundle,
+    pub entity: EntityBundle,
+    pub instance_holder: InstanceHolder,
+    pub player_metadata: PlayerMetadataBundle,
+    pub in_loaded_chunk: InLoadedChunk,
+    //// This makes it close the TCP connection.
+    pub raw_connection: RawConnection,
+    /// This makes it not send [`DisconnectEvent`] again.
+    pub is_connection_alive: IsConnectionAlive,
+    /// Resend our chat signing certs next time.
+    pub chat_signing_session: chat_signing::ChatSigningSession,
+    /// They're not authenticated anymore if they disconnected.
+    pub is_authenticated: IsAuthenticated,
+}
+
 /// A system that removes the several components from our clients when they get
 /// a [`DisconnectEvent`].
 pub fn remove_components_from_disconnected_players(
@@ -62,17 +84,7 @@ pub fn remove_components_from_disconnected_players(
         );
         commands
             .entity(*entity)
-            .remove::<JoinedClientBundle>()
-            .remove::<EntityBundle>()
-            .remove::<InstanceHolder>()
-            .remove::<PlayerMetadataBundle>()
-            .remove::<InLoadedChunk>()
-            // this makes it close the tcp connection
-            .remove::<RawConnection>()
-            // this makes it not send DisconnectEvent again
-            .remove::<IsConnectionAlive>()
-            // resend our chat signing certs next time
-            .remove::<chat_signing::ChatSigningSession>();
+            .remove::<RemoveOnDisconnectBundle>();
         // note that we don't remove the client from the ECS, so if they decide
         // to reconnect they'll keep their state
 
