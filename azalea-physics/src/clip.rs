@@ -111,9 +111,11 @@ pub fn clip(chunk_storage: &ChunkStorage, context: ClipContext) -> BlockHitResul
             let fluid_clip = fluid_shape.clip(&ctx.from, &ctx.to, block_pos);
 
             let distance_to_interaction = interaction_clip
+                .as_ref()
                 .map(|hit| ctx.from.distance_squared_to(&hit.location))
                 .unwrap_or(f64::MAX);
             let distance_to_fluid = fluid_clip
+                .as_ref()
                 .map(|hit| ctx.from.distance_squared_to(&hit.location))
                 .unwrap_or(f64::MAX);
 

@@ -94,7 +94,11 @@ pub fn request_certs_if_needed(
             Option<&OnlyRefreshCertsAfter>,
             Option<&ChatSigningSession>,
         ),
-        (Without<RequestCertsTask>, With<InGameState>),
+        (
+            Without<RequestCertsTask>,
+            With<InGameState>,
+            With<IsAuthenticated>,
+        ),
     >,
 ) {
     for (entity, account, only_refresh_certs_after, chat_signing_session) in query.iter_mut() {

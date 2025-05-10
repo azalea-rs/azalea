@@ -102,7 +102,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
     commands.register(literal("lookingat").executes(|ctx: &Ctx| {
         let source = ctx.source.lock();
 
-        let hit_result = *source.bot.component::<HitResultComponent>();
+        let hit_result = source.bot.component::<HitResultComponent>();
 
         let Some(hit_result) = hit_result.as_block_hit_result_if_not_miss() else {
             source.reply("I'm not looking at anything");

@@ -6,7 +6,7 @@ use crate::{
 /// The block or entity that our player is looking at and can interact with.
 ///
 /// If there's nothing, it'll be a [`BlockHitResult`] with `miss` set to true.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum HitResult {
     Block(BlockHitResult),
     /// TODO
@@ -37,7 +37,7 @@ impl HitResult {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct BlockHitResult {
     pub location: Vec3,
     pub direction: Direction,

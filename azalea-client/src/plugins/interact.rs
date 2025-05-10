@@ -85,10 +85,10 @@ impl Client {
         });
     }
 
-    /// Use the current item.
+    /// Right-click the currently held item.
     ///
     /// If the item is consumable, then it'll act as if right-click was held
-    /// until the item finished being consumed. You can use this to eat food.
+    /// until the item finishes being consumed. You can use this to eat food.
     ///
     /// If we're looking at a block or entity, then it will be clicked. Also see
     /// [`Client::block_interact`].
@@ -163,6 +163,7 @@ pub struct StartUseItemQueued {
     /// it, but should be avoided to stay compatible with anticheats.
     pub force_block: Option<BlockPos>,
 }
+#[allow(clippy::type_complexity)]
 pub fn handle_start_use_item_queued(
     mut commands: Commands,
     query: Query<(
@@ -187,7 +188,7 @@ pub fn handle_start_use_item_queued(
         let mut hit_result = hit_result.0.clone();
 
         if let Some(force_block) = start_use_item.force_block {
-            let hit_result_matches = if let HitResult::Block(block_hit_result) = hit_result {
+            let hit_result_matches = if let HitResult::Block(block_hit_result) = &hit_result {
                 block_hit_result.block_pos == force_block
             } else {
                 false
@@ -206,7 +207,7 @@ pub fn handle_start_use_item_queued(
             }
         }
 
-        match hit_result {
+        match &hit_result {
             HitResult::Block(block_hit_result) => {
                 if block_hit_result.miss {
                     commands.trigger(SendPacketEvent::new(

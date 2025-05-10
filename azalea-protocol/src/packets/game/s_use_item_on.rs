@@ -79,12 +79,12 @@ impl AzaleaRead for BlockHit {
     }
 }
 
-impl From<BlockHitResult> for BlockHit {
+impl From<&BlockHitResult> for BlockHit {
     /// Converts a [`BlockHitResult`] to a [`BlockHit`].
     ///
     /// The only difference is that the `miss` field is not present in
     /// [`BlockHit`].
-    fn from(hit_result: BlockHitResult) -> Self {
+    fn from(hit_result: &BlockHitResult) -> Self {
         Self {
             block_pos: hit_result.block_pos,
             direction: hit_result.direction,
