@@ -10,7 +10,7 @@ use super::ExecutingPath;
 ///
 /// ```
 /// # use azalea::prelude::*;
-/// # use azalea::pathfinder::PathfinderDebugParticles;
+/// # use azalea::pathfinder::debug::PathfinderDebugParticles;
 /// # #[derive(Component, Clone, Default)]
 /// # pub struct State;
 ///

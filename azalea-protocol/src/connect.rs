@@ -1,6 +1,6 @@
 //! Connect to remote servers/clients.
 
-use std::fmt::Debug;
+use std::fmt::{self, Debug, Display};
 use std::io::{self, Cursor};
 use std::marker::PhantomData;
 use std::net::SocketAddr;
@@ -262,6 +262,7 @@ pub enum ConnectionError {
 
 use socks5_impl::protocol::UserKey;
 
+/// An address and authentication method for connecting to a Socks5 proxy.
 #[derive(Debug, Clone)]
 pub struct Proxy {
     pub addr: SocketAddr,
@@ -271,6 +272,15 @@ pub struct Proxy {
 impl Proxy {
     pub fn new(addr: SocketAddr, auth: Option<UserKey>) -> Self {
         Self { addr, auth }
+    }
+}
+impl Display for Proxy {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "socks5://")?;
+        if let Some(auth) = &self.auth {
+            write!(f, "{auth}@")?;
+        }
+        write!(f, "{}", self.addr)
     }
 }
 

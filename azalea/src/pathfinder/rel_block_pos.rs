@@ -8,11 +8,12 @@ use azalea_core::position::BlockPos;
 ///
 /// The X and Z are limited to ±32k.
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
+#[repr(C)]
 pub struct RelBlockPos {
     pub x: i16,
+    pub z: i16,
     /// Note that the y isn't relative.
     pub y: i32,
-    pub z: i16,
 }
 
 impl RelBlockPos {

@@ -41,6 +41,12 @@ impl PartialInstance {
             entity_infos: PartialEntityInfos::new(owner_entity),
         }
     }
+
+    /// Clears the internal references to chunks in the PartialInstance and
+    /// resets the view center.
+    pub fn reset(&mut self) {
+        self.chunks = PartialChunkStorage::new(self.chunks.chunk_radius);
+    }
 }
 
 /// An entity ID used by Minecraft.

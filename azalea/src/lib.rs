@@ -14,6 +14,7 @@ pub mod prelude;
 pub mod swarm;
 
 use std::net::SocketAddr;
+use std::time::Duration;
 
 use app::Plugins;
 pub use azalea_auth as auth;
@@ -43,7 +44,8 @@ use protocol::{ServerAddress, resolver::ResolverError};
 use swarm::SwarmBuilder;
 use thiserror::Error;
 
-pub type BoxHandleFn<S, R> = Box<dyn Fn(Client, azalea_client::Event, S) -> BoxFuture<'static, R>>;
+pub type BoxHandleFn<S, R> =
+    Box<dyn Fn(Client, azalea_client::Event, S) -> BoxFuture<'static, R> + Send>;
 pub type HandleFn<S, Fut> = fn(Client, azalea_client::Event, S) -> Fut;
 
 #[derive(Error, Debug)]
@@ -76,6 +78,7 @@ pub struct ClientBuilder<S, R>
 where
     S: Default + Send + Sync + Clone + Component + 'static,
     R: Send + 'static,
+    Self: Send,
 {
     /// Internally, ClientBuilder is just a wrapper over SwarmBuilder since it's
     /// technically just a subset of it so we can avoid duplicating code this
@@ -91,8 +94,10 @@ impl ClientBuilder<NoState, ()> {
             .add_plugins(DefaultBotPlugins)
     }
 
-    /// [`Self::new`] but without adding the plugins by default. This is useful
-    /// if you want to disable a default plugin.
+    /// [`Self::new`] but without adding the plugins by default.
+    ///
+    /// This is useful if you want to disable a default plugin. This also exists
+    /// for swarms, see [`SwarmBuilder::new_without_plugins`].
     ///
     /// Note that you can also disable `LogPlugin` by disabling the `log`
     /// feature.
@@ -101,12 +106,11 @@ impl ClientBuilder<NoState, ()> {
     ///
     /// ```
     /// # use azalea::prelude::*;
-    /// use azalea::{app::PluginGroup, DefaultBotPlugins, DefaultPlugins};
-    /// use bevy_log::LogPlugin;
+    /// use azalea::app::PluginGroup;
     ///
     /// let client_builder = ClientBuilder::new_without_plugins()
-    ///     .add_plugins(DefaultPlugins.build().disable::<LogPlugin>())
-    ///     .add_plugins(DefaultBotPlugins);
+    ///     .add_plugins(azalea::DefaultPlugins.build().disable::<azalea::chat_signing::ChatSigningPlugin>())
+    ///     .add_plugins(azalea::DefaultBotPlugins);
     /// # client_builder.set_handler(handle);
     /// # #[derive(Component, Clone, Default)]
     /// # pub struct State;
@@ -124,7 +128,12 @@ impl ClientBuilder<NoState, ()> {
     /// Set the function that's called every time a bot receives an [`Event`].
     /// This is the way to handle normal per-bot events.
     ///
-    /// Currently you can have up to one client handler.
+    /// Currently, you can have up to one client handler.
+    ///
+    /// Note that if you're creating clients directly from the ECS using
+    /// [`StartJoinServerEvent`] and the client wasn't already in the ECS, then
+    /// the handler function won't be called for that client. This shouldn't be
+    /// a concern for most bots, though.
     ///
     /// ```
     /// # use azalea::prelude::*;
@@ -137,6 +146,8 @@ impl ClientBuilder<NoState, ()> {
     ///     Ok(())
     /// }
     /// ```
+    ///
+    /// [`StartJoinServerEvent`]: azalea_client::join::StartJoinServerEvent
     #[must_use]
     pub fn set_handler<S, Fut, R>(self, handler: HandleFn<S, Fut>) -> ClientBuilder<S, R>
     where
@@ -161,9 +172,28 @@ where
         self
     }
     /// Add a group of plugins to the client.
+    ///
+    /// See [`Self::new_without_plugins`] to learn how to disable default
+    /// plugins.
     #[must_use]
     pub fn add_plugins<M>(mut self, plugins: impl Plugins<M>) -> Self {
         self.swarm = self.swarm.add_plugins(plugins);
+        self
+    }
+
+    /// Configures the auto-reconnection behavior for our bot.
+    ///
+    /// If this is `Some`, then it'll set the default reconnection delay for our
+    /// bot (how long it'll wait after being kicked before it tries
+    /// rejoining). if it's `None`, then auto-reconnecting will be disabled.
+    ///
+    /// If this function isn't called, then our client will reconnect after
+    /// [`DEFAULT_RECONNECT_DELAY`].
+    ///
+    /// [`DEFAULT_RECONNECT_DELAY`]: azalea_client::auto_reconnect::DEFAULT_RECONNECT_DELAY
+    #[must_use]
+    pub fn reconnect_after(mut self, delay: impl Into<Option<Duration>>) -> Self {
+        self.swarm.reconnect_after = delay.into();
         self
     }
 

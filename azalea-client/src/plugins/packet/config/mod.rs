@@ -64,7 +64,7 @@ pub struct ConfigPacketHandler<'a> {
 }
 impl ConfigPacketHandler<'_> {
     pub fn registry_data(&mut self, p: &ClientboundRegistryData) {
-        as_system::<Query<&mut InstanceHolder>>(self.ecs, |mut query| {
+        as_system::<Query<&InstanceHolder>>(self.ecs, |mut query| {
             let instance_holder = query.get_mut(self.player).unwrap();
             let mut instance = instance_holder.instance.write();
 
@@ -82,7 +82,7 @@ impl ConfigPacketHandler<'_> {
     pub fn disconnect(&mut self, p: &ClientboundDisconnect) {
         warn!("Got disconnect packet {p:?}");
         as_system::<EventWriter<_>>(self.ecs, |mut events| {
-            events.send(DisconnectEvent {
+            events.write(DisconnectEvent {
                 entity: self.player,
                 reason: Some(p.reason.clone()),
             });
@@ -96,12 +96,12 @@ impl ConfigPacketHandler<'_> {
             self.ecs,
             |(mut commands, mut query)| {
                 let mut raw_conn = query.get_mut(self.player).unwrap();
+                raw_conn.state = ConnectionProtocol::Game;
 
                 commands.trigger(SendConfigPacketEvent::new(
                     self.player,
                     ServerboundFinishConfiguration,
                 ));
-                raw_conn.state = ConnectionProtocol::Game;
 
                 // these components are added now that we're going to be in the Game state
                 commands
@@ -124,7 +124,7 @@ impl ConfigPacketHandler<'_> {
         );
 
         as_system::<(Commands, EventWriter<_>)>(self.ecs, |(mut commands, mut events)| {
-            events.send(KeepAliveEvent {
+            events.write(KeepAliveEvent {
                 entity: self.player,
                 id: p.id,
             });
@@ -147,7 +147,7 @@ impl ConfigPacketHandler<'_> {
         debug!("Got resource pack push packet {p:?}");
 
         as_system::<EventWriter<_>>(self.ecs, |mut events| {
-            events.send(ResourcePackEvent {
+            events.write(ResourcePackEvent {
                 entity: self.player,
                 id: p.id,
                 url: p.url.to_owned(),

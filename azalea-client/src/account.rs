@@ -53,7 +53,7 @@ pub struct Account {
     ///
     /// This is set when you call [`Self::request_certs`], but you only
     /// need to if the servers you're joining require it.
-    pub certs: Option<Certificates>,
+    pub certs: Arc<Mutex<Option<Certificates>>>,
 }
 
 /// The parameters that were passed for creating the associated [`Account`].
@@ -82,7 +82,7 @@ impl Account {
             account_opts: AccountOpts::Offline {
                 username: username.to_string(),
             },
-            certs: None,
+            certs: Arc::new(Mutex::new(None)),
         }
     }
 
@@ -127,7 +127,7 @@ impl Account {
                 email: email.to_string(),
             },
             // we don't do chat signing by default unless the user asks for it
-            certs: None,
+            certs: Arc::new(Mutex::new(None)),
         })
     }
 
@@ -194,7 +194,7 @@ impl Account {
             account_opts: AccountOpts::MicrosoftWithAccessToken {
                 msa: Arc::new(Mutex::new(msa)),
             },
-            certs: None,
+            certs: Arc::new(Mutex::new(None)),
         })
     }
     /// Refresh the access_token for this account to be valid again.
@@ -260,7 +260,7 @@ impl Account {
             .lock()
             .clone();
         let certs = azalea_auth::certs::fetch_certificates(&access_token).await?;
-        self.certs = Some(certs);
+        *self.certs.lock() = Some(certs);
 
         Ok(())
     }

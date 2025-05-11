@@ -21,6 +21,9 @@ pub mod test_simulation;
 
 pub use account::{Account, AccountOpts};
 pub use azalea_protocol::common::client_information::ClientInformation;
+// Re-export bevy-tasks so plugins can make sure that they're using the same
+// version.
+pub use bevy_tasks;
 pub use client::{
     Client, InConfigState, InGameState, JoinError, JoinedClientBundle, LocalPlayerBundle,
     StartClientOpts, start_ecs_runner,

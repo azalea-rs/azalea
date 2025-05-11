@@ -22,12 +22,41 @@ def get_burger():
         os.system(f'cd {get_dir_location("__cache__")}/Burger && python -m venv venv && venv/bin/pip install six jawa')
 
 
-def get_pixlyzer():
-    if not os.path.exists(get_dir_location('__cache__/pixlyzer')):
-        print('\033[92mDownloading bixilon/pixlyzer...\033[m')
+def get_pumpkin_extractor():
+    if not os.path.exists(get_dir_location('__cache__/pumpkin-extractor')):
+        print('\033[92mDownloading Pumpkin-MC/Extractor...\033[m')
         os.system(
-            f'cd {get_dir_location("__cache__")} && git clone https://gitlab.bixilon.de/bixilon/pixlyzer.git && cd pixlyzer && git pull')
-    return get_dir_location('__cache__/pixlyzer')
+            f'cd {get_dir_location("__cache__")} && git clone https://github.com/Pumpkin-MC/Extractor pumpkin-extractor && cd pumpkin-extractor && git pull')
+        
+        GIT_PATCH = '''diff --git a/src/main/kotlin/de/snowii/extractor/extractors/Blocks.kt b/src/main/kotlin/de/snowii/extractor/extractors/Blocks.kt
+index 936cd7b..9876a4b 100644
+--- a/src/main/kotlin/de/snowii/extractor/extractors/Blocks.kt
++++ b/src/main/kotlin/de/snowii/extractor/extractors/Blocks.kt
+@@ -106,12 +106,18 @@ class Blocks : Extractor.Extractor {
+                 }
+
+                 val collisionShapeIdxsJson = JsonArray()
++                val outlineShapeIdxsJson = JsonArray()
+                 for (box in state.getCollisionShape(EmptyBlockView.INSTANCE, BlockPos.ORIGIN).boundingBoxes) {
+                     val idx = shapes.putIfAbsent(box, shapes.size)
+                     collisionShapeIdxsJson.add(Objects.requireNonNullElseGet(idx) { shapes.size - 1 })
+                 }
++                for (box in state.getOutlineShape(EmptyBlockView.INSTANCE, BlockPos.ORIGIN).boundingBoxes) {
++                    val idx = shapes.putIfAbsent(box, shapes.size)
++                    outlineShapeIdxsJson.add(Objects.requireNonNullElseGet(idx) { shapes.size - 1 })
++                }
+
+                 stateJson.add("collision_shapes", collisionShapeIdxsJson)
++                stateJson.add("outline_shapes", outlineShapeIdxsJson)
+
+                 for (blockEntity in Registries.BLOCK_ENTITY_TYPE) {
+                     if (blockEntity.supports(state)) {
+'''
+        os.system(
+            f'cd {get_dir_location("__cache__")}/pumpkin-extractor && git apply - <<EOF\n{GIT_PATCH}\nEOF'
+        )
+        
+    return get_dir_location('__cache__/pumpkin-extractor')
 
 
 def get_version_manifest():
@@ -99,25 +128,37 @@ def get_mappings_for_version(version_id: str):
     return Mappings.parse(mappings_text)
 
 
-def get_yarn_versions():
+
+def get_fabric_data(version_id: str):
     # https://meta.fabricmc.net/v2/versions/yarn
-    if not os.path.exists(get_dir_location('__cache__/yarn_versions.json')):
-        print('\033[92mDownloading yarn versions...\033[m')
-        yarn_versions_data = requests.get(
-            'https://meta.fabricmc.net/v2/versions/yarn').json()
-        with open(get_dir_location('__cache__/yarn_versions.json'), 'w') as f:
+    path = get_dir_location(f'__cache__/fabric-{version_id}.json')
+
+    if not os.path.exists(path):
+        print(f'\033[92mDownloading Fabric metadata for {version_id}...\033[m')
+        url = f'https://meta.fabricmc.net/v1/versions/loader/{version_id}'
+        yarn_versions_data = requests.get(url).json()
+        with open(path, 'w') as f:
             json.dump(yarn_versions_data, f)
     else:
-        with open(get_dir_location('__cache__/yarn_versions.json'), 'r') as f:
+        with open(path, 'r') as f:
             yarn_versions_data = json.load(f)
     return yarn_versions_data
 
+def get_latest_fabric_api_version():
+    path = get_dir_location('__cache__/fabric-api-maven-metadata.xml')
 
-def get_yarn_data(version_id: str):
-    for version in get_yarn_versions():
-        if version['gameVersion'] == version_id:
-            return version
+    if not os.path.exists(path):
+        print(f'\033[92mDownloading Fabric API metadata...\033[m')
+        url = 'https://maven.fabricmc.net/net/fabricmc/fabric-api/fabric-api/maven-metadata.xml'
+        maven_metadata_xml = requests.get(url).text
+        with open(path, 'w') as f:
+            json.dump(maven_metadata_xml, f)
+    else:
+        with open(path, 'r') as f:
+            maven_metadata_xml = json.load(f)
 
+    tree = ET.ElementTree(ET.fromstring(maven_metadata_xml))
+    return tree.find('.//latest').text
 
 def get_fabric_api_versions():
     # https://maven.fabricmc.net/net/fabricmc/fabric-api/fabric-api/maven-metadata.xml
@@ -171,7 +212,8 @@ def clear_version_cache():
         'version_manifest.json',
         'yarn_versions.json',
         'fabric_api_versions.json',
-        'fabric_loader_versions.json'
+        'fabric_loader_versions.json',
+        'fabric-api-maven-metadata.json',
     ]
     for file in files:
         if os.path.exists(get_dir_location(f'__cache__/{file}')):
@@ -181,7 +223,7 @@ def clear_version_cache():
     if os.path.exists(burger_path):
         os.system(
             f'cd {burger_path} && git pull')
-    pixlyzer_path = get_dir_location('__cache__/pixlyzer')
-    if os.path.exists(pixlyzer_path):
+    pumpkin_path = get_dir_location('__cache__/pumpkin-extractor')
+    if os.path.exists(pumpkin_path):
         os.system(
-            f'cd {pixlyzer_path} && git pull')
+            f'cd {pumpkin_path} && git add . && git stash && git pull && git stash pop')

@@ -12,7 +12,7 @@ BLOCKS_RS_DIR = get_dir_location('../azalea-block/src/generated.rs')
 # - Block: Has properties and states.
 
 
-def generate_blocks(blocks_report: dict, pixlyzer_block_datas: dict, ordered_blocks: list[str], burger_data: dict):
+def generate_blocks(blocks_report: dict, pumpkin_block_datas: dict, ordered_blocks: list[str], burger_data: dict):
     with open(BLOCKS_RS_DIR, 'r') as f:
         existing_code = f.read().splitlines()
 
@@ -20,6 +20,11 @@ def generate_blocks(blocks_report: dict, pixlyzer_block_datas: dict, ordered_blo
     new_make_block_states_macro_code.append('make_block_states! {')
 
     burger_block_datas = burger_data[0]['blocks']['block']
+
+    pumpkin_block_map = {}
+    for block_data in pumpkin_block_datas['blocks']:
+        block_id = block_data['name']
+        pumpkin_block_map[block_id] = block_data
 
     # Find properties
     properties = {}
@@ -77,8 +82,8 @@ def generate_blocks(blocks_report: dict, pixlyzer_block_datas: dict, ordered_blo
     new_make_block_states_macro_code.append('    Blocks => {')
     for block_id in ordered_blocks:
         block_data_report = blocks_report['minecraft:' + block_id]
-        block_data_pixlyzer = pixlyzer_block_datas.get(f'minecraft:{block_id}', {})
         block_data_burger = burger_block_datas.get(block_id, {})
+        block_data_pumpkin = pumpkin_block_map[block_id]
 
         default_property_variants: dict[str, str] = {}
         for state in block_data_report['states']:
@@ -116,11 +121,11 @@ def generate_blocks(blocks_report: dict, pixlyzer_block_datas: dict, ordered_blo
         # make the block behavior
         behavior_constructor = 'BlockBehavior::new()'
         # requires tool
-        if block_data_pixlyzer.get('requires_tool'):
+        if block_data_burger.get('requires_correct_tool_for_drops'):
             behavior_constructor += '.requires_correct_tool_for_drops()'
         # strength
-        destroy_time = block_data_pixlyzer.get('hardness')
-        explosion_resistance = block_data_pixlyzer.get('explosion_resistance')
+        destroy_time = block_data_pumpkin.get('hardness')
+        explosion_resistance = block_data_pumpkin.get('blast_resistance')
         if destroy_time and explosion_resistance:
             behavior_constructor += f'.strength({destroy_time}, {explosion_resistance})'
         elif destroy_time:
@@ -128,7 +133,7 @@ def generate_blocks(blocks_report: dict, pixlyzer_block_datas: dict, ordered_blo
         elif explosion_resistance:
             behavior_constructor += f'.explosion_resistance({explosion_resistance})'
         # friction
-        friction = block_data_pixlyzer.get('friction')
+        friction = block_data_burger.get('friction')
         if friction != None:
             behavior_constructor += f'.friction({friction})'
         

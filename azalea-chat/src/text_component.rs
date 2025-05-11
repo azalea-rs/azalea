@@ -2,7 +2,11 @@ use std::fmt::Display;
 
 use serde::{__private::ser::FlatMapSerializer, Serialize, Serializer, ser::SerializeMap};
 
-use crate::{FormattedText, base_component::BaseComponent, style::ChatFormatting};
+use crate::{
+    FormattedText,
+    base_component::BaseComponent,
+    style::{ChatFormatting, TextColor},
+};
 
 /// A component that contains text that's the same in all locales.
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
@@ -69,13 +73,26 @@ pub fn legacy_color_code_to_text_component(legacy_color_code: &str) -> TextCompo
                 i += 1;
                 continue;
             };
-            if let Some(formatter) = ChatFormatting::from_code(formatting_code) {
+            if formatting_code == '#' {
+                let color = legacy_color_code
+                    .chars()
+                    .skip(i + 1)
+                    // 7 to include the #
+                    .take(7)
+                    .collect::<String>();
+
                 if components.is_empty() || !components.last().unwrap().text.is_empty() {
                     components.push(TextComponent::new("".to_string()));
                 }
-
                 let style = &mut components.last_mut().unwrap().base.style;
-                // if the formatter is a reset, then we need to reset the style to the default
+                style.color = TextColor::parse(color);
+
+                i += 6;
+            } else if let Some(formatter) = ChatFormatting::from_code(formatting_code) {
+                if components.is_empty() || !components.last().unwrap().text.is_empty() {
+                    components.push(TextComponent::new("".to_string()));
+                }
+                let style = &mut components.last_mut().unwrap().base.style;
                 style.apply_formatting(&formatter);
             }
             i += 1;
@@ -146,7 +163,7 @@ mod tests {
     use crate::style::Ansi;
 
     #[test]
-    fn test_hypixel_motd() {
+    fn test_hypixel_motd_ansi() {
         let component =
             TextComponent::new("§aHypixel Network  §c[1.8-1.18]\n§b§lHAPPY HOLIDAYS".to_string())
                 .get();
@@ -159,6 +176,39 @@ mod tests {
                 AQUA = Ansi::rgb(ChatFormatting::Aqua.color().unwrap()),
                 BOLD = Ansi::BOLD,
                 RESET = Ansi::RESET
+            )
+        );
+    }
+
+    #[test]
+    fn test_hypixel_motd_html() {
+        let component =
+            TextComponent::new("§aHypixel Network  §c[1.8-1.18]\n§b§lHAPPY HOLIDAYS".to_string())
+                .get();
+
+        assert_eq!(
+            component.to_html(),
+            format!(
+                "{GREEN}Hypixel Network  {END_SPAN}{RED}[1.8-1.18]<br>{END_SPAN}{BOLD_AQUA}HAPPY HOLIDAYS{END_SPAN}",
+                END_SPAN = "</span>",
+                GREEN = "<span style=\"color: #55FF55;\">",
+                RED = "<span style=\"color: #FF5555;\">",
+                BOLD_AQUA = "<span style=\"color: #55FFFF;font-weight: bold;\">",
+            )
+        );
+    }
+
+    #[test]
+    fn test_xss_html() {
+        let component = TextComponent::new("§a<b>&\n§b</b>".to_string()).get();
+
+        assert_eq!(
+            component.to_html(),
+            format!(
+                "{GREEN}&lt;b&gt;&amp;<br>{END_SPAN}{AQUA}&lt;/b&gt;{END_SPAN}",
+                END_SPAN = "</span>",
+                GREEN = "<span style=\"color: #55FF55;\">",
+                AQUA = "<span style=\"color: #55FFFF;\">",
             )
         );
     }
@@ -177,6 +227,19 @@ mod tests {
                 DARK_AQUA = Ansi::rgb(ChatFormatting::DarkAqua.color().unwrap()),
                 DARK_RED = Ansi::rgb(ChatFormatting::DarkRed.color().unwrap()),
                 DARK_PURPLE = Ansi::rgb(ChatFormatting::DarkPurple.color().unwrap())
+            )
+        );
+    }
+
+    #[test]
+    fn test_legacy_color_code_with_rgb() {
+        let component = TextComponent::new("§#Ff0000This is a test message".to_string()).get();
+        assert_eq!(
+            component.to_ansi(),
+            format!(
+                "{RED}This is a test message{RESET}",
+                RED = Ansi::rgb(0xff0000),
+                RESET = Ansi::RESET
             )
         );
     }

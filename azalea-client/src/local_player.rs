@@ -144,6 +144,22 @@ impl InstanceHolder {
             ))),
         }
     }
+
+    /// Reset the `Instance` to a new reference to an empty instance, but with
+    /// the same registries as the current one.
+    ///
+    /// This is used by Azalea when entering the config state.
+    pub fn reset(&mut self) {
+        let registries = self.instance.read().registries.clone();
+
+        let new_instance = Instance {
+            registries,
+            ..Default::default()
+        };
+        self.instance = Arc::new(RwLock::new(new_instance));
+
+        self.partial_instance.write().reset();
+    }
 }
 
 #[derive(Error, Debug)]

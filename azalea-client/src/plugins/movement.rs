@@ -17,13 +17,7 @@ use azalea_protocol::packets::{
 };
 use azalea_world::{MinecraftEntityId, MoveEntityError};
 use bevy_app::{App, Plugin, Update};
-use bevy_ecs::prelude::Event;
-use bevy_ecs::schedule::SystemSet;
-use bevy_ecs::system::Commands;
-use bevy_ecs::{
-    component::Component, entity::Entity, event::EventReader, query::With,
-    schedule::IntoSystemConfigs, system::Query,
-};
+use bevy_ecs::prelude::*;
 use thiserror::Error;
 
 use crate::client::Client;

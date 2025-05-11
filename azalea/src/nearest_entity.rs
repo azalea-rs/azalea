@@ -34,7 +34,7 @@ use bevy_ecs::{
 ///             continue;
 ///         };
 ///
-///         chat_events.send(SendChatEvent {
+///         chat_events.write(SendChatEvent {
 ///             entity: bot_id,
 ///             content: String::from("Ahhh!"),
 ///         });

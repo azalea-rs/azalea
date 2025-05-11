@@ -32,7 +32,7 @@ use std::{sync::Arc, thread};
 use azalea::ClientInformation;
 use azalea::brigadier::command_dispatcher::CommandDispatcher;
 use azalea::ecs::prelude::*;
-use azalea::pathfinder::PathfinderDebugParticles;
+use azalea::pathfinder::debug::PathfinderDebugParticles;
 use azalea::prelude::*;
 use azalea::swarm::prelude::*;
 use commands::{CommandSource, register_commands};
@@ -192,14 +192,10 @@ async fn handle(bot: Client, event: azalea::Event, state: State) -> anyhow::Resu
 
     Ok(())
 }
-async fn swarm_handle(swarm: Swarm, event: SwarmEvent, _state: SwarmState) -> anyhow::Result<()> {
+async fn swarm_handle(_swarm: Swarm, event: SwarmEvent, _state: SwarmState) -> anyhow::Result<()> {
     match &event {
-        SwarmEvent::Disconnect(account, join_opts) => {
+        SwarmEvent::Disconnect(account, _join_opts) => {
             println!("bot got kicked! {}", account.username);
-            tokio::time::sleep(Duration::from_secs(5)).await;
-            swarm
-                .add_and_retry_forever_with_opts(account, State::default(), join_opts)
-                .await;
         }
         SwarmEvent::Chat(chat) => {
             if chat.message().to_string() == "The particle was not visible for anybody" {
@@ -245,7 +241,7 @@ fn parse_args() -> Args {
                 pathfinder_debug_particles = true;
             }
             _ => {
-                eprintln!("Unknown argument: {}", arg);
+                eprintln!("Unknown argument: {arg}");
                 process::exit(1);
             }
         }

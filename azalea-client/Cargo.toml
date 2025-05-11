@@ -25,6 +25,7 @@ bevy_ecs.workspace = true
 bevy_log = { workspace = true, optional = true }
 bevy_tasks.workspace = true
 bevy_time.workspace = true
+chrono = { workspace = true, features = ["now"] }
 derive_more = { workspace = true, features = ["deref", "deref_mut"] }
 minecraft_folder_path.workspace = true
 parking_lot.workspace = true

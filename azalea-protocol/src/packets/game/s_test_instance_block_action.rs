@@ -17,7 +17,7 @@ pub struct ServerboundTestInstanceBlockAction {
 pub enum Action {
     #[default]
     Init,
-    Qurey,
+    Query,
     Set,
     Reset,
     Save,

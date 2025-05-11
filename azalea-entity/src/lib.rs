@@ -218,9 +218,9 @@ pub struct Jumping(pub bool);
 /// A component that contains the direction an entity is looking.
 #[derive(Debug, Component, Copy, Clone, Default, PartialEq, AzBuf)]
 pub struct LookDirection {
-    /// Left and right. Aka yaw.
+    /// Left and right. AKA yaw.
     pub y_rot: f32,
-    /// Up and down. Aka pitch.
+    /// Up and down. AKA pitch.
     pub x_rot: f32,
 }
 

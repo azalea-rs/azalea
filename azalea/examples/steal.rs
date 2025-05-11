@@ -58,11 +58,10 @@ async fn steal(bot: Client, state: State) -> anyhow::Result<()> {
             .world()
             .read()
             .find_blocks(bot.position(), &azalea::registry::Block::Chest.into())
-            .filter(
-                // filter for chests that haven't been checked
-                |block_pos| !state.checked_chests.lock().contains(&block_pos),
-            )
-            .next();
+            .find(
+                // find the closest chest that hasn't been checked
+                |block_pos| !state.checked_chests.lock().contains(block_pos),
+            );
         let Some(chest_block) = chest_block else {
             break;
         };

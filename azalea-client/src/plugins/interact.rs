@@ -1,36 +1,30 @@
-use std::ops::AddAssign;
-
 use azalea_block::BlockState;
 use azalea_core::{
-    block_hit_result::BlockHitResult,
     direction::Direction,
     game_type::GameMode,
+    hit_result::{BlockHitResult, HitResult},
     position::{BlockPos, Vec3},
+    tick::GameTick,
 };
 use azalea_entity::{
     Attributes, EyeHeight, LocalEntity, LookDirection, Position, clamp_look_direction, view_vector,
 };
 use azalea_inventory::{ItemStack, ItemStackData, components};
-use azalea_physics::clip::{BlockShapeType, ClipContext, FluidPickType};
+use azalea_physics::{
+    PhysicsSet,
+    clip::{BlockShapeType, ClipContext, FluidPickType},
+};
 use azalea_protocol::packets::game::{
-    s_interact::InteractionHand,
-    s_swing::ServerboundSwing,
-    s_use_item_on::{BlockHit, ServerboundUseItemOn},
+    ServerboundUseItem, s_interact::InteractionHand, s_swing::ServerboundSwing,
+    s_use_item_on::ServerboundUseItemOn,
 };
 use azalea_world::{Instance, InstanceContainer, InstanceName};
 use bevy_app::{App, Plugin, Update};
-use bevy_ecs::{
-    component::Component,
-    entity::Entity,
-    event::{Event, EventReader},
-    observer::Trigger,
-    query::{Changed, With},
-    schedule::IntoSystemConfigs,
-    system::{Commands, Query, Res},
-};
+use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
 use tracing::warn;
 
+use super::mining::{Mining, MiningSet};
 use crate::{
     Client,
     attack::handle_attack_event,
@@ -45,14 +39,14 @@ use crate::{
 pub struct InteractPlugin;
 impl Plugin for InteractPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<BlockInteractEvent>()
+        app.add_event::<StartUseItemEvent>()
             .add_event::<SwingArmEvent>()
             .add_systems(
                 Update,
                 (
                     (
+                        handle_start_use_item_event,
                         update_hit_result_component.after(clamp_look_direction),
-                        handle_block_interact_event,
                         handle_swing_arm_event,
                     )
                         .after(InventorySet)
@@ -64,34 +58,47 @@ impl Plugin for InteractPlugin {
                         .after(MoveEventsSet),
                 ),
             )
+            .add_systems(
+                GameTick,
+                handle_start_use_item_queued
+                    .after(MiningSet)
+                    .before(PhysicsSet),
+            )
             .add_observer(handle_swing_arm_trigger);
     }
 }
 
 impl Client {
-    /// Right click a block. The behavior of this depends on the target block,
+    /// Right-click a block.
+    ///
+    /// The behavior of this depends on the target block,
     /// and it'll either place the block you're holding in your hand or use the
     /// block you clicked (like toggling a lever).
     ///
     /// Note that this may trigger anticheats as it doesn't take into account
     /// whether you're actually looking at the block.
     pub fn block_interact(&self, position: BlockPos) {
-        self.ecs.lock().send_event(BlockInteractEvent {
+        self.ecs.lock().send_event(StartUseItemEvent {
             entity: self.entity,
-            position,
+            hand: InteractionHand::MainHand,
+            force_block: Some(position),
         });
     }
-}
 
-/// Right click a block. The behavior of this depends on the target block,
-/// and it'll either place the block you're holding in your hand or use the
-/// block you clicked (like toggling a lever).
-#[derive(Event)]
-pub struct BlockInteractEvent {
-    /// The local player entity that's opening the container.
-    pub entity: Entity,
-    /// The coordinates of the container.
-    pub position: BlockPos,
+    /// Right-click the currently held item.
+    ///
+    /// If the item is consumable, then it'll act as if right-click was held
+    /// until the item finishes being consumed. You can use this to eat food.
+    ///
+    /// If we're looking at a block or entity, then it will be clicked. Also see
+    /// [`Client::block_interact`].
+    pub fn start_use_item(&self) {
+        self.ecs.lock().send_event(StartUseItemEvent {
+            entity: self.entity,
+            hand: InteractionHand::MainHand,
+            force_block: None,
+        });
+    }
 }
 
 /// A component that contains the number of changes this client has made to
@@ -99,65 +106,150 @@ pub struct BlockInteractEvent {
 #[derive(Component, Copy, Clone, Debug, Default, Deref)]
 pub struct CurrentSequenceNumber(u32);
 
-impl AddAssign<u32> for CurrentSequenceNumber {
-    fn add_assign(&mut self, rhs: u32) {
-        self.0 += rhs;
+impl CurrentSequenceNumber {
+    /// Get the next sequence number that we're going to use and increment the
+    /// value.
+    pub fn get_and_increment(&mut self) -> u32 {
+        let cur = self.0;
+        self.0 += 1;
+        cur
     }
 }
 
-/// A component that contains the block that the player is currently looking at.
+/// A component that contains the block or entity that the player is currently
+/// looking at.
+#[doc(alias("looking at", "looking at block", "crosshair"))]
 #[derive(Component, Clone, Debug, Deref, DerefMut)]
-pub struct HitResultComponent(BlockHitResult);
+pub struct HitResultComponent(HitResult);
 
-pub fn handle_block_interact_event(
-    mut events: EventReader<BlockInteractEvent>,
-    mut query: Query<(Entity, &mut CurrentSequenceNumber, &HitResultComponent)>,
+/// An event that makes one of our clients simulate a right-click.
+///
+/// This event just inserts the [`StartUseItemQueued`] component on the given
+/// entity.
+#[doc(alias("right click"))]
+#[derive(Event)]
+pub struct StartUseItemEvent {
+    pub entity: Entity,
+    pub hand: InteractionHand,
+    /// See [`QueuedStartUseItem::force_block`].
+    pub force_block: Option<BlockPos>,
+}
+pub fn handle_start_use_item_event(
     mut commands: Commands,
+    mut events: EventReader<StartUseItemEvent>,
 ) {
     for event in events.read() {
-        let Ok((entity, mut sequence_number, hit_result)) = query.get_mut(event.entity) else {
-            warn!("Sent BlockInteractEvent for entity that doesn't have the required components");
-            continue;
-        };
+        commands.entity(event.entity).insert(StartUseItemQueued {
+            hand: event.hand,
+            force_block: event.force_block,
+        });
+    }
+}
 
-        // TODO: check to make sure we're within the world border
+/// A component that makes our client simulate a right-click on the next
+/// [`GameTick`]. It's removed after that tick.
+///
+/// You may find it more convenient to use [`StartUseItemEvent`] instead, which
+/// just inserts this component for you.
+///
+/// [`GameTick`]: azalea_core::tick::GameTick
+#[derive(Component)]
+pub struct StartUseItemQueued {
+    pub hand: InteractionHand,
+    /// Optionally force us to send a [`ServerboundUseItemOn`] on the given
+    /// block.
+    ///
+    /// This is useful if you want to interact with a block without looking at
+    /// it, but should be avoided to stay compatible with anticheats.
+    pub force_block: Option<BlockPos>,
+}
+#[allow(clippy::type_complexity)]
+pub fn handle_start_use_item_queued(
+    mut commands: Commands,
+    query: Query<(
+        Entity,
+        &StartUseItemQueued,
+        &mut CurrentSequenceNumber,
+        &HitResultComponent,
+        &LookDirection,
+        Option<&Mining>,
+    )>,
+) {
+    for (entity, start_use_item, mut sequence_number, hit_result, look_direction, mining) in query {
+        commands.entity(entity).remove::<StartUseItemQueued>();
 
-        *sequence_number += 1;
+        if mining.is_some() {
+            warn!("Got a StartUseItemEvent for a client that was mining");
+        }
 
-        // minecraft also does the interaction client-side (so it looks like clicking a
-        // button is instant) but we don't really need that
+        // TODO: this also skips if LocalPlayer.handsBusy is true, which is used when
+        // rowing a boat
 
-        // the block_hit data will depend on whether we're looking at the block and
-        // whether we can reach it
+        let mut hit_result = hit_result.0.clone();
 
-        let block_hit = if hit_result.block_pos == event.position {
-            // we're looking at the block :)
-            BlockHit {
-                block_pos: hit_result.block_pos,
-                direction: hit_result.direction,
-                location: hit_result.location,
-                inside: hit_result.inside,
-                world_border: hit_result.world_border,
+        if let Some(force_block) = start_use_item.force_block {
+            let hit_result_matches = if let HitResult::Block(block_hit_result) = &hit_result {
+                block_hit_result.block_pos == force_block
+            } else {
+                false
+            };
+
+            if !hit_result_matches {
+                // we're not looking at the block, so make up some numbers
+                hit_result = HitResult::Block(BlockHitResult {
+                    location: force_block.center(),
+                    direction: Direction::Up,
+                    block_pos: force_block,
+                    inside: false,
+                    world_border: false,
+                    miss: false,
+                });
             }
-        } else {
-            // we're not looking at the block, so make up some numbers
-            BlockHit {
-                block_pos: event.position,
-                direction: Direction::Up,
-                location: event.position.center(),
-                inside: false,
-                world_border: false,
-            }
-        };
+        }
 
-        commands.trigger(SendPacketEvent::new(
-            entity,
-            ServerboundUseItemOn {
-                hand: InteractionHand::MainHand,
-                block_hit,
-                sequence: sequence_number.0,
-            },
-        ));
+        match &hit_result {
+            HitResult::Block(block_hit_result) => {
+                if block_hit_result.miss {
+                    commands.trigger(SendPacketEvent::new(
+                        entity,
+                        ServerboundUseItem {
+                            hand: start_use_item.hand,
+                            sequence: sequence_number.get_and_increment(),
+                            x_rot: look_direction.x_rot,
+                            y_rot: look_direction.y_rot,
+                        },
+                    ));
+                } else {
+                    commands.trigger(SendPacketEvent::new(
+                        entity,
+                        ServerboundUseItemOn {
+                            hand: start_use_item.hand,
+                            block_hit: block_hit_result.into(),
+                            sequence: sequence_number.get_and_increment(),
+                        },
+                    ));
+                    // TODO: depending on the result of useItemOn, this might
+                    // also need to send a SwingArmEvent.
+                    // basically, this TODO is for
+                    // simulating block interactions/placements on the
+                    // client-side.
+                }
+            }
+            HitResult::Entity => {
+                // TODO: implement HitResult::Entity
+
+                // TODO: worldborder check
+
+                // commands.trigger(SendPacketEvent::new(
+                //     entity,
+                //     ServerboundInteract {
+                //         entity_id: todo!(),
+                //         action: todo!(),
+                //         using_secondary_action: todo!(),
+                //     },
+                // ));
+            }
+        }
     }
 }
 
@@ -205,12 +297,32 @@ pub fn update_hit_result_component(
     }
 }
 
+/// Get the block or entity that a player would be looking at if their eyes were
+/// at the given direction and position.
+///
+/// If you need to get the block/entity the player is looking at right now, use
+/// [`HitResultComponent`].
+///
+/// Also see [`pick_block`].
+///
+/// TODO: does not currently check for entities
+pub fn pick(
+    look_direction: &LookDirection,
+    eye_position: &Vec3,
+    chunks: &azalea_world::ChunkStorage,
+    pick_range: f64,
+) -> HitResult {
+    // TODO
+    // let entity_hit_result = ;
+
+    HitResult::Block(pick_block(look_direction, eye_position, chunks, pick_range))
+}
+
 /// Get the block that a player would be looking at if their eyes were at the
 /// given direction and position.
 ///
-/// If you need to get the block the player is looking at right now, use
-/// [`HitResultComponent`].
-pub fn pick(
+/// Also see [`pick`].
+pub fn pick_block(
     look_direction: &LookDirection,
     eye_position: &Vec3,
     chunks: &azalea_world::ChunkStorage,
@@ -218,6 +330,7 @@ pub fn pick(
 ) -> BlockHitResult {
     let view_vector = view_vector(look_direction);
     let end_position = eye_position + &(view_vector * pick_range);
+
     azalea_physics::clip::clip(
         chunks,
         ClipContext {

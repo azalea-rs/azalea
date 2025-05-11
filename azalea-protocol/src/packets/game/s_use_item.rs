@@ -8,6 +8,6 @@ pub struct ServerboundUseItem {
     pub hand: InteractionHand,
     #[var]
     pub sequence: u32,
-    pub yaw: f32,
-    pub pitch: f32,
+    pub y_rot: f32,
+    pub x_rot: f32,
 }

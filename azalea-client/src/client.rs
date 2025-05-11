@@ -1,7 +1,7 @@
 use std::{
     collections::HashMap,
     fmt::Debug,
-    io,
+    io, mem,
     net::SocketAddr,
     sync::Arc,
     thread,
@@ -15,31 +15,25 @@ use azalea_core::{
     tick::GameTick,
 };
 use azalea_entity::{
-    EntityUpdateSet, EyeHeight, LocalEntity, Position,
+    EntityUpdateSet, EyeHeight, Position,
     indexing::{EntityIdIndex, EntityUuidIndex},
     metadata::Health,
 };
 use azalea_protocol::{
     ServerAddress,
     common::client_information::ClientInformation,
-    connect::{Connection, ConnectionError, Proxy},
+    connect::{ConnectionError, Proxy},
     packets::{
-        self, ClientIntention, ConnectionProtocol, PROTOCOL_VERSION, Packet,
+        self, Packet,
         game::{self, ServerboundGamePacket},
-        handshake::s_intention::ServerboundIntention,
-        login::s_hello::ServerboundHello,
     },
     resolver,
 };
 use azalea_world::{Instance, InstanceContainer, InstanceName, MinecraftEntityId, PartialInstance};
-use bevy_app::{App, Plugin, PluginsState, Update};
+use bevy_app::{App, Plugin, PluginsState, SubApp, Update};
 use bevy_ecs::{
-    bundle::Bundle,
-    component::Component,
-    entity::Entity,
-    schedule::{InternedScheduleLabel, IntoSystemConfigs, LogLevel, ScheduleBuildSettings},
-    system::{Commands, Resource},
-    world::World,
+    prelude::*,
+    schedule::{InternedScheduleLabel, LogLevel, ScheduleBuildSettings},
 };
 use parking_lot::{Mutex, RwLock};
 use simdnbt::owned::NbtCompound;
@@ -57,19 +51,16 @@ use crate::{
     chunks::ChunkBatchInfo,
     connection::RawConnection,
     disconnect::DisconnectEvent,
-    events::{Event, LocalPlayerEvents},
+    events::Event,
     interact::CurrentSequenceNumber,
     inventory::Inventory,
+    join::{ConnectOpts, StartJoinCallback, StartJoinServerEvent},
     local_player::{
         GameProfileComponent, Hunger, InstanceHolder, PermissionLevel, PlayerAbilities, TabList,
     },
     mining::{self},
     movement::{LastSentLookDirection, PhysicsState},
-    packet::{
-        as_system,
-        game::SendPacketEvent,
-        login::{InLoginState, SendLoginPacketEvent},
-    },
+    packet::game::SendPacketEvent,
     player::retroactively_add_game_profile_component,
 };
 
@@ -116,39 +107,40 @@ pub enum JoinError {
     Disconnect { reason: FormattedText },
 }
 
-pub struct StartClientOpts<'a> {
+pub struct StartClientOpts {
     pub ecs_lock: Arc<Mutex<World>>,
-    pub account: &'a Account,
-    pub address: &'a ServerAddress,
-    pub resolved_address: &'a SocketAddr,
-    pub proxy: Option<Proxy>,
+    pub account: Account,
+    pub connect_opts: ConnectOpts,
     pub event_sender: Option<mpsc::UnboundedSender<Event>>,
 }
 
-impl<'a> StartClientOpts<'a> {
+impl StartClientOpts {
     pub fn new(
-        account: &'a Account,
-        address: &'a ServerAddress,
-        resolved_address: &'a SocketAddr,
+        account: Account,
+        address: ServerAddress,
+        resolved_address: SocketAddr,
         event_sender: Option<mpsc::UnboundedSender<Event>>,
-    ) -> StartClientOpts<'a> {
+    ) -> StartClientOpts {
         let mut app = App::new();
         app.add_plugins(DefaultPlugins);
 
-        let ecs_lock = start_ecs_runner(app);
+        let (ecs_lock, start_running_systems) = start_ecs_runner(app.main_mut());
+        start_running_systems();
 
         Self {
             ecs_lock,
             account,
-            address,
-            resolved_address,
-            proxy: None,
+            connect_opts: ConnectOpts {
+                address,
+                resolved_address,
+                proxy: None,
+            },
             event_sender,
         }
     }
 
     pub fn proxy(mut self, proxy: Proxy) -> Self {
-        self.proxy = Some(proxy);
+        self.connect_opts.proxy = Some(proxy);
         self
     }
 }
@@ -181,14 +173,14 @@ impl Client {
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     ///     let account = Account::offline("bot");
-    ///     let (client, rx) = Client::join(&account, "localhost").await?;
+    ///     let (client, rx) = Client::join(account, "localhost").await?;
     ///     client.chat("Hello, world!");
     ///     client.disconnect();
     ///     Ok(())
     /// }
     /// ```
     pub async fn join(
-        account: &Account,
+        account: Account,
         address: impl TryInto<ServerAddress>,
     ) -> Result<(Self, mpsc::UnboundedReceiver<Event>), JoinError> {
         let address: ServerAddress = address.try_into().map_err(|_| JoinError::InvalidAddress)?;
@@ -197,8 +189,8 @@ impl Client {
 
         let client = Self::start_client(StartClientOpts::new(
             account,
-            &address,
-            &resolved_address,
+            address,
+            resolved_address,
             Some(tx),
         ))
         .await?;
@@ -206,7 +198,7 @@ impl Client {
     }
 
     pub async fn join_with_proxy(
-        account: &Account,
+        account: Account,
         address: impl TryInto<ServerAddress>,
         proxy: Proxy,
     ) -> Result<(Self, mpsc::UnboundedReceiver<Event>), JoinError> {
@@ -215,7 +207,7 @@ impl Client {
         let (tx, rx) = mpsc::unbounded_channel();
 
         let client = Self::start_client(
-            StartClientOpts::new(account, &address, &resolved_address, Some(tx)).proxy(proxy),
+            StartClientOpts::new(account, address, resolved_address, Some(tx)).proxy(proxy),
         )
         .await?;
         Ok((client, rx))
@@ -227,108 +219,25 @@ impl Client {
         StartClientOpts {
             ecs_lock,
             account,
-            address,
-            resolved_address,
-            proxy,
+            connect_opts,
             event_sender,
-        }: StartClientOpts<'_>,
+        }: StartClientOpts,
     ) -> Result<Self, JoinError> {
-        // check if an entity with our uuid already exists in the ecs and if so then
-        // just use that
-        let entity = {
-            let mut ecs = ecs_lock.lock();
+        // send a StartJoinServerEvent
 
-            let entity_uuid_index = ecs.resource::<EntityUuidIndex>();
-            let uuid = account.uuid_or_offline();
-            let entity = if let Some(entity) = entity_uuid_index.get(&account.uuid_or_offline()) {
-                debug!("Reusing entity {entity:?} for client");
-                entity
-            } else {
-                let entity = ecs.spawn_empty().id();
-                debug!("Created new entity {entity:?} for client");
-                // add to the uuid index
-                let mut entity_uuid_index = ecs.resource_mut::<EntityUuidIndex>();
-                entity_uuid_index.insert(uuid, entity);
-                entity
-            };
+        let (start_join_callback_tx, mut start_join_callback_rx) =
+            mpsc::unbounded_channel::<Result<Entity, JoinError>>();
 
-            let mut entity_mut = ecs.entity_mut(entity);
-            entity_mut.insert((
-                InLoginState,
-                // add the Account to the entity now so plugins can access it earlier
-                account.to_owned(),
-                // localentity is always present for our clients, even if we're not actually logged
-                // in
-                LocalEntity,
-            ));
-            if let Some(event_sender) = event_sender {
-                // this is optional so we don't leak memory in case the user doesn't want to
-                // handle receiving packets
-                entity_mut.insert(LocalPlayerEvents(event_sender));
-            }
-
-            entity
-        };
-
-        let mut conn = if let Some(proxy) = proxy {
-            Connection::new_with_proxy(resolved_address, proxy).await?
-        } else {
-            Connection::new(resolved_address).await?
-        };
-        debug!("Created connection to {resolved_address:?}");
-
-        conn.write(ServerboundIntention {
-            protocol_version: PROTOCOL_VERSION,
-            hostname: address.host.clone(),
-            port: address.port,
-            intention: ClientIntention::Login,
-        })
-        .await?;
-        let conn = conn.login();
-
-        let (read_conn, write_conn) = conn.into_split();
-        let (read_conn, write_conn) = (read_conn.raw, write_conn.raw);
-
-        // insert the client into the ecs so it finishes logging in
-        {
-            let mut ecs = ecs_lock.lock();
-
-            let instance = Instance::default();
-            let instance_holder = crate::local_player::InstanceHolder::new(
-                entity,
-                // default to an empty world, it'll be set correctly later when we
-                // get the login packet
-                Arc::new(RwLock::new(instance)),
-            );
-
-            let mut entity = ecs.entity_mut(entity);
-            entity.insert((
-                // these stay when we switch to the game state
-                LocalPlayerBundle {
-                    raw_connection: RawConnection::new(
-                        read_conn,
-                        write_conn,
-                        ConnectionProtocol::Login,
-                    ),
-                    client_information: crate::ClientInformation::default(),
-                    instance_holder,
-                    metadata: azalea_entity::metadata::PlayerMetadataBundle::default(),
-                },
-            ));
-        }
-
-        as_system::<Commands>(&mut ecs_lock.lock(), |mut commands| {
-            commands.entity(entity).insert((InLoginState,));
-            commands.trigger(SendLoginPacketEvent::new(
-                entity,
-                ServerboundHello {
-                    name: account.username.clone(),
-                    // TODO: pretty sure this should generate an offline-mode uuid instead of just
-                    // Uuid::default()
-                    profile_id: account.uuid.unwrap_or_default(),
-                },
-            ))
+        ecs_lock.lock().send_event(StartJoinServerEvent {
+            account,
+            connect_opts,
+            event_sender,
+            start_join_callback_tx: Some(StartJoinCallback(start_join_callback_tx)),
         });
+
+        let entity = start_join_callback_rx.recv().await.expect(
+            "StartJoinCallback should not be dropped before sending a message, this is a bug in Azalea",
+        )?;
 
         let client = Client::new(entity, ecs_lock.clone());
         Ok(client)
@@ -734,7 +643,9 @@ impl Plugin for AzaleaPlugin {
             Update,
             (
                 // add GameProfileComponent when we get an AddPlayerEvent
-                retroactively_add_game_profile_component.after(EntityUpdateSet::Index),
+                retroactively_add_game_profile_component
+                    .after(EntityUpdateSet::Index)
+                    .after(crate::join::handle_start_join_server_event),
             ),
         )
         .init_resource::<InstanceContainer>()
@@ -742,12 +653,14 @@ impl Plugin for AzaleaPlugin {
     }
 }
 
-/// Start running the ECS loop!
+/// Create the ECS world, and return a function that begins running systems.
+/// This exists to allow you to make last-millisecond updates to the world
+/// before any systems start running.
 ///
 /// You can create your app with `App::new()`, but don't forget to add
 /// [`DefaultPlugins`].
 #[doc(hidden)]
-pub fn start_ecs_runner(mut app: App) -> Arc<Mutex<World>> {
+pub fn start_ecs_runner(app: &mut SubApp) -> (Arc<Mutex<World>>, impl FnOnce()) {
     // this block is based on Bevy's default runner:
     // https://github.com/bevyengine/bevy/blob/390877cdae7a17095a75c8f9f1b4241fe5047e83/crates/bevy_app/src/schedule_runner.rs#L77-L85
     if app.plugins_state() != PluginsState::Cleaned {
@@ -765,14 +678,15 @@ pub fn start_ecs_runner(mut app: App) -> Arc<Mutex<World>> {
 
     // all resources should have been added by now so we can take the ecs from the
     // app
-    let ecs = Arc::new(Mutex::new(std::mem::take(app.world_mut())));
+    let ecs = Arc::new(Mutex::new(mem::take(app.world_mut())));
 
-    tokio::spawn(run_schedule_loop(
-        ecs.clone(),
-        *app.main().update_schedule.as_ref().unwrap(),
-    ));
+    let ecs_clone = ecs.clone();
+    let outer_schedule_label = *app.update_schedule.as_ref().unwrap();
+    let start_running_systems = move || {
+        tokio::spawn(run_schedule_loop(ecs_clone, outer_schedule_label));
+    };
 
-    ecs
+    (ecs, start_running_systems)
 }
 
 async fn run_schedule_loop(ecs: Arc<Mutex<World>>, outer_schedule_label: InternedScheduleLabel) {

@@ -4,7 +4,7 @@ use std::{
 };
 
 use azalea_core::{registry_holder::RegistryHolder, resource_location::ResourceLocation};
-use bevy_ecs::{component::Component, system::Resource};
+use bevy_ecs::{component::Component, resource::Resource};
 use derive_more::{Deref, DerefMut};
 use nohash_hasher::IntMap;
 use parking_lot::RwLock;
@@ -46,7 +46,7 @@ impl InstanceContainer {
     /// Add an empty world to the container (unless it already exists) and
     /// returns a strong reference to the world.
     #[must_use = "the world will be immediately forgotten if unused"]
-    pub fn insert(
+    pub fn get_or_insert(
         &mut self,
         name: ResourceLocation,
         height: u32,

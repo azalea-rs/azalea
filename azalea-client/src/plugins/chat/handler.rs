@@ -1,5 +1,6 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
+use azalea_crypto::SignChatMessageOptions;
 use azalea_protocol::packets::{
     Packet,
     game::{ServerboundChat, ServerboundChatCommand, s_chat::LastSeenMessagesUpdate},
@@ -7,7 +8,7 @@ use azalea_protocol::packets::{
 use bevy_ecs::prelude::*;
 
 use super::ChatKind;
-use crate::packet::game::SendPacketEvent;
+use crate::{Account, chat_signing::ChatSigningSession, packet::game::SendPacketEvent};
 
 /// Send a chat packet to the server of a specific kind (chat message or
 /// command). Usually you just want [`SendChatEvent`] instead.
@@ -30,6 +31,7 @@ pub struct SendChatKindEvent {
 pub fn handle_send_chat_kind_event(
     mut events: EventReader<SendChatKindEvent>,
     mut commands: Commands,
+    mut query: Query<(&Account, &mut ChatSigningSession)>,
 ) {
     for event in events.read() {
         let content = event
@@ -38,26 +40,72 @@ pub fn handle_send_chat_kind_event(
             .filter(|c| !matches!(c, '\x00'..='\x1F' | '\x7F' | '§'))
             .take(256)
             .collect::<String>();
+
+        let timestamp = SystemTime::now();
+
         let packet = match event.kind {
-            ChatKind::Message => ServerboundChat {
-                message: content,
-                timestamp: SystemTime::now()
-                    .duration_since(UNIX_EPOCH)
-                    .expect("Time shouldn't be before epoch")
-                    .as_millis()
-                    .try_into()
-                    .expect("Instant should fit into a u64"),
-                salt: azalea_crypto::make_salt(),
-                signature: None,
-                last_seen_messages: LastSeenMessagesUpdate::default(),
+            ChatKind::Message => {
+                let salt = azalea_crypto::make_salt();
+
+                let signature = if let Ok((account, mut chat_session)) = query.get_mut(event.entity)
+                {
+                    Some(create_signature(
+                        account,
+                        &mut chat_session,
+                        salt,
+                        timestamp,
+                        &content,
+                    ))
+                } else {
+                    None
+                };
+
+                ServerboundChat {
+                    message: content,
+                    timestamp: timestamp
+                        .duration_since(UNIX_EPOCH)
+                        .expect("Time shouldn't be before epoch")
+                        .as_millis()
+                        .try_into()
+                        .expect("Instant should fit into a u64"),
+                    salt,
+                    signature,
+                    // TODO: implement last_seen_messages
+                    last_seen_messages: LastSeenMessagesUpdate::default(),
+                }
             }
             .into_variant(),
             ChatKind::Command => {
-                // TODO: chat signing
+                // TODO: commands that require chat signing
                 ServerboundChatCommand { command: content }.into_variant()
             }
         };
 
         commands.trigger(SendPacketEvent::new(event.entity, packet));
     }
+}
+
+pub fn create_signature(
+    account: &Account,
+    chat_session: &mut ChatSigningSession,
+    salt: u64,
+    timestamp: SystemTime,
+    message: &str,
+) -> azalea_crypto::MessageSignature {
+    let certs = account.certs.lock();
+    let certs = certs.as_ref().expect("certs shouldn't be set back to None");
+
+    let signature = azalea_crypto::sign_chat_message(&SignChatMessageOptions {
+        account_uuid: account.uuid.expect("account must have a uuid"),
+        chat_session_uuid: chat_session.session_id,
+        message_index: chat_session.messages_sent,
+        salt,
+        timestamp,
+        message: message.to_owned(),
+        private_key: certs.private_key.clone(),
+    });
+
+    chat_session.messages_sent += 1;
+
+    signature
 }

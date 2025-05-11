@@ -3,22 +3,12 @@
 use azalea_chat::FormattedText;
 use azalea_entity::{EntityBundle, InLoadedChunk, LocalEntity, metadata::PlayerMetadataBundle};
 use bevy_app::{App, Plugin, PostUpdate};
-use bevy_ecs::{
-    component::Component,
-    entity::Entity,
-    event::{EventReader, EventWriter},
-    prelude::Event,
-    query::{Changed, With},
-    schedule::IntoSystemConfigs,
-    system::{Commands, Query},
-};
+use bevy_ecs::prelude::*;
 use derive_more::Deref;
-use tracing::trace;
+use tracing::info;
 
-use crate::{
-    InstanceHolder, client::JoinedClientBundle, connection::RawConnection,
-    events::LocalPlayerEvents,
-};
+use super::login::IsAuthenticated;
+use crate::{InstanceHolder, chat_signing, client::JoinedClientBundle, connection::RawConnection};
 
 pub struct DisconnectPlugin;
 impl Plugin for DisconnectPlugin {
@@ -27,19 +17,53 @@ impl Plugin for DisconnectPlugin {
             PostUpdate,
             (
                 update_read_packets_task_running_component,
-                disconnect_on_connection_dead,
                 remove_components_from_disconnected_players,
+                // this happens after `remove_components_from_disconnected_players` since that
+                // system removes `IsConnectionAlive`, which ensures that
+                // `DisconnectEvent` won't get called again from
+                // `disconnect_on_connection_dead`
+                disconnect_on_connection_dead,
             )
                 .chain(),
         );
     }
 }
 
-/// An event sent when a client is getting disconnected.
+/// An event sent when a client got disconnected from the server.
+///
+/// If the client was kicked with a reason, that reason will be present in the
+/// [`reason`](DisconnectEvent::reason) field.
+///
+/// This event won't be sent if creating the initial connection to the server
+/// failed, for that see [`ConnectionFailedEvent`].
+///
+/// [`ConnectionFailedEvent`]: crate::join::ConnectionFailedEvent
+
 #[derive(Event)]
 pub struct DisconnectEvent {
     pub entity: Entity,
     pub reason: Option<FormattedText>,
+}
+
+/// A bundle of components that are removed when a client disconnects.
+///
+/// This shouldn't be used for inserts because not all of the components should
+/// always be present.
+#[derive(Bundle)]
+pub struct RemoveOnDisconnectBundle {
+    pub joined_client: JoinedClientBundle,
+    pub entity: EntityBundle,
+    pub instance_holder: InstanceHolder,
+    pub player_metadata: PlayerMetadataBundle,
+    pub in_loaded_chunk: InLoadedChunk,
+    //// This makes it close the TCP connection.
+    pub raw_connection: RawConnection,
+    /// This makes it not send [`DisconnectEvent`] again.
+    pub is_connection_alive: IsConnectionAlive,
+    /// Resend our chat signing certs next time.
+    pub chat_signing_session: chat_signing::ChatSigningSession,
+    /// They're not authenticated anymore if they disconnected.
+    pub is_authenticated: IsAuthenticated,
 }
 
 /// A system that removes the several components from our clients when they get
@@ -49,19 +73,18 @@ pub fn remove_components_from_disconnected_players(
     mut events: EventReader<DisconnectEvent>,
     mut loaded_by_query: Query<&mut azalea_entity::LoadedBy>,
 ) {
-    for DisconnectEvent { entity, .. } in events.read() {
-        trace!("Got DisconnectEvent for {entity:?}");
+    for DisconnectEvent { entity, reason } in events.read() {
+        info!(
+            "A client {entity:?} was disconnected{}",
+            if let Some(reason) = reason {
+                format!(": {reason}")
+            } else {
+                "".to_string()
+            }
+        );
         commands
             .entity(*entity)
-            .remove::<JoinedClientBundle>()
-            .remove::<EntityBundle>()
-            .remove::<InstanceHolder>()
-            .remove::<PlayerMetadataBundle>()
-            .remove::<InLoadedChunk>()
-            // this makes it close the tcp connection
-            .remove::<RawConnection>()
-            // swarm detects when this tx gets dropped to fire SwarmEvent::Disconnect
-            .remove::<LocalPlayerEvents>();
+            .remove::<RemoveOnDisconnectBundle>();
         // note that we don't remove the client from the ECS, so if they decide
         // to reconnect they'll keep their state
 
@@ -94,7 +117,7 @@ fn disconnect_on_connection_dead(
 ) {
     for (entity, &is_connection_alive) in &query {
         if !*is_connection_alive {
-            disconnect_events.send(DisconnectEvent {
+            disconnect_events.write(DisconnectEvent {
                 entity,
                 reason: None,
             });

@@ -1506,14 +1506,8 @@ pub static REPAIRS_TURTLE_HELMET: LazyLock<HashSet<Item>> =
     LazyLock::new(|| HashSet::from_iter(vec![Item::TurtleScute]));
 pub static REPAIRS_WOLF_ARMOR: LazyLock<HashSet<Item>> =
     LazyLock::new(|| HashSet::from_iter(vec![Item::ArmadilloScute]));
-pub static SAND: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
-        Item::Sand,
-        Item::RedSand,
-        Item::SuspiciousSand,
-        Item::SuspiciousSand,
-    ])
-});
+pub static SAND: LazyLock<HashSet<Item>> =
+    LazyLock::new(|| HashSet::from_iter(vec![Item::Sand, Item::RedSand, Item::SuspiciousSand]));
 pub static SAPLINGS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
     HashSet::from_iter(vec![
         Item::OakSapling,

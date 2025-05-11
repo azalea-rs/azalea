@@ -1,14 +1,17 @@
 use bevy_app::{PluginGroup, PluginGroupBuilder};
 
 pub mod attack;
+pub mod auto_reconnect;
 pub mod brand;
 pub mod chat;
+pub mod chat_signing;
 pub mod chunks;
 pub mod connection;
 pub mod disconnect;
 pub mod events;
 pub mod interact;
 pub mod inventory;
+pub mod join;
 pub mod login;
 pub mod mining;
 pub mod movement;
@@ -49,7 +52,10 @@ impl PluginGroup for DefaultPlugins {
             .add(tick_broadcast::TickBroadcastPlugin)
             .add(pong::PongPlugin)
             .add(connection::ConnectionPlugin)
-            .add(login::LoginPlugin);
+            .add(login::LoginPlugin)
+            .add(join::JoinPlugin)
+            .add(auto_reconnect::AutoReconnectPlugin)
+            .add(chat_signing::ChatSigningPlugin);
         #[cfg(feature = "log")]
         {
             group = group.add(bevy_log::LogPlugin::default());

@@ -40,18 +40,14 @@ lib.code.version.set_version_name(new_version_id)
 print('Updated protocol!')
 
 print('Generating blocks and shapes...')
-# TODO: pixlyzer is broken so we use old data
-new_shape_datas = lib.extract.get_pixlyzer_data(
-    '1.20.3-pre4', 'shapes')
-new_pixlyzer_block_datas = lib.extract.get_pixlyzer_data(
-    '1.20.3-pre4', 'blocks')
+new_pumpkin_block_datas = lib.extract.get_pumpkin_data(new_version_id, 'blocks')
+
 new_block_states_report = lib.extract.get_block_states_report(new_version_id)
 new_registries = lib.extract.get_registries_report(new_version_id)
 new_ordered_blocks = lib.code.blocks.get_ordered_blocks(new_registries)
-lib.code.blocks.generate_blocks(
-    new_block_states_report, new_pixlyzer_block_datas, new_ordered_blocks, new_burger_data)
-lib.code.shapes.generate_block_shapes(
-    new_pixlyzer_block_datas, new_shape_datas['shapes'], new_shape_datas['aabbs'], new_block_states_report)
+
+lib.code.blocks.generate_blocks(new_block_states_report, new_pumpkin_block_datas, new_ordered_blocks, new_burger_data)
+lib.code.shapes.generate_block_shapes(new_pumpkin_block_datas, new_block_states_report)
 
 print('Getting en_us.json...')
 language = lib.extract.get_en_us_lang(new_version_id)

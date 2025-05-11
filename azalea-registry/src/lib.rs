@@ -4333,7 +4333,6 @@ enum SoundEvent {
     BlockDriedGhastBreak => "minecraft:block.dried_ghast.break",
     BlockDriedGhastStep => "minecraft:block.dried_ghast.step",
     BlockDriedGhastFall => "minecraft:block.dried_ghast.fall",
-    BlockDriedGhastHit => "minecraft:block.dried_ghast.hit",
     BlockDriedGhastAmbient => "minecraft:block.dried_ghast.ambient",
     BlockDriedGhastAmbientWater => "minecraft:block.dried_ghast.ambient_water",
     BlockDriedGhastPlace => "minecraft:block.dried_ghast.place",

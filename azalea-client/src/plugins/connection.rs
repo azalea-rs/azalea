@@ -34,7 +34,6 @@ impl Plugin for ConnectionPlugin {
 }
 
 pub fn read_packets(ecs: &mut World) {
-    // receive_game_packet_events: EventWriter<ReceiveGamePacketEvent>,
     let mut entity_and_conn_query = ecs.query::<(Entity, &mut RawConnection)>();
     let mut conn_query = ecs.query::<&mut RawConnection>();
 

@@ -13,7 +13,7 @@ use azalea_entity::{
     indexing::{EntityIdIndex, EntityUuidIndex},
     metadata::{Health, apply_metadata},
 };
-use azalea_protocol::packets::game::*;
+use azalea_protocol::packets::{ConnectionProtocol, game::*};
 use azalea_world::{InstanceContainer, InstanceName, MinecraftEntityId, PartialInstance};
 use bevy_ecs::{prelude::*, system::SystemState};
 pub use events::*;
@@ -22,7 +22,9 @@ use tracing::{debug, error, trace, warn};
 use crate::{
     ClientInformation, PlayerInfo,
     chat::{ChatPacket, ChatReceivedEvent},
-    chunks, declare_packet_handlers,
+    chunks,
+    connection::RawConnection,
+    declare_packet_handlers,
     disconnect::DisconnectEvent,
     inventory::{
         ClientSideCloseContainerEvent, Inventory, MenuOpenedEvent, SetContainerContentEvent,
@@ -226,7 +228,7 @@ impl GamePacketHandler<'_> {
                 let new_instance_name = p.common.dimension.clone();
 
                 if let Some(mut instance_name) = instance_name {
-                    *instance_name = instance_name.clone();
+                    **instance_name = new_instance_name.clone();
                 } else {
                     commands
                         .entity(self.player)
@@ -242,13 +244,13 @@ impl GamePacketHandler<'_> {
 
                 // add this world to the instance_container (or don't if it's already
                 // there)
-                let weak_instance = instance_container.insert(
+                let weak_instance = instance_container.get_or_insert(
                     new_instance_name.clone(),
                     dimension_data.height,
                     dimension_data.min_y,
                     &instance_holder.instance.read().registries,
                 );
-                instance_loaded_events.send(InstanceLoadedEvent {
+                instance_loaded_events.write(InstanceLoadedEvent {
                     entity: self.player,
                     name: new_instance_name.clone(),
                     instance: Arc::downgrade(&weak_instance),
@@ -338,7 +340,7 @@ impl GamePacketHandler<'_> {
         debug!("Got chunk batch start");
 
         as_system::<EventWriter<_>>(self.ecs, |mut events| {
-            events.send(chunks::ChunkBatchStartEvent {
+            events.write(chunks::ChunkBatchStartEvent {
                 entity: self.player,
             });
         });
@@ -348,7 +350,7 @@ impl GamePacketHandler<'_> {
         debug!("Got chunk batch finished {p:?}");
 
         as_system::<EventWriter<_>>(self.ecs, |mut events| {
-            events.send(chunks::ChunkBatchFinishedEvent {
+            events.write(chunks::ChunkBatchFinishedEvent {
                 entity: self.player,
                 batch_size: p.batch_size,
             });
@@ -389,7 +391,7 @@ impl GamePacketHandler<'_> {
         warn!("Got disconnect packet {p:?}");
 
         as_system::<EventWriter<_>>(self.ecs, |mut events| {
-            events.send(DisconnectEvent {
+            events.write(DisconnectEvent {
                 entity: self.player,
                 reason: Some(p.reason.clone()),
             });
@@ -531,7 +533,7 @@ impl GamePacketHandler<'_> {
                             display_name: updated_info.display_name.clone(),
                         };
                         tab_list.insert(updated_info.profile.uuid, info.clone());
-                        add_player_events.send(AddPlayerEvent {
+                        add_player_events.write(AddPlayerEvent {
                             entity: self.player,
                             info,
                         });
@@ -547,7 +549,7 @@ impl GamePacketHandler<'_> {
                         if p.actions.update_display_name {
                             info.display_name.clone_from(&updated_info.display_name);
                         }
-                        update_player_events.send(UpdatePlayerEvent {
+                        update_player_events.write(UpdatePlayerEvent {
                             entity: self.player,
                             info: info.clone(),
                         });
@@ -576,7 +578,7 @@ impl GamePacketHandler<'_> {
 
                 for uuid in &p.profile_ids {
                     if let Some(info) = tab_list.remove(uuid) {
-                        remove_player_events.send(RemovePlayerEvent {
+                        remove_player_events.write(RemovePlayerEvent {
                             entity: self.player,
                             info,
                         });
@@ -590,7 +592,7 @@ impl GamePacketHandler<'_> {
     pub fn set_chunk_cache_center(&mut self, p: &ClientboundSetChunkCacheCenter) {
         debug!("Got chunk cache center packet {p:?}");
 
-        as_system::<Query<&mut InstanceHolder>>(self.ecs, |mut query| {
+        as_system::<Query<&InstanceHolder>>(self.ecs, |mut query| {
             let instance_holder = query.get_mut(self.player).unwrap();
             let mut partial_world = instance_holder.partial_instance.write();
 
@@ -610,7 +612,7 @@ impl GamePacketHandler<'_> {
         debug!("Got chunk with light packet {} {}", p.x, p.z);
 
         as_system::<EventWriter<_>>(self.ecs, |mut events| {
-            events.send(chunks::ReceiveChunkEvent {
+            events.write(chunks::ReceiveChunkEvent {
                 entity: self.player,
                 packet: p.clone(),
             });
@@ -1031,7 +1033,7 @@ impl GamePacketHandler<'_> {
         as_system::<(EventWriter<KeepAliveEvent>, Commands)>(
             self.ecs,
             |(mut keepalive_events, mut commands)| {
-                keepalive_events.send(KeepAliveEvent {
+                keepalive_events.write(KeepAliveEvent {
                     entity: self.player,
                     id: p.id,
                 });
@@ -1083,7 +1085,7 @@ impl GamePacketHandler<'_> {
         debug!("Got player chat packet {p:?}");
 
         as_system::<EventWriter<_>>(self.ecs, |mut events| {
-            events.send(ChatReceivedEvent {
+            events.write(ChatReceivedEvent {
                 entity: self.player,
                 packet: ChatPacket::Player(Arc::new(p.clone())),
             });
@@ -1094,7 +1096,7 @@ impl GamePacketHandler<'_> {
         debug!("Got system chat packet {p:?}");
 
         as_system::<EventWriter<_>>(self.ecs, |mut events| {
-            events.send(ChatReceivedEvent {
+            events.write(ChatReceivedEvent {
                 entity: self.player,
                 packet: ChatPacket::System(Arc::new(p.clone())),
             });
@@ -1105,7 +1107,7 @@ impl GamePacketHandler<'_> {
         debug!("Got disguised chat packet {p:?}");
 
         as_system::<EventWriter<_>>(self.ecs, |mut events| {
-            events.send(ChatReceivedEvent {
+            events.write(ChatReceivedEvent {
                 entity: self.player,
                 packet: ChatPacket::Disguised(Arc::new(p.clone())),
             });
@@ -1121,7 +1123,7 @@ impl GamePacketHandler<'_> {
     pub fn block_update(&mut self, p: &ClientboundBlockUpdate) {
         debug!("Got block update packet {p:?}");
 
-        as_system::<Query<&mut InstanceHolder>>(self.ecs, |mut query| {
+        as_system::<Query<&InstanceHolder>>(self.ecs, |mut query| {
             let local_player = query.get_mut(self.player).unwrap();
 
             let world = local_player.instance.write();
@@ -1137,7 +1139,7 @@ impl GamePacketHandler<'_> {
     pub fn section_blocks_update(&mut self, p: &ClientboundSectionBlocksUpdate) {
         debug!("Got section blocks update packet {p:?}");
 
-        as_system::<Query<&mut InstanceHolder>>(self.ecs, |mut query| {
+        as_system::<Query<&InstanceHolder>>(self.ecs, |mut query| {
             let local_player = query.get_mut(self.player).unwrap();
             let world = local_player.instance.write();
             for state in &p.states {
@@ -1216,7 +1218,7 @@ impl GamePacketHandler<'_> {
                         }
                     }
                 } else {
-                    events.send(SetContainerContentEvent {
+                    events.write(SetContainerContentEvent {
                         entity: self.player,
                         slots: p.items.clone(),
                         container_id: p.container_id,
@@ -1282,7 +1284,7 @@ impl GamePacketHandler<'_> {
         debug!("Got container close packet {p:?}");
 
         as_system::<EventWriter<_>>(self.ecs, |mut events| {
-            events.send(ClientSideCloseContainerEvent {
+            events.write(ClientSideCloseContainerEvent {
                 entity: self.player,
             });
         });
@@ -1299,7 +1301,7 @@ impl GamePacketHandler<'_> {
 
         as_system::<EventWriter<_>>(self.ecs, |mut knockback_events| {
             if let Some(knockback) = p.knockback {
-                knockback_events.send(KnockbackEvent {
+                knockback_events.write(KnockbackEvent {
                     entity: self.player,
                     knockback: KnockbackType::Set(knockback),
                 });
@@ -1310,7 +1312,7 @@ impl GamePacketHandler<'_> {
     pub fn forget_level_chunk(&mut self, p: &ClientboundForgetLevelChunk) {
         debug!("Got forget level chunk packet {p:?}");
 
-        as_system::<Query<&mut InstanceHolder>>(self.ecs, |mut query| {
+        as_system::<Query<&InstanceHolder>>(self.ecs, |mut query| {
             let local_player = query.get_mut(self.player).unwrap();
 
             let mut partial_instance = local_player.partial_instance.write();
@@ -1333,7 +1335,7 @@ impl GamePacketHandler<'_> {
         debug!("Got open screen packet {p:?}");
 
         as_system::<EventWriter<_>>(self.ecs, |mut events| {
-            events.send(MenuOpenedEvent {
+            events.write(MenuOpenedEvent {
                 entity: self.player,
                 window_id: p.container_id,
                 menu_type: p.menu_type,
@@ -1370,7 +1372,7 @@ impl GamePacketHandler<'_> {
 
             if *entity_id == p.player_id && dead.is_none() {
                 commands.entity(self.player).insert(Dead);
-                events.send(DeathEvent {
+                events.write(DeathEvent {
                     entity: self.player,
                     packet: Some(p.clone()),
                 });
@@ -1386,7 +1388,7 @@ impl GamePacketHandler<'_> {
         debug!("Got resource pack packet {p:?}");
 
         as_system::<EventWriter<_>>(self.ecs, |mut events| {
-            events.send(ResourcePackEvent {
+            events.write(ResourcePackEvent {
                 entity: self.player,
                 id: p.id,
                 url: p.url.to_owned(),
@@ -1409,6 +1411,7 @@ impl GamePacketHandler<'_> {
                     &mut InstanceHolder,
                     &GameProfileComponent,
                     &ClientInformation,
+                    Option<&mut InstanceName>,
                 ),
                 With<LocalEntity>,
             >,
@@ -1418,10 +1421,18 @@ impl GamePacketHandler<'_> {
         )>(
             self.ecs,
             |(mut commands, mut query, mut events, mut instance_container, mut loaded_by_query)| {
-                let (mut instance_holder, game_profile, client_information) =
+                let (mut instance_holder, game_profile, client_information, instance_name) =
                     query.get_mut(self.player).unwrap();
 
                 let new_instance_name = p.common.dimension.clone();
+
+                if let Some(mut instance_name) = instance_name {
+                    **instance_name = new_instance_name.clone();
+                } else {
+                    commands
+                        .entity(self.player)
+                        .insert(InstanceName(new_instance_name.clone()));
+                }
 
                 let Some((_dimension_type, dimension_data)) = p
                     .common
@@ -1432,13 +1443,13 @@ impl GamePacketHandler<'_> {
 
                 // add this world to the instance_container (or don't if it's already
                 // there)
-                let weak_instance = instance_container.insert(
+                let weak_instance = instance_container.get_or_insert(
                     new_instance_name.clone(),
                     dimension_data.height,
                     dimension_data.min_y,
                     &instance_holder.instance.read().registries,
                 );
-                events.send(InstanceLoadedEvent {
+                events.write(InstanceLoadedEvent {
                     entity: self.player,
                     name: new_instance_name.clone(),
                     instance: Arc::downgrade(&weak_instance),
@@ -1486,18 +1497,30 @@ impl GamePacketHandler<'_> {
     pub fn start_configuration(&mut self, _p: &ClientboundStartConfiguration) {
         debug!("Got start configuration packet");
 
-        as_system::<Commands>(self.ecs, |mut commands| {
-            commands.trigger(SendPacketEvent::new(
-                self.player,
-                ServerboundConfigurationAcknowledged,
-            ));
+        as_system::<(Commands, Query<(&mut RawConnection, &mut InstanceHolder)>)>(
+            self.ecs,
+            |(mut commands, mut query)| {
+                let Some((mut raw_conn, mut instance_holder)) = query.get_mut(self.player).ok()
+                else {
+                    warn!("Got start configuration packet but player doesn't have a RawConnection");
+                    return;
+                };
+                raw_conn.state = ConnectionProtocol::Configuration;
 
-            commands
-                .entity(self.player)
-                .insert(crate::client::InConfigState)
-                .remove::<crate::JoinedClientBundle>()
-                .remove::<EntityBundle>();
-        });
+                commands.trigger(SendPacketEvent::new(
+                    self.player,
+                    ServerboundConfigurationAcknowledged,
+                ));
+
+                commands
+                    .entity(self.player)
+                    .insert(crate::client::InConfigState)
+                    .remove::<crate::JoinedClientBundle>()
+                    .remove::<EntityBundle>();
+
+                instance_holder.reset();
+            },
+        );
     }
 
     pub fn entity_position_sync(&mut self, p: &ClientboundEntityPositionSync) {
@@ -1555,7 +1578,9 @@ impl GamePacketHandler<'_> {
     pub fn set_display_objective(&mut self, _p: &ClientboundSetDisplayObjective) {}
     pub fn set_objective(&mut self, _p: &ClientboundSetObjective) {}
     pub fn set_passengers(&mut self, _p: &ClientboundSetPassengers) {}
-    pub fn set_player_team(&mut self, _p: &ClientboundSetPlayerTeam) {}
+    pub fn set_player_team(&mut self, p: &ClientboundSetPlayerTeam) {
+        debug!("Got set player team packet {p:?}");
+    }
     pub fn set_score(&mut self, _p: &ClientboundSetScore) {}
     pub fn set_simulation_distance(&mut self, _p: &ClientboundSetSimulationDistance) {}
     pub fn set_subtitle_text(&mut self, _p: &ClientboundSetSubtitleText) {}
