@@ -268,7 +268,7 @@ impl TextColor {
 
     fn serialize(&self) -> String {
         if let Some(name) = &self.name {
-            name.clone()
+            name.clone().to_ascii_lowercase()
         } else {
             self.format_value()
         }
