@@ -213,7 +213,7 @@ def clear_version_cache():
         'yarn_versions.json',
         'fabric_api_versions.json',
         'fabric_loader_versions.json',
-        'fabric-api-maven-metadata.json',
+        'fabric-api-maven-metadata.xml',
     ]
     for file in files:
         if os.path.exists(get_dir_location(f'__cache__/{file}')):

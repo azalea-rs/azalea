@@ -177,6 +177,8 @@ pub fn process_packet(ecs: &mut World, player: Entity, packet: &ClientboundGameP
             recipe_book_settings,
             test_instance_block_status,
             waypoint,
+            clear_dialog,
+            show_dialog,
         ]
     );
 }
@@ -1615,4 +1617,11 @@ impl GamePacketHandler<'_> {
     pub fn recipe_book_settings(&mut self, _p: &ClientboundRecipeBookSettings) {}
     pub fn test_instance_block_status(&mut self, _p: &ClientboundTestInstanceBlockStatus) {}
     pub fn waypoint(&mut self, _p: &ClientboundWaypoint) {}
+
+    pub fn clear_dialog(&mut self, p: &ClientboundClearDialog) {
+        debug!("Got clear dialog packet {p:?}");
+    }
+    pub fn show_dialog(&mut self, p: &ClientboundShowDialog) {
+        debug!("Got show dialog packet {p:?}");
+    }
 }

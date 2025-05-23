@@ -7,6 +7,6 @@ declare_state_packets!(HandshakePacket,
     Clientbound => [
     ],
     Serverbound => [
-        intention, // 0x00
+        intention,
     ]
 );

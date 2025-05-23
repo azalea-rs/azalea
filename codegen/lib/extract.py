@@ -152,8 +152,10 @@ fabric_version={fabric_api_version}
         f.write(gradle_properties)
 
     # update the minecraft version dependency in src/main/resources/fabric.mod.json
-    with open(f'{pumpkin_dir}/src/main/resources/fabric.mod.json', 'w') as f:
+    fabric_mod_json_path = f'{pumpkin_dir}/src/main/resources/fabric.mod.json'
+    with open(fabric_mod_json_path, 'r') as f:
         fabric_mod_json = f.read()
+    with open(fabric_mod_json_path, 'w') as f:
         fabric_mod_json = fabric_mod_json.replace(
             '"minecraft": "${minecraft_version}"',
             f'"minecraft": "*"'

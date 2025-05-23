@@ -1151,6 +1151,7 @@ pub static HORSE_FOOD: LazyLock<HashSet<Item>> = LazyLock::new(|| {
         Item::Sugar,
         Item::HayBlock,
         Item::Apple,
+        Item::Carrot,
         Item::GoldenCarrot,
         Item::GoldenApple,
         Item::EnchantedGoldenApple,

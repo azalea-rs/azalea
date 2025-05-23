@@ -4236,6 +4236,8 @@ impl Default for GiantMetadataBundle {
 }
 
 #[derive(Component, Deref, DerefMut, Clone)]
+pub struct ItemFrameDirection(pub Direction);
+#[derive(Component, Deref, DerefMut, Clone)]
 pub struct ItemFrameItem(pub ItemStack);
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct Rotation(pub i32);
@@ -4247,7 +4249,7 @@ impl GlowItemFrame {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=9 => ItemFrame::apply_metadata(entity, d)?,
+            0..=10 => ItemFrame::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -4282,6 +4284,7 @@ impl Default for GlowItemFrameMetadataBundle {
                     pose: Pose::default(),
                     ticks_frozen: TicksFrozen(Default::default()),
                 },
+                item_frame_direction: ItemFrameDirection(Default::default()),
                 item_frame_item: ItemFrameItem(Default::default()),
                 rotation: Rotation(0),
             },
@@ -5293,9 +5296,12 @@ impl ItemFrame {
         match d.index {
             0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
-                entity.insert(ItemFrameItem(d.value.into_item_stack()?));
+                entity.insert(ItemFrameDirection(d.value.into_direction()?));
             }
             9 => {
+                entity.insert(ItemFrameItem(d.value.into_item_stack()?));
+            }
+            10 => {
                 entity.insert(Rotation(d.value.into_int()?));
             }
             _ => {}
@@ -5308,6 +5314,7 @@ impl ItemFrame {
 pub struct ItemFrameMetadataBundle {
     _marker: ItemFrame,
     parent: AbstractEntityMetadataBundle,
+    item_frame_direction: ItemFrameDirection,
     item_frame_item: ItemFrameItem,
     rotation: Rotation,
 }
@@ -5332,6 +5339,7 @@ impl Default for ItemFrameMetadataBundle {
                 pose: Pose::default(),
                 ticks_frozen: TicksFrozen(Default::default()),
             },
+            item_frame_direction: ItemFrameDirection(Default::default()),
             item_frame_item: ItemFrameItem(Default::default()),
             rotation: Rotation(0),
         }
@@ -6430,6 +6438,8 @@ impl Default for OminousItemSpawnerMetadataBundle {
 }
 
 #[derive(Component, Deref, DerefMut, Clone)]
+pub struct PaintingDirection(pub Direction);
+#[derive(Component, Deref, DerefMut, Clone)]
 pub struct PaintingVariant(pub azalea_registry::PaintingVariant);
 #[derive(Component)]
 pub struct Painting;
@@ -6441,6 +6451,9 @@ impl Painting {
         match d.index {
             0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
+                entity.insert(PaintingDirection(d.value.into_direction()?));
+            }
+            9 => {
                 entity.insert(PaintingVariant(d.value.into_painting_variant()?));
             }
             _ => {}
@@ -6453,6 +6466,7 @@ impl Painting {
 pub struct PaintingMetadataBundle {
     _marker: Painting,
     parent: AbstractEntityMetadataBundle,
+    painting_direction: PaintingDirection,
     painting_variant: PaintingVariant,
 }
 impl Default for PaintingMetadataBundle {
@@ -6476,6 +6490,7 @@ impl Default for PaintingMetadataBundle {
                 pose: Pose::default(),
                 ticks_frozen: TicksFrozen(Default::default()),
             },
+            painting_direction: PaintingDirection(Default::default()),
             painting_variant: PaintingVariant(azalea_registry::PaintingVariant::new_raw(0)),
         }
     }

@@ -1539,6 +1539,7 @@ enum CommandArgumentKind {
     LootTable => "minecraft:loot_table",
     LootPredicate => "minecraft:loot_predicate",
     LootModifier => "minecraft:loot_modifier",
+    Dialog => "minecraft:dialog",
     Uuid => "minecraft:uuid",
 }
 }
@@ -3157,6 +3158,7 @@ enum Item {
     MusicDisc5 => "minecraft:music_disc_5",
     MusicDiscPigstep => "minecraft:music_disc_pigstep",
     MusicDiscPrecipice => "minecraft:music_disc_precipice",
+    MusicDiscTears => "minecraft:music_disc_tears",
     DiscFragment5 => "minecraft:disc_fragment_5",
     Trident => "minecraft:trident",
     NautilusShell => "minecraft:nautilus_shell",
@@ -4644,6 +4646,7 @@ enum SoundEvent {
     EntityHorseAmbient => "minecraft:entity.horse.ambient",
     EntityHorseAngry => "minecraft:entity.horse.angry",
     EntityHorseArmor => "minecraft:entity.horse.armor",
+    ItemHorseArmorUnequip => "minecraft:item.horse_armor.unequip",
     EntityHorseBreathe => "minecraft:entity.horse.breathe",
     EntityHorseDeath => "minecraft:entity.horse.death",
     EntityHorseEat => "minecraft:entity.horse.eat",
@@ -4715,8 +4718,9 @@ enum SoundEvent {
     BlockLeafLitterPlace => "minecraft:block.leaf_litter.place",
     BlockLeafLitterHit => "minecraft:block.leaf_litter.hit",
     BlockLeafLitterFall => "minecraft:block.leaf_litter.fall",
-    EntityLeashKnotBreak => "minecraft:entity.leash_knot.break",
-    EntityLeashKnotPlace => "minecraft:entity.leash_knot.place",
+    ItemLeadUntied => "minecraft:item.lead.untied",
+    ItemLeadTied => "minecraft:item.lead.tied",
+    ItemLeadBreak => "minecraft:item.lead.break",
     BlockLeverClick => "minecraft:block.lever.click",
     EntityLightningBoltImpact => "minecraft:entity.lightning_bolt.impact",
     EntityLightningBoltThunder => "minecraft:entity.lightning_bolt.thunder",
@@ -4730,6 +4734,7 @@ enum SoundEvent {
     EntityLlamaSpit => "minecraft:entity.llama.spit",
     EntityLlamaStep => "minecraft:entity.llama.step",
     EntityLlamaSwag => "minecraft:entity.llama.swag",
+    ItemLlamaCarpetUnequip => "minecraft:item.llama_carpet.unequip",
     EntityMagmaCubeDeathSmall => "minecraft:entity.magma_cube.death_small",
     BlockLodestoneBreak => "minecraft:block.lodestone.break",
     BlockLodestoneStep => "minecraft:block.lodestone.step",
@@ -4826,6 +4831,7 @@ enum SoundEvent {
     MusicDiscCreator => "minecraft:music_disc.creator",
     MusicDiscCreatorMusicBox => "minecraft:music_disc.creator_music_box",
     MusicDiscPrecipice => "minecraft:music_disc.precipice",
+    MusicDiscTears => "minecraft:music_disc.tears",
     MusicDragon => "minecraft:music.dragon",
     MusicEnd => "minecraft:music.end",
     MusicGame => "minecraft:music.game",
@@ -5600,6 +5606,7 @@ enum SoundEvent {
     EventMobEffectBadOmen => "minecraft:event.mob_effect.bad_omen",
     EventMobEffectTrialOmen => "minecraft:event.mob_effect.trial_omen",
     EventMobEffectRaidOmen => "minecraft:event.mob_effect.raid_omen",
+    ItemSaddleUnequip => "minecraft:item.saddle.unequip",
 }
 }
 
@@ -6796,5 +6803,41 @@ enum SpawnConditionKind {
     Structure => "minecraft:structure",
     MoonBrightness => "minecraft:moon_brightness",
     Biome => "minecraft:biome",
+}
+}
+
+registry! {
+enum DialogBodyKind {
+    Item => "minecraft:item",
+    PlainMessage => "minecraft:plain_message",
+}
+}
+
+registry! {
+enum DialogKind {
+    Notice => "minecraft:notice",
+    ServerLinks => "minecraft:server_links",
+    DialogList => "minecraft:dialog_list",
+    MultiAction => "minecraft:multi_action",
+    MultiActionInputForm => "minecraft:multi_action_input_form",
+    SimpleInputForm => "minecraft:simple_input_form",
+    Confirmation => "minecraft:confirmation",
+}
+}
+
+registry! {
+enum InputControlKind {
+    Boolean => "minecraft:boolean",
+    NumberRange => "minecraft:number_range",
+    SingleOption => "minecraft:single_option",
+    Text => "minecraft:text",
+}
+}
+
+registry! {
+enum SubmitMethodKind {
+    CommandTemplate => "minecraft:command_template",
+    CustomTemplate => "minecraft:custom_template",
+    CustomForm => "minecraft:custom_form",
 }
 }
