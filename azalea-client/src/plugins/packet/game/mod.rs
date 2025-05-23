@@ -1420,8 +1420,12 @@ impl GamePacketHandler<'_> {
         )>(
             self.ecs,
             |(mut commands, mut query, mut events, mut instance_container, mut loaded_by_query)| {
-                let (mut instance_holder, game_profile, client_information, instance_name) =
-                    query.get_mut(self.player).unwrap();
+                let Ok((mut instance_holder, game_profile, client_information, instance_name)) =
+                    query.get_mut(self.player)
+                else {
+                    warn!("Got respawn packet but player doesn't have the required components");
+                    return;
+                };
 
                 let new_instance_name = p.common.dimension.clone();
 

@@ -187,6 +187,9 @@ async fn handle(bot: Client, event: azalea::Event, state: State) -> anyhow::Resu
                 BotTask::None => {}
             }
         }
+        azalea::Event::Login => {
+            println!("Got login event")
+        }
         _ => {}
     }
 
