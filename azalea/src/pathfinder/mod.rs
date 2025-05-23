@@ -19,7 +19,7 @@ use std::sync::atomic::{self, AtomicUsize};
 use std::time::{Duration, Instant};
 use std::{cmp, thread};
 
-use astar::PathfinderTimeout;
+use astar::{Edge, PathfinderTimeout};
 use azalea_client::inventory::{Inventory, InventorySet, SetSelectedHotbarSlotEvent};
 use azalea_client::mining::{Mining, StartMiningBlockEvent};
 use azalea_client::movement::MoveEventsSet;
@@ -116,8 +116,8 @@ pub struct Pathfinder {
 /// pathfinder path.
 #[derive(Component, Clone)]
 pub struct ExecutingPath {
-    pub path: VecDeque<astar::Movement<BlockPos, moves::MoveData>>,
-    pub queued_path: Option<VecDeque<astar::Movement<BlockPos, moves::MoveData>>>,
+    pub path: VecDeque<astar::Edge<BlockPos, moves::MoveData>>,
+    pub queued_path: Option<VecDeque<astar::Edge<BlockPos, moves::MoveData>>>,
     pub last_reached_node: BlockPos,
     pub last_node_reached_at: Instant,
     pub is_path_partial: bool,
@@ -161,7 +161,7 @@ pub struct GotoEvent {
 pub struct PathFoundEvent {
     pub entity: Entity,
     pub start: BlockPos,
-    pub path: Option<VecDeque<astar::Movement<BlockPos, moves::MoveData>>>,
+    pub path: Option<VecDeque<astar::Edge<BlockPos, moves::MoveData>>>,
     pub is_partial: bool,
     pub successors_fn: SuccessorsFn,
     pub allow_mining: bool,
@@ -313,7 +313,12 @@ pub fn goto_listener(
             && let Some(final_node) = executing_path.path.back()
         {
             // if we're currently pathfinding and got a goto event, start a little ahead
-            executing_path.path.get(50).unwrap_or(final_node).target
+            executing_path
+                .path
+                .get(50)
+                .unwrap_or(final_node)
+                .movement
+                .target
         } else {
             BlockPos::from(position)
         };
@@ -448,13 +453,39 @@ pub fn calculate_path(opts: CalculatePathOpts) -> Option<PathFoundEvent> {
     }
 
     // replace the RelBlockPos types with BlockPos
-    let mapped_path = path
-        .into_iter()
-        .map(|movement| astar::Movement {
-            target: movement.target.apply(origin),
-            data: movement.data,
-        })
-        .collect();
+    // let mapped_path = path
+    //     .into_iter()
+    //     .map(|movement| astar::Movement {
+    //         target: movement.target.apply(origin),
+    //         data: movement.data,
+    //     })
+    //     .collect();
+    let mut mapped_path = VecDeque::with_capacity(path.len());
+    let mut current_position = RelBlockPos::get_origin(origin);
+    for movement in path {
+        let mut found_edge = None;
+        for edge in successors(current_position) {
+            if edge.movement.target == movement.target {
+                found_edge = Some(edge);
+                break;
+            }
+        }
+
+        let found_edge = found_edge.expect(
+            "path should always still be possible because we're using the same world cache",
+        );
+        current_position = found_edge.movement.target;
+
+        // we don't just copy the found_edge because we're using BlockPos instead of
+        // RelBlockPos as the target type
+        mapped_path.push_back(Edge {
+            movement: astar::Movement {
+                target: movement.target.apply(origin),
+                data: movement.data,
+            },
+            cost: found_edge.cost,
+        });
+    }
 
     Some(PathFoundEvent {
         entity: opts.entity,
@@ -523,10 +554,14 @@ pub fn path_found_listener(
                     };
 
                     if let Some(first_node_of_new_path) = path.front() {
-                        let last_target_of_current_path =
-                            RelBlockPos::from_origin(origin, last_node_of_current_path.target);
-                        let first_target_of_new_path =
-                            RelBlockPos::from_origin(origin, first_node_of_new_path.target);
+                        let last_target_of_current_path = RelBlockPos::from_origin(
+                            origin,
+                            last_node_of_current_path.movement.target,
+                        );
+                        let first_target_of_new_path = RelBlockPos::from_origin(
+                            origin,
+                            first_node_of_new_path.movement.target,
+                        );
 
                         if successors(last_target_of_current_path)
                             .iter()
@@ -654,7 +689,7 @@ pub fn check_node_reached(
             // we don't unnecessarily execute a movement when it wasn't necessary
 
             // see if we already reached any future nodes and can skip ahead
-            for (i, movement) in executing_path
+            for (i, edge) in executing_path
                 .path
                 .clone()
                 .into_iter()
@@ -662,6 +697,7 @@ pub fn check_node_reached(
                 .take(20)
                 .rev()
             {
+                let movement = edge.movement;
                 let is_reached_ctx = IsReachedCtx {
                     target: movement.target,
                     start: executing_path.last_reached_node,
@@ -825,10 +861,12 @@ fn patch_path(
     let patch_start = if *patch_nodes.start() == 0 {
         executing_path.last_reached_node
     } else {
-        executing_path.path[*patch_nodes.start() - 1].target
+        executing_path.path[*patch_nodes.start() - 1]
+            .movement
+            .target
     };
 
-    let patch_end = executing_path.path[*patch_nodes.end()].target;
+    let patch_end = executing_path.path[*patch_nodes.end()].movement.target;
 
     // this doesn't override the main goal, it's just the goal for this A*
     // calculation
@@ -996,10 +1034,10 @@ pub fn tick_execute_path(
     for (entity, executing_path, position, physics, mining, instance_holder, inventory_component) in
         &mut query
     {
-        if let Some(movement) = executing_path.path.front() {
+        if let Some(edge) = executing_path.path.front() {
             let ctx = ExecuteCtx {
                 entity,
-                target: movement.target,
+                target: edge.movement.target,
                 position: **position,
                 start: executing_path.last_reached_node,
                 physics,
@@ -1018,7 +1056,7 @@ pub fn tick_execute_path(
                 "executing move, position: {}, last_reached_node: {}",
                 **position, executing_path.last_reached_node
             );
-            (movement.data.execute)(ctx);
+            (edge.movement.data.execute)(ctx);
         }
     }
 }
@@ -1110,26 +1148,28 @@ pub fn stop_pathfinding_on_instance_change(
 pub fn check_path_obstructed<SuccessorsFn>(
     origin: BlockPos,
     mut current_position: RelBlockPos,
-    path: &VecDeque<astar::Movement<BlockPos, moves::MoveData>>,
+    path: &VecDeque<astar::Edge<BlockPos, moves::MoveData>>,
     successors_fn: SuccessorsFn,
 ) -> Option<usize>
 where
     SuccessorsFn: Fn(RelBlockPos) -> Vec<astar::Edge<RelBlockPos, moves::MoveData>>,
 {
-    for (i, movement) in path.iter().enumerate() {
-        let movement_target = RelBlockPos::from_origin(origin, movement.target);
+    for (i, edge) in path.iter().enumerate() {
+        let movement_target = RelBlockPos::from_origin(origin, edge.movement.target);
 
-        let mut found_obstruction = false;
-        for edge in successors_fn(current_position) {
-            if edge.movement.target == movement_target {
-                current_position = movement_target;
-                found_obstruction = false;
+        let mut found_edge = None;
+        for candidate_edge in successors_fn(current_position) {
+            if candidate_edge.movement.target == movement_target {
+                found_edge = Some(candidate_edge);
                 break;
-            } else {
-                found_obstruction = true;
             }
         }
-        if found_obstruction {
+
+        if let Some(found_edge) = found_edge
+            && found_edge.cost <= edge.cost
+        {
+            current_position = found_edge.movement.target;
+        } else {
             return Some(i);
         }
     }

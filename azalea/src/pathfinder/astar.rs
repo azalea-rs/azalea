@@ -239,6 +239,7 @@ pub struct Node {
     pub g_score: f32,
 }
 
+#[derive(Clone, Debug)]
 pub struct Edge<P: Hash + Copy, M> {
     pub movement: Movement<P, M>,
     pub cost: f32,

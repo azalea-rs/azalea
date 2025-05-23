@@ -54,7 +54,8 @@ pub fn debug_render_path_with_particles(
         let chunks = &instance_holder.instance.read().chunks;
 
         let mut start = executing_path.last_reached_node;
-        for (i, movement) in executing_path.path.iter().enumerate() {
+        for (i, edge) in executing_path.path.iter().enumerate() {
+            let movement = &edge.movement;
             let end = movement.target;
 
             let start_vec3 = start.center();
