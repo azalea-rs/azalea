@@ -4541,6 +4541,8 @@ impl Default for GuardianMetadataBundle {
 
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct IsLeashHolder(pub bool);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct StaysStill(pub bool);
 #[derive(Component)]
 pub struct HappyGhast;
 impl HappyGhast {
@@ -4553,6 +4555,9 @@ impl HappyGhast {
             17 => {
                 entity.insert(IsLeashHolder(d.value.into_boolean()?));
             }
+            18 => {
+                entity.insert(StaysStill(d.value.into_boolean()?));
+            }
             _ => {}
         }
         Ok(())
@@ -4564,6 +4569,7 @@ pub struct HappyGhastMetadataBundle {
     _marker: HappyGhast,
     parent: AbstractAnimalMetadataBundle,
     is_leash_holder: IsLeashHolder,
+    stays_still: StaysStill,
 }
 impl Default for HappyGhastMetadataBundle {
     fn default() -> Self {
@@ -4614,6 +4620,7 @@ impl Default for HappyGhastMetadataBundle {
                 },
             },
             is_leash_holder: IsLeashHolder(false),
+            stays_still: StaysStill(false),
         }
     }
 }
