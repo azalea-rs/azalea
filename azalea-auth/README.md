@@ -2,6 +2,8 @@
 
 A port of Mojang's Authlib and launcher authentication.
 
+The default location of Azalea's cache is at `~/.minecraft/azalea-auth.json`. You can delete or modify this file if you'd like to associate an email with a different account.
+
 # Examples
 
 ```no_run
