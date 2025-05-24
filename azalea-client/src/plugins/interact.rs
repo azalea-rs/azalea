@@ -131,7 +131,7 @@ pub struct HitResultComponent(HitResult);
 pub struct StartUseItemEvent {
     pub entity: Entity,
     pub hand: InteractionHand,
-    /// See [`QueuedStartUseItem::force_block`].
+    /// See [`StartUseItemQueued::force_block`].
     pub force_block: Option<BlockPos>,
 }
 pub fn handle_start_use_item_event(

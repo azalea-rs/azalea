@@ -89,4 +89,5 @@ impl InstanceContainer {
 /// in. If two entities share the same world name, we assume they're in the same
 /// instance.
 #[derive(Component, Clone, Debug, PartialEq, Deref, DerefMut)]
+#[doc(alias("worldname", "world name"))]
 pub struct InstanceName(pub ResourceLocation);

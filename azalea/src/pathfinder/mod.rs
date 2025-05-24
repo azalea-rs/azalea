@@ -452,14 +452,6 @@ pub fn calculate_path(opts: CalculatePathOpts) -> Option<PathFoundEvent> {
         debug!("this path is empty, we might be stuck :(");
     }
 
-    // replace the RelBlockPos types with BlockPos
-    // let mapped_path = path
-    //     .into_iter()
-    //     .map(|movement| astar::Movement {
-    //         target: movement.target.apply(origin),
-    //         data: movement.data,
-    //     })
-    //     .collect();
     let mut mapped_path = VecDeque::with_capacity(path.len());
     let mut current_position = RelBlockPos::get_origin(origin);
     for movement in path {
@@ -476,7 +468,7 @@ pub fn calculate_path(opts: CalculatePathOpts) -> Option<PathFoundEvent> {
         );
         current_position = found_edge.movement.target;
 
-        // we don't just copy the found_edge because we're using BlockPos instead of
+        // we don't just clone the found_edge because we're using BlockPos instead of
         // RelBlockPos as the target type
         mapped_path.push_back(Edge {
             movement: astar::Movement {
@@ -966,8 +958,7 @@ pub fn recalculate_near_end_of_path(
                         allow_mining: pathfinder.allow_mining,
                         min_timeout: if executing_path.path.len() == 50 {
                             // we have quite some time until the node is reached, soooo we might as
-                            // well burn some cpu cycles to get a good
-                            // path
+                            // well burn some cpu cycles to get a good path
                             PathfinderTimeout::Time(Duration::from_secs(5))
                         } else {
                             PathfinderTimeout::Time(Duration::from_secs(1))
