@@ -67,12 +67,12 @@ def set_packets(packets_report):
         code.append(f'declare_state_packets!({to_camel_case(state)}Packet,')
         code.append('    Clientbound => [')
         for packet_id, packet_name in enumerate(clientbound_packets):
-            code.append(f'        {packet_name}, // {padded_hex(packet_id)}')
+            code.append(f'        {packet_name},')
             expected_packet_module_names.add(get_packet_module_name(packet_name, 'clientbound'))
         code.append('    ],')
         code.append('    Serverbound => [')
         for packet_id, packet_name in enumerate(serverbound_packets):
-            code.append(f'        {packet_name}, // {padded_hex(packet_id)}')
+            code.append(f'        {packet_name},')
             expected_packet_module_names.add(get_packet_module_name(packet_name, 'serverbound'))
         code.append('    ]')
         code.append(');')

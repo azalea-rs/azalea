@@ -91,7 +91,7 @@ pub enum BrigadierString {
     GreedyPhrase = 2,
 }
 
-// see ArgumentTypeInfo
+// see ArgumentTypeInfos.java
 #[derive(Debug, Clone, AzBuf, PartialEq)]
 pub enum BrigadierParser {
     Bool,
@@ -111,6 +111,7 @@ pub enum BrigadierParser {
     ItemStack,
     ItemPredicate,
     Color,
+    HexColor,
     FormattedText,
     Style,
     Message,
@@ -184,7 +185,9 @@ impl AzaleaRead for BrigadierNodeStub {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let flags = FixedBitSet::<{ 8_usize.div_ceil(8) }>::azalea_read(buf)?;
         if flags.index(5) || flags.index(6) || flags.index(7) {
-            warn!("The flags from a Brigadier node are over 31. This is a bug, BrigadierParser probably needs updating.",);
+            warn!(
+                "The flags from a Brigadier node are over 31. This is a bug, BrigadierParser probably needs updating.",
+            );
         }
 
         let node_type = u8::from(flags.index(0)) + (u8::from(flags.index(1)) * 2);
