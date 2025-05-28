@@ -25,7 +25,7 @@ pub type Command<S> = Option<Arc<dyn Fn(&CommandContext<S>) -> i32 + Send + Sync
 /// An ArgumentBuilder that has been built.
 #[non_exhaustive]
 pub struct CommandNode<S> {
-    pub value: ArgumentBuilderType,
+    pub value: ArgumentBuilderType<S>,
 
     // this is a BTreeMap because children need to be ordered when getting command suggestions
     pub children: BTreeMap<String, Arc<RwLock<CommandNode<S>>>>,
@@ -66,7 +66,7 @@ impl<S> CommandNode<S> {
     }
     /// Gets the argument, or panics. You should use match if you're not certain
     /// about the type.
-    pub fn argument(&self) -> &Argument {
+    pub fn argument(&self) -> &Argument<S> {
         match self.value {
             ArgumentBuilderType::Argument(ref argument) => argument,
             _ => panic!("CommandNode::argument() called on non-argument node"),
@@ -214,9 +214,7 @@ impl<S> CommandNode<S> {
 
     pub fn list_suggestions(
         &self,
-        // context is here because that's how it is in mojang's brigadier, but we haven't
-        // implemented custom suggestions yet so this is unused rn
-        _context: CommandContext<S>,
+        context: CommandContext<S>,
         builder: SuggestionsBuilder,
     ) -> Suggestions {
         match &self.value {
@@ -231,7 +229,7 @@ impl<S> CommandNode<S> {
                     Suggestions::default()
                 }
             }
-            ArgumentBuilderType::Argument(argument) => argument.list_suggestions(builder),
+            ArgumentBuilderType::Argument(argument) => argument.list_suggestions(context, builder),
         }
     }
 }
@@ -239,7 +237,7 @@ impl<S> CommandNode<S> {
 impl<S> Debug for CommandNode<S> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("CommandNode")
-            .field("value", &self.value)
+            // .field("value", &self.value)
             .field("children", &self.children)
             .field("command", &self.command.is_some())
             // .field("requirement", &self.requirement)

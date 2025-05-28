@@ -54,23 +54,22 @@ impl CommandSyntaxException {
     }
 
     pub fn context(&self) -> Option<String> {
-        if let Some(input) = &self.input {
-            if let Some(cursor) = self.cursor {
-                let mut builder = String::new();
-                let cursor = cmp::min(input.len(), cursor);
+        if let Some(input) = &self.input
+            && let Some(cursor) = self.cursor
+        {
+            let mut builder = String::new();
+            let cursor = cmp::min(input.len(), cursor);
 
-                if cursor > CONTEXT_AMOUNT {
-                    builder.push_str("...");
-                }
-
-                builder.push_str(
-                    &input
-                        [(cmp::max(0, cursor as isize - CONTEXT_AMOUNT as isize) as usize)..cursor],
-                );
-                builder.push_str("<--[HERE]");
-
-                return Some(builder);
+            if cursor > CONTEXT_AMOUNT {
+                builder.push_str("...");
             }
+
+            builder.push_str(
+                &input[(cmp::max(0, cursor as isize - CONTEXT_AMOUNT as isize) as usize)..cursor],
+            );
+            builder.push_str("<--[HERE]");
+
+            return Some(builder);
         }
         None
     }

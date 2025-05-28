@@ -12,7 +12,7 @@ impl Literal {
     }
 }
 
-impl From<Literal> for ArgumentBuilderType {
+impl<S> From<Literal> for ArgumentBuilderType<S> {
     fn from(literal: Literal) -> Self {
         Self::Literal(literal)
     }

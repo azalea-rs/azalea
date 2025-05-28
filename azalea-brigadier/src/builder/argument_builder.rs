@@ -9,10 +9,20 @@ use crate::{
     tree::{Command, CommandNode},
 };
 
-#[derive(Debug, Clone)]
-pub enum ArgumentBuilderType {
+#[derive(Debug)]
+pub enum ArgumentBuilderType<S> {
     Literal(Literal),
-    Argument(Argument),
+    Argument(Argument<S>),
+}
+impl<S> Clone for ArgumentBuilderType<S> {
+    fn clone(&self) -> Self {
+        match self {
+            ArgumentBuilderType::Literal(literal) => ArgumentBuilderType::Literal(literal.clone()),
+            ArgumentBuilderType::Argument(argument) => {
+                ArgumentBuilderType::Argument(argument.clone())
+            }
+        }
+    }
 }
 
 /// A node that hasn't yet been built.
@@ -30,7 +40,7 @@ pub struct ArgumentBuilder<S> {
 
 /// A node that isn't yet built.
 impl<S> ArgumentBuilder<S> {
-    pub fn new(value: ArgumentBuilderType) -> Self {
+    pub fn new(value: ArgumentBuilderType<S>) -> Self {
         Self {
             arguments: CommandNode {
                 value,

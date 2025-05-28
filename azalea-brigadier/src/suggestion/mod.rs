@@ -1,3 +1,4 @@
+mod suggestion_provider;
 mod suggestions;
 mod suggestions_builder;
 
@@ -12,6 +13,7 @@ use std::{
 use azalea_buf::AzaleaWrite;
 #[cfg(feature = "azalea-buf")]
 use azalea_chat::FormattedText;
+pub use suggestion_provider::SuggestionProvider;
 pub use suggestions::Suggestions;
 pub use suggestions_builder::SuggestionsBuilder;
 
