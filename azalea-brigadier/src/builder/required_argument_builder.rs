@@ -8,7 +8,7 @@ use super::argument_builder::{ArgumentBuilder, ArgumentBuilderType};
 use crate::{
     arguments::ArgumentType,
     context::CommandContext,
-    exceptions::CommandSyntaxException,
+    errors::CommandSyntaxError,
     string_reader::StringReader,
     suggestion::{SuggestionProvider, Suggestions, SuggestionsBuilder},
 };
@@ -33,7 +33,7 @@ impl<S> Argument<S> {
         }
     }
 
-    pub fn parse(&self, reader: &mut StringReader) -> Result<Arc<dyn Any>, CommandSyntaxException> {
+    pub fn parse(&self, reader: &mut StringReader) -> Result<Arc<dyn Any>, CommandSyntaxError> {
         self.parser.parse(reader)
     }
 

@@ -3,7 +3,7 @@ use std::{any::Any, sync::Arc};
 use super::ArgumentType;
 use crate::{
     context::CommandContext,
-    exceptions::CommandSyntaxException,
+    errors::CommandSyntaxError,
     string_reader::StringReader,
     suggestion::{Suggestions, SuggestionsBuilder},
 };
@@ -12,7 +12,7 @@ use crate::{
 struct Boolean;
 
 impl ArgumentType for Boolean {
-    fn parse(&self, reader: &mut StringReader) -> Result<Arc<dyn Any>, CommandSyntaxException> {
+    fn parse(&self, reader: &mut StringReader) -> Result<Arc<dyn Any>, CommandSyntaxError> {
         Ok(Arc::new(reader.read_boolean()?))
     }
 

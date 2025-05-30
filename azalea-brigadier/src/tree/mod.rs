@@ -14,13 +14,14 @@ use crate::{
         required_argument_builder::Argument,
     },
     context::{CommandContext, CommandContextBuilder, ParsedArgument, StringRange},
-    exceptions::{BuiltInExceptions, CommandSyntaxException},
+    errors::{BuiltInError, CommandSyntaxError},
     modifier::RedirectModifier,
     string_reader::StringReader,
     suggestion::{Suggestions, SuggestionsBuilder},
 };
 
-pub type Command<S> = Option<Arc<dyn Fn(&CommandContext<S>) -> i32 + Send + Sync>>;
+pub type Command<S> =
+    Option<Arc<dyn Fn(&CommandContext<S>) -> Result<i32, CommandSyntaxError> + Send + Sync>>;
 
 /// An ArgumentBuilder that has been built.
 #[non_exhaustive]
@@ -149,7 +150,7 @@ impl<S> CommandNode<S> {
         &self,
         reader: &mut StringReader,
         context_builder: &mut CommandContextBuilder<S>,
-    ) -> Result<(), CommandSyntaxException> {
+    ) -> Result<(), CommandSyntaxError> {
         match self.value {
             ArgumentBuilderType::Argument(ref argument) => {
                 let start = reader.cursor();
@@ -176,7 +177,7 @@ impl<S> CommandNode<S> {
                     return Ok(());
                 }
 
-                Err(BuiltInExceptions::LiteralIncorrect {
+                Err(BuiltInError::LiteralIncorrect {
                     expected: literal.value.clone(),
                 }
                 .create_with_context(reader))

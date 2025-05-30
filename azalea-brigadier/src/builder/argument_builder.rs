@@ -5,6 +5,7 @@ use parking_lot::RwLock;
 use super::{literal_argument_builder::Literal, required_argument_builder::Argument};
 use crate::{
     context::CommandContext,
+    errors::CommandSyntaxError,
     modifier::RedirectModifier,
     tree::{Command, CommandNode},
 };
@@ -89,6 +90,16 @@ impl<S> ArgumentBuilder<S> {
     pub fn executes<F>(mut self, f: F) -> Self
     where
         F: Fn(&CommandContext<S>) -> i32 + Send + Sync + 'static,
+    {
+        self.command = Some(Arc::new(move |ctx: &CommandContext<S>| Ok(f(ctx))));
+        self
+    }
+
+    /// Same as [`Self::executes`] but returns a `Result<i32,
+    /// CommandSyntaxError>`.
+    pub fn executes_result<F>(mut self, f: F) -> Self
+    where
+        F: Fn(&CommandContext<S>) -> Result<i32, CommandSyntaxError> + Send + Sync + 'static,
     {
         self.command = Some(Arc::new(f));
         self

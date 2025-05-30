@@ -3,7 +3,7 @@ use std::{any::Any, sync::Arc};
 use super::ArgumentType;
 use crate::{
     context::CommandContext,
-    exceptions::{BuiltInExceptions, CommandSyntaxException},
+    errors::{BuiltInError, CommandSyntaxError},
     string_reader::StringReader,
 };
 
@@ -14,14 +14,14 @@ struct Float {
 }
 
 impl ArgumentType for Float {
-    fn parse(&self, reader: &mut StringReader) -> Result<Arc<dyn Any>, CommandSyntaxException> {
+    fn parse(&self, reader: &mut StringReader) -> Result<Arc<dyn Any>, CommandSyntaxError> {
         let start = reader.cursor;
         let result = reader.read_float()?;
         if let Some(minimum) = self.minimum
             && result < minimum
         {
             reader.cursor = start;
-            return Err(BuiltInExceptions::FloatTooSmall {
+            return Err(BuiltInError::FloatTooSmall {
                 found: result,
                 min: minimum,
             }
@@ -31,7 +31,7 @@ impl ArgumentType for Float {
             && result > maximum
         {
             reader.cursor = start;
-            return Err(BuiltInExceptions::FloatTooBig {
+            return Err(BuiltInError::FloatTooBig {
                 found: result,
                 max: maximum,
             }

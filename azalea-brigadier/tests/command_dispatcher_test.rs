@@ -5,7 +5,7 @@ use azalea_brigadier::{
     builder::{literal_argument_builder::literal, required_argument_builder::argument},
     command_dispatcher::CommandDispatcher,
     context::CommandContext,
-    exceptions::{BuiltInExceptions, CommandSyntaxException},
+    errors::{BuiltInError, CommandSyntaxError},
     string_reader::StringReader,
 };
 
@@ -50,10 +50,7 @@ fn execute_unknown_command() {
     let execute_result = subject.execute("foo", &CommandSource {});
 
     let err = execute_result.err().unwrap();
-    match err.type_ {
-        BuiltInExceptions::DispatcherUnknownCommand => {}
-        _ => panic!("Unexpected error"),
-    }
+    assert_eq!(err.kind(), &BuiltInError::DispatcherUnknownCommand);
     assert_eq!(err.cursor().unwrap(), 0);
 }
 
@@ -65,10 +62,7 @@ fn execute_impermissible_command() {
     let execute_result = subject.execute("foo", &CommandSource {});
 
     let err = execute_result.err().unwrap();
-    match err.type_ {
-        BuiltInExceptions::DispatcherUnknownCommand => {}
-        _ => panic!("Unexpected error"),
-    }
+    assert_eq!(err.kind(), &BuiltInError::DispatcherUnknownCommand);
     assert_eq!(err.cursor().unwrap(), 0);
 }
 
@@ -80,10 +74,7 @@ fn execute_empty_command() {
     let execute_result = subject.execute("", &CommandSource {});
 
     let err = execute_result.err().unwrap();
-    match err.type_ {
-        BuiltInExceptions::DispatcherUnknownCommand => {}
-        _ => panic!("Unexpected error"),
-    }
+    assert_eq!(err.kind(), &BuiltInError::DispatcherUnknownCommand);
     assert_eq!(err.cursor().unwrap(), 0);
 }
 
@@ -95,10 +86,7 @@ fn execute_unknown_subcommand() {
     let execute_result = subject.execute("foo bar", &CommandSource {});
 
     let err = execute_result.err().unwrap();
-    match err.type_ {
-        BuiltInExceptions::DispatcherUnknownArgument => {}
-        _ => panic!("Unexpected error"),
-    }
+    assert_eq!(err.kind(), &BuiltInError::DispatcherUnknownArgument);
     assert_eq!(err.cursor().unwrap(), 4);
 }
 
@@ -110,10 +98,7 @@ fn execute_incorrect_literal() {
     let execute_result = subject.execute("foo baz", &CommandSource {});
 
     let err = execute_result.err().unwrap();
-    match err.type_ {
-        BuiltInExceptions::DispatcherUnknownArgument => {}
-        _ => panic!("Unexpected error"),
-    }
+    assert_eq!(err.kind(), &BuiltInError::DispatcherUnknownArgument);
     assert_eq!(err.cursor().unwrap(), 4);
 }
 
@@ -130,10 +115,7 @@ fn execute_ambiguous_incorrect_argument() {
     let execute_result = subject.execute("foo unknown", &CommandSource {});
 
     let err = execute_result.err().unwrap();
-    match err.type_ {
-        BuiltInExceptions::DispatcherUnknownArgument => {}
-        _ => panic!("Unexpected error"),
-    }
+    assert_eq!(err.kind(), &BuiltInError::DispatcherUnknownArgument);
     assert_eq!(err.cursor().unwrap(), 4);
 }
 
@@ -245,7 +227,7 @@ fn execute_redirected_multiple_times() {
     );
     assert_eq!(*child2.unwrap().nodes[0].node.read(), *concrete_node.read());
 
-    assert_eq!(CommandDispatcher::execute_parsed(parse).unwrap(), 42);
+    assert_eq!(subject.execute_parsed(parse).unwrap(), 42);
 }
 
 #[test]
@@ -255,7 +237,7 @@ fn execute_redirected() {
     let source1 = Arc::new(CommandSource {});
     let source2 = Arc::new(CommandSource {});
 
-    let modifier = move |_: &CommandContext<CommandSource>| -> Result<Vec<Arc<CommandSource>>, CommandSyntaxException> {
+    let modifier = move |_: &CommandContext<CommandSource>| -> Result<Vec<Arc<CommandSource>>, CommandSyntaxError> {
             Ok(vec![source1.clone(), source2.clone()])
         };
 
@@ -281,7 +263,7 @@ fn execute_redirected() {
     assert_eq!(*parent.nodes[0].node.read(), *concrete_node.read());
     assert_eq!(*parent.source, CommandSource {});
 
-    assert_eq!(CommandDispatcher::execute_parsed(parse).unwrap(), 2);
+    assert_eq!(subject.execute_parsed(parse).unwrap(), 2);
 }
 
 #[test]
@@ -297,10 +279,7 @@ fn execute_orphaned_subcommand() {
     let result = subject.execute("foo 5", &CommandSource {});
     assert!(result.is_err());
     let result = result.unwrap_err();
-    assert_eq!(
-        *result.get_type(),
-        BuiltInExceptions::DispatcherUnknownCommand
-    );
+    assert_eq!(*result.kind(), BuiltInError::DispatcherUnknownCommand);
     assert_eq!(result.cursor(), Some(5));
 }
 
@@ -327,10 +306,7 @@ fn parse_no_space_separator() {
     let result = subject.execute("foo$", &CommandSource {});
     assert!(result.is_err());
     let result = result.unwrap_err();
-    assert_eq!(
-        *result.get_type(),
-        BuiltInExceptions::DispatcherUnknownCommand
-    );
+    assert_eq!(*result.kind(), BuiltInError::DispatcherUnknownCommand);
     assert_eq!(result.cursor(), Some(0));
 }
 
@@ -348,7 +324,7 @@ fn execute_invalid_subcommand() {
     assert!(result.is_err());
     let result = result.unwrap_err();
     // this fails for some reason, i blame mojang
-    // assert_eq!(*result.get_type(), BuiltInExceptions::ReaderExpectedInt);
+    // assert_eq!(*result.get_type(), BuiltInError::ReaderExpectedInt);
     assert_eq!(result.cursor(), Some(4));
 }
 

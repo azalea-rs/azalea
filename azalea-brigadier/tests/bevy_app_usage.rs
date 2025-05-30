@@ -131,7 +131,7 @@ impl DispatchStorage {
     ///
     /// Spawns an entity with the [`SpawnedEntity`] component.
     fn command_spawn_entity(context: &CommandContext<WorldAccessor>) -> i32 {
-        context.source.lock().spawn(SpawnedEntity);
+        context.source().lock().spawn(SpawnedEntity);
 
         0
     }
@@ -143,7 +143,7 @@ impl DispatchStorage {
         let num = get_integer(context, "entities").unwrap();
 
         for _ in 0..num {
-            context.source.lock().spawn(SpawnedEntity);
+            context.source().lock().spawn(SpawnedEntity);
         }
 
         0

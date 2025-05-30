@@ -1,4 +1,4 @@
-use azalea_brigadier::{exceptions::BuiltInExceptions, string_reader::StringReader};
+use azalea_brigadier::{errors::BuiltInError, string_reader::StringReader};
 
 #[test]
 fn can_read() {
@@ -222,7 +222,7 @@ fn read_quoted_string_no_open() {
     let result = reader.read_quoted_string();
     assert!(result.is_err());
     if let Err(e) = result {
-        assert_eq!(e.get_type(), &BuiltInExceptions::ReaderExpectedStartOfQuote);
+        assert_eq!(e.kind(), &BuiltInError::ReaderExpectedStartOfQuote);
         assert_eq!(e.cursor(), Some(0));
     }
 }
@@ -233,7 +233,7 @@ fn read_quoted_string_no_close() {
     let result = reader.read_quoted_string();
     assert!(result.is_err());
     if let Err(e) = result {
-        assert_eq!(e.get_type(), &BuiltInExceptions::ReaderExpectedEndOfQuote);
+        assert_eq!(e.kind(), &BuiltInError::ReaderExpectedEndOfQuote);
         assert_eq!(e.cursor(), Some(12));
     }
 }
@@ -245,8 +245,8 @@ fn read_quoted_string_invalid_escape() {
     assert!(result.is_err());
     if let Err(e) = result {
         assert_eq!(
-            e.get_type(),
-            &BuiltInExceptions::ReaderInvalidEscape { character: 'n' }
+            e.kind(),
+            &BuiltInError::ReaderInvalidEscape { character: 'n' }
         );
         assert_eq!(e.cursor(), Some(7));
     }
@@ -259,8 +259,8 @@ fn read_quoted_string_invalid_quote_escape() {
     assert!(result.is_err());
     if let Err(e) = result {
         assert_eq!(
-            e.get_type(),
-            &BuiltInExceptions::ReaderInvalidEscape { character: '"' }
+            e.kind(),
+            &BuiltInError::ReaderInvalidEscape { character: '"' }
         );
         assert_eq!(e.cursor(), Some(7));
     }
@@ -313,8 +313,8 @@ fn read_int_invalid() {
     assert!(result.is_err());
     if let Err(e) = result {
         assert_eq!(
-            e.get_type(),
-            &BuiltInExceptions::ReaderInvalidInt {
+            e.kind(),
+            &BuiltInError::ReaderInvalidInt {
                 value: "12.34".to_string()
             }
         );
@@ -328,7 +328,7 @@ fn read_int_none() {
     let result = reader.read_int();
     assert!(result.is_err());
     if let Err(e) = result {
-        assert_eq!(e.get_type(), &BuiltInExceptions::ReaderExpectedInt);
+        assert_eq!(e.kind(), &BuiltInError::ReaderExpectedInt);
         assert_eq!(e.cursor(), Some(0));
     }
 }
@@ -372,8 +372,8 @@ fn read_long_invalid() {
     assert!(result.is_err());
     if let Err(e) = result {
         assert_eq!(
-            e.get_type(),
-            &BuiltInExceptions::ReaderInvalidLong {
+            e.kind(),
+            &BuiltInError::ReaderInvalidLong {
                 value: "12.34".to_string()
             }
         );
@@ -387,7 +387,7 @@ fn read_long_none() {
     let result = reader.read_long();
     assert!(result.is_err());
     if let Err(e) = result {
-        assert_eq!(e.get_type(), &BuiltInExceptions::ReaderExpectedLong);
+        assert_eq!(e.kind(), &BuiltInError::ReaderExpectedLong);
         assert_eq!(e.cursor(), Some(0));
     }
 }
@@ -439,8 +439,8 @@ fn read_double_invalid() {
     assert!(result.is_err());
     if let Err(e) = result {
         assert_eq!(
-            e.get_type(),
-            &BuiltInExceptions::ReaderInvalidDouble {
+            e.kind(),
+            &BuiltInError::ReaderInvalidDouble {
                 value: "12.34.56".to_string()
             }
         );
@@ -454,7 +454,7 @@ fn read_double_none() {
     let result = reader.read_double();
     assert!(result.is_err());
     if let Err(e) = result {
-        assert_eq!(e.get_type(), &BuiltInExceptions::ReaderExpectedDouble);
+        assert_eq!(e.kind(), &BuiltInError::ReaderExpectedDouble);
         assert_eq!(e.cursor(), Some(0));
     }
 }
@@ -506,8 +506,8 @@ fn read_float_invalid() {
     assert!(result.is_err());
     if let Err(e) = result {
         assert_eq!(
-            e.get_type(),
-            &BuiltInExceptions::ReaderInvalidFloat {
+            e.kind(),
+            &BuiltInError::ReaderInvalidFloat {
                 value: "12.34.56".to_string()
             }
         );
@@ -521,7 +521,7 @@ fn read_float_none() {
     let result = reader.read_float();
     assert!(result.is_err());
     if let Err(e) = result {
-        assert_eq!(e.get_type(), &BuiltInExceptions::ReaderExpectedFloat);
+        assert_eq!(e.kind(), &BuiltInError::ReaderExpectedFloat);
         assert_eq!(e.cursor(), Some(0));
     }
 }
@@ -556,8 +556,8 @@ fn expect_incorrect() {
     assert!(result.is_err());
     if let Err(e) = result {
         assert_eq!(
-            e.get_type(),
-            &BuiltInExceptions::ReaderExpectedSymbol { symbol: 'a' }
+            e.kind(),
+            &BuiltInError::ReaderExpectedSymbol { symbol: 'a' }
         );
         assert_eq!(e.cursor(), Some(0));
     }
@@ -570,8 +570,8 @@ fn expect_none() {
     assert!(result.is_err());
     if let Err(e) = result {
         assert_eq!(
-            e.get_type(),
-            &BuiltInExceptions::ReaderExpectedSymbol { symbol: 'a' }
+            e.kind(),
+            &BuiltInError::ReaderExpectedSymbol { symbol: 'a' }
         );
         assert_eq!(e.cursor(), Some(0));
     }
@@ -591,8 +591,8 @@ fn read_boolean_incorrect() {
     assert!(result.is_err());
     if let Err(e) = result {
         assert_eq!(
-            e.get_type(),
-            &BuiltInExceptions::ReaderInvalidBool {
+            e.kind(),
+            &BuiltInError::ReaderInvalidBool {
                 value: "tuesday".to_string()
             }
         );
@@ -606,7 +606,7 @@ fn read_boolean_none() {
     let result = reader.read_boolean();
     assert!(result.is_err());
     if let Err(e) = result {
-        assert_eq!(e.get_type(), &BuiltInExceptions::ReaderExpectedBool);
+        assert_eq!(e.kind(), &BuiltInError::ReaderExpectedBool);
         assert_eq!(e.cursor(), Some(0));
     }
 }

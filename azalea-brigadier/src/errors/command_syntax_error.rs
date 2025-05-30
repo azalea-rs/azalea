@@ -1,13 +1,13 @@
 use std::{
     cmp,
-    fmt::{self, Write},
+    fmt::{self, Debug, Write},
 };
 
-use super::builtin_exceptions::BuiltInExceptions;
+use super::builtin_errors::BuiltInError;
 
 #[derive(Clone, PartialEq)]
-pub struct CommandSyntaxException {
-    pub type_: BuiltInExceptions,
+pub struct CommandSyntaxError {
+    kind: BuiltInError,
     message: String,
     input: Option<String>,
     cursor: Option<usize>,
@@ -15,19 +15,19 @@ pub struct CommandSyntaxException {
 
 const CONTEXT_AMOUNT: usize = 10;
 
-impl CommandSyntaxException {
-    pub fn new(type_: BuiltInExceptions, message: String, input: &str, cursor: usize) -> Self {
+impl CommandSyntaxError {
+    pub fn new(kind: BuiltInError, message: String, input: &str, cursor: usize) -> Self {
         Self {
-            type_,
+            kind,
             message,
             input: Some(input.to_string()),
             cursor: Some(cursor),
         }
     }
 
-    pub fn create(type_: BuiltInExceptions, message: String) -> Self {
+    pub fn create(kind: BuiltInError, message: String) -> Self {
         Self {
-            type_,
+            kind,
             message,
             input: None,
             cursor: None,
@@ -40,9 +40,8 @@ impl CommandSyntaxException {
         if let Some(context) = context {
             write!(
                 message,
-                " at position {}: {}",
-                self.cursor.unwrap_or(usize::MAX),
-                context
+                " at position {}: {context}",
+                self.cursor.unwrap_or(usize::MAX)
             )
             .unwrap();
         }
@@ -74,8 +73,8 @@ impl CommandSyntaxException {
         None
     }
 
-    pub fn get_type(&self) -> &BuiltInExceptions {
-        &self.type_
+    pub fn kind(&self) -> &BuiltInError {
+        &self.kind
     }
 
     pub fn input(&self) -> &Option<String> {
@@ -87,7 +86,7 @@ impl CommandSyntaxException {
     }
 }
 
-impl fmt::Debug for CommandSyntaxException {
+impl Debug for CommandSyntaxError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.message())
     }

@@ -3,7 +3,7 @@ use std::{any::Any, sync::Arc};
 use super::ArgumentType;
 use crate::{
     context::CommandContext,
-    exceptions::{BuiltInExceptions, CommandSyntaxException},
+    errors::{BuiltInError, CommandSyntaxError},
     string_reader::StringReader,
 };
 
@@ -14,14 +14,14 @@ struct Long {
 }
 
 impl ArgumentType for Long {
-    fn parse(&self, reader: &mut StringReader) -> Result<Arc<dyn Any>, CommandSyntaxException> {
+    fn parse(&self, reader: &mut StringReader) -> Result<Arc<dyn Any>, CommandSyntaxError> {
         let start = reader.cursor;
         let result = reader.read_long()?;
         if let Some(minimum) = self.minimum
             && result < minimum
         {
             reader.cursor = start;
-            return Err(BuiltInExceptions::LongTooSmall {
+            return Err(BuiltInError::LongTooSmall {
                 found: result,
                 min: minimum,
             }
@@ -31,7 +31,7 @@ impl ArgumentType for Long {
             && result > maximum
         {
             reader.cursor = start;
-            return Err(BuiltInExceptions::LongTooBig {
+            return Err(BuiltInError::LongTooBig {
                 found: result,
                 max: maximum,
             }
