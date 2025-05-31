@@ -183,7 +183,7 @@ pub struct ActionEnumSet {
 
 impl AzaleaRead for ActionEnumSet {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let set = FixedBitSet::<{ 7_usize.div_ceil(8) }>::azalea_read(buf)?;
+        let set = FixedBitSet::<7>::azalea_read(buf)?;
         Ok(ActionEnumSet {
             add_player: set.index(0),
             initialize_chat: set.index(1),
@@ -199,7 +199,7 @@ impl AzaleaRead for ActionEnumSet {
 
 impl AzaleaWrite for ActionEnumSet {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        let mut set = FixedBitSet::<{ 7_usize.div_ceil(8) }>::new();
+        let mut set = FixedBitSet::<7>::new();
         if self.add_player {
             set.set(0);
         }

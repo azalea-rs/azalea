@@ -46,7 +46,7 @@ impl<T: PartialEq> PartialEq for BrigadierNumber<T> {
 
 impl<T: AzaleaRead> AzaleaRead for BrigadierNumber<T> {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let flags = FixedBitSet::<{ 2_usize.div_ceil(8) }>::azalea_read(buf)?;
+        let flags = FixedBitSet::<2>::azalea_read(buf)?;
         let min = if flags.index(0) {
             Some(T::azalea_read(buf)?)
         } else {
@@ -62,7 +62,7 @@ impl<T: AzaleaRead> AzaleaRead for BrigadierNumber<T> {
 }
 impl<T: AzaleaWrite> AzaleaWrite for BrigadierNumber<T> {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        let mut flags = FixedBitSet::<{ 2_usize.div_ceil(8) }>::new();
+        let mut flags = FixedBitSet::<2>::new();
         if self.min.is_some() {
             flags.set(0);
         }
@@ -158,7 +158,7 @@ pub struct EntityParser {
 }
 impl AzaleaRead for EntityParser {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let flags = FixedBitSet::<{ 2_usize.div_ceil(8) }>::azalea_read(buf)?;
+        let flags = FixedBitSet::<2>::azalea_read(buf)?;
         Ok(EntityParser {
             single: flags.index(0),
             players_only: flags.index(1),
@@ -167,7 +167,7 @@ impl AzaleaRead for EntityParser {
 }
 impl AzaleaWrite for EntityParser {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        let mut flags = FixedBitSet::<{ 2_usize.div_ceil(8) }>::new();
+        let mut flags = FixedBitSet::<2>::new();
         if self.single {
             flags.set(0);
         }
@@ -182,9 +182,11 @@ impl AzaleaWrite for EntityParser {
 // TODO: BrigadierNodeStub should have more stuff
 impl AzaleaRead for BrigadierNodeStub {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let flags = FixedBitSet::<{ 8_usize.div_ceil(8) }>::azalea_read(buf)?;
+        let flags = FixedBitSet::<8>::azalea_read(buf)?;
         if flags.index(5) || flags.index(6) || flags.index(7) {
-            warn!("The flags from a Brigadier node are over 31. This is a bug, BrigadierParser probably needs updating.",);
+            warn!(
+                "The flags from a Brigadier node are over 31. This is a bug, BrigadierParser probably needs updating.",
+            );
         }
 
         let node_type = u8::from(flags.index(0)) + (u8::from(flags.index(1)) * 2);
@@ -241,7 +243,7 @@ impl AzaleaRead for BrigadierNodeStub {
 
 impl AzaleaWrite for BrigadierNodeStub {
     fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        let mut flags = FixedBitSet::<{ 4_usize.div_ceil(8) }>::new();
+        let mut flags = FixedBitSet::<4>::new();
         if self.is_executable {
             flags.set(2);
         }

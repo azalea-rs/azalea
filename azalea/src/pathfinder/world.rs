@@ -82,11 +82,11 @@ impl CachedSections {
 pub struct CachedSection {
     pub pos: ChunkSectionPos,
     /// Blocks that we can fully pass through (like air).
-    pub passable_bitset: FixedBitSet<{ 4096_usize.div_ceil(8) }>,
+    pub passable_bitset: FixedBitSet<4096>,
     /// Blocks that we can stand on and do parkour from.
-    pub solid_bitset: FixedBitSet<{ 4096_usize.div_ceil(8) }>,
+    pub solid_bitset: FixedBitSet<4096>,
     /// Blocks that we can stand on but might not be able to parkour from.
-    pub standable_bitset: FixedBitSet<{ 4096_usize.div_ceil(8) }>,
+    pub standable_bitset: FixedBitSet<4096>,
 }
 
 impl CachedWorld {
@@ -195,9 +195,9 @@ impl CachedWorld {
 
     fn calculate_bitsets_for_section(&self, section_pos: ChunkSectionPos) -> Option<CachedSection> {
         self.with_section(section_pos, |section| {
-            let mut passable_bitset = FixedBitSet::<{ 4096_usize.div_ceil(8) }>::new();
-            let mut solid_bitset = FixedBitSet::<{ 4096_usize.div_ceil(8) }>::new();
-            let mut standable_bitset = FixedBitSet::<{ 4096_usize.div_ceil(8) }>::new();
+            let mut passable_bitset = FixedBitSet::<4096>::new();
+            let mut solid_bitset = FixedBitSet::<4096>::new();
+            let mut standable_bitset = FixedBitSet::<4096>::new();
             for i in 0..4096 {
                 let block_state = section.get_at_index(i);
                 if is_block_state_passable(block_state) {

@@ -17,6 +17,6 @@ pub struct ServerboundChat {
 pub struct LastSeenMessagesUpdate {
     #[var]
     pub offset: u32,
-    pub acknowledged: FixedBitSet<{ 20_usize.div_ceil(8) }>,
+    pub acknowledged: FixedBitSet<20>,
     pub checksum: u8,
 }

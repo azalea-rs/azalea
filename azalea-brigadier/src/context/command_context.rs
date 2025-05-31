@@ -10,7 +10,7 @@ use crate::{
 
 /// A built `CommandContextBuilder`.
 pub struct CommandContext<S> {
-    pub(super) source: Arc<S>,
+    pub source: Arc<S>,
     pub(super) input: String,
     pub(super) arguments: HashMap<String, ParsedArgument>,
     pub(super) command: Command<S>,
@@ -91,10 +91,6 @@ impl<S> CommandContext<S> {
 
     pub fn command(&self) -> &Command<S> {
         &self.command
-    }
-
-    pub fn source(&self) -> &Arc<S> {
-        &self.source
     }
 
     pub fn argument(&self, name: &str) -> Option<&dyn Any> {

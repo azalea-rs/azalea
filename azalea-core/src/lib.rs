@@ -1,3 +1,5 @@
+#![allow(incomplete_features)]
+#![feature(generic_const_exprs)]
 #![doc = include_str!("../README.md")]
 
 pub mod aabb;

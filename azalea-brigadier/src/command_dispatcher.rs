@@ -256,7 +256,7 @@ impl<S> CommandDispatcher<S> {
             return Err(BuiltInError::DispatcherUnknownCommand.create_with_context(&parse.reader));
         };
 
-        flat_context.execute_all(original.source().clone(), self.consumer.as_ref())
+        flat_context.execute_all(original.source.clone(), self.consumer.as_ref())
     }
 
     pub fn get_all_usage(
