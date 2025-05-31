@@ -1,6 +1,6 @@
 #![allow(clippy::single_match)]
 
-// This file is generated from codegen/lib/code/entity.py.
+// This file is @generated from codegen/lib/code/entity.py.
 // Don't change it manually!
 
 use azalea_chat::FormattedText;
