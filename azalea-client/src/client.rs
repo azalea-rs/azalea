@@ -168,7 +168,7 @@ impl Client {
     /// # Examples
     ///
     /// ```rust,no_run
-    /// use azalea_client::{Client, Account};
+    /// use azalea_client::{Account, Client};
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {

@@ -107,7 +107,11 @@ impl ClientBuilder<NoState, ()> {
     /// use azalea::app::PluginGroup;
     ///
     /// let client_builder = ClientBuilder::new_without_plugins()
-    ///     .add_plugins(azalea::DefaultPlugins.build().disable::<azalea::chat_signing::ChatSigningPlugin>())
+    ///     .add_plugins(
+    ///         azalea::DefaultPlugins
+    ///             .build()
+    ///             .disable::<azalea::chat_signing::ChatSigningPlugin>(),
+    ///     )
     ///     .add_plugins(azalea::DefaultBotPlugins);
     /// # client_builder.set_handler(handle);
     /// # #[derive(Component, Clone, Default)]

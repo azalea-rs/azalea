@@ -122,14 +122,14 @@ impl ItemStackData {
     /// # use azalea_inventory::ItemStackData;
     /// # use azalea_registry::Item;
     /// let mut a = ItemStackData {
-    ///    kind: Item::Stone,
-    ///    count: 1,
-    ///    components: Default::default(),
+    ///     kind: Item::Stone,
+    ///     count: 1,
+    ///     components: Default::default(),
     /// };
     /// let mut b = ItemStackData {
-    ///   kind: Item::Stone,
-    ///   count: 2,
-    ///   components: Default::default(),
+    ///     kind: Item::Stone,
+    ///     count: 2,
+    ///     components: Default::default(),
     /// };
     /// assert!(a.is_same_item_and_components(&b));
     ///

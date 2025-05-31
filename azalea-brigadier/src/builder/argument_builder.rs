@@ -63,9 +63,7 @@ impl<S> ArgumentBuilder<S> {
     /// ```
     /// # use azalea_brigadier::prelude::*;
     /// # let mut subject = CommandDispatcher::<()>::new();
-    /// literal("foo").then(
-    ///     literal("bar").executes(|ctx: &CommandContext<()>| 42)
-    /// )
+    /// literal("foo").then(literal("bar").executes(|ctx: &CommandContext<()>| 42))
     /// # ;
     /// ```
     pub fn then(self, argument: ArgumentBuilder<S>) -> Self {

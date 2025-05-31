@@ -21,10 +21,7 @@ use crate::{PlayerInfo, client::InGameState, connection::RawConnection};
 /// # use bevy_ecs::event::EventReader;
 ///
 /// fn handle_packets(mut events: EventReader<ReceiveGamePacketEvent>) {
-///     for ReceiveGamePacketEvent {
-///         entity,
-///         packet,
-///     } in events.read() {
+///     for ReceiveGamePacketEvent { entity, packet } in events.read() {
 ///         match packet.as_ref() {
 ///             ClientboundGamePacket::LevelParticles(p) => {
 ///                 // ...

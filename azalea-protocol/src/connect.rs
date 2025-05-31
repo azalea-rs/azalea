@@ -68,18 +68,13 @@ pub struct WriteConnection<W: ProtocolPacket> {
 /// Join an offline-mode server and go through the handshake.
 /// ```rust,no_run
 /// use azalea_protocol::{
-///     resolver,
 ///     connect::Connection,
 ///     packets::{
-///         self,
-///         ClientIntention, PROTOCOL_VERSION,
-///         login::{
-///             ClientboundLoginPacket,
-///             ServerboundHello,
-///             ServerboundKey
-///         },
-///         handshake::ServerboundIntention
-///     }
+///         self, ClientIntention, PROTOCOL_VERSION,
+///         handshake::ServerboundIntention,
+///         login::{ClientboundLoginPacket, ServerboundHello, ServerboundKey},
+///     },
+///     resolver,
 /// };
 ///
 /// #[tokio::main]
@@ -93,7 +88,8 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///         hostname: resolved_address.ip().to_string(),
 ///         port: resolved_address.port(),
 ///         intention: ClientIntention::Login,
-///     }).await?;
+///     })
+///     .await?;
 ///
 ///     let mut conn = conn.login();
 ///
@@ -101,7 +97,8 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///     conn.write(ServerboundHello {
 ///         name: "bot".to_string(),
 ///         profile_id: uuid::Uuid::nil(),
-///     }).await?;
+///     })
+///     .await?;
 ///
 ///     let (conn, game_profile) = loop {
 ///         let packet = conn.read().await?;
@@ -112,7 +109,8 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///                 conn.write(ServerboundKey {
 ///                     key_bytes: e.encrypted_public_key,
 ///                     encrypted_challenge: e.encrypted_challenge,
-///                 }).await?;
+///                 })
+///                 .await?;
 ///                 conn.set_encryption_key(e.secret_key);
 ///             }
 ///             ClientboundLoginPacket::LoginCompression(p) => {
@@ -402,19 +400,20 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
     ///
     /// ```rust,no_run
     /// use azalea_auth::AuthResult;
-    /// use azalea_protocol::connect::Connection;
-    /// use azalea_protocol::packets::login::{
-    ///     ClientboundLoginPacket,
-    ///     ServerboundKey
+    /// use azalea_protocol::{
+    ///     connect::Connection,
+    ///     packets::login::{ClientboundLoginPacket, ServerboundKey},
     /// };
     /// use uuid::Uuid;
     /// # use azalea_protocol::ServerAddress;
     ///
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let AuthResult { access_token, profile } = azalea_auth::auth(
-    ///     "example@example.com",
-    ///     azalea_auth::AuthOpts::default()
-    /// ).await.expect("Couldn't authenticate");
+    /// let AuthResult {
+    ///     access_token,
+    ///     profile,
+    /// } = azalea_auth::auth("example@example.com", azalea_auth::AuthOpts::default())
+    ///     .await
+    ///     .expect("Couldn't authenticate");
     /// #
     /// # let address = ServerAddress::try_from("example@example.com").unwrap();
     /// # let resolved_address = azalea_protocol::resolver::resolve_address(&address).await?;
@@ -428,16 +427,13 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
     ///     ClientboundLoginPacket::Hello(p) => {
     ///         // tell Mojang we're joining the server & enable encryption
     ///         let e = azalea_crypto::encrypt(&p.public_key, &p.challenge).unwrap();
-    ///         conn.authenticate(
-    ///             &access_token,
-    ///             &profile.id,
-    ///             e.secret_key,
-    ///             &p
-    ///         ).await?;
+    ///         conn.authenticate(&access_token, &profile.id, e.secret_key, &p)
+    ///             .await?;
     ///         conn.write(ServerboundKey {
     ///             key_bytes: e.encrypted_public_key,
     ///             encrypted_challenge: e.encrypted_challenge,
-    ///         }).await?;
+    ///         })
+    ///         .await?;
     ///         conn.set_encryption_key(e.secret_key);
     ///     }
     ///     _ => {}

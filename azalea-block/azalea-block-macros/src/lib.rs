@@ -716,10 +716,10 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
     // ```
     // match state_id {
     //     // this is just an example of how it might look, these state ids are definitely not correct
-    //     0|3|6 => Some(Self::Axis::X),
-    //     1|4|7 => Some(Self::Axis::Y),
-    //     2|5|8 => Some(Self::Axis::Z),
-    //     _ => None
+    //     0 | 3 | 6 => Some(Self::Axis::X),
+    //     1 | 4 | 7 => Some(Self::Axis::Y),
+    //     2 | 5 | 8 => Some(Self::Axis::Z),
+    //     _ => None,
     // }
     // ```
     let mut property_impls = quote! {};

@@ -901,7 +901,9 @@ pub struct DamageResistant {
     // in the vanilla code this is
     // ```
     // StreamCodec.composite(
-    //   TagKey.streamCodec(Registries.DAMAGE_TYPE), DamageResistant::types, DamageResistant::new
+    //     TagKey.streamCodec(Registries.DAMAGE_TYPE),
+    //     DamageResistant::types,
+    //     DamageResistant::new,
     // );
     // ```
     // i'm not entirely sure if this is meant to be a vec or something, i just made it a

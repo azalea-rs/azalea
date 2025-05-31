@@ -376,11 +376,8 @@ impl BlockPos {
     /// ```
     /// # use azalea_core::position::BlockPos;
     /// assert_eq!(
-    ///     BlockPos::min(
-    ///        &BlockPos::new(1, 20, 300),
-    ///        &BlockPos::new(50, 40, 30),
-    ///    ),
-    ///    BlockPos::new(1, 20, 30),
+    ///     BlockPos::min(&BlockPos::new(1, 20, 300), &BlockPos::new(50, 40, 30),),
+    ///     BlockPos::new(1, 20, 30),
     /// );
     /// ```
     pub fn min(&self, other: &Self) -> Self {
@@ -396,11 +393,8 @@ impl BlockPos {
     /// ```
     /// # use azalea_core::position::BlockPos;
     /// assert_eq!(
-    ///    BlockPos::max(
-    ///       &BlockPos::new(1, 20, 300),
-    ///       &BlockPos::new(50, 40, 30),
-    ///   ),
-    ///   BlockPos::new(50, 40, 300),
+    ///     BlockPos::max(&BlockPos::new(1, 20, 300), &BlockPos::new(50, 40, 30),),
+    ///     BlockPos::new(50, 40, 300),
     /// );
     /// ```
     pub fn max(&self, other: &Self) -> Self {

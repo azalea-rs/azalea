@@ -43,8 +43,8 @@ impl Client {
     /// Note that this will very likely change in the future.
     /// ```
     /// use azalea_client::{Client, GameProfileComponent};
-    /// use bevy_ecs::query::With;
     /// use azalea_entity::{Position, metadata::Player};
+    /// use bevy_ecs::query::With;
     ///
     /// # fn example(mut bot: Client, sender_name: String) {
     /// let entity = bot.entity_by::<With<Player>, (&GameProfileComponent,)>(
