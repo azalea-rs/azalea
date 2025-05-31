@@ -1,10 +1,9 @@
-use std::fmt;
-use std::fmt::Debug;
+use std::{fmt, fmt::Debug};
 
-use azalea_client::packet::game::ReceiveGamePacketEvent;
 use azalea_client::{
     Client,
     inventory::{CloseContainerEvent, ContainerClickEvent, Inventory},
+    packet::game::ReceiveGamePacketEvent,
 };
 use azalea_core::position::BlockPos;
 use azalea_inventory::{ItemStack, Menu, operations::ClickOperation};

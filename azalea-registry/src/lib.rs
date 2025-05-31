@@ -9,8 +9,10 @@ mod data;
 mod extra;
 pub mod tags;
 
-use std::fmt::{self, Debug};
-use std::io::{self, Cursor, Write};
+use std::{
+    fmt::{self, Debug},
+    io::{self, Cursor, Write},
+};
 
 use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
 use azalea_registry_macros::registry;

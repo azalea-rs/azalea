@@ -1,29 +1,40 @@
 //! Connect to remote servers/clients.
 
-use std::fmt::{self, Debug, Display};
-use std::io::{self, Cursor};
-use std::marker::PhantomData;
-use std::net::SocketAddr;
+use std::{
+    fmt::{self, Debug, Display},
+    io::{self, Cursor},
+    marker::PhantomData,
+    net::SocketAddr,
+};
 
-use azalea_auth::game_profile::GameProfile;
-use azalea_auth::sessionserver::{ClientSessionServerError, ServerSessionServerError};
+use azalea_auth::{
+    game_profile::GameProfile,
+    sessionserver::{ClientSessionServerError, ServerSessionServerError},
+};
 use azalea_crypto::{Aes128CfbDec, Aes128CfbEnc};
 use thiserror::Error;
-use tokio::io::{AsyncWriteExt, BufStream};
-use tokio::net::TcpStream;
-use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf, ReuniteError};
+use tokio::{
+    io::{AsyncWriteExt, BufStream},
+    net::{
+        TcpStream,
+        tcp::{OwnedReadHalf, OwnedWriteHalf, ReuniteError},
+    },
+};
 use tracing::{error, info};
 use uuid::Uuid;
 
-use crate::packets::ProtocolPacket;
-use crate::packets::config::{ClientboundConfigPacket, ServerboundConfigPacket};
-use crate::packets::game::{ClientboundGamePacket, ServerboundGamePacket};
-use crate::packets::handshake::{ClientboundHandshakePacket, ServerboundHandshakePacket};
-use crate::packets::login::c_hello::ClientboundHello;
-use crate::packets::login::{ClientboundLoginPacket, ServerboundLoginPacket};
-use crate::packets::status::{ClientboundStatusPacket, ServerboundStatusPacket};
-use crate::read::{ReadPacketError, deserialize_packet, read_raw_packet, try_read_raw_packet};
-use crate::write::{serialize_packet, write_raw_packet};
+use crate::{
+    packets::{
+        ProtocolPacket,
+        config::{ClientboundConfigPacket, ServerboundConfigPacket},
+        game::{ClientboundGamePacket, ServerboundGamePacket},
+        handshake::{ClientboundHandshakePacket, ServerboundHandshakePacket},
+        login::{ClientboundLoginPacket, ServerboundLoginPacket, c_hello::ClientboundHello},
+        status::{ClientboundStatusPacket, ServerboundStatusPacket},
+    },
+    read::{ReadPacketError, deserialize_packet, read_raw_packet, try_read_raw_packet},
+    write::{serialize_packet, write_raw_packet},
+};
 
 pub struct RawReadConnection {
     pub read_stream: OwnedReadHalf,

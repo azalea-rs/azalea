@@ -12,23 +12,27 @@ pub mod rel_block_pos;
 pub mod simulation;
 pub mod world;
 
-use std::collections::VecDeque;
-use std::ops::RangeInclusive;
-use std::sync::Arc;
-use std::sync::atomic::{self, AtomicUsize};
-use std::time::{Duration, Instant};
-use std::{cmp, thread};
+use std::{
+    cmp,
+    collections::VecDeque,
+    ops::RangeInclusive,
+    sync::{
+        Arc,
+        atomic::{self, AtomicUsize},
+    },
+    thread,
+    time::{Duration, Instant},
+};
 
 use astar::{Edge, PathfinderTimeout};
-use azalea_client::inventory::{Inventory, InventorySet, SetSelectedHotbarSlotEvent};
-use azalea_client::mining::{Mining, StartMiningBlockEvent};
-use azalea_client::movement::MoveEventsSet;
-use azalea_client::{InstanceHolder, StartSprintEvent, StartWalkEvent};
-use azalea_core::position::BlockPos;
-use azalea_core::tick::GameTick;
-use azalea_entity::LocalEntity;
-use azalea_entity::metadata::Player;
-use azalea_entity::{Physics, Position};
+use azalea_client::{
+    InstanceHolder, StartSprintEvent, StartWalkEvent,
+    inventory::{Inventory, InventorySet, SetSelectedHotbarSlotEvent},
+    mining::{Mining, StartMiningBlockEvent},
+    movement::MoveEventsSet,
+};
+use azalea_core::{position::BlockPos, tick::GameTick};
+use azalea_entity::{LocalEntity, Physics, Position, metadata::Player};
 use azalea_physics::PhysicsSet;
 use azalea_world::{InstanceContainer, InstanceName};
 use bevy_app::{PreUpdate, Update};
@@ -41,21 +45,25 @@ use rel_block_pos::RelBlockPos;
 use tokio::sync::broadcast::error::RecvError;
 use tracing::{debug, error, info, trace, warn};
 
-use self::debug::debug_render_path_with_particles;
-use self::goals::Goal;
-use self::mining::MiningCache;
-use self::moves::{ExecuteCtx, IsReachedCtx, SuccessorsFn};
-use crate::app::{App, Plugin};
-use crate::bot::{JumpEvent, LookAtEvent};
-use crate::ecs::{
-    component::Component,
-    entity::Entity,
-    event::{EventReader, EventWriter},
-    query::{With, Without},
-    system::{Commands, Query, Res},
+use self::{
+    debug::debug_render_path_with_particles,
+    goals::Goal,
+    mining::MiningCache,
+    moves::{ExecuteCtx, IsReachedCtx, SuccessorsFn},
 };
-use crate::pathfinder::{astar::a_star, moves::PathfinderCtx, world::CachedWorld};
-use crate::{BotClientExt, WalkDirection};
+use crate::{
+    BotClientExt, WalkDirection,
+    app::{App, Plugin},
+    bot::{JumpEvent, LookAtEvent},
+    ecs::{
+        component::Component,
+        entity::Entity,
+        event::{EventReader, EventWriter},
+        query::{With, Without},
+        system::{Commands, Query, Res},
+    },
+    pathfinder::{astar::a_star, moves::PathfinderCtx, world::CachedWorld},
+};
 
 #[derive(Clone, Default)]
 pub struct PathfinderPlugin;

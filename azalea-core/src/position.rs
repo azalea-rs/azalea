@@ -3,21 +3,18 @@
 //! The most common ones are [`Vec3`] and [`BlockPos`], which are usually used
 //! for entity positions and block positions, respectively.
 
-use std::hash::Hasher;
-use std::io;
-use std::str::FromStr;
 use std::{
     fmt,
-    hash::Hash,
+    hash::{Hash, Hasher},
+    io,
     io::{Cursor, Write},
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Rem, Sub},
+    str::FromStr,
 };
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
 
-use crate::direction::Direction;
-use crate::math;
-use crate::resource_location::ResourceLocation;
+use crate::{direction::Direction, math, resource_location::ResourceLocation};
 
 macro_rules! vec3_impl {
     ($name:ident, $type:ty) => {

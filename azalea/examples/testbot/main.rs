@@ -25,16 +25,12 @@
 mod commands;
 pub mod killaura;
 
-use std::time::Duration;
-use std::{env, process};
-use std::{sync::Arc, thread};
+use std::{env, process, sync::Arc, thread, time::Duration};
 
-use azalea::ClientInformation;
-use azalea::brigadier::command_dispatcher::CommandDispatcher;
-use azalea::ecs::prelude::*;
-use azalea::pathfinder::debug::PathfinderDebugParticles;
-use azalea::prelude::*;
-use azalea::swarm::prelude::*;
+use azalea::{
+    ClientInformation, brigadier::command_dispatcher::CommandDispatcher, ecs::prelude::*,
+    pathfinder::debug::PathfinderDebugParticles, prelude::*, swarm::prelude::*,
+};
 use commands::{CommandSource, register_commands};
 use parking_lot::Mutex;
 

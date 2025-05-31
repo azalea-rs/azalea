@@ -2,10 +2,9 @@
 
 mod signing;
 
-use aes::cipher::inout::InOutBuf;
 use aes::{
     Aes128,
-    cipher::{BlockDecryptMut, BlockEncryptMut, KeyIvInit},
+    cipher::{BlockDecryptMut, BlockEncryptMut, KeyIvInit, inout::InOutBuf},
 };
 use rand::{RngCore, rngs::OsRng};
 use sha1::{Digest, Sha1};

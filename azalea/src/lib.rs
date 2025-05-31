@@ -13,8 +13,7 @@ pub mod pathfinder;
 pub mod prelude;
 pub mod swarm;
 
-use std::net::SocketAddr;
-use std::time::Duration;
+use std::{net::SocketAddr, time::Duration};
 
 use app::Plugins;
 pub use azalea_auth as auth;
@@ -39,8 +38,7 @@ pub use bevy_ecs as ecs;
 pub use bot::*;
 use ecs::component::Component;
 use futures::{Future, future::BoxFuture};
-use protocol::connect::Proxy;
-use protocol::{ServerAddress, resolver::ResolverError};
+use protocol::{ServerAddress, connect::Proxy, resolver::ResolverError};
 use swarm::SwarmBuilder;
 use thiserror::Error;
 

@@ -2,8 +2,7 @@
 
 mod utils;
 
-use std::collections::HashMap;
-use std::fmt::Write;
+use std::{collections::HashMap, fmt::Write};
 
 use proc_macro::TokenStream;
 use proc_macro2::TokenTree;

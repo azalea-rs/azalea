@@ -1,16 +1,16 @@
 use std::{
     collections::{HashMap, HashSet},
-    fmt::Debug,
-    fmt::{self, Display},
+    fmt::{self, Debug, Display},
     hash::{Hash, Hasher},
     io::{self, Cursor},
 };
 
-use azalea_block::BlockState;
-use azalea_block::fluid_state::FluidState;
+use azalea_block::{BlockState, fluid_state::FluidState};
 use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
-use azalea_core::position::{BlockPos, ChunkPos};
-use azalea_core::registry_holder::RegistryHolder;
+use azalea_core::{
+    position::{BlockPos, ChunkPos},
+    registry_holder::RegistryHolder,
+};
 use bevy_ecs::{component::Component, entity::Entity};
 use derive_more::{Deref, DerefMut};
 use nohash_hasher::IntMap;

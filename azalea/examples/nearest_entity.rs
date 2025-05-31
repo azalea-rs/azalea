@@ -1,10 +1,10 @@
-use azalea::ClientBuilder;
-use azalea::nearest_entity::EntityFinder;
-use azalea::{Bot, LookAtEvent};
+use azalea::{Bot, ClientBuilder, LookAtEvent, nearest_entity::EntityFinder};
 use azalea_client::Account;
 use azalea_core::tick::GameTick;
-use azalea_entity::metadata::{ItemItem, Player};
-use azalea_entity::{EyeHeight, LocalEntity, Position};
+use azalea_entity::{
+    EyeHeight, LocalEntity, Position,
+    metadata::{ItemItem, Player},
+};
 use bevy_app::Plugin;
 use bevy_ecs::{
     prelude::{Entity, EventWriter},

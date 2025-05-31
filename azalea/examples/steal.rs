@@ -2,10 +2,8 @@
 
 use std::sync::Arc;
 
-use azalea::pathfinder::goals::RadiusGoal;
-use azalea::{BlockPos, prelude::*};
-use azalea_inventory::ItemStack;
-use azalea_inventory::operations::QuickMoveClick;
+use azalea::{BlockPos, pathfinder::goals::RadiusGoal, prelude::*};
+use azalea_inventory::{ItemStack, operations::QuickMoveClick};
 use parking_lot::Mutex;
 
 #[tokio::main]

@@ -1,24 +1,26 @@
-use std::collections::hash_map::Entry;
 use std::{
-    collections::HashMap,
+    collections::{HashMap, hash_map::Entry},
+    fmt,
     fmt::Debug,
+    io,
     io::{Cursor, Write},
     sync::{Arc, Weak},
 };
-use std::{fmt, io};
 
-use azalea_block::block_state::{BlockState, BlockStateIntegerRepr};
-use azalea_block::fluid_state::FluidState;
+use azalea_block::{
+    block_state::{BlockState, BlockStateIntegerRepr},
+    fluid_state::FluidState,
+};
 use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
 use azalea_core::position::{BlockPos, ChunkBlockPos, ChunkPos, ChunkSectionBlockPos};
 use nohash_hasher::IntMap;
 use parking_lot::RwLock;
 use tracing::{debug, trace, warn};
 
-use crate::heightmap::Heightmap;
-use crate::heightmap::HeightmapKind;
-use crate::palette::PalettedContainer;
-use crate::palette::PalettedContainerKind;
+use crate::{
+    heightmap::{Heightmap, HeightmapKind},
+    palette::{PalettedContainer, PalettedContainerKind},
+};
 
 const SECTION_HEIGHT: u32 = 16;
 

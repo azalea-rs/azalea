@@ -3,8 +3,7 @@ use std::{any, sync::Arc};
 use bevy_ecs::{
     component::Component,
     entity::Entity,
-    query::QueryData,
-    query::{QueryFilter, ROQueryItem},
+    query::{QueryData, QueryFilter, ROQueryItem},
     world::World,
 };
 use parking_lot::Mutex;

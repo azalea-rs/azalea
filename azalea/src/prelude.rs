@@ -6,8 +6,10 @@ pub use azalea_core::tick::GameTick;
 
 // this is necessary to make the macros that reference bevy_ecs work
 pub use crate::ecs as bevy_ecs;
-pub use crate::ecs::{component::Component, resource::Resource};
 pub use crate::{
-    ClientBuilder, bot::BotClientExt, container::ContainerClientExt,
+    ClientBuilder,
+    bot::BotClientExt,
+    container::ContainerClientExt,
+    ecs::{component::Component, resource::Resource},
     pathfinder::PathfinderClientExt,
 };

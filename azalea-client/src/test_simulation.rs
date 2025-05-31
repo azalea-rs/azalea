@@ -2,34 +2,38 @@ use std::{fmt::Debug, sync::Arc};
 
 use azalea_auth::game_profile::GameProfile;
 use azalea_buf::AzaleaWrite;
-use azalea_core::delta::PositionDelta8;
-use azalea_core::game_type::{GameMode, OptionalGameType};
-use azalea_core::position::{ChunkPos, Vec3};
-use azalea_core::resource_location::ResourceLocation;
-use azalea_core::tick::GameTick;
-use azalea_entity::metadata::PlayerMetadataBundle;
-use azalea_protocol::packets::common::CommonPlayerSpawnInfo;
-use azalea_protocol::packets::config::{ClientboundFinishConfiguration, ClientboundRegistryData};
-use azalea_protocol::packets::game::c_level_chunk_with_light::ClientboundLevelChunkPacketData;
-use azalea_protocol::packets::game::c_light_update::ClientboundLightUpdatePacketData;
-use azalea_protocol::packets::game::{
-    ClientboundAddEntity, ClientboundLevelChunkWithLight, ClientboundLogin, ClientboundRespawn,
+use azalea_core::{
+    delta::PositionDelta8,
+    game_type::{GameMode, OptionalGameType},
+    position::{ChunkPos, Vec3},
+    resource_location::ResourceLocation,
+    tick::GameTick,
 };
-use azalea_protocol::packets::{ConnectionProtocol, Packet, ProtocolPacket};
+use azalea_entity::metadata::PlayerMetadataBundle;
+use azalea_protocol::packets::{
+    ConnectionProtocol, Packet, ProtocolPacket,
+    common::CommonPlayerSpawnInfo,
+    config::{ClientboundFinishConfiguration, ClientboundRegistryData},
+    game::{
+        ClientboundAddEntity, ClientboundLevelChunkWithLight, ClientboundLogin, ClientboundRespawn,
+        c_level_chunk_with_light::ClientboundLevelChunkPacketData,
+        c_light_update::ClientboundLightUpdatePacketData,
+    },
+};
 use azalea_registry::{DimensionType, EntityKind};
-use azalea_world::palette::{PalettedContainer, PalettedContainerKind};
-use azalea_world::{Chunk, Instance, MinecraftEntityId, Section};
+use azalea_world::{
+    Chunk, Instance, MinecraftEntityId, Section,
+    palette::{PalettedContainer, PalettedContainerKind},
+};
 use bevy_app::App;
-use bevy_ecs::component::Mutable;
-use bevy_ecs::{prelude::*, schedule::ExecutorKind};
+use bevy_ecs::{component::Mutable, prelude::*, schedule::ExecutorKind};
 use parking_lot::RwLock;
 use simdnbt::owned::{NbtCompound, NbtTag};
 use uuid::Uuid;
 
-use crate::connection::RawConnection;
-use crate::disconnect::DisconnectEvent;
 use crate::{
     ClientInformation, GameProfileComponent, InConfigState, InstanceHolder, LocalPlayerBundle,
+    connection::RawConnection, disconnect::DisconnectEvent,
 };
 
 /// A way to simulate a client in a server, used for some internal tests.
