@@ -1,4 +1,4 @@
-use std::io::Cursor;
+use std::io::{self, Cursor, Write};
 
 use azalea_buf::{AzBuf, BufReadError};
 use azalea_buf::{AzaleaRead, AzaleaWrite};
@@ -41,7 +41,7 @@ impl AzaleaRead for EquipmentSlots {
     }
 }
 impl AzaleaWrite for EquipmentSlots {
-    fn azalea_write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         for i in 0..self.slots.len() {
             let (equipment_slot, item) = &self.slots[i];
             let mut equipment_byte = *equipment_slot as u8;

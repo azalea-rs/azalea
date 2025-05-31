@@ -1,7 +1,7 @@
 use std::{
     cmp::{self},
     collections::BinaryHeap,
-    fmt::Debug,
+    fmt::{self, Debug},
     hash::{BuildHasherDefault, Hash},
     time::{Duration, Instant},
 };
@@ -251,7 +251,7 @@ pub struct Movement<P: Hash + Copy, M> {
 }
 
 impl<P: Hash + Copy + Debug, M: Debug> Debug for Movement<P, M> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Movement")
             .field("target", &self.target)
             .field("data", &self.data)

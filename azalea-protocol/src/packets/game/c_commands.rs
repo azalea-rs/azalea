@@ -1,4 +1,4 @@
-use std::io::{Cursor, Write};
+use std::io::{self, Cursor, Write};
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
 use azalea_core::{bitset::FixedBitSet, resource_location::ResourceLocation};
@@ -61,7 +61,7 @@ impl<T: AzaleaRead> AzaleaRead for BrigadierNumber<T> {
     }
 }
 impl<T: AzaleaWrite> AzaleaWrite for BrigadierNumber<T> {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         let mut flags = FixedBitSet::<2>::new();
         if self.min.is_some() {
             flags.set(0);
@@ -166,7 +166,7 @@ impl AzaleaRead for EntityParser {
     }
 }
 impl AzaleaWrite for EntityParser {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         let mut flags = FixedBitSet::<2>::new();
         if self.single {
             flags.set(0);
@@ -242,7 +242,7 @@ impl AzaleaRead for BrigadierNodeStub {
 }
 
 impl AzaleaWrite for BrigadierNodeStub {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         let mut flags = FixedBitSet::<4>::new();
         if self.is_executable {
             flags.set(2);

@@ -28,9 +28,7 @@ impl<S> ContextChain<S> {
             let child = current.child.clone();
             let Some(child) = child else {
                 // Last entry must be executable command
-                if current.command.is_none() {
-                    return None;
-                }
+                current.command.as_ref()?;
 
                 return Some(ContextChain::new(modifiers, current));
             };

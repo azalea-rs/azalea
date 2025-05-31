@@ -48,7 +48,7 @@ impl AzaleaRead for RelativeMovements {
 }
 
 impl AzaleaWrite for RelativeMovements {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         let mut set = FixedBitSet::<32>::new();
         let mut set_bit = |index: usize, value: bool| {
             if value {

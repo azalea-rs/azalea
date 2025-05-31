@@ -2,7 +2,7 @@ use std::{
     backtrace::Backtrace,
     collections::HashMap,
     hash::Hash,
-    io::{Cursor, Read},
+    io::{self, Cursor, Read},
     sync::Arc,
 };
 
@@ -30,7 +30,7 @@ pub enum BufReadError {
     Io {
         #[from]
         #[backtrace]
-        source: std::io::Error,
+        source: io::Error,
     },
     #[error("Invalid UTF-8: {bytes:?} (lossy: {lossy:?})")]
     InvalidUtf8 {

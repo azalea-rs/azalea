@@ -1,4 +1,4 @@
-use std::io::{Cursor, Write};
+use std::io::{self, Cursor, Write};
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
 
@@ -177,7 +177,7 @@ impl<const N: usize> AzaleaWrite for FixedBitSet<N>
 where
     [u8; bits_to_bytes(N)]: Sized,
 {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         for i in 0..bits_to_bytes(N) {
             self.data[i].azalea_write(buf)?;
         }

@@ -1,3 +1,5 @@
+use std::io::{self, Cursor};
+
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite};
 use azalea_core::bitset::FixedBitSet;
 use bevy_ecs::component::Component;
@@ -96,7 +98,7 @@ impl Default for ModelCustomization {
 }
 
 impl AzaleaRead for ModelCustomization {
-    fn azalea_read(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
         let set = FixedBitSet::<7>::azalea_read(buf)?;
         Ok(Self {
             cape: set.index(0),
@@ -111,7 +113,7 @@ impl AzaleaRead for ModelCustomization {
 }
 
 impl AzaleaWrite for ModelCustomization {
-    fn azalea_write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl io::Write) -> io::Result<()> {
         let mut set = FixedBitSet::<7>::new();
         if self.cape {
             set.set(0);

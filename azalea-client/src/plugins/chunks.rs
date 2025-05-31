@@ -84,14 +84,12 @@ pub fn handle_receive_chunk_events(
         let shared_chunk = instance.chunks.get(&pos);
         let this_client_has_chunk = partial_instance.chunks.limited_get(&pos).is_some();
 
-        if !this_client_has_chunk {
-            if let Some(shared_chunk) = shared_chunk {
-                trace!("Skipping parsing chunk {pos:?} because we already know about it");
-                partial_instance
-                    .chunks
-                    .limited_set(&pos, Some(shared_chunk));
-                continue;
-            }
+        if !this_client_has_chunk && let Some(shared_chunk) = shared_chunk {
+            trace!("Skipping parsing chunk {pos:?} because we already know about it");
+            partial_instance
+                .chunks
+                .limited_set(&pos, Some(shared_chunk));
+            continue;
         }
 
         let heightmaps = &event.packet.chunk_data.heightmaps;

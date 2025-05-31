@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{any, sync::Arc};
 
 use bevy_ecs::{
     component::Component,
@@ -29,7 +29,7 @@ impl Client {
             .unwrap_or_else(|_| {
                 panic!(
                     "Our client is missing a required component {:?}",
-                    std::any::type_name::<D>()
+                    any::type_name::<D>()
                 )
             })
     }
@@ -77,7 +77,7 @@ impl Client {
         let components = q.get(&ecs, entity).unwrap_or_else(|_| {
             panic!(
                 "Entity is missing a required component {:?}",
-                std::any::type_name::<Q>()
+                any::type_name::<Q>()
             )
         });
         components.clone()

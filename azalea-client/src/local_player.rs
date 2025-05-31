@@ -1,4 +1,8 @@
-use std::{collections::HashMap, io, sync::Arc};
+use std::{
+    collections::HashMap,
+    error, io,
+    sync::{Arc, PoisonError},
+};
 
 use azalea_auth::game_profile::GameProfile;
 use azalea_core::game_type::GameMode;
@@ -169,13 +173,13 @@ pub enum HandlePacketError {
     #[error(transparent)]
     Io(#[from] io::Error),
     #[error(transparent)]
-    Other(#[from] Box<dyn std::error::Error + Send + Sync>),
+    Other(#[from] Box<dyn error::Error + Send + Sync>),
     #[error("{0}")]
     Send(#[from] mpsc::error::SendError<AzaleaEvent>),
 }
 
-impl<T> From<std::sync::PoisonError<T>> for HandlePacketError {
-    fn from(e: std::sync::PoisonError<T>) -> Self {
+impl<T> From<PoisonError<T>> for HandlePacketError {
+    fn from(e: PoisonError<T>) -> Self {
         HandlePacketError::Poison(e.to_string())
     }
 }

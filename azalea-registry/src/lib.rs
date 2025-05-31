@@ -42,7 +42,7 @@ impl<T: Registry> AzaleaRead for OptionalRegistry<T> {
     }
 }
 impl<T: Registry> AzaleaWrite for OptionalRegistry<T> {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         match &self.0 {
             None => 0u32.azalea_write_var(buf),
             Some(value) => (value.to_u32() + 1).azalea_write_var(buf),
@@ -67,7 +67,7 @@ impl<D: Registry, C: AzaleaRead + AzaleaWrite> AzaleaRead for CustomRegistry<D, 
     }
 }
 impl<D: Registry, C: AzaleaRead + AzaleaWrite> AzaleaWrite for CustomRegistry<D, C> {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         match self {
             CustomRegistry::Direct(direct_registry) => {
                 // write the id + 1
@@ -115,7 +115,7 @@ impl<D: Registry, ResourceLocation: AzaleaRead + AzaleaWrite> AzaleaRead
 impl<D: Registry, ResourceLocation: AzaleaRead + AzaleaWrite> AzaleaWrite
     for HolderSet<D, ResourceLocation>
 {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         match self {
             Self::Direct { contents } => {
                 (contents.len() as i32 + 1).azalea_write_var(buf)?;
@@ -167,7 +167,7 @@ impl<R: Registry, Direct: AzaleaRead + AzaleaWrite> AzaleaRead for Holder<R, Dir
     }
 }
 impl<R: Registry, Direct: AzaleaRead + AzaleaWrite> AzaleaWrite for Holder<R, Direct> {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         match self {
             Self::Reference(value) => (value.to_u32() + 1).azalea_write_var(buf),
             Self::Direct(value) => {

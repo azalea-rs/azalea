@@ -1,5 +1,5 @@
+use std::fmt;
 use std::fmt::Debug;
-use std::fmt::Formatter;
 
 use azalea_client::packet::game::ReceiveGamePacketEvent;
 use azalea_client::{
@@ -121,7 +121,7 @@ pub struct ContainerHandleRef {
     client: Client,
 }
 impl Debug for ContainerHandleRef {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("ContainerHandle")
             .field("id", &self.id())
             .finish()
@@ -192,7 +192,7 @@ impl Drop for ContainerHandle {
     }
 }
 impl Debug for ContainerHandle {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("ContainerHandle")
             .field("id", &self.id())
             .finish()

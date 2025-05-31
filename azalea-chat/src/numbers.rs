@@ -1,7 +1,7 @@
 //! Contains a few ways to style numbers. At the time of writing, Minecraft only
 //! uses this for rendering scoreboard objectives.
 
-use std::io::{Cursor, Write};
+use std::io::{self, Cursor, Write};
 
 #[cfg(feature = "azalea-buf")]
 use azalea_buf::{AzaleaRead, AzaleaWrite};
@@ -35,7 +35,7 @@ impl AzaleaRead for NumberFormat {
 
 #[cfg(feature = "azalea-buf")]
 impl AzaleaWrite for NumberFormat {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         match self {
             NumberFormat::Blank => NumberFormatKind::Blank.azalea_write(buf)?,
             NumberFormat::Styled { style } => {

@@ -1,9 +1,9 @@
-use std::fmt::{self, Display, Formatter};
-use std::hash::{Hash, Hasher};
-use std::io::{self, Cursor};
 use std::{
     collections::{HashMap, HashSet},
     fmt::Debug,
+    fmt::{self, Display},
+    hash::{Hash, Hasher},
+    io::{self, Cursor},
 };
 
 use azalea_block::BlockState;
@@ -84,7 +84,7 @@ impl AzaleaRead for MinecraftEntityId {
     }
 }
 impl AzaleaWrite for MinecraftEntityId {
-    fn azalea_write(&self, buf: &mut impl io::Write) -> Result<(), io::Error> {
+    fn azalea_write(&self, buf: &mut impl io::Write) -> io::Result<()> {
         i32::azalea_write(&self.0, buf)
     }
 }
@@ -94,12 +94,12 @@ impl AzaleaReadVar for MinecraftEntityId {
     }
 }
 impl AzaleaWriteVar for MinecraftEntityId {
-    fn azalea_write_var(&self, buf: &mut impl io::Write) -> Result<(), io::Error> {
+    fn azalea_write_var(&self, buf: &mut impl io::Write) -> io::Result<()> {
         i32::azalea_write_var(&self.0, buf)
     }
 }
 impl Display for MinecraftEntityId {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "eid({})", self.0)
     }
 }
@@ -176,7 +176,7 @@ impl Instance {
 }
 
 impl Debug for PartialInstance {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("PartialInstance")
             .field("chunks", &self.chunks)
             .field("entity_infos", &self.entity_infos)

@@ -1,4 +1,4 @@
-use std::io::{Cursor, Write};
+use std::io::{self, Cursor, Write};
 
 use azalea_block::BlockState;
 use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
@@ -232,7 +232,7 @@ impl PalettedContainer {
 }
 
 impl AzaleaWrite for PalettedContainer {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         self.bits_per_entry.azalea_write(buf)?;
         self.palette.azalea_write(buf)?;
         self.storage.data.azalea_write(buf)?;
@@ -272,7 +272,7 @@ impl Palette {
 }
 
 impl AzaleaWrite for Palette {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         match self {
             Palette::SingleValue(value) => {
                 value.azalea_write(buf)?;

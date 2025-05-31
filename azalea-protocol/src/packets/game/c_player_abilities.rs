@@ -1,4 +1,4 @@
-use std::io::{Cursor, Write};
+use std::io::{self, Cursor, Write};
 
 use azalea_buf::{AzBuf, BufReadError};
 use azalea_buf::{AzaleaRead, AzaleaWrite};
@@ -34,7 +34,7 @@ impl AzaleaRead for PlayerAbilitiesFlags {
 }
 
 impl AzaleaWrite for PlayerAbilitiesFlags {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         let mut set = FixedBitSet::<4>::new();
         if self.invulnerable {
             set.set(0);

@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::io::Cursor;
+use std::io::{self, Cursor, Write};
 
 use azalea_buf::AzBuf;
 use azalea_chat::FormattedText;
@@ -38,7 +38,7 @@ pub struct DisplayInfo {
 }
 
 impl azalea_buf::AzaleaWrite for DisplayInfo {
-    fn azalea_write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         self.title.azalea_write(buf)?;
         self.description.azalea_write(buf)?;
         self.icon.azalea_write(buf)?;

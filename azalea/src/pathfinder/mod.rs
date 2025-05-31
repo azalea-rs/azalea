@@ -1189,6 +1189,7 @@ mod tests {
     use std::{
         collections::HashSet,
         sync::Arc,
+        thread,
         time::{Duration, Instant},
     };
 
@@ -1270,7 +1271,7 @@ mod tests {
             && start_time.elapsed() < Duration::from_millis(500)
         {
             simulation.tick();
-            std::thread::yield_now();
+            thread::yield_now();
         }
     }
 

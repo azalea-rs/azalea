@@ -5,6 +5,7 @@ use std::{
     io::{Cursor, Write},
     sync::{Arc, Weak},
 };
+use std::{fmt, io};
 
 use azalea_block::block_state::{BlockState, BlockStateIntegerRepr};
 use azalea_block::fluid_state::FluidState;
@@ -414,7 +415,7 @@ pub fn get_block_state_from_sections(
 }
 
 impl AzaleaWrite for Chunk {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         for section in &self.sections {
             section.azalea_write(buf)?;
         }
@@ -423,7 +424,7 @@ impl AzaleaWrite for Chunk {
 }
 
 impl Debug for PartialChunkStorage {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("PartialChunkStorage")
             .field("view_center", &self.view_center)
             .field("chunk_radius", &self.chunk_radius)
@@ -466,7 +467,7 @@ impl AzaleaRead for Section {
 }
 
 impl AzaleaWrite for Section {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         self.block_count.azalea_write(buf)?;
         self.states.azalea_write(buf)?;
         self.biomes.azalea_write(buf)?;

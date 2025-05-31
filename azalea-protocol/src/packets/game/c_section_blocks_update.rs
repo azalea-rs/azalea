@@ -1,4 +1,4 @@
-use std::io::{Cursor, Write};
+use std::io::{self, Cursor, Write};
 
 use azalea_block::BlockState;
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
@@ -34,7 +34,7 @@ impl AzaleaRead for BlockStateWithPosition {
 }
 
 impl AzaleaWrite for BlockStateWithPosition {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         let data = ((self.state.id() as u64) << 12)
             | ((u64::from(self.pos.x) << 8) | (u64::from(self.pos.z) << 4) | u64::from(self.pos.y));
         u64::azalea_write_var(&data, buf)?;

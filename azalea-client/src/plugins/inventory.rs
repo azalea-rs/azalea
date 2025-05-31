@@ -170,17 +170,17 @@ impl Inventory {
             }
             if let QuickCraftStatus::Add { slot } = quick_craft.status {
                 let slot_item = self.menu().slot(slot as usize);
-                if let Some(slot_item) = slot_item {
-                    if let ItemStack::Present(carried) = &self.carried {
-                        // minecraft also checks slot.may_place(carried) and
-                        // menu.can_drag_to(slot)
-                        // but they always return true so they're not relevant for us
-                        if can_item_quick_replace(slot_item, &self.carried, true)
-                            && (self.quick_craft_kind == QuickCraftKind::Right
-                                || carried.count as usize > self.quick_craft_slots.len())
-                        {
-                            self.quick_craft_slots.insert(slot);
-                        }
+                if let Some(slot_item) = slot_item
+                    && let ItemStack::Present(carried) = &self.carried
+                {
+                    // minecraft also checks slot.may_place(carried) and
+                    // menu.can_drag_to(slot)
+                    // but they always return true so they're not relevant for us
+                    if can_item_quick_replace(slot_item, &self.carried, true)
+                        && (self.quick_craft_kind == QuickCraftKind::Right
+                            || carried.count as usize > self.quick_craft_slots.len())
+                    {
+                        self.quick_craft_slots.insert(slot);
                     }
                 }
                 return;
@@ -468,26 +468,23 @@ impl Inventory {
                     for i in iterator {
                         if target_slot_item.count < target_slot_item.kind.max_stack_size() {
                             let checking_slot = self.menu().slot(i).unwrap();
-                            if let ItemStack::Present(checking_item) = checking_slot {
-                                if can_item_quick_replace(checking_slot, &target_slot, true)
-                                    && self.menu().may_pickup(i)
-                                    && (round != 0
-                                        || checking_item.count
-                                            != checking_item.kind.max_stack_size())
-                                {
-                                    // get the checking_slot and checking_item again but mutable
-                                    let checking_slot = self.menu_mut().slot_mut(i).unwrap();
+                            if let ItemStack::Present(checking_item) = checking_slot
+                                && can_item_quick_replace(checking_slot, &target_slot, true)
+                                && self.menu().may_pickup(i)
+                                && (round != 0
+                                    || checking_item.count != checking_item.kind.max_stack_size())
+                            {
+                                // get the checking_slot and checking_item again but mutable
+                                let checking_slot = self.menu_mut().slot_mut(i).unwrap();
 
-                                    let taken_item =
-                                        checking_slot.split(checking_slot.count() as u32);
+                                let taken_item = checking_slot.split(checking_slot.count() as u32);
 
-                                    // now extend the carried item
-                                    let target_slot = &mut self.carried;
-                                    let ItemStack::Present(target_slot_item) = target_slot else {
-                                        unreachable!("target slot is not empty but is not present");
-                                    };
-                                    target_slot_item.count += taken_item.count();
-                                }
+                                // now extend the carried item
+                                let target_slot = &mut self.carried;
+                                let ItemStack::Present(target_slot_item) = target_slot else {
+                                    unreachable!("target slot is not empty but is not present");
+                                };
+                                target_slot_item.count += taken_item.count();
                             }
                         }
                     }

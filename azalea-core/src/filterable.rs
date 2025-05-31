@@ -1,4 +1,4 @@
-use std::io::Cursor;
+use std::io::{self, Cursor, Write};
 
 use azalea_buf::{AzaleaRead, AzaleaReadLimited, AzaleaReadVar, AzaleaWrite};
 
@@ -9,7 +9,7 @@ pub struct Filterable<T> {
 }
 
 impl<T: AzaleaWrite> azalea_buf::AzaleaWrite for Filterable<T> {
-    fn azalea_write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         self.raw.azalea_write(buf)?;
         self.filtered.azalea_write(buf)?;
         Ok(())

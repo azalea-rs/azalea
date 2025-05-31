@@ -1,4 +1,4 @@
-use std::fmt::{self, Display, Formatter};
+use std::fmt::{self, Display};
 
 use serde::{__private::ser::FlatMapSerializer, Serialize, Serializer, ser::SerializeMap};
 #[cfg(feature = "simdnbt")]
@@ -189,7 +189,7 @@ impl TranslatableComponent {
 }
 
 impl Display for TranslatableComponent {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         // this contains the final string will all the ansi escape codes
         for component in FormattedText::Translatable(self.clone()).into_iter() {
             let component_text = match &component {
@@ -208,7 +208,7 @@ impl Display for TranslatableComponent {
 }
 
 impl Display for StringOrComponent {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
         match self {
             StringOrComponent::String(s) => write!(f, "{s}"),
             StringOrComponent::FormattedText(c) => write!(f, "{c}"),

@@ -1,4 +1,7 @@
-use std::{fmt::Debug, sync::Arc};
+use std::{
+    fmt::{self, Debug},
+    sync::Arc,
+};
 
 use parking_lot::RwLock;
 
@@ -184,7 +187,7 @@ impl<S> ArgumentBuilder<S> {
 }
 
 impl<S> Debug for ArgumentBuilder<S> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("ArgumentBuilder")
             .field("arguments", &self.arguments)
             // .field("command", &self.command)

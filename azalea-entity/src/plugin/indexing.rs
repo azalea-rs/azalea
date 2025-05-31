@@ -2,7 +2,7 @@
 
 use std::{
     collections::{HashMap, HashSet},
-    fmt::Debug,
+    fmt::{self, Debug},
 };
 
 use azalea_core::position::ChunkPos;
@@ -115,7 +115,7 @@ impl EntityIdIndex {
 }
 
 impl Debug for EntityUuidIndex {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("EntityUuidIndex").finish()
     }
 }

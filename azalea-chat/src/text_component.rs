@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::fmt::{self, Display};
 
 use serde::{__private::ser::FlatMapSerializer, Serialize, Serializer, ser::SerializeMap};
 
@@ -142,7 +142,7 @@ impl TextComponent {
 }
 
 impl Display for TextComponent {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         // this contains the final string will all the ansi escape codes
         for component in FormattedText::Text(self.clone()).into_iter() {
             let component_text = match &component {
@@ -191,9 +191,9 @@ mod tests {
             format!(
                 "{GREEN}Hypixel Network  {END_SPAN}{RED}[1.8-1.18]<br>{END_SPAN}{BOLD_AQUA}HAPPY HOLIDAYS{END_SPAN}",
                 END_SPAN = "</span>",
-                GREEN = "<span style=\"color: #55FF55;\">",
-                RED = "<span style=\"color: #FF5555;\">",
-                BOLD_AQUA = "<span style=\"color: #55FFFF;font-weight: bold;\">",
+                GREEN = "<span style=\"color:#55FF55;\">",
+                RED = "<span style=\"color:#FF5555;\">",
+                BOLD_AQUA = "<span style=\"color:#55FFFF;font-weight: bold;\">",
             )
         );
     }
@@ -207,8 +207,8 @@ mod tests {
             format!(
                 "{GREEN}&lt;b&gt;&amp;<br>{END_SPAN}{AQUA}&lt;/b&gt;{END_SPAN}",
                 END_SPAN = "</span>",
-                GREEN = "<span style=\"color: #55FF55;\">",
-                AQUA = "<span style=\"color: #55FFFF;\">",
+                GREEN = "<span style=\"color:#55FF55;\">",
+                AQUA = "<span style=\"color:#55FFFF;\">",
             )
         );
     }

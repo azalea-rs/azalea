@@ -3,6 +3,8 @@
 //! The most common ones are [`Vec3`] and [`BlockPos`], which are usually used
 //! for entity positions and block positions, respectively.
 
+use std::hash::Hasher;
+use std::io;
 use std::str::FromStr;
 use std::{
     fmt,
@@ -477,7 +479,7 @@ impl AzaleaRead for ChunkPos {
     }
 }
 impl AzaleaWrite for ChunkPos {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         u64::from(*self).azalea_write(buf)?;
         Ok(())
     }
@@ -485,7 +487,7 @@ impl AzaleaWrite for ChunkPos {
 
 impl Hash for ChunkPos {
     #[inline]
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+    fn hash<H: Hasher>(&self, state: &mut H) {
         // optimized hash that only calls hash once
         u64::from(*self).hash(state);
     }
@@ -526,7 +528,7 @@ impl ChunkBlockPos {
 impl Hash for ChunkBlockPos {
     // optimized hash that only calls hash once
     #[inline]
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+    fn hash<H: Hasher>(&self, state: &mut H) {
         u64::from(*self).hash(state);
     }
 }
@@ -570,7 +572,7 @@ impl Add<ChunkSectionBlockPos> for ChunkSectionPos {
 impl Hash for ChunkSectionBlockPos {
     // optimized hash that only calls hash once
     #[inline]
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+    fn hash<H: Hasher>(&self, state: &mut H) {
         u16::from(*self).hash(state);
     }
 }
@@ -782,7 +784,7 @@ impl AzaleaRead for ChunkSectionPos {
 }
 
 impl AzaleaWrite for BlockPos {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         let mut val: u64 = 0;
         val |= ((self.x as u64) & PACKED_X_MASK) << X_OFFSET;
         val |= (self.y as u64) & PACKED_Y_MASK;
@@ -792,7 +794,7 @@ impl AzaleaWrite for BlockPos {
 }
 
 impl AzaleaWrite for GlobalPos {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         ResourceLocation::azalea_write(&self.world, buf)?;
         BlockPos::azalea_write(&self.pos, buf)?;
 
@@ -801,7 +803,7 @@ impl AzaleaWrite for GlobalPos {
 }
 
 impl AzaleaWrite for ChunkSectionPos {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         let long = (((self.x & 0x3FFFFF) as i64) << 42)
             | (self.y & 0xFFFFF) as i64
             | (((self.z & 0x3FFFFF) as i64) << 20);

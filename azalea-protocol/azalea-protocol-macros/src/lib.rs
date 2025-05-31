@@ -23,7 +23,7 @@ fn as_packet_derive(input: TokenStream, state: proc_macro2::TokenStream) -> Toke
 
     let contents = quote! {
         impl #ident {
-            pub fn write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
+            pub fn write(&self, buf: &mut impl std::io::Write) -> std::io::Result<()> {
                 azalea_buf::AzaleaWrite::azalea_write(self, buf)
             }
 
@@ -361,7 +361,7 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
                 }
             }
 
-            fn write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
+            fn write(&self, buf: &mut impl std::io::Write) -> std::io::Result<()> {
                 match self {
                     #serverbound_write_match_contents
                 }
@@ -405,7 +405,7 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
                 }
             }
 
-            fn write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
+            fn write(&self, buf: &mut impl std::io::Write) -> std::io::Result<()> {
                 match self {
                     #clientbound_write_match_contents
                 }

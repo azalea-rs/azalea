@@ -3,13 +3,14 @@
 use std::{
     collections::HashMap,
     path::PathBuf,
-    time::{Instant, SystemTime, UNIX_EPOCH},
+    time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use thiserror::Error;
+use tokio::time::sleep;
 use tracing::{error, trace};
 use uuid::Uuid;
 
@@ -75,8 +76,9 @@ pub async fn auth(email: &str, opts: AuthOpts<'_>) -> Result<AuthResult, AuthErr
         None
     };
 
-    if cached_account.is_some() && !cached_account.as_ref().unwrap().mca.is_expired() {
-        let account = cached_account.as_ref().unwrap();
+    if let Some(account) = &cached_account
+        && !account.mca.is_expired()
+    {
         // the minecraft auth data is cached and not expired, so we can just
         // use that instead of doing auth all over again :)
 
@@ -129,8 +131,8 @@ pub async fn auth(email: &str, opts: AuthOpts<'_>) -> Result<AuthResult, AuthErr
 
         let profile: ProfileResponse = get_profile(&client, &res.minecraft_access_token).await?;
 
-        if let Some(cache_file) = opts.cache_file {
-            if let Err(e) = cache::set_account_in_cache(
+        if let Some(cache_file) = opts.cache_file
+            && let Err(e) = cache::set_account_in_cache(
                 &cache_file,
                 email,
                 CachedAccount {
@@ -142,9 +144,8 @@ pub async fn auth(email: &str, opts: AuthOpts<'_>) -> Result<AuthResult, AuthErr
                 },
             )
             .await
-            {
-                error!("{}", e);
-            }
+        {
+            error!("{}", e);
         }
 
         Ok(AuthResult {
@@ -328,7 +329,7 @@ pub async fn get_ms_link_code(
 
     Ok(client
         .post("https://login.live.com/oauth20_connect.srf")
-        .form(&vec![
+        .form(&[
             ("scope", scope),
             ("client_id", client_id),
             ("response_type", "device_code"),
@@ -354,17 +355,17 @@ pub async fn get_ms_auth_token(
         CLIENT_ID
     };
 
-    let login_expires_at = Instant::now() + std::time::Duration::from_secs(res.expires_in);
+    let login_expires_at = Instant::now() + Duration::from_secs(res.expires_in);
 
     while Instant::now() < login_expires_at {
-        tokio::time::sleep(std::time::Duration::from_secs(res.interval)).await;
+        sleep(Duration::from_secs(res.interval)).await;
 
         trace!("Polling to check if user has logged in...");
         let res = client
             .post(format!(
                 "https://login.live.com/oauth20_token.srf?client_id={client_id}"
             ))
-            .form(&vec![
+            .form(&[
                 ("client_id", client_id),
                 ("device_code", &res.device_code),
                 ("grant_type", "urn:ietf:params:oauth:grant-type:device_code"),
@@ -375,8 +376,8 @@ pub async fn get_ms_auth_token(
             .await;
         if let Ok(access_token_response) = res {
             trace!("access_token_response: {:?}", access_token_response);
-            let expires_at = SystemTime::now()
-                + std::time::Duration::from_secs(access_token_response.expires_in);
+            let expires_at =
+                SystemTime::now() + Duration::from_secs(access_token_response.expires_in);
             return Ok(ExpiringValue {
                 data: access_token_response,
                 expires_at: expires_at
@@ -428,7 +429,7 @@ pub async fn refresh_ms_auth_token(
 
     let access_token_response_text = client
         .post("https://login.live.com/oauth20_token.srf")
-        .form(&vec![
+        .form(&[
             ("scope", scope),
             ("client_id", client_id),
             ("grant_type", "refresh_token"),
@@ -441,8 +442,7 @@ pub async fn refresh_ms_auth_token(
     let access_token_response: AccessTokenResponse =
         serde_json::from_str(&access_token_response_text)?;
 
-    let expires_at =
-        SystemTime::now() + std::time::Duration::from_secs(access_token_response.expires_in);
+    let expires_at = SystemTime::now() + Duration::from_secs(access_token_response.expires_in);
     Ok(ExpiringValue {
         data: access_token_response,
         expires_at: expires_at
@@ -558,7 +558,7 @@ async fn auth_with_minecraft(
         .await?;
     trace!("{:?}", res);
 
-    let expires_at = SystemTime::now() + std::time::Duration::from_secs(res.expires_in);
+    let expires_at = SystemTime::now() + Duration::from_secs(res.expires_in);
     Ok(ExpiringValue {
         data: res,
         // to seconds since epoch

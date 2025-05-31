@@ -102,10 +102,10 @@ pub fn request_certs_if_needed(
     >,
 ) {
     for (entity, account, only_refresh_certs_after, chat_signing_session) in query.iter_mut() {
-        if let Some(only_refresh_certs_after) = only_refresh_certs_after {
-            if only_refresh_certs_after.refresh_at > Instant::now() {
-                continue;
-            }
+        if let Some(only_refresh_certs_after) = only_refresh_certs_after
+            && only_refresh_certs_after.refresh_at > Instant::now()
+        {
+            continue;
         }
 
         let certs = account.certs.lock();
@@ -124,20 +124,18 @@ pub fn request_certs_if_needed(
         };
         drop(certs);
 
-        if should_refresh {
-            if let Some(access_token) = &account.access_token {
-                let task_pool = IoTaskPool::get();
+        if should_refresh && let Some(access_token) = &account.access_token {
+            let task_pool = IoTaskPool::get();
 
-                let access_token = access_token.lock().clone();
-                debug!("Started task to fetch certs");
-                let task = task_pool.spawn(async_compat::Compat::new(async move {
-                    azalea_auth::certs::fetch_certificates(&access_token).await
-                }));
-                commands
-                    .entity(entity)
-                    .insert(RequestCertsTask(task))
-                    .remove::<OnlyRefreshCertsAfter>();
-            }
+            let access_token = access_token.lock().clone();
+            debug!("Started task to fetch certs");
+            let task = task_pool.spawn(async_compat::Compat::new(async move {
+                azalea_auth::certs::fetch_certificates(&access_token).await
+            }));
+            commands
+                .entity(entity)
+                .insert(RequestCertsTask(task))
+                .remove::<OnlyRefreshCertsAfter>();
         }
     }
 }

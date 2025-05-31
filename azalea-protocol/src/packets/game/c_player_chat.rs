@@ -1,4 +1,4 @@
-use std::io::{Cursor, Write};
+use std::io::{self, Cursor, Write};
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
 use azalea_chat::{
@@ -142,7 +142,7 @@ impl AzaleaRead for PackedMessageSignature {
     }
 }
 impl AzaleaWrite for PackedMessageSignature {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         match self {
             PackedMessageSignature::Signature(full_signature) => {
                 0u32.azalea_write_var(buf)?;

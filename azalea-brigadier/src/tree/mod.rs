@@ -1,7 +1,7 @@
 use std::{
     collections::{BTreeMap, HashMap},
-    fmt::Debug,
-    hash::Hash,
+    fmt::{self, Debug},
+    hash::{Hash, Hasher},
     ptr,
     sync::Arc,
 };
@@ -236,7 +236,7 @@ impl<S> CommandNode<S> {
 }
 
 impl<S> Debug for CommandNode<S> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("CommandNode")
             // .field("value", &self.value)
             .field("children", &self.children)
@@ -268,7 +268,7 @@ impl<S> Default for CommandNode<S> {
 }
 
 impl<S> Hash for CommandNode<S> {
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+    fn hash<H: Hasher>(&self, state: &mut H) {
         // hash the children
         for (k, v) in &self.children {
             k.hash(state);

@@ -1,4 +1,8 @@
-use std::{collections::HashMap, fmt::Debug, rc::Rc};
+use std::{
+    collections::HashMap,
+    fmt::{self, Debug},
+    rc::Rc,
+};
 
 use crate::{
     context::CommandContextBuilder, errors::CommandSyntaxError, string_reader::StringReader,
@@ -12,7 +16,7 @@ pub struct ParseResults<'a, S> {
 }
 
 impl<S> Debug for ParseResults<'_, S> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("ParseResults")
             .field("context", &self.context)
             // .field("reader", &self.reader)

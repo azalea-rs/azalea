@@ -1,6 +1,6 @@
 use std::{
     collections::HashMap,
-    io::{Cursor, Write},
+    io::{self, Cursor, Write},
 };
 
 use azalea_auth::game_profile::{GameProfile, ProfilePropertyValue};
@@ -119,7 +119,7 @@ impl AzaleaRead for ClientboundPlayerInfoUpdate {
 }
 
 impl AzaleaWrite for ClientboundPlayerInfoUpdate {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         self.actions.azalea_write(buf)?;
 
         (self.entries.len() as u32).azalea_write_var(buf)?;
@@ -198,7 +198,7 @@ impl AzaleaRead for ActionEnumSet {
 }
 
 impl AzaleaWrite for ActionEnumSet {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         let mut set = FixedBitSet::<7>::new();
         if self.add_player {
             set.set(0);

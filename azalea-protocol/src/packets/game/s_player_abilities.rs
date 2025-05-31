@@ -1,4 +1,4 @@
-use std::io::Cursor;
+use std::io::{self, Cursor, Write};
 
 use azalea_buf::{AzaleaRead, AzaleaWrite};
 use azalea_core::bitset::FixedBitSet;
@@ -21,7 +21,7 @@ impl AzaleaRead for ServerboundPlayerAbilities {
 }
 
 impl AzaleaWrite for ServerboundPlayerAbilities {
-    fn azalea_write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         let mut set = FixedBitSet::<2>::new();
         if self.is_flying {
             set.set(1);

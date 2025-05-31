@@ -104,7 +104,7 @@ impl AzaleaRead for BlockState {
     }
 }
 impl AzaleaWrite for BlockState {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         u32::azalea_write_var(&(self.id as u32), buf)
     }
 }

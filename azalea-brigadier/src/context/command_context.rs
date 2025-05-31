@@ -1,4 +1,10 @@
-use std::{any::Any, collections::HashMap, fmt::Debug, rc::Rc, sync::Arc};
+use std::{
+    any::Any,
+    collections::HashMap,
+    fmt::{self, Debug},
+    rc::Rc,
+    sync::Arc,
+};
 
 use parking_lot::RwLock;
 
@@ -40,7 +46,7 @@ impl<S> Clone for CommandContext<S> {
 }
 
 impl<S> Debug for CommandContext<S> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("CommandContext")
             // .field("source", &self.source)
             .field("input", &self.input)

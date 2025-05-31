@@ -595,29 +595,29 @@ impl Style {
     pub fn get_html_style(&self) -> String {
         let mut style = String::new();
         if let Some(color) = &self.color {
-            style.push_str(&format!("color: {};", color.format_value()));
+            style.push_str(&format!("color:{};", color.format_value()));
         }
         if let Some(bold) = self.bold {
             style.push_str(&format!(
-                "font-weight: {};",
+                "font-weight:{};",
                 if bold { "bold" } else { "normal" }
             ));
         }
         if let Some(italic) = self.italic {
             style.push_str(&format!(
-                "font-style: {};",
+                "font-style:{};",
                 if italic { "italic" } else { "normal" }
             ));
         }
         if let Some(underlined) = self.underlined {
             style.push_str(&format!(
-                "text-decoration: {};",
+                "text-decoration:{};",
                 if underlined { "underline" } else { "none" }
             ));
         }
         if let Some(strikethrough) = self.strikethrough {
             style.push_str(&format!(
-                "text-decoration: {};",
+                "text-decoration:{};",
                 if strikethrough {
                     "line-through"
                 } else {
@@ -625,10 +625,10 @@ impl Style {
                 }
             ));
         }
-        if let Some(obfuscated) = self.obfuscated {
-            if obfuscated {
-                style.push_str("filter: blur(2px);");
-            }
+        if let Some(obfuscated) = self.obfuscated
+            && obfuscated
+        {
+            style.push_str("filter:blur(2px);");
         }
 
         style

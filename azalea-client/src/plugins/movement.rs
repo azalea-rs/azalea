@@ -1,4 +1,5 @@
 use std::backtrace::Backtrace;
+use std::io;
 
 use azalea_core::position::Vec3;
 use azalea_core::tick::GameTick;
@@ -28,7 +29,7 @@ pub enum MovePlayerError {
     #[error("Player is not in world")]
     PlayerNotInWorld(Backtrace),
     #[error("{0}")]
-    Io(#[from] std::io::Error),
+    Io(#[from] io::Error),
 }
 
 impl From<MoveEntityError> for MovePlayerError {

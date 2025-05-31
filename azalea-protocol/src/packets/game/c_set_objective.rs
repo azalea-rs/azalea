@@ -1,7 +1,7 @@
-use std::io::{Cursor, Write};
+use std::io::{self, Cursor, Write};
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite};
-use azalea_chat::{numbers::NumberFormat, FormattedText};
+use azalea_chat::{FormattedText, numbers::NumberFormat};
 use azalea_core::objectives::ObjectiveCriteria;
 use azalea_protocol_macros::ClientboundGamePacket;
 
@@ -53,7 +53,7 @@ impl AzaleaRead for Method {
 }
 
 impl AzaleaWrite for Method {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         match self {
             Method::Add {
                 display_name,

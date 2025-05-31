@@ -1,3 +1,4 @@
+use std::io;
 use std::io::Cursor;
 use std::io::Write;
 
@@ -43,7 +44,7 @@ impl AzaleaRead for Operation {
 }
 
 impl AzaleaWrite for Operation {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         match self {
             Operation::Add(add) => {
                 0u32.azalea_write_var(buf)?;
@@ -126,7 +127,7 @@ impl AzaleaRead for Properties {
 }
 
 impl AzaleaWrite for Properties {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         let mut set = FixedBitSet::<3>::new();
         if self.darken_screen {
             set.set(0);

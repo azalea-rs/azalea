@@ -2,7 +2,7 @@
 
 use std::{
     fmt,
-    io::{Cursor, Write},
+    io::{self, Cursor, Write},
     str::FromStr,
 };
 
@@ -67,7 +67,7 @@ impl AzaleaRead for ResourceLocation {
     }
 }
 impl AzaleaWrite for ResourceLocation {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         self.to_string().azalea_write(buf)
     }
 }

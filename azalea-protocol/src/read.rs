@@ -1,8 +1,8 @@
 //! Read packets from a stream.
 
 use std::backtrace::Backtrace;
-use std::env;
 use std::sync::LazyLock;
+use std::{env, io};
 use std::{
     fmt::Debug,
     io::{Cursor, Read},
@@ -53,7 +53,7 @@ pub enum ReadPacketError {
     IoError {
         #[from]
         #[backtrace]
-        source: std::io::Error,
+        source: io::Error,
     },
     #[error("Connection closed")]
     ConnectionClosed,
@@ -70,7 +70,7 @@ pub enum FrameSplitterError {
     Io {
         #[from]
         #[backtrace]
-        source: std::io::Error,
+        source: io::Error,
     },
     #[error("Packet is longer than {max} bytes (is {size})")]
     BadLength { max: usize, size: usize },
@@ -171,7 +171,7 @@ pub enum DecompressionError {
     Io {
         #[from]
         #[backtrace]
-        source: std::io::Error,
+        source: io::Error,
     },
     #[error("Badly compressed packet - size of {size} is below server threshold of {threshold}")]
     BelowCompressionThreshold { size: u32, threshold: u32 },

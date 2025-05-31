@@ -1,4 +1,4 @@
-use std::io::{Cursor, Write};
+use std::io::{self, Cursor, Write};
 
 use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
 use azalea_core::{bitset::FixedBitSet, resource_location::ResourceLocation};
@@ -31,7 +31,7 @@ impl AzaleaRead for ClientboundStopSound {
 }
 
 impl AzaleaWrite for ClientboundStopSound {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         let mut set = FixedBitSet::<2>::new();
         if self.source.is_some() {
             set.set(0);

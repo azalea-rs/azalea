@@ -1,4 +1,4 @@
-use std::io::{Cursor, Write};
+use std::io::{self, Cursor, Write};
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar};
 use azalea_core::position::Vec3;
@@ -29,7 +29,7 @@ pub enum ActionType {
 }
 
 impl AzaleaWrite for ActionType {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         match self {
             ActionType::Interact { hand } => {
                 0u32.azalea_write_var(buf)?;

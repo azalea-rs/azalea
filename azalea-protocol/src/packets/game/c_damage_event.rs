@@ -1,4 +1,4 @@
-use std::io::{Cursor, Write};
+use std::io::{self, Cursor, Write};
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar};
 use azalea_core::position::Vec3;
@@ -27,7 +27,7 @@ impl AzaleaRead for OptionalEntityId {
     }
 }
 impl AzaleaWrite for OptionalEntityId {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         match self.0 {
             Some(id) => (id + 1).azalea_write_var(buf),
             None => 0u32.azalea_write_var(buf),

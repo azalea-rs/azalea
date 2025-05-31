@@ -1,4 +1,4 @@
-use std::{ops::Deref, sync::Arc};
+use std::{mem, ops::Deref, sync::Arc};
 
 use azalea_brigadier::prelude::*;
 use bevy_app::App;
@@ -172,7 +172,7 @@ impl WorldAccessor {
 
     /// Swap the internal [`World`] with the given one.
     fn swap(&mut self, world: &mut World) {
-        std::mem::swap(&mut *self.lock(), world);
+        mem::swap(&mut *self.lock(), world);
     }
 }
 

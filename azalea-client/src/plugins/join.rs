@@ -96,20 +96,20 @@ pub fn handle_start_join_server_event(
             debug!("Reusing entity {entity:?} for client");
 
             // check if it's already connected
-            if let Ok(conn) = connection_query.get(entity) {
-                if conn.is_alive() {
-                    if let Some(start_join_callback_tx) = &event.start_join_callback_tx {
-                        warn!(
-                            "Received StartJoinServerEvent for {entity:?} but it's already connected. Ignoring the event but replying with Ok."
-                        );
-                        let _ = start_join_callback_tx.0.send(Ok(entity));
-                    } else {
-                        warn!(
-                            "Received StartJoinServerEvent for {entity:?} but it's already connected. Ignoring the event."
-                        );
-                    }
-                    return;
+            if let Ok(conn) = connection_query.get(entity)
+                && conn.is_alive()
+            {
+                if let Some(start_join_callback_tx) = &event.start_join_callback_tx {
+                    warn!(
+                        "Received StartJoinServerEvent for {entity:?} but it's already connected. Ignoring the event but replying with Ok."
+                    );
+                    let _ = start_join_callback_tx.0.send(Ok(entity));
+                } else {
+                    warn!(
+                        "Received StartJoinServerEvent for {entity:?} but it's already connected. Ignoring the event."
+                    );
                 }
+                return;
             }
 
             entity

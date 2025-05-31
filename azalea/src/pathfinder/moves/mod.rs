@@ -1,7 +1,10 @@
 pub mod basic;
 pub mod parkour;
 
-use std::{fmt::Debug, sync::Arc};
+use std::{
+    fmt::{self, Debug},
+    sync::Arc,
+};
 
 use azalea_block::BlockState;
 use azalea_client::{
@@ -40,7 +43,7 @@ pub struct MoveData {
     pub is_reached: &'static (dyn Fn(IsReachedCtx) -> bool + Send + Sync),
 }
 impl Debug for MoveData {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("MoveData")
             // .field("move_kind", &self.move_kind)
             .finish()
