@@ -193,7 +193,7 @@ mod tests {
                 END_SPAN = "</span>",
                 GREEN = "<span style=\"color:#55FF55;\">",
                 RED = "<span style=\"color:#FF5555;\">",
-                BOLD_AQUA = "<span style=\"color:#55FFFF;font-weight: bold;\">",
+                BOLD_AQUA = "<span style=\"color:#55FFFF;font-weight:bold;\">",
             )
         );
     }

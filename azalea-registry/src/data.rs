@@ -53,3 +53,21 @@ data_registry! {CatVariant, "cat_variant"}
 data_registry! {PigVariant, "pig_variant"}
 data_registry! {PaintingVariant, "painting_variant"}
 data_registry! {WolfVariant, "wolf_variant"}
+
+data_registry! {Biome, "biome"}
+// these extra traits are required for Biome to be allowed to be palletable
+impl Default for Biome {
+    fn default() -> Self {
+        Self::new_raw(0)
+    }
+}
+impl From<u32> for Biome {
+    fn from(id: u32) -> Self {
+        Self::new_raw(id)
+    }
+}
+impl From<Biome> for u32 {
+    fn from(biome: Biome) -> Self {
+        biome.protocol_id()
+    }
+}

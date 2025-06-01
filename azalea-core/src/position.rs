@@ -539,8 +539,8 @@ impl From<ChunkBlockPos> for u64 {
 }
 impl nohash_hasher::IsEnabled for ChunkBlockPos {}
 
-/// The coordinates of a block inside a chunk section. Each coordinate must be
-/// in the range [0, 15].
+/// The coordinates of a block inside a chunk section. Each coordinate should be
+/// in the range 0..=15.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct ChunkSectionBlockPos {
     pub x: u8,
@@ -548,6 +548,50 @@ pub struct ChunkSectionBlockPos {
     pub z: u8,
 }
 vec3_impl!(ChunkSectionBlockPos, u8);
+
+/// The coordinates of a chunk inside a chunk section. Each coordinate should be
+/// in the range 0..=3.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct ChunkSectionBiomePos {
+    pub x: u8,
+    pub y: u8,
+    pub z: u8,
+}
+impl From<&ChunkBiomePos> for ChunkSectionBiomePos {
+    #[inline]
+    fn from(pos: &ChunkBiomePos) -> Self {
+        ChunkSectionBiomePos {
+            x: pos.x,
+            y: (pos.y & 0b11) as u8,
+            z: pos.z,
+        }
+    }
+}
+vec3_impl!(ChunkSectionBiomePos, u8);
+
+/// The coordinates of a biome inside a chunk. Biomes are 4x4 blocks.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct ChunkBiomePos {
+    pub x: u8,
+    pub y: i32,
+    pub z: u8,
+}
+impl From<&BlockPos> for ChunkBiomePos {
+    #[inline]
+    fn from(pos: &BlockPos) -> Self {
+        ChunkBiomePos::from(&ChunkBlockPos::from(pos))
+    }
+}
+impl From<&ChunkBlockPos> for ChunkBiomePos {
+    #[inline]
+    fn from(pos: &ChunkBlockPos) -> Self {
+        ChunkBiomePos {
+            x: pos.x >> 2,
+            y: pos.y >> 2,
+            z: pos.z >> 2,
+        }
+    }
+}
 
 impl Add<ChunkSectionBlockPos> for ChunkSectionPos {
     type Output = BlockPos;

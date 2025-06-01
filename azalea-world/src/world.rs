@@ -11,6 +11,7 @@ use azalea_core::{
     position::{BlockPos, ChunkPos},
     registry_holder::RegistryHolder,
 };
+use azalea_registry::Biome;
 use bevy_ecs::{component::Component, entity::Entity};
 use derive_more::{Deref, DerefMut};
 use nohash_hasher::IntMap;
@@ -168,6 +169,10 @@ impl Instance {
 
     pub fn get_fluid_state(&self, pos: &BlockPos) -> Option<FluidState> {
         self.chunks.get_block_state(pos).map(FluidState::from)
+    }
+
+    pub fn get_biome(&self, pos: &BlockPos) -> Option<Biome> {
+        self.chunks.get_biome(pos)
     }
 
     pub fn set_block_state(&self, pos: &BlockPos, state: BlockState) -> Option<BlockState> {

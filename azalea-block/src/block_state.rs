@@ -94,6 +94,12 @@ impl TryFrom<u16> for BlockState {
         }
     }
 }
+impl From<BlockState> for u32 {
+    /// See [`BlockState::id`].
+    fn from(value: BlockState) -> Self {
+        value.id as u32
+    }
+}
 
 impl AzaleaRead for BlockState {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {

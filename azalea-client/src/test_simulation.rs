@@ -1,6 +1,7 @@
 use std::{fmt::Debug, sync::Arc};
 
 use azalea_auth::game_profile::GameProfile;
+use azalea_block::BlockState;
 use azalea_buf::AzaleaWrite;
 use azalea_core::{
     delta::PositionDelta8,
@@ -20,11 +21,8 @@ use azalea_protocol::packets::{
         c_light_update::ClientboundLightUpdatePacketData,
     },
 };
-use azalea_registry::{DimensionType, EntityKind};
-use azalea_world::{
-    Chunk, Instance, MinecraftEntityId, Section,
-    palette::{PalettedContainer, PalettedContainerKind},
-};
+use azalea_registry::{Biome, DimensionType, EntityKind};
+use azalea_world::{Chunk, Instance, MinecraftEntityId, Section, palette::PalettedContainer};
 use bevy_app::App;
 use bevy_ecs::{component::Mutable, prelude::*, schedule::ExecutorKind};
 use parking_lot::RwLock;
@@ -261,8 +259,8 @@ pub fn make_basic_empty_chunk(
     for _ in 0..section_count {
         sections.push(Section {
             block_count: 0,
-            states: PalettedContainer::new(PalettedContainerKind::BlockStates),
-            biomes: PalettedContainer::new(PalettedContainerKind::Biomes),
+            states: PalettedContainer::<BlockState>::new(),
+            biomes: PalettedContainer::<Biome>::new(),
         });
     }
     sections.azalea_write(&mut chunk_bytes).unwrap();

@@ -9,7 +9,7 @@ use azalea_core::{
     position::{BlockPos, ChunkPos, ChunkSectionBlockPos, ChunkSectionPos},
 };
 use azalea_physics::collision::BlockWithShape;
-use azalea_world::Instance;
+use azalea_world::{Instance, palette::PalettedContainer};
 use parking_lot::RwLock;
 
 use super::{mining::MiningCache, rel_block_pos::RelBlockPos};
@@ -26,7 +26,12 @@ pub struct CachedWorld {
 
     // we store `PalettedContainer`s instead of `Chunk`s or `Section`s because it doesn't contain
     // any unnecessary data like heightmaps or biomes.
-    cached_chunks: RefCell<Vec<(ChunkPos, Vec<azalea_world::palette::PalettedContainer>)>>,
+    cached_chunks: RefCell<
+        Vec<(
+            ChunkPos,
+            Vec<azalea_world::palette::PalettedContainer<BlockState>>,
+        )>,
+    >,
     last_chunk_cache_index: RefCell<Option<usize>>,
 
     cached_blocks: UnsafeCell<CachedSections>,
@@ -119,7 +124,7 @@ impl CachedWorld {
     fn with_section<T>(
         &self,
         section_pos: ChunkSectionPos,
-        f: impl FnOnce(&azalea_world::palette::PalettedContainer) -> T,
+        f: impl FnOnce(&azalea_world::palette::PalettedContainer<BlockState>) -> T,
     ) -> Option<T> {
         if section_pos.y * 16 < self.min_y {
             // y position is out of bounds
@@ -143,7 +148,7 @@ impl CachedWorld {
                 // y position is out of bounds
                 return None;
             };
-            let section: &azalea_world::palette::PalettedContainer = &sections[section_index];
+            let section = &sections[section_index];
             return Some(f(section));
         }
 
@@ -165,7 +170,7 @@ impl CachedWorld {
                 return None;
             };
             *self.last_chunk_cache_index.borrow_mut() = Some(chunk_index);
-            let section: &azalea_world::palette::PalettedContainer = &sections[section_index];
+            let section = &sections[section_index];
             return Some(f(section));
         }
 
@@ -173,11 +178,11 @@ impl CachedWorld {
         let chunk = world.chunks.get(&chunk_pos)?;
         let chunk = chunk.read();
 
-        let sections: Vec<azalea_world::palette::PalettedContainer> = chunk
+        let sections = chunk
             .sections
             .iter()
             .map(|section| section.states.clone())
-            .collect();
+            .collect::<Vec<PalettedContainer<BlockState>>>();
 
         if section_index >= sections.len() {
             // y position is out of bounds
