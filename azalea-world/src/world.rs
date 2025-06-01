@@ -144,6 +144,14 @@ impl PartialEntityInfos {
 
 /// A world where the chunks are stored as weak pointers. This is used for
 /// shared worlds.
+///
+/// Also see [`PartialInstance`].
+///
+/// The reason this is called "instance" instead of "world" or "dimension" is
+/// because "world" already means the entire ECS (which can contain multiple
+/// instances if we're in a swarm) and "dimension" can be ambiguous (for
+/// instance there can be multiple overworlds, and "dimension" is also a math
+/// term)
 #[derive(Default, Debug)]
 pub struct Instance {
     pub chunks: ChunkStorage,

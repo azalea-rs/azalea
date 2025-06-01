@@ -142,7 +142,7 @@ pub struct GotoEvent {
     pub entity: Entity,
     pub goal: Arc<dyn Goal>,
     /// The function that's used for checking what moves are possible. Usually
-    /// `pathfinder::moves::default_move`
+    /// [`moves::default_move`].
     pub successors_fn: SuccessorsFn,
 
     /// Whether the bot is allowed to break blocks while pathfinding.
@@ -197,6 +197,8 @@ pub trait PathfinderClientExt {
 impl PathfinderClientExt for azalea_client::Client {
     /// Pathfind to the given goal and wait until either the target is reached
     /// or the pathfinding is canceled.
+    ///
+    /// You can use [`Self::start_goto`] instead if you don't want to wait.
     ///
     /// ```
     /// # use azalea::prelude::*;
