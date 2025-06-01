@@ -22,7 +22,7 @@ pub struct ClientboundAddEntity {
     /// encouraged to use [`MinecraftEntityId::from`] for. Other entities may
     /// treat it as a block state or enum variant.
     ///
-    /// See [the wiki](https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Object_Data)
+    /// See [the wiki](https://minecraft.wiki/w/Java_Edition_protocol/Object_data)
     /// for more information about this field.
     #[var]
     pub data: u32,
