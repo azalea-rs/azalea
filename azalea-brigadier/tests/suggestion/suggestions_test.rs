@@ -17,7 +17,7 @@ fn merge_single() {
         StringRange::at(5),
         vec![Suggestion::new(StringRange::at(5), "ar")],
     );
-    let merged = Suggestions::merge("foo b", &[suggestions.clone()]);
+    let merged = Suggestions::merge("foo b", std::slice::from_ref(&suggestions));
     assert_eq!(merged, suggestions);
 }
 

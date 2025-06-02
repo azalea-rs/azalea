@@ -5,13 +5,14 @@ use azalea_protocol::packets::login::{
 use bevy_app::prelude::*;
 use bevy_ecs::prelude::*;
 use bevy_tasks::{IoTaskPool, Task, futures_lite::future};
+use thiserror::Error;
 use tracing::{debug, error, trace};
 
 use super::{
     connection::RawConnection,
     packet::login::{ReceiveCustomQueryEvent, ReceiveHelloEvent, SendLoginPacketEvent},
 };
-use crate::{Account, JoinError};
+use crate::Account;
 
 /// Some systems that run during the `login` state.
 pub struct LoginPlugin;
@@ -73,14 +74,24 @@ pub fn poll_auth_task(
 type PrivateKey = [u8; 16];
 
 #[derive(Component)]
-pub struct AuthTask(Task<Result<(ServerboundKey, PrivateKey), JoinError>>);
+pub struct AuthTask(Task<Result<(ServerboundKey, PrivateKey), AuthWithAccountError>>);
+
+#[derive(Debug, Error)]
+pub enum AuthWithAccountError {
+    #[error("Failed to encrypt the challenge from the server for {0:?}")]
+    Encryption(ClientboundHello),
+    #[error("{0}")]
+    SessionServer(#[from] ClientSessionServerError),
+    #[error("Couldn't refresh access token: {0}")]
+    Auth(#[from] azalea_auth::AuthError),
+}
 
 pub async fn auth_with_account(
     account: Account,
     packet: ClientboundHello,
-) -> Result<(ServerboundKey, PrivateKey), JoinError> {
+) -> Result<(ServerboundKey, PrivateKey), AuthWithAccountError> {
     let Ok(encrypt_res) = azalea_crypto::encrypt(&packet.public_key, &packet.challenge) else {
-        return Err(JoinError::EncryptionError(packet));
+        return Err(AuthWithAccountError::Encryption(packet));
     };
     let key_packet = ServerboundKey {
         key_bytes: encrypt_res.encrypted_public_key,

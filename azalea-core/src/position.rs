@@ -3,19 +3,18 @@
 //! The most common ones are [`Vec3`] and [`BlockPos`], which are usually used
 //! for entity positions and block positions, respectively.
 
-use std::str::FromStr;
 use std::{
     fmt,
-    hash::Hash,
+    hash::{Hash, Hasher},
+    io,
     io::{Cursor, Write},
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Rem, Sub},
+    str::FromStr,
 };
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
 
-use crate::direction::Direction;
-use crate::math;
-use crate::resource_location::ResourceLocation;
+use crate::{direction::Direction, math, resource_location::ResourceLocation};
 
 macro_rules! vec3_impl {
     ($name:ident, $type:ty) => {
@@ -377,11 +376,8 @@ impl BlockPos {
     /// ```
     /// # use azalea_core::position::BlockPos;
     /// assert_eq!(
-    ///     BlockPos::min(
-    ///        &BlockPos::new(1, 20, 300),
-    ///        &BlockPos::new(50, 40, 30),
-    ///    ),
-    ///    BlockPos::new(1, 20, 30),
+    ///     BlockPos::min(&BlockPos::new(1, 20, 300), &BlockPos::new(50, 40, 30),),
+    ///     BlockPos::new(1, 20, 30),
     /// );
     /// ```
     pub fn min(&self, other: &Self) -> Self {
@@ -397,11 +393,8 @@ impl BlockPos {
     /// ```
     /// # use azalea_core::position::BlockPos;
     /// assert_eq!(
-    ///    BlockPos::max(
-    ///       &BlockPos::new(1, 20, 300),
-    ///       &BlockPos::new(50, 40, 30),
-    ///   ),
-    ///   BlockPos::new(50, 40, 300),
+    ///     BlockPos::max(&BlockPos::new(1, 20, 300), &BlockPos::new(50, 40, 30),),
+    ///     BlockPos::new(50, 40, 300),
     /// );
     /// ```
     pub fn max(&self, other: &Self) -> Self {
@@ -477,7 +470,7 @@ impl AzaleaRead for ChunkPos {
     }
 }
 impl AzaleaWrite for ChunkPos {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         u64::from(*self).azalea_write(buf)?;
         Ok(())
     }
@@ -485,7 +478,7 @@ impl AzaleaWrite for ChunkPos {
 
 impl Hash for ChunkPos {
     #[inline]
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+    fn hash<H: Hasher>(&self, state: &mut H) {
         // optimized hash that only calls hash once
         u64::from(*self).hash(state);
     }
@@ -526,7 +519,7 @@ impl ChunkBlockPos {
 impl Hash for ChunkBlockPos {
     // optimized hash that only calls hash once
     #[inline]
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+    fn hash<H: Hasher>(&self, state: &mut H) {
         u64::from(*self).hash(state);
     }
 }
@@ -546,8 +539,8 @@ impl From<ChunkBlockPos> for u64 {
 }
 impl nohash_hasher::IsEnabled for ChunkBlockPos {}
 
-/// The coordinates of a block inside a chunk section. Each coordinate must be
-/// in the range [0, 15].
+/// The coordinates of a block inside a chunk section. Each coordinate should be
+/// in the range 0..=15.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct ChunkSectionBlockPos {
     pub x: u8,
@@ -555,6 +548,50 @@ pub struct ChunkSectionBlockPos {
     pub z: u8,
 }
 vec3_impl!(ChunkSectionBlockPos, u8);
+
+/// The coordinates of a chunk inside a chunk section. Each coordinate should be
+/// in the range 0..=3.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct ChunkSectionBiomePos {
+    pub x: u8,
+    pub y: u8,
+    pub z: u8,
+}
+impl From<&ChunkBiomePos> for ChunkSectionBiomePos {
+    #[inline]
+    fn from(pos: &ChunkBiomePos) -> Self {
+        ChunkSectionBiomePos {
+            x: pos.x,
+            y: (pos.y & 0b11) as u8,
+            z: pos.z,
+        }
+    }
+}
+vec3_impl!(ChunkSectionBiomePos, u8);
+
+/// The coordinates of a biome inside a chunk. Biomes are 4x4 blocks.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct ChunkBiomePos {
+    pub x: u8,
+    pub y: i32,
+    pub z: u8,
+}
+impl From<&BlockPos> for ChunkBiomePos {
+    #[inline]
+    fn from(pos: &BlockPos) -> Self {
+        ChunkBiomePos::from(&ChunkBlockPos::from(pos))
+    }
+}
+impl From<&ChunkBlockPos> for ChunkBiomePos {
+    #[inline]
+    fn from(pos: &ChunkBlockPos) -> Self {
+        ChunkBiomePos {
+            x: pos.x >> 2,
+            y: pos.y >> 2,
+            z: pos.z >> 2,
+        }
+    }
+}
 
 impl Add<ChunkSectionBlockPos> for ChunkSectionPos {
     type Output = BlockPos;
@@ -570,7 +607,7 @@ impl Add<ChunkSectionBlockPos> for ChunkSectionPos {
 impl Hash for ChunkSectionBlockPos {
     // optimized hash that only calls hash once
     #[inline]
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+    fn hash<H: Hasher>(&self, state: &mut H) {
         u16::from(*self).hash(state);
     }
 }
@@ -782,7 +819,7 @@ impl AzaleaRead for ChunkSectionPos {
 }
 
 impl AzaleaWrite for BlockPos {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         let mut val: u64 = 0;
         val |= ((self.x as u64) & PACKED_X_MASK) << X_OFFSET;
         val |= (self.y as u64) & PACKED_Y_MASK;
@@ -792,7 +829,7 @@ impl AzaleaWrite for BlockPos {
 }
 
 impl AzaleaWrite for GlobalPos {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         ResourceLocation::azalea_write(&self.world, buf)?;
         BlockPos::azalea_write(&self.pos, buf)?;
 
@@ -801,7 +838,7 @@ impl AzaleaWrite for GlobalPos {
 }
 
 impl AzaleaWrite for ChunkSectionPos {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         let long = (((self.x & 0x3FFFFF) as i64) << 42)
             | (self.y & 0xFFFFF) as i64
             | (((self.z & 0x3FFFFF) as i64) << 20);

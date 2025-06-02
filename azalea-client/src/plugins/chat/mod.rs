@@ -124,9 +124,9 @@ impl ChatPacket {
         }))
     }
 
-    /// Whether this message was sent with /msg (or aliases). It works by
-    /// checking the translation key, so it won't work on servers that use their
-    /// own whisper system.
+    /// Whether this message is an incoming whisper message (i.e. someone else
+    /// dm'd the bot with /msg). It works by checking the translation key, so it
+    /// won't work on servers that use their own whisper system.
     pub fn is_whisper(&self) -> bool {
         match self.message() {
             FormattedText::Text(_) => false,

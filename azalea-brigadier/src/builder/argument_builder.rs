@@ -1,18 +1,32 @@
-use std::{fmt::Debug, sync::Arc};
+use std::{
+    fmt::{self, Debug},
+    sync::Arc,
+};
 
 use parking_lot::RwLock;
 
 use super::{literal_argument_builder::Literal, required_argument_builder::Argument};
 use crate::{
     context::CommandContext,
+    errors::CommandSyntaxError,
     modifier::RedirectModifier,
     tree::{Command, CommandNode},
 };
 
-#[derive(Debug, Clone)]
-pub enum ArgumentBuilderType {
+#[derive(Debug)]
+pub enum ArgumentBuilderType<S> {
     Literal(Literal),
-    Argument(Argument),
+    Argument(Argument<S>),
+}
+impl<S> Clone for ArgumentBuilderType<S> {
+    fn clone(&self) -> Self {
+        match self {
+            ArgumentBuilderType::Literal(literal) => ArgumentBuilderType::Literal(literal.clone()),
+            ArgumentBuilderType::Argument(argument) => {
+                ArgumentBuilderType::Argument(argument.clone())
+            }
+        }
+    }
 }
 
 /// A node that hasn't yet been built.
@@ -30,7 +44,7 @@ pub struct ArgumentBuilder<S> {
 
 /// A node that isn't yet built.
 impl<S> ArgumentBuilder<S> {
-    pub fn new(value: ArgumentBuilderType) -> Self {
+    pub fn new(value: ArgumentBuilderType<S>) -> Self {
         Self {
             arguments: CommandNode {
                 value,
@@ -49,9 +63,7 @@ impl<S> ArgumentBuilder<S> {
     /// ```
     /// # use azalea_brigadier::prelude::*;
     /// # let mut subject = CommandDispatcher::<()>::new();
-    /// literal("foo").then(
-    ///     literal("bar").executes(|ctx: &CommandContext<()>| 42)
-    /// )
+    /// literal("foo").then(literal("bar").executes(|ctx: &CommandContext<()>| 42))
     /// # ;
     /// ```
     pub fn then(self, argument: ArgumentBuilder<S>) -> Self {
@@ -79,6 +91,16 @@ impl<S> ArgumentBuilder<S> {
     pub fn executes<F>(mut self, f: F) -> Self
     where
         F: Fn(&CommandContext<S>) -> i32 + Send + Sync + 'static,
+    {
+        self.command = Some(Arc::new(move |ctx: &CommandContext<S>| Ok(f(ctx))));
+        self
+    }
+
+    /// Same as [`Self::executes`] but returns a `Result<i32,
+    /// CommandSyntaxError>`.
+    pub fn executes_result<F>(mut self, f: F) -> Self
+    where
+        F: Fn(&CommandContext<S>) -> Result<i32, CommandSyntaxError> + Send + Sync + 'static,
     {
         self.command = Some(Arc::new(f));
         self
@@ -163,7 +185,7 @@ impl<S> ArgumentBuilder<S> {
 }
 
 impl<S> Debug for ArgumentBuilder<S> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("ArgumentBuilder")
             .field("arguments", &self.arguments)
             // .field("command", &self.command)

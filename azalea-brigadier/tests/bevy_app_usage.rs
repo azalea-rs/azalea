@@ -1,11 +1,6 @@
-use std::sync::Arc;
+use std::{mem, ops::Deref, sync::Arc};
 
-use azalea_brigadier::{
-    arguments::integer_argument_type::integer,
-    builder::{literal_argument_builder::literal, required_argument_builder::argument},
-    command_dispatcher::CommandDispatcher,
-    context::CommandContext,
-};
+use azalea_brigadier::prelude::*;
 use bevy_app::App;
 use bevy_ecs::{prelude::*, system::RunSystemOnce};
 use parking_lot::Mutex;
@@ -145,8 +140,7 @@ impl DispatchStorage {
     ///
     /// Spawns a number of entities with the [`SpawnedEntity`] component.
     fn command_spawn_entity_num(context: &CommandContext<WorldAccessor>) -> i32 {
-        let num = context.argument("entities").unwrap();
-        let num = *num.downcast_ref::<i32>().unwrap();
+        let num = get_integer(context, "entities").unwrap();
 
         for _ in 0..num {
             context.source.lock().spawn(SpawnedEntity);
@@ -178,7 +172,7 @@ impl WorldAccessor {
 
     /// Swap the internal [`World`] with the given one.
     fn swap(&mut self, world: &mut World) {
-        std::mem::swap(&mut *self.lock(), world);
+        mem::swap(&mut *self.lock(), world);
     }
 }
 
@@ -187,7 +181,7 @@ impl WorldAccessor {
 struct SpawnedEntity;
 
 /// Implemented for convenience.
-impl std::ops::Deref for WorldAccessor {
+impl Deref for WorldAccessor {
     type Target = Arc<Mutex<World>>;
     fn deref(&self) -> &Self::Target {
         &self.world

@@ -1,4 +1,4 @@
-use std::io::{Cursor, Write};
+use std::io::{self, Cursor, Write};
 
 use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, BufReadError};
 use azalea_chat::translatable_component::TranslatableComponent;
@@ -108,7 +108,7 @@ impl AzaleaRead for GameMode {
 }
 
 impl AzaleaWrite for GameMode {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         u8::azalea_write(&self.to_id(), buf)
     }
 }
@@ -138,7 +138,7 @@ impl AzaleaRead for OptionalGameType {
 }
 
 impl AzaleaWrite for OptionalGameType {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         GameMode::to_optional_id(*self).azalea_write(buf)
     }
 }

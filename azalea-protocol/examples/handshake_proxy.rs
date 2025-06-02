@@ -25,8 +25,7 @@ use tokio::{
     io::{self, AsyncWriteExt},
     net::{TcpListener, TcpStream},
 };
-use tracing::Level;
-use tracing::{error, info, warn};
+use tracing::{Level, error, info, warn};
 
 const LISTEN_ADDR: &str = "127.0.0.1:25566";
 const PROXY_ADDR: &str = "127.0.0.1:25565";

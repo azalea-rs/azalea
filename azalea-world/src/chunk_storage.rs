@@ -1,23 +1,29 @@
-use std::collections::hash_map::Entry;
 use std::{
-    collections::HashMap,
+    collections::{HashMap, hash_map::Entry},
+    fmt,
     fmt::Debug,
+    io,
     io::{Cursor, Write},
     sync::{Arc, Weak},
 };
 
-use azalea_block::block_state::{BlockState, BlockStateIntegerRepr};
-use azalea_block::fluid_state::FluidState;
+use azalea_block::{
+    block_state::{BlockState, BlockStateIntegerRepr},
+    fluid_state::FluidState,
+};
 use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
-use azalea_core::position::{BlockPos, ChunkBlockPos, ChunkPos, ChunkSectionBlockPos};
+use azalea_core::position::{
+    BlockPos, ChunkBiomePos, ChunkBlockPos, ChunkPos, ChunkSectionBiomePos, ChunkSectionBlockPos,
+};
+use azalea_registry::Biome;
 use nohash_hasher::IntMap;
 use parking_lot::RwLock;
 use tracing::{debug, trace, warn};
 
-use crate::heightmap::Heightmap;
-use crate::heightmap::HeightmapKind;
-use crate::palette::PalettedContainer;
-use crate::palette::PalettedContainerKind;
+use crate::{
+    heightmap::{Heightmap, HeightmapKind},
+    palette::PalettedContainer,
+};
 
 const SECTION_HEIGHT: u32 = 16;
 
@@ -56,27 +62,17 @@ pub struct Chunk {
 }
 
 /// A section of a chunk, i.e. a 16*16*16 block area.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct Section {
     pub block_count: u16,
-    pub states: PalettedContainer,
-    pub biomes: PalettedContainer,
+    pub states: PalettedContainer<BlockState>,
+    pub biomes: PalettedContainer<Biome>,
 }
 
 /// Get the actual stored view distance for the selected view distance. For some
 /// reason Minecraft actually stores an extra 3 chunks.
 pub fn calculate_chunk_storage_range(view_distance: u32) -> u32 {
     u32::max(view_distance, 2) + 3
-}
-
-impl Default for Section {
-    fn default() -> Self {
-        Section {
-            block_count: 0,
-            states: PalettedContainer::new(PalettedContainerKind::BlockStates),
-            biomes: PalettedContainer::new(PalettedContainerKind::Biomes),
-        }
-    }
 }
 
 impl Default for Chunk {
@@ -168,7 +164,7 @@ impl PartialChunkStorage {
         let chunk_pos = ChunkPos::from(pos);
         let chunk_lock = chunk_storage.get(&chunk_pos)?;
         let mut chunk = chunk_lock.write();
-        Some(chunk.get_and_set(&ChunkBlockPos::from(pos), state, chunk_storage.min_y))
+        Some(chunk.get_and_set_block_state(&ChunkBlockPos::from(pos), state, chunk_storage.min_y))
     }
 
     pub fn replace_with_packet_data(
@@ -298,12 +294,19 @@ impl ChunkStorage {
         let chunk_pos = ChunkPos::from(pos);
         let chunk = self.get(&chunk_pos)?;
         let chunk = chunk.read();
-        chunk.get(&ChunkBlockPos::from(pos), self.min_y)
+        chunk.get_block_state(&ChunkBlockPos::from(pos), self.min_y)
     }
 
     pub fn get_fluid_state(&self, pos: &BlockPos) -> Option<FluidState> {
         let block_state = self.get_block_state(pos)?;
         Some(FluidState::from(block_state))
+    }
+
+    pub fn get_biome(&self, pos: &BlockPos) -> Option<Biome> {
+        let chunk_pos = ChunkPos::from(pos);
+        let chunk = self.get(&chunk_pos)?;
+        let chunk = chunk.read();
+        chunk.get_biome(&ChunkBiomePos::from(pos), self.min_y)
     }
 
     pub fn set_block_state(&self, pos: &BlockPos, state: BlockState) -> Option<BlockState> {
@@ -313,7 +316,7 @@ impl ChunkStorage {
         let chunk_pos = ChunkPos::from(pos);
         let chunk = self.get(&chunk_pos)?;
         let mut chunk = chunk.write();
-        Some(chunk.get_and_set(&ChunkBlockPos::from(pos), state, self.min_y))
+        Some(chunk.get_and_set_block_state(&ChunkBlockPos::from(pos), state, self.min_y))
     }
 }
 
@@ -343,7 +346,7 @@ impl Chunk {
 
         let mut heightmaps = HashMap::new();
         for (kind, data) in heightmaps_data {
-            let data: Box<[u64]> = data.iter().copied().collect();
+            let data: Box<[u64]> = data.clone();
             let heightmap = Heightmap::new(*kind, dimension_height, min_y, data);
             heightmaps.insert(*kind, heightmap);
         }
@@ -354,22 +357,26 @@ impl Chunk {
         })
     }
 
-    pub fn get(&self, pos: &ChunkBlockPos, min_y: i32) -> Option<BlockState> {
+    pub fn get_block_state(&self, pos: &ChunkBlockPos, min_y: i32) -> Option<BlockState> {
         get_block_state_from_sections(&self.sections, pos, min_y)
     }
 
-    #[must_use = "Use Chunk::set instead if you don't need the previous state"]
-    pub fn get_and_set(
+    #[must_use = "Use Chunk::set_block_state instead if you don't need the previous state"]
+    pub fn get_and_set_block_state(
         &mut self,
         pos: &ChunkBlockPos,
         state: BlockState,
         min_y: i32,
     ) -> BlockState {
         let section_index = section_index(pos.y, min_y);
-        // TODO: make sure the section exists
-        let section = &mut self.sections[section_index as usize];
+        let Some(section) = self.sections.get_mut(section_index as usize) else {
+            warn!(
+                "Tried to get and set block state {state:?} at out-of-bounds relative chunk position {pos:?}",
+            );
+            return BlockState::AIR;
+        };
         let chunk_section_pos = ChunkSectionBlockPos::from(pos);
-        let previous_state = section.get_and_set(chunk_section_pos, state);
+        let previous_state = section.get_and_set_block_state(chunk_section_pos, state);
 
         for heightmap in self.heightmaps.values_mut() {
             heightmap.update(pos, state, &self.sections);
@@ -378,16 +385,34 @@ impl Chunk {
         previous_state
     }
 
-    pub fn set(&mut self, pos: &ChunkBlockPos, state: BlockState, min_y: i32) {
+    pub fn set_block_state(&mut self, pos: &ChunkBlockPos, state: BlockState, min_y: i32) {
         let section_index = section_index(pos.y, min_y);
-        // TODO: make sure the section exists
-        let section = &mut self.sections[section_index as usize];
+        let Some(section) = self.sections.get_mut(section_index as usize) else {
+            warn!(
+                "Tried to set block state {state:?} at out-of-bounds relative chunk position {pos:?}",
+            );
+            return;
+        };
         let chunk_section_pos = ChunkSectionBlockPos::from(pos);
-        section.set(chunk_section_pos, state);
+        section.set_block_state(chunk_section_pos, state);
 
         for heightmap in self.heightmaps.values_mut() {
             heightmap.update(pos, state, &self.sections);
         }
+    }
+
+    pub fn get_biome(&self, pos: &ChunkBiomePos, min_y: i32) -> Option<Biome> {
+        if pos.y < min_y {
+            // y position is out of bounds
+            return None;
+        }
+        let section_index = section_index(pos.y, min_y);
+        let Some(section) = self.sections.get(section_index as usize) else {
+            warn!("Tried to get biome at out-of-bounds relative chunk position {pos:?}",);
+            return None;
+        };
+        let chunk_section_pos = ChunkSectionBiomePos::from(pos);
+        Some(section.get_biome(chunk_section_pos))
     }
 }
 
@@ -410,11 +435,11 @@ pub fn get_block_state_from_sections(
     };
     let section = &sections[section_index];
     let chunk_section_pos = ChunkSectionBlockPos::from(pos);
-    Some(section.get(chunk_section_pos))
+    Some(section.get_block_state(chunk_section_pos))
 }
 
 impl AzaleaWrite for Chunk {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         for section in &self.sections {
             section.azalea_write(buf)?;
         }
@@ -423,7 +448,7 @@ impl AzaleaWrite for Chunk {
 }
 
 impl Debug for PartialChunkStorage {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("PartialChunkStorage")
             .field("view_center", &self.view_center)
             .field("chunk_radius", &self.chunk_radius)
@@ -445,7 +470,7 @@ impl AzaleaRead for Section {
         //     "A section has more blocks than what should be possible. This is a bug!"
         // );
 
-        let states = PalettedContainer::read_with_type(buf, &PalettedContainerKind::BlockStates)?;
+        let states = PalettedContainer::<BlockState>::read(buf)?;
 
         for i in 0..states.storage.size() {
             if !BlockState::is_valid_state(states.storage.get(i) as BlockStateIntegerRepr) {
@@ -456,7 +481,7 @@ impl AzaleaRead for Section {
             }
         }
 
-        let biomes = PalettedContainer::read_with_type(buf, &PalettedContainerKind::Biomes)?;
+        let biomes = PalettedContainer::<Biome>::read(buf)?;
         Ok(Section {
             block_count,
             states,
@@ -466,7 +491,7 @@ impl AzaleaRead for Section {
 }
 
 impl AzaleaWrite for Section {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         self.block_count.azalea_write(buf)?;
         self.states.azalea_write(buf)?;
         self.biomes.azalea_write(buf)?;
@@ -475,19 +500,28 @@ impl AzaleaWrite for Section {
 }
 
 impl Section {
-    pub fn get(&self, pos: ChunkSectionBlockPos) -> BlockState {
-        self.states
-            .get(pos.x as usize, pos.y as usize, pos.z as usize)
+    pub fn get_block_state(&self, pos: ChunkSectionBlockPos) -> BlockState {
+        self.states.get(pos)
+    }
+    pub fn get_and_set_block_state(
+        &mut self,
+        pos: ChunkSectionBlockPos,
+        state: BlockState,
+    ) -> BlockState {
+        self.states.get_and_set(pos, state)
+    }
+    pub fn set_block_state(&mut self, pos: ChunkSectionBlockPos, state: BlockState) {
+        self.states.set(pos, state);
     }
 
-    pub fn get_and_set(&mut self, pos: ChunkSectionBlockPos, state: BlockState) -> BlockState {
-        self.states
-            .get_and_set(pos.x as usize, pos.y as usize, pos.z as usize, state)
+    pub fn get_biome(&self, pos: ChunkSectionBiomePos) -> Biome {
+        self.biomes.get(pos)
     }
-
-    pub fn set(&mut self, pos: ChunkSectionBlockPos, state: BlockState) {
-        self.states
-            .set(pos.x as usize, pos.y as usize, pos.z as usize, state);
+    pub fn set_biome(&mut self, pos: ChunkSectionBiomePos, biome: Biome) {
+        self.biomes.set(pos, biome);
+    }
+    pub fn get_and_set_biome(&mut self, pos: ChunkSectionBiomePos, biome: Biome) -> Biome {
+        self.biomes.get_and_set(pos, biome)
     }
 }
 

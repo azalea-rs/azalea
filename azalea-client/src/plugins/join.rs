@@ -1,4 +1,4 @@
-use std::{io, net::SocketAddr, sync::Arc};
+use std::{net::SocketAddr, sync::Arc};
 
 use azalea_entity::{LocalEntity, indexing::EntityUuidIndex};
 use azalea_protocol::{
@@ -20,7 +20,7 @@ use tracing::{debug, warn};
 
 use super::events::LocalPlayerEvents;
 use crate::{
-    Account, JoinError, LocalPlayerBundle,
+    Account, LocalPlayerBundle,
     connection::RawConnection,
     packet::login::{InLoginState, SendLoginPacketEvent},
 };
@@ -36,7 +36,6 @@ impl Plugin for JoinPlugin {
                 (
                     handle_start_join_server_event.before(super::login::poll_auth_task),
                     poll_create_connection_task,
-                    handle_connection_failed_events,
                 )
                     .chain(),
             );
@@ -53,7 +52,8 @@ pub struct StartJoinServerEvent {
     pub connect_opts: ConnectOpts,
     pub event_sender: Option<mpsc::UnboundedSender<crate::Event>>,
 
-    pub start_join_callback_tx: Option<StartJoinCallback>,
+    // this is mpsc instead of oneshot so it can be cloned (since it's sent in an event)
+    pub start_join_callback_tx: Option<mpsc::UnboundedSender<Entity>>,
 }
 
 /// Options for how the connection to the server will be made. These are
@@ -79,11 +79,6 @@ pub struct ConnectionFailedEvent {
     pub error: ConnectionError,
 }
 
-// this is mpsc instead of oneshot so it can be cloned (since it's sent in an
-// event)
-#[derive(Component, Debug, Clone)]
-pub struct StartJoinCallback(pub mpsc::UnboundedSender<Result<Entity, JoinError>>);
-
 pub fn handle_start_join_server_event(
     mut commands: Commands,
     mut events: EventReader<StartJoinServerEvent>,
@@ -96,20 +91,20 @@ pub fn handle_start_join_server_event(
             debug!("Reusing entity {entity:?} for client");
 
             // check if it's already connected
-            if let Ok(conn) = connection_query.get(entity) {
-                if conn.is_alive() {
-                    if let Some(start_join_callback_tx) = &event.start_join_callback_tx {
-                        warn!(
-                            "Received StartJoinServerEvent for {entity:?} but it's already connected. Ignoring the event but replying with Ok."
-                        );
-                        let _ = start_join_callback_tx.0.send(Ok(entity));
-                    } else {
-                        warn!(
-                            "Received StartJoinServerEvent for {entity:?} but it's already connected. Ignoring the event."
-                        );
-                    }
-                    return;
+            if let Ok(conn) = connection_query.get(entity)
+                && conn.is_alive()
+            {
+                if let Some(start_join_callback_tx) = &event.start_join_callback_tx {
+                    warn!(
+                        "Received StartJoinServerEvent for {entity:?} but it's already connected. Ignoring the event but replying with Ok."
+                    );
+                    let _ = start_join_callback_tx.send(entity);
+                } else {
+                    warn!(
+                        "Received StartJoinServerEvent for {entity:?} but it's already connected. Ignoring the event."
+                    );
                 }
+                return;
             }
 
             entity
@@ -120,6 +115,10 @@ pub fn handle_start_join_server_event(
             entity_uuid_index.insert(uuid, entity);
             entity
         };
+
+        if let Some(start_join_callback) = &event.start_join_callback_tx {
+            let _ = start_join_callback.send(entity);
+        }
 
         let mut entity_mut = commands.entity(entity);
 
@@ -140,9 +139,6 @@ pub fn handle_start_join_server_event(
             // this is optional so we don't leak memory in case the user doesn't want to
             // handle receiving packets
             entity_mut.insert(LocalPlayerEvents(event_sender.clone()));
-        }
-        if let Some(start_join_callback) = &event.start_join_callback_tx {
-            entity_mut.insert(start_join_callback.clone());
         }
 
         let task_pool = IoTaskPool::get();
@@ -184,15 +180,10 @@ pub struct CreateConnectionTask(pub Task<Result<LoginConn, ConnectionError>>);
 
 pub fn poll_create_connection_task(
     mut commands: Commands,
-    mut query: Query<(
-        Entity,
-        &mut CreateConnectionTask,
-        &Account,
-        Option<&StartJoinCallback>,
-    )>,
+    mut query: Query<(Entity, &mut CreateConnectionTask, &Account)>,
     mut connection_failed_events: EventWriter<ConnectionFailedEvent>,
 ) {
-    for (entity, mut task, account, mut start_join_callback) in query.iter_mut() {
+    for (entity, mut task, account) in query.iter_mut() {
         if let Some(poll_res) = future::block_on(future::poll_once(&mut task.0)) {
             let mut entity_mut = commands.entity(entity);
             entity_mut.remove::<CreateConnectionTask>();
@@ -238,29 +229,6 @@ pub fn poll_create_connection_task(
                     profile_id: account.uuid_or_offline(),
                 },
             ));
-
-            if let Some(cb) = start_join_callback.take() {
-                let _ = cb.0.send(Ok(entity));
-            }
         }
-    }
-}
-
-pub fn handle_connection_failed_events(
-    mut events: EventReader<ConnectionFailedEvent>,
-    query: Query<&StartJoinCallback>,
-) {
-    for event in events.read() {
-        let Ok(start_join_callback) = query.get(event.entity) else {
-            // the StartJoinCallback isn't required to be present, so this is fine
-            continue;
-        };
-
-        // io::Error isn't clonable, so we create a new one based on the `kind` and
-        // `to_string`,
-        let ConnectionError::Io(err) = &event.error;
-        let cloned_err = ConnectionError::Io(io::Error::new(err.kind(), err.to_string()));
-
-        let _ = start_join_callback.0.send(Err(cloned_err.into()));
     }
 }

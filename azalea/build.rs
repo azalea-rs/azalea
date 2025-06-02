@@ -1,5 +1,4 @@
-use std::env;
-use std::process::Command;
+use std::{env, process::Command};
 
 fn main() {
     // If using `rustup`, check the toolchain via `RUSTUP_TOOLCHAIN`

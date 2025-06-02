@@ -1,37 +1,52 @@
-use std::{any::Any, fmt::Debug, sync::Arc};
+use std::{
+    any::Any,
+    fmt::{self, Debug},
+    sync::Arc,
+};
 
 use super::argument_builder::{ArgumentBuilder, ArgumentBuilderType};
 use crate::{
     arguments::ArgumentType,
-    exceptions::CommandSyntaxException,
+    context::CommandContext,
+    errors::CommandSyntaxError,
     string_reader::StringReader,
-    suggestion::{Suggestions, SuggestionsBuilder},
+    suggestion::{SuggestionProvider, Suggestions, SuggestionsBuilder},
 };
 
 /// An argument node type. The `T` type parameter is the type of the argument,
 /// which can be anything.
-#[derive(Clone)]
-pub struct Argument {
+pub struct Argument<S> {
     pub name: String,
     parser: Arc<dyn ArgumentType + Send + Sync>,
+    custom_suggestions: Option<Arc<dyn SuggestionProvider<S> + Send + Sync>>,
 }
-impl Argument {
-    pub fn new(name: &str, parser: Arc<dyn ArgumentType + Send + Sync>) -> Self {
+impl<S> Argument<S> {
+    pub fn new(
+        name: &str,
+        parser: Arc<dyn ArgumentType + Send + Sync>,
+        custom_suggestions: Option<Arc<dyn SuggestionProvider<S> + Send + Sync>>,
+    ) -> Self {
         Self {
             name: name.to_string(),
             parser,
+            custom_suggestions,
         }
     }
 
-    pub fn parse(&self, reader: &mut StringReader) -> Result<Arc<dyn Any>, CommandSyntaxException> {
+    pub fn parse(&self, reader: &mut StringReader) -> Result<Arc<dyn Any>, CommandSyntaxError> {
         self.parser.parse(reader)
     }
 
-    pub fn list_suggestions(&self, builder: SuggestionsBuilder) -> Suggestions {
-        // TODO: custom suggestions
-        // https://github.com/Mojang/brigadier/blob/master/src/main/java/com/mojang/brigadier/tree/ArgumentCommandNode.java#L71
-
-        self.parser.list_suggestions(builder)
+    pub fn list_suggestions(
+        &self,
+        context: CommandContext<S>,
+        builder: SuggestionsBuilder,
+    ) -> Suggestions {
+        if let Some(s) = &self.custom_suggestions {
+            s.get_suggestions(context, builder)
+        } else {
+            self.parser.list_suggestions(builder)
+        }
     }
 
     pub fn examples(&self) -> Vec<String> {
@@ -39,14 +54,14 @@ impl Argument {
     }
 }
 
-impl From<Argument> for ArgumentBuilderType {
-    fn from(argument: Argument) -> Self {
+impl<S> From<Argument<S>> for ArgumentBuilderType<S> {
+    fn from(argument: Argument<S>) -> Self {
         Self::Argument(argument)
     }
 }
 
-impl Debug for Argument {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl<S> Debug for Argument<S> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Argument")
             .field("name", &self.name)
             // .field("parser", &self.parser)
@@ -59,5 +74,15 @@ pub fn argument<S>(
     name: &str,
     parser: impl ArgumentType + Send + Sync + 'static,
 ) -> ArgumentBuilder<S> {
-    ArgumentBuilder::new(Argument::new(name, Arc::new(parser)).into())
+    ArgumentBuilder::new(Argument::new(name, Arc::new(parser), None).into())
+}
+
+impl<S> Clone for Argument<S> {
+    fn clone(&self) -> Self {
+        Self {
+            name: self.name.clone(),
+            parser: self.parser.clone(),
+            custom_suggestions: self.custom_suggestions.clone(),
+        }
+    }
 }

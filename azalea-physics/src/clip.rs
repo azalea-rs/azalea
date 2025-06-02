@@ -151,12 +151,11 @@ fn clip_with_interaction_override(
         // compostors, hoppers, and scaffolding.
         let interaction_shape = &*EMPTY_SHAPE;
         let interaction_hit_result = interaction_shape.clip(from, to, block_pos);
-        if let Some(interaction_hit_result) = interaction_hit_result {
-            if interaction_hit_result.location.distance_squared_to(from)
+        if let Some(interaction_hit_result) = interaction_hit_result
+            && interaction_hit_result.location.distance_squared_to(from)
                 < block_hit_result.location.distance_squared_to(from)
-            {
-                return Some(block_hit_result.with_direction(interaction_hit_result.direction));
-            }
+        {
+            return Some(block_hit_result.with_direction(interaction_hit_result.direction));
         }
 
         Some(block_hit_result)

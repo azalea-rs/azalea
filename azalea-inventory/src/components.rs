@@ -1,5 +1,9 @@
 use core::f64;
-use std::{any::Any, collections::HashMap, io::Cursor};
+use std::{
+    any::Any,
+    collections::HashMap,
+    io::{self, Cursor},
+};
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
 use azalea_chat::FormattedText;
@@ -23,11 +27,11 @@ pub trait DataComponent: Send + Sync + Any {
 }
 
 pub trait EncodableDataComponent: Send + Sync + Any {
-    fn encode(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error>;
+    fn encode(&self, buf: &mut Vec<u8>) -> io::Result<()>;
     // using the Clone trait makes it not be object-safe, so we have our own clone
     // function instead
     fn clone(&self) -> Box<dyn EncodableDataComponent>;
-    // same deal here
+    // same thing here
     fn eq(&self, other: Box<dyn EncodableDataComponent>) -> bool;
 }
 
@@ -35,7 +39,7 @@ impl<T> EncodableDataComponent for T
 where
     T: DataComponent + Clone + AzaleaWrite + AzaleaRead + PartialEq,
 {
-    fn encode(&self, buf: &mut Vec<u8>) -> Result<(), std::io::Error> {
+    fn encode(&self, buf: &mut Vec<u8>) -> io::Result<()> {
         self.azalea_write(buf)
     }
     fn clone(&self) -> Box<dyn EncodableDataComponent> {
@@ -897,7 +901,9 @@ pub struct DamageResistant {
     // in the vanilla code this is
     // ```
     // StreamCodec.composite(
-    //   TagKey.streamCodec(Registries.DAMAGE_TYPE), DamageResistant::types, DamageResistant::new
+    //     TagKey.streamCodec(Registries.DAMAGE_TYPE),
+    //     DamageResistant::types,
+    //     DamageResistant::new,
     // );
     // ```
     // i'm not entirely sure if this is meant to be a vec or something, i just made it a

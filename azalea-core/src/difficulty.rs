@@ -1,6 +1,6 @@
 use std::{
-    fmt::{Debug, Error, Formatter},
-    io::{Cursor, Write},
+    fmt::{self, Debug},
+    io::{self, Cursor, Write},
 };
 
 use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
@@ -18,7 +18,7 @@ pub enum Err {
 }
 
 impl Debug for Err {
-    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Err::InvalidDifficulty(s) => write!(f, "Invalid difficulty: {s}"),
         }
@@ -73,7 +73,7 @@ impl AzaleaRead for Difficulty {
 }
 
 impl AzaleaWrite for Difficulty {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         u8::azalea_write(&self.id(), buf)
     }
 }

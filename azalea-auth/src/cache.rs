@@ -1,22 +1,27 @@
 //! Cache auth information
 
-use std::path::Path;
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::{
+    io,
+    path::Path,
+    time::{SystemTime, UNIX_EPOCH},
+};
 
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
-use tokio::fs::File;
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::{
+    fs::{self, File},
+    io::{AsyncReadExt, AsyncWriteExt},
+};
 use tracing::{debug, trace};
 
 #[derive(Debug, Error)]
 pub enum CacheError {
     #[error("Failed to read cache file: {0}")]
-    Read(std::io::Error),
+    Read(io::Error),
     #[error("Failed to write cache file: {0}")]
-    Write(std::io::Error),
+    Write(io::Error),
     #[error("Failed to create cache file directory: {0}")]
-    MkDir(std::io::Error),
+    MkDir(io::Error),
     #[error("Failed to parse cache file: {0}")]
     Parse(serde_json::Error),
 }
@@ -94,7 +99,9 @@ async fn set_entire_cache(cache_file: &Path, cache: Vec<CachedAccount>) -> Resul
             "Making cache file parent directory at {}",
             cache_file_parent.to_string_lossy()
         );
-        std::fs::create_dir_all(cache_file_parent).map_err(CacheError::MkDir)?;
+        fs::create_dir_all(cache_file_parent)
+            .await
+            .map_err(CacheError::MkDir)?;
     }
     let mut cache_file = File::create(cache_file).await.map_err(CacheError::Write)?;
     let cache = serde_json::to_string_pretty(&cache).map_err(CacheError::Parse)?;

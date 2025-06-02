@@ -1,9 +1,7 @@
 use std::{any::Any, sync::Arc};
 
 use super::ArgumentType;
-use crate::{
-    context::CommandContext, exceptions::CommandSyntaxException, string_reader::StringReader,
-};
+use crate::{context::CommandContext, errors::CommandSyntaxError, string_reader::StringReader};
 
 pub enum StringArgument {
     /// Match up until the next space.
@@ -16,7 +14,7 @@ pub enum StringArgument {
 }
 
 impl ArgumentType for StringArgument {
-    fn parse(&self, reader: &mut StringReader) -> Result<Arc<dyn Any>, CommandSyntaxException> {
+    fn parse(&self, reader: &mut StringReader) -> Result<Arc<dyn Any>, CommandSyntaxError> {
         let result = match self {
             StringArgument::SingleWord => reader.read_unquoted_string().to_string(),
             StringArgument::QuotablePhrase => reader.read_string()?,

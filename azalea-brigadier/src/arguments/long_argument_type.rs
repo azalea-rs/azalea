@@ -3,7 +3,7 @@ use std::{any::Any, sync::Arc};
 use super::ArgumentType;
 use crate::{
     context::CommandContext,
-    exceptions::{BuiltInExceptions, CommandSyntaxException},
+    errors::{BuiltInError, CommandSyntaxError},
     string_reader::StringReader,
 };
 
@@ -14,28 +14,28 @@ struct Long {
 }
 
 impl ArgumentType for Long {
-    fn parse(&self, reader: &mut StringReader) -> Result<Arc<dyn Any>, CommandSyntaxException> {
+    fn parse(&self, reader: &mut StringReader) -> Result<Arc<dyn Any>, CommandSyntaxError> {
         let start = reader.cursor;
         let result = reader.read_long()?;
-        if let Some(minimum) = self.minimum {
-            if result < minimum {
-                reader.cursor = start;
-                return Err(BuiltInExceptions::LongTooSmall {
-                    found: result,
-                    min: minimum,
-                }
-                .create_with_context(reader));
+        if let Some(minimum) = self.minimum
+            && result < minimum
+        {
+            reader.cursor = start;
+            return Err(BuiltInError::LongTooSmall {
+                found: result,
+                min: minimum,
             }
+            .create_with_context(reader));
         }
-        if let Some(maximum) = self.maximum {
-            if result > maximum {
-                reader.cursor = start;
-                return Err(BuiltInExceptions::LongTooBig {
-                    found: result,
-                    max: maximum,
-                }
-                .create_with_context(reader));
+        if let Some(maximum) = self.maximum
+            && result > maximum
+        {
+            reader.cursor = start;
+            return Err(BuiltInError::LongTooBig {
+                found: result,
+                max: maximum,
             }
+            .create_with_context(reader));
         }
         Ok(Arc::new(result))
     }

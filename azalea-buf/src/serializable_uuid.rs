@@ -1,4 +1,4 @@
-use std::io::{Cursor, Write};
+use std::io::{self, Cursor, Write};
 
 use uuid::Uuid;
 
@@ -46,7 +46,7 @@ impl AzaleaRead for Uuid {
 }
 
 impl AzaleaWrite for Uuid {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         let [a, b, c, d] = self.to_int_array();
         a.azalea_write(buf)?;
         b.azalea_write(buf)?;

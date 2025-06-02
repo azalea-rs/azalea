@@ -1,4 +1,4 @@
-use azalea_client::InstanceHolder;
+use azalea_client::local_player::InstanceHolder;
 use azalea_world::MinecraftEntityId;
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;

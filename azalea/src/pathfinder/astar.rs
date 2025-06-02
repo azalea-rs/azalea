@@ -1,7 +1,7 @@
 use std::{
     cmp::{self},
     collections::BinaryHeap,
-    fmt::Debug,
+    fmt::{self, Debug},
     hash::{BuildHasherDefault, Hash},
     time::{Duration, Instant},
 };
@@ -221,7 +221,12 @@ where
                 best_successor = Some(successor);
             }
         }
-        let found_successor = best_successor.expect("No successor found");
+        let Some(found_successor) = best_successor else {
+            warn!(
+                "a successor stopped being possible while reconstructing the path, returning empty path"
+            );
+            return vec![];
+        };
 
         path.push(Movement {
             target: node_position,
@@ -239,6 +244,7 @@ pub struct Node {
     pub g_score: f32,
 }
 
+#[derive(Clone, Debug)]
 pub struct Edge<P: Hash + Copy, M> {
     pub movement: Movement<P, M>,
     pub cost: f32,
@@ -250,7 +256,7 @@ pub struct Movement<P: Hash + Copy, M> {
 }
 
 impl<P: Hash + Copy + Debug, M: Debug> Debug for Movement<P, M> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Movement")
             .field("target", &self.target)
             .field("data", &self.data)
@@ -279,26 +285,11 @@ pub struct WeightedNode {
 impl Ord for WeightedNode {
     #[inline]
     fn cmp(&self, other: &Self) -> cmp::Ordering {
-        // we compare bits instead of floats because it's faster. this is the same as
-        // f32::total_cmp as long as the numbers aren't negative
-
-        debug_assert!(self.f_score >= 0.0);
-        debug_assert!(other.f_score >= 0.0);
-        debug_assert!(self.g_score >= 0.0);
-        debug_assert!(other.g_score >= 0.0);
-
-        let self_f_score = self.f_score.to_bits() as i32;
-        let other_f_score = other.f_score.to_bits() as i32;
-
-        if self_f_score == other_f_score {
-            let self_g_score = self.g_score.to_bits() as i32;
-            let other_g_score = other.g_score.to_bits() as i32;
-
-            return self_g_score.cmp(&other_g_score);
-        }
-
         // intentionally inverted to make the BinaryHeap a min-heap
-        other_f_score.cmp(&self_f_score)
+        match other.f_score.total_cmp(&self.f_score) {
+            cmp::Ordering::Equal => self.g_score.total_cmp(&other.g_score),
+            s => s,
+        }
     }
 }
 impl Eq for WeightedNode {}

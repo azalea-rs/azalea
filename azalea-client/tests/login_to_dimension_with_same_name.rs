@@ -1,4 +1,4 @@
-use azalea_client::{InConfigState, InGameState, InstanceHolder, test_simulation::*};
+use azalea_client::{InConfigState, InGameState, local_player::InstanceHolder, test_simulation::*};
 use azalea_core::{position::ChunkPos, resource_location::ResourceLocation};
 use azalea_entity::LocalEntity;
 use azalea_protocol::packets::{

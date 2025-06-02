@@ -1,4 +1,8 @@
-use std::{fmt::Display, sync::LazyLock};
+use std::{
+    fmt::{self, Display},
+    io::{self, Cursor, Write},
+    sync::LazyLock,
+};
 
 #[cfg(feature = "azalea-buf")]
 use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
@@ -269,13 +273,12 @@ impl<'de> Deserialize<'de> for FormattedText {
                         // string to with_array otherwise add the component
                         // to the array
                         let c = FormattedText::deserialize(item).map_err(de::Error::custom)?;
-                        if let FormattedText::Text(text_component) = c {
-                            if text_component.base.siblings.is_empty()
-                                && text_component.base.style.is_empty()
-                            {
-                                with_array.push(StringOrComponent::String(text_component.text));
-                                continue;
-                            }
+                        if let FormattedText::Text(text_component) = c
+                            && text_component.base.siblings.is_empty()
+                            && text_component.base.style.is_empty()
+                        {
+                            with_array.push(StringOrComponent::String(text_component.text));
+                            continue;
                         }
                         with_array.push(StringOrComponent::FormattedText(
                             FormattedText::deserialize(item).map_err(de::Error::custom)?,
@@ -465,13 +468,12 @@ impl FormattedText {
                                 with_array.push(StringOrComponent::String("?".to_string()));
                             }
                         } else if let Some(c) = FormattedText::from_nbt_compound(item) {
-                            if let FormattedText::Text(text_component) = c {
-                                if text_component.base.siblings.is_empty()
-                                    && text_component.base.style.is_empty()
-                                {
-                                    with_array.push(StringOrComponent::String(text_component.text));
-                                    continue;
-                                }
+                            if let FormattedText::Text(text_component) = c
+                                && text_component.base.siblings.is_empty()
+                                && text_component.base.style.is_empty()
+                            {
+                                with_array.push(StringOrComponent::String(text_component.text));
+                                continue;
                             }
                             with_array.push(StringOrComponent::FormattedText(
                                 FormattedText::from_nbt_compound(item)?,
@@ -547,7 +549,7 @@ impl From<&simdnbt::Mutf8Str> for FormattedText {
 #[cfg(feature = "azalea-buf")]
 #[cfg(feature = "simdnbt")]
 impl AzaleaRead for FormattedText {
-    fn azalea_read(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, BufReadError> {
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let nbt = simdnbt::borrow::read_optional_tag(buf)?;
         match nbt {
             Some(nbt) => FormattedText::from_nbt_tag(nbt.as_tag()).ok_or(BufReadError::Custom(
@@ -561,7 +563,7 @@ impl AzaleaRead for FormattedText {
 #[cfg(feature = "azalea-buf")]
 #[cfg(feature = "simdnbt")]
 impl AzaleaWrite for FormattedText {
-    fn azalea_write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         let mut out = Vec::new();
         simdnbt::owned::BaseNbt::write_unnamed(&(self.clone().to_compound().into()), &mut out);
         buf.write_all(&out)
@@ -583,7 +585,7 @@ impl From<&str> for FormattedText {
 }
 
 impl Display for FormattedText {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             FormattedText::Text(c) => c.fmt(f),
             FormattedText::Translatable(c) => c.fmt(f),

@@ -1,4 +1,4 @@
-use std::io::{Cursor, Write};
+use std::io::{self, Cursor, Write};
 
 use azalea_buf::AzBuf;
 use azalea_buf::{AzaleaRead, AzaleaWrite};
@@ -73,7 +73,7 @@ pub struct Flags {
 
 impl AzaleaRead for Flags {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let set = FixedBitSet::<{ 3_usize.div_ceil(8) }>::azalea_read(buf)?;
+        let set = FixedBitSet::<3>::azalea_read(buf)?;
         Ok(Self {
             ignore_entities: set.index(0),
             show_air: set.index(1),
@@ -83,8 +83,8 @@ impl AzaleaRead for Flags {
 }
 
 impl AzaleaWrite for Flags {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        let mut set = FixedBitSet::<{ 3_usize.div_ceil(8) }>::new();
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+        let mut set = FixedBitSet::<3>::new();
         if self.ignore_entities {
             set.set(0);
         }

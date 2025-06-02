@@ -17,8 +17,8 @@ use tracing::{debug, error};
 
 use super::as_system;
 use crate::{
-    Account, GameProfileComponent, InConfigState, connection::RawConnection,
-    declare_packet_handlers, disconnect::DisconnectEvent,
+    Account, InConfigState, connection::RawConnection, declare_packet_handlers,
+    disconnect::DisconnectEvent, player::GameProfileComponent,
 };
 
 pub fn process_packet(ecs: &mut World, player: Entity, packet: &ClientboundLoginPacket) {

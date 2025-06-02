@@ -58,7 +58,7 @@ impl InstanceContainer {
                 let existing = existing_lock.read();
                 if existing.chunks.height != height {
                     error!(
-                        "Shared dimension height mismatch: {} != {height}",
+                        "Shared world height mismatch: {} != {height}",
                         existing.chunks.height
                     );
                 }
@@ -86,7 +86,8 @@ impl InstanceContainer {
 }
 
 /// The name of the [`Instance`](crate::Instance) (world) the entity is
-/// in. If two entities share the same world name, we assume they're in the same
-/// instance.
+/// in. If two entities share the same instance name, we assume they're in the
+/// same instance.
 #[derive(Component, Clone, Debug, PartialEq, Deref, DerefMut)]
+#[doc(alias("worldname", "world name"))]
 pub struct InstanceName(pub ResourceLocation);

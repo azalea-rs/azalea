@@ -14,12 +14,12 @@ use derive_more::{Deref, DerefMut};
 use tokio::sync::mpsc;
 
 use crate::{
-    PlayerInfo,
     chat::{ChatPacket, ChatReceivedEvent},
     disconnect::DisconnectEvent,
     packet::game::{
         AddPlayerEvent, DeathEvent, KeepAliveEvent, RemovePlayerEvent, UpdatePlayerEvent,
     },
+    player::PlayerInfo,
 };
 
 // (for contributors):

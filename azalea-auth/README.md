@@ -2,6 +2,8 @@
 
 A port of Mojang's Authlib and launcher authentication.
 
+The default location of Azalea's cache is at `~/.minecraft/azalea-auth.json`. You can delete or modify this file if you'd like to associate an email with a different account.
+
 # Examples
 
 ```no_run
@@ -24,4 +26,4 @@ async fn main() {
 }
 ```
 
-Thanks to [wiki contributors](https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Microsoft_Authentication_Scheme), [Overhash](https://gist.github.com/OverHash/a71b32846612ba09d8f79c9d775bfadf), and [prismarine-auth contributors](https://github.com/PrismarineJS/prismarine-auth).
+Thanks to [wiki contributors](https://minecraft.wiki/w/Microsoft_authentication), [Overhash](https://gist.github.com/OverHash/a71b32846612ba09d8f79c9d775bfadf), and [prismarine-auth contributors](https://github.com/PrismarineJS/prismarine-auth).

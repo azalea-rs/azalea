@@ -1,6 +1,6 @@
 #[cfg(feature = "azalea-buf")]
 use std::io::{Cursor, Write};
-use std::{collections::HashSet, hash::Hash};
+use std::{collections::HashSet, hash::Hash, io};
 
 #[cfg(feature = "azalea-buf")]
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
@@ -107,7 +107,7 @@ impl AzaleaRead for Suggestions {
 
 #[cfg(feature = "azalea-buf")]
 impl AzaleaWrite for Suggestions {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         (self.range.start() as u32).azalea_write_var(buf)?;
         (self.range.length() as u32).azalea_write_var(buf)?;
         self.suggestions.azalea_write(buf)?;

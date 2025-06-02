@@ -13,8 +13,7 @@ pub mod pathfinder;
 pub mod prelude;
 pub mod swarm;
 
-use std::net::SocketAddr;
-use std::time::Duration;
+use std::{net::SocketAddr, time::Duration};
 
 use app::Plugins;
 pub use azalea_auth as auth;
@@ -39,8 +38,7 @@ pub use bevy_ecs as ecs;
 pub use bot::*;
 use ecs::component::Component;
 use futures::{Future, future::BoxFuture};
-use protocol::connect::Proxy;
-use protocol::{ServerAddress, resolver::ResolverError};
+use protocol::{ServerAddress, connect::Proxy, resolver::ResolverError};
 use swarm::SwarmBuilder;
 use thiserror::Error;
 
@@ -109,7 +107,11 @@ impl ClientBuilder<NoState, ()> {
     /// use azalea::app::PluginGroup;
     ///
     /// let client_builder = ClientBuilder::new_without_plugins()
-    ///     .add_plugins(azalea::DefaultPlugins.build().disable::<azalea::chat_signing::ChatSigningPlugin>())
+    ///     .add_plugins(
+    ///         azalea::DefaultPlugins
+    ///             .build()
+    ///             .disable::<azalea::chat_signing::ChatSigningPlugin>(),
+    ///     )
     ///     .add_plugins(azalea::DefaultBotPlugins);
     /// # client_builder.set_handler(handle);
     /// # #[derive(Component, Clone, Default)]

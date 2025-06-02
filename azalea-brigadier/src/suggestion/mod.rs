@@ -1,17 +1,21 @@
+mod suggestion_provider;
 mod suggestions;
 mod suggestions_builder;
 
 #[cfg(feature = "azalea-buf")]
 use std::io::Write;
 use std::{
+    cmp::Ordering,
     fmt::{self, Display},
     hash::Hash,
+    io,
 };
 
 #[cfg(feature = "azalea-buf")]
 use azalea_buf::AzaleaWrite;
 #[cfg(feature = "azalea-buf")]
 use azalea_chat::FormattedText;
+pub use suggestion_provider::SuggestionProvider;
 pub use suggestions::Suggestions;
 pub use suggestions_builder::SuggestionsBuilder;
 
@@ -93,7 +97,7 @@ impl Suggestion {
 }
 
 impl SuggestionValue {
-    pub fn cmp_ignore_case(&self, other: &Self) -> std::cmp::Ordering {
+    pub fn cmp_ignore_case(&self, other: &Self) -> Ordering {
         match (self, other) {
             (SuggestionValue::Text(a), SuggestionValue::Text(b)) => {
                 a.to_lowercase().cmp(&b.to_lowercase())
@@ -118,7 +122,7 @@ impl Display for SuggestionValue {
 }
 
 impl Ord for SuggestionValue {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+    fn cmp(&self, other: &Self) -> Ordering {
         match (self, other) {
             (SuggestionValue::Text(a), SuggestionValue::Text(b)) => a.cmp(b),
             (SuggestionValue::Integer(a), SuggestionValue::Integer(b)) => a.cmp(b),
@@ -131,14 +135,14 @@ impl Ord for SuggestionValue {
     }
 }
 impl PartialOrd for SuggestionValue {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
 #[cfg(feature = "azalea-buf")]
 impl AzaleaWrite for Suggestion {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         self.value.to_string().azalea_write(buf)?;
         self.tooltip
             .clone()

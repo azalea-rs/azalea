@@ -1,4 +1,7 @@
-use std::{fmt::Display, str::FromStr};
+use std::{
+    fmt::{self, Display},
+    str::FromStr,
+};
 
 use azalea_block::BlockState;
 use azalea_buf::AzBuf;
@@ -161,7 +164,7 @@ impl FromStr for HeightmapKind {
 }
 
 impl Display for HeightmapKind {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             HeightmapKind::WorldSurfaceWg => write!(f, "WORLD_SURFACE_WG"),
             HeightmapKind::WorldSurface => write!(f, "WORLD_SURFACE"),

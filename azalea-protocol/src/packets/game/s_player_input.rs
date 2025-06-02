@@ -1,4 +1,4 @@
-use std::io::Cursor;
+use std::io::{self, Cursor, Write};
 
 use azalea_buf::BufReadError;
 use azalea_buf::{AzaleaRead, AzaleaWrite};
@@ -18,7 +18,7 @@ pub struct ServerboundPlayerInput {
 
 impl AzaleaRead for ServerboundPlayerInput {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let set = FixedBitSet::<{ 7_usize.div_ceil(8) }>::azalea_read(buf)?;
+        let set = FixedBitSet::<7>::azalea_read(buf)?;
         Ok(Self {
             forward: set.index(0),
             backward: set.index(1),
@@ -32,8 +32,8 @@ impl AzaleaRead for ServerboundPlayerInput {
 }
 
 impl AzaleaWrite for ServerboundPlayerInput {
-    fn azalea_write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
-        let mut set = FixedBitSet::<{ 7_usize.div_ceil(8) }>::new();
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+        let mut set = FixedBitSet::<7>::new();
         if self.forward {
             set.set(0);
         }

@@ -1,4 +1,4 @@
-use std::io::{Cursor, Write};
+use std::io::{self, Cursor, Write};
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
 use azalea_core::{
@@ -35,7 +35,7 @@ pub struct BlockHit {
 }
 
 impl AzaleaWrite for BlockHit {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         self.block_pos.azalea_write(buf)?;
         self.direction.azalea_write(buf)?;
         f32::azalea_write(

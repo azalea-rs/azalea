@@ -1,6 +1,6 @@
 use std::{
     collections::HashMap,
-    io::{Cursor, Write},
+    io::{self, Cursor, Write},
 };
 
 use azalea_auth::game_profile::{GameProfile, ProfilePropertyValue};
@@ -119,7 +119,7 @@ impl AzaleaRead for ClientboundPlayerInfoUpdate {
 }
 
 impl AzaleaWrite for ClientboundPlayerInfoUpdate {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         self.actions.azalea_write(buf)?;
 
         (self.entries.len() as u32).azalea_write_var(buf)?;
@@ -183,7 +183,7 @@ pub struct ActionEnumSet {
 
 impl AzaleaRead for ActionEnumSet {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let set = FixedBitSet::<{ 7_usize.div_ceil(8) }>::azalea_read(buf)?;
+        let set = FixedBitSet::<7>::azalea_read(buf)?;
         Ok(ActionEnumSet {
             add_player: set.index(0),
             initialize_chat: set.index(1),
@@ -198,8 +198,8 @@ impl AzaleaRead for ActionEnumSet {
 }
 
 impl AzaleaWrite for ActionEnumSet {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        let mut set = FixedBitSet::<{ 7_usize.div_ceil(8) }>::new();
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+        let mut set = FixedBitSet::<7>::new();
         if self.add_player {
             set.set(0);
         }

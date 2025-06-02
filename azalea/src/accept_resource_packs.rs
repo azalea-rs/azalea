@@ -1,12 +1,18 @@
-use azalea_client::InConfigState;
-use azalea_client::chunks::handle_chunk_batch_finished_event;
-use azalea_client::inventory::InventorySet;
-use azalea_client::packet::config::SendConfigPacketEvent;
-use azalea_client::packet::game::SendPacketEvent;
-use azalea_client::packet::{death_event_on_0_health, game::ResourcePackEvent};
-use azalea_client::respawn::perform_respawn;
-use azalea_protocol::packets::config;
-use azalea_protocol::packets::game::s_resource_pack::{self, ServerboundResourcePack};
+use azalea_client::{
+    InConfigState,
+    chunks::handle_chunk_batch_finished_event,
+    inventory::InventorySet,
+    packet::{
+        config::SendConfigPacketEvent,
+        death_event_on_0_health,
+        game::{ResourcePackEvent, SendPacketEvent},
+    },
+    respawn::perform_respawn,
+};
+use azalea_protocol::packets::{
+    config,
+    game::s_resource_pack::{self, ServerboundResourcePack},
+};
 use bevy_app::Update;
 use bevy_ecs::prelude::*;
 

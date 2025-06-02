@@ -1,4 +1,4 @@
-use std::io::Cursor;
+use std::io::{self, Cursor};
 use std::ops::Deref;
 use std::{collections::HashMap, io::Write};
 
@@ -40,7 +40,7 @@ impl AzaleaRead for TagMap {
 }
 
 impl AzaleaWrite for TagMap {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         (self.len() as u32).azalea_write_var(buf)?;
         for (k, v) in &self.0 {
             k.azalea_write(buf)?;
@@ -58,7 +58,7 @@ impl AzaleaRead for Tags {
 }
 
 impl AzaleaWrite for Tags {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         self.name.azalea_write(buf)?;
         self.elements.azalea_write_var(buf)?;
         Ok(())

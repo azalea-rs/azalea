@@ -1,4 +1,4 @@
-use std::io::{Cursor, Write};
+use std::io::{self, Cursor, Write};
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
 
@@ -124,26 +124,31 @@ impl From<Vec<u8>> for BitSet {
     }
 }
 
-/// A list of bits with a known fixed size.
+/// A compact fixed-size array of bits.
 ///
-/// The `N` is the number of bytes reserved for the bitset. You're encouraged to
-/// use it like `FixedBitSet<{ 20_usize.div_ceil(8) }>` if you need 20 bits.
+/// The `N` is the number of bits reserved for the bitset. You're encouraged to
+/// use it like `FixedBitSet<20>` if you need 20 bits.
 ///
-/// TODO: this should be changed back to bits once this is resolved:
-/// <https://github.com/rust-lang/rust/issues/133199#issuecomment-2531645526>
-///
-/// Note that this is primarily meant for fast serialization and deserialization
-/// for Minecraft, if you don't need that you should use the `fixedbitset` crate
-/// since it's approximately 20% faster (since it stores the data as usizes
-/// instead of u8s).
+/// Note that this is optimized for fast serialization and deserialization for
+/// Minecraft, and may not be as performant as it could be for other purposes.
+/// Notably, the internal representation is an array of `u8`s even though
+/// `usize` would be slightly faster.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct FixedBitSet<const N: usize> {
-    data: [u8; N],
+pub struct FixedBitSet<const N: usize>
+where
+    [u8; bits_to_bytes(N)]: Sized,
+{
+    data: [u8; bits_to_bytes(N)],
 }
 
-impl<const N: usize> FixedBitSet<N> {
-    pub fn new() -> Self {
-        FixedBitSet { data: [0; N] }
+impl<const N: usize> FixedBitSet<N>
+where
+    [u8; bits_to_bytes(N)]: Sized,
+{
+    pub const fn new() -> Self {
+        FixedBitSet {
+            data: [0; bits_to_bytes(N)],
+        }
     }
 
     #[inline]
@@ -157,27 +162,40 @@ impl<const N: usize> FixedBitSet<N> {
     }
 }
 
-impl<const N: usize> AzaleaRead for FixedBitSet<N> {
+impl<const N: usize> AzaleaRead for FixedBitSet<N>
+where
+    [u8; bits_to_bytes(N)]: Sized,
+{
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let mut data = [0; N];
-        for item in data.iter_mut().take(N) {
+        let mut data = [0; bits_to_bytes(N)];
+        for item in data.iter_mut().take(bits_to_bytes(N)) {
             *item = u8::azalea_read(buf)?;
         }
         Ok(FixedBitSet { data })
     }
 }
-impl<const N: usize> AzaleaWrite for FixedBitSet<N> {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        for i in 0..N {
+impl<const N: usize> AzaleaWrite for FixedBitSet<N>
+where
+    [u8; bits_to_bytes(N)]: Sized,
+{
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+        for i in 0..bits_to_bytes(N) {
             self.data[i].azalea_write(buf)?;
         }
         Ok(())
     }
 }
-impl<const N: usize> Default for FixedBitSet<N> {
+impl<const N: usize> Default for FixedBitSet<N>
+where
+    [u8; bits_to_bytes(N)]: Sized,
+{
     fn default() -> Self {
         Self::new()
     }
+}
+
+pub const fn bits_to_bytes(n: usize) -> usize {
+    n.div_ceil(8)
 }
 
 #[cfg(test)]

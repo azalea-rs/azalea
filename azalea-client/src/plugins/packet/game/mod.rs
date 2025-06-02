@@ -20,7 +20,7 @@ pub use events::*;
 use tracing::{debug, error, trace, warn};
 
 use crate::{
-    ClientInformation, PlayerInfo,
+    ClientInformation,
     chat::{ChatPacket, ChatReceivedEvent},
     chunks,
     connection::RawConnection,
@@ -29,11 +29,10 @@ use crate::{
     inventory::{
         ClientSideCloseContainerEvent, Inventory, MenuOpenedEvent, SetContainerContentEvent,
     },
-    local_player::{
-        GameProfileComponent, Hunger, InstanceHolder, LocalGameMode, PlayerAbilities, TabList,
-    },
+    local_player::{Hunger, InstanceHolder, LocalGameMode, PlayerAbilities, TabList},
     movement::{KnockbackEvent, KnockbackType},
     packet::as_system,
+    player::{GameProfileComponent, PlayerInfo},
 };
 
 pub fn process_packet(ecs: &mut World, player: Entity, packet: &ClientboundGamePacket) {
@@ -1236,7 +1235,7 @@ impl GamePacketHandler<'_> {
         // TODO: handle ContainerSetData packet
         // this is used for various things like the furnace progress
         // bar
-        // see https://minecraft.wiki/w/Minecraft_Wiki:Projects/wiki.vg_merge/Protocol#Set_Container_Property
+        // see https://minecraft.wiki/w/Java_Edition_protocol/Packets#Set_Container_Property
 
         // as_system::<Query<&mut Inventory>>(self.ecs, |mut query| {
         //     let inventory = query.get_mut(self.player).unwrap();
@@ -1423,8 +1422,12 @@ impl GamePacketHandler<'_> {
         )>(
             self.ecs,
             |(mut commands, mut query, mut events, mut instance_container, mut loaded_by_query)| {
-                let (mut instance_holder, game_profile, client_information, instance_name) =
-                    query.get_mut(self.player).unwrap();
+                let Ok((mut instance_holder, game_profile, client_information, instance_name)) =
+                    query.get_mut(self.player)
+                else {
+                    warn!("Got respawn packet but player doesn't have the required components");
+                    return;
+                };
 
                 let new_instance_name = p.common.dimension.clone();
 

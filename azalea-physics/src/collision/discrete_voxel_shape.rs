@@ -1,3 +1,5 @@
+use std::cmp;
+
 use azalea_core::{
     bitset::BitSet,
     direction::{Axis, AxisCycle},
@@ -146,12 +148,12 @@ impl BitSetDiscreteVoxelShape {
     fn fill_update_bounds(&mut self, x: u32, y: u32, z: u32, update: bool) {
         self.storage.set(self.get_index(x, y, z));
         if update {
-            self.x_min = std::cmp::min(self.x_min, x as i32);
-            self.y_min = std::cmp::min(self.y_min, y as i32);
-            self.z_min = std::cmp::min(self.z_min, z as i32);
-            self.x_max = std::cmp::max(self.x_max, (x + 1) as i32);
-            self.y_max = std::cmp::max(self.y_max, (y + 1) as i32);
-            self.z_max = std::cmp::max(self.z_max, (z + 1) as i32);
+            self.x_min = cmp::min(self.x_min, x as i32);
+            self.y_min = cmp::min(self.y_min, y as i32);
+            self.z_min = cmp::min(self.z_min, z as i32);
+            self.x_max = cmp::max(self.x_max, (x + 1) as i32);
+            self.y_max = cmp::max(self.y_max, (y + 1) as i32);
+            self.z_max = cmp::max(self.z_max, (z + 1) as i32);
         }
     }
 
@@ -201,24 +203,24 @@ impl BitSetDiscreteVoxelShape {
                             var12.try_into().unwrap(),
                             var14.try_into().unwrap(),
                         ));
-                        var7[2] = std::cmp::min(var7[2], var14);
-                        var7[5] = std::cmp::max(var7[5], var14);
+                        var7[2] = cmp::min(var7[2], var14);
+                        var7[5] = cmp::max(var7[5], var14);
                         var13[0] = true;
                     }
 
                     true
                 });
                 if var13[0] {
-                    var7[1] = std::cmp::min(var7[1], var12);
-                    var7[4] = std::cmp::max(var7[4], var12);
+                    var7[1] = cmp::min(var7[1], var12);
+                    var7[4] = cmp::max(var7[4], var12);
                     var10[0] = true;
                 }
 
                 true
             });
             if var10[0] {
-                var7[0] = std::cmp::min(var7[0], var9);
-                var7[3] = std::cmp::max(var7[3], var9);
+                var7[0] = cmp::min(var7[0], var9);
+                var7[3] = cmp::max(var7[3], var9);
             }
 
             true

@@ -1,3 +1,4 @@
+use std::io;
 use std::io::Cursor;
 use std::io::Write;
 
@@ -36,14 +37,14 @@ impl AzaleaRead for Operation {
             _ => {
                 return Err(BufReadError::UnexpectedEnumVariant {
                     id: operation_id as i32,
-                })
+                });
             }
         })
     }
 }
 
 impl AzaleaWrite for Operation {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         match self {
             Operation::Add(add) => {
                 0u32.azalea_write_var(buf)?;
@@ -116,7 +117,7 @@ pub struct Properties {
 
 impl AzaleaRead for Properties {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let set = FixedBitSet::<{ 3_usize.div_ceil(8) }>::azalea_read(buf)?;
+        let set = FixedBitSet::<3>::azalea_read(buf)?;
         Ok(Self {
             darken_screen: set.index(0),
             play_music: set.index(1),
@@ -126,8 +127,8 @@ impl AzaleaRead for Properties {
 }
 
 impl AzaleaWrite for Properties {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
-        let mut set = FixedBitSet::<{ 3_usize.div_ceil(8) }>::new();
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+        let mut set = FixedBitSet::<3>::new();
         if self.darken_screen {
             set.set(0);
         }

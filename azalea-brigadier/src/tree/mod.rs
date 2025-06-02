@@ -1,7 +1,7 @@
 use std::{
     collections::{BTreeMap, HashMap},
-    fmt::Debug,
-    hash::Hash,
+    fmt::{self, Debug},
+    hash::{Hash, Hasher},
     ptr,
     sync::Arc,
 };
@@ -14,18 +14,19 @@ use crate::{
         required_argument_builder::Argument,
     },
     context::{CommandContext, CommandContextBuilder, ParsedArgument, StringRange},
-    exceptions::{BuiltInExceptions, CommandSyntaxException},
+    errors::{BuiltInError, CommandSyntaxError},
     modifier::RedirectModifier,
     string_reader::StringReader,
     suggestion::{Suggestions, SuggestionsBuilder},
 };
 
-pub type Command<S> = Option<Arc<dyn Fn(&CommandContext<S>) -> i32 + Send + Sync>>;
+pub type Command<S> =
+    Option<Arc<dyn Fn(&CommandContext<S>) -> Result<i32, CommandSyntaxError> + Send + Sync>>;
 
 /// An ArgumentBuilder that has been built.
 #[non_exhaustive]
 pub struct CommandNode<S> {
-    pub value: ArgumentBuilderType,
+    pub value: ArgumentBuilderType<S>,
 
     // this is a BTreeMap because children need to be ordered when getting command suggestions
     pub children: BTreeMap<String, Arc<RwLock<CommandNode<S>>>>,
@@ -66,7 +67,7 @@ impl<S> CommandNode<S> {
     }
     /// Gets the argument, or panics. You should use match if you're not certain
     /// about the type.
-    pub fn argument(&self) -> &Argument {
+    pub fn argument(&self) -> &Argument<S> {
         match self.value {
             ArgumentBuilderType::Argument(ref argument) => argument,
             _ => panic!("CommandNode::argument() called on non-argument node"),
@@ -149,7 +150,7 @@ impl<S> CommandNode<S> {
         &self,
         reader: &mut StringReader,
         context_builder: &mut CommandContextBuilder<S>,
-    ) -> Result<(), CommandSyntaxException> {
+    ) -> Result<(), CommandSyntaxError> {
         match self.value {
             ArgumentBuilderType::Argument(ref argument) => {
                 let start = reader.cursor();
@@ -176,7 +177,7 @@ impl<S> CommandNode<S> {
                     return Ok(());
                 }
 
-                Err(BuiltInExceptions::LiteralIncorrect {
+                Err(BuiltInError::LiteralIncorrect {
                     expected: literal.value.clone(),
                 }
                 .create_with_context(reader))
@@ -214,9 +215,7 @@ impl<S> CommandNode<S> {
 
     pub fn list_suggestions(
         &self,
-        // context is here because that's how it is in mojang's brigadier, but we haven't
-        // implemented custom suggestions yet so this is unused rn
-        _context: CommandContext<S>,
+        context: CommandContext<S>,
         builder: SuggestionsBuilder,
     ) -> Suggestions {
         match &self.value {
@@ -231,15 +230,15 @@ impl<S> CommandNode<S> {
                     Suggestions::default()
                 }
             }
-            ArgumentBuilderType::Argument(argument) => argument.list_suggestions(builder),
+            ArgumentBuilderType::Argument(argument) => argument.list_suggestions(context, builder),
         }
     }
 }
 
 impl<S> Debug for CommandNode<S> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("CommandNode")
-            .field("value", &self.value)
+            // .field("value", &self.value)
             .field("children", &self.children)
             .field("command", &self.command.is_some())
             // .field("requirement", &self.requirement)
@@ -269,7 +268,7 @@ impl<S> Default for CommandNode<S> {
 }
 
 impl<S> Hash for CommandNode<S> {
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+    fn hash<H: Hasher>(&self, state: &mut H) {
         // hash the children
         for (k, v) in &self.children {
             k.hash(state);

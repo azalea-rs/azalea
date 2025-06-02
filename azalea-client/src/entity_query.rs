@@ -1,10 +1,10 @@
-use std::sync::Arc;
+use std::{any, sync::Arc};
 
+use azalea_world::InstanceName;
 use bevy_ecs::{
     component::Component,
     entity::Entity,
-    query::QueryData,
-    query::{QueryFilter, ROQueryItem},
+    query::{QueryData, QueryFilter, ROQueryItem},
     world::World,
 };
 use parking_lot::Mutex;
@@ -29,23 +29,23 @@ impl Client {
             .unwrap_or_else(|_| {
                 panic!(
                     "Our client is missing a required component {:?}",
-                    std::any::type_name::<D>()
+                    any::type_name::<D>()
                 )
             })
     }
 
-    /// Return a lightweight [`Entity`] for the entity that matches the given
-    /// predicate function.
+    /// Return a lightweight [`Entity`] for the first entity that matches the
+    /// given predicate function that is in the same [`Instance`] as the
+    /// client.
     ///
     /// You can then use [`Self::entity_component`] to get components from this
     /// entity.
     ///
     /// # Example
-    /// Note that this will very likely change in the future.
     /// ```
-    /// use azalea_client::{Client, GameProfileComponent};
-    /// use bevy_ecs::query::With;
+    /// use azalea_client::{Client, player::GameProfileComponent};
     /// use azalea_entity::{Position, metadata::Player};
+    /// use bevy_ecs::query::With;
     ///
     /// # fn example(mut bot: Client, sender_name: String) {
     /// let entity = bot.entity_by::<With<Player>, (&GameProfileComponent,)>(
@@ -59,11 +59,25 @@ impl Client {
     /// ```
     ///
     /// [`Entity`]: bevy_ecs::entity::Entity
+    /// [`Instance`]: azalea_world::Instance
     pub fn entity_by<F: QueryFilter, Q: QueryData>(
         &self,
         predicate: impl EntityPredicate<Q, F>,
     ) -> Option<Entity> {
-        predicate.find(self.ecs.clone())
+        let instance_name = self.get_component::<InstanceName>()?;
+        predicate.find(self.ecs.clone(), &instance_name)
+    }
+
+    /// Same as [`Self::entity_by`] but returns a `Vec<Entity>` of all entities
+    /// in our instance that match the predicate.
+    pub fn entities_by<F: QueryFilter, Q: QueryData>(
+        &self,
+        predicate: impl EntityPredicate<Q, F>,
+    ) -> Vec<Entity> {
+        let Some(instance_name) = self.get_component::<InstanceName>() else {
+            return vec![];
+        };
+        predicate.find_all(self.ecs.clone(), &instance_name)
     }
 
     /// Get a component from an entity. Note that this will return an owned type
@@ -77,7 +91,7 @@ impl Client {
         let components = q.get(&ecs, entity).unwrap_or_else(|_| {
             panic!(
                 "Entity is missing a required component {:?}",
-                std::any::type_name::<Q>()
+                any::type_name::<Q>()
             )
         });
         components.clone()
@@ -95,35 +109,29 @@ impl Client {
 }
 
 pub trait EntityPredicate<Q: QueryData, Filter: QueryFilter> {
-    fn find(&self, ecs_lock: Arc<Mutex<World>>) -> Option<Entity>;
+    fn find(&self, ecs_lock: Arc<Mutex<World>>, instance_name: &InstanceName) -> Option<Entity>;
+    fn find_all(&self, ecs_lock: Arc<Mutex<World>>, instance_name: &InstanceName) -> Vec<Entity>;
 }
-impl<F, Q, Filter> EntityPredicate<Q, Filter> for F
+impl<F, Q: QueryData, Filter: QueryFilter> EntityPredicate<Q, Filter> for F
 where
     F: Fn(&ROQueryItem<Q>) -> bool,
-    Q: QueryData,
-    Filter: QueryFilter,
 {
-    fn find(&self, ecs_lock: Arc<Mutex<World>>) -> Option<Entity> {
+    fn find(&self, ecs_lock: Arc<Mutex<World>>, instance_name: &InstanceName) -> Option<Entity> {
         let mut ecs = ecs_lock.lock();
-        let mut query = ecs.query_filtered::<(Entity, Q), Filter>();
-        query.iter(&ecs).find(|(_, q)| (self)(q)).map(|(e, _)| e)
+        let mut query = ecs.query_filtered::<(Entity, &InstanceName, Q), Filter>();
+        query
+            .iter(&ecs)
+            .find(|(_, e_instance_name, q)| *e_instance_name == instance_name && (self)(q))
+            .map(|(e, _, _)| e)
+    }
+
+    fn find_all(&self, ecs_lock: Arc<Mutex<World>>, instance_name: &InstanceName) -> Vec<Entity> {
+        let mut ecs = ecs_lock.lock();
+        let mut query = ecs.query_filtered::<(Entity, &InstanceName, Q), Filter>();
+        query
+            .iter(&ecs)
+            .filter(|(_, e_instance_name, q)| *e_instance_name == instance_name && (self)(q))
+            .map(|(e, _, _)| e)
+            .collect::<Vec<_>>()
     }
 }
-
-// impl<'a, F, Q1, Q2> EntityPredicate<'a, (Q1, Q2)> for F
-// where
-//     F: Fn(&<Q1 as WorldQuery>::Item<'_>, &<Q2 as WorldQuery>::Item<'_>) ->
-// bool,     Q1: QueryFilter,
-//     Q2: QueryFilter,
-// {
-//     fn find(&self, ecs: &mut Ecs) -> Option<Entity> {
-//         // (self)(query)
-//         let mut query = ecs.query_filtered::<(Entity, Q1, Q2), ()>();
-//         let entity = query
-//             .iter(ecs)
-//             .find(|(_, q1, q2)| (self)(q1, q2))
-//             .map(|(e, _, _)| e);
-
-//         entity
-//     }
-// }

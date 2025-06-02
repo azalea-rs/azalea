@@ -86,7 +86,7 @@ impl<'a> BlockCollisionsState<'a> {
         let block_state: BlockState = if item_chunk_pos == initial_chunk_pos {
             match &initial_chunk {
                 Some(initial_chunk) => initial_chunk
-                    .get(&ChunkBlockPos::from(item.pos), self.world.chunks.min_y)
+                    .get_block_state(&ChunkBlockPos::from(item.pos), self.world.chunks.min_y)
                     .unwrap_or(BlockState::AIR),
                 _ => BlockState::AIR,
             }
@@ -186,7 +186,7 @@ impl<'a> BlockCollisionsState<'a> {
 
         for (cached_section_pos, cached_section) in &self.cached_sections {
             if section_pos == *cached_section_pos {
-                return cached_section.get(section_block_pos);
+                return cached_section.get_block_state(section_block_pos);
             }
         }
 
@@ -211,7 +211,7 @@ impl<'a> BlockCollisionsState<'a> {
         // println!("chunk section data: {:?}", section.states.storage.data);
         // println!("biome length: {}", section.biomes.storage.data.len());
 
-        section.get(section_block_pos)
+        section.get_block_state(section_block_pos)
     }
 
     fn get_block_shape(&mut self, block_state: BlockState) -> &'static VoxelShape {

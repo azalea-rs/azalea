@@ -1,6 +1,6 @@
 //! Define some types needed for entity metadata.
 
-use std::io::{Cursor, Write};
+use std::io::{self, Cursor, Write};
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
 use azalea_chat::FormattedText;
@@ -43,7 +43,7 @@ impl AzaleaRead for EntityMetadataItems {
 }
 
 impl AzaleaWrite for EntityMetadataItems {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         for item in &self.0 {
             item.index.azalea_write(buf)?;
             item.value.azalea_write(buf)?;
@@ -128,7 +128,7 @@ impl AzaleaRead for OptionalUnsignedInt {
     }
 }
 impl AzaleaWrite for OptionalUnsignedInt {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         match self.0 {
             Some(val) => (val + 1).azalea_write_var(buf),
             None => 0u32.azalea_write_var(buf),

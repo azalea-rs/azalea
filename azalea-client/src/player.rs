@@ -3,12 +3,14 @@ use azalea_chat::FormattedText;
 use azalea_core::game_type::GameMode;
 use azalea_entity::indexing::EntityUuidIndex;
 use bevy_ecs::{
+    component::Component,
     event::EventReader,
     system::{Commands, Res},
 };
+use derive_more::{Deref, DerefMut};
 use uuid::Uuid;
 
-use crate::{GameProfileComponent, packet::game::AddPlayerEvent};
+use crate::packet::game::AddPlayerEvent;
 
 /// A player in the tab list.
 #[derive(Debug, Clone)]
@@ -28,6 +30,14 @@ pub struct PlayerInfo {
     /// the player's actual username.
     pub display_name: Option<Box<FormattedText>>,
 }
+
+/// A component only present in players that contains the [`GameProfile`] (which
+/// you can use to get a player's name).
+///
+/// Note that it's possible for this to be missing in a player if the server
+/// never sent the player info for them (though this is uncommon).
+#[derive(Component, Clone, Debug, Deref, DerefMut)]
+pub struct GameProfileComponent(pub GameProfile);
 
 /// Add a [`GameProfileComponent`] when an [`AddPlayerEvent`] is received.
 /// Usually the `GameProfileComponent` will be added from the

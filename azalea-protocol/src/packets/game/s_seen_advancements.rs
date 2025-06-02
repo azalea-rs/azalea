@@ -1,4 +1,4 @@
-use std::io::Cursor;
+use std::io::{self, Cursor, Write};
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite};
 use azalea_core::resource_location::ResourceLocation;
@@ -31,7 +31,7 @@ impl AzaleaRead for ServerboundSeenAdvancements {
 }
 
 impl AzaleaWrite for ServerboundSeenAdvancements {
-    fn azalea_write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         self.action.azalea_write(buf)?;
         if let Some(tab) = &self.tab {
             tab.azalea_write(buf)?;

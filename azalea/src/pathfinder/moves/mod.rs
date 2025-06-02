@@ -1,7 +1,10 @@
 pub mod basic;
 pub mod parkour;
 
-use std::{fmt::Debug, sync::Arc};
+use std::{
+    fmt::{self, Debug},
+    sync::Arc,
+};
 
 use azalea_block::BlockState;
 use azalea_client::{
@@ -16,6 +19,7 @@ use parking_lot::RwLock;
 
 use super::{
     astar,
+    custom_state::CustomPathfinderStateRef,
     mining::MiningCache,
     rel_block_pos::RelBlockPos,
     world::{CachedWorld, is_block_state_passable},
@@ -40,7 +44,7 @@ pub struct MoveData {
     pub is_reached: &'static (dyn Fn(IsReachedCtx) -> bool + Send + Sync),
 }
 impl Debug for MoveData {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("MoveData")
             // .field("move_kind", &self.move_kind)
             .finish()
@@ -219,4 +223,6 @@ pub struct PathfinderCtx<'a> {
     pub edges: &'a mut Vec<Edge>,
     pub world: &'a CachedWorld,
     pub mining_cache: &'a MiningCache,
+
+    pub custom_state: &'a CustomPathfinderStateRef,
 }

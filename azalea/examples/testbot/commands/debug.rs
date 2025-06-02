@@ -1,6 +1,6 @@
 //! Commands for debugging and getting the current state of the bot.
 
-use std::{env, fs::File, io::Write, thread, time::Duration};
+use std::{env, fs::File, io::Write, process, thread, time::Duration};
 
 use azalea::{
     BlockPos,
@@ -288,7 +288,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
         thread::spawn(move || {
             thread::sleep(Duration::from_secs(1));
 
-            std::process::exit(0);
+            process::exit(0);
         });
 
         1

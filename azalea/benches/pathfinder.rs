@@ -4,6 +4,7 @@ use azalea::{
     BlockPos,
     pathfinder::{
         astar::{self, PathfinderTimeout, WeightedNode, a_star},
+        custom_state::CustomPathfinderStateRef,
         goals::{BlockPosGoal, Goal},
         mining::MiningCache,
         rel_block_pos::RelBlockPos,
@@ -41,13 +42,13 @@ fn generate_bedrock_world(
             let mut chunk = chunk.write();
             for x in 0..16_u8 {
                 for z in 0..16_u8 {
-                    chunk.set(
+                    chunk.set_block_state(
                         &ChunkBlockPos::new(x, 1, z),
                         azalea_registry::Block::Bedrock.into(),
                         chunks.min_y,
                     );
                     if rng.gen_bool(0.5) {
-                        chunk.set(
+                        chunk.set_block_state(
                             &ChunkBlockPos::new(x, 2, z),
                             azalea_registry::Block::Bedrock.into(),
                             chunks.min_y,
@@ -99,7 +100,7 @@ fn generate_mining_world(
             for y in chunks.min_y..(chunks.min_y + chunks.height as i32) {
                 for x in 0..16_u8 {
                     for z in 0..16_u8 {
-                        chunk.set(
+                        chunk.set_block_state(
                             &ChunkBlockPos::new(x, y, z),
                             azalea_registry::Block::Stone.into(),
                             chunks.min_y,
@@ -134,7 +135,13 @@ fn run_pathfinder_benchmark(
         let goal = BlockPosGoal(end);
 
         let successors = |pos: RelBlockPos| {
-            azalea::pathfinder::call_successors_fn(&cached_world, &mining_cache, successors_fn, pos)
+            azalea::pathfinder::call_successors_fn(
+                &cached_world,
+                &mining_cache,
+                &CustomPathfinderStateRef::default(),
+                successors_fn,
+                pos,
+            )
         };
 
         let astar::Path {

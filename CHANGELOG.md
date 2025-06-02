@@ -19,7 +19,9 @@ is breaking anyways, semantic versioning is not followed.
 - Add auto-reconnecting which is enabled by default.
 - `client.start_use_item()`.
 - The pathfinder no longer avoids slabs, stairs, and dirt path blocks.
+- The pathfinder now immediately recalculates if blocks are placed in its path.
 - The reach distance for the pathfinder `ReachBlockPosGoal` is now configurable. (@x-osc)
+- azalea-brigadier now supports suggestions, command contexts, result consumers, and returning errors with `ArgumentBuilder::executes_result`.
 
 ### Changed
 

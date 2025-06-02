@@ -11,7 +11,7 @@ fn bench_chunks(c: &mut Criterion) {
 
             for x in 0..16 {
                 for z in 0..16 {
-                    chunk.set(
+                    chunk.set_block_state(
                         &ChunkBlockPos::new(x, 1, z),
                         azalea_registry::Block::Bedrock.into(),
                         0,

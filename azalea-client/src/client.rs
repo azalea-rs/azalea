@@ -1,7 +1,7 @@
 use std::{
     collections::HashMap,
     fmt::Debug,
-    io, mem,
+    mem,
     net::SocketAddr,
     sync::Arc,
     thread,
@@ -9,7 +9,6 @@ use std::{
 };
 
 use azalea_auth::game_profile::GameProfile;
-use azalea_chat::FormattedText;
 use azalea_core::{
     data_registry::ResolvableDataRegistry, position::Vec3, resource_location::ResourceLocation,
     tick::GameTick,
@@ -22,9 +21,9 @@ use azalea_entity::{
 use azalea_protocol::{
     ServerAddress,
     common::client_information::ClientInformation,
-    connect::{ConnectionError, Proxy},
+    connect::Proxy,
     packets::{
-        self, Packet,
+        Packet,
         game::{self, ServerboundGamePacket},
     },
     resolver,
@@ -46,7 +45,7 @@ use tracing::{debug, error, info, warn};
 use uuid::Uuid;
 
 use crate::{
-    Account, DefaultPlugins, PlayerInfo,
+    Account, DefaultPlugins,
     attack::{self},
     chunks::ChunkBatchInfo,
     connection::RawConnection,
@@ -54,14 +53,12 @@ use crate::{
     events::Event,
     interact::CurrentSequenceNumber,
     inventory::Inventory,
-    join::{ConnectOpts, StartJoinCallback, StartJoinServerEvent},
-    local_player::{
-        GameProfileComponent, Hunger, InstanceHolder, PermissionLevel, PlayerAbilities, TabList,
-    },
+    join::{ConnectOpts, StartJoinServerEvent},
+    local_player::{Hunger, InstanceHolder, PermissionLevel, PlayerAbilities, TabList},
     mining::{self},
     movement::{LastSentLookDirection, PhysicsState},
     packet::game::SendPacketEvent,
-    player::retroactively_add_game_profile_component,
+    player::{GameProfileComponent, PlayerInfo, retroactively_add_game_profile_component},
 };
 
 /// `Client` has the things that a user interacting with the library will want.
@@ -89,22 +86,8 @@ pub struct Client {
 pub enum JoinError {
     #[error("{0}")]
     Resolver(#[from] resolver::ResolverError),
-    #[error("{0}")]
-    Connection(#[from] ConnectionError),
-    #[error("{0}")]
-    ReadPacket(#[from] Box<azalea_protocol::read::ReadPacketError>),
-    #[error("{0}")]
-    Io(#[from] io::Error),
-    #[error("Failed to encrypt the challenge from the server for {0:?}")]
-    EncryptionError(packets::login::ClientboundHello),
-    #[error("{0}")]
-    SessionServer(#[from] azalea_auth::sessionserver::ClientSessionServerError),
     #[error("The given address could not be parsed into a ServerAddress")]
     InvalidAddress,
-    #[error("Couldn't refresh access token: {0}")]
-    Auth(#[from] azalea_auth::AuthError),
-    #[error("Disconnected: {reason}")]
-    Disconnect { reason: FormattedText },
 }
 
 pub struct StartClientOpts {
@@ -168,7 +151,7 @@ impl Client {
     /// # Examples
     ///
     /// ```rust,no_run
-    /// use azalea_client::{Client, Account};
+    /// use azalea_client::{Account, Client};
     ///
     /// #[tokio::main]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -193,7 +176,7 @@ impl Client {
             resolved_address,
             Some(tx),
         ))
-        .await?;
+        .await;
         Ok((client, rx))
     }
 
@@ -209,7 +192,7 @@ impl Client {
         let client = Self::start_client(
             StartClientOpts::new(account, address, resolved_address, Some(tx)).proxy(proxy),
         )
-        .await?;
+        .await;
         Ok((client, rx))
     }
 
@@ -222,25 +205,24 @@ impl Client {
             connect_opts,
             event_sender,
         }: StartClientOpts,
-    ) -> Result<Self, JoinError> {
+    ) -> Self {
         // send a StartJoinServerEvent
 
         let (start_join_callback_tx, mut start_join_callback_rx) =
-            mpsc::unbounded_channel::<Result<Entity, JoinError>>();
+            mpsc::unbounded_channel::<Entity>();
 
         ecs_lock.lock().send_event(StartJoinServerEvent {
             account,
             connect_opts,
             event_sender,
-            start_join_callback_tx: Some(StartJoinCallback(start_join_callback_tx)),
+            start_join_callback_tx: Some(start_join_callback_tx),
         });
 
         let entity = start_join_callback_rx.recv().await.expect(
-            "StartJoinCallback should not be dropped before sending a message, this is a bug in Azalea",
-        )?;
+            "start_join_callback should not be dropped before sending a message, this is a bug in Azalea",
+        );
 
-        let client = Client::new(entity, ecs_lock.clone());
-        Ok(client)
+        Client::new(entity, ecs_lock)
     }
 
     /// Write a packet directly to the server.
@@ -340,7 +322,7 @@ impl Client {
     /// This will panic if the component doesn't exist on the client.
     ///
     /// ```
-    /// # use azalea_client::{Client, Hunger};
+    /// # use azalea_client::{Client, local_player::Hunger};
     /// # fn example(bot: &Client) {
     /// let hunger = bot.map_component::<Hunger, _>(|h| h.food);
     /// # }

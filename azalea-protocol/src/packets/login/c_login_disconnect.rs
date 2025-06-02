@@ -1,4 +1,4 @@
-use std::io::{Cursor, Write};
+use std::io::{self, Cursor, Write};
 
 use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
 use azalea_chat::FormattedText;
@@ -21,7 +21,7 @@ impl AzaleaRead for ClientboundLoginDisconnect {
                 Err(err) => {
                     return Err(BufReadError::Custom(format!(
                         "Failed to deserialize disconnect JSON {disconnect_string:?}: {err}"
-                    )))
+                    )));
                 }
             };
 
@@ -32,7 +32,7 @@ impl AzaleaRead for ClientboundLoginDisconnect {
 }
 
 impl AzaleaWrite for ClientboundLoginDisconnect {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         let status_string = FormattedText::serialize(&self.reason, serde_json::value::Serializer)
             .unwrap()
             .to_string();

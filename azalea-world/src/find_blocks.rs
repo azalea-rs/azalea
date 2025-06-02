@@ -1,9 +1,9 @@
-use azalea_block::BlockStates;
+use azalea_block::{BlockState, BlockStates};
 use azalea_core::position::{BlockPos, ChunkPos};
 
 use crate::{ChunkStorage, Instance, iterators::ChunkIterator, palette::Palette};
 
-fn palette_maybe_has_block(palette: &Palette, block_states: &BlockStates) -> bool {
+fn palette_maybe_has_block(palette: &Palette<BlockState>, block_states: &BlockStates) -> bool {
     match &palette {
         Palette::SingleValue(id) => block_states.contains(id),
         Palette::Linear(ids) => ids.iter().any(|id| block_states.contains(id)),
@@ -20,7 +20,10 @@ impl Instance {
     ///
     /// ```
     /// # fn example(client: &azalea_client::Client) {
-    /// client.world().read().find_block(client.position(), &azalea_registry::Block::Chest.into());
+    /// client
+    ///     .world()
+    ///     .read()
+    ///     .find_block(client.position(), &azalea_registry::Block::Chest.into());
     /// # }
     /// ```
     pub fn find_block(
@@ -60,11 +63,11 @@ impl Instance {
                     let block_state = section.states.get_at_index(i);
 
                     if block_states.contains(&block_state) {
-                        let (section_x, section_y, section_z) = section.states.coords_from_index(i);
+                        let section_pos = section.states.coords_from_index(i);
                         let (x, y, z) = (
-                            chunk_pos.x * 16 + (section_x as i32),
-                            self.chunks.min_y + (section_index * 16) as i32 + section_y as i32,
-                            chunk_pos.z * 16 + (section_z as i32),
+                            chunk_pos.x * 16 + (section_pos.x as i32),
+                            self.chunks.min_y + (section_index * 16) as i32 + section_pos.y as i32,
+                            chunk_pos.z * 16 + (section_pos.z as i32),
                         );
                         let this_block_pos = BlockPos { x, y, z };
                         let this_block_distance = (nearest_to - this_block_pos).length_manhattan();
@@ -187,11 +190,11 @@ impl Iterator for FindBlocks<'_> {
                     let block_state = section.states.get_at_index(i);
 
                     if self.block_states.contains(&block_state) {
-                        let (section_x, section_y, section_z) = section.states.coords_from_index(i);
+                        let section_pos = section.states.coords_from_index(i);
                         let (x, y, z) = (
-                            chunk_pos.x * 16 + (section_x as i32),
-                            self.chunks.min_y + (section_index * 16) as i32 + section_y as i32,
-                            chunk_pos.z * 16 + (section_z as i32),
+                            chunk_pos.x * 16 + (section_pos.x as i32),
+                            self.chunks.min_y + (section_index * 16) as i32 + section_pos.y as i32,
+                            chunk_pos.z * 16 + (section_pos.z as i32),
                         );
                         let this_block_pos = BlockPos { x, y, z };
                         let this_block_distance =

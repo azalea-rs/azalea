@@ -1,12 +1,16 @@
-use azalea_client::{InstanceHolder, chat::SendChatEvent};
+use azalea_client::{chat::SendChatEvent, local_player::InstanceHolder};
 use azalea_core::position::Vec3;
 use bevy_ecs::prelude::*;
 
 use super::ExecutingPath;
 
 /// A component that makes bots run /particle commands while pathfinding to show
-/// where they're going. This requires the bots to have server operator
-/// permissions, and it'll make them spam *a lot* of commands.
+/// where they're going.
+///
+/// This requires the bots to have server operator permissions, and it'll make
+/// them spam *a lot* of commands. You may want to run `/gamerule
+/// sendCommandFeedback false` to hide the "Displaying particle minecraft:dust"
+/// spam.
 ///
 /// ```
 /// # use azalea::prelude::*;
@@ -54,7 +58,8 @@ pub fn debug_render_path_with_particles(
         let chunks = &instance_holder.instance.read().chunks;
 
         let mut start = executing_path.last_reached_node;
-        for (i, movement) in executing_path.path.iter().enumerate() {
+        for (i, edge) in executing_path.path.iter().enumerate() {
+            let movement = &edge.movement;
             let end = movement.target;
 
             let start_vec3 = start.center();

@@ -28,11 +28,11 @@ fn reply_to_ping_with_pong() {
     simulation
         .app
         .add_observer(move |trigger: Trigger<SendConfigPacketEvent>| {
-            if trigger.sent_by == simulation.entity {
-                if let ServerboundConfigPacket::Pong(packet) = &trigger.packet {
-                    assert_eq!(packet.id, 321);
-                    *reply_count_clone.lock() += 1;
-                }
+            if trigger.sent_by == simulation.entity
+                && let ServerboundConfigPacket::Pong(packet) = &trigger.packet
+            {
+                assert_eq!(packet.id, 321);
+                *reply_count_clone.lock() += 1;
             }
         });
 
@@ -63,11 +63,11 @@ fn reply_to_ping_with_pong() {
     simulation
         .app
         .add_observer(move |trigger: Trigger<SendPacketEvent>| {
-            if trigger.sent_by == simulation.entity {
-                if let ServerboundGamePacket::Pong(packet) = &trigger.packet {
-                    assert_eq!(packet.id, 123);
-                    *reply_count_clone.lock() += 1;
-                }
+            if trigger.sent_by == simulation.entity
+                && let ServerboundGamePacket::Pong(packet) = &trigger.packet
+            {
+                assert_eq!(packet.id, 123);
+                *reply_count_clone.lock() += 1;
             }
         });
 

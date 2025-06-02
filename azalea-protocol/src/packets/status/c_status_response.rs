@@ -1,4 +1,4 @@
-use std::io::{Cursor, Write};
+use std::io::{self, Cursor, Write};
 
 use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
 use azalea_chat::FormattedText;
@@ -51,7 +51,7 @@ impl AzaleaRead for ClientboundStatusResponse {
 }
 
 impl AzaleaWrite for ClientboundStatusResponse {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         let status_string = ClientboundStatusResponse::serialize(self, Serializer)
             .unwrap()
             .to_string();

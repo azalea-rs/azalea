@@ -3,21 +3,23 @@ mod events;
 use std::io::Cursor;
 
 use azalea_entity::LocalEntity;
-use azalea_protocol::packets::ConnectionProtocol;
-use azalea_protocol::packets::config::*;
-use azalea_protocol::read::ReadPacketError;
-use azalea_protocol::read::deserialize_packet;
+use azalea_protocol::{
+    packets::{ConnectionProtocol, config::*},
+    read::{ReadPacketError, deserialize_packet},
+};
 use bevy_ecs::prelude::*;
 pub use events::*;
 use tracing::{debug, warn};
 
 use super::as_system;
-use crate::client::InConfigState;
-use crate::connection::RawConnection;
-use crate::disconnect::DisconnectEvent;
-use crate::packet::game::KeepAliveEvent;
-use crate::packet::game::ResourcePackEvent;
-use crate::{InstanceHolder, declare_packet_handlers};
+use crate::{
+    client::InConfigState,
+    connection::RawConnection,
+    declare_packet_handlers,
+    disconnect::DisconnectEvent,
+    local_player::InstanceHolder,
+    packet::game::{KeepAliveEvent, ResourcePackEvent},
+};
 
 pub fn process_raw_packet(
     ecs: &mut World,

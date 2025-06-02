@@ -1,4 +1,10 @@
-use std::{any::Any, collections::HashMap, fmt::Debug, rc::Rc, sync::Arc};
+use std::{
+    any::Any,
+    collections::HashMap,
+    fmt::{self, Debug},
+    rc::Rc,
+    sync::Arc,
+};
 
 use parking_lot::RwLock;
 
@@ -11,15 +17,15 @@ use crate::{
 /// A built `CommandContextBuilder`.
 pub struct CommandContext<S> {
     pub source: Arc<S>,
-    pub input: String,
-    pub arguments: HashMap<String, ParsedArgument>,
-    pub command: Command<S>,
-    pub root_node: Arc<RwLock<CommandNode<S>>>,
-    pub nodes: Vec<ParsedCommandNode<S>>,
-    pub range: StringRange,
-    pub child: Option<Rc<CommandContext<S>>>,
-    pub modifier: Option<Arc<RedirectModifier<S>>>,
-    pub forks: bool,
+    pub(super) input: String,
+    pub(super) arguments: HashMap<String, ParsedArgument>,
+    pub(super) command: Command<S>,
+    pub(super) root_node: Arc<RwLock<CommandNode<S>>>,
+    pub(super) nodes: Vec<ParsedCommandNode<S>>,
+    pub(super) range: StringRange,
+    pub(super) child: Option<Rc<CommandContext<S>>>,
+    pub(super) modifier: Option<Arc<RedirectModifier<S>>>,
+    pub(super) forks: bool,
 }
 
 impl<S> Clone for CommandContext<S> {
@@ -40,7 +46,7 @@ impl<S> Clone for CommandContext<S> {
 }
 
 impl<S> Debug for CommandContext<S> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("CommandContext")
             // .field("source", &self.source)
             .field("input", &self.input)
@@ -59,8 +65,10 @@ impl<S> Debug for CommandContext<S> {
 impl<S> CommandContext<S> {
     pub fn copy_for(&self, source: Arc<S>) -> Self {
         if Arc::ptr_eq(&source, &self.source) {
+            // fast path
             return self.clone();
         }
+
         CommandContext {
             source,
             input: self.input.clone(),
@@ -75,12 +83,52 @@ impl<S> CommandContext<S> {
         }
     }
 
+    pub fn child(&self) -> Option<&CommandContext<S>> {
+        self.child.as_ref().map(|c| c.as_ref())
+    }
+
+    pub fn last_child(&self) -> &CommandContext<S> {
+        let mut result = self;
+        while let Some(child) = result.child() {
+            result = child;
+        }
+        result
+    }
+
+    pub fn command(&self) -> &Command<S> {
+        &self.command
+    }
+
+    pub fn argument(&self, name: &str) -> Option<&dyn Any> {
+        let argument = self.arguments.get(name);
+        argument.map(|a| a.result.as_ref())
+    }
+
+    pub fn redirect_modifier(&self) -> Option<&RedirectModifier<S>> {
+        self.modifier.as_ref().map(|m| m.as_ref())
+    }
+
+    pub fn range(&self) -> &StringRange {
+        &self.range
+    }
+
+    pub fn input(&self) -> &str {
+        &self.input
+    }
+
+    pub fn root_node(&self) -> &Arc<RwLock<CommandNode<S>>> {
+        &self.root_node
+    }
+
+    pub fn nodes(&self) -> &[ParsedCommandNode<S>] {
+        &self.nodes
+    }
+
     pub fn has_nodes(&self) -> bool {
         !self.nodes.is_empty()
     }
 
-    pub fn argument(&self, name: &str) -> Option<Arc<dyn Any>> {
-        let argument = self.arguments.get(name);
-        argument.map(|a| a.result.clone())
+    pub fn is_forked(&self) -> bool {
+        self.forks
     }
 }

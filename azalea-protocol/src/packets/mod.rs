@@ -5,7 +5,7 @@ pub mod handshake;
 pub mod login;
 pub mod status;
 
-use std::io::{Cursor, Write};
+use std::io::{self, Cursor, Write};
 
 use azalea_buf::{AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
 
@@ -53,7 +53,7 @@ where
     /// Read a packet by its id, `ConnectionProtocol`, and flow
     fn read(id: u32, buf: &mut Cursor<&[u8]>) -> Result<Self, Box<ReadPacketError>>;
 
-    fn write(&self, buf: &mut impl Write) -> Result<(), std::io::Error>;
+    fn write(&self, buf: &mut impl Write) -> io::Result<()>;
 }
 
 pub trait Packet<Protocol> {
@@ -98,7 +98,7 @@ impl azalea_buf::AzaleaRead for ClientIntention {
 }
 
 impl AzaleaWrite for ClientIntention {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         (*self as i32).azalea_write_var(buf)
     }
 }

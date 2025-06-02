@@ -1,14 +1,15 @@
-use std::backtrace::Backtrace;
+use std::{backtrace::Backtrace, io};
 
-use azalea_core::position::Vec3;
-use azalea_core::tick::GameTick;
-use azalea_entity::{Attributes, Jumping, metadata::Sprinting};
-use azalea_entity::{InLoadedChunk, LastSentPosition, LookDirection, Physics, Position};
+use azalea_core::{position::Vec3, tick::GameTick};
+use azalea_entity::{
+    Attributes, InLoadedChunk, Jumping, LastSentPosition, LookDirection, Physics, Position,
+    metadata::Sprinting,
+};
 use azalea_physics::{PhysicsSet, ai_step};
-use azalea_protocol::packets::game::{ServerboundPlayerCommand, ServerboundPlayerInput};
 use azalea_protocol::packets::{
     Packet,
     game::{
+        ServerboundPlayerCommand, ServerboundPlayerInput,
         s_move_player_pos::ServerboundMovePlayerPos,
         s_move_player_pos_rot::ServerboundMovePlayerPosRot,
         s_move_player_rot::ServerboundMovePlayerRot,
@@ -20,15 +21,14 @@ use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 use thiserror::Error;
 
-use crate::client::Client;
-use crate::packet::game::SendPacketEvent;
+use crate::{client::Client, packet::game::SendPacketEvent};
 
 #[derive(Error, Debug)]
 pub enum MovePlayerError {
     #[error("Player is not in world")]
     PlayerNotInWorld(Backtrace),
     #[error("{0}")]
-    Io(#[from] std::io::Error),
+    Io(#[from] io::Error),
 }
 
 impl From<MoveEntityError> for MovePlayerError {

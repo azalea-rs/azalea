@@ -15,13 +15,16 @@ use bevy_ecs::{
 /// applied filter.
 ///
 /// ```
-/// use azalea::chat::SendChatEvent;
-/// use azalea::nearest_entity::EntityFinder;
-/// use azalea_entity::metadata::{Player, AbstractMonster};
-/// use azalea_entity::LocalEntity;
-/// use bevy_ecs::system::Query;
-/// use bevy_ecs::prelude::{Entity, EventWriter};
-/// use bevy_ecs::query::With;
+/// use azalea::{chat::SendChatEvent, nearest_entity::EntityFinder};
+/// use azalea_entity::{
+///     LocalEntity,
+///     metadata::{AbstractMonster, Player},
+/// };
+/// use bevy_ecs::{
+///     prelude::{Entity, EventWriter},
+///     query::With,
+///     system::Query,
+/// };
 ///
 /// /// All bots near aggressive mobs will scream in chat.
 /// pub fn bots_near_aggressive_mobs(

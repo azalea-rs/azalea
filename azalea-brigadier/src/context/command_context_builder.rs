@@ -1,4 +1,9 @@
-use std::{collections::HashMap, fmt::Debug, rc::Rc, sync::Arc};
+use std::{
+    collections::HashMap,
+    fmt::{self, Debug},
+    rc::Rc,
+    sync::Arc,
+};
 
 use parking_lot::RwLock;
 
@@ -140,7 +145,7 @@ impl<'a, S> CommandContextBuilder<'a, S> {
 }
 
 impl<S> Debug for CommandContextBuilder<'_, S> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("CommandContextBuilder")
             // .field("arguments", &self.arguments)
             .field("root", &self.root)

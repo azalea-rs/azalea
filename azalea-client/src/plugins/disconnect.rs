@@ -2,13 +2,17 @@
 
 use azalea_chat::FormattedText;
 use azalea_entity::{EntityBundle, InLoadedChunk, LocalEntity, metadata::PlayerMetadataBundle};
+use azalea_world::MinecraftEntityId;
 use bevy_app::{App, Plugin, PostUpdate};
 use bevy_ecs::prelude::*;
 use derive_more::Deref;
 use tracing::info;
 
 use super::login::IsAuthenticated;
-use crate::{InstanceHolder, chat_signing, client::JoinedClientBundle, connection::RawConnection};
+use crate::{
+    chat_signing, client::JoinedClientBundle, connection::RawConnection,
+    local_player::InstanceHolder,
+};
 
 pub struct DisconnectPlugin;
 impl Plugin for DisconnectPlugin {
@@ -53,6 +57,7 @@ pub struct DisconnectEvent {
 pub struct RemoveOnDisconnectBundle {
     pub joined_client: JoinedClientBundle,
     pub entity: EntityBundle,
+    pub minecraft_entity_id: MinecraftEntityId,
     pub instance_holder: InstanceHolder,
     pub player_metadata: PlayerMetadataBundle,
     pub in_loaded_chunk: InLoadedChunk,

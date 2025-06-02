@@ -1,10 +1,9 @@
-use std::fmt::Debug;
-use std::fmt::Formatter;
+use std::{fmt, fmt::Debug};
 
-use azalea_client::packet::game::ReceiveGamePacketEvent;
 use azalea_client::{
     Client,
     inventory::{CloseContainerEvent, ContainerClickEvent, Inventory},
+    packet::game::ReceiveGamePacketEvent,
 };
 use azalea_core::position::BlockPos;
 use azalea_inventory::{ItemStack, Menu, operations::ClickOperation};
@@ -121,7 +120,7 @@ pub struct ContainerHandleRef {
     client: Client,
 }
 impl Debug for ContainerHandleRef {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("ContainerHandle")
             .field("id", &self.id())
             .finish()
@@ -192,7 +191,7 @@ impl Drop for ContainerHandle {
     }
 }
 impl Debug for ContainerHandle {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("ContainerHandle")
             .field("id", &self.id())
             .finish()

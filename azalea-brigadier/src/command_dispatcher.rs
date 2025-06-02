@@ -1,7 +1,7 @@
 use std::{
     cmp::Ordering,
     collections::{HashMap, HashSet},
-    mem, ptr,
+    ptr,
     rc::Rc,
     sync::Arc,
 };
@@ -10,9 +10,10 @@ use parking_lot::RwLock;
 
 use crate::{
     builder::argument_builder::ArgumentBuilder,
-    context::{CommandContext, CommandContextBuilder},
-    exceptions::{BuiltInExceptions, CommandSyntaxException},
+    context::{CommandContextBuilder, ContextChain},
+    errors::{BuiltInError, CommandSyntaxError},
     parse_results::ParseResults,
+    result_consumer::{DefaultResultConsumer, ResultConsumer},
     string_reader::StringReader,
     suggestion::{Suggestions, SuggestionsBuilder},
     tree::CommandNode,
@@ -30,12 +31,14 @@ where
     Self: Sync + Send,
 {
     pub root: Arc<RwLock<CommandNode<S>>>,
+    consumer: Box<dyn ResultConsumer<S> + Send + Sync>,
 }
 
 impl<S> CommandDispatcher<S> {
     pub fn new() -> Self {
         Self {
             root: Arc::new(RwLock::new(CommandNode::default())),
+            consumer: Box::new(DefaultResultConsumer),
         }
     }
 
@@ -64,10 +67,10 @@ impl<S> CommandDispatcher<S> {
         node: &Arc<RwLock<CommandNode<S>>>,
         original_reader: &StringReader,
         context_so_far: CommandContextBuilder<'a, S>,
-    ) -> Result<ParseResults<'a, S>, CommandSyntaxException> {
+    ) -> Result<ParseResults<'a, S>, CommandSyntaxError> {
         let source = context_so_far.source.clone();
         #[allow(clippy::mutable_key_type)] // this is fine because we don't mutate the key
-        let mut errors = HashMap::<Rc<CommandNode<S>>, CommandSyntaxException>::new();
+        let mut errors = HashMap::<Rc<CommandNode<S>>, CommandSyntaxError>::new();
         let mut potentials: Vec<ParseResults<S>> = vec![];
         let cursor = original_reader.cursor();
 
@@ -83,7 +86,7 @@ impl<S> CommandDispatcher<S> {
             if let Err(ex) = parse_with_context_result {
                 errors.insert(
                     Rc::new((*child.read()).clone()),
-                    BuiltInExceptions::DispatcherParseException {
+                    BuiltInError::DispatcherParseException {
                         message: ex.message(),
                     }
                     .create_with_context(&reader),
@@ -94,8 +97,7 @@ impl<S> CommandDispatcher<S> {
             if reader.can_read() && reader.peek() != ' ' {
                 errors.insert(
                     Rc::new((*child.read()).clone()),
-                    BuiltInExceptions::DispatcherExpectedArgumentSeparator
-                        .create_with_context(&reader),
+                    BuiltInError::DispatcherExpectedArgumentSeparator.create_with_context(&reader),
                 );
                 reader.cursor = cursor;
                 continue;
@@ -179,11 +181,11 @@ impl<S> CommandDispatcher<S> {
         &self,
         input: impl Into<StringReader>,
         source: S,
-    ) -> Result<i32, CommandSyntaxException> {
+    ) -> Result<i32, CommandSyntaxError> {
         let input = input.into();
 
         let parse = self.parse(input, source);
-        Self::execute_parsed(parse)
+        self.execute_parsed(parse)
     }
 
     pub fn add_paths(
@@ -235,91 +237,26 @@ impl<S> CommandDispatcher<S> {
     }
 
     /// Executes a given pre-parsed command.
-    pub fn execute_parsed(parse: ParseResults<S>) -> Result<i32, CommandSyntaxException> {
+    pub fn execute_parsed(&self, parse: ParseResults<S>) -> Result<i32, CommandSyntaxError> {
         if parse.reader.can_read() {
-            if parse.exceptions.len() == 1 {
-                return Err(parse.exceptions.values().next().unwrap().clone());
-            }
-            if parse.context.range.is_empty() {
-                return Err(
-                    BuiltInExceptions::DispatcherUnknownCommand.create_with_context(&parse.reader)
-                );
-            }
-            return Err(
-                BuiltInExceptions::DispatcherUnknownArgument.create_with_context(&parse.reader)
-            );
+            return Err(if parse.exceptions.len() == 1 {
+                parse.exceptions.values().next().unwrap().clone()
+            } else if parse.context.range.is_empty() {
+                BuiltInError::DispatcherUnknownCommand.create_with_context(&parse.reader)
+            } else {
+                BuiltInError::DispatcherUnknownArgument.create_with_context(&parse.reader)
+            });
         }
-        let mut result = 0i32;
-        let mut successful_forks = 0;
-        let mut forked = false;
-        let mut found_command = false;
+
         let command = parse.reader.string();
-        let original = parse.context.build(command);
-        let mut contexts = vec![original];
-        let mut next: Vec<CommandContext<S>> = vec![];
+        let original = Rc::new(parse.context.build(command));
+        let flat_context = ContextChain::try_flatten(original.clone());
+        let Some(flat_context) = flat_context else {
+            self.consumer.on_command_complete(original, false, 0);
+            return Err(BuiltInError::DispatcherUnknownCommand.create_with_context(&parse.reader));
+        };
 
-        while !contexts.is_empty() {
-            for context in &contexts {
-                let child = &context.child;
-                if let Some(child) = child {
-                    forked |= child.forks;
-                    if child.has_nodes() {
-                        found_command = true;
-                        let modifier = &context.modifier;
-                        if let Some(modifier) = modifier {
-                            let results = modifier(context);
-                            match results {
-                                Ok(results) => {
-                                    if !results.is_empty() {
-                                        next.extend(
-                                            results.iter().map(|s| child.copy_for(s.clone())),
-                                        );
-                                    }
-                                }
-                                _ => {
-                                    // TODO
-                                    // self.consumer.on_command_complete(context, false, 0);
-                                    if !forked {
-                                        return Err(results.err().unwrap());
-                                    }
-                                }
-                            }
-                        } else {
-                            next.push(child.copy_for(context.source.clone()));
-                        }
-                    }
-                } else if let Some(context_command) = &context.command {
-                    found_command = true;
-
-                    let value = context_command(context);
-                    result += value;
-                    // consumer.on_command_complete(context, true, value);
-                    successful_forks += 1;
-
-                    // TODO: allow context_command to error and handle
-                    // those errors
-                }
-            }
-
-            // move next into contexts and clear next
-            mem::swap(&mut contexts, &mut next);
-            next.clear();
-        }
-
-        if !found_command {
-            // consumer.on_command_complete(original, false, 0);
-            return Err(
-                BuiltInExceptions::DispatcherUnknownCommand.create_with_context(&parse.reader)
-            );
-        }
-
-        // TODO: this is not how vanilla does it but it works
-        Ok(if successful_forks >= 2 {
-            successful_forks
-        } else {
-            result
-        })
-        // Ok(if forked { successful_forks } else { result })
+        flat_context.execute_all(original.source.clone(), self.consumer.as_ref())
     }
 
     pub fn get_all_usage(

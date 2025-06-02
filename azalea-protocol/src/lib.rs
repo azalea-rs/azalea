@@ -12,7 +12,11 @@
 // this is necessary for thiserror backtraces
 #![feature(error_generic_member_access)]
 
-use std::{fmt::Display, net::SocketAddr, str::FromStr};
+use std::{
+    fmt::{self, Display},
+    net::SocketAddr,
+    str::FromStr,
+};
 
 pub mod common;
 #[cfg(feature = "connecting")]
@@ -79,7 +83,7 @@ impl From<SocketAddr> for ServerAddress {
 }
 
 impl Display for ServerAddress {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}:{}", self.host, self.port)
     }
 }

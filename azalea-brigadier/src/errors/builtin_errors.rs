@@ -1,10 +1,10 @@
 use std::fmt;
 
-use super::command_syntax_exception::CommandSyntaxException;
+use super::command_syntax_error::CommandSyntaxError;
 use crate::string_reader::StringReader;
 
 #[derive(Clone, PartialEq)]
-pub enum BuiltInExceptions {
+pub enum BuiltInError {
     DoubleTooSmall { found: f64, min: f64 },
     DoubleTooBig { found: f64, max: f64 },
 
@@ -40,114 +40,114 @@ pub enum BuiltInExceptions {
     DispatcherParseException { message: String },
 }
 
-impl fmt::Debug for BuiltInExceptions {
+impl fmt::Debug for BuiltInError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            BuiltInExceptions::DoubleTooSmall { found, min } => {
+            BuiltInError::DoubleTooSmall { found, min } => {
                 write!(f, "Double must not be less than {min}, found {found}")
             }
-            BuiltInExceptions::DoubleTooBig { found, max } => {
+            BuiltInError::DoubleTooBig { found, max } => {
                 write!(f, "Double must not be more than {max}, found {found}")
             }
 
-            BuiltInExceptions::FloatTooSmall { found, min } => {
+            BuiltInError::FloatTooSmall { found, min } => {
                 write!(f, "Float must not be less than {min}, found {found}")
             }
-            BuiltInExceptions::FloatTooBig { found, max } => {
+            BuiltInError::FloatTooBig { found, max } => {
                 write!(f, "Float must not be more than {max}, found {found}")
             }
 
-            BuiltInExceptions::IntegerTooSmall { found, min } => {
+            BuiltInError::IntegerTooSmall { found, min } => {
                 write!(f, "Integer must not be less than {min}, found {found}")
             }
-            BuiltInExceptions::IntegerTooBig { found, max } => {
+            BuiltInError::IntegerTooBig { found, max } => {
                 write!(f, "Integer must not be more than {max}, found {found}")
             }
 
-            BuiltInExceptions::LongTooSmall { found, min } => {
+            BuiltInError::LongTooSmall { found, min } => {
                 write!(f, "Long must not be less than {min}, found {found}")
             }
-            BuiltInExceptions::LongTooBig { found, max } => {
+            BuiltInError::LongTooBig { found, max } => {
                 write!(f, "Long must not be more than {max}, found {found}")
             }
 
-            BuiltInExceptions::LiteralIncorrect { expected } => {
+            BuiltInError::LiteralIncorrect { expected } => {
                 write!(f, "Expected literal {expected}")
             }
 
-            BuiltInExceptions::ReaderExpectedStartOfQuote => {
+            BuiltInError::ReaderExpectedStartOfQuote => {
                 write!(f, "Expected quote to start a string")
             }
-            BuiltInExceptions::ReaderExpectedEndOfQuote => {
+            BuiltInError::ReaderExpectedEndOfQuote => {
                 write!(f, "Unclosed quoted string")
             }
-            BuiltInExceptions::ReaderInvalidEscape { character } => {
+            BuiltInError::ReaderInvalidEscape { character } => {
                 write!(f, "Invalid escape sequence '{character}' in quoted string")
             }
-            BuiltInExceptions::ReaderInvalidBool { value } => {
+            BuiltInError::ReaderInvalidBool { value } => {
                 write!(
                     f,
                     "Invalid bool, expected true or false but found '{value}'"
                 )
             }
-            BuiltInExceptions::ReaderInvalidInt { value } => {
+            BuiltInError::ReaderInvalidInt { value } => {
                 write!(f, "Invalid Integer '{value}'")
             }
-            BuiltInExceptions::ReaderExpectedInt => {
+            BuiltInError::ReaderExpectedInt => {
                 write!(f, "Expected Integer")
             }
-            BuiltInExceptions::ReaderInvalidLong { value } => {
+            BuiltInError::ReaderInvalidLong { value } => {
                 write!(f, "Invalid long '{value}'")
             }
-            BuiltInExceptions::ReaderExpectedLong => {
+            BuiltInError::ReaderExpectedLong => {
                 write!(f, "Expected long")
             }
-            BuiltInExceptions::ReaderInvalidDouble { value } => {
+            BuiltInError::ReaderInvalidDouble { value } => {
                 write!(f, "Invalid double '{value}'")
             }
-            BuiltInExceptions::ReaderExpectedDouble => {
+            BuiltInError::ReaderExpectedDouble => {
                 write!(f, "Expected double")
             }
-            BuiltInExceptions::ReaderInvalidFloat { value } => {
+            BuiltInError::ReaderInvalidFloat { value } => {
                 write!(f, "Invalid Float '{value}'")
             }
-            BuiltInExceptions::ReaderExpectedFloat => {
+            BuiltInError::ReaderExpectedFloat => {
                 write!(f, "Expected Float")
             }
-            BuiltInExceptions::ReaderExpectedBool => {
+            BuiltInError::ReaderExpectedBool => {
                 write!(f, "Expected bool")
             }
-            BuiltInExceptions::ReaderExpectedSymbol { symbol } => {
+            BuiltInError::ReaderExpectedSymbol { symbol } => {
                 write!(f, "Expected '{symbol}'")
             }
 
-            BuiltInExceptions::DispatcherUnknownCommand => {
+            BuiltInError::DispatcherUnknownCommand => {
                 write!(f, "Unknown command")
             }
-            BuiltInExceptions::DispatcherUnknownArgument => {
+            BuiltInError::DispatcherUnknownArgument => {
                 write!(f, "Incorrect argument for command")
             }
-            BuiltInExceptions::DispatcherExpectedArgumentSeparator => {
+            BuiltInError::DispatcherExpectedArgumentSeparator => {
                 write!(
                     f,
                     "Expected whitespace to end one argument, but found trailing data"
                 )
             }
-            BuiltInExceptions::DispatcherParseException { message } => {
+            BuiltInError::DispatcherParseException { message } => {
                 write!(f, "Could not parse command: {message}")
             }
         }
     }
 }
 
-impl BuiltInExceptions {
-    pub fn create(self) -> CommandSyntaxException {
+impl BuiltInError {
+    pub fn create(self) -> CommandSyntaxError {
         let message = format!("{self:?}");
-        CommandSyntaxException::create(self, message)
+        CommandSyntaxError::create(self, message)
     }
 
-    pub fn create_with_context(self, reader: &StringReader) -> CommandSyntaxException {
+    pub fn create_with_context(self, reader: &StringReader) -> CommandSyntaxError {
         let message = format!("{self:?}");
-        CommandSyntaxException::new(self, message, reader.string(), reader.cursor())
+        CommandSyntaxError::new(self, message, reader.string(), reader.cursor())
     }
 }

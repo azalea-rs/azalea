@@ -1,29 +1,40 @@
 //! Connect to remote servers/clients.
 
-use std::fmt::{self, Debug, Display};
-use std::io::{self, Cursor};
-use std::marker::PhantomData;
-use std::net::SocketAddr;
+use std::{
+    fmt::{self, Debug, Display},
+    io::{self, Cursor},
+    marker::PhantomData,
+    net::SocketAddr,
+};
 
-use azalea_auth::game_profile::GameProfile;
-use azalea_auth::sessionserver::{ClientSessionServerError, ServerSessionServerError};
+use azalea_auth::{
+    game_profile::GameProfile,
+    sessionserver::{ClientSessionServerError, ServerSessionServerError},
+};
 use azalea_crypto::{Aes128CfbDec, Aes128CfbEnc};
 use thiserror::Error;
-use tokio::io::{AsyncWriteExt, BufStream};
-use tokio::net::TcpStream;
-use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf, ReuniteError};
+use tokio::{
+    io::{AsyncWriteExt, BufStream},
+    net::{
+        TcpStream,
+        tcp::{OwnedReadHalf, OwnedWriteHalf, ReuniteError},
+    },
+};
 use tracing::{error, info};
 use uuid::Uuid;
 
-use crate::packets::ProtocolPacket;
-use crate::packets::config::{ClientboundConfigPacket, ServerboundConfigPacket};
-use crate::packets::game::{ClientboundGamePacket, ServerboundGamePacket};
-use crate::packets::handshake::{ClientboundHandshakePacket, ServerboundHandshakePacket};
-use crate::packets::login::c_hello::ClientboundHello;
-use crate::packets::login::{ClientboundLoginPacket, ServerboundLoginPacket};
-use crate::packets::status::{ClientboundStatusPacket, ServerboundStatusPacket};
-use crate::read::{ReadPacketError, deserialize_packet, read_raw_packet, try_read_raw_packet};
-use crate::write::{serialize_packet, write_raw_packet};
+use crate::{
+    packets::{
+        ProtocolPacket,
+        config::{ClientboundConfigPacket, ServerboundConfigPacket},
+        game::{ClientboundGamePacket, ServerboundGamePacket},
+        handshake::{ClientboundHandshakePacket, ServerboundHandshakePacket},
+        login::{ClientboundLoginPacket, ServerboundLoginPacket, c_hello::ClientboundHello},
+        status::{ClientboundStatusPacket, ServerboundStatusPacket},
+    },
+    read::{ReadPacketError, deserialize_packet, read_raw_packet, try_read_raw_packet},
+    write::{serialize_packet, write_raw_packet},
+};
 
 pub struct RawReadConnection {
     pub read_stream: OwnedReadHalf,
@@ -57,18 +68,13 @@ pub struct WriteConnection<W: ProtocolPacket> {
 /// Join an offline-mode server and go through the handshake.
 /// ```rust,no_run
 /// use azalea_protocol::{
-///     resolver,
 ///     connect::Connection,
 ///     packets::{
-///         self,
-///         ClientIntention, PROTOCOL_VERSION,
-///         login::{
-///             ClientboundLoginPacket,
-///             ServerboundHello,
-///             ServerboundKey
-///         },
-///         handshake::ServerboundIntention
-///     }
+///         self, ClientIntention, PROTOCOL_VERSION,
+///         handshake::ServerboundIntention,
+///         login::{ClientboundLoginPacket, ServerboundHello, ServerboundKey},
+///     },
+///     resolver,
 /// };
 ///
 /// #[tokio::main]
@@ -82,7 +88,8 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///         hostname: resolved_address.ip().to_string(),
 ///         port: resolved_address.port(),
 ///         intention: ClientIntention::Login,
-///     }).await?;
+///     })
+///     .await?;
 ///
 ///     let mut conn = conn.login();
 ///
@@ -90,7 +97,8 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///     conn.write(ServerboundHello {
 ///         name: "bot".to_string(),
 ///         profile_id: uuid::Uuid::nil(),
-///     }).await?;
+///     })
+///     .await?;
 ///
 ///     let (conn, game_profile) = loop {
 ///         let packet = conn.read().await?;
@@ -101,7 +109,8 @@ pub struct WriteConnection<W: ProtocolPacket> {
 ///                 conn.write(ServerboundKey {
 ///                     key_bytes: e.encrypted_public_key,
 ///                     encrypted_challenge: e.encrypted_challenge,
-///                 }).await?;
+///                 })
+///                 .await?;
 ///                 conn.set_encryption_key(e.secret_key);
 ///             }
 ///             ClientboundLoginPacket::LoginCompression(p) => {
@@ -391,19 +400,20 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
     ///
     /// ```rust,no_run
     /// use azalea_auth::AuthResult;
-    /// use azalea_protocol::connect::Connection;
-    /// use azalea_protocol::packets::login::{
-    ///     ClientboundLoginPacket,
-    ///     ServerboundKey
+    /// use azalea_protocol::{
+    ///     connect::Connection,
+    ///     packets::login::{ClientboundLoginPacket, ServerboundKey},
     /// };
     /// use uuid::Uuid;
     /// # use azalea_protocol::ServerAddress;
     ///
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let AuthResult { access_token, profile } = azalea_auth::auth(
-    ///     "example@example.com",
-    ///     azalea_auth::AuthOpts::default()
-    /// ).await.expect("Couldn't authenticate");
+    /// let AuthResult {
+    ///     access_token,
+    ///     profile,
+    /// } = azalea_auth::auth("example@example.com", azalea_auth::AuthOpts::default())
+    ///     .await
+    ///     .expect("Couldn't authenticate");
     /// #
     /// # let address = ServerAddress::try_from("example@example.com").unwrap();
     /// # let resolved_address = azalea_protocol::resolver::resolve_address(&address).await?;
@@ -417,16 +427,13 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
     ///     ClientboundLoginPacket::Hello(p) => {
     ///         // tell Mojang we're joining the server & enable encryption
     ///         let e = azalea_crypto::encrypt(&p.public_key, &p.challenge).unwrap();
-    ///         conn.authenticate(
-    ///             &access_token,
-    ///             &profile.id,
-    ///             e.secret_key,
-    ///             &p
-    ///         ).await?;
+    ///         conn.authenticate(&access_token, &profile.id, e.secret_key, &p)
+    ///             .await?;
     ///         conn.write(ServerboundKey {
     ///             key_bytes: e.encrypted_public_key,
     ///             encrypted_challenge: e.encrypted_challenge,
-    ///         }).await?;
+    ///         })
+    ///         .await?;
     ///         conn.set_encryption_key(e.secret_key);
     ///     }
     ///     _ => {}

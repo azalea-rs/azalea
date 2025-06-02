@@ -12,7 +12,7 @@ mod plugin;
 pub mod vec_delta_codec;
 
 use std::{
-    fmt::Debug,
+    fmt::{self, Debug},
     hash::{Hash, Hasher},
 };
 
@@ -133,7 +133,7 @@ impl EntityUuid {
     }
 }
 impl Debug for EntityUuid {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         (self.0).fmt(f)
     }
 }

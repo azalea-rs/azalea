@@ -1,3 +1,5 @@
+use std::io::{self, Cursor, Write};
+
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite};
 use azalea_chat::FormattedText;
 use azalea_protocol_macros::ClientboundGamePacket;
@@ -27,7 +29,7 @@ pub struct MapDecoration {
 pub struct OptionalMapPatch(pub Option<MapPatch>);
 
 impl AzaleaRead for OptionalMapPatch {
-    fn azalea_read(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
         let pos = buf.position();
         Ok(Self(if u8::azalea_read(buf)? == 0 {
             None
@@ -39,7 +41,7 @@ impl AzaleaRead for OptionalMapPatch {
 }
 
 impl AzaleaWrite for OptionalMapPatch {
-    fn azalea_write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         match &self.0 {
             None => 0u8.azalea_write(buf),
             Some(m) => m.azalea_write(buf),

@@ -1,4 +1,4 @@
-use std::io::Cursor;
+use std::io::{self, Cursor, Write};
 
 use azalea_buf::{AzBuf, AzaleaRead, BufReadError};
 use azalea_core::{bitset::FixedBitSet, position::BlockPos};
@@ -30,7 +30,7 @@ impl AzaleaRead for ServerboundSetCommandBlock {
         let command = String::azalea_read(buf)?;
         let mode = Mode::azalea_read(buf)?;
 
-        let set = FixedBitSet::<{ 3_usize.div_ceil(8) }>::azalea_read(buf)?;
+        let set = FixedBitSet::<3>::azalea_read(buf)?;
         Ok(Self {
             pos,
             command,
@@ -43,12 +43,12 @@ impl AzaleaRead for ServerboundSetCommandBlock {
 }
 
 impl AzaleaWrite for ServerboundSetCommandBlock {
-    fn azalea_write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         self.pos.azalea_write(buf)?;
         self.command.azalea_write(buf)?;
         self.mode.azalea_write(buf)?;
 
-        let mut set = FixedBitSet::<{ 3_usize.div_ceil(8) }>::new();
+        let mut set = FixedBitSet::<3>::new();
         if self.track_output {
             set.set(0);
         }

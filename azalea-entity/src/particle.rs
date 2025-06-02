@@ -3,6 +3,7 @@ use azalea_buf::AzBuf;
 use azalea_core::{color::RgbColor, position::BlockPos};
 use azalea_inventory::ItemStack;
 use azalea_registry::ParticleKind;
+use azalea_world::MinecraftEntityId;
 use bevy_ecs::component::Component;
 
 // the order of this enum must be kept in sync with ParticleKind, otherwise
@@ -290,13 +291,25 @@ pub struct ItemParticle {
 
 #[derive(Debug, Clone, AzBuf, Default)]
 pub struct VibrationParticle {
-    pub origin: BlockPos,
-    pub position_type: String,
-    pub block_position: BlockPos,
-    #[var]
-    pub entity_id: u32,
+    pub position: PositionSource,
     #[var]
     pub ticks: u32,
+}
+
+#[derive(Debug, Clone, AzBuf)]
+pub enum PositionSource {
+    Block(BlockPos),
+    Entity {
+        #[var]
+        id: MinecraftEntityId,
+        y_offset: f32,
+    },
+}
+impl Default for PositionSource {
+    fn default() -> Self {
+        // bad default but hopefully it never gets used anyways
+        Self::Block(BlockPos::default())
+    }
 }
 
 #[derive(Debug, Clone, AzBuf, Default)]

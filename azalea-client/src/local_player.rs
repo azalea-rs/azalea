@@ -1,6 +1,9 @@
-use std::{collections::HashMap, io, sync::Arc};
+use std::{
+    collections::HashMap,
+    error, io,
+    sync::{Arc, PoisonError},
+};
 
-use azalea_auth::game_profile::GameProfile;
 use azalea_core::game_type::GameMode;
 use azalea_protocol::packets::game::c_player_abilities::ClientboundPlayerAbilities;
 use azalea_world::{Instance, PartialInstance};
@@ -12,7 +15,7 @@ use tokio::sync::mpsc;
 use tracing::error;
 use uuid::Uuid;
 
-use crate::{ClientInformation, PlayerInfo, events::Event as AzaleaEvent};
+use crate::{ClientInformation, events::Event as AzaleaEvent, player::PlayerInfo};
 
 /// A component that keeps strong references to our [`PartialInstance`] and
 /// [`Instance`] for local players.
@@ -36,20 +39,20 @@ pub struct InstanceHolder {
     pub instance: Arc<RwLock<Instance>>,
 }
 
-/// A component only present in players that contains the [`GameProfile`] (which
-/// you can use to get a player's name).
-///
-/// Note that it's possible for this to be missing in a player if the server
-/// never sent the player info for them (though this is uncommon).
-#[derive(Component, Clone, Debug, Deref, DerefMut)]
-pub struct GameProfileComponent(pub GameProfile);
-
 /// The gamemode of a local player. For a non-local player, you can look up the
 /// player in the [`TabList`].
 #[derive(Component, Clone, Debug, Copy)]
 pub struct LocalGameMode {
     pub current: GameMode,
     pub previous: Option<GameMode>,
+}
+impl From<GameMode> for LocalGameMode {
+    fn from(current: GameMode) -> Self {
+        LocalGameMode {
+            current,
+            previous: None,
+        }
+    }
 }
 
 /// A component that contains the abilities the player has, like flying
@@ -88,7 +91,7 @@ pub struct PermissionLevel(pub u8);
 /// tab list.
 ///
 /// ```
-/// # use azalea_client::TabList;
+/// # use azalea_client::local_player::TabList;
 /// # fn example(client: &azalea_client::Client) {
 /// let tab_list = client.component::<TabList>();
 /// println!("Online players:");
@@ -169,13 +172,13 @@ pub enum HandlePacketError {
     #[error(transparent)]
     Io(#[from] io::Error),
     #[error(transparent)]
-    Other(#[from] Box<dyn std::error::Error + Send + Sync>),
+    Other(#[from] Box<dyn error::Error + Send + Sync>),
     #[error("{0}")]
     Send(#[from] mpsc::error::SendError<AzaleaEvent>),
 }
 
-impl<T> From<std::sync::PoisonError<T>> for HandlePacketError {
-    fn from(e: std::sync::PoisonError<T>) -> Self {
+impl<T> From<PoisonError<T>> for HandlePacketError {
+    fn from(e: PoisonError<T>) -> Self {
         HandlePacketError::Poison(e.to_string())
     }
 }

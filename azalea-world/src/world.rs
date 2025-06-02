@@ -1,16 +1,17 @@
-use std::fmt::{self, Display, Formatter};
-use std::hash::{Hash, Hasher};
-use std::io::{self, Cursor};
 use std::{
     collections::{HashMap, HashSet},
-    fmt::Debug,
+    fmt::{self, Debug, Display},
+    hash::{Hash, Hasher},
+    io::{self, Cursor},
 };
 
-use azalea_block::BlockState;
-use azalea_block::fluid_state::FluidState;
+use azalea_block::{BlockState, fluid_state::FluidState};
 use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
-use azalea_core::position::{BlockPos, ChunkPos};
-use azalea_core::registry_holder::RegistryHolder;
+use azalea_core::{
+    position::{BlockPos, ChunkPos},
+    registry_holder::RegistryHolder,
+};
+use azalea_registry::Biome;
 use bevy_ecs::{component::Component, entity::Entity};
 use derive_more::{Deref, DerefMut};
 use nohash_hasher::IntMap;
@@ -84,7 +85,7 @@ impl AzaleaRead for MinecraftEntityId {
     }
 }
 impl AzaleaWrite for MinecraftEntityId {
-    fn azalea_write(&self, buf: &mut impl io::Write) -> Result<(), io::Error> {
+    fn azalea_write(&self, buf: &mut impl io::Write) -> io::Result<()> {
         i32::azalea_write(&self.0, buf)
     }
 }
@@ -94,12 +95,12 @@ impl AzaleaReadVar for MinecraftEntityId {
     }
 }
 impl AzaleaWriteVar for MinecraftEntityId {
-    fn azalea_write_var(&self, buf: &mut impl io::Write) -> Result<(), io::Error> {
+    fn azalea_write_var(&self, buf: &mut impl io::Write) -> io::Result<()> {
         i32::azalea_write_var(&self.0, buf)
     }
 }
 impl Display for MinecraftEntityId {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "eid({})", self.0)
     }
 }
@@ -143,6 +144,14 @@ impl PartialEntityInfos {
 
 /// A world where the chunks are stored as weak pointers. This is used for
 /// shared worlds.
+///
+/// Also see [`PartialInstance`].
+///
+/// The reason this is called "instance" instead of "world" or "dimension" is
+/// because "world" already means the entire ECS (which can contain multiple
+/// instances if we're in a swarm) and "dimension" can be ambiguous (for
+/// instance there can be multiple overworlds, and "dimension" is also a math
+/// term)
 #[derive(Default, Debug)]
 pub struct Instance {
     pub chunks: ChunkStorage,
@@ -170,13 +179,17 @@ impl Instance {
         self.chunks.get_block_state(pos).map(FluidState::from)
     }
 
+    pub fn get_biome(&self, pos: &BlockPos) -> Option<Biome> {
+        self.chunks.get_biome(pos)
+    }
+
     pub fn set_block_state(&self, pos: &BlockPos, state: BlockState) -> Option<BlockState> {
         self.chunks.set_block_state(pos, state)
     }
 }
 
 impl Debug for PartialInstance {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("PartialInstance")
             .field("chunks", &self.chunks)
             .field("entity_infos", &self.entity_infos)

@@ -32,7 +32,7 @@ use bevy_app::{App, PluginGroup, PluginGroupBuilder, Plugins, SubApp};
 use bevy_ecs::prelude::*;
 use futures::future::{BoxFuture, join_all};
 use parking_lot::{Mutex, RwLock};
-use tokio::sync::mpsc;
+use tokio::{sync::mpsc, time::sleep};
 use tracing::{debug, error, warn};
 
 use crate::{BoxHandleFn, DefaultBotPlugins, HandleFn, JoinOpts, NoState, StartError};
@@ -495,9 +495,7 @@ where
                 for ((account, bot_join_opts), state) in accounts.iter().zip(states) {
                     let mut join_opts = default_join_opts.clone();
                     join_opts.update(bot_join_opts);
-                    swarm_clone
-                        .add_and_retry_forever_with_opts(account, state, &join_opts)
-                        .await;
+                    let _ = swarm_clone.add_with_opts(account, state, &join_opts).await;
                     tokio::time::sleep(join_delay).await;
                 }
             } else {
@@ -507,9 +505,9 @@ where
                     |((account, bot_join_opts), state)| async {
                         let mut join_opts = default_join_opts.clone();
                         join_opts.update(bot_join_opts);
-                        swarm_borrow
+                        let _ = swarm_borrow
                             .clone()
-                            .add_and_retry_forever_with_opts(account, state, &join_opts)
+                            .add_with_opts(account, state, &join_opts)
                             .await;
                     },
                 ))
@@ -689,7 +687,7 @@ impl Swarm {
     ///
     /// # Errors
     ///
-    /// Returns an `Err` if the bot could not do a handshake successfully.
+    /// Returns an error if the server's address could not be resolved.
     pub async fn add<S: Component + Clone>(
         &self,
         account: &Account,
@@ -704,7 +702,7 @@ impl Swarm {
     ///
     /// # Errors
     ///
-    /// Returns an `Err` if the bot could not do a handshake successfully.
+    /// Returns an error if the server's address could not be resolved.
     pub async fn add_with_opts<S: Component + Clone>(
         &self,
         account: &Account,
@@ -727,7 +725,7 @@ impl Swarm {
 
         let (tx, rx) = mpsc::unbounded_channel();
 
-        let bot = Client::start_client(StartClientOpts {
+        let client = Client::start_client(StartClientOpts {
             ecs_lock: self.ecs_lock.clone(),
             account: account.clone(),
             connect_opts: ConnectOpts {
@@ -737,14 +735,14 @@ impl Swarm {
             },
             event_sender: Some(tx),
         })
-        .await?;
+        .await;
         // add the state to the client
         {
             let mut ecs = self.ecs_lock.lock();
-            ecs.entity_mut(bot.entity).insert(state);
+            ecs.entity_mut(client.entity).insert(state);
         }
 
-        let cloned_bot = bot.clone();
+        let cloned_bot = client.clone();
         let swarm_tx = self.swarm_tx.clone();
         let bots_tx = self.bots_tx.clone();
 
@@ -753,7 +751,7 @@ impl Swarm {
             rx, swarm_tx, bots_tx, cloned_bot, join_opts,
         ));
 
-        Ok(bot)
+        Ok(client)
     }
 
     /// Copy the events from a client's receiver into bots_tx, until the bot is
@@ -769,7 +767,9 @@ impl Swarm {
             if rx.len() > 1_000 {
                 static WARNED_1_000: AtomicBool = AtomicBool::new(false);
                 if !WARNED_1_000.swap(true, atomic::Ordering::Relaxed) {
-                    warn!("the client's Event channel has more than 1000 items!")
+                    warn!(
+                        "the client's Event channel has more than 1,000 items! this is probably fine but if you're concerned about it, maybe consider disabling the packet-event feature in azalea to reduce the number of events?"
+                    )
                 }
 
                 if rx.len() > 10_000 {
@@ -788,7 +788,7 @@ impl Swarm {
                             static WARNED_1_000_000: AtomicBool = AtomicBool::new(false);
                             if !WARNED_1_000_000.swap(true, atomic::Ordering::Relaxed) {
                                 warn!(
-                                    "the client's Event channel has more than 1,000,000 items!!!! i sincerely hope no one ever sees this warning"
+                                    "the client's Event channel has more than 1,000,000 items!!!! your code is almost certainly leaking memory"
                                 )
                             }
                         }
@@ -830,24 +830,29 @@ impl Swarm {
     ///
     /// This does exponential backoff (though very limited), starting at 5
     /// seconds and doubling up to 15 seconds.
+    #[deprecated(note = "azalea has auto-reconnect functionality built-in now, use `add` instead")]
     pub async fn add_and_retry_forever<S: Component + Clone>(
         &self,
         account: &Account,
         state: S,
     ) -> Client {
+        #[allow(deprecated)]
         self.add_and_retry_forever_with_opts(account, state, &JoinOpts::default())
             .await
     }
 
     /// Same as [`Self::add_and_retry_forever`], but allow passing custom join
     /// options.
+    #[deprecated(
+        note = "azalea has auto-reconnect functionality built-in now, use `add_with_opts` instead"
+    )]
     pub async fn add_and_retry_forever_with_opts<S: Component + Clone>(
         &self,
         account: &Account,
         state: S,
         opts: &JoinOpts,
     ) -> Client {
-        let mut disconnects = 0;
+        let mut disconnects: u32 = 0;
         loop {
             match self.add_with_opts(account, state.clone(), opts).await {
                 Ok(bot) => return bot,
@@ -857,20 +862,9 @@ impl Swarm {
                         .min(Duration::from_secs(15));
                     let username = account.username.clone();
 
-                    match &e {
-                        JoinError::Disconnect { reason } => {
-                            error!(
-                                "Error joining as {username}, server says: \"{reason}\". Waiting {delay:?} and trying again."
-                            );
-                        }
-                        _ => {
-                            error!(
-                                "Error joining as {username}: {e}. Waiting {delay:?} and trying again."
-                            );
-                        }
-                    }
+                    error!("Error joining as {username}: {e}. Waiting {delay:?} and trying again.");
 
-                    tokio::time::sleep(delay).await;
+                    sleep(delay).await;
                 }
             }
         }

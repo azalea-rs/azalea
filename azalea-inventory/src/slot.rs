@@ -1,7 +1,7 @@
 use std::{
     any::Any,
     fmt,
-    io::{Cursor, Write},
+    io::{self, Cursor, Write},
 };
 
 use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
@@ -73,10 +73,10 @@ impl ItemStack {
 
     /// Update whether this slot is empty, based on the count.
     pub fn update_empty(&mut self) {
-        if let ItemStack::Present(i) = self {
-            if i.is_empty() {
-                *self = ItemStack::Empty;
-            }
+        if let ItemStack::Present(i) = self
+            && i.is_empty()
+        {
+            *self = ItemStack::Empty;
         }
     }
 
@@ -122,14 +122,14 @@ impl ItemStackData {
     /// # use azalea_inventory::ItemStackData;
     /// # use azalea_registry::Item;
     /// let mut a = ItemStackData {
-    ///    kind: Item::Stone,
-    ///    count: 1,
-    ///    components: Default::default(),
+    ///     kind: Item::Stone,
+    ///     count: 1,
+    ///     components: Default::default(),
     /// };
     /// let mut b = ItemStackData {
-    ///   kind: Item::Stone,
-    ///   count: 2,
-    ///   components: Default::default(),
+    ///     kind: Item::Stone,
+    ///     count: 2,
+    ///     components: Default::default(),
     /// };
     /// assert!(a.is_same_item_and_components(&b));
     ///
@@ -159,7 +159,7 @@ impl AzaleaRead for ItemStack {
 }
 
 impl AzaleaWrite for ItemStack {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         match self {
             ItemStack::Empty => 0_i32.azalea_write_var(buf)?,
             ItemStack::Present(i) => {
@@ -256,7 +256,7 @@ impl AzaleaRead for DataComponentPatch {
 }
 
 impl AzaleaWrite for DataComponentPatch {
-    fn azalea_write(&self, buf: &mut impl Write) -> Result<(), std::io::Error> {
+    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         let mut components_with_data_count: u32 = 0;
         let mut components_without_data_count: u32 = 0;
         for component in self.components.values() {

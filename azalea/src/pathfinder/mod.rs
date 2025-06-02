@@ -4,6 +4,7 @@
 
 pub mod astar;
 pub mod costs;
+pub mod custom_state;
 pub mod debug;
 pub mod goals;
 pub mod mining;
@@ -12,28 +13,34 @@ pub mod rel_block_pos;
 pub mod simulation;
 pub mod world;
 
-use std::collections::VecDeque;
-use std::ops::RangeInclusive;
-use std::sync::Arc;
-use std::sync::atomic::{self, AtomicUsize};
-use std::time::{Duration, Instant};
-use std::{cmp, thread};
+use std::{
+    cmp,
+    collections::VecDeque,
+    ops::RangeInclusive,
+    sync::{
+        Arc,
+        atomic::{self, AtomicUsize},
+    },
+    thread,
+    time::{Duration, Instant},
+};
 
-use astar::PathfinderTimeout;
-use azalea_client::inventory::{Inventory, InventorySet, SetSelectedHotbarSlotEvent};
-use azalea_client::mining::{Mining, StartMiningBlockEvent};
-use azalea_client::movement::MoveEventsSet;
-use azalea_client::{InstanceHolder, StartSprintEvent, StartWalkEvent};
-use azalea_core::position::BlockPos;
-use azalea_core::tick::GameTick;
-use azalea_entity::LocalEntity;
-use azalea_entity::metadata::Player;
-use azalea_entity::{Physics, Position};
+use astar::{Edge, PathfinderTimeout};
+use azalea_client::{
+    StartSprintEvent, StartWalkEvent,
+    inventory::{Inventory, InventorySet, SetSelectedHotbarSlotEvent},
+    local_player::InstanceHolder,
+    mining::{Mining, MiningSet, StartMiningBlockEvent},
+    movement::MoveEventsSet,
+};
+use azalea_core::{position::BlockPos, tick::GameTick};
+use azalea_entity::{LocalEntity, Physics, Position, metadata::Player};
 use azalea_physics::PhysicsSet;
 use azalea_world::{InstanceContainer, InstanceName};
 use bevy_app::{PreUpdate, Update};
 use bevy_ecs::prelude::*;
 use bevy_tasks::{AsyncComputeTaskPool, Task};
+use custom_state::{CustomPathfinderState, CustomPathfinderStateRef};
 use futures_lite::future;
 use goals::BlockPosGoal;
 use parking_lot::RwLock;
@@ -41,21 +48,25 @@ use rel_block_pos::RelBlockPos;
 use tokio::sync::broadcast::error::RecvError;
 use tracing::{debug, error, info, trace, warn};
 
-use self::debug::debug_render_path_with_particles;
-use self::goals::Goal;
-use self::mining::MiningCache;
-use self::moves::{ExecuteCtx, IsReachedCtx, SuccessorsFn};
-use crate::app::{App, Plugin};
-use crate::bot::{JumpEvent, LookAtEvent};
-use crate::ecs::{
-    component::Component,
-    entity::Entity,
-    event::{EventReader, EventWriter},
-    query::{With, Without},
-    system::{Commands, Query, Res},
+use self::{
+    debug::debug_render_path_with_particles,
+    goals::Goal,
+    mining::MiningCache,
+    moves::{ExecuteCtx, IsReachedCtx, SuccessorsFn},
 };
-use crate::pathfinder::{astar::a_star, moves::PathfinderCtx, world::CachedWorld};
-use crate::{BotClientExt, WalkDirection};
+use crate::{
+    BotClientExt, WalkDirection,
+    app::{App, Plugin},
+    bot::{JumpEvent, LookAtEvent},
+    ecs::{
+        component::Component,
+        entity::Entity,
+        event::{EventReader, EventWriter},
+        query::{With, Without},
+        system::{Commands, Query, Res},
+    },
+    pathfinder::{astar::a_star, moves::PathfinderCtx, world::CachedWorld},
+};
 
 #[derive(Clone, Default)]
 pub struct PathfinderPlugin;
@@ -79,7 +90,8 @@ impl Plugin for PathfinderPlugin {
                 )
                     .chain()
                     .after(PhysicsSet)
-                    .after(azalea_client::movement::send_position),
+                    .after(azalea_client::movement::send_position)
+                    .after(MiningSet),
             )
             .add_systems(PreUpdate, add_default_pathfinder)
             .add_systems(
@@ -116,8 +128,8 @@ pub struct Pathfinder {
 /// pathfinder path.
 #[derive(Component, Clone)]
 pub struct ExecutingPath {
-    pub path: VecDeque<astar::Movement<BlockPos, moves::MoveData>>,
-    pub queued_path: Option<VecDeque<astar::Movement<BlockPos, moves::MoveData>>>,
+    pub path: VecDeque<astar::Edge<BlockPos, moves::MoveData>>,
+    pub queued_path: Option<VecDeque<astar::Edge<BlockPos, moves::MoveData>>>,
     pub last_reached_node: BlockPos,
     pub last_node_reached_at: Instant,
     pub is_path_partial: bool,
@@ -134,7 +146,7 @@ pub struct GotoEvent {
     pub entity: Entity,
     pub goal: Arc<dyn Goal>,
     /// The function that's used for checking what moves are possible. Usually
-    /// `pathfinder::moves::default_move`
+    /// [`moves::default_move`].
     pub successors_fn: SuccessorsFn,
 
     /// Whether the bot is allowed to break blocks while pathfinding.
@@ -161,7 +173,7 @@ pub struct GotoEvent {
 pub struct PathFoundEvent {
     pub entity: Entity,
     pub start: BlockPos,
-    pub path: Option<VecDeque<astar::Movement<BlockPos, moves::MoveData>>>,
+    pub path: Option<VecDeque<astar::Edge<BlockPos, moves::MoveData>>>,
     pub is_partial: bool,
     pub successors_fn: SuccessorsFn,
     pub allow_mining: bool,
@@ -189,6 +201,8 @@ pub trait PathfinderClientExt {
 impl PathfinderClientExt for azalea_client::Client {
     /// Pathfind to the given goal and wait until either the target is reached
     /// or the pathfinding is canceled.
+    ///
+    /// You can use [`Self::start_goto`] instead if you don't want to wait.
     ///
     /// ```
     /// # use azalea::prelude::*;
@@ -270,6 +284,7 @@ impl PathfinderClientExt for azalea_client::Client {
 #[derive(Component)]
 pub struct ComputePath(Task<Option<PathFoundEvent>>);
 
+#[allow(clippy::type_complexity)]
 pub fn goto_listener(
     mut commands: Commands,
     mut events: EventReader<GotoEvent>,
@@ -279,13 +294,14 @@ pub fn goto_listener(
         &Position,
         &InstanceName,
         &Inventory,
+        Option<&CustomPathfinderState>,
     )>,
     instance_container: Res<InstanceContainer>,
 ) {
     let thread_pool = AsyncComputeTaskPool::get();
 
     for event in events.read() {
-        let Ok((mut pathfinder, executing_path, position, instance_name, inventory)) =
+        let Ok((mut pathfinder, executing_path, position, instance_name, inventory, custom_state)) =
             query.get_mut(event.entity)
         else {
             warn!("got goto event for an entity that can't pathfind");
@@ -313,7 +329,12 @@ pub fn goto_listener(
             && let Some(final_node) = executing_path.path.back()
         {
             // if we're currently pathfinding and got a goto event, start a little ahead
-            executing_path.path.get(50).unwrap_or(final_node).target
+            executing_path
+                .path
+                .get(50)
+                .unwrap_or(final_node)
+                .movement
+                .target
         } else {
             BlockPos::from(position)
         };
@@ -346,6 +367,8 @@ pub fn goto_listener(
             None
         });
 
+        let custom_state = custom_state.cloned().unwrap_or_default();
+
         let min_timeout = event.min_timeout;
         let max_timeout = event.max_timeout;
 
@@ -359,6 +382,7 @@ pub fn goto_listener(
                 goto_id_atomic,
                 allow_mining,
                 mining_cache,
+                custom_state,
                 min_timeout,
                 max_timeout,
             })
@@ -377,6 +401,7 @@ pub struct CalculatePathOpts {
     pub goto_id_atomic: Arc<AtomicUsize>,
     pub allow_mining: bool,
     pub mining_cache: MiningCache,
+    pub custom_state: CustomPathfinderState,
     /// Also see [`GotoEvent::min_timeout`].
     pub min_timeout: PathfinderTimeout,
     pub max_timeout: PathfinderTimeout,
@@ -398,7 +423,13 @@ pub fn calculate_path(opts: CalculatePathOpts) -> Option<PathFoundEvent> {
     let origin = opts.start;
     let cached_world = CachedWorld::new(opts.world_lock, origin);
     let successors = |pos: RelBlockPos| {
-        call_successors_fn(&cached_world, &opts.mining_cache, opts.successors_fn, pos)
+        call_successors_fn(
+            &cached_world,
+            &opts.mining_cache,
+            &opts.custom_state.0.read(),
+            opts.successors_fn,
+            pos,
+        )
     };
 
     let start_time = Instant::now();
@@ -447,14 +478,32 @@ pub fn calculate_path(opts: CalculatePathOpts) -> Option<PathFoundEvent> {
         debug!("this path is empty, we might be stuck :(");
     }
 
-    // replace the RelBlockPos types with BlockPos
-    let mapped_path = path
-        .into_iter()
-        .map(|movement| astar::Movement {
-            target: movement.target.apply(origin),
-            data: movement.data,
-        })
-        .collect();
+    let mut mapped_path = VecDeque::with_capacity(path.len());
+    let mut current_position = RelBlockPos::get_origin(origin);
+    for movement in path {
+        let mut found_edge = None;
+        for edge in successors(current_position) {
+            if edge.movement.target == movement.target {
+                found_edge = Some(edge);
+                break;
+            }
+        }
+
+        let found_edge = found_edge.expect(
+            "path should always still be possible because we're using the same world cache",
+        );
+        current_position = found_edge.movement.target;
+
+        // we don't just clone the found_edge because we're using BlockPos instead of
+        // RelBlockPos as the target type
+        mapped_path.push_back(Edge {
+            movement: astar::Movement {
+                target: movement.target.apply(origin),
+                data: movement.data,
+            },
+            cost: found_edge.cost,
+        });
+    }
 
     Some(PathFoundEvent {
         entity: opts.entity,
@@ -485,6 +534,7 @@ pub fn handle_tasks(
 }
 
 // set the path for the target entity when we get the PathFoundEvent
+#[allow(clippy::type_complexity)]
 pub fn path_found_listener(
     mut events: EventReader<PathFoundEvent>,
     mut query: Query<(
@@ -492,12 +542,13 @@ pub fn path_found_listener(
         Option<&mut ExecutingPath>,
         &InstanceName,
         &Inventory,
+        Option<&CustomPathfinderState>,
     )>,
     instance_container: Res<InstanceContainer>,
     mut commands: Commands,
 ) {
     for event in events.read() {
-        let (mut pathfinder, executing_path, instance_name, inventory) = query
+        let (mut pathfinder, executing_path, instance_name, inventory, custom_state) = query
             .get_mut(event.entity)
             .expect("Path found for an entity that doesn't have a pathfinder");
         if let Some(path) = &event.path {
@@ -518,15 +569,27 @@ pub fn path_found_listener(
                     } else {
                         None
                     });
+                    let custom_state = custom_state.cloned().unwrap_or_default();
+                    let custom_state_ref = custom_state.0.read();
                     let successors = |pos: RelBlockPos| {
-                        call_successors_fn(&cached_world, &mining_cache, successors_fn, pos)
+                        call_successors_fn(
+                            &cached_world,
+                            &mining_cache,
+                            &custom_state_ref,
+                            successors_fn,
+                            pos,
+                        )
                     };
 
                     if let Some(first_node_of_new_path) = path.front() {
-                        let last_target_of_current_path =
-                            RelBlockPos::from_origin(origin, last_node_of_current_path.target);
-                        let first_target_of_new_path =
-                            RelBlockPos::from_origin(origin, first_node_of_new_path.target);
+                        let last_target_of_current_path = RelBlockPos::from_origin(
+                            origin,
+                            last_node_of_current_path.movement.target,
+                        );
+                        let first_target_of_new_path = RelBlockPos::from_origin(
+                            origin,
+                            first_node_of_new_path.movement.target,
+                        );
 
                         if successors(last_target_of_current_path)
                             .iter()
@@ -589,11 +652,20 @@ pub fn timeout_movement(
         Option<&Mining>,
         &InstanceName,
         &Inventory,
+        Option<&CustomPathfinderState>,
     )>,
     instance_container: Res<InstanceContainer>,
 ) {
-    for (entity, mut pathfinder, mut executing_path, position, mining, instance_name, inventory) in
-        &mut query
+    for (
+        entity,
+        mut pathfinder,
+        mut executing_path,
+        position,
+        mining,
+        instance_name,
+        inventory,
+        custom_state,
+    ) in &mut query
     {
         // don't timeout if we're mining
         if let Some(mining) = mining {
@@ -619,6 +691,8 @@ pub fn timeout_movement(
                 .expect("Entity tried to pathfind but the entity isn't in a valid world");
             let successors_fn: moves::SuccessorsFn = pathfinder.successors_fn.unwrap();
 
+            let custom_state = custom_state.cloned().unwrap_or_default();
+
             // try to fix the path without recalculating everything.
             // (though, it'll still get fully recalculated by `recalculate_near_end_of_path`
             // if the new path is too short)
@@ -630,6 +704,7 @@ pub fn timeout_movement(
                 entity,
                 successors_fn,
                 world_lock,
+                custom_state,
             );
             // reset last_node_reached_at so we don't immediately try to patch again
             executing_path.last_node_reached_at = Instant::now();
@@ -654,7 +729,7 @@ pub fn check_node_reached(
             // we don't unnecessarily execute a movement when it wasn't necessary
 
             // see if we already reached any future nodes and can skip ahead
-            for (i, movement) in executing_path
+            for (i, edge) in executing_path
                 .path
                 .clone()
                 .into_iter()
@@ -662,6 +737,7 @@ pub fn check_node_reached(
                 .take(20)
                 .rev()
             {
+                let movement = edge.movement;
                 let is_reached_ctx = IsReachedCtx {
                     target: movement.target,
                     start: executing_path.last_reached_node,
@@ -732,6 +808,7 @@ pub fn check_node_reached(
     }
 }
 
+#[allow(clippy::type_complexity)]
 pub fn check_for_path_obstruction(
     mut query: Query<(
         Entity,
@@ -739,10 +816,13 @@ pub fn check_for_path_obstruction(
         &mut ExecutingPath,
         &InstanceName,
         &Inventory,
+        Option<&CustomPathfinderState>,
     )>,
     instance_container: Res<InstanceContainer>,
 ) {
-    for (entity, mut pathfinder, mut executing_path, instance_name, inventory) in &mut query {
+    for (entity, mut pathfinder, mut executing_path, instance_name, inventory, custom_state) in
+        &mut query
+    {
         let Some(successors_fn) = pathfinder.successors_fn else {
             continue;
         };
@@ -759,52 +839,67 @@ pub fn check_for_path_obstruction(
         } else {
             None
         });
-        let successors =
-            |pos: RelBlockPos| call_successors_fn(&cached_world, &mining_cache, successors_fn, pos);
+        let custom_state = custom_state.cloned().unwrap_or_default();
+        let custom_state_ref = custom_state.0.read();
+        let successors = |pos: RelBlockPos| {
+            call_successors_fn(
+                &cached_world,
+                &mining_cache,
+                &custom_state_ref,
+                successors_fn,
+                pos,
+            )
+        };
 
-        if let Some(obstructed_index) = check_path_obstructed(
+        let Some(obstructed_index) = check_path_obstructed(
             origin,
             RelBlockPos::from_origin(origin, executing_path.last_reached_node),
             &executing_path.path,
             successors,
-        ) {
-            warn!(
-                "path obstructed at index {obstructed_index} (starting at {:?}, path: {:?})",
-                executing_path.last_reached_node, executing_path.path
+        ) else {
+            continue;
+        };
+
+        drop(custom_state_ref);
+
+        warn!(
+            "path obstructed at index {obstructed_index} (starting at {:?})",
+            executing_path.last_reached_node,
+        );
+        debug!("obstructed path: {:?}", executing_path.path);
+        // if it's near the end, don't bother recalculating a patch, just truncate and
+        // mark it as partial
+        if obstructed_index + 5 > executing_path.path.len() {
+            debug!(
+                "obstruction is near the end of the path, truncating and marking path as partial"
             );
-            // if it's near the end, don't bother recalculating a patch, just truncate and
-            // mark it as partial
-            if obstructed_index + 5 > executing_path.path.len() {
-                debug!(
-                    "obstruction is near the end of the path, truncating and marking path as partial"
-                );
-                executing_path.path.truncate(obstructed_index);
-                executing_path.is_path_partial = true;
-                continue;
-            }
-
-            let Some(successors_fn) = pathfinder.successors_fn else {
-                error!("got PatchExecutingPathEvent but the bot has no successors_fn");
-                continue;
-            };
-
-            let world_lock = instance_container
-                .get(instance_name)
-                .expect("Entity tried to pathfind but the entity isn't in a valid world");
-
-            // patch up to 20 nodes
-            let patch_end_index = cmp::min(obstructed_index + 20, executing_path.path.len() - 1);
-
-            patch_path(
-                obstructed_index..=patch_end_index,
-                &mut executing_path,
-                &mut pathfinder,
-                inventory,
-                entity,
-                successors_fn,
-                world_lock,
-            );
+            executing_path.path.truncate(obstructed_index);
+            executing_path.is_path_partial = true;
+            continue;
         }
+
+        let Some(successors_fn) = pathfinder.successors_fn else {
+            error!("got PatchExecutingPathEvent but the bot has no successors_fn");
+            continue;
+        };
+
+        let world_lock = instance_container
+            .get(instance_name)
+            .expect("Entity tried to pathfind but the entity isn't in a valid world");
+
+        // patch up to 20 nodes
+        let patch_end_index = cmp::min(obstructed_index + 20, executing_path.path.len() - 1);
+
+        patch_path(
+            obstructed_index..=patch_end_index,
+            &mut executing_path,
+            &mut pathfinder,
+            inventory,
+            entity,
+            successors_fn,
+            world_lock,
+            custom_state.clone(),
+        );
     }
 }
 
@@ -813,6 +908,7 @@ pub fn check_for_path_obstruction(
 ///
 /// You should avoid making the range too large, since the timeout for the A*
 /// calculation is very low. About 20 nodes is a good amount.
+#[allow(clippy::too_many_arguments)]
 fn patch_path(
     patch_nodes: RangeInclusive<usize>,
     executing_path: &mut ExecutingPath,
@@ -821,14 +917,17 @@ fn patch_path(
     entity: Entity,
     successors_fn: SuccessorsFn,
     world_lock: Arc<RwLock<azalea_world::Instance>>,
+    custom_state: CustomPathfinderState,
 ) {
     let patch_start = if *patch_nodes.start() == 0 {
         executing_path.last_reached_node
     } else {
-        executing_path.path[*patch_nodes.start() - 1].target
+        executing_path.path[*patch_nodes.start() - 1]
+            .movement
+            .target
     };
 
-    let patch_end = executing_path.path[*patch_nodes.end()].target;
+    let patch_end = executing_path.path[*patch_nodes.end()].movement.target;
 
     // this doesn't override the main goal, it's just the goal for this A*
     // calculation
@@ -853,6 +952,7 @@ fn patch_path(
         goto_id_atomic,
         allow_mining,
         mining_cache,
+        custom_state,
         min_timeout: PathfinderTimeout::Nodes(10_000),
         max_timeout: PathfinderTimeout::Nodes(10_000),
     });
@@ -928,8 +1028,7 @@ pub fn recalculate_near_end_of_path(
                         allow_mining: pathfinder.allow_mining,
                         min_timeout: if executing_path.path.len() == 50 {
                             // we have quite some time until the node is reached, soooo we might as
-                            // well burn some cpu cycles to get a good
-                            // path
+                            // well burn some cpu cycles to get a good path
                             PathfinderTimeout::Time(Duration::from_secs(5))
                         } else {
                             PathfinderTimeout::Time(Duration::from_secs(1))
@@ -996,10 +1095,10 @@ pub fn tick_execute_path(
     for (entity, executing_path, position, physics, mining, instance_holder, inventory_component) in
         &mut query
     {
-        if let Some(movement) = executing_path.path.front() {
+        if let Some(edge) = executing_path.path.front() {
             let ctx = ExecuteCtx {
                 entity,
-                target: movement.target,
+                target: edge.movement.target,
                 position: **position,
                 start: executing_path.last_reached_node,
                 physics,
@@ -1018,7 +1117,7 @@ pub fn tick_execute_path(
                 "executing move, position: {}, last_reached_node: {}",
                 **position, executing_path.last_reached_node
             );
-            (movement.data.execute)(ctx);
+            (edge.movement.data.execute)(ctx);
         }
     }
 }
@@ -1110,26 +1209,36 @@ pub fn stop_pathfinding_on_instance_change(
 pub fn check_path_obstructed<SuccessorsFn>(
     origin: BlockPos,
     mut current_position: RelBlockPos,
-    path: &VecDeque<astar::Movement<BlockPos, moves::MoveData>>,
+    path: &VecDeque<astar::Edge<BlockPos, moves::MoveData>>,
     successors_fn: SuccessorsFn,
 ) -> Option<usize>
 where
     SuccessorsFn: Fn(RelBlockPos) -> Vec<astar::Edge<RelBlockPos, moves::MoveData>>,
 {
-    for (i, movement) in path.iter().enumerate() {
-        let movement_target = RelBlockPos::from_origin(origin, movement.target);
+    for (i, edge) in path.iter().enumerate() {
+        let movement_target = RelBlockPos::from_origin(origin, edge.movement.target);
 
-        let mut found_obstruction = false;
-        for edge in successors_fn(current_position) {
-            if edge.movement.target == movement_target {
-                current_position = movement_target;
-                found_obstruction = false;
+        let mut found_edge = None;
+        for candidate_edge in successors_fn(current_position) {
+            if candidate_edge.movement.target == movement_target {
+                found_edge = Some(candidate_edge);
                 break;
-            } else {
-                found_obstruction = true;
             }
         }
-        if found_obstruction {
+
+        current_position = movement_target;
+        // if found_edge is None or the cost increased, then return the index
+        if found_edge
+            .map(|found_edge| found_edge.cost > edge.cost)
+            .unwrap_or(true)
+        {
+            // if the node that we're currently executing was obstructed then it's often too
+            // late to change the path, so it's usually better to just ignore this case :/
+            if i == 0 {
+                warn!("path obstructed at index 0, ignoring");
+                continue;
+            }
+
             return Some(i);
         }
     }
@@ -1140,6 +1249,7 @@ where
 pub fn call_successors_fn(
     cached_world: &CachedWorld,
     mining_cache: &MiningCache,
+    custom_state: &CustomPathfinderStateRef,
     successors_fn: SuccessorsFn,
     pos: RelBlockPos,
 ) -> Vec<astar::Edge<RelBlockPos, moves::MoveData>> {
@@ -1148,6 +1258,7 @@ pub fn call_successors_fn(
         edges: &mut edges,
         world: cached_world,
         mining_cache,
+        custom_state,
     };
     successors_fn(&mut ctx, pos);
     edges
@@ -1158,9 +1269,11 @@ mod tests {
     use std::{
         collections::HashSet,
         sync::Arc,
+        thread,
         time::{Duration, Instant},
     };
 
+    use azalea_block::BlockState;
     use azalea_core::position::{BlockPos, ChunkPos, Vec3};
     use azalea_world::{Chunk, ChunkStorage, PartialChunkStorage};
 
@@ -1176,9 +1289,9 @@ mod tests {
         partial_chunks: &mut PartialChunkStorage,
         start_pos: BlockPos,
         end_pos: BlockPos,
-        solid_blocks: Vec<BlockPos>,
+        solid_blocks: &[BlockPos],
     ) -> Simulation {
-        let mut simulation = setup_simulation_world(partial_chunks, start_pos, solid_blocks);
+        let mut simulation = setup_simulation_world(partial_chunks, start_pos, solid_blocks, &[]);
 
         // you can uncomment this while debugging tests to get trace logs
         // simulation.app.add_plugins(bevy_log::LogPlugin {
@@ -1201,10 +1314,14 @@ mod tests {
     fn setup_simulation_world(
         partial_chunks: &mut PartialChunkStorage,
         start_pos: BlockPos,
-        solid_blocks: Vec<BlockPos>,
+        solid_blocks: &[BlockPos],
+        extra_blocks: &[(BlockPos, BlockState)],
     ) -> Simulation {
         let mut chunk_positions = HashSet::new();
-        for block_pos in &solid_blocks {
+        for block_pos in solid_blocks {
+            chunk_positions.insert(ChunkPos::from(block_pos));
+        }
+        for (block_pos, _) in extra_blocks {
             chunk_positions.insert(ChunkPos::from(block_pos));
         }
 
@@ -1213,8 +1330,12 @@ mod tests {
             partial_chunks.set(&chunk_pos, Some(Chunk::default()), &mut chunks);
         }
         for block_pos in solid_blocks {
-            chunks.set_block_state(&block_pos, azalea_registry::Block::Stone.into());
+            chunks.set_block_state(block_pos, azalea_registry::Block::Stone.into());
         }
+        for (block_pos, block_state) in extra_blocks {
+            chunks.set_block_state(block_pos, *block_state);
+        }
+
         let player = SimulatedPlayerBundle::new(Vec3::new(
             start_pos.x as f64 + 0.5,
             start_pos.y as f64,
@@ -1239,7 +1360,7 @@ mod tests {
             && start_time.elapsed() < Duration::from_millis(500)
         {
             simulation.tick();
-            std::thread::yield_now();
+            thread::yield_now();
         }
     }
 
@@ -1250,7 +1371,7 @@ mod tests {
             &mut partial_chunks,
             BlockPos::new(0, 71, 0),
             BlockPos::new(0, 71, 1),
-            vec![BlockPos::new(0, 70, 0), BlockPos::new(0, 70, 1)],
+            &[BlockPos::new(0, 70, 0), BlockPos::new(0, 70, 1)],
         );
         assert_simulation_reaches(&mut simulation, 20, BlockPos::new(0, 71, 1));
     }
@@ -1262,7 +1383,7 @@ mod tests {
             &mut partial_chunks,
             BlockPos::new(0, 71, 0),
             BlockPos::new(2, 71, 2),
-            vec![
+            &[
                 BlockPos::new(0, 70, 0),
                 BlockPos::new(1, 70, 1),
                 BlockPos::new(2, 70, 2),
@@ -1280,7 +1401,7 @@ mod tests {
             &mut partial_chunks,
             BlockPos::new(0, 71, 3),
             BlockPos::new(5, 76, 0),
-            vec![
+            &[
                 BlockPos::new(0, 70, 3),
                 BlockPos::new(0, 70, 2),
                 BlockPos::new(0, 70, 1),
@@ -1302,7 +1423,7 @@ mod tests {
             &mut partial_chunks,
             BlockPos::new(0, 71, 0),
             BlockPos::new(0, 71, 3),
-            vec![BlockPos::new(0, 70, 0), BlockPos::new(0, 70, 3)],
+            &[BlockPos::new(0, 70, 0), BlockPos::new(0, 70, 3)],
         );
         assert_simulation_reaches(&mut simulation, 40, BlockPos::new(0, 71, 3));
     }
@@ -1314,7 +1435,7 @@ mod tests {
             &mut partial_chunks,
             BlockPos::new(0, 71, 0),
             BlockPos::new(3, 67, 4),
-            vec![
+            &[
                 BlockPos::new(0, 70, 0),
                 BlockPos::new(0, 69, 1),
                 BlockPos::new(0, 68, 2),
@@ -1333,7 +1454,7 @@ mod tests {
             &mut partial_chunks,
             BlockPos::new(0, 71, 0),
             BlockPos::new(0, 70, 5),
-            vec![
+            &[
                 BlockPos::new(0, 70, 0),
                 BlockPos::new(0, 70, 1),
                 BlockPos::new(0, 69, 2),
@@ -1350,7 +1471,7 @@ mod tests {
             &mut partial_chunks,
             BlockPos::new(0, 71, 0),
             BlockPos::new(0, 68, 3),
-            vec![
+            &[
                 BlockPos::new(0, 70, 0),
                 BlockPos::new(0, 69, 1),
                 BlockPos::new(0, 68, 2),
@@ -1367,7 +1488,7 @@ mod tests {
             &mut partial_chunks,
             BlockPos::new(0, 71, 0),
             BlockPos::new(3, 74, 0),
-            vec![
+            &[
                 BlockPos::new(0, 70, 0),
                 BlockPos::new(0, 71, 3),
                 BlockPos::new(3, 72, 3),
@@ -1384,7 +1505,7 @@ mod tests {
             &mut partial_chunks,
             BlockPos::new(0, 71, 0),
             BlockPos::new(4, 71, 12),
-            vec![
+            &[
                 BlockPos::new(0, 70, 0),
                 BlockPos::new(0, 70, 4),
                 BlockPos::new(0, 70, 8),
@@ -1402,7 +1523,7 @@ mod tests {
             &mut partial_chunks,
             BlockPos::new(0, 71, 0),
             BlockPos::new(4, 74, 9),
-            vec![
+            &[
                 BlockPos::new(0, 70, 0),
                 BlockPos::new(0, 70, 1),
                 BlockPos::new(0, 70, 2),
@@ -1415,5 +1536,42 @@ mod tests {
             ],
         );
         assert_simulation_reaches(&mut simulation, 80, BlockPos::new(4, 74, 9));
+    }
+
+    #[test]
+    fn test_mine_through_non_colliding_block() {
+        let mut partial_chunks = PartialChunkStorage::default();
+
+        let mut simulation = setup_simulation_world(
+            &mut partial_chunks,
+            // the pathfinder can't actually dig straight down, so we start a block to the side so
+            // it can descend correctly
+            BlockPos::new(0, 72, 1),
+            &[BlockPos::new(0, 71, 1)],
+            &[
+                (
+                    BlockPos::new(0, 71, 0),
+                    azalea_registry::Block::SculkVein.into(),
+                ),
+                (
+                    BlockPos::new(0, 70, 0),
+                    azalea_registry::Block::GrassBlock.into(),
+                ),
+                // this is an extra check to make sure that we don't accidentally break the block
+                // below (since tnt will break instantly)
+                (BlockPos::new(0, 69, 0), azalea_registry::Block::Tnt.into()),
+            ],
+        );
+
+        simulation.app.world_mut().send_event(GotoEvent {
+            entity: simulation.entity,
+            goal: Arc::new(BlockPosGoal(BlockPos::new(0, 70, 0))),
+            successors_fn: moves::default_move,
+            allow_mining: true,
+            min_timeout: PathfinderTimeout::Nodes(1_000_000),
+            max_timeout: PathfinderTimeout::Nodes(5_000_000),
+        });
+
+        assert_simulation_reaches(&mut simulation, 200, BlockPos::new(0, 70, 0));
     }
 }

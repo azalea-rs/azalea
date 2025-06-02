@@ -1,23 +1,25 @@
 //! Read packets from a stream.
 
-use std::backtrace::Backtrace;
-use std::env;
-use std::sync::LazyLock;
 use std::{
+    backtrace::Backtrace,
+    env,
     fmt::Debug,
+    io,
     io::{Cursor, Read},
+    sync::LazyLock,
 };
 
-use azalea_buf::AzaleaReadVar;
-use azalea_buf::BufReadError;
+use azalea_buf::{AzaleaReadVar, BufReadError};
 use azalea_crypto::Aes128CfbDec;
 use flate2::read::ZlibDecoder;
 use futures::StreamExt;
 use futures_lite::future;
 use thiserror::Error;
 use tokio::io::AsyncRead;
-use tokio_util::bytes::Buf;
-use tokio_util::codec::{BytesCodec, FramedRead};
+use tokio_util::{
+    bytes::Buf,
+    codec::{BytesCodec, FramedRead},
+};
 use tracing::trace;
 
 use crate::packets::ProtocolPacket;
@@ -53,7 +55,7 @@ pub enum ReadPacketError {
     IoError {
         #[from]
         #[backtrace]
-        source: std::io::Error,
+        source: io::Error,
     },
     #[error("Connection closed")]
     ConnectionClosed,
@@ -70,7 +72,7 @@ pub enum FrameSplitterError {
     Io {
         #[from]
         #[backtrace]
-        source: std::io::Error,
+        source: io::Error,
     },
     #[error("Packet is longer than {max} bytes (is {size})")]
     BadLength { max: usize, size: usize },
@@ -171,7 +173,7 @@ pub enum DecompressionError {
     Io {
         #[from]
         #[backtrace]
-        source: std::io::Error,
+        source: io::Error,
     },
     #[error("Badly compressed packet - size of {size} is below server threshold of {threshold}")]
     BelowCompressionThreshold { size: u32, threshold: u32 },

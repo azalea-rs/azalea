@@ -1,9 +1,13 @@
 use std::f64::consts::PI;
 
-use azalea_client::mining::Mining;
-use azalea_client::tick_broadcast::{TickBroadcast, UpdateBroadcast};
-use azalea_core::position::{BlockPos, Vec3};
-use azalea_core::tick::GameTick;
+use azalea_client::{
+    mining::Mining,
+    tick_broadcast::{TickBroadcast, UpdateBroadcast},
+};
+use azalea_core::{
+    position::{BlockPos, Vec3},
+    tick::GameTick,
+};
 use azalea_entity::{
     EyeHeight, Jumping, LocalEntity, LookDirection, Position, clamp_look_direction,
     metadata::Player,
@@ -14,18 +18,20 @@ use bevy_ecs::prelude::*;
 use futures_lite::Future;
 use tracing::trace;
 
-use crate::accept_resource_packs::AcceptResourcePacksPlugin;
-use crate::app::{App, Plugin, PluginGroup, PluginGroupBuilder};
-use crate::auto_respawn::AutoRespawnPlugin;
-use crate::container::ContainerPlugin;
-use crate::ecs::{
-    component::Component,
-    entity::Entity,
-    event::EventReader,
-    query::{With, Without},
-    system::{Commands, Query},
+use crate::{
+    accept_resource_packs::AcceptResourcePacksPlugin,
+    app::{App, Plugin, PluginGroup, PluginGroupBuilder},
+    auto_respawn::AutoRespawnPlugin,
+    container::ContainerPlugin,
+    ecs::{
+        component::Component,
+        entity::Entity,
+        event::EventReader,
+        query::{With, Without},
+        system::{Commands, Query},
+    },
+    pathfinder::PathfinderPlugin,
 };
-use crate::pathfinder::PathfinderPlugin;
 
 #[derive(Clone, Default)]
 pub struct BotPlugin;

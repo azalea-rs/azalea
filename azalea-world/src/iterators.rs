@@ -11,7 +11,7 @@ use azalea_core::position::{BlockPos, ChunkPos};
 ///
 /// let mut iter = BlockIterator::new(BlockPos::default(), 4);
 /// for block_pos in iter {
-///    println!("{:?}", block_pos);
+///     println!("{:?}", block_pos);
 /// }
 /// ```
 pub struct BlockIterator {
@@ -86,7 +86,7 @@ impl Iterator for BlockIterator {
 ///
 /// let mut iter = SquareChunkIterator::new(ChunkPos::default(), 4);
 /// for chunk_pos in iter {
-///   println!("{:?}", chunk_pos);
+///     println!("{:?}", chunk_pos);
 /// }
 /// ```
 pub struct SquareChunkIterator {
@@ -123,11 +123,11 @@ impl SquareChunkIterator {
     ///
     /// let mut iter = SquareChunkIterator::new(ChunkPos::default(), 2);
     /// while let Some(chunk_pos) = iter.next() {
-    ///   println!("{:?}", chunk_pos);
+    ///     println!("{:?}", chunk_pos);
     /// }
     /// iter.set_max_distance(4);
     /// while let Some(chunk_pos) = iter.next() {
-    ///   println!("{:?}", chunk_pos);
+    ///     println!("{:?}", chunk_pos);
     /// }
     /// ```
     pub fn set_max_distance(&mut self, max_distance: u32) {
@@ -174,7 +174,7 @@ impl Iterator for SquareChunkIterator {
 ///
 /// let mut iter = ChunkIterator::new(ChunkPos::default(), 4);
 /// for chunk_pos in iter {
-///   println!("{:?}", chunk_pos);
+///     println!("{:?}", chunk_pos);
 /// }
 /// ```
 pub struct ChunkIterator {

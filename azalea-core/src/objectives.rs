@@ -1,5 +1,5 @@
 use std::{
-    fmt::{self, Display, Formatter},
+    fmt::{self, Display},
     str::FromStr,
 };
 
@@ -12,7 +12,7 @@ pub enum ObjectiveCriteria {
 }
 
 impl Display for ObjectiveCriteria {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             ObjectiveCriteria::Integer => write!(f, "integer"),
             ObjectiveCriteria::Hearts => write!(f, "hearts"),
