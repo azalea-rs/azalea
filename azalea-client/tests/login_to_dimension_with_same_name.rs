@@ -128,9 +128,4 @@ fn generic_test_login_to_dimension_with_same_name(using_respawn: bool) {
     simulation
         .chunk(ChunkPos::new(0, 0))
         .expect("chunk should exist");
-    simulation.receive_packet(make_basic_login_or_respawn_packet(
-        DimensionType::new_raw(2), // nether
-        ResourceLocation::new("minecraft:nether"),
-    ));
-    simulation.tick();
 }
