@@ -221,7 +221,12 @@ where
                 best_successor = Some(successor);
             }
         }
-        let found_successor = best_successor.expect("No successor found");
+        let Some(found_successor) = best_successor else {
+            warn!(
+                "a successor stopped being possible while reconstructing the path, returning empty path"
+            );
+            return vec![];
+        };
 
         path.push(Movement {
             target: node_position,

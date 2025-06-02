@@ -5,8 +5,12 @@ use bevy_ecs::prelude::*;
 use super::ExecutingPath;
 
 /// A component that makes bots run /particle commands while pathfinding to show
-/// where they're going. This requires the bots to have server operator
-/// permissions, and it'll make them spam *a lot* of commands.
+/// where they're going.
+///
+/// This requires the bots to have server operator permissions, and it'll make
+/// them spam *a lot* of commands. You may want to run `/gamerule
+/// sendCommandFeedback false` to hide the "Displaying particle minecraft:dust"
+/// spam.
 ///
 /// ```
 /// # use azalea::prelude::*;

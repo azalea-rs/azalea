@@ -19,6 +19,7 @@ use parking_lot::RwLock;
 
 use super::{
     astar,
+    custom_state::CustomPathfinderStateRef,
     mining::MiningCache,
     rel_block_pos::RelBlockPos,
     world::{CachedWorld, is_block_state_passable},
@@ -222,4 +223,6 @@ pub struct PathfinderCtx<'a> {
     pub edges: &'a mut Vec<Edge>,
     pub world: &'a CachedWorld,
     pub mining_cache: &'a MiningCache,
+
+    pub custom_state: &'a CustomPathfinderStateRef,
 }

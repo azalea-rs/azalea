@@ -4,6 +4,7 @@
 
 pub mod astar;
 pub mod costs;
+pub mod custom_state;
 pub mod debug;
 pub mod goals;
 pub mod mining;
@@ -38,6 +39,7 @@ use azalea_world::{InstanceContainer, InstanceName};
 use bevy_app::{PreUpdate, Update};
 use bevy_ecs::prelude::*;
 use bevy_tasks::{AsyncComputeTaskPool, Task};
+use custom_state::{CustomPathfinderState, CustomPathfinderStateRef};
 use futures_lite::future;
 use goals::BlockPosGoal;
 use parking_lot::RwLock;
@@ -280,6 +282,7 @@ impl PathfinderClientExt for azalea_client::Client {
 #[derive(Component)]
 pub struct ComputePath(Task<Option<PathFoundEvent>>);
 
+#[allow(clippy::type_complexity)]
 pub fn goto_listener(
     mut commands: Commands,
     mut events: EventReader<GotoEvent>,
@@ -289,13 +292,14 @@ pub fn goto_listener(
         &Position,
         &InstanceName,
         &Inventory,
+        Option<&CustomPathfinderState>,
     )>,
     instance_container: Res<InstanceContainer>,
 ) {
     let thread_pool = AsyncComputeTaskPool::get();
 
     for event in events.read() {
-        let Ok((mut pathfinder, executing_path, position, instance_name, inventory)) =
+        let Ok((mut pathfinder, executing_path, position, instance_name, inventory, custom_state)) =
             query.get_mut(event.entity)
         else {
             warn!("got goto event for an entity that can't pathfind");
@@ -361,6 +365,8 @@ pub fn goto_listener(
             None
         });
 
+        let custom_state = custom_state.cloned().unwrap_or_default();
+
         let min_timeout = event.min_timeout;
         let max_timeout = event.max_timeout;
 
@@ -374,6 +380,7 @@ pub fn goto_listener(
                 goto_id_atomic,
                 allow_mining,
                 mining_cache,
+                custom_state,
                 min_timeout,
                 max_timeout,
             })
@@ -392,6 +399,7 @@ pub struct CalculatePathOpts {
     pub goto_id_atomic: Arc<AtomicUsize>,
     pub allow_mining: bool,
     pub mining_cache: MiningCache,
+    pub custom_state: CustomPathfinderState,
     /// Also see [`GotoEvent::min_timeout`].
     pub min_timeout: PathfinderTimeout,
     pub max_timeout: PathfinderTimeout,
@@ -413,7 +421,13 @@ pub fn calculate_path(opts: CalculatePathOpts) -> Option<PathFoundEvent> {
     let origin = opts.start;
     let cached_world = CachedWorld::new(opts.world_lock, origin);
     let successors = |pos: RelBlockPos| {
-        call_successors_fn(&cached_world, &opts.mining_cache, opts.successors_fn, pos)
+        call_successors_fn(
+            &cached_world,
+            &opts.mining_cache,
+            &opts.custom_state.0.read(),
+            opts.successors_fn,
+            pos,
+        )
     };
 
     let start_time = Instant::now();
@@ -518,6 +532,7 @@ pub fn handle_tasks(
 }
 
 // set the path for the target entity when we get the PathFoundEvent
+#[allow(clippy::type_complexity)]
 pub fn path_found_listener(
     mut events: EventReader<PathFoundEvent>,
     mut query: Query<(
@@ -525,12 +540,13 @@ pub fn path_found_listener(
         Option<&mut ExecutingPath>,
         &InstanceName,
         &Inventory,
+        Option<&CustomPathfinderState>,
     )>,
     instance_container: Res<InstanceContainer>,
     mut commands: Commands,
 ) {
     for event in events.read() {
-        let (mut pathfinder, executing_path, instance_name, inventory) = query
+        let (mut pathfinder, executing_path, instance_name, inventory, custom_state) = query
             .get_mut(event.entity)
             .expect("Path found for an entity that doesn't have a pathfinder");
         if let Some(path) = &event.path {
@@ -551,8 +567,16 @@ pub fn path_found_listener(
                     } else {
                         None
                     });
+                    let custom_state = custom_state.cloned().unwrap_or_default();
+                    let custom_state_ref = custom_state.0.read();
                     let successors = |pos: RelBlockPos| {
-                        call_successors_fn(&cached_world, &mining_cache, successors_fn, pos)
+                        call_successors_fn(
+                            &cached_world,
+                            &mining_cache,
+                            &custom_state_ref,
+                            successors_fn,
+                            pos,
+                        )
                     };
 
                     if let Some(first_node_of_new_path) = path.front() {
@@ -626,11 +650,20 @@ pub fn timeout_movement(
         Option<&Mining>,
         &InstanceName,
         &Inventory,
+        Option<&CustomPathfinderState>,
     )>,
     instance_container: Res<InstanceContainer>,
 ) {
-    for (entity, mut pathfinder, mut executing_path, position, mining, instance_name, inventory) in
-        &mut query
+    for (
+        entity,
+        mut pathfinder,
+        mut executing_path,
+        position,
+        mining,
+        instance_name,
+        inventory,
+        custom_state,
+    ) in &mut query
     {
         // don't timeout if we're mining
         if let Some(mining) = mining {
@@ -656,6 +689,8 @@ pub fn timeout_movement(
                 .expect("Entity tried to pathfind but the entity isn't in a valid world");
             let successors_fn: moves::SuccessorsFn = pathfinder.successors_fn.unwrap();
 
+            let custom_state = custom_state.cloned().unwrap_or_default();
+
             // try to fix the path without recalculating everything.
             // (though, it'll still get fully recalculated by `recalculate_near_end_of_path`
             // if the new path is too short)
@@ -667,6 +702,7 @@ pub fn timeout_movement(
                 entity,
                 successors_fn,
                 world_lock,
+                custom_state,
             );
             // reset last_node_reached_at so we don't immediately try to patch again
             executing_path.last_node_reached_at = Instant::now();
@@ -770,6 +806,7 @@ pub fn check_node_reached(
     }
 }
 
+#[allow(clippy::type_complexity)]
 pub fn check_for_path_obstruction(
     mut query: Query<(
         Entity,
@@ -777,10 +814,13 @@ pub fn check_for_path_obstruction(
         &mut ExecutingPath,
         &InstanceName,
         &Inventory,
+        Option<&CustomPathfinderState>,
     )>,
     instance_container: Res<InstanceContainer>,
 ) {
-    for (entity, mut pathfinder, mut executing_path, instance_name, inventory) in &mut query {
+    for (entity, mut pathfinder, mut executing_path, instance_name, inventory, custom_state) in
+        &mut query
+    {
         let Some(successors_fn) = pathfinder.successors_fn else {
             continue;
         };
@@ -797,52 +837,66 @@ pub fn check_for_path_obstruction(
         } else {
             None
         });
-        let successors =
-            |pos: RelBlockPos| call_successors_fn(&cached_world, &mining_cache, successors_fn, pos);
+        let custom_state = custom_state.cloned().unwrap_or_default();
+        let custom_state_ref = custom_state.0.read();
+        let successors = |pos: RelBlockPos| {
+            call_successors_fn(
+                &cached_world,
+                &mining_cache,
+                &custom_state_ref,
+                successors_fn,
+                pos,
+            )
+        };
 
-        if let Some(obstructed_index) = check_path_obstructed(
+        let Some(obstructed_index) = check_path_obstructed(
             origin,
             RelBlockPos::from_origin(origin, executing_path.last_reached_node),
             &executing_path.path,
             successors,
-        ) {
-            warn!(
-                "path obstructed at index {obstructed_index} (starting at {:?}, path: {:?})",
-                executing_path.last_reached_node, executing_path.path
+        ) else {
+            continue;
+        };
+
+        drop(custom_state_ref);
+
+        warn!(
+            "path obstructed at index {obstructed_index} (starting at {:?}, path: {:?})",
+            executing_path.last_reached_node, executing_path.path
+        );
+        // if it's near the end, don't bother recalculating a patch, just truncate and
+        // mark it as partial
+        if obstructed_index + 5 > executing_path.path.len() {
+            debug!(
+                "obstruction is near the end of the path, truncating and marking path as partial"
             );
-            // if it's near the end, don't bother recalculating a patch, just truncate and
-            // mark it as partial
-            if obstructed_index + 5 > executing_path.path.len() {
-                debug!(
-                    "obstruction is near the end of the path, truncating and marking path as partial"
-                );
-                executing_path.path.truncate(obstructed_index);
-                executing_path.is_path_partial = true;
-                continue;
-            }
-
-            let Some(successors_fn) = pathfinder.successors_fn else {
-                error!("got PatchExecutingPathEvent but the bot has no successors_fn");
-                continue;
-            };
-
-            let world_lock = instance_container
-                .get(instance_name)
-                .expect("Entity tried to pathfind but the entity isn't in a valid world");
-
-            // patch up to 20 nodes
-            let patch_end_index = cmp::min(obstructed_index + 20, executing_path.path.len() - 1);
-
-            patch_path(
-                obstructed_index..=patch_end_index,
-                &mut executing_path,
-                &mut pathfinder,
-                inventory,
-                entity,
-                successors_fn,
-                world_lock,
-            );
+            executing_path.path.truncate(obstructed_index);
+            executing_path.is_path_partial = true;
+            continue;
         }
+
+        let Some(successors_fn) = pathfinder.successors_fn else {
+            error!("got PatchExecutingPathEvent but the bot has no successors_fn");
+            continue;
+        };
+
+        let world_lock = instance_container
+            .get(instance_name)
+            .expect("Entity tried to pathfind but the entity isn't in a valid world");
+
+        // patch up to 20 nodes
+        let patch_end_index = cmp::min(obstructed_index + 20, executing_path.path.len() - 1);
+
+        patch_path(
+            obstructed_index..=patch_end_index,
+            &mut executing_path,
+            &mut pathfinder,
+            inventory,
+            entity,
+            successors_fn,
+            world_lock,
+            custom_state.clone(),
+        );
     }
 }
 
@@ -851,6 +905,7 @@ pub fn check_for_path_obstruction(
 ///
 /// You should avoid making the range too large, since the timeout for the A*
 /// calculation is very low. About 20 nodes is a good amount.
+#[allow(clippy::too_many_arguments)]
 fn patch_path(
     patch_nodes: RangeInclusive<usize>,
     executing_path: &mut ExecutingPath,
@@ -859,6 +914,7 @@ fn patch_path(
     entity: Entity,
     successors_fn: SuccessorsFn,
     world_lock: Arc<RwLock<azalea_world::Instance>>,
+    custom_state: CustomPathfinderState,
 ) {
     let patch_start = if *patch_nodes.start() == 0 {
         executing_path.last_reached_node
@@ -893,6 +949,7 @@ fn patch_path(
         goto_id_atomic,
         allow_mining,
         mining_cache,
+        custom_state,
         min_timeout: PathfinderTimeout::Nodes(10_000),
         max_timeout: PathfinderTimeout::Nodes(10_000),
     });
@@ -1181,6 +1238,7 @@ where
 pub fn call_successors_fn(
     cached_world: &CachedWorld,
     mining_cache: &MiningCache,
+    custom_state: &CustomPathfinderStateRef,
     successors_fn: SuccessorsFn,
     pos: RelBlockPos,
 ) -> Vec<astar::Edge<RelBlockPos, moves::MoveData>> {
@@ -1189,6 +1247,7 @@ pub fn call_successors_fn(
         edges: &mut edges,
         world: cached_world,
         mining_cache,
+        custom_state,
     };
     successors_fn(&mut ctx, pos);
     edges

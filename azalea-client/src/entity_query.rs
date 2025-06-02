@@ -110,11 +110,7 @@ impl Client {
 
 pub trait EntityPredicate<Q: QueryData, Filter: QueryFilter> {
     fn find(&self, ecs_lock: Arc<Mutex<World>>, instance_name: &InstanceName) -> Option<Entity>;
-    fn find_all<'a>(
-        &'a self,
-        ecs_lock: Arc<Mutex<World>>,
-        instance_name: &InstanceName,
-    ) -> Vec<Entity>;
+    fn find_all(&self, ecs_lock: Arc<Mutex<World>>, instance_name: &InstanceName) -> Vec<Entity>;
 }
 impl<F, Q: QueryData, Filter: QueryFilter> EntityPredicate<Q, Filter> for F
 where
@@ -129,11 +125,7 @@ where
             .map(|(e, _, _)| e)
     }
 
-    fn find_all<'a>(
-        &'a self,
-        ecs_lock: Arc<Mutex<World>>,
-        instance_name: &InstanceName,
-    ) -> Vec<Entity> {
+    fn find_all(&self, ecs_lock: Arc<Mutex<World>>, instance_name: &InstanceName) -> Vec<Entity> {
         let mut ecs = ecs_lock.lock();
         let mut query = ecs.query_filtered::<(Entity, &InstanceName, Q), Filter>();
         query
