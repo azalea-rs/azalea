@@ -687,7 +687,7 @@ impl Swarm {
     ///
     /// # Errors
     ///
-    /// Returns an `Err` if the bot could not do a handshake successfully.
+    /// Returns an error if the server's address could not be resolved.
     pub async fn add<S: Component + Clone>(
         &self,
         account: &Account,
@@ -702,7 +702,7 @@ impl Swarm {
     ///
     /// # Errors
     ///
-    /// Returns an `Err` if the bot could not do a handshake successfully.
+    /// Returns an error if the server's address could not be resolved.
     pub async fn add_with_opts<S: Component + Clone>(
         &self,
         account: &Account,
@@ -725,7 +725,7 @@ impl Swarm {
 
         let (tx, rx) = mpsc::unbounded_channel();
 
-        let bot = Client::start_client(StartClientOpts {
+        let client = Client::start_client(StartClientOpts {
             ecs_lock: self.ecs_lock.clone(),
             account: account.clone(),
             connect_opts: ConnectOpts {
@@ -735,14 +735,14 @@ impl Swarm {
             },
             event_sender: Some(tx),
         })
-        .await?;
+        .await;
         // add the state to the client
         {
             let mut ecs = self.ecs_lock.lock();
-            ecs.entity_mut(bot.entity).insert(state);
+            ecs.entity_mut(client.entity).insert(state);
         }
 
-        let cloned_bot = bot.clone();
+        let cloned_bot = client.clone();
         let swarm_tx = self.swarm_tx.clone();
         let bots_tx = self.bots_tx.clone();
 
@@ -751,7 +751,7 @@ impl Swarm {
             rx, swarm_tx, bots_tx, cloned_bot, join_opts,
         ));
 
-        Ok(bot)
+        Ok(client)
     }
 
     /// Copy the events from a client's receiver into bots_tx, until the bot is
@@ -767,7 +767,9 @@ impl Swarm {
             if rx.len() > 1_000 {
                 static WARNED_1_000: AtomicBool = AtomicBool::new(false);
                 if !WARNED_1_000.swap(true, atomic::Ordering::Relaxed) {
-                    warn!("the client's Event channel has more than 1000 items!")
+                    warn!(
+                        "the client's Event channel has more than 1,000 items! this is probably fine but if you're concerned about it, maybe consider disabling the packet-event feature in azalea to reduce the number of events?"
+                    )
                 }
 
                 if rx.len() > 10_000 {
@@ -786,7 +788,7 @@ impl Swarm {
                             static WARNED_1_000_000: AtomicBool = AtomicBool::new(false);
                             if !WARNED_1_000_000.swap(true, atomic::Ordering::Relaxed) {
                                 warn!(
-                                    "the client's Event channel has more than 1,000,000 items!!!! i sincerely hope no one ever sees this warning"
+                                    "the client's Event channel has more than 1,000,000 items!!!! your code is almost certainly leaking memory"
                                 )
                             }
                         }
@@ -860,18 +862,7 @@ impl Swarm {
                         .min(Duration::from_secs(15));
                     let username = account.username.clone();
 
-                    match &e {
-                        JoinError::Disconnect { reason } => {
-                            error!(
-                                "Error joining as {username}, server says: \"{reason}\". Waiting {delay:?} and trying again."
-                            );
-                        }
-                        _ => {
-                            error!(
-                                "Error joining as {username}: {e}. Waiting {delay:?} and trying again."
-                            );
-                        }
-                    }
+                    error!("Error joining as {username}: {e}. Waiting {delay:?} and trying again.");
 
                     sleep(delay).await;
                 }
