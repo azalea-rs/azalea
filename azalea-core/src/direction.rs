@@ -162,6 +162,16 @@ impl CardinalDirection {
         }
     }
 }
+impl From<CardinalDirection> for Direction {
+    fn from(value: CardinalDirection) -> Self {
+        match value {
+            CardinalDirection::North => Direction::North,
+            CardinalDirection::South => Direction::South,
+            CardinalDirection::West => Direction::West,
+            CardinalDirection::East => Direction::East,
+        }
+    }
+}
 
 impl Axis {
     /// Pick x, y, or z from the arguments depending on the axis.

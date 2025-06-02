@@ -6,7 +6,10 @@ use azalea_client::{
     packet::game::ReceiveGamePacketEvent,
 };
 use azalea_core::position::BlockPos;
-use azalea_inventory::{ItemStack, Menu, operations::ClickOperation};
+use azalea_inventory::{
+    ItemStack, Menu,
+    operations::{ClickOperation, PickupClick, QuickMoveClick},
+};
 use azalea_protocol::packets::game::ClientboundGamePacket;
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::{component::Component, prelude::EventReader, system::Commands};
@@ -27,6 +30,7 @@ pub trait ContainerClientExt {
         pos: BlockPos,
     ) -> impl Future<Output = Option<ContainerHandle>> + Send;
     fn open_inventory(&self) -> Option<ContainerHandle>;
+    fn get_held_item(&self) -> ItemStack;
     fn get_open_container(&self) -> Option<ContainerHandleRef>;
 }
 
@@ -91,6 +95,14 @@ impl ContainerClientExt for Client {
         } else {
             None
         }
+    }
+
+    /// Get the item in the bot's hotbar that is currently being held in its
+    /// main hand.
+    fn get_held_item(&self) -> ItemStack {
+        let ecs = self.ecs.lock();
+        let inventory = ecs.get::<Inventory>(self.entity).expect("no inventory");
+        inventory.held_item()
     }
 
     /// Get a handle to the open container. This will return None if no
@@ -227,6 +239,25 @@ impl ContainerHandle {
 
     pub fn click(&self, operation: impl Into<ClickOperation>) {
         self.0.click(operation);
+    }
+
+    /// A shortcut for [`Self::click`] with `PickupClick::Left`.
+    pub fn left_click(&self, slot: impl Into<usize>) {
+        self.click(PickupClick::Left {
+            slot: Some(slot.into() as u16),
+        });
+    }
+    /// A shortcut for [`Self::click`] with `QuickMoveClick::Left`.
+    pub fn shift_click(&self, slot: impl Into<usize>) {
+        self.click(QuickMoveClick::Left {
+            slot: slot.into() as u16,
+        });
+    }
+    /// A shortcut for [`Self::click`] with `PickupClick::Right`.
+    pub fn right_click(&self, slot: impl Into<usize>) {
+        self.click(PickupClick::Right {
+            slot: Some(slot.into() as u16),
+        });
     }
 }
 

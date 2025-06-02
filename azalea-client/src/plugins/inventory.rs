@@ -60,6 +60,36 @@ impl Client {
         let inventory = self.query::<&Inventory>(&mut ecs);
         inventory.menu().clone()
     }
+
+    /// Returns the index of the hotbar slot that's currently selected.
+    ///
+    /// If you want to access the actual held item, you can get the current menu
+    /// with [`Client::menu`] and then get the slot index by offsetting from
+    /// the start of [`azalea_inventory::Menu::hotbar_slots_range`].
+    ///
+    /// You can use [`Self::set_selected_hotbar_slot`] to change it.
+    pub fn selected_hotbar_slot(&self) -> u8 {
+        let mut ecs = self.ecs.lock();
+        let inventory = self.query::<&Inventory>(&mut ecs);
+        inventory.selected_hotbar_slot
+    }
+
+    /// Update the selected hotbar slot index.
+    ///
+    /// This will run next `Update`, so you might want to call
+    /// `bot.wait_updates(1)` after calling this if you're using `azalea`.
+    pub fn set_selected_hotbar_slot(&self, new_hotbar_slot_index: u8) {
+        assert!(
+            new_hotbar_slot_index < 9,
+            "Hotbar slot index must be in the range 0..=8"
+        );
+
+        let mut ecs = self.ecs.lock();
+        ecs.send_event(SetSelectedHotbarSlotEvent {
+            entity: self.entity,
+            slot: new_hotbar_slot_index,
+        });
+    }
 }
 
 /// A component present on all local players that have an inventory.
@@ -499,7 +529,8 @@ impl Inventory {
         self.quick_craft_slots.clear();
     }
 
-    /// Get the item in the player's hotbar that is currently being held.
+    /// Get the item in the player's hotbar that is currently being held in its
+    /// main hand.
     pub fn held_item(&self) -> ItemStack {
         let inventory = &self.inventory_menu;
         let hotbar_items = &inventory.slots()[inventory.hotbar_slots_range()];

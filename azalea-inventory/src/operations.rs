@@ -61,6 +61,8 @@ impl From<QuickMoveClick> for ClickOperation {
 #[derive(Debug, Clone)]
 pub struct SwapClick {
     pub source_slot: u16,
+    /// 0-8 for hotbar slots, 40 for offhand, everything else is treated as a
+    /// slot index.
     pub target_slot: u8,
 }
 

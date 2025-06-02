@@ -260,7 +260,7 @@ impl PathfinderClientExt for azalea_client::Client {
     async fn wait_until_goto_target_reached(&self) {
         // we do this to make sure the event got handled before we start checking
         // is_goto_target_reached
-        self.wait_one_update().await;
+        self.wait_updates(1).await;
 
         let mut tick_broadcaster = self.get_tick_broadcaster();
         while !self.is_goto_target_reached() {
