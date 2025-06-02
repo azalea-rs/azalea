@@ -6819,8 +6819,6 @@ enum DialogKind {
     ServerLinks => "minecraft:server_links",
     DialogList => "minecraft:dialog_list",
     MultiAction => "minecraft:multi_action",
-    MultiActionInputForm => "minecraft:multi_action_input_form",
-    SimpleInputForm => "minecraft:simple_input_form",
     Confirmation => "minecraft:confirmation",
 }
 }
@@ -6835,9 +6833,15 @@ enum InputControlKind {
 }
 
 registry! {
-enum SubmitMethodKind {
-    CommandTemplate => "minecraft:command_template",
-    CustomTemplate => "minecraft:custom_template",
-    CustomForm => "minecraft:custom_form",
+enum DialogActionKind {
+    OpenUrl => "minecraft:open_url",
+    RunCommand => "minecraft:run_command",
+    SuggestCommand => "minecraft:suggest_command",
+    ShowDialog => "minecraft:show_dialog",
+    ChangePage => "minecraft:change_page",
+    CopyToClipboard => "minecraft:copy_to_clipboard",
+    Custom => "minecraft:custom",
+    DynamicRunCommand => "minecraft:dynamic/run_command",
+    DynamicCustom => "minecraft:dynamic/custom",
 }
 }
