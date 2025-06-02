@@ -4,7 +4,7 @@
 use std::sync::Arc;
 
 use azalea_chat::FormattedText;
-use azalea_core::tick::GameTick;
+use azalea_core::{position::ChunkPos, tick::GameTick};
 use azalea_entity::{Dead, InLoadedChunk};
 use azalea_protocol::packets::game::c_player_combat_kill::ClientboundPlayerCombatKill;
 use azalea_world::{InstanceName, MinecraftEntityId};
@@ -15,6 +15,7 @@ use tokio::sync::mpsc;
 
 use crate::{
     chat::{ChatPacket, ChatReceivedEvent},
+    chunks::ReceiveChunkEvent,
     disconnect::DisconnectEvent,
     packet::game::{
         AddPlayerEvent, DeathEvent, KeepAliveEvent, RemovePlayerEvent, UpdatePlayerEvent,
@@ -118,6 +119,7 @@ pub enum Event {
     KeepAlive(u64),
     /// The client disconnected from the server.
     Disconnect(Option<FormattedText>),
+    ReceiveChunk(ChunkPos),
 }
 
 /// A component that contains an event sender for events that are only
@@ -291,6 +293,20 @@ pub fn disconnect_listener(
     for event in events.read() {
         if let Ok(local_player_events) = query.get(event.entity) {
             let _ = local_player_events.send(Event::Disconnect(event.reason.clone()));
+        }
+    }
+}
+
+pub fn receive_chunk_listener(
+    query: Query<&LocalPlayerEvents>,
+    mut events: EventReader<ReceiveChunkEvent>,
+) {
+    for event in events.read() {
+        if let Ok(local_player_events) = query.get(event.entity) {
+            let _ = local_player_events.send(Event::ReceiveChunk(ChunkPos::new(
+                event.packet.x,
+                event.packet.z,
+            )));
         }
     }
 }
