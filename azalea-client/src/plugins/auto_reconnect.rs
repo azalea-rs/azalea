@@ -70,11 +70,17 @@ fn get_delay(
     auto_reconnect_delay_query: Query<&AutoReconnectDelay>,
     entity: Entity,
 ) -> Option<Duration> {
-    if let Ok(c) = auto_reconnect_delay_query.get(entity) {
+    let delay = if let Ok(c) = auto_reconnect_delay_query.get(entity) {
         Some(c.delay)
     } else {
         auto_reconnect_delay_res.as_ref().map(|r| r.delay)
+    };
+
+    if delay == Some(Duration::MAX) {
+        // if the duration is set to max, treat that as autoreconnect being disabled
+        return None;
     }
+    delay
 }
 
 pub fn rejoin_after_delay(

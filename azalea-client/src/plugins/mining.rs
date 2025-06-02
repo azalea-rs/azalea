@@ -8,6 +8,7 @@ use azalea_world::{InstanceContainer, InstanceName};
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
+use tracing::trace;
 
 use crate::{
     Client, InstanceHolder,
@@ -148,7 +149,7 @@ fn handle_auto_mine(
 
 /// Information about the block we're currently mining. This is only present if
 /// we're currently mining a block.
-#[derive(Component)]
+#[derive(Component, Debug, Clone)]
 pub struct Mining {
     pub pos: BlockPos,
     pub dir: Direction,
@@ -308,10 +309,12 @@ fn handle_mining_queued(
                     position: mining_queued.position,
                 });
             } else {
-                commands.entity(entity).insert(Mining {
+                let mining = Mining {
                     pos: mining_queued.position,
                     dir: mining_queued.direction,
-                });
+                };
+                trace!("inserting mining component {mining:?} for entity {entity:?}");
+                commands.entity(entity).insert(mining);
                 **current_mining_pos = Some(mining_queued.position);
                 **current_mining_item = held_item;
                 **mine_progress = 0.;
@@ -332,6 +335,7 @@ fn handle_mining_queued(
                     sequence: sequence_number.get_and_increment(),
                 },
             ));
+            // vanilla really does send two swing arm packets
             commands.trigger(SwingArmEvent { entity });
             commands.trigger(SwingArmEvent { entity });
         }
@@ -578,12 +582,12 @@ pub fn continue_mining_block(
             current_mining_pos,
             current_mining_item,
         ) {
-            println!("continue mining block at {:?}", mining.pos);
+            trace!("continue mining block at {:?}", mining.pos);
             let instance_lock = instances.get(instance_name).unwrap();
             let instance = instance_lock.read();
             let target_block_state = instance.get_block_state(&mining.pos).unwrap_or_default();
 
-            println!("target_block_state: {target_block_state:?}");
+            trace!("target_block_state: {target_block_state:?}");
 
             if target_block_state.is_air() {
                 commands.entity(entity).remove::<Mining>();
@@ -604,8 +608,10 @@ pub fn continue_mining_block(
             **mine_ticks += 1.;
 
             if **mine_progress >= 1. {
-                commands.entity(entity).remove::<Mining>();
-                println!("finished mining block at {:?}", mining.pos);
+                // MiningQueued is removed in case we were doing an infinite loop that
+                // repeatedly inserts MiningQueued
+                commands.entity(entity).remove::<(Mining, MiningQueued)>();
+                trace!("finished mining block at {:?}", mining.pos);
                 finish_mining_events.write(FinishMiningBlockEvent {
                     entity,
                     position: mining.pos,
@@ -631,7 +637,7 @@ pub fn continue_mining_block(
             });
             commands.trigger(SwingArmEvent { entity });
         } else {
-            println!("switching mining target to {:?}", mining.pos);
+            trace!("switching mining target to {:?}", mining.pos);
             commands.entity(entity).insert(MiningQueued {
                 position: mining.pos,
                 direction: mining.dir,

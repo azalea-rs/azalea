@@ -169,9 +169,9 @@ pub struct RawConnection {
     ///
     /// To check if we haven't disconnected from the server, use
     /// [`Self::is_alive`].
-    network: Option<NetworkConnection>,
+    pub(crate) network: Option<NetworkConnection>,
     pub state: ConnectionProtocol,
-    is_alive: bool,
+    pub(crate) is_alive: bool,
 
     /// This exists for internal testing purposes and probably shouldn't be used
     /// for normal bots. It's basically a way to make our client think it

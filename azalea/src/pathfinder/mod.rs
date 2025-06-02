@@ -861,9 +861,10 @@ pub fn check_for_path_obstruction(
         drop(custom_state_ref);
 
         warn!(
-            "path obstructed at index {obstructed_index} (starting at {:?}, path: {:?})",
-            executing_path.last_reached_node, executing_path.path
+            "path obstructed at index {obstructed_index} (starting at {:?})",
+            executing_path.last_reached_node,
         );
+        debug!("obstructed path: {:?}", executing_path.path);
         // if it's near the end, don't bother recalculating a patch, just truncate and
         // mark it as partial
         if obstructed_index + 5 > executing_path.path.len() {
@@ -1223,11 +1224,19 @@ where
             }
         }
 
-        if let Some(found_edge) = found_edge
-            && found_edge.cost <= edge.cost
+        current_position = movement_target;
+        // if found_edge is None or the cost increased, then return the index
+        if found_edge
+            .map(|found_edge| found_edge.cost > edge.cost)
+            .unwrap_or(true)
         {
-            current_position = found_edge.movement.target;
-        } else {
+            // if the node that we're currently executing was obstructed then it's often too
+            // late to change the path, so it's usually better to just ignore this case :/
+            if i == 0 {
+                warn!("path obstructed at index 0, ignoring");
+                continue;
+            }
+
             return Some(i);
         }
     }

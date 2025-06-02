@@ -32,7 +32,7 @@ use bevy_app::{App, PluginGroup, PluginGroupBuilder, Plugins, SubApp};
 use bevy_ecs::prelude::*;
 use futures::future::{BoxFuture, join_all};
 use parking_lot::{Mutex, RwLock};
-use tokio::sync::mpsc;
+use tokio::{sync::mpsc, time::sleep};
 use tracing::{debug, error, warn};
 
 use crate::{BoxHandleFn, DefaultBotPlugins, HandleFn, JoinOpts, NoState, StartError};
@@ -495,9 +495,7 @@ where
                 for ((account, bot_join_opts), state) in accounts.iter().zip(states) {
                     let mut join_opts = default_join_opts.clone();
                     join_opts.update(bot_join_opts);
-                    swarm_clone
-                        .add_and_retry_forever_with_opts(account, state, &join_opts)
-                        .await;
+                    let _ = swarm_clone.add_with_opts(account, state, &join_opts).await;
                     tokio::time::sleep(join_delay).await;
                 }
             } else {
@@ -507,9 +505,9 @@ where
                     |((account, bot_join_opts), state)| async {
                         let mut join_opts = default_join_opts.clone();
                         join_opts.update(bot_join_opts);
-                        swarm_borrow
+                        let _ = swarm_borrow
                             .clone()
-                            .add_and_retry_forever_with_opts(account, state, &join_opts)
+                            .add_with_opts(account, state, &join_opts)
                             .await;
                     },
                 ))
@@ -830,24 +828,29 @@ impl Swarm {
     ///
     /// This does exponential backoff (though very limited), starting at 5
     /// seconds and doubling up to 15 seconds.
+    #[deprecated(note = "azalea has auto-reconnect functionality built-in now, use `add` instead")]
     pub async fn add_and_retry_forever<S: Component + Clone>(
         &self,
         account: &Account,
         state: S,
     ) -> Client {
+        #[allow(deprecated)]
         self.add_and_retry_forever_with_opts(account, state, &JoinOpts::default())
             .await
     }
 
     /// Same as [`Self::add_and_retry_forever`], but allow passing custom join
     /// options.
+    #[deprecated(
+        note = "azalea has auto-reconnect functionality built-in now, use `add_with_opts` instead"
+    )]
     pub async fn add_and_retry_forever_with_opts<S: Component + Clone>(
         &self,
         account: &Account,
         state: S,
         opts: &JoinOpts,
     ) -> Client {
-        let mut disconnects = 0;
+        let mut disconnects: u32 = 0;
         loop {
             match self.add_with_opts(account, state.clone(), opts).await {
                 Ok(bot) => return bot,
@@ -870,7 +873,7 @@ impl Swarm {
                         }
                     }
 
-                    tokio::time::sleep(delay).await;
+                    sleep(delay).await;
                 }
             }
         }
