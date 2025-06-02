@@ -179,6 +179,14 @@ impl Instance {
         self.chunks.get_block_state(pos).map(FluidState::from)
     }
 
+    /// Get the biome at the given position.
+    ///
+    /// You can then use `Client::with_resolved_registry` to get the name and
+    /// data from the biome.
+    ///
+    /// Note that biomes are internally stored as 4x4x4 blocks, so if you're
+    /// writing code that searches for a specific biome it'll probably be more
+    /// efficient to avoid scanning every single block.
     pub fn get_biome(&self, pos: &BlockPos) -> Option<Biome> {
         self.chunks.get_biome(pos)
     }
