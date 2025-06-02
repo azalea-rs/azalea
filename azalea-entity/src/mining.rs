@@ -1,4 +1,4 @@
-use azalea_block::{Block, BlockBehavior};
+use azalea_block::{BlockTrait, BlockBehavior};
 use azalea_core::tier::get_item_tier;
 use azalea_registry as registry;
 
@@ -13,7 +13,7 @@ use crate::{FluidOnEyes, Physics, effects};
 /// The player inventory is needed to check your armor and offhand for modifiers
 /// to your mining speed.
 pub fn get_mine_progress(
-    block: &dyn Block,
+    block: &dyn BlockTrait,
     held_item: registry::Item,
     player_inventory: &azalea_inventory::Menu,
     fluid_on_eyes: &FluidOnEyes,
@@ -41,7 +41,7 @@ pub fn get_mine_progress(
         / divider as f32
 }
 
-fn has_correct_tool_for_drops(block: &dyn Block, tool: registry::Item) -> bool {
+fn has_correct_tool_for_drops(block: &dyn BlockTrait, tool: registry::Item) -> bool {
     if !block.behavior().requires_correct_tool_for_drops {
         return true;
     }

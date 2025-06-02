@@ -1,4 +1,4 @@
-use azalea_block::{Block, BlockState, fluid_state::FluidState};
+use azalea_block::{BlockTrait, BlockState, fluid_state::FluidState};
 use azalea_core::{direction::Direction, game_type::GameMode, position::BlockPos, tick::GameTick};
 use azalea_entity::{FluidOnEyes, Physics, mining::get_mine_progress};
 use azalea_inventory::ItemStack;
@@ -300,7 +300,7 @@ fn handle_mining_queued(
                 });
             }
 
-            let block = Box::<dyn Block>::from(target_block_state);
+            let block = Box::<dyn BlockTrait>::from(target_block_state);
 
             let held_item = inventory.held_item();
 
@@ -469,7 +469,7 @@ pub fn handle_finish_mining_block_observer(
         return;
     };
 
-    let registry_block = Box::<dyn Block>::from(block_state).as_registry_block();
+    let registry_block = Box::<dyn BlockTrait>::from(block_state).as_registry_block();
     if !can_use_game_master_blocks(abilities, permission_level)
         && matches!(
             registry_block,
@@ -603,7 +603,7 @@ pub fn continue_mining_block(
                 commands.entity(entity).remove::<Mining>();
                 continue;
             }
-            let block = Box::<dyn Block>::from(target_block_state);
+            let block = Box::<dyn BlockTrait>::from(target_block_state);
             **mine_progress += get_mine_progress(
                 block.as_ref(),
                 current_mining_item.kind(),

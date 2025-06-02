@@ -379,7 +379,7 @@ pub fn legacy_blocks_motion(block: BlockState) -> bool {
 
 pub fn legacy_calculate_solid(block: BlockState) -> bool {
     // force_solid has to be checked before anything else
-    let block_trait = Box::<dyn azalea_block::Block>::from(block);
+    let block_trait = Box::<dyn azalea_block::BlockTrait>::from(block);
     if let Some(solid) = block_trait.behavior().force_solid {
         return solid;
     }

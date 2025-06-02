@@ -1,7 +1,6 @@
 use std::{
     collections::{HashSet, hash_set},
     ops::{Add, RangeInclusive},
-    sync::LazyLock,
 };
 
 use crate::{BlockState, block_state::BlockStateIntegerRepr};

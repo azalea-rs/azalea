@@ -1,4 +1,4 @@
-use azalea_block::{Block, BlockState, fluid_state::FluidKind};
+use azalea_block::{BlockState, BlockTrait, fluid_state::FluidKind};
 use azalea_client::{Client, inventory::Inventory};
 use azalea_entity::{FluidOnEyes, Physics};
 use azalea_inventory::{ItemStack, Menu, components};
@@ -52,7 +52,7 @@ pub fn accurate_best_tool_in_hotbar_for_block(
     let mut best_speed = 0.;
     let mut best_slot = None;
 
-    let block = Box::<dyn Block>::from(block);
+    let block = Box::<dyn BlockTrait>::from(block);
     let registry_block = block.as_registry_block();
 
     if matches!(

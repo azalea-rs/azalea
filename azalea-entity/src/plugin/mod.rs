@@ -135,7 +135,7 @@ pub fn update_on_climbable(
 
         let block_pos = BlockPos::from(position);
         let block_state_at_feet = instance.get_block_state(&block_pos).unwrap_or_default();
-        let block_at_feet = Box::<dyn azalea_block::Block>::from(block_state_at_feet);
+        let block_at_feet = Box::<dyn azalea_block::BlockTrait>::from(block_state_at_feet);
         let registry_block_at_feet = block_at_feet.as_registry_block();
 
         **on_climbable = azalea_registry::tags::blocks::CLIMBABLE.contains(&registry_block_at_feet)
@@ -162,7 +162,7 @@ fn is_trapdoor_useable_as_ladder(
         .get_block_state(&block_pos.down(1))
         .unwrap_or_default();
     let registry_block_below =
-        Box::<dyn azalea_block::Block>::from(block_below).as_registry_block();
+        Box::<dyn azalea_block::BlockTrait>::from(block_below).as_registry_block();
     if registry_block_below != azalea_registry::Block::Ladder {
         return false;
     }

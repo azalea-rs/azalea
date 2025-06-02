@@ -1,4 +1,4 @@
-use azalea_block::{Block, BlockState, fluid_state::FluidState};
+use azalea_block::{BlockTrait, BlockState, fluid_state::FluidState};
 use azalea_core::{
     aabb::AABB,
     position::{BlockPos, Vec3},
@@ -124,7 +124,7 @@ fn travel_in_air(
         .chunks
         .get_block_state(&block_pos_below)
         .unwrap_or(BlockState::AIR);
-    let block_below: Box<dyn Block> = block_state_below.into();
+    let block_below: Box<dyn BlockTrait> = block_state_below.into();
     let block_friction = block_below.behavior().friction;
 
     let inertia = if physics.on_ground() {

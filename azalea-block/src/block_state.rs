@@ -5,7 +5,7 @@ use std::{
 
 use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
 
-use crate::Block;
+use crate::BlockTrait;
 
 /// The type that's used internally to represent a block state ID.
 ///
@@ -121,14 +121,14 @@ impl Debug for BlockState {
             f,
             "BlockState(id: {}, {:?})",
             self.id,
-            Box::<dyn Block>::from(*self)
+            Box::<dyn BlockTrait>::from(*self)
         )
     }
 }
 
 impl From<BlockState> for azalea_registry::Block {
     fn from(value: BlockState) -> Self {
-        Box::<dyn Block>::from(value).as_registry_block()
+        Box::<dyn BlockTrait>::from(value).as_registry_block()
     }
 }
 
@@ -149,11 +149,11 @@ mod tests {
 
     #[test]
     fn test_from_blockstate() {
-        let block: Box<dyn Block> = Box::<dyn Block>::from(BlockState::AIR);
+        let block: Box<dyn BlockTrait> = Box::<dyn BlockTrait>::from(BlockState::AIR);
         assert_eq!(block.id(), "air");
 
-        let block: Box<dyn Block> =
-            Box::<dyn Block>::from(BlockState::from(azalea_registry::Block::FloweringAzalea));
+        let block: Box<dyn BlockTrait> =
+            Box::<dyn BlockTrait>::from(BlockState::from(azalea_registry::Block::FloweringAzalea));
         assert_eq!(block.id(), "flowering_azalea");
     }
 
