@@ -45,7 +45,7 @@ use tracing::{debug, error, info, warn};
 use uuid::Uuid;
 
 use crate::{
-    Account, DefaultPlugins, PlayerInfo,
+    Account, DefaultPlugins,
     attack::{self},
     chunks::ChunkBatchInfo,
     connection::RawConnection,
@@ -54,13 +54,11 @@ use crate::{
     interact::CurrentSequenceNumber,
     inventory::Inventory,
     join::{ConnectOpts, StartJoinServerEvent},
-    local_player::{
-        GameProfileComponent, Hunger, InstanceHolder, PermissionLevel, PlayerAbilities, TabList,
-    },
+    local_player::{Hunger, InstanceHolder, PermissionLevel, PlayerAbilities, TabList},
     mining::{self},
     movement::{LastSentLookDirection, PhysicsState},
     packet::game::SendPacketEvent,
-    player::retroactively_add_game_profile_component,
+    player::{GameProfileComponent, PlayerInfo, retroactively_add_game_profile_component},
 };
 
 /// `Client` has the things that a user interacting with the library will want.
@@ -324,7 +322,7 @@ impl Client {
     /// This will panic if the component doesn't exist on the client.
     ///
     /// ```
-    /// # use azalea_client::{Client, Hunger};
+    /// # use azalea_client::{Client, local_player::Hunger};
     /// # fn example(bot: &Client) {
     /// let hunger = bot.map_component::<Hunger, _>(|h| h.food);
     /// # }

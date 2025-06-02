@@ -20,7 +20,7 @@ pub use events::*;
 use tracing::{debug, error, trace, warn};
 
 use crate::{
-    ClientInformation, PlayerInfo,
+    ClientInformation,
     chat::{ChatPacket, ChatReceivedEvent},
     chunks,
     connection::RawConnection,
@@ -29,11 +29,10 @@ use crate::{
     inventory::{
         ClientSideCloseContainerEvent, Inventory, MenuOpenedEvent, SetContainerContentEvent,
     },
-    local_player::{
-        GameProfileComponent, Hunger, InstanceHolder, LocalGameMode, PlayerAbilities, TabList,
-    },
+    local_player::{Hunger, InstanceHolder, LocalGameMode, PlayerAbilities, TabList},
     movement::{KnockbackEvent, KnockbackType},
     packet::as_system,
+    player::{GameProfileComponent, PlayerInfo},
 };
 
 pub fn process_packet(ecs: &mut World, player: Entity, packet: &ClientboundGamePacket) {

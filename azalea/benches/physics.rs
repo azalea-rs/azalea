@@ -25,7 +25,7 @@ fn generate_world(partial_chunks: &mut PartialChunkStorage, size: u32) -> ChunkS
             let mut chunk = chunk.write();
             for x in 0..16_u8 {
                 for z in 0..16_u8 {
-                    chunk.set(
+                    chunk.set_block_state(
                         &ChunkBlockPos::new(x, 1, z),
                         azalea_registry::Block::OakFence.into(),
                         chunks.min_y,

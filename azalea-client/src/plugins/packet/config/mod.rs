@@ -13,11 +13,11 @@ use tracing::{debug, warn};
 
 use super::as_system;
 use crate::{
-    InstanceHolder,
     client::InConfigState,
     connection::RawConnection,
     declare_packet_handlers,
     disconnect::DisconnectEvent,
+    local_player::InstanceHolder,
     packet::game::{KeepAliveEvent, ResourcePackEvent},
 };
 

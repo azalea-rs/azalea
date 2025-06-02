@@ -11,9 +11,9 @@
 mod account;
 mod client;
 mod entity_query;
-mod local_player;
+pub mod local_player;
 pub mod ping;
-mod player;
+pub mod player;
 mod plugins;
 
 #[doc(hidden)]
@@ -29,9 +29,7 @@ pub use client::{
     StartClientOpts, start_ecs_runner,
 };
 pub use events::Event;
-pub use local_player::{GameProfileComponent, Hunger, InstanceHolder, TabList};
 pub use movement::{
     PhysicsState, SprintDirection, StartSprintEvent, StartWalkEvent, WalkDirection,
 };
-pub use player::PlayerInfo;
 pub use plugins::*;

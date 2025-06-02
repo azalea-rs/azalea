@@ -2,8 +2,13 @@
 
 use std::sync::Arc;
 
-use azalea_client::{PhysicsState, inventory::Inventory, packet::game::SendPacketEvent};
-use azalea_core::{position::Vec3, resource_location::ResourceLocation, tick::GameTick};
+use azalea_client::{
+    PhysicsState, interact::CurrentSequenceNumber, inventory::Inventory,
+    local_player::LocalGameMode, mining::MineBundle, packet::game::SendPacketEvent,
+};
+use azalea_core::{
+    game_type::GameMode, position::Vec3, resource_location::ResourceLocation, tick::GameTick,
+};
 use azalea_entity::{
     Attributes, EntityDimensions, LookDirection, Physics, Position, attributes::AttributeInstance,
 };
@@ -87,7 +92,7 @@ fn create_simulation_instance(chunks: ChunkStorage) -> (App, Arc<RwLock<Instance
 fn create_simulation_player_complete_bundle(
     instance: Arc<RwLock<Instance>>,
     player: &SimulatedPlayerBundle,
-) -> impl Bundle + use<> {
+) -> impl Bundle {
     let instance_name = simulation_instance_name();
 
     (
@@ -100,12 +105,17 @@ fn create_simulation_player_complete_bundle(
             azalea_registry::EntityKind::Player,
             instance_name,
         ),
-        azalea_client::InstanceHolder {
+        azalea_client::local_player::InstanceHolder {
             // partial_instance is never actually used by the pathfinder so
             partial_instance: Arc::new(RwLock::new(PartialInstance::default())),
             instance: instance.clone(),
         },
         Inventory::default(),
+        LocalGameMode::from(GameMode::Survival),
+        MineBundle::default(),
+        CurrentSequenceNumber::default(),
+        azalea_client::local_player::PermissionLevel::default(),
+        azalea_client::local_player::PlayerAbilities::default(),
     )
 }
 

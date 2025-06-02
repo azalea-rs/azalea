@@ -8,16 +8,16 @@ use azalea_world::{InstanceContainer, InstanceName};
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
-use tracing::trace;
+use tracing::{info, trace};
 
 use crate::{
-    Client, InstanceHolder,
+    Client,
     interact::{
         CurrentSequenceNumber, HitResultComponent, SwingArmEvent, can_use_game_master_blocks,
         check_is_interaction_restricted,
     },
     inventory::{Inventory, InventorySet},
-    local_player::{LocalGameMode, PermissionLevel, PlayerAbilities},
+    local_player::{InstanceHolder, LocalGameMode, PermissionLevel, PlayerAbilities},
     movement::MoveEventsSet,
     packet::game::SendPacketEvent,
 };
@@ -40,14 +40,15 @@ impl Plugin for MiningPlugin {
                     handle_mining_queued,
                 )
                     .chain()
-                    .before(PhysicsSet)
+                    .after(PhysicsSet)
+                    .after(super::movement::send_position)
+                    .after(super::attack::handle_attack_queued)
                     .in_set(MiningSet),
             )
             .add_systems(
                 Update,
                 (
                     handle_start_mining_block_event,
-                    handle_finish_mining_block_event,
                     handle_stop_mining_block_event,
                 )
                     .chain()
@@ -60,7 +61,8 @@ impl Plugin for MiningPlugin {
                     .after(crate::attack::handle_attack_event)
                     .after(crate::interact::handle_start_use_item_queued)
                     .before(crate::interact::handle_swing_arm_event),
-            );
+            )
+            .add_observer(handle_finish_mining_block_observer);
     }
 }
 
@@ -153,13 +155,15 @@ fn handle_auto_mine(
 pub struct Mining {
     pub pos: BlockPos,
     pub dir: Direction,
+    /// See [`MiningQueued::force`].
+    pub force: bool,
 }
 
 /// Start mining the block at the given position.
 ///
 /// If we're looking at the block then the correct direction will be used,
 /// otherwise it'll be [`Direction::Down`].
-#[derive(Event)]
+#[derive(Event, Debug)]
 pub struct StartMiningBlockEvent {
     pub entity: Entity,
     pub position: BlockPos,
@@ -170,33 +174,37 @@ fn handle_start_mining_block_event(
     mut query: Query<&HitResultComponent>,
 ) {
     for event in events.read() {
+        trace!("{event:?}");
         let hit_result = query.get_mut(event.entity).unwrap();
-        let direction = if let Some(block_hit_result) = hit_result.as_block_hit_result_if_not_miss()
+        let (direction, force) = if let Some(block_hit_result) =
+            hit_result.as_block_hit_result_if_not_miss()
             && block_hit_result.block_pos == event.position
         {
             // we're looking at the block
-            block_hit_result.direction
+            (block_hit_result.direction, false)
         } else {
             // we're not looking at the block, arbitrary direction
-            Direction::Down
+            (Direction::Down, true)
         };
         commands.entity(event.entity).insert(MiningQueued {
             position: event.position,
             direction,
+            force,
         });
     }
 }
 
 /// Present on entities when they're going to start mining a block next tick.
-#[derive(Component)]
+#[derive(Component, Debug, Clone)]
 pub struct MiningQueued {
     pub position: BlockPos,
     pub direction: Direction,
+    /// Whether we should mine the block regardless of whether it's reachable.
+    pub force: bool,
 }
 #[allow(clippy::too_many_arguments, clippy::type_complexity)]
 fn handle_mining_queued(
     mut commands: Commands,
-    mut finish_mining_events: EventWriter<FinishMiningBlockEvent>,
     mut attack_block_events: EventWriter<AttackBlockEvent>,
     mut mine_block_progress_events: EventWriter<MineBlockProgressEvent>,
     query: Query<(
@@ -233,6 +241,7 @@ fn handle_mining_queued(
         mut current_mining_pos,
     ) in query
     {
+        info!("mining_queued: {mining_queued:?}");
         commands.entity(entity).remove::<MiningQueued>();
 
         let instance = instance_holder.instance.read();
@@ -248,10 +257,12 @@ fn handle_mining_queued(
         // is outside of the worldborder
 
         if game_mode.current == GameMode::Creative {
-            finish_mining_events.write(FinishMiningBlockEvent {
+            commands.trigger_targets(
+                FinishMiningBlockEvent {
+                    position: mining_queued.position,
+                },
                 entity,
-                position: mining_queued.position,
-            });
+            );
             **mine_delay = 5;
         } else if mining.is_none()
             || !is_same_mining_target(
@@ -304,14 +315,17 @@ fn handle_mining_queued(
                 ) >= 1.
             {
                 // block was broken instantly
-                finish_mining_events.write(FinishMiningBlockEvent {
+                commands.trigger_targets(
+                    FinishMiningBlockEvent {
+                        position: mining_queued.position,
+                    },
                     entity,
-                    position: mining_queued.position,
-                });
+                );
             } else {
                 let mining = Mining {
                     pos: mining_queued.position,
                     dir: mining_queued.direction,
+                    force: mining_queued.force,
                 };
                 trace!("inserting mining component {mining:?} for entity {entity:?}");
                 commands.entity(entity).insert(mining);
@@ -370,7 +384,7 @@ fn is_same_mining_target(
 }
 
 /// A component bundle for players that can mine blocks.
-#[derive(Bundle, Default)]
+#[derive(Bundle, Default, Clone)]
 pub struct MineBundle {
     pub delay: MineDelay,
     pub progress: MineProgress,
@@ -380,12 +394,12 @@ pub struct MineBundle {
 }
 
 /// A component that counts down until we start mining the next block.
-#[derive(Component, Debug, Default, Deref, DerefMut)]
+#[derive(Component, Debug, Default, Deref, DerefMut, Clone)]
 pub struct MineDelay(pub u32);
 
 /// A component that stores the progress of the current mining operation. This
 /// is a value between 0 and 1.
-#[derive(Component, Debug, Default, Deref, DerefMut)]
+#[derive(Component, Debug, Default, Deref, DerefMut, Clone)]
 pub struct MineProgress(pub f32);
 
 impl MineProgress {
@@ -413,15 +427,14 @@ pub struct MineBlockPos(pub Option<BlockPos>);
 #[derive(Component, Clone, Debug, Default, Deref, DerefMut)]
 pub struct MineItem(pub ItemStack);
 
-/// Sent when we completed mining a block.
+/// A trigger that's sent when we completed mining a block.
 #[derive(Event)]
 pub struct FinishMiningBlockEvent {
-    pub entity: Entity,
     pub position: BlockPos,
 }
 
-pub fn handle_finish_mining_block_event(
-    mut events: EventReader<FinishMiningBlockEvent>,
+pub fn handle_finish_mining_block_observer(
+    trigger: Trigger<FinishMiningBlockEvent>,
     mut query: Query<(
         &InstanceName,
         &LocalGameMode,
@@ -432,53 +445,48 @@ pub fn handle_finish_mining_block_event(
     )>,
     instances: Res<InstanceContainer>,
 ) {
-    for event in events.read() {
-        let (instance_name, game_mode, inventory, abilities, permission_level, _sequence_number) =
-            query.get_mut(event.entity).unwrap();
-        let instance_lock = instances.get(instance_name).unwrap();
-        let instance = instance_lock.read();
-        if check_is_interaction_restricted(
-            &instance,
-            &event.position,
-            &game_mode.current,
-            inventory,
-        ) {
-            continue;
-        }
+    let event = trigger.event();
 
-        if game_mode.current == GameMode::Creative {
-            let held_item = inventory.held_item().kind();
-            if matches!(
-                held_item,
-                azalea_registry::Item::Trident | azalea_registry::Item::DebugStick
-            ) || azalea_registry::tags::items::SWORDS.contains(&held_item)
-            {
-                continue;
-            }
-        }
-
-        let Some(block_state) = instance.get_block_state(&event.position) else {
-            continue;
-        };
-
-        let registry_block = Box::<dyn Block>::from(block_state).as_registry_block();
-        if !can_use_game_master_blocks(abilities, permission_level)
-            && matches!(
-                registry_block,
-                azalea_registry::Block::CommandBlock | azalea_registry::Block::StructureBlock
-            )
-        {
-            continue;
-        }
-        if block_state == BlockState::AIR {
-            continue;
-        }
-
-        // when we break a waterlogged block we want to keep the water there
-        let fluid_state = FluidState::from(block_state);
-        let block_state_for_fluid = BlockState::from(fluid_state);
-        instance.set_block_state(&event.position, block_state_for_fluid);
+    let (instance_name, game_mode, inventory, abilities, permission_level, _sequence_number) =
+        query.get_mut(trigger.target()).unwrap();
+    let instance_lock = instances.get(instance_name).unwrap();
+    let instance = instance_lock.read();
+    if check_is_interaction_restricted(&instance, &event.position, &game_mode.current, inventory) {
+        return;
     }
+
+    if game_mode.current == GameMode::Creative {
+        let held_item = inventory.held_item().kind();
+        if matches!(
+            held_item,
+            azalea_registry::Item::Trident | azalea_registry::Item::DebugStick
+        ) || azalea_registry::tags::items::SWORDS.contains(&held_item)
+        {
+            return;
+        }
+    }
+
+    let Some(block_state) = instance.get_block_state(&event.position) else {
+        return;
+    };
+
+    let registry_block = Box::<dyn Block>::from(block_state).as_registry_block();
+    if !can_use_game_master_blocks(abilities, permission_level)
+        && matches!(
+            registry_block,
+            azalea_registry::Block::CommandBlock | azalea_registry::Block::StructureBlock
+        )
+    {
+        return;
+    }
+    if block_state == BlockState::AIR {
+        return;
+    }
+
+    // when we break a waterlogged block we want to keep the water there
+    let fluid_state = FluidState::from(block_state);
+    let block_state_for_fluid = BlockState::from(fluid_state);
+    instance.set_block_state(&event.position, block_state_for_fluid);
 }
 
 /// Abort mining a block.
@@ -535,7 +543,6 @@ pub fn continue_mining_block(
     )>,
     mut commands: Commands,
     mut mine_block_progress_events: EventWriter<MineBlockProgressEvent>,
-    mut finish_mining_events: EventWriter<FinishMiningBlockEvent>,
     instances: Res<InstanceContainer>,
 ) {
     for (
@@ -562,10 +569,12 @@ pub fn continue_mining_block(
         if game_mode.current == GameMode::Creative {
             // TODO: worldborder check
             **mine_delay = 5;
-            finish_mining_events.write(FinishMiningBlockEvent {
+            commands.trigger_targets(
+                FinishMiningBlockEvent {
+                    position: mining.pos,
+                },
                 entity,
-                position: mining.pos,
-            });
+            );
             commands.trigger(SendPacketEvent::new(
                 entity,
                 ServerboundPlayerAction {
@@ -576,12 +585,14 @@ pub fn continue_mining_block(
                 },
             ));
             commands.trigger(SwingArmEvent { entity });
-        } else if is_same_mining_target(
-            mining.pos,
-            inventory,
-            current_mining_pos,
-            current_mining_item,
-        ) {
+        } else if mining.force
+            || is_same_mining_target(
+                mining.pos,
+                inventory,
+                current_mining_pos,
+                current_mining_item,
+            )
+        {
             trace!("continue mining block at {:?}", mining.pos);
             let instance_lock = instances.get(instance_name).unwrap();
             let instance = instance_lock.read();
@@ -612,10 +623,12 @@ pub fn continue_mining_block(
                 // repeatedly inserts MiningQueued
                 commands.entity(entity).remove::<(Mining, MiningQueued)>();
                 trace!("finished mining block at {:?}", mining.pos);
-                finish_mining_events.write(FinishMiningBlockEvent {
+                commands.trigger_targets(
+                    FinishMiningBlockEvent {
+                        position: mining.pos,
+                    },
                     entity,
-                    position: mining.pos,
-                });
+                );
                 commands.trigger(SendPacketEvent::new(
                     entity,
                     ServerboundPlayerAction {
@@ -641,6 +654,7 @@ pub fn continue_mining_block(
             commands.entity(entity).insert(MiningQueued {
                 position: mining.pos,
                 direction: mining.dir,
+                force: false,
             });
         }
     }

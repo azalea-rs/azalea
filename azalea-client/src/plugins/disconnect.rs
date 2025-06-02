@@ -9,7 +9,10 @@ use derive_more::Deref;
 use tracing::info;
 
 use super::login::IsAuthenticated;
-use crate::{InstanceHolder, chat_signing, client::JoinedClientBundle, connection::RawConnection};
+use crate::{
+    chat_signing, client::JoinedClientBundle, connection::RawConnection,
+    local_player::InstanceHolder,
+};
 
 pub struct DisconnectPlugin;
 impl Plugin for DisconnectPlugin {

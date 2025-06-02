@@ -17,7 +17,7 @@ use bevy_ecs::prelude::*;
 use tracing::{error, trace};
 
 use crate::{
-    InstanceHolder, interact::handle_start_use_item_queued, inventory::InventorySet,
+    interact::handle_start_use_item_queued, inventory::InventorySet, local_player::InstanceHolder,
     packet::game::SendPacketEvent, respawn::perform_respawn,
 };
 

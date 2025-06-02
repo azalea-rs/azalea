@@ -43,7 +43,7 @@ impl Client {
     ///
     /// # Example
     /// ```
-    /// use azalea_client::{Client, GameProfileComponent};
+    /// use azalea_client::{Client, player::GameProfileComponent};
     /// use azalea_entity::{Position, metadata::Player};
     /// use bevy_ecs::query::With;
     ///

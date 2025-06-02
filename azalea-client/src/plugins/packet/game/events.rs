@@ -12,7 +12,7 @@ use parking_lot::RwLock;
 use tracing::{error, trace};
 use uuid::Uuid;
 
-use crate::{PlayerInfo, client::InGameState, connection::RawConnection};
+use crate::{client::InGameState, connection::RawConnection, player::PlayerInfo};
 
 /// An event that's sent when we receive a packet.
 /// ```

@@ -24,7 +24,7 @@ use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
 use tracing::warn;
 
-use super::mining::{Mining, MiningSet};
+use super::mining::Mining;
 use crate::{
     Client,
     attack::handle_attack_event,
@@ -58,12 +58,7 @@ impl Plugin for InteractPlugin {
                         .after(MoveEventsSet),
                 ),
             )
-            .add_systems(
-                GameTick,
-                handle_start_use_item_queued
-                    .after(MiningSet)
-                    .before(PhysicsSet),
-            )
+            .add_systems(GameTick, handle_start_use_item_queued.before(PhysicsSet))
             .add_observer(handle_swing_arm_trigger);
     }
 }

@@ -27,9 +27,10 @@ use std::{
 
 use astar::{Edge, PathfinderTimeout};
 use azalea_client::{
-    InstanceHolder, StartSprintEvent, StartWalkEvent,
+    StartSprintEvent, StartWalkEvent,
     inventory::{Inventory, InventorySet, SetSelectedHotbarSlotEvent},
-    mining::{Mining, StartMiningBlockEvent},
+    local_player::InstanceHolder,
+    mining::{Mining, MiningSet, StartMiningBlockEvent},
     movement::MoveEventsSet,
 };
 use azalea_core::{position::BlockPos, tick::GameTick};
@@ -89,7 +90,8 @@ impl Plugin for PathfinderPlugin {
                 )
                     .chain()
                     .after(PhysicsSet)
-                    .after(azalea_client::movement::send_position),
+                    .after(azalea_client::movement::send_position)
+                    .after(MiningSet),
             )
             .add_systems(PreUpdate, add_default_pathfinder)
             .add_systems(
@@ -1271,6 +1273,7 @@ mod tests {
         time::{Duration, Instant},
     };
 
+    use azalea_block::BlockState;
     use azalea_core::position::{BlockPos, ChunkPos, Vec3};
     use azalea_world::{Chunk, ChunkStorage, PartialChunkStorage};
 
@@ -1286,9 +1289,9 @@ mod tests {
         partial_chunks: &mut PartialChunkStorage,
         start_pos: BlockPos,
         end_pos: BlockPos,
-        solid_blocks: Vec<BlockPos>,
+        solid_blocks: &[BlockPos],
     ) -> Simulation {
-        let mut simulation = setup_simulation_world(partial_chunks, start_pos, solid_blocks);
+        let mut simulation = setup_simulation_world(partial_chunks, start_pos, solid_blocks, &[]);
 
         // you can uncomment this while debugging tests to get trace logs
         // simulation.app.add_plugins(bevy_log::LogPlugin {
@@ -1311,10 +1314,14 @@ mod tests {
     fn setup_simulation_world(
         partial_chunks: &mut PartialChunkStorage,
         start_pos: BlockPos,
-        solid_blocks: Vec<BlockPos>,
+        solid_blocks: &[BlockPos],
+        extra_blocks: &[(BlockPos, BlockState)],
     ) -> Simulation {
         let mut chunk_positions = HashSet::new();
-        for block_pos in &solid_blocks {
+        for block_pos in solid_blocks {
+            chunk_positions.insert(ChunkPos::from(block_pos));
+        }
+        for (block_pos, _) in extra_blocks {
             chunk_positions.insert(ChunkPos::from(block_pos));
         }
 
@@ -1323,8 +1330,12 @@ mod tests {
             partial_chunks.set(&chunk_pos, Some(Chunk::default()), &mut chunks);
         }
         for block_pos in solid_blocks {
-            chunks.set_block_state(&block_pos, azalea_registry::Block::Stone.into());
+            chunks.set_block_state(block_pos, azalea_registry::Block::Stone.into());
         }
+        for (block_pos, block_state) in extra_blocks {
+            chunks.set_block_state(block_pos, *block_state);
+        }
+
         let player = SimulatedPlayerBundle::new(Vec3::new(
             start_pos.x as f64 + 0.5,
             start_pos.y as f64,
@@ -1360,7 +1371,7 @@ mod tests {
             &mut partial_chunks,
             BlockPos::new(0, 71, 0),
             BlockPos::new(0, 71, 1),
-            vec![BlockPos::new(0, 70, 0), BlockPos::new(0, 70, 1)],
+            &[BlockPos::new(0, 70, 0), BlockPos::new(0, 70, 1)],
         );
         assert_simulation_reaches(&mut simulation, 20, BlockPos::new(0, 71, 1));
     }
@@ -1372,7 +1383,7 @@ mod tests {
             &mut partial_chunks,
             BlockPos::new(0, 71, 0),
             BlockPos::new(2, 71, 2),
-            vec![
+            &[
                 BlockPos::new(0, 70, 0),
                 BlockPos::new(1, 70, 1),
                 BlockPos::new(2, 70, 2),
@@ -1390,7 +1401,7 @@ mod tests {
             &mut partial_chunks,
             BlockPos::new(0, 71, 3),
             BlockPos::new(5, 76, 0),
-            vec![
+            &[
                 BlockPos::new(0, 70, 3),
                 BlockPos::new(0, 70, 2),
                 BlockPos::new(0, 70, 1),
@@ -1412,7 +1423,7 @@ mod tests {
             &mut partial_chunks,
             BlockPos::new(0, 71, 0),
             BlockPos::new(0, 71, 3),
-            vec![BlockPos::new(0, 70, 0), BlockPos::new(0, 70, 3)],
+            &[BlockPos::new(0, 70, 0), BlockPos::new(0, 70, 3)],
         );
         assert_simulation_reaches(&mut simulation, 40, BlockPos::new(0, 71, 3));
     }
@@ -1424,7 +1435,7 @@ mod tests {
             &mut partial_chunks,
             BlockPos::new(0, 71, 0),
             BlockPos::new(3, 67, 4),
-            vec![
+            &[
                 BlockPos::new(0, 70, 0),
                 BlockPos::new(0, 69, 1),
                 BlockPos::new(0, 68, 2),
@@ -1443,7 +1454,7 @@ mod tests {
             &mut partial_chunks,
             BlockPos::new(0, 71, 0),
             BlockPos::new(0, 70, 5),
-            vec![
+            &[
                 BlockPos::new(0, 70, 0),
                 BlockPos::new(0, 70, 1),
                 BlockPos::new(0, 69, 2),
@@ -1460,7 +1471,7 @@ mod tests {
             &mut partial_chunks,
             BlockPos::new(0, 71, 0),
             BlockPos::new(0, 68, 3),
-            vec![
+            &[
                 BlockPos::new(0, 70, 0),
                 BlockPos::new(0, 69, 1),
                 BlockPos::new(0, 68, 2),
@@ -1477,7 +1488,7 @@ mod tests {
             &mut partial_chunks,
             BlockPos::new(0, 71, 0),
             BlockPos::new(3, 74, 0),
-            vec![
+            &[
                 BlockPos::new(0, 70, 0),
                 BlockPos::new(0, 71, 3),
                 BlockPos::new(3, 72, 3),
@@ -1494,7 +1505,7 @@ mod tests {
             &mut partial_chunks,
             BlockPos::new(0, 71, 0),
             BlockPos::new(4, 71, 12),
-            vec![
+            &[
                 BlockPos::new(0, 70, 0),
                 BlockPos::new(0, 70, 4),
                 BlockPos::new(0, 70, 8),
@@ -1512,7 +1523,7 @@ mod tests {
             &mut partial_chunks,
             BlockPos::new(0, 71, 0),
             BlockPos::new(4, 74, 9),
-            vec![
+            &[
                 BlockPos::new(0, 70, 0),
                 BlockPos::new(0, 70, 1),
                 BlockPos::new(0, 70, 2),
@@ -1525,5 +1536,42 @@ mod tests {
             ],
         );
         assert_simulation_reaches(&mut simulation, 80, BlockPos::new(4, 74, 9));
+    }
+
+    #[test]
+    fn test_mine_through_non_colliding_block() {
+        let mut partial_chunks = PartialChunkStorage::default();
+
+        let mut simulation = setup_simulation_world(
+            &mut partial_chunks,
+            // the pathfinder can't actually dig straight down, so we start a block to the side so
+            // it can descend correctly
+            BlockPos::new(0, 72, 1),
+            &[BlockPos::new(0, 71, 1)],
+            &[
+                (
+                    BlockPos::new(0, 71, 0),
+                    azalea_registry::Block::SculkVein.into(),
+                ),
+                (
+                    BlockPos::new(0, 70, 0),
+                    azalea_registry::Block::GrassBlock.into(),
+                ),
+                // this is an extra check to make sure that we don't accidentally break the block
+                // below (since tnt will break instantly)
+                (BlockPos::new(0, 69, 0), azalea_registry::Block::Tnt.into()),
+            ],
+        );
+
+        simulation.app.world_mut().send_event(GotoEvent {
+            entity: simulation.entity,
+            goal: Arc::new(BlockPosGoal(BlockPos::new(0, 70, 0))),
+            successors_fn: moves::default_move,
+            allow_mining: true,
+            min_timeout: PathfinderTimeout::Nodes(1_000_000),
+            max_timeout: PathfinderTimeout::Nodes(5_000_000),
+        });
+
+        assert_simulation_reaches(&mut simulation, 200, BlockPos::new(0, 70, 0));
     }
 }

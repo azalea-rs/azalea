@@ -30,8 +30,8 @@ use simdnbt::owned::{NbtCompound, NbtTag};
 use uuid::Uuid;
 
 use crate::{
-    ClientInformation, GameProfileComponent, InConfigState, InstanceHolder, LocalPlayerBundle,
-    connection::RawConnection, disconnect::DisconnectEvent,
+    ClientInformation, InConfigState, LocalPlayerBundle, connection::RawConnection,
+    disconnect::DisconnectEvent, local_player::InstanceHolder, player::GameProfileComponent,
 };
 
 /// A way to simulate a client in a server, used for some internal tests.

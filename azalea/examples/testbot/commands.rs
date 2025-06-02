@@ -3,8 +3,8 @@ pub mod debug;
 pub mod movement;
 
 use azalea::{
-    Client, GameProfileComponent, brigadier::prelude::*, chat::ChatPacket, ecs::prelude::*,
-    entity::metadata::Player,
+    Client, brigadier::prelude::*, chat::ChatPacket, ecs::prelude::*, entity::metadata::Player,
+    player::GameProfileComponent,
 };
 use parking_lot::Mutex;
 
