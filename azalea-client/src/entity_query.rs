@@ -1,5 +1,7 @@
 use std::{any, sync::Arc};
 
+use azalea_core::position::Vec3;
+use azalea_entity::Position;
 use azalea_world::InstanceName;
 use bevy_ecs::{
     component::Component,
@@ -34,12 +36,15 @@ impl Client {
             })
     }
 
-    /// Return a lightweight [`Entity`] for the first entity that matches the
+    /// Return a lightweight [`Entity`] for an arbitrary entity that matches the
     /// given predicate function that is in the same [`Instance`] as the
     /// client.
     ///
     /// You can then use [`Self::entity_component`] to get components from this
     /// entity.
+    ///
+    /// Also see [`Self::entities_by`] which will return all entities that match
+    /// the predicate and sorts them by distance (unlike `entity_by`).
     ///
     /// # Example
     /// ```
@@ -65,11 +70,14 @@ impl Client {
         predicate: impl EntityPredicate<Q, F>,
     ) -> Option<Entity> {
         let instance_name = self.get_component::<InstanceName>()?;
-        predicate.find(self.ecs.clone(), &instance_name)
+        predicate.find_any(self.ecs.clone(), &instance_name)
     }
 
-    /// Same as [`Self::entity_by`] but returns a `Vec<Entity>` of all entities
-    /// in our instance that match the predicate.
+    /// Similar to [`Self::entity_by`] but returns a `Vec<Entity>` of all
+    /// entities in our instance that match the predicate.
+    ///
+    /// Unlike `entity_by`, the result is sorted by distance to our client's
+    /// position, so the closest entity is first.
     pub fn entities_by<F: QueryFilter, Q: QueryData>(
         &self,
         predicate: impl EntityPredicate<Q, F>,
@@ -77,7 +85,10 @@ impl Client {
         let Some(instance_name) = self.get_component::<InstanceName>() else {
             return vec![];
         };
-        predicate.find_all(self.ecs.clone(), &instance_name)
+        let Some(position) = self.get_component::<Position>() else {
+            return vec![];
+        };
+        predicate.find_all_sorted(self.ecs.clone(), &instance_name, (&position).into())
     }
 
     /// Get a component from an entity. Note that this will return an owned type
@@ -109,14 +120,24 @@ impl Client {
 }
 
 pub trait EntityPredicate<Q: QueryData, Filter: QueryFilter> {
-    fn find(&self, ecs_lock: Arc<Mutex<World>>, instance_name: &InstanceName) -> Option<Entity>;
-    fn find_all(&self, ecs_lock: Arc<Mutex<World>>, instance_name: &InstanceName) -> Vec<Entity>;
+    fn find_any(&self, ecs_lock: Arc<Mutex<World>>, instance_name: &InstanceName)
+    -> Option<Entity>;
+    fn find_all_sorted(
+        &self,
+        ecs_lock: Arc<Mutex<World>>,
+        instance_name: &InstanceName,
+        nearest_to: Vec3,
+    ) -> Vec<Entity>;
 }
 impl<F, Q: QueryData, Filter: QueryFilter> EntityPredicate<Q, Filter> for F
 where
     F: Fn(&ROQueryItem<Q>) -> bool,
 {
-    fn find(&self, ecs_lock: Arc<Mutex<World>>, instance_name: &InstanceName) -> Option<Entity> {
+    fn find_any(
+        &self,
+        ecs_lock: Arc<Mutex<World>>,
+        instance_name: &InstanceName,
+    ) -> Option<Entity> {
         let mut ecs = ecs_lock.lock();
         let mut query = ecs.query_filtered::<(Entity, &InstanceName, Q), Filter>();
         query
@@ -125,13 +146,28 @@ where
             .map(|(e, _, _)| e)
     }
 
-    fn find_all(&self, ecs_lock: Arc<Mutex<World>>, instance_name: &InstanceName) -> Vec<Entity> {
+    fn find_all_sorted(
+        &self,
+        ecs_lock: Arc<Mutex<World>>,
+        instance_name: &InstanceName,
+        nearest_to: Vec3,
+    ) -> Vec<Entity> {
         let mut ecs = ecs_lock.lock();
-        let mut query = ecs.query_filtered::<(Entity, &InstanceName, Q), Filter>();
-        query
+        let mut query = ecs.query_filtered::<(Entity, &InstanceName, &Position, Q), Filter>();
+        let mut entities = query
             .iter(&ecs)
-            .filter(|(_, e_instance_name, q)| *e_instance_name == instance_name && (self)(q))
-            .map(|(e, _, _)| e)
-            .collect::<Vec<_>>()
+            .filter(|(_, e_instance_name, _, q)| *e_instance_name == instance_name && (self)(q))
+            .map(|(e, _, position, _)| (e, Vec3::from(position)))
+            .collect::<Vec<(Entity, Vec3)>>();
+
+        entities.sort_by_cached_key(|(_, position)| {
+            // to_bits is fine here as long as the number is positive
+            position.distance_squared_to(&nearest_to).to_bits()
+        });
+
+        entities
+            .into_iter()
+            .map(|(e, _)| e)
+            .collect::<Vec<Entity>>()
     }
 }

@@ -8,7 +8,7 @@ use azalea_world::{InstanceContainer, InstanceName};
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
-use tracing::{info, trace};
+use tracing::trace;
 
 use crate::{
     Client,

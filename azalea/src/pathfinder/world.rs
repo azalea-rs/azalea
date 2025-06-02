@@ -551,6 +551,16 @@ pub fn is_block_state_passable(block: BlockState) -> bool {
         return false;
     }
 
+    if registry_block == azalea_registry::Block::PowderSnow {
+        // we can't jump out of powder snow
+        return false;
+    }
+
+    if registry_block == azalea_registry::Block::SweetBerryBush {
+        // these hurt us
+        return false;
+    }
+
     true
 }
 

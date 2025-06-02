@@ -389,6 +389,8 @@ pub struct Dead;
 ///
 /// This is used to calculate the camera position for players, when spectating
 /// an entity, and when raycasting from the entity.
+///
+/// The default eye height for a player is 1.62 blocks.
 #[derive(Component, Clone, Copy, Debug, PartialEq, Deref, DerefMut)]
 pub struct EyeHeight(f32);
 impl EyeHeight {
