@@ -241,7 +241,6 @@ fn handle_mining_queued(
         mut current_mining_pos,
     ) in query
     {
-        info!("mining_queued: {mining_queued:?}");
         commands.entity(entity).remove::<MiningQueued>();
 
         let instance = instance_holder.instance.read();

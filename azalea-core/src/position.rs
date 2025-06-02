@@ -444,6 +444,17 @@ impl Add<ChunkPos> for ChunkPos {
         }
     }
 }
+impl Add<ChunkBlockPos> for ChunkPos {
+    type Output = BlockPos;
+
+    fn add(self, rhs: ChunkBlockPos) -> Self::Output {
+        BlockPos {
+            x: self.x * 16 + rhs.x as i32,
+            y: rhs.y,
+            z: self.z * 16 + rhs.z as i32,
+        }
+    }
+}
 
 // reading ChunkPos is done in reverse, so z first and then x
 // ........

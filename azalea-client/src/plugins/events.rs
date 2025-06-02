@@ -147,6 +147,7 @@ impl Plugin for EventsPlugin {
                 keepalive_listener,
                 death_listener,
                 disconnect_listener,
+                receive_chunk_listener,
             ),
         )
         .add_systems(
