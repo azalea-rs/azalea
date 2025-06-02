@@ -13,15 +13,15 @@ A collection of Rust crates for making Minecraft bots, clients, and tools.
 _Currently supported Minecraft version: `1.21.5`._
 
 > [!WARNING]
-> Azalea is still unfinished, though most crates are in a useable state
+> Azalea is still unfinished, though most crates are in a useable state.
 
 ## Features
 
--   [Accurate physics](https://github.com/azalea-rs/azalea/blob/main/azalea-physics/src/lib.rs) (but some features like entity pushing and elytras aren't yet implemented)
+-   [Accurate physics](https://github.com/azalea-rs/azalea/blob/main/azalea-physics/src/lib.rs) (but some features like entity pushing and elytras aren't implemented yet)
 -   [Pathfinder](https://azalea.matdoes.dev/azalea/pathfinder/index.html)
 -   [Swarms](https://azalea.matdoes.dev/azalea/swarm/index.html)
 -   [Breaking blocks](https://azalea.matdoes.dev/azalea/struct.Client.html#method.mine)
--   [Block interactions & building](https://azalea.matdoes.dev/azalea/struct.Client.html#method.block_interact) (this doesn't predict the block interactions/placement on the client yet but it's usually fine)
+-   [Block interactions & building](https://azalea.matdoes.dev/azalea/struct.Client.html#method.block_interact) (this doesn't predict the block interactions/placement on the client yet, but it's usually fine)
 -   [Inventories](https://azalea.matdoes.dev/azalea/struct.Client.html#impl-ContainerClientExt-for-Client)
 -   [Attacking entities](https://azalea.matdoes.dev/azalea/struct.Client.html#method.attack) (but you can't get the entity at the crosshair yet)
 -   [Plugins](#plugins)
@@ -53,7 +53,7 @@ If you'd like to chat about Azalea, you can join the Matrix space at [#azalea:ma
 
 Here's an incomplete list of bots built using Azalea, primarily intended as a reference in addition to the existing documentation and examples:
 
--   [ShayBox/ShaysBot](https://github.com/ShayBox/ShaysBot) - Pearl statis bot featuring a Discord bot, an HTTP API, and more.
+-   [ShayBox/ShaysBot](https://github.com/ShayBox/ShaysBot) - Pearl stasis bot featuring a Discord bot, an HTTP API, and more.
 -   [EnderKill98/statis-bot](https://github.com/EnderKill98/stasis-bot) - This bot can automatically detect thrown pearls and later walk there and pull them for you.
 -   [as1100k/aether](https://github.com/as1100k/aether) - Collection of Minecraft bots and plugins.
 -   [mat-1/potato-bot-2](https://github.com/mat-1/potato-bot-2) - Hardened Discord chat bridge created for the LiveOverflow SMP.
@@ -63,7 +63,7 @@ You can see more projects built with Azalea in the [GitHub dependency graph](htt
 
 ## Plugins
 
-Azalea has support for Bevy plugins, which can significantly alter its functionality. Here's some plugins you may find useful:
+Azalea has support for Bevy plugins, which can significantly alter its functionality. Here are some plugins that you may find useful:
 
 -   [azalea-rs/azalea-viaversion](https://github.com/azalea-rs/azalea-viaversion) - Multi-version compatibility for your Azalea bots using ViaProxy.
 -   [azalea-rs/azalea-hax](https://github.com/azalea-rs/azalea-hax) - Anti-knockback.
