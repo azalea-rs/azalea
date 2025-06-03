@@ -399,8 +399,13 @@ impl VoxelShape {
     }
 
     pub fn find_index(&self, axis: Axis, coord: f64) -> i32 {
-        let upper_limit = (self.shape().size(axis) + 1) as i32;
-        binary_search(0, upper_limit, |t| coord < self.get(axis, t as usize)) - 1
+        match self {
+            VoxelShape::Cube(s) => s.find_index(axis, coord),
+            _ => {
+                let upper_limit = (self.shape().size(axis) + 1) as i32;
+                binary_search(0, upper_limit, |t| coord < self.get(axis, t as usize)) - 1
+            }
+        }
     }
 
     pub fn clip(&self, from: &Vec3, to: &Vec3, block_pos: &BlockPos) -> Option<BlockHitResult> {
@@ -669,11 +674,10 @@ impl CubeVoxelShape {
         axis.choose(&self.x_coords, &self.y_coords, &self.z_coords)
     }
 
-    // unused
-    // fn find_index(&self, axis: Axis, coord: f64) -> i32 {
-    //     let n = self.shape().size(axis);
-    //     (f64::clamp(coord * (n as f64), -1f64, n as f64)) as i32
-    // }
+    fn find_index(&self, axis: Axis, coord: f64) -> i32 {
+        let n = self.shape().size(axis);
+        f64::floor(f64::clamp(coord * (n as f64), -1f64, n as f64)) as i32
+    }
 }
 
 #[derive(Debug)]
