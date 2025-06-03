@@ -1,4 +1,4 @@
-use azalea_block::{BlockTrait, BlockState, fluid_state::FluidState};
+use azalea_block::{BlockState, BlockTrait, fluid_state::FluidState};
 use azalea_core::{direction::Direction, game_type::GameMode, position::BlockPos, tick::GameTick};
 use azalea_entity::{FluidOnEyes, Physics, mining::get_mine_progress};
 use azalea_inventory::ItemStack;
@@ -345,7 +345,7 @@ fn handle_mining_queued(
                     action: s_player_action::Action::StartDestroyBlock,
                     pos: mining_queued.position,
                     direction: mining_queued.direction,
-                    sequence: sequence_number.get_and_increment(),
+                    sequence: sequence_number.get_next(),
                 },
             ));
             // vanilla really does send two swing arm packets
@@ -580,7 +580,7 @@ pub fn continue_mining_block(
                     action: s_player_action::Action::StartDestroyBlock,
                     pos: mining.pos,
                     direction: mining.dir,
-                    sequence: sequence_number.get_and_increment(),
+                    sequence: sequence_number.get_next(),
                 },
             ));
             commands.trigger(SwingArmEvent { entity });
@@ -634,7 +634,7 @@ pub fn continue_mining_block(
                         action: s_player_action::Action::StopDestroyBlock,
                         pos: mining.pos,
                         direction: mining.dir,
-                        sequence: sequence_number.get_and_increment(),
+                        sequence: sequence_number.get_next(),
                     },
                 ));
                 **mine_progress = 0.;

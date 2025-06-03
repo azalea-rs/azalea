@@ -104,10 +104,9 @@ pub struct CurrentSequenceNumber(u32);
 impl CurrentSequenceNumber {
     /// Get the next sequence number that we're going to use and increment the
     /// value.
-    pub fn get_and_increment(&mut self) -> u32 {
-        let cur = self.0;
+    pub fn get_next(&mut self) -> u32 {
         self.0 += 1;
-        cur
+        self.0
     }
 }
 
@@ -148,7 +147,7 @@ pub fn handle_start_use_item_event(
 /// just inserts this component for you.
 ///
 /// [`GameTick`]: azalea_core::tick::GameTick
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct StartUseItemQueued {
     pub hand: InteractionHand,
     /// Optionally force us to send a [`ServerboundUseItemOn`] on the given
@@ -209,7 +208,7 @@ pub fn handle_start_use_item_queued(
                         entity,
                         ServerboundUseItem {
                             hand: start_use_item.hand,
-                            sequence: sequence_number.get_and_increment(),
+                            sequence: sequence_number.get_next(),
                             x_rot: look_direction.x_rot,
                             y_rot: look_direction.y_rot,
                         },
@@ -220,7 +219,7 @@ pub fn handle_start_use_item_queued(
                         ServerboundUseItemOn {
                             hand: start_use_item.hand,
                             block_hit: block_hit_result.into(),
-                            sequence: sequence_number.get_and_increment(),
+                            sequence: sequence_number.get_next(),
                         },
                     ));
                     // TODO: depending on the result of useItemOn, this might
