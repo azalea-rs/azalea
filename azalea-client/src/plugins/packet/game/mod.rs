@@ -29,6 +29,7 @@ use crate::{
     inventory::{
         ClientSideCloseContainerEvent, Inventory, MenuOpenedEvent, SetContainerContentEvent,
     },
+    loading::HasClientLoaded,
     local_player::{Hunger, InstanceHolder, LocalGameMode, PlayerAbilities, TabList},
     movement::{KnockbackEvent, KnockbackType},
     packet::as_system,
@@ -1490,8 +1491,9 @@ impl GamePacketHandler<'_> {
                     entity_bundle,
                 ));
 
-                // Remove the Dead marker component from the player.
-                commands.entity(self.player).remove::<Dead>();
+                commands
+                    .entity(self.player)
+                    .remove::<(Dead, HasClientLoaded)>();
             },
         )
     }

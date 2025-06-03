@@ -57,7 +57,6 @@ pub fn handle_outgoing_packets_observer(
     mut query: Query<(&mut RawConnection, Option<&InGameState>)>,
 ) {
     let event = trigger.event();
-    trace!("Sending game packet: {:?}", event.packet);
 
     if let Ok((mut raw_connection, in_game_state)) = query.get_mut(event.sent_by) {
         if in_game_state.is_none() {
@@ -68,10 +67,12 @@ pub fn handle_outgoing_packets_observer(
             return;
         }
 
-        // debug!("Sending game packet: {:?}", event.packet);
+        trace!("Sending game packet: {:?}", event.packet);
         if let Err(e) = raw_connection.write(event.packet.clone()) {
             error!("Failed to send packet: {e}");
         }
+    } else {
+        trace!("Not sending game packet: {:?}", event.packet);
     }
 }
 
