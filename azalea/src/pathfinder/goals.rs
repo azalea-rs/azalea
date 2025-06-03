@@ -113,14 +113,14 @@ impl Goal for RadiusGoal {
         let dx = (self.pos.x - n.x) as f32;
         let dy = (self.pos.y - n.y) as f32;
         let dz = (self.pos.z - n.z) as f32;
-        dx * dx + dy * dy + dz * dz
+        dx.powi(2) + dy.powi(2) + dz.powi(2)
     }
     fn success(&self, n: BlockPos) -> bool {
         let n = n.center();
         let dx = (self.pos.x - n.x) as f32;
         let dy = (self.pos.y - n.y) as f32;
         let dz = (self.pos.z - n.z) as f32;
-        dx * dx + dy * dy + dz * dz <= self.radius * self.radius
+        dx.powi(2) + dy.powi(2) + dz.powi(2) <= self.radius.powi(2)
     }
 }
 
@@ -226,7 +226,7 @@ impl Goal for ReachBlockPosGoal {
             return false;
         }
 
-        let eye_position = n.to_vec3_floored() + Vec3::new(0.5, 1.62, 0.5);
+        let eye_position = n.center_bottom().up(1.62);
         let look_direction = crate::direction_looking_at(&eye_position, &self.pos.center());
         let block_hit_result = azalea_client::interact::pick_block(
             &look_direction,

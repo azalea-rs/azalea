@@ -358,6 +358,16 @@ impl BlockPos {
         }
     }
 
+    /// Get the center of the bottom of a block position by adding 0.5 to the x
+    /// and z coordinates.
+    pub fn center_bottom(&self) -> Vec3 {
+        Vec3 {
+            x: self.x as f64 + 0.5,
+            y: self.y as f64,
+            z: self.z as f64 + 0.5,
+        }
+    }
+
     /// Convert the block position into a Vec3 without centering it.
     pub fn to_vec3_floored(&self) -> Vec3 {
         Vec3 {
