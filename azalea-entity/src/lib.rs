@@ -455,7 +455,12 @@ impl EntityBundle {
         world_name: ResourceLocation,
     ) -> Self {
         let dimensions = EntityDimensions::from(kind);
-        let eye_height = dimensions.height * 0.85;
+        let eye_height = match kind {
+            // TODO: codegen hardcoded eye heights, search withEyeHeight with mojmap
+            // also, eye height should change depending on pose (like sneaking, swimming, etc)
+            azalea_registry::EntityKind::Player => 1.62,
+            _ => dimensions.height * 0.85,
+        };
 
         Self {
             kind: EntityKind(kind),

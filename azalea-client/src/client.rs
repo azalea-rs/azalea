@@ -338,13 +338,6 @@ impl Client {
     /// Similar to [`Self::get_component`], but doesn't clone the component
     /// since it's passed as a reference. [`Self::ecs`] will remain locked
     /// while the callback is being run.
-    ///
-    /// ```
-    /// # use azalea_client::{Client, mining::Mining};
-    /// # fn example(bot: &Client) {
-    /// let is_mining = bot.map_get_component::<Mining, _>(|m| m).is_some();
-    /// # }
-    /// ```
     pub fn map_get_component<T: Component, R>(&self, f: impl FnOnce(&T) -> R) -> Option<R> {
         let mut ecs = self.ecs.lock();
         let value = self.query::<Option<&T>>(&mut ecs);

@@ -1569,7 +1569,7 @@ mod tests {
 
         simulation.app.world_mut().send_event(GotoEvent {
             entity: simulation.entity,
-            goal: Arc::new(BlockPosGoal(BlockPos::new(0, 70, 0))),
+            goal: Arc::new(BlockPosGoal(BlockPos::new(0, 69, 0))),
             successors_fn: moves::default_move,
             allow_mining: true,
             min_timeout: PathfinderTimeout::Nodes(1_000_000),
