@@ -342,13 +342,13 @@ impl Client {
     /// ```
     /// # use azalea_client::{Client, mining::Mining};
     /// # fn example(bot: &Client) {
-    /// let is_mining = bot.map_get_component::<Mining, _>(|m| m.is_some());
+    /// let is_mining = bot.map_get_component::<Mining, _>(|m| m).is_some();
     /// # }
     /// ```
-    pub fn map_get_component<T: Component, R>(&self, f: impl FnOnce(Option<&T>) -> R) -> R {
+    pub fn map_get_component<T: Component, R>(&self, f: impl FnOnce(&T) -> R) -> Option<R> {
         let mut ecs = self.ecs.lock();
         let value = self.query::<Option<&T>>(&mut ecs);
-        f(value)
+        value.map(f)
     }
 
     /// Get an `RwLock` with a reference to our (potentially shared) world.

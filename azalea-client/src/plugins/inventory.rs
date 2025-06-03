@@ -95,8 +95,7 @@ impl Client {
 /// A component present on all local players that have an inventory.
 #[derive(Component, Debug, Clone)]
 pub struct Inventory {
-    /// A component that contains the player's inventory menu. This is
-    /// guaranteed to be a `Menu::Player`.
+    /// The player's inventory menu. This is guaranteed to be a `Menu::Player`.
     ///
     /// We keep it as a [`Menu`] since `Menu` has some useful functions that
     /// bare [`azalea_inventory::Player`] doesn't have.

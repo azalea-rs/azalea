@@ -335,8 +335,9 @@ impl Vec3 {
     }
 }
 
-/// The coordinates of a block in the world. For entities (if the coordinate
-/// have decimals), use [`Vec3`] instead.
+/// The coordinates of a block in the world.
+///
+/// For entities (if the coordinates are floating-point), use [`Vec3`] instead.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct BlockPos {

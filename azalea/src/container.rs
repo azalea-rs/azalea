@@ -32,6 +32,7 @@ pub trait ContainerClientExt {
     fn open_inventory(&self) -> Option<ContainerHandle>;
     fn get_held_item(&self) -> ItemStack;
     fn get_open_container(&self) -> Option<ContainerHandleRef>;
+    fn view_inventory(&self) -> Menu;
 }
 
 impl ContainerClientExt for Client {
@@ -100,9 +101,8 @@ impl ContainerClientExt for Client {
     /// Get the item in the bot's hotbar that is currently being held in its
     /// main hand.
     fn get_held_item(&self) -> ItemStack {
-        let ecs = self.ecs.lock();
-        let inventory = ecs.get::<Inventory>(self.entity).expect("no inventory");
-        inventory.held_item()
+        self.map_get_component::<Inventory, _>(|inventory| inventory.held_item())
+            .expect("no inventory")
     }
 
     /// Get a handle to the open container. This will return None if no
@@ -122,6 +122,15 @@ impl ContainerClientExt for Client {
                 client: self.clone(),
             })
         }
+    }
+
+    /// Returns the player's inventory menu.
+    ///
+    /// This is a shortcut for accessing the client's
+    /// [`Inventory::inventory_menu`].
+    fn view_inventory(&self) -> Menu {
+        self.map_get_component::<Inventory, _>(|inventory| inventory.inventory_menu.clone())
+            .expect("no inventory")
     }
 }
 

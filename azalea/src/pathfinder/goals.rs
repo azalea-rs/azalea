@@ -29,7 +29,9 @@ impl Goal for BlockPosGoal {
         xz_heuristic(dx, dz) + y_heuristic(dy)
     }
     fn success(&self, n: BlockPos) -> bool {
-        n == self.0
+        // the second half of this condition is intended to fix issues when pathing to
+        // non-full blocks
+        n == self.0 || n.down(1) == self.0
     }
 }
 
@@ -219,8 +221,8 @@ impl Goal for ReachBlockPosGoal {
     }
     fn success(&self, n: BlockPos) -> bool {
         // only do the expensive check if we're close enough
-        let distance = (self.pos - n).length_squared();
-        if distance > self.max_check_distance * self.max_check_distance {
+        let distance = self.pos.distance_squared_to(&n);
+        if distance > self.max_check_distance.pow(2) {
             return false;
         }
 

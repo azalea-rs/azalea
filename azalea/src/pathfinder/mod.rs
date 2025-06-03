@@ -274,10 +274,8 @@ impl PathfinderClientExt for azalea_client::Client {
     }
 
     fn is_goto_target_reached(&self) -> bool {
-        self.map_get_component::<Pathfinder, _>(|p| {
-            p.map(|p| p.goal.is_none() && !p.is_calculating)
-                .unwrap_or(true)
-        })
+        self.map_get_component::<Pathfinder, _>(|p| p.goal.is_none() && !p.is_calculating)
+            .unwrap_or(true)
     }
 }
 
@@ -689,7 +687,12 @@ pub fn timeout_movement(
             let world_lock = instance_container
                 .get(instance_name)
                 .expect("Entity tried to pathfind but the entity isn't in a valid world");
-            let successors_fn: moves::SuccessorsFn = pathfinder.successors_fn.unwrap();
+            let Some(successors_fn) = pathfinder.successors_fn else {
+                warn!(
+                    "pathfinder was going to patch path because of timeout, but there was no successors_fn"
+                );
+                return;
+            };
 
             let custom_state = custom_state.cloned().unwrap_or_default();
 
@@ -749,7 +752,8 @@ pub fn check_node_reached(
                     let z_difference_from_center = position.z - (movement.target.z as f64 + 0.5);
                     // this is to make sure we don't fall off immediately after finishing the path
                     physics.on_ground()
-                    && BlockPos::from(position) == movement.target
+                    // 0.5 to handle non-full blocks
+                    && BlockPos::from(position.up(0.5)) == movement.target
                     // adding the delta like this isn't a perfect solution but it helps to make
                     // sure we don't keep going if our delta is high
                     && (x_difference_from_center + physics.velocity.x).abs() < 0.2
