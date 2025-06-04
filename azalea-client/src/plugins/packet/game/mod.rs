@@ -1608,7 +1608,16 @@ impl GamePacketHandler<'_> {
     pub fn store_cookie(&mut self, _p: &ClientboundStoreCookie) {}
     pub fn transfer(&mut self, _p: &ClientboundTransfer) {}
     pub fn move_minecart_along_track(&mut self, _p: &ClientboundMoveMinecartAlongTrack) {}
-    pub fn set_held_slot(&mut self, _p: &ClientboundSetHeldSlot) {}
+    pub fn set_held_slot(&mut self, p: &ClientboundSetHeldSlot) {
+        debug!("Got set held slot packet {p:?}");
+
+        as_system::<Query<&mut Inventory>>(self.ecs, |mut query| {
+            let mut inventory = query.get_mut(self.player).unwrap();
+            if p.slot <= 8 {
+                inventory.selected_hotbar_slot = p.slot as u8;
+            }
+        });
+    }
     pub fn set_player_inventory(&mut self, _p: &ClientboundSetPlayerInventory) {}
     pub fn projectile_power(&mut self, _p: &ClientboundProjectilePower) {}
     pub fn custom_report_details(&mut self, _p: &ClientboundCustomReportDetails) {}

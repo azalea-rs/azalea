@@ -3,6 +3,8 @@ use std::{
     ops::{Add, RangeInclusive},
 };
 
+use azalea_registry::Block;
+
 use crate::{BlockState, block_state::BlockStateIntegerRepr};
 
 #[derive(Debug, Clone)]
@@ -45,16 +47,31 @@ impl Add for BlockStates {
     }
 }
 
-impl From<HashSet<azalea_registry::Block>> for BlockStates {
-    fn from(set: HashSet<azalea_registry::Block>) -> Self {
+impl From<HashSet<Block>> for BlockStates {
+    fn from(set: HashSet<Block>) -> Self {
         Self::from(&set)
     }
 }
 
-impl From<&HashSet<azalea_registry::Block>> for BlockStates {
-    fn from(set: &HashSet<azalea_registry::Block>) -> Self {
+impl From<&HashSet<Block>> for BlockStates {
+    fn from(set: &HashSet<Block>) -> Self {
         let mut block_states = HashSet::with_capacity(set.len());
         for &block in set {
+            block_states.extend(BlockStates::from(block));
+        }
+        Self { set: block_states }
+    }
+}
+
+impl<const N: usize> From<[Block; N]> for BlockStates {
+    fn from(arr: [Block; N]) -> Self {
+        Self::from(&arr[..])
+    }
+}
+impl From<&[Block]> for BlockStates {
+    fn from(arr: &[Block]) -> Self {
+        let mut block_states = HashSet::with_capacity(arr.len());
+        for &block in arr {
             block_states.extend(BlockStates::from(block));
         }
         Self { set: block_states }
