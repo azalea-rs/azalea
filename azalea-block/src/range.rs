@@ -47,16 +47,16 @@ impl Add for BlockStates {
 
 impl From<HashSet<azalea_registry::Block>> for BlockStates {
     fn from(set: HashSet<azalea_registry::Block>) -> Self {
-        Self {
-            set: set.into_iter().map(|b| b.into()).collect(),
-        }
+        Self::from(&set)
     }
 }
 
 impl From<&HashSet<azalea_registry::Block>> for BlockStates {
     fn from(set: &HashSet<azalea_registry::Block>) -> Self {
-        Self {
-            set: set.iter().map(|&b| b.into()).collect(),
+        let mut block_states = HashSet::with_capacity(set.len());
+        for &block in set {
+            block_states.extend(BlockStates::from(block));
         }
+        Self { set: block_states }
     }
 }
