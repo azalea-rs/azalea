@@ -798,7 +798,31 @@ pub fn handle_client_side_close_container_event(
 ) {
     for event in events.read() {
         let mut inventory = query.get_mut(event.entity).unwrap();
-        inventory.container_menu = None;
+
+        // copy the Player part of the container_menu to the inventory_menu
+        if let Some(inventory_menu) = inventory.container_menu.take() {
+            // this isn't the same as what vanilla does. i believe vanilla synchronizes the
+            // slots between inventoryMenu and containerMenu by just having the player slots
+            // point to the same ItemStack in memory, but emulating this in rust would
+            // require us to wrap our `ItemStack`s as `Arc<Mutex<ItemStack>>` which would
+            // have kinda terrible ergonomics.
+
+            // the simpler solution i chose to go with here is to only copy the player slots
+            // when the container is closed. this is perfectly fine for vanilla, but it
+            // might cause issues if a server modifies id 0 while we have a container
+            // open...
+
+            // if we do encounter this issue in the wild then the simplest solution would
+            // probably be to just add logic for updating the container_menu when the server
+            // tries to modify id 0 for slots within `inventory`. not implemented for now
+            // because i'm not sure if that's worth worrying about.
+
+            let new_inventory =
+                inventory_menu.slots()[inventory_menu.player_slots_range()].to_vec();
+            let new_inventory = <[ItemStack; 36]>::try_from(new_inventory).unwrap();
+            *inventory.inventory_menu.as_player_mut().inventory = new_inventory;
+        }
+
         inventory.id = 0;
         inventory.container_menu_title = None;
     }
