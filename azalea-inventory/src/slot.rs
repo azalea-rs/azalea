@@ -87,6 +87,13 @@ impl ItemStack {
             ItemStack::Present(i) => Some(i),
         }
     }
+
+    pub fn as_present_mut(&mut self) -> Option<&mut ItemStackData> {
+        match self {
+            ItemStack::Empty => None,
+            ItemStack::Present(i) => Some(i),
+        }
+    }
 }
 
 /// An item in an inventory, with a count and NBT. Usually you want
@@ -169,6 +176,16 @@ impl AzaleaWrite for ItemStack {
             }
         };
         Ok(())
+    }
+}
+
+impl From<ItemStackData> for ItemStack {
+    fn from(item: ItemStackData) -> Self {
+        if item.is_empty() {
+            ItemStack::Empty
+        } else {
+            ItemStack::Present(item)
+        }
     }
 }
 
@@ -311,24 +328,19 @@ impl PartialEq for DataComponentPatch {
             return false;
         }
         for (kind, component) in &self.components {
-            match other.components.get(kind) {
-                Some(other_component) => {
-                    // we can't use PartialEq, but we can use our own eq method
-                    if let Some(component) = component {
-                        if let Some(other_component) = other_component {
-                            if !component.eq((*other_component).clone()) {
-                                return false;
-                            }
-                        } else {
-                            return false;
-                        }
-                    } else if other_component.is_some() {
-                        return false;
-                    }
-                }
-                _ => {
+            let Some(other_component) = other.components.get(kind) else {
+                return false;
+            };
+            // we can't use PartialEq, but we can use our own eq method
+            if let Some(component) = component {
+                let Some(other_component) = other_component else {
+                    return false;
+                };
+                if !component.eq((*other_component).clone()) {
                     return false;
                 }
+            } else if other_component.is_some() {
+                return false;
             }
         }
         true

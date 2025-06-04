@@ -1,4 +1,7 @@
-use std::collections::{HashMap, HashSet};
+use std::{
+    cmp,
+    collections::{HashMap, HashSet},
+};
 
 use azalea_chat::FormattedText;
 pub use azalea_inventory::*;
@@ -341,30 +344,95 @@ impl Inventory {
                     // player.drop(item, true);
                 }
             }
-            ClickOperation::Pickup(
-                PickupClick::Left { slot: Some(slot) } | PickupClick::Right { slot: Some(slot) },
+            &ClickOperation::Pickup(
+                // lol
+                ref pickup @ (PickupClick::Left { slot: Some(slot) }
+                | PickupClick::Right { slot: Some(slot) }),
             ) => {
-                let Some(slot_item) = self.menu().slot(*slot as usize) else {
+                let slot = slot as usize;
+                let Some(slot_item) = self.menu().slot(slot) else {
                     return;
                 };
-                let carried = &self.carried;
-                // vanilla does a check called tryItemClickBehaviourOverride
-                // here
-                // i don't understand it so i didn't implement it
+
+                if self.try_item_click_behavior_override(operation, slot) {
+                    return;
+                }
+
+                let is_left_click = matches!(pickup, PickupClick::Left { .. });
+
                 match slot_item {
-                    ItemStack::Empty => if carried.is_present() {},
-                    ItemStack::Present(_) => todo!(),
+                    ItemStack::Empty => {
+                        if self.carried.is_present() {
+                            let place_count = if is_left_click {
+                                self.carried.count()
+                            } else {
+                                1
+                            };
+                            self.carried =
+                                self.safe_insert(slot, self.carried.clone(), place_count);
+                        }
+                    }
+                    ItemStack::Present(_) => {
+                        if !self.menu().may_pickup(slot) {
+                            return;
+                        }
+                        if let ItemStack::Present(carried) = self.carried.clone() {
+                            let slot_is_same_item_as_carried = slot_item
+                                .as_present()
+                                .is_some_and(|s| carried.is_same_item_and_components(s));
+
+                            if self.menu().may_place(slot, &carried) {
+                                if slot_is_same_item_as_carried {
+                                    let place_count = if is_left_click { carried.count } else { 1 };
+                                    self.carried =
+                                        self.safe_insert(slot, self.carried.clone(), place_count);
+                                } else if carried.count
+                                    <= self
+                                        .menu()
+                                        .max_stack_size(slot)
+                                        .min(carried.kind.max_stack_size())
+                                {
+                                    // swap slot_item and carried
+                                    self.carried = slot_item.clone();
+                                    let slot_item = self.menu_mut().slot_mut(slot).unwrap();
+                                    *slot_item = carried.into();
+                                }
+                            } else if slot_is_same_item_as_carried
+                                && let Some(removed) = self.try_remove(
+                                    slot,
+                                    slot_item.count(),
+                                    carried.kind.max_stack_size() - carried.count,
+                                )
+                            {
+                                self.carried.as_present_mut().unwrap().count += removed.count();
+                                // slot.onTake(player, removed);
+                            }
+                        } else {
+                            let pickup_count = if is_left_click {
+                                slot_item.count()
+                            } else {
+                                (slot_item.count() + 1) / 2
+                            };
+                            if let Some(new_slot_item) =
+                                self.try_remove(slot, pickup_count, i32::MAX)
+                            {
+                                self.carried = new_slot_item;
+                                // slot.onTake(player, newSlot);
+                            }
+                        }
+                    }
                 }
             }
-            ClickOperation::QuickMove(
+            &ClickOperation::QuickMove(
                 QuickMoveClick::Left { slot } | QuickMoveClick::Right { slot },
             ) => {
                 // in vanilla it also tests if QuickMove has a slot index of -999
                 // but i don't think that's ever possible so it's not covered here
+                let slot = slot as usize;
                 loop {
-                    let new_slot_item = self.menu_mut().quick_move_stack(*slot as usize);
-                    let slot_item = self.menu().slot(*slot as usize).unwrap();
-                    if new_slot_item.is_empty() || slot_item != &new_slot_item {
+                    let new_slot_item = self.menu_mut().quick_move_stack(slot);
+                    let slot_item = self.menu().slot(slot).unwrap();
+                    if new_slot_item.is_empty() || slot_item.kind() != new_slot_item.kind() {
                         break;
                     }
                 }
@@ -390,15 +458,16 @@ impl Inventory {
                         *target_slot = source_slot;
                     }
                 } else if source_slot.is_empty() {
-                    let ItemStack::Present(target_item) = target_slot else {
-                        unreachable!("target slot is not empty but is not present");
-                    };
+                    let target_item = target_slot
+                        .as_present()
+                        .expect("target slot was already checked to not be empty");
                     if self.menu().may_place(source_slot_index, target_item) {
                         // get the target_item but mutable
                         let source_max_stack_size = self.menu().max_stack_size(source_slot_index);
 
                         let target_slot = self.menu_mut().slot_mut(target_slot_index).unwrap();
-                        let new_source_slot = target_slot.split(source_max_stack_size);
+                        let new_source_slot =
+                            target_slot.split(source_max_stack_size.try_into().unwrap());
                         *self.menu_mut().slot_mut(source_slot_index).unwrap() = new_source_slot;
                     }
                 } else if self.menu().may_pickup(source_slot_index) {
@@ -407,11 +476,12 @@ impl Inventory {
                     };
                     if self.menu().may_place(source_slot_index, target_item) {
                         let source_max_stack = self.menu().max_stack_size(source_slot_index);
-                        if target_slot.count() > source_max_stack as i32 {
+                        if target_slot.count() > source_max_stack {
                             // if there's more than the max stack size in the target slot
 
                             let target_slot = self.menu_mut().slot_mut(target_slot_index).unwrap();
-                            let new_source_slot = target_slot.split(source_max_stack);
+                            let new_source_slot =
+                                target_slot.split(source_max_stack.try_into().unwrap());
                             *self.menu_mut().slot_mut(source_slot_index).unwrap() = new_source_slot;
                             // if !self.inventory_menu.add(new_source_slot) {
                             //     player.drop(new_source_slot, true);
@@ -534,6 +604,67 @@ impl Inventory {
         let inventory = &self.inventory_menu;
         let hotbar_items = &inventory.slots()[inventory.hotbar_slots_range()];
         hotbar_items[self.selected_hotbar_slot as usize].clone()
+    }
+
+    /// TODO: implement bundles
+    fn try_item_click_behavior_override(
+        &self,
+        _operation: &ClickOperation,
+        _slot_item_index: usize,
+    ) -> bool {
+        false
+    }
+
+    fn safe_insert(&mut self, slot: usize, src_item: ItemStack, take_count: i32) -> ItemStack {
+        let Some(slot_item) = self.menu_mut().slot_mut(slot) else {
+            return src_item;
+        };
+        let ItemStack::Present(mut src_item) = src_item else {
+            return src_item;
+        };
+
+        let take_count = cmp::min(
+            cmp::min(take_count, src_item.count),
+            src_item.kind.max_stack_size() - slot_item.count(),
+        );
+        if take_count <= 0 {
+            return src_item.into();
+        }
+        let take_count = take_count as u32;
+
+        if slot_item.is_empty() {
+            *slot_item = src_item.split(take_count).into();
+        } else if let ItemStack::Present(slot_item) = slot_item
+            && slot_item.is_same_item_and_components(&src_item)
+        {
+            src_item.count -= take_count as i32;
+            slot_item.count += take_count as i32;
+        }
+
+        src_item.into()
+    }
+
+    fn try_remove(&mut self, slot: usize, count: i32, limit: i32) -> Option<ItemStack> {
+        if !self.menu().may_pickup(slot) {
+            return None;
+        }
+        let mut slot_item = self.menu().slot(slot)?.clone();
+        if !self.menu().allow_modification(slot) && limit < slot_item.count() {
+            return None;
+        }
+
+        let count = count.min(limit);
+        if count <= 0 {
+            return None;
+        }
+        // vanilla calls .remove here but i think it has the same behavior as split?
+        let removed = slot_item.split(count as u32);
+
+        if removed.is_present() && slot_item.is_empty() {
+            *self.menu_mut().slot_mut(slot).unwrap() = ItemStack::Empty;
+        }
+
+        Some(removed)
     }
 }
 
@@ -680,12 +811,12 @@ pub struct ContainerClickEvent {
     pub operation: ClickOperation,
 }
 pub fn handle_container_click_event(
-    mut query: Query<(Entity, &mut Inventory)>,
+    mut query: Query<(Entity, &mut Inventory, Option<&PlayerAbilities>)>,
     mut events: EventReader<ContainerClickEvent>,
     mut commands: Commands,
 ) {
     for event in events.read() {
-        let (entity, mut inventory) = query.get_mut(event.entity).unwrap();
+        let (entity, mut inventory, player_abilities) = query.get_mut(event.entity).unwrap();
         if inventory.id != event.window_id {
             error!(
                 "Tried to click container with ID {}, but the current container ID is {}. Click packet won't be sent.",
@@ -694,16 +825,18 @@ pub fn handle_container_click_event(
             continue;
         }
 
-        let menu = inventory.menu_mut();
-        let old_slots = menu.slots().clone();
-
-        // menu.click(&event.operation);
+        let old_slots = inventory.menu().slots();
+        inventory.simulate_click(
+            &event.operation,
+            player_abilities.unwrap_or(&PlayerAbilities::default()),
+        );
+        let new_slots = inventory.menu().slots();
 
         // see which slots changed after clicking and put them in the hashmap
         // the server uses this to check if we desynced
         let mut changed_slots: HashMap<u16, HashedStack> = HashMap::new();
         for (slot_index, old_slot) in old_slots.iter().enumerate() {
-            let new_slot = &menu.slots()[slot_index];
+            let new_slot = &new_slots[slot_index];
             if old_slot != new_slot {
                 changed_slots.insert(slot_index as u16, HashedStack::from(new_slot));
             }
@@ -782,5 +915,51 @@ fn handle_set_selected_hotbar_slot_event(
                 slot: event.slot as u16,
             },
         ));
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use azalea_registry::Item;
+
+    use super::*;
+
+    #[test]
+    fn test_simulate_shift_click_in_crafting_table() {
+        let spruce_planks = ItemStack::Present(ItemStackData {
+            count: 4,
+            kind: Item::SprucePlanks,
+            components: Default::default(),
+        });
+
+        let mut inventory = Inventory {
+            inventory_menu: Menu::Player(azalea_inventory::Player::default()),
+            id: 1,
+            container_menu: Some(Menu::Crafting {
+                result: spruce_planks.clone(),
+                // simulate_click won't delete the items from here
+                grid: SlotList::default(),
+                player: SlotList::default(),
+            }),
+            container_menu_title: None,
+            carried: ItemStack::Empty,
+            state_id: 0,
+            quick_craft_status: QuickCraftStatusKind::Start,
+            quick_craft_kind: QuickCraftKind::Middle,
+            quick_craft_slots: HashSet::new(),
+            selected_hotbar_slot: 0,
+        };
+
+        inventory.simulate_click(
+            &ClickOperation::QuickMove(QuickMoveClick::Left { slot: 0 }),
+            &PlayerAbilities::default(),
+        );
+
+        let new_slots = inventory.menu().slots();
+        assert_eq!(&new_slots[0], &ItemStack::Empty);
+        assert_eq!(
+            &new_slots[*Menu::CRAFTING_PLAYER_SLOTS.start()],
+            &spruce_planks
+        );
     }
 }

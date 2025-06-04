@@ -32,7 +32,7 @@ pub trait ContainerClientExt {
     fn open_inventory(&self) -> Option<ContainerHandle>;
     fn get_held_item(&self) -> ItemStack;
     fn get_open_container(&self) -> Option<ContainerHandleRef>;
-    fn view_inventory(&self) -> Menu;
+    fn view_container_or_inventory(&self) -> Menu;
 }
 
 impl ContainerClientExt for Client {
@@ -124,13 +124,19 @@ impl ContainerClientExt for Client {
         }
     }
 
-    /// Returns the player's inventory menu.
+    /// Returns the player's currently open container menu, or their inventory
+    /// if no container is open.
     ///
-    /// This is a shortcut for accessing the client's
-    /// [`Inventory::inventory_menu`].
-    fn view_inventory(&self) -> Menu {
-        self.map_get_component::<Inventory, _>(|inventory| inventory.inventory_menu.clone())
-            .expect("no inventory")
+    /// This tries to access the client's [`Inventory::container_menu`] and
+    /// falls back to [`Inventory::inventory_menu`].
+    fn view_container_or_inventory(&self) -> Menu {
+        self.map_get_component::<Inventory, _>(|inventory| {
+            inventory
+                .container_menu
+                .clone()
+                .unwrap_or(inventory.inventory_menu.clone())
+        })
+        .expect("no inventory")
     }
 }
 
@@ -192,6 +198,12 @@ impl ContainerHandleRef {
         self.menu().map(|menu| menu.contents())
     }
 
+    /// Return the contents of the menu, including the player's inventory. If
+    /// the container is closed, this will return `None`.
+    pub fn slots(&self) -> Option<Vec<ItemStack>> {
+        self.menu().map(|menu| menu.slots())
+    }
+
     pub fn click(&self, operation: impl Into<ClickOperation>) {
         let operation = operation.into();
         self.client.ecs.lock().send_event(ContainerClickEvent {
@@ -244,6 +256,17 @@ impl ContainerHandle {
     /// inventory. If the container is closed, this will return `None`.
     pub fn contents(&self) -> Option<Vec<ItemStack>> {
         self.0.contents()
+    }
+
+    /// Return the contents of the menu, including the player's inventory. If
+    /// the container is closed, this will return `None`.
+    pub fn slots(&self) -> Option<Vec<ItemStack>> {
+        self.0.slots()
+    }
+
+    /// Closes the inventory by dropping the handle.
+    pub fn close(self) {
+        // implicitly calls drop
     }
 
     pub fn click(&self, operation: impl Into<ClickOperation>) {

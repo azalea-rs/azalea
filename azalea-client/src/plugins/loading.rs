@@ -1,5 +1,5 @@
 use azalea_core::tick::GameTick;
-use azalea_entity::InLoadedChunk;
+use azalea_entity::{InLoadedChunk, LocalEntity};
 use azalea_physics::PhysicsSet;
 use azalea_protocol::packets::game::ServerboundPlayerLoaded;
 use bevy_app::{App, Plugin};
@@ -29,9 +29,17 @@ impl Plugin for PlayerLoadedPlugin {
 
 #[derive(Component)]
 pub struct HasClientLoaded;
+#[allow(clippy::type_complexity)]
 pub fn player_loaded_packet(
     mut commands: Commands,
-    query: Query<Entity, (With<InLoadedChunk>, Without<HasClientLoaded>)>,
+    query: Query<
+        Entity,
+        (
+            With<LocalEntity>,
+            With<InLoadedChunk>,
+            Without<HasClientLoaded>,
+        ),
+    >,
 ) {
     for entity in query.iter() {
         commands.trigger(SendPacketEvent::new(entity, ServerboundPlayerLoaded));
