@@ -220,6 +220,12 @@ impl Goal for ReachBlockPosGoal {
         BlockPosGoal(self.pos).heuristic(n)
     }
     fn success(&self, n: BlockPos) -> bool {
+        if n.up(1) == self.pos {
+            // our head is in the block, assume it's always reachable (to reduce the amount
+            // of impossible goals)
+            return true;
+        }
+
         // only do the expensive check if we're close enough
         let distance = self.pos.distance_squared_to(&n);
         if distance > self.max_check_distance.pow(2) {

@@ -10,6 +10,7 @@ use azalea_inventory::{
     ItemStack, Menu,
     operations::{ClickOperation, PickupClick, QuickMoveClick},
 };
+use azalea_physics::collision::BlockWithShape;
 use azalea_protocol::packets::game::ClientboundGamePacket;
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::{component::Component, prelude::EventReader, system::Commands};
@@ -54,14 +55,28 @@ impl ContainerClientExt for Client {
     /// # }
     /// ```
     async fn open_container_at(&self, pos: BlockPos) -> Option<ContainerHandle> {
+        let mut ticks = self.get_tick_broadcaster();
+        // wait until it's not air (up to 10 ticks)
+        for _ in 0..10 {
+            if !self
+                .world()
+                .read()
+                .get_block_state(&pos)
+                .unwrap_or_default()
+                .is_collision_shape_empty()
+            {
+                break;
+            }
+            let _ = ticks.recv().await;
+        }
+
         self.ecs
             .lock()
             .entity_mut(self.entity)
             .insert(WaitingForInventoryOpen);
         self.block_interact(pos);
 
-        let mut receiver = self.get_tick_broadcaster();
-        while receiver.recv().await.is_ok() {
+        while ticks.recv().await.is_ok() {
             let ecs = self.ecs.lock();
             if ecs.get::<WaitingForInventoryOpen>(self.entity).is_none() {
                 break;
