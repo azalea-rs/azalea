@@ -46,6 +46,11 @@ impl Plugin for EntityPlugin {
             Update,
             (
                 (
+                    // remove_despawned_entities_from_indexes is done again here to correctly
+                    // handle the case where an entity is spawned and then the world is removed at
+                    // the same time (like with ClientboundStartConfiguration).
+                    indexing::remove_despawned_entities_from_indexes
+                        .in_set(EntityUpdateSet::Deindex),
                     indexing::update_entity_chunk_positions,
                     indexing::insert_entity_chunk_position,
                 )
