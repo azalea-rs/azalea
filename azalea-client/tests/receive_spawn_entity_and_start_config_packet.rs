@@ -37,6 +37,4 @@ fn test_receive_spawn_entity_and_start_config_packet() {
 
     simulation.tick();
     assert!(simulation.has_component::<InConfigState>());
-
-    // make sure that the entity is despawned
 }
