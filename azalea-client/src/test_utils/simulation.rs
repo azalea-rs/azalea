@@ -106,6 +106,9 @@ impl Simulation {
     pub fn tick(&mut self) {
         tick_app(&mut self.app);
     }
+    pub fn update(&mut self) {
+        self.app.update();
+    }
 
     pub fn minecraft_entity_id(&self) -> MinecraftEntityId {
         self.component::<MinecraftEntityId>()

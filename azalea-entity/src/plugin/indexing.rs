@@ -132,16 +132,17 @@ pub fn update_entity_chunk_positions(
     instance_container: Res<InstanceContainer>,
 ) {
     for (entity, pos, instance_name, mut entity_chunk_pos) in query.iter_mut() {
-        // TODO: move this inside of the if statement so it's not called as often
-        let instance_lock = instance_container.get(instance_name).unwrap();
-        let mut instance = instance_lock.write();
-
         let old_chunk = **entity_chunk_pos;
         let new_chunk = ChunkPos::from(*pos);
         if old_chunk != new_chunk {
             **entity_chunk_pos = new_chunk;
 
             if old_chunk != new_chunk {
+                let Some(instance_lock) = instance_container.get(instance_name) else {
+                    continue;
+                };
+                let mut instance = instance_lock.write();
+
                 // move the entity from the old chunk to the new one
                 if let Some(entities) = instance.entities_by_chunk.get_mut(&old_chunk) {
                     entities.remove(&entity);
@@ -163,7 +164,10 @@ pub fn insert_entity_chunk_position(
     instance_container: Res<InstanceContainer>,
 ) {
     for (entity, pos, world_name) in query.iter() {
-        let instance_lock = instance_container.get(world_name).unwrap();
+        let Some(instance_lock) = instance_container.get(world_name) else {
+            // entity must've been despawned already
+            continue;
+        };
         let mut instance = instance_lock.write();
 
         let chunk = ChunkPos::from(*pos);
@@ -213,13 +217,13 @@ pub fn remove_despawned_entities_from_indexes(
 
         let mut instance = instance_lock.write();
 
-        // if the entity has no references left, despawn it
+        // if the entity is being loaded by any of our clients, don't despawn it
         if !loaded_by.is_empty() {
             continue;
         }
 
         // remove the entity from the chunk index
-        let chunk = ChunkPos::from(*position);
+        let chunk = ChunkPos::from(position);
         match instance.entities_by_chunk.get_mut(&chunk) {
             Some(entities_in_chunk) => {
                 if entities_in_chunk.remove(&entity) {
@@ -247,9 +251,21 @@ pub fn remove_despawned_entities_from_indexes(
                 }
             }
             _ => {
-                debug!(
-                    "Tried to remove entity {entity:?} from chunk {chunk:?} but the chunk was not found."
-                );
+                let mut found_in_other_chunks = HashSet::new();
+                for (other_chunk, entities_in_other_chunk) in &mut instance.entities_by_chunk {
+                    if entities_in_other_chunk.remove(&entity) {
+                        found_in_other_chunks.insert(other_chunk);
+                    }
+                }
+                if found_in_other_chunks.is_empty() {
+                    warn!(
+                        "Tried to remove entity {entity:?} from chunk {chunk:?} but the chunk was not found and the entity wasn't in any other chunks."
+                    );
+                } else {
+                    warn!(
+                        "Tried to remove entity {entity:?} from chunk {chunk:?} but the chunk was not found. Entity found in and removed from other chunk(s): {found_in_other_chunks:?}"
+                    );
+                }
             }
         }
         // remove it from the uuid index

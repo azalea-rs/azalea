@@ -1,10 +1,9 @@
 mod events;
 
-use std::{collections::HashSet, ops::Add, sync::Arc};
+use std::{collections::HashSet, sync::Arc};
 
 use azalea_core::{
     game_type::GameMode,
-    math,
     position::{ChunkPos, Vec3},
 };
 use azalea_entity::{
@@ -425,68 +424,12 @@ impl GamePacketHandler<'_> {
 
             **last_sent_position = **position;
 
-            fn apply_change<T: Add<Output = T>>(base: T, condition: bool, change: T) -> T {
-                if condition { base + change } else { change }
-            }
-
-            let new_x = apply_change(position.x, p.relative.x, p.change.pos.x);
-            let new_y = apply_change(position.y, p.relative.y, p.change.pos.y);
-            let new_z = apply_change(position.z, p.relative.z, p.change.pos.z);
-
-            let new_y_rot = apply_change(
-                direction.y_rot,
-                p.relative.y_rot,
-                p.change.look_direction.y_rot,
-            );
-            let new_x_rot = apply_change(
-                direction.x_rot,
-                p.relative.x_rot,
-                p.change.look_direction.x_rot,
-            );
-
-            let mut new_delta_from_rotations = physics.velocity;
-            if p.relative.rotate_delta {
-                let y_rot_delta = direction.y_rot - new_y_rot;
-                let x_rot_delta = direction.x_rot - new_x_rot;
-                new_delta_from_rotations = new_delta_from_rotations
-                    .x_rot(math::to_radians(x_rot_delta as f64) as f32)
-                    .y_rot(math::to_radians(y_rot_delta as f64) as f32);
-            }
-
-            let new_delta = Vec3::new(
-                apply_change(
-                    new_delta_from_rotations.x,
-                    p.relative.delta_x,
-                    p.change.delta.x,
-                ),
-                apply_change(
-                    new_delta_from_rotations.y,
-                    p.relative.delta_y,
-                    p.change.delta.y,
-                ),
-                apply_change(
-                    new_delta_from_rotations.z,
-                    p.relative.delta_z,
-                    p.change.delta.z,
-                ),
-            );
-
-            // apply the updates
-
-            physics.velocity = new_delta;
-
-            (direction.y_rot, direction.x_rot) = (new_y_rot, new_x_rot);
-
-            let new_pos = Vec3::new(new_x, new_y, new_z);
-            if new_pos != **position {
-                **position = new_pos;
-            }
-
+            p.relative
+                .apply(&p.change, &mut position, &mut direction, &mut physics);
             // old_pos is set to the current position when we're teleported
             physics.set_old_pos(&position);
 
             // send the relevant packets
-
             commands.trigger(SendPacketEvent::new(
                 self.player,
                 ServerboundAcceptTeleportation { id: p.id },
@@ -494,8 +437,8 @@ impl GamePacketHandler<'_> {
             commands.trigger(SendPacketEvent::new(
                 self.player,
                 ServerboundMovePlayerPosRot {
-                    pos: new_pos,
-                    look_direction: LookDirection::new(new_y_rot, new_x_rot),
+                    pos: **position,
+                    look_direction: *direction,
                     // this is always false
                     on_ground: false,
                 },
@@ -852,6 +795,8 @@ impl GamePacketHandler<'_> {
     }
 
     pub fn teleport_entity(&mut self, p: &ClientboundTeleportEntity) {
+        debug!("Got teleport entity packet {p:?}");
+
         as_system::<(Commands, Query<(&EntityIdIndex, &InstanceHolder)>)>(
             self.ecs,
             |(mut commands, mut query)| {
@@ -862,26 +807,28 @@ impl GamePacketHandler<'_> {
                     return;
                 };
 
-                let new_pos = p.change.pos;
-                let new_look_direction = LookDirection {
-                    x_rot: (p.change.look_direction.x_rot as i32 * 360) as f32 / 256.,
-                    y_rot: (p.change.look_direction.y_rot as i32 * 360) as f32 / 256.,
-                };
+                let relative = p.relative.clone();
+                let change = p.change.clone();
+
                 commands.entity(entity).queue(RelativeEntityUpdate::new(
                     instance_holder.partial_instance.clone(),
                     move |entity| {
-                        let mut position = entity.get_mut::<Position>().unwrap();
-                        if new_pos != **position {
-                            **position = new_pos;
-                        }
-                        let position = *position;
-                        let mut look_direction = entity.get_mut::<LookDirection>().unwrap();
-                        if new_look_direction != *look_direction {
-                            *look_direction = new_look_direction;
-                        }
-                        // old_pos is set to the current position when we're teleported
-                        let mut physics = entity.get_mut::<Physics>().unwrap();
-                        physics.set_old_pos(&position);
+                        let entity_id = entity.id();
+                        entity.world_scope(move |world| {
+                            let mut query =
+                                world.query::<(&mut Physics, &mut LookDirection, &mut Position)>();
+                            let (mut physics, mut look_direction, mut position) =
+                                query.get_mut(world, entity_id).unwrap();
+                            let old_position = *position;
+                            relative.apply(
+                                &change,
+                                &mut position,
+                                &mut look_direction,
+                                &mut physics,
+                            );
+                            // old_pos is set to the current position when we're teleported
+                            physics.set_old_pos(&old_position);
+                        });
                     },
                 ));
             },
@@ -914,11 +861,7 @@ impl GamePacketHandler<'_> {
                     instance_holder.partial_instance.clone(),
                     move |entity_mut| {
                         let mut physics = entity_mut.get_mut::<Physics>().unwrap();
-                        let new_pos = physics.vec_delta_codec.decode(
-                            new_delta.xa as i64,
-                            new_delta.ya as i64,
-                            new_delta.za as i64,
-                        );
+                        let new_pos = physics.vec_delta_codec.decode(&new_delta);
                         physics.vec_delta_codec.set_base(new_pos);
                         physics.set_on_ground(new_on_ground);
 
@@ -968,17 +911,13 @@ impl GamePacketHandler<'_> {
                     instance_holder.partial_instance.clone(),
                     move |entity_mut| {
                         let mut physics = entity_mut.get_mut::<Physics>().unwrap();
-                        let new_pos = physics.vec_delta_codec.decode(
-                            new_delta.xa as i64,
-                            new_delta.ya as i64,
-                            new_delta.za as i64,
-                        );
-                        physics.vec_delta_codec.set_base(new_pos);
+                        let new_position = physics.vec_delta_codec.decode(&new_delta);
+                        physics.vec_delta_codec.set_base(new_position);
                         physics.set_on_ground(new_on_ground);
 
                         let mut position = entity_mut.get_mut::<Position>().unwrap();
-                        if new_pos != **position {
-                            **position = new_pos;
+                        if new_position != **position {
+                            **position = new_position;
                         }
 
                         let mut look_direction = entity_mut.get_mut::<LookDirection>().unwrap();
