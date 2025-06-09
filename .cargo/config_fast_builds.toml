@@ -1,0 +1,48 @@
+# This file is based on Bevy's fast builds config: https://github.com/bevyengine/bevy/blob/main/.cargo/config_fast_builds.toml
+
+# Add the contents of this file to `config.toml` to enable "fast build" configuration. Please read the notes below.
+
+[target.x86_64-unknown-linux-gnu]
+linker = "clang"
+rustflags = [
+    # LLD linker
+    #
+    # You may need to install it:
+    #
+    # - Ubuntu: `sudo apt-get install lld clang`
+    # - Fedora: `sudo dnf install lld clang`
+    # - Arch: `sudo pacman -S lld clang`
+    "-Clink-arg=-fuse-ld=lld",
+
+    # Mold linker
+    #
+    # You may need to install it:
+    #
+    # - Ubuntu: `sudo apt-get install mold clang`
+    # - Fedora: `sudo dnf install mold clang`
+    # - Arch: `sudo pacman -S mold clang`
+    # "-Clink-arg=-fuse-ld=mold",
+
+    # Nightly
+    "-Zshare-generics=y",
+]
+
+# NOTE: you must install [Mach-O LLD Port](https://lld.llvm.org/MachO/index.html) on mac. you can easily do this by installing llvm which includes lld with the "brew" package manager:
+# `brew install llvm`
+[target.x86_64-apple-darwin]
+rustflags = ["-Zshare-generics=y"]
+
+[target.aarch64-apple-darwin]
+rustflags = ["-Zshare-generics=y"]
+
+[target.x86_64-pc-windows-msvc]
+linker = "rust-lld.exe"
+rustflags = [
+    # This needs to be off if you use dynamic linking on Windows.
+    "-Zshare-generics=n",
+]
+
+# Optional: Uncommenting the following improves compile times, but reduces the amount of debug info to 'line number tables only'
+# In most cases the gains are negligible, but if you are on macos and have slow compile times you should see significant gains.
+#[profile.dev]
+#debug = 1
