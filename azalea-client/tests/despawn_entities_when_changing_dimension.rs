@@ -1,4 +1,4 @@
-use azalea_client::test_simulation::*;
+use azalea_client::test_utils::prelude::*;
 use azalea_core::{position::ChunkPos, resource_location::ResourceLocation};
 use azalea_entity::metadata::Cow;
 use azalea_protocol::packets::{
@@ -7,12 +7,11 @@ use azalea_protocol::packets::{
 };
 use azalea_registry::{DataRegistry, DimensionType, EntityKind};
 use bevy_ecs::query::With;
-use bevy_log::tracing_subscriber;
 use simdnbt::owned::{NbtCompound, NbtTag};
 
 #[test]
 fn test_despawn_entities_when_changing_dimension() {
-    let _ = tracing_subscriber::fmt::try_init();
+    init_tracing();
 
     let mut simulation = Simulation::new(ConnectionProtocol::Configuration);
     simulation.receive_packet(ClientboundRegistryData {

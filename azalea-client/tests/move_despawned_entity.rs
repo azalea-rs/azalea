@@ -1,15 +1,15 @@
-use azalea_client::test_simulation::*;
+use azalea_client::test_utils::prelude::*;
 use azalea_core::{position::ChunkPos, resource_location::ResourceLocation};
 use azalea_entity::metadata::Cow;
 use azalea_protocol::packets::{ConnectionProtocol, game::ClientboundMoveEntityRot};
 use azalea_registry::{DataRegistry, DimensionType, EntityKind};
 use azalea_world::MinecraftEntityId;
 use bevy_ecs::query::With;
-use bevy_log::tracing_subscriber;
+use tracing::Level;
 
 #[test]
 fn test_move_despawned_entity() {
-    let _ = tracing_subscriber::fmt::try_init();
+    init_tracing_with_level(Level::ERROR); // a warning is expected here
 
     let mut simulation = Simulation::new(ConnectionProtocol::Game);
     simulation.receive_packet(make_basic_login_packet(
@@ -26,7 +26,7 @@ fn test_move_despawned_entity() {
     // make sure it's spawned
     let mut cow_query = simulation.app.world_mut().query_filtered::<(), With<Cow>>();
     let cow_iter = cow_query.iter(simulation.app.world());
-    assert_eq!(cow_iter.count(), 1, "cow should be despawned");
+    assert_eq!(cow_iter.count(), 1, "cow should be spawned");
 
     // despawn the cow by receiving a login packet
     simulation.receive_packet(make_basic_login_packet(

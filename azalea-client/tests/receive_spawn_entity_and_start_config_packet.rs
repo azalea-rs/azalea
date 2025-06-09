@@ -1,4 +1,4 @@
-use azalea_client::{InConfigState, test_simulation::*};
+use azalea_client::{InConfigState, test_utils::prelude::*};
 use azalea_core::{position::Vec3, resource_location::ResourceLocation};
 use azalea_protocol::packets::{
     ConnectionProtocol,
@@ -6,12 +6,11 @@ use azalea_protocol::packets::{
 };
 use azalea_registry::{DataRegistry, DimensionType, EntityKind};
 use azalea_world::InstanceName;
-use bevy_log::tracing_subscriber;
 use uuid::Uuid;
 
 #[test]
 fn test_receive_spawn_entity_and_start_config_packet() {
-    let _ = tracing_subscriber::fmt::try_init();
+    init_tracing();
 
     let mut simulation = Simulation::new(ConnectionProtocol::Game);
     simulation.receive_packet(make_basic_login_packet(

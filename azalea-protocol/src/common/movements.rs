@@ -28,6 +28,11 @@ pub struct RelativeMovements {
     pub delta_z: bool,
     pub rotate_delta: bool,
 }
+impl RelativeMovements {
+    pub fn all_absolute() -> Self {
+        RelativeMovements::default()
+    }
+}
 
 impl AzaleaRead for RelativeMovements {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {

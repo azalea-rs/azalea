@@ -3,6 +3,7 @@ use std::{net::SocketAddr, sync::Arc};
 use azalea_entity::{LocalEntity, indexing::EntityUuidIndex};
 use azalea_protocol::{
     ServerAddress,
+    common::client_information::ClientInformation,
     connect::{Connection, ConnectionError, Proxy},
     packets::{
         ClientIntention, ConnectionProtocol, PROTOCOL_VERSION,
@@ -215,7 +216,7 @@ pub fn poll_create_connection_task(
                         write_conn,
                         ConnectionProtocol::Login,
                     ),
-                    client_information: crate::ClientInformation::default(),
+                    client_information: ClientInformation::default(),
                     instance_holder,
                     metadata: azalea_entity::metadata::PlayerMetadataBundle::default(),
                 },

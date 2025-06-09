@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use azalea_client::{
     packet::{config::SendConfigPacketEvent, game::SendPacketEvent},
-    test_simulation::*,
+    test_utils::prelude::*,
 };
 use azalea_core::resource_location::ResourceLocation;
 use azalea_protocol::packets::{
@@ -13,13 +13,12 @@ use azalea_protocol::packets::{
     game::{self, ServerboundGamePacket},
 };
 use bevy_ecs::observer::Trigger;
-use bevy_log::tracing_subscriber;
 use parking_lot::Mutex;
 use simdnbt::owned::{NbtCompound, NbtTag};
 
 #[test]
 fn reply_to_ping_with_pong() {
-    let _ = tracing_subscriber::fmt::try_init();
+    init_tracing();
 
     let mut simulation = Simulation::new(ConnectionProtocol::Configuration);
 
