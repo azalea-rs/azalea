@@ -1,10 +1,9 @@
 use bevy_log::tracing_subscriber::{
     self, EnvFilter, Layer,
     layer::{Context, SubscriberExt},
-    registry::LookupSpan,
     util::SubscriberInitExt,
 };
-use tracing::{Event, Level, Subscriber, level_filters::LevelFilter};
+use tracing::{Event, Level, Subscriber};
 
 pub fn init_tracing() {
     init_tracing_with_level(Level::WARN);

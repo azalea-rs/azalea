@@ -572,7 +572,6 @@ impl Client {
 #[derive(Bundle)]
 pub struct LocalPlayerBundle {
     pub raw_connection: RawConnection,
-    pub client_information: ClientInformation,
     pub instance_holder: InstanceHolder,
 
     pub metadata: azalea_entity::metadata::PlayerMetadataBundle,

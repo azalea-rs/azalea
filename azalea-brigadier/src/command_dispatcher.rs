@@ -55,7 +55,7 @@ impl<S> CommandDispatcher<S> {
         build
     }
 
-    pub fn parse(&self, command: StringReader, source: S) -> ParseResults<S> {
+    pub fn parse(&self, command: StringReader, source: S) -> ParseResults<'_, S> {
         let source = Arc::new(source);
 
         let context = CommandContextBuilder::new(self, source, self.root.clone(), command.cursor());

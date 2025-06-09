@@ -11,14 +11,17 @@ use azalea_core::{
     tick::GameTick,
 };
 use azalea_entity::metadata::PlayerMetadataBundle;
-use azalea_protocol::packets::{
-    ConnectionProtocol, Packet, ProtocolPacket,
-    common::CommonPlayerSpawnInfo,
-    config::{ClientboundFinishConfiguration, ClientboundRegistryData},
-    game::{
-        ClientboundAddEntity, ClientboundLevelChunkWithLight, ClientboundLogin, ClientboundRespawn,
-        c_level_chunk_with_light::ClientboundLevelChunkPacketData,
-        c_light_update::ClientboundLightUpdatePacketData,
+use azalea_protocol::{
+    common::client_information::ClientInformation,
+    packets::{
+        ConnectionProtocol, Packet, ProtocolPacket,
+        common::CommonPlayerSpawnInfo,
+        config::{ClientboundFinishConfiguration, ClientboundRegistryData},
+        game::{
+            ClientboundAddEntity, ClientboundLevelChunkWithLight, ClientboundLogin,
+            ClientboundRespawn, c_level_chunk_with_light::ClientboundLevelChunkPacketData,
+            c_light_update::ClientboundLightUpdatePacketData,
+        },
     },
 };
 use azalea_registry::{Biome, DimensionType, EntityKind};
@@ -30,8 +33,8 @@ use simdnbt::owned::{NbtCompound, NbtTag};
 use uuid::Uuid;
 
 use crate::{
-    ClientInformation, InConfigState, LocalPlayerBundle, connection::RawConnection,
-    disconnect::DisconnectEvent, local_player::InstanceHolder, player::GameProfileComponent,
+    InConfigState, LocalPlayerBundle, connection::RawConnection, disconnect::DisconnectEvent,
+    local_player::InstanceHolder, player::GameProfileComponent,
 };
 
 /// A way to simulate a client in a server, used for some internal tests.
@@ -49,7 +52,7 @@ impl Simulation {
         let mut entity = app.world_mut().spawn_empty();
         let (player, rt) =
             create_local_player_bundle(entity.id(), ConnectionProtocol::Configuration);
-        entity.insert(player);
+        entity.insert((player, ClientInformation::default()));
 
         let entity = entity.id();
 
@@ -171,7 +174,6 @@ fn create_local_player_bundle(
 
     let local_player_bundle = LocalPlayerBundle {
         raw_connection,
-        client_information: ClientInformation::default(),
         instance_holder,
         metadata: PlayerMetadataBundle::default(),
     };

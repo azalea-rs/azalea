@@ -129,6 +129,8 @@ pub fn handle_start_join_server_event(
             // localentity is always present for our clients, even if we're not actually logged
             // in
             LocalEntity,
+            // this is inserted early so the user can always access and modify it
+            ClientInformation::default(),
             // ConnectOpts is inserted as a component here
             event.connect_opts.clone(),
             // we don't insert InLoginState until we actually create the connection. note that
@@ -216,7 +218,6 @@ pub fn poll_create_connection_task(
                         write_conn,
                         ConnectionProtocol::Login,
                     ),
-                    client_information: ClientInformation::default(),
                     instance_holder,
                     metadata: azalea_entity::metadata::PlayerMetadataBundle::default(),
                 },
