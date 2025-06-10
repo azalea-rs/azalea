@@ -3,7 +3,6 @@ use azalea_core::{
     position::{ChunkPos, Vec3},
     resource_location::ResourceLocation,
 };
-use azalea_entity::metadata::Cow;
 use azalea_protocol::{
     common::movements::{PositionMoveRotation, RelativeMovements},
     packets::{
@@ -13,7 +12,6 @@ use azalea_protocol::{
 };
 use azalea_registry::{DataRegistry, DimensionType, EntityKind};
 use azalea_world::MinecraftEntityId;
-use bevy_ecs::query::With;
 
 #[test]
 fn test_move_and_despawn_entity() {
