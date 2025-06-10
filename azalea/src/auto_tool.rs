@@ -1,7 +1,10 @@
 use azalea_block::{BlockState, BlockTrait, fluid_state::FluidKind};
 use azalea_client::{Client, inventory::Inventory};
+use azalea_core::position::BlockPos;
 use azalea_entity::{FluidOnEyes, Physics};
 use azalea_inventory::{ItemStack, Menu, components};
+
+use crate::BotClientExt;
 
 #[derive(Debug)]
 pub struct BestToolResult {
@@ -11,6 +14,7 @@ pub struct BestToolResult {
 
 pub trait AutoToolClientExt {
     fn best_tool_in_hotbar_for_block(&self, block: BlockState) -> BestToolResult;
+    fn mine_with_auto_tool(&self, block_pos: BlockPos) -> impl Future<Output = ()> + Send;
 }
 
 impl AutoToolClientExt for Client {
@@ -21,6 +25,17 @@ impl AutoToolClientExt for Client {
         let menu = &inventory.inventory_menu;
 
         accurate_best_tool_in_hotbar_for_block(block, menu, physics, fluid_on_eyes)
+    }
+
+    async fn mine_with_auto_tool(&self, block_pos: BlockPos) {
+        let block_state = self
+            .world()
+            .read()
+            .get_block_state(&block_pos)
+            .unwrap_or_default();
+        let best_tool_result = self.best_tool_in_hotbar_for_block(block_state);
+        self.set_selected_hotbar_slot(best_tool_result.index as u8);
+        self.mine(block_pos).await;
     }
 }
 
