@@ -1,6 +1,9 @@
 //! The goals that a pathfinder can try to reach.
 
-use std::{f32::consts::SQRT_2, fmt::Debug};
+use std::{
+    f32::consts::SQRT_2,
+    fmt::{self, Debug},
+};
 
 use azalea_core::position::{BlockPos, Vec3};
 use azalea_world::ChunkStorage;
@@ -193,7 +196,7 @@ impl<T: Goal> Goal for AndGoals<T> {
 }
 
 /// Move to a position where we can reach the given block.
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct ReachBlockPosGoal {
     pub pos: BlockPos,
     pub distance: f64,
@@ -242,5 +245,14 @@ impl Goal for ReachBlockPosGoal {
         );
 
         block_hit_result.block_pos == self.pos
+    }
+}
+impl Debug for ReachBlockPosGoal {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("ReachBlockPosGoal")
+            .field("pos", &self.pos)
+            .field("distance", &self.distance)
+            .field("max_check_distance", &self.max_check_distance)
+            .finish()
     }
 }

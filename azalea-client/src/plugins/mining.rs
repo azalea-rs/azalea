@@ -313,7 +313,7 @@ fn handle_mining_queued(
                     physics,
                 ) >= 1.
             {
-                // block was broken instantly
+                // block was broken instantly (instamined)
                 commands.trigger_targets(
                     FinishMiningBlockEvent {
                         position: mining_queued.position,
@@ -497,10 +497,10 @@ pub fn handle_stop_mining_block_event(
     mut events: EventReader<StopMiningBlockEvent>,
     mut commands: Commands,
     mut mine_block_progress_events: EventWriter<MineBlockProgressEvent>,
-    mut query: Query<(&mut Mining, &MineBlockPos, &mut MineProgress)>,
+    mut query: Query<(&MineBlockPos, &mut MineProgress)>,
 ) {
     for event in events.read() {
-        let (mut _mining, mine_block_pos, mut mine_progress) = query.get_mut(event.entity).unwrap();
+        let (mine_block_pos, mut mine_progress) = query.get_mut(event.entity).unwrap();
 
         let mine_block_pos =
             mine_block_pos.expect("IsMining is true so MineBlockPos must be present");
@@ -639,7 +639,7 @@ pub fn continue_mining_block(
                 ));
                 **mine_progress = 0.;
                 **mine_ticks = 0.;
-                **mine_delay = 0;
+                **mine_delay = 5;
             }
 
             mine_block_progress_events.write(MineBlockProgressEvent {

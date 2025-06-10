@@ -111,6 +111,12 @@ impl ExecuteCtx<'_, '_, '_, '_, '_, '_, '_> {
         });
     }
 
+    pub fn jump_if_in_water(&mut self) {
+        if self.physics.is_in_water() {
+            self.jump();
+        }
+    }
+
     /// Returns whether this block could be mined.
     pub fn should_mine(&mut self, block: BlockPos) -> bool {
         let block_state = self
