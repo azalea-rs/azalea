@@ -25,6 +25,7 @@ use crate::{
     connection::RawConnection,
     declare_packet_handlers,
     disconnect::DisconnectEvent,
+    interact::BlockStatePredictionHandler,
     inventory::{
         ClientSideCloseContainerEvent, Inventory, MenuOpenedEvent, SetContainerContentEvent,
     },
@@ -1061,13 +1062,17 @@ impl GamePacketHandler<'_> {
     pub fn block_update(&mut self, p: &ClientboundBlockUpdate) {
         debug!("Got block update packet {p:?}");
 
-        as_system::<Query<&InstanceHolder>>(self.ecs, |mut query| {
-            let local_player = query.get_mut(self.player).unwrap();
+        as_system::<Query<(&InstanceHolder, &mut BlockStatePredictionHandler)>>(
+            self.ecs,
+            |mut query| {
+                let (local_player, mut prediction_handler) = query.get_mut(self.player).unwrap();
 
-            let world = local_player.instance.write();
-
-            world.chunks.set_block_state(p.pos, p.block_state);
-        });
+                let world = local_player.instance.read();
+                if !prediction_handler.update_known_server_state(p.pos, p.block_state) {
+                    world.chunks.set_block_state(p.pos, p.block_state);
+                }
+            },
+        );
     }
 
     pub fn animate(&mut self, p: &ClientboundAnimate) {
@@ -1077,15 +1082,19 @@ impl GamePacketHandler<'_> {
     pub fn section_blocks_update(&mut self, p: &ClientboundSectionBlocksUpdate) {
         debug!("Got section blocks update packet {p:?}");
 
-        as_system::<Query<&InstanceHolder>>(self.ecs, |mut query| {
-            let local_player = query.get_mut(self.player).unwrap();
-            let world = local_player.instance.write();
-            for state in &p.states {
-                world
-                    .chunks
-                    .set_block_state(p.section_pos + state.pos, state.state);
-            }
-        });
+        as_system::<Query<(&InstanceHolder, &mut BlockStatePredictionHandler)>>(
+            self.ecs,
+            |mut query| {
+                let (local_player, mut prediction_handler) = query.get_mut(self.player).unwrap();
+                let world = local_player.instance.read();
+                for new_state in &p.states {
+                    let pos = p.section_pos + new_state.pos;
+                    if !prediction_handler.update_known_server_state(pos, new_state.state) {
+                        world.chunks.set_block_state(pos, new_state.state);
+                    }
+                }
+            },
+        );
     }
 
     pub fn game_event(&mut self, p: &ClientboundGameEvent) {
@@ -1125,7 +1134,16 @@ impl GamePacketHandler<'_> {
 
     pub fn award_stats(&mut self, _p: &ClientboundAwardStats) {}
 
-    pub fn block_changed_ack(&mut self, _p: &ClientboundBlockChangedAck) {}
+    pub fn block_changed_ack(&mut self, p: &ClientboundBlockChangedAck) {
+        as_system::<Query<(&InstanceHolder, &mut BlockStatePredictionHandler)>>(
+            self.ecs,
+            |mut query| {
+                let (local_player, mut prediction_handler) = query.get_mut(self.player).unwrap();
+                let world = local_player.instance.read();
+                prediction_handler.end_prediction_up_to(p.seq, &world);
+            },
+        );
+    }
 
     pub fn block_destruction(&mut self, _p: &ClientboundBlockDestruction) {}
 

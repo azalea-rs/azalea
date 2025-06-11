@@ -6,7 +6,7 @@ use azalea_buf::AzaleaWrite;
 use azalea_core::{
     delta::PositionDelta8,
     game_type::{GameMode, OptionalGameType},
-    position::{ChunkPos, Vec3},
+    position::{BlockPos, ChunkPos, Vec3},
     resource_location::ResourceLocation,
     tick::GameTick,
 };
@@ -102,6 +102,9 @@ impl Simulation {
             raw_conn.injected_clientbound_packets.push(buf);
         });
     }
+    pub fn send_event(&mut self, event: impl bevy_ecs::event::Event) {
+        self.app.world_mut().send_event(event);
+    }
 
     pub fn tick(&mut self) {
         tick_app(&mut self.app);
@@ -150,6 +153,12 @@ impl Simulation {
             .read()
             .chunks
             .get(&chunk_pos)
+    }
+    pub fn get_block_state(&self, pos: BlockPos) -> Option<BlockState> {
+        self.component::<InstanceHolder>()
+            .instance
+            .read()
+            .get_block_state(pos)
     }
 
     pub fn disconnect(&mut self) {

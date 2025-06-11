@@ -15,7 +15,7 @@ pub struct ServerboundUseItemOn {
     pub hand: InteractionHand,
     pub block_hit: BlockHit,
     #[var]
-    pub sequence: u32,
+    pub seq: u32,
 }
 
 #[derive(Clone, Debug)]

@@ -1,6 +1,6 @@
 use azalea_block::{BlockState, BlockTrait, fluid_state::FluidState};
 use azalea_core::{direction::Direction, game_type::GameMode, position::BlockPos, tick::GameTick};
-use azalea_entity::{FluidOnEyes, Physics, mining::get_mine_progress};
+use azalea_entity::{FluidOnEyes, Physics, Position, mining::get_mine_progress};
 use azalea_inventory::ItemStack;
 use azalea_physics::{PhysicsSet, collision::BlockWithShape};
 use azalea_protocol::packets::game::s_player_action::{self, ServerboundPlayerAction};
@@ -13,7 +13,7 @@ use tracing::trace;
 use crate::{
     Client,
     interact::{
-        CurrentSequenceNumber, HitResultComponent, SwingArmEvent, can_use_game_master_blocks,
+        BlockStatePredictionHandler, HitResultComponent, SwingArmEvent, can_use_game_master_blocks,
         check_is_interaction_restricted,
     },
     inventory::{Inventory, InventorySet},
@@ -216,7 +216,7 @@ fn handle_mining_queued(
         &FluidOnEyes,
         &Physics,
         Option<&Mining>,
-        &mut CurrentSequenceNumber,
+        &mut BlockStatePredictionHandler,
         &mut MineDelay,
         &mut MineProgress,
         &mut MineTicks,
@@ -280,7 +280,7 @@ fn handle_mining_queued(
                         pos: current_mining_pos
                             .expect("IsMining is true so MineBlockPos must be present"),
                         direction: mining_queued.direction,
-                        sequence: 0,
+                        seq: 0,
                     },
                 ));
             }
@@ -345,7 +345,7 @@ fn handle_mining_queued(
                     action: s_player_action::Action::StartDestroyBlock,
                     pos: mining_queued.position,
                     direction: mining_queued.direction,
-                    sequence: sequence_number.get_next(),
+                    seq: sequence_number.start_predicting(),
                 },
             ));
             // vanilla really does send two swing arm packets
@@ -440,14 +440,22 @@ pub fn handle_finish_mining_block_observer(
         &Inventory,
         &PlayerAbilities,
         &PermissionLevel,
-        &mut CurrentSequenceNumber,
+        &Position,
+        &mut BlockStatePredictionHandler,
     )>,
     instances: Res<InstanceContainer>,
 ) {
     let event = trigger.event();
 
-    let (instance_name, game_mode, inventory, abilities, permission_level, _sequence_number) =
-        query.get_mut(trigger.target()).unwrap();
+    let (
+        instance_name,
+        game_mode,
+        inventory,
+        abilities,
+        permission_level,
+        player_pos,
+        mut prediction_handler,
+    ) = query.get_mut(trigger.target()).unwrap();
     let instance_lock = instances.get(instance_name).unwrap();
     let instance = instance_lock.read();
     if check_is_interaction_restricted(&instance, event.position, &game_mode.current, inventory) {
@@ -469,7 +477,8 @@ pub fn handle_finish_mining_block_observer(
         return;
     };
 
-    let registry_block = Box::<dyn BlockTrait>::from(block_state).as_registry_block();
+    let registry_block: azalea_registry::Block =
+        Box::<dyn BlockTrait>::from(block_state).as_registry_block();
     if !can_use_game_master_blocks(abilities, permission_level)
         && matches!(
             registry_block,
@@ -485,7 +494,10 @@ pub fn handle_finish_mining_block_observer(
     // when we break a waterlogged block we want to keep the water there
     let fluid_state = FluidState::from(block_state);
     let block_state_for_fluid = BlockState::from(fluid_state);
-    instance.set_block_state(event.position, block_state_for_fluid);
+    let old_state = instance
+        .set_block_state(event.position, block_state_for_fluid)
+        .unwrap_or_default();
+    prediction_handler.retain_known_server_state(event.position, old_state, **player_pos);
 }
 
 /// Abort mining a block.
@@ -510,7 +522,7 @@ pub fn handle_stop_mining_block_event(
                 action: s_player_action::Action::AbortDestroyBlock,
                 pos: mine_block_pos,
                 direction: Direction::Down,
-                sequence: 0,
+                seq: 0,
             },
         ));
         commands.entity(event.entity).remove::<Mining>();
@@ -538,7 +550,7 @@ pub fn continue_mining_block(
         &mut MineDelay,
         &mut MineProgress,
         &mut MineTicks,
-        &mut CurrentSequenceNumber,
+        &mut BlockStatePredictionHandler,
     )>,
     mut commands: Commands,
     mut mine_block_progress_events: EventWriter<MineBlockProgressEvent>,
@@ -557,7 +569,7 @@ pub fn continue_mining_block(
         mut mine_delay,
         mut mine_progress,
         mut mine_ticks,
-        mut sequence_number,
+        mut prediction_handler,
     ) in query.iter_mut()
     {
         if **mine_delay > 0 {
@@ -580,7 +592,7 @@ pub fn continue_mining_block(
                     action: s_player_action::Action::StartDestroyBlock,
                     pos: mining.pos,
                     direction: mining.dir,
-                    sequence: sequence_number.get_next(),
+                    seq: prediction_handler.start_predicting(),
                 },
             ));
             commands.trigger(SwingArmEvent { entity });
@@ -634,7 +646,7 @@ pub fn continue_mining_block(
                         action: s_player_action::Action::StopDestroyBlock,
                         pos: mining.pos,
                         direction: mining.dir,
-                        sequence: sequence_number.get_next(),
+                        seq: prediction_handler.start_predicting(),
                     },
                 ));
                 **mine_progress = 0.;
