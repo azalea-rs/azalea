@@ -253,9 +253,11 @@ impl Eq for LookDirection {}
 /// bounding box.
 #[derive(Debug, Component, Clone, Default)]
 pub struct Physics {
-    /// How fast the entity is moving.
+    /// How fast the entity is moving. Sometimes referred to as the delta
+    /// movement.
     ///
-    /// Sometimes referred to as the delta movement.
+    /// Note that our Y velocity will be approximately -0.0784 when we're on the
+    /// ground due to how Minecraft applies gravity.
     pub velocity: Vec3,
     pub vec_delta_codec: VecDeltaCodec,
 
