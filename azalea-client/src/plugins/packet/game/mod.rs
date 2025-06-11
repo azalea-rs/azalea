@@ -1066,7 +1066,7 @@ impl GamePacketHandler<'_> {
 
             let world = local_player.instance.write();
 
-            world.chunks.set_block_state(&p.pos, p.block_state);
+            world.chunks.set_block_state(p.pos, p.block_state);
         });
     }
 
@@ -1083,7 +1083,7 @@ impl GamePacketHandler<'_> {
             for state in &p.states {
                 world
                     .chunks
-                    .set_block_state(&(p.section_pos + state.pos), state.state);
+                    .set_block_state(p.section_pos + state.pos, state.state);
             }
         });
     }

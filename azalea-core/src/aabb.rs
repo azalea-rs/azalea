@@ -211,7 +211,7 @@ impl AABB {
         boxes: &Vec<AABB>,
         from: &Vec3,
         to: &Vec3,
-        pos: &BlockPos,
+        pos: BlockPos,
     ) -> Option<BlockHitResult> {
         let mut t = 1.0;
         let mut dir = None;
@@ -230,7 +230,7 @@ impl AABB {
         Some(BlockHitResult {
             location: from + &(delta * t),
             direction: dir,
-            block_pos: *pos,
+            block_pos: pos,
             inside: false,
             miss: false,
             world_border: false,
@@ -500,7 +500,7 @@ mod tests {
                 }],
                 &Vec3::new(-1., -1., -1.),
                 &Vec3::new(1., 1., 1.),
-                &BlockPos::new(0, 0, 0),
+                BlockPos::new(0, 0, 0),
             ),
             None
         );

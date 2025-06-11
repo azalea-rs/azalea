@@ -49,7 +49,7 @@ impl ClipContext {
         &self,
         fluid_state: FluidState,
         world: &ChunkStorage,
-        pos: &BlockPos,
+        pos: BlockPos,
     ) -> &VoxelShape {
         if self.fluid_pick_type.can_pick(&fluid_state) {
             crate::collision::fluid_shape(&fluid_state, world, pos)
@@ -139,7 +139,7 @@ pub fn clip(chunk_storage: &ChunkStorage, context: ClipContext) -> BlockHitResul
 fn clip_with_interaction_override(
     from: &Vec3,
     to: &Vec3,
-    block_pos: &BlockPos,
+    block_pos: BlockPos,
     block_shape: &VoxelShape,
     _block_state: &BlockState,
 ) -> Option<BlockHitResult> {
@@ -168,7 +168,7 @@ pub fn traverse_blocks<C, T>(
     from: Vec3,
     to: Vec3,
     context: C,
-    get_hit_result: impl Fn(&C, &BlockPos) -> Option<T>,
+    get_hit_result: impl Fn(&C, BlockPos) -> Option<T>,
     get_miss_result: impl Fn(&C) -> T,
 ) -> T {
     if from == to {
@@ -188,7 +188,7 @@ pub fn traverse_blocks<C, T>(
     };
 
     let mut current_block = BlockPos::from(right_before_start);
-    if let Some(data) = get_hit_result(&context, &current_block) {
+    if let Some(data) = get_hit_result(&context, current_block) {
         return data;
     }
 
@@ -249,7 +249,7 @@ pub fn traverse_blocks<C, T>(
             percentage.z += percentage_step.z;
         }
 
-        if let Some(data) = get_hit_result(&context, &current_block) {
+        if let Some(data) = get_hit_result(&context, current_block) {
             return data;
         }
     }

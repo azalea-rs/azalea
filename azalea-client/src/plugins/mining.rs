@@ -246,7 +246,7 @@ fn handle_mining_queued(
         let instance = instance_holder.instance.read();
         if check_is_interaction_restricted(
             &instance,
-            &mining_queued.position,
+            mining_queued.position,
             &game_mode.current,
             inventory,
         ) {
@@ -286,7 +286,7 @@ fn handle_mining_queued(
             }
 
             let target_block_state = instance
-                .get_block_state(&mining_queued.position)
+                .get_block_state(mining_queued.position)
                 .unwrap_or_default();
 
             // we can't break blocks if they don't have a bounding box
@@ -450,7 +450,7 @@ pub fn handle_finish_mining_block_observer(
         query.get_mut(trigger.target()).unwrap();
     let instance_lock = instances.get(instance_name).unwrap();
     let instance = instance_lock.read();
-    if check_is_interaction_restricted(&instance, &event.position, &game_mode.current, inventory) {
+    if check_is_interaction_restricted(&instance, event.position, &game_mode.current, inventory) {
         return;
     }
 
@@ -465,7 +465,7 @@ pub fn handle_finish_mining_block_observer(
         }
     }
 
-    let Some(block_state) = instance.get_block_state(&event.position) else {
+    let Some(block_state) = instance.get_block_state(event.position) else {
         return;
     };
 
@@ -485,7 +485,7 @@ pub fn handle_finish_mining_block_observer(
     // when we break a waterlogged block we want to keep the water there
     let fluid_state = FluidState::from(block_state);
     let block_state_for_fluid = BlockState::from(fluid_state);
-    instance.set_block_state(&event.position, block_state_for_fluid);
+    instance.set_block_state(event.position, block_state_for_fluid);
 }
 
 /// Abort mining a block.
@@ -595,7 +595,7 @@ pub fn continue_mining_block(
             trace!("continue mining block at {:?}", mining.pos);
             let instance_lock = instances.get(instance_name).unwrap();
             let instance = instance_lock.read();
-            let target_block_state = instance.get_block_state(&mining.pos).unwrap_or_default();
+            let target_block_state = instance.get_block_state(mining.pos).unwrap_or_default();
 
             trace!("target_block_state: {target_block_state:?}");
 

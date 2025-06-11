@@ -106,10 +106,10 @@ pub fn on_pos(offset: f32, chunk_storage: &ChunkStorage, pos: &Position) -> Bloc
 
     // TODO: check if block below is a fence, wall, or fence gate
     let block_pos = pos.down(1);
-    let block_state = chunk_storage.get_block_state(&block_pos);
+    let block_state = chunk_storage.get_block_state(block_pos);
     if block_state == Some(BlockState::AIR) {
         let block_pos_below = block_pos.down(1);
-        let block_state_below = chunk_storage.get_block_state(&block_pos_below);
+        let block_state_below = chunk_storage.get_block_state(block_pos_below);
         if let Some(_block_state_below) = block_state_below {
             // if block_state_below.is_fence()
             //     || block_state_below.is_wall()

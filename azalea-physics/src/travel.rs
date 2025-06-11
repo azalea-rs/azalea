@@ -1,4 +1,4 @@
-use azalea_block::{BlockTrait, BlockState, fluid_state::FluidState};
+use azalea_block::{BlockState, BlockTrait, fluid_state::FluidState};
 use azalea_core::{
     aabb::AABB,
     position::{BlockPos, Vec3},
@@ -122,7 +122,7 @@ fn travel_in_air(
 
     let block_state_below = world
         .chunks
-        .get_block_state(&block_pos_below)
+        .get_block_state(block_pos_below)
         .unwrap_or(BlockState::AIR);
     let block_below: Box<dyn BlockTrait> = block_state_below.into();
     let block_friction = block_below.behavior().friction;
@@ -392,7 +392,7 @@ fn contains_any_liquid(world: &Instance, bounding_box: AABB) -> bool {
             for z in min.z..max.z {
                 let block_state = world
                     .chunks
-                    .get_block_state(&BlockPos::new(x, y, z))
+                    .get_block_state(BlockPos::new(x, y, z))
                     .unwrap_or_default();
                 if !FluidState::from(block_state).is_empty() {
                     return true;

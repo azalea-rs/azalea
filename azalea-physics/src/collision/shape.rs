@@ -408,7 +408,7 @@ impl VoxelShape {
         }
     }
 
-    pub fn clip(&self, from: &Vec3, to: &Vec3, block_pos: &BlockPos) -> Option<BlockHitResult> {
+    pub fn clip(&self, from: &Vec3, to: &Vec3, block_pos: BlockPos) -> Option<BlockHitResult> {
         if self.is_empty() {
             return None;
         }
@@ -424,7 +424,7 @@ impl VoxelShape {
             self.find_index(Axis::Z, right_after_start.z - block_pos.z as f64),
         ) {
             Some(BlockHitResult {
-                block_pos: *block_pos,
+                block_pos,
                 direction: Direction::nearest(vector).opposite(),
                 location: right_after_start,
                 inside: true,
@@ -755,7 +755,7 @@ mod tests {
             .clip(
                 &Vec3::new(-0.3, 0.5, 0.),
                 &Vec3::new(5.3, 0.5, 0.),
-                &BlockPos::new(0, 0, 0),
+                BlockPos::new(0, 0, 0),
             )
             .unwrap();
 

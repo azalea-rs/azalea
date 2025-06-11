@@ -589,6 +589,12 @@ impl From<&ChunkBiomePos> for ChunkSectionBiomePos {
         }
     }
 }
+impl From<ChunkBiomePos> for ChunkSectionBiomePos {
+    #[inline]
+    fn from(pos: ChunkBiomePos) -> Self {
+        Self::from(&pos)
+    }
+}
 vec3_impl!(ChunkSectionBiomePos, u8);
 
 /// The coordinates of a biome inside a chunk. Biomes are 4x4 blocks.
@@ -601,6 +607,12 @@ pub struct ChunkBiomePos {
 impl From<&BlockPos> for ChunkBiomePos {
     #[inline]
     fn from(pos: &BlockPos) -> Self {
+        ChunkBiomePos::from(&ChunkBlockPos::from(pos))
+    }
+}
+impl From<BlockPos> for ChunkBiomePos {
+    #[inline]
+    fn from(pos: BlockPos) -> Self {
         ChunkBiomePos::from(&ChunkBlockPos::from(pos))
     }
 }

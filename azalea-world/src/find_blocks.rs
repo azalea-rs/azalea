@@ -7,7 +7,7 @@ impl Instance {
     /// Find the coordinates of a block in the world.
     ///
     /// Note that this is sorted by `x+y+z` and not `x^2+y^2+z^2` for
-    /// optimization purposes.
+    /// performance purposes.
     ///
     /// ```
     /// # fn example(client: &azalea_client::Client) {
@@ -93,7 +93,7 @@ impl Instance {
     /// are in the given block states.
     ///
     /// Note that this is sorted by `x+y+z` and not `x^2+y^2+z^2` for
-    /// optimization purposes.
+    /// performance purposes.
     pub fn find_blocks<'a>(
         &'a self,
         nearest_to: impl Into<BlockPos>,
@@ -274,8 +274,8 @@ mod tests {
             chunk_storage,
         );
 
-        chunk_storage.set_block_state(&BlockPos { x: 17, y: 0, z: 0 }, Block::Stone.into());
-        chunk_storage.set_block_state(&BlockPos { x: 0, y: 18, z: 0 }, Block::Stone.into());
+        chunk_storage.set_block_state(BlockPos { x: 17, y: 0, z: 0 }, Block::Stone.into());
+        chunk_storage.set_block_state(BlockPos { x: 0, y: 18, z: 0 }, Block::Stone.into());
 
         let pos = instance.find_block(BlockPos { x: 0, y: 0, z: 0 }, &Block::Stone.into());
         assert_eq!(pos, Some(BlockPos { x: 17, y: 0, z: 0 }));
@@ -301,8 +301,8 @@ mod tests {
             chunk_storage,
         );
 
-        chunk_storage.set_block_state(&BlockPos { x: -1, y: 0, z: 0 }, Block::Stone.into());
-        chunk_storage.set_block_state(&BlockPos { x: 15, y: 0, z: 0 }, Block::Stone.into());
+        chunk_storage.set_block_state(BlockPos { x: -1, y: 0, z: 0 }, Block::Stone.into());
+        chunk_storage.set_block_state(BlockPos { x: 15, y: 0, z: 0 }, Block::Stone.into());
 
         let pos = instance.find_block(BlockPos { x: 0, y: 0, z: 0 }, &Block::Stone.into());
         assert_eq!(pos, Some(BlockPos { x: -1, y: 0, z: 0 }));

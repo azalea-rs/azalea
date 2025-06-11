@@ -122,7 +122,7 @@ impl ExecuteCtx<'_, '_, '_, '_, '_, '_, '_> {
         let block_state = self
             .instance
             .read()
-            .get_block_state(&block)
+            .get_block_state(block)
             .unwrap_or_default();
         if is_block_state_passable(block_state) {
             // block is already passable, no need to mine it
@@ -138,7 +138,7 @@ impl ExecuteCtx<'_, '_, '_, '_, '_, '_, '_> {
         let block_state = self
             .instance
             .read()
-            .get_block_state(&block)
+            .get_block_state(block)
             .unwrap_or_default();
         if is_block_state_passable(block_state) {
             // block is already passable, no need to mine it
@@ -191,7 +191,7 @@ impl ExecuteCtx<'_, '_, '_, '_, '_, '_, '_> {
     pub fn get_block_state(&self, block: BlockPos) -> BlockState {
         self.instance
             .read()
-            .get_block_state(&block)
+            .get_block_state(block)
             .unwrap_or_default()
     }
 }

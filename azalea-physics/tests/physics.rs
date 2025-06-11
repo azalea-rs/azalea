@@ -121,7 +121,7 @@ fn test_collision() {
         ))
         .id();
     let block_state = partial_world.chunks.set_block_state(
-        &BlockPos { x: 0, y: 69, z: 0 },
+        BlockPos { x: 0, y: 69, z: 0 },
         azalea_registry::Block::Stone.into(),
         &world_lock.write().chunks,
     );
@@ -177,7 +177,7 @@ fn test_slab_collision() {
         ))
         .id();
     let block_state = partial_world.chunks.set_block_state(
-        &BlockPos { x: 0, y: 69, z: 0 },
+        BlockPos { x: 0, y: 69, z: 0 },
         azalea_block::blocks::StoneSlab {
             kind: azalea_block::properties::Type::Bottom,
             waterlogged: false,
@@ -227,7 +227,7 @@ fn test_top_slab_collision() {
         ))
         .id();
     let block_state = world_lock.write().chunks.set_block_state(
-        &BlockPos { x: 0, y: 69, z: 0 },
+        BlockPos { x: 0, y: 69, z: 0 },
         azalea_block::blocks::StoneSlab {
             kind: azalea_block::properties::Type::Top,
             waterlogged: false,
@@ -284,7 +284,7 @@ fn test_weird_wall_collision() {
         ))
         .id();
     let block_state = world_lock.write().chunks.set_block_state(
-        &BlockPos { x: 0, y: 69, z: 0 },
+        BlockPos { x: 0, y: 69, z: 0 },
         azalea_block::blocks::CobblestoneWall {
             east: azalea_block::properties::WallEast::Low,
             north: azalea_block::properties::WallNorth::Low,
@@ -346,7 +346,7 @@ fn test_negative_coordinates_weird_wall_collision() {
         ))
         .id();
     let block_state = world_lock.write().chunks.set_block_state(
-        &BlockPos {
+        BlockPos {
             x: -8,
             y: 69,
             z: -8,
@@ -440,7 +440,7 @@ fn test_afk_pool() {
         world_lock
             .write()
             .chunks
-            .set_block_state(&BlockPos { x, y, z }, b);
+            .set_block_state(BlockPos { x, y, z }, b);
     };
 
     let stone = azalea_block::blocks::Stone {}.into();

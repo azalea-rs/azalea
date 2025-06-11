@@ -1334,10 +1334,10 @@ mod tests {
             partial_chunks.set(&chunk_pos, Some(Chunk::default()), &mut chunks);
         }
         for block_pos in solid_blocks {
-            chunks.set_block_state(block_pos, azalea_registry::Block::Stone.into());
+            chunks.set_block_state(*block_pos, azalea_registry::Block::Stone.into());
         }
         for (block_pos, block_state) in extra_blocks {
-            chunks.set_block_state(block_pos, *block_state);
+            chunks.set_block_state(*block_pos, *block_state);
         }
 
         let player = SimulatedPlayerBundle::new(Vec3::new(

@@ -343,7 +343,7 @@ pub fn pick_block(
 /// adventure mode check.
 pub fn check_is_interaction_restricted(
     instance: &Instance,
-    block_pos: &BlockPos,
+    block_pos: BlockPos,
     game_mode: &GameMode,
     inventory: &Inventory,
 ) -> bool {

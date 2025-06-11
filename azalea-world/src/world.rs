@@ -171,11 +171,11 @@ pub struct Instance {
 }
 
 impl Instance {
-    pub fn get_block_state(&self, pos: &BlockPos) -> Option<BlockState> {
+    pub fn get_block_state(&self, pos: BlockPos) -> Option<BlockState> {
         self.chunks.get_block_state(pos)
     }
 
-    pub fn get_fluid_state(&self, pos: &BlockPos) -> Option<FluidState> {
+    pub fn get_fluid_state(&self, pos: BlockPos) -> Option<FluidState> {
         self.chunks.get_block_state(pos).map(FluidState::from)
     }
 
@@ -187,11 +187,11 @@ impl Instance {
     /// Note that biomes are internally stored as 4x4x4 blocks, so if you're
     /// writing code that searches for a specific biome it'll probably be more
     /// efficient to avoid scanning every single block.
-    pub fn get_biome(&self, pos: &BlockPos) -> Option<Biome> {
+    pub fn get_biome(&self, pos: BlockPos) -> Option<Biome> {
         self.chunks.get_biome(pos)
     }
 
-    pub fn set_block_state(&self, pos: &BlockPos, state: BlockState) -> Option<BlockState> {
+    pub fn set_block_state(&self, pos: BlockPos, state: BlockState) -> Option<BlockState> {
         self.chunks.set_block_state(pos, state)
     }
 }

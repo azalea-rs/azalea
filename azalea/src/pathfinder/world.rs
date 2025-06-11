@@ -625,13 +625,13 @@ mod tests {
             .chunks
             .set(&ChunkPos { x: 0, z: 0 }, Some(Chunk::default()), &mut world);
         partial_world.chunks.set_block_state(
-            &BlockPos::new(0, 0, 0),
+            BlockPos::new(0, 0, 0),
             azalea_registry::Block::Stone.into(),
             &world,
         );
         partial_world
             .chunks
-            .set_block_state(&BlockPos::new(0, 1, 0), BlockState::AIR, &world);
+            .set_block_state(BlockPos::new(0, 1, 0), BlockState::AIR, &world);
 
         let ctx = CachedWorld::new(Arc::new(RwLock::new(world.into())), BlockPos::default());
         assert!(!ctx.is_block_pos_passable(BlockPos::new(0, 0, 0)));
@@ -646,13 +646,13 @@ mod tests {
             .chunks
             .set(&ChunkPos { x: 0, z: 0 }, Some(Chunk::default()), &mut world);
         partial_world.chunks.set_block_state(
-            &BlockPos::new(0, 0, 0),
+            BlockPos::new(0, 0, 0),
             azalea_registry::Block::Stone.into(),
             &world,
         );
         partial_world
             .chunks
-            .set_block_state(&BlockPos::new(0, 1, 0), BlockState::AIR, &world);
+            .set_block_state(BlockPos::new(0, 1, 0), BlockState::AIR, &world);
 
         let ctx = CachedWorld::new(Arc::new(RwLock::new(world.into())), BlockPos::default());
         assert!(ctx.is_block_pos_solid(BlockPos::new(0, 0, 0)));
@@ -667,19 +667,19 @@ mod tests {
             .chunks
             .set(&ChunkPos { x: 0, z: 0 }, Some(Chunk::default()), &mut world);
         partial_world.chunks.set_block_state(
-            &BlockPos::new(0, 0, 0),
+            BlockPos::new(0, 0, 0),
             azalea_registry::Block::Stone.into(),
             &world,
         );
         partial_world
             .chunks
-            .set_block_state(&BlockPos::new(0, 1, 0), BlockState::AIR, &world);
+            .set_block_state(BlockPos::new(0, 1, 0), BlockState::AIR, &world);
         partial_world
             .chunks
-            .set_block_state(&BlockPos::new(0, 2, 0), BlockState::AIR, &world);
+            .set_block_state(BlockPos::new(0, 2, 0), BlockState::AIR, &world);
         partial_world
             .chunks
-            .set_block_state(&BlockPos::new(0, 3, 0), BlockState::AIR, &world);
+            .set_block_state(BlockPos::new(0, 3, 0), BlockState::AIR, &world);
 
         let ctx = CachedWorld::new(Arc::new(RwLock::new(world.into())), BlockPos::default());
         assert!(ctx.is_standable_at_block_pos(BlockPos::new(0, 1, 0)));

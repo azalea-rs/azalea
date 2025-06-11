@@ -322,13 +322,9 @@ fn collide_with_shapes(
 ///
 /// The instance and position are required so it can check if the block above is
 /// also the same fluid type.
-pub fn fluid_shape(
-    fluid: &FluidState,
-    world: &ChunkStorage,
-    pos: &BlockPos,
-) -> &'static VoxelShape {
+pub fn fluid_shape(fluid: &FluidState, world: &ChunkStorage, pos: BlockPos) -> &'static VoxelShape {
     if fluid.amount == 9 {
-        let fluid_state_above = world.get_fluid_state(&pos.up(1)).unwrap_or_default();
+        let fluid_state_above = world.get_fluid_state(pos.up(1)).unwrap_or_default();
         if fluid_state_above.kind == fluid.kind {
             return &BLOCK_SHAPE;
         }

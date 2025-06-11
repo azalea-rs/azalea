@@ -84,7 +84,7 @@ impl ContainerClientExt for Client {
             if !self
                 .world()
                 .read()
-                .get_block_state(&pos)
+                .get_block_state(pos)
                 .unwrap_or_default()
                 .is_collision_shape_empty()
             {

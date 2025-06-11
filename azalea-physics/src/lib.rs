@@ -8,7 +8,7 @@ pub mod travel;
 
 use std::collections::HashSet;
 
-use azalea_block::{BlockTrait, BlockState, fluid_state::FluidState, properties};
+use azalea_block::{BlockState, BlockTrait, fluid_state::FluidState, properties};
 use azalea_core::{
     math,
     position::{BlockPos, Vec3},
@@ -197,7 +197,7 @@ fn check_inside_blocks(
             //     return;
             // }
 
-            let traversed_block_state = world.get_block_state(&traversed_block).unwrap_or_default();
+            let traversed_block_state = world.get_block_state(traversed_block).unwrap_or_default();
             if traversed_block_state.is_air() {
                 continue;
             }
@@ -268,7 +268,7 @@ fn handle_entity_inside_block(
     #[allow(clippy::single_match)]
     match registry_block {
         azalea_registry::Block::BubbleColumn => {
-            let block_above = world.get_block_state(&block_pos.up(1)).unwrap_or_default();
+            let block_above = world.get_block_state(block_pos.up(1)).unwrap_or_default();
             let is_block_above_empty =
                 block_above.is_collision_shape_empty() && FluidState::from(block_above).is_empty();
             let drag_down = block
@@ -417,7 +417,7 @@ fn handle_relative_friction_and_calculate_movement(
     if physics.horizontal_collision || **jumping {
         let block_at_feet: azalea_registry::Block = world
             .chunks
-            .get_block_state(&(*position).into())
+            .get_block_state((*position).into())
             .unwrap_or_default()
             .into();
 
@@ -454,7 +454,7 @@ fn handle_on_climbable(
         && azalea_registry::Block::from(
             world
                 .chunks
-                .get_block_state(&position.into())
+                .get_block_state(position.into())
                 .unwrap_or_default(),
         ) != azalea_registry::Block::Scaffolding
     {
@@ -486,10 +486,10 @@ fn get_friction_influenced_speed(
 /// Returns the what the entity's jump should be multiplied by based on the
 /// block they're standing on.
 fn block_jump_factor(world: &Instance, position: &Position) -> f32 {
-    let block_at_pos = world.chunks.get_block_state(&position.into());
+    let block_at_pos = world.chunks.get_block_state(position.into());
     let block_below = world
         .chunks
-        .get_block_state(&get_block_pos_below_that_affects_movement(position));
+        .get_block_state(get_block_pos_below_that_affects_movement(position));
 
     let block_at_pos_jump_factor = if let Some(block) = block_at_pos {
         Box::<dyn BlockTrait>::from(block).behavior().jump_factor
