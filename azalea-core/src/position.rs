@@ -419,6 +419,22 @@ impl BlockPos {
     pub fn offset_with_direction(self, direction: Direction) -> Self {
         self + direction.normal()
     }
+
+    /// Get the distance (as an f64) of this BlockPos to the origin by
+    /// doing `sqrt(x^2 + y^2 + z^2)`.
+    pub fn length(&self) -> f64 {
+        f64::sqrt((self.x * self.x + self.y * self.y + self.z * self.z) as f64)
+    }
+
+    /// Get the distance (as an f64) from this position to another position.
+    /// Equivalent to `(self - other).length()`.
+    ///
+    /// Note that if you're using this in a hot path, it may be more performant
+    /// to use [`BlockPos::distance_squared_to`] instead (by squaring the other
+    /// side in the comparison).
+    pub fn distance_to(self, other: Self) -> f64 {
+        (self - other).length()
+    }
 }
 
 /// Similar to [`BlockPos`] but it's serialized as 3 varints instead of one
