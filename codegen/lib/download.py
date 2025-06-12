@@ -135,25 +135,37 @@ def get_mappings_for_version(version_id: str):
     return Mappings.parse(mappings_text)
 
 
-def get_yarn_versions():
+def get_fabric_data(version_id: str):
     # https://meta.fabricmc.net/v2/versions/yarn
-    if not os.path.exists(get_dir_location("__cache__/yarn_versions.json")):
-        print("\033[92mDownloading yarn versions...\033[m")
-        yarn_versions_data = requests.get(
-            "https://meta.fabricmc.net/v2/versions/yarn"
-        ).json()
-        with open(get_dir_location("__cache__/yarn_versions.json"), "w") as f:
+    path = get_dir_location(f"__cache__/fabric-{version_id}.json")
+
+    if not os.path.exists(path):
+        print(f"\033[92mDownloading Fabric metadata for {version_id}...\033[m")
+        url = f"https://meta.fabricmc.net/v1/versions/loader/{version_id}"
+        yarn_versions_data = requests.get(url).json()
+        with open(path, "w") as f:
             json.dump(yarn_versions_data, f)
     else:
-        with open(get_dir_location("__cache__/yarn_versions.json"), "r") as f:
+        with open(path, "r") as f:
             yarn_versions_data = json.load(f)
     return yarn_versions_data
 
 
-def get_yarn_data(version_id: str):
-    for version in get_yarn_versions():
-        if version["gameVersion"] == version_id:
-            return version
+def get_latest_fabric_api_version():
+    path = get_dir_location("__cache__/fabric-api-maven-metadata.xml")
+
+    if not os.path.exists(path):
+        print("\033[92mDownloading Fabric API metadata...\033[m")
+        url = "https://maven.fabricmc.net/net/fabricmc/fabric-api/fabric-api/maven-metadata.xml"
+        maven_metadata_xml = requests.get(url).text
+        with open(path, "w") as f:
+            json.dump(maven_metadata_xml, f)
+    else:
+        with open(path, "r") as f:
+            maven_metadata_xml = json.load(f)
+
+    tree = ET.ElementTree(ET.fromstring(maven_metadata_xml))
+    return tree.find(".//latest").text
 
 
 def get_fabric_api_versions():
@@ -210,6 +222,7 @@ def clear_version_cache():
         "yarn_versions.json",
         "fabric_api_versions.json",
         "fabric_loader_versions.json",
+        "fabric-api-maven-metadata.xml",
     ]
     for file in files:
         if os.path.exists(get_dir_location(f"__cache__/{file}")):

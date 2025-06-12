@@ -1079,6 +1079,49 @@ pub static HANGING_SIGNS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
         Item::BambooHangingSign,
     ])
 });
+pub static HAPPY_GHAST_FOOD: LazyLock<HashSet<Item>> =
+    LazyLock::new(|| HashSet::from_iter(vec![Item::Snowball]));
+pub static HAPPY_GHAST_TEMPT_ITEMS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
+    HashSet::from_iter(vec![
+        Item::Snowball,
+        Item::WhiteHarness,
+        Item::OrangeHarness,
+        Item::MagentaHarness,
+        Item::LightBlueHarness,
+        Item::YellowHarness,
+        Item::LimeHarness,
+        Item::PinkHarness,
+        Item::GrayHarness,
+        Item::LightGrayHarness,
+        Item::CyanHarness,
+        Item::PurpleHarness,
+        Item::BlueHarness,
+        Item::BrownHarness,
+        Item::GreenHarness,
+        Item::RedHarness,
+        Item::BlackHarness,
+    ])
+});
+pub static HARNESSES: LazyLock<HashSet<Item>> = LazyLock::new(|| {
+    HashSet::from_iter(vec![
+        Item::WhiteHarness,
+        Item::OrangeHarness,
+        Item::MagentaHarness,
+        Item::LightBlueHarness,
+        Item::YellowHarness,
+        Item::LimeHarness,
+        Item::PinkHarness,
+        Item::GrayHarness,
+        Item::LightGrayHarness,
+        Item::CyanHarness,
+        Item::PurpleHarness,
+        Item::BlueHarness,
+        Item::BrownHarness,
+        Item::GreenHarness,
+        Item::RedHarness,
+        Item::BlackHarness,
+    ])
+});
 pub static HEAD_ARMOR: LazyLock<HashSet<Item>> = LazyLock::new(|| {
     HashSet::from_iter(vec![
         Item::LeatherHelmet,
@@ -1108,6 +1151,7 @@ pub static HORSE_FOOD: LazyLock<HashSet<Item>> = LazyLock::new(|| {
         Item::Sugar,
         Item::HayBlock,
         Item::Apple,
+        Item::Carrot,
         Item::GoldenCarrot,
         Item::GoldenApple,
         Item::EnchantedGoldenApple,
@@ -1463,14 +1507,8 @@ pub static REPAIRS_TURTLE_HELMET: LazyLock<HashSet<Item>> =
     LazyLock::new(|| HashSet::from_iter(vec![Item::TurtleScute]));
 pub static REPAIRS_WOLF_ARMOR: LazyLock<HashSet<Item>> =
     LazyLock::new(|| HashSet::from_iter(vec![Item::ArmadilloScute]));
-pub static SAND: LazyLock<HashSet<Item>> = LazyLock::new(|| {
-    HashSet::from_iter(vec![
-        Item::Sand,
-        Item::RedSand,
-        Item::SuspiciousSand,
-        Item::SuspiciousSand,
-    ])
-});
+pub static SAND: LazyLock<HashSet<Item>> =
+    LazyLock::new(|| HashSet::from_iter(vec![Item::Sand, Item::RedSand, Item::SuspiciousSand]));
 pub static SAPLINGS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
     HashSet::from_iter(vec![
         Item::OakSapling,

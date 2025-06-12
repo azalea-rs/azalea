@@ -91,7 +91,7 @@ pub enum BrigadierString {
     GreedyPhrase = 2,
 }
 
-// see ArgumentTypeInfo
+// see ArgumentTypeInfos.java
 #[derive(Debug, Clone, AzBuf, PartialEq)]
 pub enum BrigadierParser {
     Bool,
@@ -111,6 +111,7 @@ pub enum BrigadierParser {
     ItemStack,
     ItemPredicate,
     Color,
+    HexColor,
     FormattedText,
     Style,
     Message,
