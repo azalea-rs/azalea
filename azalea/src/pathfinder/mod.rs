@@ -7,10 +7,13 @@ pub mod costs;
 pub mod custom_state;
 pub mod debug;
 pub mod goals;
+mod goto_event;
 pub mod mining;
 pub mod moves;
 pub mod rel_block_pos;
 pub mod simulation;
+#[cfg(test)]
+mod tests;
 pub mod world;
 
 use std::{
@@ -43,6 +46,7 @@ use bevy_tasks::{AsyncComputeTaskPool, Task};
 use custom_state::{CustomPathfinderState, CustomPathfinderStateRef};
 use futures_lite::future;
 use goals::BlockPosGoal;
+pub use goto_event::GotoEvent;
 use parking_lot::RwLock;
 use rel_block_pos::RelBlockPos;
 use tokio::sync::broadcast::error::RecvError;
@@ -112,11 +116,13 @@ impl Plugin for PathfinderPlugin {
 
 /// A component that makes this client able to pathfind.
 #[derive(Component, Default, Clone)]
+#[non_exhaustive]
 pub struct Pathfinder {
     pub goal: Option<Arc<dyn Goal>>,
     pub successors_fn: Option<SuccessorsFn>,
     pub is_calculating: bool,
     pub allow_mining: bool,
+    pub retry_on_no_path: bool,
 
     pub min_timeout: Option<PathfinderTimeout>,
     pub max_timeout: Option<PathfinderTimeout>,
@@ -135,41 +141,8 @@ pub struct ExecutingPath {
     pub is_path_partial: bool,
 }
 
-/// Send this event to start pathfinding to the given goal.
-///
-/// Also see [`PathfinderClientExt::goto`].
-///
-/// This event is read by [`goto_listener`].
-#[derive(Event)]
-pub struct GotoEvent {
-    /// The local bot entity that will do the pathfinding and execute the path.
-    pub entity: Entity,
-    pub goal: Arc<dyn Goal>,
-    /// The function that's used for checking what moves are possible. Usually
-    /// [`moves::default_move`].
-    pub successors_fn: SuccessorsFn,
-
-    /// Whether the bot is allowed to break blocks while pathfinding.
-    pub allow_mining: bool,
-
-    /// The minimum amount of time that should pass before the A* pathfinder
-    /// function can return a timeout. It may take up to [`Self::max_timeout`]
-    /// if it can't immediately find a usable path.
-    ///
-    /// A good default value for this is
-    /// `PathfinderTimeout::Time(Duration::from_secs(1))`.
-    ///
-    /// Also see [`PathfinderTimeout::Nodes`]
-    pub min_timeout: PathfinderTimeout,
-    /// The absolute maximum amount of time that the pathfinder function can
-    /// take to find a path. If it takes this long, it means no usable path was
-    /// found (so it might be impossible).
-    ///
-    /// A good default value for this is
-    /// `PathfinderTimeout::Time(Duration::from_secs(5))`.
-    pub max_timeout: PathfinderTimeout,
-}
 #[derive(Event, Clone, Debug)]
+#[non_exhaustive]
 pub struct PathFoundEvent {
     pub entity: Entity,
     pub start: BlockPos,
@@ -226,27 +199,17 @@ impl PathfinderClientExt for azalea_client::Client {
     /// # }
     /// ```
     fn start_goto(&self, goal: impl Goal + 'static) {
-        self.ecs.lock().send_event(GotoEvent {
-            entity: self.entity,
-            goal: Arc::new(goal),
-            successors_fn: moves::default_move,
-            allow_mining: true,
-            min_timeout: PathfinderTimeout::Time(Duration::from_secs(1)),
-            max_timeout: PathfinderTimeout::Time(Duration::from_secs(5)),
-        });
+        self.ecs
+            .lock()
+            .send_event(GotoEvent::new(self.entity, goal));
     }
 
     /// Same as [`start_goto`](Self::start_goto). but the bot won't break any
     /// blocks while executing the path.
     fn start_goto_without_mining(&self, goal: impl Goal + 'static) {
-        self.ecs.lock().send_event(GotoEvent {
-            entity: self.entity,
-            goal: Arc::new(goal),
-            successors_fn: moves::default_move,
-            allow_mining: false,
-            min_timeout: PathfinderTimeout::Time(Duration::from_secs(1)),
-            max_timeout: PathfinderTimeout::Time(Duration::from_secs(5)),
-        });
+        self.ecs
+            .lock()
+            .send_event(GotoEvent::new(self.entity, goal).with_allow_mining(false));
     }
 
     fn stop_pathfinding(&self) {
@@ -359,6 +322,7 @@ pub fn goto_listener(
         let goto_id_atomic = pathfinder.goto_id.clone();
 
         let allow_mining = event.allow_mining;
+        let retry_on_no_path = event.retry_on_no_path;
         let mining_cache = MiningCache::new(if allow_mining {
             Some(inventory.inventory_menu.clone())
         } else {
@@ -380,6 +344,7 @@ pub fn goto_listener(
                 goto_id_atomic,
                 allow_mining,
                 mining_cache,
+                retry_on_no_path,
                 custom_state,
                 min_timeout,
                 max_timeout,
@@ -399,10 +364,14 @@ pub struct CalculatePathOpts {
     pub goto_id_atomic: Arc<AtomicUsize>,
     pub allow_mining: bool,
     pub mining_cache: MiningCache,
-    pub custom_state: CustomPathfinderState,
-    /// Also see [`GotoEvent::min_timeout`].
+    /// See [`GotoEvent::retry_on_no_path`].
+    pub retry_on_no_path: bool,
+
+    /// See [`GotoEvent::min_timeout`].
     pub min_timeout: PathfinderTimeout,
     pub max_timeout: PathfinderTimeout,
+
+    pub custom_state: CustomPathfinderState,
 }
 
 /// Calculate the [`PathFoundEvent`] for the given pathfinder options.
@@ -616,6 +585,10 @@ pub fn path_found_listener(
                 executing_path.is_path_partial = event.is_partial;
             } else if path.is_empty() {
                 debug!("calculated path is empty, so didn't add ExecutingPath");
+                if !pathfinder.retry_on_no_path {
+                    debug!("retry_on_no_path is set to false, removing goal");
+                    pathfinder.goal = None;
+                }
             } else {
                 commands.entity(event.entity).insert(ExecutingPath {
                     path: path.to_owned(),
@@ -938,8 +911,9 @@ fn patch_path(
     let goal = Arc::new(BlockPosGoal(patch_end));
 
     let goto_id_atomic = pathfinder.goto_id.clone();
-
     let allow_mining = pathfinder.allow_mining;
+    let retry_on_no_path = pathfinder.retry_on_no_path;
+
     let mining_cache = MiningCache::new(if allow_mining {
         Some(inventory.inventory_menu.clone())
     } else {
@@ -956,6 +930,8 @@ fn patch_path(
         goto_id_atomic,
         allow_mining,
         mining_cache,
+        retry_on_no_path,
+
         custom_state,
         min_timeout: PathfinderTimeout::Nodes(10_000),
         max_timeout: PathfinderTimeout::Nodes(10_000),
@@ -1030,6 +1006,7 @@ pub fn recalculate_near_end_of_path(
                         goal,
                         successors_fn,
                         allow_mining: pathfinder.allow_mining,
+                        retry_on_no_path: pathfinder.retry_on_no_path,
                         min_timeout: if executing_path.path.len() == 50 {
                             // we have quite some time until the node is reached, soooo we might as
                             // well burn some cpu cycles to get a good path
@@ -1141,6 +1118,7 @@ pub fn recalculate_if_has_goal_but_no_path(
                 goal,
                 successors_fn: pathfinder.successors_fn.unwrap(),
                 allow_mining: pathfinder.allow_mining,
+                retry_on_no_path: pathfinder.retry_on_no_path,
                 min_timeout: pathfinder.min_timeout.expect("min_timeout should be set"),
                 max_timeout: pathfinder.max_timeout.expect("max_timeout should be set"),
             });
@@ -1266,316 +1244,4 @@ pub fn call_successors_fn(
     };
     successors_fn(&mut ctx, pos);
     edges
-}
-
-#[cfg(test)]
-mod tests {
-    use std::{
-        collections::HashSet,
-        sync::Arc,
-        thread,
-        time::{Duration, Instant},
-    };
-
-    use azalea_block::BlockState;
-    use azalea_core::position::{BlockPos, ChunkPos, Vec3};
-    use azalea_world::{Chunk, ChunkStorage, PartialChunkStorage};
-
-    use super::{
-        GotoEvent,
-        astar::PathfinderTimeout,
-        goals::BlockPosGoal,
-        moves,
-        simulation::{SimulatedPlayerBundle, Simulation},
-    };
-
-    fn setup_blockposgoal_simulation(
-        partial_chunks: &mut PartialChunkStorage,
-        start_pos: BlockPos,
-        end_pos: BlockPos,
-        solid_blocks: &[BlockPos],
-    ) -> Simulation {
-        let mut simulation = setup_simulation_world(partial_chunks, start_pos, solid_blocks, &[]);
-
-        // you can uncomment this while debugging tests to get trace logs
-        // simulation.app.add_plugins(bevy_log::LogPlugin {
-        //     level: bevy_log::Level::TRACE,
-        //     filter: "".to_string(),
-        //     ..Default::default()
-        // });
-
-        simulation.app.world_mut().send_event(GotoEvent {
-            entity: simulation.entity,
-            goal: Arc::new(BlockPosGoal(end_pos)),
-            successors_fn: moves::default_move,
-            allow_mining: false,
-            min_timeout: PathfinderTimeout::Nodes(1_000_000),
-            max_timeout: PathfinderTimeout::Nodes(5_000_000),
-        });
-        simulation
-    }
-
-    fn setup_simulation_world(
-        partial_chunks: &mut PartialChunkStorage,
-        start_pos: BlockPos,
-        solid_blocks: &[BlockPos],
-        extra_blocks: &[(BlockPos, BlockState)],
-    ) -> Simulation {
-        let mut chunk_positions = HashSet::new();
-        for block_pos in solid_blocks {
-            chunk_positions.insert(ChunkPos::from(block_pos));
-        }
-        for (block_pos, _) in extra_blocks {
-            chunk_positions.insert(ChunkPos::from(block_pos));
-        }
-
-        let mut chunks = ChunkStorage::default();
-        for chunk_pos in chunk_positions {
-            partial_chunks.set(&chunk_pos, Some(Chunk::default()), &mut chunks);
-        }
-        for block_pos in solid_blocks {
-            chunks.set_block_state(*block_pos, azalea_registry::Block::Stone.into());
-        }
-        for (block_pos, block_state) in extra_blocks {
-            chunks.set_block_state(*block_pos, *block_state);
-        }
-
-        let player = SimulatedPlayerBundle::new(Vec3::new(
-            start_pos.x as f64 + 0.5,
-            start_pos.y as f64,
-            start_pos.z as f64 + 0.5,
-        ));
-        Simulation::new(chunks, player)
-    }
-
-    pub fn assert_simulation_reaches(simulation: &mut Simulation, ticks: usize, end_pos: BlockPos) {
-        wait_until_bot_starts_moving(simulation);
-        for _ in 0..ticks {
-            simulation.tick();
-        }
-        assert_eq!(BlockPos::from(simulation.position()), end_pos);
-    }
-
-    pub fn wait_until_bot_starts_moving(simulation: &mut Simulation) {
-        let start_pos = simulation.position();
-        let start_time = Instant::now();
-        while simulation.position() == start_pos
-            && !simulation.is_mining()
-            && start_time.elapsed() < Duration::from_millis(500)
-        {
-            simulation.tick();
-            thread::yield_now();
-        }
-    }
-
-    #[test]
-    fn test_simple_forward() {
-        let mut partial_chunks = PartialChunkStorage::default();
-        let mut simulation = setup_blockposgoal_simulation(
-            &mut partial_chunks,
-            BlockPos::new(0, 71, 0),
-            BlockPos::new(0, 71, 1),
-            &[BlockPos::new(0, 70, 0), BlockPos::new(0, 70, 1)],
-        );
-        assert_simulation_reaches(&mut simulation, 20, BlockPos::new(0, 71, 1));
-    }
-
-    #[test]
-    fn test_double_diagonal_with_walls() {
-        let mut partial_chunks = PartialChunkStorage::default();
-        let mut simulation = setup_blockposgoal_simulation(
-            &mut partial_chunks,
-            BlockPos::new(0, 71, 0),
-            BlockPos::new(2, 71, 2),
-            &[
-                BlockPos::new(0, 70, 0),
-                BlockPos::new(1, 70, 1),
-                BlockPos::new(2, 70, 2),
-                BlockPos::new(1, 72, 0),
-                BlockPos::new(2, 72, 1),
-            ],
-        );
-        assert_simulation_reaches(&mut simulation, 30, BlockPos::new(2, 71, 2));
-    }
-
-    #[test]
-    fn test_jump_with_sideways_momentum() {
-        let mut partial_chunks = PartialChunkStorage::default();
-        let mut simulation = setup_blockposgoal_simulation(
-            &mut partial_chunks,
-            BlockPos::new(0, 71, 3),
-            BlockPos::new(5, 76, 0),
-            &[
-                BlockPos::new(0, 70, 3),
-                BlockPos::new(0, 70, 2),
-                BlockPos::new(0, 70, 1),
-                BlockPos::new(0, 70, 0),
-                BlockPos::new(1, 71, 0),
-                BlockPos::new(2, 72, 0),
-                BlockPos::new(3, 73, 0),
-                BlockPos::new(4, 74, 0),
-                BlockPos::new(5, 75, 0),
-            ],
-        );
-        assert_simulation_reaches(&mut simulation, 120, BlockPos::new(5, 76, 0));
-    }
-
-    #[test]
-    fn test_parkour_2_block_gap() {
-        let mut partial_chunks = PartialChunkStorage::default();
-        let mut simulation = setup_blockposgoal_simulation(
-            &mut partial_chunks,
-            BlockPos::new(0, 71, 0),
-            BlockPos::new(0, 71, 3),
-            &[BlockPos::new(0, 70, 0), BlockPos::new(0, 70, 3)],
-        );
-        assert_simulation_reaches(&mut simulation, 40, BlockPos::new(0, 71, 3));
-    }
-
-    #[test]
-    fn test_descend_and_parkour_2_block_gap() {
-        let mut partial_chunks = PartialChunkStorage::default();
-        let mut simulation = setup_blockposgoal_simulation(
-            &mut partial_chunks,
-            BlockPos::new(0, 71, 0),
-            BlockPos::new(3, 67, 4),
-            &[
-                BlockPos::new(0, 70, 0),
-                BlockPos::new(0, 69, 1),
-                BlockPos::new(0, 68, 2),
-                BlockPos::new(0, 67, 3),
-                BlockPos::new(0, 66, 4),
-                BlockPos::new(3, 66, 4),
-            ],
-        );
-        assert_simulation_reaches(&mut simulation, 100, BlockPos::new(3, 67, 4));
-    }
-
-    #[test]
-    fn test_small_descend_and_parkour_2_block_gap() {
-        let mut partial_chunks = PartialChunkStorage::default();
-        let mut simulation = setup_blockposgoal_simulation(
-            &mut partial_chunks,
-            BlockPos::new(0, 71, 0),
-            BlockPos::new(0, 70, 5),
-            &[
-                BlockPos::new(0, 70, 0),
-                BlockPos::new(0, 70, 1),
-                BlockPos::new(0, 69, 2),
-                BlockPos::new(0, 69, 5),
-            ],
-        );
-        assert_simulation_reaches(&mut simulation, 40, BlockPos::new(0, 70, 5));
-    }
-
-    #[test]
-    fn test_quickly_descend() {
-        let mut partial_chunks = PartialChunkStorage::default();
-        let mut simulation = setup_blockposgoal_simulation(
-            &mut partial_chunks,
-            BlockPos::new(0, 71, 0),
-            BlockPos::new(0, 68, 3),
-            &[
-                BlockPos::new(0, 70, 0),
-                BlockPos::new(0, 69, 1),
-                BlockPos::new(0, 68, 2),
-                BlockPos::new(0, 67, 3),
-            ],
-        );
-        assert_simulation_reaches(&mut simulation, 60, BlockPos::new(0, 68, 3));
-    }
-
-    #[test]
-    fn test_2_gap_ascend_thrice() {
-        let mut partial_chunks = PartialChunkStorage::default();
-        let mut simulation = setup_blockposgoal_simulation(
-            &mut partial_chunks,
-            BlockPos::new(0, 71, 0),
-            BlockPos::new(3, 74, 0),
-            &[
-                BlockPos::new(0, 70, 0),
-                BlockPos::new(0, 71, 3),
-                BlockPos::new(3, 72, 3),
-                BlockPos::new(3, 73, 0),
-            ],
-        );
-        assert_simulation_reaches(&mut simulation, 60, BlockPos::new(3, 74, 0));
-    }
-
-    #[test]
-    fn test_consecutive_3_gap_parkour() {
-        let mut partial_chunks = PartialChunkStorage::default();
-        let mut simulation = setup_blockposgoal_simulation(
-            &mut partial_chunks,
-            BlockPos::new(0, 71, 0),
-            BlockPos::new(4, 71, 12),
-            &[
-                BlockPos::new(0, 70, 0),
-                BlockPos::new(0, 70, 4),
-                BlockPos::new(0, 70, 8),
-                BlockPos::new(0, 70, 12),
-                BlockPos::new(4, 70, 12),
-            ],
-        );
-        assert_simulation_reaches(&mut simulation, 80, BlockPos::new(4, 71, 12));
-    }
-
-    #[test]
-    fn test_jumps_with_more_sideways_momentum() {
-        let mut partial_chunks = PartialChunkStorage::default();
-        let mut simulation = setup_blockposgoal_simulation(
-            &mut partial_chunks,
-            BlockPos::new(0, 71, 0),
-            BlockPos::new(4, 74, 9),
-            &[
-                BlockPos::new(0, 70, 0),
-                BlockPos::new(0, 70, 1),
-                BlockPos::new(0, 70, 2),
-                BlockPos::new(0, 71, 3),
-                BlockPos::new(0, 72, 6),
-                BlockPos::new(0, 73, 9),
-                // this is the point where the bot might fall if it has too much momentum
-                BlockPos::new(2, 73, 9),
-                BlockPos::new(4, 73, 9),
-            ],
-        );
-        assert_simulation_reaches(&mut simulation, 80, BlockPos::new(4, 74, 9));
-    }
-
-    #[test]
-    fn test_mine_through_non_colliding_block() {
-        let mut partial_chunks = PartialChunkStorage::default();
-
-        let mut simulation = setup_simulation_world(
-            &mut partial_chunks,
-            // the pathfinder can't actually dig straight down, so we start a block to the side so
-            // it can descend correctly
-            BlockPos::new(0, 72, 1),
-            &[BlockPos::new(0, 71, 1)],
-            &[
-                (
-                    BlockPos::new(0, 71, 0),
-                    azalea_registry::Block::SculkVein.into(),
-                ),
-                (
-                    BlockPos::new(0, 70, 0),
-                    azalea_registry::Block::GrassBlock.into(),
-                ),
-                // this is an extra check to make sure that we don't accidentally break the block
-                // below (since tnt will break instantly)
-                (BlockPos::new(0, 69, 0), azalea_registry::Block::Tnt.into()),
-            ],
-        );
-
-        simulation.app.world_mut().send_event(GotoEvent {
-            entity: simulation.entity,
-            goal: Arc::new(BlockPosGoal(BlockPos::new(0, 69, 0))),
-            successors_fn: moves::default_move,
-            allow_mining: true,
-            min_timeout: PathfinderTimeout::Nodes(1_000_000),
-            max_timeout: PathfinderTimeout::Nodes(5_000_000),
-        });
-
-        assert_simulation_reaches(&mut simulation, 200, BlockPos::new(0, 70, 0));
-    }
 }
