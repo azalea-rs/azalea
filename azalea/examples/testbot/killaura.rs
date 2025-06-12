@@ -31,7 +31,7 @@ pub fn tick(bot: Client, state: State) -> anyhow::Result<()> {
                 continue;
             }
 
-            let distance = bot_position.distance_to(position);
+            let distance = bot_position.distance_to(**position);
             if distance < 4. && distance < nearest_distance {
                 nearest_entity = Some(entity_id);
                 nearest_distance = distance;

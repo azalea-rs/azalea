@@ -15,14 +15,16 @@ pub struct AABB {
 pub struct ClipPointOpts<'a> {
     pub t: &'a mut f64,
     pub approach_dir: Option<Direction>,
-    pub delta: &'a Vec3,
+    pub delta: Vec3,
     pub begin: f64,
+
     pub min_x: f64,
     pub min_z: f64,
     pub max_x: f64,
     pub max_z: f64,
+
     pub result_dir: Direction,
-    pub start: &'a Vec3,
+    pub start: Vec3,
 }
 
 impl AABB {
@@ -51,85 +53,51 @@ impl AABB {
         AABB { min, max }
     }
 
-    pub fn expand_towards(&self, other: &Vec3) -> AABB {
-        let mut min_x = self.min.x;
-        let mut min_y = self.min.y;
-        let mut min_z = self.min.z;
-
-        let mut max_x = self.max.x;
-        let mut max_y = self.max.y;
-        let mut max_z = self.max.z;
+    pub fn expand_towards(&self, other: Vec3) -> AABB {
+        let mut min = self.min;
+        let mut max = self.max;
 
         if other.x < 0.0 {
-            min_x += other.x;
+            min.x += other.x;
         } else if other.x > 0.0 {
-            max_x += other.x;
+            max.x += other.x;
         }
 
         if other.y < 0.0 {
-            min_y += other.y;
+            min.y += other.y;
         } else if other.y > 0.0 {
-            max_y += other.y;
+            max.y += other.y;
         }
 
         if other.z < 0.0 {
-            min_z += other.z;
+            min.z += other.z;
         } else if other.z > 0.0 {
-            max_z += other.z;
+            max.z += other.z;
         }
 
-        AABB {
-            min: Vec3::new(min_x, min_y, min_z),
-            max: Vec3::new(max_x, max_y, max_z),
-        }
+        AABB { min, max }
     }
 
     pub fn inflate(&self, amount: Vec3) -> AABB {
-        let min_x = self.min.x - amount.x;
-        let min_y = self.min.y - amount.y;
-        let min_z = self.min.z - amount.z;
+        let min = self.min - amount;
+        let max = self.max + amount;
 
-        let max_x = self.max.x + amount.x;
-        let max_y = self.max.y + amount.y;
-        let max_z = self.max.z + amount.z;
-
-        AABB {
-            min: Vec3::new(min_x, min_y, min_z),
-            max: Vec3::new(max_x, max_y, max_z),
-        }
+        AABB { min, max }
     }
     pub fn inflate_all(&self, amount: f64) -> AABB {
         self.inflate(Vec3::new(amount, amount, amount))
     }
 
     pub fn intersect(&self, other: &AABB) -> AABB {
-        let min_x = self.min.x.max(other.min.x);
-        let min_y = self.min.y.max(other.min.y);
-        let min_z = self.min.z.max(other.min.z);
-
-        let max_x = self.max.x.min(other.max.x);
-        let max_y = self.max.y.min(other.max.y);
-        let max_z = self.max.z.min(other.max.z);
-
-        AABB {
-            min: Vec3::new(min_x, min_y, min_z),
-            max: Vec3::new(max_x, max_y, max_z),
-        }
+        let min = self.min.max(other.min);
+        let max = self.max.min(other.max);
+        AABB { min, max }
     }
 
     pub fn minmax(&self, other: &AABB) -> AABB {
-        let min_x = self.min.x.min(other.min.x);
-        let min_y = self.min.y.min(other.min.y);
-        let min_z = self.min.z.min(other.min.z);
-
-        let max_x = self.max.x.max(other.max.x);
-        let max_y = self.max.y.max(other.max.y);
-        let max_z = self.max.z.max(other.max.z);
-
-        AABB {
-            min: Vec3::new(min_x, min_y, min_z),
-            max: Vec3::new(max_x, max_y, max_z),
-        }
+        let min = self.min.min(other.min);
+        let max = self.max.max(other.max);
+        AABB { min, max }
     }
 
     pub fn move_relative(&self, delta: Vec3) -> AABB {
@@ -147,22 +115,13 @@ impl AABB {
             && self.min.z < other.max.z
             && self.max.z > other.min.z
     }
-    pub fn intersects_vec3(&self, corner1: &Vec3, corner2: &Vec3) -> bool {
-        self.intersects_aabb(&AABB {
-            min: Vec3::new(
-                corner1.x.min(corner2.x),
-                corner1.y.min(corner2.y),
-                corner1.z.min(corner2.z),
-            ),
-            max: Vec3::new(
-                corner1.x.max(corner2.x),
-                corner1.y.max(corner2.y),
-                corner1.z.max(corner2.z),
-            ),
-        })
+    pub fn intersects_vec3(&self, corner1: Vec3, corner2: Vec3) -> bool {
+        let min = corner1.min(corner2);
+        let max = corner1.max(corner2);
+        self.intersects_aabb(&AABB { min, max })
     }
 
-    pub fn contains(&self, point: &Vec3) -> bool {
+    pub fn contains(&self, point: Vec3) -> bool {
         point.x >= self.min.x
             && point.x < self.max.x
             && point.y >= self.min.y
@@ -178,6 +137,7 @@ impl AABB {
         (x + y + z) / 3.0
     }
 
+    #[inline]
     pub fn get_size(&self, axis: Axis) -> f64 {
         axis.choose(
             self.max.x - self.min.x,
@@ -193,24 +153,24 @@ impl AABB {
         self.deflate(Vec3::new(amount, amount, amount))
     }
 
-    pub fn clip(&self, min: &Vec3, max: &Vec3) -> Option<Vec3> {
+    pub fn clip(&self, min: Vec3, max: Vec3) -> Option<Vec3> {
         let mut t = 1.0;
         let delta = max - min;
-        let _dir = Self::get_direction_aabb(self, min, &mut t, None, &delta)?;
-        Some(min + &(delta * t))
+        let _dir = Self::get_direction_aabb(self, min, &mut t, None, delta)?;
+        Some(min + (delta * t))
     }
 
-    pub fn clip_with_from_and_to(min: &Vec3, max: &Vec3, from: &Vec3, to: &Vec3) -> Option<Vec3> {
+    pub fn clip_with_from_and_to(min: Vec3, max: Vec3, from: Vec3, to: Vec3) -> Option<Vec3> {
         let mut t = 1.0;
         let delta = to - from;
-        let _dir = Self::get_direction(min, max, from, &mut t, None, &delta)?;
-        Some(from + &(delta * t))
+        let _dir = Self::get_direction(min, max, from, &mut t, None, delta)?;
+        Some(from + (delta * t))
     }
 
     pub fn clip_iterable(
-        boxes: &Vec<AABB>,
-        from: &Vec3,
-        to: &Vec3,
+        boxes: &[AABB],
+        from: Vec3,
+        to: Vec3,
         pos: BlockPos,
     ) -> Option<BlockHitResult> {
         let mut t = 1.0;
@@ -223,12 +183,12 @@ impl AABB {
                 from,
                 &mut t,
                 dir,
-                &delta,
+                delta,
             );
         }
         let dir = dir?;
         Some(BlockHitResult {
-            location: from + &(delta * t),
+            location: from + (delta * t),
             direction: dir,
             block_pos: pos,
             inside: false,
@@ -239,32 +199,34 @@ impl AABB {
 
     fn get_direction_aabb(
         &self,
-        from: &Vec3,
+        from: Vec3,
         t: &mut f64,
         dir: Option<Direction>,
-        delta: &Vec3,
+        delta: Vec3,
     ) -> Option<Direction> {
-        AABB::get_direction(&self.min, &self.max, from, t, dir, delta)
+        AABB::get_direction(self.min, self.max, from, t, dir, delta)
     }
 
     fn get_direction(
-        min: &Vec3,
-        max: &Vec3,
-        from: &Vec3,
+        min: Vec3,
+        max: Vec3,
+        from: Vec3,
         t: &mut f64,
         mut dir: Option<Direction>,
-        delta: &Vec3,
+        delta: Vec3,
     ) -> Option<Direction> {
         if delta.x > EPSILON {
             dir = Self::clip_point(ClipPointOpts {
                 t,
                 approach_dir: dir,
                 delta,
+
                 begin: min.x,
                 min_x: min.y,
                 max_x: max.y,
                 min_z: min.z,
                 max_z: max.z,
+
                 result_dir: Direction::West,
                 start: from,
             });
@@ -273,11 +235,13 @@ impl AABB {
                 t,
                 approach_dir: dir,
                 delta,
+
                 begin: max.x,
                 min_x: min.y,
                 max_x: max.y,
                 min_z: min.z,
                 max_z: max.z,
+
                 result_dir: Direction::East,
                 start: from,
             });
@@ -287,7 +251,7 @@ impl AABB {
             dir = Self::clip_point(ClipPointOpts {
                 t,
                 approach_dir: dir,
-                delta: &Vec3 {
+                delta: Vec3 {
                     x: delta.y,
                     y: delta.z,
                     z: delta.x,
@@ -298,7 +262,7 @@ impl AABB {
                 min_z: min.x,
                 max_z: max.x,
                 result_dir: Direction::Down,
-                start: &Vec3 {
+                start: Vec3 {
                     x: from.y,
                     y: from.z,
                     z: from.x,
@@ -308,7 +272,7 @@ impl AABB {
             dir = Self::clip_point(ClipPointOpts {
                 t,
                 approach_dir: dir,
-                delta: &Vec3 {
+                delta: Vec3 {
                     x: delta.y,
                     y: delta.z,
                     z: delta.x,
@@ -319,7 +283,7 @@ impl AABB {
                 min_z: min.x,
                 max_z: max.x,
                 result_dir: Direction::Up,
-                start: &Vec3 {
+                start: Vec3 {
                     x: from.y,
                     y: from.z,
                     z: from.x,
@@ -331,7 +295,7 @@ impl AABB {
             dir = Self::clip_point(ClipPointOpts {
                 t,
                 approach_dir: dir,
-                delta: &Vec3 {
+                delta: Vec3 {
                     x: delta.z,
                     y: delta.x,
                     z: delta.y,
@@ -342,7 +306,7 @@ impl AABB {
                 min_z: min.y,
                 max_z: max.y,
                 result_dir: Direction::North,
-                start: &Vec3 {
+                start: Vec3 {
                     x: from.z,
                     y: from.x,
                     z: from.y,
@@ -352,7 +316,7 @@ impl AABB {
             dir = Self::clip_point(ClipPointOpts {
                 t,
                 approach_dir: dir,
-                delta: &Vec3 {
+                delta: Vec3 {
                     x: delta.z,
                     y: delta.x,
                     z: delta.y,
@@ -363,7 +327,7 @@ impl AABB {
                 min_z: min.y,
                 max_z: max.y,
                 result_dir: Direction::South,
-                start: &Vec3 {
+                start: Vec3 {
                     x: from.z,
                     y: from.x,
                     z: from.y,
@@ -431,7 +395,7 @@ impl AABB {
         axis.choose(self.min.x, self.min.y, self.min.z)
     }
 
-    pub fn collided_along_vector(&self, vector: Vec3, boxes: &Vec<AABB>) -> bool {
+    pub fn collided_along_vector(&self, vector: Vec3, boxes: &[AABB]) -> bool {
         let center = self.get_center();
         let new_center = center + vector;
 
@@ -441,11 +405,11 @@ impl AABB {
                 self.get_size(Axis::Y) * 0.5,
                 self.get_size(Axis::Z) * 0.5,
             ));
-            if inflated.contains(&new_center) || inflated.contains(&center) {
+            if inflated.contains(new_center) || inflated.contains(center) {
                 return true;
             }
 
-            if inflated.clip(&center, &new_center).is_some() {
+            if inflated.clip(center, new_center).is_some() {
                 return true;
             }
         }
@@ -494,12 +458,12 @@ mod tests {
     fn test_aabb_clip_iterable() {
         assert_ne!(
             AABB::clip_iterable(
-                &vec![AABB {
+                &[AABB {
                     min: Vec3::new(0., 0., 0.),
                     max: Vec3::new(1., 1., 1.),
                 }],
-                &Vec3::new(-1., -1., -1.),
-                &Vec3::new(1., 1., 1.),
+                Vec3::new(-1., -1., -1.),
+                Vec3::new(1., 1., 1.),
                 BlockPos::new(0, 0, 0),
             ),
             None

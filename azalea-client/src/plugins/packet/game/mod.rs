@@ -428,7 +428,7 @@ impl GamePacketHandler<'_> {
             p.relative
                 .apply(&p.change, &mut position, &mut direction, &mut physics);
             // old_pos is set to the current position when we're teleported
-            physics.set_old_pos(&position);
+            physics.set_old_pos(*position);
 
             // send the relevant packets
             commands.trigger(SendPacketEvent::new(
@@ -828,7 +828,7 @@ impl GamePacketHandler<'_> {
                                 &mut physics,
                             );
                             // old_pos is set to the current position when we're teleported
-                            physics.set_old_pos(&old_position);
+                            physics.set_old_pos(old_position);
                         });
                     },
                 ));

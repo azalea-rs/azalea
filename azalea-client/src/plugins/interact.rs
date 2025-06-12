@@ -363,7 +363,7 @@ pub fn update_hit_result_component(
         };
         let instance = instance_lock.read();
 
-        let hit_result = pick(look_direction, &eye_position, &instance.chunks, pick_range);
+        let hit_result = pick(*look_direction, eye_position, &instance.chunks, pick_range);
         if let Some(mut hit_result_ref) = hit_result_ref {
             **hit_result_ref = hit_result;
         } else {
@@ -384,8 +384,8 @@ pub fn update_hit_result_component(
 ///
 /// TODO: does not currently check for entities
 pub fn pick(
-    look_direction: &LookDirection,
-    eye_position: &Vec3,
+    look_direction: LookDirection,
+    eye_position: Vec3,
     chunks: &azalea_world::ChunkStorage,
     pick_range: f64,
 ) -> HitResult {
@@ -400,18 +400,18 @@ pub fn pick(
 ///
 /// Also see [`pick`].
 pub fn pick_block(
-    look_direction: &LookDirection,
-    eye_position: &Vec3,
+    look_direction: LookDirection,
+    eye_position: Vec3,
     chunks: &azalea_world::ChunkStorage,
     pick_range: f64,
 ) -> BlockHitResult {
     let view_vector = view_vector(look_direction);
-    let end_position = eye_position + &(view_vector * pick_range);
+    let end_position = eye_position + (view_vector * pick_range);
 
     azalea_physics::clip::clip(
         chunks,
         ClipContext {
-            from: *eye_position,
+            from: eye_position,
             to: end_position,
             block_shape_type: BlockShapeType::Outline,
             fluid_pick_type: FluidPickType::None,

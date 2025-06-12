@@ -230,16 +230,16 @@ impl Goal for ReachBlockPosGoal {
         }
 
         // only do the expensive check if we're close enough
-        let distance = self.pos.distance_squared_to(&n);
-        if distance > self.max_check_distance.pow(2) {
+        let distance_squared = self.pos.distance_squared_to(n);
+        if distance_squared > self.max_check_distance.pow(2) {
             return false;
         }
 
         let eye_position = n.center_bottom().up(1.62);
-        let look_direction = crate::direction_looking_at(&eye_position, &self.pos.center());
+        let look_direction = crate::direction_looking_at(eye_position, self.pos.center());
         let block_hit_result = azalea_client::interact::pick_block(
-            &look_direction,
-            &eye_position,
+            look_direction,
+            eye_position,
             &self.chunk_storage,
             self.distance,
         );

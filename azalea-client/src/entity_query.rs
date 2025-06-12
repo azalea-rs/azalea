@@ -162,7 +162,7 @@ where
 
         entities.sort_by_cached_key(|(_, position)| {
             // to_bits is fine here as long as the number is positive
-            position.distance_squared_to(&nearest_to).to_bits()
+            position.distance_squared_to(nearest_to).to_bits()
         });
 
         entities

@@ -32,7 +32,7 @@ pub fn update_in_water_state_and_do_fluid_pushing(
         physics.water_fluid_height = 0.;
         physics.lava_fluid_height = 0.;
 
-        update_in_water_state_and_do_water_current_pushing(&mut physics, &world, position);
+        update_in_water_state_and_do_water_current_pushing(&mut physics, &world, *position);
 
         // right now doing registries.dimension_type() clones the entire registry which
         // is very inefficient, so for now we're doing this instead
@@ -63,7 +63,7 @@ pub fn update_in_water_state_and_do_fluid_pushing(
 fn update_in_water_state_and_do_water_current_pushing(
     physics: &mut Physics,
     world: &Instance,
-    _position: &Position,
+    _position: Position,
 ) {
     // TODO: implement vehicles and boats
     // if vehicle == AbstractBoat {

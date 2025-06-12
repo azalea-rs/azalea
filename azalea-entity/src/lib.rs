@@ -39,15 +39,15 @@ pub use crate::plugin::*;
 
 pub fn move_relative(
     physics: &mut Physics,
-    direction: &LookDirection,
+    direction: LookDirection,
     speed: f32,
-    acceleration: &Vec3,
+    acceleration: Vec3,
 ) {
     let input_vector = input_vector(direction, speed, acceleration);
     physics.velocity += input_vector;
 }
 
-pub fn input_vector(direction: &LookDirection, speed: f32, acceleration: &Vec3) -> Vec3 {
+pub fn input_vector(direction: LookDirection, speed: f32, acceleration: Vec3) -> Vec3 {
     let distance = acceleration.length_squared();
     if distance < 1.0E-7 {
         return Vec3::ZERO;
@@ -55,7 +55,7 @@ pub fn input_vector(direction: &LookDirection, speed: f32, acceleration: &Vec3) 
     let acceleration = if distance > 1.0 {
         acceleration.normalize()
     } else {
-        *acceleration
+        acceleration
     }
     .scale(speed as f64);
     let y_rot = math::sin(direction.y_rot * 0.017453292f32);
@@ -67,7 +67,7 @@ pub fn input_vector(direction: &LookDirection, speed: f32, acceleration: &Vec3) 
     }
 }
 
-pub fn view_vector(look_direction: &LookDirection) -> Vec3 {
+pub fn view_vector(look_direction: LookDirection) -> Vec3 {
     let x_rot = look_direction.x_rot * 0.017453292;
     let y_rot = -look_direction.y_rot * 0.017453292;
     let y_rot_cos = math::cos(y_rot);
@@ -82,7 +82,7 @@ pub fn view_vector(look_direction: &LookDirection) -> Vec3 {
 }
 
 /// Get the position of the block below the entity, but a little lower.
-pub fn on_pos_legacy(chunk_storage: &ChunkStorage, position: &Position) -> BlockPos {
+pub fn on_pos_legacy(chunk_storage: &ChunkStorage, position: Position) -> BlockPos {
     on_pos(0.2, chunk_storage, position)
 }
 
@@ -98,7 +98,7 @@ pub fn on_pos_legacy(chunk_storage: &ChunkStorage, position: &Position) -> Block
 //    }
 // }
 // return var5;
-pub fn on_pos(offset: f32, chunk_storage: &ChunkStorage, pos: &Position) -> BlockPos {
+pub fn on_pos(offset: f32, chunk_storage: &ChunkStorage, pos: Position) -> BlockPos {
     let x = pos.x.floor() as i32;
     let y = (pos.y - offset as f64).floor() as i32;
     let z = pos.z.floor() as i32;
@@ -323,7 +323,7 @@ impl Physics {
 
             no_jump_delay: 0,
 
-            bounding_box: dimensions.make_bounding_box(&pos),
+            bounding_box: dimensions.make_bounding_box(pos),
             dimensions,
 
             has_impulse: false,
@@ -375,8 +375,8 @@ impl Physics {
         self.lava_fluid_height > 0.
     }
 
-    pub fn set_old_pos(&mut self, pos: &Position) {
-        self.old_position = **pos;
+    pub fn set_old_pos(&mut self, pos: Position) {
+        self.old_position = *pos;
     }
 }
 
@@ -496,10 +496,10 @@ impl EntityBundle {
 /// If this is for a client then all of our clients will have this.
 ///
 /// This component is not removed from clients when they disconnect.
-#[derive(Component, Clone, Debug, Default)]
+#[derive(Component, Clone, Copy, Debug, Default)]
 pub struct LocalEntity;
 
-#[derive(Component, Clone, Debug, PartialEq, Deref, DerefMut)]
+#[derive(Component, Clone, Copy, Debug, PartialEq, Deref, DerefMut)]
 pub struct FluidOnEyes(FluidKind);
 
 impl FluidOnEyes {
@@ -508,5 +508,5 @@ impl FluidOnEyes {
     }
 }
 
-#[derive(Component, Clone, Debug, PartialEq, Deref, DerefMut)]
+#[derive(Component, Clone, Copy, Debug, PartialEq, Deref, DerefMut)]
 pub struct OnClimbable(bool);

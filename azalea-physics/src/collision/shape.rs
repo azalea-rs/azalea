@@ -98,9 +98,9 @@ impl Shapes {
     }
 
     pub fn collide(
-        axis: &Axis,
+        axis: Axis,
         entity_box: &AABB,
-        collision_boxes: &Vec<VoxelShape>,
+        collision_boxes: &[VoxelShape],
         mut movement: f64,
     ) -> f64 {
         for shape in collision_boxes {
@@ -408,7 +408,7 @@ impl VoxelShape {
         }
     }
 
-    pub fn clip(&self, from: &Vec3, to: &Vec3, block_pos: BlockPos) -> Option<BlockHitResult> {
+    pub fn clip(&self, from: Vec3, to: Vec3, block_pos: BlockPos) -> Option<BlockHitResult> {
         if self.is_empty() {
             return None;
         }
@@ -416,7 +416,7 @@ impl VoxelShape {
         if vector.length_squared() < EPSILON {
             return None;
         }
-        let right_after_start = from + &(vector * 0.001);
+        let right_after_start = from + (vector * 0.001);
 
         if self.shape().is_full_wide(
             self.find_index(Axis::X, right_after_start.x - block_pos.x as f64),
@@ -436,8 +436,8 @@ impl VoxelShape {
         }
     }
 
-    pub fn collide(&self, axis: &Axis, entity_box: &AABB, movement: f64) -> f64 {
-        self.collide_x(AxisCycle::between(*axis, Axis::X), entity_box, movement)
+    pub fn collide(&self, axis: Axis, entity_box: &AABB, movement: f64) -> f64 {
+        self.collide_x(AxisCycle::between(axis, Axis::X), entity_box, movement)
     }
     pub fn collide_x(&self, axis_cycle: AxisCycle, entity_box: &AABB, mut movement: f64) -> f64 {
         if self.shape().is_empty() {
@@ -753,8 +753,8 @@ mod tests {
         let block_shape = &*BLOCK_SHAPE;
         let block_hit_result = block_shape
             .clip(
-                &Vec3::new(-0.3, 0.5, 0.),
-                &Vec3::new(5.3, 0.5, 0.),
+                Vec3::new(-0.3, 0.5, 0.),
+                Vec3::new(5.3, 0.5, 0.),
                 BlockPos::new(0, 0, 0),
             )
             .unwrap();

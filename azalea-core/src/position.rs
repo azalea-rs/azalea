@@ -34,7 +34,7 @@ macro_rules! vec3_impl {
             /// Get the squared distance from this position to another position.
             /// Equivalent to `(self - other).length_squared()`.
             #[inline]
-            pub fn distance_squared_to(&self, other: &Self) -> $type {
+            pub fn distance_squared_to(self, other: Self) -> $type {
                 (self - other).length_squared()
             }
 
@@ -44,7 +44,7 @@ macro_rules! vec3_impl {
             }
 
             #[inline]
-            pub fn horizontal_distance_squared_to(&self, other: &Self) -> $type {
+            pub fn horizontal_distance_squared_to(self, other: Self) -> $type {
                 (self - other).horizontal_distance_squared()
             }
 
@@ -113,6 +113,23 @@ macro_rules! vec3_impl {
             #[inline]
             pub fn dot(&self, other: Self) -> $type {
                 self.x * other.x + self.y * other.y + self.z * other.z
+            }
+
+            /// Make a new position with the lower coordinates for each axis.
+            pub fn min(&self, other: Self) -> Self {
+                Self {
+                    x: self.x.min(other.x),
+                    y: self.x.min(other.y),
+                    z: self.x.min(other.z),
+                }
+            }
+            /// Make a new position with the higher coordinates for each axis.
+            pub fn max(&self, other: Self) -> Self {
+                Self {
+                    x: self.x.max(other.x),
+                    y: self.x.max(other.y),
+                    z: self.x.max(other.z),
+                }
             }
 
             /// Replace the Y with 0.
@@ -298,7 +315,7 @@ impl Vec3 {
 
     /// Get the distance from this position to another position.
     /// Equivalent to `(self - other).length()`.
-    pub fn distance_to(&self, other: &Self) -> f64 {
+    pub fn distance_to(self, other: Self) -> f64 {
         (self - other).length()
     }
 
@@ -380,40 +397,6 @@ impl BlockPos {
     /// Get the distance of this vector from the origin by doing `x + y + z`.
     pub fn length_manhattan(&self) -> u32 {
         (self.x.abs() + self.y.abs() + self.z.abs()) as u32
-    }
-
-    /// Make a new BlockPos with the lower coordinates for each axis.
-    ///
-    /// ```
-    /// # use azalea_core::position::BlockPos;
-    /// assert_eq!(
-    ///     BlockPos::min(&BlockPos::new(1, 20, 300), &BlockPos::new(50, 40, 30),),
-    ///     BlockPos::new(1, 20, 30),
-    /// );
-    /// ```
-    pub fn min(&self, other: &Self) -> Self {
-        Self {
-            x: self.x.min(other.x),
-            y: self.y.min(other.y),
-            z: self.z.min(other.z),
-        }
-    }
-
-    /// Make a new BlockPos with the higher coordinates for each axis.
-    ///
-    /// ```
-    /// # use azalea_core::position::BlockPos;
-    /// assert_eq!(
-    ///     BlockPos::max(&BlockPos::new(1, 20, 300), &BlockPos::new(50, 40, 30),),
-    ///     BlockPos::new(50, 40, 300),
-    /// );
-    /// ```
-    pub fn max(&self, other: &Self) -> Self {
-        Self {
-            x: self.x.max(other.x),
-            y: self.y.max(other.y),
-            z: self.z.max(other.z),
-        }
     }
 
     pub fn offset_with_direction(self, direction: Direction) -> Self {

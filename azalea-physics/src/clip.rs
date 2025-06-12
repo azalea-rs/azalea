@@ -101,22 +101,22 @@ pub fn clip(chunk_storage: &ChunkStorage, context: ClipContext) -> BlockHitResul
 
             let block_shape = ctx.block_shape(block_state);
             let interaction_clip = clip_with_interaction_override(
-                &ctx.from,
-                &ctx.to,
+                ctx.from,
+                ctx.to,
                 block_pos,
                 block_shape,
-                &block_state,
+                block_state,
             );
             let fluid_shape = ctx.fluid_shape(fluid_state, chunk_storage, block_pos);
-            let fluid_clip = fluid_shape.clip(&ctx.from, &ctx.to, block_pos);
+            let fluid_clip = fluid_shape.clip(ctx.from, ctx.to, block_pos);
 
             let distance_to_interaction = interaction_clip
                 .as_ref()
-                .map(|hit| ctx.from.distance_squared_to(&hit.location))
+                .map(|hit| ctx.from.distance_squared_to(hit.location))
                 .unwrap_or(f64::MAX);
             let distance_to_fluid = fluid_clip
                 .as_ref()
-                .map(|hit| ctx.from.distance_squared_to(&hit.location))
+                .map(|hit| ctx.from.distance_squared_to(hit.location))
                 .unwrap_or(f64::MAX);
 
             if distance_to_interaction <= distance_to_fluid {
@@ -137,11 +137,11 @@ pub fn clip(chunk_storage: &ChunkStorage, context: ClipContext) -> BlockHitResul
 }
 
 fn clip_with_interaction_override(
-    from: &Vec3,
-    to: &Vec3,
+    from: Vec3,
+    to: Vec3,
     block_pos: BlockPos,
     block_shape: &VoxelShape,
-    _block_state: &BlockState,
+    _block_state: BlockState,
 ) -> Option<BlockHitResult> {
     let block_hit_result = block_shape.clip(from, to, block_pos);
 
@@ -255,7 +255,7 @@ pub fn traverse_blocks<C, T>(
     }
 }
 
-pub fn box_traverse_blocks(from: &Vec3, to: &Vec3, aabb: &AABB) -> HashSet<BlockPos> {
+pub fn box_traverse_blocks(from: Vec3, to: Vec3, aabb: &AABB) -> HashSet<BlockPos> {
     let delta = to - from;
     let traversed_blocks = BlockPos::between_closed_aabb(aabb);
     if delta.length_squared() < (0.99999_f32 * 0.99999) as f64 {
@@ -346,10 +346,10 @@ pub fn add_collisions_along_travel(
         step_count += 1;
 
         let Some(clip_location) = AABB::clip_with_from_and_to(
-            &Vec3::new(min_x as f64, min_y as f64, min_z as f64),
-            &Vec3::new((min_x + 1) as f64, (min_y + 1) as f64, (min_z + 1) as f64),
-            &from,
-            &to,
+            Vec3::new(min_x as f64, min_y as f64, min_z as f64),
+            Vec3::new((min_x + 1) as f64, (min_y + 1) as f64, (min_z + 1) as f64),
+            from,
+            to,
         ) else {
             continue;
         };

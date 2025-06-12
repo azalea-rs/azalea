@@ -229,7 +229,7 @@ fn look_at_listener(
     for event in events.read() {
         if let Ok((position, eye_height, mut look_direction)) = query.get_mut(event.entity) {
             let new_look_direction =
-                direction_looking_at(&position.up(eye_height.into()), &event.position);
+                direction_looking_at(position.up(eye_height.into()), event.position);
             trace!("look at {} (currently at {})", event.position, **position);
             *look_direction = new_look_direction;
         }
@@ -238,7 +238,7 @@ fn look_at_listener(
 
 /// Return the look direction that would make a client at `current` be
 /// looking at `target`.
-pub fn direction_looking_at(current: &Vec3, target: &Vec3) -> LookDirection {
+pub fn direction_looking_at(current: Vec3, target: Vec3) -> LookDirection {
     // borrowed from mineflayer's Bot.lookAt because i didn't want to do math
     let delta = target - current;
     let y_rot = (PI - f64::atan2(-delta.x, -delta.z)) * (180.0 / PI);
