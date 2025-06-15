@@ -17,28 +17,53 @@ is breaking anyways, semantic versioning is not followed.
 - Non-standard legacy hex colors like `§#ff0000` are now supported in azalea-chat.
 - Chat signing.
 - Add auto-reconnecting which is enabled by default.
-- `client.start_use_item()`.
+- `Client::start_use_item`.
 - The pathfinder no longer avoids slabs, stairs, and dirt path blocks.
 - The pathfinder now immediately recalculates if blocks are placed in its path.
+- Bots that use custom pathfinder moves can now keep arbitrary persistent state by using the `CustomPathfinderState` component and `PathfinderCtx::custom_state`.
 - The reach distance for the pathfinder `ReachBlockPosGoal` is now configurable. (@x-osc)
+- There is now a `retry_on_no_path` option in `GotoEvent` that can be set to false to make the pathfinder give up if no path could be found.
 - azalea-brigadier now supports suggestions, command contexts, result consumers, and returning errors with `ArgumentBuilder::executes_result`.
+- Proper support for getting biomes at coordinates.
+- Add a new `Client::entities_by` which sorts entities that match a criteria by their distance to the client.
+- New client event `Event::ReceiveChunk`.
+- Several new functions for interacting with inventories.
+- Add `Client::set_selected_hotbar_slot` and `Client::selected_hotbar_slot`.
+- Add `Client::attack_cooldown_remaining_ticks` to complement `has_attack_cooldown`.
 
 ### Changed
 
-- [BREAKING] `Client::goto` is now async and completes when the client reaches its destination. `Client::start_goto` should be used if the old behavior is desired.
-- [BREAKING] The `BlockState::id` field is now private, use `.id()` instead.
-- [BREAKING] Update to [Bevy 0.16](https://bevyengine.org/news/bevy-0-16/).
-- [BREAKING] Rename `InstanceContainer::insert` to `get_or_insert`.
-- [BREAKING] Replace `BlockInteractEvent` with the more general-purpose `StartUseItemEvent`.
+- `Client::goto` is now async and completes when the client reaches its destination. `Client::start_goto` should be used if the old behavior is desired.
+- The `BlockState::id` field is now private, use `.id()` instead.
+- Update to [Bevy 0.16](https://bevyengine.org/news/bevy-0-16/).
+- Rename `InstanceContainer::insert` to `get_or_insert`.
+- Replace `BlockInteractEvent` with the more general-purpose `StartUseItemEvent`.
 - `ClientBuilder` and `SwarmBuilder` are now Send.
+- Replace `wait_one_tick` and `wait_one_update` with `wait_ticks` and `wait_updates`.
+- Functions that took `&Vec3` or `&BlockPos` as arguments now only take them as owned types.
+- Rename `azalea_block::Block` to `BlockTrait` to disambiguate with `azalea_registry::Block`.
+- `GotoEvent` is now non-enhaustive, it should be constructed by calling its methods now.
 
 ### Fixed
 
 - Clients now validate incoming packets using the correct `MAXIMUM_UNCOMPRESSED_LENGTH` value.
-- Several protocol fixes, including for ClientboundSetPlayerTeam and a few data components.
+- Several protocol fixes, including for `ClientboundSetPlayerTeam` and a few data components.
 - No more chunk errors when the client joins another world with the same name but different height.
-- Mining now aborts correctly and doesn't flag Grim.
 - Update the `InstanceName` component correctly when we receive a respawn or second login packet.
 - azalea-chat now handles legacy color codes correctly when parsing from NBT.
 - Send the correct UUID to servers in `ClientboundHello` when we're joining in offline-mode.
 - Block shapes and some properties were using data from `1.20.3-pre4` due to using an old data generator (Pixlyzer), which has now been replaced with the data generator from [Pumpkin](https://github.com/Pumpkin-MC/Extractor).
+- When patching the path, don't replace the move we're currently executing.
+- The correct sequence number is now sent when interacting with blocks.
+- Mining is now generally more reliable and doesn't flag Grim.
+- Ghost blocks are now handled correctly due to implementing `ClientboundBlockChangedAck`.
+- Player eye height was wrong due to being calculated from height instead of being a special case (was 1.53, should've been 1.62).
+- The player inventory is now correctly updated when we close a container.
+- Inventory interactions are now predicted on the client-side again, and the remaining click operations were implemented.
+- `Client::open_container_at` now waits up to 10 ticks for the block to exist if you try to click air.
+- Wrong physics collision code resulted in `HitResult` sometimes containing the wrong coordinates and `inside` value.
+- Fix the client being unresponsive for a few seconds after joining due to not sending `ServerboundPlayerLoaded`.
+- Fix panic when a client received `ClientboundAddEntity` and `ClientboundStartConfiguration` at the same time.
+- Fix panic due to `ClientInformation` being inserted too late.
+- `ClientboundTeleportEntity` did not handle relative teleports correctly.
+- Pathfinder now gets stuck in water less by automatically trying to jump if it's in water.
