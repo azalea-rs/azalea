@@ -83,7 +83,7 @@ pub fn sign_chat_message(opts: &SignChatMessageOptions) -> MessageSignature {
     // ... not implemented yet
 
     let signing_key = rsa::pkcs1v15::SigningKey::<Sha256>::new(opts.private_key.clone());
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let signature = signing_key
         .sign_with_rng(&mut rng, &data_to_sign)
         .to_bytes();

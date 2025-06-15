@@ -8,7 +8,7 @@ repository.workspace = true
 
 [dev-dependencies]
 azalea-client = { path = "../azalea-client" }
-criterion = "0.5.1"
+criterion = "0.6.0"
 
 [dependencies]
 azalea-block = { path = "../azalea-block", default-features = false, version = "0.12.0" }
