@@ -190,7 +190,7 @@ fabric_version={fabric_api_version}
         if "[Server thread/INFO] (pumpkin_extractor) Done" in data:
             print("Pumpkin extractor done")
             break
-        if data == b"":
+        if data == "":
             break
 
     p.terminate()

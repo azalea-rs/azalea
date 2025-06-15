@@ -6401,6 +6401,7 @@ enum TriggerKind {
     ThrownItemPickedUpByEntity => "minecraft:thrown_item_picked_up_by_entity",
     ThrownItemPickedUpByPlayer => "minecraft:thrown_item_picked_up_by_player",
     PlayerInteractedWithEntity => "minecraft:player_interacted_with_entity",
+    PlayerShearedEquipment => "minecraft:player_sheared_equipment",
     StartedRiding => "minecraft:started_riding",
     LightningStrike => "minecraft:lightning_strike",
     UsingItem => "minecraft:using_item",

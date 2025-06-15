@@ -1,4 +1,4 @@
-use azalea_block::{BlockTrait, BlockBehavior};
+use azalea_block::{BlockBehavior, BlockTrait};
 use azalea_core::tier::get_item_tier;
 use azalea_registry as registry;
 
