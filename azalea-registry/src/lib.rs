@@ -281,10 +281,10 @@ enum Attribute {
 
 registry! {
 /// An enum of every type of block in the game. To represent a block *state*,
-/// use [`azalea_block::BlockState`] or the [`azalea_block::Block`] trait.
+/// use [`azalea_block::BlockState`] or [`azalea_block::BlockTrait`].
 ///
 /// [`azalea_block::BlockState`]: https://docs.rs/azalea-block/latest/azalea_block/struct.BlockState.html
-/// [`azalea_block::Block`]: https://docs.rs/azalea-block/latest/azalea_block/trait.Block.html
+/// [`azalea_block::BlockTrait`]: https://docs.rs/azalea-block/latest/azalea_block/trait.BlockTrait.html
 enum Block {
     Air => "minecraft:air",
     Stone => "minecraft:stone",
@@ -1891,6 +1891,16 @@ enum IntProviderKind {
 }
 
 registry! {
+/// Every type of item in the game.
+///
+/// You might find it useful in some cases to check for categories of items
+/// with [`azalea_registry::tags::items`](crate::tags::items), like this
+///
+/// ```
+/// let item = azalea_registry::Item::OakLog;
+/// let is_log = azalea_registry::tags::items::LOGS.contains(&item);
+/// assert!(is_log);
+/// ```
 enum Item {
     Air => "minecraft:air",
     Stone => "minecraft:stone",

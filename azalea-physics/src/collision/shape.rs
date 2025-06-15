@@ -98,9 +98,9 @@ impl Shapes {
     }
 
     pub fn collide(
-        axis: &Axis,
+        axis: Axis,
         entity_box: &AABB,
-        collision_boxes: &Vec<VoxelShape>,
+        collision_boxes: &[VoxelShape],
         mut movement: f64,
     ) -> f64 {
         for shape in collision_boxes {
@@ -399,10 +399,6 @@ impl VoxelShape {
     }
 
     pub fn find_index(&self, axis: Axis, coord: f64) -> i32 {
-        // let r = binary_search(0, (self.shape().size(axis) + 1) as i32, &|t| {
-        //     coord < self.get(axis, t as usize)
-        // }) - 1;
-        // r
         match self {
             VoxelShape::Cube(s) => s.find_index(axis, coord),
             _ => {
@@ -412,7 +408,7 @@ impl VoxelShape {
         }
     }
 
-    pub fn clip(&self, from: &Vec3, to: &Vec3, block_pos: &BlockPos) -> Option<BlockHitResult> {
+    pub fn clip(&self, from: Vec3, to: Vec3, block_pos: BlockPos) -> Option<BlockHitResult> {
         if self.is_empty() {
             return None;
         }
@@ -420,7 +416,7 @@ impl VoxelShape {
         if vector.length_squared() < EPSILON {
             return None;
         }
-        let right_after_start = from + &(vector * 0.0001);
+        let right_after_start = from + (vector * 0.001);
 
         if self.shape().is_full_wide(
             self.find_index(Axis::X, right_after_start.x - block_pos.x as f64),
@@ -428,7 +424,7 @@ impl VoxelShape {
             self.find_index(Axis::Z, right_after_start.z - block_pos.z as f64),
         ) {
             Some(BlockHitResult {
-                block_pos: *block_pos,
+                block_pos,
                 direction: Direction::nearest(vector).opposite(),
                 location: right_after_start,
                 inside: true,
@@ -440,8 +436,8 @@ impl VoxelShape {
         }
     }
 
-    pub fn collide(&self, axis: &Axis, entity_box: &AABB, movement: f64) -> f64 {
-        self.collide_x(AxisCycle::between(*axis, Axis::X), entity_box, movement)
+    pub fn collide(&self, axis: Axis, entity_box: &AABB, movement: f64) -> f64 {
+        self.collide_x(AxisCycle::between(axis, Axis::X), entity_box, movement)
     }
     pub fn collide_x(&self, axis_cycle: AxisCycle, entity_box: &AABB, mut movement: f64) -> f64 {
         if self.shape().is_empty() {
@@ -645,7 +641,6 @@ impl ArrayVoxelShape {
 
 impl CubeVoxelShape {
     pub fn new(shape: DiscreteVoxelShape) -> Self {
-        // pre-calculate the coor
         let x_coords = Self::calculate_coords(&shape, Axis::X);
         let y_coords = Self::calculate_coords(&shape, Axis::Y);
         let z_coords = Self::calculate_coords(&shape, Axis::Z);
@@ -681,7 +676,7 @@ impl CubeVoxelShape {
 
     fn find_index(&self, axis: Axis, coord: f64) -> i32 {
         let n = self.shape().size(axis);
-        (f64::clamp(coord * (n as f64), -1f64, n as f64)) as i32
+        f64::floor(f64::clamp(coord * (n as f64), -1f64, n as f64)) as i32
     }
 }
 
@@ -751,5 +746,33 @@ mod tests {
         // detect if the shapes intersect at all
         let joined = Shapes::matches_anywhere(&shape, &shape2, |a, b| a && b);
         assert!(joined, "Shapes should intersect");
+    }
+
+    #[test]
+    fn clip_in_front_of_block() {
+        let block_shape = &*BLOCK_SHAPE;
+        let block_hit_result = block_shape
+            .clip(
+                Vec3::new(-0.3, 0.5, 0.),
+                Vec3::new(5.3, 0.5, 0.),
+                BlockPos::new(0, 0, 0),
+            )
+            .unwrap();
+
+        assert_eq!(
+            block_hit_result,
+            BlockHitResult {
+                location: Vec3 {
+                    x: 0.0,
+                    y: 0.5,
+                    z: 0.0
+                },
+                direction: Direction::West,
+                block_pos: BlockPos { x: 0, y: 0, z: 0 },
+                inside: false,
+                world_border: false,
+                miss: false
+            }
+        );
     }
 }

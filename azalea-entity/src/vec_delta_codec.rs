@@ -1,4 +1,4 @@
-use azalea_core::position::Vec3;
+use azalea_core::{delta::PositionDelta8, position::Vec3};
 
 #[derive(Debug, Clone, Default)]
 pub struct VecDeltaCodec {
@@ -10,7 +10,11 @@ impl VecDeltaCodec {
         Self { base }
     }
 
-    pub fn decode(&self, x: i64, y: i64, z: i64) -> Vec3 {
+    pub fn decode(&self, delta: &PositionDelta8) -> Vec3 {
+        let x = delta.xa as i64;
+        let y = delta.ya as i64;
+        let z = delta.za as i64;
+
         if x == 0 && y == 0 && z == 0 {
             return self.base;
         }

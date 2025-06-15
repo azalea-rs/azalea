@@ -48,6 +48,7 @@ pub fn generate(input: &DeclareMenus) -> TokenStream {
     }
 
     quote! {
+        #[derive(Debug)]
         pub enum MenuLocation {
             #menu_location_variants
         }

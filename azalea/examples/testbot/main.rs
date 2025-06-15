@@ -20,8 +20,6 @@
 //!   only have this on if the bot has operator permissions, otherwise it'll
 //!   just spam the server console unnecessarily.
 
-#![feature(trivial_bounds)]
-
 mod commands;
 pub mod killaura;
 
@@ -34,7 +32,7 @@ use azalea::{
 use commands::{CommandSource, register_commands};
 use parking_lot::Mutex;
 
-#[tokio::main]
+#[tokio::main(flavor = "current_thread")]
 async fn main() {
     let args = parse_args();
 

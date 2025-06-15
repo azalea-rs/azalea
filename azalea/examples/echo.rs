@@ -2,7 +2,7 @@
 
 use azalea::prelude::*;
 
-#[tokio::main]
+#[tokio::main(flavor = "current_thread")]
 async fn main() {
     let account = Account::offline("bot");
     // or let account = Account::microsoft("email").await.unwrap();

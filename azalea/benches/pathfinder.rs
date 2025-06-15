@@ -61,14 +61,14 @@ fn generate_bedrock_world(
 
     let mut start = BlockPos::new(-64, 4, -64);
     // move start down until it's on a solid block
-    while chunks.get_block_state(&start).unwrap().is_air() {
+    while chunks.get_block_state(start).unwrap().is_air() {
         start = start.down(1);
     }
     start = start.up(1);
 
     let mut end = BlockPos::new(63, 4, 63);
     // move end down until it's on a solid block
-    while chunks.get_block_state(&end).unwrap().is_air() {
+    while chunks.get_block_state(end).unwrap().is_air() {
         end = end.down(1);
     }
     end = end.up(1);

@@ -12,7 +12,7 @@ impl EntityDimensions {
         Self { width, height }
     }
 
-    pub fn make_bounding_box(&self, pos: &Vec3) -> AABB {
+    pub fn make_bounding_box(&self, pos: Vec3) -> AABB {
         let radius = (self.width / 2.0) as f64;
         let height = self.height as f64;
         AABB {

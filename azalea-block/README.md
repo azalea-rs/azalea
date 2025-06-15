@@ -23,20 +23,20 @@ let block_state: BlockState = azalea_block::blocks::CobblestoneWall {
 let block_state: BlockState = azalea_registry::Block::Jukebox.into();
 ```
 
-## Block trait
+## BlockTrait
 
-The [`Block`] trait represents a type of a block. With the the [`Block`] trait, you can get some extra things like the string block ID and some information about the block's behavior. Also, the structs that implement the trait contain the block attributes as fields so it's more convenient to get them. Note that this is often used as `Box<dyn Block>`.
-If for some reason you don't want the `Block` trait, set default-features to false.
+The [`BlockTrait`] trait represents a type of a block. With [`BlockTrait`], you can get some extra things like the string block ID and some information about the block's behavior. Also, the structs that implement the trait contain the block attributes as fields so it's more convenient to get them. Note that this is often used as `Box<dyn BlockTrait>`.
+If for some reason you don't want `BlockTrait`, set `default-features = false`.
 
 ```
-# use azalea_block::{Block, BlockState};
+# use azalea_block::{BlockTrait, BlockState};
 # let block_state = BlockState::from(azalea_registry::Block::Jukebox);
-let block = Box::<dyn Block>::from(block_state);
+let block = Box::<dyn BlockTrait>::from(block_state);
 ```
 ```
-# use azalea_block::{Block, BlockState};
+# use azalea_block::{BlockTrait, BlockState};
 # let block_state: BlockState = azalea_registry::Block::Jukebox.into();
-if let Some(jukebox) = Box::<dyn Block>::from(block_state).downcast_ref::<azalea_block::blocks::Jukebox>() {
+if let Some(jukebox) = Box::<dyn BlockTrait>::from(block_state).downcast_ref::<azalea_block::blocks::Jukebox>() {
     // ...
 }
 ```

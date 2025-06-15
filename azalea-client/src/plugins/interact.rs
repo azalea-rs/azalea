@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use azalea_block::BlockState;
 use azalea_core::{
     direction::Direction,
@@ -96,18 +98,95 @@ impl Client {
     }
 }
 
-/// A component that contains the number of changes this client has made to
-/// blocks.
-#[derive(Component, Copy, Clone, Debug, Default, Deref)]
-pub struct CurrentSequenceNumber(u32);
+/// A component that contains information about our local block state
+/// predictions.
+#[derive(Component, Clone, Debug, Default)]
+pub struct BlockStatePredictionHandler {
+    /// The total number of changes that this client has made to blocks.
+    seq: u32,
+    server_state: HashMap<BlockPos, ServerVerifiedState>,
+}
+#[derive(Clone, Debug)]
+struct ServerVerifiedState {
+    seq: u32,
+    block_state: BlockState,
+    /// Used for teleporting the player back if we're colliding with the block
+    /// that got placed back.
+    #[allow(unused)]
+    player_pos: Vec3,
+}
 
-impl CurrentSequenceNumber {
+impl BlockStatePredictionHandler {
     /// Get the next sequence number that we're going to use and increment the
     /// value.
-    pub fn get_and_increment(&mut self) -> u32 {
-        let cur = self.0;
-        self.0 += 1;
-        cur
+    pub fn start_predicting(&mut self) -> u32 {
+        self.seq += 1;
+        self.seq
+    }
+
+    /// Should be called right before the client updates a block with its
+    /// prediction.
+    ///
+    /// This is used to make sure that we can rollback to this state if the
+    /// server acknowledges the sequence number (with
+    /// [`ClientboundBlockChangedAck`]) without having sent a block update.
+    ///
+    /// [`ClientboundBlockChangedAck`]: azalea_protocol::packets::game::ClientboundBlockChangedAck
+    pub fn retain_known_server_state(
+        &mut self,
+        pos: BlockPos,
+        old_state: BlockState,
+        player_pos: Vec3,
+    ) {
+        self.server_state
+            .entry(pos)
+            .and_modify(|s| s.seq = self.seq)
+            .or_insert(ServerVerifiedState {
+                seq: self.seq,
+                block_state: old_state,
+                player_pos,
+            });
+    }
+
+    /// Save this update as the correct server state so when the server sends a
+    /// [`ClientboundBlockChangedAck`] we don't roll back this new update.
+    ///
+    /// This should be used when we receive a block update from the server.
+    ///
+    /// [`ClientboundBlockChangedAck`]: azalea_protocol::packets::game::ClientboundBlockChangedAck
+    pub fn update_known_server_state(&mut self, pos: BlockPos, state: BlockState) -> bool {
+        if let Some(s) = self.server_state.get_mut(&pos) {
+            s.block_state = state;
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn end_prediction_up_to(&mut self, seq: u32, world: &Instance) {
+        let mut to_remove = Vec::new();
+        for (pos, state) in &self.server_state {
+            if state.seq > seq {
+                continue;
+            }
+            to_remove.push(*pos);
+
+            // syncBlockState
+            let client_block_state = world.get_block_state(*pos).unwrap_or_default();
+            let server_block_state = state.block_state;
+            if client_block_state == server_block_state {
+                continue;
+            }
+            world.set_block_state(*pos, server_block_state);
+            // TODO: implement these two functions
+            // if is_colliding(player, *pos, server_block_state) {
+            //     abs_snap_to(state.player_pos);
+            // }
+        }
+
+        for pos in to_remove {
+            self.server_state.remove(&pos);
+        }
     }
 }
 
@@ -148,7 +227,7 @@ pub fn handle_start_use_item_event(
 /// just inserts this component for you.
 ///
 /// [`GameTick`]: azalea_core::tick::GameTick
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct StartUseItemQueued {
     pub hand: InteractionHand,
     /// Optionally force us to send a [`ServerboundUseItemOn`] on the given
@@ -164,13 +243,15 @@ pub fn handle_start_use_item_queued(
     query: Query<(
         Entity,
         &StartUseItemQueued,
-        &mut CurrentSequenceNumber,
+        &mut BlockStatePredictionHandler,
         &HitResultComponent,
         &LookDirection,
         Option<&Mining>,
     )>,
 ) {
-    for (entity, start_use_item, mut sequence_number, hit_result, look_direction, mining) in query {
+    for (entity, start_use_item, mut prediction_handler, hit_result, look_direction, mining) in
+        query
+    {
         commands.entity(entity).remove::<StartUseItemQueued>();
 
         if mining.is_some() {
@@ -204,12 +285,13 @@ pub fn handle_start_use_item_queued(
 
         match &hit_result {
             HitResult::Block(block_hit_result) => {
+                let seq = prediction_handler.start_predicting();
                 if block_hit_result.miss {
                     commands.trigger(SendPacketEvent::new(
                         entity,
                         ServerboundUseItem {
                             hand: start_use_item.hand,
-                            sequence: sequence_number.get_and_increment(),
+                            seq,
                             x_rot: look_direction.x_rot,
                             y_rot: look_direction.y_rot,
                         },
@@ -220,7 +302,7 @@ pub fn handle_start_use_item_queued(
                         ServerboundUseItemOn {
                             hand: start_use_item.hand,
                             block_hit: block_hit_result.into(),
-                            sequence: sequence_number.get_and_increment(),
+                            seq,
                         },
                     ));
                     // TODO: depending on the result of useItemOn, this might
@@ -281,7 +363,7 @@ pub fn update_hit_result_component(
         };
         let instance = instance_lock.read();
 
-        let hit_result = pick(look_direction, &eye_position, &instance.chunks, pick_range);
+        let hit_result = pick(*look_direction, eye_position, &instance.chunks, pick_range);
         if let Some(mut hit_result_ref) = hit_result_ref {
             **hit_result_ref = hit_result;
         } else {
@@ -302,8 +384,8 @@ pub fn update_hit_result_component(
 ///
 /// TODO: does not currently check for entities
 pub fn pick(
-    look_direction: &LookDirection,
-    eye_position: &Vec3,
+    look_direction: LookDirection,
+    eye_position: Vec3,
     chunks: &azalea_world::ChunkStorage,
     pick_range: f64,
 ) -> HitResult {
@@ -318,18 +400,18 @@ pub fn pick(
 ///
 /// Also see [`pick`].
 pub fn pick_block(
-    look_direction: &LookDirection,
-    eye_position: &Vec3,
+    look_direction: LookDirection,
+    eye_position: Vec3,
     chunks: &azalea_world::ChunkStorage,
     pick_range: f64,
 ) -> BlockHitResult {
     let view_vector = view_vector(look_direction);
-    let end_position = eye_position + &(view_vector * pick_range);
+    let end_position = eye_position + (view_vector * pick_range);
 
     azalea_physics::clip::clip(
         chunks,
         ClipContext {
-            from: *eye_position,
+            from: eye_position,
             to: end_position,
             block_shape_type: BlockShapeType::Outline,
             fluid_pick_type: FluidPickType::None,
@@ -344,7 +426,7 @@ pub fn pick_block(
 /// adventure mode check.
 pub fn check_is_interaction_restricted(
     instance: &Instance,
-    block_pos: &BlockPos,
+    block_pos: BlockPos,
     game_mode: &GameMode,
     inventory: &Inventory,
 ) -> bool {

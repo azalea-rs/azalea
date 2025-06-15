@@ -61,6 +61,8 @@ impl From<QuickMoveClick> for ClickOperation {
 #[derive(Debug, Clone)]
 pub struct SwapClick {
     pub source_slot: u16,
+    /// 0-8 for hotbar slots, 40 for offhand, everything else is treated as a
+    /// slot index.
     pub target_slot: u8,
 }
 
@@ -615,13 +617,26 @@ impl Menu {
     }
 
     /// Whether the item in the given slot could be clicked and picked up.
+    ///
     /// TODO: right now this always returns true
     pub fn may_pickup(&self, _source_slot_index: usize) -> bool {
         true
     }
 
+    /// Whether the item in the slot can be picked up and placed.
+    pub fn allow_modification(&self, target_slot_index: usize) -> bool {
+        if !self.may_pickup(target_slot_index) {
+            return false;
+        }
+        let item = self.slot(target_slot_index).unwrap();
+        // the default here probably doesn't matter since we should only be calling this
+        // if we already checked that the slot isn't empty
+        item.as_present()
+            .is_some_and(|item| self.may_place(target_slot_index, item))
+    }
+
     /// Get the maximum number of items that can be placed in this slot.
-    pub fn max_stack_size(&self, _target_slot_index: usize) -> u32 {
+    pub fn max_stack_size(&self, _target_slot_index: usize) -> i32 {
         64
     }
 
@@ -655,7 +670,10 @@ impl Menu {
             }
         }
 
-        item_slot.is_empty()
+        let is_source_slot_now_empty = item_slot.is_empty();
+
+        *self.slot_mut(item_slot_index).unwrap() = item_slot;
+        is_source_slot_now_empty
     }
 
     /// Merge this item slot into the target item slot, only if the target item
@@ -675,7 +693,7 @@ impl Menu {
                 && target_item.is_same_item_and_components(item)
             {
                 let slot_item_limit = self.max_stack_size(target_slot_index);
-                let new_target_slot_data = item.split(u32::min(slot_item_limit, item.count as u32));
+                let new_target_slot_data = item.split(i32::min(slot_item_limit, item.count) as u32);
 
                 // get the target slot again but mut this time so we can update it
                 let target_slot = self.slot_mut(target_slot_index).unwrap();
@@ -686,18 +704,23 @@ impl Menu {
         }
     }
 
-    fn move_item_to_slot_if_empty(&mut self, item_slot: &mut ItemStack, target_slot_index: usize) {
-        let ItemStack::Present(item) = item_slot else {
+    fn move_item_to_slot_if_empty(
+        &mut self,
+        source_item: &mut ItemStack,
+        target_slot_index: usize,
+    ) {
+        let ItemStack::Present(source_item_data) = source_item else {
             return;
         };
         let target_slot = self.slot(target_slot_index).unwrap();
-        if target_slot.is_empty() && self.may_place(target_slot_index, item) {
+        if target_slot.is_empty() && self.may_place(target_slot_index, source_item_data) {
             let slot_item_limit = self.max_stack_size(target_slot_index);
-            let new_target_slot_data = item.split(u32::min(slot_item_limit, item.count as u32));
+            let new_target_slot_data =
+                source_item_data.split(i32::min(slot_item_limit, source_item_data.count) as u32);
+            source_item.update_empty();
 
             let target_slot = self.slot_mut(target_slot_index).unwrap();
-            *target_slot = ItemStack::Present(new_target_slot_data);
-            item_slot.update_empty();
+            *target_slot = new_target_slot_data.into();
         }
     }
 }

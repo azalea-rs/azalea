@@ -1,4 +1,4 @@
-use azalea_client::{InConfigState, test_simulation::*};
+use azalea_client::{InConfigState, test_utils::prelude::*};
 use azalea_core::resource_location::ResourceLocation;
 use azalea_entity::metadata::Health;
 use azalea_protocol::packets::{
@@ -6,12 +6,11 @@ use azalea_protocol::packets::{
     config::{ClientboundFinishConfiguration, ClientboundRegistryData},
     game::ClientboundSetHealth,
 };
-use bevy_log::tracing_subscriber;
 use simdnbt::owned::{NbtCompound, NbtTag};
 
 #[test]
 fn test_fast_login() {
-    let _ = tracing_subscriber::fmt::try_init();
+    init_tracing();
 
     let mut simulation = Simulation::new(ConnectionProtocol::Configuration);
     assert!(simulation.has_component::<InConfigState>());

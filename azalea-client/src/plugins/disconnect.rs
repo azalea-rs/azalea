@@ -10,7 +10,7 @@ use tracing::info;
 
 use super::login::IsAuthenticated;
 use crate::{
-    chat_signing, client::JoinedClientBundle, connection::RawConnection,
+    chat_signing, client::JoinedClientBundle, connection::RawConnection, loading::HasClientLoaded,
     local_player::InstanceHolder,
 };
 
@@ -69,6 +69,8 @@ pub struct RemoveOnDisconnectBundle {
     pub chat_signing_session: chat_signing::ChatSigningSession,
     /// They're not authenticated anymore if they disconnected.
     pub is_authenticated: IsAuthenticated,
+    // send ServerboundPlayerLoaded next time we join
+    pub has_client_loaded: HasClientLoaded,
 }
 
 /// A system that removes the several components from our clients when they get

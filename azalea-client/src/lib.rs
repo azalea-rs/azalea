@@ -17,7 +17,7 @@ pub mod player;
 mod plugins;
 
 #[doc(hidden)]
-pub mod test_simulation;
+pub mod test_utils;
 
 pub use account::{Account, AccountOpts};
 pub use azalea_protocol::common::client_information::ClientInformation;

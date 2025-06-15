@@ -15,7 +15,7 @@ pub use block_state::BlockState;
 pub use generated::{blocks, properties};
 pub use range::BlockStates;
 
-pub trait Block: Debug + Any {
+pub trait BlockTrait: Debug + Any {
     fn behavior(&self) -> BlockBehavior;
     /// Get the Minecraft ID for this block. For example `stone` or
     /// `grass_block`.
@@ -27,8 +27,8 @@ pub trait Block: Debug + Any {
     /// `azalea_registry::Block` doesn't contain any state data.
     fn as_registry_block(&self) -> azalea_registry::Block;
 }
-impl dyn Block {
-    pub fn downcast_ref<T: Block>(&self) -> Option<&T> {
+impl dyn BlockTrait {
+    pub fn downcast_ref<T: BlockTrait>(&self) -> Option<&T> {
         (self as &dyn Any).downcast_ref::<T>()
     }
 }

@@ -1,11 +1,10 @@
-use azalea_client::test_simulation::*;
+use azalea_client::test_utils::prelude::*;
 use azalea_protocol::packets::ConnectionProtocol;
 use azalea_world::InstanceName;
-use bevy_log::tracing_subscriber;
 
 #[test]
 fn test_client_disconnect() {
-    let _ = tracing_subscriber::fmt::try_init();
+    init_tracing();
 
     let mut simulation = Simulation::new(ConnectionProtocol::Game);
 

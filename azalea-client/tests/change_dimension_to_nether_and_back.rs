@@ -1,4 +1,4 @@
-use azalea_client::{InConfigState, InGameState, test_simulation::*};
+use azalea_client::{InConfigState, InGameState, test_utils::prelude::*};
 use azalea_core::{position::ChunkPos, resource_location::ResourceLocation};
 use azalea_entity::LocalEntity;
 use azalea_protocol::packets::{
@@ -7,12 +7,11 @@ use azalea_protocol::packets::{
 };
 use azalea_registry::{DataRegistry, DimensionType};
 use azalea_world::InstanceName;
-use bevy_log::tracing_subscriber;
 use simdnbt::owned::{NbtCompound, NbtTag};
 
 #[test]
 fn test_change_dimension_to_nether_and_back() {
-    let _ = tracing_subscriber::fmt().try_init();
+    init_tracing();
 
     generic_test_change_dimension_to_nether_and_back(true);
     generic_test_change_dimension_to_nether_and_back(false);
@@ -28,8 +27,6 @@ fn generic_test_change_dimension_to_nether_and_back(using_respawn: bool) {
             make_basic_login_packet(dimension, instance_name).into_variant()
         }
     };
-
-    let _ = tracing_subscriber::fmt::try_init();
 
     let mut simulation = Simulation::new(ConnectionProtocol::Configuration);
     assert!(simulation.has_component::<InConfigState>());

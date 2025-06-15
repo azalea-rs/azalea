@@ -1,10 +1,9 @@
 mod events;
 
-use std::{collections::HashSet, ops::Add, sync::Arc};
+use std::{collections::HashSet, sync::Arc};
 
 use azalea_core::{
     game_type::GameMode,
-    math,
     position::{ChunkPos, Vec3},
 };
 use azalea_entity::{
@@ -26,9 +25,11 @@ use crate::{
     connection::RawConnection,
     declare_packet_handlers,
     disconnect::DisconnectEvent,
+    interact::BlockStatePredictionHandler,
     inventory::{
         ClientSideCloseContainerEvent, Inventory, MenuOpenedEvent, SetContainerContentEvent,
     },
+    loading::HasClientLoaded,
     local_player::{Hunger, InstanceHolder, LocalGameMode, PlayerAbilities, TabList},
     movement::{KnockbackEvent, KnockbackType},
     packet::as_system,
@@ -427,68 +428,12 @@ impl GamePacketHandler<'_> {
 
             **last_sent_position = **position;
 
-            fn apply_change<T: Add<Output = T>>(base: T, condition: bool, change: T) -> T {
-                if condition { base + change } else { change }
-            }
-
-            let new_x = apply_change(position.x, p.relative.x, p.change.pos.x);
-            let new_y = apply_change(position.y, p.relative.y, p.change.pos.y);
-            let new_z = apply_change(position.z, p.relative.z, p.change.pos.z);
-
-            let new_y_rot = apply_change(
-                direction.y_rot,
-                p.relative.y_rot,
-                p.change.look_direction.y_rot,
-            );
-            let new_x_rot = apply_change(
-                direction.x_rot,
-                p.relative.x_rot,
-                p.change.look_direction.x_rot,
-            );
-
-            let mut new_delta_from_rotations = physics.velocity;
-            if p.relative.rotate_delta {
-                let y_rot_delta = direction.y_rot - new_y_rot;
-                let x_rot_delta = direction.x_rot - new_x_rot;
-                new_delta_from_rotations = new_delta_from_rotations
-                    .x_rot(math::to_radians(x_rot_delta as f64) as f32)
-                    .y_rot(math::to_radians(y_rot_delta as f64) as f32);
-            }
-
-            let new_delta = Vec3::new(
-                apply_change(
-                    new_delta_from_rotations.x,
-                    p.relative.delta_x,
-                    p.change.delta.x,
-                ),
-                apply_change(
-                    new_delta_from_rotations.y,
-                    p.relative.delta_y,
-                    p.change.delta.y,
-                ),
-                apply_change(
-                    new_delta_from_rotations.z,
-                    p.relative.delta_z,
-                    p.change.delta.z,
-                ),
-            );
-
-            // apply the updates
-
-            physics.velocity = new_delta;
-
-            (direction.y_rot, direction.x_rot) = (new_y_rot, new_x_rot);
-
-            let new_pos = Vec3::new(new_x, new_y, new_z);
-            if new_pos != **position {
-                **position = new_pos;
-            }
-
+            p.relative
+                .apply(&p.change, &mut position, &mut direction, &mut physics);
             // old_pos is set to the current position when we're teleported
-            physics.set_old_pos(&position);
+            physics.set_old_pos(*position);
 
             // send the relevant packets
-
             commands.trigger(SendPacketEvent::new(
                 self.player,
                 ServerboundAcceptTeleportation { id: p.id },
@@ -496,8 +441,8 @@ impl GamePacketHandler<'_> {
             commands.trigger(SendPacketEvent::new(
                 self.player,
                 ServerboundMovePlayerPosRot {
-                    pos: new_pos,
-                    look_direction: LookDirection::new(new_y_rot, new_x_rot),
+                    pos: **position,
+                    look_direction: *direction,
                     // this is always false
                     on_ground: false,
                 },
@@ -854,6 +799,8 @@ impl GamePacketHandler<'_> {
     }
 
     pub fn teleport_entity(&mut self, p: &ClientboundTeleportEntity) {
+        debug!("Got teleport entity packet {p:?}");
+
         as_system::<(Commands, Query<(&EntityIdIndex, &InstanceHolder)>)>(
             self.ecs,
             |(mut commands, mut query)| {
@@ -864,26 +811,28 @@ impl GamePacketHandler<'_> {
                     return;
                 };
 
-                let new_pos = p.change.pos;
-                let new_look_direction = LookDirection {
-                    x_rot: (p.change.look_direction.x_rot as i32 * 360) as f32 / 256.,
-                    y_rot: (p.change.look_direction.y_rot as i32 * 360) as f32 / 256.,
-                };
+                let relative = p.relative.clone();
+                let change = p.change.clone();
+
                 commands.entity(entity).queue(RelativeEntityUpdate::new(
                     instance_holder.partial_instance.clone(),
                     move |entity| {
-                        let mut position = entity.get_mut::<Position>().unwrap();
-                        if new_pos != **position {
-                            **position = new_pos;
-                        }
-                        let position = *position;
-                        let mut look_direction = entity.get_mut::<LookDirection>().unwrap();
-                        if new_look_direction != *look_direction {
-                            *look_direction = new_look_direction;
-                        }
-                        // old_pos is set to the current position when we're teleported
-                        let mut physics = entity.get_mut::<Physics>().unwrap();
-                        physics.set_old_pos(&position);
+                        let entity_id = entity.id();
+                        entity.world_scope(move |world| {
+                            let mut query =
+                                world.query::<(&mut Physics, &mut LookDirection, &mut Position)>();
+                            let (mut physics, mut look_direction, mut position) =
+                                query.get_mut(world, entity_id).unwrap();
+                            let old_position = *position;
+                            relative.apply(
+                                &change,
+                                &mut position,
+                                &mut look_direction,
+                                &mut physics,
+                            );
+                            // old_pos is set to the current position when we're teleported
+                            physics.set_old_pos(old_position);
+                        });
                     },
                 ));
             },
@@ -916,11 +865,7 @@ impl GamePacketHandler<'_> {
                     instance_holder.partial_instance.clone(),
                     move |entity_mut| {
                         let mut physics = entity_mut.get_mut::<Physics>().unwrap();
-                        let new_pos = physics.vec_delta_codec.decode(
-                            new_delta.xa as i64,
-                            new_delta.ya as i64,
-                            new_delta.za as i64,
-                        );
+                        let new_pos = physics.vec_delta_codec.decode(&new_delta);
                         physics.vec_delta_codec.set_base(new_pos);
                         physics.set_on_ground(new_on_ground);
 
@@ -970,17 +915,13 @@ impl GamePacketHandler<'_> {
                     instance_holder.partial_instance.clone(),
                     move |entity_mut| {
                         let mut physics = entity_mut.get_mut::<Physics>().unwrap();
-                        let new_pos = physics.vec_delta_codec.decode(
-                            new_delta.xa as i64,
-                            new_delta.ya as i64,
-                            new_delta.za as i64,
-                        );
-                        physics.vec_delta_codec.set_base(new_pos);
+                        let new_position = physics.vec_delta_codec.decode(&new_delta);
+                        physics.vec_delta_codec.set_base(new_position);
                         physics.set_on_ground(new_on_ground);
 
                         let mut position = entity_mut.get_mut::<Position>().unwrap();
-                        if new_pos != **position {
-                            **position = new_pos;
+                        if new_position != **position {
+                            **position = new_position;
                         }
 
                         let mut look_direction = entity_mut.get_mut::<LookDirection>().unwrap();
@@ -1124,13 +1065,17 @@ impl GamePacketHandler<'_> {
     pub fn block_update(&mut self, p: &ClientboundBlockUpdate) {
         debug!("Got block update packet {p:?}");
 
-        as_system::<Query<&InstanceHolder>>(self.ecs, |mut query| {
-            let local_player = query.get_mut(self.player).unwrap();
+        as_system::<Query<(&InstanceHolder, &mut BlockStatePredictionHandler)>>(
+            self.ecs,
+            |mut query| {
+                let (local_player, mut prediction_handler) = query.get_mut(self.player).unwrap();
 
-            let world = local_player.instance.write();
-
-            world.chunks.set_block_state(&p.pos, p.block_state);
-        });
+                let world = local_player.instance.read();
+                if !prediction_handler.update_known_server_state(p.pos, p.block_state) {
+                    world.chunks.set_block_state(p.pos, p.block_state);
+                }
+            },
+        );
     }
 
     pub fn animate(&mut self, p: &ClientboundAnimate) {
@@ -1140,15 +1085,19 @@ impl GamePacketHandler<'_> {
     pub fn section_blocks_update(&mut self, p: &ClientboundSectionBlocksUpdate) {
         debug!("Got section blocks update packet {p:?}");
 
-        as_system::<Query<&InstanceHolder>>(self.ecs, |mut query| {
-            let local_player = query.get_mut(self.player).unwrap();
-            let world = local_player.instance.write();
-            for state in &p.states {
-                world
-                    .chunks
-                    .set_block_state(&(p.section_pos + state.pos), state.state);
-            }
-        });
+        as_system::<Query<(&InstanceHolder, &mut BlockStatePredictionHandler)>>(
+            self.ecs,
+            |mut query| {
+                let (local_player, mut prediction_handler) = query.get_mut(self.player).unwrap();
+                let world = local_player.instance.read();
+                for new_state in &p.states {
+                    let pos = p.section_pos + new_state.pos;
+                    if !prediction_handler.update_known_server_state(pos, new_state.state) {
+                        world.chunks.set_block_state(pos, new_state.state);
+                    }
+                }
+            },
+        );
     }
 
     pub fn game_event(&mut self, p: &ClientboundGameEvent) {
@@ -1188,7 +1137,16 @@ impl GamePacketHandler<'_> {
 
     pub fn award_stats(&mut self, _p: &ClientboundAwardStats) {}
 
-    pub fn block_changed_ack(&mut self, _p: &ClientboundBlockChangedAck) {}
+    pub fn block_changed_ack(&mut self, p: &ClientboundBlockChangedAck) {
+        as_system::<Query<(&InstanceHolder, &mut BlockStatePredictionHandler)>>(
+            self.ecs,
+            |mut query| {
+                let (local_player, mut prediction_handler) = query.get_mut(self.player).unwrap();
+                let world = local_player.instance.read();
+                prediction_handler.end_prediction_up_to(p.seq, &world);
+            },
+        );
+    }
 
     pub fn block_destruction(&mut self, _p: &ClientboundBlockDestruction) {}
 
@@ -1493,8 +1451,9 @@ impl GamePacketHandler<'_> {
                     entity_bundle,
                 ));
 
-                // Remove the Dead marker component from the player.
-                commands.entity(self.player).remove::<Dead>();
+                commands
+                    .entity(self.player)
+                    .remove::<(Dead, HasClientLoaded)>();
             },
         )
     }
@@ -1609,7 +1568,16 @@ impl GamePacketHandler<'_> {
     pub fn store_cookie(&mut self, _p: &ClientboundStoreCookie) {}
     pub fn transfer(&mut self, _p: &ClientboundTransfer) {}
     pub fn move_minecart_along_track(&mut self, _p: &ClientboundMoveMinecartAlongTrack) {}
-    pub fn set_held_slot(&mut self, _p: &ClientboundSetHeldSlot) {}
+    pub fn set_held_slot(&mut self, p: &ClientboundSetHeldSlot) {
+        debug!("Got set held slot packet {p:?}");
+
+        as_system::<Query<&mut Inventory>>(self.ecs, |mut query| {
+            let mut inventory = query.get_mut(self.player).unwrap();
+            if p.slot <= 8 {
+                inventory.selected_hotbar_slot = p.slot as u8;
+            }
+        });
+    }
     pub fn set_player_inventory(&mut self, _p: &ClientboundSetPlayerInventory) {}
     pub fn projectile_power(&mut self, _p: &ClientboundProjectilePower) {}
     pub fn custom_report_details(&mut self, _p: &ClientboundCustomReportDetails) {}

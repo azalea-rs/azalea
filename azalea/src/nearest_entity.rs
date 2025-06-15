@@ -69,7 +69,7 @@ where
     /// multiple entities are within range, only the closest one is returned.
     pub fn nearest_to_position(
         &'a self,
-        position: &Position,
+        position: Position,
         instance_name: &InstanceName,
         max_distance: f64,
     ) -> Option<Entity> {
@@ -81,7 +81,7 @@ where
                 continue;
             }
 
-            let target_distance = position.distance_to(e_pos);
+            let target_distance = position.distance_to(**e_pos);
             if target_distance < min_distance {
                 nearest_entity = Some(target_entity);
                 min_distance = target_distance;
@@ -111,7 +111,7 @@ where
                 continue;
             }
 
-            let target_distance = position.distance_to(e_pos);
+            let target_distance = position.distance_to(**e_pos);
             if target_distance < min_distance {
                 nearest_entity = Some(target_entity);
                 min_distance = target_distance;
@@ -140,7 +140,7 @@ where
                     return None;
                 }
 
-                let distance = position.distance_to(e_pos);
+                let distance = position.distance_to(**e_pos);
                 if distance < max_distance {
                     Some((target_entity, distance))
                 } else {
@@ -181,7 +181,7 @@ where
                     return None;
                 }
 
-                let distance = position.distance_to(e_pos);
+                let distance = position.distance_to(**e_pos);
                 if distance < max_distance {
                     Some((target_entity, distance))
                 } else {

@@ -44,7 +44,7 @@ fn motion_blocking(block_state: BlockState) -> bool {
 
 impl HeightmapKind {
     pub fn is_opaque(self, block_state: BlockState) -> bool {
-        let block = Box::<dyn azalea_block::Block>::from(block_state);
+        let block = Box::<dyn azalea_block::BlockTrait>::from(block_state);
         let registry_block = block.as_registry_block();
         match self {
             HeightmapKind::WorldSurfaceWg => !block_state.is_air(),

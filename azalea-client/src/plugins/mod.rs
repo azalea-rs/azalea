@@ -12,6 +12,7 @@ pub mod events;
 pub mod interact;
 pub mod inventory;
 pub mod join;
+pub mod loading;
 pub mod login;
 pub mod mining;
 pub mod movement;
@@ -48,6 +49,7 @@ impl PluginGroup for DefaultPlugins {
             .add(attack::AttackPlugin)
             .add(chunks::ChunksPlugin)
             .add(tick_end::TickEndPlugin)
+            .add(loading::PlayerLoadedPlugin)
             .add(brand::BrandPlugin)
             .add(tick_broadcast::TickBroadcastPlugin)
             .add(pong::PongPlugin)

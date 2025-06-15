@@ -660,7 +660,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 #block_struct_fields
             }
 
-            impl Block for #block_struct_name {
+            impl BlockTrait for #block_struct_name {
                 fn behavior(&self) -> BlockBehavior {
                     #block_behavior
                 }
@@ -785,7 +785,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
 
             #block_structs
 
-            impl From<BlockState> for Box<dyn Block> {
+            impl From<BlockState> for Box<dyn BlockTrait> {
                 fn from(block_state: BlockState) -> Self {
                     let b = block_state.id();
                     match b {
@@ -794,7 +794,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                     }
                 }
             }
-            impl From<azalea_registry::Block> for Box<dyn Block> {
+            impl From<azalea_registry::Block> for Box<dyn BlockTrait> {
                 fn from(block: azalea_registry::Block) -> Self {
                     match block {
                         #from_registry_block_to_block_match

@@ -2,7 +2,7 @@ use std::fmt::Debug;
 
 use azalea_block_macros::make_block_states;
 
-use crate::{Block, BlockBehavior, BlockState, BlockStates, Property};
+use crate::{BlockTrait, BlockBehavior, BlockState, BlockStates, Property};
 
 make_block_states! {
     Properties => {

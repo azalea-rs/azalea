@@ -1,22 +1,13 @@
 use azalea_block::{BlockState, BlockStates};
 use azalea_core::position::{BlockPos, ChunkPos};
 
-use crate::{ChunkStorage, Instance, iterators::ChunkIterator, palette::Palette};
-
-fn palette_maybe_has_block(palette: &Palette<BlockState>, block_states: &BlockStates) -> bool {
-    match &palette {
-        Palette::SingleValue(id) => block_states.contains(id),
-        Palette::Linear(ids) => ids.iter().any(|id| block_states.contains(id)),
-        Palette::Hashmap(ids) => ids.iter().any(|id| block_states.contains(id)),
-        Palette::Global => true,
-    }
-}
+use crate::{Chunk, ChunkStorage, Instance, iterators::ChunkIterator, palette::Palette};
 
 impl Instance {
     /// Find the coordinates of a block in the world.
     ///
     /// Note that this is sorted by `x+y+z` and not `x^2+y^2+z^2` for
-    /// optimization purposes.
+    /// performance purposes.
     ///
     /// ```
     /// # fn example(client: &azalea_client::Client) {
@@ -52,35 +43,20 @@ impl Instance {
                 continue;
             };
 
-            for (section_index, section) in chunk.read().sections.iter().enumerate() {
-                let maybe_has_block =
-                    palette_maybe_has_block(&section.states.palette, block_states);
-                if !maybe_has_block {
-                    continue;
-                }
-
-                for i in 0..4096 {
-                    let block_state = section.states.get_at_index(i);
-
-                    if block_states.contains(&block_state) {
-                        let section_pos = section.states.coords_from_index(i);
-                        let (x, y, z) = (
-                            chunk_pos.x * 16 + (section_pos.x as i32),
-                            self.chunks.min_y + (section_index * 16) as i32 + section_pos.y as i32,
-                            chunk_pos.z * 16 + (section_pos.z as i32),
-                        );
-                        let this_block_pos = BlockPos { x, y, z };
-                        let this_block_distance = (nearest_to - this_block_pos).length_manhattan();
-                        // only update if it's closer
-                        if nearest_found_pos.is_none()
-                            || this_block_distance < nearest_found_distance
-                        {
-                            nearest_found_pos = Some(this_block_pos);
-                            nearest_found_distance = this_block_distance;
-                        }
+            find_blocks_in_chunk(
+                block_states,
+                chunk_pos,
+                &chunk.read(),
+                self.chunks.min_y,
+                |this_block_pos| {
+                    let this_block_distance = (nearest_to - this_block_pos).length_manhattan();
+                    // only update if it's closer
+                    if nearest_found_pos.is_none() || this_block_distance < nearest_found_distance {
+                        nearest_found_pos = Some(this_block_pos);
+                        nearest_found_distance = this_block_distance;
                     }
-                }
-            }
+                },
+            );
 
             if let Some(nearest_found_pos) = nearest_found_pos {
                 // this is required because find_block searches chunk-by-chunk, which can cause
@@ -117,7 +93,7 @@ impl Instance {
     /// are in the given block states.
     ///
     /// Note that this is sorted by `x+y+z` and not `x^2+y^2+z^2` for
-    /// optimization purposes.
+    /// performance purposes.
     pub fn find_blocks<'a>(
         &'a self,
         nearest_to: impl Into<BlockPos>,
@@ -179,38 +155,22 @@ impl Iterator for FindBlocks<'_> {
                 continue;
             };
 
-            for (section_index, section) in chunk.read().sections.iter().enumerate() {
-                let maybe_has_block =
-                    palette_maybe_has_block(&section.states.palette, self.block_states);
-                if !maybe_has_block {
-                    continue;
-                }
+            find_blocks_in_chunk(
+                self.block_states,
+                chunk_pos,
+                &chunk.read(),
+                self.chunks.min_y,
+                |this_block_pos| {
+                    let this_block_distance = (self.nearest_to - this_block_pos).length_manhattan();
 
-                for i in 0..4096 {
-                    let block_state = section.states.get_at_index(i);
+                    found.push((this_block_pos, this_block_distance));
 
-                    if self.block_states.contains(&block_state) {
-                        let section_pos = section.states.coords_from_index(i);
-                        let (x, y, z) = (
-                            chunk_pos.x * 16 + (section_pos.x as i32),
-                            self.chunks.min_y + (section_index * 16) as i32 + section_pos.y as i32,
-                            chunk_pos.z * 16 + (section_pos.z as i32),
-                        );
-                        let this_block_pos = BlockPos { x, y, z };
-                        let this_block_distance =
-                            (self.nearest_to - this_block_pos).length_manhattan();
-
-                        found.push((this_block_pos, this_block_distance));
-
-                        if nearest_found_pos.is_none()
-                            || this_block_distance < nearest_found_distance
-                        {
-                            nearest_found_pos = Some(this_block_pos);
-                            nearest_found_distance = this_block_distance;
-                        }
+                    if nearest_found_pos.is_none() || this_block_distance < nearest_found_distance {
+                        nearest_found_pos = Some(this_block_pos);
+                        nearest_found_distance = this_block_distance;
                     }
-                }
-            }
+                },
+            );
 
             if let Some(nearest_found_pos) = nearest_found_pos {
                 // this is required because find_block searches chunk-by-chunk, which can cause
@@ -242,6 +202,51 @@ impl Iterator for FindBlocks<'_> {
     }
 }
 
+/// An optimized function for finding the block positions in a chunk that match
+/// the given block states.
+///
+/// This is used internally by [`Instance::find_block`] and
+/// [`Instance::find_blocks`].
+pub fn find_blocks_in_chunk(
+    block_states: &BlockStates,
+    chunk_pos: ChunkPos,
+    chunk: &Chunk,
+    min_y: i32,
+    mut cb: impl FnMut(BlockPos),
+) {
+    for (section_index, section) in chunk.sections.iter().enumerate() {
+        let maybe_has_block = palette_maybe_has_block(&section.states.palette, block_states);
+        if !maybe_has_block {
+            continue;
+        }
+
+        for i in 0..4096 {
+            let block_state = section.states.get_at_index(i);
+
+            if block_states.contains(&block_state) {
+                let section_pos = section.states.coords_from_index(i);
+                let (x, y, z) = (
+                    chunk_pos.x * 16 + (section_pos.x as i32),
+                    min_y + (section_index * 16) as i32 + section_pos.y as i32,
+                    chunk_pos.z * 16 + (section_pos.z as i32),
+                );
+                let this_block_pos = BlockPos { x, y, z };
+
+                cb(this_block_pos);
+            }
+        }
+    }
+}
+
+fn palette_maybe_has_block(palette: &Palette<BlockState>, block_states: &BlockStates) -> bool {
+    match &palette {
+        Palette::SingleValue(id) => block_states.contains(id),
+        Palette::Linear(ids) => ids.iter().any(|id| block_states.contains(id)),
+        Palette::Hashmap(ids) => ids.iter().any(|id| block_states.contains(id)),
+        Palette::Global => true,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use azalea_registry::Block;
@@ -269,8 +274,8 @@ mod tests {
             chunk_storage,
         );
 
-        chunk_storage.set_block_state(&BlockPos { x: 17, y: 0, z: 0 }, Block::Stone.into());
-        chunk_storage.set_block_state(&BlockPos { x: 0, y: 18, z: 0 }, Block::Stone.into());
+        chunk_storage.set_block_state(BlockPos { x: 17, y: 0, z: 0 }, Block::Stone.into());
+        chunk_storage.set_block_state(BlockPos { x: 0, y: 18, z: 0 }, Block::Stone.into());
 
         let pos = instance.find_block(BlockPos { x: 0, y: 0, z: 0 }, &Block::Stone.into());
         assert_eq!(pos, Some(BlockPos { x: 17, y: 0, z: 0 }));
@@ -296,8 +301,8 @@ mod tests {
             chunk_storage,
         );
 
-        chunk_storage.set_block_state(&BlockPos { x: -1, y: 0, z: 0 }, Block::Stone.into());
-        chunk_storage.set_block_state(&BlockPos { x: 15, y: 0, z: 0 }, Block::Stone.into());
+        chunk_storage.set_block_state(BlockPos { x: -1, y: 0, z: 0 }, Block::Stone.into());
+        chunk_storage.set_block_state(BlockPos { x: 15, y: 0, z: 0 }, Block::Stone.into());
 
         let pos = instance.find_block(BlockPos { x: 0, y: 0, z: 0 }, &Block::Stone.into());
         assert_eq!(pos, Some(BlockPos { x: -1, y: 0, z: 0 }));

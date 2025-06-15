@@ -6,19 +6,22 @@ use azalea_buf::AzaleaWrite;
 use azalea_core::{
     delta::PositionDelta8,
     game_type::{GameMode, OptionalGameType},
-    position::{ChunkPos, Vec3},
+    position::{BlockPos, ChunkPos, Vec3},
     resource_location::ResourceLocation,
     tick::GameTick,
 };
 use azalea_entity::metadata::PlayerMetadataBundle;
-use azalea_protocol::packets::{
-    ConnectionProtocol, Packet, ProtocolPacket,
-    common::CommonPlayerSpawnInfo,
-    config::{ClientboundFinishConfiguration, ClientboundRegistryData},
-    game::{
-        ClientboundAddEntity, ClientboundLevelChunkWithLight, ClientboundLogin, ClientboundRespawn,
-        c_level_chunk_with_light::ClientboundLevelChunkPacketData,
-        c_light_update::ClientboundLightUpdatePacketData,
+use azalea_protocol::{
+    common::client_information::ClientInformation,
+    packets::{
+        ConnectionProtocol, Packet, ProtocolPacket,
+        common::CommonPlayerSpawnInfo,
+        config::{ClientboundFinishConfiguration, ClientboundRegistryData},
+        game::{
+            ClientboundAddEntity, ClientboundLevelChunkWithLight, ClientboundLogin,
+            ClientboundRespawn, c_level_chunk_with_light::ClientboundLevelChunkPacketData,
+            c_light_update::ClientboundLightUpdatePacketData,
+        },
     },
 };
 use azalea_registry::{Biome, DimensionType, EntityKind};
@@ -30,8 +33,8 @@ use simdnbt::owned::{NbtCompound, NbtTag};
 use uuid::Uuid;
 
 use crate::{
-    ClientInformation, InConfigState, LocalPlayerBundle, connection::RawConnection,
-    disconnect::DisconnectEvent, local_player::InstanceHolder, player::GameProfileComponent,
+    InConfigState, LocalPlayerBundle, connection::RawConnection, disconnect::DisconnectEvent,
+    local_player::InstanceHolder, player::GameProfileComponent,
 };
 
 /// A way to simulate a client in a server, used for some internal tests.
@@ -49,7 +52,7 @@ impl Simulation {
         let mut entity = app.world_mut().spawn_empty();
         let (player, rt) =
             create_local_player_bundle(entity.id(), ConnectionProtocol::Configuration);
-        entity.insert(player);
+        entity.insert((player, ClientInformation::default()));
 
         let entity = entity.id();
 
@@ -99,9 +102,15 @@ impl Simulation {
             raw_conn.injected_clientbound_packets.push(buf);
         });
     }
+    pub fn send_event(&mut self, event: impl bevy_ecs::event::Event) {
+        self.app.world_mut().send_event(event);
+    }
 
     pub fn tick(&mut self) {
         tick_app(&mut self.app);
+    }
+    pub fn update(&mut self) {
+        self.app.update();
     }
 
     pub fn minecraft_entity_id(&self) -> MinecraftEntityId {
@@ -145,6 +154,12 @@ impl Simulation {
             .chunks
             .get(&chunk_pos)
     }
+    pub fn get_block_state(&self, pos: BlockPos) -> Option<BlockState> {
+        self.component::<InstanceHolder>()
+            .instance
+            .read()
+            .get_block_state(pos)
+    }
 
     pub fn disconnect(&mut self) {
         // send DisconnectEvent
@@ -171,7 +186,6 @@ fn create_local_player_bundle(
 
     let local_player_bundle = LocalPlayerBundle {
         raw_connection,
-        client_information: ClientInformation::default(),
         instance_holder,
         metadata: PlayerMetadataBundle::default(),
     };

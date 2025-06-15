@@ -9,6 +9,6 @@ pub struct ClientboundTeleportEntity {
     #[var]
     pub id: MinecraftEntityId,
     pub change: PositionMoveRotation,
-    pub relatives: RelativeMovements,
+    pub relative: RelativeMovements,
     pub on_ground: bool,
 }

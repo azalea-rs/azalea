@@ -53,15 +53,33 @@ impl Client {
     }
 
     /// Whether the player has an attack cooldown.
+    ///
+    /// Also see [`Client::attack_cooldown_remaining_ticks`].
     pub fn has_attack_cooldown(&self) -> bool {
-        let Some(AttackStrengthScale(ticks_since_last_attack)) =
-            self.get_component::<AttackStrengthScale>()
-        else {
-            // they don't even have an AttackStrengthScale so they probably can't attack
-            // lmao, just return false
+        let Some(attack_strength_scale) = self.get_component::<AttackStrengthScale>() else {
+            // they don't even have an AttackStrengthScale so they probably can't even
+            // attack? whatever, just return false
             return false;
         };
-        ticks_since_last_attack < 1.0
+        *attack_strength_scale < 1.0
+    }
+
+    /// Returns the number of ticks until we can attack at full strength again.
+    ///
+    /// Also see [`Client::has_attack_cooldown`].
+    pub fn attack_cooldown_remaining_ticks(&self) -> usize {
+        let mut ecs = self.ecs.lock();
+        let Ok((attributes, ticks_since_last_attack)) = ecs
+            .query::<(&Attributes, &TicksSinceLastAttack)>()
+            .get(&ecs, self.entity)
+        else {
+            return 0;
+        };
+
+        let attack_strength_delay = get_attack_strength_delay(attributes);
+        let remaining_ticks = attack_strength_delay - **ticks_since_last_attack as f32;
+
+        remaining_ticks.max(0.).ceil() as usize
     }
 }
 

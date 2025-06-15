@@ -41,6 +41,9 @@ pub struct PartialChunkStorage {
 /// A storage for chunks where they're only stored weakly, so if they're not
 /// actively being used somewhere else they'll be forgotten. This is used for
 /// shared worlds.
+///
+/// This is relatively cheap to clone since it's just an `IntMap` with `Weak`
+/// pointers.
 #[derive(Debug, Clone)]
 pub struct ChunkStorage {
     pub height: u32,
@@ -152,7 +155,7 @@ impl PartialChunkStorage {
 
     pub fn set_block_state(
         &self,
-        pos: &BlockPos,
+        pos: BlockPos,
         state: BlockState,
         chunk_storage: &ChunkStorage,
     ) -> Option<BlockState> {
@@ -290,26 +293,26 @@ impl ChunkStorage {
         self.map.get(pos).and_then(|chunk| chunk.upgrade())
     }
 
-    pub fn get_block_state(&self, pos: &BlockPos) -> Option<BlockState> {
+    pub fn get_block_state(&self, pos: BlockPos) -> Option<BlockState> {
         let chunk_pos = ChunkPos::from(pos);
         let chunk = self.get(&chunk_pos)?;
         let chunk = chunk.read();
         chunk.get_block_state(&ChunkBlockPos::from(pos), self.min_y)
     }
 
-    pub fn get_fluid_state(&self, pos: &BlockPos) -> Option<FluidState> {
+    pub fn get_fluid_state(&self, pos: BlockPos) -> Option<FluidState> {
         let block_state = self.get_block_state(pos)?;
         Some(FluidState::from(block_state))
     }
 
-    pub fn get_biome(&self, pos: &BlockPos) -> Option<Biome> {
+    pub fn get_biome(&self, pos: BlockPos) -> Option<Biome> {
         let chunk_pos = ChunkPos::from(pos);
         let chunk = self.get(&chunk_pos)?;
         let chunk = chunk.read();
-        chunk.get_biome(&ChunkBiomePos::from(pos), self.min_y)
+        chunk.get_biome(ChunkBiomePos::from(pos), self.min_y)
     }
 
-    pub fn set_block_state(&self, pos: &BlockPos, state: BlockState) -> Option<BlockState> {
+    pub fn set_block_state(&self, pos: BlockPos, state: BlockState) -> Option<BlockState> {
         if pos.y < self.min_y || pos.y >= (self.min_y + self.height as i32) {
             return None;
         }
@@ -401,7 +404,7 @@ impl Chunk {
         }
     }
 
-    pub fn get_biome(&self, pos: &ChunkBiomePos, min_y: i32) -> Option<Biome> {
+    pub fn get_biome(&self, pos: ChunkBiomePos, min_y: i32) -> Option<Biome> {
         if pos.y < min_y {
             // y position is out of bounds
             return None;
@@ -577,27 +580,27 @@ mod tests {
         );
         assert!(
             chunk_storage
-                .get_block_state(&BlockPos { x: 0, y: 319, z: 0 })
+                .get_block_state(BlockPos { x: 0, y: 319, z: 0 })
                 .is_some()
         );
         assert!(
             chunk_storage
-                .get_block_state(&BlockPos { x: 0, y: 320, z: 0 })
+                .get_block_state(BlockPos { x: 0, y: 320, z: 0 })
                 .is_none()
         );
         assert!(
             chunk_storage
-                .get_block_state(&BlockPos { x: 0, y: 338, z: 0 })
+                .get_block_state(BlockPos { x: 0, y: 338, z: 0 })
                 .is_none()
         );
         assert!(
             chunk_storage
-                .get_block_state(&BlockPos { x: 0, y: -64, z: 0 })
+                .get_block_state(BlockPos { x: 0, y: -64, z: 0 })
                 .is_some()
         );
         assert!(
             chunk_storage
-                .get_block_state(&BlockPos { x: 0, y: -65, z: 0 })
+                .get_block_state(BlockPos { x: 0, y: -65, z: 0 })
                 .is_none()
         );
     }

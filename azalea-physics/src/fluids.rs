@@ -32,7 +32,7 @@ pub fn update_in_water_state_and_do_fluid_pushing(
         physics.water_fluid_height = 0.;
         physics.lava_fluid_height = 0.;
 
-        update_in_water_state_and_do_water_current_pushing(&mut physics, &world, position);
+        update_in_water_state_and_do_water_current_pushing(&mut physics, &world, *position);
 
         // right now doing registries.dimension_type() clones the entire registry which
         // is very inefficient, so for now we're doing this instead
@@ -63,7 +63,7 @@ pub fn update_in_water_state_and_do_fluid_pushing(
 fn update_in_water_state_and_do_water_current_pushing(
     physics: &mut Physics,
     world: &Instance,
-    _position: &Position,
+    _position: Position,
 ) {
     // TODO: implement vehicles and boats
     // if vehicle == AbstractBoat {
@@ -116,7 +116,7 @@ fn update_fluid_height_and_do_fluid_pushing(
         for cur_y in min_y..max_y {
             for cur_z in min_z..max_z {
                 let cur_pos = BlockPos::new(cur_x, cur_y, cur_z);
-                let Some(fluid_at_cur_pos) = world.get_fluid_state(&cur_pos) else {
+                let Some(fluid_at_cur_pos) = world.get_fluid_state(cur_pos) else {
                     continue;
                 };
                 if fluid_at_cur_pos.kind != checking_fluid {
@@ -192,7 +192,7 @@ pub fn get_fluid_flow(fluid: &FluidState, world: &Instance, pos: BlockPos) -> Ve
         let adjacent_block_pos = pos.offset_with_direction(direction);
 
         let adjacent_block_state = world
-            .get_block_state(&adjacent_block_pos)
+            .get_block_state(adjacent_block_pos)
             .unwrap_or_default();
         let adjacent_fluid_state = FluidState::from(adjacent_block_state);
 
@@ -206,7 +206,7 @@ pub fn get_fluid_flow(fluid: &FluidState, world: &Instance, pos: BlockPos) -> Ve
             if !legacy_blocks_motion(adjacent_block_state) {
                 let block_pos_below_adjacent = adjacent_block_pos.down(1);
                 let fluid_below_adjacent = world
-                    .get_fluid_state(&block_pos_below_adjacent)
+                    .get_fluid_state(block_pos_below_adjacent)
                     .unwrap_or_default();
 
                 if fluid.affects_flow(&fluid_below_adjacent) {
@@ -250,8 +250,8 @@ fn is_solid_face(
     adjacent_pos: BlockPos,
     direction: Direction,
 ) -> bool {
-    let block_state = world.get_block_state(&adjacent_pos).unwrap_or_default();
-    let fluid_state = world.get_fluid_state(&adjacent_pos).unwrap_or_default();
+    let block_state = world.get_block_state(adjacent_pos).unwrap_or_default();
+    let fluid_state = world.get_fluid_state(adjacent_pos).unwrap_or_default();
     if fluid_state.is_same_kind(fluid) {
         return false;
     }

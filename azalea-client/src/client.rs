@@ -51,7 +51,7 @@ use crate::{
     connection::RawConnection,
     disconnect::DisconnectEvent,
     events::Event,
-    interact::CurrentSequenceNumber,
+    interact::BlockStatePredictionHandler,
     inventory::Inventory,
     join::{ConnectOpts, StartJoinServerEvent},
     local_player::{Hunger, InstanceHolder, PermissionLevel, PlayerAbilities, TabList},
@@ -153,7 +153,7 @@ impl Client {
     /// ```rust,no_run
     /// use azalea_client::{Account, Client};
     ///
-    /// #[tokio::main]
+    /// #[tokio::main(flavor = "current_thread")]
     /// async fn main() -> Result<(), Box<dyn std::error::Error>> {
     ///     let account = Account::offline("bot");
     ///     let (client, rx) = Client::join(account, "localhost").await?;
@@ -338,17 +338,10 @@ impl Client {
     /// Similar to [`Self::get_component`], but doesn't clone the component
     /// since it's passed as a reference. [`Self::ecs`] will remain locked
     /// while the callback is being run.
-    ///
-    /// ```
-    /// # use azalea_client::{Client, mining::Mining};
-    /// # fn example(bot: &Client) {
-    /// let is_mining = bot.map_get_component::<Mining, _>(|m| m.is_some());
-    /// # }
-    /// ```
-    pub fn map_get_component<T: Component, R>(&self, f: impl FnOnce(Option<&T>) -> R) -> R {
+    pub fn map_get_component<T: Component, R>(&self, f: impl FnOnce(&T) -> R) -> Option<R> {
         let mut ecs = self.ecs.lock();
         let value = self.query::<Option<&T>>(&mut ecs);
-        f(value)
+        value.map(f)
     }
 
     /// Get an `RwLock` with a reference to our (potentially shared) world.
@@ -579,7 +572,6 @@ impl Client {
 #[derive(Bundle)]
 pub struct LocalPlayerBundle {
     pub raw_connection: RawConnection,
-    pub client_information: ClientInformation,
     pub instance_holder: InstanceHolder,
 
     pub metadata: azalea_entity::metadata::PlayerMetadataBundle,
@@ -594,7 +586,7 @@ pub struct JoinedClientBundle {
     pub physics_state: PhysicsState,
     pub inventory: Inventory,
     pub tab_list: TabList,
-    pub current_sequence_number: CurrentSequenceNumber,
+    pub current_sequence_number: BlockStatePredictionHandler,
     pub last_sent_direction: LastSentLookDirection,
     pub abilities: PlayerAbilities,
     pub permission_level: PermissionLevel,

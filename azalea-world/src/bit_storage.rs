@@ -219,7 +219,7 @@ impl BitStorage {
         self.size
     }
 
-    pub fn iter(&self) -> BitStorageIter {
+    pub fn iter(&self) -> BitStorageIter<'_> {
         BitStorageIter {
             storage: self,
             index: 0,

@@ -103,7 +103,7 @@ pub fn update_fluid_on_eyes(
         let eye_block_pos = BlockPos::from(Vec3::new(position.x, adjusted_eye_y, position.z));
         let fluid_at_eye = instance
             .read()
-            .get_fluid_state(&eye_block_pos)
+            .get_fluid_state(eye_block_pos)
             .unwrap_or_default();
         let fluid_cutoff_y = (eye_block_pos.y as f32 + fluid_at_eye.height()) as f64;
         if fluid_cutoff_y > adjusted_eye_y {
@@ -134,8 +134,8 @@ pub fn update_on_climbable(
         let instance = instance.read();
 
         let block_pos = BlockPos::from(position);
-        let block_state_at_feet = instance.get_block_state(&block_pos).unwrap_or_default();
-        let block_at_feet = Box::<dyn azalea_block::Block>::from(block_state_at_feet);
+        let block_state_at_feet = instance.get_block_state(block_pos).unwrap_or_default();
+        let block_at_feet = Box::<dyn azalea_block::BlockTrait>::from(block_state_at_feet);
         let registry_block_at_feet = block_at_feet.as_registry_block();
 
         **on_climbable = azalea_registry::tags::blocks::CLIMBABLE.contains(&registry_block_at_feet)
@@ -159,10 +159,10 @@ fn is_trapdoor_useable_as_ladder(
 
     // block below must be a ladder
     let block_below = instance
-        .get_block_state(&block_pos.down(1))
+        .get_block_state(block_pos.down(1))
         .unwrap_or_default();
     let registry_block_below =
-        Box::<dyn azalea_block::Block>::from(block_below).as_registry_block();
+        Box::<dyn azalea_block::BlockTrait>::from(block_below).as_registry_block();
     if registry_block_below != azalea_registry::Block::Ladder {
         return false;
     }
@@ -199,7 +199,7 @@ pub fn clamp_look_direction(mut query: Query<&mut LookDirection>) {
 /// Cached position in the world must be updated.
 pub fn update_bounding_box(mut query: Query<(&Position, &mut Physics), Changed<Position>>) {
     for (position, mut physics) in query.iter_mut() {
-        let bounding_box = physics.dimensions.make_bounding_box(position);
+        let bounding_box = physics.dimensions.make_bounding_box(**position);
         physics.bounding_box = bounding_box;
     }
 }
@@ -255,7 +255,7 @@ mod tests {
             &mut chunks,
         );
         partial_instance.chunks.set_block_state(
-            &BlockPos::new(0, 0, 0),
+            BlockPos::new(0, 0, 0),
             azalea_registry::Block::Stone.into(),
             &chunks,
         );
@@ -266,7 +266,7 @@ mod tests {
         };
         partial_instance
             .chunks
-            .set_block_state(&BlockPos::new(0, 0, 0), ladder.into(), &chunks);
+            .set_block_state(BlockPos::new(0, 0, 0), ladder.into(), &chunks);
 
         let trapdoor = OakTrapdoor {
             facing: FacingCardinal::East,
@@ -277,12 +277,12 @@ mod tests {
         };
         partial_instance
             .chunks
-            .set_block_state(&BlockPos::new(0, 1, 0), trapdoor.into(), &chunks);
+            .set_block_state(BlockPos::new(0, 1, 0), trapdoor.into(), &chunks);
 
         let instance = Instance::from(chunks);
         let trapdoor_matches_ladder = is_trapdoor_useable_as_ladder(
             instance
-                .get_block_state(&BlockPos::new(0, 1, 0))
+                .get_block_state(BlockPos::new(0, 1, 0))
                 .unwrap_or_default(),
             BlockPos::new(0, 1, 0),
             &instance,

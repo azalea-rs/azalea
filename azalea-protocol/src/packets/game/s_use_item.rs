@@ -7,7 +7,7 @@ use crate::packets::game::s_interact::InteractionHand;
 pub struct ServerboundUseItem {
     pub hand: InteractionHand,
     #[var]
-    pub sequence: u32,
+    pub seq: u32,
     pub y_rot: f32,
     pub x_rot: f32,
 }

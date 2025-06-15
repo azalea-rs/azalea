@@ -1,4 +1,4 @@
-use azalea_block::{Block, BlockState, fluid_state::FluidState};
+use azalea_block::{BlockState, BlockTrait, fluid_state::FluidState};
 use azalea_core::{
     aabb::AABB,
     position::{BlockPos, Vec3},
@@ -73,7 +73,7 @@ pub fn travel(
                 &world,
                 entity,
                 &mut physics,
-                &direction,
+                *direction,
                 position,
                 attributes,
                 sprinting,
@@ -86,13 +86,13 @@ pub fn travel(
                 &world,
                 entity,
                 &mut physics,
-                &direction,
+                *direction,
                 position,
                 attributes,
                 sprinting,
-                on_climbable,
+                *on_climbable,
                 pose,
-                jumping,
+                *jumping,
                 &physics_query,
                 &collidable_entity_query,
             );
@@ -106,25 +106,25 @@ fn travel_in_air(
     world: &Instance,
     entity: Entity,
     physics: &mut Physics,
-    direction: &LookDirection,
+    direction: LookDirection,
     position: Mut<Position>,
     attributes: &Attributes,
     sprinting: Sprinting,
-    on_climbable: &OnClimbable,
+    on_climbable: OnClimbable,
     pose: Option<&Pose>,
-    jumping: &Jumping,
+    jumping: Jumping,
     physics_query: &PhysicsQuery,
     collidable_entity_query: &CollidableEntityQuery,
 ) {
     let gravity = get_effective_gravity();
 
-    let block_pos_below = get_block_pos_below_that_affects_movement(&position);
+    let block_pos_below = get_block_pos_below_that_affects_movement(*position);
 
     let block_state_below = world
         .chunks
-        .get_block_state(&block_pos_below)
+        .get_block_state(block_pos_below)
         .unwrap_or(BlockState::AIR);
-    let block_below: Box<dyn Block> = block_state_below.into();
+    let block_below: Box<dyn BlockTrait> = block_state_below.into();
     let block_friction = block_below.behavior().friction;
 
     let inertia = if physics.on_ground() {
@@ -144,7 +144,7 @@ fn travel_in_air(
             attributes,
             is_sprinting: *sprinting,
             on_climbable,
-            pose,
+            pose: pose.copied(),
             jumping,
             entity,
             physics_query,
@@ -177,7 +177,7 @@ fn travel_in_fluid(
     world: &Instance,
     entity: Entity,
     physics: &mut Physics,
-    direction: &LookDirection,
+    direction: LookDirection,
     mut position: Mut<Position>,
     attributes: &Attributes,
     sprinting: Sprinting,
@@ -212,10 +212,10 @@ fn travel_in_fluid(
         //     waterMovementSpeed = 0.96F;
         // }
 
-        move_relative(physics, direction, speed, &acceleration);
+        move_relative(physics, direction, speed, acceleration);
         move_colliding(
             MoverType::Own,
-            &physics.velocity.clone(),
+            physics.velocity,
             world,
             &mut position,
             physics,
@@ -236,10 +236,10 @@ fn travel_in_fluid(
         physics.velocity =
             get_fluid_falling_adjusted_movement(gravity, moving_down, new_velocity, sprinting);
     } else {
-        move_relative(physics, direction, 0.02, &acceleration);
+        move_relative(physics, direction, 0.02, acceleration);
         move_colliding(
             MoverType::Own,
-            &physics.velocity.clone(),
+            physics.velocity,
             world,
             &mut position,
             physics,
@@ -392,7 +392,7 @@ fn contains_any_liquid(world: &Instance, bounding_box: AABB) -> bool {
             for z in min.z..max.z {
                 let block_state = world
                     .chunks
-                    .get_block_state(&BlockPos::new(x, y, z))
+                    .get_block_state(BlockPos::new(x, y, z))
                     .unwrap_or_default();
                 if !FluidState::from(block_state).is_empty() {
                     return true;

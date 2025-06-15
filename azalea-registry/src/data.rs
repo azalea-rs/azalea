@@ -24,7 +24,8 @@ impl<T: DataRegistry> Registry for T {
 }
 
 macro_rules! data_registry {
-    ($name:ident, $registry_name:expr) => {
+    ($(#[$doc:meta])* $name:ident, $registry_name:expr) => {
+        $(#[$doc])*
         #[derive(Debug, Clone, Copy, AzBuf, PartialEq, Eq, Hash)]
         pub struct $name {
             #[var]
@@ -57,7 +58,15 @@ data_registry! {PigVariant, "pig_variant"}
 data_registry! {PaintingVariant, "painting_variant"}
 data_registry! {WolfVariant, "wolf_variant"}
 
-data_registry! {Biome, "biome"}
+data_registry! {
+    /// An opaque biome identifier.
+    ///
+    /// You'll probably want to resolve this into its name before using it, by
+    /// using `Client::with_resolved_registry` or a similar function.
+    Biome,
+    "worldgen/biome"
+}
+
 // these extra traits are required for Biome to be allowed to be palletable
 impl Default for Biome {
     fn default() -> Self {

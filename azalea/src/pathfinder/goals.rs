@@ -1,6 +1,9 @@
 //! The goals that a pathfinder can try to reach.
 
-use std::{f32::consts::SQRT_2, fmt::Debug};
+use std::{
+    f32::consts::SQRT_2,
+    fmt::{self, Debug},
+};
 
 use azalea_core::position::{BlockPos, Vec3};
 use azalea_world::ChunkStorage;
@@ -29,7 +32,9 @@ impl Goal for BlockPosGoal {
         xz_heuristic(dx, dz) + y_heuristic(dy)
     }
     fn success(&self, n: BlockPos) -> bool {
-        n == self.0
+        // the second half of this condition is intended to fix issues when pathing to
+        // non-full blocks
+        n == self.0 || n.down(1) == self.0
     }
 }
 
@@ -111,14 +116,14 @@ impl Goal for RadiusGoal {
         let dx = (self.pos.x - n.x) as f32;
         let dy = (self.pos.y - n.y) as f32;
         let dz = (self.pos.z - n.z) as f32;
-        dx * dx + dy * dy + dz * dz
+        dx.powi(2) + dy.powi(2) + dz.powi(2)
     }
     fn success(&self, n: BlockPos) -> bool {
         let n = n.center();
         let dx = (self.pos.x - n.x) as f32;
         let dy = (self.pos.y - n.y) as f32;
         let dz = (self.pos.z - n.z) as f32;
-        dx * dx + dy * dy + dz * dz <= self.radius * self.radius
+        dx.powi(2) + dy.powi(2) + dz.powi(2) <= self.radius.powi(2)
     }
 }
 
@@ -191,7 +196,7 @@ impl<T: Goal> Goal for AndGoals<T> {
 }
 
 /// Move to a position where we can reach the given block.
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct ReachBlockPosGoal {
     pub pos: BlockPos,
     pub distance: f64,
@@ -218,21 +223,36 @@ impl Goal for ReachBlockPosGoal {
         BlockPosGoal(self.pos).heuristic(n)
     }
     fn success(&self, n: BlockPos) -> bool {
+        if n.up(1) == self.pos {
+            // our head is in the block, assume it's always reachable (to reduce the amount
+            // of impossible goals)
+            return true;
+        }
+
         // only do the expensive check if we're close enough
-        let distance = (self.pos - n).length_squared();
-        if distance > self.max_check_distance * self.max_check_distance {
+        let distance_squared = self.pos.distance_squared_to(n);
+        if distance_squared > self.max_check_distance.pow(2) {
             return false;
         }
 
-        let eye_position = n.to_vec3_floored() + Vec3::new(0.5, 1.62, 0.5);
-        let look_direction = crate::direction_looking_at(&eye_position, &self.pos.center());
+        let eye_position = n.center_bottom().up(1.62);
+        let look_direction = crate::direction_looking_at(eye_position, self.pos.center());
         let block_hit_result = azalea_client::interact::pick_block(
-            &look_direction,
-            &eye_position,
+            look_direction,
+            eye_position,
             &self.chunk_storage,
             self.distance,
         );
 
         block_hit_result.block_pos == self.pos
+    }
+}
+impl Debug for ReachBlockPosGoal {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("ReachBlockPosGoal")
+            .field("pos", &self.pos)
+            .field("distance", &self.distance)
+            .field("max_check_distance", &self.max_check_distance)
+            .finish()
     }
 }

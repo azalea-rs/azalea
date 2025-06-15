@@ -92,10 +92,10 @@ pub trait BotClientExt {
     fn get_tick_broadcaster(&self) -> tokio::sync::broadcast::Receiver<()>;
     /// Get a receiver that will receive a message every ECS Update.
     fn get_update_broadcaster(&self) -> tokio::sync::broadcast::Receiver<()>;
-    /// Wait for one tick.
-    fn wait_one_tick(&self) -> impl Future<Output = ()> + Send;
-    /// Wait for one ECS Update.
-    fn wait_one_update(&self) -> impl Future<Output = ()> + Send;
+    /// Wait for the specified number of game ticks.
+    fn wait_ticks(&self, n: usize) -> impl Future<Output = ()> + Send;
+    /// Wait for the specified number of ECS `Update`s.
+    fn wait_updates(&self, n: usize) -> impl Future<Output = ()> + Send;
     /// Mine a block. This won't turn the bot's head towards the block, so if
     /// that's necessary you'll have to do that yourself with [`look_at`].
     ///
@@ -156,23 +156,32 @@ impl BotClientExt for azalea_client::Client {
         update_broadcast.subscribe()
     }
 
-    /// Wait for one tick using [`Self::get_tick_broadcaster`].
+    /// Wait for the specified number of ticks using
+    /// [`Self::get_tick_broadcaster`].
     ///
     /// If you're going to run this in a loop, you may want to use that function
-    /// instead and use the `Receiver` from it as it'll be more efficient.
-    async fn wait_one_tick(&self) {
+    /// instead and use the `Receiver` from it to avoid accidentally skipping
+    /// ticks and having to wait longer.
+    async fn wait_ticks(&self, n: usize) {
         let mut receiver = self.get_tick_broadcaster();
-        // wait for the next tick
-        let _ = receiver.recv().await;
+        for _ in 0..n {
+            let _ = receiver.recv().await;
+        }
     }
-    /// Waits for one ECS Update using [`Self::get_update_broadcaster`].
+    /// Waits for the specified number of ECS `Update`s using
+    /// [`Self::get_update_broadcaster`].
+    ///
+    /// These are basically equivalent to frames because even though we have no
+    /// rendering, some game mechanics depend on frames.
     ///
     /// If you're going to run this in a loop, you may want to use that function
-    /// instead and use the `Receiver` from it as it'll be more efficient.
-    async fn wait_one_update(&self) {
+    /// instead and use the `Receiver` from it to avoid accidentally skipping
+    /// ticks and having to wait longer.
+    async fn wait_updates(&self, n: usize) {
         let mut receiver = self.get_update_broadcaster();
-        // wait for the next tick
-        let _ = receiver.recv().await;
+        for _ in 0..n {
+            let _ = receiver.recv().await;
+        }
     }
 
     async fn mine(&self, position: BlockPos) {
@@ -220,11 +229,8 @@ fn look_at_listener(
     for event in events.read() {
         if let Ok((position, eye_height, mut look_direction)) = query.get_mut(event.entity) {
             let new_look_direction =
-                direction_looking_at(&position.up(eye_height.into()), &event.position);
-            trace!(
-                "look at {:?} (currently at {:?})",
-                event.position, **position
-            );
+                direction_looking_at(position.up(eye_height.into()), event.position);
+            trace!("look at {} (currently at {})", event.position, **position);
             *look_direction = new_look_direction;
         }
     }
@@ -232,7 +238,7 @@ fn look_at_listener(
 
 /// Return the look direction that would make a client at `current` be
 /// looking at `target`.
-pub fn direction_looking_at(current: &Vec3, target: &Vec3) -> LookDirection {
+pub fn direction_looking_at(current: Vec3, target: Vec3) -> LookDirection {
     // borrowed from mineflayer's Bot.lookAt because i didn't want to do math
     let delta = target - current;
     let y_rot = (PI - f64::atan2(-delta.x, -delta.z)) * (180.0 / PI);

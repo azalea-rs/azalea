@@ -35,7 +35,7 @@ pub enum MoverType {
 
 // Entity.collide
 fn collide(
-    movement: &Vec3,
+    movement: Vec3,
     world: &Instance,
     physics: &azalea_entity::Physics,
     source_entity: Option<Entity>,
@@ -51,7 +51,7 @@ fn collide(
         collidable_entity_query,
     );
     let collided_delta = if movement.length_squared() == 0.0 {
-        *movement
+        movement
     } else {
         collide_bounding_box(movement, &entity_bounding_box, world, &entity_collisions)
     };
@@ -65,20 +65,20 @@ fn collide(
     let max_up_step = 0.6;
     if max_up_step > 0. && on_ground && (x_collision || z_collision) {
         let mut step_to_delta = collide_bounding_box(
-            &movement.with_y(max_up_step),
+            movement.with_y(max_up_step),
             &entity_bounding_box,
             world,
             &entity_collisions,
         );
         let directly_up_delta = collide_bounding_box(
-            &Vec3::ZERO.with_y(max_up_step),
-            &entity_bounding_box.expand_towards(&Vec3::new(movement.x, 0., movement.z)),
+            Vec3::ZERO.with_y(max_up_step),
+            &entity_bounding_box.expand_towards(Vec3::new(movement.x, 0., movement.z)),
             world,
             &entity_collisions,
         );
         if directly_up_delta.y < max_up_step {
             let target_movement = collide_bounding_box(
-                &movement.with_y(0.),
+                movement.with_y(0.),
                 &entity_bounding_box.move_relative(directly_up_delta),
                 world,
                 &entity_collisions,
@@ -95,7 +95,7 @@ fn collide(
             > collided_delta.horizontal_distance_squared()
         {
             return step_to_delta.add(collide_bounding_box(
-                &Vec3::ZERO.with_y(-step_to_delta.y + movement.y),
+                Vec3::ZERO.with_y(-step_to_delta.y + movement.y),
                 &entity_bounding_box.move_relative(step_to_delta),
                 world,
                 &entity_collisions,
@@ -112,7 +112,7 @@ fn collide(
 #[allow(clippy::too_many_arguments)]
 pub fn move_colliding(
     _mover_type: MoverType,
-    movement: &Vec3,
+    movement: Vec3,
     world: &Instance,
     position: &mut Mut<azalea_entity::Position>,
     physics: &mut azalea_entity::Physics,
@@ -180,7 +180,7 @@ pub fn move_colliding(
 
     // TODO: minecraft checks for a "minor" horizontal collision here
 
-    let _block_pos_below = azalea_entity::on_pos_legacy(&world.chunks, position);
+    let _block_pos_below = azalea_entity::on_pos_legacy(&world.chunks, **position);
     // let _block_state_below = self
     //     .world
     //     .get_block_state(&block_pos_below)
@@ -239,7 +239,7 @@ pub fn move_colliding(
 }
 
 fn collide_bounding_box(
-    movement: &Vec3,
+    movement: Vec3,
     entity_bounding_box: &AABB,
     world: &Instance,
     entity_collisions: &[VoxelShape],
@@ -259,76 +259,53 @@ fn collide_bounding_box(
 }
 
 fn collide_with_shapes(
-    movement: &Vec3,
+    mut movement: Vec3,
     mut entity_box: AABB,
-    collision_boxes: &Vec<VoxelShape>,
+    collision_boxes: &[VoxelShape],
 ) -> Vec3 {
     if collision_boxes.is_empty() {
-        return *movement;
+        return movement;
     }
 
-    let mut x_movement = movement.x;
-    let mut y_movement = movement.y;
-    let mut z_movement = movement.z;
-    if y_movement != 0. {
-        y_movement = Shapes::collide(&Axis::Y, &entity_box, collision_boxes, y_movement);
-        if y_movement != 0. {
-            entity_box = entity_box.move_relative(Vec3 {
-                x: 0.,
-                y: y_movement,
-                z: 0.,
-            });
+    if movement.y != 0. {
+        movement.y = Shapes::collide(Axis::Y, &entity_box, collision_boxes, movement.y);
+        if movement.y != 0. {
+            entity_box = entity_box.move_relative(Vec3::new(0., movement.y, 0.));
         }
     }
 
     // whether the player is moving more in the z axis than x
     // this is done to fix a movement bug, minecraft does this too
-    let more_z_movement = x_movement.abs() < z_movement.abs();
+    let more_z_movement = movement.x.abs() < movement.z.abs();
 
-    if more_z_movement && z_movement != 0. {
-        z_movement = Shapes::collide(&Axis::Z, &entity_box, collision_boxes, z_movement);
-        if z_movement != 0. {
-            entity_box = entity_box.move_relative(Vec3 {
-                x: 0.,
-                y: 0.,
-                z: z_movement,
-            });
+    if more_z_movement && movement.z != 0. {
+        movement.z = Shapes::collide(Axis::Z, &entity_box, collision_boxes, movement.z);
+        if movement.z != 0. {
+            entity_box = entity_box.move_relative(Vec3::new(0., 0., movement.z));
         }
     }
 
-    if x_movement != 0. {
-        x_movement = Shapes::collide(&Axis::X, &entity_box, collision_boxes, x_movement);
-        if x_movement != 0. {
-            entity_box = entity_box.move_relative(Vec3 {
-                x: x_movement,
-                y: 0.,
-                z: 0.,
-            });
+    if movement.x != 0. {
+        movement.x = Shapes::collide(Axis::X, &entity_box, collision_boxes, movement.x);
+        if movement.x != 0. {
+            entity_box = entity_box.move_relative(Vec3::new(movement.x, 0., 0.));
         }
     }
 
-    if !more_z_movement && z_movement != 0. {
-        z_movement = Shapes::collide(&Axis::Z, &entity_box, collision_boxes, z_movement);
+    if !more_z_movement && movement.z != 0. {
+        movement.z = Shapes::collide(Axis::Z, &entity_box, collision_boxes, movement.z);
     }
 
-    Vec3 {
-        x: x_movement,
-        y: y_movement,
-        z: z_movement,
-    }
+    movement
 }
 
 /// Get the [`VoxelShape`] for the given fluid state.
 ///
 /// The instance and position are required so it can check if the block above is
 /// also the same fluid type.
-pub fn fluid_shape(
-    fluid: &FluidState,
-    world: &ChunkStorage,
-    pos: &BlockPos,
-) -> &'static VoxelShape {
+pub fn fluid_shape(fluid: &FluidState, world: &ChunkStorage, pos: BlockPos) -> &'static VoxelShape {
     if fluid.amount == 9 {
-        let fluid_state_above = world.get_fluid_state(&pos.up(1)).unwrap_or_default();
+        let fluid_state_above = world.get_fluid_state(pos.up(1)).unwrap_or_default();
         if fluid_state_above.kind == fluid.kind {
             return &BLOCK_SHAPE;
         }
@@ -379,7 +356,7 @@ pub fn legacy_blocks_motion(block: BlockState) -> bool {
 
 pub fn legacy_calculate_solid(block: BlockState) -> bool {
     // force_solid has to be checked before anything else
-    let block_trait = Box::<dyn azalea_block::Block>::from(block);
+    let block_trait = Box::<dyn azalea_block::BlockTrait>::from(block);
     if let Some(solid) = block_trait.behavior().force_solid {
         return solid;
     }

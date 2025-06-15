@@ -34,7 +34,7 @@ macro_rules! vec3_impl {
             /// Get the squared distance from this position to another position.
             /// Equivalent to `(self - other).length_squared()`.
             #[inline]
-            pub fn distance_squared_to(&self, other: &Self) -> $type {
+            pub fn distance_squared_to(self, other: Self) -> $type {
                 (self - other).length_squared()
             }
 
@@ -44,7 +44,7 @@ macro_rules! vec3_impl {
             }
 
             #[inline]
-            pub fn horizontal_distance_squared_to(&self, other: &Self) -> $type {
+            pub fn horizontal_distance_squared_to(self, other: Self) -> $type {
                 (self - other).horizontal_distance_squared()
             }
 
@@ -113,6 +113,23 @@ macro_rules! vec3_impl {
             #[inline]
             pub fn dot(&self, other: Self) -> $type {
                 self.x * other.x + self.y * other.y + self.z * other.z
+            }
+
+            /// Make a new position with the lower coordinates for each axis.
+            pub fn min(&self, other: Self) -> Self {
+                Self {
+                    x: self.x.min(other.x),
+                    y: self.x.min(other.y),
+                    z: self.x.min(other.z),
+                }
+            }
+            /// Make a new position with the higher coordinates for each axis.
+            pub fn max(&self, other: Self) -> Self {
+                Self {
+                    x: self.x.max(other.x),
+                    y: self.x.max(other.y),
+                    z: self.x.max(other.z),
+                }
             }
 
             /// Replace the Y with 0.
@@ -298,7 +315,7 @@ impl Vec3 {
 
     /// Get the distance from this position to another position.
     /// Equivalent to `(self - other).length()`.
-    pub fn distance_to(&self, other: &Self) -> f64 {
+    pub fn distance_to(self, other: Self) -> f64 {
         (self - other).length()
     }
 
@@ -335,8 +352,9 @@ impl Vec3 {
     }
 }
 
-/// The coordinates of a block in the world. For entities (if the coordinate
-/// have decimals), use [`Vec3`] instead.
+/// The coordinates of a block in the world.
+///
+/// For entities (if the coordinates are floating-point), use [`Vec3`] instead.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct BlockPos {
@@ -357,6 +375,16 @@ impl BlockPos {
         }
     }
 
+    /// Get the center of the bottom of a block position by adding 0.5 to the x
+    /// and z coordinates.
+    pub fn center_bottom(&self) -> Vec3 {
+        Vec3 {
+            x: self.x as f64 + 0.5,
+            y: self.y as f64,
+            z: self.z as f64 + 0.5,
+        }
+    }
+
     /// Convert the block position into a Vec3 without centering it.
     pub fn to_vec3_floored(&self) -> Vec3 {
         Vec3 {
@@ -371,42 +399,24 @@ impl BlockPos {
         (self.x.abs() + self.y.abs() + self.z.abs()) as u32
     }
 
-    /// Make a new BlockPos with the lower coordinates for each axis.
-    ///
-    /// ```
-    /// # use azalea_core::position::BlockPos;
-    /// assert_eq!(
-    ///     BlockPos::min(&BlockPos::new(1, 20, 300), &BlockPos::new(50, 40, 30),),
-    ///     BlockPos::new(1, 20, 30),
-    /// );
-    /// ```
-    pub fn min(&self, other: &Self) -> Self {
-        Self {
-            x: self.x.min(other.x),
-            y: self.y.min(other.y),
-            z: self.z.min(other.z),
-        }
-    }
-
-    /// Make a new BlockPos with the higher coordinates for each axis.
-    ///
-    /// ```
-    /// # use azalea_core::position::BlockPos;
-    /// assert_eq!(
-    ///     BlockPos::max(&BlockPos::new(1, 20, 300), &BlockPos::new(50, 40, 30),),
-    ///     BlockPos::new(50, 40, 300),
-    /// );
-    /// ```
-    pub fn max(&self, other: &Self) -> Self {
-        Self {
-            x: self.x.max(other.x),
-            y: self.y.max(other.y),
-            z: self.z.max(other.z),
-        }
-    }
-
     pub fn offset_with_direction(self, direction: Direction) -> Self {
         self + direction.normal()
+    }
+
+    /// Get the distance (as an f64) of this BlockPos to the origin by
+    /// doing `sqrt(x^2 + y^2 + z^2)`.
+    pub fn length(&self) -> f64 {
+        f64::sqrt((self.x * self.x + self.y * self.y + self.z * self.z) as f64)
+    }
+
+    /// Get the distance (as an f64) from this position to another position.
+    /// Equivalent to `(self - other).length()`.
+    ///
+    /// Note that if you're using this in a hot path, it may be more performant
+    /// to use [`BlockPos::distance_squared_to`] instead (by squaring the other
+    /// side in the comparison).
+    pub fn distance_to(self, other: Self) -> f64 {
+        (self - other).length()
     }
 }
 
@@ -441,6 +451,17 @@ impl Add<ChunkPos> for ChunkPos {
         Self {
             x: self.x + rhs.x,
             z: self.z + rhs.z,
+        }
+    }
+}
+impl Add<ChunkBlockPos> for ChunkPos {
+    type Output = BlockPos;
+
+    fn add(self, rhs: ChunkBlockPos) -> Self::Output {
+        BlockPos {
+            x: self.x * 16 + rhs.x as i32,
+            y: rhs.y,
+            z: self.z * 16 + rhs.z as i32,
         }
     }
 }
@@ -567,6 +588,12 @@ impl From<&ChunkBiomePos> for ChunkSectionBiomePos {
         }
     }
 }
+impl From<ChunkBiomePos> for ChunkSectionBiomePos {
+    #[inline]
+    fn from(pos: ChunkBiomePos) -> Self {
+        Self::from(&pos)
+    }
+}
 vec3_impl!(ChunkSectionBiomePos, u8);
 
 /// The coordinates of a biome inside a chunk. Biomes are 4x4 blocks.
@@ -579,6 +606,12 @@ pub struct ChunkBiomePos {
 impl From<&BlockPos> for ChunkBiomePos {
     #[inline]
     fn from(pos: &BlockPos) -> Self {
+        ChunkBiomePos::from(&ChunkBlockPos::from(pos))
+    }
+}
+impl From<BlockPos> for ChunkBiomePos {
+    #[inline]
+    fn from(pos: BlockPos) -> Self {
         ChunkBiomePos::from(&ChunkBlockPos::from(pos))
     }
 }

@@ -8,7 +8,7 @@ pub mod travel;
 
 use std::collections::HashSet;
 
-use azalea_block::{Block, BlockState, fluid_state::FluidState, properties};
+use azalea_block::{BlockState, BlockTrait, fluid_state::FluidState, properties};
 use azalea_core::{
     math,
     position::{BlockPos, Vec3},
@@ -18,6 +18,7 @@ use azalea_entity::{
     Attributes, InLoadedChunk, Jumping, LocalEntity, LookDirection, OnClimbable, Physics, Pose,
     Position, metadata::Sprinting, move_relative,
 };
+use azalea_registry::Block;
 use azalea_world::{Instance, InstanceContainer, InstanceName};
 use bevy_app::{App, Plugin};
 use bevy_ecs::prelude::*;
@@ -110,9 +111,9 @@ pub fn ai_step(
                     {
                         jump_from_ground(
                             &mut physics,
-                            position,
-                            look_direction,
-                            sprinting,
+                            *position,
+                            *look_direction,
+                            *sprinting,
                             instance_name,
                             &instance_container,
                         );
@@ -187,17 +188,17 @@ fn check_inside_blocks(
     for movement in movements {
         let bounding_box_at_target = physics
             .dimensions
-            .make_bounding_box(&movement.to)
+            .make_bounding_box(movement.to)
             .deflate_all(1.0E-5);
 
         for traversed_block in
-            box_traverse_blocks(&movement.from, &movement.to, &bounding_box_at_target)
+            box_traverse_blocks(movement.from, movement.to, &bounding_box_at_target)
         {
             // if (!this.isAlive()) {
             //     return;
             // }
 
-            let traversed_block_state = world.get_block_state(&traversed_block).unwrap_or_default();
+            let traversed_block_state = world.get_block_state(traversed_block).unwrap_or_default();
             if traversed_block_state.is_air() {
                 continue;
             }
@@ -221,8 +222,8 @@ fn check_inside_blocks(
 
             if entity_inside_collision_shape != &*BLOCK_SHAPE
                 && !collided_with_shape_moving_from(
-                    &movement.from,
-                    &movement.to,
+                    movement.from,
+                    movement.to,
                     traversed_block,
                     entity_inside_collision_shape,
                     physics,
@@ -241,8 +242,8 @@ fn check_inside_blocks(
 }
 
 fn collided_with_shape_moving_from(
-    from: &Vec3,
-    to: &Vec3,
+    from: Vec3,
+    to: Vec3,
     traversed_block: BlockPos,
     entity_inside_collision_shape: &VoxelShape,
     physics: &Physics,
@@ -268,7 +269,7 @@ fn handle_entity_inside_block(
     #[allow(clippy::single_match)]
     match registry_block {
         azalea_registry::Block::BubbleColumn => {
-            let block_above = world.get_block_state(&block_pos.up(1)).unwrap_or_default();
+            let block_above = world.get_block_state(block_pos.up(1)).unwrap_or_default();
             let is_block_above_empty =
                 block_above.is_collision_shape_empty() && FluidState::from(block_above).is_empty();
             let drag_down = block
@@ -304,9 +305,9 @@ pub struct EntityMovement {
 
 pub fn jump_from_ground(
     physics: &mut Physics,
-    position: &Position,
-    look_direction: &LookDirection,
-    sprinting: &Sprinting,
+    position: Position,
+    look_direction: LookDirection,
+    sprinting: Sprinting,
     instance_name: &InstanceName,
     instance_container: &InstanceContainer,
 ) {
@@ -322,7 +323,7 @@ pub fn jump_from_ground(
         y: jump_power,
         z: old_delta_movement.z,
     };
-    if **sprinting {
+    if *sprinting {
         // sprint jumping gives some extra velocity
         let y_rot = look_direction.y_rot * 0.017453292;
         physics.velocity += Vec3 {
@@ -337,11 +338,11 @@ pub fn jump_from_ground(
 
 pub fn update_old_position(mut query: Query<(&mut Physics, &Position)>) {
     for (mut physics, position) in &mut query {
-        physics.set_old_pos(position);
+        physics.set_old_pos(*position);
     }
 }
 
-fn get_block_pos_below_that_affects_movement(position: &Position) -> BlockPos {
+fn get_block_pos_below_that_affects_movement(position: Position) -> BlockPos {
     BlockPos::new(
         position.x.floor() as i32,
         // TODO: this uses bounding_box.min_y instead of position.y
@@ -355,13 +356,13 @@ struct HandleRelativeFrictionAndCalculateMovementOpts<'a, 'b, 'world, 'state> {
     block_friction: f32,
     world: &'a Instance,
     physics: &'a mut Physics,
-    direction: &'a LookDirection,
+    direction: LookDirection,
     position: Mut<'a, Position>,
     attributes: &'a Attributes,
     is_sprinting: bool,
-    on_climbable: &'a OnClimbable,
-    pose: Option<&'a Pose>,
-    jumping: &'a Jumping,
+    on_climbable: OnClimbable,
+    pose: Option<Pose>,
+    jumping: Jumping,
     entity: Entity,
     physics_query: &'a PhysicsQuery<'world, 'state, 'b>,
     collidable_entity_query: &'a CollidableEntityQuery<'world, 'state>,
@@ -387,18 +388,18 @@ fn handle_relative_friction_and_calculate_movement(
         physics,
         direction,
         get_friction_influenced_speed(physics, attributes, block_friction, is_sprinting),
-        &Vec3 {
-            x: physics.x_acceleration as f64,
-            y: physics.y_acceleration as f64,
-            z: physics.z_acceleration as f64,
-        },
+        Vec3::new(
+            physics.x_acceleration as f64,
+            physics.y_acceleration as f64,
+            physics.z_acceleration as f64,
+        ),
     );
 
-    physics.velocity = handle_on_climbable(physics.velocity, on_climbable, &position, world, pose);
+    physics.velocity = handle_on_climbable(physics.velocity, on_climbable, *position, world, pose);
 
     move_colliding(
         MoverType::Own,
-        &physics.velocity.clone(),
+        physics.velocity,
         world,
         &mut position,
         physics,
@@ -414,14 +415,14 @@ fn handle_relative_friction_and_calculate_movement(
     // PowderSnowBlock.canEntityWalkOnPowderSnow(entity))) {      var3 = new
     // Vec3(var3.x, 0.2D, var3.z);   }
 
-    if physics.horizontal_collision || **jumping {
-        let block_at_feet: azalea_registry::Block = world
+    if physics.horizontal_collision || *jumping {
+        let block_at_feet: Block = world
             .chunks
-            .get_block_state(&(*position).into())
+            .get_block_state((*position).into())
             .unwrap_or_default()
             .into();
 
-        if **on_climbable || block_at_feet == azalea_registry::Block::PowderSnow {
+        if *on_climbable || block_at_feet == Block::PowderSnow {
             physics.velocity.y = 0.2;
         }
     }
@@ -431,12 +432,12 @@ fn handle_relative_friction_and_calculate_movement(
 
 fn handle_on_climbable(
     velocity: Vec3,
-    on_climbable: &OnClimbable,
-    position: &Position,
+    on_climbable: OnClimbable,
+    position: Position,
     world: &Instance,
-    pose: Option<&Pose>,
+    pose: Option<Pose>,
 ) -> Vec3 {
-    if !**on_climbable {
+    if !*on_climbable {
         return velocity;
     }
 
@@ -450,11 +451,11 @@ fn handle_on_climbable(
 
     // sneaking on ladders/vines
     if y < 0.0
-        && pose.copied() == Some(Pose::Sneaking)
+        && pose == Some(Pose::Sneaking)
         && azalea_registry::Block::from(
             world
                 .chunks
-                .get_block_state(&position.into())
+                .get_block_state(position.into())
                 .unwrap_or_default(),
         ) != azalea_registry::Block::Scaffolding
     {
@@ -485,14 +486,14 @@ fn get_friction_influenced_speed(
 
 /// Returns the what the entity's jump should be multiplied by based on the
 /// block they're standing on.
-fn block_jump_factor(world: &Instance, position: &Position) -> f32 {
-    let block_at_pos = world.chunks.get_block_state(&position.into());
+fn block_jump_factor(world: &Instance, position: Position) -> f32 {
+    let block_at_pos = world.chunks.get_block_state(position.into());
     let block_below = world
         .chunks
-        .get_block_state(&get_block_pos_below_that_affects_movement(position));
+        .get_block_state(get_block_pos_below_that_affects_movement(position));
 
     let block_at_pos_jump_factor = if let Some(block) = block_at_pos {
-        Box::<dyn Block>::from(block).behavior().jump_factor
+        Box::<dyn BlockTrait>::from(block).behavior().jump_factor
     } else {
         1.
     };
@@ -501,7 +502,7 @@ fn block_jump_factor(world: &Instance, position: &Position) -> f32 {
     }
 
     if let Some(block) = block_below {
-        Box::<dyn Block>::from(block).behavior().jump_factor
+        Box::<dyn BlockTrait>::from(block).behavior().jump_factor
     } else {
         1.
     }
@@ -513,7 +514,7 @@ fn block_jump_factor(world: &Instance, position: &Position) -> f32 {
 // public double getJumpBoostPower() {
 //     return this.hasEffect(MobEffects.JUMP) ? (double)(0.1F *
 // (float)(this.getEffect(MobEffects.JUMP).getAmplifier() + 1)) : 0.0D; }
-fn jump_power(world: &Instance, position: &Position) -> f32 {
+fn jump_power(world: &Instance, position: Position) -> f32 {
     0.42 * block_jump_factor(world, position)
 }
 

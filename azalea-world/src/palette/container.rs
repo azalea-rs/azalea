@@ -192,19 +192,10 @@ impl<S: PalletedContainerKind> PalettedContainer<S> {
     /// Sets the id at the given coordinates and return the previous id
     pub fn get_and_set(&mut self, pos: S::SectionPos, value: S) -> S {
         let paletted_value = self.id_for(value);
-        let block_state_id = self
+        let old_paletted_value = self
             .storage
             .get_and_set(self.index_from_coords(pos), paletted_value as u64);
-        // error in debug mode
-        #[cfg(debug_assertions)]
-        if block_state_id > BlockState::MAX_STATE.into() {
-            warn!(
-                "Old block state from get_and_set {block_state_id} was greater than max state {}",
-                BlockState::MAX_STATE
-            );
-        }
-
-        S::try_from(block_state_id as u32).unwrap_or_default()
+        self.palette.value_for(old_paletted_value as usize)
     }
 
     /// Sets the id at the given index and return the previous id. You probably

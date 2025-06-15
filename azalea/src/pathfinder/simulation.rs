@@ -3,7 +3,7 @@
 use std::sync::Arc;
 
 use azalea_client::{
-    PhysicsState, interact::CurrentSequenceNumber, inventory::Inventory,
+    PhysicsState, interact::BlockStatePredictionHandler, inventory::Inventory,
     local_player::LocalGameMode, mining::MineBundle, packet::game::SendPacketEvent,
 };
 use azalea_core::{
@@ -113,7 +113,7 @@ fn create_simulation_player_complete_bundle(
         Inventory::default(),
         LocalGameMode::from(GameMode::Survival),
         MineBundle::default(),
-        CurrentSequenceNumber::default(),
+        BlockStatePredictionHandler::default(),
         azalea_client::local_player::PermissionLevel::default(),
         azalea_client::local_player::PlayerAbilities::default(),
     )

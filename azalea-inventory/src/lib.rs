@@ -1,4 +1,5 @@
-/// Representations of various inventory data structures in Minecraft.
+//! Representations of various inventory data structures in Minecraft.
+
 pub mod components;
 pub mod item;
 pub mod operations;
@@ -32,6 +33,11 @@ impl<const N: usize> Default for SlotList<N> {
         SlotList([(); N].map(|_| ItemStack::Empty))
     }
 }
+impl<const N: usize> SlotList<N> {
+    pub fn new(items: [ItemStack; N]) -> Self {
+        SlotList(items)
+    }
+}
 
 impl Menu {
     /// Get the [`Player`] from this [`Menu`].
@@ -44,6 +50,20 @@ impl Menu {
             player
         } else {
             unreachable!("Called `Menu::as_player` on a menu that wasn't `Player`.")
+        }
+    }
+
+    /// Same as [`Menu::as_player`], but returns a mutable reference to the
+    /// [`Player`].
+    ///
+    /// # Panics
+    ///
+    /// Will panic if the menu isn't `Menu::Player`.
+    pub fn as_player_mut(&mut self) -> &mut Player {
+        if let Menu::Player(player) = self {
+            player
+        } else {
+            unreachable!("Called `Menu::as_player_mut` on a menu that wasn't `Player`.")
         }
     }
 }
