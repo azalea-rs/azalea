@@ -215,7 +215,7 @@ fn travel_in_fluid(
         move_relative(physics, direction, speed, acceleration);
         move_colliding(
             MoverType::Own,
-            physics.velocity.clone(),
+            physics.velocity,
             world,
             &mut position,
             physics,

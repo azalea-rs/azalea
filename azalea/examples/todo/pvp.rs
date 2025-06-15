@@ -1,11 +1,11 @@
 use std::time::Duration;
 
-use azalea::ecs::query::With;
-use azalea::entity::metadata::Player;
-use azalea::{pathfinder, Account, Client, Event, GameProfileComponent};
-use azalea::{prelude::*, swarm::prelude::*};
+use azalea::{
+    Account, Client, Event, GameProfileComponent, ecs::query::With, entity::metadata::Player,
+    pathfinder, prelude::*, swarm::prelude::*,
+};
 
-#[tokio::main]
+#[tokio::main(flavor = "current_thread")]
 async fn main() {
     let mut accounts = Vec::new();
     let mut states = Vec::new();

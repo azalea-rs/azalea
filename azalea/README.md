@@ -46,7 +46,7 @@ use std::sync::Arc;
 use azalea::prelude::*;
 use parking_lot::Mutex;
 
-#[tokio::main]
+#[tokio::main(flavor = "current_thread")]
 async fn main() {
     let account = Account::offline("bot");
     // or Account::microsoft("example@example.com").await.unwrap();
@@ -109,6 +109,10 @@ If your code is simply hanging, it might be a deadlock. Enable `parking_lot`'s `
 ## Backtraces
 
 Backtraces are also useful, though they're sometimes hard to read and don't always contain the actual location of the error. Run your code with `RUST_BACKTRACE=1` to enable full backtraces. If it's very long, often searching for the keyword "azalea" will help you filter out unrelated things and find the actual source of the issue.
+
+# Using a single-threaded Tokio runtime
+
+Due to the fact that Azalea clients store the ECS in a Mutex that's frequently locked and unlocked, bots that rely on the `Client` or `Swarm` types may run into race condition bugs (like out-of-order events and ticks happening at suboptimal moments) if they do not set Tokio to use a single thread with `#[tokio::main(flavor = "current_thread")]`. This may change in a future version of Azalea. Setting this option will usually not result in a performance hit, and Azalea internally will keep using multiple threads for running the ECS itself (because Tokio is not used for this).
 
 [`azalea_client`]: https://docs.rs/azalea-client
 [`bevy_log`]: https://docs.rs/bevy_log

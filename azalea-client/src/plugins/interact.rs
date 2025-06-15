@@ -144,7 +144,7 @@ impl BlockStatePredictionHandler {
             .or_insert(ServerVerifiedState {
                 seq: self.seq,
                 block_state: old_state,
-                player_pos: player_pos,
+                player_pos,
             });
     }
 

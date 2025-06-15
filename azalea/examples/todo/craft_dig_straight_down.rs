@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
-use azalea::pathfinder;
-use azalea::prelude::*;
+use azalea::{pathfinder, prelude::*};
 use parking_lot::Mutex;
 
 #[derive(Default, Clone, Component)]
@@ -9,7 +8,7 @@ struct State {
     pub started: Arc<Mutex<bool>>,
 }
 
-#[tokio::main]
+#[tokio::main(flavor = "current_thread")]
 async fn main() {
     let account = Account::offline("bot");
     // or let bot = Account::microsoft("email").await;

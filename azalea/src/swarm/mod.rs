@@ -636,7 +636,7 @@ pub type BoxSwarmHandleFn<SS, R> =
 /// #[derive(Default, Clone, Resource)]
 /// struct SwarmState {}
 ///
-/// #[tokio::main]
+/// #[tokio::main(flavor = "current_thread")]
 /// async fn main() {
 ///     let mut accounts = Vec::new();
 ///     let mut states = Vec::new();
