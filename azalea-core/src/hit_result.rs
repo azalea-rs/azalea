@@ -1,3 +1,5 @@
+use bevy_ecs::entity::Entity;
+
 use crate::{
     direction::Direction,
     position::{BlockPos, Vec3},
@@ -9,30 +11,47 @@ use crate::{
 #[derive(Debug, Clone, PartialEq)]
 pub enum HitResult {
     Block(BlockHitResult),
-    /// TODO
-    Entity,
+    Entity(EntityHitResult),
 }
+
 impl HitResult {
-    pub fn is_miss(&self) -> bool {
+    pub fn miss(&self) -> bool {
         match self {
-            HitResult::Block(block_hit_result) => block_hit_result.miss,
-            HitResult::Entity => false,
+            HitResult::Block(r) => r.miss,
+            HitResult::Entity(_) => false,
+        }
+    }
+    pub fn location(&self) -> Vec3 {
+        match self {
+            HitResult::Block(r) => r.location,
+            HitResult::Entity(r) => r.location,
         }
     }
 
+    pub fn new_miss(location: Vec3, direction: Direction, block_pos: BlockPos) -> Self {
+        HitResult::Block(BlockHitResult {
+            location,
+            miss: true,
+            direction,
+            block_pos,
+            inside: false,
+            world_border: false,
+        })
+    }
+
     pub fn is_block_hit_and_not_miss(&self) -> bool {
-        match self {
-            HitResult::Block(block_hit_result) => !block_hit_result.miss,
-            HitResult::Entity => false,
-        }
+        matches!(self, HitResult::Block(r) if !r.miss)
     }
 
     /// Returns the [`BlockHitResult`], if we were looking at a block and it
     /// wasn't a miss.
     pub fn as_block_hit_result_if_not_miss(&self) -> Option<&BlockHitResult> {
-        match self {
-            HitResult::Block(block_hit_result) if !block_hit_result.miss => Some(block_hit_result),
-            _ => None,
+        if let HitResult::Block(r) = self
+            && !r.miss
+        {
+            Some(r)
+        } else {
+            None
         }
     }
 }
@@ -40,20 +59,21 @@ impl HitResult {
 #[derive(Debug, Clone, PartialEq)]
 pub struct BlockHitResult {
     pub location: Vec3,
+    pub miss: bool,
+
     pub direction: Direction,
     pub block_pos: BlockPos,
     pub inside: bool,
     pub world_border: bool,
-    pub miss: bool,
 }
-
 impl BlockHitResult {
     pub fn miss(location: Vec3, direction: Direction, block_pos: BlockPos) -> Self {
         Self {
             location,
+            miss: true,
+
             direction,
             block_pos,
-            miss: true,
             inside: false,
             world_border: false,
         }
@@ -64,5 +84,22 @@ impl BlockHitResult {
     }
     pub fn with_position(&self, block_pos: BlockPos) -> Self {
         Self { block_pos, ..*self }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct EntityHitResult {
+    pub location: Vec3,
+    pub entity: Entity,
+}
+
+impl From<BlockHitResult> for HitResult {
+    fn from(value: BlockHitResult) -> Self {
+        HitResult::Block(value)
+    }
+}
+impl From<EntityHitResult> for HitResult {
+    fn from(value: EntityHitResult) -> Self {
+        HitResult::Entity(value)
     }
 }

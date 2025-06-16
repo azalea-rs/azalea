@@ -25,6 +25,7 @@ use azalea_core::{
     position::{BlockPos, ChunkPos, Vec3},
     resource_location::ResourceLocation,
 };
+use azalea_registry::EntityKind;
 use azalea_world::{ChunkStorage, InstanceName};
 use bevy_ecs::{bundle::Bundle, component::Component};
 pub use data::*;
@@ -426,13 +427,13 @@ impl From<&EyeHeight> for f64 {
 /// Most of the time, you should be using `azalea_registry::EntityKind`
 /// directly instead.
 #[derive(Component, Clone, Copy, Debug, PartialEq, Deref)]
-pub struct EntityKind(pub azalea_registry::EntityKind);
+pub struct EntityKindComponent(pub azalea_registry::EntityKind);
 
 /// A bundle of components that every entity has. This doesn't contain metadata,
 /// that has to be added separately.
 #[derive(Bundle)]
 pub struct EntityBundle {
-    pub kind: EntityKind,
+    pub kind: EntityKindComponent,
     pub uuid: EntityUuid,
     pub world_name: InstanceName,
     pub position: Position,
@@ -465,7 +466,7 @@ impl EntityBundle {
         };
 
         Self {
-            kind: EntityKind(kind),
+            kind: EntityKindComponent(kind),
             uuid: EntityUuid(uuid),
             world_name: InstanceName(world_name),
             position: Position(pos),
@@ -475,18 +476,24 @@ impl EntityBundle {
             eye_height: EyeHeight(eye_height),
             direction: LookDirection::default(),
 
-            attributes: Attributes {
-                // TODO: do the correct defaults for everything, some
-                // entities have different defaults
-                speed: AttributeInstance::new(0.1),
-                attack_speed: AttributeInstance::new(4.0),
-                water_movement_efficiency: AttributeInstance::new(0.0),
-            },
+            attributes: default_attributes(EntityKind::Player),
 
             jumping: Jumping(false),
             fluid_on_eyes: FluidOnEyes(FluidKind::Empty),
             on_climbable: OnClimbable(false),
         }
+    }
+}
+
+pub fn default_attributes(_entity_kind: EntityKind) -> Attributes {
+    // TODO: do the correct defaults for everything, some
+    // entities have different defaults
+    Attributes {
+        speed: AttributeInstance::new(0.1),
+        attack_speed: AttributeInstance::new(4.0),
+        water_movement_efficiency: AttributeInstance::new(0.0),
+        block_interaction_range: AttributeInstance::new(4.5),
+        entity_interaction_range: AttributeInstance::new(3.0),
     }
 }
 

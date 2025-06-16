@@ -147,11 +147,8 @@ impl PartialEntityInfos {
 ///
 /// Also see [`PartialInstance`].
 ///
-/// The reason this is called "instance" instead of "world" or "dimension" is
-/// because "world" already means the entire ECS (which can contain multiple
-/// instances if we're in a swarm) and "dimension" can be ambiguous (for
-/// instance there can be multiple overworlds, and "dimension" is also a math
-/// term)
+/// This is sometimes interchangably called a "world". However, this type is
+/// called `Instance` to avoid colliding with the `World` type from Bevy ECS.
 #[derive(Default, Debug)]
 pub struct Instance {
     pub chunks: ChunkStorage,

@@ -12,6 +12,9 @@ pub struct Attributes {
     pub speed: AttributeInstance,
     pub attack_speed: AttributeInstance,
     pub water_movement_efficiency: AttributeInstance,
+
+    pub block_interaction_range: AttributeInstance,
+    pub entity_interaction_range: AttributeInstance,
 }
 
 #[derive(Clone, Debug)]
@@ -93,11 +96,25 @@ pub fn sprinting_modifier() -> AttributeModifier {
         operation: AttributeModifierOperation::MultiplyTotal,
     }
 }
-
 pub fn base_attack_speed_modifier(amount: f64) -> AttributeModifier {
     AttributeModifier {
         id: ResourceLocation::new("base_attack_speed"),
         amount,
+        operation: AttributeModifierOperation::Addition,
+    }
+}
+pub fn creative_block_interaction_range_modifier() -> AttributeModifier {
+    AttributeModifier {
+        id: ResourceLocation::new("creative_mode_block_range"),
+        amount: 0.5,
+        operation: AttributeModifierOperation::Addition,
+    }
+}
+
+pub fn creative_entity_interaction_range_modifier() -> AttributeModifier {
+    AttributeModifier {
+        id: ResourceLocation::new("creative_mode_entity_range"),
+        amount: 2.0,
         operation: AttributeModifierOperation::Addition,
     }
 }

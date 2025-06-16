@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Due to the complexity of Azalea and the fact that almost every Minecraft version
 is breaking anyways, semantic versioning is not followed.
 
+## [Unreleased]
+
+### Added
+
+- `HitResult` now contains the entity that's being looked at.
+
+### Changed
+
+- Renamed `azalea_entity::EntityKind` to `EntityKindComponent` to disambiguate with `azalea_registry::EntityKind`.
+- Moved functions and types related to hit results from `azalea::interact` to `azalea::interact::pick`.
+
+### Fixed
+
 ## [0.13.0] - 2025-06-15
 
 ### Added
@@ -44,7 +57,7 @@ is breaking anyways, semantic versioning is not followed.
 - Replace `wait_one_tick` and `wait_one_update` with `wait_ticks` and `wait_updates`.
 - Functions that took `&Vec3` or `&BlockPos` as arguments now only take them as owned types.
 - Rename `azalea_block::Block` to `BlockTrait` to disambiguate with `azalea_registry::Block`.
-- `GotoEvent` is now non-enhaustive, it should be constructed by calling its methods now.
+- `GotoEvent` is now non-enhaustive and should instead be constructed by calling its methods.
 
 ### Fixed
 

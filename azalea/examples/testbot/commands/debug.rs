@@ -7,11 +7,13 @@ use azalea::{
     brigadier::prelude::*,
     chunks::ReceiveChunkEvent,
     entity::{LookDirection, Position},
-    interact::HitResultComponent,
+    interact::pick::HitResultComponent,
     packet::game,
     pathfinder::{ExecutingPath, Pathfinder},
     world::MinecraftEntityId,
 };
+use azalea_core::hit_result::HitResult;
+use azalea_entity::EntityKindComponent;
 use azalea_world::InstanceContainer;
 use bevy_ecs::event::Events;
 use parking_lot::Mutex;
@@ -104,15 +106,24 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
 
         let hit_result = source.bot.component::<HitResultComponent>();
 
-        let Some(hit_result) = hit_result.as_block_hit_result_if_not_miss() else {
-            source.reply("I'm not looking at anything");
-            return 1;
-        };
-
-        let block_pos = hit_result.block_pos;
-        let block = source.bot.world().read().get_block_state(block_pos);
-
-        source.reply(&format!("I'm looking at {block:?} at {block_pos:?}"));
+        match &*hit_result {
+            HitResult::Block(r) => {
+                if r.miss {
+                    source.reply("I'm not looking at anything");
+                    return 0;
+                }
+                let block_pos = r.block_pos;
+                let block = source.bot.world().read().get_block_state(block_pos);
+                source.reply(&format!("I'm looking at {block:?} at {block_pos:?}"));
+            }
+            HitResult::Entity(r) => {
+                let entity_kind = *source.bot.entity_component::<EntityKindComponent>(r.entity);
+                source.reply(&format!(
+                    "I'm looking at {entity_kind} ({:?}) at {}",
+                    r.entity, r.location
+                ));
+            }
+        }
 
         1
     }));

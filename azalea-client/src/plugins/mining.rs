@@ -13,8 +13,8 @@ use tracing::trace;
 use crate::{
     Client,
     interact::{
-        BlockStatePredictionHandler, HitResultComponent, SwingArmEvent, can_use_game_master_blocks,
-        check_is_interaction_restricted,
+        BlockStatePredictionHandler, SwingArmEvent, can_use_game_master_blocks,
+        check_is_interaction_restricted, pick::HitResultComponent,
     },
     inventory::{Inventory, InventorySet},
     local_player::{InstanceHolder, LocalGameMode, PermissionLevel, PlayerAbilities},
@@ -57,7 +57,7 @@ impl Plugin for MiningPlugin {
                     .after(MoveEventsSet)
                     .before(azalea_entity::update_bounding_box)
                     .after(azalea_entity::update_fluid_on_eyes)
-                    .after(crate::interact::update_hit_result_component)
+                    .after(crate::interact::pick::update_hit_result_component)
                     .after(crate::attack::handle_attack_event)
                     .after(crate::interact::handle_start_use_item_queued)
                     .before(crate::interact::handle_swing_arm_event),
@@ -143,7 +143,7 @@ fn handle_auto_mine(
                 entity,
                 position: block_pos,
             });
-        } else if mining.is_some() && hit_result_component.is_miss() {
+        } else if mining.is_some() && hit_result_component.miss() {
             stop_mining_block_event.write(StopMiningBlockEvent { entity });
         }
     }
