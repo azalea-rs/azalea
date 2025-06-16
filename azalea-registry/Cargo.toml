@@ -8,7 +8,7 @@ repository.workspace = true
 
 [dependencies]
 azalea-buf.workspace = true
-azalea-registry-macros = { path = "./azalea-registry-macros", version = "0.12.0" }
+azalea-registry-macros.workspace = true
 serde = { workspace = true, optional = true, features = ["derive"] }
 simdnbt.workspace = true
 

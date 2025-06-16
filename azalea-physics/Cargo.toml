@@ -13,8 +13,8 @@ uuid.workspace = true
 [dependencies]
 azalea-block.workspace = true
 azalea-core.workspace = true
-azalea-entity = { version = "0.12.0", path = "../azalea-entity" }
-azalea-inventory = { version = "0.12.0", path = "../azalea-inventory" }
+azalea-entity.workspace = true
+azalea-inventory.workspace = true
 azalea-registry.workspace = true
 azalea-world.workspace = true
 bevy_app.workspace = true

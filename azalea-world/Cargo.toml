@@ -8,14 +8,12 @@ repository.workspace = true
 
 [dev-dependencies]
 azalea-client.workspace = true
-criterion = "0.6.0"
+criterion.workspace = true
 
 [dependencies]
 azalea-block.workspace = true
 azalea-buf.workspace = true
-azalea-core = { path = "../azalea-core", version = "0.12.0", features = [
-    "bevy_ecs",
-] }
+azalea-core = { workspace = true, features = ["bevy_ecs"] }
 azalea-registry.workspace = true
 bevy_ecs.workspace = true
 derive_more = { workspace = true, features = ["deref", "deref_mut"] }
