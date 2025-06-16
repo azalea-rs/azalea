@@ -6,25 +6,20 @@ use std::{
 
 pub const EPSILON: f64 = 1.0E-7;
 
-pub static SIN: LazyLock<[f32; 65536]> = LazyLock::new(|| {
-    let mut sin = [0.0; 65536];
-    for (i, item) in sin.iter_mut().enumerate() {
-        *item = f64::sin((i as f64) * PI * 2.0 / 65536.0) as f32;
-    }
-    sin
-});
+pub static SIN: LazyLock<[f32; 65536]> =
+    LazyLock::new(|| std::array::from_fn(|i| f64::sin((i as f64) * PI * 2. / 65536.) as f32));
 
 /// A sine function that uses a lookup table.
 pub fn sin(x: f32) -> f32 {
     let x = x * 10430.378;
-    let x = x as i32 as usize & 65535;
+    let x = x as i32 as usize & 0xFFFF;
     SIN[x]
 }
 
 /// A cosine function that uses a lookup table.
 pub fn cos(x: f32) -> f32 {
-    let x = x * 10430.378 + 16384.0;
-    let x = x as i32 as usize & 65535;
+    let x = x * 10430.378 + 16384.;
+    let x = x as i32 as usize & 0xFFFF;
     SIN[x]
 }
 

@@ -481,6 +481,7 @@ fn update_attributes_for_held_item(
     }
 }
 
+#[allow(clippy::type_complexity)]
 fn update_attributes_for_gamemode(
     query: Query<(&mut Attributes, &LocalGameMode), (With<LocalEntity>, Changed<LocalGameMode>)>,
 ) {

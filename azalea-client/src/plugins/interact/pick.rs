@@ -64,18 +64,17 @@ pub fn update_hit_result_component(
         };
         let world = world_lock.read();
 
-        let aabb = &physics.bounding_box;
-        let hit_result = pick(
-            entity,
-            *look_direction,
+        let hit_result = pick(PickOpts {
+            source_entity: entity,
+            look_direction: *look_direction,
             eye_position,
-            aabb,
-            &world,
+            aabb: &physics.bounding_box,
+            world: &world,
             entity_pick_range,
             block_pick_range,
-            &physics_query,
-            &pickable_query,
-        );
+            physics_query: &physics_query,
+            pickable_query: &pickable_query,
+        });
         if let Some(mut hit_result_ref) = hit_result_ref {
             **hit_result_ref = hit_result;
         } else {
@@ -93,6 +92,18 @@ pub type PickableEntityQuery<'world, 'state, 'a> = Query<
     (Without<Dead>, Without<Marker>, Without<LocalEntity>),
 >;
 
+pub struct PickOpts<'world, 'state, 'a, 'b, 'c> {
+    source_entity: Entity,
+    look_direction: LookDirection,
+    eye_position: Vec3,
+    aabb: &'a AABB,
+    world: &'a Instance,
+    entity_pick_range: f64,
+    block_pick_range: f64,
+    physics_query: &'a PhysicsQuery<'world, 'state, 'b>,
+    pickable_query: &'a PickableEntityQuery<'world, 'state, 'c>,
+}
+
 /// Get the block or entity that a player would be looking at if their eyes were
 /// at the given direction and position.
 ///
@@ -100,44 +111,40 @@ pub type PickableEntityQuery<'world, 'state, 'a> = Query<
 /// [`HitResultComponent`].
 ///
 /// Also see [`pick_block`].
-///
-/// TODO: does not currently check for entities
-pub fn pick(
-    source_entity: Entity,
-    look_direction: LookDirection,
-    eye_position: Vec3,
-    aabb: &AABB,
-    world: &Instance,
-    entity_pick_range: f64,
-    block_pick_range: f64,
-    physics_query: &PhysicsQuery,
-    pickable_query: &PickableEntityQuery,
-) -> HitResult {
+pub fn pick(opts: PickOpts<'_, '_, '_, '_, '_>) -> HitResult {
     // vanilla does extra math here to calculate the pick result in between ticks by
     // interpolating, but since clients can still only interact on exact ticks, that
     // isn't relevant for us.
 
-    let mut max_range = entity_pick_range.max(block_pick_range);
+    let mut max_range = opts.entity_pick_range.max(opts.block_pick_range);
     let mut max_range_squared = max_range.powi(2);
 
-    let block_hit_result = pick_block(look_direction, eye_position, &world.chunks, max_range);
-    let block_hit_result_dist_squared = block_hit_result.location.distance_squared_to(eye_position);
+    let block_hit_result = pick_block(
+        opts.look_direction,
+        opts.eye_position,
+        &opts.world.chunks,
+        max_range,
+    );
+    let block_hit_result_dist_squared = block_hit_result
+        .location
+        .distance_squared_to(opts.eye_position);
     if !block_hit_result.miss {
         max_range_squared = block_hit_result_dist_squared;
         max_range = block_hit_result_dist_squared.sqrt();
     }
 
-    let view_vector = view_vector(look_direction);
-    let end_position = eye_position + (view_vector * max_range);
+    let view_vector = view_vector(opts.look_direction);
+    let end_position = opts.eye_position + (view_vector * max_range);
     let inflate_by = 1.;
-    let pick_aabb = aabb
+    let pick_aabb = opts
+        .aabb
         .expand_towards(view_vector * max_range)
         .inflate_all(inflate_by);
 
     let is_pickable = |entity: Entity| {
         // TODO: ender dragon and projectiles have extra logic here. also, we shouldn't
         // be able to pick spectators.
-        if let Ok(armor_stand_marker) = pickable_query.get(entity) {
+        if let Ok(armor_stand_marker) = opts.pickable_query.get(entity) {
             if let Some(armor_stand_marker) = armor_stand_marker
                 && armor_stand_marker.0
             {
@@ -149,32 +156,33 @@ pub fn pick(
             true
         }
     };
-    let entity_hit_result = pick_entity(
-        source_entity,
-        eye_position,
+    let entity_hit_result = pick_entity(PickEntityOpts {
+        source_entity: opts.source_entity,
+        eye_position: opts.eye_position,
         end_position,
-        world,
-        max_range_squared,
-        &is_pickable,
-        &pick_aabb,
-        physics_query,
-    );
+        world: opts.world,
+        pick_range_squared: max_range_squared,
+        predicate: &is_pickable,
+        aabb: &pick_aabb,
+        physics_query: opts.physics_query,
+    });
 
-    // TODO
     if let Some(entity_hit_result) = entity_hit_result
-        && entity_hit_result.location.distance_squared_to(eye_position)
+        && entity_hit_result
+            .location
+            .distance_squared_to(opts.eye_position)
             < block_hit_result_dist_squared
     {
         filter_hit_result(
             HitResult::Entity(entity_hit_result),
-            eye_position,
-            entity_pick_range,
+            opts.eye_position,
+            opts.entity_pick_range,
         )
     } else {
         filter_hit_result(
             HitResult::Block(block_hit_result),
-            eye_position,
-            block_pick_range,
+            opts.eye_position,
+            opts.block_pick_range,
         )
     }
 }
@@ -213,40 +221,46 @@ pub fn pick_block(
     )
 }
 
-// port of getEntityHitResult
-fn pick_entity(
+struct PickEntityOpts<'world, 'state, 'a, 'b> {
     source_entity: Entity,
     eye_position: Vec3,
     end_position: Vec3,
-    world: &azalea_world::Instance,
+    world: &'a azalea_world::Instance,
     pick_range_squared: f64,
-    predicate: &dyn Fn(Entity) -> bool,
-    aabb: &AABB,
-    physics_query: &PhysicsQuery,
-) -> Option<EntityHitResult> {
-    let mut picked_distance_squared = pick_range_squared;
+    predicate: &'a dyn Fn(Entity) -> bool,
+    aabb: &'a AABB,
+    physics_query: &'a PhysicsQuery<'world, 'state, 'b>,
+}
+
+// port of getEntityHitResult
+fn pick_entity(opts: PickEntityOpts) -> Option<EntityHitResult> {
+    let mut picked_distance_squared = opts.pick_range_squared;
     let mut result = None;
 
-    for (candidate, candidate_aabb) in
-        get_entities(world, Some(source_entity), aabb, predicate, physics_query)
-    {
+    for (candidate, candidate_aabb) in get_entities(
+        opts.world,
+        Some(opts.source_entity),
+        opts.aabb,
+        opts.predicate,
+        opts.physics_query,
+    ) {
         // TODO: if the entity is "REDIRECTABLE_PROJECTILE" then this should be 1.0.
         // azalea needs support for entity tags first for this to be possible. see
         // getPickRadius in decompiled minecraft source
         let candidate_pick_radius = 0.;
         let candidate_aabb = candidate_aabb.inflate_all(candidate_pick_radius);
-        let clip_location = candidate_aabb.clip(eye_position, end_position);
+        let clip_location = candidate_aabb.clip(opts.eye_position, opts.end_position);
 
-        if candidate_aabb.contains(eye_position) {
+        if candidate_aabb.contains(opts.eye_position) {
             if picked_distance_squared >= 0. {
                 result = Some(EntityHitResult {
-                    location: clip_location.unwrap_or(eye_position),
+                    location: clip_location.unwrap_or(opts.eye_position),
                     entity: candidate,
                 });
                 picked_distance_squared = 0.;
             }
         } else if let Some(clip_location) = clip_location {
-            let distance_squared = eye_position.distance_squared_to(clip_location);
+            let distance_squared = opts.eye_position.distance_squared_to(clip_location);
             if distance_squared < picked_distance_squared || picked_distance_squared == 0. {
                 // TODO: don't pick the entity we're riding on
                 // if candidate_root_vehicle == entity_root_vehicle {

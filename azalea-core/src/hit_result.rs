@@ -18,7 +18,7 @@ impl HitResult {
     pub fn miss(&self) -> bool {
         match self {
             HitResult::Block(r) => r.miss,
-            HitResult::Entity(_) => false,
+            _ => false,
         }
     }
     pub fn location(&self) -> Vec3 {
