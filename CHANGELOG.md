@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Due to the complexity of Azalea and the fact that almost every Minecraft version
 is breaking anyways, semantic versioning is not followed.
 
-## [Unreleased]
+## [0.13.0] - 2025-06-15
 
 ### Added
 
