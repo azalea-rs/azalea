@@ -1,6 +1,6 @@
 #[cfg(feature = "azalea-buf")]
-use std::io::{Cursor, Write};
-use std::{collections::HashSet, hash::Hash, io};
+use std::io::{self, Cursor, Write};
+use std::{collections::HashSet, hash::Hash};
 
 #[cfg(feature = "azalea-buf")]
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
