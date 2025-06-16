@@ -16,6 +16,7 @@ is breaking anyways, semantic versioning is not followed.
 
 - Renamed `azalea_entity::EntityKind` to `EntityKindComponent` to disambiguate with `azalea_registry::EntityKind`.
 - Moved functions and types related to hit results from `azalea::interact` to `azalea::interact::pick`.
+- `Client::attack` now takes `Entity` instead of `MinecraftEntityId`.
 
 ### Fixed
 
