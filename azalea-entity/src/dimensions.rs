@@ -89,6 +89,7 @@ impl From<EntityKind> for EntityDimensions {
             EntityKind::GlowSquid => EntityDimensions::new(0.8, 0.8),
             EntityKind::Goat => EntityDimensions::new(0.9, 1.3),
             EntityKind::Guardian => EntityDimensions::new(0.85, 0.85),
+            EntityKind::HappyGhast => EntityDimensions::new(4.0, 4.0),
             EntityKind::Hoglin => EntityDimensions::new(1.39648, 1.4),
             EntityKind::HopperMinecart => EntityDimensions::new(0.98, 0.7),
             EntityKind::Horse => EntityDimensions::new(1.39648, 1.6),

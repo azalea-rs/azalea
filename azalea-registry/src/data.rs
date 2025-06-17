@@ -46,6 +46,9 @@ macro_rules! data_registry {
 data_registry! {Enchantment, "enchantment"}
 data_registry! {DimensionType, "dimension_type"}
 data_registry! {DamageKind, "damage_kind"}
+data_registry! {Dialog, "dialog"}
+
+// entity variants
 data_registry! {WolfSoundVariant, "wolf_sound_variant"}
 data_registry! {CowVariant, "cow_variant"}
 data_registry! {ChickenVariant, "chicken_variant"}

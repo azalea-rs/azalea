@@ -1,11 +1,14 @@
 # Extracting data from the Minecraft jars
 
+import shutil
 from lib.download import (
+    get_latest_fabric_api_version,
     get_mappings_for_version,
     get_pumpkin_extractor,
     get_server_jar,
     get_burger,
     get_client_jar,
+    get_fabric_data,
 )
 from lib.utils import get_dir_location, to_camel_case, upper_first_letter
 from zipfile import ZipFile
@@ -131,13 +134,51 @@ def get_pumpkin_data(version_id: str, category: str):
             return json.load(f)
 
     pumpkin_dir = get_pumpkin_extractor()
-    os.makedirs(f"{pumpkin_dir}/run", exist_ok=True)
-    with open(f"{pumpkin_dir}/run/eula.txt", "w") as f:
+
+    pumpkin_run_directory = f"{pumpkin_dir}/run"
+
+    if os.path.exists(pumpkin_run_directory):
+        shutil.rmtree(pumpkin_run_directory)
+    os.makedirs(pumpkin_run_directory, exist_ok=True)
+    with open(f"{pumpkin_run_directory}/eula.txt", "w") as f:
         f.write("eula=true")
+    with open(f"{pumpkin_run_directory}/server.properties", "w") as f:
+        f.write("server-port=0")
+
+    fabric_data = get_fabric_data(version_id)[0]
+    fabric_api_version = get_latest_fabric_api_version()
+
+    gradle_properties = f"""# Done to increase the memory available to gradle.
+org.gradle.jvmargs=-Xmx1G
+org.gradle.parallel=true
+# Fabric Properties
+# check these on https://modmuss50.me/fabric.html
+minecraft_version={version_id}
+yarn_mappings={fabric_data["mappings"]["version"]}
+loader_version={fabric_data["loader"]["version"]}
+kotlin_loader_version=1.13.2+kotlin.2.1.20
+# Mod Properties
+mod_version=1.0-SNAPSHOT
+maven_group=de.snowii
+archives_base_name=extractor
+fabric_version={fabric_api_version}
+"""
+    with open(f"{pumpkin_dir}/gradle.properties", "w") as f:
+        f.write(gradle_properties)
+
+    # update the minecraft version dependency in src/main/resources/fabric.mod.json
+    fabric_mod_json_path = f"{pumpkin_dir}/src/main/resources/fabric.mod.json"
+    with open(fabric_mod_json_path, "r") as f:
+        fabric_mod_json = f.read()
+    with open(fabric_mod_json_path, "w") as f:
+        fabric_mod_json = fabric_mod_json.replace(
+            '"minecraft": "${minecraft_version}"', '"minecraft": "*"'
+        )
+        f.write(fabric_mod_json)
 
     # run ./gradlew runServer until it logs "(pumpkin_extractor) Done"
     p = subprocess.Popen(
-        f"cd {pumpkin_dir} && ./gradlew runServer",
+        f"cd {pumpkin_dir} && ./gradlew clean && ./gradlew runServer",
         stderr=subprocess.PIPE,
         stdout=subprocess.PIPE,
         shell=True,
@@ -149,7 +190,7 @@ def get_pumpkin_data(version_id: str, category: str):
         if "[Server thread/INFO] (pumpkin_extractor) Done" in data:
             print("Pumpkin extractor done")
             break
-        if data == b"":
+        if data == "":
             break
 
     p.terminate()

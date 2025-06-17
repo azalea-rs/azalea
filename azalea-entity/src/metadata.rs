@@ -4236,6 +4236,8 @@ impl Default for GiantMetadataBundle {
 }
 
 #[derive(Component, Deref, DerefMut, Clone)]
+pub struct ItemFrameDirection(pub Direction);
+#[derive(Component, Deref, DerefMut, Clone)]
 pub struct ItemFrameItem(pub ItemStack);
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct Rotation(pub i32);
@@ -4247,7 +4249,7 @@ impl GlowItemFrame {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=9 => ItemFrame::apply_metadata(entity, d)?,
+            0..=10 => ItemFrame::apply_metadata(entity, d)?,
             _ => {}
         }
         Ok(())
@@ -4282,7 +4284,8 @@ impl Default for GlowItemFrameMetadataBundle {
                     pose: Pose::default(),
                     ticks_frozen: TicksFrozen(Default::default()),
                 },
-                item_frame_item: ItemFrameItem(ItemStack::Empty),
+                item_frame_direction: ItemFrameDirection(Default::default()),
+                item_frame_item: ItemFrameItem(Default::default()),
                 rotation: Rotation(0),
             },
         }
@@ -4535,6 +4538,92 @@ impl Default for GuardianMetadataBundle {
             },
             moving: Moving(false),
             attack_target: AttackTarget(0),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct IsLeashHolder(pub bool);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct StaysStill(pub bool);
+#[derive(Component)]
+pub struct HappyGhast;
+impl HappyGhast {
+    pub fn apply_metadata(
+        entity: &mut bevy_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=16 => AbstractAnimal::apply_metadata(entity, d)?,
+            17 => {
+                entity.insert(IsLeashHolder(d.value.into_boolean()?));
+            }
+            18 => {
+                entity.insert(StaysStill(d.value.into_boolean()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct HappyGhastMetadataBundle {
+    _marker: HappyGhast,
+    parent: AbstractAnimalMetadataBundle,
+    is_leash_holder: IsLeashHolder,
+    stays_still: StaysStill,
+}
+impl Default for HappyGhastMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: HappyGhast,
+            parent: AbstractAnimalMetadataBundle {
+                _marker: AbstractAnimal,
+                parent: AbstractAgeableMetadataBundle {
+                    _marker: AbstractAgeable,
+                    parent: AbstractCreatureMetadataBundle {
+                        _marker: AbstractCreature,
+                        parent: AbstractInsentientMetadataBundle {
+                            _marker: AbstractInsentient,
+                            parent: AbstractLivingMetadataBundle {
+                                _marker: AbstractLiving,
+                                parent: AbstractEntityMetadataBundle {
+                                    _marker: AbstractEntity,
+                                    on_fire: OnFire(false),
+                                    shift_key_down: ShiftKeyDown(false),
+                                    sprinting: Sprinting(false),
+                                    swimming: Swimming(false),
+                                    currently_glowing: CurrentlyGlowing(false),
+                                    invisible: Invisible(false),
+                                    fall_flying: FallFlying(false),
+                                    air_supply: AirSupply(Default::default()),
+                                    custom_name: CustomName(Default::default()),
+                                    custom_name_visible: CustomNameVisible(Default::default()),
+                                    silent: Silent(Default::default()),
+                                    no_gravity: NoGravity(Default::default()),
+                                    pose: Pose::default(),
+                                    ticks_frozen: TicksFrozen(Default::default()),
+                                },
+                                auto_spin_attack: AutoSpinAttack(false),
+                                abstract_living_using_item: AbstractLivingUsingItem(false),
+                                health: Health(1.0),
+                                effect_particles: EffectParticles(Default::default()),
+                                effect_ambience: EffectAmbience(false),
+                                arrow_count: ArrowCount(0),
+                                stinger_count: StingerCount(0),
+                                sleeping_pos: SleepingPos(None),
+                            },
+                            no_ai: NoAi(false),
+                            left_handed: LeftHanded(false),
+                            aggressive: Aggressive(false),
+                        },
+                    },
+                    abstract_ageable_baby: AbstractAgeableBaby(false),
+                },
+            },
+            is_leash_holder: IsLeashHolder(false),
+            stays_still: StaysStill(false),
         }
     }
 }
@@ -5096,7 +5185,7 @@ impl Default for ItemMetadataBundle {
                 pose: Pose::default(),
                 ticks_frozen: TicksFrozen(Default::default()),
             },
-            item_item: ItemItem(ItemStack::Empty),
+            item_item: ItemItem(Default::default()),
         }
     }
 }
@@ -5191,7 +5280,7 @@ impl Default for ItemDisplayMetadataBundle {
                 abstract_display_height: AbstractDisplayHeight(0.0),
                 glow_color_override: GlowColorOverride(-1),
             },
-            item_display_item_stack: ItemDisplayItemStack(ItemStack::Empty),
+            item_display_item_stack: ItemDisplayItemStack(Default::default()),
             item_display_item_display: ItemDisplayItemDisplay(Default::default()),
         }
     }
@@ -5207,9 +5296,12 @@ impl ItemFrame {
         match d.index {
             0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
-                entity.insert(ItemFrameItem(d.value.into_item_stack()?));
+                entity.insert(ItemFrameDirection(d.value.into_direction()?));
             }
             9 => {
+                entity.insert(ItemFrameItem(d.value.into_item_stack()?));
+            }
+            10 => {
                 entity.insert(Rotation(d.value.into_int()?));
             }
             _ => {}
@@ -5222,6 +5314,7 @@ impl ItemFrame {
 pub struct ItemFrameMetadataBundle {
     _marker: ItemFrame,
     parent: AbstractEntityMetadataBundle,
+    item_frame_direction: ItemFrameDirection,
     item_frame_item: ItemFrameItem,
     rotation: Rotation,
 }
@@ -5246,7 +5339,8 @@ impl Default for ItemFrameMetadataBundle {
                 pose: Pose::default(),
                 ticks_frozen: TicksFrozen(Default::default()),
             },
-            item_frame_item: ItemFrameItem(ItemStack::Empty),
+            item_frame_direction: ItemFrameDirection(Default::default()),
+            item_frame_item: ItemFrameItem(Default::default()),
             rotation: Rotation(0),
         }
     }
@@ -6338,11 +6432,13 @@ impl Default for OminousItemSpawnerMetadataBundle {
                 pose: Pose::default(),
                 ticks_frozen: TicksFrozen(Default::default()),
             },
-            ominous_item_spawner_item: OminousItemSpawnerItem(ItemStack::Empty),
+            ominous_item_spawner_item: OminousItemSpawnerItem(Default::default()),
         }
     }
 }
 
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct PaintingDirection(pub Direction);
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct PaintingVariant(pub azalea_registry::PaintingVariant);
 #[derive(Component)]
@@ -6355,6 +6451,9 @@ impl Painting {
         match d.index {
             0..=7 => AbstractEntity::apply_metadata(entity, d)?,
             8 => {
+                entity.insert(PaintingDirection(d.value.into_direction()?));
+            }
+            9 => {
                 entity.insert(PaintingVariant(d.value.into_painting_variant()?));
             }
             _ => {}
@@ -6367,6 +6466,7 @@ impl Painting {
 pub struct PaintingMetadataBundle {
     _marker: Painting,
     parent: AbstractEntityMetadataBundle,
+    painting_direction: PaintingDirection,
     painting_variant: PaintingVariant,
 }
 impl Default for PaintingMetadataBundle {
@@ -6390,6 +6490,7 @@ impl Default for PaintingMetadataBundle {
                 pose: Pose::default(),
                 ticks_frozen: TicksFrozen(Default::default()),
             },
+            painting_direction: PaintingDirection(Default::default()),
             painting_variant: PaintingVariant(azalea_registry::PaintingVariant::new_raw(0)),
         }
     }
@@ -12690,6 +12791,11 @@ pub fn apply_metadata(
                 Guardian::apply_metadata(entity, d)?;
             }
         }
+        azalea_registry::EntityKind::HappyGhast => {
+            for d in items {
+                HappyGhast::apply_metadata(entity, d)?;
+            }
+        }
         azalea_registry::EntityKind::Hoglin => {
             for d in items {
                 Hoglin::apply_metadata(entity, d)?;
@@ -13324,6 +13430,9 @@ pub fn apply_default_metadata(
         }
         azalea_registry::EntityKind::Guardian => {
             entity.insert(GuardianMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::HappyGhast => {
+            entity.insert(HappyGhastMetadataBundle::default());
         }
         azalea_registry::EntityKind::Hoglin => {
             entity.insert(HoglinMetadataBundle::default());

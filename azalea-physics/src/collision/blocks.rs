@@ -4139,34 +4139,36 @@ static SHAPE652: LazyLock<VoxelShape> =
 static SHAPE653: LazyLock<VoxelShape> =
     LazyLock::new(|| collision::box_shape(0.0625, 0., 0.125, 0.9375, 1., 0.875));
 static SHAPE654: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.125, 0., 0.125, 0.875, 0.9375, 0.875));
+    LazyLock::new(|| collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.625, 0.8125));
 static SHAPE655: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.125, 0., 0.125, 0.875, 0.25, 0.875));
+    LazyLock::new(|| collision::box_shape(0.125, 0., 0.125, 0.875, 0.9375, 0.875));
 static SHAPE656: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0., 0.25, 0.3125, 1., 0.75, 1.));
+    LazyLock::new(|| collision::box_shape(0.125, 0., 0.125, 0.875, 0.25, 0.875));
 static SHAPE657: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0., 0.25, 0., 1., 0.75, 0.6875));
+    LazyLock::new(|| collision::box_shape(0., 0.25, 0.3125, 1., 0.75, 1.));
 static SHAPE658: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.3125, 0.25, 0., 1., 0.75, 1.));
+    LazyLock::new(|| collision::box_shape(0., 0.25, 0., 1., 0.75, 0.6875));
 static SHAPE659: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0., 0.25, 0., 0.6875, 0.75, 1.));
+    LazyLock::new(|| collision::box_shape(0.3125, 0.25, 0., 1., 0.75, 1.));
 static SHAPE660: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.375, 0., 0.375, 0.625, 0.375, 0.625));
+    LazyLock::new(|| collision::box_shape(0., 0.25, 0., 0.6875, 0.75, 1.));
 static SHAPE661: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.375, 0.8125));
+    LazyLock::new(|| collision::box_shape(0.375, 0., 0.375, 0.625, 0.375, 0.625));
 static SHAPE662: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.125, 0., 0.125, 0.875, 0.375, 0.875));
+    LazyLock::new(|| collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.375, 0.8125));
 static SHAPE663: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.125, 0., 0.125, 0.875, 0.4375, 0.875));
+    LazyLock::new(|| collision::box_shape(0.125, 0., 0.125, 0.875, 0.375, 0.875));
 static SHAPE664: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0., 0., 0., 0.5, 0.75, 0.5));
+    LazyLock::new(|| collision::box_shape(0.125, 0., 0.125, 0.875, 0.4375, 0.875));
 static SHAPE665: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.15625, 0., 0.15625, 0.34375, 1., 0.34375));
+    LazyLock::new(|| collision::box_shape(0., 0., 0., 0.5, 0.75, 0.5));
 static SHAPE666: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.0625, 0., 0.0625, 0.4375, 1., 0.4375));
+    LazyLock::new(|| collision::box_shape(0.15625, 0., 0.15625, 0.34375, 1., 0.34375));
 static SHAPE667: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.0625, 0., 0.0625, 0.4375, 1., 0.4375));
+static SHAPE668: LazyLock<VoxelShape> =
     LazyLock::new(|| collision::box_shape(-0.0625, 0., -0.0625, 0.5625, 1., 0.5625));
-static SHAPE668: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE669: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.125, 1., 0.125);
     let s = Shapes::or(s, collision::box_shape(0., 0., 0.875, 0.125, 1., 1.));
     let s = Shapes::or(s, collision::box_shape(0.875, 0., 0., 1., 1., 0.125));
@@ -4175,7 +4177,7 @@ static SHAPE668: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = Shapes::or(s, collision::box_shape(0.125, 0.875, 0., 0.875, 1., 0.125));
     Shapes::or(s, collision::box_shape(0.125, 0.875, 0.875, 0.875, 1., 1.))
 });
-static SHAPE669: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE670: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.125, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.125, 0., 0.125, 1., 0.125));
     let s = Shapes::or(s, collision::box_shape(0., 0.125, 0.875, 0.125, 1., 1.));
@@ -4185,7 +4187,7 @@ static SHAPE669: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = Shapes::or(s, collision::box_shape(0.125, 0.875, 0., 0.875, 1., 0.125));
     Shapes::or(s, collision::box_shape(0.125, 0.875, 0.875, 0.875, 1., 1.))
 });
-static SHAPE670: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE671: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.125, 0., 0.375, 0.25, 0.8125, 0.625);
     let s = Shapes::or(
         s,
@@ -4209,7 +4211,7 @@ static SHAPE670: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.75, 0.4375, 0.625, 0.875, 0.8125, 0.6875),
     )
 });
-static SHAPE671: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE672: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.375, 0., 0.125, 0.625, 0.8125, 0.25);
     let s = Shapes::or(
         s,
@@ -4233,7 +4235,7 @@ static SHAPE671: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.625, 0.4375, 0.75, 0.6875, 0.8125, 0.875),
     )
 });
-static SHAPE672: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE673: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.25, 0.125, 0., 0.75, 0.875, 0.75);
     let s = Shapes::or(
         s,
@@ -4252,7 +4254,7 @@ static SHAPE672: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.75, 0.375, 0.5625, 0.875, 0.625, 1.),
     )
 });
-static SHAPE673: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE674: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.25, 0.125, 0.25, 0.75, 0.875, 1.);
     let s = Shapes::or(
         s,
@@ -4271,7 +4273,7 @@ static SHAPE673: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.75, 0.375, 0., 0.875, 0.625, 0.4375),
     )
 });
-static SHAPE674: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE675: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0.125, 0.25, 0.75, 0.875, 0.75);
     let s = Shapes::or(
         s,
@@ -4290,7 +4292,7 @@ static SHAPE674: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.5625, 0.375, 0.75, 1., 0.625, 0.875),
     )
 });
-static SHAPE675: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE676: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.25, 0.125, 0.25, 1., 0.875, 0.75);
     let s = Shapes::or(
         s,
@@ -4309,7 +4311,7 @@ static SHAPE675: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0., 0.375, 0.75, 0.4375, 0.625, 0.875),
     )
 });
-static SHAPE676: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE677: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.25, 0., 0.125, 0.75, 0.75, 0.875);
     let s = Shapes::or(
         s,
@@ -4328,7 +4330,7 @@ static SHAPE676: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.75, 0.5625, 0.375, 0.875, 1., 0.625),
     )
 });
-static SHAPE677: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE678: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.125, 0., 0.25, 0.875, 0.75, 0.75);
     let s = Shapes::or(
         s,
@@ -4347,14 +4349,14 @@ static SHAPE677: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.375, 0.5625, 0.75, 0.625, 1., 0.875),
     )
 });
-static SHAPE678: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE679: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.125, 1.);
     Shapes::or(
         s,
         collision::box_shape(0.25, 0.125, 0.25, 0.75, 0.875, 0.75),
     )
 });
-static SHAPE679: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE680: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.125, 1.);
     let s = Shapes::or(
         s,
@@ -4389,7 +4391,7 @@ static SHAPE679: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.25, 0.875, 0.3333333125, 0.75, 1., 0.6041666875),
     )
 });
-static SHAPE680: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE681: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.125, 1.);
     let s = Shapes::or(
         s,
@@ -4424,7 +4426,7 @@ static SHAPE680: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.25, 0.875, 0.3958333125, 0.75, 1., 0.6666666875),
     )
 });
-static SHAPE681: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE682: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.125, 1.);
     let s = Shapes::or(
         s,
@@ -4464,7 +4466,7 @@ static SHAPE681: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.6041666875, 1., 0.25, 0.875, 1.125, 0.75),
     )
 });
-static SHAPE682: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE683: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.125, 1.);
     let s = Shapes::or(
         s,
@@ -4499,11 +4501,11 @@ static SHAPE682: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.3958333125, 0.875, 0.25, 0.6666666875, 1., 0.75),
     )
 });
-static SHAPE683: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0., 0., 0.25, 1., 1., 0.75));
 static SHAPE684: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0., 0.25, 1., 1., 0.75));
+static SHAPE685: LazyLock<VoxelShape> =
     LazyLock::new(|| collision::box_shape(0.25, 0., 0., 0.75, 1., 1.));
-static SHAPE685: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE686: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.25, 0.25, 0.25, 0.75, 0.375, 0.75);
     let s = Shapes::or(
         s,
@@ -4514,7 +4516,7 @@ static SHAPE685: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.4375, 0.8125, 0.4375, 0.5625, 1., 0.5625),
     )
 });
-static SHAPE686: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE687: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.25, 0.25, 0.25, 0.75, 0.375, 0.75);
     let s = Shapes::or(
         s,
@@ -4525,7 +4527,7 @@ static SHAPE686: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.4375, 0.8125, 0., 0.5625, 0.9375, 0.8125),
     )
 });
-static SHAPE687: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE688: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.25, 0.25, 0.25, 0.75, 0.375, 0.75);
     let s = Shapes::or(
         s,
@@ -4536,7 +4538,7 @@ static SHAPE687: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.4375, 0.8125, 0.1875, 0.5625, 0.9375, 1.),
     )
 });
-static SHAPE688: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE689: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.25, 0.25, 0.25, 0.75, 0.375, 0.75);
     let s = Shapes::or(
         s,
@@ -4547,7 +4549,7 @@ static SHAPE688: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0., 0.8125, 0.4375, 0.8125, 0.9375, 0.5625),
     )
 });
-static SHAPE689: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE690: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.25, 0.25, 0.25, 0.75, 0.375, 0.75);
     let s = Shapes::or(
         s,
@@ -4558,7 +4560,7 @@ static SHAPE689: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.1875, 0.8125, 0.4375, 1., 0.9375, 0.5625),
     )
 });
-static SHAPE690: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE691: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.25, 0.25, 0.25, 0.75, 0.375, 0.75);
     let s = Shapes::or(
         s,
@@ -4569,7 +4571,7 @@ static SHAPE690: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.4375, 0.8125, 0., 0.5625, 0.9375, 1.),
     )
 });
-static SHAPE691: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE692: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.25, 0.25, 0.25, 0.75, 0.375, 0.75);
     let s = Shapes::or(
         s,
@@ -4580,201 +4582,201 @@ static SHAPE691: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0., 0.8125, 0.4375, 1., 0.9375, 0.5625),
     )
 });
-static SHAPE692: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE693: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.3125, 0.0625, 0.3125, 0.6875, 0.5, 0.6875);
     Shapes::or(
         s,
         collision::box_shape(0.375, 0.5, 0.375, 0.625, 0.625, 0.625),
     )
 });
-static SHAPE693: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE694: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.3125, 0., 0.3125, 0.6875, 0.4375, 0.6875);
     Shapes::or(
         s,
         collision::box_shape(0.375, 0.4375, 0.375, 0.625, 0.5625, 0.625),
     )
 });
-static SHAPE694: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.25, 0., 0.25, 0.75, 0.5625, 0.75));
 static SHAPE695: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.125, 0., 0.125, 0.875, 0.1875, 0.875));
+    LazyLock::new(|| collision::box_shape(0.25, 0., 0.25, 0.75, 0.5625, 0.75));
 static SHAPE696: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.25, 0.5625, 0.25, 0.75, 1., 0.75));
+    LazyLock::new(|| collision::box_shape(0.125, 0., 0.125, 0.875, 0.1875, 0.875));
 static SHAPE697: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.25, 0.5625, 0.25, 0.75, 1., 0.75));
+static SHAPE698: LazyLock<VoxelShape> =
     LazyLock::new(|| collision::box_shape(0.25, 0., 0.25, 0.75, 0.9375, 0.75));
-static SHAPE698: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE699: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.125, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.125, 0., 0.125, 1., 1.));
     let s = Shapes::or(s, collision::box_shape(0.125, 0.125, 0., 1., 1., 0.125));
     let s = Shapes::or(s, collision::box_shape(0.125, 0.125, 0.875, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0.875, 0.125, 0.125, 1., 1., 0.875))
 });
-static SHAPE699: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE700: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.1875, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.1875, 0., 0.125, 1., 1.));
     let s = Shapes::or(s, collision::box_shape(0.125, 0.1875, 0., 1., 1., 0.125));
     let s = Shapes::or(s, collision::box_shape(0.125, 0.1875, 0.875, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0.875, 0.1875, 0.125, 1., 1., 0.875))
 });
-static SHAPE700: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE701: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.3125, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.3125, 0., 0.125, 1., 1.));
     let s = Shapes::or(s, collision::box_shape(0.125, 0.3125, 0., 1., 1., 0.125));
     let s = Shapes::or(s, collision::box_shape(0.125, 0.3125, 0.875, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0.875, 0.3125, 0.125, 1., 1., 0.875))
 });
-static SHAPE701: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE702: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.4375, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.4375, 0., 0.125, 1., 1.));
     let s = Shapes::or(s, collision::box_shape(0.125, 0.4375, 0., 1., 1., 0.125));
     let s = Shapes::or(s, collision::box_shape(0.125, 0.4375, 0.875, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0.875, 0.4375, 0.125, 1., 1., 0.875))
 });
-static SHAPE702: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE703: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.5625, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.5625, 0., 0.125, 1., 1.));
     let s = Shapes::or(s, collision::box_shape(0.125, 0.5625, 0., 1., 1., 0.125));
     let s = Shapes::or(s, collision::box_shape(0.125, 0.5625, 0.875, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0.875, 0.5625, 0.125, 1., 1., 0.875))
 });
-static SHAPE703: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE704: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.6875, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.6875, 0., 0.125, 1., 1.));
     let s = Shapes::or(s, collision::box_shape(0.125, 0.6875, 0., 1., 1., 0.125));
     let s = Shapes::or(s, collision::box_shape(0.125, 0.6875, 0.875, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0.875, 0.6875, 0.125, 1., 1., 0.875))
 });
-static SHAPE704: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE705: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.8125, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.8125, 0., 0.125, 1., 1.));
     let s = Shapes::or(s, collision::box_shape(0.125, 0.8125, 0., 1., 1., 0.125));
     let s = Shapes::or(s, collision::box_shape(0.125, 0.8125, 0.875, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0.875, 0.8125, 0.125, 1., 1., 0.875))
 });
-static SHAPE705: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE706: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.9375, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.9375, 0., 0.125, 1., 1.));
     let s = Shapes::or(s, collision::box_shape(0.125, 0.9375, 0., 1., 1., 0.125));
     let s = Shapes::or(s, collision::box_shape(0.125, 0.9375, 0.875, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0.875, 0.9375, 0.125, 1., 1., 0.875))
 });
-static SHAPE706: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.3125, 0., 0.375, 0.6875, 0.375, 0.5625));
 static SHAPE707: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.3125, 0., 0.375, 0.625, 0.375, 0.6875));
+    LazyLock::new(|| collision::box_shape(0.3125, 0., 0.375, 0.6875, 0.375, 0.5625));
 static SHAPE708: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.3125, 0., 0.375, 0.625, 0.375, 0.6875));
+static SHAPE709: LazyLock<VoxelShape> =
     LazyLock::new(|| collision::box_shape(0.3125, 0., 0.3125, 0.6875, 0.375, 0.625));
-static SHAPE709: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE710: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.0625, 0., 0.0625, 0.9375, 0.5, 0.9375);
     Shapes::or(
         s,
         collision::box_shape(0.4375, 0.5, 0.4375, 0.5625, 0.875, 0.5625),
     )
 });
-static SHAPE710: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.1875, 0.1875, 0.5625, 0.8125, 0.8125, 1.));
 static SHAPE711: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0., 0.1875, 0.1875, 0.4375, 0.8125, 0.8125));
+    LazyLock::new(|| collision::box_shape(0.1875, 0.1875, 0.5625, 0.8125, 0.8125, 1.));
 static SHAPE712: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 0.4375));
+    LazyLock::new(|| collision::box_shape(0., 0.1875, 0.1875, 0.4375, 0.8125, 0.8125));
 static SHAPE713: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.5625, 0.1875, 0.1875, 1., 0.8125, 0.8125));
+    LazyLock::new(|| collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 0.4375));
 static SHAPE714: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.4375, 0.8125));
+    LazyLock::new(|| collision::box_shape(0.5625, 0.1875, 0.1875, 1., 0.8125, 0.8125));
 static SHAPE715: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.1875, 0.5625, 0.1875, 0.8125, 1., 0.8125));
+    LazyLock::new(|| collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.4375, 0.8125));
 static SHAPE716: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.1875, 0.1875, 0.6875, 0.8125, 0.8125, 1.));
+    LazyLock::new(|| collision::box_shape(0.1875, 0.5625, 0.1875, 0.8125, 1., 0.8125));
 static SHAPE717: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0., 0.1875, 0.1875, 0.3125, 0.8125, 0.8125));
+    LazyLock::new(|| collision::box_shape(0.1875, 0.1875, 0.6875, 0.8125, 0.8125, 1.));
 static SHAPE718: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 0.3125));
+    LazyLock::new(|| collision::box_shape(0., 0.1875, 0.1875, 0.3125, 0.8125, 0.8125));
 static SHAPE719: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.6875, 0.1875, 0.1875, 1., 0.8125, 0.8125));
+    LazyLock::new(|| collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 0.3125));
 static SHAPE720: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.3125, 0.8125));
+    LazyLock::new(|| collision::box_shape(0.6875, 0.1875, 0.1875, 1., 0.8125, 0.8125));
 static SHAPE721: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.1875, 0.6875, 0.1875, 0.8125, 1., 0.8125));
+    LazyLock::new(|| collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.3125, 0.8125));
 static SHAPE722: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.1875, 0.1875, 0.75, 0.8125, 0.8125, 1.));
+    LazyLock::new(|| collision::box_shape(0.1875, 0.6875, 0.1875, 0.8125, 1., 0.8125));
 static SHAPE723: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0., 0.1875, 0.1875, 0.25, 0.8125, 0.8125));
+    LazyLock::new(|| collision::box_shape(0.1875, 0.1875, 0.75, 0.8125, 0.8125, 1.));
 static SHAPE724: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 0.25));
+    LazyLock::new(|| collision::box_shape(0., 0.1875, 0.1875, 0.25, 0.8125, 0.8125));
 static SHAPE725: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.75, 0.1875, 0.1875, 1., 0.8125, 0.8125));
+    LazyLock::new(|| collision::box_shape(0.1875, 0.1875, 0., 0.8125, 0.8125, 0.25));
 static SHAPE726: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.25, 0.8125));
+    LazyLock::new(|| collision::box_shape(0.75, 0.1875, 0.1875, 1., 0.8125, 0.8125));
 static SHAPE727: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.1875, 0.75, 0.1875, 0.8125, 1., 0.8125));
+    LazyLock::new(|| collision::box_shape(0.1875, 0., 0.1875, 0.8125, 0.25, 0.8125));
 static SHAPE728: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.25, 0.25, 0.8125, 0.75, 0.75, 1.));
+    LazyLock::new(|| collision::box_shape(0.1875, 0.75, 0.1875, 0.8125, 1., 0.8125));
 static SHAPE729: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0., 0.25, 0.25, 0.1875, 0.75, 0.75));
+    LazyLock::new(|| collision::box_shape(0.25, 0.25, 0.8125, 0.75, 0.75, 1.));
 static SHAPE730: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.25, 0.25, 0., 0.75, 0.75, 0.1875));
+    LazyLock::new(|| collision::box_shape(0., 0.25, 0.25, 0.1875, 0.75, 0.75));
 static SHAPE731: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.8125, 0.25, 0.25, 1., 0.75, 0.75));
+    LazyLock::new(|| collision::box_shape(0.25, 0.25, 0., 0.75, 0.75, 0.1875));
 static SHAPE732: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.25, 0., 0.25, 0.75, 0.1875, 0.75));
+    LazyLock::new(|| collision::box_shape(0.8125, 0.25, 0.25, 1., 0.75, 0.75));
 static SHAPE733: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.25, 0.8125, 0.25, 0.75, 1., 0.75));
+    LazyLock::new(|| collision::box_shape(0.25, 0., 0.25, 0.75, 0.1875, 0.75));
 static SHAPE734: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.1875, 0., 0.1875, 0.5625, 1., 0.5625));
+    LazyLock::new(|| collision::box_shape(0.25, 0.8125, 0.25, 0.75, 1., 0.75));
 static SHAPE735: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.1875, 0., 0.1875, 0.5625, 0.6875, 0.5625));
+    LazyLock::new(|| collision::box_shape(0.1875, 0., 0.1875, 0.5625, 1., 0.5625));
 static SHAPE736: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.1875, 0.3125, 0.1875, 0.5625, 1., 0.5625));
+    LazyLock::new(|| collision::box_shape(0.1875, 0., 0.1875, 0.5625, 0.6875, 0.5625));
 static SHAPE737: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.125, 0., 0.125, 0.625, 1., 0.625));
+    LazyLock::new(|| collision::box_shape(0.1875, 0.3125, 0.1875, 0.5625, 1., 0.5625));
 static SHAPE738: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.0625, 0., 0.0625, 0.6875, 1., 0.6875));
+    LazyLock::new(|| collision::box_shape(0.125, 0., 0.125, 0.625, 1., 0.625));
 static SHAPE739: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0., 0., 0., 0.75, 1., 0.75));
+    LazyLock::new(|| collision::box_shape(0.0625, 0., 0.0625, 0.6875, 1., 0.6875));
 static SHAPE740: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0., 0., 0.75, 1., 0.75));
+static SHAPE741: LazyLock<VoxelShape> =
     LazyLock::new(|| collision::box_shape(0.125, 0.8125, 0.125, 0.875, 1., 0.875));
-static SHAPE741: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE742: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.375, 0., 0.375, 0.625, 1., 0.625);
     let s = Shapes::or(s, collision::box_shape(0., 0.5, 0., 0.375, 1., 1.));
     let s = Shapes::or(s, collision::box_shape(0.375, 0.5, 0., 1., 1., 0.375));
     let s = Shapes::or(s, collision::box_shape(0.375, 0.5, 0.625, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0.625, 0.5, 0.375, 1., 1., 0.625))
 });
-static SHAPE742: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0., 0., 0., 0.5, 0.1875, 0.5));
 static SHAPE743: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0., 0., 0., 0.5, 0.1875, 1.));
+    LazyLock::new(|| collision::box_shape(0., 0., 0., 0.5, 0.1875, 0.5));
 static SHAPE744: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.5, 0., 0.5, 1., 0.1875, 1.));
+    LazyLock::new(|| collision::box_shape(0., 0., 0., 0.5, 0.1875, 1.));
 static SHAPE745: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.5, 0., 0., 1., 0.1875, 1.));
+    LazyLock::new(|| collision::box_shape(0.5, 0., 0.5, 1., 0.1875, 1.));
 static SHAPE746: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0., 0., 0.5, 0.5, 0.1875, 1.));
+    LazyLock::new(|| collision::box_shape(0.5, 0., 0., 1., 0.1875, 1.));
 static SHAPE747: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0., 0., 0.5, 1., 0.1875, 1.));
+    LazyLock::new(|| collision::box_shape(0., 0., 0.5, 0.5, 0.1875, 1.));
 static SHAPE748: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.5, 0., 0., 1., 0.1875, 0.5));
+    LazyLock::new(|| collision::box_shape(0., 0., 0.5, 1., 0.1875, 1.));
 static SHAPE749: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0., 0., 0., 1., 0.1875, 0.5));
+    LazyLock::new(|| collision::box_shape(0.5, 0., 0., 1., 0.1875, 0.5));
 static SHAPE750: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0., 0., 0., 0.5, 0.0625, 0.5));
+    LazyLock::new(|| collision::box_shape(0., 0., 0., 1., 0.1875, 0.5));
 static SHAPE751: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0., 0., 0., 0.5, 0.0625, 1.));
+    LazyLock::new(|| collision::box_shape(0., 0., 0., 0.5, 0.0625, 0.5));
 static SHAPE752: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.5, 0., 0.5, 1., 0.0625, 1.));
+    LazyLock::new(|| collision::box_shape(0., 0., 0., 0.5, 0.0625, 1.));
 static SHAPE753: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.5, 0., 0., 1., 0.0625, 1.));
+    LazyLock::new(|| collision::box_shape(0.5, 0., 0.5, 1., 0.0625, 1.));
 static SHAPE754: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0., 0., 0.5, 0.5, 0.0625, 1.));
+    LazyLock::new(|| collision::box_shape(0.5, 0., 0., 1., 0.0625, 1.));
 static SHAPE755: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0., 0., 0.5, 1., 0.0625, 1.));
+    LazyLock::new(|| collision::box_shape(0., 0., 0.5, 0.5, 0.0625, 1.));
 static SHAPE756: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.5, 0., 0., 1., 0.0625, 0.5));
+    LazyLock::new(|| collision::box_shape(0., 0., 0.5, 1., 0.0625, 1.));
 static SHAPE757: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0., 0., 0., 1., 0.0625, 0.5));
+    LazyLock::new(|| collision::box_shape(0.5, 0., 0., 1., 0.0625, 0.5));
 static SHAPE758: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0., 0., 1., 0.0625, 0.5));
+static SHAPE759: LazyLock<VoxelShape> =
     LazyLock::new(|| collision::box_shape(0., 0.6875, 0., 1., 0.9375, 1.));
-static SHAPE759: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE760: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.3125, 0., 0.5625, 0.6875, 0.9375, 0.9375);
     let s = Shapes::or(s, collision::box_shape(0., 0.6875, 0., 0.3125, 0.9375, 1.));
     let s = Shapes::or(
@@ -4790,9 +4792,9 @@ static SHAPE759: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.6875, 0.6875, 0.5625, 1., 0.9375, 0.9375),
     )
 });
-static SHAPE760: LazyLock<VoxelShape> =
+static SHAPE761: LazyLock<VoxelShape> =
     LazyLock::new(|| collision::box_shape(0., 0.6875, 0., 1., 0.8125, 1.));
-static SHAPE761: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE762: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.3125, 0., 0.5625, 0.6875, 0.8125, 0.9375);
     let s = Shapes::or(s, collision::box_shape(0., 0.6875, 0., 0.3125, 0.8125, 1.));
     let s = Shapes::or(
@@ -4808,9 +4810,9 @@ static SHAPE761: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.6875, 0.6875, 0.5625, 1., 0.8125, 0.9375),
     )
 });
-static SHAPE762: LazyLock<VoxelShape> =
+static SHAPE763: LazyLock<VoxelShape> =
     LazyLock::new(|| collision::box_shape(0.3125, 0., 0.5625, 0.6875, 0.8125, 0.9375));
-static SHAPE763: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE764: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.3125, 0., 0.0625, 0.6875, 0.9375, 0.4375);
     let s = Shapes::or(s, collision::box_shape(0., 0.6875, 0., 0.3125, 0.9375, 1.));
     let s = Shapes::or(
@@ -4826,7 +4828,7 @@ static SHAPE763: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.6875, 0.6875, 0.0625, 1., 0.9375, 0.4375),
     )
 });
-static SHAPE764: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE765: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.3125, 0., 0.0625, 0.6875, 0.8125, 0.4375);
     let s = Shapes::or(s, collision::box_shape(0., 0.6875, 0., 0.3125, 0.8125, 1.));
     let s = Shapes::or(
@@ -4842,9 +4844,9 @@ static SHAPE764: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.6875, 0.6875, 0.0625, 1., 0.8125, 0.4375),
     )
 });
-static SHAPE765: LazyLock<VoxelShape> =
+static SHAPE766: LazyLock<VoxelShape> =
     LazyLock::new(|| collision::box_shape(0.3125, 0., 0.0625, 0.6875, 0.8125, 0.4375));
-static SHAPE766: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE767: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.5625, 0., 0.3125, 0.9375, 0.9375, 0.6875);
     let s = Shapes::or(s, collision::box_shape(0., 0.6875, 0., 0.5625, 0.9375, 1.));
     let s = Shapes::or(
@@ -4860,7 +4862,7 @@ static SHAPE766: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.9375, 0.6875, 0.3125, 1., 0.9375, 0.6875),
     )
 });
-static SHAPE767: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE768: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.5625, 0., 0.3125, 0.9375, 0.8125, 0.6875);
     let s = Shapes::or(s, collision::box_shape(0., 0.6875, 0., 0.5625, 0.8125, 1.));
     let s = Shapes::or(
@@ -4876,9 +4878,9 @@ static SHAPE767: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.9375, 0.6875, 0.3125, 1., 0.8125, 0.6875),
     )
 });
-static SHAPE768: LazyLock<VoxelShape> =
+static SHAPE769: LazyLock<VoxelShape> =
     LazyLock::new(|| collision::box_shape(0.5625, 0., 0.3125, 0.9375, 0.8125, 0.6875));
-static SHAPE769: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE770: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.0625, 0., 0.3125, 0.4375, 0.9375, 0.6875);
     let s = Shapes::or(s, collision::box_shape(0., 0.6875, 0., 0.0625, 0.9375, 1.));
     let s = Shapes::or(
@@ -4894,7 +4896,7 @@ static SHAPE769: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.4375, 0.6875, 0.3125, 1., 0.9375, 0.6875),
     )
 });
-static SHAPE770: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE771: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0.0625, 0., 0.3125, 0.4375, 0.8125, 0.6875);
     let s = Shapes::or(s, collision::box_shape(0., 0.6875, 0., 0.0625, 0.8125, 1.));
     let s = Shapes::or(
@@ -4910,39 +4912,31 @@ static SHAPE770: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.4375, 0.6875, 0.3125, 1., 0.8125, 0.6875),
     )
 });
-static SHAPE771: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.0625, 0., 0.3125, 0.4375, 0.8125, 0.6875));
 static SHAPE772: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.3125, 0., 0.5625, 0.6875, 1., 0.9375));
+    LazyLock::new(|| collision::box_shape(0.0625, 0., 0.3125, 0.4375, 0.8125, 0.6875));
 static SHAPE773: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.3125, 0., 0.0625, 0.6875, 1., 0.4375));
+    LazyLock::new(|| collision::box_shape(0.3125, 0., 0.5625, 0.6875, 1., 0.9375));
 static SHAPE774: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.5625, 0., 0.3125, 0.9375, 1., 0.6875));
+    LazyLock::new(|| collision::box_shape(0.3125, 0., 0.0625, 0.6875, 1., 0.4375));
 static SHAPE775: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.0625, 0., 0.3125, 0.4375, 1., 0.6875));
+    LazyLock::new(|| collision::box_shape(0.5625, 0., 0.3125, 0.9375, 1., 0.6875));
 static SHAPE776: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0.125, 0.625, 0.125, 0.875, 1., 0.875));
+    LazyLock::new(|| collision::box_shape(0.0625, 0., 0.3125, 0.4375, 1., 0.6875));
 static SHAPE777: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0.125, 0.625, 0.125, 0.875, 1., 0.875));
+static SHAPE778: LazyLock<VoxelShape> =
     LazyLock::new(|| collision::box_shape(0., 0., 0., 1., 0.09375, 1.));
-static SHAPE778: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE779: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 0.625, 1.))
 });
-static SHAPE779: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE780: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     Shapes::or(s, collision::box_shape(0., 0.0625, 0.9375, 1., 0.625, 1.))
 });
-static SHAPE780: LazyLock<VoxelShape> = LazyLock::new(|| {
-    let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
-    let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 0.625, 1.));
-    Shapes::or(
-        s,
-        collision::box_shape(0.0625, 0.0625, 0.9375, 1., 0.625, 1.),
-    )
-});
 static SHAPE781: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
-    let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 1., 1.));
+    let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 0.625, 1.));
     Shapes::or(
         s,
         collision::box_shape(0.0625, 0.0625, 0.9375, 1., 0.625, 1.),
@@ -4950,25 +4944,25 @@ static SHAPE781: LazyLock<VoxelShape> = LazyLock::new(|| {
 });
 static SHAPE782: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
+    let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 1., 1.));
+    Shapes::or(
+        s,
+        collision::box_shape(0.0625, 0.0625, 0.9375, 1., 0.625, 1.),
+    )
+});
+static SHAPE783: LazyLock<VoxelShape> = LazyLock::new(|| {
+    let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 0.625, 1.));
     let s = Shapes::or(s, collision::box_shape(0.0625, 0.0625, 0.9375, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0., 0.625, 0.9375, 0.0625, 1., 1.))
 });
-static SHAPE783: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE784: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     Shapes::or(s, collision::box_shape(0., 0.0625, 0., 1., 0.625, 0.0625))
 });
-static SHAPE784: LazyLock<VoxelShape> = LazyLock::new(|| {
-    let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
-    let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 0.625, 1.));
-    Shapes::or(
-        s,
-        collision::box_shape(0.0625, 0.0625, 0., 1., 0.625, 0.0625),
-    )
-});
 static SHAPE785: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
-    let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 1., 1.));
+    let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 0.625, 1.));
     Shapes::or(
         s,
         collision::box_shape(0.0625, 0.0625, 0., 1., 0.625, 0.0625),
@@ -4976,24 +4970,20 @@ static SHAPE785: LazyLock<VoxelShape> = LazyLock::new(|| {
 });
 static SHAPE786: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
-    let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 1., 0.625, 0.0625));
-    Shapes::or(s, collision::box_shape(0., 0.0625, 0.9375, 1., 0.625, 1.))
+    let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 1., 1.));
+    Shapes::or(
+        s,
+        collision::box_shape(0.0625, 0.0625, 0., 1., 0.625, 0.0625),
+    )
 });
 static SHAPE787: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
-    let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 0.625, 1.));
-    let s = Shapes::or(
-        s,
-        collision::box_shape(0.0625, 0.0625, 0., 1., 0.625, 0.0625),
-    );
-    Shapes::or(
-        s,
-        collision::box_shape(0.0625, 0.0625, 0.9375, 1., 0.625, 1.),
-    )
+    let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 1., 0.625, 0.0625));
+    Shapes::or(s, collision::box_shape(0., 0.0625, 0.9375, 1., 0.625, 1.))
 });
 static SHAPE788: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
-    let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 1., 1.));
+    let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 0.625, 1.));
     let s = Shapes::or(
         s,
         collision::box_shape(0.0625, 0.0625, 0., 1., 0.625, 0.0625),
@@ -5005,10 +4995,22 @@ static SHAPE788: LazyLock<VoxelShape> = LazyLock::new(|| {
 });
 static SHAPE789: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
+    let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 1., 1.));
+    let s = Shapes::or(
+        s,
+        collision::box_shape(0.0625, 0.0625, 0., 1., 0.625, 0.0625),
+    );
+    Shapes::or(
+        s,
+        collision::box_shape(0.0625, 0.0625, 0.9375, 1., 0.625, 1.),
+    )
+});
+static SHAPE790: LazyLock<VoxelShape> = LazyLock::new(|| {
+    let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 1., 0.625, 0.0625));
     Shapes::or(s, collision::box_shape(0., 0.0625, 0.9375, 1., 1., 1.))
 });
-static SHAPE790: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE791: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 0.625, 1.));
     let s = Shapes::or(
@@ -5018,7 +5020,7 @@ static SHAPE790: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = Shapes::or(s, collision::box_shape(0.0625, 0.0625, 0.9375, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0., 0.625, 0.9375, 0.0625, 1., 1.))
 });
-static SHAPE791: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE792: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 1., 1.));
     let s = Shapes::or(
@@ -5027,18 +5029,18 @@ static SHAPE791: LazyLock<VoxelShape> = LazyLock::new(|| {
     );
     Shapes::or(s, collision::box_shape(0.0625, 0.0625, 0.9375, 1., 1., 1.))
 });
-static SHAPE792: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE793: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 0.625, 1.));
     let s = Shapes::or(s, collision::box_shape(0.0625, 0.0625, 0., 1., 1., 0.0625));
     Shapes::or(s, collision::box_shape(0., 0.625, 0., 0.0625, 1., 0.0625))
 });
-static SHAPE793: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE794: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 1., 1., 0.0625));
     Shapes::or(s, collision::box_shape(0., 0.0625, 0.9375, 1., 0.625, 1.))
 });
-static SHAPE794: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE795: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 0.625, 1.));
     let s = Shapes::or(s, collision::box_shape(0.0625, 0.0625, 0., 1., 1., 0.0625));
@@ -5048,7 +5050,7 @@ static SHAPE794: LazyLock<VoxelShape> = LazyLock::new(|| {
     );
     Shapes::or(s, collision::box_shape(0., 0.625, 0., 0.0625, 1., 0.0625))
 });
-static SHAPE795: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE796: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 1., 1.));
     let s = Shapes::or(s, collision::box_shape(0.0625, 0.0625, 0., 1., 1., 0.0625));
@@ -5057,7 +5059,7 @@ static SHAPE795: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.0625, 0.0625, 0.9375, 1., 0.625, 1.),
     )
 });
-static SHAPE796: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE797: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 0.625, 1.));
     let s = Shapes::or(s, collision::box_shape(0.0625, 0.0625, 0., 1., 1., 0.0625));
@@ -5065,21 +5067,21 @@ static SHAPE796: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = Shapes::or(s, collision::box_shape(0., 0.625, 0., 0.0625, 1., 0.0625));
     Shapes::or(s, collision::box_shape(0., 0.625, 0.9375, 0.0625, 1., 1.))
 });
-static SHAPE797: LazyLock<VoxelShape> = LazyLock::new(|| {
-    let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
-    Shapes::or(s, collision::box_shape(0.9375, 0.0625, 0., 1., 0.625, 1.))
-});
 static SHAPE798: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
-    let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 0.625, 1.));
     Shapes::or(s, collision::box_shape(0.9375, 0.0625, 0., 1., 0.625, 1.))
 });
 static SHAPE799: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
-    let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 1., 1.));
+    let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 0.625, 1.));
     Shapes::or(s, collision::box_shape(0.9375, 0.0625, 0., 1., 0.625, 1.))
 });
 static SHAPE800: LazyLock<VoxelShape> = LazyLock::new(|| {
+    let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
+    let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 1., 1.));
+    Shapes::or(s, collision::box_shape(0.9375, 0.0625, 0., 1., 0.625, 1.))
+});
+static SHAPE801: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0.9375, 1., 0.625, 1.));
     Shapes::or(
@@ -5087,21 +5089,9 @@ static SHAPE800: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.9375, 0.0625, 0., 1., 0.625, 0.9375),
     )
 });
-static SHAPE801: LazyLock<VoxelShape> = LazyLock::new(|| {
-    let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
-    let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 0.625, 1.));
-    let s = Shapes::or(
-        s,
-        collision::box_shape(0.0625, 0.0625, 0.9375, 1., 0.625, 1.),
-    );
-    Shapes::or(
-        s,
-        collision::box_shape(0.9375, 0.0625, 0., 1., 0.625, 0.9375),
-    )
-});
 static SHAPE802: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
-    let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 1., 1.));
+    let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 0.625, 1.));
     let s = Shapes::or(
         s,
         collision::box_shape(0.0625, 0.0625, 0.9375, 1., 0.625, 1.),
@@ -5113,13 +5103,25 @@ static SHAPE802: LazyLock<VoxelShape> = LazyLock::new(|| {
 });
 static SHAPE803: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
-    let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0.9375, 1., 1., 1.));
+    let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 1., 1.));
+    let s = Shapes::or(
+        s,
+        collision::box_shape(0.0625, 0.0625, 0.9375, 1., 0.625, 1.),
+    );
     Shapes::or(
         s,
         collision::box_shape(0.9375, 0.0625, 0., 1., 0.625, 0.9375),
     )
 });
 static SHAPE804: LazyLock<VoxelShape> = LazyLock::new(|| {
+    let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
+    let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0.9375, 1., 1., 1.));
+    Shapes::or(
+        s,
+        collision::box_shape(0.9375, 0.0625, 0., 1., 0.625, 0.9375),
+    )
+});
+static SHAPE805: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 0.625, 1.));
     let s = Shapes::or(s, collision::box_shape(0.0625, 0.0625, 0.9375, 1., 1., 1.));
@@ -5129,7 +5131,7 @@ static SHAPE804: LazyLock<VoxelShape> = LazyLock::new(|| {
     );
     Shapes::or(s, collision::box_shape(0., 0.625, 0.9375, 0.0625, 1., 1.))
 });
-static SHAPE805: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE806: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 1., 1.));
     let s = Shapes::or(s, collision::box_shape(0.0625, 0.0625, 0.9375, 1., 1., 1.));
@@ -5138,7 +5140,7 @@ static SHAPE805: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.9375, 0.0625, 0., 1., 0.625, 0.9375),
     )
 });
-static SHAPE806: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE807: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 1., 0.625, 0.0625));
     Shapes::or(
@@ -5146,21 +5148,9 @@ static SHAPE806: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.9375, 0.0625, 0.0625, 1., 0.625, 1.),
     )
 });
-static SHAPE807: LazyLock<VoxelShape> = LazyLock::new(|| {
-    let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
-    let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 0.625, 1.));
-    let s = Shapes::or(
-        s,
-        collision::box_shape(0.0625, 0.0625, 0., 1., 0.625, 0.0625),
-    );
-    Shapes::or(
-        s,
-        collision::box_shape(0.9375, 0.0625, 0.0625, 1., 0.625, 1.),
-    )
-});
 static SHAPE808: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
-    let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 1., 1.));
+    let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 0.625, 1.));
     let s = Shapes::or(
         s,
         collision::box_shape(0.0625, 0.0625, 0., 1., 0.625, 0.0625),
@@ -5172,6 +5162,18 @@ static SHAPE808: LazyLock<VoxelShape> = LazyLock::new(|| {
 });
 static SHAPE809: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
+    let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 1., 1.));
+    let s = Shapes::or(
+        s,
+        collision::box_shape(0.0625, 0.0625, 0., 1., 0.625, 0.0625),
+    );
+    Shapes::or(
+        s,
+        collision::box_shape(0.9375, 0.0625, 0.0625, 1., 0.625, 1.),
+    )
+});
+static SHAPE810: LazyLock<VoxelShape> = LazyLock::new(|| {
+    let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 1., 0.625, 0.0625));
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0.9375, 1., 0.625, 1.));
     Shapes::or(
@@ -5179,25 +5181,9 @@ static SHAPE809: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.9375, 0.0625, 0.0625, 1., 0.625, 0.9375),
     )
 });
-static SHAPE810: LazyLock<VoxelShape> = LazyLock::new(|| {
-    let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
-    let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 0.625, 1.));
-    let s = Shapes::or(
-        s,
-        collision::box_shape(0.0625, 0.0625, 0., 1., 0.625, 0.0625),
-    );
-    let s = Shapes::or(
-        s,
-        collision::box_shape(0.0625, 0.0625, 0.9375, 1., 0.625, 1.),
-    );
-    Shapes::or(
-        s,
-        collision::box_shape(0.9375, 0.0625, 0.0625, 1., 0.625, 0.9375),
-    )
-});
 static SHAPE811: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
-    let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 1., 1.));
+    let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 0.625, 1.));
     let s = Shapes::or(
         s,
         collision::box_shape(0.0625, 0.0625, 0., 1., 0.625, 0.0625),
@@ -5213,6 +5199,22 @@ static SHAPE811: LazyLock<VoxelShape> = LazyLock::new(|| {
 });
 static SHAPE812: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
+    let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 1., 1.));
+    let s = Shapes::or(
+        s,
+        collision::box_shape(0.0625, 0.0625, 0., 1., 0.625, 0.0625),
+    );
+    let s = Shapes::or(
+        s,
+        collision::box_shape(0.0625, 0.0625, 0.9375, 1., 0.625, 1.),
+    );
+    Shapes::or(
+        s,
+        collision::box_shape(0.9375, 0.0625, 0.0625, 1., 0.625, 0.9375),
+    )
+});
+static SHAPE813: LazyLock<VoxelShape> = LazyLock::new(|| {
+    let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 1., 0.625, 0.0625));
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0.9375, 1., 1., 1.));
     Shapes::or(
@@ -5220,7 +5222,7 @@ static SHAPE812: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.9375, 0.0625, 0.0625, 1., 0.625, 0.9375),
     )
 });
-static SHAPE813: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE814: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 0.625, 1.));
     let s = Shapes::or(
@@ -5234,7 +5236,7 @@ static SHAPE813: LazyLock<VoxelShape> = LazyLock::new(|| {
     );
     Shapes::or(s, collision::box_shape(0., 0.625, 0.9375, 0.0625, 1., 1.))
 });
-static SHAPE814: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE815: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 1., 1.));
     let s = Shapes::or(
@@ -5247,7 +5249,7 @@ static SHAPE814: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.9375, 0.0625, 0.0625, 1., 0.625, 0.9375),
     )
 });
-static SHAPE815: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE816: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 1., 1., 0.0625));
     Shapes::or(
@@ -5255,7 +5257,7 @@ static SHAPE815: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.9375, 0.0625, 0.0625, 1., 0.625, 1.),
     )
 });
-static SHAPE816: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE817: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 0.625, 1.));
     let s = Shapes::or(s, collision::box_shape(0.0625, 0.0625, 0., 1., 1., 0.0625));
@@ -5265,7 +5267,7 @@ static SHAPE816: LazyLock<VoxelShape> = LazyLock::new(|| {
     );
     Shapes::or(s, collision::box_shape(0., 0.625, 0., 0.0625, 1., 0.0625))
 });
-static SHAPE817: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE818: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 1., 1.));
     let s = Shapes::or(s, collision::box_shape(0.0625, 0.0625, 0., 1., 1., 0.0625));
@@ -5274,7 +5276,7 @@ static SHAPE817: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.9375, 0.0625, 0.0625, 1., 0.625, 1.),
     )
 });
-static SHAPE818: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE819: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 1., 1., 0.0625));
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0.9375, 1., 0.625, 1.));
@@ -5283,7 +5285,7 @@ static SHAPE818: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.9375, 0.0625, 0.0625, 1., 0.625, 0.9375),
     )
 });
-static SHAPE819: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE820: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 0.625, 1.));
     let s = Shapes::or(s, collision::box_shape(0.0625, 0.0625, 0., 1., 1., 0.0625));
@@ -5297,7 +5299,7 @@ static SHAPE819: LazyLock<VoxelShape> = LazyLock::new(|| {
     );
     Shapes::or(s, collision::box_shape(0., 0.625, 0., 0.0625, 1., 0.0625))
 });
-static SHAPE820: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE821: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 1., 1.));
     let s = Shapes::or(s, collision::box_shape(0.0625, 0.0625, 0., 1., 1., 0.0625));
@@ -5310,7 +5312,7 @@ static SHAPE820: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.9375, 0.0625, 0.0625, 1., 0.625, 0.9375),
     )
 });
-static SHAPE821: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE822: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 1., 1., 0.0625));
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0.9375, 1., 1., 1.));
@@ -5319,7 +5321,7 @@ static SHAPE821: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.9375, 0.0625, 0.0625, 1., 0.625, 0.9375),
     )
 });
-static SHAPE822: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE823: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 0.625, 1.));
     let s = Shapes::or(s, collision::box_shape(0.0625, 0.0625, 0., 1., 1., 0.0625));
@@ -5331,7 +5333,7 @@ static SHAPE822: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = Shapes::or(s, collision::box_shape(0., 0.625, 0., 0.0625, 1., 0.0625));
     Shapes::or(s, collision::box_shape(0., 0.625, 0.9375, 0.0625, 1., 1.))
 });
-static SHAPE823: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE824: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 1., 1.));
     let s = Shapes::or(s, collision::box_shape(0.0625, 0.0625, 0., 1., 1., 0.0625));
@@ -5341,30 +5343,20 @@ static SHAPE823: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.9375, 0.0625, 0.0625, 1., 0.625, 0.9375),
     )
 });
-static SHAPE824: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE825: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 0.625, 1.));
     Shapes::or(s, collision::box_shape(0.9375, 0.0625, 0., 1., 1., 1.))
 });
-static SHAPE825: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE826: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0.9375, 1., 0.625, 1.));
     let s = Shapes::or(s, collision::box_shape(0.9375, 0.0625, 0., 1., 1., 0.9375));
     Shapes::or(s, collision::box_shape(0.9375, 0.625, 0.9375, 1., 1., 1.))
 });
-static SHAPE826: LazyLock<VoxelShape> = LazyLock::new(|| {
-    let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
-    let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 0.625, 1.));
-    let s = Shapes::or(
-        s,
-        collision::box_shape(0.0625, 0.0625, 0.9375, 1., 0.625, 1.),
-    );
-    let s = Shapes::or(s, collision::box_shape(0.9375, 0.0625, 0., 1., 1., 0.9375));
-    Shapes::or(s, collision::box_shape(0.9375, 0.625, 0.9375, 1., 1., 1.))
-});
 static SHAPE827: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
-    let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 1., 1.));
+    let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 0.625, 1.));
     let s = Shapes::or(
         s,
         collision::box_shape(0.0625, 0.0625, 0.9375, 1., 0.625, 1.),
@@ -5374,18 +5366,28 @@ static SHAPE827: LazyLock<VoxelShape> = LazyLock::new(|| {
 });
 static SHAPE828: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
+    let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 1., 1.));
+    let s = Shapes::or(
+        s,
+        collision::box_shape(0.0625, 0.0625, 0.9375, 1., 0.625, 1.),
+    );
+    let s = Shapes::or(s, collision::box_shape(0.9375, 0.0625, 0., 1., 1., 0.9375));
+    Shapes::or(s, collision::box_shape(0.9375, 0.625, 0.9375, 1., 1., 1.))
+});
+static SHAPE829: LazyLock<VoxelShape> = LazyLock::new(|| {
+    let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 0.625, 1.));
     let s = Shapes::or(s, collision::box_shape(0.0625, 0.0625, 0.9375, 1., 1., 1.));
     let s = Shapes::or(s, collision::box_shape(0.9375, 0.0625, 0., 1., 1., 0.9375));
     Shapes::or(s, collision::box_shape(0., 0.625, 0.9375, 0.0625, 1., 1.))
 });
-static SHAPE829: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE830: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 1., 0.625, 0.0625));
     let s = Shapes::or(s, collision::box_shape(0.9375, 0.0625, 0.0625, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0.9375, 0.625, 0., 1., 1., 0.0625))
 });
-static SHAPE830: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE831: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 0.625, 1.));
     let s = Shapes::or(
@@ -5395,7 +5397,7 @@ static SHAPE830: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = Shapes::or(s, collision::box_shape(0.9375, 0.0625, 0.0625, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0.9375, 0.625, 0., 1., 1., 0.0625))
 });
-static SHAPE831: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE832: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 1., 1.));
     let s = Shapes::or(
@@ -5405,7 +5407,7 @@ static SHAPE831: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = Shapes::or(s, collision::box_shape(0.9375, 0.0625, 0.0625, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0.9375, 0.625, 0., 1., 1., 0.0625))
 });
-static SHAPE832: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE833: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 1., 0.625, 0.0625));
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0.9375, 1., 0.625, 1.));
@@ -5416,27 +5418,9 @@ static SHAPE832: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = Shapes::or(s, collision::box_shape(0.9375, 0.625, 0., 1., 1., 0.0625));
     Shapes::or(s, collision::box_shape(0.9375, 0.625, 0.9375, 1., 1., 1.))
 });
-static SHAPE833: LazyLock<VoxelShape> = LazyLock::new(|| {
-    let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
-    let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 0.625, 1.));
-    let s = Shapes::or(
-        s,
-        collision::box_shape(0.0625, 0.0625, 0., 1., 0.625, 0.0625),
-    );
-    let s = Shapes::or(
-        s,
-        collision::box_shape(0.0625, 0.0625, 0.9375, 1., 0.625, 1.),
-    );
-    let s = Shapes::or(
-        s,
-        collision::box_shape(0.9375, 0.0625, 0.0625, 1., 1., 0.9375),
-    );
-    let s = Shapes::or(s, collision::box_shape(0.9375, 0.625, 0., 1., 1., 0.0625));
-    Shapes::or(s, collision::box_shape(0.9375, 0.625, 0.9375, 1., 1., 1.))
-});
 static SHAPE834: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
-    let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 1., 1.));
+    let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 0.625, 1.));
     let s = Shapes::or(
         s,
         collision::box_shape(0.0625, 0.0625, 0., 1., 0.625, 0.0625),
@@ -5454,6 +5438,24 @@ static SHAPE834: LazyLock<VoxelShape> = LazyLock::new(|| {
 });
 static SHAPE835: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
+    let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 1., 1.));
+    let s = Shapes::or(
+        s,
+        collision::box_shape(0.0625, 0.0625, 0., 1., 0.625, 0.0625),
+    );
+    let s = Shapes::or(
+        s,
+        collision::box_shape(0.0625, 0.0625, 0.9375, 1., 0.625, 1.),
+    );
+    let s = Shapes::or(
+        s,
+        collision::box_shape(0.9375, 0.0625, 0.0625, 1., 1., 0.9375),
+    );
+    let s = Shapes::or(s, collision::box_shape(0.9375, 0.625, 0., 1., 1., 0.0625));
+    Shapes::or(s, collision::box_shape(0.9375, 0.625, 0.9375, 1., 1., 1.))
+});
+static SHAPE836: LazyLock<VoxelShape> = LazyLock::new(|| {
+    let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 1., 0.625, 0.0625));
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0.9375, 1., 1., 1.));
     let s = Shapes::or(
@@ -5462,7 +5464,7 @@ static SHAPE835: LazyLock<VoxelShape> = LazyLock::new(|| {
     );
     Shapes::or(s, collision::box_shape(0.9375, 0.625, 0., 1., 1., 0.0625))
 });
-static SHAPE836: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE837: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 0.625, 1.));
     let s = Shapes::or(
@@ -5477,7 +5479,7 @@ static SHAPE836: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = Shapes::or(s, collision::box_shape(0., 0.625, 0.9375, 0.0625, 1., 1.));
     Shapes::or(s, collision::box_shape(0.9375, 0.625, 0., 1., 1., 0.0625))
 });
-static SHAPE837: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE838: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 1., 1.));
     let s = Shapes::or(
@@ -5491,14 +5493,14 @@ static SHAPE837: LazyLock<VoxelShape> = LazyLock::new(|| {
     );
     Shapes::or(s, collision::box_shape(0.9375, 0.625, 0., 1., 1., 0.0625))
 });
-static SHAPE838: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE839: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 0.625, 1.));
     let s = Shapes::or(s, collision::box_shape(0.0625, 0.0625, 0., 1., 1., 0.0625));
     let s = Shapes::or(s, collision::box_shape(0.9375, 0.0625, 0.0625, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0., 0.625, 0., 0.0625, 1., 0.0625))
 });
-static SHAPE839: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE840: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 1., 1., 0.0625));
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0.9375, 1., 0.625, 1.));
@@ -5508,7 +5510,7 @@ static SHAPE839: LazyLock<VoxelShape> = LazyLock::new(|| {
     );
     Shapes::or(s, collision::box_shape(0.9375, 0.625, 0.9375, 1., 1., 1.))
 });
-static SHAPE840: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE841: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 0.625, 1.));
     let s = Shapes::or(s, collision::box_shape(0.0625, 0.0625, 0., 1., 1., 0.0625));
@@ -5523,7 +5525,7 @@ static SHAPE840: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = Shapes::or(s, collision::box_shape(0., 0.625, 0., 0.0625, 1., 0.0625));
     Shapes::or(s, collision::box_shape(0.9375, 0.625, 0.9375, 1., 1., 1.))
 });
-static SHAPE841: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE842: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 1., 1.));
     let s = Shapes::or(s, collision::box_shape(0.0625, 0.0625, 0., 1., 1., 0.0625));
@@ -5537,7 +5539,7 @@ static SHAPE841: LazyLock<VoxelShape> = LazyLock::new(|| {
     );
     Shapes::or(s, collision::box_shape(0.9375, 0.625, 0.9375, 1., 1., 1.))
 });
-static SHAPE842: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE843: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.0625, 1.);
     let s = Shapes::or(s, collision::box_shape(0., 0.0625, 0., 0.0625, 0.625, 1.));
     let s = Shapes::or(s, collision::box_shape(0.0625, 0.0625, 0., 1., 1., 0.0625));
@@ -5549,143 +5551,143 @@ static SHAPE842: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = Shapes::or(s, collision::box_shape(0., 0.625, 0., 0.0625, 1., 0.0625));
     Shapes::or(s, collision::box_shape(0., 0.625, 0.9375, 0.0625, 1., 1.))
 });
-static SHAPE843: LazyLock<VoxelShape> =
-    LazyLock::new(|| collision::box_shape(0., 0., 0., 0.0625, 0.625, 1.));
 static SHAPE844: LazyLock<VoxelShape> =
+    LazyLock::new(|| collision::box_shape(0., 0., 0., 0.0625, 0.625, 1.));
+static SHAPE845: LazyLock<VoxelShape> =
     LazyLock::new(|| collision::box_shape(0., 0., 0.9375, 1., 0.625, 1.));
-static SHAPE845: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE846: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.0625, 0.625, 1.);
     Shapes::or(s, collision::box_shape(0.0625, 0., 0.9375, 1., 0.625, 1.))
 });
-static SHAPE846: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE847: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.0625, 1., 1.);
     Shapes::or(s, collision::box_shape(0.0625, 0., 0.9375, 1., 0.625, 1.))
 });
-static SHAPE847: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE848: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.0625, 0.625, 1.);
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0.9375, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0., 0.625, 0.9375, 0.0625, 1., 1.))
 });
-static SHAPE848: LazyLock<VoxelShape> =
+static SHAPE849: LazyLock<VoxelShape> =
     LazyLock::new(|| collision::box_shape(0., 0., 0., 1., 0.625, 0.0625));
-static SHAPE849: LazyLock<VoxelShape> = LazyLock::new(|| {
-    let s = collision::box_shape(0., 0., 0., 0.0625, 0.625, 1.);
-    Shapes::or(s, collision::box_shape(0.0625, 0., 0., 1., 0.625, 0.0625))
-});
 static SHAPE850: LazyLock<VoxelShape> = LazyLock::new(|| {
-    let s = collision::box_shape(0., 0., 0., 0.0625, 1., 1.);
+    let s = collision::box_shape(0., 0., 0., 0.0625, 0.625, 1.);
     Shapes::or(s, collision::box_shape(0.0625, 0., 0., 1., 0.625, 0.0625))
 });
 static SHAPE851: LazyLock<VoxelShape> = LazyLock::new(|| {
+    let s = collision::box_shape(0., 0., 0., 0.0625, 1., 1.);
+    Shapes::or(s, collision::box_shape(0.0625, 0., 0., 1., 0.625, 0.0625))
+});
+static SHAPE852: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.625, 0.0625);
     Shapes::or(s, collision::box_shape(0., 0., 0.9375, 1., 0.625, 1.))
 });
-static SHAPE852: LazyLock<VoxelShape> = LazyLock::new(|| {
-    let s = collision::box_shape(0., 0., 0., 0.0625, 0.625, 1.);
-    let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0., 1., 0.625, 0.0625));
-    Shapes::or(s, collision::box_shape(0.0625, 0., 0.9375, 1., 0.625, 1.))
-});
 static SHAPE853: LazyLock<VoxelShape> = LazyLock::new(|| {
-    let s = collision::box_shape(0., 0., 0., 0.0625, 1., 1.);
+    let s = collision::box_shape(0., 0., 0., 0.0625, 0.625, 1.);
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0., 1., 0.625, 0.0625));
     Shapes::or(s, collision::box_shape(0.0625, 0., 0.9375, 1., 0.625, 1.))
 });
 static SHAPE854: LazyLock<VoxelShape> = LazyLock::new(|| {
+    let s = collision::box_shape(0., 0., 0., 0.0625, 1., 1.);
+    let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0., 1., 0.625, 0.0625));
+    Shapes::or(s, collision::box_shape(0.0625, 0., 0.9375, 1., 0.625, 1.))
+});
+static SHAPE855: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.625, 0.0625);
     Shapes::or(s, collision::box_shape(0., 0., 0.9375, 1., 1., 1.))
 });
-static SHAPE855: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE856: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.0625, 0.625, 1.);
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0., 1., 0.625, 0.0625));
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0.9375, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0., 0.625, 0.9375, 0.0625, 1., 1.))
 });
-static SHAPE856: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE857: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.0625, 1., 1.);
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0., 1., 0.625, 0.0625));
     Shapes::or(s, collision::box_shape(0.0625, 0., 0.9375, 1., 1., 1.))
 });
-static SHAPE857: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE858: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.0625, 0.625, 1.);
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0., 1., 1., 0.0625));
     Shapes::or(s, collision::box_shape(0., 0.625, 0., 0.0625, 1., 0.0625))
 });
-static SHAPE858: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE859: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 1., 0.0625);
     Shapes::or(s, collision::box_shape(0., 0., 0.9375, 1., 0.625, 1.))
 });
-static SHAPE859: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE860: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.0625, 0.625, 1.);
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0., 1., 1., 0.0625));
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0.9375, 1., 0.625, 1.));
     Shapes::or(s, collision::box_shape(0., 0.625, 0., 0.0625, 1., 0.0625))
 });
-static SHAPE860: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE861: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.0625, 1., 1.);
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0., 1., 1., 0.0625));
     Shapes::or(s, collision::box_shape(0.0625, 0., 0.9375, 1., 0.625, 1.))
 });
-static SHAPE861: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE862: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.0625, 0.625, 1.);
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0., 1., 1., 0.0625));
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0.9375, 1., 1., 1.));
     let s = Shapes::or(s, collision::box_shape(0., 0.625, 0., 0.0625, 1., 0.0625));
     Shapes::or(s, collision::box_shape(0., 0.625, 0.9375, 0.0625, 1., 1.))
 });
-static SHAPE862: LazyLock<VoxelShape> =
+static SHAPE863: LazyLock<VoxelShape> =
     LazyLock::new(|| collision::box_shape(0.9375, 0., 0., 1., 0.625, 1.));
-static SHAPE863: LazyLock<VoxelShape> = LazyLock::new(|| {
-    let s = collision::box_shape(0., 0., 0., 0.0625, 0.625, 1.);
-    Shapes::or(s, collision::box_shape(0.9375, 0., 0., 1., 0.625, 1.))
-});
 static SHAPE864: LazyLock<VoxelShape> = LazyLock::new(|| {
-    let s = collision::box_shape(0., 0., 0., 0.0625, 1., 1.);
+    let s = collision::box_shape(0., 0., 0., 0.0625, 0.625, 1.);
     Shapes::or(s, collision::box_shape(0.9375, 0., 0., 1., 0.625, 1.))
 });
 static SHAPE865: LazyLock<VoxelShape> = LazyLock::new(|| {
+    let s = collision::box_shape(0., 0., 0., 0.0625, 1., 1.);
+    Shapes::or(s, collision::box_shape(0.9375, 0., 0., 1., 0.625, 1.))
+});
+static SHAPE866: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0.9375, 1., 0.625, 1.);
     Shapes::or(s, collision::box_shape(0.9375, 0., 0., 1., 0.625, 0.9375))
 });
-static SHAPE866: LazyLock<VoxelShape> = LazyLock::new(|| {
-    let s = collision::box_shape(0., 0., 0., 0.0625, 0.625, 1.);
-    let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0.9375, 1., 0.625, 1.));
-    Shapes::or(s, collision::box_shape(0.9375, 0., 0., 1., 0.625, 0.9375))
-});
 static SHAPE867: LazyLock<VoxelShape> = LazyLock::new(|| {
-    let s = collision::box_shape(0., 0., 0., 0.0625, 1., 1.);
+    let s = collision::box_shape(0., 0., 0., 0.0625, 0.625, 1.);
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0.9375, 1., 0.625, 1.));
     Shapes::or(s, collision::box_shape(0.9375, 0., 0., 1., 0.625, 0.9375))
 });
 static SHAPE868: LazyLock<VoxelShape> = LazyLock::new(|| {
-    let s = collision::box_shape(0., 0., 0.9375, 1., 1., 1.);
+    let s = collision::box_shape(0., 0., 0., 0.0625, 1., 1.);
+    let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0.9375, 1., 0.625, 1.));
     Shapes::or(s, collision::box_shape(0.9375, 0., 0., 1., 0.625, 0.9375))
 });
 static SHAPE869: LazyLock<VoxelShape> = LazyLock::new(|| {
+    let s = collision::box_shape(0., 0., 0.9375, 1., 1., 1.);
+    Shapes::or(s, collision::box_shape(0.9375, 0., 0., 1., 0.625, 0.9375))
+});
+static SHAPE870: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.0625, 0.625, 1.);
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0.9375, 1., 1., 1.));
     let s = Shapes::or(s, collision::box_shape(0.9375, 0., 0., 1., 0.625, 0.9375));
     Shapes::or(s, collision::box_shape(0., 0.625, 0.9375, 0.0625, 1., 1.))
 });
-static SHAPE870: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE871: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.0625, 1., 1.);
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0.9375, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0.9375, 0., 0., 1., 0.625, 0.9375))
 });
-static SHAPE871: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE872: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.625, 0.0625);
     Shapes::or(s, collision::box_shape(0.9375, 0., 0.0625, 1., 0.625, 1.))
 });
-static SHAPE872: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE873: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.0625, 0.625, 1.);
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0., 1., 0.625, 0.0625));
     Shapes::or(s, collision::box_shape(0.9375, 0., 0.0625, 1., 0.625, 1.))
 });
-static SHAPE873: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE874: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.0625, 1., 1.);
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0., 1., 0.625, 0.0625));
     Shapes::or(s, collision::box_shape(0.9375, 0., 0.0625, 1., 0.625, 1.))
 });
-static SHAPE874: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE875: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.625, 0.0625);
     let s = Shapes::or(s, collision::box_shape(0., 0., 0.9375, 1., 0.625, 1.));
     Shapes::or(
@@ -5693,17 +5695,8 @@ static SHAPE874: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.9375, 0., 0.0625, 1., 0.625, 0.9375),
     )
 });
-static SHAPE875: LazyLock<VoxelShape> = LazyLock::new(|| {
-    let s = collision::box_shape(0., 0., 0., 0.0625, 0.625, 1.);
-    let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0., 1., 0.625, 0.0625));
-    let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0.9375, 1., 0.625, 1.));
-    Shapes::or(
-        s,
-        collision::box_shape(0.9375, 0., 0.0625, 1., 0.625, 0.9375),
-    )
-});
 static SHAPE876: LazyLock<VoxelShape> = LazyLock::new(|| {
-    let s = collision::box_shape(0., 0., 0., 0.0625, 1., 1.);
+    let s = collision::box_shape(0., 0., 0., 0.0625, 0.625, 1.);
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0., 1., 0.625, 0.0625));
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0.9375, 1., 0.625, 1.));
     Shapes::or(
@@ -5712,6 +5705,15 @@ static SHAPE876: LazyLock<VoxelShape> = LazyLock::new(|| {
     )
 });
 static SHAPE877: LazyLock<VoxelShape> = LazyLock::new(|| {
+    let s = collision::box_shape(0., 0., 0., 0.0625, 1., 1.);
+    let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0., 1., 0.625, 0.0625));
+    let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0.9375, 1., 0.625, 1.));
+    Shapes::or(
+        s,
+        collision::box_shape(0.9375, 0., 0.0625, 1., 0.625, 0.9375),
+    )
+});
+static SHAPE878: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.625, 0.0625);
     let s = Shapes::or(s, collision::box_shape(0., 0., 0.9375, 1., 1., 1.));
     Shapes::or(
@@ -5719,7 +5721,7 @@ static SHAPE877: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.9375, 0., 0.0625, 1., 0.625, 0.9375),
     )
 });
-static SHAPE878: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE879: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.0625, 0.625, 1.);
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0., 1., 0.625, 0.0625));
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0.9375, 1., 1., 1.));
@@ -5729,7 +5731,7 @@ static SHAPE878: LazyLock<VoxelShape> = LazyLock::new(|| {
     );
     Shapes::or(s, collision::box_shape(0., 0.625, 0.9375, 0.0625, 1., 1.))
 });
-static SHAPE879: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE880: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.0625, 1., 1.);
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0., 1., 0.625, 0.0625));
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0.9375, 1., 1., 1.));
@@ -5738,22 +5740,22 @@ static SHAPE879: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.9375, 0., 0.0625, 1., 0.625, 0.9375),
     )
 });
-static SHAPE880: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE881: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 1., 0.0625);
     Shapes::or(s, collision::box_shape(0.9375, 0., 0.0625, 1., 0.625, 1.))
 });
-static SHAPE881: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE882: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.0625, 0.625, 1.);
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0., 1., 1., 0.0625));
     let s = Shapes::or(s, collision::box_shape(0.9375, 0., 0.0625, 1., 0.625, 1.));
     Shapes::or(s, collision::box_shape(0., 0.625, 0., 0.0625, 1., 0.0625))
 });
-static SHAPE882: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE883: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.0625, 1., 1.);
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0., 1., 1., 0.0625));
     Shapes::or(s, collision::box_shape(0.9375, 0., 0.0625, 1., 0.625, 1.))
 });
-static SHAPE883: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE884: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 1., 0.0625);
     let s = Shapes::or(s, collision::box_shape(0., 0., 0.9375, 1., 0.625, 1.));
     Shapes::or(
@@ -5761,7 +5763,7 @@ static SHAPE883: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.9375, 0., 0.0625, 1., 0.625, 0.9375),
     )
 });
-static SHAPE884: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE885: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.0625, 0.625, 1.);
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0., 1., 1., 0.0625));
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0.9375, 1., 0.625, 1.));
@@ -5771,7 +5773,7 @@ static SHAPE884: LazyLock<VoxelShape> = LazyLock::new(|| {
     );
     Shapes::or(s, collision::box_shape(0., 0.625, 0., 0.0625, 1., 0.0625))
 });
-static SHAPE885: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE886: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.0625, 1., 1.);
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0., 1., 1., 0.0625));
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0.9375, 1., 0.625, 1.));
@@ -5780,7 +5782,7 @@ static SHAPE885: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.9375, 0., 0.0625, 1., 0.625, 0.9375),
     )
 });
-static SHAPE886: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE887: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 1., 0.0625);
     let s = Shapes::or(s, collision::box_shape(0., 0., 0.9375, 1., 1., 1.));
     Shapes::or(
@@ -5788,7 +5790,7 @@ static SHAPE886: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.9375, 0., 0.0625, 1., 0.625, 0.9375),
     )
 });
-static SHAPE887: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE888: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.0625, 0.625, 1.);
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0., 1., 1., 0.0625));
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0.9375, 1., 1., 1.));
@@ -5799,7 +5801,7 @@ static SHAPE887: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = Shapes::or(s, collision::box_shape(0., 0.625, 0., 0.0625, 1., 0.0625));
     Shapes::or(s, collision::box_shape(0., 0.625, 0.9375, 0.0625, 1., 1.))
 });
-static SHAPE888: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE889: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.0625, 1., 1.);
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0., 1., 1., 0.0625));
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0.9375, 1., 1., 1.));
@@ -5808,67 +5810,59 @@ static SHAPE888: LazyLock<VoxelShape> = LazyLock::new(|| {
         collision::box_shape(0.9375, 0., 0.0625, 1., 0.625, 0.9375),
     )
 });
-static SHAPE889: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE890: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.0625, 0.625, 1.);
     Shapes::or(s, collision::box_shape(0.9375, 0., 0., 1., 1., 1.))
 });
-static SHAPE890: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE891: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0.9375, 1., 0.625, 1.);
     let s = Shapes::or(s, collision::box_shape(0.9375, 0., 0., 1., 1., 0.9375));
     Shapes::or(s, collision::box_shape(0.9375, 0.625, 0.9375, 1., 1., 1.))
 });
-static SHAPE891: LazyLock<VoxelShape> = LazyLock::new(|| {
-    let s = collision::box_shape(0., 0., 0., 0.0625, 0.625, 1.);
-    let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0.9375, 1., 0.625, 1.));
-    let s = Shapes::or(s, collision::box_shape(0.9375, 0., 0., 1., 1., 0.9375));
-    Shapes::or(s, collision::box_shape(0.9375, 0.625, 0.9375, 1., 1., 1.))
-});
 static SHAPE892: LazyLock<VoxelShape> = LazyLock::new(|| {
-    let s = collision::box_shape(0., 0., 0., 0.0625, 1., 1.);
+    let s = collision::box_shape(0., 0., 0., 0.0625, 0.625, 1.);
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0.9375, 1., 0.625, 1.));
     let s = Shapes::or(s, collision::box_shape(0.9375, 0., 0., 1., 1., 0.9375));
     Shapes::or(s, collision::box_shape(0.9375, 0.625, 0.9375, 1., 1., 1.))
 });
 static SHAPE893: LazyLock<VoxelShape> = LazyLock::new(|| {
+    let s = collision::box_shape(0., 0., 0., 0.0625, 1., 1.);
+    let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0.9375, 1., 0.625, 1.));
+    let s = Shapes::or(s, collision::box_shape(0.9375, 0., 0., 1., 1., 0.9375));
+    Shapes::or(s, collision::box_shape(0.9375, 0.625, 0.9375, 1., 1., 1.))
+});
+static SHAPE894: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.0625, 0.625, 1.);
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0.9375, 1., 1., 1.));
     let s = Shapes::or(s, collision::box_shape(0.9375, 0., 0., 1., 1., 0.9375));
     Shapes::or(s, collision::box_shape(0., 0.625, 0.9375, 0.0625, 1., 1.))
 });
-static SHAPE894: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE895: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.625, 0.0625);
     let s = Shapes::or(s, collision::box_shape(0.9375, 0., 0.0625, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0.9375, 0.625, 0., 1., 1., 0.0625))
 });
-static SHAPE895: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE896: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.0625, 0.625, 1.);
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0., 1., 0.625, 0.0625));
     let s = Shapes::or(s, collision::box_shape(0.9375, 0., 0.0625, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0.9375, 0.625, 0., 1., 1., 0.0625))
 });
-static SHAPE896: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE897: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.0625, 1., 1.);
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0., 1., 0.625, 0.0625));
     let s = Shapes::or(s, collision::box_shape(0.9375, 0., 0.0625, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0.9375, 0.625, 0., 1., 1., 0.0625))
 });
-static SHAPE897: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE898: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.625, 0.0625);
     let s = Shapes::or(s, collision::box_shape(0., 0., 0.9375, 1., 0.625, 1.));
     let s = Shapes::or(s, collision::box_shape(0.9375, 0., 0.0625, 1., 1., 0.9375));
     let s = Shapes::or(s, collision::box_shape(0.9375, 0.625, 0., 1., 1., 0.0625));
     Shapes::or(s, collision::box_shape(0.9375, 0.625, 0.9375, 1., 1., 1.))
 });
-static SHAPE898: LazyLock<VoxelShape> = LazyLock::new(|| {
-    let s = collision::box_shape(0., 0., 0., 0.0625, 0.625, 1.);
-    let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0., 1., 0.625, 0.0625));
-    let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0.9375, 1., 0.625, 1.));
-    let s = Shapes::or(s, collision::box_shape(0.9375, 0., 0.0625, 1., 1., 0.9375));
-    let s = Shapes::or(s, collision::box_shape(0.9375, 0.625, 0., 1., 1., 0.0625));
-    Shapes::or(s, collision::box_shape(0.9375, 0.625, 0.9375, 1., 1., 1.))
-});
 static SHAPE899: LazyLock<VoxelShape> = LazyLock::new(|| {
-    let s = collision::box_shape(0., 0., 0., 0.0625, 1., 1.);
+    let s = collision::box_shape(0., 0., 0., 0.0625, 0.625, 1.);
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0., 1., 0.625, 0.0625));
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0.9375, 1., 0.625, 1.));
     let s = Shapes::or(s, collision::box_shape(0.9375, 0., 0.0625, 1., 1., 0.9375));
@@ -5876,12 +5870,20 @@ static SHAPE899: LazyLock<VoxelShape> = LazyLock::new(|| {
     Shapes::or(s, collision::box_shape(0.9375, 0.625, 0.9375, 1., 1., 1.))
 });
 static SHAPE900: LazyLock<VoxelShape> = LazyLock::new(|| {
+    let s = collision::box_shape(0., 0., 0., 0.0625, 1., 1.);
+    let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0., 1., 0.625, 0.0625));
+    let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0.9375, 1., 0.625, 1.));
+    let s = Shapes::or(s, collision::box_shape(0.9375, 0., 0.0625, 1., 1., 0.9375));
+    let s = Shapes::or(s, collision::box_shape(0.9375, 0.625, 0., 1., 1., 0.0625));
+    Shapes::or(s, collision::box_shape(0.9375, 0.625, 0.9375, 1., 1., 1.))
+});
+static SHAPE901: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 0.625, 0.0625);
     let s = Shapes::or(s, collision::box_shape(0., 0., 0.9375, 1., 1., 1.));
     let s = Shapes::or(s, collision::box_shape(0.9375, 0., 0.0625, 1., 1., 0.9375));
     Shapes::or(s, collision::box_shape(0.9375, 0.625, 0., 1., 1., 0.0625))
 });
-static SHAPE901: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE902: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.0625, 0.625, 1.);
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0., 1., 0.625, 0.0625));
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0.9375, 1., 1., 1.));
@@ -5889,26 +5891,26 @@ static SHAPE901: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = Shapes::or(s, collision::box_shape(0., 0.625, 0.9375, 0.0625, 1., 1.));
     Shapes::or(s, collision::box_shape(0.9375, 0.625, 0., 1., 1., 0.0625))
 });
-static SHAPE902: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE903: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.0625, 1., 1.);
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0., 1., 0.625, 0.0625));
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0.9375, 1., 1., 1.));
     let s = Shapes::or(s, collision::box_shape(0.9375, 0., 0.0625, 1., 1., 0.9375));
     Shapes::or(s, collision::box_shape(0.9375, 0.625, 0., 1., 1., 0.0625))
 });
-static SHAPE903: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE904: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.0625, 0.625, 1.);
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0., 1., 1., 0.0625));
     let s = Shapes::or(s, collision::box_shape(0.9375, 0., 0.0625, 1., 1., 1.));
     Shapes::or(s, collision::box_shape(0., 0.625, 0., 0.0625, 1., 0.0625))
 });
-static SHAPE904: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE905: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 1., 1., 0.0625);
     let s = Shapes::or(s, collision::box_shape(0., 0., 0.9375, 1., 0.625, 1.));
     let s = Shapes::or(s, collision::box_shape(0.9375, 0., 0.0625, 1., 1., 0.9375));
     Shapes::or(s, collision::box_shape(0.9375, 0.625, 0.9375, 1., 1., 1.))
 });
-static SHAPE905: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE906: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.0625, 0.625, 1.);
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0., 1., 1., 0.0625));
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0.9375, 1., 0.625, 1.));
@@ -5916,14 +5918,14 @@ static SHAPE905: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = Shapes::or(s, collision::box_shape(0., 0.625, 0., 0.0625, 1., 0.0625));
     Shapes::or(s, collision::box_shape(0.9375, 0.625, 0.9375, 1., 1., 1.))
 });
-static SHAPE906: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE907: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.0625, 1., 1.);
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0., 1., 1., 0.0625));
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0.9375, 1., 0.625, 1.));
     let s = Shapes::or(s, collision::box_shape(0.9375, 0., 0.0625, 1., 1., 0.9375));
     Shapes::or(s, collision::box_shape(0.9375, 0.625, 0.9375, 1., 1., 1.))
 });
-static SHAPE907: LazyLock<VoxelShape> = LazyLock::new(|| {
+static SHAPE908: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = collision::box_shape(0., 0., 0., 0.0625, 0.625, 1.);
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0., 1., 1., 0.0625));
     let s = Shapes::or(s, collision::box_shape(0.0625, 0., 0.9375, 1., 1., 1.));
@@ -5931,7 +5933,7 @@ static SHAPE907: LazyLock<VoxelShape> = LazyLock::new(|| {
     let s = Shapes::or(s, collision::box_shape(0., 0.625, 0., 0.0625, 1., 0.0625));
     Shapes::or(s, collision::box_shape(0., 0.625, 0.9375, 0.0625, 1., 1.))
 });
-static SHAPE908: LazyLock<VoxelShape> =
+static SHAPE909: LazyLock<VoxelShape> =
     LazyLock::new(|| collision::box_shape(0.0625, 0.125, 0.0625, 0.9375, 1., 0.9375));
 
 impl BlockWithShape for BlockState {
@@ -5947,15 +5949,15 @@ impl BlockWithShape for BlockState {
     }
 
     fn is_collision_shape_empty(&self) -> bool {
-        matches!(self.id(), 0|29..=84|86..=117|1987..=2034|2047..=2056|2109..=2136|2401..=2918|3042..=4337|4342..=4349|4366..=4685|4758..=4777|4858..=5705|5802..=5827|5892..=5911|5916..=5950|5976|5978..=5993|6037..=6041|6043..=6044|7056..=7369|7372..=7373|7376..=7377|7380..=7381|7384..=7385|7388..=7389|7392..=7393|7396..=7397|7737|7740|8169..=8172|8190|8305..=8448|8709|8712|9033|9036|9380..=9635|9952..=9983|10129..=10152|11256..=11287|11636..=11967|12205..=12206|12209..=12210|12213..=12214|12217..=12218|12221..=12222|12225..=12226|12229..=12230|12233..=12234|12237..=12238|12241..=12242|12245..=12246|12249..=12250|12253..=12254|12257..=12258|12261..=12262|12265..=12266|12269..=12270|12273..=12274|12277..=12278|12281..=12282|12285..=12286|12289..=12290|12293..=12294|12297..=12298|12301..=12302|12305..=12306|12309..=12310|12313..=12314|12317..=12318|12321..=12322|12325..=12326|12329..=12330|12333..=12334|12337..=12338|12341..=12342|12345..=12346|12349..=12350|12353..=12354|12357..=12358|12361..=12362|12365..=12366|12369..=12370|12373..=12374|12377..=12378|12381..=12382|12385..=12386|12389..=12390|12393..=12394|12397..=12398|12401..=12402|12405..=12406|12409..=12410|12413..=12414|12417..=12418|12421..=12422|12425..=12426|12429..=12430|12433..=12434|12437..=12438|12441..=12442|12445..=12446|12449..=12450|12453..=12454|12457..=12458|12461..=12462|12465..=12466|12469..=12470|12473..=12474|12477..=12478|12481..=12482|12485..=12486|12489..=12490|13518..=13520|13522|13524|13526|13528|13530..=13535|13537|13572|13783..=13809|13836..=13955|13967|13981..=13984|15189|15192|15513|15516|15837|15840|16161|16164|16485|16488|16809|16812|17133|17136|17457|17460|17781|17784|18105|18108|18429|18432|18753|18756|19077|19080|19598..=19601|19615|19617..=19618|19632|19634..=19688|19703..=19706|19899..=19900|19903..=19904|19907..=19908|19911..=19912|19915..=19916|19919..=19920|19923..=19924|19927..=19928|19931..=19932|19935..=19936|19939..=19940|19943..=19944|19947..=19948|19951..=19952|19955..=19956|19959..=19960|20123..=20170|20299..=20378|20575|20578|20995|20998|21400..=21425|21432|21435|22202|22205|22613|22616|23025|23028|23346|23828..=23955|25797..=25851|25855..=25902|25910..=25911|25918..=25919|25926..=25927|25934..=25961|26060|26063|26471|26474|26882|26885|27293|27296|27632|27826..=27910|27913)
+        matches!(self.id(), 0|29..=84|86..=117|1987..=2034|2047..=2056|2109..=2136|2401..=2918|3042..=4337|4342..=4349|4366..=4685|4758..=4777|4858..=5705|5802..=5827|5892..=5911|5916..=5950|5976|5978..=5993|6037..=6041|6043..=6044|7056..=7369|7372..=7373|7376..=7377|7380..=7381|7384..=7385|7388..=7389|7392..=7393|7396..=7397|7737|7740|8169..=8172|8190|8305..=8448|8709|8712|9033|9036|9380..=9635|9952..=9983|10129..=10152|11256..=11287|11636..=11967|12205..=12206|12209..=12210|12213..=12214|12217..=12218|12221..=12222|12225..=12226|12229..=12230|12233..=12234|12237..=12238|12241..=12242|12245..=12246|12249..=12250|12253..=12254|12257..=12258|12261..=12262|12265..=12266|12269..=12270|12273..=12274|12277..=12278|12281..=12282|12285..=12286|12289..=12290|12293..=12294|12297..=12298|12301..=12302|12305..=12306|12309..=12310|12313..=12314|12317..=12318|12321..=12322|12325..=12326|12329..=12330|12333..=12334|12337..=12338|12341..=12342|12345..=12346|12349..=12350|12353..=12354|12357..=12358|12361..=12362|12365..=12366|12369..=12370|12373..=12374|12377..=12378|12381..=12382|12385..=12386|12389..=12390|12393..=12394|12397..=12398|12401..=12402|12405..=12406|12409..=12410|12413..=12414|12417..=12418|12421..=12422|12425..=12426|12429..=12430|12433..=12434|12437..=12438|12441..=12442|12445..=12446|12449..=12450|12453..=12454|12457..=12458|12461..=12462|12465..=12466|12469..=12470|12473..=12474|12477..=12478|12481..=12482|12485..=12486|12489..=12490|13518..=13520|13522|13524|13526|13528|13530..=13535|13537|13572|13783..=13809|13868..=13987|13999|14013..=14016|15221|15224|15545|15548|15869|15872|16193|16196|16517|16520|16841|16844|17165|17168|17489|17492|17813|17816|18137|18140|18461|18464|18785|18788|19109|19112|19630..=19633|19647|19649..=19650|19664|19666..=19720|19735..=19738|19931..=19932|19935..=19936|19939..=19940|19943..=19944|19947..=19948|19951..=19952|19955..=19956|19959..=19960|19963..=19964|19967..=19968|19971..=19972|19975..=19976|19979..=19980|19983..=19984|19987..=19988|19991..=19992|20155..=20202|20331..=20410|20607|20610|21027|21030|21432..=21457|21464|21467|22234|22237|22645|22648|23057|23060|23378|23860..=23987|25829..=25883|25887..=25934|25942..=25943|25950..=25951|25958..=25959|25966..=25993|26092|26095|26503|26506|26914|26917|27325|27328|27664|27858..=27942|27945)
     }
 
     fn is_collision_shape_full(&self) -> bool {
-        matches!(self.id(), 1..=28|85|118..=1730|2041..=2046|2063..=2068|2093..=2108|2137..=2400|2919..=2937|4338..=4341|4358..=4365|5912..=5915|5958..=5959|5977|5994..=5995|6028|6030..=6036|6042|6045..=6052|6124..=6139|6780..=6983|7054..=7055|7640..=7641|7643..=7644|7729..=7730|8055..=8056|8199|8201..=8202|8295..=8296|8449|8690..=8702|10032..=10033|10044..=10048|10153..=10180|11253..=11255|11352..=11354|11599..=11600|11605..=11606|11611..=11616|11633..=11635|11968..=11970|12055..=12056|12061..=12062|12067..=12068|12073..=12074|12079..=12080|12085..=12086|12091..=12092|12097..=12098|12103..=12104|12109..=12110|12115..=12116|12121..=12122|12127..=12128|12133..=12134|12139..=12140|12145..=12146|12151..=12152|12157..=12158|12163..=12164|12169..=12170|12175..=12176|12181..=12182|12187..=12188|12193..=12194|12199..=12204|13427..=13436|13517|13538..=13571|13573..=13782|13810|13826..=13835|13964|15109..=15110|15115..=15116|15121..=15122|15127..=15128|15133..=15134|15139..=15140|15145..=15146|15151..=15152|15157..=15158|15163..=15164|15169..=15170|15175..=15176|15181..=15182|19427..=19460|19489|19602..=19614|19616|19619..=19631|19633|19689..=19690|19695..=19696|19701..=19702|20379..=20399|20409..=20472|20474..=20482|20487..=20488|20897..=20902|20907..=20908|21313|21398..=21399|21750..=21752|22059..=22060|22109|22114..=22115|22520|22525..=22526|22931..=22932|22937..=22938|23343..=23345|23827|23956..=23957|23966..=23983|24308..=24309|24314..=24315|24320..=24321|24326..=24335|24660..=24661|24666..=24667|24672..=24673|24678..=24679|25704..=25751|25796|25903|25962|25964..=25967|26052..=26053|26378|26463..=26464|26789|26874..=26875|27200|27285..=27286|27611..=27620|27623..=27631|27633|27650..=27741|27744)
+        matches!(self.id(), 1..=28|85|118..=1730|2041..=2046|2063..=2068|2093..=2108|2137..=2400|2919..=2937|4338..=4341|4358..=4365|5912..=5915|5958..=5959|5977|5994..=5995|6028|6030..=6036|6042|6045..=6052|6124..=6139|6780..=6983|7054..=7055|7640..=7641|7643..=7644|7729..=7730|8055..=8056|8199|8201..=8202|8295..=8296|8449|8690..=8702|10032..=10033|10044..=10048|10153..=10180|11253..=11255|11352..=11354|11599..=11600|11605..=11606|11611..=11616|11633..=11635|11968..=11970|12055..=12056|12061..=12062|12067..=12068|12073..=12074|12079..=12080|12085..=12086|12091..=12092|12097..=12098|12103..=12104|12109..=12110|12115..=12116|12121..=12122|12127..=12128|12133..=12134|12139..=12140|12145..=12146|12151..=12152|12157..=12158|12163..=12164|12169..=12170|12175..=12176|12181..=12182|12187..=12188|12193..=12194|12199..=12204|13427..=13436|13517|13538..=13571|13573..=13782|13810|13858..=13867|13996|15141..=15142|15147..=15148|15153..=15154|15159..=15160|15165..=15166|15171..=15172|15177..=15178|15183..=15184|15189..=15190|15195..=15196|15201..=15202|15207..=15208|15213..=15214|19459..=19492|19521|19634..=19646|19648|19651..=19663|19665|19721..=19722|19727..=19728|19733..=19734|20411..=20431|20441..=20504|20506..=20514|20519..=20520|20929..=20934|20939..=20940|21345|21430..=21431|21782..=21784|22091..=22092|22141|22146..=22147|22552|22557..=22558|22963..=22964|22969..=22970|23375..=23377|23859|23988..=23989|23998..=24015|24340..=24341|24346..=24347|24352..=24353|24358..=24367|24692..=24693|24698..=24699|24704..=24705|24710..=24711|25736..=25783|25828|25935|25994|25996..=25999|26084..=26085|26410|26495..=26496|26821|26906..=26907|27232|27317..=27318|27643..=27652|27655..=27663|27665|27682..=27773|27776)
     }
 }
 
-static COLLISION_SHAPES_MAP: [&LazyLock<VoxelShape>; 27914] = [
+static COLLISION_SHAPES_MAP: [&LazyLock<VoxelShape>; 27946] = [
     &SHAPE0, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1,
     &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1,
     &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE0,
@@ -7465,7 +7467,11 @@ static COLLISION_SHAPES_MAP: [&LazyLock<VoxelShape>; 27914] = [
     &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0,
     &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE1, &SHAPE651, &SHAPE651, &SHAPE651,
     &SHAPE652, &SHAPE652, &SHAPE652, &SHAPE652, &SHAPE652, &SHAPE652, &SHAPE652, &SHAPE652,
-    &SHAPE652, &SHAPE653, &SHAPE653, &SHAPE653, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1,
+    &SHAPE652, &SHAPE653, &SHAPE653, &SHAPE653, &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE654,
+    &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE654,
+    &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE654,
+    &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE654,
+    &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1,
     &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0,
     &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0,
     &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0,
@@ -7478,10 +7484,10 @@ static COLLISION_SHAPES_MAP: [&LazyLock<VoxelShape>; 27914] = [
     &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0,
     &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0,
     &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0,
-    &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE660, &SHAPE660, &SHAPE661, &SHAPE661,
-    &SHAPE662, &SHAPE662, &SHAPE663, &SHAPE663, &SHAPE1, &SHAPE650, &SHAPE650, &SHAPE0, &SHAPE665,
-    &SHAPE665, &SHAPE665, &SHAPE665, &SHAPE665, &SHAPE665, &SHAPE665, &SHAPE665, &SHAPE665,
-    &SHAPE665, &SHAPE665, &SHAPE665, &SHAPE38, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE76,
+    &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE661, &SHAPE661, &SHAPE662, &SHAPE662,
+    &SHAPE663, &SHAPE663, &SHAPE664, &SHAPE664, &SHAPE1, &SHAPE650, &SHAPE650, &SHAPE0, &SHAPE666,
+    &SHAPE666, &SHAPE666, &SHAPE666, &SHAPE666, &SHAPE666, &SHAPE666, &SHAPE666, &SHAPE666,
+    &SHAPE666, &SHAPE666, &SHAPE666, &SHAPE38, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE76,
     &SHAPE76, &SHAPE77, &SHAPE77, &SHAPE78, &SHAPE78, &SHAPE79, &SHAPE79, &SHAPE80, &SHAPE80,
     &SHAPE81, &SHAPE81, &SHAPE82, &SHAPE82, &SHAPE83, &SHAPE83, &SHAPE84, &SHAPE84, &SHAPE85,
     &SHAPE85, &SHAPE86, &SHAPE86, &SHAPE87, &SHAPE87, &SHAPE88, &SHAPE88, &SHAPE89, &SHAPE89,
@@ -8140,23 +8146,23 @@ static COLLISION_SHAPES_MAP: [&LazyLock<VoxelShape>; 27914] = [
     &SHAPE441, &SHAPE441, &SHAPE444, &SHAPE446, &SHAPE446, &SHAPE444, &SHAPE446, &SHAPE446,
     &SHAPE449, &SHAPE451, &SHAPE451, &SHAPE449, &SHAPE451, &SHAPE451, &SHAPE444, &SHAPE446,
     &SHAPE446, &SHAPE444, &SHAPE446, &SHAPE446, &SHAPE449, &SHAPE451, &SHAPE451, &SHAPE449,
-    &SHAPE451, &SHAPE451, &SHAPE668, &SHAPE668, &SHAPE668, &SHAPE668, &SHAPE668, &SHAPE668,
-    &SHAPE668, &SHAPE668, &SHAPE668, &SHAPE668, &SHAPE668, &SHAPE668, &SHAPE668, &SHAPE668,
-    &SHAPE668, &SHAPE668, &SHAPE668, &SHAPE668, &SHAPE668, &SHAPE668, &SHAPE668, &SHAPE668,
-    &SHAPE668, &SHAPE668, &SHAPE668, &SHAPE668, &SHAPE668, &SHAPE668, &SHAPE668, &SHAPE668,
-    &SHAPE668, &SHAPE668, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1,
+    &SHAPE451, &SHAPE451, &SHAPE669, &SHAPE669, &SHAPE669, &SHAPE669, &SHAPE669, &SHAPE669,
+    &SHAPE669, &SHAPE669, &SHAPE669, &SHAPE669, &SHAPE669, &SHAPE669, &SHAPE669, &SHAPE669,
+    &SHAPE669, &SHAPE669, &SHAPE669, &SHAPE669, &SHAPE669, &SHAPE669, &SHAPE669, &SHAPE669,
+    &SHAPE669, &SHAPE669, &SHAPE669, &SHAPE669, &SHAPE669, &SHAPE669, &SHAPE669, &SHAPE669,
+    &SHAPE669, &SHAPE669, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1,
     &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1,
     &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1,
-    &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE670, &SHAPE670, &SHAPE671,
-    &SHAPE671, &SHAPE672, &SHAPE673, &SHAPE674, &SHAPE675, &SHAPE676, &SHAPE676, &SHAPE677,
-    &SHAPE677, &SHAPE678, &SHAPE678, &SHAPE678, &SHAPE678, &SHAPE678, &SHAPE678, &SHAPE678,
-    &SHAPE678, &SHAPE678, &SHAPE678, &SHAPE678, &SHAPE678, &SHAPE678, &SHAPE678, &SHAPE678,
-    &SHAPE678, &SHAPE1, &SHAPE556, &SHAPE556, &SHAPE556, &SHAPE556, &SHAPE683, &SHAPE683,
-    &SHAPE683, &SHAPE683, &SHAPE684, &SHAPE684, &SHAPE684, &SHAPE684, &SHAPE685, &SHAPE685,
-    &SHAPE685, &SHAPE685, &SHAPE685, &SHAPE685, &SHAPE685, &SHAPE685, &SHAPE686, &SHAPE686,
-    &SHAPE687, &SHAPE687, &SHAPE688, &SHAPE688, &SHAPE689, &SHAPE689, &SHAPE690, &SHAPE690,
-    &SHAPE690, &SHAPE690, &SHAPE691, &SHAPE691, &SHAPE691, &SHAPE691, &SHAPE692, &SHAPE692,
-    &SHAPE693, &SHAPE693, &SHAPE692, &SHAPE692, &SHAPE693, &SHAPE693, &SHAPE555, &SHAPE555,
+    &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE671, &SHAPE671, &SHAPE672,
+    &SHAPE672, &SHAPE673, &SHAPE674, &SHAPE675, &SHAPE676, &SHAPE677, &SHAPE677, &SHAPE678,
+    &SHAPE678, &SHAPE679, &SHAPE679, &SHAPE679, &SHAPE679, &SHAPE679, &SHAPE679, &SHAPE679,
+    &SHAPE679, &SHAPE679, &SHAPE679, &SHAPE679, &SHAPE679, &SHAPE679, &SHAPE679, &SHAPE679,
+    &SHAPE679, &SHAPE1, &SHAPE556, &SHAPE556, &SHAPE556, &SHAPE556, &SHAPE684, &SHAPE684,
+    &SHAPE684, &SHAPE684, &SHAPE685, &SHAPE685, &SHAPE685, &SHAPE685, &SHAPE686, &SHAPE686,
+    &SHAPE686, &SHAPE686, &SHAPE686, &SHAPE686, &SHAPE686, &SHAPE686, &SHAPE687, &SHAPE687,
+    &SHAPE688, &SHAPE688, &SHAPE689, &SHAPE689, &SHAPE690, &SHAPE690, &SHAPE691, &SHAPE691,
+    &SHAPE691, &SHAPE691, &SHAPE692, &SHAPE692, &SHAPE692, &SHAPE692, &SHAPE693, &SHAPE693,
+    &SHAPE694, &SHAPE694, &SHAPE693, &SHAPE693, &SHAPE694, &SHAPE694, &SHAPE555, &SHAPE555,
     &SHAPE555, &SHAPE555, &SHAPE555, &SHAPE555, &SHAPE555, &SHAPE555, &SHAPE555, &SHAPE555,
     &SHAPE555, &SHAPE555, &SHAPE555, &SHAPE555, &SHAPE555, &SHAPE555, &SHAPE555, &SHAPE555,
     &SHAPE555, &SHAPE555, &SHAPE555, &SHAPE555, &SHAPE555, &SHAPE555, &SHAPE555, &SHAPE555,
@@ -8255,8 +8261,8 @@ static COLLISION_SHAPES_MAP: [&LazyLock<VoxelShape>; 27914] = [
     &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0,
     &SHAPE0, &SHAPE0, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1,
     &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1,
-    &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE698, &SHAPE698, &SHAPE698, &SHAPE698, &SHAPE698, &SHAPE698,
-    &SHAPE698, &SHAPE698, &SHAPE698, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1,
+    &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE699, &SHAPE699, &SHAPE699, &SHAPE699, &SHAPE699, &SHAPE699,
+    &SHAPE699, &SHAPE699, &SHAPE699, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1,
     &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1,
     &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1,
     &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1,
@@ -8417,51 +8423,51 @@ static COLLISION_SHAPES_MAP: [&LazyLock<VoxelShape>; 27914] = [
     &SHAPE441, &SHAPE444, &SHAPE446, &SHAPE446, &SHAPE444, &SHAPE446, &SHAPE446, &SHAPE449,
     &SHAPE451, &SHAPE451, &SHAPE449, &SHAPE451, &SHAPE451, &SHAPE444, &SHAPE446, &SHAPE446,
     &SHAPE444, &SHAPE446, &SHAPE446, &SHAPE449, &SHAPE451, &SHAPE451, &SHAPE449, &SHAPE451,
-    &SHAPE451, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE706,
-    &SHAPE706, &SHAPE706, &SHAPE706, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708,
-    &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE706,
-    &SHAPE706, &SHAPE706, &SHAPE706, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708,
-    &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE706,
-    &SHAPE706, &SHAPE706, &SHAPE706, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708,
-    &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE706,
-    &SHAPE706, &SHAPE706, &SHAPE706, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708,
-    &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE706,
-    &SHAPE706, &SHAPE706, &SHAPE706, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708,
-    &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE706,
-    &SHAPE706, &SHAPE706, &SHAPE706, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708,
-    &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE706,
-    &SHAPE706, &SHAPE706, &SHAPE706, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708,
-    &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE706,
-    &SHAPE706, &SHAPE706, &SHAPE706, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708,
-    &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE706,
-    &SHAPE706, &SHAPE706, &SHAPE706, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708,
-    &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE706,
-    &SHAPE706, &SHAPE706, &SHAPE706, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708,
-    &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE706,
-    &SHAPE706, &SHAPE706, &SHAPE706, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708,
-    &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE706,
-    &SHAPE706, &SHAPE706, &SHAPE706, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708,
-    &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE706,
-    &SHAPE706, &SHAPE706, &SHAPE706, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708,
-    &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE706,
-    &SHAPE706, &SHAPE706, &SHAPE706, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708,
-    &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE706,
-    &SHAPE706, &SHAPE706, &SHAPE706, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708,
-    &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE706,
-    &SHAPE706, &SHAPE706, &SHAPE706, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708,
-    &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE706,
-    &SHAPE706, &SHAPE706, &SHAPE706, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708,
-    &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE709,
-    &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE709,
-    &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE709,
-    &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE709,
-    &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE1, &SHAPE1, &SHAPE710, &SHAPE710,
-    &SHAPE711, &SHAPE711, &SHAPE712, &SHAPE712, &SHAPE713, &SHAPE713, &SHAPE714, &SHAPE714,
-    &SHAPE715, &SHAPE715, &SHAPE716, &SHAPE716, &SHAPE717, &SHAPE717, &SHAPE718, &SHAPE718,
-    &SHAPE719, &SHAPE719, &SHAPE720, &SHAPE720, &SHAPE721, &SHAPE721, &SHAPE722, &SHAPE722,
-    &SHAPE723, &SHAPE723, &SHAPE724, &SHAPE724, &SHAPE725, &SHAPE725, &SHAPE726, &SHAPE726,
-    &SHAPE727, &SHAPE727, &SHAPE728, &SHAPE728, &SHAPE729, &SHAPE729, &SHAPE730, &SHAPE730,
-    &SHAPE731, &SHAPE731, &SHAPE732, &SHAPE732, &SHAPE733, &SHAPE733, &SHAPE1, &SHAPE340,
+    &SHAPE451, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE707,
+    &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE709,
+    &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE707,
+    &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE709,
+    &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE707,
+    &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE709,
+    &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE707,
+    &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE709,
+    &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE707,
+    &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE709,
+    &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE707,
+    &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE709,
+    &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE707,
+    &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE709,
+    &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE707,
+    &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE709,
+    &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE707,
+    &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE709,
+    &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE707,
+    &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE709,
+    &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE707,
+    &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE709,
+    &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE707,
+    &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE709,
+    &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE707,
+    &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE709,
+    &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE707,
+    &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE709,
+    &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE707,
+    &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE709,
+    &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE707,
+    &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE709,
+    &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE707,
+    &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE709,
+    &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE710, &SHAPE710, &SHAPE710, &SHAPE710, &SHAPE710,
+    &SHAPE710, &SHAPE710, &SHAPE710, &SHAPE710, &SHAPE710, &SHAPE710, &SHAPE710, &SHAPE710,
+    &SHAPE710, &SHAPE710, &SHAPE710, &SHAPE710, &SHAPE710, &SHAPE710, &SHAPE710, &SHAPE710,
+    &SHAPE710, &SHAPE710, &SHAPE710, &SHAPE710, &SHAPE710, &SHAPE710, &SHAPE710, &SHAPE710,
+    &SHAPE710, &SHAPE710, &SHAPE710, &SHAPE710, &SHAPE710, &SHAPE1, &SHAPE1, &SHAPE711, &SHAPE711,
+    &SHAPE712, &SHAPE712, &SHAPE713, &SHAPE713, &SHAPE714, &SHAPE714, &SHAPE715, &SHAPE715,
+    &SHAPE716, &SHAPE716, &SHAPE717, &SHAPE717, &SHAPE718, &SHAPE718, &SHAPE719, &SHAPE719,
+    &SHAPE720, &SHAPE720, &SHAPE721, &SHAPE721, &SHAPE722, &SHAPE722, &SHAPE723, &SHAPE723,
+    &SHAPE724, &SHAPE724, &SHAPE725, &SHAPE725, &SHAPE726, &SHAPE726, &SHAPE727, &SHAPE727,
+    &SHAPE728, &SHAPE728, &SHAPE729, &SHAPE729, &SHAPE730, &SHAPE730, &SHAPE731, &SHAPE731,
+    &SHAPE732, &SHAPE732, &SHAPE733, &SHAPE733, &SHAPE734, &SHAPE734, &SHAPE1, &SHAPE340,
     &SHAPE340, &SHAPE13, &SHAPE13, &SHAPE1, &SHAPE1, &SHAPE76, &SHAPE76, &SHAPE77, &SHAPE77,
     &SHAPE78, &SHAPE78, &SHAPE79, &SHAPE79, &SHAPE80, &SHAPE80, &SHAPE81, &SHAPE81, &SHAPE82,
     &SHAPE82, &SHAPE83, &SHAPE83, &SHAPE84, &SHAPE84, &SHAPE85, &SHAPE85, &SHAPE86, &SHAPE86,
@@ -8894,23 +8900,23 @@ static COLLISION_SHAPES_MAP: [&LazyLock<VoxelShape>; 27914] = [
     &SHAPE578, &SHAPE578, &SHAPE578, &SHAPE578, &SHAPE579, &SHAPE579, &SHAPE579, &SHAPE579,
     &SHAPE578, &SHAPE578, &SHAPE578, &SHAPE578, &SHAPE579, &SHAPE579, &SHAPE579, &SHAPE579,
     &SHAPE266, &SHAPE266, &SHAPE266, &SHAPE266, &SHAPE266, &SHAPE266, &SHAPE266, &SHAPE266,
-    &SHAPE734, &SHAPE734, &SHAPE734, &SHAPE734, &SHAPE735, &SHAPE735, &SHAPE736, &SHAPE736,
-    &SHAPE737, &SHAPE737, &SHAPE737, &SHAPE737, &SHAPE738, &SHAPE738, &SHAPE738, &SHAPE738,
-    &SHAPE739, &SHAPE739, &SHAPE739, &SHAPE739, &SHAPE1, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0,
+    &SHAPE735, &SHAPE735, &SHAPE735, &SHAPE735, &SHAPE736, &SHAPE736, &SHAPE737, &SHAPE737,
+    &SHAPE738, &SHAPE738, &SHAPE738, &SHAPE738, &SHAPE739, &SHAPE739, &SHAPE739, &SHAPE739,
+    &SHAPE740, &SHAPE740, &SHAPE740, &SHAPE740, &SHAPE1, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0,
     &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0,
     &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0,
     &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0,
     &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0,
     &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0,
-    &SHAPE0, &SHAPE741, &SHAPE741, &SHAPE75, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0,
+    &SHAPE0, &SHAPE742, &SHAPE742, &SHAPE75, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0,
     &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0,
     &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0,
     &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0,
     &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0,
-    &SHAPE0, &SHAPE0, &SHAPE1, &SHAPE758, &SHAPE758, &SHAPE758, &SHAPE758, &SHAPE760, &SHAPE760,
-    &SHAPE0, &SHAPE0, &SHAPE758, &SHAPE758, &SHAPE758, &SHAPE758, &SHAPE760, &SHAPE760, &SHAPE0,
-    &SHAPE0, &SHAPE758, &SHAPE758, &SHAPE758, &SHAPE758, &SHAPE760, &SHAPE760, &SHAPE0, &SHAPE0,
-    &SHAPE758, &SHAPE758, &SHAPE758, &SHAPE758, &SHAPE760, &SHAPE760, &SHAPE0, &SHAPE0, &SHAPE0,
+    &SHAPE0, &SHAPE0, &SHAPE1, &SHAPE759, &SHAPE759, &SHAPE759, &SHAPE759, &SHAPE761, &SHAPE761,
+    &SHAPE0, &SHAPE0, &SHAPE759, &SHAPE759, &SHAPE759, &SHAPE759, &SHAPE761, &SHAPE761, &SHAPE0,
+    &SHAPE0, &SHAPE759, &SHAPE759, &SHAPE759, &SHAPE759, &SHAPE761, &SHAPE761, &SHAPE0, &SHAPE0,
+    &SHAPE759, &SHAPE759, &SHAPE759, &SHAPE759, &SHAPE761, &SHAPE761, &SHAPE0, &SHAPE0, &SHAPE0,
     &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0,
     &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0,
     &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE1, &SHAPE189, &SHAPE1, &SHAPE1, &SHAPE1,
@@ -9147,7 +9153,7 @@ static COLLISION_SHAPES_MAP: [&LazyLock<VoxelShape>; 27914] = [
     &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0,
     &SHAPE0, &SHAPE38, &SHAPE38, &SHAPE0,
 ];
-static OUTLINE_SHAPES_MAP: [&LazyLock<VoxelShape>; 27914] = [
+static OUTLINE_SHAPES_MAP: [&LazyLock<VoxelShape>; 27946] = [
     &SHAPE0, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1,
     &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1,
     &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE2,
@@ -10757,26 +10763,30 @@ static OUTLINE_SHAPES_MAP: [&LazyLock<VoxelShape>; 27914] = [
     &SHAPE556, &SHAPE556, &SHAPE556, &SHAPE556, &SHAPE556, &SHAPE556, &SHAPE556, &SHAPE556,
     &SHAPE556, &SHAPE1, &SHAPE1, &SHAPE651, &SHAPE651, &SHAPE651, &SHAPE652, &SHAPE652, &SHAPE652,
     &SHAPE652, &SHAPE652, &SHAPE652, &SHAPE652, &SHAPE652, &SHAPE652, &SHAPE653, &SHAPE653,
-    &SHAPE653, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1,
-    &SHAPE1, &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE654,
+    &SHAPE653, &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE654,
     &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE654,
-    &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE655, &SHAPE655, &SHAPE655,
+    &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE654,
+    &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE654, &SHAPE654,
+    &SHAPE654, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1,
+    &SHAPE1, &SHAPE655, &SHAPE655, &SHAPE655, &SHAPE655, &SHAPE655, &SHAPE655, &SHAPE655,
     &SHAPE655, &SHAPE655, &SHAPE655, &SHAPE655, &SHAPE655, &SHAPE655, &SHAPE655, &SHAPE655,
-    &SHAPE655, &SHAPE655, &SHAPE655, &SHAPE655, &SHAPE655, &SHAPE655, &SHAPE655, &SHAPE655,
-    &SHAPE655, &SHAPE656, &SHAPE656, &SHAPE657, &SHAPE657, &SHAPE658, &SHAPE658, &SHAPE659,
-    &SHAPE659, &SHAPE656, &SHAPE656, &SHAPE657, &SHAPE657, &SHAPE658, &SHAPE658, &SHAPE659,
-    &SHAPE659, &SHAPE656, &SHAPE656, &SHAPE657, &SHAPE657, &SHAPE658, &SHAPE658, &SHAPE659,
-    &SHAPE659, &SHAPE656, &SHAPE656, &SHAPE657, &SHAPE657, &SHAPE658, &SHAPE658, &SHAPE659,
-    &SHAPE659, &SHAPE656, &SHAPE656, &SHAPE657, &SHAPE657, &SHAPE658, &SHAPE658, &SHAPE659,
-    &SHAPE659, &SHAPE656, &SHAPE656, &SHAPE657, &SHAPE657, &SHAPE658, &SHAPE658, &SHAPE659,
-    &SHAPE659, &SHAPE656, &SHAPE656, &SHAPE657, &SHAPE657, &SHAPE658, &SHAPE658, &SHAPE659,
-    &SHAPE659, &SHAPE656, &SHAPE656, &SHAPE657, &SHAPE657, &SHAPE658, &SHAPE658, &SHAPE659,
-    &SHAPE659, &SHAPE656, &SHAPE656, &SHAPE657, &SHAPE657, &SHAPE658, &SHAPE658, &SHAPE659,
-    &SHAPE659, &SHAPE656, &SHAPE656, &SHAPE657, &SHAPE657, &SHAPE658, &SHAPE658, &SHAPE659,
-    &SHAPE659, &SHAPE660, &SHAPE660, &SHAPE661, &SHAPE661, &SHAPE662, &SHAPE662, &SHAPE663,
-    &SHAPE663, &SHAPE1, &SHAPE650, &SHAPE650, &SHAPE664, &SHAPE666, &SHAPE666, &SHAPE666,
-    &SHAPE666, &SHAPE667, &SHAPE667, &SHAPE666, &SHAPE666, &SHAPE666, &SHAPE666, &SHAPE667,
-    &SHAPE667, &SHAPE38, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE76, &SHAPE76, &SHAPE77,
+    &SHAPE655, &SHAPE655, &SHAPE655, &SHAPE655, &SHAPE655, &SHAPE656, &SHAPE656, &SHAPE656,
+    &SHAPE656, &SHAPE656, &SHAPE656, &SHAPE656, &SHAPE656, &SHAPE656, &SHAPE656, &SHAPE656,
+    &SHAPE656, &SHAPE656, &SHAPE656, &SHAPE656, &SHAPE656, &SHAPE656, &SHAPE656, &SHAPE656,
+    &SHAPE656, &SHAPE657, &SHAPE657, &SHAPE658, &SHAPE658, &SHAPE659, &SHAPE659, &SHAPE660,
+    &SHAPE660, &SHAPE657, &SHAPE657, &SHAPE658, &SHAPE658, &SHAPE659, &SHAPE659, &SHAPE660,
+    &SHAPE660, &SHAPE657, &SHAPE657, &SHAPE658, &SHAPE658, &SHAPE659, &SHAPE659, &SHAPE660,
+    &SHAPE660, &SHAPE657, &SHAPE657, &SHAPE658, &SHAPE658, &SHAPE659, &SHAPE659, &SHAPE660,
+    &SHAPE660, &SHAPE657, &SHAPE657, &SHAPE658, &SHAPE658, &SHAPE659, &SHAPE659, &SHAPE660,
+    &SHAPE660, &SHAPE657, &SHAPE657, &SHAPE658, &SHAPE658, &SHAPE659, &SHAPE659, &SHAPE660,
+    &SHAPE660, &SHAPE657, &SHAPE657, &SHAPE658, &SHAPE658, &SHAPE659, &SHAPE659, &SHAPE660,
+    &SHAPE660, &SHAPE657, &SHAPE657, &SHAPE658, &SHAPE658, &SHAPE659, &SHAPE659, &SHAPE660,
+    &SHAPE660, &SHAPE657, &SHAPE657, &SHAPE658, &SHAPE658, &SHAPE659, &SHAPE659, &SHAPE660,
+    &SHAPE660, &SHAPE657, &SHAPE657, &SHAPE658, &SHAPE658, &SHAPE659, &SHAPE659, &SHAPE660,
+    &SHAPE660, &SHAPE661, &SHAPE661, &SHAPE662, &SHAPE662, &SHAPE663, &SHAPE663, &SHAPE664,
+    &SHAPE664, &SHAPE1, &SHAPE650, &SHAPE650, &SHAPE665, &SHAPE667, &SHAPE667, &SHAPE667,
+    &SHAPE667, &SHAPE668, &SHAPE668, &SHAPE667, &SHAPE667, &SHAPE667, &SHAPE667, &SHAPE668,
+    &SHAPE668, &SHAPE38, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE0, &SHAPE76, &SHAPE76, &SHAPE77,
     &SHAPE77, &SHAPE78, &SHAPE78, &SHAPE79, &SHAPE79, &SHAPE80, &SHAPE80, &SHAPE81, &SHAPE81,
     &SHAPE82, &SHAPE82, &SHAPE83, &SHAPE83, &SHAPE84, &SHAPE84, &SHAPE85, &SHAPE85, &SHAPE86,
     &SHAPE86, &SHAPE87, &SHAPE87, &SHAPE88, &SHAPE88, &SHAPE89, &SHAPE89, &SHAPE90, &SHAPE90,
@@ -11435,23 +11445,23 @@ static OUTLINE_SHAPES_MAP: [&LazyLock<VoxelShape>; 27914] = [
     &SHAPE520, &SHAPE521, &SHAPE522, &SHAPE520, &SHAPE521, &SHAPE522, &SHAPE523, &SHAPE524,
     &SHAPE525, &SHAPE523, &SHAPE524, &SHAPE525, &SHAPE526, &SHAPE527, &SHAPE528, &SHAPE526,
     &SHAPE527, &SHAPE528, &SHAPE529, &SHAPE530, &SHAPE531, &SHAPE529, &SHAPE530, &SHAPE531,
+    &SHAPE670, &SHAPE670, &SHAPE670, &SHAPE670, &SHAPE670, &SHAPE670, &SHAPE670, &SHAPE670,
+    &SHAPE670, &SHAPE670, &SHAPE670, &SHAPE670, &SHAPE670, &SHAPE670, &SHAPE670, &SHAPE670,
     &SHAPE669, &SHAPE669, &SHAPE669, &SHAPE669, &SHAPE669, &SHAPE669, &SHAPE669, &SHAPE669,
     &SHAPE669, &SHAPE669, &SHAPE669, &SHAPE669, &SHAPE669, &SHAPE669, &SHAPE669, &SHAPE669,
-    &SHAPE668, &SHAPE668, &SHAPE668, &SHAPE668, &SHAPE668, &SHAPE668, &SHAPE668, &SHAPE668,
-    &SHAPE668, &SHAPE668, &SHAPE668, &SHAPE668, &SHAPE668, &SHAPE668, &SHAPE668, &SHAPE668,
     &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1,
     &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1,
     &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1,
-    &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE670, &SHAPE670, &SHAPE671, &SHAPE671, &SHAPE672,
-    &SHAPE673, &SHAPE674, &SHAPE675, &SHAPE676, &SHAPE676, &SHAPE677, &SHAPE677, &SHAPE679,
-    &SHAPE679, &SHAPE679, &SHAPE679, &SHAPE680, &SHAPE680, &SHAPE680, &SHAPE680, &SHAPE681,
-    &SHAPE681, &SHAPE681, &SHAPE681, &SHAPE682, &SHAPE682, &SHAPE682, &SHAPE682, &SHAPE1,
-    &SHAPE556, &SHAPE556, &SHAPE556, &SHAPE556, &SHAPE683, &SHAPE683, &SHAPE683, &SHAPE683,
-    &SHAPE684, &SHAPE684, &SHAPE684, &SHAPE684, &SHAPE685, &SHAPE685, &SHAPE685, &SHAPE685,
-    &SHAPE685, &SHAPE685, &SHAPE685, &SHAPE685, &SHAPE686, &SHAPE686, &SHAPE687, &SHAPE687,
-    &SHAPE688, &SHAPE688, &SHAPE689, &SHAPE689, &SHAPE690, &SHAPE690, &SHAPE690, &SHAPE690,
-    &SHAPE691, &SHAPE691, &SHAPE691, &SHAPE691, &SHAPE692, &SHAPE692, &SHAPE693, &SHAPE693,
-    &SHAPE692, &SHAPE692, &SHAPE693, &SHAPE693, &SHAPE555, &SHAPE555, &SHAPE555, &SHAPE555,
+    &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE671, &SHAPE671, &SHAPE672, &SHAPE672, &SHAPE673,
+    &SHAPE674, &SHAPE675, &SHAPE676, &SHAPE677, &SHAPE677, &SHAPE678, &SHAPE678, &SHAPE680,
+    &SHAPE680, &SHAPE680, &SHAPE680, &SHAPE681, &SHAPE681, &SHAPE681, &SHAPE681, &SHAPE682,
+    &SHAPE682, &SHAPE682, &SHAPE682, &SHAPE683, &SHAPE683, &SHAPE683, &SHAPE683, &SHAPE1,
+    &SHAPE556, &SHAPE556, &SHAPE556, &SHAPE556, &SHAPE684, &SHAPE684, &SHAPE684, &SHAPE684,
+    &SHAPE685, &SHAPE685, &SHAPE685, &SHAPE685, &SHAPE686, &SHAPE686, &SHAPE686, &SHAPE686,
+    &SHAPE686, &SHAPE686, &SHAPE686, &SHAPE686, &SHAPE687, &SHAPE687, &SHAPE688, &SHAPE688,
+    &SHAPE689, &SHAPE689, &SHAPE690, &SHAPE690, &SHAPE691, &SHAPE691, &SHAPE691, &SHAPE691,
+    &SHAPE692, &SHAPE692, &SHAPE692, &SHAPE692, &SHAPE693, &SHAPE693, &SHAPE694, &SHAPE694,
+    &SHAPE693, &SHAPE693, &SHAPE694, &SHAPE694, &SHAPE555, &SHAPE555, &SHAPE555, &SHAPE555,
     &SHAPE555, &SHAPE555, &SHAPE555, &SHAPE555, &SHAPE555, &SHAPE555, &SHAPE555, &SHAPE555,
     &SHAPE555, &SHAPE555, &SHAPE555, &SHAPE555, &SHAPE555, &SHAPE555, &SHAPE555, &SHAPE555,
     &SHAPE555, &SHAPE555, &SHAPE555, &SHAPE555, &SHAPE555, &SHAPE555, &SHAPE555, &SHAPE555,
@@ -11461,15 +11471,15 @@ static OUTLINE_SHAPES_MAP: [&LazyLock<VoxelShape>; 27914] = [
     &SHAPE555, &SHAPE555, &SHAPE555, &SHAPE555, &SHAPE555, &SHAPE555, &SHAPE555, &SHAPE555,
     &SHAPE555, &SHAPE555, &SHAPE555, &SHAPE555, &SHAPE562, &SHAPE23, &SHAPE23, &SHAPE1, &SHAPE1,
     &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1,
-    &SHAPE1, &SHAPE1, &SHAPE694, &SHAPE1, &SHAPE20, &SHAPE695, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1,
-    &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE694,
-    &SHAPE1, &SHAPE696, &SHAPE696, &SHAPE696, &SHAPE696, &SHAPE696, &SHAPE696, &SHAPE696,
-    &SHAPE696, &SHAPE696, &SHAPE696, &SHAPE696, &SHAPE696, &SHAPE696, &SHAPE696, &SHAPE696,
-    &SHAPE696, &SHAPE696, &SHAPE696, &SHAPE696, &SHAPE696, &SHAPE696, &SHAPE696, &SHAPE696,
-    &SHAPE696, &SHAPE696, &SHAPE696, &SHAPE23, &SHAPE697, &SHAPE697, &SHAPE697, &SHAPE697,
+    &SHAPE1, &SHAPE1, &SHAPE695, &SHAPE1, &SHAPE20, &SHAPE696, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1,
+    &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE695,
+    &SHAPE1, &SHAPE697, &SHAPE697, &SHAPE697, &SHAPE697, &SHAPE697, &SHAPE697, &SHAPE697,
     &SHAPE697, &SHAPE697, &SHAPE697, &SHAPE697, &SHAPE697, &SHAPE697, &SHAPE697, &SHAPE697,
     &SHAPE697, &SHAPE697, &SHAPE697, &SHAPE697, &SHAPE697, &SHAPE697, &SHAPE697, &SHAPE697,
-    &SHAPE697, &SHAPE697, &SHAPE697, &SHAPE697, &SHAPE697, &SHAPE697, &SHAPE191, &SHAPE20, &SHAPE1,
+    &SHAPE697, &SHAPE697, &SHAPE697, &SHAPE23, &SHAPE698, &SHAPE698, &SHAPE698, &SHAPE698,
+    &SHAPE698, &SHAPE698, &SHAPE698, &SHAPE698, &SHAPE698, &SHAPE698, &SHAPE698, &SHAPE698,
+    &SHAPE698, &SHAPE698, &SHAPE698, &SHAPE698, &SHAPE698, &SHAPE698, &SHAPE698, &SHAPE698,
+    &SHAPE698, &SHAPE698, &SHAPE698, &SHAPE698, &SHAPE698, &SHAPE698, &SHAPE191, &SHAPE20, &SHAPE1,
     &SHAPE1, &SHAPE340, &SHAPE340, &SHAPE13, &SHAPE13, &SHAPE1, &SHAPE1, &SHAPE340, &SHAPE340,
     &SHAPE13, &SHAPE13, &SHAPE1, &SHAPE1, &SHAPE215, &SHAPE216, &SHAPE215, &SHAPE216, &SHAPE236,
     &SHAPE238, &SHAPE236, &SHAPE238, &SHAPE240, &SHAPE242, &SHAPE240, &SHAPE242, &SHAPE244,
@@ -11555,8 +11565,8 @@ static OUTLINE_SHAPES_MAP: [&LazyLock<VoxelShape>; 27914] = [
     &SHAPE197, &SHAPE198, &SHAPE198, &SHAPE199, &SHAPE199, &SHAPE196, &SHAPE196, &SHAPE197,
     &SHAPE197, &SHAPE198, &SHAPE198, &SHAPE199, &SHAPE199, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1,
     &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1,
-    &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE698, &SHAPE699, &SHAPE700,
-    &SHAPE701, &SHAPE702, &SHAPE703, &SHAPE704, &SHAPE705, &SHAPE705, &SHAPE1, &SHAPE1, &SHAPE1,
+    &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE699, &SHAPE700, &SHAPE701,
+    &SHAPE702, &SHAPE703, &SHAPE704, &SHAPE705, &SHAPE706, &SHAPE706, &SHAPE1, &SHAPE1, &SHAPE1,
     &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1,
     &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1,
     &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1,
@@ -11718,51 +11728,51 @@ static OUTLINE_SHAPES_MAP: [&LazyLock<VoxelShape>; 27914] = [
     &SHAPE520, &SHAPE521, &SHAPE522, &SHAPE520, &SHAPE521, &SHAPE522, &SHAPE523, &SHAPE524,
     &SHAPE525, &SHAPE523, &SHAPE524, &SHAPE525, &SHAPE526, &SHAPE527, &SHAPE528, &SHAPE526,
     &SHAPE527, &SHAPE528, &SHAPE529, &SHAPE530, &SHAPE531, &SHAPE529, &SHAPE530, &SHAPE531,
-    &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE706, &SHAPE706,
-    &SHAPE706, &SHAPE706, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708,
-    &SHAPE708, &SHAPE708, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE706, &SHAPE706,
-    &SHAPE706, &SHAPE706, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708,
-    &SHAPE708, &SHAPE708, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE706, &SHAPE706,
-    &SHAPE706, &SHAPE706, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708,
-    &SHAPE708, &SHAPE708, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE706, &SHAPE706,
-    &SHAPE706, &SHAPE706, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708,
-    &SHAPE708, &SHAPE708, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE706, &SHAPE706,
-    &SHAPE706, &SHAPE706, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708,
-    &SHAPE708, &SHAPE708, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE706, &SHAPE706,
-    &SHAPE706, &SHAPE706, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708,
-    &SHAPE708, &SHAPE708, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE706, &SHAPE706,
-    &SHAPE706, &SHAPE706, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708,
-    &SHAPE708, &SHAPE708, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE706, &SHAPE706,
-    &SHAPE706, &SHAPE706, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708,
-    &SHAPE708, &SHAPE708, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE706, &SHAPE706,
-    &SHAPE706, &SHAPE706, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708,
-    &SHAPE708, &SHAPE708, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE706, &SHAPE706,
-    &SHAPE706, &SHAPE706, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708,
-    &SHAPE708, &SHAPE708, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE706, &SHAPE706,
-    &SHAPE706, &SHAPE706, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708,
-    &SHAPE708, &SHAPE708, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE706, &SHAPE706,
-    &SHAPE706, &SHAPE706, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708,
-    &SHAPE708, &SHAPE708, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE706, &SHAPE706,
-    &SHAPE706, &SHAPE706, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708,
-    &SHAPE708, &SHAPE708, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE706, &SHAPE706,
-    &SHAPE706, &SHAPE706, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708,
-    &SHAPE708, &SHAPE708, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE706, &SHAPE706,
-    &SHAPE706, &SHAPE706, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708,
-    &SHAPE708, &SHAPE708, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE706, &SHAPE706,
-    &SHAPE706, &SHAPE706, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708,
-    &SHAPE708, &SHAPE708, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE706, &SHAPE706,
-    &SHAPE706, &SHAPE706, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708,
-    &SHAPE708, &SHAPE708, &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE709,
-    &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE709,
-    &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE709,
-    &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE709,
-    &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE709, &SHAPE1, &SHAPE1, &SHAPE710, &SHAPE710, &SHAPE711,
-    &SHAPE711, &SHAPE712, &SHAPE712, &SHAPE713, &SHAPE713, &SHAPE714, &SHAPE714, &SHAPE715,
-    &SHAPE715, &SHAPE716, &SHAPE716, &SHAPE717, &SHAPE717, &SHAPE718, &SHAPE718, &SHAPE719,
-    &SHAPE719, &SHAPE720, &SHAPE720, &SHAPE721, &SHAPE721, &SHAPE722, &SHAPE722, &SHAPE723,
-    &SHAPE723, &SHAPE724, &SHAPE724, &SHAPE725, &SHAPE725, &SHAPE726, &SHAPE726, &SHAPE727,
-    &SHAPE727, &SHAPE728, &SHAPE728, &SHAPE729, &SHAPE729, &SHAPE730, &SHAPE730, &SHAPE731,
-    &SHAPE731, &SHAPE732, &SHAPE732, &SHAPE733, &SHAPE733, &SHAPE1, &SHAPE340, &SHAPE340, &SHAPE13,
+    &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE707, &SHAPE707,
+    &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE709, &SHAPE709,
+    &SHAPE709, &SHAPE709, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE707, &SHAPE707,
+    &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE709, &SHAPE709,
+    &SHAPE709, &SHAPE709, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE707, &SHAPE707,
+    &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE709, &SHAPE709,
+    &SHAPE709, &SHAPE709, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE707, &SHAPE707,
+    &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE709, &SHAPE709,
+    &SHAPE709, &SHAPE709, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE707, &SHAPE707,
+    &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE709, &SHAPE709,
+    &SHAPE709, &SHAPE709, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE707, &SHAPE707,
+    &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE709, &SHAPE709,
+    &SHAPE709, &SHAPE709, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE707, &SHAPE707,
+    &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE709, &SHAPE709,
+    &SHAPE709, &SHAPE709, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE707, &SHAPE707,
+    &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE709, &SHAPE709,
+    &SHAPE709, &SHAPE709, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE707, &SHAPE707,
+    &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE709, &SHAPE709,
+    &SHAPE709, &SHAPE709, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE707, &SHAPE707,
+    &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE709, &SHAPE709,
+    &SHAPE709, &SHAPE709, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE707, &SHAPE707,
+    &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE709, &SHAPE709,
+    &SHAPE709, &SHAPE709, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE707, &SHAPE707,
+    &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE709, &SHAPE709,
+    &SHAPE709, &SHAPE709, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE707, &SHAPE707,
+    &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE709, &SHAPE709,
+    &SHAPE709, &SHAPE709, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE707, &SHAPE707,
+    &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE709, &SHAPE709,
+    &SHAPE709, &SHAPE709, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE707, &SHAPE707,
+    &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE709, &SHAPE709,
+    &SHAPE709, &SHAPE709, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE707, &SHAPE707,
+    &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE709, &SHAPE709,
+    &SHAPE709, &SHAPE709, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE301, &SHAPE707, &SHAPE707,
+    &SHAPE707, &SHAPE707, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE708, &SHAPE709, &SHAPE709,
+    &SHAPE709, &SHAPE709, &SHAPE710, &SHAPE710, &SHAPE710, &SHAPE710, &SHAPE710, &SHAPE710,
+    &SHAPE710, &SHAPE710, &SHAPE710, &SHAPE710, &SHAPE710, &SHAPE710, &SHAPE710, &SHAPE710,
+    &SHAPE710, &SHAPE710, &SHAPE710, &SHAPE710, &SHAPE710, &SHAPE710, &SHAPE710, &SHAPE710,
+    &SHAPE710, &SHAPE710, &SHAPE710, &SHAPE710, &SHAPE710, &SHAPE710, &SHAPE710, &SHAPE710,
+    &SHAPE710, &SHAPE710, &SHAPE710, &SHAPE710, &SHAPE1, &SHAPE1, &SHAPE711, &SHAPE711, &SHAPE712,
+    &SHAPE712, &SHAPE713, &SHAPE713, &SHAPE714, &SHAPE714, &SHAPE715, &SHAPE715, &SHAPE716,
+    &SHAPE716, &SHAPE717, &SHAPE717, &SHAPE718, &SHAPE718, &SHAPE719, &SHAPE719, &SHAPE720,
+    &SHAPE720, &SHAPE721, &SHAPE721, &SHAPE722, &SHAPE722, &SHAPE723, &SHAPE723, &SHAPE724,
+    &SHAPE724, &SHAPE725, &SHAPE725, &SHAPE726, &SHAPE726, &SHAPE727, &SHAPE727, &SHAPE728,
+    &SHAPE728, &SHAPE729, &SHAPE729, &SHAPE730, &SHAPE730, &SHAPE731, &SHAPE731, &SHAPE732,
+    &SHAPE732, &SHAPE733, &SHAPE733, &SHAPE734, &SHAPE734, &SHAPE1, &SHAPE340, &SHAPE340, &SHAPE13,
     &SHAPE13, &SHAPE1, &SHAPE1, &SHAPE76, &SHAPE76, &SHAPE77, &SHAPE77, &SHAPE78, &SHAPE78,
     &SHAPE79, &SHAPE79, &SHAPE80, &SHAPE80, &SHAPE81, &SHAPE81, &SHAPE82, &SHAPE82, &SHAPE83,
     &SHAPE83, &SHAPE84, &SHAPE84, &SHAPE85, &SHAPE85, &SHAPE86, &SHAPE86, &SHAPE87, &SHAPE87,
@@ -12197,28 +12207,28 @@ static OUTLINE_SHAPES_MAP: [&LazyLock<VoxelShape>; 27914] = [
     &SHAPE1, &SHAPE578, &SHAPE578, &SHAPE578, &SHAPE578, &SHAPE579, &SHAPE579, &SHAPE579,
     &SHAPE579, &SHAPE578, &SHAPE578, &SHAPE578, &SHAPE578, &SHAPE579, &SHAPE579, &SHAPE579,
     &SHAPE579, &SHAPE266, &SHAPE266, &SHAPE266, &SHAPE266, &SHAPE266, &SHAPE266, &SHAPE266,
-    &SHAPE266, &SHAPE734, &SHAPE734, &SHAPE734, &SHAPE734, &SHAPE735, &SHAPE735, &SHAPE736,
-    &SHAPE736, &SHAPE737, &SHAPE737, &SHAPE737, &SHAPE737, &SHAPE738, &SHAPE738, &SHAPE738,
-    &SHAPE738, &SHAPE739, &SHAPE739, &SHAPE739, &SHAPE739, &SHAPE1, &SHAPE23, &SHAPE23, &SHAPE23,
+    &SHAPE266, &SHAPE735, &SHAPE735, &SHAPE735, &SHAPE735, &SHAPE736, &SHAPE736, &SHAPE737,
+    &SHAPE737, &SHAPE738, &SHAPE738, &SHAPE738, &SHAPE738, &SHAPE739, &SHAPE739, &SHAPE739,
+    &SHAPE739, &SHAPE740, &SHAPE740, &SHAPE740, &SHAPE740, &SHAPE1, &SHAPE23, &SHAPE23, &SHAPE23,
     &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23,
     &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23,
     &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23,
     &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23,
     &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23,
-    &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE740, &SHAPE741, &SHAPE741,
-    &SHAPE75, &SHAPE742, &SHAPE743, &SHAPE275, &SHAPE275, &SHAPE744, &SHAPE745, &SHAPE275,
-    &SHAPE275, &SHAPE746, &SHAPE747, &SHAPE275, &SHAPE275, &SHAPE748, &SHAPE749, &SHAPE275,
-    &SHAPE275, &SHAPE742, &SHAPE743, &SHAPE275, &SHAPE275, &SHAPE744, &SHAPE745, &SHAPE275,
-    &SHAPE275, &SHAPE746, &SHAPE747, &SHAPE275, &SHAPE275, &SHAPE748, &SHAPE749, &SHAPE275,
-    &SHAPE275, &SHAPE750, &SHAPE751, &SHAPE75, &SHAPE75, &SHAPE752, &SHAPE753, &SHAPE75, &SHAPE75,
-    &SHAPE754, &SHAPE755, &SHAPE75, &SHAPE75, &SHAPE756, &SHAPE757, &SHAPE75, &SHAPE75, &SHAPE1,
-    &SHAPE759, &SHAPE759, &SHAPE759, &SHAPE759, &SHAPE761, &SHAPE761, &SHAPE762, &SHAPE762,
-    &SHAPE763, &SHAPE763, &SHAPE763, &SHAPE763, &SHAPE764, &SHAPE764, &SHAPE765, &SHAPE765,
-    &SHAPE766, &SHAPE766, &SHAPE766, &SHAPE766, &SHAPE767, &SHAPE767, &SHAPE768, &SHAPE768,
-    &SHAPE769, &SHAPE769, &SHAPE769, &SHAPE769, &SHAPE770, &SHAPE770, &SHAPE771, &SHAPE771,
-    &SHAPE772, &SHAPE772, &SHAPE773, &SHAPE773, &SHAPE774, &SHAPE774, &SHAPE775, &SHAPE775,
+    &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE741, &SHAPE742, &SHAPE742,
+    &SHAPE75, &SHAPE743, &SHAPE744, &SHAPE275, &SHAPE275, &SHAPE745, &SHAPE746, &SHAPE275,
+    &SHAPE275, &SHAPE747, &SHAPE748, &SHAPE275, &SHAPE275, &SHAPE749, &SHAPE750, &SHAPE275,
+    &SHAPE275, &SHAPE743, &SHAPE744, &SHAPE275, &SHAPE275, &SHAPE745, &SHAPE746, &SHAPE275,
+    &SHAPE275, &SHAPE747, &SHAPE748, &SHAPE275, &SHAPE275, &SHAPE749, &SHAPE750, &SHAPE275,
+    &SHAPE275, &SHAPE751, &SHAPE752, &SHAPE75, &SHAPE75, &SHAPE753, &SHAPE754, &SHAPE75, &SHAPE75,
+    &SHAPE755, &SHAPE756, &SHAPE75, &SHAPE75, &SHAPE757, &SHAPE758, &SHAPE75, &SHAPE75, &SHAPE1,
+    &SHAPE760, &SHAPE760, &SHAPE760, &SHAPE760, &SHAPE762, &SHAPE762, &SHAPE763, &SHAPE763,
+    &SHAPE764, &SHAPE764, &SHAPE764, &SHAPE764, &SHAPE765, &SHAPE765, &SHAPE766, &SHAPE766,
+    &SHAPE767, &SHAPE767, &SHAPE767, &SHAPE767, &SHAPE768, &SHAPE768, &SHAPE769, &SHAPE769,
+    &SHAPE770, &SHAPE770, &SHAPE770, &SHAPE770, &SHAPE771, &SHAPE771, &SHAPE772, &SHAPE772,
+    &SHAPE773, &SHAPE773, &SHAPE774, &SHAPE774, &SHAPE775, &SHAPE775, &SHAPE776, &SHAPE776,
     &SHAPE20, &SHAPE20, &SHAPE20, &SHAPE20, &SHAPE20, &SHAPE20, &SHAPE20, &SHAPE20, &SHAPE20,
-    &SHAPE20, &SHAPE20, &SHAPE20, &SHAPE20, &SHAPE20, &SHAPE20, &SHAPE20, &SHAPE776, &SHAPE776,
+    &SHAPE20, &SHAPE20, &SHAPE20, &SHAPE20, &SHAPE20, &SHAPE20, &SHAPE20, &SHAPE777, &SHAPE777,
     &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE76, &SHAPE76, &SHAPE77, &SHAPE77,
     &SHAPE78, &SHAPE78, &SHAPE79, &SHAPE79, &SHAPE80, &SHAPE80, &SHAPE81, &SHAPE81, &SHAPE82,
     &SHAPE82, &SHAPE83, &SHAPE83, &SHAPE84, &SHAPE84, &SHAPE85, &SHAPE85, &SHAPE86, &SHAPE86,
@@ -12421,7 +12431,7 @@ static OUTLINE_SHAPES_MAP: [&LazyLock<VoxelShape>; 27914] = [
     &SHAPE526, &SHAPE527, &SHAPE528, &SHAPE526, &SHAPE527, &SHAPE528, &SHAPE529, &SHAPE530,
     &SHAPE531, &SHAPE529, &SHAPE530, &SHAPE531, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1,
     &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE38, &SHAPE38, &SHAPE1, &SHAPE1, &SHAPE1,
-    &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE777, &SHAPE1, &SHAPE23, &SHAPE23,
+    &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE778, &SHAPE1, &SHAPE23, &SHAPE23,
     &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23,
     &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE23, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1,
     &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1,
@@ -12433,25 +12443,25 @@ static OUTLINE_SHAPES_MAP: [&LazyLock<VoxelShape>; 27914] = [
     &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1,
     &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1,
     &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE1, &SHAPE557, &SHAPE557, &SHAPE1,
-    &SHAPE75, &SHAPE778, &SHAPE336, &SHAPE779, &SHAPE780, &SHAPE781, &SHAPE333, &SHAPE782,
-    &SHAPE332, &SHAPE783, &SHAPE784, &SHAPE785, &SHAPE786, &SHAPE787, &SHAPE788, &SHAPE789,
-    &SHAPE790, &SHAPE791, &SHAPE329, &SHAPE792, &SHAPE328, &SHAPE793, &SHAPE794, &SHAPE795,
-    &SHAPE325, &SHAPE796, &SHAPE324, &SHAPE797, &SHAPE798, &SHAPE799, &SHAPE800, &SHAPE801,
-    &SHAPE802, &SHAPE803, &SHAPE804, &SHAPE805, &SHAPE806, &SHAPE807, &SHAPE808, &SHAPE809,
-    &SHAPE810, &SHAPE811, &SHAPE812, &SHAPE813, &SHAPE814, &SHAPE815, &SHAPE816, &SHAPE817,
-    &SHAPE818, &SHAPE819, &SHAPE820, &SHAPE821, &SHAPE822, &SHAPE823, &SHAPE321, &SHAPE824,
-    &SHAPE320, &SHAPE825, &SHAPE826, &SHAPE827, &SHAPE317, &SHAPE828, &SHAPE316, &SHAPE829,
-    &SHAPE830, &SHAPE831, &SHAPE832, &SHAPE833, &SHAPE834, &SHAPE835, &SHAPE836, &SHAPE837,
-    &SHAPE313, &SHAPE838, &SHAPE312, &SHAPE839, &SHAPE840, &SHAPE841, &SHAPE309, &SHAPE842,
-    &SHAPE308, &SHAPE1, &SHAPE843, &SHAPE74, &SHAPE844, &SHAPE845, &SHAPE846, &SHAPE71, &SHAPE847,
-    &SHAPE70, &SHAPE848, &SHAPE849, &SHAPE850, &SHAPE851, &SHAPE852, &SHAPE853, &SHAPE854,
-    &SHAPE855, &SHAPE856, &SHAPE67, &SHAPE857, &SHAPE66, &SHAPE858, &SHAPE859, &SHAPE860, &SHAPE63,
-    &SHAPE861, &SHAPE62, &SHAPE862, &SHAPE863, &SHAPE864, &SHAPE865, &SHAPE866, &SHAPE867,
-    &SHAPE868, &SHAPE869, &SHAPE870, &SHAPE871, &SHAPE872, &SHAPE873, &SHAPE874, &SHAPE875,
-    &SHAPE876, &SHAPE877, &SHAPE878, &SHAPE879, &SHAPE880, &SHAPE881, &SHAPE882, &SHAPE883,
-    &SHAPE884, &SHAPE885, &SHAPE886, &SHAPE887, &SHAPE888, &SHAPE59, &SHAPE889, &SHAPE58,
-    &SHAPE890, &SHAPE891, &SHAPE892, &SHAPE55, &SHAPE893, &SHAPE54, &SHAPE894, &SHAPE895,
-    &SHAPE896, &SHAPE897, &SHAPE898, &SHAPE899, &SHAPE900, &SHAPE901, &SHAPE902, &SHAPE51,
-    &SHAPE903, &SHAPE50, &SHAPE904, &SHAPE905, &SHAPE906, &SHAPE47, &SHAPE907, &SHAPE46, &SHAPE908,
+    &SHAPE75, &SHAPE779, &SHAPE336, &SHAPE780, &SHAPE781, &SHAPE782, &SHAPE333, &SHAPE783,
+    &SHAPE332, &SHAPE784, &SHAPE785, &SHAPE786, &SHAPE787, &SHAPE788, &SHAPE789, &SHAPE790,
+    &SHAPE791, &SHAPE792, &SHAPE329, &SHAPE793, &SHAPE328, &SHAPE794, &SHAPE795, &SHAPE796,
+    &SHAPE325, &SHAPE797, &SHAPE324, &SHAPE798, &SHAPE799, &SHAPE800, &SHAPE801, &SHAPE802,
+    &SHAPE803, &SHAPE804, &SHAPE805, &SHAPE806, &SHAPE807, &SHAPE808, &SHAPE809, &SHAPE810,
+    &SHAPE811, &SHAPE812, &SHAPE813, &SHAPE814, &SHAPE815, &SHAPE816, &SHAPE817, &SHAPE818,
+    &SHAPE819, &SHAPE820, &SHAPE821, &SHAPE822, &SHAPE823, &SHAPE824, &SHAPE321, &SHAPE825,
+    &SHAPE320, &SHAPE826, &SHAPE827, &SHAPE828, &SHAPE317, &SHAPE829, &SHAPE316, &SHAPE830,
+    &SHAPE831, &SHAPE832, &SHAPE833, &SHAPE834, &SHAPE835, &SHAPE836, &SHAPE837, &SHAPE838,
+    &SHAPE313, &SHAPE839, &SHAPE312, &SHAPE840, &SHAPE841, &SHAPE842, &SHAPE309, &SHAPE843,
+    &SHAPE308, &SHAPE1, &SHAPE844, &SHAPE74, &SHAPE845, &SHAPE846, &SHAPE847, &SHAPE71, &SHAPE848,
+    &SHAPE70, &SHAPE849, &SHAPE850, &SHAPE851, &SHAPE852, &SHAPE853, &SHAPE854, &SHAPE855,
+    &SHAPE856, &SHAPE857, &SHAPE67, &SHAPE858, &SHAPE66, &SHAPE859, &SHAPE860, &SHAPE861, &SHAPE63,
+    &SHAPE862, &SHAPE62, &SHAPE863, &SHAPE864, &SHAPE865, &SHAPE866, &SHAPE867, &SHAPE868,
+    &SHAPE869, &SHAPE870, &SHAPE871, &SHAPE872, &SHAPE873, &SHAPE874, &SHAPE875, &SHAPE876,
+    &SHAPE877, &SHAPE878, &SHAPE879, &SHAPE880, &SHAPE881, &SHAPE882, &SHAPE883, &SHAPE884,
+    &SHAPE885, &SHAPE886, &SHAPE887, &SHAPE888, &SHAPE889, &SHAPE59, &SHAPE890, &SHAPE58,
+    &SHAPE891, &SHAPE892, &SHAPE893, &SHAPE55, &SHAPE894, &SHAPE54, &SHAPE895, &SHAPE896,
+    &SHAPE897, &SHAPE898, &SHAPE899, &SHAPE900, &SHAPE901, &SHAPE902, &SHAPE903, &SHAPE51,
+    &SHAPE904, &SHAPE50, &SHAPE905, &SHAPE906, &SHAPE907, &SHAPE47, &SHAPE908, &SHAPE46, &SHAPE909,
     &SHAPE23, &SHAPE37, &SHAPE37, &SHAPE38, &SHAPE38, &SHAPE1,
 ];

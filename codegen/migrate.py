@@ -57,9 +57,10 @@ print('Generating registries...')
 import genregistries
 genregistries.generate(new_version_id)
 
-print('Generating entity metadata...')
+print('Generating entity data...')
 burger_entities_data = new_burger_data[0]['entities']
 lib.code.entity.generate_entity_metadata(burger_entities_data, new_mappings)
+lib.code.entity.generate_entity_dimensions(burger_entities_data)
 
 print('Generating item components...')
 lib.code.item_components.generate(new_version_id)

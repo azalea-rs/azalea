@@ -1,4 +1,4 @@
-from lib.utils import padded_hex, to_snake_case, to_camel_case, get_dir_location
+from lib.utils import to_snake_case, to_camel_case, get_dir_location
 from lib.code.utils import burger_type_to_rust_type, write_packet_file
 from lib.mappings import Mappings
 from typing import Optional
@@ -75,14 +75,14 @@ def set_packets(packets_report):
         code.append(f"declare_state_packets!({to_camel_case(state)}Packet,")
         code.append("    Clientbound => [")
         for packet_id, packet_name in enumerate(clientbound_packets):
-            code.append(f"        {packet_name}, // {padded_hex(packet_id)}")
+            code.append(f"        {packet_name},")
             expected_packet_module_names.add(
                 get_packet_module_name(packet_name, "clientbound")
             )
         code.append("    ],")
         code.append("    Serverbound => [")
         for packet_id, packet_name in enumerate(serverbound_packets):
-            code.append(f"        {packet_name}, // {padded_hex(packet_id)}")
+            code.append(f"        {packet_name},")
             expected_packet_module_names.add(
                 get_packet_module_name(packet_name, "serverbound")
             )

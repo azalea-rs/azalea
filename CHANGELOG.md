@@ -10,6 +10,7 @@ is breaking anyways, semantic versioning is not followed.
 
 ### Added
 
+- Update to Minecraft 1.21.6.
 - `HitResult` now contains the entity that's being looked at.
 
 ### Changed
@@ -20,7 +21,7 @@ is breaking anyways, semantic versioning is not followed.
 
 ### Fixed
 
-## [0.13.0] - 2025-06-15
+## [0.13.0+mc1.21.5] - 2025-06-15
 
 ### Added
 
