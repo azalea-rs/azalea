@@ -2,7 +2,7 @@ use azalea::{
     ecs::prelude::*,
     entity::{Dead, LocalEntity, Position, metadata::AbstractMonster},
     prelude::*,
-    world::{InstanceName, MinecraftEntityId},
+    world::InstanceName,
 };
 
 use crate::State;

@@ -47,7 +47,7 @@ fn generate_bedrock_world(
                         azalea_registry::Block::Bedrock.into(),
                         chunks.min_y,
                     );
-                    if rng.gen_bool(0.5) {
+                    if rng.random_bool(0.5) {
                         chunk.set_block_state(
                             &ChunkBlockPos::new(x, 2, z),
                             azalea_registry::Block::Bedrock.into(),
