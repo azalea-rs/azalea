@@ -10,14 +10,29 @@ is breaking anyways, semantic versioning is not followed.
 
 ### Added
 
+- `HitResult` now contains the entity that's being looked at.
+
+### Changed
+
+- Renamed `azalea_entity::EntityKind` to `EntityKindComponent` to disambiguate with `azalea_registry::EntityKind`.
+- Moved functions and types related to hit results from `azalea::interact` to `azalea::interact::pick`.
+- `Client::attack` now takes `Entity` instead of `MinecraftEntityId`.
+
+### Fixed
+
+## [0.13.0] - 2025-06-15
+
+### Added
+
 - This changelog. To see changes before this update, look at the git commits.
 - azalea and azalea-client now have a `packet-event` feature, which can be disabled for efficiency if you're not using `Event::Packet`.
 - `StartJoinServerEvent` can now be used to join servers exclusively from the ECS without a Tokio runtime.
-- `FormattedText::to_html` and `FormattedText::to_custom_format`. (@Kumpelinus)
+- Add `FormattedText::to_html` and `FormattedText::to_custom_format`. (@Kumpelinus)
 - Non-standard legacy hex colors like `§#ff0000` are now supported in azalea-chat.
 - Chat signing.
 - Add auto-reconnecting which is enabled by default.
-- `Client::start_use_item`.
+- `ClientBuilder` and `SwarmBuilder` are now Send.
+- Add `Client::start_use_item`.
 - The pathfinder no longer avoids slabs, stairs, and dirt path blocks.
 - The pathfinder now immediately recalculates if blocks are placed in its path.
 - Bots that use custom pathfinder moves can now keep arbitrary persistent state by using the `CustomPathfinderState` component and `PathfinderCtx::custom_state`.
@@ -27,9 +42,11 @@ is breaking anyways, semantic versioning is not followed.
 - Proper support for getting biomes at coordinates.
 - Add a new `Client::entities_by` which sorts entities that match a criteria by their distance to the client.
 - New client event `Event::ReceiveChunk`.
-- Several new functions for interacting with inventories.
+- Several new functions for interacting with inventories (`Client::get_inventory`, `get_held_item`, `ContainerHandleRef::left_click`, `shift_click`, `right_click`, `slots`).
+- Add `Client::mine_with_auto_tool`.
 - Add `Client::set_selected_hotbar_slot` and `Client::selected_hotbar_slot`.
 - Add `Client::attack_cooldown_remaining_ticks` to complement `has_attack_cooldown`.
+- Add `BlockPos::length`, `distance_to`, and `center_bottom`.
 
 ### Changed
 
@@ -38,11 +55,10 @@ is breaking anyways, semantic versioning is not followed.
 - Update to [Bevy 0.16](https://bevyengine.org/news/bevy-0-16/).
 - Rename `InstanceContainer::insert` to `get_or_insert`.
 - Replace `BlockInteractEvent` with the more general-purpose `StartUseItemEvent`.
-- `ClientBuilder` and `SwarmBuilder` are now Send.
 - Replace `wait_one_tick` and `wait_one_update` with `wait_ticks` and `wait_updates`.
 - Functions that took `&Vec3` or `&BlockPos` as arguments now only take them as owned types.
 - Rename `azalea_block::Block` to `BlockTrait` to disambiguate with `azalea_registry::Block`.
-- `GotoEvent` is now non-enhaustive, it should be constructed by calling its methods now.
+- `GotoEvent` is now non-enhaustive and should instead be constructed by calling its methods.
 
 ### Fixed
 

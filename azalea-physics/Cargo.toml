@@ -11,12 +11,12 @@ bevy_time.workspace = true
 uuid.workspace = true
 
 [dependencies]
-azalea-block = { path = "../azalea-block", version = "0.12.0" }
-azalea-core = { path = "../azalea-core", version = "0.12.0" }
-azalea-entity = { version = "0.12.0", path = "../azalea-entity" }
-azalea-inventory = { version = "0.12.0", path = "../azalea-inventory" }
-azalea-registry = { path = "../azalea-registry", version = "0.12.0" }
-azalea-world = { path = "../azalea-world", version = "0.12.0" }
+azalea-block.workspace = true
+azalea-core.workspace = true
+azalea-entity.workspace = true
+azalea-inventory.workspace = true
+azalea-registry.workspace = true
+azalea-world.workspace = true
 bevy_app.workspace = true
 bevy_ecs.workspace = true
 tracing.workspace = true

@@ -13,25 +13,18 @@ tracing-subscriber.workspace = true
 
 [dependencies]
 async-recursion.workspace = true
-azalea-auth = { path = "../azalea-auth", version = "0.12.0" }
-azalea-block = { path = "../azalea-block", version = "0.12.0", default-features = false }
-azalea-brigadier = { path = "../azalea-brigadier", version = "0.12.0", features = [
-    "azalea-buf",
-] }
-azalea-buf = { path = "../azalea-buf", version = "0.12.0" }
-azalea-chat = { path = "../azalea-chat", version = "0.12.0", features = [
-    "numbers",
-    "azalea-buf",
-] }
-azalea-core = { path = "../azalea-core", version = "0.12.0", optional = true, features = [
-    "serde",
-] }
-azalea-crypto = { path = "../azalea-crypto", version = "0.12.0" }
-azalea-entity = { path = "../azalea-entity", version = "0.12.0" }
-azalea-inventory = { path = "../azalea-inventory", version = "0.12.0" }
-azalea-protocol-macros = { path = "./azalea-protocol-macros", version = "0.12.0" }
-azalea-registry = { path = "../azalea-registry", version = "0.12.0" }
-azalea-world = { path = "../azalea-world", version = "0.12.0" }
+azalea-auth.workspace = true
+azalea-block.workspace = true
+azalea-brigadier = { workspace = true, features = ["azalea-buf"] }
+azalea-buf.workspace = true
+azalea-chat = { workspace = true, features = ["numbers", "azalea-buf"] }
+azalea-core = { workspace = true, optional = true, features = ["serde"] }
+azalea-crypto.workspace = true
+azalea-entity.workspace = true
+azalea-inventory.workspace = true
+azalea-protocol-macros.workspace = true
+azalea-registry.workspace = true
+azalea-world.workspace = true
 bevy_ecs.workspace = true
 # byteorder.workspace = true
 flate2.workspace = true

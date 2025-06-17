@@ -13,19 +13,19 @@ pre-release-replacements = [
 
 [dependencies]
 #async-trait.workspace = true
-azalea-auth = { version = "0.12.0", path = "../azalea-auth" }
-azalea-block = { version = "0.12.0", path = "../azalea-block" }
-azalea-brigadier = { version = "0.12.0", path = "../azalea-brigadier" }
-azalea-buf = { version = "0.12.0", path = "../azalea-buf" }
-azalea-chat = { version = "0.12.0", path = "../azalea-chat" }
-azalea-client = { version = "0.12.0", path = "../azalea-client", default-features = false }
-azalea-core = { version = "0.12.0", path = "../azalea-core" }
-azalea-entity = { version = "0.12.0", path = "../azalea-entity" }
-azalea-inventory = { version = "0.12.0", path = "../azalea-inventory" }
-azalea-physics = { version = "0.12.0", path = "../azalea-physics" }
-azalea-protocol = { version = "0.12.0", path = "../azalea-protocol" }
-azalea-registry = { version = "0.12.0", path = "../azalea-registry" }
-azalea-world = { version = "0.12.0", path = "../azalea-world" }
+azalea-auth.workspace = true
+azalea-block.workspace = true
+azalea-brigadier.workspace = true
+azalea-buf.workspace = true
+azalea-chat.workspace = true
+azalea-client.workspace = true
+azalea-core.workspace = true
+azalea-entity.workspace = true
+azalea-inventory.workspace = true
+azalea-physics.workspace = true
+azalea-protocol.workspace = true
+azalea-registry.workspace = true
+azalea-world.workspace = true
 bevy_app.workspace = true
 bevy_ecs.workspace = true
 bevy_log.workspace = true

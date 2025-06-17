@@ -1,3 +1,5 @@
+pub mod pick;
+
 use std::collections::HashMap;
 
 use azalea_block::BlockState;
@@ -9,27 +11,30 @@ use azalea_core::{
     tick::GameTick,
 };
 use azalea_entity::{
-    Attributes, EyeHeight, LocalEntity, LookDirection, Position, clamp_look_direction, view_vector,
+    Attributes, LocalEntity, LookDirection,
+    attributes::{
+        creative_block_interaction_range_modifier, creative_entity_interaction_range_modifier,
+    },
+    clamp_look_direction,
 };
 use azalea_inventory::{ItemStack, ItemStackData, components};
-use azalea_physics::{
-    PhysicsSet,
-    clip::{BlockShapeType, ClipContext, FluidPickType},
-};
+use azalea_physics::PhysicsSet;
 use azalea_protocol::packets::game::{
-    ServerboundUseItem, s_interact::InteractionHand, s_swing::ServerboundSwing,
+    ServerboundInteract, ServerboundUseItem,
+    s_interact::{self, InteractionHand},
+    s_swing::ServerboundSwing,
     s_use_item_on::ServerboundUseItemOn,
 };
-use azalea_world::{Instance, InstanceContainer, InstanceName};
+use azalea_world::{Instance, MinecraftEntityId};
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
-use derive_more::{Deref, DerefMut};
 use tracing::warn;
 
 use super::mining::Mining;
 use crate::{
     Client,
     attack::handle_attack_event,
+    interact::pick::{HitResultComponent, update_hit_result_component},
     inventory::{Inventory, InventorySet},
     local_player::{LocalGameMode, PermissionLevel, PlayerAbilities},
     movement::MoveEventsSet,
@@ -47,23 +52,28 @@ impl Plugin for InteractPlugin {
                 Update,
                 (
                     (
-                        handle_start_use_item_event,
-                        update_hit_result_component.after(clamp_look_direction),
-                        handle_swing_arm_event,
+                        update_attributes_for_held_item,
+                        update_attributes_for_gamemode,
                     )
-                        .after(InventorySet)
-                        .after(perform_respawn)
-                        .after(handle_attack_event)
+                        .in_set(UpdateAttributesSet)
                         .chain(),
-                    update_modifiers_for_held_item
-                        .after(InventorySet)
-                        .after(MoveEventsSet),
-                ),
+                    handle_start_use_item_event,
+                    update_hit_result_component.after(clamp_look_direction),
+                    handle_swing_arm_event,
+                )
+                    .after(InventorySet)
+                    .after(MoveEventsSet)
+                    .after(perform_respawn)
+                    .after(handle_attack_event)
+                    .chain(),
             )
             .add_systems(GameTick, handle_start_use_item_queued.before(PhysicsSet))
             .add_observer(handle_swing_arm_trigger);
     }
 }
+
+#[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
+pub struct UpdateAttributesSet;
 
 impl Client {
     /// Right-click a block.
@@ -190,12 +200,6 @@ impl BlockStatePredictionHandler {
     }
 }
 
-/// A component that contains the block or entity that the player is currently
-/// looking at.
-#[doc(alias("looking at", "looking at block", "crosshair"))]
-#[derive(Component, Clone, Debug, Deref, DerefMut)]
-pub struct HitResultComponent(HitResult);
-
 /// An event that makes one of our clients simulate a right-click.
 ///
 /// This event just inserts the [`StartUseItemQueued`] component on the given
@@ -248,6 +252,7 @@ pub fn handle_start_use_item_queued(
         &LookDirection,
         Option<&Mining>,
     )>,
+    entity_id_query: Query<&MinecraftEntityId>,
 ) {
     for (entity, start_use_item, mut prediction_handler, hit_result, look_direction, mining) in
         query
@@ -261,7 +266,7 @@ pub fn handle_start_use_item_queued(
         // TODO: this also skips if LocalPlayer.handsBusy is true, which is used when
         // rowing a boat
 
-        let mut hit_result = hit_result.0.clone();
+        let mut hit_result = (**hit_result).clone();
 
         if let Some(force_block) = start_use_item.force_block {
             let hit_result_matches = if let HitResult::Block(block_hit_result) = &hit_result {
@@ -284,9 +289,9 @@ pub fn handle_start_use_item_queued(
         }
 
         match &hit_result {
-            HitResult::Block(block_hit_result) => {
+            HitResult::Block(r) => {
                 let seq = prediction_handler.start_predicting();
-                if block_hit_result.miss {
+                if r.miss {
                     commands.trigger(SendPacketEvent::new(
                         entity,
                         ServerboundUseItem {
@@ -301,122 +306,39 @@ pub fn handle_start_use_item_queued(
                         entity,
                         ServerboundUseItemOn {
                             hand: start_use_item.hand,
-                            block_hit: block_hit_result.into(),
+                            block_hit: r.into(),
                             seq,
                         },
                     ));
                     // TODO: depending on the result of useItemOn, this might
                     // also need to send a SwingArmEvent.
-                    // basically, this TODO is for
-                    // simulating block interactions/placements on the
-                    // client-side.
+                    // basically, this TODO is for simulating block
+                    // interactions/placements on the client-side.
                 }
             }
-            HitResult::Entity => {
-                // TODO: implement HitResult::Entity
-
+            HitResult::Entity(r) => {
                 // TODO: worldborder check
 
-                // commands.trigger(SendPacketEvent::new(
-                //     entity,
-                //     ServerboundInteract {
-                //         entity_id: todo!(),
-                //         action: todo!(),
-                //         using_secondary_action: todo!(),
-                //     },
-                // ));
+                let Ok(entity_id) = entity_id_query.get(r.entity).copied() else {
+                    warn!("tried to interact with an entity that doesn't have MinecraftEntityId");
+                    continue;
+                };
+
+                commands.trigger(SendPacketEvent::new(
+                    entity,
+                    ServerboundInteract {
+                        entity_id,
+                        action: s_interact::ActionType::InteractAt {
+                            location: r.location,
+                            hand: InteractionHand::MainHand,
+                        },
+                        // TODO: sneaking
+                        using_secondary_action: false,
+                    },
+                ));
             }
         }
     }
-}
-
-#[allow(clippy::type_complexity)]
-pub fn update_hit_result_component(
-    mut commands: Commands,
-    mut query: Query<(
-        Entity,
-        Option<&mut HitResultComponent>,
-        &LocalGameMode,
-        &Position,
-        &EyeHeight,
-        &LookDirection,
-        &InstanceName,
-    )>,
-    instance_container: Res<InstanceContainer>,
-) {
-    for (entity, hit_result_ref, game_mode, position, eye_height, look_direction, world_name) in
-        &mut query
-    {
-        let pick_range = if game_mode.current == GameMode::Creative {
-            6.
-        } else {
-            4.5
-        };
-        let eye_position = Vec3 {
-            x: position.x,
-            y: position.y + **eye_height as f64,
-            z: position.z,
-        };
-
-        let Some(instance_lock) = instance_container.get(world_name) else {
-            continue;
-        };
-        let instance = instance_lock.read();
-
-        let hit_result = pick(*look_direction, eye_position, &instance.chunks, pick_range);
-        if let Some(mut hit_result_ref) = hit_result_ref {
-            **hit_result_ref = hit_result;
-        } else {
-            commands
-                .entity(entity)
-                .insert(HitResultComponent(hit_result));
-        }
-    }
-}
-
-/// Get the block or entity that a player would be looking at if their eyes were
-/// at the given direction and position.
-///
-/// If you need to get the block/entity the player is looking at right now, use
-/// [`HitResultComponent`].
-///
-/// Also see [`pick_block`].
-///
-/// TODO: does not currently check for entities
-pub fn pick(
-    look_direction: LookDirection,
-    eye_position: Vec3,
-    chunks: &azalea_world::ChunkStorage,
-    pick_range: f64,
-) -> HitResult {
-    // TODO
-    // let entity_hit_result = ;
-
-    HitResult::Block(pick_block(look_direction, eye_position, chunks, pick_range))
-}
-
-/// Get the block that a player would be looking at if their eyes were at the
-/// given direction and position.
-///
-/// Also see [`pick`].
-pub fn pick_block(
-    look_direction: LookDirection,
-    eye_position: Vec3,
-    chunks: &azalea_world::ChunkStorage,
-    pick_range: f64,
-) -> BlockHitResult {
-    let view_vector = view_vector(look_direction);
-    let end_position = eye_position + (view_vector * pick_range);
-
-    azalea_physics::clip::clip(
-        chunks,
-        ClipContext {
-            from: eye_position,
-            to: end_position,
-            block_shape_type: BlockShapeType::Outline,
-            fluid_pick_type: FluidPickType::None,
-        },
-    )
 }
 
 /// Whether we can't interact with the block, based on your gamemode. If
@@ -504,7 +426,7 @@ pub fn handle_swing_arm_event(mut events: EventReader<SwingArmEvent>, mut comman
 }
 
 #[allow(clippy::type_complexity)]
-fn update_modifiers_for_held_item(
+fn update_attributes_for_held_item(
     mut query: Query<(&mut Attributes, &Inventory), (With<LocalEntity>, Changed<Inventory>)>,
 ) {
     for (mut attributes, inventory) in &mut query {
@@ -556,5 +478,28 @@ fn update_modifiers_for_held_item(
             .insert(azalea_entity::attributes::base_attack_speed_modifier(
                 added_attack_speed,
             ));
+    }
+}
+
+#[allow(clippy::type_complexity)]
+fn update_attributes_for_gamemode(
+    query: Query<(&mut Attributes, &LocalGameMode), (With<LocalEntity>, Changed<LocalGameMode>)>,
+) {
+    for (mut attributes, game_mode) in query {
+        if game_mode.current == GameMode::Creative {
+            attributes
+                .block_interaction_range
+                .insert(creative_block_interaction_range_modifier());
+            attributes
+                .entity_interaction_range
+                .insert(creative_entity_interaction_range_modifier());
+        } else {
+            attributes
+                .block_interaction_range
+                .remove(&creative_block_interaction_range_modifier().id);
+            attributes
+                .entity_interaction_range
+                .remove(&creative_entity_interaction_range_modifier().id);
+        }
     }
 }

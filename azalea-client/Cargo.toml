@@ -8,18 +8,18 @@ repository.workspace = true
 
 [dependencies]
 async-compat.workspace = true
-azalea-auth = { path = "../azalea-auth", version = "0.12.0" }
-azalea-block = { path = "../azalea-block", version = "0.12.0" }
-azalea-buf = { path = "../azalea-buf", version = "0.12.0" }
-azalea-chat = { path = "../azalea-chat", version = "0.12.0" }
-azalea-core = { path = "../azalea-core", version = "0.12.0" }
-azalea-crypto = { path = "../azalea-crypto", version = "0.12.0" }
-azalea-entity = { path = "../azalea-entity", version = "0.12.0" }
-azalea-inventory = { path = "../azalea-inventory", version = "0.12.0" }
-azalea-physics = { path = "../azalea-physics", version = "0.12.0" }
-azalea-protocol = { path = "../azalea-protocol", version = "0.12.0" }
-azalea-registry = { path = "../azalea-registry", version = "0.12.0" }
-azalea-world = { path = "../azalea-world", version = "0.12.0" }
+azalea-auth.workspace = true
+azalea-block.workspace = true
+azalea-buf.workspace = true
+azalea-chat.workspace = true
+azalea-core.workspace = true
+azalea-crypto.workspace = true
+azalea-entity.workspace = true
+azalea-inventory.workspace = true
+azalea-physics.workspace = true
+azalea-protocol.workspace = true
+azalea-registry.workspace = true
+azalea-world.workspace = true
 bevy_app.workspace = true
 bevy_ecs.workspace = true
 bevy_log = { workspace = true, optional = true }

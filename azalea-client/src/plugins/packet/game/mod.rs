@@ -7,8 +7,8 @@ use azalea_core::{
     position::{ChunkPos, Vec3},
 };
 use azalea_entity::{
-    Dead, EntityBundle, EntityKind, LastSentPosition, LoadedBy, LocalEntity, LookDirection,
-    Physics, Position, RelativeEntityUpdate,
+    Dead, EntityBundle, EntityKindComponent, LastSentPosition, LoadedBy, LocalEntity,
+    LookDirection, Physics, Position, RelativeEntityUpdate,
     indexing::{EntityIdIndex, EntityUuidIndex},
     metadata::{Health, apply_metadata},
 };
@@ -668,7 +668,7 @@ impl GamePacketHandler<'_> {
             Query<(&EntityIdIndex, &InstanceHolder)>,
             // this is a separate query since it's applied on the entity id that's being updated
             // instead of the player that received the packet
-            Query<&EntityKind>,
+            Query<&EntityKindComponent>,
         )>(self.ecs, |(mut commands, query, entity_kind_query)| {
             let (entity_id_index, instance_holder) = query.get(self.player).unwrap();
 

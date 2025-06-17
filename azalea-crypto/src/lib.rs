@@ -6,13 +6,13 @@ use aes::{
     Aes128,
     cipher::{BlockDecryptMut, BlockEncryptMut, KeyIvInit, inout::InOutBuf},
 };
-use rand::{RngCore, rngs::OsRng};
+use rand::{TryRngCore, rngs::OsRng};
 use sha1::{Digest, Sha1};
 pub use signing::*;
 
 fn generate_secret_key() -> [u8; 16] {
     let mut key = [0u8; 16];
-    OsRng.fill_bytes(&mut key);
+    OsRng.try_fill_bytes(&mut key).unwrap();
     key
 }
 

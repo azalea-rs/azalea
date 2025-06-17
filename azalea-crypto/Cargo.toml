@@ -11,10 +11,10 @@ criterion.workspace = true
 
 [dependencies]
 aes.workspace = true
-azalea-buf = { path = "../azalea-buf", version = "0.12.0" }
+azalea-buf.workspace = true
 cfb8.workspace = true
 num-bigint.workspace = true
-rand = { workspace = true, features = ["getrandom"] }
+rand = { workspace = true, features = ["os_rng"] }
 rsa = { workspace = true, features = ["sha2"] }
 rsa_public_encrypt_pkcs1.workspace = true
 sha-1.workspace = true

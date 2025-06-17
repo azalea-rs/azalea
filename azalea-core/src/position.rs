@@ -350,6 +350,12 @@ impl Vec3 {
             z: self.z.ceil() as i32,
         }
     }
+
+    /// Whether the distance between this point and `other` is less than
+    /// `range`.
+    pub fn closer_than(&self, other: Vec3, range: f64) -> bool {
+        self.distance_squared_to(other) < range.powi(2)
+    }
 }
 
 /// The coordinates of a block in the world.

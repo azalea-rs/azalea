@@ -1,15 +1,16 @@
 use azalea_core::{game_type::GameMode, tick::GameTick};
 use azalea_entity::{
     Attributes, Physics,
+    indexing::EntityIdIndex,
     metadata::{ShiftKeyDown, Sprinting},
     update_bounding_box,
 };
 use azalea_physics::PhysicsSet;
 use azalea_protocol::packets::game::s_interact::{self, ServerboundInteract};
-use azalea_world::MinecraftEntityId;
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
+use tracing::warn;
 
 use super::packet::game::SendPacketEvent;
 use crate::{
@@ -45,10 +46,10 @@ impl Plugin for AttackPlugin {
 
 impl Client {
     /// Attack the entity with the given id.
-    pub fn attack(&self, entity_id: MinecraftEntityId) {
+    pub fn attack(&self, entity: Entity) {
         self.ecs.lock().send_event(AttackEvent {
             entity: self.entity,
-            target: entity_id,
+            target: entity,
         });
     }
 
@@ -87,41 +88,51 @@ impl Client {
 /// entity next tick.
 #[derive(Component, Clone, Debug)]
 pub struct AttackQueued {
-    pub target: MinecraftEntityId,
+    pub target: Entity,
 }
 pub fn handle_attack_queued(
     mut commands: Commands,
     mut query: Query<(
         Entity,
-        &AttackQueued,
-        &LocalGameMode,
         &mut TicksSinceLastAttack,
         &mut Physics,
         &mut Sprinting,
+        &AttackQueued,
+        &LocalGameMode,
         &ShiftKeyDown,
+        &EntityIdIndex,
     )>,
 ) {
     for (
-        entity,
-        attack_queued,
-        game_mode,
+        client_entity,
         mut ticks_since_last_attack,
         mut physics,
         mut sprinting,
+        attack_queued,
+        game_mode,
         sneaking,
+        entity_id_index,
     ) in &mut query
     {
-        commands.entity(entity).remove::<AttackQueued>();
+        let target_entity = attack_queued.target;
+        let Some(target_entity_id) = entity_id_index.get_by_ecs_entity(target_entity) else {
+            warn!("tried to attack entity {target_entity} which isn't in our EntityIdIndex");
+            continue;
+        };
+
+        commands.entity(client_entity).remove::<AttackQueued>();
 
         commands.trigger(SendPacketEvent::new(
-            entity,
+            client_entity,
             ServerboundInteract {
-                entity_id: attack_queued.target,
+                entity_id: target_entity_id,
                 action: s_interact::ActionType::Attack,
                 using_secondary_action: **sneaking,
             },
         ));
-        commands.trigger(SwingArmEvent { entity });
+        commands.trigger(SwingArmEvent {
+            entity: client_entity,
+        });
 
         // we can't attack if we're in spectator mode but it still sends the attack
         // packet
@@ -142,7 +153,8 @@ pub fn handle_attack_queued(
 pub struct AttackEvent {
     /// Our client entity that will send the packets to attack.
     pub entity: Entity,
-    pub target: MinecraftEntityId,
+    /// The entity that will be attacked.
+    pub target: Entity,
 }
 pub fn handle_attack_event(mut events: EventReader<AttackEvent>, mut commands: Commands) {
     for event in events.read() {

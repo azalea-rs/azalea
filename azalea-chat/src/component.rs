@@ -1,6 +1,7 @@
+#[cfg(all(feature = "azalea-buf", feature = "simdnbt"))]
+use std::io::{self, Cursor, Write};
 use std::{
     fmt::{self, Display},
-    io::{self, Cursor, Write},
     sync::LazyLock,
 };
 
@@ -9,6 +10,7 @@ use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
 use serde::{Deserialize, Deserializer, Serialize, de};
 #[cfg(feature = "simdnbt")]
 use simdnbt::{Deserialize as _, FromNbtTag as _, Serialize as _};
+#[cfg(all(feature = "azalea-buf", feature = "simdnbt"))]
 use tracing::{debug, trace, warn};
 
 use crate::{
@@ -546,8 +548,7 @@ impl From<&simdnbt::Mutf8Str> for FormattedText {
     }
 }
 
-#[cfg(feature = "azalea-buf")]
-#[cfg(feature = "simdnbt")]
+#[cfg(all(feature = "azalea-buf", feature = "simdnbt"))]
 impl AzaleaRead for FormattedText {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let nbt = simdnbt::borrow::read_optional_tag(buf)?;
@@ -560,8 +561,7 @@ impl AzaleaRead for FormattedText {
     }
 }
 
-#[cfg(feature = "azalea-buf")]
-#[cfg(feature = "simdnbt")]
+#[cfg(all(feature = "azalea-buf", feature = "simdnbt"))]
 impl AzaleaWrite for FormattedText {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
         let mut out = Vec::new();

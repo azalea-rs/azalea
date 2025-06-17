@@ -3,12 +3,11 @@ mod suggestions;
 mod suggestions_builder;
 
 #[cfg(feature = "azalea-buf")]
-use std::io::Write;
+use std::io::{self, Write};
 use std::{
     cmp::Ordering,
     fmt::{self, Display},
     hash::Hash,
-    io,
 };
 
 #[cfg(feature = "azalea-buf")]

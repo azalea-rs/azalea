@@ -7,16 +7,14 @@ license.workspace = true
 repository.workspace = true
 
 [dev-dependencies]
-azalea-client = { path = "../azalea-client" }
-criterion = "0.5.1"
+azalea-client.workspace = true
+criterion.workspace = true
 
 [dependencies]
-azalea-block = { path = "../azalea-block", default-features = false, version = "0.12.0" }
-azalea-buf = { path = "../azalea-buf", version = "0.12.0" }
-azalea-core = { path = "../azalea-core", version = "0.12.0", features = [
-    "bevy_ecs",
-] }
-azalea-registry = { path = "../azalea-registry", version = "0.12.0" }
+azalea-block.workspace = true
+azalea-buf.workspace = true
+azalea-core = { workspace = true, features = ["bevy_ecs"] }
+azalea-registry.workspace = true
 bevy_ecs.workspace = true
 derive_more = { workspace = true, features = ["deref", "deref_mut"] }
 nohash-hasher.workspace = true

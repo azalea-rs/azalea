@@ -21,12 +21,12 @@ pub fn tick(bot: Client, state: State) -> anyhow::Result<()> {
     {
         let mut ecs = bot.ecs.lock();
         let mut query = ecs
-            .query_filtered::<(&MinecraftEntityId, &Position, &InstanceName), (
+            .query_filtered::<(Entity, &Position, &InstanceName), (
                 With<AbstractMonster>,
                 Without<LocalEntity>,
                 Without<Dead>,
             )>();
-        for (&entity_id, position, instance_name) in query.iter(&ecs) {
+        for (entity_id, position, instance_name) in query.iter(&ecs) {
             if instance_name != &bot_instance_name {
                 continue;
             }
