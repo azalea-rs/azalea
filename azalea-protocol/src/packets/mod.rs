@@ -11,8 +11,8 @@ use azalea_buf::{AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
 
 use crate::read::ReadPacketError;
 
-pub const PROTOCOL_VERSION: i32 = 1073742080;
-pub const VERSION_NAME: &str = "1.21.6-rc1";
+pub const PROTOCOL_VERSION: i32 = 771;
+pub const VERSION_NAME: &str = "1.21.6";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ConnectionProtocol {
