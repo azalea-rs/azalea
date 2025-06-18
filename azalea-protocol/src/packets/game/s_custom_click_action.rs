@@ -1,9 +1,10 @@
 use azalea_buf::AzBuf;
 use azalea_core::resource_location::ResourceLocation;
 use azalea_protocol_macros::ServerboundGamePacket;
+use simdnbt::owned::Nbt;
 
 #[derive(Clone, Debug, AzBuf, ServerboundGamePacket)]
 pub struct ServerboundCustomClickAction {
     pub id: ResourceLocation,
-    pub payload: Option<String>,
+    pub payload: Nbt,
 }

@@ -67,14 +67,6 @@ struct CompactRgbColor {
 }
 
 #[derive(AzBuf, Clone, Debug)]
-pub struct WaypointIconFade {
-    pub near_dist: i32,
-    pub far_dist: i32,
-    pub near_alpha: u8,
-    pub far_alpha: u8,
-}
-
-#[derive(AzBuf, Clone, Debug)]
 pub enum WaypointData {
     Empty,
     Vec3i(Vec3i),
