@@ -437,6 +437,10 @@ impl FormattedText {
                     for item in with {
                         with_array.push(StringOrComponent::String(item.to_string()));
                     }
+                } else if let Some(with) = with_list.ints() {
+                    for item in with {
+                        with_array.push(StringOrComponent::String(item.to_string()));
+                    }
                 } else if let Some(with) = with_list.compounds() {
                     for item in with {
                         // if it's a string component with no styling and no siblings,
