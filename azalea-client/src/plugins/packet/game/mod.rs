@@ -12,7 +12,10 @@ use azalea_entity::{
     indexing::{EntityIdIndex, EntityUuidIndex},
     metadata::{Health, apply_metadata},
 };
-use azalea_protocol::packets::{ConnectionProtocol, game::*};
+use azalea_protocol::{
+    common::movements::MoveFlags,
+    packets::{ConnectionProtocol, game::*},
+};
 use azalea_world::{InstanceContainer, InstanceName, MinecraftEntityId, PartialInstance};
 use bevy_ecs::{prelude::*, system::SystemState};
 pub use events::*;
@@ -319,15 +322,6 @@ impl GamePacketHandler<'_> {
                         .entity(self.player)
                         .insert(LoadedBy(HashSet::from_iter(vec![self.player])));
                 }
-
-                // send the client information that we have set
-                debug!(
-                    "Sending client information because login: {:?}",
-                    client_information
-                );
-                commands.trigger(SendPacketEvent::new(self.player,
-                    azalea_protocol::packets::game::s_client_information::ServerboundClientInformation { client_information: client_information.clone() },
-                ));
             },
         );
     }
@@ -443,8 +437,7 @@ impl GamePacketHandler<'_> {
                 ServerboundMovePlayerPosRot {
                     pos: **position,
                     look_direction: *direction,
-                    // this is always false
-                    on_ground: false,
+                    flags: MoveFlags::default(),
                 },
             ));
         });

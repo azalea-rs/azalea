@@ -6,14 +6,17 @@ use azalea_entity::{
     metadata::Sprinting,
 };
 use azalea_physics::{PhysicsSet, ai_step};
-use azalea_protocol::packets::{
-    Packet,
-    game::{
-        ServerboundPlayerCommand, ServerboundPlayerInput,
-        s_move_player_pos::ServerboundMovePlayerPos,
-        s_move_player_pos_rot::ServerboundMovePlayerPosRot,
-        s_move_player_rot::ServerboundMovePlayerRot,
-        s_move_player_status_only::ServerboundMovePlayerStatusOnly,
+use azalea_protocol::{
+    common::movements::MoveFlags,
+    packets::{
+        Packet,
+        game::{
+            ServerboundPlayerCommand, ServerboundPlayerInput,
+            s_move_player_pos::ServerboundMovePlayerPos,
+            s_move_player_pos_rot::ServerboundMovePlayerPosRot,
+            s_move_player_rot::ServerboundMovePlayerRot,
+            s_move_player_status_only::ServerboundMovePlayerStatusOnly,
+        },
     },
 };
 use azalea_world::{MinecraftEntityId, MoveEntityError};
@@ -186,12 +189,16 @@ pub fn send_position(
             // if self.is_passenger() {
             //   TODO: posrot packet for being a passenger
             // }
+            let flags = MoveFlags {
+                on_ground: physics.on_ground(),
+                horizontal_collision: physics.horizontal_collision,
+            };
             let packet = if sending_position && sending_direction {
                 Some(
                     ServerboundMovePlayerPosRot {
                         pos: **position,
                         look_direction: *direction,
-                        on_ground: physics.on_ground(),
+                        flags,
                     }
                     .into_variant(),
                 )
@@ -199,7 +206,7 @@ pub fn send_position(
                 Some(
                     ServerboundMovePlayerPos {
                         pos: **position,
-                        on_ground: physics.on_ground(),
+                        flags,
                     }
                     .into_variant(),
                 )
@@ -207,17 +214,12 @@ pub fn send_position(
                 Some(
                     ServerboundMovePlayerRot {
                         look_direction: *direction,
-                        on_ground: physics.on_ground(),
+                        flags,
                     }
                     .into_variant(),
                 )
             } else if physics.last_on_ground() != physics.on_ground() {
-                Some(
-                    ServerboundMovePlayerStatusOnly {
-                        on_ground: physics.on_ground(),
-                    }
-                    .into_variant(),
-                )
+                Some(ServerboundMovePlayerStatusOnly { flags }.into_variant())
             } else {
                 None
             };

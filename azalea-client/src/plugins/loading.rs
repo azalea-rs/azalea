@@ -14,8 +14,8 @@ impl Plugin for PlayerLoadedPlugin {
             GameTick,
             player_loaded_packet
                 .after(PhysicsSet)
-                .after(MiningSet)
-                .after(crate::movement::send_position),
+                .before(MiningSet)
+                .before(crate::movement::send_position),
         );
     }
 }
@@ -36,8 +36,11 @@ pub fn player_loaded_packet(
         Entity,
         (
             With<LocalEntity>,
-            With<InLoadedChunk>,
             Without<HasClientLoaded>,
+            // the vanilla client waits for the chunk mesh to be "compiled" for the renderer (or
+            // some other conditions) before sending PlayerLoaded. see LevelLoadStatusManager.tick
+            // in the decompiled source
+            With<InLoadedChunk>,
         ),
     >,
 ) {

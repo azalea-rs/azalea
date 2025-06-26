@@ -90,6 +90,7 @@ impl Client {
 pub struct AttackQueued {
     pub target: Entity,
 }
+#[allow(clippy::type_complexity)]
 pub fn handle_attack_queued(
     mut commands: Commands,
     mut query: Query<(

@@ -16,6 +16,7 @@ pub mod ping;
 pub mod player;
 mod plugins;
 
+#[cfg(feature = "log")]
 #[doc(hidden)]
 pub mod test_utils;
 

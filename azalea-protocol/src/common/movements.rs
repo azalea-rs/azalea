@@ -131,3 +131,33 @@ impl AzaleaWrite for RelativeMovements {
         set.azalea_write(buf)
     }
 }
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct MoveFlags {
+    pub on_ground: bool,
+    pub horizontal_collision: bool,
+}
+impl AzaleaWrite for MoveFlags {
+    fn azalea_write(&self, buf: &mut impl io::Write) -> Result<(), io::Error> {
+        let mut bitset = FixedBitSet::<8>::new();
+        if self.on_ground {
+            bitset.set(0);
+        }
+        if self.horizontal_collision {
+            bitset.set(1);
+        }
+        bitset.azalea_write(buf)?;
+        Ok(())
+    }
+}
+impl AzaleaRead for MoveFlags {
+    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        let bitset = FixedBitSet::<8>::azalea_read(buf)?;
+        let on_ground = bitset.index(0);
+        let horizontal_collision = bitset.index(1);
+        Ok(Self {
+            on_ground,
+            horizontal_collision,
+        })
+    }
+}
