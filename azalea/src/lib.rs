@@ -1,6 +1,5 @@
 #![doc = include_str!("../README.md")]
 #![feature(type_changing_struct_update)]
-#![feature(let_chains)]
 #![feature(never_type)]
 
 pub mod accept_resource_packs;
