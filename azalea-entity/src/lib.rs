@@ -226,8 +226,10 @@ pub struct LookDirection {
 }
 
 impl LookDirection {
+    /// Create a new look direction, while clamping and wrapping the rotations
+    /// to the allowed values.
     pub fn new(y_rot: f32, x_rot: f32) -> Self {
-        Self { y_rot, x_rot }
+        apply_clamp_look_direction(Self { y_rot, x_rot })
     }
 }
 

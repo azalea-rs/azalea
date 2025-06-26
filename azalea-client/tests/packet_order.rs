@@ -1,8 +1,4 @@
-use std::{collections::VecDeque, sync::Arc};
-
-use azalea_client::{
-    SprintDirection, StartSprintEvent, packet::game::SendPacketEvent, test_utils::prelude::*,
-};
+use azalea_client::{SprintDirection, StartSprintEvent, test_utils::prelude::*};
 use azalea_core::{
     position::{BlockPos, ChunkPos, Vec3},
     resource_location::ResourceLocation,
@@ -21,8 +17,6 @@ use azalea_protocol::{
     },
 };
 use azalea_registry::{Block, DataRegistry, DimensionType};
-use bevy_ecs::observer::Trigger;
-use parking_lot::Mutex;
 use simdnbt::owned::{NbtCompound, NbtTag};
 
 #[test]
@@ -73,13 +67,10 @@ fn test_packet_order() {
         relative: RelativeMovements::all_absolute(),
     });
     simulation.tick();
-
     assert_eq!(
         simulation.get_block_state(BlockPos::new(1, 1, 3)),
         Some(Block::Stone.into())
     );
-
-    println!("sent_packets: {:?}", sent_packets.list.lock());
     sent_packets.expect("AcceptTeleportation", |p| {
         matches!(
             p,
@@ -159,65 +150,4 @@ fn test_packet_order() {
     });
     sent_packets.expect_tick_end();
     sent_packets.expect_empty();
-}
-
-#[derive(Clone)]
-pub struct SentPackets {
-    list: Arc<Mutex<VecDeque<ServerboundGamePacket>>>,
-}
-impl SentPackets {
-    pub fn new(simulation: &mut Simulation) -> Self {
-        let sent_packets = SentPackets {
-            list: Default::default(),
-        };
-
-        let simulation_entity = simulation.entity;
-        let sent_packets_clone = sent_packets.clone();
-        simulation
-            .app
-            .add_observer(move |trigger: Trigger<SendPacketEvent>| {
-                if trigger.sent_by == simulation_entity {
-                    sent_packets_clone
-                        .list
-                        .lock()
-                        .push_back(trigger.event().packet.clone())
-                }
-            });
-
-        sent_packets
-    }
-
-    pub fn clear(&self) {
-        self.list.lock().clear();
-    }
-
-    pub fn expect_tick_end(&self) {
-        self.expect("TickEnd", |p| {
-            matches!(p, ServerboundGamePacket::ClientTickEnd(_))
-        });
-    }
-    pub fn expect_empty(&self) {
-        let sent_packet = self.next();
-        if let None = sent_packet {
-        } else {
-            panic!("Expected no packet, got {sent_packet:?}");
-        }
-    }
-    pub fn expect(
-        &self,
-        expected_formatted: &str,
-        check: impl FnOnce(&ServerboundGamePacket) -> bool,
-    ) {
-        let sent_packet = self.next();
-        if let Some(sent_packet) = sent_packet {
-            if !check(&sent_packet) {
-                panic!("Expected {expected_formatted}, got {sent_packet:?}");
-            }
-        } else {
-            panic!("Expected {expected_formatted}, got nothing");
-        }
-    }
-    pub fn next(&self) -> Option<ServerboundGamePacket> {
-        self.list.lock().pop_front()
-    }
 }

@@ -1,4 +1,4 @@
-use std::{fmt::Debug, sync::Arc};
+use std::{collections::VecDeque, fmt::Debug, sync::Arc};
 
 use azalea_auth::game_profile::GameProfile;
 use azalea_block::BlockState;
@@ -19,7 +19,8 @@ use azalea_protocol::{
         config::{ClientboundFinishConfiguration, ClientboundRegistryData},
         game::{
             ClientboundAddEntity, ClientboundLevelChunkWithLight, ClientboundLogin,
-            ClientboundRespawn, c_level_chunk_with_light::ClientboundLevelChunkPacketData,
+            ClientboundRespawn, ServerboundGamePacket,
+            c_level_chunk_with_light::ClientboundLevelChunkPacketData,
             c_light_update::ClientboundLightUpdatePacketData,
         },
     },
@@ -28,13 +29,13 @@ use azalea_registry::{Biome, DimensionType, EntityKind};
 use azalea_world::{Chunk, Instance, MinecraftEntityId, Section, palette::PalettedContainer};
 use bevy_app::App;
 use bevy_ecs::{component::Mutable, prelude::*, schedule::ExecutorKind};
-use parking_lot::RwLock;
+use parking_lot::{Mutex, RwLock};
 use simdnbt::owned::{NbtCompound, NbtTag};
 use uuid::Uuid;
 
 use crate::{
     InConfigState, LocalPlayerBundle, connection::RawConnection, disconnect::DisconnectEvent,
-    local_player::InstanceHolder, player::GameProfileComponent,
+    local_player::InstanceHolder, packet::game::SendPacketEvent, player::GameProfileComponent,
 };
 
 /// A way to simulate a client in a server, used for some internal tests.
@@ -167,6 +168,66 @@ impl Simulation {
             entity: self.entity,
             reason: None,
         });
+    }
+}
+
+#[derive(Clone)]
+pub struct SentPackets {
+    pub list: Arc<Mutex<VecDeque<ServerboundGamePacket>>>,
+}
+impl SentPackets {
+    pub fn new(simulation: &mut Simulation) -> Self {
+        let sent_packets = SentPackets {
+            list: Default::default(),
+        };
+
+        let simulation_entity = simulation.entity;
+        let sent_packets_clone = sent_packets.clone();
+        simulation
+            .app
+            .add_observer(move |trigger: Trigger<SendPacketEvent>| {
+                if trigger.sent_by == simulation_entity {
+                    sent_packets_clone
+                        .list
+                        .lock()
+                        .push_back(trigger.event().packet.clone())
+                }
+            });
+
+        sent_packets
+    }
+
+    pub fn clear(&self) {
+        self.list.lock().clear();
+    }
+
+    pub fn expect_tick_end(&self) {
+        self.expect("TickEnd", |p| {
+            matches!(p, ServerboundGamePacket::ClientTickEnd(_))
+        });
+    }
+    pub fn expect_empty(&self) {
+        let sent_packet = self.next();
+        if sent_packet.is_some() {
+            panic!("Expected no packet, got {sent_packet:?}");
+        }
+    }
+    pub fn expect(
+        &self,
+        expected_formatted: &str,
+        check: impl FnOnce(&ServerboundGamePacket) -> bool,
+    ) {
+        let sent_packet = self.next();
+        if let Some(sent_packet) = sent_packet {
+            if !check(&sent_packet) {
+                panic!("Expected {expected_formatted}, got {sent_packet:?}");
+            }
+        } else {
+            panic!("Expected {expected_formatted}, got nothing");
+        }
+    }
+    pub fn next(&self) -> Option<ServerboundGamePacket> {
+        self.list.lock().pop_front()
     }
 }
 

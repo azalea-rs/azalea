@@ -23,6 +23,7 @@ is breaking anyways, semantic versioning is not followed.
 ### Fixed
 
 - Fix packet order for loading (`PlayerLoaded`/`MovePlayerPos`) and sprinting (`PlayerInput`/`PlayerCommand`).
+- Clients no longer send invalid look directions if the server teleports us with one.
 
 ## [0.13.0+mc1.21.5] - 2025-06-15
 

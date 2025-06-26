@@ -187,9 +187,13 @@ pub struct LoadedBy(pub HashSet<Entity>);
 
 pub fn clamp_look_direction(mut query: Query<&mut LookDirection>) {
     for mut look_direction in &mut query {
-        look_direction.y_rot = look_direction.y_rot.rem_euclid(360.0);
-        look_direction.x_rot = look_direction.x_rot.clamp(-90.0, 90.0) % 360.0;
+        *look_direction = apply_clamp_look_direction(*look_direction);
     }
+}
+pub fn apply_clamp_look_direction(mut look_direction: LookDirection) -> LookDirection {
+    look_direction.y_rot = look_direction.y_rot.rem_euclid(360.0);
+    look_direction.x_rot = look_direction.x_rot.clamp(-90.0, 90.0) % 360.0;
+    look_direction
 }
 
 /// Sets the position of the entity. This doesn't update the cache in
