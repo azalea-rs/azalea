@@ -2,6 +2,7 @@ use bevy_app::{PluginGroup, PluginGroupBuilder};
 
 pub mod attack;
 pub mod auto_reconnect;
+pub mod block_update;
 pub mod brand;
 pub mod chat;
 pub mod chat_signing;
@@ -48,6 +49,7 @@ impl PluginGroup for DefaultPlugins {
             .add(mining::MiningPlugin)
             .add(attack::AttackPlugin)
             .add(chunks::ChunksPlugin)
+            .add(block_update::BlockUpdatePlugin)
             .add(tick_end::TickEndPlugin)
             .add(loading::PlayerLoadedPlugin)
             .add(brand::BrandPlugin)

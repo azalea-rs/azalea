@@ -28,7 +28,7 @@ impl Plugin for ChunksPlugin {
             Update,
             (
                 handle_chunk_batch_start_event,
-                handle_receive_chunk_events,
+                handle_receive_chunk_event,
                 handle_chunk_batch_finished_event,
             )
                 .chain()
@@ -65,7 +65,7 @@ pub struct ChunkBatchFinishedEvent {
     pub batch_size: u32,
 }
 
-pub fn handle_receive_chunk_events(
+pub fn handle_receive_chunk_event(
     mut events: EventReader<ReceiveChunkEvent>,
     mut query: Query<&InstanceHolder>,
 ) {

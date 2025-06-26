@@ -23,6 +23,7 @@ use tracing::{debug, error, trace, warn};
 
 use crate::{
     ClientInformation,
+    block_update::QueuedServerBlockUpdates,
     chat::{ChatPacket, ChatReceivedEvent},
     chunks,
     connection::RawConnection,
@@ -1058,17 +1059,10 @@ impl GamePacketHandler<'_> {
     pub fn block_update(&mut self, p: &ClientboundBlockUpdate) {
         debug!("Got block update packet {p:?}");
 
-        as_system::<Query<(&InstanceHolder, &mut BlockStatePredictionHandler)>>(
-            self.ecs,
-            |mut query| {
-                let (local_player, mut prediction_handler) = query.get_mut(self.player).unwrap();
-
-                let world = local_player.instance.read();
-                if !prediction_handler.update_known_server_state(p.pos, p.block_state) {
-                    world.chunks.set_block_state(p.pos, p.block_state);
-                }
-            },
-        );
+        as_system::<Query<&mut QueuedServerBlockUpdates>>(self.ecs, |mut query| {
+            let mut queued = query.get_mut(self.player).unwrap();
+            queued.list.push((p.pos, p.block_state));
+        });
     }
 
     pub fn animate(&mut self, p: &ClientboundAnimate) {
@@ -1078,19 +1072,13 @@ impl GamePacketHandler<'_> {
     pub fn section_blocks_update(&mut self, p: &ClientboundSectionBlocksUpdate) {
         debug!("Got section blocks update packet {p:?}");
 
-        as_system::<Query<(&InstanceHolder, &mut BlockStatePredictionHandler)>>(
-            self.ecs,
-            |mut query| {
-                let (local_player, mut prediction_handler) = query.get_mut(self.player).unwrap();
-                let world = local_player.instance.read();
-                for new_state in &p.states {
-                    let pos = p.section_pos + new_state.pos;
-                    if !prediction_handler.update_known_server_state(pos, new_state.state) {
-                        world.chunks.set_block_state(pos, new_state.state);
-                    }
-                }
-            },
-        );
+        as_system::<Query<&mut QueuedServerBlockUpdates>>(self.ecs, |mut query| {
+            let mut queued = query.get_mut(self.player).unwrap();
+            for new_state in &p.states {
+                let pos = p.section_pos + new_state.pos;
+                queued.list.push((pos, new_state.state));
+            }
+        });
     }
 
     pub fn game_event(&mut self, p: &ClientboundGameEvent) {

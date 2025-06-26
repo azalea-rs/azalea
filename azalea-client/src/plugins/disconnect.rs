@@ -56,6 +56,7 @@ pub struct DisconnectEvent {
 #[derive(Bundle)]
 pub struct RemoveOnDisconnectBundle {
     pub joined_client: JoinedClientBundle,
+
     pub entity: EntityBundle,
     pub minecraft_entity_id: MinecraftEntityId,
     pub instance_holder: InstanceHolder,
@@ -69,7 +70,7 @@ pub struct RemoveOnDisconnectBundle {
     pub chat_signing_session: chat_signing::ChatSigningSession,
     /// They're not authenticated anymore if they disconnected.
     pub is_authenticated: IsAuthenticated,
-    // send ServerboundPlayerLoaded next time we join
+    // send ServerboundPlayerLoaded next time we join.
     pub has_client_loaded: HasClientLoaded,
 }
 

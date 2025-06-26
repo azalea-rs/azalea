@@ -10,16 +10,19 @@ is breaking anyways, semantic versioning is not followed.
 
 ### Added
 
-- Update to Minecraft 1.21.6.
 - `HitResult` now contains the entity that's being looked at.
+- A `QueuedServerBlockUpdates` component that keeps track of block updates per `Update`.
 
 ### Changed
 
+- Update to Minecraft 1.21.6.
 - Renamed `azalea_entity::EntityKind` to `EntityKindComponent` to disambiguate with `azalea_registry::EntityKind`.
 - Moved functions and types related to hit results from `azalea::interact` to `azalea::interact::pick`.
 - `Client::attack` now takes `Entity` instead of `MinecraftEntityId`.
 
 ### Fixed
+
+- Fix packet order for loading (`PlayerLoaded`/`MovePlayerPos`) and sprinting (`PlayerInput`/`PlayerCommand`).
 
 ## [0.13.0+mc1.21.5] - 2025-06-15
 

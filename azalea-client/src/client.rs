@@ -47,6 +47,7 @@ use uuid::Uuid;
 use crate::{
     Account, DefaultPlugins,
     attack::{self},
+    block_update::QueuedServerBlockUpdates,
     chunks::ChunkBatchInfo,
     connection::RawConnection,
     disconnect::DisconnectEvent,
@@ -586,7 +587,8 @@ pub struct JoinedClientBundle {
     pub physics_state: PhysicsState,
     pub inventory: Inventory,
     pub tab_list: TabList,
-    pub current_sequence_number: BlockStatePredictionHandler,
+    pub block_state_prediction_handler: BlockStatePredictionHandler,
+    pub queued_server_block_updates: QueuedServerBlockUpdates,
     pub last_sent_direction: LastSentLookDirection,
     pub abilities: PlayerAbilities,
     pub permission_level: PermissionLevel,
