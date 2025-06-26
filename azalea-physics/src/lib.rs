@@ -39,10 +39,9 @@ impl Plugin for PhysicsPlugin {
         app.add_systems(
             GameTick,
             (
-                fluids::update_in_water_state_and_do_fluid_pushing
-                    .before(azalea_entity::update_fluid_on_eyes),
+                fluids::update_in_water_state_and_do_fluid_pushing,
                 update_old_position,
-                fluids::update_swimming.after(azalea_entity::update_fluid_on_eyes),
+                fluids::update_swimming,
                 ai_step,
                 travel::travel,
                 apply_effects_from_blocks,

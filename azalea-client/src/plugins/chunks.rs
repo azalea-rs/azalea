@@ -17,8 +17,8 @@ use bevy_ecs::prelude::*;
 use tracing::{error, trace};
 
 use crate::{
-    interact::handle_start_use_item_queued, inventory::InventorySet, local_player::InstanceHolder,
-    packet::game::SendPacketEvent, respawn::perform_respawn,
+    inventory::InventorySet, local_player::InstanceHolder, packet::game::SendPacketEvent,
+    respawn::perform_respawn,
 };
 
 pub struct ChunksPlugin;
@@ -33,7 +33,6 @@ impl Plugin for ChunksPlugin {
             )
                 .chain()
                 .before(InventorySet)
-                .before(handle_start_use_item_queued)
                 .before(perform_respawn),
         )
         .add_event::<ReceiveChunkEvent>()

@@ -59,7 +59,6 @@ impl Plugin for MiningPlugin {
                     .after(azalea_entity::update_fluid_on_eyes)
                     .after(crate::interact::pick::update_hit_result_component)
                     .after(crate::attack::handle_attack_event)
-                    .after(crate::interact::handle_start_use_item_queued)
                     .before(crate::interact::handle_swing_arm_event),
             )
             .add_observer(handle_finish_mining_block_observer);
