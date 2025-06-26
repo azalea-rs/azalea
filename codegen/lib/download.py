@@ -234,5 +234,5 @@ def clear_version_cache():
     pumpkin_path = get_dir_location("__cache__/pumpkin-extractor")
     if os.path.exists(pumpkin_path):
         os.system(
-            f"cd {pumpkin_path} && git add . && git stash && git pull && git stash pop"
+            f"cd {pumpkin_path} && git add . && git stash && git pull && git stash pop && git checkout HEAD -- src/main/resources/fabric.mod.json"
         )
