@@ -1,9 +1,8 @@
 use azalea_buf::AzBuf;
 use azalea_protocol_macros::ClientboundConfigPacket;
-use azalea_registry::Holder;
 use simdnbt::owned::Nbt;
 
 #[derive(Clone, Debug, AzBuf, ClientboundConfigPacket)]
 pub struct ClientboundShowDialog {
-    pub dialog: Holder<azalea_registry::Dialog, Nbt>,
+    pub dialog: Nbt,
 }
