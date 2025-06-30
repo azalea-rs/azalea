@@ -147,7 +147,7 @@ impl PartialEntityInfos {
 ///
 /// Also see [`PartialInstance`].
 ///
-/// This is sometimes interchangably called a "world". However, this type is
+/// This is sometimes interchangeably called a "world". However, this type is
 /// called `Instance` to avoid colliding with the `World` type from Bevy ECS.
 #[derive(Default, Debug)]
 pub struct Instance {

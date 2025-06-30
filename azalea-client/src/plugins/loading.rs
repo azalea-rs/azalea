@@ -23,8 +23,8 @@ impl Plugin for PlayerLoadedPlugin {
 // this component is removed on respawn or disconnect
 // (notably, it's not removed on login)
 
-// mojmap interchangably calls it 'has client loaded' and 'has player loaded', i
-// prefer the client one because it makes it clear that the component is only
+// mojmap interchangeably calls it 'has client loaded' and 'has player loaded',
+// i prefer the client one because it makes it clear that the component is only
 // present on our own clients
 
 #[derive(Component)]

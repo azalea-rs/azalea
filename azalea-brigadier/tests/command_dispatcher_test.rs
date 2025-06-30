@@ -155,7 +155,7 @@ fn parse_incomplete_argument() {
 }
 
 #[test]
-fn execute_ambiguious_parent_subcommand() {
+fn execute_ambiguous_parent_subcommand() {
     let mut subject = CommandDispatcher::new();
 
     subject.register(
@@ -168,7 +168,7 @@ fn execute_ambiguious_parent_subcommand() {
 }
 
 #[test]
-fn execute_ambiguious_parent_subcommand_via_redirect() {
+fn execute_ambiguous_parent_subcommand_via_redirect() {
     let mut subject = CommandDispatcher::new();
 
     let real = subject.register(

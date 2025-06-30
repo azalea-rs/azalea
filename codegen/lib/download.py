@@ -32,34 +32,6 @@ def get_pumpkin_extractor():
             f"cd {get_dir_location('__cache__')} && git clone https://github.com/Pumpkin-MC/Extractor pumpkin-extractor && cd pumpkin-extractor && git pull"
         )
 
-        GIT_PATCH = """diff --git a/src/main/kotlin/de/snowii/extractor/extractors/Blocks.kt b/src/main/kotlin/de/snowii/extractor/extractors/Blocks.kt
-index 936cd7b..9876a4b 100644
---- a/src/main/kotlin/de/snowii/extractor/extractors/Blocks.kt
-+++ b/src/main/kotlin/de/snowii/extractor/extractors/Blocks.kt
-@@ -106,12 +106,18 @@ class Blocks : Extractor.Extractor {
-                 }
-
-                 val collisionShapeIdxsJson = JsonArray()
-+                val outlineShapeIdxsJson = JsonArray()
-                 for (box in state.getCollisionShape(EmptyBlockView.INSTANCE, BlockPos.ORIGIN).boundingBoxes) {
-                     val idx = shapes.putIfAbsent(box, shapes.size)
-                     collisionShapeIdxsJson.add(Objects.requireNonNullElseGet(idx) { shapes.size - 1 })
-                 }
-+                for (box in state.getOutlineShape(EmptyBlockView.INSTANCE, BlockPos.ORIGIN).boundingBoxes) {
-+                    val idx = shapes.putIfAbsent(box, shapes.size)
-+                    outlineShapeIdxsJson.add(Objects.requireNonNullElseGet(idx) { shapes.size - 1 })
-+                }
-
-                 stateJson.add("collision_shapes", collisionShapeIdxsJson)
-+                stateJson.add("outline_shapes", outlineShapeIdxsJson)
-
-                 for (blockEntity in Registries.BLOCK_ENTITY_TYPE) {
-                     if (blockEntity.supports(state)) {
-"""
-        os.system(
-            f"cd {get_dir_location('__cache__')}/pumpkin-extractor && git apply - <<EOF\n{GIT_PATCH}\nEOF"
-        )
-
     return get_dir_location("__cache__/pumpkin-extractor")
 
 
