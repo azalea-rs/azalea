@@ -65,7 +65,7 @@ where
     let mut best_paths: [usize; 7] = [0; 7];
     let mut best_path_scores: [f32; 7] = [heuristic(start); 7];
 
-    let mut num_nodes = 0;
+    let mut num_nodes = 0_usize;
     let mut num_movements = 0;
 
     while let Some(WeightedNode { index, g_score, .. }) = open_set.pop() {
@@ -136,7 +136,7 @@ where
         }
 
         // check for timeout every ~10ms
-        if num_nodes % 10000 == 0 {
+        if num_nodes.is_multiple_of(10_000) {
             let min_timeout_reached = match min_timeout {
                 PathfinderTimeout::Time(max_duration) => start_time.elapsed() >= max_duration,
                 PathfinderTimeout::Nodes(max_nodes) => num_nodes >= max_nodes,
