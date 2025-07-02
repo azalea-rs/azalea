@@ -131,8 +131,8 @@ impl From<Vec<u8>> for BitSet {
 ///
 /// Note that this is optimized for fast serialization and deserialization for
 /// Minecraft, and may not be as performant as it could be for other purposes.
-/// Notably, the internal representation is an array of `u8`s even though
-/// `usize` would be slightly faster.
+/// Consider using [`FastFixedBitSet`] if you don't need the
+/// `AzaleaRead`/`AzaleaWrite` implementation.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct FixedBitSet<const N: usize>
 where
@@ -196,6 +196,52 @@ where
 
 pub const fn bits_to_bytes(n: usize) -> usize {
     n.div_ceil(8)
+}
+
+/// A slightly faster compact fixed-size array of bits.
+///
+/// The `N` is the number of bits reserved for the bitset. You're encouraged to
+/// use it like `FastFixedBitSet<20>` if you need 20 bits.
+///
+/// This is almost identical to [`FixedBitSet`], but more efficient (~20% faster
+/// access) and doesn't implement `AzaleaRead`/`AzaleaWrite`.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct FastFixedBitSet<const N: usize>
+where
+    [u64; bits_to_longs(N)]: Sized,
+{
+    data: [u64; bits_to_longs(N)],
+}
+impl<const N: usize> FastFixedBitSet<N>
+where
+    [u64; bits_to_longs(N)]: Sized,
+{
+    pub const fn new() -> Self {
+        FastFixedBitSet {
+            data: [0; bits_to_longs(N)],
+        }
+    }
+
+    #[inline]
+    pub fn index(&self, index: usize) -> bool {
+        (self.data[index / 64] & (1u64 << (index % 64))) != 0
+    }
+
+    #[inline]
+    pub fn set(&mut self, bit_index: usize) {
+        self.data[bit_index / 64] |= 1u64 << (bit_index % 64);
+    }
+}
+impl<const N: usize> Default for FastFixedBitSet<N>
+where
+    [u64; bits_to_longs(N)]: Sized,
+{
+    fn default() -> Self {
+        Self::new()
+    }
+}
+pub const fn bits_to_longs(n: usize) -> usize {
+    n.div_ceil(64)
 }
 
 #[cfg(test)]
