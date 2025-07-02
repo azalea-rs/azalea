@@ -91,10 +91,6 @@ where
             let neighbor_heuristic;
             let neighbor_index;
 
-            // skip neighbors that don't result in a big enough improvement
-            if tentative_g_score - g_score < MIN_IMPROVEMENT {
-                continue;
-            }
             num_movements += 1;
 
             match nodes.entry(neighbor.movement.target) {
