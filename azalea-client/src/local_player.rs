@@ -128,6 +128,9 @@ impl Default for Hunger {
     }
 }
 
+#[derive(Component, Clone, Debug, Default)]
+pub struct TicksAlive(pub u64);
+
 impl InstanceHolder {
     /// Create a new `InstanceHolder` for the given entity.
     ///

@@ -705,6 +705,8 @@ async fn run_schedule_loop(ecs: Arc<Mutex<World>>, outer_schedule_label: Interne
                         "GameTick is more than 10 ticks behind, skipping ticks so we don't have to burst too much"
                     );
                     *last_tick = now;
+
+                    // TODO: do we increment TickComponent here?
                 }
             } else {
                 last_tick = Some(now);

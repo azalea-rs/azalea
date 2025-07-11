@@ -22,6 +22,7 @@ pub mod pong;
 pub mod respawn;
 pub mod task_pool;
 pub mod tick_broadcast;
+pub mod tick_counter;
 pub mod tick_end;
 
 /// This plugin group will add all the default plugins necessary for Azalea to
@@ -54,6 +55,7 @@ impl PluginGroup for DefaultPlugins {
             .add(loading::PlayerLoadedPlugin)
             .add(brand::BrandPlugin)
             .add(tick_broadcast::TickBroadcastPlugin)
+            .add(tick_counter::TickCounterPlugin)
             .add(pong::PongPlugin)
             .add(connection::ConnectionPlugin)
             .add(login::LoginPlugin)
