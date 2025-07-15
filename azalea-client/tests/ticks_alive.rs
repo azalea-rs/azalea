@@ -1,4 +1,4 @@
-use azalea_client::{local_player::TicksAlive, test_utils::prelude::*};
+use azalea_client::{test_utils::prelude::*, tick_counter::TicksConnected};
 use azalea_core::resource_location::ResourceLocation;
 use azalea_protocol::packets::{config::{ClientboundFinishConfiguration, ClientboundRegistryData}, ConnectionProtocol};
 use azalea_registry::{DataRegistry, DimensionType};
@@ -29,7 +29,7 @@ fn counter_increments_and_resets_on_disconnect() {
     // we need a second tick to handle the state switch properly
     simulation.tick();
 
-    assert!(!simulation.has_component::<TicksAlive>());
+    assert!(!simulation.has_component::<TicksConnected>());
 
     simulation.receive_packet(make_basic_login_packet(
         DimensionType::new_raw(0), // overworld
@@ -37,13 +37,13 @@ fn counter_increments_and_resets_on_disconnect() {
     ));
     simulation.tick();
 
-    assert!(simulation.has_component::<TicksAlive>());
-    assert_eq!(simulation.component::<TicksAlive>().0, 1);
+    assert!(simulation.has_component::<TicksConnected>());
+    assert_eq!(simulation.component::<TicksConnected>().0, 1);
 
     // Tick three times; counter should read 2, 3, 4.
     for expected in 2..=4 {
         simulation.tick();
-        let counter = simulation.component::<TicksAlive>();
+        let counter = simulation.component::<TicksConnected>();
         assert_eq!(
             counter.0, expected,
             "after {expected} tick(s) counter should be {expected}"
@@ -53,5 +53,5 @@ fn counter_increments_and_resets_on_disconnect() {
     simulation.disconnect();
     simulation.tick();
 
-    assert!(!simulation.has_component::<TicksAlive>());
+    assert!(!simulation.has_component::<TicksConnected>());
 }

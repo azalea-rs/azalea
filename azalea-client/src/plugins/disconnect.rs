@@ -11,7 +11,7 @@ use tracing::info;
 use super::login::IsAuthenticated;
 use crate::{
     chat_signing, client::JoinedClientBundle, connection::RawConnection, loading::HasClientLoaded,
-    local_player::{InstanceHolder, TicksAlive},
+    local_player::InstanceHolder, tick_counter::TicksConnected,
 };
 
 pub struct DisconnectPlugin;
@@ -73,7 +73,7 @@ pub struct RemoveOnDisconnectBundle {
     // send ServerboundPlayerLoaded next time we join.
     pub has_client_loaded: HasClientLoaded,
     // TickCounter is reset on reconnect
-    pub ticks_alive: TicksAlive,
+    pub ticks_alive: TicksConnected,
 }
 
 /// A system that removes the several components from our clients when they get
