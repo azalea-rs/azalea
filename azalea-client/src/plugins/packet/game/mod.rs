@@ -22,22 +22,9 @@ pub use events::*;
 use tracing::{debug, error, trace, warn};
 
 use crate::{
-    ClientInformation,
-    block_update::QueuedServerBlockUpdates,
-    chat::{ChatPacket, ChatReceivedEvent},
-    chunks,
-    connection::RawConnection,
-    declare_packet_handlers,
-    disconnect::DisconnectEvent,
-    interact::BlockStatePredictionHandler,
-    inventory::{
+    block_update::QueuedServerBlockUpdates, chat::{ChatPacket, ChatReceivedEvent}, chunks, connection::RawConnection, declare_packet_handlers, disconnect::DisconnectEvent, interact::BlockStatePredictionHandler, inventory::{
         ClientSideCloseContainerEvent, Inventory, MenuOpenedEvent, SetContainerContentEvent,
-    },
-    loading::HasClientLoaded,
-    local_player::{Hunger, InstanceHolder, LocalGameMode, PlayerAbilities, TabList},
-    movement::{KnockbackEvent, KnockbackType},
-    packet::as_system,
-    player::{GameProfileComponent, PlayerInfo},
+    }, loading::HasClientLoaded, local_player::{Hunger, InstanceHolder, LocalGameMode, PlayerAbilities, TabList}, movement::{KnockbackEvent, KnockbackType}, packet::as_system, player::{GameProfileComponent, PlayerInfo}, tick_counter::TicksConnected, ClientInformation
 };
 
 pub fn process_packet(ecs: &mut World, player: Entity, packet: &ClientboundGamePacket) {
@@ -299,6 +286,7 @@ impl GamePacketHandler<'_> {
                         previous: p.common.previous_game_type.into(),
                     },
                     entity_bundle,
+                    TicksConnected(0),
                 ));
 
                 azalea_entity::indexing::add_entity_to_indexes(
