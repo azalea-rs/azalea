@@ -167,6 +167,7 @@ pub trait PathfinderClientExt {
     fn start_goto(&self, goal: impl Goal + 'static);
     fn start_goto_without_mining(&self, goal: impl Goal + 'static);
     fn stop_pathfinding(&self);
+    fn force_stop_pathfinding(&self);
     fn wait_until_goto_target_reached(&self) -> impl Future<Output = ()>;
     fn is_goto_target_reached(&self) -> bool;
 }
@@ -212,10 +213,26 @@ impl PathfinderClientExt for azalea_client::Client {
             .send_event(GotoEvent::new(self.entity, goal).with_allow_mining(false));
     }
 
+    /// Stop calculating a path, and stop moving once the current movement is
+    /// finished.
+    ///
+    /// This behavior exists to prevent the bot from taking damage if
+    /// `stop_pathfinding` was called while executing a parkour jump, but if
+    /// it's undesirable then you may want to consider using
+    /// [`Self::force_stop_pathfinding`] instead.
     fn stop_pathfinding(&self) {
         self.ecs.lock().send_event(StopPathfindingEvent {
             entity: self.entity,
             force: false,
+        });
+    }
+
+    /// Stop calculating a path and stop executing the current movement
+    /// immediately.
+    fn force_stop_pathfinding(&self) {
+        self.ecs.lock().send_event(StopPathfindingEvent {
+            entity: self.entity,
+            force: true,
         });
     }
 
