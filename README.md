@@ -10,7 +10,7 @@ A collection of Rust crates for making Minecraft bots, clients, and tools.
 
 <!-- The line below is automatically read and updated by the migrate script, so don't change it manually. -->
 
-_Currently supported Minecraft version: `1.21.7`._
+_Currently supported Minecraft version: `1.21.8`._
 
 > [!WARNING]
 > Azalea is still unfinished, though most crates are in a useable state.

@@ -1,6 +1,9 @@
 use azalea_client::{test_utils::prelude::*, tick_counter::TicksConnected};
 use azalea_core::resource_location::ResourceLocation;
-use azalea_protocol::packets::{config::{ClientboundFinishConfiguration, ClientboundRegistryData}, ConnectionProtocol};
+use azalea_protocol::packets::{
+    ConnectionProtocol,
+    config::{ClientboundFinishConfiguration, ClientboundRegistryData},
+};
 use azalea_registry::{DataRegistry, DimensionType};
 use simdnbt::owned::{NbtCompound, NbtTag};
 

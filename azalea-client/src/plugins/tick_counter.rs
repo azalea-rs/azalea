@@ -1,7 +1,6 @@
 use azalea_core::tick::GameTick;
 use azalea_physics::PhysicsSet;
 use azalea_world::InstanceName;
-
 use bevy_app::{App, Plugin};
 use bevy_ecs::prelude::*;
 

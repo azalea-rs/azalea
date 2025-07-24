@@ -22,9 +22,23 @@ pub use events::*;
 use tracing::{debug, error, trace, warn};
 
 use crate::{
-    block_update::QueuedServerBlockUpdates, chat::{ChatPacket, ChatReceivedEvent}, chunks, connection::RawConnection, declare_packet_handlers, disconnect::DisconnectEvent, interact::BlockStatePredictionHandler, inventory::{
+    ClientInformation,
+    block_update::QueuedServerBlockUpdates,
+    chat::{ChatPacket, ChatReceivedEvent},
+    chunks,
+    connection::RawConnection,
+    declare_packet_handlers,
+    disconnect::DisconnectEvent,
+    interact::BlockStatePredictionHandler,
+    inventory::{
         ClientSideCloseContainerEvent, Inventory, MenuOpenedEvent, SetContainerContentEvent,
-    }, loading::HasClientLoaded, local_player::{Hunger, InstanceHolder, LocalGameMode, PlayerAbilities, TabList}, movement::{KnockbackEvent, KnockbackType}, packet::as_system, player::{GameProfileComponent, PlayerInfo}, tick_counter::TicksConnected, ClientInformation
+    },
+    loading::HasClientLoaded,
+    local_player::{Hunger, InstanceHolder, LocalGameMode, PlayerAbilities, TabList},
+    movement::{KnockbackEvent, KnockbackType},
+    packet::as_system,
+    player::{GameProfileComponent, PlayerInfo},
+    tick_counter::TicksConnected,
 };
 
 pub fn process_packet(ecs: &mut World, player: Entity, packet: &ClientboundGamePacket) {
