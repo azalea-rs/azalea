@@ -10,6 +10,7 @@ use thiserror::Error;
 #[derive(Clone, Debug, Component)]
 pub struct Attributes {
     pub speed: AttributeInstance,
+    pub sneaking_speed: AttributeInstance,
     pub attack_speed: AttributeInstance,
     pub water_movement_efficiency: AttributeInstance,
 
@@ -92,7 +93,7 @@ pub enum AttributeModifierOperation {
 pub fn sprinting_modifier() -> AttributeModifier {
     AttributeModifier {
         id: ResourceLocation::new("sprinting"),
-        amount: 0.30000001192092896,
+        amount: 0.3f32 as f64,
         operation: AttributeModifierOperation::MultiplyTotal,
     }
 }

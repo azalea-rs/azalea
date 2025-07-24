@@ -1,6 +1,9 @@
 use std::{backtrace::Backtrace, io};
 
-use azalea_core::{position::Vec3, tick::GameTick};
+use azalea_core::{
+    position::{Vec2, Vec3},
+    tick::GameTick,
+};
 use azalea_entity::{
     Attributes, InLoadedChunk, Jumping, LastSentPosition, LookDirection, Physics, Position,
     metadata::Sprinting,
@@ -137,8 +140,7 @@ pub struct PhysicsState {
     pub trying_to_sprint: bool,
 
     pub move_direction: WalkDirection,
-    pub forward_impulse: f32,
-    pub left_impulse: f32,
+    pub move_vector: Vec2,
 }
 
 #[allow(clippy::type_complexity)]
@@ -308,12 +310,10 @@ pub fn send_sprinting_if_needed(
     }
 }
 
-/// Update the impulse from self.move_direction. The multiplier is used for
-/// sneaking.
+/// Updates the [`PhysicsState::move_vector`] based on the
+/// [`PhysicsState::move_direction`].
 pub(crate) fn tick_controls(mut query: Query<&mut PhysicsState>) {
     for mut physics_state in query.iter_mut() {
-        let multiplier: Option<f32> = None;
-
         let mut forward_impulse: f32 = 0.;
         let mut left_impulse: f32 = 0.;
         let move_direction = physics_state.move_direction;
@@ -337,13 +337,9 @@ pub(crate) fn tick_controls(mut query: Query<&mut PhysicsState>) {
             }
             _ => {}
         };
-        physics_state.forward_impulse = forward_impulse;
-        physics_state.left_impulse = left_impulse;
 
-        if let Some(multiplier) = multiplier {
-            physics_state.forward_impulse *= multiplier;
-            physics_state.left_impulse *= multiplier;
-        }
+        let move_vector = Vec2::new(left_impulse, forward_impulse).normalized();
+        physics_state.move_vector = move_vector;
     }
 }
 
@@ -357,8 +353,12 @@ pub fn local_player_ai_step(
 ) {
     for (physics_state, mut physics, mut sprinting, mut attributes) in query.iter_mut() {
         // server ai step
-        physics.x_acceleration = physics_state.left_impulse;
-        physics.z_acceleration = physics_state.forward_impulse;
+
+        // TODO: replace those booleans when using items, passengers, and sneaking are
+        // properly implemented
+        let move_vector = modify_input(physics_state.move_vector, false, false, false, &attributes);
+        physics.x_acceleration = move_vector.x;
+        physics.z_acceleration = move_vector.y;
 
         // TODO: food data and abilities
         // let has_enough_food_to_sprint = self.food_data().food_level ||
@@ -383,6 +383,47 @@ pub fn local_player_ai_step(
             set_sprinting(true, &mut sprinting, &mut attributes);
         }
     }
+}
+
+// LocalPlayer.modifyInput
+fn modify_input(
+    mut move_vector: Vec2,
+    is_using_item: bool,
+    is_passenger: bool,
+    moving_slowly: bool,
+    attributes: &Attributes,
+) -> Vec2 {
+    if move_vector.length_squared() == 0. {
+        return move_vector;
+    }
+
+    move_vector *= 0.98;
+    if is_using_item && !is_passenger {
+        move_vector *= 0.2;
+    }
+
+    if moving_slowly {
+        let sneaking_speed = attributes.sneaking_speed.calculate() as f32;
+        move_vector *= sneaking_speed;
+    }
+
+    modify_input_speed_for_square_movement(move_vector)
+}
+fn modify_input_speed_for_square_movement(move_vector: Vec2) -> Vec2 {
+    let length = move_vector.length();
+    if length == 0. {
+        return move_vector;
+    }
+    let scaled_to_inverse_length = move_vector * (1. / length);
+    let dist = distance_to_unit_square(scaled_to_inverse_length);
+    let scale = (length * dist).min(1.);
+    scaled_to_inverse_length * scale
+}
+fn distance_to_unit_square(v: Vec2) -> f32 {
+    let x = v.x.abs();
+    let y = v.y.abs();
+    let ratio = if y > x { x / y } else { y / x };
+    (1.0 + ratio * ratio).sqrt()
 }
 
 impl Client {
@@ -508,7 +549,7 @@ fn has_enough_impulse_to_start_sprinting(physics_state: &PhysicsState) -> bool {
     // if self.underwater() {
     //     self.has_forward_impulse()
     // } else {
-    physics_state.forward_impulse > 0.8
+    physics_state.move_vector.y > 0.8
     // }
 }
 

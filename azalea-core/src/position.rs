@@ -818,6 +818,66 @@ impl fmt::Display for Vec3 {
     }
 }
 
+/// A 2D vector.
+#[derive(Clone, Copy, Debug, Default, PartialEq, AzBuf)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+pub struct Vec2 {
+    pub x: f32,
+    pub y: f32,
+}
+impl Vec2 {
+    const ZERO: Vec2 = Vec2 { x: 0.0, y: 0.0 };
+
+    #[inline]
+    pub fn new(x: f32, y: f32) -> Self {
+        Vec2 { x, y }
+    }
+    #[inline]
+    pub fn scale(&self, amount: f32) -> Self {
+        Vec2 {
+            x: self.x * amount,
+            y: self.y * amount,
+        }
+    }
+    #[inline]
+    pub fn dot(&self, other: Vec2) -> f32 {
+        self.x * other.x + self.y * other.y
+    }
+    #[inline]
+    pub fn normalized(&self) -> Self {
+        let length = (self.x * self.x + self.y * self.y).sqrt();
+        if length < 1e-4 {
+            return Vec2::ZERO;
+        }
+        Vec2 {
+            x: self.x / length,
+            y: self.y / length,
+        }
+    }
+    #[inline]
+    pub fn length_squared(&self) -> f32 {
+        self.x * self.x + self.y * self.y
+    }
+    #[inline]
+    pub fn length(&self) -> f32 {
+        self.length_squared().sqrt()
+    }
+}
+impl Mul<f32> for Vec2 {
+    type Output = Self;
+
+    #[inline]
+    fn mul(self, rhs: f32) -> Self::Output {
+        self.scale(rhs)
+    }
+}
+impl MulAssign<f32> for Vec2 {
+    #[inline]
+    fn mul_assign(&mut self, rhs: f32) {
+        *self = self.scale(rhs);
+    }
+}
+
 const PACKED_X_LENGTH: u64 = 1 + 25; // minecraft does something a bit more complicated to get this 25
 const PACKED_Z_LENGTH: u64 = PACKED_X_LENGTH;
 const PACKED_Y_LENGTH: u64 = 64 - PACKED_X_LENGTH - PACKED_Z_LENGTH;

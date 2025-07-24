@@ -151,6 +151,10 @@ where
         }
     }
 
+    pub const fn new_with_data(data: [u8; bits_to_bytes(N)]) -> Self {
+        FixedBitSet { data }
+    }
+
     #[inline]
     pub fn index(&self, index: usize) -> bool {
         (self.data[index / 8] & (1u8 << (index % 8))) != 0

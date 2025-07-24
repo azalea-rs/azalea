@@ -50,10 +50,10 @@ pub fn move_relative(
 
 pub fn input_vector(direction: LookDirection, speed: f32, acceleration: Vec3) -> Vec3 {
     let distance = acceleration.length_squared();
-    if distance < 1.0E-7 {
+    if distance < 1.0e-7 {
         return Vec3::ZERO;
     }
-    let acceleration = if distance > 1.0 {
+    let acceleration = if distance > 1. {
         acceleration.normalize()
     } else {
         acceleration
@@ -492,6 +492,7 @@ pub fn default_attributes(_entity_kind: EntityKind) -> Attributes {
     // entities have different defaults
     Attributes {
         speed: AttributeInstance::new(0.1),
+        sneaking_speed: AttributeInstance::new(0.3),
         attack_speed: AttributeInstance::new(4.0),
         water_movement_efficiency: AttributeInstance::new(0.0),
         block_interaction_range: AttributeInstance::new(4.5),

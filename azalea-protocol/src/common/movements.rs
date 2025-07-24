@@ -94,7 +94,8 @@ fn apply_change<T: Add<Output = T>>(base: T, condition: bool, change: T) -> T {
 impl AzaleaRead for RelativeMovements {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         // yes minecraft seriously wastes that many bits, smh
-        let set = FixedBitSet::<32>::azalea_read(buf)?;
+        let set = u32::azalea_read(buf)?;
+        let set = FixedBitSet::<32>::new_with_data(set.swap_bytes().to_be_bytes());
         Ok(RelativeMovements {
             x: set.index(0),
             y: set.index(1),

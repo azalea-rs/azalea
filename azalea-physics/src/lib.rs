@@ -15,10 +15,10 @@ use azalea_core::{
     tick::GameTick,
 };
 use azalea_entity::{
-    Attributes, InLoadedChunk, Jumping, LocalEntity, LookDirection, OnClimbable, Physics, Pose,
-    Position, metadata::Sprinting, move_relative,
+    Attributes, EntityKindComponent, InLoadedChunk, Jumping, LocalEntity, LookDirection,
+    OnClimbable, Physics, Pose, Position, metadata::Sprinting, move_relative,
 };
-use azalea_registry::Block;
+use azalea_registry::{Block, EntityKind};
 use azalea_world::{Instance, InstanceContainer, InstanceName};
 use bevy_app::{App, Plugin};
 use bevy_ecs::prelude::*;
@@ -66,12 +66,17 @@ pub fn ai_step(
             &LookDirection,
             &Sprinting,
             &InstanceName,
+            &EntityKindComponent,
         ),
         (With<LocalEntity>, With<InLoadedChunk>),
     >,
     instance_container: Res<InstanceContainer>,
 ) {
-    for (mut physics, jumping, position, look_direction, sprinting, instance_name) in &mut query {
+    for (mut physics, jumping, position, look_direction, sprinting, instance_name, entity_kind) in
+        &mut query
+    {
+        let is_player = **entity_kind == EntityKind::Player;
+
         // vanilla does movement interpolation here, doesn't really matter much for a
         // bot though
 
@@ -79,14 +84,29 @@ pub fn ai_step(
             physics.no_jump_delay -= 1;
         }
 
-        if physics.velocity.x.abs() < 0.003 {
-            physics.velocity.x = 0.;
+        if is_player {
+            if physics.velocity.horizontal_distance_squared() < 9.0e-6 {
+                physics.velocity.x = 0.;
+                physics.velocity.z = 0.;
+            }
+        } else {
+            if physics.velocity.x.abs() < 0.003 {
+                physics.velocity.x = 0.;
+            }
+            if physics.velocity.z.abs() < 0.003 {
+                physics.velocity.z = 0.;
+            }
         }
+
         if physics.velocity.y.abs() < 0.003 {
             physics.velocity.y = 0.;
         }
-        if physics.velocity.z.abs() < 0.003 {
-            physics.velocity.z = 0.;
+
+        if is_player {
+            // handled in local_player_ai_step
+        } else {
+            physics.x_acceleration *= 0.98;
+            physics.z_acceleration *= 0.98;
         }
 
         if jumping == Some(&Jumping(true)) {
@@ -127,9 +147,6 @@ pub fn ai_step(
         } else {
             physics.no_jump_delay = 0;
         }
-
-        physics.x_acceleration *= 0.98;
-        physics.z_acceleration *= 0.98;
 
         // TODO: freezing, pushEntities, drowning damage (in their own systems,
         // after `travel`)
