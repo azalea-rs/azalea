@@ -12,10 +12,11 @@ is breaking anyways, semantic versioning is not followed.
 
 - `HitResult` now contains the entity that's being looked at.
 - A `QueuedServerBlockUpdates` component that keeps track of block updates per `Update`.
+- Local clients now have a `TicksConnected` component. (@Kumpelinus)
 
 ### Changed
 
-- Update to Minecraft 1.21.6.
+- Update to Minecraft 1.21.8.
 - Renamed `azalea_entity::EntityKind` to `EntityKindComponent` to disambiguate with `azalea_registry::EntityKind`.
 - Moved functions and types related to hit results from `azalea::interact` to `azalea::interact::pick`.
 - `Client::attack` now takes `Entity` instead of `MinecraftEntityId`.
@@ -24,6 +25,8 @@ is breaking anyways, semantic versioning is not followed.
 
 - Fix packet order for loading (`PlayerLoaded`/`MovePlayerPos`) and sprinting (`PlayerInput`/`PlayerCommand`).
 - Clients no longer send invalid look directions if the server teleports us with one.
+- Movement code was updated with the changes from 1.21.5, so it no longer flags Grim.
+- `azalea-chat` now correctly handles arrays of integers in the `with` field. (@qwqawawow)
 
 ## [0.13.0+mc1.21.5] - 2025-06-15
 
