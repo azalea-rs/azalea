@@ -89,7 +89,7 @@ impl<S> ContextChain<S> {
     pub fn execute_all(
         &self,
         source: Arc<S>,
-        result_consumer: &(dyn ResultConsumer<S>),
+        result_consumer: &dyn ResultConsumer<S>,
     ) -> Result<i32, CommandSyntaxError> {
         if self.modifiers.is_empty() {
             return self.run_executable(self.executable.clone(), source, result_consumer, false);
