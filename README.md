@@ -69,3 +69,11 @@ Azalea has support for Bevy plugins, which can significantly alter its functiona
 -   [azalea-rs/azalea-hax](https://github.com/azalea-rs/azalea-hax) - Anti-knockback.
 
 If you've created your own plugin for Azalea, please create a PR to add it to this list :).
+
+## FAQ
+
+-   There's too many console messages, how do I disable them?
+
+    You can disable all console messages by setting the `RUST_LOG` environment variable to `off`, or you can filter log messages by setting specific log levels. For example, to disable only pathfinding logs, you can set `RUST_LOG=azalea::pathfinder=off`.
+    
+    See the [`env_logger`](https://docs.rs/env_logger/latest/env_logger/) crate documentation for more information.
