@@ -60,7 +60,7 @@ impl MaxStackSizeExt for azalea_registry::Item {
             || name.ends_with("_soup")
             || name.ends_with("_bundle")
             || name.contains("music_disc_")
-            || name.contains("_bed")
+            || name.ends_with("_bed")
         {
             1
         } else if [Self::Bucket, Self::EnderPearl, Self::Snowball, Self::Egg, Self::ArmorStand, Self::WrittenBook].contains(self)
