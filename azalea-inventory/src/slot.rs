@@ -28,11 +28,7 @@ impl ItemStack {
     /// If item is air or the count isn't positive, then it'll be set to an
     /// empty `ItemStack`.
     pub fn new(item: Item, count: i32) -> Self {
-        let mut i = ItemStack::Present(ItemStackData {
-            count,
-            kind: item,
-            component_patch: DataComponentPatch::default(),
-        });
+        let mut i = ItemStack::Present(ItemStackData::new(item, count));
         // set it to Empty if the item is air or if the count isn't positive
         i.update_empty();
         i
@@ -138,6 +134,15 @@ pub struct ItemStackData {
 }
 
 impl ItemStackData {
+    /// Create a new [`ItemStackData`] with the given number of [`Item`]s.
+    pub fn new(item: Item, count: i32) -> Self {
+        ItemStackData {
+            count,
+            kind: item,
+            component_patch: DataComponentPatch::default(),
+        }
+    }
+
     /// Remove `count` items from this slot, returning the removed items.
     pub fn split(&mut self, count: u32) -> ItemStackData {
         let returning_count = i32::min(count as i32, self.count);
@@ -157,16 +162,8 @@ impl ItemStackData {
     /// ```
     /// # use azalea_inventory::ItemStackData;
     /// # use azalea_registry::Item;
-    /// let mut a = ItemStackData {
-    ///     kind: Item::Stone,
-    ///     count: 1,
-    ///     components: Default::default(),
-    /// };
-    /// let mut b = ItemStackData {
-    ///     kind: Item::Stone,
-    ///     count: 2,
-    ///     components: Default::default(),
-    /// };
+    /// let mut a = ItemStackData::from(Item::Stone);
+    /// let mut b = ItemStackData::new(Item::Stone, 2);
     /// assert!(a.is_same_item_and_components(&b));
     ///
     /// b.kind = Item::Dirt;
@@ -239,6 +236,16 @@ impl From<(Item, i32)> for ItemStack {
         ItemStack::new(item.0, item.1)
     }
 }
+impl From<Item> for ItemStackData {
+    fn from(item: Item) -> Self {
+        ItemStackData::new(item, 1)
+    }
+}
+impl From<(Item, i32)> for ItemStackData {
+    fn from(item: (Item, i32)) -> Self {
+        ItemStackData::new(item.0, item.1)
+    }
+}
 
 /// An update to an item's data components.
 ///
@@ -258,7 +265,7 @@ impl DataComponentPatch {
     /// # use azalea_inventory::{ItemStackData, DataComponentPatch, components};
     /// # use azalea_registry::Item;
     /// # fn example(item: &ItemStackData) -> Option<()> {
-    /// let item_nutrition = item.components.get::<components::Food>()?.nutrition;
+    /// let item_nutrition = item.component_patch.get::<components::Food>()?.nutrition;
     /// # Some(())
     /// # }
     /// ```
@@ -281,12 +288,8 @@ impl DataComponentPatch {
     /// ```
     /// # use azalea_inventory::{ItemStackData, DataComponentPatch, components};
     /// # use azalea_registry::Item;
-    /// # let item = ItemStackData {
-    /// #     kind: Item::Stone,
-    /// #     count: 1,
-    /// #     components: Default::default(),
-    /// # };
-    /// let is_edible = item.components.has::<components::Food>();
+    /// # let item = ItemStackData::from(Item::Stone);
+    /// let is_edible = item.component_patch.has::<components::Food>();
     /// # assert!(!is_edible);
     /// ```
     pub fn has<T: components::DataComponent>(&self) -> bool {

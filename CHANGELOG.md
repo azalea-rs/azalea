@@ -30,6 +30,7 @@ is breaking anyways, semantic versioning is not followed.
 - Clients no longer send invalid look directions if the server teleports us with one.
 - Movement code was updated with the changes from 1.21.5, so it no longer flags Grim.
 - `azalea-chat` now correctly handles arrays of integers in the `with` field. (@qwqawawow)
+- Inventories now use the correct max stack sizes.
 
 ## [0.13.0+mc1.21.5] - 2025-06-15
 
