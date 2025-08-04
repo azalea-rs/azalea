@@ -5,7 +5,7 @@ use std::{
 };
 
 use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
-use azalea_registry::DataComponentKind;
+use azalea_registry::{DataComponentKind, Item};
 use indexmap::IndexMap;
 
 use crate::components::{self};
@@ -19,6 +19,21 @@ pub enum ItemStack {
 }
 
 impl ItemStack {
+    /// Create a new [`ItemStack`] with the given number of [`Item`]s.
+    ///
+    /// If item is air or the count isn't positive, then it'll be set to an
+    /// empty `ItemStack`.
+    pub fn new(item: Item, count: i32) -> Self {
+        let mut i = ItemStack::Present(ItemStackData {
+            count,
+            kind: item,
+            components: DataComponentPatch::default(),
+        });
+        // set it to Empty if the item is air or if the count isn't positive
+        i.update_empty();
+        i
+    }
+
     /// Check if the slot is ItemStack::Empty, if the count is <= 0, or if the
     /// item is air.
     ///
@@ -186,6 +201,16 @@ impl From<ItemStackData> for ItemStack {
         } else {
             ItemStack::Present(item)
         }
+    }
+}
+impl From<Item> for ItemStack {
+    fn from(item: Item) -> Self {
+        ItemStack::new(item, 1)
+    }
+}
+impl From<(Item, i32)> for ItemStack {
+    fn from(item: (Item, i32)) -> Self {
+        ItemStack::new(item.0, item.1)
     }
 }
 

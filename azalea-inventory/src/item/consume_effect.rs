@@ -10,7 +10,9 @@ pub enum ConsumeEffect {
         effects: Vec<MobEffectInstance>,
         probability: f32,
     },
-    RemoveEffects(HolderSet<MobEffect, ResourceLocation>),
+    RemoveEffects {
+        effects: HolderSet<MobEffect, ResourceLocation>,
+    },
     ClearAllEffects,
     TeleportRandomly {
         diameter: f32,

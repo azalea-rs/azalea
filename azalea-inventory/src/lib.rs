@@ -1,6 +1,7 @@
 //! Representations of various inventory data structures in Minecraft.
 
 pub mod components;
+pub mod default_components;
 pub mod item;
 pub mod operations;
 mod slot;

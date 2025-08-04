@@ -224,6 +224,11 @@ impl From<StringOrComponent> for TextComponent {
         }
     }
 }
+impl From<&str> for TranslatableComponent {
+    fn from(s: &str) -> Self {
+        TranslatableComponent::new(s.to_string(), vec![])
+    }
+}
 
 #[cfg(test)]
 mod tests {

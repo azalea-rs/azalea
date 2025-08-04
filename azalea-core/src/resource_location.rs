@@ -11,7 +11,7 @@ use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
 use simdnbt::{FromNbtTag, ToNbtTag, owned::NbtTag};
 
-#[derive(Hash, Clone, PartialEq, Eq)]
+#[derive(Hash, Clone, PartialEq, Eq, Default)]
 pub struct ResourceLocation {
     pub namespace: String,
     pub path: String,
@@ -57,6 +57,11 @@ impl FromStr for ResourceLocation {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(ResourceLocation::new(s))
+    }
+}
+impl From<&str> for ResourceLocation {
+    fn from(s: &str) -> Self {
+        ResourceLocation::new(s)
     }
 }
 
