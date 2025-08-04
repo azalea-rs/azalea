@@ -1,5 +1,7 @@
 //! Representations of various inventory data structures in Minecraft.
 
+#![feature(min_specialization)]
+
 pub mod components;
 pub mod default_components;
 pub mod item;

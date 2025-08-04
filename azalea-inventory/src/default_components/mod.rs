@@ -10,6 +10,11 @@ pub trait DefaultableComponent: DataComponent {
     where
         Self: Sized;
 }
+impl<T: DataComponent> DefaultableComponent for T {
+    default fn default_for_item(_item: Item) -> Option<Self> {
+        None
+    }
+}
 pub fn get_default_component<T: DefaultableComponent>(item: Item) -> Option<T> {
     T::default_for_item(item)
 }

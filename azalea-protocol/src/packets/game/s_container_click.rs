@@ -56,7 +56,7 @@ impl From<&ItemStack> for HashedStack {
         let mut added_components = Vec::new();
         let mut removed_components = Vec::new();
 
-        for (&kind, data) in &item.components.components {
+        for (&kind, data) in &item.component_patch.components {
             if let Some(data) = data {
                 // encodeCap in TypedDataComponent.java
                 let mut buf = Vec::new();

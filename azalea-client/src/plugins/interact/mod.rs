@@ -383,7 +383,7 @@ pub fn check_block_can_be_broken_by_item_in_adventure_mode(
     // minecraft caches the last checked block but that's kind of an unnecessary
     // optimization and makes the code too complicated
 
-    if !item.components.has::<components::CanBreak>() {
+    if item.get_component::<components::CanBreak>().is_none() {
         // no CanDestroy tag
         return false;
     };

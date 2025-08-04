@@ -1,3 +1,5 @@
+use crate::{components::MaxStackSize, default_components::get_default_component};
+
 pub mod consume_effect;
 
 pub trait MaxStackSizeExt {
@@ -19,7 +21,6 @@ pub trait MaxStackSizeExt {
 
 impl MaxStackSizeExt for azalea_registry::Item {
     fn max_stack_size(&self) -> i32 {
-        // TODO: have the properties for every item defined somewhere
-        64
+        get_default_component::<MaxStackSize>(*self).map_or(64, |s| s.count)
     }
 }

@@ -13,6 +13,8 @@ is breaking anyways, semantic versioning is not followed.
 - `HitResult` now contains the entity that's being looked at.
 - A `QueuedServerBlockUpdates` component that keeps track of block updates per `Update`.
 - Local clients now have a `TicksConnected` component. (@Kumpelinus)
+- There is now a `azalea_inventory::default_components::get_default_component` function to get the default value of a component for a registry item.
+- `ItemStack` now has a `get_component` function that supports default components.
 
 ### Changed
 
@@ -20,6 +22,7 @@ is breaking anyways, semantic versioning is not followed.
 - Renamed `azalea_entity::EntityKind` to `EntityKindComponent` to disambiguate with `azalea_registry::EntityKind`.
 - Moved functions and types related to hit results from `azalea::interact` to `azalea::interact::pick`.
 - `Client::attack` now takes `Entity` instead of `MinecraftEntityId`.
+- `ItemStackData::components` was renamed to `component_patch`.
 
 ### Fixed
 

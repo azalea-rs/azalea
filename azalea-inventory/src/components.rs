@@ -21,7 +21,7 @@ use uuid::Uuid;
 
 use crate::{ItemStack, item::consume_effect::ConsumeEffect};
 
-pub trait DataComponent: Send + Sync + Any {
+pub trait DataComponent: Send + Sync + Any + Clone {
     const KIND: DataComponentKind;
 }
 

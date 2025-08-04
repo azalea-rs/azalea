@@ -1,5 +1,6 @@
 use std::{
     any::Any,
+    borrow::Cow,
     fmt,
     io::{self, Cursor, Write},
 };
@@ -8,7 +9,10 @@ use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufRead
 use azalea_registry::{DataComponentKind, Item};
 use indexmap::IndexMap;
 
-use crate::components::{self};
+use crate::{
+    components::{self},
+    default_components::get_default_component,
+};
 
 /// Either an item in an inventory or nothing.
 #[derive(Debug, Clone, Default, PartialEq)]
@@ -27,7 +31,7 @@ impl ItemStack {
         let mut i = ItemStack::Present(ItemStackData {
             count,
             kind: item,
-            components: DataComponentPatch::default(),
+            component_patch: DataComponentPatch::default(),
         });
         // set it to Empty if the item is air or if the count isn't positive
         i.update_empty();
@@ -109,6 +113,14 @@ impl ItemStack {
             ItemStack::Present(i) => Some(i),
         }
     }
+
+    /// Get the value of a data component for this item.
+    ///
+    /// This is used for things like getting the damage of an item, or seeing
+    /// how much food it replenishes.
+    pub fn get_component<'a, T: components::DataComponent>(&'a self) -> Option<Cow<'a, T>> {
+        self.as_present().and_then(|i| i.get_component::<T>())
+    }
 }
 
 /// An item in an inventory, with a count and NBT. Usually you want
@@ -120,7 +132,9 @@ pub struct ItemStackData {
     /// The count can be zero or negative, but this is rare.
     pub count: i32,
     pub kind: azalea_registry::Item,
-    pub components: DataComponentPatch,
+    /// The item's components that the server set to be different from the
+    /// defaults.
+    pub component_patch: DataComponentPatch,
 }
 
 impl ItemStackData {
@@ -159,7 +173,19 @@ impl ItemStackData {
     /// assert!(!a.is_same_item_and_components(&b));
     /// ```
     pub fn is_same_item_and_components(&self, other: &ItemStackData) -> bool {
-        self.kind == other.kind && self.components == other.components
+        self.kind == other.kind && self.component_patch == other.component_patch
+    }
+
+    /// Get the value of a data component for this item.
+    ///
+    /// This is used for things like getting the damage of an item, or seeing
+    /// how much food it replenishes.
+    pub fn get_component<'a, T: components::DataComponent>(&'a self) -> Option<Cow<'a, T>> {
+        if let Some(c) = self.component_patch.get::<T>() {
+            Some(Cow::Borrowed(c))
+        } else {
+            get_default_component::<T>(self.kind).map(|c| Cow::Owned(c))
+        }
     }
 }
 
@@ -170,11 +196,11 @@ impl AzaleaRead for ItemStack {
             Ok(ItemStack::Empty)
         } else {
             let kind = azalea_registry::Item::azalea_read(buf)?;
-            let components = DataComponentPatch::azalea_read(buf)?;
+            let component_patch = DataComponentPatch::azalea_read(buf)?;
             Ok(ItemStack::Present(ItemStackData {
                 count,
                 kind,
-                components,
+                component_patch,
             }))
         }
     }
@@ -187,7 +213,7 @@ impl AzaleaWrite for ItemStack {
             ItemStack::Present(i) => {
                 i.count.azalea_write_var(buf)?;
                 i.kind.azalea_write(buf)?;
-                i.components.azalea_write(buf)?;
+                i.component_patch.azalea_write(buf)?;
             }
         };
         Ok(())
