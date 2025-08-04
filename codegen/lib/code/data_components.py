@@ -241,7 +241,6 @@ use crate::{
     }
 
     def python_to_rust_value(python_value: Any, target_rust_type: Optional[str]):
-        print("mrrp", python_value, "|", target_rust_type)
         # manual implementations
         if isinstance(python_value, dict) and len(python_value) > 0:
             if target_rust_type == "ConsumeEffect":
@@ -445,7 +444,6 @@ use crate::{
                 as_vec = f"[{','.join(vectors)}].concat()"
 
             if target_rust_type.startswith("HolderSet<"):
-                print("nyaa~", as_vec)
                 return f"HolderSet::Direct {{ contents: {as_vec} }}"
             return as_vec
 
