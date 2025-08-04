@@ -429,6 +429,11 @@ impl MobEffectDetails {
         }
     }
 }
+impl Default for MobEffectDetails {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct MobEffectInstance {
@@ -477,6 +482,11 @@ impl ToolRule {
         }
     }
 }
+impl Default for ToolRule {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct Tool {
@@ -497,6 +507,11 @@ impl Tool {
             damage_per_block: 1,
             can_destroy_blocks_in_creative: true,
         }
+    }
+}
+impl Default for Tool {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -585,6 +600,11 @@ impl PotionContents {
             custom_effects: vec![],
             custom_name: None,
         }
+    }
+}
+impl Default for PotionContents {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -747,6 +767,11 @@ impl Fireworks {
             flight_duration: 0,
             explosions: vec![],
         }
+    }
+}
+impl Default for Fireworks {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -915,6 +940,11 @@ impl Consumable {
         }
     }
 }
+impl Default for Consumable {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 #[derive(Clone, Copy, PartialEq, AzBuf)]
 pub enum ItemUseAnimation {
@@ -952,6 +982,11 @@ impl UseCooldown {
             seconds: 0.,
             cooldown_group: None,
         }
+    }
+}
+impl Default for UseCooldown {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -1032,6 +1067,11 @@ impl Equippable {
         }
     }
 }
+impl Default for Equippable {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, AzBuf)]
 pub enum EquipmentSlot {
@@ -1082,6 +1122,11 @@ impl Weapon {
             item_damage_per_attack: 1,
             disable_blocking_for_seconds: 0.,
         }
+    }
+}
+impl Default for Weapon {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -1334,6 +1379,11 @@ impl BlocksAttacks {
             block_sound: None,
             disabled_sound: None,
         }
+    }
+}
+impl Default for BlocksAttacks {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
