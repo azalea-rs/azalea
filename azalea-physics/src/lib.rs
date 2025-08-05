@@ -493,7 +493,7 @@ fn get_friction_influenced_speed(
     // TODO: have speed & flying_speed fields in entity
     if physics.on_ground() {
         let speed: f32 = attributes.speed.calculate() as f32;
-        speed * (0.216f32 / (friction * friction * friction))
+        speed * (0.21600002f32 / (friction * friction * friction))
     } else {
         // entity.flying_speed
         if is_sprinting { 0.025999999f32 } else { 0.02 }

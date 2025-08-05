@@ -423,7 +423,7 @@ fn distance_to_unit_square(v: Vec2) -> f32 {
     let x = v.x.abs();
     let y = v.y.abs();
     let ratio = if y > x { x / y } else { y / x };
-    (1.0 + ratio * ratio).sqrt()
+    (1. + ratio * ratio).sqrt()
 }
 
 impl Client {

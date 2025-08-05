@@ -4,7 +4,7 @@ use std::{
     sync::LazyLock,
 };
 
-pub const EPSILON: f64 = 1.0E-7;
+pub const EPSILON: f64 = 1.0e-7;
 
 pub static SIN: LazyLock<[f32; 65536]> =
     LazyLock::new(|| std::array::from_fn(|i| f64::sin((i as f64) * PI * 2. / 65536.) as f32));
