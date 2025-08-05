@@ -950,11 +950,7 @@ mod tests {
 
     #[test]
     fn test_simulate_shift_click_in_crafting_table() {
-        let spruce_planks = ItemStack::Present(ItemStackData {
-            count: 4,
-            kind: Item::SprucePlanks,
-            components: Default::default(),
-        });
+        let spruce_planks = ItemStack::new(Item::SprucePlanks, 4);
 
         let mut inventory = Inventory {
             inventory_menu: Menu::Player(azalea_inventory::Player::default()),

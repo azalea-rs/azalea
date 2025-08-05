@@ -5,18 +5,21 @@ import os
 
 
 def to_snake_case(name: str):
-    s = re.sub('([A-Z])', r'_\1', name)
-    return s.lower().strip('_')
+    s = re.sub("([A-Z])", r"_\1", name).replace(".", "_").replace("/", "_")
+    return s.lower().strip("_")
 
 
 def to_camel_case(name: str):
-    s = re.sub(r'[_ ](\w)', lambda m: m.group(1).upper(),
-               name.replace('.', '_').replace('/', '_'))
+    s = re.sub(
+        r"[_ ](\w)",
+        lambda m: m.group(1).upper(),
+        name.replace(".", "_").replace("/", "_"),
+    )
     s = upper_first_letter(s)
     # if the first character is a number, we need to add an underscore
     # maybe we could convert it to the number name (like 2 would become "two")?
     if s[0].isdigit():
-        s = f'_{s}'
+        s = f"_{s}"
     return s
 
 
@@ -25,7 +28,7 @@ def upper_first_letter(name: str):
 
 
 def padded_hex(n: int):
-    return f'0x{n:02X}'
+    return f"0x{n:02X}"
 
 
 class PacketIdentifier:
@@ -35,16 +38,20 @@ class PacketIdentifier:
         self.state = state
 
     def __eq__(self, other):
-        return self.packet_id == other.packet_id and self.direction == other.direction and self.state == other.state
+        return (
+            self.packet_id == other.packet_id
+            and self.direction == other.direction
+            and self.state == other.state
+        )
 
     def __hash__(self):
         return hash((self.packet_id, self.direction, self.state))
 
     def __str__(self):
-        return f'{self.packet_id} {self.direction} {self.state}'
+        return f"{self.packet_id} {self.direction} {self.state}"
 
     def __repr__(self):
-        return f'PacketIdentifier({self.packet_id}, {self.direction}, {self.state})'
+        return f"PacketIdentifier({self.packet_id}, {self.direction}, {self.state})"
 
 
 def group_packets(packets: list[PacketIdentifier]):

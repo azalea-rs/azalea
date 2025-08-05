@@ -587,6 +587,16 @@ impl From<&str> for FormattedText {
         Self::from(s.to_string())
     }
 }
+impl From<TranslatableComponent> for FormattedText {
+    fn from(c: TranslatableComponent) -> Self {
+        FormattedText::Translatable(c)
+    }
+}
+impl From<TextComponent> for FormattedText {
+    fn from(c: TextComponent) -> Self {
+        FormattedText::Text(c)
+    }
+}
 
 impl Display for FormattedText {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

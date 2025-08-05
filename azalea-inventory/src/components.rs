@@ -12,9 +12,8 @@ use azalea_core::{
     sound::CustomSound,
 };
 use azalea_registry::{
-    self as registry, Attribute, Block, ConsumeEffectKind, DamageKind, DataComponentKind,
-    Enchantment, EntityKind, Holder, HolderSet, Item, MobEffect, Potion, SoundEvent, TrimMaterial,
-    TrimPattern,
+    self as registry, Attribute, Block, DamageKind, DataComponentKind, Enchantment, EntityKind,
+    Holder, HolderSet, Item, MobEffect, Potion, SoundEvent, TrimMaterial, TrimPattern,
 };
 use simdnbt::owned::{Nbt, NbtCompound};
 use tracing::trace;
@@ -22,7 +21,7 @@ use uuid::Uuid;
 
 use crate::{ItemStack, item::consume_effect::ConsumeEffect};
 
-pub trait DataComponent: Send + Sync + Any {
+pub trait DataComponent: Send + Sync + Any + Clone {
     const KIND: DataComponentKind;
 }
 
@@ -329,9 +328,9 @@ pub enum EquipmentSlotGroup {
 
 #[derive(Clone, Copy, PartialEq, AzBuf)]
 pub enum AttributeModifierOperation {
-    Addition,
-    MultiplyBase,
-    MultiplyTotal,
+    AddValue,
+    AddMultipliedBase,
+    AddMultipliedTotal,
 }
 
 // this is duplicated in azalea-entity, BUT the one there has a different
@@ -349,6 +348,7 @@ pub struct AttributeModifiersEntry {
     pub attribute: Attribute,
     pub modifier: AttributeModifier,
     pub slot: EquipmentSlotGroup,
+    pub display: AttributeModifierDisplay,
 }
 
 #[derive(Clone, PartialEq, AzBuf)]
@@ -357,6 +357,13 @@ pub struct AttributeModifiers {
 }
 impl DataComponent for AttributeModifiers {
     const KIND: DataComponentKind = DataComponentKind::AttributeModifiers;
+}
+
+#[derive(Clone, PartialEq, AzBuf)]
+pub enum AttributeModifierDisplay {
+    Default,
+    Hidden,
+    Override { text: FormattedText },
 }
 
 #[derive(Clone, PartialEq, AzBuf)]
@@ -410,10 +417,27 @@ pub struct MobEffectDetails {
     pub show_icon: bool,
     pub hidden_effect: Option<Box<MobEffectDetails>>,
 }
+impl MobEffectDetails {
+    pub const fn new() -> Self {
+        MobEffectDetails {
+            amplifier: 0,
+            duration: 0,
+            ambient: false,
+            show_particles: true,
+            show_icon: false,
+            hidden_effect: None,
+        }
+    }
+}
+impl Default for MobEffectDetails {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct MobEffectInstance {
-    pub effect: MobEffect,
+    pub id: MobEffect,
     pub details: MobEffectDetails,
 }
 
@@ -423,17 +447,24 @@ pub struct PossibleEffect {
     pub probability: f32,
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, Default, AzBuf)]
 pub struct Food {
     #[var]
     pub nutrition: i32,
     pub saturation: f32,
     pub can_always_eat: bool,
-    pub eat_seconds: f32,
-    pub effects: Vec<PossibleEffect>,
 }
 impl DataComponent for Food {
     const KIND: DataComponentKind = DataComponentKind::Food;
+}
+impl Food {
+    pub const fn new() -> Self {
+        Food {
+            nutrition: 0,
+            saturation: 0.,
+            can_always_eat: false,
+        }
+    }
 }
 
 #[derive(Clone, PartialEq, AzBuf)]
@@ -442,6 +473,20 @@ pub struct ToolRule {
     pub speed: Option<f32>,
     pub correct_for_drops: Option<bool>,
 }
+impl ToolRule {
+    pub const fn new() -> Self {
+        ToolRule {
+            blocks: HolderSet::Direct { contents: vec![] },
+            speed: None,
+            correct_for_drops: None,
+        }
+    }
+}
+impl Default for ToolRule {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct Tool {
@@ -449,9 +494,25 @@ pub struct Tool {
     pub default_mining_speed: f32,
     #[var]
     pub damage_per_block: i32,
+    pub can_destroy_blocks_in_creative: bool,
 }
 impl DataComponent for Tool {
     const KIND: DataComponentKind = DataComponentKind::Tool;
+}
+impl Tool {
+    pub const fn new() -> Self {
+        Tool {
+            rules: vec![],
+            default_mining_speed: 1.,
+            damage_per_block: 1,
+            can_destroy_blocks_in_creative: true,
+        }
+    }
+}
+impl Default for Tool {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 #[derive(Clone, PartialEq, AzBuf)]
@@ -530,6 +591,21 @@ pub struct PotionContents {
 }
 impl DataComponent for PotionContents {
     const KIND: DataComponentKind = DataComponentKind::PotionContents;
+}
+impl PotionContents {
+    pub const fn new() -> Self {
+        PotionContents {
+            potion: None,
+            custom_color: None,
+            custom_effects: vec![],
+            custom_name: None,
+        }
+    }
+}
+impl Default for PotionContents {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 #[derive(Clone, PartialEq, AzBuf)]
@@ -679,10 +755,24 @@ impl DataComponent for FireworkExplosion {
 pub struct Fireworks {
     #[var]
     pub flight_duration: i32,
+    #[limit(256)]
     pub explosions: Vec<FireworkExplosion>,
 }
 impl DataComponent for Fireworks {
     const KIND: DataComponentKind = DataComponentKind::Fireworks;
+}
+impl Fireworks {
+    pub const fn new() -> Self {
+        Fireworks {
+            flight_duration: 0,
+            explosions: vec![],
+        }
+    }
+}
+impl Default for Fireworks {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 #[derive(Clone, PartialEq, AzBuf)]
@@ -839,6 +929,22 @@ pub struct Consumable {
 impl DataComponent for Consumable {
     const KIND: DataComponentKind = DataComponentKind::Consumable;
 }
+impl Consumable {
+    pub const fn new() -> Self {
+        Self {
+            consume_seconds: 1.6,
+            animation: ItemUseAnimation::Eat,
+            sound: azalea_registry::Holder::Reference(SoundEvent::EntityGenericEat),
+            has_consume_particles: true,
+            on_consume_effects: Vec::new(),
+        }
+    }
+}
+impl Default for Consumable {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 #[derive(Clone, Copy, PartialEq, AzBuf)]
 pub enum ItemUseAnimation {
@@ -869,6 +975,19 @@ pub struct UseCooldown {
 }
 impl DataComponent for UseCooldown {
     const KIND: DataComponentKind = DataComponentKind::UseCooldown;
+}
+impl UseCooldown {
+    pub const fn new() -> Self {
+        Self {
+            seconds: 0.,
+            cooldown_group: None,
+        }
+    }
+}
+impl Default for UseCooldown {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 #[derive(Clone, PartialEq, AzBuf)]
@@ -924,22 +1043,46 @@ pub struct Equippable {
     pub dispensable: bool,
     pub swappable: bool,
     pub damage_on_hurt: bool,
+    pub equip_on_interact: bool,
+    pub can_be_sheared: bool,
+    pub shearing_sound: SoundEvent,
 }
 impl DataComponent for Equippable {
     const KIND: DataComponentKind = DataComponentKind::Equippable;
+}
+impl Equippable {
+    pub const fn new() -> Self {
+        Self {
+            slot: EquipmentSlot::Body,
+            equip_sound: SoundEvent::ItemArmorEquipGeneric,
+            asset_id: None,
+            camera_overlay: None,
+            allowed_entities: None,
+            dispensable: true,
+            swappable: true,
+            damage_on_hurt: true,
+            equip_on_interact: false,
+            can_be_sheared: false,
+            shearing_sound: SoundEvent::ItemShearsSnip,
+        }
+    }
+}
+impl Default for Equippable {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, AzBuf)]
 pub enum EquipmentSlot {
     Mainhand,
     Offhand,
-    Hand,
     Feet,
     Legs,
     Chest,
     Head,
-    Armor,
     Body,
+    Saddle,
 }
 
 #[derive(Clone, PartialEq, AzBuf)]
@@ -958,7 +1101,7 @@ impl DataComponent for TooltipStyle {
 
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct DeathProtection {
-    pub death_effects: Vec<ConsumeEffectKind>,
+    pub death_effects: Vec<ConsumeEffect>,
 }
 impl DataComponent for DeathProtection {
     const KIND: DataComponentKind = DataComponentKind::DeathProtection;
@@ -967,11 +1110,24 @@ impl DataComponent for DeathProtection {
 #[derive(Clone, PartialEq, AzBuf)]
 pub struct Weapon {
     #[var]
-    pub damage_per_attack: i32,
-    pub can_disable_blocking: bool,
+    pub item_damage_per_attack: i32,
+    pub disable_blocking_for_seconds: f32,
 }
 impl DataComponent for Weapon {
     const KIND: DataComponentKind = DataComponentKind::Weapon;
+}
+impl Weapon {
+    pub const fn new() -> Self {
+        Self {
+            item_damage_per_attack: 1,
+            disable_blocking_for_seconds: 0.,
+        }
+    }
+}
+impl Default for Weapon {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 #[derive(Clone, PartialEq, AzBuf)]
@@ -1173,13 +1329,21 @@ impl DataComponent for ShulkerColor {
     const KIND: DataComponentKind = DataComponentKind::ShulkerColor;
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Default)]
 pub struct TooltipDisplay {
     pub hide_tooltip: bool,
     pub hidden_components: Vec<DataComponentKind>,
 }
 impl DataComponent for TooltipDisplay {
     const KIND: DataComponentKind = DataComponentKind::TooltipDisplay;
+}
+impl TooltipDisplay {
+    pub const fn new() -> Self {
+        Self {
+            hide_tooltip: false,
+            hidden_components: Vec::new(),
+        }
+    }
 }
 
 #[derive(Clone, PartialEq, AzBuf)]
@@ -1190,10 +1354,37 @@ pub struct BlocksAttacks {
     pub item_damage: ItemDamageFunction,
     pub bypassed_by: Option<ResourceLocation>,
     pub block_sound: Option<azalea_registry::Holder<SoundEvent, CustomSound>>,
-    pub disable_sound: Option<azalea_registry::Holder<SoundEvent, CustomSound>>,
+    pub disabled_sound: Option<azalea_registry::Holder<SoundEvent, CustomSound>>,
 }
 impl DataComponent for BlocksAttacks {
     const KIND: DataComponentKind = DataComponentKind::BlocksAttacks;
+}
+impl BlocksAttacks {
+    pub fn new() -> Self {
+        Self {
+            block_delay_seconds: 0.,
+            disable_cooldown_scale: 1.,
+            damage_reductions: vec![DamageReduction {
+                horizontal_blocking_angle: 90.,
+                kind: None,
+                base: 0.,
+                factor: 1.,
+            }],
+            item_damage: ItemDamageFunction {
+                threshold: 1.,
+                base: 0.,
+                factor: 1.,
+            },
+            bypassed_by: None,
+            block_sound: None,
+            disabled_sound: None,
+        }
+    }
+}
+impl Default for BlocksAttacks {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 #[derive(Clone, PartialEq, AzBuf)]

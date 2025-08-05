@@ -1,14 +1,18 @@
 use std::{
     any::Any,
+    borrow::Cow,
     fmt,
     io::{self, Cursor, Write},
 };
 
 use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
-use azalea_registry::DataComponentKind;
+use azalea_registry::{DataComponentKind, Item};
 use indexmap::IndexMap;
 
-use crate::components::{self};
+use crate::{
+    components::{self},
+    default_components::get_default_component,
+};
 
 /// Either an item in an inventory or nothing.
 #[derive(Debug, Clone, Default, PartialEq)]
@@ -19,6 +23,17 @@ pub enum ItemStack {
 }
 
 impl ItemStack {
+    /// Create a new [`ItemStack`] with the given number of [`Item`]s.
+    ///
+    /// If item is air or the count isn't positive, then it'll be set to an
+    /// empty `ItemStack`.
+    pub fn new(item: Item, count: i32) -> Self {
+        let mut i = ItemStack::Present(ItemStackData::new(item, count));
+        // set it to Empty if the item is air or if the count isn't positive
+        i.update_empty();
+        i
+    }
+
     /// Check if the slot is ItemStack::Empty, if the count is <= 0, or if the
     /// item is air.
     ///
@@ -94,6 +109,14 @@ impl ItemStack {
             ItemStack::Present(i) => Some(i),
         }
     }
+
+    /// Get the value of a data component for this item.
+    ///
+    /// This is used for things like getting the damage of an item, or seeing
+    /// how much food it replenishes.
+    pub fn get_component<'a, T: components::DataComponent>(&'a self) -> Option<Cow<'a, T>> {
+        self.as_present().and_then(|i| i.get_component::<T>())
+    }
 }
 
 /// An item in an inventory, with a count and NBT. Usually you want
@@ -105,10 +128,21 @@ pub struct ItemStackData {
     /// The count can be zero or negative, but this is rare.
     pub count: i32,
     pub kind: azalea_registry::Item,
-    pub components: DataComponentPatch,
+    /// The item's components that the server set to be different from the
+    /// defaults.
+    pub component_patch: DataComponentPatch,
 }
 
 impl ItemStackData {
+    /// Create a new [`ItemStackData`] with the given number of [`Item`]s.
+    pub fn new(item: Item, count: i32) -> Self {
+        ItemStackData {
+            count,
+            kind: item,
+            component_patch: DataComponentPatch::default(),
+        }
+    }
+
     /// Remove `count` items from this slot, returning the removed items.
     pub fn split(&mut self, count: u32) -> ItemStackData {
         let returning_count = i32::min(count as i32, self.count);
@@ -128,23 +162,27 @@ impl ItemStackData {
     /// ```
     /// # use azalea_inventory::ItemStackData;
     /// # use azalea_registry::Item;
-    /// let mut a = ItemStackData {
-    ///     kind: Item::Stone,
-    ///     count: 1,
-    ///     components: Default::default(),
-    /// };
-    /// let mut b = ItemStackData {
-    ///     kind: Item::Stone,
-    ///     count: 2,
-    ///     components: Default::default(),
-    /// };
+    /// let mut a = ItemStackData::from(Item::Stone);
+    /// let mut b = ItemStackData::new(Item::Stone, 2);
     /// assert!(a.is_same_item_and_components(&b));
     ///
     /// b.kind = Item::Dirt;
     /// assert!(!a.is_same_item_and_components(&b));
     /// ```
     pub fn is_same_item_and_components(&self, other: &ItemStackData) -> bool {
-        self.kind == other.kind && self.components == other.components
+        self.kind == other.kind && self.component_patch == other.component_patch
+    }
+
+    /// Get the value of a data component for this item.
+    ///
+    /// This is used for things like getting the damage of an item, or seeing
+    /// how much food it replenishes.
+    pub fn get_component<'a, T: components::DataComponent>(&'a self) -> Option<Cow<'a, T>> {
+        if let Some(c) = self.component_patch.get::<T>() {
+            Some(Cow::Borrowed(c))
+        } else {
+            get_default_component::<T>(self.kind).map(|c| Cow::Owned(c))
+        }
     }
 }
 
@@ -155,11 +193,11 @@ impl AzaleaRead for ItemStack {
             Ok(ItemStack::Empty)
         } else {
             let kind = azalea_registry::Item::azalea_read(buf)?;
-            let components = DataComponentPatch::azalea_read(buf)?;
+            let component_patch = DataComponentPatch::azalea_read(buf)?;
             Ok(ItemStack::Present(ItemStackData {
                 count,
                 kind,
-                components,
+                component_patch,
             }))
         }
     }
@@ -172,7 +210,7 @@ impl AzaleaWrite for ItemStack {
             ItemStack::Present(i) => {
                 i.count.azalea_write_var(buf)?;
                 i.kind.azalea_write(buf)?;
-                i.components.azalea_write(buf)?;
+                i.component_patch.azalea_write(buf)?;
             }
         };
         Ok(())
@@ -186,6 +224,26 @@ impl From<ItemStackData> for ItemStack {
         } else {
             ItemStack::Present(item)
         }
+    }
+}
+impl From<Item> for ItemStack {
+    fn from(item: Item) -> Self {
+        ItemStack::new(item, 1)
+    }
+}
+impl From<(Item, i32)> for ItemStack {
+    fn from(item: (Item, i32)) -> Self {
+        ItemStack::new(item.0, item.1)
+    }
+}
+impl From<Item> for ItemStackData {
+    fn from(item: Item) -> Self {
+        ItemStackData::new(item, 1)
+    }
+}
+impl From<(Item, i32)> for ItemStackData {
+    fn from(item: (Item, i32)) -> Self {
+        ItemStackData::new(item.0, item.1)
     }
 }
 
@@ -207,7 +265,7 @@ impl DataComponentPatch {
     /// # use azalea_inventory::{ItemStackData, DataComponentPatch, components};
     /// # use azalea_registry::Item;
     /// # fn example(item: &ItemStackData) -> Option<()> {
-    /// let item_nutrition = item.components.get::<components::Food>()?.nutrition;
+    /// let item_nutrition = item.component_patch.get::<components::Food>()?.nutrition;
     /// # Some(())
     /// # }
     /// ```
@@ -230,12 +288,8 @@ impl DataComponentPatch {
     /// ```
     /// # use azalea_inventory::{ItemStackData, DataComponentPatch, components};
     /// # use azalea_registry::Item;
-    /// # let item = ItemStackData {
-    /// #     kind: Item::Stone,
-    /// #     count: 1,
-    /// #     components: Default::default(),
-    /// # };
-    /// let is_edible = item.components.has::<components::Food>();
+    /// # let item = ItemStackData::from(Item::Stone);
+    /// let is_edible = item.component_patch.has::<components::Food>();
     /// # assert!(!is_edible);
     /// ```
     pub fn has<T: components::DataComponent>(&self) -> bool {

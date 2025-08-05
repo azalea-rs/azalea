@@ -40,6 +40,10 @@ def get_packets_report(version_id: str):
     return get_report(version_id, "packets")
 
 
+def get_items_report(version_id: str):
+    return get_report(version_id, "items")
+
+
 def get_report(version_id: str, name: str):
     generate_data_from_server_jar(version_id)
     with open(

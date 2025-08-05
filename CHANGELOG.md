@@ -13,6 +13,8 @@ is breaking anyways, semantic versioning is not followed.
 - `HitResult` now contains the entity that's being looked at.
 - A `QueuedServerBlockUpdates` component that keeps track of block updates per `Update`.
 - Local clients now have a `TicksConnected` component. (@Kumpelinus)
+- There is now a `azalea_inventory::default_components::get_default_component` function to get the default value of a component for a registry item.
+- `ItemStack` now has a `get_component` function that supports default components.
 
 ### Changed
 
@@ -20,6 +22,7 @@ is breaking anyways, semantic versioning is not followed.
 - Renamed `azalea_entity::EntityKind` to `EntityKindComponent` to disambiguate with `azalea_registry::EntityKind`.
 - Moved functions and types related to hit results from `azalea::interact` to `azalea::interact::pick`.
 - `Client::attack` now takes `Entity` instead of `MinecraftEntityId`.
+- `ItemStackData::components` was renamed to `component_patch`.
 
 ### Fixed
 
@@ -27,6 +30,7 @@ is breaking anyways, semantic versioning is not followed.
 - Clients no longer send invalid look directions if the server teleports us with one.
 - Movement code was updated with the changes from 1.21.5, so it no longer flags Grim.
 - `azalea-chat` now correctly handles arrays of integers in the `with` field. (@qwqawawow)
+- Inventories now use the correct max stack sizes.
 
 ## [0.13.0+mc1.21.5] - 2025-06-15
 
