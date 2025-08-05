@@ -6,7 +6,10 @@ use std::{
 };
 
 #[cfg(feature = "azalea-buf")]
-use azalea_buf::{AzaleaRead, AzaleaWrite, BufReadError};
+use azalea_buf::{
+    AzaleaRead, AzaleaWrite, BufReadError,
+    checksum::{AzaleaChecksum, HashCode},
+};
 use serde::{Deserialize, Deserializer, Serialize, de};
 #[cfg(feature = "simdnbt")]
 use simdnbt::{Deserialize as _, FromNbtTag as _, Serialize as _};
@@ -571,6 +574,17 @@ impl AzaleaWrite for FormattedText {
         let mut out = Vec::new();
         simdnbt::owned::BaseNbt::write_unnamed(&(self.clone().to_compound().into()), &mut out);
         buf.write_all(&out)
+    }
+}
+
+#[cfg(feature = "azalea-buf")]
+impl AzaleaChecksum for FormattedText {
+    fn azalea_checksum(&self) -> HashCode {
+        if self.get_base() == &BaseComponent::default() {
+            return self.to_string().azalea_checksum();
+        }
+
+        self.clone().to_compound().azalea_checksum()
     }
 }
 

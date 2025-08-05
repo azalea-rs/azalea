@@ -5,7 +5,10 @@ use std::{
     io::{self, Cursor},
 };
 
-use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
+use azalea_buf::{
+    AzBuf, AzaleaRead, AzaleaWrite, BufReadError,
+    checksum::{AzaleaChecksum, HashCode},
+};
 use azalea_chat::FormattedText;
 use azalea_core::{
     filterable::Filterable, position::GlobalPos, resource_location::ResourceLocation,
@@ -27,6 +30,7 @@ pub trait DataComponent: Send + Sync + Any + Clone {
 
 pub trait EncodableDataComponent: Send + Sync + Any {
     fn encode(&self, buf: &mut Vec<u8>) -> io::Result<()>;
+    fn crc_hash(&self) -> u32;
     // using the Clone trait makes it not be object-safe, so we have our own clone
     // function instead
     fn clone(&self) -> Box<dyn EncodableDataComponent>;
@@ -40,6 +44,9 @@ where
 {
     fn encode(&self, buf: &mut Vec<u8>) -> io::Result<()> {
         self.azalea_write(buf)
+    }
+    fn crc_hash(&self) -> u32 {
+        todo!()
     }
     fn clone(&self) -> Box<dyn EncodableDataComponent> {
         let cloned = self.clone();
@@ -222,12 +229,17 @@ impl DataComponent for Unbreakable {
     const KIND: DataComponentKind = DataComponentKind::Unbreakable;
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug)]
 pub struct CustomName {
     pub name: FormattedText,
 }
 impl DataComponent for CustomName {
     const KIND: DataComponentKind = DataComponentKind::CustomName;
+}
+impl AzaleaChecksum for CustomName {
+    fn azalea_checksum(&self) -> HashCode {
+        self.name.azalea_checksum()
+    }
 }
 
 #[derive(Clone, PartialEq, AzBuf)]
@@ -532,12 +544,17 @@ impl DataComponent for DyedColor {
     const KIND: DataComponentKind = DataComponentKind::DyedColor;
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug)]
 pub struct MapColor {
     pub color: i32,
 }
 impl DataComponent for MapColor {
     const KIND: DataComponentKind = DataComponentKind::MapColor;
+}
+impl AzaleaChecksum for MapColor {
+    fn azalea_checksum(&self) -> HashCode {
+        self.color.azalea_checksum()
+    }
 }
 
 #[derive(Clone, PartialEq, AzBuf)]

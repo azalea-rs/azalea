@@ -31,3 +31,16 @@ pub fn derive_azbuf(input: TokenStream) -> TokenStream {
     }
     .into()
 }
+
+#[proc_macro_derive(AzChecksum)]
+pub fn derive_azchecksum(input: TokenStream) -> TokenStream {
+    let DeriveInput { ident, data, .. } = parse_macro_input!(input);
+
+    let writable = write::create_impl_azaleawrite(&ident, &data);
+    let readable = read::create_impl_azalearead(&ident, &data);
+    quote! {
+        #writable
+        #readable
+    }
+    .into()
+}

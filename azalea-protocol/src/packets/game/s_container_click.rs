@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use azalea_buf::{AzBuf, AzaleaWrite};
+use azalea_buf::AzBuf;
 use azalea_inventory::{ItemStack, operations::ClickType};
 use azalea_protocol_macros::ServerboundGamePacket;
 
@@ -46,7 +46,6 @@ pub struct HashedPatchMap {
 /// This will be necessary if you're writing a client or server, but if you're
 /// just making a proxy then you can remove the `crc32` dependency by disabling
 /// the `crc32` feature on `azalea-protocol`.
-#[cfg(feature = "crc32")]
 impl From<&ItemStack> for HashedStack {
     fn from(item: &ItemStack) -> Self {
         let ItemStack::Present(item) = item else {
@@ -58,11 +57,7 @@ impl From<&ItemStack> for HashedStack {
 
         for (&kind, data) in &item.component_patch.components {
             if let Some(data) = data {
-                // encodeCap in TypedDataComponent.java
-                let mut buf = Vec::new();
-                kind.azalea_write(&mut buf).unwrap();
-                data.encode(&mut buf).unwrap();
-                added_components.push((kind, crc32fast::hash(&buf)));
+                added_components.push((kind, data.crc_hash()));
             } else {
                 removed_components.push(kind);
             }

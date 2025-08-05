@@ -4,6 +4,7 @@ use std::{
 };
 
 pub const EPSILON: f64 = 1.0e-7;
+// same value as f64::consts::PI
 pub const PI: f64 = 3.141592653589793;
 
 pub static SIN: LazyLock<[f32; 65536]> =
