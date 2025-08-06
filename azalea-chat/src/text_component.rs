@@ -1,11 +1,12 @@
 use std::fmt::{self, Display};
 
+#[cfg(feature = "azalea-buf")]
 use serde::{__private::ser::FlatMapSerializer, Serialize, Serializer, ser::SerializeMap};
 
 use crate::{
     FormattedText,
     base_component::BaseComponent,
-    style::{ChatFormatting, TextColor},
+    style::{ChatFormatting, Style, TextColor},
 };
 
 /// A component that contains text that's the same in all locales.
@@ -14,12 +15,15 @@ pub struct TextComponent {
     pub base: BaseComponent,
     pub text: String,
 }
-
 impl Serialize for TextComponent {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
+        if self.base == BaseComponent::default() {
+            return serializer.serialize_str(&self.text);
+        }
+
         let mut state = serializer.serialize_map(None)?;
         state.serialize_entry("text", &self.text)?;
         Serialize::serialize(&self.base, FlatMapSerializer(&mut state))?;
@@ -85,7 +89,7 @@ pub fn legacy_color_code_to_text_component(legacy_color_code: &str) -> TextCompo
                     components.push(TextComponent::new("".to_string()));
                 }
                 let style = &mut components.last_mut().unwrap().base.style;
-                style.color = TextColor::parse(color);
+                style.color = TextColor::parse(&color);
 
                 i += 6;
             } else if let Some(formatter) = ChatFormatting::from_code(formatting_code) {
@@ -124,7 +128,8 @@ pub fn legacy_color_code_to_text_component(legacy_color_code: &str) -> TextCompo
 }
 
 impl TextComponent {
-    pub fn new(text: String) -> Self {
+    pub fn new(text: impl Into<String>) -> Self {
+        let text = text.into();
         // if it contains a LEGACY_FORMATTING_CODE_SYMBOL, format it
         if text.contains(LEGACY_FORMATTING_CODE_SYMBOL) {
             legacy_color_code_to_text_component(&text)
@@ -138,6 +143,10 @@ impl TextComponent {
 
     fn get(self) -> FormattedText {
         FormattedText::Text(self)
+    }
+    pub fn with_style(mut self, style: Style) -> Self {
+        self.base.style = style;
+        self
     }
 }
 

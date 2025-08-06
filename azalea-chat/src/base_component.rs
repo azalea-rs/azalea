@@ -18,6 +18,9 @@ impl BaseComponent {
             style: Style::default(),
         }
     }
+    pub fn with_style(self, style: Style) -> Self {
+        Self { style, ..self }
+    }
 }
 
 #[cfg(feature = "simdnbt")]

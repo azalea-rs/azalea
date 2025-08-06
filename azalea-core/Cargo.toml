@@ -12,13 +12,14 @@ azalea-registry.workspace = true
 bevy_ecs = { workspace = true, optional = true }
 nohash-hasher.workspace = true
 num-traits.workspace = true
-serde = { workspace = true, optional = true }
+serde.workspace = true
 simdnbt.workspace = true
 tracing.workspace = true
 azalea-chat.workspace = true
 indexmap.workspace = true
+crc32c.workspace = true
+thiserror.workspace = true
 
 [features]
 bevy_ecs = ["dep:bevy_ecs"]
-serde = ["dep:serde"]
 strict_registry = []

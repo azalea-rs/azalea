@@ -62,7 +62,7 @@ fn complex_ansi_test() {
             red = Ansi::rgb(ChatFormatting::Red.color().unwrap()),
             reset = Ansi::RESET,
             strikethrough = Ansi::STRIKETHROUGH,
-            abcdef = Ansi::rgb(TextColor::parse("#abcdef".to_string()).unwrap().value),
+            abcdef = Ansi::rgb(TextColor::parse("#abcdef").unwrap().value),
         )
     );
 }

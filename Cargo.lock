@@ -302,7 +302,7 @@ version = "0.13.0+mc1.21.8"
 dependencies = [
  "azalea-buf-macros",
  "byteorder",
- "crc32c",
+ "serde",
  "serde_json",
  "simdnbt",
  "thiserror 2.0.12",
@@ -377,11 +377,13 @@ dependencies = [
  "azalea-chat",
  "azalea-registry",
  "bevy_ecs",
+ "crc32c",
  "indexmap",
  "nohash-hasher",
  "num-traits",
  "serde",
  "simdnbt",
+ "thiserror 2.0.12",
  "tracing",
 ]
 
@@ -435,6 +437,8 @@ dependencies = [
  "azalea-inventory-macros",
  "azalea-registry",
  "indexmap",
+ "serde",
+ "serde_json",
  "simdnbt",
  "tracing",
  "uuid",
@@ -3075,7 +3079,7 @@ dependencies = [
 [[package]]
 name = "simdnbt"
 version = "0.7.2"
-source = "git+https://github.com/azalea-rs/simdnbt#1505d233fd277353f1dba9845360880b74ff3a71"
+source = "git+https://github.com/azalea-rs/simdnbt#ca181b83dfd1c687fabced50630c3876bff8603a"
 dependencies = [
  "byteorder",
  "flate2",
@@ -3087,7 +3091,7 @@ dependencies = [
 [[package]]
 name = "simdnbt-derive"
 version = "0.7.0"
-source = "git+https://github.com/azalea-rs/simdnbt#1505d233fd277353f1dba9845360880b74ff3a71"
+source = "git+https://github.com/azalea-rs/simdnbt#ca181b83dfd1c687fabced50630c3876bff8603a"
 dependencies = [
  "proc-macro2",
  "quote",

@@ -3,7 +3,6 @@
 // this is necessary for thiserror backtraces
 #![feature(error_generic_member_access)]
 
-pub mod checksum;
 mod definitions;
 mod read;
 mod serializable_uuid;

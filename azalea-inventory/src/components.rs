@@ -5,10 +5,7 @@ use std::{
     io::{self, Cursor},
 };
 
-use azalea_buf::{
-    AzBuf, AzaleaRead, AzaleaWrite, BufReadError,
-    checksum::{AzaleaChecksum, HashCode},
-};
+use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
 use azalea_chat::FormattedText;
 use azalea_core::{
     filterable::Filterable, position::GlobalPos, resource_location::ResourceLocation,
@@ -18,6 +15,7 @@ use azalea_registry::{
     self as registry, Attribute, Block, DamageKind, DataComponentKind, Enchantment, EntityKind,
     Holder, HolderSet, Item, MobEffect, Potion, SoundEvent, TrimMaterial, TrimPattern,
 };
+use serde::Serialize;
 use simdnbt::owned::{Nbt, NbtCompound};
 use tracing::trace;
 use uuid::Uuid;
@@ -194,8 +192,18 @@ pub struct CustomData {
 impl DataComponent for CustomData {
     const KIND: DataComponentKind = DataComponentKind::CustomData;
 }
+impl Serialize for CustomData {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        // TODO: implement serde serialize for simdnbt
+        serializer.serialize_none()
+    }
+}
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(transparent)]
 pub struct MaxStackSize {
     #[var]
     pub count: i32,
@@ -204,7 +212,8 @@ impl DataComponent for MaxStackSize {
     const KIND: DataComponentKind = DataComponentKind::MaxStackSize;
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(transparent)]
 pub struct MaxDamage {
     #[var]
     pub amount: i32,
@@ -213,7 +222,8 @@ impl DataComponent for MaxDamage {
     const KIND: DataComponentKind = DataComponentKind::MaxDamage;
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(transparent)]
 pub struct Damage {
     #[var]
     pub amount: i32,
@@ -223,26 +233,23 @@ impl DataComponent for Damage {
     const KIND: DataComponentKind = DataComponentKind::Damage;
 }
 
-#[derive(Clone, PartialEq, Default, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct Unbreakable;
 impl DataComponent for Unbreakable {
     const KIND: DataComponentKind = DataComponentKind::Unbreakable;
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(transparent)]
 pub struct CustomName {
     pub name: FormattedText,
 }
 impl DataComponent for CustomName {
     const KIND: DataComponentKind = DataComponentKind::CustomName;
 }
-impl AzaleaChecksum for CustomName {
-    fn azalea_checksum(&self) -> HashCode {
-        self.name.azalea_checksum()
-    }
-}
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(transparent)]
 pub struct ItemName {
     pub name: FormattedText,
 }
@@ -250,7 +257,8 @@ impl DataComponent for ItemName {
     const KIND: DataComponentKind = DataComponentKind::ItemName;
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(transparent)]
 pub struct Lore {
     pub lines: Vec<FormattedText>,
     // vanilla also has styled_lines here but it doesn't appear to be used for the protocol
@@ -259,7 +267,8 @@ impl DataComponent for Lore {
     const KIND: DataComponentKind = DataComponentKind::Lore;
 }
 
-#[derive(Clone, PartialEq, Copy, AzBuf)]
+#[derive(Clone, Copy, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(rename_all = "snake_case")]
 pub enum Rarity {
     Common,
     Uncommon,
@@ -270,7 +279,8 @@ impl DataComponent for Rarity {
     const KIND: DataComponentKind = DataComponentKind::Rarity;
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Serialize)]
+#[serde(transparent)]
 pub struct Enchantments {
     #[var]
     pub levels: HashMap<Enchantment, u32>,
@@ -279,7 +289,7 @@ impl DataComponent for Enchantments {
     const KIND: DataComponentKind = DataComponentKind::Enchantments;
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub enum BlockStateValueMatcher {
     Exact {
         value: String,
@@ -290,25 +300,27 @@ pub enum BlockStateValueMatcher {
     },
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct BlockStatePropertyMatcher {
     pub name: String,
     pub value_matcher: BlockStateValueMatcher,
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct BlockPredicate {
     pub blocks: Option<HolderSet<Block, ResourceLocation>>,
     pub properties: Option<Vec<BlockStatePropertyMatcher>>,
     pub nbt: Option<NbtCompound>,
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(transparent)]
 pub struct AdventureModePredicate {
     pub predicates: Vec<BlockPredicate>,
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(transparent)]
 pub struct CanPlaceOn {
     pub predicate: AdventureModePredicate,
 }
@@ -544,17 +556,13 @@ impl DataComponent for DyedColor {
     const KIND: DataComponentKind = DataComponentKind::DyedColor;
 }
 
-#[derive(Clone, PartialEq, AzBuf, Debug)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(transparent)]
 pub struct MapColor {
     pub color: i32,
 }
 impl DataComponent for MapColor {
     const KIND: DataComponentKind = DataComponentKind::MapColor;
-}
-impl AzaleaChecksum for MapColor {
-    fn azalea_checksum(&self) -> HashCode {
-        self.color.azalea_checksum()
-    }
 }
 
 #[derive(Clone, PartialEq, AzBuf)]

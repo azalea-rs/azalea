@@ -40,6 +40,17 @@ macro_rules! data_registry {
                 Self { id }
             }
         }
+
+        #[cfg(feature = "serde")]
+        impl serde::Serialize for $name {
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+            where
+                S: serde::Serializer,
+            {
+                // see ChecksumSerializer::serialize_newtype_variant
+                serializer.serialize_newtype_variant(concat!("minecraft:", $registry_name), self.id, "", &())
+            }
+        }
     };
 }
 

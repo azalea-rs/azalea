@@ -295,8 +295,7 @@ macro_rules! vec3_impl {
 /// Used to represent an exact position in the world where an entity could be.
 ///
 /// For blocks, [`BlockPos`] is used instead.
-#[derive(Clone, Copy, Debug, Default, PartialEq, AzBuf)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+#[derive(Clone, Copy, Debug, Default, PartialEq, AzBuf, serde::Deserialize, serde::Serialize)]
 pub struct Vec3 {
     pub x: f64,
     pub y: f64,
@@ -361,8 +360,9 @@ impl Vec3 {
 /// The coordinates of a block in the world.
 ///
 /// For entities (if the coordinates are floating-point), use [`Vec3`] instead.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+#[derive(
+    Clone, Copy, Debug, Default, PartialEq, Eq, Hash, serde::Deserialize, serde::Serialize,
+)]
 pub struct BlockPos {
     pub x: i32,
     pub y: i32,
