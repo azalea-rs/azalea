@@ -53,6 +53,13 @@ pub static SYSTEM_REGEX: RwLock<&std::sync::LazyLock<regex::Regex>> = RwLock::ne
     "^<(?P<sender>[a-zA-Z_0-9]{1,16})> (?:-> me)?(?p<content>.+)$"
 ));
 
+/// This is the regex used to check if a system message is a whisper.
+/// You can override this with your own regex if you want to
+/// change how system are parsed.
+pub static WHISPER_REGEX: RwLock<&std::sync::LazyLock<regex::Regex>> = RwLock::new(regex!(
+    "^(?P<whisper>-> me)?(?:.+)$"
+));
+
 impl ChatPacket {
     /// Get the message shown in chat for this packet.
     pub fn message(&self) -> FormattedText {
@@ -137,9 +144,26 @@ impl ChatPacket {
     /// dm'd the bot with /msg). It works by checking the translation key, so it
     /// won't work on servers that use their own whisper system.
     pub fn is_whisper(&self) -> bool {
-        match self.message() {
-            FormattedText::Text(_) => false,
-            FormattedText::Translatable(t) => t.key == "commands.message.display.incoming",
+        match self {
+            ChatPacket::System(p) => {
+                let message = p.content.to_string();
+
+                // Overlay messages aren't in chat
+                if p.overlay {
+                    return false;
+                }
+
+                // It's a system message, so we'll have to match the content with regex
+                if let Some(m) = WHISPER_REGEX.read().captures(&message) {
+                    return m.name("whisper").is_some();
+                }
+
+                false
+            }
+            _ => match self.message() {
+                FormattedText::Text(_) => false,
+                FormattedText::Translatable(t) => t.key == "commands.message.display.incoming",
+            },
         }
     }
 }
