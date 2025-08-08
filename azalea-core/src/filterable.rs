@@ -1,10 +1,13 @@
 use std::io::{self, Cursor, Write};
 
 use azalea_buf::{AzaleaRead, AzaleaReadLimited, AzaleaReadVar, AzaleaWrite};
+use serde::Serialize;
 
 /// Used for written books.
+#[derive(Serialize)]
 pub struct Filterable<T> {
     pub raw: T,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub filtered: Option<T>,
 }
 

@@ -36,12 +36,14 @@ impl<'a, 'r> ser::Serializer for ChecksumSerializer<'a, 'r> {
     type SerializeStructVariant = ChecksumMapSerializer<'a, 'r>;
 
     fn serialize_bool(self, v: bool) -> Result<()> {
+        assert!(self.hasher.finish() == 0);
         self.hasher.write_u8(13);
         self.hasher.write(&[v as u8]);
         Ok(())
     }
 
     fn serialize_map(self, _len: Option<usize>) -> Result<Self::SerializeMap> {
+        assert!(self.hasher.finish() == 0);
         Ok(ChecksumMapSerializer {
             hasher: self.hasher,
             registries: self.registries,
@@ -49,66 +51,79 @@ impl<'a, 'r> ser::Serializer for ChecksumSerializer<'a, 'r> {
         })
     }
     fn serialize_struct(self, _name: &'static str, len: usize) -> Result<Self::SerializeStruct> {
+        assert!(self.hasher.finish() == 0);
         self.serialize_map(Some(len))
     }
 
     fn serialize_i8(self, v: i8) -> Result<()> {
+        assert!(self.hasher.finish() == 0);
         self.hasher.write_u8(6);
         self.hasher.write(&v.to_le_bytes());
         Ok(())
     }
 
     fn serialize_i16(self, v: i16) -> Result<()> {
+        assert!(self.hasher.finish() == 0);
         self.hasher.write_u8(7);
         self.hasher.write(&v.to_le_bytes());
         Ok(())
     }
 
     fn serialize_i32(self, v: i32) -> Result<()> {
+        assert!(self.hasher.finish() == 0);
         self.hasher.write_u8(8);
         self.hasher.write(&v.to_le_bytes());
         Ok(())
     }
 
     fn serialize_i64(self, v: i64) -> Result<()> {
+        assert!(self.hasher.finish() == 0);
         self.hasher.write_u8(9);
         self.hasher.write(&v.to_le_bytes());
         Ok(())
     }
 
     fn serialize_u8(self, v: u8) -> Result<()> {
+        assert!(self.hasher.finish() == 0);
         self.serialize_i8(v as i8)
     }
 
     fn serialize_u16(self, v: u16) -> Result<()> {
+        assert!(self.hasher.finish() == 0);
         self.serialize_i16(v as i16)
     }
 
     fn serialize_u32(self, v: u32) -> Result<()> {
+        assert!(self.hasher.finish() == 0);
         self.serialize_i32(v as i32)
     }
 
     fn serialize_u64(self, v: u64) -> Result<()> {
+        assert!(self.hasher.finish() == 0);
         self.serialize_i64(v as i64)
     }
 
     fn serialize_f32(self, v: f32) -> Result<()> {
+        assert!(self.hasher.finish() == 0);
         self.hasher.write_u8(10);
         self.hasher.write(&v.to_le_bytes());
         Ok(())
     }
 
     fn serialize_f64(self, v: f64) -> Result<()> {
+        assert!(self.hasher.finish() == 0);
         self.hasher.write_u8(11);
         self.hasher.write(&v.to_le_bytes());
         Ok(())
     }
 
     fn serialize_char(self, v: char) -> Result<()> {
+        assert!(self.hasher.finish() == 0);
         self.serialize_u32(v as u32)
     }
 
     fn serialize_str(self, v: &str) -> Result<()> {
+        assert!(self.hasher.finish() == 0);
         self.hasher.write_u8(12);
         let utf16 = v.encode_utf16().collect::<Vec<_>>();
         self.hasher.write(&(utf16.len() as u32).to_le_bytes());
@@ -119,6 +134,7 @@ impl<'a, 'r> ser::Serializer for ChecksumSerializer<'a, 'r> {
     }
 
     fn serialize_bytes(self, v: &[u8]) -> Result<()> {
+        assert!(self.hasher.finish() == 0);
         self.hasher.write_u8(14);
         self.hasher.write(v);
         self.hasher.write_u8(15);
@@ -126,8 +142,10 @@ impl<'a, 'r> ser::Serializer for ChecksumSerializer<'a, 'r> {
     }
 
     fn serialize_none(self) -> Result<()> {
+        assert!(self.hasher.finish() == 0);
+        println!("serialize none");
         self.hasher.write_u8(1);
-        todo!()
+        Ok(())
     }
 
     fn serialize_some<T>(self, value: &T) -> Result<()>
@@ -141,10 +159,12 @@ impl<'a, 'r> ser::Serializer for ChecksumSerializer<'a, 'r> {
     }
 
     fn serialize_unit(self) -> Result<()> {
+        assert!(self.hasher.finish() == 0);
         Ok(())
     }
 
     fn serialize_unit_struct(self, _name: &'static str) -> Result<()> {
+        assert!(self.hasher.finish() == 0);
         Ok(())
     }
 
@@ -195,14 +215,17 @@ impl<'a, 'r> ser::Serializer for ChecksumSerializer<'a, 'r> {
     }
 
     fn serialize_seq(self, len: Option<usize>) -> Result<Self::SerializeSeq> {
+        assert!(self.hasher.finish() == 0);
+        println!("serialize seq with len: {:?}", len);
         Ok(ChecksumListSerializer {
             hasher: self.hasher,
             registries: self.registries,
-            values: Vec::with_capacity(len.unwrap_or(0)),
+            values: Vec::with_capacity(len.unwrap_or_default()),
         })
     }
 
     fn serialize_tuple(self, len: usize) -> Result<Self::SerializeTuple> {
+        assert!(self.hasher.finish() == 0);
         Ok(ChecksumListSerializer {
             hasher: self.hasher,
             registries: self.registries,
@@ -262,7 +285,8 @@ impl<'a, 'r> ser::SerializeSeq for ChecksumListSerializer<'a, 'r> {
     }
 
     fn end(self) -> Result<()> {
-        checksum_for_list(self.hasher, &self.values);
+        assert!(self.hasher.finish() == 0);
+        update_hasher_for_list(self.hasher, &self.values);
         Ok(())
     }
 }
@@ -280,7 +304,8 @@ impl<'a, 'r> ser::SerializeTuple for ChecksumListSerializer<'a, 'r> {
     }
 
     fn end(self) -> Result<()> {
-        checksum_for_list(self.hasher, &self.values);
+        assert!(self.hasher.finish() == 0);
+        update_hasher_for_list(self.hasher, &self.values);
         Ok(())
     }
 }
@@ -298,7 +323,8 @@ impl<'a, 'r> ser::SerializeTupleStruct for ChecksumListSerializer<'a, 'r> {
     }
 
     fn end(self) -> Result<()> {
-        checksum_for_list(self.hasher, &self.values);
+        assert!(self.hasher.finish() == 0);
+        update_hasher_for_list(self.hasher, &self.values);
         Ok(())
     }
 }
@@ -340,7 +366,8 @@ impl<'a, 'r> ser::SerializeMap for ChecksumMapSerializer<'a, 'r> {
     }
 
     fn end(self) -> Result<()> {
-        checksum_for_map(self.hasher, &self.entries);
+        assert!(self.hasher.finish() == 0);
+        update_hasher_for_map(self.hasher, &self.entries);
         Ok(())
     }
 }
@@ -358,6 +385,7 @@ impl<'a, 'r> ser::SerializeTupleVariant for ChecksumMapSerializer<'a, 'r> {
     }
 
     fn end(self) -> Result<()> {
+        assert!(self.hasher.finish() == 0);
         Ok(())
     }
 }
@@ -377,7 +405,8 @@ impl<'a, 'r> ser::SerializeStruct for ChecksumMapSerializer<'a, 'r> {
     }
 
     fn end(self) -> Result<()> {
-        checksum_for_map(self.hasher, &self.entries);
+        assert!(self.hasher.finish() == 0);
+        update_hasher_for_map(self.hasher, &self.entries);
         Ok(())
     }
 }
@@ -397,7 +426,8 @@ impl<'a, 'r> ser::SerializeStructVariant for ChecksumMapSerializer<'a, 'r> {
     }
 
     fn end(self) -> Result<()> {
-        checksum_for_map(self.hasher, &self.entries);
+        assert!(self.hasher.finish() == 0);
+        update_hasher_for_map(self.hasher, &self.entries);
         Ok(())
     }
 }
@@ -428,16 +458,15 @@ pub fn get_checksum<T: Serialize + ?Sized>(
     Ok(HashCode(hasher.finish() as u32))
 }
 
-fn checksum_for_list(h: &mut Crc32cHasher, values: &[HashCode]) -> HashCode {
+fn update_hasher_for_list(h: &mut Crc32cHasher, values: &[HashCode]) {
     h.write_u8(4);
     for v in values {
         h.write(&v.0.to_le_bytes());
     }
     h.write_u8(5);
-
-    HashCode(h.finish() as u32)
 }
-fn checksum_for_map(h: &mut Crc32cHasher, entries: &[(HashCode, HashCode)]) -> HashCode {
+fn update_hasher_for_map(h: &mut Crc32cHasher, entries: &[(HashCode, HashCode)]) {
+    println!("getting checksum for map with {} entries", entries.len());
     h.write_u8(2);
     let mut entries = entries.to_vec();
     entries.sort_by(|a, b| match a.0.cmp(&b.0) {
@@ -449,8 +478,6 @@ fn checksum_for_map(h: &mut Crc32cHasher, entries: &[(HashCode, HashCode)]) -> H
         h.write(&v.0.to_le_bytes());
     }
     h.write_u8(3);
-
-    HashCode(h.finish() as u32)
 }
 
 // impl AzaleaChecksum for i8 {

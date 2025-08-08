@@ -20,7 +20,7 @@ impl DefaultableComponent for AttributeModifiers {
             Item::CarvedPumpkin => vec![AttributeModifiersEntry {
                 display: AttributeModifierDisplay::Hidden,
                 slot: EquipmentSlotGroup::Head,
-                attribute: Attribute::WaypointTransmitRange,
+                kind: Attribute::WaypointTransmitRange,
                 modifier: AttributeModifier {
                     id: "minecraft:waypoint_transmit_range_hide".into(),
                     amount: -1.0,
@@ -30,7 +30,7 @@ impl DefaultableComponent for AttributeModifiers {
             Item::ChainmailBoots => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Feet,
-                    attribute: Attribute::Armor,
+                    kind: Attribute::Armor,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.boots".into(),
@@ -40,7 +40,7 @@ impl DefaultableComponent for AttributeModifiers {
                 },
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Feet,
-                    attribute: Attribute::ArmorToughness,
+                    kind: Attribute::ArmorToughness,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.boots".into(),
@@ -52,7 +52,7 @@ impl DefaultableComponent for AttributeModifiers {
             Item::ChainmailChestplate => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Chest,
-                    attribute: Attribute::Armor,
+                    kind: Attribute::Armor,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.chestplate".into(),
@@ -62,7 +62,7 @@ impl DefaultableComponent for AttributeModifiers {
                 },
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Chest,
-                    attribute: Attribute::ArmorToughness,
+                    kind: Attribute::ArmorToughness,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.chestplate".into(),
@@ -74,7 +74,7 @@ impl DefaultableComponent for AttributeModifiers {
             Item::ChainmailHelmet => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Head,
-                    attribute: Attribute::Armor,
+                    kind: Attribute::Armor,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.helmet".into(),
@@ -84,7 +84,7 @@ impl DefaultableComponent for AttributeModifiers {
                 },
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Head,
-                    attribute: Attribute::ArmorToughness,
+                    kind: Attribute::ArmorToughness,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.helmet".into(),
@@ -96,7 +96,7 @@ impl DefaultableComponent for AttributeModifiers {
             Item::ChainmailLeggings => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Legs,
-                    attribute: Attribute::Armor,
+                    kind: Attribute::Armor,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.leggings".into(),
@@ -106,7 +106,7 @@ impl DefaultableComponent for AttributeModifiers {
                 },
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Legs,
-                    attribute: Attribute::ArmorToughness,
+                    kind: Attribute::ArmorToughness,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.leggings".into(),
@@ -118,7 +118,7 @@ impl DefaultableComponent for AttributeModifiers {
             Item::CreeperHead => vec![AttributeModifiersEntry {
                 display: AttributeModifierDisplay::Hidden,
                 slot: EquipmentSlotGroup::Head,
-                attribute: Attribute::WaypointTransmitRange,
+                kind: Attribute::WaypointTransmitRange,
                 modifier: AttributeModifier {
                     id: "minecraft:waypoint_transmit_range_hide".into(),
                     amount: -1.0,
@@ -127,8 +127,8 @@ impl DefaultableComponent for AttributeModifiers {
             }],
             Item::DiamondAxe => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackDamage,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_damage".into(),
@@ -137,8 +137,8 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackSpeed,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
@@ -150,7 +150,7 @@ impl DefaultableComponent for AttributeModifiers {
             Item::DiamondBoots => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Feet,
-                    attribute: Attribute::Armor,
+                    kind: Attribute::Armor,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.boots".into(),
@@ -160,7 +160,7 @@ impl DefaultableComponent for AttributeModifiers {
                 },
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Feet,
-                    attribute: Attribute::ArmorToughness,
+                    kind: Attribute::ArmorToughness,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.boots".into(),
@@ -172,7 +172,7 @@ impl DefaultableComponent for AttributeModifiers {
             Item::DiamondChestplate => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Chest,
-                    attribute: Attribute::Armor,
+                    kind: Attribute::Armor,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.chestplate".into(),
@@ -182,7 +182,7 @@ impl DefaultableComponent for AttributeModifiers {
                 },
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Chest,
-                    attribute: Attribute::ArmorToughness,
+                    kind: Attribute::ArmorToughness,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.chestplate".into(),
@@ -194,7 +194,7 @@ impl DefaultableComponent for AttributeModifiers {
             Item::DiamondHelmet => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Head,
-                    attribute: Attribute::Armor,
+                    kind: Attribute::Armor,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.helmet".into(),
@@ -204,7 +204,7 @@ impl DefaultableComponent for AttributeModifiers {
                 },
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Head,
-                    attribute: Attribute::ArmorToughness,
+                    kind: Attribute::ArmorToughness,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.helmet".into(),
@@ -215,8 +215,8 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::DiamondHoe => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackDamage,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_damage".into(),
@@ -225,8 +225,8 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackSpeed,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
@@ -238,7 +238,7 @@ impl DefaultableComponent for AttributeModifiers {
             Item::DiamondHorseArmor => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Body,
-                    attribute: Attribute::Armor,
+                    kind: Attribute::Armor,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.body".into(),
@@ -248,7 +248,7 @@ impl DefaultableComponent for AttributeModifiers {
                 },
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Body,
-                    attribute: Attribute::ArmorToughness,
+                    kind: Attribute::ArmorToughness,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.body".into(),
@@ -260,7 +260,7 @@ impl DefaultableComponent for AttributeModifiers {
             Item::DiamondLeggings => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Legs,
-                    attribute: Attribute::Armor,
+                    kind: Attribute::Armor,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.leggings".into(),
@@ -270,7 +270,7 @@ impl DefaultableComponent for AttributeModifiers {
                 },
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Legs,
-                    attribute: Attribute::ArmorToughness,
+                    kind: Attribute::ArmorToughness,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.leggings".into(),
@@ -281,8 +281,8 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::DiamondPickaxe => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackDamage,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_damage".into(),
@@ -291,8 +291,8 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackSpeed,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
@@ -303,8 +303,8 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::DiamondShovel => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackDamage,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_damage".into(),
@@ -313,8 +313,8 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackSpeed,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
@@ -325,8 +325,8 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::DiamondSword => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackDamage,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_damage".into(),
@@ -335,8 +335,8 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackSpeed,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
@@ -348,7 +348,7 @@ impl DefaultableComponent for AttributeModifiers {
             Item::DragonHead => vec![AttributeModifiersEntry {
                 display: AttributeModifierDisplay::Hidden,
                 slot: EquipmentSlotGroup::Head,
-                attribute: Attribute::WaypointTransmitRange,
+                kind: Attribute::WaypointTransmitRange,
                 modifier: AttributeModifier {
                     id: "minecraft:waypoint_transmit_range_hide".into(),
                     amount: -1.0,
@@ -357,8 +357,8 @@ impl DefaultableComponent for AttributeModifiers {
             }],
             Item::GoldenAxe => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackDamage,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_damage".into(),
@@ -367,8 +367,8 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackSpeed,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
@@ -380,7 +380,7 @@ impl DefaultableComponent for AttributeModifiers {
             Item::GoldenBoots => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Feet,
-                    attribute: Attribute::Armor,
+                    kind: Attribute::Armor,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.boots".into(),
@@ -390,7 +390,7 @@ impl DefaultableComponent for AttributeModifiers {
                 },
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Feet,
-                    attribute: Attribute::ArmorToughness,
+                    kind: Attribute::ArmorToughness,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.boots".into(),
@@ -402,7 +402,7 @@ impl DefaultableComponent for AttributeModifiers {
             Item::GoldenChestplate => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Chest,
-                    attribute: Attribute::Armor,
+                    kind: Attribute::Armor,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.chestplate".into(),
@@ -412,7 +412,7 @@ impl DefaultableComponent for AttributeModifiers {
                 },
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Chest,
-                    attribute: Attribute::ArmorToughness,
+                    kind: Attribute::ArmorToughness,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.chestplate".into(),
@@ -424,7 +424,7 @@ impl DefaultableComponent for AttributeModifiers {
             Item::GoldenHelmet => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Head,
-                    attribute: Attribute::Armor,
+                    kind: Attribute::Armor,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.helmet".into(),
@@ -434,7 +434,7 @@ impl DefaultableComponent for AttributeModifiers {
                 },
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Head,
-                    attribute: Attribute::ArmorToughness,
+                    kind: Attribute::ArmorToughness,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.helmet".into(),
@@ -445,8 +445,8 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::GoldenHoe => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackDamage,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_damage".into(),
@@ -455,8 +455,8 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackSpeed,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
@@ -468,7 +468,7 @@ impl DefaultableComponent for AttributeModifiers {
             Item::GoldenHorseArmor => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Body,
-                    attribute: Attribute::Armor,
+                    kind: Attribute::Armor,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.body".into(),
@@ -478,7 +478,7 @@ impl DefaultableComponent for AttributeModifiers {
                 },
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Body,
-                    attribute: Attribute::ArmorToughness,
+                    kind: Attribute::ArmorToughness,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.body".into(),
@@ -490,7 +490,7 @@ impl DefaultableComponent for AttributeModifiers {
             Item::GoldenLeggings => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Legs,
-                    attribute: Attribute::Armor,
+                    kind: Attribute::Armor,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.leggings".into(),
@@ -500,7 +500,7 @@ impl DefaultableComponent for AttributeModifiers {
                 },
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Legs,
-                    attribute: Attribute::ArmorToughness,
+                    kind: Attribute::ArmorToughness,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.leggings".into(),
@@ -511,8 +511,8 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::GoldenPickaxe => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackDamage,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_damage".into(),
@@ -521,8 +521,8 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackSpeed,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
@@ -533,8 +533,8 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::GoldenShovel => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackDamage,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_damage".into(),
@@ -543,8 +543,8 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackSpeed,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
@@ -555,8 +555,8 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::GoldenSword => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackDamage,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_damage".into(),
@@ -565,8 +565,8 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackSpeed,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
@@ -577,8 +577,8 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::IronAxe => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackDamage,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_damage".into(),
@@ -587,8 +587,8 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackSpeed,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
@@ -600,7 +600,7 @@ impl DefaultableComponent for AttributeModifiers {
             Item::IronBoots => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Feet,
-                    attribute: Attribute::Armor,
+                    kind: Attribute::Armor,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.boots".into(),
@@ -610,7 +610,7 @@ impl DefaultableComponent for AttributeModifiers {
                 },
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Feet,
-                    attribute: Attribute::ArmorToughness,
+                    kind: Attribute::ArmorToughness,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.boots".into(),
@@ -622,7 +622,7 @@ impl DefaultableComponent for AttributeModifiers {
             Item::IronChestplate => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Chest,
-                    attribute: Attribute::Armor,
+                    kind: Attribute::Armor,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.chestplate".into(),
@@ -632,7 +632,7 @@ impl DefaultableComponent for AttributeModifiers {
                 },
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Chest,
-                    attribute: Attribute::ArmorToughness,
+                    kind: Attribute::ArmorToughness,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.chestplate".into(),
@@ -644,7 +644,7 @@ impl DefaultableComponent for AttributeModifiers {
             Item::IronHelmet => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Head,
-                    attribute: Attribute::Armor,
+                    kind: Attribute::Armor,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.helmet".into(),
@@ -654,7 +654,7 @@ impl DefaultableComponent for AttributeModifiers {
                 },
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Head,
-                    attribute: Attribute::ArmorToughness,
+                    kind: Attribute::ArmorToughness,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.helmet".into(),
@@ -665,8 +665,8 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::IronHoe => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackDamage,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_damage".into(),
@@ -675,8 +675,8 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackSpeed,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
@@ -688,7 +688,7 @@ impl DefaultableComponent for AttributeModifiers {
             Item::IronHorseArmor => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Body,
-                    attribute: Attribute::Armor,
+                    kind: Attribute::Armor,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.body".into(),
@@ -698,7 +698,7 @@ impl DefaultableComponent for AttributeModifiers {
                 },
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Body,
-                    attribute: Attribute::ArmorToughness,
+                    kind: Attribute::ArmorToughness,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.body".into(),
@@ -710,7 +710,7 @@ impl DefaultableComponent for AttributeModifiers {
             Item::IronLeggings => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Legs,
-                    attribute: Attribute::Armor,
+                    kind: Attribute::Armor,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.leggings".into(),
@@ -720,7 +720,7 @@ impl DefaultableComponent for AttributeModifiers {
                 },
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Legs,
-                    attribute: Attribute::ArmorToughness,
+                    kind: Attribute::ArmorToughness,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.leggings".into(),
@@ -731,8 +731,8 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::IronPickaxe => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackDamage,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_damage".into(),
@@ -741,8 +741,8 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackSpeed,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
@@ -753,8 +753,8 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::IronShovel => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackDamage,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_damage".into(),
@@ -763,8 +763,8 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackSpeed,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
@@ -775,8 +775,8 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::IronSword => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackDamage,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_damage".into(),
@@ -785,8 +785,8 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackSpeed,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
@@ -798,7 +798,7 @@ impl DefaultableComponent for AttributeModifiers {
             Item::LeatherBoots => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Feet,
-                    attribute: Attribute::Armor,
+                    kind: Attribute::Armor,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.boots".into(),
@@ -808,7 +808,7 @@ impl DefaultableComponent for AttributeModifiers {
                 },
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Feet,
-                    attribute: Attribute::ArmorToughness,
+                    kind: Attribute::ArmorToughness,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.boots".into(),
@@ -820,7 +820,7 @@ impl DefaultableComponent for AttributeModifiers {
             Item::LeatherChestplate => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Chest,
-                    attribute: Attribute::Armor,
+                    kind: Attribute::Armor,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.chestplate".into(),
@@ -830,7 +830,7 @@ impl DefaultableComponent for AttributeModifiers {
                 },
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Chest,
-                    attribute: Attribute::ArmorToughness,
+                    kind: Attribute::ArmorToughness,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.chestplate".into(),
@@ -842,7 +842,7 @@ impl DefaultableComponent for AttributeModifiers {
             Item::LeatherHelmet => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Head,
-                    attribute: Attribute::Armor,
+                    kind: Attribute::Armor,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.helmet".into(),
@@ -852,7 +852,7 @@ impl DefaultableComponent for AttributeModifiers {
                 },
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Head,
-                    attribute: Attribute::ArmorToughness,
+                    kind: Attribute::ArmorToughness,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.helmet".into(),
@@ -864,7 +864,7 @@ impl DefaultableComponent for AttributeModifiers {
             Item::LeatherHorseArmor => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Body,
-                    attribute: Attribute::Armor,
+                    kind: Attribute::Armor,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.body".into(),
@@ -874,7 +874,7 @@ impl DefaultableComponent for AttributeModifiers {
                 },
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Body,
-                    attribute: Attribute::ArmorToughness,
+                    kind: Attribute::ArmorToughness,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.body".into(),
@@ -886,7 +886,7 @@ impl DefaultableComponent for AttributeModifiers {
             Item::LeatherLeggings => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Legs,
-                    attribute: Attribute::Armor,
+                    kind: Attribute::Armor,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.leggings".into(),
@@ -896,7 +896,7 @@ impl DefaultableComponent for AttributeModifiers {
                 },
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Legs,
-                    attribute: Attribute::ArmorToughness,
+                    kind: Attribute::ArmorToughness,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.leggings".into(),
@@ -907,8 +907,8 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::Mace => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackDamage,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_damage".into(),
@@ -917,8 +917,8 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackSpeed,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
@@ -929,8 +929,8 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::NetheriteAxe => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackDamage,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_damage".into(),
@@ -939,8 +939,8 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackSpeed,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
@@ -952,7 +952,7 @@ impl DefaultableComponent for AttributeModifiers {
             Item::NetheriteBoots => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Feet,
-                    attribute: Attribute::Armor,
+                    kind: Attribute::Armor,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.boots".into(),
@@ -962,7 +962,7 @@ impl DefaultableComponent for AttributeModifiers {
                 },
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Feet,
-                    attribute: Attribute::ArmorToughness,
+                    kind: Attribute::ArmorToughness,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.boots".into(),
@@ -972,7 +972,7 @@ impl DefaultableComponent for AttributeModifiers {
                 },
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Feet,
-                    attribute: Attribute::KnockbackResistance,
+                    kind: Attribute::KnockbackResistance,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.boots".into(),
@@ -984,7 +984,7 @@ impl DefaultableComponent for AttributeModifiers {
             Item::NetheriteChestplate => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Chest,
-                    attribute: Attribute::Armor,
+                    kind: Attribute::Armor,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.chestplate".into(),
@@ -994,7 +994,7 @@ impl DefaultableComponent for AttributeModifiers {
                 },
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Chest,
-                    attribute: Attribute::ArmorToughness,
+                    kind: Attribute::ArmorToughness,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.chestplate".into(),
@@ -1004,7 +1004,7 @@ impl DefaultableComponent for AttributeModifiers {
                 },
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Chest,
-                    attribute: Attribute::KnockbackResistance,
+                    kind: Attribute::KnockbackResistance,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.chestplate".into(),
@@ -1016,7 +1016,7 @@ impl DefaultableComponent for AttributeModifiers {
             Item::NetheriteHelmet => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Head,
-                    attribute: Attribute::Armor,
+                    kind: Attribute::Armor,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.helmet".into(),
@@ -1026,7 +1026,7 @@ impl DefaultableComponent for AttributeModifiers {
                 },
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Head,
-                    attribute: Attribute::ArmorToughness,
+                    kind: Attribute::ArmorToughness,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.helmet".into(),
@@ -1036,7 +1036,7 @@ impl DefaultableComponent for AttributeModifiers {
                 },
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Head,
-                    attribute: Attribute::KnockbackResistance,
+                    kind: Attribute::KnockbackResistance,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.helmet".into(),
@@ -1047,8 +1047,8 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::NetheriteHoe => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackDamage,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_damage".into(),
@@ -1057,8 +1057,8 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackSpeed,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
@@ -1070,7 +1070,7 @@ impl DefaultableComponent for AttributeModifiers {
             Item::NetheriteLeggings => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Legs,
-                    attribute: Attribute::Armor,
+                    kind: Attribute::Armor,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.leggings".into(),
@@ -1080,7 +1080,7 @@ impl DefaultableComponent for AttributeModifiers {
                 },
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Legs,
-                    attribute: Attribute::ArmorToughness,
+                    kind: Attribute::ArmorToughness,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.leggings".into(),
@@ -1090,7 +1090,7 @@ impl DefaultableComponent for AttributeModifiers {
                 },
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Legs,
-                    attribute: Attribute::KnockbackResistance,
+                    kind: Attribute::KnockbackResistance,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.leggings".into(),
@@ -1101,8 +1101,8 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::NetheritePickaxe => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackDamage,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_damage".into(),
@@ -1111,8 +1111,8 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackSpeed,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
@@ -1123,8 +1123,8 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::NetheriteShovel => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackDamage,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_damage".into(),
@@ -1133,8 +1133,8 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackSpeed,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
@@ -1145,8 +1145,8 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::NetheriteSword => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackDamage,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_damage".into(),
@@ -1155,8 +1155,8 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackSpeed,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
@@ -1168,7 +1168,7 @@ impl DefaultableComponent for AttributeModifiers {
             Item::PiglinHead => vec![AttributeModifiersEntry {
                 display: AttributeModifierDisplay::Hidden,
                 slot: EquipmentSlotGroup::Head,
-                attribute: Attribute::WaypointTransmitRange,
+                kind: Attribute::WaypointTransmitRange,
                 modifier: AttributeModifier {
                     id: "minecraft:waypoint_transmit_range_hide".into(),
                     amount: -1.0,
@@ -1178,7 +1178,7 @@ impl DefaultableComponent for AttributeModifiers {
             Item::PlayerHead => vec![AttributeModifiersEntry {
                 display: AttributeModifierDisplay::Hidden,
                 slot: EquipmentSlotGroup::Head,
-                attribute: Attribute::WaypointTransmitRange,
+                kind: Attribute::WaypointTransmitRange,
                 modifier: AttributeModifier {
                     id: "minecraft:waypoint_transmit_range_hide".into(),
                     amount: -1.0,
@@ -1188,7 +1188,7 @@ impl DefaultableComponent for AttributeModifiers {
             Item::SkeletonSkull => vec![AttributeModifiersEntry {
                 display: AttributeModifierDisplay::Hidden,
                 slot: EquipmentSlotGroup::Head,
-                attribute: Attribute::WaypointTransmitRange,
+                kind: Attribute::WaypointTransmitRange,
                 modifier: AttributeModifier {
                     id: "minecraft:waypoint_transmit_range_hide".into(),
                     amount: -1.0,
@@ -1197,8 +1197,8 @@ impl DefaultableComponent for AttributeModifiers {
             }],
             Item::StoneAxe => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackDamage,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_damage".into(),
@@ -1207,8 +1207,8 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackSpeed,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
@@ -1219,8 +1219,8 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::StoneHoe => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackDamage,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_damage".into(),
@@ -1229,8 +1229,8 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackSpeed,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
@@ -1241,8 +1241,8 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::StonePickaxe => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackDamage,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_damage".into(),
@@ -1251,8 +1251,8 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackSpeed,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
@@ -1263,8 +1263,8 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::StoneShovel => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackDamage,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_damage".into(),
@@ -1273,8 +1273,8 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackSpeed,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
@@ -1285,8 +1285,8 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::StoneSword => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackDamage,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_damage".into(),
@@ -1295,8 +1295,8 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackSpeed,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
@@ -1307,8 +1307,8 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::Trident => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackDamage,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_damage".into(),
@@ -1317,8 +1317,8 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackSpeed,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
@@ -1330,7 +1330,7 @@ impl DefaultableComponent for AttributeModifiers {
             Item::TurtleHelmet => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Head,
-                    attribute: Attribute::Armor,
+                    kind: Attribute::Armor,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.helmet".into(),
@@ -1340,7 +1340,7 @@ impl DefaultableComponent for AttributeModifiers {
                 },
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Head,
-                    attribute: Attribute::ArmorToughness,
+                    kind: Attribute::ArmorToughness,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.helmet".into(),
@@ -1352,7 +1352,7 @@ impl DefaultableComponent for AttributeModifiers {
             Item::WitherSkeletonSkull => vec![AttributeModifiersEntry {
                 display: AttributeModifierDisplay::Hidden,
                 slot: EquipmentSlotGroup::Head,
-                attribute: Attribute::WaypointTransmitRange,
+                kind: Attribute::WaypointTransmitRange,
                 modifier: AttributeModifier {
                     id: "minecraft:waypoint_transmit_range_hide".into(),
                     amount: -1.0,
@@ -1362,7 +1362,7 @@ impl DefaultableComponent for AttributeModifiers {
             Item::WolfArmor => vec![
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Body,
-                    attribute: Attribute::Armor,
+                    kind: Attribute::Armor,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.body".into(),
@@ -1372,7 +1372,7 @@ impl DefaultableComponent for AttributeModifiers {
                 },
                 AttributeModifiersEntry {
                     slot: EquipmentSlotGroup::Body,
-                    attribute: Attribute::ArmorToughness,
+                    kind: Attribute::ArmorToughness,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:armor.body".into(),
@@ -1383,8 +1383,8 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::WoodenAxe => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackDamage,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_damage".into(),
@@ -1393,8 +1393,8 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackSpeed,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
@@ -1405,8 +1405,8 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::WoodenHoe => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackDamage,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_damage".into(),
@@ -1415,8 +1415,8 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackSpeed,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
@@ -1427,8 +1427,8 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::WoodenPickaxe => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackDamage,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_damage".into(),
@@ -1437,8 +1437,8 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackSpeed,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
@@ -1449,8 +1449,8 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::WoodenShovel => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackDamage,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_damage".into(),
@@ -1459,8 +1459,8 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackSpeed,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
@@ -1471,8 +1471,8 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::WoodenSword => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackDamage,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_damage".into(),
@@ -1481,8 +1481,8 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Mainhand,
-                    attribute: Attribute::AttackSpeed,
+                    slot: EquipmentSlotGroup::Hand,
+                    kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
                         id: "minecraft:base_attack_speed".into(),
@@ -1494,7 +1494,7 @@ impl DefaultableComponent for AttributeModifiers {
             Item::ZombieHead => vec![AttributeModifiersEntry {
                 display: AttributeModifierDisplay::Hidden,
                 slot: EquipmentSlotGroup::Head,
-                attribute: Attribute::WaypointTransmitRange,
+                kind: Attribute::WaypointTransmitRange,
                 modifier: AttributeModifier {
                     id: "minecraft:waypoint_transmit_range_hide".into(),
                     amount: -1.0,

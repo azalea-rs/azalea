@@ -5,6 +5,7 @@
 pub mod aabb;
 pub mod bitset;
 pub mod checksum;
+pub mod codec_utils;
 pub mod color;
 pub mod cursor3d;
 pub mod data_registry;

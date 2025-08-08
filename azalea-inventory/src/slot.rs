@@ -6,8 +6,10 @@ use std::{
 };
 
 use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
+use azalea_core::codec_utils::is_default;
 use azalea_registry::{DataComponentKind, Item};
 use indexmap::IndexMap;
+use serde::Serialize;
 
 use crate::{
     components::{self},
@@ -117,19 +119,46 @@ impl ItemStack {
     pub fn get_component<'a, T: components::DataComponent>(&'a self) -> Option<Cow<'a, T>> {
         self.as_present().and_then(|i| i.get_component::<T>())
     }
+
+    pub fn with_component<T: components::EncodableDataComponent + components::DataComponent>(
+        mut self,
+        component: impl Into<Option<T>>,
+    ) -> Self {
+        if let ItemStack::Present(i) = &mut self {
+            let component = component
+                .into()
+                .map(|c| Box::new(c) as Box<dyn components::EncodableDataComponent>);
+
+            i.component_patch.components.insert(T::KIND, component);
+        }
+        self
+    }
+}
+impl Serialize for ItemStack {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        match self {
+            ItemStack::Empty => serializer.serialize_unit(),
+            ItemStack::Present(i) => i.serialize(serializer),
+        }
+    }
 }
 
 /// An item in an inventory, with a count and NBT. Usually you want
 /// [`ItemStack`] or [`azalea_registry::Item`] instead.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct ItemStackData {
+    #[serde(rename = "id")]
+    pub kind: azalea_registry::Item,
     /// The amount of the item in this slot.
     ///
     /// The count can be zero or negative, but this is rare.
     pub count: i32,
-    pub kind: azalea_registry::Item,
     /// The item's components that the server set to be different from the
     /// defaults.
+    #[serde(rename = "components", skip_serializing_if = "is_default")]
     pub component_patch: DataComponentPatch,
 }
 
@@ -398,5 +427,23 @@ impl PartialEq for DataComponentPatch {
             }
         }
         true
+    }
+}
+
+impl Serialize for DataComponentPatch {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        // let mut s = serializer.serialize_map("DataComponentPatch",
+        // self.components.len())?; for (kind, component) in &self.components {
+        //     if let Some(component) = component {
+        //         s.serialize_entry(kind, component)?;
+        //     } else {
+        //         s.serialize_entry(kind, &None::<()>?)?;
+        //     }
+        // }
+        // s.end()
+        todo!()
     }
 }

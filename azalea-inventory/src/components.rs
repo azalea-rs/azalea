@@ -8,8 +8,8 @@ use std::{
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
 use azalea_chat::FormattedText;
 use azalea_core::{
-    filterable::Filterable, position::GlobalPos, resource_location::ResourceLocation,
-    sound::CustomSound,
+    codec_utils::*, filterable::Filterable, position::GlobalPos,
+    resource_location::ResourceLocation, sound::CustomSound,
 };
 use azalea_registry::{
     self as registry, Attribute, Block, DamageKind, DataComponentKind, Enchantment, EntityKind,
@@ -22,7 +22,7 @@ use uuid::Uuid;
 
 use crate::{ItemStack, item::consume_effect::ConsumeEffect};
 
-pub trait DataComponent: Send + Sync + Any + Clone {
+pub trait DataComponent: Send + Sync + Any + Clone + Serialize {
     const KIND: DataComponentKind;
 }
 
@@ -185,21 +185,13 @@ pub fn from_kind(
     })
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(transparent)]
 pub struct CustomData {
     pub nbt: Nbt,
 }
 impl DataComponent for CustomData {
     const KIND: DataComponentKind = DataComponentKind::CustomData;
-}
-impl Serialize for CustomData {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        // TODO: implement serde serialize for simdnbt
-        serializer.serialize_none()
-    }
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -308,14 +300,18 @@ pub struct BlockStatePropertyMatcher {
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct BlockPredicate {
+    #[serde(skip_serializing_if = "is_default")]
     pub blocks: Option<HolderSet<Block, ResourceLocation>>,
+    #[serde(skip_serializing_if = "is_default")]
     pub properties: Option<Vec<BlockStatePropertyMatcher>>,
+    #[serde(skip_serializing_if = "is_default")]
     pub nbt: Option<NbtCompound>,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct AdventureModePredicate {
+    #[serde(serialize_with = "flatten_array")]
     pub predicates: Vec<BlockPredicate>,
 }
 
@@ -328,7 +324,8 @@ impl DataComponent for CanPlaceOn {
     const KIND: DataComponentKind = DataComponentKind::CanPlaceOn;
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(transparent)]
 pub struct CanBreak {
     pub predicate: AdventureModePredicate,
 }
@@ -336,7 +333,8 @@ impl DataComponent for CanBreak {
     const KIND: DataComponentKind = DataComponentKind::CanBreak;
 }
 
-#[derive(Clone, Copy, PartialEq, AzBuf)]
+#[derive(Clone, Copy, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(rename_all = "snake_case")]
 pub enum EquipmentSlotGroup {
     Any,
     Mainhand,
@@ -350,7 +348,8 @@ pub enum EquipmentSlotGroup {
     Body,
 }
 
-#[derive(Clone, Copy, PartialEq, AzBuf)]
+#[derive(Clone, Copy, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(rename_all = "snake_case")]
 pub enum AttributeModifierOperation {
     AddValue,
     AddMultipliedBase,
@@ -360,22 +359,26 @@ pub enum AttributeModifierOperation {
 // this is duplicated in azalea-entity, BUT the one there has a different
 // protocol format (and we can't use it anyways because it would cause a
 // circular dependency)
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct AttributeModifier {
     pub id: ResourceLocation,
     pub amount: f64,
     pub operation: AttributeModifierOperation,
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct AttributeModifiersEntry {
-    pub attribute: Attribute,
+    #[serde(rename = "type")]
+    pub kind: Attribute,
+    #[serde(flatten)]
     pub modifier: AttributeModifier,
     pub slot: EquipmentSlotGroup,
+    #[serde(skip_serializing_if = "is_default")]
     pub display: AttributeModifierDisplay,
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(transparent)]
 pub struct AttributeModifiers {
     pub modifiers: Vec<AttributeModifiersEntry>,
 }
@@ -383,25 +386,34 @@ impl DataComponent for AttributeModifiers {
     const KIND: DataComponentKind = DataComponentKind::AttributeModifiers;
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Default, Serialize)]
+#[serde(rename_all = "snake_case")]
 pub enum AttributeModifierDisplay {
+    #[default]
     Default,
     Hidden,
-    Override { text: FormattedText },
+    Override {
+        text: FormattedText,
+    },
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct CustomModelData {
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub floats: Vec<f32>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub flags: Vec<bool>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub strings: Vec<String>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub colors: Vec<i32>,
 }
 impl DataComponent for CustomModelData {
     const KIND: DataComponentKind = DataComponentKind::CustomModelData;
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(transparent)]
 pub struct RepairCost {
     #[var]
     pub cost: u32,
@@ -410,13 +422,14 @@ impl DataComponent for RepairCost {
     const KIND: DataComponentKind = DataComponentKind::RepairCost;
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct CreativeSlotLock;
 impl DataComponent for CreativeSlotLock {
     const KIND: DataComponentKind = DataComponentKind::CreativeSlotLock;
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(transparent)]
 pub struct EnchantmentGlintOverride {
     pub show_glint: bool,
 }
@@ -424,21 +437,26 @@ impl DataComponent for EnchantmentGlintOverride {
     const KIND: DataComponentKind = DataComponentKind::EnchantmentGlintOverride;
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct IntangibleProjectile;
 impl DataComponent for IntangibleProjectile {
     const KIND: DataComponentKind = DataComponentKind::IntangibleProjectile;
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct MobEffectDetails {
     #[var]
+    #[serde(skip_serializing_if = "is_default")]
     pub amplifier: i32,
     #[var]
+    #[serde(skip_serializing_if = "is_default")]
     pub duration: i32,
+    #[serde(skip_serializing_if = "is_default")]
     pub ambient: bool,
+    #[serde(skip_serializing_if = "is_default")]
     pub show_particles: bool,
     pub show_icon: bool,
+    #[serde(skip_serializing_if = "is_default")]
     pub hidden_effect: Option<Box<MobEffectDetails>>,
 }
 impl MobEffectDetails {
@@ -448,7 +466,7 @@ impl MobEffectDetails {
             duration: 0,
             ambient: false,
             show_particles: true,
-            show_icon: false,
+            show_icon: true,
             hidden_effect: None,
         }
     }
@@ -459,23 +477,25 @@ impl Default for MobEffectDetails {
     }
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct MobEffectInstance {
     pub id: MobEffect,
+    #[serde(flatten)]
     pub details: MobEffectDetails,
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct PossibleEffect {
     pub effect: MobEffectInstance,
     pub probability: f32,
 }
 
-#[derive(Clone, PartialEq, Default, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Default, Serialize)]
 pub struct Food {
     #[var]
     pub nutrition: i32,
     pub saturation: f32,
+    #[serde(skip_serializing_if = "is_default")]
     pub can_always_eat: bool,
 }
 impl DataComponent for Food {
@@ -491,10 +511,12 @@ impl Food {
     }
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct ToolRule {
     pub blocks: HolderSet<Block, ResourceLocation>,
+    #[serde(skip_serializing_if = "is_default")]
     pub speed: Option<f32>,
+    #[serde(skip_serializing_if = "is_default")]
     pub correct_for_drops: Option<bool>,
 }
 impl ToolRule {
@@ -512,12 +534,16 @@ impl Default for ToolRule {
     }
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct Tool {
+    #[serde(serialize_with = "flatten_array")]
     pub rules: Vec<ToolRule>,
+    #[serde(skip_serializing_if = "is_default")]
     pub default_mining_speed: f32,
     #[var]
+    #[serde(skip_serializing_if = "is_default")]
     pub damage_per_block: i32,
+    #[serde(skip_serializing_if = "is_default")]
     pub can_destroy_blocks_in_creative: bool,
 }
 impl DataComponent for Tool {
@@ -539,7 +565,8 @@ impl Default for Tool {
     }
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(transparent)]
 pub struct StoredEnchantments {
     #[var]
     pub enchantments: HashMap<Enchantment, i32>,
@@ -548,7 +575,8 @@ impl DataComponent for StoredEnchantments {
     const KIND: DataComponentKind = DataComponentKind::StoredEnchantments;
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(transparent)]
 pub struct DyedColor {
     pub rgb: i32,
 }
@@ -565,7 +593,8 @@ impl DataComponent for MapColor {
     const KIND: DataComponentKind = DataComponentKind::MapColor;
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(transparent)]
 pub struct MapId {
     #[var]
     pub id: i32,
@@ -574,7 +603,8 @@ impl DataComponent for MapId {
     const KIND: DataComponentKind = DataComponentKind::MapId;
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(transparent)]
 pub struct MapDecorations {
     pub decorations: NbtCompound,
 }
@@ -582,7 +612,7 @@ impl DataComponent for MapDecorations {
     const KIND: DataComponentKind = DataComponentKind::MapDecorations;
 }
 
-#[derive(Clone, Copy, PartialEq, AzBuf)]
+#[derive(Clone, Copy, PartialEq, AzBuf, Debug, Serialize)]
 pub enum MapPostProcessing {
     Lock,
     Scale,
@@ -591,7 +621,8 @@ impl DataComponent for MapPostProcessing {
     const KIND: DataComponentKind = DataComponentKind::MapPostProcessing;
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(transparent)]
 pub struct ChargedProjectiles {
     pub items: Vec<ItemStack>,
 }
@@ -599,7 +630,8 @@ impl DataComponent for ChargedProjectiles {
     const KIND: DataComponentKind = DataComponentKind::ChargedProjectiles;
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(transparent)]
 pub struct BundleContents {
     pub items: Vec<ItemStack>,
 }
@@ -607,11 +639,15 @@ impl DataComponent for BundleContents {
     const KIND: DataComponentKind = DataComponentKind::BundleContents;
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct PotionContents {
+    #[serde(skip_serializing_if = "is_default")]
     pub potion: Option<Potion>,
+    #[serde(skip_serializing_if = "is_default")]
     pub custom_color: Option<i32>,
+    #[serde(skip_serializing_if = "is_default")]
     pub custom_effects: Vec<MobEffectInstance>,
+    #[serde(skip_serializing_if = "is_default")]
     pub custom_name: Option<String>,
 }
 impl DataComponent for PotionContents {
@@ -633,14 +669,17 @@ impl Default for PotionContents {
     }
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct SuspiciousStewEffect {
+    #[serde(rename = "id")]
     pub effect: MobEffect,
     #[var]
+    #[serde(skip_serializing_if = "is_default")]
     pub duration: i32,
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(transparent)]
 pub struct SuspiciousStewEffects {
     pub effects: Vec<SuspiciousStewEffect>,
 }
@@ -648,7 +687,7 @@ impl DataComponent for SuspiciousStewEffects {
     const KIND: DataComponentKind = DataComponentKind::SuspiciousStewEffects;
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct WritableBookContent {
     pub pages: Vec<String>,
 }
@@ -656,14 +695,17 @@ impl DataComponent for WritableBookContent {
     const KIND: DataComponentKind = DataComponentKind::WritableBookContent;
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Serialize)]
 pub struct WrittenBookContent {
     #[limit(32)]
     pub title: Filterable<String>,
     pub author: String,
     #[var]
+    #[serde(skip_serializing_if = "is_default")]
     pub generation: i32,
+    #[serde(skip_serializing_if = "is_default")]
     pub pages: Vec<Filterable<FormattedText>>,
+    #[serde(skip_serializing_if = "is_default")]
     pub resolved: bool,
 }
 
@@ -671,7 +713,7 @@ impl DataComponent for WrittenBookContent {
     const KIND: DataComponentKind = DataComponentKind::WrittenBookContent;
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct Trim {
     pub material: TrimMaterial,
     pub pattern: TrimPattern,
@@ -680,7 +722,8 @@ impl DataComponent for Trim {
     const KIND: DataComponentKind = DataComponentKind::Trim;
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(transparent)]
 pub struct DebugStickState {
     pub properties: NbtCompound,
 }
@@ -688,7 +731,8 @@ impl DataComponent for DebugStickState {
     const KIND: DataComponentKind = DataComponentKind::DebugStickState;
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(transparent)]
 pub struct EntityData {
     pub entity: NbtCompound,
 }
@@ -696,7 +740,8 @@ impl DataComponent for EntityData {
     const KIND: DataComponentKind = DataComponentKind::EntityData;
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(transparent)]
 pub struct BucketEntityData {
     pub entity: NbtCompound,
 }
@@ -704,7 +749,8 @@ impl DataComponent for BucketEntityData {
     const KIND: DataComponentKind = DataComponentKind::BucketEntityData;
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(transparent)]
 pub struct BlockEntityData {
     pub entity: NbtCompound,
 }
@@ -712,7 +758,8 @@ impl DataComponent for BlockEntityData {
     const KIND: DataComponentKind = DataComponentKind::BlockEntityData;
 }
 
-#[derive(Clone, PartialEq, Debug, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(untagged)]
 pub enum Instrument {
     Registry(registry::Instrument),
     Holder(Holder<registry::Instrument, InstrumentData>),
@@ -721,7 +768,7 @@ impl DataComponent for Instrument {
     const KIND: DataComponentKind = DataComponentKind::Instrument;
 }
 
-#[derive(Clone, PartialEq, Debug, AzBuf)]
+#[derive(Clone, PartialEq, Debug, AzBuf, Serialize)]
 pub struct InstrumentData {
     pub sound_event: Holder<SoundEvent, azalea_core::sound::CustomSound>,
     pub use_duration: f32,
@@ -729,7 +776,8 @@ pub struct InstrumentData {
     pub description: FormattedText,
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(transparent)]
 pub struct OminousBottleAmplifier {
     #[var]
     pub amplifier: i32,
@@ -738,7 +786,8 @@ impl DataComponent for OminousBottleAmplifier {
     const KIND: DataComponentKind = DataComponentKind::OminousBottleAmplifier;
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(transparent)]
 pub struct Recipes {
     pub recipes: Vec<ResourceLocation>,
 }
@@ -746,16 +795,19 @@ impl DataComponent for Recipes {
     const KIND: DataComponentKind = DataComponentKind::Recipes;
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct LodestoneTracker {
+    #[serde(skip_serializing_if = "is_default")]
     pub target: Option<GlobalPos>,
+    #[serde(skip_serializing_if = "is_true")]
     pub tracked: bool,
 }
 impl DataComponent for LodestoneTracker {
     const KIND: DataComponentKind = DataComponentKind::LodestoneTracker;
 }
 
-#[derive(Clone, Copy, PartialEq, AzBuf)]
+#[derive(Clone, Copy, PartialEq, AzBuf, Debug, Serialize)]
+#[serde(rename_all = "snake_case")]
 pub enum FireworkExplosionShape {
     SmallBall,
     LargeBall,
@@ -764,7 +816,7 @@ pub enum FireworkExplosionShape {
     Burst,
 }
 
-#[derive(Clone, PartialEq, AzBuf)]
+#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct FireworkExplosion {
     pub shape: FireworkExplosionShape,
     pub colors: Vec<i32>,

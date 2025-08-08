@@ -6,11 +6,17 @@ use azalea_chat::{
     text_component::TextComponent,
 };
 use azalea_core::{checksum::get_checksum, registry_holder::RegistryHolder};
-use azalea_inventory::components::{
-    BlockPredicate, CanPlaceOn, CustomName, Enchantments, Lore, MapColor, Rarity,
+use azalea_inventory::{
+    ItemStack,
+    components::{
+        AdventureModePredicate, AttributeModifier, AttributeModifierDisplay,
+        AttributeModifierOperation, AttributeModifiers, AttributeModifiersEntry, BlockPredicate,
+        CanPlaceOn, ChargedProjectiles, CustomData, CustomName, Enchantments, EquipmentSlotGroup,
+        JukeboxPlayable, Lore, MapColor, Rarity,
+    },
 };
-use azalea_registry::{DataRegistry, Enchantment};
-use simdnbt::owned::NbtCompound;
+use azalea_registry::{Attribute, Block, DataRegistry, Enchantment, Item};
+use simdnbt::owned::{BaseNbt, Nbt, NbtCompound, NbtList, NbtTag};
 
 #[test]
 fn test_custom_name_checksum() {
@@ -71,17 +77,16 @@ fn test_can_place_on_checksum() {
     let c = CanPlaceOn {
         predicate: AdventureModePredicate {
             predicates: vec![BlockPredicate {
-                blocks: vec![Block::GrassBlock],
+                blocks: Some(vec![Block::GrassBlock].into()),
                 properties: None,
                 nbt: None,
             }],
         },
     };
+
     assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 227436005);
 }
 
-// TODO: implement serialize for nbt and then uncomment this
-/*
 #[test]
 fn test_custom_data_nbt() {
     let c = CustomData {
@@ -102,6 +107,79 @@ fn test_custom_data_nbt() {
             ]),
         )),
     };
-    assert_eq!(checksum_for(&c).unwrap().0, 1035780974);
+    assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 1035780974);
 }
-*/
+#[test]
+fn test_attribute_modifiers_checksum() {
+    // attribute_modifiers=[{type:"minecraft:scale",slot:"hand",id:"example:grow",
+    // amount:4,operation:"add_multiplied_base"}]
+    let c = AttributeModifiers {
+        modifiers: vec![AttributeModifiersEntry {
+            kind: Attribute::Scale,
+            modifier: AttributeModifier {
+                id: "example:grow".into(),
+                amount: 4.0,
+                operation: AttributeModifierOperation::AddMultipliedBase,
+            },
+            slot: EquipmentSlotGroup::Hand,
+            display: AttributeModifierDisplay::Default,
+        }],
+    };
+
+    println!("{}", serde_json::to_string(&c).unwrap());
+
+    assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 2501379836);
+}
+
+#[test]
+fn test_firework_explosion_checksum() {
+    let c = AttributeModifiers {
+        modifiers: vec![AttributeModifiersEntry {
+            kind: Attribute::Scale,
+            modifier: AttributeModifier {
+                id: "example:grow".into(),
+                amount: 4.0,
+                operation: AttributeModifierOperation::AddMultipliedBase,
+            },
+            slot: EquipmentSlotGroup::Hand,
+            display: AttributeModifierDisplay::Default,
+        }],
+    };
+
+    println!("{}", serde_json::to_string(&c).unwrap());
+
+    assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 2501379836);
+}
+
+#[test]
+fn test_charged_projectile_checksum() {
+    let c = ChargedProjectiles {
+        items: vec![ItemStack::from(Item::MusicDiscCat)],
+    };
+
+    println!("{}", serde_json::to_string(&c).unwrap());
+
+    assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 3435761017);
+}
+
+#[test]
+fn test_charged_projectile_with_components_checksum() {
+    // /give @s stick[minecraft:charged_projectiles=[{id: music_disc_cat,
+    // components: {"!minecraft:jukebox_playable": {}, charged_projectiles: [{id:
+    // music_disc_cat}]}}]]
+
+    let c = ChargedProjectiles {
+        items: vec![
+            ItemStack::from(Item::MusicDiscCat)
+                .with_component::<JukeboxPlayable>(None)
+                .with_component(ChargedProjectiles {
+                    items: vec![ItemStack::from(Item::MusicDiscCat)],
+                }),
+        ],
+    };
+
+    // println!("{}", serde_json::to_string(&c).unwrap());
+
+    let todo = "todo";
+    // assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 170375255);
+}

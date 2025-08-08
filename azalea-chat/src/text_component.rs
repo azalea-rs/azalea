@@ -1,6 +1,5 @@
 use std::fmt::{self, Display};
 
-#[cfg(feature = "azalea-buf")]
 use serde::{__private::ser::FlatMapSerializer, Serialize, Serializer, ser::SerializeMap};
 
 use crate::{

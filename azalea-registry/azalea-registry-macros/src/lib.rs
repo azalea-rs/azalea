@@ -81,7 +81,6 @@ pub fn registry(input: TokenStream) -> TokenStream {
     generated.extend(quote! {
         #(#attributes)*
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, azalea_buf::AzBuf, simdnbt::ToNbtTag, simdnbt::FromNbtTag)]
-        #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
         #[repr(u32)]
         pub enum #name {
             #enum_items
@@ -169,6 +168,26 @@ pub fn registry(input: TokenStream) -> TokenStream {
                     #from_str_items
                     _ => Err(format!("{s:?} is not a valid {name}", s = s, name = stringify!(#name))),
                 }
+            }
+        }
+
+        #[cfg(feature = "serde")]
+        impl serde::Serialize for #name {
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+            where
+                S: serde::Serializer,
+            {
+                serializer.serialize_str(&self.to_string())
+            }
+        }
+        #[cfg(feature = "serde")]
+        impl<'de> serde::Deserialize<'de> for #name {
+            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                let s = String::deserialize(deserializer)?;
+                s.parse().map_err(serde::de::Error::custom)
             }
         }
     });
