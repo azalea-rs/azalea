@@ -84,6 +84,9 @@ macro_rules! define_data_components {
             $( $x: ManuallyDrop<$x>, )*
         }
         impl DataComponentUnion {
+            /// # Safety
+            ///
+            /// `kind` must be the correct value for this union.
             pub unsafe fn serialize_entry_as<S: SerializeMap>(
                 &self,
                 serializer: &mut S,
@@ -93,11 +96,17 @@ macro_rules! define_data_components {
                     $( DataComponentKind::$x => { unsafe { serializer.serialize_entry(&kind, &*self.$x) } }, )*
                 }
             }
+            /// # Safety
+            ///
+            /// `kind` must be the correct value for this union.
             pub unsafe fn drop_as(&mut self, kind: DataComponentKind) {
                 match kind {
                     $( DataComponentKind::$x => { unsafe { ManuallyDrop::drop(&mut self.$x) } }, )*
                 }
             }
+            /// # Safety
+            ///
+            /// `kind` must be the correct value for this union.
             pub unsafe fn as_kind(&self, kind: DataComponentKind) -> &dyn EncodableDataComponent {
                 match kind {
                     $( DataComponentKind::$x => { unsafe { &**(&self.$x as &ManuallyDrop<dyn EncodableDataComponent>) } }, )*
@@ -115,6 +124,9 @@ macro_rules! define_data_components {
                     }, )*
                 })
             }
+            /// # Safety
+            ///
+            /// `kind` must be the correct value for this union.
             pub unsafe fn azalea_write_as(
                 &self,
                 kind: registry::DataComponentKind,
@@ -124,6 +136,9 @@ macro_rules! define_data_components {
                     $( DataComponentKind::$x => unsafe { self.$x.encode(buf) }, )*
                 }
             }
+            /// # Safety
+            ///
+            /// `kind` must be the correct value for this union.
             pub unsafe fn clone_as(
                 &self,
                 kind: registry::DataComponentKind,
@@ -134,6 +149,9 @@ macro_rules! define_data_components {
                     }, )*
                 }
             }
+            /// # Safety
+            ///
+            /// `kind` must be the correct value for this union.
             pub unsafe fn eq_as(
                 &self,
                 other: &Self,
@@ -1316,6 +1334,11 @@ impl TooltipDisplay {
             hide_tooltip: false,
             hidden_components: Vec::new(),
         }
+    }
+}
+impl Default for TooltipDisplay {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

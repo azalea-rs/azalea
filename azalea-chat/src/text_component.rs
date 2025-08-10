@@ -144,7 +144,7 @@ impl TextComponent {
         FormattedText::Text(self)
     }
     pub fn with_style(mut self, style: Style) -> Self {
-        self.base.style = style;
+        self.base.style = Box::new(style);
         self
     }
 }

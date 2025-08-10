@@ -351,6 +351,18 @@ impl DataComponentPatch {
     }
 }
 
+impl Drop for DataComponentPatch {
+    fn drop(&mut self) {
+        // the component values are ManuallyDrop since they're in a union
+        for (kind, component) in &mut self.components {
+            if let Some(component) = component {
+                // SAFETY: we got the kind and component from the map
+                unsafe { component.drop_as(*kind) };
+            }
+        }
+    }
+}
+
 impl AzaleaRead for DataComponentPatch {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let components_with_data_count = u32::azalea_read_var(buf)?;
