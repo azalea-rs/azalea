@@ -1,8 +1,7 @@
-use std::{any::Any, cmp::Ordering, fmt, hash::Hasher};
+use std::{cmp::Ordering, fmt, hash::Hasher};
 
 use crc32c::Crc32cHasher;
 use serde::{Serialize, ser};
-use simdnbt::owned::{NbtCompound, NbtList, NbtTag};
 use thiserror::Error;
 use tracing::error;
 
@@ -50,7 +49,7 @@ impl<'a, 'r> ser::Serializer for ChecksumSerializer<'a, 'r> {
             entries: Vec::new(),
         })
     }
-    fn serialize_struct(self, _name: &'static str, len: usize) -> Result<Self::SerializeStruct> {
+    fn serialize_struct(self, name: &'static str, len: usize) -> Result<Self::SerializeStruct> {
         assert!(self.hasher.finish() == 0);
         self.serialize_map(Some(len))
     }
@@ -165,23 +164,24 @@ impl<'a, 'r> ser::Serializer for ChecksumSerializer<'a, 'r> {
 
     fn serialize_unit_struct(self, _name: &'static str) -> Result<()> {
         assert!(self.hasher.finish() == 0);
+        update_hasher_for_map(self.hasher, &[]);
         Ok(())
     }
 
     fn serialize_unit_variant(
         self,
-        name: &'static str,
-        variant_index: u32,
+        _name: &'static str,
+        _variant_index: u32,
         variant: &'static str,
     ) -> Result<()> {
         self.serialize_str(variant)
     }
 
-    fn serialize_newtype_struct<T>(self, name: &'static str, value: &T) -> Result<()>
+    fn serialize_newtype_struct<T>(self, _name: &'static str, value: &T) -> Result<()>
     where
         T: ?Sized + Serialize,
     {
-        todo!()
+        value.serialize(self)
     }
 
     fn serialize_newtype_variant<T>(
@@ -221,6 +221,7 @@ impl<'a, 'r> ser::Serializer for ChecksumSerializer<'a, 'r> {
             hasher: self.hasher,
             registries: self.registries,
             values: Vec::with_capacity(len.unwrap_or_default()),
+            list_kind: ListKind::Normal,
         })
     }
 
@@ -230,6 +231,7 @@ impl<'a, 'r> ser::Serializer for ChecksumSerializer<'a, 'r> {
             hasher: self.hasher,
             registries: self.registries,
             values: Vec::with_capacity(len),
+            list_kind: ListKind::Normal,
         })
     }
 
@@ -238,24 +240,44 @@ impl<'a, 'r> ser::Serializer for ChecksumSerializer<'a, 'r> {
         name: &'static str,
         len: usize,
     ) -> Result<Self::SerializeTupleStruct> {
-        todo!()
+        assert!(self.hasher.finish() == 0);
+        let list_kind = if name == "azalea:int_array" {
+            self.hasher.write_u8(16);
+            ListKind::Int
+        } else if name == "azalea:long_array" {
+            self.hasher.write_u8(18);
+            ListKind::Long
+        } else {
+            ListKind::Normal
+        };
+        Ok(ChecksumListSerializer {
+            hasher: self.hasher,
+            registries: self.registries,
+            values: Vec::with_capacity(len),
+            list_kind,
+        })
     }
 
     fn serialize_tuple_variant(
         self,
-        name: &'static str,
-        variant_index: u32,
-        variant: &'static str,
+        _name: &'static str,
+        _variant_index: u32,
+        _variant: &'static str,
         len: usize,
     ) -> Result<Self::SerializeTupleVariant> {
-        todo!()
+        assert!(self.hasher.finish() == 0);
+        Ok(ChecksumMapSerializer {
+            hasher: self.hasher,
+            registries: self.registries,
+            entries: Vec::with_capacity(len),
+        })
     }
 
     fn serialize_struct_variant(
         self,
-        name: &'static str,
-        variant_index: u32,
-        variant: &'static str,
+        _name: &'static str,
+        _variant_index: u32,
+        _variant: &'static str,
         len: usize,
     ) -> Result<Self::SerializeStructVariant> {
         Ok(ChecksumMapSerializer {
@@ -270,6 +292,9 @@ pub struct ChecksumListSerializer<'a, 'r> {
     hasher: &'a mut Crc32cHasher,
     registries: &'r RegistryHolder,
     values: Vec<HashCode>,
+    /// If you set this to not be the default, you should also update the hasher
+    /// before creating the list serializer.
+    list_kind: ListKind,
 }
 impl<'a, 'r> ser::SerializeSeq for ChecksumListSerializer<'a, 'r> {
     type Ok = ();
@@ -279,17 +304,47 @@ impl<'a, 'r> ser::SerializeSeq for ChecksumListSerializer<'a, 'r> {
     where
         T: ?Sized + Serialize,
     {
-        // elements are hashed individually
-        self.values.push(get_checksum(value, self.registries)?);
+        if self.list_kind == ListKind::Normal {
+            // elements are hashed individually
+            self.values.push(get_checksum(value, self.registries)?);
+        } else {
+            value.serialize(IntOrLongArrayChecksumSerializer {
+                hasher: self.hasher,
+            })?;
+        }
+
         Ok(())
     }
 
     fn end(self) -> Result<()> {
-        assert!(self.hasher.finish() == 0);
-        update_hasher_for_list(self.hasher, &self.values);
+        match self.list_kind {
+            ListKind::Normal => {
+                assert!(self.hasher.finish() == 0);
+                update_hasher_for_list(self.hasher, &self.values);
+            }
+            ListKind::Int => {
+                self.hasher.write_u8(17);
+            }
+            ListKind::Long => {
+                self.hasher.write_u8(19);
+            }
+        }
+
         Ok(())
     }
 }
+/// Minecraft sometimes serializes u8/i32/i64 lists differently, so we have to
+/// keep track of that when serializing the arrays.
+///
+/// Byte arrays aren't included here as they're handled with `serialize_bytes`.
+#[derive(Default, PartialEq, Eq)]
+enum ListKind {
+    #[default]
+    Normal,
+    Int,
+    Long,
+}
+
 impl<'a, 'r> ser::SerializeTuple for ChecksumListSerializer<'a, 'r> {
     type Ok = ();
     type Error = ChecksumError;
@@ -298,15 +353,11 @@ impl<'a, 'r> ser::SerializeTuple for ChecksumListSerializer<'a, 'r> {
     where
         T: ?Sized + Serialize,
     {
-        // elements are hashed individually
-        self.values.push(get_checksum(value, self.registries)?);
-        Ok(())
+        ser::SerializeSeq::serialize_element(self, value)
     }
 
     fn end(self) -> Result<()> {
-        assert!(self.hasher.finish() == 0);
-        update_hasher_for_list(self.hasher, &self.values);
-        Ok(())
+        ser::SerializeSeq::end(self)
     }
 }
 impl<'a, 'r> ser::SerializeTupleStruct for ChecksumListSerializer<'a, 'r> {
@@ -317,15 +368,11 @@ impl<'a, 'r> ser::SerializeTupleStruct for ChecksumListSerializer<'a, 'r> {
     where
         T: ?Sized + Serialize,
     {
-        // elements are hashed individually
-        self.values.push(get_checksum(value, self.registries)?);
-        Ok(())
+        ser::SerializeSeq::serialize_element(self, value)
     }
 
     fn end(self) -> Result<()> {
-        assert!(self.hasher.finish() == 0);
-        update_hasher_for_list(self.hasher, &self.values);
-        Ok(())
+        ser::SerializeSeq::end(self)
     }
 }
 
@@ -429,6 +476,146 @@ impl<'a, 'r> ser::SerializeStructVariant for ChecksumMapSerializer<'a, 'r> {
         assert!(self.hasher.finish() == 0);
         update_hasher_for_map(self.hasher, &self.entries);
         Ok(())
+    }
+}
+
+/// A hasher that can only serialize i32 and i64.
+struct IntOrLongArrayChecksumSerializer<'a> {
+    hasher: &'a mut Crc32cHasher,
+}
+impl<'a> ser::Serializer for IntOrLongArrayChecksumSerializer<'a> {
+    type Ok = ();
+    type Error = ChecksumError;
+    // unused
+    type SerializeSeq = ChecksumListSerializer<'a, 'a>;
+    type SerializeTuple = ChecksumListSerializer<'a, 'a>;
+    type SerializeTupleStruct = ChecksumListSerializer<'a, 'a>;
+    type SerializeTupleVariant = ChecksumMapSerializer<'a, 'a>;
+    type SerializeMap = ChecksumMapSerializer<'a, 'a>;
+    type SerializeStruct = ChecksumMapSerializer<'a, 'a>;
+    type SerializeStructVariant = ChecksumMapSerializer<'a, 'a>;
+
+    fn serialize_bool(self, _v: bool) -> Result<()> {
+        unimplemented!()
+    }
+    fn serialize_i8(self, _v: i8) -> Result<()> {
+        unimplemented!()
+    }
+    fn serialize_i16(self, _v: i16) -> Result<()> {
+        unimplemented!()
+    }
+    fn serialize_i32(self, v: i32) -> Result<()> {
+        self.hasher.write(&v.to_le_bytes());
+        Ok(())
+    }
+    fn serialize_i64(self, v: i64) -> Result<()> {
+        self.hasher.write(&v.to_le_bytes());
+        Ok(())
+    }
+    fn serialize_u8(self, _v: u8) -> Result<()> {
+        unimplemented!()
+    }
+    fn serialize_u16(self, _v: u16) -> Result<()> {
+        unimplemented!()
+    }
+    fn serialize_u32(self, v: u32) -> Result<()> {
+        self.serialize_i32(v as i32)
+    }
+    fn serialize_u64(self, v: u64) -> Result<()> {
+        self.serialize_i64(v as i64)
+    }
+    fn serialize_f32(self, _v: f32) -> Result<()> {
+        unimplemented!()
+    }
+    fn serialize_f64(self, _v: f64) -> Result<()> {
+        unimplemented!()
+    }
+    fn serialize_char(self, _v: char) -> Result<()> {
+        unimplemented!()
+    }
+    fn serialize_str(self, _v: &str) -> Result<()> {
+        unimplemented!()
+    }
+    fn serialize_bytes(self, _v: &[u8]) -> Result<()> {
+        unimplemented!()
+    }
+    fn serialize_none(self) -> Result<()> {
+        unimplemented!()
+    }
+    fn serialize_some<T>(self, _v: &T) -> Result<()>
+    where
+        T: ?Sized + Serialize,
+    {
+        unimplemented!()
+    }
+    fn serialize_unit(self) -> Result<()> {
+        unimplemented!()
+    }
+    fn serialize_unit_struct(self, _name: &'static str) -> Result<()> {
+        unimplemented!()
+    }
+    fn serialize_unit_variant(
+        self,
+        _name: &'static str,
+        _variant_index: u32,
+        _variant: &'static str,
+    ) -> Result<()> {
+        unimplemented!()
+    }
+    fn serialize_newtype_struct<T>(self, _name: &'static str, _value: &T) -> Result<()>
+    where
+        T: ?Sized + Serialize,
+    {
+        unimplemented!()
+    }
+    fn serialize_newtype_variant<T>(
+        self,
+        _name: &'static str,
+        _variant_index: u32,
+        _variant: &'static str,
+        _value: &T,
+    ) -> Result<()>
+    where
+        T: ?Sized + Serialize,
+    {
+        unimplemented!()
+    }
+    fn serialize_seq(self, _len: Option<usize>) -> Result<Self::SerializeSeq> {
+        unimplemented!()
+    }
+    fn serialize_tuple(self, _len: usize) -> Result<Self::SerializeTuple> {
+        unimplemented!()
+    }
+    fn serialize_tuple_struct(
+        self,
+        _name: &'static str,
+        _len: usize,
+    ) -> Result<Self::SerializeTupleStruct> {
+        unimplemented!()
+    }
+    fn serialize_tuple_variant(
+        self,
+        _name: &'static str,
+        _variant_index: u32,
+        _variant: &'static str,
+        _len: usize,
+    ) -> Result<Self::SerializeTupleVariant> {
+        unimplemented!()
+    }
+    fn serialize_map(self, _len: Option<usize>) -> Result<Self::SerializeMap> {
+        unimplemented!()
+    }
+    fn serialize_struct(self, _name: &'static str, _len: usize) -> Result<Self::SerializeStruct> {
+        unimplemented!()
+    }
+    fn serialize_struct_variant(
+        self,
+        _name: &'static str,
+        _variant_index: u32,
+        _variant: &'static str,
+        _len: usize,
+    ) -> Result<Self::SerializeStructVariant> {
+        unimplemented!()
     }
 }
 

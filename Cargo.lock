@@ -385,6 +385,7 @@ dependencies = [
  "simdnbt",
  "thiserror 2.0.12",
  "tracing",
+ "uuid",
 ]
 
 [[package]]

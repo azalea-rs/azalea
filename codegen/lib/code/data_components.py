@@ -270,7 +270,7 @@ use crate::{
 
                 del python_value["amount"]
                 del python_value["type"]
-                python_value["attribute"] = attribute
+                python_value["kind"] = attribute
                 del python_value["id"]
                 del python_value["operation"]
                 if display_type is not None:
@@ -399,6 +399,7 @@ use crate::{
                 return f"{target_rust_type}::{lib.utils.to_camel_case(python_value.split(':')[-1])}"
         if isinstance(python_value, list):
             # convert Vec<Thing> into Thing
+            main_vec = "vec!["
             inner_type = (
                 target_rust_type.split("<", 1)[1]
                 .rsplit(">", 1)[0]
@@ -407,6 +408,11 @@ use crate::{
                 if (target_rust_type and "<" in target_rust_type)
                 else None
             )
+            # convert [Thing; 2] into Thing
+            if target_rust_type.startswith("[") and target_rust_type.endswith("]"):
+                inner_type = target_rust_type.split(";")[0].strip("[]")
+                main_vec = "["
+
             if inner_type is None:
                 # if the only field is a Vec, use that as the type
                 rust_type_fields = enum_and_struct_fields.get(target_rust_type, {})
@@ -415,7 +421,6 @@ use crate::{
                     return python_to_rust_value(python_value, field_type)
 
             vectors = []
-            main_vec = "vec!["
             for v in python_value:
                 # handle tags correctly
                 if isinstance(v, str) and v.startswith("#minecraft:"):

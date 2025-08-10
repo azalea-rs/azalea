@@ -176,6 +176,15 @@ impl<D: Registry + Serialize, ResourceLocation: AzaleaRead + AzaleaWrite + Seria
         }
     }
 }
+impl<D: Registry, ResourceLocation: AzaleaRead + AzaleaWrite> Default
+    for HolderSet<D, ResourceLocation>
+{
+    fn default() -> Self {
+        Self::Direct {
+            contents: Vec::new(),
+        }
+    }
+}
 
 /// A reference to either a registry or a custom value (usually something with a
 /// ResourceLocation).
@@ -233,6 +242,11 @@ impl<R: Registry + PartialEq, Direct: AzaleaRead + AzaleaWrite + PartialEq> Part
             (Self::Direct(a), Self::Direct(b)) => a == b,
             _ => false,
         }
+    }
+}
+impl<R: Registry + Default, Direct: AzaleaRead + AzaleaWrite> Default for Holder<R, Direct> {
+    fn default() -> Self {
+        Self::Reference(R::default())
     }
 }
 #[cfg(feature = "serde")]

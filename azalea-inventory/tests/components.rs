@@ -5,14 +5,18 @@ use azalea_chat::{
     style::{Style, TextColor},
     text_component::TextComponent,
 };
-use azalea_core::{checksum::get_checksum, registry_holder::RegistryHolder};
+use azalea_core::{
+    checksum::get_checksum,
+    position::{BlockPos, GlobalPos},
+    registry_holder::RegistryHolder,
+};
 use azalea_inventory::{
     ItemStack,
     components::{
         AdventureModePredicate, AttributeModifier, AttributeModifierDisplay,
         AttributeModifierOperation, AttributeModifiers, AttributeModifiersEntry, BlockPredicate,
         CanPlaceOn, ChargedProjectiles, CustomData, CustomName, Enchantments, EquipmentSlotGroup,
-        JukeboxPlayable, Lore, MapColor, Rarity,
+        Glider, JukeboxPlayable, LodestoneTracker, Lore, MapColor, PotDecorations, Rarity,
     },
 };
 use azalea_registry::{Attribute, Block, DataRegistry, Enchantment, Item};
@@ -164,10 +168,6 @@ fn test_charged_projectile_checksum() {
 
 #[test]
 fn test_charged_projectile_with_components_checksum() {
-    // /give @s stick[minecraft:charged_projectiles=[{id: music_disc_cat,
-    // components: {"!minecraft:jukebox_playable": {}, charged_projectiles: [{id:
-    // music_disc_cat}]}}]]
-
     let c = ChargedProjectiles {
         items: vec![
             ItemStack::from(Item::MusicDiscCat)
@@ -178,8 +178,33 @@ fn test_charged_projectile_with_components_checksum() {
         ],
     };
 
-    // println!("{}", serde_json::to_string(&c).unwrap());
+    assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 170375255);
+}
 
-    let todo = "todo";
-    // assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 170375255);
+#[test]
+fn test_lodestone_tracker_checksum() {
+    let c = LodestoneTracker {
+        target: Some(GlobalPos {
+            dimension: "meow".into(),
+            pos: BlockPos::new(1, 2, 3),
+        }),
+        tracked: true,
+    };
+
+    assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 4138292505);
+}
+
+#[test]
+fn test_pot_decorations_checksum() {
+    let c = PotDecorations {
+        items: [Item::Stick, Item::Brick, Item::Brick, Item::Brick],
+    };
+
+    assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 1951715383);
+}
+
+#[test]
+fn test_glider_checksum() {
+    let c = Glider;
+    assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 3312760008);
 }

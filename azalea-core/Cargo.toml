@@ -19,6 +19,7 @@ azalea-chat.workspace = true
 indexmap.workspace = true
 crc32c.workspace = true
 thiserror.workspace = true
+uuid.workspace = true
 
 [features]
 bevy_ecs = ["dep:bevy_ecs"]

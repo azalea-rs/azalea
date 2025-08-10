@@ -16,7 +16,9 @@ use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
 use serde::{Serialize, Serializer};
 use simdnbt::Deserialize;
 
-use crate::{direction::Direction, math, resource_location::ResourceLocation};
+use crate::{
+    codec_utils::IntArray, direction::Direction, math, resource_location::ResourceLocation,
+};
 
 macro_rules! vec3_impl {
     ($name:ident, $type:ty) => {
@@ -430,7 +432,8 @@ impl serde::Serialize for BlockPos {
     where
         S: Serializer,
     {
-        [self.x, self.y, self.z].serialize(serializer)
+        // makes sure it gets serialized correctly for the checksum
+        IntArray([self.x, self.y, self.z]).serialize(serializer)
     }
 }
 impl<'de> serde::Deserialize<'de> for BlockPos {

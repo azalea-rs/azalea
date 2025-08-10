@@ -9,7 +9,7 @@ use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufRead
 use azalea_core::codec_utils::is_default;
 use azalea_registry::{DataComponentKind, Item};
 use indexmap::IndexMap;
-use serde::Serialize;
+use serde::{Serialize, ser::SerializeMap};
 
 use crate::{
     components::{self},
@@ -435,15 +435,14 @@ impl Serialize for DataComponentPatch {
     where
         S: serde::Serializer,
     {
-        // let mut s = serializer.serialize_map("DataComponentPatch",
-        // self.components.len())?; for (kind, component) in &self.components {
-        //     if let Some(component) = component {
-        //         s.serialize_entry(kind, component)?;
-        //     } else {
-        //         s.serialize_entry(kind, &None::<()>?)?;
-        //     }
-        // }
-        // s.end()
-        todo!()
+        let mut s = serializer.serialize_map(Some(self.components.len()))?;
+        for (kind, component) in &self.components {
+            if let Some(component) = component {
+                s.serialize_entry(kind, component)?;
+            } else {
+                s.serialize_entry(kind, &None::<()>?)?;
+            }
+        }
+        s.end()
     }
 }

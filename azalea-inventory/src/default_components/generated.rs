@@ -127,7 +127,7 @@ impl DefaultableComponent for AttributeModifiers {
             }],
             Item::DiamondAxe => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -137,7 +137,7 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -215,7 +215,7 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::DiamondHoe => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -225,7 +225,7 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -281,7 +281,7 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::DiamondPickaxe => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -291,7 +291,7 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -303,7 +303,7 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::DiamondShovel => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -313,7 +313,7 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -325,7 +325,7 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::DiamondSword => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -335,7 +335,7 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -357,7 +357,7 @@ impl DefaultableComponent for AttributeModifiers {
             }],
             Item::GoldenAxe => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -367,7 +367,7 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -445,7 +445,7 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::GoldenHoe => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -455,7 +455,7 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -511,7 +511,7 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::GoldenPickaxe => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -521,7 +521,7 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -533,7 +533,7 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::GoldenShovel => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -543,7 +543,7 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -555,7 +555,7 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::GoldenSword => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -565,7 +565,7 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -577,7 +577,7 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::IronAxe => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -587,7 +587,7 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -665,7 +665,7 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::IronHoe => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -675,7 +675,7 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -731,7 +731,7 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::IronPickaxe => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -741,7 +741,7 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -753,7 +753,7 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::IronShovel => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -763,7 +763,7 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -775,7 +775,7 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::IronSword => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -785,7 +785,7 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -907,7 +907,7 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::Mace => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -917,7 +917,7 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -929,7 +929,7 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::NetheriteAxe => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -939,7 +939,7 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -1047,7 +1047,7 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::NetheriteHoe => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -1057,7 +1057,7 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -1101,7 +1101,7 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::NetheritePickaxe => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -1111,7 +1111,7 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -1123,7 +1123,7 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::NetheriteShovel => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -1133,7 +1133,7 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -1145,7 +1145,7 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::NetheriteSword => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -1155,7 +1155,7 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -1197,7 +1197,7 @@ impl DefaultableComponent for AttributeModifiers {
             }],
             Item::StoneAxe => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -1207,7 +1207,7 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -1219,7 +1219,7 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::StoneHoe => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -1229,7 +1229,7 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -1241,7 +1241,7 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::StonePickaxe => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -1251,7 +1251,7 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -1263,7 +1263,7 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::StoneShovel => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -1273,7 +1273,7 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -1285,7 +1285,7 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::StoneSword => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -1295,7 +1295,7 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -1307,7 +1307,7 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::Trident => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -1317,7 +1317,7 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -1383,7 +1383,7 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::WoodenAxe => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -1393,7 +1393,7 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -1405,7 +1405,7 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::WoodenHoe => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -1415,7 +1415,7 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -1427,7 +1427,7 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::WoodenPickaxe => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -1437,7 +1437,7 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -1449,7 +1449,7 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::WoodenShovel => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -1459,7 +1459,7 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -1471,7 +1471,7 @@ impl DefaultableComponent for AttributeModifiers {
             ],
             Item::WoodenSword => vec![
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackDamage,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -1481,7 +1481,7 @@ impl DefaultableComponent for AttributeModifiers {
                     },
                 },
                 AttributeModifiersEntry {
-                    slot: EquipmentSlotGroup::Hand,
+                    slot: EquipmentSlotGroup::Mainhand,
                     kind: Attribute::AttackSpeed,
                     display: AttributeModifierDisplay::Default,
                     modifier: AttributeModifier {
@@ -3691,7 +3691,7 @@ impl DefaultableComponent for EnchantmentGlintOverride {
 impl DefaultableComponent for PotDecorations {
     fn default_for_item(item: Item) -> Option<Self> {
         let value = match item {
-            Item::DecoratedPot => vec![Item::Brick, Item::Brick, Item::Brick, Item::Brick],
+            Item::DecoratedPot => [Item::Brick, Item::Brick, Item::Brick, Item::Brick],
             _ => return None,
         };
         Some(PotDecorations { items: value })
