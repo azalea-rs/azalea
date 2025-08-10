@@ -18,6 +18,7 @@ use azalea_protocol::packets::game::{
     s_set_carried_item::ServerboundSetCarriedItem,
 };
 use azalea_registry::MenuKind;
+use azalea_world::{InstanceContainer, InstanceName};
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 use tracing::{error, warn};
@@ -835,12 +836,19 @@ pub struct ContainerClickEvent {
     pub operation: ClickOperation,
 }
 pub fn handle_container_click_event(
-    mut query: Query<(Entity, &mut Inventory, Option<&PlayerAbilities>)>,
+    mut query: Query<(
+        Entity,
+        &mut Inventory,
+        Option<&PlayerAbilities>,
+        &InstanceName,
+    )>,
     mut events: EventReader<ContainerClickEvent>,
     mut commands: Commands,
+    instance_container: Res<InstanceContainer>,
 ) {
     for event in events.read() {
-        let (entity, mut inventory, player_abilities) = query.get_mut(event.entity).unwrap();
+        let (entity, mut inventory, player_abilities, instance_name) =
+            query.get_mut(event.entity).unwrap();
         if inventory.id != event.window_id {
             error!(
                 "Tried to click container with ID {}, but the current container ID is {}. Click packet won't be sent.",
@@ -849,6 +857,10 @@ pub fn handle_container_click_event(
             continue;
         }
 
+        let Some(instance) = instance_container.get(instance_name) else {
+            continue;
+        };
+
         let old_slots = inventory.menu().slots();
         inventory.simulate_click(
             &event.operation,
@@ -856,13 +868,18 @@ pub fn handle_container_click_event(
         );
         let new_slots = inventory.menu().slots();
 
+        let registry_holder = &instance.read().registries;
+
         // see which slots changed after clicking and put them in the hashmap
         // the server uses this to check if we desynced
         let mut changed_slots: HashMap<u16, HashedStack> = HashMap::new();
         for (slot_index, old_slot) in old_slots.iter().enumerate() {
             let new_slot = &new_slots[slot_index];
             if old_slot != new_slot {
-                changed_slots.insert(slot_index as u16, HashedStack::from(new_slot));
+                changed_slots.insert(
+                    slot_index as u16,
+                    HashedStack::from_item_stack(new_slot, registry_holder),
+                );
             }
         }
 
@@ -875,7 +892,7 @@ pub fn handle_container_click_event(
                 button_num: event.operation.button_num(),
                 click_type: event.operation.click_type(),
                 changed_slots,
-                carried_item: (&inventory.carried).into(),
+                carried_item: HashedStack::from_item_stack(&inventory.carried, registry_holder),
             },
         ));
     }

@@ -13,8 +13,12 @@ use std::{
 };
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
+use serde::{Serialize, Serializer};
+use simdnbt::Deserialize;
 
-use crate::{direction::Direction, math, resource_location::ResourceLocation};
+use crate::{
+    codec_utils::IntArray, direction::Direction, math, resource_location::ResourceLocation,
+};
 
 macro_rules! vec3_impl {
     ($name:ident, $type:ty) => {
@@ -295,8 +299,7 @@ macro_rules! vec3_impl {
 /// Used to represent an exact position in the world where an entity could be.
 ///
 /// For blocks, [`BlockPos`] is used instead.
-#[derive(Clone, Copy, Debug, Default, PartialEq, AzBuf)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+#[derive(Clone, Copy, Debug, Default, PartialEq, AzBuf, serde::Deserialize, serde::Serialize)]
 pub struct Vec3 {
     pub x: f64,
     pub y: f64,
@@ -362,7 +365,6 @@ impl Vec3 {
 ///
 /// For entities (if the coordinates are floating-point), use [`Vec3`] instead.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct BlockPos {
     pub x: i32,
     pub y: i32,
@@ -423,6 +425,24 @@ impl BlockPos {
     /// side in the comparison).
     pub fn distance_to(self, other: Self) -> f64 {
         (self - other).length()
+    }
+}
+impl serde::Serialize for BlockPos {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        // makes sure it gets serialized correctly for the checksum
+        IntArray([self.x, self.y, self.z]).serialize(serializer)
+    }
+}
+impl<'de> serde::Deserialize<'de> for BlockPos {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let [x, y, z] = <[i32; 3]>::deserialize(deserializer)?;
+        Ok(BlockPos { x, y, z })
     }
 }
 
@@ -661,10 +681,10 @@ impl From<ChunkSectionBlockPos> for u16 {
 impl nohash_hasher::IsEnabled for ChunkSectionBlockPos {}
 
 /// A block pos with an attached world
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct GlobalPos {
     // this is actually a ResourceKey in Minecraft, but i don't think it matters?
-    pub world: ResourceLocation,
+    pub dimension: ResourceLocation,
     pub pos: BlockPos,
 }
 
@@ -819,8 +839,7 @@ impl fmt::Display for Vec3 {
 }
 
 /// A 2D vector.
-#[derive(Clone, Copy, Debug, Default, PartialEq, AzBuf)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+#[derive(Clone, Copy, Debug, Default, PartialEq, AzBuf, Deserialize, Serialize)]
 pub struct Vec2 {
     pub x: f32,
     pub y: f32,
@@ -900,7 +919,7 @@ impl AzaleaRead for BlockPos {
 impl AzaleaRead for GlobalPos {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(GlobalPos {
-            world: ResourceLocation::azalea_read(buf)?,
+            dimension: ResourceLocation::azalea_read(buf)?,
             pos: BlockPos::azalea_read(buf)?,
         })
     }
@@ -929,7 +948,7 @@ impl AzaleaWrite for BlockPos {
 
 impl AzaleaWrite for GlobalPos {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        ResourceLocation::azalea_write(&self.world, buf)?;
+        ResourceLocation::azalea_write(&self.dimension, buf)?;
         BlockPos::azalea_write(&self.pos, buf)?;
 
         Ok(())

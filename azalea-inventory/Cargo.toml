@@ -11,8 +11,10 @@ azalea-buf.workspace = true
 azalea-chat = { workspace = true, features = ["azalea-buf"] }
 azalea-core.workspace = true
 azalea-inventory-macros.workspace = true
-azalea-registry.workspace = true
+azalea-registry = { workspace = true, features = ["serde"] }
 indexmap.workspace = true
+serde.workspace = true
+serde_json.workspace = true
 
 simdnbt.workspace = true
 tracing.workspace = true

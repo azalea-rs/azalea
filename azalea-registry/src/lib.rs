@@ -18,6 +18,8 @@ use azalea_buf::{AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufRead
 use azalea_registry_macros::registry;
 pub use data::*;
 pub use extra::*;
+#[cfg(feature = "serde")]
+use serde::Serialize;
 
 pub trait Registry: AzaleaRead + AzaleaWrite
 where
@@ -125,7 +127,7 @@ impl<D: Registry, ResourceLocation: AzaleaRead + AzaleaWrite> AzaleaWrite
                     item.azalea_write(buf)?;
                 }
             }
-            Self::Named { key, .. } => {
+            Self::Named { key, contents: _ } => {
                 0i32.azalea_write_var(buf)?;
                 key.azalea_write(buf)?;
             }
@@ -144,6 +146,42 @@ impl<D: Registry + Debug, ResourceLocation: AzaleaRead + AzaleaWrite + Debug> De
                 .field("key", key)
                 .field("contents", contents)
                 .finish(),
+        }
+    }
+}
+impl<D: Registry, ResourceLocation: AzaleaRead + AzaleaWrite> From<Vec<D>>
+    for HolderSet<D, ResourceLocation>
+{
+    fn from(contents: Vec<D>) -> Self {
+        Self::Direct { contents }
+    }
+}
+#[cfg(feature = "serde")]
+impl<D: Registry + Serialize, ResourceLocation: AzaleaRead + AzaleaWrite + Serialize> Serialize
+    for HolderSet<D, ResourceLocation>
+{
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        match self {
+            Self::Direct { contents } => {
+                if contents.len() == 1 {
+                    contents[0].serialize(serializer)
+                } else {
+                    contents.serialize(serializer)
+                }
+            }
+            Self::Named { key, contents: _ } => key.serialize(serializer),
+        }
+    }
+}
+impl<D: Registry, ResourceLocation: AzaleaRead + AzaleaWrite> Default
+    for HolderSet<D, ResourceLocation>
+{
+    fn default() -> Self {
+        Self::Direct {
+            contents: Vec::new(),
         }
     }
 }
@@ -203,6 +241,25 @@ impl<R: Registry + PartialEq, Direct: AzaleaRead + AzaleaWrite + PartialEq> Part
             (Self::Reference(a), Self::Reference(b)) => a == b,
             (Self::Direct(a), Self::Direct(b)) => a == b,
             _ => false,
+        }
+    }
+}
+impl<R: Registry + Default, Direct: AzaleaRead + AzaleaWrite> Default for Holder<R, Direct> {
+    fn default() -> Self {
+        Self::Reference(R::default())
+    }
+}
+#[cfg(feature = "serde")]
+impl<R: Registry + Serialize, Direct: AzaleaRead + AzaleaWrite + Serialize> Serialize
+    for Holder<R, Direct>
+{
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        match self {
+            Self::Reference(value) => value.serialize(serializer),
+            Self::Direct(value) => value.serialize(serializer),
         }
     }
 }

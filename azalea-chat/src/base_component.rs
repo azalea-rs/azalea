@@ -2,20 +2,26 @@ use serde::Serialize;
 
 use crate::{FormattedText, style::Style};
 
-#[derive(Clone, Debug, PartialEq, Serialize, Eq, Hash)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct BaseComponent {
     // implements mutablecomponent
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub siblings: Vec<FormattedText>,
     #[serde(flatten)]
-    pub style: Style,
+    pub style: Box<Style>,
 }
 
 impl BaseComponent {
     pub fn new() -> Self {
         Self {
             siblings: Vec::new(),
-            style: Style::default(),
+            style: Default::default(),
+        }
+    }
+    pub fn with_style(self, style: Style) -> Self {
+        Self {
+            style: Box::new(style),
+            ..self
         }
     }
 }

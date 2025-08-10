@@ -302,6 +302,7 @@ version = "0.13.0+mc1.21.8"
 dependencies = [
  "azalea-buf-macros",
  "byteorder",
+ "serde",
  "serde_json",
  "simdnbt",
  "thiserror 2.0.12",
@@ -376,12 +377,15 @@ dependencies = [
  "azalea-chat",
  "azalea-registry",
  "bevy_ecs",
+ "crc32c",
  "indexmap",
  "nohash-hasher",
  "num-traits",
  "serde",
  "simdnbt",
+ "thiserror 2.0.12",
  "tracing",
+ "uuid",
 ]
 
 [[package]]
@@ -434,6 +438,8 @@ dependencies = [
  "azalea-inventory-macros",
  "azalea-registry",
  "indexmap",
+ "serde",
+ "serde_json",
  "simdnbt",
  "tracing",
  "uuid",
@@ -494,7 +500,6 @@ dependencies = [
  "azalea-registry",
  "azalea-world",
  "bevy_ecs",
- "crc32fast",
  "flate2",
  "futures",
  "futures-lite",
@@ -1062,6 +1067,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "59ed5838eebb26a2bb2e58f6d5b5316989ae9d08bab10e0e6d103e656d1b0280"
 dependencies = [
  "libc",
+]
+
+[[package]]
+name = "crc32c"
+version = "0.6.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3a47af21622d091a8f0fb295b88bc886ac74efcc613efc19f5d0b21de5c89e47"
+dependencies = [
+ "rustc_version",
 ]
 
 [[package]]
@@ -3066,10 +3080,11 @@ dependencies = [
 [[package]]
 name = "simdnbt"
 version = "0.7.2"
-source = "git+https://github.com/azalea-rs/simdnbt#1505d233fd277353f1dba9845360880b74ff3a71"
+source = "git+https://github.com/azalea-rs/simdnbt#6c1100f38262abab2f080c454351c6c594921a95"
 dependencies = [
  "byteorder",
  "flate2",
+ "serde",
  "simd_cesu8",
  "simdnbt-derive",
  "thiserror 2.0.12",
@@ -3078,7 +3093,7 @@ dependencies = [
 [[package]]
 name = "simdnbt-derive"
 version = "0.7.0"
-source = "git+https://github.com/azalea-rs/simdnbt#1505d233fd277353f1dba9845360880b74ff3a71"
+source = "git+https://github.com/azalea-rs/simdnbt#6c1100f38262abab2f080c454351c6c594921a95"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3798,7 +3813,7 @@ version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf221c93e13a30d793f7645a0e7762c55d169dbb0a49671918a2319d289b10bb"
 dependencies = [
- "windows-sys 0.48.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]

@@ -7,6 +7,8 @@ use serde_json::Value;
 #[cfg(feature = "simdnbt")]
 use simdnbt::owned::{NbtCompound, NbtTag};
 
+use crate::{click_event::ClickEvent, hover_event::HoverEvent};
+
 #[derive(Clone, PartialEq, Eq, Debug, Hash)]
 pub struct TextColor {
     pub value: u32,
@@ -30,13 +32,16 @@ impl simdnbt::ToNbtTag for TextColor {
 }
 
 impl TextColor {
-    pub fn parse(value: String) -> Option<TextColor> {
+    /// Parse a text component in the same way that Minecraft does.
+    ///
+    /// This supports named colors and hex codes.
+    pub fn parse(value: &str) -> Option<TextColor> {
         if value.starts_with('#') {
             let n = value.chars().skip(1).collect::<String>();
             let n = u32::from_str_radix(&n, 16).ok()?;
             return Some(TextColor::from_rgb(n));
         }
-        let color_option = NAMED_COLORS.get(&value.to_ascii_uppercase());
+        let color_option = NAMED_COLORS.get(&value.to_ascii_lowercase());
         if let Some(color) = color_option {
             return Some(color.clone());
         }
@@ -146,28 +151,28 @@ impl ChatFormatting {
 
     pub fn name(&self) -> &'static str {
         match self {
-            ChatFormatting::Black => "BLACK",
-            ChatFormatting::DarkBlue => "DARK_BLUE",
-            ChatFormatting::DarkGreen => "DARK_GREEN",
-            ChatFormatting::DarkAqua => "DARK_AQUA",
-            ChatFormatting::DarkRed => "DARK_RED",
-            ChatFormatting::DarkPurple => "DARK_PURPLE",
-            ChatFormatting::Gold => "GOLD",
-            ChatFormatting::Gray => "GRAY",
-            ChatFormatting::DarkGray => "DARK_GRAY",
-            ChatFormatting::Blue => "BLUE",
-            ChatFormatting::Green => "GREEN",
-            ChatFormatting::Aqua => "AQUA",
-            ChatFormatting::Red => "RED",
-            ChatFormatting::LightPurple => "LIGHT_PURPLE",
-            ChatFormatting::Yellow => "YELLOW",
-            ChatFormatting::White => "WHITE",
-            ChatFormatting::Obfuscated => "OBFUSCATED",
-            ChatFormatting::Strikethrough => "STRIKETHROUGH",
-            ChatFormatting::Bold => "BOLD",
-            ChatFormatting::Underline => "UNDERLINE",
-            ChatFormatting::Italic => "ITALIC",
-            ChatFormatting::Reset => "RESET",
+            ChatFormatting::Black => "black",
+            ChatFormatting::DarkBlue => "dark_blue",
+            ChatFormatting::DarkGreen => "dark_green",
+            ChatFormatting::DarkAqua => "dark_aqua",
+            ChatFormatting::DarkRed => "dark_red",
+            ChatFormatting::DarkPurple => "dark_purple",
+            ChatFormatting::Gold => "gold",
+            ChatFormatting::Gray => "gray",
+            ChatFormatting::DarkGray => "dark_gray",
+            ChatFormatting::Blue => "blue",
+            ChatFormatting::Green => "green",
+            ChatFormatting::Aqua => "aqua",
+            ChatFormatting::Red => "red",
+            ChatFormatting::LightPurple => "light_purple",
+            ChatFormatting::Yellow => "yellow",
+            ChatFormatting::White => "white",
+            ChatFormatting::Obfuscated => "obfuscated",
+            ChatFormatting::Strikethrough => "strikethrough",
+            ChatFormatting::Bold => "bold",
+            ChatFormatting::Underline => "underline",
+            ChatFormatting::Italic => "italic",
+            ChatFormatting::Reset => "reset",
         }
     }
 
@@ -298,17 +303,76 @@ impl TryFrom<ChatFormatting> for TextColor {
     }
 }
 
-#[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, Default, PartialEq)]
+#[non_exhaustive]
 pub struct Style {
-    // These are options instead of just bools because None is different than false in this case
     pub color: Option<TextColor>,
+    pub shadow_color: Option<u32>,
     pub bold: Option<bool>,
     pub italic: Option<bool>,
     pub underlined: Option<bool>,
     pub strikethrough: Option<bool>,
     pub obfuscated: Option<bool>,
+    pub click_event: Option<ClickEvent>,
+    pub hover_event: Option<HoverEvent>,
+    pub insertion: Option<String>,
+    /// Represented as a `ResourceLocation`.
+    pub font: Option<String>,
     /// Whether formatting should be reset before applying these styles
     pub reset: bool,
+}
+impl Style {
+    pub fn new() -> Self {
+        Self::default()
+    }
+    pub fn color(mut self, color: impl Into<Option<TextColor>>) -> Self {
+        self.color = color.into();
+        self
+    }
+    pub fn shadow_color(mut self, color: impl Into<Option<u32>>) -> Self {
+        self.shadow_color = color.into();
+        self
+    }
+    pub fn bold(mut self, bold: impl Into<Option<bool>>) -> Self {
+        self.bold = bold.into();
+        self
+    }
+    pub fn italic(mut self, italic: impl Into<Option<bool>>) -> Self {
+        self.italic = italic.into();
+        self
+    }
+    pub fn underlined(mut self, underlined: impl Into<Option<bool>>) -> Self {
+        self.underlined = underlined.into();
+        self
+    }
+    pub fn strikethrough(mut self, strikethrough: impl Into<Option<bool>>) -> Self {
+        self.strikethrough = strikethrough.into();
+        self
+    }
+    pub fn obfuscated(mut self, obfuscated: impl Into<Option<bool>>) -> Self {
+        self.obfuscated = obfuscated.into();
+        self
+    }
+    pub fn click_event(mut self, click_event: impl Into<Option<ClickEvent>>) -> Self {
+        self.click_event = click_event.into();
+        self
+    }
+    pub fn hover_event(mut self, hover_event: impl Into<Option<HoverEvent>>) -> Self {
+        self.hover_event = hover_event.into();
+        self
+    }
+    pub fn insertion(mut self, insertion: impl Into<Option<String>>) -> Self {
+        self.insertion = insertion.into();
+        self
+    }
+    pub fn font(mut self, font: impl Into<Option<String>>) -> Self {
+        self.font = font.into();
+        self
+    }
+    pub fn reset(mut self, reset: bool) -> Self {
+        self.reset = reset;
+        self
+    }
 }
 
 fn serde_serialize_field<S: serde::ser::SerializeStruct>(
@@ -443,7 +507,7 @@ impl Style {
         let color: Option<TextColor> = json_object
             .get("color")
             .and_then(|v| v.as_str())
-            .and_then(|v| TextColor::parse(v.to_string()));
+            .and_then(TextColor::parse);
         Style {
             color,
             bold,
@@ -565,11 +629,16 @@ impl Style {
     pub fn merged_with(&self, other: &Style) -> Style {
         Style {
             color: other.color.clone().or(self.color.clone()),
+            shadow_color: other.shadow_color.or(self.shadow_color),
             bold: other.bold.or(self.bold),
             italic: other.italic.or(self.italic),
             underlined: other.underlined.or(self.underlined),
             strikethrough: other.strikethrough.or(self.strikethrough),
             obfuscated: other.obfuscated.or(self.obfuscated),
+            click_event: other.click_event.clone().or(self.click_event.clone()),
+            hover_event: other.hover_event.clone().or(self.hover_event.clone()),
+            insertion: other.insertion.clone().or(self.insertion.clone()),
+            font: other.font.clone().or(self.font.clone()),
             reset: other.reset, // if reset is true in the new style, that takes precedence
         }
     }
@@ -647,7 +716,7 @@ impl simdnbt::Deserialize for Style {
         let obfuscated = compound.byte("obfuscated").map(|v| v != 0);
         let color: Option<TextColor> = compound
             .string("color")
-            .and_then(|v| TextColor::parse(v.to_string()));
+            .and_then(|v| TextColor::parse(&v.to_str()));
         Ok(Style {
             color,
             bold,
@@ -667,14 +736,11 @@ mod tests {
 
     #[test]
     fn text_color_named_colors() {
-        assert_eq!(TextColor::parse("red".to_string()).unwrap().value, 16733525);
+        assert_eq!(TextColor::parse("red").unwrap().value, 16733525);
     }
     #[test]
     fn text_color_hex_colors() {
-        assert_eq!(
-            TextColor::parse("#a1b2c3".to_string()).unwrap().value,
-            10597059
-        );
+        assert_eq!(TextColor::parse("#a1b2c3").unwrap().value, 10597059);
     }
 
     #[test]

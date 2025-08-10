@@ -1,5 +1,3 @@
-use bevy_ecs::entity::Entity;
-
 use crate::{
     direction::Direction,
     position::{BlockPos, Vec3},
@@ -8,12 +6,14 @@ use crate::{
 /// The block or entity that our player is looking at and can interact with.
 ///
 /// If there's nothing, it'll be a [`BlockHitResult`] with `miss` set to true.
+#[cfg(feature = "bevy_ecs")]
 #[derive(Debug, Clone, PartialEq)]
 pub enum HitResult {
     Block(BlockHitResult),
     Entity(EntityHitResult),
 }
 
+#[cfg(feature = "bevy_ecs")]
 impl HitResult {
     pub fn miss(&self) -> bool {
         match self {
@@ -86,18 +86,21 @@ impl BlockHitResult {
         Self { block_pos, ..*self }
     }
 }
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct EntityHitResult {
-    pub location: Vec3,
-    pub entity: Entity,
-}
-
+#[cfg(feature = "bevy_ecs")]
 impl From<BlockHitResult> for HitResult {
     fn from(value: BlockHitResult) -> Self {
         HitResult::Block(value)
     }
 }
+
+#[cfg(feature = "bevy_ecs")]
+#[derive(Debug, Clone, PartialEq)]
+pub struct EntityHitResult {
+    pub location: Vec3,
+    pub entity: bevy_ecs::entity::Entity,
+}
+
+#[cfg(feature = "bevy_ecs")]
 impl From<EntityHitResult> for HitResult {
     fn from(value: EntityHitResult) -> Self {
         HitResult::Entity(value)

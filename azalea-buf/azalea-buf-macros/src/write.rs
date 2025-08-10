@@ -11,7 +11,7 @@ pub fn create_impl_azaleawrite(ident: &Ident, data: &Data) -> proc_macro2::Token
 
                 quote! {
                     impl azalea_buf::AzaleaWrite for #ident {
-                        fn azalea_write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
+                        fn azalea_write(&self, buf: &mut impl std::io::Write) -> std::result::Result<(), std::io::Error> {
                             #write_fields
                             Ok(())
                         }
@@ -21,7 +21,7 @@ pub fn create_impl_azaleawrite(ident: &Ident, data: &Data) -> proc_macro2::Token
             syn::Fields::Unit => {
                 quote! {
                     impl azalea_buf::AzaleaWrite for #ident {
-                        fn azalea_write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
+                        fn azalea_write(&self, buf: &mut impl std::io::Write) -> std::result::Result<(), std::io::Error> {
                             Ok(())
                         }
                     }
@@ -32,7 +32,7 @@ pub fn create_impl_azaleawrite(ident: &Ident, data: &Data) -> proc_macro2::Token
 
                 quote! {
                     impl azalea_buf::AzaleaWrite for #ident {
-                        fn azalea_write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
+                        fn azalea_write(&self, buf: &mut impl std::io::Write) -> std::result::Result<(), std::io::Error> {
                             #write_fields
                             Ok(())
                         }
@@ -144,7 +144,7 @@ pub fn create_impl_azaleawrite(ident: &Ident, data: &Data) -> proc_macro2::Token
             if is_data_enum {
                 quote! {
                     impl azalea_buf::AzaleaWrite for #ident {
-                        fn azalea_write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
+                        fn azalea_write(&self, buf: &mut impl std::io::Write) -> std::result::Result<(), std::io::Error> {
                             match self {
                                 #match_arms
                             }
@@ -152,7 +152,7 @@ pub fn create_impl_azaleawrite(ident: &Ident, data: &Data) -> proc_macro2::Token
                         }
                     }
                     impl #ident {
-                        pub fn write_without_id(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
+                        pub fn write_without_id(&self, buf: &mut impl std::io::Write) -> std::result::Result<(), std::io::Error> {
                             match self {
                                 #match_arms_without_id
                             }
@@ -164,7 +164,7 @@ pub fn create_impl_azaleawrite(ident: &Ident, data: &Data) -> proc_macro2::Token
                 // optimization: if it doesn't have data we can just do `as u32`
                 quote! {
                     impl azalea_buf::AzaleaWrite for #ident {
-                        fn azalea_write(&self, buf: &mut impl std::io::Write) -> Result<(), std::io::Error> {
+                        fn azalea_write(&self, buf: &mut impl std::io::Write) -> std::result::Result<(), std::io::Error> {
                             azalea_buf::AzaleaWriteVar::azalea_write_var(&(*self as u32), buf)
                         }
                     }

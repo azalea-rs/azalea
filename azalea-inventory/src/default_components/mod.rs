@@ -2,15 +2,15 @@ pub mod generated;
 
 use azalea_registry::Item;
 
-use crate::components::DataComponent;
+use crate::components::DataComponentTrait;
 
 /// A [`DataComponent`] that some [`Item`]s may have a default value for.
-pub trait DefaultableComponent: DataComponent {
+pub trait DefaultableComponent: DataComponentTrait {
     fn default_for_item(item: Item) -> Option<Self>
     where
         Self: Sized;
 }
-impl<T: DataComponent> DefaultableComponent for T {
+impl<T: DataComponentTrait> DefaultableComponent for T {
     default fn default_for_item(_item: Item) -> Option<Self> {
         None
     }

@@ -4,11 +4,9 @@ use serde::{__private::ser::FlatMapSerializer, Serialize, Serializer, ser::Seria
 #[cfg(feature = "simdnbt")]
 use simdnbt::Serialize as _;
 
-use crate::{
-    FormattedText, base_component::BaseComponent, style::Style, text_component::TextComponent,
-};
+use crate::{FormattedText, base_component::BaseComponent, text_component::TextComponent};
 
-#[derive(Clone, Debug, PartialEq, Serialize, Eq, Hash)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum StringOrComponent {
     String(String),
@@ -26,7 +24,7 @@ impl simdnbt::ToNbtTag for StringOrComponent {
 }
 
 /// A message whose content depends on the client's language.
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct TranslatableComponent {
     pub base: BaseComponent,
     pub key: String,
@@ -181,7 +179,7 @@ impl TranslatableComponent {
         Ok(TextComponent {
             base: BaseComponent {
                 siblings: components.into_iter().map(FormattedText::Text).collect(),
-                style: Style::default(),
+                style: Default::default(),
             },
             text: "".to_string(),
         })
