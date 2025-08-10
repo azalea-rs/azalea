@@ -21,7 +21,7 @@ use crate::{
 };
 
 /// A chat component, basically anything you can see in chat.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Hash)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum FormattedText {
     Text(TextComponent),

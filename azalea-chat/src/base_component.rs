@@ -2,7 +2,7 @@ use serde::Serialize;
 
 use crate::{FormattedText, style::Style};
 
-#[derive(Clone, Debug, PartialEq, Serialize, Eq, Hash)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct BaseComponent {
     // implements mutablecomponent
     #[serde(skip_serializing_if = "Vec::is_empty")]

@@ -42,7 +42,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
             return 0;
         };
         let position = source.bot.entity_component::<Position>(entity);
-        source.reply(&format!(
+        source.reply(format!(
             "You are at {}, {}, {}",
             position.x, position.y, position.z
         ));
@@ -56,7 +56,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
             return 0;
         };
         let entity_id = source.bot.entity_component::<MinecraftEntityId>(entity);
-        source.reply(&format!(
+        source.reply(format!(
             "Your Minecraft ID is {} and your ECS id is {entity:?}",
             *entity_id
         ));
@@ -66,7 +66,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
     let whereareyou = |ctx: &Ctx| {
         let source = ctx.source.lock();
         let position = source.bot.position();
-        source.reply(&format!(
+        source.reply(format!(
             "I'm at {}, {}, {}",
             position.x, position.y, position.z
         ));
@@ -77,7 +77,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
 
     commands.register(literal("whoareyou").executes(|ctx: &Ctx| {
         let source = ctx.source.lock();
-        source.reply(&format!(
+        source.reply(format!(
             "I am {} ({})",
             source.bot.username(),
             source.bot.uuid()
@@ -88,7 +88,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
     commands.register(literal("getdirection").executes(|ctx: &Ctx| {
         let source = ctx.source.lock();
         let direction = source.bot.component::<LookDirection>();
-        source.reply(&format!(
+        source.reply(format!(
             "I'm looking at {}, {}",
             direction.y_rot, direction.x_rot
         ));
@@ -99,7 +99,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
         let source = ctx.source.lock();
 
         let health = source.bot.health();
-        source.reply(&format!("I have {health} health"));
+        source.reply(format!("I have {health} health"));
         1
     }));
 
@@ -116,11 +116,11 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
                 }
                 let block_pos = r.block_pos;
                 let block = source.bot.world().read().get_block_state(block_pos);
-                source.reply(&format!("I'm looking at {block:?} at {block_pos:?}"));
+                source.reply(format!("I'm looking at {block:?} at {block_pos:?}"));
             }
             HitResult::Entity(r) => {
                 let entity_kind = *source.bot.entity_component::<EntityKindComponent>(r.entity);
-                source.reply(&format!(
+                source.reply(format!(
                     "I'm looking at {entity_kind} ({:?}) at {}",
                     r.entity, r.location
                 ));
@@ -139,7 +139,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
             println!("getblock xyz {x} {y} {z}");
             let block_pos = BlockPos::new(x, y, z);
             let block = source.bot.world().read().get_block_state(block_pos);
-            source.reply(&format!("Block at {block_pos} is {block:?}"));
+            source.reply(format!("Block at {block_pos} is {block:?}"));
             1
         })),
     )));
@@ -152,7 +152,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
             println!("getfluid xyz {x} {y} {z}");
             let block_pos = BlockPos::new(x, y, z);
             let block = source.bot.world().read().get_fluid_state(block_pos);
-            source.reply(&format!("Fluid at {block_pos} is {block:?}"));
+            source.reply(format!("Fluid at {block_pos} is {block:?}"));
             1
         })),
     )));
@@ -164,7 +164,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
             source.reply("I don't have the Pathfinder ocmponent");
             return 1;
         };
-        source.reply(&format!(
+        source.reply(format!(
             "pathfinder.is_calculating: {}",
             pathfinder.is_calculating
         ));
@@ -174,7 +174,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
             source.reply("I'm not executing a path");
             return 1;
         };
-        source.reply(&format!(
+        source.reply(format!(
             "is_path_partial: {}, path.len: {}, queued_path.len: {}",
             executing_path.is_path_partial,
             executing_path.path.len(),

@@ -141,7 +141,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
                 tokio::time::sleep(Duration::from_secs_f32(seconds)).await;
                 bot.walk(WalkDirection::None);
             });
-            source.reply(&format!("ok, walking for {seconds} seconds"));
+            source.reply(format!("ok, walking for {seconds} seconds"));
             1
         })),
     );
@@ -155,7 +155,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
                 tokio::time::sleep(Duration::from_secs_f32(seconds)).await;
                 bot.walk(WalkDirection::None);
             });
-            source.reply(&format!("ok, spriting for {seconds} seconds"));
+            source.reply(format!("ok, spriting for {seconds} seconds"));
             1
         })),
     );

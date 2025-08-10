@@ -303,7 +303,7 @@ impl TryFrom<ChatFormatting> for TextColor {
     }
 }
 
-#[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, Default, PartialEq)]
 #[non_exhaustive]
 pub struct Style {
     pub color: Option<TextColor>,

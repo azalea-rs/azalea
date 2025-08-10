@@ -12,6 +12,7 @@ mod plugin;
 pub mod vec_delta_codec;
 
 use std::{
+    f64::consts::PI,
     fmt::{self, Debug},
     hash::{Hash, Hasher},
 };
@@ -59,8 +60,8 @@ pub fn input_vector(direction: LookDirection, speed: f32, acceleration: Vec3) ->
         acceleration
     }
     .scale(speed as f64);
-    let y_rot = math::sin(direction.y_rot * (3.141592653589793 / 180.) as f32);
-    let x_rot = math::cos(direction.y_rot * (3.141592653589793 / 180.) as f32);
+    let y_rot = math::sin(direction.y_rot * (PI / 180.) as f32);
+    let x_rot = math::cos(direction.y_rot * (PI / 180.) as f32);
     Vec3 {
         x: acceleration.x * (x_rot as f64) - acceleration.z * (y_rot as f64),
         y: acceleration.y,

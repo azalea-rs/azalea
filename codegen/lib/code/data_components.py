@@ -65,17 +65,19 @@ def get_actual_variants():
     with open(DATA_COMPONENTS_DIR, "r") as f:
         code = f.read().split("\n")
 
-    in_match = False
+    in_define_macro = False
     for line in code:
-        if in_match:
-            if line == "    })":
+        if in_define_macro:
+            if line == ");":
                 break
-            variant_line_prefix = "        DataComponentKind::"
-            if line.startswith(variant_line_prefix):
-                variant = line[len(variant_line_prefix) :].split(" ", 1)[0]
-                actual_variants.append(variant)
-        elif line == "    Ok(match kind {":
-            in_match = True
+            if line.startswith("    "):
+                variant_name = line.strip(" ,").split()[0]
+                if variant_name[0] in "#/":
+                    # skip comments
+                    continue
+                actual_variants.append(variant_name)
+        elif line == "define_data_components!(":
+            in_define_macro = True
 
     return actual_variants
 
@@ -87,22 +89,24 @@ def remove_variant(variant: str):
     first_line_with_variant = None
     line_after_variant = None
 
-    in_match = False
+    in_define_macro = False
     for i, line in enumerate(list(code)):
-        if in_match:
-            if line == "    })":
+        if in_define_macro:
+            if line == ");":
                 line_after_variant = i
                 break
-            variant_line_prefix = "        DataComponentKind::"
-            if line.startswith(variant_line_prefix):
+            if line.startswith("    "):
                 if first_line_with_variant is not None:
                     line_after_variant = i
                     break
-                variant_name = line[len(variant_line_prefix) :].split(" ", 1)[0]
+                variant_name = line.strip().split()[0].strip(",")
+                if variant_name[0] in "#/":
+                    # skip comments
+                    continue
                 if variant_name == variant:
                     first_line_with_variant = i
-        elif line == "    Ok(match kind {":
-            in_match = True
+        elif line == "define_data_components!(":
+            in_define_macro = True
 
     if first_line_with_variant is None:
         raise ValueError(f"Variant {variant} not found")
@@ -117,8 +121,8 @@ def remove_variant(variant: str):
     for i, line in enumerate(list(code)):
         if line == f"pub struct {variant} {{" or line == f"pub struct {variant};":
             line_before_struct = i - 1
-        elif line == f"impl DataComponent for {variant} {{":
-            line_after_struct = i + 3
+        elif line == "}":
+            line_after_struct = i + 1
             break
     if line_before_struct is None:
         raise ValueError(f"Couldn't find struct {variant}")
@@ -135,35 +139,30 @@ def add_variant(variant: str):
     with open(DATA_COMPONENTS_DIR, "r") as f:
         code = f.read().split("\n")
 
-    in_match = False
-    last_line_in_match = None
+    in_define_macro = False
+    last_line_in_define_macro = None
     for i, line in enumerate(list(code)):
-        if in_match:
-            if line == "    })":
-                last_line_in_match = i
+        if in_define_macro:
+            if line == ");":
+                last_line_in_define_macro = i
                 break
-        elif line == "    Ok(match kind {":
-            in_match = True
+        elif line == "define_data_components!(":
+            in_define_macro = True
 
-    if last_line_in_match is None:
+    if last_line_in_define_macro is None:
         raise ValueError("Couldn't find end of match")
 
     code = (
-        code[:last_line_in_match]
-        + [
-            f"        DataComponentKind::{variant} => Box::new({variant}::azalea_read(buf)?),",
-        ]
-        + code[last_line_in_match:]
+        code[:last_line_in_define_macro]
+        + [f"    {variant},"]
+        + code[last_line_in_define_macro:]
     )
 
     # now insert the struct
     code.append("")
-    code.append("#[derive(Clone, PartialEq, AzBuf)]")
+    code.append("#[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]")
     code.append(f"pub struct {variant} {{")
     code.append("   pub todo: todo!(), // see DataComponents.java")
-    code.append("}")
-    code.append(f"impl DataComponent for {variant} {{")
-    code.append(f"    const KIND: DataComponentKind = DataComponentKind::{variant};")
     code.append("}")
 
     with open(DATA_COMPONENTS_DIR, "w") as f:

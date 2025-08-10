@@ -2,7 +2,7 @@ use serde::Serialize;
 
 use crate::FormattedText;
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case", tag = "action")]
 pub enum HoverEvent {
     ShowText {

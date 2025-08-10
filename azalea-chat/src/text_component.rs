@@ -9,7 +9,7 @@ use crate::{
 };
 
 /// A component that contains text that's the same in all locales.
-#[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct TextComponent {
     pub base: BaseComponent,
     pub text: String,

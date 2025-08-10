@@ -8,7 +8,7 @@ use crate::{
     FormattedText, base_component::BaseComponent, style::Style, text_component::TextComponent,
 };
 
-#[derive(Clone, Debug, PartialEq, Serialize, Eq, Hash)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum StringOrComponent {
     String(String),
@@ -26,7 +26,7 @@ impl simdnbt::ToNbtTag for StringOrComponent {
 }
 
 /// A message whose content depends on the client's language.
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct TranslatableComponent {
     pub base: BaseComponent,
     pub key: String,
