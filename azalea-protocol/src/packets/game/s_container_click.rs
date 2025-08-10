@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use azalea_buf::AzBuf;
+use azalea_core::{checksum::Checksum, registry_holder::RegistryHolder};
 use azalea_inventory::{ItemStack, operations::ClickType};
 use azalea_protocol_macros::ServerboundGamePacket;
 
@@ -35,29 +36,31 @@ pub struct HashedPatchMap {
     /// The value is a CRC32 hash of the data component's network serialization.
     /// (kind + data)
     #[limit(256)]
-    pub added_components: Vec<(azalea_registry::DataComponentKind, u32)>,
+    pub added_components: Vec<(azalea_registry::DataComponentKind, Checksum)>,
     #[limit(256)]
     pub removed_components: Vec<azalea_registry::DataComponentKind>,
 }
 
-/// Convert your [`ItemStack`] into a [`HashedStack`] by hashing the data
-/// components.
-///
-/// This will be necessary if you're writing a client or server, but if you're
-/// just making a proxy then you can remove the `crc32` dependency by disabling
-/// the `crc32` feature on `azalea-protocol`.
-impl From<&ItemStack> for HashedStack {
-    fn from(item: &ItemStack) -> Self {
+impl HashedStack {
+    /// Convert your [`ItemStack`] into a [`HashedStack`] by hashing the data
+    /// components.
+    ///
+    /// Minecraft uses this whenever the client sends data components to the
+    /// server.
+    ///
+    /// The [`RegistryHolder`] is required as some components will hash
+    /// differently based on the server's registries.
+    pub fn from_item_stack(item: &ItemStack, registries: &RegistryHolder) -> Self {
         let ItemStack::Present(item) = item else {
-            return Self(None);
+            return HashedStack(None);
         };
 
         let mut added_components = Vec::new();
         let mut removed_components = Vec::new();
 
-        for (&kind, data) in &item.component_patch.components {
+        for (kind, data) in item.component_patch.iter() {
             if let Some(data) = data {
-                added_components.push((kind, data.crc_hash()));
+                added_components.push((kind, data.crc_hash(registries)));
             } else {
                 removed_components.push(kind);
             }

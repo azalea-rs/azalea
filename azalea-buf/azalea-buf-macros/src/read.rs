@@ -9,7 +9,7 @@ pub fn create_impl_azalearead(ident: &Ident, data: &Data) -> proc_macro2::TokenS
 
                 quote! {
                 impl azalea_buf::AzaleaRead for #ident {
-                    fn azalea_read(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
+                    fn azalea_read(buf: &mut std::io::Cursor<&[u8]>) -> std::result::Result<Self, azalea_buf::BufReadError> {
                         #(#read_fields)*
                         Ok(Self {
                             #(#read_field_names: #read_field_names),*
@@ -21,7 +21,7 @@ pub fn create_impl_azalearead(ident: &Ident, data: &Data) -> proc_macro2::TokenS
             syn::Fields::Unit => {
                 quote! {
                 impl azalea_buf::AzaleaRead for #ident {
-                    fn azalea_read(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
+                    fn azalea_read(buf: &mut std::io::Cursor<&[u8]>) -> std::result::Result<Self, azalea_buf::BufReadError> {
                         Ok(Self)
                     }
                 }
@@ -32,7 +32,7 @@ pub fn create_impl_azalearead(ident: &Ident, data: &Data) -> proc_macro2::TokenS
 
                 quote! {
                 impl azalea_buf::AzaleaRead for #ident {
-                    fn azalea_read(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
+                    fn azalea_read(buf: &mut std::io::Cursor<&[u8]>) -> std::result::Result<Self, azalea_buf::BufReadError> {
                         Ok(Self(
                             #(#read_fields),*
                         ))
@@ -136,14 +136,14 @@ pub fn create_impl_azalearead(ident: &Ident, data: &Data) -> proc_macro2::TokenS
 
             quote! {
             impl azalea_buf::AzaleaRead for #ident {
-                fn azalea_read(buf: &mut std::io::Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {
+                fn azalea_read(buf: &mut std::io::Cursor<&[u8]>) -> std::result::Result<Self, azalea_buf::BufReadError> {
                     let id = azalea_buf::AzaleaReadVar::azalea_read_var(buf)?;
                     Self::azalea_read_id(buf, id)
                 }
             }
 
             impl #ident {
-                pub fn azalea_read_id(buf: &mut std::io::Cursor<&[u8]>, id: u32) -> Result<Self, azalea_buf::BufReadError> {
+                pub fn azalea_read_id(buf: &mut std::io::Cursor<&[u8]>, id: u32) -> std::result::Result<Self, azalea_buf::BufReadError> {
                     match id {
                         #match_contents
                         // you'd THINK this throws an error, but mojang decided to make it default for some reason

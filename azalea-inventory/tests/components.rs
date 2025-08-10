@@ -41,7 +41,6 @@ fn test_custom_name_checksum_2() {
             .into(),
     };
 
-    println!("{:?}", c);
     assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 187682122);
 }
 #[test]
@@ -115,8 +114,6 @@ fn test_custom_data_nbt() {
 }
 #[test]
 fn test_attribute_modifiers_checksum() {
-    // attribute_modifiers=[{type:"minecraft:scale",slot:"hand",id:"example:grow",
-    // amount:4,operation:"add_multiplied_base"}]
     let c = AttributeModifiers {
         modifiers: vec![AttributeModifiersEntry {
             kind: Attribute::Scale,
@@ -129,8 +126,6 @@ fn test_attribute_modifiers_checksum() {
             display: AttributeModifierDisplay::Default,
         }],
     };
-
-    println!("{}", serde_json::to_string(&c).unwrap());
 
     assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 2501379836);
 }
@@ -150,8 +145,6 @@ fn test_firework_explosion_checksum() {
         }],
     };
 
-    println!("{}", serde_json::to_string(&c).unwrap());
-
     assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 2501379836);
 }
 
@@ -160,8 +153,6 @@ fn test_charged_projectile_checksum() {
     let c = ChargedProjectiles {
         items: vec![ItemStack::from(Item::MusicDiscCat)],
     };
-
-    println!("{}", serde_json::to_string(&c).unwrap());
 
     assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 3435761017);
 }

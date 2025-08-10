@@ -3,12 +3,13 @@ use std::{
     any::Any,
     collections::HashMap,
     io::{self, Cursor},
+    mem::ManuallyDrop,
 };
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
 use azalea_chat::FormattedText;
 use azalea_core::{
-    checksum::{HashCode, get_checksum},
+    checksum::{Checksum, get_checksum},
     codec_utils::*,
     filterable::Filterable,
     position::GlobalPos,
@@ -20,20 +21,22 @@ use azalea_registry::{
     self as registry, Attribute, Block, DamageKind, DataComponentKind, Enchantment, EntityKind,
     Holder, HolderSet, Item, MobEffect, Potion, SoundEvent, TrimMaterial, TrimPattern,
 };
-use serde::Serialize;
+use serde::{Serialize, ser::SerializeMap};
 use simdnbt::owned::{Nbt, NbtCompound};
 use tracing::trace;
 use uuid::Uuid;
 
 use crate::{ItemStack, item::consume_effect::ConsumeEffect};
 
-pub trait DataComponent: Send + Sync + Any + Clone + Serialize {
+pub trait DataComponentTrait:
+    Send + Sync + Any + Clone + Serialize + Into<DataComponentUnion>
+{
     const KIND: DataComponentKind;
 }
 
 pub trait EncodableDataComponent: Send + Sync + Any {
     fn encode(&self, buf: &mut Vec<u8>) -> io::Result<()>;
-    fn crc_hash(&self, registries: &RegistryHolder) -> HashCode;
+    fn crc_hash(&self, registries: &RegistryHolder) -> Checksum;
     // using the Clone trait makes it not be object-safe, so we have our own clone
     // function instead
     fn clone(&self) -> Box<dyn EncodableDataComponent>;
@@ -43,12 +46,12 @@ pub trait EncodableDataComponent: Send + Sync + Any {
 
 impl<T> EncodableDataComponent for T
 where
-    T: DataComponent + Clone + AzaleaWrite + AzaleaRead + PartialEq,
+    T: DataComponentTrait + Clone + AzaleaWrite + AzaleaRead + PartialEq,
 {
     fn encode(&self, buf: &mut Vec<u8>) -> io::Result<()> {
         self.azalea_write(buf)
     }
-    fn crc_hash(&self, registries: &RegistryHolder) -> HashCode {
+    fn crc_hash(&self, registries: &RegistryHolder) -> Checksum {
         get_checksum(self, registries).expect("serializing data components should always succeed")
     }
     fn clone(&self) -> Box<dyn EncodableDataComponent> {
@@ -64,139 +67,206 @@ where
     }
 }
 
-pub fn from_kind(
-    kind: registry::DataComponentKind,
-    buf: &mut Cursor<&[u8]>,
-) -> Result<Box<dyn EncodableDataComponent>, BufReadError> {
-    // if this is causing a compile-time error, look at DataComponents.java in the
-    // decompiled vanilla code to see how to implement new components
+#[macro_export]
+macro_rules! define_data_components {
+    ( $( $x:ident ),* $(,)? ) => {
+        /// A union of all data components.
+        ///
+        /// You probably don't want to use this directly. Consider [`DataComponentPatch`] instead.
+        ///
+        /// This type does not know its own value, and as such every function for it requires the
+        /// `DataComponentKind` to be passed in. Passing the wrong `DataComponentKind` will result
+        /// in undefined behavior. Also, all of the values are `ManuallyDrop`.
+        ///
+        /// [`DataComponentPatch`]: crate::DataComponentPatch
+        #[allow(non_snake_case)]
+        pub union DataComponentUnion {
+            $( $x: ManuallyDrop<$x>, )*
+        }
+        impl DataComponentUnion {
+            pub unsafe fn serialize_entry_as<S: SerializeMap>(
+                &self,
+                serializer: &mut S,
+                kind: DataComponentKind,
+            ) -> Result<(), S::Error> {
+                match kind {
+                    $( DataComponentKind::$x => { unsafe { serializer.serialize_entry(&kind, &*self.$x) } }, )*
+                }
+            }
+            pub unsafe fn drop_as(&mut self, kind: DataComponentKind) {
+                match kind {
+                    $( DataComponentKind::$x => { unsafe { ManuallyDrop::drop(&mut self.$x) } }, )*
+                }
+            }
+            pub unsafe fn as_kind(&self, kind: DataComponentKind) -> &dyn EncodableDataComponent {
+                match kind {
+                    $( DataComponentKind::$x => { unsafe { &**(&self.$x as &ManuallyDrop<dyn EncodableDataComponent>) } }, )*
+                }
+            }
+            pub fn azalea_read_as(
+                kind: registry::DataComponentKind,
+                buf: &mut Cursor<&[u8]>,
+            ) -> Result<Self, BufReadError> {
+                trace!("Reading data component {kind}");
 
-    trace!("Reading data component {kind}");
+                Ok(match kind {
+                    $( DataComponentKind::$x => {
+                        Self { $x: ManuallyDrop::new($x::azalea_read(buf)?) }
+                    }, )*
+                })
+            }
+            pub unsafe fn azalea_write_as(
+                &self,
+                kind: registry::DataComponentKind,
+                buf: &mut Vec<u8>,
+            ) -> io::Result<()> {
+                match kind {
+                    $( DataComponentKind::$x => unsafe { self.$x.encode(buf) }, )*
+                }
+            }
+            pub unsafe fn clone_as(
+                &self,
+                kind: registry::DataComponentKind,
+            ) -> Self {
+                match kind {
+                    $( DataComponentKind::$x => {
+                        Self { $x: unsafe { self.$x.clone() } }
+                    }, )*
+                }
+            }
+            pub unsafe fn eq_as(
+                &self,
+                other: &Self,
+                kind: registry::DataComponentKind,
+            ) -> bool {
+                match kind {
+                    $( DataComponentKind::$x => unsafe { self.$x.eq(&other.$x) }, )*
+                }
+            }
+        }
+        $(
+            impl From<$x> for DataComponentUnion {
+                fn from(value: $x) -> Self {
+                    DataComponentUnion { $x: ManuallyDrop::new(value) }
+                }
+            }
+        )*
 
-    // note that this match statement is updated by genitemcomponents.py
-    Ok(match kind {
-        DataComponentKind::CustomData => Box::new(CustomData::azalea_read(buf)?),
-        DataComponentKind::MaxStackSize => Box::new(MaxStackSize::azalea_read(buf)?),
-        DataComponentKind::MaxDamage => Box::new(MaxDamage::azalea_read(buf)?),
-        DataComponentKind::Damage => Box::new(Damage::azalea_read(buf)?),
-        DataComponentKind::Unbreakable => Box::new(Unbreakable::azalea_read(buf)?),
-        DataComponentKind::CustomName => Box::new(CustomName::azalea_read(buf)?),
-        DataComponentKind::ItemName => Box::new(ItemName::azalea_read(buf)?),
-        DataComponentKind::Lore => Box::new(Lore::azalea_read(buf)?),
-        DataComponentKind::Rarity => Box::new(Rarity::azalea_read(buf)?),
-        DataComponentKind::Enchantments => Box::new(Enchantments::azalea_read(buf)?),
-        DataComponentKind::CanPlaceOn => Box::new(CanPlaceOn::azalea_read(buf)?),
-        DataComponentKind::CanBreak => Box::new(CanBreak::azalea_read(buf)?),
-        DataComponentKind::AttributeModifiers => Box::new(AttributeModifiers::azalea_read(buf)?),
-        DataComponentKind::CustomModelData => Box::new(CustomModelData::azalea_read(buf)?),
-        DataComponentKind::RepairCost => Box::new(RepairCost::azalea_read(buf)?),
-        DataComponentKind::CreativeSlotLock => Box::new(CreativeSlotLock::azalea_read(buf)?),
-        DataComponentKind::EnchantmentGlintOverride => {
-            Box::new(EnchantmentGlintOverride::azalea_read(buf)?)
-        }
-        DataComponentKind::IntangibleProjectile => {
-            Box::new(IntangibleProjectile::azalea_read(buf)?)
-        }
-        DataComponentKind::Food => Box::new(Food::azalea_read(buf)?),
-        DataComponentKind::Tool => Box::new(Tool::azalea_read(buf)?),
-        DataComponentKind::StoredEnchantments => Box::new(StoredEnchantments::azalea_read(buf)?),
-        DataComponentKind::DyedColor => Box::new(DyedColor::azalea_read(buf)?),
-        DataComponentKind::MapColor => Box::new(MapColor::azalea_read(buf)?),
-        DataComponentKind::MapId => Box::new(MapId::azalea_read(buf)?),
-        DataComponentKind::MapDecorations => Box::new(MapDecorations::azalea_read(buf)?),
-        DataComponentKind::MapPostProcessing => Box::new(MapPostProcessing::azalea_read(buf)?),
-        DataComponentKind::ChargedProjectiles => Box::new(ChargedProjectiles::azalea_read(buf)?),
-        DataComponentKind::BundleContents => Box::new(BundleContents::azalea_read(buf)?),
-        DataComponentKind::PotionContents => Box::new(PotionContents::azalea_read(buf)?),
-        DataComponentKind::SuspiciousStewEffects => {
-            Box::new(SuspiciousStewEffects::azalea_read(buf)?)
-        }
-        DataComponentKind::WritableBookContent => Box::new(WritableBookContent::azalea_read(buf)?),
-        DataComponentKind::WrittenBookContent => Box::new(WrittenBookContent::azalea_read(buf)?),
-        DataComponentKind::Trim => Box::new(Trim::azalea_read(buf)?),
-        DataComponentKind::DebugStickState => Box::new(DebugStickState::azalea_read(buf)?),
-        DataComponentKind::EntityData => Box::new(EntityData::azalea_read(buf)?),
-        DataComponentKind::BucketEntityData => Box::new(BucketEntityData::azalea_read(buf)?),
-        DataComponentKind::BlockEntityData => Box::new(BlockEntityData::azalea_read(buf)?),
-        DataComponentKind::Instrument => Box::new(Instrument::azalea_read(buf)?),
-        DataComponentKind::OminousBottleAmplifier => {
-            Box::new(OminousBottleAmplifier::azalea_read(buf)?)
-        }
-        DataComponentKind::Recipes => Box::new(Recipes::azalea_read(buf)?),
-        DataComponentKind::LodestoneTracker => Box::new(LodestoneTracker::azalea_read(buf)?),
-        DataComponentKind::FireworkExplosion => Box::new(FireworkExplosion::azalea_read(buf)?),
-        DataComponentKind::Fireworks => Box::new(Fireworks::azalea_read(buf)?),
-        DataComponentKind::Profile => Box::new(Profile::azalea_read(buf)?),
-        DataComponentKind::NoteBlockSound => Box::new(NoteBlockSound::azalea_read(buf)?),
-        DataComponentKind::BannerPatterns => Box::new(BannerPatterns::azalea_read(buf)?),
-        DataComponentKind::BaseColor => Box::new(BaseColor::azalea_read(buf)?),
-        DataComponentKind::PotDecorations => Box::new(PotDecorations::azalea_read(buf)?),
-        DataComponentKind::Container => Box::new(Container::azalea_read(buf)?),
-        DataComponentKind::BlockState => Box::new(BlockState::azalea_read(buf)?),
-        DataComponentKind::Bees => Box::new(Bees::azalea_read(buf)?),
-        DataComponentKind::Lock => Box::new(Lock::azalea_read(buf)?),
-        DataComponentKind::ContainerLoot => Box::new(ContainerLoot::azalea_read(buf)?),
-        DataComponentKind::JukeboxPlayable => Box::new(JukeboxPlayable::azalea_read(buf)?),
-        DataComponentKind::Consumable => Box::new(Consumable::azalea_read(buf)?),
-        DataComponentKind::UseRemainder => Box::new(UseRemainder::azalea_read(buf)?),
-        DataComponentKind::UseCooldown => Box::new(UseCooldown::azalea_read(buf)?),
-        DataComponentKind::Enchantable => Box::new(Enchantable::azalea_read(buf)?),
-        DataComponentKind::Repairable => Box::new(Repairable::azalea_read(buf)?),
-        DataComponentKind::ItemModel => Box::new(ItemModel::azalea_read(buf)?),
-        DataComponentKind::DamageResistant => Box::new(DamageResistant::azalea_read(buf)?),
-        DataComponentKind::Equippable => Box::new(Equippable::azalea_read(buf)?),
-        DataComponentKind::Glider => Box::new(Glider::azalea_read(buf)?),
-        DataComponentKind::TooltipStyle => Box::new(TooltipStyle::azalea_read(buf)?),
-        DataComponentKind::DeathProtection => Box::new(DeathProtection::azalea_read(buf)?),
-        DataComponentKind::Weapon => Box::new(Weapon::azalea_read(buf)?),
-        DataComponentKind::PotionDurationScale => Box::new(PotionDurationScale::azalea_read(buf)?),
-        DataComponentKind::VillagerVariant => Box::new(VillagerVariant::azalea_read(buf)?),
-        DataComponentKind::WolfVariant => Box::new(WolfVariant::azalea_read(buf)?),
-        DataComponentKind::WolfCollar => Box::new(WolfCollar::azalea_read(buf)?),
-        DataComponentKind::FoxVariant => Box::new(FoxVariant::azalea_read(buf)?),
-        DataComponentKind::SalmonSize => Box::new(SalmonSize::azalea_read(buf)?),
-        DataComponentKind::ParrotVariant => Box::new(ParrotVariant::azalea_read(buf)?),
-        DataComponentKind::TropicalFishPattern => Box::new(TropicalFishPattern::azalea_read(buf)?),
-        DataComponentKind::TropicalFishBaseColor => {
-            Box::new(TropicalFishBaseColor::azalea_read(buf)?)
-        }
-        DataComponentKind::TropicalFishPatternColor => {
-            Box::new(TropicalFishPatternColor::azalea_read(buf)?)
-        }
-        DataComponentKind::MooshroomVariant => Box::new(MooshroomVariant::azalea_read(buf)?),
-        DataComponentKind::RabbitVariant => Box::new(RabbitVariant::azalea_read(buf)?),
-        DataComponentKind::PigVariant => Box::new(PigVariant::azalea_read(buf)?),
-        DataComponentKind::FrogVariant => Box::new(FrogVariant::azalea_read(buf)?),
-        DataComponentKind::HorseVariant => Box::new(HorseVariant::azalea_read(buf)?),
-        DataComponentKind::PaintingVariant => Box::new(PaintingVariant::azalea_read(buf)?),
-        DataComponentKind::LlamaVariant => Box::new(LlamaVariant::azalea_read(buf)?),
-        DataComponentKind::AxolotlVariant => Box::new(AxolotlVariant::azalea_read(buf)?),
-        DataComponentKind::CatVariant => Box::new(CatVariant::azalea_read(buf)?),
-        DataComponentKind::CatCollar => Box::new(CatCollar::azalea_read(buf)?),
-        DataComponentKind::SheepColor => Box::new(SheepColor::azalea_read(buf)?),
-        DataComponentKind::ShulkerColor => Box::new(ShulkerColor::azalea_read(buf)?),
-        DataComponentKind::TooltipDisplay => Box::new(TooltipDisplay::azalea_read(buf)?),
-        DataComponentKind::BlocksAttacks => Box::new(BlocksAttacks::azalea_read(buf)?),
-        DataComponentKind::ProvidesTrimMaterial => {
-            Box::new(ProvidesTrimMaterial::azalea_read(buf)?)
-        }
-        DataComponentKind::ProvidesBannerPatterns => {
-            Box::new(ProvidesBannerPatterns::azalea_read(buf)?)
-        }
-        DataComponentKind::BreakSound => Box::new(BreakSound::azalea_read(buf)?),
-        DataComponentKind::WolfSoundVariant => Box::new(WolfSoundVariant::azalea_read(buf)?),
-        DataComponentKind::CowVariant => Box::new(CowVariant::azalea_read(buf)?),
-        DataComponentKind::ChickenVariant => Box::new(ChickenVariant::azalea_read(buf)?),
-    })
+        $(
+            impl DataComponentTrait for $x {
+                const KIND: DataComponentKind = DataComponentKind::$x;
+            }
+        )*
+    };
 }
+
+// if this is causing a compile-time error, look at DataComponents.java in the
+// decompiled vanilla code to see how to implement new components
+
+// note that this statement is updated by genitemcomponents.py
+define_data_components!(
+    CustomData,
+    MaxStackSize,
+    MaxDamage,
+    Damage,
+    Unbreakable,
+    CustomName,
+    ItemName,
+    ItemModel,
+    Lore,
+    Rarity,
+    Enchantments,
+    CanPlaceOn,
+    CanBreak,
+    AttributeModifiers,
+    CustomModelData,
+    TooltipDisplay,
+    RepairCost,
+    CreativeSlotLock,
+    EnchantmentGlintOverride,
+    IntangibleProjectile,
+    Food,
+    Consumable,
+    UseRemainder,
+    UseCooldown,
+    DamageResistant,
+    Tool,
+    Weapon,
+    Enchantable,
+    Equippable,
+    Repairable,
+    Glider,
+    TooltipStyle,
+    DeathProtection,
+    BlocksAttacks,
+    StoredEnchantments,
+    DyedColor,
+    MapColor,
+    MapId,
+    MapDecorations,
+    MapPostProcessing,
+    ChargedProjectiles,
+    BundleContents,
+    PotionContents,
+    PotionDurationScale,
+    SuspiciousStewEffects,
+    WritableBookContent,
+    WrittenBookContent,
+    Trim,
+    DebugStickState,
+    EntityData,
+    BucketEntityData,
+    BlockEntityData,
+    Instrument,
+    ProvidesTrimMaterial,
+    OminousBottleAmplifier,
+    JukeboxPlayable,
+    ProvidesBannerPatterns,
+    Recipes,
+    LodestoneTracker,
+    FireworkExplosion,
+    Fireworks,
+    Profile,
+    NoteBlockSound,
+    BannerPatterns,
+    BaseColor,
+    PotDecorations,
+    Container,
+    BlockState,
+    Bees,
+    Lock,
+    ContainerLoot,
+    BreakSound,
+    VillagerVariant,
+    WolfVariant,
+    WolfSoundVariant,
+    WolfCollar,
+    FoxVariant,
+    SalmonSize,
+    ParrotVariant,
+    TropicalFishPattern,
+    TropicalFishBaseColor,
+    TropicalFishPatternColor,
+    MooshroomVariant,
+    RabbitVariant,
+    PigVariant,
+    CowVariant,
+    ChickenVariant,
+    FrogVariant,
+    HorseVariant,
+    PaintingVariant,
+    LlamaVariant,
+    AxolotlVariant,
+    CatVariant,
+    CatCollar,
+    SheepColor,
+    ShulkerColor,
+);
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct CustomData {
     pub nbt: Nbt,
-}
-impl DataComponent for CustomData {
-    const KIND: DataComponentKind = DataComponentKind::CustomData;
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -205,18 +275,12 @@ pub struct MaxStackSize {
     #[var]
     pub count: i32,
 }
-impl DataComponent for MaxStackSize {
-    const KIND: DataComponentKind = DataComponentKind::MaxStackSize;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct MaxDamage {
     #[var]
     pub amount: i32,
-}
-impl DataComponent for MaxDamage {
-    const KIND: DataComponentKind = DataComponentKind::MaxDamage;
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -226,23 +290,13 @@ pub struct Damage {
     pub amount: i32,
 }
 
-impl DataComponent for Damage {
-    const KIND: DataComponentKind = DataComponentKind::Damage;
-}
-
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct Unbreakable;
-impl DataComponent for Unbreakable {
-    const KIND: DataComponentKind = DataComponentKind::Unbreakable;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct CustomName {
     pub name: FormattedText,
-}
-impl DataComponent for CustomName {
-    const KIND: DataComponentKind = DataComponentKind::CustomName;
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -250,18 +304,12 @@ impl DataComponent for CustomName {
 pub struct ItemName {
     pub name: FormattedText,
 }
-impl DataComponent for ItemName {
-    const KIND: DataComponentKind = DataComponentKind::ItemName;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct Lore {
     pub lines: Vec<FormattedText>,
     // vanilla also has styled_lines here but it doesn't appear to be used for the protocol
-}
-impl DataComponent for Lore {
-    const KIND: DataComponentKind = DataComponentKind::Lore;
 }
 
 #[derive(Clone, Copy, PartialEq, AzBuf, Debug, Serialize)]
@@ -272,18 +320,12 @@ pub enum Rarity {
     Rare,
     Epic,
 }
-impl DataComponent for Rarity {
-    const KIND: DataComponentKind = DataComponentKind::Rarity;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Serialize)]
 #[serde(transparent)]
 pub struct Enchantments {
     #[var]
     pub levels: HashMap<Enchantment, u32>,
-}
-impl DataComponent for Enchantments {
-    const KIND: DataComponentKind = DataComponentKind::Enchantments;
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -325,17 +367,11 @@ pub struct AdventureModePredicate {
 pub struct CanPlaceOn {
     pub predicate: AdventureModePredicate,
 }
-impl DataComponent for CanPlaceOn {
-    const KIND: DataComponentKind = DataComponentKind::CanPlaceOn;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct CanBreak {
     pub predicate: AdventureModePredicate,
-}
-impl DataComponent for CanBreak {
-    const KIND: DataComponentKind = DataComponentKind::CanBreak;
 }
 
 #[derive(Clone, Copy, PartialEq, AzBuf, Debug, Serialize)]
@@ -387,9 +423,6 @@ pub struct AttributeModifiersEntry {
 pub struct AttributeModifiers {
     pub modifiers: Vec<AttributeModifiersEntry>,
 }
-impl DataComponent for AttributeModifiers {
-    const KIND: DataComponentKind = DataComponentKind::AttributeModifiers;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Default, Serialize)]
 #[serde(rename_all = "snake_case")]
@@ -413,9 +446,6 @@ pub struct CustomModelData {
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub colors: Vec<i32>,
 }
-impl DataComponent for CustomModelData {
-    const KIND: DataComponentKind = DataComponentKind::CustomModelData;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
@@ -423,30 +453,18 @@ pub struct RepairCost {
     #[var]
     pub cost: u32,
 }
-impl DataComponent for RepairCost {
-    const KIND: DataComponentKind = DataComponentKind::RepairCost;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct CreativeSlotLock;
-impl DataComponent for CreativeSlotLock {
-    const KIND: DataComponentKind = DataComponentKind::CreativeSlotLock;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct EnchantmentGlintOverride {
     pub show_glint: bool,
 }
-impl DataComponent for EnchantmentGlintOverride {
-    const KIND: DataComponentKind = DataComponentKind::EnchantmentGlintOverride;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct IntangibleProjectile;
-impl DataComponent for IntangibleProjectile {
-    const KIND: DataComponentKind = DataComponentKind::IntangibleProjectile;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct MobEffectDetails {
@@ -503,9 +521,7 @@ pub struct Food {
     #[serde(skip_serializing_if = "is_default")]
     pub can_always_eat: bool,
 }
-impl DataComponent for Food {
-    const KIND: DataComponentKind = DataComponentKind::Food;
-}
+
 impl Food {
     pub const fn new() -> Self {
         Food {
@@ -551,9 +567,7 @@ pub struct Tool {
     #[serde(skip_serializing_if = "is_default")]
     pub can_destroy_blocks_in_creative: bool,
 }
-impl DataComponent for Tool {
-    const KIND: DataComponentKind = DataComponentKind::Tool;
-}
+
 impl Tool {
     pub const fn new() -> Self {
         Tool {
@@ -576,26 +590,17 @@ pub struct StoredEnchantments {
     #[var]
     pub enchantments: HashMap<Enchantment, i32>,
 }
-impl DataComponent for StoredEnchantments {
-    const KIND: DataComponentKind = DataComponentKind::StoredEnchantments;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct DyedColor {
     pub rgb: i32,
 }
-impl DataComponent for DyedColor {
-    const KIND: DataComponentKind = DataComponentKind::DyedColor;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct MapColor {
     pub color: i32,
-}
-impl DataComponent for MapColor {
-    const KIND: DataComponentKind = DataComponentKind::MapColor;
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -604,17 +609,11 @@ pub struct MapId {
     #[var]
     pub id: i32,
 }
-impl DataComponent for MapId {
-    const KIND: DataComponentKind = DataComponentKind::MapId;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct MapDecorations {
     pub decorations: NbtCompound,
-}
-impl DataComponent for MapDecorations {
-    const KIND: DataComponentKind = DataComponentKind::MapDecorations;
 }
 
 #[derive(Clone, Copy, PartialEq, AzBuf, Debug, Serialize)]
@@ -622,26 +621,17 @@ pub enum MapPostProcessing {
     Lock,
     Scale,
 }
-impl DataComponent for MapPostProcessing {
-    const KIND: DataComponentKind = DataComponentKind::MapPostProcessing;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct ChargedProjectiles {
     pub items: Vec<ItemStack>,
 }
-impl DataComponent for ChargedProjectiles {
-    const KIND: DataComponentKind = DataComponentKind::ChargedProjectiles;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct BundleContents {
     pub items: Vec<ItemStack>,
-}
-impl DataComponent for BundleContents {
-    const KIND: DataComponentKind = DataComponentKind::BundleContents;
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -655,9 +645,7 @@ pub struct PotionContents {
     #[serde(skip_serializing_if = "is_default")]
     pub custom_name: Option<String>,
 }
-impl DataComponent for PotionContents {
-    const KIND: DataComponentKind = DataComponentKind::PotionContents;
-}
+
 impl PotionContents {
     pub const fn new() -> Self {
         PotionContents {
@@ -688,16 +676,10 @@ pub struct SuspiciousStewEffect {
 pub struct SuspiciousStewEffects {
     pub effects: Vec<SuspiciousStewEffect>,
 }
-impl DataComponent for SuspiciousStewEffects {
-    const KIND: DataComponentKind = DataComponentKind::SuspiciousStewEffects;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct WritableBookContent {
     pub pages: Vec<String>,
-}
-impl DataComponent for WritableBookContent {
-    const KIND: DataComponentKind = DataComponentKind::WritableBookContent;
 }
 
 #[derive(Clone, PartialEq, AzBuf, Serialize)]
@@ -714,17 +696,10 @@ pub struct WrittenBookContent {
     pub resolved: bool,
 }
 
-impl DataComponent for WrittenBookContent {
-    const KIND: DataComponentKind = DataComponentKind::WrittenBookContent;
-}
-
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct Trim {
     pub material: TrimMaterial,
     pub pattern: TrimPattern,
-}
-impl DataComponent for Trim {
-    const KIND: DataComponentKind = DataComponentKind::Trim;
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -732,17 +707,11 @@ impl DataComponent for Trim {
 pub struct DebugStickState {
     pub properties: NbtCompound,
 }
-impl DataComponent for DebugStickState {
-    const KIND: DataComponentKind = DataComponentKind::DebugStickState;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct EntityData {
     pub entity: NbtCompound,
-}
-impl DataComponent for EntityData {
-    const KIND: DataComponentKind = DataComponentKind::EntityData;
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -750,17 +719,11 @@ impl DataComponent for EntityData {
 pub struct BucketEntityData {
     pub entity: NbtCompound,
 }
-impl DataComponent for BucketEntityData {
-    const KIND: DataComponentKind = DataComponentKind::BucketEntityData;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct BlockEntityData {
     pub entity: NbtCompound,
-}
-impl DataComponent for BlockEntityData {
-    const KIND: DataComponentKind = DataComponentKind::BlockEntityData;
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -768,9 +731,6 @@ impl DataComponent for BlockEntityData {
 pub enum Instrument {
     Registry(registry::Instrument),
     Holder(Holder<registry::Instrument, InstrumentData>),
-}
-impl DataComponent for Instrument {
-    const KIND: DataComponentKind = DataComponentKind::Instrument;
 }
 
 #[derive(Clone, PartialEq, Debug, AzBuf, Serialize)]
@@ -787,17 +747,11 @@ pub struct OminousBottleAmplifier {
     #[var]
     pub amplifier: i32,
 }
-impl DataComponent for OminousBottleAmplifier {
-    const KIND: DataComponentKind = DataComponentKind::OminousBottleAmplifier;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct Recipes {
     pub recipes: Vec<ResourceLocation>,
-}
-impl DataComponent for Recipes {
-    const KIND: DataComponentKind = DataComponentKind::Recipes;
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -806,9 +760,6 @@ pub struct LodestoneTracker {
     pub target: Option<GlobalPos>,
     #[serde(skip_serializing_if = "is_true")]
     pub tracked: bool,
-}
-impl DataComponent for LodestoneTracker {
-    const KIND: DataComponentKind = DataComponentKind::LodestoneTracker;
 }
 
 #[derive(Clone, Copy, PartialEq, AzBuf, Debug, Serialize)]
@@ -833,9 +784,6 @@ pub struct FireworkExplosion {
     #[serde(skip_serializing_if = "is_default")]
     pub has_twinkle: bool,
 }
-impl DataComponent for FireworkExplosion {
-    const KIND: DataComponentKind = DataComponentKind::FireworkExplosion;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct Fireworks {
@@ -845,9 +793,7 @@ pub struct Fireworks {
     #[limit(256)]
     pub explosions: Vec<FireworkExplosion>,
 }
-impl DataComponent for Fireworks {
-    const KIND: DataComponentKind = DataComponentKind::Fireworks;
-}
+
 impl Fireworks {
     pub const fn new() -> Self {
         Fireworks {
@@ -880,17 +826,11 @@ pub struct Profile {
     #[serde(skip_serializing_if = "is_default")]
     pub properties: Vec<GameProfileProperty>,
 }
-impl DataComponent for Profile {
-    const KIND: DataComponentKind = DataComponentKind::Profile;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct NoteBlockSound {
     pub sound: ResourceLocation,
-}
-impl DataComponent for NoteBlockSound {
-    const KIND: DataComponentKind = DataComponentKind::NoteBlockSound;
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -905,9 +845,6 @@ pub struct BannerPattern {
 #[serde(transparent)]
 pub struct BannerPatterns {
     pub patterns: Vec<BannerPattern>,
-}
-impl DataComponent for BannerPatterns {
-    const KIND: DataComponentKind = DataComponentKind::BannerPatterns;
 }
 
 #[derive(Clone, Copy, PartialEq, AzBuf, Debug, Serialize)]
@@ -936,17 +873,11 @@ pub enum DyeColor {
 pub struct BaseColor {
     pub color: DyeColor,
 }
-impl DataComponent for BaseColor {
-    const KIND: DataComponentKind = DataComponentKind::BaseColor;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct PotDecorations {
     pub items: [Item; 4],
-}
-impl DataComponent for PotDecorations {
-    const KIND: DataComponentKind = DataComponentKind::PotDecorations;
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -954,17 +885,11 @@ impl DataComponent for PotDecorations {
 pub struct Container {
     pub items: Vec<ItemStack>,
 }
-impl DataComponent for Container {
-    const KIND: DataComponentKind = DataComponentKind::Container;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct BlockState {
     pub properties: HashMap<String, String>,
-}
-impl DataComponent for BlockState {
-    const KIND: DataComponentKind = DataComponentKind::BlockState;
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -982,24 +907,15 @@ pub struct BeehiveOccupant {
 pub struct Bees {
     pub occupants: Vec<BeehiveOccupant>,
 }
-impl DataComponent for Bees {
-    const KIND: DataComponentKind = DataComponentKind::Bees;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct Lock {
     pub key: String,
 }
-impl DataComponent for Lock {
-    const KIND: DataComponentKind = DataComponentKind::Lock;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct ContainerLoot {
     pub loot_table: NbtCompound,
-}
-impl DataComponent for ContainerLoot {
-    const KIND: DataComponentKind = DataComponentKind::ContainerLoot;
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -1008,9 +924,7 @@ pub enum JukeboxPlayable {
     Referenced(ResourceLocation),
     Direct(Holder<registry::JukeboxSong, JukeboxSongData>),
 }
-impl DataComponent for JukeboxPlayable {
-    const KIND: DataComponentKind = DataComponentKind::JukeboxPlayable;
-}
+
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct JukeboxSongData {
     pub sound_event: Holder<SoundEvent, CustomSound>,
@@ -1039,9 +953,7 @@ fn is_default_eat_sound(sound: &azalea_registry::Holder<SoundEvent, CustomSound>
         azalea_registry::Holder::Reference(SoundEvent::EntityGenericEat)
     )
 }
-impl DataComponent for Consumable {
-    const KIND: DataComponentKind = DataComponentKind::Consumable;
-}
+
 impl Consumable {
     pub const fn new() -> Self {
         Self {
@@ -1080,9 +992,6 @@ pub enum ItemUseAnimation {
 pub struct UseRemainder {
     pub convert_into: ItemStack,
 }
-impl DataComponent for UseRemainder {
-    const KIND: DataComponentKind = DataComponentKind::UseRemainder;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct UseCooldown {
@@ -1090,9 +999,7 @@ pub struct UseCooldown {
     #[serde(skip_serializing_if = "is_default")]
     pub cooldown_group: Option<ResourceLocation>,
 }
-impl DataComponent for UseCooldown {
-    const KIND: DataComponentKind = DataComponentKind::UseCooldown;
-}
+
 impl UseCooldown {
     pub const fn new() -> Self {
         Self {
@@ -1112,16 +1019,10 @@ pub struct Enchantable {
     #[var]
     pub value: u32,
 }
-impl DataComponent for Enchantable {
-    const KIND: DataComponentKind = DataComponentKind::Enchantable;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct Repairable {
     pub items: HolderSet<Item, ResourceLocation>,
-}
-impl DataComponent for Repairable {
-    const KIND: DataComponentKind = DataComponentKind::Repairable;
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -1129,17 +1030,11 @@ impl DataComponent for Repairable {
 pub struct ItemModel {
     pub resource_location: ResourceLocation,
 }
-impl DataComponent for ItemModel {
-    const KIND: DataComponentKind = DataComponentKind::ItemModel;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct DamageResistant {
     /// In vanilla this only allows tag keys, i.e. it must start with '#'
     pub types: ResourceLocation,
-}
-impl DataComponent for DamageResistant {
-    const KIND: DataComponentKind = DataComponentKind::DamageResistant;
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -1172,9 +1067,7 @@ fn is_default_equip_sound(sound: &SoundEvent) -> bool {
 fn is_default_shearing_sound(sound: &SoundEvent) -> bool {
     matches!(sound, SoundEvent::ItemShearsSnip)
 }
-impl DataComponent for Equippable {
-    const KIND: DataComponentKind = DataComponentKind::Equippable;
-}
+
 impl Equippable {
     pub const fn new() -> Self {
         Self {
@@ -1213,25 +1106,16 @@ pub enum EquipmentSlot {
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct Glider;
-impl DataComponent for Glider {
-    const KIND: DataComponentKind = DataComponentKind::Glider;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct TooltipStyle {
     pub resource_location: ResourceLocation,
 }
-impl DataComponent for TooltipStyle {
-    const KIND: DataComponentKind = DataComponentKind::TooltipStyle;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct DeathProtection {
     pub death_effects: Vec<ConsumeEffect>,
-}
-impl DataComponent for DeathProtection {
-    const KIND: DataComponentKind = DataComponentKind::DeathProtection;
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -1245,9 +1129,7 @@ pub struct Weapon {
 fn is_default_item_damage_per_attack(value: &i32) -> bool {
     *value == 1
 }
-impl DataComponent for Weapon {
-    const KIND: DataComponentKind = DataComponentKind::Weapon;
-}
+
 impl Weapon {
     pub const fn new() -> Self {
         Self {
@@ -1267,17 +1149,11 @@ impl Default for Weapon {
 pub struct PotionDurationScale {
     pub value: f32,
 }
-impl DataComponent for PotionDurationScale {
-    const KIND: DataComponentKind = DataComponentKind::PotionDurationScale;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct VillagerVariant {
     pub variant: registry::VillagerKind,
-}
-impl DataComponent for VillagerVariant {
-    const KIND: DataComponentKind = DataComponentKind::VillagerVariant;
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -1285,26 +1161,17 @@ impl DataComponent for VillagerVariant {
 pub struct WolfVariant {
     pub variant: registry::WolfVariant,
 }
-impl DataComponent for WolfVariant {
-    const KIND: DataComponentKind = DataComponentKind::WolfVariant;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct WolfCollar {
     pub color: DyeColor,
 }
-impl DataComponent for WolfCollar {
-    const KIND: DataComponentKind = DataComponentKind::WolfCollar;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct FoxVariant {
     pub variant: registry::FoxVariant,
-}
-impl DataComponent for FoxVariant {
-    const KIND: DataComponentKind = DataComponentKind::FoxVariant;
 }
 
 #[derive(Clone, Copy, PartialEq, AzBuf, Debug, Serialize)]
@@ -1314,17 +1181,11 @@ pub enum SalmonSize {
     Medium,
     Large,
 }
-impl DataComponent for SalmonSize {
-    const KIND: DataComponentKind = DataComponentKind::SalmonSize;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct ParrotVariant {
     pub variant: registry::ParrotVariant,
-}
-impl DataComponent for ParrotVariant {
-    const KIND: DataComponentKind = DataComponentKind::ParrotVariant;
 }
 
 #[derive(Clone, Copy, PartialEq, AzBuf, Debug, Serialize)]
@@ -1343,17 +1204,11 @@ pub enum TropicalFishPattern {
     Betty,
     Clayfish,
 }
-impl DataComponent for TropicalFishPattern {
-    const KIND: DataComponentKind = DataComponentKind::TropicalFishPattern;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct TropicalFishBaseColor {
     pub color: DyeColor,
-}
-impl DataComponent for TropicalFishBaseColor {
-    const KIND: DataComponentKind = DataComponentKind::TropicalFishBaseColor;
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -1361,17 +1216,11 @@ impl DataComponent for TropicalFishBaseColor {
 pub struct TropicalFishPatternColor {
     pub color: DyeColor,
 }
-impl DataComponent for TropicalFishPatternColor {
-    const KIND: DataComponentKind = DataComponentKind::TropicalFishPatternColor;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct MooshroomVariant {
     pub variant: registry::MooshroomVariant,
-}
-impl DataComponent for MooshroomVariant {
-    const KIND: DataComponentKind = DataComponentKind::MooshroomVariant;
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -1379,17 +1228,11 @@ impl DataComponent for MooshroomVariant {
 pub struct RabbitVariant {
     pub variant: registry::RabbitVariant,
 }
-impl DataComponent for RabbitVariant {
-    const KIND: DataComponentKind = DataComponentKind::RabbitVariant;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct PigVariant {
     pub variant: registry::PigVariant,
-}
-impl DataComponent for PigVariant {
-    const KIND: DataComponentKind = DataComponentKind::PigVariant;
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -1397,17 +1240,11 @@ impl DataComponent for PigVariant {
 pub struct FrogVariant {
     pub variant: registry::FrogVariant,
 }
-impl DataComponent for FrogVariant {
-    const KIND: DataComponentKind = DataComponentKind::FrogVariant;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct HorseVariant {
     pub variant: registry::HorseVariant,
-}
-impl DataComponent for HorseVariant {
-    const KIND: DataComponentKind = DataComponentKind::HorseVariant;
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -1415,9 +1252,7 @@ impl DataComponent for HorseVariant {
 pub struct PaintingVariant {
     pub variant: Holder<registry::PaintingVariant, PaintingVariantData>,
 }
-impl DataComponent for PaintingVariant {
-    const KIND: DataComponentKind = DataComponentKind::PaintingVariant;
-}
+
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct PaintingVariantData {
     #[var]
@@ -1436,17 +1271,11 @@ pub struct PaintingVariantData {
 pub struct LlamaVariant {
     pub variant: registry::LlamaVariant,
 }
-impl DataComponent for LlamaVariant {
-    const KIND: DataComponentKind = DataComponentKind::LlamaVariant;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct AxolotlVariant {
     pub variant: registry::AxolotlVariant,
-}
-impl DataComponent for AxolotlVariant {
-    const KIND: DataComponentKind = DataComponentKind::AxolotlVariant;
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -1454,17 +1283,11 @@ impl DataComponent for AxolotlVariant {
 pub struct CatVariant {
     pub variant: registry::CatVariant,
 }
-impl DataComponent for CatVariant {
-    const KIND: DataComponentKind = DataComponentKind::CatVariant;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct CatCollar {
     pub color: DyeColor,
-}
-impl DataComponent for CatCollar {
-    const KIND: DataComponentKind = DataComponentKind::CatCollar;
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -1472,17 +1295,11 @@ impl DataComponent for CatCollar {
 pub struct SheepColor {
     pub color: DyeColor,
 }
-impl DataComponent for SheepColor {
-    const KIND: DataComponentKind = DataComponentKind::SheepColor;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct ShulkerColor {
     pub color: DyeColor,
-}
-impl DataComponent for ShulkerColor {
-    const KIND: DataComponentKind = DataComponentKind::ShulkerColor;
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -1492,9 +1309,7 @@ pub struct TooltipDisplay {
     #[serde(skip_serializing_if = "is_default")]
     pub hidden_components: Vec<DataComponentKind>,
 }
-impl DataComponent for TooltipDisplay {
-    const KIND: DataComponentKind = DataComponentKind::TooltipDisplay;
-}
+
 impl TooltipDisplay {
     pub const fn new() -> Self {
         Self {
@@ -1524,9 +1339,7 @@ pub struct BlocksAttacks {
 fn is_default_disable_cooldown_scale(value: &f32) -> bool {
     *value == 1.
 }
-impl DataComponent for BlocksAttacks {
-    const KIND: DataComponentKind = DataComponentKind::BlocksAttacks;
-}
+
 impl BlocksAttacks {
     pub fn new() -> Self {
         Self {
@@ -1585,9 +1398,6 @@ pub enum ProvidesTrimMaterial {
     Referenced(ResourceLocation),
     Direct(Holder<TrimMaterial, DirectTrimMaterial>),
 }
-impl DataComponent for ProvidesTrimMaterial {
-    const KIND: DataComponentKind = DataComponentKind::ProvidesTrimMaterial;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct DirectTrimMaterial {
@@ -1611,17 +1421,11 @@ pub struct AssetInfo {
 pub struct ProvidesBannerPatterns {
     pub key: ResourceLocation,
 }
-impl DataComponent for ProvidesBannerPatterns {
-    const KIND: DataComponentKind = DataComponentKind::ProvidesBannerPatterns;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct BreakSound {
     pub sound: azalea_registry::Holder<SoundEvent, CustomSound>,
-}
-impl DataComponent for BreakSound {
-    const KIND: DataComponentKind = DataComponentKind::BreakSound;
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -1629,17 +1433,11 @@ impl DataComponent for BreakSound {
 pub struct WolfSoundVariant {
     pub variant: azalea_registry::WolfSoundVariant,
 }
-impl DataComponent for WolfSoundVariant {
-    const KIND: DataComponentKind = DataComponentKind::WolfSoundVariant;
-}
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct CowVariant {
     pub variant: azalea_registry::CowVariant,
-}
-impl DataComponent for CowVariant {
-    const KIND: DataComponentKind = DataComponentKind::CowVariant;
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -1648,9 +1446,7 @@ pub enum ChickenVariant {
     Referenced(ResourceLocation),
     Direct(ChickenVariantData),
 }
-impl DataComponent for ChickenVariant {
-    const KIND: DataComponentKind = DataComponentKind::ChickenVariant;
-}
+
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct ChickenVariantData {
     pub registry: azalea_registry::ChickenVariant,

@@ -1,5 +1,6 @@
 use std::{cmp::Ordering, fmt, hash::Hasher};
 
+use azalea_buf::AzBuf;
 use crc32c::Crc32cHasher;
 use serde::{Serialize, ser};
 use thiserror::Error;
@@ -7,16 +8,16 @@ use tracing::error;
 
 use crate::{registry_holder::RegistryHolder, resource_location::ResourceLocation};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default)]
-pub struct HashCode(pub u32);
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, AzBuf)]
+pub struct Checksum(pub u32);
 
 pub struct ChecksumSerializer<'a, 'r> {
     hasher: &'a mut Crc32cHasher,
     registries: &'r RegistryHolder,
 }
 impl<'a, 'r> ChecksumSerializer<'a, 'r> {
-    pub fn checksum(&mut self) -> HashCode {
-        HashCode(self.hasher.finish() as u32)
+    pub fn checksum(&mut self) -> Checksum {
+        Checksum(self.hasher.finish() as u32)
     }
 }
 
@@ -49,7 +50,7 @@ impl<'a, 'r> ser::Serializer for ChecksumSerializer<'a, 'r> {
             entries: Vec::new(),
         })
     }
-    fn serialize_struct(self, name: &'static str, len: usize) -> Result<Self::SerializeStruct> {
+    fn serialize_struct(self, _name: &'static str, len: usize) -> Result<Self::SerializeStruct> {
         assert!(self.hasher.finish() == 0);
         self.serialize_map(Some(len))
     }
@@ -291,7 +292,7 @@ impl<'a, 'r> ser::Serializer for ChecksumSerializer<'a, 'r> {
 pub struct ChecksumListSerializer<'a, 'r> {
     hasher: &'a mut Crc32cHasher,
     registries: &'r RegistryHolder,
-    values: Vec<HashCode>,
+    values: Vec<Checksum>,
     /// If you set this to not be the default, you should also update the hasher
     /// before creating the list serializer.
     list_kind: ListKind,
@@ -381,7 +382,7 @@ pub struct ChecksumMapSerializer<'a, 'r> {
     hasher: &'a mut Crc32cHasher,
     registries: &'r RegistryHolder,
     // we have to keep track of the elements like this because they're sorted at the end
-    entries: Vec<(HashCode, HashCode)>,
+    entries: Vec<(Checksum, Checksum)>,
 }
 impl<'a, 'r> ser::SerializeMap for ChecksumMapSerializer<'a, 'r> {
     type Ok = ();
@@ -393,7 +394,7 @@ impl<'a, 'r> ser::SerializeMap for ChecksumMapSerializer<'a, 'r> {
     {
         // this 0 is a placeholder
         self.entries
-            .push((get_checksum(key, self.registries)?, HashCode(0)));
+            .push((get_checksum(key, self.registries)?, Checksum(0)));
         Ok(())
     }
 
@@ -636,23 +637,23 @@ type Result<T> = std::result::Result<T, ChecksumError>;
 pub fn get_checksum<T: Serialize + ?Sized>(
     value: &T,
     registries: &RegistryHolder,
-) -> Result<HashCode> {
+) -> Result<Checksum> {
     let mut hasher = Crc32cHasher::default();
     value.serialize(ChecksumSerializer {
         hasher: &mut hasher,
         registries,
     })?;
-    Ok(HashCode(hasher.finish() as u32))
+    Ok(Checksum(hasher.finish() as u32))
 }
 
-fn update_hasher_for_list(h: &mut Crc32cHasher, values: &[HashCode]) {
+fn update_hasher_for_list(h: &mut Crc32cHasher, values: &[Checksum]) {
     h.write_u8(4);
     for v in values {
         h.write(&v.0.to_le_bytes());
     }
     h.write_u8(5);
 }
-fn update_hasher_for_map(h: &mut Crc32cHasher, entries: &[(HashCode, HashCode)]) {
+fn update_hasher_for_map(h: &mut Crc32cHasher, entries: &[(Checksum, Checksum)]) {
     println!("getting checksum for map with {} entries", entries.len());
     h.write_u8(2);
     let mut entries = entries.to_vec();
