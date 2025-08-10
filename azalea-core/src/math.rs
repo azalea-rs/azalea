@@ -1,10 +1,10 @@
 use std::{
+    f64::consts::PI,
     ops::{Add, Div, Sub},
     sync::LazyLock,
 };
 
 pub const EPSILON: f64 = 1.0e-7;
-pub const PI: f64 = 3.141592653589793;
 
 pub static SIN: LazyLock<[f32; 65536]> =
     LazyLock::new(|| std::array::from_fn(|i| f64::sin((i as f64) * PI * 2. / 65536.) as f32));

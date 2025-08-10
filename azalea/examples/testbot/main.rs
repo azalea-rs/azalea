@@ -168,7 +168,7 @@ async fn handle(bot: Client, event: azalea::Event, state: State) -> anyhow::Resu
                             chat: chat.clone(),
                             state: state.clone(),
                         };
-                        command_source.reply(&format!("{err:?}"));
+                        command_source.reply(format!("{err:?}"));
                     }
                 }
             }
