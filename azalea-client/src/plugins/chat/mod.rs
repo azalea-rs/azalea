@@ -12,7 +12,6 @@ use azalea_protocol::packets::game::{
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 use handler::{SendChatKindEvent, handle_send_chat_kind_event};
-use parking_lot::RwLock;
 use uuid::Uuid;
 
 use crate::client::Client;
@@ -46,20 +45,6 @@ macro_rules! regex {
     }};
 }
 
-/// This is the regex used to split system messages into their sender parts.
-/// You can override this with your own regex if you want to
-/// change how system messages are parsed.
-pub static SYSTEM_REGEX: RwLock<&std::sync::LazyLock<regex::Regex>> = RwLock::new(regex!(
-    "^<(?P<sender>[a-zA-Z_0-9]{1,16})> (?:-> me)?(?p<content>.+)$"
-));
-
-/// This is the regex used to check if a system message is a whisper.
-/// You can override this with your own regex if you want to
-/// change how system are parsed.
-pub static WHISPER_REGEX: RwLock<&std::sync::LazyLock<regex::Regex>> = RwLock::new(regex!(
-    "^(?P<whisper>-> me)?(?:.+)$"
-));
-
 impl ChatPacket {
     /// Get the message shown in chat for this packet.
     pub fn message(&self) -> FormattedText {
@@ -85,8 +70,8 @@ impl ChatPacket {
                 }
 
                 // It's a system message, so we'll have to match the content with regex
-                if let Some(m) = SYSTEM_REGEX.read().captures(&message) {
-                    return (Some(m["sender"].to_string()), m["content"].to_string());
+                if let Some(m) = regex!("^<(?[a-zA-Z_0-9]{1,16})> (?:-> me)?(?.+)$").captures(&message) {
+                    return (Some(m[1].to_string()), m[2].to_string());
                 }
 
                 (None, message)
@@ -154,8 +139,8 @@ impl ChatPacket {
                 }
 
                 // It's a system message, so we'll have to match the content with regex
-                if let Some(m) = WHISPER_REGEX.read().captures(&message) {
-                    return m.name("whisper").is_some();
+                if let Some(m) = regex!("^(?-> me)?(?:.+)$").captures(&message) {
+                    return m.get(1).is_some();
                 }
 
                 false
