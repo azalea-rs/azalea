@@ -70,7 +70,7 @@ impl ChatPacket {
                 }
 
                 // It's a system message, so we'll have to match the content with regex
-                if let Some(m) = regex!("^<(?[a-zA-Z_0-9]{1,16})> (?:-> me)?(?.+)$").captures(&message) {
+                if let Some(m) = regex!("^<([a-zA-Z_0-9]{1,16})> (?:-> me)?(.+)$").captures(&message) {
                     return (Some(m[1].to_string()), m[2].to_string());
                 }
 
@@ -139,7 +139,7 @@ impl ChatPacket {
                 }
 
                 // It's a system message, so we'll have to match the content with regex
-                if let Some(m) = regex!("^(?-> me)?(?:.+)$").captures(&message) {
+                if let Some(m) = regex!("^(-> me)?(?:.+)$").captures(&message) {
                     return m.get(1).is_some();
                 }
 
