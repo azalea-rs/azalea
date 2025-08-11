@@ -3691,7 +3691,7 @@ impl DefaultableComponent for EnchantmentGlintOverride {
 impl DefaultableComponent for PotDecorations {
     fn default_for_item(item: Item) -> Option<Self> {
         let value = match item {
-            Item::DecoratedPot => [Item::Brick, Item::Brick, Item::Brick, Item::Brick],
+            Item::DecoratedPot => vec![Item::Brick, Item::Brick, Item::Brick, Item::Brick],
             _ => return None,
         };
         Some(PotDecorations { items: value })

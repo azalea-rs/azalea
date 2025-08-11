@@ -895,7 +895,7 @@ pub struct BaseColor {
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 #[serde(transparent)]
 pub struct PotDecorations {
-    pub items: [Item; 4],
+    pub items: Vec<Item>,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
