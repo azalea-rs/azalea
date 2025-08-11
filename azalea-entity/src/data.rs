@@ -6,7 +6,7 @@ use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, 
 use azalea_chat::FormattedText;
 use azalea_core::{
     direction::Direction,
-    position::{BlockPos, GlobalPos, Vec3},
+    position::{BlockPos, GlobalPos, Vec3f32},
 };
 use azalea_inventory::ItemStack;
 use bevy_ecs::component::Component;
@@ -92,7 +92,7 @@ pub enum EntityDataValue {
     PaintingVariant(azalea_registry::PaintingVariant),
     SnifferState(SnifferStateKind),
     ArmadilloState(ArmadilloStateKind),
-    Vector3(Vec3),
+    Vector3(Vec3f32),
     Quaternion(Quaternion),
 }
 

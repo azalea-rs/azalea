@@ -32,6 +32,7 @@ is breaking anyways, semantic versioning is not followed.
 - `azalea-chat` now correctly handles arrays of integers in the `with` field. (@qwqawawow)
 - Inventories now use the correct max stack sizes.
 - Clients now send the correct data component checksums when interacting with items.
+- Fix parsing some metadata fields of Display entities.
 
 ## [0.13.0+mc1.21.5] - 2025-06-15
 

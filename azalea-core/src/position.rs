@@ -361,6 +361,32 @@ impl Vec3 {
     }
 }
 
+/// A lower precision [`Vec3`], used for some fields in entity metadata.
+#[derive(Clone, Copy, Debug, Default, PartialEq, AzBuf)]
+pub struct Vec3f32 {
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
+}
+impl From<Vec3f32> for Vec3 {
+    fn from(v: Vec3f32) -> Self {
+        Vec3 {
+            x: v.x as f64,
+            y: v.y as f64,
+            z: v.z as f64,
+        }
+    }
+}
+impl From<Vec3> for Vec3f32 {
+    fn from(v: Vec3) -> Self {
+        Vec3f32 {
+            x: v.x as f32,
+            y: v.y as f32,
+            z: v.z as f32,
+        }
+    }
+}
+
 /// The coordinates of a block in the world.
 ///
 /// For entities (if the coordinates are floating-point), use [`Vec3`] instead.

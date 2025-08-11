@@ -111,7 +111,7 @@ def generate_entity_metadata(burger_entities_data: dict, mappings: Mappings):
 use azalea_chat::FormattedText;
 use azalea_core::{
     direction::Direction,
-    position::{BlockPos, Vec3},
+    position::{BlockPos, Vec3f32},
 };
 use azalea_inventory::ItemStack;
 use azalea_registry::DataRegistry;
@@ -522,7 +522,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
                         elif type_name == "Quaternion":
                             default = f"Quaternion {{ x: {float(default['x'])}, y: {float(default['y'])}, z: {float(default['z'])}, w: {float(default['w'])} }}"
                         elif type_name == "Vector3":
-                            default = f"Vec3 {{ x: {float(default['x'])}, y: {float(default['y'])}, z: {float(default['z'])} }}"
+                            default = f"Vec3f32 {{ x: {float(default['x'])}, y: {float(default['y'])}, z: {float(default['z'])} }}"
                         elif type_name == "Byte":
                             # in 1.19.4 TextOpacity is a -1 by default
                             if default < 0:

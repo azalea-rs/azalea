@@ -6,7 +6,7 @@
 use azalea_chat::FormattedText;
 use azalea_core::{
     direction::Direction,
-    position::{BlockPos, Vec3},
+    position::{BlockPos, Vec3f32},
 };
 use azalea_inventory::ItemStack;
 use azalea_registry::DataRegistry;
@@ -1189,9 +1189,9 @@ pub struct TransformationInterpolationDuration(pub i32);
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct PosRotInterpolationDuration(pub i32);
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct Translation(pub Vec3);
+pub struct Translation(pub Vec3f32);
 #[derive(Component, Deref, DerefMut, Clone)]
-pub struct Scale(pub Vec3);
+pub struct Scale(pub Vec3f32);
 #[derive(Component, Deref, DerefMut, Clone)]
 pub struct LeftRotation(pub Quaternion);
 #[derive(Component, Deref, DerefMut, Clone)]
@@ -1265,12 +1265,12 @@ impl Default for BlockDisplayMetadataBundle {
                     TransformationInterpolationStartDeltaTicks(0),
                 transformation_interpolation_duration: TransformationInterpolationDuration(0),
                 pos_rot_interpolation_duration: PosRotInterpolationDuration(0),
-                translation: Translation(Vec3 {
+                translation: Translation(Vec3f32 {
                     x: 0.0,
                     y: 0.0,
                     z: 0.0,
                 }),
-                scale: Scale(Vec3 {
+                scale: Scale(Vec3f32 {
                     x: 1.0,
                     y: 1.0,
                     z: 1.0,
@@ -5249,12 +5249,12 @@ impl Default for ItemDisplayMetadataBundle {
                     TransformationInterpolationStartDeltaTicks(0),
                 transformation_interpolation_duration: TransformationInterpolationDuration(0),
                 pos_rot_interpolation_duration: PosRotInterpolationDuration(0),
-                translation: Translation(Vec3 {
+                translation: Translation(Vec3f32 {
                     x: 0.0,
                     y: 0.0,
                     z: 0.0,
                 }),
-                scale: Scale(Vec3 {
+                scale: Scale(Vec3f32 {
                     x: 1.0,
                     y: 1.0,
                     z: 1.0,
@@ -9190,12 +9190,12 @@ impl Default for TextDisplayMetadataBundle {
                     TransformationInterpolationStartDeltaTicks(0),
                 transformation_interpolation_duration: TransformationInterpolationDuration(0),
                 pos_rot_interpolation_duration: PosRotInterpolationDuration(0),
-                translation: Translation(Vec3 {
+                translation: Translation(Vec3f32 {
                     x: 0.0,
                     y: 0.0,
                     z: 0.0,
                 }),
-                scale: Scale(Vec3 {
+                scale: Scale(Vec3f32 {
                     x: 1.0,
                     y: 1.0,
                     z: 1.0,
@@ -11424,12 +11424,12 @@ impl Default for AbstractDisplayMetadataBundle {
                 TransformationInterpolationStartDeltaTicks(0),
             transformation_interpolation_duration: TransformationInterpolationDuration(0),
             pos_rot_interpolation_duration: PosRotInterpolationDuration(0),
-            translation: Translation(Vec3 {
+            translation: Translation(Vec3f32 {
                 x: 0.0,
                 y: 0.0,
                 z: 0.0,
             }),
-            scale: Scale(Vec3 {
+            scale: Scale(Vec3f32 {
                 x: 1.0,
                 y: 1.0,
                 z: 1.0,

@@ -188,7 +188,7 @@ fn test_lodestone_tracker_checksum() {
 #[test]
 fn test_pot_decorations_checksum() {
     let c = PotDecorations {
-        items: [Item::Stick, Item::Brick, Item::Brick, Item::Brick],
+        items: vec![Item::Stick, Item::Brick, Item::Brick, Item::Brick],
     };
 
     assert_eq!(get_checksum(&c, &Default::default()).unwrap().0, 1951715383);

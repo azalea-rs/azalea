@@ -48,4 +48,17 @@ mod tests {
 
         assert_eq!(buf.position(), contents.len() as u64);
     }
+
+    #[test]
+    fn test_read_6b6t_entity_data() {
+        let contents = [
+            254, 180, 160, 8, 11, 33, 190, 230, 102, 102, 0, 0, 0, 0, 191, 0, 0, 0, 12, 33, 63,
+            102, 102, 102, 63, 25, 153, 154, 63, 102, 102, 102, 23, 14, 234, 64, 255,
+        ];
+        let mut buf = Cursor::new(contents.as_slice());
+        let packet = ClientboundSetEntityData::azalea_read(&mut buf).unwrap();
+        println!("{packet:?}");
+
+        assert_eq!(buf.position(), contents.len() as u64);
+    }
 }
