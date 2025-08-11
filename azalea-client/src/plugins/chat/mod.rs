@@ -63,13 +63,14 @@ impl ChatPacket {
         match self {
             ChatPacket::System(p) => {
                 let message = p.content.to_string();
+
                 // Overlay messages aren't in chat
                 if p.overlay {
                     return (None, message);
                 }
-                // It's a system message, so we'll have to match the content
-                // with regex
-                if let Some(m) = regex!("^<([a-zA-Z_0-9]{1,16})> (.+)$").captures(&message) {
+
+                // It's a system message, so we'll have to match the content with regex
+                if let Some(m) = regex!("^<([a-zA-Z_0-9]{1,16})> (?:-> me)?(.+)$").captures(&message) {
                     return (Some(m[1].to_string()), m[2].to_string());
                 }
 
@@ -128,9 +129,26 @@ impl ChatPacket {
     /// dm'd the bot with /msg). It works by checking the translation key, so it
     /// won't work on servers that use their own whisper system.
     pub fn is_whisper(&self) -> bool {
-        match self.message() {
-            FormattedText::Text(_) => false,
-            FormattedText::Translatable(t) => t.key == "commands.message.display.incoming",
+        match self {
+            ChatPacket::System(p) => {
+                let message = p.content.to_string();
+
+                // Overlay messages aren't in chat
+                if p.overlay {
+                    return false;
+                }
+
+                // It's a system message, so we'll have to match the content with regex
+                if let Some(m) = regex!("^(-> me)?(?:.+)$").captures(&message) {
+                    return m.get(1).is_some();
+                }
+
+                false
+            }
+            _ => match self.message() {
+                FormattedText::Text(_) => false,
+                FormattedText::Translatable(t) => t.key == "commands.message.display.incoming",
+            },
         }
     }
 }
