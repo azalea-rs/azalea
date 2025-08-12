@@ -174,7 +174,7 @@ impl ContainerHandleRef {
     ///
     /// Note that any modifications you make to the `Menu` you're given will not
     /// actually cause any packets to be sent. If you're trying to modify your
-    /// inventory, use [`ContainerHandle::click`] instead
+    /// inventory, use [`Self::click`] instead
     pub fn menu(&self) -> Option<Menu> {
         let ecs = self.client.ecs.lock();
         let inventory = ecs
@@ -224,6 +224,8 @@ impl ContainerHandleRef {
         });
     }
 
+    /// Simulate a click in the container and send the packet to perform the
+    /// action.
     pub fn click(&self, operation: impl Into<ClickOperation>) {
         let operation = operation.into();
         self.client.ecs.lock().send_event(ContainerClickEvent {

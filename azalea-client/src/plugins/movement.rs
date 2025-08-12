@@ -452,7 +452,7 @@ impl Client {
     }
 
     /// Start sprinting in the given direction. To stop moving, call
-    /// [`Client::walk(WalkDirection::None)`]
+    /// [`bot.walk(WalkDirection::None)`](Self::walk)
     ///
     /// # Examples
     ///

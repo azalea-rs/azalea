@@ -36,15 +36,16 @@ impl Client {
             })
     }
 
-    /// Return a lightweight [`Entity`] for an arbitrary entity that matches the
-    /// given predicate function that is in the same [`Instance`] as the
-    /// client.
+    /// Quickly returns a lightweight [`Entity`] for an arbitrary entity that
+    /// matches the given predicate function that is in the same
+    /// [`Instance`] as the client.
     ///
     /// You can then use [`Self::entity_component`] to get components from this
     /// entity.
     ///
-    /// Also see [`Self::entities_by`] which will return all entities that match
-    /// the predicate and sorts them by distance (unlike `entity_by`).
+    /// If you want to find the nearest entity, consider using
+    /// [`Self::nearest_entity_by`] instead. If you want to find all entities
+    /// that match the predicate, use [`Self::nearest_entities_by`].
     ///
     /// # Example
     /// ```
@@ -65,7 +66,7 @@ impl Client {
     ///
     /// [`Entity`]: bevy_ecs::entity::Entity
     /// [`Instance`]: azalea_world::Instance
-    pub fn entity_by<F: QueryFilter, Q: QueryData>(
+    pub fn any_entity_by<F: QueryFilter, Q: QueryData>(
         &self,
         predicate: impl EntityPredicate<Q, F>,
     ) -> Option<Entity> {
@@ -73,12 +74,47 @@ impl Client {
         predicate.find_any(self.ecs.clone(), &instance_name)
     }
 
-    /// Similar to [`Self::entity_by`] but returns a `Vec<Entity>` of all
-    /// entities in our instance that match the predicate.
+    /// Return a lightweight [`Entity`] for the nearest entity that matches the
+    /// given predicate function.
     ///
-    /// Unlike `entity_by`, the result is sorted by distance to our client's
-    /// position, so the closest entity is first.
-    pub fn entities_by<F: QueryFilter, Q: QueryData>(
+    /// You can then use [`Self::entity_component`] to get components from this
+    /// entity.
+    ///
+    /// If you don't need the entity to be the nearest one, it may be more
+    /// efficient to use [`Self::any_entity_by`] instead. You can also use
+    /// [`Self::nearest_entities_by`] to get all nearby entities.
+    ///
+    /// # Example
+    /// ```
+    /// use azalea_entity::{Position, metadata::Player, LocalEntity};
+    /// use bevy_ecs::query::With;
+    ///
+    /// # fn example(mut bot: azalea_client::Client, sender_name: String) {
+    /// // look at the nearest player
+    /// if let Some(closest_player) = bot
+    ///     .entities_by::<(With<Player>, Without<LocalEntity>), ()>(|_: &()| true)
+    ///     .first()
+    /// {
+    ///     let closest_player_pos = *bot.entity_component::<Position>(*closest_player);
+    ///     bot.look_at(closest_player_pos.up(1.62));
+    /// }
+    /// }
+    /// ```
+    ///
+    /// [`Entity`]: bevy_ecs::entity::Entity
+    /// [`Instance`]: azalea_world::Instance
+    pub fn nearest_entity_by<F: QueryFilter, Q: QueryData>(
+        &self,
+        predicate: impl EntityPredicate<Q, F>,
+    ) -> Option<Entity> {
+        self.nearest_entities_by(predicate).first().copied()
+    }
+
+    /// Similar to [`Self::nearest_entity_by`] but returns a `Vec<Entity>` of
+    /// all entities in our instance that match the predicate.
+    ///
+    /// The first entity is the nearest one.
+    pub fn nearest_entities_by<F: QueryFilter, Q: QueryData>(
         &self,
         predicate: impl EntityPredicate<Q, F>,
     ) -> Vec<Entity> {

@@ -32,10 +32,6 @@ opt-level = 3
 
 The documentation for the latest Azalea crates.io release is available at [docs.rs/azalea](https://docs.rs/azalea/latest/azalea/) and the docs for the latest bleeding-edge (git) version are at [azalea.matdoes.dev](https://azalea.matdoes.dev/azalea/).
 
-Note that the `azalea` crate is technically just a wrapper over [`azalea_client`] that adds some extra functions.
-Because of this, some of the documentation will refer to `azalea_client`.
-You can just replace these with `azalea` in your code since everything from `azalea_client` is re-exported in azalea.
-
 # Examples
 
 ```rust,no_run
@@ -75,6 +71,9 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
     Ok(())
 }
 ```
+
+There are more examples in the [examples directory](https://github.com/azalea-rs/azalea/tree/main/azalea/examples).
+You may also find it helpful to read the code for [other people's Azalea bots](https://github.com/azalea-rs/azalea#real-world-bots-using-azalea).
 
 # Swarms
 

@@ -230,8 +230,7 @@ pub struct LookDirection {
 }
 
 impl LookDirection {
-    /// Create a new look direction, while clamping and wrapping the rotations
-    /// to the allowed values.
+    /// Create a new look direction and clamp the `x_rot` to the allowed values.
     pub fn new(y_rot: f32, x_rot: f32) -> Self {
         apply_clamp_look_direction(Self { y_rot, x_rot })
     }
@@ -255,12 +254,32 @@ impl LookDirection {
     pub fn update(&mut self, new: LookDirection) {
         self.update_with_sensitivity(new, 1.);
     }
+    /// Update the `y_rot` to the given value, in degrees.
+    ///
+    /// This is a shortcut for [`Self::update`] while keeping the `x_rot` the
+    /// same.
+    pub fn update_y_rot(&mut self, new_y_rot: f32) {
+        self.update(LookDirection {
+            y_rot: new_y_rot,
+            x_rot: self.x_rot,
+        });
+    }
+    /// Update the `x_rot` to the given value, in degrees.
+    ///
+    /// This is a shortcut for [`Self::update`] while keeping the `y_rot` the
+    /// same.
+    pub fn update_x_rot(&mut self, new_x_rot: f32) {
+        self.update(LookDirection {
+            y_rot: self.y_rot,
+            x_rot: new_x_rot,
+        });
+    }
 
     /// Update this look direction to the new value, using the given
     /// sensitivity value.
     ///
-    /// Consider using [`Self::set`] instead, which uses 1.0 as the sensitivity
-    /// (equivalent to 100% sensitivity in Minecraft).
+    /// Consider using [`Self::update`] instead, which uses 1.0 as the
+    /// sensitivity (equivalent to 100% sensitivity in Minecraft).
     pub fn update_with_sensitivity(&mut self, new: LookDirection, sensitivity: f32) {
         let mut delta_y_rot = new.y_rot.rem_euclid(360.) - self.y_rot.rem_euclid(360.);
         let delta_x_rot = new.x_rot - self.x_rot;

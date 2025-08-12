@@ -15,6 +15,7 @@ is breaking anyways, semantic versioning is not followed.
 - Local clients now have a `TicksConnected` component. (@Kumpelinus)
 - There is now a `azalea_inventory::default_components::get_default_component` function to get the default value of a component for a registry item.
 - `ItemStack` now has a `get_component` function that supports default components.
+- Add `Client::nearest_entity_by`.
 
 ### Changed
 
@@ -24,18 +25,19 @@ is breaking anyways, semantic versioning is not followed.
 - `Client::attack` now takes `Entity` instead of `MinecraftEntityId`.
 - `ItemStackData::components` was renamed to `component_patch`.
 - The fields in `LookDirection` have been replaced with getters.
+- Renamed `Client::entity_by` to `any_entity_by`, and `Client::entities_by` to `nearest_entities_by`.
 
 ### Fixed
 
 - Fix packet order for loading (`PlayerLoaded`/`MovePlayerPos`) and sprinting (`PlayerInput`/`PlayerCommand`).
 - Clients no longer send invalid look directions if the server teleports us with one.
+- Look directions are now rounded based on the default Minecraft sensitivity, which may help avoid flagging anticheats.
 - Movement code was updated with the changes from 1.21.5, so it no longer flags Grim.
 - `azalea-chat` now handles arrays of integers in the `with` field. (@qwqawawow)
 - `azalea-chat` no longer incorrectly persists styles of components in the "extra" field.
 - Inventories now use the correct max stack sizes.
 - Clients now send the correct data component checksums when interacting with items.
 - Fix parsing some metadata fields of Display entities.
-- Look directions are now rounded based on the default Minecraft sensitivity, which may help avoid flagging anticheats.
 
 ## [0.13.0+mc1.21.5] - 2025-06-15
 

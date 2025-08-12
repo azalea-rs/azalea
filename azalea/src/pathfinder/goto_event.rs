@@ -12,7 +12,10 @@ use crate::pathfinder::{
 ///
 /// Also see [`PathfinderClientExt::goto`].
 ///
-/// This event is read by [`goto_listener`].
+/// This event is read by [`goto_listener`]
+///
+/// [`goto_listener`]: crate::pathfinder::goto_listener
+/// [`PathfinderClientExt::goto`]: crate::pathfinder::PathfinderClientExt::goto
 #[derive(Event)]
 #[non_exhaustive]
 pub struct GotoEvent {
