@@ -250,7 +250,7 @@ impl ChatFormatting {
             ChatFormatting::DarkBlue => Some(170),
             ChatFormatting::DarkGreen => Some(43520),
             ChatFormatting::DarkAqua => Some(43690),
-            ChatFormatting::DarkRed => Some(1114112),
+            ChatFormatting::DarkRed => Some(11141120),
             ChatFormatting::DarkPurple => Some(11141290),
             ChatFormatting::Gold => Some(16755200),
             ChatFormatting::Gray => Some(11184810),
