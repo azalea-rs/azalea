@@ -217,13 +217,16 @@ impl From<&LastSentPosition> for BlockPos {
 #[derive(Debug, Component, Copy, Clone, Deref, DerefMut, Default, PartialEq, Eq)]
 pub struct Jumping(pub bool);
 
-/// A component that contains the direction an entity is looking.
+/// A component that contains the direction an entity is looking, in degrees.
+///
+/// To avoid flagging anticheats, consider using [`Self::update`] when updating
+/// the values of this struct.
 #[derive(Debug, Component, Copy, Clone, Default, PartialEq, AzBuf)]
 pub struct LookDirection {
-    /// Left and right. AKA yaw.
-    pub y_rot: f32,
-    /// Up and down. AKA pitch.
-    pub x_rot: f32,
+    /// Left and right. AKA yaw. In degrees.
+    y_rot: f32,
+    /// Up and down. AKA pitch. In degrees.
+    x_rot: f32,
 }
 
 impl LookDirection {
@@ -231,6 +234,49 @@ impl LookDirection {
     /// to the allowed values.
     pub fn new(y_rot: f32, x_rot: f32) -> Self {
         apply_clamp_look_direction(Self { y_rot, x_rot })
+    }
+    /// Returns yaw (left and right) in degrees.
+    ///
+    /// Minecraft allows this to go outside of ±360°, so it won't necessarily be
+    /// in any range.
+    pub fn y_rot(&self) -> f32 {
+        self.y_rot
+    }
+    /// Returns pitch (up and down) in degrees.
+    ///
+    /// Clamped to ±90°.
+    pub fn x_rot(&self) -> f32 {
+        self.x_rot
+    }
+
+    /// Update this look direction to the new value, while handling relative
+    /// rotations correctly and with the default Minecraft sensitivity to avoid
+    /// triggering anticheats.
+    pub fn update(&mut self, new: LookDirection) {
+        self.update_with_sensitivity(new, 1.);
+    }
+
+    /// Update this look direction to the new value, using the given
+    /// sensitivity value.
+    ///
+    /// Consider using [`Self::set`] instead, which uses 1.0 as the sensitivity
+    /// (equivalent to 100% sensitivity in Minecraft).
+    pub fn update_with_sensitivity(&mut self, new: LookDirection, sensitivity: f32) {
+        let mut delta_y_rot = new.y_rot.rem_euclid(360.) - self.y_rot.rem_euclid(360.);
+        let delta_x_rot = new.x_rot - self.x_rot;
+
+        if delta_y_rot > 180. {
+            delta_y_rot -= 360.;
+        } else if delta_y_rot < -180. {
+            delta_y_rot += 360.;
+        }
+
+        let sensitivity = sensitivity * 0.15;
+        let delta_y_rot = (delta_y_rot / sensitivity).round() * sensitivity;
+        let delta_x_rot = (delta_x_rot / sensitivity).round() * sensitivity;
+
+        self.y_rot += delta_y_rot;
+        self.x_rot += delta_x_rot;
     }
 }
 

@@ -63,7 +63,7 @@ pub fn lerp<T: num_traits::Float>(amount: T, a: T, b: T) -> T {
 }
 
 pub fn ceil_log2(x: u32) -> u32 {
-    u32::BITS - x.leading_zeros()
+    u32::BITS - x.saturating_sub(1).leading_zeros()
 }
 
 pub fn fract(x: f64) -> f64 {

@@ -341,7 +341,7 @@ pub fn jump_from_ground(
     };
     if *sprinting {
         // sprint jumping gives some extra velocity
-        let y_rot = look_direction.y_rot * 0.017453292;
+        let y_rot = look_direction.y_rot() * 0.017453292;
         physics.velocity += Vec3 {
             x: (-math::sin(y_rot) * 0.2) as f64,
             y: 0.,

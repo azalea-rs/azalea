@@ -105,15 +105,15 @@ impl Client {
         let mut ecs = self.ecs.lock();
         let mut look_direction = self.query::<&mut LookDirection>(&mut ecs);
 
-        (look_direction.y_rot, look_direction.x_rot) = (y_rot, x_rot);
+        look_direction.update(LookDirection::new(y_rot, x_rot));
     }
 
     /// Returns the direction the client is looking. The first value is the y
     /// rotation (ie. yaw, looking to the side) and the second value is the x
     /// rotation (ie. pitch, looking up and down).
     pub fn direction(&self) -> (f32, f32) {
-        let look_direction = self.component::<LookDirection>();
-        (look_direction.y_rot, look_direction.x_rot)
+        let look_direction: LookDirection = self.component::<LookDirection>();
+        (look_direction.y_rot(), look_direction.x_rot())
     }
 }
 
@@ -176,8 +176,8 @@ pub fn send_position(
             let x_delta = position.x - last_sent_position.x;
             let y_delta = position.y - last_sent_position.y;
             let z_delta = position.z - last_sent_position.z;
-            let y_rot_delta = (direction.y_rot - last_direction.y_rot) as f64;
-            let x_rot_delta = (direction.x_rot - last_direction.x_rot) as f64;
+            let y_rot_delta = (direction.y_rot() - last_direction.y_rot) as f64;
+            let x_rot_delta = (direction.x_rot() - last_direction.x_rot) as f64;
 
             physics_state.position_remainder += 1;
 
@@ -231,8 +231,8 @@ pub fn send_position(
                 physics_state.position_remainder = 0;
             }
             if sending_direction {
-                last_direction.y_rot = direction.y_rot;
-                last_direction.x_rot = direction.x_rot;
+                last_direction.y_rot = direction.y_rot();
+                last_direction.x_rot = direction.x_rot();
             }
 
             let on_ground = physics.on_ground();

@@ -230,8 +230,9 @@ fn look_at_listener(
         if let Ok((position, eye_height, mut look_direction)) = query.get_mut(event.entity) {
             let new_look_direction =
                 direction_looking_at(position.up(eye_height.into()), event.position);
+
             trace!("look at {} (currently at {})", event.position, **position);
-            *look_direction = new_look_direction;
+            look_direction.update(new_look_direction);
         }
     }
 }
@@ -245,14 +246,7 @@ pub fn direction_looking_at(current: Vec3, target: Vec3) -> LookDirection {
     let ground_distance = f64::sqrt(delta.x * delta.x + delta.z * delta.z);
     let x_rot = f64::atan2(delta.y, ground_distance) * -(180.0 / PI);
 
-    // clamp
-    let y_rot = y_rot.rem_euclid(360.0);
-    let x_rot = x_rot.clamp(-90.0, 90.0) % 360.0;
-
-    LookDirection {
-        x_rot: x_rot as f32,
-        y_rot: y_rot as f32,
-    }
+    LookDirection::new(y_rot as f32, x_rot as f32)
 }
 
 /// A [`PluginGroup`] for the plugins that add extra bot functionality to the

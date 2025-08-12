@@ -90,7 +90,8 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
         let direction = source.bot.component::<LookDirection>();
         source.reply(format!(
             "I'm looking at {}, {}",
-            direction.y_rot, direction.x_rot
+            direction.y_rot(),
+            direction.x_rot()
         ));
         1
     }));

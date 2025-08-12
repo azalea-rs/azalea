@@ -297,8 +297,8 @@ pub fn handle_start_use_item_queued(
                         ServerboundUseItem {
                             hand: start_use_item.hand,
                             seq,
-                            x_rot: look_direction.x_rot,
-                            y_rot: look_direction.y_rot,
+                            x_rot: look_direction.x_rot(),
+                            y_rot: look_direction.y_rot(),
                         },
                     ));
                 } else {

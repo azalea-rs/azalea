@@ -191,8 +191,8 @@ pub fn clamp_look_direction(mut query: Query<&mut LookDirection>) {
     }
 }
 pub fn apply_clamp_look_direction(mut look_direction: LookDirection) -> LookDirection {
-    look_direction.y_rot = look_direction.y_rot.rem_euclid(360.0);
-    look_direction.x_rot = look_direction.x_rot.clamp(-90.0, 90.0) % 360.0;
+    look_direction.x_rot = look_direction.x_rot.clamp(-90., 90.);
+
     look_direction
 }
 

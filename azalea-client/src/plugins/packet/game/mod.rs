@@ -900,10 +900,10 @@ impl GamePacketHandler<'_> {
                 };
 
                 let new_delta = p.delta.clone();
-                let new_look_direction = LookDirection {
-                    x_rot: (p.x_rot as i32 * 360) as f32 / 256.,
-                    y_rot: (p.y_rot as i32 * 360) as f32 / 256.,
-                };
+                let new_look_direction = LookDirection::new(
+                    (p.y_rot as i32 * 360) as f32 / 256.,
+                    (p.x_rot as i32 * 360) as f32 / 256.,
+                );
 
                 let new_on_ground = p.on_ground;
 
@@ -938,10 +938,10 @@ impl GamePacketHandler<'_> {
 
                 let entity = entity_id_index.get_by_minecraft_entity(p.entity_id);
                 if let Some(entity) = entity {
-                    let new_look_direction = LookDirection {
-                        x_rot: (p.x_rot as i32 * 360) as f32 / 256.,
-                        y_rot: (p.y_rot as i32 * 360) as f32 / 256.,
-                    };
+                    let new_look_direction = LookDirection::new(
+                        (p.y_rot as i32 * 360) as f32 / 256.,
+                        (p.x_rot as i32 * 360) as f32 / 256.,
+                    );
                     let new_on_ground = p.on_ground;
 
                     commands.entity(entity).queue(RelativeEntityUpdate::new(

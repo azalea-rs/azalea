@@ -23,6 +23,7 @@ is breaking anyways, semantic versioning is not followed.
 - Moved functions and types related to hit results from `azalea::interact` to `azalea::interact::pick`.
 - `Client::attack` now takes `Entity` instead of `MinecraftEntityId`.
 - `ItemStackData::components` was renamed to `component_patch`.
+- The fields in `LookDirection` have been replaced with getters.
 
 ### Fixed
 
@@ -33,6 +34,7 @@ is breaking anyways, semantic versioning is not followed.
 - Inventories now use the correct max stack sizes.
 - Clients now send the correct data component checksums when interacting with items.
 - Fix parsing some metadata fields of Display entities.
+- Look directions are now rounded based on the default Minecraft sensitivity, which may help avoid flagging anticheats.
 
 ## [0.13.0+mc1.21.5] - 2025-06-15
 

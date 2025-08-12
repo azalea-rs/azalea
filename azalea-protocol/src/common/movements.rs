@@ -63,14 +63,14 @@ impl RelativeMovements {
         );
 
         let new_look_direction = LookDirection::new(
-            apply_change(direction.y_rot, self.y_rot, change.look_direction.y_rot),
-            apply_change(direction.x_rot, self.x_rot, change.look_direction.x_rot),
+            apply_change(direction.y_rot(), self.y_rot, change.look_direction.y_rot()),
+            apply_change(direction.x_rot(), self.x_rot, change.look_direction.x_rot()),
         );
 
         let mut new_delta = physics.velocity;
         if self.rotate_delta {
-            let y_rot_delta = direction.y_rot - new_look_direction.y_rot;
-            let x_rot_delta = direction.x_rot - new_look_direction.x_rot;
+            let y_rot_delta = direction.y_rot() - new_look_direction.y_rot();
+            let x_rot_delta = direction.x_rot() - new_look_direction.x_rot();
             new_delta = new_delta
                 .x_rot(math::to_radians(x_rot_delta as f64) as f32)
                 .y_rot(math::to_radians(y_rot_delta as f64) as f32);

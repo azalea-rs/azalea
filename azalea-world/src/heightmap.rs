@@ -7,6 +7,7 @@ use azalea_block::BlockState;
 use azalea_buf::AzBuf;
 use azalea_core::{math, position::ChunkBlockPos};
 use azalea_registry::tags::blocks::LEAVES;
+use tracing::warn;
 
 use crate::{BitStorage, Section, chunk_storage::get_block_state_from_sections};
 
@@ -62,8 +63,22 @@ impl HeightmapKind {
 impl Heightmap {
     pub fn new(kind: HeightmapKind, dimension_height: u32, min_y: i32, data: Box<[u64]>) -> Self {
         let bits = math::ceil_log2(dimension_height + 1);
-        let data = BitStorage::new(bits as usize, 16 * 16, Some(data)).unwrap();
-        Self { kind, data, min_y }
+        let mut bit_storage = BitStorage::new(bits as usize, 16 * 16, None)
+            .expect("data is empty, so this can't fail");
+        if bit_storage.data.len() != data.len() {
+            warn!(
+                "Ignoring heightmap data, size does not match; expected: {}, got: {}",
+                bit_storage.data.len(),
+                data.len()
+            );
+        } else {
+            bit_storage.data.copy_from_slice(&data);
+        }
+        Self {
+            kind,
+            data: bit_storage,
+            min_y,
+        }
     }
 
     pub fn get_index(x: u8, z: u8) -> usize {
