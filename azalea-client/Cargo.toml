@@ -29,7 +29,7 @@ chrono = { workspace = true, features = ["now"] }
 derive_more = { workspace = true, features = ["deref", "deref_mut"] }
 minecraft_folder_path.workspace = true
 parking_lot.workspace = true
-paste.workspace = true
+pastey.workspace = true
 regex.workspace = true
 reqwest.workspace = true
 simdnbt.workspace = true

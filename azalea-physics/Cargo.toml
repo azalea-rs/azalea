@@ -7,7 +7,6 @@ license.workspace = true
 repository.workspace = true
 
 [dev-dependencies]
-bevy_time.workspace = true
 uuid.workspace = true
 
 [dependencies]
