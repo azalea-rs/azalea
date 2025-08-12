@@ -1,4 +1,4 @@
-import codegen.lib.code.data_components
+import lib.code.data_components
 import lib.code.inventory
 import lib.code.language
 import lib.code.registry

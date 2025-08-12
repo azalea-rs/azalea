@@ -55,6 +55,7 @@ impl From<EntityKind> for EntityDimensions {
             EntityKind::Chicken => EntityDimensions::new(0.4, 0.7),
             EntityKind::Cod => EntityDimensions::new(0.5, 0.3),
             EntityKind::CommandBlockMinecart => EntityDimensions::new(0.98, 0.7),
+            EntityKind::CopperGolem => EntityDimensions::new(0.875, 1.0),
             EntityKind::Cow => EntityDimensions::new(0.9, 1.4),
             EntityKind::Creaking => EntityDimensions::new(0.9, 2.7),
             EntityKind::Creeper => EntityDimensions::new(0.6, 1.7),

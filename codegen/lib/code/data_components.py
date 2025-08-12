@@ -315,6 +315,18 @@ use crate::{
                     list(python_value.values())[0], target_rust_type
                 )
             return str(python_value)
+        elif target_rust_type == "NbtCompound":
+            # NbtCompound::from_values([
+            #     ("id".into(), "minecraft:allay".into()),
+            # ]),
+            t = "NbtCompound::from_values(vec!["
+            for k, v in python_value.items():
+                if isinstance(v, str):
+                    t += f'("{k}".into(), "{v}".into()),'
+                else:
+                    t += f'("{k}".into(), {python_to_rust_value(v, "FIXME_UNKNOWN_NBT")}),'
+            t = t.rstrip(",") + "])"
+            return t
 
         if isinstance(python_value, dict):
             if target_rust_type == "ResourceLocation" and len(python_value) == 1:
