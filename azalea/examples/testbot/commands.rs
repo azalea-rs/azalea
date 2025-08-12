@@ -23,9 +23,9 @@ impl CommandSource {
         let message = message.into();
         if self.chat.is_whisper() {
             self.bot
-                .chat(&format!("/w {} {message}", self.chat.sender().unwrap()));
+                .chat(format!("/w {} {message}", self.chat.sender().unwrap()));
         } else {
-            self.bot.chat(&message);
+            self.bot.chat(message);
         }
     }
 

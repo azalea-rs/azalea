@@ -192,10 +192,10 @@ impl Client {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn chat(&self, content: &str) {
+    pub fn chat(&self, content: impl Into<String>) {
         self.ecs.lock().send_event(SendChatEvent {
             entity: self.entity,
-            content: content.to_string(),
+            content: content.into(),
         });
     }
 }

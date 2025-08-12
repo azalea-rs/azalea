@@ -54,7 +54,7 @@ impl Client {
     /// use bevy_ecs::query::With;
     ///
     /// # fn example(mut bot: Client, sender_name: String) {
-    /// let entity = bot.entity_by::<With<Player>, (&GameProfileComponent,)>(
+    /// let entity = bot.any_entity_by::<With<Player>, (&GameProfileComponent,)>(
     ///     |(profile,): &(&GameProfileComponent,)| profile.name == sender_name,
     /// );
     /// if let Some(entity) = entity {
@@ -86,23 +86,21 @@ impl Client {
     ///
     /// # Example
     /// ```
-    /// use azalea_entity::{Position, metadata::Player, LocalEntity};
-    /// use bevy_ecs::query::With;
+    /// use azalea_entity::{LocalEntity, Position, metadata::Player};
+    /// use bevy_ecs::query::{With, Without};
     ///
     /// # fn example(mut bot: azalea_client::Client, sender_name: String) {
-    /// // look at the nearest player
-    /// if let Some(closest_player) = bot
-    ///     .entities_by::<(With<Player>, Without<LocalEntity>), ()>(|_: &()| true)
-    ///     .first()
+    /// // get the position of the nearest player
+    /// if let Some(nearest_player) =
+    ///     bot.nearest_entity_by::<(With<Player>, Without<LocalEntity>), ()>(|_: &()| true)
     /// {
-    ///     let closest_player_pos = *bot.entity_component::<Position>(*closest_player);
-    ///     bot.look_at(closest_player_pos.up(1.62));
+    ///     let nearest_player_pos = *bot.entity_component::<Position>(nearest_player);
+    ///     bot.chat(format!("You are at {nearest_player_pos}"));
     /// }
-    /// }
+    /// # }
     /// ```
     ///
     /// [`Entity`]: bevy_ecs::entity::Entity
-    /// [`Instance`]: azalea_world::Instance
     pub fn nearest_entity_by<F: QueryFilter, Q: QueryData>(
         &self,
         predicate: impl EntityPredicate<Q, F>,

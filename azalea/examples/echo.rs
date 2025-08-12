@@ -25,7 +25,7 @@ async fn handle(bot: Client, event: Event, _state: State) -> anyhow::Result<()> 
             // ignore our own messages
             return Ok(());
         }
-        bot.chat(&content);
+        bot.chat(content);
     }
 
     Ok(())
