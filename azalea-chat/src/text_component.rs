@@ -61,10 +61,16 @@ const LEGACY_FORMATTING_CODE_SYMBOL: char = '§';
 /// Technically in Minecraft this is done when displaying the text, but AFAIK
 /// it's the same as just doing it in TextComponent
 pub fn legacy_color_code_to_text_component(legacy_color_code: &str) -> TextComponent {
+    if legacy_color_code.is_empty() {
+        return TextComponent::new("");
+    }
+
     let mut components: Vec<TextComponent> = Vec::with_capacity(1);
     // iterate over legacy_color_code, if it starts with LEGACY_COLOR_CODE_SYMBOL
     // then read the next character and get the style from that otherwise, add
     // the character to the text
+
+    let mut cur_component = TextComponent::new("");
 
     // we don't use a normal for loop since we need to be able to skip after reading
     // the formatter code symbol
@@ -84,41 +90,35 @@ pub fn legacy_color_code_to_text_component(legacy_color_code: &str) -> TextCompo
                     .take(7)
                     .collect::<String>();
 
-                if components.is_empty() || !components.last().unwrap().text.is_empty() {
-                    components.push(TextComponent::new("".to_string()));
-                }
-                let style = &mut components.last_mut().unwrap().base.style;
-                style.color = TextColor::parse(&color);
+                if !cur_component.text.is_empty() {
+                    // we need to split this into a new component
+                    components.push(cur_component.clone());
+                    cur_component.text = "".to_string();
+                };
+                cur_component.base.style.color = TextColor::parse(&color);
 
                 i += 6;
             } else if let Some(formatter) = ChatFormatting::from_code(formatting_code) {
-                if components.is_empty() || !components.last().unwrap().text.is_empty() {
-                    components.push(TextComponent::new("".to_string()));
-                }
-                let style = &mut components.last_mut().unwrap().base.style;
-                style.apply_formatting(&formatter);
+                if !cur_component.text.is_empty() || formatter == ChatFormatting::Reset {
+                    // we need to split this into a new component
+                    components.push(cur_component.clone());
+                    cur_component.text = "".to_string();
+                };
+                cur_component.base.style.apply_formatting(&formatter);
             }
             i += 1;
         } else {
-            if components.is_empty() {
-                components.push(TextComponent::new("".to_string()));
-            }
-            components
-                .last_mut()
-                .unwrap()
+            cur_component
                 .text
                 .push(legacy_color_code.chars().nth(i).unwrap());
         };
         i += 1;
     }
 
-    if components.is_empty() {
-        return TextComponent::new("".to_string());
-    }
+    components.push(cur_component);
 
-    // create the final component by using the first one as the base, and then
-    // adding the rest as siblings
-    let mut final_component = components.remove(0);
+    // create the final component by adding all of the components as siblings
+    let mut final_component = TextComponent::new("");
     for component in components {
         final_component.base.siblings.push(component.get());
     }
@@ -227,8 +227,9 @@ mod tests {
         assert_eq!(
             component.to_ansi(),
             format!(
-                "{BOLD}Hello {RESET}{DARK_BLUE}w{DARK_GREEN}o{DARK_AQUA}r{DARK_RED}l{DARK_PURPLE}d{RESET}",
+                "{BOLD}{WHITE}Hello {RESET}{DARK_BLUE}w{DARK_GREEN}o{DARK_AQUA}r{DARK_RED}l{DARK_PURPLE}d{RESET}",
                 BOLD = Ansi::BOLD,
+                WHITE = Ansi::rgb(ChatFormatting::White.color().unwrap()),
                 RESET = Ansi::RESET,
                 DARK_BLUE = Ansi::rgb(ChatFormatting::DarkBlue.color().unwrap()),
                 DARK_GREEN = Ansi::rgb(ChatFormatting::DarkGreen.color().unwrap()),

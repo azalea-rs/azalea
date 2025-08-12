@@ -2,7 +2,7 @@ use std::{collections::HashMap, fmt, sync::LazyLock};
 
 #[cfg(feature = "azalea-buf")]
 use azalea_buf::AzBuf;
-use serde::{Serialize, Serializer, ser::SerializeStruct};
+use serde::{Serialize, Serializer};
 use serde_json::Value;
 #[cfg(feature = "simdnbt")]
 use simdnbt::owned::{NbtCompound, NbtTag};
@@ -83,6 +83,7 @@ impl Ansi {
     pub const ITALIC: &'static str = "\u{1b}[3m";
     pub const UNDERLINED: &'static str = "\u{1b}[4m";
     pub const STRIKETHROUGH: &'static str = "\u{1b}[9m";
+    // "Conceal or hide"
     pub const OBFUSCATED: &'static str = "\u{1b}[8m";
     pub const RESET: &'static str = "\u{1b}[m";
 
@@ -303,23 +304,32 @@ impl TryFrom<ChatFormatting> for TextColor {
     }
 }
 
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq, serde::Serialize)]
 #[non_exhaustive]
 pub struct Style {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub color: Option<TextColor>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub shadow_color: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub bold: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub italic: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub underlined: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub strikethrough: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub obfuscated: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub click_event: Option<ClickEvent>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub hover_event: Option<HoverEvent>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub insertion: Option<String>,
     /// Represented as a `ResourceLocation`.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub font: Option<String>,
-    /// Whether formatting should be reset before applying these styles
-    pub reset: bool,
 }
 impl Style {
     pub fn new() -> Self {
@@ -369,25 +379,6 @@ impl Style {
         self.font = font.into();
         self
     }
-    pub fn reset(mut self, reset: bool) -> Self {
-        self.reset = reset;
-        self
-    }
-}
-
-fn serde_serialize_field<S: serde::ser::SerializeStruct>(
-    state: &mut S,
-    name: &'static str,
-    value: &Option<impl serde::Serialize>,
-    default: &(impl serde::Serialize + ?Sized),
-    reset: bool,
-) -> Result<(), S::Error> {
-    if let Some(value) = value {
-        state.serialize_field(name, value)?;
-    } else if reset {
-        state.serialize_field(name, default)?;
-    }
-    Ok(())
 }
 
 #[cfg(feature = "simdnbt")]
@@ -395,64 +386,9 @@ fn simdnbt_serialize_field(
     compound: &mut simdnbt::owned::NbtCompound,
     name: &'static str,
     value: Option<impl simdnbt::ToNbtTag>,
-    default: impl simdnbt::ToNbtTag,
-    reset: bool,
 ) {
-    match value {
-        Some(value) => {
-            compound.insert(name, value);
-        }
-        _ => {
-            if reset {
-                compound.insert(name, default);
-            }
-        }
-    }
-}
-
-impl Serialize for Style {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let len = if self.reset {
-            6
-        } else {
-            usize::from(self.color.is_some())
-                + usize::from(self.bold.is_some())
-                + usize::from(self.italic.is_some())
-                + usize::from(self.underlined.is_some())
-                + usize::from(self.strikethrough.is_some())
-                + usize::from(self.obfuscated.is_some())
-        };
-        let mut state = serializer.serialize_struct("Style", len)?;
-
-        serde_serialize_field(&mut state, "color", &self.color, "white", self.reset)?;
-        serde_serialize_field(&mut state, "bold", &self.bold, &false, self.reset)?;
-        serde_serialize_field(&mut state, "italic", &self.italic, &false, self.reset)?;
-        serde_serialize_field(
-            &mut state,
-            "underlined",
-            &self.underlined,
-            &false,
-            self.reset,
-        )?;
-        serde_serialize_field(
-            &mut state,
-            "strikethrough",
-            &self.strikethrough,
-            &false,
-            self.reset,
-        )?;
-        serde_serialize_field(
-            &mut state,
-            "obfuscated",
-            &self.obfuscated,
-            &false,
-            self.reset,
-        )?;
-
-        state.end()
+    if let Some(value) = value {
+        compound.insert(name, value);
     }
 }
 
@@ -461,30 +397,12 @@ impl simdnbt::Serialize for Style {
     fn to_compound(self) -> NbtCompound {
         let mut compound = NbtCompound::new();
 
-        simdnbt_serialize_field(&mut compound, "color", self.color, "white", self.reset);
-        simdnbt_serialize_field(&mut compound, "bold", self.bold, false, self.reset);
-        simdnbt_serialize_field(&mut compound, "italic", self.italic, false, self.reset);
-        simdnbt_serialize_field(
-            &mut compound,
-            "underlined",
-            self.underlined,
-            false,
-            self.reset,
-        );
-        simdnbt_serialize_field(
-            &mut compound,
-            "strikethrough",
-            self.strikethrough,
-            false,
-            self.reset,
-        );
-        simdnbt_serialize_field(
-            &mut compound,
-            "obfuscated",
-            self.obfuscated,
-            false,
-            self.reset,
-        );
+        simdnbt_serialize_field(&mut compound, "color", self.color);
+        simdnbt_serialize_field(&mut compound, "bold", self.bold);
+        simdnbt_serialize_field(&mut compound, "italic", self.italic);
+        simdnbt_serialize_field(&mut compound, "underlined", self.underlined);
+        simdnbt_serialize_field(&mut compound, "strikethrough", self.strikethrough);
+        simdnbt_serialize_field(&mut compound, "obfuscated", self.obfuscated);
 
         compound
     }
@@ -530,55 +448,49 @@ impl Style {
     }
 
     /// find the necessary ansi code to get from this style to another
-    pub fn compare_ansi(&self, after: &Style, default_style: &Style) -> String {
-        let should_reset = after.reset ||
+    pub fn compare_ansi(&self, after: &Style) -> String {
+        let should_reset =
             // if it used to be bold and now it's not, reset
-            (self.bold.unwrap_or(false) && !after.bold.unwrap_or(true)) ||
+            (self.bold.unwrap_or_default() && !after.bold.unwrap_or_default()) ||
             // if it used to be italic and now it's not, reset
-            (self.italic.unwrap_or(false) && !after.italic.unwrap_or(true)) ||
+            (self.italic.unwrap_or_default() && !after.italic.unwrap_or_default()) ||
             // if it used to be underlined and now it's not, reset
-            (self.underlined.unwrap_or(false) && !after.underlined.unwrap_or(true)) ||
+            (self.underlined.unwrap_or_default() && !after.underlined.unwrap_or_default()) ||
             // if it used to be strikethrough and now it's not, reset
-            (self.strikethrough.unwrap_or(false) && !after.strikethrough.unwrap_or(true)) ||
+            (self.strikethrough.unwrap_or_default() && !after.strikethrough.unwrap_or_default()) ||
             // if it used to be obfuscated and now it's not, reset
-            (self.obfuscated.unwrap_or(false) && !after.obfuscated.unwrap_or(true));
+            (self.obfuscated.unwrap_or_default() && !after.obfuscated.unwrap_or_default());
 
         let mut ansi_codes = String::new();
 
         let empty_style = Style::empty();
 
-        let (before, after) = if should_reset {
+        let before = if should_reset {
             ansi_codes.push_str(Ansi::RESET);
-            let mut updated_after = if after.reset {
-                default_style.clone()
-            } else {
-                self.clone()
-            };
-            updated_after.apply(after);
-            (&empty_style, updated_after)
+            &empty_style
         } else {
-            (self, after.clone())
+            self
         };
 
         // if bold used to be false/default and now it's true, set bold
-        if !before.bold.unwrap_or(false) && after.bold.unwrap_or(false) {
+        if !before.bold.unwrap_or_default() && after.bold.unwrap_or_default() {
             ansi_codes.push_str(Ansi::BOLD);
         }
         // if italic used to be false/default and now it's true, set italic
-        if !before.italic.unwrap_or(false) && after.italic.unwrap_or(false) {
+        if !before.italic.unwrap_or_default() && after.italic.unwrap_or_default() {
             ansi_codes.push_str(Ansi::ITALIC);
         }
         // if underlined used to be false/default and now it's true, set underlined
-        if !before.underlined.unwrap_or(false) && after.underlined.unwrap_or(false) {
+        if !before.underlined.unwrap_or_default() && after.underlined.unwrap_or_default() {
             ansi_codes.push_str(Ansi::UNDERLINED);
         }
         // if strikethrough used to be false/default and now it's true, set
         // strikethrough
-        if !before.strikethrough.unwrap_or(false) && after.strikethrough.unwrap_or(false) {
+        if !before.strikethrough.unwrap_or_default() && after.strikethrough.unwrap_or_default() {
             ansi_codes.push_str(Ansi::STRIKETHROUGH);
         }
         // if obfuscated used to be false/default and now it's true, set obfuscated
-        if !before.obfuscated.unwrap_or(false) && after.obfuscated.unwrap_or(false) {
+        if !before.obfuscated.unwrap_or_default() && after.obfuscated.unwrap_or_default() {
             ansi_codes.push_str(Ansi::OBFUSCATED);
         }
 
@@ -639,7 +551,6 @@ impl Style {
             hover_event: other.hover_event.clone().or(self.hover_event.clone()),
             insertion: other.insertion.clone().or(self.insertion.clone()),
             font: other.font.clone().or(self.font.clone()),
-            reset: other.reset, // if reset is true in the new style, that takes precedence
         }
     }
 
@@ -651,7 +562,14 @@ impl Style {
             ChatFormatting::Underline => self.underlined = Some(true),
             ChatFormatting::Strikethrough => self.strikethrough = Some(true),
             ChatFormatting::Obfuscated => self.obfuscated = Some(true),
-            ChatFormatting::Reset => self.reset = true,
+            ChatFormatting::Reset => {
+                self.color = None;
+                self.bold = None;
+                self.italic = None;
+                self.underlined = None;
+                self.strikethrough = None;
+                self.obfuscated = None;
+            }
             formatter => {
                 // if it's a color, set it
                 if let Some(color) = formatter.color() {
@@ -732,7 +650,6 @@ impl simdnbt::Deserialize for Style {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::component::DEFAULT_STYLE;
 
     #[test]
     fn text_color_named_colors() {
@@ -752,9 +669,10 @@ mod tests {
         };
         let style_b = Style {
             bold: Some(false),
+            italic: Some(true),
             ..Style::default()
         };
-        let ansi_difference = style_a.compare_ansi(&style_b, &Style::default());
+        let ansi_difference = style_a.compare_ansi(&style_b);
         assert_eq!(
             ansi_difference,
             format!(
@@ -771,34 +689,12 @@ mod tests {
             ..Style::default()
         };
         let style_b = Style {
+            bold: Some(true),
             italic: Some(true),
             ..Style::default()
         };
-        let ansi_difference = style_a.compare_ansi(&style_b, &Style::default());
+        let ansi_difference = style_a.compare_ansi(&style_b);
         assert_eq!(ansi_difference, Ansi::ITALIC)
-    }
-
-    #[test]
-    fn ansi_difference_explicit_reset() {
-        let style_a = Style {
-            bold: Some(true),
-            ..Style::empty()
-        };
-        let style_b = Style {
-            italic: Some(true),
-            reset: true,
-            ..Style::empty()
-        };
-        let ansi_difference = style_a.compare_ansi(&style_b, &DEFAULT_STYLE);
-        assert_eq!(
-            ansi_difference,
-            format!(
-                "{reset}{italic}{white}",
-                reset = Ansi::RESET,
-                white = Ansi::rgb(ChatFormatting::White.color().unwrap()),
-                italic = Ansi::ITALIC
-            )
-        )
     }
 
     #[test]

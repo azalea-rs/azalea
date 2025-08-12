@@ -143,7 +143,6 @@ impl<'a, 'r> ser::Serializer for ChecksumSerializer<'a, 'r> {
 
     fn serialize_none(self) -> Result<()> {
         assert!(self.hasher.finish() == 0);
-        println!("serialize none");
         self.hasher.write_u8(1);
         Ok(())
     }
@@ -217,7 +216,6 @@ impl<'a, 'r> ser::Serializer for ChecksumSerializer<'a, 'r> {
 
     fn serialize_seq(self, len: Option<usize>) -> Result<Self::SerializeSeq> {
         assert!(self.hasher.finish() == 0);
-        println!("serialize seq with len: {:?}", len);
         Ok(ChecksumListSerializer {
             hasher: self.hasher,
             registries: self.registries,
@@ -654,7 +652,6 @@ fn update_hasher_for_list(h: &mut Crc32cHasher, values: &[Checksum]) {
     h.write_u8(5);
 }
 fn update_hasher_for_map(h: &mut Crc32cHasher, entries: &[(Checksum, Checksum)]) {
-    println!("getting checksum for map with {} entries", entries.len());
     h.write_u8(2);
     let mut entries = entries.to_vec();
     entries.sort_by(|a, b| match a.0.cmp(&b.0) {
@@ -667,157 +664,3 @@ fn update_hasher_for_map(h: &mut Crc32cHasher, entries: &[(Checksum, Checksum)])
     }
     h.write_u8(3);
 }
-
-// impl AzaleaChecksum for i8 {
-//     fn azalea_checksum(&self) -> HashCode {
-//         let mut h = Crc32cHasher::default();
-//         h.write_u8(6);
-//         h.write(&self.to_le_bytes());
-//         HashCode(h.finish() as u32)
-//     }
-// }
-// impl AzaleaChecksum for i16 {
-//     fn azalea_checksum(&self) -> HashCode {
-//         let mut h = Crc32cHasher::default();
-//         h.write_u8(7);
-//         h.write(&self.to_le_bytes());
-//         HashCode(h.finish() as u32)
-//     }
-// }
-// impl AzaleaChecksum for i32 {
-//     fn azalea_checksum(&self) -> HashCode {
-//         let mut h = Crc32cHasher::default();
-//         h.write_u8(8);
-//         h.write(&self.to_le_bytes());
-//         HashCode(h.finish() as u32)
-//     }
-// }
-// impl AzaleaChecksum for i64 {
-//     fn azalea_checksum(&self) -> HashCode {
-//         let mut h = Crc32cHasher::default();
-//         h.write_u8(9);
-//         h.write(&self.to_le_bytes());
-//         HashCode(h.finish() as u32)
-//     }
-// }
-// impl AzaleaChecksum for f32 {
-//     fn azalea_checksum(&self) -> HashCode {
-//         let mut h = Crc32cHasher::default();
-//         h.write_u8(10);
-//         h.write(&self.to_le_bytes());
-//         HashCode(h.finish() as u32)
-//     }
-// }
-// impl AzaleaChecksum for f64 {
-//     fn azalea_checksum(&self) -> HashCode {
-//         let mut h = Crc32cHasher::default();
-//         h.write_u8(11);
-//         h.write(&self.to_le_bytes());
-//         HashCode(h.finish() as u32)
-//     }
-// }
-// impl AzaleaChecksum for &str {
-//     fn azalea_checksum(&self) -> HashCode {
-//         println!("doing checksum for str: {self:?}");
-//         let mut h = Crc32cHasher::default();
-//         h.write_u8(12);
-//         h.write(&(self.len() as u32).to_le_bytes());
-//         h.write(&self.as_bytes());
-//         HashCode(h.finish() as u32)
-//     }
-// }
-// impl AzaleaChecksum for String {
-//     fn azalea_checksum(&self) -> HashCode {
-//         println!("doing checksum for String: {self:?}");
-//         let mut h = Crc32cHasher::default();
-//         h.write_u8(12);
-
-//         let utf16 = self.encode_utf16().collect::<Vec<_>>();
-//         h.write(&(utf16.len() as u32).to_le_bytes());
-//         for c in utf16 {
-//             h.write(&c.to_le_bytes());
-//         }
-
-//         println!("doing checksum for string: {self:?}");
-//         HashCode(h.finish() as u32)
-//     }
-// }
-// impl AzaleaChecksum for bool {
-//     fn azalea_checksum(&self) -> HashCode {
-//         println!("doing checksum for bool: {self:?}");
-//         let mut h = Crc32cHasher::default();
-//         h.write_u8(13);
-//         h.write_u8(*self as u8);
-//         HashCode(h.finish() as u32)
-//     }
-// }
-// impl AzaleaChecksum for Vec<u8> {
-//     fn azalea_checksum(&self) -> HashCode {
-//         let mut h = Crc32cHasher::default();
-//         h.write_u8(14);
-//         h.write(self);
-//         h.write_u8(15);
-
-//         HashCode(h.finish() as u32)
-//     }
-// }
-// impl AzaleaChecksum for Vec<i8> {
-//     fn azalea_checksum(&self) -> HashCode {
-//         let mut h = Crc32cHasher::default();
-//         h.write_u8(14);
-//         for item in self {
-//             h.write(&[*item as u8]);
-//         }
-//         h.write_u8(15);
-
-//         HashCode(h.finish() as u32)
-//     }
-// }
-// impl AzaleaChecksum for Vec<u32> {
-//     fn azalea_checksum(&self) -> HashCode {
-//         let mut h = Crc32cHasher::default();
-//         h.write_u8(16);
-//         for item in self {
-//             h.write(&item.to_le_bytes());
-//         }
-//         h.write_u8(17);
-
-//         HashCode(h.finish() as u32)
-//     }
-// }
-// impl AzaleaChecksum for Vec<i32> {
-//     fn azalea_checksum(&self) -> HashCode {
-//         let mut h = Crc32cHasher::default();
-//         h.write_u8(16);
-//         for item in self {
-//             h.write(&item.to_le_bytes());
-//         }
-//         h.write_u8(17);
-
-//         HashCode(h.finish() as u32)
-//     }
-// }
-// impl AzaleaChecksum for Vec<u64> {
-//     fn azalea_checksum(&self) -> HashCode {
-//         let mut h = Crc32cHasher::default();
-//         h.write_u8(18);
-//         for item in self {
-//             h.write(&item.to_le_bytes());
-//         }
-//         h.write_u8(19);
-
-//         HashCode(h.finish() as u32)
-//     }
-// }
-// impl AzaleaChecksum for Vec<i64> {
-//     fn azalea_checksum(&self) -> HashCode {
-//         let mut h = Crc32cHasher::default();
-//         h.write_u8(18);
-//         for item in self {
-//             h.write(&item.to_le_bytes());
-//         }
-//         h.write_u8(19);
-
-//         HashCode(h.finish() as u32)
-//     }
-// }

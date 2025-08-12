@@ -41,7 +41,7 @@ fn complex_ansi_test() {
     {
         "text": " asdf",
         "italic": false,
-        "obfuscated": "true",
+        "obfuscated": true,
         "strikethrough": false
     },
     {
@@ -52,16 +52,18 @@ fn complex_ansi_test() {
     )
     .unwrap();
     let component = FormattedText::deserialize(&j).unwrap();
+
     assert_eq!(
         component.to_ansi(),
         format!(
-            "{bold}{italic}{underlined}{red}hello{reset}{bold}{italic}{red} {reset}{italic}{strikethrough}{abcdef}world{reset}{abcdef} asdf{bold}!{reset}",
+            "{bold}{italic}{underlined}{red}hello{reset}{bold}{italic}{red} {reset}{italic}{underlined}{strikethrough}{abcdef}world{reset}{bold}{underlined}{obfuscated}{red} asdf{reset}{bold}{italic}{underlined}{red}!{reset}",
             bold = Ansi::BOLD,
             italic = Ansi::ITALIC,
             underlined = Ansi::UNDERLINED,
             red = Ansi::rgb(ChatFormatting::Red.color().unwrap()),
             reset = Ansi::RESET,
             strikethrough = Ansi::STRIKETHROUGH,
+            obfuscated = Ansi::OBFUSCATED,
             abcdef = Ansi::rgb(TextColor::parse("#abcdef").unwrap().value),
         )
     );
@@ -71,5 +73,5 @@ fn complex_ansi_test() {
 fn component_from_string() {
     let j: Value = serde_json::from_str("\"foo\"").unwrap();
     let component = FormattedText::deserialize(&j).unwrap();
-    assert_eq!(component.to_ansi(), "foo");
+    assert_eq!(component.to_ansi(), "\u{1b}[38;2;255;255;255mfoo\u{1b}[m");
 }

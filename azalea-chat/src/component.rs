@@ -99,18 +99,18 @@ impl FormattedText {
     /// })).unwrap();
     ///
     /// let ansi = component.to_custom_format(
-    ///     |running, new, default| (running.compare_ansi(new, default), String::new()),
+    ///     |running, new| (running.compare_ansi(new), "".to_string()),
     ///     |text| text.to_string(),
     ///     |style| {
     ///         if !style.is_empty() {
     ///             "\u{1b}[m".to_string()
     ///         } else {
-    ///             String::new()
+    ///             "".to_string()
     ///         }
     ///     },
     ///     &DEFAULT_STYLE,
     /// );
-    /// println!("{}", ansi);
+    /// println!("{ansi}");
     /// ```
     pub fn to_custom_format<F, S, C>(
         &self,
@@ -120,42 +120,72 @@ impl FormattedText {
         default_style: &Style,
     ) -> String
     where
-        F: FnMut(&Style, &Style, &Style) -> (String, String),
+        F: FnMut(&Style, &Style) -> (String, String),
         S: FnMut(&str) -> String,
         C: FnMut(&Style) -> String,
     {
         let mut output = String::new();
+
         let mut running_style = Style::default();
-
-        for component in self.clone().into_iter() {
-            let component_text = match &component {
-                Self::Text(c) => c.text.to_string(),
-                Self::Translatable(c) => match c.read() {
-                    Ok(c) => c.to_string(),
-                    Err(_) => c.key.to_string(),
-                },
-            };
-
-            let component_style = &component.get_base().style;
-
-            let formatted_style = style_formatter(&running_style, component_style, default_style);
-            let formatted_text = text_formatter(&component_text);
-
-            output.push_str(&formatted_style.0);
-            output.push_str(&formatted_text);
-            output.push_str(&formatted_style.1);
-
-            // Reset running style if required
-            if component_style.reset {
-                running_style = default_style.clone();
-            } else {
-                running_style.apply(component_style);
-            }
-        }
-
+        self.to_custom_format_recursive(
+            &mut output,
+            &mut style_formatter,
+            &mut text_formatter,
+            &mut cleanup_formatter,
+            &default_style.clone(),
+            &mut running_style,
+        );
         output.push_str(&cleanup_formatter(&running_style));
 
         output
+    }
+
+    fn to_custom_format_recursive<F, S, C>(
+        &self,
+        output: &mut String,
+        style_formatter: &mut F,
+        text_formatter: &mut S,
+        cleanup_formatter: &mut C,
+        parent_style: &Style,
+        running_style: &mut Style,
+    ) where
+        F: FnMut(&Style, &Style) -> (String, String),
+        S: FnMut(&str) -> String,
+        C: FnMut(&Style) -> String,
+    {
+        let component_text = match &self {
+            Self::Text(c) => c.text.to_string(),
+            Self::Translatable(c) => match c.read() {
+                Ok(c) => c.to_string(),
+                Err(_) => c.key.to_string(),
+            },
+        };
+
+        let component_style = &self.get_base().style;
+        let new_style = parent_style.merged_with(component_style);
+
+        if !component_text.is_empty() {
+            let (formatted_style_prefix, formatted_style_suffix) =
+                style_formatter(&running_style, &new_style);
+            let formatted_text = text_formatter(&component_text);
+
+            output.push_str(&formatted_style_prefix);
+            output.push_str(&formatted_text);
+            output.push_str(&formatted_style_suffix);
+
+            *running_style = new_style.clone();
+        }
+
+        for sibling in &self.get_base().siblings {
+            sibling.to_custom_format_recursive(
+                output,
+                style_formatter,
+                text_formatter,
+                cleanup_formatter,
+                &new_style,
+                running_style,
+            );
+        }
     }
 
     /// Convert this component into an
@@ -165,7 +195,7 @@ impl FormattedText {
     /// default [`Style`] to use.
     pub fn to_ansi_with_custom_style(&self, default_style: &Style) -> String {
         self.to_custom_format(
-            |running, new, default| (running.compare_ansi(new, default), "".to_owned()),
+            |running, new| (running.compare_ansi(new), "".to_owned()),
             |text| text.to_string(),
             |style| if !style.is_empty() { "\u{1b}[m" } else { "" }.to_string(),
             default_style,
@@ -179,6 +209,9 @@ impl FormattedText {
     /// This is technically a shortcut for
     /// [`FormattedText::to_ansi_with_custom_style`] with a default [`Style`]
     /// colored white.
+    ///
+    /// If you don't want the result to be styled at all, use
+    /// [`Self::to_string`].
     ///
     /// # Examples
     ///
@@ -199,7 +232,7 @@ impl FormattedText {
 
     pub fn to_html(&self) -> String {
         self.to_custom_format(
-            |running, new, _| {
+            |running, new| {
                 (
                     format!(
                         "<span style=\"{}\">",
@@ -222,6 +255,9 @@ impl FormattedText {
 }
 
 impl IntoIterator for FormattedText {
+    type Item = FormattedText;
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
     /// Recursively call the function for every component in this component
     fn into_iter(self) -> Self::IntoIter {
         let base = self.get_base();
@@ -234,9 +270,6 @@ impl IntoIterator for FormattedText {
 
         v.into_iter()
     }
-
-    type Item = FormattedText;
-    type IntoIter = std::vec::IntoIter<Self::Item>;
 }
 
 impl<'de> Deserialize<'de> for FormattedText {
@@ -388,7 +421,7 @@ impl simdnbt::FromNbtTag for FormattedText {
     fn from_nbt_tag(tag: simdnbt::borrow::NbtTag) -> Option<Self> {
         // if it's a string, return a text component with that string
         if let Some(string) = tag.string() {
-            Some(FormattedText::from(string))
+            Some(FormattedText::from_nbt_string(string))
         }
         // if it's a compound, make it do things with { text } and stuff
         // simdnbt::borrow::NbtTag::Compound(compound) => {
@@ -397,22 +430,7 @@ impl simdnbt::FromNbtTag for FormattedText {
         }
         // ok so it's not a compound, if it's a list deserialize every item
         else if let Some(list) = tag.list() {
-            let mut component;
-            if let Some(compounds) = list.compounds() {
-                component = FormattedText::from_nbt_compound(compounds.first()?)?;
-                for compound in compounds.into_iter().skip(1) {
-                    component.append(FormattedText::from_nbt_compound(compound)?);
-                }
-            } else if let Some(strings) = list.strings() {
-                component = FormattedText::from(*(strings.first()?));
-                for &string in strings.iter().skip(1) {
-                    component.append(FormattedText::from(string));
-                }
-            } else {
-                debug!("couldn't parse {list:?} as FormattedText");
-                return None;
-            }
-            Some(component)
+            FormattedText::from_nbt_list(list)
         } else {
             Some(FormattedText::Text(TextComponent::new("".to_owned())))
         }
@@ -421,6 +439,28 @@ impl simdnbt::FromNbtTag for FormattedText {
 
 #[cfg(feature = "simdnbt")]
 impl FormattedText {
+    fn from_nbt_string(s: &simdnbt::Mutf8Str) -> Self {
+        FormattedText::from(s)
+    }
+    fn from_nbt_list(list: simdnbt::borrow::NbtList) -> Option<FormattedText> {
+        let mut component;
+        if let Some(compounds) = list.compounds() {
+            component = FormattedText::from_nbt_compound(compounds.first()?)?;
+            for compound in compounds.into_iter().skip(1) {
+                component.append(FormattedText::from_nbt_compound(compound)?);
+            }
+        } else if let Some(strings) = list.strings() {
+            component = FormattedText::from(*(strings.first()?));
+            for &string in strings.iter().skip(1) {
+                component.append(FormattedText::from(string));
+            }
+        } else {
+            debug!("couldn't parse {list:?} as FormattedText");
+            return None;
+        }
+        Some(component)
+    }
+
     pub fn from_nbt_compound(compound: simdnbt::borrow::NbtCompound) -> Option<Self> {
         let mut component: FormattedText;
 
@@ -534,7 +574,28 @@ impl FormattedText {
             return None;
         }
         if let Some(extra) = compound.get("extra") {
-            component.append(FormattedText::from_nbt_tag(extra)?);
+            // if it's an array, deserialize every item
+            if let Some(items) = extra.list() {
+                if let Some(items) = items.compounds() {
+                    for item in items {
+                        component.append(FormattedText::from_nbt_compound(item)?);
+                    }
+                } else if let Some(items) = items.strings() {
+                    for item in items {
+                        component.append(FormattedText::from_nbt_string(item));
+                    }
+                } else if let Some(items) = items.lists() {
+                    for item in items {
+                        component.append(FormattedText::from_nbt_list(item)?);
+                    }
+                } else {
+                    warn!(
+                        "couldn't parse {items:?} as FormattedText because it's not a list of compounds or strings"
+                    );
+                }
+            } else {
+                component.append(FormattedText::from_nbt_tag(extra)?);
+            }
         }
 
         let base_style = Style::from_compound(compound).ok()?;
@@ -556,6 +617,10 @@ impl From<&simdnbt::Mutf8Str> for FormattedText {
 impl AzaleaRead for FormattedText {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let nbt = simdnbt::borrow::read_optional_tag(buf)?;
+        trace!(
+            "Reading NBT for FormattedText: {:?}",
+            nbt.as_ref().map(|n| n.as_tag().to_owned())
+        );
         match nbt {
             Some(nbt) => FormattedText::from_nbt_tag(nbt.as_tag()).ok_or(BufReadError::Custom(
                 "couldn't convert nbt to chat message".to_owned(),

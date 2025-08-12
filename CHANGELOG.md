@@ -30,7 +30,8 @@ is breaking anyways, semantic versioning is not followed.
 - Fix packet order for loading (`PlayerLoaded`/`MovePlayerPos`) and sprinting (`PlayerInput`/`PlayerCommand`).
 - Clients no longer send invalid look directions if the server teleports us with one.
 - Movement code was updated with the changes from 1.21.5, so it no longer flags Grim.
-- `azalea-chat` now correctly handles arrays of integers in the `with` field. (@qwqawawow)
+- `azalea-chat` now handles arrays of integers in the `with` field. (@qwqawawow)
+- `azalea-chat` no longer incorrectly persists styles of components in the "extra" field.
 - Inventories now use the correct max stack sizes.
 - Clients now send the correct data component checksums when interacting with items.
 - Fix parsing some metadata fields of Display entities.

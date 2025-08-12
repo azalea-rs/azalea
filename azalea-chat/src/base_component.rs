@@ -5,6 +5,7 @@ use crate::{FormattedText, style::Style};
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct BaseComponent {
     // implements mutablecomponent
+    /// Components in the "extra" field.
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub siblings: Vec<FormattedText>,
     #[serde(flatten)]
