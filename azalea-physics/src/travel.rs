@@ -139,8 +139,6 @@ fn travel_in_air(ctx: &mut MoveCtx) {
             z: movement.z * inertia as f64,
         };
     }
-
-    println!("set velocity to {:?}", ctx.physics.velocity);
 }
 
 fn travel_in_fluid(ctx: &mut MoveCtx) {

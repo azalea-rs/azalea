@@ -173,8 +173,8 @@ pub fn move_colliding(ctx: &mut MoveCtx, mut movement: Vec3) -> Result<(), MoveE
         }
     }
 
-    let x_collision = math::equal(movement.x, collide_result.x);
-    let z_collision = math::equal(movement.z, collide_result.z);
+    let x_collision = !math::equal(movement.x, collide_result.x);
+    let z_collision = !math::equal(movement.z, collide_result.z);
     let horizontal_collision = x_collision || z_collision;
     physics.horizontal_collision = horizontal_collision;
 
@@ -285,7 +285,6 @@ fn maybe_back_off_from_edge(move_ctx: &mut MoveCtx, mut movement: Vec3) -> Vec3 
     if !is_backing_off {
         return movement;
     }
-    println!("backing off from edge");
 
     let min_movement = 0.05;
     let min_movement_x = movement.x.signum() * min_movement;
