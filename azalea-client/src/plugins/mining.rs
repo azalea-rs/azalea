@@ -255,6 +255,17 @@ fn handle_mining_queued(
         // is outside of the worldborder
 
         if game_mode.current == GameMode::Creative {
+            // In creative mode, first send START_DESTROY_BLOCK packet then immediately
+            // finish mining
+            commands.trigger(SendPacketEvent::new(
+                entity,
+                ServerboundPlayerAction {
+                    action: s_player_action::Action::StartDestroyBlock,
+                    pos: mining_queued.position,
+                    direction: mining_queued.direction,
+                    seq: sequence_number.start_predicting(),
+                },
+            ));
             commands.trigger_targets(
                 FinishMiningBlockEvent {
                     position: mining_queued.position,
@@ -262,6 +273,7 @@ fn handle_mining_queued(
                 entity,
             );
             **mine_delay = 5;
+            commands.trigger(SwingArmEvent { entity });
         } else if mining.is_none()
             || !is_same_mining_target(
                 mining_queued.position,
@@ -579,12 +591,6 @@ pub fn continue_mining_block(
         if game_mode.current == GameMode::Creative {
             // TODO: worldborder check
             **mine_delay = 5;
-            commands.trigger_targets(
-                FinishMiningBlockEvent {
-                    position: mining.pos,
-                },
-                entity,
-            );
             commands.trigger(SendPacketEvent::new(
                 entity,
                 ServerboundPlayerAction {
@@ -594,6 +600,12 @@ pub fn continue_mining_block(
                     seq: prediction_handler.start_predicting(),
                 },
             ));
+            commands.trigger_targets(
+                FinishMiningBlockEvent {
+                    position: mining.pos,
+                },
+                entity,
+            );
             commands.trigger(SwingArmEvent { entity });
         } else if mining.force
             || is_same_mining_target(
