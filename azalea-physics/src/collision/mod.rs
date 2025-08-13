@@ -368,7 +368,7 @@ fn can_fall_at_least(
         Some(ctx.source_entity),
         ctx.physics_query,
         ctx.collidable_entity_query,
-        &mut ctx.physics,
+        ctx.physics,
         &aabb,
         false,
     )

@@ -14,7 +14,7 @@ use azalea_core::{
     tick::GameTick,
 };
 use azalea_entity::{
-    EntityUpdateSet, EyeHeight, PlayerAbilities, Position, Sneaking,
+    EntityUpdateSet, EyeHeight, PlayerAbilities, Position,
     indexing::{EntityIdIndex, EntityUuidIndex},
     metadata::Health,
 };
