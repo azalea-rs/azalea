@@ -200,6 +200,22 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
             })),
     );
 
+    commands.register(
+        literal("sneak")
+            .executes(|ctx: &Ctx| {
+                let source = ctx.source.lock();
+                source.bot.set_sneaking(!source.bot.sneaking());
+                source.reply("ok");
+                1
+            })
+            .then(argument("enabled", bool()).executes(|ctx: &Ctx| {
+                let sneaking = get_bool(ctx, "enabled").unwrap();
+                let source = ctx.source.lock();
+                source.bot.set_sneaking(sneaking);
+                1
+            })),
+    );
+
     commands.register(literal("stop").executes(|ctx: &Ctx| {
         let source = ctx.source.lock();
         source.bot.stop_pathfinding();

@@ -6,7 +6,7 @@ use azalea_core::{
 };
 use azalea_entity::{
     Attributes, HasClientLoaded, Jumping, LastSentPosition, LookDirection, Physics, Position,
-    metadata::Sprinting,
+    Sneaking, metadata::Sprinting,
 };
 use azalea_physics::{PhysicsSet, ai_step};
 use azalea_protocol::{
@@ -95,6 +95,16 @@ impl Client {
     /// Returns whether the player will try to jump next tick.
     pub fn jumping(&self) -> bool {
         *self.component::<Jumping>()
+    }
+
+    pub fn set_sneaking(&self, sneaking: bool) {
+        let mut ecs = self.ecs.lock();
+        let mut jumping_mut = self.query::<&mut Sneaking>(&mut ecs);
+        **jumping_mut = sneaking;
+    }
+
+    pub fn sneaking(&self) -> bool {
+        *self.component::<Sneaking>()
     }
 
     /// Sets the direction the client is looking. `y_rot` is yaw (looking to the
@@ -254,10 +264,16 @@ pub fn send_position(
 #[derive(Debug, Default, Component, Clone, PartialEq, Eq)]
 pub struct LastSentInput(pub ServerboundPlayerInput);
 pub fn send_player_input_packet(
-    mut query: Query<(Entity, &PhysicsState, &Jumping, Option<&LastSentInput>)>,
+    mut query: Query<(
+        Entity,
+        &PhysicsState,
+        &Jumping,
+        &Sneaking,
+        Option<&LastSentInput>,
+    )>,
     mut commands: Commands,
 ) {
-    for (entity, physics_state, jumping, last_sent_input) in query.iter_mut() {
+    for (entity, physics_state, jumping, sneaking, last_sent_input) in query.iter_mut() {
         let dir = physics_state.move_direction;
         type D = WalkDirection;
         let input = ServerboundPlayerInput {
@@ -266,8 +282,7 @@ pub fn send_player_input_packet(
             left: matches!(dir, D::Left | D::ForwardLeft | D::BackwardLeft),
             right: matches!(dir, D::Right | D::ForwardRight | D::BackwardRight),
             jump: **jumping,
-            // TODO: implement sneaking
-            shift: false,
+            shift: **sneaking,
             sprint: physics_state.trying_to_sprint,
         };
 
@@ -347,16 +362,28 @@ pub(crate) fn tick_controls(mut query: Query<&mut PhysicsState>) {
 /// automatically by the client.
 pub fn local_player_ai_step(
     mut query: Query<
-        (&PhysicsState, &mut Physics, &mut Sprinting, &mut Attributes),
+        (
+            &PhysicsState,
+            &Sneaking,
+            &mut Physics,
+            &mut Sprinting,
+            &mut Attributes,
+        ),
         With<HasClientLoaded>,
     >,
 ) {
-    for (physics_state, mut physics, mut sprinting, mut attributes) in query.iter_mut() {
+    for (physics_state, sneaking, mut physics, mut sprinting, mut attributes) in query.iter_mut() {
         // server ai step
 
-        // TODO: replace those booleans when using items, passengers, and sneaking are
-        // properly implemented
-        let move_vector = modify_input(physics_state.move_vector, false, false, false, &attributes);
+        // TODO: replace those booleans when using items and passengers are properly
+        // implemented
+        let move_vector = modify_input(
+            physics_state.move_vector,
+            false,
+            false,
+            **sneaking,
+            &attributes,
+        );
         physics.x_acceleration = move_vector.x;
         physics.z_acceleration = move_vector.y;
 

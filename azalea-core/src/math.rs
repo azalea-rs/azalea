@@ -92,6 +92,10 @@ pub fn sign_as_int(num: f64) -> i32 {
     if num == 0. { 0 } else { num.signum() as i32 }
 }
 
+pub fn equal(a: f64, b: f64) -> bool {
+    (b - a).abs() < 1.0e-5
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

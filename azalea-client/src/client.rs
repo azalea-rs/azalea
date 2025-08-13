@@ -14,7 +14,7 @@ use azalea_core::{
     tick::GameTick,
 };
 use azalea_entity::{
-    EntityUpdateSet, EyeHeight, Position,
+    EntityUpdateSet, EyeHeight, PlayerAbilities, Position, Sneaking,
     indexing::{EntityIdIndex, EntityUuidIndex},
     metadata::Health,
 };
@@ -55,7 +55,7 @@ use crate::{
     interact::BlockStatePredictionHandler,
     inventory::Inventory,
     join::{ConnectOpts, StartJoinServerEvent},
-    local_player::{Hunger, InstanceHolder, PermissionLevel, PlayerAbilities, TabList},
+    local_player::{Hunger, InstanceHolder, PermissionLevel, TabList},
     mining::{self},
     movement::{LastSentLookDirection, PhysicsState},
     packet::game::SendPacketEvent,

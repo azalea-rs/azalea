@@ -369,8 +369,7 @@ pub struct Physics {
     pub lava_fluid_height: f64,
     pub was_touching_water: bool,
 
-    // TODO: implement fall_distance
-    pub fall_distance: f32,
+    pub fall_distance: f64,
     // TODO: implement remaining_fire_ticks
     pub remaining_fire_ticks: i32,
 }
@@ -514,6 +513,7 @@ pub struct EntityBundle {
     pub eye_height: EyeHeight,
     pub attributes: Attributes,
     pub jumping: Jumping,
+    pub sneaking: Sneaking,
     pub fluid_on_eyes: FluidOnEyes,
     pub on_climbable: OnClimbable,
 }
@@ -547,6 +547,7 @@ impl EntityBundle {
             attributes: default_attributes(EntityKind::Player),
 
             jumping: Jumping(false),
+            sneaking: Sneaking(false),
             fluid_on_eyes: FluidOnEyes(FluidKind::Empty),
             on_climbable: OnClimbable(false),
         }
@@ -563,6 +564,7 @@ pub fn default_attributes(_entity_kind: EntityKind) -> Attributes {
         water_movement_efficiency: AttributeInstance::new(0.0),
         block_interaction_range: AttributeInstance::new(4.5),
         entity_interaction_range: AttributeInstance::new(3.0),
+        step_height: AttributeInstance::new(0.6),
     }
 }
 
@@ -586,3 +588,26 @@ impl FluidOnEyes {
 
 #[derive(Component, Clone, Copy, Debug, PartialEq, Deref, DerefMut)]
 pub struct OnClimbable(bool);
+
+/// A component that indicates whether the entity is currently trying to sneak.
+///
+/// This is distinct from [`metadata::ShiftKeyDown`], which is a metadata value
+/// controlled by the server.
+#[derive(Component, Clone, Copy, Deref, DerefMut, Default)]
+pub struct Sneaking(bool);
+
+/// A component that contains the abilities the player has, like flying
+/// or instantly breaking blocks. This is only present on local players.
+#[derive(Clone, Debug, Component, Default)]
+pub struct PlayerAbilities {
+    pub invulnerable: bool,
+    pub flying: bool,
+    pub can_fly: bool,
+    /// Whether the player can instantly break blocks and can duplicate blocks
+    /// in their inventory.
+    pub instant_break: bool,
+
+    pub flying_speed: f32,
+    /// Used for the fov
+    pub walking_speed: f32,
+}

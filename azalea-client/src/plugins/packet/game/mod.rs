@@ -8,7 +8,7 @@ use azalea_core::{
 };
 use azalea_entity::{
     Dead, EntityBundle, EntityKindComponent, HasClientLoaded, LoadedBy, LocalEntity, LookDirection,
-    Physics, Position, RelativeEntityUpdate,
+    Physics, PlayerAbilities, Position, RelativeEntityUpdate,
     indexing::{EntityIdIndex, EntityUuidIndex},
     metadata::{Health, apply_metadata},
 };
@@ -33,7 +33,7 @@ use crate::{
     inventory::{
         ClientSideCloseContainerEvent, Inventory, MenuOpenedEvent, SetContainerContentEvent,
     },
-    local_player::{Hunger, InstanceHolder, LocalGameMode, PlayerAbilities, TabList},
+    local_player::{Hunger, InstanceHolder, LocalGameMode, TabList},
     movement::{KnockbackEvent, KnockbackType},
     packet::as_system,
     player::{GameProfileComponent, PlayerInfo},

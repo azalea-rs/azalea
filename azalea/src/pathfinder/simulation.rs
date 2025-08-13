@@ -112,7 +112,7 @@ fn create_simulation_player_complete_bundle(
         MineBundle::default(),
         BlockStatePredictionHandler::default(),
         azalea_client::local_player::PermissionLevel::default(),
-        azalea_client::local_player::PlayerAbilities::default(),
+        azalea_entity::PlayerAbilities::default(),
     )
 }
 

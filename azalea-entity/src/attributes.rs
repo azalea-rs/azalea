@@ -16,6 +16,8 @@ pub struct Attributes {
 
     pub block_interaction_range: AttributeInstance,
     pub entity_interaction_range: AttributeInstance,
+
+    pub step_height: AttributeInstance,
 }
 
 #[derive(Clone, Debug)]

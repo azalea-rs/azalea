@@ -71,13 +71,13 @@ impl Cursor3d {
     pub fn new(origin: BlockPos, end: BlockPos) -> Self {
         let width = (end.x - origin.x + 1)
             .try_into()
-            .expect("Impossible width.");
+            .unwrap_or_else(|_| panic!("Impossible width, origin: {origin:?}, end: {end:?}"));
         let height = (end.y - origin.y + 1)
             .try_into()
-            .expect("Impossible height.");
+            .unwrap_or_else(|_| panic!("Impossible height, origin: {origin:?}, end: {end:?}"));
         let depth = (end.z - origin.z + 1)
             .try_into()
-            .expect("Impossible depth.");
+            .unwrap_or_else(|_| panic!("Impossible depth, origin: {origin:?}, end: {end:?}"));
 
         Self {
             index: 0,

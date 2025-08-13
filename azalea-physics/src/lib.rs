@@ -23,11 +23,9 @@ use azalea_world::{Instance, InstanceContainer, InstanceName};
 use bevy_app::{App, Plugin};
 use bevy_ecs::prelude::*;
 use clip::box_traverse_blocks;
-use collision::{
-    BLOCK_SHAPE, BlockWithShape, MoverType, VoxelShape,
-    entity_collisions::{CollidableEntityQuery, PhysicsQuery},
-    move_colliding,
-};
+use collision::{BLOCK_SHAPE, BlockWithShape, VoxelShape, move_colliding};
+
+use crate::collision::MoveCtx;
 
 /// A Bevy [`SystemSet`] for running physics that makes entities do things.
 #[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
@@ -367,63 +365,27 @@ fn get_block_pos_below_that_affects_movement(position: Position) -> BlockPos {
     )
 }
 
-/// Options for [`handle_relative_friction_and_calculate_movement`]
-struct HandleRelativeFrictionAndCalculateMovementOpts<'a, 'b, 'world, 'state> {
-    block_friction: f32,
-    world: &'a Instance,
-    physics: &'a mut Physics,
-    direction: LookDirection,
-    position: Mut<'a, Position>,
-    attributes: &'a Attributes,
-    is_sprinting: bool,
-    on_climbable: OnClimbable,
-    pose: Option<Pose>,
-    jumping: Jumping,
-    entity: Entity,
-    physics_query: &'a PhysicsQuery<'world, 'state, 'b>,
-    collidable_entity_query: &'a CollidableEntityQuery<'world, 'state>,
-}
-fn handle_relative_friction_and_calculate_movement(
-    HandleRelativeFrictionAndCalculateMovementOpts {
-        block_friction,
-        world,
-        physics,
-        direction,
-        mut position,
-        attributes,
-        is_sprinting,
-        on_climbable,
-        pose,
-        jumping,
-        entity,
-        physics_query,
-        collidable_entity_query,
-    }: HandleRelativeFrictionAndCalculateMovementOpts<'_, '_, '_, '_>,
-) -> Vec3 {
+fn handle_relative_friction_and_calculate_movement(ctx: &mut MoveCtx, block_friction: f32) -> Vec3 {
     move_relative(
-        physics,
-        direction,
-        get_friction_influenced_speed(physics, attributes, block_friction, is_sprinting),
+        ctx.physics,
+        ctx.direction,
+        get_friction_influenced_speed(ctx.physics, ctx.attributes, block_friction, ctx.sprinting),
         Vec3::new(
-            physics.x_acceleration as f64,
-            physics.y_acceleration as f64,
-            physics.z_acceleration as f64,
+            ctx.physics.x_acceleration as f64,
+            ctx.physics.y_acceleration as f64,
+            ctx.physics.z_acceleration as f64,
         ),
     );
 
-    physics.velocity = handle_on_climbable(physics.velocity, on_climbable, *position, world, pose);
+    ctx.physics.velocity = handle_on_climbable(
+        ctx.physics.velocity,
+        ctx.on_climbable,
+        *ctx.position,
+        ctx.world,
+        ctx.pose,
+    );
 
-    move_colliding(
-        MoverType::Own,
-        physics.velocity,
-        world,
-        &mut position,
-        physics,
-        Some(entity),
-        physics_query,
-        collidable_entity_query,
-    )
-    .expect("Entity should exist");
+    move_colliding(ctx, ctx.physics.velocity).expect("Entity should exist");
     // let delta_movement = entity.delta;
     // ladders
     //   if ((entity.horizontalCollision || entity.jumping) && (entity.onClimbable()
@@ -431,19 +393,20 @@ fn handle_relative_friction_and_calculate_movement(
     // PowderSnowBlock.canEntityWalkOnPowderSnow(entity))) {      var3 = new
     // Vec3(var3.x, 0.2D, var3.z);   }
 
-    if physics.horizontal_collision || *jumping {
-        let block_at_feet: Block = world
+    if ctx.physics.horizontal_collision || *ctx.jumping {
+        let block_at_feet: Block = ctx
+            .world
             .chunks
-            .get_block_state((*position).into())
+            .get_block_state(BlockPos::from(*ctx.position))
             .unwrap_or_default()
             .into();
 
-        if *on_climbable || block_at_feet == Block::PowderSnow {
-            physics.velocity.y = 0.2;
+        if *ctx.on_climbable || block_at_feet == Block::PowderSnow {
+            ctx.physics.velocity.y = 0.2;
         }
     }
 
-    physics.velocity
+    ctx.physics.velocity
 }
 
 fn handle_on_climbable(
@@ -488,7 +451,7 @@ fn get_friction_influenced_speed(
     physics: &Physics,
     attributes: &Attributes,
     friction: f32,
-    is_sprinting: bool,
+    sprinting: Sprinting,
 ) -> f32 {
     // TODO: have speed & flying_speed fields in entity
     if physics.on_ground() {
@@ -496,7 +459,7 @@ fn get_friction_influenced_speed(
         speed * (0.21600002f32 / (friction * friction * friction))
     } else {
         // entity.flying_speed
-        if is_sprinting { 0.025999999f32 } else { 0.02 }
+        if *sprinting { 0.025999999f32 } else { 0.02 }
     }
 }
 
