@@ -1,7 +1,9 @@
 //! Disconnect a client from the server.
 
 use azalea_chat::FormattedText;
-use azalea_entity::{EntityBundle, InLoadedChunk, LocalEntity, metadata::PlayerMetadataBundle};
+use azalea_entity::{
+    EntityBundle, HasClientLoaded, InLoadedChunk, LocalEntity, metadata::PlayerMetadataBundle,
+};
 use azalea_world::MinecraftEntityId;
 use bevy_app::{App, Plugin, PostUpdate};
 use bevy_ecs::prelude::*;
@@ -10,7 +12,7 @@ use tracing::info;
 
 use super::login::IsAuthenticated;
 use crate::{
-    chat_signing, client::JoinedClientBundle, connection::RawConnection, loading::HasClientLoaded,
+    chat_signing, client::JoinedClientBundle, connection::RawConnection,
     local_player::InstanceHolder, tick_counter::TicksConnected,
 };
 

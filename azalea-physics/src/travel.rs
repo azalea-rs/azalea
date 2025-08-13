@@ -4,7 +4,7 @@ use azalea_core::{
     position::{BlockPos, Vec3},
 };
 use azalea_entity::{
-    Attributes, InLoadedChunk, Jumping, LocalEntity, LookDirection, OnClimbable, Physics, Pose,
+    Attributes, HasClientLoaded, Jumping, LocalEntity, LookDirection, OnClimbable, Physics, Pose,
     Position, metadata::Sprinting, move_relative,
 };
 use azalea_world::{Instance, InstanceContainer, InstanceName};
@@ -37,7 +37,7 @@ pub fn travel(
             &OnClimbable,
             &Jumping,
         ),
-        (With<LocalEntity>, With<InLoadedChunk>),
+        (With<LocalEntity>, With<HasClientLoaded>),
     >,
     instance_container: Res<InstanceContainer>,
     physics_query: PhysicsQuery,

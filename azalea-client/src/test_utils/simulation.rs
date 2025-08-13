@@ -206,6 +206,12 @@ impl SentPackets {
             matches!(p, ServerboundGamePacket::ClientTickEnd(_))
         });
     }
+    pub fn expect_pong(&self, id: u32) {
+        self.expect(
+            &format!("Ping {{ id: {id} }}"),
+            |p| matches!(p, ServerboundGamePacket::Pong(pong) if pong.id == id),
+        );
+    }
     pub fn expect_empty(&self) {
         let sent_packet = self.next();
         if sent_packet.is_some() {

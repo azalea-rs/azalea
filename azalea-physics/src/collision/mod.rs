@@ -171,11 +171,11 @@ pub fn move_colliding(
     let x_collision = movement.x != collide_result.x;
     let z_collision = movement.z != collide_result.z;
     let horizontal_collision = x_collision || z_collision;
-    let vertical_collision = movement.y != collide_result.y;
-    let on_ground = vertical_collision && movement.y < 0.;
-
     physics.horizontal_collision = horizontal_collision;
+
+    let vertical_collision = movement.y != collide_result.y;
     physics.vertical_collision = vertical_collision;
+    let on_ground = vertical_collision && movement.y < 0.;
     physics.set_on_ground(on_ground);
 
     // TODO: minecraft checks for a "minor" horizontal collision here

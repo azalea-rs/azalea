@@ -69,6 +69,7 @@ fn create_simulation_instance(chunks: ChunkStorage) -> (App, Arc<RwLock<Instance
         azalea_client::inventory::InventoryPlugin,
         azalea_client::mining::MiningPlugin,
         azalea_client::interact::InteractPlugin,
+        azalea_client::loading::PlayerLoadedPlugin,
     ))
     .insert_resource(InstanceContainer {
         instances: [(instance_name.clone(), Arc::downgrade(&instance.clone()))]

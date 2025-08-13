@@ -7,8 +7,8 @@ use azalea_core::{
     position::{ChunkPos, Vec3},
 };
 use azalea_entity::{
-    Dead, EntityBundle, EntityKindComponent, LastSentPosition, LoadedBy, LocalEntity,
-    LookDirection, Physics, Position, RelativeEntityUpdate,
+    Dead, EntityBundle, EntityKindComponent, HasClientLoaded, LoadedBy, LocalEntity, LookDirection,
+    Physics, Position, RelativeEntityUpdate,
     indexing::{EntityIdIndex, EntityUuidIndex},
     metadata::{Health, apply_metadata},
 };
@@ -33,7 +33,6 @@ use crate::{
     inventory::{
         ClientSideCloseContainerEvent, Inventory, MenuOpenedEvent, SetContainerContentEvent,
     },
-    loading::HasClientLoaded,
     local_player::{Hunger, InstanceHolder, LocalGameMode, PlayerAbilities, TabList},
     movement::{KnockbackEvent, KnockbackType},
     packet::as_system,
@@ -409,21 +408,12 @@ impl GamePacketHandler<'_> {
         debug!("Got player position packet {p:?}");
 
         as_system::<(
-            Query<(
-                &mut Physics,
-                &mut LookDirection,
-                &mut Position,
-                &mut LastSentPosition,
-            )>,
+            Query<(&mut Physics, &mut LookDirection, &mut Position)>,
             Commands,
         )>(self.ecs, |(mut query, mut commands)| {
-            let Ok((mut physics, mut direction, mut position, mut last_sent_position)) =
-                query.get_mut(self.player)
-            else {
+            let Ok((mut physics, mut direction, mut position)) = query.get_mut(self.player) else {
                 return;
             };
-
-            **last_sent_position = **position;
 
             p.relative
                 .apply(&p.change, &mut position, &mut direction, &mut physics);
@@ -1500,9 +1490,6 @@ impl GamePacketHandler<'_> {
 
                         physics.set_on_ground(new_on_ground);
 
-                        let mut last_sent_position =
-                            entity_mut.get_mut::<LastSentPosition>().unwrap();
-                        **last_sent_position = new_position;
                         let mut position = entity_mut.get_mut::<Position>().unwrap();
                         **position = new_position;
 

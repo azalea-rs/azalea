@@ -7,7 +7,7 @@ use azalea_core::{
     position::{BlockPos, Vec3},
     resource_location::ResourceLocation,
 };
-use azalea_entity::{InLoadedChunk, LocalEntity, Physics, Position};
+use azalea_entity::{HasClientLoaded, LocalEntity, Physics, Position};
 use azalea_world::{Instance, InstanceContainer, InstanceName};
 use bevy_ecs::prelude::*;
 
@@ -17,14 +17,14 @@ use crate::collision::legacy_blocks_motion;
 pub fn update_in_water_state_and_do_fluid_pushing(
     mut query: Query<
         (&mut Physics, &Position, &InstanceName),
-        (With<LocalEntity>, With<InLoadedChunk>),
+        (With<LocalEntity>, With<HasClientLoaded>),
     >,
     instance_container: Res<InstanceContainer>,
 ) {
     for (mut physics, position, instance_name) in &mut query {
-        let world_lock = instance_container
-            .get(instance_name)
-            .expect("All entities with InLoadedChunk should be in a valid world");
+        let Some(world_lock) = instance_container.get(instance_name) else {
+            continue;
+        };
         let world = world_lock.read();
 
         // reset the heights since they're going to be set in

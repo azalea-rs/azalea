@@ -15,7 +15,7 @@ use azalea_core::{
     tick::GameTick,
 };
 use azalea_entity::{
-    Attributes, EntityKindComponent, InLoadedChunk, Jumping, LocalEntity, LookDirection,
+    Attributes, EntityKindComponent, HasClientLoaded, Jumping, LocalEntity, LookDirection,
     OnClimbable, Physics, Pose, Position, metadata::Sprinting, move_relative,
 };
 use azalea_registry::{Block, EntityKind};
@@ -68,7 +68,7 @@ pub fn ai_step(
             &InstanceName,
             &EntityKindComponent,
         ),
-        (With<LocalEntity>, With<InLoadedChunk>),
+        (With<LocalEntity>, With<HasClientLoaded>),
     >,
     instance_container: Res<InstanceContainer>,
 ) {
@@ -162,7 +162,7 @@ fn jump_in_liquid(physics: &mut Physics) {
 pub fn apply_effects_from_blocks(
     mut query: Query<
         (&mut Physics, &Position, &InstanceName),
-        (With<LocalEntity>, With<InLoadedChunk>),
+        (With<LocalEntity>, With<HasClientLoaded>),
     >,
     instance_container: Res<InstanceContainer>,
 ) {

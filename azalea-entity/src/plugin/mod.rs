@@ -238,6 +238,12 @@ pub fn update_in_loaded_chunk(
     }
 }
 
+/// A component that indicates whether the client has loaded.
+///
+/// This is updated by a system in `azalea-client`.
+#[derive(Component)]
+pub struct HasClientLoaded;
+
 #[cfg(test)]
 mod tests {
     use azalea_block::{

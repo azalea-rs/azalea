@@ -5,7 +5,7 @@ use azalea_core::{
     tick::GameTick,
 };
 use azalea_entity::{
-    Attributes, InLoadedChunk, Jumping, LastSentPosition, LookDirection, Physics, Position,
+    Attributes, HasClientLoaded, Jumping, LastSentPosition, LookDirection, Physics, Position,
     metadata::Sprinting,
 };
 use azalea_physics::{PhysicsSet, ai_step};
@@ -155,7 +155,7 @@ pub fn send_position(
             &mut Physics,
             &mut LastSentLookDirection,
         ),
-        With<InLoadedChunk>,
+        With<HasClientLoaded>,
     >,
     mut commands: Commands,
 ) {
@@ -183,9 +183,9 @@ pub fn send_position(
 
             // boolean sendingPosition = Mth.lengthSquared(xDelta, yDelta, zDelta) >
             // Mth.square(2.0E-4D) || this.positionReminder >= 20;
-            let sending_position = ((x_delta.powi(2) + y_delta.powi(2) + z_delta.powi(2))
-                > 2.0e-4f64.powi(2))
-                || physics_state.position_remainder >= 20;
+            let is_delta_large_enough =
+                (x_delta.powi(2) + y_delta.powi(2) + z_delta.powi(2)) > 2.0e-4f64.powi(2);
+            let sending_position = is_delta_large_enough || physics_state.position_remainder >= 20;
             let sending_direction = y_rot_delta != 0.0 || x_rot_delta != 0.0;
 
             // if self.is_passenger() {
@@ -348,7 +348,7 @@ pub(crate) fn tick_controls(mut query: Query<&mut PhysicsState>) {
 pub fn local_player_ai_step(
     mut query: Query<
         (&PhysicsState, &mut Physics, &mut Sprinting, &mut Attributes),
-        With<InLoadedChunk>,
+        With<HasClientLoaded>,
     >,
 ) {
     for (physics_state, mut physics, mut sprinting, mut attributes) in query.iter_mut() {
