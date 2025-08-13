@@ -92,6 +92,8 @@ pub enum EntityDataValue {
     PaintingVariant(azalea_registry::PaintingVariant),
     SnifferState(SnifferStateKind),
     ArmadilloState(ArmadilloStateKind),
+    CopperGolemState(CopperGolemStateKind),
+    WeatheringCopperState(WeatheringCopperStateKind),
     Vector3(Vec3f32),
     Quaternion(Quaternion),
 }
@@ -175,4 +177,22 @@ pub enum SnifferStateKind {
     Searching,
     Digging,
     Rising,
+}
+
+#[derive(Debug, Copy, Clone, AzBuf, Default)]
+pub enum CopperGolemStateKind {
+    #[default]
+    Idle,
+    GettingItem,
+    GettingNoItem,
+    DroppingItem,
+    DroppingNoItem,
+}
+#[derive(Debug, Copy, Clone, AzBuf, Default)]
+pub enum WeatheringCopperStateKind {
+    #[default]
+    Unaffected,
+    Exposed,
+    Weathered,
+    Oxidized,
 }

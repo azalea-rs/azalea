@@ -16,8 +16,8 @@ use thiserror::Error;
 use uuid::Uuid;
 
 use super::{
-    ArmadilloStateKind, EntityDataItem, EntityDataValue, OptionalUnsignedInt, Pose, Quaternion,
-    Rotations, SnifferStateKind, VillagerData,
+    ArmadilloStateKind, CopperGolemStateKind, EntityDataItem, EntityDataValue, OptionalUnsignedInt,
+    Pose, Quaternion, Rotations, SnifferStateKind, VillagerData, WeatheringCopperStateKind,
 };
 use crate::particle::Particle;
 
@@ -2166,6 +2166,85 @@ impl Default for CommandBlockMinecartMetadataBundle {
             },
             command_name: CommandName("".to_string()),
             last_output: LastOutput(Default::default()),
+        }
+    }
+}
+
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct WeatherState(pub WeatheringCopperStateKind);
+#[derive(Component, Deref, DerefMut, Clone)]
+pub struct CopperGolemState(pub CopperGolemStateKind);
+#[derive(Component)]
+pub struct CopperGolem;
+impl CopperGolem {
+    pub fn apply_metadata(
+        entity: &mut bevy_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=15 => AbstractCreature::apply_metadata(entity, d)?,
+            16 => {
+                entity.insert(WeatherState(d.value.into_weathering_copper_state()?));
+            }
+            17 => {
+                entity.insert(CopperGolemState(d.value.into_copper_golem_state()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct CopperGolemMetadataBundle {
+    _marker: CopperGolem,
+    parent: AbstractCreatureMetadataBundle,
+    weather_state: WeatherState,
+    copper_golem_state: CopperGolemState,
+}
+impl Default for CopperGolemMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: CopperGolem,
+            parent: AbstractCreatureMetadataBundle {
+                _marker: AbstractCreature,
+                parent: AbstractInsentientMetadataBundle {
+                    _marker: AbstractInsentient,
+                    parent: AbstractLivingMetadataBundle {
+                        _marker: AbstractLiving,
+                        parent: AbstractEntityMetadataBundle {
+                            _marker: AbstractEntity,
+                            on_fire: OnFire(false),
+                            shift_key_down: ShiftKeyDown(false),
+                            sprinting: Sprinting(false),
+                            swimming: Swimming(false),
+                            currently_glowing: CurrentlyGlowing(false),
+                            invisible: Invisible(false),
+                            fall_flying: FallFlying(false),
+                            air_supply: AirSupply(Default::default()),
+                            custom_name: CustomName(Default::default()),
+                            custom_name_visible: CustomNameVisible(Default::default()),
+                            silent: Silent(Default::default()),
+                            no_gravity: NoGravity(Default::default()),
+                            pose: Pose::default(),
+                            ticks_frozen: TicksFrozen(Default::default()),
+                        },
+                        auto_spin_attack: AutoSpinAttack(false),
+                        abstract_living_using_item: AbstractLivingUsingItem(false),
+                        health: Health(1.0),
+                        effect_particles: EffectParticles(Default::default()),
+                        effect_ambience: EffectAmbience(false),
+                        arrow_count: ArrowCount(0),
+                        stinger_count: StingerCount(0),
+                        sleeping_pos: SleepingPos(None),
+                    },
+                    no_ai: NoAi(false),
+                    left_handed: LeftHanded(false),
+                    aggressive: Aggressive(false),
+                },
+            },
+            weather_state: WeatherState(Default::default()),
+            copper_golem_state: CopperGolemState(Default::default()),
         }
     }
 }
@@ -12621,6 +12700,11 @@ pub fn apply_metadata(
                 CommandBlockMinecart::apply_metadata(entity, d)?;
             }
         }
+        azalea_registry::EntityKind::CopperGolem => {
+            for d in items {
+                CopperGolem::apply_metadata(entity, d)?;
+            }
+        }
         azalea_registry::EntityKind::Cow => {
             for d in items {
                 Cow::apply_metadata(entity, d)?;
@@ -13328,6 +13412,9 @@ pub fn apply_default_metadata(
         }
         azalea_registry::EntityKind::CommandBlockMinecart => {
             entity.insert(CommandBlockMinecartMetadataBundle::default());
+        }
+        azalea_registry::EntityKind::CopperGolem => {
+            entity.insert(CopperGolemMetadataBundle::default());
         }
         azalea_registry::EntityKind::Cow => {
             entity.insert(CowMetadataBundle::default());

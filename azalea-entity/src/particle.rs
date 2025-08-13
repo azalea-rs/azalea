@@ -16,6 +16,7 @@ pub enum Particle {
     BlockMarker(BlockParticle),
     Bubble,
     Cloud,
+    CopperFireFlame,
     Crit,
     DamageIndicator,
     DragonBreath,
@@ -250,6 +251,7 @@ impl From<ParticleKind> for Particle {
             ParticleKind::Trail => Self::Trail,
             ParticleKind::BlockCrumble => Self::BlockCrumble,
             ParticleKind::Firefly => Self::Firefly,
+            ParticleKind::CopperFireFlame => Self::CopperFireFlame,
         }
     }
 }

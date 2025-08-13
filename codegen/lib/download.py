@@ -140,6 +140,24 @@ def get_latest_fabric_api_version():
     return tree.find(".//latest").text
 
 
+def get_latest_fabric_kotlin_version():
+    # https://maven.fabricmc.net/net/fabricmc/fabric-language-kotlin/maven-metadata.xml
+    path = get_dir_location("__cache__/fabric-kotlin-maven-metadata.xml")
+
+    if not os.path.exists(path):
+        print("\033[92mDownloading Fabric Kotlin metadata...\033[m")
+        url = "https://maven.fabricmc.net/net/fabricmc/fabric-language-kotlin/maven-metadata.xml"
+        maven_metadata_xml = requests.get(url).text
+        with open(path, "w") as f:
+            json.dump(maven_metadata_xml, f)
+    else:
+        with open(path, "r") as f:
+            maven_metadata_xml = json.load(f)
+
+    tree = ET.ElementTree(ET.fromstring(maven_metadata_xml))
+    return tree.find(".//latest").text
+
+
 def get_fabric_api_versions():
     # https://maven.fabricmc.net/net/fabricmc/fabric-api/fabric-api/maven-metadata.xml
     if not os.path.exists(get_dir_location("__cache__/fabric_api_versions.json")):
@@ -195,6 +213,7 @@ def clear_version_cache():
         "fabric_api_versions.json",
         "fabric_loader_versions.json",
         "fabric-api-maven-metadata.xml",
+        "fabric-kotlin-maven-metadata.xml",
     ]
     for file in files:
         if os.path.exists(get_dir_location(f"__cache__/{file}")):
