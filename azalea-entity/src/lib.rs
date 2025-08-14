@@ -2,7 +2,7 @@
 
 pub mod attributes;
 mod data;
-mod dimensions;
+pub mod dimensions;
 mod effects;
 mod enchantments;
 pub mod metadata;
@@ -31,12 +31,12 @@ use azalea_world::{ChunkStorage, InstanceName};
 use bevy_ecs::{bundle::Bundle, component::Component};
 pub use data::*;
 use derive_more::{Deref, DerefMut};
-pub use dimensions::EntityDimensions;
 use plugin::indexing::EntityChunkPos;
 use uuid::Uuid;
 use vec_delta_codec::VecDeltaCodec;
 
 use self::attributes::AttributeInstance;
+use crate::dimensions::EntityDimensions;
 pub use crate::plugin::*;
 
 pub fn move_relative(
@@ -353,8 +353,6 @@ pub struct Physics {
     /// and sets to 0 if we're not trying to jump.
     pub no_jump_delay: u32,
 
-    /// The width and height of the entity.
-    pub dimensions: EntityDimensions,
     /// The bounding box of the entity. This is more than just width and height,
     /// unlike dimensions.
     pub bounding_box: AABB,
@@ -375,7 +373,7 @@ pub struct Physics {
 }
 
 impl Physics {
-    pub fn new(dimensions: EntityDimensions, pos: Vec3) -> Self {
+    pub fn new(dimensions: &EntityDimensions, pos: Vec3) -> Self {
         Self {
             velocity: Vec3::ZERO,
             vec_delta_codec: VecDeltaCodec::new(pos),
@@ -392,7 +390,6 @@ impl Physics {
             no_jump_delay: 0,
 
             bounding_box: dimensions.make_bounding_box(pos),
-            dimensions,
 
             has_impulse: false,
 
@@ -454,41 +451,6 @@ impl Physics {
 #[derive(Component, Copy, Clone, Default)]
 pub struct Dead;
 
-/// A component that contains the offset of the entity's eyes from the entity
-/// coordinates.
-///
-/// This is used to calculate the camera position for players, when spectating
-/// an entity, and when raycasting from the entity.
-///
-/// The default eye height for a player is 1.62 blocks.
-#[derive(Component, Clone, Copy, Debug, PartialEq, Deref, DerefMut)]
-pub struct EyeHeight(f32);
-impl EyeHeight {
-    pub fn new(height: f32) -> Self {
-        Self(height)
-    }
-}
-impl From<EyeHeight> for f32 {
-    fn from(value: EyeHeight) -> Self {
-        value.0
-    }
-}
-impl From<EyeHeight> for f64 {
-    fn from(value: EyeHeight) -> Self {
-        value.0 as f64
-    }
-}
-impl From<&EyeHeight> for f32 {
-    fn from(value: &EyeHeight) -> Self {
-        value.0
-    }
-}
-impl From<&EyeHeight> for f64 {
-    fn from(value: &EyeHeight) -> Self {
-        value.0 as f64
-    }
-}
-
 /// A component NewType for [`azalea_registry::EntityKind`].
 ///
 /// Most of the time, you should be using `azalea_registry::EntityKind`
@@ -510,10 +472,10 @@ pub struct EntityBundle {
 
     pub physics: Physics,
     pub direction: LookDirection,
-    pub eye_height: EyeHeight,
+    pub dimensions: EntityDimensions,
     pub attributes: Attributes,
     pub jumping: Jumping,
-    pub sneaking: Sneaking,
+    pub crouching: Crouching,
     pub fluid_on_eyes: FluidOnEyes,
     pub on_climbable: OnClimbable,
 }
@@ -526,12 +488,6 @@ impl EntityBundle {
         world_name: ResourceLocation,
     ) -> Self {
         let dimensions = EntityDimensions::from(kind);
-        let eye_height = match kind {
-            // TODO: codegen hardcoded eye heights, search withEyeHeight with mojmap
-            // also, eye height should change depending on pose (like sneaking, swimming, etc)
-            azalea_registry::EntityKind::Player => 1.62,
-            _ => dimensions.height * 0.85,
-        };
 
         Self {
             kind: EntityKindComponent(kind),
@@ -540,14 +496,14 @@ impl EntityBundle {
             position: Position(pos),
             chunk_pos: EntityChunkPos(ChunkPos::from(&pos)),
             last_sent_position: LastSentPosition(pos),
-            physics: Physics::new(dimensions, pos),
-            eye_height: EyeHeight(eye_height),
+            physics: Physics::new(&dimensions, pos),
+            dimensions,
             direction: LookDirection::default(),
 
             attributes: default_attributes(EntityKind::Player),
 
             jumping: Jumping(false),
-            sneaking: Sneaking(false),
+            crouching: Crouching(false),
             fluid_on_eyes: FluidOnEyes(FluidKind::Empty),
             on_climbable: OnClimbable(false),
         }
@@ -589,12 +545,12 @@ impl FluidOnEyes {
 #[derive(Component, Clone, Copy, Debug, PartialEq, Deref, DerefMut)]
 pub struct OnClimbable(bool);
 
-/// A component that indicates whether the entity is currently trying to sneak.
+/// A component that indicates whether the player is currently trying to sneak.
 ///
-/// This is distinct from [`metadata::ShiftKeyDown`], which is a metadata value
-/// controlled by the server.
+/// This is distinct from [`metadata::AbstractEntityShiftKeyDown`], which is a
+/// metadata value that is controlled by the server.
 #[derive(Component, Clone, Copy, Deref, DerefMut, Default)]
-pub struct Sneaking(bool);
+pub struct Crouching(bool);
 
 /// A component that contains the abilities the player has, like flying
 /// or instantly breaking blocks. This is only present on local players.

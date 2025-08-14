@@ -16,7 +16,8 @@ use azalea_core::{
 };
 use azalea_entity::{
     Attributes, EntityKindComponent, HasClientLoaded, Jumping, LocalEntity, LookDirection,
-    OnClimbable, Physics, Pose, Position, metadata::Sprinting, move_relative,
+    OnClimbable, Physics, Pose, Position, dimensions::EntityDimensions, metadata::Sprinting,
+    move_relative,
 };
 use azalea_registry::{Block, EntityKind};
 use azalea_world::{Instance, InstanceContainer, InstanceName};
@@ -159,12 +160,12 @@ fn jump_in_liquid(physics: &mut Physics) {
 #[allow(clippy::type_complexity)]
 pub fn apply_effects_from_blocks(
     mut query: Query<
-        (&mut Physics, &Position, &InstanceName),
+        (&mut Physics, &Position, &EntityDimensions, &InstanceName),
         (With<LocalEntity>, With<HasClientLoaded>),
     >,
     instance_container: Res<InstanceContainer>,
 ) {
-    for (mut physics, position, world_name) in &mut query {
+    for (mut physics, position, dimensions, world_name) in &mut query {
         let Some(world_lock) = instance_container.get(world_name) else {
             continue;
         };
@@ -187,12 +188,13 @@ pub fn apply_effects_from_blocks(
             to: **position,
         }];
 
-        check_inside_blocks(&mut physics, &world, &movement_this_tick);
+        check_inside_blocks(&mut physics, dimensions, &world, &movement_this_tick);
     }
 }
 
 fn check_inside_blocks(
     physics: &mut Physics,
+    dimensions: &EntityDimensions,
     world: &Instance,
     movements: &[EntityMovement],
 ) -> Vec<BlockState> {
@@ -200,8 +202,7 @@ fn check_inside_blocks(
     let mut visited_blocks = HashSet::<BlockState>::new();
 
     for movement in movements {
-        let bounding_box_at_target = physics
-            .dimensions
+        let bounding_box_at_target = dimensions
             .make_bounding_box(movement.to)
             .deflate_all(1.0E-5);
 
@@ -240,7 +241,7 @@ fn check_inside_blocks(
                     movement.to,
                     traversed_block,
                     entity_inside_collision_shape,
-                    physics,
+                    dimensions,
                 )
             {
                 continue;
@@ -260,9 +261,9 @@ fn collided_with_shape_moving_from(
     to: Vec3,
     traversed_block: BlockPos,
     entity_inside_collision_shape: &VoxelShape,
-    physics: &Physics,
+    dimensions: &EntityDimensions,
 ) -> bool {
-    let bounding_box_from = physics.dimensions.make_bounding_box(from);
+    let bounding_box_from = dimensions.make_bounding_box(from);
     let delta = to - from;
     bounding_box_from.collided_along_vector(
         delta,
@@ -430,7 +431,7 @@ fn handle_on_climbable(
 
     // sneaking on ladders/vines
     if y < 0.0
-        && pose == Some(Pose::Sneaking)
+        && pose == Some(Pose::Crouching)
         && azalea_registry::Block::from(
             world
                 .chunks

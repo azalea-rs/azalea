@@ -15,7 +15,8 @@ is breaking anyways, semantic versioning is not followed.
 - Local clients now have a `TicksConnected` component. (@Kumpelinus)
 - There is now a `azalea_inventory::default_components::get_default_component` function to get the default value of a component for a registry item.
 - `ItemStack` now has a `get_component` function that supports default components.
-- Add `Client::nearest_entity_by`.
+- `Client::nearest_entity_by`.
+- Clients are now able to crouch/sneak using the new `Crouching` component or `Client::set_crouching`.
 
 ### Changed
 
@@ -26,6 +27,7 @@ is breaking anyways, semantic versioning is not followed.
 - `ItemStackData::components` was renamed to `component_patch`.
 - The fields in `LookDirection` have been replaced with getters.
 - Renamed `Client::entity_by` to `any_entity_by`, and `Client::entities_by` to `nearest_entities_by`.
+- `EyeHeight` was moved into `EntityDimensions`, and `EntityDimensions` is now its own component.
 
 ### Fixed
 

@@ -11,7 +11,7 @@ use azalea_core::{
     tick::GameTick,
 };
 use azalea_entity::{
-    Attributes, LocalEntity, LookDirection, PlayerAbilities, Sneaking,
+    Attributes, Crouching, LocalEntity, LookDirection, PlayerAbilities,
     attributes::{
         creative_block_interaction_range_modifier, creative_entity_interaction_range_modifier,
     },
@@ -250,7 +250,7 @@ pub fn handle_start_use_item_queued(
         &mut BlockStatePredictionHandler,
         &HitResultComponent,
         &LookDirection,
-        &Sneaking,
+        &Crouching,
         Option<&Mining>,
     )>,
     entity_id_query: Query<&MinecraftEntityId>,
@@ -261,7 +261,7 @@ pub fn handle_start_use_item_queued(
         mut prediction_handler,
         hit_result,
         look_direction,
-        sneaking,
+        crouching,
         mining,
     ) in query
     {
@@ -340,7 +340,7 @@ pub fn handle_start_use_item_queued(
                             location: r.location,
                             hand: InteractionHand::MainHand,
                         },
-                        using_secondary_action: **sneaking,
+                        using_secondary_action: **crouching,
                     },
                 ));
             }

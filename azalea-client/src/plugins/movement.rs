@@ -1,14 +1,19 @@
 use std::{backtrace::Backtrace, io};
 
 use azalea_core::{
+    game_type::GameMode,
     position::{Vec2, Vec3},
     tick::GameTick,
 };
 use azalea_entity::{
-    Attributes, HasClientLoaded, Jumping, LastSentPosition, LookDirection, Physics, Position,
-    Sneaking, metadata::Sprinting,
+    Attributes, Crouching, HasClientLoaded, Jumping, LastSentPosition, LookDirection, Physics,
+    Pose, Position, dimensions::calculate_dimensions, metadata::Sprinting, update_bounding_box,
 };
-use azalea_physics::{PhysicsSet, ai_step};
+use azalea_physics::{
+    PhysicsSet, ai_step,
+    collision::entity_collisions::{CollidableEntityQuery, PhysicsQuery},
+    travel::no_collision,
+};
 use azalea_protocol::{
     common::movements::MoveFlags,
     packets::{
@@ -22,12 +27,17 @@ use azalea_protocol::{
         },
     },
 };
-use azalea_world::{MinecraftEntityId, MoveEntityError};
+use azalea_registry::EntityKind;
+use azalea_world::{Instance, MinecraftEntityId, MoveEntityError};
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 use thiserror::Error;
 
-use crate::{client::Client, packet::game::SendPacketEvent};
+use crate::{
+    client::Client,
+    local_player::{InstanceHolder, LocalGameMode},
+    packet::game::SendPacketEvent,
+};
 
 #[derive(Error, Debug)]
 pub enum MovePlayerError {
@@ -58,12 +68,13 @@ impl Plugin for MovementPlugin {
                 Update,
                 (handle_sprint, handle_walk, handle_knockback)
                     .chain()
-                    .in_set(MoveEventsSet),
+                    .in_set(MoveEventsSet)
+                    .after(update_bounding_box),
             )
             .add_systems(
                 GameTick,
                 (
-                    (tick_controls, local_player_ai_step)
+                    (tick_controls, local_player_ai_step, update_pose)
                         .chain()
                         .in_set(PhysicsSet)
                         .before(ai_step)
@@ -97,14 +108,17 @@ impl Client {
         *self.component::<Jumping>()
     }
 
-    pub fn set_sneaking(&self, sneaking: bool) {
+    pub fn set_crouching(&self, crouching: bool) {
         let mut ecs = self.ecs.lock();
-        let mut jumping_mut = self.query::<&mut Sneaking>(&mut ecs);
-        **jumping_mut = sneaking;
+        let mut crouching_mut = self.query::<&mut Crouching>(&mut ecs);
+        **crouching_mut = crouching;
     }
 
-    pub fn sneaking(&self) -> bool {
-        *self.component::<Sneaking>()
+    /// Whether the client is currently trying to sneak.
+    ///
+    /// You may want to check the [`Pose`] instead.
+    pub fn crouching(&self) -> bool {
+        *self.component::<Crouching>()
     }
 
     /// Sets the direction the client is looking. `y_rot` is yaw (looking to the
@@ -268,7 +282,7 @@ pub fn send_player_input_packet(
         Entity,
         &PhysicsState,
         &Jumping,
-        &Sneaking,
+        &Crouching,
         Option<&LastSentInput>,
     )>,
     mut commands: Commands,
@@ -364,7 +378,7 @@ pub fn local_player_ai_step(
     mut query: Query<
         (
             &PhysicsState,
-            &Sneaking,
+            &Crouching,
             &mut Physics,
             &mut Sprinting,
             &mut Attributes,
@@ -372,7 +386,7 @@ pub fn local_player_ai_step(
         With<HasClientLoaded>,
     >,
 ) {
-    for (physics_state, sneaking, mut physics, mut sprinting, mut attributes) in query.iter_mut() {
+    for (physics_state, crouching, mut physics, mut sprinting, mut attributes) in query.iter_mut() {
         // server ai step
 
         // TODO: replace those booleans when using items and passengers are properly
@@ -381,7 +395,7 @@ pub fn local_player_ai_step(
             physics_state.move_vector,
             false,
             false,
-            **sneaking,
+            **crouching,
             &attributes,
         );
         physics.x_acceleration = move_vector.x;
@@ -640,4 +654,87 @@ impl From<SprintDirection> for WalkDirection {
             SprintDirection::ForwardLeft => WalkDirection::ForwardLeft,
         }
     }
+}
+
+pub fn update_pose(
+    mut query: Query<(
+        Entity,
+        &mut Pose,
+        &Physics,
+        &Crouching,
+        &LocalGameMode,
+        &InstanceHolder,
+        &Position,
+    )>,
+    physics_query: PhysicsQuery,
+    collidable_entity_query: CollidableEntityQuery,
+) {
+    for (entity, mut pose, physics, crouching, game_mode, instance_holder, position) in
+        query.iter_mut()
+    {
+        let world = instance_holder.instance.read();
+        let world = &*world;
+        let ctx = CanPlayerFitCtx {
+            world,
+            entity,
+            position: *position,
+            physics_query: &physics_query,
+            collidable_entity_query: &collidable_entity_query,
+            physics,
+        };
+
+        if !can_player_fit_within_blocks_and_entities_when(&ctx, Pose::Swimming) {
+            continue;
+        }
+
+        // TODO: implement everything else from getDesiredPose: sleeping, swimming,
+        // fallFlying, spinAttack
+        let desired_pose = if **crouching {
+            Pose::Crouching
+        } else {
+            Pose::Standing
+        };
+
+        // TODO: passengers
+        let is_passenger = false;
+
+        // canPlayerFitWithinBlocksAndEntitiesWhen
+        let new_pose = if game_mode.current == GameMode::Spectator
+            || is_passenger
+            || can_player_fit_within_blocks_and_entities_when(&ctx, desired_pose)
+        {
+            desired_pose
+        } else if can_player_fit_within_blocks_and_entities_when(&ctx, Pose::Crouching) {
+            Pose::Crouching
+        } else {
+            Pose::Swimming
+        };
+
+        // avoid triggering change detection
+        if new_pose != *pose {
+            *pose = new_pose;
+        }
+    }
+}
+
+struct CanPlayerFitCtx<'world, 'state, 'a, 'b> {
+    world: &'a Instance,
+    entity: Entity,
+    position: Position,
+    physics_query: &'a PhysicsQuery<'world, 'state, 'b>,
+    collidable_entity_query: &'a CollidableEntityQuery<'world, 'state>,
+    physics: &'a Physics,
+}
+fn can_player_fit_within_blocks_and_entities_when(ctx: &CanPlayerFitCtx, pose: Pose) -> bool {
+    // return this.level().noCollision(this,
+    // this.getDimensions(var1).makeBoundingBox(this.position()).deflate(1.0E-7));
+    no_collision(
+        ctx.world,
+        Some(ctx.entity),
+        ctx.physics_query,
+        ctx.collidable_entity_query,
+        ctx.physics,
+        &calculate_dimensions(EntityKind::Player, pose).make_bounding_box(*ctx.position),
+        false,
+    )
 }

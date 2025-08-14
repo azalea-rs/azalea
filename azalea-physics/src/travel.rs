@@ -4,8 +4,8 @@ use azalea_core::{
     position::{BlockPos, Vec3},
 };
 use azalea_entity::{
-    Attributes, HasClientLoaded, Jumping, LocalEntity, LookDirection, OnClimbable, Physics,
-    PlayerAbilities, Pose, Position, Sneaking, metadata::Sprinting, move_relative,
+    Attributes, Crouching, HasClientLoaded, Jumping, LocalEntity, LookDirection, OnClimbable,
+    Physics, PlayerAbilities, Pose, Position, metadata::Sprinting, move_relative,
 };
 use azalea_world::{Instance, InstanceContainer, InstanceName};
 use bevy_ecs::prelude::*;
@@ -36,7 +36,7 @@ pub fn travel(
             &InstanceName,
             &OnClimbable,
             &Jumping,
-            &Sneaking,
+            &Crouching,
             Option<&PlayerAbilities>,
         ),
         (With<LocalEntity>, With<HasClientLoaded>),
@@ -254,7 +254,7 @@ fn is_free(
     source_entity: Entity,
     physics_query: &PhysicsQuery,
     collidable_entity_query: &CollidableEntityQuery,
-    entity_physics: &mut Physics,
+    entity_physics: &Physics,
     bounding_box: AABB,
     delta: Vec3,
 ) -> bool {
@@ -276,7 +276,7 @@ pub fn no_collision(
     source_entity: Option<Entity>,
     physics_query: &PhysicsQuery,
     collidable_entity_query: &CollidableEntityQuery,
-    entity_physics: &mut Physics,
+    entity_physics: &Physics,
     aabb: &AABB,
     include_liquid_collisions: bool,
 ) -> bool {

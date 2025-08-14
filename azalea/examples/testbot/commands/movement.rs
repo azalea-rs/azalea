@@ -3,10 +3,11 @@ use std::time::Duration;
 use azalea::{
     BlockPos, SprintDirection, WalkDirection,
     brigadier::prelude::*,
-    entity::{EyeHeight, Position},
+    entity::Position,
     pathfinder::goals::{BlockPosGoal, RadiusGoal, XZGoal},
     prelude::*,
 };
+use azalea_entity::dimensions::EntityDimensions;
 use parking_lot::Mutex;
 
 use super::{CommandSource, Ctx};
@@ -103,8 +104,8 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
                 };
                 let eye_height = source
                     .bot
-                    .get_entity_component::<EyeHeight>(entity)
-                    .map(|h| *h)
+                    .get_entity_component::<EntityDimensions>(entity)
+                    .map(|h| h.eye_height)
                     .unwrap_or_default();
                 source.bot.look_at(position.up(eye_height as f64));
                 1
@@ -204,14 +205,14 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
         literal("sneak")
             .executes(|ctx: &Ctx| {
                 let source = ctx.source.lock();
-                source.bot.set_sneaking(!source.bot.sneaking());
+                source.bot.set_crouching(!source.bot.crouching());
                 source.reply("ok");
                 1
             })
             .then(argument("enabled", bool()).executes(|ctx: &Ctx| {
                 let sneaking = get_bool(ctx, "enabled").unwrap();
                 let source = ctx.source.lock();
-                source.bot.set_sneaking(sneaking);
+                source.bot.set_crouching(sneaking);
                 1
             })),
     );

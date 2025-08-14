@@ -10,7 +10,7 @@ use azalea_core::{
     game_type::GameMode, position::Vec3, resource_location::ResourceLocation, tick::GameTick,
 };
 use azalea_entity::{
-    Attributes, EntityDimensions, LookDirection, Physics, Position, default_attributes,
+    Attributes, LookDirection, Physics, Position, default_attributes, dimensions::EntityDimensions,
 };
 use azalea_registry::EntityKind;
 use azalea_world::{ChunkStorage, Instance, InstanceContainer, MinecraftEntityId, PartialInstance};
@@ -35,7 +35,7 @@ impl SimulatedPlayerBundle {
 
         SimulatedPlayerBundle {
             position: Position::new(position),
-            physics: Physics::new(dimensions, position),
+            physics: Physics::new(&dimensions, position),
             physics_state: PhysicsState::default(),
             look_direction: LookDirection::default(),
             attributes: default_attributes(EntityKind::Player),

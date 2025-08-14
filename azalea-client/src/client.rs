@@ -14,7 +14,8 @@ use azalea_core::{
     tick::GameTick,
 };
 use azalea_entity::{
-    EntityUpdateSet, EyeHeight, PlayerAbilities, Position,
+    EntityUpdateSet, PlayerAbilities, Position,
+    dimensions::EntityDimensions,
     indexing::{EntityIdIndex, EntityUuidIndex},
     metadata::Health,
 };
@@ -427,12 +428,21 @@ impl Client {
         )
     }
 
+    /// Get the bounding box dimensions for our client, including our eye
+    /// height.
+    ///
+    /// This is a shortcut for
+    /// `self.component::<EntityDimensions>()`.
+    pub fn dimensions(&self) -> EntityDimensions {
+        self.component::<EntityDimensions>()
+    }
+
     /// Get the position of this client's eyes.
     ///
     /// This is a shortcut for
-    /// `bot.position().up(bot.component::<EyeHeight>())`.
+    /// `bot.position().up(bot.dimensions().eye_height)`.
     pub fn eye_position(&self) -> Vec3 {
-        self.position().up((*self.component::<EyeHeight>()) as f64)
+        self.position().up(self.dimensions().eye_height as f64)
     }
 
     /// Get the health of this client.

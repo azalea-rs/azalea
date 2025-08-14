@@ -15,8 +15,8 @@ use azalea_core::{
     position::{BlockPos, Vec3},
 };
 use azalea_entity::{
-    Attributes, Jumping, LookDirection, OnClimbable, Physics, PlayerAbilities, Pose, Position,
-    Sneaking, metadata::Sprinting,
+    Attributes, Crouching, Jumping, LookDirection, OnClimbable, Physics, PlayerAbilities, Pose,
+    Position, metadata::Sprinting,
 };
 use azalea_world::{ChunkStorage, Instance, MoveEntityError};
 use bevy_ecs::{entity::Entity, world::Mut};
@@ -113,7 +113,7 @@ pub struct MoveCtx<'world, 'state, 'a, 'b> {
     pub source_entity: Entity,
     pub physics_query: &'a PhysicsQuery<'world, 'state, 'b>,
     pub collidable_entity_query: &'a CollidableEntityQuery<'world, 'state>,
-    pub sneaking: Sneaking,
+    pub sneaking: Crouching,
     pub attributes: &'a Attributes,
     pub abilities: Option<&'a PlayerAbilities>,
 
@@ -265,7 +265,7 @@ fn maybe_back_off_from_edge(move_ctx: &mut MoveCtx, mut movement: Vec3) -> Vec3 
     let is_staying_on_ground_surface = *move_ctx.sneaking;
     let max_up_step = get_max_up_step(move_ctx.attributes);
 
-    let mut fall_ctx = CanFallAtLeastCtx {
+    let fall_ctx = CanFallAtLeastCtx {
         physics: move_ctx.physics,
         world: move_ctx.world,
         source_entity: move_ctx.source_entity,
@@ -281,7 +281,7 @@ fn maybe_back_off_from_edge(move_ctx: &mut MoveCtx, mut movement: Vec3) -> Vec3 
         && movement.y <= 0.
         && matches!(move_ctx.mover_type, MoverType::Own | MoverType::Player)
         && is_staying_on_ground_surface
-        && is_above_ground(&mut fall_ctx, max_up_step);
+        && is_above_ground(&fall_ctx, max_up_step);
     if !is_backing_off {
         return movement;
     }
@@ -290,7 +290,7 @@ fn maybe_back_off_from_edge(move_ctx: &mut MoveCtx, mut movement: Vec3) -> Vec3 
     let min_movement_x = movement.x.signum() * min_movement;
     let min_movement_z = movement.z.signum() * min_movement;
 
-    while movement.x != 0. && can_fall_at_least(&mut fall_ctx, movement.x, 0., max_up_step as f64) {
+    while movement.x != 0. && can_fall_at_least(&fall_ctx, movement.x, 0., max_up_step as f64) {
         if movement.x.abs() < min_movement {
             movement.x = 0.;
             break;
@@ -298,7 +298,7 @@ fn maybe_back_off_from_edge(move_ctx: &mut MoveCtx, mut movement: Vec3) -> Vec3 
 
         movement.x -= min_movement_x
     }
-    while movement.z != 0. && can_fall_at_least(&mut fall_ctx, 0., movement.z, max_up_step as f64) {
+    while movement.z != 0. && can_fall_at_least(&fall_ctx, 0., movement.z, max_up_step as f64) {
         if movement.z.abs() < min_movement {
             movement.z = 0.;
             break;
@@ -308,7 +308,7 @@ fn maybe_back_off_from_edge(move_ctx: &mut MoveCtx, mut movement: Vec3) -> Vec3 
     }
     while movement.x != 0.0
         && movement.z != 0.0
-        && can_fall_at_least(&mut fall_ctx, movement.x, movement.z, max_up_step as f64)
+        && can_fall_at_least(&fall_ctx, movement.x, movement.z, max_up_step as f64)
     {
         if movement.x.abs() <= min_movement {
             movement.x = 0.;
@@ -330,14 +330,14 @@ fn get_max_up_step(attributes: &Attributes) -> f32 {
     attributes.step_height.calculate() as f32
 }
 
-fn is_above_ground(ctx: &mut CanFallAtLeastCtx, max_up_step: f32) -> bool {
+fn is_above_ground(ctx: &CanFallAtLeastCtx, max_up_step: f32) -> bool {
     ctx.physics.on_ground()
         && ctx.physics.fall_distance < max_up_step as f64
         && !can_fall_at_least(ctx, 0., 0., max_up_step as f64 - ctx.physics.fall_distance)
 }
 
 pub struct CanFallAtLeastCtx<'world, 'state, 'a, 'b> {
-    physics: &'a mut Physics,
+    physics: &'a Physics,
     world: &'a Instance,
     source_entity: Entity,
     physics_query: &'a PhysicsQuery<'world, 'state, 'b>,
@@ -345,7 +345,7 @@ pub struct CanFallAtLeastCtx<'world, 'state, 'a, 'b> {
 }
 
 fn can_fall_at_least(
-    ctx: &mut CanFallAtLeastCtx,
+    ctx: &CanFallAtLeastCtx,
     delta_x: f64,
     delta_z: f64,
     max_up_step: f64,
