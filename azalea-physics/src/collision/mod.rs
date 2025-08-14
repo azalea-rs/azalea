@@ -113,7 +113,7 @@ pub struct MoveCtx<'world, 'state, 'a, 'b> {
     pub source_entity: Entity,
     pub physics_query: &'a PhysicsQuery<'world, 'state, 'b>,
     pub collidable_entity_query: &'a CollidableEntityQuery<'world, 'state>,
-    pub sneaking: Crouching,
+    pub crouching: Crouching,
     pub attributes: &'a Attributes,
     pub abilities: Option<&'a PlayerAbilities>,
 
@@ -262,7 +262,7 @@ fn check_fall_damage(
 }
 
 fn maybe_back_off_from_edge(move_ctx: &mut MoveCtx, mut movement: Vec3) -> Vec3 {
-    let is_staying_on_ground_surface = *move_ctx.sneaking;
+    let is_staying_on_ground_surface = *move_ctx.crouching;
     let max_up_step = get_max_up_step(move_ctx.attributes);
 
     let fall_ctx = CanFallAtLeastCtx {

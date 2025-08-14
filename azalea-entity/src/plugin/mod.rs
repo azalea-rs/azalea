@@ -17,8 +17,8 @@ pub use relative_updates::RelativeEntityUpdate;
 use tracing::debug;
 
 use crate::{
-    Dead, EntityKindComponent, FluidOnEyes, LocalEntity, LookDirection, OnClimbable, Physics, Pose,
-    Position,
+    Crouching, Dead, EntityKindComponent, FluidOnEyes, LocalEntity, LookDirection, OnClimbable,
+    Physics, Pose, Position,
     dimensions::{EntityDimensions, calculate_dimensions},
     metadata::Health,
 };
@@ -60,6 +60,7 @@ impl Plugin for EntityPlugin {
                     clamp_look_direction,
                     update_on_climbable,
                     (update_dimensions, update_bounding_box, update_fluid_on_eyes).chain(),
+                    update_crouching,
                 ),
             ),
         )
@@ -207,8 +208,12 @@ pub fn apply_clamp_look_direction(mut look_direction: LookDirection) -> LookDire
 ///
 /// # Safety
 /// Cached position in the world must be updated.
+#[allow(clippy::type_complexity)]
 pub fn update_bounding_box(
-    mut query: Query<(&mut Physics, &Position, &EntityDimensions), Changed<Position>>,
+    mut query: Query<
+        (&mut Physics, &Position, &EntityDimensions),
+        Or<(Changed<Position>, Changed<EntityDimensions>)>,
+    >,
 ) {
     for (mut physics, position, dimensions) in query.iter_mut() {
         let bounding_box = dimensions.make_bounding_box(**position);
@@ -225,6 +230,16 @@ pub fn update_dimensions(
 ) {
     for (mut dimensions, kind, pose) in query.iter_mut() {
         *dimensions = calculate_dimensions(**kind, *pose);
+    }
+}
+
+pub fn update_crouching(query: Query<(&mut Crouching, &Pose), Without<LocalEntity>>) {
+    for (mut crouching, pose) in query {
+        let new_crouching = *pose == Pose::Crouching;
+        // avoid triggering change detection
+        if **crouching != new_crouching {
+            **crouching = new_crouching;
+        }
     }
 }
 

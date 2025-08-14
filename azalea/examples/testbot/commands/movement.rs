@@ -201,21 +201,20 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
             })),
     );
 
-    commands.register(
-        literal("sneak")
-            .executes(|ctx: &Ctx| {
-                let source = ctx.source.lock();
-                source.bot.set_crouching(!source.bot.crouching());
-                source.reply("ok");
-                1
-            })
-            .then(argument("enabled", bool()).executes(|ctx: &Ctx| {
-                let sneaking = get_bool(ctx, "enabled").unwrap();
-                let source = ctx.source.lock();
-                source.bot.set_crouching(sneaking);
-                1
-            })),
-    );
+    let sneak = |ctx: &Ctx| {
+        let source = ctx.source.lock();
+        source.bot.set_crouching(!source.bot.crouching());
+        source.reply("ok");
+        1
+    };
+    let sneak_enabled = argument("enabled", bool()).executes(|ctx: &Ctx| {
+        let sneaking = get_bool(ctx, "enabled").unwrap();
+        let source = ctx.source.lock();
+        source.bot.set_crouching(sneaking);
+        1
+    });
+    commands.register(literal("sneak").executes(sneak).then(sneak_enabled.clone()));
+    commands.register(literal("crouch").executes(sneak).then(sneak_enabled));
 
     commands.register(literal("stop").executes(|ctx: &Ctx| {
         let source = ctx.source.lock();

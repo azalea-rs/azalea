@@ -30,7 +30,6 @@ impl<S> Clone for ArgumentBuilderType<S> {
 }
 
 /// A node that hasn't yet been built.
-#[derive(Clone)]
 pub struct ArgumentBuilder<S> {
     arguments: CommandNode<S>,
 
@@ -194,5 +193,17 @@ impl<S> Debug for ArgumentBuilder<S> {
             .field("forks", &self.forks)
             // .field("modifier", &self.modifier)
             .finish()
+    }
+}
+impl<S> Clone for ArgumentBuilder<S> {
+    fn clone(&self) -> Self {
+        Self {
+            arguments: self.arguments.clone(),
+            command: self.command.clone(),
+            requirement: self.requirement.clone(),
+            target: self.target.clone(),
+            forks: self.forks,
+            modifier: self.modifier.clone(),
+        }
     }
 }

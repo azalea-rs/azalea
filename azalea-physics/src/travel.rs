@@ -56,7 +56,7 @@ pub fn travel(
         world_name,
         on_climbable,
         jumping,
-        sneaking,
+        crouching,
         abilities,
     ) in &mut query
     {
@@ -77,7 +77,7 @@ pub fn travel(
             source_entity: entity,
             physics_query: &physics_query,
             collidable_entity_query: &collidable_entity_query,
-            sneaking: *sneaking,
+            crouching: *crouching,
             attributes,
             abilities,
             direction: *direction,

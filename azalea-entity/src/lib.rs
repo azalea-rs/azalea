@@ -545,10 +545,14 @@ impl FluidOnEyes {
 #[derive(Component, Clone, Copy, Debug, PartialEq, Deref, DerefMut)]
 pub struct OnClimbable(bool);
 
-/// A component that indicates whether the player is currently trying to sneak.
+/// A component that indicates whether the player is currently sneaking.
 ///
-/// This is distinct from [`metadata::AbstractEntityShiftKeyDown`], which is a
-/// metadata value that is controlled by the server.
+/// If the entity isn't a local player, then this is just a shortcut for
+/// checking if the [`Pose`] is `Crouching`.
+///
+/// If you need to modify this value, use
+/// `azalea_client::PhysicsState::trying_to_crouch` or `Client::set_crouching`
+/// instead.
 #[derive(Component, Clone, Copy, Deref, DerefMut, Default)]
 pub struct Crouching(bool);
 

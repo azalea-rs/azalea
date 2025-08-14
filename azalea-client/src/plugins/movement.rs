@@ -6,8 +6,11 @@ use azalea_core::{
     tick::GameTick,
 };
 use azalea_entity::{
-    Attributes, Crouching, HasClientLoaded, Jumping, LastSentPosition, LookDirection, Physics,
-    Pose, Position, dimensions::calculate_dimensions, metadata::Sprinting, update_bounding_box,
+    Attributes, Crouching, HasClientLoaded, Jumping, LastSentPosition, LocalEntity, LookDirection,
+    Physics, PlayerAbilities, Pose, Position,
+    dimensions::calculate_dimensions,
+    metadata::{self, Sprinting},
+    update_bounding_box,
 };
 use azalea_physics::{
     PhysicsSet, ai_step,
@@ -110,15 +113,17 @@ impl Client {
 
     pub fn set_crouching(&self, crouching: bool) {
         let mut ecs = self.ecs.lock();
-        let mut crouching_mut = self.query::<&mut Crouching>(&mut ecs);
-        **crouching_mut = crouching;
+        let mut physics_state = self.query::<&mut PhysicsState>(&mut ecs);
+        physics_state.trying_to_crouch = crouching;
     }
 
     /// Whether the client is currently trying to sneak.
     ///
     /// You may want to check the [`Pose`] instead.
     pub fn crouching(&self) -> bool {
-        *self.component::<Crouching>()
+        let mut ecs = self.ecs.lock();
+        let physics_state = self.query::<&PhysicsState>(&mut ecs);
+        physics_state.trying_to_crouch
     }
 
     /// Sets the direction the client is looking. `y_rot` is yaw (looking to the
@@ -162,6 +167,17 @@ pub struct PhysicsState {
     // Whether we're going to try to start sprinting this tick. Equivalent to
     // holding down ctrl for a tick.
     pub trying_to_sprint: bool,
+
+    /// Whether our player is currently trying to sneak.
+    ///
+    /// This is distinct from
+    /// [`AbstractEntityShiftKeyDown`](azalea_entity::metadata::AbstractEntityShiftKeyDown),
+    /// which is a metadata value that is controlled by the server and affects
+    /// how the nametags of other entities are displayed.
+    ///
+    /// To check whether we're actually sneaking, you can check the
+    /// [`Crouching`] or [`Pose`] components.
+    pub trying_to_crouch: bool,
 
     pub move_direction: WalkDirection,
     pub move_vector: Vec2,
@@ -374,20 +390,68 @@ pub(crate) fn tick_controls(mut query: Query<&mut PhysicsState>) {
 
 /// Makes the bot do one physics tick. Note that this is already handled
 /// automatically by the client.
+#[allow(clippy::type_complexity)]
 pub fn local_player_ai_step(
     mut query: Query<
         (
+            Entity,
             &PhysicsState,
-            &Crouching,
+            &PlayerAbilities,
+            &metadata::Swimming,
+            &metadata::SleepingPos,
+            &InstanceHolder,
+            &Position,
             &mut Physics,
             &mut Sprinting,
+            &mut Crouching,
             &mut Attributes,
         ),
-        With<HasClientLoaded>,
+        (With<HasClientLoaded>, With<LocalEntity>),
     >,
+    physics_query: PhysicsQuery,
+    collidable_entity_query: CollidableEntityQuery,
 ) {
-    for (physics_state, crouching, mut physics, mut sprinting, mut attributes) in query.iter_mut() {
+    for (
+        entity,
+        physics_state,
+        abilities,
+        swimming,
+        sleeping_pos,
+        instance_holder,
+        position,
+        mut physics,
+        mut sprinting,
+        mut crouching,
+        mut attributes,
+    ) in query.iter_mut()
+    {
         // server ai step
+
+        let is_swimming = **swimming;
+        // TODO: implement passengers
+        let is_passenger = false;
+        let is_sleeping = sleeping_pos.is_some();
+
+        let world = instance_holder.instance.read();
+        let ctx = CanPlayerFitCtx {
+            world: &world,
+            entity,
+            position: *position,
+            physics_query: &physics_query,
+            collidable_entity_query: &collidable_entity_query,
+            physics: &physics,
+        };
+
+        let new_crouching = !abilities.flying
+            && !is_swimming
+            && !is_passenger
+            && can_player_fit_within_blocks_and_entities_when(&ctx, Pose::Crouching)
+            && (physics_state.trying_to_crouch
+                || !is_sleeping
+                    && !can_player_fit_within_blocks_and_entities_when(&ctx, Pose::Standing));
+        if **crouching != new_crouching {
+            **crouching = new_crouching;
+        }
 
         // TODO: replace those booleans when using items and passengers are properly
         // implemented

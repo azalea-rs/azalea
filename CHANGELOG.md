@@ -16,7 +16,7 @@ is breaking anyways, semantic versioning is not followed.
 - There is now a `azalea_inventory::default_components::get_default_component` function to get the default value of a component for a registry item.
 - `ItemStack` now has a `get_component` function that supports default components.
 - `Client::nearest_entity_by`.
-- Clients are now able to crouch/sneak using the new `Crouching` component or `Client::set_crouching`.
+- Sneaking/crouching.
 
 ### Changed
 
