@@ -15,8 +15,8 @@ use azalea_core::{
     position::{BlockPos, Vec3},
 };
 use azalea_entity::{
-    Attributes, Crouching, Jumping, LookDirection, OnClimbable, Physics, PlayerAbilities, Pose,
-    Position, metadata::Sprinting,
+    Attributes, Jumping, LookDirection, OnClimbable, Physics, PlayerAbilities, Pose, Position,
+    metadata::Sprinting,
 };
 use azalea_world::{ChunkStorage, Instance, MoveEntityError};
 use bevy_ecs::{entity::Entity, world::Mut};
@@ -27,7 +27,7 @@ pub use shape::*;
 use tracing::warn;
 
 use self::world_collisions::get_block_collisions;
-use crate::travel::no_collision;
+use crate::{local_player::PhysicsState, travel::no_collision};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MoverType {
@@ -113,7 +113,7 @@ pub struct MoveCtx<'world, 'state, 'a, 'b> {
     pub source_entity: Entity,
     pub physics_query: &'a PhysicsQuery<'world, 'state, 'b>,
     pub collidable_entity_query: &'a CollidableEntityQuery<'world, 'state>,
-    pub crouching: Crouching,
+    pub physics_state: Option<&'a PhysicsState>,
     pub attributes: &'a Attributes,
     pub abilities: Option<&'a PlayerAbilities>,
 
@@ -262,7 +262,7 @@ fn check_fall_damage(
 }
 
 fn maybe_back_off_from_edge(move_ctx: &mut MoveCtx, mut movement: Vec3) -> Vec3 {
-    let is_staying_on_ground_surface = *move_ctx.crouching;
+    let is_staying_on_ground_surface = move_ctx.physics_state.is_some_and(|s| s.trying_to_crouch);
     let max_up_step = get_max_up_step(move_ctx.attributes);
 
     let fall_ctx = CanFallAtLeastCtx {
@@ -291,7 +291,7 @@ fn maybe_back_off_from_edge(move_ctx: &mut MoveCtx, mut movement: Vec3) -> Vec3 
     let min_movement_z = movement.z.signum() * min_movement;
 
     while movement.x != 0. && can_fall_at_least(&fall_ctx, movement.x, 0., max_up_step as f64) {
-        if movement.x.abs() < min_movement {
+        if movement.x.abs() <= min_movement {
             movement.x = 0.;
             break;
         }
@@ -299,7 +299,7 @@ fn maybe_back_off_from_edge(move_ctx: &mut MoveCtx, mut movement: Vec3) -> Vec3 
         movement.x -= min_movement_x
     }
     while movement.z != 0. && can_fall_at_least(&fall_ctx, 0., movement.z, max_up_step as f64) {
-        if movement.z.abs() < min_movement {
+        if movement.z.abs() <= min_movement {
             movement.z = 0.;
             break;
         }

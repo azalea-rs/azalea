@@ -19,6 +19,7 @@ use azalea_entity::{
     indexing::{EntityIdIndex, EntityUuidIndex},
     metadata::Health,
 };
+use azalea_physics::local_player::PhysicsState;
 use azalea_protocol::{
     ServerAddress,
     common::client_information::ClientInformation,
@@ -58,7 +59,7 @@ use crate::{
     join::{ConnectOpts, StartJoinServerEvent},
     local_player::{Hunger, InstanceHolder, PermissionLevel, TabList},
     mining::{self},
-    movement::{LastSentLookDirection, PhysicsState},
+    movement::LastSentLookDirection,
     packet::game::SendPacketEvent,
     player::{GameProfileComponent, PlayerInfo, retroactively_add_game_profile_component},
 };

@@ -98,6 +98,15 @@ impl Default for Hunger {
         }
     }
 }
+impl Hunger {
+    /// Returns true if we have enough food level to sprint.
+    ///
+    /// Note that this doesn't consider our gamemode or passenger status.
+    pub fn is_enough_to_sprint(&self) -> bool {
+        // hasEnoughFoodToSprint
+        self.food >= 6
+    }
+}
 
 impl InstanceHolder {
     /// Create a new `InstanceHolder` for the given entity.

@@ -15,7 +15,8 @@ use azalea_entity::{
 use azalea_physics::{
     PhysicsSet, ai_step,
     collision::entity_collisions::{CollidableEntityQuery, PhysicsQuery},
-    travel::no_collision,
+    local_player::{PhysicsState, SprintDirection, WalkDirection},
+    travel::{no_collision, travel},
 };
 use azalea_protocol::{
     common::movements::MoveFlags,
@@ -38,7 +39,7 @@ use thiserror::Error;
 
 use crate::{
     client::Client,
-    local_player::{InstanceHolder, LocalGameMode},
+    local_player::{Hunger, InstanceHolder, LocalGameMode},
     packet::game::SendPacketEvent,
 };
 
@@ -83,7 +84,9 @@ impl Plugin for MovementPlugin {
                         .before(ai_step)
                         .before(azalea_physics::fluids::update_in_water_state_and_do_fluid_pushing),
                     send_player_input_packet,
-                    send_sprinting_if_needed.after(azalea_entity::update_in_loaded_chunk),
+                    send_sprinting_if_needed
+                        .after(azalea_entity::update_in_loaded_chunk)
+                        .after(travel),
                     send_position.after(PhysicsSet),
                 )
                     .chain(),
@@ -152,35 +155,6 @@ impl Client {
 pub struct LastSentLookDirection {
     pub x_rot: f32,
     pub y_rot: f32,
-}
-
-/// Component for entities that can move and sprint. Usually only in
-/// [`LocalEntity`]s.
-///
-/// [`LocalEntity`]: azalea_entity::LocalEntity
-#[derive(Default, Component, Clone)]
-pub struct PhysicsState {
-    /// Minecraft only sends a movement packet either after 20 ticks or if the
-    /// player moved enough. This is that tick counter.
-    pub position_remainder: u32,
-    pub was_sprinting: bool,
-    // Whether we're going to try to start sprinting this tick. Equivalent to
-    // holding down ctrl for a tick.
-    pub trying_to_sprint: bool,
-
-    /// Whether our player is currently trying to sneak.
-    ///
-    /// This is distinct from
-    /// [`AbstractEntityShiftKeyDown`](azalea_entity::metadata::AbstractEntityShiftKeyDown),
-    /// which is a metadata value that is controlled by the server and affects
-    /// how the nametags of other entities are displayed.
-    ///
-    /// To check whether we're actually sneaking, you can check the
-    /// [`Crouching`] or [`Pose`] components.
-    pub trying_to_crouch: bool,
-
-    pub move_direction: WalkDirection,
-    pub move_vector: Vec2,
 }
 
 #[allow(clippy::type_complexity)]
@@ -294,16 +268,10 @@ pub fn send_position(
 #[derive(Debug, Default, Component, Clone, PartialEq, Eq)]
 pub struct LastSentInput(pub ServerboundPlayerInput);
 pub fn send_player_input_packet(
-    mut query: Query<(
-        Entity,
-        &PhysicsState,
-        &Jumping,
-        &Crouching,
-        Option<&LastSentInput>,
-    )>,
+    mut query: Query<(Entity, &PhysicsState, &Jumping, Option<&LastSentInput>)>,
     mut commands: Commands,
 ) {
-    for (entity, physics_state, jumping, sneaking, last_sent_input) in query.iter_mut() {
+    for (entity, physics_state, jumping, last_sent_input) in query.iter_mut() {
         let dir = physics_state.move_direction;
         type D = WalkDirection;
         let input = ServerboundPlayerInput {
@@ -312,7 +280,7 @@ pub fn send_player_input_packet(
             left: matches!(dir, D::Left | D::ForwardLeft | D::BackwardLeft),
             right: matches!(dir, D::Right | D::ForwardRight | D::BackwardRight),
             jump: **jumping,
-            shift: **sneaking,
+            shift: physics_state.trying_to_crouch,
             sprint: physics_state.trying_to_sprint,
         };
 
@@ -401,6 +369,8 @@ pub fn local_player_ai_step(
             &metadata::SleepingPos,
             &InstanceHolder,
             &Position,
+            Option<&Hunger>,
+            Option<&LastSentInput>,
             &mut Physics,
             &mut Sprinting,
             &mut Crouching,
@@ -419,6 +389,8 @@ pub fn local_player_ai_step(
         sleeping_pos,
         instance_holder,
         position,
+        hunger,
+        last_sent_input,
         mut physics,
         mut sprinting,
         mut crouching,
@@ -446,11 +418,64 @@ pub fn local_player_ai_step(
             && !is_swimming
             && !is_passenger
             && can_player_fit_within_blocks_and_entities_when(&ctx, Pose::Crouching)
-            && (physics_state.trying_to_crouch
+            && (last_sent_input.is_some_and(|i| i.0.shift)
                 || !is_sleeping
                     && !can_player_fit_within_blocks_and_entities_when(&ctx, Pose::Standing));
         if **crouching != new_crouching {
             **crouching = new_crouching;
+        }
+
+        // TODO: food data and abilities
+        // let has_enough_food_to_sprint = self.food_data().food_level ||
+        // self.abilities().may_fly;
+        let has_enough_food_to_sprint = hunger.is_none_or(Hunger::is_enough_to_sprint);
+
+        // TODO: double tapping w to sprint i think
+
+        let trying_to_sprint = physics_state.trying_to_sprint;
+
+        // TODO: swimming
+        let is_underwater = false;
+        let is_in_water = physics.is_in_water();
+        // TODO: elytra
+        let is_fall_flying = false;
+        // TODO: passenger
+        let is_passenger = false;
+        // TODO: using items
+        let using_item = false;
+        // TODO: status effects
+        let has_blindness = false;
+
+        let has_enough_impulse = has_enough_impulse_to_start_sprinting(physics_state);
+
+        // LocalPlayer.canStartSprinting
+        let can_start_sprinting = !**sprinting
+            && has_enough_impulse
+            && has_enough_food_to_sprint
+            && !using_item
+            && !has_blindness
+            && (!is_passenger || is_underwater)
+            && (!is_fall_flying || is_underwater)
+            && (!is_moving_slowly(&crouching) || is_underwater)
+            && (!is_in_water || is_underwater);
+        if trying_to_sprint && can_start_sprinting {
+            set_sprinting(true, &mut sprinting, &mut attributes);
+        }
+
+        if **sprinting {
+            // TODO: swimming
+
+            let vehicle_can_sprint = false;
+            // shouldStopRunSprinting
+            let should_stop_sprinting = has_blindness
+                || (is_passenger && !vehicle_can_sprint)
+                || !has_enough_impulse
+                || !has_enough_food_to_sprint
+                || (physics.horizontal_collision && !physics.minor_horizontal_collision)
+                || (is_in_water && !is_underwater);
+            if should_stop_sprinting {
+                set_sprinting(false, &mut sprinting, &mut attributes);
+            }
         }
 
         // TODO: replace those booleans when using items and passengers are properly
@@ -464,30 +489,11 @@ pub fn local_player_ai_step(
         );
         physics.x_acceleration = move_vector.x;
         physics.z_acceleration = move_vector.y;
-
-        // TODO: food data and abilities
-        // let has_enough_food_to_sprint = self.food_data().food_level ||
-        // self.abilities().may_fly;
-        let has_enough_food_to_sprint = true;
-
-        // TODO: double tapping w to sprint i think
-
-        let trying_to_sprint = physics_state.trying_to_sprint;
-
-        if !**sprinting
-            && (
-                // !self.is_in_water()
-                // || self.is_underwater() &&
-                has_enough_impulse_to_start_sprinting(physics_state)
-                    && has_enough_food_to_sprint
-                    // && !self.using_item()
-                    // && !self.has_effect(MobEffects.BLINDNESS)
-                    && trying_to_sprint
-            )
-        {
-            set_sprinting(true, &mut sprinting, &mut attributes);
-        }
     }
+}
+
+fn is_moving_slowly(crouching: &Crouching) -> bool {
+    **crouching
 }
 
 // LocalPlayer.modifyInput
@@ -628,8 +634,12 @@ pub fn handle_sprint(
 }
 
 /// Change whether we're sprinting by adding an attribute modifier to the
-/// player. You should use the [`walk`] and [`sprint`] methods instead.
-/// Returns if the operation was successful.
+/// player.
+///
+/// You should use the [`Client::walk`] and [`Client::sprint`] functions
+/// instead.
+///
+/// Returns true if the operation was successful.
 fn set_sprinting(
     sprinting: bool,
     currently_sprinting: &mut Sprinting,
@@ -638,12 +648,12 @@ fn set_sprinting(
     **currently_sprinting = sprinting;
     if sprinting {
         attributes
-            .speed
+            .movement_speed
             .try_insert(azalea_entity::attributes::sprinting_modifier())
             .is_ok()
     } else {
         attributes
-            .speed
+            .movement_speed
             .remove(&azalea_entity::attributes::sprinting_modifier().id)
             .is_none()
     }
@@ -688,44 +698,12 @@ pub fn handle_knockback(mut query: Query<&mut Physics>, mut events: EventReader<
     }
 }
 
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub enum WalkDirection {
-    #[default]
-    None,
-    Forward,
-    Backward,
-    Left,
-    Right,
-    ForwardRight,
-    ForwardLeft,
-    BackwardRight,
-    BackwardLeft,
-}
-
-/// The directions that we can sprint in. It's a subset of [`WalkDirection`].
-#[derive(Clone, Copy, Debug)]
-pub enum SprintDirection {
-    Forward,
-    ForwardRight,
-    ForwardLeft,
-}
-
-impl From<SprintDirection> for WalkDirection {
-    fn from(d: SprintDirection) -> Self {
-        match d {
-            SprintDirection::Forward => WalkDirection::Forward,
-            SprintDirection::ForwardRight => WalkDirection::ForwardRight,
-            SprintDirection::ForwardLeft => WalkDirection::ForwardLeft,
-        }
-    }
-}
-
 pub fn update_pose(
     mut query: Query<(
         Entity,
         &mut Pose,
         &Physics,
-        &Crouching,
+        &PhysicsState,
         &LocalGameMode,
         &InstanceHolder,
         &Position,
@@ -733,7 +711,7 @@ pub fn update_pose(
     physics_query: PhysicsQuery,
     collidable_entity_query: CollidableEntityQuery,
 ) {
-    for (entity, mut pose, physics, crouching, game_mode, instance_holder, position) in
+    for (entity, mut pose, physics, physics_state, game_mode, instance_holder, position) in
         query.iter_mut()
     {
         let world = instance_holder.instance.read();
@@ -753,7 +731,7 @@ pub fn update_pose(
 
         // TODO: implement everything else from getDesiredPose: sleeping, swimming,
         // fallFlying, spinAttack
-        let desired_pose = if **crouching {
+        let desired_pose = if physics_state.trying_to_crouch {
             Pose::Crouching
         } else {
             Pose::Standing

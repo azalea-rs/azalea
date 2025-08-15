@@ -4,8 +4,8 @@ use azalea_core::{
     position::{BlockPos, Vec3},
 };
 use azalea_entity::{
-    Attributes, Crouching, HasClientLoaded, Jumping, LocalEntity, LookDirection, OnClimbable,
-    Physics, PlayerAbilities, Pose, Position, metadata::Sprinting, move_relative,
+    Attributes, HasClientLoaded, Jumping, LocalEntity, LookDirection, OnClimbable, Physics,
+    PlayerAbilities, Pose, Position, metadata::Sprinting, move_relative,
 };
 use azalea_world::{Instance, InstanceContainer, InstanceName};
 use bevy_ecs::prelude::*;
@@ -18,6 +18,7 @@ use crate::{
         world_collisions::{get_block_and_liquid_collisions, get_block_collisions},
     },
     get_block_pos_below_that_affects_movement, handle_relative_friction_and_calculate_movement,
+    local_player::PhysicsState,
 };
 
 /// Move the entity with the given acceleration while handling friction,
@@ -27,17 +28,17 @@ pub fn travel(
     mut query: Query<
         (
             Entity,
-            &mut Physics,
-            &mut LookDirection,
-            &mut Position,
-            Option<&Sprinting>,
-            Option<&Pose>,
             &Attributes,
             &InstanceName,
             &OnClimbable,
             &Jumping,
-            &Crouching,
+            Option<&PhysicsState>,
+            Option<&Sprinting>,
+            Option<&Pose>,
             Option<&PlayerAbilities>,
+            &mut Physics,
+            &mut LookDirection,
+            &mut Position,
         ),
         (With<LocalEntity>, With<HasClientLoaded>),
     >,
@@ -47,17 +48,17 @@ pub fn travel(
 ) {
     for (
         entity,
-        mut physics,
-        direction,
-        position,
-        sprinting,
-        pose,
         attributes,
         world_name,
         on_climbable,
         jumping,
-        crouching,
+        physics_state,
+        sprinting,
+        pose,
         abilities,
+        mut physics,
+        direction,
+        position,
     ) in &mut query
     {
         let Some(world_lock) = instance_container.get(world_name) else {
@@ -77,7 +78,7 @@ pub fn travel(
             source_entity: entity,
             physics_query: &physics_query,
             collidable_entity_query: &collidable_entity_query,
-            crouching: *crouching,
+            physics_state,
             attributes,
             abilities,
             direction: *direction,
@@ -163,7 +164,8 @@ fn travel_in_fluid(ctx: &mut MoveCtx) {
 
         if water_efficiency_modifier > 0. {
             water_movement_speed += (0.54600006 - water_movement_speed) * water_efficiency_modifier;
-            speed += (ctx.attributes.speed.calculate() as f32 - speed) * water_efficiency_modifier;
+            speed += (ctx.attributes.movement_speed.calculate() as f32 - speed)
+                * water_efficiency_modifier;
         }
 
         // if (this.hasEffect(MobEffects.DOLPHINS_GRACE)) {

@@ -4,6 +4,7 @@
 pub mod clip;
 pub mod collision;
 pub mod fluids;
+pub mod local_player;
 pub mod travel;
 
 use std::collections::HashSet;
@@ -456,7 +457,7 @@ fn get_friction_influenced_speed(
 ) -> f32 {
     // TODO: have speed & flying_speed fields in entity
     if physics.on_ground() {
-        let speed: f32 = attributes.speed.calculate() as f32;
+        let speed = attributes.movement_speed.calculate() as f32;
         speed * (0.21600002f32 / (friction * friction * friction))
     } else {
         // entity.flying_speed

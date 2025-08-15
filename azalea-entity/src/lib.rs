@@ -360,7 +360,8 @@ pub struct Physics {
     pub has_impulse: bool,
 
     pub horizontal_collision: bool,
-    // pub minor_horizontal_collision: bool,
+    // TODO: implement minor_horizontal_collision
+    pub minor_horizontal_collision: bool,
     pub vertical_collision: bool,
 
     pub water_fluid_height: f64,
@@ -394,6 +395,7 @@ impl Physics {
             has_impulse: false,
 
             horizontal_collision: false,
+            minor_horizontal_collision: false,
             vertical_collision: false,
 
             water_fluid_height: 0.,
@@ -514,7 +516,7 @@ pub fn default_attributes(_entity_kind: EntityKind) -> Attributes {
     // TODO: do the correct defaults for everything, some
     // entities have different defaults
     Attributes {
-        speed: AttributeInstance::new(0.1),
+        movement_speed: AttributeInstance::new(0.1f32 as f64),
         sneaking_speed: AttributeInstance::new(0.3),
         attack_speed: AttributeInstance::new(4.0),
         water_movement_efficiency: AttributeInstance::new(0.0),
