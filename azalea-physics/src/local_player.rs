@@ -23,7 +23,8 @@ pub struct PhysicsState {
     /// how the nametags of other entities are displayed.
     ///
     /// To check whether we're actually sneaking, you can check the
-    /// [`Crouching`] or [`Pose`] components.
+    /// [`Crouching`](azalea_entity::Crouching) or [`Pose`](azalea_entity::Pose)
+    /// components.
     pub trying_to_crouch: bool,
 
     pub move_direction: WalkDirection,

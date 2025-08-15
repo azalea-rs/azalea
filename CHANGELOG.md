@@ -28,6 +28,7 @@ is breaking anyways, semantic versioning is not followed.
 - The fields in `LookDirection` have been replaced with getters.
 - Renamed `Client::entity_by` to `any_entity_by`, and `Client::entities_by` to `nearest_entities_by`.
 - `EyeHeight` was moved into `EntityDimensions`, and `EntityDimensions` is now its own component.
+- Replaced `start_goto_without_mining` with `start_goto_with_opts`.
 
 ### Fixed
 

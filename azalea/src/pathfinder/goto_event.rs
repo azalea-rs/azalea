@@ -22,41 +22,48 @@ pub struct GotoEvent {
     /// The local bot entity that will do the pathfinding and execute the path.
     pub entity: Entity,
     pub goal: Arc<dyn Goal>,
-    /// The function that's used for checking what moves are possible. Usually
-    /// [`moves::default_move`].
-    pub successors_fn: SuccessorsFn,
-
-    /// Whether the bot is allowed to break blocks while pathfinding.
-    pub allow_mining: bool,
-
-    /// Whether we should recalculate the path when the pathfinder timed out and
-    /// there's no partial path to try.
-    ///
-    /// Should usually be set to true.
-    pub retry_on_no_path: bool,
-
-    /// The minimum amount of time that should pass before the A* pathfinder
-    /// function can return a timeout. It may take up to [`Self::max_timeout`]
-    /// if it can't immediately find a usable path.
-    ///
-    /// A good default value for this is
-    /// `PathfinderTimeout::Time(Duration::from_secs(1))`.
-    ///
-    /// Also see [`PathfinderTimeout::Nodes`]
-    pub min_timeout: PathfinderTimeout,
-    /// The absolute maximum amount of time that the pathfinder function can
-    /// take to find a path. If it takes this long, it means no usable path was
-    /// found (so it might be impossible).
-    ///
-    /// A good default value for this is
-    /// `PathfinderTimeout::Time(Duration::from_secs(5))`.
-    pub max_timeout: PathfinderTimeout,
+    pub opts: PathfinderOpts,
 }
+
 impl GotoEvent {
-    pub fn new(entity: Entity, goal: impl Goal + 'static) -> Self {
+    pub fn new(entity: Entity, goal: impl Goal + 'static, opts: PathfinderOpts) -> Self {
         Self {
             entity,
             goal: Arc::new(goal),
+            opts,
+        }
+    }
+}
+
+/// Configuration options that the pathfinder will use when calculating and
+/// executing a path.
+///
+/// This can be passed into [`Client::goto_with_opts`] or
+/// [`Client::start_goto_with_opts`].
+///
+/// ```
+/// # use azalea::pathfinder::{moves, PathfinderOpts};
+/// // example config to disallow mining blocks and to not do parkour
+/// let opts = PathfinderOpts::new()
+///     .allow_mining(false)
+///     .successors_fn(moves::basic::basic_move);
+/// ```
+///
+/// [`Client::goto_with_opts`]: super::PathfinderClientExt::goto_with_opts
+/// [`Client::start_goto_with_opts`]: super::PathfinderClientExt::start_goto_with_opts
+#[derive(Clone, Debug)]
+#[non_exhaustive]
+pub struct PathfinderOpts {
+    pub(crate) successors_fn: SuccessorsFn,
+    pub(crate) allow_mining: bool,
+    pub(crate) retry_on_no_path: bool,
+    pub(crate) min_timeout: PathfinderTimeout,
+    pub(crate) max_timeout: PathfinderTimeout,
+}
+
+impl PathfinderOpts {
+    pub const fn new() -> Self {
+        Self {
             successors_fn: moves::default_move,
             allow_mining: true,
             retry_on_no_path: true,
@@ -64,23 +71,46 @@ impl GotoEvent {
             max_timeout: PathfinderTimeout::Time(Duration::from_secs(5)),
         }
     }
-    pub fn with_successors_fn(mut self, successors_fn: SuccessorsFn) -> Self {
+    /// Set the function that's used for checking what moves are possible.
+    ///
+    /// Defaults to [`moves::default_move`].
+    pub fn successors_fn(mut self, successors_fn: SuccessorsFn) -> Self {
         self.successors_fn = successors_fn;
         self
     }
-    pub fn with_allow_mining(mut self, allow_mining: bool) -> Self {
+    /// Set whether the bot is allowed to break blocks while pathfinding.
+    ///
+    /// Defaults to `true`.
+    pub fn allow_mining(mut self, allow_mining: bool) -> Self {
         self.allow_mining = allow_mining;
         self
     }
-    pub fn with_retry_on_no_path(mut self, retry_on_no_path: bool) -> Self {
+    /// Whether we should recalculate the path when the pathfinder timed out and
+    /// there's no partial path to try.
+    ///
+    /// Defaults to `true`.
+    pub fn retry_on_no_path(mut self, retry_on_no_path: bool) -> Self {
         self.retry_on_no_path = retry_on_no_path;
         self
     }
-    pub fn with_min_timeout(mut self, min_timeout: PathfinderTimeout) -> Self {
+    /// The minimum amount of time that should pass before the A* pathfinder
+    /// function can return a timeout if it finds a path that seems good enough.
+    /// It may take up to [`Self::max_timeout`] if it can't immediately find
+    /// a usable path.
+    ///
+    /// Defaults to `PathfinderTimeout::Time(Duration::from_secs(1))`.
+    ///
+    /// Also see [`PathfinderTimeout::Nodes`]
+    pub fn min_timeout(mut self, min_timeout: PathfinderTimeout) -> Self {
         self.min_timeout = min_timeout;
         self
     }
-    pub fn with_max_timeout(mut self, max_timeout: PathfinderTimeout) -> Self {
+    /// The absolute maximum amount of time that the pathfinder function can
+    /// take to find a path. If it takes this long, it means no usable path was
+    /// found (so it might be impossible).
+    ///
+    /// Defaults to `PathfinderTimeout::Time(Duration::from_secs(5))`.
+    pub fn max_timeout(mut self, max_timeout: PathfinderTimeout) -> Self {
         self.max_timeout = max_timeout;
         self
     }

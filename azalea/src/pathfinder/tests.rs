@@ -16,6 +16,7 @@ use super::{
     moves,
     simulation::{SimulatedPlayerBundle, Simulation},
 };
+use crate::pathfinder::goto_event::PathfinderOpts;
 
 fn setup_blockposgoal_simulation(
     partial_chunks: &mut PartialChunkStorage,
@@ -35,11 +36,13 @@ fn setup_blockposgoal_simulation(
     simulation.app.world_mut().send_event(GotoEvent {
         entity: simulation.entity,
         goal: Arc::new(BlockPosGoal(end_pos)),
-        successors_fn: moves::default_move,
-        allow_mining: false,
-        retry_on_no_path: true,
-        min_timeout: PathfinderTimeout::Nodes(1_000_000),
-        max_timeout: PathfinderTimeout::Nodes(5_000_000),
+        opts: PathfinderOpts {
+            successors_fn: moves::default_move,
+            allow_mining: false,
+            retry_on_no_path: true,
+            min_timeout: PathfinderTimeout::Nodes(1_000_000),
+            max_timeout: PathfinderTimeout::Nodes(5_000_000),
+        },
     });
     simulation
 }
@@ -299,11 +302,9 @@ fn test_mine_through_non_colliding_block() {
     simulation.app.world_mut().send_event(GotoEvent {
         entity: simulation.entity,
         goal: Arc::new(BlockPosGoal(BlockPos::new(0, 69, 0))),
-        successors_fn: moves::default_move,
-        allow_mining: true,
-        retry_on_no_path: true,
-        min_timeout: PathfinderTimeout::Nodes(1_000_000),
-        max_timeout: PathfinderTimeout::Nodes(5_000_000),
+        opts: PathfinderOpts::new()
+            .min_timeout(PathfinderTimeout::Nodes(1_000_000))
+            .max_timeout(PathfinderTimeout::Nodes(5_000_000)),
     });
 
     assert_simulation_reaches(&mut simulation, 200, BlockPos::new(0, 70, 0));
