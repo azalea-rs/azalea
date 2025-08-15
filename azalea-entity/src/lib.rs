@@ -2,7 +2,7 @@
 
 pub mod attributes;
 mod data;
-mod dimensions;
+pub mod dimensions;
 mod effects;
 mod enchantments;
 pub mod metadata;
@@ -31,12 +31,12 @@ use azalea_world::{ChunkStorage, InstanceName};
 use bevy_ecs::{bundle::Bundle, component::Component};
 pub use data::*;
 use derive_more::{Deref, DerefMut};
-pub use dimensions::EntityDimensions;
 use plugin::indexing::EntityChunkPos;
 use uuid::Uuid;
 use vec_delta_codec::VecDeltaCodec;
 
 use self::attributes::AttributeInstance;
+use crate::dimensions::EntityDimensions;
 pub use crate::plugin::*;
 
 pub fn move_relative(
@@ -353,8 +353,6 @@ pub struct Physics {
     /// and sets to 0 if we're not trying to jump.
     pub no_jump_delay: u32,
 
-    /// The width and height of the entity.
-    pub dimensions: EntityDimensions,
     /// The bounding box of the entity. This is more than just width and height,
     /// unlike dimensions.
     pub bounding_box: AABB,
@@ -362,21 +360,21 @@ pub struct Physics {
     pub has_impulse: bool,
 
     pub horizontal_collision: bool,
-    // pub minor_horizontal_collision: bool,
+    // TODO: implement minor_horizontal_collision
+    pub minor_horizontal_collision: bool,
     pub vertical_collision: bool,
 
     pub water_fluid_height: f64,
     pub lava_fluid_height: f64,
     pub was_touching_water: bool,
 
-    // TODO: implement fall_distance
-    pub fall_distance: f32,
+    pub fall_distance: f64,
     // TODO: implement remaining_fire_ticks
     pub remaining_fire_ticks: i32,
 }
 
 impl Physics {
-    pub fn new(dimensions: EntityDimensions, pos: Vec3) -> Self {
+    pub fn new(dimensions: &EntityDimensions, pos: Vec3) -> Self {
         Self {
             velocity: Vec3::ZERO,
             vec_delta_codec: VecDeltaCodec::new(pos),
@@ -393,11 +391,11 @@ impl Physics {
             no_jump_delay: 0,
 
             bounding_box: dimensions.make_bounding_box(pos),
-            dimensions,
 
             has_impulse: false,
 
             horizontal_collision: false,
+            minor_horizontal_collision: false,
             vertical_collision: false,
 
             water_fluid_height: 0.,
@@ -455,41 +453,6 @@ impl Physics {
 #[derive(Component, Copy, Clone, Default)]
 pub struct Dead;
 
-/// A component that contains the offset of the entity's eyes from the entity
-/// coordinates.
-///
-/// This is used to calculate the camera position for players, when spectating
-/// an entity, and when raycasting from the entity.
-///
-/// The default eye height for a player is 1.62 blocks.
-#[derive(Component, Clone, Copy, Debug, PartialEq, Deref, DerefMut)]
-pub struct EyeHeight(f32);
-impl EyeHeight {
-    pub fn new(height: f32) -> Self {
-        Self(height)
-    }
-}
-impl From<EyeHeight> for f32 {
-    fn from(value: EyeHeight) -> Self {
-        value.0
-    }
-}
-impl From<EyeHeight> for f64 {
-    fn from(value: EyeHeight) -> Self {
-        value.0 as f64
-    }
-}
-impl From<&EyeHeight> for f32 {
-    fn from(value: &EyeHeight) -> Self {
-        value.0
-    }
-}
-impl From<&EyeHeight> for f64 {
-    fn from(value: &EyeHeight) -> Self {
-        value.0 as f64
-    }
-}
-
 /// A component NewType for [`azalea_registry::EntityKind`].
 ///
 /// Most of the time, you should be using `azalea_registry::EntityKind`
@@ -511,9 +474,10 @@ pub struct EntityBundle {
 
     pub physics: Physics,
     pub direction: LookDirection,
-    pub eye_height: EyeHeight,
+    pub dimensions: EntityDimensions,
     pub attributes: Attributes,
     pub jumping: Jumping,
+    pub crouching: Crouching,
     pub fluid_on_eyes: FluidOnEyes,
     pub on_climbable: OnClimbable,
 }
@@ -526,12 +490,6 @@ impl EntityBundle {
         world_name: ResourceLocation,
     ) -> Self {
         let dimensions = EntityDimensions::from(kind);
-        let eye_height = match kind {
-            // TODO: codegen hardcoded eye heights, search withEyeHeight with mojmap
-            // also, eye height should change depending on pose (like sneaking, swimming, etc)
-            azalea_registry::EntityKind::Player => 1.62,
-            _ => dimensions.height * 0.85,
-        };
 
         Self {
             kind: EntityKindComponent(kind),
@@ -540,13 +498,14 @@ impl EntityBundle {
             position: Position(pos),
             chunk_pos: EntityChunkPos(ChunkPos::from(&pos)),
             last_sent_position: LastSentPosition(pos),
-            physics: Physics::new(dimensions, pos),
-            eye_height: EyeHeight(eye_height),
+            physics: Physics::new(&dimensions, pos),
+            dimensions,
             direction: LookDirection::default(),
 
             attributes: default_attributes(EntityKind::Player),
 
             jumping: Jumping(false),
+            crouching: Crouching(false),
             fluid_on_eyes: FluidOnEyes(FluidKind::Empty),
             on_climbable: OnClimbable(false),
         }
@@ -557,12 +516,13 @@ pub fn default_attributes(_entity_kind: EntityKind) -> Attributes {
     // TODO: do the correct defaults for everything, some
     // entities have different defaults
     Attributes {
-        speed: AttributeInstance::new(0.1),
+        movement_speed: AttributeInstance::new(0.1f32 as f64),
         sneaking_speed: AttributeInstance::new(0.3),
         attack_speed: AttributeInstance::new(4.0),
         water_movement_efficiency: AttributeInstance::new(0.0),
         block_interaction_range: AttributeInstance::new(4.5),
         entity_interaction_range: AttributeInstance::new(3.0),
+        step_height: AttributeInstance::new(0.6),
     }
 }
 
@@ -586,3 +546,30 @@ impl FluidOnEyes {
 
 #[derive(Component, Clone, Copy, Debug, PartialEq, Deref, DerefMut)]
 pub struct OnClimbable(bool);
+
+/// A component that indicates whether the player is currently sneaking.
+///
+/// If the entity isn't a local player, then this is just a shortcut for
+/// checking if the [`Pose`] is `Crouching`.
+///
+/// If you need to modify this value, use
+/// `azalea_client::PhysicsState::trying_to_crouch` or `Client::set_crouching`
+/// instead.
+#[derive(Component, Clone, Copy, Deref, DerefMut, Default)]
+pub struct Crouching(bool);
+
+/// A component that contains the abilities the player has, like flying
+/// or instantly breaking blocks. This is only present on local players.
+#[derive(Clone, Debug, Component, Default)]
+pub struct PlayerAbilities {
+    pub invulnerable: bool,
+    pub flying: bool,
+    pub can_fly: bool,
+    /// Whether the player can instantly break blocks and can duplicate blocks
+    /// in their inventory.
+    pub instant_break: bool,
+
+    pub flying_speed: f32,
+    /// Used for the fov
+    pub walking_speed: f32,
+}

@@ -1,8 +1,6 @@
 use azalea_core::{game_type::GameMode, tick::GameTick};
 use azalea_entity::{
-    Attributes, Physics,
-    indexing::EntityIdIndex,
-    metadata::{ShiftKeyDown, Sprinting},
+    Attributes, Crouching, Physics, indexing::EntityIdIndex, metadata::Sprinting,
     update_bounding_box,
 };
 use azalea_physics::PhysicsSet;
@@ -100,7 +98,7 @@ pub fn handle_attack_queued(
         &mut Sprinting,
         &AttackQueued,
         &LocalGameMode,
-        &ShiftKeyDown,
+        &Crouching,
         &EntityIdIndex,
     )>,
 ) {
@@ -111,7 +109,7 @@ pub fn handle_attack_queued(
         mut sprinting,
         attack_queued,
         game_mode,
-        sneaking,
+        crouching,
         entity_id_index,
     ) in &mut query
     {
@@ -128,7 +126,7 @@ pub fn handle_attack_queued(
             ServerboundInteract {
                 entity_id: target_entity_id,
                 action: s_interact::ActionType::Attack,
-                using_secondary_action: **sneaking,
+                using_secondary_action: **crouching,
             },
         ));
         commands.trigger(SwingArmEvent {

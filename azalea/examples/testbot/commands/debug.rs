@@ -205,6 +205,13 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
         1
     }));
 
+    commands.register(literal("dimensions").executes(|ctx: &Ctx| {
+        let source = ctx.source.lock();
+        let bot_dimensions = source.bot.dimensions();
+        source.reply(format!("{bot_dimensions:?}"));
+        1
+    }));
+
     commands.register(literal("debugecsleak").executes(|ctx: &Ctx| {
         let source = ctx.source.lock();
 

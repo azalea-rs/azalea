@@ -1,6 +1,6 @@
 use azalea_block::{BlockState, BlockTrait, fluid_state::FluidState};
 use azalea_core::{direction::Direction, game_type::GameMode, position::BlockPos, tick::GameTick};
-use azalea_entity::{FluidOnEyes, Physics, Position, mining::get_mine_progress};
+use azalea_entity::{FluidOnEyes, Physics, PlayerAbilities, Position, mining::get_mine_progress};
 use azalea_inventory::ItemStack;
 use azalea_physics::{PhysicsSet, collision::BlockWithShape};
 use azalea_protocol::packets::game::s_player_action::{self, ServerboundPlayerAction};
@@ -17,7 +17,7 @@ use crate::{
         check_is_interaction_restricted, pick::HitResultComponent,
     },
     inventory::{Inventory, InventorySet},
-    local_player::{InstanceHolder, LocalGameMode, PermissionLevel, PlayerAbilities},
+    local_player::{InstanceHolder, LocalGameMode, PermissionLevel},
     movement::MoveEventsSet,
     packet::game::SendPacketEvent,
 };
@@ -55,7 +55,6 @@ impl Plugin for MiningPlugin {
                     .in_set(MiningSet)
                     .after(InventorySet)
                     .after(MoveEventsSet)
-                    .before(azalea_entity::update_bounding_box)
                     .after(azalea_entity::update_fluid_on_eyes)
                     .after(crate::interact::pick::update_hit_result_component)
                     .after(crate::attack::handle_attack_event)

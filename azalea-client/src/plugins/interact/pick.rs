@@ -5,7 +5,8 @@ use azalea_core::{
     position::Vec3,
 };
 use azalea_entity::{
-    Attributes, Dead, EyeHeight, LocalEntity, LookDirection, Physics, Position,
+    Attributes, Dead, LocalEntity, LookDirection, Physics, Position,
+    dimensions::EntityDimensions,
     metadata::{ArmorStandMarker, Marker},
     view_vector,
 };
@@ -31,7 +32,7 @@ pub fn update_hit_result_component(
             Entity,
             Option<&mut HitResultComponent>,
             &Position,
-            &EyeHeight,
+            &EntityDimensions,
             &LookDirection,
             &InstanceName,
             &Physics,
@@ -47,7 +48,7 @@ pub fn update_hit_result_component(
         entity,
         hit_result_ref,
         position,
-        eye_height,
+        dimensions,
         look_direction,
         world_name,
         physics,
@@ -57,7 +58,7 @@ pub fn update_hit_result_component(
         let block_pick_range = attributes.block_interaction_range.calculate();
         let entity_pick_range = attributes.entity_interaction_range.calculate();
 
-        let eye_position = position.up(eye_height.into());
+        let eye_position = position.up(dimensions.eye_height.into());
 
         let Some(world_lock) = instance_container.get(world_name) else {
             continue;

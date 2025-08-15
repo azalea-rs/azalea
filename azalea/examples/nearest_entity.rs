@@ -2,7 +2,8 @@ use azalea::{Bot, ClientBuilder, LookAtEvent, nearest_entity::EntityFinder};
 use azalea_client::Account;
 use azalea_core::tick::GameTick;
 use azalea_entity::{
-    EyeHeight, LocalEntity, Position,
+    LocalEntity, Position,
+    dimensions::EntityDimensions,
     metadata::{ItemItem, Player},
 };
 use bevy_app::Plugin;
@@ -33,7 +34,7 @@ impl Plugin for LookAtStuffPlugin {
 fn look_at_everything(
     bots: Query<Entity, (With<LocalEntity>, With<Player>)>,
     entities: EntityFinder,
-    entity_positions: Query<(&Position, Option<&EyeHeight>)>,
+    entity_positions: Query<(&Position, Option<&EntityDimensions>)>,
     mut look_at_event: EventWriter<LookAtEvent>,
 ) {
     for bot_id in bots.iter() {
@@ -41,11 +42,11 @@ fn look_at_everything(
             continue;
         };
 
-        let (position, eye_height) = entity_positions.get(entity).unwrap();
+        let (position, dimensions) = entity_positions.get(entity).unwrap();
 
         let mut look_target = **position;
-        if let Some(eye_height) = eye_height {
-            look_target.y += **eye_height as f64;
+        if let Some(dimensions) = dimensions {
+            look_target.y += dimensions.eye_height as f64;
         }
 
         look_at_event.write(LookAtEvent {

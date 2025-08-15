@@ -9,8 +9,8 @@ use azalea_core::{
     tick::GameTick,
 };
 use azalea_entity::{
-    EyeHeight, Jumping, LocalEntity, LookDirection, Position, clamp_look_direction,
-    metadata::Player,
+    Jumping, LocalEntity, LookDirection, Position, clamp_look_direction,
+    dimensions::EntityDimensions, metadata::Player, update_dimensions,
 };
 use azalea_physics::PhysicsSet;
 use bevy_app::Update;
@@ -43,7 +43,9 @@ impl Plugin for BotPlugin {
                 Update,
                 (
                     insert_bot,
-                    look_at_listener.before(clamp_look_direction),
+                    look_at_listener
+                        .before(clamp_look_direction)
+                        .after(update_dimensions),
                     jump_listener,
                 ),
             )
@@ -224,12 +226,12 @@ pub struct LookAtEvent {
 }
 fn look_at_listener(
     mut events: EventReader<LookAtEvent>,
-    mut query: Query<(&Position, &EyeHeight, &mut LookDirection)>,
+    mut query: Query<(&Position, &EntityDimensions, &mut LookDirection)>,
 ) {
     for event in events.read() {
-        if let Ok((position, eye_height, mut look_direction)) = query.get_mut(event.entity) {
+        if let Ok((position, dimensions, mut look_direction)) = query.get_mut(event.entity) {
             let new_look_direction =
-                direction_looking_at(position.up(eye_height.into()), event.position);
+                direction_looking_at(position.up(dimensions.eye_height.into()), event.position);
 
             trace!("look at {} (currently at {})", event.position, **position);
             look_direction.update(new_look_direction);

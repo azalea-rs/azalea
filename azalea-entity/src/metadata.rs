@@ -35,7 +35,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
 #[derive(Component, Deref, DerefMut, Clone, Copy)]
 pub struct OnFire(pub bool);
 #[derive(Component, Deref, DerefMut, Clone, Copy)]
-pub struct ShiftKeyDown(pub bool);
+pub struct AbstractEntityShiftKeyDown(pub bool);
 #[derive(Component, Deref, DerefMut, Clone, Copy)]
 pub struct Sprinting(pub bool);
 #[derive(Component, Deref, DerefMut, Clone, Copy)]
@@ -101,7 +101,7 @@ impl Default for AcaciaBoatMetadataBundle {
                     parent: AbstractEntityMetadataBundle {
                         _marker: AbstractEntity,
                         on_fire: OnFire(false),
-                        shift_key_down: ShiftKeyDown(false),
+                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                         sprinting: Sprinting(false),
                         swimming: Swimming(false),
                         currently_glowing: CurrentlyGlowing(false),
@@ -158,7 +158,7 @@ impl Default for AcaciaChestBoatMetadataBundle {
                     parent: AbstractEntityMetadataBundle {
                         _marker: AbstractEntity,
                         on_fire: OnFire(false),
-                        shift_key_down: ShiftKeyDown(false),
+                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                         sprinting: Sprinting(false),
                         swimming: Swimming(false),
                         currently_glowing: CurrentlyGlowing(false),
@@ -251,7 +251,7 @@ impl Default for AllayMetadataBundle {
                         parent: AbstractEntityMetadataBundle {
                             _marker: AbstractEntity,
                             on_fire: OnFire(false),
-                            shift_key_down: ShiftKeyDown(false),
+                            abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                             sprinting: Sprinting(false),
                             swimming: Swimming(false),
                             currently_glowing: CurrentlyGlowing(false),
@@ -328,7 +328,7 @@ impl Default for AreaEffectCloudMetadataBundle {
             parent: AbstractEntityMetadataBundle {
                 _marker: AbstractEntity,
                 on_fire: OnFire(false),
-                shift_key_down: ShiftKeyDown(false),
+                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                 sprinting: Sprinting(false),
                 swimming: Swimming(false),
                 currently_glowing: CurrentlyGlowing(false),
@@ -394,7 +394,9 @@ impl Default for ArmadilloMetadataBundle {
                                 parent: AbstractEntityMetadataBundle {
                                     _marker: AbstractEntity,
                                     on_fire: OnFire(false),
-                                    shift_key_down: ShiftKeyDown(false),
+                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                        false,
+                                    ),
                                     sprinting: Sprinting(false),
                                     swimming: Swimming(false),
                                     currently_glowing: CurrentlyGlowing(false),
@@ -514,7 +516,7 @@ impl Default for ArmorStandMetadataBundle {
                 parent: AbstractEntityMetadataBundle {
                     _marker: AbstractEntity,
                     on_fire: OnFire(false),
-                    shift_key_down: ShiftKeyDown(false),
+                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                     sprinting: Sprinting(false),
                     swimming: Swimming(false),
                     currently_glowing: CurrentlyGlowing(false),
@@ -594,7 +596,7 @@ impl Default for ArrowMetadataBundle {
                 parent: AbstractEntityMetadataBundle {
                     _marker: AbstractEntity,
                     on_fire: OnFire(false),
-                    shift_key_down: ShiftKeyDown(false),
+                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                     sprinting: Sprinting(false),
                     swimming: Swimming(false),
                     currently_glowing: CurrentlyGlowing(false),
@@ -673,7 +675,9 @@ impl Default for AxolotlMetadataBundle {
                                 parent: AbstractEntityMetadataBundle {
                                     _marker: AbstractEntity,
                                     on_fire: OnFire(false),
-                                    shift_key_down: ShiftKeyDown(false),
+                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                        false,
+                                    ),
                                     sprinting: Sprinting(false),
                                     swimming: Swimming(false),
                                     currently_glowing: CurrentlyGlowing(false),
@@ -742,7 +746,7 @@ impl Default for BambooChestRaftMetadataBundle {
                     parent: AbstractEntityMetadataBundle {
                         _marker: AbstractEntity,
                         on_fire: OnFire(false),
-                        shift_key_down: ShiftKeyDown(false),
+                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                         sprinting: Sprinting(false),
                         swimming: Swimming(false),
                         currently_glowing: CurrentlyGlowing(false),
@@ -799,7 +803,7 @@ impl Default for BambooRaftMetadataBundle {
                     parent: AbstractEntityMetadataBundle {
                         _marker: AbstractEntity,
                         on_fire: OnFire(false),
-                        shift_key_down: ShiftKeyDown(false),
+                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                         sprinting: Sprinting(false),
                         swimming: Swimming(false),
                         currently_glowing: CurrentlyGlowing(false),
@@ -863,7 +867,7 @@ impl Default for BatMetadataBundle {
                     parent: AbstractEntityMetadataBundle {
                         _marker: AbstractEntity,
                         on_fire: OnFire(false),
-                        shift_key_down: ShiftKeyDown(false),
+                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                         sprinting: Sprinting(false),
                         swimming: Swimming(false),
                         currently_glowing: CurrentlyGlowing(false),
@@ -953,7 +957,9 @@ impl Default for BeeMetadataBundle {
                                 parent: AbstractEntityMetadataBundle {
                                     _marker: AbstractEntity,
                                     on_fire: OnFire(false),
-                                    shift_key_down: ShiftKeyDown(false),
+                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                        false,
+                                    ),
                                     sprinting: Sprinting(false),
                                     swimming: Swimming(false),
                                     currently_glowing: CurrentlyGlowing(false),
@@ -1023,7 +1029,7 @@ impl Default for BirchBoatMetadataBundle {
                     parent: AbstractEntityMetadataBundle {
                         _marker: AbstractEntity,
                         on_fire: OnFire(false),
-                        shift_key_down: ShiftKeyDown(false),
+                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                         sprinting: Sprinting(false),
                         swimming: Swimming(false),
                         currently_glowing: CurrentlyGlowing(false),
@@ -1080,7 +1086,7 @@ impl Default for BirchChestBoatMetadataBundle {
                     parent: AbstractEntityMetadataBundle {
                         _marker: AbstractEntity,
                         on_fire: OnFire(false),
-                        shift_key_down: ShiftKeyDown(false),
+                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                         sprinting: Sprinting(false),
                         swimming: Swimming(false),
                         currently_glowing: CurrentlyGlowing(false),
@@ -1148,7 +1154,7 @@ impl Default for BlazeMetadataBundle {
                             parent: AbstractEntityMetadataBundle {
                                 _marker: AbstractEntity,
                                 on_fire: OnFire(false),
-                                shift_key_down: ShiftKeyDown(false),
+                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                                 sprinting: Sprinting(false),
                                 swimming: Swimming(false),
                                 currently_glowing: CurrentlyGlowing(false),
@@ -1247,7 +1253,7 @@ impl Default for BlockDisplayMetadataBundle {
                 parent: AbstractEntityMetadataBundle {
                     _marker: AbstractEntity,
                     on_fire: OnFire(false),
-                    shift_key_down: ShiftKeyDown(false),
+                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                     sprinting: Sprinting(false),
                     swimming: Swimming(false),
                     currently_glowing: CurrentlyGlowing(false),
@@ -1342,7 +1348,7 @@ impl Default for BoggedMetadataBundle {
                             parent: AbstractEntityMetadataBundle {
                                 _marker: AbstractEntity,
                                 on_fire: OnFire(false),
-                                shift_key_down: ShiftKeyDown(false),
+                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                                 sprinting: Sprinting(false),
                                 swimming: Swimming(false),
                                 currently_glowing: CurrentlyGlowing(false),
@@ -1411,7 +1417,7 @@ impl Default for BreezeMetadataBundle {
                             parent: AbstractEntityMetadataBundle {
                                 _marker: AbstractEntity,
                                 on_fire: OnFire(false),
-                                shift_key_down: ShiftKeyDown(false),
+                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                                 sprinting: Sprinting(false),
                                 swimming: Swimming(false),
                                 currently_glowing: CurrentlyGlowing(false),
@@ -1471,7 +1477,7 @@ impl Default for BreezeWindChargeMetadataBundle {
             parent: AbstractEntityMetadataBundle {
                 _marker: AbstractEntity,
                 on_fire: OnFire(false),
-                shift_key_down: ShiftKeyDown(false),
+                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                 sprinting: Sprinting(false),
                 swimming: Swimming(false),
                 currently_glowing: CurrentlyGlowing(false),
@@ -1548,7 +1554,9 @@ impl Default for CamelMetadataBundle {
                                     parent: AbstractEntityMetadataBundle {
                                         _marker: AbstractEntity,
                                         on_fire: OnFire(false),
-                                        shift_key_down: ShiftKeyDown(false),
+                                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                            false,
+                                        ),
                                         sprinting: Sprinting(false),
                                         swimming: Swimming(false),
                                         currently_glowing: CurrentlyGlowing(false),
@@ -1659,7 +1667,9 @@ impl Default for CatMetadataBundle {
                                     parent: AbstractEntityMetadataBundle {
                                         _marker: AbstractEntity,
                                         on_fire: OnFire(false),
-                                        shift_key_down: ShiftKeyDown(false),
+                                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                            false,
+                                        ),
                                         sprinting: Sprinting(false),
                                         swimming: Swimming(false),
                                         currently_glowing: CurrentlyGlowing(false),
@@ -1741,7 +1751,9 @@ impl Default for CaveSpiderMetadataBundle {
                                 parent: AbstractEntityMetadataBundle {
                                     _marker: AbstractEntity,
                                     on_fire: OnFire(false),
-                                    shift_key_down: ShiftKeyDown(false),
+                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                        false,
+                                    ),
                                     sprinting: Sprinting(false),
                                     swimming: Swimming(false),
                                     currently_glowing: CurrentlyGlowing(false),
@@ -1807,7 +1819,7 @@ impl Default for CherryBoatMetadataBundle {
                     parent: AbstractEntityMetadataBundle {
                         _marker: AbstractEntity,
                         on_fire: OnFire(false),
-                        shift_key_down: ShiftKeyDown(false),
+                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                         sprinting: Sprinting(false),
                         swimming: Swimming(false),
                         currently_glowing: CurrentlyGlowing(false),
@@ -1864,7 +1876,7 @@ impl Default for CherryChestBoatMetadataBundle {
                     parent: AbstractEntityMetadataBundle {
                         _marker: AbstractEntity,
                         on_fire: OnFire(false),
-                        shift_key_down: ShiftKeyDown(false),
+                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                         sprinting: Sprinting(false),
                         swimming: Swimming(false),
                         currently_glowing: CurrentlyGlowing(false),
@@ -1925,7 +1937,7 @@ impl Default for ChestMinecartMetadataBundle {
                     parent: AbstractEntityMetadataBundle {
                         _marker: AbstractEntity,
                         on_fire: OnFire(false),
-                        shift_key_down: ShiftKeyDown(false),
+                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                         sprinting: Sprinting(false),
                         swimming: Swimming(false),
                         currently_glowing: CurrentlyGlowing(false),
@@ -1993,7 +2005,9 @@ impl Default for ChickenMetadataBundle {
                                 parent: AbstractEntityMetadataBundle {
                                     _marker: AbstractEntity,
                                     on_fire: OnFire(false),
-                                    shift_key_down: ShiftKeyDown(false),
+                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                        false,
+                                    ),
                                     sprinting: Sprinting(false),
                                     swimming: Swimming(false),
                                     currently_glowing: CurrentlyGlowing(false),
@@ -2066,7 +2080,7 @@ impl Default for CodMetadataBundle {
                             parent: AbstractEntityMetadataBundle {
                                 _marker: AbstractEntity,
                                 on_fire: OnFire(false),
-                                shift_key_down: ShiftKeyDown(false),
+                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                                 sprinting: Sprinting(false),
                                 swimming: Swimming(false),
                                 currently_glowing: CurrentlyGlowing(false),
@@ -2143,7 +2157,7 @@ impl Default for CommandBlockMinecartMetadataBundle {
                     parent: AbstractEntityMetadataBundle {
                         _marker: AbstractEntity,
                         on_fire: OnFire(false),
-                        shift_key_down: ShiftKeyDown(false),
+                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                         sprinting: Sprinting(false),
                         swimming: Swimming(false),
                         currently_glowing: CurrentlyGlowing(false),
@@ -2213,7 +2227,9 @@ impl Default for CowMetadataBundle {
                                 parent: AbstractEntityMetadataBundle {
                                     _marker: AbstractEntity,
                                     on_fire: OnFire(false),
-                                    shift_key_down: ShiftKeyDown(false),
+                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                        false,
+                                    ),
                                     sprinting: Sprinting(false),
                                     swimming: Swimming(false),
                                     currently_glowing: CurrentlyGlowing(false),
@@ -2308,7 +2324,7 @@ impl Default for CreakingMetadataBundle {
                             parent: AbstractEntityMetadataBundle {
                                 _marker: AbstractEntity,
                                 on_fire: OnFire(false),
-                                shift_key_down: ShiftKeyDown(false),
+                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                                 sprinting: Sprinting(false),
                                 swimming: Swimming(false),
                                 currently_glowing: CurrentlyGlowing(false),
@@ -2398,7 +2414,7 @@ impl Default for CreeperMetadataBundle {
                             parent: AbstractEntityMetadataBundle {
                                 _marker: AbstractEntity,
                                 on_fire: OnFire(false),
-                                shift_key_down: ShiftKeyDown(false),
+                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                                 sprinting: Sprinting(false),
                                 swimming: Swimming(false),
                                 currently_glowing: CurrentlyGlowing(false),
@@ -2465,7 +2481,7 @@ impl Default for DarkOakBoatMetadataBundle {
                     parent: AbstractEntityMetadataBundle {
                         _marker: AbstractEntity,
                         on_fire: OnFire(false),
-                        shift_key_down: ShiftKeyDown(false),
+                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                         sprinting: Sprinting(false),
                         swimming: Swimming(false),
                         currently_glowing: CurrentlyGlowing(false),
@@ -2522,7 +2538,7 @@ impl Default for DarkOakChestBoatMetadataBundle {
                     parent: AbstractEntityMetadataBundle {
                         _marker: AbstractEntity,
                         on_fire: OnFire(false),
-                        shift_key_down: ShiftKeyDown(false),
+                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                         sprinting: Sprinting(false),
                         swimming: Swimming(false),
                         currently_glowing: CurrentlyGlowing(false),
@@ -2595,7 +2611,7 @@ impl Default for DolphinMetadataBundle {
                             parent: AbstractEntityMetadataBundle {
                                 _marker: AbstractEntity,
                                 on_fire: OnFire(false),
-                                shift_key_down: ShiftKeyDown(false),
+                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                                 sprinting: Sprinting(false),
                                 swimming: Swimming(false),
                                 currently_glowing: CurrentlyGlowing(false),
@@ -2674,7 +2690,8 @@ impl Default for DonkeyMetadataBundle {
                                         parent: AbstractEntityMetadataBundle {
                                             _marker: AbstractEntity,
                                             on_fire: OnFire(false),
-                                            shift_key_down: ShiftKeyDown(false),
+                                            abstract_entity_shift_key_down:
+                                                AbstractEntityShiftKeyDown(false),
                                             sprinting: Sprinting(false),
                                             swimming: Swimming(false),
                                             currently_glowing: CurrentlyGlowing(false),
@@ -2745,7 +2762,7 @@ impl Default for DragonFireballMetadataBundle {
             parent: AbstractEntityMetadataBundle {
                 _marker: AbstractEntity,
                 on_fire: OnFire(false),
-                shift_key_down: ShiftKeyDown(false),
+                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                 sprinting: Sprinting(false),
                 swimming: Swimming(false),
                 currently_glowing: CurrentlyGlowing(false),
@@ -2806,7 +2823,9 @@ impl Default for DrownedMetadataBundle {
                                 parent: AbstractEntityMetadataBundle {
                                     _marker: AbstractEntity,
                                     on_fire: OnFire(false),
-                                    shift_key_down: ShiftKeyDown(false),
+                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                        false,
+                                    ),
                                     sprinting: Sprinting(false),
                                     swimming: Swimming(false),
                                     currently_glowing: CurrentlyGlowing(false),
@@ -2874,7 +2893,7 @@ impl Default for EggMetadataBundle {
                 parent: AbstractEntityMetadataBundle {
                     _marker: AbstractEntity,
                     on_fire: OnFire(false),
-                    shift_key_down: ShiftKeyDown(false),
+                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                     sprinting: Sprinting(false),
                     swimming: Swimming(false),
                     currently_glowing: CurrentlyGlowing(false),
@@ -2937,7 +2956,9 @@ impl Default for ElderGuardianMetadataBundle {
                                 parent: AbstractEntityMetadataBundle {
                                     _marker: AbstractEntity,
                                     on_fire: OnFire(false),
-                                    shift_key_down: ShiftKeyDown(false),
+                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                        false,
+                                    ),
                                     sprinting: Sprinting(false),
                                     swimming: Swimming(false),
                                     currently_glowing: CurrentlyGlowing(false),
@@ -3012,7 +3033,7 @@ impl Default for EndCrystalMetadataBundle {
             parent: AbstractEntityMetadataBundle {
                 _marker: AbstractEntity,
                 on_fire: OnFire(false),
-                shift_key_down: ShiftKeyDown(false),
+                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                 sprinting: Sprinting(false),
                 swimming: Swimming(false),
                 currently_glowing: CurrentlyGlowing(false),
@@ -3069,7 +3090,7 @@ impl Default for EnderDragonMetadataBundle {
                     parent: AbstractEntityMetadataBundle {
                         _marker: AbstractEntity,
                         on_fire: OnFire(false),
-                        shift_key_down: ShiftKeyDown(false),
+                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                         sprinting: Sprinting(false),
                         swimming: Swimming(false),
                         currently_glowing: CurrentlyGlowing(false),
@@ -3130,7 +3151,7 @@ impl Default for EnderPearlMetadataBundle {
                 parent: AbstractEntityMetadataBundle {
                     _marker: AbstractEntity,
                     on_fire: OnFire(false),
-                    shift_key_down: ShiftKeyDown(false),
+                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                     sprinting: Sprinting(false),
                     swimming: Swimming(false),
                     currently_glowing: CurrentlyGlowing(false),
@@ -3205,7 +3226,7 @@ impl Default for EndermanMetadataBundle {
                             parent: AbstractEntityMetadataBundle {
                                 _marker: AbstractEntity,
                                 on_fire: OnFire(false),
-                                shift_key_down: ShiftKeyDown(false),
+                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                                 sprinting: Sprinting(false),
                                 swimming: Swimming(false),
                                 currently_glowing: CurrentlyGlowing(false),
@@ -3276,7 +3297,7 @@ impl Default for EndermiteMetadataBundle {
                             parent: AbstractEntityMetadataBundle {
                                 _marker: AbstractEntity,
                                 on_fire: OnFire(false),
-                                shift_key_down: ShiftKeyDown(false),
+                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                                 sprinting: Sprinting(false),
                                 swimming: Swimming(false),
                                 currently_glowing: CurrentlyGlowing(false),
@@ -3352,7 +3373,9 @@ impl Default for EvokerMetadataBundle {
                                     parent: AbstractEntityMetadataBundle {
                                         _marker: AbstractEntity,
                                         on_fire: OnFire(false),
-                                        shift_key_down: ShiftKeyDown(false),
+                                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                            false,
+                                        ),
                                         sprinting: Sprinting(false),
                                         swimming: Swimming(false),
                                         currently_glowing: CurrentlyGlowing(false),
@@ -3416,7 +3439,7 @@ impl Default for EvokerFangsMetadataBundle {
             parent: AbstractEntityMetadataBundle {
                 _marker: AbstractEntity,
                 on_fire: OnFire(false),
-                shift_key_down: ShiftKeyDown(false),
+                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                 sprinting: Sprinting(false),
                 swimming: Swimming(false),
                 currently_glowing: CurrentlyGlowing(false),
@@ -3463,7 +3486,7 @@ impl Default for ExperienceBottleMetadataBundle {
                 parent: AbstractEntityMetadataBundle {
                     _marker: AbstractEntity,
                     on_fire: OnFire(false),
-                    shift_key_down: ShiftKeyDown(false),
+                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                     sprinting: Sprinting(false),
                     swimming: Swimming(false),
                     currently_glowing: CurrentlyGlowing(false),
@@ -3518,7 +3541,7 @@ impl Default for ExperienceOrbMetadataBundle {
             parent: AbstractEntityMetadataBundle {
                 _marker: AbstractEntity,
                 on_fire: OnFire(false),
-                shift_key_down: ShiftKeyDown(false),
+                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                 sprinting: Sprinting(false),
                 swimming: Swimming(false),
                 currently_glowing: CurrentlyGlowing(false),
@@ -3570,7 +3593,7 @@ impl Default for EyeOfEnderMetadataBundle {
             parent: AbstractEntityMetadataBundle {
                 _marker: AbstractEntity,
                 on_fire: OnFire(false),
-                shift_key_down: ShiftKeyDown(false),
+                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                 sprinting: Sprinting(false),
                 swimming: Swimming(false),
                 currently_glowing: CurrentlyGlowing(false),
@@ -3622,7 +3645,7 @@ impl Default for FallingBlockMetadataBundle {
             parent: AbstractEntityMetadataBundle {
                 _marker: AbstractEntity,
                 on_fire: OnFire(false),
-                shift_key_down: ShiftKeyDown(false),
+                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                 sprinting: Sprinting(false),
                 swimming: Swimming(false),
                 currently_glowing: CurrentlyGlowing(false),
@@ -3674,7 +3697,7 @@ impl Default for FireballMetadataBundle {
             parent: AbstractEntityMetadataBundle {
                 _marker: AbstractEntity,
                 on_fire: OnFire(false),
-                shift_key_down: ShiftKeyDown(false),
+                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                 sprinting: Sprinting(false),
                 swimming: Swimming(false),
                 currently_glowing: CurrentlyGlowing(false),
@@ -3738,7 +3761,7 @@ impl Default for FireworkRocketMetadataBundle {
             parent: AbstractEntityMetadataBundle {
                 _marker: AbstractEntity,
                 on_fire: OnFire(false),
-                shift_key_down: ShiftKeyDown(false),
+                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                 sprinting: Sprinting(false),
                 swimming: Swimming(false),
                 currently_glowing: CurrentlyGlowing(false),
@@ -3798,7 +3821,7 @@ impl Default for FishingBobberMetadataBundle {
             parent: AbstractEntityMetadataBundle {
                 _marker: AbstractEntity,
                 on_fire: OnFire(false),
-                shift_key_down: ShiftKeyDown(false),
+                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                 sprinting: Sprinting(false),
                 swimming: Swimming(false),
                 currently_glowing: CurrentlyGlowing(false),
@@ -3831,7 +3854,7 @@ pub struct Sleeping(pub bool);
 #[derive(Component, Deref, DerefMut, Clone, Copy)]
 pub struct Pouncing(pub bool);
 #[derive(Component, Deref, DerefMut, Clone, Copy)]
-pub struct Crouching(pub bool);
+pub struct FoxCrouching(pub bool);
 #[derive(Component, Deref, DerefMut, Clone, Copy)]
 pub struct FoxInterested(pub bool);
 #[derive(Component, Deref, DerefMut, Clone)]
@@ -3857,7 +3880,7 @@ impl Fox {
                 entity.insert(Defending(bitfield & 0x80 != 0));
                 entity.insert(Sleeping(bitfield & 0x20 != 0));
                 entity.insert(Pouncing(bitfield & 0x10 != 0));
-                entity.insert(Crouching(bitfield & 0x4 != 0));
+                entity.insert(FoxCrouching(bitfield & 0x4 != 0));
                 entity.insert(FoxInterested(bitfield & 0x8 != 0));
             }
             19 => {
@@ -3882,7 +3905,7 @@ pub struct FoxMetadataBundle {
     defending: Defending,
     sleeping: Sleeping,
     pouncing: Pouncing,
-    crouching: Crouching,
+    fox_crouching: FoxCrouching,
     fox_interested: FoxInterested,
     trusted_id_0: TrustedId0,
     trusted_id_1: TrustedId1,
@@ -3904,7 +3927,9 @@ impl Default for FoxMetadataBundle {
                                 parent: AbstractEntityMetadataBundle {
                                     _marker: AbstractEntity,
                                     on_fire: OnFire(false),
-                                    shift_key_down: ShiftKeyDown(false),
+                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                        false,
+                                    ),
                                     sprinting: Sprinting(false),
                                     swimming: Swimming(false),
                                     currently_glowing: CurrentlyGlowing(false),
@@ -3941,7 +3966,7 @@ impl Default for FoxMetadataBundle {
             defending: Defending(false),
             sleeping: Sleeping(false),
             pouncing: Pouncing(false),
-            crouching: Crouching(false),
+            fox_crouching: FoxCrouching(false),
             fox_interested: FoxInterested(false),
             trusted_id_0: TrustedId0(None),
             trusted_id_1: TrustedId1(None),
@@ -3998,7 +4023,9 @@ impl Default for FrogMetadataBundle {
                                 parent: AbstractEntityMetadataBundle {
                                     _marker: AbstractEntity,
                                     on_fire: OnFire(false),
-                                    shift_key_down: ShiftKeyDown(false),
+                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                        false,
+                                    ),
                                     sprinting: Sprinting(false),
                                     swimming: Swimming(false),
                                     currently_glowing: CurrentlyGlowing(false),
@@ -4072,7 +4099,7 @@ impl Default for FurnaceMinecartMetadataBundle {
                     parent: AbstractEntityMetadataBundle {
                         _marker: AbstractEntity,
                         on_fire: OnFire(false),
-                        shift_key_down: ShiftKeyDown(false),
+                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                         sprinting: Sprinting(false),
                         swimming: Swimming(false),
                         currently_glowing: CurrentlyGlowing(false),
@@ -4135,7 +4162,7 @@ impl Default for GhastMetadataBundle {
                     parent: AbstractEntityMetadataBundle {
                         _marker: AbstractEntity,
                         on_fire: OnFire(false),
-                        shift_key_down: ShiftKeyDown(false),
+                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                         sprinting: Sprinting(false),
                         swimming: Swimming(false),
                         currently_glowing: CurrentlyGlowing(false),
@@ -4202,7 +4229,7 @@ impl Default for GiantMetadataBundle {
                             parent: AbstractEntityMetadataBundle {
                                 _marker: AbstractEntity,
                                 on_fire: OnFire(false),
-                                shift_key_down: ShiftKeyDown(false),
+                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                                 sprinting: Sprinting(false),
                                 swimming: Swimming(false),
                                 currently_glowing: CurrentlyGlowing(false),
@@ -4270,7 +4297,7 @@ impl Default for GlowItemFrameMetadataBundle {
                 parent: AbstractEntityMetadataBundle {
                     _marker: AbstractEntity,
                     on_fire: OnFire(false),
-                    shift_key_down: ShiftKeyDown(false),
+                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                     sprinting: Sprinting(false),
                     swimming: Swimming(false),
                     currently_glowing: CurrentlyGlowing(false),
@@ -4335,7 +4362,9 @@ impl Default for GlowSquidMetadataBundle {
                                 parent: AbstractEntityMetadataBundle {
                                     _marker: AbstractEntity,
                                     on_fire: OnFire(false),
-                                    shift_key_down: ShiftKeyDown(false),
+                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                        false,
+                                    ),
                                     sprinting: Sprinting(false),
                                     swimming: Swimming(false),
                                     currently_glowing: CurrentlyGlowing(false),
@@ -4426,7 +4455,9 @@ impl Default for GoatMetadataBundle {
                                 parent: AbstractEntityMetadataBundle {
                                     _marker: AbstractEntity,
                                     on_fire: OnFire(false),
-                                    shift_key_down: ShiftKeyDown(false),
+                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                        false,
+                                    ),
                                     sprinting: Sprinting(false),
                                     swimming: Swimming(false),
                                     currently_glowing: CurrentlyGlowing(false),
@@ -4507,7 +4538,7 @@ impl Default for GuardianMetadataBundle {
                             parent: AbstractEntityMetadataBundle {
                                 _marker: AbstractEntity,
                                 on_fire: OnFire(false),
-                                shift_key_down: ShiftKeyDown(false),
+                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                                 sprinting: Sprinting(false),
                                 swimming: Swimming(false),
                                 currently_glowing: CurrentlyGlowing(false),
@@ -4591,7 +4622,9 @@ impl Default for HappyGhastMetadataBundle {
                                 parent: AbstractEntityMetadataBundle {
                                     _marker: AbstractEntity,
                                     on_fire: OnFire(false),
-                                    shift_key_down: ShiftKeyDown(false),
+                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                        false,
+                                    ),
                                     sprinting: Sprinting(false),
                                     swimming: Swimming(false),
                                     currently_glowing: CurrentlyGlowing(false),
@@ -4671,7 +4704,9 @@ impl Default for HoglinMetadataBundle {
                                 parent: AbstractEntityMetadataBundle {
                                     _marker: AbstractEntity,
                                     on_fire: OnFire(false),
-                                    shift_key_down: ShiftKeyDown(false),
+                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                        false,
+                                    ),
                                     sprinting: Sprinting(false),
                                     swimming: Swimming(false),
                                     currently_glowing: CurrentlyGlowing(false),
@@ -4738,7 +4773,7 @@ impl Default for HopperMinecartMetadataBundle {
                     parent: AbstractEntityMetadataBundle {
                         _marker: AbstractEntity,
                         on_fire: OnFire(false),
-                        shift_key_down: ShiftKeyDown(false),
+                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                         sprinting: Sprinting(false),
                         swimming: Swimming(false),
                         currently_glowing: CurrentlyGlowing(false),
@@ -4808,7 +4843,9 @@ impl Default for HorseMetadataBundle {
                                     parent: AbstractEntityMetadataBundle {
                                         _marker: AbstractEntity,
                                         on_fire: OnFire(false),
-                                        shift_key_down: ShiftKeyDown(false),
+                                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                            false,
+                                        ),
                                         sprinting: Sprinting(false),
                                         swimming: Swimming(false),
                                         currently_glowing: CurrentlyGlowing(false),
@@ -4886,7 +4923,9 @@ impl Default for HuskMetadataBundle {
                                 parent: AbstractEntityMetadataBundle {
                                     _marker: AbstractEntity,
                                     on_fire: OnFire(false),
-                                    shift_key_down: ShiftKeyDown(false),
+                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                        false,
+                                    ),
                                     sprinting: Sprinting(false),
                                     swimming: Swimming(false),
                                     currently_glowing: CurrentlyGlowing(false),
@@ -4962,7 +5001,9 @@ impl Default for IllusionerMetadataBundle {
                                     parent: AbstractEntityMetadataBundle {
                                         _marker: AbstractEntity,
                                         on_fire: OnFire(false),
-                                        shift_key_down: ShiftKeyDown(false),
+                                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                            false,
+                                        ),
                                         sprinting: Sprinting(false),
                                         swimming: Swimming(false),
                                         currently_glowing: CurrentlyGlowing(false),
@@ -5044,7 +5085,7 @@ impl Default for InteractionMetadataBundle {
             parent: AbstractEntityMetadataBundle {
                 _marker: AbstractEntity,
                 on_fire: OnFire(false),
-                shift_key_down: ShiftKeyDown(false),
+                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                 sprinting: Sprinting(false),
                 swimming: Swimming(false),
                 currently_glowing: CurrentlyGlowing(false),
@@ -5105,7 +5146,7 @@ impl Default for IronGolemMetadataBundle {
                         parent: AbstractEntityMetadataBundle {
                             _marker: AbstractEntity,
                             on_fire: OnFire(false),
-                            shift_key_down: ShiftKeyDown(false),
+                            abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                             sprinting: Sprinting(false),
                             swimming: Swimming(false),
                             currently_glowing: CurrentlyGlowing(false),
@@ -5171,7 +5212,7 @@ impl Default for ItemMetadataBundle {
             parent: AbstractEntityMetadataBundle {
                 _marker: AbstractEntity,
                 on_fire: OnFire(false),
-                shift_key_down: ShiftKeyDown(false),
+                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                 sprinting: Sprinting(false),
                 swimming: Swimming(false),
                 currently_glowing: CurrentlyGlowing(false),
@@ -5231,7 +5272,7 @@ impl Default for ItemDisplayMetadataBundle {
                 parent: AbstractEntityMetadataBundle {
                     _marker: AbstractEntity,
                     on_fire: OnFire(false),
-                    shift_key_down: ShiftKeyDown(false),
+                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                     sprinting: Sprinting(false),
                     swimming: Swimming(false),
                     currently_glowing: CurrentlyGlowing(false),
@@ -5325,7 +5366,7 @@ impl Default for ItemFrameMetadataBundle {
             parent: AbstractEntityMetadataBundle {
                 _marker: AbstractEntity,
                 on_fire: OnFire(false),
-                shift_key_down: ShiftKeyDown(false),
+                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                 sprinting: Sprinting(false),
                 swimming: Swimming(false),
                 currently_glowing: CurrentlyGlowing(false),
@@ -5377,7 +5418,7 @@ impl Default for JungleBoatMetadataBundle {
                     parent: AbstractEntityMetadataBundle {
                         _marker: AbstractEntity,
                         on_fire: OnFire(false),
-                        shift_key_down: ShiftKeyDown(false),
+                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                         sprinting: Sprinting(false),
                         swimming: Swimming(false),
                         currently_glowing: CurrentlyGlowing(false),
@@ -5434,7 +5475,7 @@ impl Default for JungleChestBoatMetadataBundle {
                     parent: AbstractEntityMetadataBundle {
                         _marker: AbstractEntity,
                         on_fire: OnFire(false),
-                        shift_key_down: ShiftKeyDown(false),
+                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                         sprinting: Sprinting(false),
                         swimming: Swimming(false),
                         currently_glowing: CurrentlyGlowing(false),
@@ -5487,7 +5528,7 @@ impl Default for LeashKnotMetadataBundle {
             parent: AbstractEntityMetadataBundle {
                 _marker: AbstractEntity,
                 on_fire: OnFire(false),
-                shift_key_down: ShiftKeyDown(false),
+                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                 sprinting: Sprinting(false),
                 swimming: Swimming(false),
                 currently_glowing: CurrentlyGlowing(false),
@@ -5532,7 +5573,7 @@ impl Default for LightningBoltMetadataBundle {
             parent: AbstractEntityMetadataBundle {
                 _marker: AbstractEntity,
                 on_fire: OnFire(false),
-                shift_key_down: ShiftKeyDown(false),
+                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                 sprinting: Sprinting(false),
                 swimming: Swimming(false),
                 currently_glowing: CurrentlyGlowing(false),
@@ -5579,7 +5620,7 @@ impl Default for LingeringPotionMetadataBundle {
                 parent: AbstractEntityMetadataBundle {
                     _marker: AbstractEntity,
                     on_fire: OnFire(false),
-                    shift_key_down: ShiftKeyDown(false),
+                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                     sprinting: Sprinting(false),
                     swimming: Swimming(false),
                     currently_glowing: CurrentlyGlowing(false),
@@ -5654,7 +5695,8 @@ impl Default for LlamaMetadataBundle {
                                         parent: AbstractEntityMetadataBundle {
                                             _marker: AbstractEntity,
                                             on_fire: OnFire(false),
-                                            shift_key_down: ShiftKeyDown(false),
+                                            abstract_entity_shift_key_down:
+                                                AbstractEntityShiftKeyDown(false),
                                             sprinting: Sprinting(false),
                                             swimming: Swimming(false),
                                             currently_glowing: CurrentlyGlowing(false),
@@ -5727,7 +5769,7 @@ impl Default for LlamaSpitMetadataBundle {
             parent: AbstractEntityMetadataBundle {
                 _marker: AbstractEntity,
                 on_fire: OnFire(false),
-                shift_key_down: ShiftKeyDown(false),
+                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                 sprinting: Sprinting(false),
                 swimming: Swimming(false),
                 currently_glowing: CurrentlyGlowing(false),
@@ -5780,7 +5822,7 @@ impl Default for MagmaCubeMetadataBundle {
                         parent: AbstractEntityMetadataBundle {
                             _marker: AbstractEntity,
                             on_fire: OnFire(false),
-                            shift_key_down: ShiftKeyDown(false),
+                            abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                             sprinting: Sprinting(false),
                             swimming: Swimming(false),
                             currently_glowing: CurrentlyGlowing(false),
@@ -5844,7 +5886,7 @@ impl Default for MangroveBoatMetadataBundle {
                     parent: AbstractEntityMetadataBundle {
                         _marker: AbstractEntity,
                         on_fire: OnFire(false),
-                        shift_key_down: ShiftKeyDown(false),
+                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                         sprinting: Sprinting(false),
                         swimming: Swimming(false),
                         currently_glowing: CurrentlyGlowing(false),
@@ -5901,7 +5943,7 @@ impl Default for MangroveChestBoatMetadataBundle {
                     parent: AbstractEntityMetadataBundle {
                         _marker: AbstractEntity,
                         on_fire: OnFire(false),
-                        shift_key_down: ShiftKeyDown(false),
+                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                         sprinting: Sprinting(false),
                         swimming: Swimming(false),
                         currently_glowing: CurrentlyGlowing(false),
@@ -5954,7 +5996,7 @@ impl Default for MarkerMetadataBundle {
             parent: AbstractEntityMetadataBundle {
                 _marker: AbstractEntity,
                 on_fire: OnFire(false),
-                shift_key_down: ShiftKeyDown(false),
+                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                 sprinting: Sprinting(false),
                 swimming: Swimming(false),
                 currently_glowing: CurrentlyGlowing(false),
@@ -6003,7 +6045,7 @@ impl Default for MinecartMetadataBundle {
                     parent: AbstractEntityMetadataBundle {
                         _marker: AbstractEntity,
                         on_fire: OnFire(false),
-                        shift_key_down: ShiftKeyDown(false),
+                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                         sprinting: Sprinting(false),
                         swimming: Swimming(false),
                         currently_glowing: CurrentlyGlowing(false),
@@ -6071,7 +6113,9 @@ impl Default for MooshroomMetadataBundle {
                                 parent: AbstractEntityMetadataBundle {
                                     _marker: AbstractEntity,
                                     on_fire: OnFire(false),
-                                    shift_key_down: ShiftKeyDown(false),
+                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                        false,
+                                    ),
                                     sprinting: Sprinting(false),
                                     swimming: Swimming(false),
                                     currently_glowing: CurrentlyGlowing(false),
@@ -6148,7 +6192,8 @@ impl Default for MuleMetadataBundle {
                                         parent: AbstractEntityMetadataBundle {
                                             _marker: AbstractEntity,
                                             on_fire: OnFire(false),
-                                            shift_key_down: ShiftKeyDown(false),
+                                            abstract_entity_shift_key_down:
+                                                AbstractEntityShiftKeyDown(false),
                                             sprinting: Sprinting(false),
                                             swimming: Swimming(false),
                                             currently_glowing: CurrentlyGlowing(false),
@@ -6223,7 +6268,7 @@ impl Default for OakBoatMetadataBundle {
                     parent: AbstractEntityMetadataBundle {
                         _marker: AbstractEntity,
                         on_fire: OnFire(false),
-                        shift_key_down: ShiftKeyDown(false),
+                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                         sprinting: Sprinting(false),
                         swimming: Swimming(false),
                         currently_glowing: CurrentlyGlowing(false),
@@ -6280,7 +6325,7 @@ impl Default for OakChestBoatMetadataBundle {
                     parent: AbstractEntityMetadataBundle {
                         _marker: AbstractEntity,
                         on_fire: OnFire(false),
-                        shift_key_down: ShiftKeyDown(false),
+                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                         sprinting: Sprinting(false),
                         swimming: Swimming(false),
                         currently_glowing: CurrentlyGlowing(false),
@@ -6349,7 +6394,9 @@ impl Default for OcelotMetadataBundle {
                                 parent: AbstractEntityMetadataBundle {
                                     _marker: AbstractEntity,
                                     on_fire: OnFire(false),
-                                    shift_key_down: ShiftKeyDown(false),
+                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                        false,
+                                    ),
                                     sprinting: Sprinting(false),
                                     swimming: Swimming(false),
                                     currently_glowing: CurrentlyGlowing(false),
@@ -6418,7 +6465,7 @@ impl Default for OminousItemSpawnerMetadataBundle {
             parent: AbstractEntityMetadataBundle {
                 _marker: AbstractEntity,
                 on_fire: OnFire(false),
-                shift_key_down: ShiftKeyDown(false),
+                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                 sprinting: Sprinting(false),
                 swimming: Swimming(false),
                 currently_glowing: CurrentlyGlowing(false),
@@ -6476,7 +6523,7 @@ impl Default for PaintingMetadataBundle {
             parent: AbstractEntityMetadataBundle {
                 _marker: AbstractEntity,
                 on_fire: OnFire(false),
-                shift_key_down: ShiftKeyDown(false),
+                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                 sprinting: Sprinting(false),
                 swimming: Swimming(false),
                 currently_glowing: CurrentlyGlowing(false),
@@ -6527,7 +6574,7 @@ impl Default for PaleOakBoatMetadataBundle {
                     parent: AbstractEntityMetadataBundle {
                         _marker: AbstractEntity,
                         on_fire: OnFire(false),
-                        shift_key_down: ShiftKeyDown(false),
+                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                         sprinting: Sprinting(false),
                         swimming: Swimming(false),
                         currently_glowing: CurrentlyGlowing(false),
@@ -6584,7 +6631,7 @@ impl Default for PaleOakChestBoatMetadataBundle {
                     parent: AbstractEntityMetadataBundle {
                         _marker: AbstractEntity,
                         on_fire: OnFire(false),
-                        shift_key_down: ShiftKeyDown(false),
+                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                         sprinting: Sprinting(false),
                         swimming: Swimming(false),
                         currently_glowing: CurrentlyGlowing(false),
@@ -6696,7 +6743,9 @@ impl Default for PandaMetadataBundle {
                                 parent: AbstractEntityMetadataBundle {
                                     _marker: AbstractEntity,
                                     on_fire: OnFire(false),
-                                    shift_key_down: ShiftKeyDown(false),
+                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                        false,
+                                    ),
                                     sprinting: Sprinting(false),
                                     swimming: Swimming(false),
                                     currently_glowing: CurrentlyGlowing(false),
@@ -6785,7 +6834,9 @@ impl Default for ParrotMetadataBundle {
                                     parent: AbstractEntityMetadataBundle {
                                         _marker: AbstractEntity,
                                         on_fire: OnFire(false),
-                                        shift_key_down: ShiftKeyDown(false),
+                                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                            false,
+                                        ),
                                         sprinting: Sprinting(false),
                                         swimming: Swimming(false),
                                         currently_glowing: CurrentlyGlowing(false),
@@ -6862,7 +6913,7 @@ impl Default for PhantomMetadataBundle {
                     parent: AbstractEntityMetadataBundle {
                         _marker: AbstractEntity,
                         on_fire: OnFire(false),
-                        shift_key_down: ShiftKeyDown(false),
+                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                         sprinting: Sprinting(false),
                         swimming: Swimming(false),
                         currently_glowing: CurrentlyGlowing(false),
@@ -6943,7 +6994,9 @@ impl Default for PigMetadataBundle {
                                 parent: AbstractEntityMetadataBundle {
                                     _marker: AbstractEntity,
                                     on_fire: OnFire(false),
-                                    shift_key_down: ShiftKeyDown(false),
+                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                        false,
+                                    ),
                                     sprinting: Sprinting(false),
                                     swimming: Swimming(false),
                                     currently_glowing: CurrentlyGlowing(false),
@@ -7037,7 +7090,9 @@ impl Default for PiglinMetadataBundle {
                                 parent: AbstractEntityMetadataBundle {
                                     _marker: AbstractEntity,
                                     on_fire: OnFire(false),
-                                    shift_key_down: ShiftKeyDown(false),
+                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                        false,
+                                    ),
                                     sprinting: Sprinting(false),
                                     swimming: Swimming(false),
                                     currently_glowing: CurrentlyGlowing(false),
@@ -7112,7 +7167,9 @@ impl Default for PiglinBruteMetadataBundle {
                                 parent: AbstractEntityMetadataBundle {
                                     _marker: AbstractEntity,
                                     on_fire: OnFire(false),
-                                    shift_key_down: ShiftKeyDown(false),
+                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                        false,
+                                    ),
                                     sprinting: Sprinting(false),
                                     swimming: Swimming(false),
                                     currently_glowing: CurrentlyGlowing(false),
@@ -7190,7 +7247,9 @@ impl Default for PillagerMetadataBundle {
                                 parent: AbstractEntityMetadataBundle {
                                     _marker: AbstractEntity,
                                     on_fire: OnFire(false),
-                                    shift_key_down: ShiftKeyDown(false),
+                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                        false,
+                                    ),
                                     sprinting: Sprinting(false),
                                     swimming: Swimming(false),
                                     currently_glowing: CurrentlyGlowing(false),
@@ -7291,7 +7350,7 @@ impl Default for PlayerMetadataBundle {
                 parent: AbstractEntityMetadataBundle {
                     _marker: AbstractEntity,
                     on_fire: OnFire(false),
-                    shift_key_down: ShiftKeyDown(false),
+                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                     sprinting: Sprinting(false),
                     swimming: Swimming(false),
                     currently_glowing: CurrentlyGlowing(false),
@@ -7367,7 +7426,9 @@ impl Default for PolarBearMetadataBundle {
                                 parent: AbstractEntityMetadataBundle {
                                     _marker: AbstractEntity,
                                     on_fire: OnFire(false),
-                                    shift_key_down: ShiftKeyDown(false),
+                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                        false,
+                                    ),
                                     sprinting: Sprinting(false),
                                     swimming: Swimming(false),
                                     currently_glowing: CurrentlyGlowing(false),
@@ -7448,7 +7509,7 @@ impl Default for PufferfishMetadataBundle {
                         parent: AbstractEntityMetadataBundle {
                             _marker: AbstractEntity,
                             on_fire: OnFire(false),
-                            shift_key_down: ShiftKeyDown(false),
+                            abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                             sprinting: Sprinting(false),
                             swimming: Swimming(false),
                             currently_glowing: CurrentlyGlowing(false),
@@ -7525,7 +7586,9 @@ impl Default for RabbitMetadataBundle {
                                 parent: AbstractEntityMetadataBundle {
                                     _marker: AbstractEntity,
                                     on_fire: OnFire(false),
-                                    shift_key_down: ShiftKeyDown(false),
+                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                        false,
+                                    ),
                                     sprinting: Sprinting(false),
                                     swimming: Swimming(false),
                                     currently_glowing: CurrentlyGlowing(false),
@@ -7598,7 +7661,9 @@ impl Default for RavagerMetadataBundle {
                                 parent: AbstractEntityMetadataBundle {
                                     _marker: AbstractEntity,
                                     on_fire: OnFire(false),
-                                    shift_key_down: ShiftKeyDown(false),
+                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                        false,
+                                    ),
                                     sprinting: Sprinting(false),
                                     swimming: Swimming(false),
                                     currently_glowing: CurrentlyGlowing(false),
@@ -7674,7 +7739,7 @@ impl Default for SalmonMetadataBundle {
                             parent: AbstractEntityMetadataBundle {
                                 _marker: AbstractEntity,
                                 on_fire: OnFire(false),
-                                shift_key_down: ShiftKeyDown(false),
+                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                                 sprinting: Sprinting(false),
                                 swimming: Swimming(false),
                                 currently_glowing: CurrentlyGlowing(false),
@@ -7753,7 +7818,9 @@ impl Default for SheepMetadataBundle {
                                 parent: AbstractEntityMetadataBundle {
                                     _marker: AbstractEntity,
                                     on_fire: OnFire(false),
-                                    shift_key_down: ShiftKeyDown(false),
+                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                        false,
+                                    ),
                                     sprinting: Sprinting(false),
                                     swimming: Swimming(false),
                                     currently_glowing: CurrentlyGlowing(false),
@@ -7840,7 +7907,7 @@ impl Default for ShulkerMetadataBundle {
                         parent: AbstractEntityMetadataBundle {
                             _marker: AbstractEntity,
                             on_fire: OnFire(false),
-                            shift_key_down: ShiftKeyDown(false),
+                            abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                             sprinting: Sprinting(false),
                             swimming: Swimming(false),
                             currently_glowing: CurrentlyGlowing(false),
@@ -7902,7 +7969,7 @@ impl Default for ShulkerBulletMetadataBundle {
             parent: AbstractEntityMetadataBundle {
                 _marker: AbstractEntity,
                 on_fire: OnFire(false),
-                shift_key_down: ShiftKeyDown(false),
+                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                 sprinting: Sprinting(false),
                 swimming: Swimming(false),
                 currently_glowing: CurrentlyGlowing(false),
@@ -7955,7 +8022,7 @@ impl Default for SilverfishMetadataBundle {
                             parent: AbstractEntityMetadataBundle {
                                 _marker: AbstractEntity,
                                 on_fire: OnFire(false),
-                                shift_key_down: ShiftKeyDown(false),
+                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                                 sprinting: Sprinting(false),
                                 swimming: Swimming(false),
                                 currently_glowing: CurrentlyGlowing(false),
@@ -8029,7 +8096,7 @@ impl Default for SkeletonMetadataBundle {
                             parent: AbstractEntityMetadataBundle {
                                 _marker: AbstractEntity,
                                 on_fire: OnFire(false),
-                                shift_key_down: ShiftKeyDown(false),
+                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                                 sprinting: Sprinting(false),
                                 swimming: Swimming(false),
                                 currently_glowing: CurrentlyGlowing(false),
@@ -8102,7 +8169,9 @@ impl Default for SkeletonHorseMetadataBundle {
                                     parent: AbstractEntityMetadataBundle {
                                         _marker: AbstractEntity,
                                         on_fire: OnFire(false),
-                                        shift_key_down: ShiftKeyDown(false),
+                                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                            false,
+                                        ),
                                         sprinting: Sprinting(false),
                                         swimming: Swimming(false),
                                         currently_glowing: CurrentlyGlowing(false),
@@ -8177,7 +8246,7 @@ impl Default for SlimeMetadataBundle {
                     parent: AbstractEntityMetadataBundle {
                         _marker: AbstractEntity,
                         on_fire: OnFire(false),
-                        shift_key_down: ShiftKeyDown(false),
+                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                         sprinting: Sprinting(false),
                         swimming: Swimming(false),
                         currently_glowing: CurrentlyGlowing(false),
@@ -8242,7 +8311,7 @@ impl Default for SmallFireballMetadataBundle {
             parent: AbstractEntityMetadataBundle {
                 _marker: AbstractEntity,
                 on_fire: OnFire(false),
-                shift_key_down: ShiftKeyDown(false),
+                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                 sprinting: Sprinting(false),
                 swimming: Swimming(false),
                 currently_glowing: CurrentlyGlowing(false),
@@ -8310,7 +8379,9 @@ impl Default for SnifferMetadataBundle {
                                 parent: AbstractEntityMetadataBundle {
                                     _marker: AbstractEntity,
                                     on_fire: OnFire(false),
-                                    shift_key_down: ShiftKeyDown(false),
+                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                        false,
+                                    ),
                                     sprinting: Sprinting(false),
                                     swimming: Swimming(false),
                                     currently_glowing: CurrentlyGlowing(false),
@@ -8387,7 +8458,7 @@ impl Default for SnowGolemMetadataBundle {
                         parent: AbstractEntityMetadataBundle {
                             _marker: AbstractEntity,
                             on_fire: OnFire(false),
-                            shift_key_down: ShiftKeyDown(false),
+                            abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                             sprinting: Sprinting(false),
                             swimming: Swimming(false),
                             currently_glowing: CurrentlyGlowing(false),
@@ -8449,7 +8520,7 @@ impl Default for SnowballMetadataBundle {
                 parent: AbstractEntityMetadataBundle {
                     _marker: AbstractEntity,
                     on_fire: OnFire(false),
-                    shift_key_down: ShiftKeyDown(false),
+                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                     sprinting: Sprinting(false),
                     swimming: Swimming(false),
                     currently_glowing: CurrentlyGlowing(false),
@@ -8502,7 +8573,7 @@ impl Default for SpawnerMinecartMetadataBundle {
                     parent: AbstractEntityMetadataBundle {
                         _marker: AbstractEntity,
                         on_fire: OnFire(false),
-                        shift_key_down: ShiftKeyDown(false),
+                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                         sprinting: Sprinting(false),
                         swimming: Swimming(false),
                         currently_glowing: CurrentlyGlowing(false),
@@ -8556,7 +8627,7 @@ impl Default for SpectralArrowMetadataBundle {
                 parent: AbstractEntityMetadataBundle {
                     _marker: AbstractEntity,
                     on_fire: OnFire(false),
-                    shift_key_down: ShiftKeyDown(false),
+                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                     sprinting: Sprinting(false),
                     swimming: Swimming(false),
                     currently_glowing: CurrentlyGlowing(false),
@@ -8619,7 +8690,7 @@ impl Default for SpiderMetadataBundle {
                             parent: AbstractEntityMetadataBundle {
                                 _marker: AbstractEntity,
                                 on_fire: OnFire(false),
-                                shift_key_down: ShiftKeyDown(false),
+                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                                 sprinting: Sprinting(false),
                                 swimming: Swimming(false),
                                 currently_glowing: CurrentlyGlowing(false),
@@ -8682,7 +8753,7 @@ impl Default for SplashPotionMetadataBundle {
                 parent: AbstractEntityMetadataBundle {
                     _marker: AbstractEntity,
                     on_fire: OnFire(false),
-                    shift_key_down: ShiftKeyDown(false),
+                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                     sprinting: Sprinting(false),
                     swimming: Swimming(false),
                     currently_glowing: CurrentlyGlowing(false),
@@ -8735,7 +8806,7 @@ impl Default for SpruceBoatMetadataBundle {
                     parent: AbstractEntityMetadataBundle {
                         _marker: AbstractEntity,
                         on_fire: OnFire(false),
-                        shift_key_down: ShiftKeyDown(false),
+                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                         sprinting: Sprinting(false),
                         swimming: Swimming(false),
                         currently_glowing: CurrentlyGlowing(false),
@@ -8792,7 +8863,7 @@ impl Default for SpruceChestBoatMetadataBundle {
                     parent: AbstractEntityMetadataBundle {
                         _marker: AbstractEntity,
                         on_fire: OnFire(false),
-                        shift_key_down: ShiftKeyDown(false),
+                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                         sprinting: Sprinting(false),
                         swimming: Swimming(false),
                         currently_glowing: CurrentlyGlowing(false),
@@ -8853,7 +8924,7 @@ impl Default for SquidMetadataBundle {
                             parent: AbstractEntityMetadataBundle {
                                 _marker: AbstractEntity,
                                 on_fire: OnFire(false),
-                                shift_key_down: ShiftKeyDown(false),
+                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                                 sprinting: Sprinting(false),
                                 swimming: Swimming(false),
                                 currently_glowing: CurrentlyGlowing(false),
@@ -8922,7 +8993,7 @@ impl Default for StrayMetadataBundle {
                             parent: AbstractEntityMetadataBundle {
                                 _marker: AbstractEntity,
                                 on_fire: OnFire(false),
-                                shift_key_down: ShiftKeyDown(false),
+                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                                 sprinting: Sprinting(false),
                                 swimming: Swimming(false),
                                 currently_glowing: CurrentlyGlowing(false),
@@ -9004,7 +9075,9 @@ impl Default for StriderMetadataBundle {
                                 parent: AbstractEntityMetadataBundle {
                                     _marker: AbstractEntity,
                                     on_fire: OnFire(false),
-                                    shift_key_down: ShiftKeyDown(false),
+                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                        false,
+                                    ),
                                     sprinting: Sprinting(false),
                                     swimming: Swimming(false),
                                     currently_glowing: CurrentlyGlowing(false),
@@ -9080,7 +9153,7 @@ impl Default for TadpoleMetadataBundle {
                         parent: AbstractEntityMetadataBundle {
                             _marker: AbstractEntity,
                             on_fire: OnFire(false),
-                            shift_key_down: ShiftKeyDown(false),
+                            abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                             sprinting: Sprinting(false),
                             swimming: Swimming(false),
                             currently_glowing: CurrentlyGlowing(false),
@@ -9172,7 +9245,7 @@ impl Default for TextDisplayMetadataBundle {
                 parent: AbstractEntityMetadataBundle {
                     _marker: AbstractEntity,
                     on_fire: OnFire(false),
-                    shift_key_down: ShiftKeyDown(false),
+                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                     sprinting: Sprinting(false),
                     swimming: Swimming(false),
                     currently_glowing: CurrentlyGlowing(false),
@@ -9269,7 +9342,7 @@ impl Default for TntMetadataBundle {
             parent: AbstractEntityMetadataBundle {
                 _marker: AbstractEntity,
                 on_fire: OnFire(false),
-                shift_key_down: ShiftKeyDown(false),
+                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                 sprinting: Sprinting(false),
                 swimming: Swimming(false),
                 currently_glowing: CurrentlyGlowing(false),
@@ -9320,7 +9393,7 @@ impl Default for TntMinecartMetadataBundle {
                     parent: AbstractEntityMetadataBundle {
                         _marker: AbstractEntity,
                         on_fire: OnFire(false),
-                        shift_key_down: ShiftKeyDown(false),
+                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                         sprinting: Sprinting(false),
                         swimming: Swimming(false),
                         currently_glowing: CurrentlyGlowing(false),
@@ -9388,7 +9461,8 @@ impl Default for TraderLlamaMetadataBundle {
                                             parent: AbstractEntityMetadataBundle {
                                                 _marker: AbstractEntity,
                                                 on_fire: OnFire(false),
-                                                shift_key_down: ShiftKeyDown(false),
+                                                abstract_entity_shift_key_down:
+                                                    AbstractEntityShiftKeyDown(false),
                                                 sprinting: Sprinting(false),
                                                 swimming: Swimming(false),
                                                 currently_glowing: CurrentlyGlowing(false),
@@ -9478,7 +9552,7 @@ impl Default for TridentMetadataBundle {
                 parent: AbstractEntityMetadataBundle {
                     _marker: AbstractEntity,
                     on_fire: OnFire(false),
-                    shift_key_down: ShiftKeyDown(false),
+                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                     sprinting: Sprinting(false),
                     swimming: Swimming(false),
                     currently_glowing: CurrentlyGlowing(false),
@@ -9544,7 +9618,7 @@ impl Default for TropicalFishMetadataBundle {
                             parent: AbstractEntityMetadataBundle {
                                 _marker: AbstractEntity,
                                 on_fire: OnFire(false),
-                                shift_key_down: ShiftKeyDown(false),
+                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                                 sprinting: Sprinting(false),
                                 swimming: Swimming(false),
                                 currently_glowing: CurrentlyGlowing(false),
@@ -9628,7 +9702,9 @@ impl Default for TurtleMetadataBundle {
                                 parent: AbstractEntityMetadataBundle {
                                     _marker: AbstractEntity,
                                     on_fire: OnFire(false),
-                                    shift_key_down: ShiftKeyDown(false),
+                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                        false,
+                                    ),
                                     sprinting: Sprinting(false),
                                     swimming: Swimming(false),
                                     currently_glowing: CurrentlyGlowing(false),
@@ -9706,7 +9782,7 @@ impl Default for VexMetadataBundle {
                             parent: AbstractEntityMetadataBundle {
                                 _marker: AbstractEntity,
                                 on_fire: OnFire(false),
-                                shift_key_down: ShiftKeyDown(false),
+                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                                 sprinting: Sprinting(false),
                                 swimming: Swimming(false),
                                 currently_glowing: CurrentlyGlowing(false),
@@ -9785,7 +9861,9 @@ impl Default for VillagerMetadataBundle {
                                 parent: AbstractEntityMetadataBundle {
                                     _marker: AbstractEntity,
                                     on_fire: OnFire(false),
-                                    shift_key_down: ShiftKeyDown(false),
+                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                        false,
+                                    ),
                                     sprinting: Sprinting(false),
                                     swimming: Swimming(false),
                                     currently_glowing: CurrentlyGlowing(false),
@@ -9863,7 +9941,9 @@ impl Default for VindicatorMetadataBundle {
                                 parent: AbstractEntityMetadataBundle {
                                     _marker: AbstractEntity,
                                     on_fire: OnFire(false),
-                                    shift_key_down: ShiftKeyDown(false),
+                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                        false,
+                                    ),
                                     sprinting: Sprinting(false),
                                     swimming: Swimming(false),
                                     currently_glowing: CurrentlyGlowing(false),
@@ -9935,7 +10015,9 @@ impl Default for WanderingTraderMetadataBundle {
                                 parent: AbstractEntityMetadataBundle {
                                     _marker: AbstractEntity,
                                     on_fire: OnFire(false),
-                                    shift_key_down: ShiftKeyDown(false),
+                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                        false,
+                                    ),
                                     sprinting: Sprinting(false),
                                     swimming: Swimming(false),
                                     currently_glowing: CurrentlyGlowing(false),
@@ -10012,7 +10094,7 @@ impl Default for WardenMetadataBundle {
                             parent: AbstractEntityMetadataBundle {
                                 _marker: AbstractEntity,
                                 on_fire: OnFire(false),
-                                shift_key_down: ShiftKeyDown(false),
+                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                                 sprinting: Sprinting(false),
                                 swimming: Swimming(false),
                                 currently_glowing: CurrentlyGlowing(false),
@@ -10073,7 +10155,7 @@ impl Default for WindChargeMetadataBundle {
             parent: AbstractEntityMetadataBundle {
                 _marker: AbstractEntity,
                 on_fire: OnFire(false),
-                shift_key_down: ShiftKeyDown(false),
+                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                 sprinting: Sprinting(false),
                 swimming: Swimming(false),
                 currently_glowing: CurrentlyGlowing(false),
@@ -10134,7 +10216,9 @@ impl Default for WitchMetadataBundle {
                                 parent: AbstractEntityMetadataBundle {
                                     _marker: AbstractEntity,
                                     on_fire: OnFire(false),
-                                    shift_key_down: ShiftKeyDown(false),
+                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                        false,
+                                    ),
                                     sprinting: Sprinting(false),
                                     swimming: Swimming(false),
                                     currently_glowing: CurrentlyGlowing(false),
@@ -10229,7 +10313,7 @@ impl Default for WitherMetadataBundle {
                             parent: AbstractEntityMetadataBundle {
                                 _marker: AbstractEntity,
                                 on_fire: OnFire(false),
-                                shift_key_down: ShiftKeyDown(false),
+                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                                 sprinting: Sprinting(false),
                                 swimming: Swimming(false),
                                 currently_glowing: CurrentlyGlowing(false),
@@ -10301,7 +10385,7 @@ impl Default for WitherSkeletonMetadataBundle {
                             parent: AbstractEntityMetadataBundle {
                                 _marker: AbstractEntity,
                                 on_fire: OnFire(false),
-                                shift_key_down: ShiftKeyDown(false),
+                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                                 sprinting: Sprinting(false),
                                 swimming: Swimming(false),
                                 currently_glowing: CurrentlyGlowing(false),
@@ -10367,7 +10451,7 @@ impl Default for WitherSkullMetadataBundle {
             parent: AbstractEntityMetadataBundle {
                 _marker: AbstractEntity,
                 on_fire: OnFire(false),
-                shift_key_down: ShiftKeyDown(false),
+                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                 sprinting: Sprinting(false),
                 swimming: Swimming(false),
                 currently_glowing: CurrentlyGlowing(false),
@@ -10455,7 +10539,9 @@ impl Default for WolfMetadataBundle {
                                     parent: AbstractEntityMetadataBundle {
                                         _marker: AbstractEntity,
                                         on_fire: OnFire(false),
-                                        shift_key_down: ShiftKeyDown(false),
+                                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                            false,
+                                        ),
                                         sprinting: Sprinting(false),
                                         swimming: Swimming(false),
                                         currently_glowing: CurrentlyGlowing(false),
@@ -10540,7 +10626,7 @@ impl Default for ZoglinMetadataBundle {
                             parent: AbstractEntityMetadataBundle {
                                 _marker: AbstractEntity,
                                 on_fire: OnFire(false),
-                                shift_key_down: ShiftKeyDown(false),
+                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                                 sprinting: Sprinting(false),
                                 swimming: Swimming(false),
                                 currently_glowing: CurrentlyGlowing(false),
@@ -10621,7 +10707,7 @@ impl Default for ZombieMetadataBundle {
                             parent: AbstractEntityMetadataBundle {
                                 _marker: AbstractEntity,
                                 on_fire: OnFire(false),
-                                shift_key_down: ShiftKeyDown(false),
+                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                                 sprinting: Sprinting(false),
                                 swimming: Swimming(false),
                                 currently_glowing: CurrentlyGlowing(false),
@@ -10696,7 +10782,9 @@ impl Default for ZombieHorseMetadataBundle {
                                     parent: AbstractEntityMetadataBundle {
                                         _marker: AbstractEntity,
                                         on_fire: OnFire(false),
-                                        shift_key_down: ShiftKeyDown(false),
+                                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                            false,
+                                        ),
                                         sprinting: Sprinting(false),
                                         swimming: Swimming(false),
                                         currently_glowing: CurrentlyGlowing(false),
@@ -10785,7 +10873,9 @@ impl Default for ZombieVillagerMetadataBundle {
                                 parent: AbstractEntityMetadataBundle {
                                     _marker: AbstractEntity,
                                     on_fire: OnFire(false),
-                                    shift_key_down: ShiftKeyDown(false),
+                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                        false,
+                                    ),
                                     sprinting: Sprinting(false),
                                     swimming: Swimming(false),
                                     currently_glowing: CurrentlyGlowing(false),
@@ -10865,7 +10955,9 @@ impl Default for ZombifiedPiglinMetadataBundle {
                                 parent: AbstractEntityMetadataBundle {
                                     _marker: AbstractEntity,
                                     on_fire: OnFire(false),
-                                    shift_key_down: ShiftKeyDown(false),
+                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                        false,
+                                    ),
                                     sprinting: Sprinting(false),
                                     swimming: Swimming(false),
                                     currently_glowing: CurrentlyGlowing(false),
@@ -10939,7 +11031,7 @@ impl Default for AbstractAgeableMetadataBundle {
                         parent: AbstractEntityMetadataBundle {
                             _marker: AbstractEntity,
                             on_fire: OnFire(false),
-                            shift_key_down: ShiftKeyDown(false),
+                            abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                             sprinting: Sprinting(false),
                             swimming: Swimming(false),
                             currently_glowing: CurrentlyGlowing(false),
@@ -11007,7 +11099,7 @@ impl Default for AbstractAnimalMetadataBundle {
                             parent: AbstractEntityMetadataBundle {
                                 _marker: AbstractEntity,
                                 on_fire: OnFire(false),
-                                shift_key_down: ShiftKeyDown(false),
+                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                                 sprinting: Sprinting(false),
                                 swimming: Swimming(false),
                                 currently_glowing: CurrentlyGlowing(false),
@@ -11083,7 +11175,7 @@ impl Default for AbstractArrowMetadataBundle {
             parent: AbstractEntityMetadataBundle {
                 _marker: AbstractEntity,
                 on_fire: OnFire(false),
-                shift_key_down: ShiftKeyDown(false),
+                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                 sprinting: Sprinting(false),
                 swimming: Swimming(false),
                 currently_glowing: CurrentlyGlowing(false),
@@ -11146,7 +11238,7 @@ impl Default for AbstractBoatMetadataBundle {
                 parent: AbstractEntityMetadataBundle {
                     _marker: AbstractEntity,
                     on_fire: OnFire(false),
-                    shift_key_down: ShiftKeyDown(false),
+                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                     sprinting: Sprinting(false),
                     swimming: Swimming(false),
                     currently_glowing: CurrentlyGlowing(false),
@@ -11214,7 +11306,9 @@ impl Default for AbstractChestedHorseMetadataBundle {
                                     parent: AbstractEntityMetadataBundle {
                                         _marker: AbstractEntity,
                                         on_fire: OnFire(false),
-                                        shift_key_down: ShiftKeyDown(false),
+                                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                            false,
+                                        ),
                                         sprinting: Sprinting(false),
                                         swimming: Swimming(false),
                                         currently_glowing: CurrentlyGlowing(false),
@@ -11286,7 +11380,7 @@ impl Default for AbstractCreatureMetadataBundle {
                     parent: AbstractEntityMetadataBundle {
                         _marker: AbstractEntity,
                         on_fire: OnFire(false),
-                        shift_key_down: ShiftKeyDown(false),
+                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                         sprinting: Sprinting(false),
                         swimming: Swimming(false),
                         currently_glowing: CurrentlyGlowing(false),
@@ -11406,7 +11500,7 @@ impl Default for AbstractDisplayMetadataBundle {
             parent: AbstractEntityMetadataBundle {
                 _marker: AbstractEntity,
                 on_fire: OnFire(false),
-                shift_key_down: ShiftKeyDown(false),
+                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                 sprinting: Sprinting(false),
                 swimming: Swimming(false),
                 currently_glowing: CurrentlyGlowing(false),
@@ -11469,7 +11563,7 @@ impl AbstractEntity {
             0 => {
                 let bitfield = d.value.into_byte()?;
                 entity.insert(OnFire(bitfield & 0x1 != 0));
-                entity.insert(ShiftKeyDown(bitfield & 0x2 != 0));
+                entity.insert(AbstractEntityShiftKeyDown(bitfield & 0x2 != 0));
                 entity.insert(Sprinting(bitfield & 0x8 != 0));
                 entity.insert(Swimming(bitfield & 0x10 != 0));
                 entity.insert(CurrentlyGlowing(bitfield & 0x40 != 0));
@@ -11507,7 +11601,7 @@ impl AbstractEntity {
 pub struct AbstractEntityMetadataBundle {
     _marker: AbstractEntity,
     on_fire: OnFire,
-    shift_key_down: ShiftKeyDown,
+    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown,
     sprinting: Sprinting,
     swimming: Swimming,
     currently_glowing: CurrentlyGlowing,
@@ -11526,7 +11620,7 @@ impl Default for AbstractEntityMetadataBundle {
         Self {
             _marker: AbstractEntity,
             on_fire: OnFire(false),
-            shift_key_down: ShiftKeyDown(false),
+            abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
             sprinting: Sprinting(false),
             swimming: Swimming(false),
             currently_glowing: CurrentlyGlowing(false),
@@ -11580,7 +11674,7 @@ impl Default for AbstractFishMetadataBundle {
                         parent: AbstractEntityMetadataBundle {
                             _marker: AbstractEntity,
                             on_fire: OnFire(false),
-                            shift_key_down: ShiftKeyDown(false),
+                            abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                             sprinting: Sprinting(false),
                             swimming: Swimming(false),
                             currently_glowing: CurrentlyGlowing(false),
@@ -11661,7 +11755,9 @@ impl Default for AbstractHorseMetadataBundle {
                                 parent: AbstractEntityMetadataBundle {
                                     _marker: AbstractEntity,
                                     on_fire: OnFire(false),
-                                    shift_key_down: ShiftKeyDown(false),
+                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                        false,
+                                    ),
                                     sprinting: Sprinting(false),
                                     swimming: Swimming(false),
                                     currently_glowing: CurrentlyGlowing(false),
@@ -11738,7 +11834,7 @@ impl Default for AbstractInsentientMetadataBundle {
                 parent: AbstractEntityMetadataBundle {
                     _marker: AbstractEntity,
                     on_fire: OnFire(false),
-                    shift_key_down: ShiftKeyDown(false),
+                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                     sprinting: Sprinting(false),
                     swimming: Swimming(false),
                     currently_glowing: CurrentlyGlowing(false),
@@ -11826,7 +11922,7 @@ impl Default for AbstractLivingMetadataBundle {
             parent: AbstractEntityMetadataBundle {
                 _marker: AbstractEntity,
                 on_fire: OnFire(false),
-                shift_key_down: ShiftKeyDown(false),
+                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                 sprinting: Sprinting(false),
                 swimming: Swimming(false),
                 currently_glowing: CurrentlyGlowing(false),
@@ -11889,7 +11985,7 @@ impl Default for AbstractMinecartMetadataBundle {
                 parent: AbstractEntityMetadataBundle {
                     _marker: AbstractEntity,
                     on_fire: OnFire(false),
-                    shift_key_down: ShiftKeyDown(false),
+                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                     sprinting: Sprinting(false),
                     swimming: Swimming(false),
                     currently_glowing: CurrentlyGlowing(false),
@@ -11946,7 +12042,7 @@ impl Default for AbstractMonsterMetadataBundle {
                         parent: AbstractEntityMetadataBundle {
                             _marker: AbstractEntity,
                             on_fire: OnFire(false),
-                            shift_key_down: ShiftKeyDown(false),
+                            abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                             sprinting: Sprinting(false),
                             swimming: Swimming(false),
                             currently_glowing: CurrentlyGlowing(false),
@@ -12017,7 +12113,7 @@ impl Default for AbstractPiglinMetadataBundle {
                             parent: AbstractEntityMetadataBundle {
                                 _marker: AbstractEntity,
                                 on_fire: OnFire(false),
-                                shift_key_down: ShiftKeyDown(false),
+                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                                 sprinting: Sprinting(false),
                                 swimming: Swimming(false),
                                 currently_glowing: CurrentlyGlowing(false),
@@ -12090,7 +12186,7 @@ impl Default for AbstractRaiderMetadataBundle {
                             parent: AbstractEntityMetadataBundle {
                                 _marker: AbstractEntity,
                                 on_fire: OnFire(false),
-                                shift_key_down: ShiftKeyDown(false),
+                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                                 sprinting: Sprinting(false),
                                 swimming: Swimming(false),
                                 currently_glowing: CurrentlyGlowing(false),
@@ -12165,7 +12261,9 @@ impl Default for AbstractSpellcasterIllagerMetadataBundle {
                                 parent: AbstractEntityMetadataBundle {
                                     _marker: AbstractEntity,
                                     on_fire: OnFire(false),
-                                    shift_key_down: ShiftKeyDown(false),
+                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                        false,
+                                    ),
                                     sprinting: Sprinting(false),
                                     swimming: Swimming(false),
                                     currently_glowing: CurrentlyGlowing(false),
@@ -12249,7 +12347,9 @@ impl Default for AbstractTameableMetadataBundle {
                                 parent: AbstractEntityMetadataBundle {
                                     _marker: AbstractEntity,
                                     on_fire: OnFire(false),
-                                    shift_key_down: ShiftKeyDown(false),
+                                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(
+                                        false,
+                                    ),
                                     sprinting: Sprinting(false),
                                     swimming: Swimming(false),
                                     currently_glowing: CurrentlyGlowing(false),
@@ -12320,7 +12420,7 @@ impl Default for AbstractThrownItemProjectileMetadataBundle {
             parent: AbstractEntityMetadataBundle {
                 _marker: AbstractEntity,
                 on_fire: OnFire(false),
-                shift_key_down: ShiftKeyDown(false),
+                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                 sprinting: Sprinting(false),
                 swimming: Swimming(false),
                 currently_glowing: CurrentlyGlowing(false),
@@ -12380,7 +12480,7 @@ impl Default for AbstractVehicleMetadataBundle {
             parent: AbstractEntityMetadataBundle {
                 _marker: AbstractEntity,
                 on_fire: OnFire(false),
-                shift_key_down: ShiftKeyDown(false),
+                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                 sprinting: Sprinting(false),
                 swimming: Swimming(false),
                 currently_glowing: CurrentlyGlowing(false),
@@ -12440,7 +12540,7 @@ impl Default for AbstractVillagerMetadataBundle {
                             parent: AbstractEntityMetadataBundle {
                                 _marker: AbstractEntity,
                                 on_fire: OnFire(false),
-                                shift_key_down: ShiftKeyDown(false),
+                                abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
                                 sprinting: Sprinting(false),
                                 swimming: Swimming(false),
                                 currently_glowing: CurrentlyGlowing(false),

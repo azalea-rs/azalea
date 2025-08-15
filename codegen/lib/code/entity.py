@@ -152,6 +152,10 @@ impl From<EntityDataValue> for UpdateMetadataError {
 
     # some generic names... we don't like these
     duplicate_field_names.add("state")  # SnifferState instead of State
+    duplicate_field_names.add("crouching")  # FoxCrouching instead of Crouching
+
+    # make this one longer to avoid accidental use -- AbstractEntityShiftKeyDown instead of ShiftKeydown
+    duplicate_field_names.add("shift_key_down")
 
     for entity_id in burger_entity_metadata.keys():
         field_name_map[entity_id] = {}
@@ -626,7 +630,7 @@ impl From<EntityDataValue> for UpdateMetadataError {
 
 def generate_entity_dimensions(burger_entities_data: dict):
     # lines look like
-    # EntityKind::Player => EntityDimensions::new(0.6, 1.8),
+    # EntityKind::Player => EntityDimensions::new(0.6, 1.8).eye_height(1.62),
     new_match_lines = []
     for entity_id, entity_data in burger_entities_data["entity"].items():
         if entity_id.startswith("~"):
@@ -635,9 +639,10 @@ def generate_entity_dimensions(burger_entities_data: dict):
         variant_name: str = upper_first_letter(to_camel_case(entity_id))
         width = entity_data["width"]
         height = entity_data["height"]
-        new_match_lines.append(
-            f"        EntityKind::{variant_name} => EntityDimensions::new({width}, {height}),"
-        )
+        expr = f"EntityDimensions::new({width}, {height})"
+        if "eye_height" in entity_data:
+            expr += f".eye_height({entity_data['eye_height']})"
+        new_match_lines.append(f"        EntityKind::{variant_name} => {expr},")
 
     with open(DIMENSIONS_RS_DIR, "r") as f:
         lines = f.read().split("\n")
@@ -650,7 +655,7 @@ def generate_entity_dimensions(burger_entities_data: dict):
             if line.strip() == "match entity {":
                 in_match = True
         else:
-            if line.strip() == "}":
+            if line == "        }":
                 new_lines.extend(new_match_lines)
                 new_lines.extend(lines[i:])
                 break
