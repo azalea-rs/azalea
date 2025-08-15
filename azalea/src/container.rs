@@ -267,7 +267,7 @@ impl ContainerHandle {
 #[derive(Component, Debug)]
 pub struct WaitingForInventoryOpen;
 
-fn handle_menu_opened_event(
+pub fn handle_menu_opened_event(
     mut commands: Commands,
     mut events: EventReader<ReceiveGamePacketEvent>,
 ) {
