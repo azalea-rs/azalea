@@ -429,8 +429,8 @@ impl Client {
         )
     }
 
-    /// Get the bounding box dimensions for our client, including our eye
-    /// height.
+    /// Get the bounding box dimensions for our client, which contains our
+    /// width, height, and eye height.
     ///
     /// This is a shortcut for
     /// `self.component::<EntityDimensions>()`.
