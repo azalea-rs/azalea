@@ -41,6 +41,8 @@ is breaking anyways, semantic versioning is not followed.
 - Inventories now use the correct max stack sizes.
 - Clients now send the correct data component checksums when interacting with items.
 - Fix parsing some metadata fields of Display entities.
+- Mining blocks in creative mode now works. (@qwqawawow)
+- Improved matchers on the `ChatPacket` functions to work on more servers. (@ShayBox)
 
 ## [0.13.0+mc1.21.5] - 2025-06-15
 
