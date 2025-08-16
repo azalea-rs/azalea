@@ -73,10 +73,11 @@ where
 
         let (&node, node_data) = nodes.get_index(index).unwrap();
         if success(node) {
-            debug!("Nodes considered: {num_nodes}");
+            let best_path = index;
+            log_perf_info(start_time, num_nodes, num_movements);
 
             return Path {
-                movements: reconstruct_path(nodes, index, successors),
+                movements: reconstruct_path(nodes, best_path, successors),
                 is_partial: false,
             };
         }
@@ -163,20 +164,26 @@ where
     }
 
     let best_path = determine_best_path(best_paths, 0);
+    log_perf_info(start_time, num_nodes, num_movements);
+    Path {
+        movements: reconstruct_path(nodes, best_path, successors),
+        is_partial: true,
+    }
+}
 
+fn log_perf_info(start_time: Instant, num_nodes: usize, num_movements: usize) {
     let elapsed_seconds = start_time.elapsed().as_secs_f64();
     let nodes_per_second = (num_nodes as f64 / elapsed_seconds) as u64;
     let num_movements_per_second = (num_movements as f64 / elapsed_seconds) as u64;
+    debug!(
+        "Nodes considered: {}",
+        num_nodes.to_formatted_string(&num_format::Locale::en)
+    );
     debug!(
         "A* ran at {} nodes per second and {} movements per second",
         nodes_per_second.to_formatted_string(&num_format::Locale::en),
         num_movements_per_second.to_formatted_string(&num_format::Locale::en),
     );
-
-    Path {
-        movements: reconstruct_path(nodes, best_path, successors),
-        is_partial: true,
-    }
 }
 
 fn determine_best_path(best_paths: [usize; 7], start: usize) -> usize {
