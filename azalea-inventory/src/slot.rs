@@ -349,6 +349,17 @@ impl DataComponentPatch {
             )
         })
     }
+    /// Insert a new component into this patch, or mark a component as removed.
+    ///
+    /// # Safety
+    /// The [`DataComponentUnion`] must be of the correct kind.
+    pub unsafe fn unchecked_insert_component(
+        &mut self,
+        kind: DataComponentKind,
+        value: Option<DataComponentUnion>,
+    ) {
+        self.components.insert(kind, value);
+    }
 }
 
 impl Drop for DataComponentPatch {

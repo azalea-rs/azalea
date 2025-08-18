@@ -11,14 +11,14 @@ use azalea_core::{
     tick::GameTick,
 };
 use azalea_entity::{
-    Attributes, Crouching, LocalEntity, LookDirection, PlayerAbilities,
+    Attributes, LocalEntity, LookDirection, PlayerAbilities,
     attributes::{
         creative_block_interaction_range_modifier, creative_entity_interaction_range_modifier,
     },
     clamp_look_direction,
 };
 use azalea_inventory::{ItemStack, ItemStackData, components};
-use azalea_physics::PhysicsSet;
+use azalea_physics::{PhysicsSet, local_player::PhysicsState};
 use azalea_protocol::packets::game::{
     ServerboundInteract, ServerboundUseItem,
     s_interact::{self, InteractionHand},
@@ -250,7 +250,7 @@ pub fn handle_start_use_item_queued(
         &mut BlockStatePredictionHandler,
         &HitResultComponent,
         &LookDirection,
-        &Crouching,
+        &PhysicsState,
         Option<&Mining>,
     )>,
     entity_id_query: Query<&MinecraftEntityId>,
@@ -261,7 +261,7 @@ pub fn handle_start_use_item_queued(
         mut prediction_handler,
         hit_result,
         look_direction,
-        crouching,
+        physics_state,
         mining,
     ) in query
     {
@@ -332,17 +332,26 @@ pub fn handle_start_use_item_queued(
                     continue;
                 };
 
-                commands.trigger(SendPacketEvent::new(
-                    entity,
-                    ServerboundInteract {
-                        entity_id,
-                        action: s_interact::ActionType::InteractAt {
-                            location: r.location,
-                            hand: InteractionHand::MainHand,
-                        },
-                        using_secondary_action: **crouching,
+                let mut interact = ServerboundInteract {
+                    entity_id,
+                    action: s_interact::ActionType::InteractAt {
+                        location: r.location,
+                        hand: InteractionHand::MainHand,
                     },
-                ));
+                    using_secondary_action: physics_state.trying_to_crouch,
+                };
+                commands.trigger(SendPacketEvent::new(entity, interact.clone()));
+                // TODO: this is true if the interaction failed, which i think can only happen
+                // in certain cases when interacting with armor stands
+                let consumes_action = false;
+                if !consumes_action {
+                    // but yes, most of the time vanilla really does send two interact packets like
+                    // this
+                    interact.action = s_interact::ActionType::Interact {
+                        hand: InteractionHand::MainHand,
+                    };
+                    commands.trigger(SendPacketEvent::new(entity, interact));
+                }
             }
         }
     }

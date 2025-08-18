@@ -115,3 +115,8 @@ impl PathfinderOpts {
         self
     }
 }
+impl Default for PathfinderOpts {
+    fn default() -> Self {
+        Self::new()
+    }
+}
