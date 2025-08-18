@@ -84,7 +84,6 @@ impl Client {
     /// efficient to use [`Self::any_entity_by`] instead. You can also use
     /// [`Self::nearest_entities_by`] to get all nearby entities.
     ///
-    /// # Example
     /// ```
     /// use azalea_entity::{LocalEntity, Position, metadata::Player};
     /// use bevy_ecs::query::{With, Without};
@@ -112,6 +111,15 @@ impl Client {
     /// all entities in our instance that match the predicate.
     ///
     /// The first entity is the nearest one.
+    ///
+    /// ```
+    /// # use azalea_entity::{LocalEntity, Position, metadata::Player};
+    /// # use bevy_ecs::query::{With, Without};
+    /// # fn example(mut bot: azalea_client::Client, sender_name: String) {
+    /// let nearby_players =
+    ///     bot.nearest_entities_by::<(With<Player>, Without<LocalEntity>), ()>(|_: &()| true);
+    /// # }
+    /// ```
     pub fn nearest_entities_by<F: QueryFilter, Q: QueryData>(
         &self,
         predicate: impl EntityPredicate<Q, F>,

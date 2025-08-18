@@ -14,10 +14,13 @@ use azalea::{
     world::MinecraftEntityId,
 };
 use azalea_core::hit_result::HitResult;
-use azalea_entity::EntityKindComponent;
-use azalea_inventory::components::MaxStackSize;
+use azalea_entity::{
+    EntityKindComponent,
+    metadata::{ItemFrame, ItemFrameItem},
+};
+use azalea_inventory::components::{MapId, MaxStackSize};
 use azalea_world::InstanceContainer;
-use bevy_ecs::event::Events;
+use bevy_ecs::{event::Events, query::With};
 use parking_lot::Mutex;
 
 use super::{CommandSource, Ctx};

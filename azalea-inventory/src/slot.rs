@@ -298,7 +298,7 @@ impl DataComponentPatch {
     /// # }
     /// ```
     pub fn get<T: components::DataComponentTrait>(&self) -> Option<&T> {
-        let component = self.components.get(&T::KIND)?;
+        let component = self.get_kind(T::KIND)?;
         let component_any = component as &dyn Any;
         component_any.downcast_ref::<T>()
     }
@@ -485,5 +485,18 @@ impl Serialize for DataComponentPatch {
             }
         }
         s.end()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::components::MapId;
+
+    #[test]
+    fn test_get_component() {
+        let item = ItemStack::from(Item::Map).with_component(MapId { id: 1 });
+        let map_id = item.get_component::<MapId>().unwrap();
+        assert_eq!(map_id.id, 1);
     }
 }
