@@ -47,6 +47,9 @@ macro_rules! regex {
 
 impl ChatPacket {
     /// Get the message shown in chat for this packet.
+    ///
+    /// See [`Self::split_sender_and_content`] for more details about how this
+    /// works.
     pub fn message(&self) -> FormattedText {
         match self {
             ChatPacket::System(p) => p.content.clone(),
@@ -55,10 +58,20 @@ impl ChatPacket {
         }
     }
 
-    /// Determine the username of the sender and content of the message. This
-    /// does not preserve formatting codes. If it's not a player-sent chat
-    /// message or the sender couldn't be determined, the username part will be
-    /// None.
+    /// A convenience function to determine the username of the sender and
+    /// the content of a chat message.
+    ///
+    /// This does not preserve formatting codes.
+    ///
+    /// This function uses a few checks to attempt to split the chat message,
+    /// and is intended to work on most servers. It won't work for every server
+    /// though, so in certain cases you may have to reimplement this yourself.
+    ///
+    /// If it's not a player-sent chat message or the sender couldn't be
+    /// determined, the username part will be None.
+    ///
+    /// Also see [`Self::sender`] and [`Self::content`] if you only need one of
+    /// the parts.
     pub fn split_sender_and_content(&self) -> (Option<String>, String) {
         match self {
             ChatPacket::System(p) => {
@@ -70,13 +83,22 @@ impl ChatPacket {
 
                 // it's a system message, so we'll have to match the content with regex
 
-                if let Some(m) =
-                    regex!("^<([a-zA-Z_0-9]{1,16})> (?:-> me)?(.+)$").captures(&message)
+                // username surrounded by angle brackets (vanilla-like chat), and allow username
+                // prefixes like [Owner]
+                if let Some(m) = regex!(r"^<(?:\[[^\]]+?\] )?(\w{1,16})> (.+)$").captures(&message)
                 {
                     return (Some(m[1].to_string()), m[2].to_string());
                 }
-                // 2b2t whispers
-                if let Some(m) = regex!("^([a-zA-Z_0-9]{1,16}) whispers: (.+)$").captures(&message)
+                // username surrounded by square brackets (essentials whispers, vanilla-like
+                // /say), and allow username prefixes
+                if let Some(m) =
+                    regex!(r"^\[(?:\[[^\]]+?\] )?(\w{1,16})(?: -> me)?\] (.+)$").captures(&message)
+                {
+                    return (Some(m[1].to_string()), m[2].to_string());
+                }
+                // username without angle brackets (2b2t whispers, vanilla-like whispers)
+                if let Some(m) =
+                    regex!(r"^(\w{1,16}) whispers(?: to you)?: (.+)$").captures(&message)
                 {
                     return (Some(m[1].to_string()), m[2].to_string());
                 }
@@ -98,9 +120,13 @@ impl ChatPacket {
         }
     }
 
-    /// Get the username of the sender of the message. If it's not a
-    /// player-sent chat message or the sender couldn't be determined, this
-    /// will be None.
+    /// Get the username of the sender of the message.
+    ///
+    /// If it's not a player-sent chat message or the sender couldn't be
+    /// determined, this will be None.
+    ///
+    /// See [`Self::split_sender_and_content`] for more details about how this
+    /// works.
     pub fn sender(&self) -> Option<String> {
         self.split_sender_and_content().0
     }
