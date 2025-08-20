@@ -87,7 +87,7 @@ pub fn registry(input: TokenStream) -> TokenStream {
         }
     });
 
-    let max_id = input.items.len() as u32;
+    let max_id = input.items.len() as u32 - 1;
 
     let doc_0 = format!("Transmutes a u32 to a {name}.");
     let doc_1 = format!("The `id` should be at most {max_id}.");
