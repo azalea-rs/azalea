@@ -1,6 +1,7 @@
 use azalea_client::{
     InConfigState,
     chunks::handle_chunk_batch_finished_event,
+    client_information::send_client_information,
     inventory::InventorySet,
     packet::{
         config::SendConfigPacketEvent,
@@ -30,7 +31,7 @@ impl Plugin for AcceptResourcePacksPlugin {
                 .after(death_event_on_0_health)
                 .after(handle_chunk_batch_finished_event)
                 .after(InventorySet)
-                .after(azalea_client::brand::handle_end_login_state),
+                .after(send_client_information),
         );
     }
 }

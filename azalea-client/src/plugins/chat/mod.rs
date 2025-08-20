@@ -188,7 +188,7 @@ impl Client {
     /// send chat messages that start with a `/`. The [`Client::chat`] function
     /// handles checking whether the message is a command and using the
     /// proper packet for you, so you should use that instead.
-    pub fn send_chat_packet(&self, message: &str) {
+    pub fn write_chat_packet(&self, message: &str) {
         self.ecs.lock().send_event(SendChatKindEvent {
             entity: self.entity,
             content: message.to_string(),
@@ -201,7 +201,7 @@ impl Client {
     ///
     /// You can also just use [`Client::chat`] and start your message with a `/`
     /// to send a command.
-    pub fn send_command_packet(&self, command: &str) {
+    pub fn write_command_packet(&self, command: &str) {
         self.ecs.lock().send_event(SendChatKindEvent {
             entity: self.entity,
             content: command.to_string(),

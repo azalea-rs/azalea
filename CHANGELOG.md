@@ -29,6 +29,8 @@ is breaking anyways, semantic versioning is not followed.
 - Renamed `Client::entity_by` to `any_entity_by`, and `Client::entities_by` to `nearest_entities_by`.
 - `EyeHeight` was moved into `EntityDimensions`, and `EntityDimensions` is now its own component.
 - Replaced `start_goto_without_mining` with `start_goto_with_opts`.
+- Rename `send_chat_packet` / `send_command_packet` to `write_chat_packet` / `write_command_packet` (for consistency with `write_packet`).
+- Split `ClientInformation` handling out of `BrandPlugin` to `ClientInformationPlugin`.
 
 ### Fixed
 

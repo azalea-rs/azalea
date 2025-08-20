@@ -7,6 +7,7 @@ pub mod brand;
 pub mod chat;
 pub mod chat_signing;
 pub mod chunks;
+pub mod client_information;
 pub mod connection;
 pub mod disconnect;
 pub mod events;
@@ -54,6 +55,7 @@ impl PluginGroup for DefaultPlugins {
             .add(tick_end::TickEndPlugin)
             .add(loading::PlayerLoadedPlugin)
             .add(brand::BrandPlugin)
+            .add(client_information::ClientInformationPlugin)
             .add(tick_broadcast::TickBroadcastPlugin)
             .add(tick_counter::TickCounterPlugin)
             .add(pong::PongPlugin)

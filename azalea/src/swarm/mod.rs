@@ -669,11 +669,6 @@ pub type BoxSwarmHandleFn<SS, R> =
 ///     _state: SwarmState,
 /// ) -> anyhow::Result<()> {
 ///     match &event {
-///         SwarmEvent::Disconnect(account, join_opts) => {
-///             // automatically reconnect after 5 seconds
-///             tokio::time::sleep(Duration::from_secs(5)).await;
-///             swarm.add_with_opts(account, State::default(), join_opts).await?;
-///         }
 ///         SwarmEvent::Chat(m) => {
 ///             println!("{}", m.message().to_ansi());
 ///         }

@@ -1,59 +1,32 @@
 use azalea_buf::AzaleaWrite;
-use azalea_core::resource_location::ResourceLocation;
-use azalea_protocol::{
-    common::client_information::ClientInformation,
-    packets::config::{
-        s_client_information::ServerboundClientInformation,
-        s_custom_payload::ServerboundCustomPayload,
-    },
-};
+use azalea_protocol::packets::config::s_custom_payload::ServerboundCustomPayload;
 use bevy_app::prelude::*;
 use bevy_ecs::prelude::*;
-use tracing::{debug, warn};
 
 use super::packet::config::SendConfigPacketEvent;
-use crate::packet::login::InLoginState;
+use crate::{client_information::send_client_information, packet::login::InLoginState};
 
+/// Send a [`ServerboundCustomPayload`] with "vanilla" as the brand on join.
+///
+/// You can [disable this plugin](https://azalea.matdoes.dev/azalea/struct.ClientBuilder.html#method.new_without_plugins)
+/// and register your own system if you'd like to send a different brand.
 pub struct BrandPlugin;
 impl Plugin for BrandPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, handle_end_login_state);
+        app.add_systems(Update, send_brand.before(send_client_information));
     }
 }
 
-pub fn handle_end_login_state(
-    mut commands: Commands,
-    mut removed: RemovedComponents<InLoginState>,
-    query: Query<&ClientInformation>,
-) {
+pub fn send_brand(mut commands: Commands, mut removed: RemovedComponents<InLoginState>) {
     for entity in removed.read() {
         let mut brand_data = Vec::new();
-        // azalea pretends to be vanilla everywhere else so it makes sense to lie here
-        // too
+        // pretend to be vanilla
         "vanilla".azalea_write(&mut brand_data).unwrap();
         commands.trigger(SendConfigPacketEvent::new(
             entity,
             ServerboundCustomPayload {
-                identifier: ResourceLocation::new("brand"),
+                identifier: "brand".into(),
                 data: brand_data.into(),
-            },
-        ));
-
-        let client_information = match query.get(entity).ok() {
-            Some(i) => i,
-            None => {
-                warn!(
-                    "ClientInformation component was not set before leaving login state, using a default"
-                );
-                &ClientInformation::default()
-            }
-        };
-
-        debug!("Writing ClientInformation while in config state: {client_information:?}");
-        commands.trigger(SendConfigPacketEvent::new(
-            entity,
-            ServerboundClientInformation {
-                information: client_information.clone(),
             },
         ));
     }

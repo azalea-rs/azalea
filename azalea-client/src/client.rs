@@ -22,12 +22,8 @@ use azalea_entity::{
 use azalea_physics::local_player::PhysicsState;
 use azalea_protocol::{
     ServerAddress,
-    common::client_information::ClientInformation,
     connect::Proxy,
-    packets::{
-        Packet,
-        game::{self, ServerboundGamePacket},
-    },
+    packets::{Packet, game::ServerboundGamePacket},
     resolver,
 };
 use azalea_world::{Instance, InstanceContainer, InstanceName, MinecraftEntityId, PartialInstance};
@@ -43,7 +39,7 @@ use tokio::{
     sync::mpsc::{self},
     time,
 };
-use tracing::{debug, error, info, warn};
+use tracing::{error, info, warn};
 use uuid::Uuid;
 
 use crate::{
@@ -377,39 +373,6 @@ impl Client {
         // the login packet tells us the world name
         self.query::<Option<&InstanceName>>(&mut self.ecs.lock())
             .is_some()
-    }
-
-    /// Tell the server we changed our game options (i.e. render distance, main
-    /// hand). If this is not set before the login packet, the default will
-    /// be sent.
-    ///
-    /// ```rust,no_run
-    /// # use azalea_client::{Client, ClientInformation};
-    /// # async fn example(bot: Client) -> Result<(), Box<dyn std::error::Error>> {
-    /// bot.set_client_information(ClientInformation {
-    ///     view_distance: 2,
-    ///     ..Default::default()
-    /// })
-    /// .await;
-    /// # Ok(())
-    /// # }
-    /// ```
-    pub async fn set_client_information(&self, client_information: ClientInformation) {
-        {
-            let mut ecs = self.ecs.lock();
-            let mut client_information_mut = self.query::<&mut ClientInformation>(&mut ecs);
-            *client_information_mut = client_information.clone();
-        }
-
-        if self.logged_in() {
-            debug!(
-                "Sending client information (already logged in): {:?}",
-                client_information
-            );
-            self.write_packet(game::s_client_information::ServerboundClientInformation {
-                client_information,
-            });
-        }
     }
 }
 
