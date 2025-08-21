@@ -38,3 +38,26 @@ pub trait Property {
 
     fn try_from_block_state(state: BlockState) -> Option<Self::Value>;
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::BlockTrait;
+
+    #[test]
+    pub fn roundtrip_block_state() {
+        let block = crate::blocks::OakTrapdoor {
+            facing: crate::properties::FacingCardinal::East,
+            half: crate::properties::TopBottom::Bottom,
+            open: true,
+            powered: false,
+            waterlogged: false,
+        };
+        let block_state = block.as_block_state();
+        let block_from_state = Box::<dyn BlockTrait>::from(block_state);
+        let block_from_state = block_from_state
+            .downcast_ref::<crate::blocks::OakTrapdoor>()
+            .unwrap()
+            .clone();
+        assert_eq!(block, block_from_state);
+    }
+}

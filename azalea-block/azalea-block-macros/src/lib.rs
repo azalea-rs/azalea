@@ -278,7 +278,14 @@ impl Parse for MakeBlockStates {
 struct PropertyVariantData {
     pub block_state_ids: Vec<BlockStateIntegerRepr>,
     pub ident: Ident,
+    pub variant_index: usize,
     pub is_enum: bool,
+}
+
+#[derive(Clone, Debug)]
+struct PropertyMeta {
+    pub name: String,
+    pub index: usize,
 }
 
 #[proc_macro]
@@ -331,7 +338,10 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                         #i_lit => #property_struct_name::#variant,
                     });
 
-                    property_variant_types.push(variant.to_string());
+                    property_variant_types.push(PropertyMeta {
+                        name: variant.to_string(),
+                        index: i,
+                    });
                 }
 
                 property_enums.extend(quote! {
@@ -340,8 +350,8 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                         #property_enum_variants
                     }
 
-                    impl From<crate::block_state::BlockStateIntegerRepr> for #property_struct_name {
-                        fn from(value: crate::block_state::BlockStateIntegerRepr) -> Self {
+                    impl From<BlockStateIntegerRepr> for #property_struct_name {
+                        fn from(value: BlockStateIntegerRepr) -> Self {
                             match value {
                                 #property_from_number_variants
                                 _ => panic!("Invalid property value: {}", value),
@@ -353,17 +363,27 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             PropertyType::Boolean { struct_name } => {
                 property_value_name = Ident::new("bool", proc_macro2::Span::call_site());
                 property_struct_name = struct_name.clone();
-                property_variant_types = vec!["true".to_string(), "false".to_string()];
+                property_variant_types = vec![
+                    PropertyMeta {
+                        name: "true".into(),
+                        index: 0,
+                    },
+                    PropertyMeta {
+                        name: "false".into(),
+                        index: 1,
+                    },
+                ];
 
                 property_enums.extend(quote! {
                     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
                     pub struct #property_struct_name(pub bool);
 
-                    impl From<crate::block_state::BlockStateIntegerRepr> for #property_struct_name {
-                        fn from(value: crate::block_state::BlockStateIntegerRepr) -> Self {
+                    impl From<BlockStateIntegerRepr> for #property_struct_name {
+                        /// In Minecraft, `0 = true` and `1 = false`.
+                        fn from(value: BlockStateIntegerRepr) -> Self {
                             match value {
-                                0 => Self(false),
-                                1 => Self(true),
+                                0 => Self(true),
+                                1 => Self(false),
                                 _ => panic!("Invalid property value: {}", value),
                             }
                         }
@@ -482,8 +502,6 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             proc_macro2::Span::call_site(),
         );
 
-        let mut from_block_to_state_match_inner = quote! {};
-
         let first_state_id = state_id;
         let mut default_state_id = None;
 
@@ -506,8 +524,8 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 let property = &properties_with_name[i];
                 let property_name_ident = &property.name_ident;
                 let property_value_name_ident = &property.property_type;
-                let variant =
-                    Ident::new(&combination[i].to_string(), proc_macro2::Span::call_site());
+                let variant = &combination[i];
+                let variant_ident = Ident::new(&variant.name, proc_macro2::Span::call_site());
 
                 // this terrible code just gets the property default as a string
                 let property_default_as_string =
@@ -517,14 +535,14 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                             panic!()
                         }
                     };
-                if property_default_as_string != combination[i] {
+                if property_default_as_string != variant.name {
                     is_default = false;
                 }
 
                 let property_variant = if property.is_enum {
-                    quote! {properties::#property_value_name_ident::#variant}
+                    quote! {properties::#property_value_name_ident::#variant_ident}
                 } else {
-                    quote! {#variant}
+                    quote! {#variant_ident}
                 };
 
                 from_block_to_state_combination_match_inner.extend(quote! {
@@ -535,24 +553,20 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 let property_variants = properties_to_state_ids
                     .entry(property_value_name_ident.to_string())
                     .or_default();
-                let property_variant_data =
-                    property_variants.iter_mut().find(|v| v.ident == variant);
+                let property_variant_data = property_variants
+                    .iter_mut()
+                    .find(|v| v.ident == variant_ident);
                 if let Some(property_variant_data) = property_variant_data {
                     property_variant_data.block_state_ids.push(state_id);
                 } else {
                     property_variants.push(PropertyVariantData {
                         block_state_ids: vec![state_id],
-                        ident: variant,
+                        ident: variant_ident,
+                        variant_index: variant.index,
                         is_enum: property.is_enum,
                     });
                 }
             }
-
-            from_block_to_state_match_inner.extend(quote! {
-                #block_struct_name {
-                    #from_block_to_state_combination_match_inner
-                } => BlockState::new_const(#state_id),
-            });
 
             if is_default {
                 default_state_id = Some(state_id);
@@ -612,15 +626,48 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             division *= property_variants_count;
         }
 
+        let mut as_block_state_inner = quote! { #first_state_id };
+        let mut factor: BlockStateIntegerRepr = 1;
+        for i in (0..properties_with_name.len()).rev() {
+            let PropertyWithNameAndDefault {
+                name_ident: property_name_ident,
+                property_value_type,
+                ..
+            } = &properties_with_name[i];
+
+            let property_variants = &block_properties_vec[i];
+            let property_variants_count = property_variants.len() as crate::BlockStateIntegerRepr;
+            if &property_value_type.to_string() == "bool" {
+                // this is not a mistake, it starts with true for some reason, so invert it to
+                // make `true be 0`
+                as_block_state_inner.extend(
+                    quote! { + (!self.#property_name_ident as BlockStateIntegerRepr) * #factor},
+                );
+            } else {
+                as_block_state_inner.extend(
+                    quote! { + (self.#property_name_ident as BlockStateIntegerRepr) * #factor},
+                );
+            };
+
+            factor *= property_variants_count;
+        }
+
         let last_state_id = state_id - 1;
-        from_state_to_block_match.extend(quote! {
-            #first_state_id..=#last_state_id => {
-                let b = b - #first_state_id;
-                Box::new(#block_struct_name {
-                    #from_state_to_block_inner
-                })
-            },
+        from_state_to_block_match.extend(if first_state_id == last_state_id {
+            quote! {
+                #first_state_id => {
+                    Box::new(#block_struct_name { #from_state_to_block_inner })
+                },
+            }
+        } else {
+            quote! {
+                #first_state_id..=#last_state_id => {
+                    let b = b - #first_state_id;
+                    Box::new(#block_struct_name { #from_state_to_block_inner })
+                },
+            }
         });
+
         from_registry_block_to_block_match.extend(quote! {
             azalea_registry::Block::#block_name_pascal_case => Box::new(#block_struct_name::default()),
         });
@@ -644,22 +691,18 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         let block_behavior = &block.behavior;
         let block_id = block.name.to_string();
 
-        let from_block_to_state_match = if block.properties_and_defaults.is_empty() {
-            quote! { BlockState::new_const(#first_state_id) }
-        } else {
-            quote! {
-                match self {
-                    #from_block_to_state_match_inner
-                }
-            }
+        let as_block_state = quote! { BlockState::new_const(#as_block_state_inner) };
+
+        let mut block_struct = quote! {
+            #[derive(Debug, Copy, Clone, PartialEq)]
+            pub struct #block_struct_name
         };
-
-        let block_struct = quote! {
-            #[derive(Debug, Copy, Clone)]
-            pub struct #block_struct_name {
-                #block_struct_fields
-            }
-
+        if block_struct_fields.is_empty() {
+            block_struct.extend(quote! {;});
+        } else {
+            block_struct.extend(quote! { { #block_struct_fields } });
+        }
+        block_struct.extend(quote! {
             impl BlockTrait for #block_struct_name {
                 fn behavior(&self) -> BlockBehavior {
                     #block_behavior
@@ -668,7 +711,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                     #block_id
                 }
                 fn as_block_state(&self) -> BlockState {
-                    #from_block_to_state_match
+                    #as_block_state
                 }
                 fn as_registry_block(&self) -> azalea_registry::Block {
                     azalea_registry::Block::#block_name_pascal_case
@@ -688,7 +731,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                     }
                 }
             }
-        };
+        });
 
         block_structs.extend(block_struct);
     }
@@ -697,7 +740,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
     let mut generated = quote! {
         impl BlockState {
             /// The highest possible block state ID.
-            pub const MAX_STATE: crate::block_state::BlockStateIntegerRepr = #last_state_id;
+            pub const MAX_STATE: BlockStateIntegerRepr = #last_state_id;
 
             /// Get a property from this block state. Will be `None` if the block can't have the property.
             ///
@@ -724,28 +767,83 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
     // ```
     let mut property_impls = quote! {};
     for (property_struct_name, property_values) in properties_to_state_ids {
-        let mut enum_inner_generated = quote! {};
+        let mut is_enum = false;
 
-        let mut is_enum_ = false;
-
+        let mut some_block_states_count = 0;
         for PropertyVariantData {
             block_state_ids,
-            ident,
-            is_enum,
-        } in property_values
+            is_enum: is_enum_,
+            ..
+        } in &property_values
         {
-            enum_inner_generated.extend(if is_enum {
-                quote! {
-                    #(#block_state_ids)|* => Some(Self::#ident),
-                }
-            } else {
-                quote! {
-                    #(#block_state_ids)|* => Some(#ident),
-                }
-            });
-            is_enum_ = is_enum;
+            some_block_states_count += block_state_ids.len();
+            is_enum = *is_enum_;
         }
-        let is_enum = is_enum_;
+
+        let mut try_from_block_state;
+        // do a simpler lookup if there's few block states
+        if some_block_states_count > 2048 {
+            // create a lookup table - 0 indicates None
+            let table_size = last_state_id as usize + 1;
+            let mut table = vec![0; table_size];
+            for PropertyVariantData {
+                block_state_ids,
+                variant_index,
+                ..
+            } in property_values
+            {
+                for block_state_id in block_state_ids {
+                    // add 1 since we're offsetting for zero
+                    table[block_state_id as usize] = variant_index + 1;
+                }
+            }
+
+            let mut table_inner = quote! {};
+            for entry in table {
+                // this makes it not put the "usize" after the number like 0usize
+                let literal_int = syn::Lit::Int(syn::LitInt::new(
+                    &entry.to_string(),
+                    proc_macro2::Span::call_site(),
+                ));
+                table_inner.extend(quote! { #literal_int, });
+            }
+
+            try_from_block_state = quote! {
+                static TABLE: &[BlockStateIntegerRepr; #table_size] = &[#table_inner];
+                let res = TABLE[block_state.id() as usize];
+                if res == 0 { return None };
+            };
+            if is_enum {
+                try_from_block_state.extend(quote! { Some(Self::from(res - 1)) });
+            } else {
+                try_from_block_state.extend(quote! { Some(res != 2) });
+            }
+        } else {
+            let mut enum_inner_generated = quote! {};
+            for PropertyVariantData {
+                block_state_ids,
+                ident,
+                ..
+            } in property_values
+            {
+                enum_inner_generated.extend(if is_enum {
+                    quote! {
+                        #(#block_state_ids)|* => Some(Self::#ident),
+                    }
+                } else {
+                    quote! {
+                        #(#block_state_ids)|* => Some(#ident),
+                    }
+                });
+            }
+
+            try_from_block_state = quote! {
+                match block_state.id() {
+                    #enum_inner_generated
+                    _ => None
+                }
+            };
+        }
 
         let property_struct_name =
             Ident::new(&property_struct_name, proc_macro2::Span::call_site());
@@ -761,10 +859,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 type Value = #value;
 
                 fn try_from_block_state(block_state: BlockState) -> Option<Self::Value> {
-                    match block_state.id() {
-                        #enum_inner_generated
-                        _ => None
-                    }
+                    #try_from_block_state
                 }
             }
         };
