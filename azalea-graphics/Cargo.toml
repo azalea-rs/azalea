@@ -1,0 +1,20 @@
+[package]
+name = "azalea-graphics"
+description = "Renderer for azalea"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+ash = "0.38"
+raw-window-handle = "0.6"
+vk-mem = "0.5"
+ash-window = "0.13"
+log = "0.4"
+winit = "0.30.12"
+[dev-dependencies]
+env_logger = "0.11"
+
+[build-dependencies]
+shaderc = "0.8"
