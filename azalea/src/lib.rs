@@ -1,6 +1,5 @@
 #![doc = include_str!("../README.md")]
 #![feature(type_changing_struct_update)]
-#![feature(never_type)]
 
 pub mod accept_resource_packs;
 pub mod auto_respawn;
@@ -33,6 +32,7 @@ pub use azalea_protocol as protocol;
 pub use azalea_registry as registry;
 pub use azalea_world as world;
 pub use bevy_app as app;
+use bevy_app::AppExit;
 pub use bevy_ecs as ecs;
 pub use bot::*;
 use ecs::component::Component;
@@ -215,7 +215,7 @@ where
         mut self,
         account: Account,
         address: impl TryInto<ServerAddress>,
-    ) -> Result<!, StartError> {
+    ) -> Result<AppExit, StartError> {
         self.swarm.accounts = vec![(account, JoinOpts::default())];
         if self.swarm.states.is_empty() {
             self.swarm.states = vec![S::default()];
@@ -230,7 +230,7 @@ where
         account: Account,
         address: impl TryInto<ServerAddress>,
         opts: JoinOpts,
-    ) -> Result<!, StartError> {
+    ) -> Result<AppExit, StartError> {
         self.swarm.accounts = vec![(account, opts.clone())];
         if self.swarm.states.is_empty() {
             self.swarm.states = vec![S::default()];

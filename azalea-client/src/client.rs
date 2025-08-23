@@ -27,8 +27,9 @@ use azalea_protocol::{
     resolver,
 };
 use azalea_world::{Instance, InstanceContainer, InstanceName, MinecraftEntityId, PartialInstance};
-use bevy_app::{App, Plugin, PluginsState, SubApp, Update};
+use bevy_app::{App, AppExit, Plugin, PluginsState, SubApp, Update};
 use bevy_ecs::{
+    event::EventCursor,
     prelude::*,
     schedule::{InternedScheduleLabel, LogLevel, ScheduleBuildSettings},
 };
@@ -36,7 +37,10 @@ use parking_lot::{Mutex, RwLock};
 use simdnbt::owned::NbtCompound;
 use thiserror::Error;
 use tokio::{
-    sync::mpsc::{self},
+    sync::{
+        mpsc::{self},
+        oneshot,
+    },
     time,
 };
 use tracing::{error, info, warn};
@@ -106,7 +110,9 @@ impl StartClientOpts {
         let mut app = App::new();
         app.add_plugins(DefaultPlugins);
 
-        let (ecs_lock, start_running_systems) = start_ecs_runner(app.main_mut());
+        // appexit_rx is unused here since the user should be able to handle it
+        // themselves if they're using StartClientOpts::new
+        let (ecs_lock, start_running_systems, _appexit_rx) = start_ecs_runner(app.main_mut());
         start_running_systems();
 
         Self {
@@ -610,7 +616,9 @@ impl Plugin for AzaleaPlugin {
 /// You can create your app with `App::new()`, but don't forget to add
 /// [`DefaultPlugins`].
 #[doc(hidden)]
-pub fn start_ecs_runner(app: &mut SubApp) -> (Arc<Mutex<World>>, impl FnOnce()) {
+pub fn start_ecs_runner(
+    app: &mut SubApp,
+) -> (Arc<Mutex<World>>, impl FnOnce(), oneshot::Receiver<AppExit>) {
     // this block is based on Bevy's default runner:
     // https://github.com/bevyengine/bevy/blob/390877cdae7a17095a75c8f9f1b4241fe5047e83/crates/bevy_app/src/schedule_runner.rs#L77-L85
     if app.plugins_state() != PluginsState::Cleaned {
@@ -632,14 +640,26 @@ pub fn start_ecs_runner(app: &mut SubApp) -> (Arc<Mutex<World>>, impl FnOnce()) 
 
     let ecs_clone = ecs.clone();
     let outer_schedule_label = *app.update_schedule.as_ref().unwrap();
+
+    let (appexit_tx, appexit_rx) = oneshot::channel();
     let start_running_systems = move || {
-        tokio::spawn(run_schedule_loop(ecs_clone, outer_schedule_label));
+        tokio::spawn(async move {
+            let appexit = run_schedule_loop(ecs_clone, outer_schedule_label).await;
+            appexit_tx.send(appexit)
+        });
     };
 
-    (ecs, start_running_systems)
+    (ecs, start_running_systems, appexit_rx)
 }
 
-async fn run_schedule_loop(ecs: Arc<Mutex<World>>, outer_schedule_label: InternedScheduleLabel) {
+/// Runs the `Update` schedule 60 times per second and the `GameTick` schedule
+/// 20 times per second.
+///
+/// Exits when we receive an `AppExit` event.
+async fn run_schedule_loop(
+    ecs: Arc<Mutex<World>>,
+    outer_schedule_label: InternedScheduleLabel,
+) -> AppExit {
     let mut last_update: Option<Instant> = None;
     let mut last_tick: Option<Instant> = None;
 
@@ -687,7 +707,36 @@ async fn run_schedule_loop(ecs: Arc<Mutex<World>>, outer_schedule_label: Interne
         }
 
         ecs.clear_trackers();
+        if let Some(exit) = should_exit(&mut ecs) {
+            // it's possible for references to the World to stay around, so we clear the ecs
+            ecs.clear_all();
+            // ^ note that this also forcefully disconnects all of our bots without sending
+            // a disconnect packet (which is fine because we want to disconnect immediately)
+
+            return exit;
+        }
     }
+}
+
+/// Checks whether the [`AppExit`] event was sent, and if so returns it.
+///
+/// This is based on Bevy's `should_exit` function: https://github.com/bevyengine/bevy/blob/b9fd7680e78c4073dfc90fcfdc0867534d92abe0/crates/bevy_app/src/app.rs#L1292
+fn should_exit(ecs: &mut World) -> Option<AppExit> {
+    let mut reader = EventCursor::default();
+
+    let events = ecs.get_resource::<Events<AppExit>>()?;
+    let mut events = reader.read(events);
+
+    if events.len() != 0 {
+        return Some(
+            events
+                .find(|exit| exit.is_error())
+                .cloned()
+                .unwrap_or(AppExit::Success),
+        );
+    }
+
+    None
 }
 
 pub struct AmbiguityLoggerPlugin;

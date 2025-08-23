@@ -31,6 +31,7 @@ is breaking anyways, semantic versioning is not followed.
 - Replaced `start_goto_without_mining` with `start_goto_with_opts`.
 - Rename `send_chat_packet` / `send_command_packet` to `write_chat_packet` / `write_command_packet` (for consistency with `write_packet`).
 - Split `ClientInformation` handling out of `BrandPlugin` to `ClientInformationPlugin`.
+- `ClientBuilder::start` and `SwarmBuilder::start` now return a `Result<AppExit>` instead of `Result<!>`.
 
 ### Fixed
 
@@ -46,6 +47,7 @@ is breaking anyways, semantic versioning is not followed.
 - Fix parsing some metadata fields of Display entities.
 - Mining blocks in creative mode now works. (@qwqawawow)
 - Improved matchers on the `ChatPacket` functions to work on more servers. (@ShayBox)
+- Bevy's `AppExit` Event is now handled by Azalea's ECS runner.
 
 ## [0.13.0+mc1.21.5] - 2025-06-15
 
