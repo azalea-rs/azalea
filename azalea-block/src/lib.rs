@@ -7,7 +7,7 @@ mod generated;
 mod range;
 
 use core::fmt::Debug;
-use std::any::Any;
+use std::{any::Any, collections::HashMap};
 
 pub use behavior::BlockBehavior;
 // re-exported for convenience
@@ -26,7 +26,12 @@ pub trait BlockTrait: Debug + Any {
     /// Convert the block to an [`azalea_registry::Block`]. This is lossy, as
     /// `azalea_registry::Block` doesn't contain any state data.
     fn as_registry_block(&self) -> azalea_registry::Block;
+
+    fn property_map(&self) -> HashMap<String, String>;
+
+    fn get_property(&self, name: &str) -> Option<String>;
 }
+
 impl dyn BlockTrait {
     pub fn downcast_ref<T: BlockTrait>(&self) -> Option<&T> {
         (self as &dyn Any).downcast_ref::<T>()
@@ -59,5 +64,25 @@ mod tests {
             .unwrap()
             .clone();
         assert_eq!(block, block_from_state);
+    }
+
+    #[test]
+    pub fn test_property_map() {
+        let block = crate::blocks::OakTrapdoor {
+            facing: crate::properties::FacingCardinal::East,
+            half: crate::properties::TopBottom::Bottom,
+            open: true,
+            powered: false,
+            waterlogged: false,
+        };
+
+        let property_map = block.property_map();
+        
+        assert_eq!(property_map.len(), 5);
+        assert_eq!(property_map.get("facing"), Some(&"east".to_string()));
+        assert_eq!(property_map.get("half"), Some(&"bottom".to_string()));
+        assert_eq!(property_map.get("open"), Some(&"true".to_string()));
+        assert_eq!(property_map.get("powered"), Some(&"false".to_string()));
+        assert_eq!(property_map.get("waterlogged"), Some(&"false".to_string()));
     }
 }
