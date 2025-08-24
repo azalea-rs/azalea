@@ -323,7 +323,8 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         
                 for i in 0..variants.len() {
                     let variant = &variants[i];
-                    let variant_string = variant.to_string().to_lowercase(); // Convert to lowercase for Minecraft compatibility
+                    let variant_string_full = variant.to_string();
+                    let variant_string = variant_string_full.strip_prefix('_').unwrap_or(&variant_string_full).to_lowercase(); 
         
                     let i_lit = syn::Lit::Int(syn::LitInt::new(
                         &i.to_string(),
