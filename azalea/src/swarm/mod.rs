@@ -28,7 +28,7 @@ use azalea_client::{
 use azalea_entity::LocalEntity;
 use azalea_protocol::{ServerAddress, resolver};
 use azalea_world::InstanceContainer;
-use bevy_app::{App, PluginGroup, PluginGroupBuilder, Plugins, SubApp};
+use bevy_app::{App, AppExit, PluginGroup, PluginGroupBuilder, Plugins, SubApp};
 use bevy_ecs::prelude::*;
 use futures::future::{BoxFuture, join_all};
 use parking_lot::{Mutex, RwLock};
@@ -399,7 +399,7 @@ where
     /// that implements `TryInto<ServerAddress>`.
     ///
     /// [`ServerAddress`]: azalea_protocol::ServerAddress
-    pub async fn start(self, address: impl TryInto<ServerAddress>) -> Result<!, StartError> {
+    pub async fn start(self, address: impl TryInto<ServerAddress>) -> Result<AppExit, StartError> {
         // convert the TryInto<ServerAddress> into a ServerAddress
         let address: ServerAddress = match address.try_into() {
             Ok(address) => address,
@@ -416,7 +416,7 @@ where
         mut self,
         address: impl TryInto<ServerAddress>,
         default_join_opts: JoinOpts,
-    ) -> Result<!, StartError> {
+    ) -> Result<AppExit, StartError> {
         assert_eq!(
             self.accounts.len(),
             self.states.len(),
@@ -448,7 +448,7 @@ where
 
         let main_schedule_label = self.app.update_schedule.unwrap();
 
-        let (ecs_lock, start_running_systems) = start_ecs_runner(&mut self.app);
+        let (ecs_lock, start_running_systems, appexit_rx) = start_ecs_runner(&mut self.app);
 
         let swarm = Swarm {
             ecs_lock: ecs_lock.clone(),
@@ -521,7 +521,7 @@ where
 
         // Watch swarm_rx and send those events to the swarm_handle.
         let swarm_clone = swarm.clone();
-        tokio::spawn(async move {
+        let swarm_handler_task = tokio::spawn(async move {
             while let Some(event) = swarm_rx.recv().await {
                 if let Some(swarm_handler) = &self.swarm_handler {
                     tokio::spawn((swarm_handler)(
@@ -531,61 +531,72 @@ where
                     ));
                 }
             }
+
+            unreachable!(
+                "The `Swarm` here contains a sender for the `SwarmEvent`s, so swarm_rx.recv() will never fail"
+            );
         });
 
         // bot events
-        while let Some((Some(first_event), first_bot)) = bots_rx.recv().await {
-            if bots_rx.len() > 1_000 {
-                static WARNED: AtomicBool = AtomicBool::new(false);
-                if !WARNED.swap(true, atomic::Ordering::Relaxed) {
-                    warn!("the Client Event channel has more than 1000 items!")
+        let client_handler_task = tokio::spawn(async move {
+            while let Some((Some(first_event), first_bot)) = bots_rx.recv().await {
+                if bots_rx.len() > 1_000 {
+                    static WARNED: AtomicBool = AtomicBool::new(false);
+                    if !WARNED.swap(true, atomic::Ordering::Relaxed) {
+                        warn!("the Client Event channel has more than 1000 items!")
+                    }
                 }
-            }
 
-            if let Some(handler) = &self.handler {
-                let ecs_mutex = first_bot.ecs.clone();
-                let mut ecs = ecs_mutex.lock();
-                let mut query = ecs.query::<Option<&S>>();
-                let Ok(Some(first_bot_state)) = query.get(&ecs, first_bot.entity) else {
-                    error!(
-                        "the first bot ({} / {}) is missing the required state component! none of the client handler functions will be called.",
-                        first_bot.username(),
-                        first_bot.entity
-                    );
-                    continue;
-                };
-                let first_bot_entity = first_bot.entity;
-                let first_bot_state = first_bot_state.clone();
-
-                tokio::spawn((handler)(first_bot, first_event, first_bot_state.clone()));
-
-                // this makes it not have to keep locking the ecs
-                let mut states = HashMap::new();
-                states.insert(first_bot_entity, first_bot_state);
-                while let Ok((Some(event), bot)) = bots_rx.try_recv() {
-                    let state = match states.entry(bot.entity) {
-                        hash_map::Entry::Occupied(e) => e.into_mut(),
-                        hash_map::Entry::Vacant(e) => {
-                            let Ok(Some(state)) = query.get(&ecs, bot.entity) else {
-                                error!(
-                                    "one of our bots ({} / {}) is missing the required state component! its client handler function will not be called.",
-                                    bot.username(),
-                                    bot.entity
-                                );
-                                continue;
-                            };
-                            let state = state.clone();
-                            e.insert(state)
-                        }
+                if let Some(handler) = &self.handler {
+                    let ecs_mutex = first_bot.ecs.clone();
+                    let mut ecs = ecs_mutex.lock();
+                    let mut query = ecs.query::<Option<&S>>();
+                    let Ok(Some(first_bot_state)) = query.get(&ecs, first_bot.entity) else {
+                        error!(
+                            "the first bot ({} / {}) is missing the required state component! none of the client handler functions will be called.",
+                            first_bot.username(),
+                            first_bot.entity
+                        );
+                        continue;
                     };
-                    tokio::spawn((handler)(bot, event, state.clone()));
+                    let first_bot_entity = first_bot.entity;
+                    let first_bot_state = first_bot_state.clone();
+
+                    tokio::spawn((handler)(first_bot, first_event, first_bot_state.clone()));
+
+                    // this makes it not have to keep locking the ecs
+                    let mut states = HashMap::new();
+                    states.insert(first_bot_entity, first_bot_state);
+                    while let Ok((Some(event), bot)) = bots_rx.try_recv() {
+                        let state = match states.entry(bot.entity) {
+                            hash_map::Entry::Occupied(e) => e.into_mut(),
+                            hash_map::Entry::Vacant(e) => {
+                                let Ok(Some(state)) = query.get(&ecs, bot.entity) else {
+                                    error!(
+                                        "one of our bots ({} / {}) is missing the required state component! its client handler function will not be called.",
+                                        bot.username(),
+                                        bot.entity
+                                    );
+                                    continue;
+                                };
+                                let state = state.clone();
+                                e.insert(state)
+                            }
+                        };
+                        tokio::spawn((handler)(bot, event, state.clone()));
+                    }
                 }
             }
-        }
+        });
 
-        unreachable!(
-            "bots_rx.recv() should never be None because the bots_tx channel is never closed"
-        );
+        let appexit = appexit_rx
+            .await
+            .expect("appexit_tx shouldn't be dropped by the ECS runner before sending");
+
+        swarm_handler_task.abort();
+        client_handler_task.abort();
+
+        Ok(appexit)
     }
 }
 
