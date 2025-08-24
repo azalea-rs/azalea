@@ -1,29 +1,31 @@
-use azalea::blocks::{BlockState, BlockTrait};
-use azalea::core::direction::Direction;
-use azalea::core::position::{ChunkPos, ChunkSectionBlockPos, ChunkSectionPos};
-use azalea::physics::collision::BlockWithShape;
-use azalea::world::{Chunk};
-use crossbeam::channel::{unbounded, Sender, Receiver};
+use std::{sync::Arc, thread, time::Instant};
+
+use azalea::{
+    blocks::{BlockState, BlockTrait},
+    core::{
+        direction::Direction,
+        position::{ChunkPos, ChunkSectionBlockPos, ChunkSectionPos},
+    },
+    physics::collision::BlockWithShape,
+    world::Chunk,
+};
+use crossbeam::channel::{Receiver, Sender, unbounded};
 use glam::{IVec3, Vec3};
 use parking_lot::RwLock;
 
-use std::sync::Arc;
-use std::thread;
-use std::time::Instant;
-
-use crate::assets::block_state::{BlockRenderState, Variant};
-use crate::assets::model::Cube;
-use crate::assets::LoadedAssets;
-use crate::renderer::mesh::Vertex;
+use crate::{
+    assets::{
+        LoadedAssets,
+        model::Cube,
+    },
+    renderer::mesh::Vertex,
+};
 
 pub struct MeshData {
     pub vertices: Vec<Vertex>,
     pub indices: Vec<u32>,
     pub section_pos: ChunkSectionPos,
 }
-
-
-
 
 pub struct LocalSection {
     pub blocks: Box<[[[BlockState; 18]; 18]; 18]>,
@@ -32,20 +34,17 @@ pub struct LocalSection {
 
 const NORTH: usize = 0;
 const SOUTH: usize = 1;
-const EAST: usize  = 2;
-const WEST: usize  = 3;
-const NE: usize    = 4;
-const NW: usize    = 5;
-const SE: usize    = 6;
-const SW: usize    = 7;
-
+const EAST: usize = 2;
+const WEST: usize = 3;
+const NE: usize = 4;
+const NW: usize = 5;
+const SE: usize = 6;
+const SW: usize = 7;
 
 pub struct LocalChunk {
     pub center: Arc<RwLock<Chunk>>,
-    pub neighbors: [Option<Arc<RwLock<Chunk>>>; 8], 
+    pub neighbors: [Option<Arc<RwLock<Chunk>>>; 8],
 }
-
-
 
 impl LocalChunk {
     pub fn build_local_section(&self, spos: ChunkSectionPos) -> LocalSection {
@@ -79,13 +78,13 @@ impl LocalChunk {
         let chunk_opt = match (cx_off, cz_off) {
             (0, 0) => Some(&self.center),
             (0, -1) => self.neighbors[NORTH].as_ref(),
-            (0, 1)  => self.neighbors[SOUTH].as_ref(),
+            (0, 1) => self.neighbors[SOUTH].as_ref(),
             (-1, 0) => self.neighbors[WEST].as_ref(),
-            (1, 0)  => self.neighbors[EAST].as_ref(),
+            (1, 0) => self.neighbors[EAST].as_ref(),
             (-1, -1) => self.neighbors[NW].as_ref(),
-            (1, -1)  => self.neighbors[NE].as_ref(),
-            (-1, 1)  => self.neighbors[SW].as_ref(),
-            (1, 1)   => self.neighbors[SE].as_ref(),
+            (1, -1) => self.neighbors[NE].as_ref(),
+            (-1, 1) => self.neighbors[SW].as_ref(),
+            (1, 1) => self.neighbors[SE].as_ref(),
             _ => None,
         };
 
@@ -93,15 +92,17 @@ impl LocalChunk {
             let chunk = chunk_arc.read();
             let section_index = (base_y + cy_off) as usize;
             if let Some(section) = chunk.sections.get(section_index) {
-                return section.get_block_state(ChunkSectionBlockPos { x: sx, y: sy, z: sz });
+                return section.get_block_state(ChunkSectionBlockPos {
+                    x: sx,
+                    y: sy,
+                    z: sz,
+                });
             }
         }
 
         BlockState::AIR
     }
 }
-
-
 
 pub struct Mesher {
     work_tx: Sender<LocalSection>,
@@ -115,9 +116,8 @@ impl Mesher {
 
         thread::spawn(move || {
             while let Ok(local_section) = work_rx.recv() {
-
                 let start = Instant::now();
-                let mesh = mesh_section( &local_section, &assets,);
+                let mesh = mesh_section(&local_section, &assets);
                 result_tx.send(mesh).unwrap();
                 let time_took = start.elapsed();
                 println!("chunk meshing took: {}ms", time_took.as_millis());
@@ -149,12 +149,7 @@ impl Mesher {
     }
 }
 
-
-
-pub fn mesh_section(
-    section: &LocalSection,
-    assets: &LoadedAssets,
-) -> MeshData {
+pub fn mesh_section(section: &LocalSection, assets: &LoadedAssets) -> MeshData {
     let mut vertices = Vec::with_capacity(1000);
     let mut indices = Vec::with_capacity(1000);
 
@@ -162,133 +157,90 @@ pub fn mesh_section(
         for x in 0..16 {
             for z in 0..16 {
                 let local = IVec3::new(x + 1, y + 1, z + 1);
-                let block_state = section.blocks[local.x as usize][local.y as usize][local.z as usize];
+                let block_state =
+                    section.blocks[local.x as usize][local.y as usize][local.z as usize];
 
                 if block_state.is_air() {
                     continue;
                 }
 
-                let dyn_block = Box::<dyn BlockTrait>::from(block_state);
-                let state = assets.get_block_state(&format!("block/{}", dyn_block.id()));
+                if let Some(model) = assets.get_block_model_for(block_state) {
+                    if let Some(elements) = model.elements() {
+                        for element in elements {
+                            for face in FACES {
+                                let model_face = match face.dir {
+                                    Direction::Down => &element.faces.down,
+                                    Direction::Up => &element.faces.up,
+                                    Direction::North => &element.faces.north,
+                                    Direction::South => &element.faces.south,
+                                    Direction::West => &element.faces.west,
+                                    Direction::East => &element.faces.east,
+                                };
 
-                match state {
-                    Some(BlockRenderState::Variants(variants)) => {
-                        let variant = 'outer: {
-                            let block_props = dyn_block.property_map();
-                            for (states, variant) in variants {
-                                if states.is_empty() {
-                                    break 'outer variant;
-                                }
+                                if let Some(model_face) = model_face {
+                                    let len = vertices.len() as u32;
 
-                                let mut matched = true;
-                                for state in states.split(',') {
-                                    let Some((name, value)) = state.split_once('=') else {
-                                        log::error!("bad state {}, states {:?}", state, states);
-                                        continue;
-                                    };
-                                    let prop = block_props.get(name);
-                                    if prop != Some(&value.to_string()) {
-                                        matched = false;
-                                    }
-                                }
-                                if matched {
-                                    break 'outer variant;
-                                }
-                            }
-                            &variants[0].1
-                        };
+                                    if let Some(cull_face) =
+                                        model_face.cullface.as_deref().and_then(|s| match s {
+                                            "down" => Some(Direction::Down),
+                                            "up" => Some(Direction::Up),
+                                            "north" => Some(Direction::North),
+                                            "south" => Some(Direction::South),
+                                            "west" => Some(Direction::West),
+                                            "east" => Some(Direction::East),
+                                            _ => None,
+                                        })
+                                    {
+                                        let n = cull_face.normal();
+                                        let neighbor = local + IVec3::new(n.x, n.y, n.z);
 
-                        let desc = match variant {
-                            Variant::Single(desc) => desc,
-                            Variant::Array(arr) => &arr[0],
-                        };
-
-                        if let Some(model) = assets.get_block_model(&desc.model) {
-                            if let Some(elements) = model.elements() {
-                                for element in elements {
-                                    for face in FACES {
-                                        let model_face = match face.dir {
-                                            Direction::Down => &element.faces.down,
-                                            Direction::Up => &element.faces.up,
-                                            Direction::North => &element.faces.north,
-                                            Direction::South => &element.faces.south,
-                                            Direction::West => &element.faces.west,
-                                            Direction::East => &element.faces.east,
-                                        };
-
-                                        if let Some(model_face) = model_face {
-                                            let len = vertices.len() as u32;
-
-                                            // face culling (local space)
-                                            if let Some(cull_face) = model_face
-                                                .cullface
-                                                .as_deref()
-                                                .and_then(|s| match s {
-                                                    "down" => Some(Direction::Down),
-                                                    "up" => Some(Direction::Up),
-                                                    "north" => Some(Direction::North),
-                                                    "south" => Some(Direction::South),
-                                                    "west" => Some(Direction::West),
-                                                    "east" => Some(Direction::East),
-                                                    _ => None,
-                                                })
-                                            {
-                                                let n = cull_face.normal();
-                                                let neighbor = local + IVec3::new(n.x, n.y, n.z);
-
-                                                    if section.blocks[neighbor.x as usize]
-                                                        [neighbor.y as usize]
-                                                        [neighbor.z as usize]
-                                                        .is_collision_shape_full()
-                                                    {
-                                                        continue;
-                                                    }
-                                            }
-
-                                            let uvs = generate_uv(face.dir, model_face.uv);
-                                            for (i, offset) in face.offsets.iter().enumerate() {
-                                                let tex_idx = model
-                                                    .get_texture(&model_face.texture)
-                                                    .and_then(|name| assets.get_texture_id(&name))
-                                                    .unwrap_or(0);
-
-                                                let world_pos = Vec3::new(
-                                                    (local.x - 1) as f32 + section.spos.x as f32 * 16.0,
-                                                    (local.y - 1) as f32 + section.spos.y as f32 * 16.0,
-                                                    (local.z - 1) as f32 + section.spos.z as f32 * 16.0,
-                                                );
-
-                                                vertices.push(Vertex {
-                                                    position: (offset_to_coord(*offset, element)
-                                                        / 16.0
-                                                        + world_pos)
-                                                        .into(),
-                                                    ao: if model.ambient_occlusion {
-                                                        compute_ao(local, *offset, face.dir, section) as f32
-                                                    } else {
-                                                        3.0
-                                                    },
-                                                    tex_idx: tex_idx as u32,
-                                                    uv: uvs[i].into(),
-                                                });
-                                            }
-
-                                            indices.extend_from_slice(&[
-                                                len + 0,
-                                                len + 1,
-                                                len + 2,
-                                                len + 0,
-                                                len + 2,
-                                                len + 3,
-                                            ]);
+                                        if section.blocks[neighbor.x as usize][neighbor.y as usize]
+                                            [neighbor.z as usize]
+                                            .is_collision_shape_full()
+                                        {
+                                            continue;
                                         }
                                     }
+
+                                    let uvs = generate_uv(face.dir, model_face.uv);
+                                    for (i, offset) in face.offsets.iter().enumerate() {
+                                        let tex_idx = model
+                                            .get_texture(&model_face.texture)
+                                            .and_then(|name| assets.get_texture_id(&name))
+                                            .unwrap_or(0);
+
+                                        let world_pos = Vec3::new(
+                                            (local.x - 1) as f32 + section.spos.x as f32 * 16.0,
+                                            (local.y - 1) as f32 + section.spos.y as f32 * 16.0,
+                                            (local.z - 1) as f32 + section.spos.z as f32 * 16.0,
+                                        );
+
+                                        vertices.push(Vertex {
+                                            position: (offset_to_coord(*offset, element) / 16.0
+                                                + world_pos)
+                                                .into(),
+                                            ao: if model.ambient_occlusion {
+                                                compute_ao(local, *offset, face.dir, section) as f32
+                                            } else {
+                                                3.0
+                                            },
+                                            tex_idx: tex_idx as u32,
+                                            uv: uvs[i].into(),
+                                        });
+                                    }
+
+                                    indices.extend_from_slice(&[
+                                        len + 0,
+                                        len + 1,
+                                        len + 2,
+                                        len + 0,
+                                        len + 2,
+                                        len + 3,
+                                    ]);
                                 }
                             }
                         }
                     }
-                    Some(BlockRenderState::MultiPart) => {}
-                    None => log::error!("Missing blockstate for {}", dyn_block.id()),
                 }
             }
         }
@@ -300,7 +252,6 @@ pub fn mesh_section(
         indices,
     }
 }
-
 
 fn generate_uv(dir: Direction, uvs: Option<[f32; 4]>) -> [glam::Vec2; 4] {
     match uvs {
@@ -403,16 +354,7 @@ fn offset_to_coord(offset: IVec3, element: &Cube) -> glam::Vec3 {
     )
 }
 
-
-
-
-
-fn compute_ao(
-    local: IVec3,
-    offset: IVec3,
-    dir: Direction,
-    section: &LocalSection,
-) -> u32 {
+fn compute_ao(local: IVec3, offset: IVec3, dir: Direction, section: &LocalSection) -> u32 {
     let get = |p: IVec3| {
         if p.x < 0 || p.y < 0 || p.z < 0 || p.x >= 18 || p.y >= 18 || p.z >= 18 {
             return false;
@@ -427,20 +369,20 @@ fn compute_ao(
 
     match dir {
         Direction::East | Direction::West => {
-            let side1  = get(local + IVec3::new(ox, 0, oz));
-            let side2  = get(local + IVec3::new(ox, oy, 0));
+            let side1 = get(local + IVec3::new(ox, 0, oz));
+            let side2 = get(local + IVec3::new(ox, oy, 0));
             let corner = get(local + IVec3::new(ox, oy, oz));
             ao(side1, side2, corner)
         }
         Direction::Up | Direction::Down => {
-            let side1  = get(local + IVec3::new(0, oy, oz));
-            let side2  = get(local + IVec3::new(ox, oy, 0));
+            let side1 = get(local + IVec3::new(0, oy, oz));
+            let side2 = get(local + IVec3::new(ox, oy, 0));
             let corner = get(local + IVec3::new(ox, oy, oz));
             ao(side1, side2, corner)
         }
         Direction::North | Direction::South => {
-            let side1  = get(local + IVec3::new(0, oy, oz));
-            let side2  = get(local + IVec3::new(ox, 0, oz));
+            let side1 = get(local + IVec3::new(0, oy, oz));
+            let side2 = get(local + IVec3::new(ox, 0, oz));
             let corner = get(local + IVec3::new(ox, oy, oz));
             ao(side1, side2, corner)
         }

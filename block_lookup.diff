@@ -1,0 +1,113 @@
+diff --git a/azalea-block/azalea-block-macros/src/lib.rs b/azalea-block/azalea-block-macros/src/lib.rs
+index 4cbdf5ba..1960dfb3 100644
+--- a/azalea-block/azalea-block-macros/src/lib.rs
++++ b/azalea-block/azalea-block-macros/src/lib.rs
+@@ -530,6 +530,21 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
+                 #block_name_pascal_case,
+             });
+             default_state_id = Some(state_id);
++        
++            let fn_name = Ident::new(
++                &format!("__make_{}_state_{}", block_struct_name, state_id),
++                proc_macro2::Span::call_site(),
++            );
++        
++            let ctor_fn = quote! {
++                fn #fn_name() -> Box<dyn BlockTrait> {
++                    Box::new(#block_struct_name {})
++                }
++            };
++        
++            block_structs.extend(ctor_fn);
++            from_state_to_block_match.extend(quote! { #fn_name, });
++        
+             state_id += 1;
+         }
+         for combination in combinations_of(&block_properties_vec) {
+@@ -591,6 +606,21 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
+                 default_state_id = Some(state_id);
+             }
+ 
++            let fn_name = Ident::new(
++                &format!("__make_{}_state_{}", block_struct_name, state_id),
++                proc_macro2::Span::call_site(),
++            );
++        
++            let ctor_fn = quote! {
++                fn #fn_name() -> Box<dyn BlockTrait> {
++                    Box::new(#block_struct_name { #from_block_to_state_combination_match_inner })
++                }
++            };
++        
++            block_structs.extend(ctor_fn);
++        
++            from_state_to_block_match.extend(quote! { #fn_name, });
++
+             state_id += 1;
+         }
+ 
+@@ -618,6 +648,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
+         //     }
+         // }
+         let mut from_state_to_block_inner = quote! {};
++
+         let mut division: BlockStateIntegerRepr = 1;
+         for i in (0..properties_with_name.len()).rev() {
+             let PropertyWithNameAndDefault {
+@@ -672,20 +703,9 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
+         }
+ 
+         let last_state_id = state_id - 1;
+-        from_state_to_block_match.extend(if first_state_id == last_state_id {
+-            quote! {
+-                #first_state_id => {
+-                    Box::new(#block_struct_name { #from_state_to_block_inner })
+-                },
+-            }
+-        } else {
+-            quote! {
+-                #first_state_id..=#last_state_id => {
+-                    let b = b - #first_state_id;
+-                    Box::new(#block_struct_name { #from_state_to_block_inner })
+-                },
+-            }
+-        });
++
++        
++
+ 
+         from_registry_block_to_block_match.extend(quote! {
+             azalea_registry::Block::#block_name_pascal_case => Box::new(#block_struct_name::default()),
+@@ -791,6 +811,8 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
+     }
+ 
+     let last_state_id = state_id - 1;
++
++
+     let mut generated = quote! {
+         impl BlockState {
+             /// The highest possible block state ID.
+@@ -934,15 +956,18 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
+ 
+             #block_structs
+ 
++            static BLOCK_STATE_TABLE: &[fn() -> Box<dyn BlockTrait>; BlockState::MAX_STATE as usize + 1] = &[
++                #from_state_to_block_match
++            ];
++
++
+             impl From<BlockState> for Box<dyn BlockTrait> {
+                 fn from(block_state: BlockState) -> Self {
+-                    let b = block_state.id();
+-                    match b {
+-                        #from_state_to_block_match
+-                        _ => panic!("Invalid block state: {}", b),
+-                    }
++                    let id = block_state.id() as usize;
++                    BLOCK_STATE_TABLE[id]()
+                 }
+             }
++
+             impl From<azalea_registry::Block> for Box<dyn BlockTrait> {
+                 fn from(block: azalea_registry::Block) -> Self {
+                     match block {

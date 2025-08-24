@@ -2,18 +2,17 @@ pub mod block_state;
 pub mod model;
 pub mod texture;
 
-use texture::Texture;
+use std::{collections::HashMap, fs, io::BufReader, path::PathBuf};
 
-use std::{collections::HashMap, error::Error, fs, io::BufReader, path::PathBuf};
-
+use azalea::blocks::{BlockState, BlockTrait};
 use log::*;
-
-use crate::vulkan::context::VkContext;
+use texture::Texture;
 
 use self::{
     block_state::BlockRenderState,
     model::{BlockModel, Cube},
 };
+use crate::{assets::block_state::Variant, vulkan::context::VkContext};
 
 pub struct BlockModelRef<'a> {
     pub ambient_occlusion: bool,
@@ -72,30 +71,24 @@ pub struct LoadedAssets {
 
     block_models: HashMap<String, BlockModel>,
 
-    block_states: HashMap<String, BlockRenderState>,
-
-    path: PathBuf,
+    blockstate_to_model: Vec<Option<String>>,
 }
 
 impl LoadedAssets {
     pub fn from_path(ctx: &VkContext, path: impl Into<PathBuf>) -> Self {
         let path = path.into();
-        let mut this = Self {
-            texture_to_id: HashMap::new(),
-            textures: Vec::new(),
-            block_states: HashMap::new(),
-            block_models: HashMap::new(),
-            path: path.clone(),
-        };
 
         let texture_path = path.join("textures");
+        info!("loading textures from {}", texture_path.display());
 
-        info!("loading textures from {}", texture_path.to_str().unwrap());
+        let mut texture_to_id = HashMap::new();
+        let mut textures = Vec::new();
 
-        for path in walkdir::WalkDir::new(&texture_path) {
-            let path = path.unwrap().path().to_owned();
+        for entry in walkdir::WalkDir::new(&texture_path) {
+            let entry = entry.unwrap();
+            let path = entry.path();
 
-            if !path.is_file() || !path.extension().map_or(false, |e| e == "png") {
+            if !path.is_file() || path.extension().and_then(|e| e.to_str()) != Some("png") {
                 continue;
             }
 
@@ -106,22 +99,24 @@ impl LoadedAssets {
                 .to_str()
                 .unwrap()
                 .to_owned();
-            this.add_texture(
-                Texture::new(ctx, BufReader::new(fs::File::open(path).unwrap())).unwrap(),
-                name,
-            );
+
+            let tex = Texture::new(ctx, BufReader::new(fs::File::open(path).unwrap())).unwrap();
+            texture_to_id.insert(name, textures.len());
+            textures.push(tex);
         }
 
         let block_model_path = path.join("models/block");
-        for path in walkdir::WalkDir::new(&block_model_path) {
-            let path = path.unwrap().path().to_owned();
+        let mut block_models = HashMap::new();
 
-            if !path.is_file() || !path.extension().map_or(false, |e| e == "json") {
+        for entry in walkdir::WalkDir::new(&block_model_path) {
+            let entry = entry.unwrap();
+            let path = entry.path();
+
+            if !path.is_file() || path.extension().and_then(|e| e.to_str()) != Some("json") {
                 continue;
             }
 
             let mut name = "block/".to_string();
-
             name.push_str(
                 path.strip_prefix(&block_model_path)
                     .unwrap()
@@ -131,15 +126,17 @@ impl LoadedAssets {
             );
 
             let s = fs::read_to_string(path).unwrap();
-            this.add_block_model(BlockModel::from_str(&s).unwrap(), name);
+            block_models.insert(name, BlockModel::from_str(&s).unwrap());
         }
 
         let block_state_path = path.join("blockstates");
+        let mut blockstate_defs = HashMap::new();
 
-        for path in walkdir::WalkDir::new(&block_state_path) {
-            let path = path.unwrap().path().to_owned();
+        for entry in walkdir::WalkDir::new(&block_state_path) {
+            let entry = entry.unwrap();
+            let path = entry.path();
 
-            if !path.is_file() || !path.extension().map_or(false, |e| e == "json") {
+            if !path.is_file() || path.extension().and_then(|e| e.to_str()) != Some("json") {
                 continue;
             }
 
@@ -153,31 +150,69 @@ impl LoadedAssets {
             );
 
             let s = fs::read_to_string(path).unwrap();
-            this.add_block_state(BlockRenderState::from_str(&s).unwrap(), name);
+            let state = BlockRenderState::from_str(&s).unwrap();
+            blockstate_defs.insert(name, state);
         }
 
-        this
+        let mut blockstate_to_model = vec![None; BlockState::MAX_STATE as usize + 1];
+
+        for raw in 0..=BlockState::MAX_STATE {
+            let bs = BlockState::try_from(raw as u16).unwrap();
+            let dyn_block = Box::<dyn BlockTrait>::from(bs);
+
+            let id = format!("block/{}", dyn_block.id());
+            let Some(render_state) = blockstate_defs.get(&id) else {
+                continue;
+            };
+
+            if let BlockRenderState::Variants(variants) = render_state {
+                let variant = 'outer: {
+                    for (states, variant) in variants {
+                        if states.is_empty() {
+                            break 'outer variant;
+                        }
+
+                        let mut matched = true;
+                        for state in states.split(',') {
+                            let Some((prop_name, value)) = state.split_once('=') else {
+                                log::error!("bad state {}, states {:?}", state, states);
+                                continue;
+                            };
+                            if dyn_block.get_property(prop_name) != Some(value.to_string()) {
+                                matched = false;
+                            }
+                        }
+                        if matched {
+                            break 'outer variant;
+                        }
+                    }
+                    &variants[0].1
+                };
+
+                let desc = match variant {
+                    Variant::Single(desc) => desc,
+                    Variant::Array(arr) => &arr[0],
+                };
+
+                blockstate_to_model[raw as usize] = Some(desc.model.clone());
+            }
+        }
+
+        Self {
+            texture_to_id,
+            textures,
+            block_models,
+            blockstate_to_model,
+        }
     }
 
-    pub fn add_texture(&mut self, texture: Texture, name: String) {
-        self.texture_to_id.insert(name, self.textures.len());
-        self.textures.push(texture);
+    pub fn get_block_model_for<'a>(&'a self, state: BlockState) -> Option<BlockModelRef<'a>> {
+        let model_name = self.blockstate_to_model[state.id() as usize].as_ref()?;
+        self.get_block_model(model_name)
     }
 
     pub fn get_texture_id(&self, name: &str) -> Option<usize> {
         self.texture_to_id.get(name).copied()
-    }
-
-    pub fn add_block_state(&mut self, block_state: BlockRenderState, name: String) {
-        self.block_states.insert(name, block_state);
-    }
-
-    pub fn get_block_state(&self, name: &str) -> Option<&BlockRenderState> {
-        self.block_states.get(name)
-    }
-
-    pub fn add_block_model(&mut self, model: BlockModel, name: String) {
-        self.block_models.insert(name, model);
     }
 
     pub fn get_block_model<'a>(&'a self, name: &str) -> Option<BlockModelRef<'a>> {
