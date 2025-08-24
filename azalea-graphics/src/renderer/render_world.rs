@@ -1,12 +1,16 @@
+use std::{collections::HashMap, sync::Arc};
 
-use std::collections::HashMap;
 use ash::vk;
 use azalea::core::position::{ChunkPos, ChunkSectionPos};
 
-
-use crate::renderer::mesh::Mesh;
-use crate::renderer::mesher::{LocalChunk, Mesher};
-use crate::vulkan::context::VkContext;
+use crate::{
+    assets::LoadedAssets,
+    renderer::{
+        mesh::Mesh,
+        mesher::{LocalChunk, Mesher},
+    },
+    vulkan::context::VkContext,
+};
 
 pub struct RenderWorld {
     pub mesher: Mesher,
@@ -20,9 +24,9 @@ pub struct PushConstants {
 }
 
 impl RenderWorld {
-    pub fn new() -> Self {
+    pub fn new(assets: Arc<LoadedAssets>) -> Self {
         Self {
-            mesher: Mesher::new(),
+            mesher: Mesher::new(assets),
             meshes: HashMap::new(),
         }
     }
@@ -44,29 +48,45 @@ impl RenderWorld {
     }
 
     /// Draw all chunk meshes
-    pub fn draw(&self, device: &ash::Device, cmd: vk::CommandBuffer, pipeline: vk::Pipeline, pipeline_layout: vk::PipelineLayout, view_proj: glam::Mat4) {
+    pub fn draw(
+        &self,
+        device: &ash::Device,
+        cmd: vk::CommandBuffer,
+        pipeline: vk::Pipeline,
+        descriptor_set: vk::DescriptorSet,
+        pipeline_layout: vk::PipelineLayout,
+        view_proj: glam::Mat4,
+    ) {
         unsafe {
             device.cmd_bind_pipeline(cmd, vk::PipelineBindPoint::GRAPHICS, pipeline);
+                let push = PushConstants { view_proj };
+
+                device.cmd_push_constants(
+                    cmd,
+                    pipeline_layout,
+                    vk::ShaderStageFlags::VERTEX,
+                    0,
+                    std::slice::from_raw_parts(
+                        &push as *const PushConstants as *const u8,
+                        std::mem::size_of::<PushConstants>(),
+                    ),
+                );
+
+            device.cmd_bind_descriptor_sets(
+                cmd,
+                vk::PipelineBindPoint::GRAPHICS,
+                pipeline_layout,
+                0,
+                &[descriptor_set],
+                &[],
+            );
         }
 
-        for (pos, mesh) in &self.meshes {
+        for (_, mesh) in &self.meshes {
             let vertex_buffers = [mesh.buffer];
             let offsets = [mesh.vertex_offset];
             unsafe {
-            let push = PushConstants {
-                view_proj,
-            };
-            
-            device.cmd_push_constants(
-                cmd,
-                pipeline_layout,
-                vk::ShaderStageFlags::VERTEX,
-                0,
-                std::slice::from_raw_parts(
-                    &push as *const PushConstants as *const u8,
-                    std::mem::size_of::<PushConstants>(),
-                ),
-            );
+
                 device.cmd_bind_vertex_buffers(cmd, 0, &vertex_buffers, &offsets);
                 device.cmd_bind_index_buffer(
                     cmd,

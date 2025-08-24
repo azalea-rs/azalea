@@ -209,7 +209,7 @@ impl VkContext {
         let priorities = [1.0f32];
         let mut unique_indices = vec![families.graphics_index, families.present_index];
         unique_indices.dedup();
-
+    
         let queue_infos: Vec<_> = unique_indices
             .iter()
             .map(|&idx| {
@@ -218,15 +218,31 @@ impl VkContext {
                     .queue_priorities(&priorities)
             })
             .collect();
-
-        let extensions = [khr_swapchain::NAME.as_ptr()];
-        let features = vk::PhysicalDeviceFeatures::default();
-
+    
+        // --- Query descriptor indexing support ---
+        let mut descriptor_indexing_features =
+            vk::PhysicalDeviceDescriptorIndexingFeatures::default();
+    
+        let mut features2 = vk::PhysicalDeviceFeatures2::default()
+            .push_next(&mut descriptor_indexing_features);
+    
+        unsafe { instance.get_physical_device_features2(physical, &mut features2) };
+    
+        if descriptor_indexing_features.shader_sampled_image_array_non_uniform_indexing == vk::TRUE {
+            log::info!("Descriptor indexing supported, enabling non-uniform indexing");
+        } else {
+            panic!("Device does not support descriptor indexing (required for texture arrays)");
+        }
+    
+        let extensions = [
+            khr_swapchain::NAME.as_ptr(),
+        ];
+    
         let create_info = vk::DeviceCreateInfo::default()
             .queue_create_infos(&queue_infos)
             .enabled_extension_names(&extensions)
-            .enabled_features(&features);
-
+            .push_next(&mut descriptor_indexing_features);
+    
         let device = unsafe {
             instance
                 .create_device(physical, &create_info, None)
@@ -234,7 +250,7 @@ impl VkContext {
         };
         let graphics_queue = unsafe { device.get_device_queue(families.graphics_index, 0) };
         let present_queue = unsafe { device.get_device_queue(families.present_index, 0) };
-
+    
         (device, graphics_queue, present_queue)
     }
 }

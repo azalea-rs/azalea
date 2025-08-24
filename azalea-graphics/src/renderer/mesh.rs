@@ -3,12 +3,14 @@ use vk_mem::{Allocation, MemoryUsage};
 
 use crate::vulkan::{context::VkContext, utils::{copy_buffer, create_buffer}};
 
+
 #[repr(C)]
 #[derive(Clone, Copy, Debug)]
 pub struct Vertex {
-    pub pos: [f32; 3],
-    pub color: [f32; 3],
+    pub position: [f32; 3], 
     pub ao: f32,
+    pub tex_idx: u32,
+    pub uv: [f32; 2],
 }
 
 impl Vertex {
@@ -19,7 +21,7 @@ impl Vertex {
             .input_rate(vk::VertexInputRate::VERTEX)
     }
 
-    pub fn attribute_descriptions() -> [vk::VertexInputAttributeDescription; 3] {
+    pub fn attribute_descriptions() -> [vk::VertexInputAttributeDescription; 4] {
         [
             // position
             vk::VertexInputAttributeDescription::default()
@@ -28,22 +30,30 @@ impl Vertex {
                 .format(vk::Format::R32G32B32_SFLOAT) // vec3
                 .offset(0),
 
-            // color
+            // ao
             vk::VertexInputAttributeDescription::default()
                 .binding(0)
                 .location(1)
-                .format(vk::Format::R32G32B32_SFLOAT) // vec3
+                .format(vk::Format::R32_SFLOAT) // float
                 .offset(12),
 
-            // AO
+            // tex_idx
             vk::VertexInputAttributeDescription::default()
                 .binding(0)
                 .location(2)
-                .format(vk::Format::R32_SFLOAT) // single float
-                .offset(24),
+                .format(vk::Format::R32_UINT) // uint
+                .offset(16),
+
+            // uv
+            vk::VertexInputAttributeDescription::default()
+                .binding(0)
+                .location(3)
+                .format(vk::Format::R32G32_SFLOAT) // vec2
+                .offset(20),
         ]
     }
 }
+
 
 
 

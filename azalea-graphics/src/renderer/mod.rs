@@ -1,8 +1,7 @@
-use std::{sync::Arc, time::Instant};
+use std::time::Instant;
 
-use azalea::{core::position::ChunkPos, world::Chunk};
-use crossbeam::channel::{self, Receiver, Sender, unbounded};
-use parking_lot::RwLock;
+use azalea::core::position::ChunkPos;
+use crossbeam::channel::{Receiver, Sender, unbounded};
 use raw_window_handle::{HasDisplayHandle, HasWindowHandle};
 use winit::{
     application::ApplicationHandler,

@@ -1,9 +1,16 @@
 #version 450
+#extension GL_EXT_nonuniform_qualifier : require
 
-layout(location = 0) in vec3 inColor;
+layout(set = 0, binding = 0) uniform sampler2D textures[]; // big texture array
+
+layout(location = 0) in vec2 fragUV;
+layout(location = 1) flat in uint fragTexIdx;
+layout(location = 2) in float fragAO;
 
 layout(location = 0) out vec4 outColor;
 
 void main() {
-    outColor = vec4(inColor, 1.0);
+    vec4 texColor = texture(textures[fragTexIdx], fragUV);
+
+    outColor = vec4(texColor.rgb * fragAO, texColor.a);
 }

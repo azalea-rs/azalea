@@ -1,14 +1,19 @@
-use azalea::blocks::BlockState;
+use azalea::blocks::{BlockState, BlockTrait};
 use azalea::core::direction::Direction;
 use azalea::core::position::{ChunkPos, ChunkSectionBlockPos, ChunkSectionPos};
-use azalea::ecs::system::Local;
-use azalea::world::{Chunk, Section};
+use azalea::physics::collision::BlockWithShape;
+use azalea::world::{Chunk};
 use crossbeam::channel::{unbounded, Sender, Receiver};
+use glam::{IVec3, Vec3};
 use parking_lot::RwLock;
 
 use std::sync::Arc;
 use std::thread;
+use std::time::Instant;
 
+use crate::assets::block_state::{BlockRenderState, Variant};
+use crate::assets::model::Cube;
+use crate::assets::LoadedAssets;
 use crate::renderer::mesh::Vertex;
 
 pub struct MeshData {
@@ -90,10 +95,6 @@ impl LocalChunk {
             if let Some(section) = chunk.sections.get(section_index) {
                 return section.get_block_state(ChunkSectionBlockPos { x: sx, y: sy, z: sz });
             }
-            if (cx_off, cz_off, cy_off) == (0, 0, 0){
-            println!("Fallback AIR at spos={:?}, lx={},ly={},lz={} (offsets {:?})",
-                     base_y, lx, ly, lz, (cx_off, cy_off, cz_off));
-                }
         }
 
         BlockState::AIR
@@ -108,14 +109,18 @@ pub struct Mesher {
 }
 
 impl Mesher {
-    pub fn new() -> Self {
+    pub fn new(assets: Arc<LoadedAssets>) -> Self {
         let (work_tx, work_rx) = unbounded::<LocalSection>();
         let (result_tx, result_rx) = unbounded::<MeshData>();
 
         thread::spawn(move || {
             while let Ok(local_section) = work_rx.recv() {
-                let mesh = simple_section_meshing(&local_section);
+
+                let start = Instant::now();
+                let mesh = mesh_section( &local_section, &assets,);
                 result_tx.send(mesh).unwrap();
+                let time_took = start.elapsed();
+                println!("chunk meshing took: {}ms", time_took.as_millis());
             }
         });
 
@@ -145,230 +150,369 @@ impl Mesher {
 }
 
 
-fn simple_section_meshing(section: &LocalSection) -> MeshData {
-    let mut vertices = Vec::new();
-    let mut indices = Vec::new();
-    let mut index_offset = 0;
 
-    for x in 0..16 {
-        for y in 0..16 {
+pub fn mesh_section(
+    section: &LocalSection,
+    assets: &LoadedAssets,
+) -> MeshData {
+    let mut vertices = Vec::with_capacity(1000);
+    let mut indices = Vec::with_capacity(1000);
+
+    for y in 0..16 {
+        for x in 0..16 {
             for z in 0..16 {
-                let state = section.blocks[x + 1][y + 1][z + 1];
-                if state == BlockState::AIR {
+                let local = IVec3::new(x + 1, y + 1, z + 1);
+                let block_state = section.blocks[local.x as usize][local.y as usize][local.z as usize];
+
+                if block_state.is_air() {
                     continue;
                 }
 
-                // world-space block coords
-                let wx = section.spos.x * 16 + x as i32;
-                let wy = section.spos.y * 16 + y as i32;
-                let wz = section.spos.z * 16 + z as i32;
+                let dyn_block = Box::<dyn BlockTrait>::from(block_state);
+                let state = assets.get_block_state(&format!("block/{}", dyn_block.id()));
 
-                for dir in [
-                    Direction::Down,
-                    Direction::Up,
-                    Direction::North,
-                    Direction::South,
-                    Direction::West,
-                    Direction::East,
-                ] {
-                    let nx = x as i32 + dir.x();
-                    let ny = y as i32 + dir.y();
-                    let nz = z as i32 + dir.z();
+                match state {
+                    Some(BlockRenderState::Variants(variants)) => {
+                        let variant = 'outer: {
+                            let block_props = dyn_block.property_map();
+                            for (states, variant) in variants {
+                                if states.is_empty() {
+                                    break 'outer variant;
+                                }
 
-                    let neighbor_air = !is_solid(section, nx, ny, nz);
+                                let mut matched = true;
+                                for state in states.split(',') {
+                                    let Some((name, value)) = state.split_once('=') else {
+                                        log::error!("bad state {}, states {:?}", state, states);
+                                        continue;
+                                    };
+                                    let prop = block_props.get(name);
+                                    if prop != Some(&value.to_string()) {
+                                        matched = false;
+                                    }
+                                }
+                                if matched {
+                                    break 'outer variant;
+                                }
+                            }
+                            &variants[0].1
+                        };
 
-                    if neighbor_air {
-                        let face = cube_face(
-                            section,
-                            x as i32, y as i32, z as i32,                          // local coords
-                            [wx as f32, wy as f32, wz as f32], // world-space origin
-                            dir,
-                        );
-                        let start = index_offset;
-                        vertices.extend_from_slice(&face.vertices);
-                        for idx in &face.indices {
-                            indices.push(start + idx);
+                        let desc = match variant {
+                            Variant::Single(desc) => desc,
+                            Variant::Array(arr) => &arr[0],
+                        };
+
+                        if let Some(model) = assets.get_block_model(&desc.model) {
+                            if let Some(elements) = model.elements() {
+                                for element in elements {
+                                    for face in FACES {
+                                        let model_face = match face.dir {
+                                            Direction::Down => &element.faces.down,
+                                            Direction::Up => &element.faces.up,
+                                            Direction::North => &element.faces.north,
+                                            Direction::South => &element.faces.south,
+                                            Direction::West => &element.faces.west,
+                                            Direction::East => &element.faces.east,
+                                        };
+
+                                        if let Some(model_face) = model_face {
+                                            let len = vertices.len() as u32;
+
+                                            // face culling (local space)
+                                            if let Some(cull_face) = model_face
+                                                .cullface
+                                                .as_deref()
+                                                .and_then(|s| match s {
+                                                    "down" => Some(Direction::Down),
+                                                    "up" => Some(Direction::Up),
+                                                    "north" => Some(Direction::North),
+                                                    "south" => Some(Direction::South),
+                                                    "west" => Some(Direction::West),
+                                                    "east" => Some(Direction::East),
+                                                    _ => None,
+                                                })
+                                            {
+                                                let n = cull_face.normal();
+                                                let neighbor = local + IVec3::new(n.x, n.y, n.z);
+
+                                                    if section.blocks[neighbor.x as usize]
+                                                        [neighbor.y as usize]
+                                                        [neighbor.z as usize]
+                                                        .is_collision_shape_full()
+                                                    {
+                                                        continue;
+                                                    }
+                                            }
+
+                                            let uvs = generate_uv(face.dir, model_face.uv);
+                                            for (i, offset) in face.offsets.iter().enumerate() {
+                                                let tex_idx = model
+                                                    .get_texture(&model_face.texture)
+                                                    .and_then(|name| assets.get_texture_id(&name))
+                                                    .unwrap_or(0);
+
+                                                let world_pos = Vec3::new(
+                                                    (local.x - 1) as f32 + section.spos.x as f32 * 16.0,
+                                                    (local.y - 1) as f32 + section.spos.y as f32 * 16.0,
+                                                    (local.z - 1) as f32 + section.spos.z as f32 * 16.0,
+                                                );
+
+                                                vertices.push(Vertex {
+                                                    position: (offset_to_coord(*offset, element)
+                                                        / 16.0
+                                                        + world_pos)
+                                                        .into(),
+                                                    ao: if model.ambient_occlusion {
+                                                        compute_ao(local, *offset, face.dir, section) as f32
+                                                    } else {
+                                                        3.0
+                                                    },
+                                                    tex_idx: tex_idx as u32,
+                                                    uv: uvs[i].into(),
+                                                });
+                                            }
+
+                                            indices.extend_from_slice(&[
+                                                len + 0,
+                                                len + 1,
+                                                len + 2,
+                                                len + 0,
+                                                len + 2,
+                                                len + 3,
+                                            ]);
+                                        }
+                                    }
+                                }
+                            }
                         }
-                        index_offset += face.vertices.len() as u32;
                     }
+                    Some(BlockRenderState::MultiPart) => {}
+                    None => log::error!("Missing blockstate for {}", dyn_block.id()),
                 }
             }
         }
     }
 
     MeshData {
+        section_pos: section.spos,
         vertices,
         indices,
-        section_pos: section.spos,
     }
 }
 
 
-struct FaceMesh {
-    vertices: [Vertex; 4],
-    indices: [u32; 6],
+fn generate_uv(dir: Direction, uvs: Option<[f32; 4]>) -> [glam::Vec2; 4] {
+    match uvs {
+        Some(uvs) => match dir {
+            Direction::Up => [
+                glam::Vec2::new(uvs[0] / 16.0, uvs[1] / 16.0),
+                glam::Vec2::new(uvs[2] / 16.0, uvs[1] / 16.0),
+                glam::Vec2::new(uvs[2] / 16.0, uvs[3] / 16.0),
+                glam::Vec2::new(uvs[0] / 16.0, uvs[3] / 16.0),
+            ],
+            Direction::Down => [
+                glam::Vec2::new(uvs[0] / 16.0, uvs[1] / 16.0),
+                glam::Vec2::new(uvs[2] / 16.0, uvs[1] / 16.0),
+                glam::Vec2::new(uvs[2] / 16.0, uvs[3] / 16.0),
+                glam::Vec2::new(uvs[0] / 16.0, uvs[3] / 16.0),
+            ],
+            Direction::North => [
+                glam::Vec2::new(uvs[0] / 16.0, uvs[3] / 16.0),
+                glam::Vec2::new(uvs[0] / 16.0, uvs[1] / 16.0),
+                glam::Vec2::new(uvs[2] / 16.0, uvs[1] / 16.0),
+                glam::Vec2::new(uvs[2] / 16.0, uvs[3] / 16.0),
+            ],
+            Direction::South => [
+                glam::Vec2::new(uvs[0] / 16.0, uvs[3] / 16.0),
+                glam::Vec2::new(uvs[2] / 16.0, uvs[3] / 16.0),
+                glam::Vec2::new(uvs[2] / 16.0, uvs[1] / 16.0),
+                glam::Vec2::new(uvs[0] / 16.0, uvs[1] / 16.0),
+            ],
+            Direction::East => [
+                glam::Vec2::new(uvs[0] / 16.0, uvs[3] / 16.0),
+                glam::Vec2::new(uvs[0] / 16.0, uvs[1] / 16.0),
+                glam::Vec2::new(uvs[2] / 16.0, uvs[1] / 16.0),
+                glam::Vec2::new(uvs[2] / 16.0, uvs[3] / 16.0),
+            ],
+            Direction::West => [
+                glam::Vec2::new(uvs[0] / 16.0, uvs[3] / 16.0),
+                glam::Vec2::new(uvs[2] / 16.0, uvs[3] / 16.0),
+                glam::Vec2::new(uvs[2] / 16.0, uvs[1] / 16.0),
+                glam::Vec2::new(uvs[0] / 16.0, uvs[1] / 16.0),
+            ],
+        },
+        None => match dir {
+            Direction::Up => [
+                glam::Vec2::new(0.0, 0.0),
+                glam::Vec2::new(1.0, 0.0),
+                glam::Vec2::new(1.0, 1.0),
+                glam::Vec2::new(0.0, 1.0),
+            ],
+            Direction::Down => [
+                glam::Vec2::new(0.0, 0.0),
+                glam::Vec2::new(1.0, 0.0),
+                glam::Vec2::new(1.0, 1.0),
+                glam::Vec2::new(0.0, 1.0),
+            ],
+            Direction::North => [
+                glam::Vec2::new(0.0, 1.0),
+                glam::Vec2::new(0.0, 0.0),
+                glam::Vec2::new(1.0, 0.0),
+                glam::Vec2::new(1.0, 1.0),
+            ],
+            Direction::South => [
+                glam::Vec2::new(0.0, 1.0),
+                glam::Vec2::new(1.0, 1.0),
+                glam::Vec2::new(1.0, 0.0),
+                glam::Vec2::new(0.0, 0.0),
+            ],
+            Direction::East => [
+                glam::Vec2::new(0.0, 1.0),
+                glam::Vec2::new(0.0, 0.0),
+                glam::Vec2::new(1.0, 0.0),
+                glam::Vec2::new(1.0, 1.0),
+            ],
+            Direction::West => [
+                glam::Vec2::new(0.0, 1.0),
+                glam::Vec2::new(1.0, 1.0),
+                glam::Vec2::new(1.0, 0.0),
+                glam::Vec2::new(0.0, 0.0),
+            ],
+        },
+    }
+}
+
+fn offset_to_coord(offset: IVec3, element: &Cube) -> glam::Vec3 {
+    glam::Vec3::new(
+        if offset.x == 0 {
+            element.from.x
+        } else {
+            element.to.x
+        },
+        if offset.y == 0 {
+            element.from.y
+        } else {
+            element.to.y
+        },
+        if offset.z == 0 {
+            element.from.z
+        } else {
+            element.to.z
+        },
+    )
 }
 
 
 
-fn cube_face(section: &LocalSection, bx: i32, by: i32, bz: i32, pos: [f32; 3], dir: Direction) -> FaceMesh {
-    let [x, y, z] = pos;
 
-    let c = match dir {
-        Direction::East  => [0.5, 0.0, 0.0],
-        Direction::West  => [0.5, 0.0, 0.0],
-        Direction::Up    => [0.5, 0.0, 0.0],
-        Direction::Down  => [0.5, 0.0, 0.0],
-        Direction::South => [0.0, 0.5, 0.0],
-        Direction::North => [0.0, 0.0, 0.5],
+
+fn compute_ao(
+    local: IVec3,
+    offset: IVec3,
+    dir: Direction,
+    section: &LocalSection,
+) -> u32 {
+    let get = |p: IVec3| {
+        if p.x < 0 || p.y < 0 || p.z < 0 || p.x >= 18 || p.y >= 18 || p.z >= 18 {
+            return false;
+        }
+        section.blocks[p.x as usize][p.y as usize][p.z as usize].is_collision_shape_full()
     };
 
-
-    let ao0 = compute_vertex_ao(section, bx, by, bz, dir, 0);
-    let ao1 = compute_vertex_ao(section, bx, by, bz, dir, 1);
-    let ao2 = compute_vertex_ao(section, bx, by, bz, dir, 2);
-    let ao3 = compute_vertex_ao(section, bx, by, bz, dir, 3);
-
+    // convert {0,1} offset into {-1,+1}
+    let ox = offset.x * 2 - 1;
+    let oy = offset.y * 2 - 1;
+    let oz = offset.z * 2 - 1;
 
     match dir {
-        Direction::East => {
-            let verts = [
-                Vertex { pos: [x+1.0, y,     z],     color: c, ao: ao0 },
-                Vertex { pos: [x+1.0, y,     z+1.0], color: c, ao: ao1 },
-                Vertex { pos: [x+1.0, y+1.0, z+1.0], color: c, ao: ao2 },
-                Vertex { pos: [x+1.0, y+1.0, z],     color: c, ao: ao3 },
-            ];
-
-            FaceMesh { vertices: verts, indices: [0,2,1, 2,0,3] }
+        Direction::East | Direction::West => {
+            let side1  = get(local + IVec3::new(ox, 0, oz));
+            let side2  = get(local + IVec3::new(ox, oy, 0));
+            let corner = get(local + IVec3::new(ox, oy, oz));
+            ao(side1, side2, corner)
         }
-        Direction::West => {
-            let verts = [
-                Vertex { pos: [x, y,     z],     color: c, ao: ao0 },
-                Vertex { pos: [x, y,     z+1.0], color: c, ao: ao1 },
-                Vertex { pos: [x, y+1.0, z+1.0], color: c, ao: ao2 },
-                Vertex { pos: [x, y+1.0, z],     color: c, ao: ao3 },
-            ];
-
-            FaceMesh { vertices: verts, indices: [0,1,2, 2,3,0] }
+        Direction::Up | Direction::Down => {
+            let side1  = get(local + IVec3::new(0, oy, oz));
+            let side2  = get(local + IVec3::new(ox, oy, 0));
+            let corner = get(local + IVec3::new(ox, oy, oz));
+            ao(side1, side2, corner)
         }
-        Direction::Up => {
-            let verts = [
-                Vertex { pos: [x,     y+1.0, z],     color: c, ao: ao0  },
-                Vertex { pos: [x+1.0, y+1.0, z],     color: c, ao: ao1  },
-                Vertex { pos: [x+1.0, y+1.0, z+1.0], color: c, ao: ao2  },
-                Vertex { pos: [x,     y+1.0, z+1.0], color: c, ao: ao3  },
-            ];
-
-            FaceMesh { vertices: verts, indices: [0,2,1, 2,0,3] }
-        }
-        Direction::Down => {
-            let verts = [
-                Vertex { pos: [x,     y, z],     color: c, ao: ao0 },
-                Vertex { pos: [x+1.0, y, z],     color: c, ao: ao1 },
-                Vertex { pos: [x+1.0, y, z+1.0], color: c, ao: ao2 },
-                Vertex { pos: [x,     y, z+1.0], color: c, ao: ao3 },
-            ];
-
-            FaceMesh { vertices: verts, indices: [0,1,2, 2,3,0] }
-        }
-        Direction::South => {
-            let verts = [
-                Vertex { pos: [x,     y,     z+1.0], color: c, ao: ao0 },
-                Vertex { pos: [x+1.0, y,     z+1.0], color: c, ao: ao1 },
-                Vertex { pos: [x+1.0, y+1.0, z+1.0], color: c, ao: ao2 },
-                Vertex { pos: [x,     y+1.0, z+1.0], color: c, ao: ao3 },
-            ];
-
-            FaceMesh { vertices: verts, indices: [0,1,2, 2,3,0] }
-        }
-        Direction::North => {
-            let verts = [
-                Vertex { pos: [x,     y,     z], color: c, ao: ao0 },
-                Vertex { pos: [x+1.0, y,     z], color: c, ao: ao1 },
-                Vertex { pos: [x+1.0, y+1.0, z], color: c, ao: ao2 },
-                Vertex { pos: [x,     y+1.0, z], color: c, ao: ao3 },
-            ];
-
-            FaceMesh { vertices: verts, indices: [0,2,1, 2,0,3] }
+        Direction::North | Direction::South => {
+            let side1  = get(local + IVec3::new(0, oy, oz));
+            let side2  = get(local + IVec3::new(ox, 0, oz));
+            let corner = get(local + IVec3::new(ox, oy, oz));
+            ao(side1, side2, corner)
         }
     }
 }
 
-
-fn compute_vertex_ao(section: &LocalSection, bx: i32, by: i32, bz: i32, dir: Direction, corner: usize) -> f32 {
-    let [s1, s2, c] = ao_offsets(dir, corner);
-
-    let side1  = is_solid(section, bx + s1.0, by + s1.1, bz + s1.2);
-    let side2  = is_solid(section, bx + s2.0, by + s2.1, bz + s2.2);
-    let corner = is_solid(section, bx + c.0,  by + c.1,  bz + c.2);
-
-    vertex_ao(side1, side2, corner) as f32 / 3.0
-}
-
-
-fn ao_offsets(dir: Direction, corner: usize) -> [(i32, i32, i32); 3] {
-    match dir {
-        Direction::Up => match corner {
-            0 => [(-1, 1, 0), (0, 1, -1), (-1, 1, -1)],
-            1 => [(1, 1, 0), (0, 1, -1), (1, 1, -1)],
-            2 => [(1, 1, 0), (0, 1, 1),  (1, 1, 1)],
-            3 => [(-1, 1, 0), (0, 1, 1), (-1, 1, 1)],
-            _ => unreachable!(),
-        },
-        Direction::Down => match corner {
-            0 => [(-1, -1, 0), (0, -1, -1), (-1, -1, -1)],
-            1 => [(1, -1, 0), (0, -1, -1), (1, -1, -1)],
-            2 => [(1, -1, 0), (0, -1, 1),  (1, -1, 1)],
-            3 => [(-1, -1, 0), (0, -1, 1), (-1, -1, 1)],
-            _ => unreachable!(),
-        },
-        Direction::North => match corner {
-            0 => [(-1, 0, -1), (0, -1, -1), (-1, -1, -1)],
-            1 => [(1, 0, -1), (0, -1, -1), (1, -1, -1)],
-            2 => [(1, 0, -1), (0, 1, -1),  (1, 1, -1)],
-            3 => [(-1, 0, -1), (0, 1, -1), (-1, 1, -1)],
-            _ => unreachable!(),
-        },
-        Direction::South => match corner {
-            0 => [(-1, 0, 1), (0, -1, 1), (-1, -1, 1)],
-            1 => [(1, 0, 1), (0, -1, 1), (1, -1, 1)],
-            2 => [(1, 0, 1), (0, 1, 1),  (1, 1, 1)],
-            3 => [(-1, 0, 1), (0, 1, 1), (-1, 1, 1)],
-            _ => unreachable!(),
-        },
-        Direction::East => match corner {
-            0 => [(1, -1, 0), (1, 0, -1), (1, -1, -1)],
-            1 => [(1, -1, 0), (1, 0, 1),  (1, -1, 1)],
-            2 => [(1, 1, 0),  (1, 0, 1),  (1, 1, 1)],
-            3 => [(1, 1, 0),  (1, 0, -1), (1, 1, -1)],
-            _ => unreachable!(),
-        },
-        Direction::West => match corner {
-            0 => [(-1, -1, 0), (-1, 0, -1), (-1, -1, -1)],
-            1 => [(-1, -1, 0), (-1, 0, 1),  (-1, -1, 1)],
-            2 => [(-1, 1, 0),  (-1, 0, 1),  (-1, 1, 1)],
-            3 => [(-1, 1, 0),  (-1, 0, -1), (-1, 1, -1)],
-            _ => unreachable!(),
-        },
-    }
-}
-
-
-fn vertex_ao(side1: bool, side2: bool, corner: bool) -> u8 {
+fn ao(side1: bool, side2: bool, corner: bool) -> u32 {
     if side1 && side2 {
         0
     } else {
-        3 - (side1 as u8 + side2 as u8 + corner as u8)
+        3 - ((side1 || side2) as u32 + corner as u32)
     }
 }
 
-
-fn is_solid(local: &LocalSection, x: i32, y: i32, z: i32) -> bool {
-    // offset by +1 into the padded array
-    let bx = (x + 1) as usize;
-    let by = (y + 1) as usize;
-    let bz = (z + 1) as usize;
-
-    local.blocks[bx][by][bz] != BlockState::AIR
+struct Face {
+    offsets: [IVec3; 4],
+    dir: Direction,
 }
 
+const FACES: [Face; 6] = [
+    Face {
+        offsets: [
+            glam::IVec3::new(0, 1, 0),
+            glam::IVec3::new(0, 1, 1),
+            glam::IVec3::new(1, 1, 1),
+            glam::IVec3::new(1, 1, 0),
+        ],
+        dir: Direction::Up,
+    },
+    Face {
+        offsets: [
+            glam::IVec3::new(0, 0, 0),
+            glam::IVec3::new(1, 0, 0),
+            glam::IVec3::new(1, 0, 1),
+            glam::IVec3::new(0, 0, 1),
+        ],
+        dir: Direction::Down,
+    },
+    Face {
+        offsets: [
+            glam::IVec3::new(0, 0, 1),
+            glam::IVec3::new(1, 0, 1),
+            glam::IVec3::new(1, 1, 1),
+            glam::IVec3::new(0, 1, 1),
+        ],
+        dir: Direction::South,
+    },
+    Face {
+        offsets: [
+            glam::IVec3::new(0, 0, 0),
+            glam::IVec3::new(0, 1, 0),
+            glam::IVec3::new(1, 1, 0),
+            glam::IVec3::new(1, 0, 0),
+        ],
+        dir: Direction::North,
+    },
+    Face {
+        offsets: [
+            glam::IVec3::new(1, 0, 0),
+            glam::IVec3::new(1, 1, 0),
+            glam::IVec3::new(1, 1, 1),
+            glam::IVec3::new(1, 0, 1),
+        ],
+        dir: Direction::East,
+    },
+    Face {
+        offsets: [
+            glam::IVec3::new(0, 0, 0),
+            glam::IVec3::new(0, 0, 1),
+            glam::IVec3::new(0, 1, 1),
+            glam::IVec3::new(0, 1, 0),
+        ],
+        dir: Direction::West,
+    },
+];

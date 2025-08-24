@@ -1,27 +1,35 @@
-use std::time::Duration;
-use std::sync::Arc;
+use std::{sync::Arc, time::Duration};
 
-use crate::renderer::camera::{Camera, CameraController, Projection};
-use crate::renderer::mesh::{Vertex};
-use crate::renderer::mesher::LocalChunk;
-use crate::renderer::render_world::{PushConstants, RenderWorld};
-use crate::vulkan::frame_sync::MAX_FRAMES_IN_FLIGHT;
-use crate::vulkan::{context::VkContext, frame_sync::FrameSync};
-use crate::vulkan::swapchain::Swapchain;
-use ash::vk::{self};
-use ash::Device;
+use ash::{
+    Device,
+    vk::{self},
+};
 use azalea::core::position::ChunkPos;
-use azalea::world::Chunk;
-use parking_lot::RwLock;
 use raw_window_handle::{DisplayHandle, WindowHandle};
-use vk_mem::{Alloc, Allocation, AllocationCreateFlags, AllocationCreateInfo, Allocator, MemoryUsage};
-use winit::dpi::PhysicalSize;
-use winit::event::{ElementState, MouseScrollDelta};
-use winit::keyboard::KeyCode;
+use vk_mem::{Alloc, Allocation, AllocationCreateInfo, Allocator, MemoryUsage};
+use winit::{
+    dpi::PhysicalSize,
+    event::{ElementState, MouseScrollDelta},
+    keyboard::KeyCode,
+};
+
+use crate::{
+    assets::{texture::Texture, LoadedAssets},
+    renderer::{
+        camera::{Camera, CameraController, Projection},
+        mesh::Vertex,
+        mesher::LocalChunk,
+        render_world::{PushConstants, RenderWorld},
+    },
+    vulkan::{
+        context::VkContext,
+        frame_sync::{FrameSync, MAX_FRAMES_IN_FLIGHT},
+        swapchain::Swapchain,
+    },
+};
 
 const TRIANGLE_VERT: &[u8] = include_bytes!(env!("TRIANGLE_VERT"));
 const TRIANGLE_FRAG: &[u8] = include_bytes!(env!("TRIANGLE_FRAG"));
-
 
 pub struct RenderState {
     pub context: VkContext,
@@ -39,10 +47,12 @@ pub struct RenderState {
     pipeline: vk::Pipeline,
     framebuffers: Vec<vk::Framebuffer>,
 
-
+    descriptor_set_layout: vk::DescriptorSetLayout,
+    descriptor_pool: vk::DescriptorPool,
+    descriptor_set: vk::DescriptorSet,
 
     command_pool: vk::CommandPool,
-    command_buffers: [vk::CommandBuffer; MAX_FRAMES_IN_FLIGHT], 
+    command_buffers: [vk::CommandBuffer; MAX_FRAMES_IN_FLIGHT],
 
     sync: FrameSync,
 
@@ -53,7 +63,6 @@ pub struct RenderState {
     camera_controller: CameraController,
 }
 
-
 impl RenderState {
     pub fn new(
         window_handle: &WindowHandle,
@@ -63,22 +72,30 @@ impl RenderState {
         let context = VkContext::new(window_handle, display_handle);
         let swapchain = Swapchain::new(&context, size.width, size.height);
 
+        let assets = LoadedAssets::from_path(&context, "assets/minecraft");
+        let descriptor_set_layout = create_descriptor_set_layout(context.device(), assets.textures.len() as u32);
+        let descriptor_pool = create_descriptor_pool(context.device(), assets.textures.len() as u32);
+        let descriptor_set = allocate_descriptor_set(context.device(), descriptor_pool, descriptor_set_layout);
+        update_texture_descriptors(context.device(), descriptor_set, &assets.textures);
+
         let render_pass = create_render_pass(&context, &swapchain);
+
+
         let (pipeline_layout, pipeline) =
-            create_pipeline(&context, render_pass, TRIANGLE_VERT, TRIANGLE_FRAG);
+            create_pipeline(&context, render_pass, TRIANGLE_VERT, TRIANGLE_FRAG, descriptor_set_layout);
+
 
         let (depth_image, depth_allocation, depth_view) =
             create_depth_resources(&context, context.allocator(), swapchain.extent);
-        
+
         let framebuffers = create_framebuffers(&context, &swapchain, render_pass, depth_view);
 
         let command_pool = create_command_pool(&context);
-        let command_buffers =
-            allocate_command_buffers(&context, command_pool);
+        let command_buffers = allocate_command_buffers(&context, command_pool);
 
         let sync = FrameSync::new(context.device(), swapchain.images.len());
 
-        let world = RenderWorld::new();
+        let world = RenderWorld::new(Arc::new(assets));
 
         let camera = Camera::new(glam::vec3(0.0, 150.0, 2.0), -90.0, 0.0);
         let projection = Projection::new(size.width, size.height, 45.0, 1.0, 10000.0);
@@ -101,6 +118,11 @@ impl RenderState {
             framebuffers,
             command_pool,
             command_buffers,
+            
+            descriptor_set_layout,
+            descriptor_pool,
+            descriptor_set,
+
             sync,
             world,
             camera,
@@ -133,10 +155,9 @@ impl RenderState {
     pub fn draw_frame(&mut self) {
         let device = self.context.device();
         let frame = self.sync.next_frame();
-    
+
         self.sync.wait_for_fence(device, frame);
-    
-    
+
         let image_index = match self.swapchain.acquire_next_image(&self.sync, frame) {
             Ok(idx) => idx,
             Err(true) => {
@@ -145,27 +166,30 @@ impl RenderState {
             }
             Err(false) => panic!("Failed to acquire swapchain image"),
         };
-    
+
         let cmd = self.command_buffers[frame];
         unsafe {
             device
                 .reset_command_buffer(cmd, vk::CommandBufferResetFlags::empty())
                 .unwrap();
-    
+
             let begin_info = vk::CommandBufferBeginInfo::default();
             device.begin_command_buffer(cmd, &begin_info).unwrap();
-    
+
             let clear_color = vk::ClearValue {
                 color: vk::ClearColorValue {
                     float32: [0.0, 0.0, 0.0, 1.0],
                 },
             };
-            let clear_values = [clear_color, vk::ClearValue{
-               depth_stencil: vk::ClearDepthStencilValue{
-                   depth: 1.0,
-                   stencil: 0,
-               }
-            }];
+            let clear_values = [
+                clear_color,
+                vk::ClearValue {
+                    depth_stencil: vk::ClearDepthStencilValue {
+                        depth: 1.0,
+                        stencil: 0,
+                    },
+                },
+            ];
             let rp_info = vk::RenderPassBeginInfo::default()
                 .render_pass(self.render_pass)
                 .framebuffer(self.framebuffers[image_index as usize])
@@ -174,9 +198,9 @@ impl RenderState {
                     extent: self.swapchain.extent,
                 })
                 .clear_values(&clear_values);
-    
+
             device.cmd_begin_render_pass(cmd, &rp_info, vk::SubpassContents::INLINE);
-    
+
             let viewport = vk::Viewport {
                 x: 0.0,
                 y: 0.0,
@@ -191,26 +215,30 @@ impl RenderState {
             };
             device.cmd_set_viewport(cmd, 0, &[viewport]);
             device.cmd_set_scissor(cmd, 0, &[scissor]);
-    
-    
-            self.world.draw(device, cmd, self.pipeline, self.pipeline_layout, self.projection.calc_proj() * self.camera.calc_view());
+
+            self.world.draw(
+                device,
+                cmd,
+                self.pipeline,
+                self.descriptor_set,
+                self.pipeline_layout,
+                self.projection.calc_proj() * self.camera.calc_view(),
+            );
 
             device.cmd_end_render_pass(cmd);
             device.end_command_buffer(cmd).unwrap();
         }
-    
+
         let wait_semaphores = [self.sync.image_available[frame]];
         let signal_semaphores = [self.sync.render_finished[image_index as usize]];
         let wait_stages = [vk::PipelineStageFlags::COLOR_ATTACHMENT_OUTPUT];
-    
-    
+
         let submit_info = vk::SubmitInfo::default()
             .wait_semaphores(&wait_semaphores)
             .wait_dst_stage_mask(&wait_stages)
             .command_buffers(std::slice::from_ref(&cmd))
-            .signal_semaphores(&signal_semaphores)
-            ;
-    
+            .signal_semaphores(&signal_semaphores);
+
         unsafe {
             device
                 .queue_submit(
@@ -220,12 +248,11 @@ impl RenderState {
                 )
                 .unwrap();
         }
-    
-        match self.swapchain.present(
-            self.context.present_queue(),
-            &self.sync,
-            image_index,
-        ) {
+
+        match self
+            .swapchain
+            .present(self.context.present_queue(), &self.sync, image_index)
+        {
             Ok(true) => {}
             Ok(false) => self.should_recreate = true,
             Err(e) => panic!("Present failed: {:?}", e),
@@ -245,43 +272,55 @@ impl RenderState {
     /// Actually recreate swapchain if marked.
     pub fn maybe_recreate(&mut self) {
         if self.should_recreate {
-
-        unsafe {
-
-        self.context.device().queue_wait_idle(self.context.present_queue()).unwrap();
-        self.context.device().queue_wait_idle(self.context.graphics_queue()).unwrap();
-            for fb in &self.framebuffers {
-                self.context.device().destroy_framebuffer(*fb, None);
+            unsafe {
+                self.context
+                    .device()
+                    .queue_wait_idle(self.context.present_queue())
+                    .unwrap();
+                self.context
+                    .device()
+                    .queue_wait_idle(self.context.graphics_queue())
+                    .unwrap();
+                for fb in &self.framebuffers {
+                    self.context.device().destroy_framebuffer(*fb, None);
+                }
             }
-        }
-        self.framebuffers.clear();
+            self.framebuffers.clear();
             self.swapchain
                 .recreate(&self.context, self.width, self.height);
 
-            unsafe{
-        self.context.device().destroy_image_view(self.depth_view, None);
-        self.context.allocator().destroy_image(self.depth_image, &mut self.depth_allocation);
+            unsafe {
+                self.context
+                    .device()
+                    .destroy_image_view(self.depth_view, None);
+                self.context
+                    .allocator()
+                    .destroy_image(self.depth_image, &mut self.depth_allocation);
             }
 
-        let (depth_image, depth_allocation, depth_view) =
-            create_depth_resources(&self.context, self.context.allocator(), self.swapchain.extent);
+            let (depth_image, depth_allocation, depth_view) = create_depth_resources(
+                &self.context,
+                self.context.allocator(),
+                self.swapchain.extent,
+            );
 
-        self.depth_image = depth_image;
-        self.depth_allocation = depth_allocation;
-        self.depth_view = depth_view;
+            self.depth_image = depth_image;
+            self.depth_allocation = depth_allocation;
+            self.depth_view = depth_view;
 
-        self.framebuffers =
-            create_framebuffers(&self.context, &self.swapchain, self.render_pass, self.depth_view);
+            self.framebuffers = create_framebuffers(
+                &self.context,
+                &self.swapchain,
+                self.render_pass,
+                self.depth_view,
+            );
 
-
-            
             self.should_recreate = false;
         }
     }
 
     pub fn destroy(&mut self) {
         let device = self.context.device();
-
 
         unsafe {
             device.device_wait_idle().unwrap();
@@ -294,7 +333,9 @@ impl RenderState {
             self.framebuffers.clear();
 
             device.destroy_image_view(self.depth_view, None);
-            self.context.allocator().destroy_image(self.depth_image, &mut self.depth_allocation);
+            self.context
+                .allocator()
+                .destroy_image(self.depth_image, &mut self.depth_allocation);
 
             device.destroy_pipeline(self.pipeline, None);
             device.destroy_pipeline_layout(self.pipeline_layout, None);
@@ -308,8 +349,6 @@ impl RenderState {
         self.sync.destroy(device);
     }
 }
-
-
 
 pub fn create_render_pass(ctx: &VkContext, swapchain: &Swapchain) -> vk::RenderPass {
     let color_attachment = vk::AttachmentDescription::default()
@@ -363,7 +402,6 @@ fn create_shader_module(device: &Device, code: &[u8]) -> vk::ShaderModule {
     unsafe { device.create_shader_module(&info, None).unwrap() }
 }
 
-
 pub fn create_depth_resources(
     ctx: &VkContext,
     allocator: &Allocator,
@@ -392,7 +430,8 @@ pub fn create_depth_resources(
     };
 
     let (image, allocation) = unsafe {
-        allocator.create_image(&image_info, &alloc_info)
+        allocator
+            .create_image(&image_info, &alloc_info)
             .expect("Failed to create depth image")
     };
 
@@ -408,9 +447,7 @@ pub fn create_depth_resources(
             layer_count: 1,
         });
 
-    let depth_view = unsafe {
-        ctx.device().create_image_view(&view_info, None).unwrap()
-    };
+    let depth_view = unsafe { ctx.device().create_image_view(&view_info, None).unwrap() };
 
     (image, allocation, depth_view)
 }
@@ -420,6 +457,7 @@ pub fn create_pipeline(
     render_pass: vk::RenderPass,
     vert_spv: &[u8],
     frag_spv: &[u8],
+    descriptor_set_layout: vk::DescriptorSetLayout,
 ) -> (vk::PipelineLayout, vk::Pipeline) {
     let device = ctx.device();
 
@@ -441,7 +479,7 @@ pub fn create_pipeline(
 
     let binding_desc = [Vertex::binding_description()];
     let attribute_desc = Vertex::attribute_descriptions();
-    
+
     let vertex_input = vk::PipelineVertexInputStateCreateInfo::default()
         .vertex_binding_descriptions(&binding_desc)
         .vertex_attribute_descriptions(&attribute_desc);
@@ -471,7 +509,6 @@ pub fn create_pipeline(
         )
         .blend_enable(false);
 
-
     let depth_stencil = vk::PipelineDepthStencilStateCreateInfo::default()
         .depth_test_enable(true)
         .depth_write_enable(true)
@@ -479,23 +516,28 @@ pub fn create_pipeline(
         .depth_bounds_test_enable(false)
         .stencil_test_enable(false);
 
-
     let attachments = [color_blend_attachment];
-    let color_blending =
-        vk::PipelineColorBlendStateCreateInfo::default().attachments(&attachments);
+    let color_blending = vk::PipelineColorBlendStateCreateInfo::default().attachments(&attachments);
 
     let dynamic_states = [vk::DynamicState::VIEWPORT, vk::DynamicState::SCISSOR];
     let dynamic_state =
         vk::PipelineDynamicStateCreateInfo::default().dynamic_states(&dynamic_states);
+
+    let layouts = [descriptor_set_layout];
     let push_constant_range = vk::PushConstantRange::default()
         .stage_flags(vk::ShaderStageFlags::VERTEX)
         .offset(0)
         .size(std::mem::size_of::<PushConstants>() as u32);
 
-    let pipeline_layout_info = vk::PipelineLayoutCreateInfo::default().push_constant_ranges(std::slice::from_ref(&push_constant_range));
+    let pipeline_layout_info = vk::PipelineLayoutCreateInfo::default()
+        .set_layouts(&layouts)
+        .push_constant_ranges(std::slice::from_ref(&push_constant_range));
 
-    let pipeline_layout =
-        unsafe { device.create_pipeline_layout(&pipeline_layout_info, None).unwrap() };
+    let pipeline_layout = unsafe {
+        device
+            .create_pipeline_layout(&pipeline_layout_info, None)
+            .unwrap()
+    };
 
     let pipeline_info = vk::GraphicsPipelineCreateInfo::default()
         .stages(&shader_stages)
@@ -576,8 +618,84 @@ pub fn allocate_command_buffers(
 
     let mut buffers = [vk::CommandBuffer::null(); MAX_FRAMES_IN_FLIGHT];
 
-    unsafe { (device.fp_v1_0().allocate_command_buffers)(device.handle(), &alloc_info, buffers.as_mut_ptr()).result().unwrap() };
+    unsafe {
+        (device.fp_v1_0().allocate_command_buffers)(
+            device.handle(),
+            &alloc_info,
+            buffers.as_mut_ptr(),
+        )
+        .result()
+        .unwrap()
+    };
 
     buffers
 }
 
+pub fn create_descriptor_set_layout(
+    device: &ash::Device,
+    texture_count: u32,
+) -> vk::DescriptorSetLayout {
+    let sampler_binding = vk::DescriptorSetLayoutBinding::default()
+        .binding(0)
+        .descriptor_type(vk::DescriptorType::COMBINED_IMAGE_SAMPLER)
+        .descriptor_count(texture_count)
+        .stage_flags(vk::ShaderStageFlags::FRAGMENT);
+
+    let info = vk::DescriptorSetLayoutCreateInfo::default()
+        .bindings(std::slice::from_ref(&sampler_binding));
+
+    unsafe { device.create_descriptor_set_layout(&info, None).unwrap() }
+}
+
+pub fn create_descriptor_pool(
+    device: &ash::Device,
+    texture_count: u32,
+) -> vk::DescriptorPool {
+    let pool_size = vk::DescriptorPoolSize::default()
+        .ty(vk::DescriptorType::COMBINED_IMAGE_SAMPLER)
+        .descriptor_count(texture_count);
+
+    let info = vk::DescriptorPoolCreateInfo::default()
+        .pool_sizes(std::slice::from_ref(&pool_size))
+        .max_sets(1);
+
+    unsafe { device.create_descriptor_pool(&info, None).unwrap() }
+}
+
+pub fn allocate_descriptor_set(
+    device: &ash::Device,
+    pool: vk::DescriptorPool,
+    layout: vk::DescriptorSetLayout,
+) -> vk::DescriptorSet {
+    let alloc_info = vk::DescriptorSetAllocateInfo::default()
+        .descriptor_pool(pool)
+        .set_layouts(std::slice::from_ref(&layout));
+
+    unsafe { device.allocate_descriptor_sets(&alloc_info).unwrap()[0] }
+}
+
+
+pub fn update_texture_descriptors(
+    device: &ash::Device,
+    descriptor_set: vk::DescriptorSet,
+    textures: &[Texture],
+) {
+    let image_infos: Vec<vk::DescriptorImageInfo> = textures
+        .iter()
+        .map(|tex| vk::DescriptorImageInfo {
+            sampler: tex.sampler,
+            image_view: tex.view,
+            image_layout: vk::ImageLayout::SHADER_READ_ONLY_OPTIMAL,
+        })
+        .collect();
+
+    let write = vk::WriteDescriptorSet::default()
+        .dst_set(descriptor_set)
+        .dst_binding(0)
+        .descriptor_type(vk::DescriptorType::COMBINED_IMAGE_SAMPLER)
+        .image_info(&image_infos);
+
+    unsafe {
+        device.update_descriptor_sets(std::slice::from_ref(&write), &[]);
+    }
+}
