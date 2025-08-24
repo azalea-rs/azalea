@@ -13,10 +13,15 @@ vk-mem = "0.5"
 ash-window = "0.13"
 log = "0.4"
 winit = "0.30.12"
-glam = "0.30"
+glam = {version = "0.30", features = ["serde"]}
 crossbeam = "0.8.4"
 parking_lot.workspace = true
 azalea.path = "../azalea/"
+walkdir = "2.5.0"
+serde.workspace = true
+serde_json.workspace = true
+image = "0.25.6"
+serde-tuple-vec-map = "1"
 
 
 [dev-dependencies]

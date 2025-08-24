@@ -6,6 +6,7 @@ rustc-ice-*
 
 .cargo/config
 .cargo/config.toml
+azalea-graphics/assets
 
 # created by azalea-auth/examples/auth, defined in the main .gitignore because
 # the example could be run from anywhere

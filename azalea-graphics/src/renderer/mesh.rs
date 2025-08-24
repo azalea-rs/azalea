@@ -1,7 +1,7 @@
 use ash::vk;
 use vk_mem::{Allocation, MemoryUsage};
 
-use crate::{renderer::state::{copy_buffer, create_buffer}, vulkan::context::VkContext};
+use crate::vulkan::{context::VkContext, utils::{copy_buffer, create_buffer}};
 
 #[repr(C)]
 #[derive(Clone, Copy, Debug)]

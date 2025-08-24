@@ -184,6 +184,5 @@ impl ApplicationHandler for Renderer {
         if let Some(state) = &mut self.state {
             state.destroy();
         }
-        std::process::exit(0);
     }
 }
