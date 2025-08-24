@@ -6,36 +6,46 @@ use crate::{renderer::state::{copy_buffer, create_buffer}, vulkan::context::VkCo
 #[repr(C)]
 #[derive(Clone, Copy, Debug)]
 pub struct Vertex {
-    pub pos: [f32; 2],
+    pub pos: [f32; 3],
     pub color: [f32; 3],
+    pub ao: f32,
 }
 
 impl Vertex {
     pub fn binding_description() -> vk::VertexInputBindingDescription {
-        vk::VertexInputBindingDescription {
-            binding: 0,
-            stride: std::mem::size_of::<Vertex>() as u32,
-            input_rate: vk::VertexInputRate::VERTEX,
-        }
+        vk::VertexInputBindingDescription::default()
+            .binding(0)
+            .stride(std::mem::size_of::<Vertex>() as u32)
+            .input_rate(vk::VertexInputRate::VERTEX)
     }
 
-    pub fn attribute_descriptions() -> [vk::VertexInputAttributeDescription; 2] {
+    pub fn attribute_descriptions() -> [vk::VertexInputAttributeDescription; 3] {
         [
-            vk::VertexInputAttributeDescription {
-                location: 0,
-                binding: 0,
-                format: vk::Format::R32G32_SFLOAT,
-                offset: 0,
-            },
-            vk::VertexInputAttributeDescription {
-                location: 1,
-                binding: 0,
-                format: vk::Format::R32G32B32_SFLOAT,
-                offset: std::mem::size_of::<[f32; 2]>() as u32,
-            },
+            // position
+            vk::VertexInputAttributeDescription::default()
+                .binding(0)
+                .location(0)
+                .format(vk::Format::R32G32B32_SFLOAT) // vec3
+                .offset(0),
+
+            // color
+            vk::VertexInputAttributeDescription::default()
+                .binding(0)
+                .location(1)
+                .format(vk::Format::R32G32B32_SFLOAT) // vec3
+                .offset(12),
+
+            // AO
+            vk::VertexInputAttributeDescription::default()
+                .binding(0)
+                .location(2)
+                .format(vk::Format::R32_SFLOAT) // single float
+                .offset(24),
         ]
     }
 }
+
+
 
 pub struct Mesh {
     pub buffer: vk::Buffer,

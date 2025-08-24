@@ -561,7 +561,7 @@ impl Hash for ChunkPos {
 impl nohash_hasher::IsEnabled for ChunkPos {}
 
 /// The coordinates of a chunk section in the world.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Hash, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ChunkSectionPos {
     pub x: i32,
     pub y: i32,

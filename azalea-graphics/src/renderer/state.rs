@@ -1,23 +1,27 @@
-use crate::renderer::mesh::{Mesh, Vertex};
+use std::time::Duration;
+use std::sync::Arc;
+
+use crate::renderer::camera::{Camera, CameraController, Projection};
+use crate::renderer::mesh::{Vertex};
+use crate::renderer::mesher::LocalChunk;
+use crate::renderer::render_world::{PushConstants, RenderWorld};
 use crate::vulkan::frame_sync::MAX_FRAMES_IN_FLIGHT;
 use crate::vulkan::{context::VkContext, frame_sync::FrameSync};
 use crate::vulkan::swapchain::Swapchain;
-use ash::vk::{self, Handle};
+use ash::vk::{self};
 use ash::Device;
+use azalea::core::position::ChunkPos;
+use azalea::world::Chunk;
+use parking_lot::RwLock;
 use raw_window_handle::{DisplayHandle, WindowHandle};
 use vk_mem::{Alloc, Allocation, AllocationCreateFlags, AllocationCreateInfo, Allocator, MemoryUsage};
 use winit::dpi::PhysicalSize;
+use winit::event::{ElementState, MouseScrollDelta};
+use winit::keyboard::KeyCode;
 
 const TRIANGLE_VERT: &[u8] = include_bytes!(env!("TRIANGLE_VERT"));
 const TRIANGLE_FRAG: &[u8] = include_bytes!(env!("TRIANGLE_FRAG"));
 
-const VERTICES: [Vertex; 3] = [
-    Vertex { pos: [ 0.0, -0.5], color: [1.0, 0.0, 0.0] },
-    Vertex { pos: [ 0.5,  0.5], color: [0.0, 1.0, 0.0] },
-    Vertex { pos: [-0.5,  0.5], color: [0.0, 0.0, 1.0] },
-];
-
-const INDICES: [u32; 3] = [0, 1, 2];
 
 pub struct RenderState {
     pub context: VkContext,
@@ -26,18 +30,29 @@ pub struct RenderState {
     width: u32,
     height: u32,
 
+    depth_image: vk::Image,
+    depth_allocation: Allocation,
+    depth_view: vk::ImageView,
+
     render_pass: vk::RenderPass,
     pipeline_layout: vk::PipelineLayout,
     pipeline: vk::Pipeline,
     framebuffers: Vec<vk::Framebuffer>,
+
+
 
     command_pool: vk::CommandPool,
     command_buffers: [vk::CommandBuffer; MAX_FRAMES_IN_FLIGHT], 
 
     sync: FrameSync,
 
-    mesh: Mesh 
+    world: RenderWorld,
+
+    camera: Camera,
+    projection: Projection,
+    camera_controller: CameraController,
 }
+
 
 impl RenderState {
     pub fn new(
@@ -52,7 +67,10 @@ impl RenderState {
         let (pipeline_layout, pipeline) =
             create_pipeline(&context, render_pass, TRIANGLE_VERT, TRIANGLE_FRAG);
 
-        let framebuffers = create_framebuffers(&context, &swapchain, render_pass);
+        let (depth_image, depth_allocation, depth_view) =
+            create_depth_resources(&context, context.allocator(), swapchain.extent);
+        
+        let framebuffers = create_framebuffers(&context, &swapchain, render_pass, depth_view);
 
         let command_pool = create_command_pool(&context);
         let command_buffers =
@@ -60,7 +78,11 @@ impl RenderState {
 
         let sync = FrameSync::new(context.device(), swapchain.images.len());
 
-        let mesh = Mesh::new(&context, &VERTICES, &INDICES);
+        let world = RenderWorld::new();
+
+        let camera = Camera::new(glam::vec3(0.0, 150.0, 2.0), -90.0, 0.0);
+        let projection = Projection::new(size.width, size.height, 45.0, 1.0, 10000.0);
+        let camera_controller = CameraController::new(4.0, 1.0);
 
         Self {
             context,
@@ -68,6 +90,11 @@ impl RenderState {
             should_recreate: false,
             width: size.width,
             height: size.height,
+
+            depth_image,
+            depth_allocation,
+            depth_view,
+
             render_pass,
             pipeline_layout,
             pipeline,
@@ -75,121 +102,139 @@ impl RenderState {
             command_pool,
             command_buffers,
             sync,
-            mesh
+            world,
+            camera,
+            projection,
+            camera_controller,
         }
     }
 
-pub fn draw_frame(&mut self) {
-    let device = self.context.device();
-    let frame = self.sync.next_frame();
+    pub fn update_chunk(&self, pos: ChunkPos, chunk: &LocalChunk) {
+        self.world.update_chunk(pos, chunk);
+    }
 
-    self.sync.wait_for_fence(device, frame);
+    pub fn update(&mut self, dt: Duration) {
+        self.camera_controller.update_camera(&mut self.camera, dt);
+        self.world.process_meshing_results(&self.context);
+    }
 
+    pub fn process_keyboard(&mut self, key: KeyCode, state: ElementState) -> bool {
+        self.camera_controller.process_keyboard(key, state)
+    }
 
-    let image_index = match self.swapchain.acquire_next_image(&self.sync, frame) {
-        Ok(idx) => idx,
-        Err(true) => {
-            self.should_recreate = true;
-            return;
-        }
-        Err(false) => panic!("Failed to acquire swapchain image"),
-    };
+    pub fn handle_mouse_scroll(&mut self, delta: &MouseScrollDelta) {
+        self.camera_controller.handle_mouse_scroll(delta);
+    }
 
-    let cmd = self.command_buffers[frame];
-    unsafe {
-        device
-            .reset_command_buffer(cmd, vk::CommandBufferResetFlags::empty())
-            .unwrap();
+    pub fn handle_mouse(&mut self, dx: f64, dy: f64) {
+        self.camera_controller.handle_mouse(dx, dy);
+    }
 
-        let begin_info = vk::CommandBufferBeginInfo::default();
-        device.begin_command_buffer(cmd, &begin_info).unwrap();
-
-        let clear_color = vk::ClearValue {
-            color: vk::ClearColorValue {
-                float32: [0.0, 0.0, 0.0, 1.0],
-            },
+    pub fn draw_frame(&mut self) {
+        let device = self.context.device();
+        let frame = self.sync.next_frame();
+    
+        self.sync.wait_for_fence(device, frame);
+    
+    
+        let image_index = match self.swapchain.acquire_next_image(&self.sync, frame) {
+            Ok(idx) => idx,
+            Err(true) => {
+                self.should_recreate = true;
+                return;
+            }
+            Err(false) => panic!("Failed to acquire swapchain image"),
         };
-        let rp_info = vk::RenderPassBeginInfo::default()
-            .render_pass(self.render_pass)
-            .framebuffer(self.framebuffers[image_index as usize])
-            .render_area(vk::Rect2D {
+    
+        let cmd = self.command_buffers[frame];
+        unsafe {
+            device
+                .reset_command_buffer(cmd, vk::CommandBufferResetFlags::empty())
+                .unwrap();
+    
+            let begin_info = vk::CommandBufferBeginInfo::default();
+            device.begin_command_buffer(cmd, &begin_info).unwrap();
+    
+            let clear_color = vk::ClearValue {
+                color: vk::ClearColorValue {
+                    float32: [0.0, 0.0, 0.0, 1.0],
+                },
+            };
+            let clear_values = [clear_color, vk::ClearValue{
+               depth_stencil: vk::ClearDepthStencilValue{
+                   depth: 1.0,
+                   stencil: 0,
+               }
+            }];
+            let rp_info = vk::RenderPassBeginInfo::default()
+                .render_pass(self.render_pass)
+                .framebuffer(self.framebuffers[image_index as usize])
+                .render_area(vk::Rect2D {
+                    offset: vk::Offset2D { x: 0, y: 0 },
+                    extent: self.swapchain.extent,
+                })
+                .clear_values(&clear_values);
+    
+            device.cmd_begin_render_pass(cmd, &rp_info, vk::SubpassContents::INLINE);
+    
+            let viewport = vk::Viewport {
+                x: 0.0,
+                y: 0.0,
+                width: self.swapchain.extent.width as f32,
+                height: self.swapchain.extent.height as f32,
+                min_depth: 0.0,
+                max_depth: 1.0,
+            };
+            let scissor = vk::Rect2D {
                 offset: vk::Offset2D { x: 0, y: 0 },
                 extent: self.swapchain.extent,
-            })
-            .clear_values(std::slice::from_ref(&clear_color));
+            };
+            device.cmd_set_viewport(cmd, 0, &[viewport]);
+            device.cmd_set_scissor(cmd, 0, &[scissor]);
+    
+    
+            self.world.draw(device, cmd, self.pipeline, self.pipeline_layout, self.projection.calc_proj() * self.camera.calc_view());
 
-        device.cmd_begin_render_pass(cmd, &rp_info, vk::SubpassContents::INLINE);
-
-        let viewport = vk::Viewport {
-            x: 0.0,
-            y: 0.0,
-            width: self.swapchain.extent.width as f32,
-            height: self.swapchain.extent.height as f32,
-            min_depth: 0.0,
-            max_depth: 1.0,
-        };
-        let scissor = vk::Rect2D {
-            offset: vk::Offset2D { x: 0, y: 0 },
-            extent: self.swapchain.extent,
-        };
-        device.cmd_set_viewport(cmd, 0, &[viewport]);
-        device.cmd_set_scissor(cmd, 0, &[scissor]);
-
-
-        device.cmd_bind_pipeline(cmd, vk::PipelineBindPoint::GRAPHICS, self.pipeline);
-
-        let vertex_buffers = [self.mesh.buffer];
-        let vertex_offsets = [self.mesh.vertex_offset];
-        device.cmd_bind_vertex_buffers(cmd, 0, &vertex_buffers, &vertex_offsets);
-        
-        device.cmd_bind_index_buffer(
-            cmd,
-            self.mesh.buffer,
-            self.mesh.index_offset,
-            vk::IndexType::UINT32,
-        );
-        
-        device.cmd_draw_indexed(cmd, self.mesh.index_count, 1, 0, 0, 0);
-
-        device.cmd_end_render_pass(cmd);
-        device.end_command_buffer(cmd).unwrap();
+            device.cmd_end_render_pass(cmd);
+            device.end_command_buffer(cmd).unwrap();
+        }
+    
+        let wait_semaphores = [self.sync.image_available[frame]];
+        let signal_semaphores = [self.sync.render_finished[image_index as usize]];
+        let wait_stages = [vk::PipelineStageFlags::COLOR_ATTACHMENT_OUTPUT];
+    
+    
+        let submit_info = vk::SubmitInfo::default()
+            .wait_semaphores(&wait_semaphores)
+            .wait_dst_stage_mask(&wait_stages)
+            .command_buffers(std::slice::from_ref(&cmd))
+            .signal_semaphores(&signal_semaphores)
+            ;
+    
+        unsafe {
+            device
+                .queue_submit(
+                    self.context.graphics_queue(),
+                    &[submit_info],
+                    self.sync.in_flight[frame],
+                )
+                .unwrap();
+        }
+    
+        match self.swapchain.present(
+            self.context.present_queue(),
+            &self.sync,
+            image_index,
+        ) {
+            Ok(true) => {}
+            Ok(false) => self.should_recreate = true,
+            Err(e) => panic!("Present failed: {:?}", e),
+        }
     }
-
-    let wait_semaphores = [self.sync.image_available[frame]];
-    let signal_semaphores = [self.sync.render_finished[image_index as usize]];
-    let wait_stages = [vk::PipelineStageFlags::COLOR_ATTACHMENT_OUTPUT];
-
-
-    let submit_info = vk::SubmitInfo::default()
-        .wait_semaphores(&wait_semaphores)
-        .wait_dst_stage_mask(&wait_stages)
-        .command_buffers(std::slice::from_ref(&cmd))
-        .signal_semaphores(&signal_semaphores)
-        ;
-
-    unsafe {
-        device
-            .queue_submit(
-                self.context.graphics_queue(),
-                &[submit_info],
-                self.sync.in_flight[frame],
-            )
-            .unwrap();
-    }
-
-    match self.swapchain.present(
-        self.context.present_queue(),
-        &self.sync,
-        image_index,
-    ) {
-        Ok(true) => {}
-        Ok(false) => self.should_recreate = true,
-        Err(e) => panic!("Present failed: {:?}", e),
-    }
-}
 
     /// Mark swapchain as invalid, to be recreated later.
-    pub fn mark_recreate(&mut self, size: PhysicalSize<u32>) {
+    pub fn resize(&mut self, size: PhysicalSize<u32>) {
+        self.projection.resize(size.width, size.height);
         if size.width > 0 && size.height > 0 {
             self.should_recreate = true;
             self.width = size.width;
@@ -212,8 +257,23 @@ pub fn draw_frame(&mut self) {
         self.framebuffers.clear();
             self.swapchain
                 .recreate(&self.context, self.width, self.height);
+
+            unsafe{
+        self.context.device().destroy_image_view(self.depth_view, None);
+        self.context.allocator().destroy_image(self.depth_image, &mut self.depth_allocation);
+            }
+
+        let (depth_image, depth_allocation, depth_view) =
+            create_depth_resources(&self.context, self.context.allocator(), self.swapchain.extent);
+
+        self.depth_image = depth_image;
+        self.depth_allocation = depth_allocation;
+        self.depth_view = depth_view;
+
         self.framebuffers =
-            create_framebuffers(&self.context, &self.swapchain, self.render_pass);
+            create_framebuffers(&self.context, &self.swapchain, self.render_pass, self.depth_view);
+
+
             
             self.should_recreate = false;
         }
@@ -226,12 +286,15 @@ pub fn draw_frame(&mut self) {
         unsafe {
             device.device_wait_idle().unwrap();
 
-        self.mesh.destroy(&self.context);
+            self.world.destroy(&self.context);
 
             for fb in &self.framebuffers {
                 device.destroy_framebuffer(*fb, None);
             }
             self.framebuffers.clear();
+
+            device.destroy_image_view(self.depth_view, None);
+            self.context.allocator().destroy_image(self.depth_image, &mut self.depth_allocation);
 
             device.destroy_pipeline(self.pipeline, None);
             device.destroy_pipeline_layout(self.pipeline_layout, None);
@@ -247,38 +310,45 @@ pub fn draw_frame(&mut self) {
 }
 
 
+
 pub fn create_render_pass(ctx: &VkContext, swapchain: &Swapchain) -> vk::RenderPass {
     let color_attachment = vk::AttachmentDescription::default()
         .format(swapchain.format)
-        .samples(vk::SampleCountFlags::TYPE_1)     
-        .load_op(vk::AttachmentLoadOp::CLEAR)      
-        .store_op(vk::AttachmentStoreOp::STORE)    
+        .samples(vk::SampleCountFlags::TYPE_1)
+        .load_op(vk::AttachmentLoadOp::CLEAR)
+        .store_op(vk::AttachmentStoreOp::STORE)
+        .initial_layout(vk::ImageLayout::UNDEFINED)
+        .final_layout(vk::ImageLayout::PRESENT_SRC_KHR);
+
+    let depth_attachment = vk::AttachmentDescription::default()
+        .format(vk::Format::D32_SFLOAT)
+        .samples(vk::SampleCountFlags::TYPE_1)
+        .load_op(vk::AttachmentLoadOp::CLEAR)
+        .store_op(vk::AttachmentStoreOp::DONT_CARE)
         .stencil_load_op(vk::AttachmentLoadOp::DONT_CARE)
         .stencil_store_op(vk::AttachmentStoreOp::DONT_CARE)
         .initial_layout(vk::ImageLayout::UNDEFINED)
-        .final_layout(vk::ImageLayout::PRESENT_SRC_KHR); 
+        .final_layout(vk::ImageLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 
-    let color_attachment_ref = vk::AttachmentReference {
+    let color_ref = vk::AttachmentReference {
         attachment: 0,
         layout: vk::ImageLayout::COLOR_ATTACHMENT_OPTIMAL,
+    };
+    let depth_ref = vk::AttachmentReference {
+        attachment: 1,
+        layout: vk::ImageLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
     };
 
     let subpass = vk::SubpassDescription::default()
         .pipeline_bind_point(vk::PipelineBindPoint::GRAPHICS)
-        .color_attachments(std::slice::from_ref(&color_attachment_ref));
+        .color_attachments(std::slice::from_ref(&color_ref))
+        .depth_stencil_attachment(&depth_ref);
 
-    let dependency = vk::SubpassDependency::default()
-        .src_subpass(vk::SUBPASS_EXTERNAL)
-        .dst_subpass(0)
-        .src_stage_mask(vk::PipelineStageFlags::COLOR_ATTACHMENT_OUTPUT)
-        .src_access_mask(vk::AccessFlags::empty())
-        .dst_stage_mask(vk::PipelineStageFlags::COLOR_ATTACHMENT_OUTPUT)
-        .dst_access_mask(vk::AccessFlags::COLOR_ATTACHMENT_WRITE);
+    let attachments = [color_attachment, depth_attachment];
 
     let render_pass_info = vk::RenderPassCreateInfo::default()
-        .attachments(std::slice::from_ref(&color_attachment))
-        .subpasses(std::slice::from_ref(&subpass))
-        .dependencies(std::slice::from_ref(&dependency));
+        .attachments(&attachments)
+        .subpasses(std::slice::from_ref(&subpass));
 
     unsafe {
         ctx.device()
@@ -291,6 +361,58 @@ fn create_shader_module(device: &Device, code: &[u8]) -> vk::ShaderModule {
     let code_aligned = ash::util::read_spv(&mut std::io::Cursor::new(code)).unwrap();
     let info = vk::ShaderModuleCreateInfo::default().code(&code_aligned);
     unsafe { device.create_shader_module(&info, None).unwrap() }
+}
+
+
+pub fn create_depth_resources(
+    ctx: &VkContext,
+    allocator: &Allocator,
+    extent: vk::Extent2D,
+) -> (vk::Image, Allocation, vk::ImageView) {
+    let format = vk::Format::D32_SFLOAT;
+
+    let image_info = vk::ImageCreateInfo::default()
+        .image_type(vk::ImageType::TYPE_2D)
+        .format(format)
+        .extent(vk::Extent3D {
+            width: extent.width,
+            height: extent.height,
+            depth: 1,
+        })
+        .mip_levels(1)
+        .array_layers(1)
+        .samples(vk::SampleCountFlags::TYPE_1)
+        .tiling(vk::ImageTiling::OPTIMAL)
+        .usage(vk::ImageUsageFlags::DEPTH_STENCIL_ATTACHMENT)
+        .sharing_mode(vk::SharingMode::EXCLUSIVE);
+
+    let alloc_info = AllocationCreateInfo {
+        usage: MemoryUsage::GpuOnly,
+        ..Default::default()
+    };
+
+    let (image, allocation) = unsafe {
+        allocator.create_image(&image_info, &alloc_info)
+            .expect("Failed to create depth image")
+    };
+
+    let view_info = vk::ImageViewCreateInfo::default()
+        .image(image)
+        .view_type(vk::ImageViewType::TYPE_2D)
+        .format(format)
+        .subresource_range(vk::ImageSubresourceRange {
+            aspect_mask: vk::ImageAspectFlags::DEPTH,
+            base_mip_level: 0,
+            level_count: 1,
+            base_array_layer: 0,
+            layer_count: 1,
+        });
+
+    let depth_view = unsafe {
+        ctx.device().create_image_view(&view_info, None).unwrap()
+    };
+
+    (image, allocation, depth_view)
 }
 
 pub fn create_pipeline(
@@ -334,7 +456,7 @@ pub fn create_pipeline(
     let rasterizer = vk::PipelineRasterizationStateCreateInfo::default()
         .polygon_mode(vk::PolygonMode::FILL)
         .cull_mode(vk::CullModeFlags::BACK)
-        .front_face(vk::FrontFace::CLOCKWISE)
+        .front_face(vk::FrontFace::COUNTER_CLOCKWISE)
         .line_width(1.0);
 
     let multisampling = vk::PipelineMultisampleStateCreateInfo::default()
@@ -349,6 +471,15 @@ pub fn create_pipeline(
         )
         .blend_enable(false);
 
+
+    let depth_stencil = vk::PipelineDepthStencilStateCreateInfo::default()
+        .depth_test_enable(true)
+        .depth_write_enable(true)
+        .depth_compare_op(vk::CompareOp::LESS)
+        .depth_bounds_test_enable(false)
+        .stencil_test_enable(false);
+
+
     let attachments = [color_blend_attachment];
     let color_blending =
         vk::PipelineColorBlendStateCreateInfo::default().attachments(&attachments);
@@ -356,8 +487,13 @@ pub fn create_pipeline(
     let dynamic_states = [vk::DynamicState::VIEWPORT, vk::DynamicState::SCISSOR];
     let dynamic_state =
         vk::PipelineDynamicStateCreateInfo::default().dynamic_states(&dynamic_states);
+    let push_constant_range = vk::PushConstantRange::default()
+        .stage_flags(vk::ShaderStageFlags::VERTEX)
+        .offset(0)
+        .size(std::mem::size_of::<PushConstants>() as u32);
 
-    let pipeline_layout_info = vk::PipelineLayoutCreateInfo::default();
+    let pipeline_layout_info = vk::PipelineLayoutCreateInfo::default().push_constant_ranges(std::slice::from_ref(&push_constant_range));
+
     let pipeline_layout =
         unsafe { device.create_pipeline_layout(&pipeline_layout_info, None).unwrap() };
 
@@ -368,6 +504,7 @@ pub fn create_pipeline(
         .viewport_state(&viewport_state)
         .rasterization_state(&rasterizer)
         .multisample_state(&multisampling)
+        .depth_stencil_state(&depth_stencil)
         .color_blend_state(&color_blending)
         .dynamic_state(&dynamic_state)
         .layout(pipeline_layout)
@@ -393,12 +530,13 @@ pub fn create_framebuffers(
     ctx: &VkContext,
     swapchain: &Swapchain,
     render_pass: vk::RenderPass,
+    depth_view: vk::ImageView,
 ) -> Vec<vk::Framebuffer> {
     let device = ctx.device();
     let mut framebuffers = Vec::with_capacity(swapchain.image_views.len());
 
     for &view in &swapchain.image_views {
-        let attachments = [view];
+        let attachments = [view, depth_view];
 
         let info = vk::FramebufferCreateInfo::default()
             .render_pass(render_pass)
@@ -413,7 +551,6 @@ pub fn create_framebuffers(
 
     framebuffers
 }
-
 
 pub fn create_command_pool(ctx: &VkContext) -> vk::CommandPool {
     let device = ctx.device();
