@@ -17,6 +17,8 @@ glam = {version = "0.30", features = ["serde"]}
 crossbeam = "0.8.4"
 parking_lot.workspace = true
 azalea.path = "../azalea/"
+azalea.default-features = false
+azalea.features = [ "serde", "packet-event"]
 walkdir = "2.5.0"
 serde.workspace = true
 serde_json.workspace = true
