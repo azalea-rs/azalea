@@ -4,7 +4,7 @@ use ash::vk;
 use azalea::core::position::{ChunkPos, ChunkSectionPos};
 
 use crate::{
-    assets::LoadedAssets,
+    assets::MeshAssets,
     renderer::{
         mesh::Mesh,
         mesher::{LocalChunk, Mesher},
@@ -24,7 +24,7 @@ pub struct PushConstants {
 }
 
 impl RenderWorld {
-    pub fn new(assets: Arc<LoadedAssets>) -> Self {
+    pub fn new(assets: Arc<MeshAssets>) -> Self {
         Self {
             mesher: Mesher::new(assets),
             meshes: HashMap::new(),
@@ -59,18 +59,18 @@ impl RenderWorld {
     ) {
         unsafe {
             device.cmd_bind_pipeline(cmd, vk::PipelineBindPoint::GRAPHICS, pipeline);
-                let push = PushConstants { view_proj };
+            let push = PushConstants { view_proj };
 
-                device.cmd_push_constants(
-                    cmd,
-                    pipeline_layout,
-                    vk::ShaderStageFlags::VERTEX,
-                    0,
-                    std::slice::from_raw_parts(
-                        &push as *const PushConstants as *const u8,
-                        std::mem::size_of::<PushConstants>(),
-                    ),
-                );
+            device.cmd_push_constants(
+                cmd,
+                pipeline_layout,
+                vk::ShaderStageFlags::VERTEX,
+                0,
+                std::slice::from_raw_parts(
+                    &push as *const PushConstants as *const u8,
+                    std::mem::size_of::<PushConstants>(),
+                ),
+            );
 
             device.cmd_bind_descriptor_sets(
                 cmd,
@@ -86,7 +86,6 @@ impl RenderWorld {
             let vertex_buffers = [mesh.buffer];
             let offsets = [mesh.vertex_offset];
             unsafe {
-
                 device.cmd_bind_vertex_buffers(cmd, 0, &vertex_buffers, &offsets);
                 device.cmd_bind_index_buffer(
                     cmd,

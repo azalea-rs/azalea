@@ -1,7 +1,7 @@
 use std::{sync::Arc, thread, time::Instant};
 
 use azalea::{
-    blocks::{BlockState, BlockTrait},
+    blocks::BlockState,
     core::{
         direction::Direction,
         position::{ChunkPos, ChunkSectionBlockPos, ChunkSectionPos},
@@ -14,10 +14,7 @@ use glam::{IVec3, Vec3};
 use parking_lot::RwLock;
 
 use crate::{
-    assets::{
-        LoadedAssets,
-        model::Cube,
-    },
+    assets::{MeshAssets, model::Cube},
     renderer::mesh::Vertex,
 };
 
@@ -110,7 +107,7 @@ pub struct Mesher {
 }
 
 impl Mesher {
-    pub fn new(assets: Arc<LoadedAssets>) -> Self {
+    pub fn new(assets: Arc<MeshAssets>) -> Self {
         let (work_tx, work_rx) = unbounded::<LocalSection>();
         let (result_tx, result_rx) = unbounded::<MeshData>();
 
@@ -120,7 +117,7 @@ impl Mesher {
                 let mesh = mesh_section(&local_section, &assets);
                 result_tx.send(mesh).unwrap();
                 let time_took = start.elapsed();
-                println!("chunk meshing took: {}ms", time_took.as_millis());
+                println!("chunk meshing took: {}ns", time_took.as_nanos());
             }
         });
 
@@ -149,7 +146,7 @@ impl Mesher {
     }
 }
 
-pub fn mesh_section(section: &LocalSection, assets: &LoadedAssets) -> MeshData {
+pub fn mesh_section(section: &LocalSection, assets: &MeshAssets) -> MeshData {
     let mut vertices = Vec::with_capacity(1000);
     let mut indices = Vec::with_capacity(1000);
 
@@ -165,79 +162,77 @@ pub fn mesh_section(section: &LocalSection, assets: &LoadedAssets) -> MeshData {
                 }
 
                 if let Some(model) = assets.get_block_model_for(block_state) {
-                    if let Some(elements) = model.elements() {
-                        for element in elements {
-                            for face in FACES {
-                                let model_face = match face.dir {
-                                    Direction::Down => &element.faces.down,
-                                    Direction::Up => &element.faces.up,
-                                    Direction::North => &element.faces.north,
-                                    Direction::South => &element.faces.south,
-                                    Direction::West => &element.faces.west,
-                                    Direction::East => &element.faces.east,
-                                };
+                    for element in &model.elements {
+                        for face in FACES {
+                            let model_face = match face.dir {
+                                Direction::Down => &element.faces.down,
+                                Direction::Up => &element.faces.up,
+                                Direction::North => &element.faces.north,
+                                Direction::South => &element.faces.south,
+                                Direction::West => &element.faces.west,
+                                Direction::East => &element.faces.east,
+                            };
 
-                                if let Some(model_face) = model_face {
-                                    let len = vertices.len() as u32;
+                            if let Some(model_face) = model_face {
+                                let len = vertices.len() as u32;
 
-                                    if let Some(cull_face) =
-                                        model_face.cullface.as_deref().and_then(|s| match s {
-                                            "down" => Some(Direction::Down),
-                                            "up" => Some(Direction::Up),
-                                            "north" => Some(Direction::North),
-                                            "south" => Some(Direction::South),
-                                            "west" => Some(Direction::West),
-                                            "east" => Some(Direction::East),
-                                            _ => None,
-                                        })
+                                if let Some(cull_face) =
+                                    model_face.cullface.as_deref().and_then(|s| match s {
+                                        "down" => Some(Direction::Down),
+                                        "up" => Some(Direction::Up),
+                                        "north" => Some(Direction::North),
+                                        "south" => Some(Direction::South),
+                                        "west" => Some(Direction::West),
+                                        "east" => Some(Direction::East),
+                                        _ => None,
+                                    })
+                                {
+                                    let n = cull_face.normal();
+                                    let neighbor = local + IVec3::new(n.x, n.y, n.z);
+
+                                    if section.blocks[neighbor.x as usize][neighbor.y as usize]
+                                        [neighbor.z as usize]
+                                        .is_collision_shape_full()
                                     {
-                                        let n = cull_face.normal();
-                                        let neighbor = local + IVec3::new(n.x, n.y, n.z);
-
-                                        if section.blocks[neighbor.x as usize][neighbor.y as usize]
-                                            [neighbor.z as usize]
-                                            .is_collision_shape_full()
-                                        {
-                                            continue;
-                                        }
+                                        continue;
                                     }
-
-                                    let uvs = generate_uv(face.dir, model_face.uv);
-                                    for (i, offset) in face.offsets.iter().enumerate() {
-                                        let tex_idx = model
-                                            .get_texture(&model_face.texture)
-                                            .and_then(|name| assets.get_texture_id(&name))
-                                            .unwrap_or(0);
-
-                                        let world_pos = Vec3::new(
-                                            (local.x - 1) as f32 + section.spos.x as f32 * 16.0,
-                                            (local.y - 1) as f32 + section.spos.y as f32 * 16.0,
-                                            (local.z - 1) as f32 + section.spos.z as f32 * 16.0,
-                                        );
-
-                                        vertices.push(Vertex {
-                                            position: (offset_to_coord(*offset, element) / 16.0
-                                                + world_pos)
-                                                .into(),
-                                            ao: if model.ambient_occlusion {
-                                                compute_ao(local, *offset, face.dir, section) as f32
-                                            } else {
-                                                3.0
-                                            },
-                                            tex_idx: tex_idx as u32,
-                                            uv: uvs[i].into(),
-                                        });
-                                    }
-
-                                    indices.extend_from_slice(&[
-                                        len + 0,
-                                        len + 1,
-                                        len + 2,
-                                        len + 0,
-                                        len + 2,
-                                        len + 3,
-                                    ]);
                                 }
+
+                                let uvs = generate_uv(face.dir, model_face.uv);
+                                for (i, offset) in face.offsets.iter().enumerate() {
+                                    let tex_idx = model
+                                        .resolve_texture(&model_face.texture)
+                                        .and_then(|name| assets.get_texture_id(&name))
+                                        .unwrap_or(0);
+
+                                    let world_pos = Vec3::new(
+                                        (local.x - 1) as f32 + section.spos.x as f32 * 16.0,
+                                        (local.y - 1) as f32 + section.spos.y as f32 * 16.0,
+                                        (local.z - 1) as f32 + section.spos.z as f32 * 16.0,
+                                    );
+
+                                    vertices.push(Vertex {
+                                        position: (offset_to_coord(*offset, element) / 16.0
+                                            + world_pos)
+                                            .into(),
+                                        ao: if model.ambient_occlusion {
+                                            compute_ao(local, *offset, face.dir, section) as f32
+                                        } else {
+                                            3.0
+                                        },
+                                        tex_idx: tex_idx as u32,
+                                        uv: uvs[i].into(),
+                                    });
+                                }
+
+                                indices.extend_from_slice(&[
+                                    len + 0,
+                                    len + 1,
+                                    len + 2,
+                                    len + 0,
+                                    len + 2,
+                                    len + 3,
+                                ]);
                             }
                         }
                     }

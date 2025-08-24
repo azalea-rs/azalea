@@ -28,7 +28,7 @@ pub struct Display {
     scale: Option<glam::Vec3>,
 }
 
-#[derive(serde::Deserialize, Debug)]
+#[derive(serde::Deserialize, Debug, Clone)]
 pub struct Cube {
     pub from: glam::Vec3,
     pub to: glam::Vec3,
@@ -36,7 +36,7 @@ pub struct Cube {
     pub faces: Faces,
 }
 
-#[derive(serde::Deserialize, Debug)]
+#[derive(serde::Deserialize, Debug, Clone)]
 pub struct Faces {
     pub down: Option<Face>,
     pub up: Option<Face>,
@@ -46,7 +46,7 @@ pub struct Faces {
     pub east: Option<Face>,
 }
 
-#[derive(serde::Deserialize, Debug)]
+#[derive(serde::Deserialize, Debug, Clone)]
 pub struct Face {
     pub uv: Option<[f32; 4]>,
     pub texture: String,
@@ -55,7 +55,7 @@ pub struct Face {
     pub rotation: i32,
 }
 
-#[derive(serde::Deserialize, Debug)]
+#[derive(serde::Deserialize, Debug, Clone)]
 pub struct Rotation {
     pub origin: glam::Vec3,
     pub axis: Axis,
@@ -64,7 +64,7 @@ pub struct Rotation {
     pub rescale: bool,
 }
 
-#[derive(serde::Deserialize, Debug)]
+#[derive(serde::Deserialize, Debug, Clone)]
 pub enum Axis {
     #[serde(rename = "x")]
     X,

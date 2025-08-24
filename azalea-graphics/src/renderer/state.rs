@@ -14,7 +14,7 @@ use winit::{
 };
 
 use crate::{
-    assets::{texture::Texture, LoadedAssets},
+    assets::{self, texture::Texture},
     renderer::{
         camera::{Camera, CameraController, Projection},
         mesh::Vertex,
@@ -50,6 +50,7 @@ pub struct RenderState {
     descriptor_set_layout: vk::DescriptorSetLayout,
     descriptor_pool: vk::DescriptorPool,
     descriptor_set: vk::DescriptorSet,
+    textures: Vec<Texture>,
 
     command_pool: vk::CommandPool,
     command_buffers: [vk::CommandBuffer; MAX_FRAMES_IN_FLIGHT],
@@ -72,18 +73,23 @@ impl RenderState {
         let context = VkContext::new(window_handle, display_handle);
         let swapchain = Swapchain::new(&context, size.width, size.height);
 
-        let assets = LoadedAssets::from_path(&context, "assets/minecraft");
-        let descriptor_set_layout = create_descriptor_set_layout(context.device(), assets.textures.len() as u32);
-        let descriptor_pool = create_descriptor_pool(context.device(), assets.textures.len() as u32);
-        let descriptor_set = allocate_descriptor_set(context.device(), descriptor_pool, descriptor_set_layout);
-        update_texture_descriptors(context.device(), descriptor_set, &assets.textures);
+        let (assets, textures) = assets::load_assets(&context, "assets/minecraft");
+        let descriptor_set_layout =
+            create_descriptor_set_layout(context.device(), textures.len() as u32);
+        let descriptor_pool = create_descriptor_pool(context.device(), textures.len() as u32);
+        let descriptor_set =
+            allocate_descriptor_set(context.device(), descriptor_pool, descriptor_set_layout);
+        update_texture_descriptors(context.device(), descriptor_set, &textures);
 
         let render_pass = create_render_pass(&context, &swapchain);
 
-
-        let (pipeline_layout, pipeline) =
-            create_pipeline(&context, render_pass, TRIANGLE_VERT, TRIANGLE_FRAG, descriptor_set_layout);
-
+        let (pipeline_layout, pipeline) = create_pipeline(
+            &context,
+            render_pass,
+            TRIANGLE_VERT,
+            TRIANGLE_FRAG,
+            descriptor_set_layout,
+        );
 
         let (depth_image, depth_allocation, depth_view) =
             create_depth_resources(&context, context.allocator(), swapchain.extent);
@@ -118,10 +124,12 @@ impl RenderState {
             framebuffers,
             command_pool,
             command_buffers,
-            
+
             descriptor_set_layout,
             descriptor_pool,
             descriptor_set,
+
+            textures,
 
             sync,
             world,
@@ -341,6 +349,14 @@ impl RenderState {
             device.destroy_pipeline_layout(self.pipeline_layout, None);
 
             device.destroy_render_pass(self.render_pass, None);
+
+            device.destroy_descriptor_pool(self.descriptor_pool, None);
+            device.destroy_descriptor_set_layout(self.descriptor_set_layout, None);
+
+            for tex in &mut self.textures {
+                tex.destroy(&self.context);
+            }
+            self.textures.clear();
 
             device.destroy_command_pool(self.command_pool, None);
         }
@@ -647,10 +663,7 @@ pub fn create_descriptor_set_layout(
     unsafe { device.create_descriptor_set_layout(&info, None).unwrap() }
 }
 
-pub fn create_descriptor_pool(
-    device: &ash::Device,
-    texture_count: u32,
-) -> vk::DescriptorPool {
+pub fn create_descriptor_pool(device: &ash::Device, texture_count: u32) -> vk::DescriptorPool {
     let pool_size = vk::DescriptorPoolSize::default()
         .ty(vk::DescriptorType::COMBINED_IMAGE_SAMPLER)
         .descriptor_count(texture_count);
@@ -673,7 +686,6 @@ pub fn allocate_descriptor_set(
 
     unsafe { device.allocate_descriptor_sets(&alloc_info).unwrap()[0] }
 }
-
 
 pub fn update_texture_descriptors(
     device: &ash::Device,
