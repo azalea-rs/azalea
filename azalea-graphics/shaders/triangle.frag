@@ -11,6 +11,9 @@ layout(location = 0) out vec4 outColor;
 
 void main() {
     vec4 texColor = texture(textures[fragTexIdx], fragUV);
+    if (texColor.w < 0.5) {
+      discard;
+    }
 
     outColor = vec4(texColor.rgb * fragAO, texColor.a);
 }

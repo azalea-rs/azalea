@@ -1,15 +1,17 @@
-use ash::{
-    ext::debug_utils,
-    khr::{surface, swapchain as khr_swapchain},
-    vk, Device, Entry, Instance,
-};
-use raw_window_handle::{DisplayHandle, WindowHandle};
-use std::{ffi::{CStr, CString}, mem::ManuallyDrop};
-use vk_mem::{Allocator, AllocatorCreateInfo};
-
 use std::{
+    ffi::{CStr, CString},
+    mem::ManuallyDrop,
     os::raw::{c_char, c_void},
 };
+
+use ash::{
+    Device, Entry, Instance,
+    ext::debug_utils,
+    khr::{surface, swapchain as khr_swapchain},
+    vk,
+};
+use raw_window_handle::{DisplayHandle, WindowHandle};
+use vk_mem::{Allocator, AllocatorCreateInfo};
 
 #[derive(Clone, Copy)]
 pub struct QueueFamiliesIndices {
@@ -51,8 +53,12 @@ impl VkContext {
             Self::create_logical_device(&instance, physical_device, queue_families);
 
         let allocator = ManuallyDrop::new(unsafe {
-            Allocator::new(AllocatorCreateInfo::new(&instance, &device, physical_device))
-                .expect("Failed to create VMA allocator.")
+            Allocator::new(AllocatorCreateInfo::new(
+                &instance,
+                &device,
+                physical_device,
+            ))
+            .expect("Failed to create VMA allocator.")
         });
 
         let command_pool = unsafe {
@@ -81,46 +87,68 @@ impl VkContext {
         }
     }
 
-    pub fn device(&self) -> &Device { &self.device }
-    pub fn allocator(&self) -> &Allocator { &self.allocator }
-    pub fn instance(&self) -> &Instance { &self.instance }
-    pub fn surface(&self) -> &surface::Instance { &self.surface }
-    pub fn surface_khr(&self) -> vk::SurfaceKHR { self.surface_khr }
-    pub fn physical_device(&self) -> vk::PhysicalDevice { self.physical_device }
-    pub fn graphics_queue(&self) -> vk::Queue { self.graphics_queue }
-    pub fn present_queue(&self) -> vk::Queue { self.present_queue }
-    pub fn queue_families(&self) -> QueueFamiliesIndices { self.queue_families }
-
-    pub fn begin_one_time_commands(&self) -> vk::CommandBuffer{
-    let alloc_info = vk::CommandBufferAllocateInfo::default()
-        .command_pool(self.command_pool)
-        .level(vk::CommandBufferLevel::PRIMARY)
-        .command_buffer_count(1);
-
-    let cmd_buf = unsafe { self.device().allocate_command_buffers(&alloc_info).unwrap()[0] };
-
-    let begin_info = vk::CommandBufferBeginInfo::default()
-        .flags(vk::CommandBufferUsageFlags::ONE_TIME_SUBMIT);
-    unsafe {
-        self.device.begin_command_buffer(cmd_buf, &begin_info).unwrap();
+    pub fn device(&self) -> &Device {
+        &self.device
+    }
+    pub fn allocator(&self) -> &Allocator {
+        &self.allocator
+    }
+    pub fn instance(&self) -> &Instance {
+        &self.instance
+    }
+    pub fn surface(&self) -> &surface::Instance {
+        &self.surface
+    }
+    pub fn surface_khr(&self) -> vk::SurfaceKHR {
+        self.surface_khr
+    }
+    pub fn physical_device(&self) -> vk::PhysicalDevice {
+        self.physical_device
+    }
+    pub fn graphics_queue(&self) -> vk::Queue {
+        self.graphics_queue
+    }
+    pub fn present_queue(&self) -> vk::Queue {
+        self.present_queue
+    }
+    pub fn queue_families(&self) -> QueueFamiliesIndices {
+        self.queue_families
     }
 
-    cmd_buf
+    pub fn begin_one_time_commands(&self) -> vk::CommandBuffer {
+        let alloc_info = vk::CommandBufferAllocateInfo::default()
+            .command_pool(self.command_pool)
+            .level(vk::CommandBufferLevel::PRIMARY)
+            .command_buffer_count(1);
+
+        let cmd_buf = unsafe { self.device().allocate_command_buffers(&alloc_info).unwrap()[0] };
+
+        let begin_info = vk::CommandBufferBeginInfo::default()
+            .flags(vk::CommandBufferUsageFlags::ONE_TIME_SUBMIT);
+        unsafe {
+            self.device
+                .begin_command_buffer(cmd_buf, &begin_info)
+                .unwrap();
+        }
+
+        cmd_buf
     }
 
     pub fn end_one_time_commands(&self, cmd_buf: vk::CommandBuffer) {
-    unsafe {
-        self.device.end_command_buffer(cmd_buf).unwrap();
+        unsafe {
+            self.device.end_command_buffer(cmd_buf).unwrap();
 
-        let submit_info = vk::SubmitInfo::default().command_buffers(std::slice::from_ref(&cmd_buf));
-        self.device
-            .queue_submit(self.graphics_queue(), &[submit_info], vk::Fence::null())
-            .unwrap();
-        self.device.queue_wait_idle(self.graphics_queue()).unwrap();
+            let submit_info =
+                vk::SubmitInfo::default().command_buffers(std::slice::from_ref(&cmd_buf));
+            self.device
+                .queue_submit(self.graphics_queue(), &[submit_info], vk::Fence::null())
+                .unwrap();
+            self.device.queue_wait_idle(self.graphics_queue()).unwrap();
 
-        self.device.free_command_buffers(self.command_pool, &[cmd_buf]);
+            self.device
+                .free_command_buffers(self.command_pool, &[cmd_buf]);
+        }
     }
-}
 
     fn create_instance(entry: &Entry, display: &DisplayHandle) -> Instance {
         let app_name = CString::new("Azalea Renderer").unwrap();
@@ -133,8 +161,9 @@ impl VkContext {
             .engine_version(vk::make_api_version(0, 0, 1, 0))
             .api_version(vk::make_api_version(0, 1, 3, 0));
 
-        let mut extensions =
-            ash_window::enumerate_required_extensions(display.as_raw()).unwrap().to_vec();
+        let mut extensions = ash_window::enumerate_required_extensions(display.as_raw())
+            .unwrap()
+            .to_vec();
         if cfg!(debug_assertions) {
             extensions.push(debug_utils::NAME.as_ptr());
         }
@@ -157,8 +186,8 @@ impl VkContext {
         surface: &surface::Instance,
         surface_khr: vk::SurfaceKHR,
     ) -> (vk::PhysicalDevice, QueueFamiliesIndices) {
-        let devices = unsafe { instance.enumerate_physical_devices() }
-            .expect("Failed to enumerate devices.");
+        let devices =
+            unsafe { instance.enumerate_physical_devices() }.expect("Failed to enumerate devices.");
         let device = devices
             .into_iter()
             .find(|&dev| {
@@ -192,7 +221,9 @@ impl VkContext {
                 graphics = Some(idx);
             }
             let supports_present = unsafe {
-                surface.get_physical_device_surface_support(device, idx, surface_khr).unwrap()
+                surface
+                    .get_physical_device_surface_support(device, idx, surface_khr)
+                    .unwrap()
             };
             if supports_present && present.is_none() {
                 present = Some(idx);
@@ -209,7 +240,7 @@ impl VkContext {
         let priorities = [1.0f32];
         let mut unique_indices = vec![families.graphics_index, families.present_index];
         unique_indices.dedup();
-    
+
         let queue_infos: Vec<_> = unique_indices
             .iter()
             .map(|&idx| {
@@ -218,31 +249,30 @@ impl VkContext {
                     .queue_priorities(&priorities)
             })
             .collect();
-    
+
         // --- Query descriptor indexing support ---
         let mut descriptor_indexing_features =
             vk::PhysicalDeviceDescriptorIndexingFeatures::default();
-    
-        let mut features2 = vk::PhysicalDeviceFeatures2::default()
-            .push_next(&mut descriptor_indexing_features);
-    
+
+        let mut features2 =
+            vk::PhysicalDeviceFeatures2::default().push_next(&mut descriptor_indexing_features);
+
         unsafe { instance.get_physical_device_features2(physical, &mut features2) };
-    
-        if descriptor_indexing_features.shader_sampled_image_array_non_uniform_indexing == vk::TRUE {
+
+        if descriptor_indexing_features.shader_sampled_image_array_non_uniform_indexing == vk::TRUE
+        {
             log::info!("Descriptor indexing supported, enabling non-uniform indexing");
         } else {
             panic!("Device does not support descriptor indexing (required for texture arrays)");
         }
-    
-        let extensions = [
-            khr_swapchain::NAME.as_ptr(),
-        ];
-    
+
+        let extensions = [khr_swapchain::NAME.as_ptr()];
+
         let create_info = vk::DeviceCreateInfo::default()
             .queue_create_infos(&queue_infos)
             .enabled_extension_names(&extensions)
             .push_next(&mut descriptor_indexing_features);
-    
+
         let device = unsafe {
             instance
                 .create_device(physical, &create_info, None)
@@ -250,7 +280,7 @@ impl VkContext {
         };
         let graphics_queue = unsafe { device.get_device_queue(families.graphics_index, 0) };
         let present_queue = unsafe { device.get_device_queue(families.present_index, 0) };
-    
+
         (device, graphics_queue, present_queue)
     }
 }
@@ -285,7 +315,7 @@ unsafe extern "system" fn vulkan_debug_callback(
 ) -> vk::Bool32 {
     use vk::DebugUtilsMessageSeverityFlagsEXT as Flag;
 
-    let message = unsafe{CStr::from_ptr((*p_callback_data).p_message)};
+    let message = unsafe { CStr::from_ptr((*p_callback_data).p_message) };
     match flag {
         Flag::VERBOSE => log::debug!("{:?} - {:?}", typ, message),
         Flag::INFO => log::info!("{:?} - {:?}", typ, message),

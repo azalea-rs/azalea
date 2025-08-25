@@ -1,23 +1,23 @@
-use std::sync::Arc;
-use azalea::app::AppExit;
-use azalea::chunks::handle_receive_chunk_event;
-use azalea::ecs::event::{EventReader, EventWriter};
-use azalea::ecs::schedule::IntoScheduleConfigs;
-use azalea::ecs::system::{Query, Res};
-use azalea::world::Chunk;
-use azalea::{prelude::*, };
-use azalea::{app::{App, Plugin}, chunks::ReceiveChunkEvent, local_player::InstanceHolder};
-use azalea::core::position::ChunkPos;
+use std::{num::NonZero, sync::Arc};
+
+use azalea::{
+    app::{App, AppExit, Plugin},
+    chunks::{ReceiveChunkEvent, handle_receive_chunk_event},
+    core::position::ChunkPos,
+    ecs::{
+        event::{EventReader, EventWriter},
+        schedule::IntoScheduleConfigs,
+        system::{Query, Res},
+    },
+    local_player::InstanceHolder,
+    prelude::*,
+    world::Chunk,
+};
 use crossbeam::channel::TryRecvError;
+use log::error;
 use parking_lot::RwLock;
 
-use crate::renderer::mesher::LocalChunk;
-use crate::renderer::{RendererCommand, RendererEvent, RendererHandle};
-
-use std::num::NonZero;
-use log::{error, };
-
-
+use crate::renderer::{RendererCommand, RendererEvent, RendererHandle, mesher::LocalChunk};
 
 #[derive(Resource, Clone)]
 pub struct RendererResource {
@@ -33,11 +33,13 @@ impl Plugin for RendererPlugin {
         app.insert_resource(RendererResource {
             handle: self.handle.clone(),
         });
-        app.add_systems(GameTick, forward_chunk_updates.after(handle_receive_chunk_event));
+        app.add_systems(
+            GameTick,
+            forward_chunk_updates.after(handle_receive_chunk_event),
+        );
         app.add_systems(GameTick, poll_renderer_events);
     }
 }
-
 
 fn forward_chunk_updates(
     mut events: EventReader<ReceiveChunkEvent>,
@@ -52,7 +54,8 @@ fn forward_chunk_updates(
         let partial_instance = local_player.partial_instance.read();
 
         let lookup_chunk = |pos: ChunkPos| -> Option<Arc<RwLock<Chunk>>> {
-            partial_instance.chunks
+            partial_instance
+                .chunks
                 .limited_get(&pos)
                 .cloned()
                 .or_else(|| instance.chunks.get(&pos))
@@ -72,16 +75,16 @@ fn forward_chunk_updates(
 
             let local_chunk = LocalChunk { center, neighbors };
 
-            _ = renderer
+            renderer
                 .handle
                 .tx
-                .send(RendererCommand::ChunkUpdate(pos, local_chunk));
+                .send(RendererCommand::ChunkUpdate(pos, local_chunk))
+                .unwrap();
         } else {
             error!("no chunk at {:?}", pos);
         }
     }
 }
-
 
 fn poll_renderer_events(renderer: Res<RendererResource>, mut writer: EventWriter<AppExit>) {
     match renderer.handle.rx.try_recv() {

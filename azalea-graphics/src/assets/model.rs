@@ -2,8 +2,7 @@ use std::collections::HashMap;
 
 #[derive(serde::Deserialize, Debug)]
 pub struct BlockModel {
-    #[serde(default = "r#true")]
-    pub ambientocclusion: bool,
+    pub ambientocclusion: Option<bool>,
     pub parent: Option<String>,
     #[serde(default)]
     pub textures: HashMap<String, String>,
@@ -80,8 +79,9 @@ mod tests {
 
     #[test]
     fn test_deserialze() {
-        dbg!(serde_json::from_str::<BlockModel>(
-            r##"
+        dbg!(
+            serde_json::from_str::<BlockModel>(
+                r##"
 {
    "ambientocclusion": false,
    "textures": {
@@ -115,11 +115,13 @@ mod tests {
    ]
 }
         "##,
-        )
-        .unwrap());
+            )
+            .unwrap()
+        );
 
-        dbg!(serde_json::from_str::<BlockModel>(
-            r##"
+        dbg!(
+            serde_json::from_str::<BlockModel>(
+                r##"
 {
     "gui_light": "side",
     "display": {
@@ -156,7 +158,8 @@ mod tests {
     }
 }
         "##,
-        )
-        .unwrap());
+            )
+            .unwrap()
+        );
     }
 }

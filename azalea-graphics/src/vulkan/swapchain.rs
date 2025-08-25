@@ -1,8 +1,6 @@
-use ash::vk;
-use ash::khr::swapchain as khr_swapchain;
+use ash::{khr::swapchain as khr_swapchain, vk};
 
-use crate::vulkan::context::VkContext;
-use crate::vulkan::frame_sync::FrameSync;
+use crate::vulkan::{context::VkContext, frame_sync::FrameSync};
 
 pub struct Swapchain {
     loader: khr_swapchain::Device,
@@ -127,7 +125,12 @@ impl Swapchain {
                         .level_count(1)
                         .layer_count(1),
                 );
-            let view = unsafe { context.device().create_image_view(&view_info, None).unwrap() };
+            let view = unsafe {
+                context
+                    .device()
+                    .create_image_view(&view_info, None)
+                    .unwrap()
+            };
             image_views.push(view);
         }
 
@@ -157,11 +160,7 @@ impl Swapchain {
         );
     }
 
-   pub fn acquire_next_image(
-        &self,
-        sync: &FrameSync,
-        frame: usize,
-    ) -> Result<u32, bool> {
+    pub fn acquire_next_image(&self, sync: &FrameSync, frame: usize) -> Result<u32, bool> {
         match unsafe {
             self.loader.acquire_next_image(
                 self.swapchain_khr,
@@ -170,18 +169,12 @@ impl Swapchain {
                 vk::Fence::null(),
             )
         } {
-            Ok((index, _)) => {
-                Ok(index)
-            }
-            Err(vk::Result::ERROR_OUT_OF_DATE_KHR) => {
-                Err(true)
-            }
-            Err(_) => {
-                Err(false)
-            }
+            Ok((index, _)) => Ok(index),
+            Err(vk::Result::ERROR_OUT_OF_DATE_KHR) => Err(true),
+            Err(_) => Err(false),
         }
     }
-    
+
     pub fn present(
         &self,
         queue: vk::Queue,
@@ -234,7 +227,11 @@ fn choose_present_mode(available: &[vk::PresentModeKHR]) -> vk::PresentModeKHR {
     }
 }
 
-fn choose_extent(capabilities: &vk::SurfaceCapabilitiesKHR, width: u32, height: u32) -> vk::Extent2D {
+fn choose_extent(
+    capabilities: &vk::SurfaceCapabilitiesKHR,
+    width: u32,
+    height: u32,
+) -> vk::Extent2D {
     if capabilities.current_extent.width != u32::MAX {
         capabilities.current_extent
     } else {

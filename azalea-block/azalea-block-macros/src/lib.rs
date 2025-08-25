@@ -312,49 +312,52 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 let mut property_enum_variants = quote! {};
                 let mut property_from_number_variants = quote! {};
                 let mut property_tostring_variants = quote! {};
-        
+
                 property_value_name = enum_name.clone();
                 property_struct_name = enum_name.clone();
-        
+
                 property_struct_names_to_names.insert(
                     property_struct_name.to_string(),
                     property.name.clone().value(),
                 );
-        
+
                 for i in 0..variants.len() {
                     let variant = &variants[i];
                     let variant_string_full = variant.to_string();
-                    let variant_string = variant_string_full.strip_prefix('_').unwrap_or(&variant_string_full).to_lowercase(); 
-        
+                    let variant_string = variant_string_full
+                        .strip_prefix('_')
+                        .unwrap_or(&variant_string_full)
+                        .to_lowercase();
+
                     let i_lit = syn::Lit::Int(syn::LitInt::new(
                         &i.to_string(),
                         proc_macro2::Span::call_site(),
                     ));
-        
+
                     property_enum_variants.extend(quote! {
                         #variant = #i_lit,
                     });
-        
+
                     property_from_number_variants.extend(quote! {
                         #i_lit => #property_struct_name::#variant,
                     });
-        
+
                     property_tostring_variants.extend(quote! {
                         #property_struct_name::#variant => #variant_string.to_string(),
                     });
-        
+
                     property_variant_types.push(PropertyMeta {
                         name: variant.to_string(),
                         index: i,
                     });
                 }
-        
+
                 property_enums.extend(quote! {
                     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
                     pub enum #property_struct_name {
                         #property_enum_variants
                     }
-        
+
                     impl From<BlockStateIntegerRepr> for #property_struct_name {
                         fn from(value: BlockStateIntegerRepr) -> Self {
                             match value {
@@ -363,7 +366,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                             }
                         }
                     }
-        
+
                     impl ToString for #property_struct_name {
                         fn to_string(&self) -> String {
                             match self {
@@ -386,11 +389,11 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                         index: 1,
                     },
                 ];
-        
+
                 property_enums.extend(quote! {
                     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
                     pub struct #property_struct_name(pub bool);
-        
+
                     impl From<BlockStateIntegerRepr> for #property_struct_name {
                         /// In Minecraft, `0 = true` and `1 = false`.
                         fn from(value: BlockStateIntegerRepr) -> Self {
@@ -401,7 +404,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                             }
                         }
                     }
-        
+
                     impl ToString for #property_struct_name {
                         fn to_string(&self) -> String {
                             self.0.to_string()
@@ -530,21 +533,21 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 #block_name_pascal_case,
             });
             default_state_id = Some(state_id);
-        
+
             let fn_name = Ident::new(
                 &format!("__make_{}_state_{}", block_struct_name, state_id),
                 proc_macro2::Span::call_site(),
             );
-        
+
             let ctor_fn = quote! {
                 fn #fn_name() -> Box<dyn BlockTrait> {
                     Box::new(#block_struct_name {})
                 }
             };
-        
+
             block_structs.extend(ctor_fn);
             from_state_to_block_match.extend(quote! { #fn_name, });
-        
+
             state_id += 1;
         }
         for combination in combinations_of(&block_properties_vec) {
@@ -610,15 +613,15 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 &format!("__make_{}_state_{}", block_struct_name, state_id),
                 proc_macro2::Span::call_site(),
             );
-        
+
             let ctor_fn = quote! {
                 fn #fn_name() -> Box<dyn BlockTrait> {
                     Box::new(#block_struct_name { #from_block_to_state_combination_match_inner })
                 }
             };
-        
+
             block_structs.extend(ctor_fn);
-        
+
             from_state_to_block_match.extend(quote! { #fn_name, });
 
             state_id += 1;
@@ -704,9 +707,6 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
 
         let last_state_id = state_id - 1;
 
-        
-
-
         from_registry_block_to_block_match.extend(quote! {
             azalea_registry::Block::#block_name_pascal_case => Box::new(#block_struct_name::default()),
         });
@@ -719,17 +719,15 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
 
         let mut as_property_map_body = quote! {};
         let mut get_property_body = quote! {};
-        
+
         for PropertyWithNameAndDefault {
-            name,
-            name_ident,
-            ..
+            name, name_ident, ..
         } in &properties_with_name
         {
             as_property_map_body.extend(quote! {
                 map.insert(#name.to_string(), self.#name_ident.to_string());
             });
-        
+
             get_property_body.extend(quote! {
                 #name => Some(self.#name_ident.to_string()),
             });
@@ -759,10 +757,6 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         } else {
             block_struct.extend(quote! { { #block_struct_fields } });
         }
-
-
-
-
 
         block_struct.extend(quote! {
             impl BlockTrait for #block_struct_name {
@@ -811,7 +805,6 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
     }
 
     let last_state_id = state_id - 1;
-
 
     let mut generated = quote! {
         impl BlockState {

@@ -1,18 +1,21 @@
 use std::thread;
-use tokio::runtime::Runtime;
 
 use azalea::prelude::*;
-use azalea_graphics::{plugin::RendererPlugin, renderer::{Renderer, RendererHandle}};
+use azalea_graphics::{
+    plugin::RendererPlugin,
+    renderer::{Renderer, RendererHandle},
+};
+use tokio::runtime::Runtime;
 
 async fn run_azalea(render_handle: RendererHandle) {
     let account = Account::offline("bot");
 
     ClientBuilder::new()
-        .add_plugins(RendererPlugin{
-            handle: render_handle
+        .add_plugins(RendererPlugin {
+            handle: render_handle,
         })
         .set_handler(handle)
-        .start(account, "localhost:36333")
+        .start(account, "localhost:33535")
         .await
         .unwrap();
 }
@@ -27,17 +30,12 @@ fn main() {
         println!("exited");
     });
 
-
     renderer.run();
-
 
     let _ = azalea_thread.join();
 }
 
-
 #[derive(Default, Clone, Component)]
 pub struct State;
 
-async fn handle(_client: Client, event: Event, state: State) {
-}
-
+async fn handle(_client: Client, event: Event, state: State) {}

@@ -1,6 +1,5 @@
-import codegen.lib.code.data_components
-import lib.code.inventory
 import lib.code.language
+import lib.code.data_components
 import lib.code.registry
 import lib.code.version
 import lib.code.blocks

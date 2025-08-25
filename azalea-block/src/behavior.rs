@@ -5,6 +5,8 @@ pub struct BlockBehavior {
     pub explosion_resistance: f32,
     pub requires_correct_tool_for_drops: bool,
 
+    pub can_occlude: bool,
+
     pub force_solid: Option<bool>,
 }
 
@@ -15,6 +17,7 @@ impl Default for BlockBehavior {
             jump_factor: 1.0,
             destroy_time: 0.,
             explosion_resistance: 0.,
+            can_occlude: true,
             requires_correct_tool_for_drops: false,
             force_solid: None,
         }
@@ -53,6 +56,11 @@ impl BlockBehavior {
 
     pub fn requires_correct_tool_for_drops(mut self) -> Self {
         self.requires_correct_tool_for_drops = true;
+        self
+    }
+
+    pub fn no_occlude(mut self) -> Self {
+        self.can_occlude = false;
         self
     }
 

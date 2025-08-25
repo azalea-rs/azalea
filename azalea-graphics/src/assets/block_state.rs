@@ -1,4 +1,4 @@
-use serde::{de::IgnoredAny, Deserializer};
+use serde::{Deserializer, de::IgnoredAny};
 
 #[derive(serde::Deserialize, Debug)]
 pub enum BlockRenderState {

@@ -1,7 +1,7 @@
 use std::{sync::Arc, thread, time::Instant};
 
 use azalea::{
-    blocks::BlockState,
+    blocks::{BlockState, BlockTrait},
     core::{
         direction::Direction,
         position::{ChunkPos, ChunkSectionBlockPos, ChunkSectionPos},
@@ -113,11 +113,8 @@ impl Mesher {
 
         thread::spawn(move || {
             while let Ok(local_section) = work_rx.recv() {
-                let start = Instant::now();
                 let mesh = mesh_section(&local_section, &assets);
                 result_tx.send(mesh).unwrap();
-                let time_took = start.elapsed();
-                println!("chunk meshing took: {}ns", time_took.as_nanos());
             }
         });
 
@@ -189,11 +186,13 @@ pub fn mesh_section(section: &LocalSection, assets: &MeshAssets) -> MeshData {
                                 {
                                     let n = cull_face.normal();
                                     let neighbor = local + IVec3::new(n.x, n.y, n.z);
+                                    let neighbor_state = section.blocks[neighbor.x as usize]
+                                        [neighbor.y as usize]
+                                        [neighbor.z as usize];
+                                    let dyn_neighbor: Box<dyn BlockTrait> =
+                                        Box::from(neighbor_state);
 
-                                    if section.blocks[neighbor.x as usize][neighbor.y as usize]
-                                        [neighbor.z as usize]
-                                        .is_collision_shape_full()
-                                    {
+                                    if dyn_neighbor.behavior().can_occlude && !neighbor_state.is_air() {
                                         continue;
                                     }
                                 }

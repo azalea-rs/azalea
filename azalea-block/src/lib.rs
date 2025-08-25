@@ -77,7 +77,7 @@ mod tests {
         };
 
         let property_map = block.property_map();
-        
+
         assert_eq!(property_map.len(), 5);
         assert_eq!(property_map.get("facing"), Some(&"east".to_string()));
         assert_eq!(property_map.get("half"), Some(&"bottom".to_string()));
@@ -86,31 +86,30 @@ mod tests {
         assert_eq!(property_map.get("waterlogged"), Some(&"false".to_string()));
     }
 
+    #[test]
+    pub fn test_integer_properties() {
+        // Test with oak sapling that has an integer-like stage property
+        let sapling_stage_0 = crate::blocks::OakSapling {
+            stage: crate::properties::OakSaplingStage::_0,
+        };
 
-   #[test]
-   pub fn test_integer_properties() {
-       // Test with oak sapling that has an integer-like stage property
-       let sapling_stage_0 = crate::blocks::OakSapling {
-           stage: crate::properties::OakSaplingStage::_0,
-       };
-       
-       let sapling_stage_1 = crate::blocks::OakSapling {
-           stage: crate::properties::OakSaplingStage::_1,
-       };
+        let sapling_stage_1 = crate::blocks::OakSapling {
+            stage: crate::properties::OakSaplingStage::_1,
+        };
 
-       // Test stage 0
-       let properties_0 = sapling_stage_0.property_map();
-       assert_eq!(properties_0.len(), 1);
-       assert_eq!(properties_0.get("stage"), Some(&"0".to_string()));
-       assert_eq!(sapling_stage_0.get_property("stage"), Some("0".to_string()));
+        // Test stage 0
+        let properties_0 = sapling_stage_0.property_map();
+        assert_eq!(properties_0.len(), 1);
+        assert_eq!(properties_0.get("stage"), Some(&"0".to_string()));
+        assert_eq!(sapling_stage_0.get_property("stage"), Some("0".to_string()));
 
-       // Test stage 1
-       let properties_1 = sapling_stage_1.property_map();
-       assert_eq!(properties_1.len(), 1);
-       assert_eq!(properties_1.get("stage"), Some(&"1".to_string()));
-       assert_eq!(sapling_stage_1.get_property("stage"), Some("1".to_string()));
+        // Test stage 1
+        let properties_1 = sapling_stage_1.property_map();
+        assert_eq!(properties_1.len(), 1);
+        assert_eq!(properties_1.get("stage"), Some(&"1".to_string()));
+        assert_eq!(sapling_stage_1.get_property("stage"), Some("1".to_string()));
 
-       // Test non-existent property
-       assert_eq!(sapling_stage_0.get_property("nonexistent"), None);
-   }
+        // Test non-existent property
+        assert_eq!(sapling_stage_0.get_property("nonexistent"), None);
+    }
 }

@@ -1,9 +1,11 @@
+use std::{f32::consts::FRAC_PI_2, time::Duration};
+
 use glam::{Mat4, Vec3};
-use winit::event::{ElementState, MouseScrollDelta};
-use winit::dpi::PhysicalPosition;
-use winit::keyboard::KeyCode;
-use std::f32::consts::FRAC_PI_2;
-use std::time::Duration;
+use winit::{
+    dpi::PhysicalPosition,
+    event::{ElementState, MouseScrollDelta},
+    keyboard::KeyCode,
+};
 
 const SAFE_FRAC_PI_2: f32 = FRAC_PI_2 - 0.0001;
 
@@ -27,12 +29,7 @@ impl Camera {
         let (sin_pitch, cos_pitch) = self.pitch.sin_cos();
         let (sin_yaw, cos_yaw) = self.yaw.sin_cos();
 
-        let forward = Vec3::new(
-            cos_pitch * cos_yaw,
-            sin_pitch,
-            cos_pitch * sin_yaw,
-        )
-        .normalize();
+        let forward = Vec3::new(cos_pitch * cos_yaw, sin_pitch, cos_pitch * sin_yaw).normalize();
 
         Mat4::look_to_rh(self.position, forward, Vec3::Y)
     }
@@ -99,15 +96,36 @@ impl CameraController {
     }
 
     pub fn process_keyboard(&mut self, key: KeyCode, state: ElementState) -> bool {
-        let amount = if state == ElementState::Pressed { 1.0 } else { 0.0 };
+        let amount = if state == ElementState::Pressed {
+            1.0
+        } else {
+            0.0
+        };
         match key {
-            KeyCode::KeyW | KeyCode::ArrowUp    => { self.amount_forward  = amount; true }
-            KeyCode::KeyS | KeyCode::ArrowDown  => { self.amount_backward = amount; true }
-            KeyCode::KeyA | KeyCode::ArrowLeft  => { self.amount_left     = amount; true }
-            KeyCode::KeyD | KeyCode::ArrowRight => { self.amount_right    = amount; true }
-            KeyCode::Space                      => { self.amount_up       = amount; true }
-            KeyCode::ShiftLeft | KeyCode::ShiftRight
-                                                => { self.amount_down     = amount; true }
+            KeyCode::KeyW | KeyCode::ArrowUp => {
+                self.amount_forward = amount;
+                true
+            }
+            KeyCode::KeyS | KeyCode::ArrowDown => {
+                self.amount_backward = amount;
+                true
+            }
+            KeyCode::KeyA | KeyCode::ArrowLeft => {
+                self.amount_left = amount;
+                true
+            }
+            KeyCode::KeyD | KeyCode::ArrowRight => {
+                self.amount_right = amount;
+                true
+            }
+            KeyCode::Space => {
+                self.amount_up = amount;
+                true
+            }
+            KeyCode::ShiftLeft | KeyCode::ShiftRight => {
+                self.amount_down = amount;
+                true
+            }
             _ => false,
         }
     }

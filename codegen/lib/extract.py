@@ -165,7 +165,7 @@ kotlin_loader_version=1.13.2+kotlin.2.1.20
 mod_version=1.0-SNAPSHOT
 maven_group=de.snowii
 archives_base_name=extractor
-fabric_version={fabric_api_version}
+fabric_version=0.132.0+1.21.8
 """
     with open(f"{pumpkin_dir}/gradle.properties", "w") as f:
         f.write(gradle_properties)
@@ -180,25 +180,27 @@ fabric_version={fabric_api_version}
         )
         f.write(fabric_mod_json)
 
-    # run ./gradlew runServer until it logs "(pumpkin_extractor) Done"
     p = subprocess.Popen(
         f"cd {pumpkin_dir} && ./gradlew clean && ./gradlew runServer",
-        stderr=subprocess.PIPE,
         stdout=subprocess.PIPE,
         shell=True,
+        text=True,
     )
-
+    
+    done_marker = "[Server thread/INFO] (pumpkin_extractor) Done"
+    
     while True:
-        data = p.stdout.readline().decode()
-        print(">" + data, end="", flush=True)
-        if "[Server thread/INFO] (pumpkin_extractor) Done" in data:
-            print("Pumpkin extractor done")
+        data = p.stdout.readline()
+        if data == "":  # EOF
             break
-        if data == "":
+        print(">" + data, end="", flush=True)
+    
+        if done_marker in data:
+            print("Pumpkin extractor done")
             break
 
     p.terminate()
-
+    
     # move the run/pumpkin_extractor_output directory to target_parent_dir
     # delete target_parent_dir if it's empty
     if os.path.exists(target_parent_dir):

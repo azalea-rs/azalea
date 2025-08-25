@@ -58,8 +58,8 @@ impl FrameSync {
                 device.destroy_semaphore(self.image_available[i], None);
                 device.destroy_fence(self.in_flight[i], None);
             }
-            for sempahore in &self.render_finished{
-                device.destroy_semaphore(*sempahore, None);   
+            for sempahore in &self.render_finished {
+                device.destroy_semaphore(*sempahore, None);
             }
         }
     }
