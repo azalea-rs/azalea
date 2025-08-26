@@ -14,18 +14,16 @@ use winit::{
 };
 
 use crate::{
-    assets::{self, texture::Texture},
-    renderer::{
+    assets::{self, processed::texture::Texture}, renderer::{
         camera::{Camera, CameraController, Projection},
         mesh::Vertex,
         mesher::LocalChunk,
         render_world::{PushConstants, RenderWorld},
-    },
-    vulkan::{
+    }, vulkan::{
         context::VkContext,
         frame_sync::{FrameSync, MAX_FRAMES_IN_FLIGHT},
         swapchain::Swapchain,
-    },
+    }
 };
 
 const TRIANGLE_VERT: &[u8] = include_bytes!(env!("TRIANGLE_VERT"));
@@ -104,7 +102,7 @@ impl RenderState {
         let world = RenderWorld::new(Arc::new(assets));
 
         let camera = Camera::new(glam::vec3(0.0, 150.0, 2.0), -90.0, 0.0);
-        let projection = Projection::new(size.width, size.height, 45.0, 1.0, 10000.0);
+        let projection = Projection::new(size.width, size.height, 90.0, 1.0, 10000.0);
         let camera_controller = CameraController::new(4.0, 1.0);
 
         Self {

@@ -1,99 +1,34 @@
-pub mod block_state;
-pub mod model;
-pub mod texture;
-
-use std::{collections::HashMap, fs, io::BufReader, path::PathBuf, time::Instant};
+pub(crate) mod processed;
+mod raw;
+use std::{collections::HashMap, fs, io::BufReader, ops::Deref, path::PathBuf, time::Instant};
 
 use azalea::blocks::{BlockState, BlockTrait};
 use log::*;
-use texture::Texture;
-
-use self::{
-    block_state::BlockRenderState,
-    model::{BlockModel, Cube},
+use processed::texture::Texture;
+use raw::{
+    block_state::{BlockRenderState, Variant},
+    model::BlockModel as RawBlockModel,
 };
-use crate::{assets::block_state::Variant, vulkan::context::VkContext};
 
-#[derive(Debug)]
-pub struct ResolvedBlockModel {
-    pub ambient_occlusion: bool,
-    pub textures: HashMap<String, String>,
-    pub elements: Vec<Cube>,
-}
-
-impl ResolvedBlockModel {
-    pub fn resolve_texture<'a>(&'a self, name: &'a str) -> Option<&'a str> {
-        let key = name.strip_prefix("minecraft:").unwrap_or(name);
-
-        if let Some(ref_name) = key.strip_prefix('#') {
-            if let Some(mapped) = self.textures.get(ref_name) {
-                self.resolve_texture(mapped)
-            } else {
-                log::warn!(
-                    "Texture reference '{}' not found in {:?}",
-                    ref_name,
-                    self.textures.keys()
-                );
-                None
-            }
-        } else {
-            Some(key)
-        }
-    }
-
-    fn resolve(raw: &BlockModel, all: &HashMap<String, BlockModel>) -> Self {
-        let mut textures = HashMap::new();
-        let mut elements = raw.elements.clone().unwrap_or_default();
-
-        let mut ambient = raw.ambientocclusion.unwrap_or(true);
-
-        if let Some(parent_name) = &raw.parent {
-            let name = parent_name
-                .strip_prefix("minecraft:")
-                .unwrap_or(&parent_name);
-            if let Some(parent_raw) = all.get(name) {
-                let parent = Self::resolve(parent_raw, all);
-
-                for (k, v) in parent.textures {
-                    textures.entry(k).or_insert(v);
-                }
-
-                if elements.is_empty() {
-                    elements = parent.elements;
-                }
-
-                if raw.ambientocclusion.is_none() {
-                    ambient = parent.ambient_occlusion;
-                }
-            } else {
-                log::warn!("parent {} is empty", name);
-            }
-        }
-
-        for (k, v) in &raw.textures {
-            textures.insert(k.clone(), v.clone());
-        }
-
-        Self {
-            ambient_occlusion: ambient,
-            textures,
-            elements,
-        }
-    }
-}
+use crate::{
+    assets::processed::{VariantDesc, model::BlockModel as ResolvedBlockModel},
+    vulkan::context::VkContext,
+};
 
 pub struct MeshAssets {
     block_models: HashMap<String, ResolvedBlockModel>,
-    blockstate_to_model: Vec<Option<String>>,
+    blockstate_to_models: Vec<Vec<VariantDesc>>,
     texture_to_id: HashMap<String, usize>,
 }
 
 impl MeshAssets {
-    pub fn get_block_model_for(&self, state: BlockState) -> Option<&ResolvedBlockModel> {
+    pub fn get_variant_descs(&self, state: BlockState) -> &[VariantDesc] {
         let id = state.id();
-        let model_name = self.blockstate_to_model[id as usize].as_ref()?;
+        return &self.blockstate_to_models[id as usize];
+    }
 
-        let key = model_name.strip_prefix("minecraft:").unwrap_or(model_name);
+    pub fn get_block_model(&self, path: &str) -> Option<&ResolvedBlockModel> {
+        let key = path.strip_prefix("minecraft:").unwrap_or(path);
         self.block_models.get(key)
     }
 
@@ -130,7 +65,7 @@ pub fn load_assets(ctx: &VkContext, path: impl Into<PathBuf>) -> (MeshAssets, Ve
         );
 
         let s = fs::read_to_string(path).unwrap();
-        raw_models.insert(name, BlockModel::from_str(&s).unwrap());
+        raw_models.insert(name, RawBlockModel::from_str(&s).unwrap());
     }
     log::info!(
         "Loaded {} raw block models in {:?}",
@@ -143,9 +78,6 @@ pub fn load_assets(ctx: &VkContext, path: impl Into<PathBuf>) -> (MeshAssets, Ve
     for (name, raw) in &raw_models {
         let resolved = ResolvedBlockModel::resolve(raw, &raw_models);
 
-        if resolved.elements.is_empty() {
-            log::warn!("elements are empty {name}");
-        }
         block_models.insert(name.clone(), resolved);
     }
     log::info!(
@@ -179,47 +111,51 @@ pub fn load_assets(ctx: &VkContext, path: impl Into<PathBuf>) -> (MeshAssets, Ve
     );
 
     let start = Instant::now();
-    let mut blockstate_to_model = vec![None; BlockState::MAX_STATE as usize + 1];
-    for raw in 0..=BlockState::MAX_STATE {
-        let bs = BlockState::try_from(raw as u16).unwrap();
-        let dyn_block = Box::<dyn BlockTrait>::from(bs);
+    let blockstate_to_models: Vec<Vec<VariantDesc>> = (0..=BlockState::MAX_STATE)
+        .map(|raw: u16| {
+            let bs = BlockState::try_from(raw).unwrap();
+            let dyn_block = Box::<dyn BlockTrait>::from(bs);
 
-        let Some(render_state) = blockstate_defs.get(dyn_block.id()) else {
-            continue;
-        };
+            let Some(render_state) = blockstate_defs.get(dyn_block.id()) else {
+                return vec![];
+            };
 
-        if let BlockRenderState::Variants(variants) = render_state {
-            let variant = 'outer: {
-                for (states, variant) in variants {
-                    if states.is_empty() {
-                        break 'outer variant;
-                    }
+            match render_state {
+                BlockRenderState::Variants(variants) => {
+                    let variant: &Variant = variants
+                        .iter()
+                        .find(|(states, _)| {
+                            states.is_empty()
+                                || states.split(',').all(|state| {
+                                    state.split_once('=').map_or(false, |(prop_name, value)| {
+                                        dyn_block.get_property(prop_name) == Some(value.to_string())
+                                    })
+                                })
+                        })
+                        .map(|(_, v)| v)
+                        .unwrap_or(&variants[0].1);
 
-                    let mut matched = true;
-                    for state in states.split(',') {
-                        let Some((prop_name, value)) = state.split_once('=') else {
-                            log::error!("bad state {}, states {:?}", state, states);
-                            continue;
-                        };
-                        if dyn_block.get_property(prop_name) != Some(value.to_string()) {
-                            matched = false;
-                        }
-                    }
-                    if matched {
-                        break 'outer variant;
+                    match variant {
+                        Variant::Single(desc) => vec![desc.clone()],
+                        Variant::Multiple(arr) => arr.first().cloned().into_iter().collect(),
                     }
                 }
-                &variants[0].1
-            };
 
-            let desc = match variant {
-                Variant::Single(desc) => desc,
-                Variant::Array(arr) => &arr[0],
-            };
-
-            blockstate_to_model[raw as usize] = Some(desc.model.clone());
-        }
-    }
+                BlockRenderState::MultiPart(multi_part) => multi_part
+                    .iter()
+                    .filter(|case| {
+                        case.when
+                            .as_ref()
+                            .map_or(true, |cond| cond.matches(dyn_block.deref()))
+                    })
+                    .filter_map(|case| match &case.apply {
+                        Variant::Single(desc) => Some(desc.clone()),
+                        Variant::Multiple(arr) => arr.first().cloned(),
+                    })
+                    .collect(),
+            }
+        })
+        .collect();
     log::info!("Mapped blockstates to models in {:?}", start.elapsed());
 
     let start = Instant::now();
@@ -260,7 +196,7 @@ pub fn load_assets(ctx: &VkContext, path: impl Into<PathBuf>) -> (MeshAssets, Ve
     (
         MeshAssets {
             block_models,
-            blockstate_to_model,
+            blockstate_to_models,
             texture_to_id,
         },
         textures,

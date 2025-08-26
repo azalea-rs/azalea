@@ -1,17 +1,11 @@
 use std::{num::NonZero, sync::Arc};
 
 use azalea::{
-    app::{App, AppExit, Plugin},
-    chunks::{ReceiveChunkEvent, handle_receive_chunk_event},
-    core::position::ChunkPos,
-    ecs::{
+    app::{App, AppExit, Plugin}, block_update::handle_block_update_event, chunks::{handle_receive_chunk_event, ReceiveChunkEvent}, core::position::ChunkPos, ecs::{
         event::{EventReader, EventWriter},
         schedule::IntoScheduleConfigs,
         system::{Query, Res},
-    },
-    local_player::InstanceHolder,
-    prelude::*,
-    world::Chunk,
+    }, local_player::InstanceHolder, prelude::*, world::Chunk
 };
 use crossbeam::channel::TryRecvError;
 use log::error;
@@ -35,7 +29,7 @@ impl Plugin for RendererPlugin {
         });
         app.add_systems(
             GameTick,
-            forward_chunk_updates.after(handle_receive_chunk_event),
+            forward_chunk_updates.after(handle_receive_chunk_event).after(handle_block_update_event),
         );
         app.add_systems(GameTick, poll_renderer_events);
     }

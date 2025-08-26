@@ -15,7 +15,7 @@ async fn run_azalea(render_handle: RendererHandle) {
             handle: render_handle,
         })
         .set_handler(handle)
-        .start(account, "localhost:33535")
+        .start(account, "localhost:33345")
         .await
         .unwrap();
 }

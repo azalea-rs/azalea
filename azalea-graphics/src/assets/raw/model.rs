@@ -10,16 +10,13 @@ pub struct BlockModel {
     pub display: Option<HashMap<String, Display>>,
 }
 
-fn r#true() -> bool {
-    true
-}
-
 impl BlockModel {
     pub fn from_str(s: &str) -> serde_json::Result<Self> {
         serde_json::from_str(s)
     }
 }
 
+#[allow(unused)]
 #[derive(serde::Deserialize, Debug)]
 pub struct Display {
     rotation: Option<glam::Vec3>,
