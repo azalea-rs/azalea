@@ -506,21 +506,21 @@ fn generate_uv(dir: Direction, uvs: Option<[f32; 4]>) -> [glam::Vec2; 4] {
         Some(uvs) => match dir {
             Direction::Up => [
                 glam::Vec2::new(uvs[0] / 16.0, uvs[1] / 16.0),
-                glam::Vec2::new(uvs[2] / 16.0, uvs[1] / 16.0),
-                glam::Vec2::new(uvs[2] / 16.0, uvs[3] / 16.0),
                 glam::Vec2::new(uvs[0] / 16.0, uvs[3] / 16.0),
+                glam::Vec2::new(uvs[2] / 16.0, uvs[3] / 16.0),
+                glam::Vec2::new(uvs[2] / 16.0, uvs[1] / 16.0),
             ],
             Direction::Down => [
-                glam::Vec2::new(uvs[0] / 16.0, uvs[1] / 16.0),
-                glam::Vec2::new(uvs[2] / 16.0, uvs[1] / 16.0),
-                glam::Vec2::new(uvs[2] / 16.0, uvs[3] / 16.0),
                 glam::Vec2::new(uvs[0] / 16.0, uvs[3] / 16.0),
+                glam::Vec2::new(uvs[2] / 16.0, uvs[3] / 16.0),
+                glam::Vec2::new(uvs[2] / 16.0, uvs[1] / 16.0),
+                glam::Vec2::new(uvs[0] / 16.0, uvs[1] / 16.0),
             ],
             Direction::North => [
-                glam::Vec2::new(uvs[0] / 16.0, uvs[3] / 16.0),
-                glam::Vec2::new(uvs[0] / 16.0, uvs[1] / 16.0),
-                glam::Vec2::new(uvs[2] / 16.0, uvs[1] / 16.0),
                 glam::Vec2::new(uvs[2] / 16.0, uvs[3] / 16.0),
+                glam::Vec2::new(uvs[2] / 16.0, uvs[1] / 16.0),
+                glam::Vec2::new(uvs[0] / 16.0, uvs[1] / 16.0),
+                glam::Vec2::new(uvs[0] / 16.0, uvs[3] / 16.0),
             ],
             Direction::South => [
                 glam::Vec2::new(uvs[0] / 16.0, uvs[3] / 16.0),
@@ -529,10 +529,10 @@ fn generate_uv(dir: Direction, uvs: Option<[f32; 4]>) -> [glam::Vec2; 4] {
                 glam::Vec2::new(uvs[0] / 16.0, uvs[1] / 16.0),
             ],
             Direction::East => [
-                glam::Vec2::new(uvs[0] / 16.0, uvs[3] / 16.0),
-                glam::Vec2::new(uvs[0] / 16.0, uvs[1] / 16.0),
-                glam::Vec2::new(uvs[2] / 16.0, uvs[1] / 16.0),
                 glam::Vec2::new(uvs[2] / 16.0, uvs[3] / 16.0),
+                glam::Vec2::new(uvs[2] / 16.0, uvs[1] / 16.0),
+                glam::Vec2::new(uvs[0] / 16.0, uvs[1] / 16.0),
+                glam::Vec2::new(uvs[0] / 16.0, uvs[3] / 16.0),
             ],
             Direction::West => [
                 glam::Vec2::new(uvs[0] / 16.0, uvs[3] / 16.0),
@@ -544,21 +544,21 @@ fn generate_uv(dir: Direction, uvs: Option<[f32; 4]>) -> [glam::Vec2; 4] {
         None => match dir {
             Direction::Up => [
                 glam::Vec2::new(0.0, 0.0),
-                glam::Vec2::new(1.0, 0.0),
-                glam::Vec2::new(1.0, 1.0),
                 glam::Vec2::new(0.0, 1.0),
+                glam::Vec2::new(1.0, 1.0),
+                glam::Vec2::new(1.0, 0.0),
             ],
             Direction::Down => [
-                glam::Vec2::new(0.0, 0.0),
-                glam::Vec2::new(1.0, 0.0),
-                glam::Vec2::new(1.0, 1.0),
                 glam::Vec2::new(0.0, 1.0),
+                glam::Vec2::new(1.0, 1.0),
+                glam::Vec2::new(1.0, 0.0),
+                glam::Vec2::new(0.0, 0.0),
             ],
             Direction::North => [
-                glam::Vec2::new(0.0, 1.0),
-                glam::Vec2::new(0.0, 0.0),
-                glam::Vec2::new(1.0, 0.0),
                 glam::Vec2::new(1.0, 1.0),
+                glam::Vec2::new(1.0, 0.0),
+                glam::Vec2::new(0.0, 0.0),
+                glam::Vec2::new(0.0, 1.0),
             ],
             Direction::South => [
                 glam::Vec2::new(0.0, 1.0),
@@ -567,10 +567,10 @@ fn generate_uv(dir: Direction, uvs: Option<[f32; 4]>) -> [glam::Vec2; 4] {
                 glam::Vec2::new(0.0, 0.0),
             ],
             Direction::East => [
-                glam::Vec2::new(0.0, 1.0),
-                glam::Vec2::new(0.0, 0.0),
-                glam::Vec2::new(1.0, 0.0),
                 glam::Vec2::new(1.0, 1.0),
+                glam::Vec2::new(1.0, 0.0),
+                glam::Vec2::new(0.0, 0.0),
+                glam::Vec2::new(0.0, 1.0),
             ],
             Direction::West => [
                 glam::Vec2::new(0.0, 1.0),
