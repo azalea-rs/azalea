@@ -4,27 +4,33 @@ use std::{collections::HashMap, fs, io::BufReader, ops::Deref, path::PathBuf, ti
 
 use azalea::blocks::{BlockState, BlockTrait};
 use log::*;
-use processed::texture::Texture;
 use raw::{
     block_state::{BlockRenderState, Variant},
     model::BlockModel as RawBlockModel,
 };
 
 use crate::{
-    assets::processed::{VariantDesc, model::BlockModel as ResolvedBlockModel},
+    assets::{
+        processed::{
+            VariantDesc,
+            atlas::{Atlas, PlacedSprite, build_atlas, render_atlas_image, stitch_sprites},
+            model::BlockModel as ResolvedBlockModel,
+        },
+        raw::atlas::SpriteAtlas,
+    },
     vulkan::context::VkContext,
 };
 
 pub struct MeshAssets {
     block_models: HashMap<String, ResolvedBlockModel>,
     blockstate_to_models: Vec<Vec<VariantDesc>>,
-    texture_to_id: HashMap<String, usize>,
+    pub block_atlas: Atlas,
 }
 
 impl MeshAssets {
     pub fn get_variant_descs(&self, state: BlockState) -> &[VariantDesc] {
         let id = state.id();
-        return &self.blockstate_to_models[id as usize];
+        &self.blockstate_to_models[id as usize]
     }
 
     pub fn get_block_model(&self, path: &str) -> Option<&ResolvedBlockModel> {
@@ -32,13 +38,12 @@ impl MeshAssets {
         self.block_models.get(key)
     }
 
-    pub fn get_texture_id(&self, name: &str) -> Option<usize> {
-        let key = name.strip_prefix("minecraft:").unwrap_or(name);
-        self.texture_to_id.get(key).copied()
+    pub fn get_sprite_rect(&self, name: &str) -> Option<&PlacedSprite> {
+        self.block_atlas.sprites.get(name)
     }
 }
 
-pub fn load_assets(ctx: &VkContext, path: impl Into<PathBuf>) -> (MeshAssets, Vec<Texture>) {
+pub fn load_assets(ctx: &VkContext, path: impl Into<PathBuf>) -> (MeshAssets, image::RgbaImage) {
     let path = path.into();
 
     let start_total = Instant::now();
@@ -67,7 +72,7 @@ pub fn load_assets(ctx: &VkContext, path: impl Into<PathBuf>) -> (MeshAssets, Ve
         let s = fs::read_to_string(path).unwrap();
         raw_models.insert(name, RawBlockModel::from_str(&s).unwrap());
     }
-    log::info!(
+    info!(
         "Loaded {} raw block models in {:?}",
         raw_models.len(),
         start.elapsed()
@@ -77,10 +82,9 @@ pub fn load_assets(ctx: &VkContext, path: impl Into<PathBuf>) -> (MeshAssets, Ve
     let mut block_models = HashMap::new();
     for (name, raw) in &raw_models {
         let resolved = ResolvedBlockModel::resolve(raw, &raw_models);
-
         block_models.insert(name.clone(), resolved);
     }
-    log::info!(
+    info!(
         "Resolved {} block models in {:?}",
         block_models.len(),
         start.elapsed()
@@ -99,12 +103,11 @@ pub fn load_assets(ctx: &VkContext, path: impl Into<PathBuf>) -> (MeshAssets, Ve
         }
 
         let name = path.file_stem().unwrap().to_str().unwrap().to_string();
-
         let s = fs::read_to_string(path).unwrap();
         let state = BlockRenderState::from_str(&s).unwrap();
         blockstate_defs.insert(name, state);
     }
-    log::info!(
+    info!(
         "Loaded {} blockstate definitions in {:?}",
         blockstate_defs.len(),
         start.elapsed()
@@ -122,7 +125,7 @@ pub fn load_assets(ctx: &VkContext, path: impl Into<PathBuf>) -> (MeshAssets, Ve
 
             match render_state {
                 BlockRenderState::Variants(variants) => {
-                    let variant: &Variant = variants
+                    let variant = variants
                         .iter()
                         .find(|(states, _)| {
                             states.is_empty()
@@ -140,7 +143,6 @@ pub fn load_assets(ctx: &VkContext, path: impl Into<PathBuf>) -> (MeshAssets, Ve
                         Variant::Multiple(arr) => arr.first().cloned().into_iter().collect(),
                     }
                 }
-
                 BlockRenderState::MultiPart(multi_part) => multi_part
                     .iter()
                     .filter(|case| {
@@ -156,49 +158,55 @@ pub fn load_assets(ctx: &VkContext, path: impl Into<PathBuf>) -> (MeshAssets, Ve
             }
         })
         .collect();
-    log::info!("Mapped blockstates to models in {:?}", start.elapsed());
+    info!("Mapped blockstates to models in {:?}", start.elapsed());
 
     let start = Instant::now();
-    let texture_path = path.join("textures");
-    info!("loading textures from {}", texture_path.display());
 
-    let mut texture_to_id = HashMap::new();
-    let mut textures = Vec::new();
+    let blocks_atlas_path = path.join("atlases/blocks.json");
+    let blocks_atlas_json = fs::read_to_string(&blocks_atlas_path)
+        .unwrap_or_else(|_| panic!("missing {}", blocks_atlas_path.display()));
+    let blocks_atlas =
+        SpriteAtlas::from_str(&blocks_atlas_json).expect("invalid atlases/blocks.json");
 
-    for entry in walkdir::WalkDir::new(&texture_path) {
-        let entry = entry.unwrap();
-        let path = entry.path();
+    let textures_root = path.join("textures");
+    let (entries, name_to_path) =
+        build_atlas(&textures_root, &blocks_atlas).expect("build entries");
 
-        if !path.is_file() || path.extension().and_then(|e| e.to_str()) != Some("png") {
-            continue;
-        }
+    let max_tex = vk_max_texture_2d(ctx);
+    let (max_w, max_h) = (max_tex, max_tex);
+    let packed_atlas: Atlas = stitch_sprites(entries, max_w, max_h).expect("stitch sprites");
 
-        let name = path
-            .strip_prefix(&texture_path)
-            .unwrap()
-            .with_extension("")
-            .to_str()
-            .unwrap()
-            .to_owned();
-
-        let tex = Texture::new(ctx, BufReader::new(fs::File::open(path).unwrap())).unwrap();
-        texture_to_id.insert(name, textures.len());
-        textures.push(tex);
+    let atlas_image = render_atlas_image(&packed_atlas, &name_to_path).expect("render atlas");
+    let debug_path = path.join("debug_blocks_atlas.png");
+    if let Err(e) = atlas_image.save(&debug_path) {
+        warn!("Failed to save debug atlas {}: {e}", debug_path.display());
+    } else {
+        info!("Saved debug atlas to {}", debug_path.display());
     }
-    log::info!(
-        "Loaded {} textures in {:?}",
-        textures.len(),
+
+    info!(
+        "Built blocks atlas {}x{} in {:?}",
+        packed_atlas.width,
+        packed_atlas.height,
         start.elapsed()
     );
-
-    log::info!("Total asset load time: {:?}", start_total.elapsed());
+    info!("Total asset load time: {:?}", start_total.elapsed());
 
     (
         MeshAssets {
             block_models,
             blockstate_to_models,
-            texture_to_id,
+            block_atlas: packed_atlas,
         },
-        textures,
+        atlas_image,
     )
+}
+
+fn vk_max_texture_2d(ctx: &VkContext) -> u32 {
+    unsafe {
+        let props = ctx
+            .instance()
+            .get_physical_device_properties(ctx.physical_device());
+        props.limits.max_image_dimension2_d
+    }
 }

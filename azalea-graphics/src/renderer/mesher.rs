@@ -4,9 +4,10 @@ use azalea::{
     blocks::{BlockState, BlockTrait},
     core::{
         direction::Direction,
-        position::{ChunkPos, ChunkSectionBlockPos, ChunkSectionPos},
+        position::{ChunkPos, ChunkSectionBiomePos, ChunkSectionBlockPos, ChunkSectionPos},
     },
     physics::collision::BlockWithShape,
+    registry::Biome,
     world::Chunk,
 };
 use crossbeam::channel::{Receiver, Sender, unbounded};
@@ -14,7 +15,10 @@ use glam::{IVec3, Vec3};
 use parking_lot::RwLock;
 
 use crate::{
-    assets::{MeshAssets, processed::model::Cube},
+    assets::{
+        MeshAssets,
+        processed::{atlas::PlacedSprite, model::Cube},
+    },
     renderer::mesh::Vertex,
 };
 
@@ -26,6 +30,7 @@ pub struct MeshData {
 
 pub struct LocalSection {
     pub blocks: Box<[[[BlockState; 18]; 18]; 18]>,
+    pub biomes: Box<[[[Biome; 4]; 4]; 4]>,
     pub spos: ChunkSectionPos,
 }
 
@@ -43,10 +48,58 @@ pub struct LocalChunk {
     pub neighbors: [Option<Arc<RwLock<Chunk>>>; 8],
 }
 
+pub struct BorrowedChunks<'a> {
+    pub center: parking_lot::RwLockReadGuard<'a, Chunk>,
+    pub neighbors: [Option<parking_lot::RwLockReadGuard<'a, Chunk>>; 8],
+}
+
 impl LocalChunk {
+    pub fn borrow_chunks(&self) -> BorrowedChunks {
+        let center = self.center.read();
+        let neighbors = [
+            self.neighbors[NORTH].as_ref().map(|c| c.read()),
+            self.neighbors[SOUTH].as_ref().map(|c| c.read()),
+            self.neighbors[EAST].as_ref().map(|c| c.read()),
+            self.neighbors[WEST].as_ref().map(|c| c.read()),
+            self.neighbors[NE].as_ref().map(|c| c.read()),
+            self.neighbors[NW].as_ref().map(|c| c.read()),
+            self.neighbors[SE].as_ref().map(|c| c.read()),
+            self.neighbors[SW].as_ref().map(|c| c.read()),
+        ];
+
+        BorrowedChunks { center, neighbors }
+    }
+
+    pub fn local_sections(&self, chunk_pos: ChunkPos) -> Vec<LocalSection> {
+        let borrowed = self.borrow_chunks();
+        borrowed.local_sections(chunk_pos)
+    }
+}
+
+impl<'a> BorrowedChunks<'a> {
+    pub fn local_sections(&self, chunk_pos: ChunkPos) -> Vec<LocalSection> {
+        let mut sections = Vec::new();
+
+        for (i, section) in self.center.sections.iter().enumerate() {
+            if section.block_count == 0 {
+                continue;
+            }
+
+            let spos = ChunkSectionPos::new(chunk_pos.x, i as i32, chunk_pos.z);
+
+            let local_section = self.build_local_section(spos);
+            sections.push(local_section);
+        }
+
+        sections
+    }
+
+    /// Build a single local section with 18x18x18 extended block data
     pub fn build_local_section(&self, spos: ChunkSectionPos) -> LocalSection {
         let mut blocks = Box::new([[[BlockState::AIR; 18]; 18]; 18]);
+        let mut biomes = Box::new([[[Default::default(); 4]; 4]; 4]);
 
+        // Fill the extended 18x18x18 block array
         for lx in -1..17 {
             for ly in -1..17 {
                 for lz in -1..17 {
@@ -59,10 +112,27 @@ impl LocalChunk {
             }
         }
 
-        LocalSection { blocks, spos }
+        // Copy biome data from the center chunk section
+        if let Some(section) = self.center.sections.get(spos.y as usize) {
+            for x in 0..4 {
+                for y in 0..4 {
+                    for z in 0..4 {
+                        let pos = ChunkSectionBiomePos { x, y, z };
+                        biomes[x as usize][y as usize][z as usize] = section.get_biome(pos);
+                    }
+                }
+            }
+        }
+
+        LocalSection {
+            blocks,
+            biomes,
+            spos,
+        }
     }
 
-    fn get_block_local(&self, base_y: i32, lx: i32, ly: i32, lz: i32) -> BlockState {
+    /// Get a block at local coordinates (no additional locking needed)
+    pub fn get_block_local(&self, base_y: i32, lx: i32, ly: i32, lz: i32) -> BlockState {
         let cx_off = lx.div_euclid(16);
         let sx = lx.rem_euclid(16) as u8;
 
@@ -72,21 +142,20 @@ impl LocalChunk {
         let cz_off = lz.div_euclid(16);
         let sz = lz.rem_euclid(16) as u8;
 
-        let chunk_opt = match (cx_off, cz_off) {
-            (0, 0) => Some(&self.center),
-            (0, -1) => self.neighbors[NORTH].as_ref(),
-            (0, 1) => self.neighbors[SOUTH].as_ref(),
-            (-1, 0) => self.neighbors[WEST].as_ref(),
-            (1, 0) => self.neighbors[EAST].as_ref(),
-            (-1, -1) => self.neighbors[NW].as_ref(),
-            (1, -1) => self.neighbors[NE].as_ref(),
-            (-1, 1) => self.neighbors[SW].as_ref(),
-            (1, 1) => self.neighbors[SE].as_ref(),
+        let chunk_ref = match (cx_off, cz_off) {
+            (0, 0) => Some(&*self.center),
+            (0, -1) => self.neighbors[NORTH].as_deref(),
+            (0, 1) => self.neighbors[SOUTH].as_deref(),
+            (-1, 0) => self.neighbors[WEST].as_deref(),
+            (1, 0) => self.neighbors[EAST].as_deref(),
+            (-1, -1) => self.neighbors[NW].as_deref(),
+            (1, -1) => self.neighbors[NE].as_deref(),
+            (-1, 1) => self.neighbors[SW].as_deref(),
+            (1, 1) => self.neighbors[SE].as_deref(),
             _ => None,
         };
 
-        if let Some(chunk_arc) = chunk_opt {
-            let chunk = chunk_arc.read();
+        if let Some(chunk) = chunk_ref {
             let section_index = (base_y + cy_off) as usize;
             if let Some(section) = chunk.sections.get(section_index) {
                 return section.get_block_state(ChunkSectionBlockPos {
@@ -121,19 +190,6 @@ impl Mesher {
         Self { work_tx, result_rx }
     }
 
-    pub fn submit_chunk(&self, chunk_pos: ChunkPos, local_chunk: &LocalChunk) {
-        let chunk = local_chunk.center.read();
-
-        for (i, section) in chunk.sections.iter().enumerate() {
-            if section.block_count == 0 {
-                continue;
-            }
-            let spos = ChunkSectionPos::new(chunk_pos.x, i as i32, chunk_pos.z);
-            let local_section = local_chunk.build_local_section(spos);
-            self.submit(local_section);
-        }
-    }
-
     pub fn submit(&self, local_section: LocalSection) {
         self.work_tx.send(local_section).unwrap();
     }
@@ -165,7 +221,6 @@ pub fn mesh_section(section: &LocalSection, assets: &MeshAssets) -> MeshData {
 
                     for element in &model.elements {
                         for face in FACES {
-                            // rotate the face direction according to desc.x/y
                             let rotated_dir =
                                 rotate_direction(face.dir, desc.x_rotation, desc.y_rotation);
 
@@ -192,6 +247,12 @@ pub fn mesh_section(section: &LocalSection, assets: &MeshAssets) -> MeshData {
                                         _ => None,
                                     })
                                 {
+                                    let cull_face = rotate_direction(
+                                        cull_face,
+                                        desc.x_rotation,
+                                        desc.y_rotation,
+                                    );
+
                                     let n = cull_face.normal();
                                     let neighbor = local + IVec3::new(n.x, n.y, n.z);
                                     let neighbor_state = section.blocks[neighbor.x as usize]
@@ -200,57 +261,54 @@ pub fn mesh_section(section: &LocalSection, assets: &MeshAssets) -> MeshData {
                                     let dyn_neighbor: Box<dyn BlockTrait> =
                                         Box::from(neighbor_state);
 
-                                    let occlude = (|| {
-                                        if dyn_neighbor.behavior().can_occlude {
-                                            if neighbor_state.is_air() {
-                                                return false;
-                                            }
-                                            if neighbor_state.is_collision_shape_empty() {
-                                                return false;
-                                            }
-                                            true
-                                        } else {
-                                            false
-                                        }
-                                    })();
+                                    let occlude = dyn_neighbor.behavior().can_occlude
+                                        && !neighbor_state.is_air()
+                                        && neighbor_state.is_collision_shape_full();
+
                                     if occlude {
                                         continue;
                                     }
                                 }
 
-                                let mut uvs = generate_uv(rotated_dir, model_face.uv);
+                                let mut uvs = generate_uv(face.dir, model_face.uv);
+
                                 if desc.uvlock {
-                                    uvs = rotate_uv(uvs, desc.y_rotation, true);
+                                    uvs = rotate_uvs(uvs, desc.y_rotation);
                                 }
 
-                                for (i, offset) in face.offsets.iter().enumerate() {
-                                    let tex_idx = model
+                                for (i, &offset) in face.offsets.iter().enumerate() {
+                                    let sprite_name = model
                                         .resolve_texture(&model_face.texture)
-                                        .and_then(|name: &str| assets.get_texture_id(&name))
-                                        .unwrap_or(0);
+                                        .unwrap_or("empty");
 
-                                    let mut local_pos = offset_to_coord(*offset, element) / 16.0;
-                                    local_pos = rotate_position(
-                                        local_pos,
-                                        desc.x_rotation,
-                                        desc.y_rotation,
-                                    );
+                                    let Some(spr) = assets.get_sprite_rect(sprite_name) else {
+                                        continue;
+                                    };
+                                    let offset =
+                                        rotate_offset(offset, desc.x_rotation, desc.y_rotation);
+
+                                    let local_pos = offset_to_coord(offset, element) / 16.0;
 
                                     let world_pos = Vec3::new(
                                         (local.x - 1) as f32 + section.spos.x as f32 * 16.0,
                                         (local.y - 1) as f32 + section.spos.y as f32 * 16.0,
                                         (local.z - 1) as f32 + section.spos.z as f32 * 16.0,
                                     );
+                                    let uv = remap_uv_to_atlas(
+                                        uvs[i],
+                                        spr,
+                                        assets.block_atlas.width,
+                                        assets.block_atlas.height,
+                                    );
 
                                     vertices.push(Vertex {
                                         position: (local_pos + world_pos).into(),
                                         ao: if model.ambient_occlusion {
-                                            compute_ao(local, *offset, face.dir, section) as f32
+                                            compute_ao(local, offset, rotated_dir, section) as f32
                                         } else {
                                             3.0
                                         },
-                                        tex_idx: tex_idx as u32,
-                                        uv: uvs[i].into(),
+                                        uv,
                                     });
                                 }
 
@@ -277,20 +335,30 @@ pub fn mesh_section(section: &LocalSection, assets: &MeshAssets) -> MeshData {
     }
 }
 
-fn rotate_position(mut p: glam::Vec3, x_rot: i32, y_rot: i32) -> glam::Vec3 {
-    match x_rot.rem_euclid(360) {
-        90 => p = glam::Vec3::new(p.x, -p.z, p.y),
-        180 => p = glam::Vec3::new(p.x, -p.y, -p.z),
-        270 => p = glam::Vec3::new(p.x, p.z, -p.y),
-        _ => {}
-    }
-    match y_rot.rem_euclid(360) {
-        90 => p = glam::Vec3::new(-p.z, p.y, p.x),
-        180 => p = glam::Vec3::new(-p.x, p.y, -p.z),
-        270 => p = glam::Vec3::new(p.z, p.y, -p.x),
-        _ => {}
-    }
-    p
+#[inline]
+fn remap_uv_to_atlas(
+    uv_px: glam::Vec2,
+    spr: &PlacedSprite,
+    atlas_w: u32,
+    atlas_h: u32,
+) -> [f32; 2] {
+    const BIAS: f32 = 0.5;
+
+    let aw = atlas_w as f32;
+    let ah = atlas_h as f32;
+
+    let u0 = (spr.x as f32 + BIAS) / aw;
+    let v0 = (spr.y as f32 + BIAS) / ah;
+    let u1 = (spr.x as f32 + spr.width as f32 - BIAS) / aw;
+    let v1 = (spr.y as f32 + spr.height as f32 - BIAS) / ah;
+
+    let tu = (uv_px.x / 16.0).clamp(0.0, 1.0);
+    let tv = (uv_px.y / 16.0).clamp(0.0, 1.0);
+
+    let u = u0 + (u1 - u0) * tu;
+    let v = v0 + (v1 - v0) * tv;
+
+    [u, v]
 }
 
 fn rotate_direction(dir: Direction, x_rot: i32, y_rot: i32) -> Direction {
@@ -358,16 +426,30 @@ fn rotate_direction(dir: Direction, x_rot: i32, y_rot: i32) -> Direction {
     d
 }
 
-fn rotate_uv(uvs: [glam::Vec2; 4], y_rot: i32, uvlock: bool) -> [glam::Vec2; 4] {
-    if !uvlock {
-        return uvs;
-    }
-    match y_rot.rem_euclid(360) {
+fn rotate_uvs(uvs: [glam::Vec2; 4], deg: i32) -> [glam::Vec2; 4] {
+    match deg.rem_euclid(360) {
+        0 => uvs,
         90 => [uvs[3], uvs[0], uvs[1], uvs[2]],
         180 => [uvs[2], uvs[3], uvs[0], uvs[1]],
         270 => [uvs[1], uvs[2], uvs[3], uvs[0]],
         _ => uvs,
     }
+}
+
+fn rotate_offset(mut p: glam::IVec3, x_rot: i32, y_rot: i32) -> glam::IVec3 {
+    match x_rot.rem_euclid(360) {
+        90 => p = glam::IVec3::new(p.x, 1 - p.z, p.y),
+        180 => p = glam::IVec3::new(p.x, 1 - p.y, 1 - p.z),
+        270 => p = glam::IVec3::new(p.x, p.z, 1 - p.y),
+        _ => {}
+    }
+    match y_rot.rem_euclid(360) {
+        90 => p = glam::IVec3::new(1 - p.z, p.y, p.x),
+        180 => p = glam::IVec3::new(1 - p.x, p.y, 1 - p.z),
+        270 => p = glam::IVec3::new(p.z, p.y, 1 - p.x),
+        _ => {}
+    }
+    p
 }
 
 fn offset_to_coord(offset: IVec3, element: &Cube) -> glam::Vec3 {
@@ -505,77 +587,77 @@ fn generate_uv(dir: Direction, uvs: Option<[f32; 4]>) -> [glam::Vec2; 4] {
     match uvs {
         Some(uvs) => match dir {
             Direction::Up => [
-                glam::Vec2::new(uvs[0] / 16.0, uvs[1] / 16.0),
-                glam::Vec2::new(uvs[0] / 16.0, uvs[3] / 16.0),
-                glam::Vec2::new(uvs[2] / 16.0, uvs[3] / 16.0),
-                glam::Vec2::new(uvs[2] / 16.0, uvs[1] / 16.0),
+                glam::Vec2::new(uvs[0], uvs[1]),
+                glam::Vec2::new(uvs[0], uvs[3]),
+                glam::Vec2::new(uvs[2], uvs[3]),
+                glam::Vec2::new(uvs[2], uvs[1]),
             ],
             Direction::Down => [
-                glam::Vec2::new(uvs[0] / 16.0, uvs[3] / 16.0),
-                glam::Vec2::new(uvs[2] / 16.0, uvs[3] / 16.0),
-                glam::Vec2::new(uvs[2] / 16.0, uvs[1] / 16.0),
-                glam::Vec2::new(uvs[0] / 16.0, uvs[1] / 16.0),
+                glam::Vec2::new(uvs[0], uvs[3]),
+                glam::Vec2::new(uvs[2], uvs[3]),
+                glam::Vec2::new(uvs[2], uvs[1]),
+                glam::Vec2::new(uvs[0], uvs[1]),
             ],
             Direction::North => [
-                glam::Vec2::new(uvs[2] / 16.0, uvs[3] / 16.0),
-                glam::Vec2::new(uvs[2] / 16.0, uvs[1] / 16.0),
-                glam::Vec2::new(uvs[0] / 16.0, uvs[1] / 16.0),
-                glam::Vec2::new(uvs[0] / 16.0, uvs[3] / 16.0),
+                glam::Vec2::new(uvs[2], uvs[3]),
+                glam::Vec2::new(uvs[2], uvs[1]),
+                glam::Vec2::new(uvs[0], uvs[1]),
+                glam::Vec2::new(uvs[0], uvs[3]),
             ],
             Direction::South => [
-                glam::Vec2::new(uvs[0] / 16.0, uvs[3] / 16.0),
-                glam::Vec2::new(uvs[2] / 16.0, uvs[3] / 16.0),
-                glam::Vec2::new(uvs[2] / 16.0, uvs[1] / 16.0),
-                glam::Vec2::new(uvs[0] / 16.0, uvs[1] / 16.0),
+                glam::Vec2::new(uvs[0], uvs[3]),
+                glam::Vec2::new(uvs[2], uvs[3]),
+                glam::Vec2::new(uvs[2], uvs[1]),
+                glam::Vec2::new(uvs[0], uvs[1]),
             ],
             Direction::East => [
-                glam::Vec2::new(uvs[2] / 16.0, uvs[3] / 16.0),
-                glam::Vec2::new(uvs[2] / 16.0, uvs[1] / 16.0),
-                glam::Vec2::new(uvs[0] / 16.0, uvs[1] / 16.0),
-                glam::Vec2::new(uvs[0] / 16.0, uvs[3] / 16.0),
+                glam::Vec2::new(uvs[2], uvs[3]),
+                glam::Vec2::new(uvs[2], uvs[1]),
+                glam::Vec2::new(uvs[0], uvs[1]),
+                glam::Vec2::new(uvs[0], uvs[3]),
             ],
             Direction::West => [
-                glam::Vec2::new(uvs[0] / 16.0, uvs[3] / 16.0),
-                glam::Vec2::new(uvs[2] / 16.0, uvs[3] / 16.0),
-                glam::Vec2::new(uvs[2] / 16.0, uvs[1] / 16.0),
-                glam::Vec2::new(uvs[0] / 16.0, uvs[1] / 16.0),
+                glam::Vec2::new(uvs[0], uvs[3]),
+                glam::Vec2::new(uvs[2], uvs[3]),
+                glam::Vec2::new(uvs[2], uvs[1]),
+                glam::Vec2::new(uvs[0], uvs[1]),
             ],
         },
         None => match dir {
             Direction::Up => [
                 glam::Vec2::new(0.0, 0.0),
-                glam::Vec2::new(0.0, 1.0),
-                glam::Vec2::new(1.0, 1.0),
-                glam::Vec2::new(1.0, 0.0),
+                glam::Vec2::new(0.0, 16.0),
+                glam::Vec2::new(16.0, 16.0),
+                glam::Vec2::new(16.0, 0.0),
             ],
             Direction::Down => [
-                glam::Vec2::new(0.0, 1.0),
-                glam::Vec2::new(1.0, 1.0),
-                glam::Vec2::new(1.0, 0.0),
+                glam::Vec2::new(0.0, 16.0),
+                glam::Vec2::new(16.0, 16.0),
+                glam::Vec2::new(16.0, 0.0),
                 glam::Vec2::new(0.0, 0.0),
             ],
             Direction::North => [
-                glam::Vec2::new(1.0, 1.0),
-                glam::Vec2::new(1.0, 0.0),
+                glam::Vec2::new(16.0, 16.0),
+                glam::Vec2::new(16.0, 0.0),
                 glam::Vec2::new(0.0, 0.0),
-                glam::Vec2::new(0.0, 1.0),
+                glam::Vec2::new(0.0, 16.0),
             ],
             Direction::South => [
-                glam::Vec2::new(0.0, 1.0),
-                glam::Vec2::new(1.0, 1.0),
-                glam::Vec2::new(1.0, 0.0),
+                glam::Vec2::new(0.0, 16.0),
+                glam::Vec2::new(16.0, 16.0),
+                glam::Vec2::new(16.0, 0.0),
                 glam::Vec2::new(0.0, 0.0),
             ],
             Direction::East => [
-                glam::Vec2::new(1.0, 1.0),
-                glam::Vec2::new(1.0, 0.0),
+                glam::Vec2::new(16.0, 16.0),
+                glam::Vec2::new(16.0, 0.0),
                 glam::Vec2::new(0.0, 0.0),
-                glam::Vec2::new(0.0, 1.0),
+                glam::Vec2::new(0.0, 16.0),
             ],
             Direction::West => [
-                glam::Vec2::new(0.0, 1.0),
-                glam::Vec2::new(1.0, 1.0),
-                glam::Vec2::new(1.0, 0.0),
+                glam::Vec2::new(0.0, 16.0),
+                glam::Vec2::new(16.0, 16.0),
+                glam::Vec2::new(16.0, 0.0),
                 glam::Vec2::new(0.0, 0.0),
             ],
         },

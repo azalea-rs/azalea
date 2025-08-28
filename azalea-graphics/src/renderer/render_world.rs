@@ -1,13 +1,13 @@
 use std::{collections::HashMap, sync::Arc};
 
 use ash::vk;
-use azalea::core::position::{ChunkPos, ChunkSectionPos};
+use azalea::core::position::ChunkSectionPos;
 
 use crate::{
     assets::MeshAssets,
     renderer::{
         mesh::Mesh,
-        mesher::{LocalChunk, Mesher},
+        mesher::{LocalSection, Mesher},
     },
     vulkan::context::VkContext,
 };
@@ -32,8 +32,8 @@ impl RenderWorld {
     }
 
     /// Submit a chunk for meshing (background thread will handle it)
-    pub fn update_chunk(&self, pos: ChunkPos, chunk: &LocalChunk) {
-        self.mesher.submit_chunk(pos, &chunk);
+    pub fn update_section(&self, section: &LocalSection) {
+        self.mesher.submit(section);
     }
 
     /// Poll mesher results and upload to GPU

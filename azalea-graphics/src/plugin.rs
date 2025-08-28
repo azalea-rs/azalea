@@ -1,7 +1,7 @@
 use std::{num::NonZero, sync::Arc};
 
 use azalea::{
-    app::{App, AppExit, Plugin}, block_update::handle_block_update_event, chunks::{handle_receive_chunk_event, ReceiveChunkEvent}, core::position::ChunkPos, ecs::{
+    app::{App, AppExit, Plugin, Update}, block_update::handle_block_update_event, chunks::{handle_receive_chunk_event, ReceiveChunkEvent}, core::position::ChunkPos, ecs::{
         event::{EventReader, EventWriter},
         schedule::IntoScheduleConfigs,
         system::{Query, Res},
@@ -11,7 +11,7 @@ use crossbeam::channel::TryRecvError;
 use log::error;
 use parking_lot::RwLock;
 
-use crate::renderer::{RendererCommand, RendererEvent, RendererHandle, mesher::LocalChunk};
+use crate::renderer::{ RendererEvent, RendererHandle, mesher::LocalChunk};
 
 #[derive(Resource, Clone)]
 pub struct RendererResource {
@@ -28,10 +28,10 @@ impl Plugin for RendererPlugin {
             handle: self.handle.clone(),
         });
         app.add_systems(
-            GameTick,
+            Update,
             forward_chunk_updates.after(handle_receive_chunk_event).after(handle_block_update_event),
         );
-        app.add_systems(GameTick, poll_renderer_events);
+        app.add_systems(Update, poll_renderer_events);
     }
 }
 
@@ -68,12 +68,9 @@ fn forward_chunk_updates(
             ];
 
             let local_chunk = LocalChunk { center, neighbors };
+            renderer.handle.send_chunk(pos, local_chunk)
 
-            renderer
-                .handle
-                .tx
-                .send(RendererCommand::ChunkUpdate(pos, local_chunk))
-                .unwrap();
+
         } else {
             error!("no chunk at {:?}", pos);
         }

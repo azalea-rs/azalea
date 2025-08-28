@@ -1,3 +1,5 @@
+use std::mem::offset_of;
+
 use ash::vk;
 use vk_mem::{Allocation, MemoryUsage};
 
@@ -11,7 +13,6 @@ use crate::vulkan::{
 pub struct Vertex {
     pub position: [f32; 3],
     pub ao: f32,
-    pub tex_idx: u32,
     pub uv: [f32; 2],
 }
 
@@ -23,32 +24,26 @@ impl Vertex {
             .input_rate(vk::VertexInputRate::VERTEX)
     }
 
-    pub fn attribute_descriptions() -> [vk::VertexInputAttributeDescription; 4] {
+    pub fn attribute_descriptions() -> [vk::VertexInputAttributeDescription; 3] {
         [
             // position
             vk::VertexInputAttributeDescription::default()
                 .binding(0)
                 .location(0)
                 .format(vk::Format::R32G32B32_SFLOAT) // vec3
-                .offset(0),
+                .offset(offset_of!(Vertex, position) as u32),
             // ao
             vk::VertexInputAttributeDescription::default()
                 .binding(0)
                 .location(1)
                 .format(vk::Format::R32_SFLOAT) // float
-                .offset(12),
-            // tex_idx
-            vk::VertexInputAttributeDescription::default()
-                .binding(0)
-                .location(2)
-                .format(vk::Format::R32_UINT) // uint
-                .offset(16),
+                .offset(offset_of!(Vertex, ao) as u32),
             // uv
             vk::VertexInputAttributeDescription::default()
                 .binding(0)
-                .location(3)
+                .location(2)
                 .format(vk::Format::R32G32_SFLOAT) // vec2
-                .offset(20),
+                .offset(offset_of!(Vertex, uv) as u32),
         ]
     }
 }

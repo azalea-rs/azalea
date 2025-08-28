@@ -14,16 +14,19 @@ use winit::{
 };
 
 use crate::{
-    assets::{self, processed::texture::Texture}, renderer::{
+    assets,
+    renderer::{
         camera::{Camera, CameraController, Projection},
         mesh::Vertex,
-        mesher::LocalChunk,
+        mesher::{LocalChunk, LocalSection},
         render_world::{PushConstants, RenderWorld},
-    }, vulkan::{
+        texture::Texture,
+    },
+    vulkan::{
         context::VkContext,
         frame_sync::{FrameSync, MAX_FRAMES_IN_FLIGHT},
         swapchain::Swapchain,
-    }
+    },
 };
 
 const TRIANGLE_VERT: &[u8] = include_bytes!(env!("TRIANGLE_VERT"));
@@ -48,7 +51,7 @@ pub struct RenderState {
     descriptor_set_layout: vk::DescriptorSetLayout,
     descriptor_pool: vk::DescriptorPool,
     descriptor_set: vk::DescriptorSet,
-    textures: Vec<Texture>,
+    blocks_texture: Texture,
 
     command_pool: vk::CommandPool,
     command_buffers: [vk::CommandBuffer; MAX_FRAMES_IN_FLIGHT],
@@ -71,13 +74,13 @@ impl RenderState {
         let context = VkContext::new(window_handle, display_handle);
         let swapchain = Swapchain::new(&context, size.width, size.height);
 
-        let (assets, textures) = assets::load_assets(&context, "assets/minecraft");
-        let descriptor_set_layout =
-            create_descriptor_set_layout(context.device(), textures.len() as u32);
-        let descriptor_pool = create_descriptor_pool(context.device(), textures.len() as u32);
+        let (assets, atlas_image) = assets::load_assets(&context, "assets/minecraft");
+        let blocks_texture = Texture::new(&context, atlas_image);
+        let descriptor_set_layout = create_descriptor_set_layout(context.device());
+        let descriptor_pool = create_descriptor_pool(context.device());
         let descriptor_set =
             allocate_descriptor_set(context.device(), descriptor_pool, descriptor_set_layout);
-        update_texture_descriptors(context.device(), descriptor_set, &textures);
+        update_texture_descriptor(context.device(), descriptor_set, &blocks_texture);
 
         let render_pass = create_render_pass(&context, &swapchain);
 
@@ -127,7 +130,7 @@ impl RenderState {
             descriptor_pool,
             descriptor_set,
 
-            textures,
+            blocks_texture,
 
             sync,
             world,
@@ -137,8 +140,8 @@ impl RenderState {
         }
     }
 
-    pub fn update_chunk(&self, pos: ChunkPos, chunk: &LocalChunk) {
-        self.world.update_chunk(pos, chunk);
+    pub fn update_section(&self, section: &LocalSection) {
+        self.world.update_section(section);
     }
 
     pub fn update(&mut self, dt: Duration) {
@@ -351,10 +354,7 @@ impl RenderState {
             device.destroy_descriptor_pool(self.descriptor_pool, None);
             device.destroy_descriptor_set_layout(self.descriptor_set_layout, None);
 
-            for tex in &mut self.textures {
-                tex.destroy(&self.context);
-            }
-            self.textures.clear();
+            self.blocks_texture.destroy(&self.context);
 
             device.destroy_command_pool(self.command_pool, None);
         }
@@ -439,7 +439,7 @@ pub fn create_depth_resources(
         .sharing_mode(vk::SharingMode::EXCLUSIVE);
 
     let alloc_info = AllocationCreateInfo {
-        usage: MemoryUsage::GpuOnly,
+        usage: MemoryUsage::AutoPreferDevice,
         ..Default::default()
     };
 
@@ -645,14 +645,11 @@ pub fn allocate_command_buffers(
     buffers
 }
 
-pub fn create_descriptor_set_layout(
-    device: &ash::Device,
-    texture_count: u32,
-) -> vk::DescriptorSetLayout {
+pub fn create_descriptor_set_layout(device: &ash::Device) -> vk::DescriptorSetLayout {
     let sampler_binding = vk::DescriptorSetLayoutBinding::default()
         .binding(0)
         .descriptor_type(vk::DescriptorType::COMBINED_IMAGE_SAMPLER)
-        .descriptor_count(texture_count)
+        .descriptor_count(1)
         .stage_flags(vk::ShaderStageFlags::FRAGMENT);
 
     let info = vk::DescriptorSetLayoutCreateInfo::default()
@@ -661,10 +658,10 @@ pub fn create_descriptor_set_layout(
     unsafe { device.create_descriptor_set_layout(&info, None).unwrap() }
 }
 
-pub fn create_descriptor_pool(device: &ash::Device, texture_count: u32) -> vk::DescriptorPool {
+pub fn create_descriptor_pool(device: &ash::Device) -> vk::DescriptorPool {
     let pool_size = vk::DescriptorPoolSize::default()
         .ty(vk::DescriptorType::COMBINED_IMAGE_SAMPLER)
-        .descriptor_count(texture_count);
+        .descriptor_count(1);
 
     let info = vk::DescriptorPoolCreateInfo::default()
         .pool_sizes(std::slice::from_ref(&pool_size))
@@ -685,25 +682,22 @@ pub fn allocate_descriptor_set(
     unsafe { device.allocate_descriptor_sets(&alloc_info).unwrap()[0] }
 }
 
-pub fn update_texture_descriptors(
+pub fn update_texture_descriptor(
     device: &ash::Device,
     descriptor_set: vk::DescriptorSet,
-    textures: &[Texture],
+    tex: &Texture,
 ) {
-    let image_infos: Vec<vk::DescriptorImageInfo> = textures
-        .iter()
-        .map(|tex| vk::DescriptorImageInfo {
-            sampler: tex.sampler,
-            image_view: tex.view,
-            image_layout: vk::ImageLayout::SHADER_READ_ONLY_OPTIMAL,
-        })
-        .collect();
+    let image_info = vk::DescriptorImageInfo {
+        sampler: tex.sampler,
+        image_view: tex.view,
+        image_layout: vk::ImageLayout::SHADER_READ_ONLY_OPTIMAL,
+    };
 
     let write = vk::WriteDescriptorSet::default()
         .dst_set(descriptor_set)
         .dst_binding(0)
         .descriptor_type(vk::DescriptorType::COMBINED_IMAGE_SAMPLER)
-        .image_info(&image_infos);
+        .image_info(std::slice::from_ref(&image_info));
 
     unsafe {
         device.update_descriptor_sets(std::slice::from_ref(&write), &[]);

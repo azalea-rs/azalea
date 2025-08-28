@@ -1,7 +1,5 @@
-use std::io::{BufRead, Read, Seek};
 
 use ash::vk;
-use image::{GenericImageView, ImageFormat};
 use vk_mem::{Alloc, Allocation, MemoryUsage};
 
 use crate::vulkan::{context::VkContext, utils::create_buffer};
@@ -14,11 +12,9 @@ pub struct Texture {
 }
 
 impl Texture {
-    pub fn new(ctx: &VkContext, r: impl Read + Seek + BufRead) -> Result<Self, image::ImageError> {
-        let image = image::load(r, ImageFormat::Png)?;
-        let rgba = image.to_rgba8();
+    pub fn new(ctx: &VkContext, image: image::RgbaImage) -> Self {
         let (width, height) = image.dimensions();
-        let image_size = rgba.len() as vk::DeviceSize;
+        let image_size = image.len() as vk::DeviceSize;
 
         let allocator = ctx.allocator();
         let (staging_buf, mut staging_alloc) = create_buffer(
@@ -33,7 +29,7 @@ impl Texture {
             let ptr = allocator
                 .map_memory(&mut staging_alloc)
                 .expect("map staging");
-            std::ptr::copy_nonoverlapping(rgba.as_ptr(), ptr, rgba.len());
+            std::ptr::copy_nonoverlapping(image.as_ptr(), ptr, image.len());
             allocator.unmap_memory(&mut staging_alloc);
         }
 
@@ -153,12 +149,12 @@ impl Texture {
             .address_mode_w(vk::SamplerAddressMode::CLAMP_TO_EDGE);
         let sampler = unsafe { ctx.device().create_sampler(&sampler_info, None).unwrap() };
 
-        Ok(Self {
+        Self {
             image,
             allocation,
             view,
             sampler,
-        })
+        }
     }
 
     pub fn destroy(&mut self, ctx: &VkContext) {

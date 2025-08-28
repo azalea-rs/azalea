@@ -11,18 +11,14 @@ use winit::{
     window::{CursorGrabMode, Window, WindowId},
 };
 
-use crate::renderer::{mesher::LocalChunk, state::RenderState};
+use crate::renderer::{mesher::{LocalChunk, LocalSection}, state::RenderState};
 
 mod camera;
 mod mesh;
 pub(crate) mod mesher;
 mod render_world;
 mod state;
-
-pub enum RendererCommand {
-    ChunkUpdate(ChunkPos, LocalChunk),
-    Quit,
-}
+mod texture;
 
 pub enum RendererEvent {
     Closed,
@@ -30,13 +26,21 @@ pub enum RendererEvent {
 
 #[derive(Clone)]
 pub struct RendererHandle {
-    pub tx: Sender<RendererCommand>,
+    pub tx: Sender<LocalSection>,
     pub rx: Receiver<RendererEvent>,
+}
+
+impl RendererHandle{
+    pub fn send_chunk(&self, pos: ChunkPos, chunk: LocalChunk) {
+        for section in chunk.local_sections(pos){
+            self.tx.send(section).unwrap();
+        }
+    }
 }
 
 pub struct Renderer {
     window: Option<Window>,
-    cmd_rx: Receiver<RendererCommand>,
+    cmd_rx: Receiver<LocalSection>,
     evt_tx: Sender<RendererEvent>,
 
     state: Option<RenderState>,
@@ -159,18 +163,10 @@ impl ApplicationHandler for Renderer {
         }
     }
 
-    fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
-        while let Ok(cmd) = self.cmd_rx.try_recv() {
-            match cmd {
-                RendererCommand::ChunkUpdate(pos, chunk) => {
-                    if let Some(state) = &self.state {
-                        state.update_chunk(pos, &chunk);
-                    }
-                }
-                RendererCommand::Quit => {
-                    event_loop.exit();
-                    let _ = self.evt_tx.send(RendererEvent::Closed);
-                }
+    fn about_to_wait(&mut self, _el: &ActiveEventLoop) {
+        while let Ok(section) = self.cmd_rx.try_recv() {
+            if let Some(state) = &mut self.state {
+                state.update_section(&section);
             }
         }
 
@@ -179,7 +175,7 @@ impl ApplicationHandler for Renderer {
         }
     }
 
-    fn exiting(&mut self, el: &ActiveEventLoop) {
+    fn exiting(&mut self, _el: &ActiveEventLoop) {
         if let Some(state) = &mut self.state {
             state.destroy();
         }
