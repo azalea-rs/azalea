@@ -47,7 +47,6 @@ fn forward_chunk_updates(
 
         let local_player = query.get_mut(event.entity).unwrap();
         let instance = local_player.instance.read();
-        dbg!(&instance.registries.map.get(&ResourceLocation::new(Biome::NAME)));
 
         let lookup_chunk =
             |pos: ChunkPos| -> Option<Arc<RwLock<Chunk>>> { instance.chunks.get(&pos) };

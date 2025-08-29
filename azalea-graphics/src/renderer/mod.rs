@@ -116,6 +116,10 @@ impl ApplicationHandler for Renderer {
                     let dt = now - self.last_frame_time;
                     self.last_frame_time = now;
 
+                    if let Some(window) = &self.window{
+                        window.set_title(&format!("{}ms", dt.as_nanos() as f64 * 1_000_000.0));
+                    }
+
                     state.update(dt);
 
                     state.maybe_recreate();
