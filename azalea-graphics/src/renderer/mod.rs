@@ -166,7 +166,7 @@ impl ApplicationHandler for Renderer {
     fn about_to_wait(&mut self, _el: &ActiveEventLoop) {
         while let Ok(section) = self.cmd_rx.try_recv() {
             if let Some(state) = &mut self.state {
-                state.update_section(&section);
+                state.update_section(section);
             }
         }
 

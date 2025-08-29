@@ -140,7 +140,7 @@ impl RenderState {
         }
     }
 
-    pub fn update_section(&self, section: &LocalSection) {
+    pub fn update_section(&self, section: LocalSection) {
         self.world.update_section(section);
     }
 

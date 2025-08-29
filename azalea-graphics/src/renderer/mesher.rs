@@ -54,7 +54,7 @@ pub struct BorrowedChunks<'a> {
 }
 
 impl LocalChunk {
-    pub fn borrow_chunks(&self) -> BorrowedChunks {
+    pub fn borrow_chunks(&self) -> BorrowedChunks<'_> {
         let center = self.center.read();
         let neighbors = [
             self.neighbors[NORTH].as_ref().map(|c| c.read()),
@@ -99,7 +99,6 @@ impl<'a> BorrowedChunks<'a> {
         let mut blocks = Box::new([[[BlockState::AIR; 18]; 18]; 18]);
         let mut biomes = Box::new([[[Default::default(); 4]; 4]; 4]);
 
-        // Fill the extended 18x18x18 block array
         for lx in -1..17 {
             for ly in -1..17 {
                 for lz in -1..17 {

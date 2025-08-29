@@ -32,7 +32,7 @@ impl RenderWorld {
     }
 
     /// Submit a chunk for meshing (background thread will handle it)
-    pub fn update_section(&self, section: &LocalSection) {
+    pub fn update_section(&self, section: LocalSection) {
         self.mesher.submit(section);
     }
 

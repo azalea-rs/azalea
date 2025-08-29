@@ -5,13 +5,13 @@ use azalea::{
         event::{EventReader, EventWriter},
         schedule::IntoScheduleConfigs,
         system::{Query, Res},
-    }, local_player::InstanceHolder, prelude::*, world::Chunk
+    }, local_player::InstanceHolder, prelude::*, registry::{Biome, DataRegistry}, world::Chunk, ResourceLocation
 };
 use crossbeam::channel::TryRecvError;
 use log::error;
 use parking_lot::RwLock;
 
-use crate::renderer::{ RendererEvent, RendererHandle, mesher::LocalChunk};
+use crate::renderer::{RendererEvent, RendererHandle, mesher::LocalChunk};
 
 #[derive(Resource, Clone)]
 pub struct RendererResource {
@@ -29,7 +29,9 @@ impl Plugin for RendererPlugin {
         });
         app.add_systems(
             Update,
-            forward_chunk_updates.after(handle_receive_chunk_event).after(handle_block_update_event),
+            forward_chunk_updates
+                .after(handle_receive_chunk_event)
+                .after(handle_block_update_event),
         );
         app.add_systems(Update, poll_renderer_events);
     }
@@ -45,15 +47,10 @@ fn forward_chunk_updates(
 
         let local_player = query.get_mut(event.entity).unwrap();
         let instance = local_player.instance.read();
-        let partial_instance = local_player.partial_instance.read();
+        dbg!(&instance.registries.map.get(&ResourceLocation::new(Biome::NAME)));
 
-        let lookup_chunk = |pos: ChunkPos| -> Option<Arc<RwLock<Chunk>>> {
-            partial_instance
-                .chunks
-                .limited_get(&pos)
-                .cloned()
-                .or_else(|| instance.chunks.get(&pos))
-        };
+        let lookup_chunk =
+            |pos: ChunkPos| -> Option<Arc<RwLock<Chunk>>> { instance.chunks.get(&pos) };
 
         if let Some(center) = lookup_chunk(pos) {
             let neighbors = [
@@ -66,11 +63,8 @@ fn forward_chunk_updates(
                 lookup_chunk(ChunkPos::new(pos.x + 1, pos.z + 1)), // SE
                 lookup_chunk(ChunkPos::new(pos.x - 1, pos.z + 1)), // SW
             ];
-
             let local_chunk = LocalChunk { center, neighbors };
             renderer.handle.send_chunk(pos, local_chunk)
-
-
         } else {
             error!("no chunk at {:?}", pos);
         }
