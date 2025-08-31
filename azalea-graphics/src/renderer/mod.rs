@@ -2,7 +2,7 @@ use std::time::Instant;
 
 use azalea::core::position::ChunkPos;
 use crossbeam::channel::{Receiver, Sender, unbounded};
-use parking_lot::RwLock;
+
 use raw_window_handle::{HasDisplayHandle, HasWindowHandle};
 use winit::{
     application::ApplicationHandler,

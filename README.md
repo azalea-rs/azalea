@@ -26,6 +26,65 @@ _Currently supported Minecraft version: `1.21.8`._
 -   [Attacking entities](https://azalea.matdoes.dev/azalea/struct.Client.html#method.attack)
 -   [Plugins](#plugins)
 
+## Graphics
+
+Azalea includes an experimental graphics client (`azalea-graphics`) that provides Vulkan-based rendering for visual debugging and development.
+
+### Prerequisites
+
+-   Vulkan-compatible graphics driver
+-   Python 3.7+ with `requests` package (for asset extraction)
+
+### Generating Assets
+
+Before running the graphics client, you need to extract Minecraft assets:
+
+```bash
+# Install required Python dependency
+pip install requests
+
+# Extract assets
+cd codegen
+python genassets.py
+```
+
+This will download the Minecraft client JAR and extract all assets (textures, models, blockstates, etc.) to `azalea-graphics/assets/`.
+
+### Running the Graphics Client
+
+```bash
+# Run with default server (localhost:25565)
+cargo run --example testbot
+
+# Run with custom port
+cargo run --example testbot -- 25566
+
+# Run with custom server address
+cargo run --example testbot -- "myserver.com:25565"
+```
+
+The graphics client supports:
+-   Real-time chunk rendering with biome-accurate colors
+-   Block state visualization
+-   Texture mapping and colormap support (grass, foliage)
+-   Camera controls for navigation
+
+### Current Limitations
+
+The graphics client is experimental and has several limitations:
+
+-   **Entities**: Players, mobs, and other entities are not rendered
+-   **Block colors**: Not all blocks have block colors implemented, and most are still broken.
+-   **Block geometry**: Simple cube rendering only - no proper rotation, UV mapping, or complex models
+-   **Special blocks**: No support for animated or special rendering (water, lava, transparent blocks, connected textures)
+-   **Lighting**: No dynamic lighting or shadows
+-   **Particles**: No particle effects
+
+Some blocks may appear with incorrect textures or orientations due to these limitations.
+
+> [!NOTE]
+> The graphics client is experimental and primarily intended for development and debugging purposes.
+
 ## Docs
 
 The "stable" documentation is available at [docs.rs/azalea](https://docs.rs/azalea) and the unstable docs are at [azalea.matdoes.dev](https://azalea.matdoes.dev) (recommended).
@@ -47,7 +106,6 @@ If you'd like to chat about Azalea, you can join the Matrix space at [#azalea:ma
 
 -   Supporting several versions of Minecraft on the same branch[\*](https://github.com/azalea-rs/azalea-viaversion).
 -   Bedrock edition.
--   Graphics.
 
 ## Real-world bots using Azalea
 

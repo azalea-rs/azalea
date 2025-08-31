@@ -1,4 +1,4 @@
-use std::thread;
+use std::{env, thread};
 
 use azalea::prelude::*;
 use azalea_graphics::{
@@ -7,15 +7,14 @@ use azalea_graphics::{
 };
 use tokio::runtime::Runtime;
 
-async fn run_azalea(render_handle: RendererHandle) {
+async fn run_azalea(render_handle: RendererHandle, server_address: String) {
     let account = Account::offline("bot");
 
     ClientBuilder::new()
         .add_plugins(RendererPlugin {
             handle: render_handle,
         })
-        .set_handler(handle)
-        .start(account, "localhost:33345")
+        .start(account, server_address)
         .await
         .unwrap();
 }
@@ -23,10 +22,28 @@ async fn run_azalea(render_handle: RendererHandle) {
 fn main() {
     env_logger::init();
 
+    // Parse command line arguments
+    let args: Vec<String> = env::args().collect();
+    
+    let server_address = if args.len() >= 2 {
+        // If a port is provided, use localhost with that port
+        if args[1].parse::<u16>().is_ok() {
+            format!("localhost:{}", args[1])
+        } else {
+            // If it's not a valid port, assume it's a full address
+            args[1].clone()
+        }
+    } else {
+        // Default to localhost:25565 (standard Minecraft port)
+        "localhost:25565".to_string()
+    };
+
+    println!("Connecting to: {}", server_address);
+
     let (handle, renderer) = Renderer::new();
-    let azalea_thread = thread::spawn(|| {
+    let azalea_thread = thread::spawn(move || {
         let rt = Runtime::new().unwrap();
-        rt.block_on(run_azalea(handle));
+        rt.block_on(run_azalea(handle, server_address));
         println!("exited");
     });
 
@@ -35,7 +52,3 @@ fn main() {
     let _ = azalea_thread.join();
 }
 
-#[derive(Default, Clone, Component)]
-pub struct State;
-
-async fn handle(_client: Client, event: Event, state: State) {}

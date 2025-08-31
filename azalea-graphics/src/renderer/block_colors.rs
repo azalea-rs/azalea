@@ -6,11 +6,12 @@ use azalea::{
 };
 use glam::IVec3;
 
-use crate::{plugin::BiomeCache, renderer::mesher::LocalSection};
+use crate::{assets::MeshAssets, plugin::BiomeCache, renderer::mesher::LocalSection};
 
 /// Function signature for block color providers
-/// Takes block_state, section (with biome_cache), local_pos, and tint_index
-pub type BlockColorFn = fn(BlockState, &LocalSection, IVec3, i32) -> [f32; 3];
+/// Takes block_state, section (with biome_cache), local_pos, tint_index, and
+/// mesh_assets
+pub type BlockColorFn = fn(BlockState, &LocalSection, IVec3, i32, &MeshAssets) -> [f32; 3];
 
 /// Block color registry similar to Minecraft's BlockColors
 pub struct BlockColors {
@@ -25,38 +26,41 @@ impl BlockColors {
         };
 
         // Grass-colored blocks (normal)
-        block_colors.register(grass_color_provider, &[
-            Block::GrassBlock,
-            Block::Fern,
-            Block::ShortGrass,
-            Block::SugarCane,
-        ]);
+        block_colors.register(
+            grass_color_provider,
+            &[
+                Block::GrassBlock,
+                Block::Fern,
+                Block::ShortGrass,
+                Block::SugarCane,
+            ],
+        );
 
         // Double plants (special biome sampling for upper half)
-        block_colors.register(double_plant_grass_color_provider, &[
-            Block::TallGrass,
-            Block::LargeFern,
-        ]);
+        block_colors.register(
+            double_plant_grass_color_provider,
+            &[Block::TallGrass, Block::LargeFern],
+        );
 
         // Foliage-colored blocks
-        block_colors.register(foliage_color_provider, &[
-            Block::OakLeaves,
-            Block::JungleLeaves,
-            Block::AcaciaLeaves,
-            Block::DarkOakLeaves,
-            Block::Vine,
-            Block::MangroveLeaves,
-        ]);
+        block_colors.register(
+            foliage_color_provider,
+            &[
+                Block::OakLeaves,
+                Block::JungleLeaves,
+                Block::AcaciaLeaves,
+                Block::DarkOakLeaves,
+                Block::Vine,
+                Block::MangroveLeaves,
+            ],
+        );
 
         // Special foliage colors
         block_colors.register(birch_foliage_color_provider, &[Block::BirchLeaves]);
         block_colors.register(spruce_foliage_color_provider, &[Block::SpruceLeaves]);
 
         // Water-colored blocks
-        block_colors.register(water_color_provider, &[
-            Block::Water,
-            Block::BubbleColumn,
-        ]);
+        block_colors.register(water_color_provider, &[Block::Water, Block::BubbleColumn]);
 
         // Redstone wire (power-based color)
         block_colors.register(redstone_wire_color_provider, &[Block::RedstoneWire]);
@@ -66,10 +70,10 @@ impl BlockColors {
         block_colors.register(melon_stem_color_provider, &[Block::MelonStem]);
 
         // Attached stems (fixed color)
-        block_colors.register(attached_stem_color_provider, &[
-            Block::AttachedPumpkinStem,
-            Block::AttachedMelonStem,
-        ]);
+        block_colors.register(
+            attached_stem_color_provider,
+            &[Block::AttachedPumpkinStem, Block::AttachedMelonStem],
+        );
 
         // Special cases
         block_colors.register(lily_pad_color_provider, &[Block::LilyPad]);
@@ -91,11 +95,12 @@ impl BlockColors {
         section: &LocalSection,
         local_pos: IVec3,
         tint_index: i32,
+        assets: &MeshAssets,
     ) -> [f32; 3] {
         let block = Block::from(block_state);
-        
+
         if let Some(&color_fn) = self.color_providers.get(&block) {
-            color_fn(block_state, section, local_pos, tint_index)
+            color_fn(block_state, section, local_pos, tint_index, assets)
         } else {
             // Default white color for blocks without special coloring
             [1.0; 3]
@@ -109,13 +114,14 @@ fn grass_color_provider(
     section: &LocalSection,
     local_pos: IVec3,
     tint_index: i32,
+    assets: &MeshAssets,
 ) -> [f32; 3] {
     if tint_index == -1 {
         return [1.0; 3];
     }
 
     let biome = get_biome_at_local_pos(section, local_pos);
-    BiomeColors::get_average_grass_color(&section.biome_cache, biome)
+    BiomeColors::get_grass_color_with_modifier(&section.biome_cache, biome, local_pos, assets)
 }
 
 /// Double plant grass color provider (handles upper/lower half sampling)
@@ -124,39 +130,25 @@ fn double_plant_grass_color_provider(
     section: &LocalSection,
     local_pos: IVec3,
     tint_index: i32,
+    assets: &MeshAssets,
 ) -> [f32; 3] {
     if tint_index == -1 {
         return [1.0; 3];
     }
 
     use azalea::blocks::properties::Half;
-    
+
     let mut sample_pos = local_pos;
-    
+
     // If this is upper half of double plant, sample biome from below
     if let Some(half) = block_state.property::<Half>() {
         if half == Half::Upper && local_pos.y > 0 {
             sample_pos.y -= 1;
         }
     }
-    
-    let biome = get_biome_at_local_pos(section, sample_pos);
-    BiomeColors::get_average_grass_color(&section.biome_cache, biome)
-}
 
-/// Conditional grass color provider (for pink petals, etc.)
-fn conditional_grass_color_provider(
-    _block_state: BlockState,
-    section: &LocalSection,
-    local_pos: IVec3,
-    tint_index: i32,
-) -> [f32; 3] {
-    if tint_index != 0 {
-        let biome = get_biome_at_local_pos(section, local_pos);
-        BiomeColors::get_average_grass_color(&section.biome_cache, biome)
-    } else {
-        [1.0; 3] // No tint
-    }
+    let biome = get_biome_at_local_pos(section, sample_pos);
+    BiomeColors::get_grass_color_with_modifier(&section.biome_cache, biome, sample_pos, assets)
 }
 
 /// Foliage color provider
@@ -165,13 +157,14 @@ fn foliage_color_provider(
     section: &LocalSection,
     local_pos: IVec3,
     tint_index: i32,
+    assets: &MeshAssets,
 ) -> [f32; 3] {
     if tint_index == -1 {
         return [1.0; 3];
     }
 
     let biome = get_biome_at_local_pos(section, local_pos);
-    BiomeColors::get_average_foliage_color(&section.biome_cache, biome)
+    BiomeColors::get_average_foliage_color(&section.biome_cache, biome, assets)
 }
 
 /// Birch foliage color provider (fixed color)
@@ -180,6 +173,7 @@ fn birch_foliage_color_provider(
     _section: &LocalSection,
     _local_pos: IVec3,
     tint_index: i32,
+    _assets: &MeshAssets,
 ) -> [f32; 3] {
     if tint_index == -1 {
         return [1.0; 3];
@@ -194,6 +188,7 @@ fn spruce_foliage_color_provider(
     _section: &LocalSection,
     _local_pos: IVec3,
     tint_index: i32,
+    _assets: &MeshAssets,
 ) -> [f32; 3] {
     if tint_index == -1 {
         return [1.0; 3];
@@ -208,6 +203,7 @@ fn water_color_provider(
     section: &LocalSection,
     local_pos: IVec3,
     tint_index: i32,
+    _assets: &MeshAssets,
 ) -> [f32; 3] {
     if tint_index == -1 {
         return [1.0; 3];
@@ -223,12 +219,15 @@ fn redstone_wire_color_provider(
     _section: &LocalSection,
     _local_pos: IVec3,
     _tint_index: i32,
+    _assets: &MeshAssets,
 ) -> [f32; 3] {
     use azalea::blocks::properties::RedstoneWirePower;
-    
-    let power = block_state.property::<RedstoneWirePower>().unwrap_or(RedstoneWirePower::_0);
-    let power_level = power as i32; // _0 = 0, _1 = 1, ..., _15 = 15
-    
+
+    let power = block_state
+        .property::<RedstoneWirePower>()
+        .unwrap_or(RedstoneWirePower::_0);
+    let power_level = power as i32;
+
     RedstoneWire::get_color_for_power(power_level)
 }
 
@@ -238,12 +237,14 @@ fn pumpkin_stem_color_provider(
     _section: &LocalSection,
     _local_pos: IVec3,
     _tint_index: i32,
+    _assets: &MeshAssets,
 ) -> [f32; 3] {
     use azalea::blocks::properties::PumpkinStemAge;
-    
-    let age = block_state.property::<PumpkinStemAge>().unwrap_or(PumpkinStemAge::_0);
-    let age_level = age as i32; // _0 = 0, _1 = 1, ..., _7 = 7
-    
+
+    let age = block_state
+        .property::<PumpkinStemAge>()
+        .unwrap_or(PumpkinStemAge::_0);
+    let age_level = age as i32;
     ARGB::color(age_level * 32, 255 - age_level * 8, age_level * 4)
 }
 
@@ -253,12 +254,15 @@ fn melon_stem_color_provider(
     _section: &LocalSection,
     _local_pos: IVec3,
     _tint_index: i32,
+    _assets: &MeshAssets,
 ) -> [f32; 3] {
     use azalea::blocks::properties::MelonStemAge;
-    
-    let age = block_state.property::<MelonStemAge>().unwrap_or(MelonStemAge::_0);
+
+    let age = block_state
+        .property::<MelonStemAge>()
+        .unwrap_or(MelonStemAge::_0);
     let age_level = age as i32; // _0 = 0, _1 = 1, ..., _7 = 7
-    
+
     ARGB::color(age_level * 32, 255 - age_level * 8, age_level * 4)
 }
 
@@ -268,11 +272,12 @@ fn attached_stem_color_provider(
     _section: &LocalSection,
     _local_pos: IVec3,
     tint_index: i32,
+    _assets: &MeshAssets,
 ) -> [f32; 3] {
     if tint_index == -1 {
         return [1.0; 3];
     }
-    
+
     // Java: -2046180 = 0xFFE0C860
     int_color_to_rgb(-2046180) // Attached stem color
 }
@@ -283,6 +288,7 @@ fn lily_pad_color_provider(
     section: &LocalSection,
     local_pos: IVec3,
     tint_index: i32,
+    _assets: &MeshAssets,
 ) -> [f32; 3] {
     if tint_index == -1 {
         return [1.0; 3];
@@ -293,38 +299,57 @@ fn lily_pad_color_provider(
     int_color_to_rgb(-14647248) // LILY_PAD_IN_WORLD (always in-world in our case)
 }
 
-/// Get grass color from biome data
-fn get_biome_grass_color(biome: Biome, biome_cache: &BiomeCache) -> [f32; 3] {
+/// Get grass color from biome data following Java logic
+fn get_biome_grass_color(biome: Biome, biome_cache: &BiomeCache, assets: &MeshAssets) -> [f32; 3] {
     let biome_index = biome.protocol_id() as usize;
-    
-    if let Some(biome_data) = biome_cache.biomes.get(biome_index) {
-        if let Some(grass_color) = biome_data.effects.grass_color {
-            return int_color_to_rgb(grass_color);
-        }
+
+    let biome_data = &biome_cache.biomes[biome_index];
+    // First check for grass color override (BiomeSpecialEffects.grassColorOverride)
+    if let Some(grass_color) = biome_data.effects.grass_color {
+        return int_color_to_rgb(grass_color);
     }
 
-    // Default grass color
-    [0.4, 0.8, 0.2]
+    // If no override, use temperature/downfall to calculate from texture
+    // Java: Biome.getGrassColorFromTexture() -> GrassColor.get(temperature,
+    // downfall)
+    let temperature = biome_data.temperature.clamp(0.0, 1.0) as f64;
+    let downfall = biome_data.downfall.clamp(0.0, 1.0) as f64;
+
+    return get_grass_color_from_texture(temperature, downfall, assets);
 }
 
-/// Get foliage color from biome data
-fn get_biome_foliage_color(biome: Biome, biome_cache: &BiomeCache) -> [f32; 3] {
+/// Get foliage color from biome data following Java logic
+fn get_biome_foliage_color(
+    biome: Biome,
+    biome_cache: &BiomeCache,
+    assets: &MeshAssets,
+) -> [f32; 3] {
     let biome_index = biome.protocol_id() as usize;
-    
+
     if let Some(biome_data) = biome_cache.biomes.get(biome_index) {
+        // First check for foliage color override
+        // (BiomeSpecialEffects.foliageColorOverride)
         if let Some(foliage_color) = biome_data.effects.foliage_color {
             return int_color_to_rgb(foliage_color);
         }
+
+        // If no override, use temperature/downfall to calculate from texture
+        // Java: Biome.getFoliageColorFromTexture() -> FoliageColor.get(temperature,
+        // downfall)
+        let temperature = biome_data.temperature.clamp(0.0, 1.0) as f64;
+        let downfall = biome_data.downfall.clamp(0.0, 1.0) as f64;
+
+        return get_foliage_color_from_texture(temperature, downfall, assets);
     }
 
-    // Default foliage color
-    [0.2, 0.6, 0.1]
+    // Fallback
+    [0.2, 0.6, 0.2]
 }
 
-/// Get water color from biome data
+/// Get water color from biome data (always specified)
 fn get_biome_water_color(biome: Biome, biome_cache: &BiomeCache) -> [f32; 3] {
     let biome_index = biome.protocol_id() as usize;
-    
+
     if let Some(biome_data) = biome_cache.biomes.get(biome_index) {
         return int_color_to_rgb(biome_data.effects.water_color);
     }
@@ -333,27 +358,38 @@ fn get_biome_water_color(biome: Biome, biome_cache: &BiomeCache) -> [f32; 3] {
     [0.2, 0.4, 0.8]
 }
 
-/// Convert redstone power level (0-15) to color
-fn redstone_power_to_color(power: i32) -> [f32; 3] {
-    // Java: RedStoneWireBlock.getColorForPower()
-    // Power 0 is very dark red, power 15 is bright red
-    let intensity = if power == 0 { 
-        0.125 // Minimum visibility 
-    } else { 
-        (power as f32 / 15.0).max(0.125) 
-    };
-    
-    [1.0 * intensity, 0.0, 0.0] // Pure red with variable intensity
+/// Sample grass color from texture (Java: GrassColor.get(temperature,
+/// downfall))
+fn get_grass_color_from_texture(temperature: f64, downfall: f64, assets: &MeshAssets) -> [f32; 3] {
+    // Try to sample from the actual grass colormap texture
+    if let Some(color) = assets.sample_grass_colormap(temperature, downfall) {
+        return color;
+    }
+
+   unreachable!() 
 }
 
-/// Convert stem age (0-7) to color  
-fn stem_age_to_color(age: i32) -> [f32; 3] {
-    // Java: ARGB.color(age * 32, 255 - age * 8, age * 4)
-    // Age 0 = green, age 7 = orange/red
-    let r = (age * 32).min(255) as f32 / 255.0;
-    let g = (255 - age * 8).max(0) as f32 / 255.0;
-    let b = (age * 4).min(255) as f32 / 255.0;
-    [r, g, b]
+/// Sample foliage color from texture (Java: FoliageColor.get(temperature,
+/// downfall))
+fn get_foliage_color_from_texture(
+    temperature: f64,
+    downfall: f64,
+    assets: &MeshAssets,
+) -> [f32; 3] {
+    // Try to sample from the actual foliage colormap texture
+    if let Some(color) = assets.sample_foliage_colormap(temperature, downfall) {
+        return color;
+    }
+
+    // Fallback: interpolate between typical foliage colors based on climate
+    let cold_factor = (1.0 - temperature) as f32;
+    let dry_factor = (1.0 - downfall) as f32;
+
+    let base_r = 0.1 + dry_factor * 0.5; // More red/brown when dry
+    let base_g = 0.5 + downfall as f32 * 0.4; // More green when wet  
+    let base_b = 0.1 + cold_factor * 0.2; // Slightly more blue when cold
+
+    [base_r, base_g, base_b]
 }
 
 /// Get biome at local position within the section
@@ -362,7 +398,7 @@ fn get_biome_at_local_pos(section: &LocalSection, local_pos: IVec3) -> Biome {
     let biome_x = ((local_pos.x - 1) / 4).max(0).min(3) as usize;
     let biome_y = ((local_pos.y - 1) / 4).max(0).min(3) as usize;
     let biome_z = ((local_pos.z - 1) / 4).max(0).min(3) as usize;
-    
+
     section.biomes[biome_x][biome_y][biome_z]
 }
 
@@ -370,28 +406,68 @@ fn get_biome_at_local_pos(section: &LocalSection, local_pos: IVec3) -> Biome {
 pub struct BiomeColors;
 
 impl BiomeColors {
+    /// Get grass color with grass color modifier applied (Java:
+    /// Biome.getGrassColor)
+    pub fn get_grass_color_with_modifier(
+        biome_cache: &BiomeCache,
+        biome: Biome,
+        local_pos: IVec3,
+        assets: &MeshAssets,
+    ) -> [f32; 3] {
+        let base_color = get_biome_grass_color(biome, biome_cache, assets);
+
+        base_color
+    }
+
     /// Get average grass color from biome
-    pub fn get_average_grass_color(biome_cache: &BiomeCache, biome: Biome) -> [f32; 3] {
-        get_biome_grass_color(biome, biome_cache)
+    pub fn get_average_grass_color(
+        biome_cache: &BiomeCache,
+        biome: Biome,
+        assets: &MeshAssets,
+    ) -> [f32; 3] {
+        get_biome_grass_color(biome, biome_cache, assets)
     }
-    
+
     /// Get average foliage color from biome
-    pub fn get_average_foliage_color(biome_cache: &BiomeCache, biome: Biome) -> [f32; 3] {
-        get_biome_foliage_color(biome, biome_cache)
+    pub fn get_average_foliage_color(
+        biome_cache: &BiomeCache,
+        biome: Biome,
+        assets: &MeshAssets,
+    ) -> [f32; 3] {
+        get_biome_foliage_color(biome, biome_cache, assets)
     }
-    
+
     /// Get average water color from biome
     pub fn get_average_water_color(biome_cache: &BiomeCache, biome: Biome) -> [f32; 3] {
         get_biome_water_color(biome, biome_cache)
     }
 }
 
-/// GrassColor utility struct (like Java's GrassColor)
-pub struct GrassColor;
+/// Apply dark forest grass color modifier (Java:
+/// GrassColorModifier.DARK_FOREST)
+fn apply_dark_forest_grass_modifier(base_color: [f32; 3]) -> [f32; 3] {
+    // Java: (color & 16711422) + 2634762 >> 1
+    // This darkens the grass color
+    let [r, g, b] = base_color;
+    [(r * 0.8).min(1.0), (g * 0.8).min(1.0), (b * 0.8).min(1.0)]
+}
 
-impl GrassColor {
-    pub fn get_default_color() -> [f32; 3] {
-        [0.4, 0.8, 0.2] // Default grass green
+/// Apply swamp grass color modifier (Java: GrassColorModifier.SWAMP)
+fn apply_swamp_grass_modifier(base_color: [f32; 3], local_pos: IVec3) -> [f32; 3] {
+    // Java: uses BIOME_INFO_NOISE.getValue(x * 0.0225, z * 0.0225, false)
+    // For now, use simple position-based variation
+    let noise_x = local_pos.x as f64 * 0.0225;
+    let noise_z = local_pos.z as f64 * 0.0225;
+
+    // Simple noise approximation
+    let noise = ((noise_x.sin() * noise_z.cos()) * 0.5 + 0.5);
+
+    if noise < 0.4 {
+        // Java: 5011004 = 0x4C7653 (brownish green)
+        int_color_to_rgb(5011004)
+    } else {
+        // Java: 6975545 = 0x6A7039 (yellowish green)
+        int_color_to_rgb(6975545)
     }
 }
 
@@ -399,13 +475,14 @@ impl GrassColor {
 pub struct RedstoneWire;
 
 impl RedstoneWire {
-    /// Get color for redstone power level (Java: RedStoneWireBlock.getColorForPower)
+    /// Get color for redstone power level (Java:
+    /// RedStoneWireBlock.getColorForPower)
     pub fn get_color_for_power(power: i32) -> [f32; 3] {
         // Java implementation: more sophisticated than simple intensity
-        let red_component = if power == 0 { 
-            0.3125 
-        } else { 
-            (power as f32 / 15.0) * 0.6875 + 0.3125 
+        let red_component = if power == 0 {
+            0.3125
+        } else {
+            (power as f32 / 15.0) * 0.6875 + 0.3125
         };
         [red_component, 0.0, 0.0]
     }

@@ -153,6 +153,9 @@ pub struct DimensionTypeElement {
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct BiomeData {
+    pub temperature: f32,
+    pub downfall: f32,
+    pub has_precipitation: bool,
     pub effects: BiomeEffects,
 }
 
@@ -269,18 +272,21 @@ impl ToNbtTag for BiomePrecipitation {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
 pub struct BiomeEffects {
-    pub sky_color: u32,
-    pub fog_color: u32,
+    pub sky_color: i32,
+    pub fog_color: i32,
     pub water_color: i32,
-    pub water_fog_color: u32,
+    pub water_fog_color: i32,
     pub foliage_color: Option<i32>,
     pub grass_color: Option<i32>,
     pub grass_color_modifier: Option<String>,
-    pub music: Option<BiomeMusic>,
-    pub mood_sound: BiomeMoodSound,
-    pub additions_sound: Option<AdditionsSound>,
-    pub ambient_sound: Option<ResourceLocation>,
-    pub particle: Option<BiomeParticle>,
+}
+
+/// Weighted biome music entry
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
+pub struct WeightedBiomeMusic {
+    pub data: BiomeMusic,
+    pub weight: u32,
 }
 
 /// The music of the biome.

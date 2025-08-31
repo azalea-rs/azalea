@@ -8,7 +8,7 @@ use azalea::{
     },
     physics::collision::BlockWithShape,
     registry::Biome,
-    world::{Chunk, Instance},
+    world::Chunk,
 };
 use crossbeam::channel::{Receiver, Sender, unbounded};
 use glam::{IVec3, Vec3};
@@ -258,6 +258,7 @@ pub fn mesh_section(section: &LocalSection, assets: &MeshAssets) -> MeshData {
                                     section,
                                     local_pos,
                                     tint_index,
+                                    assets,
                                 );
                                 let len = vertices.len() as u32;
 
