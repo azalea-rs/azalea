@@ -63,7 +63,7 @@ fn forward_chunk_updates(
                 lookup_chunk(ChunkPos::new(pos.x - 1, pos.z + 1)), // SW
             ];
             let local_chunk = LocalChunk { center, neighbors };
-            renderer.handle.send_chunk(pos, local_chunk)
+            renderer.handle.send_chunk(pos, local_chunk, local_player.instance.clone())
         } else {
             error!("no chunk at {:?}", pos);
         }

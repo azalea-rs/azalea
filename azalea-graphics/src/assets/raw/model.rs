@@ -49,6 +49,12 @@ pub struct Face {
     pub cullface: Option<String>,
     #[serde(default)]
     pub rotation: i32,
+    #[serde(default = "neg_one")]
+    pub tintindex: i32,
+}
+
+fn neg_one() -> i32{
+    -1
 }
 
 #[derive(serde::Deserialize, Debug, Clone)]

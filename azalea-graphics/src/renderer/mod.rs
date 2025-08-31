@@ -1,7 +1,9 @@
 use std::time::Instant;
+use std::sync::Arc;
 
-use azalea::core::position::ChunkPos;
+use azalea::{core::position::ChunkPos, world::Instance};
 use crossbeam::channel::{Receiver, Sender, unbounded};
+use parking_lot::RwLock;
 use raw_window_handle::{HasDisplayHandle, HasWindowHandle};
 use winit::{
     application::ApplicationHandler,
@@ -19,6 +21,7 @@ pub(crate) mod mesher;
 mod render_world;
 mod state;
 mod texture;
+mod block_colors;
 
 pub enum RendererEvent {
     Closed,
@@ -31,8 +34,8 @@ pub struct RendererHandle {
 }
 
 impl RendererHandle{
-    pub fn send_chunk(&self, pos: ChunkPos, chunk: LocalChunk) {
-        for section in chunk.local_sections(pos){
+    pub fn send_chunk(&self, pos: ChunkPos, chunk: LocalChunk, world: Arc<RwLock<Instance>>) {
+        for section in chunk.local_sections(pos, world){
             self.tx.send(section).unwrap();
         }
     }
@@ -117,7 +120,7 @@ impl ApplicationHandler for Renderer {
                     self.last_frame_time = now;
 
                     if let Some(window) = &self.window{
-                        window.set_title(&format!("{}ms", dt.as_nanos() as f64 * 1_000_000.0));
+                        window.set_title(&format!("{}ms", dt.as_nanos() as f64 / 1_000_000.0));
                     }
 
                     state.update(dt);

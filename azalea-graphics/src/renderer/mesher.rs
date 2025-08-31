@@ -8,7 +8,7 @@ use azalea::{
     },
     physics::collision::BlockWithShape,
     registry::Biome,
-    world::Chunk,
+    world::{Chunk, Instance},
 };
 use crossbeam::channel::{Receiver, Sender, unbounded};
 use glam::{IVec3, Vec3};
@@ -19,7 +19,7 @@ use crate::{
         MeshAssets,
         processed::{atlas::PlacedSprite, model::Cube},
     },
-    renderer::mesh::Vertex,
+    renderer::{block_colors, mesh::Vertex},
 };
 
 pub struct MeshData {
@@ -32,6 +32,8 @@ pub struct LocalSection {
     pub blocks: Box<[[[BlockState; 18]; 18]; 18]>,
     pub biomes: Box<[[[Biome; 4]; 4]; 4]>,
     pub spos: ChunkSectionPos,
+
+    world: Arc<RwLock<Instance>>,
 }
 
 const NORTH: usize = 0;
@@ -70,14 +72,22 @@ impl LocalChunk {
         BorrowedChunks { center, neighbors }
     }
 
-    pub fn local_sections(&self, chunk_pos: ChunkPos) -> Vec<LocalSection> {
+    pub fn local_sections(
+        &self,
+        chunk_pos: ChunkPos,
+        world: Arc<RwLock<Instance>>,
+    ) -> Vec<LocalSection> {
         let borrowed = self.borrow_chunks();
-        borrowed.local_sections(chunk_pos)
+        borrowed.local_sections(chunk_pos, world)
     }
 }
 
 impl<'a> BorrowedChunks<'a> {
-    pub fn local_sections(&self, chunk_pos: ChunkPos) -> Vec<LocalSection> {
+    pub fn local_sections(
+        &self,
+        chunk_pos: ChunkPos,
+        world: Arc<RwLock<Instance>>,
+    ) -> Vec<LocalSection> {
         let mut sections = Vec::new();
 
         for (i, section) in self.center.sections.iter().enumerate() {
@@ -87,7 +97,7 @@ impl<'a> BorrowedChunks<'a> {
 
             let spos = ChunkSectionPos::new(chunk_pos.x, i as i32, chunk_pos.z);
 
-            let local_section = self.build_local_section(spos);
+            let local_section = self.build_local_section(spos, world.clone());
             sections.push(local_section);
         }
 
@@ -95,7 +105,11 @@ impl<'a> BorrowedChunks<'a> {
     }
 
     /// Build a single local section with 18x18x18 extended block data
-    pub fn build_local_section(&self, spos: ChunkSectionPos) -> LocalSection {
+    pub fn build_local_section(
+        &self,
+        spos: ChunkSectionPos,
+        world: Arc<RwLock<Instance>>,
+    ) -> LocalSection {
         let mut blocks = Box::new([[[BlockState::AIR; 18]; 18]; 18]);
         let mut biomes = Box::new([[[Default::default(); 4]; 4]; 4]);
 
@@ -127,6 +141,7 @@ impl<'a> BorrowedChunks<'a> {
             blocks,
             biomes,
             spos,
+            world,
         }
     }
 
@@ -213,6 +228,13 @@ pub fn mesh_section(section: &LocalSection, assets: &MeshAssets) -> MeshData {
                     continue;
                 }
 
+                // Calculate biome index based on block position (per block, not per vertex)
+                // Biomes are stored in 4x4x4 chunks, so divide by 4
+                let biome_x = (x as usize / 4).min(3);
+                let biome_y = (y as usize / 4).min(3);
+                let biome_z = (z as usize / 4).min(3);
+                let biome = section.biomes[biome_x][biome_y][biome_z];
+
                 for desc in assets.get_variant_descs(block_state) {
                     let model = assets
                         .get_block_model(&desc.model)
@@ -233,6 +255,13 @@ pub fn mesh_section(section: &LocalSection, assets: &MeshAssets) -> MeshData {
                             };
 
                             if let Some(model_face) = model_face {
+                                let tint_index = model_face.tintindex;
+                                let tint = block_colors::get_block_color_tint(
+                                    block_state,
+                                    biome,
+                                    &section.world,
+                                    tint_index,
+                                );
                                 let len = vertices.len() as u32;
 
                                 if let Some(cull_face) =
@@ -308,6 +337,7 @@ pub fn mesh_section(section: &LocalSection, assets: &MeshAssets) -> MeshData {
                                             3.0
                                         },
                                         uv,
+                                        tint,
                                     });
                                 }
 

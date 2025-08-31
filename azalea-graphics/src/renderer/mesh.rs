@@ -14,6 +14,7 @@ pub struct Vertex {
     pub position: [f32; 3],
     pub ao: f32,
     pub uv: [f32; 2],
+    pub tint: [f32; 3],
 }
 
 impl Vertex {
@@ -24,7 +25,7 @@ impl Vertex {
             .input_rate(vk::VertexInputRate::VERTEX)
     }
 
-    pub fn attribute_descriptions() -> [vk::VertexInputAttributeDescription; 3] {
+    pub fn attribute_descriptions() -> [vk::VertexInputAttributeDescription; 4] {
         [
             // position
             vk::VertexInputAttributeDescription::default()
@@ -44,6 +45,12 @@ impl Vertex {
                 .location(2)
                 .format(vk::Format::R32G32_SFLOAT) // vec2
                 .offset(offset_of!(Vertex, uv) as u32),
+            // tint
+            vk::VertexInputAttributeDescription::default()
+                .binding(0)
+                .location(3)
+                .format(vk::Format::R32G32B32_SFLOAT)
+                .offset(offset_of!(Vertex, tint) as u32),
         ]
     }
 }

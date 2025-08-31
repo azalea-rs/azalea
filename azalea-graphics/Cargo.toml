@@ -26,6 +26,7 @@ image = "0.25.6"
 serde-tuple-vec-map = "1"
 thiserror.workspace = true
 regex.workspace = true
+simdnbt.workspace = true
 
 
 [dev-dependencies]
