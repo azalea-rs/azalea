@@ -223,7 +223,7 @@ fn choose_present_mode(available: &[vk::PresentModeKHR]) -> vk::PresentModeKHR {
     if available.contains(&vk::PresentModeKHR::MAILBOX) {
         vk::PresentModeKHR::MAILBOX
     } else {
-        vk::PresentModeKHR::IMMEDIATE
+        vk::PresentModeKHR::FIFO
     }
 }
 

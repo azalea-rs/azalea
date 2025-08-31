@@ -19,7 +19,8 @@ use crate::{
         MeshAssets,
         processed::{atlas::PlacedSprite, model::Cube},
     },
-    renderer::{block_colors, mesh::Vertex},
+    plugin::BiomeCache,
+    renderer::{block_colors::{BlockColors}, mesh::Vertex},
 };
 
 pub struct MeshData {
@@ -32,8 +33,8 @@ pub struct LocalSection {
     pub blocks: Box<[[[BlockState; 18]; 18]; 18]>,
     pub biomes: Box<[[[Biome; 4]; 4]; 4]>,
     pub spos: ChunkSectionPos,
+    pub biome_cache: BiomeCache,
 
-    world: Arc<RwLock<Instance>>,
 }
 
 const NORTH: usize = 0;
@@ -75,10 +76,9 @@ impl LocalChunk {
     pub fn local_sections(
         &self,
         chunk_pos: ChunkPos,
-        world: Arc<RwLock<Instance>>,
     ) -> Vec<LocalSection> {
         let borrowed = self.borrow_chunks();
-        borrowed.local_sections(chunk_pos, world)
+        borrowed.local_sections(chunk_pos)
     }
 }
 
@@ -86,7 +86,6 @@ impl<'a> BorrowedChunks<'a> {
     pub fn local_sections(
         &self,
         chunk_pos: ChunkPos,
-        world: Arc<RwLock<Instance>>,
     ) -> Vec<LocalSection> {
         let mut sections = Vec::new();
 
@@ -97,7 +96,7 @@ impl<'a> BorrowedChunks<'a> {
 
             let spos = ChunkSectionPos::new(chunk_pos.x, i as i32, chunk_pos.z);
 
-            let local_section = self.build_local_section(spos, world.clone());
+            let local_section = self.build_local_section(spos);
             sections.push(local_section);
         }
 
@@ -108,7 +107,6 @@ impl<'a> BorrowedChunks<'a> {
     pub fn build_local_section(
         &self,
         spos: ChunkSectionPos,
-        world: Arc<RwLock<Instance>>,
     ) -> LocalSection {
         let mut blocks = Box::new([[[BlockState::AIR; 18]; 18]; 18]);
         let mut biomes = Box::new([[[Default::default(); 4]; 4]; 4]);
@@ -141,7 +139,7 @@ impl<'a> BorrowedChunks<'a> {
             blocks,
             biomes,
             spos,
-            world,
+            biome_cache: BiomeCache { biomes: Vec::new() }, 
         }
     }
 
@@ -216,6 +214,9 @@ impl Mesher {
 pub fn mesh_section(section: &LocalSection, assets: &MeshAssets) -> MeshData {
     let mut vertices = Vec::with_capacity(1000);
     let mut indices = Vec::with_capacity(1000);
+    
+    // Create block colors registry
+    let block_colors = BlockColors::create_default();
 
     for y in 0..16 {
         for x in 0..16 {
@@ -228,12 +229,7 @@ pub fn mesh_section(section: &LocalSection, assets: &MeshAssets) -> MeshData {
                     continue;
                 }
 
-                // Calculate biome index based on block position (per block, not per vertex)
-                // Biomes are stored in 4x4x4 chunks, so divide by 4
-                let biome_x = (x as usize / 4).min(3);
-                let biome_y = (y as usize / 4).min(3);
-                let biome_z = (z as usize / 4).min(3);
-                let biome = section.biomes[biome_x][biome_y][biome_z];
+                // Block position calculation is now done inside color provider functions
 
                 for desc in assets.get_variant_descs(block_state) {
                     let model = assets
@@ -256,10 +252,11 @@ pub fn mesh_section(section: &LocalSection, assets: &MeshAssets) -> MeshData {
 
                             if let Some(model_face) = model_face {
                                 let tint_index = model_face.tintindex;
-                                let tint = block_colors::get_block_color_tint(
+                                let local_pos = IVec3::new(x as i32 + 1, y as i32 + 1, z as i32 + 1); // Convert to 1-18 range
+                                let tint = block_colors.get_color(
                                     block_state,
-                                    biome,
-                                    &section.world,
+                                    section,
+                                    local_pos,
                                     tint_index,
                                 );
                                 let len = vertices.len() as u32;

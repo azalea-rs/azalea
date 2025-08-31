@@ -4,7 +4,6 @@ use ash::{
     Device,
     vk::{self},
 };
-use azalea::core::position::ChunkPos;
 use raw_window_handle::{DisplayHandle, WindowHandle};
 use vk_mem::{Alloc, Allocation, AllocationCreateInfo, Allocator, MemoryUsage};
 use winit::{
@@ -18,7 +17,7 @@ use crate::{
     renderer::{
         camera::{Camera, CameraController, Projection},
         mesh::Vertex,
-        mesher::{LocalChunk, LocalSection},
+        mesher::LocalSection,
         render_world::{PushConstants, RenderWorld},
         texture::Texture,
     },

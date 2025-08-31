@@ -584,6 +584,7 @@ dependencies = [
  "serde-tuple-vec-map",
  "serde_json",
  "shaderc",
+ "simdnbt",
  "thiserror 2.0.15",
  "tokio",
  "vk-mem",

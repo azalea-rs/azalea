@@ -1,6 +1,6 @@
 pub(crate) mod processed;
 mod raw;
-use std::{collections::HashMap, fs, io::BufReader, ops::Deref, path::PathBuf, time::Instant};
+use std::{collections::HashMap, fs, ops::Deref, path::PathBuf, time::Instant};
 
 use azalea::blocks::{BlockState, BlockTrait};
 use log::*;

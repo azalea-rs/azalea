@@ -1,7 +1,6 @@
 use std::time::Instant;
-use std::sync::Arc;
 
-use azalea::{core::position::ChunkPos, world::Instance};
+use azalea::core::position::ChunkPos;
 use crossbeam::channel::{Receiver, Sender, unbounded};
 use parking_lot::RwLock;
 use raw_window_handle::{HasDisplayHandle, HasWindowHandle};
@@ -13,15 +12,21 @@ use winit::{
     window::{CursorGrabMode, Window, WindowId},
 };
 
-use crate::renderer::{mesher::{LocalChunk, LocalSection}, state::RenderState};
+use crate::{
+    plugin::BiomeCache,
+    renderer::{
+        mesher::{LocalChunk, LocalSection},
+        state::RenderState,
+    },
+};
 
+mod block_colors;
 mod camera;
 mod mesh;
 pub(crate) mod mesher;
 mod render_world;
 mod state;
 mod texture;
-mod block_colors;
 
 pub enum RendererEvent {
     Closed,
@@ -33,9 +38,10 @@ pub struct RendererHandle {
     pub rx: Receiver<RendererEvent>,
 }
 
-impl RendererHandle{
-    pub fn send_chunk(&self, pos: ChunkPos, chunk: LocalChunk, world: Arc<RwLock<Instance>>) {
-        for section in chunk.local_sections(pos, world){
+impl RendererHandle {
+    pub fn send_chunk(&self, pos: ChunkPos, chunk: LocalChunk,  biome_cache: BiomeCache) {
+        for mut section in chunk.local_sections(pos) {
+            section.biome_cache = biome_cache.clone();
             self.tx.send(section).unwrap();
         }
     }
@@ -119,7 +125,7 @@ impl ApplicationHandler for Renderer {
                     let dt = now - self.last_frame_time;
                     self.last_frame_time = now;
 
-                    if let Some(window) = &self.window{
+                    if let Some(window) = &self.window {
                         window.set_title(&format!("{}ms", dt.as_nanos() as f64 / 1_000_000.0));
                     }
 

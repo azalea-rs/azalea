@@ -7,6 +7,7 @@
 
 use std::{collections::HashMap, io::Cursor};
 
+use azalea_registry::{Biome, DataRegistry};
 use indexmap::IndexMap;
 use simdnbt::{
     Deserialize, FromNbtTag, Serialize, ToNbtTag,
@@ -16,14 +17,7 @@ use tracing::error;
 
 use crate::resource_location::ResourceLocation;
 
-/// The base of the registry.
-///
-/// This is the registry that is sent to the client upon login.
-///
-/// Note that `azalea-client` stores registries per-world instead of per-client
-/// like you might expect. This is an optimization for swarms to reduce memory
-/// usage, since registries are expected to be the same for every client in a
-/// world.
+
 #[derive(Default, Debug, Clone)]
 pub struct RegistryHolder {
     pub map: HashMap<ResourceLocation, IndexMap<ResourceLocation, NbtCompound>>,
@@ -69,7 +63,7 @@ impl RegistryHolder {
         // this is suboptimal, ideally simdnbt should just have a way to get the
         // owned::NbtCompound as a borrow::NbtCompound
 
-        let mut map = HashMap::new();
+        let mut map = IndexMap::new();
 
         for (key, value) in self.map.get(name)? {
             // convert the value to T
@@ -87,15 +81,11 @@ impl RegistryHolder {
             map.insert(key.clone(), value);
         }
 
-        Some(Ok(RegistryType { map }))
+        Some(Ok(map))
     }
 }
 
-/// A collection of values for a certain type of registry data.
-#[derive(Debug, Clone)]
-pub struct RegistryType<T> {
-    pub map: HashMap<ResourceLocation, T>,
-}
+pub type RegistryType<T> = IndexMap<ResourceLocation, T>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]
@@ -159,6 +149,11 @@ pub struct DimensionTypeElement {
     pub piglin_safe: bool,
     pub respawn_anchor_works: bool,
     pub ultrawarm: Option<bool>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct BiomeData {
+    pub effects: BiomeEffects,
 }
 
 /// Dimension attributes.
@@ -276,10 +271,10 @@ impl ToNbtTag for BiomePrecipitation {
 pub struct BiomeEffects {
     pub sky_color: u32,
     pub fog_color: u32,
-    pub water_color: u32,
+    pub water_color: i32,
     pub water_fog_color: u32,
-    pub foliage_color: Option<u32>,
-    pub grass_color: Option<u32>,
+    pub foliage_color: Option<i32>,
+    pub grass_color: Option<i32>,
     pub grass_color_modifier: Option<String>,
     pub music: Option<BiomeMusic>,
     pub mood_sound: BiomeMoodSound,
