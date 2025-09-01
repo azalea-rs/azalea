@@ -117,16 +117,13 @@ pub async fn auth_with_account(
 
         // this is necessary since reqwest usually depends on tokio and we're using
         // `futures` here
-        async_compat::Compat::new(async {
-            azalea_auth::sessionserver::join(
-                &access_token,
-                &packet.public_key,
-                &private_key,
-                uuid,
-                &packet.server_id,
-            )
-            .await
-        })
+        async_compat::Compat::new(azalea_auth::sessionserver::join(
+            &access_token,
+            &packet.public_key,
+            &private_key,
+            uuid,
+            &packet.server_id,
+        ))
         .await
     } {
         if attempts >= 2 {
@@ -140,7 +137,7 @@ pub async fn auth_with_account(
         ) {
             // uh oh, we got an invalid session and have
             // to reauthenticate now
-            account.refresh().await?;
+            async_compat::Compat::new(account.refresh()).await?;
         } else {
             return Err(err.into());
         }
