@@ -311,50 +311,63 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             } => {
                 let mut property_enum_variants = quote! {};
                 let mut property_from_number_variants = quote! {};
-
+                let mut property_tostring_variants = quote! {};
+        
                 property_value_name = enum_name.clone();
                 property_struct_name = enum_name.clone();
-
+        
                 property_struct_names_to_names.insert(
                     property_struct_name.to_string(),
                     property.name.clone().value(),
                 );
-
+        
                 for i in 0..variants.len() {
                     let variant = &variants[i];
-
+                    let variant_string_full = variant.to_string();
+                    let variant_string = variant_string_full.strip_prefix('_').unwrap_or(&variant_string_full).to_lowercase(); 
+        
                     let i_lit = syn::Lit::Int(syn::LitInt::new(
                         &i.to_string(),
                         proc_macro2::Span::call_site(),
                     ));
-
+        
                     property_enum_variants.extend(quote! {
                         #variant = #i_lit,
                     });
-
-                    // i_lit is used here instead of i because otherwise it says 0size
-                    // in the expansion and that looks uglier
+        
                     property_from_number_variants.extend(quote! {
                         #i_lit => #property_struct_name::#variant,
                     });
-
+        
+                    property_tostring_variants.extend(quote! {
+                        #property_struct_name::#variant => #variant_string.to_string(),
+                    });
+        
                     property_variant_types.push(PropertyMeta {
                         name: variant.to_string(),
                         index: i,
                     });
                 }
-
+        
                 property_enums.extend(quote! {
                     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
                     pub enum #property_struct_name {
                         #property_enum_variants
                     }
-
+        
                     impl From<BlockStateIntegerRepr> for #property_struct_name {
                         fn from(value: BlockStateIntegerRepr) -> Self {
                             match value {
                                 #property_from_number_variants
                                 _ => panic!("Invalid property value: {}", value),
+                            }
+                        }
+                    }
+        
+                    impl ToString for #property_struct_name {
+                        fn to_string(&self) -> String {
+                            match self {
+                                #property_tostring_variants
                             }
                         }
                     }
@@ -373,11 +386,11 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                         index: 1,
                     },
                 ];
-
+        
                 property_enums.extend(quote! {
                     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
                     pub struct #property_struct_name(pub bool);
-
+        
                     impl From<BlockStateIntegerRepr> for #property_struct_name {
                         /// In Minecraft, `0 = true` and `1 = false`.
                         fn from(value: BlockStateIntegerRepr) -> Self {
@@ -386,6 +399,12 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                                 1 => Self(false),
                                 _ => panic!("Invalid property value: {}", value),
                             }
+                        }
+                    }
+        
+                    impl ToString for #property_struct_name {
+                        fn to_string(&self) -> String {
+                            self.0.to_string()
                         }
                     }
                 });
@@ -678,6 +697,24 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             azalea_registry::Block::#block_name_pascal_case => BlockStates::from(#first_state_id..=#last_state_id),
         });
 
+        let mut as_property_map_body = quote! {};
+        let mut get_property_body = quote! {};
+        
+        for PropertyWithNameAndDefault {
+            name,
+            name_ident,
+            ..
+        } in &properties_with_name
+        {
+            as_property_map_body.extend(quote! {
+                map.insert(#name.to_string(), self.#name_ident.to_string());
+            });
+        
+            get_property_body.extend(quote! {
+                #name => Some(self.#name_ident.to_string()),
+            });
+        }
+
         let mut block_default_fields = quote! {};
         for PropertyWithNameAndDefault {
             name_ident,
@@ -702,6 +739,11 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         } else {
             block_struct.extend(quote! { { #block_struct_fields } });
         }
+
+
+
+
+
         block_struct.extend(quote! {
             impl BlockTrait for #block_struct_name {
                 fn behavior(&self) -> BlockBehavior {
@@ -715,6 +757,18 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 }
                 fn as_registry_block(&self) -> azalea_registry::Block {
                     azalea_registry::Block::#block_name_pascal_case
+                }
+                fn property_map(&self) -> std::collections::HashMap<String, String> {
+                    let mut map = std::collections::HashMap::new();
+                    #as_property_map_body
+                    map
+                }
+
+                fn get_property(&self, name: &str) -> Option<String> {
+                    match name {
+                        #get_property_body
+                        _ => None,
+                    }
                 }
             }
 
