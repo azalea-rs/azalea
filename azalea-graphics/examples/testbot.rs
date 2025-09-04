@@ -2,8 +2,8 @@ use std::{env, thread};
 
 use azalea::prelude::*;
 use azalea_graphics::{
+    app::{App, RendererHandle},
     plugin::RendererPlugin,
-    renderer::{Renderer, RendererHandle},
 };
 use tokio::runtime::Runtime;
 
@@ -22,33 +22,28 @@ async fn run_azalea(render_handle: RendererHandle, server_address: String) {
 fn main() {
     env_logger::init();
 
-    // Parse command line arguments
     let args: Vec<String> = env::args().collect();
-    
+
     let server_address = if args.len() >= 2 {
-        // If a port is provided, use localhost with that port
         if args[1].parse::<u16>().is_ok() {
             format!("localhost:{}", args[1])
         } else {
-            // If it's not a valid port, assume it's a full address
             args[1].clone()
         }
     } else {
-        // Default to localhost:25565 (standard Minecraft port)
         "localhost:25565".to_string()
     };
 
     println!("Connecting to: {}", server_address);
 
-    let (handle, renderer) = Renderer::new();
+    let (handle, app) = App::new();
     let azalea_thread = thread::spawn(move || {
         let rt = Runtime::new().unwrap();
         rt.block_on(run_azalea(handle, server_address));
         println!("exited");
     });
 
-    renderer.run();
+    app.run();
 
     let _ = azalea_thread.join();
 }
-

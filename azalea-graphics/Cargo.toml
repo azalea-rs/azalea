@@ -13,6 +13,10 @@ vk-mem = "0.5"
 ash-window = "0.13"
 log = "0.4"
 winit = "0.30.12"
+
+egui = "0.32"
+egui-winit = "0.32"
+
 glam = {version = "0.30", features = ["serde"]}
 crossbeam = "0.8.4"
 parking_lot.workspace = true
@@ -27,6 +31,7 @@ serde-tuple-vec-map = "1"
 thiserror.workspace = true
 regex.workspace = true
 simdnbt.workspace = true
+anyhow.workspace = true
 
 
 [dev-dependencies]

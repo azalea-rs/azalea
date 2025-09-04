@@ -3,13 +3,17 @@ use std::{io::Cursor, num::NonZero, sync::Arc};
 use azalea::{
     app::{App, AppExit, Plugin, Update},
     block_update::handle_block_update_event,
-    chunks::{handle_receive_chunk_event, ReceiveChunkEvent},
+    chunks::{ReceiveChunkEvent, handle_receive_chunk_event},
     core::{
         position::ChunkPos,
         registry_holder::{BiomeData, RegistryHolder},
     },
     ecs::{
-        component::Component, entity::Entity, event::{EventReader, EventWriter}, schedule::IntoScheduleConfigs, system::{Commands, Query, Res}
+        component::Component,
+        entity::Entity,
+        event::{EventReader, EventWriter},
+        schedule::IntoScheduleConfigs,
+        system::{Commands, Query, Res},
     },
     local_player::InstanceHolder,
     prelude::*,
@@ -21,7 +25,10 @@ use log::error;
 use parking_lot::RwLock;
 use simdnbt::Deserialize;
 
-use crate::renderer::{RendererEvent, RendererHandle, mesher::LocalChunk};
+use crate::{
+    app::{RendererEvent, RendererHandle},
+    renderer::mesher::LocalChunk,
+};
 
 /// A cache of parsed biome data indexed by biome registry index
 #[derive(Component, Clone, Debug)]

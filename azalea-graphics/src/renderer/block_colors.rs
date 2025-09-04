@@ -366,7 +366,7 @@ fn get_grass_color_from_texture(temperature: f64, downfall: f64, assets: &MeshAs
         return color;
     }
 
-   unreachable!() 
+    unreachable!()
 }
 
 /// Sample foliage color from texture (Java: FoliageColor.get(temperature,
@@ -460,7 +460,7 @@ fn apply_swamp_grass_modifier(base_color: [f32; 3], local_pos: IVec3) -> [f32; 3
     let noise_z = local_pos.z as f64 * 0.0225;
 
     // Simple noise approximation
-    let noise = ((noise_x.sin() * noise_z.cos()) * 0.5 + 0.5);
+    let noise = (noise_x.sin() * noise_z.cos()) * 0.5 + 0.5;
 
     if noise < 0.4 {
         // Java: 5011004 = 0x4C7653 (brownish green)

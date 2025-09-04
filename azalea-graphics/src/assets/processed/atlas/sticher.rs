@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+
 use thiserror::Error;
 
 #[derive(Debug, Clone)]
@@ -29,7 +30,6 @@ pub enum StitchError {
     CannotFit { max_width: u32, max_height: u32 },
 }
 
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct Rect {
     x: u32,
@@ -39,16 +39,27 @@ struct Rect {
 }
 
 impl Rect {
-    #[inline] fn right(&self) -> u32 { self.x + self.w }
-    #[inline] fn bottom(&self) -> u32 { self.y + self.h }
-    #[inline] fn area(&self) -> u64 { self.w as u64 * self.h as u64 }
-    #[inline] fn contains(&self, other: &Rect) -> bool {
-        self.x <= other.x && self.y <= other.y &&
-        self.right() >= other.right() && self.bottom() >= other.bottom()
+    #[inline]
+    fn right(&self) -> u32 {
+        self.x + self.w
     }
-    #[inline] fn intersects(&self, other: &Rect) -> bool {
-        !(other.x >= self.right() || other.right() <= self.x ||
-          other.y >= self.bottom() || other.bottom() <= self.y)
+    #[inline]
+    fn bottom(&self) -> u32 {
+        self.y + self.h
+    }
+    #[inline]
+    fn contains(&self, other: &Rect) -> bool {
+        self.x <= other.x
+            && self.y <= other.y
+            && self.right() >= other.right()
+            && self.bottom() >= other.bottom()
+    }
+    #[inline]
+    fn intersects(&self, other: &Rect) -> bool {
+        !(other.x >= self.right()
+            || other.right() <= self.x
+            || other.y >= self.bottom()
+            || other.bottom() <= self.y)
     }
 }
 
@@ -64,20 +75,41 @@ fn split_and_prune_free_list(free: &mut Vec<Rect>, used: Rect) {
         // Split fr into up to 4 rectangles around 'used'
         // Left
         if used.x > fr.x {
-            new_free.push(Rect { x: fr.x, y: fr.y, w: used.x - fr.x, h: fr.h });
+            new_free.push(Rect {
+                x: fr.x,
+                y: fr.y,
+                w: used.x - fr.x,
+                h: fr.h,
+            });
         }
         // Right
         if used.right() < fr.right() {
-            new_free.push(Rect { x: used.right(), y: fr.y, w: fr.right() - used.right(), h: fr.h });
+            new_free.push(Rect {
+                x: used.right(),
+                y: fr.y,
+                w: fr.right() - used.right(),
+                h: fr.h,
+            });
         }
         // Top
         if used.y > fr.y {
-            // Note: full width of fr; overlaps with left/right splits, but we'll prune later.
-            new_free.push(Rect { x: fr.x, y: fr.y, w: fr.w, h: used.y - fr.y });
+            // Note: full width of fr; overlaps with left/right splits, but we'll prune
+            // later.
+            new_free.push(Rect {
+                x: fr.x,
+                y: fr.y,
+                w: fr.w,
+                h: used.y - fr.y,
+            });
         }
         // Bottom
         if used.bottom() < fr.bottom() {
-            new_free.push(Rect { x: fr.x, y: used.bottom(), w: fr.w, h: fr.bottom() - used.bottom() });
+            new_free.push(Rect {
+                x: fr.x,
+                y: used.bottom(),
+                w: fr.w,
+                h: fr.bottom() - used.bottom(),
+            });
         }
     }
     // Remove zero-area and duplicates
@@ -98,23 +130,40 @@ fn split_and_prune_free_list(free: &mut Vec<Rect>, used: Rect) {
     *free = pruned;
 }
 
-/// Choose the best free rect for a (w,h) using Best Short Side Fit (then long side, then top-left).
+/// Choose the best free rect for a (w,h) using Best Short Side Fit (then long
+/// side, then top-left).
 fn choose_position(free: &[Rect], w: u32, h: u32) -> Option<(usize, Rect, i32, i32)> {
     let mut best: Option<(usize, Rect, i32, i32)> = None;
     for (idx, fr) in free.iter().enumerate() {
         if w <= fr.w && h <= fr.h {
             let short = (fr.w as i32 - w as i32).min(fr.h as i32 - h as i32);
-            let long  = (fr.w as i32 - w as i32).max(fr.h as i32 - h as i32);
-            let cand = (idx, Rect { x: fr.x, y: fr.y, w, h }, short, long);
+            let long = (fr.w as i32 - w as i32).max(fr.h as i32 - h as i32);
+            let cand = (
+                idx,
+                Rect {
+                    x: fr.x,
+                    y: fr.y,
+                    w,
+                    h,
+                },
+                short,
+                long,
+            );
             best = Some(match best {
                 None => cand,
                 Some(cur) => {
                     // compare (short, long, y, x)
                     if cand.2 < cur.2
-                        || (cand.2 == cur.2 && (cand.3 < cur.3
-                        || (cand.3 == cur.3 && (cand.1.y < cur.1.y
-                        || (cand.1.y == cur.1.y && cand.1.x < cur.1.x)))))
-                    { cand } else { cur }
+                        || (cand.2 == cur.2
+                            && (cand.3 < cur.3
+                                || (cand.3 == cur.3
+                                    && (cand.1.y < cur.1.y
+                                        || (cand.1.y == cur.1.y && cand.1.x < cur.1.x)))))
+                    {
+                        cand
+                    } else {
+                        cur
+                    }
                 }
             });
         }
@@ -128,18 +177,31 @@ pub fn stitch_sprites(
     max_height: u32,
 ) -> Result<Atlas, StitchError> {
     if sprites.is_empty() {
-        return Ok(Atlas { width: 0, height: 0, sprites: HashMap::new() });
+        return Ok(Atlas {
+            width: 0,
+            height: 0,
+            sprites: HashMap::new(),
+        });
     }
 
     for s in &sprites {
         if s.width == 0 || s.height == 0 || s.width > max_width || s.height > max_height {
-            return Err(StitchError::CannotFit { max_width, max_height });
+            return Err(StitchError::CannotFit {
+                max_width,
+                max_height,
+            });
         }
     }
 
-    sprites.sort_by_key(|s| std::cmp::Reverse((s.width as u64 * s.height as u64, s.height, s.width)));
+    sprites
+        .sort_by_key(|s| std::cmp::Reverse((s.width as u64 * s.height as u64, s.height, s.width)));
 
-    let mut free: Vec<Rect> = vec![Rect { x: 0, y: 0, w: max_width, h: max_height }];
+    let mut free: Vec<Rect> = vec![Rect {
+        x: 0,
+        y: 0,
+        w: max_width,
+        h: max_height,
+    }];
 
     let mut placed = HashMap::with_capacity(sprites.len());
     let mut used_right = 0u32;
@@ -149,14 +211,22 @@ pub fn stitch_sprites(
         if let Some((_idx, pos_rect, _short, _long)) = choose_position(&free, s.width, s.height) {
             placed.insert(
                 s.name,
-                PlacedSprite { x: pos_rect.x, y: pos_rect.y, width: pos_rect.w, height: pos_rect.h },
+                PlacedSprite {
+                    x: pos_rect.x,
+                    y: pos_rect.y,
+                    width: pos_rect.w,
+                    height: pos_rect.h,
+                },
             );
             used_right = used_right.max(pos_rect.right());
             used_bottom = used_bottom.max(pos_rect.bottom());
 
             split_and_prune_free_list(&mut free, pos_rect);
         } else {
-            return Err(StitchError::CannotFit { max_width, max_height });
+            return Err(StitchError::CannotFit {
+                max_width,
+                max_height,
+            });
         }
     }
 
@@ -166,4 +236,3 @@ pub fn stitch_sprites(
         sprites: placed,
     })
 }
-

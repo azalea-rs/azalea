@@ -1,4 +1,3 @@
-
 use ash::vk;
 use vk_mem::{Alloc, Allocation, MemoryUsage};
 
@@ -14,7 +13,53 @@ pub struct Texture {
 impl Texture {
     pub fn new(ctx: &VkContext, image: image::RgbaImage) -> Self {
         let (width, height) = image.dimensions();
-        let image_size = image.len() as vk::DeviceSize;
+        Self::from_rgba_data(
+            ctx,
+            width,
+            height,
+            image.as_raw(),
+            vk::Filter::NEAREST,
+            vk::Filter::NEAREST,
+        )
+    }
+
+    pub fn from_egui_image(
+        ctx: &VkContext,
+        image: &egui::ColorImage,
+        options: egui::TextureOptions,
+    ) -> Self {
+        let width = image.width() as u32;
+        let height = image.height() as u32;
+
+        // Convert egui's Color32 to RGBA bytes
+        let rgba_data: Vec<u8> = image
+            .pixels
+            .iter()
+            .flat_map(|color| [color.r(), color.g(), color.b(), color.a()])
+            .collect();
+
+        let mag_filter = match options.magnification {
+            egui::TextureFilter::Linear => vk::Filter::LINEAR,
+            egui::TextureFilter::Nearest => vk::Filter::NEAREST,
+        };
+
+        let min_filter = match options.minification {
+            egui::TextureFilter::Linear => vk::Filter::LINEAR,
+            egui::TextureFilter::Nearest => vk::Filter::NEAREST,
+        };
+
+        Self::from_rgba_data(ctx, width, height, &rgba_data, mag_filter, min_filter)
+    }
+
+    fn from_rgba_data(
+        ctx: &VkContext,
+        width: u32,
+        height: u32,
+        rgba_data: &[u8],
+        mag_filter: vk::Filter,
+        min_filter: vk::Filter,
+    ) -> Self {
+        let image_size = rgba_data.len() as vk::DeviceSize;
 
         let allocator = ctx.allocator();
         let (staging_buf, mut staging_alloc) = create_buffer(
@@ -29,7 +74,7 @@ impl Texture {
             let ptr = allocator
                 .map_memory(&mut staging_alloc)
                 .expect("map staging");
-            std::ptr::copy_nonoverlapping(image.as_ptr(), ptr, image.len());
+            std::ptr::copy_nonoverlapping(rgba_data.as_ptr(), ptr, rgba_data.len());
             allocator.unmap_memory(&mut staging_alloc);
         }
 
@@ -142,8 +187,8 @@ impl Texture {
         let view = unsafe { ctx.device().create_image_view(&view_info, None).unwrap() };
 
         let sampler_info = vk::SamplerCreateInfo::default()
-            .mag_filter(vk::Filter::NEAREST)
-            .min_filter(vk::Filter::NEAREST)
+            .mag_filter(mag_filter)
+            .min_filter(min_filter)
             .address_mode_u(vk::SamplerAddressMode::CLAMP_TO_EDGE)
             .address_mode_v(vk::SamplerAddressMode::CLAMP_TO_EDGE)
             .address_mode_w(vk::SamplerAddressMode::CLAMP_TO_EDGE);

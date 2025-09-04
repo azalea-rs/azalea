@@ -1,25 +1,26 @@
 use std::{sync::Arc, time::Duration};
 
-use ash::{
-    Device,
-    vk::{self},
-};
+use ash::vk::{self};
 use raw_window_handle::{DisplayHandle, WindowHandle};
 use vk_mem::{Alloc, Allocation, AllocationCreateInfo, Allocator, MemoryUsage};
 use winit::{
     dpi::PhysicalSize,
-    event::{ElementState, MouseScrollDelta},
+    event::{ElementState, MouseScrollDelta, WindowEvent},
+    event_loop::ActiveEventLoop,
     keyboard::KeyCode,
+    window::Window,
 };
 
 use crate::{
     assets,
     renderer::{
         camera::{Camera, CameraController, Projection},
-        mesh::Vertex,
         mesher::LocalSection,
-        render_world::{PushConstants, RenderWorld},
+        passes::create_render_pass,
+        pipelines::create_pipeline,
+        render_world::RenderWorld,
         texture::Texture,
+        ui::EguiVulkan,
     },
     vulkan::{
         context::VkContext,
@@ -62,6 +63,8 @@ pub struct RenderState {
     camera: Camera,
     projection: Projection,
     camera_controller: CameraController,
+
+    egui: EguiVulkan,
 }
 
 impl RenderState {
@@ -69,7 +72,8 @@ impl RenderState {
         window_handle: &WindowHandle,
         display_handle: &DisplayHandle,
         size: PhysicalSize<u32>,
-    ) -> Self {
+        event_loop: &ActiveEventLoop,
+    ) -> anyhow::Result<Self> {
         let context = VkContext::new(window_handle, display_handle);
         let swapchain = Swapchain::new(&context, size.width, size.height);
 
@@ -107,7 +111,10 @@ impl RenderState {
         let projection = Projection::new(size.width, size.height, 90.0, 1.0, 10000.0);
         let camera_controller = CameraController::new(4.0, 1.0);
 
-        Self {
+        // Initialize egui
+        let egui = EguiVulkan::new(event_loop, &context, &swapchain, None)?;
+
+        Ok(Self {
             context,
             swapchain,
             should_recreate: false,
@@ -136,7 +143,9 @@ impl RenderState {
             camera,
             projection,
             camera_controller,
-        }
+
+            egui,
+        })
     }
 
     pub fn update_section(&self, section: LocalSection) {
@@ -234,7 +243,16 @@ impl RenderState {
             );
 
             device.cmd_end_render_pass(cmd);
-            device.end_command_buffer(cmd).unwrap();
+        }
+
+        // Render egui (it will handle its own render pass)
+        if let Err(e) = self.render_egui(cmd, image_index, frame) {
+            log::warn!("Failed to render egui: {}", e);
+        }
+        let device = self.context.device();
+
+        unsafe {
+            self.context.device().end_command_buffer(cmd).unwrap();
         }
 
         let wait_semaphores = [self.sync.image_available[frame]];
@@ -323,6 +341,9 @@ impl RenderState {
                 self.depth_view,
             );
 
+            // Resize egui
+            self.egui.resize(&self.context, &self.swapchain);
+
             self.should_recreate = false;
         }
     }
@@ -358,61 +379,34 @@ impl RenderState {
             device.destroy_command_pool(self.command_pool, None);
         }
 
+        self.egui.destroy(&self.context);
+
         self.swapchain.destroy(device);
         self.sync.destroy(device);
     }
-}
 
-pub fn create_render_pass(ctx: &VkContext, swapchain: &Swapchain) -> vk::RenderPass {
-    let color_attachment = vk::AttachmentDescription::default()
-        .format(swapchain.format)
-        .samples(vk::SampleCountFlags::TYPE_1)
-        .load_op(vk::AttachmentLoadOp::CLEAR)
-        .store_op(vk::AttachmentStoreOp::STORE)
-        .initial_layout(vk::ImageLayout::UNDEFINED)
-        .final_layout(vk::ImageLayout::PRESENT_SRC_KHR);
-
-    let depth_attachment = vk::AttachmentDescription::default()
-        .format(vk::Format::D32_SFLOAT)
-        .samples(vk::SampleCountFlags::TYPE_1)
-        .load_op(vk::AttachmentLoadOp::CLEAR)
-        .store_op(vk::AttachmentStoreOp::DONT_CARE)
-        .stencil_load_op(vk::AttachmentLoadOp::DONT_CARE)
-        .stencil_store_op(vk::AttachmentStoreOp::DONT_CARE)
-        .initial_layout(vk::ImageLayout::UNDEFINED)
-        .final_layout(vk::ImageLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
-
-    let color_ref = vk::AttachmentReference {
-        attachment: 0,
-        layout: vk::ImageLayout::COLOR_ATTACHMENT_OPTIMAL,
-    };
-    let depth_ref = vk::AttachmentReference {
-        attachment: 1,
-        layout: vk::ImageLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-    };
-
-    let subpass = vk::SubpassDescription::default()
-        .pipeline_bind_point(vk::PipelineBindPoint::GRAPHICS)
-        .color_attachments(std::slice::from_ref(&color_ref))
-        .depth_stencil_attachment(&depth_ref);
-
-    let attachments = [color_attachment, depth_attachment];
-
-    let render_pass_info = vk::RenderPassCreateInfo::default()
-        .attachments(&attachments)
-        .subpasses(std::slice::from_ref(&subpass));
-
-    unsafe {
-        ctx.device()
-            .create_render_pass(&render_pass_info, None)
-            .expect("Failed to create render pass")
+    /// Handle window events for egui.
+    pub fn handle_egui_event(&mut self, window: &Window, event: &WindowEvent) -> bool {
+        let response = self.egui.on_window_event(window, event);
+        response.consumed
     }
-}
 
-fn create_shader_module(device: &Device, code: &[u8]) -> vk::ShaderModule {
-    let code_aligned = ash::util::read_spv(&mut std::io::Cursor::new(code)).unwrap();
-    let info = vk::ShaderModuleCreateInfo::default().code(&code_aligned);
-    unsafe { device.create_shader_module(&info, None).unwrap() }
+    /// Run egui UI code.
+    pub fn run_egui_ui(&mut self, window: &Window, run_ui: impl FnMut(&egui::Context)) {
+        self.egui.run(window, run_ui);
+    }
+
+    /// Render egui to the given command buffer.
+    pub fn render_egui(
+        &mut self,
+        cmd: vk::CommandBuffer,
+        image_index: u32,
+        frame_index: usize,
+    ) -> anyhow::Result<()> {
+        let dimensions = [self.swapchain.extent.width, self.swapchain.extent.height];
+        self.egui
+            .paint(&self.context, cmd, dimensions, image_index, frame_index)
+    }
 }
 
 pub fn create_depth_resources(
@@ -463,122 +457,6 @@ pub fn create_depth_resources(
     let depth_view = unsafe { ctx.device().create_image_view(&view_info, None).unwrap() };
 
     (image, allocation, depth_view)
-}
-
-pub fn create_pipeline(
-    ctx: &VkContext,
-    render_pass: vk::RenderPass,
-    vert_spv: &[u8],
-    frag_spv: &[u8],
-    descriptor_set_layout: vk::DescriptorSetLayout,
-) -> (vk::PipelineLayout, vk::Pipeline) {
-    let device = ctx.device();
-
-    let vert_module = create_shader_module(device, vert_spv);
-    let frag_module = create_shader_module(device, frag_spv);
-
-    let entry_point = std::ffi::CString::new("main").unwrap();
-
-    let shader_stages = [
-        vk::PipelineShaderStageCreateInfo::default()
-            .stage(vk::ShaderStageFlags::VERTEX)
-            .module(vert_module)
-            .name(&entry_point),
-        vk::PipelineShaderStageCreateInfo::default()
-            .stage(vk::ShaderStageFlags::FRAGMENT)
-            .module(frag_module)
-            .name(&entry_point),
-    ];
-
-    let binding_desc = [Vertex::binding_description()];
-    let attribute_desc = Vertex::attribute_descriptions();
-
-    let vertex_input = vk::PipelineVertexInputStateCreateInfo::default()
-        .vertex_binding_descriptions(&binding_desc)
-        .vertex_attribute_descriptions(&attribute_desc);
-    let input_assembly = vk::PipelineInputAssemblyStateCreateInfo::default()
-        .topology(vk::PrimitiveTopology::TRIANGLE_LIST)
-        .primitive_restart_enable(false);
-
-    let viewport_state = vk::PipelineViewportStateCreateInfo::default()
-        .viewport_count(1)
-        .scissor_count(1);
-
-    let rasterizer = vk::PipelineRasterizationStateCreateInfo::default()
-        .polygon_mode(vk::PolygonMode::FILL)
-        .cull_mode(vk::CullModeFlags::BACK)
-        .front_face(vk::FrontFace::COUNTER_CLOCKWISE)
-        .line_width(1.0);
-
-    let multisampling = vk::PipelineMultisampleStateCreateInfo::default()
-        .rasterization_samples(vk::SampleCountFlags::TYPE_1);
-
-    let color_blend_attachment = vk::PipelineColorBlendAttachmentState::default()
-        .color_write_mask(
-            vk::ColorComponentFlags::R
-                | vk::ColorComponentFlags::G
-                | vk::ColorComponentFlags::B
-                | vk::ColorComponentFlags::A,
-        )
-        .blend_enable(false);
-
-    let depth_stencil = vk::PipelineDepthStencilStateCreateInfo::default()
-        .depth_test_enable(true)
-        .depth_write_enable(true)
-        .depth_compare_op(vk::CompareOp::LESS)
-        .depth_bounds_test_enable(false)
-        .stencil_test_enable(false);
-
-    let attachments = [color_blend_attachment];
-    let color_blending = vk::PipelineColorBlendStateCreateInfo::default().attachments(&attachments);
-
-    let dynamic_states = [vk::DynamicState::VIEWPORT, vk::DynamicState::SCISSOR];
-    let dynamic_state =
-        vk::PipelineDynamicStateCreateInfo::default().dynamic_states(&dynamic_states);
-
-    let layouts = [descriptor_set_layout];
-    let push_constant_range = vk::PushConstantRange::default()
-        .stage_flags(vk::ShaderStageFlags::VERTEX)
-        .offset(0)
-        .size(std::mem::size_of::<PushConstants>() as u32);
-
-    let pipeline_layout_info = vk::PipelineLayoutCreateInfo::default()
-        .set_layouts(&layouts)
-        .push_constant_ranges(std::slice::from_ref(&push_constant_range));
-
-    let pipeline_layout = unsafe {
-        device
-            .create_pipeline_layout(&pipeline_layout_info, None)
-            .unwrap()
-    };
-
-    let pipeline_info = vk::GraphicsPipelineCreateInfo::default()
-        .stages(&shader_stages)
-        .vertex_input_state(&vertex_input)
-        .input_assembly_state(&input_assembly)
-        .viewport_state(&viewport_state)
-        .rasterization_state(&rasterizer)
-        .multisample_state(&multisampling)
-        .depth_stencil_state(&depth_stencil)
-        .color_blend_state(&color_blending)
-        .dynamic_state(&dynamic_state)
-        .layout(pipeline_layout)
-        .render_pass(render_pass)
-        .subpass(0);
-
-    let pipelines = unsafe {
-        device
-            .create_graphics_pipelines(vk::PipelineCache::null(), &[pipeline_info], None)
-            .expect("Failed to create graphics pipeline")
-    };
-    let pipeline = pipelines[0];
-
-    unsafe {
-        device.destroy_shader_module(vert_module, None);
-        device.destroy_shader_module(frag_module, None);
-    }
-
-    (pipeline_layout, pipeline)
 }
 
 pub fn create_framebuffers(

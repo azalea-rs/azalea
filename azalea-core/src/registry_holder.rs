@@ -7,7 +7,6 @@
 
 use std::{collections::HashMap, io::Cursor};
 
-use azalea_registry::{Biome, DataRegistry};
 use indexmap::IndexMap;
 use simdnbt::{
     Deserialize, FromNbtTag, Serialize, ToNbtTag,
@@ -16,7 +15,6 @@ use simdnbt::{
 use tracing::error;
 
 use crate::resource_location::ResourceLocation;
-
 
 #[derive(Default, Debug, Clone)]
 pub struct RegistryHolder {
