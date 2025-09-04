@@ -19,6 +19,11 @@ pub struct QueueFamiliesIndices {
     pub present_index: u32,
 }
 
+#[derive(Clone, Copy, Debug)]
+pub struct DeviceFeatures {
+    pub fill_mode_non_solid: bool,
+}
+
 pub struct VkContext {
     _entry: Entry,
     instance: Instance,
@@ -29,6 +34,7 @@ pub struct VkContext {
     physical_device: vk::PhysicalDevice,
     device: Device,
     allocator: ManuallyDrop<Allocator>,
+    features: DeviceFeatures,
 
     queue_families: QueueFamiliesIndices,
     graphics_queue: vk::Queue,
@@ -49,7 +55,7 @@ impl VkContext {
 
         let (physical_device, queue_families) =
             Self::pick_physical_device(&instance, &surface, surface_khr);
-        let (device, graphics_queue, present_queue) =
+        let (device, graphics_queue, present_queue, features) =
             Self::create_logical_device(&instance, physical_device, queue_families);
 
         let allocator = ManuallyDrop::new(unsafe {
@@ -80,6 +86,7 @@ impl VkContext {
             physical_device,
             device,
             allocator,
+            features,
             queue_families,
             graphics_queue,
             present_queue,
@@ -113,6 +120,9 @@ impl VkContext {
     }
     pub fn queue_families(&self) -> QueueFamiliesIndices {
         self.queue_families
+    }
+    pub fn features(&self) -> DeviceFeatures {
+        self.features
     }
 
     pub fn begin_one_time_commands(&self) -> vk::CommandBuffer {
@@ -236,7 +246,7 @@ impl VkContext {
         instance: &Instance,
         physical: vk::PhysicalDevice,
         families: QueueFamiliesIndices,
-    ) -> (Device, vk::Queue, vk::Queue) {
+    ) -> (Device, vk::Queue, vk::Queue, DeviceFeatures) {
         let priorities = [1.0f32];
         let mut unique_indices = vec![families.graphics_index, families.present_index];
         unique_indices.dedup();
@@ -250,20 +260,25 @@ impl VkContext {
             })
             .collect();
 
-        // --- Query descriptor indexing support ---
-        let mut descriptor_indexing_features =
-            vk::PhysicalDeviceDescriptorIndexingFeatures::default();
+        // --- Query device features ---
+        let base_features = unsafe { instance.get_physical_device_features(physical) };
 
-        let mut features2 =
-            vk::PhysicalDeviceFeatures2::default().push_next(&mut descriptor_indexing_features);
-
-        unsafe { instance.get_physical_device_features2(physical, &mut features2) };
-
-        if descriptor_indexing_features.shader_sampled_image_array_non_uniform_indexing == vk::TRUE
-        {
-            log::info!("Descriptor indexing supported, enabling non-uniform indexing");
+        // Check fillModeNonSolid support (optional for wireframe)
+        let fill_mode_non_solid = base_features.fill_mode_non_solid == vk::TRUE;
+        if fill_mode_non_solid {
+            log::info!("fillModeNonSolid supported, wireframe mode available");
         } else {
-            panic!("Device does not support descriptor indexing (required for texture arrays)");
+            log::warn!("fillModeNonSolid not supported, wireframe mode disabled");
+        }
+
+        let device_features = DeviceFeatures {
+            fill_mode_non_solid,
+        };
+
+        // Enable the features we need
+        let mut enabled_features = vk::PhysicalDeviceFeatures::default();
+        if fill_mode_non_solid {
+            enabled_features.fill_mode_non_solid = vk::TRUE;
         }
 
         let extensions = [khr_swapchain::NAME.as_ptr()];
@@ -271,7 +286,7 @@ impl VkContext {
         let create_info = vk::DeviceCreateInfo::default()
             .queue_create_infos(&queue_infos)
             .enabled_extension_names(&extensions)
-            .push_next(&mut descriptor_indexing_features);
+            .enabled_features(&enabled_features);
 
         let device = unsafe {
             instance
@@ -281,7 +296,7 @@ impl VkContext {
         let graphics_queue = unsafe { device.get_device_queue(families.graphics_index, 0) };
         let present_queue = unsafe { device.get_device_queue(families.present_index, 0) };
 
-        (device, graphics_queue, present_queue)
+        (device, graphics_queue, present_queue, device_features)
     }
 }
 

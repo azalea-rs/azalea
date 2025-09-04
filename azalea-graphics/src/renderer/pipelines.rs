@@ -8,13 +8,35 @@ fn create_shader_module(device: &Device, code: &[u8]) -> vk::ShaderModule {
     unsafe { device.create_shader_module(&info, None).unwrap() }
 }
 
-pub fn create_pipeline(
+pub fn create_pipeline_layout(
+    device: &Device,
+    descriptor_set_layout: vk::DescriptorSetLayout,
+) -> vk::PipelineLayout {
+    let layouts = [descriptor_set_layout];
+    let push_constant_range = vk::PushConstantRange::default()
+        .stage_flags(vk::ShaderStageFlags::VERTEX)
+        .offset(0)
+        .size(std::mem::size_of::<PushConstants>() as u32);
+
+    let pipeline_layout_info = vk::PipelineLayoutCreateInfo::default()
+        .set_layouts(&layouts)
+        .push_constant_ranges(std::slice::from_ref(&push_constant_range));
+
+    unsafe {
+        device
+            .create_pipeline_layout(&pipeline_layout_info, None)
+            .unwrap()
+    }
+}
+
+pub fn create_pipeline_with_mode(
     ctx: &VkContext,
     render_pass: vk::RenderPass,
+    pipeline_layout: vk::PipelineLayout,
     vert_spv: &[u8],
     frag_spv: &[u8],
-    descriptor_set_layout: vk::DescriptorSetLayout,
-) -> (vk::PipelineLayout, vk::Pipeline) {
+    polygon_mode: vk::PolygonMode,
+) -> vk::Pipeline {
     let device = ctx.device();
 
     let vert_module = create_shader_module(device, vert_spv);
@@ -48,7 +70,7 @@ pub fn create_pipeline(
         .scissor_count(1);
 
     let rasterizer = vk::PipelineRasterizationStateCreateInfo::default()
-        .polygon_mode(vk::PolygonMode::FILL)
+        .polygon_mode(polygon_mode)
         .cull_mode(vk::CullModeFlags::BACK)
         .front_face(vk::FrontFace::COUNTER_CLOCKWISE)
         .line_width(1.0);
@@ -79,22 +101,6 @@ pub fn create_pipeline(
     let dynamic_state =
         vk::PipelineDynamicStateCreateInfo::default().dynamic_states(&dynamic_states);
 
-    let layouts = [descriptor_set_layout];
-    let push_constant_range = vk::PushConstantRange::default()
-        .stage_flags(vk::ShaderStageFlags::VERTEX)
-        .offset(0)
-        .size(std::mem::size_of::<PushConstants>() as u32);
-
-    let pipeline_layout_info = vk::PipelineLayoutCreateInfo::default()
-        .set_layouts(&layouts)
-        .push_constant_ranges(std::slice::from_ref(&push_constant_range));
-
-    let pipeline_layout = unsafe {
-        device
-            .create_pipeline_layout(&pipeline_layout_info, None)
-            .unwrap()
-    };
-
     let pipeline_info = vk::GraphicsPipelineCreateInfo::default()
         .stages(&shader_stages)
         .vertex_input_state(&vertex_input)
@@ -121,7 +127,45 @@ pub fn create_pipeline(
         device.destroy_shader_module(frag_module, None);
     }
 
-    (pipeline_layout, pipeline)
+    pipeline
+}
+
+pub fn create_pipeline(
+    ctx: &VkContext,
+    render_pass: vk::RenderPass,
+    pipeline_layout: vk::PipelineLayout,
+    vert_spv: &[u8],
+    frag_spv: &[u8],
+) -> vk::Pipeline {
+    create_pipeline_with_mode(
+        ctx,
+        render_pass,
+        pipeline_layout,
+        vert_spv,
+        frag_spv,
+        vk::PolygonMode::FILL,
+    )
+}
+
+pub fn create_wireframe_pipeline(
+    ctx: &VkContext,
+    render_pass: vk::RenderPass,
+    pipeline_layout: vk::PipelineLayout,
+    vert_spv: &[u8],
+    frag_spv: &[u8],
+) -> Option<vk::Pipeline> {
+    if ctx.features().fill_mode_non_solid {
+        Some(create_pipeline_with_mode(
+            ctx,
+            render_pass,
+            pipeline_layout,
+            vert_spv,
+            frag_spv,
+            vk::PolygonMode::LINE,
+        ))
+    } else {
+        None
+    }
 }
 
 pub fn create_egui_pipeline(

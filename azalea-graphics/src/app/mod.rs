@@ -131,14 +131,9 @@ impl ApplicationHandler for App {
 
                         renderer.update(dt);
 
-                        // Run egui UI
+                        // Run debug UI
                         if let Some(window) = &self.window {
-                            renderer.run_egui_ui(window, |ctx| {
-                                egui::Window::new("Debug Info").show(ctx, |ui| {
-                                    ui.label(format!("Frame time: {:.2}ms", dt.as_millis()));
-                                    ui.label("Azalea Graphics Renderer");
-                                });
-                            });
+                            renderer.run_debug_ui(window, dt.as_millis() as f64);
                         }
 
                         renderer.maybe_recreate();
@@ -153,12 +148,19 @@ impl ApplicationHandler for App {
                     {
                         renderer.process_keyboard(code, event.state);
 
-                        if let Some(window) = &self.window
-                            && code == KeyCode::Escape
-                            && event.state == ElementState::Pressed
-                        {
-                            let _ = window.set_cursor_grab(CursorGrabMode::None);
-                            window.set_cursor_visible(true);
+                        if event.state == ElementState::Pressed {
+                            match code {
+                                KeyCode::Escape => {
+                                    if let Some(window) = &self.window {
+                                        let _ = window.set_cursor_grab(CursorGrabMode::None);
+                                        window.set_cursor_visible(true);
+                                    }
+                                }
+                                KeyCode::F3 => {
+                                    renderer.toggle_wireframe();
+                                }
+                                _ => {}
+                            }
                         }
                     }
                 }

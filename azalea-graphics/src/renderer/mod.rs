@@ -20,7 +20,7 @@ use self::{
     camera::{Camera, CameraController, Projection},
     mesher::LocalSection,
     passes::create_render_pass,
-    pipelines::create_pipeline,
+    pipelines::{create_pipeline, create_pipeline_layout, create_wireframe_pipeline},
     render_world::RenderWorld,
     texture::Texture,
     ui::EguiVulkan,
@@ -57,6 +57,8 @@ pub struct Renderer {
     render_pass: vk::RenderPass,
     pipeline_layout: vk::PipelineLayout,
     pipeline: vk::Pipeline,
+    wireframe_pipeline: Option<vk::Pipeline>,
+    wireframe_mode: bool,
     framebuffers: Vec<vk::Framebuffer>,
 
     descriptor_set_layout: vk::DescriptorSetLayout,
@@ -98,12 +100,20 @@ impl Renderer {
 
         let render_pass = create_render_pass(&context, &swapchain);
 
-        let (pipeline_layout, pipeline) = create_pipeline(
+        let pipeline_layout = create_pipeline_layout(context.device(), descriptor_set_layout);
+        let pipeline = create_pipeline(
             &context,
             render_pass,
+            pipeline_layout,
             TRIANGLE_VERT,
             TRIANGLE_FRAG,
-            descriptor_set_layout,
+        );
+        let wireframe_pipeline = create_wireframe_pipeline(
+            &context,
+            render_pass,
+            pipeline_layout,
+            TRIANGLE_VERT,
+            TRIANGLE_FRAG,
         );
 
         let (depth_image, depth_allocation, depth_view) =
@@ -139,6 +149,8 @@ impl Renderer {
             render_pass,
             pipeline_layout,
             pipeline,
+            wireframe_pipeline,
+            wireframe_mode: false,
             framebuffers,
             command_pool,
             command_buffers,
@@ -178,6 +190,22 @@ impl Renderer {
 
     pub fn handle_mouse(&mut self, dx: f64, dy: f64) {
         self.camera_controller.handle_mouse(dx, dy);
+    }
+
+    pub fn toggle_wireframe(&mut self) {
+        if self.wireframe_pipeline.is_some() {
+            self.wireframe_mode = !self.wireframe_mode;
+        }
+    }
+
+    pub fn set_wireframe(&mut self, enabled: bool) {
+        if self.wireframe_pipeline.is_some() {
+            self.wireframe_mode = enabled;
+        }
+    }
+
+    pub fn is_wireframe(&self) -> bool {
+        self.wireframe_mode
     }
 
     pub fn draw_frame(&mut self) {
@@ -244,10 +272,16 @@ impl Renderer {
             device.cmd_set_viewport(cmd, 0, &[viewport]);
             device.cmd_set_scissor(cmd, 0, &[scissor]);
 
+            let current_pipeline = if self.wireframe_mode {
+                self.wireframe_pipeline.unwrap_or(self.pipeline)
+            } else {
+                self.pipeline
+            };
+
             self.world.draw(
                 device,
                 cmd,
-                self.pipeline,
+                current_pipeline,
                 self.descriptor_set,
                 self.pipeline_layout,
                 self.projection.calc_proj() * self.camera.calc_view(),
@@ -378,6 +412,9 @@ impl Renderer {
                 .destroy_image(self.depth_image, &mut self.depth_allocation);
 
             device.destroy_pipeline(self.pipeline, None);
+            if let Some(wireframe_pipeline) = self.wireframe_pipeline {
+                device.destroy_pipeline(wireframe_pipeline, None);
+            }
             device.destroy_pipeline_layout(self.pipeline_layout, None);
 
             device.destroy_render_pass(self.render_pass, None);
@@ -402,9 +439,38 @@ impl Renderer {
         response.consumed
     }
 
-    /// Run egui UI code.
-    pub fn run_egui_ui(&mut self, window: &Window, run_ui: impl FnMut(&egui::Context)) {
-        self.egui.run(window, run_ui);
+    /// Run the built-in debug UI.
+    pub fn run_debug_ui(&mut self, window: &Window, frame_time_ms: f64) {
+        let mut wireframe_changed = None;
+        let current_wireframe = self.wireframe_mode;
+        let wireframe_available = self.wireframe_pipeline.is_some();
+
+        self.egui.run(window, |ctx| {
+            egui::Window::new("Debug Info").show(ctx, |ui| {
+                ui.label(format!("Frame time: {:.2}ms", frame_time_ms));
+                ui.label("Azalea Graphics Renderer");
+
+                ui.separator();
+
+                if wireframe_available {
+                    let mut wireframe = current_wireframe;
+                    if ui.checkbox(&mut wireframe, "Wireframe mode (F3)").changed() {
+                        wireframe_changed = Some(wireframe);
+                    }
+                } else {
+                    ui.add_enabled(
+                        false,
+                        egui::Checkbox::new(&mut false, "Wireframe mode (not supported)"),
+                    );
+                    ui.label("⚠ fillModeNonSolid feature not available on this device");
+                }
+            });
+        });
+
+        // Apply wireframe change outside the closure
+        if let Some(wireframe) = wireframe_changed {
+            self.wireframe_mode = wireframe;
+        }
     }
 
     /// Render egui to the given command buffer.
