@@ -1,21 +1,16 @@
 use std::{
-    collections::{HashMap},
+    collections::HashMap,
     fs, io,
     path::{Path, PathBuf},
 };
+
 use thiserror::Error;
 
-use crate::assets::raw::atlas::{SpriteAtlas, SpriteSource};
+use crate::renderer::assets::raw::atlas::{SpriteAtlas, SpriteSource};
 
 mod sticher;
 
-pub use sticher::{
-    SpriteEntry,
-    Atlas,
-    PlacedSprite,
-    StitchError,
-    stitch_sprites,
-};
+pub use sticher::{Atlas, PlacedSprite, SpriteEntry, StitchError, stitch_sprites};
 
 #[derive(Error, Debug)]
 pub enum AtlasError {
@@ -30,7 +25,6 @@ pub enum AtlasError {
     #[error("missing texture file: {0}")]
     MissingTexture(PathBuf),
 }
-
 
 pub fn build_atlas(
     textures_root: impl AsRef<Path>,
@@ -110,7 +104,11 @@ pub fn build_atlas(
 
     let entries = sizes
         .into_iter()
-        .map(|(name, (w, h))| SpriteEntry { name, width: w, height: h })
+        .map(|(name, (w, h))| SpriteEntry {
+            name,
+            width: w,
+            height: h,
+        })
         .collect();
 
     Ok((entries, sources))
@@ -120,27 +118,25 @@ pub fn render_atlas_image(
     stitched: &Atlas,
     sources: &HashMap<String, PathBuf>,
 ) -> Result<image::RgbaImage, AtlasError> {
-    use image::{imageops, GenericImage,  RgbaImage};
+    use image::{GenericImage, RgbaImage, imageops};
 
-    let mut atlas = RgbaImage::from_pixel(stitched.width, stitched.height, image::Rgba([0, 0, 0, 0]));
+    let mut atlas =
+        RgbaImage::from_pixel(stitched.width, stitched.height, image::Rgba([0, 0, 0, 0]));
 
     for (name, rect) in &stitched.sprites {
-        let path = sources
-            .get(name)
-            .ok_or_else(|| AtlasError::MissingTexture(PathBuf::from(format!("<unknown for {name}>"))))?;
+        let path = sources.get(name).ok_or_else(|| {
+            AtlasError::MissingTexture(PathBuf::from(format!("<unknown for {name}>")))
+        })?;
 
         let mut img = image::open(path)?.into_rgba8();
 
         if img.width() != rect.width || img.height() != rect.height {
-            img = imageops::resize(
-                &img,
-                rect.width,
-                rect.height,
-                imageops::FilterType::Nearest,
-            );
+            img = imageops::resize(&img, rect.width, rect.height, imageops::FilterType::Nearest);
         }
 
-        atlas.copy_from(&img, rect.x, rect.y).expect("copy_into atlas bounds");
+        atlas
+            .copy_from(&img, rect.x, rect.y)
+            .expect("copy_into atlas bounds");
     }
 
     Ok(atlas)
@@ -159,7 +155,10 @@ where
             let path = entry.path();
             if path.is_dir() {
                 walk(base, &path, f)?;
-            } else if path.extension().is_some_and(|e| e.eq_ignore_ascii_case("png")) {
+            } else if path
+                .extension()
+                .is_some_and(|e| e.eq_ignore_ascii_case("png"))
+            {
                 let rel = path.strip_prefix(base).unwrap().to_owned();
                 let mut rel = rel.to_string_lossy().to_string();
                 if rel.ends_with(".png") {
@@ -174,8 +173,11 @@ where
     walk(dir, dir, &mut f)
 }
 
-
 #[inline]
 fn strip_namespace(s: &str) -> &str {
-    if let Some((_, rest)) = s.split_once(':') { rest } else { s }
+    if let Some((_, rest)) = s.split_once(':') {
+        rest
+    } else {
+        s
+    }
 }

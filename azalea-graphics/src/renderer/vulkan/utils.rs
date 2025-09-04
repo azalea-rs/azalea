@@ -3,7 +3,7 @@ use vk_mem::{
     Alloc, Allocation, AllocationCreateFlags, AllocationCreateInfo, Allocator, MemoryUsage,
 };
 
-use crate::vulkan::context::VkContext;
+use crate::renderer::vulkan::context::VkContext;
 
 pub fn create_buffer(
     allocator: &Allocator,

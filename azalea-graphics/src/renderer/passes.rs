@@ -1,6 +1,6 @@
 use ash::vk;
 
-use crate::vulkan::{context::VkContext, swapchain::Swapchain};
+use crate::renderer::vulkan::{context::VkContext, swapchain::Swapchain};
 
 pub fn create_render_pass(ctx: &VkContext, swapchain: &Swapchain) -> vk::RenderPass {
     let color_attachment = vk::AttachmentDescription::default()

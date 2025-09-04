@@ -3,12 +3,10 @@ use std::{collections::HashMap, sync::Arc};
 use ash::vk;
 use azalea::core::position::ChunkSectionPos;
 
-use crate::{
+use crate::renderer::{
     assets::MeshAssets,
-    renderer::{
-        mesh::Mesh,
-        mesher::{LocalSection, Mesher},
-    },
+    mesh::Mesh,
+    mesher::{LocalSection, Mesher},
     vulkan::context::VkContext,
 };
 

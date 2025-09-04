@@ -2,7 +2,10 @@ use egui::{ViewportId, ViewportOutput};
 use egui_winit::winit;
 pub use egui_winit::{self, EventResponse};
 
-use crate::{renderer::egui_painter::Painter, vulkan::context::VkContext};
+use crate::renderer::{
+    egui_painter::Painter,
+    vulkan::{context::VkContext, swapchain::Swapchain},
+};
 
 /// Use [`egui`] from a Vulkan app based on [`winit`].
 pub struct EguiVulkan {
@@ -22,7 +25,7 @@ impl EguiVulkan {
     pub fn new(
         event_loop: &winit::event_loop::ActiveEventLoop,
         ctx: &VkContext,
-        swapchain: &crate::vulkan::swapchain::Swapchain,
+        swapchain: &Swapchain,
         native_pixels_per_point: Option<f32>,
     ) -> anyhow::Result<Self> {
         let painter = Painter::new(ctx, swapchain)?;
@@ -131,7 +134,7 @@ impl EguiVulkan {
     }
 
     /// Resize egui when swapchain is recreated.
-    pub fn resize(&mut self, ctx: &VkContext, swapchain: &crate::vulkan::swapchain::Swapchain) {
+    pub fn resize(&mut self, ctx: &VkContext, swapchain: &Swapchain) {
         self.painter.resize(ctx, swapchain);
     }
 

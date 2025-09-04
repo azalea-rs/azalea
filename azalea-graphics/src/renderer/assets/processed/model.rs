@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
-use crate::assets::raw;
-pub(crate) use crate::assets::raw::model::Cube;
+use crate::renderer::assets::raw;
+pub(crate) use crate::renderer::assets::raw::model::Cube;
 
 #[derive(Debug)]
 pub struct BlockModel {
@@ -30,7 +30,10 @@ impl BlockModel {
         }
     }
 
-    pub fn resolve(raw: &raw::model::BlockModel, all: &HashMap<String, raw::model::BlockModel>) -> Self {
+    pub fn resolve(
+        raw: &raw::model::BlockModel,
+        all: &HashMap<String, raw::model::BlockModel>,
+    ) -> Self {
         let mut textures = HashMap::new();
         let mut elements = raw.elements.clone().unwrap_or_default();
 

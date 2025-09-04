@@ -1,9 +1,6 @@
 use ash::{Device, vk};
 
-use crate::{
-    renderer::{mesh::Vertex, render_world::PushConstants},
-    vulkan::context::VkContext,
-};
+use crate::renderer::{mesh::Vertex, render_world::PushConstants, vulkan::context::VkContext};
 
 fn create_shader_module(device: &Device, code: &[u8]) -> vk::ShaderModule {
     let code_aligned = ash::util::read_spv(&mut std::io::Cursor::new(code)).unwrap();

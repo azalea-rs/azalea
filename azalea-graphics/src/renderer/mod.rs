@@ -3,6 +3,11 @@ use std::{sync::Arc, time::Duration};
 use ash::vk::{self};
 use raw_window_handle::{DisplayHandle, WindowHandle};
 use vk_mem::{Alloc, Allocation, AllocationCreateInfo, Allocator, MemoryUsage};
+use vulkan::{
+    context::VkContext,
+    frame_sync::{FrameSync, MAX_FRAMES_IN_FLIGHT},
+    swapchain::Swapchain,
+};
 use winit::{
     dpi::PhysicalSize,
     event::{ElementState, MouseScrollDelta, WindowEvent},
@@ -20,14 +25,6 @@ use self::{
     texture::Texture,
     ui::EguiVulkan,
 };
-use crate::{
-    assets,
-    vulkan::{
-        context::VkContext,
-        frame_sync::{FrameSync, MAX_FRAMES_IN_FLIGHT},
-        swapchain::Swapchain,
-    },
-};
 
 mod block_colors;
 mod camera;
@@ -39,6 +36,9 @@ mod pipelines;
 mod render_world;
 mod texture;
 mod ui;
+pub(crate) mod vulkan;
+
+mod assets;
 
 const TRIANGLE_VERT: &[u8] = include_bytes!(env!("TRIANGLE_VERT"));
 const TRIANGLE_FRAG: &[u8] = include_bytes!(env!("TRIANGLE_FRAG"));

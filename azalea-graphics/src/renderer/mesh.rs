@@ -3,7 +3,7 @@ use std::mem::offset_of;
 use ash::vk;
 use vk_mem::{Allocation, MemoryUsage};
 
-use crate::vulkan::{
+use crate::renderer::vulkan::{
     context::VkContext,
     utils::{copy_buffer, create_buffer},
 };

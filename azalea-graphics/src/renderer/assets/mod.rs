@@ -9,17 +9,15 @@ use raw::{
     model::BlockModel as RawBlockModel,
 };
 
-use crate::{
-    assets::{
-        processed::{
-            VariantDesc,
-            atlas::{Atlas, PlacedSprite, build_atlas, render_atlas_image, stitch_sprites},
-            model::BlockModel as ResolvedBlockModel,
-        },
-        raw::atlas::SpriteAtlas,
+use self::{
+    processed::{
+        VariantDesc,
+        atlas::{Atlas, PlacedSprite, build_atlas, render_atlas_image, stitch_sprites},
+        model::BlockModel as ResolvedBlockModel,
     },
-    vulkan::context::VkContext,
+    raw::atlas::SpriteAtlas,
 };
+use crate::renderer::vulkan::context::VkContext;
 
 pub struct MeshAssets {
     block_models: HashMap<String, ResolvedBlockModel>,
@@ -47,30 +45,34 @@ impl MeshAssets {
     /// Sample grass colormap at the given temperature and downfall
     /// Returns RGB values as [f32; 3] in range [0.0, 1.0]
     pub fn sample_grass_colormap(&self, temperature: f64, downfall: f64) -> Option<[f32; 3]> {
-        self.grass_colormap.as_ref().map(|colormap| {
-            sample_colormap_at_climate(colormap, temperature, downfall)
-        })
+        self.grass_colormap
+            .as_ref()
+            .map(|colormap| sample_colormap_at_climate(colormap, temperature, downfall))
     }
 
     /// Sample foliage colormap at the given temperature and downfall  
     /// Returns RGB values as [f32; 3] in range [0.0, 1.0]
     pub fn sample_foliage_colormap(&self, temperature: f64, downfall: f64) -> Option<[f32; 3]> {
-        self.foliage_colormap.as_ref().map(|colormap| {
-            sample_colormap_at_climate(colormap, temperature, downfall)
-        })
+        self.foliage_colormap
+            .as_ref()
+            .map(|colormap| sample_colormap_at_climate(colormap, temperature, downfall))
     }
 }
 
 /// Sample a colormap texture at the given temperature and downfall coordinates
 /// This follows Java Minecraft's exact colormap sampling logic
-fn sample_colormap_at_climate(colormap: &image::RgbaImage, temperature: f64, downfall: f64) -> [f32; 3] {
+fn sample_colormap_at_climate(
+    colormap: &image::RgbaImage,
+    temperature: f64,
+    downfall: f64,
+) -> [f32; 3] {
     let width = colormap.width() as f64;
     let height = colormap.height() as f64;
-    
+
     // Clamp temperature and downfall to [0.0, 1.0] range
     let temp = temperature.clamp(0.0, 1.0);
     let rain = downfall.clamp(0.0, 1.0);
-    
+
     // Java Minecraft's exact coordinate calculation:
     // 1. Adjust downfall by multiplying with temperature (creates triangular mask)
     // 2. X = (1.0 - temperature) * (width-1) -> cold=right, hot=left
@@ -78,11 +80,11 @@ fn sample_colormap_at_climate(colormap: &image::RgbaImage, temperature: f64, dow
     let adjusted_downfall = rain * temp;
     let x = ((1.0 - temp) * (width - 1.0)) as u32;
     let y = ((1.0 - adjusted_downfall) * (height - 1.0)) as u32;
-    
+
     // Clamp to valid texture coordinates
     let x = x.min(colormap.width() - 1);
     let y = y.min(colormap.height() - 1);
-    
+
     // Sample pixel and convert to RGB floats
     let pixel = colormap.get_pixel(x, y);
     [
@@ -239,24 +241,24 @@ pub fn load_assets(ctx: &VkContext, path: impl Into<PathBuf>) -> (MeshAssets, im
         packed_atlas.height,
         start.elapsed()
     );
-    
+
     // Load colormaps
     let start = Instant::now();
     let grass_colormap = load_colormap(&textures_root, "colormap/grass.png");
     let foliage_colormap = load_colormap(&textures_root, "colormap/foliage.png");
-    
+
     if grass_colormap.is_some() {
         info!("Loaded grass colormap");
     } else {
         warn!("Failed to load grass colormap");
     }
-    
+
     if foliage_colormap.is_some() {
         info!("Loaded foliage colormap");
     } else {
         warn!("Failed to load foliage colormap");
     }
-    
+
     info!("Loaded colormaps in {:?}", start.elapsed());
 
     info!("Total asset load time: {:?}", start_total.elapsed());
@@ -276,11 +278,16 @@ pub fn load_assets(ctx: &VkContext, path: impl Into<PathBuf>) -> (MeshAssets, im
 /// Load a colormap texture from the given path
 fn load_colormap(textures_root: &PathBuf, relative_path: &str) -> Option<image::RgbaImage> {
     let colormap_path = textures_root.join(relative_path);
-    
+
     match image::open(&colormap_path) {
         Ok(img) => {
             let rgba_img = img.to_rgba8();
-            info!("Loaded colormap: {} ({}x{})", relative_path, rgba_img.width(), rgba_img.height());
+            info!(
+                "Loaded colormap: {} ({}x{})",
+                relative_path,
+                rgba_img.width(),
+                rgba_img.height()
+            );
             Some(rgba_img)
         }
         Err(e) => {

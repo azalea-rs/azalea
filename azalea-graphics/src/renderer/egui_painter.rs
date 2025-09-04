@@ -8,10 +8,10 @@ use egui::{
 };
 use vk_mem::{Allocation, MemoryUsage};
 
-use crate::{
-    renderer::{
-        passes::create_egui_render_pass, pipelines::create_egui_pipeline, texture::Texture,
-    },
+use crate::renderer::{
+    passes::create_egui_render_pass,
+    pipelines::create_egui_pipeline,
+    texture::Texture,
     vulkan::{
         context::VkContext, frame_sync::MAX_FRAMES_IN_FLIGHT, swapchain::Swapchain,
         utils::create_buffer,

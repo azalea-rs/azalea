@@ -1,6 +1,6 @@
 use ash::{khr::swapchain as khr_swapchain, vk};
 
-use crate::vulkan::{context::VkContext, frame_sync::FrameSync};
+use super::{context::VkContext, frame_sync::FrameSync};
 
 pub struct Swapchain {
     loader: khr_swapchain::Device,

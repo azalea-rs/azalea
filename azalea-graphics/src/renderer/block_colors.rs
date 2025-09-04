@@ -6,7 +6,10 @@ use azalea::{
 };
 use glam::IVec3;
 
-use crate::{assets::MeshAssets, plugin::BiomeCache, renderer::mesher::LocalSection};
+use crate::{
+    plugin::BiomeCache,
+    renderer::{assets::MeshAssets, mesher::LocalSection},
+};
 
 /// Function signature for block color providers
 /// Takes block_state, section (with biome_cache), local_pos, tint_index, and
