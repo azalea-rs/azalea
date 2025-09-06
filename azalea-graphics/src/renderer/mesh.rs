@@ -1,107 +1,80 @@
-use std::mem::offset_of;
-
+use std::marker::PhantomData;
+use std::mem::{align_of, size_of};
 use ash::vk;
-use vk_mem::{Allocation, MemoryUsage};
+use vk_mem::MemoryUsage;
 
-use crate::renderer::vulkan::{
-    context::VkContext,
-    utils::{copy_buffer, create_buffer},
-};
+use crate::renderer::vulkan::{context::VkContext, buffer::Buffer};
 
-#[repr(C)]
-#[derive(Clone, Copy, Debug)]
-pub struct Vertex {
-    pub position: [f32; 3],
-    pub ao: f32,
-    pub uv: [f32; 2],
-    pub tint: [f32; 3],
-}
-
-impl Vertex {
-    pub fn binding_description() -> vk::VertexInputBindingDescription {
-        vk::VertexInputBindingDescription::default()
-            .binding(0)
-            .stride(std::mem::size_of::<Vertex>() as u32)
-            .input_rate(vk::VertexInputRate::VERTEX)
-    }
-
-    pub fn attribute_descriptions() -> [vk::VertexInputAttributeDescription; 4] {
-        [
-            // position
-            vk::VertexInputAttributeDescription::default()
-                .binding(0)
-                .location(0)
-                .format(vk::Format::R32G32B32_SFLOAT) // vec3
-                .offset(offset_of!(Vertex, position) as u32),
-            // ao
-            vk::VertexInputAttributeDescription::default()
-                .binding(0)
-                .location(1)
-                .format(vk::Format::R32_SFLOAT) // float
-                .offset(offset_of!(Vertex, ao) as u32),
-            // uv
-            vk::VertexInputAttributeDescription::default()
-                .binding(0)
-                .location(2)
-                .format(vk::Format::R32G32_SFLOAT) // vec2
-                .offset(offset_of!(Vertex, uv) as u32),
-            // tint
-            vk::VertexInputAttributeDescription::default()
-                .binding(0)
-                .location(3)
-                .format(vk::Format::R32G32B32_SFLOAT)
-                .offset(offset_of!(Vertex, tint) as u32),
-        ]
-    }
-}
-
-pub struct Mesh {
-    pub buffer: vk::Buffer,
-    pub allocation: Allocation,
+pub struct Mesh<V> {
+    pub buffer: Buffer,
     pub vertex_offset: vk::DeviceSize,
     pub index_offset: vk::DeviceSize,
     pub index_count: u32,
+    _marker: PhantomData<V>,
 }
 
-impl Mesh {
-    pub fn new(ctx: &VkContext, vertices: &[Vertex], indices: &[u32]) -> Self {
-        let allocator = ctx.allocator();
+impl<V> Mesh<V> {
+    pub fn new_host(ctx: &VkContext, vertices: &[V], indices: &[u32]) -> Self {
+        let vertex_size = (size_of::<V>() * vertices.len()) as vk::DeviceSize;
+        let index_size = (size_of::<u32>() * indices.len()) as vk::DeviceSize;
 
-        let vertex_size = (std::mem::size_of_val(vertices)) as vk::DeviceSize;
-        let index_size = (std::mem::size_of_val(indices)) as vk::DeviceSize;
-        let total_size = vertex_size + index_size;
+        let align = align_of::<u32>() as vk::DeviceSize;
+        let index_offset = (vertex_size + align - 1) & !(align - 1);
+        let total_size = index_offset + index_size;
 
-        let (staging_buf, mut staging_alloc) = create_buffer(
-            allocator,
+        let mut buffer = Buffer::new(
+            ctx,
+            total_size,
+            vk::BufferUsageFlags::VERTEX_BUFFER | vk::BufferUsageFlags::INDEX_BUFFER,
+            MemoryUsage::AutoPreferHost,
+            true,
+        );
+
+        buffer.upload_data(ctx, 0, vertices);
+        buffer.upload_data(ctx, index_offset, indices);
+
+        Self {
+            buffer,
+            vertex_offset: 0,
+            index_offset,
+            index_count: indices.len() as u32,
+            _marker: PhantomData,
+        }
+    }
+
+    pub fn new_staging(ctx: &VkContext, vertices: &[V], indices: &[u32]) -> Self {
+        let vertex_size = (size_of::<V>() * vertices.len()) as vk::DeviceSize;
+        let index_size = (size_of::<u32>() * indices.len()) as vk::DeviceSize;
+
+        let align = align_of::<u32>() as vk::DeviceSize;
+        let index_offset = (vertex_size + align - 1) & !(align - 1);
+        let total_size = index_offset + index_size;
+
+        let mut buffer = Buffer::new(
+            ctx,
             total_size,
             vk::BufferUsageFlags::TRANSFER_SRC,
             MemoryUsage::AutoPreferHost,
             true,
         );
 
-        unsafe {
-            let ptr = allocator
-                .map_memory(&mut staging_alloc)
-                .expect("map staging");
+        buffer.upload_data(ctx, 0, vertices);
+        buffer.upload_data(ctx, index_offset, indices);
 
-            std::ptr::copy_nonoverlapping(
-                vertices.as_ptr() as *const u8,
-                ptr,
-                vertex_size as usize,
-            );
-
-            std::ptr::copy_nonoverlapping(
-                indices.as_ptr() as *const u8,
-                ptr.add(vertex_size as usize),
-                index_size as usize,
-            );
-
-            allocator.unmap_memory(&mut staging_alloc);
+        Self {
+            buffer,
+            vertex_offset: 0,
+            index_offset,
+            index_count: indices.len() as u32,
+            _marker: PhantomData,
         }
+    }
 
-        let (buffer, allocation) = create_buffer(
-            allocator,
-            total_size,
+    /// Upload staging mesh into GPU-local memory
+    pub fn upload(&self, ctx: &VkContext) -> Mesh<V> {
+        let gpu_buffer = Buffer::new(
+            ctx,
+            self.buffer.size,
             vk::BufferUsageFlags::VERTEX_BUFFER
                 | vk::BufferUsageFlags::INDEX_BUFFER
                 | vk::BufferUsageFlags::TRANSFER_DST,
@@ -109,22 +82,18 @@ impl Mesh {
             false,
         );
 
-        copy_buffer(ctx, staging_buf, buffer, total_size);
-        unsafe { allocator.destroy_buffer(staging_buf, &mut staging_alloc) };
+        self.buffer.copy_to(ctx, &gpu_buffer);
 
-        Self {
-            buffer,
-            allocation,
-            vertex_offset: 0,
-            index_offset: vertex_size,
-            index_count: indices.len() as u32,
+        Mesh {
+            buffer: gpu_buffer,
+            vertex_offset: self.vertex_offset,
+            index_offset: self.index_offset,
+            index_count: self.index_count,
+            _marker: PhantomData,
         }
     }
 
     pub fn destroy(&mut self, ctx: &VkContext) {
-        unsafe {
-            ctx.allocator()
-                .destroy_buffer(self.buffer, &mut self.allocation);
-        }
+        self.buffer.destroy(ctx);
     }
 }

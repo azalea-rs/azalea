@@ -6,43 +6,30 @@ use egui::{
     emath::Rect,
     epaint::{Mesh, PaintCallbackInfo, Primitive, Vertex},
 };
-use vk_mem::{Allocation, MemoryUsage};
 
 use crate::renderer::{
-    passes::create_egui_render_pass,
-    pipelines::create_egui_pipeline,
-    texture::Texture,
-    vulkan::{
+    mesh::Mesh as GpuMesh, ui::{passes::create_egui_render_pass, pipelines::create_egui_pipeline}, vulkan::{
         context::VkContext, frame_sync::MAX_FRAMES_IN_FLIGHT, swapchain::Swapchain,
-        utils::create_buffer,
-    },
+        texture::Texture, 
+    }
 };
 
 /// Per-frame data for egui rendering.
 #[derive(Default)]
 struct FrameData {
-    vertex_buffers: Vec<(vk::Buffer, Allocation)>,
-    index_buffers: Vec<(vk::Buffer, Allocation)>,
+    meshes: Vec<GpuMesh<Vertex>>,
 }
 
 impl FrameData {
-    fn destroy(&mut self, allocator: &vk_mem::Allocator) {
-        for (buffer, mut allocation) in self.vertex_buffers.drain(..) {
-            unsafe {
-                allocator.destroy_buffer(buffer, &mut allocation);
-            }
-        }
-        for (buffer, mut allocation) in self.index_buffers.drain(..) {
-            unsafe {
-                allocator.destroy_buffer(buffer, &mut allocation);
-            }
+    fn destroy(&mut self, ctx: &VkContext) {
+        for mut mesh in &mut self.meshes.drain(..) {
+            mesh.destroy(ctx);
         }
     }
 
-    fn clear_buffers(&mut self, allocator: &vk_mem::Allocator) {
-        self.destroy(allocator);
-        self.vertex_buffers.clear();
-        self.index_buffers.clear();
+    fn clear_buffers(&mut self, ctx: &VkContext) {
+        self.destroy(ctx);
+        self.meshes.clear();
     }
 }
 
@@ -201,7 +188,7 @@ impl Painter {
     pub fn resize(&mut self, ctx: &VkContext, swapchain: &Swapchain) {
         // Clear all frame data first
         for frame_data in &mut self.frame_data {
-            frame_data.destroy(ctx.allocator());
+            frame_data.destroy(ctx);
         }
 
         // Destroy old framebuffers
@@ -234,7 +221,7 @@ impl Painter {
         self.assert_not_destroyed();
 
         // Clear previous frame's buffers
-        self.frame_data[frame_index].clear_buffers(ctx.allocator());
+        self.frame_data[frame_index].clear_buffers(ctx);
 
         // Begin egui render pass
         let render_pass_info = vk::RenderPassBeginInfo::default()
@@ -328,81 +315,24 @@ impl Painter {
         }
 
         // Create buffers for this mesh
-        let vertex_buffer = self.update_vertex_buffer(ctx, &mesh.vertices)?;
-        let index_buffer = self.update_index_buffer(ctx, &mesh.indices)?;
+        let mesh = GpuMesh::new_host(ctx, &mesh.vertices, &mesh.indices);
 
-        // Store buffers for cleanup
-        self.frame_data[frame_index]
-            .vertex_buffers
-            .push(vertex_buffer);
-        self.frame_data[frame_index]
-            .index_buffers
-            .push(index_buffer);
+
+
 
         unsafe {
             ctx.device()
-                .cmd_bind_vertex_buffers(cmd, 0, &[vertex_buffer.0], &[0]);
+                .cmd_bind_vertex_buffers(cmd, 0, &[mesh.buffer.buffer], &[mesh.vertex_offset]);
             ctx.device()
-                .cmd_bind_index_buffer(cmd, index_buffer.0, 0, vk::IndexType::UINT32);
+                .cmd_bind_index_buffer(cmd, mesh.buffer.buffer, mesh.index_offset, vk::IndexType::UINT32);
             ctx.device()
-                .cmd_draw_indexed(cmd, mesh.indices.len() as u32, 1, 0, 0, 0);
+                .cmd_draw_indexed(cmd, mesh.index_count, 1, 0, 0, 0);
         }
+        self.frame_data[frame_index]
+            .meshes
+            .push(mesh);
 
         Ok(())
-    }
-
-    fn update_vertex_buffer(
-        &mut self,
-        ctx: &VkContext,
-        vertices: &[Vertex],
-    ) -> anyhow::Result<(vk::Buffer, Allocation)> {
-        let size = (vertices.len() * std::mem::size_of::<Vertex>()) as vk::DeviceSize;
-        let allocator = ctx.allocator();
-
-        let (buffer, mut allocation) = create_buffer(
-            allocator,
-            size,
-            vk::BufferUsageFlags::VERTEX_BUFFER,
-            MemoryUsage::AutoPreferHost,
-            true,
-        );
-
-        unsafe {
-            let ptr = allocator
-                .map_memory(&mut allocation)
-                .map_err(|e| anyhow::anyhow!("Failed to map vertex buffer: {:?}", e))?;
-            std::ptr::copy_nonoverlapping(vertices.as_ptr(), ptr as *mut Vertex, vertices.len());
-            allocator.unmap_memory(&mut allocation);
-        }
-
-        Ok((buffer, allocation))
-    }
-
-    fn update_index_buffer(
-        &mut self,
-        ctx: &VkContext,
-        indices: &[u32],
-    ) -> anyhow::Result<(vk::Buffer, Allocation)> {
-        let size = (indices.len() * std::mem::size_of::<u32>()) as vk::DeviceSize;
-        let allocator = ctx.allocator();
-
-        let (buffer, mut allocation) = create_buffer(
-            allocator,
-            size,
-            vk::BufferUsageFlags::INDEX_BUFFER,
-            MemoryUsage::AutoPreferHost,
-            true,
-        );
-
-        unsafe {
-            let ptr = allocator
-                .map_memory(&mut allocation)
-                .map_err(|e| anyhow::anyhow!("Failed to map index buffer: {:?}", e))?;
-            std::ptr::copy_nonoverlapping(indices.as_ptr(), ptr as *mut u32, indices.len());
-            allocator.unmap_memory(&mut allocation);
-        }
-
-        Ok((buffer, allocation))
     }
 
     fn set_clip_rect(
@@ -542,7 +472,7 @@ impl Painter {
 
                 // Clean up per-frame data
                 for frame_data in &mut self.frame_data {
-                    frame_data.destroy(ctx.allocator());
+                    frame_data.destroy(ctx);
                 }
 
                 // Clean up framebuffers

@@ -8,7 +8,7 @@ use glam::IVec3;
 
 use crate::{
     plugin::BiomeCache,
-    renderer::{assets::MeshAssets, mesher::LocalSection},
+    renderer::{assets::MeshAssets, world_renderer::mesher::LocalSection},
 };
 
 /// Function signature for block color providers

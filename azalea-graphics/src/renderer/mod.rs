@@ -2,7 +2,6 @@ use std::{sync::Arc, time::Duration};
 
 use ash::vk::{self};
 use raw_window_handle::{DisplayHandle, WindowHandle};
-use vk_mem::{Alloc, Allocation, AllocationCreateInfo, Allocator, MemoryUsage};
 use vulkan::{
     context::VkContext,
     frame_sync::{FrameSync, MAX_FRAMES_IN_FLIGHT},
@@ -16,27 +15,20 @@ use winit::{
     window::Window,
 };
 
+use crate::renderer::world_renderer::mesher::LocalSection;
+
 use self::{
     camera::{Camera, CameraController, Projection},
-    mesher::LocalSection,
-    passes::create_render_pass,
-    pipelines::{create_pipeline, create_pipeline_layout, create_wireframe_pipeline},
-    render_world::RenderWorld,
-    texture::Texture,
     ui::EguiVulkan,
+    world_renderer::{WorldRenderer, WorldRendererOptions},
 };
 
 mod block_colors;
 mod camera;
-mod egui_painter;
-mod mesh;
-pub(crate) mod mesher;
-mod passes;
-mod pipelines;
-mod render_world;
-mod texture;
 mod ui;
+mod mesh;
 pub(crate) mod vulkan;
+pub(crate) mod world_renderer;
 
 mod assets;
 
@@ -50,28 +42,14 @@ pub struct Renderer {
     width: u32,
     height: u32,
 
-    depth_image: vk::Image,
-    depth_allocation: Allocation,
-    depth_view: vk::ImageView,
-
-    render_pass: vk::RenderPass,
-    pipeline_layout: vk::PipelineLayout,
-    pipeline: vk::Pipeline,
-    wireframe_pipeline: Option<vk::Pipeline>,
     wireframe_mode: bool,
-    framebuffers: Vec<vk::Framebuffer>,
-
-    descriptor_set_layout: vk::DescriptorSetLayout,
-    descriptor_pool: vk::DescriptorPool,
-    descriptor_set: vk::DescriptorSet,
-    blocks_texture: Texture,
 
     command_pool: vk::CommandPool,
     command_buffers: [vk::CommandBuffer; MAX_FRAMES_IN_FLIGHT],
 
     sync: FrameSync,
 
-    world: RenderWorld,
+    world: WorldRenderer,
 
     camera: Camera,
     projection: Projection,
@@ -91,48 +69,28 @@ impl Renderer {
         let swapchain = Swapchain::new(&context, size.width, size.height);
 
         let (assets, atlas_image) = assets::load_assets(&context, "assets/minecraft");
-        let blocks_texture = Texture::new(&context, atlas_image);
-        let descriptor_set_layout = create_descriptor_set_layout(context.device());
-        let descriptor_pool = create_descriptor_pool(context.device());
-        let descriptor_set =
-            allocate_descriptor_set(context.device(), descriptor_pool, descriptor_set_layout);
-        update_texture_descriptor(context.device(), descriptor_set, &blocks_texture);
 
-        let render_pass = create_render_pass(&context, &swapchain);
+        let wireframe_enabled = context.features().fill_mode_non_solid;
 
-        let pipeline_layout = create_pipeline_layout(context.device(), descriptor_set_layout);
-        let pipeline = create_pipeline(
+        let world = WorldRenderer::new(
+            Arc::new(assets),
+            atlas_image,
             &context,
-            render_pass,
-            pipeline_layout,
+            &swapchain,
             TRIANGLE_VERT,
             TRIANGLE_FRAG,
+            WorldRendererOptions { wireframe_enabled },
         );
-        let wireframe_pipeline = create_wireframe_pipeline(
-            &context,
-            render_pass,
-            pipeline_layout,
-            TRIANGLE_VERT,
-            TRIANGLE_FRAG,
-        );
-
-        let (depth_image, depth_allocation, depth_view) =
-            create_depth_resources(&context, context.allocator(), swapchain.extent);
-
-        let framebuffers = create_framebuffers(&context, &swapchain, render_pass, depth_view);
 
         let command_pool = create_command_pool(&context);
         let command_buffers = allocate_command_buffers(&context, command_pool);
 
         let sync = FrameSync::new(context.device(), swapchain.images.len());
 
-        let world = RenderWorld::new(Arc::new(assets));
-
         let camera = Camera::new(glam::vec3(0.0, 150.0, 2.0), -90.0, 0.0);
         let projection = Projection::new(size.width, size.height, 90.0, 1.0, 10000.0);
         let camera_controller = CameraController::new(4.0, 1.0);
 
-        // Initialize egui
         let egui = EguiVulkan::new(event_loop, &context, &swapchain, None)?;
 
         Ok(Self {
@@ -142,24 +100,10 @@ impl Renderer {
             width: size.width,
             height: size.height,
 
-            depth_image,
-            depth_allocation,
-            depth_view,
-
-            render_pass,
-            pipeline_layout,
-            pipeline,
-            wireframe_pipeline,
             wireframe_mode: false,
-            framebuffers,
+
             command_pool,
             command_buffers,
-
-            descriptor_set_layout,
-            descriptor_pool,
-            descriptor_set,
-
-            blocks_texture,
 
             sync,
             world,
@@ -169,6 +113,25 @@ impl Renderer {
 
             egui,
         })
+    }
+
+    /// Run the built-in debug UI.
+    pub fn run_debug_ui(&mut self, window: &Window, frame_time_ms: f64) {
+        let wireframe_available = self.context.features().fill_mode_non_solid;
+
+        self.egui.run(window, |ctx| {
+            egui::Window::new("Debug Info").show(ctx, |ui| {
+                ui.label(format!("Frame time: {:.2}ms", frame_time_ms));
+                ui.label("Azalea Graphics Renderer");
+
+                ui.separator();
+
+                ui.add_enabled(
+                    wireframe_available,
+                    egui::Checkbox::new(&mut self.wireframe_mode, "Wireframe mode (F3)"),
+                );
+            });
+        });
     }
 
     pub fn update_section(&self, section: LocalSection) {
@@ -193,15 +156,13 @@ impl Renderer {
     }
 
     pub fn toggle_wireframe(&mut self) {
-        if self.wireframe_pipeline.is_some() {
-            self.wireframe_mode = !self.wireframe_mode;
-        }
+        // For now, always allow toggling - the world renderer will handle whether
+        // wireframe is available
+        self.wireframe_mode = !self.wireframe_mode;
     }
 
     pub fn set_wireframe(&mut self, enabled: bool) {
-        if self.wireframe_pipeline.is_some() {
-            self.wireframe_mode = enabled;
-        }
+        self.wireframe_mode = enabled;
     }
 
     pub fn is_wireframe(&self) -> bool {
@@ -231,66 +192,17 @@ impl Renderer {
 
             let begin_info = vk::CommandBufferBeginInfo::default();
             device.begin_command_buffer(cmd, &begin_info).unwrap();
-
-            let clear_color = vk::ClearValue {
-                color: vk::ClearColorValue {
-                    float32: [0.0, 0.0, 0.0, 1.0],
-                },
-            };
-            let clear_values = [
-                clear_color,
-                vk::ClearValue {
-                    depth_stencil: vk::ClearDepthStencilValue {
-                        depth: 1.0,
-                        stencil: 0,
-                    },
-                },
-            ];
-            let rp_info = vk::RenderPassBeginInfo::default()
-                .render_pass(self.render_pass)
-                .framebuffer(self.framebuffers[image_index as usize])
-                .render_area(vk::Rect2D {
-                    offset: vk::Offset2D { x: 0, y: 0 },
-                    extent: self.swapchain.extent,
-                })
-                .clear_values(&clear_values);
-
-            device.cmd_begin_render_pass(cmd, &rp_info, vk::SubpassContents::INLINE);
-
-            let viewport = vk::Viewport {
-                x: 0.0,
-                y: 0.0,
-                width: self.swapchain.extent.width as f32,
-                height: self.swapchain.extent.height as f32,
-                min_depth: 0.0,
-                max_depth: 1.0,
-            };
-            let scissor = vk::Rect2D {
-                offset: vk::Offset2D { x: 0, y: 0 },
-                extent: self.swapchain.extent,
-            };
-            device.cmd_set_viewport(cmd, 0, &[viewport]);
-            device.cmd_set_scissor(cmd, 0, &[scissor]);
-
-            let current_pipeline = if self.wireframe_mode {
-                self.wireframe_pipeline.unwrap_or(self.pipeline)
-            } else {
-                self.pipeline
-            };
-
-            self.world.draw(
-                device,
-                cmd,
-                current_pipeline,
-                self.descriptor_set,
-                self.pipeline_layout,
-                self.projection.calc_proj() * self.camera.calc_view(),
-            );
-
-            device.cmd_end_render_pass(cmd);
         }
 
-        // Render egui (it will handle its own render pass)
+        self.world.render(
+            device,
+            cmd,
+            image_index,
+            self.swapchain.extent,
+            self.projection.calc_proj() * self.camera.calc_view(),
+            self.wireframe_mode,
+        );
+
         if let Err(e) = self.render_egui(cmd, image_index, frame) {
             log::warn!("Failed to render egui: {}", e);
         }
@@ -352,39 +264,13 @@ impl Renderer {
                     .device()
                     .queue_wait_idle(self.context.graphics_queue())
                     .unwrap();
-                for fb in &self.framebuffers {
-                    self.context.device().destroy_framebuffer(*fb, None);
-                }
             }
-            self.framebuffers.clear();
             self.swapchain
                 .recreate(&self.context, self.width, self.height);
 
-            unsafe {
-                self.context
-                    .device()
-                    .destroy_image_view(self.depth_view, None);
-                self.context
-                    .allocator()
-                    .destroy_image(self.depth_image, &mut self.depth_allocation);
-            }
-
-            let (depth_image, depth_allocation, depth_view) = create_depth_resources(
-                &self.context,
-                self.context.allocator(),
-                self.swapchain.extent,
-            );
-
-            self.depth_image = depth_image;
-            self.depth_allocation = depth_allocation;
-            self.depth_view = depth_view;
-
-            self.framebuffers = create_framebuffers(
-                &self.context,
-                &self.swapchain,
-                self.render_pass,
-                self.depth_view,
-            );
+            // Let the world renderer handle its own swapchain recreation
+            self.world
+                .recreate_swapchain(&self.context, &self.swapchain);
 
             // Resize egui
             self.egui.resize(&self.context, &self.swapchain);
@@ -401,29 +287,6 @@ impl Renderer {
 
             self.world.destroy(&self.context);
 
-            for fb in &self.framebuffers {
-                device.destroy_framebuffer(*fb, None);
-            }
-            self.framebuffers.clear();
-
-            device.destroy_image_view(self.depth_view, None);
-            self.context
-                .allocator()
-                .destroy_image(self.depth_image, &mut self.depth_allocation);
-
-            device.destroy_pipeline(self.pipeline, None);
-            if let Some(wireframe_pipeline) = self.wireframe_pipeline {
-                device.destroy_pipeline(wireframe_pipeline, None);
-            }
-            device.destroy_pipeline_layout(self.pipeline_layout, None);
-
-            device.destroy_render_pass(self.render_pass, None);
-
-            device.destroy_descriptor_pool(self.descriptor_pool, None);
-            device.destroy_descriptor_set_layout(self.descriptor_set_layout, None);
-
-            self.blocks_texture.destroy(&self.context);
-
             device.destroy_command_pool(self.command_pool, None);
         }
 
@@ -439,40 +302,6 @@ impl Renderer {
         response.consumed
     }
 
-    /// Run the built-in debug UI.
-    pub fn run_debug_ui(&mut self, window: &Window, frame_time_ms: f64) {
-        let mut wireframe_changed = None;
-        let current_wireframe = self.wireframe_mode;
-        let wireframe_available = self.wireframe_pipeline.is_some();
-
-        self.egui.run(window, |ctx| {
-            egui::Window::new("Debug Info").show(ctx, |ui| {
-                ui.label(format!("Frame time: {:.2}ms", frame_time_ms));
-                ui.label("Azalea Graphics Renderer");
-
-                ui.separator();
-
-                if wireframe_available {
-                    let mut wireframe = current_wireframe;
-                    if ui.checkbox(&mut wireframe, "Wireframe mode (F3)").changed() {
-                        wireframe_changed = Some(wireframe);
-                    }
-                } else {
-                    ui.add_enabled(
-                        false,
-                        egui::Checkbox::new(&mut false, "Wireframe mode (not supported)"),
-                    );
-                    ui.label("⚠ fillModeNonSolid feature not available on this device");
-                }
-            });
-        });
-
-        // Apply wireframe change outside the closure
-        if let Some(wireframe) = wireframe_changed {
-            self.wireframe_mode = wireframe;
-        }
-    }
-
     /// Render egui to the given command buffer.
     pub fn render_egui(
         &mut self,
@@ -484,82 +313,6 @@ impl Renderer {
         self.egui
             .paint(&self.context, cmd, dimensions, image_index, frame_index)
     }
-}
-
-pub fn create_depth_resources(
-    ctx: &VkContext,
-    allocator: &Allocator,
-    extent: vk::Extent2D,
-) -> (vk::Image, Allocation, vk::ImageView) {
-    let format = vk::Format::D32_SFLOAT;
-
-    let image_info = vk::ImageCreateInfo::default()
-        .image_type(vk::ImageType::TYPE_2D)
-        .format(format)
-        .extent(vk::Extent3D {
-            width: extent.width,
-            height: extent.height,
-            depth: 1,
-        })
-        .mip_levels(1)
-        .array_layers(1)
-        .samples(vk::SampleCountFlags::TYPE_1)
-        .tiling(vk::ImageTiling::OPTIMAL)
-        .usage(vk::ImageUsageFlags::DEPTH_STENCIL_ATTACHMENT)
-        .sharing_mode(vk::SharingMode::EXCLUSIVE);
-
-    let alloc_info = AllocationCreateInfo {
-        usage: MemoryUsage::AutoPreferDevice,
-        ..Default::default()
-    };
-
-    let (image, allocation) = unsafe {
-        allocator
-            .create_image(&image_info, &alloc_info)
-            .expect("Failed to create depth image")
-    };
-
-    let view_info = vk::ImageViewCreateInfo::default()
-        .image(image)
-        .view_type(vk::ImageViewType::TYPE_2D)
-        .format(format)
-        .subresource_range(vk::ImageSubresourceRange {
-            aspect_mask: vk::ImageAspectFlags::DEPTH,
-            base_mip_level: 0,
-            level_count: 1,
-            base_array_layer: 0,
-            layer_count: 1,
-        });
-
-    let depth_view = unsafe { ctx.device().create_image_view(&view_info, None).unwrap() };
-
-    (image, allocation, depth_view)
-}
-
-pub fn create_framebuffers(
-    ctx: &VkContext,
-    swapchain: &Swapchain,
-    render_pass: vk::RenderPass,
-    depth_view: vk::ImageView,
-) -> Vec<vk::Framebuffer> {
-    let device = ctx.device();
-    let mut framebuffers = Vec::with_capacity(swapchain.image_views.len());
-
-    for &view in &swapchain.image_views {
-        let attachments = [view, depth_view];
-
-        let info = vk::FramebufferCreateInfo::default()
-            .render_pass(render_pass)
-            .attachments(&attachments)
-            .width(swapchain.extent.width)
-            .height(swapchain.extent.height)
-            .layers(1);
-
-        let framebuffer = unsafe { device.create_framebuffer(&info, None).unwrap() };
-        framebuffers.push(framebuffer);
-    }
-
-    framebuffers
 }
 
 pub fn create_command_pool(ctx: &VkContext) -> vk::CommandPool {
@@ -597,63 +350,4 @@ pub fn allocate_command_buffers(
     };
 
     buffers
-}
-
-pub fn create_descriptor_set_layout(device: &ash::Device) -> vk::DescriptorSetLayout {
-    let sampler_binding = vk::DescriptorSetLayoutBinding::default()
-        .binding(0)
-        .descriptor_type(vk::DescriptorType::COMBINED_IMAGE_SAMPLER)
-        .descriptor_count(1)
-        .stage_flags(vk::ShaderStageFlags::FRAGMENT);
-
-    let info = vk::DescriptorSetLayoutCreateInfo::default()
-        .bindings(std::slice::from_ref(&sampler_binding));
-
-    unsafe { device.create_descriptor_set_layout(&info, None).unwrap() }
-}
-
-pub fn create_descriptor_pool(device: &ash::Device) -> vk::DescriptorPool {
-    let pool_size = vk::DescriptorPoolSize::default()
-        .ty(vk::DescriptorType::COMBINED_IMAGE_SAMPLER)
-        .descriptor_count(1);
-
-    let info = vk::DescriptorPoolCreateInfo::default()
-        .pool_sizes(std::slice::from_ref(&pool_size))
-        .max_sets(1);
-
-    unsafe { device.create_descriptor_pool(&info, None).unwrap() }
-}
-
-pub fn allocate_descriptor_set(
-    device: &ash::Device,
-    pool: vk::DescriptorPool,
-    layout: vk::DescriptorSetLayout,
-) -> vk::DescriptorSet {
-    let alloc_info = vk::DescriptorSetAllocateInfo::default()
-        .descriptor_pool(pool)
-        .set_layouts(std::slice::from_ref(&layout));
-
-    unsafe { device.allocate_descriptor_sets(&alloc_info).unwrap()[0] }
-}
-
-pub fn update_texture_descriptor(
-    device: &ash::Device,
-    descriptor_set: vk::DescriptorSet,
-    tex: &Texture,
-) {
-    let image_info = vk::DescriptorImageInfo {
-        sampler: tex.sampler,
-        image_view: tex.view,
-        image_layout: vk::ImageLayout::SHADER_READ_ONLY_OPTIMAL,
-    };
-
-    let write = vk::WriteDescriptorSet::default()
-        .dst_set(descriptor_set)
-        .dst_binding(0)
-        .descriptor_type(vk::DescriptorType::COMBINED_IMAGE_SAMPLER)
-        .image_info(std::slice::from_ref(&image_info));
-
-    unsafe {
-        device.update_descriptor_sets(std::slice::from_ref(&write), &[]);
-    }
 }

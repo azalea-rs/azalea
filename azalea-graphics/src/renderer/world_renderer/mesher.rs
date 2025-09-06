@@ -18,16 +18,14 @@ use crate::{
     plugin::BiomeCache,
     renderer::{
         assets::{
-            MeshAssets,
-            processed::{atlas::PlacedSprite, model::Cube},
+            processed::{atlas::PlacedSprite, model::Cube}, MeshAssets
         },
-        block_colors::BlockColors,
-        mesh::Vertex,
+        block_colors::BlockColors, world_renderer::BlockVertex,
     },
 };
 
 pub struct MeshData {
-    pub vertices: Vec<Vertex>,
+    pub vertices: Vec<BlockVertex>,
     pub indices: Vec<u32>,
     pub section_pos: ChunkSectionPos,
 }
@@ -321,7 +319,7 @@ pub fn mesh_section(section: &LocalSection, assets: &MeshAssets) -> MeshData {
                                         assets.block_atlas.height,
                                     );
 
-                                    vertices.push(Vertex {
+                                    vertices.push(BlockVertex {
                                         position: (local_pos + world_pos).into(),
                                         ao: if model.ambient_occlusion {
                                             compute_ao(local, offset, rotated_dir, section) as f32

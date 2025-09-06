@@ -1,7 +1,7 @@
 use ash::vk;
 use vk_mem::{Alloc, Allocation, MemoryUsage};
 
-use crate::renderer::vulkan::{context::VkContext, utils::create_buffer};
+use crate::renderer::vulkan::{context::VkContext, buffer::create_buffer};
 
 pub struct Texture {
     pub image: vk::Image,

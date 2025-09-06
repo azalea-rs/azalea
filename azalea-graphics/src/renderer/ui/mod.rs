@@ -3,15 +3,19 @@ use egui_winit::winit;
 pub use egui_winit::{self, EventResponse};
 
 use crate::renderer::{
-    egui_painter::Painter,
+    ui::painter::Painter,
     vulkan::{context::VkContext, swapchain::Swapchain},
 };
 
+mod painter;
+mod pipelines;
+mod passes;
+
 /// Use [`egui`] from a Vulkan app based on [`winit`].
 pub struct EguiVulkan {
-    pub egui_ctx: egui::Context,
-    pub egui_winit: egui_winit::State,
-    pub painter: Painter,
+    egui_ctx: egui::Context,
+    egui_winit: egui_winit::State,
+    painter: Painter,
 
     viewport_info: egui::ViewportInfo,
 
