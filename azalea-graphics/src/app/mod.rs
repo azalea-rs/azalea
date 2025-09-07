@@ -124,15 +124,17 @@ impl ApplicationHandler for App {
                         let dt = now - self.last_frame_time;
                         self.last_frame_time = now;
 
+                        let ms = dt.as_nanos() as f64 / 1_000_000.0;
+
                         if let Some(window) = &self.window {
-                            window.set_title(&format!("{}ms", dt.as_nanos() as f64 / 1_000_000.0));
+                            window.set_title(&format!("{}ms", ms));
                         }
 
                         renderer.update(dt);
 
                         // Run debug UI
                         if let Some(window) = &self.window {
-                            renderer.run_debug_ui(window, dt.as_millis() as f64);
+                            renderer.run_debug_ui(window, ms);
                         }
 
                         renderer.maybe_recreate();

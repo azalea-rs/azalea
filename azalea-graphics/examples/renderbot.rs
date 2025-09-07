@@ -40,7 +40,6 @@ fn main() {
     let azalea_thread = thread::spawn(move || {
         let rt = Runtime::new().unwrap();
         rt.block_on(run_azalea(handle, server_address));
-        println!("exited");
     });
 
     app.run();

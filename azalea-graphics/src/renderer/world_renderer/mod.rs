@@ -147,7 +147,6 @@ impl WorldRenderer {
 
         // Create pipelines
         let pipeline = create_world_pipeline(ctx, render_pass, pipeline_layout, vert_spv, frag_spv);
-        println!("{}", options.wireframe_enabled);
         let wireframe_pipeline = if options.wireframe_enabled {
             create_world_wireframe_pipeline(ctx, render_pass, pipeline_layout, vert_spv, frag_spv)
         } else {
