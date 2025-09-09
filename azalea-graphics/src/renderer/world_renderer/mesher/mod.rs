@@ -16,12 +16,13 @@ use crate::{
     plugin::BiomeCache,
     renderer::{
         assets::MeshAssets,
-        block_colors::BlockColors, world_renderer::{mesher::block::mesh_block, BlockVertex},
+        world_renderer::{mesher::block::mesh_block, BlockVertex},
     },
 };
 
 mod block;
 mod helpers;
+mod block_colors;
 
 pub struct MeshData {
     pub vertices: Vec<BlockVertex>,
@@ -203,7 +204,7 @@ impl Mesher {
 
 pub struct MeshBuilder<'a> {
     pub assets: &'a MeshAssets,
-    pub block_colors: &'a BlockColors,
+    pub block_colors: &'a block_colors::BlockColors,
     pub section: &'a LocalSection,
     pub vertices: &'a mut Vec<BlockVertex>,
     pub indices: &'a mut Vec<u32>,
@@ -212,7 +213,7 @@ pub struct MeshBuilder<'a> {
 pub fn mesh_section(section: &LocalSection, assets: &MeshAssets) -> MeshData {
     let mut vertices = Vec::with_capacity(1000);
     let mut indices = Vec::with_capacity(1000);
-    let block_colors = BlockColors::create_default();
+    let block_colors = block_colors::BlockColors::create_default();
 
     let mut builder = MeshBuilder {
         assets,

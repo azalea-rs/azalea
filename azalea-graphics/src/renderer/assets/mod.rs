@@ -225,7 +225,7 @@ pub fn load_assets(ctx: &VkContext, path: impl Into<PathBuf>) -> (MeshAssets, im
 
     let max_tex = vk_max_texture_2d(ctx);
     let (max_w, max_h) = (max_tex, max_tex);
-    let packed_atlas: Atlas = stitch_sprites(entries, max_w, max_h).expect("stitch sprites");
+    let packed_atlas = stitch_sprites(entries, max_w, max_h).expect("stitch sprites");
 
     let atlas_image = render_atlas_image(&packed_atlas, &name_to_path).expect("render atlas");
     let debug_path = path.join("debug_blocks_atlas.png");

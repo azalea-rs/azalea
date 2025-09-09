@@ -23,7 +23,6 @@ use self::{
     world_renderer::{WorldRenderer, WorldRendererOptions},
 };
 
-mod block_colors;
 mod camera;
 mod ui;
 mod mesh;

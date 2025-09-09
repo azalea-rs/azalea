@@ -15,8 +15,8 @@ use crate::renderer::{
         mesher::{
             LocalSection, MeshBuilder,
             helpers::{
-                FACES, compute_ao, generate_uv, offset_to_coord, remap_uv_to_atlas,
-                rotate_direction, rotate_offset, rotate_uvs,
+                FACES, FACE_ROTATION, FACE_ROTATION_X, compute_ao, generate_uv, offset_to_coord, 
+                remap_uv_to_atlas, rotate_direction, rotate_direction_vanilla, rotate_offset, rotate_uvs,
             },
         },
     },
@@ -31,8 +31,29 @@ pub fn mesh_block(block: BlockState, local: IVec3, builder: &mut MeshBuilder) {
 
         for element in &model.elements {
             for face in FACES {
-                if let Some(model_face) = face_for_direction(&element, face.dir, &desc) {
-                    // occlusion
+                if let Some(model_face) = face_for_direction(&element, face.dir) {
+                    // Apply rotations to the face direction using vanilla logic
+                    let mut rendered_face_dir = face.dir;
+                    if desc.x_rotation != 0 {
+                        let o = (desc.x_rotation as i32) / 90;
+                        rendered_face_dir = rotate_direction_vanilla(
+                            rendered_face_dir,
+                            o,
+                            FACE_ROTATION_X,
+                            &[Direction::East, Direction::West],
+                        );
+                    }
+                    if desc.y_rotation != 0 {
+                        let o = (desc.y_rotation as i32) / 90;
+                        rendered_face_dir = rotate_direction_vanilla(
+                            rendered_face_dir,
+                            o,
+                            FACE_ROTATION,
+                            &[Direction::Up, Direction::Down],
+                        );
+                    }
+
+                    // occlusion - use the rotated face direction for culling
                     if let Some(cull_dir) = resolve_cullface(desc, model_face) {
                         if face_is_occluded(local, cull_dir, builder.section) {
                             continue;
@@ -41,8 +62,20 @@ pub fn mesh_block(block: BlockState, local: IVec3, builder: &mut MeshBuilder) {
 
                     // uv mapping
                     let mut uvs = generate_uv(face.dir, model_face.uv);
+                    
+                    // Apply UV rotation based on model face rotation first
+                    if model_face.rotation != 0 {
+                        uvs = rotate_uvs(uvs, model_face.rotation);
+                    }
+                    
+                    // Apply uvlock rotation only for specific face orientations
                     if desc.uvlock {
-                        uvs = rotate_uvs(uvs, desc.y_rotation);
+                        if desc.y_rotation != 0 && (rendered_face_dir == Direction::Up || rendered_face_dir == Direction::Down) {
+                            uvs = rotate_uvs(uvs, desc.y_rotation);
+                        }
+                        if desc.x_rotation != 0 && (rendered_face_dir != Direction::Up && rendered_face_dir != Direction::Down) {
+                            uvs = rotate_uvs(uvs, desc.x_rotation);
+                        }
                     }
                     let tint = builder.block_colors.get_color(
                         block,
@@ -81,7 +114,7 @@ pub fn mesh_block(block: BlockState, local: IVec3, builder: &mut MeshBuilder) {
                             builder.vertices.push(BlockVertex {
                                 position: (local_pos + world_pos).into(),
                                 ao: if model.ambient_occlusion {
-                                    compute_ao(local, offset, face.dir, builder.section) as f32
+                                    compute_ao(local, offset, rendered_face_dir, builder.section) as f32
                                 } else {
                                     3.0
                                 },
@@ -105,12 +138,9 @@ pub fn mesh_block(block: BlockState, local: IVec3, builder: &mut MeshBuilder) {
     }
 }
 
-/// Get the model face for a given direction, considering rotations
-fn face_for_direction<'a>(element: &'a Cube, dir: Direction, desc: &VariantDesc) -> Option<&'a model::Face> {
-    // Apply rotations to the direction to find the corresponding face
-    let rotated_dir = rotate_direction(dir, desc.x_rotation, desc.y_rotation);
-    
-    match rotated_dir {
+/// Get the model face for a given direction (without applying rotations)
+fn face_for_direction<'a>(element: &'a Cube, dir: Direction) -> Option<&'a model::Face> {
+    match dir {
         Direction::Up => element.faces.up.as_ref(),
         Direction::Down => element.faces.down.as_ref(),
         Direction::North => element.faces.north.as_ref(),

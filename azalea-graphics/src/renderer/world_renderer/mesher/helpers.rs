@@ -101,7 +101,38 @@ pub fn remap_uv_to_atlas(
     [u, v]
 }
 
-/// Rotate direction based on x and y rotations
+/// Vanilla rotation arrays
+pub const FACE_ROTATION: &[Direction] = &[
+    Direction::North,
+    Direction::East,
+    Direction::South,
+    Direction::West,
+];
+
+pub const FACE_ROTATION_X: &[Direction] = &[
+    Direction::North,
+    Direction::Down,
+    Direction::South,
+    Direction::Up,
+];
+
+/// Rotate direction using vanilla logic with rotation arrays
+pub fn rotate_direction_vanilla(
+    val: Direction,
+    offset: i32,
+    rots: &[Direction],
+    invalid: &[Direction],
+) -> Direction {
+    for d in invalid {
+        if *d == val {
+            return val;
+        }
+    }
+    let pos = rots.iter().position(|v| *v == val).unwrap_or(0) as i32;
+    rots[(rots.len() as i32 + pos + offset) as usize % rots.len()]
+}
+
+/// Rotate direction based on x and y rotations (keeping old function for compatibility)
 pub fn rotate_direction(dir: Direction, x_rot: i32, y_rot: i32) -> Direction {
     let mut d = dir;
     match x_rot.rem_euclid(360) {
