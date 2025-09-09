@@ -27,7 +27,7 @@ use simdnbt::Deserialize;
 
 use crate::{
     app::{RendererEvent, RendererHandle},
-    renderer::world_renderer::mesher::LocalChunk,
+    renderer::chunk::LocalChunk,
 };
 
 /// A cache of parsed biome data indexed by biome registry index

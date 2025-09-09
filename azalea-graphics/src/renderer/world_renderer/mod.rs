@@ -5,10 +5,7 @@ use azalea::core::position::ChunkSectionPos;
 use vk_mem::{Alloc, Allocation, AllocationCreateInfo, MemoryUsage};
 
 use crate::renderer::{
-    assets::MeshAssets,
-    mesh::Mesh,
-    vulkan::{context::VkContext, swapchain::Swapchain, texture::Texture},
-    world_renderer::mesher::{LocalSection, Mesher},
+    assets::MeshAssets, chunk::LocalSection, mesh::Mesh, vulkan::{context::VkContext, swapchain::Swapchain, texture::Texture}, world_renderer::mesher::Mesher
 };
 
 pub mod mesher;

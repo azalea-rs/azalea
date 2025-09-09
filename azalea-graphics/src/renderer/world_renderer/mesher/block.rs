@@ -10,13 +10,15 @@ use crate::renderer::{
         VariantDesc,
         model::{self, Cube},
     },
+    chunk::LocalSection,
     world_renderer::{
         BlockVertex,
         mesher::{
-            LocalSection, MeshBuilder,
+            MeshBuilder,
             helpers::{
-                FACES, FACE_ROTATION, FACE_ROTATION_X, compute_ao, generate_uv, offset_to_coord, 
-                remap_uv_to_atlas, rotate_direction, rotate_direction_vanilla, rotate_offset, rotate_uvs,
+                FACE_ROTATION, FACE_ROTATION_X, FACES, compute_ao, generate_uv, offset_to_coord,
+                remap_uv_to_atlas, rotate_direction, rotate_direction_vanilla, rotate_offset,
+                rotate_uvs,
             },
         },
     },
@@ -62,18 +64,24 @@ pub fn mesh_block(block: BlockState, local: IVec3, builder: &mut MeshBuilder) {
 
                     // uv mapping
                     let mut uvs = generate_uv(face.dir, model_face.uv);
-                    
+
                     // Apply UV rotation based on model face rotation first
                     if model_face.rotation != 0 {
                         uvs = rotate_uvs(uvs, model_face.rotation);
                     }
-                    
+
                     // Apply uvlock rotation only for specific face orientations
                     if desc.uvlock {
-                        if desc.y_rotation != 0 && (rendered_face_dir == Direction::Up || rendered_face_dir == Direction::Down) {
+                        if desc.y_rotation != 0
+                            && (rendered_face_dir == Direction::Up
+                                || rendered_face_dir == Direction::Down)
+                        {
                             uvs = rotate_uvs(uvs, desc.y_rotation);
                         }
-                        if desc.x_rotation != 0 && (rendered_face_dir != Direction::Up && rendered_face_dir != Direction::Down) {
+                        if desc.x_rotation != 0
+                            && (rendered_face_dir != Direction::Up
+                                && rendered_face_dir != Direction::Down)
+                        {
                             uvs = rotate_uvs(uvs, desc.x_rotation);
                         }
                     }
@@ -114,7 +122,8 @@ pub fn mesh_block(block: BlockState, local: IVec3, builder: &mut MeshBuilder) {
                             builder.vertices.push(BlockVertex {
                                 position: (local_pos + world_pos).into(),
                                 ao: if model.ambient_occlusion {
-                                    compute_ao(local, offset, rendered_face_dir, builder.section) as f32
+                                    compute_ao(local, offset, rendered_face_dir, builder.section)
+                                        as f32
                                 } else {
                                     3.0
                                 },

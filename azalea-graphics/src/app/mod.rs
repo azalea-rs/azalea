@@ -14,7 +14,8 @@ use winit::{
 use crate::{
     plugin::BiomeCache,
     renderer::{
-        world_renderer::mesher::{LocalChunk, LocalSection}, Renderer
+        Renderer,
+        chunk::{LocalChunk, LocalSection},
     },
 };
 

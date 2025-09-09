@@ -6,8 +6,7 @@ use azalea::{
 use glam::IVec3;
 
 use crate::renderer::{
-    assets::processed::{atlas::PlacedSprite, model::Cube},
-    world_renderer::mesher::LocalSection,
+    assets::processed::{atlas::PlacedSprite, model::Cube}, chunk::LocalSection,
 };
 
 /// Face definition for meshing

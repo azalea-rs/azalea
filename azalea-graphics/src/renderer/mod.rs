@@ -15,17 +15,17 @@ use winit::{
     window::Window,
 };
 
-use crate::renderer::world_renderer::mesher::LocalSection;
-
 use self::{
     camera::{Camera, CameraController, Projection},
+    chunk::LocalSection,
     ui::EguiVulkan,
     world_renderer::{WorldRenderer, WorldRendererOptions},
 };
 
 mod camera;
-mod ui;
+pub(crate) mod chunk;
 mod mesh;
+mod ui;
 pub(crate) mod vulkan;
 pub(crate) mod world_renderer;
 
