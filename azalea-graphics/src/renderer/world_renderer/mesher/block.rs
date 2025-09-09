@@ -16,8 +16,8 @@ use crate::renderer::{
         mesher::{
             MeshBuilder,
             helpers::{
-                FACE_ROTATION, FACE_ROTATION_X, FACES, compute_ao, generate_uv, offset_to_coord,
-                remap_uv_to_atlas, rotate_direction, rotate_direction_vanilla, rotate_offset,
+                 FACES, compute_ao, generate_uv, offset_to_coord,
+                remap_uv_to_atlas, rotate_direction,  rotate_offset,
                 rotate_uvs,
             },
         },
@@ -34,28 +34,6 @@ pub fn mesh_block(block: BlockState, local: IVec3, builder: &mut MeshBuilder) {
         for element in &model.elements {
             for face in FACES {
                 if let Some(model_face) = face_for_direction(&element, face.dir) {
-                    // Apply rotations to the face direction using vanilla logic
-                    let mut rendered_face_dir = face.dir;
-                    if desc.x_rotation != 0 {
-                        let o = (desc.x_rotation as i32) / 90;
-                        rendered_face_dir = rotate_direction_vanilla(
-                            rendered_face_dir,
-                            o,
-                            FACE_ROTATION_X,
-                            &[Direction::East, Direction::West],
-                        );
-                    }
-                    if desc.y_rotation != 0 {
-                        let o = (desc.y_rotation as i32) / 90;
-                        rendered_face_dir = rotate_direction_vanilla(
-                            rendered_face_dir,
-                            o,
-                            FACE_ROTATION,
-                            &[Direction::Up, Direction::Down],
-                        );
-                    }
-
-                    // occlusion - use the rotated face direction for culling
                     if let Some(cull_dir) = resolve_cullface(desc, model_face) {
                         if face_is_occluded(local, cull_dir, builder.section) {
                             continue;
@@ -70,21 +48,7 @@ pub fn mesh_block(block: BlockState, local: IVec3, builder: &mut MeshBuilder) {
                         uvs = rotate_uvs(uvs, model_face.rotation);
                     }
 
-                    // Apply uvlock rotation only for specific face orientations
-                    if desc.uvlock {
-                        if desc.y_rotation != 0
-                            && (rendered_face_dir == Direction::Up
-                                || rendered_face_dir == Direction::Down)
-                        {
-                            uvs = rotate_uvs(uvs, desc.y_rotation);
-                        }
-                        if desc.x_rotation != 0
-                            && (rendered_face_dir != Direction::Up
-                                && rendered_face_dir != Direction::Down)
-                        {
-                            uvs = rotate_uvs(uvs, desc.x_rotation);
-                        }
-                    }
+
                     let tint = builder.block_colors.get_color(
                         block,
                         builder.section,
@@ -92,7 +56,6 @@ pub fn mesh_block(block: BlockState, local: IVec3, builder: &mut MeshBuilder) {
                         model_face.tintindex,
                         builder.assets,
                     );
-                    let start = builder.vertices.len() as u32;
 
                     let sprite_name = builder
                         .assets
@@ -102,6 +65,13 @@ pub fn mesh_block(block: BlockState, local: IVec3, builder: &mut MeshBuilder) {
                         .unwrap_or("empty");
 
                     if let Some(spr) = builder.assets.get_sprite_rect(sprite_name) {
+                        let mut quad = [BlockVertex {
+                            position: [0.0; 3],
+                            ao: 3.0,
+                            uv: [0.0; 2],
+                            tint,
+                        }; 4];
+
                         for (i, &offset) in face.offsets.iter().enumerate() {
                             let offset = rotate_offset(offset, desc.x_rotation, desc.y_rotation);
                             let local_pos = offset_to_coord(offset, element) / 16.0;
@@ -119,27 +89,20 @@ pub fn mesh_block(block: BlockState, local: IVec3, builder: &mut MeshBuilder) {
                                 builder.assets.block_atlas.height,
                             );
 
-                            builder.vertices.push(BlockVertex {
+                            quad[i] = BlockVertex {
                                 position: (local_pos + world_pos).into(),
                                 ao: if model.ambient_occlusion {
-                                    compute_ao(local, offset, rendered_face_dir, builder.section)
+                                    compute_ao(local, offset, face.dir, builder.section)
                                         as f32
                                 } else {
                                     3.0
                                 },
                                 uv,
                                 tint,
-                            });
+                            };
                         }
 
-                        builder.indices.extend_from_slice(&[
-                            start,
-                            start + 1,
-                            start + 2,
-                            start,
-                            start + 2,
-                            start + 3,
-                        ]);
+                        builder.push_block_quad(quad);
                     }
                 }
             }

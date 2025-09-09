@@ -31,9 +31,6 @@ pub(crate) mod world_renderer;
 
 mod assets;
 
-const TRIANGLE_VERT: &[u8] = include_bytes!(env!("TRIANGLE_VERT"));
-const TRIANGLE_FRAG: &[u8] = include_bytes!(env!("TRIANGLE_FRAG"));
-
 pub struct Renderer {
     pub context: VkContext,
     pub swapchain: Swapchain,
@@ -76,8 +73,6 @@ impl Renderer {
             atlas_image,
             &context,
             &swapchain,
-            TRIANGLE_VERT,
-            TRIANGLE_FRAG,
             WorldRendererOptions { wireframe_enabled },
         );
 
@@ -87,7 +82,7 @@ impl Renderer {
         let sync = FrameSync::new(context.device(), swapchain.images.len());
 
         let camera = Camera::new(glam::vec3(0.0, 150.0, 2.0), -90.0, 0.0);
-        let projection = Projection::new(size.width, size.height, 90.0, 1.0, 10000.0);
+        let projection = Projection::new(size.width, size.height, 90.0, 0.1, 10000.0);
         let camera_controller = CameraController::new(4.0, 1.0);
 
         let egui = EguiVulkan::new(event_loop, &context, &swapchain, None)?;
@@ -200,6 +195,7 @@ impl Renderer {
             self.swapchain.extent,
             self.projection.calc_proj() * self.camera.calc_view(),
             self.wireframe_mode,
+            self.camera.position,
         );
 
         if let Err(e) = self.render_egui(cmd, image_index, frame) {

@@ -18,6 +18,7 @@ use crate::renderer::{
 #[derive(Default)]
 struct FrameData {
     meshes: Vec<GpuMesh<Vertex>>,
+    textures_to_destroy: Vec<Texture>,
 }
 
 impl FrameData {
@@ -25,11 +26,15 @@ impl FrameData {
         for mut mesh in &mut self.meshes.drain(..) {
             mesh.destroy(ctx);
         }
+        for mut texture in &mut self.textures_to_destroy.drain(..) {
+            texture.destroy(ctx);
+        }
     }
 
     fn clear_buffers(&mut self, ctx: &VkContext) {
         self.destroy(ctx);
         self.meshes.clear();
+        self.textures_to_destroy.clear();
     }
 }
 
@@ -46,16 +51,13 @@ impl CallbackFn {
     }
 }
 
-/// A Vulkan painter for egui using ash and vk-mem.
 pub struct Painter {
-    // Vulkan objects
     render_pass: vk::RenderPass,
     pipeline: vk::Pipeline,
     pipeline_layout: vk::PipelineLayout,
     descriptor_set_layout: vk::DescriptorSetLayout,
     descriptor_pool: vk::DescriptorPool,
 
-    // Framebuffers for egui rendering
     framebuffers: Vec<vk::Framebuffer>,
     swapchain_format: vk::Format,
     extent: vk::Extent2D,
@@ -69,9 +71,6 @@ pub struct Painter {
 
     next_native_tex_id: u64,
 
-    /// Stores outdated Vulkan textures that are yet to be deleted
-    textures_to_destroy: Vec<Texture>,
-
     /// Used to make sure we are destroyed correctly.
     destroyed: bool,
 }
@@ -81,13 +80,10 @@ impl Painter {
     pub fn new(ctx: &VkContext, swapchain: &Swapchain) -> anyhow::Result<Self> {
         let device = ctx.device();
 
-        // Create egui render pass
         let render_pass = create_egui_render_pass(ctx, swapchain.format);
 
-        // Create framebuffers for egui
         let framebuffers = Self::create_framebuffers(ctx, swapchain, render_pass);
 
-        // Create descriptor set layout for textures
         let sampler_binding = vk::DescriptorSetLayoutBinding::default()
             .binding(0)
             .descriptor_type(vk::DescriptorType::COMBINED_IMAGE_SAMPLER)
@@ -103,10 +99,9 @@ impl Painter {
                 .map_err(|e| anyhow::anyhow!("Failed to create descriptor set layout: {:?}", e))?
         };
 
-        // Create descriptor pool
         let pool_size = vk::DescriptorPoolSize::default()
             .ty(vk::DescriptorType::COMBINED_IMAGE_SAMPLER)
-            .descriptor_count(1000); // Support many textures
+            .descriptor_count(1000);
 
         let descriptor_pool_info = vk::DescriptorPoolCreateInfo::default()
             .pool_sizes(std::slice::from_ref(&pool_size))
@@ -119,7 +114,6 @@ impl Painter {
                 .map_err(|e| anyhow::anyhow!("Failed to create descriptor pool: {:?}", e))?
         };
 
-        // Create pipeline layout
         let push_constant_range = vk::PushConstantRange::default()
             .stage_flags(vk::ShaderStageFlags::VERTEX)
             .offset(0)
@@ -135,7 +129,6 @@ impl Painter {
                 .map_err(|e| anyhow::anyhow!("Failed to create pipeline layout: {:?}", e))?
         };
 
-        // Create pipeline (simplified - you'll need actual shaders)
         let pipeline = create_egui_pipeline(device, render_pass, pipeline_layout)?;
 
         Ok(Self {
@@ -151,7 +144,6 @@ impl Painter {
             textures: HashMap::new(),
             texture_descriptor_sets: HashMap::new(),
             next_native_tex_id: 1 << 32,
-            textures_to_destroy: Vec::new(),
             destroyed: false,
         })
     }
@@ -381,6 +373,7 @@ impl Painter {
         ctx: &VkContext,
         tex_id: TextureId,
         delta: &egui::epaint::ImageDelta,
+        frame_index: usize,
     ) -> anyhow::Result<()> {
         self.assert_not_destroyed();
 
@@ -391,8 +384,12 @@ impl Painter {
         };
 
         let descriptor_set = self.create_descriptor_set_for_texture(ctx, &texture)?;
+        
+        // Clean up any existing texture for this ID
+        if let Some(old_texture) = self.textures.insert(tex_id, texture) {
+            self.frame_data[frame_index].textures_to_destroy.push(old_texture);
+        }
         self.texture_descriptor_sets.insert(tex_id, descriptor_set);
-        self.textures.insert(tex_id, texture);
 
         Ok(())
     }
@@ -435,17 +432,17 @@ impl Painter {
     }
 
     /// Free the texture with the given ID.
-    pub fn free_texture(&mut self, tex_id: TextureId) {
+    pub fn free_texture(&mut self, tex_id: TextureId, frame_index: usize) {
         self.assert_not_destroyed();
 
         if let Some(texture) = self.textures.remove(&tex_id) {
-            self.textures_to_destroy.push(texture);
+            self.frame_data[frame_index].textures_to_destroy.push(texture);
         }
         self.texture_descriptor_sets.remove(&tex_id);
     }
 
     /// Register a native texture and return a texture ID.
-    pub fn register_native_texture(&mut self, texture: Texture) -> TextureId {
+    pub fn register_native_texture(&mut self, texture: Texture, frame_index: usize) -> TextureId {
         self.assert_not_destroyed();
         let tex_id = TextureId::User(self.next_native_tex_id);
         self.next_native_tex_id += 1;
@@ -463,10 +460,6 @@ impl Painter {
 
                 // Clean up textures
                 for texture in self.textures.values_mut() {
-                    texture.destroy(ctx);
-                }
-
-                for texture in &mut self.textures_to_destroy {
                     texture.destroy(ctx);
                 }
 

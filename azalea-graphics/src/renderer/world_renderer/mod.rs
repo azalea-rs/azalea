@@ -5,7 +5,11 @@ use azalea::core::position::ChunkSectionPos;
 use vk_mem::{Alloc, Allocation, AllocationCreateInfo, MemoryUsage};
 
 use crate::renderer::{
-    assets::MeshAssets, chunk::LocalSection, mesh::Mesh, vulkan::{context::VkContext, swapchain::Swapchain, texture::Texture}, world_renderer::mesher::Mesher
+    assets::MeshAssets,
+    chunk::LocalSection,
+    mesh::Mesh,
+    vulkan::{context::VkContext, swapchain::Swapchain, texture::Texture},
+    world_renderer::mesher::{MeshResult, Mesher},
 };
 
 pub mod mesher;
@@ -18,6 +22,12 @@ pub struct BlockVertex {
     pub uv: [f32; 2],
     pub tint: [f32; 3],
 }
+
+const TRIANGLE_VERT: &[u8] = include_bytes!(env!("BLOCK_VERT"));
+const TRIANGLE_FRAG: &[u8] = include_bytes!(env!("BLOCK_FRAG"));
+
+const WATER_VERT: &[u8] = include_bytes!(env!("WATER_VERT"));
+const WATER_FRAG: &[u8] = include_bytes!(env!("WATER_FRAG"));
 
 impl BlockVertex {
     fn binding_description() -> vk::VertexInputBindingDescription {
@@ -63,13 +73,15 @@ impl BlockVertex {
 
 pub struct WorldRenderer {
     pub mesher: Mesher,
-    pub meshes: HashMap<ChunkSectionPos, Mesh<BlockVertex>>,
+    pub block_meshes: HashMap<ChunkSectionPos, Mesh<BlockVertex>>,
+    pub water_meshes: HashMap<ChunkSectionPos, Mesh<BlockVertex>>,
 
     // Vulkan resources owned by this renderer
     render_pass: vk::RenderPass,
     pipeline_layout: vk::PipelineLayout,
     pipeline: vk::Pipeline,
     wireframe_pipeline: Option<vk::Pipeline>,
+    water_pipeline: vk::Pipeline,
     descriptor_set_layout: vk::DescriptorSetLayout,
     descriptor_pool: vk::DescriptorPool,
     descriptor_set: vk::DescriptorSet,
@@ -113,8 +125,6 @@ impl WorldRenderer {
         atlas_image: image::RgbaImage,
         ctx: &VkContext,
         swapchain: &Swapchain,
-        vert_spv: &[u8],
-        frag_spv: &[u8],
         options: WorldRendererOptions,
     ) -> Self {
         // Create texture from atlas
@@ -143,20 +153,23 @@ impl WorldRenderer {
         let pipeline_layout = create_world_pipeline_layout(ctx.device(), descriptor_set_layout);
 
         // Create pipelines
-        let pipeline = create_world_pipeline(ctx, render_pass, pipeline_layout, vert_spv, frag_spv);
+        let pipeline = create_world_pipeline(ctx, render_pass, pipeline_layout, TRIANGLE_VERT, TRIANGLE_FRAG);
         let wireframe_pipeline = if options.wireframe_enabled {
-            create_world_wireframe_pipeline(ctx, render_pass, pipeline_layout, vert_spv, frag_spv)
+            create_world_wireframe_pipeline(ctx, render_pass, pipeline_layout, TRIANGLE_VERT, TRIANGLE_FRAG)
         } else {
             None
         };
+        let water_pipeline = create_water_pipeline(ctx, render_pass, pipeline_layout, WATER_VERT, WATER_FRAG);
 
         Self {
             mesher: Mesher::new(assets),
-            meshes: HashMap::new(),
+            block_meshes: HashMap::new(),
+            water_meshes: HashMap::new(),
             render_pass,
             pipeline_layout,
             pipeline,
             wireframe_pipeline,
+            water_pipeline,
             descriptor_set_layout,
             descriptor_pool,
             descriptor_set,
@@ -181,13 +194,30 @@ impl WorldRenderer {
 
     /// Poll mesher results and upload to GPU
     pub fn process_meshing_results(&mut self, ctx: &VkContext) {
-        while let Some(mesh_data) = self.mesher.poll() {
-            if mesh_data.vertices.is_empty() || mesh_data.indices.is_empty() {
-                continue;
-            }
-            let mesh = Mesh::new_staging(ctx, &mesh_data.vertices, &mesh_data.indices).upload(ctx);
+        while let Some(MeshResult { blocks, water }) = self.mesher.poll() {
+            if !blocks.vertices.is_empty() {
+                let mut staging = Mesh::new_staging(ctx, &blocks.vertices, &blocks.indices);
 
-            self.meshes.insert(mesh_data.section_pos, mesh);
+                let mesh = staging.upload(ctx);
+                staging.destroy(ctx);
+
+                // Destroy old mesh if it exists before inserting new one
+                if let Some(mut old_mesh) = self.block_meshes.insert(blocks.section_pos, mesh) {
+                    old_mesh.destroy(ctx);
+                }
+            }
+
+            if !water.vertices.is_empty() {
+                let mut staging = Mesh::new_staging(ctx, &water.vertices, &water.indices);
+
+                let mesh = staging.upload(ctx);
+                staging.destroy(ctx);
+
+                // Destroy old mesh if it exists before inserting new one
+                if let Some(mut old_mesh) = self.water_meshes.insert(water.section_pos, mesh) {
+                    old_mesh.destroy(ctx);
+                }
+            }
         }
     }
 
@@ -198,15 +228,19 @@ impl WorldRenderer {
         cmd: vk::CommandBuffer,
         view_proj: glam::Mat4,
         wireframe_mode: bool,
+        camera_pos: glam::Vec3,
     ) {
+        let push = PushConstants { view_proj };
+        
+        // Render opaque blocks first
         let current_pipeline = if wireframe_mode {
             self.wireframe_pipeline.unwrap_or(self.pipeline)
         } else {
             self.pipeline
         };
+        
         unsafe {
             device.cmd_bind_pipeline(cmd, vk::PipelineBindPoint::GRAPHICS, current_pipeline);
-            let push = PushConstants { view_proj };
 
             device.cmd_push_constants(
                 cmd,
@@ -229,7 +263,70 @@ impl WorldRenderer {
             );
         }
 
-        for (_, mesh) in &self.meshes {
+        // Draw all block meshes
+        for (_, mesh) in &self.block_meshes {
+            let vertex_buffers = [mesh.buffer.buffer];
+            let offsets = [mesh.vertex_offset];
+            unsafe {
+                device.cmd_bind_vertex_buffers(cmd, 0, &vertex_buffers, &offsets);
+                device.cmd_bind_index_buffer(
+                    cmd,
+                    mesh.buffer.buffer,
+                    mesh.index_offset,
+                    vk::IndexType::UINT32,
+                );
+                device.cmd_draw_indexed(cmd, mesh.index_count, 1, 0, 0, 0);
+            }
+        }
+
+        // Switch to water pipeline for transparent water rendering
+        unsafe {
+            device.cmd_bind_pipeline(cmd, vk::PipelineBindPoint::GRAPHICS, self.water_pipeline);
+            
+            device.cmd_push_constants(
+                cmd,
+                self.pipeline_layout,
+                vk::ShaderStageFlags::VERTEX,
+                0,
+                std::slice::from_raw_parts(
+                    &push as *const PushConstants as *const u8,
+                    std::mem::size_of::<PushConstants>(),
+                ),
+            );
+
+            device.cmd_bind_descriptor_sets(
+                cmd,
+                vk::PipelineBindPoint::GRAPHICS,
+                self.pipeline_layout,
+                0,
+                &[self.descriptor_set],
+                &[],
+            );
+        }
+
+        // Sort water meshes by distance from camera for proper transparency
+        let mut water_meshes: Vec<_> = self.water_meshes.iter().collect();
+        water_meshes.sort_by(|(pos_a, _), (pos_b, _)| {
+            let center_a = glam::Vec3::new(
+                pos_a.x as f32 * 16.0 + 8.0,
+                pos_a.y as f32 * 16.0 + 8.0,
+                pos_a.z as f32 * 16.0 + 8.0,
+            );
+            let center_b = glam::Vec3::new(
+                pos_b.x as f32 * 16.0 + 8.0,
+                pos_b.y as f32 * 16.0 + 8.0,
+                pos_b.z as f32 * 16.0 + 8.0,
+            );
+            
+            let dist_a = camera_pos.distance_squared(center_a);
+            let dist_b = camera_pos.distance_squared(center_b);
+            
+            // Sort farthest to nearest for proper alpha blending
+            dist_b.partial_cmp(&dist_a).unwrap_or(std::cmp::Ordering::Equal)
+        });
+
+        // Draw sorted water meshes
+        for (_, mesh) in water_meshes {
             let vertex_buffers = [mesh.buffer.buffer];
             let offsets = [mesh.vertex_offset];
             unsafe {
@@ -298,6 +395,7 @@ impl WorldRenderer {
         extent: vk::Extent2D,
         view_proj: glam::Mat4,
         wireframe_mode: bool,
+        camera_pos: glam::Vec3,
     ) {
         // Begin render pass
         self.begin_render_pass(device, cmd, image_index, extent);
@@ -321,7 +419,7 @@ impl WorldRenderer {
         }
 
         // Draw world geometry
-        self.draw(device, cmd, view_proj, wireframe_mode);
+        self.draw(device, cmd, view_proj, wireframe_mode, camera_pos);
 
         // End render pass
         self.end_render_pass(device, cmd);
@@ -359,21 +457,41 @@ impl WorldRenderer {
         self.extent = swapchain.extent;
     }
 
-    /// Clean up GPU resources
     pub fn destroy(&mut self, ctx: &VkContext) {
         let device = ctx.device();
 
-        // Clean up meshes
-        for (_pos, mut mesh) in self.meshes.drain() {
+        for (_pos, mut mesh) in self.block_meshes.drain() {
             mesh.destroy(ctx);
         }
 
-        // Clean up Vulkan resources
+        for (_pos, mut mesh) in self.water_meshes.drain() {
+            mesh.destroy(ctx);
+        }
+
+        for framebuffer in &self.framebuffers {
+            unsafe {
+                device.destroy_framebuffer(*framebuffer, None);
+            }
+        }
+
+        unsafe {
+            device.destroy_image_view(self.depth_view, None);
+            ctx.allocator()
+                .destroy_image(self.depth_image, &mut self.depth_allocation);
+        }
+
+        self.blocks_texture.destroy(ctx);
+
+        unsafe {
+            device.destroy_descriptor_pool(self.descriptor_pool, None);
+        }
+
         unsafe {
             device.destroy_pipeline(self.pipeline, None);
             if let Some(wireframe_pipeline) = self.wireframe_pipeline {
                 device.destroy_pipeline(wireframe_pipeline, None);
             }
+            device.destroy_pipeline(self.water_pipeline, None);
             device.destroy_pipeline_layout(self.pipeline_layout, None);
             device.destroy_render_pass(self.render_pass, None);
             device.destroy_descriptor_set_layout(self.descriptor_set_layout, None);
@@ -547,6 +665,113 @@ pub fn create_world_wireframe_pipeline(
     } else {
         None
     }
+}
+
+pub fn create_water_pipeline(
+    ctx: &VkContext,
+    render_pass: vk::RenderPass,
+    pipeline_layout: vk::PipelineLayout,
+    vert_spv: &[u8],
+    frag_spv: &[u8],
+) -> vk::Pipeline {
+    let device = ctx.device();
+
+    let vert_module = create_shader_module(device, vert_spv);
+    let frag_module = create_shader_module(device, frag_spv);
+
+    let entry_point = std::ffi::CString::new("main").unwrap();
+
+    let shader_stages = [
+        vk::PipelineShaderStageCreateInfo::default()
+            .stage(vk::ShaderStageFlags::VERTEX)
+            .module(vert_module)
+            .name(&entry_point),
+        vk::PipelineShaderStageCreateInfo::default()
+            .stage(vk::ShaderStageFlags::FRAGMENT)
+            .module(frag_module)
+            .name(&entry_point),
+    ];
+
+    let binding_desc = [BlockVertex::binding_description()];
+    let attribute_desc = BlockVertex::attribute_descriptions();
+
+    let vertex_input = vk::PipelineVertexInputStateCreateInfo::default()
+        .vertex_binding_descriptions(&binding_desc)
+        .vertex_attribute_descriptions(&attribute_desc);
+    let input_assembly = vk::PipelineInputAssemblyStateCreateInfo::default()
+        .topology(vk::PrimitiveTopology::TRIANGLE_LIST)
+        .primitive_restart_enable(false);
+
+    let viewport_state = vk::PipelineViewportStateCreateInfo::default()
+        .viewport_count(1)
+        .scissor_count(1);
+
+    let rasterizer = vk::PipelineRasterizationStateCreateInfo::default()
+        .polygon_mode(vk::PolygonMode::FILL)
+        .cull_mode(vk::CullModeFlags::BACK)
+        .front_face(vk::FrontFace::COUNTER_CLOCKWISE)
+        .line_width(1.0);
+
+    let multisampling = vk::PipelineMultisampleStateCreateInfo::default()
+        .rasterization_samples(vk::SampleCountFlags::TYPE_1);
+
+    // Enable alpha blending for water transparency
+    let color_blend_attachment = vk::PipelineColorBlendAttachmentState::default()
+        .color_write_mask(
+            vk::ColorComponentFlags::R
+                | vk::ColorComponentFlags::G
+                | vk::ColorComponentFlags::B
+                | vk::ColorComponentFlags::A,
+        )
+        .blend_enable(true)
+        .src_color_blend_factor(vk::BlendFactor::SRC_ALPHA)
+        .dst_color_blend_factor(vk::BlendFactor::ONE_MINUS_SRC_ALPHA)
+        .color_blend_op(vk::BlendOp::ADD)
+        .src_alpha_blend_factor(vk::BlendFactor::ONE)
+        .dst_alpha_blend_factor(vk::BlendFactor::ZERO)
+        .alpha_blend_op(vk::BlendOp::ADD);
+
+    let depth_stencil = vk::PipelineDepthStencilStateCreateInfo::default()
+        .depth_test_enable(true)
+        .depth_write_enable(false) // Don't write to depth buffer for transparency
+        .depth_compare_op(vk::CompareOp::LESS)
+        .depth_bounds_test_enable(false)
+        .stencil_test_enable(false);
+
+    let attachments = [color_blend_attachment];
+    let color_blending = vk::PipelineColorBlendStateCreateInfo::default().attachments(&attachments);
+
+    let dynamic_states = [vk::DynamicState::VIEWPORT, vk::DynamicState::SCISSOR];
+    let dynamic_state =
+        vk::PipelineDynamicStateCreateInfo::default().dynamic_states(&dynamic_states);
+
+    let pipeline_info = vk::GraphicsPipelineCreateInfo::default()
+        .stages(&shader_stages)
+        .vertex_input_state(&vertex_input)
+        .input_assembly_state(&input_assembly)
+        .viewport_state(&viewport_state)
+        .rasterization_state(&rasterizer)
+        .multisample_state(&multisampling)
+        .depth_stencil_state(&depth_stencil)
+        .color_blend_state(&color_blending)
+        .dynamic_state(&dynamic_state)
+        .layout(pipeline_layout)
+        .render_pass(render_pass)
+        .subpass(0);
+
+    let pipelines = unsafe {
+        device
+            .create_graphics_pipelines(vk::PipelineCache::null(), &[pipeline_info], None)
+            .expect("Failed to create water pipeline")
+    };
+    let pipeline = pipelines[0];
+
+    unsafe {
+        device.destroy_shader_module(vert_module, None);
+        device.destroy_shader_module(frag_module, None);
+    }
+
+    pipeline
 }
 
 pub fn create_world_render_pass(ctx: &VkContext, swapchain: &Swapchain) -> vk::RenderPass {

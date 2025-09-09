@@ -114,7 +114,7 @@ impl EguiVulkan {
         let mut textures_delta = std::mem::take(&mut self.textures_delta);
 
         for (id, image_delta) in textures_delta.set {
-            self.painter.set_texture(ctx, id, &image_delta)?;
+            self.painter.set_texture(ctx, id, &image_delta, frame_index)?;
         }
 
         let pixels_per_point = self.pixels_per_point;
@@ -131,7 +131,7 @@ impl EguiVulkan {
         )?;
 
         for id in textures_delta.free.drain(..) {
-            self.painter.free_texture(id);
+            self.painter.free_texture(id, frame_index);
         }
 
         Ok(())

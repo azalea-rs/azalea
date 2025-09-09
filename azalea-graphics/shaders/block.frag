@@ -10,7 +10,7 @@ layout(location = 0) out vec4 outColor;
 
 void main() {
     vec4 texColor = texture(blocks_atlas, fragUV);
-    if (texColor.w < 0.5) {
+    if (texColor.w < 0.9) {
       discard;
     }
 

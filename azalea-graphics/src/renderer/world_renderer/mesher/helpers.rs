@@ -81,15 +81,14 @@ pub fn remap_uv_to_atlas(
     atlas_w: u32,
     atlas_h: u32,
 ) -> [f32; 2] {
-    const BIAS: f32 = 0.5;
 
     let aw = atlas_w as f32;
     let ah = atlas_h as f32;
 
-    let u0 = (spr.x as f32 + BIAS) / aw;
-    let v0 = (spr.y as f32 + BIAS) / ah;
-    let u1 = (spr.x as f32 + spr.width as f32 - BIAS) / aw;
-    let v1 = (spr.y as f32 + spr.height as f32 - BIAS) / ah;
+    let u0 = (spr.x as f32) / aw;
+    let v0 = (spr.y as f32) / ah;
+    let u1 = (spr.x as f32 + spr.width as f32 ) / aw;
+    let v1 = (spr.y as f32 + spr.height as f32 ) / ah;
 
     let tu = (uv_px.x / 16.0).clamp(0.0, 1.0);
     let tv = (uv_px.y / 16.0).clamp(0.0, 1.0);
@@ -129,6 +128,23 @@ pub fn rotate_direction_vanilla(
     }
     let pos = rots.iter().position(|v| *v == val).unwrap_or(0) as i32;
     rots[(rots.len() as i32 + pos + offset) as usize % rots.len()]
+}
+
+pub fn quad_uvs(spr: &PlacedSprite, atlas_w: u32, atlas_h: u32) -> [[f32; 2]; 4] {
+    let aw = atlas_w as f32;
+    let ah = atlas_h as f32;
+
+    let u0 = spr.x as f32 / aw;
+    let v0 = spr.y as f32 / ah;
+    let u1 = (spr.x + spr.width) as f32 / aw;
+    let v1 = (spr.y + spr.height) as f32 / ah;
+
+    [
+        [u0, v1], // bottom-left
+        [u1, v1], // bottom-right
+        [u1, v0], // top-right
+        [u0, v0], // top-left
+    ]
 }
 
 /// Rotate direction based on x and y rotations (keeping old function for compatibility)

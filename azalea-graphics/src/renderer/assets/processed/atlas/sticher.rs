@@ -17,6 +17,7 @@ pub struct PlacedSprite {
     pub height: u32,
 }
 
+
 #[derive(Debug)]
 pub struct Atlas {
     pub width: u32,
