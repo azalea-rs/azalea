@@ -295,6 +295,16 @@ impl<'de> Deserialize<'de> for FormattedText {
                     .as_str()
                     .ok_or_else(|| de::Error::custom("\"translate\" must be a string"))?
                     .into();
+                let fallback = if let Some(fallback) = json.get("fallback") {
+                    Some(
+                        fallback
+                            .as_str()
+                            .ok_or_else(|| de::Error::custom("\"fallback\" must be a string"))?
+                            .to_string(),
+                    )
+                } else {
+                    None
+                };
                 if let Some(with) = json.get("with") {
                     let with = with
                         .as_array()
@@ -316,13 +326,14 @@ impl<'de> Deserialize<'de> for FormattedText {
                             FormattedText::deserialize(item).map_err(de::Error::custom)?,
                         ));
                     }
-                    component = FormattedText::Translatable(TranslatableComponent::new(
-                        translate, with_array,
+                    component = FormattedText::Translatable(TranslatableComponent::with_fallback(
+                        translate, fallback, with_array,
                     ));
                 } else {
                     // if it doesn't have a "with", just have the with_array be empty
-                    component = FormattedText::Translatable(TranslatableComponent::new(
+                    component = FormattedText::Translatable(TranslatableComponent::with_fallback(
                         translate,
+                        fallback,
                         Vec::new(),
                     ));
                 }
@@ -676,5 +687,60 @@ impl Display for FormattedText {
 impl Default for FormattedText {
     fn default() -> Self {
         FormattedText::Text(TextComponent::default())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_json::Value;
+
+    use super::*;
+
+    #[test]
+    fn deserialize_translation() {
+        let j: Value =
+            serde_json::from_str(r#"{"translate": "translation.test.args", "with": ["a", "b"]}"#)
+                .unwrap();
+        let component = FormattedText::deserialize(&j).unwrap();
+        assert_eq!(
+            component,
+            FormattedText::Translatable(TranslatableComponent::new(
+                "translation.test.args".to_string(),
+                vec![
+                    StringOrComponent::String("a".to_string()),
+                    StringOrComponent::String("b".to_string())
+                ]
+            ))
+        );
+    }
+
+    #[test]
+    fn deserialize_translation_invalid_arguments() {
+        let j: Value =
+            serde_json::from_str(r#"{"translate": "translation.test.args", "with": {}}"#).unwrap();
+        assert!(FormattedText::deserialize(&j).is_err());
+    }
+
+    #[test]
+    fn deserialize_translation_fallback() {
+        let j: Value = serde_json::from_str(r#"{"translate": "translation.test.undefined", "fallback": "fallback: %s", "with": ["a"]}"#).unwrap();
+        let component = FormattedText::deserialize(&j).unwrap();
+        assert_eq!(
+            component,
+            FormattedText::Translatable(TranslatableComponent::with_fallback(
+                "translation.test.undefined".to_string(),
+                Some("fallback: %s".to_string()),
+                vec![StringOrComponent::String("a".to_string())]
+            ))
+        );
+    }
+
+    #[test]
+    fn deserialize_translation_invalid_fallback() {
+        let j: Value = serde_json::from_str(
+            r#"{"translate": "translation.test.undefined", "fallback": {"text": "invalid"}}"#,
+        )
+        .unwrap();
+        assert!(FormattedText::deserialize(&j).is_err());
     }
 }
