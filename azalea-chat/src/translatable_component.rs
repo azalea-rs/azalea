@@ -28,6 +28,7 @@ impl simdnbt::ToNbtTag for StringOrComponent {
 pub struct TranslatableComponent {
     pub base: BaseComponent,
     pub key: String,
+    pub fallback: Option<String>,
     pub args: Vec<StringOrComponent>,
 }
 
@@ -97,13 +98,33 @@ impl TranslatableComponent {
         Self {
             base: BaseComponent::new(),
             key,
+            fallback: None,
+            args,
+        }
+    }
+
+    pub fn with_fallback(
+        key: String,
+        fallback: Option<String>,
+        args: Vec<StringOrComponent>,
+    ) -> Self {
+        Self {
+            base: BaseComponent::new(),
+            key,
+            fallback,
             args,
         }
     }
 
     /// Convert the key and args to a FormattedText.
     pub fn read(&self) -> Result<TextComponent, fmt::Error> {
-        let template = azalea_language::get(&self.key).unwrap_or(&self.key);
+        let template = azalea_language::get(&self.key).unwrap_or_else(|| {
+            if let Some(fallback) = &self.fallback {
+                fallback.as_str()
+            } else {
+                &self.key
+            }
+        });
         // decode the % things
 
         let mut i = 0;
@@ -292,5 +313,30 @@ mod tests {
             ],
         );
         assert_eq!(c.read().unwrap().to_string(), "hi %  s".to_string());
+    }
+
+    #[test]
+    fn test_undefined() {
+        let c = TranslatableComponent::new(
+            "translation.test.undefined".to_string(),
+            vec![StringOrComponent::String("a".to_string())],
+        );
+        assert_eq!(
+            c.read().unwrap().to_string(),
+            "translation.test.undefined".to_string()
+        );
+    }
+
+    #[test]
+    fn test_undefined_with_fallback() {
+        let c = TranslatableComponent::with_fallback(
+            "translation.test.undefined".to_string(),
+            Some("translation fallback: %s".to_string()),
+            vec![StringOrComponent::String("a".to_string())],
+        );
+        assert_eq!(
+            c.read().unwrap().to_string(),
+            "translation fallback: a".to_string()
+        );
     }
 }
