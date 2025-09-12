@@ -31,7 +31,6 @@ impl Texture {
         let width = image.width() as u32;
         let height = image.height() as u32;
 
-        // Convert egui's Color32 to RGBA bytes
         let rgba_data: Vec<u8> = image
             .pixels
             .iter()

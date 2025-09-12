@@ -12,22 +12,25 @@ use raw::{
 use self::{
     processed::{
         VariantDesc,
-        atlas::{Atlas, PlacedSprite, build_atlas, render_atlas_image, stitch_sprites},
+        atlas::{Atlas, PlacedSprite, build_atlas, stitch_sprites},
         model::BlockModel as ResolvedBlockModel,
     },
     raw::atlas::SpriteAtlas,
 };
-use crate::renderer::vulkan::context::VkContext;
+use crate::renderer::{assets::processed::atlas::TextureEntry, vulkan::context::VkContext};
 
-pub struct MeshAssets {
+pub struct Assets {
     block_models: HashMap<String, ResolvedBlockModel>,
     blockstate_to_models: Vec<Vec<VariantDesc>>,
+
     pub block_atlas: Atlas,
     pub grass_colormap: Option<image::RgbaImage>,
     pub foliage_colormap: Option<image::RgbaImage>,
+
+    pub textures: HashMap<String, TextureEntry>,
 }
 
-impl MeshAssets {
+impl Assets {
     pub fn get_variant_descs(&self, state: BlockState) -> &[VariantDesc] {
         let id = state.id();
         &self.blockstate_to_models[id as usize]
@@ -42,16 +45,12 @@ impl MeshAssets {
         self.block_atlas.sprites.get(name)
     }
 
-    /// Sample grass colormap at the given temperature and downfall
-    /// Returns RGB values as [f32; 3] in range [0.0, 1.0]
     pub fn sample_grass_colormap(&self, temperature: f64, downfall: f64) -> Option<[f32; 3]> {
         self.grass_colormap
             .as_ref()
             .map(|colormap| sample_colormap_at_climate(colormap, temperature, downfall))
     }
 
-    /// Sample foliage colormap at the given temperature and downfall  
-    /// Returns RGB values as [f32; 3] in range [0.0, 1.0]
     pub fn sample_foliage_colormap(&self, temperature: f64, downfall: f64) -> Option<[f32; 3]> {
         self.foliage_colormap
             .as_ref()
@@ -59,8 +58,6 @@ impl MeshAssets {
     }
 }
 
-/// Sample a colormap texture at the given temperature and downfall coordinates
-/// This follows Java Minecraft's exact colormap sampling logic
 fn sample_colormap_at_climate(
     colormap: &image::RgbaImage,
     temperature: f64,
@@ -69,23 +66,16 @@ fn sample_colormap_at_climate(
     let width = colormap.width() as f64;
     let height = colormap.height() as f64;
 
-    // Clamp temperature and downfall to [0.0, 1.0] range
     let temp = temperature.clamp(0.0, 1.0);
     let rain = downfall.clamp(0.0, 1.0);
 
-    // Java Minecraft's exact coordinate calculation:
-    // 1. Adjust downfall by multiplying with temperature (creates triangular mask)
-    // 2. X = (1.0 - temperature) * (width-1) -> cold=right, hot=left
-    // 3. Y = (1.0 - adjusted_downfall) * (height-1) -> dry=bottom, wet=top
     let adjusted_downfall = rain * temp;
     let x = ((1.0 - temp) * (width - 1.0)) as u32;
     let y = ((1.0 - adjusted_downfall) * (height - 1.0)) as u32;
 
-    // Clamp to valid texture coordinates
     let x = x.min(colormap.width() - 1);
     let y = y.min(colormap.height() - 1);
 
-    // Sample pixel and convert to RGB floats
     let pixel = colormap.get_pixel(x, y);
     [
         pixel[0] as f32 / 255.0,
@@ -94,7 +84,7 @@ fn sample_colormap_at_climate(
     ]
 }
 
-pub fn load_assets(ctx: &VkContext, path: impl Into<PathBuf>) -> (MeshAssets, image::RgbaImage) {
+pub fn load_assets(ctx: &VkContext, path: impl Into<PathBuf>) -> Assets {
     let path = path.into();
 
     let start_total = Instant::now();
@@ -220,20 +210,13 @@ pub fn load_assets(ctx: &VkContext, path: impl Into<PathBuf>) -> (MeshAssets, im
         SpriteAtlas::from_str(&blocks_atlas_json).expect("invalid atlases/blocks.json");
 
     let textures_root = path.join("textures");
-    let (entries, name_to_path) =
-        build_atlas(&textures_root, &blocks_atlas).expect("build entries");
+    let textures = build_atlas(&textures_root, &blocks_atlas).expect("build entries");
 
     let max_tex = vk_max_texture_2d(ctx);
     let (max_w, max_h) = (max_tex, max_tex);
-    let packed_atlas = stitch_sprites(entries, max_w, max_h).expect("stitch sprites");
+    let packed_atlas = stitch_sprites(&textures, max_w, max_h).expect("stitch sprites");
 
-    let atlas_image = render_atlas_image(&packed_atlas, &name_to_path).expect("render atlas");
     let debug_path = path.join("debug_blocks_atlas.png");
-    if let Err(e) = atlas_image.save(&debug_path) {
-        warn!("Failed to save debug atlas {}: {e}", debug_path.display());
-    } else {
-        info!("Saved debug atlas to {}", debug_path.display());
-    }
 
     info!(
         "Built blocks atlas {}x{} in {:?}",
@@ -242,7 +225,6 @@ pub fn load_assets(ctx: &VkContext, path: impl Into<PathBuf>) -> (MeshAssets, im
         start.elapsed()
     );
 
-    // Load colormaps
     let start = Instant::now();
     let grass_colormap = load_colormap(&textures_root, "colormap/grass.png");
     let foliage_colormap = load_colormap(&textures_root, "colormap/foliage.png");
@@ -263,16 +245,14 @@ pub fn load_assets(ctx: &VkContext, path: impl Into<PathBuf>) -> (MeshAssets, im
 
     info!("Total asset load time: {:?}", start_total.elapsed());
 
-    (
-        MeshAssets {
-            block_models,
-            blockstate_to_models,
-            block_atlas: packed_atlas,
-            grass_colormap,
-            foliage_colormap,
-        },
-        atlas_image,
-    )
+    Assets {
+        block_models,
+        blockstate_to_models,
+        block_atlas: packed_atlas,
+        grass_colormap,
+        foliage_colormap,
+        textures,
+    }
 }
 
 /// Load a colormap texture from the given path

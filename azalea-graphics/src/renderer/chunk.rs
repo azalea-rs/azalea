@@ -2,9 +2,7 @@ use std::sync::Arc;
 
 use azalea::{
     blocks::BlockState,
-    core::{
-        position::{ChunkPos, ChunkSectionBiomePos, ChunkSectionBlockPos, ChunkSectionPos},
-    },
+    core::position::{ChunkPos, ChunkSectionBiomePos, ChunkSectionBlockPos, ChunkSectionPos},
     registry::Biome,
     world::Chunk,
 };
@@ -13,7 +11,7 @@ use parking_lot::RwLock;
 use crate::plugin::BiomeCache;
 
 pub struct LocalSection {
-    pub blocks: Box<[[[BlockState; 18]; 18]; 18]>,
+    pub blocks: Box<[[[Option<BlockState>; 18]; 18]; 18]>,
     pub biomes: Box<[[[Biome; 4]; 4]; 4]>,
     pub spos: ChunkSectionPos,
     pub biome_cache: BiomeCache,
@@ -81,7 +79,7 @@ impl<'a> BorrowedChunks<'a> {
 
     /// Build a single local section with 18x18x18 extended block data
     pub fn build_local_section(&self, spos: ChunkSectionPos) -> LocalSection {
-        let mut blocks = Box::new([[[BlockState::AIR; 18]; 18]; 18]);
+        let mut blocks = Box::new([[[None; 18]; 18]; 18]);
         let mut biomes = Box::new([[[Default::default(); 4]; 4]; 4]);
 
         for lx in -1..17 {
@@ -116,8 +114,7 @@ impl<'a> BorrowedChunks<'a> {
         }
     }
 
-    /// Get a block at local coordinates (no additional locking needed)
-    pub fn get_block_local(&self, base_y: i32, lx: i32, ly: i32, lz: i32) -> BlockState {
+    pub fn get_block_local(&self, base_y: i32, lx: i32, ly: i32, lz: i32) -> Option<BlockState> {
         let cx_off = lx.div_euclid(16);
         let sx = lx.rem_euclid(16) as u8;
 
@@ -143,14 +140,13 @@ impl<'a> BorrowedChunks<'a> {
         if let Some(chunk) = chunk_ref {
             let section_index = (base_y + cy_off) as usize;
             if let Some(section) = chunk.sections.get(section_index) {
-                return section.get_block_state(ChunkSectionBlockPos {
+                return Some(section.get_block_state(ChunkSectionBlockPos {
                     x: sx,
                     y: sy,
                     z: sz,
-                });
+                }));
             }
         }
-
-        BlockState::AIR
+        None
     }
 }

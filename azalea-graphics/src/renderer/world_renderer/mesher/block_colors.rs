@@ -8,13 +8,13 @@ use glam::IVec3;
 
 use crate::{
     plugin::BiomeCache,
-    renderer::{assets::MeshAssets, chunk::LocalSection},
+    renderer::{assets::Assets, chunk::LocalSection},
 };
 
 /// Function signature for block color providers
 /// Takes block_state, section (with biome_cache), local_pos, tint_index, and
 /// mesh_assets
-pub type BlockColorFn = fn(BlockState, &LocalSection, IVec3, i32, &MeshAssets) -> [f32; 3];
+pub type BlockColorFn = fn(BlockState, &LocalSection, IVec3, i32, &Assets) -> [f32; 3];
 
 /// Block color registry similar to Minecraft's BlockColors
 pub struct BlockColors {
@@ -98,7 +98,7 @@ impl BlockColors {
         section: &LocalSection,
         local_pos: IVec3,
         tint_index: i32,
-        assets: &MeshAssets,
+        assets: &Assets,
     ) -> [f32; 3] {
         let block = Block::from(block_state);
 
@@ -117,7 +117,7 @@ fn grass_color_provider(
     section: &LocalSection,
     local_pos: IVec3,
     tint_index: i32,
-    assets: &MeshAssets,
+    assets: &Assets,
 ) -> [f32; 3] {
     if tint_index == -1 {
         return [1.0; 3];
@@ -133,7 +133,7 @@ fn double_plant_grass_color_provider(
     section: &LocalSection,
     local_pos: IVec3,
     tint_index: i32,
-    assets: &MeshAssets,
+    assets: &Assets,
 ) -> [f32; 3] {
     if tint_index == -1 {
         return [1.0; 3];
@@ -160,7 +160,7 @@ fn foliage_color_provider(
     section: &LocalSection,
     local_pos: IVec3,
     tint_index: i32,
-    assets: &MeshAssets,
+    assets: &Assets,
 ) -> [f32; 3] {
     if tint_index == -1 {
         return [1.0; 3];
@@ -176,7 +176,7 @@ fn birch_foliage_color_provider(
     _section: &LocalSection,
     _local_pos: IVec3,
     tint_index: i32,
-    _assets: &MeshAssets,
+    _assets: &Assets,
 ) -> [f32; 3] {
     if tint_index == -1 {
         return [1.0; 3];
@@ -191,7 +191,7 @@ fn spruce_foliage_color_provider(
     _section: &LocalSection,
     _local_pos: IVec3,
     tint_index: i32,
-    _assets: &MeshAssets,
+    _assets: &Assets,
 ) -> [f32; 3] {
     if tint_index == -1 {
         return [1.0; 3];
@@ -206,7 +206,7 @@ fn water_color_provider(
     section: &LocalSection,
     local_pos: IVec3,
     tint_index: i32,
-    _assets: &MeshAssets,
+    _assets: &Assets,
 ) -> [f32; 3] {
     if tint_index == -1 {
         return [1.0; 3];
@@ -222,7 +222,7 @@ fn redstone_wire_color_provider(
     _section: &LocalSection,
     _local_pos: IVec3,
     _tint_index: i32,
-    _assets: &MeshAssets,
+    _assets: &Assets,
 ) -> [f32; 3] {
     use azalea::blocks::properties::RedstoneWirePower;
 
@@ -240,7 +240,7 @@ fn pumpkin_stem_color_provider(
     _section: &LocalSection,
     _local_pos: IVec3,
     _tint_index: i32,
-    _assets: &MeshAssets,
+    _assets: &Assets,
 ) -> [f32; 3] {
     use azalea::blocks::properties::PumpkinStemAge;
 
@@ -257,7 +257,7 @@ fn melon_stem_color_provider(
     _section: &LocalSection,
     _local_pos: IVec3,
     _tint_index: i32,
-    _assets: &MeshAssets,
+    _assets: &Assets,
 ) -> [f32; 3] {
     use azalea::blocks::properties::MelonStemAge;
 
@@ -275,7 +275,7 @@ fn attached_stem_color_provider(
     _section: &LocalSection,
     _local_pos: IVec3,
     tint_index: i32,
-    _assets: &MeshAssets,
+    _assets: &Assets,
 ) -> [f32; 3] {
     if tint_index == -1 {
         return [1.0; 3];
@@ -291,7 +291,7 @@ fn lily_pad_color_provider(
     section: &LocalSection,
     local_pos: IVec3,
     tint_index: i32,
-    _assets: &MeshAssets,
+    _assets: &Assets,
 ) -> [f32; 3] {
     if tint_index == -1 {
         return [1.0; 3];
@@ -303,7 +303,7 @@ fn lily_pad_color_provider(
 }
 
 /// Get grass color from biome data following Java logic
-fn get_biome_grass_color(biome: Biome, biome_cache: &BiomeCache, assets: &MeshAssets) -> [f32; 3] {
+fn get_biome_grass_color(biome: Biome, biome_cache: &BiomeCache, assets: &Assets) -> [f32; 3] {
     let biome_index = biome.protocol_id() as usize;
 
     let biome_data = &biome_cache.biomes[biome_index];
@@ -325,7 +325,7 @@ fn get_biome_grass_color(biome: Biome, biome_cache: &BiomeCache, assets: &MeshAs
 fn get_biome_foliage_color(
     biome: Biome,
     biome_cache: &BiomeCache,
-    assets: &MeshAssets,
+    assets: &Assets,
 ) -> [f32; 3] {
     let biome_index = biome.protocol_id() as usize;
 
@@ -363,7 +363,7 @@ fn get_biome_water_color(biome: Biome, biome_cache: &BiomeCache) -> [f32; 3] {
 
 /// Sample grass color from texture (Java: GrassColor.get(temperature,
 /// downfall))
-fn get_grass_color_from_texture(temperature: f64, downfall: f64, assets: &MeshAssets) -> [f32; 3] {
+fn get_grass_color_from_texture(temperature: f64, downfall: f64, assets: &Assets) -> [f32; 3] {
     // Try to sample from the actual grass colormap texture
     if let Some(color) = assets.sample_grass_colormap(temperature, downfall) {
         return color;
@@ -377,7 +377,7 @@ fn get_grass_color_from_texture(temperature: f64, downfall: f64, assets: &MeshAs
 fn get_foliage_color_from_texture(
     temperature: f64,
     downfall: f64,
-    assets: &MeshAssets,
+    assets: &Assets,
 ) -> [f32; 3] {
     // Try to sample from the actual foliage colormap texture
     if let Some(color) = assets.sample_foliage_colormap(temperature, downfall) {
@@ -415,7 +415,7 @@ impl BiomeColors {
         biome_cache: &BiomeCache,
         biome: Biome,
         local_pos: IVec3,
-        assets: &MeshAssets,
+        assets: &Assets,
     ) -> [f32; 3] {
         let base_color = get_biome_grass_color(biome, biome_cache, assets);
 
@@ -426,7 +426,7 @@ impl BiomeColors {
     pub fn get_average_grass_color(
         biome_cache: &BiomeCache,
         biome: Biome,
-        assets: &MeshAssets,
+        assets: &Assets,
     ) -> [f32; 3] {
         get_biome_grass_color(biome, biome_cache, assets)
     }
@@ -435,7 +435,7 @@ impl BiomeColors {
     pub fn get_average_foliage_color(
         biome_cache: &BiomeCache,
         biome: Biome,
-        assets: &MeshAssets,
+        assets: &Assets,
     ) -> [f32; 3] {
         get_biome_foliage_color(biome, biome_cache, assets)
     }

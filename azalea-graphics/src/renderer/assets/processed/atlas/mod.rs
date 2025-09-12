@@ -4,13 +4,14 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use image::RgbaImage;
 use thiserror::Error;
 
-use crate::renderer::assets::raw::atlas::{SpriteAtlas, SpriteSource};
+use crate::renderer::assets::{processed::animation::Animation, raw::atlas::{SpriteAtlas, SpriteSource}};
 
 mod sticher;
 
-pub use sticher::{Atlas, PlacedSprite, SpriteEntry, StitchError, stitch_sprites};
+pub use sticher::{Atlas, PlacedSprite, StitchError, stitch_sprites};
 
 #[derive(Error, Debug)]
 pub enum AtlasError {
@@ -24,16 +25,33 @@ pub enum AtlasError {
     Stitch(#[from] StitchError),
     #[error("missing texture file: {0}")]
     MissingTexture(PathBuf),
+    #[error("Serde json error: {0}")]
+    SerdeJson(#[from] serde_json::Error),
+}
+
+pub struct TextureEntry {
+    pub data: RgbaImage,
+
+    pub animation: Option<Animation>,
+}
+
+impl TextureEntry {
+    pub fn size(&self) -> (u32, u32) {
+        let image_size = self.data.dimensions();
+
+        self.animation
+            .as_ref()
+            .map(|animation| animation.size(image_size))
+            .unwrap_or(image_size)
+    }
 }
 
 pub fn build_atlas(
     textures_root: impl AsRef<Path>,
     def: &SpriteAtlas,
-) -> Result<(Vec<SpriteEntry>, HashMap<String, PathBuf>), AtlasError> {
+) -> Result<HashMap<String, TextureEntry>, AtlasError> {
     let textures_root = textures_root.as_ref();
-
-    let mut sizes: HashMap<String, (u32, u32)> = HashMap::new();
-    let mut sources: HashMap<String, PathBuf> = HashMap::new();
+    let mut textures: HashMap<String, TextureEntry> = HashMap::new();
 
     for src in &def.sources {
         match src {
@@ -43,9 +61,8 @@ pub fn build_atlas(
                 if dir.is_dir() {
                     visit_pngs(&dir, |path, rel| {
                         let name = format!("{}{}", prefix, rel.replace('\\', "/"));
-                        let (w, h) = image::image_dimensions(&path)?;
-                        sizes.insert(name.clone(), (w, h));
-                        sources.insert(name, path.clone());
+                        let entry = load_texture_entry(&path)?;
+                        textures.insert(name, entry);
                         Ok(())
                     })?;
                 }
@@ -57,17 +74,16 @@ pub fn build_atlas(
                 if !path.exists() {
                     return Err(AtlasError::MissingTexture(path));
                 }
-                let (w, h) = image::image_dimensions(&path)?;
+
                 let name = sprite.clone().unwrap_or_else(|| resource.to_string());
-                sizes.insert(name.clone(), (w, h));
-                sources.insert(name, path.clone());
+                let entry = load_texture_entry(&path)?;
+                textures.insert(name, entry);
             }
 
             SpriteSource::Filter { pattern } => {
                 if let Some(pat) = &pattern.path {
                     let re = regex::Regex::new(pat)?;
-                    sizes.retain(|name, _| re.is_match(name));
-                    sources.retain(|name, _| re.is_match(name));
+                    textures.retain(|name, _| re.is_match(name));
                 }
             }
 
@@ -76,70 +92,51 @@ pub fn build_atlas(
             }
 
             SpriteSource::PalettedPermutations {
-                textures,
+                textures: bases,
                 separator,
                 palette_key: _,
                 permutations,
             } => {
-                for base in textures {
-                    let base = strip_namespace(&base);
+                for base in bases {
+                    let base = strip_namespace(base);
                     let base_path = textures_root.join(format!("{base}.png"));
                     if !base_path.exists() {
                         return Err(AtlasError::MissingTexture(base_path));
                     }
-                    let (w, h) = image::image_dimensions(&base_path)?;
-                    sizes.insert(base.to_string(), (w, h));
-                    sources.insert(base.to_string(), base_path.clone());
+
+                    let entry = load_texture_entry(&base_path)?;
+                    textures.insert(base.to_string(), entry);
 
                     for key in permutations.keys() {
-                        // We dont color the permutations yet, but atleast they sort of work
                         let name = format!("{base}{separator}{key}");
-                        sizes.insert(name.clone(), (w, h));
-                        sources.insert(name, base_path.clone());
+                        let entry = load_texture_entry(&base_path)?;
+                        textures.insert(name, entry);
                     }
                 }
             }
         }
     }
 
-    let entries = sizes
-        .into_iter()
-        .map(|(name, (w, h))| SpriteEntry {
-            name,
-            width: w,
-            height: h,
-        })
-        .collect();
-
-    Ok((entries, sources))
+    Ok(textures)
 }
 
-pub fn render_atlas_image(
-    stitched: &Atlas,
-    sources: &HashMap<String, PathBuf>,
-) -> Result<image::RgbaImage, AtlasError> {
-    use image::{GenericImage, RgbaImage, imageops};
+fn load_texture_entry(path: &Path) -> Result<TextureEntry, AtlasError> {
+    let data = image::open(path)?.into_rgba8();
 
-    let mut atlas =
-        RgbaImage::from_pixel(stitched.width, stitched.height, image::Rgba([0, 0, 0, 0]));
+    let mcmeta_path = {
+        let mut p = PathBuf::from(path);
+        p.set_extension("png.mcmeta");
+        p
+    };
 
-    for (name, rect) in &stitched.sprites {
-        let path = sources.get(name).ok_or_else(|| {
-            AtlasError::MissingTexture(PathBuf::from(format!("<unknown for {name}>")))
-        })?;
+    let animation = if mcmeta_path.exists() {
+        let json = fs::read_to_string(&mcmeta_path)?;
+        Some(serde_json::from_str::<Animation>(&json)?)
+    } else {
+        None
+    };
 
-        let mut img = image::open(path)?.into_rgba8();
-
-        if img.width() != rect.width || img.height() != rect.height {
-            img = imageops::resize(&img, rect.width, rect.height, imageops::FilterType::Nearest);
-        }
-
-        atlas
-            .copy_from(&img, rect.x, rect.y)
-            .expect("copy_into atlas bounds");
-    }
-
-    Ok(atlas)
+    Ok(TextureEntry { data, animation })
 }
 
 fn visit_pngs<F>(dir: &Path, mut f: F) -> Result<(), AtlasError>

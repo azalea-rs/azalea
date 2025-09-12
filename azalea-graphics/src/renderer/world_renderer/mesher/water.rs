@@ -8,10 +8,7 @@ use crate::renderer::{
     assets::processed::atlas::PlacedSprite,
     world_renderer::{
         BlockVertex,
-        mesher::{
-            MeshBuilder,
-            helpers::quad_uvs,
-        },
+        mesher::{MeshBuilder, helpers::quad_uvs},
     },
 };
 
@@ -35,12 +32,12 @@ pub fn mesh_water(block: BlockState, local: IVec3, builder: &mut MeshBuilder) {
     let still = builder.assets.get_sprite_rect("block/water_still").unwrap();
     let flow = builder.assets.get_sprite_rect("block/water_flow").unwrap();
 
-    let above = builder.section.blocks[local.x as usize][local.y as usize + 1][local.z as usize];
+    let above = builder.section.blocks[local.x as usize][local.y as usize + 1][local.z as usize].unwrap_or(BlockState::AIR);
     if Block::from(above) != Block::Water {
         mesh_water_top(local, h_ne, h_nw, h_sw, h_se, still, flow, tint, builder);
     }
 
-    let below = builder.section.blocks[local.x as usize][local.y as usize - 1][local.z as usize];
+    let below = builder.section.blocks[local.x as usize][local.y as usize - 1][local.z as usize].unwrap_or(BlockState::AIR);
     if Block::from(below) != Block::Water {
         mesh_water_bottom(local, still, tint, builder);
     }
@@ -49,7 +46,7 @@ pub fn mesh_water(block: BlockState, local: IVec3, builder: &mut MeshBuilder) {
 }
 
 fn fluid_height(local: IVec3, _block: BlockState, builder: &MeshBuilder) -> f32 {
-    let state = builder.section.blocks[local.x as usize][local.y as usize][local.z as usize];
+    let state = builder.section.blocks[local.x as usize][local.y as usize][local.z as usize].unwrap_or(BlockState::AIR);
     if Block::from(state) == Block::Water {
         let level = state.property::<WaterLevel>().unwrap() as u32;
         if level == 0 {
@@ -167,22 +164,18 @@ fn mesh_water_sides(
     );
 
     let dirs = [
-        // North face (z = 0, looking towards negative z)
         (
             IVec3::new(0, 0, -1),
             [Vec3::new(0.0, 0.0, 0.0), Vec3::new(1.0, 0.0, 0.0)],
         ),
-        // South face (z = 1, looking towards positive z)  
         (
             IVec3::new(0, 0, 1),
             [Vec3::new(0.0, 0.0, 1.0), Vec3::new(1.0, 0.0, 1.0)],
         ),
-        // West face (x = 0, looking towards negative x)
         (
             IVec3::new(-1, 0, 0),
             [Vec3::new(0.0, 0.0, 0.0), Vec3::new(0.0, 0.0, 1.0)],
         ),
-        // East face (x = 1, looking towards positive x)
         (
             IVec3::new(1, 0, 0),
             [Vec3::new(1.0, 0.0, 0.0), Vec3::new(1.0, 0.0, 1.0)],
@@ -198,7 +191,7 @@ fn mesh_water_sides(
     for (offset, [low_a, low_b]) in dirs {
         let neighbor = local + offset;
         let state =
-            builder.section.blocks[neighbor.x as usize][neighbor.y as usize][neighbor.z as usize];
+            builder.section.blocks[neighbor.x as usize][neighbor.y as usize][neighbor.z as usize].unwrap_or(BlockState::AIR);
         if Block::from(state) != Block::Water {
             let positions = [
                 base + low_a,

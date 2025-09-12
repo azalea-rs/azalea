@@ -17,8 +17,7 @@ use crate::renderer::{
             MeshBuilder,
             helpers::{
                  FACES, compute_ao, generate_uv, offset_to_coord,
-                remap_uv_to_atlas, rotate_direction,  rotate_offset,
-                rotate_uvs,
+                remap_uv_to_atlas
             },
         },
     },
@@ -41,12 +40,7 @@ pub fn mesh_block(block: BlockState, local: IVec3, builder: &mut MeshBuilder) {
                     }
 
                     // uv mapping
-                    let mut uvs = generate_uv(face.dir, model_face.uv);
-
-                    // Apply UV rotation based on model face rotation first
-                    if model_face.rotation != 0 {
-                        uvs = rotate_uvs(uvs, model_face.rotation);
-                    }
+                    let uvs = generate_uv(face.dir, model_face.uv);
 
 
                     let tint = builder.block_colors.get_color(
@@ -73,7 +67,6 @@ pub fn mesh_block(block: BlockState, local: IVec3, builder: &mut MeshBuilder) {
                         }; 4];
 
                         for (i, &offset) in face.offsets.iter().enumerate() {
-                            let offset = rotate_offset(offset, desc.x_rotation, desc.y_rotation);
                             let local_pos = offset_to_coord(offset, element) / 16.0;
 
                             let world_pos = Vec3::new(
@@ -134,11 +127,10 @@ fn resolve_cullface(desc: &VariantDesc, model_face: &model::Face) -> Option<Dire
             "west" => Direction::West,
             _ => return None,
         };
-        Some(rotate_direction(dir, desc.x_rotation, desc.y_rotation))
+        Some(dir)
     })
 }
 
-/// Check if a face is occluded by a neighboring block
 fn face_is_occluded(local: IVec3, cull_dir: Direction, section: &LocalSection) -> bool {
     let offset = match cull_dir {
         Direction::Up => IVec3::new(0, 1, 0),
@@ -151,7 +143,6 @@ fn face_is_occluded(local: IVec3, cull_dir: Direction, section: &LocalSection) -
 
     let neighbor_pos = local + offset;
 
-    // Check bounds
     if neighbor_pos.x < 0
         || neighbor_pos.y < 0
         || neighbor_pos.z < 0
@@ -163,7 +154,7 @@ fn face_is_occluded(local: IVec3, cull_dir: Direction, section: &LocalSection) -
     }
 
     let neighbor_state =
-        section.blocks[neighbor_pos.x as usize][neighbor_pos.y as usize][neighbor_pos.z as usize];
+        section.blocks[neighbor_pos.x as usize][neighbor_pos.y as usize][neighbor_pos.z as usize].unwrap_or(BlockState::AIR);
 
     if neighbor_state.is_air() {
         return false;

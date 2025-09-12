@@ -1,5 +1,5 @@
 use azalea::{
-    blocks::BlockTrait,
+    blocks::{BlockState, BlockTrait},
     core::direction::Direction,
     physics::collision::BlockWithShape,
 };
@@ -9,13 +9,11 @@ use crate::renderer::{
     assets::processed::{atlas::PlacedSprite, model::Cube}, chunk::LocalSection,
 };
 
-/// Face definition for meshing
 pub struct Face {
     pub offsets: [IVec3; 4],
     pub dir: Direction,
 }
 
-/// Standard cube face definitions
 pub const FACES: [Face; 6] = [
     Face {
         offsets: [
@@ -73,8 +71,6 @@ pub const FACES: [Face; 6] = [
     },
 ];
 
-/// Remap UV coordinates to atlas coordinates
-#[inline]
 pub fn remap_uv_to_atlas(
     uv_px: glam::Vec2,
     spr: &PlacedSprite,
@@ -90,8 +86,8 @@ pub fn remap_uv_to_atlas(
     let u1 = (spr.x as f32 + spr.width as f32 ) / aw;
     let v1 = (spr.y as f32 + spr.height as f32 ) / ah;
 
-    let tu = (uv_px.x / 16.0).clamp(0.0, 1.0);
-    let tv = (uv_px.y / 16.0).clamp(0.0, 1.0);
+    let tu = (uv_px.x).clamp(0.0, 1.0);
+    let tv = (uv_px.y).clamp(0.0, 1.0);
 
     let u = u0 + (u1 - u0) * tu;
     let v = v0 + (v1 - v0) * tv;
@@ -99,7 +95,6 @@ pub fn remap_uv_to_atlas(
     [u, v]
 }
 
-/// Vanilla rotation arrays
 pub const FACE_ROTATION: &[Direction] = &[
     Direction::North,
     Direction::East,
@@ -114,7 +109,6 @@ pub const FACE_ROTATION_X: &[Direction] = &[
     Direction::Up,
 ];
 
-/// Rotate direction using vanilla logic with rotation arrays
 pub fn rotate_direction_vanilla(
     val: Direction,
     offset: i32,
@@ -140,10 +134,10 @@ pub fn quad_uvs(spr: &PlacedSprite, atlas_w: u32, atlas_h: u32) -> [[f32; 2]; 4]
     let v1 = (spr.y + spr.height) as f32 / ah;
 
     [
-        [u0, v1], // bottom-left
-        [u1, v1], // bottom-right
-        [u1, v0], // top-right
-        [u0, v0], // top-left
+        [u0, v1],
+        [u1, v1],
+        [u1, v0],
+        [u0, v0], 
     ]
 }
 
@@ -268,14 +262,14 @@ pub fn compute_ao(local: IVec3, offset: IVec3, dir: Direction, section: &LocalSe
         if p.x < 0 || p.y < 0 || p.z < 0 || p.x >= 18 || p.y >= 18 || p.z >= 18 {
             return false;
         }
-        let state = section.blocks[p.x as usize][p.y as usize][p.z as usize];
+        let state = section.blocks[p.x as usize][p.y as usize][p.z as usize].unwrap_or(BlockState::AIR);
         let dyn_state: Box<dyn BlockTrait> = Box::from(state);
 
         if state.is_air() {
             return false;
         }
 
-        dyn_state.behavior().can_occlude && state.is_collision_shape_full()
+       state.is_collision_shape_full()
     };
 
     let ox = offset.x * 2 - 1;
@@ -319,77 +313,77 @@ pub fn generate_uv(dir: Direction, uvs: Option<[f32; 4]>) -> [glam::Vec2; 4] {
     match uvs {
         Some(uvs) => match dir {
             Direction::Up => [
-                glam::Vec2::new(uvs[0], uvs[1]),
-                glam::Vec2::new(uvs[0], uvs[3]),
-                glam::Vec2::new(uvs[2], uvs[3]),
-                glam::Vec2::new(uvs[2], uvs[1]),
+                glam::Vec2::new(uvs[0] / 16.0, uvs[1] / 16.0),
+                glam::Vec2::new(uvs[0] / 16.0, uvs[3] / 16.0),
+                glam::Vec2::new(uvs[2] / 16.0, uvs[3] / 16.0),
+                glam::Vec2::new(uvs[2] / 16.0, uvs[1] / 16.0),
             ],
             Direction::Down => [
-                glam::Vec2::new(uvs[0], uvs[3]),
-                glam::Vec2::new(uvs[2], uvs[3]),
-                glam::Vec2::new(uvs[2], uvs[1]),
-                glam::Vec2::new(uvs[0], uvs[1]),
+                glam::Vec2::new(uvs[0] / 16.0, uvs[3] / 16.0),
+                glam::Vec2::new(uvs[2] / 16.0, uvs[3] / 16.0),
+                glam::Vec2::new(uvs[2] / 16.0, uvs[1] / 16.0),
+                glam::Vec2::new(uvs[0] / 16.0, uvs[1] / 16.0),
             ],
             Direction::North => [
-                glam::Vec2::new(uvs[2], uvs[3]),
-                glam::Vec2::new(uvs[2], uvs[1]),
-                glam::Vec2::new(uvs[0], uvs[1]),
-                glam::Vec2::new(uvs[0], uvs[3]),
+                glam::Vec2::new(uvs[2] / 16.0, uvs[3] / 16.0),
+                glam::Vec2::new(uvs[2] / 16.0, uvs[1] / 16.0),
+                glam::Vec2::new(uvs[0] / 16.0, uvs[1] / 16.0),
+                glam::Vec2::new(uvs[0] / 16.0, uvs[3] / 16.0),
             ],
             Direction::South => [
-                glam::Vec2::new(uvs[0], uvs[3]),
-                glam::Vec2::new(uvs[2], uvs[3]),
-                glam::Vec2::new(uvs[2], uvs[1]),
-                glam::Vec2::new(uvs[0], uvs[1]),
+                glam::Vec2::new(uvs[0] / 16.0, uvs[3] / 16.0),
+                glam::Vec2::new(uvs[2] / 16.0, uvs[3] / 16.0),
+                glam::Vec2::new(uvs[2] / 16.0, uvs[1] / 16.0),
+                glam::Vec2::new(uvs[0] / 16.0, uvs[1] / 16.0),
             ],
             Direction::East => [
-                glam::Vec2::new(uvs[2], uvs[3]),
-                glam::Vec2::new(uvs[2], uvs[1]),
-                glam::Vec2::new(uvs[0], uvs[1]),
-                glam::Vec2::new(uvs[0], uvs[3]),
+                glam::Vec2::new(uvs[2] / 16.0, uvs[3] / 16.0),
+                glam::Vec2::new(uvs[2] / 16.0, uvs[1] / 16.0),
+                glam::Vec2::new(uvs[0] / 16.0, uvs[1] / 16.0),
+                glam::Vec2::new(uvs[0] / 16.0, uvs[3] / 16.0),
             ],
             Direction::West => [
-                glam::Vec2::new(uvs[0], uvs[3]),
-                glam::Vec2::new(uvs[2], uvs[3]),
-                glam::Vec2::new(uvs[2], uvs[1]),
-                glam::Vec2::new(uvs[0], uvs[1]),
+                glam::Vec2::new(uvs[0] / 16.0, uvs[3] / 16.0),
+                glam::Vec2::new(uvs[2] / 16.0, uvs[3] / 16.0),
+                glam::Vec2::new(uvs[2] / 16.0, uvs[1] / 16.0),
+                glam::Vec2::new(uvs[0] / 16.0, uvs[1] / 16.0),
             ],
         },
         None => match dir {
             Direction::Up => [
                 glam::Vec2::new(0.0, 0.0),
-                glam::Vec2::new(0.0, 16.0),
-                glam::Vec2::new(16.0, 16.0),
-                glam::Vec2::new(16.0, 0.0),
+                glam::Vec2::new(0.0, 1.0),
+                glam::Vec2::new(1.0, 1.0),
+                glam::Vec2::new(1.0, 0.0),
             ],
             Direction::Down => [
-                glam::Vec2::new(0.0, 16.0),
-                glam::Vec2::new(16.0, 16.0),
-                glam::Vec2::new(16.0, 0.0),
+                glam::Vec2::new(0.0, 1.0),
+                glam::Vec2::new(1.0, 1.0),
+                glam::Vec2::new(1.0, 0.0),
                 glam::Vec2::new(0.0, 0.0),
             ],
             Direction::North => [
-                glam::Vec2::new(16.0, 16.0),
-                glam::Vec2::new(16.0, 0.0),
+                glam::Vec2::new(1.0, 1.0),
+                glam::Vec2::new(1.0, 0.0),
                 glam::Vec2::new(0.0, 0.0),
-                glam::Vec2::new(0.0, 16.0),
+                glam::Vec2::new(0.0, 1.0),
             ],
             Direction::South => [
-                glam::Vec2::new(0.0, 16.0),
-                glam::Vec2::new(16.0, 16.0),
-                glam::Vec2::new(16.0, 0.0),
+                glam::Vec2::new(0.0, 1.0),
+                glam::Vec2::new(1.0, 1.0),
+                glam::Vec2::new(1.0, 0.0),
                 glam::Vec2::new(0.0, 0.0),
             ],
             Direction::East => [
-                glam::Vec2::new(16.0, 16.0),
-                glam::Vec2::new(16.0, 0.0),
+                glam::Vec2::new(1.0, 1.0),
+                glam::Vec2::new(1.0, 0.0),
                 glam::Vec2::new(0.0, 0.0),
-                glam::Vec2::new(0.0, 16.0),
+                glam::Vec2::new(0.0, 1.0),
             ],
             Direction::West => [
-                glam::Vec2::new(0.0, 16.0),
-                glam::Vec2::new(16.0, 16.0),
-                glam::Vec2::new(16.0, 0.0),
+                glam::Vec2::new(0.0, 1.0),
+                glam::Vec2::new(1.0, 1.0),
+                glam::Vec2::new(1.0, 0.0),
                 glam::Vec2::new(0.0, 0.0),
             ],
         },

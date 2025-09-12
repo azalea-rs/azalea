@@ -1,11 +1,11 @@
 use std::{sync::Arc, thread};
 
-use azalea::{core::position::ChunkSectionPos, registry::Block};
+use azalea::{blocks::BlockState, core::position::ChunkSectionPos, registry::Block};
 use crossbeam::channel::{Receiver, Sender, unbounded};
 use glam::IVec3;
 
 use crate::renderer::{
-    assets::MeshAssets,
+    assets::Assets,
     chunk::LocalSection,
     world_renderer::{
         BlockVertex,
@@ -30,7 +30,7 @@ pub struct Mesher {
 }
 
 impl Mesher {
-    pub fn new(assets: Arc<MeshAssets>) -> Self {
+    pub fn new(assets: Arc<Assets>) -> Self {
         let (work_tx, work_rx) = unbounded::<LocalSection>();
         let (result_tx, result_rx) = unbounded::<MeshResult>();
 
@@ -59,7 +59,7 @@ pub struct MeshResult {
 }
 
 pub struct MeshBuilder<'a> {
-    pub assets: &'a MeshAssets,
+    pub assets: &'a Assets,
     pub block_colors: &'a block_colors::BlockColors,
     pub section: &'a LocalSection,
 
@@ -112,7 +112,7 @@ impl<'a> MeshBuilder<'a> {
     }
 }
 
-pub fn mesh_section(section: &LocalSection, assets: &MeshAssets) -> MeshResult {
+pub fn mesh_section(section: &LocalSection, assets: &Assets) -> MeshResult {
     let block_colors = block_colors::BlockColors::create_default();
 
     let mut builder = MeshBuilder {
@@ -129,7 +129,7 @@ pub fn mesh_section(section: &LocalSection, assets: &MeshAssets) -> MeshResult {
         for x in 0..16 {
             for z in 0..16 {
                 let local = IVec3::new(x + 1, y + 1, z + 1);
-                let block = section.blocks[local.x as usize][local.y as usize][local.z as usize];
+                let block = section.blocks[local.x as usize][local.y as usize][local.z as usize].unwrap_or(BlockState::AIR);
 
                 if !block.is_air() {
                     if Block::from(block) == Block::Water {

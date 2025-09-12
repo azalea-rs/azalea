@@ -64,13 +64,12 @@ impl Renderer {
         let context = VkContext::new(window_handle, display_handle);
         let swapchain = Swapchain::new(&context, size.width, size.height);
 
-        let (assets, atlas_image) = assets::load_assets(&context, "assets/minecraft");
+        let assets = assets::load_assets(&context, "assets/minecraft");
 
         let wireframe_enabled = context.features().fill_mode_non_solid;
 
         let world = WorldRenderer::new(
             Arc::new(assets),
-            atlas_image,
             &context,
             &swapchain,
             WorldRendererOptions { wireframe_enabled },

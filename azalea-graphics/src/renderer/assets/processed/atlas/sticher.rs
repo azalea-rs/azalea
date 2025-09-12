@@ -2,12 +2,7 @@ use std::collections::HashMap;
 
 use thiserror::Error;
 
-#[derive(Debug, Clone)]
-pub struct SpriteEntry {
-    pub name: String,
-    pub width: u32,
-    pub height: u32,
-}
+use crate::renderer::assets::processed::atlas::TextureEntry;
 
 #[derive(Debug, Clone)]
 pub struct PlacedSprite {
@@ -64,17 +59,13 @@ impl Rect {
     }
 }
 
-/// Split all free rects against a placed rect and prune containment.
 fn split_and_prune_free_list(free: &mut Vec<Rect>, used: Rect) {
-    // Split: rebuild the list in one pass to avoid in-place mutation hazards.
     let mut new_free = Vec::with_capacity(free.len() + 4);
     for fr in free.drain(..) {
         if !fr.intersects(&used) {
             new_free.push(fr);
             continue;
         }
-        // Split fr into up to 4 rectangles around 'used'
-        // Left
         if used.x > fr.x {
             new_free.push(Rect {
                 x: fr.x,
@@ -83,7 +74,6 @@ fn split_and_prune_free_list(free: &mut Vec<Rect>, used: Rect) {
                 h: fr.h,
             });
         }
-        // Right
         if used.right() < fr.right() {
             new_free.push(Rect {
                 x: used.right(),
@@ -92,10 +82,7 @@ fn split_and_prune_free_list(free: &mut Vec<Rect>, used: Rect) {
                 h: fr.h,
             });
         }
-        // Top
         if used.y > fr.y {
-            // Note: full width of fr; overlaps with left/right splits, but we'll prune
-            // later.
             new_free.push(Rect {
                 x: fr.x,
                 y: fr.y,
@@ -103,7 +90,6 @@ fn split_and_prune_free_list(free: &mut Vec<Rect>, used: Rect) {
                 h: used.y - fr.y,
             });
         }
-        // Bottom
         if used.bottom() < fr.bottom() {
             new_free.push(Rect {
                 x: fr.x,
@@ -113,12 +99,10 @@ fn split_and_prune_free_list(free: &mut Vec<Rect>, used: Rect) {
             });
         }
     }
-    // Remove zero-area and duplicates
     new_free.retain(|r| r.w > 0 && r.h > 0);
     new_free.sort_by_key(|r| (r.x, r.y, r.w, r.h));
     new_free.dedup();
 
-    // Prune any rect fully contained in another
     let mut pruned = Vec::with_capacity(new_free.len());
     'outer: for i in 0..new_free.len() {
         for j in 0..new_free.len() {
@@ -131,8 +115,6 @@ fn split_and_prune_free_list(free: &mut Vec<Rect>, used: Rect) {
     *free = pruned;
 }
 
-/// Choose the best free rect for a (w,h) using Best Short Side Fit (then long
-/// side, then top-left).
 fn choose_position(free: &[Rect], w: u32, h: u32) -> Option<(usize, Rect, i32, i32)> {
     let mut best: Option<(usize, Rect, i32, i32)> = None;
     for (idx, fr) in free.iter().enumerate() {
@@ -153,7 +135,6 @@ fn choose_position(free: &[Rect], w: u32, h: u32) -> Option<(usize, Rect, i32, i
             best = Some(match best {
                 None => cand,
                 Some(cur) => {
-                    // compare (short, long, y, x)
                     if cand.2 < cur.2
                         || (cand.2 == cur.2
                             && (cand.3 < cur.3
@@ -173,11 +154,11 @@ fn choose_position(free: &[Rect], w: u32, h: u32) -> Option<(usize, Rect, i32, i
 }
 
 pub fn stitch_sprites(
-    mut sprites: Vec<SpriteEntry>,
+    textures: &HashMap<String, TextureEntry>,
     max_width: u32,
     max_height: u32,
 ) -> Result<Atlas, StitchError> {
-    if sprites.is_empty() {
+    if textures.is_empty() {
         return Ok(Atlas {
             width: 0,
             height: 0,
@@ -185,17 +166,18 @@ pub fn stitch_sprites(
         });
     }
 
-    for s in &sprites {
-        if s.width == 0 || s.height == 0 || s.width > max_width || s.height > max_height {
-            return Err(StitchError::CannotFit {
-                max_width,
-                max_height,
-            });
+    for (name, entry) in textures {
+        let (w, h) = entry.size();
+        if w == 0 || h == 0 || w > max_width || h > max_height {
+            return Err(StitchError::CannotFit { max_width, max_height });
         }
     }
 
-    sprites
-        .sort_by_key(|s| std::cmp::Reverse((s.width as u64 * s.height as u64, s.height, s.width)));
+    let mut tex_list: Vec<(&String, &TextureEntry)> = textures.iter().collect();
+    tex_list.sort_by_key(|(_, entry)| {
+        let (w, h) = entry.size();
+        std::cmp::Reverse((w as u64 * h as u64, h, w))
+    });
 
     let mut free: Vec<Rect> = vec![Rect {
         x: 0,
@@ -204,14 +186,16 @@ pub fn stitch_sprites(
         h: max_height,
     }];
 
-    let mut placed = HashMap::with_capacity(sprites.len());
+    let mut placed = HashMap::with_capacity(tex_list.len());
     let mut used_right = 0u32;
     let mut used_bottom = 0u32;
 
-    for s in sprites {
-        if let Some((_idx, pos_rect, _short, _long)) = choose_position(&free, s.width, s.height) {
+    for (name, entry) in tex_list {
+        let (w, h) = entry.size();
+
+        if let Some((_idx, pos_rect, _short, _long)) = choose_position(&free, w, h) {
             placed.insert(
-                s.name,
+                name.clone(),
                 PlacedSprite {
                     x: pos_rect.x,
                     y: pos_rect.y,
@@ -224,10 +208,7 @@ pub fn stitch_sprites(
 
             split_and_prune_free_list(&mut free, pos_rect);
         } else {
-            return Err(StitchError::CannotFit {
-                max_width,
-                max_height,
-            });
+            return Err(StitchError::CannotFit { max_width, max_height });
         }
     }
 

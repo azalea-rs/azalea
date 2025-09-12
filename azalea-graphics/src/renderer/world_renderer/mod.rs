@@ -5,7 +5,7 @@ use azalea::core::position::ChunkSectionPos;
 use vk_mem::{Alloc, Allocation, AllocationCreateInfo, MemoryUsage};
 
 use crate::renderer::{
-    assets::MeshAssets,
+    assets::Assets,
     chunk::LocalSection,
     mesh::Mesh,
     vulkan::{context::VkContext, swapchain::Swapchain, texture::Texture},
@@ -13,6 +13,7 @@ use crate::renderer::{
 };
 
 pub mod mesher;
+mod animation;
 
 #[repr(C)]
 #[derive(Clone, Copy, Debug)]
@@ -87,9 +88,7 @@ pub struct WorldRenderer {
     descriptor_set: vk::DescriptorSet,
 
     // Depth buffer resources
-    depth_image: vk::Image,
-    depth_allocation: Allocation,
-    depth_view: vk::ImageView,
+    depth_images: Vec<(vk::Image, Allocation, vk::ImageView)>,
 
     // Framebuffers for world rendering
     framebuffers: Vec<vk::Framebuffer>,
@@ -121,45 +120,49 @@ impl Default for WorldRendererOptions {
 
 impl WorldRenderer {
     pub fn new(
-        assets: Arc<MeshAssets>,
-        atlas_image: image::RgbaImage,
+        assets: Arc<Assets>,
         ctx: &VkContext,
         swapchain: &Swapchain,
         options: WorldRendererOptions,
     ) -> Self {
-        // Create texture from atlas
+        let atlas_image = animation::create_initial_atlas(&assets.block_atlas, &assets.textures);
         let blocks_texture = Texture::new(ctx, atlas_image);
 
-        // Create descriptor set layout
         let descriptor_set_layout = create_world_descriptor_set_layout(ctx.device());
 
-        // Create descriptor pool and set
         let descriptor_pool = create_world_descriptor_pool(ctx.device());
         let descriptor_set =
             allocate_world_descriptor_set(ctx.device(), descriptor_pool, descriptor_set_layout);
         update_world_texture_descriptor(ctx.device(), descriptor_set, &blocks_texture);
 
-        // Create render pass
         let render_pass = create_world_render_pass(ctx, swapchain);
 
-        // Create depth resources
-        let (depth_image, depth_allocation, depth_view) =
-            create_world_depth_resources(ctx, swapchain.extent);
+        let depth_images = create_world_depth_resources(ctx, swapchain);
 
-        // Create framebuffers
-        let framebuffers = create_world_framebuffers(ctx, swapchain, render_pass, depth_view);
+        let framebuffers = create_world_framebuffers(ctx, swapchain, render_pass, &depth_images);
 
-        // Create pipeline layout
         let pipeline_layout = create_world_pipeline_layout(ctx.device(), descriptor_set_layout);
 
-        // Create pipelines
-        let pipeline = create_world_pipeline(ctx, render_pass, pipeline_layout, TRIANGLE_VERT, TRIANGLE_FRAG);
+        let pipeline = create_world_pipeline(
+            ctx,
+            render_pass,
+            pipeline_layout,
+            TRIANGLE_VERT,
+            TRIANGLE_FRAG,
+        );
         let wireframe_pipeline = if options.wireframe_enabled {
-            create_world_wireframe_pipeline(ctx, render_pass, pipeline_layout, TRIANGLE_VERT, TRIANGLE_FRAG)
+            create_world_wireframe_pipeline(
+                ctx,
+                render_pass,
+                pipeline_layout,
+                TRIANGLE_VERT,
+                TRIANGLE_FRAG,
+            )
         } else {
             None
         };
-        let water_pipeline = create_water_pipeline(ctx, render_pass, pipeline_layout, WATER_VERT, WATER_FRAG);
+        let water_pipeline =
+            create_water_pipeline(ctx, render_pass, pipeline_layout, WATER_VERT, WATER_FRAG);
 
         Self {
             mesher: Mesher::new(assets),
@@ -173,26 +176,21 @@ impl WorldRenderer {
             descriptor_set_layout,
             descriptor_pool,
             descriptor_set,
-            depth_image,
-            depth_allocation,
-            depth_view,
+            depth_images,
             framebuffers,
             blocks_texture,
             extent: swapchain.extent,
         }
     }
 
-    /// Get the descriptor set layout for this world renderer
     pub fn descriptor_set_layout(&self) -> vk::DescriptorSetLayout {
         self.descriptor_set_layout
     }
 
-    /// Submit a chunk for meshing (background thread will handle it)
     pub fn update_section(&self, section: LocalSection) {
         self.mesher.submit(section);
     }
 
-    /// Poll mesher results and upload to GPU
     pub fn process_meshing_results(&mut self, ctx: &VkContext) {
         while let Some(MeshResult { blocks, water }) = self.mesher.poll() {
             if !blocks.vertices.is_empty() {
@@ -201,7 +199,6 @@ impl WorldRenderer {
                 let mesh = staging.upload(ctx);
                 staging.destroy(ctx);
 
-                // Destroy old mesh if it exists before inserting new one
                 if let Some(mut old_mesh) = self.block_meshes.insert(blocks.section_pos, mesh) {
                     old_mesh.destroy(ctx);
                 }
@@ -213,7 +210,6 @@ impl WorldRenderer {
                 let mesh = staging.upload(ctx);
                 staging.destroy(ctx);
 
-                // Destroy old mesh if it exists before inserting new one
                 if let Some(mut old_mesh) = self.water_meshes.insert(water.section_pos, mesh) {
                     old_mesh.destroy(ctx);
                 }
@@ -221,7 +217,6 @@ impl WorldRenderer {
         }
     }
 
-    /// Draw all chunk meshes
     pub fn draw(
         &self,
         device: &ash::Device,
@@ -231,14 +226,13 @@ impl WorldRenderer {
         camera_pos: glam::Vec3,
     ) {
         let push = PushConstants { view_proj };
-        
-        // Render opaque blocks first
+
         let current_pipeline = if wireframe_mode {
             self.wireframe_pipeline.unwrap_or(self.pipeline)
         } else {
             self.pipeline
         };
-        
+
         unsafe {
             device.cmd_bind_pipeline(cmd, vk::PipelineBindPoint::GRAPHICS, current_pipeline);
 
@@ -263,7 +257,6 @@ impl WorldRenderer {
             );
         }
 
-        // Draw all block meshes
         for (_, mesh) in &self.block_meshes {
             let vertex_buffers = [mesh.buffer.buffer];
             let offsets = [mesh.vertex_offset];
@@ -279,10 +272,9 @@ impl WorldRenderer {
             }
         }
 
-        // Switch to water pipeline for transparent water rendering
         unsafe {
             device.cmd_bind_pipeline(cmd, vk::PipelineBindPoint::GRAPHICS, self.water_pipeline);
-            
+
             device.cmd_push_constants(
                 cmd,
                 self.pipeline_layout,
@@ -304,7 +296,6 @@ impl WorldRenderer {
             );
         }
 
-        // Sort water meshes by distance from camera for proper transparency
         let mut water_meshes: Vec<_> = self.water_meshes.iter().collect();
         water_meshes.sort_by(|(pos_a, _), (pos_b, _)| {
             let center_a = glam::Vec3::new(
@@ -317,15 +308,15 @@ impl WorldRenderer {
                 pos_b.y as f32 * 16.0 + 8.0,
                 pos_b.z as f32 * 16.0 + 8.0,
             );
-            
+
             let dist_a = camera_pos.distance_squared(center_a);
             let dist_b = camera_pos.distance_squared(center_b);
-            
-            // Sort farthest to nearest for proper alpha blending
-            dist_b.partial_cmp(&dist_a).unwrap_or(std::cmp::Ordering::Equal)
+
+            dist_b
+                .partial_cmp(&dist_a)
+                .unwrap_or(std::cmp::Ordering::Equal)
         });
 
-        // Draw sorted water meshes
         for (_, mesh) in water_meshes {
             let vertex_buffers = [mesh.buffer.buffer];
             let offsets = [mesh.vertex_offset];
@@ -342,7 +333,6 @@ impl WorldRenderer {
         }
     }
 
-    /// Begin the world render pass
     pub fn begin_render_pass(
         &self,
         device: &ash::Device,
@@ -379,14 +369,12 @@ impl WorldRenderer {
         }
     }
 
-    /// End the world render pass
     pub fn end_render_pass(&self, device: &ash::Device, cmd: vk::CommandBuffer) {
         unsafe {
             device.cmd_end_render_pass(cmd);
         }
     }
 
-    /// Render the world (handles full render pass lifecycle)
     pub fn render(
         &self,
         device: &ash::Device,
@@ -397,10 +385,8 @@ impl WorldRenderer {
         wireframe_mode: bool,
         camera_pos: glam::Vec3,
     ) {
-        // Begin render pass
         self.begin_render_pass(device, cmd, image_index, extent);
 
-        // Set viewport and scissor
         let viewport = vk::Viewport {
             x: 0.0,
             y: 0.0,
@@ -418,41 +404,33 @@ impl WorldRenderer {
             device.cmd_set_scissor(cmd, 0, &[scissor]);
         }
 
-        // Draw world geometry
         self.draw(device, cmd, view_proj, wireframe_mode, camera_pos);
 
-        // End render pass
         self.end_render_pass(device, cmd);
     }
 
-    /// Recreate swapchain-dependent resources
     pub fn recreate_swapchain(&mut self, ctx: &VkContext, swapchain: &Swapchain) {
         let device = ctx.device();
 
         // Destroy old framebuffers
-        for framebuffer in &self.framebuffers {
-            unsafe {
-                device.destroy_framebuffer(*framebuffer, None);
-            }
+        for framebuffer in self.framebuffers.drain(..) {
+            unsafe { device.destroy_framebuffer(framebuffer, None) };
         }
 
         // Destroy old depth resources
-        unsafe {
-            device.destroy_image_view(self.depth_view, None);
-            ctx.allocator()
-                .destroy_image(self.depth_image, &mut self.depth_allocation);
+        for (image, mut alloc, view) in self.depth_images.drain(..) {
+            unsafe {
+                device.destroy_image_view(view, None);
+                ctx.allocator().destroy_image(image, &mut alloc);
+            }
         }
 
         // Recreate depth resources
-        let (depth_image, depth_allocation, depth_view) =
-            create_world_depth_resources(ctx, swapchain.extent);
-        self.depth_image = depth_image;
-        self.depth_allocation = depth_allocation;
-        self.depth_view = depth_view;
+        self.depth_images = create_world_depth_resources(ctx, swapchain);
 
         // Recreate framebuffers
         self.framebuffers =
-            create_world_framebuffers(ctx, swapchain, self.render_pass, self.depth_view);
+            create_world_framebuffers(ctx, swapchain, self.render_pass, &self.depth_images);
 
         self.extent = swapchain.extent;
     }
@@ -468,27 +446,23 @@ impl WorldRenderer {
             mesh.destroy(ctx);
         }
 
-        for framebuffer in &self.framebuffers {
-            unsafe {
-                device.destroy_framebuffer(*framebuffer, None);
-            }
+        for framebuffer in self.framebuffers.drain(..) {
+            unsafe { device.destroy_framebuffer(framebuffer, None) };
         }
 
-        unsafe {
-            device.destroy_image_view(self.depth_view, None);
-            ctx.allocator()
-                .destroy_image(self.depth_image, &mut self.depth_allocation);
+        for (image, mut alloc, view) in self.depth_images.drain(..) {
+            unsafe {
+                device.destroy_image_view(view, None);
+                ctx.allocator().destroy_image(image, &mut alloc);
+            }
         }
 
         self.blocks_texture.destroy(ctx);
 
         unsafe {
             device.destroy_descriptor_pool(self.descriptor_pool, None);
-        }
-
-        unsafe {
             device.destroy_pipeline(self.pipeline, None);
-            if let Some(wireframe_pipeline) = self.wireframe_pipeline {
+            if let Some(wireframe_pipeline) = self.wireframe_pipeline.take() {
                 device.destroy_pipeline(wireframe_pipeline, None);
             }
             device.destroy_pipeline(self.water_pipeline, None);
@@ -802,6 +776,26 @@ pub fn create_world_render_pass(ctx: &VkContext, swapchain: &Swapchain) -> vk::R
         layout: vk::ImageLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
     };
 
+    let dependencies = [
+        vk::SubpassDependency::default()
+            .src_subpass(vk::SUBPASS_EXTERNAL)
+            .dst_subpass(0)
+            .src_stage_mask(vk::PipelineStageFlags::COLOR_ATTACHMENT_OUTPUT)
+            .src_access_mask(vk::AccessFlags::empty())
+            .dst_stage_mask(vk::PipelineStageFlags::COLOR_ATTACHMENT_OUTPUT)
+            .dst_access_mask(vk::AccessFlags::COLOR_ATTACHMENT_WRITE),
+        vk::SubpassDependency::default()
+            .src_subpass(vk::SUBPASS_EXTERNAL)
+            .dst_subpass(0)
+            .src_stage_mask(
+                vk::PipelineStageFlags::EARLY_FRAGMENT_TESTS
+                    | vk::PipelineStageFlags::LATE_FRAGMENT_TESTS,
+            )
+            .src_access_mask(vk::AccessFlags::DEPTH_STENCIL_ATTACHMENT_WRITE)
+            .dst_stage_mask(vk::PipelineStageFlags::EARLY_FRAGMENT_TESTS)
+            .dst_access_mask(vk::AccessFlags::DEPTH_STENCIL_ATTACHMENT_WRITE),
+    ];
+
     let subpass = vk::SubpassDescription::default()
         .pipeline_bind_point(vk::PipelineBindPoint::GRAPHICS)
         .color_attachments(std::slice::from_ref(&color_ref))
@@ -811,7 +805,8 @@ pub fn create_world_render_pass(ctx: &VkContext, swapchain: &Swapchain) -> vk::R
 
     let render_pass_info = vk::RenderPassCreateInfo::default()
         .attachments(&attachments)
-        .subpasses(std::slice::from_ref(&subpass));
+        .subpasses(std::slice::from_ref(&subpass))
+        .dependencies(&dependencies);
 
     unsafe {
         ctx.device()
@@ -881,63 +876,70 @@ pub fn update_world_texture_descriptor(
 
 pub fn create_world_depth_resources(
     ctx: &VkContext,
-    extent: vk::Extent2D,
-) -> (vk::Image, Allocation, vk::ImageView) {
+    swapchain: &Swapchain,
+) -> Vec<(vk::Image, Allocation, vk::ImageView)> {
     let format = vk::Format::D32_SFLOAT;
 
-    let image_info = vk::ImageCreateInfo::default()
-        .image_type(vk::ImageType::TYPE_2D)
-        .format(format)
-        .extent(vk::Extent3D {
-            width: extent.width,
-            height: extent.height,
-            depth: 1,
+    swapchain
+        .image_views
+        .iter()
+        .map(|_| {
+            let image_info = vk::ImageCreateInfo::default()
+                .image_type(vk::ImageType::TYPE_2D)
+                .format(format)
+                .extent(vk::Extent3D {
+                    width: swapchain.extent.width,
+                    height: swapchain.extent.height,
+                    depth: 1,
+                })
+                .mip_levels(1)
+                .array_layers(1)
+                .samples(vk::SampleCountFlags::TYPE_1)
+                .tiling(vk::ImageTiling::OPTIMAL)
+                .usage(vk::ImageUsageFlags::DEPTH_STENCIL_ATTACHMENT)
+                .sharing_mode(vk::SharingMode::EXCLUSIVE);
+
+            let alloc_info = AllocationCreateInfo {
+                usage: MemoryUsage::AutoPreferDevice,
+                ..Default::default()
+            };
+
+            let (image, allocation) = unsafe {
+                ctx.allocator()
+                    .create_image(&image_info, &alloc_info)
+                    .expect("Failed to create depth image")
+            };
+
+            let view_info = vk::ImageViewCreateInfo::default()
+                .image(image)
+                .view_type(vk::ImageViewType::TYPE_2D)
+                .format(format)
+                .subresource_range(vk::ImageSubresourceRange {
+                    aspect_mask: vk::ImageAspectFlags::DEPTH,
+                    base_mip_level: 0,
+                    level_count: 1,
+                    base_array_layer: 0,
+                    layer_count: 1,
+                });
+
+            let depth_view = unsafe { ctx.device().create_image_view(&view_info, None).unwrap() };
+
+            (image, allocation, depth_view)
         })
-        .mip_levels(1)
-        .array_layers(1)
-        .samples(vk::SampleCountFlags::TYPE_1)
-        .tiling(vk::ImageTiling::OPTIMAL)
-        .usage(vk::ImageUsageFlags::DEPTH_STENCIL_ATTACHMENT)
-        .sharing_mode(vk::SharingMode::EXCLUSIVE);
-
-    let alloc_info = AllocationCreateInfo {
-        usage: MemoryUsage::AutoPreferDevice,
-        ..Default::default()
-    };
-
-    let (image, allocation) = unsafe {
-        ctx.allocator()
-            .create_image(&image_info, &alloc_info)
-            .expect("Failed to create depth image")
-    };
-
-    let view_info = vk::ImageViewCreateInfo::default()
-        .image(image)
-        .view_type(vk::ImageViewType::TYPE_2D)
-        .format(format)
-        .subresource_range(vk::ImageSubresourceRange {
-            aspect_mask: vk::ImageAspectFlags::DEPTH,
-            base_mip_level: 0,
-            level_count: 1,
-            base_array_layer: 0,
-            layer_count: 1,
-        });
-
-    let depth_view = unsafe { ctx.device().create_image_view(&view_info, None).unwrap() };
-
-    (image, allocation, depth_view)
+        .collect()
 }
 
 pub fn create_world_framebuffers(
     ctx: &VkContext,
     swapchain: &Swapchain,
     render_pass: vk::RenderPass,
-    depth_view: vk::ImageView,
+    depth_resources: &[(vk::Image, Allocation, vk::ImageView)],
 ) -> Vec<vk::Framebuffer> {
     let device = ctx.device();
     let mut framebuffers = Vec::with_capacity(swapchain.image_views.len());
 
-    for &view in &swapchain.image_views {
+    for (i, &view) in swapchain.image_views.iter().enumerate() {
+        let depth_view = depth_resources[i].2;
         let attachments = [view, depth_view];
 
         let info = vk::FramebufferCreateInfo::default()
