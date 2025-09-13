@@ -17,6 +17,7 @@ reqwest = { workspace = true, default-features = false, features = [
     "rustls-tls",
 ] }
 rsa.workspace = true
+signature.workspace = true # TODO: Remove when rsa is fixed.
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 thiserror.workspace = true
