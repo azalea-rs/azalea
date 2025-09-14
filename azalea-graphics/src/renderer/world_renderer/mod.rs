@@ -2,18 +2,25 @@ use std::{collections::HashMap, mem::offset_of, sync::Arc};
 
 use ash::{Device, vk};
 use azalea::core::position::ChunkSectionPos;
+use image::GenericImageView;
 use vk_mem::{Alloc, Allocation, AllocationCreateInfo, MemoryUsage};
 
 use crate::renderer::{
-    assets::Assets,
+    assets::{Assets, processed::atlas::TextureEntry},
     chunk::LocalSection,
     mesh::Mesh,
-    vulkan::{context::VkContext, swapchain::Swapchain, texture::Texture},
-    world_renderer::mesher::{MeshResult, Mesher},
+    vulkan::{
+        buffer::Buffer, context::VkContext, frame_sync::MAX_FRAMES_IN_FLIGHT, swapchain::Swapchain,
+        texture::Texture,
+    },
+    world_renderer::{
+        animation::AnimationManager,
+        mesher::{MeshResult, Mesher},
+    },
 };
 
-pub mod mesher;
 mod animation;
+pub mod mesher;
 
 #[repr(C)]
 #[derive(Clone, Copy, Debug)]
@@ -74,6 +81,8 @@ impl BlockVertex {
 
 pub struct WorldRenderer {
     pub mesher: Mesher,
+
+    animation_manager: AnimationManager,
     pub block_meshes: HashMap<ChunkSectionPos, Mesh<BlockVertex>>,
     pub water_meshes: HashMap<ChunkSectionPos, Mesh<BlockVertex>>,
 
@@ -96,8 +105,12 @@ pub struct WorldRenderer {
     // Texture resources
     blocks_texture: Texture,
 
+    staging_buffers: [Option<Buffer>; MAX_FRAMES_IN_FLIGHT],
+
     // Cached extent for recreation
     extent: vk::Extent2D,
+
+    assets: Arc<Assets>,
 }
 
 #[repr(C)]
@@ -165,7 +178,9 @@ impl WorldRenderer {
             create_water_pipeline(ctx, render_pass, pipeline_layout, WATER_VERT, WATER_FRAG);
 
         Self {
-            mesher: Mesher::new(assets),
+            mesher: Mesher::new(assets.clone()),
+            animation_manager: AnimationManager::from_textures(&assets.textures),
+            staging_buffers: Default::default(),
             block_meshes: HashMap::new(),
             water_meshes: HashMap::new(),
             render_pass,
@@ -180,11 +195,12 @@ impl WorldRenderer {
             framebuffers,
             blocks_texture,
             extent: swapchain.extent,
+            assets: assets.clone(),
         }
     }
 
-    pub fn descriptor_set_layout(&self) -> vk::DescriptorSetLayout {
-        self.descriptor_set_layout
+    pub fn tick(&mut self) {
+        self.animation_manager.tick(&self.assets.textures);
     }
 
     pub fn update_section(&self, section: LocalSection) {
@@ -218,13 +234,16 @@ impl WorldRenderer {
     }
 
     pub fn draw(
-        &self,
-        device: &ash::Device,
+        &mut self,
+        ctx: &VkContext,
         cmd: vk::CommandBuffer,
         view_proj: glam::Mat4,
         wireframe_mode: bool,
         camera_pos: glam::Vec3,
+        frame_index: usize
     ) {
+
+        let device = ctx.device();
         let push = PushConstants { view_proj };
 
         let current_pipeline = if wireframe_mode {
@@ -375,17 +394,157 @@ impl WorldRenderer {
         }
     }
 
+pub fn upload_dirty_textures(
+    &mut self,
+    ctx: &VkContext,
+    cmd: vk::CommandBuffer,
+    frame_index: usize,
+) {
+    let dirty = self.animation_manager.dirty_textures(&self.assets.textures);
+    if dirty.is_empty() {
+        return;
+    }
+
+    let mut buffer_data = Vec::new();
+    let mut regions = Vec::new();
+
+    for (name, tex, (fw, fh), frame_idx) in dirty {
+        if let Some(placed) = self.assets.block_atlas.sprites.get(name) {
+            let (fx, fy) = tex
+                .animation
+                .as_ref()
+                .unwrap()
+                .get_frame(frame_idx, tex.size());
+
+            let frame_img = tex.data.view(fx, fy, fw, fh).to_image();
+            let bytes = frame_img.as_raw();
+
+            let offset = buffer_data.len() as vk::DeviceSize;
+            buffer_data.extend_from_slice(bytes);
+
+            regions.push(
+                vk::BufferImageCopy::default()
+                    .buffer_offset(offset)
+                    .buffer_row_length(0)
+                    .buffer_image_height(0)
+                    .image_subresource(
+                        vk::ImageSubresourceLayers::default()
+                            .aspect_mask(vk::ImageAspectFlags::COLOR)
+                            .mip_level(0)
+                            .base_array_layer(0)
+                            .layer_count(1),
+                    )
+                    .image_offset(vk::Offset3D {
+                        x: placed.x as i32,
+                        y: placed.y as i32,
+                        z: 0,
+                    })
+                    .image_extent(vk::Extent3D {
+                        width: fw,
+                        height: fh,
+                        depth: 1,
+                    }),
+            );
+        }
+    }
+
+    let needed_size = buffer_data.len() as vk::DeviceSize;
+
+    let staging = if let Some(ref mut buf) = self.staging_buffers[frame_index] {
+        if buf.size >= needed_size {
+            buf.upload_data(ctx, 0, &buffer_data);
+            buf
+        } else {
+            buf.destroy(ctx);
+            let mut new_buf = Buffer::new(
+                ctx,
+                needed_size,
+                vk::BufferUsageFlags::TRANSFER_SRC,
+                MemoryUsage::AutoPreferHost,
+                true,
+            );
+            new_buf.upload_data(ctx, 0, &buffer_data);
+            self.staging_buffers[frame_index] = Some(new_buf);
+            self.staging_buffers[frame_index].as_mut().unwrap()
+        }
+    } else {
+        let mut new_buf = Buffer::new(
+            ctx,
+            needed_size,
+            vk::BufferUsageFlags::TRANSFER_SRC,
+            MemoryUsage::AutoPreferHost,
+            true,
+        );
+        new_buf.upload_data(ctx, 0, &buffer_data);
+        self.staging_buffers[frame_index] = Some(new_buf);
+        self.staging_buffers[frame_index].as_mut().unwrap()
+    };
+
+    unsafe {
+        let subresource = vk::ImageSubresourceRange {
+            aspect_mask: vk::ImageAspectFlags::COLOR,
+            base_mip_level: 0,
+            level_count: 1,
+            base_array_layer: 0,
+            layer_count: 1,
+        };
+
+        ctx.device().cmd_pipeline_barrier(
+            cmd,
+            vk::PipelineStageFlags::FRAGMENT_SHADER,
+            vk::PipelineStageFlags::TRANSFER,
+            vk::DependencyFlags::empty(),
+            &[],
+            &[],
+            &[vk::ImageMemoryBarrier::default()
+                .src_access_mask(vk::AccessFlags::SHADER_READ)
+                .dst_access_mask(vk::AccessFlags::TRANSFER_WRITE)
+                .old_layout(vk::ImageLayout::SHADER_READ_ONLY_OPTIMAL)
+                .new_layout(vk::ImageLayout::TRANSFER_DST_OPTIMAL)
+                .image(self.blocks_texture.image)
+                .subresource_range(subresource)],
+        );
+
+        ctx.device().cmd_copy_buffer_to_image(
+            cmd,
+            staging.buffer,
+            self.blocks_texture.image,
+            vk::ImageLayout::TRANSFER_DST_OPTIMAL,
+            &regions,
+        );
+
+        ctx.device().cmd_pipeline_barrier(
+            cmd,
+            vk::PipelineStageFlags::TRANSFER,
+            vk::PipelineStageFlags::FRAGMENT_SHADER,
+            vk::DependencyFlags::empty(),
+            &[],
+            &[],
+            &[vk::ImageMemoryBarrier::default()
+                .src_access_mask(vk::AccessFlags::TRANSFER_WRITE)
+                .dst_access_mask(vk::AccessFlags::SHADER_READ)
+                .old_layout(vk::ImageLayout::TRANSFER_DST_OPTIMAL)
+                .new_layout(vk::ImageLayout::SHADER_READ_ONLY_OPTIMAL)
+                .image(self.blocks_texture.image)
+                .subresource_range(subresource)],
+        );
+    }
+}
+
     pub fn render(
-        &self,
-        device: &ash::Device,
+        &mut self,
+        ctx: &VkContext,
         cmd: vk::CommandBuffer,
         image_index: u32,
         extent: vk::Extent2D,
         view_proj: glam::Mat4,
         wireframe_mode: bool,
         camera_pos: glam::Vec3,
+        frame_index: usize,
     ) {
-        self.begin_render_pass(device, cmd, image_index, extent);
+
+        self.upload_dirty_textures(ctx, cmd, frame_index);
+        self.begin_render_pass(ctx.device(), cmd, image_index, extent);
 
         let viewport = vk::Viewport {
             x: 0.0,
@@ -400,13 +559,13 @@ impl WorldRenderer {
             extent,
         };
         unsafe {
-            device.cmd_set_viewport(cmd, 0, &[viewport]);
-            device.cmd_set_scissor(cmd, 0, &[scissor]);
+            ctx.device().cmd_set_viewport(cmd, 0, &[viewport]);
+            ctx.device().cmd_set_scissor(cmd, 0, &[scissor]);
         }
 
-        self.draw(device, cmd, view_proj, wireframe_mode, camera_pos);
+        self.draw(ctx, cmd, view_proj, wireframe_mode, camera_pos, frame_index);
 
-        self.end_render_pass(device, cmd);
+        self.end_render_pass(ctx.device(), cmd);
     }
 
     pub fn recreate_swapchain(&mut self, ctx: &VkContext, swapchain: &Swapchain) {
@@ -460,6 +619,11 @@ impl WorldRenderer {
         self.blocks_texture.destroy(ctx);
 
         unsafe {
+            for buffer in &mut self.staging_buffers{
+                if let Some(buffer) = buffer{
+                    buffer.destroy(ctx);
+                }
+            }
             device.destroy_descriptor_pool(self.descriptor_pool, None);
             device.destroy_pipeline(self.pipeline, None);
             if let Some(wireframe_pipeline) = self.wireframe_pipeline.take() {
@@ -954,4 +1118,15 @@ pub fn create_world_framebuffers(
     }
 
     framebuffers
+}
+
+fn calc_dirty_size(textures: &HashMap<String, TextureEntry>, dirty: &[&str]) -> vk::DeviceSize {
+    dirty
+        .iter()
+        .filter_map(|name| textures.get(*name))
+        .map(|tex| {
+            let (fw, fh) = tex.size();
+            (fw * fh * 4) as vk::DeviceSize
+        })
+        .sum()
 }

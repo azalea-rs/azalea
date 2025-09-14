@@ -32,13 +32,21 @@ pub fn mesh_water(block: BlockState, local: IVec3, builder: &mut MeshBuilder) {
     let still = builder.assets.get_sprite_rect("block/water_still").unwrap();
     let flow = builder.assets.get_sprite_rect("block/water_flow").unwrap();
 
-    let above = builder.section.blocks[local.x as usize][local.y as usize + 1][local.z as usize].unwrap_or(BlockState::AIR);
-    if Block::from(above) != Block::Water {
+    if builder
+        .block_state_at(local + IVec3::Y)
+        .map(Block::from)
+        .unwrap_or(Block::Water)
+        != Block::Water
+    {
         mesh_water_top(local, h_ne, h_nw, h_sw, h_se, still, flow, tint, builder);
     }
 
-    let below = builder.section.blocks[local.x as usize][local.y as usize - 1][local.z as usize].unwrap_or(BlockState::AIR);
-    if Block::from(below) != Block::Water {
+    if builder
+        .block_state_at(local - IVec3::Y)
+        .map(Block::from)
+        .unwrap_or(Block::Water)
+        != Block::Water
+    {
         mesh_water_bottom(local, still, tint, builder);
     }
 
@@ -46,7 +54,8 @@ pub fn mesh_water(block: BlockState, local: IVec3, builder: &mut MeshBuilder) {
 }
 
 fn fluid_height(local: IVec3, _block: BlockState, builder: &MeshBuilder) -> f32 {
-    let state = builder.section.blocks[local.x as usize][local.y as usize][local.z as usize].unwrap_or(BlockState::AIR);
+    let state = builder.section.blocks[local.x as usize][local.y as usize][local.z as usize]
+        .unwrap_or(BlockState::AIR);
     if Block::from(state) == Block::Water {
         let level = state.property::<WaterLevel>().unwrap() as u32;
         if level == 0 {
@@ -190,24 +199,27 @@ fn mesh_water_sides(
 
     for (offset, [low_a, low_b]) in dirs {
         let neighbor = local + offset;
-        let state =
-            builder.section.blocks[neighbor.x as usize][neighbor.y as usize][neighbor.z as usize].unwrap_or(BlockState::AIR);
-        if Block::from(state) != Block::Water {
-            let positions = [
-                base + low_a,
-                base + low_a + Vec3::new(0.0, height, 0.0),
-                base + low_b + Vec3::new(0.0, height, 0.0),
-                base + low_b,
-            ];
+        let maybe_state =
+            builder.section.blocks[neighbor.x as usize][neighbor.y as usize][neighbor.z as usize];
 
-            let quad: [BlockVertex; 4] = std::array::from_fn(|i| BlockVertex {
-                position: positions[i].into(),
-                ao: 3.0,
-                uv: uvs[i],
-                tint,
-            });
+        if let Some(state) = maybe_state {
+            if Block::from(state) != Block::Water {
+                let positions = [
+                    base + low_a,
+                    base + low_a + Vec3::new(0.0, height, 0.0),
+                    base + low_b + Vec3::new(0.0, height, 0.0),
+                    base + low_b,
+                ];
 
-            builder.push_water_quad(quad);
+                let quad: [BlockVertex; 4] = std::array::from_fn(|i| BlockVertex {
+                    position: positions[i].into(),
+                    ao: 3.0,
+                    uv: uvs[i],
+                    tint,
+                });
+
+                builder.push_water_quad(quad);
+            }
         }
     }
 }

@@ -20,6 +20,7 @@ impl Animation {
         let width = self.width.or(self.height).unwrap_or(min_dim);
         let height = self.height.or(self.width).unwrap_or(min_dim);
 
+        
         (width, height)
     }
 
@@ -52,5 +53,17 @@ impl Animation {
             })
             .or(self.frametime)
             .unwrap_or(1)
+    }
+
+    pub fn frames_len(&self, image_size: (u32, u32)) -> usize {
+        if let Some(frames) = &self.frames {
+            frames.len()
+        } else {
+            let (fw, fh) = self.size(image_size);
+            let cols = image_size.0 / fw;
+            let rows = image_size.1 / fh;
+
+            (cols * rows) as usize
+        }
     }
 }

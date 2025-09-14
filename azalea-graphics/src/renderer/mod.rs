@@ -52,6 +52,9 @@ pub struct Renderer {
     camera_controller: CameraController,
 
     egui: EguiVulkan,
+
+    tick_accumulator: Duration,
+    tick_interval: Duration,
 }
 
 impl Renderer {
@@ -105,6 +108,9 @@ impl Renderer {
             camera_controller,
 
             egui,
+
+            tick_accumulator: Duration::ZERO,
+            tick_interval: Duration::from_millis(50),
         })
     }
 
@@ -134,6 +140,12 @@ impl Renderer {
     pub fn update(&mut self, dt: Duration) {
         self.camera_controller.update_camera(&mut self.camera, dt);
         self.world.process_meshing_results(&self.context);
+
+        self.tick_accumulator += dt;
+        while self.tick_accumulator >= self.tick_interval {
+            self.tick_accumulator -= self.tick_interval;
+            self.world.tick();
+        }
     }
 
     pub fn process_keyboard(&mut self, key: KeyCode, state: ElementState) -> bool {
@@ -188,13 +200,14 @@ impl Renderer {
         }
 
         self.world.render(
-            device,
+            &self.context,
             cmd,
             image_index,
             self.swapchain.extent,
             self.projection.calc_proj() * self.camera.calc_view(),
             self.wireframe_mode,
             self.camera.position,
+            frame,
         );
 
         if let Err(e) = self.render_egui(cmd, image_index, frame) {

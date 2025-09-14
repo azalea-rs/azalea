@@ -1,7 +1,7 @@
-use ash::vk;
+use ash::{Device, vk};
 use vk_mem::{Alloc, Allocation, MemoryUsage};
 
-use crate::renderer::vulkan::{context::VkContext, buffer::create_buffer};
+use crate::renderer::vulkan::{buffer::create_buffer, context::VkContext};
 
 pub struct Texture {
     pub image: vk::Image,
@@ -200,6 +200,7 @@ impl Texture {
             sampler,
         }
     }
+
 
     pub fn destroy(&mut self, ctx: &VkContext) {
         unsafe {

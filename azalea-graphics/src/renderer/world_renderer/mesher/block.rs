@@ -150,7 +150,7 @@ fn face_is_occluded(local: IVec3, cull_dir: Direction, section: &LocalSection) -
         || neighbor_pos.y >= 18
         || neighbor_pos.z >= 18
     {
-        return false;
+        return true;
     }
 
     let neighbor_state =

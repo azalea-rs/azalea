@@ -1,4 +1,4 @@
-use std::{sync::Arc, thread};
+use std::{sync::Arc, thread, time::Instant};
 
 use azalea::{blocks::BlockState, core::position::ChunkSectionPos, registry::Block};
 use crossbeam::channel::{Receiver, Sender, unbounded};
@@ -36,8 +36,15 @@ impl Mesher {
 
         thread::spawn(move || {
             while let Ok(local_section) = work_rx.recv() {
+                let start = Instant::now();
                 let mesh = mesh_section(&local_section, &assets);
                 result_tx.send(mesh).unwrap();
+
+                let dt = start.elapsed();
+
+                let ms = dt.as_nanos() as f32 / 1_000_000.0;
+
+                println!("meshing took: {}ms", ms);
             }
         });
 
@@ -70,6 +77,10 @@ pub struct MeshBuilder<'a> {
 }
 
 impl<'a> MeshBuilder<'a> {
+    fn block_state_at(&self, pos: IVec3) -> Option<BlockState> {
+        self.section.blocks[pos.x as usize][pos.y as usize][pos.z as usize]
+    }
+
     pub fn push_block_quad(&mut self, verts: [BlockVertex; 4]) {
         let start = self.block_vertices.len() as u32;
         self.block_vertices.extend_from_slice(&verts);
@@ -129,7 +140,8 @@ pub fn mesh_section(section: &LocalSection, assets: &Assets) -> MeshResult {
         for x in 0..16 {
             for z in 0..16 {
                 let local = IVec3::new(x + 1, y + 1, z + 1);
-                let block = section.blocks[local.x as usize][local.y as usize][local.z as usize].unwrap_or(BlockState::AIR);
+                let block = section.blocks[local.x as usize][local.y as usize][local.z as usize]
+                    .unwrap_or(BlockState::AIR);
 
                 if !block.is_air() {
                     if Block::from(block) == Block::Water {
