@@ -287,7 +287,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                         _ => None,
                     })
                     .unwrap();
-                if property_default_ident.to_string() != variant.ident.to_string() {
+                if variant.ident != property_default_ident {
                     is_default = false;
                 }
 

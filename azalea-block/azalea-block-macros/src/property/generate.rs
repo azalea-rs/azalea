@@ -42,8 +42,7 @@ fn generate_property_code(
             let mut property_enum_variants = quote! {};
             let mut property_from_number_variants = quote! {};
 
-            for i in 0..variants.len() {
-                let variant = &variants[i];
+            for (i, variant) in variants.iter().enumerate() {
                 let variant_str = variant.name.value();
                 let variant_ident = variant.ident.clone();
                 let i_lit = Lit::Int(LitInt::new(&i.to_string(), proc_macro2::Span::call_site()));
@@ -103,9 +102,9 @@ fn generate_property_code(
         .get(&property_struct_name.to_string())
         .expect("Property values not found for property");
 
-    let try_from_block_state = generate_try_from_block_state(&property_values, last_state_id);
+    let try_from_block_state = generate_try_from_block_state(property_values, last_state_id);
 
-    let value_tokens = match get_property_kind(&property_values) {
+    let value_tokens = match get_property_kind(property_values) {
         PropertyKind::Enum => quote! { Self },
         PropertyKind::Bool => quote! { bool },
     };
@@ -239,8 +238,8 @@ pub fn get_property_variant_types(data: &PropertyData) -> Vec<PropertyVariantMet
         PropertyData::Enum { variants, .. } => {
             let mut property_variant_types = Vec::new();
 
-            for index in 0..variants.len() {
-                let variant_ident = variants[index].ident.clone();
+            for (index, variant) in variants.iter().enumerate() {
+                let variant_ident = variant.ident.clone();
                 property_variant_types.push(PropertyVariantMeta {
                     ident: variant_ident,
                     index,
@@ -285,16 +284,13 @@ pub fn make_property_struct_names_to_names(
     let mut property_struct_names_to_names = HashMap::new();
 
     for property in properties {
-        match &property.data {
-            PropertyData::Enum { enum_name, .. } => {
-                let property_struct_name = enum_name.clone();
+        if let PropertyData::Enum { enum_name, .. } = &property.data {
+            let property_struct_name = enum_name.clone();
 
-                property_struct_names_to_names.insert(
-                    property_struct_name.to_string(),
-                    property.name.clone().value(),
-                );
-            }
-            _ => {}
+            property_struct_names_to_names.insert(
+                property_struct_name.to_string(),
+                property.name.clone().value(),
+            );
         }
     }
 

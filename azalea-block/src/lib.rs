@@ -75,10 +75,9 @@ mod tests {
         };
         let block_state = block.as_block_state();
         let block_from_state = Box::<dyn BlockTrait>::from(block_state);
-        let block_from_state = block_from_state
+        let block_from_state = *block_from_state
             .downcast_ref::<crate::blocks::OakTrapdoor>()
-            .unwrap()
-            .clone();
+            .unwrap();
         assert_eq!(block, block_from_state);
     }
 
