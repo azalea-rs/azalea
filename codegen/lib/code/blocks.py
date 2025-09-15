@@ -74,7 +74,9 @@ def generate_blocks(
         else:
             property_shape_code = f"{property_struct_name} {{\n"
             for variant in property_variants:
-                property_shape_code += f"            {to_camel_case(variant)},\n"
+                property_shape_code += (
+                    f'            {to_camel_case(variant)} = "{variant}",\n'
+                )
             property_shape_code += "        }"
 
         new_make_block_states_macro_code.append(

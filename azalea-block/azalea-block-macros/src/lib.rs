@@ -1,5 +1,6 @@
 //! An internal crate used by `azalea_block`.
 
+mod property;
 mod utils;
 
 use std::{collections::HashMap, fmt::Write};
@@ -8,54 +9,22 @@ use proc_macro::TokenStream;
 use proc_macro2::TokenTree;
 use quote::quote;
 use syn::{
-    Expr, Ident, LitStr, Token, braced,
-    ext::IdentExt,
-    parenthesized,
+    Expr, Ident, Token, braced,
     parse::{Parse, ParseStream, Result},
     parse_macro_input,
-    punctuated::Punctuated,
-    token,
 };
 use utils::{combinations_of, to_pascal_case};
 
+use crate::property::{
+    generate::{
+        generate_properties_code, get_property_value_type, get_property_variant_types,
+        make_property_struct_names_to_names,
+    },
+    parse::{PropertyDefinition, PropertyWithNameAndDefault, parse_property_definitions},
+};
+
 // must be the same as the type in `azalea-block/src/lib.rs`
 type BlockStateIntegerRepr = u16;
-enum PropertyType {
-    /// `Axis { X, Y, Z }`
-    Enum {
-        enum_name: Ident,
-        variants: Punctuated<Ident, Token![,]>,
-    },
-    /// `Snowy(bool)`
-    Boolean { struct_name: Ident },
-}
-
-/// `"snowy" => Snowy(bool)`
-struct PropertyDefinition {
-    name: LitStr,
-    property_type: PropertyType,
-}
-
-/// Comma separated PropertyDefinitions (`"snowy" => Snowy(bool),`)
-struct PropertyDefinitions {
-    properties: Vec<PropertyDefinition>,
-}
-
-/// `"snowy": Snowy(false)` or `"axis": properties::Axis::Y`
-#[derive(Debug)]
-struct PropertyWithNameAndDefault {
-    // "snowy" "axis"
-    name: String,
-    /// The property name, potentially modified so it works better as a struct
-    /// field.
-    name_ident: Ident,
-    // Snowy / Axis
-    property_type: Ident,
-    property_value_type: Ident,
-    is_enum: bool,
-    // false / properties::Axis::Y
-    default: proc_macro2::TokenStream,
-}
 
 /// ```ignore
 /// grass_block => BlockBehavior::default(), {
@@ -67,139 +36,9 @@ struct BlockDefinition {
     behavior: Expr,
     properties_and_defaults: Vec<PropertyWithNameAndDefault>,
 }
-impl Parse for PropertyWithNameAndDefault {
-    fn parse(input: ParseStream) -> Result<Self> {
-        // `"snowy": Snowy(false)` or `"axis": properties::Axis::Y`
-        let property_name = input.parse::<LitStr>()?.value();
-        input.parse::<Token![:]>()?;
-
-        let first_ident = input.call(Ident::parse_any)?;
-        let mut property_default = quote! { #first_ident };
-
-        let property_type: Ident;
-        let property_value_type: Ident;
-        let mut is_enum = false;
-
-        if input.parse::<Token![::]>().is_ok() {
-            // enum
-            is_enum = true;
-            property_type = first_ident.clone();
-            property_value_type = first_ident;
-            let variant = input.parse::<Ident>()?;
-            property_default = quote! { properties::#property_default::#variant };
-        } else {
-            // must be a unit struct if it's not an enum
-            let content;
-            let _paren_token: token::Paren = parenthesized!(content in input);
-            // we use this instead of .parse so it works with rust keywords like true and
-            // false
-            let unit_struct_inner = content.call(Ident::parse_any)?;
-            let unit_struct_inner_string = unit_struct_inner.to_string();
-
-            if matches!(unit_struct_inner_string.as_str(), "true" | "false") {
-                property_value_type = Ident::new("bool", first_ident.span());
-                property_type = first_ident;
-                property_default = quote! { #unit_struct_inner };
-            } else {
-                return Err(input.error("Expected a boolean or an enum variant"));
-            }
-        };
-
-        let property_name_ident = name_to_ident(&property_name);
-
-        Ok(PropertyWithNameAndDefault {
-            name: property_name,
-            name_ident: property_name_ident,
-            property_type,
-            property_value_type,
-            is_enum,
-            default: property_default,
-        })
-    }
-}
 
 struct BlockDefinitions {
     blocks: Vec<BlockDefinition>,
-}
-struct MakeBlockStates {
-    property_definitions: PropertyDefinitions,
-    block_definitions: BlockDefinitions,
-}
-
-impl Parse for PropertyType {
-    fn parse(input: ParseStream) -> Result<Self> {
-        // like `Axis { X, Y, Z }` or `Waterlogged(bool)`
-
-        let keyword = Ident::parse(input)?;
-
-        fn parse_braced(input: ParseStream) -> Result<Punctuated<Ident, Token![,]>> {
-            let content;
-            braced!(content in input);
-            let variants = content.parse_terminated(Ident::parse, Token![,])?;
-            Ok(variants)
-        }
-
-        fn parse_paren(input: ParseStream) -> Result<Ident> {
-            let content;
-            parenthesized!(content in input);
-            let inner = content.parse::<Ident>()?;
-            Ok(inner)
-        }
-
-        if let Ok(variants) = parse_braced(input) {
-            Ok(Self::Enum {
-                enum_name: keyword,
-                variants,
-            })
-        } else if let Ok(inner) = parse_paren(input) {
-            assert_eq!(
-                inner.to_string(),
-                "bool",
-                "Currently only bool unit structs are supported"
-            );
-            Ok(Self::Boolean {
-                struct_name: keyword,
-            })
-        } else {
-            Err(input.error("Expected a unit struct or an enum"))
-        }
-    }
-}
-
-impl Parse for PropertyDefinition {
-    fn parse(input: ParseStream) -> Result<Self> {
-        // "face" => Face {
-        //     Floor,
-        //     Wall,
-        //     Ceiling
-        // },
-
-        // if you're wondering, the reason it's in quotes is because `type` is
-        // a keyword in rust so if we don't put it in quotes it results in a
-        // syntax error
-        let name = input.parse()?;
-        input.parse::<Token![=>]>()?;
-        let property_type = input.parse()?;
-
-        input.parse::<Token![,]>()?;
-        Ok(PropertyDefinition {
-            name,
-            property_type,
-        })
-    }
-}
-
-impl Parse for PropertyDefinitions {
-    fn parse(input: ParseStream) -> Result<Self> {
-        let mut property_definitions = Vec::new();
-        while !input.is_empty() {
-            property_definitions.push(input.parse()?);
-        }
-
-        Ok(PropertyDefinitions {
-            properties: property_definitions,
-        })
-    }
 }
 
 impl Parse for BlockDefinition {
@@ -249,6 +88,10 @@ impl Parse for BlockDefinitions {
     }
 }
 
+struct MakeBlockStates {
+    pub properties: Vec<PropertyDefinition>,
+    pub blocks: BlockDefinitions,
+}
 impl Parse for MakeBlockStates {
     fn parse(input: ParseStream) -> Result<Self> {
         // Properties => { ... } Blocks => { ... }
@@ -257,7 +100,7 @@ impl Parse for MakeBlockStates {
         input.parse::<Token![=>]>()?;
         let content;
         braced!(content in input);
-        let properties = content.parse()?;
+        let properties = parse_property_definitions(&content)?;
 
         input.parse::<Token![,]>()?;
 
@@ -268,23 +111,26 @@ impl Parse for MakeBlockStates {
         braced!(content in input);
         let blocks = content.parse()?;
 
-        Ok(MakeBlockStates {
-            property_definitions: properties,
-            block_definitions: blocks,
-        })
+        Ok(MakeBlockStates { properties, blocks })
     }
 }
 
 struct PropertyVariantData {
     pub block_state_ids: Vec<BlockStateIntegerRepr>,
+    pub kind: PropertyKind,
     pub ident: Ident,
-    pub variant_index: usize,
-    pub is_enum: bool,
+    pub index: usize,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum PropertyKind {
+    Enum,
+    Bool,
 }
 
 #[derive(Clone, Debug)]
-struct PropertyMeta {
-    pub name: String,
+struct PropertyVariantMeta {
+    pub ident: Ident,
     pub index: usize,
 }
 
@@ -292,126 +138,14 @@ struct PropertyMeta {
 pub fn make_block_states(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as MakeBlockStates);
 
-    let mut property_enums = quote! {};
     let mut properties_map = HashMap::new();
-    let mut property_struct_names_to_names = HashMap::new();
-
-    let mut state_id: BlockStateIntegerRepr = 0;
-
-    for property in &input.property_definitions.properties {
-        let property_struct_name: Ident;
-        // this is usually the same as property_struct_name except for bool
-        let property_value_name: Ident;
-        let mut property_variant_types = Vec::new();
-
-        match &property.property_type {
-            PropertyType::Enum {
-                enum_name,
-                variants,
-            } => {
-                let mut property_enum_variants = quote! {};
-                let mut property_from_number_variants = quote! {};
-                let mut property_tostring_variants = quote! {};
-        
-                property_value_name = enum_name.clone();
-                property_struct_name = enum_name.clone();
-        
-                property_struct_names_to_names.insert(
-                    property_struct_name.to_string(),
-                    property.name.clone().value(),
-                );
-        
-                for i in 0..variants.len() {
-                    let variant = &variants[i];
-                    let variant_string_full = variant.to_string();
-                    let variant_string = variant_string_full.strip_prefix('_').unwrap_or(&variant_string_full).to_lowercase(); 
-        
-                    let i_lit = syn::Lit::Int(syn::LitInt::new(
-                        &i.to_string(),
-                        proc_macro2::Span::call_site(),
-                    ));
-        
-                    property_enum_variants.extend(quote! {
-                        #variant = #i_lit,
-                    });
-        
-                    property_from_number_variants.extend(quote! {
-                        #i_lit => #property_struct_name::#variant,
-                    });
-        
-                    property_tostring_variants.extend(quote! {
-                        #property_struct_name::#variant => #variant_string.to_string(),
-                    });
-        
-                    property_variant_types.push(PropertyMeta {
-                        name: variant.to_string(),
-                        index: i,
-                    });
-                }
-        
-                property_enums.extend(quote! {
-                    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-                    pub enum #property_struct_name {
-                        #property_enum_variants
-                    }
-        
-                    impl From<BlockStateIntegerRepr> for #property_struct_name {
-                        fn from(value: BlockStateIntegerRepr) -> Self {
-                            match value {
-                                #property_from_number_variants
-                                _ => panic!("Invalid property value: {}", value),
-                            }
-                        }
-                    }
-        
-                    impl ToString for #property_struct_name {
-                        fn to_string(&self) -> String {
-                            match self {
-                                #property_tostring_variants
-                            }
-                        }
-                    }
-                });
-            }
-            PropertyType::Boolean { struct_name } => {
-                property_value_name = Ident::new("bool", proc_macro2::Span::call_site());
-                property_struct_name = struct_name.clone();
-                property_variant_types = vec![
-                    PropertyMeta {
-                        name: "true".into(),
-                        index: 0,
-                    },
-                    PropertyMeta {
-                        name: "false".into(),
-                        index: 1,
-                    },
-                ];
-        
-                property_enums.extend(quote! {
-                    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-                    pub struct #property_struct_name(pub bool);
-        
-                    impl From<BlockStateIntegerRepr> for #property_struct_name {
-                        /// In Minecraft, `0 = true` and `1 = false`.
-                        fn from(value: BlockStateIntegerRepr) -> Self {
-                            match value {
-                                0 => Self(true),
-                                1 => Self(false),
-                                _ => panic!("Invalid property value: {}", value),
-                            }
-                        }
-                    }
-        
-                    impl ToString for #property_struct_name {
-                        fn to_string(&self) -> String {
-                            self.0.to_string()
-                        }
-                    }
-                });
-            }
-        }
-        properties_map.insert(property_value_name.to_string(), property_variant_types);
+    for property in &input.properties {
+        let property_value_type = get_property_value_type(&property.data);
+        let property_variant_types = get_property_variant_types(&property.data);
+        properties_map.insert(property_value_type.to_string(), property_variant_types);
     }
+
+    let property_struct_names_to_names = make_property_struct_names_to_names(&input.properties);
 
     let mut block_state_enum_variants = quote! {};
     let mut block_structs = quote! {};
@@ -421,15 +155,11 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
     let mut from_registry_block_to_blockstate_match = quote! {};
     let mut from_registry_block_to_blockstates_match = quote! {};
 
-    // {
-    //     Waterlogged: [
-    //         [ vec of waterlogged = true state ids ],
-    //         [ vec of waterlogged = false state ids ]
-    //     }
-    // }
-    let mut properties_to_state_ids: HashMap<String, Vec<PropertyVariantData>> = HashMap::new();
+    // keys are enum names like Waterlogged
+    let mut properties_to_state_ids = HashMap::<String, Vec<PropertyVariantData>>::new();
 
-    for block in &input.block_definitions.blocks {
+    let mut state_id: BlockStateIntegerRepr = 0;
+    for block in &input.blocks.blocks {
         let block_property_names = &block
             .properties_and_defaults
             .iter()
@@ -437,9 +167,6 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             .collect::<Vec<_>>();
         let mut block_properties_vec = Vec::new();
         for property_name in block_property_names {
-            // if property_name == "stage" {
-            //     panic!("{:?}", block.properties_and_defaults);
-            // }
             let property_variants = properties_map
                 .get(property_name)
                 .unwrap_or_else(|| panic!("Property '{property_name}' not found"))
@@ -484,7 +211,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 name: property_name,
                 property_type: property.property_type.clone(),
                 property_value_type: property.property_value_type.clone(),
-                is_enum: property.is_enum,
+                kind: property.kind,
                 default: property.default.clone(),
             });
         }
@@ -501,14 +228,17 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         for PropertyWithNameAndDefault {
             property_value_type,
             name_ident,
-            is_enum,
+            kind,
             ..
         } in &properties_with_name
         {
-            block_struct_fields.extend(if *is_enum {
-                quote! { pub #name_ident: properties::#property_value_type, }
-            } else {
-                quote! { pub #name_ident: #property_value_type, }
+            block_struct_fields.extend(match kind {
+                PropertyKind::Enum => {
+                    quote! { pub #name_ident: properties::#property_value_type, }
+                }
+                PropertyKind::Bool => {
+                    quote! { pub #name_ident: #property_value_type, }
+                }
             });
         }
 
@@ -544,24 +274,30 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 let property_name_ident = &property.name_ident;
                 let property_value_name_ident = &property.property_type;
                 let variant = &combination[i];
-                let variant_ident = Ident::new(&variant.name, proc_macro2::Span::call_site());
+                let variant_ident = variant.ident.clone();
 
-                // this terrible code just gets the property default as a string
-                let property_default_as_string =
-                    match property.default.clone().into_iter().last().unwrap() {
-                        TokenTree::Ident(ident) => ident.to_string(),
-                        _ => {
-                            panic!()
-                        }
-                    };
-                if property_default_as_string != variant.name {
+                // property.default is a TokenStream, so we have to parse it like this
+                let property_default_ident = property
+                    .default
+                    .clone()
+                    .into_iter()
+                    .last()
+                    .and_then(|tt| match tt {
+                        TokenTree::Ident(ident) => Some(ident),
+                        _ => None,
+                    })
+                    .unwrap();
+                if property_default_ident.to_string() != variant.ident.to_string() {
                     is_default = false;
                 }
 
-                let property_variant = if property.is_enum {
-                    quote! {properties::#property_value_name_ident::#variant_ident}
-                } else {
-                    quote! {#variant_ident}
+                let property_variant = match property.kind {
+                    PropertyKind::Enum => {
+                        quote! { properties::#property_value_name_ident::#variant_ident }
+                    }
+                    PropertyKind::Bool => {
+                        quote! { #variant_ident }
+                    }
                 };
 
                 from_block_to_state_combination_match_inner.extend(quote! {
@@ -581,8 +317,8 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                     property_variants.push(PropertyVariantData {
                         block_state_ids: vec![state_id],
                         ident: variant_ident,
-                        variant_index: variant.index,
-                        is_enum: property.is_enum,
+                        index: variant.index,
+                        kind: property.kind,
                     });
                 }
             }
@@ -697,21 +433,25 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             azalea_registry::Block::#block_name_pascal_case => BlockStates::from(#first_state_id..=#last_state_id),
         });
 
-        let mut as_property_map_body = quote! {};
-        let mut get_property_body = quote! {};
-        
+        let mut property_map_inner = quote! {};
+        let mut get_property_inner = quote! {};
+
         for PropertyWithNameAndDefault {
             name,
             name_ident,
+            kind,
             ..
         } in &properties_with_name
         {
-            as_property_map_body.extend(quote! {
-                map.insert(#name.to_string(), self.#name_ident.to_string());
+            let variant_name_tokens = match kind {
+                PropertyKind::Enum => quote! { self.#name_ident.to_static_str() },
+                PropertyKind::Bool => quote! { if self.#name_ident { "true" } else { "false" } },
+            };
+            property_map_inner.extend(quote! {
+                map.insert(#name, #variant_name_tokens);
             });
-        
-            get_property_body.extend(quote! {
-                #name => Some(self.#name_ident.to_string()),
+            get_property_inner.extend(quote! {
+                #name => Some(#variant_name_tokens),
             });
         }
 
@@ -740,10 +480,6 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             block_struct.extend(quote! { { #block_struct_fields } });
         }
 
-
-
-
-
         block_struct.extend(quote! {
             impl BlockTrait for #block_struct_name {
                 fn behavior(&self) -> BlockBehavior {
@@ -758,15 +494,15 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
                 fn as_registry_block(&self) -> azalea_registry::Block {
                     azalea_registry::Block::#block_name_pascal_case
                 }
-                fn property_map(&self) -> std::collections::HashMap<String, String> {
+
+                fn property_map(&self) -> std::collections::HashMap<&'static str, &'static str> {
                     let mut map = std::collections::HashMap::new();
-                    #as_property_map_body
+                    #property_map_inner
                     map
                 }
-
-                fn get_property(&self, name: &str) -> Option<String> {
+                fn get_property(&self, name: &str) -> Option<&'static str> {
                     match name {
-                        #get_property_body
+                        #get_property_inner
                         _ => None,
                     }
                 }
@@ -809,124 +545,14 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
         }
     };
 
-    // now impl Property for every property
-    // ```
-    // match state_id {
-    //     // this is just an example of how it might look, these state ids are definitely not correct
-    //     0 | 3 | 6 => Some(Self::Axis::X),
-    //     1 | 4 | 7 => Some(Self::Axis::Y),
-    //     2 | 5 | 8 => Some(Self::Axis::Z),
-    //     _ => None,
-    // }
-    // ```
-    let mut property_impls = quote! {};
-    for (property_struct_name, property_values) in properties_to_state_ids {
-        let mut is_enum = false;
-
-        let mut some_block_states_count = 0;
-        for PropertyVariantData {
-            block_state_ids,
-            is_enum: is_enum_,
-            ..
-        } in &property_values
-        {
-            some_block_states_count += block_state_ids.len();
-            is_enum = *is_enum_;
-        }
-
-        let mut try_from_block_state;
-        // do a simpler lookup if there's few block states
-        if some_block_states_count > 2048 {
-            // create a lookup table - 0 indicates None
-            let table_size = last_state_id as usize + 1;
-            let mut table = vec![0; table_size];
-            for PropertyVariantData {
-                block_state_ids,
-                variant_index,
-                ..
-            } in property_values
-            {
-                for block_state_id in block_state_ids {
-                    // add 1 since we're offsetting for zero
-                    table[block_state_id as usize] = variant_index + 1;
-                }
-            }
-
-            let mut table_inner = quote! {};
-            for entry in table {
-                // this makes it not put the "usize" after the number like 0usize
-                let literal_int = syn::Lit::Int(syn::LitInt::new(
-                    &entry.to_string(),
-                    proc_macro2::Span::call_site(),
-                ));
-                table_inner.extend(quote! { #literal_int, });
-            }
-
-            try_from_block_state = quote! {
-                static TABLE: &[BlockStateIntegerRepr; #table_size] = &[#table_inner];
-                let res = TABLE[block_state.id() as usize];
-                if res == 0 { return None };
-            };
-            if is_enum {
-                try_from_block_state.extend(quote! { Some(Self::from(res - 1)) });
-            } else {
-                try_from_block_state.extend(quote! { Some(res != 2) });
-            }
-        } else {
-            let mut enum_inner_generated = quote! {};
-            for PropertyVariantData {
-                block_state_ids,
-                ident,
-                ..
-            } in property_values
-            {
-                enum_inner_generated.extend(if is_enum {
-                    quote! {
-                        #(#block_state_ids)|* => Some(Self::#ident),
-                    }
-                } else {
-                    quote! {
-                        #(#block_state_ids)|* => Some(#ident),
-                    }
-                });
-            }
-
-            try_from_block_state = quote! {
-                match block_state.id() {
-                    #enum_inner_generated
-                    _ => None
-                }
-            };
-        }
-
-        let property_struct_name =
-            Ident::new(&property_struct_name, proc_macro2::Span::call_site());
-
-        let value = if is_enum {
-            quote! { Self }
-        } else {
-            quote! { bool }
-        };
-
-        let property_impl = quote! {
-            impl Property for #property_struct_name {
-                type Value = #value;
-
-                fn try_from_block_state(block_state: BlockState) -> Option<Self::Value> {
-                    #try_from_block_state
-                }
-            }
-        };
-        property_impls.extend(property_impl);
-    }
+    let properties_code =
+        generate_properties_code(&input.properties, &properties_to_state_ids, last_state_id);
 
     generated.extend(quote! {
         pub mod properties {
             use super::*;
 
-            #property_enums
-
-            #property_impls
+            #properties_code
         }
 
         pub mod blocks {
