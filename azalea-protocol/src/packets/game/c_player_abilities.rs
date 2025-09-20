@@ -1,8 +1,8 @@
 use std::io::{self, Cursor, Write};
 
-use azalea_buf::{AzBuf, BufReadError};
-use azalea_buf::{AzaleaRead, AzaleaWrite};
+use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
 use azalea_core::bitset::FixedBitSet;
+use azalea_entity::PlayerAbilities;
 use azalea_protocol_macros::ClientboundGamePacket;
 
 #[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
@@ -49,5 +49,18 @@ impl AzaleaWrite for PlayerAbilitiesFlags {
             set.set(3);
         }
         set.azalea_write(buf)
+    }
+}
+
+impl From<&ClientboundPlayerAbilities> for PlayerAbilities {
+    fn from(packet: &ClientboundPlayerAbilities) -> Self {
+        Self {
+            invulnerable: packet.flags.invulnerable,
+            flying: packet.flags.flying,
+            can_fly: packet.flags.can_fly,
+            instant_break: packet.flags.instant_break,
+            flying_speed: packet.flying_speed,
+            walking_speed: packet.walking_speed,
+        }
     }
 }

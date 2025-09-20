@@ -5,7 +5,6 @@ use std::{
 };
 
 use azalea_core::game_type::GameMode;
-use azalea_protocol::packets::game::c_player_abilities::ClientboundPlayerAbilities;
 use azalea_world::{Instance, PartialInstance};
 use bevy_ecs::{component::Component, prelude::*};
 use derive_more::{Deref, DerefMut};
@@ -55,34 +54,6 @@ impl From<GameMode> for LocalGameMode {
     }
 }
 
-/// A component that contains the abilities the player has, like flying
-/// or instantly breaking blocks. This is only present on local players.
-#[derive(Clone, Debug, Component, Default)]
-pub struct PlayerAbilities {
-    pub invulnerable: bool,
-    pub flying: bool,
-    pub can_fly: bool,
-    /// Whether the player can instantly break blocks and can duplicate blocks
-    /// in their inventory.
-    pub instant_break: bool,
-
-    pub flying_speed: f32,
-    /// Used for the fov
-    pub walking_speed: f32,
-}
-impl From<&ClientboundPlayerAbilities> for PlayerAbilities {
-    fn from(packet: &ClientboundPlayerAbilities) -> Self {
-        Self {
-            invulnerable: packet.flags.invulnerable,
-            flying: packet.flags.flying,
-            can_fly: packet.flags.can_fly,
-            instant_break: packet.flags.instant_break,
-            flying_speed: packet.flying_speed,
-            walking_speed: packet.walking_speed,
-        }
-    }
-}
-
 /// Level must be 0..=4
 #[derive(Component, Clone, Default, Deref, DerefMut)]
 pub struct PermissionLevel(pub u8);
@@ -125,6 +96,15 @@ impl Default for Hunger {
             food: 20,
             saturation: 5.,
         }
+    }
+}
+impl Hunger {
+    /// Returns true if we have enough food level to sprint.
+    ///
+    /// Note that this doesn't consider our gamemode or passenger status.
+    pub fn is_enough_to_sprint(&self) -> bool {
+        // hasEnoughFoodToSprint
+        self.food >= 6
     }
 }
 

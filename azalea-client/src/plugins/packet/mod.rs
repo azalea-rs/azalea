@@ -73,7 +73,7 @@ macro_rules! declare_packet_handlers {
         $handler:ident,
         [$($packet:path),+ $(,)?]
     ) => {
-        paste::paste! {
+        pastey::paste! {
            match $packetvar {
                 $(
                     $packetenum::[< $packet:camel >](p) => $handler.$packet(p),

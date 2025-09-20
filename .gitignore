@@ -2,6 +2,7 @@
 .vscode/
 doc/
 target/
+rustc-ice-*
 
 .cargo/config
 .cargo/config.toml
@@ -10,13 +11,13 @@ target/
 # the example could be run from anywhere
 example_cache.json
 
+# not created by azalea itself, sometimes used for debugging since the docs specifically mentions using azalea.log
+azalea.log
+
 # these are created by profiling tools
 flamegraph.svg
 perf.data
 perf.data.old
 heaptrack.*
-
-rustc-ice-*
-
-# not created by azalea itself, sometimes used for debugging since the docs specifically mentions using azalea.log
-azalea.log
+*.mm_profdata
+chrome_profiler.json

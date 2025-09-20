@@ -15,6 +15,8 @@ is breaking anyways, semantic versioning is not followed.
 - Local clients now have a `TicksConnected` component. (@Kumpelinus)
 - There is now a `azalea_inventory::default_components::get_default_component` function to get the default value of a component for a registry item.
 - `ItemStack` now has a `get_component` function that supports default components.
+- `Client::nearest_entity_by`.
+- Sneaking/crouching.
 
 ### Changed
 
@@ -24,18 +26,28 @@ is breaking anyways, semantic versioning is not followed.
 - `Client::attack` now takes `Entity` instead of `MinecraftEntityId`.
 - `ItemStackData::components` was renamed to `component_patch`.
 - The fields in `LookDirection` have been replaced with getters.
+- Renamed `Client::entity_by` to `any_entity_by`, and `Client::entities_by` to `nearest_entities_by`.
+- `EyeHeight` was moved into `EntityDimensions`, and `EntityDimensions` is now its own component.
+- Replaced `start_goto_without_mining` with `start_goto_with_opts`.
+- Rename `send_chat_packet` / `send_command_packet` to `write_chat_packet` / `write_command_packet` (for consistency with `write_packet`).
+- Split `ClientInformation` handling out of `BrandPlugin` to `ClientInformationPlugin`.
+- `ClientBuilder::start` and `SwarmBuilder::start` now return a `Result<AppExit>` instead of `Result<!>`.
 
 ### Fixed
 
 - Fix packet order for loading (`PlayerLoaded`/`MovePlayerPos`) and sprinting (`PlayerInput`/`PlayerCommand`).
 - Clients no longer send invalid look directions if the server teleports us with one.
+- Look directions are now rounded based on the default Minecraft sensitivity, which may help avoid flagging anticheats.
 - Movement code was updated with the changes from 1.21.5, so it no longer flags Grim.
+- Clients can no longer sprint if their food level is too low.
 - `azalea-chat` now handles arrays of integers in the `with` field. (@qwqawawow)
 - `azalea-chat` no longer incorrectly persists styles of components in the "extra" field.
 - Inventories now use the correct max stack sizes.
 - Clients now send the correct data component checksums when interacting with items.
 - Fix parsing some metadata fields of Display entities.
-- Look directions are now rounded based on the default Minecraft sensitivity, which may help avoid flagging anticheats.
+- Mining blocks in creative mode now works. (@qwqawawow)
+- Improved matchers on the `ChatPacket` functions to work on more servers. (@ShayBox)
+- Bevy's `AppExit` Event is now handled by Azalea's ECS runner.
 
 ## [0.13.0+mc1.21.5] - 2025-06-15
 

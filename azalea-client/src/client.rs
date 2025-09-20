@@ -14,23 +14,22 @@ use azalea_core::{
     tick::GameTick,
 };
 use azalea_entity::{
-    EntityUpdateSet, EyeHeight, Position,
+    EntityUpdateSet, PlayerAbilities, Position,
+    dimensions::EntityDimensions,
     indexing::{EntityIdIndex, EntityUuidIndex},
     metadata::Health,
 };
+use azalea_physics::local_player::PhysicsState;
 use azalea_protocol::{
     ServerAddress,
-    common::client_information::ClientInformation,
     connect::Proxy,
-    packets::{
-        Packet,
-        game::{self, ServerboundGamePacket},
-    },
+    packets::{Packet, game::ServerboundGamePacket},
     resolver,
 };
 use azalea_world::{Instance, InstanceContainer, InstanceName, MinecraftEntityId, PartialInstance};
-use bevy_app::{App, Plugin, PluginsState, SubApp, Update};
+use bevy_app::{App, AppExit, Plugin, PluginsState, SubApp, Update};
 use bevy_ecs::{
+    event::EventCursor,
     prelude::*,
     schedule::{InternedScheduleLabel, LogLevel, ScheduleBuildSettings},
 };
@@ -38,10 +37,13 @@ use parking_lot::{Mutex, RwLock};
 use simdnbt::owned::NbtCompound;
 use thiserror::Error;
 use tokio::{
-    sync::mpsc::{self},
+    sync::{
+        mpsc::{self},
+        oneshot,
+    },
     time,
 };
-use tracing::{debug, error, info, warn};
+use tracing::{error, info, warn};
 use uuid::Uuid;
 
 use crate::{
@@ -55,9 +57,9 @@ use crate::{
     interact::BlockStatePredictionHandler,
     inventory::Inventory,
     join::{ConnectOpts, StartJoinServerEvent},
-    local_player::{Hunger, InstanceHolder, PermissionLevel, PlayerAbilities, TabList},
+    local_player::{Hunger, InstanceHolder, PermissionLevel, TabList},
     mining::{self},
-    movement::{LastSentLookDirection, PhysicsState},
+    movement::LastSentLookDirection,
     packet::game::SendPacketEvent,
     player::{GameProfileComponent, PlayerInfo, retroactively_add_game_profile_component},
 };
@@ -108,7 +110,9 @@ impl StartClientOpts {
         let mut app = App::new();
         app.add_plugins(DefaultPlugins);
 
-        let (ecs_lock, start_running_systems) = start_ecs_runner(app.main_mut());
+        // appexit_rx is unused here since the user should be able to handle it
+        // themselves if they're using StartClientOpts::new
+        let (ecs_lock, start_running_systems, _appexit_rx) = start_ecs_runner(app.main_mut());
         start_running_systems();
 
         Self {
@@ -376,39 +380,6 @@ impl Client {
         self.query::<Option<&InstanceName>>(&mut self.ecs.lock())
             .is_some()
     }
-
-    /// Tell the server we changed our game options (i.e. render distance, main
-    /// hand). If this is not set before the login packet, the default will
-    /// be sent.
-    ///
-    /// ```rust,no_run
-    /// # use azalea_client::{Client, ClientInformation};
-    /// # async fn example(bot: Client) -> Result<(), Box<dyn std::error::Error>> {
-    /// bot.set_client_information(ClientInformation {
-    ///     view_distance: 2,
-    ///     ..Default::default()
-    /// })
-    /// .await;
-    /// # Ok(())
-    /// # }
-    /// ```
-    pub async fn set_client_information(&self, client_information: ClientInformation) {
-        {
-            let mut ecs = self.ecs.lock();
-            let mut client_information_mut = self.query::<&mut ClientInformation>(&mut ecs);
-            *client_information_mut = client_information.clone();
-        }
-
-        if self.logged_in() {
-            debug!(
-                "Sending client information (already logged in): {:?}",
-                client_information
-            );
-            self.write_packet(game::s_client_information::ServerboundClientInformation {
-                client_information,
-            });
-        }
-    }
 }
 
 impl Client {
@@ -427,12 +398,21 @@ impl Client {
         )
     }
 
+    /// Get the bounding box dimensions for our client, which contains our
+    /// width, height, and eye height.
+    ///
+    /// This is a shortcut for
+    /// `self.component::<EntityDimensions>()`.
+    pub fn dimensions(&self) -> EntityDimensions {
+        self.component::<EntityDimensions>()
+    }
+
     /// Get the position of this client's eyes.
     ///
     /// This is a shortcut for
-    /// `bot.position().up(bot.component::<EyeHeight>())`.
+    /// `bot.position().up(bot.dimensions().eye_height)`.
     pub fn eye_position(&self) -> Vec3 {
-        self.position().up((*self.component::<EyeHeight>()) as f64)
+        self.position().up(self.dimensions().eye_height as f64)
     }
 
     /// Get the health of this client.
@@ -636,7 +616,9 @@ impl Plugin for AzaleaPlugin {
 /// You can create your app with `App::new()`, but don't forget to add
 /// [`DefaultPlugins`].
 #[doc(hidden)]
-pub fn start_ecs_runner(app: &mut SubApp) -> (Arc<Mutex<World>>, impl FnOnce()) {
+pub fn start_ecs_runner(
+    app: &mut SubApp,
+) -> (Arc<Mutex<World>>, impl FnOnce(), oneshot::Receiver<AppExit>) {
     // this block is based on Bevy's default runner:
     // https://github.com/bevyengine/bevy/blob/390877cdae7a17095a75c8f9f1b4241fe5047e83/crates/bevy_app/src/schedule_runner.rs#L77-L85
     if app.plugins_state() != PluginsState::Cleaned {
@@ -658,14 +640,26 @@ pub fn start_ecs_runner(app: &mut SubApp) -> (Arc<Mutex<World>>, impl FnOnce()) 
 
     let ecs_clone = ecs.clone();
     let outer_schedule_label = *app.update_schedule.as_ref().unwrap();
+
+    let (appexit_tx, appexit_rx) = oneshot::channel();
     let start_running_systems = move || {
-        tokio::spawn(run_schedule_loop(ecs_clone, outer_schedule_label));
+        tokio::spawn(async move {
+            let appexit = run_schedule_loop(ecs_clone, outer_schedule_label).await;
+            appexit_tx.send(appexit)
+        });
     };
 
-    (ecs, start_running_systems)
+    (ecs, start_running_systems, appexit_rx)
 }
 
-async fn run_schedule_loop(ecs: Arc<Mutex<World>>, outer_schedule_label: InternedScheduleLabel) {
+/// Runs the `Update` schedule 60 times per second and the `GameTick` schedule
+/// 20 times per second.
+///
+/// Exits when we receive an `AppExit` event.
+async fn run_schedule_loop(
+    ecs: Arc<Mutex<World>>,
+    outer_schedule_label: InternedScheduleLabel,
+) -> AppExit {
     let mut last_update: Option<Instant> = None;
     let mut last_tick: Option<Instant> = None;
 
@@ -713,7 +707,36 @@ async fn run_schedule_loop(ecs: Arc<Mutex<World>>, outer_schedule_label: Interne
         }
 
         ecs.clear_trackers();
+        if let Some(exit) = should_exit(&mut ecs) {
+            // it's possible for references to the World to stay around, so we clear the ecs
+            ecs.clear_all();
+            // ^ note that this also forcefully disconnects all of our bots without sending
+            // a disconnect packet (which is fine because we want to disconnect immediately)
+
+            return exit;
+        }
     }
+}
+
+/// Checks whether the [`AppExit`] event was sent, and if so returns it.
+///
+/// This is based on Bevy's `should_exit` function: https://github.com/bevyengine/bevy/blob/b9fd7680e78c4073dfc90fcfdc0867534d92abe0/crates/bevy_app/src/app.rs#L1292
+fn should_exit(ecs: &mut World) -> Option<AppExit> {
+    let mut reader = EventCursor::default();
+
+    let events = ecs.get_resource::<Events<AppExit>>()?;
+    let mut events = reader.read(events);
+
+    if events.len() != 0 {
+        return Some(
+            events
+                .find(|exit| exit.is_error())
+                .cloned()
+                .unwrap_or(AppExit::Success),
+        );
+    }
+
+    None
 }
 
 pub struct AmbiguityLoggerPlugin;

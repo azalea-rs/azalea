@@ -298,7 +298,7 @@ impl DataComponentPatch {
     /// # }
     /// ```
     pub fn get<T: components::DataComponentTrait>(&self) -> Option<&T> {
-        let component = self.components.get(&T::KIND)?;
+        let component = self.get_kind(T::KIND)?;
         let component_any = component as &dyn Any;
         component_any.downcast_ref::<T>()
     }
@@ -348,6 +348,17 @@ impl DataComponentPatch {
                 |c| (kind, unsafe { Some(c.as_kind(kind)) }),
             )
         })
+    }
+    /// Insert a new component into this patch, or mark a component as removed.
+    ///
+    /// # Safety
+    /// The [`DataComponentUnion`] must be of the correct kind.
+    pub unsafe fn unchecked_insert_component(
+        &mut self,
+        kind: DataComponentKind,
+        value: Option<DataComponentUnion>,
+    ) {
+        self.components.insert(kind, value);
     }
 }
 
@@ -485,5 +496,18 @@ impl Serialize for DataComponentPatch {
             }
         }
         s.end()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::components::MapId;
+
+    #[test]
+    fn test_get_component() {
+        let item = ItemStack::from(Item::Map).with_component(MapId { id: 1 });
+        let map_id = item.get_component::<MapId>().unwrap();
+        assert_eq!(map_id.id, 1);
     }
 }

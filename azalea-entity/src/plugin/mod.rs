@@ -17,7 +17,9 @@ pub use relative_updates::RelativeEntityUpdate;
 use tracing::debug;
 
 use crate::{
-    Dead, EyeHeight, FluidOnEyes, LocalEntity, LookDirection, OnClimbable, Physics, Position,
+    Crouching, Dead, EntityKindComponent, FluidOnEyes, LocalEntity, LookDirection, OnClimbable,
+    Physics, Pose, Position,
+    dimensions::{EntityDimensions, calculate_dimensions},
     metadata::Health,
 };
 
@@ -56,12 +58,12 @@ impl Plugin for EntityPlugin {
                     debug_new_entity,
                     add_dead,
                     clamp_look_direction,
-                    update_fluid_on_eyes,
                     update_on_climbable,
+                    (update_dimensions, update_bounding_box, update_fluid_on_eyes).chain(),
+                    update_crouching,
                 ),
             ),
         )
-        .add_systems(Update, update_bounding_box)
         .add_systems(GameTick, update_in_loaded_chunk)
         .init_resource::<EntityUuidIndex>();
     }
@@ -91,15 +93,20 @@ pub fn add_dead(mut commands: Commands, query: Query<(Entity, &Health), Changed<
 }
 
 pub fn update_fluid_on_eyes(
-    mut query: Query<(&mut FluidOnEyes, &Position, &EyeHeight, &InstanceName)>,
+    mut query: Query<(
+        &mut FluidOnEyes,
+        &Position,
+        &EntityDimensions,
+        &InstanceName,
+    )>,
     instance_container: Res<InstanceContainer>,
 ) {
-    for (mut fluid_on_eyes, position, eye_height, instance_name) in query.iter_mut() {
+    for (mut fluid_on_eyes, position, dimensions, instance_name) in query.iter_mut() {
         let Some(instance) = instance_container.get(instance_name) else {
             continue;
         };
 
-        let adjusted_eye_y = position.y + (**eye_height as f64) - 0.1111111119389534;
+        let adjusted_eye_y = position.y + (dimensions.eye_height as f64) - 0.1111111119389534;
         let eye_block_pos = BlockPos::from(Vec3::new(position.x, adjusted_eye_y, position.z));
         let fluid_at_eye = instance
             .read()
@@ -201,10 +208,38 @@ pub fn apply_clamp_look_direction(mut look_direction: LookDirection) -> LookDire
 ///
 /// # Safety
 /// Cached position in the world must be updated.
-pub fn update_bounding_box(mut query: Query<(&Position, &mut Physics), Changed<Position>>) {
-    for (position, mut physics) in query.iter_mut() {
-        let bounding_box = physics.dimensions.make_bounding_box(**position);
+#[allow(clippy::type_complexity)]
+pub fn update_bounding_box(
+    mut query: Query<
+        (&mut Physics, &Position, &EntityDimensions),
+        Or<(Changed<Position>, Changed<EntityDimensions>)>,
+    >,
+) {
+    for (mut physics, position, dimensions) in query.iter_mut() {
+        let bounding_box = dimensions.make_bounding_box(**position);
         physics.bounding_box = bounding_box;
+    }
+}
+
+#[allow(clippy::type_complexity)]
+pub fn update_dimensions(
+    mut query: Query<
+        (&mut EntityDimensions, &EntityKindComponent, &Pose),
+        Or<(Changed<EntityKindComponent>, Changed<Pose>)>,
+    >,
+) {
+    for (mut dimensions, kind, pose) in query.iter_mut() {
+        *dimensions = calculate_dimensions(**kind, *pose);
+    }
+}
+
+pub fn update_crouching(query: Query<(&mut Crouching, &Pose), Without<LocalEntity>>) {
+    for (mut crouching, pose) in query {
+        let new_crouching = *pose == Pose::Crouching;
+        // avoid triggering change detection
+        if **crouching != new_crouching {
+            **crouching = new_crouching;
+        }
     }
 }
 
@@ -237,6 +272,12 @@ pub fn update_in_loaded_chunk(
         }
     }
 }
+
+/// A component that indicates whether the client has loaded.
+///
+/// This is updated by a system in `azalea-client`.
+#[derive(Component)]
+pub struct HasClientLoaded;
 
 #[cfg(test)]
 mod tests {

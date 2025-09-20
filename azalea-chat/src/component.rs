@@ -131,7 +131,6 @@ impl FormattedText {
             &mut output,
             &mut style_formatter,
             &mut text_formatter,
-            &mut cleanup_formatter,
             &default_style.clone(),
             &mut running_style,
         );
@@ -140,18 +139,16 @@ impl FormattedText {
         output
     }
 
-    fn to_custom_format_recursive<F, S, C>(
+    fn to_custom_format_recursive<F, S>(
         &self,
         output: &mut String,
         style_formatter: &mut F,
         text_formatter: &mut S,
-        cleanup_formatter: &mut C,
         parent_style: &Style,
         running_style: &mut Style,
     ) where
         F: FnMut(&Style, &Style) -> (String, String),
         S: FnMut(&str) -> String,
-        C: FnMut(&Style) -> String,
     {
         let component_text = match &self {
             Self::Text(c) => c.text.to_string(),
@@ -166,7 +163,7 @@ impl FormattedText {
 
         if !component_text.is_empty() {
             let (formatted_style_prefix, formatted_style_suffix) =
-                style_formatter(&running_style, &new_style);
+                style_formatter(running_style, &new_style);
             let formatted_text = text_formatter(&component_text);
 
             output.push_str(&formatted_style_prefix);
@@ -181,7 +178,6 @@ impl FormattedText {
                 output,
                 style_formatter,
                 text_formatter,
-                cleanup_formatter,
                 &new_style,
                 running_style,
             );
@@ -211,7 +207,7 @@ impl FormattedText {
     /// colored white.
     ///
     /// If you don't want the result to be styled at all, use
-    /// [`Self::to_string`].
+    /// [`Self::to_string`](#method.fmt-1).
     ///
     /// # Examples
     ///
@@ -230,6 +226,7 @@ impl FormattedText {
         self.to_ansi_with_custom_style(&DEFAULT_STYLE)
     }
 
+    /// Similar to [`Self::to_ansi`] but renders the result as HTML instead.
     pub fn to_html(&self) -> String {
         self.to_custom_format(
             |running, new| {
@@ -298,6 +295,16 @@ impl<'de> Deserialize<'de> for FormattedText {
                     .as_str()
                     .ok_or_else(|| de::Error::custom("\"translate\" must be a string"))?
                     .into();
+                let fallback = if let Some(fallback) = json.get("fallback") {
+                    Some(
+                        fallback
+                            .as_str()
+                            .ok_or_else(|| de::Error::custom("\"fallback\" must be a string"))?
+                            .to_string(),
+                    )
+                } else {
+                    None
+                };
                 if let Some(with) = json.get("with") {
                     let with = with
                         .as_array()
@@ -319,13 +326,14 @@ impl<'de> Deserialize<'de> for FormattedText {
                             FormattedText::deserialize(item).map_err(de::Error::custom)?,
                         ));
                     }
-                    component = FormattedText::Translatable(TranslatableComponent::new(
-                        translate, with_array,
+                    component = FormattedText::Translatable(TranslatableComponent::with_fallback(
+                        translate, fallback, with_array,
                     ));
                 } else {
                     // if it doesn't have a "with", just have the with_array be empty
-                    component = FormattedText::Translatable(TranslatableComponent::new(
+                    component = FormattedText::Translatable(TranslatableComponent::with_fallback(
                         translate,
+                        fallback,
                         Vec::new(),
                     ));
                 }
@@ -664,6 +672,10 @@ impl From<TextComponent> for FormattedText {
 }
 
 impl Display for FormattedText {
+    /// Render the text in the component but without any formatting/styling.
+    ///
+    /// If you want the text to be styled, consider using [`Self::to_ansi`] or
+    /// [`Self::to_html`].
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             FormattedText::Text(c) => c.fmt(f),
@@ -675,5 +687,60 @@ impl Display for FormattedText {
 impl Default for FormattedText {
     fn default() -> Self {
         FormattedText::Text(TextComponent::default())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_json::Value;
+
+    use super::*;
+
+    #[test]
+    fn deserialize_translation() {
+        let j: Value =
+            serde_json::from_str(r#"{"translate": "translation.test.args", "with": ["a", "b"]}"#)
+                .unwrap();
+        let component = FormattedText::deserialize(&j).unwrap();
+        assert_eq!(
+            component,
+            FormattedText::Translatable(TranslatableComponent::new(
+                "translation.test.args".to_string(),
+                vec![
+                    StringOrComponent::String("a".to_string()),
+                    StringOrComponent::String("b".to_string())
+                ]
+            ))
+        );
+    }
+
+    #[test]
+    fn deserialize_translation_invalid_arguments() {
+        let j: Value =
+            serde_json::from_str(r#"{"translate": "translation.test.args", "with": {}}"#).unwrap();
+        assert!(FormattedText::deserialize(&j).is_err());
+    }
+
+    #[test]
+    fn deserialize_translation_fallback() {
+        let j: Value = serde_json::from_str(r#"{"translate": "translation.test.undefined", "fallback": "fallback: %s", "with": ["a"]}"#).unwrap();
+        let component = FormattedText::deserialize(&j).unwrap();
+        assert_eq!(
+            component,
+            FormattedText::Translatable(TranslatableComponent::with_fallback(
+                "translation.test.undefined".to_string(),
+                Some("fallback: %s".to_string()),
+                vec![StringOrComponent::String("a".to_string())]
+            ))
+        );
+    }
+
+    #[test]
+    fn deserialize_translation_invalid_fallback() {
+        let j: Value = serde_json::from_str(
+            r#"{"translate": "translation.test.undefined", "fallback": {"text": "invalid"}}"#,
+        )
+        .unwrap();
+        assert!(FormattedText::deserialize(&j).is_err());
     }
 }

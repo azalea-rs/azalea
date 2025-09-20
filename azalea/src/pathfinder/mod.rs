@@ -46,7 +46,7 @@ use bevy_tasks::{AsyncComputeTaskPool, Task};
 use custom_state::{CustomPathfinderState, CustomPathfinderStateRef};
 use futures_lite::future;
 use goals::BlockPosGoal;
-pub use goto_event::GotoEvent;
+pub use goto_event::{GotoEvent, PathfinderOpts};
 use parking_lot::RwLock;
 use rel_block_pos::RelBlockPos;
 use tokio::sync::broadcast::error::RecvError;
@@ -119,14 +119,8 @@ impl Plugin for PathfinderPlugin {
 #[non_exhaustive]
 pub struct Pathfinder {
     pub goal: Option<Arc<dyn Goal>>,
-    pub successors_fn: Option<SuccessorsFn>,
+    pub opts: Option<PathfinderOpts>,
     pub is_calculating: bool,
-    pub allow_mining: bool,
-    pub retry_on_no_path: bool,
-
-    pub min_timeout: Option<PathfinderTimeout>,
-    pub max_timeout: Option<PathfinderTimeout>,
-
     pub goto_id: Arc<AtomicUsize>,
 }
 
@@ -163,16 +157,6 @@ pub fn add_default_pathfinder(
 }
 
 pub trait PathfinderClientExt {
-    fn goto(&self, goal: impl Goal + 'static) -> impl Future<Output = ()>;
-    fn start_goto(&self, goal: impl Goal + 'static);
-    fn start_goto_without_mining(&self, goal: impl Goal + 'static);
-    fn stop_pathfinding(&self);
-    fn force_stop_pathfinding(&self);
-    fn wait_until_goto_target_reached(&self) -> impl Future<Output = ()>;
-    fn is_goto_target_reached(&self) -> bool;
-}
-
-impl PathfinderClientExt for azalea_client::Client {
     /// Pathfind to the given goal and wait until either the target is reached
     /// or the pathfinding is canceled.
     ///
@@ -185,11 +169,26 @@ impl PathfinderClientExt for azalea_client::Client {
     /// bot.goto(BlockPosGoal(BlockPos::new(0, 70, 0))).await;
     /// # }
     /// ```
-    async fn goto(&self, goal: impl Goal + 'static) {
-        self.start_goto(goal);
-        self.wait_until_goto_target_reached().await;
-    }
-
+    fn goto(&self, goal: impl Goal + 'static) -> impl Future<Output = ()>;
+    /// Same as [`Self::goto`], but allows you to set custom options for
+    /// pathfinding, including disabling mining and setting custom moves.
+    ///
+    /// ```
+    /// # use azalea::prelude::*;
+    /// # use azalea::{BlockPos, pathfinder::{goals::BlockPosGoal, PathfinderOpts}};
+    /// # async fn example(bot: &Client) {
+    /// bot.goto_with_opts(
+    ///     BlockPosGoal(BlockPos::new(0, 70, 0)),
+    ///     PathfinderOpts::new().allow_mining(false),
+    /// )
+    /// .await;
+    /// # }
+    /// ```
+    fn goto_with_opts(
+        &self,
+        goal: impl Goal + 'static,
+        opts: PathfinderOpts,
+    ) -> impl Future<Output = ()>;
     /// Start pathfinding to a given goal.
     ///
     /// ```
@@ -199,20 +198,13 @@ impl PathfinderClientExt for azalea_client::Client {
     /// bot.start_goto(BlockPosGoal(BlockPos::new(0, 70, 0)));
     /// # }
     /// ```
-    fn start_goto(&self, goal: impl Goal + 'static) {
-        self.ecs
-            .lock()
-            .send_event(GotoEvent::new(self.entity, goal));
-    }
-
-    /// Same as [`start_goto`](Self::start_goto). but the bot won't break any
-    /// blocks while executing the path.
-    fn start_goto_without_mining(&self, goal: impl Goal + 'static) {
-        self.ecs
-            .lock()
-            .send_event(GotoEvent::new(self.entity, goal).with_allow_mining(false));
-    }
-
+    fn start_goto(&self, goal: impl Goal + 'static);
+    /// Same as [`Self::start_goto`], but allows you to set custom
+    /// options for pathfinding, including disabling mining and setting custom
+    /// moves.
+    ///
+    /// Also see [`Self::goto_with_opts`].
+    fn start_goto_with_opts(&self, goal: impl Goal + 'static, opts: PathfinderOpts);
     /// Stop calculating a path, and stop moving once the current movement is
     /// finished.
     ///
@@ -220,23 +212,45 @@ impl PathfinderClientExt for azalea_client::Client {
     /// `stop_pathfinding` was called while executing a parkour jump, but if
     /// it's undesirable then you may want to consider using
     /// [`Self::force_stop_pathfinding`] instead.
+    fn stop_pathfinding(&self);
+    /// Stop calculating a path and stop executing the current movement
+    /// immediately.
+    fn force_stop_pathfinding(&self);
+    /// Waits forever until the bot no longer has a pathfinder goal.
+    fn wait_until_goto_target_reached(&self) -> impl Future<Output = ()>;
+    /// Returns true if the pathfinder has no active goal and isn't calculating
+    /// a path.
+    fn is_goto_target_reached(&self) -> bool;
+}
+
+impl PathfinderClientExt for azalea_client::Client {
+    async fn goto(&self, goal: impl Goal + 'static) {
+        self.goto_with_opts(goal, PathfinderOpts::new()).await;
+    }
+    async fn goto_with_opts(&self, goal: impl Goal + 'static, opts: PathfinderOpts) {
+        self.start_goto_with_opts(goal, opts);
+        self.wait_until_goto_target_reached().await;
+    }
+    fn start_goto(&self, goal: impl Goal + 'static) {
+        self.start_goto_with_opts(goal, PathfinderOpts::new());
+    }
+    fn start_goto_with_opts(&self, goal: impl Goal + 'static, opts: PathfinderOpts) {
+        self.ecs
+            .lock()
+            .send_event(GotoEvent::new(self.entity, goal, opts));
+    }
     fn stop_pathfinding(&self) {
         self.ecs.lock().send_event(StopPathfindingEvent {
             entity: self.entity,
             force: false,
         });
     }
-
-    /// Stop calculating a path and stop executing the current movement
-    /// immediately.
     fn force_stop_pathfinding(&self) {
         self.ecs.lock().send_event(StopPathfindingEvent {
             entity: self.entity,
             force: true,
         });
     }
-
-    /// Waits forever until the bot no longer has a pathfinder goal.
     async fn wait_until_goto_target_reached(&self) {
         // we do this to make sure the event got handled before we start checking
         // is_goto_target_reached
@@ -252,7 +266,6 @@ impl PathfinderClientExt for azalea_client::Client {
             };
         }
     }
-
     fn is_goto_target_reached(&self) -> bool {
         self.map_get_component::<Pathfinder, _>(|p| p.goal.is_none() && !p.is_calculating)
             .unwrap_or(true)
@@ -289,7 +302,7 @@ pub fn goto_listener(
         if event.goal.success(BlockPos::from(position)) {
             // we're already at the goal, nothing to do
             pathfinder.goal = None;
-            pathfinder.successors_fn = None;
+            pathfinder.opts = None;
             pathfinder.is_calculating = false;
             debug!("already at goal, not pathfinding");
             continue;
@@ -297,11 +310,8 @@ pub fn goto_listener(
 
         // we store the goal so it can be recalculated later if necessary
         pathfinder.goal = Some(event.goal.clone());
-        pathfinder.successors_fn = Some(event.successors_fn);
+        pathfinder.opts = Some(event.opts.clone());
         pathfinder.is_calculating = true;
-        pathfinder.allow_mining = event.allow_mining;
-        pathfinder.min_timeout = Some(event.min_timeout);
-        pathfinder.max_timeout = Some(event.max_timeout);
 
         let start = if let Some(executing_path) = executing_path
             && let Some(final_node) = executing_path.path.back()
@@ -327,8 +337,6 @@ pub fn goto_listener(
             );
         }
 
-        let successors_fn: moves::SuccessorsFn = event.successors_fn;
-
         let world_lock = instance_container
             .get(instance_name)
             .expect("Entity tried to pathfind but the entity isn't in a valid world");
@@ -338,8 +346,7 @@ pub fn goto_listener(
 
         let goto_id_atomic = pathfinder.goto_id.clone();
 
-        let allow_mining = event.allow_mining;
-        let retry_on_no_path = event.retry_on_no_path;
+        let allow_mining = event.opts.allow_mining;
         let mining_cache = MiningCache::new(if allow_mining {
             Some(inventory.inventory_menu.clone())
         } else {
@@ -347,24 +354,17 @@ pub fn goto_listener(
         });
 
         let custom_state = custom_state.cloned().unwrap_or_default();
-
-        let min_timeout = event.min_timeout;
-        let max_timeout = event.max_timeout;
-
+        let opts = event.opts.clone();
         let task = thread_pool.spawn(async move {
-            calculate_path(CalculatePathOpts {
+            calculate_path(CalculatePathCtx {
                 entity,
                 start,
                 goal,
-                successors_fn,
                 world_lock,
                 goto_id_atomic,
-                allow_mining,
                 mining_cache,
-                retry_on_no_path,
                 custom_state,
-                min_timeout,
-                max_timeout,
+                opts,
             })
         });
 
@@ -372,23 +372,16 @@ pub fn goto_listener(
     }
 }
 
-pub struct CalculatePathOpts {
+pub struct CalculatePathCtx {
     pub entity: Entity,
     pub start: BlockPos,
     pub goal: Arc<dyn Goal>,
-    pub successors_fn: SuccessorsFn,
     pub world_lock: Arc<RwLock<azalea_world::Instance>>,
     pub goto_id_atomic: Arc<AtomicUsize>,
-    pub allow_mining: bool,
     pub mining_cache: MiningCache,
-    /// See [`GotoEvent::retry_on_no_path`].
-    pub retry_on_no_path: bool,
-
-    /// See [`GotoEvent::min_timeout`].
-    pub min_timeout: PathfinderTimeout,
-    pub max_timeout: PathfinderTimeout,
-
     pub custom_state: CustomPathfinderState,
+
+    pub opts: PathfinderOpts,
 }
 
 /// Calculate the [`PathFoundEvent`] for the given pathfinder options.
@@ -399,19 +392,19 @@ pub struct CalculatePathOpts {
 /// You are expected to immediately send the `PathFoundEvent` you received after
 /// calling this function. `None` will be returned if the pathfinding was
 /// interrupted by another path calculation.
-pub fn calculate_path(opts: CalculatePathOpts) -> Option<PathFoundEvent> {
-    debug!("start: {:?}", opts.start);
+pub fn calculate_path(ctx: CalculatePathCtx) -> Option<PathFoundEvent> {
+    debug!("start: {:?}", ctx.start);
 
-    let goto_id = opts.goto_id_atomic.fetch_add(1, atomic::Ordering::SeqCst) + 1;
+    let goto_id = ctx.goto_id_atomic.fetch_add(1, atomic::Ordering::SeqCst) + 1;
 
-    let origin = opts.start;
-    let cached_world = CachedWorld::new(opts.world_lock, origin);
+    let origin = ctx.start;
+    let cached_world = CachedWorld::new(ctx.world_lock, origin);
     let successors = |pos: RelBlockPos| {
         call_successors_fn(
             &cached_world,
-            &opts.mining_cache,
-            &opts.custom_state.0.read(),
-            opts.successors_fn,
+            &ctx.mining_cache,
+            &ctx.custom_state.0.read(),
+            ctx.opts.successors_fn,
             pos,
         )
     };
@@ -423,11 +416,11 @@ pub fn calculate_path(opts: CalculatePathOpts) -> Option<PathFoundEvent> {
         is_partial,
     } = a_star(
         RelBlockPos::get_origin(origin),
-        |n| opts.goal.heuristic(n.apply(origin)),
+        |n| ctx.goal.heuristic(n.apply(origin)),
         successors,
-        |n| opts.goal.success(n.apply(origin)),
-        opts.min_timeout,
-        opts.max_timeout,
+        |n| ctx.goal.success(n.apply(origin)),
+        ctx.opts.min_timeout,
+        ctx.opts.max_timeout,
     );
     let end_time = Instant::now();
     debug!("partial: {is_partial:?}");
@@ -451,7 +444,7 @@ pub fn calculate_path(opts: CalculatePathOpts) -> Option<PathFoundEvent> {
 
     let path = movements.into_iter().collect::<VecDeque<_>>();
 
-    let goto_id_now = opts.goto_id_atomic.load(atomic::Ordering::SeqCst);
+    let goto_id_now = ctx.goto_id_atomic.load(atomic::Ordering::SeqCst);
     if goto_id != goto_id_now {
         // we must've done another goto while calculating this path, so throw it away
         warn!("finished calculating a path, but it's outdated");
@@ -490,12 +483,12 @@ pub fn calculate_path(opts: CalculatePathOpts) -> Option<PathFoundEvent> {
     }
 
     Some(PathFoundEvent {
-        entity: opts.entity,
-        start: opts.start,
+        entity: ctx.entity,
+        start: ctx.start,
         path: Some(mapped_path),
         is_partial,
-        successors_fn: opts.successors_fn,
-        allow_mining: opts.allow_mining,
+        successors_fn: ctx.opts.successors_fn,
+        allow_mining: ctx.opts.allow_mining,
     })
 }
 
@@ -602,7 +595,7 @@ pub fn path_found_listener(
                 executing_path.is_path_partial = event.is_partial;
             } else if path.is_empty() {
                 debug!("calculated path is empty, so didn't add ExecutingPath");
-                if !pathfinder.retry_on_no_path {
+                if !pathfinder.opts.as_ref().is_some_and(|o| o.retry_on_no_path) {
                     debug!("retry_on_no_path is set to false, removing goal");
                     pathfinder.goal = None;
                 }
@@ -677,9 +670,9 @@ pub fn timeout_movement(
             let world_lock = instance_container
                 .get(instance_name)
                 .expect("Entity tried to pathfind but the entity isn't in a valid world");
-            let Some(successors_fn) = pathfinder.successors_fn else {
+            let Some(opts) = pathfinder.opts.clone() else {
                 warn!(
-                    "pathfinder was going to patch path because of timeout, but there was no successors_fn"
+                    "pathfinder was going to patch path because of timeout, but pathfinder.opts was None"
                 );
                 return;
             };
@@ -695,9 +688,9 @@ pub fn timeout_movement(
                 &mut pathfinder,
                 inventory,
                 entity,
-                successors_fn,
                 world_lock,
                 custom_state,
+                opts,
             );
             // reset last_node_reached_at so we don't immediately try to patch again
             executing_path.last_node_reached_at = Instant::now();
@@ -790,7 +783,7 @@ pub fn check_node_reached(
                         {
                             info!("goal was reached!");
                             pathfinder.goal = None;
-                            pathfinder.successors_fn = None;
+                            pathfinder.opts = None;
                         }
                     }
 
@@ -817,7 +810,7 @@ pub fn check_for_path_obstruction(
     for (entity, mut pathfinder, mut executing_path, instance_name, inventory, custom_state) in
         &mut query
     {
-        let Some(successors_fn) = pathfinder.successors_fn else {
+        let Some(opts) = pathfinder.opts.clone() else {
             continue;
         };
 
@@ -828,7 +821,7 @@ pub fn check_for_path_obstruction(
         // obstruction check (the path we're executing isn't possible anymore)
         let origin = executing_path.last_reached_node;
         let cached_world = CachedWorld::new(world_lock, origin);
-        let mining_cache = MiningCache::new(if pathfinder.allow_mining {
+        let mining_cache = MiningCache::new(if opts.allow_mining {
             Some(inventory.inventory_menu.clone())
         } else {
             None
@@ -840,7 +833,7 @@ pub fn check_for_path_obstruction(
                 &cached_world,
                 &mining_cache,
                 &custom_state_ref,
-                successors_fn,
+                opts.successors_fn,
                 pos,
             )
         };
@@ -872,8 +865,8 @@ pub fn check_for_path_obstruction(
             continue;
         }
 
-        let Some(successors_fn) = pathfinder.successors_fn else {
-            error!("got PatchExecutingPathEvent but the bot has no successors_fn");
+        let Some(opts) = pathfinder.opts.clone() else {
+            error!("got PatchExecutingPathEvent but the bot has no pathfinder opts");
             continue;
         };
 
@@ -890,9 +883,9 @@ pub fn check_for_path_obstruction(
             &mut pathfinder,
             inventory,
             entity,
-            successors_fn,
             world_lock,
             custom_state.clone(),
+            opts,
         );
     }
 }
@@ -909,9 +902,9 @@ fn patch_path(
     pathfinder: &mut Pathfinder,
     inventory: &Inventory,
     entity: Entity,
-    successors_fn: SuccessorsFn,
     world_lock: Arc<RwLock<azalea_world::Instance>>,
     custom_state: CustomPathfinderState,
+    opts: PathfinderOpts,
 ) {
     let patch_start = if *patch_nodes.start() == 0 {
         executing_path.last_reached_node
@@ -928,8 +921,7 @@ fn patch_path(
     let goal = Arc::new(BlockPosGoal(patch_end));
 
     let goto_id_atomic = pathfinder.goto_id.clone();
-    let allow_mining = pathfinder.allow_mining;
-    let retry_on_no_path = pathfinder.retry_on_no_path;
+    let allow_mining = opts.allow_mining;
 
     let mining_cache = MiningCache::new(if allow_mining {
         Some(inventory.inventory_menu.clone())
@@ -938,20 +930,19 @@ fn patch_path(
     });
 
     // the timeout is small enough that this doesn't need to be async
-    let path_found_event = calculate_path(CalculatePathOpts {
+    let path_found_event = calculate_path(CalculatePathCtx {
         entity,
         start: patch_start,
         goal,
-        successors_fn,
         world_lock,
         goto_id_atomic,
-        allow_mining,
         mining_cache,
-        retry_on_no_path,
-
         custom_state,
-        min_timeout: PathfinderTimeout::Nodes(10_000),
-        max_timeout: PathfinderTimeout::Nodes(10_000),
+        opts: PathfinderOpts {
+            min_timeout: PathfinderTimeout::Nodes(10_000),
+            max_timeout: PathfinderTimeout::Nodes(10_000),
+            ..opts
+        },
     });
 
     // this is necessary in case we interrupted another ongoing path calculation
@@ -1002,7 +993,7 @@ pub fn recalculate_near_end_of_path(
     mut commands: Commands,
 ) {
     for (entity, mut pathfinder, mut executing_path) in &mut query {
-        let Some(successors_fn) = pathfinder.successors_fn else {
+        let Some(mut opts) = pathfinder.opts.clone() else {
             continue;
         };
 
@@ -1018,21 +1009,16 @@ pub fn recalculate_near_end_of_path(
                         "recalculate_near_end_of_path executing_path.is_path_partial: {}",
                         executing_path.is_path_partial
                     );
-                    goto_events.write(GotoEvent {
-                        entity,
-                        goal,
-                        successors_fn,
-                        allow_mining: pathfinder.allow_mining,
-                        retry_on_no_path: pathfinder.retry_on_no_path,
-                        min_timeout: if executing_path.path.len() == 50 {
-                            // we have quite some time until the node is reached, soooo we might as
-                            // well burn some cpu cycles to get a good path
-                            PathfinderTimeout::Time(Duration::from_secs(5))
-                        } else {
-                            PathfinderTimeout::Time(Duration::from_secs(1))
-                        },
-                        max_timeout: pathfinder.max_timeout.expect("max_timeout should be set"),
-                    });
+
+                    opts.min_timeout = if executing_path.path.len() == 50 {
+                        // we have quite some time until the node is reached, soooo we might as
+                        // well burn some cpu cycles to get a good path
+                        PathfinderTimeout::Time(Duration::from_secs(5))
+                    } else {
+                        PathfinderTimeout::Time(Duration::from_secs(1))
+                    };
+
+                    goto_events.write(GotoEvent { entity, goal, opts });
                     pathfinder.is_calculating = true;
 
                     if executing_path.path.is_empty() {
@@ -1128,17 +1114,10 @@ pub fn recalculate_if_has_goal_but_no_path(
         if pathfinder.goal.is_some()
             && !pathfinder.is_calculating
             && let Some(goal) = pathfinder.goal.as_ref().cloned()
+            && let Some(opts) = pathfinder.opts.clone()
         {
             debug!("Recalculating path because it has a goal but no ExecutingPath");
-            goto_events.write(GotoEvent {
-                entity,
-                goal,
-                successors_fn: pathfinder.successors_fn.unwrap(),
-                allow_mining: pathfinder.allow_mining,
-                retry_on_no_path: pathfinder.retry_on_no_path,
-                min_timeout: pathfinder.min_timeout.expect("min_timeout should be set"),
-                max_timeout: pathfinder.max_timeout.expect("max_timeout should be set"),
-            });
+            goto_events.write(GotoEvent { entity, goal, opts });
             pathfinder.is_calculating = true;
         }
     }

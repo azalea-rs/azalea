@@ -1,14 +1,23 @@
 use std::{backtrace::Backtrace, io};
 
 use azalea_core::{
+    game_type::GameMode,
     position::{Vec2, Vec3},
     tick::GameTick,
 };
 use azalea_entity::{
-    Attributes, InLoadedChunk, Jumping, LastSentPosition, LookDirection, Physics, Position,
-    metadata::Sprinting,
+    Attributes, Crouching, HasClientLoaded, Jumping, LastSentPosition, LocalEntity, LookDirection,
+    Physics, PlayerAbilities, Pose, Position,
+    dimensions::calculate_dimensions,
+    metadata::{self, Sprinting},
+    update_bounding_box,
 };
-use azalea_physics::{PhysicsSet, ai_step};
+use azalea_physics::{
+    PhysicsSet, ai_step,
+    collision::entity_collisions::{CollidableEntityQuery, PhysicsQuery},
+    local_player::{PhysicsState, SprintDirection, WalkDirection},
+    travel::{no_collision, travel},
+};
 use azalea_protocol::{
     common::movements::MoveFlags,
     packets::{
@@ -22,12 +31,17 @@ use azalea_protocol::{
         },
     },
 };
-use azalea_world::{MinecraftEntityId, MoveEntityError};
+use azalea_registry::EntityKind;
+use azalea_world::{Instance, MinecraftEntityId, MoveEntityError};
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 use thiserror::Error;
 
-use crate::{client::Client, packet::game::SendPacketEvent};
+use crate::{
+    client::Client,
+    local_player::{Hunger, InstanceHolder, LocalGameMode},
+    packet::game::SendPacketEvent,
+};
 
 #[derive(Error, Debug)]
 pub enum MovePlayerError {
@@ -58,18 +72,21 @@ impl Plugin for MovementPlugin {
                 Update,
                 (handle_sprint, handle_walk, handle_knockback)
                     .chain()
-                    .in_set(MoveEventsSet),
+                    .in_set(MoveEventsSet)
+                    .after(update_bounding_box),
             )
             .add_systems(
                 GameTick,
                 (
-                    (tick_controls, local_player_ai_step)
+                    (tick_controls, local_player_ai_step, update_pose)
                         .chain()
                         .in_set(PhysicsSet)
                         .before(ai_step)
                         .before(azalea_physics::fluids::update_in_water_state_and_do_fluid_pushing),
                     send_player_input_packet,
-                    send_sprinting_if_needed.after(azalea_entity::update_in_loaded_chunk),
+                    send_sprinting_if_needed
+                        .after(azalea_entity::update_in_loaded_chunk)
+                        .after(travel),
                     send_position.after(PhysicsSet),
                 )
                     .chain(),
@@ -95,6 +112,21 @@ impl Client {
     /// Returns whether the player will try to jump next tick.
     pub fn jumping(&self) -> bool {
         *self.component::<Jumping>()
+    }
+
+    pub fn set_crouching(&self, crouching: bool) {
+        let mut ecs = self.ecs.lock();
+        let mut physics_state = self.query::<&mut PhysicsState>(&mut ecs);
+        physics_state.trying_to_crouch = crouching;
+    }
+
+    /// Whether the client is currently trying to sneak.
+    ///
+    /// You may want to check the [`Pose`] instead.
+    pub fn crouching(&self) -> bool {
+        let mut ecs = self.ecs.lock();
+        let physics_state = self.query::<&PhysicsState>(&mut ecs);
+        physics_state.trying_to_crouch
     }
 
     /// Sets the direction the client is looking. `y_rot` is yaw (looking to the
@@ -125,24 +157,6 @@ pub struct LastSentLookDirection {
     pub y_rot: f32,
 }
 
-/// Component for entities that can move and sprint. Usually only in
-/// [`LocalEntity`]s.
-///
-/// [`LocalEntity`]: azalea_entity::LocalEntity
-#[derive(Default, Component, Clone)]
-pub struct PhysicsState {
-    /// Minecraft only sends a movement packet either after 20 ticks or if the
-    /// player moved enough. This is that tick counter.
-    pub position_remainder: u32,
-    pub was_sprinting: bool,
-    // Whether we're going to try to start sprinting this tick. Equivalent to
-    // holding down ctrl for a tick.
-    pub trying_to_sprint: bool,
-
-    pub move_direction: WalkDirection,
-    pub move_vector: Vec2,
-}
-
 #[allow(clippy::type_complexity)]
 pub fn send_position(
     mut query: Query<
@@ -155,7 +169,7 @@ pub fn send_position(
             &mut Physics,
             &mut LastSentLookDirection,
         ),
-        With<InLoadedChunk>,
+        With<HasClientLoaded>,
     >,
     mut commands: Commands,
 ) {
@@ -183,9 +197,9 @@ pub fn send_position(
 
             // boolean sendingPosition = Mth.lengthSquared(xDelta, yDelta, zDelta) >
             // Mth.square(2.0E-4D) || this.positionReminder >= 20;
-            let sending_position = ((x_delta.powi(2) + y_delta.powi(2) + z_delta.powi(2))
-                > 2.0e-4f64.powi(2))
-                || physics_state.position_remainder >= 20;
+            let is_delta_large_enough =
+                (x_delta.powi(2) + y_delta.powi(2) + z_delta.powi(2)) > 2.0e-4f64.powi(2);
+            let sending_position = is_delta_large_enough || physics_state.position_remainder >= 20;
             let sending_direction = y_rot_delta != 0.0 || x_rot_delta != 0.0;
 
             // if self.is_passenger() {
@@ -266,8 +280,7 @@ pub fn send_player_input_packet(
             left: matches!(dir, D::Left | D::ForwardLeft | D::BackwardLeft),
             right: matches!(dir, D::Right | D::ForwardRight | D::BackwardRight),
             jump: **jumping,
-            // TODO: implement sneaking
-            shift: false,
+            shift: physics_state.trying_to_crouch,
             sprint: physics_state.trying_to_sprint,
         };
 
@@ -345,44 +358,142 @@ pub(crate) fn tick_controls(mut query: Query<&mut PhysicsState>) {
 
 /// Makes the bot do one physics tick. Note that this is already handled
 /// automatically by the client.
+#[allow(clippy::type_complexity)]
 pub fn local_player_ai_step(
     mut query: Query<
-        (&PhysicsState, &mut Physics, &mut Sprinting, &mut Attributes),
-        With<InLoadedChunk>,
+        (
+            Entity,
+            &PhysicsState,
+            &PlayerAbilities,
+            &metadata::Swimming,
+            &metadata::SleepingPos,
+            &InstanceHolder,
+            &Position,
+            Option<&Hunger>,
+            Option<&LastSentInput>,
+            &mut Physics,
+            &mut Sprinting,
+            &mut Crouching,
+            &mut Attributes,
+        ),
+        (With<HasClientLoaded>, With<LocalEntity>),
     >,
+    physics_query: PhysicsQuery,
+    collidable_entity_query: CollidableEntityQuery,
 ) {
-    for (physics_state, mut physics, mut sprinting, mut attributes) in query.iter_mut() {
+    for (
+        entity,
+        physics_state,
+        abilities,
+        swimming,
+        sleeping_pos,
+        instance_holder,
+        position,
+        hunger,
+        last_sent_input,
+        mut physics,
+        mut sprinting,
+        mut crouching,
+        mut attributes,
+    ) in query.iter_mut()
+    {
         // server ai step
 
-        // TODO: replace those booleans when using items, passengers, and sneaking are
-        // properly implemented
-        let move_vector = modify_input(physics_state.move_vector, false, false, false, &attributes);
-        physics.x_acceleration = move_vector.x;
-        physics.z_acceleration = move_vector.y;
+        let is_swimming = **swimming;
+        // TODO: implement passengers
+        let is_passenger = false;
+        let is_sleeping = sleeping_pos.is_some();
+
+        let world = instance_holder.instance.read();
+        let ctx = CanPlayerFitCtx {
+            world: &world,
+            entity,
+            position: *position,
+            physics_query: &physics_query,
+            collidable_entity_query: &collidable_entity_query,
+            physics: &physics,
+        };
+
+        let new_crouching = !abilities.flying
+            && !is_swimming
+            && !is_passenger
+            && can_player_fit_within_blocks_and_entities_when(&ctx, Pose::Crouching)
+            && (last_sent_input.is_some_and(|i| i.0.shift)
+                || !is_sleeping
+                    && !can_player_fit_within_blocks_and_entities_when(&ctx, Pose::Standing));
+        if **crouching != new_crouching {
+            **crouching = new_crouching;
+        }
 
         // TODO: food data and abilities
         // let has_enough_food_to_sprint = self.food_data().food_level ||
         // self.abilities().may_fly;
-        let has_enough_food_to_sprint = true;
+        let has_enough_food_to_sprint = hunger.is_none_or(Hunger::is_enough_to_sprint);
 
         // TODO: double tapping w to sprint i think
 
         let trying_to_sprint = physics_state.trying_to_sprint;
 
-        if !**sprinting
-            && (
-                // !self.is_in_water()
-                // || self.is_underwater() &&
-                has_enough_impulse_to_start_sprinting(physics_state)
-                    && has_enough_food_to_sprint
-                    // && !self.using_item()
-                    // && !self.has_effect(MobEffects.BLINDNESS)
-                    && trying_to_sprint
-            )
-        {
+        // TODO: swimming
+        let is_underwater = false;
+        let is_in_water = physics.is_in_water();
+        // TODO: elytra
+        let is_fall_flying = false;
+        // TODO: passenger
+        let is_passenger = false;
+        // TODO: using items
+        let using_item = false;
+        // TODO: status effects
+        let has_blindness = false;
+
+        let has_enough_impulse = has_enough_impulse_to_start_sprinting(physics_state);
+
+        // LocalPlayer.canStartSprinting
+        let can_start_sprinting = !**sprinting
+            && has_enough_impulse
+            && has_enough_food_to_sprint
+            && !using_item
+            && !has_blindness
+            && (!is_passenger || is_underwater)
+            && (!is_fall_flying || is_underwater)
+            && (!is_moving_slowly(&crouching) || is_underwater)
+            && (!is_in_water || is_underwater);
+        if trying_to_sprint && can_start_sprinting {
             set_sprinting(true, &mut sprinting, &mut attributes);
         }
+
+        if **sprinting {
+            // TODO: swimming
+
+            let vehicle_can_sprint = false;
+            // shouldStopRunSprinting
+            let should_stop_sprinting = has_blindness
+                || (is_passenger && !vehicle_can_sprint)
+                || !has_enough_impulse
+                || !has_enough_food_to_sprint
+                || (physics.horizontal_collision && !physics.minor_horizontal_collision)
+                || (is_in_water && !is_underwater);
+            if should_stop_sprinting {
+                set_sprinting(false, &mut sprinting, &mut attributes);
+            }
+        }
+
+        // TODO: replace those booleans when using items and passengers are properly
+        // implemented
+        let move_vector = modify_input(
+            physics_state.move_vector,
+            false,
+            false,
+            **crouching,
+            &attributes,
+        );
+        physics.x_acceleration = move_vector.x;
+        physics.z_acceleration = move_vector.y;
     }
+}
+
+fn is_moving_slowly(crouching: &Crouching) -> bool {
+    **crouching
 }
 
 // LocalPlayer.modifyInput
@@ -452,7 +563,7 @@ impl Client {
     }
 
     /// Start sprinting in the given direction. To stop moving, call
-    /// [`Client::walk(WalkDirection::None)`]
+    /// [`bot.walk(WalkDirection::None)`](Self::walk)
     ///
     /// # Examples
     ///
@@ -523,8 +634,12 @@ pub fn handle_sprint(
 }
 
 /// Change whether we're sprinting by adding an attribute modifier to the
-/// player. You should use the [`walk`] and [`sprint`] methods instead.
-/// Returns if the operation was successful.
+/// player.
+///
+/// You should use the [`Client::walk`] and [`Client::sprint`] functions
+/// instead.
+///
+/// Returns true if the operation was successful.
 fn set_sprinting(
     sprinting: bool,
     currently_sprinting: &mut Sprinting,
@@ -533,12 +648,12 @@ fn set_sprinting(
     **currently_sprinting = sprinting;
     if sprinting {
         attributes
-            .speed
+            .movement_speed
             .try_insert(azalea_entity::attributes::sprinting_modifier())
             .is_ok()
     } else {
         attributes
-            .speed
+            .movement_speed
             .remove(&azalea_entity::attributes::sprinting_modifier().id)
             .is_none()
     }
@@ -583,34 +698,85 @@ pub fn handle_knockback(mut query: Query<&mut Physics>, mut events: EventReader<
     }
 }
 
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub enum WalkDirection {
-    #[default]
-    None,
-    Forward,
-    Backward,
-    Left,
-    Right,
-    ForwardRight,
-    ForwardLeft,
-    BackwardRight,
-    BackwardLeft,
-}
+pub fn update_pose(
+    mut query: Query<(
+        Entity,
+        &mut Pose,
+        &Physics,
+        &PhysicsState,
+        &LocalGameMode,
+        &InstanceHolder,
+        &Position,
+    )>,
+    physics_query: PhysicsQuery,
+    collidable_entity_query: CollidableEntityQuery,
+) {
+    for (entity, mut pose, physics, physics_state, game_mode, instance_holder, position) in
+        query.iter_mut()
+    {
+        let world = instance_holder.instance.read();
+        let world = &*world;
+        let ctx = CanPlayerFitCtx {
+            world,
+            entity,
+            position: *position,
+            physics_query: &physics_query,
+            collidable_entity_query: &collidable_entity_query,
+            physics,
+        };
 
-/// The directions that we can sprint in. It's a subset of [`WalkDirection`].
-#[derive(Clone, Copy, Debug)]
-pub enum SprintDirection {
-    Forward,
-    ForwardRight,
-    ForwardLeft,
-}
+        if !can_player_fit_within_blocks_and_entities_when(&ctx, Pose::Swimming) {
+            continue;
+        }
 
-impl From<SprintDirection> for WalkDirection {
-    fn from(d: SprintDirection) -> Self {
-        match d {
-            SprintDirection::Forward => WalkDirection::Forward,
-            SprintDirection::ForwardRight => WalkDirection::ForwardRight,
-            SprintDirection::ForwardLeft => WalkDirection::ForwardLeft,
+        // TODO: implement everything else from getDesiredPose: sleeping, swimming,
+        // fallFlying, spinAttack
+        let desired_pose = if physics_state.trying_to_crouch {
+            Pose::Crouching
+        } else {
+            Pose::Standing
+        };
+
+        // TODO: passengers
+        let is_passenger = false;
+
+        // canPlayerFitWithinBlocksAndEntitiesWhen
+        let new_pose = if game_mode.current == GameMode::Spectator
+            || is_passenger
+            || can_player_fit_within_blocks_and_entities_when(&ctx, desired_pose)
+        {
+            desired_pose
+        } else if can_player_fit_within_blocks_and_entities_when(&ctx, Pose::Crouching) {
+            Pose::Crouching
+        } else {
+            Pose::Swimming
+        };
+
+        // avoid triggering change detection
+        if new_pose != *pose {
+            *pose = new_pose;
         }
     }
+}
+
+struct CanPlayerFitCtx<'world, 'state, 'a, 'b> {
+    world: &'a Instance,
+    entity: Entity,
+    position: Position,
+    physics_query: &'a PhysicsQuery<'world, 'state, 'b>,
+    collidable_entity_query: &'a CollidableEntityQuery<'world, 'state>,
+    physics: &'a Physics,
+}
+fn can_player_fit_within_blocks_and_entities_when(ctx: &CanPlayerFitCtx, pose: Pose) -> bool {
+    // return this.level().noCollision(this,
+    // this.getDimensions(var1).makeBoundingBox(this.position()).deflate(1.0E-7));
+    no_collision(
+        ctx.world,
+        Some(ctx.entity),
+        ctx.physics_query,
+        ctx.collidable_entity_query,
+        ctx.physics,
+        &calculate_dimensions(EntityKind::Player, pose).make_bounding_box(*ctx.position),
+        false,
+    )
 }

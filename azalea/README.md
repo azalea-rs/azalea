@@ -32,14 +32,10 @@ opt-level = 3
 
 The documentation for the latest Azalea crates.io release is available at [docs.rs/azalea](https://docs.rs/azalea/latest/azalea/) and the docs for the latest bleeding-edge (git) version are at [azalea.matdoes.dev](https://azalea.matdoes.dev/azalea/).
 
-Note that the `azalea` crate is technically just a wrapper over [`azalea_client`] that adds some extra functions.
-Because of this, some of the documentation will refer to `azalea_client`.
-You can just replace these with `azalea` in your code since everything from `azalea_client` is re-exported in azalea.
-
 # Examples
 
 ```rust,no_run
-//! A bot that logs chat messages sent in the server to the console.
+//! A bot that logs chat messages and the number that we've received to the console.\
 
 use std::sync::Arc;
 
@@ -60,14 +56,18 @@ async fn main() {
 
 #[derive(Default, Clone, Component)]
 pub struct State {
+    // The state gets cloned whenever the handler is called, so to have all the
+    // clones point to the same data and have it be mutable, we use an Arc<Mutex<T>>.
     pub messages_received: Arc<Mutex<usize>>
 }
 
 async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
     match event {
         Event::Chat(m) => {
-            println!("{}", m.message().to_ansi());
-            *state.messages_received.lock() += 1;
+            let mut messages_received = state.messages_received.lock();
+            *messages_received += 1;
+            println!("#{messages_received}: {}", m.message().to_ansi());
+            // messages_received gets implicitly unlocked here because it's dropped
         }
         _ => {}
     }
@@ -75,6 +75,9 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
     Ok(())
 }
 ```
+
+There are more examples in the [examples directory](https://github.com/azalea-rs/azalea/tree/main/azalea/examples).
+You may also find it helpful to read the code for [other people's Azalea bots](https://github.com/azalea-rs/azalea#real-world-bots-using-azalea).
 
 # Swarms
 
@@ -89,6 +92,10 @@ Everything in Azalea is implemented as a Bevy plugin, which means you can disabl
 Also note that just because something is an entity in the ECS doesn't mean that it's a Minecraft entity. You can filter for that by having `With<MinecraftEntityId>` as a filter.
 
 See the [Bevy Cheatbook](https://bevy-cheatbook.github.io/programming/ecs-intro.html) to learn more about Bevy ECS (and the ECS paradigm in general).
+
+# Using a single-threaded Tokio runtime
+
+Due to the fact that Azalea clients store the ECS in a Mutex that's frequently locked and unlocked, bots that rely on the `Client` or `Swarm` types may run into race condition bugs (like out-of-order events and ticks happening at suboptimal moments) if they do not set Tokio to use a single thread with `#[tokio::main(flavor = "current_thread")]`. This may change in a future version of Azalea. Setting this option will usually not result in a performance hit, and Azalea internally will keep using multiple threads for running the ECS itself (because Tokio is not used for this).
 
 # Debugging
 
@@ -110,9 +117,4 @@ If your code is simply hanging, it might be a deadlock. Enable `parking_lot`'s `
 
 Backtraces are also useful, though they're sometimes hard to read and don't always contain the actual location of the error. Run your code with `RUST_BACKTRACE=1` to enable full backtraces. If it's very long, often searching for the keyword "azalea" will help you filter out unrelated things and find the actual source of the issue.
 
-# Using a single-threaded Tokio runtime
-
-Due to the fact that Azalea clients store the ECS in a Mutex that's frequently locked and unlocked, bots that rely on the `Client` or `Swarm` types may run into race condition bugs (like out-of-order events and ticks happening at suboptimal moments) if they do not set Tokio to use a single thread with `#[tokio::main(flavor = "current_thread")]`. This may change in a future version of Azalea. Setting this option will usually not result in a performance hit, and Azalea internally will keep using multiple threads for running the ECS itself (because Tokio is not used for this).
-
-[`azalea_client`]: https://docs.rs/azalea-client
 [`bevy_log`]: https://docs.rs/bevy_log

@@ -4,6 +4,7 @@ use std::{
 };
 
 use azalea_chat::FormattedText;
+use azalea_entity::PlayerAbilities;
 pub use azalea_inventory::*;
 use azalea_inventory::{
     item::MaxStackSizeExt,
@@ -23,9 +24,7 @@ use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 use tracing::{error, warn};
 
-use crate::{
-    Client, local_player::PlayerAbilities, packet::game::SendPacketEvent, respawn::perform_respawn,
-};
+use crate::{Client, packet::game::SendPacketEvent, respawn::perform_respawn};
 
 pub struct InventoryPlugin;
 impl Plugin for InventoryPlugin {

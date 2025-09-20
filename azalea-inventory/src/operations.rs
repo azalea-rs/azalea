@@ -13,6 +13,7 @@ use crate::{
     StonecutterMenuLocation, item::MaxStackSizeExt,
 };
 
+/// A type of click in a Minecraft inventory.
 #[derive(Debug, Clone)]
 pub enum ClickOperation {
     Pickup(PickupClick),

@@ -130,11 +130,15 @@ macro_rules! define_data_components {
             pub unsafe fn azalea_write_as(
                 &self,
                 kind: registry::DataComponentKind,
-                buf: &mut Vec<u8>,
+                buf: &mut impl std::io::Write,
             ) -> io::Result<()> {
+                let mut value = Vec::new();
                 match kind {
-                    $( DataComponentKind::$x => unsafe { self.$x.encode(buf) }, )*
-                }
+                    $( DataComponentKind::$x => unsafe { self.$x.encode(&mut value)? }, )*
+                };
+                buf.write_all(&value)?;
+
+                Ok(())
             }
             /// # Safety
             ///

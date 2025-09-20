@@ -22,8 +22,8 @@ use uuid::Uuid;
 /// # Examples
 ///
 /// ```rust,no_run
-/// use azalea_client::Account;
-///
+/// # use azalea_client::Account;
+/// #
 /// # #[tokio::main]
 /// # async fn main() {
 /// let account = Account::microsoft("example@example.com").await;

@@ -21,6 +21,7 @@ mod plugins;
 pub mod test_utils;
 
 pub use account::{Account, AccountOpts};
+pub use azalea_physics::local_player::{PhysicsState, SprintDirection, WalkDirection};
 pub use azalea_protocol::common::client_information::ClientInformation;
 // Re-export bevy-tasks so plugins can make sure that they're using the same
 // version.
@@ -30,7 +31,5 @@ pub use client::{
     StartClientOpts, start_ecs_runner,
 };
 pub use events::Event;
-pub use movement::{
-    PhysicsState, SprintDirection, StartSprintEvent, StartWalkEvent, WalkDirection,
-};
+pub use movement::{StartSprintEvent, StartWalkEvent};
 pub use plugins::*;

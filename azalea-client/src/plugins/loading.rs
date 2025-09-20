@@ -1,5 +1,5 @@
 use azalea_core::tick::GameTick;
-use azalea_entity::{InLoadedChunk, LocalEntity};
+use azalea_entity::{HasClientLoaded, InLoadedChunk, LocalEntity, update_in_loaded_chunk};
 use azalea_physics::PhysicsSet;
 use azalea_protocol::packets::game::ServerboundPlayerLoaded;
 use bevy_app::{App, Plugin};
@@ -12,8 +12,10 @@ impl Plugin for PlayerLoadedPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             GameTick,
+            // vanilla runs this on gameMode.tick()
             player_loaded_packet
-                .after(PhysicsSet)
+                .after(update_in_loaded_chunk)
+                .before(PhysicsSet)
                 .before(MiningSet)
                 .before(crate::movement::send_position),
         );
@@ -27,8 +29,6 @@ impl Plugin for PlayerLoadedPlugin {
 // i prefer the client one because it makes it clear that the component is only
 // present on our own clients
 
-#[derive(Component)]
-pub struct HasClientLoaded;
 #[allow(clippy::type_complexity)]
 pub fn player_loaded_packet(
     mut commands: Commands,

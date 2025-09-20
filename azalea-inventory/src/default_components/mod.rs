@@ -4,7 +4,8 @@ use azalea_registry::Item;
 
 use crate::components::DataComponentTrait;
 
-/// A [`DataComponent`] that some [`Item`]s may have a default value for.
+/// A trait for data components that some [`Item`]s may have a default value
+/// for.
 pub trait DefaultableComponent: DataComponentTrait {
     fn default_for_item(item: Item) -> Option<Self>
     where

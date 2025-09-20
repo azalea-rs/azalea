@@ -23,17 +23,18 @@ impl CommandSource {
         let message = message.into();
         if self.chat.is_whisper() {
             self.bot
-                .chat(&format!("/w {} {message}", self.chat.sender().unwrap()));
+                .chat(format!("/w {} {message}", self.chat.sender().unwrap()));
         } else {
-            self.bot.chat(&message);
+            self.bot.chat(message);
         }
     }
 
     pub fn entity(&mut self) -> Option<Entity> {
         let username = self.chat.sender()?;
-        self.bot.entity_by::<With<Player>, &GameProfileComponent>(
-            |profile: &&GameProfileComponent| profile.name == username,
-        )
+        self.bot
+            .any_entity_by::<With<Player>, &GameProfileComponent>(
+                |profile: &&GameProfileComponent| profile.name == username,
+            )
     }
 }
 

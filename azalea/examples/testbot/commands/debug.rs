@@ -1,6 +1,6 @@
 //! Commands for debugging and getting the current state of the bot.
 
-use std::{env, fs::File, io::Write, process, thread, time::Duration};
+use std::{env, fs::File, io::Write, thread, time::Duration};
 
 use azalea::{
     BlockPos,
@@ -17,6 +17,7 @@ use azalea_core::hit_result::HitResult;
 use azalea_entity::EntityKindComponent;
 use azalea_inventory::components::MaxStackSize;
 use azalea_world::InstanceContainer;
+use bevy_app::AppExit;
 use bevy_ecs::event::Events;
 use parking_lot::Mutex;
 
@@ -205,6 +206,13 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
         1
     }));
 
+    commands.register(literal("dimensions").executes(|ctx: &Ctx| {
+        let source = ctx.source.lock();
+        let bot_dimensions = source.bot.dimensions();
+        source.reply(format!("{bot_dimensions:?}"));
+        1
+    }));
+
     commands.register(literal("debugecsleak").executes(|ctx: &Ctx| {
         let source = ctx.source.lock();
 
@@ -309,10 +317,11 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
 
         source.bot.disconnect();
 
+        let source = ctx.source.clone();
         thread::spawn(move || {
             thread::sleep(Duration::from_secs(1));
 
-            process::exit(0);
+            source.lock().bot.ecs.lock().send_event(AppExit::Success);
         });
 
         1

@@ -12,7 +12,6 @@ pre-release-replacements = [
 ]
 
 [dependencies]
-#async-trait.workspace = true
 azalea-auth.workspace = true
 azalea-block.workspace = true
 azalea-brigadier.workspace = true
@@ -28,9 +27,7 @@ azalea-registry.workspace = true
 azalea-world.workspace = true
 bevy_app.workspace = true
 bevy_ecs.workspace = true
-bevy_log.workspace = true
 bevy_tasks = { workspace = true, features = ["multi_threaded"] }
-# bevy_time.workspace = true
 derive_more = { workspace = true, features = ["deref", "deref_mut"] }
 futures.workspace = true
 futures-lite.workspace = true
@@ -51,6 +48,7 @@ criterion.workspace = true
 parking_lot = { workspace = true, features = ["deadlock_detection"] }
 rand.workspace = true
 anyhow.workspace = true
+bevy_log.workspace = true
 
 [features]
 default = ["log", "serde", "packet-event"]

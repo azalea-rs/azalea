@@ -10,7 +10,7 @@ use azalea_core::{
     resource_location::ResourceLocation,
     tick::GameTick,
 };
-use azalea_entity::{EntityBundle, EntityPlugin, LocalEntity, Physics, Position};
+use azalea_entity::{EntityBundle, EntityPlugin, HasClientLoaded, LocalEntity, Physics, Position};
 use azalea_physics::PhysicsPlugin;
 use azalea_world::{Chunk, Instance, InstanceContainer, MinecraftEntityId, PartialInstance};
 use bevy_app::App;
@@ -63,6 +63,7 @@ fn test_gravity() {
             ),
             MinecraftEntityId(0),
             LocalEntity,
+            HasClientLoaded,
         ))
         .id();
     {
@@ -118,6 +119,7 @@ fn test_collision() {
             ),
             MinecraftEntityId(0),
             LocalEntity,
+            HasClientLoaded,
         ))
         .id();
     let block_state = partial_world.chunks.set_block_state(
@@ -174,6 +176,7 @@ fn test_slab_collision() {
             ),
             MinecraftEntityId(0),
             LocalEntity,
+            HasClientLoaded,
         ))
         .id();
     let block_state = partial_world.chunks.set_block_state(
@@ -224,6 +227,7 @@ fn test_top_slab_collision() {
             ),
             MinecraftEntityId(0),
             LocalEntity,
+            HasClientLoaded,
         ))
         .id();
     let block_state = world_lock.write().chunks.set_block_state(
@@ -281,6 +285,7 @@ fn test_weird_wall_collision() {
             ),
             MinecraftEntityId(0),
             LocalEntity,
+            HasClientLoaded,
         ))
         .id();
     let block_state = world_lock.write().chunks.set_block_state(
@@ -343,6 +348,7 @@ fn test_negative_coordinates_weird_wall_collision() {
             ),
             MinecraftEntityId(0),
             LocalEntity,
+            HasClientLoaded,
         ))
         .id();
     let block_state = world_lock.write().chunks.set_block_state(
@@ -409,6 +415,7 @@ fn spawn_and_unload_world() {
             ),
             MinecraftEntityId(0),
             LocalEntity,
+            HasClientLoaded,
         ))
         .id();
 
@@ -524,6 +531,7 @@ fn test_afk_pool() {
             ),
             MinecraftEntityId(0),
             LocalEntity,
+            HasClientLoaded,
         ))
         .id();
 

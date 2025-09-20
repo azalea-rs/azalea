@@ -11,8 +11,7 @@ use azalea_protocol::{
         config::{ClientboundFinishConfiguration, ClientboundRegistryData},
         game::{
             ClientboundBlockUpdate, ClientboundPlayerPosition, ServerboundAcceptTeleportation,
-            ServerboundGamePacket, ServerboundMovePlayerPos, ServerboundMovePlayerPosRot,
-            ServerboundMovePlayerStatusOnly,
+            ServerboundGamePacket, ServerboundMovePlayerPosRot, ServerboundMovePlayerStatusOnly,
         },
     },
 };
@@ -80,13 +79,15 @@ fn test_packet_order() {
     sent_packets.expect("MovePlayerPosRot", |p| {
         matches!(
             p,
-            ServerboundGamePacket::MovePlayerPosRot(ServerboundMovePlayerPosRot {
+            ServerboundGamePacket::MovePlayerPosRot(p)
+            if p == &ServerboundMovePlayerPosRot {
                 flags: MoveFlags {
                     on_ground: false,
                     horizontal_collision: false
                 },
-                ..
-            })
+                pos: Vec3::new(1.5, 2., 3.5),
+                look_direction: LookDirection::default(),
+            }
         )
     });
 
@@ -99,13 +100,11 @@ fn test_packet_order() {
     sent_packets.expect("MovePlayerPos", |p| {
         matches!(
             p,
-            ServerboundGamePacket::MovePlayerPos(ServerboundMovePlayerPos {
-                flags: MoveFlags {
-                    on_ground: false,
-                    horizontal_collision: false
-                },
-                ..
-            })
+            ServerboundGamePacket::MovePlayerPos(p)
+            if p.flags == MoveFlags {
+                on_ground: false,
+                horizontal_collision: false
+            }
         )
     });
 

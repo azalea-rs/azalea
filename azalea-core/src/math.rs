@@ -97,6 +97,10 @@ pub fn ceil_long(x: f64) -> i64 {
     if x > x_i64 as f64 { x_i64 + 1 } else { x_i64 }
 }
 
+pub fn equal(a: f64, b: f64) -> bool {
+    (b - a).abs() < 1.0e-5
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
