@@ -20,7 +20,7 @@ pub struct PositionDelta8 {
 }
 
 impl PositionDelta8 {
-    #[deprecated]
+    #[deprecated = "Use Self::x, y, z instead"]
     pub fn float(&self) -> (f64, f64, f64) {
         (
             (self.xa as f64) / 4096.0,
@@ -39,6 +39,11 @@ impl PositionDeltaTrait for PositionDelta8 {
     }
     fn z(&self) -> f64 {
         (self.za as f64) / 4096.0
+    }
+}
+impl<T: PositionDeltaTrait> From<T> for Vec3 {
+    fn from(value: T) -> Self {
+        Vec3::new(value.x(), value.y(), value.z())
     }
 }
 
@@ -80,11 +85,21 @@ impl Vec3 {
 ///
 /// Can be freely converted to and from a [`Vec3`], but some precision will be
 /// lost.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum LpVec3 {
+    #[default]
     Zero,
-    Normal { a: u8, b: u8, c: u32 },
-    Extended { a: u8, b: u8, c: u32, d: u32 },
+    Normal {
+        a: u8,
+        b: u8,
+        c: u32,
+    },
+    Extended {
+        a: u8,
+        b: u8,
+        c: u32,
+        d: u32,
+    },
 }
 
 impl AzaleaRead for LpVec3 {
@@ -212,12 +227,6 @@ impl From<Vec3> for LpVec3 {
         LpVec3::from_vec3(value)
     }
 }
-impl Default for LpVec3 {
-    fn default() -> Self {
-        LpVec3::Zero
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use azalea_buf::AzaleaWrite;

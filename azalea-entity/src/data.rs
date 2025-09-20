@@ -113,8 +113,8 @@ pub struct Quaternion {
 
 #[derive(Clone, Debug, AzBuf, Default)]
 pub struct ResolvableProfile {
-    pub unpack: PartialOrFullProfile,
-    pub skin_patch: PlayerSkinPatch,
+    pub unpack: Box<PartialOrFullProfile>,
+    pub skin_patch: Box<PlayerSkinPatch>,
 }
 
 #[derive(Clone, Debug, AzBuf)]
