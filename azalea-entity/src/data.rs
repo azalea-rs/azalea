@@ -2,11 +2,13 @@
 
 use std::io::{self, Cursor, Write};
 
+use azalea_auth::game_profile::{GameProfile, GameProfileProperties};
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
 use azalea_chat::FormattedText;
 use azalea_core::{
     direction::Direction,
     position::{BlockPos, GlobalPos, Vec3f32},
+    resource_location::ResourceLocation,
 };
 use azalea_inventory::ItemStack;
 use bevy_ecs::component::Component;
@@ -74,7 +76,6 @@ pub enum EntityDataValue {
     BlockState(azalea_block::BlockState),
     /// If this is air, that means it's absent,
     OptionalBlockState(azalea_block::BlockState),
-    CompoundTag(simdnbt::owned::NbtCompound),
     Particle(Particle),
     Particles(Vec<Particle>),
     VillagerData(VillagerData),
@@ -96,6 +97,7 @@ pub enum EntityDataValue {
     WeatheringCopperState(WeatheringCopperStateKind),
     Vector3(Vec3f32),
     Quaternion(Quaternion),
+    ResolvableProfile(ResolvableProfile),
 }
 
 #[derive(Clone, Debug)]
@@ -107,6 +109,51 @@ pub struct Quaternion {
     pub y: f32,
     pub z: f32,
     pub w: f32,
+}
+
+#[derive(Clone, Debug, AzBuf, Default)]
+pub struct ResolvableProfile {
+    pub unpack: PartialOrFullProfile,
+    pub skin_patch: PlayerSkinPatch,
+}
+
+#[derive(Clone, Debug, AzBuf)]
+pub enum PartialOrFullProfile {
+    Partial(PartialProfile),
+    Full(GameProfile),
+}
+impl Default for PartialOrFullProfile {
+    fn default() -> Self {
+        Self::Partial(PartialProfile::default())
+    }
+}
+
+#[derive(Clone, Debug, AzBuf, Default)]
+pub struct PartialProfile {
+    #[limit(16)]
+    pub name: Option<String>,
+    pub id: Option<Uuid>,
+    pub properties: GameProfileProperties,
+}
+
+#[derive(Clone, Debug, AzBuf, Default)]
+pub struct PlayerSkinPatch {
+    pub body: Option<ResourceTexture>,
+    pub cape: Option<ResourceTexture>,
+    pub elytra: Option<ResourceTexture>,
+    pub model: Option<PlayerModelType>,
+}
+
+#[derive(Clone, Debug, Copy, AzBuf, Default)]
+pub enum PlayerModelType {
+    #[default]
+    Wide,
+    Slim,
+}
+
+#[derive(Clone, Debug, AzBuf)]
+pub struct ResourceTexture {
+    pub id: ResourceLocation,
 }
 
 // mojang just calls this ArmadilloState but i added "Kind" since otherwise it

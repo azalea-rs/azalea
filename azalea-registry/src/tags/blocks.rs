@@ -535,7 +535,7 @@ pub static CEILING_HANGING_SIGNS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
 });
 pub static CHAINS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     HashSet::from_iter(vec![
-        Block::Chain,
+        Block::IronChain,
         Block::CopperChain,
         Block::WaxedCopperChain,
         Block::ExposedCopperChain,
@@ -1291,6 +1291,7 @@ pub static IMPERMEABLE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
         Block::RedStainedGlass,
         Block::BlackStainedGlass,
         Block::TintedGlass,
+        Block::Barrier,
     ])
 });
 pub static INCORRECT_FOR_COPPER_TOOL: LazyLock<HashSet<Block>> = LazyLock::new(|| {
@@ -2664,7 +2665,7 @@ pub static MINEABLE_PICKAXE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
         Block::WaxedWeatheredCopperLantern,
         Block::OxidizedCopperLantern,
         Block::WaxedOxidizedCopperLantern,
-        Block::Chain,
+        Block::IronChain,
         Block::CopperChain,
         Block::WaxedCopperChain,
         Block::ExposedCopperChain,

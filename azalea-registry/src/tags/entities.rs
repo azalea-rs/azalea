@@ -122,7 +122,6 @@ pub static CANDIDATE_FOR_IRON_GOLEM_GIFT: LazyLock<HashSet<EntityKind>> =
 pub static CANNOT_BE_PUSHED_ONTO_BOATS: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
     HashSet::from_iter(vec![
         EntityKind::Player,
-        EntityKind::Guardian,
         EntityKind::ElderGuardian,
         EntityKind::Cod,
         EntityKind::Pufferfish,

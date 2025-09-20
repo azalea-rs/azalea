@@ -8,6 +8,7 @@ use bevy_ecs::component::Component;
 
 // the order of this enum must be kept in sync with ParticleKind, otherwise
 // we get errors parsing particles.
+
 /// A [`ParticleKind`] with data potentially attached to it.
 #[derive(Component, Clone, Debug, AzBuf)]
 pub enum Particle {

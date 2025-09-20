@@ -280,7 +280,7 @@ pub static CAT_FOOD: LazyLock<HashSet<Item>> =
     LazyLock::new(|| HashSet::from_iter(vec![Item::Cod, Item::Salmon]));
 pub static CHAINS: LazyLock<HashSet<Item>> = LazyLock::new(|| {
     HashSet::from_iter(vec![
-        Item::Chain,
+        Item::IronChain,
         Item::CopperChain,
         Item::WaxedCopperChain,
         Item::ExposedCopperChain,

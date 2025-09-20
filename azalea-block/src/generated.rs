@@ -303,7 +303,6 @@ make_block_states! {
         "slot_3_occupied" => Slot3Occupied(bool),
         "slot_4_occupied" => Slot4Occupied(bool),
         "slot_5_occupied" => Slot5Occupied(bool),
-        "align_items_to_bottom" => AlignItemsToBottom(bool),
         "side_chain" => SideChain {
             Unconnected,
             Right,
@@ -2466,84 +2465,72 @@ make_block_states! {
             "slot_5_occupied": Slot5Occupied(false),
         },
         acacia_shelf => BlockBehavior::new().strength(2.0, 3.0), {
-            "align_items_to_bottom": AlignItemsToBottom(false),
             "facing": FacingCardinal::North,
             "powered": Powered(false),
             "side_chain": SideChain::Unconnected,
             "waterlogged": Waterlogged(false),
         },
         bamboo_shelf => BlockBehavior::new().strength(2.0, 3.0), {
-            "align_items_to_bottom": AlignItemsToBottom(false),
             "facing": FacingCardinal::North,
             "powered": Powered(false),
             "side_chain": SideChain::Unconnected,
             "waterlogged": Waterlogged(false),
         },
         birch_shelf => BlockBehavior::new().strength(2.0, 3.0), {
-            "align_items_to_bottom": AlignItemsToBottom(false),
             "facing": FacingCardinal::North,
             "powered": Powered(false),
             "side_chain": SideChain::Unconnected,
             "waterlogged": Waterlogged(false),
         },
         cherry_shelf => BlockBehavior::new().strength(2.0, 3.0), {
-            "align_items_to_bottom": AlignItemsToBottom(false),
             "facing": FacingCardinal::North,
             "powered": Powered(false),
             "side_chain": SideChain::Unconnected,
             "waterlogged": Waterlogged(false),
         },
         crimson_shelf => BlockBehavior::new().strength(2.0, 3.0), {
-            "align_items_to_bottom": AlignItemsToBottom(false),
             "facing": FacingCardinal::North,
             "powered": Powered(false),
             "side_chain": SideChain::Unconnected,
             "waterlogged": Waterlogged(false),
         },
         dark_oak_shelf => BlockBehavior::new().strength(2.0, 3.0), {
-            "align_items_to_bottom": AlignItemsToBottom(false),
             "facing": FacingCardinal::North,
             "powered": Powered(false),
             "side_chain": SideChain::Unconnected,
             "waterlogged": Waterlogged(false),
         },
         jungle_shelf => BlockBehavior::new().strength(2.0, 3.0), {
-            "align_items_to_bottom": AlignItemsToBottom(false),
             "facing": FacingCardinal::North,
             "powered": Powered(false),
             "side_chain": SideChain::Unconnected,
             "waterlogged": Waterlogged(false),
         },
         mangrove_shelf => BlockBehavior::new().strength(2.0, 3.0), {
-            "align_items_to_bottom": AlignItemsToBottom(false),
             "facing": FacingCardinal::North,
             "powered": Powered(false),
             "side_chain": SideChain::Unconnected,
             "waterlogged": Waterlogged(false),
         },
         oak_shelf => BlockBehavior::new().strength(2.0, 3.0), {
-            "align_items_to_bottom": AlignItemsToBottom(false),
             "facing": FacingCardinal::North,
             "powered": Powered(false),
             "side_chain": SideChain::Unconnected,
             "waterlogged": Waterlogged(false),
         },
         pale_oak_shelf => BlockBehavior::new().strength(2.0, 3.0), {
-            "align_items_to_bottom": AlignItemsToBottom(false),
             "facing": FacingCardinal::North,
             "powered": Powered(false),
             "side_chain": SideChain::Unconnected,
             "waterlogged": Waterlogged(false),
         },
         spruce_shelf => BlockBehavior::new().strength(2.0, 3.0), {
-            "align_items_to_bottom": AlignItemsToBottom(false),
             "facing": FacingCardinal::North,
             "powered": Powered(false),
             "side_chain": SideChain::Unconnected,
             "waterlogged": Waterlogged(false),
         },
         warped_shelf => BlockBehavior::new().strength(2.0, 3.0), {
-            "align_items_to_bottom": AlignItemsToBottom(false),
             "facing": FacingCardinal::North,
             "powered": Powered(false),
             "side_chain": SideChain::Unconnected,
@@ -3118,7 +3105,7 @@ make_block_states! {
             "waterlogged": Waterlogged(false),
             "west": West(false),
         },
-        chain => BlockBehavior::new().requires_correct_tool_for_drops().strength(5.0, 6.0).force_solid(true), {
+        iron_chain => BlockBehavior::new().requires_correct_tool_for_drops().strength(5.0, 6.0).force_solid(true), {
             "axis": Axis::Y,
             "waterlogged": Waterlogged(false),
         },
@@ -5655,42 +5642,42 @@ make_block_states! {
             "lit": Lit(false),
             "powered": Powered(false),
         },
-        copper_chest => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 2.5), {
+        copper_chest => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
             "type": ChestType::Single,
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
-        exposed_copper_chest => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 2.5), {
+        exposed_copper_chest => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
             "type": ChestType::Single,
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
-        weathered_copper_chest => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 2.5), {
+        weathered_copper_chest => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
             "type": ChestType::Single,
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
-        oxidized_copper_chest => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 2.5), {
+        oxidized_copper_chest => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
             "type": ChestType::Single,
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
-        waxed_copper_chest => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 2.5), {
+        waxed_copper_chest => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
             "type": ChestType::Single,
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
-        waxed_exposed_copper_chest => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 2.5), {
+        waxed_exposed_copper_chest => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
             "type": ChestType::Single,
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
-        waxed_weathered_copper_chest => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 2.5), {
+        waxed_weathered_copper_chest => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
             "type": ChestType::Single,
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),
         },
-        waxed_oxidized_copper_chest => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 2.5), {
+        waxed_oxidized_copper_chest => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
             "type": ChestType::Single,
             "facing": FacingCardinal::North,
             "waterlogged": Waterlogged(false),

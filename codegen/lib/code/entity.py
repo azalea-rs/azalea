@@ -122,7 +122,8 @@ use uuid::Uuid;
 
 use super::{
     ArmadilloStateKind, CopperGolemStateKind, EntityDataItem, EntityDataValue, OptionalUnsignedInt,
-    Pose, Quaternion, Rotations, SnifferStateKind, VillagerData, WeatheringCopperStateKind,
+    Pose, Quaternion, ResolvableProfile, Rotations, SnifferStateKind, VillagerData,
+    WeatheringCopperStateKind,
 };
 use crate::particle::Particle;
 
