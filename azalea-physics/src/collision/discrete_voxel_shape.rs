@@ -294,10 +294,8 @@ impl BitSetDiscreteVoxelShape {
     }
 
     fn clear_z_strip(&mut self, var1: u32, var2: u32, var3: u32, var4: u32) {
-        self.storage.clear(
-            self.get_index(var3, var4, var1),
-            self.get_index(var3, var4, var2),
-        );
+        self.storage
+            .clear(self.get_index(var3, var4, var1)..self.get_index(var3, var4, var2));
     }
 }
 
@@ -316,7 +314,7 @@ impl BitSetDiscreteVoxelShape {
     }
 
     fn is_full(&self, x: u32, y: u32, z: u32) -> bool {
-        self.storage.index(self.get_index(x, y, z))
+        self.storage.get(self.get_index(x, y, z)).unwrap_or(false)
     }
 
     fn is_full_wide(&self, x: u32, y: u32, z: u32) -> bool {
