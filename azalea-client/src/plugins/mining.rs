@@ -182,7 +182,8 @@ fn handle_start_mining_block_event(
             (block_hit_result.direction, false)
         } else {
             debug!(
-                "Got StartMiningBlockEvent but we're not looking at the block. Picking an arbitrary direction instead."
+                "Got StartMiningBlockEvent but we're not looking at the block ({:?}.block_pos != {:?}). Picking an arbitrary direction instead.",
+                hit_result, event.position
             );
             // we're not looking at the block, arbitrary direction
             (Direction::Down, true)
