@@ -25,20 +25,20 @@ pub fn get_mine_progress(
     if destroy_time == -1. {
         return 0.;
     }
-    let divider = if has_correct_tool_for_drops(block, held_item) {
+    let divisor = if has_correct_tool_for_drops(block, held_item) {
         30
     } else {
         100
     };
 
-    (destroy_speed(
+    let base_destroy_speed = destroy_speed(
         block.as_registry_block(),
         held_item,
         player_inventory,
         fluid_on_eyes,
         physics,
-    ) / destroy_time)
-        / divider as f32
+    );
+    (base_destroy_speed / destroy_time) / divisor as f32
 }
 
 fn has_correct_tool_for_drops(block: &dyn BlockTrait, tool: registry::Item) -> bool {

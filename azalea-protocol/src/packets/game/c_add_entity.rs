@@ -5,7 +5,7 @@ use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_world::MinecraftEntityId;
 use uuid::Uuid;
 
-#[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
 pub struct ClientboundAddEntity {
     /// The numeric ID of the entity being added to the world.
     #[var]

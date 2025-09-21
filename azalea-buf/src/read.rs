@@ -7,6 +7,7 @@ use std::{
 };
 
 use byteorder::{BE, ReadBytesExt};
+use indexmap::IndexMap;
 use thiserror::Error;
 use tracing::warn;
 
@@ -188,66 +189,84 @@ impl AzaleaRead for UnsizedByteArray {
     }
 }
 
-impl<T: AzaleaRead> AzaleaRead for Vec<T> {
-    default fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let length = u32::azalea_read_var(buf)? as usize;
-        // we limit the capacity to not get exploited into allocating a bunch
-        let mut contents = Vec::with_capacity(usize::min(length, 65536));
-        for _ in 0..length {
-            contents.push(T::azalea_read(buf)?);
+macro_rules! impl_for_map_type {
+    ($ty: ident) => {
+        impl<K: AzaleaRead + Send + Eq + Hash, V: AzaleaRead + Send> AzaleaRead for $ty<K, V> {
+            fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+                let length = i32::azalea_read_var(buf)? as usize;
+                let mut contents = Self::with_capacity(usize::min(length, 65536));
+                for _ in 0..length {
+                    contents.insert(K::azalea_read(buf)?, V::azalea_read(buf)?);
+                }
+                Ok(contents)
+            }
         }
-        Ok(contents)
-    }
-}
-impl<T: AzaleaRead> AzaleaRead for Box<[T]> {
-    default fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        Vec::<T>::azalea_read(buf).map(Vec::into_boxed_slice)
-    }
-}
-impl<T: AzaleaRead> AzaleaReadLimited for Vec<T> {
-    fn azalea_read_limited(buf: &mut Cursor<&[u8]>, limit: usize) -> Result<Self, BufReadError> {
-        let length = u32::azalea_read_var(buf)? as usize;
-        if length > limit {
-            return Err(BufReadError::VecLengthTooLong {
-                length: length as u32,
-                max_length: limit as u32,
-            });
+        impl<K: AzaleaRead + Send + Eq + Hash, V: AzaleaReadVar + Send> AzaleaReadVar
+            for $ty<K, V>
+        {
+            fn azalea_read_var(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+                let length = i32::azalea_read_var(buf)? as usize;
+                let mut contents = Self::with_capacity(usize::min(length, 65536));
+                for _ in 0..length {
+                    contents.insert(K::azalea_read(buf)?, V::azalea_read_var(buf)?);
+                }
+                Ok(contents)
+            }
         }
-
-        let mut contents = Vec::with_capacity(usize::min(length, 65536));
-        for _ in 0..length {
-            contents.push(T::azalea_read(buf)?);
-        }
-        Ok(contents)
-    }
-}
-impl<T: AzaleaRead> AzaleaReadLimited for Box<[T]> {
-    fn azalea_read_limited(buf: &mut Cursor<&[u8]>, limit: usize) -> Result<Self, BufReadError> {
-        Vec::<T>::azalea_read_limited(buf, limit).map(Vec::into_boxed_slice)
-    }
+    };
 }
 
-impl<K: AzaleaRead + Send + Eq + Hash, V: AzaleaRead + Send> AzaleaRead for HashMap<K, V> {
-    fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let length = i32::azalea_read_var(buf)? as usize;
-        let mut contents = HashMap::with_capacity(usize::min(length, 65536));
-        for _ in 0..length {
-            contents.insert(K::azalea_read(buf)?, V::azalea_read(buf)?);
+impl_for_map_type!(HashMap);
+impl_for_map_type!(IndexMap);
+
+macro_rules! impl_for_list_type {
+    ($ty: ty) => {
+        impl<T: AzaleaRead> AzaleaRead for $ty {
+            default fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+                let length = u32::azalea_read_var(buf)? as usize;
+                // we limit the capacity to not get exploited into allocating a bunch
+                let mut contents = Vec::with_capacity(usize::min(length, 65536));
+                for _ in 0..length {
+                    contents.push(T::azalea_read(buf)?);
+                }
+                Ok(contents.into())
+            }
         }
-        Ok(contents)
-    }
+        impl<T: AzaleaReadVar> AzaleaReadVar for $ty {
+            fn azalea_read_var(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+                let length = i32::azalea_read_var(buf)? as usize;
+                let mut contents = Vec::with_capacity(usize::min(length, 65536));
+                for _ in 0..length {
+                    contents.push(T::azalea_read_var(buf)?);
+                }
+                Ok(contents.into())
+            }
+        }
+        impl<T: AzaleaRead> AzaleaReadLimited for $ty {
+            fn azalea_read_limited(
+                buf: &mut Cursor<&[u8]>,
+                limit: usize,
+            ) -> Result<Self, BufReadError> {
+                let length = u32::azalea_read_var(buf)? as usize;
+                if length > limit {
+                    return Err(BufReadError::VecLengthTooLong {
+                        length: length as u32,
+                        max_length: limit as u32,
+                    });
+                }
+
+                let mut contents = Vec::with_capacity(usize::min(length, 65536));
+                for _ in 0..length {
+                    contents.push(T::azalea_read(buf)?);
+                }
+                Ok(contents.into())
+            }
+        }
+    };
 }
 
-impl<K: AzaleaRead + Send + Eq + Hash, V: AzaleaReadVar + Send> AzaleaReadVar for HashMap<K, V> {
-    fn azalea_read_var(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let length = i32::azalea_read_var(buf)? as usize;
-        let mut contents = HashMap::with_capacity(usize::min(length, 65536));
-        for _ in 0..length {
-            contents.insert(K::azalea_read(buf)?, V::azalea_read_var(buf)?);
-        }
-        Ok(contents)
-    }
-}
+impl_for_list_type!(Vec<T>);
+impl_for_list_type!(Box<[T]>);
 
 impl AzaleaRead for Vec<u8> {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
@@ -294,22 +313,6 @@ impl AzaleaRead for i16 {
 impl AzaleaReadVar for u16 {
     fn azalea_read_var(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(i32::azalea_read_var(buf)? as u16)
-    }
-}
-
-impl<T: AzaleaReadVar> AzaleaReadVar for Vec<T> {
-    fn azalea_read_var(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let length = i32::azalea_read_var(buf)? as usize;
-        let mut contents = Vec::with_capacity(usize::min(length, 65536));
-        for _ in 0..length {
-            contents.push(T::azalea_read_var(buf)?);
-        }
-        Ok(contents)
-    }
-}
-impl<T: AzaleaReadVar> AzaleaReadVar for Box<[T]> {
-    fn azalea_read_var(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        Vec::<T>::azalea_read_var(buf).map(Vec::into_boxed_slice)
     }
 }
 

@@ -3,19 +3,19 @@ use azalea_protocol_macros::ClientboundGamePacket;
 
 use crate::common::recipe::{Ingredient, RecipeDisplayData};
 
-#[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
 pub struct ClientboundRecipeBookAdd {
     pub entries: Vec<Entry>,
     pub replace: bool,
 }
 
-#[derive(Clone, Debug, AzBuf)]
+#[derive(Clone, Debug, AzBuf, PartialEq)]
 pub struct Entry {
     pub contents: RecipeDisplayEntry,
     pub flags: u8,
 }
 
-#[derive(Clone, Debug, AzBuf)]
+#[derive(Clone, Debug, AzBuf, PartialEq)]
 pub struct RecipeDisplayEntry {
     #[var]
     pub id: u32,

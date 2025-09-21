@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use azalea_buf::AzBuf;
 use azalea_protocol_macros::ClientboundGamePacket;
 
-#[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
 pub struct ClientboundCustomReportDetails {
     // azalea doesn't implement max lengths yet
 

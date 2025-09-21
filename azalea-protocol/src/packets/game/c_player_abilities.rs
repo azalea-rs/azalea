@@ -5,7 +5,7 @@ use azalea_core::bitset::FixedBitSet;
 use azalea_entity::PlayerAbilities;
 use azalea_protocol_macros::ClientboundGamePacket;
 
-#[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
 pub struct ClientboundPlayerAbilities {
     pub flags: PlayerAbilitiesFlags,
     pub flying_speed: f32,
@@ -13,7 +13,7 @@ pub struct ClientboundPlayerAbilities {
     pub walking_speed: f32,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct PlayerAbilitiesFlags {
     pub invulnerable: bool,
     pub flying: bool,

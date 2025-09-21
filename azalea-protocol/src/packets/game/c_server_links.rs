@@ -3,7 +3,7 @@ use azalea_protocol_macros::ClientboundGamePacket;
 
 use crate::common::server_links::ServerLinkEntry;
 
-#[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
 pub struct ClientboundServerLinks {
     pub links: Vec<ServerLinkEntry>,
 }

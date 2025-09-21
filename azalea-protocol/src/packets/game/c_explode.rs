@@ -4,7 +4,7 @@ use azalea_entity::particle::Particle;
 use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_registry::SoundEvent;
 
-#[derive(Clone, Debug, ClientboundGamePacket, AzBuf)]
+#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
 pub struct ClientboundExplode {
     pub center: Vec3,
     pub knockback: Option<Vec3>,

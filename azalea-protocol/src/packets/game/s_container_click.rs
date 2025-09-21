@@ -1,11 +1,10 @@
-use std::collections::HashMap;
-
 use azalea_buf::AzBuf;
 use azalea_core::{checksum::Checksum, registry_holder::RegistryHolder};
 use azalea_inventory::{ItemStack, operations::ClickType};
 use azalea_protocol_macros::ServerboundGamePacket;
+use indexmap::IndexMap;
 
-#[derive(Clone, Debug, AzBuf, ServerboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, PartialEq, ServerboundGamePacket)]
 pub struct ServerboundContainerClick {
     #[var]
     pub container_id: i32,
@@ -14,16 +13,16 @@ pub struct ServerboundContainerClick {
     pub slot_num: i16,
     pub button_num: u8,
     pub click_type: ClickType,
-    pub changed_slots: HashMap<u16, HashedStack>,
+    pub changed_slots: IndexMap<u16, HashedStack>,
     pub carried_item: HashedStack,
 }
 
 /// Similar to an [`ItemStack`] but only carrying a CRC32 hash of the value of
 /// added data components instead of their entire contents.
-#[derive(Clone, Debug, AzBuf)]
+#[derive(Clone, Debug, AzBuf, PartialEq)]
 pub struct HashedStack(pub Option<HashedActualItem>);
 
-#[derive(Clone, Debug, AzBuf)]
+#[derive(Clone, Debug, AzBuf, PartialEq)]
 pub struct HashedActualItem {
     pub kind: azalea_registry::Item,
     #[var]
@@ -31,10 +30,8 @@ pub struct HashedActualItem {
     pub components: HashedPatchMap,
 }
 
-#[derive(Clone, Debug, AzBuf)]
+#[derive(Clone, Debug, AzBuf, PartialEq)]
 pub struct HashedPatchMap {
-    /// The value is a CRC32 hash of the data component's network serialization.
-    /// (kind + data)
     #[limit(256)]
     pub added_components: Vec<(azalea_registry::DataComponentKind, Checksum)>,
     #[limit(256)]

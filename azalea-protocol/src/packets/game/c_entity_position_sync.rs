@@ -4,7 +4,7 @@ use azalea_world::MinecraftEntityId;
 
 use crate::common::movements::PositionMoveRotation;
 
-#[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
 pub struct ClientboundEntityPositionSync {
     #[var]
     pub id: MinecraftEntityId,

@@ -78,14 +78,14 @@ impl AttributeInstance {
     }
 }
 
-#[derive(Clone, Debug, AzBuf)]
+#[derive(Clone, Debug, AzBuf, PartialEq)]
 pub struct AttributeModifier {
     pub id: ResourceLocation,
     pub amount: f64,
     pub operation: AttributeModifierOperation,
 }
 
-#[derive(Clone, Debug, Copy, AzBuf)]
+#[derive(Clone, Debug, Copy, AzBuf, PartialEq)]
 pub enum AttributeModifierOperation {
     AddValue,
     AddMultipliedBase,

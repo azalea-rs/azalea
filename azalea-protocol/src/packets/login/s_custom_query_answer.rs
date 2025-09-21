@@ -3,7 +3,7 @@ use std::hash::Hash;
 use azalea_buf::{AzBuf, UnsizedByteArray};
 use azalea_protocol_macros::ServerboundLoginPacket;
 
-#[derive(Hash, Clone, Debug, AzBuf, ServerboundLoginPacket)]
+#[derive(Hash, Clone, Debug, AzBuf, PartialEq, ServerboundLoginPacket)]
 pub struct ServerboundCustomQueryAnswer {
     #[var]
     pub transaction_id: u32,

@@ -5,6 +5,7 @@ use std::{
 };
 
 use byteorder::{BigEndian, WriteBytesExt};
+use indexmap::IndexMap;
 
 use super::{MAX_STRING_LENGTH, UnsizedByteArray};
 
@@ -80,29 +81,35 @@ impl<T: AzaleaWrite> AzaleaWrite for [T] {
     }
 }
 
-impl<K: AzaleaWrite, V: AzaleaWrite> AzaleaWrite for HashMap<K, V> {
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        u32::azalea_write_var(&(self.len() as u32), buf)?;
-        for (key, value) in self {
-            key.azalea_write(buf)?;
-            value.azalea_write(buf)?;
-        }
+macro_rules! impl_for_map_type {
+    ($ty: ident) => {
+        impl<K: AzaleaWrite, V: AzaleaWrite> AzaleaWrite for $ty<K, V> {
+            fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
+                u32::azalea_write_var(&(self.len() as u32), buf)?;
+                for (key, value) in self {
+                    key.azalea_write(buf)?;
+                    value.azalea_write(buf)?;
+                }
 
-        Ok(())
-    }
+                Ok(())
+            }
+        }
+        impl<K: AzaleaWrite, V: AzaleaWriteVar> AzaleaWriteVar for $ty<K, V> {
+            fn azalea_write_var(&self, buf: &mut impl Write) -> io::Result<()> {
+                u32::azalea_write_var(&(self.len() as u32), buf)?;
+                for (key, value) in self {
+                    key.azalea_write(buf)?;
+                    value.azalea_write_var(buf)?;
+                }
+
+                Ok(())
+            }
+        }
+    };
 }
 
-impl<K: AzaleaWrite, V: AzaleaWriteVar> AzaleaWriteVar for HashMap<K, V> {
-    fn azalea_write_var(&self, buf: &mut impl Write) -> io::Result<()> {
-        u32::azalea_write_var(&(self.len() as u32), buf)?;
-        for (key, value) in self {
-            key.azalea_write(buf)?;
-            value.azalea_write_var(buf)?;
-        }
-
-        Ok(())
-    }
-}
+impl_for_map_type!(HashMap);
+impl_for_map_type!(IndexMap);
 
 impl AzaleaWrite for Vec<u8> {
     fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {

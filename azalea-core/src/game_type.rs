@@ -115,7 +115,7 @@ impl AzaleaWrite for GameMode {
 
 /// Rust doesn't let us `impl AzaleaRead for Option<GameType>` so we have to
 /// make a new type :(
-#[derive(Hash, Copy, Clone, Debug)]
+#[derive(Hash, Copy, Clone, Debug, PartialEq)]
 pub struct OptionalGameType(pub Option<GameMode>);
 
 impl From<Option<GameMode>> for OptionalGameType {

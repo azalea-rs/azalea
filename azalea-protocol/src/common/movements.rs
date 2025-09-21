@@ -11,7 +11,7 @@ use azalea_entity::{LookDirection, Physics, Position};
 ///
 /// Often, this field comes alongside a [`RelativeMovements`] field, which
 /// specifies which parts of this struct should be treated as relative.
-#[derive(AzBuf, Clone, Debug)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct PositionMoveRotation {
     pub pos: Vec3,
     /// The updated delta movement (velocity).
@@ -19,7 +19,7 @@ pub struct PositionMoveRotation {
     pub look_direction: LookDirection,
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct RelativeMovements {
     pub x: bool,
     pub y: bool,

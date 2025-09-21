@@ -10,7 +10,7 @@ use simdnbt::owned::Nbt;
 
 use crate::FormattedText;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum NumberFormat {
     Blank,
     Styled { style: Nbt },

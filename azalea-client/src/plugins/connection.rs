@@ -1,4 +1,12 @@
-use std::{fmt::Debug, io::Cursor, mem, sync::Arc};
+use std::{
+    fmt::Debug,
+    io::Cursor,
+    mem,
+    sync::{
+        Arc,
+        atomic::{self, AtomicBool},
+    },
+};
 
 use azalea_crypto::Aes128CfbEnc;
 use azalea_protocol::{
@@ -232,9 +240,12 @@ impl RawConnection {
         if let Some(network) = &mut self.network {
             network.write(packet)?;
         } else {
-            debug!(
-                "tried to write packet to the network but there is no NetworkConnection. if you're trying to send a packet from the handler function, use self.write instead"
-            );
+            static WARNED: AtomicBool = AtomicBool::new(false);
+            if !WARNED.swap(true, atomic::Ordering::Relaxed) {
+                debug!(
+                    "tried to write packet to the network but there is no NetworkConnection. if you're trying to send a packet from the handler function, use self.write instead"
+                );
+            }
         }
         Ok(())
     }

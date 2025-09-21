@@ -6,7 +6,7 @@ use azalea_protocol_macros::ServerboundGamePacket;
 
 use crate::packets::BufReadError;
 
-#[derive(Clone, Debug, ServerboundGamePacket)]
+#[derive(Clone, Debug, PartialEq, ServerboundGamePacket)]
 pub struct ServerboundPlayerAbilities {
     pub is_flying: bool,
 }

@@ -5,33 +5,33 @@ use azalea_core::{color::RgbColor, position::Vec3i, resource_location::ResourceL
 use azalea_protocol_macros::ClientboundGamePacket;
 use uuid::Uuid;
 
-#[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
 pub struct ClientboundWaypoint {
     pub operation: WaypointOperation,
     pub waypoint: TrackedWaypoint,
 }
 
-#[derive(AzBuf, Copy, Clone, Debug)]
+#[derive(AzBuf, Copy, Clone, Debug, PartialEq)]
 pub enum WaypointOperation {
     Track,
     Untrack,
     Update,
 }
 
-#[derive(AzBuf, Clone, Debug)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub struct TrackedWaypoint {
     pub identifier: WaypointIdentifier,
     pub icon: WaypointIcon,
     pub data: WaypointData,
 }
 
-#[derive(AzBuf, Clone, Debug)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub enum WaypointIdentifier {
     String(String),
     Uuid(Uuid),
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct WaypointIcon {
     pub style: ResourceLocation,
     pub color: Option<RgbColor>,
@@ -66,7 +66,7 @@ struct CompactRgbColor {
     b: u8,
 }
 
-#[derive(AzBuf, Clone, Debug)]
+#[derive(AzBuf, Clone, Debug, PartialEq)]
 pub enum WaypointData {
     Empty,
     Vec3i(Vec3i),

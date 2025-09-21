@@ -3,7 +3,7 @@ use azalea_core::position::Vec3;
 use azalea_entity::particle::Particle;
 use azalea_protocol_macros::ClientboundGamePacket;
 
-#[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
 pub struct ClientboundLevelParticles {
     pub override_limiter: bool,
     pub always_show: bool,

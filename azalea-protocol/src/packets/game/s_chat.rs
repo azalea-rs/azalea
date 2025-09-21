@@ -3,7 +3,7 @@ use azalea_core::bitset::FixedBitSet;
 use azalea_crypto::MessageSignature;
 use azalea_protocol_macros::ServerboundGamePacket;
 
-#[derive(Clone, Debug, AzBuf, ServerboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, PartialEq, ServerboundGamePacket)]
 pub struct ServerboundChat {
     #[limit(256)]
     pub message: String,
@@ -13,7 +13,7 @@ pub struct ServerboundChat {
     pub last_seen_messages: LastSeenMessagesUpdate,
 }
 
-#[derive(Clone, Debug, AzBuf, Default)]
+#[derive(Clone, Debug, AzBuf, Default, PartialEq)]
 pub struct LastSeenMessagesUpdate {
     #[var]
     pub offset: u32,

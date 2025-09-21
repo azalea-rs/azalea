@@ -4,7 +4,7 @@ use azalea_protocol_macros::ServerboundGamePacket;
 
 use crate::common::movements::MoveFlags;
 
-#[derive(Clone, Debug, AzBuf, ServerboundGamePacket, PartialEq)]
+#[derive(Clone, Debug, AzBuf, PartialEq, ServerboundGamePacket)]
 pub struct ServerboundMovePlayerPos {
     pub pos: Vec3,
     pub flags: MoveFlags,

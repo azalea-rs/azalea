@@ -7,7 +7,7 @@ use simdnbt::owned::Nbt;
 
 use super::c_light_update::ClientboundLightUpdatePacketData;
 
-#[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
 pub struct ClientboundLevelChunkWithLight {
     // this can't be a ChunkPos since that reads z first and then x
     pub x: i32,
@@ -16,7 +16,7 @@ pub struct ClientboundLevelChunkWithLight {
     pub light_data: ClientboundLightUpdatePacketData,
 }
 
-#[derive(Clone, Debug, AzBuf)]
+#[derive(Clone, Debug, AzBuf, PartialEq)]
 pub struct ClientboundLevelChunkPacketData {
     pub heightmaps: Vec<(HeightmapKind, Box<[u64]>)>,
     /// The raw chunk sections.
@@ -30,7 +30,7 @@ pub struct ClientboundLevelChunkPacketData {
     pub block_entities: Vec<BlockEntity>,
 }
 
-#[derive(Clone, Debug, AzBuf)]
+#[derive(Clone, Debug, AzBuf, PartialEq)]
 pub struct BlockEntity {
     pub packed_xz: u8,
     pub y: u16,

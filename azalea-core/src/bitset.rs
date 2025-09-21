@@ -134,7 +134,7 @@ impl BitSet {
 
     /// Returns the indices of all bits that are set to `true`.
     pub fn iter_ones(&self) -> impl Iterator<Item = usize> {
-        (0..self.len()).filter_map(|i| if self.index(i) { Some(i) } else { None })
+        (0..self.len()).filter(|i| self.index(*i))
     }
 
     /// Returns the maximum number of items that could be in this `BitSet`.
@@ -143,6 +143,13 @@ impl BitSet {
     #[inline]
     pub fn len(&self) -> usize {
         self.data.len() * 64
+    }
+
+    /// Returns true if the `BitSet` was created with a size of 0.
+    ///
+    /// Equivalent to `self.len() == 0`.
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
     }
 }
 

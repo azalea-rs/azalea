@@ -253,7 +253,7 @@ impl ClickOperation {
     }
 }
 
-#[derive(AzBuf, Clone, Copy, Debug)]
+#[derive(AzBuf, Clone, Copy, Debug, PartialEq)]
 pub enum ClickType {
     Pickup = 0,
     QuickMove = 1,

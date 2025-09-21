@@ -303,6 +303,7 @@ version = "0.13.0+mc1.21.8"
 dependencies = [
  "azalea-buf-macros",
  "byteorder",
+ "indexmap",
  "serde_json",
  "simdnbt",
  "thiserror 2.0.16",
@@ -357,6 +358,7 @@ dependencies = [
  "bevy_time",
  "chrono",
  "derive_more 2.0.1",
+ "indexmap",
  "minecraft_folder_path",
  "parking_lot",
  "pastey",
@@ -501,6 +503,7 @@ dependencies = [
  "futures",
  "futures-lite",
  "hickory-resolver",
+ "indexmap",
  "serde",
  "serde_json",
  "simdnbt",

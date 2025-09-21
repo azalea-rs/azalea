@@ -41,6 +41,7 @@ tokio-util = { workspace = true, features = ["codec"] }
 tracing.workspace = true
 hickory-resolver = { workspace = true, features = ["tokio", "system-config"] }
 uuid.workspace = true
+indexmap.workspace = true
 
 [features]
 connecting = []

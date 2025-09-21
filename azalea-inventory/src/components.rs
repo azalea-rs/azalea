@@ -41,7 +41,7 @@ pub trait EncodableDataComponent: Send + Sync + Any {
     // function instead
     fn clone(&self) -> Box<dyn EncodableDataComponent>;
     // same thing here
-    fn eq(&self, other: Box<dyn EncodableDataComponent>) -> bool;
+    fn eq(&self, other: &dyn EncodableDataComponent) -> bool;
 }
 
 impl<T> EncodableDataComponent for T
@@ -58,8 +58,8 @@ where
         let cloned = self.clone();
         Box::new(cloned)
     }
-    fn eq(&self, other: Box<dyn EncodableDataComponent>) -> bool {
-        let other_any: Box<dyn Any> = other;
+    fn eq(&self, other: &dyn EncodableDataComponent) -> bool {
+        let other_any: &dyn Any = other;
         match other_any.downcast_ref::<T>() {
             Some(other) => self == other,
             _ => false,

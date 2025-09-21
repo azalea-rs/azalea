@@ -3,7 +3,7 @@ use azalea_chat::FormattedText;
 use azalea_protocol_macros::ClientboundGamePacket;
 use uuid::Uuid;
 
-#[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
 pub struct ClientboundResourcePackPush {
     pub id: Uuid,
     pub url: String,

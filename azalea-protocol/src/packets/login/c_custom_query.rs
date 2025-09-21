@@ -4,7 +4,7 @@ use azalea_buf::{AzBuf, UnsizedByteArray};
 use azalea_core::resource_location::ResourceLocation;
 use azalea_protocol_macros::ClientboundLoginPacket;
 
-#[derive(Hash, Clone, Debug, AzBuf, ClientboundLoginPacket)]
+#[derive(Hash, Clone, Debug, AzBuf, PartialEq, ClientboundLoginPacket)]
 pub struct ClientboundCustomQuery {
     #[var]
     pub transaction_id: u32,

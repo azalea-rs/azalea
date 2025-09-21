@@ -16,10 +16,10 @@ use uuid::Uuid;
 
 use crate::particle::Particle;
 
-#[derive(Clone, Debug, Deref)]
+#[derive(Clone, Debug, Deref, PartialEq)]
 pub struct EntityMetadataItems(pub Vec<EntityDataItem>);
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct EntityDataItem {
     // we can't identify what the index is for here because we don't know the
     // entity type
@@ -55,7 +55,7 @@ impl AzaleaWrite for EntityMetadataItems {
 
 // Note: This enum is partially generated and parsed by
 // codegen/lib/code/entity.py
-#[derive(Clone, Debug, EnumAsInner, AzBuf)]
+#[derive(Clone, Debug, EnumAsInner, AzBuf, PartialEq)]
 pub enum EntityDataValue {
     Byte(u8),
     Int(#[var] i32),
@@ -96,10 +96,10 @@ pub enum EntityDataValue {
     Quaternion(Quaternion),
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct OptionalUnsignedInt(pub Option<u32>);
 
-#[derive(Clone, Debug, AzBuf)]
+#[derive(Clone, Debug, AzBuf, PartialEq)]
 pub struct Quaternion {
     pub x: f32,
     pub y: f32,
@@ -109,7 +109,7 @@ pub struct Quaternion {
 
 // mojang just calls this ArmadilloState but i added "Kind" since otherwise it
 // collides with a name in metadata.rs
-#[derive(Clone, Debug, Copy, Default, AzBuf)]
+#[derive(Clone, Debug, Copy, Default, AzBuf, PartialEq)]
 pub enum ArmadilloStateKind {
     #[default]
     Idle,
@@ -137,7 +137,7 @@ impl AzaleaWrite for OptionalUnsignedInt {
 }
 
 /// A set of x, y, and z rotations. This is used for armor stands.
-#[derive(Clone, Debug, AzBuf, Default)]
+#[derive(Clone, Debug, AzBuf, Default, PartialEq)]
 pub struct Rotations {
     pub x: f32,
     pub y: f32,
@@ -167,7 +167,7 @@ pub enum Pose {
     Inhaling,
 }
 
-#[derive(Debug, Clone, AzBuf)]
+#[derive(Debug, Clone, AzBuf, PartialEq)]
 pub struct VillagerData {
     pub kind: azalea_registry::VillagerKind,
     pub profession: azalea_registry::VillagerProfession,
@@ -175,7 +175,7 @@ pub struct VillagerData {
     pub level: u32,
 }
 
-#[derive(Debug, Copy, Clone, AzBuf, Default)]
+#[derive(Debug, Copy, Clone, AzBuf, Default, PartialEq)]
 pub enum SnifferStateKind {
     #[default]
     Idling,

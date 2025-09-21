@@ -4,7 +4,7 @@ use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_world::MinecraftEntityId;
 
 /// This packet is sent by the server when an entity moves less then 8 blocks.
-#[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
 pub struct ClientboundMoveEntityPosRot {
     #[var]
     pub entity_id: MinecraftEntityId,

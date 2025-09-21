@@ -5,20 +5,20 @@ use azalea_chat::{FormattedText, numbers::NumberFormat};
 use azalea_core::objectives::ObjectiveCriteria;
 use azalea_protocol_macros::ClientboundGamePacket;
 
-#[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
 pub struct ClientboundSetObjective {
     pub objective_name: String,
     pub method: Method,
 }
 
-#[derive(Clone, Copy, Debug, AzBuf)]
+#[derive(Clone, Copy, Debug, AzBuf, PartialEq)]
 pub enum MethodKind {
     Add,
     Remove,
     Change,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Method {
     Add {
         display_name: FormattedText,

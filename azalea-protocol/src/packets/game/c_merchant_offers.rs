@@ -12,7 +12,7 @@ use azalea_inventory::{
 use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_registry::{DataComponentKind, Item};
 
-#[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
 pub struct ClientboundMerchantOffers {
     #[var]
     pub container_id: i32,
@@ -25,7 +25,7 @@ pub struct ClientboundMerchantOffers {
     pub can_restock: bool,
 }
 
-#[derive(Clone, Debug, AzBuf)]
+#[derive(Clone, Debug, AzBuf, PartialEq)]
 pub struct MerchantOffer {
     pub base_cost_a: ItemCost,
     pub result: ItemStack,
@@ -43,7 +43,7 @@ pub struct MerchantOffer {
 ///
 /// This can be converted into an [`ItemStackData`] with
 /// [`Self::into_item_stack`].
-#[derive(Clone, Debug, AzBuf)]
+#[derive(Clone, Debug, AzBuf, PartialEq)]
 pub struct ItemCost {
     pub item: Item,
     #[var]
@@ -74,7 +74,7 @@ impl ItemCost {
 ///
 /// If you got this from [`ItemCost`], consider using
 /// [`ItemCost::into_item_stack`] for a better API instead.
-#[derive(Clone, Debug, AzBuf)]
+#[derive(Clone, Debug, AzBuf, PartialEq)]
 pub struct DataComponentExactPredicate {
     pub expected: Vec<TypedDataComponent>,
 }
@@ -127,5 +127,13 @@ impl Clone for TypedDataComponent {
             kind: self.kind,
             value: unsafe { self.value.clone_as(self.kind) },
         }
+    }
+}
+impl PartialEq for TypedDataComponent {
+    fn eq(&self, other: &Self) -> bool {
+        if self.kind != other.kind {
+            return false;
+        }
+        self.as_dyn().eq(other.as_dyn())
     }
 }

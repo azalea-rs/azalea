@@ -1,7 +1,4 @@
-use std::{
-    cmp,
-    collections::{HashMap, HashSet},
-};
+use std::{cmp, collections::HashSet};
 
 use azalea_chat::FormattedText;
 use azalea_entity::PlayerAbilities;
@@ -22,6 +19,7 @@ use azalea_registry::MenuKind;
 use azalea_world::{InstanceContainer, InstanceName};
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
+use indexmap::IndexMap;
 use tracing::{error, warn};
 
 use crate::{Client, packet::game::SendPacketEvent, respawn::perform_respawn};
@@ -869,9 +867,9 @@ pub fn handle_container_click_event(
 
         let registry_holder = &instance.read().registries;
 
-        // see which slots changed after clicking and put them in the hashmap
-        // the server uses this to check if we desynced
-        let mut changed_slots: HashMap<u16, HashedStack> = HashMap::new();
+        // see which slots changed after clicking and put them in the map the server
+        // uses this to check if we desynced
+        let mut changed_slots: IndexMap<u16, HashedStack> = IndexMap::new();
         for (slot_index, old_slot) in old_slots.iter().enumerate() {
             let new_slot = &new_slots[slot_index];
             if old_slot != new_slot {

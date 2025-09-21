@@ -6,14 +6,14 @@ use azalea_registry::TestInstanceKind;
 
 use super::s_set_structure_block::Rotation;
 
-#[derive(Clone, Debug, AzBuf, ServerboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, PartialEq, ServerboundGamePacket)]
 pub struct ServerboundTestInstanceBlockAction {
     pub pos: BlockPos,
     pub action: Action,
     pub data: TestInstanceBlockEntityData,
 }
 
-#[derive(Clone, Copy, Debug, AzBuf, Default)]
+#[derive(Clone, Copy, Debug, AzBuf, Default, PartialEq)]
 pub enum Action {
     #[default]
     Init,
@@ -25,7 +25,7 @@ pub enum Action {
     Run,
 }
 
-#[derive(Clone, Debug, AzBuf, Default)]
+#[derive(Clone, Debug, AzBuf, Default, PartialEq)]
 pub struct TestInstanceBlockEntityData {
     pub test: Option<TestInstanceKind>,
     pub size: Vec3i,
@@ -35,7 +35,7 @@ pub struct TestInstanceBlockEntityData {
     pub error_message: Option<FormattedText>,
 }
 
-#[derive(Clone, Copy, Debug, AzBuf, Default)]
+#[derive(Clone, Copy, Debug, AzBuf, Default, PartialEq)]
 pub enum TestInstanceBlockEntityStatus {
     #[default]
     Cleared,

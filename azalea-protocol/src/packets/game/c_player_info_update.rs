@@ -12,13 +12,13 @@ use uuid::Uuid;
 
 use super::s_chat_session_update::RemoteChatSessionData;
 
-#[derive(Clone, Debug, ClientboundGamePacket)]
+#[derive(Clone, Debug, PartialEq, ClientboundGamePacket)]
 pub struct ClientboundPlayerInfoUpdate {
     pub actions: ActionEnumSet,
     pub entries: Vec<PlayerInfoEntry>,
 }
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct PlayerInfoEntry {
     pub profile: GameProfile,
     pub listed: bool,

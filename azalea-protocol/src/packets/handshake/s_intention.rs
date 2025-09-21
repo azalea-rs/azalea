@@ -5,7 +5,7 @@ use azalea_protocol_macros::ServerboundHandshakePacket;
 
 use crate::packets::ClientIntention;
 
-#[derive(Hash, Clone, Debug, AzBuf, ServerboundHandshakePacket)]
+#[derive(Hash, Clone, Debug, AzBuf, PartialEq, ServerboundHandshakePacket)]
 pub struct ServerboundIntention {
     #[var]
     pub protocol_version: i32,

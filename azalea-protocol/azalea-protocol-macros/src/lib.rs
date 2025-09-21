@@ -330,14 +330,14 @@ pub fn declare_state_packets(input: TokenStream) -> TokenStream {
     let mut contents = quote! {
         #mod_and_use_statements_contents
 
-        #[derive(Clone, Debug)]
+        #[derive(Clone, Debug, PartialEq)]
         pub enum #clientbound_state_name
         where
             Self: Sized,
         {
             #clientbound_enum_contents
         }
-        #[derive(Clone, Debug)]
+        #[derive(Clone, Debug, PartialEq)]
         pub enum #serverbound_state_name
         where
         Self: Sized,
