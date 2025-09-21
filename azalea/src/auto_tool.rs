@@ -1,8 +1,9 @@
 use azalea_block::{BlockState, BlockTrait, fluid_state::FluidKind};
-use azalea_client::{Client, inventory::Inventory};
+use azalea_client::Client;
 use azalea_core::position::BlockPos;
-use azalea_entity::{FluidOnEyes, Physics};
+use azalea_entity::{Attributes, FluidOnEyes, Physics, inventory::Inventory};
 use azalea_inventory::{ItemStack, Menu, components};
+use azalea_registry::EntityKind;
 
 use crate::BotClientExt;
 
@@ -24,7 +25,13 @@ impl AutoToolClientExt for Client {
             self.query::<(&Inventory, &Physics, &FluidOnEyes)>(&mut ecs);
         let menu = &inventory.inventory_menu;
 
-        accurate_best_tool_in_hotbar_for_block(block, menu, physics, fluid_on_eyes)
+        accurate_best_tool_in_hotbar_for_block(
+            block,
+            menu,
+            physics,
+            fluid_on_eyes,
+            &self.attributes(),
+        )
     }
 
     async fn mine_with_auto_tool(&self, block_pos: BlockPos) {
@@ -53,6 +60,7 @@ pub fn best_tool_in_hotbar_for_block(block: BlockState, menu: &Menu) -> BestTool
         menu,
         &physics,
         &FluidOnEyes::new(FluidKind::Empty),
+        &Attributes::new(EntityKind::Player),
     )
 }
 
@@ -61,6 +69,7 @@ pub fn accurate_best_tool_in_hotbar_for_block(
     menu: &Menu,
     physics: &Physics,
     fluid_on_eyes: &FluidOnEyes,
+    attributes: &Attributes,
 ) -> BestToolResult {
     let hotbar_slots = &menu.slots()[menu.hotbar_slots_range()];
 
@@ -89,9 +98,9 @@ pub fn accurate_best_tool_in_hotbar_for_block(
                 this_item_speed = Some(azalea_entity::mining::get_mine_progress(
                     block.as_ref(),
                     azalea_registry::Item::Air,
-                    menu,
                     fluid_on_eyes,
                     physics,
+                    attributes,
                 ));
             }
             ItemStack::Present(item_stack) => {
@@ -101,9 +110,9 @@ pub fn accurate_best_tool_in_hotbar_for_block(
                     this_item_speed = Some(azalea_entity::mining::get_mine_progress(
                         block.as_ref(),
                         item_stack.kind,
-                        menu,
                         fluid_on_eyes,
                         physics,
+                        attributes,
                     ));
                 } else {
                     this_item_speed = None;
@@ -124,9 +133,9 @@ pub fn accurate_best_tool_in_hotbar_for_block(
             let this_item_speed = azalea_entity::mining::get_mine_progress(
                 block.as_ref(),
                 item_slot.kind,
-                menu,
                 fluid_on_eyes,
                 physics,
+                attributes,
             );
             if this_item_speed > best_speed {
                 best_slot = Some(i);

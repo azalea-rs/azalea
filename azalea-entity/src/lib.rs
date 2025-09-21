@@ -4,7 +4,7 @@ pub mod attributes;
 mod data;
 pub mod dimensions;
 mod effects;
-mod enchantments;
+pub mod inventory;
 pub mod metadata;
 pub mod mining;
 pub mod particle;
@@ -502,7 +502,7 @@ impl EntityBundle {
             dimensions,
             direction: LookDirection::default(),
 
-            attributes: default_attributes(EntityKind::Player),
+            attributes: Attributes::new(EntityKind::Player),
 
             jumping: Jumping(false),
             crouching: Crouching(false),
@@ -512,17 +512,20 @@ impl EntityBundle {
     }
 }
 
-pub fn default_attributes(_entity_kind: EntityKind) -> Attributes {
-    // TODO: do the correct defaults for everything, some
-    // entities have different defaults
-    Attributes {
-        movement_speed: AttributeInstance::new(0.1f32 as f64),
-        sneaking_speed: AttributeInstance::new(0.3),
-        attack_speed: AttributeInstance::new(4.0),
-        water_movement_efficiency: AttributeInstance::new(0.0),
-        block_interaction_range: AttributeInstance::new(4.5),
-        entity_interaction_range: AttributeInstance::new(3.0),
-        step_height: AttributeInstance::new(0.6),
+impl Attributes {
+    pub fn new(_entity_kind: EntityKind) -> Self {
+        // TODO: do the correct defaults for everything, some
+        // entities have different defaults
+        Attributes {
+            movement_speed: AttributeInstance::new(0.1f32 as f64),
+            sneaking_speed: AttributeInstance::new(0.3),
+            attack_speed: AttributeInstance::new(4.0),
+            water_movement_efficiency: AttributeInstance::new(0.0),
+            mining_efficiency: AttributeInstance::new(0.0),
+            block_interaction_range: AttributeInstance::new(4.5),
+            entity_interaction_range: AttributeInstance::new(3.0),
+            step_height: AttributeInstance::new(0.6),
+        }
     }
 }
 

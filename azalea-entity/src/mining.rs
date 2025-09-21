@@ -2,7 +2,7 @@ use azalea_block::{BlockBehavior, BlockTrait};
 use azalea_core::tier::get_item_tier;
 use azalea_registry as registry;
 
-use crate::{FluidOnEyes, Physics, effects};
+use crate::{Attributes, FluidOnEyes, Physics, effects};
 
 /// How much progress is made towards mining the block per tick, as a
 /// percentage. If this is 1 then the block gets broken instantly.
@@ -15,9 +15,9 @@ use crate::{FluidOnEyes, Physics, effects};
 pub fn get_mine_progress(
     block: &dyn BlockTrait,
     held_item: registry::Item,
-    player_inventory: &azalea_inventory::Menu,
     fluid_on_eyes: &FluidOnEyes,
     physics: &Physics,
+    attributes: &Attributes,
 ) -> f32 {
     let block_behavior: BlockBehavior = block.behavior();
 
@@ -34,9 +34,9 @@ pub fn get_mine_progress(
     let base_destroy_speed = destroy_speed(
         block.as_registry_block(),
         held_item,
-        player_inventory,
         fluid_on_eyes,
         physics,
+        attributes,
     );
     (base_destroy_speed / destroy_time) / divisor as f32
 }
@@ -76,21 +76,16 @@ fn has_correct_tool_for_drops(block: &dyn BlockTrait, tool: registry::Item) -> b
 fn destroy_speed(
     block: registry::Block,
     tool: registry::Item,
-    _player_inventory: &azalea_inventory::Menu,
     _fluid_on_eyes: &FluidOnEyes,
     physics: &Physics,
+    attributes: &Attributes,
 ) -> f32 {
     let mut base_destroy_speed = base_destroy_speed(block, tool);
 
-    // add efficiency enchantment
-    // TODO
-    // if base_destroy_speed > 1. {
-    //     let efficiency_level =
-    //         enchantments::get_enchant_level(registry::Enchantment::Efficiency,
-    // player_inventory);     if efficiency_level > 0 && tool !=
-    // registry::Item::Air {         base_destroy_speed += (efficiency_level *
-    // efficiency_level + 1) as f32;     }
-    // }
+    if base_destroy_speed > 1. {
+        // efficiency enchantment
+        base_destroy_speed += attributes.mining_efficiency.calculate() as f32;
+    }
 
     if let Some(dig_speed_amplifier) = effects::get_dig_speed_amplifier() {
         base_destroy_speed *= 1. + (dig_speed_amplifier + 1) as f32 * 0.2;

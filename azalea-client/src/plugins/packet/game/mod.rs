@@ -10,6 +10,7 @@ use azalea_entity::{
     Dead, EntityBundle, EntityKindComponent, HasClientLoaded, LoadedBy, LocalEntity, LookDirection,
     Physics, PlayerAbilities, Position, RelativeEntityUpdate,
     indexing::{EntityIdIndex, EntityUuidIndex},
+    inventory::Inventory,
     metadata::{Health, apply_metadata},
 };
 use azalea_protocol::{
@@ -30,9 +31,7 @@ use crate::{
     declare_packet_handlers,
     disconnect::DisconnectEvent,
     interact::BlockStatePredictionHandler,
-    inventory::{
-        ClientSideCloseContainerEvent, Inventory, MenuOpenedEvent, SetContainerContentEvent,
-    },
+    inventory::{ClientSideCloseContainerEvent, MenuOpenedEvent, SetContainerContentEvent},
     local_player::{Hunger, InstanceHolder, LocalGameMode, TabList},
     movement::{KnockbackEvent, KnockbackType},
     packet::as_system,

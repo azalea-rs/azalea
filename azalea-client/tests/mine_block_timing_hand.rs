@@ -19,7 +19,7 @@ use azalea_protocol::{
 use azalea_registry::{Block, DataRegistry, DimensionType};
 
 #[test]
-fn test_mine_block_timing() {
+fn test_mine_block_timing_hand() {
     init_tracing();
 
     let mut simulation = Simulation::new(ConnectionProtocol::Game);

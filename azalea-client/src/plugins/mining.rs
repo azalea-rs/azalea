@@ -1,6 +1,9 @@
 use azalea_block::{BlockState, BlockTrait, fluid_state::FluidState};
 use azalea_core::{direction::Direction, game_type::GameMode, position::BlockPos, tick::GameTick};
-use azalea_entity::{FluidOnEyes, Physics, PlayerAbilities, Position, mining::get_mine_progress};
+use azalea_entity::{
+    Attributes, FluidOnEyes, Physics, PlayerAbilities, Position, inventory::Inventory,
+    mining::get_mine_progress,
+};
 use azalea_inventory::ItemStack;
 use azalea_physics::{PhysicsSet, collision::BlockWithShape};
 use azalea_protocol::packets::game::s_player_action::{self, ServerboundPlayerAction};
@@ -16,7 +19,7 @@ use crate::{
         BlockStatePredictionHandler, SwingArmEvent, can_use_game_master_blocks,
         check_is_interaction_restricted, pick::HitResultComponent,
     },
-    inventory::{Inventory, InventorySet},
+    inventory::InventorySet,
     local_player::{InstanceHolder, LocalGameMode, PermissionLevel},
     movement::MoveEventsSet,
     packet::game::SendPacketEvent,
@@ -217,6 +220,7 @@ pub fn handle_mining_queued(
         &Inventory,
         &FluidOnEyes,
         &Physics,
+        &Attributes,
         Option<&Mining>,
         &mut BlockStatePredictionHandler,
         &mut MineDelay,
@@ -234,6 +238,7 @@ pub fn handle_mining_queued(
         inventory,
         fluid_on_eyes,
         physics,
+        attributes,
         mining,
         mut sequence_number,
         mut mine_delay,
@@ -322,9 +327,9 @@ pub fn handle_mining_queued(
                 && get_mine_progress(
                     block.as_ref(),
                     held_item.kind(),
-                    &inventory.inventory_menu,
                     fluid_on_eyes,
                     physics,
+                    &attributes,
                 ) >= 1.
             {
                 // block was broken instantly (instamined)
@@ -560,6 +565,7 @@ pub fn continue_mining_block(
         &MineItem,
         &FluidOnEyes,
         &Physics,
+        &Attributes,
         &Mining,
         &mut MineDelay,
         &mut MineProgress,
@@ -579,6 +585,7 @@ pub fn continue_mining_block(
         current_mining_item,
         fluid_on_eyes,
         physics,
+        attributes,
         mining,
         mut mine_delay,
         mut mine_progress,
@@ -633,9 +640,9 @@ pub fn continue_mining_block(
             **mine_progress += get_mine_progress(
                 block.as_ref(),
                 current_mining_item.kind(),
-                &inventory.inventory_menu,
                 fluid_on_eyes,
                 physics,
+                &attributes,
             );
 
             if **mine_ticks % 4. == 0. {

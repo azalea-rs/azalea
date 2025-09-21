@@ -31,13 +31,13 @@ use std::{
 use astar::{Edge, PathfinderTimeout};
 use azalea_client::{
     StartSprintEvent, StartWalkEvent,
-    inventory::{Inventory, InventorySet, SetSelectedHotbarSlotEvent},
+    inventory::{InventorySet, SetSelectedHotbarSlotEvent},
     local_player::InstanceHolder,
     mining::{Mining, MiningSet, StartMiningBlockEvent},
     movement::MoveEventsSet,
 };
 use azalea_core::{position::BlockPos, tick::GameTick};
-use azalea_entity::{LocalEntity, Physics, Position, metadata::Player};
+use azalea_entity::{LocalEntity, Physics, Position, inventory::Inventory, metadata::Player};
 use azalea_physics::PhysicsSet;
 use azalea_world::{InstanceContainer, InstanceName};
 use bevy_app::{PreUpdate, Update};

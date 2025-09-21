@@ -79,11 +79,10 @@ impl ItemStack {
         }
     }
 
-    /// Get the `kind` of the item in this slot, or
-    /// [`azalea_registry::Item::Air`]
-    pub fn kind(&self) -> azalea_registry::Item {
+    /// Get the `kind` of the item in this slot, or [`Item::Air`]
+    pub fn kind(&self) -> Item {
         match self {
-            ItemStack::Empty => azalea_registry::Item::Air,
+            ItemStack::Empty => Item::Air,
             ItemStack::Present(i) => i.kind,
         }
     }
@@ -147,11 +146,11 @@ impl Serialize for ItemStack {
 }
 
 /// An item in an inventory, with a count and NBT. Usually you want
-/// [`ItemStack`] or [`azalea_registry::Item`] instead.
+/// [`ItemStack`] or [`Item`] instead.
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct ItemStackData {
     #[serde(rename = "id")]
-    pub kind: azalea_registry::Item,
+    pub kind: Item,
     /// The amount of the item in this slot.
     ///
     /// The count can be zero or negative, but this is rare.
@@ -183,7 +182,7 @@ impl ItemStackData {
 
     /// Check if the count of the item is <= 0 or if the item is air.
     pub fn is_empty(&self) -> bool {
-        self.count <= 0 || self.kind == azalea_registry::Item::Air
+        self.count <= 0 || self.kind == Item::Air
     }
 
     /// Whether this item is the same as another item, ignoring the count.
@@ -221,7 +220,7 @@ impl AzaleaRead for ItemStack {
         if count <= 0 {
             Ok(ItemStack::Empty)
         } else {
-            let kind = azalea_registry::Item::azalea_read(buf)?;
+            let kind = Item::azalea_read(buf)?;
             let component_patch = DataComponentPatch::azalea_read(buf)?;
             Ok(ItemStack::Present(ItemStackData {
                 count,

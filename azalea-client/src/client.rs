@@ -14,9 +14,10 @@ use azalea_core::{
     tick::GameTick,
 };
 use azalea_entity::{
-    EntityUpdateSet, PlayerAbilities, Position,
+    Attributes, EntityUpdateSet, PlayerAbilities, Position,
     dimensions::EntityDimensions,
     indexing::{EntityIdIndex, EntityUuidIndex},
+    inventory::Inventory,
     metadata::Health,
 };
 use azalea_physics::local_player::PhysicsState;
@@ -55,7 +56,6 @@ use crate::{
     disconnect::DisconnectEvent,
     events::Event,
     interact::BlockStatePredictionHandler,
-    inventory::Inventory,
     join::{ConnectOpts, StartJoinServerEvent},
     local_player::{Hunger, InstanceHolder, PermissionLevel, TabList},
     mining::{self},
@@ -463,6 +463,12 @@ impl Client {
     /// This as also available from the ECS as [`GameProfileComponent`].
     pub fn profile(&self) -> GameProfile {
         (*self.component::<GameProfileComponent>()).clone()
+    }
+
+    /// Returns the attribute values of our player, which can be used to
+    /// determine things like our movement speed.
+    pub fn attributes(&self) -> Attributes {
+        self.component::<Attributes>()
     }
 
     /// A convenience function to get the Minecraft Uuid of a player by their

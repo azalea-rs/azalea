@@ -34,6 +34,7 @@ is breaking anyways, semantic versioning is not followed.
 - Rename `send_chat_packet` / `send_command_packet` to `write_chat_packet` / `write_command_packet` (for consistency with `write_packet`).
 - Split `ClientInformation` handling out of `BrandPlugin` to `ClientInformationPlugin`.
 - `ClientBuilder::start` and `SwarmBuilder::start` now return a `Result<AppExit>` instead of `Result<!>`.
+- Moved `azalea_client::inventory::Inventory` to `azalea_entity::inventory::Inventory`.
 
 ### Fixed
 

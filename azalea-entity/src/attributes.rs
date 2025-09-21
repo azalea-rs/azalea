@@ -7,12 +7,17 @@ use azalea_core::resource_location::ResourceLocation;
 use bevy_ecs::component::Component;
 use thiserror::Error;
 
+/// Attribute values for entities that affect things like their speed and reach.
+///
+/// Each attribute can have multiple modifiers, and these modifiers are the
+/// result of things like sprinting or enchantments.
 #[derive(Clone, Debug, Component)]
 pub struct Attributes {
     pub movement_speed: AttributeInstance,
     pub sneaking_speed: AttributeInstance,
     pub attack_speed: AttributeInstance,
     pub water_movement_efficiency: AttributeInstance,
+    pub mining_efficiency: AttributeInstance,
 
     pub block_interaction_range: AttributeInstance,
     pub entity_interaction_range: AttributeInstance,
