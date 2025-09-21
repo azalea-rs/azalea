@@ -201,6 +201,8 @@ fn filter_hit_result(hit_result: HitResult, eye_position: Vec3, range: f64) -> H
 /// Get the block that a player would be looking at if their eyes were at the
 /// given direction and position.
 ///
+/// This does not consider entities.
+///
 /// Also see [`pick`].
 pub fn pick_block(
     look_direction: LookDirection,

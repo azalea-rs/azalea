@@ -1,6 +1,7 @@
 use std::{cmp, collections::HashSet};
 
 use azalea_chat::FormattedText;
+use azalea_core::tick::GameTick;
 use azalea_entity::PlayerAbilities;
 pub use azalea_inventory::*;
 use azalea_inventory::{
@@ -46,6 +47,10 @@ impl Plugin for InventoryPlugin {
                     .chain()
                     .in_set(InventorySet)
                     .before(perform_respawn),
+            )
+            .add_systems(
+                GameTick,
+                ensure_has_sent_carried_item.after(super::mining::handle_mining_queued),
             );
     }
 }
@@ -927,15 +932,17 @@ fn handle_set_container_content_event(
     }
 }
 
+/// An ECS event to switch our hand to a different hotbar slot.
+///
+/// This is equivalent to using the scroll wheel or number keys in Minecraft.
 #[derive(Event)]
 pub struct SetSelectedHotbarSlotEvent {
     pub entity: Entity,
     /// The hotbar slot to select. This should be in the range 0..=8.
     pub slot: u8,
 }
-fn handle_set_selected_hotbar_slot_event(
+pub fn handle_set_selected_hotbar_slot_event(
     mut events: EventReader<SetSelectedHotbarSlotEvent>,
-    mut commands: Commands,
     mut query: Query<&mut Inventory>,
 ) {
     for event in events.read() {
@@ -947,12 +954,42 @@ fn handle_set_selected_hotbar_slot_event(
         }
 
         inventory.selected_hotbar_slot = event.slot;
-        commands.trigger(SendPacketEvent::new(
-            event.entity,
-            ServerboundSetCarriedItem {
-                slot: event.slot as u16,
-            },
-        ));
+    }
+}
+
+/// The item slot that the server thinks we have selected.
+///
+/// See [`ensure_has_sent_carried_item`].
+#[derive(Component)]
+pub struct LastSentSelectedHotbarSlot {
+    pub slot: u8,
+}
+/// A system that makes sure that [`LastSentSelectedHotbarSlot`] is in sync with
+/// [`Inventory::selected_hotbar_slot`].
+///
+/// This is necessary to make sure that [`ServerboundSetCarriedItem`] is sent in
+/// the right order, since it's not allowed to happen outside of a tick.
+pub fn ensure_has_sent_carried_item(
+    mut commands: Commands,
+    query: Query<(Entity, &Inventory, Option<&LastSentSelectedHotbarSlot>)>,
+) {
+    for (entity, inventory, last_sent) in query.iter() {
+        if let Some(last_sent) = last_sent {
+            if last_sent.slot == inventory.selected_hotbar_slot {
+                continue;
+            }
+
+            commands.trigger(SendPacketEvent::new(
+                entity,
+                ServerboundSetCarriedItem {
+                    slot: inventory.selected_hotbar_slot as u16,
+                },
+            ));
+        }
+
+        commands.entity(entity).insert(LastSentSelectedHotbarSlot {
+            slot: inventory.selected_hotbar_slot,
+        });
     }
 }
 

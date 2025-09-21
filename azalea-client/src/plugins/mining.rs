@@ -181,6 +181,9 @@ fn handle_start_mining_block_event(
             // we're looking at the block
             (block_hit_result.direction, false)
         } else {
+            debug!(
+                "Got StartMiningBlockEvent but we're not looking at the block. Picking an arbitrary direction instead."
+            );
             // we're not looking at the block, arbitrary direction
             (Direction::Down, true)
         };
@@ -201,7 +204,7 @@ pub struct MiningQueued {
     pub force: bool,
 }
 #[allow(clippy::too_many_arguments, clippy::type_complexity)]
-fn handle_mining_queued(
+pub fn handle_mining_queued(
     mut commands: Commands,
     mut attack_block_events: EventWriter<AttackBlockEvent>,
     mut mine_block_progress_events: EventWriter<MineBlockProgressEvent>,

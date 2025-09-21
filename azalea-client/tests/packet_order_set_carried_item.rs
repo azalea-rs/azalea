@@ -1,4 +1,6 @@
-use azalea_client::{mining::StartMiningBlockEvent, test_utils::prelude::*};
+use azalea_client::{
+    inventory::SetSelectedHotbarSlotEvent, mining::StartMiningBlockEvent, test_utils::prelude::*,
+};
 use azalea_core::{
     direction::Direction,
     position::{BlockPos, ChunkPos, Vec3},
@@ -10,8 +12,8 @@ use azalea_protocol::{
     packets::{
         ConnectionProtocol, Packet,
         game::{
-            ClientboundBlockUpdate, ClientboundPlayerPosition, ServerboundGamePacket,
-            ServerboundPlayerAction, ServerboundSwing, s_interact::InteractionHand,
+            ClientboundBlockUpdate, ClientboundPlayerPosition, ServerboundPlayerAction,
+            ServerboundSetCarriedItem, ServerboundSwing, s_interact::InteractionHand,
             s_player_action,
         },
     },
@@ -19,7 +21,7 @@ use azalea_protocol::{
 use azalea_registry::{Block, DataRegistry, DimensionType};
 
 #[test]
-fn test_mine_block_timing() {
+fn test_packet_order_set_carried_item() {
     init_tracing();
 
     let mut simulation = Simulation::new(ConnectionProtocol::Game);
@@ -48,7 +50,6 @@ fn test_mine_block_timing() {
     });
     simulation.tick();
     assert_eq!(simulation.get_block_state(pos), Some(Block::Stone.into()));
-    println!("set serverside stone");
     simulation.with_component_mut::<LookDirection>(|look| {
         // look down
         look.update_x_rot(90.);
@@ -58,10 +59,15 @@ fn test_mine_block_timing() {
     simulation.tick();
     simulation.tick();
 
+    simulation.send_event(SetSelectedHotbarSlotEvent {
+        entity: simulation.entity,
+        slot: 1,
+    });
     simulation.send_event(StartMiningBlockEvent {
         entity: simulation.entity,
         position: pos,
     });
+
     sent_packets.clear();
     simulation.tick();
     sent_packets.expect("ServerboundPlayerAction", |p| {
@@ -79,6 +85,9 @@ fn test_mine_block_timing() {
         }
         .into_variant()
     });
+    sent_packets.expect("SetCarriedItem", |p| {
+        p == &ServerboundSetCarriedItem { slot: 1 }.into_variant()
+    });
     sent_packets.expect("Swing 2", |p| {
         p == &ServerboundSwing {
             hand: InteractionHand::MainHand,
@@ -88,41 +97,14 @@ fn test_mine_block_timing() {
     sent_packets.expect_tick_end();
     sent_packets.expect_empty();
 
-    for i in 3..=151 {
-        simulation.tick();
-        sent_packets.expect(&format!("Swing {i}"), |p| {
-            p == &ServerboundSwing {
-                hand: InteractionHand::MainHand,
-            }
-            .into_variant()
-        });
-        sent_packets.maybe_expect(|p| matches!(p, ServerboundGamePacket::MovePlayerPos(_)));
-        sent_packets.expect_tick_end();
-        sent_packets.expect_empty();
-    }
-
     simulation.tick();
-    sent_packets.expect(
-        "ServerboundPlayerAction { action: StopDestroyBlock }",
-        |p| {
-            matches!(
-                p,
-                ServerboundGamePacket::PlayerAction(p)
-                if p.action == s_player_action::Action::StopDestroyBlock
-            )
-        },
-    );
-    sent_packets.expect("Last swing", |p| {
+
+    sent_packets.expect("Swing", |p| {
         p == &ServerboundSwing {
             hand: InteractionHand::MainHand,
         }
         .into_variant()
     });
-
-    for _ in 0..3 {
-        sent_packets.maybe_expect(|p| matches!(p, ServerboundGamePacket::MovePlayerPos(_)));
-        sent_packets.expect_tick_end();
-        sent_packets.expect_empty();
-        simulation.tick();
-    }
+    sent_packets.expect_tick_end();
+    sent_packets.expect_empty();
 }
