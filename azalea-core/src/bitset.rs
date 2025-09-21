@@ -311,7 +311,7 @@ mod tests {
         bitset.set(65);
         bitset.set(66);
 
-        bitset.clear(63, 65);
+        bitset.clear(63..65);
 
         assert!(bitset.index(62));
         assert!(!bitset.index(63));
@@ -329,7 +329,7 @@ mod tests {
         bitset.set(67);
         bitset.set(68);
 
-        bitset.clear(65, 67);
+        bitset.clear(65..67);
 
         assert!(bitset.index(64));
         assert!(!bitset.index(65));
