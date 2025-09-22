@@ -14,10 +14,6 @@ pub fn update_attributes_for_enchantments(
         let instance = instance.read();
         let registries = &instance.registries;
 
-        println!("registries {:?}", registries.map.keys());
-
-        let enchantments = registries.map.get(&ResourceLocation::new("enchantment"));
-
-        println!("enchantments {enchantments:?}");
+        println!("enchantments {:?}", registries.enchantment);
     }
 }

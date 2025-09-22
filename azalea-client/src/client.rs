@@ -527,7 +527,7 @@ impl Client {
         &self,
         registry: &impl ResolvableDataRegistry,
     ) -> Option<ResourceLocation> {
-        self.with_registry_holder(|registries| registry.resolve_name(registries))
+        self.with_registry_holder(|registries| registry.resolve_name(registries).cloned())
     }
     /// Resolve the given registry to its name and data and call the given
     /// function with it.
@@ -538,11 +538,11 @@ impl Client {
     /// instead.
     ///
     /// [`Enchantment`]: azalea_registry::Enchantment
-    pub fn with_resolved_registry<R>(
+    pub fn with_resolved_registry<R: ResolvableDataRegistry, Ret>(
         &self,
-        registry: impl ResolvableDataRegistry,
-        f: impl FnOnce(&ResourceLocation, &NbtCompound) -> R,
-    ) -> Option<R> {
+        registry: R,
+        f: impl FnOnce(&ResourceLocation, &R::DeserializesTo) -> Ret,
+    ) -> Option<Ret> {
         self.with_registry_holder(|registries| {
             registry
                 .resolve(registries)

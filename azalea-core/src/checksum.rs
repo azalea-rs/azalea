@@ -199,10 +199,8 @@ impl<'a, 'r> ser::Serializer for ChecksumSerializer<'a, 'r> {
         if name.starts_with("minecraft:") {
             let value = self
                 .registries
-                .map
-                .get(&ResourceLocation::from(name))
-                .and_then(|r| r.get_index(variant_index as usize))
-                .map(|r| r.0.to_string())
+                .protocol_id_to_resource_location(ResourceLocation::from(name), variant_index)
+                .map(|v| v.to_string())
                 .unwrap_or_default();
             self.serialize_str(&value)?;
             return Ok(());

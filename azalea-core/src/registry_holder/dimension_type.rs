@@ -1,101 +1,11 @@
-//! The data sent to the client in the `ClientboundRegistryDataPacket`.
-//!
-//! This module contains the structures used to represent the registry
-//! sent to the client upon login. This contains a lot of information about
-//! the game, including the types of chat messages, dimensions, and
-//! biomes.
+#[cfg(not(feature = "strict_registry"))]
+use std::collections::HashMap;
 
-use std::{collections::HashMap, io::Cursor};
-
-use indexmap::IndexMap;
-use simdnbt::{
-    Deserialize, FromNbtTag, Serialize, ToNbtTag,
-    owned::{NbtCompound, NbtTag},
-};
-use tracing::error;
+#[cfg(not(feature = "strict_registry"))]
+use simdnbt::{Deserialize, Serialize, owned::NbtTag};
+use simdnbt::{FromNbtTag, ToNbtTag, owned::NbtCompound};
 
 use crate::resource_location::ResourceLocation;
-
-/// The base of the registry.
-///
-/// This is the registry that is sent to the client upon login.
-///
-/// Note that `azalea-client` stores registries in `Instance` rather than
-/// per-client like you might expect. This is an optimization for swarms to
-/// reduce memory usage, since registries are expected to be the same for every
-/// client in a world.
-#[derive(Default, Debug, Clone)]
-pub struct RegistryHolder {
-    pub map: HashMap<ResourceLocation, IndexMap<ResourceLocation, NbtCompound>>,
-}
-
-impl RegistryHolder {
-    pub fn append(
-        &mut self,
-        id: ResourceLocation,
-        entries: Vec<(ResourceLocation, Option<NbtCompound>)>,
-    ) {
-        let map = self.map.entry(id).or_default();
-        for (key, value) in entries {
-            if let Some(value) = value {
-                map.insert(key, value);
-            } else {
-                map.shift_remove(&key);
-            }
-        }
-    }
-
-    /// Get the dimension type registry, or `None` if it doesn't exist. You
-    /// should do some type of error handling if this returns `None`.
-    pub fn dimension_type(&self) -> Option<RegistryType<DimensionTypeElement>> {
-        let name = ResourceLocation::new("minecraft:dimension_type");
-        match self.get(&name) {
-            Some(Ok(registry)) => Some(registry),
-            Some(Err(err)) => {
-                error!(
-                    "Error deserializing dimension type registry: {err:?}\n{:?}",
-                    self.map.get(&name)
-                );
-                None
-            }
-            None => None,
-        }
-    }
-
-    fn get<T: Deserialize>(
-        &self,
-        name: &ResourceLocation,
-    ) -> Option<Result<RegistryType<T>, simdnbt::DeserializeError>> {
-        // this is suboptimal, ideally simdnbt should just have a way to get the
-        // owned::NbtCompound as a borrow::NbtCompound
-
-        let mut map = HashMap::new();
-
-        for (key, value) in self.map.get(name)? {
-            // convert the value to T
-            let mut nbt_bytes = Vec::new();
-            value.write(&mut nbt_bytes);
-            let nbt_borrow_compound =
-                simdnbt::borrow::read_compound(&mut Cursor::new(&nbt_bytes)).ok()?;
-            let value = match T::from_compound((&nbt_borrow_compound).into()) {
-                Ok(value) => value,
-                Err(err) => {
-                    return Some(Err(err));
-                }
-            };
-
-            map.insert(key.clone(), value);
-        }
-
-        Some(Ok(RegistryType { map }))
-    }
-}
-
-/// A collection of values for a certain type of registry data.
-#[derive(Debug, Clone)]
-pub struct RegistryType<T> {
-    pub map: HashMap<ResourceLocation, T>,
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "strict_registry", simdnbt(deny_unknown_fields))]

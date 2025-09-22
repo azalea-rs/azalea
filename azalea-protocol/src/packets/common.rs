@@ -3,7 +3,7 @@ use azalea_core::{
     data_registry::ResolvableDataRegistry,
     game_type::{GameMode, OptionalGameType},
     position::GlobalPos,
-    registry_holder::{DimensionTypeElement, RegistryHolder},
+    registry_holder::{RegistryHolder, dimension_type::DimensionTypeElement},
     resource_location::ResourceLocation,
 };
 use tracing::error;
@@ -24,26 +24,14 @@ pub struct CommonPlayerSpawnInfo {
     pub sea_level: i32,
 }
 impl CommonPlayerSpawnInfo {
-    pub fn dimension_type(
+    pub fn dimension_type<'a>(
         &self,
-        registry_holder: &RegistryHolder,
-    ) -> Option<(ResourceLocation, DimensionTypeElement)> {
-        let dimension_res = self
-            .dimension_type
-            .resolve_and_deserialize::<DimensionTypeElement>(registry_holder);
-        let Some(dimension_res) = dimension_res else {
+        registry_holder: &'a RegistryHolder,
+    ) -> Option<(&'a ResourceLocation, &'a DimensionTypeElement)> {
+        let dimension_res = self.dimension_type.resolve(registry_holder);
+        let Some((dimension_type, dimension_data)) = dimension_res else {
             error!("Couldn't resolve dimension_type {:?}", self.dimension_type);
             return None;
-        };
-        let (dimension_type, dimension_data) = match dimension_res {
-            Ok(d) => d,
-            Err(err) => {
-                error!(
-                    "Couldn't deserialize dimension_type {:?}: {err:?}",
-                    self.dimension_type
-                );
-                return None;
-            }
         };
 
         Some((dimension_type, dimension_data))

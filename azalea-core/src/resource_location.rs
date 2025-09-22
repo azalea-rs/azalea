@@ -1,8 +1,9 @@
 //! A resource, like minecraft:stone
 
 use std::{
-    fmt,
+    fmt::{self, Debug, Display},
     io::{self, Cursor, Write},
+    num::NonZeroUsize,
     str::FromStr,
 };
 
@@ -12,43 +13,53 @@ use simdnbt::{FromNbtTag, ToNbtTag, owned::NbtTag};
 
 #[derive(Hash, Clone, PartialEq, Eq, Default)]
 pub struct ResourceLocation {
-    pub namespace: String,
-    pub path: String,
+    // empty namespaces aren't allowed so NonZero is fine.
+    colon_index: Option<NonZeroUsize>,
+    inner: Box<str>,
 }
 
 static DEFAULT_NAMESPACE: &str = "minecraft";
 // static REALMS_NAMESPACE: &str = "realms";
 
 impl ResourceLocation {
-    pub fn new(resource_string: &str) -> ResourceLocation {
-        let sep_byte_position_option = resource_string.chars().position(|c| c == ':');
-        let (namespace, path) = if let Some(sep_byte_position) = sep_byte_position_option {
-            if sep_byte_position == 0 {
-                (DEFAULT_NAMESPACE, &resource_string[1..])
-            } else {
-                (
-                    &resource_string[..sep_byte_position],
-                    &resource_string[sep_byte_position + 1..],
-                )
-            }
-        } else {
-            (DEFAULT_NAMESPACE, resource_string)
-        };
+    pub fn new(resource_string: impl Into<String>) -> ResourceLocation {
+        let resource_string = resource_string.into();
+
+        let colon_index = resource_string.find(':').and_then(|i| NonZeroUsize::new(i));
         ResourceLocation {
-            namespace: namespace.to_string(),
-            path: path.to_string(),
+            colon_index,
+            inner: resource_string.into(),
+        }
+    }
+
+    pub fn namespace(&self) -> &str {
+        if let Some(colon_index) = self.colon_index {
+            &self.inner[0..colon_index.get()]
+        } else {
+            DEFAULT_NAMESPACE
+        }
+    }
+    pub fn path(&self) -> &str {
+        if let Some(colon_index) = self.colon_index {
+            &self.inner[(colon_index.get() + 1)..]
+        } else {
+            &self.inner
         }
     }
 }
 
-impl fmt::Display for ResourceLocation {
+impl Display for ResourceLocation {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}:{}", self.namespace, self.path)
+        if self.colon_index.is_some() {
+            write!(f, "{}", self.inner)
+        } else {
+            write!(f, "{DEFAULT_NAMESPACE}:{}", self.inner)
+        }
     }
 }
-impl fmt::Debug for ResourceLocation {
+impl Debug for ResourceLocation {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}:{}", self.namespace, self.path)
+        write!(f, "{self}")
     }
 }
 impl FromStr for ResourceLocation {
@@ -121,26 +132,26 @@ mod tests {
     #[test]
     fn basic_resource_location() {
         let r = ResourceLocation::new("abcdef:ghijkl");
-        assert_eq!(r.namespace, "abcdef");
-        assert_eq!(r.path, "ghijkl");
+        assert_eq!(r.namespace(), "abcdef");
+        assert_eq!(r.path(), "ghijkl");
     }
     #[test]
     fn no_namespace() {
         let r = ResourceLocation::new("azalea");
-        assert_eq!(r.namespace, "minecraft");
-        assert_eq!(r.path, "azalea");
+        assert_eq!(r.namespace(), "minecraft");
+        assert_eq!(r.path(), "azalea");
     }
     #[test]
     fn colon_start() {
         let r = ResourceLocation::new(":azalea");
-        assert_eq!(r.namespace, "minecraft");
-        assert_eq!(r.path, "azalea");
+        assert_eq!(r.namespace(), "minecraft");
+        assert_eq!(r.path(), "azalea");
     }
     #[test]
     fn colon_end() {
         let r = ResourceLocation::new("azalea:");
-        assert_eq!(r.namespace, "azalea");
-        assert_eq!(r.path, "");
+        assert_eq!(r.namespace(), "azalea");
+        assert_eq!(r.path(), "");
     }
 
     #[test]

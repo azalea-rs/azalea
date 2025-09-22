@@ -39,12 +39,10 @@ pub fn update_in_water_state_and_do_fluid_pushing(
 
         let is_ultrawarm = world
             .registries
+            .dimension_type
             .map
-            .get(&ResourceLocation::new("minecraft:dimension_type"))
-            .and_then(|d| {
-                d.get(&**instance_name)
-                    .map(|d| d.byte("ultrawarm") != Some(0))
-            })
+            .get(&**instance_name)
+            .and_then(|i| i.ultrawarm)
             .unwrap_or_default();
         let lava_push_factor = if is_ultrawarm {
             0.007

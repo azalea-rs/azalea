@@ -1,47 +1,64 @@
-use std::{io::Cursor, str::FromStr};
-
 use azalea_registry::DataRegistry;
 use simdnbt::owned::NbtCompound;
 
-use crate::{registry_holder::RegistryHolder, resource_location::ResourceLocation};
+use crate::{
+    registry_holder::{self, RegistryDeserializesTo, RegistryHolder},
+    resource_location::ResourceLocation,
+};
 
 pub trait ResolvableDataRegistry: DataRegistry {
-    fn resolve_name(&self, registries: &RegistryHolder) -> Option<ResourceLocation> {
-        self.resolve(registries).map(|(name, _)| name.clone())
+    type DeserializesTo: RegistryDeserializesTo;
+
+    fn resolve_name<'a>(&self, registries: &'a RegistryHolder) -> Option<&'a ResourceLocation> {
+        // self.resolve(registries).map(|(name, _)| name.clone())
+        registries.protocol_id_to_resource_location(
+            ResourceLocation::from(Self::NAME),
+            self.protocol_id(),
+        )
     }
+
     fn resolve<'a>(
         &self,
         registries: &'a RegistryHolder,
-    ) -> Option<(&'a ResourceLocation, &'a NbtCompound)> {
-        let name_resourcelocation = ResourceLocation::from_str(Self::NAME).unwrap_or_else(|_| {
-            panic!(
-                "Name for registry should be a valid ResourceLocation: {}",
-                Self::NAME
-            )
-        });
-        let registry_values = registries.map.get(&name_resourcelocation)?;
-        let resolved = registry_values.get_index(self.protocol_id() as usize)?;
-        Some(resolved)
-    }
-
-    fn resolve_and_deserialize<T: simdnbt::Deserialize>(
-        &self,
-        registries: &RegistryHolder,
-    ) -> Option<Result<(ResourceLocation, T), simdnbt::DeserializeError>> {
-        let (name, value) = self.resolve(registries)?;
-
-        let mut nbt_bytes = Vec::new();
-        value.write(&mut nbt_bytes);
-        let nbt_borrow_compound =
-            simdnbt::borrow::read_compound(&mut Cursor::new(&nbt_bytes)).ok()?;
-        let value = match T::from_compound((&nbt_borrow_compound).into()) {
-            Ok(value) => value,
-            Err(err) => {
-                return Some(Err(err));
-            }
-        };
-
-        Some(Ok((name.clone(), value)))
+    ) -> Option<(&'a ResourceLocation, &'a Self::DeserializesTo)> {
+        Self::DeserializesTo::get_for_registry(registries, Self::NAME, self.protocol_id())
     }
 }
-impl<T: DataRegistry> ResolvableDataRegistry for T {}
+
+macro_rules! define_deserializes_to {
+    ($($t:ty => $deserializes_to:ty),* $(,)?) => {
+        $(
+            impl ResolvableDataRegistry for $t {
+                type DeserializesTo = $deserializes_to;
+            }
+        )*
+    };
+}
+macro_rules! define_default_deserializes_to {
+    ($($t:ty),* $(,)?) => {
+        $(
+            impl ResolvableDataRegistry for $t {
+                type DeserializesTo = NbtCompound;
+            }
+        )*
+    };
+}
+
+define_deserializes_to! {
+    azalea_registry::DimensionType => registry_holder::dimension_type::DimensionTypeElement,
+}
+
+define_default_deserializes_to! {
+    azalea_registry::Enchantment,
+    azalea_registry::DamageKind,
+    azalea_registry::Dialog,
+    azalea_registry::WolfSoundVariant,
+    azalea_registry::CowVariant,
+    azalea_registry::ChickenVariant,
+    azalea_registry::FrogVariant,
+    azalea_registry::CatVariant,
+    azalea_registry::PigVariant,
+    azalea_registry::PaintingVariant,
+    azalea_registry::WolfVariant,
+    azalea_registry::Biome,
+}
