@@ -9,6 +9,7 @@ use azalea_core::{
     position::{BlockPos, ChunkPos, ChunkSectionBlockPos, ChunkSectionPos},
 };
 use azalea_physics::collision::BlockWithShape;
+use azalea_registry::{Block, tags};
 use azalea_world::{Instance, palette::PalettedContainer};
 use parking_lot::RwLock;
 
@@ -513,50 +514,48 @@ impl CachedWorld {
     }
 }
 
-/// whether this block is passable
-pub fn is_block_state_passable(block: BlockState) -> bool {
+/// Whether our client could pass through this block.
+pub fn is_block_state_passable(block_state: BlockState) -> bool {
     // i already tried optimizing this by having it cache in an IntMap/FxHashMap but
     // it wasn't measurably faster
 
-    if block.is_air() {
+    if block_state.is_air() {
         // fast path
         return true;
     }
-    if !block.is_collision_shape_empty() {
+    if !block_state.is_collision_shape_empty() {
         return false;
     }
-    let registry_block = azalea_registry::Block::from(block);
-    if registry_block == azalea_registry::Block::Water {
+    let registry_block = Block::from(block_state);
+    if registry_block == Block::Water {
         return false;
     }
-    if block
+    if block_state
         .property::<azalea_block::properties::Waterlogged>()
         .unwrap_or_default()
     {
         return false;
     }
-    if registry_block == azalea_registry::Block::Lava {
+    if registry_block == Block::Lava {
         return false;
     }
     // block.waterlogged currently doesn't account for seagrass and some other water
     // blocks
-    if block == azalea_registry::Block::Seagrass.into() {
+    if block_state == Block::Seagrass.into() {
         return false;
     }
 
     // don't walk into fire
-    if registry_block == azalea_registry::Block::Fire
-        || registry_block == azalea_registry::Block::SoulFire
-    {
+    if registry_block == Block::Fire || registry_block == Block::SoulFire {
         return false;
     }
 
-    if registry_block == azalea_registry::Block::PowderSnow {
+    if registry_block == Block::PowderSnow {
         // we can't jump out of powder snow
         return false;
     }
 
-    if registry_block == azalea_registry::Block::SweetBerryBush {
+    if registry_block == Block::SweetBerryBush {
         // these hurt us
         return false;
     }
@@ -564,19 +563,19 @@ pub fn is_block_state_passable(block: BlockState) -> bool {
     true
 }
 
-/// whether this block has a solid hitbox at the top (i.e. we can stand on it
-/// and do parkour from it)
-pub fn is_block_state_solid(block: BlockState) -> bool {
-    if block.is_air() {
+/// Whether this block has a solid hitbox at the top (i.e. we can stand on it
+/// and do parkour from it).
+pub fn is_block_state_solid(block_state: BlockState) -> bool {
+    if block_state.is_air() {
         // fast path
         return false;
     }
-    if block.is_collision_shape_full() {
+    if block_state.is_collision_shape_full() {
         return true;
     }
 
     if matches!(
-        block.property::<properties::Type>(),
+        block_state.property::<properties::Type>(),
         Some(properties::Type::Top | properties::Type::Double)
     ) {
         // top slabs
@@ -586,23 +585,23 @@ pub fn is_block_state_solid(block: BlockState) -> bool {
     false
 }
 
-pub fn is_block_state_standable(block: BlockState) -> bool {
-    if block.is_air() {
+/// Whether we can stand on this block (but not necessarily do parkour jumps
+/// from it).
+pub fn is_block_state_standable(block_state: BlockState) -> bool {
+    if block_state.is_air() {
         // fast path
         return false;
     }
-    if block.is_collision_shape_full() {
+    if block_state.is_collision_shape_full() {
         return true;
     }
 
-    let registry_block = azalea_registry::Block::from(block);
-    if azalea_registry::tags::blocks::SLABS.contains(&registry_block)
-        || azalea_registry::tags::blocks::STAIRS.contains(&registry_block)
-    {
+    let block = Block::from(block_state);
+    if tags::blocks::SLABS.contains(&block) || tags::blocks::STAIRS.contains(&block) {
         return true;
     }
 
-    if registry_block == azalea_registry::Block::DirtPath {
+    if matches!(block, Block::DirtPath | Block::Farmland) {
         return true;
     }
 
@@ -611,7 +610,6 @@ pub fn is_block_state_standable(block: BlockState) -> bool {
 
 #[cfg(test)]
 mod tests {
-
     use azalea_world::{Chunk, ChunkStorage, PartialInstance};
 
     use super::*;
@@ -624,11 +622,9 @@ mod tests {
         partial_world
             .chunks
             .set(&ChunkPos { x: 0, z: 0 }, Some(Chunk::default()), &mut world);
-        partial_world.chunks.set_block_state(
-            BlockPos::new(0, 0, 0),
-            azalea_registry::Block::Stone.into(),
-            &world,
-        );
+        partial_world
+            .chunks
+            .set_block_state(BlockPos::new(0, 0, 0), Block::Stone.into(), &world);
         partial_world
             .chunks
             .set_block_state(BlockPos::new(0, 1, 0), BlockState::AIR, &world);
@@ -645,11 +641,9 @@ mod tests {
         partial_world
             .chunks
             .set(&ChunkPos { x: 0, z: 0 }, Some(Chunk::default()), &mut world);
-        partial_world.chunks.set_block_state(
-            BlockPos::new(0, 0, 0),
-            azalea_registry::Block::Stone.into(),
-            &world,
-        );
+        partial_world
+            .chunks
+            .set_block_state(BlockPos::new(0, 0, 0), Block::Stone.into(), &world);
         partial_world
             .chunks
             .set_block_state(BlockPos::new(0, 1, 0), BlockState::AIR, &world);
@@ -666,11 +660,9 @@ mod tests {
         partial_world
             .chunks
             .set(&ChunkPos { x: 0, z: 0 }, Some(Chunk::default()), &mut world);
-        partial_world.chunks.set_block_state(
-            BlockPos::new(0, 0, 0),
-            azalea_registry::Block::Stone.into(),
-            &world,
-        );
+        partial_world
+            .chunks
+            .set_block_state(BlockPos::new(0, 0, 0), Block::Stone.into(), &world);
         partial_world
             .chunks
             .set_block_state(BlockPos::new(0, 1, 0), BlockState::AIR, &world);

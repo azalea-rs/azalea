@@ -166,13 +166,8 @@ pub fn pick(opts: PickOpts<'_, '_, '_, '_, '_>) -> HitResult {
         // TODO: ender dragon has extra logic here. also, we shouldn't be able to pick
         // spectators.
         if let Ok((armor_stand_marker, arrow_in_ground)) = opts.pickable_query.get(entity) {
-            if armor_stand_marker == Some(&ArmorStandMarker(true))
-                || arrow_in_ground == Some(&InGround(true))
-            {
-                false
-            } else {
-                true
-            }
+            !(armor_stand_marker == Some(&ArmorStandMarker(true))
+                || arrow_in_ground == Some(&InGround(true)))
         } else {
             false
         }
