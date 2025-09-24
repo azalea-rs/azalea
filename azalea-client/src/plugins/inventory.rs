@@ -801,8 +801,13 @@ pub fn handle_client_side_close_container_event(
 ) {
     for event in events.read() {
         let mut inventory = query.get_mut(event.entity).unwrap();
-
-        // copy the Player part of the container_menu to the inventory_menu
+        if inventory.id != event.window_id {
+            warn!(
+                "Got ClientSideCloseContainerEvent for container with ID {}, but the current container ID is {}",
+                event.window_id, inventory.id
+            );
+            continue;
+        }
         if let Some(inventory_menu) = inventory.container_menu.take() {
             // this isn't the same as what vanilla does. i believe vanilla synchronizes the
             // slots between inventoryMenu and containerMenu by just having the player slots
