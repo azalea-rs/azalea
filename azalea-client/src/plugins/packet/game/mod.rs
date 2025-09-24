@@ -1218,6 +1218,7 @@ impl GamePacketHandler<'_> {
         as_system::<EventWriter<_>>(self.ecs, |mut events| {
             events.write(ClientSideCloseContainerEvent {
                 entity: self.player,
+                window_id: p.container_id,
             });
         });
     }
