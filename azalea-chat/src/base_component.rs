@@ -1,15 +1,35 @@
-use serde::Serialize;
+use serde::{Serialize, ser::SerializeMap};
 
 use crate::{FormattedText, style::Style};
 
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct BaseComponent {
-    // implements mutablecomponent
     /// Components in the "extra" field.
-    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub siblings: Vec<FormattedText>,
-    #[serde(flatten)]
     pub style: Box<Style>,
+}
+
+impl BaseComponent {
+    pub fn serialize_map<S>(&self, state: &mut S::SerializeMap) -> Result<(), S::Error>
+    where
+        S: serde::Serializer,
+    {
+        if !self.siblings.is_empty() {
+            state.serialize_entry("extra", &self.siblings)?;
+        }
+        self.style.serialize_map::<S>(state)?;
+        Ok(())
+    }
+}
+impl Serialize for BaseComponent {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut state = serializer.serialize_map(None)?;
+        self.serialize_map::<S>(&mut state)?;
+        state.end()
+    }
 }
 
 impl BaseComponent {

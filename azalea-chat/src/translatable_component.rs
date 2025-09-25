@@ -1,6 +1,6 @@
 use std::fmt::{self, Display};
 
-use serde::{__private::ser::FlatMapSerializer, Serialize, Serializer, ser::SerializeMap};
+use serde::Serialize;
 #[cfg(feature = "simdnbt")]
 use simdnbt::Serialize as _;
 
@@ -24,25 +24,16 @@ impl simdnbt::ToNbtTag for StringOrComponent {
 }
 
 /// A message whose content depends on the client's language.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct TranslatableComponent {
+    #[serde(flatten)]
     pub base: BaseComponent,
+    #[serde(rename = "translate")]
     pub key: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub fallback: Option<String>,
+    #[serde(rename = "with")]
     pub args: Vec<StringOrComponent>,
-}
-
-impl Serialize for TranslatableComponent {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut state = serializer.serialize_map(None)?;
-        state.serialize_entry("translate", &self.key)?;
-        Serialize::serialize(&self.base, FlatMapSerializer(&mut state))?;
-        state.serialize_entry("with", &self.args)?;
-        state.end()
-    }
 }
 
 #[cfg(feature = "simdnbt")]
