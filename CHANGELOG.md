@@ -57,9 +57,8 @@ is breaking anyways, semantic versioning is not followed.
 - Improved matchers on the `ChatPacket` functions to work on more servers. (@ShayBox)
 - Bevy's `AppExit` Event is now handled by Azalea's ECS runner.
 - Pathfinding now works over farmland blocks.
-- `HitResultComponent` no longer treats non-pickable entities like dropped items as pickable.
 - Refreshing the account token no longer results in a panic.
-- Fix `::is_valid_id` on registries incorrectly returning true for values equal to the length.
+- Fix `is_valid_id` on registries incorrectly returning true for values equal to the length.
 - Fix outdated implementation for the `ClientboundMerchantOffers` packet.
 - Fix compilation with new dependency versions. (@ShayBox)
 

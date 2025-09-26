@@ -62,16 +62,16 @@ pub enum AuthError {
 /// Authenticate with Microsoft. If the data isn't cached,
 /// they'll be asked to go to log into Microsoft in a web page.
 ///
-/// The email is technically only used as a cache key, so it *could* be
-/// anything. You should just have it be the actual email so it's not confusing
-/// though, and in case the Microsoft API does start providing the real email.
+/// The cache key is an arbitrary string that's used to identify the account in
+/// the future. As a convention, we usually prefer to put the account email
+/// here.
 ///
 /// If you want to use your own code to cache or show the auth code to the user
 /// in a different way, use [`get_ms_link_code`], [`get_ms_auth_token`],
 /// [`get_minecraft_token`] and [`get_profile`] instead.
-pub async fn auth(email: &str, opts: AuthOpts<'_>) -> Result<AuthResult, AuthError> {
+pub async fn auth(cache_key: &str, opts: AuthOpts<'_>) -> Result<AuthResult, AuthError> {
     let cached_account = if let Some(cache_file) = &opts.cache_file {
-        cache::get_account_in_cache(cache_file, email).await
+        cache::get_account_in_cache(cache_file, cache_key).await
     } else {
         None
     };
@@ -94,7 +94,7 @@ pub async fn auth(email: &str, opts: AuthOpts<'_>) -> Result<AuthResult, AuthErr
         let mut msa = if let Some(account) = cached_account {
             account.msa
         } else {
-            interactive_get_ms_auth_token(&client, email, Some(client_id), Some(scope)).await?
+            interactive_get_ms_auth_token(&client, cache_key, Some(client_id), Some(scope)).await?
         };
         if msa.is_expired() {
             trace!("refreshing Microsoft auth token");
@@ -110,9 +110,13 @@ pub async fn auth(email: &str, opts: AuthOpts<'_>) -> Result<AuthResult, AuthErr
                 Err(e) => {
                     // can't refresh, ask the user to auth again
                     error!("Error refreshing Microsoft auth token: {}", e);
-                    msa =
-                        interactive_get_ms_auth_token(&client, email, Some(client_id), Some(scope))
-                            .await?;
+                    msa = interactive_get_ms_auth_token(
+                        &client,
+                        cache_key,
+                        Some(client_id),
+                        Some(scope),
+                    )
+                    .await?;
                 }
             }
         }
@@ -134,9 +138,9 @@ pub async fn auth(email: &str, opts: AuthOpts<'_>) -> Result<AuthResult, AuthErr
         if let Some(cache_file) = opts.cache_file
             && let Err(e) = cache::set_account_in_cache(
                 &cache_file,
-                email,
+                cache_key,
                 CachedAccount {
-                    email: email.to_string(),
+                    cache_key: cache_key.to_string(),
                     mca: res.mca,
                     msa,
                     xbl: res.xbl,
@@ -391,12 +395,13 @@ pub async fn get_ms_auth_token(
     Err(GetMicrosoftAuthTokenError::Timeout)
 }
 
-/// Asks the user to go to a webpage and log in with Microsoft. If you need to
-/// access the code, then use [`get_ms_link_code`] and then
+/// Asks the user to go to a webpage and log in with Microsoft.
+///
+/// If you need to access the code, then use [`get_ms_link_code`] and then
 /// [`get_ms_auth_token`] instead.
 pub async fn interactive_get_ms_auth_token(
     client: &reqwest::Client,
-    email: &str,
+    cache_key: &str,
     client_id: Option<&str>,
     scope: Option<&str>,
 ) -> Result<ExpiringValue<AccessTokenResponse>, GetMicrosoftAuthTokenError> {
@@ -405,7 +410,7 @@ pub async fn interactive_get_ms_auth_token(
     let verification_uri = &res.verification_uri;
     let user_code = &res.user_code;
     println!(
-        "Go to \x1b[1m{verification_uri}?otc={user_code}\x1b[m and enter the code \x1b[1m{user_code}\x1b[m for \x1b[1m{email}\x1b[m",
+        "Go to \x1b[1m{verification_uri}?otc={user_code}\x1b[m and enter the code \x1b[1m{user_code}\x1b[m for \x1b[1m{cache_key}\x1b[m",
     );
 
     get_ms_auth_token(client, res, client_id).await

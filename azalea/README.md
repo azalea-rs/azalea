@@ -35,7 +35,7 @@ The documentation for the latest Azalea crates.io release is available at [docs.
 # Examples
 
 ```rust,no_run
-//! A bot that logs chat messages and the number that we've received to the console.\
+//! A bot that logs chat messages and the number that we've received to the console.
 
 use std::sync::Arc;
 
