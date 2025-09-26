@@ -11,11 +11,10 @@ use bevy_ecs::prelude::*;
 pub use events::*;
 use tracing::{debug, warn};
 
-use super::as_system;
+use super::{as_system, declare_packet_handlers};
 use crate::{
     client::InConfigState,
     connection::RawConnection,
-    declare_packet_handlers,
     disconnect::DisconnectEvent,
     local_player::InstanceHolder,
     packet::game::{KeepAliveEvent, ResourcePackEvent},

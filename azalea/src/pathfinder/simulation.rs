@@ -63,7 +63,7 @@ fn create_simulation_instance(chunks: ChunkStorage) -> (App, Arc<RwLock<Instance
         azalea_entity::EntityPlugin,
         azalea_client::movement::MovementPlugin,
         super::PathfinderPlugin,
-        crate::BotPlugin,
+        crate::bot::BotPlugin,
         azalea_client::task_pool::TaskPoolPlugin::default(),
         // for mining
         azalea_client::inventory::InventoryPlugin,

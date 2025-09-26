@@ -236,7 +236,7 @@ impl Goal for ReachBlockPosGoal {
         }
 
         let eye_position = n.center_bottom().up(1.62);
-        let look_direction = crate::direction_looking_at(eye_position, self.pos.center());
+        let look_direction = crate::bot::direction_looking_at(eye_position, self.pos.center());
         let block_hit_result = azalea_client::interact::pick::pick_block(
             look_direction,
             eye_position,

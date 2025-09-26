@@ -734,7 +734,7 @@ impl Default for Inventory {
 /// chest or crafting table).
 ///
 /// To watch for the menu being closed, you could use
-/// [`ClientSideCloseContainerEvent`]. To close it manually, use
+/// [`ClientsideCloseContainerEvent`]. To close it manually, use
 /// [`CloseContainerEvent`].
 #[derive(Event, Debug, Clone)]
 pub struct MenuOpenedEvent {

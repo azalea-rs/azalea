@@ -39,6 +39,7 @@ is breaking anyways, semantic versioning is not followed.
 - `ClientBuilder::start` and `SwarmBuilder::start` now return a `Result<AppExit>` instead of `Result<!>`.
 - `ClientsideCloseContainerEvent`, `MenuOpenedEvent`, and `CloseContainerEvent` are now triggers instead of events.
 - `Client::chat` now takes anything with `impl Into<String>`.
+- Some types related Azalea's bot plugin were moved to `azalea::bot::*`.
 
 ### Fixed
 
@@ -53,11 +54,11 @@ is breaking anyways, semantic versioning is not followed.
 - Inventories now use the correct max stack sizes.
 - Clients now send the correct data component checksums when interacting with items.
 - Fix parsing some metadata fields of Display entities.
-- Mining blocks in creative mode now works. (@qwqawawow)
+- Mining blocks in creative mode now works. (@eihqnh)
 - Improved matchers on the `ChatPacket` functions to work on more servers. (@ShayBox)
 - Bevy's `AppExit` Event is now handled by Azalea's ECS runner.
 - Pathfinding now works over farmland blocks.
-- Refreshing the account token no longer results in a panic.
+- There is no longer a panic when the account token is automatically refreshed.
 - Fix `is_valid_id` on registries incorrectly returning true for values equal to the length.
 - Fix outdated implementation for the `ClientboundMerchantOffers` packet.
 - Fix compilation with new dependency versions. (@ShayBox)

@@ -27,7 +27,6 @@ use crate::{
     chat::{ChatPacket, ChatReceivedEvent},
     chunks,
     connection::RawConnection,
-    declare_packet_handlers,
     disconnect::DisconnectEvent,
     interact::BlockStatePredictionHandler,
     inventory::{
@@ -35,7 +34,7 @@ use crate::{
     },
     local_player::{Hunger, InstanceHolder, LocalGameMode, TabList},
     movement::{KnockbackEvent, KnockbackType},
-    packet::as_system,
+    packet::{as_system, declare_packet_handlers},
     player::{GameProfileComponent, PlayerInfo},
     tick_counter::TicksConnected,
 };

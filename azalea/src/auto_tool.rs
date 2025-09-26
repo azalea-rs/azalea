@@ -4,7 +4,7 @@ use azalea_core::position::BlockPos;
 use azalea_entity::{FluidOnEyes, Physics};
 use azalea_inventory::{ItemStack, Menu, components};
 
-use crate::BotClientExt;
+use crate::bot::BotClientExt;
 
 #[derive(Debug)]
 pub struct BestToolResult {

@@ -65,8 +65,8 @@ impl Plugin for PacketPlugin {
     }
 }
 
-#[macro_export]
-macro_rules! declare_packet_handlers {
+#[doc(hidden)]
+macro_rules! __declare_packet_handlers {
     (
         $packetenum:ident,
         $packetvar:expr,
@@ -82,6 +82,8 @@ macro_rules! declare_packet_handlers {
         }
     };
 }
+
+pub(crate) use __declare_packet_handlers as declare_packet_handlers;
 
 pub(crate) fn as_system<T>(ecs: &mut World, f: impl FnOnce(T::Item<'_, '_>))
 where

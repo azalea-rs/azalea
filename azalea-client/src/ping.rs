@@ -67,9 +67,10 @@ pub async fn ping_server_with_proxy(
     ping_server_with_connection(address, conn).await
 }
 
-/// Ping a Minecraft server after we've already created a [`Connection`]. The
-/// `Connection` must still be in the handshake state (which is the state it's
-/// in immediately after it's created).
+/// Ping a Minecraft server after we've already created a [`Connection`].
+///
+/// The `Connection` must still be in the handshake state (which is the state
+/// it's in immediately after it's created).
 pub async fn ping_server_with_connection(
     address: ServerAddress,
     mut conn: Connection<ClientboundHandshakePacket, ServerboundHandshakePacket>,

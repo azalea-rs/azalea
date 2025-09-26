@@ -1,4 +1,8 @@
-use azalea::{Bot, ClientBuilder, LookAtEvent, nearest_entity::EntityFinder};
+use azalea::{
+    ClientBuilder,
+    bot::{Bot, LookAtEvent},
+    nearest_entity::EntityFinder,
+};
 use azalea_client::Account;
 use azalea_core::tick::GameTick;
 use azalea_entity::{

@@ -64,13 +64,13 @@ use crate::{
     player::{GameProfileComponent, PlayerInfo, retroactively_add_game_profile_component},
 };
 
-/// `Client` has the things that a user interacting with the library will want.
+/// A Minecraft client instance that can interact with the world.
 ///
 /// To make a new client, use either [`azalea::ClientBuilder`] or
 /// [`Client::join`].
 ///
 /// Note that `Client` is inaccessible from systems (i.e. plugins), but you can
-/// achieve everything that client can do with events.
+/// achieve everything that client can do with ECS events.
 ///
 /// [`azalea::ClientBuilder`]: https://docs.rs/azalea/latest/azalea/struct.ClientBuilder.html
 #[derive(Clone)]

@@ -24,7 +24,10 @@ use super::{
     rel_block_pos::RelBlockPos,
     world::{CachedWorld, is_block_state_passable},
 };
-use crate::{JumpEvent, LookAtEvent, auto_tool::best_tool_in_hotbar_for_block};
+use crate::{
+    auto_tool::best_tool_in_hotbar_for_block,
+    bot::{JumpEvent, LookAtEvent},
+};
 
 type Edge = astar::Edge<RelBlockPos, MoveData>;
 

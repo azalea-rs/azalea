@@ -1,5 +1,8 @@
 //! A pathfinding plugin to make bots able to traverse the world.
 //!
+//! For the new functions on `Client` that the pathfinder adds, see
+//! [`PathfinderClientExt`].
+//!
 //! Much of this code is based on [Baritone](https://github.com/cabaletta/baritone).
 
 pub mod astar;
@@ -59,9 +62,9 @@ use self::{
     moves::{ExecuteCtx, IsReachedCtx, SuccessorsFn},
 };
 use crate::{
-    BotClientExt, WalkDirection,
+    WalkDirection,
     app::{App, Plugin},
-    bot::{JumpEvent, LookAtEvent},
+    bot::{BotClientExt, JumpEvent, LookAtEvent},
     ecs::{
         component::Component,
         entity::Entity,
