@@ -28,7 +28,7 @@ use crate::{Client, packet::game::SendPacketEvent, respawn::perform_respawn};
 pub struct InventoryPlugin;
 impl Plugin for InventoryPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<ClientSideCloseContainerEvent>()
+        app.add_event::<ClientsideCloseContainerEvent>()
             .add_event::<MenuOpenedEvent>()
             .add_event::<CloseContainerEvent>()
             .add_event::<ContainerClickEvent>()
@@ -39,7 +39,6 @@ impl Plugin for InventoryPlugin {
                 (
                     handle_set_selected_hotbar_slot_event,
                     handle_menu_opened_event,
-                    handle_set_container_content_event,
                     handle_container_click_event,
                     handle_container_close_event,
                     handle_client_side_close_container_event,
@@ -51,7 +50,10 @@ impl Plugin for InventoryPlugin {
             .add_systems(
                 GameTick,
                 ensure_has_sent_carried_item.after(super::mining::handle_mining_queued),
-            );
+            )
+            .add_observer(handle_client_side_close_container_trigger)
+            .add_observer(handle_menu_opened_trigger)
+            .add_observer(handle_set_container_content_trigger);
     }
 }
 
@@ -728,24 +730,28 @@ impl Default for Inventory {
     }
 }
 
-/// Sent from the server when a menu (like a chest or crafting table) was
-/// opened by the client.
-#[derive(Event, Debug)]
+/// A Bevy trigger that's fired when our client should show a new screen (like a
+/// chest or crafting table).
+///
+/// To watch for the menu being closed, you could use
+/// [`ClientSideCloseContainerEvent`]. To close it manually, use
+/// [`CloseContainerEvent`].
+#[derive(Event, Debug, Clone)]
 pub struct MenuOpenedEvent {
     pub entity: Entity,
     pub window_id: i32,
     pub menu_type: MenuKind,
     pub title: FormattedText,
 }
-fn handle_menu_opened_event(
-    mut events: EventReader<MenuOpenedEvent>,
-    mut query: Query<&mut Inventory>,
-) {
+fn handle_menu_opened_trigger(event: Trigger<MenuOpenedEvent>, mut query: Query<&mut Inventory>) {
+    let mut inventory = query.get_mut(event.entity).unwrap();
+    inventory.id = event.window_id;
+    inventory.container_menu = Some(Menu::from_kind(event.menu_type));
+    inventory.container_menu_title = Some(event.title.clone());
+}
+pub fn handle_menu_opened_event(mut events: EventReader<MenuOpenedEvent>, mut commands: Commands) {
     for event in events.read() {
-        let mut inventory = query.get_mut(event.entity).unwrap();
-        inventory.id = event.window_id;
-        inventory.container_menu = Some(Menu::from_kind(event.menu_type));
-        inventory.container_menu_title = Some(event.title.clone());
+        commands.trigger(event.clone());
     }
 }
 
@@ -763,7 +769,7 @@ pub struct CloseContainerEvent {
 fn handle_container_close_event(
     query: Query<(Entity, &Inventory)>,
     mut events: EventReader<CloseContainerEvent>,
-    mut client_side_events: EventWriter<ClientSideCloseContainerEvent>,
+    mut client_side_events: EventWriter<ClientsideCloseContainerEvent>,
     mut commands: Commands,
 ) {
     for event in events.read() {
@@ -782,52 +788,62 @@ fn handle_container_close_event(
                 container_id: inventory.id,
             },
         ));
-        client_side_events.write(ClientSideCloseContainerEvent {
+        client_side_events.write(ClientsideCloseContainerEvent {
             entity: event.entity,
         });
     }
 }
 
-/// Close a container without notifying the server.
+/// A Bevy trigger that's fired when our client closed a container.
 ///
-/// Note that this also gets fired when we get a [`CloseContainerEvent`].
-#[derive(Event)]
-pub struct ClientSideCloseContainerEvent {
+/// This can also be triggered directly to close a container silently without
+/// sending any packets to the server. You probably don't want that though, and
+/// should instead use [`CloseContainerEvent`].
+///
+/// If you want to watch for a container being opened, you should use
+/// [`MenuOpenedEvent`].
+#[derive(Event, Clone)]
+pub struct ClientsideCloseContainerEvent {
     pub entity: Entity,
 }
-pub fn handle_client_side_close_container_event(
-    mut events: EventReader<ClientSideCloseContainerEvent>,
+pub fn handle_client_side_close_container_trigger(
+    event: Trigger<ClientsideCloseContainerEvent>,
     mut query: Query<&mut Inventory>,
 ) {
+    let mut inventory = query.get_mut(event.entity).unwrap();
+
+    // copy the Player part of the container_menu to the inventory_menu
+    if let Some(inventory_menu) = inventory.container_menu.take() {
+        // this isn't the same as what vanilla does. i believe vanilla synchronizes the
+        // slots between inventoryMenu and containerMenu by just having the player slots
+        // point to the same ItemStack in memory, but emulating this in rust would
+        // require us to wrap our `ItemStack`s as `Arc<Mutex<ItemStack>>` which would
+        // have kinda terrible ergonomics.
+
+        // the simpler solution i chose to go with here is to only copy the player slots
+        // when the container is closed. this is perfectly fine for vanilla, but it
+        // might cause issues if a server modifies id 0 while we have a container
+        // open...
+
+        // if we do encounter this issue in the wild then the simplest solution would
+        // probably be to just add logic for updating the container_menu when the server
+        // tries to modify id 0 for slots within `inventory`. not implemented for now
+        // because i'm not sure if that's worth worrying about.
+
+        let new_inventory = inventory_menu.slots()[inventory_menu.player_slots_range()].to_vec();
+        let new_inventory = <[ItemStack; 36]>::try_from(new_inventory).unwrap();
+        *inventory.inventory_menu.as_player_mut().inventory = new_inventory;
+    }
+
+    inventory.id = 0;
+    inventory.container_menu_title = None;
+}
+pub fn handle_client_side_close_container_event(
+    mut commands: Commands,
+    mut events: EventReader<ClientsideCloseContainerEvent>,
+) {
     for event in events.read() {
-        let mut inventory = query.get_mut(event.entity).unwrap();
-
-        // copy the Player part of the container_menu to the inventory_menu
-        if let Some(inventory_menu) = inventory.container_menu.take() {
-            // this isn't the same as what vanilla does. i believe vanilla synchronizes the
-            // slots between inventoryMenu and containerMenu by just having the player slots
-            // point to the same ItemStack in memory, but emulating this in rust would
-            // require us to wrap our `ItemStack`s as `Arc<Mutex<ItemStack>>` which would
-            // have kinda terrible ergonomics.
-
-            // the simpler solution i chose to go with here is to only copy the player slots
-            // when the container is closed. this is perfectly fine for vanilla, but it
-            // might cause issues if a server modifies id 0 while we have a container
-            // open...
-
-            // if we do encounter this issue in the wild then the simplest solution would
-            // probably be to just add logic for updating the container_menu when the server
-            // tries to modify id 0 for slots within `inventory`. not implemented for now
-            // because i'm not sure if that's worth worrying about.
-
-            let new_inventory =
-                inventory_menu.slots()[inventory_menu.player_slots_range()].to_vec();
-            let new_inventory = <[ItemStack; 36]>::try_from(new_inventory).unwrap();
-            *inventory.inventory_menu.as_player_mut().inventory = new_inventory;
-        }
-
-        inventory.id = 0;
-        inventory.container_menu_title = None;
+        commands.trigger(event.clone());
     }
 }
 
@@ -900,34 +916,33 @@ pub fn handle_container_click_event(
     }
 }
 
-/// Sent from the server when the contents of a container are replaced. Usually
-/// triggered by the `ContainerSetContent` packet.
+/// Sent from the server when the contents of a container are replaced.
+///
+/// Usually triggered by the `ContainerSetContent` packet.
 #[derive(Event)]
 pub struct SetContainerContentEvent {
     pub entity: Entity,
     pub slots: Vec<ItemStack>,
     pub container_id: i32,
 }
-fn handle_set_container_content_event(
-    mut events: EventReader<SetContainerContentEvent>,
+pub fn handle_set_container_content_trigger(
+    event: Trigger<SetContainerContentEvent>,
     mut query: Query<&mut Inventory>,
 ) {
-    for event in events.read() {
-        let mut inventory = query.get_mut(event.entity).unwrap();
+    let mut inventory = query.get_mut(event.entity).unwrap();
 
-        if event.container_id != inventory.id {
-            warn!(
-                "Got SetContainerContentEvent for container with ID {}, but the current container ID is {}",
-                event.container_id, inventory.id
-            );
-            continue;
-        }
+    if event.container_id != inventory.id {
+        warn!(
+            "Got SetContainerContentEvent for container with ID {}, but the current container ID is {}",
+            event.container_id, inventory.id
+        );
+        return;
+    }
 
-        let menu = inventory.menu_mut();
-        for (i, slot) in event.slots.iter().enumerate() {
-            if let Some(slot_mut) = menu.slot_mut(i) {
-                *slot_mut = slot.clone();
-            }
+    let menu = inventory.menu_mut();
+    for (i, slot) in event.slots.iter().enumerate() {
+        if let Some(slot_mut) = menu.slot_mut(i) {
+            *slot_mut = slot.clone();
         }
     }
 }

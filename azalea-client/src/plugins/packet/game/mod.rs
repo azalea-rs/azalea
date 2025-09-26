@@ -31,7 +31,7 @@ use crate::{
     disconnect::DisconnectEvent,
     interact::BlockStatePredictionHandler,
     inventory::{
-        ClientSideCloseContainerEvent, Inventory, MenuOpenedEvent, SetContainerContentEvent,
+        ClientsideCloseContainerEvent, Inventory, MenuOpenedEvent, SetContainerContentEvent,
     },
     local_player::{Hunger, InstanceHolder, LocalGameMode, TabList},
     movement::{KnockbackEvent, KnockbackType},
@@ -1136,28 +1136,25 @@ impl GamePacketHandler<'_> {
     pub fn container_set_content(&mut self, p: &ClientboundContainerSetContent) {
         debug!("Got container set content packet {p:?}");
 
-        as_system::<(Query<&mut Inventory>, EventWriter<_>)>(
-            self.ecs,
-            |(mut query, mut events)| {
-                let mut inventory = query.get_mut(self.player).unwrap();
+        as_system::<(Commands, Query<&mut Inventory>)>(self.ecs, |(mut commands, mut query)| {
+            let mut inventory = query.get_mut(self.player).unwrap();
 
-                // container id 0 is always the player's inventory
-                if p.container_id == 0 {
-                    // this is just so it has the same type as the `else` block
-                    for (i, slot) in p.items.iter().enumerate() {
-                        if let Some(slot_mut) = inventory.inventory_menu.slot_mut(i) {
-                            *slot_mut = slot.clone();
-                        }
+            // container id 0 is always the player's inventory
+            if p.container_id == 0 {
+                // this is just so it has the same type as the `else` block
+                for (i, slot) in p.items.iter().enumerate() {
+                    if let Some(slot_mut) = inventory.inventory_menu.slot_mut(i) {
+                        *slot_mut = slot.clone();
                     }
-                } else {
-                    events.write(SetContainerContentEvent {
-                        entity: self.player,
-                        slots: p.items.clone(),
-                        container_id: p.container_id,
-                    });
                 }
-            },
-        );
+            } else {
+                commands.trigger(SetContainerContentEvent {
+                    entity: self.player,
+                    slots: p.items.clone(),
+                    container_id: p.container_id,
+                });
+            }
+        });
     }
 
     pub fn container_set_data(&mut self, p: &ClientboundContainerSetData) {
@@ -1215,8 +1212,8 @@ impl GamePacketHandler<'_> {
 
         debug!("Got container close packet {p:?}");
 
-        as_system::<EventWriter<_>>(self.ecs, |mut events| {
-            events.write(ClientSideCloseContainerEvent {
+        as_system::<Commands>(self.ecs, |mut commands| {
+            commands.trigger(ClientsideCloseContainerEvent {
                 entity: self.player,
             });
         });
@@ -1266,8 +1263,8 @@ impl GamePacketHandler<'_> {
     pub fn open_screen(&mut self, p: &ClientboundOpenScreen) {
         debug!("Got open screen packet {p:?}");
 
-        as_system::<EventWriter<_>>(self.ecs, |mut events| {
-            events.write(MenuOpenedEvent {
+        as_system::<Commands>(self.ecs, |mut commands| {
+            commands.trigger(MenuOpenedEvent {
                 entity: self.player,
                 window_id: p.container_id,
                 menu_type: p.menu_type,
