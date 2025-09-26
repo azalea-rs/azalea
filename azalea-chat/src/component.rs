@@ -356,6 +356,10 @@ impl<'de> Deserialize<'de> for FormattedText {
                 return Err(de::Error::custom(
                     "keybind text components aren't yet supported",
                 ));
+            } else if json.get("object").is_some() {
+                return Err(de::Error::custom(
+                    "object text components aren't yet supported",
+                ));
             } else {
                 let Some(_nbt) = json.get("nbt") else {
                     return Err(de::Error::custom(
@@ -551,21 +555,20 @@ impl FormattedText {
                     FormattedText::Translatable(TranslatableComponent::new(translate, Vec::new()));
             }
         } else if let Some(score) = compound.compound("score") {
-            // object = GsonHelper.getAsJsonObject(jsonObject, "score");
             if score.get("name").is_none() || score.get("objective").is_none() {
-                // A score component needs at least a name and an objective
                 trace!("A score component needs at least a name and an objective");
                 return None;
             }
-            // TODO, score text components aren't yet supported
+            // TODO: implement these
             return None;
         } else if compound.get("selector").is_some() {
-            // selector text components aren't yet supported
-            trace!("selector text components aren't yet supported");
+            trace!("selector text components aren't supported");
             return None;
         } else if compound.get("keybind").is_some() {
-            // keybind text components aren't yet supported
-            trace!("keybind text components aren't yet supported");
+            trace!("keybind text components aren't supported");
+            return None;
+        } else if compound.get("object").is_some() {
+            trace!("object text components aren't supported");
             return None;
         } else if let Some(tag) = compound.get("") {
             return FormattedText::from_nbt_tag(tag);

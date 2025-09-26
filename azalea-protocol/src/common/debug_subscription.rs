@@ -2,38 +2,65 @@ use std::fmt::Debug;
 
 use azalea_buf::AzBuf;
 use azalea_core::position::{BlockPos, Vec3};
-use azalea_registry::{Block, GameEvent, PointOfInterestKind};
+use azalea_registry::{Block, DebugSubscription, GameEvent, PointOfInterestKind};
 
 // see DebugSubscriptions.java
+
 macro_rules! debug_subscription_enum {
-    ($name:ident, $ty: ident) => {
+    ($($variant:ident($ty:ty),)*) => {
         #[derive(Clone, Debug, AzBuf)]
-        pub enum $name {
-            DedicatedServerTickTime($ty<()>),
-            Bees($ty<DebugBeeInfo>),
-            Brains($ty<DebugBrainDump>),
-            Breezes($ty<DebugBreezeInfo>),
-            GoalSelectors($ty<DebugGoalInfo>),
-            EntityPaths($ty<DebugPathInfo>),
-            EntityBlockIntersections($ty<DebugEntityBlockIntersection>),
-            BeeHives($ty<DebugHiveInfo>),
-            Pois($ty<DebugPoiInfo>),
-            RedstoneWireOrientations($ty<DebugRedstoneOrientation>),
-            VillageSections($ty<()>),
-            Raids($ty<Vec<BlockPos>>),
-            Structures($ty<Vec<DebugStructureInfo>>),
-            GameEventListeners($ty<DebugGameEventListenerInfo>),
-            NeighborUpdates($ty<BlockPos>),
-            GameEvents($ty<DebugGameEventInfo>),
+        pub enum DebugSubscriptionEvent {
+            $( $variant($ty), )*
+        }
+        #[derive(Clone, Debug, AzBuf)]
+        pub enum DebugSubscriptionUpdate {
+            $( $variant(Option<$ty>), )*
+        }
+
+        impl DebugSubscriptionEvent {
+            pub fn matches_registry_variant(&self, kind: DebugSubscription) -> bool {
+                // this mostly exists to cause a compile error whenever the
+                // DebugSubscription registry is updated, since we need to
+                // update the debug_subscription_enum block manually
+                match kind {
+                    $(
+                        DebugSubscription::$variant => matches!(self, Self::$variant(_)),
+                    )*
+                }
+            }
+        }
+        impl DebugSubscriptionUpdate {
+            pub fn matches_registry_variant(&self, kind: DebugSubscription) -> bool {
+                match kind {
+                    $(
+                        DebugSubscription::$variant => matches!(self, Self::$variant(_)),
+                    )*
+                }
+            }
         }
     };
 }
 
 // we need the values to exist as required and optional, so we create two nearly
 // identical enums with a macro
-debug_subscription_enum! { DebugSubscriptionEvent, Passthrough }
-type Passthrough<T> = T;
-debug_subscription_enum! { DebugSubscriptionUpdate, Option }
+debug_subscription_enum! {
+    DedicatedServerTickTime(()),
+    Bees(DebugBeeInfo),
+    Brains(DebugBrainDump),
+    Breezes(DebugBreezeInfo),
+    GoalSelectors(DebugGoalInfo),
+    EntityPaths(DebugPathInfo),
+    EntityBlockIntersections(DebugEntityBlockIntersection),
+    BeeHives(DebugHiveInfo),
+    Pois(DebugPoiInfo),
+    RedstoneWireOrientations(DebugRedstoneOrientation),
+    VillageSections(()),
+    Raids(Vec<BlockPos>),
+    Structures(Vec<DebugStructureInfo>),
+    GameEventListeners(DebugGameEventListenerInfo),
+    NeighborUpdates(BlockPos),
+    GameEvents(DebugGameEventInfo),
+}
 
 #[derive(Clone, Debug, AzBuf)]
 pub struct DebugBeeInfo {

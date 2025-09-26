@@ -1233,7 +1233,7 @@ impl GamePacketHandler<'_> {
         trace!("Got explode packet {p:?}");
 
         as_system::<EventWriter<_>>(self.ecs, |mut knockback_events| {
-            if let Some(knockback) = p.knockback {
+            if let Some(knockback) = p.player_knockback {
                 knockback_events.write(KnockbackEvent {
                     entity: self.player,
                     knockback: KnockbackType::Set(knockback),
