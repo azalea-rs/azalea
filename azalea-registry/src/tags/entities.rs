@@ -4,6 +4,8 @@ use std::{collections::HashSet, sync::LazyLock};
 
 use crate::EntityKind;
 
+pub static ACCEPTS_IRON_GOLEM_GIFT: LazyLock<HashSet<EntityKind>> =
+    LazyLock::new(|| HashSet::from_iter(vec![EntityKind::CopperGolem]));
 pub static AQUATIC: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
     HashSet::from_iter(vec![
         EntityKind::Turtle,
@@ -80,6 +82,7 @@ pub static CAN_BREATHE_UNDER_WATER: LazyLock<HashSet<EntityKind>> = LazyLock::ne
         EntityKind::TropicalFish,
         EntityKind::Tadpole,
         EntityKind::ArmorStand,
+        EntityKind::CopperGolem,
         EntityKind::Wither,
         EntityKind::Phantom,
         EntityKind::Skeleton,
@@ -114,6 +117,23 @@ pub static CAN_TURN_IN_BOATS: LazyLock<HashSet<EntityKind>> =
     LazyLock::new(|| HashSet::from_iter(vec![EntityKind::Breeze]));
 pub static CAN_WEAR_HORSE_ARMOR: LazyLock<HashSet<EntityKind>> =
     LazyLock::new(|| HashSet::from_iter(vec![EntityKind::Horse]));
+pub static CANDIDATE_FOR_IRON_GOLEM_GIFT: LazyLock<HashSet<EntityKind>> =
+    LazyLock::new(|| HashSet::from_iter(vec![EntityKind::Villager, EntityKind::CopperGolem]));
+pub static CANNOT_BE_PUSHED_ONTO_BOATS: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
+    HashSet::from_iter(vec![
+        EntityKind::Player,
+        EntityKind::ElderGuardian,
+        EntityKind::Cod,
+        EntityKind::Pufferfish,
+        EntityKind::Salmon,
+        EntityKind::TropicalFish,
+        EntityKind::Dolphin,
+        EntityKind::Squid,
+        EntityKind::GlowSquid,
+        EntityKind::Tadpole,
+        EntityKind::Creaking,
+    ])
+});
 pub static DEFLECTS_PROJECTILES: LazyLock<HashSet<EntityKind>> =
     LazyLock::new(|| HashSet::from_iter(vec![EntityKind::Breeze]));
 pub static DISMOUNTS_UNDERWATER: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
@@ -135,6 +155,7 @@ pub static DISMOUNTS_UNDERWATER: LazyLock<HashSet<EntityKind>> = LazyLock::new(|
 });
 pub static FALL_DAMAGE_IMMUNE: LazyLock<HashSet<EntityKind>> = LazyLock::new(|| {
     HashSet::from_iter(vec![
+        EntityKind::CopperGolem,
         EntityKind::IronGolem,
         EntityKind::SnowGolem,
         EntityKind::Shulker,

@@ -7,6 +7,7 @@ license.workspace = true
 repository.workspace = true
 
 [dependencies]
+azalea-auth.workspace = true
 azalea-block.workspace = true
 azalea-buf.workspace = true
 azalea-chat = { workspace = true, features = ["azalea-buf"] }

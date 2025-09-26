@@ -24,6 +24,7 @@ declare_state_packets!(ConfigPacket,
         server_links,
         clear_dialog,
         show_dialog,
+        code_of_conduct,
     ],
     Serverbound => [
         client_information,
@@ -35,5 +36,6 @@ declare_state_packets!(ConfigPacket,
         resource_pack,
         select_known_packs,
         custom_click_action,
+        accept_code_of_conduct,
     ]
 );

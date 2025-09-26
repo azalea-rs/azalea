@@ -135,6 +135,12 @@ where
     fn azalea_read_limited(buf: &mut Cursor<&[u8]>, limit: usize) -> Result<Self, BufReadError>;
 }
 
+impl AzaleaRead for () {
+    fn azalea_read(_buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        Ok(())
+    }
+}
+
 impl AzaleaRead for i32 {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         Ok(buf.read_i32::<BE>()?)
@@ -142,9 +148,9 @@ impl AzaleaRead for i32 {
 }
 
 impl AzaleaReadVar for i32 {
-    // fast varints modified from https://github.com/luojia65/mc-varint/blob/master/src/lib.rs#L67
     /// Read a single varint from the reader and return the value
     fn azalea_read_var(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
+        // fast varint impl based on https://github.com/luojia65/mc-varint/blob/master/src/lib.rs#L67
         let mut buffer = [0];
         let mut ans = 0;
         for i in 0..5 {
@@ -159,7 +165,6 @@ impl AzaleaReadVar for i32 {
 }
 
 impl AzaleaReadVar for i64 {
-    // fast varints modified from https://github.com/luojia65/mc-varint/blob/master/src/lib.rs#L54
     fn azalea_read_var(buf: &mut Cursor<&[u8]>) -> Result<Self, BufReadError> {
         let mut buffer = [0];
         let mut ans = 0;

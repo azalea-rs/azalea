@@ -308,6 +308,12 @@ make_block_states! {
         "slot_3_occupied" => Slot3Occupied(bool),
         "slot_4_occupied" => Slot4Occupied(bool),
         "slot_5_occupied" => Slot5Occupied(bool),
+        "side_chain" => SideChain {
+            Unconnected = "unconnected",
+            Right = "right",
+            Center = "center",
+            Left = "left",
+        },
         "age" => FireAge {
             _0 = "0",
             _1 = "1",
@@ -1933,6 +1939,12 @@ make_block_states! {
         "bloom" => Bloom(bool),
         "can_summon" => CanSummon(bool),
         "shrieking" => Shrieking(bool),
+        "copper_golem_pose" => CopperGolemPose {
+            Standing = "standing",
+            Sitting = "sitting",
+            Running = "running",
+            Star = "star",
+        },
         "thickness" => Thickness {
             TipMerge = "tip_merge",
             Tip = "tip",
@@ -2457,6 +2469,78 @@ make_block_states! {
             "slot_4_occupied": Slot4Occupied(false),
             "slot_5_occupied": Slot5Occupied(false),
         },
+        acacia_shelf => BlockBehavior::new().strength(2.0, 3.0), {
+            "facing": FacingCardinal::North,
+            "powered": Powered(false),
+            "side_chain": SideChain::Unconnected,
+            "waterlogged": Waterlogged(false),
+        },
+        bamboo_shelf => BlockBehavior::new().strength(2.0, 3.0), {
+            "facing": FacingCardinal::North,
+            "powered": Powered(false),
+            "side_chain": SideChain::Unconnected,
+            "waterlogged": Waterlogged(false),
+        },
+        birch_shelf => BlockBehavior::new().strength(2.0, 3.0), {
+            "facing": FacingCardinal::North,
+            "powered": Powered(false),
+            "side_chain": SideChain::Unconnected,
+            "waterlogged": Waterlogged(false),
+        },
+        cherry_shelf => BlockBehavior::new().strength(2.0, 3.0), {
+            "facing": FacingCardinal::North,
+            "powered": Powered(false),
+            "side_chain": SideChain::Unconnected,
+            "waterlogged": Waterlogged(false),
+        },
+        crimson_shelf => BlockBehavior::new().strength(2.0, 3.0), {
+            "facing": FacingCardinal::North,
+            "powered": Powered(false),
+            "side_chain": SideChain::Unconnected,
+            "waterlogged": Waterlogged(false),
+        },
+        dark_oak_shelf => BlockBehavior::new().strength(2.0, 3.0), {
+            "facing": FacingCardinal::North,
+            "powered": Powered(false),
+            "side_chain": SideChain::Unconnected,
+            "waterlogged": Waterlogged(false),
+        },
+        jungle_shelf => BlockBehavior::new().strength(2.0, 3.0), {
+            "facing": FacingCardinal::North,
+            "powered": Powered(false),
+            "side_chain": SideChain::Unconnected,
+            "waterlogged": Waterlogged(false),
+        },
+        mangrove_shelf => BlockBehavior::new().strength(2.0, 3.0), {
+            "facing": FacingCardinal::North,
+            "powered": Powered(false),
+            "side_chain": SideChain::Unconnected,
+            "waterlogged": Waterlogged(false),
+        },
+        oak_shelf => BlockBehavior::new().strength(2.0, 3.0), {
+            "facing": FacingCardinal::North,
+            "powered": Powered(false),
+            "side_chain": SideChain::Unconnected,
+            "waterlogged": Waterlogged(false),
+        },
+        pale_oak_shelf => BlockBehavior::new().strength(2.0, 3.0), {
+            "facing": FacingCardinal::North,
+            "powered": Powered(false),
+            "side_chain": SideChain::Unconnected,
+            "waterlogged": Waterlogged(false),
+        },
+        spruce_shelf => BlockBehavior::new().strength(2.0, 3.0), {
+            "facing": FacingCardinal::North,
+            "powered": Powered(false),
+            "side_chain": SideChain::Unconnected,
+            "waterlogged": Waterlogged(false),
+        },
+        warped_shelf => BlockBehavior::new().strength(2.0, 3.0), {
+            "facing": FacingCardinal::North,
+            "powered": Powered(false),
+            "side_chain": SideChain::Unconnected,
+            "waterlogged": Waterlogged(false),
+        },
         mossy_cobblestone => BlockBehavior::new().requires_correct_tool_for_drops().strength(2.0, 6.0), {},
         obsidian => BlockBehavior::new().requires_correct_tool_for_drops().strength(50.0, 1200.0), {},
         torch => BlockBehavior::new(), {},
@@ -2818,6 +2902,10 @@ make_block_states! {
         soul_wall_torch => BlockBehavior::new(), {
             "facing": FacingCardinal::North,
         },
+        copper_torch => BlockBehavior::new(), {},
+        copper_wall_torch => BlockBehavior::new(), {
+            "facing": FacingCardinal::North,
+        },
         glowstone => BlockBehavior::new().strength(0.3, 0.3), {},
         nether_portal => BlockBehavior::new().destroy_time(-1.0), {
             "axis": AxisXZ::X,
@@ -2966,7 +3054,95 @@ make_block_states! {
             "waterlogged": Waterlogged(false),
             "west": West(false),
         },
-        chain => BlockBehavior::new().requires_correct_tool_for_drops().strength(5.0, 6.0).force_solid(true), {
+        copper_bars => BlockBehavior::new().strength(5.0, 6.0), {
+            "east": East(false),
+            "north": North(false),
+            "south": South(false),
+            "waterlogged": Waterlogged(false),
+            "west": West(false),
+        },
+        exposed_copper_bars => BlockBehavior::new().strength(5.0, 6.0), {
+            "east": East(false),
+            "north": North(false),
+            "south": South(false),
+            "waterlogged": Waterlogged(false),
+            "west": West(false),
+        },
+        weathered_copper_bars => BlockBehavior::new().strength(5.0, 6.0), {
+            "east": East(false),
+            "north": North(false),
+            "south": South(false),
+            "waterlogged": Waterlogged(false),
+            "west": West(false),
+        },
+        oxidized_copper_bars => BlockBehavior::new().strength(5.0, 6.0), {
+            "east": East(false),
+            "north": North(false),
+            "south": South(false),
+            "waterlogged": Waterlogged(false),
+            "west": West(false),
+        },
+        waxed_copper_bars => BlockBehavior::new().strength(5.0, 6.0), {
+            "east": East(false),
+            "north": North(false),
+            "south": South(false),
+            "waterlogged": Waterlogged(false),
+            "west": West(false),
+        },
+        waxed_exposed_copper_bars => BlockBehavior::new().strength(5.0, 6.0), {
+            "east": East(false),
+            "north": North(false),
+            "south": South(false),
+            "waterlogged": Waterlogged(false),
+            "west": West(false),
+        },
+        waxed_weathered_copper_bars => BlockBehavior::new().strength(5.0, 6.0), {
+            "east": East(false),
+            "north": North(false),
+            "south": South(false),
+            "waterlogged": Waterlogged(false),
+            "west": West(false),
+        },
+        waxed_oxidized_copper_bars => BlockBehavior::new().strength(5.0, 6.0), {
+            "east": East(false),
+            "north": North(false),
+            "south": South(false),
+            "waterlogged": Waterlogged(false),
+            "west": West(false),
+        },
+        iron_chain => BlockBehavior::new().requires_correct_tool_for_drops().strength(5.0, 6.0).force_solid(true), {
+            "axis": Axis::Y,
+            "waterlogged": Waterlogged(false),
+        },
+        copper_chain => BlockBehavior::new().strength(5.0, 6.0), {
+            "axis": Axis::Y,
+            "waterlogged": Waterlogged(false),
+        },
+        exposed_copper_chain => BlockBehavior::new().strength(5.0, 6.0), {
+            "axis": Axis::Y,
+            "waterlogged": Waterlogged(false),
+        },
+        weathered_copper_chain => BlockBehavior::new().strength(5.0, 6.0), {
+            "axis": Axis::Y,
+            "waterlogged": Waterlogged(false),
+        },
+        oxidized_copper_chain => BlockBehavior::new().strength(5.0, 6.0), {
+            "axis": Axis::Y,
+            "waterlogged": Waterlogged(false),
+        },
+        waxed_copper_chain => BlockBehavior::new().strength(5.0, 6.0), {
+            "axis": Axis::Y,
+            "waterlogged": Waterlogged(false),
+        },
+        waxed_exposed_copper_chain => BlockBehavior::new().strength(5.0, 6.0), {
+            "axis": Axis::Y,
+            "waterlogged": Waterlogged(false),
+        },
+        waxed_weathered_copper_chain => BlockBehavior::new().strength(5.0, 6.0), {
+            "axis": Axis::Y,
+            "waterlogged": Waterlogged(false),
+        },
+        waxed_oxidized_copper_chain => BlockBehavior::new().strength(5.0, 6.0), {
             "axis": Axis::Y,
             "waterlogged": Waterlogged(false),
         },
@@ -4648,6 +4824,38 @@ make_block_states! {
             "hanging": Hanging(false),
             "waterlogged": Waterlogged(false),
         },
+        copper_lantern => BlockBehavior::new().strength(3.5, 3.5), {
+            "hanging": Hanging(false),
+            "waterlogged": Waterlogged(false),
+        },
+        exposed_copper_lantern => BlockBehavior::new().strength(3.5, 3.5), {
+            "hanging": Hanging(false),
+            "waterlogged": Waterlogged(false),
+        },
+        weathered_copper_lantern => BlockBehavior::new().strength(3.5, 3.5), {
+            "hanging": Hanging(false),
+            "waterlogged": Waterlogged(false),
+        },
+        oxidized_copper_lantern => BlockBehavior::new().strength(3.5, 3.5), {
+            "hanging": Hanging(false),
+            "waterlogged": Waterlogged(false),
+        },
+        waxed_copper_lantern => BlockBehavior::new().strength(3.5, 3.5), {
+            "hanging": Hanging(false),
+            "waterlogged": Waterlogged(false),
+        },
+        waxed_exposed_copper_lantern => BlockBehavior::new().strength(3.5, 3.5), {
+            "hanging": Hanging(false),
+            "waterlogged": Waterlogged(false),
+        },
+        waxed_weathered_copper_lantern => BlockBehavior::new().strength(3.5, 3.5), {
+            "hanging": Hanging(false),
+            "waterlogged": Waterlogged(false),
+        },
+        waxed_oxidized_copper_lantern => BlockBehavior::new().strength(3.5, 3.5), {
+            "hanging": Hanging(false),
+            "waterlogged": Waterlogged(false),
+        },
         campfire => BlockBehavior::new().strength(2.0, 2.0), {
             "facing": FacingCardinal::North,
             "lit": Lit(true),
@@ -5439,7 +5647,122 @@ make_block_states! {
             "lit": Lit(false),
             "powered": Powered(false),
         },
+        copper_chest => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
+            "type": ChestType::Single,
+            "facing": FacingCardinal::North,
+            "waterlogged": Waterlogged(false),
+        },
+        exposed_copper_chest => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
+            "type": ChestType::Single,
+            "facing": FacingCardinal::North,
+            "waterlogged": Waterlogged(false),
+        },
+        weathered_copper_chest => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
+            "type": ChestType::Single,
+            "facing": FacingCardinal::North,
+            "waterlogged": Waterlogged(false),
+        },
+        oxidized_copper_chest => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
+            "type": ChestType::Single,
+            "facing": FacingCardinal::North,
+            "waterlogged": Waterlogged(false),
+        },
+        waxed_copper_chest => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
+            "type": ChestType::Single,
+            "facing": FacingCardinal::North,
+            "waterlogged": Waterlogged(false),
+        },
+        waxed_exposed_copper_chest => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
+            "type": ChestType::Single,
+            "facing": FacingCardinal::North,
+            "waterlogged": Waterlogged(false),
+        },
+        waxed_weathered_copper_chest => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
+            "type": ChestType::Single,
+            "facing": FacingCardinal::North,
+            "waterlogged": Waterlogged(false),
+        },
+        waxed_oxidized_copper_chest => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0), {
+            "type": ChestType::Single,
+            "facing": FacingCardinal::North,
+            "waterlogged": Waterlogged(false),
+        },
+        copper_golem_statue => BlockBehavior::new().strength(3.0, 6.0), {
+            "copper_golem_pose": CopperGolemPose::Standing,
+            "facing": FacingCardinal::North,
+            "waterlogged": Waterlogged(false),
+        },
+        exposed_copper_golem_statue => BlockBehavior::new().strength(3.0, 6.0), {
+            "copper_golem_pose": CopperGolemPose::Standing,
+            "facing": FacingCardinal::North,
+            "waterlogged": Waterlogged(false),
+        },
+        weathered_copper_golem_statue => BlockBehavior::new().strength(3.0, 6.0), {
+            "copper_golem_pose": CopperGolemPose::Standing,
+            "facing": FacingCardinal::North,
+            "waterlogged": Waterlogged(false),
+        },
+        oxidized_copper_golem_statue => BlockBehavior::new().strength(3.0, 6.0), {
+            "copper_golem_pose": CopperGolemPose::Standing,
+            "facing": FacingCardinal::North,
+            "waterlogged": Waterlogged(false),
+        },
+        waxed_copper_golem_statue => BlockBehavior::new().strength(3.0, 6.0), {
+            "copper_golem_pose": CopperGolemPose::Standing,
+            "facing": FacingCardinal::North,
+            "waterlogged": Waterlogged(false),
+        },
+        waxed_exposed_copper_golem_statue => BlockBehavior::new().strength(3.0, 6.0), {
+            "copper_golem_pose": CopperGolemPose::Standing,
+            "facing": FacingCardinal::North,
+            "waterlogged": Waterlogged(false),
+        },
+        waxed_weathered_copper_golem_statue => BlockBehavior::new().strength(3.0, 6.0), {
+            "copper_golem_pose": CopperGolemPose::Standing,
+            "facing": FacingCardinal::North,
+            "waterlogged": Waterlogged(false),
+        },
+        waxed_oxidized_copper_golem_statue => BlockBehavior::new().strength(3.0, 6.0), {
+            "copper_golem_pose": CopperGolemPose::Standing,
+            "facing": FacingCardinal::North,
+            "waterlogged": Waterlogged(false),
+        },
         lightning_rod => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0).force_solid(true), {
+            "facing": FacingCubic::Up,
+            "powered": Powered(false),
+            "waterlogged": Waterlogged(false),
+        },
+        exposed_lightning_rod => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0).force_solid(true), {
+            "facing": FacingCubic::Up,
+            "powered": Powered(false),
+            "waterlogged": Waterlogged(false),
+        },
+        weathered_lightning_rod => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0).force_solid(true), {
+            "facing": FacingCubic::Up,
+            "powered": Powered(false),
+            "waterlogged": Waterlogged(false),
+        },
+        oxidized_lightning_rod => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0).force_solid(true), {
+            "facing": FacingCubic::Up,
+            "powered": Powered(false),
+            "waterlogged": Waterlogged(false),
+        },
+        waxed_lightning_rod => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0).force_solid(true), {
+            "facing": FacingCubic::Up,
+            "powered": Powered(false),
+            "waterlogged": Waterlogged(false),
+        },
+        waxed_exposed_lightning_rod => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0).force_solid(true), {
+            "facing": FacingCubic::Up,
+            "powered": Powered(false),
+            "waterlogged": Waterlogged(false),
+        },
+        waxed_weathered_lightning_rod => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0).force_solid(true), {
+            "facing": FacingCubic::Up,
+            "powered": Powered(false),
+            "waterlogged": Waterlogged(false),
+        },
+        waxed_oxidized_lightning_rod => BlockBehavior::new().requires_correct_tool_for_drops().strength(3.0, 6.0).force_solid(true), {
             "facing": FacingCubic::Up,
             "powered": Powered(false),
             "waterlogged": Waterlogged(false),

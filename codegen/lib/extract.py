@@ -3,6 +3,7 @@
 import shutil
 from lib.download import (
     get_latest_fabric_api_version,
+    get_latest_fabric_kotlin_version,
     get_mappings_for_version,
     get_pumpkin_extractor,
     get_server_jar,
@@ -151,6 +152,7 @@ def get_pumpkin_data(version_id: str, category: str):
 
     fabric_data = get_fabric_data(version_id)[0]
     fabric_api_version = get_latest_fabric_api_version()
+    fabric_kotlin_version = get_latest_fabric_kotlin_version()
 
     gradle_properties = f"""# Done to increase the memory available to gradle.
 org.gradle.jvmargs=-Xmx1G
@@ -160,7 +162,7 @@ org.gradle.parallel=true
 minecraft_version={version_id}
 yarn_mappings={fabric_data["mappings"]["version"]}
 loader_version={fabric_data["loader"]["version"]}
-kotlin_loader_version=1.13.2+kotlin.2.1.20
+kotlin_loader_version={fabric_kotlin_version}
 # Mod Properties
 mod_version=1.0-SNAPSHOT
 maven_group=de.snowii

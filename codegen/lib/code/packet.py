@@ -20,8 +20,8 @@ PACKETS_DIR = "../azalea-protocol/src/packets"
 
 
 def generate_packet(packets_report, packet_name, direction, state):
-    mojmap_state = AZALEA_TO_MOJMAP_STATE_NAME_MAPPING.get(state, state)
-    _packet_report = packets_report[mojmap_state][direction]["minecraft:" + packet_name]
+    # mojmap_state = AZALEA_TO_MOJMAP_STATE_NAME_MAPPING.get(state, state)
+    # _packet_report = packets_report[mojmap_state][direction]["minecraft:" + packet_name]
 
     code = []
 
@@ -46,7 +46,11 @@ def generate_packet(packets_report, packet_name, direction, state):
 
 
 def get_packet_module_name(packet_name: str, direction: str):
-    return f"{direction[0]}_{packet_name}"
+    return f"{direction[0]}_{get_packet_partial_module_name(packet_name)}"
+
+
+def get_packet_partial_module_name(packet_name: str):
+    return packet_name.replace("/", "_")
 
 
 def set_packets(packets_report):
@@ -75,14 +79,14 @@ def set_packets(packets_report):
         code.append(f"declare_state_packets!({to_camel_case(state)}Packet,")
         code.append("    Clientbound => [")
         for packet_id, packet_name in enumerate(clientbound_packets):
-            code.append(f"        {packet_name},")
+            code.append(f"        {get_packet_partial_module_name(packet_name)},")
             expected_packet_module_names.add(
                 get_packet_module_name(packet_name, "clientbound")
             )
         code.append("    ],")
         code.append("    Serverbound => [")
         for packet_id, packet_name in enumerate(serverbound_packets):
-            code.append(f"        {packet_name},")
+            code.append(f"        {get_packet_partial_module_name(packet_name)},")
             expected_packet_module_names.add(
                 get_packet_module_name(packet_name, "serverbound")
             )

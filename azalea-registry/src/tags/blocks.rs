@@ -280,6 +280,19 @@ pub static BANNERS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
         Block::BlackWallBanner,
     ])
 });
+pub static BARS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
+    HashSet::from_iter(vec![
+        Block::IronBars,
+        Block::CopperBars,
+        Block::WaxedCopperBars,
+        Block::ExposedCopperBars,
+        Block::WaxedExposedCopperBars,
+        Block::WeatheredCopperBars,
+        Block::WaxedWeatheredCopperBars,
+        Block::OxidizedCopperBars,
+        Block::WaxedOxidizedCopperBars,
+    ])
+});
 pub static BASE_STONE_NETHER: LazyLock<HashSet<Block>> =
     LazyLock::new(|| HashSet::from_iter(vec![Block::Netherrack, Block::Basalt, Block::Blackstone]));
 pub static BASE_STONE_OVERWORLD: LazyLock<HashSet<Block>> = LazyLock::new(|| {
@@ -520,6 +533,19 @@ pub static CEILING_HANGING_SIGNS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
         Block::BambooHangingSign,
     ])
 });
+pub static CHAINS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
+    HashSet::from_iter(vec![
+        Block::IronChain,
+        Block::CopperChain,
+        Block::WaxedCopperChain,
+        Block::ExposedCopperChain,
+        Block::WaxedExposedCopperChain,
+        Block::WeatheredCopperChain,
+        Block::WaxedWeatheredCopperChain,
+        Block::OxidizedCopperChain,
+        Block::WaxedOxidizedCopperChain,
+    ])
+});
 pub static CHERRY_LOGS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
     HashSet::from_iter(vec![
         Block::CherryLog,
@@ -653,6 +679,42 @@ pub static CONCRETE_POWDER: LazyLock<HashSet<Block>> = LazyLock::new(|| {
 });
 pub static CONVERTABLE_TO_MUD: LazyLock<HashSet<Block>> =
     LazyLock::new(|| HashSet::from_iter(vec![Block::Dirt, Block::CoarseDirt, Block::RootedDirt]));
+pub static COPPER: LazyLock<HashSet<Block>> = LazyLock::new(|| {
+    HashSet::from_iter(vec![
+        Block::CopperBlock,
+        Block::ExposedCopper,
+        Block::WeatheredCopper,
+        Block::OxidizedCopper,
+        Block::WaxedCopperBlock,
+        Block::WaxedExposedCopper,
+        Block::WaxedWeatheredCopper,
+        Block::WaxedOxidizedCopper,
+    ])
+});
+pub static COPPER_CHESTS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
+    HashSet::from_iter(vec![
+        Block::CopperChest,
+        Block::ExposedCopperChest,
+        Block::WeatheredCopperChest,
+        Block::OxidizedCopperChest,
+        Block::WaxedCopperChest,
+        Block::WaxedExposedCopperChest,
+        Block::WaxedWeatheredCopperChest,
+        Block::WaxedOxidizedCopperChest,
+    ])
+});
+pub static COPPER_GOLEM_STATUES: LazyLock<HashSet<Block>> = LazyLock::new(|| {
+    HashSet::from_iter(vec![
+        Block::CopperGolemStatue,
+        Block::ExposedCopperGolemStatue,
+        Block::WeatheredCopperGolemStatue,
+        Block::OxidizedCopperGolemStatue,
+        Block::WaxedCopperGolemStatue,
+        Block::WaxedExposedCopperGolemStatue,
+        Block::WaxedWeatheredCopperGolemStatue,
+        Block::WaxedOxidizedCopperGolemStatue,
+    ])
+});
 pub static COPPER_ORES: LazyLock<HashSet<Block>> =
     LazyLock::new(|| HashSet::from_iter(vec![Block::CopperOre, Block::DeepslateCopperOre]));
 pub static CORAL_BLOCKS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
@@ -1153,6 +1215,14 @@ pub static GUARDED_BY_PIGLINS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
         Block::GildedBlackstone,
         Block::TrappedChest,
         Block::RawGoldBlock,
+        Block::CopperChest,
+        Block::ExposedCopperChest,
+        Block::WeatheredCopperChest,
+        Block::OxidizedCopperChest,
+        Block::WaxedCopperChest,
+        Block::WaxedExposedCopperChest,
+        Block::WaxedWeatheredCopperChest,
+        Block::WaxedOxidizedCopperChest,
         Block::ShulkerBox,
         Block::BlackShulkerBox,
         Block::BlueShulkerBox,
@@ -1221,6 +1291,28 @@ pub static IMPERMEABLE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
         Block::RedStainedGlass,
         Block::BlackStainedGlass,
         Block::TintedGlass,
+        Block::Barrier,
+    ])
+});
+pub static INCORRECT_FOR_COPPER_TOOL: LazyLock<HashSet<Block>> = LazyLock::new(|| {
+    HashSet::from_iter(vec![
+        Block::Obsidian,
+        Block::CryingObsidian,
+        Block::NetheriteBlock,
+        Block::RespawnAnchor,
+        Block::AncientDebris,
+        Block::DiamondBlock,
+        Block::DiamondOre,
+        Block::DeepslateDiamondOre,
+        Block::EmeraldOre,
+        Block::DeepslateEmeraldOre,
+        Block::EmeraldBlock,
+        Block::GoldBlock,
+        Block::RawGoldBlock,
+        Block::GoldOre,
+        Block::DeepslateGoldOre,
+        Block::RedstoneOre,
+        Block::DeepslateRedstoneOre,
     ])
 });
 pub static INCORRECT_FOR_DIAMOND_TOOL: LazyLock<HashSet<Block>> =
@@ -1286,7 +1378,6 @@ pub static INCORRECT_FOR_GOLD_TOOL: LazyLock<HashSet<Block>> = LazyLock::new(|| 
         Block::WaxedOxidizedCutCopperSlab,
         Block::WaxedOxidizedCutCopperStairs,
         Block::WaxedOxidizedCutCopper,
-        Block::LightningRod,
         Block::Crafter,
         Block::ChiseledCopper,
         Block::ExposedChiseledCopper,
@@ -1320,6 +1411,22 @@ pub static INCORRECT_FOR_GOLD_TOOL: LazyLock<HashSet<Block>> = LazyLock::new(|| 
         Block::WaxedExposedCopperTrapdoor,
         Block::WaxedWeatheredCopperTrapdoor,
         Block::WaxedOxidizedCopperTrapdoor,
+        Block::CopperChest,
+        Block::ExposedCopperChest,
+        Block::WeatheredCopperChest,
+        Block::OxidizedCopperChest,
+        Block::WaxedCopperChest,
+        Block::WaxedExposedCopperChest,
+        Block::WaxedWeatheredCopperChest,
+        Block::WaxedOxidizedCopperChest,
+        Block::LightningRod,
+        Block::ExposedLightningRod,
+        Block::WeatheredLightningRod,
+        Block::OxidizedLightningRod,
+        Block::WaxedLightningRod,
+        Block::WaxedExposedLightningRod,
+        Block::WaxedWeatheredLightningRod,
+        Block::WaxedOxidizedLightningRod,
     ])
 });
 pub static INCORRECT_FOR_IRON_TOOL: LazyLock<HashSet<Block>> = LazyLock::new(|| {
@@ -1415,7 +1522,6 @@ pub static INCORRECT_FOR_WOODEN_TOOL: LazyLock<HashSet<Block>> = LazyLock::new(|
         Block::WaxedOxidizedCutCopperSlab,
         Block::WaxedOxidizedCutCopperStairs,
         Block::WaxedOxidizedCutCopper,
-        Block::LightningRod,
         Block::Crafter,
         Block::ChiseledCopper,
         Block::ExposedChiseledCopper,
@@ -1449,6 +1555,22 @@ pub static INCORRECT_FOR_WOODEN_TOOL: LazyLock<HashSet<Block>> = LazyLock::new(|
         Block::WaxedExposedCopperTrapdoor,
         Block::WaxedWeatheredCopperTrapdoor,
         Block::WaxedOxidizedCopperTrapdoor,
+        Block::CopperChest,
+        Block::ExposedCopperChest,
+        Block::WeatheredCopperChest,
+        Block::OxidizedCopperChest,
+        Block::WaxedCopperChest,
+        Block::WaxedExposedCopperChest,
+        Block::WaxedWeatheredCopperChest,
+        Block::WaxedOxidizedCopperChest,
+        Block::LightningRod,
+        Block::ExposedLightningRod,
+        Block::WeatheredLightningRod,
+        Block::OxidizedLightningRod,
+        Block::WaxedLightningRod,
+        Block::WaxedExposedLightningRod,
+        Block::WaxedWeatheredLightningRod,
+        Block::WaxedOxidizedLightningRod,
     ])
 });
 pub static INFINIBURN_END: LazyLock<HashSet<Block>> = LazyLock::new(|| {
@@ -1480,6 +1602,20 @@ pub static JUNGLE_LOGS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
         Block::JungleWood,
         Block::StrippedJungleLog,
         Block::StrippedJungleWood,
+    ])
+});
+pub static LANTERNS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
+    HashSet::from_iter(vec![
+        Block::Lantern,
+        Block::SoulLantern,
+        Block::CopperLantern,
+        Block::WaxedCopperLantern,
+        Block::ExposedCopperLantern,
+        Block::WaxedExposedCopperLantern,
+        Block::WeatheredCopperLantern,
+        Block::WaxedWeatheredCopperLantern,
+        Block::OxidizedCopperLantern,
+        Block::WaxedOxidizedCopperLantern,
     ])
 });
 pub static LAPIS_ORES: LazyLock<HashSet<Block>> =
@@ -1563,6 +1699,18 @@ pub static LEAVES: LazyLock<HashSet<Block>> = LazyLock::new(|| {
         Block::FloweringAzaleaLeaves,
         Block::MangroveLeaves,
         Block::CherryLeaves,
+    ])
+});
+pub static LIGHTNING_RODS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
+    HashSet::from_iter(vec![
+        Block::LightningRod,
+        Block::ExposedLightningRod,
+        Block::WeatheredLightningRod,
+        Block::OxidizedLightningRod,
+        Block::WaxedLightningRod,
+        Block::WaxedExposedLightningRod,
+        Block::WaxedWeatheredLightningRod,
+        Block::WaxedOxidizedLightningRod,
     ])
 });
 pub static LOGS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
@@ -1908,6 +2056,18 @@ pub static MINEABLE_AXE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
         Block::CherryTrapdoor,
         Block::BambooBlock,
         Block::StrippedBambooBlock,
+        Block::AcaciaShelf,
+        Block::BambooShelf,
+        Block::BirchShelf,
+        Block::CherryShelf,
+        Block::CrimsonShelf,
+        Block::DarkOakShelf,
+        Block::JungleShelf,
+        Block::MangroveShelf,
+        Block::OakShelf,
+        Block::PaleOakShelf,
+        Block::SpruceShelf,
+        Block::WarpedShelf,
         Block::CrimsonStem,
         Block::StrippedCrimsonStem,
         Block::CrimsonHyphae,
@@ -2081,8 +2241,6 @@ pub static MINEABLE_PICKAXE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
         Block::MossyStoneBricks,
         Block::CrackedStoneBricks,
         Block::ChiseledStoneBricks,
-        Block::IronBars,
-        Block::Chain,
         Block::BrickStairs,
         Block::StoneBrickStairs,
         Block::NetherBricks,
@@ -2252,8 +2410,6 @@ pub static MINEABLE_PICKAXE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
         Block::Grindstone,
         Block::Stonecutter,
         Block::Bell,
-        Block::Lantern,
-        Block::SoulLantern,
         Block::WarpedNylium,
         Block::CrimsonNylium,
         Block::NetheriteBlock,
@@ -2313,7 +2469,6 @@ pub static MINEABLE_PICKAXE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
         Block::WaxedWeatheredCutCopperSlab,
         Block::WaxedExposedCutCopperSlab,
         Block::WaxedCutCopperSlab,
-        Block::LightningRod,
         Block::PointedDripstone,
         Block::DripstoneBlock,
         Block::Deepslate,
@@ -2476,6 +2631,58 @@ pub static MINEABLE_PICKAXE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
         Block::PoweredRail,
         Block::DetectorRail,
         Block::ActivatorRail,
+        Block::CopperChest,
+        Block::ExposedCopperChest,
+        Block::WeatheredCopperChest,
+        Block::OxidizedCopperChest,
+        Block::WaxedCopperChest,
+        Block::WaxedExposedCopperChest,
+        Block::WaxedWeatheredCopperChest,
+        Block::WaxedOxidizedCopperChest,
+        Block::CopperGolemStatue,
+        Block::ExposedCopperGolemStatue,
+        Block::WeatheredCopperGolemStatue,
+        Block::OxidizedCopperGolemStatue,
+        Block::WaxedCopperGolemStatue,
+        Block::WaxedExposedCopperGolemStatue,
+        Block::WaxedWeatheredCopperGolemStatue,
+        Block::WaxedOxidizedCopperGolemStatue,
+        Block::LightningRod,
+        Block::ExposedLightningRod,
+        Block::WeatheredLightningRod,
+        Block::OxidizedLightningRod,
+        Block::WaxedLightningRod,
+        Block::WaxedExposedLightningRod,
+        Block::WaxedWeatheredLightningRod,
+        Block::WaxedOxidizedLightningRod,
+        Block::Lantern,
+        Block::SoulLantern,
+        Block::CopperLantern,
+        Block::WaxedCopperLantern,
+        Block::ExposedCopperLantern,
+        Block::WaxedExposedCopperLantern,
+        Block::WeatheredCopperLantern,
+        Block::WaxedWeatheredCopperLantern,
+        Block::OxidizedCopperLantern,
+        Block::WaxedOxidizedCopperLantern,
+        Block::IronChain,
+        Block::CopperChain,
+        Block::WaxedCopperChain,
+        Block::ExposedCopperChain,
+        Block::WaxedExposedCopperChain,
+        Block::WeatheredCopperChain,
+        Block::WaxedWeatheredCopperChain,
+        Block::OxidizedCopperChain,
+        Block::WaxedOxidizedCopperChain,
+        Block::IronBars,
+        Block::CopperBars,
+        Block::WaxedCopperBars,
+        Block::ExposedCopperBars,
+        Block::WaxedExposedCopperBars,
+        Block::WeatheredCopperBars,
+        Block::WaxedWeatheredCopperBars,
+        Block::OxidizedCopperBars,
+        Block::WaxedOxidizedCopperBars,
     ])
 });
 pub static MINEABLE_SHOVEL: LazyLock<HashSet<Block>> = LazyLock::new(|| {
@@ -2643,7 +2850,6 @@ pub static NEEDS_STONE_TOOL: LazyLock<HashSet<Block>> = LazyLock::new(|| {
         Block::WaxedOxidizedCutCopperSlab,
         Block::WaxedOxidizedCutCopperStairs,
         Block::WaxedOxidizedCutCopper,
-        Block::LightningRod,
         Block::Crafter,
         Block::ChiseledCopper,
         Block::ExposedChiseledCopper,
@@ -2677,6 +2883,22 @@ pub static NEEDS_STONE_TOOL: LazyLock<HashSet<Block>> = LazyLock::new(|| {
         Block::WaxedExposedCopperTrapdoor,
         Block::WaxedWeatheredCopperTrapdoor,
         Block::WaxedOxidizedCopperTrapdoor,
+        Block::CopperChest,
+        Block::ExposedCopperChest,
+        Block::WeatheredCopperChest,
+        Block::OxidizedCopperChest,
+        Block::WaxedCopperChest,
+        Block::WaxedExposedCopperChest,
+        Block::WaxedWeatheredCopperChest,
+        Block::WaxedOxidizedCopperChest,
+        Block::LightningRod,
+        Block::ExposedLightningRod,
+        Block::WeatheredLightningRod,
+        Block::OxidizedLightningRod,
+        Block::WaxedLightningRod,
+        Block::WaxedExposedLightningRod,
+        Block::WaxedWeatheredLightningRod,
+        Block::WaxedOxidizedLightningRod,
     ])
 });
 pub static NETHER_CARVER_REPLACEABLES: LazyLock<HashSet<Block>> = LazyLock::new(|| {
@@ -3705,6 +3927,7 @@ pub static WALL_POST_OVERRIDE: LazyLock<HashSet<Block>> = LazyLock::new(|| {
         Block::Torch,
         Block::SoulTorch,
         Block::RedstoneTorch,
+        Block::CopperTorch,
         Block::Tripwire,
         Block::CactusFlower,
         Block::WhiteBanner,
@@ -3929,6 +4152,22 @@ pub static WOODEN_PRESSURE_PLATES: LazyLock<HashSet<Block>> = LazyLock::new(|| {
         Block::MangrovePressurePlate,
         Block::BambooPressurePlate,
         Block::CherryPressurePlate,
+    ])
+});
+pub static WOODEN_SHELVES: LazyLock<HashSet<Block>> = LazyLock::new(|| {
+    HashSet::from_iter(vec![
+        Block::AcaciaShelf,
+        Block::BambooShelf,
+        Block::BirchShelf,
+        Block::CherryShelf,
+        Block::CrimsonShelf,
+        Block::DarkOakShelf,
+        Block::JungleShelf,
+        Block::MangroveShelf,
+        Block::OakShelf,
+        Block::PaleOakShelf,
+        Block::SpruceShelf,
+        Block::WarpedShelf,
     ])
 });
 pub static WOODEN_SLABS: LazyLock<HashSet<Block>> = LazyLock::new(|| {
