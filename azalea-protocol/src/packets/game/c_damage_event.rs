@@ -5,7 +5,7 @@ use azalea_core::position::Vec3;
 use azalea_protocol_macros::ClientboundGamePacket;
 use azalea_world::MinecraftEntityId;
 
-#[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
 pub struct ClientboundDamageEvent {
     #[var]
     pub entity_id: MinecraftEntityId,
@@ -16,7 +16,7 @@ pub struct ClientboundDamageEvent {
     pub source_position: Option<Vec3>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct OptionalEntityId(pub Option<u32>);
 impl AzaleaRead for OptionalEntityId {
     fn azalea_read(buf: &mut Cursor<&[u8]>) -> Result<Self, azalea_buf::BufReadError> {

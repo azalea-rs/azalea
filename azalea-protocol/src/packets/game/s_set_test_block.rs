@@ -2,14 +2,14 @@ use azalea_buf::AzBuf;
 use azalea_core::position::BlockPos;
 use azalea_protocol_macros::ServerboundGamePacket;
 
-#[derive(Clone, Debug, AzBuf, ServerboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, PartialEq, ServerboundGamePacket)]
 pub struct ServerboundSetTestBlock {
     pub position: BlockPos,
     pub mode: TestBlockMode,
     pub message: String,
 }
 
-#[derive(Clone, Copy, Debug, AzBuf, Default)]
+#[derive(Clone, Copy, Debug, AzBuf, Default, PartialEq)]
 pub enum TestBlockMode {
     #[default]
     Start,

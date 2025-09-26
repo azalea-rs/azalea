@@ -232,8 +232,21 @@ impl SentPackets {
             panic!("Expected {expected_formatted}, got nothing");
         }
     }
+
+    pub fn maybe_expect(&self, check: impl FnOnce(&ServerboundGamePacket) -> bool) {
+        let sent_packet = self.peek();
+        if let Some(sent_packet) = sent_packet
+            && check(&sent_packet)
+        {
+            self.next();
+        }
+    }
+
     pub fn next(&self) -> Option<ServerboundGamePacket> {
         self.list.lock().pop_front()
+    }
+    pub fn peek(&self) -> Option<ServerboundGamePacket> {
+        self.list.lock().front().cloned()
     }
 }
 

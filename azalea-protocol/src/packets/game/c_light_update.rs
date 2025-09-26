@@ -2,7 +2,7 @@ use azalea_buf::AzBuf;
 use azalea_core::bitset::BitSet;
 use azalea_protocol_macros::ClientboundGamePacket;
 
-#[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
 pub struct ClientboundLightUpdate {
     #[var]
     pub x: i32,
@@ -11,7 +11,7 @@ pub struct ClientboundLightUpdate {
     pub light_data: ClientboundLightUpdatePacketData,
 }
 
-#[derive(Clone, Debug, AzBuf, Default)]
+#[derive(Clone, Debug, AzBuf, Default, PartialEq)]
 pub struct ClientboundLightUpdatePacketData {
     pub sky_y_mask: BitSet,
     pub block_y_mask: BitSet,

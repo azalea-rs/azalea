@@ -4,7 +4,7 @@ use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite};
 use azalea_chat::FormattedText;
 use azalea_protocol_macros::ClientboundGamePacket;
 
-#[derive(Clone, Debug, ClientboundGamePacket, AzBuf)]
+#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
 pub struct ClientboundMapItemData {
     #[var]
     pub map_id: u32,
@@ -14,7 +14,7 @@ pub struct ClientboundMapItemData {
     pub color_patch: OptionalMapPatch,
 }
 
-#[derive(Clone, Debug, AzBuf)]
+#[derive(Clone, Debug, AzBuf, PartialEq)]
 pub struct MapDecoration {
     pub decoration_type: DecorationType,
     pub x: i8,
@@ -25,7 +25,7 @@ pub struct MapDecoration {
     pub name: Option<FormattedText>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct OptionalMapPatch(pub Option<MapPatch>);
 
 impl AzaleaRead for OptionalMapPatch {
@@ -49,7 +49,7 @@ impl AzaleaWrite for OptionalMapPatch {
     }
 }
 
-#[derive(Debug, Clone, AzBuf)]
+#[derive(Debug, Clone, AzBuf, PartialEq)]
 pub struct MapPatch {
     pub width: u8,
     pub height: u8,
@@ -58,7 +58,7 @@ pub struct MapPatch {
     pub map_colors: Vec<u8>,
 }
 
-#[derive(Clone, Copy, Debug, AzBuf)]
+#[derive(Clone, Copy, Debug, AzBuf, PartialEq)]
 pub enum DecorationType {
     Player,
     Frame,

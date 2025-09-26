@@ -2,7 +2,7 @@ use azalea_buf::AzBuf;
 use azalea_inventory::ItemStack;
 use azalea_protocol_macros::ClientboundGamePacket;
 
-#[derive(Clone, Debug, AzBuf, ClientboundGamePacket, PartialEq)]
+#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
 pub struct ClientboundContainerSetContent {
     #[var]
     pub container_id: i32,

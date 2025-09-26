@@ -6,7 +6,7 @@ use azalea_protocol_macros::ClientboundGamePacket;
 
 use crate::common::recipe::{Ingredient, SlotDisplayData};
 
-#[derive(Clone, Debug, PartialEq, AzBuf, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
 pub struct ClientboundUpdateRecipes {
     pub item_sets: HashMap<ResourceLocation, RecipePropertySet>,
     pub stonecutter_recipes: Vec<SingleInputEntry>,

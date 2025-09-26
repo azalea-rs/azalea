@@ -34,7 +34,7 @@ def generate_packet(packets_report, packet_name, direction, state):
     code.append(f"use azalea_protocol_macros::{packet_derive_name};")
     code.append("")
 
-    code.append(f"#[derive(Clone, Debug, AzBuf, {packet_derive_name})]")
+    code.append(f"#[derive(Clone, Debug, AzBuf, PartialEq, {packet_derive_name})]")
     code.append(f"pub struct {packet_struct_name} {{")
     code.append("    TODO")
     code.append("}")

@@ -6,7 +6,7 @@ use azalea_protocol_macros::ServerboundGamePacket;
 
 use crate::packets::AzaleaWrite;
 
-#[derive(Clone, Debug, ServerboundGamePacket)]
+#[derive(Clone, Debug, PartialEq, ServerboundGamePacket)]
 pub struct ServerboundSetCommandBlock {
     pub pos: BlockPos,
     pub command: String,
@@ -17,7 +17,7 @@ pub struct ServerboundSetCommandBlock {
     pub automatic: bool,
 }
 
-#[derive(AzBuf, Clone, Copy, Debug)]
+#[derive(AzBuf, Clone, Copy, Debug, PartialEq)]
 pub enum Mode {
     Sequence = 0,
     Auto = 1,

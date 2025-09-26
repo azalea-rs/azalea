@@ -2,7 +2,7 @@ use azalea_buf::AzBuf;
 use azalea_core::position::BlockPos;
 use azalea_protocol_macros::ServerboundGamePacket;
 
-#[derive(Clone, Debug, AzBuf, ServerboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, PartialEq, ServerboundGamePacket)]
 pub struct ServerboundBlockEntityTagQuery {
     #[var]
     pub transaction_id: u32,

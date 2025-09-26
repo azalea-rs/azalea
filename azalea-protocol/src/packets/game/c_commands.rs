@@ -5,7 +5,7 @@ use azalea_core::{bitset::FixedBitSet, resource_location::ResourceLocation};
 use azalea_protocol_macros::ClientboundGamePacket;
 use tracing::warn;
 
-#[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
 pub struct ClientboundCommands {
     pub entries: Vec<BrigadierNodeStub>,
     #[var]

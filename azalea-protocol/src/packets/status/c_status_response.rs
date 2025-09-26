@@ -6,19 +6,19 @@ use azalea_protocol_macros::ClientboundStatusPacket;
 use serde::{Deserialize, Serialize};
 use serde_json::value::Serializer;
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct Version {
     pub name: String,
     pub protocol: i32,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct SamplePlayer {
     pub id: String,
     pub name: String,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct Players {
     pub max: i32,
     pub online: i32,
@@ -27,7 +27,7 @@ pub struct Players {
 }
 
 // the entire packet is just json, which is why it has deserialize
-#[derive(Clone, Debug, Serialize, Deserialize, ClientboundStatusPacket)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, ClientboundStatusPacket)]
 pub struct ClientboundStatusResponse {
     pub description: FormattedText,
     #[serde(default)]

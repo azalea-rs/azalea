@@ -1,6 +1,6 @@
 use std::fmt::{self, Display};
 
-use serde::{__private::ser::FlatMapSerializer, Serialize, Serializer, ser::SerializeMap};
+use serde::{Serialize, Serializer, ser::SerializeMap};
 
 use crate::{
     FormattedText,
@@ -25,7 +25,9 @@ impl Serialize for TextComponent {
 
         let mut state = serializer.serialize_map(None)?;
         state.serialize_entry("text", &self.text)?;
-        Serialize::serialize(&self.base, FlatMapSerializer(&mut state))?;
+
+        self.base.serialize_map::<S>(&mut state)?;
+
         if !self.base.siblings.is_empty() {
             state.serialize_entry("extra", &self.base.siblings)?;
         }

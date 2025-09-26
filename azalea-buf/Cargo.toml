@@ -9,6 +9,7 @@ repository.workspace = true
 [dependencies]
 azalea-buf-macros.workspace = true
 byteorder.workspace = true
+indexmap.workspace = true
 serde_json = { workspace = true, optional = true }
 simdnbt.workspace = true
 thiserror.workspace = true

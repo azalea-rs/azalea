@@ -1,4 +1,7 @@
-use std::io::{self, Cursor, Write};
+use std::{
+    io::{self, Cursor, Write},
+    ops::Range,
+};
 
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaWrite, BufReadError};
 
@@ -8,77 +11,87 @@ pub struct BitSet {
     data: Vec<u64>,
 }
 
-const ADDRESS_BITS_PER_WORD: usize = 6;
+/// `log2(64)`.
+const LOG2_BITS_PER_WORD: usize = 6;
 
 // the Index trait requires us to return a reference, but we can't do that
 impl BitSet {
+    #[inline]
     pub fn new(num_bits: usize) -> Self {
         BitSet {
             data: vec![0; num_bits.div_ceil(64)],
         }
     }
 
+    /// Returns the bit at the given index.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the index is out of bounds. Use [`Self::get`] for a
+    /// non-panicking version.
+    #[inline]
     pub fn index(&self, index: usize) -> bool {
-        (self.data[index / 64] & (1u64 << (index % 64))) != 0
+        self.get(index).unwrap_or_else(|| {
+            let len = self.len();
+            panic!("index out of bounds: the len is {len} but the index is {index}")
+        })
     }
 
-    fn check_range(&self, from_index: usize, to_index: usize) {
+    #[inline]
+    pub fn get(&self, index: usize) -> Option<bool> {
+        self.data
+            .get(index / 64)
+            .map(|word| (word & (1u64 << (index % 64))) != 0)
+    }
+
+    /// Zeros the bits in the given range.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the range is invalid (start > end).
+    pub fn clear(&mut self, range: Range<usize>) {
         assert!(
-            from_index <= to_index,
-            "fromIndex: {from_index} > toIndex: {to_index}",
+            range.start <= range.end,
+            "Range ends before it starts; {} must be greater than {}",
+            range.start,
+            range.end
         );
-    }
 
-    fn word_index(&self, bit_index: usize) -> usize {
-        bit_index >> ADDRESS_BITS_PER_WORD
-    }
+        let from_idx = range.start;
+        let mut to_idx = range.end;
 
-    pub fn clear(&mut self, from_index: usize, mut to_index: usize) {
-        self.check_range(from_index, to_index);
-
-        if from_index == to_index {
+        if from_idx == to_idx {
             return;
         }
 
-        let start_word_index = self.word_index(from_index);
-        if start_word_index >= self.data.len() {
+        let start_word_idx = self.word_index(from_idx);
+        if start_word_idx >= self.data.len() {
             return;
         }
 
-        let mut end_word_index = self.word_index(to_index - 1);
-        if end_word_index >= self.data.len() {
-            to_index = self.len();
-            end_word_index = self.data.len() - 1;
+        let mut end_word_idx = self.word_index(to_idx - 1);
+        if end_word_idx >= self.data.len() {
+            to_idx = self.len();
+            end_word_idx = self.data.len() - 1;
         }
 
         let first_word_mask = u64::MAX.wrapping_shl(
-            from_index
+            from_idx
                 .try_into()
                 .expect("from_index shouldn't be larger than u32"),
         );
-        let last_word_mask = u64::MAX.wrapping_shr((64 - (to_index % 64)) as u32);
-        if start_word_index == end_word_index {
-            // Case 1: One word
-            self.data[start_word_index] &= !(first_word_mask & last_word_mask);
+        let last_word_mask = u64::MAX.wrapping_shr((64 - (to_idx % 64)) as u32);
+        if start_word_idx == end_word_idx {
+            // one word
+            self.data[start_word_idx] &= !(first_word_mask & last_word_mask);
         } else {
-            // Case 2: Multiple words
-            // Handle first word
-            self.data[start_word_index] &= !first_word_mask;
-
-            // Handle intermediate words, if any
-            for i in start_word_index + 1..end_word_index {
+            // multiple words
+            self.data[start_word_idx] &= !first_word_mask;
+            for i in (start_word_idx + 1)..end_word_idx {
                 self.data[i] = 0;
             }
-
-            // Handle last word
-            self.data[end_word_index] &= !last_word_mask;
+            self.data[end_word_idx] &= !last_word_mask;
         }
-    }
-
-    /// Returns the maximum potential items in the BitSet. This will be
-    /// divisible by 64.
-    fn len(&self) -> usize {
-        self.data.len() * 64
     }
 
     /// Returns the index of the first bit that is set to `false`
@@ -103,8 +116,40 @@ impl BitSet {
         }
     }
 
+    #[inline]
+    fn word_index(&self, bit_index: usize) -> usize {
+        bit_index >> LOG2_BITS_PER_WORD
+    }
+
+    /// Sets the bit at the given index to true.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the index is out of bounds. Check [`Self::len`] first
+    /// if you need to avoid this.
+    #[inline]
     pub fn set(&mut self, bit_index: usize) {
         self.data[bit_index / 64] |= 1u64 << (bit_index % 64);
+    }
+
+    /// Returns the indices of all bits that are set to `true`.
+    pub fn iter_ones(&self) -> impl Iterator<Item = usize> {
+        (0..self.len()).filter(|i| self.index(*i))
+    }
+
+    /// Returns the maximum number of items that could be in this `BitSet`.
+    ///
+    /// This will always be a multiple of 64.
+    #[inline]
+    pub fn len(&self) -> usize {
+        self.data.len() * 64
+    }
+
+    /// Returns true if the `BitSet` was created with a size of 0.
+    ///
+    /// Equivalent to `self.len() == 0`.
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
     }
 }
 
@@ -273,7 +318,7 @@ mod tests {
         bitset.set(65);
         bitset.set(66);
 
-        bitset.clear(63, 65);
+        bitset.clear(63..65);
 
         assert!(bitset.index(62));
         assert!(!bitset.index(63));
@@ -291,7 +336,7 @@ mod tests {
         bitset.set(67);
         bitset.set(68);
 
-        bitset.clear(65, 67);
+        bitset.clear(65..67);
 
         assert!(bitset.index(64));
         assert!(!bitset.index(65));

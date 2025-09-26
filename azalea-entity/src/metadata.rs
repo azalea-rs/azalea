@@ -33,43 +33,43 @@ impl From<EntityDataValue> for UpdateMetadataError {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct OnFire(pub bool);
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct AbstractEntityShiftKeyDown(pub bool);
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct Sprinting(pub bool);
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct Swimming(pub bool);
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct CurrentlyGlowing(pub bool);
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct Invisible(pub bool);
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct FallFlying(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct AirSupply(pub i32);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct CustomName(pub Option<FormattedText>);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct CustomNameVisible(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct Silent(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct NoGravity(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct TicksFrozen(pub i32);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct Hurt(pub i32);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct Hurtdir(pub i32);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct Damage(pub f32);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct PaddleLeft(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct PaddleRight(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct BubbleTime(pub i32);
 #[derive(Component)]
 pub struct AcaciaBoat;
@@ -185,31 +185,31 @@ impl Default for AcaciaChestBoatMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct AutoSpinAttack(pub bool);
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct AbstractLivingUsingItem(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct Health(pub f32);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct EffectParticles(pub Vec<Particle>);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct EffectAmbience(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct ArrowCount(pub i32);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct StingerCount(pub i32);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct SleepingPos(pub Option<BlockPos>);
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct NoAi(pub bool);
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct LeftHanded(pub bool);
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct Aggressive(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct Dancing(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct CanDuplicate(pub bool);
 #[derive(Component)]
 pub struct Allay;
@@ -286,9 +286,9 @@ impl Default for AllayMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct Radius(pub f32);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct Waiting(pub bool);
 #[derive(Component)]
 pub struct AreaEffectCloud;
@@ -350,9 +350,9 @@ impl Default for AreaEffectCloudMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct AbstractAgeableBaby(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct ArmadilloState(pub ArmadilloStateKind);
 #[derive(Component)]
 pub struct Armadillo;
@@ -433,25 +433,25 @@ impl Default for ArmadilloMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct Small(pub bool);
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct ShowArms(pub bool);
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct ShowBasePlate(pub bool);
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct ArmorStandMarker(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct HeadPose(pub Rotations);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct BodyPose(pub Rotations);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct LeftArmPose(pub Rotations);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct RightArmPose(pub Rotations);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct LeftLegPose(pub Rotations);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct RightLegPose(pub Rotations);
 #[derive(Component)]
 pub struct ArmorStand;
@@ -554,15 +554,15 @@ impl Default for ArmorStandMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct CritArrow(pub bool);
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct NoPhysics(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct PierceLevel(pub u8);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct InGround(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct EffectColor(pub i32);
 #[derive(Component)]
 pub struct Arrow;
@@ -621,11 +621,11 @@ impl Default for ArrowMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct AxolotlVariant(pub i32);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct PlayingDead(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct AxolotlFromBucket(pub bool);
 #[derive(Component)]
 pub struct Axolotl;
@@ -830,7 +830,7 @@ impl Default for BambooRaftMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct Resting(pub bool);
 #[derive(Component)]
 pub struct Bat;
@@ -900,13 +900,13 @@ impl Default for BatMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct HasNectar(pub bool);
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct HasStung(pub bool);
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct BeeRolling(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct BeeRemainingAngerTime(pub i32);
 #[derive(Component)]
 pub struct Bee;
@@ -1113,7 +1113,7 @@ impl Default for BirchChestBoatMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct Charged(pub bool);
 #[derive(Component)]
 pub struct Blaze;
@@ -1189,37 +1189,37 @@ impl Default for BlazeMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct TransformationInterpolationStartDeltaTicks(pub i32);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct TransformationInterpolationDuration(pub i32);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct PosRotInterpolationDuration(pub i32);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct Translation(pub Vec3f32);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct Scale(pub Vec3f32);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct LeftRotation(pub Quaternion);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct RightRotation(pub Quaternion);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct BillboardRenderConstraints(pub u8);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct BrightnessOverride(pub i32);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct ViewRange(pub f32);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct ShadowRadius(pub f32);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct ShadowStrength(pub f32);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct AbstractDisplayWidth(pub f32);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct AbstractDisplayHeight(pub f32);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct GlowColorOverride(pub i32);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct BlockDisplayBlockState(pub azalea_block::BlockState);
 #[derive(Component)]
 pub struct BlockDisplay;
@@ -1308,7 +1308,7 @@ impl Default for BlockDisplayMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct BoggedSheared(pub bool);
 #[derive(Component)]
 pub struct Bogged;
@@ -1496,17 +1496,17 @@ impl Default for BreezeWindChargeMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct Tamed(pub bool);
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct Eating(pub bool);
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct AbstractHorseStanding(pub bool);
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct Bred(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct Dash(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct LastPoseChangeTick(pub i64);
 #[derive(Component)]
 pub struct Camel;
@@ -1599,19 +1599,19 @@ impl Default for CamelMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct Tame(pub bool);
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct InSittingPose(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct Owneruuid(pub Option<Uuid>);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct CatVariant(pub azalea_registry::CatVariant);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct IsLying(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct RelaxStateOne(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct CatCollarColor(pub i32);
 #[derive(Component)]
 pub struct Cat;
@@ -1713,7 +1713,7 @@ impl Default for CatMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct Climbing(pub bool);
 #[derive(Component)]
 pub struct CaveSpider;
@@ -1903,9 +1903,9 @@ impl Default for CherryChestBoatMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct CustomDisplayBlock(pub azalea_block::BlockState);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct DisplayOffset(pub i32);
 #[derive(Component)]
 pub struct ChestMinecart;
@@ -1963,7 +1963,7 @@ impl Default for ChestMinecartMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct ChickenVariant(pub azalea_registry::PigVariant);
 #[derive(Component)]
 pub struct Chicken;
@@ -2044,7 +2044,7 @@ impl Default for ChickenMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct AbstractFishFromBucket(pub bool);
 #[derive(Component)]
 pub struct Cod;
@@ -2115,9 +2115,9 @@ impl Default for CodMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct CommandName(pub String);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct LastOutput(pub FormattedText);
 #[derive(Component)]
 pub struct CommandBlockMinecart;
@@ -2185,9 +2185,9 @@ impl Default for CommandBlockMinecartMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct WeatherState(pub WeatheringCopperStateKind);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct CopperGolemState(pub CopperGolemStateKind);
 #[derive(Component)]
 pub struct CopperGolem;
@@ -2264,7 +2264,7 @@ impl Default for CopperGolemMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct CowVariant(pub azalea_registry::ChickenVariant);
 #[derive(Component)]
 pub struct Cow;
@@ -2345,13 +2345,13 @@ impl Default for CowMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct CanMove(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct IsActive(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct IsTearingDown(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct HomePos(pub Option<BlockPos>);
 #[derive(Component)]
 pub struct Creaking;
@@ -2441,11 +2441,11 @@ impl Default for CreakingMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct SwellDir(pub i32);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct IsPowered(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct IsIgnited(pub bool);
 #[derive(Component)]
 pub struct Creeper;
@@ -2644,9 +2644,9 @@ impl Default for DarkOakChestBoatMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct GotFish(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct MoistnessLevel(pub i32);
 #[derive(Component)]
 pub struct Dolphin;
@@ -2727,7 +2727,7 @@ impl Default for DolphinMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct Chest(pub bool);
 #[derive(Component)]
 pub struct Donkey;
@@ -2860,11 +2860,11 @@ impl Default for DragonFireballMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct ZombieBaby(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct SpecialType(pub i32);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct DrownedConversion(pub bool);
 #[derive(Component)]
 pub struct Drowned;
@@ -2942,7 +2942,7 @@ impl Default for DrownedMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct AbstractThrownItemProjectileItemStack(pub ItemStack);
 #[derive(Component)]
 pub struct Egg;
@@ -2995,9 +2995,9 @@ impl Default for EggMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct Moving(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct AttackTarget(pub i32);
 #[derive(Component)]
 pub struct ElderGuardian;
@@ -3074,9 +3074,9 @@ impl Default for ElderGuardianMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct BeamTarget(pub Option<BlockPos>);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct ShowBottom(pub bool);
 #[derive(Component)]
 pub struct EndCrystal;
@@ -3133,7 +3133,7 @@ impl Default for EndCrystalMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct Phase(pub i32);
 #[derive(Component)]
 pub struct EnderDragon;
@@ -3253,11 +3253,11 @@ impl Default for EnderPearlMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct CarryState(pub azalea_block::BlockState);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct Creepy(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct StaredAt(pub bool);
 #[derive(Component)]
 pub struct Enderman;
@@ -3410,9 +3410,9 @@ impl Default for EndermiteMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct IsCelebrating(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct SpellCasting(pub u8);
 #[derive(Component)]
 pub struct Evoker;
@@ -3588,7 +3588,7 @@ impl Default for ExperienceBottleMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct Value(pub i32);
 #[derive(Component)]
 pub struct ExperienceOrb;
@@ -3640,7 +3640,7 @@ impl Default for ExperienceOrbMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct EyeOfEnderItemStack(pub ItemStack);
 #[derive(Component)]
 pub struct EyeOfEnder;
@@ -3692,7 +3692,7 @@ impl Default for EyeOfEnderMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct StartPos(pub BlockPos);
 #[derive(Component)]
 pub struct FallingBlock;
@@ -3744,7 +3744,7 @@ impl Default for FallingBlockMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct FireballItemStack(pub ItemStack);
 #[derive(Component)]
 pub struct Fireball;
@@ -3796,11 +3796,11 @@ impl Default for FireballMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct FireworksItem(pub ItemStack);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct AttachedToTarget(pub OptionalUnsignedInt);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct ShotAtAngle(pub bool);
 #[derive(Component)]
 pub struct FireworkRocket;
@@ -3862,9 +3862,9 @@ impl Default for FireworkRocketMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct HookedEntity(pub i32);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct Biting(pub bool);
 #[derive(Component)]
 pub struct FishingBobber;
@@ -3921,25 +3921,25 @@ impl Default for FishingBobberMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct FoxKind(pub i32);
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct FoxSitting(pub bool);
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct Faceplanted(pub bool);
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct Defending(pub bool);
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct Sleeping(pub bool);
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct Pouncing(pub bool);
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct FoxCrouching(pub bool);
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct FoxInterested(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct TrustedId0(pub Option<Uuid>);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct TrustedId1(pub Option<Uuid>);
 #[derive(Component)]
 pub struct Fox;
@@ -4054,9 +4054,9 @@ impl Default for FoxMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct FrogVariant(pub azalea_registry::WolfSoundVariant);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct TongueTarget(pub OptionalUnsignedInt);
 #[derive(Component)]
 pub struct Frog;
@@ -4142,7 +4142,7 @@ impl Default for FrogMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct Fuel(pub bool);
 #[derive(Component)]
 pub struct FurnaceMinecart;
@@ -4205,7 +4205,7 @@ impl Default for FurnaceMinecartMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct IsCharging(pub bool);
 #[derive(Component)]
 pub struct Ghast;
@@ -4342,11 +4342,11 @@ impl Default for GiantMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct ItemFrameDirection(pub Direction);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct ItemFrameItem(pub ItemStack);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct Rotation(pub i32);
 #[derive(Component)]
 pub struct GlowItemFrame;
@@ -4399,7 +4399,7 @@ impl Default for GlowItemFrameMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct DarkTicksRemaining(pub i32);
 #[derive(Component)]
 pub struct GlowSquid;
@@ -4480,11 +4480,11 @@ impl Default for GlowSquidMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct IsScreamingGoat(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct HasLeftHorn(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct HasRightHorn(pub bool);
 #[derive(Component)]
 pub struct Goat;
@@ -4653,9 +4653,9 @@ impl Default for GuardianMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct IsLeashHolder(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct StaysStill(pub bool);
 #[derive(Component)]
 pub struct HappyGhast;
@@ -4741,7 +4741,7 @@ impl Default for HappyGhastMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct HoglinImmuneToZombification(pub bool);
 #[derive(Component)]
 pub struct Hoglin;
@@ -4878,7 +4878,7 @@ impl Default for HopperMinecartMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct HorseTypeVariant(pub i32);
 #[derive(Component)]
 pub struct Horse;
@@ -5120,11 +5120,11 @@ impl Default for IllusionerMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct InteractionWidth(pub f32);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct InteractionHeight(pub f32);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct Response(pub bool);
 #[derive(Component)]
 pub struct Interaction;
@@ -5186,7 +5186,7 @@ impl Default for InteractionMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct PlayerCreated(pub bool);
 #[derive(Component)]
 pub struct IronGolem;
@@ -5259,7 +5259,7 @@ impl Default for IronGolemMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct ItemItem(pub ItemStack);
 #[derive(Component)]
 pub struct Item;
@@ -5311,9 +5311,9 @@ impl Default for ItemMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct ItemDisplayItemStack(pub ItemStack);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct ItemDisplayItemDisplay(pub u8);
 #[derive(Component)]
 pub struct ItemDisplay;
@@ -5722,9 +5722,9 @@ impl Default for LingeringPotionMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct Strength(pub i32);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct LlamaVariant(pub i32);
 #[derive(Component)]
 pub struct Llama;
@@ -5867,7 +5867,7 @@ impl Default for LlamaSpitMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct SlimeSize(pub i32);
 #[derive(Component)]
 pub struct MagmaCube;
@@ -6049,15 +6049,15 @@ impl Default for MangroveChestBoatMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct MannequinPlayerMainHand(pub u8);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct MannequinPlayerModeCustomisation(pub u8);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct Profile(pub ResolvableProfile);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct Immovable(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct Description(pub Option<FormattedText>);
 #[derive(Component)]
 pub struct Mannequin;
@@ -6241,7 +6241,7 @@ impl Default for MinecartMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct MooshroomKind(pub i32);
 #[derive(Component)]
 pub struct Mooshroom;
@@ -6522,7 +6522,7 @@ impl Default for OakChestBoatMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct Trusting(pub bool);
 #[derive(Component)]
 pub struct Ocelot;
@@ -6603,7 +6603,7 @@ impl Default for OcelotMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct OminousItemSpawnerItem(pub ItemStack);
 #[derive(Component)]
 pub struct OminousItemSpawner;
@@ -6655,9 +6655,9 @@ impl Default for OminousItemSpawnerMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct PaintingDirection(pub Direction);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct PaintingVariant(pub azalea_registry::PaintingVariant);
 #[derive(Component)]
 pub struct Painting;
@@ -6828,23 +6828,23 @@ impl Default for PaleOakChestBoatMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct PandaUnhappyCounter(pub i32);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct SneezeCounter(pub i32);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct EatCounter(pub i32);
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct Sneezing(pub bool);
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct PandaSitting(pub bool);
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct OnBack(pub bool);
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct PandaRolling(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct HiddenGene(pub u8);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct PandaFlags(pub u8);
 #[derive(Component)]
 pub struct Panda;
@@ -6960,7 +6960,7 @@ impl Default for PandaMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct ParrotVariant(pub i32);
 #[derive(Component)]
 pub struct Parrot;
@@ -7047,7 +7047,7 @@ impl Default for ParrotMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct PhantomSize(pub i32);
 #[derive(Component)]
 pub struct Phantom;
@@ -7116,9 +7116,9 @@ impl Default for PhantomMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct PigBoostTime(pub i32);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct PigVariant(pub azalea_registry::FrogVariant);
 #[derive(Component)]
 pub struct Pig;
@@ -7204,13 +7204,13 @@ impl Default for PigMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct AbstractPiglinImmuneToZombification(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct PiglinBaby(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct PiglinIsChargingCrossbow(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct IsDancing(pub bool);
 #[derive(Component)]
 pub struct Piglin;
@@ -7375,7 +7375,7 @@ impl Default for PiglinBruteMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct PillagerIsChargingCrossbow(pub bool);
 #[derive(Component)]
 pub struct Pillager;
@@ -7456,17 +7456,17 @@ impl Default for PillagerMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct PlayerPlayerMainHand(pub u8);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct PlayerPlayerModeCustomisation(pub u8);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct PlayerAbsorption(pub f32);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct Score(pub i32);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct ShoulderParrotLeft(pub OptionalUnsignedInt);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct ShoulderParrotRight(pub OptionalUnsignedInt);
 #[derive(Component)]
 pub struct Player;
@@ -7554,7 +7554,7 @@ impl Default for PlayerMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct PolarBearStanding(pub bool);
 #[derive(Component)]
 pub struct PolarBear;
@@ -7635,9 +7635,9 @@ impl Default for PolarBearMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct PufferfishFromBucket(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct PuffState(pub i32);
 #[derive(Component)]
 pub struct Pufferfish;
@@ -7714,7 +7714,7 @@ impl Default for PufferfishMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct RabbitKind(pub i32);
 #[derive(Component)]
 pub struct Rabbit;
@@ -7869,7 +7869,7 @@ impl Default for RavagerMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct SalmonKind(pub i32);
 #[derive(Component)]
 pub struct Salmon;
@@ -7945,7 +7945,7 @@ impl Default for SalmonMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct SheepSheared(pub bool);
 #[derive(Component)]
 pub struct Sheep;
@@ -8027,11 +8027,11 @@ impl Default for SheepMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct AttachFace(pub Direction);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct Peek(pub u8);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct Color(pub u8);
 #[derive(Component)]
 pub struct Shulker;
@@ -8226,7 +8226,7 @@ impl Default for SilverfishMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct StrayConversion(pub bool);
 #[derive(Component)]
 pub struct Skeleton;
@@ -8449,7 +8449,7 @@ impl Default for SlimeMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct SmallFireballItemStack(pub ItemStack);
 #[derive(Component)]
 pub struct SmallFireball;
@@ -8501,9 +8501,9 @@ impl Default for SmallFireballMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct SnifferState(pub SnifferStateKind);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct DropSeedAtTick(pub i32);
 #[derive(Component)]
 pub struct Sniffer;
@@ -8589,7 +8589,7 @@ impl Default for SnifferMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone, Copy)]
+#[derive(Component, Deref, DerefMut, Clone, Copy, PartialEq)]
 pub struct HasPumpkin(pub bool);
 #[derive(Component)]
 pub struct SnowGolem;
@@ -9197,9 +9197,9 @@ impl Default for StrayMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct StriderBoostTime(pub i32);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct Suffocating(pub bool);
 #[derive(Component)]
 pub struct Strider;
@@ -9285,7 +9285,7 @@ impl Default for StriderMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct TadpoleFromBucket(pub bool);
 #[derive(Component)]
 pub struct Tadpole;
@@ -9357,15 +9357,15 @@ impl Default for TadpoleMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct Text(pub FormattedText);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct LineWidth(pub i32);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct BackgroundColor(pub i32);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct TextOpacity(pub u8);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct StyleFlags(pub u8);
 #[derive(Component)]
 pub struct TextDisplay;
@@ -9474,9 +9474,9 @@ impl Default for TextDisplayMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct Fuse(pub i32);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct TntBlockState(pub azalea_block::BlockState);
 #[derive(Component)]
 pub struct Tnt;
@@ -9682,9 +9682,9 @@ impl Default for TraderLlamaMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct Loyalty(pub u8);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct Foil(pub bool);
 #[derive(Component)]
 pub struct Trident;
@@ -9748,7 +9748,7 @@ impl Default for TridentMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct TropicalFishTypeVariant(pub i32);
 #[derive(Component)]
 pub struct TropicalFish;
@@ -9824,9 +9824,9 @@ impl Default for TropicalFishMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct HasEgg(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct LayingEgg(pub bool);
 #[derive(Component)]
 pub struct Turtle;
@@ -9912,7 +9912,7 @@ impl Default for TurtleMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct VexFlags(pub u8);
 #[derive(Component)]
 pub struct Vex;
@@ -9987,9 +9987,9 @@ impl Default for VexMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct AbstractVillagerUnhappyCounter(pub i32);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct VillagerVillagerData(pub VillagerData);
 #[derive(Component)]
 pub struct Villager;
@@ -10224,7 +10224,7 @@ impl Default for WanderingTraderMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct ClientAngerLevel(pub i32);
 #[derive(Component)]
 pub struct Warden;
@@ -10344,7 +10344,7 @@ impl Default for WindChargeMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct WitchUsingItem(pub bool);
 #[derive(Component)]
 pub struct Witch;
@@ -10425,13 +10425,13 @@ impl Default for WitchMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct TargetA(pub i32);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct TargetB(pub i32);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct TargetC(pub i32);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct Inv(pub i32);
 #[derive(Component)]
 pub struct Wither;
@@ -10589,7 +10589,7 @@ impl Default for WitherSkeletonMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct Dangerous(pub bool);
 #[derive(Component)]
 pub struct WitherSkull;
@@ -10641,15 +10641,15 @@ impl Default for WitherSkullMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct WolfInterested(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct WolfCollarColor(pub i32);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct WolfRemainingAngerTime(pub i32);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct WolfVariant(pub azalea_registry::CowVariant);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct SoundVariant(pub azalea_registry::WolfVariant);
 #[derive(Component)]
 pub struct Wolf;
@@ -10756,7 +10756,7 @@ impl Default for WolfMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct ZoglinBaby(pub bool);
 #[derive(Component)]
 pub struct Zoglin;
@@ -10995,9 +10995,9 @@ impl Default for ZombieHorseMetadataBundle {
     }
 }
 
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct Converting(pub bool);
-#[derive(Component, Deref, DerefMut, Clone)]
+#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct ZombieVillagerVillagerData(pub VillagerData);
 #[derive(Component)]
 pub struct ZombieVillager;

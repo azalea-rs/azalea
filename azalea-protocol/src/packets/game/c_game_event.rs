@@ -1,13 +1,13 @@
 use azalea_buf::AzBuf;
 use azalea_protocol_macros::ClientboundGamePacket;
 
-#[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
 pub struct ClientboundGameEvent {
     pub event: EventType,
     pub param: f32,
 }
 
-#[derive(Clone, Debug, Copy, AzBuf)]
+#[derive(Clone, Debug, Copy, AzBuf, PartialEq)]
 pub enum EventType {
     NoRespawnBlockAvailable = 0,
     StartRaining = 1,

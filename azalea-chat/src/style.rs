@@ -2,7 +2,7 @@ use std::{collections::HashMap, fmt, sync::LazyLock};
 
 #[cfg(feature = "azalea-buf")]
 use azalea_buf::AzBuf;
-use serde::{Serialize, Serializer};
+use serde::{Serialize, Serializer, ser::SerializeMap};
 use serde_json::Value;
 #[cfg(feature = "simdnbt")]
 use simdnbt::owned::{NbtCompound, NbtTag};
@@ -304,136 +304,119 @@ impl TryFrom<ChatFormatting> for TextColor {
     }
 }
 
-#[derive(Clone, Debug, Default, PartialEq, serde::Serialize)]
-#[non_exhaustive]
-pub struct Style {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub color: Option<TextColor>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub shadow_color: Option<u32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub bold: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub italic: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub underlined: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub strikethrough: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub obfuscated: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub click_event: Option<ClickEvent>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub hover_event: Option<HoverEvent>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub insertion: Option<String>,
-    /// Represented as a `ResourceLocation`.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub font: Option<String>,
+macro_rules! define_style_struct {
+    ($($(#[$doc:meta])* $field:ident : $type:ty),* $(,)?) => {
+        #[derive(Clone, Debug, Default, PartialEq, serde::Serialize)]
+        #[non_exhaustive]
+        pub struct Style {
+            $(
+                #[serde(skip_serializing_if = "Option::is_none")]
+                $(#[$doc])*
+                pub $field: Option<$type>,
+            )*
+        }
+
+        impl Style {
+            $(
+                pub fn $field(mut self, value: impl Into<Option<$type>>) -> Self {
+                    self.$field = value.into();
+                    self
+                }
+            )*
+
+            pub fn serialize_map<S>(&self, state: &mut S::SerializeMap) -> Result<(), S::Error>
+            where
+                S: serde::Serializer,
+            {
+                $(
+                    if let Some(value) = &self.$field {
+                        state.serialize_entry(stringify!($field), value)?;
+                    }
+                )*
+                Ok(())
+            }
+
+            /// Apply another style to this one
+            pub fn apply(&mut self, style: &Style) {
+                $(
+                    if let Some(value) = &style.$field {
+                        self.$field = Some(value.clone());
+                    }
+                )*
+            }
+        }
+
+        #[cfg(feature = "simdnbt")]
+        impl simdnbt::Serialize for Style {
+            fn to_compound(self) -> NbtCompound {
+                let mut compound = NbtCompound::new();
+
+                $(
+                    if let Some(value) = self.$field {
+                        compound.insert(stringify!($field), value);
+                    }
+                )*
+
+                compound
+            }
+        }
+    };
 }
+
+define_style_struct! {
+    color: TextColor,
+    shadow_color: u32,
+    bold: bool,
+    italic: bool,
+    underlined: bool,
+    strikethrough: bool,
+    obfuscated: bool,
+    click_event: ClickEvent,
+    hover_event: HoverEvent,
+    insertion: String,
+    /// Represented as a `ResourceLocation`.
+    font: String,
+}
+
 impl Style {
     pub fn new() -> Self {
         Self::default()
     }
-    pub fn color(mut self, color: impl Into<Option<TextColor>>) -> Self {
-        self.color = color.into();
-        self
-    }
-    pub fn shadow_color(mut self, color: impl Into<Option<u32>>) -> Self {
-        self.shadow_color = color.into();
-        self
-    }
-    pub fn bold(mut self, bold: impl Into<Option<bool>>) -> Self {
-        self.bold = bold.into();
-        self
-    }
-    pub fn italic(mut self, italic: impl Into<Option<bool>>) -> Self {
-        self.italic = italic.into();
-        self
-    }
-    pub fn underlined(mut self, underlined: impl Into<Option<bool>>) -> Self {
-        self.underlined = underlined.into();
-        self
-    }
-    pub fn strikethrough(mut self, strikethrough: impl Into<Option<bool>>) -> Self {
-        self.strikethrough = strikethrough.into();
-        self
-    }
-    pub fn obfuscated(mut self, obfuscated: impl Into<Option<bool>>) -> Self {
-        self.obfuscated = obfuscated.into();
-        self
-    }
-    pub fn click_event(mut self, click_event: impl Into<Option<ClickEvent>>) -> Self {
-        self.click_event = click_event.into();
-        self
-    }
-    pub fn hover_event(mut self, hover_event: impl Into<Option<HoverEvent>>) -> Self {
-        self.hover_event = hover_event.into();
-        self
-    }
-    pub fn insertion(mut self, insertion: impl Into<Option<String>>) -> Self {
-        self.insertion = insertion.into();
-        self
-    }
-    pub fn font(mut self, font: impl Into<Option<String>>) -> Self {
-        self.font = font.into();
-        self
-    }
-}
 
-#[cfg(feature = "simdnbt")]
-fn simdnbt_serialize_field(
-    compound: &mut simdnbt::owned::NbtCompound,
-    name: &'static str,
-    value: Option<impl simdnbt::ToNbtTag>,
-) {
-    if let Some(value) = value {
-        compound.insert(name, value);
-    }
-}
-
-#[cfg(feature = "simdnbt")]
-impl simdnbt::Serialize for Style {
-    fn to_compound(self) -> NbtCompound {
-        let mut compound = NbtCompound::new();
-
-        simdnbt_serialize_field(&mut compound, "color", self.color);
-        simdnbt_serialize_field(&mut compound, "bold", self.bold);
-        simdnbt_serialize_field(&mut compound, "italic", self.italic);
-        simdnbt_serialize_field(&mut compound, "underlined", self.underlined);
-        simdnbt_serialize_field(&mut compound, "strikethrough", self.strikethrough);
-        simdnbt_serialize_field(&mut compound, "obfuscated", self.obfuscated);
-
-        compound
-    }
-}
-
-impl Style {
     pub fn empty() -> Self {
         Self::default()
     }
 
     pub fn deserialize(json: &Value) -> Style {
-        let Some(json_object) = json.as_object() else {
+        let Some(j) = json.as_object() else {
             return Style::default();
         };
-        let bold = json_object.get("bold").and_then(|v| v.as_bool());
-        let italic = json_object.get("italic").and_then(|v| v.as_bool());
-        let underlined = json_object.get("underlined").and_then(|v| v.as_bool());
-        let strikethrough = json_object.get("strikethrough").and_then(|v| v.as_bool());
-        let obfuscated = json_object.get("obfuscated").and_then(|v| v.as_bool());
-        let color: Option<TextColor> = json_object
-            .get("color")
-            .and_then(|v| v.as_str())
-            .and_then(TextColor::parse);
+
         Style {
-            color,
-            bold,
-            italic,
-            underlined,
-            strikethrough,
-            obfuscated,
-            ..Style::default()
+            color: j
+                .get("color")
+                .and_then(|v| v.as_str())
+                .and_then(TextColor::parse),
+            shadow_color: j
+                .get("shadow_color")
+                .and_then(|v| v.as_u64())
+                .map(|v| v as u32),
+            bold: j.get("bold").and_then(|v| v.as_bool()),
+            italic: j.get("italic").and_then(|v| v.as_bool()),
+            underlined: j.get("underlined").and_then(|v| v.as_bool()),
+            strikethrough: j.get("strikethrough").and_then(|v| v.as_bool()),
+            obfuscated: j.get("obfuscated").and_then(|v| v.as_bool()),
+            // TODO: impl deserialize functions for click_event and hover_event
+            click_event: Default::default(),
+            hover_event: Default::default(),
+            insertion: j
+                .get("insertion")
+                .and_then(|v| v.as_str())
+                .map(|s| s.to_string()),
+            font: j
+                .get("font")
+                .and_then(|v| v.as_str())
+                .map(|s| s.to_string()),
         }
     }
 
@@ -511,28 +494,6 @@ impl Style {
         }
 
         ansi_codes
-    }
-
-    /// Apply another style to this one
-    pub fn apply(&mut self, style: &Style) {
-        if let Some(color) = &style.color {
-            self.color = Some(color.clone());
-        }
-        if let Some(bold) = &style.bold {
-            self.bold = Some(*bold);
-        }
-        if let Some(italic) = &style.italic {
-            self.italic = Some(*italic);
-        }
-        if let Some(underlined) = &style.underlined {
-            self.underlined = Some(*underlined);
-        }
-        if let Some(strikethrough) = &style.strikethrough {
-            self.strikethrough = Some(*strikethrough);
-        }
-        if let Some(obfuscated) = &style.obfuscated {
-            self.obfuscated = Some(*obfuscated);
-        }
     }
 
     /// Returns a new style that is a merge of self and other.

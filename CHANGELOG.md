@@ -10,13 +10,15 @@ is breaking anyways, semantic versioning is not followed.
 
 ### Added
 
+- Sneaking/crouching.
 - `HitResult` now contains the entity that's being looked at.
 - A `QueuedServerBlockUpdates` component that keeps track of block updates per `Update`.
 - Local clients now have a `TicksConnected` component. (@Kumpelinus)
 - There is now a `azalea_inventory::default_components::get_default_component` function to get the default value of a component for a registry item.
 - `ItemStack` now has a `get_component` function that supports default components.
 - `Client::nearest_entity_by`.
-- Sneaking/crouching.
+- `BitSet::len`, `BitSet::get`, `BitSet::iter_ones`.
+- All packets are now `PartialEq`.
 
 ### Changed
 

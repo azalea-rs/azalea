@@ -1,22 +1,25 @@
-use std::collections::HashMap;
-use std::io::{self, Cursor, Write};
+use std::{
+    collections::HashMap,
+    io::{self, Cursor, Write},
+};
 
 use azalea_buf::AzBuf;
 use azalea_chat::FormattedText;
 use azalea_core::resource_location::ResourceLocation;
 use azalea_inventory::ItemStack;
 use azalea_protocol_macros::ClientboundGamePacket;
+use indexmap::IndexMap;
 
-#[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
 pub struct ClientboundUpdateAdvancements {
     pub reset: bool,
     pub added: Vec<AdvancementHolder>,
     pub removed: Vec<ResourceLocation>,
-    pub progress: HashMap<ResourceLocation, AdvancementProgress>,
+    pub progress: IndexMap<ResourceLocation, AdvancementProgress>,
     pub show_advancements: bool,
 }
 
-#[derive(Clone, Debug, AzBuf)]
+#[derive(Clone, Debug, AzBuf, PartialEq)]
 pub struct Advancement {
     pub parent_id: Option<ResourceLocation>,
     pub display: Option<DisplayInfo>,
@@ -24,7 +27,7 @@ pub struct Advancement {
     pub sends_telemetry_event: bool,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct DisplayInfo {
     pub title: FormattedText,
     pub description: FormattedText,
@@ -97,7 +100,7 @@ impl azalea_buf::AzaleaRead for DisplayInfo {
     }
 }
 
-#[derive(Clone, Debug, Copy, AzBuf)]
+#[derive(Clone, Debug, Copy, AzBuf, PartialEq)]
 pub enum FrameType {
     Task = 0,
     Challenge = 1,
@@ -106,12 +109,12 @@ pub enum FrameType {
 
 pub type AdvancementProgress = HashMap<String, CriterionProgress>;
 
-#[derive(Clone, Debug, AzBuf)]
+#[derive(Clone, Debug, AzBuf, PartialEq)]
 pub struct CriterionProgress {
     pub date: Option<u64>,
 }
 
-#[derive(Clone, Debug, AzBuf)]
+#[derive(Clone, Debug, AzBuf, PartialEq)]
 pub struct AdvancementHolder {
     pub id: ResourceLocation,
     pub value: Advancement,

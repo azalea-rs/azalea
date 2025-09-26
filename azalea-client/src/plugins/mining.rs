@@ -8,7 +8,7 @@ use azalea_world::{InstanceContainer, InstanceName};
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
-use tracing::trace;
+use tracing::{debug, trace};
 
 use crate::{
     Client,
@@ -35,14 +35,14 @@ impl Plugin for MiningPlugin {
                 GameTick,
                 (
                     update_mining_component,
-                    continue_mining_block,
                     handle_auto_mine,
                     handle_mining_queued,
+                    continue_mining_block,
                 )
                     .chain()
-                    .after(PhysicsSet)
-                    .after(super::movement::send_position)
-                    .after(super::attack::handle_attack_queued)
+                    .before(PhysicsSet)
+                    .before(super::movement::send_position)
+                    .before(super::interact::handle_start_use_item_queued)
                     .in_set(MiningSet),
             )
             .add_systems(
@@ -181,6 +181,10 @@ fn handle_start_mining_block_event(
             // we're looking at the block
             (block_hit_result.direction, false)
         } else {
+            debug!(
+                "Got StartMiningBlockEvent but we're not looking at the block ({:?}.block_pos != {:?}). Picking an arbitrary direction instead.",
+                hit_result, event.position
+            );
             // we're not looking at the block, arbitrary direction
             (Direction::Down, true)
         };
@@ -201,7 +205,7 @@ pub struct MiningQueued {
     pub force: bool,
 }
 #[allow(clippy::too_many_arguments, clippy::type_complexity)]
-fn handle_mining_queued(
+pub fn handle_mining_queued(
     mut commands: Commands,
     mut attack_block_events: EventWriter<AttackBlockEvent>,
     mut mine_block_progress_events: EventWriter<MineBlockProgressEvent>,
@@ -358,9 +362,9 @@ fn handle_mining_queued(
                     seq: sequence_number.start_predicting(),
                 },
             ));
-            // vanilla really does send two swing arm packets
             commands.trigger(SwingArmEvent { entity });
-            commands.trigger(SwingArmEvent { entity });
+            // another swing packet gets sent in the same tick in
+            // continue_mining_block, vanilla does this too
         }
     }
 }
@@ -687,9 +691,18 @@ pub fn update_mining_component(
 ) {
     for (entity, mut mining, hit_result_component) in &mut query.iter_mut() {
         if let Some(block_hit_result) = hit_result_component.as_block_hit_result_if_not_miss() {
+            if mining.force && block_hit_result.block_pos != mining.pos {
+                continue;
+            }
+
             mining.pos = block_hit_result.block_pos;
             mining.dir = block_hit_result.direction;
         } else {
+            if mining.force {
+                continue;
+            }
+
+            debug!("Removing mining component because we're no longer looking at the block");
             commands.entity(entity).remove::<Mining>();
         }
     }

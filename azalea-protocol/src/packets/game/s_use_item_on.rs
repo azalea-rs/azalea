@@ -10,7 +10,7 @@ use azalea_protocol_macros::ServerboundGamePacket;
 
 use crate::packets::game::s_interact::InteractionHand;
 
-#[derive(Clone, Debug, AzBuf, ServerboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, PartialEq, ServerboundGamePacket)]
 pub struct ServerboundUseItemOn {
     pub hand: InteractionHand,
     pub block_hit: BlockHit,
@@ -18,7 +18,7 @@ pub struct ServerboundUseItemOn {
     pub seq: u32,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct BlockHit {
     /// The block that we clicked.
     pub block_pos: BlockPos,

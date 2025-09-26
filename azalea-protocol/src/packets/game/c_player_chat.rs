@@ -12,7 +12,7 @@ use azalea_registry::Holder;
 use simdnbt::owned::NbtCompound;
 use uuid::Uuid;
 
-#[derive(Clone, Debug, AzBuf, ClientboundGamePacket, PartialEq)]
+#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
 pub struct ClientboundPlayerChat {
     #[var]
     pub global_index: u32,

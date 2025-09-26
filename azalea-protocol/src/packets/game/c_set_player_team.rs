@@ -2,13 +2,13 @@ use azalea_buf::AzBuf;
 use azalea_chat::{FormattedText, style::ChatFormatting};
 use azalea_protocol_macros::ClientboundGamePacket;
 
-#[derive(Clone, Debug, AzBuf, ClientboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
 pub struct ClientboundSetPlayerTeam {
     pub name: String,
     pub method: Method,
 }
 
-#[derive(Clone, Debug, AzBuf)]
+#[derive(Clone, Debug, AzBuf, PartialEq)]
 pub enum Method {
     Add((Parameters, PlayerList)),
     Remove,
@@ -17,7 +17,7 @@ pub enum Method {
     Leave(PlayerList),
 }
 
-#[derive(Clone, Debug, AzBuf)]
+#[derive(Clone, Debug, AzBuf, PartialEq)]
 pub struct Parameters {
     pub display_name: FormattedText,
     pub options: u8,
@@ -28,7 +28,7 @@ pub struct Parameters {
     pub player_suffix: FormattedText,
 }
 
-#[derive(Clone, Copy, Debug, AzBuf)]
+#[derive(Clone, Copy, Debug, AzBuf, PartialEq)]
 pub enum CollisionRule {
     Always,
     Never,
@@ -36,7 +36,7 @@ pub enum CollisionRule {
     PushOwnTeam,
 }
 
-#[derive(Clone, Copy, Debug, AzBuf)]
+#[derive(Clone, Copy, Debug, AzBuf, PartialEq)]
 pub enum NameTagVisibility {
     Always,
     Never,

@@ -7,7 +7,7 @@ use azalea_world::MinecraftEntityId;
 
 use crate::packets::BufReadError;
 
-#[derive(Clone, Debug, AzBuf, ServerboundGamePacket)]
+#[derive(Clone, Debug, AzBuf, PartialEq, ServerboundGamePacket)]
 pub struct ServerboundInteract {
     #[var]
     pub entity_id: MinecraftEntityId,
@@ -16,7 +16,7 @@ pub struct ServerboundInteract {
     pub using_secondary_action: bool,
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum ActionType {
     Interact {
         hand: InteractionHand,
@@ -80,7 +80,7 @@ impl AzaleaRead for ActionType {
     }
 }
 
-#[derive(AzBuf, Clone, Copy, Debug, Default)]
+#[derive(AzBuf, Clone, Copy, Debug, Default, PartialEq)]
 pub enum InteractionHand {
     #[default]
     MainHand = 0,

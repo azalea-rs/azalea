@@ -11,7 +11,7 @@ use super::c_player_chat::ChatTypeBound;
 // [`ClientboundPlayerChat`], except that it doesn't have any of the chat
 // signing things. Vanilla servers use this when messages are sent from the
 // console.
-#[derive(Clone, Debug, AzBuf, ClientboundGamePacket, PartialEq)]
+#[derive(Clone, Debug, AzBuf, PartialEq, ClientboundGamePacket)]
 pub struct ClientboundDisguisedChat {
     pub message: FormattedText,
     pub chat_type: ChatTypeBound,
