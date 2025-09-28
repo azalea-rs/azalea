@@ -7,7 +7,7 @@ license.workspace = true
 repository.workspace = true
 
 [dev-dependencies]
-azalea-client.workspace = true
+azalea-client.path = "../azalea-client"
 criterion.workspace = true
 
 [dependencies]
