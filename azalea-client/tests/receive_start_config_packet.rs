@@ -1,7 +1,5 @@
 use azalea_client::{InConfigState, packet::game::SendPacketEvent, test_utils::prelude::*};
-use azalea_core::resource_location::ResourceLocation;
 use azalea_protocol::packets::{ConnectionProtocol, game::ClientboundStartConfiguration};
-use azalea_registry::{DataRegistry, DimensionType};
 use azalea_world::InstanceName;
 use bevy_ecs::event::Events;
 
@@ -10,10 +8,7 @@ fn test_receive_start_config_packet() {
     init_tracing();
 
     let mut simulation = Simulation::new(ConnectionProtocol::Game);
-    simulation.receive_packet(make_basic_login_packet(
-        DimensionType::new_raw(0),
-        ResourceLocation::new("minecraft:overworld"),
-    ));
+    simulation.receive_packet(default_login_packet());
     simulation.tick();
     assert!(simulation.has_component::<InstanceName>());
     simulation.tick();

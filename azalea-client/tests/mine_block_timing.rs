@@ -2,7 +2,6 @@ use azalea_client::{mining::StartMiningBlockEvent, test_utils::prelude::*};
 use azalea_core::{
     direction::Direction,
     position::{BlockPos, ChunkPos, Vec3},
-    resource_location::ResourceLocation,
 };
 use azalea_entity::LookDirection;
 use azalea_protocol::{
@@ -16,7 +15,7 @@ use azalea_protocol::{
         },
     },
 };
-use azalea_registry::{Block, DataRegistry, DimensionType};
+use azalea_registry::Block;
 
 #[test]
 fn test_mine_block_timing() {
@@ -24,10 +23,7 @@ fn test_mine_block_timing() {
 
     let mut simulation = Simulation::new(ConnectionProtocol::Game);
     let sent_packets = SentPackets::new(&mut simulation);
-    simulation.receive_packet(make_basic_login_packet(
-        DimensionType::new_raw(0),
-        ResourceLocation::new("azalea:overworld"),
-    ));
+    simulation.receive_packet(default_login_packet());
 
     simulation.receive_packet(make_basic_empty_chunk(ChunkPos::new(0, 0), (384 + 64) / 16));
     simulation.tick();

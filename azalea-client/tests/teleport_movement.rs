@@ -2,14 +2,12 @@ use azalea_client::test_utils::prelude::*;
 use azalea_core::{
     delta::PositionDelta8,
     position::{BlockPos, ChunkPos, Vec3},
-    resource_location::ResourceLocation,
 };
 use azalea_entity::LookDirection;
 use azalea_protocol::{
     common::movements::{MoveFlags, PositionMoveRotation, RelativeMovements},
     packets::{
         ConnectionProtocol,
-        config::{ClientboundFinishConfiguration, ClientboundRegistryData},
         game::{
             ClientboundBlockUpdate, ClientboundForgetLevelChunk, ClientboundPing,
             ClientboundPlayerPosition, ClientboundSetChunkCacheCenter, ClientboundSetEntityMotion,
@@ -17,37 +15,17 @@ use azalea_protocol::{
         },
     },
 };
-use azalea_registry::{Block, DataRegistry, DimensionType};
+use azalea_registry::Block;
 use azalea_world::MinecraftEntityId;
-use simdnbt::owned::{NbtCompound, NbtTag};
 
 #[test]
 fn test_teleport_movement() {
     init_tracing();
 
-    let mut simulation = Simulation::new(ConnectionProtocol::Configuration);
+    let mut simulation = Simulation::new(ConnectionProtocol::Game);
     let sent_packets = SentPackets::new(&mut simulation);
 
-    simulation.receive_packet(ClientboundRegistryData {
-        registry_id: ResourceLocation::new("minecraft:dimension_type"),
-        entries: vec![(
-            ResourceLocation::new("minecraft:overworld"),
-            Some(NbtCompound::from_values(vec![
-                ("height".into(), NbtTag::Int(384)),
-                ("min_y".into(), NbtTag::Int(-64)),
-            ])),
-        )]
-        .into_iter()
-        .collect(),
-    });
-    simulation.tick();
-    simulation.receive_packet(ClientboundFinishConfiguration);
-    simulation.tick();
-
-    simulation.receive_packet(make_basic_login_packet(
-        DimensionType::new_raw(0), // overworld
-        ResourceLocation::new("minecraft:overworld"),
-    ));
+    simulation.receive_packet(default_login_packet());
     simulation.tick();
 
     sent_packets.expect_tick_end();

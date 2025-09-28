@@ -128,7 +128,7 @@ impl Simulation {
         self.app.world().get::<T>(self.entity).is_some()
     }
     pub fn with_component<T: Component>(&self, f: impl FnOnce(&T)) {
-        f(&mut self.app.world().entity(self.entity).get::<T>().unwrap());
+        f(self.app.world().entity(self.entity).get::<T>().unwrap());
     }
     pub fn with_component_mut<T: Component<Mutability = Mutable>>(
         &mut self,
