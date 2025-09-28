@@ -1,6 +1,6 @@
 use std::{sync::Arc, time::Duration};
 
-use bevy_ecs::{entity::Entity, event::Event};
+use bevy_ecs::prelude::*;
 
 use crate::pathfinder::{
     astar::PathfinderTimeout,
@@ -16,7 +16,7 @@ use crate::pathfinder::{
 ///
 /// [`goto_listener`]: crate::pathfinder::goto_listener
 /// [`PathfinderClientExt::goto`]: crate::pathfinder::PathfinderClientExt::goto
-#[derive(Event)]
+#[derive(Message)]
 #[non_exhaustive]
 pub struct GotoEvent {
     /// The local bot entity that will do the pathfinding and execute the path.

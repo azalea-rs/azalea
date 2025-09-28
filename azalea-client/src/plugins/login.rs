@@ -23,12 +23,12 @@ impl Plugin for LoginPlugin {
     }
 }
 
-fn handle_receive_hello_event(trigger: Trigger<ReceiveHelloEvent>, mut commands: Commands) {
+fn handle_receive_hello_event(receive_hello: On<ReceiveHelloEvent>, mut commands: Commands) {
     let task_pool = IoTaskPool::get();
 
-    let account = trigger.account.clone();
-    let packet = trigger.packet.clone();
-    let player = trigger.target();
+    let account = receive_hello.account.clone();
+    let packet = receive_hello.packet.clone();
+    let player = receive_hello.entity;
 
     let task = task_pool.spawn(auth_with_account(account, packet));
     commands.entity(player).insert(AuthTask(task));
@@ -149,7 +149,7 @@ pub async fn auth_with_account(
 
 pub fn reply_to_custom_queries(
     mut commands: Commands,
-    mut events: EventReader<ReceiveCustomQueryEvent>,
+    mut events: MessageReader<ReceiveCustomQueryEvent>,
 ) {
     for event in events.read() {
         trace!("Maybe replying to custom query: {event:?}");

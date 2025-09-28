@@ -13,7 +13,7 @@ use azalea_inventory::{
 use azalea_physics::collision::BlockWithShape;
 use azalea_protocol::packets::game::ClientboundGamePacket;
 use bevy_app::{App, Plugin, Update};
-use bevy_ecs::{component::Component, prelude::EventReader, system::Commands};
+use bevy_ecs::{component::Component, prelude::MessageReader, system::Commands};
 use derive_more::Deref;
 use futures_lite::Future;
 
@@ -126,14 +126,11 @@ impl ContainerClientExt for Client {
     }
 
     fn get_inventory(&self) -> ContainerHandleRef {
-        let ecs = self.ecs.lock();
-        let inventory = ecs.get::<Inventory>(self.entity).expect("no inventory");
-        ContainerHandleRef::new(inventory.id, self.clone())
+        self.query_self::<&Inventory, _>(|inv| ContainerHandleRef::new(inv.id, self.clone()))
     }
 
     fn get_held_item(&self) -> ItemStack {
-        self.map_get_component::<Inventory, _>(|inventory| inventory.held_item())
-            .expect("no inventory")
+        self.query_self::<&Inventory, _>(|inv| inv.held_item())
     }
 }
 
@@ -156,7 +153,7 @@ impl ContainerHandleRef {
     }
 
     pub fn close(&self) {
-        self.client.ecs.lock().send_event(CloseContainerEvent {
+        self.client.ecs.lock().trigger(CloseContainerEvent {
             entity: self.client.entity,
             id: self.id,
         });
@@ -228,7 +225,7 @@ impl ContainerHandleRef {
     /// action.
     pub fn click(&self, operation: impl Into<ClickOperation>) {
         let operation = operation.into();
-        self.client.ecs.lock().send_event(ContainerClickEvent {
+        self.client.ecs.lock().trigger(ContainerClickEvent {
             entity: self.client.entity,
             window_id: self.id,
             operation,
@@ -269,7 +266,7 @@ pub struct WaitingForInventoryOpen;
 
 pub fn handle_menu_opened_event(
     mut commands: Commands,
-    mut events: EventReader<ReceiveGamePacketEvent>,
+    mut events: MessageReader<ReceiveGamePacketEvent>,
 ) {
     for event in events.read() {
         if let ClientboundGamePacket::ContainerSetContent { .. } = event.packet.as_ref() {

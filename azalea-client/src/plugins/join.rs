@@ -30,8 +30,8 @@ use crate::{
 pub struct JoinPlugin;
 impl Plugin for JoinPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<StartJoinServerEvent>()
-            .add_event::<ConnectionFailedEvent>()
+        app.add_message::<StartJoinServerEvent>()
+            .add_message::<ConnectionFailedEvent>()
             .add_systems(
                 Update,
                 (
@@ -47,7 +47,7 @@ impl Plugin for JoinPlugin {
 ///
 /// This won't do anything if a client with the Account UUID is already
 /// connected to the server.
-#[derive(Event, Debug)]
+#[derive(Message, Debug)]
 pub struct StartJoinServerEvent {
     pub account: Account,
     pub connect_opts: ConnectOpts,
@@ -74,7 +74,7 @@ pub struct ConnectOpts {
 /// This isn't sent if we're kicked later, see [`DisconnectEvent`].
 ///
 /// [`DisconnectEvent`]: crate::disconnect::DisconnectEvent
-#[derive(Event)]
+#[derive(Message)]
 pub struct ConnectionFailedEvent {
     pub entity: Entity,
     pub error: ConnectionError,
@@ -82,7 +82,7 @@ pub struct ConnectionFailedEvent {
 
 pub fn handle_start_join_server_event(
     mut commands: Commands,
-    mut events: EventReader<StartJoinServerEvent>,
+    mut events: MessageReader<StartJoinServerEvent>,
     mut entity_uuid_index: ResMut<EntityUuidIndex>,
     connection_query: Query<&RawConnection>,
 ) {
@@ -184,7 +184,7 @@ pub struct CreateConnectionTask(pub Task<Result<LoginConn, ConnectionError>>);
 pub fn poll_create_connection_task(
     mut commands: Commands,
     mut query: Query<(Entity, &mut CreateConnectionTask, &Account)>,
-    mut connection_failed_events: EventWriter<ConnectionFailedEvent>,
+    mut connection_failed_events: MessageWriter<ConnectionFailedEvent>,
 ) {
     for (entity, mut task, account) in query.iter_mut() {
         if let Some(poll_res) = future::block_on(future::poll_once(&mut task.0)) {

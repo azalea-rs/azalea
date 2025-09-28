@@ -5,7 +5,7 @@ use bevy_ecs::prelude::*;
 use crate::packet::game::SendPacketEvent;
 
 /// Tell the server that we're respawning.
-#[derive(Event, Debug, Clone)]
+#[derive(Message, Debug, Clone)]
 pub struct PerformRespawnEvent {
     pub entity: Entity,
 }
@@ -14,12 +14,12 @@ pub struct PerformRespawnEvent {
 pub struct RespawnPlugin;
 impl Plugin for RespawnPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<PerformRespawnEvent>()
+        app.add_message::<PerformRespawnEvent>()
             .add_systems(Update, perform_respawn);
     }
 }
 
-pub fn perform_respawn(mut events: EventReader<PerformRespawnEvent>, mut commands: Commands) {
+pub fn perform_respawn(mut events: MessageReader<PerformRespawnEvent>, mut commands: Commands) {
     for event in events.read() {
         commands.trigger(SendPacketEvent::new(
             event.entity,

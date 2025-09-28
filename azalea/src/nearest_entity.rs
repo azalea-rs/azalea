@@ -21,7 +21,7 @@ use bevy_ecs::{
 ///     metadata::{AbstractMonster, Player},
 /// };
 /// use bevy_ecs::{
-///     prelude::{Entity, EventWriter},
+///     prelude::{Entity, MessageWriter},
 ///     query::With,
 ///     system::Query,
 /// };
@@ -30,7 +30,7 @@ use bevy_ecs::{
 /// pub fn bots_near_aggressive_mobs(
 ///     bots: Query<Entity, (With<LocalEntity>, With<Player>)>,
 ///     entity_finder: EntityFinder<With<AbstractMonster>>,
-///     mut chat_events: EventWriter<SendChatEvent>,
+///     mut chat_events: MessageWriter<SendChatEvent>,
 /// ) {
 ///     for bot_id in bots.iter() {
 ///         let Some(nearest) = entity_finder.nearest_to_entity(bot_id, 16.0) else {

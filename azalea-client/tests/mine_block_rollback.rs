@@ -27,7 +27,7 @@ fn test_mine_block_rollback() {
     assert_eq!(simulation.get_block_state(pos), Some(Block::Tnt.into()));
     println!("set serverside tnt");
 
-    simulation.send_event(StartMiningBlockEvent {
+    simulation.write_message(StartMiningBlockEvent {
         entity: simulation.entity,
         position: pos,
     });

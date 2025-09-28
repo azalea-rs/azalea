@@ -65,9 +65,9 @@ pub struct MovementPlugin;
 
 impl Plugin for MovementPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<StartWalkEvent>()
-            .add_event::<StartSprintEvent>()
-            .add_event::<KnockbackEvent>()
+        app.add_message::<StartWalkEvent>()
+            .add_message::<StartSprintEvent>()
+            .add_message::<KnockbackEvent>()
             .add_systems(
                 Update,
                 (handle_sprint, handle_walk, handle_knockback)
@@ -105,9 +105,7 @@ impl Client {
     /// If you're making a realistic client, calling this function every tick is
     /// recommended.
     pub fn set_jumping(&self, jumping: bool) {
-        let mut ecs = self.ecs.lock();
-        let mut jumping_mut = self.query::<&mut Jumping>(&mut ecs);
-        **jumping_mut = jumping;
+        self.query_self::<&mut Jumping, _>(|mut j| **j = jumping);
     }
 
     /// Returns whether the player will try to jump next tick.
@@ -116,18 +114,14 @@ impl Client {
     }
 
     pub fn set_crouching(&self, crouching: bool) {
-        let mut ecs = self.ecs.lock();
-        let mut physics_state = self.query::<&mut PhysicsState>(&mut ecs);
-        physics_state.trying_to_crouch = crouching;
+        self.query_self::<&mut PhysicsState, _>(|mut p| p.trying_to_crouch = crouching);
     }
 
     /// Whether the client is currently trying to sneak.
     ///
     /// You may want to check the [`Pose`] instead.
     pub fn crouching(&self) -> bool {
-        let mut ecs = self.ecs.lock();
-        let physics_state = self.query::<&PhysicsState>(&mut ecs);
-        physics_state.trying_to_crouch
+        self.query_self::<&PhysicsState, _>(|p| p.trying_to_crouch)
     }
 
     /// Sets the direction the client is looking. `y_rot` is yaw (looking to the
@@ -135,10 +129,9 @@ impl Client {
     /// numbers from the vanilla f3 screen.
     /// `y_rot` goes from -180 to 180, and `x_rot` goes from -90 to 90.
     pub fn set_direction(&self, y_rot: f32, x_rot: f32) {
-        let mut ecs = self.ecs.lock();
-        let mut look_direction = self.query::<&mut LookDirection>(&mut ecs);
-
-        look_direction.update(LookDirection::new(y_rot, x_rot));
+        self.query_self::<&mut LookDirection, _>(|mut ld| {
+            ld.update(LookDirection::new(y_rot, x_rot));
+        });
     }
 
     /// Returns the direction the client is looking. The first value is the y
@@ -557,7 +550,7 @@ impl Client {
     /// ```
     pub fn walk(&self, direction: WalkDirection) {
         let mut ecs = self.ecs.lock();
-        ecs.send_event(StartWalkEvent {
+        ecs.write_message(StartWalkEvent {
             entity: self.entity,
             direction,
         });
@@ -580,7 +573,7 @@ impl Client {
     /// ```
     pub fn sprint(&self, direction: SprintDirection) {
         let mut ecs = self.ecs.lock();
-        ecs.send_event(StartSprintEvent {
+        ecs.write_message(StartSprintEvent {
             entity: self.entity,
             direction,
         });
@@ -591,7 +584,7 @@ impl Client {
 /// non-local entities.
 ///
 /// To stop walking or sprinting, send this event with `WalkDirection::None`.
-#[derive(Event, Debug)]
+#[derive(Message, Debug)]
 pub struct StartWalkEvent {
     pub entity: Entity,
     pub direction: WalkDirection,
@@ -600,7 +593,7 @@ pub struct StartWalkEvent {
 /// The system that makes the player start walking when they receive a
 /// [`StartWalkEvent`].
 pub fn handle_walk(
-    mut events: EventReader<StartWalkEvent>,
+    mut events: MessageReader<StartWalkEvent>,
     mut query: Query<(&mut PhysicsState, &mut Sprinting, &mut Attributes)>,
 ) {
     for event in events.read() {
@@ -615,7 +608,7 @@ pub fn handle_walk(
 
 /// An event sent when the client starts sprinting. This does not get sent for
 /// non-local entities.
-#[derive(Event)]
+#[derive(Message)]
 pub struct StartSprintEvent {
     pub entity: Entity,
     pub direction: SprintDirection,
@@ -624,7 +617,7 @@ pub struct StartSprintEvent {
 /// [`StartSprintEvent`].
 pub fn handle_sprint(
     mut query: Query<&mut PhysicsState>,
-    mut events: EventReader<StartSprintEvent>,
+    mut events: MessageReader<StartSprintEvent>,
 ) {
     for event in events.read() {
         if let Ok(mut physics_state) = query.get_mut(event.entity) {
@@ -673,7 +666,7 @@ fn has_enough_impulse_to_start_sprinting(physics_state: &PhysicsState) -> bool {
 /// `KnockbackKind::Set` is used for normal knockback and `KnockbackKind::Add`
 /// is used for explosions, but some servers (notably Hypixel) use explosions
 /// for knockback.
-#[derive(Event)]
+#[derive(Message)]
 pub struct KnockbackEvent {
     pub entity: Entity,
     pub knockback: KnockbackType,
@@ -684,7 +677,7 @@ pub enum KnockbackType {
     Add(Vec3),
 }
 
-pub fn handle_knockback(mut query: Query<&mut Physics>, mut events: EventReader<KnockbackEvent>) {
+pub fn handle_knockback(mut query: Query<&mut Physics>, mut events: MessageReader<KnockbackEvent>) {
     for event in events.read() {
         if let Ok(mut physics) = query.get_mut(event.entity) {
             match event.knockback {

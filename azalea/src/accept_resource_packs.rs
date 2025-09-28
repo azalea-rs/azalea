@@ -37,7 +37,7 @@ impl Plugin for AcceptResourcePacksPlugin {
 }
 
 fn accept_resource_pack(
-    mut events: EventReader<ResourcePackEvent>,
+    mut events: MessageReader<ResourcePackEvent>,
     mut commands: Commands,
     query_in_config_state: Query<Option<&InConfigState>>,
 ) {

@@ -124,7 +124,7 @@ pub fn read_packets(ecs: &mut World) {
         }
     }
 
-    queued_packet_events.send_events(ecs);
+    queued_packet_events.write_messages(ecs);
 }
 
 fn poll_all_writer_tasks(mut conn_query: Query<&mut RawConnection>) {
@@ -149,10 +149,10 @@ pub struct QueuedPacketEvents {
     game: Vec<ReceiveGamePacketEvent>,
 }
 impl QueuedPacketEvents {
-    fn send_events(&mut self, ecs: &mut World) {
-        ecs.send_event_batch(self.login.drain(..));
-        ecs.send_event_batch(self.config.drain(..));
-        ecs.send_event_batch(self.game.drain(..));
+    fn write_messages(&mut self, ecs: &mut World) {
+        ecs.write_message_batch(self.login.drain(..));
+        ecs.write_message_batch(self.config.drain(..));
+        ecs.write_message_batch(self.game.drain(..));
     }
 }
 

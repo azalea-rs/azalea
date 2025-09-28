@@ -18,7 +18,7 @@ use azalea_entity::{EntityKindComponent, EntityUuid, metadata};
 use azalea_inventory::components::MaxStackSize;
 use azalea_world::InstanceContainer;
 use bevy_app::AppExit;
-use bevy_ecs::{event::Events, query::With};
+use bevy_ecs::{message::Messages, query::With, world::EntityRef};
 use parking_lot::Mutex;
 
 use super::{CommandSource, Ctx};
@@ -246,21 +246,23 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
             thread::sleep(Duration::from_secs(1));
             // dump the ecs
 
-            let ecs = ecs.lock();
+            let mut ecs = ecs.lock();
 
 
 
             let report_path = env::temp_dir().join("azalea-ecs-leak-report.txt");
             let mut report = File::create(&report_path).unwrap();
 
-            for entity in ecs.iter_entities() {
+            let mut query = ecs.query::<EntityRef>();
+            for entity in query.iter(& ecs) {
                 writeln!(report, "Entity: {}", entity.id()).unwrap();
                 let archetype = entity.archetype();
                 let component_count = archetype.component_count();
 
                 let component_names = archetype
                     .components()
-                    .map(|c| ecs.components().get_info(c).unwrap().name())
+                    .iter()
+                    .map(|c| ecs.components().get_info(*c).unwrap().name().to_string())
                     .collect::<Vec<_>>();
                 writeln!(
                     report,
@@ -274,12 +276,12 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
 
 
             for (info, _) in ecs.iter_resources() {
-                let name = info.name();
+                let name = info.name().to_string();
                 writeln!(report, "Resource: {name}").unwrap();
                 // writeln!(report, "- Size: {} bytes",
                 // info.layout().size()).unwrap();
 
-                match name {
+                match name.as_ref() {
                     "azalea_world::container::InstanceContainer" => {
                         let instance_container = ecs.resource::<InstanceContainer>();
 
@@ -311,12 +313,12 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
                             }
                         }
                     }
-                    "bevy_ecs::event::collections::Events<azalea_client::packet::game::ReceivePacketEvent>" => {
-                        let events = ecs.resource::<Events<game::ReceiveGamePacketEvent>>();
+                    "bevy_ecs::message::Messages<azalea_client::packet::game::ReceivePacketEvent>" => {
+                        let events = ecs.resource::<Messages<game::ReceiveGamePacketEvent>>();
                         writeln!(report, "- Event count: {}", events.len()).unwrap();
                     }
-                    "bevy_ecs::event::collections::Events<azalea_client::chunks::ReceiveChunkEvent>" => {
-                        let events = ecs.resource::<Events<ReceiveChunkEvent>>();
+                    "bevy_ecs::message::Messages<azalea_client::chunks::ReceiveChunkEvent>" => {
+                        let events = ecs.resource::<Messages<ReceiveChunkEvent>>();
                         writeln!(report, "- Event count: {}", events.len()).unwrap();
                     }
 
@@ -340,7 +342,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
         thread::spawn(move || {
             thread::sleep(Duration::from_secs(1));
 
-            source.lock().bot.ecs.lock().send_event(AppExit::Success);
+            source.lock().bot.ecs.lock().write_message(AppExit::Success);
         });
 
         1

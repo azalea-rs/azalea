@@ -19,7 +19,7 @@ use crate::{
 pub struct DisconnectPlugin;
 impl Plugin for DisconnectPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<DisconnectEvent>().add_systems(
+        app.add_message::<DisconnectEvent>().add_systems(
             PostUpdate,
             (
                 update_read_packets_task_running_component,
@@ -45,7 +45,7 @@ impl Plugin for DisconnectPlugin {
 ///
 /// [`ConnectionFailedEvent`]: crate::join::ConnectionFailedEvent
 
-#[derive(Event)]
+#[derive(Message)]
 pub struct DisconnectEvent {
     pub entity: Entity,
     pub reason: Option<FormattedText>,
@@ -82,7 +82,7 @@ pub struct RemoveOnDisconnectBundle {
 /// a [`DisconnectEvent`].
 pub fn remove_components_from_disconnected_players(
     mut commands: Commands,
-    mut events: EventReader<DisconnectEvent>,
+    mut events: MessageReader<DisconnectEvent>,
     mut loaded_by_query: Query<&mut azalea_entity::LoadedBy>,
 ) {
     for DisconnectEvent { entity, reason } in events.read() {
@@ -125,7 +125,7 @@ fn update_read_packets_task_running_component(
 #[allow(clippy::type_complexity)]
 fn disconnect_on_connection_dead(
     query: Query<(Entity, &IsConnectionAlive), (Changed<IsConnectionAlive>, With<LocalEntity>)>,
-    mut disconnect_events: EventWriter<DisconnectEvent>,
+    mut disconnect_events: MessageWriter<DisconnectEvent>,
 ) {
     for (entity, &is_connection_alive) in &query {
         if !*is_connection_alive {

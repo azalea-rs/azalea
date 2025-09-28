@@ -37,8 +37,8 @@ pub struct PathfinderDebugParticles;
 pub fn debug_render_path_with_particles(
     mut query: Query<(Entity, &ExecutingPath, &InstanceHolder), With<PathfinderDebugParticles>>,
     // chat_events is Option because the tests don't have SendChatEvent
-    // and we have to use ResMut<Events> because bevy doesn't support Option<EventWriter>
-    chat_events: Option<ResMut<Events<SendChatEvent>>>,
+    // and we have to use ResMut<Messages> because bevy doesn't support Option<MessageWriter>
+    chat_events: Option<ResMut<Messages<SendChatEvent>>>,
     mut tick_count: Local<usize>,
 ) {
     let Some(mut chat_events) = chat_events else {
@@ -104,7 +104,7 @@ pub fn debug_render_path_with_particles(
                     delta_z = 0,
                     count = 1
                 );
-                chat_events.send(SendChatEvent {
+                chat_events.write(SendChatEvent {
                     entity,
                     content: particle_command,
                 });

@@ -50,7 +50,7 @@ fn test_correct_sprint_sneak_movement() {
     sent_packets.clear();
 
     // start sprinting
-    simulation.send_event(StartSprintEvent {
+    simulation.write_message(StartSprintEvent {
         entity: simulation.entity,
         direction: SprintDirection::Forward,
     });

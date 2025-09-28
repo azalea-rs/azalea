@@ -22,8 +22,8 @@ impl Plugin for AutoRespawnPlugin {
 }
 
 fn auto_respawn(
-    mut events: EventReader<DeathEvent>,
-    mut perform_respawn_events: EventWriter<PerformRespawnEvent>,
+    mut events: MessageReader<DeathEvent>,
+    mut perform_respawn_events: MessageWriter<PerformRespawnEvent>,
 ) {
     for event in events.read() {
         perform_respawn_events.write(PerformRespawnEvent {

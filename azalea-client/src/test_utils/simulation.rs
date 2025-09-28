@@ -103,8 +103,11 @@ impl Simulation {
             raw_conn.injected_clientbound_packets.push(buf);
         });
     }
-    pub fn send_event(&mut self, event: impl bevy_ecs::event::Event) {
-        self.app.world_mut().send_event(event);
+    pub fn write_message(&mut self, message: impl Message) {
+        self.app.world_mut().write_message(message);
+    }
+    pub fn trigger<'a>(&mut self, event: impl Event<Trigger<'a>: Default>) {
+        self.app.world_mut().trigger(event);
     }
 
     pub fn tick(&mut self) {
@@ -167,7 +170,7 @@ impl Simulation {
 
     pub fn disconnect(&mut self) {
         // send DisconnectEvent
-        self.app.world_mut().send_event(DisconnectEvent {
+        self.app.world_mut().write_message(DisconnectEvent {
             entity: self.entity,
             reason: None,
         });
@@ -188,12 +191,12 @@ impl SentPackets {
         let sent_packets_clone = sent_packets.clone();
         simulation
             .app
-            .add_observer(move |trigger: Trigger<SendPacketEvent>| {
-                if trigger.sent_by == simulation_entity {
+            .add_observer(move |send_game_packet: On<SendPacketEvent>| {
+                if send_game_packet.sent_by == simulation_entity {
                     sent_packets_clone
                         .list
                         .lock()
-                        .push_back(trigger.event().packet.clone())
+                        .push_back(send_game_packet.packet.clone())
                 }
             });
 

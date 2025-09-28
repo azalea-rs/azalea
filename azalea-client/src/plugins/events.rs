@@ -35,7 +35,7 @@ use crate::{
 //       use.
 //     - Add the event struct in PacketPlugin::build
 //         - (in the `impl Plugin for PacketPlugin`)
-//     - To get the event writer, you have to get an EventWriter<ThingEvent>.
+//     - To get the event writer, you have to get an MessageWriter<ThingEvent>.
 //       Look at other packets in packet/game/mod.rs for examples.
 //
 // At this point, you've created a new ECS event. That's annoying for bots to
@@ -195,7 +195,10 @@ pub fn spawn_listener(
     }
 }
 
-pub fn chat_listener(query: Query<&LocalPlayerEvents>, mut events: EventReader<ChatReceivedEvent>) {
+pub fn chat_listener(
+    query: Query<&LocalPlayerEvents>,
+    mut events: MessageReader<ChatReceivedEvent>,
+) {
     for event in events.read() {
         if let Ok(local_player_events) = query.get(event.entity) {
             let _ = local_player_events.send(Event::Chat(event.packet.clone()));
@@ -213,7 +216,7 @@ pub fn tick_listener(query: Query<&LocalPlayerEvents, With<InstanceName>>) {
 #[cfg(feature = "packet-event")]
 pub fn packet_listener(
     query: Query<&LocalPlayerEvents>,
-    mut events: EventReader<super::packet::game::ReceiveGamePacketEvent>,
+    mut events: MessageReader<super::packet::game::ReceiveGamePacketEvent>,
 ) {
     for event in events.read() {
         if let Ok(local_player_events) = query.get(event.entity) {
@@ -224,7 +227,7 @@ pub fn packet_listener(
 
 pub fn add_player_listener(
     query: Query<&LocalPlayerEvents>,
-    mut events: EventReader<AddPlayerEvent>,
+    mut events: MessageReader<AddPlayerEvent>,
 ) {
     for event in events.read() {
         let local_player_events = query
@@ -236,7 +239,7 @@ pub fn add_player_listener(
 
 pub fn update_player_listener(
     query: Query<&LocalPlayerEvents>,
-    mut events: EventReader<UpdatePlayerEvent>,
+    mut events: MessageReader<UpdatePlayerEvent>,
 ) {
     for event in events.read() {
         let local_player_events = query
@@ -248,7 +251,7 @@ pub fn update_player_listener(
 
 pub fn remove_player_listener(
     query: Query<&LocalPlayerEvents>,
-    mut events: EventReader<RemovePlayerEvent>,
+    mut events: MessageReader<RemovePlayerEvent>,
 ) {
     for event in events.read() {
         let local_player_events = query
@@ -258,7 +261,7 @@ pub fn remove_player_listener(
     }
 }
 
-pub fn death_listener(query: Query<&LocalPlayerEvents>, mut events: EventReader<DeathEvent>) {
+pub fn death_listener(query: Query<&LocalPlayerEvents>, mut events: MessageReader<DeathEvent>) {
     for event in events.read() {
         if let Ok(local_player_events) = query.get(event.entity) {
             let _ = local_player_events.send(Event::Death(event.packet.clone().map(|p| p.into())));
@@ -277,7 +280,7 @@ pub fn dead_component_listener(query: Query<&LocalPlayerEvents, Added<Dead>>) {
 
 pub fn keepalive_listener(
     query: Query<&LocalPlayerEvents>,
-    mut events: EventReader<KeepAliveEvent>,
+    mut events: MessageReader<KeepAliveEvent>,
 ) {
     for event in events.read() {
         let local_player_events = query
@@ -289,7 +292,7 @@ pub fn keepalive_listener(
 
 pub fn disconnect_listener(
     query: Query<&LocalPlayerEvents>,
-    mut events: EventReader<DisconnectEvent>,
+    mut events: MessageReader<DisconnectEvent>,
 ) {
     for event in events.read() {
         if let Ok(local_player_events) = query.get(event.entity) {
@@ -300,7 +303,7 @@ pub fn disconnect_listener(
 
 pub fn receive_chunk_listener(
     query: Query<&LocalPlayerEvents>,
-    mut events: EventReader<ReceiveChunkEvent>,
+    mut events: MessageReader<ReceiveChunkEvent>,
 ) {
     for event in events.read() {
         if let Ok(local_player_events) = query.get(event.entity) {

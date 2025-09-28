@@ -21,7 +21,7 @@ use crate::{Account, chat_signing::ChatSigningSession, packet::game::SendPacketE
 /// preserved if multiple chat messages and commands are sent at the same time.
 ///
 /// [`SendChatEvent`]: super::SendChatEvent
-#[derive(Event)]
+#[derive(Message)]
 pub struct SendChatKindEvent {
     pub entity: Entity,
     pub content: String,
@@ -29,7 +29,7 @@ pub struct SendChatKindEvent {
 }
 
 pub fn handle_send_chat_kind_event(
-    mut events: EventReader<SendChatKindEvent>,
+    mut events: MessageReader<SendChatKindEvent>,
     mut commands: Commands,
     mut query: Query<(&Account, &mut ChatSigningSession)>,
 ) {

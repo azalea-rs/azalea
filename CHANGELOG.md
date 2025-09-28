@@ -12,6 +12,9 @@ is breaking anyways, semantic versioning is not followed.
 
 ### Changed
 
+- Update to Bevy 0.17.
+- `Client::query`, `map_component`, and `map_get_component` were replaced by `Client::query_self`.
+
 ### Fixed
 
 ## [0.14.0+mc1.21.8] - 2025-09-28

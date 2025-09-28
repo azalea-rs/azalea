@@ -1,3 +1,4 @@
+use azalea_protocol::packets::{config, game};
 use bevy_app::{App, Plugin};
 use bevy_ecs::prelude::*;
 
@@ -22,16 +23,16 @@ impl Plugin for PongPlugin {
     }
 }
 
-pub fn reply_to_game_ping(trigger: Trigger<PingEvent>, mut commands: Commands) {
+pub fn reply_to_game_ping(ping: On<PingEvent>, mut commands: Commands) {
     commands.trigger(SendPacketEvent::new(
-        trigger.target(),
-        azalea_protocol::packets::game::ServerboundPong { id: trigger.0.id },
+        ping.entity,
+        game::ServerboundPong { id: ping.packet.id },
     ));
 }
 
-pub fn reply_to_config_ping(trigger: Trigger<ConfigPingEvent>, mut commands: Commands) {
+pub fn reply_to_config_ping(ping: On<ConfigPingEvent>, mut commands: Commands) {
     commands.trigger(SendConfigPacketEvent::new(
-        trigger.target(),
-        azalea_protocol::packets::config::ServerboundPong { id: trigger.0.id },
+        ping.entity,
+        config::ServerboundPong { id: ping.packet.id },
     ));
 }

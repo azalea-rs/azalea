@@ -35,13 +35,13 @@ impl Plugin for ChunksPlugin {
                 .before(InventorySet)
                 .before(perform_respawn),
         )
-        .add_event::<ReceiveChunkEvent>()
-        .add_event::<ChunkBatchStartEvent>()
-        .add_event::<ChunkBatchFinishedEvent>();
+        .add_message::<ReceiveChunkEvent>()
+        .add_message::<ChunkBatchStartEvent>()
+        .add_message::<ChunkBatchFinishedEvent>();
     }
 }
 
-#[derive(Event)]
+#[derive(Message)]
 pub struct ReceiveChunkEvent {
     pub entity: Entity,
     pub packet: ClientboundLevelChunkWithLight,
@@ -54,18 +54,18 @@ pub struct ChunkBatchInfo {
     pub old_samples_weight: u32,
 }
 
-#[derive(Event)]
+#[derive(Message)]
 pub struct ChunkBatchStartEvent {
     pub entity: Entity,
 }
-#[derive(Event)]
+#[derive(Message)]
 pub struct ChunkBatchFinishedEvent {
     pub entity: Entity,
     pub batch_size: u32,
 }
 
 pub fn handle_receive_chunk_event(
-    mut events: EventReader<ReceiveChunkEvent>,
+    mut events: MessageReader<ReceiveChunkEvent>,
     mut query: Query<&InstanceHolder>,
 ) {
     for event in events.read() {
@@ -132,7 +132,7 @@ impl ChunkBatchInfo {
 
 pub fn handle_chunk_batch_start_event(
     mut query: Query<&mut ChunkBatchInfo>,
-    mut events: EventReader<ChunkBatchStartEvent>,
+    mut events: MessageReader<ChunkBatchStartEvent>,
 ) {
     for event in events.read() {
         if let Ok(mut chunk_batch_info) = query.get_mut(event.entity) {
@@ -143,7 +143,7 @@ pub fn handle_chunk_batch_start_event(
 
 pub fn handle_chunk_batch_finished_event(
     mut query: Query<&mut ChunkBatchInfo>,
-    mut events: EventReader<ChunkBatchFinishedEvent>,
+    mut events: MessageReader<ChunkBatchFinishedEvent>,
     mut commands: Commands,
 ) {
     for event in events.read() {

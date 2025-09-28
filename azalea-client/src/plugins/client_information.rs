@@ -60,11 +60,9 @@ impl Client {
     /// # }
     /// ```
     pub async fn set_client_information(&self, client_information: ClientInformation) {
-        {
-            let mut ecs = self.ecs.lock();
-            let mut client_information_mut = self.query::<&mut ClientInformation>(&mut ecs);
-            *client_information_mut = client_information.clone();
-        }
+        self.query_self::<&mut ClientInformation, _>(|mut ci| {
+            *ci = client_information.clone();
+        });
 
         if self.logged_in() {
             debug!(

@@ -54,7 +54,7 @@ fn test_mine_block_timing() {
     simulation.tick();
     simulation.tick();
 
-    simulation.send_event(StartMiningBlockEvent {
+    simulation.write_message(StartMiningBlockEvent {
         entity: simulation.entity,
         position: pos,
     });

@@ -109,7 +109,7 @@ fn test_packet_order() {
     sent_packets.expect_empty();
 
     // now sprint for a tick
-    simulation.send_event(StartSprintEvent {
+    simulation.write_message(StartSprintEvent {
         entity: simulation.entity,
         direction: SprintDirection::Forward,
     });

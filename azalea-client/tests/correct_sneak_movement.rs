@@ -62,7 +62,7 @@ fn test_correct_sneak_movement() {
     sent_packets.expect_empty();
 
     simulation.tick();
-    simulation.send_event(StartWalkEvent {
+    simulation.write_message(StartWalkEvent {
         entity: simulation.entity,
         direction: WalkDirection::Forward,
     });

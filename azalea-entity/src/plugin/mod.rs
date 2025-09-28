@@ -25,7 +25,7 @@ use crate::{
 
 /// A Bevy [`SystemSet`] for various types of entity updates.
 #[derive(SystemSet, Debug, Hash, Eq, PartialEq, Clone)]
-pub enum EntityUpdateSet {
+pub enum EntityUpdateSystems {
     /// Create search indexes for entities.
     Index,
     /// Remove despawned entities from search indexes.
@@ -42,7 +42,7 @@ impl Plugin for EntityPlugin {
         // despawned post-update (done by this plugin)
         app.add_systems(
             PostUpdate,
-            indexing::remove_despawned_entities_from_indexes.in_set(EntityUpdateSet::Deindex),
+            indexing::remove_despawned_entities_from_indexes.in_set(EntityUpdateSystems::Deindex),
         )
         .add_systems(
             Update,
@@ -52,7 +52,7 @@ impl Plugin for EntityPlugin {
                     indexing::insert_entity_chunk_position,
                 )
                     .chain()
-                    .in_set(EntityUpdateSet::Index),
+                    .in_set(EntityUpdateSystems::Index),
                 (
                     relative_updates::debug_detect_updates_received_on_local_entities,
                     debug_new_entity,

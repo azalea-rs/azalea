@@ -26,7 +26,7 @@ fn test_mine_block_without_rollback() {
     simulation.tick();
     assert_eq!(simulation.get_block_state(pos), Some(Block::Tnt.into()));
 
-    simulation.send_event(StartMiningBlockEvent {
+    simulation.write_message(StartMiningBlockEvent {
         entity: simulation.entity,
         position: pos,
     });
