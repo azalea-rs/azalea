@@ -43,7 +43,7 @@ use tokio::{
     },
     time,
 };
-use tracing::{error, info, warn};
+use tracing::{info, warn};
 use uuid::Uuid;
 
 use crate::{

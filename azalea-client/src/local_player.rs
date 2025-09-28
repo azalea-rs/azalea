@@ -11,7 +11,6 @@ use derive_more::{Deref, DerefMut};
 use parking_lot::RwLock;
 use thiserror::Error;
 use tokio::sync::mpsc;
-use tracing::error;
 use uuid::Uuid;
 
 use crate::{ClientInformation, events::Event as AzaleaEvent, player::PlayerInfo};

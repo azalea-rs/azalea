@@ -1,12 +1,20 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+All notable changes to Azalea will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
-Due to the complexity of Azalea and the fact that almost every Minecraft version
+Due to the large scope of Azalea and the fact that almost every Minecraft version
 is breaking anyways, semantic versioning is not followed.
 
 ## [Unreleased]
+
+### Added
+
+### Changed
+
+### Fixed
+
+## [0.14.0+mc1.21.8] - 2025-09-28
 
 ### Added
 
