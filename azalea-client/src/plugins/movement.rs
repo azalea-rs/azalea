@@ -14,7 +14,7 @@ use azalea_entity::{
 };
 use azalea_physics::{
     PhysicsSet, ai_step,
-    collision::entity_collisions::{CollidableEntityQuery, PhysicsQuery},
+    collision::entity_collisions::{AabbQuery, CollidableEntityQuery, update_last_bounding_box},
     local_player::{PhysicsState, SprintDirection, WalkDirection},
     travel::{no_collision, travel},
 };
@@ -73,7 +73,8 @@ impl Plugin for MovementPlugin {
                 (handle_sprint, handle_walk, handle_knockback)
                     .chain()
                     .in_set(MoveEventsSet)
-                    .after(update_bounding_box),
+                    .after(update_bounding_box)
+                    .after(update_last_bounding_box),
             )
             .add_systems(
                 GameTick,
@@ -378,7 +379,7 @@ pub fn local_player_ai_step(
         ),
         (With<HasClientLoaded>, With<LocalEntity>),
     >,
-    physics_query: PhysicsQuery,
+    aabb_query: AabbQuery,
     collidable_entity_query: CollidableEntityQuery,
 ) {
     for (
@@ -409,7 +410,7 @@ pub fn local_player_ai_step(
             world: &world,
             entity,
             position: *position,
-            physics_query: &physics_query,
+            aabb_query: &aabb_query,
             collidable_entity_query: &collidable_entity_query,
             physics: &physics,
         };
@@ -708,7 +709,7 @@ pub fn update_pose(
         &InstanceHolder,
         &Position,
     )>,
-    physics_query: PhysicsQuery,
+    aabb_query: AabbQuery,
     collidable_entity_query: CollidableEntityQuery,
 ) {
     for (entity, mut pose, physics, physics_state, game_mode, instance_holder, position) in
@@ -720,7 +721,7 @@ pub fn update_pose(
             world,
             entity,
             position: *position,
-            physics_query: &physics_query,
+            aabb_query: &aabb_query,
             collidable_entity_query: &collidable_entity_query,
             physics,
         };
@@ -763,7 +764,7 @@ struct CanPlayerFitCtx<'world, 'state, 'a, 'b> {
     world: &'a Instance,
     entity: Entity,
     position: Position,
-    physics_query: &'a PhysicsQuery<'world, 'state, 'b>,
+    aabb_query: &'a AabbQuery<'world, 'state, 'b>,
     collidable_entity_query: &'a CollidableEntityQuery<'world, 'state>,
     physics: &'a Physics,
 }
@@ -773,7 +774,7 @@ fn can_player_fit_within_blocks_and_entities_when(ctx: &CanPlayerFitCtx, pose: P
     no_collision(
         ctx.world,
         Some(ctx.entity),
-        ctx.physics_query,
+        ctx.aabb_query,
         ctx.collidable_entity_query,
         ctx.physics,
         &calculate_dimensions(EntityKind::Player, pose).make_bounding_box(*ctx.position),

@@ -18,7 +18,9 @@ use azalea_entity::{
     clamp_look_direction,
 };
 use azalea_inventory::{ItemStack, ItemStackData, components};
-use azalea_physics::{PhysicsSet, local_player::PhysicsState};
+use azalea_physics::{
+    PhysicsSet, collision::entity_collisions::update_last_bounding_box, local_player::PhysicsState,
+};
 use azalea_protocol::packets::game::{
     ServerboundInteract, ServerboundUseItem,
     s_interact::{self, InteractionHand},
@@ -58,7 +60,9 @@ impl Plugin for InteractPlugin {
                         .in_set(UpdateAttributesSet)
                         .chain(),
                     handle_start_use_item_event,
-                    update_hit_result_component.after(clamp_look_direction),
+                    update_hit_result_component
+                        .after(clamp_look_direction)
+                        .after(update_last_bounding_box),
                     handle_swing_arm_event,
                 )
                     .after(InventorySet)

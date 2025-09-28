@@ -1,6 +1,6 @@
 use azalea_block::{BlockState, BlockTrait, fluid_state::FluidState};
 use azalea_core::{
-    aabb::AABB,
+    aabb::Aabb,
     position::{BlockPos, Vec3},
 };
 use azalea_entity::{
@@ -13,7 +13,7 @@ use bevy_ecs::prelude::*;
 use crate::{
     collision::{
         MoveCtx, MoverType, Shapes,
-        entity_collisions::{CollidableEntityQuery, PhysicsQuery, get_entity_collisions},
+        entity_collisions::{AabbQuery, CollidableEntityQuery, get_entity_collisions},
         move_colliding,
         world_collisions::{get_block_and_liquid_collisions, get_block_collisions},
     },
@@ -43,7 +43,7 @@ pub fn travel(
         (With<LocalEntity>, With<HasClientLoaded>),
     >,
     instance_container: Res<InstanceContainer>,
-    physics_query: PhysicsQuery,
+    aabb_query: AabbQuery,
     collidable_entity_query: CollidableEntityQuery,
 ) {
     for (
@@ -76,7 +76,7 @@ pub fn travel(
             position,
             physics: &mut physics,
             source_entity: entity,
-            physics_query: &physics_query,
+            aabb_query: &aabb_query,
             collidable_entity_query: &collidable_entity_query,
             physics_state,
             attributes,
@@ -214,7 +214,7 @@ fn travel_in_fluid(ctx: &mut MoveCtx) {
         && is_free(
             ctx.world,
             ctx.source_entity,
-            ctx.physics_query,
+            ctx.aabb_query,
             ctx.collidable_entity_query,
             ctx.physics,
             ctx.physics.bounding_box,
@@ -254,10 +254,10 @@ fn get_fluid_falling_adjusted_movement(
 fn is_free(
     world: &Instance,
     source_entity: Entity,
-    physics_query: &PhysicsQuery,
+    aabb_query: &AabbQuery,
     collidable_entity_query: &CollidableEntityQuery,
     entity_physics: &Physics,
-    bounding_box: AABB,
+    bounding_box: Aabb,
     delta: Vec3,
 ) -> bool {
     let bounding_box = bounding_box.move_relative(delta);
@@ -265,7 +265,7 @@ fn is_free(
     no_collision(
         world,
         Some(source_entity),
-        physics_query,
+        aabb_query,
         collidable_entity_query,
         entity_physics,
         &bounding_box,
@@ -276,10 +276,10 @@ fn is_free(
 pub fn no_collision(
     world: &Instance,
     source_entity: Option<Entity>,
-    physics_query: &PhysicsQuery,
+    aabb_query: &AabbQuery,
     collidable_entity_query: &CollidableEntityQuery,
     entity_physics: &Physics,
-    aabb: &AABB,
+    aabb: &Aabb,
     include_liquid_collisions: bool,
 ) -> bool {
     let collisions = if include_liquid_collisions {
@@ -298,7 +298,7 @@ pub fn no_collision(
         world,
         aabb,
         source_entity,
-        physics_query,
+        aabb_query,
         collidable_entity_query,
     )
     .is_empty()
@@ -317,13 +317,13 @@ pub fn no_collision(
     }
 }
 
-fn border_collision(_entity_physics: &Physics, _aabb: &AABB) -> Option<AABB> {
+fn border_collision(_entity_physics: &Physics, _aabb: &Aabb) -> Option<Aabb> {
     // TODO: implement world border, see CollisionGetter.borderCollision
 
     None
 }
 
-fn contains_any_liquid(world: &Instance, bounding_box: AABB) -> bool {
+fn contains_any_liquid(world: &Instance, bounding_box: Aabb) -> bool {
     let min = bounding_box.min.to_block_pos_floor();
     let max = bounding_box.max.to_block_pos_ceil();
 

@@ -40,6 +40,7 @@ is breaking anyways, semantic versioning is not followed.
 - `ClientsideCloseContainerEvent`, `MenuOpenedEvent`, and `CloseContainerEvent` are now triggers instead of events.
 - `Client::chat` now takes anything with `impl Into<String>`.
 - Some types related Azalea's bot plugin were moved to `azalea::bot::*`.
+- `AABB` was renamed to `Aabb` to follow Rust naming guidelines.
 
 ### Fixed
 

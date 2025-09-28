@@ -79,9 +79,10 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
     commands.register(literal("whoareyou").executes(|ctx: &Ctx| {
         let source = ctx.source.lock();
         source.reply(format!(
-            "I am {} ({})",
+            "I am {} ({}, {})",
             source.bot.username(),
-            source.bot.uuid()
+            source.bot.uuid(),
+            source.bot.entity
         ));
         1
     }));

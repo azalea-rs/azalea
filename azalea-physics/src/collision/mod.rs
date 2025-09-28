@@ -9,7 +9,7 @@ use std::{ops::Add, sync::LazyLock};
 
 use azalea_block::{BlockState, fluid_state::FluidState};
 use azalea_core::{
-    aabb::AABB,
+    aabb::Aabb,
     direction::Axis,
     math::{self, EPSILON},
     position::{BlockPos, Vec3},
@@ -22,12 +22,14 @@ use azalea_world::{ChunkStorage, Instance, MoveEntityError};
 use bevy_ecs::{entity::Entity, world::Mut};
 pub use blocks::BlockWithShape;
 pub use discrete_voxel_shape::*;
-use entity_collisions::{CollidableEntityQuery, PhysicsQuery, get_entity_collisions};
+use entity_collisions::{CollidableEntityQuery, get_entity_collisions};
 pub use shape::*;
 use tracing::warn;
 
 use self::world_collisions::get_block_collisions;
-use crate::{local_player::PhysicsState, travel::no_collision};
+use crate::{
+    collision::entity_collisions::AabbQuery, local_player::PhysicsState, travel::no_collision,
+};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MoverType {
@@ -45,7 +47,7 @@ fn collide(ctx: &MoveCtx, movement: Vec3) -> Vec3 {
         ctx.world,
         &entity_bounding_box.expand_towards(movement),
         Some(ctx.source_entity),
-        ctx.physics_query,
+        ctx.aabb_query,
         ctx.collidable_entity_query,
     );
     let world = ctx.world;
@@ -111,7 +113,7 @@ pub struct MoveCtx<'world, 'state, 'a, 'b> {
     pub position: Mut<'a, Position>,
     pub physics: &'a mut Physics,
     pub source_entity: Entity,
-    pub physics_query: &'a PhysicsQuery<'world, 'state, 'b>,
+    pub aabb_query: &'a AabbQuery<'world, 'state, 'b>,
     pub collidable_entity_query: &'a CollidableEntityQuery<'world, 'state>,
     pub physics_state: Option<&'a PhysicsState>,
     pub attributes: &'a Attributes,
@@ -269,7 +271,7 @@ fn maybe_back_off_from_edge(move_ctx: &mut MoveCtx, mut movement: Vec3) -> Vec3 
         physics: move_ctx.physics,
         world: move_ctx.world,
         source_entity: move_ctx.source_entity,
-        physics_query: move_ctx.physics_query,
+        aabb_query: move_ctx.aabb_query,
         collidable_entity_query: move_ctx.collidable_entity_query,
     };
 
@@ -340,7 +342,7 @@ pub struct CanFallAtLeastCtx<'world, 'state, 'a, 'b> {
     physics: &'a Physics,
     world: &'a Instance,
     source_entity: Entity,
-    physics_query: &'a PhysicsQuery<'world, 'state, 'b>,
+    aabb_query: &'a AabbQuery<'world, 'state, 'b>,
     collidable_entity_query: &'a CollidableEntityQuery<'world, 'state>,
 }
 
@@ -351,7 +353,7 @@ fn can_fall_at_least(
     max_up_step: f64,
 ) -> bool {
     let aabb = ctx.physics.bounding_box;
-    let aabb = AABB {
+    let aabb = Aabb {
         min: Vec3 {
             x: aabb.min.x + EPSILON + delta_x,
             y: aabb.min.y - max_up_step - EPSILON,
@@ -366,7 +368,7 @@ fn can_fall_at_least(
     no_collision(
         ctx.world,
         Some(ctx.source_entity),
-        ctx.physics_query,
+        ctx.aabb_query,
         ctx.collidable_entity_query,
         ctx.physics,
         &aabb,
@@ -376,7 +378,7 @@ fn can_fall_at_least(
 
 fn collide_bounding_box(
     movement: Vec3,
-    entity_bounding_box: &AABB,
+    entity_bounding_box: &Aabb,
     world: &Instance,
     entity_collisions: &[VoxelShape],
 ) -> Vec3 {
@@ -396,7 +398,7 @@ fn collide_bounding_box(
 
 fn collide_with_shapes(
     mut movement: Vec3,
-    mut entity_box: AABB,
+    mut entity_box: Aabb,
     collision_boxes: &[VoxelShape],
 ) -> Vec3 {
     if collision_boxes.is_empty() {

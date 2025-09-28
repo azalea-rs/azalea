@@ -22,12 +22,12 @@ use azalea_entity::{
 };
 use azalea_registry::{Block, EntityKind};
 use azalea_world::{Instance, InstanceContainer, InstanceName};
-use bevy_app::{App, Plugin};
+use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 use clip::box_traverse_blocks;
 use collision::{BLOCK_SHAPE, BlockWithShape, VoxelShape, move_colliding};
 
-use crate::collision::MoveCtx;
+use crate::collision::{MoveCtx, entity_collisions::update_last_bounding_box};
 
 /// A Bevy [`SystemSet`] for running physics that makes entities do things.
 #[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
@@ -49,6 +49,11 @@ impl Plugin for PhysicsPlugin {
                 .chain()
                 .in_set(PhysicsSet)
                 .after(azalea_entity::update_in_loaded_chunk),
+        )
+        // we want this to happen after packets are handled but before physics
+        .add_systems(
+            Update,
+            update_last_bounding_box.after(azalea_entity::update_bounding_box),
         );
     }
 }
