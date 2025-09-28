@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use azalea_client::{
-    packet::{config::SendConfigPacketEvent, game::SendPacketEvent},
+    packet::{config::SendConfigPacketEvent, game::SendGamePacketEvent},
     test_utils::prelude::*,
 };
 use azalea_core::resource_location::ResourceLocation;
@@ -61,7 +61,7 @@ fn reply_to_ping_with_pong() {
     let reply_count_clone = reply_count.clone();
     simulation
         .app
-        .add_observer(move |send_game_packet: On<SendPacketEvent>| {
+        .add_observer(move |send_game_packet: On<SendGamePacketEvent>| {
             if send_game_packet.sent_by == simulation.entity
                 && let ServerboundGamePacket::Pong(packet) = &send_game_packet.packet
             {

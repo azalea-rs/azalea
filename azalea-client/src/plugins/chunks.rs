@@ -17,7 +17,7 @@ use bevy_ecs::prelude::*;
 use tracing::{error, trace};
 
 use crate::{
-    inventory::InventorySet, local_player::InstanceHolder, packet::game::SendPacketEvent,
+    inventory::InventorySet, local_player::InstanceHolder, packet::game::SendGamePacketEvent,
     respawn::perform_respawn,
 };
 
@@ -150,7 +150,7 @@ pub fn handle_chunk_batch_finished_event(
         if let Ok(mut chunk_batch_info) = query.get_mut(event.entity) {
             chunk_batch_info.batch_finished(event.batch_size);
             let desired_chunks_per_tick = chunk_batch_info.desired_chunks_per_tick();
-            commands.trigger(SendPacketEvent::new(
+            commands.trigger(SendGamePacketEvent::new(
                 event.entity,
                 ServerboundChunkBatchReceived {
                     desired_chunks_per_tick,

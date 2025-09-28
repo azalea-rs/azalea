@@ -18,7 +18,7 @@ use crate::{client::InGameState, connection::RawConnection, player::PlayerInfo};
 /// ```
 /// # use azalea_client::packet::game::ReceiveGamePacketEvent;
 /// # use azalea_protocol::packets::game::ClientboundGamePacket;
-/// # use bevy_ecs::event::MessageReader;
+/// # use bevy_ecs::message::MessageReader;
 ///
 /// fn handle_packets(mut events: MessageReader<ReceiveGamePacketEvent>) {
 ///     for ReceiveGamePacketEvent { entity, packet } in events.read() {
@@ -41,12 +41,12 @@ pub struct ReceiveGamePacketEvent {
 
 /// An event for sending a packet to the server while we're in the `game` state.
 #[derive(EntityEvent, Clone, Debug)]
-pub struct SendPacketEvent {
+pub struct SendGamePacketEvent {
     #[event_target]
     pub sent_by: Entity,
     pub packet: ServerboundGamePacket,
 }
-impl SendPacketEvent {
+impl SendGamePacketEvent {
     pub fn new(sent_by: Entity, packet: impl Packet<ServerboundGamePacket>) -> Self {
         let packet = packet.into_variant();
         Self { sent_by, packet }
@@ -54,7 +54,7 @@ impl SendPacketEvent {
 }
 
 pub fn handle_outgoing_packets_observer(
-    trigger: On<SendPacketEvent>,
+    trigger: On<SendGamePacketEvent>,
     mut query: Query<(&mut RawConnection, Option<&InGameState>)>,
 ) {
     let event = trigger.event();
@@ -152,7 +152,7 @@ pub struct InstanceLoadedEvent {
 /// [`ClientboundPing`]: azalea_protocol::packets::game::ClientboundPing
 /// [`ConfigPingEvent`]: crate::packet::config::ConfigPingEvent
 #[derive(EntityEvent, Debug, Clone)]
-pub struct PingEvent {
+pub struct GamePingEvent {
     pub entity: Entity,
     pub packet: azalea_protocol::packets::game::ClientboundPing,
 }

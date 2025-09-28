@@ -420,11 +420,11 @@ impl GamePacketHandler<'_> {
             physics.set_old_pos(*position);
 
             // send the relevant packets
-            commands.trigger(SendPacketEvent::new(
+            commands.trigger(SendGamePacketEvent::new(
                 self.player,
                 ServerboundAcceptTeleportation { id: p.id },
             ));
-            commands.trigger(SendPacketEvent::new(
+            commands.trigger(SendGamePacketEvent::new(
                 self.player,
                 ServerboundMovePlayerPosRot {
                     pos: **position,
@@ -964,7 +964,7 @@ impl GamePacketHandler<'_> {
                     entity: self.player,
                     id: p.id,
                 });
-                commands.trigger(SendPacketEvent::new(
+                commands.trigger(SendGamePacketEvent::new(
                     self.player,
                     ServerboundKeepAlive { id: p.id },
                 ));
@@ -1278,7 +1278,7 @@ impl GamePacketHandler<'_> {
         debug!("Got ping packet {p:?}");
 
         as_system::<Commands>(self.ecs, |mut commands| {
-            commands.trigger(PingEvent {
+            commands.trigger(GamePingEvent {
                 entity: self.player,
                 packet: p.clone(),
             });
@@ -1443,7 +1443,7 @@ impl GamePacketHandler<'_> {
                 };
                 raw_conn.state = ConnectionProtocol::Configuration;
 
-                commands.trigger(SendPacketEvent::new(
+                commands.trigger(SendGamePacketEvent::new(
                     self.player,
                     ServerboundConfigurationAcknowledged,
                 ));

@@ -5,7 +5,7 @@ use azalea_protocol::packets::game::ServerboundPlayerLoaded;
 use bevy_app::{App, Plugin};
 use bevy_ecs::prelude::*;
 
-use crate::{mining::MiningSet, packet::game::SendPacketEvent};
+use crate::{mining::MiningSet, packet::game::SendGamePacketEvent};
 
 pub struct PlayerLoadedPlugin;
 impl Plugin for PlayerLoadedPlugin {
@@ -45,7 +45,7 @@ pub fn player_loaded_packet(
     >,
 ) {
     for entity in query.iter() {
-        commands.trigger(SendPacketEvent::new(entity, ServerboundPlayerLoaded));
+        commands.trigger(SendGamePacketEvent::new(entity, ServerboundPlayerLoaded));
         commands.entity(entity).insert(HasClientLoaded);
     }
 }

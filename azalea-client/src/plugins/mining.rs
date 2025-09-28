@@ -19,7 +19,7 @@ use crate::{
     inventory::{Inventory, InventorySet},
     local_player::{InstanceHolder, LocalGameMode, PermissionLevel},
     movement::MoveEventsSet,
-    packet::game::SendPacketEvent,
+    packet::game::SendGamePacketEvent,
 };
 
 /// A plugin that allows clients to break blocks in the world.
@@ -258,7 +258,7 @@ pub fn handle_mining_queued(
         if game_mode.current == GameMode::Creative {
             // In creative mode, first send START_DESTROY_BLOCK packet then immediately
             // finish mining
-            commands.trigger(SendPacketEvent::new(
+            commands.trigger(SendGamePacketEvent::new(
                 entity,
                 ServerboundPlayerAction {
                     action: s_player_action::Action::StartDestroyBlock,
@@ -283,7 +283,7 @@ pub fn handle_mining_queued(
         {
             if mining.is_some() {
                 // send a packet to stop mining since we just changed target
-                commands.trigger(SendPacketEvent::new(
+                commands.trigger(SendGamePacketEvent::new(
                     entity,
                     ServerboundPlayerAction {
                         action: s_player_action::Action::AbortDestroyBlock,
@@ -347,7 +347,7 @@ pub fn handle_mining_queued(
                 });
             }
 
-            commands.trigger(SendPacketEvent::new(
+            commands.trigger(SendGamePacketEvent::new(
                 entity,
                 ServerboundPlayerAction {
                     action: s_player_action::Action::StartDestroyBlock,
@@ -525,7 +525,7 @@ pub fn handle_stop_mining_block_event(
 
         let mine_block_pos =
             mine_block_pos.expect("IsMining is true so MineBlockPos must be present");
-        commands.trigger(SendPacketEvent::new(
+        commands.trigger(SendGamePacketEvent::new(
             event.entity,
             ServerboundPlayerAction {
                 action: s_player_action::Action::AbortDestroyBlock,
@@ -589,7 +589,7 @@ pub fn continue_mining_block(
         if game_mode.current == GameMode::Creative {
             // TODO: worldborder check
             **mine_delay = 5;
-            commands.trigger(SendPacketEvent::new(
+            commands.trigger(SendGamePacketEvent::new(
                 entity,
                 ServerboundPlayerAction {
                     action: s_player_action::Action::StartDestroyBlock,
@@ -645,7 +645,7 @@ pub fn continue_mining_block(
                     entity,
                     position: mining.pos,
                 });
-                commands.trigger(SendPacketEvent::new(
+                commands.trigger(SendGamePacketEvent::new(
                     entity,
                     ServerboundPlayerAction {
                         action: s_player_action::Action::StopDestroyBlock,

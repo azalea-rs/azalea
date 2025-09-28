@@ -12,7 +12,7 @@ use chrono::Utc;
 use tracing::{debug, error};
 use uuid::Uuid;
 
-use super::{chat, login::IsAuthenticated, packet::game::SendPacketEvent};
+use super::{chat, login::IsAuthenticated, packet::game::SendGamePacketEvent};
 use crate::{Account, InGameState};
 
 pub struct ChatSigningPlugin;
@@ -169,7 +169,7 @@ pub fn handle_queued_certs_to_send(
 
         debug!("Sending chat signing certs to server");
 
-        commands.trigger(SendPacketEvent::new(
+        commands.trigger(SendGamePacketEvent::new(
             entity,
             ServerboundChatSessionUpdate { chat_session },
         ));

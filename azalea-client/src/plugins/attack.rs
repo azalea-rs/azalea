@@ -10,7 +10,7 @@ use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
 use tracing::warn;
 
-use super::packet::game::SendPacketEvent;
+use super::packet::game::SendGamePacketEvent;
 use crate::{
     Client, interact::SwingArmEvent, local_player::LocalGameMode, movement::MoveEventsSet,
     respawn::perform_respawn,
@@ -121,7 +121,7 @@ pub fn handle_attack_queued(
 
         commands.entity(client_entity).remove::<AttackQueued>();
 
-        commands.trigger(SendPacketEvent::new(
+        commands.trigger(SendGamePacketEvent::new(
             client_entity,
             ServerboundInteract {
                 entity_id: target_entity_id,

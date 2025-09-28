@@ -40,7 +40,7 @@ use crate::{
     inventory::{Inventory, InventorySet},
     local_player::{LocalGameMode, PermissionLevel},
     movement::MoveEventsSet,
-    packet::game::SendPacketEvent,
+    packet::game::SendGamePacketEvent,
     respawn::perform_respawn,
 };
 
@@ -302,7 +302,7 @@ pub fn handle_start_use_item_queued(
             HitResult::Block(r) => {
                 let seq = prediction_handler.start_predicting();
                 if r.miss {
-                    commands.trigger(SendPacketEvent::new(
+                    commands.trigger(SendGamePacketEvent::new(
                         entity,
                         ServerboundUseItem {
                             hand: start_use_item.hand,
@@ -312,7 +312,7 @@ pub fn handle_start_use_item_queued(
                         },
                     ));
                 } else {
-                    commands.trigger(SendPacketEvent::new(
+                    commands.trigger(SendGamePacketEvent::new(
                         entity,
                         ServerboundUseItemOn {
                             hand: start_use_item.hand,
@@ -342,7 +342,7 @@ pub fn handle_start_use_item_queued(
                     },
                     using_secondary_action: physics_state.trying_to_crouch,
                 };
-                commands.trigger(SendPacketEvent::new(entity, interact.clone()));
+                commands.trigger(SendGamePacketEvent::new(entity, interact.clone()));
                 // TODO: this is true if the interaction failed, which i think can only happen
                 // in certain cases when interacting with armor stands
                 let consumes_action = false;
@@ -352,7 +352,7 @@ pub fn handle_start_use_item_queued(
                     interact.action = s_interact::ActionType::Interact {
                         hand: InteractionHand::MainHand,
                     };
-                    commands.trigger(SendPacketEvent::new(entity, interact));
+                    commands.trigger(SendGamePacketEvent::new(entity, interact));
                 }
             }
         }
@@ -430,7 +430,7 @@ pub struct SwingArmEvent {
     pub entity: Entity,
 }
 pub fn handle_swing_arm_trigger(swing_arm: On<SwingArmEvent>, mut commands: Commands) {
-    commands.trigger(SendPacketEvent::new(
+    commands.trigger(SendGamePacketEvent::new(
         swing_arm.entity,
         ServerboundSwing {
             hand: InteractionHand::MainHand,

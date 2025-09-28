@@ -171,7 +171,7 @@ pub struct RawConnection {
     /// handlers or at all times during tests.
     ///
     /// You shouldn't rely on this. Instead, use the events for sending packets
-    /// like [`SendPacketEvent`](crate::packet::game::SendPacketEvent) /
+    /// like [`SendGamePacketEvent`](crate::packet::game::SendGamePacketEvent) /
     /// [`SendConfigPacketEvent`](crate::packet::config::SendConfigPacketEvent)
     /// / [`SendLoginPacketEvent`](crate::packet::login::SendLoginPacketEvent).
     ///
@@ -227,10 +227,10 @@ impl RawConnection {
 
     /// Write a packet to the server without emitting any events.
     ///
-    /// This is called by the handlers for [`SendPacketEvent`],
+    /// This is called by the handlers for [`SendGamePacketEvent`],
     /// [`SendConfigPacketEvent`], and [`SendLoginPacketEvent`].
     ///
-    /// [`SendPacketEvent`]: crate::packet::game::SendPacketEvent
+    /// [`SendGamePacketEvent`]: crate::packet::game::SendGamePacketEvent
     /// [`SendConfigPacketEvent`]: crate::packet::config::SendConfigPacketEvent
     /// [`SendLoginPacketEvent`]: crate::packet::login::SendLoginPacketEvent
     pub fn write<P: ProtocolPacket + Debug>(

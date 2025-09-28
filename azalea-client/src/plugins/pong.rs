@@ -4,9 +4,9 @@ use bevy_ecs::prelude::*;
 
 use super::packet::{
     config::{ConfigPingEvent, SendConfigPacketEvent},
-    game::PingEvent,
+    game::GamePingEvent,
 };
-use crate::packet::game::SendPacketEvent;
+use crate::packet::game::SendGamePacketEvent;
 
 /// A plugin that replies to [`ClientboundPing`] packets with
 /// [`ServerboundPong`].
@@ -23,8 +23,8 @@ impl Plugin for PongPlugin {
     }
 }
 
-pub fn reply_to_game_ping(ping: On<PingEvent>, mut commands: Commands) {
-    commands.trigger(SendPacketEvent::new(
+pub fn reply_to_game_ping(ping: On<GamePingEvent>, mut commands: Commands) {
+    commands.trigger(SendGamePacketEvent::new(
         ping.entity,
         game::ServerboundPong { id: ping.packet.id },
     ));

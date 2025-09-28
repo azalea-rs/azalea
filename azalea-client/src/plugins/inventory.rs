@@ -23,7 +23,7 @@ use bevy_ecs::prelude::*;
 use indexmap::IndexMap;
 use tracing::{error, warn};
 
-use crate::{Client, packet::game::SendPacketEvent, respawn::perform_respawn};
+use crate::{Client, packet::game::SendGamePacketEvent, respawn::perform_respawn};
 
 pub struct InventoryPlugin;
 impl Plugin for InventoryPlugin {
@@ -764,7 +764,7 @@ fn handle_container_close_event(
         return;
     }
 
-    commands.trigger(SendPacketEvent::new(
+    commands.trigger(SendGamePacketEvent::new(
         entity,
         ServerboundContainerClose {
             container_id: inventory.id,
@@ -873,7 +873,7 @@ pub fn handle_container_click_event(
         }
     }
 
-    commands.trigger(SendPacketEvent::new(
+    commands.trigger(SendGamePacketEvent::new(
         entity,
         ServerboundContainerClick {
             container_id: container_click.window_id,
@@ -969,7 +969,7 @@ pub fn ensure_has_sent_carried_item(
                 continue;
             }
 
-            commands.trigger(SendPacketEvent::new(
+            commands.trigger(SendGamePacketEvent::new(
                 entity,
                 ServerboundSetCarriedItem {
                     slot: inventory.selected_hotbar_slot as u16,

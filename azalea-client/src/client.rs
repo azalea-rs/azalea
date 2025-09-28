@@ -60,7 +60,7 @@ use crate::{
     local_player::{Hunger, InstanceHolder, PermissionLevel, TabList},
     mining::{self},
     movement::LastSentLookDirection,
-    packet::game::SendPacketEvent,
+    packet::game::SendGamePacketEvent,
     player::{GameProfileComponent, PlayerInfo, retroactively_add_game_profile_component},
 };
 
@@ -236,7 +236,7 @@ impl Client {
         self.ecs
             .lock()
             .commands()
-            .trigger(SendPacketEvent::new(self.entity, packet));
+            .trigger(SendGamePacketEvent::new(self.entity, packet));
     }
 
     /// Disconnect this client from the server by ending all tasks.

@@ -6,7 +6,7 @@ use azalea_client::{
     packet::{
         config::SendConfigPacketEvent,
         death_event_on_0_health,
-        game::{ResourcePackEvent, SendPacketEvent},
+        game::{ResourcePackEvent, SendGamePacketEvent},
     },
     respawn::perform_respawn,
 };
@@ -62,14 +62,14 @@ fn accept_resource_pack(
                 },
             ));
         } else {
-            commands.trigger(SendPacketEvent::new(
+            commands.trigger(SendGamePacketEvent::new(
                 event.entity,
                 ServerboundResourcePack {
                     id: event.id,
                     action: s_resource_pack::Action::Accepted,
                 },
             ));
-            commands.trigger(SendPacketEvent::new(
+            commands.trigger(SendGamePacketEvent::new(
                 event.entity,
                 ServerboundResourcePack {
                     id: event.id,

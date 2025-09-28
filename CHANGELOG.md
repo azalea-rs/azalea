@@ -14,6 +14,7 @@ is breaking anyways, semantic versioning is not followed.
 
 - Update to Bevy 0.17.
 - `Client::query`, `map_component`, and `map_get_component` were replaced by `Client::query_self`.
+- Rename `SendPacketEvent` to `SendGamePacketEvent` and `PingEvent` to `GamePingEvent`.
 
 ### Fixed
 

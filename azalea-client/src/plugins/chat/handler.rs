@@ -8,7 +8,7 @@ use azalea_protocol::packets::{
 use bevy_ecs::prelude::*;
 
 use super::ChatKind;
-use crate::{Account, chat_signing::ChatSigningSession, packet::game::SendPacketEvent};
+use crate::{Account, chat_signing::ChatSigningSession, packet::game::SendGamePacketEvent};
 
 /// Send a chat packet to the server of a specific kind (chat message or
 /// command). Usually you just want [`SendChatEvent`] instead.
@@ -81,7 +81,7 @@ pub fn handle_send_chat_kind_event(
             }
         };
 
-        commands.trigger(SendPacketEvent::new(event.entity, packet));
+        commands.trigger(SendGamePacketEvent::new(event.entity, packet));
     }
 }
 

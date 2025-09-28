@@ -40,7 +40,7 @@ use thiserror::Error;
 use crate::{
     client::Client,
     local_player::{Hunger, InstanceHolder, LocalGameMode},
-    packet::game::SendPacketEvent,
+    packet::game::SendGamePacketEvent,
 };
 
 #[derive(Error, Debug)]
@@ -251,7 +251,7 @@ pub fn send_position(
         };
 
         if let Some(packet) = packet {
-            commands.trigger(SendPacketEvent {
+            commands.trigger(SendGamePacketEvent {
                 sent_by: entity,
                 packet,
             });
@@ -283,7 +283,7 @@ pub fn send_player_input_packet(
         let last_sent_input = last_sent_input.cloned().unwrap_or_default();
 
         if input != last_sent_input.0 {
-            commands.trigger(SendPacketEvent {
+            commands.trigger(SendGamePacketEvent {
                 sent_by: entity,
                 packet: input.clone().into_variant(),
             });
@@ -304,7 +304,7 @@ pub fn send_sprinting_if_needed(
             } else {
                 azalea_protocol::packets::game::s_player_command::Action::StopSprinting
             };
-            commands.trigger(SendPacketEvent::new(
+            commands.trigger(SendGamePacketEvent::new(
                 entity,
                 ServerboundPlayerCommand {
                     id: *minecraft_entity_id,

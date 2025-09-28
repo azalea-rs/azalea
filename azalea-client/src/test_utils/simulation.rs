@@ -35,7 +35,7 @@ use uuid::Uuid;
 
 use crate::{
     InConfigState, LocalPlayerBundle, connection::RawConnection, disconnect::DisconnectEvent,
-    local_player::InstanceHolder, packet::game::SendPacketEvent, player::GameProfileComponent,
+    local_player::InstanceHolder, packet::game::SendGamePacketEvent, player::GameProfileComponent,
 };
 
 /// A way to simulate a client in a server, used for some internal tests.
@@ -191,7 +191,7 @@ impl SentPackets {
         let sent_packets_clone = sent_packets.clone();
         simulation
             .app
-            .add_observer(move |send_game_packet: On<SendPacketEvent>| {
+            .add_observer(move |send_game_packet: On<SendGamePacketEvent>| {
                 if send_game_packet.sent_by == simulation_entity {
                     sent_packets_clone
                         .list
