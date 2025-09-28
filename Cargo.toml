@@ -66,8 +66,8 @@ quote = "1"
 rand = "0.9"
 regex = "1"
 reqwest = { version = "0.12", default-features = false }
-rsa = "0.10.0-rc.6"
-signature = "=3.0.0-rc.3" # TODO: Remove when rsa is fixed.
+rsa = "0.10.0-rc.8"
+signature = "=3.0.0-rc.4"                                 # TODO: Remove when rsa is fixed.
 rsa_public_encrypt_pkcs1 = "0.4"
 rustc-hash = "2"
 serde = "1"

@@ -14,11 +14,11 @@ use azalea::{
     world::MinecraftEntityId,
 };
 use azalea_core::hit_result::HitResult;
-use azalea_entity::EntityKindComponent;
+use azalea_entity::{EntityKindComponent, EntityUuid, metadata};
 use azalea_inventory::components::MaxStackSize;
 use azalea_world::InstanceContainer;
 use bevy_app::AppExit;
-use bevy_ecs::event::Events;
+use bevy_ecs::{event::Events, query::With};
 use parking_lot::Mutex;
 
 use super::{CommandSource, Ctx};
@@ -211,6 +211,24 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
         let source = ctx.source.lock();
         let bot_dimensions = source.bot.dimensions();
         source.reply(format!("{bot_dimensions:?}"));
+        1
+    }));
+
+    commands.register(literal("players").executes(|ctx: &Ctx| {
+        let source = ctx.source.lock();
+        let player_entities = source
+            .bot
+            .nearest_entities_by::<With<metadata::Player>, ()>(|_: &()| true);
+        let tab_list = source.bot.tab_list();
+        for player_entity in player_entities {
+            let uuid = source.bot.entity_component::<EntityUuid>(player_entity);
+            source.reply(format!(
+                "{} - {} ({:?})",
+                player_entity,
+                tab_list.get(&uuid).map_or("?", |p| p.profile.name.as_str()),
+                uuid
+            ));
+        }
         1
     }));
 

@@ -46,6 +46,7 @@ pub type BoxHandleFn<S, R> =
     Box<dyn Fn(Client, azalea_client::Event, S) -> BoxFuture<'static, R> + Send>;
 pub type HandleFn<S, Fut> = fn(Client, azalea_client::Event, S) -> Fut;
 
+/// An error related to resolving the server address when starting a client.
 #[derive(Error, Debug)]
 pub enum StartError {
     #[error("Invalid address")]
