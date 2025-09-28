@@ -25,7 +25,7 @@ use azalea_protocol::{
         },
     },
 };
-use azalea_registry::{Biome, DimensionType, EntityKind};
+use azalea_registry::{Biome, DataRegistry, DimensionType, EntityKind};
 use azalea_world::{Chunk, Instance, MinecraftEntityId, Section, palette::PalettedContainer};
 use bevy_app::App;
 use bevy_ecs::{component::Mutable, prelude::*, schedule::ExecutorKind};
@@ -126,6 +126,9 @@ impl Simulation {
     }
     pub fn has_component<T: Component>(&self) -> bool {
         self.app.world().get::<T>(self.entity).is_some()
+    }
+    pub fn with_component<T: Component>(&self, f: impl FnOnce(&T)) {
+        f(&mut self.app.world().entity(self.entity).get::<T>().unwrap());
     }
     pub fn with_component_mut<T: Component<Mutability = Mutable>>(
         &mut self,
@@ -291,6 +294,13 @@ fn create_simulation_app() -> App {
 fn tick_app(app: &mut App) {
     app.update();
     app.world_mut().run_schedule(GameTick);
+}
+
+pub fn default_login_packet() -> ClientboundLogin {
+    make_basic_login_packet(
+        DimensionType::new_raw(0), // overworld
+        ResourceLocation::new("minecraft:overworld"),
+    )
 }
 
 pub fn make_basic_login_packet(
