@@ -4,7 +4,7 @@ use azalea_core::game_type::GameMode;
 use azalea_entity::indexing::EntityUuidIndex;
 use bevy_ecs::{
     component::Component,
-    event::EventReader,
+    message::MessageReader,
     system::{Commands, Res},
 };
 use derive_more::{Deref, DerefMut};
@@ -44,7 +44,7 @@ pub struct GameProfileComponent(pub GameProfile);
 /// `ClientboundGamePacket::AddPlayer` handler though.
 pub fn retroactively_add_game_profile_component(
     mut commands: Commands,
-    mut events: EventReader<AddPlayerEvent>,
+    mut events: MessageReader<AddPlayerEvent>,
     entity_uuid_index: Res<EntityUuidIndex>,
 ) {
     for event in events.read() {

@@ -1,50 +1,26 @@
 use azalea_client::{PhysicsState, SprintDirection, StartSprintEvent, test_utils::prelude::*};
-use azalea_core::{
-    position::{BlockPos, ChunkPos, Vec3},
-    resource_location::ResourceLocation,
-};
+use azalea_core::position::{BlockPos, ChunkPos, Vec3};
 use azalea_entity::LookDirection;
 use azalea_protocol::{
     common::movements::{PositionMoveRotation, RelativeMovements},
     packets::{
         ConnectionProtocol,
-        config::{ClientboundFinishConfiguration, ClientboundRegistryData},
         game::{
             ClientboundBlockUpdate, ClientboundPlayerPosition, ServerboundGamePacket,
             ServerboundPlayerInput,
         },
     },
 };
-use azalea_registry::{Block, DataRegistry, DimensionType};
-use simdnbt::owned::{NbtCompound, NbtTag};
+use azalea_registry::Block;
 
 #[test]
 fn test_correct_sprint_sneak_movement() {
     init_tracing();
 
-    let mut simulation = Simulation::new(ConnectionProtocol::Configuration);
+    let mut simulation = Simulation::new(ConnectionProtocol::Game);
     let sent_packets = SentPackets::new(&mut simulation);
 
-    simulation.receive_packet(ClientboundRegistryData {
-        registry_id: ResourceLocation::new("minecraft:dimension_type"),
-        entries: vec![(
-            ResourceLocation::new("minecraft:overworld"),
-            Some(NbtCompound::from_values(vec![
-                ("height".into(), NbtTag::Int(384)),
-                ("min_y".into(), NbtTag::Int(-64)),
-            ])),
-        )]
-        .into_iter()
-        .collect(),
-    });
-    simulation.tick();
-    simulation.receive_packet(ClientboundFinishConfiguration);
-    simulation.tick();
-
-    simulation.receive_packet(make_basic_login_packet(
-        DimensionType::new_raw(0), // overworld
-        ResourceLocation::new("minecraft:overworld"),
-    ));
+    simulation.receive_packet(default_login_packet());
     simulation.tick();
 
     sent_packets.expect_tick_end();
@@ -74,7 +50,7 @@ fn test_correct_sprint_sneak_movement() {
     sent_packets.clear();
 
     // start sprinting
-    simulation.send_event(StartSprintEvent {
+    simulation.write_message(StartSprintEvent {
         entity: simulation.entity,
         direction: SprintDirection::Forward,
     });

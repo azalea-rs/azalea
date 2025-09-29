@@ -11,11 +11,10 @@ use bevy_ecs::prelude::*;
 pub use events::*;
 use tracing::{debug, warn};
 
-use super::as_system;
+use super::{as_system, declare_packet_handlers};
 use crate::{
     client::InConfigState,
     connection::RawConnection,
-    declare_packet_handlers,
     disconnect::DisconnectEvent,
     local_player::InstanceHolder,
     packet::game::{KeepAliveEvent, ResourcePackEvent},
@@ -86,7 +85,7 @@ impl ConfigPacketHandler<'_> {
 
     pub fn disconnect(&mut self, p: &ClientboundDisconnect) {
         warn!("Got disconnect packet {p:?}");
-        as_system::<EventWriter<_>>(self.ecs, |mut events| {
+        as_system::<MessageWriter<_>>(self.ecs, |mut events| {
             events.write(DisconnectEvent {
                 entity: self.player,
                 reason: Some(p.reason.clone()),
@@ -128,7 +127,7 @@ impl ConfigPacketHandler<'_> {
             self.player
         );
 
-        as_system::<(Commands, EventWriter<_>)>(self.ecs, |(mut commands, mut events)| {
+        as_system::<(Commands, MessageWriter<_>)>(self.ecs, |(mut commands, mut events)| {
             events.write(KeepAliveEvent {
                 entity: self.player,
                 id: p.id,
@@ -144,14 +143,17 @@ impl ConfigPacketHandler<'_> {
         debug!("Got ping packet (in configuration) {p:?}");
 
         as_system::<Commands>(self.ecs, |mut commands| {
-            commands.trigger_targets(ConfigPingEvent(p.clone()), self.player);
+            commands.trigger(ConfigPingEvent {
+                entity: self.player,
+                packet: p.clone(),
+            });
         });
     }
 
     pub fn resource_pack_push(&mut self, p: &ClientboundResourcePackPush) {
         debug!("Got resource pack push packet {p:?}");
 
-        as_system::<EventWriter<_>>(self.ecs, |mut events| {
+        as_system::<MessageWriter<_>>(self.ecs, |mut events| {
             events.write(ResourcePackEvent {
                 entity: self.player,
                 id: p.id,

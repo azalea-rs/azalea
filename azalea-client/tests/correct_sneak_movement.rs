@@ -1,8 +1,5 @@
 use azalea_client::{PhysicsState, StartWalkEvent, WalkDirection, test_utils::prelude::*};
-use azalea_core::{
-    position::{BlockPos, ChunkPos, Vec3},
-    resource_location::ResourceLocation,
-};
+use azalea_core::position::{BlockPos, ChunkPos, Vec3};
 use azalea_entity::LookDirection;
 use azalea_protocol::{
     common::movements::{PositionMoveRotation, RelativeMovements},
@@ -14,7 +11,7 @@ use azalea_protocol::{
         },
     },
 };
-use azalea_registry::{Block, DataRegistry, DimensionType};
+use azalea_registry::Block;
 
 #[test]
 fn test_correct_sneak_movement() {
@@ -23,10 +20,7 @@ fn test_correct_sneak_movement() {
     let mut simulation = Simulation::new(ConnectionProtocol::Game);
     let sent_packets = SentPackets::new(&mut simulation);
 
-    simulation.receive_packet(make_basic_login_packet(
-        DimensionType::new_raw(0), // overworld
-        ResourceLocation::new("minecraft:overworld"),
-    ));
+    simulation.receive_packet(default_login_packet());
     simulation.tick();
 
     sent_packets.expect_tick_end();
@@ -68,7 +62,7 @@ fn test_correct_sneak_movement() {
     sent_packets.expect_empty();
 
     simulation.tick();
-    simulation.send_event(StartWalkEvent {
+    simulation.write_message(StartWalkEvent {
         entity: simulation.entity,
         direction: WalkDirection::Forward,
     });

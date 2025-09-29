@@ -4,7 +4,7 @@ use std::{collections::HashMap, sync::LazyLock};
 
 use compact_str::CompactString;
 
-pub static STORAGE: LazyLock<Vec<(CompactString, CompactString)>> = LazyLock::new(|| {
+static STORAGE: LazyLock<Box<[(CompactString, CompactString)]>> = LazyLock::new(|| {
     let json =
         serde_json::from_str::<HashMap<CompactString, CompactString>>(include_str!("en_us.json"))
             .unwrap();
@@ -13,7 +13,7 @@ pub static STORAGE: LazyLock<Vec<(CompactString, CompactString)>> = LazyLock::ne
     // sort by key to make binary search work
     json.sort_by(|a, b| a.0.cmp(&b.0));
 
-    json
+    json.into_boxed_slice()
 });
 
 pub fn get(key: &str) -> Option<&str> {

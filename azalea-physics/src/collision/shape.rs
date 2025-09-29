@@ -8,7 +8,7 @@ use azalea_core::{
 };
 
 use super::mergers::IndexMerger;
-use crate::collision::{AABB, BitSetDiscreteVoxelShape, DiscreteVoxelShape};
+use crate::collision::{Aabb, BitSetDiscreteVoxelShape, DiscreteVoxelShape};
 
 pub struct Shapes;
 
@@ -99,7 +99,7 @@ impl Shapes {
 
     pub fn collide(
         axis: Axis,
-        entity_box: &AABB,
+        entity_box: &Aabb,
         collision_boxes: &[VoxelShape],
         mut movement: f64,
     ) -> f64 {
@@ -432,14 +432,14 @@ impl VoxelShape {
                 world_border: false,
             })
         } else {
-            AABB::clip_iterable(&self.to_aabbs(), from, to, block_pos)
+            Aabb::clip_iterable(&self.to_aabbs(), from, to, block_pos)
         }
     }
 
-    pub fn collide(&self, axis: Axis, entity_box: &AABB, movement: f64) -> f64 {
+    pub fn collide(&self, axis: Axis, entity_box: &Aabb, movement: f64) -> f64 {
         self.collide_x(AxisCycle::between(axis, Axis::X), entity_box, movement)
     }
-    pub fn collide_x(&self, axis_cycle: AxisCycle, entity_box: &AABB, mut movement: f64) -> f64 {
+    pub fn collide_x(&self, axis_cycle: AxisCycle, entity_box: &Aabb, mut movement: f64) -> f64 {
         if self.shape().is_empty() {
             return movement;
         }
@@ -550,10 +550,10 @@ impl VoxelShape {
         );
     }
 
-    pub fn to_aabbs(&self) -> Vec<AABB> {
+    pub fn to_aabbs(&self) -> Vec<Aabb> {
         let mut aabbs = Vec::new();
         self.for_all_boxes(|min_x, min_y, min_z, max_x, max_y, max_z| {
-            aabbs.push(AABB {
+            aabbs.push(Aabb {
                 min: Vec3::new(min_x, min_y, min_z),
                 max: Vec3::new(max_x, max_y, max_z),
             });
@@ -561,24 +561,24 @@ impl VoxelShape {
         aabbs
     }
 
-    pub fn bounds(&self) -> AABB {
+    pub fn bounds(&self) -> Aabb {
         assert!(!self.is_empty(), "Can't get bounds for empty shape");
-        AABB {
+        Aabb {
             min: Vec3::new(self.min(Axis::X), self.min(Axis::Y), self.min(Axis::Z)),
             max: Vec3::new(self.max(Axis::X), self.max(Axis::Y), self.max(Axis::Z)),
         }
     }
 }
 
-impl From<&AABB> for VoxelShape {
-    fn from(aabb: &AABB) -> Self {
+impl From<&Aabb> for VoxelShape {
+    fn from(aabb: &Aabb) -> Self {
         box_shape(
             aabb.min.x, aabb.min.y, aabb.min.z, aabb.max.x, aabb.max.y, aabb.max.z,
         )
     }
 }
-impl From<AABB> for VoxelShape {
-    fn from(aabb: AABB) -> Self {
+impl From<Aabb> for VoxelShape {
+    fn from(aabb: Aabb) -> Self {
         VoxelShape::from(&aabb)
     }
 }

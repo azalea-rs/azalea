@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use azalea_client::{
     PhysicsState, interact::BlockStatePredictionHandler, inventory::Inventory,
-    local_player::LocalGameMode, mining::MineBundle, packet::game::SendPacketEvent,
+    local_player::LocalGameMode, mining::MineBundle,
 };
 use azalea_core::{
     game_type::GameMode, position::Vec3, resource_location::ResourceLocation, tick::GameTick,
@@ -63,7 +63,7 @@ fn create_simulation_instance(chunks: ChunkStorage) -> (App, Arc<RwLock<Instance
         azalea_entity::EntityPlugin,
         azalea_client::movement::MovementPlugin,
         super::PathfinderPlugin,
-        crate::BotPlugin,
+        crate::bot::BotPlugin,
         azalea_client::task_pool::TaskPoolPlugin::default(),
         // for mining
         azalea_client::inventory::InventoryPlugin,
@@ -76,8 +76,7 @@ fn create_simulation_instance(chunks: ChunkStorage) -> (App, Arc<RwLock<Instance
             .iter()
             .cloned()
             .collect(),
-    })
-    .add_event::<SendPacketEvent>();
+    });
 
     app.edit_schedule(bevy_app::Main, |schedule| {
         schedule.set_executor_kind(bevy_ecs::schedule::ExecutorKind::SingleThreaded);

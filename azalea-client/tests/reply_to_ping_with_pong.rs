@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use azalea_client::{
-    packet::{config::SendConfigPacketEvent, game::SendPacketEvent},
+    packet::{config::SendConfigPacketEvent, game::SendGamePacketEvent},
     test_utils::prelude::*,
 };
 use azalea_core::resource_location::ResourceLocation;
@@ -12,7 +12,7 @@ use azalea_protocol::packets::{
     },
     game::{self, ServerboundGamePacket},
 };
-use bevy_ecs::observer::Trigger;
+use bevy_ecs::observer::On;
 use parking_lot::Mutex;
 use simdnbt::owned::{NbtCompound, NbtTag};
 
@@ -26,9 +26,9 @@ fn reply_to_ping_with_pong() {
     let reply_count_clone = reply_count.clone();
     simulation
         .app
-        .add_observer(move |trigger: Trigger<SendConfigPacketEvent>| {
-            if trigger.sent_by == simulation.entity
-                && let ServerboundConfigPacket::Pong(packet) = &trigger.packet
+        .add_observer(move |send_config_packet: On<SendConfigPacketEvent>| {
+            if send_config_packet.sent_by == simulation.entity
+                && let ServerboundConfigPacket::Pong(packet) = &send_config_packet.packet
             {
                 assert_eq!(packet.id, 321);
                 *reply_count_clone.lock() += 1;
@@ -61,9 +61,9 @@ fn reply_to_ping_with_pong() {
     let reply_count_clone = reply_count.clone();
     simulation
         .app
-        .add_observer(move |trigger: Trigger<SendPacketEvent>| {
-            if trigger.sent_by == simulation.entity
-                && let ServerboundGamePacket::Pong(packet) = &trigger.packet
+        .add_observer(move |send_game_packet: On<SendGamePacketEvent>| {
+            if send_game_packet.sent_by == simulation.entity
+                && let ServerboundGamePacket::Pong(packet) = &send_game_packet.packet
             {
                 assert_eq!(packet.id, 123);
                 *reply_count_clone.lock() += 1;

@@ -8,7 +8,7 @@ use azalea_world::InstanceName;
 use bevy_app::{App, Plugin};
 use bevy_ecs::prelude::*;
 
-use crate::{mining::MiningSet, packet::game::SendPacketEvent};
+use crate::{mining::MiningSet, packet::game::SendGamePacketEvent};
 
 /// A plugin that makes clients send a [`ServerboundClientTickEnd`] packet every
 /// tick.
@@ -31,6 +31,6 @@ pub fn game_tick_packet(
     mut commands: Commands,
 ) {
     for entity in query.iter() {
-        commands.trigger(SendPacketEvent::new(entity, ServerboundClientTickEnd));
+        commands.trigger(SendGamePacketEvent::new(entity, ServerboundClientTickEnd));
     }
 }

@@ -9,7 +9,7 @@ use tracing::{debug, error};
 
 use crate::{InConfigState, connection::RawConnection};
 
-#[derive(Event, Debug, Clone)]
+#[derive(Message, Debug, Clone)]
 pub struct ReceiveConfigPacketEvent {
     /// The client entity that received the packet.
     pub entity: Entity,
@@ -19,8 +19,9 @@ pub struct ReceiveConfigPacketEvent {
 
 /// An event for sending a packet to the server while we're in the
 /// `configuration` state.
-#[derive(Event, Clone)]
+#[derive(EntityEvent, Clone)]
 pub struct SendConfigPacketEvent {
+    #[event_target]
     pub sent_by: Entity,
     pub packet: ServerboundConfigPacket,
 }
@@ -32,41 +33,33 @@ impl SendConfigPacketEvent {
 }
 
 pub fn handle_outgoing_packets_observer(
-    trigger: Trigger<SendConfigPacketEvent>,
+    send_config_packet: On<SendConfigPacketEvent>,
     mut query: Query<(&mut RawConnection, Option<&InConfigState>)>,
 ) {
-    let event = trigger.event();
-    if let Ok((mut raw_conn, in_configuration_state)) = query.get_mut(event.sent_by) {
+    if let Ok((mut raw_conn, in_configuration_state)) = query.get_mut(send_config_packet.sent_by) {
         if in_configuration_state.is_none() {
             error!(
                 "Tried to send a configuration packet {:?} while not in configuration state",
-                event.packet
+                send_config_packet.packet
             );
             return;
         }
-        debug!("Sending config packet: {:?}", event.packet);
-        if let Err(e) = raw_conn.write(event.packet.clone()) {
+        debug!("Sending config packet: {:?}", send_config_packet.packet);
+        if let Err(e) = raw_conn.write(send_config_packet.packet.clone()) {
             error!("Failed to send packet: {e}");
         }
-    }
-}
-/// A system that converts [`SendConfigPacketEvent`] events into triggers so
-/// they get received by [`handle_outgoing_packets_observer`].
-pub fn handle_outgoing_packets(
-    mut commands: Commands,
-    mut events: EventReader<SendConfigPacketEvent>,
-) {
-    for event in events.read() {
-        commands.trigger(event.clone());
     }
 }
 
 /// A Bevy trigger that's sent when our client receives a [`ClientboundPing`]
 /// packet in the config state.
 ///
-/// See [`PingEvent`] for more information.
+/// Also see [`PingEvent`].
 ///
 /// [`ClientboundPing`]: azalea_protocol::packets::config::ClientboundPing
 /// [`PingEvent`]: crate::packet::game::PingEvent
 #[derive(Event, Debug, Clone)]
-pub struct ConfigPingEvent(pub azalea_protocol::packets::config::ClientboundPing);
+pub struct ConfigPingEvent {
+    pub entity: Entity,
+    pub packet: azalea_protocol::packets::config::ClientboundPing,
+}

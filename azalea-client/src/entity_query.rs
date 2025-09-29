@@ -6,7 +6,7 @@ use azalea_world::InstanceName;
 use bevy_ecs::{
     component::Component,
     entity::Entity,
-    query::{QueryData, QueryFilter, ROQueryItem},
+    query::{QueryData, QueryFilter, QueryItem, ROQueryItem},
     world::World,
 };
 use parking_lot::Mutex;
@@ -14,26 +14,29 @@ use parking_lot::Mutex;
 use crate::Client;
 
 impl Client {
-    /// A convenience function for getting components of our player's entity.
+    /// A convenience function for getting components from our client's entity.
     ///
     /// # Examples
     /// ```
     /// # use azalea_world::InstanceName;
     /// # fn example(mut client: azalea_client::Client) {
-    /// let is_logged_in = client
-    ///     .query::<Option<&InstanceName>>(&mut client.ecs.lock())
-    ///     .is_some();
+    /// let is_logged_in = client.query_self::<Option<&InstanceName>, _>(|ins| ins.is_some());
     /// # }
     /// ```
-    pub fn query<'w, D: QueryData>(&self, ecs: &'w mut World) -> D::Item<'w> {
-        ecs.query::<D>()
-            .get_mut(ecs, self.entity)
-            .unwrap_or_else(|_| {
-                panic!(
-                    "Our client is missing a required component {:?}",
-                    any::type_name::<D>()
-                )
-            })
+    ///
+    /// # Panics
+    ///
+    /// This will panic if the component doesn't exist on the client.
+    pub fn query_self<D: QueryData, R>(&self, f: impl FnOnce(QueryItem<D>) -> R) -> R {
+        let mut ecs = self.ecs.lock();
+        let mut qs = ecs.query::<D>();
+        let res = qs.get_mut(&mut ecs, self.entity).unwrap_or_else(|_| {
+            panic!(
+                "Our client is missing a required component {:?}",
+                any::type_name::<D>()
+            )
+        });
+        f(res)
     }
 
     /// Quickly returns a lightweight [`Entity`] for an arbitrary entity that

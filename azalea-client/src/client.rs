@@ -14,7 +14,7 @@ use azalea_core::{
     tick::GameTick,
 };
 use azalea_entity::{
-    EntityUpdateSet, PlayerAbilities, Position,
+    EntityUpdateSystems, PlayerAbilities, Position,
     dimensions::EntityDimensions,
     indexing::{EntityIdIndex, EntityUuidIndex},
     metadata::Health,
@@ -29,7 +29,7 @@ use azalea_protocol::{
 use azalea_world::{Instance, InstanceContainer, InstanceName, MinecraftEntityId, PartialInstance};
 use bevy_app::{App, AppExit, Plugin, PluginsState, SubApp, Update};
 use bevy_ecs::{
-    event::EventCursor,
+    message::MessageCursor,
     prelude::*,
     schedule::{InternedScheduleLabel, LogLevel, ScheduleBuildSettings},
 };
@@ -43,7 +43,7 @@ use tokio::{
     },
     time,
 };
-use tracing::{error, info, warn};
+use tracing::{info, warn};
 use uuid::Uuid;
 
 use crate::{
@@ -60,17 +60,17 @@ use crate::{
     local_player::{Hunger, InstanceHolder, PermissionLevel, TabList},
     mining::{self},
     movement::LastSentLookDirection,
-    packet::game::SendPacketEvent,
+    packet::game::SendGamePacketEvent,
     player::{GameProfileComponent, PlayerInfo, retroactively_add_game_profile_component},
 };
 
-/// `Client` has the things that a user interacting with the library will want.
+/// A Minecraft client instance that can interact with the world.
 ///
 /// To make a new client, use either [`azalea::ClientBuilder`] or
 /// [`Client::join`].
 ///
 /// Note that `Client` is inaccessible from systems (i.e. plugins), but you can
-/// achieve everything that client can do with events.
+/// achieve everything that client can do with ECS events.
 ///
 /// [`azalea::ClientBuilder`]: https://docs.rs/azalea/latest/azalea/struct.ClientBuilder.html
 #[derive(Clone)]
@@ -216,7 +216,7 @@ impl Client {
         let (start_join_callback_tx, mut start_join_callback_rx) =
             mpsc::unbounded_channel::<Entity>();
 
-        ecs_lock.lock().send_event(StartJoinServerEvent {
+        ecs_lock.lock().write_message(StartJoinServerEvent {
             account,
             connect_opts,
             event_sender,
@@ -236,7 +236,7 @@ impl Client {
         self.ecs
             .lock()
             .commands()
-            .trigger(SendPacketEvent::new(self.entity, packet));
+            .trigger(SendGamePacketEvent::new(self.entity, packet));
     }
 
     /// Disconnect this client from the server by ending all tasks.
@@ -244,20 +244,17 @@ impl Client {
     /// The OwnedReadHalf for the TCP connection is in one of the tasks, so it
     /// automatically closes the connection when that's dropped.
     pub fn disconnect(&self) {
-        self.ecs.lock().send_event(DisconnectEvent {
+        self.ecs.lock().write_message(DisconnectEvent {
             entity: self.entity,
             reason: None,
         });
     }
 
-    pub fn raw_connection<'a>(&'a self, ecs: &'a mut World) -> &'a RawConnection {
-        self.query::<&RawConnection>(ecs)
+    pub fn with_raw_connection<R>(&self, f: impl FnOnce(&RawConnection) -> R) -> R {
+        self.query_self::<&RawConnection, _>(f)
     }
-    pub fn raw_connection_mut<'a>(
-        &'a self,
-        ecs: &'a mut World,
-    ) -> bevy_ecs::world::Mut<'a, RawConnection> {
-        self.query::<&mut RawConnection>(ecs)
+    pub fn with_raw_connection_mut<R>(&self, f: impl FnOnce(Mut<'_, RawConnection>) -> R) -> R {
+        self.query_self::<&mut RawConnection, _>(f)
     }
 
     /// Get a component from this client. This will clone the component and
@@ -283,15 +280,16 @@ impl Client {
     /// let world_name = client.component::<InstanceName>();
     /// # }
     pub fn component<T: Component + Clone>(&self) -> T {
-        self.query::<&T>(&mut self.ecs.lock()).clone()
+        self.query_self::<&T, _>(|t| t.clone())
     }
 
     /// Get a component from this client, or `None` if it doesn't exist.
     ///
     /// If the component can't be cloned, try [`Self::map_component`] instead.
-    /// You may also have to use [`Self::ecs`] and [`Self::query`] directly.
+    ///
+    /// You may also have to use [`Self::with_query`] directly.
     pub fn get_component<T: Component + Clone>(&self) -> Option<T> {
-        self.query::<Option<&T>>(&mut self.ecs.lock()).cloned()
+        self.query_self::<Option<&T>, _>(|t| t.cloned())
     }
 
     /// Get a resource from the ECS. This will clone the resource and return it.
@@ -311,42 +309,6 @@ impl Client {
         let ecs = self.ecs.lock();
         let value = ecs.get_resource::<T>();
         f(value)
-    }
-
-    /// Get a required component for this client and call the given function.
-    ///
-    /// Similar to [`Self::component`], but doesn't clone the component since
-    /// it's passed as a reference. [`Self::ecs`] will remain locked while the
-    /// callback is being run.
-    ///
-    /// If the component is not guaranteed to be present, use
-    /// [`Self::get_component`] instead.
-    ///
-    /// # Panics
-    ///
-    /// This will panic if the component doesn't exist on the client.
-    ///
-    /// ```
-    /// # use azalea_client::{Client, local_player::Hunger};
-    /// # fn example(bot: &Client) {
-    /// let hunger = bot.map_component::<Hunger, _>(|h| h.food);
-    /// # }
-    /// ```
-    pub fn map_component<T: Component, R>(&self, f: impl FnOnce(&T) -> R) -> R {
-        let mut ecs = self.ecs.lock();
-        let value = self.query::<&T>(&mut ecs);
-        f(value)
-    }
-
-    /// Optionally get a component for this client and call the given function.
-    ///
-    /// Similar to [`Self::get_component`], but doesn't clone the component
-    /// since it's passed as a reference. [`Self::ecs`] will remain locked
-    /// while the callback is being run.
-    pub fn map_get_component<T: Component, R>(&self, f: impl FnOnce(&T) -> R) -> Option<R> {
-        let mut ecs = self.ecs.lock();
-        let value = self.query::<Option<&T>>(&mut ecs);
-        value.map(f)
     }
 
     /// Get an `RwLock` with a reference to our (potentially shared) world.
@@ -377,8 +339,7 @@ impl Client {
     /// Returns whether we have a received the login packet yet.
     pub fn logged_in(&self) -> bool {
         // the login packet tells us the world name
-        self.query::<Option<&InstanceName>>(&mut self.ecs.lock())
-            .is_some()
+        self.query_self::<Option<&InstanceName>, _>(|ins| ins.is_some())
     }
 }
 
@@ -485,13 +446,13 @@ impl Client {
 
     /// Convert an ECS `Entity` to a [`MinecraftEntityId`].
     pub fn minecraft_entity_by_ecs_entity(&self, entity: Entity) -> Option<MinecraftEntityId> {
-        self.map_component::<EntityIdIndex, _>(|entity_id_index| {
+        self.query_self::<&EntityIdIndex, _>(|entity_id_index| {
             entity_id_index.get_by_ecs_entity(entity)
         })
     }
     /// Convert a [`MinecraftEntityId`] to an ECS `Entity`.
     pub fn ecs_entity_by_minecraft_entity(&self, entity: MinecraftEntityId) -> Option<Entity> {
-        self.map_component::<EntityIdIndex, _>(|entity_id_index| {
+        self.query_self::<&EntityIdIndex, _>(|entity_id_index| {
             entity_id_index.get_by_minecraft_entity(entity)
         })
     }
@@ -600,7 +561,7 @@ impl Plugin for AzaleaPlugin {
             (
                 // add GameProfileComponent when we get an AddPlayerEvent
                 retroactively_add_game_profile_component
-                    .after(EntityUpdateSet::Index)
+                    .after(EntityUpdateSystems::Index)
                     .after(crate::join::handle_start_join_server_event),
             ),
         )
@@ -722,9 +683,9 @@ async fn run_schedule_loop(
 ///
 /// This is based on Bevy's `should_exit` function: https://github.com/bevyengine/bevy/blob/b9fd7680e78c4073dfc90fcfdc0867534d92abe0/crates/bevy_app/src/app.rs#L1292
 fn should_exit(ecs: &mut World) -> Option<AppExit> {
-    let mut reader = EventCursor::default();
+    let mut reader = MessageCursor::default();
 
-    let events = ecs.get_resource::<Events<AppExit>>()?;
+    let events = ecs.get_resource::<Messages<AppExit>>()?;
     let mut events = reader.read(events);
 
     if events.len() != 0 {

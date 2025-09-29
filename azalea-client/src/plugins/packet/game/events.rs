@@ -18,9 +18,9 @@ use crate::{client::InGameState, connection::RawConnection, player::PlayerInfo};
 /// ```
 /// # use azalea_client::packet::game::ReceiveGamePacketEvent;
 /// # use azalea_protocol::packets::game::ClientboundGamePacket;
-/// # use bevy_ecs::event::EventReader;
+/// # use bevy_ecs::message::MessageReader;
 ///
-/// fn handle_packets(mut events: EventReader<ReceiveGamePacketEvent>) {
+/// fn handle_packets(mut events: MessageReader<ReceiveGamePacketEvent>) {
 ///     for ReceiveGamePacketEvent { entity, packet } in events.read() {
 ///         match packet.as_ref() {
 ///             ClientboundGamePacket::LevelParticles(p) => {
@@ -31,7 +31,7 @@ use crate::{client::InGameState, connection::RawConnection, player::PlayerInfo};
 ///     }
 /// }
 /// ```
-#[derive(Event, Debug, Clone)]
+#[derive(Message, Debug, Clone)]
 pub struct ReceiveGamePacketEvent {
     /// The client entity that received the packet.
     pub entity: Entity,
@@ -40,12 +40,13 @@ pub struct ReceiveGamePacketEvent {
 }
 
 /// An event for sending a packet to the server while we're in the `game` state.
-#[derive(Event, Clone, Debug)]
-pub struct SendPacketEvent {
+#[derive(EntityEvent, Clone, Debug)]
+pub struct SendGamePacketEvent {
+    #[event_target]
     pub sent_by: Entity,
     pub packet: ServerboundGamePacket,
 }
-impl SendPacketEvent {
+impl SendGamePacketEvent {
     pub fn new(sent_by: Entity, packet: impl Packet<ServerboundGamePacket>) -> Self {
         let packet = packet.into_variant();
         Self { sent_by, packet }
@@ -53,7 +54,7 @@ impl SendPacketEvent {
 }
 
 pub fn handle_outgoing_packets_observer(
-    trigger: Trigger<SendPacketEvent>,
+    trigger: On<SendGamePacketEvent>,
     mut query: Query<(&mut RawConnection, Option<&InGameState>)>,
 ) {
     let event = trigger.event();
@@ -76,17 +77,9 @@ pub fn handle_outgoing_packets_observer(
     }
 }
 
-/// A system that converts [`SendPacketEvent`] events into triggers so they get
-/// received by [`handle_outgoing_packets_observer`].
-pub fn handle_outgoing_packets(mut commands: Commands, mut events: EventReader<SendPacketEvent>) {
-    for event in events.read() {
-        commands.trigger(event.clone());
-    }
-}
-
 /// A player joined the game (or more specifically, was added to the tab
 /// list of a local player).
-#[derive(Event, Debug, Clone)]
+#[derive(Message, Debug, Clone)]
 pub struct AddPlayerEvent {
     /// The local player entity that received this event.
     pub entity: Entity,
@@ -94,7 +87,7 @@ pub struct AddPlayerEvent {
 }
 /// A player left the game (or maybe is still in the game and was just
 /// removed from the tab list of a local player).
-#[derive(Event, Debug, Clone)]
+#[derive(Message, Debug, Clone)]
 pub struct RemovePlayerEvent {
     /// The local player entity that received this event.
     pub entity: Entity,
@@ -102,7 +95,7 @@ pub struct RemovePlayerEvent {
 }
 /// A player was updated in the tab list of a local player (gamemode, display
 /// name, or latency changed).
-#[derive(Event, Debug, Clone)]
+#[derive(Message, Debug, Clone)]
 pub struct UpdatePlayerEvent {
     /// The local player entity that received this event.
     pub entity: Entity,
@@ -112,7 +105,7 @@ pub struct UpdatePlayerEvent {
 /// Event for when an entity dies. dies. If it's a local player and there's a
 /// reason in the death screen, the [`ClientboundPlayerCombatKill`] will
 /// be included.
-#[derive(Event, Debug, Clone)]
+#[derive(Message, Debug, Clone)]
 pub struct DeathEvent {
     pub entity: Entity,
     pub packet: Option<ClientboundPlayerCombatKill>,
@@ -120,7 +113,7 @@ pub struct DeathEvent {
 
 /// A KeepAlive packet is sent from the server to verify that the client is
 /// still connected.
-#[derive(Event, Debug, Clone)]
+#[derive(Message, Debug, Clone)]
 pub struct KeepAliveEvent {
     pub entity: Entity,
     /// The ID of the keepalive. This is an arbitrary number, but vanilla
@@ -128,7 +121,7 @@ pub struct KeepAliveEvent {
     pub id: u64,
 }
 
-#[derive(Event, Debug, Clone)]
+#[derive(Message, Debug, Clone)]
 pub struct ResourcePackEvent {
     pub entity: Entity,
     /// The random ID for this request to download the resource pack. The packet
@@ -144,7 +137,7 @@ pub struct ResourcePackEvent {
 ///
 /// Since the instance is given to you as a weak reference, it won't be able to
 /// be `upgrade`d if all local players leave it.
-#[derive(Event, Debug, Clone)]
+#[derive(Message, Debug, Clone)]
 pub struct InstanceLoadedEvent {
     pub entity: Entity,
     pub name: ResourceLocation,
@@ -156,15 +149,10 @@ pub struct InstanceLoadedEvent {
 ///
 /// Also see [`ConfigPingEvent`] which is used for the config state.
 ///
-/// This is not an event and can't be listened to from a normal system,
-///so  `EventReader<PingEvent>` will not work.
-///
-/// To use it, add your "system" with `add_observer` instead of `add_systems`
-/// and use `Trigger<PingEvent>` instead of `EventReader`.
-///
-/// The client Entity that received the packet will be attached to the trigger.
-///
 /// [`ClientboundPing`]: azalea_protocol::packets::game::ClientboundPing
 /// [`ConfigPingEvent`]: crate::packet::config::ConfigPingEvent
-#[derive(Event, Debug, Clone)]
-pub struct PingEvent(pub azalea_protocol::packets::game::ClientboundPing);
+#[derive(EntityEvent, Debug, Clone)]
+pub struct GamePingEvent {
+    pub entity: Entity,
+    pub packet: azalea_protocol::packets::game::ClientboundPing,
+}

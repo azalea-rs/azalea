@@ -1,5 +1,8 @@
 //! A pathfinding plugin to make bots able to traverse the world.
 //!
+//! For the new functions on `Client` that the pathfinder adds, see
+//! [`PathfinderClientExt`].
+//!
 //! Much of this code is based on [Baritone](https://github.com/cabaletta/baritone).
 
 pub mod astar;
@@ -59,13 +62,12 @@ use self::{
     moves::{ExecuteCtx, IsReachedCtx, SuccessorsFn},
 };
 use crate::{
-    BotClientExt, WalkDirection,
+    WalkDirection,
     app::{App, Plugin},
-    bot::{JumpEvent, LookAtEvent},
+    bot::{BotClientExt, JumpEvent, LookAtEvent},
     ecs::{
         component::Component,
         entity::Entity,
-        event::{EventReader, EventWriter},
         query::{With, Without},
         system::{Commands, Query, Res},
     },
@@ -76,9 +78,9 @@ use crate::{
 pub struct PathfinderPlugin;
 impl Plugin for PathfinderPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<GotoEvent>()
-            .add_event::<PathFoundEvent>()
-            .add_event::<StopPathfindingEvent>()
+        app.add_message::<GotoEvent>()
+            .add_message::<PathFoundEvent>()
+            .add_message::<StopPathfindingEvent>()
             .add_systems(
                 // putting systems in the GameTick schedule makes them run every Minecraft tick
                 // (every 50 milliseconds).
@@ -135,7 +137,7 @@ pub struct ExecutingPath {
     pub is_path_partial: bool,
 }
 
-#[derive(Event, Clone, Debug)]
+#[derive(Message, Clone, Debug)]
 #[non_exhaustive]
 pub struct PathFoundEvent {
     pub entity: Entity,
@@ -237,16 +239,16 @@ impl PathfinderClientExt for azalea_client::Client {
     fn start_goto_with_opts(&self, goal: impl Goal + 'static, opts: PathfinderOpts) {
         self.ecs
             .lock()
-            .send_event(GotoEvent::new(self.entity, goal, opts));
+            .write_message(GotoEvent::new(self.entity, goal, opts));
     }
     fn stop_pathfinding(&self) {
-        self.ecs.lock().send_event(StopPathfindingEvent {
+        self.ecs.lock().write_message(StopPathfindingEvent {
             entity: self.entity,
             force: false,
         });
     }
     fn force_stop_pathfinding(&self) {
-        self.ecs.lock().send_event(StopPathfindingEvent {
+        self.ecs.lock().write_message(StopPathfindingEvent {
             entity: self.entity,
             force: true,
         });
@@ -267,8 +269,10 @@ impl PathfinderClientExt for azalea_client::Client {
         }
     }
     fn is_goto_target_reached(&self) -> bool {
-        self.map_get_component::<Pathfinder, _>(|p| p.goal.is_none() && !p.is_calculating)
-            .unwrap_or(true)
+        self.query_self::<Option<&Pathfinder>, _>(|p| {
+            p.map(|p| p.goal.is_none() && !p.is_calculating)
+                .unwrap_or(true)
+        })
     }
 }
 
@@ -278,7 +282,7 @@ pub struct ComputePath(Task<Option<PathFoundEvent>>);
 #[allow(clippy::type_complexity)]
 pub fn goto_listener(
     mut commands: Commands,
-    mut events: EventReader<GotoEvent>,
+    mut events: MessageReader<GotoEvent>,
     mut query: Query<(
         &mut Pathfinder,
         Option<&ExecutingPath>,
@@ -496,7 +500,7 @@ pub fn calculate_path(ctx: CalculatePathCtx) -> Option<PathFoundEvent> {
 pub fn handle_tasks(
     mut commands: Commands,
     mut transform_tasks: Query<(Entity, &mut ComputePath)>,
-    mut path_found_events: EventWriter<PathFoundEvent>,
+    mut path_found_events: MessageWriter<PathFoundEvent>,
 ) {
     for (entity, mut task) in &mut transform_tasks {
         if let Some(optional_path_found_event) = future::block_on(future::poll_once(&mut task.0)) {
@@ -513,7 +517,7 @@ pub fn handle_tasks(
 // set the path for the target entity when we get the PathFoundEvent
 #[allow(clippy::type_complexity)]
 pub fn path_found_listener(
-    mut events: EventReader<PathFoundEvent>,
+    mut events: MessageReader<PathFoundEvent>,
     mut query: Query<(
         &mut Pathfinder,
         Option<&mut ExecutingPath>,
@@ -706,7 +710,7 @@ pub fn check_node_reached(
         &Position,
         &Physics,
     )>,
-    mut walk_events: EventWriter<StartWalkEvent>,
+    mut walk_events: MessageWriter<StartWalkEvent>,
     mut commands: Commands,
 ) {
     for (entity, mut pathfinder, mut executing_path, position, physics) in &mut query {
@@ -988,8 +992,8 @@ fn patch_path(
 
 pub fn recalculate_near_end_of_path(
     mut query: Query<(Entity, &mut Pathfinder, &mut ExecutingPath)>,
-    mut walk_events: EventWriter<StartWalkEvent>,
-    mut goto_events: EventWriter<GotoEvent>,
+    mut walk_events: MessageWriter<StartWalkEvent>,
+    mut goto_events: MessageWriter<GotoEvent>,
     mut commands: Commands,
 ) {
     for (entity, mut pathfinder, mut executing_path) in &mut query {
@@ -1069,12 +1073,12 @@ pub fn tick_execute_path(
         &InstanceHolder,
         &Inventory,
     )>,
-    mut look_at_events: EventWriter<LookAtEvent>,
-    mut sprint_events: EventWriter<StartSprintEvent>,
-    mut walk_events: EventWriter<StartWalkEvent>,
-    mut jump_events: EventWriter<JumpEvent>,
-    mut start_mining_events: EventWriter<StartMiningBlockEvent>,
-    mut set_selected_hotbar_slot_events: EventWriter<SetSelectedHotbarSlotEvent>,
+    mut look_at_events: MessageWriter<LookAtEvent>,
+    mut sprint_events: MessageWriter<StartSprintEvent>,
+    mut walk_events: MessageWriter<StartWalkEvent>,
+    mut jump_events: MessageWriter<JumpEvent>,
+    mut start_mining_events: MessageWriter<StartMiningBlockEvent>,
+    mut set_selected_hotbar_slot_events: MessageWriter<SetSelectedHotbarSlotEvent>,
 ) {
     for (entity, executing_path, position, physics, mining, instance_holder, inventory_component) in
         &mut query
@@ -1108,7 +1112,7 @@ pub fn tick_execute_path(
 
 pub fn recalculate_if_has_goal_but_no_path(
     mut query: Query<(Entity, &mut Pathfinder), Without<ExecutingPath>>,
-    mut goto_events: EventWriter<GotoEvent>,
+    mut goto_events: MessageWriter<GotoEvent>,
 ) {
     for (entity, mut pathfinder) in &mut query {
         if pathfinder.goal.is_some()
@@ -1123,7 +1127,7 @@ pub fn recalculate_if_has_goal_but_no_path(
     }
 }
 
-#[derive(Event)]
+#[derive(Message)]
 pub struct StopPathfindingEvent {
     pub entity: Entity,
     /// If false, then let the current movement finish before stopping. If true,
@@ -1133,9 +1137,9 @@ pub struct StopPathfindingEvent {
 }
 
 pub fn handle_stop_pathfinding_event(
-    mut events: EventReader<StopPathfindingEvent>,
+    mut events: MessageReader<StopPathfindingEvent>,
     mut query: Query<(&mut Pathfinder, &mut ExecutingPath)>,
-    mut walk_events: EventWriter<StartWalkEvent>,
+    mut walk_events: MessageWriter<StartWalkEvent>,
     mut commands: Commands,
 ) {
     for event in events.read() {
@@ -1168,7 +1172,7 @@ pub fn handle_stop_pathfinding_event(
 
 pub fn stop_pathfinding_on_instance_change(
     mut query: Query<(Entity, &mut ExecutingPath), Changed<InstanceName>>,
-    mut stop_pathfinding_events: EventWriter<StopPathfindingEvent>,
+    mut stop_pathfinding_events: MessageWriter<StopPathfindingEvent>,
 ) {
     for (entity, mut executing_path) in &mut query {
         if !executing_path.path.is_empty() {

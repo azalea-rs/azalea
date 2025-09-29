@@ -18,7 +18,9 @@ use azalea_entity::{
     clamp_look_direction,
 };
 use azalea_inventory::{ItemStack, ItemStackData, components};
-use azalea_physics::{PhysicsSet, local_player::PhysicsState};
+use azalea_physics::{
+    PhysicsSet, collision::entity_collisions::update_last_bounding_box, local_player::PhysicsState,
+};
 use azalea_protocol::packets::game::{
     ServerboundInteract, ServerboundUseItem,
     s_interact::{self, InteractionHand},
@@ -38,7 +40,7 @@ use crate::{
     inventory::{Inventory, InventorySet},
     local_player::{LocalGameMode, PermissionLevel},
     movement::MoveEventsSet,
-    packet::game::SendPacketEvent,
+    packet::game::SendGamePacketEvent,
     respawn::perform_respawn,
 };
 
@@ -46,8 +48,7 @@ use crate::{
 pub struct InteractPlugin;
 impl Plugin for InteractPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<StartUseItemEvent>()
-            .add_event::<SwingArmEvent>()
+        app.add_message::<StartUseItemEvent>()
             .add_systems(
                 Update,
                 (
@@ -58,8 +59,9 @@ impl Plugin for InteractPlugin {
                         .in_set(UpdateAttributesSet)
                         .chain(),
                     handle_start_use_item_event,
-                    update_hit_result_component.after(clamp_look_direction),
-                    handle_swing_arm_event,
+                    update_hit_result_component
+                        .after(clamp_look_direction)
+                        .after(update_last_bounding_box),
                 )
                     .after(InventorySet)
                     .after(MoveEventsSet)
@@ -85,7 +87,7 @@ impl Client {
     /// Note that this may trigger anticheats as it doesn't take into account
     /// whether you're actually looking at the block.
     pub fn block_interact(&self, position: BlockPos) {
-        self.ecs.lock().send_event(StartUseItemEvent {
+        self.ecs.lock().write_message(StartUseItemEvent {
             entity: self.entity,
             hand: InteractionHand::MainHand,
             force_block: Some(position),
@@ -100,7 +102,7 @@ impl Client {
     /// If we're looking at a block or entity, then it will be clicked. Also see
     /// [`Client::block_interact`].
     pub fn start_use_item(&self) {
-        self.ecs.lock().send_event(StartUseItemEvent {
+        self.ecs.lock().write_message(StartUseItemEvent {
             entity: self.entity,
             hand: InteractionHand::MainHand,
             force_block: None,
@@ -205,7 +207,7 @@ impl BlockStatePredictionHandler {
 /// This event just inserts the [`StartUseItemQueued`] component on the given
 /// entity.
 #[doc(alias("right click"))]
-#[derive(Event)]
+#[derive(Message)]
 pub struct StartUseItemEvent {
     pub entity: Entity,
     pub hand: InteractionHand,
@@ -214,7 +216,7 @@ pub struct StartUseItemEvent {
 }
 pub fn handle_start_use_item_event(
     mut commands: Commands,
-    mut events: EventReader<StartUseItemEvent>,
+    mut events: MessageReader<StartUseItemEvent>,
 ) {
     for event in events.read() {
         commands.entity(event.entity).insert(StartUseItemQueued {
@@ -300,7 +302,7 @@ pub fn handle_start_use_item_queued(
             HitResult::Block(r) => {
                 let seq = prediction_handler.start_predicting();
                 if r.miss {
-                    commands.trigger(SendPacketEvent::new(
+                    commands.trigger(SendGamePacketEvent::new(
                         entity,
                         ServerboundUseItem {
                             hand: start_use_item.hand,
@@ -310,7 +312,7 @@ pub fn handle_start_use_item_queued(
                         },
                     ));
                 } else {
-                    commands.trigger(SendPacketEvent::new(
+                    commands.trigger(SendGamePacketEvent::new(
                         entity,
                         ServerboundUseItemOn {
                             hand: start_use_item.hand,
@@ -340,7 +342,7 @@ pub fn handle_start_use_item_queued(
                     },
                     using_secondary_action: physics_state.trying_to_crouch,
                 };
-                commands.trigger(SendPacketEvent::new(entity, interact.clone()));
+                commands.trigger(SendGamePacketEvent::new(entity, interact.clone()));
                 // TODO: this is true if the interaction failed, which i think can only happen
                 // in certain cases when interacting with armor stands
                 let consumes_action = false;
@@ -350,7 +352,7 @@ pub fn handle_start_use_item_queued(
                     interact.action = s_interact::ActionType::Interact {
                         hand: InteractionHand::MainHand,
                     };
-                    commands.trigger(SendPacketEvent::new(entity, interact));
+                    commands.trigger(SendGamePacketEvent::new(entity, interact));
                 }
             }
         }
@@ -423,22 +425,17 @@ pub fn can_use_game_master_blocks(
 
 /// Swing your arm. This is purely a visual effect and won't interact with
 /// anything in the world.
-#[derive(Event, Clone, Debug)]
+#[derive(EntityEvent, Clone, Debug)]
 pub struct SwingArmEvent {
     pub entity: Entity,
 }
-pub fn handle_swing_arm_trigger(trigger: Trigger<SwingArmEvent>, mut commands: Commands) {
-    commands.trigger(SendPacketEvent::new(
-        trigger.event().entity,
+pub fn handle_swing_arm_trigger(swing_arm: On<SwingArmEvent>, mut commands: Commands) {
+    commands.trigger(SendGamePacketEvent::new(
+        swing_arm.entity,
         ServerboundSwing {
             hand: InteractionHand::MainHand,
         },
     ));
-}
-pub fn handle_swing_arm_event(mut events: EventReader<SwingArmEvent>, mut commands: Commands) {
-    for event in events.read() {
-        commands.trigger(event.clone());
-    }
 }
 
 #[allow(clippy::type_complexity)]

@@ -19,18 +19,17 @@ use crate::{
     inventory::{Inventory, InventorySet},
     local_player::{InstanceHolder, LocalGameMode, PermissionLevel},
     movement::MoveEventsSet,
-    packet::game::SendPacketEvent,
+    packet::game::SendGamePacketEvent,
 };
 
 /// A plugin that allows clients to break blocks in the world.
 pub struct MiningPlugin;
 impl Plugin for MiningPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<StartMiningBlockEvent>()
-            .add_event::<FinishMiningBlockEvent>()
-            .add_event::<StopMiningBlockEvent>()
-            .add_event::<MineBlockProgressEvent>()
-            .add_event::<AttackBlockEvent>()
+        app.add_message::<StartMiningBlockEvent>()
+            .add_message::<StopMiningBlockEvent>()
+            .add_message::<MineBlockProgressEvent>()
+            .add_message::<AttackBlockEvent>()
             .add_systems(
                 GameTick,
                 (
@@ -57,8 +56,7 @@ impl Plugin for MiningPlugin {
                     .after(MoveEventsSet)
                     .after(azalea_entity::update_fluid_on_eyes)
                     .after(crate::interact::pick::update_hit_result_component)
-                    .after(crate::attack::handle_attack_event)
-                    .before(crate::interact::handle_swing_arm_event),
+                    .after(crate::attack::handle_attack_event),
             )
             .add_observer(handle_finish_mining_block_observer);
     }
@@ -72,7 +70,7 @@ impl Client {
     pub fn start_mining(&self, position: BlockPos) {
         let mut ecs = self.ecs.lock();
 
-        ecs.send_event(StartMiningBlockEvent {
+        ecs.write_message(StartMiningBlockEvent {
             entity: self.entity,
             position,
         });
@@ -111,8 +109,8 @@ fn handle_auto_mine(
         ),
         With<LeftClickMine>,
     >,
-    mut start_mining_block_event: EventWriter<StartMiningBlockEvent>,
-    mut stop_mining_block_event: EventWriter<StopMiningBlockEvent>,
+    mut start_mining_block_event: MessageWriter<StartMiningBlockEvent>,
+    mut stop_mining_block_event: MessageWriter<StopMiningBlockEvent>,
 ) {
     for (
         hit_result_component,
@@ -161,14 +159,14 @@ pub struct Mining {
 ///
 /// If we're looking at the block then the correct direction will be used,
 /// otherwise it'll be [`Direction::Down`].
-#[derive(Event, Debug)]
+#[derive(Message, Debug)]
 pub struct StartMiningBlockEvent {
     pub entity: Entity,
     pub position: BlockPos,
 }
 fn handle_start_mining_block_event(
     mut commands: Commands,
-    mut events: EventReader<StartMiningBlockEvent>,
+    mut events: MessageReader<StartMiningBlockEvent>,
     mut query: Query<&HitResultComponent>,
 ) {
     for event in events.read() {
@@ -207,8 +205,8 @@ pub struct MiningQueued {
 #[allow(clippy::too_many_arguments, clippy::type_complexity)]
 pub fn handle_mining_queued(
     mut commands: Commands,
-    mut attack_block_events: EventWriter<AttackBlockEvent>,
-    mut mine_block_progress_events: EventWriter<MineBlockProgressEvent>,
+    mut attack_block_events: MessageWriter<AttackBlockEvent>,
+    mut mine_block_progress_events: MessageWriter<MineBlockProgressEvent>,
     query: Query<(
         Entity,
         &MiningQueued,
@@ -260,7 +258,7 @@ pub fn handle_mining_queued(
         if game_mode.current == GameMode::Creative {
             // In creative mode, first send START_DESTROY_BLOCK packet then immediately
             // finish mining
-            commands.trigger(SendPacketEvent::new(
+            commands.trigger(SendGamePacketEvent::new(
                 entity,
                 ServerboundPlayerAction {
                     action: s_player_action::Action::StartDestroyBlock,
@@ -269,12 +267,10 @@ pub fn handle_mining_queued(
                     seq: sequence_number.start_predicting(),
                 },
             ));
-            commands.trigger_targets(
-                FinishMiningBlockEvent {
-                    position: mining_queued.position,
-                },
+            commands.trigger(FinishMiningBlockEvent {
                 entity,
-            );
+                position: mining_queued.position,
+            });
             **mine_delay = 5;
             commands.trigger(SwingArmEvent { entity });
         } else if mining.is_none()
@@ -287,7 +283,7 @@ pub fn handle_mining_queued(
         {
             if mining.is_some() {
                 // send a packet to stop mining since we just changed target
-                commands.trigger(SendPacketEvent::new(
+                commands.trigger(SendGamePacketEvent::new(
                     entity,
                     ServerboundPlayerAction {
                         action: s_player_action::Action::AbortDestroyBlock,
@@ -328,12 +324,10 @@ pub fn handle_mining_queued(
                 ) >= 1.
             {
                 // block was broken instantly (instamined)
-                commands.trigger_targets(
-                    FinishMiningBlockEvent {
-                        position: mining_queued.position,
-                    },
+                commands.trigger(FinishMiningBlockEvent {
                     entity,
-                );
+                    position: mining_queued.position,
+                });
             } else {
                 let mining = Mining {
                     pos: mining_queued.position,
@@ -353,7 +347,7 @@ pub fn handle_mining_queued(
                 });
             }
 
-            commands.trigger(SendPacketEvent::new(
+            commands.trigger(SendGamePacketEvent::new(
                 entity,
                 ServerboundPlayerAction {
                     action: s_player_action::Action::StartDestroyBlock,
@@ -369,7 +363,7 @@ pub fn handle_mining_queued(
     }
 }
 
-#[derive(Event)]
+#[derive(Message)]
 pub struct MineBlockProgressEvent {
     pub entity: Entity,
     pub position: BlockPos,
@@ -378,7 +372,7 @@ pub struct MineBlockProgressEvent {
 
 /// A player left clicked on a block, used for stuff like interacting with note
 /// blocks.
-#[derive(Event)]
+#[derive(Message)]
 pub struct AttackBlockEvent {
     pub entity: Entity,
     pub position: BlockPos,
@@ -441,13 +435,14 @@ pub struct MineBlockPos(pub Option<BlockPos>);
 pub struct MineItem(pub ItemStack);
 
 /// A trigger that's sent when we completed mining a block.
-#[derive(Event)]
+#[derive(EntityEvent)]
 pub struct FinishMiningBlockEvent {
+    pub entity: Entity,
     pub position: BlockPos,
 }
 
 pub fn handle_finish_mining_block_observer(
-    trigger: Trigger<FinishMiningBlockEvent>,
+    finish_mining_block: On<FinishMiningBlockEvent>,
     mut query: Query<(
         &InstanceName,
         &LocalGameMode,
@@ -459,7 +454,7 @@ pub fn handle_finish_mining_block_observer(
     )>,
     instances: Res<InstanceContainer>,
 ) {
-    let event = trigger.event();
+    let event = finish_mining_block.event();
 
     let (
         instance_name,
@@ -469,7 +464,7 @@ pub fn handle_finish_mining_block_observer(
         permission_level,
         player_pos,
         mut prediction_handler,
-    ) = query.get_mut(trigger.target()).unwrap();
+    ) = query.get_mut(finish_mining_block.entity).unwrap();
     let instance_lock = instances.get(instance_name).unwrap();
     let instance = instance_lock.read();
     if check_is_interaction_restricted(&instance, event.position, &game_mode.current, inventory) {
@@ -515,14 +510,14 @@ pub fn handle_finish_mining_block_observer(
 }
 
 /// Abort mining a block.
-#[derive(Event)]
+#[derive(Message)]
 pub struct StopMiningBlockEvent {
     pub entity: Entity,
 }
 pub fn handle_stop_mining_block_event(
-    mut events: EventReader<StopMiningBlockEvent>,
+    mut events: MessageReader<StopMiningBlockEvent>,
     mut commands: Commands,
-    mut mine_block_progress_events: EventWriter<MineBlockProgressEvent>,
+    mut mine_block_progress_events: MessageWriter<MineBlockProgressEvent>,
     mut query: Query<(&MineBlockPos, &mut MineProgress)>,
 ) {
     for event in events.read() {
@@ -530,7 +525,7 @@ pub fn handle_stop_mining_block_event(
 
         let mine_block_pos =
             mine_block_pos.expect("IsMining is true so MineBlockPos must be present");
-        commands.trigger(SendPacketEvent::new(
+        commands.trigger(SendGamePacketEvent::new(
             event.entity,
             ServerboundPlayerAction {
                 action: s_player_action::Action::AbortDestroyBlock,
@@ -567,7 +562,7 @@ pub fn continue_mining_block(
         &mut BlockStatePredictionHandler,
     )>,
     mut commands: Commands,
-    mut mine_block_progress_events: EventWriter<MineBlockProgressEvent>,
+    mut mine_block_progress_events: MessageWriter<MineBlockProgressEvent>,
     instances: Res<InstanceContainer>,
 ) {
     for (
@@ -594,7 +589,7 @@ pub fn continue_mining_block(
         if game_mode.current == GameMode::Creative {
             // TODO: worldborder check
             **mine_delay = 5;
-            commands.trigger(SendPacketEvent::new(
+            commands.trigger(SendGamePacketEvent::new(
                 entity,
                 ServerboundPlayerAction {
                     action: s_player_action::Action::StartDestroyBlock,
@@ -603,12 +598,10 @@ pub fn continue_mining_block(
                     seq: prediction_handler.start_predicting(),
                 },
             ));
-            commands.trigger_targets(
-                FinishMiningBlockEvent {
-                    position: mining.pos,
-                },
+            commands.trigger(FinishMiningBlockEvent {
                 entity,
-            );
+                position: mining.pos,
+            });
             commands.trigger(SwingArmEvent { entity });
         } else if mining.force
             || is_same_mining_target(
@@ -648,13 +641,11 @@ pub fn continue_mining_block(
                 // repeatedly inserts MiningQueued
                 commands.entity(entity).remove::<(Mining, MiningQueued)>();
                 trace!("finished mining block at {:?}", mining.pos);
-                commands.trigger_targets(
-                    FinishMiningBlockEvent {
-                        position: mining.pos,
-                    },
+                commands.trigger(FinishMiningBlockEvent {
                     entity,
-                );
-                commands.trigger(SendPacketEvent::new(
+                    position: mining.pos,
+                });
+                commands.trigger(SendGamePacketEvent::new(
                     entity,
                     ServerboundPlayerAction {
                         action: s_player_action::Action::StopDestroyBlock,

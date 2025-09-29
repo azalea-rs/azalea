@@ -3338,7 +3338,7 @@
   "debug.inspect.server.entity": "Copied server-side entity data to clipboard",
   "debug.options.category.renderer": "Debug Renderers",
   "debug.options.category.text": "Debug Screen Text",
-  "debug.options.help": "F3 + F5 = Edit debug options",
+  "debug.options.help": "F3 + F6 = Edit debug options",
   "debug.options.notAllowed.tooltip": "Not visible when debug info is reduced",
   "debug.options.profile.default": "Default profile",
   "debug.options.profile.performance": "Performance profile",

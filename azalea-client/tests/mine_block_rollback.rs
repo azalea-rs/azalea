@@ -1,23 +1,17 @@
 use azalea_client::{mining::StartMiningBlockEvent, test_utils::prelude::*};
-use azalea_core::{
-    position::{BlockPos, ChunkPos},
-    resource_location::ResourceLocation,
-};
+use azalea_core::position::{BlockPos, ChunkPos};
 use azalea_protocol::packets::{
     ConnectionProtocol,
     game::{ClientboundBlockChangedAck, ClientboundBlockUpdate},
 };
-use azalea_registry::{Block, DataRegistry, DimensionType};
+use azalea_registry::Block;
 
 #[test]
 fn test_mine_block_rollback() {
     init_tracing();
 
     let mut simulation = Simulation::new(ConnectionProtocol::Game);
-    simulation.receive_packet(make_basic_login_packet(
-        DimensionType::new_raw(0),
-        ResourceLocation::new("azalea:overworld"),
-    ));
+    simulation.receive_packet(default_login_packet());
 
     simulation.receive_packet(make_basic_empty_chunk(ChunkPos::new(0, 0), (384 + 64) / 16));
     simulation.tick();
@@ -33,7 +27,7 @@ fn test_mine_block_rollback() {
     assert_eq!(simulation.get_block_state(pos), Some(Block::Tnt.into()));
     println!("set serverside tnt");
 
-    simulation.send_event(StartMiningBlockEvent {
+    simulation.write_message(StartMiningBlockEvent {
         entity: simulation.entity,
         position: pos,
     });

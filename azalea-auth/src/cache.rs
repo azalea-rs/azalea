@@ -28,7 +28,7 @@ pub enum CacheError {
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct CachedAccount {
-    pub email: String,
+    pub cache_key: String,
     /// Microsoft auth
     pub msa: ExpiringValue<crate::auth::AccessTokenResponse>,
     /// Xbox Live auth
@@ -113,23 +113,23 @@ async fn set_entire_cache(cache_file: &Path, cache: Vec<CachedAccount>) -> Resul
     Ok(())
 }
 
-/// Gets cached data for the given email.
+/// Gets cached data for the given cache key.
 ///
-/// Technically it doesn't actually have to be an email since it's only the
-/// cache key. I considered using usernames or UUIDs as the cache key, but
-/// usernames change and no one has their UUID memorized.
-pub async fn get_account_in_cache(cache_file: &Path, email: &str) -> Option<CachedAccount> {
+/// As a convention, the cache key is usually the email of the account.
+pub async fn get_account_in_cache(cache_file: &Path, cache_key: &str) -> Option<CachedAccount> {
     let cache = get_entire_cache(cache_file).await.unwrap_or_default();
-    cache.into_iter().find(|account| account.email == email)
+    cache
+        .into_iter()
+        .find(|account| account.cache_key == cache_key)
 }
 
 pub async fn set_account_in_cache(
     cache_file: &Path,
-    email: &str,
+    cache_key: &str,
     account: CachedAccount,
 ) -> Result<(), CacheError> {
     let mut cache = get_entire_cache(cache_file).await.unwrap_or_default();
-    cache.retain(|account| account.email != email);
+    cache.retain(|account| account.cache_key != cache_key);
     cache.push(account);
     set_entire_cache(cache_file, cache).await
 }

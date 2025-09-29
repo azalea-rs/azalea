@@ -26,7 +26,6 @@ use crate::{
     ecs::{
         component::Component,
         entity::Entity,
-        event::EventReader,
         query::{With, Without},
         system::{Commands, Query},
     },
@@ -37,8 +36,8 @@ use crate::{
 pub struct BotPlugin;
 impl Plugin for BotPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<LookAtEvent>()
-            .add_event::<JumpEvent>()
+        app.add_message::<LookAtEvent>()
+            .add_message::<JumpEvent>()
             .add_systems(
                 Update,
                 (
@@ -108,14 +107,14 @@ pub trait BotClientExt {
 impl BotClientExt for azalea_client::Client {
     fn jump(&self) {
         let mut ecs = self.ecs.lock();
-        ecs.send_event(JumpEvent {
+        ecs.write_message(JumpEvent {
             entity: self.entity,
         });
     }
 
     fn look_at(&self, position: Vec3) {
         let mut ecs = self.ecs.lock();
-        ecs.send_event(LookAtEvent {
+        ecs.write_message(LookAtEvent {
             entity: self.entity,
             position,
         });
@@ -200,14 +199,14 @@ impl BotClientExt for azalea_client::Client {
 }
 
 /// Event to jump once.
-#[derive(Event)]
+#[derive(Message)]
 pub struct JumpEvent {
     pub entity: Entity,
 }
 
 pub fn jump_listener(
     mut query: Query<(&mut Jumping, &mut Bot)>,
-    mut events: EventReader<JumpEvent>,
+    mut events: MessageReader<JumpEvent>,
 ) {
     for event in events.read() {
         if let Ok((mut jumping, mut bot)) = query.get_mut(event.entity) {
@@ -218,14 +217,14 @@ pub fn jump_listener(
 }
 
 /// Make an entity look towards a certain position in the world.
-#[derive(Event)]
+#[derive(Message)]
 pub struct LookAtEvent {
     pub entity: Entity,
     /// The position we want the entity to be looking at.
     pub position: Vec3,
 }
 fn look_at_listener(
-    mut events: EventReader<LookAtEvent>,
+    mut events: MessageReader<LookAtEvent>,
     mut query: Query<(&Position, &EntityDimensions, &mut LookDirection)>,
 ) {
     for event in events.read() {

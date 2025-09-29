@@ -19,9 +19,9 @@ use crate::client::Client;
 pub struct ChatPlugin;
 impl Plugin for ChatPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<SendChatEvent>()
-            .add_event::<SendChatKindEvent>()
-            .add_event::<ChatReceivedEvent>()
+        app.add_message::<SendChatEvent>()
+            .add_message::<SendChatKindEvent>()
+            .add_message::<ChatReceivedEvent>()
             .add_systems(
                 Update,
                 (handle_send_chat_event, handle_send_chat_kind_event).chain(),
@@ -189,7 +189,7 @@ impl Client {
     /// handles checking whether the message is a command and using the
     /// proper packet for you, so you should use that instead.
     pub fn write_chat_packet(&self, message: &str) {
-        self.ecs.lock().send_event(SendChatKindEvent {
+        self.ecs.lock().write_message(SendChatKindEvent {
             entity: self.entity,
             content: message.to_string(),
             kind: ChatKind::Message,
@@ -202,7 +202,7 @@ impl Client {
     /// You can also just use [`Client::chat`] and start your message with a `/`
     /// to send a command.
     pub fn write_command_packet(&self, command: &str) {
-        self.ecs.lock().send_event(SendChatKindEvent {
+        self.ecs.lock().write_message(SendChatKindEvent {
             entity: self.entity,
             content: command.to_string(),
             kind: ChatKind::Command,
@@ -219,7 +219,7 @@ impl Client {
     /// # }
     /// ```
     pub fn chat(&self, content: impl Into<String>) {
-        self.ecs.lock().send_event(SendChatEvent {
+        self.ecs.lock().write_message(SendChatEvent {
             entity: self.entity,
             content: content.into(),
         });
@@ -227,22 +227,22 @@ impl Client {
 }
 
 /// A client received a chat message packet.
-#[derive(Event, Debug, Clone)]
+#[derive(Message, Debug, Clone)]
 pub struct ChatReceivedEvent {
     pub entity: Entity,
     pub packet: ChatPacket,
 }
 
 /// Send a chat message (or command, if it starts with a slash) to the server.
-#[derive(Event)]
+#[derive(Message)]
 pub struct SendChatEvent {
     pub entity: Entity,
     pub content: String,
 }
 
 pub fn handle_send_chat_event(
-    mut events: EventReader<SendChatEvent>,
-    mut send_chat_kind_events: EventWriter<SendChatKindEvent>,
+    mut events: MessageReader<SendChatEvent>,
+    mut send_chat_kind_events: MessageWriter<SendChatKindEvent>,
 ) {
     for event in events.read() {
         if event.content.starts_with('/') {

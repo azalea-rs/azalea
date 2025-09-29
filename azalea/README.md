@@ -35,7 +35,7 @@ The documentation for the latest Azalea crates.io release is available at [docs.
 # Examples
 
 ```rust,no_run
-//! A bot that logs chat messages and the number that we've received to the console.\
+//! A bot that logs chat messages and the number that we've received to the console.
 
 use std::sync::Arc;
 
@@ -56,8 +56,10 @@ async fn main() {
 
 #[derive(Default, Clone, Component)]
 pub struct State {
-    // The state gets cloned whenever the handler is called, so to have all the
-    // clones point to the same data and have it be mutable, we use an Arc<Mutex<T>>.
+    /// An example field that stores the number of messages that've been
+    /// received by the client so far. The state gets cloned whenever the
+    /// handler is called, so to have all the clones point to the same data and
+    /// have it be mutable, we use an Arc<Mutex<T>>.
     pub messages_received: Arc<Mutex<usize>>
 }
 

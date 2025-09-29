@@ -10,7 +10,7 @@ use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
 use tracing::warn;
 
-use super::packet::game::SendPacketEvent;
+use super::packet::game::SendGamePacketEvent;
 use crate::{
     Client, interact::SwingArmEvent, local_player::LocalGameMode, movement::MoveEventsSet,
     respawn::perform_respawn,
@@ -19,7 +19,7 @@ use crate::{
 pub struct AttackPlugin;
 impl Plugin for AttackPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<AttackEvent>()
+        app.add_message::<AttackEvent>()
             .add_systems(
                 Update,
                 handle_attack_event
@@ -45,7 +45,7 @@ impl Plugin for AttackPlugin {
 impl Client {
     /// Attack the entity with the given id.
     pub fn attack(&self, entity: Entity) {
-        self.ecs.lock().send_event(AttackEvent {
+        self.ecs.lock().write_message(AttackEvent {
             entity: self.entity,
             target: entity,
         });
@@ -121,7 +121,7 @@ pub fn handle_attack_queued(
 
         commands.entity(client_entity).remove::<AttackQueued>();
 
-        commands.trigger(SendPacketEvent::new(
+        commands.trigger(SendGamePacketEvent::new(
             client_entity,
             ServerboundInteract {
                 entity_id: target_entity_id,
@@ -148,14 +148,14 @@ pub fn handle_attack_queued(
 
 /// Queues up an attack packet for next tick by inserting the [`AttackQueued`]
 /// component to our client.
-#[derive(Event)]
+#[derive(Message)]
 pub struct AttackEvent {
     /// Our client entity that will send the packets to attack.
     pub entity: Entity,
     /// The entity that will be attacked.
     pub target: Entity,
 }
-pub fn handle_attack_event(mut events: EventReader<AttackEvent>, mut commands: Commands) {
+pub fn handle_attack_event(mut events: MessageReader<AttackEvent>, mut commands: Commands) {
     for event in events.read() {
         commands.entity(event.entity).insert(AttackQueued {
             target: event.target,

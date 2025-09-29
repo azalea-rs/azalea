@@ -21,7 +21,7 @@ pub use attributes::Attributes;
 use azalea_block::{BlockState, fluid_state::FluidKind};
 use azalea_buf::AzBuf;
 use azalea_core::{
-    aabb::AABB,
+    aabb::Aabb,
     math,
     position::{BlockPos, ChunkPos, Vec3},
     resource_location::ResourceLocation,
@@ -355,7 +355,7 @@ pub struct Physics {
 
     /// The bounding box of the entity. This is more than just width and height,
     /// unlike dimensions.
-    pub bounding_box: AABB,
+    pub bounding_box: Aabb,
 
     pub has_impulse: bool,
 

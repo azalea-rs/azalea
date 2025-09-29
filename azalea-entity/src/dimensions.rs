@@ -1,4 +1,4 @@
-use azalea_core::{aabb::AABB, position::Vec3};
+use azalea_core::{aabb::Aabb, position::Vec3};
 use azalea_registry::EntityKind;
 use bevy_ecs::component::Component;
 
@@ -40,10 +40,10 @@ impl EntityDimensions {
         Self { eye_height, ..self }
     }
 
-    pub fn make_bounding_box(&self, pos: Vec3) -> AABB {
+    pub fn make_bounding_box(&self, pos: Vec3) -> Aabb {
         let radius = (self.width / 2.0) as f64;
         let height = self.height as f64;
-        AABB {
+        Aabb {
             min: Vec3::new(pos.x - radius, pos.y, pos.z - radius),
             max: Vec3::new(pos.x + radius, pos.y + height, pos.z + radius),
         }

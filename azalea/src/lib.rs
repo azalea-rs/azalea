@@ -4,7 +4,7 @@
 pub mod accept_resource_packs;
 pub mod auto_respawn;
 pub mod auto_tool;
-mod bot;
+pub mod bot;
 pub mod container;
 pub mod nearest_entity;
 pub mod pathfinder;
@@ -34,17 +34,19 @@ pub use azalea_world as world;
 pub use bevy_app as app;
 use bevy_app::AppExit;
 pub use bevy_ecs as ecs;
-pub use bot::*;
 use ecs::component::Component;
 use futures::{Future, future::BoxFuture};
 use protocol::{ServerAddress, connect::Proxy, resolver::ResolverError};
 use swarm::SwarmBuilder;
 use thiserror::Error;
 
+use crate::bot::DefaultBotPlugins;
+
 pub type BoxHandleFn<S, R> =
     Box<dyn Fn(Client, azalea_client::Event, S) -> BoxFuture<'static, R> + Send>;
 pub type HandleFn<S, Fut> = fn(Client, azalea_client::Event, S) -> Fut;
 
+/// An error related to resolving the server address when starting a client.
 #[derive(Error, Debug)]
 pub enum StartError {
     #[error("Invalid address")]
@@ -111,7 +113,7 @@ impl ClientBuilder<NoState, ()> {
     ///             .build()
     ///             .disable::<azalea::chat_signing::ChatSigningPlugin>(),
     ///     )
-    ///     .add_plugins(azalea::DefaultBotPlugins);
+    ///     .add_plugins(azalea::bot::DefaultBotPlugins);
     /// # client_builder.set_handler(handle);
     /// # #[derive(Component, Clone, Default)]
     /// # pub struct State;

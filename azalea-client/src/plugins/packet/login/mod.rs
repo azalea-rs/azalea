@@ -17,8 +17,8 @@ use tracing::{debug, error};
 
 use super::as_system;
 use crate::{
-    Account, InConfigState, connection::RawConnection, declare_packet_handlers,
-    disconnect::DisconnectEvent, player::GameProfileComponent,
+    Account, InConfigState, connection::RawConnection, disconnect::DisconnectEvent,
+    packet::declare_packet_handlers, player::GameProfileComponent,
 };
 
 pub fn process_packet(ecs: &mut World, player: Entity, packet: &ClientboundLoginPacket) {
@@ -59,19 +59,17 @@ impl LoginPacketHandler<'_> {
                 );
                 return;
             };
-            commands.trigger_targets(
-                ReceiveHelloEvent {
-                    account: account.clone(),
-                    packet: p.clone(),
-                },
-                self.player,
-            );
+            commands.trigger(ReceiveHelloEvent {
+                entity: self.player,
+                account: account.clone(),
+                packet: p.clone(),
+            });
         });
     }
     pub fn login_disconnect(&mut self, p: &ClientboundLoginDisconnect) {
         debug!("Got disconnect {:?}", p);
 
-        as_system::<EventWriter<_>>(self.ecs, |mut events| {
+        as_system::<MessageWriter<_>>(self.ecs, |mut events| {
             events.write(DisconnectEvent {
                 entity: self.player,
                 reason: Some(p.reason.clone()),
@@ -120,7 +118,7 @@ impl LoginPacketHandler<'_> {
     pub fn custom_query(&mut self, p: &ClientboundCustomQuery) {
         debug!("Got custom query {p:?}");
 
-        as_system::<EventWriter<ReceiveCustomQueryEvent>>(self.ecs, |mut events| {
+        as_system::<MessageWriter<ReceiveCustomQueryEvent>>(self.ecs, |mut events| {
             events.write(ReceiveCustomQueryEvent {
                 entity: self.player,
                 packet: p.clone(),

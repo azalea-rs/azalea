@@ -126,7 +126,7 @@ impl SwarmBuilder<NoState, NoSwarmState, (), ()> {
     ///
     /// let swarm_builder = SwarmBuilder::new_without_plugins()
     ///     .add_plugins(azalea::DefaultPlugins.build().disable::<azalea::chat_signing::ChatSigningPlugin>())
-    ///     .add_plugins(azalea::DefaultBotPlugins)
+    ///     .add_plugins(azalea::bot::DefaultBotPlugins)
     ///     .add_plugins(azalea::swarm::DefaultSwarmPlugins);
     /// # swarm_builder.set_handler(handle).set_swarm_handler(swarm_handle);
     /// # #[derive(Component, Resource, Clone, Default)]

@@ -6,7 +6,6 @@ use azalea_protocol::packets::{
     config::{ClientboundFinishConfiguration, ClientboundRegistryData},
     game::ClientboundSetHealth,
 };
-use azalea_registry::{DataRegistry, DimensionType};
 use simdnbt::owned::{NbtCompound, NbtTag};
 
 #[test]
@@ -43,10 +42,7 @@ fn test_set_health_before_login() {
     simulation.tick();
     assert_eq!(*simulation.component::<Health>(), 15.);
 
-    simulation.receive_packet(make_basic_login_packet(
-        DimensionType::new_raw(0), // overworld
-        ResourceLocation::new("minecraft:overworld"),
-    ));
+    simulation.receive_packet(default_login_packet());
     simulation.tick();
 
     // health should stay the same

@@ -39,8 +39,8 @@ impl Plugin for AutoReconnectPlugin {
 
 pub fn start_rejoin_on_disconnect(
     mut commands: Commands,
-    mut disconnect_events: EventReader<DisconnectEvent>,
-    mut connection_failed_events: EventReader<ConnectionFailedEvent>,
+    mut disconnect_events: MessageReader<DisconnectEvent>,
+    mut connection_failed_events: MessageReader<ConnectionFailedEvent>,
     auto_reconnect_delay_res: Option<Res<AutoReconnectDelay>>,
     auto_reconnect_delay_query: Query<&AutoReconnectDelay>,
 ) {
@@ -85,7 +85,7 @@ fn get_delay(
 
 pub fn rejoin_after_delay(
     mut commands: Commands,
-    mut join_events: EventWriter<StartJoinServerEvent>,
+    mut join_events: MessageWriter<StartJoinServerEvent>,
     query: Query<(
         Entity,
         &InternalReconnectAfter,

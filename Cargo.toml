@@ -22,7 +22,7 @@ resolver = "2"
 # --- Workspace Settings ---
 
 [workspace.package]
-version = "0.13.0+mc1.21.9-pre2"
+version = "0.14.0+mc1.21.9-rc1"
 edition = "2024"
 license = "MIT"
 repository = "https://github.com/azalea-rs/azalea"
@@ -34,11 +34,11 @@ anyhow = "1"
 async-compat = "0.2"
 async-recursion = "1"
 base64 = "0.22"
-bevy_app = "0.16"
-bevy_ecs = { version = "0.16", default-features = false }
-bevy_log = "0.16"
-bevy_tasks = "0.16"
-bevy_time = "0.16"
+bevy_app = "0.17.0-rc.2"
+bevy_ecs = { version = "0.17.0-rc.2", default-features = false }
+bevy_log = "0.17.0-rc.2"
+bevy_tasks = "0.17.0-rc.2"
+bevy_time = "0.17.0-rc.2"
 byteorder = "1"
 cfb8 = "0.8"
 chrono = { version = "0.4", default-features = false }
@@ -66,8 +66,8 @@ quote = "1"
 rand = "0.9"
 regex = "1"
 reqwest = { version = "0.12", default-features = false }
-rsa = "0.10.0-rc.6"
-signature = "=3.0.0-rc.3" # TODO: Remove when rsa is fixed.
+rsa = "0.10.0-rc.8"
+signature = "=3.0.0-rc.4"                                        # TODO: Remove when rsa is fixed.
 rsa_public_encrypt_pkcs1 = "0.4"
 rustc-hash = "2"
 serde = "1"
@@ -84,26 +84,26 @@ tracing = "0.1"
 tracing-subscriber = "0.3"
 uuid = "1"
 
-azalea-block-macros = { path = "azalea-block/azalea-block-macros", version = "0.13.0" }
-azalea-block = { path = "azalea-block", version = "0.13.0" }
-azalea-auth = { path = "azalea-auth", version = "0.13.0" }
-azalea-brigadier = { path = "azalea-brigadier", version = "0.13.0" }
-azalea-buf-macros = { path = "azalea-buf/azalea-buf-macros", version = "0.13.0" }
-azalea-buf = { path = "azalea-buf", version = "0.13.0" }
-azalea-chat = { path = "azalea-chat", version = "0.13.0" }
-azalea-client = { path = "azalea-client", version = "0.13.0", default-features = false }
-azalea-core = { path = "azalea-core", version = "0.13.0" }
-azalea-crypto = { path = "azalea-crypto", version = "0.13.0" }
-azalea-entity = { path = "azalea-entity", version = "0.13.0" }
-azalea-inventory-macros = { path = "azalea-inventory/azalea-inventory-macros", version = "0.13.0" }
-azalea-inventory = { path = "azalea-inventory", version = "0.13.0" }
-azalea-language = { path = "azalea-language", version = "0.13.0" }
-azalea-physics = { path = "azalea-physics", version = "0.13.0" }
-azalea-protocol-macros = { path = "azalea-protocol/azalea-protocol-macros", version = "0.13.0" }
-azalea-protocol = { path = "azalea-protocol", version = "0.13.0" }
-azalea-registry-macros = { path = "azalea-registry/azalea-registry-macros", version = "0.13.0" }
-azalea-registry = { path = "azalea-registry", version = "0.13.0" }
-azalea-world = { path = "azalea-world", version = "0.13.0" }
+azalea-block-macros = { path = "azalea-block/azalea-block-macros", version = "0.14.0" }
+azalea-block = { path = "azalea-block", version = "0.14.0" }
+azalea-auth = { path = "azalea-auth", version = "0.14.0" }
+azalea-brigadier = { path = "azalea-brigadier", version = "0.14.0" }
+azalea-buf-macros = { path = "azalea-buf/azalea-buf-macros", version = "0.14.0" }
+azalea-buf = { path = "azalea-buf", version = "0.14.0" }
+azalea-chat = { path = "azalea-chat", version = "0.14.0" }
+azalea-client = { path = "azalea-client", version = "0.14.0", default-features = false }
+azalea-core = { path = "azalea-core", version = "0.14.0" }
+azalea-crypto = { path = "azalea-crypto", version = "0.14.0" }
+azalea-entity = { path = "azalea-entity", version = "0.14.0" }
+azalea-inventory-macros = { path = "azalea-inventory/azalea-inventory-macros", version = "0.14.0" }
+azalea-inventory = { path = "azalea-inventory", version = "0.14.0" }
+azalea-language = { path = "azalea-language", version = "0.14.0" }
+azalea-physics = { path = "azalea-physics", version = "0.14.0" }
+azalea-protocol-macros = { path = "azalea-protocol/azalea-protocol-macros", version = "0.14.0" }
+azalea-protocol = { path = "azalea-protocol", version = "0.14.0" }
+azalea-registry-macros = { path = "azalea-registry/azalea-registry-macros", version = "0.14.0" }
+azalea-registry = { path = "azalea-registry", version = "0.14.0" }
+azalea-world = { path = "azalea-world", version = "0.14.0" }
 
 # --- Profile Settings ---
 

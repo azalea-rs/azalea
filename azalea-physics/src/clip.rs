@@ -5,7 +5,7 @@ use azalea_block::{
     fluid_state::{FluidKind, FluidState},
 };
 use azalea_core::{
-    aabb::AABB,
+    aabb::Aabb,
     direction::{Axis, Direction},
     hit_result::BlockHitResult,
     math::{self, EPSILON, lerp},
@@ -255,7 +255,7 @@ pub fn traverse_blocks<C, T>(
     }
 }
 
-pub fn box_traverse_blocks(from: Vec3, to: Vec3, aabb: &AABB) -> HashSet<BlockPos> {
+pub fn box_traverse_blocks(from: Vec3, to: Vec3, aabb: &Aabb) -> HashSet<BlockPos> {
     let delta = to - from;
     let traversed_blocks = BlockPos::between_closed_aabb(aabb);
     if delta.length_squared() < (0.99999_f32 * 0.99999) as f64 {
@@ -279,7 +279,7 @@ pub fn add_collisions_along_travel(
     collisions: &mut HashSet<BlockPos>,
     from: Vec3,
     to: Vec3,
-    aabb: AABB,
+    aabb: Aabb,
 ) {
     let delta = to - from;
     let mut min_x = from.x.floor() as i32;
@@ -345,7 +345,7 @@ pub fn add_collisions_along_travel(
         }
         step_count += 1;
 
-        let Some(clip_location) = AABB::clip_with_from_and_to(
+        let Some(clip_location) = Aabb::clip_with_from_and_to(
             Vec3::new(min_x as f64, min_y as f64, min_z as f64),
             Vec3::new((min_x + 1) as f64, (min_y + 1) as f64, (min_z + 1) as f64),
             from,

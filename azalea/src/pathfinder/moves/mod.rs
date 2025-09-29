@@ -14,7 +14,7 @@ use azalea_client::{
 use azalea_core::position::{BlockPos, Vec3};
 use azalea_inventory::Menu;
 use azalea_world::Instance;
-use bevy_ecs::{entity::Entity, event::EventWriter};
+use bevy_ecs::{entity::Entity, message::MessageWriter};
 use parking_lot::RwLock;
 
 use super::{
@@ -24,7 +24,10 @@ use super::{
     rel_block_pos::RelBlockPos,
     world::{CachedWorld, is_block_state_passable},
 };
-use crate::{JumpEvent, LookAtEvent, auto_tool::best_tool_in_hotbar_for_block};
+use crate::{
+    auto_tool::best_tool_in_hotbar_for_block,
+    bot::{JumpEvent, LookAtEvent},
+};
 
 type Edge = astar::Edge<RelBlockPos, MoveData>;
 
@@ -63,12 +66,12 @@ pub struct ExecuteCtx<'w1, 'w2, 'w3, 'w4, 'w5, 'w6, 'a> {
     pub instance: Arc<RwLock<Instance>>,
     pub menu: Menu,
 
-    pub look_at_events: &'a mut EventWriter<'w1, LookAtEvent>,
-    pub sprint_events: &'a mut EventWriter<'w2, StartSprintEvent>,
-    pub walk_events: &'a mut EventWriter<'w3, StartWalkEvent>,
-    pub jump_events: &'a mut EventWriter<'w4, JumpEvent>,
-    pub start_mining_events: &'a mut EventWriter<'w5, StartMiningBlockEvent>,
-    pub set_selected_hotbar_slot_events: &'a mut EventWriter<'w6, SetSelectedHotbarSlotEvent>,
+    pub look_at_events: &'a mut MessageWriter<'w1, LookAtEvent>,
+    pub sprint_events: &'a mut MessageWriter<'w2, StartSprintEvent>,
+    pub walk_events: &'a mut MessageWriter<'w3, StartWalkEvent>,
+    pub jump_events: &'a mut MessageWriter<'w4, JumpEvent>,
+    pub start_mining_events: &'a mut MessageWriter<'w5, StartMiningBlockEvent>,
+    pub set_selected_hotbar_slot_events: &'a mut MessageWriter<'w6, SetSelectedHotbarSlotEvent>,
 }
 
 impl ExecuteCtx<'_, '_, '_, '_, '_, '_, '_> {

@@ -17,7 +17,6 @@ use std::collections::VecDeque;
 
 use azalea_client::chat::{ChatPacket, ChatReceivedEvent};
 use bevy_app::{App, Plugin, Update};
-use bevy_ecs::prelude::Event;
 
 use super::{Swarm, SwarmEvent};
 use crate::ecs::prelude::*;
@@ -26,7 +25,7 @@ use crate::ecs::prelude::*;
 pub struct SwarmChatPlugin;
 impl Plugin for SwarmChatPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<NewChatMessageEvent>()
+        app.add_message::<NewChatMessageEvent>()
             .add_systems(
                 Update,
                 (chat_listener, update_min_index_and_shrink_queue).chain(),
@@ -44,7 +43,7 @@ pub struct ClientChatState {
 }
 
 /// A chat message that no other bots have seen yet was received by a bot.
-#[derive(Event, Debug)]
+#[derive(Message, Debug)]
 pub struct NewChatMessageEvent(ChatPacket);
 
 #[derive(Resource)]
@@ -56,9 +55,9 @@ pub struct GlobalChatState {
 fn chat_listener(
     mut commands: Commands,
     mut query: Query<&mut ClientChatState>,
-    mut events: EventReader<ChatReceivedEvent>,
+    mut events: MessageReader<ChatReceivedEvent>,
     mut global_chat_state: ResMut<GlobalChatState>,
-    mut new_chat_messages_events: EventWriter<NewChatMessageEvent>,
+    mut new_chat_messages_events: MessageWriter<NewChatMessageEvent>,
 ) {
     for event in events.read() {
         let mut client_chat_state = query.get_mut(event.entity);
@@ -112,7 +111,7 @@ fn chat_listener(
 fn update_min_index_and_shrink_queue(
     query: Query<&ClientChatState>,
     mut global_chat_state: ResMut<GlobalChatState>,
-    mut events: EventReader<NewChatMessageEvent>,
+    mut events: MessageReader<NewChatMessageEvent>,
     swarm: Option<Res<Swarm>>,
 ) {
     for event in events.read() {
@@ -150,16 +149,16 @@ fn update_min_index_and_shrink_queue(
 
 #[cfg(test)]
 mod tests {
-    use bevy_ecs::{event::Events, prelude::World, system::SystemState};
+    use bevy_ecs::{prelude::World, system::SystemState};
 
     use super::*;
 
     fn make_test_app() -> App {
         let mut app = App::new();
-        // we add the events like this instead of with .add_event so we can have our own
-        // event management in drain_events
-        app.init_resource::<Events<ChatReceivedEvent>>()
-            .init_resource::<Events<NewChatMessageEvent>>()
+        // we add the events like this instead of with .add_message so we can have our
+        // own event management in drain_messages
+        app.init_resource::<Messages<ChatReceivedEvent>>()
+            .init_resource::<Messages<NewChatMessageEvent>>()
             .add_systems(
                 Update,
                 (chat_listener, update_min_index_and_shrink_queue).chain(),
@@ -171,12 +170,12 @@ mod tests {
         app
     }
 
-    fn drain_events(ecs: &mut World) -> Vec<ChatPacket> {
-        let mut system_state: SystemState<ResMut<Events<NewChatMessageEvent>>> =
+    fn drain_messages(ecs: &mut World) -> Vec<ChatPacket> {
+        let mut system_state: SystemState<ResMut<Messages<NewChatMessageEvent>>> =
             SystemState::new(ecs);
-        let mut events = system_state.get_mut(ecs);
+        let mut messages = system_state.get_mut(ecs);
 
-        events.drain().map(|e| e.0.clone()).collect::<Vec<_>>()
+        messages.drain().map(|e| e.0.clone()).collect::<Vec<_>>()
     }
 
     #[tokio::test]
@@ -186,46 +185,46 @@ mod tests {
         let bot0 = app.world_mut().spawn_empty().id();
         let bot1 = app.world_mut().spawn_empty().id();
 
-        app.world_mut().send_event(ChatReceivedEvent {
+        app.world_mut().write_message(ChatReceivedEvent {
             entity: bot0,
             packet: ChatPacket::new("a"),
         });
         app.update();
 
         // the swarm should get the event immediately after the bot gets it
-        assert_eq!(drain_events(app.world_mut()), vec![ChatPacket::new("a")]);
+        assert_eq!(drain_messages(app.world_mut()), vec![ChatPacket::new("a")]);
         assert_eq!(
             app.world().get::<ClientChatState>(bot0).unwrap().chat_index,
             1
         );
         // and a second bot sending the event shouldn't do anything
-        app.world_mut().send_event(ChatReceivedEvent {
+        app.world_mut().write_message(ChatReceivedEvent {
             entity: bot1,
             packet: ChatPacket::new("a"),
         });
         app.update();
-        assert_eq!(drain_events(app.world_mut()), vec![]);
+        assert_eq!(drain_messages(app.world_mut()), vec![]);
         assert_eq!(
             app.world().get::<ClientChatState>(bot1).unwrap().chat_index,
             1
         );
 
         // but if the first one gets it again, it should sent it again
-        app.world_mut().send_event(ChatReceivedEvent {
+        app.world_mut().write_message(ChatReceivedEvent {
             entity: bot0,
             packet: ChatPacket::new("a"),
         });
         app.update();
-        assert_eq!(drain_events(app.world_mut()), vec![ChatPacket::new("a")]);
+        assert_eq!(drain_messages(app.world_mut()), vec![ChatPacket::new("a")]);
 
         // alright and now the second bot got a different chat message and it should be
         // sent
-        app.world_mut().send_event(ChatReceivedEvent {
+        app.world_mut().write_message(ChatReceivedEvent {
             entity: bot1,
             packet: ChatPacket::new("b"),
         });
         app.update();
-        assert_eq!(drain_events(app.world_mut()), vec![ChatPacket::new("b")]);
+        assert_eq!(drain_messages(app.world_mut()), vec![ChatPacket::new("b")]);
     }
 
     #[tokio::test]
@@ -235,18 +234,18 @@ mod tests {
         let bot0 = app.world_mut().spawn_empty().id();
 
         // bot0 gets a chat message
-        app.world_mut().send_event(ChatReceivedEvent {
+        app.world_mut().write_message(ChatReceivedEvent {
             entity: bot0,
             packet: ChatPacket::new("a"),
         });
         app.update();
-        assert_eq!(drain_events(app.world_mut()), vec![ChatPacket::new("a")]);
+        assert_eq!(drain_messages(app.world_mut()), vec![ChatPacket::new("a")]);
         let bot1 = app.world_mut().spawn_empty().id();
-        app.world_mut().send_event(ChatReceivedEvent {
+        app.world_mut().write_message(ChatReceivedEvent {
             entity: bot1,
             packet: ChatPacket::new("b"),
         });
         app.update();
-        assert_eq!(drain_events(app.world_mut()), vec![ChatPacket::new("b")]);
+        assert_eq!(drain_messages(app.world_mut()), vec![ChatPacket::new("b")]);
     }
 }
