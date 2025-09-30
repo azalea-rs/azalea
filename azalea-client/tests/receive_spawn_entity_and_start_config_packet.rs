@@ -27,7 +27,7 @@ fn test_receive_spawn_entity_and_start_config_packet() {
         y_rot: 0,
         y_head_rot: 0,
         data: 0,
-        velocity: Default::default(),
+        movement: Default::default(),
     });
     simulation.receive_packet(ClientboundStartConfiguration);
 

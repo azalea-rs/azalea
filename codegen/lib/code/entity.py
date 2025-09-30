@@ -121,8 +121,9 @@ use thiserror::Error;
 use uuid::Uuid;
 
 use super::{
-    ArmadilloStateKind, EntityDataItem, EntityDataValue, OptionalUnsignedInt, Pose, Quaternion,
-    Rotations, SnifferStateKind, VillagerData,
+    ArmadilloStateKind, CopperGolemStateKind, EntityDataItem, EntityDataValue, OptionalUnsignedInt,
+    Pose, Quaternion, ResolvableProfile, Rotations, SnifferStateKind, VillagerData,
+    WeatheringCopperStateKind,
 };
 use crate::particle::Particle;
 

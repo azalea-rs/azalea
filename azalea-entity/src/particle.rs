@@ -8,6 +8,7 @@ use bevy_ecs::component::Component;
 
 // the order of this enum must be kept in sync with ParticleKind, otherwise
 // we get errors parsing particles.
+
 /// A [`ParticleKind`] with data potentially attached to it.
 #[derive(Component, Clone, Debug, AzBuf, PartialEq)]
 pub enum Particle {
@@ -16,6 +17,7 @@ pub enum Particle {
     BlockMarker(BlockParticle),
     Bubble,
     Cloud,
+    CopperFireFlame,
     Crit,
     DamageIndicator,
     DragonBreath,
@@ -250,6 +252,7 @@ impl From<ParticleKind> for Particle {
             ParticleKind::Trail => Self::Trail,
             ParticleKind::BlockCrumble => Self::BlockCrumble,
             ParticleKind::Firefly => Self::Firefly,
+            ParticleKind::CopperFireFlame => Self::CopperFireFlame,
         }
     }
 }

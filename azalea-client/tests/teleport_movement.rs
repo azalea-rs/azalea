@@ -1,6 +1,6 @@
 use azalea_client::test_utils::prelude::*;
 use azalea_core::{
-    delta::PositionDelta8,
+    delta::{LpVec3, PositionDelta8},
     position::{BlockPos, ChunkPos, Vec3},
 };
 use azalea_entity::LookDirection;
@@ -117,11 +117,11 @@ fn test_teleport_movement() {
     simulation.receive_packet(ClientboundPing { id: 4 });
     simulation.receive_packet(ClientboundSetEntityMotion {
         id: MinecraftEntityId(0),
-        delta: PositionDelta8 {
+        delta: LpVec3::from(Vec3::from(PositionDelta8 {
             xa: 0,
             ya: -627,
             za: 0,
-        },
+        })),
     });
     simulation.receive_packet(ClientboundPing { id: 5 });
     simulation.tick();
@@ -147,7 +147,7 @@ fn test_teleport_movement() {
             p,
             ServerboundGamePacket::MovePlayerPos(p)
             if p == &ServerboundMovePlayerPos {
-                pos: Vec3::new(10000.5, 69.9216251, 0.5),
+                pos: Vec3::new(10000.5, 69.84691458452664, 0.5),
                 flags: MoveFlags::default()
             }
         )

@@ -140,50 +140,87 @@ def get_latest_fabric_api_version():
     return tree.find(".//latest").text
 
 
+def get_latest_fabric_kotlin_version():
+    # https://maven.fabricmc.net/net/fabricmc/fabric-language-kotlin/maven-metadata.xml
+    path = get_dir_location("__cache__/fabric-kotlin-maven-metadata.xml")
+
+    if not os.path.exists(path):
+        print("\033[92mDownloading Fabric Kotlin metadata...\033[m")
+        url = "https://maven.fabricmc.net/net/fabricmc/fabric-language-kotlin/maven-metadata.xml"
+        maven_metadata_xml = requests.get(url).text
+        with open(path, "w") as f:
+            json.dump(maven_metadata_xml, f)
+    else:
+        with open(path, "r") as f:
+            maven_metadata_xml = json.load(f)
+
+    tree = ET.ElementTree(ET.fromstring(maven_metadata_xml))
+    return tree.find(".//latest").text
+
+
+def get_latest_fabric_loom_version():
+    # https://maven.fabricmc.net/fabric-loom/fabric-loom.gradle.plugin/maven-metadata.xml
+
+    path = get_dir_location("__cache__/fabric-loom-maven-metadata.xml")
+    if not os.path.exists(path):
+        print("\033[92mDownloading Fabric Loom metadata...\033[m")
+        url = "https://maven.fabricmc.net/fabric-loom/fabric-loom.gradle.plugin/maven-metadata.xml"
+        maven_metadata_xml = requests.get(url).text
+        with open(path, "w") as f:
+            json.dump(maven_metadata_xml, f)
+    else:
+        with open(path, "r") as f:
+            maven_metadata_xml = json.load(f)
+
+    tree = ET.ElementTree(ET.fromstring(maven_metadata_xml))
+    return tree.find(".//latest").text
+
+
 def get_fabric_api_versions():
     # https://maven.fabricmc.net/net/fabricmc/fabric-api/fabric-api/maven-metadata.xml
-    if not os.path.exists(get_dir_location("__cache__/fabric_api_versions.json")):
-        print("\033[92mDownloading Fabric API versions...\033[m")
-        fabric_api_versions_xml_text = requests.get(
-            "https://maven.fabricmc.net/net/fabricmc/fabric-api/fabric-api/maven-metadata.xml"
-        ).text
-        # parse xml
-        fabric_api_versions_data_xml = ET.fromstring(fabric_api_versions_xml_text)
-        fabric_api_versions = []
-
-        versioning_el = fabric_api_versions_data_xml.find("versioning")
-        assert versioning_el
-        versions_el = versioning_el.find("versions")
-        assert versions_el
-
-        for version_el in versions_el.findall("version"):
-            fabric_api_versions.append(version_el.text)
-
-        with open(get_dir_location("__cache__/fabric_api_versions.json"), "w") as f:
-            f.write(json.dumps(fabric_api_versions))
-    else:
+    if os.path.exists(get_dir_location("__cache__/fabric_api_versions.json")):
         with open(get_dir_location("__cache__/fabric_api_versions.json"), "r") as f:
             fabric_api_versions = json.loads(f.read())
+        return fabric_api_versions
+
+    print("\033[92mDownloading Fabric API versions...\033[m")
+    fabric_api_versions_xml_text = requests.get(
+        "https://maven.fabricmc.net/net/fabricmc/fabric-api/fabric-api/maven-metadata.xml"
+    ).text
+    # parse xml
+    fabric_api_versions_data_xml = ET.fromstring(fabric_api_versions_xml_text)
+    fabric_api_versions = []
+
+    versioning_el = fabric_api_versions_data_xml.find("versioning")
+    assert versioning_el
+    versions_el = versioning_el.find("versions")
+    assert versions_el
+
+    for version_el in versions_el.findall("version"):
+        fabric_api_versions.append(version_el.text)
+
+    with open(get_dir_location("__cache__/fabric_api_versions.json"), "w") as f:
+        f.write(json.dumps(fabric_api_versions))
     return fabric_api_versions
 
 
 def get_fabric_loader_versions():
     # https://meta.fabricmc.net/v2/versions/loader
-    if not os.path.exists(get_dir_location("__cache__/fabric_loader_versions.json")):
-        print("\033[92mDownloading Fabric loader versions...\033[m")
-        fabric_api_versions_json = requests.get(
-            "https://meta.fabricmc.net/v2/versions/loader"
-        ).json()
-
-        fabric_api_versions = []
-        for version in fabric_api_versions_json:
-            fabric_api_versions.append(version["version"])
-
-        with open(get_dir_location("__cache__/fabric_loader_versions.json"), "w") as f:
-            f.write(json.dumps(fabric_api_versions))
-    else:
+    if os.path.exists(get_dir_location("__cache__/fabric_loader_versions.json")):
         with open(get_dir_location("__cache__/fabric_loader_versions.json"), "r") as f:
-            fabric_api_versions = json.loads(f.read())
+            return json.loads(f.read())
+
+    print("\033[92mDownloading Fabric loader versions...\033[m")
+    fabric_api_versions_json = requests.get(
+        "https://meta.fabricmc.net/v2/versions/loader"
+    ).json()
+
+    fabric_api_versions = []
+    for version in fabric_api_versions_json:
+        fabric_api_versions.append(version["version"])
+
+    with open(get_dir_location("__cache__/fabric_loader_versions.json"), "w") as f:
+        f.write(json.dumps(fabric_api_versions))
     return fabric_api_versions
 
 
@@ -195,6 +232,8 @@ def clear_version_cache():
         "fabric_api_versions.json",
         "fabric_loader_versions.json",
         "fabric-api-maven-metadata.xml",
+        "fabric-kotlin-maven-metadata.xml",
+        "fabric-loom-maven-metadata.xml",
     ]
     for file in files:
         if os.path.exists(get_dir_location(f"__cache__/{file}")):

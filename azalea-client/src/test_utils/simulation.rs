@@ -4,7 +4,7 @@ use azalea_auth::game_profile::GameProfile;
 use azalea_block::BlockState;
 use azalea_buf::AzaleaWrite;
 use azalea_core::{
-    delta::PositionDelta8,
+    delta::LpVec3,
     game_type::{GameMode, OptionalGameType},
     position::{BlockPos, ChunkPos, Vec3},
     resource_location::ResourceLocation,
@@ -398,6 +398,6 @@ pub fn make_basic_add_entity(
         y_rot: 0,
         y_head_rot: 0,
         data: 0,
-        velocity: PositionDelta8::default(),
+        movement: LpVec3::Zero,
     }
 }

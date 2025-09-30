@@ -182,6 +182,11 @@ pub fn process_packet(ecs: &mut World, player: Entity, packet: &ClientboundGameP
             waypoint,
             clear_dialog,
             show_dialog,
+            debug_block_value,
+            debug_chunk_value,
+            debug_entity_value,
+            debug_event,
+            game_test_highlight_pos,
         ]
     );
 }
@@ -730,11 +735,7 @@ impl GamePacketHandler<'_> {
                 // this is to make sure the same entity velocity update doesn't get sent
                 // multiple times when in swarms
 
-                let knockback = KnockbackType::Set(Vec3 {
-                    x: p.delta.xa as f64 / 8000.,
-                    y: p.delta.ya as f64 / 8000.,
-                    z: p.delta.za as f64 / 8000.,
-                });
+                let knockback = KnockbackType::Set(p.delta.to_vec3());
 
                 commands.entity(entity).queue(RelativeEntityUpdate::new(
                     instance_holder.partial_instance.clone(),
@@ -1228,7 +1229,7 @@ impl GamePacketHandler<'_> {
         trace!("Got explode packet {p:?}");
 
         as_system::<MessageWriter<_>>(self.ecs, |mut knockback_events| {
-            if let Some(knockback) = p.knockback {
+            if let Some(knockback) = p.player_knockback {
                 knockback_events.write(KnockbackEvent {
                     entity: self.player,
                     knockback: KnockbackType::Set(knockback),
@@ -1563,5 +1564,22 @@ impl GamePacketHandler<'_> {
     }
     pub fn show_dialog(&mut self, p: &ClientboundShowDialog) {
         debug!("Got show dialog packet {p:?}");
+    }
+
+    pub fn debug_block_value(&mut self, p: &ClientboundDebugBlockValue) {
+        debug!("Got debug block value packet {p:?}");
+    }
+    pub fn debug_chunk_value(&mut self, p: &ClientboundDebugChunkValue) {
+        debug!("Got debug chunk value packet {p:?}");
+    }
+    pub fn debug_entity_value(&mut self, p: &ClientboundDebugEntityValue) {
+        debug!("Got debug entity value packet {p:?}");
+    }
+
+    pub fn debug_event(&mut self, p: &ClientboundDebugEvent) {
+        debug!("Got debug event packet {p:?}");
+    }
+    pub fn game_test_highlight_pos(&mut self, p: &ClientboundGameTestHighlightPos) {
+        debug!("Got game test highlight pos packet {p:?}");
     }
 }

@@ -1,9 +1,9 @@
 use std::{
-    collections::HashMap,
     io::{self, Cursor, Write},
+    sync::Arc,
 };
 
-use azalea_auth::game_profile::{GameProfile, ProfilePropertyValue};
+use azalea_auth::game_profile::{GameProfile, GameProfileProperties};
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
 use azalea_chat::FormattedText;
 use azalea_core::{bitset::FixedBitSet, game_type::GameMode};
@@ -33,7 +33,7 @@ pub struct PlayerInfoEntry {
 #[derive(Clone, Debug, AzBuf)]
 pub struct AddPlayerAction {
     pub name: String,
-    pub properties: HashMap<String, ProfilePropertyValue>,
+    pub properties: GameProfileProperties,
 }
 #[derive(Clone, Debug, AzBuf)]
 pub struct InitializeChatAction {
@@ -80,7 +80,7 @@ impl AzaleaRead for ClientboundPlayerInfoUpdate {
             if actions.add_player {
                 let action = AddPlayerAction::azalea_read(buf)?;
                 entry.profile.name = action.name;
-                entry.profile.properties = action.properties.into();
+                entry.profile.properties = Arc::new(action.properties);
             }
             if actions.initialize_chat {
                 let action = InitializeChatAction::azalea_read(buf)?;
