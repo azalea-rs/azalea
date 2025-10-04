@@ -42,7 +42,8 @@ impl Plugin for InventoryPlugin {
             .add_observer(handle_client_side_close_container_trigger)
             .add_observer(handle_menu_opened_trigger)
             .add_observer(handle_container_close_event)
-            .add_observer(handle_set_container_content_trigger);
+            .add_observer(handle_set_container_content_trigger)
+            .add_observer(handle_container_click_event);
     }
 }
 
@@ -827,8 +828,8 @@ pub struct ContainerClickEvent {
     pub operation: ClickOperation,
 }
 pub fn handle_container_click_event(
-    mut commands: Commands,
     container_click: On<ContainerClickEvent>,
+    mut commands: Commands,
     mut query: Query<(
         Entity,
         &mut Inventory,
