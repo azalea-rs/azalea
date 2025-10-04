@@ -1963,258 +1963,95 @@ impl DefaultableComponent for Container {
 impl DefaultableComponent for EntityData {
     fn default_for_item(item: Item) -> Option<Self> {
         let value = match item {
-            Item::AllaySpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:allay".into())])
-            }
-            Item::ArmadilloSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:armadillo".into())])
-            }
-            Item::AxolotlSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:axolotl".into())])
-            }
-            Item::BatSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:bat".into())])
-            }
-            Item::BeeSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:bee".into())])
-            }
-            Item::BlazeSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:blaze".into())])
-            }
-            Item::BoggedSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:bogged".into())])
-            }
-            Item::BreezeSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:breeze".into())])
-            }
-            Item::CamelSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:camel".into())])
-            }
-            Item::CatSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:cat".into())])
-            }
-            Item::CaveSpiderSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:cave_spider".into())])
-            }
-            Item::ChickenSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:chicken".into())])
-            }
-            Item::CodSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:cod".into())])
-            }
-            Item::CopperGolemSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:copper_golem".into())])
-            }
-            Item::CowSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:cow".into())])
-            }
-            Item::CreakingSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:creaking".into())])
-            }
-            Item::CreeperSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:creeper".into())])
-            }
-            Item::DolphinSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:dolphin".into())])
-            }
-            Item::DonkeySpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:donkey".into())])
-            }
-            Item::DrownedSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:drowned".into())])
-            }
-            Item::ElderGuardianSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:elder_guardian".into())])
-            }
-            Item::EnderDragonSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:ender_dragon".into())])
-            }
-            Item::EndermanSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:enderman".into())])
-            }
-            Item::EndermiteSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:endermite".into())])
-            }
-            Item::EvokerSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:evoker".into())])
-            }
-            Item::FoxSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:fox".into())])
-            }
-            Item::FrogSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:frog".into())])
-            }
-            Item::GhastSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:ghast".into())])
-            }
-            Item::GlowSquidSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:glow_squid".into())])
-            }
-            Item::GoatSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:goat".into())])
-            }
-            Item::GuardianSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:guardian".into())])
-            }
-            Item::HappyGhastSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:happy_ghast".into())])
-            }
-            Item::HoglinSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:hoglin".into())])
-            }
-            Item::HorseSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:horse".into())])
-            }
-            Item::HuskSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:husk".into())])
-            }
-            Item::IronGolemSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:iron_golem".into())])
-            }
-            Item::LlamaSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:llama".into())])
-            }
-            Item::MagmaCubeSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:magma_cube".into())])
-            }
-            Item::MooshroomSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:mooshroom".into())])
-            }
-            Item::MuleSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:mule".into())])
-            }
-            Item::OcelotSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:ocelot".into())])
-            }
-            Item::PandaSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:panda".into())])
-            }
-            Item::ParrotSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:parrot".into())])
-            }
-            Item::PhantomSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:phantom".into())])
-            }
-            Item::PigSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:pig".into())])
-            }
-            Item::PiglinBruteSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:piglin_brute".into())])
-            }
-            Item::PiglinSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:piglin".into())])
-            }
-            Item::PillagerSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:pillager".into())])
-            }
-            Item::PolarBearSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:polar_bear".into())])
-            }
-            Item::PufferfishSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:pufferfish".into())])
-            }
-            Item::RabbitSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:rabbit".into())])
-            }
-            Item::RavagerSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:ravager".into())])
-            }
-            Item::SalmonSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:salmon".into())])
-            }
-            Item::SheepSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:sheep".into())])
-            }
-            Item::ShulkerSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:shulker".into())])
-            }
-            Item::SilverfishSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:silverfish".into())])
-            }
-            Item::SkeletonHorseSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:skeleton_horse".into())])
-            }
-            Item::SkeletonSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:skeleton".into())])
-            }
-            Item::SlimeSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:slime".into())])
-            }
-            Item::SnifferSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:sniffer".into())])
-            }
-            Item::SnowGolemSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:snow_golem".into())])
-            }
-            Item::SpiderSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:spider".into())])
-            }
-            Item::SquidSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:squid".into())])
-            }
-            Item::StraySpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:stray".into())])
-            }
-            Item::StriderSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:strider".into())])
-            }
-            Item::TadpoleSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:tadpole".into())])
-            }
-            Item::TraderLlamaSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:trader_llama".into())])
-            }
-            Item::TropicalFishSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:tropical_fish".into())])
-            }
-            Item::TurtleSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:turtle".into())])
-            }
-            Item::VexSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:vex".into())])
-            }
-            Item::VillagerSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:villager".into())])
-            }
-            Item::VindicatorSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:vindicator".into())])
-            }
-            Item::WanderingTraderSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:wandering_trader".into())])
-            }
-            Item::WardenSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:warden".into())])
-            }
-            Item::WitchSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:witch".into())])
-            }
-            Item::WitherSkeletonSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:wither_skeleton".into())])
-            }
-            Item::WitherSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:wither".into())])
-            }
-            Item::WolfSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:wolf".into())])
-            }
-            Item::ZoglinSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:zoglin".into())])
-            }
-            Item::ZombieHorseSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:zombie_horse".into())])
-            }
-            Item::ZombieSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:zombie".into())])
-            }
-            Item::ZombieVillagerSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:zombie_villager".into())])
-            }
-            Item::ZombifiedPiglinSpawnEgg => {
-                NbtCompound::from_values(vec![("id".into(), "minecraft:zombified_piglin".into())])
-            }
+            Item::AllaySpawnEgg => EntityKind::Allay,
+            Item::ArmadilloSpawnEgg => EntityKind::Armadillo,
+            Item::AxolotlSpawnEgg => EntityKind::Axolotl,
+            Item::BatSpawnEgg => EntityKind::Bat,
+            Item::BeeSpawnEgg => EntityKind::Bee,
+            Item::BlazeSpawnEgg => EntityKind::Blaze,
+            Item::BoggedSpawnEgg => EntityKind::Bogged,
+            Item::BreezeSpawnEgg => EntityKind::Breeze,
+            Item::CamelSpawnEgg => EntityKind::Camel,
+            Item::CatSpawnEgg => EntityKind::Cat,
+            Item::CaveSpiderSpawnEgg => EntityKind::CaveSpider,
+            Item::ChickenSpawnEgg => EntityKind::Chicken,
+            Item::CodSpawnEgg => EntityKind::Cod,
+            Item::CopperGolemSpawnEgg => EntityKind::CopperGolem,
+            Item::CowSpawnEgg => EntityKind::Cow,
+            Item::CreakingSpawnEgg => EntityKind::Creaking,
+            Item::CreeperSpawnEgg => EntityKind::Creeper,
+            Item::DolphinSpawnEgg => EntityKind::Dolphin,
+            Item::DonkeySpawnEgg => EntityKind::Donkey,
+            Item::DrownedSpawnEgg => EntityKind::Drowned,
+            Item::ElderGuardianSpawnEgg => EntityKind::ElderGuardian,
+            Item::EnderDragonSpawnEgg => EntityKind::EnderDragon,
+            Item::EndermanSpawnEgg => EntityKind::Enderman,
+            Item::EndermiteSpawnEgg => EntityKind::Endermite,
+            Item::EvokerSpawnEgg => EntityKind::Evoker,
+            Item::FoxSpawnEgg => EntityKind::Fox,
+            Item::FrogSpawnEgg => EntityKind::Frog,
+            Item::GhastSpawnEgg => EntityKind::Ghast,
+            Item::GlowSquidSpawnEgg => EntityKind::GlowSquid,
+            Item::GoatSpawnEgg => EntityKind::Goat,
+            Item::GuardianSpawnEgg => EntityKind::Guardian,
+            Item::HappyGhastSpawnEgg => EntityKind::HappyGhast,
+            Item::HoglinSpawnEgg => EntityKind::Hoglin,
+            Item::HorseSpawnEgg => EntityKind::Horse,
+            Item::HuskSpawnEgg => EntityKind::Husk,
+            Item::IronGolemSpawnEgg => EntityKind::IronGolem,
+            Item::LlamaSpawnEgg => EntityKind::Llama,
+            Item::MagmaCubeSpawnEgg => EntityKind::MagmaCube,
+            Item::MooshroomSpawnEgg => EntityKind::Mooshroom,
+            Item::MuleSpawnEgg => EntityKind::Mule,
+            Item::OcelotSpawnEgg => EntityKind::Ocelot,
+            Item::PandaSpawnEgg => EntityKind::Panda,
+            Item::ParrotSpawnEgg => EntityKind::Parrot,
+            Item::PhantomSpawnEgg => EntityKind::Phantom,
+            Item::PigSpawnEgg => EntityKind::Pig,
+            Item::PiglinBruteSpawnEgg => EntityKind::PiglinBrute,
+            Item::PiglinSpawnEgg => EntityKind::Piglin,
+            Item::PillagerSpawnEgg => EntityKind::Pillager,
+            Item::PolarBearSpawnEgg => EntityKind::PolarBear,
+            Item::PufferfishSpawnEgg => EntityKind::Pufferfish,
+            Item::RabbitSpawnEgg => EntityKind::Rabbit,
+            Item::RavagerSpawnEgg => EntityKind::Ravager,
+            Item::SalmonSpawnEgg => EntityKind::Salmon,
+            Item::SheepSpawnEgg => EntityKind::Sheep,
+            Item::ShulkerSpawnEgg => EntityKind::Shulker,
+            Item::SilverfishSpawnEgg => EntityKind::Silverfish,
+            Item::SkeletonHorseSpawnEgg => EntityKind::SkeletonHorse,
+            Item::SkeletonSpawnEgg => EntityKind::Skeleton,
+            Item::SlimeSpawnEgg => EntityKind::Slime,
+            Item::SnifferSpawnEgg => EntityKind::Sniffer,
+            Item::SnowGolemSpawnEgg => EntityKind::SnowGolem,
+            Item::SpiderSpawnEgg => EntityKind::Spider,
+            Item::SquidSpawnEgg => EntityKind::Squid,
+            Item::StraySpawnEgg => EntityKind::Stray,
+            Item::StriderSpawnEgg => EntityKind::Strider,
+            Item::TadpoleSpawnEgg => EntityKind::Tadpole,
+            Item::TraderLlamaSpawnEgg => EntityKind::TraderLlama,
+            Item::TropicalFishSpawnEgg => EntityKind::TropicalFish,
+            Item::TurtleSpawnEgg => EntityKind::Turtle,
+            Item::VexSpawnEgg => EntityKind::Vex,
+            Item::VillagerSpawnEgg => EntityKind::Villager,
+            Item::VindicatorSpawnEgg => EntityKind::Vindicator,
+            Item::WanderingTraderSpawnEgg => EntityKind::WanderingTrader,
+            Item::WardenSpawnEgg => EntityKind::Warden,
+            Item::WitchSpawnEgg => EntityKind::Witch,
+            Item::WitherSkeletonSpawnEgg => EntityKind::WitherSkeleton,
+            Item::WitherSpawnEgg => EntityKind::Wither,
+            Item::WolfSpawnEgg => EntityKind::Wolf,
+            Item::ZoglinSpawnEgg => EntityKind::Zoglin,
+            Item::ZombieHorseSpawnEgg => EntityKind::ZombieHorse,
+            Item::ZombieSpawnEgg => EntityKind::Zombie,
+            Item::ZombieVillagerSpawnEgg => EntityKind::ZombieVillager,
+            Item::ZombifiedPiglinSpawnEgg => EntityKind::ZombifiedPiglin,
             _ => return None,
         };
-        Some(EntityData { entity: value })
+        Some(EntityData {
+            kind: value,
+            data: NbtCompound::new(),
+        })
     }
 }
 impl DefaultableComponent for ProvidesTrimMaterial {
