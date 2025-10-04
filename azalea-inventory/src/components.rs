@@ -731,9 +731,11 @@ pub struct DebugStickState {
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
-#[serde(transparent)]
 pub struct EntityData {
-    pub entity: NbtCompound,
+    #[serde(rename = "id")]
+    pub kind: EntityKind,
+    #[serde(flatten)]
+    pub data: NbtCompound,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
@@ -743,9 +745,11 @@ pub struct BucketEntityData {
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
-#[serde(transparent)]
 pub struct BlockEntityData {
-    pub entity: NbtCompound,
+    #[serde(rename = "id")]
+    pub kind: EntityKind,
+    #[serde(flatten)]
+    pub data: NbtCompound,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]

@@ -315,6 +315,19 @@ use crate::{
                     list(python_value.values())[0], target_rust_type
                 )
             return str(python_value)
+        elif target_rust_type == "EntityKind":
+            # Special handling for EntityKind - can be from NBT compound id field or direct string
+            entity_id = None
+            if isinstance(python_value, dict) and "id" in python_value:
+                entity_id = python_value["id"]
+            elif isinstance(python_value, str):
+                entity_id = python_value
+            
+            if entity_id and entity_id.startswith("minecraft:"):
+                entity_name = entity_id[10:]  # Remove "minecraft:" prefix
+                entity_name_camel = lib.utils.to_camel_case(entity_name)
+                return f"EntityKind::{entity_name_camel}"
+            raise ValueError(f"Unknown or missing EntityKind: {python_value}")
         elif target_rust_type == "NbtCompound":
             # NbtCompound::from_values([
             #     ("id".into(), "minecraft:allay".into()),
@@ -494,6 +507,14 @@ use crate::{
         elif component_resource_id == "item_model":
             rust_value = f"{rust_value}.into()"
             field_type = "&str"
+
+        elif component_resource_id == "entity_data":
+            # Special handling for EntityData to use EntityData structure
+            # Keep rust_value as "value" so it gets processed correctly
+            field_type = "EntityKind"
+    
+            def transform_value_fn(rust_value: str):
+                return f"{component_struct_name} {{ kind: {rust_value}, data: NbtCompound::new() }}"
 
         item_defaults_original = item_defaults
         item_defaults = {}
