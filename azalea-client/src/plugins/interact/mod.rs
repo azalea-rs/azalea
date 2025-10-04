@@ -19,7 +19,8 @@ use azalea_entity::{
 };
 use azalea_inventory::{ItemStack, ItemStackData, components};
 use azalea_physics::{
-    PhysicsSet, collision::entity_collisions::update_last_bounding_box, local_player::PhysicsState,
+    PhysicsSystems, collision::entity_collisions::update_last_bounding_box,
+    local_player::PhysicsState,
 };
 use azalea_protocol::packets::game::{
     ServerboundInteract, ServerboundUseItem,
@@ -37,9 +38,9 @@ use crate::{
     Client,
     attack::handle_attack_event,
     interact::pick::{HitResultComponent, update_hit_result_component},
-    inventory::{Inventory, InventorySet},
+    inventory::{Inventory, InventorySystems},
     local_player::{LocalGameMode, PermissionLevel},
-    movement::MoveEventsSet,
+    movement::MoveEventsSystems,
     packet::game::SendGamePacketEvent,
     respawn::perform_respawn,
 };
@@ -56,26 +57,29 @@ impl Plugin for InteractPlugin {
                         update_attributes_for_held_item,
                         update_attributes_for_gamemode,
                     )
-                        .in_set(UpdateAttributesSet)
+                        .in_set(UpdateAttributesSystems)
                         .chain(),
                     handle_start_use_item_event,
                     update_hit_result_component
                         .after(clamp_look_direction)
                         .after(update_last_bounding_box),
                 )
-                    .after(InventorySet)
-                    .after(MoveEventsSet)
+                    .after(InventorySystems)
+                    .after(MoveEventsSystems)
                     .after(perform_respawn)
                     .after(handle_attack_event)
                     .chain(),
             )
-            .add_systems(GameTick, handle_start_use_item_queued.before(PhysicsSet))
+            .add_systems(
+                GameTick,
+                handle_start_use_item_queued.before(PhysicsSystems),
+            )
             .add_observer(handle_swing_arm_trigger);
     }
 }
 
 #[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
-pub struct UpdateAttributesSet;
+pub struct UpdateAttributesSystems;
 
 impl Client {
     /// Right-click a block.

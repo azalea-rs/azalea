@@ -1,11 +1,11 @@
 use azalea_core::tick::GameTick;
 use azalea_entity::{HasClientLoaded, InLoadedChunk, LocalEntity, update_in_loaded_chunk};
-use azalea_physics::PhysicsSet;
+use azalea_physics::PhysicsSystems;
 use azalea_protocol::packets::game::ServerboundPlayerLoaded;
 use bevy_app::{App, Plugin};
 use bevy_ecs::prelude::*;
 
-use crate::{mining::MiningSet, packet::game::SendGamePacketEvent};
+use crate::{mining::MiningSystems, packet::game::SendGamePacketEvent};
 
 pub struct PlayerLoadedPlugin;
 impl Plugin for PlayerLoadedPlugin {
@@ -15,8 +15,8 @@ impl Plugin for PlayerLoadedPlugin {
             // vanilla runs this on gameMode.tick()
             player_loaded_packet
                 .after(update_in_loaded_chunk)
-                .before(PhysicsSet)
-                .before(MiningSet)
+                .before(PhysicsSystems)
+                .before(MiningSystems)
                 .before(crate::movement::send_position),
         );
     }

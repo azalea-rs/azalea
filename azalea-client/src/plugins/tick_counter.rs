@@ -1,10 +1,10 @@
 use azalea_core::tick::GameTick;
-use azalea_physics::PhysicsSet;
+use azalea_physics::PhysicsSystems;
 use azalea_world::InstanceName;
 use bevy_app::{App, Plugin};
 use bevy_ecs::prelude::*;
 
-use crate::{mining::MiningSet, movement::send_position, tick_broadcast::send_tick_broadcast};
+use crate::{mining::MiningSystems, movement::send_position, tick_broadcast::send_tick_broadcast};
 
 /// Counts the number of game ticks elapsed on the **local client** since the
 /// `login` packet was received.
@@ -20,8 +20,8 @@ impl Plugin for TickCounterPlugin {
         app.add_systems(
             GameTick,
             increment_counter
-                .before(PhysicsSet)
-                .before(MiningSet)
+                .before(PhysicsSystems)
+                .before(MiningSystems)
                 .before(send_position)
                 .before(send_tick_broadcast),
         );

@@ -31,7 +31,7 @@ use crate::collision::{MoveCtx, entity_collisions::update_last_bounding_box};
 
 /// A Bevy [`SystemSet`] for running physics that makes entities do things.
 #[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
-pub struct PhysicsSet;
+pub struct PhysicsSystems;
 
 pub struct PhysicsPlugin;
 impl Plugin for PhysicsPlugin {
@@ -47,7 +47,7 @@ impl Plugin for PhysicsPlugin {
                 apply_effects_from_blocks,
             )
                 .chain()
-                .in_set(PhysicsSet)
+                .in_set(PhysicsSystems)
                 .after(azalea_entity::update_in_loaded_chunk),
         )
         // we want this to happen after packets are handled but before physics

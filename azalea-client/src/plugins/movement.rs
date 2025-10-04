@@ -13,7 +13,7 @@ use azalea_entity::{
     update_bounding_box,
 };
 use azalea_physics::{
-    PhysicsSet, ai_step,
+    PhysicsSystems, ai_step,
     collision::entity_collisions::{AabbQuery, CollidableEntityQuery, update_last_bounding_box},
     local_player::{PhysicsState, SprintDirection, WalkDirection},
     travel::{no_collision, travel},
@@ -72,7 +72,7 @@ impl Plugin for MovementPlugin {
                 Update,
                 (handle_sprint, handle_walk, handle_knockback)
                     .chain()
-                    .in_set(MoveEventsSet)
+                    .in_set(MoveEventsSystems)
                     .after(update_bounding_box)
                     .after(update_last_bounding_box),
             )
@@ -81,14 +81,14 @@ impl Plugin for MovementPlugin {
                 (
                     (tick_controls, local_player_ai_step, update_pose)
                         .chain()
-                        .in_set(PhysicsSet)
+                        .in_set(PhysicsSystems)
                         .before(ai_step)
                         .before(azalea_physics::fluids::update_in_water_state_and_do_fluid_pushing),
                     send_player_input_packet,
                     send_sprinting_if_needed
                         .after(azalea_entity::update_in_loaded_chunk)
                         .after(travel),
-                    send_position.after(PhysicsSet),
+                    send_position.after(PhysicsSystems),
                 )
                     .chain(),
             );
@@ -96,7 +96,7 @@ impl Plugin for MovementPlugin {
 }
 
 #[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
-pub struct MoveEventsSet;
+pub struct MoveEventsSystems;
 
 impl Client {
     /// Set whether we're jumping. This acts as if you held space in

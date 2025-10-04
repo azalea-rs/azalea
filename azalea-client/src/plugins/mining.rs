@@ -2,7 +2,7 @@ use azalea_block::{BlockState, BlockTrait, fluid_state::FluidState};
 use azalea_core::{direction::Direction, game_type::GameMode, position::BlockPos, tick::GameTick};
 use azalea_entity::{FluidOnEyes, Physics, PlayerAbilities, Position, mining::get_mine_progress};
 use azalea_inventory::ItemStack;
-use azalea_physics::{PhysicsSet, collision::BlockWithShape};
+use azalea_physics::{PhysicsSystems, collision::BlockWithShape};
 use azalea_protocol::packets::game::s_player_action::{self, ServerboundPlayerAction};
 use azalea_world::{InstanceContainer, InstanceName};
 use bevy_app::{App, Plugin, Update};
@@ -16,9 +16,9 @@ use crate::{
         BlockStatePredictionHandler, SwingArmEvent, can_use_game_master_blocks,
         check_is_interaction_restricted, pick::HitResultComponent,
     },
-    inventory::{Inventory, InventorySet},
+    inventory::{Inventory, InventorySystems},
     local_player::{InstanceHolder, LocalGameMode, PermissionLevel},
-    movement::MoveEventsSet,
+    movement::MoveEventsSystems,
     packet::game::SendGamePacketEvent,
 };
 
@@ -39,10 +39,10 @@ impl Plugin for MiningPlugin {
                     continue_mining_block,
                 )
                     .chain()
-                    .before(PhysicsSet)
+                    .before(PhysicsSystems)
                     .before(super::movement::send_position)
                     .before(super::interact::handle_start_use_item_queued)
-                    .in_set(MiningSet),
+                    .in_set(MiningSystems),
             )
             .add_systems(
                 Update,
@@ -51,9 +51,9 @@ impl Plugin for MiningPlugin {
                     handle_stop_mining_block_event,
                 )
                     .chain()
-                    .in_set(MiningSet)
-                    .after(InventorySet)
-                    .after(MoveEventsSet)
+                    .in_set(MiningSystems)
+                    .after(InventorySystems)
+                    .after(MoveEventsSystems)
                     .after(azalea_entity::update_fluid_on_eyes)
                     .after(crate::interact::pick::update_hit_result_component)
                     .after(crate::attack::handle_attack_event),
@@ -64,7 +64,7 @@ impl Plugin for MiningPlugin {
 
 /// The Bevy system set for things related to mining.
 #[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
-pub struct MiningSet;
+pub struct MiningSystems;
 
 impl Client {
     pub fn start_mining(&self, position: BlockPos) {

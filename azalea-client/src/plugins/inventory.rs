@@ -32,7 +32,7 @@ impl Plugin for InventoryPlugin {
             .add_systems(
                 Update,
                 handle_set_selected_hotbar_slot_event
-                    .in_set(InventorySet)
+                    .in_set(InventorySystems)
                     .before(perform_respawn),
             )
             .add_systems(
@@ -48,7 +48,7 @@ impl Plugin for InventoryPlugin {
 }
 
 #[derive(SystemSet, Debug, Hash, PartialEq, Eq, Clone)]
-pub struct InventorySet;
+pub struct InventorySystems;
 
 impl Client {
     /// Return the menu that is currently open. If no menu is open, this will

@@ -34,14 +34,14 @@ use std::{
 use astar::{Edge, PathfinderTimeout};
 use azalea_client::{
     StartSprintEvent, StartWalkEvent,
-    inventory::{Inventory, InventorySet, SetSelectedHotbarSlotEvent},
+    inventory::{Inventory, InventorySystems, SetSelectedHotbarSlotEvent},
     local_player::InstanceHolder,
-    mining::{Mining, MiningSet, StartMiningBlockEvent},
-    movement::MoveEventsSet,
+    mining::{Mining, MiningSystems, StartMiningBlockEvent},
+    movement::MoveEventsSystems,
 };
 use azalea_core::{position::BlockPos, tick::GameTick};
 use azalea_entity::{LocalEntity, Physics, Position, metadata::Player};
-use azalea_physics::PhysicsSet;
+use azalea_physics::PhysicsSystems;
 use azalea_world::{InstanceContainer, InstanceName};
 use bevy_app::{PreUpdate, Update};
 use bevy_ecs::prelude::*;
@@ -95,9 +95,9 @@ impl Plugin for PathfinderPlugin {
                     recalculate_if_has_goal_but_no_path,
                 )
                     .chain()
-                    .after(PhysicsSet)
+                    .after(PhysicsSystems)
                     .after(azalea_client::movement::send_position)
-                    .after(MiningSet),
+                    .after(MiningSystems),
             )
             .add_systems(PreUpdate, add_default_pathfinder)
             .add_systems(
@@ -110,8 +110,8 @@ impl Plugin for PathfinderPlugin {
                     handle_stop_pathfinding_event,
                 )
                     .chain()
-                    .before(MoveEventsSet)
-                    .before(InventorySet),
+                    .before(MoveEventsSystems)
+                    .before(InventorySystems),
             );
     }
 }
@@ -529,8 +529,9 @@ pub fn path_found_listener(
     mut commands: Commands,
 ) {
     for event in events.read() {
-        let Ok((mut pathfinder, executing_path, instance_name, inventory, custom_state)) = query
-            .get_mut(event.entity) else {
+        let Ok((mut pathfinder, executing_path, instance_name, inventory, custom_state)) =
+            query.get_mut(event.entity)
+        else {
             debug!("got path found event for an entity that can't pathfind");
             continue;
         };

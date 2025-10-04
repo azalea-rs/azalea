@@ -17,7 +17,7 @@ use bevy_ecs::prelude::*;
 use tracing::{error, trace};
 
 use crate::{
-    inventory::InventorySet, local_player::InstanceHolder, packet::game::SendGamePacketEvent,
+    inventory::InventorySystems, local_player::InstanceHolder, packet::game::SendGamePacketEvent,
     respawn::perform_respawn,
 };
 
@@ -32,7 +32,7 @@ impl Plugin for ChunksPlugin {
                 handle_chunk_batch_finished_event,
             )
                 .chain()
-                .before(InventorySet)
+                .before(InventorySystems)
                 .before(perform_respawn),
         )
         .add_message::<ReceiveChunkEvent>()

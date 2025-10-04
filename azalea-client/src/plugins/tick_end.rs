@@ -2,13 +2,13 @@
 
 use azalea_core::tick::GameTick;
 use azalea_entity::LocalEntity;
-use azalea_physics::PhysicsSet;
+use azalea_physics::PhysicsSystems;
 use azalea_protocol::packets::game::ServerboundClientTickEnd;
 use azalea_world::InstanceName;
 use bevy_app::{App, Plugin};
 use bevy_ecs::prelude::*;
 
-use crate::{mining::MiningSet, packet::game::SendGamePacketEvent};
+use crate::{mining::MiningSystems, packet::game::SendGamePacketEvent};
 
 /// A plugin that makes clients send a [`ServerboundClientTickEnd`] packet every
 /// tick.
@@ -19,8 +19,8 @@ impl Plugin for TickEndPlugin {
             GameTick,
             // this has to happen after every other event that might send packets
             game_tick_packet
-                .after(PhysicsSet)
-                .after(MiningSet)
+                .after(PhysicsSystems)
+                .after(MiningSystems)
                 .after(crate::movement::send_position),
         );
     }

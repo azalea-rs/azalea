@@ -34,11 +34,11 @@ anyhow = "1"
 async-compat = "0.2"
 async-recursion = "1"
 base64 = "0.22"
-bevy_app = "0.17.0-rc.2"
-bevy_ecs = { version = "0.17.0-rc.2", default-features = false }
-bevy_log = "0.17.0-rc.2"
-bevy_tasks = "0.17.0-rc.2"
-bevy_time = "0.17.0-rc.2"
+bevy_app = "0.17.2"
+bevy_ecs = { version = "0.17.2", default-features = false }
+bevy_log = "0.17.2"
+bevy_tasks = "0.17.2"
+bevy_time = "0.17.2"
 byteorder = "1"
 cfb8 = "0.8"
 chrono = { version = "0.4", default-features = false }
@@ -66,7 +66,7 @@ quote = "1"
 rand = "0.9"
 regex = "1"
 reqwest = { version = "0.12", default-features = false }
-rsa = "0.10.0-rc.8"
+rsa = "0.10.0-rc.9"
 signature = "=3.0.0-rc.4"                                        # TODO: Remove when rsa is fixed.
 rsa_public_encrypt_pkcs1 = "0.4"
 rustc-hash = "2"

@@ -12,7 +12,7 @@ use azalea_entity::{
     Jumping, LocalEntity, LookDirection, Position, clamp_look_direction,
     dimensions::EntityDimensions, metadata::Player, update_dimensions,
 };
-use azalea_physics::PhysicsSet;
+use azalea_physics::PhysicsSystems;
 use bevy_app::Update;
 use bevy_ecs::prelude::*;
 use futures_lite::Future;
@@ -51,7 +51,7 @@ impl Plugin for BotPlugin {
             .add_systems(
                 GameTick,
                 stop_jumping
-                    .after(PhysicsSet)
+                    .after(PhysicsSystems)
                     .after(azalea_client::movement::send_player_input_packet),
             );
     }
