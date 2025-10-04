@@ -529,9 +529,11 @@ pub fn path_found_listener(
     mut commands: Commands,
 ) {
     for event in events.read() {
-        let (mut pathfinder, executing_path, instance_name, inventory, custom_state) = query
-            .get_mut(event.entity)
-            .expect("Path found for an entity that doesn't have a pathfinder");
+        let Ok((mut pathfinder, executing_path, instance_name, inventory, custom_state)) = query
+            .get_mut(event.entity) else {
+            debug!("got path found event for an entity that can't pathfind");
+            continue;
+        };
         if let Some(path) = &event.path {
             if let Some(mut executing_path) = executing_path {
                 let mut new_path = VecDeque::new();
