@@ -8,7 +8,7 @@ use azalea_world::{InstanceContainer, InstanceName};
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 use derive_more::{Deref, DerefMut};
-use tracing::{debug, trace};
+use tracing::{debug, trace, warn};
 
 use crate::{
     Client,
@@ -73,6 +73,7 @@ impl Client {
         ecs.write_message(StartMiningBlockEvent {
             entity: self.entity,
             position,
+            force: true,
         });
     }
 
@@ -138,6 +139,7 @@ fn handle_auto_mine(
             start_mining_block_event.write(StartMiningBlockEvent {
                 entity,
                 position: block_pos,
+                force: true,
             });
         } else if mining.is_some() && hit_result_component.miss() {
             stop_mining_block_event.write(StopMiningBlockEvent { entity });
@@ -163,6 +165,14 @@ pub struct Mining {
 pub struct StartMiningBlockEvent {
     pub entity: Entity,
     pub position: BlockPos,
+    /// Whether we should ignore blocks that are blocking the view of this
+    /// block.
+    ///
+    /// Most of the time, you'll want to set this to true as it'll make the
+    /// behavior more predictable. If it's set to false, then it might fail or
+    /// it might mine blocks other than the one at `position` (which may be
+    /// preferable if you're trying to act like vanilla).
+    pub force: bool,
 }
 fn handle_start_mining_block_event(
     mut commands: Commands,
@@ -172,25 +182,44 @@ fn handle_start_mining_block_event(
     for event in events.read() {
         trace!("{event:?}");
         let hit_result = query.get_mut(event.entity).unwrap();
-        let (direction, force) = if let Some(block_hit_result) =
-            hit_result.as_block_hit_result_if_not_miss()
-            && block_hit_result.block_pos == event.position
-        {
-            // we're looking at the block
-            (block_hit_result.direction, false)
+        if event.force {
+            let direction = if let Some(block_hit_result) =
+                hit_result.as_block_hit_result_if_not_miss()
+                && block_hit_result.block_pos == event.position
+            {
+                // we're looking at the block
+                block_hit_result.direction
+            } else {
+                debug!(
+                    "Got StartMiningBlockEvent but we're not looking at the block ({hit_result:?}.block_pos != {:?}). Picking an arbitrary direction instead.",
+                    event.position
+                );
+                // we're not looking at the block, arbitrary direction
+                Direction::Down
+            };
+            commands.entity(event.entity).insert(MiningQueued {
+                position: event.position,
+                direction,
+                force: true,
+            });
         } else {
-            debug!(
-                "Got StartMiningBlockEvent but we're not looking at the block ({:?}.block_pos != {:?}). Picking an arbitrary direction instead.",
-                hit_result, event.position
-            );
-            // we're not looking at the block, arbitrary direction
-            (Direction::Down, true)
-        };
-        commands.entity(event.entity).insert(MiningQueued {
-            position: event.position,
-            direction,
-            force,
-        });
+            // let block_hit_result = hit_result.as_block_hit_result_if_not_miss();
+            // let direction = block_hit_result.map_or(Direction::Down, |b| b.direction);
+            if let Some(block_hit_result) = hit_result.as_block_hit_result_if_not_miss()
+                && block_hit_result.block_pos == event.position
+            {
+                commands.entity(event.entity).insert(MiningQueued {
+                    position: event.position,
+                    direction: block_hit_result.direction,
+                    force: false,
+                });
+            } else {
+                warn!(
+                    "Got StartMiningBlockEvent with force=false but we're not looking at the block ({hit_result:?}.block_pos != {:?}). You should've looked at the block before trying to mine with force=false.",
+                    event.position
+                );
+            };
+        }
     }
 }
 
@@ -215,7 +244,7 @@ pub fn handle_mining_queued(
         &Inventory,
         &FluidOnEyes,
         &Physics,
-        Option<&Mining>,
+        Option<&mut Mining>,
         &mut BlockStatePredictionHandler,
         &mut MineDelay,
         &mut MineProgress,
@@ -232,7 +261,7 @@ pub fn handle_mining_queued(
         inventory,
         fluid_on_eyes,
         physics,
-        mining,
+        mut mining,
         mut sequence_number,
         mut mine_delay,
         mut mine_progress,
@@ -241,6 +270,7 @@ pub fn handle_mining_queued(
         mut current_mining_pos,
     ) in query
     {
+        trace!("handle_mining_queued {mining_queued:?}");
         commands.entity(entity).remove::<MiningQueued>();
 
         let instance = instance_holder.instance.read();
@@ -254,6 +284,13 @@ pub fn handle_mining_queued(
         }
         // TODO (when world border is implemented): vanilla ignores if the block
         // is outside of the worldborder
+
+        if let Some(mining) = &mut mining {
+            // this matters if we were previously mining a block without force
+            if mining_queued.force {
+                mining.force = true;
+            }
+        }
 
         if game_mode.current == GameMode::Creative {
             // In creative mode, first send START_DESTROY_BLOCK packet then immediately
@@ -686,7 +723,13 @@ pub fn update_mining_component(
                 continue;
             }
 
-            mining.pos = block_hit_result.block_pos;
+            if mining.pos != block_hit_result.block_pos {
+                debug!(
+                    "Updating Mining::pos from {:?} to {:?}",
+                    mining.pos, block_hit_result.block_pos
+                );
+                mining.pos = block_hit_result.block_pos;
+            }
             mining.dir = block_hit_result.direction;
         } else {
             if mining.force {

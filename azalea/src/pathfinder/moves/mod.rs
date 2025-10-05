@@ -14,8 +14,9 @@ use azalea_client::{
 use azalea_core::position::{BlockPos, Vec3};
 use azalea_inventory::Menu;
 use azalea_world::Instance;
-use bevy_ecs::{entity::Entity, message::MessageWriter};
+use bevy_ecs::{entity::Entity, message::MessageWriter, system::Commands};
 use parking_lot::RwLock;
+use tracing::debug;
 
 use super::{
     astar,
@@ -54,7 +55,7 @@ impl Debug for MoveData {
     }
 }
 
-pub struct ExecuteCtx<'w1, 'w2, 'w3, 'w4, 'w5, 'w6, 'a> {
+pub struct ExecuteCtx<'s, 'w1, 'w2, 'w3, 'w4, 'w5, 'w6, 'a> {
     pub entity: Entity,
     /// The node that we're trying to reach.
     pub target: BlockPos,
@@ -66,15 +67,15 @@ pub struct ExecuteCtx<'w1, 'w2, 'w3, 'w4, 'w5, 'w6, 'a> {
     pub instance: Arc<RwLock<Instance>>,
     pub menu: Menu,
 
-    pub look_at_events: &'a mut MessageWriter<'w1, LookAtEvent>,
-    pub sprint_events: &'a mut MessageWriter<'w2, StartSprintEvent>,
-    pub walk_events: &'a mut MessageWriter<'w3, StartWalkEvent>,
-    pub jump_events: &'a mut MessageWriter<'w4, JumpEvent>,
-    pub start_mining_events: &'a mut MessageWriter<'w5, StartMiningBlockEvent>,
-    pub set_selected_hotbar_slot_events: &'a mut MessageWriter<'w6, SetSelectedHotbarSlotEvent>,
+    pub commands: &'a mut Commands<'w1, 's>,
+    pub look_at_events: &'a mut MessageWriter<'w2, LookAtEvent>,
+    pub sprint_events: &'a mut MessageWriter<'w3, StartSprintEvent>,
+    pub walk_events: &'a mut MessageWriter<'w4, StartWalkEvent>,
+    pub jump_events: &'a mut MessageWriter<'w5, JumpEvent>,
+    pub start_mining_events: &'a mut MessageWriter<'w6, StartMiningBlockEvent>,
 }
 
-impl ExecuteCtx<'_, '_, '_, '_, '_, '_, '_> {
+impl ExecuteCtx<'_, '_, '_, '_, '_, '_, '_, '_> {
     pub fn look_at(&mut self, position: Vec3) {
         self.look_at_events.write(LookAtEvent {
             entity: self.entity,
@@ -149,12 +150,12 @@ impl ExecuteCtx<'_, '_, '_, '_, '_, '_, '_> {
         }
 
         let best_tool_result = best_tool_in_hotbar_for_block(block_state, &self.menu);
+        debug!("best tool for {block_state:?}: {best_tool_result:?}");
 
-        self.set_selected_hotbar_slot_events
-            .write(SetSelectedHotbarSlotEvent {
-                entity: self.entity,
-                slot: best_tool_result.index as u8,
-            });
+        self.commands.trigger(SetSelectedHotbarSlotEvent {
+            entity: self.entity,
+            slot: best_tool_result.index as u8,
+        });
 
         self.is_currently_mining = true;
 
@@ -163,6 +164,7 @@ impl ExecuteCtx<'_, '_, '_, '_, '_, '_, '_> {
         self.start_mining_events.write(StartMiningBlockEvent {
             entity: self.entity,
             position: block,
+            force: true,
         });
 
         true

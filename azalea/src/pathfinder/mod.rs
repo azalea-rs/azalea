@@ -34,7 +34,7 @@ use std::{
 use astar::{Edge, PathfinderTimeout};
 use azalea_client::{
     StartSprintEvent, StartWalkEvent,
-    inventory::{Inventory, InventorySystems, SetSelectedHotbarSlotEvent},
+    inventory::{Inventory, InventorySystems},
     local_player::InstanceHolder,
     mining::{Mining, MiningSystems, StartMiningBlockEvent},
     movement::MoveEventsSystems,
@@ -1072,6 +1072,7 @@ pub fn recalculate_near_end_of_path(
 
 #[allow(clippy::type_complexity)]
 pub fn tick_execute_path(
+    mut commands: Commands,
     mut query: Query<(
         Entity,
         &mut ExecutingPath,
@@ -1086,7 +1087,6 @@ pub fn tick_execute_path(
     mut walk_events: MessageWriter<StartWalkEvent>,
     mut jump_events: MessageWriter<JumpEvent>,
     mut start_mining_events: MessageWriter<StartMiningBlockEvent>,
-    mut set_selected_hotbar_slot_events: MessageWriter<SetSelectedHotbarSlotEvent>,
 ) {
     for (entity, executing_path, position, physics, mining, instance_holder, inventory_component) in
         &mut query
@@ -1102,12 +1102,12 @@ pub fn tick_execute_path(
                 instance: instance_holder.instance.clone(),
                 menu: inventory_component.inventory_menu.clone(),
 
+                commands: &mut commands,
                 look_at_events: &mut look_at_events,
                 sprint_events: &mut sprint_events,
                 walk_events: &mut walk_events,
                 jump_events: &mut jump_events,
                 start_mining_events: &mut start_mining_events,
-                set_selected_hotbar_slot_events: &mut set_selected_hotbar_slot_events,
             };
             trace!(
                 "executing move, position: {}, last_reached_node: {}",

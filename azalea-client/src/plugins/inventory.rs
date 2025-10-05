@@ -18,32 +18,28 @@ use azalea_protocol::packets::game::{
 };
 use azalea_registry::MenuKind;
 use azalea_world::{InstanceContainer, InstanceName};
-use bevy_app::{App, Plugin, Update};
+use bevy_app::{App, Plugin};
 use bevy_ecs::prelude::*;
 use indexmap::IndexMap;
 use tracing::{error, warn};
 
-use crate::{Client, packet::game::SendGamePacketEvent, respawn::perform_respawn};
+use crate::{Client, packet::game::SendGamePacketEvent};
 
 pub struct InventoryPlugin;
 impl Plugin for InventoryPlugin {
     fn build(&self, app: &mut App) {
-        app.add_message::<SetSelectedHotbarSlotEvent>()
-            .add_systems(
-                Update,
-                handle_set_selected_hotbar_slot_event
-                    .in_set(InventorySystems)
-                    .before(perform_respawn),
-            )
-            .add_systems(
-                GameTick,
-                ensure_has_sent_carried_item.after(super::mining::handle_mining_queued),
-            )
-            .add_observer(handle_client_side_close_container_trigger)
-            .add_observer(handle_menu_opened_trigger)
-            .add_observer(handle_container_close_event)
-            .add_observer(handle_set_container_content_trigger)
-            .add_observer(handle_container_click_event);
+        app.add_systems(
+            GameTick,
+            ensure_has_sent_carried_item.after(super::mining::handle_mining_queued),
+        )
+        .add_observer(handle_client_side_close_container_trigger)
+        .add_observer(handle_menu_opened_trigger)
+        .add_observer(handle_container_close_event)
+        .add_observer(handle_set_container_content_trigger)
+        .add_observer(handle_container_click_event)
+        // number keys are checked on tick but scrolling can happen outside of ticks, therefore
+        // this is fine
+        .add_observer(handle_set_selected_hotbar_slot_event);
     }
 }
 
@@ -83,7 +79,7 @@ impl Client {
         );
 
         let mut ecs = self.ecs.lock();
-        ecs.write_message(SetSelectedHotbarSlotEvent {
+        ecs.trigger(SetSelectedHotbarSlotEvent {
             entity: self.entity,
             slot: new_hotbar_slot_index,
         });
@@ -926,26 +922,18 @@ pub fn handle_set_container_content_trigger(
 /// An ECS message to switch our hand to a different hotbar slot.
 ///
 /// This is equivalent to using the scroll wheel or number keys in Minecraft.
-#[derive(Message)]
+#[derive(EntityEvent)]
 pub struct SetSelectedHotbarSlotEvent {
     pub entity: Entity,
     /// The hotbar slot to select. This should be in the range 0..=8.
     pub slot: u8,
 }
 pub fn handle_set_selected_hotbar_slot_event(
-    mut events: MessageReader<SetSelectedHotbarSlotEvent>,
+    set_selected_hotbar_slot: On<SetSelectedHotbarSlotEvent>,
     mut query: Query<&mut Inventory>,
 ) {
-    for event in events.read() {
-        let mut inventory = query.get_mut(event.entity).unwrap();
-
-        // if the slot is already selected, don't send a packet
-        if inventory.selected_hotbar_slot == event.slot {
-            continue;
-        }
-
-        inventory.selected_hotbar_slot = event.slot;
-    }
+    let mut inventory = query.get_mut(set_selected_hotbar_slot.entity).unwrap();
+    inventory.selected_hotbar_slot = set_selected_hotbar_slot.slot;
 }
 
 /// The item slot that the server thinks we have selected.
