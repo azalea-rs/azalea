@@ -285,7 +285,7 @@ pub fn goto_listener(
     mut events: MessageReader<GotoEvent>,
     mut query: Query<(
         &mut Pathfinder,
-        Option<&ExecutingPath>,
+        Option<&mut ExecutingPath>,
         &Position,
         &InstanceName,
         &Inventory,
@@ -317,14 +317,19 @@ pub fn goto_listener(
         pathfinder.opts = Some(event.opts.clone());
         pathfinder.is_calculating = true;
 
-        let start = if let Some(executing_path) = executing_path
-            && let Some(final_node) = executing_path.path.back()
+        let start = if let Some(mut executing_path) = executing_path
+            && { !executing_path.path.is_empty() }
         {
             // if we're currently pathfinding and got a goto event, start a little ahead
+
+            let executing_path_limit = 50;
+            // truncate the executing path so we can cleanly combine the two paths later
+            executing_path.path.truncate(executing_path_limit);
+
             executing_path
                 .path
-                .get(50)
-                .unwrap_or(final_node)
+                .back()
+                .expect("path was just checked to not be empty")
                 .movement
                 .target
         } else {
@@ -1220,7 +1225,7 @@ where
             // if the node that we're currently executing was obstructed then it's often too
             // late to change the path, so it's usually better to just ignore this case :/
             if i == 0 {
-                warn!("path obstructed at index 0, ignoring");
+                warn!("path obstructed at index 0 ({edge:?}), ignoring");
                 continue;
             }
 

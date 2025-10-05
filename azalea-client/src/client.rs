@@ -373,7 +373,9 @@ impl Client {
     /// This is a shortcut for
     /// `bot.position().up(bot.dimensions().eye_height)`.
     pub fn eye_position(&self) -> Vec3 {
-        self.position().up(self.dimensions().eye_height as f64)
+        self.query_self::<(&Position, &EntityDimensions), _>(|(pos, dim)| {
+            pos.up(dim.eye_height as f64)
+        })
     }
 
     /// Get the health of this client.
