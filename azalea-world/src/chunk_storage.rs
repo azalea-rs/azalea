@@ -404,6 +404,7 @@ impl Chunk {
         }
     }
 
+    /// Get the biome at the given position, or `None` if it's out of bounds.
     pub fn get_biome(&self, pos: ChunkBiomePos, min_y: i32) -> Option<Biome> {
         if pos.y < min_y {
             // y position is out of bounds

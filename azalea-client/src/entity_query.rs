@@ -16,6 +16,8 @@ use crate::Client;
 impl Client {
     /// A convenience function for getting components from our client's entity.
     ///
+    /// To query another entity, you can use [`Self::query_entity`].
+    ///
     /// # Examples
     /// ```
     /// # use azalea_world::InstanceName;
@@ -33,6 +35,29 @@ impl Client {
         let res = qs.get_mut(&mut ecs, self.entity).unwrap_or_else(|_| {
             panic!(
                 "Our client is missing a required component {:?}",
+                any::type_name::<D>()
+            )
+        });
+        f(res)
+    }
+
+    /// A convenience function for getting components from any entity.
+    ///
+    /// If you're querying the client, you should use [`Self::query_self`].
+    ///
+    /// # Panics
+    ///
+    /// This will panic if the component doesn't exist on the entity.
+    pub fn query_entity<D: QueryData, R>(
+        &self,
+        entity: Entity,
+        f: impl FnOnce(QueryItem<D>) -> R,
+    ) -> R {
+        let mut ecs = self.ecs.lock();
+        let mut qs = ecs.query::<D>();
+        let res = qs.get_mut(&mut ecs, entity).unwrap_or_else(|_| {
+            panic!(
+                "Entity is missing a required component {:?}",
                 any::type_name::<D>()
             )
         });

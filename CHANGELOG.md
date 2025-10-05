@@ -10,6 +10,8 @@ is breaking anyways, semantic versioning is not followed.
 
 ### Added
 
+- Add `Client::query_entity` to complement `query_self`.
+
 ### Changed
 
 - Update to Minecraft 1.21.9.
