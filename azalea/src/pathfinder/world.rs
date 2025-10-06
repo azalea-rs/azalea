@@ -565,6 +565,7 @@ pub fn is_block_state_passable(block_state: BlockState) -> bool {
 
 /// Whether this block has a solid hitbox at the top (i.e. we can stand on it
 /// and do parkour from it).
+#[inline]
 pub fn is_block_state_solid(block_state: BlockState) -> bool {
     if block_state.is_air() {
         // fast path
@@ -582,26 +583,24 @@ pub fn is_block_state_solid(block_state: BlockState) -> bool {
         return true;
     }
 
+    let block = Block::from(block_state);
+    // solid enough
+    if matches!(block, Block::DirtPath | Block::Farmland) {
+        return true;
+    }
+
     false
 }
 
 /// Whether we can stand on this block (but not necessarily do parkour jumps
 /// from it).
 pub fn is_block_state_standable(block_state: BlockState) -> bool {
-    if block_state.is_air() {
-        // fast path
-        return false;
-    }
-    if block_state.is_collision_shape_full() {
+    if is_block_state_solid(block_state) {
         return true;
     }
 
     let block = Block::from(block_state);
     if tags::blocks::SLABS.contains(&block) || tags::blocks::STAIRS.contains(&block) {
-        return true;
-    }
-
-    if matches!(block, Block::DirtPath | Block::Farmland) {
         return true;
     }
 

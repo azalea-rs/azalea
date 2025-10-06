@@ -28,6 +28,7 @@ use super::{
 use crate::{
     auto_tool::best_tool_in_hotbar_for_block,
     bot::{JumpEvent, LookAtEvent},
+    pathfinder::player_pos_to_block_pos,
 };
 
 type Edge = astar::Edge<RelBlockPos, MoveData>;
@@ -176,8 +177,8 @@ impl ExecuteCtx<'_, '_, '_, '_, '_, '_, '_, '_> {
         let horizontal_distance_from_start = (self.start.center() - self.position)
             .horizontal_distance_squared()
             .sqrt();
-        let at_start_position =
-            BlockPos::from(self.position) == self.start && horizontal_distance_from_start < 0.25;
+        let at_start_position = player_pos_to_block_pos(self.position) == self.start
+            && horizontal_distance_from_start < 0.25;
 
         if self.should_mine(block) {
             if at_start_position {

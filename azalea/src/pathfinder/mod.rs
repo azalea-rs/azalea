@@ -39,7 +39,10 @@ use azalea_client::{
     mining::{Mining, MiningSystems, StartMiningBlockEvent},
     movement::MoveEventsSystems,
 };
-use azalea_core::{position::BlockPos, tick::GameTick};
+use azalea_core::{
+    position::{BlockPos, Vec3},
+    tick::GameTick,
+};
 use azalea_entity::{LocalEntity, Physics, Position, metadata::Player};
 use azalea_physics::PhysicsSystems;
 use azalea_world::{InstanceContainer, InstanceName};
@@ -303,7 +306,9 @@ pub fn goto_listener(
             continue;
         };
 
-        if event.goal.success(BlockPos::from(position)) {
+        let cur_pos = player_pos_to_block_pos(**position);
+
+        if event.goal.success(cur_pos) {
             // we're already at the goal, nothing to do
             pathfinder.goal = None;
             pathfinder.opts = None;
@@ -333,16 +338,15 @@ pub fn goto_listener(
                 .movement
                 .target
         } else {
-            BlockPos::from(position)
+            cur_pos
         };
 
-        if start == BlockPos::from(position) {
+        if start == cur_pos {
             info!("got goto {:?}, starting from {start:?}", event.goal);
         } else {
             info!(
-                "got goto {:?}, starting from {start:?} (currently at {:?})",
+                "got goto {:?}, starting from {start:?} (currently at {cur_pos:?})",
                 event.goal,
-                BlockPos::from(position)
             );
         }
 
@@ -379,6 +383,12 @@ pub fn goto_listener(
 
         commands.entity(event.entity).insert(ComputePath(task));
     }
+}
+
+#[inline]
+pub(crate) fn player_pos_to_block_pos(position: Vec3) -> BlockPos {
+    // 0.5 to account for non-full blocks
+    BlockPos::from(position.up(0.5))
 }
 
 pub struct CalculatePathCtx {
@@ -677,7 +687,8 @@ pub fn timeout_movement(
         {
             warn!("pathfinder timeout, trying to patch path");
             executing_path.queued_path = None;
-            executing_path.last_reached_node = BlockPos::from(position);
+            let cur_pos = player_pos_to_block_pos(**position);
+            executing_path.last_reached_node = cur_pos;
 
             let world_lock = instance_container
                 .get(instance_name)
@@ -747,8 +758,7 @@ pub fn check_node_reached(
                     let z_difference_from_center = position.z - (movement.target.z as f64 + 0.5);
                     // this is to make sure we don't fall off immediately after finishing the path
                     physics.on_ground()
-                    // 0.5 to handle non-full blocks
-                    && BlockPos::from(position.up(0.5)) == movement.target
+                    && player_pos_to_block_pos(**position) == movement.target
                     // adding the delta like this isn't a perfect solution but it helps to make
                     // sure we don't keep going if our delta is high
                     && (x_difference_from_center + physics.velocity.x).abs() < 0.2

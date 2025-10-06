@@ -8,7 +8,7 @@ use azalea_core::{
 };
 
 use super::{Edge, ExecuteCtx, IsReachedCtx, MoveData, PathfinderCtx, default_is_reached};
-use crate::pathfinder::{astar, costs::*, rel_block_pos::RelBlockPos};
+use crate::pathfinder::{astar, costs::*, player_pos_to_block_pos, rel_block_pos::RelBlockPos};
 
 pub fn basic_move(ctx: &mut PathfinderCtx, node: RelBlockPos) {
     forward_move(ctx, node);
@@ -182,7 +182,7 @@ fn execute_ascend_move(mut ctx: ExecuteCtx) {
         }
     }
 
-    if BlockPos::from(position) == start {
+    if player_pos_to_block_pos(position) == start {
         // only jump if the target is more than 0.5 blocks above us
         if target.y as f64 - position.y > 0.5 {
             ctx.jump();
@@ -307,7 +307,7 @@ fn execute_descend_move(mut ctx: ExecuteCtx) {
         start_center.z + (center.z - start_center.z) * 1.5,
     );
 
-    if BlockPos::from(position) != target || horizontal_distance_from_target > 0.25 {
+    if player_pos_to_block_pos(position) != target || horizontal_distance_from_target > 0.25 {
         if horizontal_distance_from_start < 1.25 {
             // this basically just exists to avoid doing spins while we're falling
             ctx.look_at(dest_ahead);
@@ -336,11 +336,13 @@ pub fn descend_is_reached(
         start.z + (target.z - start.z) * 2,
     );
 
-    if BlockPos::from(position) == target || BlockPos::from(position) == dest_ahead {
+    if player_pos_to_block_pos(position) == target
+        || player_pos_to_block_pos(position) == dest_ahead
+    {
         if (position.y - target.y as f64) < 0.5 {
             return true;
         }
-    } else if BlockPos::from(position).up(1) == target && physics.on_ground() {
+    } else if player_pos_to_block_pos(position).up(1) == target && physics.on_ground() {
         return true;
     }
     false
