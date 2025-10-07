@@ -147,15 +147,19 @@ fn execute_ascend_move(mut ctx: ExecuteCtx) {
     // these checks are to make sure we don't fall if our velocity is too high in
     // the wrong direction
 
-    let x_axis = (start.x - target.x).abs(); // either 0 or 1
-    let z_axis = (start.z - target.z).abs(); // either 0 or 1
+    let x_axis = target.x - start.x; // -1, 0, or 1
+    let z_axis = target.z - start.z; // -1, 0, or 1
 
-    let flat_distance_to_next = x_axis as f64 * (target_center.x - position.x)
-        + z_axis as f64 * (target_center.z - position.z);
-    let side_distance = z_axis as f64 * (target_center.x - position.x).abs()
-        + x_axis as f64 * (target_center.z - position.z).abs();
+    let x_axis_abs = x_axis.abs(); // either 0 or 1
+    let z_axis_abs = z_axis.abs(); // either 0 or 1
 
-    let lateral_motion = x_axis as f64 * physics.velocity.z + z_axis as f64 * physics.velocity.x;
+    let flat_distance_to_next = x_axis_abs as f64 * (target_center.x - position.x)
+        + z_axis_abs as f64 * (target_center.z - position.z);
+    let side_distance = z_axis_abs as f64 * (target_center.x - position.x).abs()
+        + x_axis_abs as f64 * (target_center.z - position.z).abs();
+
+    let lateral_motion =
+        x_axis_abs as f64 * physics.velocity.z + z_axis_abs as f64 * physics.velocity.x;
     if lateral_motion.abs() > 0.1 {
         return;
     }

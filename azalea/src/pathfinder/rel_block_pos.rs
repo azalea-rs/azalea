@@ -12,7 +12,7 @@ use azalea_core::position::BlockPos;
 pub struct RelBlockPos {
     pub x: i16,
     pub z: i16,
-    /// Note that the y isn't relative.
+    /// The actual non-relative Y coordinate of the block.
     pub y: i32,
 }
 

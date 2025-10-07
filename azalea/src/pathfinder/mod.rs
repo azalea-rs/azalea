@@ -385,8 +385,13 @@ pub fn goto_listener(
     }
 }
 
+/// Convert a player position to a block position, used internally in the
+/// pathfinder.
+///
+/// This is almost the same as `BlockPos::from(position)`, except that non-full
+/// blocks are handled correctly.
 #[inline]
-pub(crate) fn player_pos_to_block_pos(position: Vec3) -> BlockPos {
+pub fn player_pos_to_block_pos(position: Vec3) -> BlockPos {
     // 0.5 to account for non-full blocks
     BlockPos::from(position.up(0.5))
 }

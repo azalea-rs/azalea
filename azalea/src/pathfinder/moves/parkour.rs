@@ -81,11 +81,15 @@ fn parkour_forward_2_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
             continue;
         }
 
+        let mut cost = JUMP_PENALTY + WALK_ONE_BLOCK_COST * 3. + CENTER_AFTER_FALL_COST;
+
         let ascend: i32 = if ctx.world.is_standable(pos + offset.up(1)) {
             1
         } else if ctx.world.is_standable(pos + offset) {
+            cost += FALL_N_BLOCKS_COST[1];
             0
         } else if ctx.world.is_standable(pos + offset.down(1)) {
+            cost += FALL_N_BLOCKS_COST[2];
             -1
         } else {
             continue;
@@ -108,8 +112,6 @@ fn parkour_forward_2_move(ctx: &mut PathfinderCtx, pos: RelBlockPos) {
         if !ctx.world.is_block_passable((pos + offset).up(2)) {
             continue;
         }
-
-        let cost = JUMP_PENALTY + WALK_ONE_BLOCK_COST * 3. + CENTER_AFTER_FALL_COST;
 
         ctx.edges.push(Edge {
             movement: astar::Movement {
