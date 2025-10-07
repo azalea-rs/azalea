@@ -29,6 +29,7 @@ fn test_mine_block_without_rollback() {
     simulation.write_message(StartMiningBlockEvent {
         entity: simulation.entity,
         position: pos,
+        force: true,
     });
     simulation.tick();
     assert_eq!(simulation.get_block_state(pos), Some(Block::Air.into()));

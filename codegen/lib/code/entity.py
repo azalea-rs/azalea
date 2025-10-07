@@ -113,7 +113,7 @@ use azalea_core::{
     direction::Direction,
     position::{BlockPos, Vec3f32},
 };
-use azalea_inventory::ItemStack;
+use azalea_inventory::{ItemStack, components};
 use azalea_registry::DataRegistry;
 use bevy_ecs::{bundle::Bundle, component::Component};
 use derive_more::{Deref, DerefMut};
@@ -122,8 +122,7 @@ use uuid::Uuid;
 
 use super::{
     ArmadilloStateKind, CopperGolemStateKind, EntityDataItem, EntityDataValue, OptionalUnsignedInt,
-    Pose, Quaternion, ResolvableProfile, Rotations, SnifferStateKind, VillagerData,
-    WeatheringCopperStateKind,
+    Pose, Quaternion, Rotations, SnifferStateKind, VillagerData, WeatheringCopperStateKind,
 };
 use crate::particle::Particle;
 

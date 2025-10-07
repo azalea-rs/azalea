@@ -261,12 +261,13 @@ impl Client {
     /// return it.
     ///
     ///
-    /// If the component can't be cloned, try [`Self::map_component`] instead.
-    /// If it isn't guaranteed to be present, use [`Self::get_component`] or
-    /// [`Self::map_get_component`].
+    /// If the component can't be cloned, try [`Self::query_self`] instead.
+    /// If it isn't guaranteed to be present, you can use
+    /// [`Self::get_component`] or [`Self::query_self`].
     ///
-    /// You may also use [`Self::ecs`] and [`Self::query`] directly if you need
-    /// more control over when the ECS is locked.
+    ///
+    /// You may also use [`Self::ecs`] directly if you need more control over
+    /// when the ECS is locked.
     ///
     /// # Panics
     ///
@@ -285,9 +286,10 @@ impl Client {
 
     /// Get a component from this client, or `None` if it doesn't exist.
     ///
-    /// If the component can't be cloned, try [`Self::map_component`] instead.
+    /// If the component can't be cloned, consider using [`Self::query_self`]
+    /// with `Option<&T>` instead.
     ///
-    /// You may also have to use [`Self::with_query`] directly.
+    /// You may also have to use [`Self::query_self`] directly.
     pub fn get_component<T: Component + Clone>(&self) -> Option<T> {
         self.query_self::<Option<&T>, _>(|t| t.cloned())
     }

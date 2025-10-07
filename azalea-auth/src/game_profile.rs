@@ -4,14 +4,14 @@ use std::{
 };
 
 use azalea_buf::{
-    AzaleaRead, AzaleaReadLimited, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError,
+    AzBuf, AzaleaRead, AzaleaReadLimited, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError,
 };
 use indexmap::IndexMap;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, Serializer};
 use uuid::Uuid;
 
 /// Information about the player that's usually stored on Mojang's servers.
-#[derive(Debug, Clone, Default, Eq, PartialEq)]
+#[derive(Debug, Clone, Default, Eq, PartialEq, AzBuf)]
 pub struct GameProfile {
     /// The UUID of the player.
     ///
@@ -27,26 +27,6 @@ pub struct GameProfile {
     /// This is an `Arc` to make it cheaper to clone.
     pub properties: Arc<GameProfileProperties>,
 }
-impl AzaleaRead for GameProfile {
-    fn azalea_read(buf: &mut io::Cursor<&[u8]>) -> Result<Self, BufReadError> {
-        let uuid = Uuid::azalea_read(buf)?;
-        let name = String::azalea_read(buf)?;
-        let properties = GameProfileProperties::azalea_read(buf)?;
-        Ok(GameProfile {
-            uuid,
-            name,
-            properties: Arc::new(properties),
-        })
-    }
-}
-impl AzaleaWrite for GameProfile {
-    fn azalea_write(&self, buf: &mut impl Write) -> io::Result<()> {
-        self.uuid.azalea_write(buf)?;
-        self.name.azalea_write(buf)?;
-        self.properties.azalea_write(buf)?;
-        Ok(())
-    }
-}
 
 impl GameProfile {
     pub fn new(uuid: Uuid, name: String) -> Self {
@@ -60,20 +40,10 @@ impl GameProfile {
 
 impl From<SerializableGameProfile> for GameProfile {
     fn from(value: SerializableGameProfile) -> Self {
-        let mut properties = IndexMap::new();
-        for value in value.properties {
-            properties.insert(
-                value.name,
-                ProfilePropertyValue {
-                    value: value.value,
-                    signature: value.signature,
-                },
-            );
-        }
         Self {
-            uuid: value.id,
-            name: value.name,
-            properties: Arc::new(GameProfileProperties { map: properties }),
+            uuid: value.id.unwrap_or_default(),
+            name: value.name.unwrap_or_default(),
+            properties: Arc::new(value.properties.into()),
         }
     }
 }
@@ -134,34 +104,79 @@ impl AzaleaWrite for ProfilePropertyValue {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SerializableGameProfile {
-    pub id: Uuid,
-    pub name: String,
-    pub properties: Vec<SerializableProfilePropertyValue>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub id: Option<Uuid>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "SerializableProfileProperties::is_empty")]
+    pub properties: SerializableProfileProperties,
 }
 
 impl From<GameProfile> for SerializableGameProfile {
     fn from(value: GameProfile) -> Self {
-        let mut properties = Vec::new();
-        for (key, value) in &value.properties.map {
-            properties.push(SerializableProfilePropertyValue {
-                name: key.clone(),
-                value: value.value.clone(),
-                signature: value.signature.clone(),
-            });
-        }
         Self {
-            id: value.uuid,
-            name: value.name,
-            properties,
+            id: Some(value.uuid),
+            name: Some(value.name),
+            properties: (*value.properties).clone().into(),
         }
     }
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(transparent)]
+pub struct SerializableProfileProperties {
+    pub list: Vec<SerializableProfilePropertyValue>,
+}
+impl SerializableProfileProperties {
+    pub fn is_empty(&self) -> bool {
+        self.list.is_empty()
+    }
+}
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SerializableProfilePropertyValue {
     pub name: String,
     pub value: String,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub signature: Option<String>,
+}
+
+impl From<GameProfileProperties> for SerializableProfileProperties {
+    fn from(value: GameProfileProperties) -> Self {
+        let mut list = Vec::new();
+        for (name, entry) in value.map {
+            list.push(SerializableProfilePropertyValue {
+                name,
+                value: entry.value,
+                signature: entry.signature,
+            });
+        }
+        Self { list }
+    }
+}
+impl From<SerializableProfileProperties> for GameProfileProperties {
+    fn from(value: SerializableProfileProperties) -> Self {
+        let mut map = IndexMap::new();
+        for entry in value.list {
+            map.insert(
+                entry.name,
+                ProfilePropertyValue {
+                    value: entry.value,
+                    signature: entry.signature,
+                },
+            );
+        }
+        Self { map }
+    }
+}
+impl Serialize for GameProfile {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        let serializable = SerializableGameProfile::from(self.clone());
+        serializable.serialize(serializer)
+    }
 }
 
 #[cfg(test)]

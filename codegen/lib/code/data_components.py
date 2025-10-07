@@ -4,7 +4,7 @@ import lib.extract
 import lib.utils
 
 
-DATA_COMPONENTS_DIR = "azalea-inventory/src/components.rs"
+DATA_COMPONENTS_DIR = "azalea-inventory/src/components/mod.rs"
 DEFAULT_DATA_COMPONENTS_DIR = "azalea-inventory/src/default_components/generated.rs"
 
 
@@ -322,7 +322,7 @@ use crate::{
                 entity_id = python_value["id"]
             elif isinstance(python_value, str):
                 entity_id = python_value
-            
+
             if entity_id and entity_id.startswith("minecraft:"):
                 entity_name = entity_id[10:]  # Remove "minecraft:" prefix
                 entity_name_camel = lib.utils.to_camel_case(entity_name)
@@ -512,7 +512,7 @@ use crate::{
             # Special handling for EntityData to use EntityData structure
             # Keep rust_value as "value" so it gets processed correctly
             field_type = "EntityKind"
-    
+
             def transform_value_fn(rust_value: str):
                 return f"{component_struct_name} {{ kind: {rust_value}, data: NbtCompound::new() }}"
 
@@ -623,7 +623,7 @@ use crate::{
 def get_enum_and_struct_fields():
     """
     Returns a map like map like `{ "MaxStackSize": { "count": i32 }, "Rarity": [ "common", ... ], ... }`
-    with an entry for each struct in components.rs.
+    with an entry for each struct in components/mod.rs.
     """
 
     with open(DATA_COMPONENTS_DIR, "r") as f:

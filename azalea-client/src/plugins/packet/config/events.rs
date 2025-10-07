@@ -54,10 +54,10 @@ pub fn handle_outgoing_packets_observer(
 /// A Bevy trigger that's sent when our client receives a [`ClientboundPing`]
 /// packet in the config state.
 ///
-/// Also see [`PingEvent`].
+/// Also see [`GamePingEvent`].
 ///
 /// [`ClientboundPing`]: azalea_protocol::packets::config::ClientboundPing
-/// [`PingEvent`]: crate::packet::game::PingEvent
+/// [`GamePingEvent`]: crate::packet::game::GamePingEvent
 #[derive(Event, Debug, Clone)]
 pub struct ConfigPingEvent {
     pub entity: Entity,

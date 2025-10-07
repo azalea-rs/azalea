@@ -436,6 +436,7 @@ dependencies = [
 name = "azalea-inventory"
 version = "0.14.0+mc1.21.9"
 dependencies = [
+ "azalea-auth",
  "azalea-buf",
  "azalea-chat",
  "azalea-core",

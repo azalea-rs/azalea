@@ -8,7 +8,7 @@ use azalea_core::{
     direction::Direction,
     position::{BlockPos, Vec3f32},
 };
-use azalea_inventory::ItemStack;
+use azalea_inventory::{ItemStack, components};
 use azalea_registry::DataRegistry;
 use bevy_ecs::{bundle::Bundle, component::Component};
 use derive_more::{Deref, DerefMut};
@@ -17,8 +17,7 @@ use uuid::Uuid;
 
 use super::{
     ArmadilloStateKind, CopperGolemStateKind, EntityDataItem, EntityDataValue, OptionalUnsignedInt,
-    Pose, Quaternion, ResolvableProfile, Rotations, SnifferStateKind, VillagerData,
-    WeatheringCopperStateKind,
+    Pose, Quaternion, Rotations, SnifferStateKind, VillagerData, WeatheringCopperStateKind,
 };
 use crate::particle::Particle;
 
@@ -6054,7 +6053,7 @@ pub struct MannequinPlayerMainHand(pub u8);
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct MannequinPlayerModeCustomisation(pub u8);
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct Profile(pub ResolvableProfile);
+pub struct Profile(pub components::Profile);
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct Immovable(pub bool);
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]

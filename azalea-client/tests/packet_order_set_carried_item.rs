@@ -55,13 +55,14 @@ fn test_packet_order_set_carried_item() {
     simulation.tick();
     simulation.tick();
 
-    simulation.write_message(SetSelectedHotbarSlotEvent {
+    simulation.trigger(SetSelectedHotbarSlotEvent {
         entity: simulation.entity,
         slot: 1,
     });
     simulation.write_message(StartMiningBlockEvent {
         entity: simulation.entity,
         position: pos,
+        force: false,
     });
 
     sent_packets.clear();
