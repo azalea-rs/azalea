@@ -35,6 +35,7 @@ pub struct PartialProfile {
     #[serde(skip_serializing_if = "is_default")]
     pub id: Option<Uuid>,
     #[serde(serialize_with = "serialize_properties")]
+    #[serde(skip_serializing_if = "is_default")]
     pub properties: GameProfileProperties,
 }
 fn serialize_properties<S: Serializer>(
