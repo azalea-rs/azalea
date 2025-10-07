@@ -14,7 +14,7 @@ is breaking anyways, semantic versioning is not followed.
 
 ### Changed
 
-- Update to Minecraft 1.21.9. (help from @eihqnh)
+- Update to Minecraft 1.21.10. (help from @eihqnh)
 - Update to Bevy 0.17.
 - `Client::query`, `map_component`, and `map_get_component` were replaced by `Client::query_self`.
 - Rename `SendPacketEvent` to `SendGamePacketEvent` and `PingEvent` to `GamePingEvent`.
@@ -24,6 +24,9 @@ is breaking anyways, semantic versioning is not followed.
 - The wrong path was temporarily executed if we received a `GotoEvent` while the path that's being executed was more than 50 nodes long.
 - The pathfinder can now jump from dirt path and farmland blocks correctly.
 - Don't panic when receiving an unexpected `PathFoundEvent`. (@Hiradpi)
+- The pathfinder sometimes got stuck when going up stairs.
+- ReachBlockPosGoal had the wrong cost when the destination is surrounded in blocks.
+- Some parkour movements had the wrong costs.
 
 ## [0.14.0+mc1.21.8] - 2025-09-28
 
