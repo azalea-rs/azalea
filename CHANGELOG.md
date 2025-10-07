@@ -10,7 +10,7 @@ is breaking anyways, semantic versioning is not followed.
 
 ### Added
 
-- Add `Client::query_entity` to complement `query_self`.
+- Add `Client::query_entity` and `try_query_entity` to complement `query_self`.
 
 ### Changed
 
@@ -22,6 +22,7 @@ is breaking anyways, semantic versioning is not followed.
 ### Fixed
 
 - The wrong path was temporarily executed if we received a `GotoEvent` while the path that's being executed was more than 50 nodes long.
+- The pathfinder can now jump from dirt path and farmland blocks correctly.
 - Don't panic when receiving an unexpected `PathFoundEvent`. (@Hiradpi)
 
 ## [0.14.0+mc1.21.8] - 2025-09-28

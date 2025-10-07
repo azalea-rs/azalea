@@ -6,7 +6,7 @@ use azalea_world::InstanceName;
 use bevy_ecs::{
     component::Component,
     entity::Entity,
-    query::{QueryData, QueryFilter, QueryItem, ROQueryItem},
+    query::{QueryData, QueryEntityError, QueryFilter, QueryItem, ROQueryItem},
     world::World,
 };
 use parking_lot::Mutex;
@@ -47,21 +47,35 @@ impl Client {
     ///
     /// # Panics
     ///
-    /// This will panic if the component doesn't exist on the entity.
+    /// This will panic if the entity doesn't exist or if the query isn't valid
+    /// for the entity. For a non-panicking version, you may use
+    /// [`Self::try_query_entity`].
     pub fn query_entity<D: QueryData, R>(
         &self,
         entity: Entity,
         f: impl FnOnce(QueryItem<D>) -> R,
     ) -> R {
-        let mut ecs = self.ecs.lock();
-        let mut qs = ecs.query::<D>();
-        let res = qs.get_mut(&mut ecs, entity).unwrap_or_else(|_| {
+        self.try_query_entity(entity, f).unwrap_or_else(|_| {
             panic!(
                 "Entity is missing a required component {:?}",
                 any::type_name::<D>()
             )
-        });
-        f(res)
+        })
+    }
+
+    /// A convenience function for getting components from any entity, or None
+    /// if the query fails.
+    ///
+    /// If you're sure that the entity exists and that the query will succeed,
+    /// you can use [`Self::query_entity`].
+    pub fn try_query_entity<D: QueryData, R>(
+        &self,
+        entity: Entity,
+        f: impl FnOnce(QueryItem<D>) -> R,
+    ) -> Result<R, QueryEntityError> {
+        let mut ecs = self.ecs.lock();
+        let mut qs = ecs.query::<D>();
+        qs.get_mut(&mut ecs, entity).map(f)
     }
 
     /// Quickly returns a lightweight [`Entity`] for an arbitrary entity that
