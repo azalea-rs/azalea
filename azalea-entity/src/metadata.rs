@@ -6049,9 +6049,9 @@ impl Default for MangroveChestBoatMetadataBundle {
 }
 
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct MannequinPlayerMainHand(pub u8);
+pub struct PlayerMainHand(pub u8);
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct MannequinPlayerModeCustomisation(pub u8);
+pub struct PlayerModeCustomisation(pub u8);
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct Profile(pub components::Profile);
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
@@ -6066,13 +6066,7 @@ impl Mannequin {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=14 => AbstractLiving::apply_metadata(entity, d)?,
-            15 => {
-                entity.insert(MannequinPlayerMainHand(d.value.into_byte()?));
-            }
-            16 => {
-                entity.insert(MannequinPlayerModeCustomisation(d.value.into_byte()?));
-            }
+            0..=16 => AbstractAvatar::apply_metadata(entity, d)?,
             17 => {
                 entity.insert(Profile(d.value.into_resolvable_profile()?));
             }
@@ -6091,9 +6085,7 @@ impl Mannequin {
 #[derive(Bundle)]
 pub struct MannequinMetadataBundle {
     _marker: Mannequin,
-    parent: AbstractLivingMetadataBundle,
-    mannequin_player_main_hand: MannequinPlayerMainHand,
-    mannequin_player_mode_customisation: MannequinPlayerModeCustomisation,
+    parent: AbstractAvatarMetadataBundle,
     profile: Profile,
     immovable: Immovable,
     description: Description,
@@ -6102,36 +6094,39 @@ impl Default for MannequinMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Mannequin,
-            parent: AbstractLivingMetadataBundle {
-                _marker: AbstractLiving,
-                parent: AbstractEntityMetadataBundle {
-                    _marker: AbstractEntity,
-                    on_fire: OnFire(false),
-                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                    sprinting: Sprinting(false),
-                    swimming: Swimming(false),
-                    currently_glowing: CurrentlyGlowing(false),
-                    invisible: Invisible(false),
-                    fall_flying: FallFlying(false),
-                    air_supply: AirSupply(Default::default()),
-                    custom_name: CustomName(Default::default()),
-                    custom_name_visible: CustomNameVisible(Default::default()),
-                    silent: Silent(Default::default()),
-                    no_gravity: NoGravity(Default::default()),
-                    pose: Pose::default(),
-                    ticks_frozen: TicksFrozen(Default::default()),
+            parent: AbstractAvatarMetadataBundle {
+                _marker: AbstractAvatar,
+                parent: AbstractLivingMetadataBundle {
+                    _marker: AbstractLiving,
+                    parent: AbstractEntityMetadataBundle {
+                        _marker: AbstractEntity,
+                        on_fire: OnFire(false),
+                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
+                        sprinting: Sprinting(false),
+                        swimming: Swimming(false),
+                        currently_glowing: CurrentlyGlowing(false),
+                        invisible: Invisible(false),
+                        fall_flying: FallFlying(false),
+                        air_supply: AirSupply(Default::default()),
+                        custom_name: CustomName(Default::default()),
+                        custom_name_visible: CustomNameVisible(Default::default()),
+                        silent: Silent(Default::default()),
+                        no_gravity: NoGravity(Default::default()),
+                        pose: Pose::default(),
+                        ticks_frozen: TicksFrozen(Default::default()),
+                    },
+                    auto_spin_attack: AutoSpinAttack(false),
+                    abstract_living_using_item: AbstractLivingUsingItem(false),
+                    health: Health(1.0),
+                    effect_particles: EffectParticles(Default::default()),
+                    effect_ambience: EffectAmbience(false),
+                    arrow_count: ArrowCount(0),
+                    stinger_count: StingerCount(0),
+                    sleeping_pos: SleepingPos(None),
                 },
-                auto_spin_attack: AutoSpinAttack(false),
-                abstract_living_using_item: AbstractLivingUsingItem(false),
-                health: Health(1.0),
-                effect_particles: EffectParticles(Default::default()),
-                effect_ambience: EffectAmbience(false),
-                arrow_count: ArrowCount(0),
-                stinger_count: StingerCount(0),
-                sleeping_pos: SleepingPos(None),
+                player_main_hand: PlayerMainHand(Default::default()),
+                player_mode_customisation: PlayerModeCustomisation(0),
             },
-            mannequin_player_main_hand: MannequinPlayerMainHand(Default::default()),
-            mannequin_player_mode_customisation: MannequinPlayerModeCustomisation(0),
             profile: Profile(Default::default()),
             immovable: Immovable(false),
             description: Description(Default::default()),
@@ -7456,10 +7451,6 @@ impl Default for PillagerMetadataBundle {
 }
 
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct PlayerPlayerMainHand(pub u8);
-#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
-pub struct PlayerPlayerModeCustomisation(pub u8);
-#[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct PlayerAbsorption(pub f32);
 #[derive(Component, Deref, DerefMut, Clone, PartialEq)]
 pub struct Score(pub i32);
@@ -7475,13 +7466,7 @@ impl Player {
         d: EntityDataItem,
     ) -> Result<(), UpdateMetadataError> {
         match d.index {
-            0..=14 => AbstractLiving::apply_metadata(entity, d)?,
-            15 => {
-                entity.insert(PlayerPlayerMainHand(d.value.into_byte()?));
-            }
-            16 => {
-                entity.insert(PlayerPlayerModeCustomisation(d.value.into_byte()?));
-            }
+            0..=16 => AbstractAvatar::apply_metadata(entity, d)?,
             17 => {
                 entity.insert(PlayerAbsorption(d.value.into_float()?));
             }
@@ -7503,9 +7488,7 @@ impl Player {
 #[derive(Bundle)]
 pub struct PlayerMetadataBundle {
     _marker: Player,
-    parent: AbstractLivingMetadataBundle,
-    player_player_main_hand: PlayerPlayerMainHand,
-    player_player_mode_customisation: PlayerPlayerModeCustomisation,
+    parent: AbstractAvatarMetadataBundle,
     player_absorption: PlayerAbsorption,
     score: Score,
     shoulder_parrot_left: ShoulderParrotLeft,
@@ -7515,36 +7498,39 @@ impl Default for PlayerMetadataBundle {
     fn default() -> Self {
         Self {
             _marker: Player,
-            parent: AbstractLivingMetadataBundle {
-                _marker: AbstractLiving,
-                parent: AbstractEntityMetadataBundle {
-                    _marker: AbstractEntity,
-                    on_fire: OnFire(false),
-                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
-                    sprinting: Sprinting(false),
-                    swimming: Swimming(false),
-                    currently_glowing: CurrentlyGlowing(false),
-                    invisible: Invisible(false),
-                    fall_flying: FallFlying(false),
-                    air_supply: AirSupply(Default::default()),
-                    custom_name: CustomName(Default::default()),
-                    custom_name_visible: CustomNameVisible(Default::default()),
-                    silent: Silent(Default::default()),
-                    no_gravity: NoGravity(Default::default()),
-                    pose: Pose::default(),
-                    ticks_frozen: TicksFrozen(Default::default()),
+            parent: AbstractAvatarMetadataBundle {
+                _marker: AbstractAvatar,
+                parent: AbstractLivingMetadataBundle {
+                    _marker: AbstractLiving,
+                    parent: AbstractEntityMetadataBundle {
+                        _marker: AbstractEntity,
+                        on_fire: OnFire(false),
+                        abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
+                        sprinting: Sprinting(false),
+                        swimming: Swimming(false),
+                        currently_glowing: CurrentlyGlowing(false),
+                        invisible: Invisible(false),
+                        fall_flying: FallFlying(false),
+                        air_supply: AirSupply(Default::default()),
+                        custom_name: CustomName(Default::default()),
+                        custom_name_visible: CustomNameVisible(Default::default()),
+                        silent: Silent(Default::default()),
+                        no_gravity: NoGravity(Default::default()),
+                        pose: Pose::default(),
+                        ticks_frozen: TicksFrozen(Default::default()),
+                    },
+                    auto_spin_attack: AutoSpinAttack(false),
+                    abstract_living_using_item: AbstractLivingUsingItem(false),
+                    health: Health(1.0),
+                    effect_particles: EffectParticles(Default::default()),
+                    effect_ambience: EffectAmbience(false),
+                    arrow_count: ArrowCount(0),
+                    stinger_count: StingerCount(0),
+                    sleeping_pos: SleepingPos(None),
                 },
-                auto_spin_attack: AutoSpinAttack(false),
-                abstract_living_using_item: AbstractLivingUsingItem(false),
-                health: Health(1.0),
-                effect_particles: EffectParticles(Default::default()),
-                effect_ambience: EffectAmbience(false),
-                arrow_count: ArrowCount(0),
-                stinger_count: StingerCount(0),
-                sleeping_pos: SleepingPos(None),
+                player_main_hand: PlayerMainHand(Default::default()),
+                player_mode_customisation: PlayerModeCustomisation(0),
             },
-            player_player_main_hand: PlayerPlayerMainHand(Default::default()),
-            player_player_mode_customisation: PlayerPlayerModeCustomisation(0),
             player_absorption: PlayerAbsorption(0.0),
             score: Score(0),
             shoulder_parrot_left: ShoulderParrotLeft(OptionalUnsignedInt(None)),
@@ -11363,6 +11349,72 @@ impl Default for AbstractArrowMetadataBundle {
             no_physics: NoPhysics(false),
             pierce_level: PierceLevel(0),
             in_ground: InGround(false),
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct AbstractAvatar;
+impl AbstractAvatar {
+    pub fn apply_metadata(
+        entity: &mut bevy_ecs::system::EntityCommands,
+        d: EntityDataItem,
+    ) -> Result<(), UpdateMetadataError> {
+        match d.index {
+            0..=14 => AbstractLiving::apply_metadata(entity, d)?,
+            15 => {
+                entity.insert(PlayerMainHand(d.value.into_byte()?));
+            }
+            16 => {
+                entity.insert(PlayerModeCustomisation(d.value.into_byte()?));
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Bundle)]
+pub struct AbstractAvatarMetadataBundle {
+    _marker: AbstractAvatar,
+    parent: AbstractLivingMetadataBundle,
+    player_main_hand: PlayerMainHand,
+    player_mode_customisation: PlayerModeCustomisation,
+}
+impl Default for AbstractAvatarMetadataBundle {
+    fn default() -> Self {
+        Self {
+            _marker: AbstractAvatar,
+            parent: AbstractLivingMetadataBundle {
+                _marker: AbstractLiving,
+                parent: AbstractEntityMetadataBundle {
+                    _marker: AbstractEntity,
+                    on_fire: OnFire(false),
+                    abstract_entity_shift_key_down: AbstractEntityShiftKeyDown(false),
+                    sprinting: Sprinting(false),
+                    swimming: Swimming(false),
+                    currently_glowing: CurrentlyGlowing(false),
+                    invisible: Invisible(false),
+                    fall_flying: FallFlying(false),
+                    air_supply: AirSupply(Default::default()),
+                    custom_name: CustomName(Default::default()),
+                    custom_name_visible: CustomNameVisible(Default::default()),
+                    silent: Silent(Default::default()),
+                    no_gravity: NoGravity(Default::default()),
+                    pose: Pose::default(),
+                    ticks_frozen: TicksFrozen(Default::default()),
+                },
+                auto_spin_attack: AutoSpinAttack(false),
+                abstract_living_using_item: AbstractLivingUsingItem(false),
+                health: Health(1.0),
+                effect_particles: EffectParticles(Default::default()),
+                effect_ambience: EffectAmbience(false),
+                arrow_count: ArrowCount(0),
+                stinger_count: StingerCount(0),
+                sleeping_pos: SleepingPos(None),
+            },
+            player_main_hand: PlayerMainHand(Default::default()),
+            player_mode_customisation: PlayerModeCustomisation(0),
         }
     }
 }
