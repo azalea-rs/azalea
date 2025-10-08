@@ -17,7 +17,7 @@ use crate::{
     base_component::BaseComponent,
     style::{ChatFormatting, Style},
     text_component::TextComponent,
-    translatable_component::{StringOrComponent, TranslatableComponent},
+    translatable_component::{PrimitiveOrComponent, TranslatableComponent},
 };
 
 /// A chat component, basically anything you can see in chat.
@@ -306,26 +306,15 @@ impl<'de> Deserialize<'de> for FormattedText {
                     None
                 };
                 if let Some(with) = json.get("with") {
-                    let with = with
+                    let with_array = with
                         .as_array()
-                        .ok_or_else(|| de::Error::custom("\"with\" must be an array"))?;
-                    let mut with_array = Vec::with_capacity(with.len());
-                    for item in with {
-                        // if it's a string component with no styling and no siblings, just add a
-                        // string to with_array otherwise add the component
-                        // to the array
-                        let c = FormattedText::deserialize(item).map_err(de::Error::custom)?;
-                        if let FormattedText::Text(text_component) = c
-                            && text_component.base.siblings.is_empty()
-                            && text_component.base.style.is_empty()
-                        {
-                            with_array.push(StringOrComponent::String(text_component.text));
-                            continue;
-                        }
-                        with_array.push(StringOrComponent::FormattedText(
-                            FormattedText::deserialize(item).map_err(de::Error::custom)?,
-                        ));
-                    }
+                        .ok_or_else(|| de::Error::custom("\"with\" must be an array"))?
+                        .iter()
+                        .map(|item| {
+                            PrimitiveOrComponent::deserialize(item).map_err(de::Error::custom)
+                        })
+                        .collect::<Result<Vec<PrimitiveOrComponent>, _>>()?;
+
                     component = FormattedText::Translatable(TranslatableComponent::with_fallback(
                         translate, fallback, with_array,
                     ));
@@ -487,11 +476,11 @@ impl FormattedText {
                 if with_list.empty() {
                 } else if let Some(with) = with_list.strings() {
                     for item in with {
-                        with_array.push(StringOrComponent::String(item.to_string()));
+                        with_array.push(PrimitiveOrComponent::String(item.to_string()));
                     }
                 } else if let Some(with) = with_list.ints() {
                     for item in with {
-                        with_array.push(StringOrComponent::String(item.to_string()));
+                        with_array.push(PrimitiveOrComponent::String(item.to_string()));
                     }
                 } else if let Some(with) = with_list.compounds() {
                     for item in with {
@@ -504,41 +493,41 @@ impl FormattedText {
                             // for the /give system messages
                             if let Some(b) = primitive.byte() {
                                 // interpreted as boolean
-                                with_array.push(StringOrComponent::String(
+                                with_array.push(PrimitiveOrComponent::String(
                                     if b != 0 { "true" } else { "false" }.to_string(),
                                 ));
                             } else if let Some(s) = primitive.short() {
-                                with_array.push(StringOrComponent::String(s.to_string()));
+                                with_array.push(PrimitiveOrComponent::Integer(s.into()));
                             } else if let Some(i) = primitive.int() {
-                                with_array.push(StringOrComponent::String(i.to_string()));
+                                with_array.push(PrimitiveOrComponent::Integer(i.into()));
                             } else if let Some(l) = primitive.long() {
-                                with_array.push(StringOrComponent::String(l.to_string()));
+                                with_array.push(PrimitiveOrComponent::Integer(l.into()));
                             } else if let Some(f) = primitive.float() {
-                                with_array.push(StringOrComponent::String(f.to_string()));
+                                with_array.push(PrimitiveOrComponent::Float(f.into()));
                             } else if let Some(d) = primitive.double() {
-                                with_array.push(StringOrComponent::String(d.to_string()));
+                                with_array.push(PrimitiveOrComponent::Float(d.into()));
                             } else if let Some(s) = primitive.string() {
-                                with_array.push(StringOrComponent::String(s.to_string()));
+                                with_array.push(PrimitiveOrComponent::String(s.to_string()));
                             } else {
                                 warn!(
                                     "couldn't parse {item:?} as FormattedText because it has a disallowed primitive"
                                 );
-                                with_array.push(StringOrComponent::String("?".to_string()));
+                                with_array.push(PrimitiveOrComponent::String("?".to_string()));
                             }
                         } else if let Some(c) = FormattedText::from_nbt_compound(item) {
                             if let FormattedText::Text(text_component) = c
                                 && text_component.base.siblings.is_empty()
                                 && text_component.base.style.is_empty()
                             {
-                                with_array.push(StringOrComponent::String(text_component.text));
+                                with_array.push(PrimitiveOrComponent::String(text_component.text));
                                 continue;
                             }
-                            with_array.push(StringOrComponent::FormattedText(
+                            with_array.push(PrimitiveOrComponent::FormattedText(
                                 FormattedText::from_nbt_compound(item)?,
                             ));
                         } else {
                             warn!("couldn't parse {item:?} as FormattedText");
-                            with_array.push(StringOrComponent::String("?".to_string()));
+                            with_array.push(PrimitiveOrComponent::String("?".to_string()));
                         }
                     }
                 } else {
@@ -698,6 +687,7 @@ mod tests {
     use serde_json::Value;
 
     use super::*;
+    use crate::style::TextColor;
 
     #[test]
     fn deserialize_translation() {
@@ -710,8 +700,8 @@ mod tests {
             FormattedText::Translatable(TranslatableComponent::new(
                 "translation.test.args".to_string(),
                 vec![
-                    StringOrComponent::String("a".to_string()),
-                    StringOrComponent::String("b".to_string())
+                    PrimitiveOrComponent::String("a".to_string()),
+                    PrimitiveOrComponent::String("b".to_string())
                 ]
             ))
         );
@@ -733,7 +723,7 @@ mod tests {
             FormattedText::Translatable(TranslatableComponent::with_fallback(
                 "translation.test.undefined".to_string(),
                 Some("fallback: %s".to_string()),
-                vec![StringOrComponent::String("a".to_string())]
+                vec![PrimitiveOrComponent::String("a".to_string())]
             ))
         );
     }
@@ -745,5 +735,27 @@ mod tests {
         )
         .unwrap();
         assert!(FormattedText::deserialize(&j).is_err());
+    }
+    #[test]
+    fn deserialize_translation_primitive_args() {
+        let j: Value = serde_json::from_str(
+            r#"{"translate":"commands.list.players", "with": [1, 2, "<players>", {"text": "unused", "color": "red"}]}"#,
+        )
+        .unwrap();
+        assert_eq!(
+            FormattedText::deserialize(&j).unwrap(),
+            FormattedText::Translatable(TranslatableComponent::new(
+                "commands.list.players".to_string(),
+                vec![
+                    PrimitiveOrComponent::Integer(1),
+                    PrimitiveOrComponent::Integer(2),
+                    PrimitiveOrComponent::String("<players>".to_string()),
+                    PrimitiveOrComponent::FormattedText(FormattedText::Text(
+                        TextComponent::new("unused")
+                            .with_style(Style::new().color(Some(TextColor::parse("red").unwrap())))
+                    ))
+                ]
+            ))
+        );
     }
 }

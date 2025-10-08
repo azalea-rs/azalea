@@ -3,7 +3,7 @@ use std::io::{self, Cursor, Write};
 use azalea_buf::{AzBuf, AzaleaRead, AzaleaReadVar, AzaleaWrite, AzaleaWriteVar, BufReadError};
 use azalea_chat::{
     FormattedText,
-    translatable_component::{StringOrComponent, TranslatableComponent},
+    translatable_component::{PrimitiveOrComponent, TranslatableComponent},
 };
 use azalea_core::bitset::BitSet;
 use azalea_crypto::MessageSignature;
@@ -106,11 +106,11 @@ impl ClientboundPlayerChat {
         let target = self.chat_type.target_name.clone();
 
         let mut args = vec![
-            StringOrComponent::FormattedText(sender),
-            StringOrComponent::FormattedText(content),
+            PrimitiveOrComponent::FormattedText(sender),
+            PrimitiveOrComponent::FormattedText(content),
         ];
         if let Some(target) = target {
-            args.push(StringOrComponent::FormattedText(target));
+            args.push(PrimitiveOrComponent::FormattedText(target));
         }
 
         let translation_key = self.chat_type.translation_key();

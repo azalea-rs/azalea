@@ -1,7 +1,7 @@
 use azalea_buf::AzBuf;
 use azalea_chat::{
     FormattedText,
-    translatable_component::{StringOrComponent, TranslatableComponent},
+    translatable_component::{PrimitiveOrComponent, TranslatableComponent},
 };
 use azalea_protocol_macros::ClientboundGamePacket;
 
@@ -26,11 +26,11 @@ impl ClientboundDisguisedChat {
         let target = self.chat_type.target_name.clone();
 
         let mut args = vec![
-            StringOrComponent::FormattedText(sender),
-            StringOrComponent::FormattedText(content),
+            PrimitiveOrComponent::FormattedText(sender),
+            PrimitiveOrComponent::FormattedText(content),
         ];
         if let Some(target) = target {
-            args.push(StringOrComponent::FormattedText(target));
+            args.push(PrimitiveOrComponent::FormattedText(target));
         }
 
         let translation_key = self.chat_type.translation_key();
