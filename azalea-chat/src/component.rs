@@ -493,9 +493,7 @@ impl FormattedText {
                             // for the /give system messages
                             if let Some(b) = primitive.byte() {
                                 // interpreted as boolean
-                                with_array.push(PrimitiveOrComponent::String(
-                                    if b != 0 { "true" } else { "false" }.to_string(),
-                                ));
+                                with_array.push(PrimitiveOrComponent::Boolean(b != 0));
                             } else if let Some(s) = primitive.short() {
                                 with_array.push(PrimitiveOrComponent::Short(s));
                             } else if let Some(i) = primitive.int() {

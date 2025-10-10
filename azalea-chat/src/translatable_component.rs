@@ -52,6 +52,7 @@ pub struct TranslatableComponent {
 fn serialize_args_as_nbt(args: &[PrimitiveOrComponent]) -> simdnbt::owned::NbtList {
     let mut compounds = Vec::with_capacity(args.len());
 
+    // TODO: do not wrap entries of homogeneous list in compounds
     for arg in args {
         let tag = match arg {
             PrimitiveOrComponent::Boolean(value) => value.to_nbt_tag(),
