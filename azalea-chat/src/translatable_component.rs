@@ -49,21 +49,81 @@ pub struct TranslatableComponent {
 }
 
 #[cfg(feature = "simdnbt")]
-fn serialize_args_as_nbt(args: &[PrimitiveOrComponent]) -> simdnbt::owned::NbtList {
-    let mut compounds = Vec::with_capacity(args.len());
+fn serialize_args_as_nbt(args: Vec<PrimitiveOrComponent>) -> simdnbt::owned::NbtList {
+    let tags: Vec<simdnbt::owned::NbtTag> = args.into_iter().map(|arg| arg.to_nbt_tag()).collect();
 
-    // TODO: do not wrap entries of homogeneous list in compounds
-    for arg in args {
-        let tag = match arg {
-            PrimitiveOrComponent::Boolean(value) => value.to_nbt_tag(),
-            PrimitiveOrComponent::Short(value) => value.to_nbt_tag(),
-            PrimitiveOrComponent::Integer(value) => value.to_nbt_tag(),
-            PrimitiveOrComponent::Long(value) => value.to_nbt_tag(),
-            PrimitiveOrComponent::Float(value) => value.to_nbt_tag(),
-            PrimitiveOrComponent::Double(value) => value.to_nbt_tag(),
-            PrimitiveOrComponent::String(value) => value.clone().to_nbt_tag(),
-            PrimitiveOrComponent::FormattedText(value) => value.clone().to_nbt_tag(),
+    if let Some(first_element) = tags.first() {
+        let tags = tags.clone();
+        let homogenous_list = match first_element {
+            simdnbt::owned::NbtTag::Byte(_) => tags
+                .into_iter()
+                .map(|tag| tag.into_byte())
+                .collect::<Option<Vec<i8>>>()
+                .map(simdnbt::owned::NbtList::from),
+            simdnbt::owned::NbtTag::Short(_) => tags
+                .into_iter()
+                .map(|tag| tag.into_short())
+                .collect::<Option<Vec<i16>>>()
+                .map(simdnbt::owned::NbtList::from),
+            simdnbt::owned::NbtTag::Int(_) => tags
+                .into_iter()
+                .map(|tag| tag.into_int())
+                .collect::<Option<Vec<i32>>>()
+                .map(simdnbt::owned::NbtList::from),
+            simdnbt::owned::NbtTag::Long(_) => tags
+                .into_iter()
+                .map(|tag| tag.into_long())
+                .collect::<Option<Vec<i64>>>()
+                .map(simdnbt::owned::NbtList::from),
+            simdnbt::owned::NbtTag::Float(_) => tags
+                .into_iter()
+                .map(|tag| tag.into_float())
+                .collect::<Option<Vec<f32>>>()
+                .map(simdnbt::owned::NbtList::from),
+            simdnbt::owned::NbtTag::Double(_) => tags
+                .into_iter()
+                .map(|tag| tag.into_double())
+                .collect::<Option<Vec<f64>>>()
+                .map(simdnbt::owned::NbtList::from),
+            simdnbt::owned::NbtTag::ByteArray(_) => tags
+                .into_iter()
+                .map(|tag| tag.into_byte_array())
+                .collect::<Option<Vec<Vec<u8>>>>()
+                .map(simdnbt::owned::NbtList::from),
+            simdnbt::owned::NbtTag::String(_) => tags
+                .into_iter()
+                .map(|tag| tag.into_string())
+                .collect::<Option<Vec<simdnbt::Mutf8String>>>()
+                .map(simdnbt::owned::NbtList::from),
+            simdnbt::owned::NbtTag::List(_) => tags
+                .into_iter()
+                .map(|tag| tag.into_list())
+                .collect::<Option<Vec<simdnbt::owned::NbtList>>>()
+                .map(simdnbt::owned::NbtList::from),
+            simdnbt::owned::NbtTag::Compound(_) => tags
+                .into_iter()
+                .map(|tag| tag.into_compound())
+                .collect::<Option<Vec<simdnbt::owned::NbtCompound>>>()
+                .map(simdnbt::owned::NbtList::from),
+            simdnbt::owned::NbtTag::IntArray(_) => tags
+                .into_iter()
+                .map(|tag| tag.into_int_array())
+                .collect::<Option<Vec<Vec<i32>>>>()
+                .map(simdnbt::owned::NbtList::from),
+            simdnbt::owned::NbtTag::LongArray(_) => tags
+                .into_iter()
+                .map(|tag| tag.into_long_array())
+                .collect::<Option<Vec<Vec<i64>>>>()
+                .map(simdnbt::owned::NbtList::from),
         };
+
+        if let Some(homogenous_list) = homogenous_list {
+            return homogenous_list;
+        }
+    }
+
+    let mut compounds = Vec::with_capacity(tags.len());
+    for tag in tags {
         let compound = if let simdnbt::owned::NbtTag::Compound(compound) = tag {
             compound
         } else {
@@ -85,7 +145,7 @@ impl simdnbt::Serialize for TranslatableComponent {
         compound.insert("translate", self.key);
         compound.extend(self.base.style.to_compound());
 
-        compound.insert("with", serialize_args_as_nbt(&self.args));
+        compound.insert("with", serialize_args_as_nbt(self.args));
         compound
     }
 }
