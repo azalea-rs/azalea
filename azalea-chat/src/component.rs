@@ -480,7 +480,7 @@ impl FormattedText {
                     }
                 } else if let Some(with) = with_list.ints() {
                     for item in with {
-                        with_array.push(PrimitiveOrComponent::String(item.to_string()));
+                        with_array.push(PrimitiveOrComponent::Integer(item));
                     }
                 } else if let Some(with) = with_list.compounds() {
                     for item in with {
@@ -497,15 +497,15 @@ impl FormattedText {
                                     if b != 0 { "true" } else { "false" }.to_string(),
                                 ));
                             } else if let Some(s) = primitive.short() {
-                                with_array.push(PrimitiveOrComponent::Integer(s.into()));
+                                with_array.push(PrimitiveOrComponent::Short(s));
                             } else if let Some(i) = primitive.int() {
-                                with_array.push(PrimitiveOrComponent::Integer(i.into()));
+                                with_array.push(PrimitiveOrComponent::Integer(i));
                             } else if let Some(l) = primitive.long() {
-                                with_array.push(PrimitiveOrComponent::Integer(l.into()));
+                                with_array.push(PrimitiveOrComponent::Long(l));
                             } else if let Some(f) = primitive.float() {
-                                with_array.push(PrimitiveOrComponent::Float(f.into()));
+                                with_array.push(PrimitiveOrComponent::Float(f));
                             } else if let Some(d) = primitive.double() {
-                                with_array.push(PrimitiveOrComponent::Float(d.into()));
+                                with_array.push(PrimitiveOrComponent::Double(d));
                             } else if let Some(s) = primitive.string() {
                                 with_array.push(PrimitiveOrComponent::String(s.to_string()));
                             } else {
@@ -739,7 +739,7 @@ mod tests {
     #[test]
     fn deserialize_translation_primitive_args() {
         let j: Value = serde_json::from_str(
-            r#"{"translate":"commands.list.players", "with": [1, 2, "<players>", {"text": "unused", "color": "red"}]}"#,
+            r#"{"translate":"commands.list.players", "with": [1, 65536, "<players>", {"text": "unused", "color": "red"}]}"#,
         )
         .unwrap();
         assert_eq!(
@@ -747,8 +747,8 @@ mod tests {
             FormattedText::Translatable(TranslatableComponent::new(
                 "commands.list.players".to_string(),
                 vec![
-                    PrimitiveOrComponent::Integer(1),
-                    PrimitiveOrComponent::Integer(2),
+                    PrimitiveOrComponent::Short(1),
+                    PrimitiveOrComponent::Integer(65536),
                     PrimitiveOrComponent::String("<players>".to_string()),
                     PrimitiveOrComponent::FormattedText(FormattedText::Text(
                         TextComponent::new("unused")

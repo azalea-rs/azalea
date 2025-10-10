@@ -10,8 +10,11 @@ use crate::{FormattedText, base_component::BaseComponent, text_component::TextCo
 #[serde(untagged)]
 pub enum PrimitiveOrComponent {
     Boolean(bool),
-    Integer(i64),
-    Float(f64),
+    Short(i16),
+    Integer(i32),
+    Long(i64),
+    Float(f32),
+    Double(f64),
     String(String),
     FormattedText(FormattedText),
 }
@@ -21,8 +24,11 @@ impl simdnbt::ToNbtTag for PrimitiveOrComponent {
     fn to_nbt_tag(self) -> simdnbt::owned::NbtTag {
         match self {
             PrimitiveOrComponent::Boolean(value) => value.to_nbt_tag(),
+            PrimitiveOrComponent::Short(value) => value.to_nbt_tag(),
             PrimitiveOrComponent::Integer(value) => value.to_nbt_tag(),
+            PrimitiveOrComponent::Long(value) => value.to_nbt_tag(),
             PrimitiveOrComponent::Float(value) => value.to_nbt_tag(),
+            PrimitiveOrComponent::Double(value) => value.to_nbt_tag(),
             PrimitiveOrComponent::String(value) => value.to_nbt_tag(),
             PrimitiveOrComponent::FormattedText(value) => value.to_nbt_tag(),
         }
@@ -49,8 +55,11 @@ fn serialize_args_as_nbt(args: &[PrimitiveOrComponent]) -> simdnbt::owned::NbtLi
     for arg in args {
         let tag = match arg {
             PrimitiveOrComponent::Boolean(value) => value.to_nbt_tag(),
+            PrimitiveOrComponent::Short(value) => value.to_nbt_tag(),
             PrimitiveOrComponent::Integer(value) => value.to_nbt_tag(),
+            PrimitiveOrComponent::Long(value) => value.to_nbt_tag(),
             PrimitiveOrComponent::Float(value) => value.to_nbt_tag(),
+            PrimitiveOrComponent::Double(value) => value.to_nbt_tag(),
             PrimitiveOrComponent::String(value) => value.clone().to_nbt_tag(),
             PrimitiveOrComponent::FormattedText(value) => value.clone().to_nbt_tag(),
         };
@@ -219,8 +228,11 @@ impl Display for PrimitiveOrComponent {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
         match self {
             PrimitiveOrComponent::Boolean(value) => write!(f, "{value}"),
+            PrimitiveOrComponent::Short(value) => write!(f, "{value}"),
             PrimitiveOrComponent::Integer(value) => write!(f, "{value}"),
+            PrimitiveOrComponent::Long(value) => write!(f, "{value}"),
             PrimitiveOrComponent::Float(value) => write!(f, "{value}"),
+            PrimitiveOrComponent::Double(value) => write!(f, "{value}"),
             PrimitiveOrComponent::String(value) => write!(f, "{value}"),
             PrimitiveOrComponent::FormattedText(value) => write!(f, "{value}"),
         }
@@ -232,8 +244,11 @@ impl From<PrimitiveOrComponent> for TextComponent {
         match soc {
             PrimitiveOrComponent::String(value) => TextComponent::new(value),
             PrimitiveOrComponent::Boolean(value) => TextComponent::new(value.to_string()),
+            PrimitiveOrComponent::Short(value) => TextComponent::new(value.to_string()),
             PrimitiveOrComponent::Integer(value) => TextComponent::new(value.to_string()),
+            PrimitiveOrComponent::Long(value) => TextComponent::new(value.to_string()),
             PrimitiveOrComponent::Float(value) => TextComponent::new(value.to_string()),
+            PrimitiveOrComponent::Double(value) => TextComponent::new(value.to_string()),
             PrimitiveOrComponent::FormattedText(value) => TextComponent::new(value.to_string()),
         }
     }
