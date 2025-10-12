@@ -311,7 +311,9 @@ fn execute_descend_move(mut ctx: ExecuteCtx) {
         start_center.z + (center.z - start_center.z) * 1.5,
     );
 
-    if player_pos_to_block_pos(position) != target || horizontal_distance_from_target > 0.25 {
+    if (BlockPos::from(position).horizontal_distance_squared_to(target) > 0)
+        || horizontal_distance_from_target > 0.25
+    {
         if horizontal_distance_from_start < 1.25 {
             // this basically just exists to avoid doing spins while we're falling
             ctx.look_at(dest_ahead);
