@@ -703,7 +703,7 @@ pub struct SuspiciousStewEffects {
 
 #[derive(Clone, PartialEq, AzBuf, Debug, Serialize)]
 pub struct WritableBookContent {
-    pub pages: Vec<String>,
+    pub pages: Vec<Filterable<String>>,
 }
 
 #[derive(Clone, PartialEq, AzBuf, Serialize)]
