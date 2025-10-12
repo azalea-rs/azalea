@@ -40,7 +40,7 @@ pub struct ReceiveGamePacketEvent {
 }
 
 /// An event for sending a packet to the server while we're in the `game` state.
-#[derive(EntityEvent, Clone, Debug)]
+#[derive(Message, EntityEvent, Clone, Debug)]
 pub struct SendGamePacketEvent {
     #[event_target]
     pub sent_by: Entity,
