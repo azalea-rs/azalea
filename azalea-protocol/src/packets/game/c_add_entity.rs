@@ -30,8 +30,9 @@ pub struct ClientboundAddEntity {
 }
 
 impl ClientboundAddEntity {
-    /// Make the entity into a bundle that can be inserted into the ECS. You
-    /// must apply the metadata after inserting the bundle with
+    /// Make the entity into a bundle that can be inserted into the ECS.
+    ///
+    /// You must apply the metadata after inserting the bundle with
     /// [`Self::apply_metadata`].
     pub fn as_entity_bundle(&self, world_name: ResourceLocation) -> EntityBundle {
         EntityBundle::new(self.uuid, self.position, self.entity_type, world_name)

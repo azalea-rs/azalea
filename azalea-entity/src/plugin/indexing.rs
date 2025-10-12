@@ -45,9 +45,10 @@ impl EntityUuidIndex {
     }
 }
 
-/// An index of Minecraft entity IDs to Azalea ECS entities. This is a
-/// `Component` so local players can keep track of entity IDs independently from
-/// the instance.
+/// An index of Minecraft entity IDs to Azalea ECS entities.
+///
+/// This is a `Component` so local players can keep track of entity IDs
+/// independently from the instance.
 ///
 /// If you need a per-instance instead of per-client version of this, you can
 /// use [`Instance::entity_by_id`].

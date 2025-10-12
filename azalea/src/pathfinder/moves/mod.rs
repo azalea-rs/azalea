@@ -137,8 +137,9 @@ impl ExecuteCtx<'_, '_, '_, '_, '_, '_, '_, '_> {
         true
     }
 
-    /// Mine the block at the given position. Returns whether the block is being
-    /// mined.
+    /// Mine the block at the given position.
+    ///
+    /// Returns whether the block is being mined.
     pub fn mine(&mut self, block: BlockPos) -> bool {
         let block_state = self
             .instance

@@ -57,9 +57,11 @@ async fn main() {
 #[derive(Default, Clone, Component)]
 pub struct State {
     /// An example field that stores the number of messages that've been
-    /// received by the client so far. The state gets cloned whenever the
-    /// handler is called, so to have all the clones point to the same data and
-    /// have it be mutable, we use an Arc<Mutex<T>>.
+    /// received by the client so far.
+    /// 
+    /// The state gets cloned whenever the handler is called, so to have all
+    /// the clones point to the same data and have it be mutable, we use an
+    /// Arc<Mutex<T>>.
     pub messages_received: Arc<Mutex<usize>>
 }
 

@@ -119,11 +119,10 @@ impl From<u32> for MinecraftEntityId {
 /// world.
 #[derive(Debug, Default)]
 pub struct PartialEntityInfos {
-    // note: using MinecraftEntityId for entity ids is acceptable here since
-    // there's no chance of collisions here
-    /// The entity id of the player that owns this partial world. This will
-    /// make `RelativeEntityUpdate` pretend this entity doesn't exist so
-    /// it doesn't get modified from outside sources.
+    /// The entity ID of the player that owns this partial world.
+    ///
+    /// This will make `RelativeEntityUpdate` pretend this entity doesn't exist
+    /// so it doesn't get modified from outside sources.
     pub owner_entity: Option<Entity>,
     /// A counter for each entity that tracks how many updates we've observed
     /// for it.
@@ -131,6 +130,8 @@ pub struct PartialEntityInfos {
     /// This is used for shared worlds (i.e. swarms), to make sure we don't
     /// update entities twice on accident.
     pub updates_received: IntMap<MinecraftEntityId, u32>,
+    // ^ note: using MinecraftEntityId for entity ids is acceptable here since
+    // there's no chance of collisions
 }
 
 impl PartialEntityInfos {

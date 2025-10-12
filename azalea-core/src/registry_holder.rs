@@ -45,8 +45,9 @@ impl RegistryHolder {
         }
     }
 
-    /// Get the dimension type registry, or `None` if it doesn't exist. You
-    /// should do some type of error handling if this returns `None`.
+    /// Get the dimension type registry, or `None` if it doesn't exist.
+    ///
+    /// You should do some type of error handling if this returns `None`.
     pub fn dimension_type(&self) -> Option<RegistryType<DimensionTypeElement>> {
         let name = ResourceLocation::new("minecraft:dimension_type");
         match self.get(&name) {

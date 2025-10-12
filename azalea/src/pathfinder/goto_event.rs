@@ -106,8 +106,10 @@ impl PathfinderOpts {
         self
     }
     /// The absolute maximum amount of time that the pathfinder function can
-    /// take to find a path. If it takes this long, it means no usable path was
-    /// found (so it might be impossible).
+    /// take to find a path.
+    ///
+    /// If it takes this long, it means no usable path was found (so it might be
+    /// impossible).
     ///
     /// Defaults to `PathfinderTimeout::Time(Duration::from_secs(5))`.
     pub fn max_timeout(mut self, max_timeout: PathfinderTimeout) -> Self {

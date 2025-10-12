@@ -58,7 +58,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
         };
         let entity_id = source.bot.entity_component::<MinecraftEntityId>(entity);
         source.reply(format!(
-            "Your Minecraft ID is {} and your ECS id is {entity:?}",
+            "Your Minecraft ID is {} and your ECS ID is {entity:?}",
             *entity_id
         ));
         1

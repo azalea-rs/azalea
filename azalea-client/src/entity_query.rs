@@ -175,8 +175,10 @@ impl Client {
         predicate.find_all_sorted(self.ecs.clone(), &instance_name, (&position).into())
     }
 
-    /// Get a component from an entity. Note that this will return an owned type
-    /// (i.e. not a reference) so it may be expensive for larger types.
+    /// Get a component from an entity.
+    ///
+    /// Note that this will return an owned type (i.e. not a reference) so it
+    /// may be expensive for larger types.
     ///
     /// If you're trying to get a component for this client, use
     /// [`Self::component`].
@@ -192,9 +194,10 @@ impl Client {
         components.clone()
     }
 
-    /// Get a component from an entity, if it exists. This is similar to
-    /// [`Self::entity_component`] but returns an `Option` instead of panicking
-    /// if the component isn't present.
+    /// Get a component from an entity, if it exists.
+    ///
+    /// This is similar to [`Self::entity_component`] but returns an `Option`
+    /// instead of panicking if the component isn't present.
     pub fn get_entity_component<Q: Component + Clone>(&self, entity: Entity) -> Option<Q> {
         let mut ecs = self.ecs.lock();
         let mut q = ecs.query::<&Q>();

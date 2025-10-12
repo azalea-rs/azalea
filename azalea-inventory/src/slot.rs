@@ -146,8 +146,9 @@ impl Serialize for ItemStack {
     }
 }
 
-/// An item in an inventory, with a count and NBT. Usually you want
-/// [`ItemStack`] or [`azalea_registry::Item`] instead.
+/// An item in an inventory, with a count and a set of data components.
+///
+/// Usually you want [`ItemStack`] or [`azalea_registry::Item`] instead.
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct ItemStackData {
     #[serde(rename = "id")]

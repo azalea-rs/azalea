@@ -497,7 +497,7 @@ impl Style {
     }
 
     /// Returns a new style that is a merge of self and other.
-    /// For any field that `other` does not specify (is None), self’s value is
+    /// For any field that `other` does not specify (is None), self's value is
     /// used.
     pub fn merged_with(&self, other: &Style) -> Style {
         Style {

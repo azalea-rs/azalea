@@ -14,14 +14,17 @@ use super::{
 };
 use crate::Account;
 
-/// The default delay that Azalea will use for reconnecting our clients. See
-/// [`AutoReconnectPlugin`] for more information.
+/// The default delay that Azalea will use for reconnecting our clients.
+///
+/// See [`AutoReconnectPlugin`] for more information.
 pub const DEFAULT_RECONNECT_DELAY: Duration = Duration::from_secs(5);
 
 /// A default plugin that makes clients automatically rejoin the server when
-/// they're disconnected. The reconnect delay is configurable globally or
-/// per-client with the [`AutoReconnectDelay`] resource/component. Auto
-/// reconnecting can be disabled by removing the resource from the ECS.
+/// they're disconnected.
+///
+/// The reconnect delay is configurable globally or per-client with the
+/// [`AutoReconnectDelay`] resource/component. Auto reconnecting can be disabled
+/// by removing the resource from the ECS.
 ///
 /// The delay defaults to [`DEFAULT_RECONNECT_DELAY`].
 pub struct AutoReconnectPlugin;

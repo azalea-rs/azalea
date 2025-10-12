@@ -19,7 +19,7 @@ pub struct MapDecoration {
     pub decoration_type: DecorationType,
     pub x: i8,
     pub y: i8,
-    /// Minecraft does & 15 on this value, azalea-protocol doesn't. I don't
+    /// Minecraft does `& 15` on this value and azalea-protocol doesn't. I don't
     /// think it matters.
     pub rot: i8,
     pub name: Option<FormattedText>,

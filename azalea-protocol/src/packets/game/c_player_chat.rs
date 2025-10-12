@@ -41,7 +41,7 @@ pub struct PackedLastSeenMessages {
     pub entries: Vec<PackedMessageSignature>,
 }
 
-/// Messages can be deleted by either their signature or message id.
+/// Messages can be deleted by either their signature or message ID.
 #[derive(Clone, Debug, PartialEq)]
 pub enum PackedMessageSignature {
     Signature(Box<MessageSignature>),
@@ -88,9 +88,10 @@ pub struct MessageSignatureCache {
 }
 
 impl ClientboundPlayerChat {
-    /// Returns the content of the message. If you want to get the FormattedText
-    /// for the whole message including the sender part, use
-    /// [`ClientboundPlayerChat::message`].
+    /// Returns the content of the message.
+    ///
+    /// If you want to get the [`FormattedText`] for the whole message including
+    /// the sender part, use [`ClientboundPlayerChat::message`].
     #[must_use]
     pub fn content(&self) -> FormattedText {
         self.unsigned_content

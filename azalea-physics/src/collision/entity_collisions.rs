@@ -14,8 +14,8 @@ use tracing::error;
 
 use super::VoxelShape;
 
-/// This query matches on entities that we can collide with. That is, boats and
-/// shulkers.
+/// This query matches on entities that we can collide with (boats and
+/// shulkers).
 ///
 /// If you want to use this in a more complex query, use
 /// [`CollidableEntityFilter`] as a filter instead.

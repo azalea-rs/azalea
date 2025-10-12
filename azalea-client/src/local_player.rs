@@ -26,11 +26,12 @@ use crate::{ClientInformation, events::Event as AzaleaEvent, player::PlayerInfo}
 /// [`InstanceName`]: azalea_world::InstanceName
 #[derive(Component, Clone)]
 pub struct InstanceHolder {
-    /// The partial instance is the world this client currently has loaded. It
-    /// has a limited render distance.
+    /// The partial instance is the world this client currently has loaded.
+    ///
+    /// It has a limited render distance.
     pub partial_instance: Arc<RwLock<PartialInstance>>,
-    /// The world is the combined [`PartialInstance`]s of all clients in the
-    /// same world.
+    /// The combined [`PartialInstance`]s of all clients in the same instance
+    /// (aka world/dimension).
     ///
     /// This is only relevant if you're using a shared world (i.e. a
     /// swarm).
@@ -81,11 +82,13 @@ pub struct TabList(HashMap<Uuid, PlayerInfo>);
 
 #[derive(Component, Clone)]
 pub struct Hunger {
-    /// The main hunger bar. Goes from 0 to 20.
+    /// The main hunger bar. This is typically in the range `0..=20`.
     pub food: u32,
-    /// The amount of saturation the player has. This isn't shown in normal
-    /// vanilla clients but it's a separate counter that makes it so your hunger
-    /// only starts decreasing when this is 0.
+    /// The amount of saturation the player has.
+    ///
+    /// This isn't displayed in the vanilla Minecraft GUI, but it's used
+    /// internally by the game. It's a decrementing counter, and the player's
+    /// [`Hunger::food`] only starts decreasing when this reaches 0.
     pub saturation: f32,
 }
 

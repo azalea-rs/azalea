@@ -484,8 +484,9 @@ pub struct Vec3i {
     pub z: i32,
 }
 
-/// Chunk coordinates are used to represent where a chunk is in the world. You
-/// can convert the x and z to block coordinates by multiplying them by 16.
+/// Chunk coordinates are used to represent where a chunk is in the world.
+///
+/// You can convert the x and z to block coordinates by multiplying them by 16.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct ChunkPos {
     pub x: i32,
@@ -556,8 +557,8 @@ impl Hash for ChunkPos {
         u64::from(*self).hash(state);
     }
 }
-/// nohash_hasher lets us have IntMap<ChunkPos, _> which is significantly faster
-/// than a normal HashMap
+/// `nohash_hasher` lets us have IntMap<ChunkPos, _> which is significantly
+/// faster than a normal HashMap
 impl nohash_hasher::IsEnabled for ChunkPos {}
 
 /// The coordinates of a chunk section in the world.
@@ -612,8 +613,9 @@ impl From<ChunkBlockPos> for u64 {
 }
 impl nohash_hasher::IsEnabled for ChunkBlockPos {}
 
-/// The coordinates of a block inside a chunk section. Each coordinate should be
-/// in the range 0..=15.
+/// The coordinates of a block inside of a chunk section.
+///
+/// Each coordinate should be in the range 0..=15.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct ChunkSectionBlockPos {
     pub x: u8,
@@ -622,8 +624,9 @@ pub struct ChunkSectionBlockPos {
 }
 vec3_impl!(ChunkSectionBlockPos, u8);
 
-/// The coordinates of a chunk inside a chunk section. Each coordinate should be
-/// in the range 0..=3.
+/// The coordinates of a biome inside of a chunk section.
+///
+/// Each coordinate should be in the range 0..=3.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct ChunkSectionBiomePos {
     pub x: u8,
@@ -648,7 +651,9 @@ impl From<ChunkBiomePos> for ChunkSectionBiomePos {
 }
 vec3_impl!(ChunkSectionBiomePos, u8);
 
-/// The coordinates of a biome inside a chunk. Biomes are 4x4 blocks.
+/// The coordinates of a biome inside a chunk.
+///
+/// Biomes are 4x4 blocks.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct ChunkBiomePos {
     pub x: u8,

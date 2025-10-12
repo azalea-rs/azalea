@@ -77,8 +77,9 @@ impl<S> ArgumentBuilder<S> {
         self
     }
 
-    /// Set the command to be executed when this node is reached. If this is not
-    /// present on a node, it is not a valid command.
+    /// Set the command to be executed when this node is reached.
+    ///
+    /// If this is not present on a node, it is not a valid command.
     ///
     /// ```
     /// # use azalea_brigadier::prelude::*;
@@ -105,8 +106,9 @@ impl<S> ArgumentBuilder<S> {
         self
     }
 
-    /// Set the requirement for this node to be considered. If this is not
-    /// present on a node, it is considered to always pass.
+    /// Set the requirement for this node to be considered.
+    ///
+    /// If this is not present on a node, it is considered to always pass.
     ///
     /// ```
     /// # use azalea_brigadier::prelude::*;

@@ -80,8 +80,9 @@ fn debug_new_entity(query: Query<(Entity, Option<&LocalEntity>), Added<Minecraft
 }
 
 /// System that adds the [`Dead`] marker component if an entity's health is set
-/// to 0 (or less than 0). This will be present if an entity is doing the death
-/// animation.
+/// to 0 (or less than 0).
+///
+/// This will be present if an entity is doing the death animation.
 ///
 /// Entities that are dead cannot be revived.
 pub fn add_dead(mut commands: Commands, query: Query<(Entity, &Health), Changed<Health>>) {
@@ -188,7 +189,9 @@ fn is_trapdoor_useable_as_ladder(
 }
 
 /// A component that lists all the local player entities that have this entity
-/// loaded. If this is empty, the entity will be removed from the ECS.
+/// loaded.
+///
+/// If this is empty, the entity will be removed from the ECS.
 #[derive(Component, Clone, Deref, DerefMut)]
 pub struct LoadedBy(pub HashSet<Entity>);
 
@@ -203,10 +206,13 @@ pub fn apply_clamp_look_direction(mut look_direction: LookDirection) -> LookDire
     look_direction
 }
 
-/// Sets the position of the entity. This doesn't update the cache in
-/// azalea-world, and should only be used within azalea-world!
+/// Sets the position of the entity.
+///
+/// This doesn't update the cache in azalea-world, and should only be used
+/// within azalea-world.
 ///
 /// # Safety
+///
 /// Cached position in the world must be updated.
 #[allow(clippy::type_complexity)]
 pub fn update_bounding_box(

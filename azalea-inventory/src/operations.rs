@@ -27,11 +27,13 @@ pub enum ClickOperation {
 
 #[derive(Debug, Clone)]
 pub enum PickupClick {
-    /// Left mouse click. Note that in the protocol, None is represented as
-    /// -999.
+    /// Left mouse click.
+    ///
+    /// Note that in the protocol, None is represented as -999.
     Left { slot: Option<u16> },
-    /// Right mouse click. Note that in the protocol, None is represented as
-    /// -999.
+    /// Right mouse click.
+    ///
+    /// Note that in the protocol, None is represented as -999.
     Right { slot: Option<u16> },
     /// Drop cursor stack.
     LeftOutside,
@@ -134,11 +136,13 @@ impl From<QuickCraftStatus> for QuickCraftStatusKind {
     }
 }
 
-/// Double click
+/// Double click.
 #[derive(Debug, Clone)]
 pub struct PickupAllClick {
-    /// The slot that we're double clicking on. It should be empty or at least
-    /// not pickup-able (since the carried item is used as the filter).
+    /// The slot that we're double clicking on.
+    ///
+    /// It should be empty or at least not pickup-able (since the carried item
+    /// is used as the filter).
     pub slot: u16,
     /// Impossible in vanilla clients.
     pub reversed: bool,

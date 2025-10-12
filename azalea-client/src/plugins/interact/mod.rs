@@ -363,8 +363,9 @@ pub fn handle_start_use_item_queued(
     }
 }
 
-/// Whether we can't interact with the block, based on your gamemode. If
-/// this is false, then we can interact with the block.
+/// Whether we can't interact with the block, based on your gamemode.
+///
+/// If this is false, then we can interact with the block.
 ///
 /// Passing the inventory, block position, and instance is necessary for the
 /// adventure mode check.
@@ -427,8 +428,10 @@ pub fn can_use_game_master_blocks(
     abilities.instant_break && **permission_level >= 2
 }
 
-/// Swing your arm. This is purely a visual effect and won't interact with
-/// anything in the world.
+/// Swing your arm.
+///
+/// This is purely a visual effect and won't interact with anything in the
+/// world.
 #[derive(EntityEvent, Clone, Debug)]
 pub struct SwingArmEvent {
     pub entity: Entity,

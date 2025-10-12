@@ -78,9 +78,11 @@ pub struct Client {
     /// The entity for this client in the ECS.
     pub entity: Entity,
 
-    /// The entity component system. You probably don't need to access this
-    /// directly. Note that if you're using a shared world (i.e. a swarm), this
-    /// will contain all entities in all worlds.
+    /// A mutually exclusive reference to the entity component system (ECS).
+    ///
+    /// You probably don't need to access this directly. Note that if you're
+    /// using a shared world (i.e. a swarm), the ECS will contain all entities
+    /// in all instances/dimensions.
     pub ecs: Arc<Mutex<World>>,
 }
 
@@ -524,8 +526,9 @@ pub struct LocalPlayerBundle {
 }
 
 /// A bundle for the components that are present on a local player that is
-/// currently in the `game` protocol state. If you want to filter for this, use
-/// [`InGameState`].
+/// currently in the `game` protocol state.
+///
+/// If you want to filter for this, use [`InGameState`].
 #[derive(Bundle, Default)]
 pub struct JoinedClientBundle {
     // note that InstanceHolder isn't here because it's set slightly before we fully join the world

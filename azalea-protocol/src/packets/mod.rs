@@ -50,7 +50,7 @@ where
     /// like `pong`.
     fn name(&self) -> &'static str;
 
-    /// Read a packet by its id, `ConnectionProtocol`, and flow
+    /// Read a packet by its ID, `ConnectionProtocol`, and flow.
     fn read(id: u32, buf: &mut Cursor<&[u8]>) -> Result<Self, Box<ReadPacketError>>;
 
     fn write(&self, buf: &mut impl Write) -> io::Result<()>;

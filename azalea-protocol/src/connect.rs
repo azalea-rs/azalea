@@ -247,7 +247,9 @@ where
         self.writer.write(packet).await
     }
 
-    /// Split the reader and writer into two objects. This doesn't allocate.
+    /// Split the reader and writer into two objects.
+    ///
+    /// This doesn't allocate.
     #[must_use]
     pub fn into_split(self) -> (ReadConnection<R>, WriteConnection<W>) {
         (self.reader, self.writer)
@@ -304,8 +306,9 @@ impl Connection<ClientboundHandshakePacket, ServerboundHandshakePacket> {
         Self::new_from_stream(stream).await
     }
 
-    /// Create a new connection to the given address and Socks5 proxy. If you're
-    /// not using a proxy, use [`Self::new`] instead.
+    /// Create a new connection to the given address and Socks5 proxy.
+    ///
+    /// If you're not using a proxy, use [`Self::new`] instead.
     pub async fn new_with_proxy(
         address: &SocketAddr,
         proxy: Proxy,
@@ -320,8 +323,10 @@ impl Connection<ClientboundHandshakePacket, ServerboundHandshakePacket> {
         Self::new_from_stream(stream.into_inner()).await
     }
 
-    /// Create a new connection from an existing stream. Useful if you want to
-    /// set custom options on the stream. Otherwise, just use [`Self::new`].
+    /// Create a new connection from an existing stream.
+    ///
+    /// Useful if you want to set custom options on the stream. Otherwise, just
+    /// use [`Self::new`].
     pub async fn new_from_stream(stream: TcpStream) -> Result<Self, ConnectionError> {
         let (read_stream, write_stream) = stream.into_split();
 
@@ -346,15 +351,17 @@ impl Connection<ClientboundHandshakePacket, ServerboundHandshakePacket> {
         })
     }
 
-    /// Change our state from handshake to login. This is the state that is used
-    /// for logging in.
+    /// Change our state from handshake to login.
+    ///
+    /// This is the state that is used for logging in.
     #[must_use]
     pub fn login(self) -> Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
         Connection::from(self)
     }
 
-    /// Change our state from handshake to status. This is the state that is
-    /// used for pinging the server.
+    /// Change our state from handshake to status.
+    ///
+    /// This is the state that is used for pinging the server.
     #[must_use]
     pub fn status(self) -> Connection<ClientboundStatusPacket, ServerboundStatusPacket> {
         Connection::from(self)
@@ -363,9 +370,10 @@ impl Connection<ClientboundHandshakePacket, ServerboundHandshakePacket> {
 
 impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
     /// Set our compression threshold, i.e. the maximum size that a packet is
-    /// allowed to be without getting compressed. Setting it to 0 means every
-    /// packet will be compressed. If you set it to less than 0,
-    /// then compression is disabled.
+    /// allowed to be without getting compressed.
+    ///
+    /// Setting it to 0 means every packet will be compressed. If you set it to
+    /// less than 0 then compression is disabled.
     pub fn set_compression_threshold(&mut self, threshold: i32) {
         // if you pass a threshold of less than 0, compression is disabled
         if threshold >= 0 {
@@ -377,24 +385,28 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
         }
     }
 
-    /// Set the encryption key that is used to encrypt and decrypt packets. It's
-    /// the same for both reading and writing.
+    /// Set the encryption key that is used to encrypt and decrypt packets.
+    ///
+    /// It's the same for both reading and writing.
     pub fn set_encryption_key(&mut self, key: [u8; 16]) {
         let (enc_cipher, dec_cipher) = azalea_crypto::create_cipher(&key);
         self.reader.raw.dec_cipher = Some(dec_cipher);
         self.writer.raw.enc_cipher = Some(enc_cipher);
     }
 
-    /// Change our state from login to configuration. This is the state where
-    /// the server sends us the registries and resource pack and stuff.
+    /// Change our state from login to configuration.
+    ///
+    /// This is the state where the server sends us the registries and the
+    /// resource pack.
     #[must_use]
     pub fn config(self) -> Connection<ClientboundConfigPacket, ServerboundConfigPacket> {
         Connection::from(self)
     }
 
     /// Authenticate with Minecraft's servers, which is required to join
-    /// online-mode servers. This must happen when you get a
-    /// `ClientboundLoginPacket::Hello` packet.
+    /// online-mode servers.
+    ///
+    /// This must happen when you get a `ClientboundLoginPacket::Hello` packet.
     ///
     /// # Examples
     ///
@@ -460,15 +472,18 @@ impl Connection<ClientboundLoginPacket, ServerboundLoginPacket> {
 }
 
 impl Connection<ServerboundHandshakePacket, ClientboundHandshakePacket> {
-    /// Change our state from handshake to login. This is the state that is used
-    /// for logging in.
+    /// Change our state from handshake to login.
+    ///
+    /// This is the state that is used while negotiating encryption and
+    /// authenticating with Mojang.
     #[must_use]
     pub fn login(self) -> Connection<ServerboundLoginPacket, ClientboundLoginPacket> {
         Connection::from(self)
     }
 
-    /// Change our state from handshake to status. This is the state that is
-    /// used for pinging the server.
+    /// Change our state from handshake to status.
+    ///
+    /// This is the state that is used for pinging the server.
     #[must_use]
     pub fn status(self) -> Connection<ServerboundStatusPacket, ClientboundStatusPacket> {
         Connection::from(self)
@@ -477,8 +492,9 @@ impl Connection<ServerboundHandshakePacket, ClientboundHandshakePacket> {
 
 impl Connection<ServerboundLoginPacket, ClientboundLoginPacket> {
     /// Set our compression threshold, i.e. the maximum size that a packet is
-    /// allowed to be without getting compressed. If you set it to less than 0
-    /// then compression gets disabled.
+    /// allowed to be without getting compressed.
+    ///
+    /// If you set it to less than 0 then compression gets disabled.
     pub fn set_compression_threshold(&mut self, threshold: i32) {
         // if you pass a threshold of less than 0, compression is disabled
         if threshold >= 0 {
@@ -490,16 +506,18 @@ impl Connection<ServerboundLoginPacket, ClientboundLoginPacket> {
         }
     }
 
-    /// Set the encryption key that is used to encrypt and decrypt packets. It's
-    /// the same for both reading and writing.
+    /// Set the encryption key that is used to encrypt and decrypt packets.
+    ///
+    /// It's the same for both reading and writing.
     pub fn set_encryption_key(&mut self, key: [u8; 16]) {
         let (enc_cipher, dec_cipher) = azalea_crypto::create_cipher(&key);
         self.reader.raw.dec_cipher = Some(dec_cipher);
         self.writer.raw.enc_cipher = Some(enc_cipher);
     }
 
-    /// Change our state from login to game. This is the state that's used when
-    /// the client is actually in the game.
+    /// Change our state from login to game.
+    ///
+    /// This is the state that's used when the client is actually in the game.
     #[must_use]
     pub fn game(self) -> Connection<ServerboundGamePacket, ClientboundGamePacket> {
         Connection::from(self)
@@ -526,8 +544,9 @@ impl Connection<ServerboundLoginPacket, ClientboundLoginPacket> {
 }
 
 impl Connection<ServerboundConfigPacket, ClientboundConfigPacket> {
-    /// Change our state from configuration to game. This is the state that's
-    /// used when the client is actually in the world.
+    /// Change our state from configuration to game.
+    ///
+    /// This is the state that's used when the client is actually in the world.
     #[must_use]
     pub fn game(self) -> Connection<ServerboundGamePacket, ClientboundGamePacket> {
         Connection::from(self)
@@ -535,8 +554,9 @@ impl Connection<ServerboundConfigPacket, ClientboundConfigPacket> {
 }
 
 impl Connection<ClientboundConfigPacket, ServerboundConfigPacket> {
-    /// Change our state from configuration to game. This is the state that's
-    /// used when the client is actually in the world.
+    /// Change our state from configuration to game.
+    ///
+    /// This is the state that's used when the client is actually in the world.
     #[must_use]
     pub fn game(self) -> Connection<ClientboundGamePacket, ServerboundGamePacket> {
         Connection::from(self)

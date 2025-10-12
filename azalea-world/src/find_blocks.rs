@@ -224,7 +224,7 @@ pub fn find_blocks_in_chunk(
             let block_state = section.states.get_at_index(i);
 
             if block_states.contains(&block_state) {
-                let section_pos = section.states.coords_from_index(i);
+                let section_pos = section.states.pos_from_index(i);
                 let (x, y, z) = (
                     chunk_pos.x * 16 + (section_pos.x as i32),
                     min_y + (section_index * 16) as i32 + section_pos.y as i32,

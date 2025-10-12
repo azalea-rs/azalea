@@ -147,8 +147,9 @@ fn handle_auto_mine(
     }
 }
 
-/// Information about the block we're currently mining. This is only present if
-/// we're currently mining a block.
+/// Information about the block we're currently mining.
+///
+/// This is only present if we're currently mining a block.
 #[derive(Component, Debug, Clone)]
 pub struct Mining {
     pub pos: BlockPos,
@@ -441,8 +442,9 @@ pub struct MineBundle {
 #[derive(Component, Debug, Default, Deref, DerefMut, Clone)]
 pub struct MineDelay(pub u32);
 
-/// A component that stores the progress of the current mining operation. This
-/// is a value between 0 and 1.
+/// A component that stores the progress of the current mining operation.
+///
+/// This is a value between 0 and 1.
 #[derive(Component, Debug, Default, Deref, DerefMut, Clone)]
 pub struct MineProgress(pub f32);
 
@@ -457,8 +459,9 @@ impl MineProgress {
 }
 
 /// A component that stores the number of ticks that we've been mining the same
-/// block for. This is a float even though it should only ever be a round
-/// number.
+/// block for.
+///
+/// This is a float despite the fact that it should only ever be a round number.
 #[derive(Component, Clone, Debug, Default, Deref, DerefMut)]
 pub struct MineTicks(pub f32);
 
@@ -466,8 +469,8 @@ pub struct MineTicks(pub f32);
 #[derive(Component, Clone, Debug, Default, Deref, DerefMut)]
 pub struct MineBlockPos(pub Option<BlockPos>);
 
-/// A component that contains the item we're currently using to mine. If we're
-/// not mining anything, it'll be [`ItemStack::Empty`].
+/// A component that contains the item we're currently using to mine, or
+/// [`ItemStack::Empty`] if nothing is being mined.
 #[derive(Component, Clone, Debug, Default, Deref, DerefMut)]
 pub struct MineItem(pub ItemStack);
 

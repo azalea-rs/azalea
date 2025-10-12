@@ -76,19 +76,22 @@ impl FormattedText {
     /// Render all components into a single `String`, using your custom
     /// closures to drive styling, text transformation, and final cleanup.
     ///
-    /// # Type params
+    /// # Type parameters
+    ///
     /// - `F`: `(running, component, default) -> (prefix, suffix)` for
     ///   per-component styling
     /// - `S`: `&str -> String` for text tweaks (escaping, mapping, etc.)
     /// - `C`: `&final_running_style -> String` for any trailing cleanup
     ///
-    /// # Args
-    /// - `style_formatter`: how to open/close each component’s style
-    /// - `text_formatter`:  how to turn raw text into output text
+    /// # Arguments
+    ///
+    /// - `style_formatter`: how to open/close each component's style
+    /// - `text_formatter`: how to turn raw text into output text
     /// - `cleanup_formatter`: emit after all components (e.g. reset codes)
-    /// - `default_style`:    where to reset when a component’s `reset` is true
+    /// - `default_style`: where to reset when a component's `reset` is true
     ///
     /// # Example
+    ///
     /// ```rust
     /// use azalea_chat::{FormattedText, DEFAULT_STYLE};
     /// use serde::de::Deserialize;

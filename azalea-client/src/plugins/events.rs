@@ -54,12 +54,16 @@ use crate::{
 #[non_exhaustive]
 pub enum Event {
     /// Happens right after the bot switches into the Game state, but before
-    /// it's actually spawned. This can be useful for setting the client
-    /// information with `Client::set_client_information`, so the packet
-    /// doesn't have to be sent twice.
+    /// it's actually spawned.
+    ///
+    /// This can be useful for setting the client information with
+    /// [`Client::set_client_information`], so the packet doesn't have to be
+    /// sent twice.
     ///
     /// You may want to use [`Event::Spawn`] instead to wait for the bot to be
     /// in the world.
+    ///
+    /// [`Client::set_client_information`]: crate::Client::set_client_information
     Init,
     /// Fired when we receive a login packet, which is after [`Event::Init`] but
     /// before [`Event::Spawn`]. You usually want [`Event::Spawn`] instead.
@@ -123,8 +127,9 @@ pub enum Event {
 }
 
 /// A component that contains an event sender for events that are only
-/// received by local players. The receiver for this is returned by
-/// [`Client::start_client`].
+/// received by local players.
+///
+/// The receiver for this is returned by [`Client::start_client`].
 ///
 /// [`Client::start_client`]: crate::Client::start_client
 #[derive(Component, Deref, DerefMut)]

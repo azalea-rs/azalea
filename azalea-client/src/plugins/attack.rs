@@ -43,7 +43,10 @@ impl Plugin for AttackPlugin {
 }
 
 impl Client {
-    /// Attack the entity with the given id.
+    /// Attack an entity in the world.
+    ///
+    /// This doesn't automatically look at the entity or perform any
+    /// range/visibility checks, so it might trigger anticheats.
     pub fn attack(&self, entity: Entity) {
         self.ecs.lock().write_message(AttackEvent {
             entity: self.entity,

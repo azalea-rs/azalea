@@ -102,9 +102,10 @@ pub struct UpdatePlayerEvent {
     pub info: PlayerInfo,
 }
 
-/// Event for when an entity dies. dies. If it's a local player and there's a
-/// reason in the death screen, the [`ClientboundPlayerCombatKill`] will
-/// be included.
+/// Event for when an entity dies.
+///
+/// If it's a local player and there's a reason in the death screen, the
+/// [`ClientboundPlayerCombatKill`] will be included.
 #[derive(Message, Debug, Clone)]
 pub struct DeathEvent {
     pub entity: Entity,
@@ -116,16 +117,20 @@ pub struct DeathEvent {
 #[derive(Message, Debug, Clone)]
 pub struct KeepAliveEvent {
     pub entity: Entity,
-    /// The ID of the keepalive. This is an arbitrary number, but vanilla
-    /// servers use the time to generate this.
+    /// The ID of the keepalive.
+    ///
+    /// This is an arbitrary number, but vanilla servers use the current time to
+    /// generate this.
     pub id: u64,
 }
 
 #[derive(Message, Debug, Clone)]
 pub struct ResourcePackEvent {
     pub entity: Entity,
-    /// The random ID for this request to download the resource pack. The packet
-    /// for replying to a resource pack push must contain the same ID.
+    /// The random ID for this request to download the resource pack.
+    ///
+    /// The packet for replying to a resource pack push must contain the same
+    /// ID.
     pub id: Uuid,
     pub url: String,
     pub hash: String,

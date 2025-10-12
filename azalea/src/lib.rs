@@ -56,7 +56,7 @@ pub enum StartError {
 }
 
 /// A builder for creating new [`Client`]s. This is the recommended way of
-/// making Azalea bots.
+/// making a bot.
 ///
 /// ```no_run
 /// # use azalea::prelude::*;
@@ -201,8 +201,9 @@ where
     }
 
     /// Build this `ClientBuilder` into an actual [`Client`] and join the given
-    /// server. If the client can't join, it'll keep retrying forever until it
-    /// can.
+    /// server.
+    ///
+    /// If the client can't join, it'll keep retrying forever until it can.
     ///
     /// The `address` argument can be a `&str`, [`ServerAddress`], or anything
     /// that implements `TryInto<ServerAddress>`.
@@ -247,8 +248,10 @@ impl Default for ClientBuilder<NoState, ()> {
 }
 
 /// A marker that can be used in place of a State in [`ClientBuilder`] or
-/// [`SwarmBuilder`]. You probably don't need to use this manually since the
-/// compiler will infer it for you.
+/// [`SwarmBuilder`].
+///
+/// You probably don't need to use this manually since the compiler will infer
+/// it for you.
 ///
 /// [`SwarmBuilder`]: swarm::SwarmBuilder
 #[derive(Component, Clone, Default)]

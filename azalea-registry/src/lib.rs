@@ -29,8 +29,9 @@ where
     fn to_u32(&self) -> u32;
 }
 
-/// A registry that might not be present. This is transmitted as a single
-/// varint in the protocol.
+/// A registry that might not be present.
+///
+/// This is transmitted as a single varint in the protocol.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct OptionalRegistry<T: Registry>(pub Option<T>);
 
@@ -337,8 +338,10 @@ enum Attribute {
 }
 
 registry! {
-/// An enum of every type of block in the game. To represent a block *state*,
-/// use [`azalea_block::BlockState`] or [`azalea_block::BlockTrait`].
+/// An enum of every type of block in the game.
+///
+/// To represent a block *state*, use [`azalea_block::BlockState`] or
+/// [`azalea_block::BlockTrait`].
 ///
 /// [`azalea_block::BlockState`]: https://docs.rs/azalea-block/latest/azalea_block/struct.BlockState.html
 /// [`azalea_block::BlockTrait`]: https://docs.rs/azalea-block/latest/azalea_block/trait.BlockTrait.html
@@ -1513,9 +1516,10 @@ enum Block {
 }
 
 registry! {
-/// An enum that contains every type of block entity. A block entity is a block
-/// that contains data that can't be represented as just a block state, like
-/// how chests store items.
+/// An enum that contains every type of block entity.
+///
+/// A block entity is a block that contains data that can't be represented as
+/// just a block state, like how chests store items.
 enum BlockEntityKind {
     Furnace => "minecraft:furnace",
     Chest => "minecraft:chest",

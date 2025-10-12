@@ -34,8 +34,9 @@ fn tick_global_task_pools(_main_thread_marker: Option<NonSend<NonSendMarker>>) {
     tick_global_task_pools_on_main_thread();
 }
 
-/// Helper for configuring and creating the default task pools. For end-users
-/// who want full control, set up [`TaskPoolPlugin`]
+/// Helper for configuring and creating the default task pools.
+///
+/// For end-users who want full control, set up [`TaskPoolPlugin`]
 #[derive(Clone, Resource)]
 pub struct TaskPoolOptions {
     /// If the number of physical cores is less than min_total_threads, force
@@ -85,15 +86,6 @@ impl Default for TaskPoolOptions {
 }
 
 impl TaskPoolOptions {
-    // /// Create a configuration that forces using the given number of threads.
-    // pub fn with_num_threads(thread_count: usize) -> Self {
-    //     TaskPoolOptions {
-    //         min_total_threads: thread_count,
-    //         max_total_threads: thread_count,
-    //         ..Default::default()
-    //     }
-    // }
-
     /// Inserts the default thread pools into the given resource map based on
     /// the configured values
     pub fn create_default_pools(&self) {
@@ -160,7 +152,9 @@ pub struct TaskPoolThreadAssignmentPolicy {
     /// Under no circumstance use more than this many threads for this pool
     pub max_threads: usize,
     /// Target using this percentage of total cores, clamped by min_threads and
-    /// max_threads. It is permitted to use 1.0 to try to use all remaining
+    /// max_threads.
+    ///
+    /// It is permitted to use 1.0 to try to use all remaining
     /// threads
     pub percent: f32,
 }

@@ -65,6 +65,7 @@ where
     F: QueryFilter + 'static,
 {
     /// Gets the nearest entity to the given position and world instance name.
+    ///
     /// This method will return `None` if there are no entities within range. If
     /// multiple entities are within range, only the closest one is returned.
     pub fn nearest_to_position(
@@ -91,9 +92,11 @@ where
         nearest_entity
     }
 
-    /// Gets the nearest entity to the given entity. This method will return
-    /// `None` if there are no entities within range. If multiple entities are
-    /// within range, only the closest one is returned.
+    /// Gets the nearest entity to the given entity.
+    ///
+    /// This method will return `None` if there are no entities within range. If
+    /// multiple entities are within range, only the closest one is
+    /// returned.
     pub fn nearest_to_entity(&'a self, entity: Entity, max_distance: f64) -> Option<Entity> {
         let Ok((position, instance_name)) = self.all_entities.get(entity) else {
             return None;
@@ -122,8 +125,9 @@ where
     }
 
     /// This function get an iterator over all nearby entities to the given
-    /// position within the given maximum distance. The entities in this
-    /// iterator are not returned in any specific order.
+    /// position within the given maximum distance.
+    ///
+    /// The entities in this iterator are not returned in any specific order.
     ///
     /// This function returns the Entity ID of nearby entities and their
     /// distance away.
@@ -150,8 +154,9 @@ where
     }
 
     /// This function get an iterator over all nearby entities to the given
-    /// entity within the given maximum distance. The entities in this iterator
-    /// are not returned in any specific order.
+    /// entity within the given maximum distance.
+    ///
+    /// The entities in this iterator are not returned in any specific order.
     ///
     /// This function returns the Entity ID of nearby entities and their
     /// distance away.

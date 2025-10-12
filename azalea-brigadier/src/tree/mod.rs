@@ -57,16 +57,26 @@ impl<S> Clone for CommandNode<S> {
 }
 
 impl<S> CommandNode<S> {
-    /// Gets the literal, or panics. You should use match if you're not certain
-    /// about the type.
+    /// Returns the value as a literal from this command node, assuming it's
+    /// already been checked.
+    ///
+    /// # Panics
+    ///
+    /// Will panic if this node is not a literal. Consider using a match
+    /// statement instead.
     pub fn literal(&self) -> &Literal {
         match self.value {
             ArgumentBuilderType::Literal(ref literal) => literal,
             _ => panic!("CommandNode::literal() called on non-literal node"),
         }
     }
-    /// Gets the argument, or panics. You should use match if you're not certain
-    /// about the type.
+    /// Returns the value as an argument from this command node, assuming it's
+    /// already been checked.
+    ///
+    /// # Panics
+    ///
+    /// Will panic if this node is not an argument. Consider using a match
+    /// statement instead.
     pub fn argument(&self) -> &Argument<S> {
         match self.value {
             ArgumentBuilderType::Argument(ref argument) => argument,

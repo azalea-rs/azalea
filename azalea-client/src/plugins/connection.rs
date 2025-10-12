@@ -182,9 +182,10 @@ pub struct RawConnection {
     pub(crate) is_alive: bool,
 
     /// This exists for internal testing purposes and probably shouldn't be used
-    /// for normal bots. It's basically a way to make our client think it
-    /// received a packet from the server without needing to interact with the
-    /// network.
+    /// for normal bots.
+    ///
+    /// It's basically a way to make our client think it received a packet from
+    /// the server without needing to interact with the network.
     pub injected_clientbound_packets: Vec<Box<[u8]>>,
 }
 impl RawConnection {
@@ -305,9 +306,10 @@ pub struct NetworkConnection {
     pub enc_cipher: Option<Aes128CfbEnc>,
 
     pub writer_task: bevy_tasks::Task<()>,
-    /// A queue of raw TCP packets to send. These will not be modified further,
-    /// they should already be serialized and encrypted and everything before
-    /// being added here.
+    /// A queue of raw TCP packets to send.
+    ///
+    /// These will not be modified further, they should already be serialized
+    /// and compressed and encrypted before being added here.
     network_packet_writer_tx: mpsc::UnboundedSender<Box<[u8]>>,
 }
 impl NetworkConnection {
@@ -344,8 +346,9 @@ impl NetworkConnection {
         trace!("Set compression threshold to {threshold:?}");
         self.reader.compression_threshold = threshold;
     }
-    /// Set the encryption key that is used to encrypt and decrypt packets. It's
-    /// the same for both reading and writing.
+    /// Set the encryption key that is used to encrypt and decrypt packets.
+    ///
+    /// The same key is used for both reading and writing.
     pub fn set_encryption_key(&mut self, key: [u8; 16]) {
         trace!("Enabled protocol encryption");
         let (enc_cipher, dec_cipher) = azalea_crypto::create_cipher(&key);

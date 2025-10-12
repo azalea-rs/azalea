@@ -100,7 +100,9 @@ pub struct MoveEventsSystems;
 
 impl Client {
     /// Set whether we're jumping. This acts as if you held space in
-    /// vanilla. If you want to jump once, use the `jump` function.
+    /// vanilla.
+    ///
+    /// If you want to jump once, use the `jump` function in `azalea`.
     ///
     /// If you're making a realistic client, calling this function every tick is
     /// recommended.
@@ -124,19 +126,21 @@ impl Client {
         self.query_self::<&PhysicsState, _>(|p| p.trying_to_crouch)
     }
 
-    /// Sets the direction the client is looking. `y_rot` is yaw (looking to the
-    /// side), `x_rot` is pitch (looking up and down). You can get these
-    /// numbers from the vanilla f3 screen.
-    /// `y_rot` goes from -180 to 180, and `x_rot` goes from -90 to 90.
+    /// Sets the direction the client is looking.
+    ///
+    /// `y_rot` is yaw (looking to the side, between -180 to 180), and `x_rot`
+    /// is pitch (looking up and down, between -90 to 90).
+    ///
+    /// You can get these numbers from the vanilla f3 screen.
     pub fn set_direction(&self, y_rot: f32, x_rot: f32) {
         self.query_self::<&mut LookDirection, _>(|mut ld| {
             ld.update(LookDirection::new(y_rot, x_rot));
         });
     }
 
-    /// Returns the direction the client is looking. The first value is the y
-    /// rotation (ie. yaw, looking to the side) and the second value is the x
-    /// rotation (ie. pitch, looking up and down).
+    /// Returns the direction the client is looking.
+    ///
+    /// See [`Self::set_direction`] for more details.
     pub fn direction(&self) -> (f32, f32) {
         let look_direction: LookDirection = self.component::<LookDirection>();
         (look_direction.y_rot(), look_direction.x_rot())
@@ -350,8 +354,9 @@ pub(crate) fn tick_controls(mut query: Query<&mut PhysicsState>) {
     }
 }
 
-/// Makes the bot do one physics tick. Note that this is already handled
-/// automatically by the client.
+/// Makes the bot do one physics tick.
+///
+/// This is handled automatically by the client.
 #[allow(clippy::type_complexity)]
 pub fn local_player_ai_step(
     mut query: Query<
@@ -532,17 +537,18 @@ fn distance_to_unit_square(v: Vec2) -> f32 {
 }
 
 impl Client {
-    /// Start walking in the given direction. To sprint, use
-    /// [`Client::sprint`]. To stop walking, call walk with
-    /// `WalkDirection::None`.
+    /// Start walking in the given direction.
     ///
-    /// # Examples
+    /// To sprint, use [`Client::sprint`]. To stop walking, call walk with
+    /// [`WalkDirection::None`].
     ///
-    /// Walk for 1 second
+    /// # Example
+    ///
     /// ```rust,no_run
     /// # use azalea_client::{Client, WalkDirection};
     /// # use std::time::Duration;
     /// # async fn example(mut bot: Client) {
+    /// // walk for one second
     /// bot.walk(WalkDirection::Forward);
     /// tokio::time::sleep(Duration::from_secs(1)).await;
     /// bot.walk(WalkDirection::None);
@@ -556,16 +562,17 @@ impl Client {
         });
     }
 
-    /// Start sprinting in the given direction. To stop moving, call
-    /// [`bot.walk(WalkDirection::None)`](Self::walk)
+    /// Start sprinting in the given direction.
     ///
-    /// # Examples
+    /// o stop moving, call [`bot.walk(WalkDirection::None)`](Self::walk)
     ///
-    /// Sprint for 1 second
+    /// # Example
+    ///
     /// ```rust,no_run
     /// # use azalea_client::{Client, WalkDirection, SprintDirection};
     /// # use std::time::Duration;
     /// # async fn example(mut bot: Client) {
+    /// // sprint for one second
     /// bot.sprint(SprintDirection::Forward);
     /// tokio::time::sleep(Duration::from_secs(1)).await;
     /// bot.walk(WalkDirection::None);
@@ -580,8 +587,9 @@ impl Client {
     }
 }
 
-/// An event sent when the client starts walking. This does not get sent for
-/// non-local entities.
+/// An event sent when the client starts walking.
+///
+/// This does not get sent for non-local entities.
 ///
 /// To stop walking or sprinting, send this event with `WalkDirection::None`.
 #[derive(Message, Debug)]
@@ -606,8 +614,9 @@ pub fn handle_walk(
     }
 }
 
-/// An event sent when the client starts sprinting. This does not get sent for
-/// non-local entities.
+/// An event sent when the client starts sprinting.
+///
+/// This does not get sent for non-local entities.
 #[derive(Message)]
 pub struct StartSprintEvent {
     pub entity: Entity,
@@ -662,10 +671,11 @@ fn has_enough_impulse_to_start_sprinting(physics_state: &PhysicsState) -> bool {
     // }
 }
 
-/// An event sent by the server that sets or adds to our velocity. Usually
-/// `KnockbackKind::Set` is used for normal knockback and `KnockbackKind::Add`
-/// is used for explosions, but some servers (notably Hypixel) use explosions
-/// for knockback.
+/// An event sent by the server that sets or adds to our velocity.
+///
+/// Usually `KnockbackKind::Set` is used for normal knockback and
+/// `KnockbackKind::Add` is used for explosions, but some servers (notably
+/// Hypixel) use explosions for knockback.
 #[derive(Message)]
 pub struct KnockbackEvent {
     pub entity: Entity,

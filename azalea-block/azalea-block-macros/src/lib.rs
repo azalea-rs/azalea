@@ -532,7 +532,7 @@ pub fn make_block_states(input: TokenStream) -> TokenStream {
             /// The highest possible block state ID.
             pub const MAX_STATE: BlockStateIntegerRepr = #last_state_id;
 
-            /// Get a property from this block state. Will be `None` if the block can't have the property.
+            /// Get a property from this block state, or `None` if the block can't have the property.
             ///
             /// ```
             /// fn is_waterlogged(block_state: azalea_block::BlockState) -> bool {

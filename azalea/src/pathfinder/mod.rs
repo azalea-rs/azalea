@@ -917,7 +917,7 @@ pub fn check_for_path_obstruction(
     }
 }
 
-/// update the given [`ExecutingPath`] to recalculate the path of the nodes in
+/// Update the given [`ExecutingPath`] to recalculate the path of the nodes in
 /// the given index range.
 ///
 /// You should avoid making the range too large, since the timeout for the A*
@@ -1153,9 +1153,11 @@ pub fn recalculate_if_has_goal_but_no_path(
 #[derive(Message)]
 pub struct StopPathfindingEvent {
     pub entity: Entity,
-    /// If false, then let the current movement finish before stopping. If true,
-    /// then stop moving immediately. This might cause the bot to fall if it was
-    /// in the middle of parkouring.
+    /// Whether we should stop moving immediately without waiting for the
+    /// current movement to finish.
+    ///
+    /// This is usually set to false, since it might cause the bot to fall if it
+    /// was in the middle of parkouring.
     pub force: bool,
 }
 
@@ -1210,7 +1212,9 @@ pub fn stop_pathfinding_on_instance_change(
 }
 
 /// Checks whether the path has been obstructed, and returns Some(index) if it
-/// has been. The index is of the first obstructed node.
+/// has been.
+///
+/// The index is of the first obstructed node.
 pub fn check_path_obstructed<SuccessorsFn>(
     origin: BlockPos,
     mut current_position: RelBlockPos,

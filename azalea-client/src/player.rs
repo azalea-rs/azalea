@@ -22,12 +22,14 @@ pub struct PlayerInfo {
     pub uuid: Uuid,
     /// The current gamemode of the player, like survival or creative.
     pub gamemode: GameMode,
-    /// The player's latency in milliseconds. The bars in the tab screen depend
-    /// on this.
+    /// The player's latency in milliseconds.
+    ///
+    /// The bars in the tab screen depend on this.
     pub latency: i32,
     /// The player's display name in the tab list, but only if it's different
-    /// from the player's normal username. Use `player_info.profile.name` to get
-    /// the player's actual username.
+    /// from the player's normal username.
+    ///
+    /// Use [`GameProfile::name`] to get the player's actual username.
     pub display_name: Option<Box<FormattedText>>,
 }
 

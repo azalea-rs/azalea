@@ -57,8 +57,9 @@ pub struct StartJoinServerEvent {
     pub start_join_callback_tx: Option<mpsc::UnboundedSender<Entity>>,
 }
 
-/// Options for how the connection to the server will be made. These are
-/// persisted on reconnects.
+/// Options for how the connection to the server will be made.
+///
+/// These are persisted on reconnects.
 ///
 /// This is inserted as a component on clients to make auto-reconnecting work.
 #[derive(Debug, Clone, Component)]

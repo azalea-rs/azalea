@@ -81,8 +81,10 @@ where
     pub(crate) app: SubApp,
     /// The accounts and proxies that are going to join the server.
     pub(crate) accounts: Vec<(Account, JoinOpts)>,
-    /// The individual bot states. This must be the same length as `accounts`,
-    /// since each bot gets one state.
+    /// The individual bot states.
+    ///
+    /// This must be the same length as `accounts`, since each bot gets one
+    /// state.
     pub(crate) states: Vec<S>,
     /// The state for the overall swarm.
     pub(crate) swarm_state: SS,
@@ -92,14 +94,16 @@ where
     /// [`SwarmEvent`].
     pub(crate) swarm_handler: Option<BoxSwarmHandleFn<SS, SR>>,
 
-    /// How long we should wait between each bot joining the server. Set to
-    /// None to have every bot connect at the same time. None is different than
-    /// a duration of 0, since if a duration is present the bots will wait for
-    /// the previous one to be ready.
+    /// How long we should wait between each bot joining the server.
+    ///
+    /// If this is None, every bot will connect at the same time. None is
+    /// different than a duration of 0, since if a duration is present the
+    /// bots will wait for the previous one to be ready.
     pub(crate) join_delay: Option<Duration>,
 
-    /// The default reconnection delay for our bots. This will change the value
-    /// of the `AutoReconnectDelay` resource.
+    /// The default reconnection delay for our bots.
+    ///
+    /// This will change the value of the [`AutoReconnectDelay`] resource.
     pub(crate) reconnect_after: Option<Duration>,
 }
 impl SwarmBuilder<NoState, NoSwarmState, (), ()> {
@@ -165,7 +169,8 @@ where
     SS: Default + Send + Sync + Clone + Resource + 'static,
 {
     /// Set the function that's called every time a bot receives an
-    /// [`enum@Event`]. This is the way to handle normal per-bot events.
+    /// [`enum@Event`]. This is the intended way to handle normal per-bot
+    /// events.
     ///
     /// Currently you can have up to one handler.
     ///
@@ -221,7 +226,7 @@ where
     S: Send + Sync + Clone + Component + 'static,
 {
     /// Set the function that's called every time the swarm receives a
-    /// [`SwarmEvent`]. This is the way to handle global swarm events.
+    /// [`SwarmEvent`]. This is the intended way to handle global swarm events.
     ///
     /// Currently you can have up to one swarm handler.
     ///
@@ -306,8 +311,9 @@ where
         self
     }
 
-    /// Add a single new [`Account`] to the swarm. Use [`Self::add_accounts`] to
-    /// add multiple accounts at a time.
+    /// Add a single new [`Account`] to the swarm.
+    ///
+    /// Use [`Self::add_accounts`] to add multiple accounts at a time.
     ///
     /// This will make the state for this client be the default, use
     /// [`Self::add_account_with_state`] to avoid that.
@@ -319,15 +325,19 @@ where
         self.add_account_with_state_and_opts(account, S::default(), JoinOpts::default())
     }
 
-    /// Add an account with a custom initial state. Use just
-    /// [`Self::add_account`] to use the Default implementation for the state.
+    /// Add an account with a custom initial state.
+    ///
+    /// Use just [`Self::add_account`] to use the `Default` implementation for
+    /// the state.
     #[must_use]
     pub fn add_account_with_state(self, account: Account, state: S) -> Self {
         self.add_account_with_state_and_opts(account, state, JoinOpts::default())
     }
 
-    /// Add an account with a custom initial state. Use just
-    /// [`Self::add_account`] to use the Default implementation for the state.
+    /// Add an account with a custom initial state.
+    ///
+    /// Use just [`Self::add_account`] to use the `Default` implementation for
+    /// the state.
     #[must_use]
     pub fn add_account_with_opts(self, account: Account, opts: JoinOpts) -> Self
     where
@@ -612,8 +622,10 @@ impl Default for SwarmBuilder<NoState, NoSwarmState, (), ()> {
 pub enum SwarmEvent {
     /// All the bots in the swarm have successfully joined the server.
     Login,
-    /// The swarm was created. This is only fired once, and it's guaranteed to
-    /// be the first event to fire.
+    /// The swarm was created.
+    ///
+    /// This is only fired once, and it's guaranteed to be the first event to
+    /// fire.
     Init,
     /// A bot got disconnected from the server.
     ///
@@ -688,8 +700,9 @@ pub type BoxSwarmHandleFn<SS, R> =
 ///     Ok(())
 /// }
 impl Swarm {
-    /// Add a new account to the swarm. You can remove it later by calling
-    /// [`Client::disconnect`].
+    /// Add a new account to the swarm.
+    ///
+    /// You can remove it later by calling [`Client::disconnect`].
     ///
     /// # Errors
     ///
@@ -702,9 +715,10 @@ impl Swarm {
         self.add_with_opts(account, state, &JoinOpts::default())
             .await
     }
-    /// Add a new account to the swarm, using custom options. This is useful if
-    /// you want bots in the same swarm to connect to different addresses.
-    /// Usually you'll just want [`Self::add`] though.
+    /// Add a new account to the swarm, using custom options.
+    ///
+    /// This is useful if you want bots in the same swarm to connect to
+    /// different addresses. Usually you'll just want [`Self::add`] though.
     ///
     /// # Errors
     ///
@@ -831,8 +845,9 @@ impl Swarm {
         );
     }
 
-    /// Add a new account to the swarm, retrying if it couldn't join. This will
-    /// run forever until the bot joins or the task is aborted.
+    /// Add a new account to the swarm, retrying if it couldn't join.
+    ///
+    /// This will run forever until the bot joins or the task is aborted.
     ///
     /// This does exponential backoff (though very limited), starting at 5
     /// seconds and doubling up to 15 seconds.
@@ -928,8 +943,9 @@ impl PluginGroup for DefaultSwarmPlugins {
     }
 }
 
-/// A marker that can be used in place of a SwarmState in [`SwarmBuilder`]. You
-/// probably don't need to use this manually since the compiler will infer it
-/// for you.
+/// A marker that can be used in place of a SwarmState in [`SwarmBuilder`].
+///
+/// You probably don't need to use this manually since the compiler will infer
+/// it for you.
 #[derive(Resource, Clone, Default)]
 pub struct NoSwarmState;
