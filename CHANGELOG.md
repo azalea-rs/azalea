@@ -11,6 +11,7 @@ is breaking anyways, semantic versioning is not followed.
 ### Added
 
 - Add `Client::query_entity` and `try_query_entity` to complement `query_self`.
+- Add `Client::entity_interact` and `EntityInteractEvent` to interact with entities without checking that they're in the crosshair.
 
 ### Changed
 
@@ -19,16 +20,20 @@ is breaking anyways, semantic versioning is not followed.
 - `Client::query`, `map_component`, and `map_get_component` were replaced by `Client::query_self`.
 - Rename `SendPacketEvent` to `SendGamePacketEvent` and `PingEvent` to `GamePingEvent`.
 - Swap the order of the type parameters in entity filtering functions so query is first, then filter.
-- Add `timeout_ticks` field to `Client::open_container_at`.
+- Add optional `timeout_ticks` field to `Client::open_container_at`.
 
 ### Fixed
 
 - The wrong path was temporarily executed if we received a `GotoEvent` while the path that's being executed was more than 50 nodes long.
 - The pathfinder can now jump from dirt path and farmland blocks correctly.
 - Don't panic when receiving an unexpected `PathFoundEvent`. (@Hiradpi)
-- The pathfinder sometimes got stuck when going up stairs.
+- The pathfinder sometimes got stuck when going up stairs that are facing the wrong direction.
 - ReachBlockPosGoal had the wrong cost when the destination is surrounded in blocks.
 - Some parkour movements had the wrong costs.
+- The pathfinder no longer spins when descending more than one block.
+- The pathfinder now avoids slipping off when the last block of the path is on ice.
+- The 'with' field in formatted text didn't correctly support mixed types. (@Tert0)
+- The WritableBookContent and ResolvableProfile data components had the wrong protocol implementations.
 
 ## [0.14.0+mc1.21.8] - 2025-09-28
 
