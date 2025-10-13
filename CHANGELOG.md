@@ -19,6 +19,7 @@ is breaking anyways, semantic versioning is not followed.
 - `Client::query`, `map_component`, and `map_get_component` were replaced by `Client::query_self`.
 - Rename `SendPacketEvent` to `SendGamePacketEvent` and `PingEvent` to `GamePingEvent`.
 - Swap the order of the type parameters in entity filtering functions so query is first, then filter.
+- Add `timeout_ticks` field to `Client::open_container_at`.
 
 ### Fixed
 

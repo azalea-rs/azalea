@@ -31,6 +31,11 @@ pub trait ContainerClientExt {
     ///
     /// Use [`Client::open_inventory`] to open your own inventory.
     ///
+    /// `timeout_ticks` indicates how long the client will wait before giving
+    /// up and returning `None`. You may need to adjust it based on latency.
+    /// Setting the timeout to `None` will result in waiting potentially
+    /// forever.
+    ///
     /// ```
     /// # use azalea::prelude::*;
     /// # async fn example(mut bot: azalea::Client) {
@@ -48,7 +53,20 @@ pub trait ContainerClientExt {
     fn open_container_at(
         &self,
         pos: BlockPos,
+        timeout_ticks: Option<usize>,
     ) -> impl Future<Output = Option<ContainerHandle>> + Send;
+
+    /// Wait until a container is open, up to the specified number of ticks.
+    ///
+    /// Returns `None` if the container was immediately opened and closed, or if
+    /// the timeout expires.
+    ///
+    /// If `timeout_ticks` is None, there will be no timeout.
+    fn wait_for_container_open(
+        &self,
+        timeout_ticks: Option<usize>,
+    ) -> impl Future<Output = Option<ContainerHandle>> + Send;
+
     /// Open the player's inventory.
     ///
     /// This will return None if another container is open.
@@ -79,17 +97,16 @@ pub trait ContainerClientExt {
 }
 
 impl ContainerClientExt for Client {
-    async fn open_container_at(&self, pos: BlockPos) -> Option<ContainerHandle> {
+    async fn open_container_at(
+        &self,
+        pos: BlockPos,
+        timeout_ticks: Option<usize>,
+    ) -> Option<ContainerHandle> {
         let mut ticks = self.get_tick_broadcaster();
         // wait until it's not air (up to 10 ticks)
         for _ in 0..10 {
-            if !self
-                .world()
-                .read()
-                .get_block_state(pos)
-                .unwrap_or_default()
-                .is_collision_shape_empty()
-            {
+            let block = self.world().read().get_block_state(pos).unwrap_or_default();
+            if !block.is_collision_shape_empty() {
                 break;
             }
             let _ = ticks.recv().await;
@@ -101,10 +118,26 @@ impl ContainerClientExt for Client {
             .insert(WaitingForInventoryOpen);
         self.block_interact(pos);
 
+        self.wait_for_container_open(timeout_ticks).await
+    }
+
+    async fn wait_for_container_open(
+        &self,
+        timeout_ticks: Option<usize>,
+    ) -> Option<ContainerHandle> {
+        let mut ticks = self.get_tick_broadcaster();
+        let mut elapsed_ticks = 0;
         while ticks.recv().await.is_ok() {
             let ecs = self.ecs.lock();
             if ecs.get::<WaitingForInventoryOpen>(self.entity).is_none() {
                 break;
+            }
+
+            elapsed_ticks += 1;
+            if let Some(timeout_ticks) = timeout_ticks {
+                if elapsed_ticks >= timeout_ticks {
+                    return None;
+                }
             }
         }
 
