@@ -11,11 +11,12 @@ use azalea_core::{
     tick::GameTick,
 };
 use azalea_entity::{
-    Attributes, LocalEntity, LookDirection, PlayerAbilities,
+    Attributes, LocalEntity, LookDirection, PlayerAbilities, Position,
     attributes::{
         creative_block_interaction_range_modifier, creative_entity_interaction_range_modifier,
     },
     clamp_look_direction,
+    indexing::EntityIdIndex,
 };
 use azalea_inventory::{ItemStack, ItemStackData, components};
 use azalea_physics::{
@@ -28,7 +29,7 @@ use azalea_protocol::packets::game::{
     s_swing::ServerboundSwing,
     s_use_item_on::ServerboundUseItemOn,
 };
-use azalea_world::{Instance, MinecraftEntityId};
+use azalea_world::Instance;
 use bevy_app::{App, Plugin, Update};
 use bevy_ecs::prelude::*;
 use tracing::warn;
@@ -50,6 +51,7 @@ pub struct InteractPlugin;
 impl Plugin for InteractPlugin {
     fn build(&self, app: &mut App) {
         app.add_message::<StartUseItemEvent>()
+            .add_message::<EntityInteractEvent>()
             .add_systems(
                 Update,
                 (
@@ -72,7 +74,9 @@ impl Plugin for InteractPlugin {
             )
             .add_systems(
                 GameTick,
-                handle_start_use_item_queued.before(PhysicsSystems),
+                (handle_start_use_item_queued, handle_entity_interact)
+                    .chain()
+                    .before(PhysicsSystems),
             )
             .add_observer(handle_swing_arm_trigger);
     }
@@ -98,13 +102,26 @@ impl Client {
         });
     }
 
+    /// Right-click an entity.
+    ///
+    /// This can click through walls, which may trigger anticheats. If that
+    /// behavior isn't desired, consider using [`Client::start_use_item`]
+    /// instead.
+    pub fn entity_interact(&self, entity: Entity) {
+        self.ecs.lock().write_message(EntityInteractEvent {
+            client: self.entity,
+            target: entity,
+            location: None,
+        });
+    }
+
     /// Right-click the currently held item.
     ///
     /// If the item is consumable, then it'll act as if right-click was held
     /// until the item finishes being consumed. You can use this to eat food.
     ///
     /// If we're looking at a block or entity, then it will be clicked. Also see
-    /// [`Client::block_interact`].
+    /// [`Client::block_interact`] and [`Client::entity_interact`].
     pub fn start_use_item(&self) {
         self.ecs.lock().write_message(StartUseItemEvent {
             entity: self.entity,
@@ -256,20 +273,12 @@ pub fn handle_start_use_item_queued(
         &mut BlockStatePredictionHandler,
         &HitResultComponent,
         &LookDirection,
-        &PhysicsState,
         Option<&Mining>,
     )>,
-    entity_id_query: Query<&MinecraftEntityId>,
+    mut entity_interact: MessageWriter<EntityInteractEvent>,
 ) {
-    for (
-        entity,
-        start_use_item,
-        mut prediction_handler,
-        hit_result,
-        look_direction,
-        physics_state,
-        mining,
-    ) in query
+    for (entity, start_use_item, mut prediction_handler, hit_result, look_direction, mining) in
+        query
     {
         commands.entity(entity).remove::<StartUseItemQueued>();
 
@@ -331,34 +340,93 @@ pub fn handle_start_use_item_queued(
                 }
             }
             HitResult::Entity(r) => {
-                // TODO: worldborder check
+                entity_interact.write(EntityInteractEvent {
+                    client: entity,
+                    target: r.entity,
+                    location: Some(r.location),
+                });
+            }
+        }
+    }
+}
 
-                let Ok(entity_id) = entity_id_query.get(r.entity).copied() else {
-                    warn!("tried to interact with an entity that doesn't have MinecraftEntityId");
+/// An ECS `Message` that makes the client tell the server that we right-clicked
+/// an entity.
+#[derive(Message)]
+pub struct EntityInteractEvent {
+    pub client: Entity,
+    pub target: Entity,
+    /// The position on the entity that we'll tell the server that we clicked
+    /// on.
+    ///
+    /// This doesn't matter for most entities. If it's set to `None` but we're
+    /// looking at the target, it'll use the correct value. If it's `None` and
+    /// we're not looking at the entity, then it'll arbitrary send the target's
+    /// exact position.
+    pub location: Option<Vec3>,
+}
+
+pub fn handle_entity_interact(
+    mut events: MessageReader<EntityInteractEvent>,
+    mut commands: Commands,
+    client_query: Query<(&PhysicsState, &EntityIdIndex, &HitResultComponent)>,
+    target_query: Query<&Position>,
+) {
+    for event in events.read() {
+        let Some((physics_state, entity_id_index, hit_result)) =
+            client_query.get(event.target).ok()
+        else {
+            warn!(
+                "tried to interact with an entity but the client didn't have the required components"
+            );
+            continue;
+        };
+
+        // TODO: worldborder check
+
+        let Some(entity_id) = entity_id_index.get_by_ecs_entity(event.target) else {
+            warn!("tried to interact with an entity that isn't known by the client");
+            continue;
+        };
+
+        let location = if let Some(l) = event.location {
+            l
+        } else {
+            // if we're looking at the entity, use that
+            if let Some(entity_hit_result) = hit_result.as_entity_hit_result()
+                && entity_hit_result.entity == event.target
+            {
+                entity_hit_result.location
+            } else {
+                // if we're not looking at the entity, make up a value that's good enough by
+                // using the entity's position
+                let Ok(target_position) = target_query.get(event.target) else {
+                    warn!("tried to look at an entity without the entity having a position");
                     continue;
                 };
-
-                let mut interact = ServerboundInteract {
-                    entity_id,
-                    action: s_interact::ActionType::InteractAt {
-                        location: r.location,
-                        hand: InteractionHand::MainHand,
-                    },
-                    using_secondary_action: physics_state.trying_to_crouch,
-                };
-                commands.trigger(SendGamePacketEvent::new(entity, interact.clone()));
-                // TODO: this is true if the interaction failed, which i think can only happen
-                // in certain cases when interacting with armor stands
-                let consumes_action = false;
-                if !consumes_action {
-                    // but yes, most of the time vanilla really does send two interact packets like
-                    // this
-                    interact.action = s_interact::ActionType::Interact {
-                        hand: InteractionHand::MainHand,
-                    };
-                    commands.trigger(SendGamePacketEvent::new(entity, interact));
-                }
+                **target_position
             }
+        };
+
+        let mut interact = ServerboundInteract {
+            entity_id,
+            action: s_interact::ActionType::InteractAt {
+                location,
+                hand: InteractionHand::MainHand,
+            },
+            using_secondary_action: physics_state.trying_to_crouch,
+        };
+        commands.trigger(SendGamePacketEvent::new(event.client, interact.clone()));
+        // TODO: this is true if the interaction failed, which i think can only happen
+        // in certain cases when interacting with armor stands
+        let consumes_action = false;
+        if !consumes_action {
+            // but yes, most of the time vanilla really does send two interact packets like
+            // this
+            interact.action = s_interact::ActionType::Interact {
+                hand: InteractionHand::MainHand,
+            };
+            commands.trigger(SendGamePacketEvent::new(event.client, interact));
         }
     }
 }
