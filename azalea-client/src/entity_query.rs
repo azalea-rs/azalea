@@ -96,8 +96,8 @@ impl Client {
     /// use bevy_ecs::query::With;
     ///
     /// # fn example(mut bot: Client, sender_name: String) {
-    /// let entity = bot.any_entity_by::<With<Player>, (&GameProfileComponent,)>(
-    ///     |(profile,): &(&GameProfileComponent,)| profile.name == sender_name,
+    /// let entity = bot.any_entity_by::<&GameProfileComponent, With<Player>>(
+    ///     |profile: &GameProfileComponent| profile.name == sender_name,
     /// );
     /// if let Some(entity) = entity {
     ///     let position = bot.entity_component::<Position>(entity);
@@ -108,7 +108,7 @@ impl Client {
     ///
     /// [`Entity`]: bevy_ecs::entity::Entity
     /// [`Instance`]: azalea_world::Instance
-    pub fn any_entity_by<F: QueryFilter, Q: QueryData>(
+    pub fn any_entity_by<Q: QueryData, F: QueryFilter>(
         &self,
         predicate: impl EntityPredicate<Q, F>,
     ) -> Option<Entity> {
@@ -133,7 +133,7 @@ impl Client {
     /// # fn example(mut bot: azalea_client::Client, sender_name: String) {
     /// // get the position of the nearest player
     /// if let Some(nearest_player) =
-    ///     bot.nearest_entity_by::<(With<Player>, Without<LocalEntity>), ()>(|_: &()| true)
+    ///     bot.nearest_entity_by::<(), (With<Player>, Without<LocalEntity>)>(|_: ()| true)
     /// {
     ///     let nearest_player_pos = *bot.entity_component::<Position>(nearest_player);
     ///     bot.chat(format!("You are at {nearest_player_pos}"));
@@ -142,7 +142,7 @@ impl Client {
     /// ```
     ///
     /// [`Entity`]: bevy_ecs::entity::Entity
-    pub fn nearest_entity_by<F: QueryFilter, Q: QueryData>(
+    pub fn nearest_entity_by<Q: QueryData, F: QueryFilter>(
         &self,
         predicate: impl EntityPredicate<Q, F>,
     ) -> Option<Entity> {
@@ -159,10 +159,10 @@ impl Client {
     /// # use bevy_ecs::query::{With, Without};
     /// # fn example(mut bot: azalea_client::Client, sender_name: String) {
     /// let nearby_players =
-    ///     bot.nearest_entities_by::<(With<Player>, Without<LocalEntity>), ()>(|_: &()| true);
+    ///     bot.nearest_entities_by::<(), (With<Player>, Without<LocalEntity>)>(|_: ()| true);
     /// # }
     /// ```
-    pub fn nearest_entities_by<F: QueryFilter, Q: QueryData>(
+    pub fn nearest_entities_by<Q: QueryData, F: QueryFilter>(
         &self,
         predicate: impl EntityPredicate<Q, F>,
     ) -> Vec<Entity> {
@@ -218,7 +218,8 @@ pub trait EntityPredicate<Q: QueryData, Filter: QueryFilter> {
 }
 impl<F, Q: QueryData, Filter: QueryFilter> EntityPredicate<Q, Filter> for F
 where
-    F: Fn(&ROQueryItem<Q>) -> bool,
+    F: Fn(ROQueryItem<Q>) -> bool,
+    for<'w, 's> <<Q as QueryData>::ReadOnly as QueryData>::Item<'w, 's>: Copy,
 {
     fn find_any(
         &self,
@@ -229,7 +230,7 @@ where
         let mut query = ecs.query_filtered::<(Entity, &InstanceName, Q), Filter>();
         query
             .iter(&ecs)
-            .find(|(_, e_instance_name, q)| *e_instance_name == instance_name && (self)(q))
+            .find(|(_, e_instance_name, q)| *e_instance_name == instance_name && (self)(*q))
             .map(|(e, _, _)| e)
     }
 
@@ -243,7 +244,7 @@ where
         let mut query = ecs.query_filtered::<(Entity, &InstanceName, &Position, Q), Filter>();
         let mut entities = query
             .iter(&ecs)
-            .filter(|(_, e_instance_name, _, q)| *e_instance_name == instance_name && (self)(q))
+            .filter(|(_, e_instance_name, _, q)| *e_instance_name == instance_name && (self)(*q))
             .map(|(e, _, position, _)| (e, Vec3::from(position)))
             .collect::<Vec<(Entity, Vec3)>>();
 

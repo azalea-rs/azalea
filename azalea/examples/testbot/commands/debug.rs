@@ -218,7 +218,7 @@ pub fn register(commands: &mut CommandDispatcher<Mutex<CommandSource>>) {
         let source = ctx.source.lock();
         let player_entities = source
             .bot
-            .nearest_entities_by::<With<metadata::Player>, ()>(|_: &()| true);
+            .nearest_entities_by::<(), With<metadata::Player>>(|_: ()| true);
         let tab_list = source.bot.tab_list();
         for player_entity in player_entities {
             let uuid = source.bot.entity_component::<EntityUuid>(player_entity);

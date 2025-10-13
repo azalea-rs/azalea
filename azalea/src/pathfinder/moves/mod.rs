@@ -217,19 +217,10 @@ pub struct IsReachedCtx<'a> {
 #[must_use]
 pub fn default_is_reached(
     IsReachedCtx {
-        position,
-        target,
-        physics,
-        ..
+        position, target, ..
     }: IsReachedCtx,
 ) -> bool {
-    if BlockPos::from(position) == target {
-        return true;
-    }
-
-    // this is to make it handle things like slabs correctly, if we're on the block
-    // below the target but on_ground
-    BlockPos::from(position).up(1) == target && physics.on_ground()
+    player_pos_to_block_pos(position) == target
 }
 
 pub struct PathfinderCtx<'a> {
